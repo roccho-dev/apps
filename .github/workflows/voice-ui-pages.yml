@@ -72,6 +72,16 @@ jobs:
             npx --yes wrangler@$WRANGLER_VERSION pages project create "$PROJECT" --production-branch proposals
           fi
 
+      - name: Verify Pages runtime secret
+        shell: bash
+        run: |
+          set -euo pipefail
+          current="$(npx --yes wrangler@$WRANGLER_VERSION pages secret list --project-name "$PROJECT")"
+          grep -q 'JEV_API_KEY' <<<"$current" || {
+            echo "Cloudflare Pages runtime secret JEV_API_KEY is required" >&2
+            exit 4
+          }
+
       - name: Build exact Hayamimi package
         shell: bash
         run: |
@@ -176,22 +186,6 @@ jobs:
           set -euo pipefail
           npx --yes wrangler@$WRANGLER_VERSION pages functions build .pages/functions             --project-directory .pages             --outfile "$RUNNER_TEMP/voice-ui-worker.js"
           test -s "$RUNNER_TEMP/voice-ui-worker.js"
-
-      - name: Ensure Pages runtime secret
-        env:
-          JEV_API_KEY_INGRESS: ${{ secrets.JEV_API_KEY }}
-        shell: bash
-        run: |
-          set -euo pipefail
-          current="$(npx --yes wrangler@$WRANGLER_VERSION pages secret list --project-name "$PROJECT")"
-          if grep -q 'JEV_API_KEY' <<<"$current"; then
-            exit 0
-          fi
-          if [ -z "$JEV_API_KEY_INGRESS" ]; then
-            echo "JEV_API_KEY is not provisioned in Pages and no transient apps ingress is available" >&2
-            exit 4
-          fi
-          printf '%s' "$JEV_API_KEY_INGRESS"             | npx --yes wrangler@$WRANGLER_VERSION pages secret put JEV_API_KEY --project-name "$PROJECT"
 
       - name: Deploy Pages + Pages Functions
         id: deploy
