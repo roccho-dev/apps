@@ -22,7 +22,6 @@ jobs:
       APP_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
       UI_SHA: 6c40231d991a2099bff8b35eff96055f197a82ae
       OPS_SHA: 1c51c5312a88fec10c6d3ab1e70054f434e6e48c
-      ENVS_SHA: 472c047a51e6aef01d8c4bb77e463838a8d6906a
       PROJECT: voice-ui
       WRANGLER_VERSION: 4.112.0
       EMSDK_VERSION: 4.0.23
@@ -54,14 +53,6 @@ jobs:
           path: .build/ops
           persist-credentials: false
 
-      - name: Checkout exact secret authority
-        uses: actions/checkout@v4
-        with:
-          repository: roccho-dev/envs
-          ref: ${{ env.ENVS_SHA }}
-          path: .build/envs
-          persist-credentials: false
-
       - name: Verify exact authorities
         shell: bash
         run: |
@@ -69,9 +60,6 @@ jobs:
           test "$(git rev-parse HEAD)" = "$APP_SHA"
           test "$(git -C .build/ui rev-parse HEAD)" = "$UI_SHA"
           test "$(git -C .build/ops rev-parse HEAD)" = "$OPS_SHA"
-          test "$(git -C .build/envs rev-parse HEAD)" = "$ENVS_SHA"
-          grep -q '^JEV_API_KEY: ENC\[AES256_GCM,' .build/envs/secrets/jev-api-key.sops.yaml
-          grep -q 'recipient: age1' .build/envs/secrets/jev-api-key.sops.yaml
 
       - name: Verify Cloudflare Pages access and project
         shell: bash
@@ -189,27 +177,21 @@ jobs:
           npx --yes wrangler@$WRANGLER_VERSION pages functions build .pages/functions             --project-directory .pages             --outfile "$RUNNER_TEMP/voice-ui-worker.js"
           test -s "$RUNNER_TEMP/voice-ui-worker.js"
 
-      - uses: cachix/install-nix-action@v31
-        with:
-          extra_nix_config: |
-            extra-experimental-features = nix-command flakes
-
-      - name: Resolve pinned SOPS
-        shell: bash
-        run: |
-          set -euo pipefail
-          out="$(nix build --no-link --print-out-paths github:NixOS/nixpkgs/f9948418dc8628ac02b6d6337e191ade9429d59d#sops)"
-          test -x "$out/bin/sops"
-          printf 'SOPS_BIN=%s/bin/sops\n' "$out" >> "$GITHUB_ENV"
-
-      - name: Set Pages runtime secret
+      - name: Ensure Pages runtime secret
         env:
-          SOPS_AGE_KEY: ${{ secrets.SOPS_AGE_KEY }}
+          JEV_API_KEY_INGRESS: ${{ secrets.JEV_API_KEY }}
         shell: bash
         run: |
           set -euo pipefail
-          test -n "$SOPS_AGE_KEY"
-          "$SOPS_BIN" --decrypt --output-type json .build/envs/secrets/jev-api-key.sops.yaml             | jq -r '.JEV_API_KEY'             | npx --yes wrangler@$WRANGLER_VERSION pages secret put JEV_API_KEY --project-name "$PROJECT"
+          current="$(npx --yes wrangler@$WRANGLER_VERSION pages secret list --project-name "$PROJECT")"
+          if grep -q 'JEV_API_KEY' <<<"$current"; then
+            exit 0
+          fi
+          if [ -z "$JEV_API_KEY_INGRESS" ]; then
+            echo "JEV_API_KEY is not provisioned in Pages and no transient apps ingress is available" >&2
+            exit 4
+          fi
+          printf '%s' "$JEV_API_KEY_INGRESS"             | npx --yes wrangler@$WRANGLER_VERSION pages secret put JEV_API_KEY --project-name "$PROJECT"
 
       - name: Deploy Pages + Pages Functions
         id: deploy
