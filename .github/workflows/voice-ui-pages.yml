@@ -67,10 +67,19 @@ jobs:
           set -euo pipefail
           test -n "$CLOUDFLARE_API_TOKEN"
           test -n "$CLOUDFLARE_ACCOUNT_ID"
-          projects="$(npx --yes wrangler@$WRANGLER_VERSION pages project list --json)"
-          if ! jq -e --arg name "$PROJECT" 'any(.[]; .name == $name)' <<<"$projects" >/dev/null; then
-            npx --yes wrangler@$WRANGLER_VERSION pages project create "$PROJECT" --production-branch proposals
+          project_api="https://api.cloudflare.com/client/v4/accounts/$CLOUDFLARE_ACCOUNT_ID/pages/projects/$PROJECT"
+          response="$(
+            curl --silent --show-error               --header "Authorization: Bearer $CLOUDFLARE_API_TOKEN"               "$project_api"
+          )"
+          if jq -e --arg name "$PROJECT" '.success == true and .result.name == $name' <<<"$response" >/dev/null; then
+            exit 0
           fi
+          if jq -e 'any(.errors[]?; .code == 8000007 or .code == 8000001)' <<<"$response" >/dev/null; then
+            npx --yes wrangler@$WRANGLER_VERSION pages project create "$PROJECT" --production-branch proposals
+            exit 0
+          fi
+          jq -c '{success,errors}' <<<"$response" >&2
+          exit 3
 
       - name: Verify Pages runtime secret
         shell: bash
