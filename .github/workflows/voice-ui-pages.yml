@@ -1,0 +1,247 @@
+name: voice-ui pages
+
+on:
+  pull_request:
+    paths:
+      - ".github/workflows/voice-ui-pages.yml"
+      - "packages/voice-ui/**"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: voice-ui-pages-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  deploy-e2e:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+    env:
+      APP_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+      UI_SHA: 6c40231d991a2099bff8b35eff96055f197a82ae
+      OPS_SHA: 1c51c5312a88fec10c6d3ab1e70054f434e6e48c
+      PROJECT: voice-ui
+      WRANGLER_VERSION: 4.112.0
+      EMSDK_VERSION: 4.0.23
+      EMSDK_SHA: c0bb220cb6e6f4e0fabb6f6db9efd53390ef5e56
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      CLOUDFLARE_ACCOUNT_ID: ${{ vars.CLOUDFLARE_ACCOUNT_ID || secrets.CLOUDFLARE_ACCOUNT_ID }}
+
+    steps:
+      - name: Checkout apps exact head
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ env.APP_SHA }}
+          fetch-depth: 1
+          persist-credentials: false
+
+      - name: Checkout exact UI authority
+        uses: actions/checkout@v4
+        with:
+          repository: roccho-dev/ui
+          ref: ${{ env.UI_SHA }}
+          path: .build/ui
+          persist-credentials: false
+
+      - name: Checkout exact Hayamimi authority
+        uses: actions/checkout@v4
+        with:
+          repository: roccho-dev/ops
+          ref: ${{ env.OPS_SHA }}
+          path: .build/ops
+          persist-credentials: false
+
+      - name: Verify exact authorities
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "$APP_SHA"
+          test "$(git -C .build/ui rev-parse HEAD)" = "$UI_SHA"
+          test "$(git -C .build/ops rev-parse HEAD)" = "$OPS_SHA"
+
+      - name: Verify Cloudflare Pages access and project
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -n "$CLOUDFLARE_API_TOKEN"
+          test -n "$CLOUDFLARE_ACCOUNT_ID"
+          projects="$(npx --yes wrangler@$WRANGLER_VERSION pages project list --json)"
+          if ! jq -e --arg name "$PROJECT" 'any(.[]; .name == $name)' <<<"$projects" >/dev/null; then
+            npx --yes wrangler@$WRANGLER_VERSION pages project create "$PROJECT" --production-branch proposals
+          fi
+
+      - name: Build exact Hayamimi package
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 .build/ops/packages/hayamimi-web/build/fetch.py             --root .build/ops/packages/hayamimi-web             --work "$RUNNER_TEMP/hayamimi"
+          python3 .build/ops/packages/hayamimi-web/build/verify-sources.py             --root .build/ops/packages/hayamimi-web             --work "$RUNNER_TEMP/hayamimi"
+
+          git clone --depth 1 --branch "$EMSDK_VERSION" https://github.com/emscripten-core/emsdk.git "$RUNNER_TEMP/emsdk"
+          test "$(git -C "$RUNNER_TEMP/emsdk" rev-parse HEAD)" = "$EMSDK_SHA"
+          "$RUNNER_TEMP/emsdk/emsdk" install "$EMSDK_VERSION"
+          "$RUNNER_TEMP/emsdk/emsdk" activate "$EMSDK_VERSION"
+          source "$RUNNER_TEMP/emsdk/emsdk_env.sh"
+
+          bash .build/ops/packages/hayamimi-web/build/wasm.sh "$RUNNER_TEMP/hayamimi"
+          python3 .build/ops/packages/hayamimi-web/build/assemble.py             --root .build/ops/packages/hayamimi-web             --work "$RUNNER_TEMP/hayamimi"             --out "$RUNNER_TEMP/hayamimi-dist"
+          python3 .build/ops/packages/hayamimi-web/build/verify-dist.py "$RUNNER_TEMP/hayamimi-dist"
+
+      - name: Materialize deterministic Pages tree
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -rf .pages
+          mkdir -p             .pages/site/app             .pages/site/ui/ui-ir             .pages/site/ui/a2ui-browser             .pages/site/hayamimi             .pages/functions/api
+
+          cp packages/voice-ui/web/index.html .pages/site/index.html
+          cp -R packages/voice-ui/src .pages/site/app/src
+          cp .build/ui/packages/ui-ir/src/index.mjs .pages/site/ui/ui-ir/index.mjs
+          cp -R .build/ui/packages/a2ui-browser/src/. .pages/site/ui/a2ui-browser/
+          cp -R "$RUNNER_TEMP/hayamimi-dist/runtime" .pages/site/hayamimi/runtime
+          cp -R "$RUNNER_TEMP/hayamimi-dist/sherpa" .pages/site/hayamimi/sherpa
+          cp "$RUNNER_TEMP/hayamimi-dist/THIRD_PARTY_NOTICES.md" .pages/site/hayamimi/THIRD_PARTY_NOTICES.md
+          cp packages/voice-ui/functions/api/jev.mjs .pages/functions/api/jev.mjs
+
+          python3 - <<'PY'
+          import hashlib, json
+          from pathlib import Path
+
+          site = Path(".pages/site")
+          data = site / "hayamimi/sherpa/sherpa-onnx-wasm-main-vad-asr.data"
+          chunk_size = 20 * 1024 * 1024
+          raw = data.read_bytes()
+          parts = []
+          for index, start in enumerate(range(0, len(raw), chunk_size)):
+              part = raw[start:start + chunk_size]
+              name = f"data.part{index:03d}"
+              (data.parent / name).write_bytes(part)
+              parts.append({"path": name, "bytes": len(part), "sha256": hashlib.sha256(part).hexdigest()})
+          (data.parent / "data.parts.json").write_text(
+              json.dumps({"bytes": len(raw), "parts": parts}, separators=(",", ":")) + "\n",
+              encoding="utf-8",
+          )
+          data.unlink()
+
+          sw = r'''const target="/hayamimi/sherpa/sherpa-onnx-wasm-main-vad-asr.data";
+          self.addEventListener("install",()=>self.skipWaiting());
+          self.addEventListener("activate",event=>event.waitUntil(self.clients.claim()));
+          self.addEventListener("fetch",event=>{
+            const url=new URL(event.request.url);
+            if(event.request.method!=="GET"||url.origin!==self.location.origin||url.pathname!==target)return;
+            event.respondWith((async()=>{
+              const metaResponse=await fetch("/hayamimi/sherpa/data.parts.json",{cache:"no-store"});
+              if(!metaResponse.ok)return new Response("model manifest unavailable",{status:502});
+              const meta=await metaResponse.json();
+              const stream=new ReadableStream({async start(controller){
+                try{
+                  for(const part of meta.parts){
+                    const response=await fetch("/hayamimi/sherpa/"+part.path);
+                    if(!response.ok)throw new Error("model chunk unavailable");
+                    const reader=response.body.getReader();
+                    while(true){
+                      const value=await reader.read();
+                      if(value.done)break;
+                      controller.enqueue(value.value);
+                    }
+                  }
+                  controller.close();
+                }catch(error){controller.error(error);}
+              }});
+              return new Response(stream,{headers:{
+                "content-type":"application/octet-stream",
+                "content-length":String(meta.bytes),
+                "cache-control":"public, max-age=31536000, immutable"
+              }});
+            })());
+          });'''
+          (site / "sw.js").write_text(sw + "\n", encoding="utf-8")
+
+          files = [path for path in site.rglob("*") if path.is_file()]
+          limit = 25 * 1024 * 1024
+          oversized = [(str(path), path.stat().st_size) for path in files if path.stat().st_size > limit]
+          if oversized:
+              raise SystemExit(f"Pages file limit exceeded: {oversized}")
+          if any("sherpa-pja" in path.as_posix() for path in files):
+              raise SystemExit("second-opinion runtime must not be projected")
+          if any(b"JEV_API_KEY" in path.read_bytes() for path in files):
+              raise SystemExit("JEV secret identifier leaked into public static tree")
+          PY
+
+      - name: Check Pages Function build
+        shell: bash
+        run: |
+          set -euo pipefail
+          npx --yes wrangler@$WRANGLER_VERSION pages functions build .pages/functions             --project-directory .pages             --outfile "$RUNNER_TEMP/voice-ui-worker.js"
+          test -s "$RUNNER_TEMP/voice-ui-worker.js"
+
+      - name: Ensure Pages runtime secret
+        env:
+          JEV_API_KEY_INGRESS: ${{ secrets.JEV_API_KEY }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          current="$(npx --yes wrangler@$WRANGLER_VERSION pages secret list --project-name "$PROJECT")"
+          if grep -q 'JEV_API_KEY' <<<"$current"; then
+            exit 0
+          fi
+          if [ -z "$JEV_API_KEY_INGRESS" ]; then
+            echo "JEV_API_KEY is not provisioned in Pages and no transient apps ingress is available" >&2
+            exit 4
+          fi
+          printf '%s' "$JEV_API_KEY_INGRESS"             | npx --yes wrangler@$WRANGLER_VERSION pages secret put JEV_API_KEY --project-name "$PROJECT"
+
+      - name: Deploy Pages + Pages Functions
+        id: deploy
+        uses: cloudflare/wrangler-action@v4
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          wranglerVersion: "4.112.0"
+          workingDirectory: ".pages"
+          command: >-
+            pages deploy site
+            --project-name=voice-ui
+            --branch=proposals
+            --commit-hash=${{ env.APP_SHA }}
+
+      - name: Public readback
+        env:
+          DEPLOYMENT_URL: ${{ steps.deploy.outputs.deployment-url }}
+          ALIAS_URL: ${{ steps.deploy.outputs.pages-deployment-alias-url }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -n "$DEPLOYMENT_URL"
+          curl --fail --silent --show-error --retry 10 --retry-delay 3 "$DEPLOYMENT_URL/" -o "$RUNNER_TEMP/deployment-index.html"
+          grep -q 'id="surface"' "$RUNNER_TEMP/deployment-index.html"
+          if [ -n "$ALIAS_URL" ]; then
+            curl --fail --silent --show-error --retry 10 --retry-delay 3 "$ALIAS_URL/" -o "$RUNNER_TEMP/alias-index.html"
+            cmp "$RUNNER_TEMP/deployment-index.html" "$RUNNER_TEMP/alias-index.html"
+          fi
+
+      - name: Install real-browser proof
+        shell: bash
+        run: |
+          set -euo pipefail
+          npm install --no-save playwright@1.63.0
+          npx playwright install --with-deps chromium
+
+      - name: Public browser E2E
+        env:
+          DEPLOYMENT_URL: ${{ steps.deploy.outputs.deployment-url }}
+          VOICE_WAV: ${{ runner.temp }}/hayamimi/sources/hayamimi/tests/golden/ja/ja_014.wav
+          VOICE_GOLDEN: ${{ runner.temp }}/hayamimi/sources/hayamimi/tests/golden/ja/golden.json
+        shell: bash
+        run: |
+          set -euo pipefail
+          node packages/voice-ui/tests/public-e2e.mjs "$DEPLOYMENT_URL"
+
+      - name: Result
+        env:
+          DEPLOYMENT_URL: ${{ steps.deploy.outputs.deployment-url }}
+          ALIAS_URL: ${{ steps.deploy.outputs.pages-deployment-alias-url }}
+        run: |
+          printf 'deployment=%s\nalias=%s\n' "$DEPLOYMENT_URL" "$ALIAS_URL"

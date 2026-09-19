@@ -1,0 +1,1 @@
+{"authority":false,"dispatch":["pull_request","push"],"entrypoint":"nix flake check","generation_mode":"checked_in","kind":"ci.intent.v1","path":".github/workflows/nix-check.yml","provider":"github-actions","push_branches":["main"],"role":"primary_nix_check"}
