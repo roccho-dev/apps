@@ -6,6 +6,112 @@
     <title>voice-ui</title>
   </head>
   <body>
-    <main id="voice-ui" data-app="voice-ui"></main>
+    <main>
+      <textarea id="text" aria-label="Input"></textarea>
+      <button id="send" type="button">Send</button>
+      <button id="mic" type="button">Voice</button>
+      <p id="status" role="status"></p>
+      <section id="surface" aria-label="Result"></section>
+    </main>
+
+    <script type="module">
+      import { createVoiceUiApp } from "/app/src/app.mjs";
+      import { createHayamimi } from "/hayamimi/runtime/api/hayamimi.mjs";
+      import { validateUiIr } from "/ui/ui-ir/index.mjs";
+      import { renderTrustedSurface } from "/ui/a2ui-browser/render/trusted-dom.mjs";
+
+      const text = document.querySelector("#text");
+      const send = document.querySelector("#send");
+      const mic = document.querySelector("#mic");
+      const status = document.querySelector("#status");
+      const surface = document.querySelector("#surface");
+
+      const serviceWorkerReady = (async () => {
+        if (!("serviceWorker" in navigator)) throw new Error("service worker is required");
+        await navigator.serviceWorker.register("/sw.js", { scope: "/" });
+        await navigator.serviceWorker.ready;
+        if (!navigator.serviceWorker.controller) {
+          await new Promise(resolve =>
+            navigator.serviceWorker.addEventListener("controllerchange", resolve, { once: true })
+          );
+        }
+      })();
+
+      const decide = async value => {
+        const response = await fetch("/api/jev", {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify({ kind: "voice-ui.jev.request.v1", text: value }),
+        });
+        if (!response.ok) throw new Error("Jev request failed");
+        return response.json();
+      };
+
+      const render = ir => {
+        validateUiIr(ir);
+        if (ir.capability !== "a2ui-browser" || ir.payloadKind !== "a2ui.surface.v1") {
+          throw new Error("unsupported UI capability");
+        }
+        renderTrustedSurface({
+          components: ir.payload.components,
+          dataModel: ir.payload.dataModel,
+          document,
+          mount: surface,
+        });
+        return ir;
+      };
+
+      let hayamimi;
+      const transcribe = async () => {
+        await serviceWorkerReady;
+        hayamimi ??= createHayamimi();
+        return new Promise((resolve, reject) => {
+          const timeout = setTimeout(() => {
+            hayamimi.onText = null;
+            reject(new Error("voice transcription timed out"));
+          }, 300000);
+          hayamimi.onText = async value => {
+            clearTimeout(timeout);
+            hayamimi.onText = null;
+            try {
+              await hayamimi.stop();
+              text.value = value;
+              resolve(value);
+            } catch (error) {
+              reject(error);
+            }
+          };
+          hayamimi.start().catch(error => {
+            clearTimeout(timeout);
+            hayamimi.onText = null;
+            reject(error);
+          });
+        });
+      };
+
+      const app = createVoiceUiApp({ transcribe, decide, render });
+
+      send.addEventListener("click", async () => {
+        status.textContent = "type: working";
+        try {
+          await app.submitType(text.value);
+          status.textContent = "type: rendered";
+        } catch {
+          status.textContent = "type: failed";
+        }
+      });
+
+      mic.addEventListener("click", async () => {
+        status.textContent = "voice: listening";
+        try {
+          await app.submitVoice(null);
+          status.textContent = "voice: rendered";
+        } catch {
+          status.textContent = "voice: failed";
+        }
+      });
+
+      window.voiceUiReady = true;
+    </script>
   </body>
 </html>
