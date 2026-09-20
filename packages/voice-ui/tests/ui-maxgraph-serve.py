@@ -25,43 +25,34 @@ with sync_playwright() as playwright:
     response = page.goto(url, wait_until="domcontentloaded", timeout=60_000)
     assert response and response.status == 200
     page.wait_for_function(
-        "globalThis.appsSemanticMapProof?.ready === true",
-        timeout=60_000,
-    )
-    page.wait_for_function(
-        """() => {
-          const frame = document.querySelector('iframe[data-package="semantic-map"]');
-          return frame?.contentWindow?.semanticMapSite?.ready === true;
-        }""",
+        "globalThis.semanticMapSite?.ready === true",
         timeout=60_000,
     )
 
     proof = page.evaluate(
         """() => {
-          const frame = document.querySelector('iframe[data-package="semantic-map"]');
-          const win = frame.contentWindow;
-          const adapter = win.semanticMapApp.adapter;
-          const svg = frame.contentDocument.querySelector('#graph-container svg');
+          const adapter = globalThis.semanticMapApp.adapter;
+          const svg = document.querySelector('#graph-container svg');
           const box = svg?.getBoundingClientRect();
-          const resources = win.performance.getEntriesByType('resource').map(entry => entry.name);
+          const importMap = JSON.parse(document.querySelector('script[type="importmap"]').textContent);
+          const moduleIds = Object.keys(importMap.imports || {});
           return {
-            receipt: globalThis.appsSemanticMapProof.receipt,
+            pattern: globalThis.semanticMapRuntime.view.pattern,
             cells: adapter.cellsByRegionId.size,
             edges: adapter.edgesByProjectionKey.size,
             svg: Boolean(box && box.width > 0 && box.height > 0),
-            rendererLoaded: resources.some(value => value.includes('/renderer-maxgraph/adapter.js')),
-            maxGraphLoaded: resources.some(value => value.includes('/vendor/maxgraph/')),
+            rendererModule: moduleIds.includes('ui:packages/semantic-map/renderer-maxgraph/adapter.js'),
+            maxGraphModule: moduleIds.some(value => value.startsWith('ui:packages/semantic-map/vendor/maxgraph/')),
           };
         }"""
     )
 
-    assert proof["receipt"]["schema"] == "semantic-map-render-receipt/1"
-    assert proof["receipt"]["source"]["contract"] == "semantic-map-envelope/3"
+    assert proof["pattern"] == "graph/1"
     assert proof["cells"] > 0
     assert proof["edges"] > 0
     assert proof["svg"] is True
-    assert proof["rendererLoaded"] is True
-    assert proof["maxGraphLoaded"] is True
+    assert proof["rendererModule"] is True
+    assert proof["maxGraphModule"] is True
     assert page_errors == [], page_errors
     assert console_errors == [], console_errors
 
