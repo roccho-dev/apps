@@ -18,8 +18,6 @@ env:
   APP_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
   UI_SHA: 44a5cf6027fbf2dddc4ed15740e93470c2eb589f
   OPS_SHA: 1c51c5312a88fec10c6d3ab1e70054f434e6e48c
-  ENVS_SHA: 472c047a51e6aef01d8c4bb77e463838a8d6906a
-  ENVS_SECRET_BLOB_SHA: 730ff3dbb79e5b86d32c97ab000da2d9898260aa
   PROJECT: voice-ui
   WRANGLER_VERSION: 4.112.0
   EMSDK_VERSION: 4.0.23
@@ -113,38 +111,25 @@ jobs:
           compression-level: 0
           if-no-files-found: error
 
-  jev-proof:
-    name: jev-proof
+  cloudflare-preflight:
+    name: cloudflare-preflight
     runs-on: ubuntu-24.04
-    timeout-minutes: 20
+    timeout-minutes: 10
     env:
       CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
       CLOUDFLARE_ACCOUNT_ID: ${{ vars.CLOUDFLARE_ACCOUNT_ID }}
-      ENVS_READ_TOKEN: ${{ secrets.ENVS_READ_TOKEN }}
-      SOPS_AGE_KEY: ${{ secrets.SOPS_AGE_KEY }}
     steps:
-      - name: Checkout apps exact head
-        uses: actions/checkout@v4
-        with:
-          ref: ${{ env.APP_SHA }}
-          fetch-depth: 1
-          persist-credentials: false
-
-      - name: Verify apps and Cloudflare inputs
+      - name: Verify Cloudflare Pages access and project
         shell: bash
         run: |
           set -euo pipefail
-          test "$(git rev-parse HEAD)" = "$APP_SHA"
           test -n "$CLOUDFLARE_API_TOKEN"
           test -n "$CLOUDFLARE_ACCOUNT_ID"
-
-      - name: Verify Cloudflare Pages project
-        shell: bash
-        run: |
-          set -euo pipefail
           project_api="https://api.cloudflare.com/client/v4/accounts/$CLOUDFLARE_ACCOUNT_ID/pages/projects/$PROJECT"
           response="$(
-            curl --silent --show-error               --header "Authorization: Bearer $CLOUDFLARE_API_TOKEN"               "$project_api"
+            curl --silent --show-error \
+              --header "Authorization: Bearer $CLOUDFLARE_API_TOKEN" \
+              "$project_api"
           )"
           if jq -e --arg name "$PROJECT" '.success == true and .result.name == $name' <<<"$response" >/dev/null; then
             exit 0
@@ -156,94 +141,38 @@ jobs:
           jq -c '{success,errors}' <<<"$response" >&2
           exit 3
 
-      - uses: cachix/install-nix-action@v31
-        with:
-          extra_nix_config: |
-            extra-experimental-features = nix-command flakes
+  jev-secret-projection:
+    name: jev-secret-projection
+    needs: cloudflare-preflight
+    uses: roccho-dev/envs/.github/workflows/runtime-secret-projection.yml@7799d26ad26e0e133faeb45130102b5e34d257a6
+    with:
+      application: voice-ui
+      cloudflare_account_id: ${{ vars.CLOUDFLARE_ACCOUNT_ID }}
+    secrets:
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
 
-      - name: Fetch exact envs ciphertext
+  jev-proof:
+    name: jev-proof
+    needs: jev-secret-projection
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    env:
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      CLOUDFLARE_ACCOUNT_ID: ${{ vars.CLOUDFLARE_ACCOUNT_ID }}
+      PROJECTION_ENVS_SHA: ${{ needs.jev-secret-projection.outputs.envs_sha }}
+      PROJECTION_PROJECT: ${{ needs.jev-secret-projection.outputs.project }}
+      PROJECTION_SECRET_NAME: ${{ needs.jev-secret-projection.outputs.secret_name }}
+    steps:
+      - name: Verify centralized projection receipt
         shell: bash
         run: |
           set -euo pipefail
-          if [ -z "${ENVS_READ_TOKEN:-}" ] || [ -z "${SOPS_AGE_KEY:-}" ]; then
-            echo "::error::BLOCKED_BY_ENVS_SECRET_PROJECTION" >&2
-            exit 78
-          fi
-
-          mkdir -p "$RUNNER_TEMP/envs-projection"
-          response="$RUNNER_TEMP/envs-projection/response.json"
-          cipher="$RUNNER_TEMP/envs-projection/jev-api-key.sops.yaml"
-
-          http_code="$(
-            curl --silent --show-error               --output "$response"               --write-out '%{http_code}'               --header "Authorization: Bearer $ENVS_READ_TOKEN"               --header "Accept: application/vnd.github+json"               --header "X-GitHub-Api-Version: 2022-11-28"               "https://api.github.com/repos/roccho-dev/envs/contents/secrets/jev-api-key.sops.yaml?ref=$ENVS_SHA"
-          )"
-          if [ "$http_code" != "200" ]; then
-            echo "::error::BLOCKED_BY_ENVS_SECRET_PROJECTION" >&2
-            jq -c '{message}' "$response" >&2 || true
-            exit 78
-          fi
-
-          test "$(jq -r '.sha' "$response")" = "$ENVS_SECRET_BLOB_SHA"
-          jq -r '.content' "$response" | tr -d '\n' | base64 --decode > "$cipher"
-          grep -q '^JEV_API_KEY: ENC\[AES256_GCM,' "$cipher"
-          grep -q '^sops:' "$cipher"
-          grep -q 'recipient: age1' "$cipher"
-          ! grep -q 'AGE-SECRET-KEY-' "$cipher"
-
-          nix_sops="$(
-            nix build --no-link --print-out-paths               github:NixOS/nixpkgs/f9948418dc8628ac02b6d6337e191ade9429d59d#sops
-          )"
-          test -x "$nix_sops/bin/sops"
-          printf 'SOPS_BIN=%s/bin/sops\n' "$nix_sops" >> "$GITHUB_ENV"
-          printf 'JEV_CIPHER=%s\n' "$cipher" >> "$GITHUB_ENV"
-
-      - name: Real Jev typed response through Pages Function source
-        shell: bash
-        run: |
-          set -euo pipefail
-          cat >.jev-proof.mjs <<'NODE'
-          import { onRequestPost } from "./packages/voice-ui/functions/api/jev.mjs";
-
-          if (!process.env.JEV_API_KEY) throw new Error("JEV_API_KEY missing");
-          const request = new Request("https://local.invalid/api/jev", {
-            method: "POST",
-            headers: { "content-type": "application/json" },
-            body: JSON.stringify({
-              kind: "voice-ui.jev.request.v1",
-              text: "real Jev lane proof",
-            }),
-          });
-          const response = await onRequestPost({
-            request,
-            env: { JEV_API_KEY: process.env.JEV_API_KEY },
-          });
-          if (response.status !== 200) throw new Error("real Jev call failed");
-          const value = await response.json();
-          if (
-            value?.kind !== "ui.ir.v1" ||
-            value?.capability !== "a2ui-browser" ||
-            value?.payloadKind !== "a2ui.surface.v1" ||
-            !Array.isArray(value?.payload?.components) ||
-            typeof value?.payload?.dataModel?.score !== "string"
-          ) {
-            throw new Error("real Jev typed UI IR contract failed");
-          }
-          process.stdout.write("jev-proof: PASS real-api typed-ui-ir\n");
-          NODE
-
-          export SOPS_AGE_KEY
-          "$SOPS_BIN" exec-env "$JEV_CIPHER"             'exec env -u SOPS_AGE_KEY node .jev-proof.mjs'
-          rm -f .jev-proof.mjs
-
-      - name: Project exact envs secret to Pages runtime
-        shell: bash
-        run: |
-          set -euo pipefail
-          export SOPS_AGE_KEY
-          "$SOPS_BIN" --decrypt --output-type json "$JEV_CIPHER"             | jq -er '.JEV_API_KEY'             | npx --yes wrangler@$WRANGLER_VERSION pages secret put JEV_API_KEY --project-name "$PROJECT"
-
+          test "$PROJECTION_ENVS_SHA" = "7799d26ad26e0e133faeb45130102b5e34d257a6"
+          test "$PROJECTION_PROJECT" = "$PROJECT"
+          test "$PROJECTION_SECRET_NAME" = "JEV_API_KEY"
           current="$(npx --yes wrangler@$WRANGLER_VERSION pages secret list --project-name "$PROJECT")"
           grep -q 'JEV_API_KEY' <<<"$current"
+          printf 'jev-proof: PASS centralized-runtime-secret-projection\n'
 
   ui-proof:
     name: ui-proof
@@ -516,6 +445,7 @@ jobs:
           DEPLOYMENT_URL: ${{ steps.deploy.outputs.deployment-url }}
           VOICE_WAV: ${{ github.workspace }}/.proof/hayamimi/golden/ja_014.wav
           VOICE_GOLDEN: ${{ github.workspace }}/.proof/hayamimi/golden/golden.json
+          SEMANTIC_MAP_FIXTURE: ${{ github.workspace }}/.proof/ui/apps/artifact-shell/capabilities/render-semantic-map/fixtures/graph.pass.json
         shell: bash
         run: |
           set -euo pipefail

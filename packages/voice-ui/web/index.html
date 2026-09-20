@@ -20,6 +20,7 @@
       import { validateUiIr } from "/ui/ui-ir/index.mjs";
       import { renderTrustedSurface } from "/ui/a2ui-browser/render/trusted-dom.mjs";
       import { executeArtifactPackage as renderSemanticMap } from "/ui/semantic-map/runtime.js";
+      import { renderUiIr } from "/app/src/render.mjs";
 
       const text = document.querySelector("#text");
       const send = document.querySelector("#send");
@@ -48,27 +49,14 @@
         return response.json();
       };
 
-      const render = async ir => {
-        validateUiIr(ir);
-        if (ir.capability === "a2ui-browser" && ir.payloadKind === "a2ui.surface.v1") {
-          renderTrustedSurface({
-            components: ir.payload.components,
-            dataModel: ir.payload.dataModel,
-            document,
-            mount: surface,
-          });
-          return ir;
-        }
-        if (ir.capability === "render.semantic-map" && ir.payloadKind === "semantic-map-envelope/3") {
-          await renderSemanticMap({
-            document,
-            input: { envelope: ir.payload },
-            surfaceMount: surface,
-          });
-          return ir;
-        }
-        throw new Error("unsupported UI capability");
-      };
+      const render = ir => renderUiIr({
+        ir,
+        validateUiIr,
+        renderTrustedSurface,
+        renderSemanticMap,
+        document,
+        mount: surface,
+      });
 
       let hayamimi;
       const transcribe = async () => {

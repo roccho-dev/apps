@@ -8,8 +8,9 @@ if (!url) throw new Error("public URL is required");
 
 const wav = process.env.VOICE_WAV;
 const goldenPath = process.env.VOICE_GOLDEN;
-if (!wav || !goldenPath) {
-  throw new Error("VOICE_WAV and VOICE_GOLDEN are required");
+const semanticMapFixturePath = process.env.SEMANTIC_MAP_FIXTURE;
+if (!wav || !goldenPath || !semanticMapFixturePath) {
+  throw new Error("VOICE_WAV, VOICE_GOLDEN, and SEMANTIC_MAP_FIXTURE are required");
 }
 
 const normalize = value =>
@@ -97,9 +98,67 @@ assert.match(await page.locator("#surface").innerText(), /Jev Noul:/u);
   const expected = normalize(clip.reference);
   const cer = distance(actual, expected) / Math.max(1, expected.length);
   assert.ok(cer <= Number(golden._cer_tolerance), "voice CER exceeded pinned tolerance");
+const semanticFixture = JSON.parse(fs.readFileSync(semanticMapFixturePath, "utf8"));
+const semanticEnvelope = semanticFixture?.request?.inputs?.[0]?.source?.value;
+assert.equal(semanticEnvelope?.schema, "semantic-map-envelope/3");
+
+const semanticProof = await page.evaluate(async envelope => {
+  const [
+    { renderUiIr },
+    { validateUiIr },
+    { renderTrustedSurface },
+    { executeArtifactPackage: renderSemanticMap },
+  ] = await Promise.all([
+    import("/app/src/render.mjs"),
+    import("/ui/ui-ir/index.mjs"),
+    import("/ui/a2ui-browser/render/trusted-dom.mjs"),
+    import("/ui/semantic-map/runtime.js"),
+  ]);
+
+  const mount = document.querySelector("#surface");
+  await renderUiIr({
+    ir: {
+      kind: "ui.ir.v1",
+      capability: "render.semantic-map",
+      payloadKind: "semantic-map-envelope/3",
+      payload: envelope,
+    },
+    validateUiIr,
+    renderTrustedSurface,
+    renderSemanticMap,
+    document,
+    mount,
+  });
+
+  const frame = mount.querySelector('iframe[data-package="semantic-map"]');
+  if (!frame) throw new Error("semantic map iframe missing");
+
+  const started = performance.now();
+  while (frame.contentWindow?.semanticMapSite?.ready !== true) {
+    if (performance.now() - started > 60000) throw new Error("semantic map ready timeout");
+    await new Promise(resolve => setTimeout(resolve, 25));
+  }
+
+  const win = frame.contentWindow;
+  const adapter = win.semanticMapApp.adapter;
+  const svg = frame.contentDocument.querySelector("#graph-container svg");
+  const box = svg?.getBoundingClientRect();
+  return {
+    cells: adapter.cellsByRegionId.size,
+    edges: adapter.edgesByProjectionKey.size,
+    pattern: win.semanticMapRuntime.view.pattern,
+    svg: Boolean(box && box.width > 0 && box.height > 0),
+  };
+}, semanticEnvelope);
+
+assert.equal(semanticProof.pattern, "graph/1");
+assert.ok(semanticProof.cells > 0);
+assert.ok(semanticProof.edges > 0);
+assert.equal(semanticProof.svg, true);
+
 assert.deepEqual(errors, []);
 assert.deepEqual(failedRequests, []);
 assert.deepEqual(failedResponses, []);
 
 await browser.close();
-process.stdout.write("public-e2e: PASS type+voice\n");
+process.stdout.write("public-e2e: PASS type+voice+semantic-map-maxGraph\n");
