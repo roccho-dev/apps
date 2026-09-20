@@ -141,38 +141,19 @@ jobs:
           jq -c '{success,errors}' <<<"$response" >&2
           exit 3
 
-  jev-secret-projection:
-    name: jev-secret-projection
-    needs: cloudflare-preflight
-    uses: roccho-dev/envs/.github/workflows/runtime-secret-projection.yml@7799d26ad26e0e133faeb45130102b5e34d257a6
-    with:
-      application: voice-ui
-      cloudflare_account_id: ${{ vars.CLOUDFLARE_ACCOUNT_ID }}
-    secrets:
-      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-
   jev-proof:
     name: jev-proof
-    needs: jev-secret-projection
+    needs: cloudflare-preflight
     runs-on: ubuntu-24.04
-    timeout-minutes: 10
-    env:
-      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-      CLOUDFLARE_ACCOUNT_ID: ${{ vars.CLOUDFLARE_ACCOUNT_ID }}
-      PROJECTION_ENVS_SHA: ${{ needs.jev-secret-projection.outputs.envs_sha }}
-      PROJECTION_PROJECT: ${{ needs.jev-secret-projection.outputs.project }}
-      PROJECTION_SECRET_NAME: ${{ needs.jev-secret-projection.outputs.secret_name }}
+    timeout-minutes: 5
     steps:
-      - name: Verify centralized projection receipt
+      - name: Fail closed on public/private reusable-workflow boundary
         shell: bash
         run: |
           set -euo pipefail
-          test "$PROJECTION_ENVS_SHA" = "7799d26ad26e0e133faeb45130102b5e34d257a6"
-          test "$PROJECTION_PROJECT" = "$PROJECT"
-          test "$PROJECTION_SECRET_NAME" = "JEV_API_KEY"
-          current="$(npx --yes wrangler@$WRANGLER_VERSION pages secret list --project-name "$PROJECT")"
-          grep -q 'JEV_API_KEY' <<<"$current"
-          printf 'jev-proof: PASS centralized-runtime-secret-projection\n'
+          echo "::error::BLOCKED_BY_PUBLIC_APPS_PRIVATE_ENVS" >&2
+          echo "apps is public; envs is private; GitHub public callers cannot use private reusable workflows." >&2
+          exit 78
 
   ui-proof:
     name: ui-proof
