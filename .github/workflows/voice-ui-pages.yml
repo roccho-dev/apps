@@ -217,7 +217,7 @@ jobs:
           grep -q 'semantic-map-example-build/1' .ui-proof/site/receipt.json
           grep -q 'ui:packages/semantic-map/renderer-maxgraph/adapter.js' .ui-proof/site/index.html
           grep -q 'ui:packages/semantic-map/vendor/maxgraph/' .ui-proof/site/index.html
-          grep -q 'render.semantic-map' packages/voice-ui/web/index.html
+          grep -q 'render.semantic-map' packages/voice-ui/src/render.mjs
           grep -q '/ui/semantic-map/runtime.js' packages/voice-ui/web/index.html
 
       - name: Serve apps Semantic Map and prove maxGraph
