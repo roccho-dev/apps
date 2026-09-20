@@ -79,13 +79,13 @@ jobs:
           (cd "$RUNNER_TEMP" && zip -qr hayamimi-web.zip hayamimi-dist)
           (cd "$RUNNER_TEMP" && sha256sum hayamimi-web.zip > hayamimi-web.zip.sha256)
           python3 .proof/ops/packages/hayamimi-web/build/verify-release.py             "$RUNNER_TEMP/hayamimi-web.zip"             "$RUNNER_TEMP/hayamimi-web.zip.sha256"             --out "$RUNNER_TEMP/hayamimi-release"
-          python3 .proof/ops/packages/hayamimi-web/build/verify-dist.py "$RUNNER_TEMP/hayamimi-release/hayamimi-dist"
+          python3 .proof/ops/packages/hayamimi-web/build/verify-dist.py "$RUNNER_TEMP/hayamimi-release/hayamimi-web"
 
       - name: Real Chromium Hayamimi ASR
         shell: bash
         run: |
           set -euo pipefail
-          python3 -m http.server 4173 --directory "$RUNNER_TEMP/hayamimi-release/hayamimi-dist" >"$RUNNER_TEMP/hayamimi-http.log" 2>&1 &
+          python3 -m http.server 4173 --directory "$RUNNER_TEMP/hayamimi-release/hayamimi-web" >"$RUNNER_TEMP/hayamimi-http.log" 2>&1 &
           server=$!
           trap 'kill "$server" || true' EXIT
           python3 .proof/ops/packages/hayamimi-web/tests/browser-asr.py             http://127.0.0.1:4173/             "$RUNNER_TEMP/hayamimi/sources/hayamimi/tests/golden/ja/ja_014.wav"             "$RUNNER_TEMP/hayamimi/sources/hayamimi/tests/golden/ja/golden.json"
@@ -95,9 +95,9 @@ jobs:
         run: |
           set -euo pipefail
           mkdir -p .lane/hayamimi/golden
-          cp -R "$RUNNER_TEMP/hayamimi-release/hayamimi-dist/runtime" .lane/hayamimi/runtime
-          cp -R "$RUNNER_TEMP/hayamimi-release/hayamimi-dist/sherpa" .lane/hayamimi/sherpa
-          cp "$RUNNER_TEMP/hayamimi-release/hayamimi-dist/THIRD_PARTY_NOTICES.md" .lane/hayamimi/THIRD_PARTY_NOTICES.md
+          cp -R "$RUNNER_TEMP/hayamimi-release/hayamimi-web/runtime" .lane/hayamimi/runtime
+          cp -R "$RUNNER_TEMP/hayamimi-release/hayamimi-web/sherpa" .lane/hayamimi/sherpa
+          cp "$RUNNER_TEMP/hayamimi-release/hayamimi-web/THIRD_PARTY_NOTICES.md" .lane/hayamimi/THIRD_PARTY_NOTICES.md
           cp "$RUNNER_TEMP/hayamimi/sources/hayamimi/tests/golden/ja/ja_014.wav" .lane/hayamimi/golden/ja_014.wav
           cp "$RUNNER_TEMP/hayamimi/sources/hayamimi/tests/golden/ja/golden.json" .lane/hayamimi/golden/golden.json
           test ! -e .lane/hayamimi/sherpa-pja
@@ -199,7 +199,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          cat >"$RUNNER_TEMP/jev-proof.mjs" <<'NODE'
+          cat >.jev-proof.mjs <<'NODE'
           import { onRequestPost } from "./packages/voice-ui/functions/api/jev.mjs";
 
           if (!process.env.JEV_API_KEY) throw new Error("JEV_API_KEY missing");
@@ -230,7 +230,8 @@ jobs:
           NODE
 
           export SOPS_AGE_KEY
-          "$SOPS_BIN" exec-env "$JEV_CIPHER"             'exec env -u SOPS_AGE_KEY node "$RUNNER_TEMP/jev-proof.mjs"'
+          "$SOPS_BIN" exec-env "$JEV_CIPHER"             'exec env -u SOPS_AGE_KEY node .jev-proof.mjs'
+          rm -f .jev-proof.mjs
 
       - name: Project exact envs secret to Pages runtime
         shell: bash
