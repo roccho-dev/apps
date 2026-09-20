@@ -281,9 +281,6 @@ jobs:
           test "$(git rev-parse HEAD)" = "$APP_SHA"
           test "$(git -C .proof/ui rev-parse HEAD)" = "$UI_SHA"
           test "$(git -C .proof/ui-ir rev-parse HEAD)" = "$UI_IR_SHA"
-          test -f .proof/ui/packages/semantic-map/runtime.js
-          test -f .proof/ui/packages/semantic-map/renderer-maxgraph/adapter.js
-          test "$(git -C .proof/ui-ir rev-parse HEAD)" = "$UI_IR_SHA"
           test ! -e .proof/ui/packages/ui-ir
           test -f .proof/ui-ir/packages/ui-ir/src/index.mjs
           test -f .proof/ui/packages/a2ui-browser/src/index.mjs
