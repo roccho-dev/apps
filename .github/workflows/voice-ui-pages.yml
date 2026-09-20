@@ -16,7 +16,8 @@ concurrency:
 
 env:
   APP_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
-  UI_SHA: 6c40231d991a2099bff8b35eff96055f197a82ae
+  UI_SHA: 5a2ec2282554f7f9fae6526f3126f81119f81c08
+  UI_IR_SHA: 6c40231d991a2099bff8b35eff96055f197a82ae
   OPS_SHA: 1c51c5312a88fec10c6d3ab1e70054f434e6e48c
   ENVS_SHA: 472c047a51e6aef01d8c4bb77e463838a8d6906a
   ENVS_SECRET_BLOB_SHA: 730ff3dbb79e5b86d32c97ab000da2d9898260aa
@@ -248,9 +249,16 @@ jobs:
   ui-proof:
     name: ui-proof
     runs-on: ubuntu-24.04
-    timeout-minutes: 10
+    timeout-minutes: 20
     steps:
-      - name: Checkout exact UI authority
+      - name: Checkout apps exact head
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ env.APP_SHA }}
+          fetch-depth: 1
+          persist-credentials: false
+
+      - name: Checkout exact UI integration authority
         uses: actions/checkout@v4
         with:
           repository: roccho-dev/ui
@@ -258,17 +266,87 @@ jobs:
           path: .proof/ui
           persist-credentials: false
 
-      - name: Verify exact UI authority
+      - name: Checkout exact UI IR compatibility authority
+        uses: actions/checkout@v4
+        with:
+          repository: roccho-dev/ui
+          ref: ${{ env.UI_IR_SHA }}
+          path: .proof/ui-ir
+          persist-credentials: false
+
+      - name: Verify exact UI authorities
         shell: bash
         run: |
           set -euo pipefail
+          test "$(git rev-parse HEAD)" = "$APP_SHA"
           test "$(git -C .proof/ui rev-parse HEAD)" = "$UI_SHA"
+          test "$(git -C .proof/ui-ir rev-parse HEAD)" = "$UI_IR_SHA"
+          test -f .proof/ui/packages/semantic-map/runtime.js
+          test -f .proof/ui/packages/semantic-map/renderer-maxgraph/adapter.js
+          test "$(git -C .proof/ui-ir rev-parse HEAD)" = "$UI_IR_SHA"
+          test ! -e .proof/ui/packages/ui-ir
+          test -f .proof/ui-ir/packages/ui-ir/src/index.mjs
+          test -f .proof/ui/packages/a2ui-browser/src/index.mjs
+          test -f .proof/ui/packages/semantic-map/runtime.js
+          test -f .proof/ui/packages/semantic-map/renderer-maxgraph/adapter.js
+          test -f .proof/ui/packages/semantic-map/vendor/maxgraph/view/GraphDataModel.js
 
-      - name: UI IR proof
-        run: node .proof/ui/packages/ui-ir/tests/run.mjs
+      - name: UI IR compatibility proof
+        run: node .proof/ui-ir/packages/ui-ir/tests/run.mjs
 
-      - name: A2UI renderer proof
+      - name: A2UI integration proof
         run: node .proof/ui/packages/a2ui-browser/tests/run.mjs
+
+      - name: Install UI browser proof
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 -m pip install --disable-pip-version-check playwright==1.63.0
+          python3 -m playwright install --with-deps chromium
+
+      - name: Materialize apps Semantic Map serve tree
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -rf .ui-proof
+          mkdir -p .ui-proof/site/ui
+          cp -R .proof/ui/packages/semantic-map .ui-proof/site/ui/semantic-map
+          rm -rf             .ui-proof/site/ui/semantic-map/tests             .ui-proof/site/ui/semantic-map/examples             .ui-proof/site/ui/semantic-map/scripts
+          cp             .proof/ui/apps/artifact-shell/capabilities/render-semantic-map/fixtures/graph.pass.json             .ui-proof/site/graph.pass.json
+          cat >.ui-proof/site/index.html <<'HTML'
+          <!doctype html>
+          <html>
+          <head><meta charset="utf-8"><title>apps semantic-map proof</title></head>
+          <body>
+            <main id="surface" style="min-height:700px"></main>
+            <script type="module">
+              import { executeArtifactPackage } from "/ui/semantic-map/runtime.js";
+              const fixture = await fetch("/graph.pass.json").then(response => {
+                if (!response.ok) throw new Error("graph fixture unavailable");
+                return response.json();
+              });
+              const envelope = fixture.request.inputs[0].source.value;
+              const receipt = await executeArtifactPackage({
+                document,
+                input: { envelope },
+                surfaceMount: document.querySelector("#surface"),
+              });
+              globalThis.appsSemanticMapProof = Object.freeze({ ready: true, receipt });
+            </script>
+          </body>
+          </html>
+          HTML
+          grep -q 'render.semantic-map' packages/voice-ui/web/index.html
+          grep -q '/ui/semantic-map/runtime.js' packages/voice-ui/web/index.html
+
+      - name: Serve apps Semantic Map and prove maxGraph
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 -m http.server 4174 --directory .ui-proof/site >"$RUNNER_TEMP/ui-proof-http.log" 2>&1 &
+          server=$!
+          trap 'kill "$server" || true' EXIT
+          python3 packages/voice-ui/tests/ui-maxgraph-serve.py http://127.0.0.1:4174/
 
   composition-deploy-e2e:
     name: composition-deploy-e2e
@@ -289,12 +367,20 @@ jobs:
           fetch-depth: 1
           persist-credentials: false
 
-      - name: Checkout exact UI authority
+      - name: Checkout exact UI integration authority
         uses: actions/checkout@v4
         with:
           repository: roccho-dev/ui
           ref: ${{ env.UI_SHA }}
           path: .proof/ui
+          persist-credentials: false
+
+      - name: Checkout exact UI IR compatibility authority
+        uses: actions/checkout@v4
+        with:
+          repository: roccho-dev/ui
+          ref: ${{ env.UI_IR_SHA }}
+          path: .proof/ui-ir
           persist-credentials: false
 
       - name: Download proven Hayamimi runtime
@@ -333,12 +419,14 @@ jobs:
         run: |
           set -euo pipefail
           rm -rf .pages
-          mkdir -p             .pages/site/app             .pages/site/ui/ui-ir             .pages/site/ui/a2ui-browser             .pages/site/hayamimi             .pages/functions/api
+          mkdir -p             .pages/site/app             .pages/site/ui/ui-ir             .pages/site/ui/a2ui-browser             .pages/site/ui             .pages/site/hayamimi             .pages/functions/api
 
           cp packages/voice-ui/web/index.html .pages/site/index.html
           cp -R packages/voice-ui/src .pages/site/app/src
-          cp .proof/ui/packages/ui-ir/src/index.mjs .pages/site/ui/ui-ir/index.mjs
+          cp .proof/ui-ir/packages/ui-ir/src/index.mjs .pages/site/ui/ui-ir/index.mjs
           cp -R .proof/ui/packages/a2ui-browser/src/. .pages/site/ui/a2ui-browser/
+          cp -R .proof/ui/packages/semantic-map .pages/site/ui/semantic-map
+          rm -rf             .pages/site/ui/semantic-map/tests             .pages/site/ui/semantic-map/examples             .pages/site/ui/semantic-map/scripts
           cp -R .proof/hayamimi/runtime .pages/site/hayamimi/runtime
           cp -R .proof/hayamimi/sherpa .pages/site/hayamimi/sherpa
           cp .proof/hayamimi/THIRD_PARTY_NOTICES.md .pages/site/hayamimi/THIRD_PARTY_NOTICES.md
@@ -444,6 +532,10 @@ jobs:
           test -n "$DEPLOYMENT_URL"
           curl --fail --silent --show-error --retry 10 --retry-delay 3 "$DEPLOYMENT_URL/" -o "$RUNNER_TEMP/deployment-index.html"
           grep -q 'id="surface"' "$RUNNER_TEMP/deployment-index.html"
+          curl --fail --silent --show-error --retry 10 --retry-delay 3             "$DEPLOYMENT_URL/ui/semantic-map/runtime.js"             -o "$RUNNER_TEMP/semantic-map-runtime.js"
+          curl --fail --silent --show-error --retry 10 --retry-delay 3             "$DEPLOYMENT_URL/ui/semantic-map/renderer-maxgraph/adapter.js"             -o "$RUNNER_TEMP/renderer-maxgraph-adapter.js"
+          test -s "$RUNNER_TEMP/semantic-map-runtime.js"
+          test -s "$RUNNER_TEMP/renderer-maxgraph-adapter.js"
           if [ -n "$ALIAS_URL" ]; then
             curl --fail --silent --show-error --retry 10 --retry-delay 3 "$ALIAS_URL/" -o "$RUNNER_TEMP/alias-index.html"
             cmp "$RUNNER_TEMP/deployment-index.html" "$RUNNER_TEMP/alias-index.html"
