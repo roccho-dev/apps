@@ -22,6 +22,8 @@ jobs:
       APP_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
       UI_SHA: 6c40231d991a2099bff8b35eff96055f197a82ae
       OPS_SHA: 1c51c5312a88fec10c6d3ab1e70054f434e6e48c
+      ENVS_SHA: 472c047a51e6aef01d8c4bb77e463838a8d6906a
+      ENVS_SECRET_BLOB_SHA: 730ff3dbb79e5b86d32c97ab000da2d9898260aa
       PROJECT: voice-ui
       WRANGLER_VERSION: 4.112.0
       EMSDK_VERSION: 4.0.23
@@ -81,15 +83,54 @@ jobs:
           jq -c '{success,errors}' <<<"$response" >&2
           exit 3
 
-      - name: Verify Pages runtime secret
+      - uses: cachix/install-nix-action@v31
+        with:
+          extra_nix_config: |
+            extra-experimental-features = nix-command flakes
+
+      - name: Project exact envs secret to Pages runtime
+        env:
+          ENVS_READ_TOKEN: ${{ secrets.ENVS_READ_TOKEN }}
+          SOPS_AGE_KEY: ${{ secrets.SOPS_AGE_KEY }}
         shell: bash
         run: |
           set -euo pipefail
+
+          if [ -z "${ENVS_READ_TOKEN:-}" ] || [ -z "${SOPS_AGE_KEY:-}" ]; then
+            echo "::error::BLOCKED_BY_ENVS_SECRET_PROJECTION" >&2
+            exit 78
+          fi
+
+          mkdir -p "$RUNNER_TEMP/envs-projection"
+          response="$RUNNER_TEMP/envs-projection/response.json"
+          cipher="$RUNNER_TEMP/envs-projection/jev-api-key.sops.yaml"
+
+          http_code="$(
+            curl --silent --show-error               --output "$response"               --write-out '%{http_code}'               --header "Authorization: Bearer $ENVS_READ_TOKEN"               --header "Accept: application/vnd.github+json"               --header "X-GitHub-Api-Version: 2022-11-28"               "https://api.github.com/repos/roccho-dev/envs/contents/secrets/jev-api-key.sops.yaml?ref=$ENVS_SHA"
+          )"
+          if [ "$http_code" != "200" ]; then
+            echo "::error::BLOCKED_BY_ENVS_SECRET_PROJECTION" >&2
+            jq -c '{message}' "$response" >&2 || true
+            exit 78
+          fi
+
+          test "$(jq -r '.sha' "$response")" = "$ENVS_SECRET_BLOB_SHA"
+          jq -r '.content' "$response" | tr -d '\n' | base64 --decode > "$cipher"
+          grep -q '^JEV_API_KEY: ENC\[AES256_GCM,' "$cipher"
+          grep -q '^sops:' "$cipher"
+          grep -q 'recipient: age1' "$cipher"
+          ! grep -q 'AGE-SECRET-KEY-' "$cipher"
+
+          nix_sops="$(
+            nix build --no-link --print-out-paths               github:NixOS/nixpkgs/f9948418dc8628ac02b6d6337e191ade9429d59d#sops
+          )"
+          test -x "$nix_sops/bin/sops"
+
+          export SOPS_AGE_KEY
+          "$nix_sops/bin/sops" --decrypt --output-type json "$cipher"             | jq -er '.JEV_API_KEY'             | npx --yes wrangler@$WRANGLER_VERSION pages secret put JEV_API_KEY --project-name "$PROJECT"
+
           current="$(npx --yes wrangler@$WRANGLER_VERSION pages secret list --project-name "$PROJECT")"
-          grep -q 'JEV_API_KEY' <<<"$current" || {
-            echo "Cloudflare Pages runtime secret JEV_API_KEY is required" >&2
-            exit 4
-          }
+          grep -q 'JEV_API_KEY' <<<"$current"
 
       - name: Build exact Hayamimi package
         shell: bash
