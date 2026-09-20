@@ -83,6 +83,27 @@ jobs:
           jq -c '{success,errors}' <<<"$response" >&2
           exit 3
 
+      - name: Check current deployed state
+        shell: bash
+        run: |
+          set -euo pipefail
+          api="https://api.cloudflare.com/client/v4/accounts/$CLOUDFLARE_ACCOUNT_ID/pages/projects/$PROJECT/deployments"
+          response="$(
+            curl --silent --show-error               --header "Authorization: Bearer $CLOUDFLARE_API_TOKEN"               "$api"
+          )"
+          jq -e '.success == true' <<<"$response" >/dev/null
+          count="$(jq '.result | length' <<<"$response")"
+          printf 'deployment_count=%s\n' "$count"
+
+          current="$(
+            jq -r --arg sha "$APP_SHA"               '[.result[] | select(.deployment_trigger.metadata.commit_hash == $sha and .latest_stage.status == "success")] | length'               <<<"$response"
+          )"
+          printf 'current_head_successful_deployments=%s\n' "$current"
+
+          if [ "$count" -gt 0 ]; then
+            jq -r '.result[0] | "latest_url=" + .url + "\nlatest_status=" + (.latest_stage.status // "unknown") + "\nlatest_commit=" + (.deployment_trigger.metadata.commit_hash // "unknown")' <<<"$response"
+          fi
+
       - uses: cachix/install-nix-action@v31
         with:
           extra_nix_config: |
