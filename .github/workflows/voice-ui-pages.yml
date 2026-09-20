@@ -16,8 +16,7 @@ concurrency:
 
 env:
   APP_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
-  UI_SHA: 5a2ec2282554f7f9fae6526f3126f81119f81c08
-  UI_IR_SHA: 6c40231d991a2099bff8b35eff96055f197a82ae
+  UI_SHA: 44a5cf6027fbf2dddc4ed15740e93470c2eb589f
   OPS_SHA: 1c51c5312a88fec10c6d3ab1e70054f434e6e48c
   ENVS_SHA: 472c047a51e6aef01d8c4bb77e463838a8d6906a
   ENVS_SECRET_BLOB_SHA: 730ff3dbb79e5b86d32c97ab000da2d9898260aa
@@ -266,30 +265,20 @@ jobs:
           path: .proof/ui
           persist-credentials: false
 
-      - name: Checkout exact UI IR compatibility authority
-        uses: actions/checkout@v4
-        with:
-          repository: roccho-dev/ui
-          ref: ${{ env.UI_IR_SHA }}
-          path: .proof/ui-ir
-          persist-credentials: false
-
       - name: Verify exact UI authorities
         shell: bash
         run: |
           set -euo pipefail
           test "$(git rev-parse HEAD)" = "$APP_SHA"
           test "$(git -C .proof/ui rev-parse HEAD)" = "$UI_SHA"
-          test "$(git -C .proof/ui-ir rev-parse HEAD)" = "$UI_IR_SHA"
-          test ! -e .proof/ui/packages/ui-ir
-          test -f .proof/ui-ir/packages/ui-ir/src/index.mjs
+          test -f .proof/ui/packages/ui-ir/src/index.mjs
           test -f .proof/ui/packages/a2ui-browser/src/index.mjs
           test -f .proof/ui/packages/semantic-map/runtime.js
           test -f .proof/ui/packages/semantic-map/renderer-maxgraph/adapter.js
           test -f .proof/ui/packages/semantic-map/vendor/maxgraph/view/GraphDataModel.js
 
-      - name: UI IR compatibility proof
-        run: node .proof/ui-ir/packages/ui-ir/tests/run.mjs
+      - name: UI IR proof
+        run: node .proof/ui/packages/ui-ir/tests/run.mjs
 
       - name: A2UI integration proof
         run: node .proof/ui/packages/a2ui-browser/tests/run.mjs
@@ -357,14 +346,6 @@ jobs:
           path: .proof/ui
           persist-credentials: false
 
-      - name: Checkout exact UI IR compatibility authority
-        uses: actions/checkout@v4
-        with:
-          repository: roccho-dev/ui
-          ref: ${{ env.UI_IR_SHA }}
-          path: .proof/ui-ir
-          persist-credentials: false
-
       - name: Download proven Hayamimi runtime
         uses: actions/download-artifact@v4
         with:
@@ -405,7 +386,7 @@ jobs:
 
           cp packages/voice-ui/web/index.html .pages/site/index.html
           cp -R packages/voice-ui/src .pages/site/app/src
-          cp .proof/ui-ir/packages/ui-ir/src/index.mjs .pages/site/ui/ui-ir/index.mjs
+          cp .proof/ui/packages/ui-ir/src/index.mjs .pages/site/ui/ui-ir/index.mjs
           cp -R .proof/ui/packages/a2ui-browser/src/. .pages/site/ui/a2ui-browser/
           cp -R .proof/ui/packages/semantic-map .pages/site/ui/semantic-map
           rm -rf             .pages/site/ui/semantic-map/tests             .pages/site/ui/semantic-map/examples             .pages/site/ui/semantic-map/scripts
