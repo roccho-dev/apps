@@ -8,6 +8,9 @@ if (!url) throw new Error("public URL is required");
 
 const wav = process.env.VOICE_WAV;
 const goldenPath = process.env.VOICE_GOLDEN;
+if (!wav || !goldenPath) {
+  throw new Error("VOICE_WAV and VOICE_GOLDEN are required");
+}
 
 const normalize = value =>
   value.normalize("NFKC").replace(/[\s。、．，,.!?！？・]/gu, "");
@@ -29,15 +32,12 @@ const distance = (left, right) => {
   return previous[right.length];
 };
 
-const args = [];
-if (wav) {
-  args.push(
-    "--use-fake-ui-for-media-stream",
-    "--use-fake-device-for-media-stream",
-    "--use-file-for-fake-audio-capture=" + path.resolve(wav),
-    "--autoplay-policy=no-user-gesture-required",
-  );
-}
+const args = [
+  "--use-fake-ui-for-media-stream",
+  "--use-fake-device-for-media-stream",
+  "--use-file-for-fake-audio-capture=" + path.resolve(wav),
+  "--autoplay-policy=no-user-gesture-required",
+];
 
 const browser = await chromium.launch({ headless: true, args });
 const context = await browser.newContext();
@@ -78,7 +78,6 @@ await page.waitForFunction(() => document.querySelector("#status")?.textContent 
 assert.ok(await page.locator('[data-a2ui-component="Text"]').count());
 assert.match(await page.locator("#surface").innerText(), /Jev Noul:/u);
 
-if (wav && goldenPath) {
   const golden = JSON.parse(fs.readFileSync(goldenPath, "utf8"));
   const clip = golden.clips.find(value => value.wav === path.basename(wav));
   assert.ok(clip, "voice golden fixture is missing");
@@ -98,11 +97,9 @@ if (wav && goldenPath) {
   const expected = normalize(clip.reference);
   const cer = distance(actual, expected) / Math.max(1, expected.length);
   assert.ok(cer <= Number(golden._cer_tolerance), "voice CER exceeded pinned tolerance");
-}
-
 assert.deepEqual(errors, []);
 assert.deepEqual(failedRequests, []);
 assert.deepEqual(failedResponses, []);
 
 await browser.close();
-process.stdout.write("public-e2e: PASS\n");
+process.stdout.write("public-e2e: PASS type+voice\n");
