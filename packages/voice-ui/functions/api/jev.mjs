@@ -55,38 +55,48 @@ const typedAnswer = value => {
 
 const ACTIONS = ["add-edge", "none"];
 
-const choice = (answers, name, options) => {
+// A choice question offers its alternatives as a criteria map keyed by the
+// value to be returned; the answer carries its own confidence and a
+// probabilities map over those same keys.
+const criteria = (keys, describe) =>
+  Object.fromEntries(keys.map(key => [key, describe(key)]));
+
+const plainObject = value =>
+  value !== null && typeof value === "object" && !Array.isArray(value);
+
+const inUnit = value => typeof value === "number" && Number.isFinite(value)
+  && value >= 0 && value <= 1;
+
+const choice = (answers, name, keys) => {
   const answer = answers?.[name];
+  const probabilities = answer?.probabilities;
   if (
     answer?.type !== "choice" ||
     typeof answer.choice !== "string" ||
-    !options.includes(answer.choice)
+    !keys.includes(answer.choice) ||
+    !inUnit(answer.confidence) ||
+    !plainObject(probabilities) ||
+    !Object.keys(probabilities).every(key => keys.includes(key)) ||
+    !Object.values(probabilities).every(
+      value => typeof value === "number" && Number.isFinite(value),
+    )
   ) {
     throw new TypeError("provider typed contract mismatch");
   }
-  return { type: "choice", choice: answer.choice };
+  return { type: "choice", choice: answer.choice, confidence: answer.confidence };
 };
 
 const typedDecision = (value, regions) => {
-  const answers = value?.answers;
-  const confidence = answers?.confidence;
-  if (
-    typeof value?.model !== "string" ||
-    confidence?.type !== "noul" ||
-    typeof confidence?.noul !== "number" ||
-    !Number.isFinite(confidence.noul) ||
-    confidence.noul < 0 ||
-    confidence.noul > 1
-  ) {
+  if (typeof value?.model !== "string") {
     throw new TypeError("provider typed contract mismatch");
   }
+  const answers = value.answers;
   return {
     model: value.model,
     answers: {
       action: choice(answers, "action", ACTIONS),
       source: choice(answers, "source", regions),
       target: choice(answers, "target", regions),
-      confidence: { type: "noul", noul: confidence.noul },
     },
   };
 };
@@ -117,23 +127,21 @@ async function decideGraphEdge(input, env) {
     questions: {
       action: {
         type: "choice",
-        options: ACTIONS,
         instructions:
-          "Does this request ask to add one directed edge between two existing nodes? Answer none otherwise.",
+          "Does this request ask to add one directed edge between two existing nodes?",
+        criteria: criteria(ACTIONS, action => action === "add-edge"
+          ? "the request asks to add one directed edge between two existing nodes"
+          : "the request asks for anything else"),
       },
       source: {
         type: "choice",
-        options: regions,
         instructions: "Which existing node is the source of the edge?",
+        criteria: criteria(regions, region => `the edge starts at ${region}`),
       },
       target: {
         type: "choice",
-        options: regions,
         instructions: "Which existing node is the target of the edge?",
-      },
-      confidence: {
-        type: "noul",
-        instructions: "How confident is this edge decision given the request and the node list?",
+        criteria: criteria(regions, region => `the edge ends at ${region}`),
       },
     },
   });

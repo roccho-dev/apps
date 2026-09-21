@@ -40,11 +40,11 @@ const baseGraph = () => protocol.createDecisionLog([
   node("node-c", 460),
 ], "voice-graph");
 
-const answersFor = (source, target, noul = 0.9) => ({
-  action: { type: "choice", choice: ACTION_ADD_EDGE },
-  source: { type: "choice", choice: source },
-  target: { type: "choice", choice: target },
-  confidence: { type: "noul", noul },
+// Authoritative answer shape: each choice carries its own confidence.
+const answersFor = (source, target, confidence = 0.9) => ({
+  action: { type: "choice", choice: ACTION_ADD_EDGE, confidence },
+  source: { type: "choice", choice: source, confidence },
+  target: { type: "choice", choice: target, confidence },
 });
 
 const compile = (graph, answers) =>
@@ -119,9 +119,24 @@ test("the compiler refuses every answer it cannot ground, leaving the graph unto
     ["unknown region", answersFor("node-a", "node-z")],
     ["self loop", answersFor("node-a", "node-a")],
     ["low confidence", answersFor("node-a", "node-b", 0.1)],
-    ["declined action", { ...answersFor("node-a", "node-b"), action: { type: "choice", choice: "none" } }],
+    ["one weak answer", {
+      ...answersFor("node-a", "node-b"),
+      target: { type: "choice", choice: "node-b", confidence: 0.1 },
+    }],
+    ["missing per-answer confidence", {
+      ...answersFor("node-a", "node-b"),
+      source: { type: "choice", choice: "node-a" },
+    }],
+    ["declined action", {
+      ...answersFor("node-a", "node-b"),
+      action: { type: "choice", choice: "none", confidence: 0.9 },
+    }],
     ["untyped answer", { ...answersFor("node-a", "node-b"), source: { type: "noul", noul: 1 } }],
     ["extra key", { ...answersFor("node-a", "node-b"), extra: 1 }],
+    ["separate confidence answer", {
+      ...answersFor("node-a", "node-b"),
+      confidence: { type: "noul", noul: 0.9 },
+    }],
   ];
 
   for (const [name, answers] of refusals) {
@@ -185,21 +200,29 @@ test("v1 requests keep their exact key set and a2ui response shape", async () =>
   assert.equal(extraKey.status, 422);
 });
 
+const providerAnswer = (choice, keys, confidence = 0.8) => ({
+  type: "choice",
+  choice,
+  confidence,
+  probabilities: Object.fromEntries(keys.map(key => [key, key === choice ? confidence : 0.1])),
+});
+
+const REGIONS = ["node-a", "node-b", "node-c"];
+
 test("v2 requests enforce their own exact key set and return typed answers", async () => {
   const { result, calls } = await withProviderResponse(
     {
       model: "jev-1",
       answers: {
-        action: { type: "choice", choice: "add-edge" },
-        source: { type: "choice", choice: "node-a" },
-        target: { type: "choice", choice: "node-b" },
-        confidence: { type: "noul", noul: 0.8 },
+        action: providerAnswer("add-edge", ["add-edge", "none"]),
+        source: providerAnswer("node-a", REGIONS),
+        target: providerAnswer("node-b", REGIONS),
       },
     },
     () => postJev({
       kind: "voice-ui.jev.request.v2",
       text: "connect a to b",
-      graph: { regions: ["node-a", "node-b", "node-c"] },
+      graph: { regions: REGIONS },
     }),
   );
 
@@ -208,7 +231,19 @@ test("v2 requests enforce their own exact key set and return typed answers", asy
   assert.equal(body.kind, "voice-ui.jev.decision.v2");
   assert.equal(body.answers.source.choice, "node-a");
   assert.equal(body.answers.target.choice, "node-b");
-  assert.deepEqual(calls[0].questions.source.options, ["node-a", "node-b", "node-c"]);
+  assert.equal(body.answers.source.confidence, 0.8);
+
+  // Choice questions offer a criteria map, never an options array, and the
+  // redundant noul confidence question is gone.
+  const questions = calls[0].questions;
+  assert.deepEqual(Object.keys(questions), ["action", "source", "target"]);
+  assert.deepEqual(Object.keys(questions.source.criteria), REGIONS);
+  assert.deepEqual(Object.keys(questions.action.criteria), ["add-edge", "none"]);
+  for (const name of ["action", "source", "target"]) {
+    assert.equal(questions[name].type, "choice");
+    assert.equal(questions[name].options, undefined);
+    assert.ok(Object.values(questions[name].criteria).every(v => typeof v === "string"));
+  }
 
   for (const bad of [
     { kind: "voice-ui.jev.request.v2", text: "x" },
@@ -220,26 +255,50 @@ test("v2 requests enforce their own exact key set and return typed answers", asy
   }
 });
 
-test("a provider answer outside the offered regions fails closed", async () => {
-  const { result } = await withProviderResponse(
-    {
-      model: "jev-1",
-      answers: {
-        action: { type: "choice", choice: "add-edge" },
-        source: { type: "choice", choice: "node-z" },
-        target: { type: "choice", choice: "node-b" },
-        confidence: { type: "noul", noul: 0.8 },
-      },
-    },
-    () => postJev({
-      kind: "voice-ui.jev.request.v2",
-      text: "connect",
-      graph: { regions: ["node-a", "node-b"] },
-    }),
-  );
+test("a provider answer that breaks the typed contract fails closed", async () => {
+  const offered = ["node-a", "node-b"];
+  const wellFormed = {
+    action: providerAnswer("add-edge", ["add-edge", "none"]),
+    source: providerAnswer("node-a", offered),
+    target: providerAnswer("node-b", offered),
+  };
 
-  assert.equal(result.status, 502);
-  assert.equal((await result.json()).error, "provider_contract_error");
+  const broken = {
+    "choice outside the criteria": { ...wellFormed, source: providerAnswer("node-z", ["node-z"]) },
+    "missing confidence": {
+      ...wellFormed,
+      source: { type: "choice", choice: "node-a", probabilities: { "node-a": 0.9 } },
+    },
+    "confidence outside [0,1]": {
+      ...wellFormed,
+      source: { ...wellFormed.source, confidence: 1.5 },
+    },
+    "probabilities key outside the criteria": {
+      ...wellFormed,
+      source: { ...wellFormed.source, probabilities: { "node-z": 0.9 } },
+    },
+    "non-numeric probability": {
+      ...wellFormed,
+      source: { ...wellFormed.source, probabilities: { "node-a": "high" } },
+    },
+    "missing probabilities": {
+      ...wellFormed,
+      source: { type: "choice", choice: "node-a", confidence: 0.8 },
+    },
+  };
+
+  for (const [name, answers] of Object.entries(broken)) {
+    const { result } = await withProviderResponse(
+      { model: "jev-1", answers },
+      () => postJev({
+        kind: "voice-ui.jev.request.v2",
+        text: "connect",
+        graph: { regions: offered },
+      }),
+    );
+    assert.equal(result.status, 502, name);
+    assert.equal((await result.json()).error, "provider_contract_error", name);
+  }
 });
 
 test("no key means no provider call at all", async () => {

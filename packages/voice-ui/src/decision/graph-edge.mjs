@@ -53,12 +53,19 @@ export function buildCriteria(records) {
   });
 }
 
-const choiceOf = (answers, name, options) => {
+// Each choice answer carries its own confidence, so there is no separate
+// confidence answer to read.
+const choiceOf = (answers, name, offered) => {
   const answer = answers?.[name];
   refuse(answer?.type === "choice", `${name} is not a choice answer`);
   refuse(typeof answer.choice === "string", `${name}.choice is not a string`);
-  refuse(options.includes(answer.choice), `${name}.choice is outside the offered criteria`);
-  return answer.choice;
+  refuse(offered.includes(answer.choice), `${name}.choice is outside the offered criteria`);
+  refuse(
+    typeof answer.confidence === "number" && Number.isFinite(answer.confidence)
+      && answer.confidence >= 0 && answer.confidence <= 1,
+    `${name}.confidence is outside [0,1]`,
+  );
+  return answer;
 };
 
 export function validateAnswers(answers, criteria) {
@@ -66,27 +73,27 @@ export function validateAnswers(answers, criteria) {
     answers !== null && typeof answers === "object" && !Array.isArray(answers),
     "answers must be an object",
   );
-  const expected = ["action", "source", "target", "confidence"];
+  const expected = ["action", "source", "target"];
   for (const key of expected) refuse(Object.hasOwn(answers, key), `answers.${key} is required`);
   for (const key of Object.keys(answers)) refuse(expected.includes(key), `answers.${key} is not allowed`);
-
-  const confidence = answers.confidence;
-  refuse(confidence?.type === "noul", "confidence is not a noul answer");
-  refuse(
-    typeof confidence.noul === "number" && Number.isFinite(confidence.noul)
-      && confidence.noul >= 0 && confidence.noul <= 1,
-    "confidence.noul is outside [0,1]",
-  );
 
   const action = choiceOf(answers, "action", criteria.actions);
   const source = choiceOf(answers, "source", criteria.regions);
   const target = choiceOf(answers, "target", criteria.regions);
 
-  refuse(action === ACTION_ADD_EDGE, "action is not add-edge");
-  refuse(confidence.noul >= MIN_CONFIDENCE, "confidence is below the pinned threshold");
-  refuse(source !== target, "source and target are the same region");
+  // The weakest answer governs: every part of the decision must clear the bar.
+  const confidence = Math.min(action.confidence, source.confidence, target.confidence);
 
-  return Object.freeze({ action, source, target, confidence: confidence.noul });
+  refuse(action.choice === ACTION_ADD_EDGE, "action is not add-edge");
+  refuse(confidence >= MIN_CONFIDENCE, "confidence is below the pinned threshold");
+  refuse(source.choice !== target.choice, "source and target are the same region");
+
+  return Object.freeze({
+    action: action.choice,
+    source: source.choice,
+    target: target.choice,
+    confidence,
+  });
 }
 
 export function relationIdFor(source, target) {
