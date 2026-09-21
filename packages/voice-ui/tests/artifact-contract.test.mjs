@@ -19,9 +19,9 @@ test("voice-ui artifact declares only its auth requirement", async () => {
     "kind",
     "requiredCapabilities",
   ]);
-  assert.equal(value.kind, "apps.artifactAuth.v1");
+  assert.equal(value.kind, "artifact.auth.v1");
   assert.equal(value.artifact, "voice-ui");
-  assert.deepEqual(value.requiredCapabilities, ["jev-api-key"]);
+  assert.deepEqual(value.requiredCapabilities, ["jev-api"]);
 });
 
 test("artifact auth capabilities are non-empty unique ids", async () => {
