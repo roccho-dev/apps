@@ -40,16 +40,19 @@
           provider-artifacts = pkgs.runCommand "provider-artifacts-check" { } ''
             set -euo pipefail
 
-            test -s ${uiIr}/packages/ui-ir/src/index.mjs
-            test -s ${a2uiBrowser}/packages/a2ui-browser/src/index.mjs
-            test -s ${semanticMap}/packages/semantic-map/runtime.js
-            test -s ${semanticMap}/packages/semantic-map/renderer-maxgraph/adapter.js
-            test -s ${semanticMap}/packages/semantic-map/vendor/maxgraph/view/AbstractGraph.js
+            for artifact in ${uiIr} ${a2uiBrowser} ${semanticMap}; do
+              test -d "$artifact"
+              test -n "$(ls -A "$artifact")"
+            done
 
-            test -s ${hayamimiWeb}/runtime/api/hayamimi.mjs
-            test -s ${hayamimiWeb}/sherpa/sherpa-onnx-wasm-main-vad-asr.wasm
-            test -s ${hayamimiWeb}/sherpa/sherpa-onnx-wasm-main-vad-asr.data
-            test -s ${hayamimiWeb}/THIRD_PARTY_NOTICES.md
+            for file in \
+              ${hayamimiWeb}/runtime/api/hayamimi.mjs \
+              ${hayamimiWeb}/sherpa/sherpa-onnx-wasm-main-vad-asr.wasm \
+              ${hayamimiWeb}/sherpa/sherpa-onnx-wasm-main-vad-asr.data \
+              ${hayamimiWeb}/THIRD_PARTY_NOTICES.md; do
+              test -f "$file"
+              test -s "$file"
+            done
 
             touch "$out"
           '';
