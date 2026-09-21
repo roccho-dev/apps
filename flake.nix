@@ -21,6 +21,29 @@
         hayamimi-web = ops.packages.${system}.hayamimi-web;
       });
 
+      # One localhost entry. It serves the exact provider outputs in place and
+      # needs no Cloudflare account; envctl supplies JEV_API_KEY to the child.
+      apps = forEachSystem (system:
+        let
+          pkgs = import nixpkgs { inherit system; };
+          dev = pkgs.writeShellApplication {
+            name = "voice-ui-dev";
+            runtimeInputs = [ pkgs.nodejs ];
+            text = ''
+              export VOICE_UI_UI_IR=${ui.packages.${system}.ui-ir}
+              export VOICE_UI_A2UI=${ui.packages.${system}.a2ui-browser}
+              export VOICE_UI_SEMANTIC_MAP=${ui.packages.${system}.semantic-map}
+              export VOICE_UI_HAYAMIMI=${ops.packages.${system}.hayamimi-web}
+              exec node ${self}/packages/voice-ui/dev/serve.mjs "$@"
+            '';
+          };
+        in {
+          dev = {
+            type = "app";
+            program = "${dev}/bin/voice-ui-dev";
+          };
+        });
+
       checks = forEachSystem (system:
         let
           pkgs = import nixpkgs { inherit system; };
@@ -31,6 +54,9 @@
         in {
           voice-ui = pkgs.runCommand "voice-ui-check" {
             nativeBuildInputs = [ pkgs.nodejs ];
+            # The decision unit proves the projection against the pinned
+            # semantic-map codec rather than a stand-in.
+            SEMANTIC_MAP = semanticMap;
           } ''
             cd ${self}
             node --test packages/voice-ui/tests/*.test.mjs

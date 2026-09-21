@@ -20,7 +20,13 @@
       import { validateUiIr } from "/ui/ui-ir/index.mjs";
       import { renderTrustedSurface } from "/ui/a2ui-browser/render/trusted-dom.mjs";
       import { executeArtifactPackage as renderSemanticMap } from "/ui/semantic-map/runtime.js";
+      import {
+        createDecision,
+        createDecisionLog,
+        createEnvelope,
+      } from "/ui/semantic-map/protocol/index.js";
       import { renderUiIr } from "/app/src/render.mjs";
+      import { compileDecision, selectableRegionIds } from "/app/src/decision/graph-edge.mjs";
 
       const text = document.querySelector("#text");
       const send = document.querySelector("#send");
@@ -28,7 +34,13 @@
       const status = document.querySelector("#status");
       const surface = document.querySelector("#surface");
 
+      // The service worker only exists to reassemble the chunked ASR model that
+      // the Cloudflare 25MB file limit forces. A host that serves the model whole
+      // publishes no chunk manifest, so registration is skipped there.
       const serviceWorkerReady = (async () => {
+        const manifest = await fetch("/hayamimi/sherpa/data.parts.json", { cache: "no-store" })
+          .catch(() => null);
+        if (!manifest?.ok) return;
         if (!("serviceWorker" in navigator)) throw new Error("service worker is required");
         await navigator.serviceWorker.register("/sw.js", { scope: "/" });
         await navigator.serviceWorker.ready;
@@ -39,14 +51,52 @@
         }
       })();
 
-      const decide = async value => {
+      const node = (id, x) => ({
+        type: "region",
+        id,
+        parent: "root",
+        label: id,
+        kind: "node",
+        bounds: [x, 90, 140, 64],
+        summary: "",
+      });
+
+      // One bounded starting graph: three known regions and no relations.
+      const graph = await createDecisionLog([
+        { type: "meta", schema: "semantic-map-state/1", root: "root", title: "voice graph" },
+        { type: "region", id: "root", parent: null, label: "voice graph", kind: "boundary", bounds: [0, 0, 720, 260], summary: "" },
+        node("node-a", 40),
+        node("node-b", 250),
+        node("node-c", 460),
+      ], "voice-graph");
+
+      const postJev = async body => {
         const response = await fetch("/api/jev", {
           method: "POST",
           headers: { "content-type": "application/json" },
-          body: JSON.stringify({ kind: "voice-ui.jev.request.v1", text: value }),
+          body: JSON.stringify(body),
         });
         if (!response.ok) throw new Error("Jev request failed");
         return response.json();
+      };
+
+      // Typed input keeps the v1 surface unchanged.
+      const decideTyped = value =>
+        postJev({ kind: "voice-ui.jev.request.v1", text: value });
+
+      // Voice input carries the current graph and is answered with a typed
+      // choice, which apps compiles into a semantic-map envelope.
+      const decideVoice = async value => {
+        const decision = await postJev({
+          kind: "voice-ui.jev.request.v2",
+          text: value,
+          graph: { regions: selectableRegionIds(graph.records) },
+        });
+        return compileDecision({
+          graph,
+          answers: decision.answers,
+          protocol: { createDecision, createEnvelope },
+        });
       };
 
       const render = ir => renderUiIr({
@@ -86,12 +136,13 @@
         });
       };
 
-      const app = createVoiceUiApp({ transcribe, decide, render });
+      const typedApp = createVoiceUiApp({ transcribe, decide: decideTyped, render });
+      const voiceApp = createVoiceUiApp({ transcribe, decide: decideVoice, render });
 
       send.addEventListener("click", async () => {
         status.textContent = "type: working";
         try {
-          await app.submitType(text.value);
+          await typedApp.submitType(text.value);
           status.textContent = "type: rendered";
         } catch {
           status.textContent = "type: failed";
@@ -101,7 +152,7 @@
       mic.addEventListener("click", async () => {
         status.textContent = "voice: listening";
         try {
-          await app.submitVoice(null);
+          await voiceApp.submitVoice(null);
           status.textContent = "voice: rendered";
         } catch {
           status.textContent = "voice: failed";
