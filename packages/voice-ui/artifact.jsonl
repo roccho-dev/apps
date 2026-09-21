@@ -1,1 +1,1 @@
-{"artifact":"voice-ui","kind":"apps.artifactAuth.v1","requiredCapabilities":["jev-api-key"]}
+{"artifact":"voice-ui","kind":"artifact.auth.v1","requiredCapabilities":["jev-api"]}
