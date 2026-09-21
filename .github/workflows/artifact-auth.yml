@@ -1,0 +1,61 @@
+name: artifact-auth
+
+on:
+  pull_request:
+    paths:
+      - "packages/voice-ui/artifact.jsonl"
+      - "packages/voice-ui/tests/artifact-contract.test.mjs"
+      - "flake.nix"
+      - "flake.lock"
+      - ".github/workflows/artifact-auth.yml"
+  push:
+    branches:
+      - proposals
+    paths:
+      - "packages/voice-ui/artifact.jsonl"
+      - "flake.nix"
+      - "flake.lock"
+      - ".github/workflows/artifact-auth.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  voice-ui-auth:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    env:
+      APPS_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ env.APPS_SHA }}
+          persist-credentials: false
+
+      - uses: cachix/install-nix-action@v31
+        with:
+          extra_nix_config: |
+            extra-experimental-features = nix-command flakes
+
+      - name: Build exact auth artifact
+        shell: bash
+        run: |
+          set -euo pipefail
+          out="$(nix build --no-link --print-out-paths .#voice-ui-auth)"
+          test -f "$out/.envs/artifact.jsonl"
+          rm -rf artifact-output
+          mkdir -p artifact-output/.envs
+          cp "$out/.envs/artifact.jsonl" artifact-output/.envs/artifact.jsonl
+          printf '%s\n' "$APPS_SHA" > artifact-output/apps-revision
+          cmp packages/voice-ui/artifact.jsonl artifact-output/.envs/artifact.jsonl
+
+      - name: Upload exact auth artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: voice-ui-auth-${{ env.APPS_SHA }}
+          path: artifact-output
+          retention-days: 30
+          compression-level: 0
+          if-no-files-found: error
+          include-hidden-files: true
