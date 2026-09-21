@@ -26,6 +26,30 @@ jobs:
             exit 1
           fi
           tail -n 80 "$log"
+      - name: Build downloadable auth artifact
+        if: success()
+        shell: bash
+        env:
+          APPS_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: |
+          set -euo pipefail
+          out="$(nix build --no-link --print-out-paths .#voice-ui-auth)"
+          test -f "$out/.envs/artifact.jsonl"
+          rm -rf .download-artifact
+          mkdir -p .download-artifact/.envs
+          cp "$out/.envs/artifact.jsonl" .download-artifact/.envs/artifact.jsonl
+          printf '%s\n' "$APPS_SHA" > .download-artifact/apps-revision
+
+      - name: Upload downloadable auth artifact
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: voice-ui-auth-${{ github.event.pull_request.head.sha || github.sha }}
+          path: .download-artifact
+          retention-days: 30
+          compression-level: 0
+          if-no-files-found: error
+
       - name: Upload flake check log
         if: always()
         uses: actions/upload-artifact@v4
