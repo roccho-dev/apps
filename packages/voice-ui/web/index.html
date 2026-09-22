@@ -37,11 +37,16 @@
 
       // The service worker only exists to reassemble the chunked ASR model that
       // the Cloudflare 25MB file limit forces. A host that serves the model whole
-      // publishes no chunk manifest, so registration is skipped there.
+      // answers the probe with 204, so registration is skipped there.
       const serviceWorkerReady = (async () => {
-        const manifest = await fetch("/hayamimi/sherpa/data.parts.json", { cache: "no-store" })
-          .catch(() => null);
-        if (!manifest?.ok) return;
+        const manifest = await fetch("/hayamimi/sherpa/data.parts.json", { cache: "no-store" });
+        // 204 is the host stating there are no chunks to reassemble. It has to
+        // be read before `ok`, which is true for 204 and would otherwise
+        // register a worker with nothing to do. Anything else that is not a
+        // served manifest is unexpected and must surface rather than silently
+        // disable the worker.
+        if (manifest.status === 204) return;
+        if (!manifest.ok) throw new Error(`chunk manifest probe failed: ${manifest.status}`);
         if (!("serviceWorker" in navigator)) throw new Error("service worker is required");
         await navigator.serviceWorker.register("/sw.js", { scope: "/" });
         await navigator.serviceWorker.ready;

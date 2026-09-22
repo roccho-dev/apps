@@ -66,6 +66,20 @@ function route(pathname) {
   return null;
 }
 
+// Hayamimi decodes audio in a worker and needs a cross-origin isolated page.
+const ISOLATION_HEADERS = {
+  "cross-origin-opener-policy": "same-origin",
+  "cross-origin-embedder-policy": "require-corp",
+  "cross-origin-resource-policy": "same-origin",
+};
+
+// Cloudflare's 25MB file limit forces the deployed site to publish the ASR
+// model as chunks plus this manifest, and a service worker to reassemble them.
+// A host that serves the model whole has no chunks to describe. Answering the
+// probe with 204 states that capability, instead of reporting a transport
+// error for an optional file the provider deliberately does not ship.
+const CHUNK_MANIFEST = "/hayamimi/sherpa/data.parts.json";
+
 async function serveFile(response, file) {
   let body;
   try {
@@ -79,12 +93,23 @@ async function serveFile(response, file) {
     "content-type": TYPES.get(path.extname(file)) ?? "application/octet-stream",
     "content-length": body.byteLength,
     "cache-control": "no-store",
-    // Hayamimi decodes audio in a worker and needs a cross-origin isolated page.
-    "cross-origin-opener-policy": "same-origin",
-    "cross-origin-embedder-policy": "require-corp",
-    "cross-origin-resource-policy": "same-origin",
+    ...ISOLATION_HEADERS,
   });
   response.end(body);
+}
+
+// Only this exact path, and only when the pinned provider genuinely does not
+// ship it. A host that does publish a manifest serves it normally, and every
+// other absent file still gets the ordinary 404.
+async function serveChunkManifest(response, file) {
+  try {
+    await fs.access(file);
+  } catch {
+    response.writeHead(204, { "cache-control": "no-store", ...ISOLATION_HEADERS });
+    response.end();
+    return;
+  }
+  await serveFile(response, file);
 }
 
 async function serveJev(request, response) {
@@ -134,7 +159,8 @@ const server = createServer((request, response) => {
     response.end("not found");
     return;
   }
-  serveFile(response, file).catch(() => {
+  const serve = pathname === CHUNK_MANIFEST ? serveChunkManifest : serveFile;
+  serve(response, file).catch(() => {
     response.writeHead(500, { "content-type": "text/plain; charset=utf-8" });
     response.end("read failed");
   });
