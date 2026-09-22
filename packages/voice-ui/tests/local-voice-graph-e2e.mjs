@@ -136,7 +136,7 @@ const rendered = await page.evaluate(async () => {
 });
 
 assert.equal(rendered.pattern, "graph/1");
-assert.equal(rendered.cells, 3);
+assert.equal(rendered.cells, sent.graph.regions.length + 1, "expected root boundary plus one cell per graph region");
 assert.equal(rendered.svg, true);
 assert.equal(rendered.edges.length, 1, "expected exactly one edge after one add-edge decision");
 assert.equal(rendered.edges[0].from, chosenSource);
