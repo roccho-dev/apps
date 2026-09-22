@@ -100,11 +100,13 @@ export function relationIdFor(source, target) {
   return `voice-${source}-to-${target}`;
 }
 
-// Pure projection: the same verified graph and the same answers always yield the
-// same envelope. `graph` is a verified decision log ({log, head, records}) and
-// `protocol` is the pinned semantic-map codec, injected the same way app.mjs and
-// render.mjs take their collaborators.
-export async function compileDecision({ graph, answers, protocol } = {}) {
+// The one validated path both envelope shapes share. Pure apart from the codec
+// call: the same verified graph and the same answers always yield the same
+// Decision, so neither sibling can drift from the other's grounding rules.
+// `graph` is a verified decision log ({log, head, records}) and `protocol` is
+// the pinned semantic-map codec, injected the same way app.mjs and render.mjs
+// take their collaborators.
+async function decideRelation({ graph, answers, protocol }) {
   refuse(typeof graph?.log === "string" && graph.log.length > 0, "graph.log must be a non-empty string");
   refuse(typeof graph?.head === "string" && graph.head.length > 0, "graph.head must be a non-empty string");
   refuse(typeof protocol?.createDecision === "function", "protocol.createDecision is required");
@@ -131,12 +133,37 @@ export async function compileDecision({ graph, answers, protocol } = {}) {
     }],
     records,
   );
+  return decision;
+}
+
+const uiIrFor = envelope => Object.freeze({
+  kind: "ui.ir.v1",
+  capability: "render.semantic-map",
+  payloadKind: "semantic-map-envelope/3",
+  payload: envelope,
+});
+
+// Proposal projection: the DecisionLog is left untouched and the Decision rides
+// as a non-authority Proposal. The pinned runtime validates the preview but
+// mounts the base records, so this renders as a review overlay and never as a
+// committed edge.
+export async function compileDecision({ graph, answers, protocol } = {}) {
+  const decision = await decideRelation({ graph, answers, protocol });
   const envelope = await protocol.createEnvelope(graph.log, decision, { pattern: GRAPH_PATTERN });
 
-  return Object.freeze({
-    kind: "ui.ir.v1",
-    capability: "render.semantic-map",
-    payloadKind: "semantic-map-envelope/3",
-    payload: envelope,
-  });
+  return uiIrFor(envelope);
+}
+
+// Committed projection, opt-in only. The provider appends the Decision to the
+// log and verifies the result, so the edge is in the base records the runtime
+// mounts. The envelope carries no Proposal. `graph` is the provider-verified
+// next state; the caller decides when to adopt it.
+export async function compileCommittedDecision({ graph, answers, protocol } = {}) {
+  refuse(typeof protocol?.appendDecision === "function", "protocol.appendDecision is required");
+
+  const decision = await decideRelation({ graph, answers, protocol });
+  const appended = await protocol.appendDecision(graph.log, decision);
+  const envelope = await protocol.createEnvelope(appended.log, null, { pattern: GRAPH_PATTERN });
+
+  return Object.freeze({ ir: uiIrFor(envelope), graph: appended.verified });
 }

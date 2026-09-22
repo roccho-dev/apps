@@ -21,12 +21,13 @@
       import { renderTrustedSurface } from "/ui/a2ui-browser/render/trusted-dom.mjs";
       import { executeArtifactPackage as renderSemanticMap } from "/ui/semantic-map/runtime.js";
       import {
+        appendDecision,
         createDecision,
         createDecisionLog,
         createEnvelope,
       } from "/ui/semantic-map/protocol/index.js";
       import { renderUiIr } from "/app/src/render.mjs";
-      import { compileDecision, selectableRegionIds } from "/app/src/decision/graph-edge.mjs";
+      import { compileCommittedDecision, selectableRegionIds } from "/app/src/decision/graph-edge.mjs";
 
       const text = document.querySelector("#text");
       const send = document.querySelector("#send");
@@ -61,8 +62,29 @@
         summary: "",
       });
 
+      // Capture and the surface are separate resources, so they are owned
+      // separately. `capturing` makes microphone capture exclusive to one voice
+      // attempt; `rendering` makes the decide-and-render critical section
+      // exclusive across both inputs. Typed submission is therefore allowed
+      // while voice is only listening, and refused only while the surface is
+      // being decided or rendered. Each path releases `rendering` solely when
+      // it is the owner, so neither can free the other's hold.
+      let capturing = false;
+      let rendering = false;
+      let typedHoldsRender = false;
+      let voiceHoldsRender = false;
+
+      // The next committed graph is staged by the voice decision and adopted by
+      // the host only once the render promise has resolved.
+      let pendingGraph = null;
+
+      const syncBusy = () => {
+        send.disabled = rendering;
+        mic.disabled = capturing || rendering;
+      };
+
       // One bounded starting graph: three known regions and no relations.
-      const graph = await createDecisionLog([
+      let graph = await createDecisionLog([
         { type: "meta", schema: "semantic-map-state/1", root: "root", title: "voice graph" },
         { type: "region", id: "root", parent: null, label: "voice graph", kind: "boundary", bounds: [0, 0, 720, 260], summary: "" },
         node("node-a", 40),
@@ -85,18 +107,31 @@
         postJev({ kind: "voice-ui.jev.request.v1", text: value });
 
       // Voice input carries the current graph and is answered with a typed
-      // choice, which apps compiles into a semantic-map envelope.
+      // choice, which apps compiles into a committed semantic-map envelope.
+      // This is the explicit opt-in to the direct-apply sibling; the proposal
+      // primitive is unchanged and simply not selected here.
+      //
+      // Transcription has already finished by the time this runs, so this is
+      // where the surface critical section begins. The claim is taken before
+      // the first await, and the caller's finally releases it.
       const decideVoice = async value => {
+        if (rendering) throw new Error("surface is busy");
+        rendering = true;
+        voiceHoldsRender = true;
+        syncBusy();
+
         const decision = await postJev({
           kind: "voice-ui.jev.request.v2",
           text: value,
           graph: { regions: selectableRegionIds(graph.records) },
         });
-        return compileDecision({
+        const committed = await compileCommittedDecision({
           graph,
           answers: decision.answers,
-          protocol: { createDecision, createEnvelope },
+          protocol: { appendDecision, createDecision, createEnvelope },
         });
+        pendingGraph = committed.graph;
+        return committed.ir;
       };
 
       const render = ir => renderUiIr({
@@ -140,25 +175,61 @@
       const voiceApp = createVoiceUiApp({ transcribe, decide: decideVoice, render });
 
       send.addEventListener("click", async () => {
+        if (rendering) {
+          status.textContent = "type: busy";
+          return;
+        }
+        rendering = true;
+        typedHoldsRender = true;
+        syncBusy();
+
         status.textContent = "type: working";
         try {
           await typedApp.submitType(text.value);
           status.textContent = "type: rendered";
         } catch {
           status.textContent = "type: failed";
+        } finally {
+          if (typedHoldsRender) {
+            rendering = false;
+            typedHoldsRender = false;
+          }
+          syncBusy();
         }
       });
 
       mic.addEventListener("click", async () => {
+        if (capturing || rendering) {
+          status.textContent = "voice: busy";
+          return;
+        }
+        capturing = true;
+        pendingGraph = null;
+        syncBusy();
+
         status.textContent = "voice: listening";
         try {
+          // submitVoice carries transcription, decision and render. The host
+          // adopts the committed graph only after all three have resolved, and
+          // a missing stage is an error rather than a silent no-op.
           await voiceApp.submitVoice(null);
+          if (!pendingGraph) throw new Error("committed graph was not staged");
+          graph = pendingGraph;
           status.textContent = "voice: rendered";
         } catch {
           status.textContent = "voice: failed";
+        } finally {
+          if (voiceHoldsRender) {
+            rendering = false;
+            voiceHoldsRender = false;
+          }
+          capturing = false;
+          pendingGraph = null;
+          syncBusy();
         }
       });
 
+      syncBusy();
       window.voiceUiReady = true;
     </script>
   </body>

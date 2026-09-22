@@ -8,6 +8,7 @@ import {
   ACTION_ADD_EDGE,
   DecisionRefused,
   buildCriteria,
+  compileCommittedDecision,
   compileDecision,
   relationIdFor,
   selectableRegionIds,
@@ -54,6 +55,20 @@ const compile = (graph, answers) =>
     protocol: { createDecision: protocol.createDecision, createEnvelope: protocol.createEnvelope },
   });
 
+const compileCommitted = (graph, answers) =>
+  compileCommittedDecision({
+    graph,
+    answers,
+    protocol: {
+      appendDecision: protocol.appendDecision,
+      createDecision: protocol.createDecision,
+      createEnvelope: protocol.createEnvelope,
+    },
+  });
+
+// `relationsOf` reads the Proposal surface: base is what the runtime mounts,
+// preview is what the Proposal would produce if accepted. It describes a
+// proposal envelope correctly and must never be used to judge a committed one.
 const relationsOf = async envelope => {
   const inspected = await protocol.inspectEnvelope(envelope);
   return {
@@ -61,6 +76,18 @@ const relationsOf = async envelope => {
     after: inspected.preview.records.filter(record => record.type === "relation"),
   };
 };
+
+// The committed surface is the one the runtime actually mounts. Asserting
+// through `preview` here would pass for a Proposal too, which is exactly the
+// confusion this helper exists to prevent.
+const committedRelationsOf = async envelope => {
+  const inspected = await protocol.inspectEnvelope(envelope);
+  assert.equal(inspected.envelope.proposal, null, "a committed envelope carries no Proposal");
+  assert.equal(inspected.preview, null, "a committed envelope has no preview");
+  return inspected.base.records.filter(record => record.type === "relation");
+};
+
+const decisionLines = log => log.split("\n").filter(line => line.trim().length > 0);
 
 test("criteria offer the graph's own regions verbatim and exclude the boundary", async () => {
   const graph = await baseGraph();
@@ -153,6 +180,127 @@ test("an edge that already exists is refused instead of duplicated", async () =>
   const applied = { ...graph, log: inspected.preview.log, head: inspected.preview.head, records: inspected.preview.records };
 
   await assert.rejects(compile(applied, answersFor("node-a", "node-b")), DecisionRefused);
+});
+
+// The two siblings differ in exactly one respect: which surface carries the
+// edge. Proving both against the same pinned codec is what keeps the direct
+// mode from quietly becoming the only mode.
+test("the proposal sibling still leaves the mounted records untouched", async () => {
+  const graph = await baseGraph();
+  const ir = await compile(graph, answersFor("node-a", "node-b"));
+  const inspected = await protocol.inspectEnvelope(ir.payload);
+
+  assert.notEqual(inspected.envelope.proposal, null);
+  assert.equal(inspected.envelope.log, graph.log, "a Proposal must not advance the log");
+  assert.deepEqual(inspected.base.records.filter(record => record.type === "relation"), []);
+  assert.equal(inspected.preview.records.filter(record => record.type === "relation").length, 1);
+});
+
+test("the committed sibling puts the edge in the records the runtime mounts", async () => {
+  const graph = await baseGraph();
+  const { ir } = await compileCommitted(graph, answersFor("node-c", "node-a"));
+
+  assert.equal(ir.kind, "ui.ir.v1");
+  assert.equal(ir.capability, "render.semantic-map");
+  assert.equal(ir.payloadKind, "semantic-map-envelope/3");
+  assert.equal(ir.payload.schema, "semantic-map-envelope/3");
+
+  const relations = await committedRelationsOf(ir.payload);
+  assert.equal(relations.length, 1);
+  assert.equal(relations[0].from, "node-c");
+  assert.equal(relations[0].to, "node-a");
+  assert.equal(relations[0].id, relationIdFor("node-c", "node-a"));
+});
+
+test("the committed log grows by exactly one Decision and the head is that Decision", async () => {
+  const graph = await baseGraph();
+  const { ir, graph: next } = await compileCommitted(graph, answersFor("node-c", "node-a"));
+
+  assert.equal(decisionLines(next.log).length, decisionLines(graph.log).length + 1);
+  assert.equal(next.log.slice(0, graph.log.length), graph.log, "the existing log is a prefix");
+  assert.equal(ir.payload.log, next.log, "the envelope carries the appended log");
+  assert.notEqual(next.head, graph.head);
+
+  // `graph` is the provider's own verified state, not a hand-assembled object.
+  const verified = await protocol.verifyDecisionLog(next.log);
+  assert.equal(next.head, verified.head);
+  assert.equal(next.stateHash, verified.stateHash);
+});
+
+test("the committed sibling refuses every answer it cannot ground and appends nothing", async () => {
+  const graph = await baseGraph();
+  const before = decisionLines(graph.log).length;
+
+  const rejected = [
+    { action: { type: "choice", choice: "none", confidence: 0.9 }, source: { type: "choice", choice: "node-a", confidence: 0.9 }, target: { type: "choice", choice: "node-b", confidence: 0.9 } },
+    answersFor("node-a", "node-a"),
+    answersFor("node-a", "node-b", 0.4),
+    answersFor("node-a", "node-z"),
+  ];
+
+  for (const answers of rejected) {
+    await assert.rejects(compileCommitted(graph, answers), DecisionRefused);
+  }
+
+  assert.equal(decisionLines(graph.log).length, before, "a refusal must not touch the input graph");
+  assert.deepEqual(graph.records.filter(record => record.type === "relation"), []);
+});
+
+test("a committed path without the provider append primitive fails closed", async () => {
+  const graph = await baseGraph();
+
+  await assert.rejects(
+    compileCommittedDecision({
+      graph,
+      answers: answersFor("node-c", "node-a"),
+      protocol: { createDecision: protocol.createDecision, createEnvelope: protocol.createEnvelope },
+    }),
+    DecisionRefused,
+  );
+});
+
+// The control that kills a constant compiler on the committed path too.
+test("mutating only the typed answers moves the committed edge", async () => {
+  const graph = await baseGraph();
+  const seen = new Map();
+
+  for (const [source, target] of [
+    ["node-a", "node-b"],
+    ["node-b", "node-a"],
+    ["node-a", "node-c"],
+    ["node-c", "node-b"],
+  ]) {
+    const { ir } = await compileCommitted(graph, answersFor(source, target));
+    const relations = await committedRelationsOf(ir.payload);
+    assert.equal(relations.length, 1);
+    seen.set(`${source}->${target}`, `${relations[0].from}->${relations[0].to}`);
+  }
+
+  assert.deepEqual([...seen.entries()], [
+    ["node-a->node-b", "node-a->node-b"],
+    ["node-b->node-a", "node-b->node-a"],
+    ["node-a->node-c", "node-a->node-c"],
+    ["node-c->node-b", "node-c->node-b"],
+  ]);
+  assert.equal(new Set(seen.values()).size, 4, "a constant compiler would collapse these");
+});
+
+// The real version of the duplicate control: the second call reads the state
+// the provider actually produced, not a hand-applied preview.
+test("the real committed next graph refuses the same edge twice", async () => {
+  const graph = await baseGraph();
+  const { graph: next } = await compileCommitted(graph, answersFor("node-c", "node-a"));
+
+  assert.deepEqual(
+    next.records.filter(record => record.type === "relation").map(record => [record.from, record.to]),
+    [["node-c", "node-a"]],
+  );
+  await assert.rejects(compileCommitted(next, answersFor("node-c", "node-a")), DecisionRefused);
+
+  // A different edge on top of the committed state still compiles, and the log
+  // grows again by exactly one.
+  const { graph: third } = await compileCommitted(next, answersFor("node-a", "node-b"));
+  assert.equal(decisionLines(third.log).length, decisionLines(next.log).length + 1);
 });
 
 const postJev = (body, env = { JEV_API_KEY: "test-key" }) =>
