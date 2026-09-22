@@ -1,0 +1,231 @@
+{
+  "_purpose": "Phase C candidate golden for the v13 positive gate. Canonical invocation: VOICE_WAV=<wav> VOICE_GOLDEN=<this file> node packages/voice-ui/tests/local-voice-graph-e2e.mjs http://127.0.0.1:<port>/",
+  "_cer_tolerance": 0.01,
+  "_generator": {
+    "engine": "piper-tts",
+    "version": "1.4.2",
+    "upstream": "OHF-Voice/piper1-gpl",
+    "tag": "v1.4.2",
+    "source_hash": "sha256-FHO+1d1iJimc6KweY/O6lEvWqGCyUwnDrslEfkxYR7A=",
+    "license": "GPL-3.0-only",
+    "nixpkgs_rev": "f9948418dc8628ac02b6d6337e191ade9429d59d",
+    "flake_ref": "github:NixOS/nixpkgs/f9948418dc8628ac02b6d6337e191ade9429d59d",
+    "flake_narHash": "sha256-q1a/1H/Z5DJ9PRIueWDtoQbfhO2zAwni9wPsKCa1mc0=",
+    "store_path": "/nix/store/flm636crn7qbm2cglwjcmdpbjlx3rnvs-piper-tts-1.4.2",
+    "evaluated_equals_realized": true,
+    "narHash": "sha256-+Ze4pzV140O5IAfklWJd0HD8Jp2Z/Zy2N5VkNuN/ZXU=",
+    "narSize": 5559504,
+    "deriver": "/nix/store/2vvhln6bgb5rzsk46h2azy2prpn8m162-piper-tts-1.4.2.drv",
+    "signatures": [
+      "cache.nixos.org-1"
+    ],
+    "materialization": "substituted",
+    "piper_argv": [
+      "$PIPER_BIN",
+      "-m",
+      "/tmp/vpiper/en_US-ljspeech-high.onnx",
+      "-f",
+      "/tmp/vpiper/raw.wav",
+      "ADD AN EDGE FROM C TO A"
+    ],
+    "config_inference_verbatim": {
+      "noise_scale": 0.667,
+      "length_scale": 1,
+      "noise_w": 0.333
+    },
+    "upstream_parser_mapping": {
+      "inference.length_scale": "length_scale",
+      "inference.noise_scale": "noise_scale",
+      "inference.noise_w": "noise_w_scale"
+    },
+    "effective_values": {
+      "length_scale": 1,
+      "noise_scale": 0.667,
+      "noise_w_scale": 0.333
+    },
+    "effective_value_source": "pinned config inference object for all three; upstream fallback not used",
+    "upstream_fallback_not_used": {
+      "length_scale": 1.0,
+      "noise_scale": 0.667,
+      "noise_w_scale": 0.8
+    },
+    "speaker": "flag not passed; num_speakers==1 so library forces speaker_id=None",
+    "sox_path": "/nix/store/2j2lxhzjrhnjf6p44nwl1qdzk8sq13hd-sox-unstable-2021-05-09/bin/sox",
+    "sox_version": "SoX v14.4.2",
+    "sox_argv": [
+      "$SOX_BIN",
+      "/tmp/vpiper/raw.wav",
+      "-r",
+      "16000",
+      "-c",
+      "1",
+      "-b",
+      "16",
+      "-e",
+      "signed-integer",
+      "/tmp/vpiper/voice-add-edge-en.wav",
+      "pad",
+      "1.0",
+      "2.0"
+    ],
+    "generation_attempt": 1,
+    "single_unreplicated_stochastic_draw": true,
+    "no_byte_identical_regeneration_claim": true
+  },
+  "_voice": {
+    "repository": "rhasspy/piper-voices",
+    "revision": "c10ece1aade47bb51c153c893d14e5bf8e5b7117",
+    "path": "en/en_US/ljspeech/high",
+    "model_file": "en_US-ljspeech-high.onnx",
+    "model_sha256": "5d4f08ba6a2a48c44592eed3ce56bf85e9de3dd4e20df90541ae68a8310c029a",
+    "model_bytes": 114199011,
+    "config_file": "en_US-ljspeech-high.onnx.json",
+    "config_git_blob_sha1": "e4c9cbdf41a9c5fadd5eb7633513435342184918",
+    "config_sha256": "7e1f4634af596d83cca997fb7a931ba80b70f8a316a2655ee69c55365e0ace14",
+    "config_bytes": 4970,
+    "locale": {
+      "code": "en_US",
+      "family": "en",
+      "region": "US",
+      "name_native": "English",
+      "name_english": "English",
+      "country_english": "United States"
+    },
+    "espeak_voice": "en",
+    "num_speakers": 1,
+    "quality": "high",
+    "sample_rate": 22050,
+    "repository_license_metadata": "mit (HF repo cardData)",
+    "dataset_license_metadata": "public domain (LJ Speech)",
+    "not_legal_advice": true
+  },
+  "_audio": {
+    "raw": {
+      "sha256": "ecd88263331cc8e07a3cb5c9ee401858b0a92a81cc7b6202b7ae8077c6fe7b79",
+      "bytes": 78892,
+      "rate": 22050,
+      "channels": 1,
+      "width_bytes": 2,
+      "duration_s": 1.787937
+    },
+    "final": {
+      "sha256": "476c29d47ef4c8cedaa2240ca534e4aebfbebb4bbc52a2157e649927f5842dff",
+      "bytes": 153258,
+      "rate": 16000,
+      "channels": 1,
+      "width_bytes": 2,
+      "duration_s": 4.787937
+    },
+    "pad": [
+      1.0,
+      2.0
+    ],
+    "host_class": "linux x86_64 WSL2 container",
+    "date": "2026-09-22"
+  },
+  "_orthography": {
+    "token_source_locator": {
+      "kind": "emscripten_preload_container",
+      "container": "/nix/store/b9z97ddr3rnybp1incha490jv0qvjwdr-hayamimi-web-0.1.0/sherpa/sherpa-onnx-wasm-main-vad-asr.data",
+      "virtual_path": "/tokens.txt",
+      "start": 643854,
+      "end": 670485,
+      "length": 26631
+    },
+    "token_span_sha256": "144f8a4f639373a1bdf7eabb2437482ef64b0cc5db24ad27cce65f293e4faa24",
+    "boundary_marker": "U+2581",
+    "boundary_marker_semantics": "leading-only; 1759 occurrences, all leading",
+    "excluded_control_tokens": [
+      "<blk>",
+      "<sos/eos>",
+      "<unk>"
+    ],
+    "excluded_unused_slots": [
+      "#0",
+      "#1",
+      "#2",
+      "#3",
+      "#4"
+    ],
+    "token_count": 2005,
+    "normalized_target": "ADDANEDGEFROMCTOA",
+    "a0_result": "REPRESENTABLE",
+    "non_gating": {
+      "minimum_token_count": 9,
+      "one_minimum_segmentation": [
+        "AD",
+        "D",
+        "AN",
+        "ED",
+        "GE",
+        "FROM",
+        "C",
+        "TO",
+        "A"
+      ],
+      "whole_word_present": {
+        "ADD": false,
+        "AN": true,
+        "EDGE": false,
+        "FROM": true,
+        "C": true,
+        "TO": true,
+        "A": true
+      },
+      "spaced_detokenization": "ADDANEDGE FROMC TO A",
+      "latin_bearing_tokens": 340,
+      "latin_tokens_with_lowercase": 0
+    }
+  },
+  "_claim": {
+    "artifact_scoped_microphone_equivalent": true,
+    "not_live_human_mic": true,
+    "same_wav_3_of_3": true,
+    "asr_deterministic_reuse": true,
+    "no_speaker_or_generator_general_success_rate_claim": true,
+    "generator_dependency": 0,
+    "positive_response_model": "UNAVAILABLE: the unmodified committed test neither asserts nor prints response.model, and the dev server records only a bound/absent boolean. No model alias claim is made for the positive runs.",
+    "bounded_direct_voice_mode": "session-local committed update of the current maxGraph adapter in the freshly mounted iframe",
+    "localhost_whole_model_capability": "the exact manifest URL answers HTTP 204; any unexpected non-OK is a failure rather than a silent skip",
+    "cloudflare_chunked_200_branch": "not exercised by this fixture; neither the deployed chunked branch nor any third-party host is dynamically proven here",
+    "no_proposal_acceptance_ux": "compileDecision remains a non-authority proposal primitive held by unit test only; proposal-before-action is not user-accessible or accept/reject-wired in this slice",
+    "no_undo_durable_persistence_or_reload_retention": true
+  },
+  "_runs": {
+    "note": "Inert run metadata. The committed test reads only clips[].wav, clips[].reference and _cer_tolerance; everything here is provenance.",
+    "public_head": "ab162d03a3da3082e424ca10530e4bc0576b452f",
+    "public_tree": "8e7819869b347fb9851f14c6de8e623b192ef476",
+    "frozen_test_blob": "b0b8424065e6c1d3eff9dea19c38a7a0bb2922ff",
+    "positive": {
+      "count": 3,
+      "order": "sequential, run 1 then run 2 then run 3, same WAV, fresh browser context each time",
+      "exit_codes": [0, 0, 0],
+      "printed_edge": ["node-c->node-a", "node-c->node-a", "node-c->node-a"],
+      "retry_count": 0,
+      "observer_count": 0,
+      "second_synthesis_count": 0,
+      "counted_from_prior_versions": 0
+    },
+    "finals_semantics": "clips[0].finals records the NORMALIZED transcript value for each Green run in run order. These are normalized observed/entailed values, NOT raw transcript strings. The frozen test does not expose sent.text, so the raw string with its original whitespace and punctuation was never observed and is deliberately not invented here. Each entry is entailed exactly: the test asserts distance(normalize(sent.text), normalize(reference)) / max(1, 17) <= 0.01, and floor(0.01 * 17) = 0, so a passing run forces edit distance 0 and therefore normalize(sent.text) === ADDANEDGEFROMCTOA.",
+    "negative_witness": {
+      "input": "/nix/store/4likjzwfk2r0xvb7ima26408hi4mz9fr-hayamimi-web-sources-0.1.0/sources/hayamimi/tests/golden/ja/ja_014.wav",
+      "input_sha256": "638d54e8eb6dcde05e1725eaef62ab0e542db7cd11893241632b55226ed10fd5",
+      "observed": "HTTP 200 voice-ui.jev.decision.v2 with answers.action.choice = none; #status voice: failed; semantic-map iframe count 0; edges [] (vacuous at iframe count 0); console [] and pageerror [] both empty",
+      "entailment": "the codec refused the non-add-edge decision before appendDecision, so no Decision was appended and the session graph was unchanged; the host graph binding is module-scoped and not exposed, so this is structural entailment and not direct observation",
+      "label": "W-observed / R-source-approved / not independently reproduced",
+      "checkpoint_comment_id": 5776089920,
+      "review_id": 5277760348
+    }
+  },
+  "clips": [
+    {
+      "wav": "voice-add-edge-en.wav",
+      "reference": "ADD AN EDGE FROM C TO A",
+      "finals": [
+        "ADDANEDGEFROMCTOA",
+        "ADDANEDGEFROMCTOA",
+        "ADDANEDGEFROMCTOA"
+      ]
+    }
+  ]
+}
