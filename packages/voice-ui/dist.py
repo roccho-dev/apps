@@ -122,6 +122,8 @@ def build(args):
     copy_file(app / "tests/public-e2e.mjs", out / "e2e/public-e2e.mjs")
     copy_file(app / "tests/fixtures/voice-add-edge-en.wav", out / "e2e/fixtures/voice-add-edge-en.wav")
     copy_file(app / "tests/fixtures/voice-add-edge-en.golden.json", out / "e2e/fixtures/voice-add-edge-en.golden.json")
+    copy_file(app / "tests/fixtures/voice-reverse-edge-en.wav", out / "e2e/fixtures/voice-reverse-edge-en.wav")
+    copy_file(app / "tests/fixtures/voice-reverse-edge-en.golden.json", out / "e2e/fixtures/voice-reverse-edge-en.golden.json")
 
     split_model(site)
 
@@ -138,6 +140,8 @@ def build(args):
             "entrypoint": "e2e/local-voice-graph-e2e.mjs",
             "wav": "e2e/fixtures/voice-add-edge-en.wav",
             "golden": "e2e/fixtures/voice-add-edge-en.golden.json",
+            "correction_wav": "e2e/fixtures/voice-reverse-edge-en.wav",
+            "correction_golden": "e2e/fixtures/voice-reverse-edge-en.golden.json",
         },
     }
     write_manifest(out, manifest)
@@ -213,6 +217,8 @@ def verify_dist(root):
         "e2e/local-voice-graph-e2e.mjs",
         "e2e/fixtures/voice-add-edge-en.wav",
         "e2e/fixtures/voice-add-edge-en.golden.json",
+        "e2e/fixtures/voice-reverse-edge-en.wav",
+        "e2e/fixtures/voice-reverse-edge-en.golden.json",
     ]
     for rel in required:
         path = root / rel

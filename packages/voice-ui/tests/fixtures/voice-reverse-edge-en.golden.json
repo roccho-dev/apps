@@ -1,0 +1,120 @@
+{
+  "_purpose": "Spoken correction for the correction-loop E2E: after node-c->node-a has been confirmed, this utterance must be heard and proposed as reversing that edge. Canonical invocation: VOICE_CORRECTION_WAV=<wav> VOICE_CORRECTION_GOLDEN=<this file> alongside VOICE_WAV/VOICE_GOLDEN for node packages/voice-ui/tests/local-voice-graph-e2e.mjs http://127.0.0.1:<port>/",
+  "_cer_tolerance": 0.01,
+  "_generator": {
+    "engine": "piper-tts",
+    "version": "1.4.2",
+    "upstream": "OHF-Voice/piper1-gpl",
+    "tag": "v1.4.2",
+    "license": "GPL-3.0-only",
+    "store_path": "/nix/store/flm636crn7qbm2cglwjcmdpbjlx3rnvs-piper-tts-1.4.2",
+    "same_tuple_as": "voice-add-edge-en.golden.json _generator and _voice (identical store path, voice revision, model and config hashes)",
+    "piper_argv": [
+      "$PIPER_BIN",
+      "-m",
+      "/tmp/voice-ui-correction-fixture/en_US-ljspeech-high.onnx",
+      "-f",
+      "/tmp/voice-ui-correction-fixture/raw.wav",
+      "REVERSE THAT EDGE"
+    ],
+    "sox_path": "/nix/store/2j2lxhzjrhnjf6p44nwl1qdzk8sq13hd-sox-unstable-2021-05-09/bin/sox",
+    "sox_version": "SoX v14.4.2",
+    "sox_argv": [
+      "$SOX_BIN",
+      "/tmp/voice-ui-correction-fixture/raw.wav",
+      "-r",
+      "16000",
+      "-c",
+      "1",
+      "-b",
+      "16",
+      "-e",
+      "signed-integer",
+      "packages/voice-ui/tests/fixtures/voice-reverse-edge-en.wav",
+      "pad",
+      "1.0",
+      "2.0"
+    ],
+    "generation_attempt": 1,
+    "single_unreplicated_stochastic_draw": true,
+    "no_byte_identical_regeneration_claim": true
+  },
+  "_voice": {
+    "repository": "rhasspy/piper-voices",
+    "revision": "c10ece1aade47bb51c153c893d14e5bf8e5b7117",
+    "path": "en/en_US/ljspeech/high",
+    "model_file": "en_US-ljspeech-high.onnx",
+    "model_sha256": "5d4f08ba6a2a48c44592eed3ce56bf85e9de3dd4e20df90541ae68a8310c029a",
+    "model_bytes": 114199011,
+    "config_file": "en_US-ljspeech-high.onnx.json",
+    "config_sha256": "7e1f4634af596d83cca997fb7a931ba80b70f8a316a2655ee69c55365e0ace14",
+    "config_bytes": 4970,
+    "fetched_once_for_this_fixture": "https://huggingface.co/rhasspy/piper-voices/resolve/c10ece1aade47bb51c153c893d14e5bf8e5b7117/en/en_US/ljspeech/high/",
+    "not_in_repository_or_dist": true
+  },
+  "_audio": {
+    "raw": {
+      "sha256": "01e7451344c2e02e8a8a90e3c2682eebe279b78fe0cc1f39479fab838a5fbca4",
+      "bytes": 54828,
+      "rate": 22050,
+      "channels": 1,
+      "width_bytes": 2,
+      "duration_s": 1.242268
+    },
+    "final": {
+      "sha256": "5e7cbe99e0d55d1d488287ce7da48acc6bbf09b4095fd5252253dc1f05755c5f",
+      "bytes": 135796,
+      "rate": 16000,
+      "channels": 1,
+      "width_bytes": 2,
+      "duration_s": 4.24225
+    },
+    "pad": [
+      1.0,
+      2.0
+    ],
+    "host_class": "linux x86_64 WSL2 container",
+    "date": "2026-09-23"
+  },
+  "_orthography": {
+    "token_source_locator": {
+      "kind": "emscripten_preload_container",
+      "container": "/nix/store/b9z97ddr3rnybp1incha490jv0qvjwdr-hayamimi-web-0.1.0/sherpa/sherpa-onnx-wasm-main-vad-asr.data",
+      "virtual_path": "/tokens.txt",
+      "start": 643854,
+      "end": 670485,
+      "length": 26631
+    },
+    "token_span_sha256": "144f8a4f639373a1bdf7eabb2437482ef64b0cc5db24ad27cce65f293e4faa24",
+    "normalized_target": "REVERSETHATEDGE",
+    "a0_result": "REPRESENTABLE",
+    "non_gating": {
+      "one_minimum_segmentation": [
+        "RE",
+        "VER",
+        "SE",
+        "THAT",
+        "ED",
+        "GE"
+      ],
+      "whole_word_present": {
+        "REVERSE": false,
+        "THAT": true,
+        "EDGE": false
+      }
+    }
+  },
+  "_claim": {
+    "artifact_scoped_microphone_equivalent": true,
+    "not_live_human_mic": true,
+    "no_speaker_or_generator_general_success_rate_claim": true,
+    "refers_by_focus": "the utterance names no nodes; which edge it means comes from the focus the page sends with it (the change just confirmed), not from the words",
+    "runs_recorded_in": "the pull request's evidence, not in this file, so the golden does not depend on the runs it gates"
+  },
+  "clips": [
+    {
+      "wav": "voice-reverse-edge-en.wav",
+      "reference": "REVERSE THAT EDGE"
+    }
+  ]
+}
