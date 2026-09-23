@@ -225,6 +225,8 @@ const situation = ({ graph, focus }) => {
   const looking = focus.changes.map(change => `${change.change} the edge ${arrow(change)}`).join(" and ");
   const attention = focus.kind === "proposal"
     ? ` The user is looking at an unsaved proposal that has ${looking}; a follow-up may refer to it.`
+      + " Remove and reverse apply only to edges that already exist; to change an edge the proposal"
+      + " would add, answer with the whole addition that should replace it."
     : focus.kind === "confirmed"
       ? ` The user just confirmed a change that ${looking}; a follow-up may refer to it.`
       : "";

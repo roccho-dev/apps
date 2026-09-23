@@ -218,6 +218,50 @@ test("confirming without a proposal is refused", async () => {
   await assert.rejects(confirm(await baseGraph(), null), /there is no proposal/u);
 });
 
+test("while a proposal is pending, remove or reverse of an edge it does not name is a no-change", async () => {
+  const graph = await commit(await baseGraph(), { action: ACTION_ADD, source: "node-a", target: "node-b" });
+  const pending = (await propose(graph, { action: ACTION_ADD, source: "node-b", target: "node-c", edge: "voice-node-a-to-node-b" })).proposal;
+  assert.deepEqual(pending.changes, [{ change: "added", from: "node-b", to: "node-c" }]);
+
+  // "reverse that" answered with the committed edge: the focus named the
+  // pending proposal, so this answer cannot mean what the page asked about.
+  for (const action of [ACTION_REVERSE, ACTION_REMOVE]) {
+    const answer = await proposeCorrection({
+      graph,
+      answers: answersFor(graph, { action, edge: "voice-node-a-to-node-b" }),
+      protocol,
+      pending,
+    });
+    assert.equal(answer.outcome, OUTCOME_NO_CHANGE, action);
+    assert.match(answer.reason, /a proposal is pending/u);
+    assert.equal(answer.proposal, undefined, "the pending proposal must not be replaced");
+  }
+
+  // A new addition still replaces the pending proposal.
+  const replacement = await proposeCorrection({
+    graph,
+    answers: answersFor(graph, { action: ACTION_ADD, source: "node-c", target: "node-b", edge: "voice-node-a-to-node-b" }),
+    protocol,
+    pending,
+  });
+  assert.equal(replacement.outcome, OUTCOME_PROPOSED);
+  assert.deepEqual(replacement.proposal.changes, [{ change: "added", from: "node-c", to: "node-b" }]);
+});
+
+test("while a proposal is pending, remove or reverse of an edge it names is proposed", async () => {
+  const graph = await commit(await baseGraph(), { action: ACTION_ADD, source: "node-c", target: "node-a" });
+  const pendingRemoval = (await propose(graph, { action: ACTION_REMOVE, edge: "voice-node-c-to-node-a" })).proposal;
+
+  const reversed = await proposeCorrection({
+    graph,
+    answers: answersFor(graph, { action: ACTION_REVERSE, edge: "voice-node-c-to-node-a" }),
+    protocol,
+    pending: pendingRemoval,
+  });
+  assert.equal(reversed.outcome, OUTCOME_PROPOSED);
+  assert.equal(reversed.proposal.action, ACTION_REVERSE);
+});
+
 test("the focus is the pending proposal, else the last confirmed change, else nothing", () => {
   const changes = [{ change: "added", from: "node-c", to: "node-a" }];
   assert.deepEqual(focusFor({ proposal: { changes } }), { kind: "proposal", changes });

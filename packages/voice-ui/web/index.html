@@ -256,6 +256,11 @@
       // answer becomes a proposal drawn over the unchanged graph. The v1 and v2
       // HTTP contracts are still served; this screen drives v3.
       const decideProposal = async value => {
+        // Nothing typed, or a transcript with nothing in it, asks for nothing:
+        // no request goes to Jev and the pending proposal stays as it is.
+        if (typeof value !== "string" || value.trim().length === 0) {
+          throw new NoChange("nothing was said or typed");
+        }
         const decision = await postJev({
           kind: "voice-ui.jev.request.v3",
           text: value,
@@ -265,7 +270,7 @@
           },
           focus: currentFocus(),
         });
-        const result = await proposeCorrection({ graph, answers: decision.answers, protocol });
+        const result = await proposeCorrection({ graph, answers: decision.answers, protocol, pending: proposal });
         if (result.outcome === OUTCOME_NO_CHANGE) throw new NoChange(result.reason);
         candidate = result.proposal;
         return result.ir;

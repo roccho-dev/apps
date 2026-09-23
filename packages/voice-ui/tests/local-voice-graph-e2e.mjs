@@ -87,7 +87,7 @@ const readGolden = (file, audio) => {
 const assertHeard = (text, { reference, tolerance }) => {
   assert.ok(text.trim().length > 0, "no recognised text reached Jev");
   const cer = distance(normalize(text), normalize(reference)) / Math.max(1, normalize(reference).length);
-  assert.ok(cer <= tolerance, `voice CER ${cer} exceeded pinned tolerance for "${reference}"`);
+  assert.ok(cer <= tolerance, `voice CER ${cer} exceeded pinned tolerance: heard "${text}", expected "${reference}"`);
 };
 
 const ready = target =>
@@ -424,13 +424,58 @@ await assertUnchanged("no change", "no-change", null);
 
 // (xi-b) And a no-change answer leaves a pending proposal exactly where it was.
 const pending = await type(page, "add an edge from a to b");
-const pendingEdge = edgeOf(pending.decision.answers);
+let pendingEdge = edgeOf(pending.decision.answers);
 assert.deepEqual((await screen(page)).proposal, [`+${pendingEdge}`]);
 await type(page, "what is the weather like today");
 const stillPending = await screen(page);
 assert.equal(stillPending.state, "no-change");
 assert.deepEqual(stillPending.proposal, [`+${pendingEdge}`], "no change must not discard the pending proposal");
 assert.equal(stillPending.stored, typedRestored.stored);
+
+// (xi-c) Empty input asks for nothing: no request reaches Jev at all, the
+// answer is a neutral no-change, and the pending proposal stays.
+let jevRequests = 0;
+const countJev = request => {
+  if (new URL(request.url()).pathname === "/api/jev") jevRequests += 1;
+};
+page.on("request", countJev);
+for (const blank of ["", "   "]) {
+  await page.locator("#text").fill(blank);
+  await page.locator("#send").click();
+  await settle(page);
+  const afterBlank = await screen(page);
+  assert.equal(afterBlank.state, "no-change", `${JSON.stringify(blank)} must be a no-change`);
+  assert.equal(afterBlank.failure, null, `${JSON.stringify(blank)} is not an error`);
+  assert.deepEqual(afterBlank.proposal, [`+${pendingEdge}`], `${JSON.stringify(blank)} must keep the pending proposal`);
+}
+page.off("request", countJev);
+assert.equal(jevRequests, 0, "empty input must send no request to Jev");
+
+// (xi-d) While a proposal is pending, "reverse that" is about the proposal. The
+// page must never answer it by reversing or removing some other, committed
+// edge and silently discarding the user's proposal. Jev may answer with a
+// replacing addition (a new proposal) or pick a committed edge (then it is a
+// no-change and the proposal stays); either way nothing is removed or saved.
+const aboutPending = await type(page, "reverse that");
+const afterAboutPending = await screen(page);
+assert.equal(afterAboutPending.stored, typedRestored.stored, "nothing may be saved");
+assert.ok(
+  (afterAboutPending.proposal ?? []).every(change => change.startsWith("+")),
+  `a pending addition must not turn into a removal of a committed edge: ${JSON.stringify(afterAboutPending.proposal)}`,
+);
+assert.deepEqual((await drawn(page)).edges, [typedEdge], "no committed edge may move");
+const pendingOutcome = afterAboutPending.state === "no-change"
+  ? `no-change (Jev chose ${aboutPending.decision.answers.action.choice})`
+  : `replaced by ${JSON.stringify(afterAboutPending.proposal)}`;
+if (afterAboutPending.state === "no-change") {
+  assert.match(afterAboutPending.status, /a proposal is pending/u);
+  assert.deepEqual(afterAboutPending.proposal, [`+${pendingEdge}`], "the pending proposal must stay");
+} else {
+  assert.equal(afterAboutPending.state, "proposed");
+  assert.equal(aboutPending.decision.answers.action.choice, "add-edge");
+  assert.equal(afterAboutPending.proposal.length, 1);
+  pendingEdge = afterAboutPending.proposal[0].slice(1);
+}
 
 // (xii) Storage write failure: a real quota exhaustion, not a stub. Every byte
 // this origin may still store is taken by filler keys, then the pending sound
@@ -494,21 +539,70 @@ assert.equal(afterNegatives.stored, theirSaved);
 assert.deepEqual(afterNegatives.confirmed, [`+${typedEdge}`, `+${theirEdge}`]);
 assert.deepEqual((await drawn(page)).edges, [typedEdge, theirEdge].sort());
 
+// (xiii-b) Saved, but not displayed. The decision is confirmed and its write
+// lands; only the drawing that follows fails - the semantic-map frame document
+// is refused for exactly that one render, so the frame never becomes ready and
+// the runtime gives up. Storage now leads the screen, so the page must say so,
+// block every further action, and a reload must draw what was saved.
+const beforeUndrawn = afterNegatives.stored;
+const undrawnRequest = await type(page, "add an edge from a to b");
+const undrawnEdge = edgeOf(undrawnRequest.decision.answers);
+assert.deepEqual((await screen(page)).proposal, [`+${undrawnEdge}`]);
+
+const frameDocument = new URL("/ui/semantic-map/authoring/pages/embed.html", url).href;
+const injected = [];
+const noteInjected = request => {
+  if (request.url() === frameDocument) injected.push(request.failure()?.errorText ?? "failed");
+};
+page.on("requestfailed", noteInjected);
+await page.route(frameDocument, route => route.abort("failed"), { times: 1 });
+
+await press(page, "#confirm");
+const undrawn = await screen(page);
+page.off("requestfailed", noteInjected);
+assert.equal(undrawn.state, "saved-display-failed");
+assert.match(undrawn.failure ?? "", /display failed/u);
+assert.notEqual(undrawn.stored, beforeUndrawn, "the write must have landed before the drawing failed");
+assert.equal(undrawn.stored.split("\n").length, beforeUndrawn.split("\n").length + 1, "exactly one Decision must be added");
+assert.equal(undrawn.sendDisabled, true, "typing must stop while the screen is behind storage");
+assert.equal(undrawn.micDisabled, true, "voice must stop while the screen is behind storage");
+assert.equal(undrawn.confirmDisabled, true, "confirming must stop while the screen is behind storage");
+assert.deepEqual(injected, ["net::ERR_FAILED"], "the only refused request must be the injected frame document");
+
+await page.reload({ waitUntil: "commit" });
+await ready(page);
+const redrawn = await screen(page);
+assert.equal(redrawn.state, "confirmed");
+assert.equal(redrawn.stored, undrawn.stored, "reload must draw what was saved, not rewrite it");
+assert.deepEqual(redrawn.confirmed, [`+${typedEdge}`, `+${theirEdge}`, `+${undrawnEdge}`]);
+assert.deepEqual((await drawn(page)).edges, [typedEdge, theirEdge, undrawnEdge].sort());
+assert.equal(redrawn.sendDisabled, false);
+
 await first.browser.close();
 
-// (xiv) The spoken correction, in a second browser that hears only the
-// correction file and starts from exactly what the first browser saved after
-// the spoken add. The utterance names no node: which edge it means comes from
-// the focus the page sends with it.
-const second = await openBrowser(correctionWav, afterVoiceAdd);
-page = second.page;
-await page.goto(url, { waitUntil: "commit", timeout: 120000 });
-await ready(page);
-const carried = await screen(page);
-assert.equal(carried.state, "confirmed");
-assert.equal(carried.stored, savedLog, "the second browser must start from the saved spoken add");
-assert.deepEqual(carried.confirmed, [`+${voiceEdge}`]);
-assert.deepEqual((await drawn(page)).edges, [voiceEdge]);
+// (xiv) The spoken correction, heard by browsers that hear only the correction
+// file and start from exactly what the first browser saved after the spoken
+// add. The utterance names no node: which edge it means comes from the focus
+// the page sends with it.
+//
+// Each hearing gets its own browser process. The fake microphone loops its
+// file from process start, so a second capture in the same process can begin
+// part-way through the utterance and hear it clipped; a fresh process always
+// hears it from the beginning.
+const openCorrection = async storageState => {
+  const opened = await openBrowser(correctionWav, storageState);
+  page = opened.page;
+  await page.goto(url, { waitUntil: "commit", timeout: 120000 });
+  await ready(page);
+  const carried = await screen(page);
+  assert.equal(carried.state, "confirmed");
+  assert.equal(carried.stored, savedLog, "a correction browser must start from the saved spoken add");
+  assert.deepEqual(carried.confirmed, [`+${voiceEdge}`]);
+  assert.deepEqual((await drawn(page)).edges, [voiceEdge]);
+  return opened;
+};
+
+const second = await openCorrection(afterVoiceAdd);
 
 const [voiceFrom, voiceTo] = voiceEdge.split("->");
 const reversedEdge = `${voiceTo}->${voiceFrom}`;
@@ -541,8 +635,13 @@ assert.equal(afterCorrectionDismiss.state, "dismissed");
 assert.equal(afterCorrectionDismiss.stored, savedLog);
 assert.deepEqual((await drawn(page)).edges, [voiceEdge]);
 
+// Dismissing wrote nothing, so the next browser starts from the same saved add.
+const afterDismissState = await second.context.storageState();
+await second.browser.close();
+
 // Spoken again, proposed again, and this time confirmed: the reverse applies as
 // one Decision.
+const third = await openCorrection(afterDismissState);
 const secondHearing = await hearCorrection();
 await press(page, "#confirm");
 const corrected = await screen(page);
@@ -561,7 +660,7 @@ assert.equal(final.stored, corrected.stored);
 assert.deepEqual(final.confirmed, [`+${voiceEdge}`, `-${voiceEdge} +${reversedEdge}`]);
 assert.deepEqual((await drawn(page)).edges, [reversedEdge]);
 
-await second.browser.close();
+await third.browser.close();
 
 assert.deepEqual(errors, []);
 assert.deepEqual(failedResponses, []);
@@ -570,7 +669,9 @@ process.stdout.write(
   `local-voice-graph-e2e: PASS voice add proposed then confirmed edge=${voiceEdge} `
   + `(frame Accept ${frameAccept.present ? (frameAccept.disabled ? "present, disabled" : "present, enabled, inert") : "absent"}) `
   + `| restored after reload | corrupt and foreign logs fail closed | typed dismiss, replace, confirm edge=${typedEdge} `
-  + `| duplicate, no-change, failed write and cross-tab conflict leave storage unchanged `
+  + `| duplicate, no-change, empty input (0 Jev requests), failed write and cross-tab conflict leave storage unchanged `
+  + `| "reverse that" over a pending proposal: ${pendingOutcome} `
+  + `| saved-but-undrawn ${undrawnEdge} blocks, then reload draws it `
   + `| spoken correction heard as "${firstHearing}" / "${secondHearing}" -> reverse proposed, dismissed, re-proposed, `
   + `confirmed edge=${reversedEdge} | restored after reload\n`,
 );

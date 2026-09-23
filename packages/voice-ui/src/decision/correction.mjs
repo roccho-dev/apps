@@ -177,7 +177,14 @@ const viaProvider = async (reason, run) => {
 // build it as a provider Decision bound to the current head. The Decision is
 // validated by the provider here, so a proposal that is shown can be applied
 // exactly as shown - but nothing is appended: the log and graph are untouched.
-export async function proposeCorrection({ graph, answers, protocol } = {}) {
+//
+// `pending` is the proposal already on screen, if any. While one is pending, the
+// user's attention is on it, so a remove or reverse must be about an edge that
+// proposal itself names. An answer that picks some other committed edge cannot
+// mean what the page told Jev, and would silently throw the user's proposal
+// away; it is a no-change instead, and the pending proposal stays. Adding is
+// unaffected: a new addition simply replaces the proposal.
+export async function proposeCorrection({ graph, answers, protocol, pending = null } = {}) {
   refuse(typeof graph?.log === "string" && graph.log.length > 0, "graph.log must be a non-empty string");
   refuse(typeof graph?.head === "string" && graph.head.length > 0, "graph.head must be a non-empty string");
   refuse(typeof protocol?.createDecision === "function", "protocol.createDecision is required");
@@ -186,6 +193,17 @@ export async function proposeCorrection({ graph, answers, protocol } = {}) {
   const read = readAnswers(answers, correctionCriteria(graph.records));
   const planned = operationsFor(read, graph.records);
   if (planned.outcome === OUTCOME_NO_CHANGE) return planned;
+
+  if (pending && (planned.action === ACTION_REMOVE || planned.action === ACTION_REVERSE)) {
+    const [target] = planned.changes;
+    const named = pending.changes.some(change => change.from === target.from && change.to === target.to);
+    if (!named) {
+      return noChange(
+        "a proposal is pending: remove or reverse can only refer to an edge it names; "
+        + "replace it with a new addition, or confirm or dismiss it first",
+      );
+    }
+  }
 
   const { decision } = await viaProvider("the provider rejected the change",
     () => protocol.createDecision(graph.head, planned.operations, graph.records));
