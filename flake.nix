@@ -14,12 +14,20 @@
           value = f system;
         }) systems);
     in {
-      packages = forEachSystem (system: {
-        ui-ir = ui.packages.${system}.ui-ir;
-        a2ui-browser = ui.packages.${system}.a2ui-browser;
-        semantic-map = ui.packages.${system}.semantic-map;
-        hayamimi-web = ops.packages.${system}.hayamimi-web;
-      });
+      packages = forEachSystem (system:
+        let
+          pkgs = import nixpkgs { inherit system; };
+        in {
+          ui-ir = ui.packages.${system}.ui-ir;
+          a2ui-browser = ui.packages.${system}.a2ui-browser;
+          semantic-map = ui.packages.${system}.semantic-map;
+          hayamimi-web = ops.packages.${system}.hayamimi-web;
+
+          voice-ui-auth = pkgs.runCommand "voice-ui-auth" { } ''
+            mkdir -p "$out/.envs"
+            cp ${self}/packages/voice-ui/artifact.jsonl "$out/.envs/artifact.jsonl"
+          '';
+        });
 
       checks = forEachSystem (system:
         let
@@ -28,6 +36,7 @@
           a2uiBrowser = ui.packages.${system}.a2ui-browser;
           semanticMap = ui.packages.${system}.semantic-map;
           hayamimiWeb = ops.packages.${system}.hayamimi-web;
+          voiceUiAuth = self.packages.${system}.voice-ui-auth;
         in {
           voice-ui = pkgs.runCommand "voice-ui-check" {
             nativeBuildInputs = [ pkgs.nodejs ];
@@ -54,6 +63,13 @@
               test -s "$file"
             done
 
+            touch "$out"
+          '';
+
+          artifact-auth = pkgs.runCommand "artifact-auth-check" { } ''
+            test -f ${voiceUiAuth}/.envs/artifact.jsonl
+            cmp ${self}/packages/voice-ui/artifact.jsonl \
+              ${voiceUiAuth}/.envs/artifact.jsonl
             touch "$out"
           '';
         });
