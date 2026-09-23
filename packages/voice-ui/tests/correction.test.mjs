@@ -3,6 +3,7 @@ import path from "node:path";
 import test from "node:test";
 import { pathToFileURL } from "node:url";
 
+import { onRequestPost } from "../functions/api/jev.mjs";
 import { DecisionRefused } from "../src/decision/graph-edge.mjs";
 import {
   ACTION_ADD,
@@ -223,4 +224,123 @@ test("the focus is the pending proposal, else the last confirmed change, else no
   assert.deepEqual(focusFor({ lastConfirmed: changes }), { kind: "confirmed", changes });
   assert.deepEqual(focusFor({ proposal: { changes }, lastConfirmed: [] }).kind, "proposal");
   assert.deepEqual(focusFor({}), { kind: "none", changes: [] });
+});
+
+// The Pages Function side of v3: which questions are put to Jev for a given
+// graph and focus, and what shape comes back.
+
+const postJev = body =>
+  onRequestPost({
+    request: new Request("http://localhost/api/jev", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify(body),
+    }),
+    env: { JEV_API_KEY: "test-key" },
+  });
+
+const withProvider = async (answers, run) => {
+  const original = globalThis.fetch;
+  const calls = [];
+  globalThis.fetch = async (url, init) => {
+    calls.push(JSON.parse(init.body));
+    return new Response(JSON.stringify({ model: "jev-test", answers }), {
+      status: 200,
+      headers: { "content-type": "application/json" },
+    });
+  };
+  try {
+    return { result: await run(), calls };
+  } finally {
+    globalThis.fetch = original;
+  }
+};
+
+const providerChoice = (value, keys, confidence = 0.8) => ({
+  type: "choice",
+  choice: value,
+  confidence,
+  probabilities: Object.fromEntries(keys.map(key => [key, key === value ? confidence : 0.1])),
+});
+
+const REGIONS = ["node-a", "node-b", "node-c"];
+const EDGE = { id: "voice-node-c-to-node-a", from: "node-c", to: "node-a" };
+
+const v3 = ({ edges = [], focus = { kind: "none", changes: [] }, text = "reverse that" } = {}) => ({
+  kind: "voice-ui.jev.request.v3",
+  text,
+  graph: { regions: REGIONS, edges },
+  focus,
+});
+
+test("v3 on an edgeless graph asks only about adding", async () => {
+  const { result, calls } = await withProvider({
+    action: providerChoice("add-edge", ["add-edge", "none"]),
+    source: providerChoice("node-c", REGIONS),
+    target: providerChoice("node-a", REGIONS),
+  }, () => postJev(v3({ text: "add an edge from c to a" })));
+
+  assert.equal(result.status, 200);
+  const body = await result.json();
+  assert.equal(body.kind, "voice-ui.jev.decision.v3");
+  assert.deepEqual(Object.keys(body.answers), ["action", "source", "target"]);
+  assert.deepEqual(Object.keys(calls[0].questions), ["action", "source", "target"]);
+  assert.deepEqual(Object.keys(calls[0].questions.action.criteria), ["add-edge", "none"]);
+  assert.match(calls[0].questions.action.instructions, /no edges/u);
+});
+
+test("v3 with an edge and a focus offers remove, reverse and the edge itself", async () => {
+  const actions = ["add-edge", "remove-edge", "reverse-edge", "none"];
+  const focus = { kind: "confirmed", changes: [{ change: "added", from: "node-c", to: "node-a" }] };
+  const { result, calls } = await withProvider({
+    action: providerChoice("reverse-edge", actions),
+    source: providerChoice("node-a", REGIONS),
+    target: providerChoice("node-b", REGIONS),
+    edge: providerChoice(EDGE.id, [EDGE.id]),
+  }, () => postJev(v3({ edges: [EDGE], focus })));
+
+  const body = await result.json();
+  assert.equal(body.answers.action.choice, "reverse-edge");
+  assert.equal(body.answers.edge.choice, EDGE.id);
+
+  const { questions } = calls[0];
+  assert.deepEqual(Object.keys(questions.action.criteria), actions);
+  assert.deepEqual(Object.keys(questions.edge.criteria), [EDGE.id]);
+  assert.match(questions.edge.criteria[EDGE.id], /node-c -> node-a/u);
+  assert.match(questions.action.instructions, /just confirmed a change that added the edge node-c -> node-a/u);
+  assert.equal(calls[0].state, "reverse that", "the request text goes to Jev unchanged");
+
+  // The answer feeds straight into the proposal code.
+  const graph = await commit(await baseGraph(), { action: ACTION_ADD, source: "node-c", target: "node-a" });
+  const proposed = await proposeCorrection({ graph, answers: body.answers, protocol });
+  assert.equal(proposed.proposal.action, ACTION_REVERSE);
+});
+
+test("v3 names an unsaved proposal as the focus", async () => {
+  const focus = { kind: "proposal", changes: [{ change: "added", from: "node-c", to: "node-a" }] };
+  const { calls } = await withProvider({
+    action: providerChoice("add-edge", ["add-edge", "none"]),
+    source: providerChoice("node-a", REGIONS),
+    target: providerChoice("node-c", REGIONS),
+  }, () => postJev(v3({ focus })));
+  assert.match(calls[0].questions.action.instructions, /unsaved proposal that has added the edge node-c -> node-a/u);
+});
+
+test("v3 rejects malformed requests and off-criteria answers", async () => {
+  const bad = [
+    { ...v3(), extra: true },
+    v3({ edges: [{ ...EDGE, from: "node-z" }] }),
+    v3({ edges: [EDGE, EDGE] }),
+    v3({ focus: { kind: "none", changes: [{ change: "added", from: "node-a", to: "node-b" }] } }),
+    v3({ focus: { kind: "proposal", changes: [] } }),
+    v3({ focus: { kind: "later", changes: [] } }),
+  ];
+  for (const body of bad) assert.equal((await postJev(body)).status, 422, JSON.stringify(body));
+
+  const { result } = await withProvider({
+    action: providerChoice("remove-edge", ["add-edge", "remove-edge", "none"]),
+    source: providerChoice("node-a", REGIONS),
+    target: providerChoice("node-b", REGIONS),
+  }, () => postJev(v3()));
+  assert.equal(result.status, 502, "remove offered to nobody must not come back");
 });
