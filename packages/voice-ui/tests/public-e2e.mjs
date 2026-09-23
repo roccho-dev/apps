@@ -102,8 +102,28 @@ const drawnEdges = () => page.evaluate(async () => {
 });
 
 const confirmedFacts = () => page.evaluate(() =>
-  [...document.querySelectorAll("[data-history=confirmed] li")].map(item => item.dataset.fact).sort()
+  [...document.querySelectorAll("[data-history=confirmed] li")].map(item => item.dataset.facts).sort()
 );
+
+const pendingChanges = () => page.evaluate(() =>
+  document.querySelector("#proposal").hidden
+    ? null
+    : [...document.querySelectorAll("#proposal-changes li")].map(item => item.dataset.change)
+);
+
+// Speaking or typing only proposes. The proposal is shown, nothing is saved,
+// and Confirm is what applies it.
+const confirmPending = async edge => {
+  assert.deepEqual(await pendingChanges(), [`+${edge}`]);
+  assert.equal(await page.evaluate(key => localStorage.getItem(key), STORAGE_KEY), savedBefore(),
+    "a proposal must not be saved");
+  await page.locator("#confirm").click();
+  await waitForState("confirmed");
+  assert.equal(await pendingChanges(), null);
+};
+
+let lastSaved = null;
+const savedBefore = () => lastSaved;
 
 const waitForState = state => page.waitForFunction(
   value => document.body.dataset.state === value,
@@ -114,8 +134,8 @@ const waitForState = state => page.waitForFunction(
 assert.equal(await page.evaluate(() => document.body.dataset.state), "initial");
 assert.deepEqual((await drawnEdges()).edges, [], "a first visit must draw no edge");
 
-// Send now takes the typed graph decision. A rendered string is no longer
-// evidence of anything; a confirmed, drawn edge is.
+// Send takes the typed graph decision. A rendered string is not evidence of
+// anything; a proposal that is confirmed and then drawn is.
 await page.locator("#text").fill("add an edge from a to b");
 const typeResponsePromise = page.waitForResponse(
   response => new URL(response.url()).pathname === "/api/jev" && response.request().method() === "POST",
@@ -125,10 +145,13 @@ await page.locator("#send").click();
 const typeResponse = await typeResponsePromise;
 assert.equal(typeResponse.status(), 200);
 const typeDecision = await typeResponse.json();
-assert.equal(typeDecision.kind, "voice-ui.jev.decision.v2");
-await waitForState("confirmed");
+assert.equal(typeDecision.kind, "voice-ui.jev.decision.v3");
+await waitForState("proposed");
 const typedEdge = `${typeDecision.answers.source.choice}->${typeDecision.answers.target.choice}`;
-assert.deepEqual(await confirmedFacts(), [typedEdge]);
+assert.deepEqual((await drawnEdges()).edges, [], "a proposal must not be drawn as a committed edge");
+await confirmPending(typedEdge);
+lastSaved = await page.evaluate(key => localStorage.getItem(key), STORAGE_KEY);
+assert.deepEqual(await confirmedFacts(), [`+${typedEdge}`]);
 assert.deepEqual((await drawnEdges()).edges, [typedEdge]);
 
 const golden = JSON.parse(fs.readFileSync(goldenPath, "utf8"));
@@ -143,8 +166,8 @@ await page.locator("#mic").click();
 const voiceResponse = await voiceResponsePromise;
 assert.equal(voiceResponse.status(), 200);
 const voiceDecision = await voiceResponse.json();
-assert.equal(voiceDecision.kind, "voice-ui.jev.decision.v2");
-await waitForState("confirmed");
+assert.equal(voiceDecision.kind, "voice-ui.jev.decision.v3");
+await waitForState("proposed");
 
 const actual = normalize(await page.locator("#text").inputValue());
 const expected = normalize(clip.reference);
@@ -152,8 +175,11 @@ const cer = distance(actual, expected) / Math.max(1, expected.length);
 assert.ok(cer <= Number(golden._cer_tolerance), "voice CER exceeded pinned tolerance");
 
 const voiceEdge = `${voiceDecision.answers.source.choice}->${voiceDecision.answers.target.choice}`;
+assert.deepEqual((await drawnEdges()).edges, [typedEdge], "a spoken proposal must not be drawn as committed");
+await confirmPending(voiceEdge);
+
 const bothEdges = [typedEdge, voiceEdge].sort();
-assert.deepEqual(await confirmedFacts(), bothEdges);
+assert.deepEqual(await confirmedFacts(), bothEdges.map(edge => `+${edge}`).sort());
 
 const drawn = await drawnEdges();
 assert.equal(drawn.pattern, "graph/1");
@@ -167,7 +193,7 @@ await page.reload({ waitUntil: "commit" });
 await page.waitForFunction(() => window.voiceUiReady === true, null, { timeout: 120000 });
 assert.equal(await page.evaluate(() => document.body.dataset.state), "confirmed");
 assert.equal(await page.evaluate(key => localStorage.getItem(key), STORAGE_KEY), saved);
-assert.deepEqual(await confirmedFacts(), bothEdges);
+assert.deepEqual(await confirmedFacts(), bothEdges.map(edge => `+${edge}`).sort());
 assert.deepEqual((await drawnEdges()).edges, bothEdges);
 
 assert.deepEqual(errors, []);
