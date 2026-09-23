@@ -28,6 +28,16 @@ export class HistoryPersistFailed extends Error {
   }
 }
 
+// The stored log is not the one this page last read or wrote: another tab of
+// the same origin has committed since. Writing now would silently discard that
+// history, so the write is refused instead.
+export class HistoryConflict extends Error {
+  constructor() {
+    super("decision log was changed elsewhere since this page read it; reload to continue");
+    this.name = "HistoryConflict";
+  }
+}
+
 const demand = (condition, reason) => {
   if (!condition) throw new Error(`decision history: ${reason}`);
 };
@@ -46,26 +56,50 @@ const relationsOf = records =>
       .map(record => Object.freeze({ id: record.id, from: record.from, to: record.to })),
   );
 
-// One committed operation described for display. ConnectRegions is the only
-// shape this app can produce today, but an unknown operation is reported by its
-// type rather than dropped, so a projection can never quietly under-report what
-// the verified log actually contains.
-const factOf = operation =>
-  operation.type === "ConnectRegions"
-    ? Object.freeze({
-      type: operation.type,
-      relationId: operation.relationId,
-      from: operation.from,
-      to: operation.to,
-    })
-    : Object.freeze({ type: operation.type });
+// What one Decision changed, read off the states the provider itself computes
+// before and after it. A removal names only a relation id; the endpoints it had
+// exist only in the earlier state, and reading them out of the id string would
+// be guessing. So every change is a difference between two provider states.
+const keyed = records => new Map([
+  ...regionIdsOf(records).map(id => [`region ${id}`, Object.freeze({ kind: "region", id })]),
+  ...relationsOf(records).map(relation => [
+    `relation ${relation.id} ${relation.from} ${relation.to}`,
+    Object.freeze({ kind: "relation", ...relation }),
+  ]),
+]);
+
+const changesBetween = (before, after, operations) => {
+  const previous = keyed(before);
+  const next = keyed(after);
+  const facts = [
+    ...[...previous].filter(([key]) => !next.has(key)).map(([, item]) => Object.freeze({ change: "removed", ...item })),
+    ...[...next].filter(([key]) => !previous.has(key)).map(([, item]) => Object.freeze({ change: "added", ...item })),
+  ];
+  // A Decision that moved no region or relation (a layout pin, say) is still
+  // reported by its operation types, so the history never under-reports a log.
+  return facts.length > 0
+    ? facts
+    : operations.map(operation => Object.freeze({ change: "other", kind: operation.type }));
+};
+
+// The provider state after each Decision, obtained by verifying each prefix of
+// the log. Every prefix of a valid log is itself a valid log.
+const statesOf = async (log, verifyDecisionLog) => {
+  const lines = log.split("\n").slice(0, -1);
+  const states = [];
+  for (let count = 1; count <= lines.length; count += 1) {
+    states.push((await verifyDecisionLog(`${lines.slice(0, count).join("\n")}\n`)).records);
+  }
+  return states;
+};
 
 // Project a provider-verified log into what the screen has to distinguish: the
 // initial graph, the accumulated confirmed facts in log order, and the current
 // state. Every value here is entailed by the verified log; nothing is inferred
 // from the DOM or from anything the user typed.
-export function projectHistory(verified) {
+export async function projectHistory(verified, { verifyDecisionLog } = {}) {
   demand(verified !== null && typeof verified === "object", "verified log is required");
+  demand(typeof verifyDecisionLog === "function", "verifyDecisionLog is required");
   const decisions = verified.decisions;
   demand(Array.isArray(decisions) && decisions.length > 0, "verified log has no Decisions");
 
@@ -73,10 +107,13 @@ export function projectHistory(verified) {
   const create = created.operations.find(operation => operation.type === "CreateMap");
   demand(create !== undefined, "first Decision must carry CreateMap");
 
+  const states = await statesOf(verified.log, verifyDecisionLog);
+  demand(states.length === decisions.length, "log prefixes do not match its Decisions");
+
   const entries = decisions.slice(1).map((decision, index) => Object.freeze({
     // ids[0] belongs to the CreateMap Decision, so applied entry n is ids[n+1].
     id: verified.ids[index + 1],
-    facts: Object.freeze(decision.operations.map(factOf)),
+    facts: Object.freeze(changesBetween(states[index], states[index + 1], decision.operations)),
   }));
 
   return Object.freeze({
@@ -136,7 +173,7 @@ export async function restoreHistory({ read, verifyDecisionLog, genesis } = {}) 
     return Object.freeze({
       status: RESTORE_RESTORED,
       graph: verified,
-      projection: projectHistory(verified),
+      projection: await projectHistory(verified, { verifyDecisionLog }),
     });
   } catch (error) {
     return Object.freeze({ status: RESTORE_CORRUPT, reason: error.message });
@@ -147,9 +184,20 @@ export async function restoreHistory({ read, verifyDecisionLog, genesis } = {}) 
 // renders it. Storage is the authority, so a write that does not land must stop
 // the sequence: "displayed but not saved" is unrecoverable and lies, while
 // "saved but not displayed" is recoverable by reload and can be labelled.
-export async function persistHistory({ write, graph } = {}) {
+//
+// When `read` is given, the write only happens if storage still holds
+// `expected` - the log this page last read or wrote, or null if it has none.
+// Anything else means another tab committed in between, and the write is
+// refused rather than overwriting that tab's history.
+export async function persistHistory({ write, graph, read, expected = null } = {}) {
   demand(typeof write === "function", "write is required");
   demand(typeof graph?.log === "string" && graph.log.length > 0, "graph.log must be a non-empty string");
+
+  if (read !== undefined) {
+    demand(typeof read === "function", "read must be a function");
+    const current = await read(HISTORY_KEY);
+    if ((current ?? null) !== expected) throw new HistoryConflict();
+  }
 
   try {
     await write(HISTORY_KEY, graph.log);

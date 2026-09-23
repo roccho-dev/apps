@@ -11,6 +11,12 @@
       <button id="send" type="button">Send</button>
       <button id="mic" type="button">Voice</button>
       <p id="status" role="status"></p>
+      <section id="proposal" aria-label="Unsaved proposal" hidden>
+        <p id="proposal-summary"></p>
+        <ul id="proposal-changes"></ul>
+        <button id="confirm" type="button">Confirm</button>
+        <button id="dismiss" type="button">Dismiss</button>
+      </section>
       <section id="history" aria-label="History"></section>
       <section id="surface" aria-label="Result"></section>
     </main>
@@ -29,12 +35,16 @@
         verifyDecisionLog,
       } from "/ui/semantic-map/protocol/index.js";
       import { renderUiIr } from "/app/src/render.mjs";
+      import { GRAPH_PATTERN, selectableRegionIds } from "/app/src/decision/graph-edge.mjs";
       import {
-        GRAPH_PATTERN,
-        compileCommittedDecision,
-        selectableRegionIds,
-      } from "/app/src/decision/graph-edge.mjs";
+        OUTCOME_NO_CHANGE,
+        confirmProposal,
+        edgesOf,
+        focusFor,
+        proposeCorrection,
+      } from "/app/src/decision/correction.mjs";
       import {
+        HistoryConflict,
         RESTORE_CORRUPT,
         RESTORE_EMPTY,
         RESTORE_RESTORED,
@@ -47,8 +57,15 @@
       const send = document.querySelector("#send");
       const mic = document.querySelector("#mic");
       const status = document.querySelector("#status");
+      const proposalPanel = document.querySelector("#proposal");
+      const proposalSummary = document.querySelector("#proposal-summary");
+      const proposalChanges = document.querySelector("#proposal-changes");
+      const confirmButton = document.querySelector("#confirm");
+      const dismissButton = document.querySelector("#dismiss");
       const historyPanel = document.querySelector("#history");
       const surface = document.querySelector("#surface");
+
+      const protocol = { appendDecision, createDecision, createEnvelope };
 
       // The only place in the app that touches browser storage. history.mjs is
       // pure and takes these as collaborators, so the restore contract stays
@@ -103,6 +120,7 @@
       let rendering = false;
       let typedHoldsRender = false;
       let voiceHoldsRender = false;
+      let decisionHoldsRender = false;
 
       // Fail-closed latch. A stored log that cannot be verified, and a decision
       // that was saved but could not be drawn, both leave the screen unable to
@@ -112,21 +130,33 @@
       // provider rejects.
       let blocked = false;
 
-      // Set the moment an attempt's own write lands, so a later render failure
-      // is reported as "saved but not displayed" rather than as a decision that
-      // was lost. One flag per input, like the render holds: typing is allowed
-      // while voice is still listening, so a shared flag would let one attempt's
-      // write be read as the other's and claim a save that never happened.
-      let typedPersisted = false;
-      let voicePersisted = false;
-
       // Storage is the authority; `graph` follows it and the DOM projects both.
+      // `stored` is the log this page last read from or wrote to storage, so a
+      // confirmation can tell whether another tab has committed since.
       let graph;
       let history;
+      let stored = null;
+
+      // The one proposal on screen, if any. Speaking or typing only ever
+      // proposes; nothing reaches the log except through Confirm. `candidate` is
+      // the proposal an input has just built, adopted once it has been drawn.
+      let proposal = null;
+      let candidate = null;
+
+      // Neither "no change" nor a refusal is a fact, and neither replaces the
+      // proposal already on screen. Only "no change" is not an error.
+      class NoChange extends Error {
+        constructor(reason) {
+          super(reason);
+          this.name = "NoChange";
+        }
+      }
 
       const syncBusy = () => {
         send.disabled = rendering || blocked;
         mic.disabled = capturing || rendering || blocked;
+        confirmButton.disabled = rendering || blocked || !proposal;
+        dismissButton.disabled = rendering || blocked || !proposal;
       };
 
       const setState = (state, message) => {
@@ -152,21 +182,55 @@
           `initial: ${projection.initial.regions.join(", ")} (${projection.initial.relations.length} edges)`,
         ));
 
+        // One item per confirmed Decision; a reversal is one item holding the
+        // removed and the added direction.
         const confirmed = document.createElement("ol");
         confirmed.dataset.history = "confirmed";
         for (const entry of projection.entries) {
-          for (const fact of entry.facts) {
-            const item = document.createElement("li");
-            const edge = fact.from && fact.to ? `${fact.from}->${fact.to}` : fact.type;
-            item.dataset.fact = edge;
-            item.textContent = edge;
-            confirmed.append(item);
-          }
+          const item = document.createElement("li");
+          item.dataset.entry = entry.id;
+          const facts = entry.facts.map(describe);
+          item.dataset.facts = facts.join(" ");
+          item.textContent = facts.join(", ");
+          confirmed.append(item);
         }
         historyPanel.append(confirmed);
         historyPanel.append(line("count", `confirmed: ${confirmed.childElementCount}`));
         if (failure) historyPanel.append(line("failure", failure));
       };
+
+      // "+node-c->node-a" for an added edge, "-node-c->node-a" for a removed one.
+      const describe = fact => {
+        const sign = fact.change === "added" ? "+" : fact.change === "removed" ? "-" : "~";
+        return fact.kind === "relation" ? `${sign}${fact.from}->${fact.to}` : `${sign}${fact.kind}${fact.id ? ` ${fact.id}` : ""}`;
+      };
+
+      // The proposal panel is the authority on what is pending: the map inside
+      // the frame overlays the same change, but only this panel's Confirm can
+      // apply it, and it says plainly that nothing is saved yet.
+      const renderProposal = () => {
+        proposalPanel.hidden = proposal === null;
+        proposalChanges.replaceChildren();
+        if (!proposal) {
+          proposalSummary.textContent = "";
+          return;
+        }
+        proposalSummary.textContent = `Unsaved proposal (${proposal.action}) - nothing changes until you confirm.`;
+        for (const change of proposal.changes) {
+          const item = document.createElement("li");
+          item.dataset.change = describe({ ...change, kind: "relation" });
+          item.textContent = item.dataset.change;
+          proposalChanges.append(item);
+        }
+      };
+
+      // What the user is looking at, for a follow-up like "reverse that".
+      const currentFocus = () => focusFor({
+        proposal,
+        lastConfirmed: (history.entries.at(-1)?.facts ?? [])
+          .filter(fact => fact.kind === "relation")
+          .map(({ change, from, to }) => ({ change, from, to })),
+      });
 
       // One bounded starting graph: three known regions and no relations.
       const initialGraph = () => createDecisionLog([
@@ -187,37 +251,28 @@
         return response.json();
       };
 
-      // Send and Voice take the same committed path; the only difference is
-      // where the text came from. The v1 HTTP contract is untouched and still
-      // served, it is simply no longer what this screen drives, because a
-      // rendered string was never evidence that the graph changed.
-      const decideCommitted = async (value, markPersisted) => {
+      // Send and Voice take the same path, and neither writes anything: the
+      // request is judged against the graph and the focus on screen, and the
+      // answer becomes a proposal drawn over the unchanged graph. The v1 and v2
+      // HTTP contracts are still served; this screen drives v3.
+      const decideProposal = async value => {
         const decision = await postJev({
-          kind: "voice-ui.jev.request.v2",
+          kind: "voice-ui.jev.request.v3",
           text: value,
-          graph: { regions: selectableRegionIds(graph.records) },
+          graph: {
+            regions: selectableRegionIds(graph.records),
+            edges: edgesOf(graph.records).map(({ id, from, to }) => ({ id, from, to })),
+          },
+          focus: currentFocus(),
         });
-        const committed = await compileCommittedDecision({
-          graph,
-          answers: decision.answers,
-          protocol: { appendDecision, createDecision, createEnvelope },
-        });
-
-        // Storage first. A write that does not land throws here, leaving the
-        // in-memory graph and the DOM exactly as they were, so a failure can
-        // never show an edge that was not saved.
-        await persistHistory({ write, graph: committed.graph });
-        markPersisted();
-
-        // Only now does memory follow storage. The caller renders afterwards,
-        // and a render that fails is reported as saved-but-not-displayed.
-        graph = committed.graph;
-        history = projectHistory(graph);
-        return committed.ir;
+        const result = await proposeCorrection({ graph, answers: decision.answers, protocol });
+        if (result.outcome === OUTCOME_NO_CHANGE) throw new NoChange(result.reason);
+        candidate = result.proposal;
+        return result.ir;
       };
 
       // The typed handler already owns the surface by the time it calls this.
-      const decideTyped = value => decideCommitted(value, () => { typedPersisted = true; });
+      const decideTyped = value => decideProposal(value);
 
       // Transcription has already finished by the time this runs, so this is
       // where the surface critical section begins for voice. The claim is taken
@@ -228,7 +283,7 @@
         voiceHoldsRender = true;
         syncBusy();
 
-        return decideCommitted(value, () => { voicePersisted = true; });
+        return decideProposal(value);
       };
 
       // graph-edge.mjs builds this shape around a decision. Drawing a graph that
@@ -281,22 +336,22 @@
       const typedApp = createVoiceUiApp({ transcribe, decide: decideTyped, render });
       const voiceApp = createVoiceUiApp({ transcribe, decide: decideVoice, render });
 
-      // One place decides how an attempt ends, because the three endings are
-      // easy to confuse and only one of them is a fact. `persisted` is the
-      // calling attempt's own flag, never the other input's.
-      const finish = (prefix, error, persisted) => {
+      // How an input ends. Only a drawn proposal replaces the one on screen; a
+      // "no change" answer and a refusal leave it exactly as it was, and neither
+      // writes anything. "No change" is an ordinary answer, not an error.
+      const finishInput = (prefix, error) => {
         if (!error) {
-          setState("confirmed", `${prefix}: confirmed`);
+          proposal = candidate;
+          candidate = null;
+          renderProposal();
+          setState("proposed", `${prefix}: proposed - not saved until you confirm`);
           renderHistory(history);
           return;
         }
-        if (persisted) {
-          // Saved, but the screen could not be brought up to date. Storage
-          // leads, so stop rather than take another decision on top of a view
-          // that is already behind; a reload re-projects the saved graph.
-          blocked = true;
-          setState("saved-display-failed", `${prefix}: saved, display failed - reload to recover`);
-          renderHistory(history, `display failed: ${error.message}`);
+        candidate = null;
+        if (error instanceof NoChange) {
+          setState("no-change", `${prefix}: no change - ${error.message}`);
+          renderHistory(history);
           return;
         }
         setState("failed", `${prefix}: failed`);
@@ -311,15 +366,14 @@
         }
         rendering = true;
         typedHoldsRender = true;
-        typedPersisted = false;
         syncBusy();
 
         setState("pending", "type: working");
         try {
           await typedApp.submitType(text.value);
-          finish("type", null, typedPersisted);
+          finishInput("type", null);
         } catch (error) {
-          finish("type", error, typedPersisted);
+          finishInput("type", error);
         } finally {
           if (typedHoldsRender) {
             rendering = false;
@@ -336,18 +390,16 @@
           return;
         }
         capturing = true;
-        voicePersisted = false;
         syncBusy();
 
         setState("pending", "voice: listening");
         try {
-          // submitVoice carries transcription, decision and render. The decision
-          // persists and binds before the render, so reaching here means the
-          // whole chain landed.
+          // submitVoice carries transcription, decision and render, so reaching
+          // here means the proposal is drawn.
           await voiceApp.submitVoice(null);
-          finish("voice", null, voicePersisted);
+          finishInput("voice", null);
         } catch (error) {
-          finish("voice", error, voicePersisted);
+          finishInput("voice", error);
         } finally {
           if (voiceHoldsRender) {
             rendering = false;
@@ -357,6 +409,79 @@
           syncBusy();
         }
       });
+
+      // Confirm and Dismiss share the surface with the inputs, so they take the
+      // same exclusive hold and release it only as its owner.
+      const withSurface = async run => {
+        if (blocked || rendering || !proposal) return;
+        rendering = true;
+        decisionHoldsRender = true;
+        syncBusy();
+        try {
+          await run(proposal);
+        } finally {
+          if (decisionHoldsRender) {
+            rendering = false;
+            decisionHoldsRender = false;
+          }
+          syncBusy();
+        }
+      };
+
+      // The only way anything reaches the log. The proposal is applied exactly as
+      // shown, then storage takes it before memory or the screen follow - and
+      // only if storage still holds what this page last saw, so a second tab's
+      // commit is never overwritten.
+      confirmButton.addEventListener("click", () => withSurface(async chosen => {
+        let saved = false;
+        setState("pending", "confirm: saving");
+        try {
+          const committed = await confirmProposal({ graph, proposal: chosen, protocol });
+          await persistHistory({ write, read, expected: stored, graph: committed.graph });
+          saved = true;
+          stored = committed.graph.log;
+          graph = committed.graph;
+          proposal = null;
+          renderProposal();
+          history = await projectHistory(graph, { verifyDecisionLog });
+          await render(committed.ir);
+          setState("confirmed", "confirm: confirmed");
+          renderHistory(history);
+        } catch (error) {
+          if (saved) {
+            // Saved, but the screen could not be brought up to date. Storage
+            // leads, so stop rather than take another decision on top of a view
+            // that is already behind; a reload re-projects the saved graph.
+            blocked = true;
+            setState("saved-display-failed", "confirm: saved, display failed - reload to recover");
+          } else {
+            // Nothing was written. A conflict means this page is behind another
+            // tab: it stops here and a reload shows what is actually stored.
+            if (error instanceof HistoryConflict) {
+              blocked = true;
+              proposal = null;
+              renderProposal();
+            }
+            setState("failed", "confirm: failed");
+          }
+          renderHistory(history, `${saved ? "display failed" : "failed"}: ${error.message}`);
+        }
+      }));
+
+      // Dropping a proposal writes nothing; the committed graph is drawn again.
+      dismissButton.addEventListener("click", () => withSurface(async () => {
+        setState("pending", "dismiss: working");
+        proposal = null;
+        renderProposal();
+        try {
+          await render(await graphIr(graph));
+          setState("dismissed", "proposal dismissed - nothing was saved");
+          renderHistory(history);
+        } catch (error) {
+          setState("failed", "dismiss: failed");
+          renderHistory(history, `failed: ${error.message}`);
+        }
+      }));
 
       // Storage decides what this origin starts from. An absent log is a first
       // visit; one the provider rejects is damage, and its bytes are left
@@ -370,9 +495,10 @@
       if (restored.status === RESTORE_RESTORED) {
         graph = restored.graph;
         history = restored.projection;
+        stored = restored.graph.log;
       } else if (restored.status === RESTORE_EMPTY || restored.status === RESTORE_CORRUPT) {
         graph = await initialGraph();
-        history = projectHistory(graph);
+        history = await projectHistory(graph, { verifyDecisionLog });
         blocked = restored.status === RESTORE_CORRUPT;
       } else {
         throw new Error(`unknown restore status: ${restored.status}`);
