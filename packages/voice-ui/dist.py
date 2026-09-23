@@ -107,8 +107,8 @@ def build(args):
     copy_tree(app / "src", site / "app/src")
     copy_tree(app / "functions", out / "functions")
 
-    copy_tree(Path(args.ui_ir) / "packages", site / "ui")
-    copy_tree(Path(args.a2ui) / "packages", site / "ui")
+    copy_tree(Path(args.ui_ir) / "packages/ui-ir/src", site / "ui/ui-ir")
+    copy_tree(Path(args.a2ui) / "packages/a2ui-browser/src", site / "ui/a2ui-browser")
     copy_tree(Path(args.semantic_map) / "packages", site / "ui")
 
     hayamimi = Path(args.hayamimi)
