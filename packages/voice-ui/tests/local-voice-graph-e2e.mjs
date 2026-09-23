@@ -224,6 +224,41 @@ assert.equal(stillCorrupt.stored, CORRUPT_LOG);
 assert.equal(stillCorrupt.sendDisabled, true);
 assert.equal(stillCorrupt.micDisabled, true);
 
+// (vi-b) A log the provider accepts is still not ours if it does not start from
+// this app's initial graph. Its bytes are built by the pinned provider in the
+// page - input setup, like the corrupt bytes above - and must be refused the
+// same way: its regions are not the initial graph and its decision is no fact.
+const foreignLog = await page.evaluate(async () => {
+  const protocol = await import("/ui/semantic-map/protocol/index.js");
+  const region = (id, x) => ({
+    type: "region", id, parent: "root", label: id, kind: "node", bounds: [x, 90, 140, 64], summary: "",
+  });
+  const base = await protocol.createDecisionLog([
+    { type: "meta", schema: "semantic-map-state/1", root: "root", title: "other graph" },
+    { type: "region", id: "root", parent: null, label: "other graph", kind: "boundary", bounds: [0, 0, 720, 260], summary: "" },
+    region("node-z", 40),
+    region("node-a", 250),
+  ], "some-other-map");
+  const { decision } = await protocol.createDecision(base.head, [{
+    type: "ConnectRegions", relationId: "foreign-z-to-a", from: "node-z", to: "node-a", kind: "flow", label: "",
+  }], base.records);
+  const appended = await protocol.appendDecision(base.log, decision);
+  await protocol.verifyDecisionLog(appended.log);
+  return appended.log;
+});
+await page.evaluate(([key, value]) => localStorage.setItem(key, value), [STORAGE_KEY, foreignLog]);
+await page.reload({ waitUntil: "commit" });
+await ready();
+const foreign = await screen();
+assert.equal(foreign.state, "failed", "a foreign but valid log must fail closed");
+assert.equal(foreign.stored, foreignLog, "a foreign log must not be deleted or overwritten");
+assert.deepEqual(foreign.confirmed, [], "a foreign log must not present any fact");
+assert.match(foreign.failure ?? "", /genesis/u);
+assert.doesNotMatch(foreign.initialLine, /node-z/u, "a foreign map must not be shown as the initial graph");
+assert.equal(foreign.sendDisabled, true);
+assert.equal(foreign.micDisabled, true);
+assert.deepEqual((await drawn()).edges, [], "a foreign log must not draw an edge");
+
 // (vii) Clearing this origin's storage from outside the app is the documented
 // way out, and it works: the app comes back to a first visit.
 await page.evaluate(key => localStorage.removeItem(key), STORAGE_KEY);
@@ -272,12 +307,94 @@ assert.equal(typedRestored.state, "confirmed");
 assert.deepEqual(typedRestored.confirmed, [`${typedSource}->${typedTarget}`]);
 assert.deepEqual((await drawn()).edges, [{ from: typedSource, to: typedTarget }]);
 
+// The negatives below each start from this confirmed state and must leave it
+// exactly as it is: no new fact, no new edge, not one stored byte changed.
+const settledTyped = async value => {
+  const exchange = jevExchange();
+  await page.locator("#text").fill(value);
+  await page.locator("#send").click();
+  const response = await exchange.response;
+  await exchange.request;
+  await page.waitForFunction(
+    () => document.body.dataset.state !== "pending",
+    null,
+    { timeout: 360000 },
+  );
+  assert.equal(response.status(), 200);
+  return response.json();
+};
+
+const assertUnchanged = async (label, pattern) => {
+  const now = await screen();
+  assert.equal(now.state, "failed", `${label} must end as failed`);
+  assert.match(now.failure ?? "", pattern, `${label} must fail for its own reason`);
+  assert.deepEqual(now.confirmed, typedRestored.confirmed, `${label} must add no fact`);
+  assert.equal(now.stored, typedRestored.stored, `${label} must not change the stored log`);
+  assert.deepEqual((await drawn()).edges, [{ from: typedSource, to: typedTarget }], `${label} must draw no edge`);
+  assert.equal(now.sendDisabled, false, `${label} is an ordinary failure and must not block the app`);
+};
+
+// (x) Duplicate: the same request again. Jev choosing the same pair is the
+// precondition; the committed path must then refuse it.
+const duplicate = await settledTyped("add an edge from a to b");
+assert.equal(duplicate.answers.action.choice, "add-edge");
+assert.deepEqual(
+  [duplicate.answers.source.choice, duplicate.answers.target.choice],
+  [typedSource, typedTarget],
+  "precondition: Jev must choose the already-confirmed pair",
+);
+await assertUnchanged("a duplicate", /relation already exists/u);
+
+// (xi) Refusal: text that asks for no graph change.
+const refusal = await settledTyped("what is the weather like today");
+assert.equal(refusal.answers.action.choice, "none", "precondition: Jev must answer with no action");
+await assertUnchanged("a refusal", /action is not add-edge/u);
+
+// (xii) Storage write failure: a real quota exhaustion, not a stub. Every byte
+// this origin may still store is taken by filler keys, then a new, valid edge is
+// requested. The decision is sound, so only the write can fail it - and a write
+// that does not land must leave the graph, the history and the screen untouched.
+const fillers = await page.evaluate(() => {
+  let size = 1 << 20;
+  let count = 0;
+  while (size >= 1) {
+    try {
+      localStorage.setItem(`quota-filler-${count}`, "x".repeat(size));
+      count += 1;
+    } catch {
+      size = Math.floor(size / 2);
+    }
+  }
+  return count;
+});
+assert.ok(fillers > 0, "storage quota could not be exhausted");
+
+const unsaved = await settledTyped("add an edge from b to c");
+assert.equal(unsaved.answers.action.choice, "add-edge");
+const unsavedEdge = `${unsaved.answers.source.choice}->${unsaved.answers.target.choice}`;
+assert.notEqual(unsavedEdge, `${typedSource}->${typedTarget}`, "precondition: Jev must choose a new pair");
+await assertUnchanged("a failed write", /not persisted/u);
+
+await page.evaluate(count => {
+  for (let index = 0; index < count; index += 1) localStorage.removeItem(`quota-filler-${index}`);
+}, fillers);
+
+// And storage agrees: after a reload nothing from the three failures exists.
+await page.reload({ waitUntil: "commit" });
+await ready();
+const afterNegatives = await screen();
+assert.equal(afterNegatives.state, "confirmed");
+assert.equal(afterNegatives.stored, typedRestored.stored);
+assert.deepEqual(afterNegatives.confirmed, typedRestored.confirmed);
+assert.deepEqual((await drawn()).edges, [{ from: typedSource, to: typedTarget }]);
+
 assert.deepEqual(errors, []);
 assert.deepEqual(failedResponses, []);
 
 await browser.close();
 process.stdout.write(
   `local-voice-graph-e2e: PASS causal voice->hayamimi->jev->semantic-map->maxGraph `
-  + `edge=${voiceSource}->${voiceTarget} | restored after reload | corrupt log fails closed and `
-  + `recovers only after an out-of-app clear | typed edge=${typedSource}->${typedTarget}\n`,
+  + `edge=${voiceSource}->${voiceTarget} | restored after reload | corrupt and foreign logs fail `
+  + `closed and recover only after an out-of-app clear | typed edge=${typedSource}->${typedTarget} `
+  + `| duplicate, refusal and failed write (${unsavedEdge}) leave graph, history and storage unchanged\n`,
 );

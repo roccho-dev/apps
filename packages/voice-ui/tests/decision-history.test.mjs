@@ -80,9 +80,22 @@ const fakeStorage = (initial = new Map()) => {
 
 const verifyDecisionLog = protocol.verifyDecisionLog;
 
+// The CreateMap Decision every history of this app starts from. The initial
+// graph is fixed, so its id is fixed too, and the browser derives it the same way.
+const genesis = (await baseGraph()).head;
+const restore = storage => restoreHistory({ read: storage.read, verifyDecisionLog, genesis });
+
+// A well-formed history of some other map: it verifies, but it is not ours.
+const foreignGraph = () => protocol.createDecisionLog([
+  { type: "meta", schema: "semantic-map-state/1", root: "root", title: "other graph" },
+  { type: "region", id: "root", parent: null, label: "other graph", kind: "boundary", bounds: [0, 0, 720, 260], summary: "" },
+  node("node-z", 40),
+  node("node-a", 250),
+], "some-other-map");
+
 test("an origin with nothing stored restores as empty, not as corrupt", async () => {
   const storage = fakeStorage();
-  const restored = await restoreHistory({ read: storage.read, verifyDecisionLog });
+  const restored = await restore(storage);
 
   assert.equal(restored.status, RESTORE_EMPTY);
   assert.equal(restored.graph, undefined);
@@ -96,7 +109,7 @@ test("a persisted fresh graph restores with the initial graph and no confirmed f
 
   assert.deepEqual(storage.writes, [[HISTORY_KEY, graph.log]]);
 
-  const restored = await restoreHistory({ read: storage.read, verifyDecisionLog });
+  const restored = await restore(storage);
   assert.equal(restored.status, RESTORE_RESTORED);
   assert.equal(restored.graph.head, graph.head);
   assert.deepEqual(restored.projection.initial.regions, ["node-a", "node-b", "node-c"]);
@@ -110,7 +123,7 @@ test("a persisted committed edge restores as one confirmed fact over an unchange
   const storage = fakeStorage();
   await persistHistory({ write: storage.write, graph });
 
-  const restored = await restoreHistory({ read: storage.read, verifyDecisionLog });
+  const restored = await restore(storage);
   assert.equal(restored.status, RESTORE_RESTORED);
 
   // The initial graph is still edgeless: the screen can tell "where we started"
@@ -136,7 +149,7 @@ test("confirmed facts restore in the order they were committed", async () => {
   const storage = fakeStorage();
   await persistHistory({ write: storage.write, graph });
 
-  const restored = await restoreHistory({ read: storage.read, verifyDecisionLog });
+  const restored = await restore(storage);
   assert.deepEqual(
     restored.projection.entries.map(entry => entry.facts[0]).map(fact => [fact.from, fact.to]),
     [["node-c", "node-a"], ["node-a", "node-b"]],
@@ -165,7 +178,7 @@ test("every corrupt stored log fails closed and is left exactly as it is", async
     assert.notEqual(bytes, graph.log, `${label} must actually differ from the good log`);
 
     const storage = fakeStorage(new Map([[HISTORY_KEY, bytes]]));
-    const restored = await restoreHistory({ read: storage.read, verifyDecisionLog });
+    const restored = await restore(storage);
 
     assert.equal(restored.status, RESTORE_CORRUPT, `${label} must restore as corrupt`);
     assert.equal(restored.graph, undefined, `${label} must not restore a graph`);
@@ -177,6 +190,41 @@ test("every corrupt stored log fails closed and is left exactly as it is", async
     assert.equal(storage.writes.length, 0, `${label} must not write to storage`);
     assert.equal(storage.values.get(HISTORY_KEY), bytes, `${label} must leave the stored value`);
   }
+});
+
+test("a provider-valid log that is not this app's history fails closed", async () => {
+  const sameShapeOtherMap = await protocol.createDecisionLog(
+    (await baseGraph()).records,
+    "some-other-map",
+  );
+  const foreign = [
+    ["a foreign map with its own regions and a decision", (await withEdge(await foreignGraph(), "node-z", "node-a")).log],
+    ["a foreign map with no decisions", (await foreignGraph()).log],
+    ["this app's records under another map id", sameShapeOtherMap.log],
+  ];
+
+  for (const [label, bytes] of foreign) {
+    // Precondition: the provider accepts it. Only the genesis binding refuses it.
+    assert.ok((await verifyDecisionLog(bytes)).ids.length > 0, `${label} must verify on its own`);
+
+    const storage = fakeStorage(new Map([[HISTORY_KEY, bytes]]));
+    const restored = await restore(storage);
+
+    assert.equal(restored.status, RESTORE_CORRUPT, `${label} must restore as corrupt`);
+    assert.equal(restored.graph, undefined, `${label} must not restore a graph`);
+    assert.equal(restored.projection, undefined, `${label} must not present facts`);
+    assert.match(restored.reason, /genesis/u, `${label} must say why`);
+    assert.equal(storage.writes.length, 0, `${label} must not write to storage`);
+    assert.equal(storage.values.get(HISTORY_KEY), bytes, `${label} must leave the stored value`);
+  }
+});
+
+test("restore refuses to run without the genesis it must bind to", async () => {
+  const storage = fakeStorage();
+  await assert.rejects(
+    restoreHistory({ read: storage.read, verifyDecisionLog }),
+    /genesis must be a non-empty string/u,
+  );
 });
 
 test("a write that fails throws before anything can be bound or rendered", async () => {

@@ -98,9 +98,17 @@ export function projectHistory(verified) {
 // one: the provider rejects an empty string, so only a genuine `null` from
 // storage counts as absent. A stored value that fails verification is reported
 // as corrupt and left exactly as it is - never deleted, never overwritten.
-export async function restoreHistory({ read, verifyDecisionLog } = {}) {
+//
+// Verification proves a log is internally consistent, not that it is this
+// app's history: any well-formed log for some other map verifies too. So the
+// log must also start from `genesis`, the id of the CreateMap Decision the app
+// itself begins with. A consistent log that starts anywhere else is foreign and
+// fails closed exactly like a broken one, rather than presenting its regions as
+// the initial graph and its decisions as confirmed facts.
+export async function restoreHistory({ read, verifyDecisionLog, genesis } = {}) {
   demand(typeof read === "function", "read is required");
   demand(typeof verifyDecisionLog === "function", "verifyDecisionLog is required");
+  demand(typeof genesis === "string" && genesis.length > 0, "genesis must be a non-empty string");
 
   const stored = await read(HISTORY_KEY);
   if (stored === null || stored === undefined) {
@@ -112,6 +120,13 @@ export async function restoreHistory({ read, verifyDecisionLog } = {}) {
     verified = await verifyDecisionLog(stored);
   } catch (error) {
     return Object.freeze({ status: RESTORE_CORRUPT, reason: error.message });
+  }
+
+  if (verified.ids?.[0] !== genesis) {
+    return Object.freeze({
+      status: RESTORE_CORRUPT,
+      reason: `stored log starts from ${verified.ids?.[0]}, not this app's genesis ${genesis}`,
+    });
   }
 
   // A log the provider accepts can still be unprojectable, and that is the same

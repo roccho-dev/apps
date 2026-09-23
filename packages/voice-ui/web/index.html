@@ -61,6 +61,10 @@
       // answers the probe with 204, so registration is skipped there.
       const serviceWorkerReady = (async () => {
         const manifest = await fetch("/hayamimi/sherpa/data.parts.json", { cache: "no-store" });
+        // Only the status is needed, but the body is drained all the same. A
+        // response left unread is cancelled by the browser, which reports the
+        // probe as an aborted request even though the host answered it.
+        await manifest.arrayBuffer();
         // 204 is the host stating there are no chunks to reassemble. It has to
         // be read before `ok`, which is true for 204 and would otherwise
         // register a worker with nothing to do. Anything else that is not a
@@ -108,9 +112,13 @@
       // provider rejects.
       let blocked = false;
 
-      // Set the moment a write lands, so a later render failure is reported as
-      // "saved but not displayed" rather than as a decision that was lost.
-      let persisted = false;
+      // Set the moment an attempt's own write lands, so a later render failure
+      // is reported as "saved but not displayed" rather than as a decision that
+      // was lost. One flag per input, like the render holds: typing is allowed
+      // while voice is still listening, so a shared flag would let one attempt's
+      // write be read as the other's and claim a save that never happened.
+      let typedPersisted = false;
+      let voicePersisted = false;
 
       // Storage is the authority; `graph` follows it and the DOM projects both.
       let graph;
@@ -183,7 +191,7 @@
       // where the text came from. The v1 HTTP contract is untouched and still
       // served, it is simply no longer what this screen drives, because a
       // rendered string was never evidence that the graph changed.
-      const decideCommitted = async value => {
+      const decideCommitted = async (value, markPersisted) => {
         const decision = await postJev({
           kind: "voice-ui.jev.request.v2",
           text: value,
@@ -199,7 +207,7 @@
         // in-memory graph and the DOM exactly as they were, so a failure can
         // never show an edge that was not saved.
         await persistHistory({ write, graph: committed.graph });
-        persisted = true;
+        markPersisted();
 
         // Only now does memory follow storage. The caller renders afterwards,
         // and a render that fails is reported as saved-but-not-displayed.
@@ -209,7 +217,7 @@
       };
 
       // The typed handler already owns the surface by the time it calls this.
-      const decideTyped = value => decideCommitted(value);
+      const decideTyped = value => decideCommitted(value, () => { typedPersisted = true; });
 
       // Transcription has already finished by the time this runs, so this is
       // where the surface critical section begins for voice. The claim is taken
@@ -220,7 +228,7 @@
         voiceHoldsRender = true;
         syncBusy();
 
-        return decideCommitted(value);
+        return decideCommitted(value, () => { voicePersisted = true; });
       };
 
       // graph-edge.mjs builds this shape around a decision. Drawing a graph that
@@ -274,8 +282,9 @@
       const voiceApp = createVoiceUiApp({ transcribe, decide: decideVoice, render });
 
       // One place decides how an attempt ends, because the three endings are
-      // easy to confuse and only one of them is a fact.
-      const finish = (prefix, error) => {
+      // easy to confuse and only one of them is a fact. `persisted` is the
+      // calling attempt's own flag, never the other input's.
+      const finish = (prefix, error, persisted) => {
         if (!error) {
           setState("confirmed", `${prefix}: confirmed`);
           renderHistory(history);
@@ -302,15 +311,15 @@
         }
         rendering = true;
         typedHoldsRender = true;
-        persisted = false;
+        typedPersisted = false;
         syncBusy();
 
         setState("pending", "type: working");
         try {
           await typedApp.submitType(text.value);
-          finish("type", null);
+          finish("type", null, typedPersisted);
         } catch (error) {
-          finish("type", error);
+          finish("type", error, typedPersisted);
         } finally {
           if (typedHoldsRender) {
             rendering = false;
@@ -327,7 +336,7 @@
           return;
         }
         capturing = true;
-        persisted = false;
+        voicePersisted = false;
         syncBusy();
 
         setState("pending", "voice: listening");
@@ -336,9 +345,9 @@
           // persists and binds before the render, so reaching here means the
           // whole chain landed.
           await voiceApp.submitVoice(null);
-          finish("voice", null);
+          finish("voice", null, voicePersisted);
         } catch (error) {
-          finish("voice", error);
+          finish("voice", error, voicePersisted);
         } finally {
           if (voiceHoldsRender) {
             rendering = false;
@@ -352,8 +361,11 @@
       // Storage decides what this origin starts from. An absent log is a first
       // visit; one the provider rejects is damage, and its bytes are left
       // exactly where they are rather than quietly replaced, so the only way
-      // forward is an explicit clear from outside the app.
-      const restored = await restoreHistory({ read, verifyDecisionLog });
+      // forward is an explicit clear from outside the app. A log that verifies
+      // but does not start from this app's own initial graph is foreign, and is
+      // treated the same way.
+      const genesis = (await initialGraph()).head;
+      const restored = await restoreHistory({ read, verifyDecisionLog, genesis });
 
       if (restored.status === RESTORE_RESTORED) {
         graph = restored.graph;
