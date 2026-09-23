@@ -10,14 +10,20 @@ import {
   ACTION_NONE,
   ACTION_REMOVE,
   ACTION_REVERSE,
+  ACTION_REVERT,
+  ACTION_UNDO_REQUEST,
+  DRAFT_MAX,
+  OPTION_NONE,
   OUTCOME_NO_CHANGE,
-  OUTCOME_PROPOSED,
-  confirmProposal,
+  OUTCOME_STEP,
+  appendStep,
   correctionCriteria,
   edgesOf,
   focusFor,
-  proposeCorrection,
+  planStep,
+  revertStep,
 } from "../src/decision/correction.mjs";
+import { statesOf } from "../src/decision/history.mjs";
 
 const store = process.env.SEMANTIC_MAP;
 if (!store) throw new Error("SEMANTIC_MAP must point at the pinned semantic-map store path");
@@ -47,8 +53,8 @@ const baseGraph = () => protocol.createDecisionLog([
 
 const choice = (value, confidence = 0.9) => ({ type: "choice", choice: value, confidence });
 
-// Answers shaped exactly like the questions a graph gets asked: the edge
-// question exists only when there is an edge.
+// Answers shaped exactly like the questions a working graph gets asked: the
+// edge question exists only when there is an edge.
 const answersFor = (graph, { action, source = "node-a", target = "node-b", edge, confidence = 0.9 }) => {
   const answers = {
     action: choice(action, confidence),
@@ -59,219 +65,244 @@ const answersFor = (graph, { action, source = "node-a", target = "node-b", edge,
   return answers;
 };
 
-const propose = (graph, spec) =>
-  proposeCorrection({ graph, answers: answersFor(graph, spec), protocol });
-
-const confirm = (graph, proposal) => confirmProposal({ graph, proposal, protocol });
+const plan = (working, spec, revision = working.head) =>
+  planStep({ working, revision, answers: answersFor(working, spec), protocol });
 
 const edges = graph => edgesOf(graph.records).map(edge => `${edge.from}->${edge.to}`);
 
-const commit = async (graph, spec) => {
-  const proposed = await propose(graph, spec);
-  assert.equal(proposed.outcome, OUTCOME_PROPOSED);
-  return (await confirm(graph, proposed.proposal)).graph;
+// One working step, planned and appended exactly as the page does it.
+const step = async (working, spec) => {
+  const planned = await plan(working, spec);
+  assert.equal(planned.outcome, OUTCOME_STEP);
+  return appendStep({ working, step: planned.step, protocol });
 };
 
-const inspected = async ir => {
-  const view = await protocol.inspectEnvelope(ir.payload);
-  const pairs = records => records.filter(r => r.type === "relation").map(r => `${r.from}->${r.to}`);
-  return { base: pairs(view.base.records), preview: view.preview ? pairs(view.preview.records) : null };
-};
+const verifyDecisionLog = protocol.verifyDecisionLog;
 
-test("an edgeless graph is only offered add or no change", async () => {
+test("an edgeless working graph is offered add, undo-request or no change, and every slot offers none", async () => {
   const criteria = correctionCriteria((await baseGraph()).records);
-  assert.deepEqual(criteria.actions, [ACTION_ADD, ACTION_NONE]);
+  assert.deepEqual(criteria.actions, [ACTION_ADD, ACTION_UNDO_REQUEST, ACTION_NONE]);
   assert.deepEqual(criteria.edges, []);
-  assert.deepEqual(criteria.regions, ["node-a", "node-b", "node-c"]);
+  assert.deepEqual(criteria.regions, ["node-a", "node-b", "node-c", OPTION_NONE]);
 });
 
-test("a graph with an edge is also offered removing or reversing it", async () => {
-  const graph = await commit(await baseGraph(), { action: ACTION_ADD, source: "node-c", target: "node-a" });
-  const criteria = correctionCriteria(graph.records);
-  assert.deepEqual(criteria.actions, [ACTION_ADD, ACTION_REMOVE, ACTION_REVERSE, ACTION_NONE]);
-  assert.deepEqual(criteria.edges, ["voice-node-c-to-node-a"]);
+test("a working graph with an edge is also offered removing or reversing it, or no edge", async () => {
+  const working = await step(await baseGraph(), { action: ACTION_ADD, source: "node-c", target: "node-a" });
+  const criteria = correctionCriteria(working.records);
+  assert.deepEqual(criteria.actions, [ACTION_ADD, ACTION_REMOVE, ACTION_REVERSE, ACTION_UNDO_REQUEST, ACTION_NONE]);
+  assert.deepEqual(criteria.edges, ["voice-node-c-to-node-a", OPTION_NONE]);
 });
 
-test("a proposal is shown but not applied: the log and graph are untouched", async () => {
-  const graph = await baseGraph();
-  const proposed = await propose(graph, { action: ACTION_ADD, source: "node-c", target: "node-a" });
+test("planning builds a provider Decision on the working head and appends nothing", async () => {
+  const working = await baseGraph();
+  const planned = await plan(working, { action: ACTION_ADD, source: "node-c", target: "node-a" });
 
-  assert.equal(proposed.outcome, OUTCOME_PROPOSED);
-  assert.equal(proposed.proposal.head, graph.head);
-  assert.deepEqual(proposed.proposal.changes, [{ change: "added", from: "node-c", to: "node-a" }]);
-  assert.deepEqual(await inspected(proposed.ir), { base: [], preview: ["node-c->node-a"] });
-
-  const again = await protocol.verifyDecisionLog(graph.log);
-  assert.equal(again.head, graph.head, "proposing must not append");
-  assert.deepEqual(edges(graph), []);
+  assert.equal(planned.outcome, OUTCOME_STEP);
+  assert.equal(planned.step.revision, working.head);
+  assert.equal(planned.step.decision.parent, working.head);
+  assert.deepEqual(planned.step.changes, [{ change: "added", from: "node-c", to: "node-a" }]);
+  assert.equal((await verifyDecisionLog(working.log)).head, working.head, "planning must not append");
+  assert.deepEqual(edges(working), []);
 });
 
-test("confirming applies exactly the proposed change", async () => {
-  const graph = await baseGraph();
-  const proposed = await propose(graph, { action: ACTION_ADD, source: "node-c", target: "node-a" });
-  const confirmed = await confirm(graph, proposed.proposal);
-
-  assert.deepEqual(edges(confirmed.graph), ["node-c->node-a"]);
-  assert.equal(confirmed.graph.decisions.length, 2);
-  assert.deepEqual(await inspected(confirmed.ir), { base: ["node-c->node-a"], preview: null });
+test("appending a step adds exactly one Decision to the working log", async () => {
+  const base = await baseGraph();
+  const working = await step(base, { action: ACTION_ADD, source: "node-c", target: "node-a" });
+  assert.deepEqual(edges(working), ["node-c->node-a"]);
+  assert.equal(working.decisions.length, base.decisions.length + 1);
+  assert.ok(working.log.startsWith(base.log), "the earlier log must be an exact prefix");
 });
 
-test("no action and low confidence are a neutral no-change, not an error", async () => {
-  const graph = await baseGraph();
-  const none = await propose(graph, { action: ACTION_NONE });
-  assert.equal(none.outcome, OUTCOME_NO_CHANGE);
-  assert.match(none.reason, /no graph change/u);
+test("undo-request, none, a none slot and low confidence are neutral no-changes", async () => {
+  const empty = await baseGraph();
+  const working = await step(empty, { action: ACTION_ADD, source: "node-c", target: "node-a" });
 
-  const unsure = await propose(graph, { action: ACTION_ADD, source: "node-c", target: "node-a", confidence: 0.3 });
-  assert.equal(unsure.outcome, OUTCOME_NO_CHANGE);
-  assert.match(unsure.reason, /not confident/u);
-  assert.equal(unsure.proposal, undefined);
+  const undo = await plan(working, { action: ACTION_UNDO_REQUEST });
+  assert.equal(undo.outcome, OUTCOME_NO_CHANGE);
+  assert.equal(undo.undoRequest, true);
+  assert.match(undo.reason, /元に戻す/u);
+  assert.equal(undo.step, undefined, "a spoken undo must never become a graph change");
+
+  for (const [label, spec, pattern] of [
+    ["none", { action: ACTION_NONE }, /no graph change/u],
+    ["no start node", { action: ACTION_ADD, source: OPTION_NONE, target: "node-b" }, /did not name two/u],
+    ["no end node", { action: ACTION_ADD, source: "node-a", target: OPTION_NONE }, /did not name two/u],
+    ["no edge", { action: ACTION_REMOVE, edge: OPTION_NONE }, /did not name an existing edge/u],
+    ["unsure", { action: ACTION_ADD, source: "node-a", target: "node-b", confidence: 0.3 }, /not confident/u],
+  ]) {
+    const answer = await plan(working, spec);
+    assert.equal(answer.outcome, OUTCOME_NO_CHANGE, label);
+    assert.match(answer.reason, pattern, label);
+    assert.equal(answer.step, undefined, label);
+  }
 });
 
-test("a change the graph cannot carry out is refused", async () => {
-  const graph = await commit(await baseGraph(), { action: ACTION_ADD, source: "node-c", target: "node-a" });
+test("a change the working graph cannot carry out is refused", async () => {
+  const working = await step(await baseGraph(), { action: ACTION_ADD, source: "node-c", target: "node-a" });
 
   await assert.rejects(
-    propose(graph, { action: ACTION_ADD, source: "node-b", target: "node-b" }),
+    plan(working, { action: ACTION_ADD, source: "node-b", target: "node-b" }),
     error => error instanceof DecisionRefused && /same region/u.test(error.message),
   );
   await assert.rejects(
-    propose(graph, { action: ACTION_ADD, source: "node-c", target: "node-a" }),
+    plan(working, { action: ACTION_ADD, source: "node-c", target: "node-a" }),
     error => error instanceof DecisionRefused && /already exists/u.test(error.message),
   );
   await assert.rejects(
-    propose(graph, { action: ACTION_REMOVE, edge: "voice-node-a-to-node-b" }),
+    plan(working, { action: ACTION_REMOVE, edge: "voice-node-a-to-node-b" }),
     error => error instanceof DecisionRefused && /outside the offered criteria/u.test(error.message),
   );
 });
 
-test("an edgeless graph refuses remove, reverse and an edge answer", async () => {
-  const graph = await baseGraph();
+test("an edgeless working graph refuses remove, reverse and an edge answer", async () => {
+  const working = await baseGraph();
   await assert.rejects(
-    proposeCorrection({ graph, answers: { ...answersFor(graph, { action: ACTION_ADD }), action: choice(ACTION_REMOVE) }, protocol }),
+    planStep({ working, revision: working.head, answers: { ...answersFor(working, { action: ACTION_ADD }), action: choice(ACTION_REMOVE) }, protocol }),
     /action\.choice is outside the offered criteria/u,
   );
   await assert.rejects(
-    proposeCorrection({ graph, answers: { ...answersFor(graph, { action: ACTION_ADD }), edge: choice("x") }, protocol }),
+    planStep({ working, revision: working.head, answers: { ...answersFor(working, { action: ACTION_ADD }), edge: choice("x") }, protocol }),
     /answers\.edge is not allowed/u,
   );
 });
 
-test("removing an edge is proposed, then applied on confirmation", async () => {
-  const graph = await commit(await baseGraph(), { action: ACTION_ADD, source: "node-c", target: "node-a" });
-  const proposed = await propose(graph, { action: ACTION_REMOVE, edge: "voice-node-c-to-node-a" });
+test("removing and reversing are steps; a reverse is one Decision holding both halves", async () => {
+  const added = await step(await baseGraph(), { action: ACTION_ADD, source: "node-c", target: "node-a" });
 
-  assert.deepEqual(proposed.proposal.changes, [{ change: "removed", from: "node-c", to: "node-a" }]);
-  assert.deepEqual(await inspected(proposed.ir), { base: ["node-c->node-a"], preview: [] });
-  assert.deepEqual(edges((await confirm(graph, proposed.proposal)).graph), []);
-});
+  const removal = await plan(added, { action: ACTION_REMOVE, edge: "voice-node-c-to-node-a" });
+  assert.deepEqual(removal.step.changes, [{ change: "removed", from: "node-c", to: "node-a" }]);
+  assert.deepEqual(edges(await appendStep({ working: added, step: removal.step, protocol })), []);
 
-test("reversing is one atomic Decision: a removal and an addition", async () => {
-  const graph = await commit(await baseGraph(), { action: ACTION_ADD, source: "node-c", target: "node-a" });
-  const proposed = await propose(graph, { action: ACTION_REVERSE, edge: "voice-node-c-to-node-a" });
-
-  assert.equal(proposed.proposal.action, ACTION_REVERSE);
-  assert.deepEqual(proposed.proposal.decision.operations.map(operation => operation.type), ["RemoveSelection", "ConnectRegions"]);
-  assert.deepEqual(proposed.proposal.changes, [
+  const reversal = await plan(added, { action: ACTION_REVERSE, edge: "voice-node-c-to-node-a" });
+  assert.equal(reversal.step.action, ACTION_REVERSE);
+  assert.deepEqual(reversal.step.decision.operations.map(operation => operation.type), ["RemoveSelection", "ConnectRegions"]);
+  assert.deepEqual(reversal.step.changes, [
     { change: "removed", from: "node-c", to: "node-a" },
     { change: "added", from: "node-a", to: "node-c" },
   ]);
-  assert.deepEqual(await inspected(proposed.ir), { base: ["node-c->node-a"], preview: ["node-a->node-c"] });
-
-  const reversed = (await confirm(graph, proposed.proposal)).graph;
+  const reversed = await appendStep({ working: added, step: reversal.step, protocol });
   assert.deepEqual(edgesOf(reversed.records), [{ id: "voice-node-a-to-node-c", from: "node-a", to: "node-c" }]);
-  assert.equal(reversed.decisions.length, 3, "a reverse is one Decision, not two");
+  assert.equal(reversed.decisions.length, added.decisions.length + 1, "a reverse is one Decision, not two");
 
   // The id follows the direction, so the original direction can be added back.
-  const readded = await commit(reversed, { action: ACTION_ADD, source: "node-c", target: "node-a" });
+  const readded = await step(reversed, { action: ACTION_ADD, source: "node-c", target: "node-a" });
   assert.deepEqual(edges(readded).sort(), ["node-a->node-c", "node-c->node-a"]);
 });
 
 test("reversing onto an edge that already exists is refused", async () => {
-  const one = await commit(await baseGraph(), { action: ACTION_ADD, source: "node-c", target: "node-a" });
-  const both = await commit(one, { action: ACTION_ADD, source: "node-a", target: "node-c", edge: "voice-node-c-to-node-a" });
+  const one = await step(await baseGraph(), { action: ACTION_ADD, source: "node-c", target: "node-a" });
+  const both = await step(one, { action: ACTION_ADD, source: "node-a", target: "node-c", edge: "voice-node-c-to-node-a" });
   await assert.rejects(
-    propose(both, { action: ACTION_REVERSE, edge: "voice-node-c-to-node-a" }),
+    plan(both, { action: ACTION_REVERSE, edge: "voice-node-c-to-node-a" }),
     error => error instanceof DecisionRefused && /reversed edge already exists/u.test(error.message),
   );
 });
 
-test("a proposal made on a graph that has since moved on is refused as stale", async () => {
-  const graph = await baseGraph();
-  const first = await propose(graph, { action: ACTION_ADD, source: "node-c", target: "node-a" });
-  const second = await propose(graph, { action: ACTION_ADD, source: "node-a", target: "node-b" });
-  const moved = (await confirm(graph, second.proposal)).graph;
+test("an answer about a working revision that has since moved is refused as stale", async () => {
+  const asked = await baseGraph();
+  const moved = await step(asked, { action: ACTION_ADD, source: "node-a", target: "node-b" });
 
+  // The answer was requested against `asked`; the working graph is now `moved`.
   await assert.rejects(
-    confirm(moved, first.proposal),
+    plan(moved, { action: ACTION_ADD, source: "node-c", target: "node-a" }, asked.head),
     error => error instanceof DecisionRefused && /stale/u.test(error.message),
   );
-  // Even if a caller skipped the head check, the provider refuses to append it.
+
+  // A step planned on the old head cannot be appended to the new one.
+  const planned = await plan(asked, { action: ACTION_ADD, source: "node-c", target: "node-a" });
   await assert.rejects(
-    confirmProposal({ graph: moved, proposal: { ...first.proposal, head: moved.head }, protocol }),
+    appendStep({ working: moved, step: planned.step, protocol }),
+    error => error instanceof DecisionRefused && /stale/u.test(error.message),
+  );
+  // Even with the revision relabelled, the provider refuses the append.
+  await assert.rejects(
+    appendStep({ working: moved, step: { ...planned.step, revision: moved.head }, protocol }),
     error => error instanceof DecisionRefused && /provider refused/u.test(error.message),
   );
   assert.deepEqual(edges(moved), ["node-a->node-b"]);
 });
 
-test("confirming without a proposal is refused", async () => {
-  await assert.rejects(confirm(await baseGraph(), null), /there is no proposal/u);
+// A saved log of several entries, and the provider states on either side of
+// each, exactly as the page reads them for 取り消しを作業図に追加.
+const savedWith = async specs => {
+  let graph = await baseGraph();
+  for (const spec of specs) graph = await step(graph, spec);
+  return { graph, states: await statesOf(graph.log, verifyDecisionLog) };
+};
+
+test("reverting an added edge adds its removal to the working graph", async () => {
+  const { graph, states } = await savedWith([{ action: ACTION_ADD, source: "node-c", target: "node-a" }]);
+  const revert = await revertStep({ before: states[0], after: states[1], working: graph, protocol });
+
+  assert.equal(revert.action, ACTION_REVERT);
+  assert.equal(revert.revision, graph.head);
+  assert.deepEqual(revert.changes, [{ change: "removed", from: "node-c", to: "node-a" }]);
+  const working = await appendStep({ working: graph, step: revert, protocol });
+  assert.deepEqual(edges(working), []);
+  assert.equal(working.decisions.length, graph.decisions.length + 1, "a revert adds a Decision; it removes none");
+  assert.ok(working.log.startsWith(graph.log));
 });
 
-test("while a proposal is pending, remove or reverse of an edge it does not name is a no-change", async () => {
-  const graph = await commit(await baseGraph(), { action: ACTION_ADD, source: "node-a", target: "node-b" });
-  const pending = (await propose(graph, { action: ACTION_ADD, source: "node-b", target: "node-c", edge: "voice-node-a-to-node-b" })).proposal;
-  assert.deepEqual(pending.changes, [{ change: "added", from: "node-b", to: "node-c" }]);
+test("reverting a removal puts the edge back with its id, kind and label", async () => {
+  const { graph, states } = await savedWith([
+    { action: ACTION_ADD, source: "node-c", target: "node-a" },
+    { action: ACTION_REMOVE, edge: "voice-node-c-to-node-a" },
+  ]);
+  const revert = await revertStep({ before: states[1], after: states[2], working: graph, protocol });
+  assert.deepEqual(revert.changes, [{ change: "added", from: "node-c", to: "node-a" }]);
 
-  // "reverse that" answered with the committed edge: the focus named the
-  // pending proposal, so this answer cannot mean what the page asked about.
-  for (const action of [ACTION_REVERSE, ACTION_REMOVE]) {
-    const answer = await proposeCorrection({
-      graph,
-      answers: answersFor(graph, { action, edge: "voice-node-a-to-node-b" }),
-      protocol,
-      pending,
-    });
-    assert.equal(answer.outcome, OUTCOME_NO_CHANGE, action);
-    assert.match(answer.reason, /a proposal is pending/u);
-    assert.equal(answer.proposal, undefined, "the pending proposal must not be replaced");
-  }
-
-  // A new addition still replaces the pending proposal.
-  const replacement = await proposeCorrection({
-    graph,
-    answers: answersFor(graph, { action: ACTION_ADD, source: "node-c", target: "node-b", edge: "voice-node-a-to-node-b" }),
-    protocol,
-    pending,
-  });
-  assert.equal(replacement.outcome, OUTCOME_PROPOSED);
-  assert.deepEqual(replacement.proposal.changes, [{ change: "added", from: "node-c", to: "node-b" }]);
+  const working = await appendStep({ working: graph, step: revert, protocol });
+  const restored = working.records.find(record => record.type === "relation");
+  const original = states[1].find(record => record.type === "relation");
+  assert.deepEqual(restored, original);
 });
 
-test("while a proposal is pending, remove or reverse of an edge it names is proposed", async () => {
-  const graph = await commit(await baseGraph(), { action: ACTION_ADD, source: "node-c", target: "node-a" });
-  const pendingRemoval = (await propose(graph, { action: ACTION_REMOVE, edge: "voice-node-c-to-node-a" })).proposal;
-
-  const reversed = await proposeCorrection({
-    graph,
-    answers: answersFor(graph, { action: ACTION_REVERSE, edge: "voice-node-c-to-node-a" }),
-    protocol,
-    pending: pendingRemoval,
-  });
-  assert.equal(reversed.outcome, OUTCOME_PROPOSED);
-  assert.equal(reversed.proposal.action, ACTION_REVERSE);
+test("reverting a reverse turns the edge back in one Decision", async () => {
+  const { graph, states } = await savedWith([
+    { action: ACTION_ADD, source: "node-c", target: "node-a" },
+    { action: ACTION_REVERSE, edge: "voice-node-c-to-node-a" },
+  ]);
+  const revert = await revertStep({ before: states[1], after: states[2], working: graph, protocol });
+  assert.deepEqual(revert.changes, [
+    { change: "removed", from: "node-a", to: "node-c" },
+    { change: "added", from: "node-c", to: "node-a" },
+  ]);
+  const working = await appendStep({ working: graph, step: revert, protocol });
+  assert.deepEqual(edges(working), ["node-c->node-a"]);
 });
 
-test("the focus is the pending proposal, else the last confirmed change, else nothing", () => {
-  const changes = [{ change: "added", from: "node-c", to: "node-a" }];
-  assert.deepEqual(focusFor({ proposal: { changes } }), { kind: "proposal", changes });
-  assert.deepEqual(focusFor({ lastConfirmed: changes }), { kind: "confirmed", changes });
-  assert.deepEqual(focusFor({ proposal: { changes }, lastConfirmed: [] }).kind, "proposal");
+test("a revert that a later change has overtaken is refused, and nothing changes", async () => {
+  const { graph, states } = await savedWith([{ action: ACTION_ADD, source: "node-c", target: "node-a" }]);
+  const later = await step(graph, { action: ACTION_REVERSE, edge: "voice-node-c-to-node-a" });
+
+  await assert.rejects(
+    revertStep({ before: states[0], after: states[1], working: later, protocol }),
+    error => error instanceof DecisionRefused && /later change/u.test(error.message),
+  );
+  assert.deepEqual(edges(later), ["node-a->node-c"]);
+});
+
+test("only edge changes can be reverted", async () => {
+  const graph = await baseGraph();
+  const withRegion = [...graph.records, { ...graph.records.find(record => record.id === "node-a"), id: "node-d" }];
+  await assert.rejects(
+    revertStep({ before: graph.records, after: withRegion, working: graph, protocol }),
+    /only edge changes can be reverted/u,
+  );
+});
+
+test("the focus is the latest working step, else the latest applied change, else nothing", () => {
+  const first = [{ change: "added", from: "node-c", to: "node-a" }];
+  const latest = [{ change: "added", from: "node-a", to: "node-b" }];
+  assert.deepEqual(focusFor({ draft: [{ changes: first }, { changes: latest }] }), { kind: "draft", changes: latest });
+  assert.deepEqual(focusFor({ lastApplied: first }), { kind: "applied", changes: first });
+  assert.equal(focusFor({ draft: [{ changes: latest }], lastApplied: first }).kind, "draft");
   assert.deepEqual(focusFor({}), { kind: "none", changes: [] });
+  assert.equal(DRAFT_MAX, 8);
 });
 
-// The Pages Function side of v3: which questions are put to Jev for a given
-// graph and focus, and what shape comes back.
+// The Pages Function side of v4: which questions are put to Jev for a given
+// working graph, draft and focus, and what shape comes back.
 
 const postJev = body =>
   onRequestPost({
@@ -308,83 +339,104 @@ const providerChoice = (value, keys, confidence = 0.8) => ({
 });
 
 const REGIONS = ["node-a", "node-b", "node-c"];
+const NODE_KEYS = [...REGIONS, "none"];
 const EDGE = { id: "voice-node-c-to-node-a", from: "node-c", to: "node-a" };
+const ADDED = { change: "added", from: "node-c", to: "node-a" };
 
-const v3 = ({ edges = [], focus = { kind: "none", changes: [] }, text = "reverse that" } = {}) => ({
-  kind: "voice-ui.jev.request.v3",
-  text,
-  graph: { regions: REGIONS, edges },
-  focus,
+const v4 = ({
+  utterance = "reverse that edge",
+  edges = [],
+  draft = [],
+  focus = { kind: "none", changes: [] },
+} = {}) => ({
+  kind: "voice-ui.jev.request.v4",
+  state: { utterance, working: { regions: REGIONS, edges }, draft, focus },
 });
 
-test("v3 on an edgeless graph asks only about adding", async () => {
+test("v4 on an edgeless working graph asks only about adding, and forwards the named state object", async () => {
+  const request = v4({ utterance: "add an edge from c to a" });
   const { result, calls } = await withProvider({
-    action: providerChoice("add-edge", ["add-edge", "none"]),
-    source: providerChoice("node-c", REGIONS),
-    target: providerChoice("node-a", REGIONS),
-  }, () => postJev(v3({ text: "add an edge from c to a" })));
+    action: providerChoice("add-edge", ["add-edge", "undo-request", "none"]),
+    source: providerChoice("node-c", NODE_KEYS),
+    target: providerChoice("node-a", NODE_KEYS),
+  }, () => postJev(request));
 
   assert.equal(result.status, 200);
   const body = await result.json();
-  assert.equal(body.kind, "voice-ui.jev.decision.v3");
+  assert.equal(body.kind, "voice-ui.jev.decision.v4");
   assert.deepEqual(Object.keys(body.answers), ["action", "source", "target"]);
-  assert.deepEqual(Object.keys(calls[0].questions), ["action", "source", "target"]);
-  assert.deepEqual(Object.keys(calls[0].questions.action.criteria), ["add-edge", "none"]);
-  assert.match(calls[0].questions.action.instructions, /no edges/u);
+
+  const [call] = calls;
+  assert.deepEqual(call.state, request.state, "Jev gets the page's state object, unchanged");
+  assert.deepEqual(Object.keys(call.questions), ["action", "source", "target"]);
+  assert.deepEqual(Object.keys(call.questions.action.criteria), ["add-edge", "undo-request", "none"]);
+  assert.deepEqual(Object.keys(call.questions.source.criteria), NODE_KEYS);
+  assert.deepEqual(Object.keys(call.questions.target.criteria), NODE_KEYS);
 });
 
-test("v3 with an edge and a focus offers remove, reverse and the edge itself", async () => {
-  const actions = ["add-edge", "remove-edge", "reverse-edge", "none"];
-  const focus = { kind: "confirmed", changes: [{ change: "added", from: "node-c", to: "node-a" }] };
+test("v4 with a working edge offers remove, reverse, that edge or none, and feeds planStep", async () => {
+  const actions = ["add-edge", "remove-edge", "reverse-edge", "undo-request", "none"];
+  const request = v4({ edges: [EDGE], draft: [{ changes: [ADDED] }], focus: { kind: "draft", changes: [ADDED] } });
   const { result, calls } = await withProvider({
     action: providerChoice("reverse-edge", actions),
-    source: providerChoice("node-a", REGIONS),
-    target: providerChoice("node-b", REGIONS),
-    edge: providerChoice(EDGE.id, [EDGE.id]),
-  }, () => postJev(v3({ edges: [EDGE], focus })));
+    source: providerChoice("none", NODE_KEYS),
+    target: providerChoice("none", NODE_KEYS),
+    edge: providerChoice(EDGE.id, [EDGE.id, "none"]),
+  }, () => postJev(request));
 
   const body = await result.json();
-  assert.equal(body.answers.action.choice, "reverse-edge");
   assert.equal(body.answers.edge.choice, EDGE.id);
+  const [call] = calls;
+  assert.deepEqual(call.state, request.state);
+  assert.deepEqual(Object.keys(call.questions.action.criteria), actions);
+  assert.deepEqual(Object.keys(call.questions.edge.criteria), [EDGE.id, "none"]);
+  assert.match(call.questions.edge.criteria[EDGE.id], /node-c to node-a/u);
 
-  const { questions } = calls[0];
-  assert.deepEqual(Object.keys(questions.action.criteria), actions);
-  assert.deepEqual(Object.keys(questions.edge.criteria), [EDGE.id]);
-  assert.match(questions.edge.criteria[EDGE.id], /node-c -> node-a/u);
-  assert.match(questions.action.instructions, /just confirmed a change that added the edge node-c -> node-a/u);
-  assert.equal(calls[0].state, "reverse that", "the request text goes to Jev unchanged");
-
-  // The answer feeds straight into the proposal code.
-  const graph = await commit(await baseGraph(), { action: ACTION_ADD, source: "node-c", target: "node-a" });
-  const proposed = await proposeCorrection({ graph, answers: body.answers, protocol });
-  assert.equal(proposed.proposal.action, ACTION_REVERSE);
+  // The answer feeds straight into the step code, on the revision it was asked about.
+  const working = await step(await baseGraph(), { action: ACTION_ADD, source: "node-c", target: "node-a" });
+  const planned = await planStep({ working, revision: working.head, answers: body.answers, protocol });
+  assert.equal(planned.step.action, ACTION_REVERSE);
 });
 
-test("v3 names an unsaved proposal as the focus", async () => {
-  const focus = { kind: "proposal", changes: [{ change: "added", from: "node-c", to: "node-a" }] };
-  const { calls } = await withProvider({
-    action: providerChoice("add-edge", ["add-edge", "none"]),
-    source: providerChoice("node-a", REGIONS),
-    target: providerChoice("node-c", REGIONS),
-  }, () => postJev(v3({ focus })));
-  assert.match(calls[0].questions.action.instructions, /unsaved proposal that has added the edge node-c -> node-a/u);
+test("v4 passes an undo-request through; the step code turns it into no change", async () => {
+  const actions = ["add-edge", "remove-edge", "reverse-edge", "undo-request", "none"];
+  const { result } = await withProvider({
+    action: providerChoice("undo-request", actions),
+    source: providerChoice("none", NODE_KEYS),
+    target: providerChoice("none", NODE_KEYS),
+    edge: providerChoice(EDGE.id, [EDGE.id, "none"]),
+  }, () => postJev(v4({ utterance: "undo that", edges: [EDGE], draft: [{ changes: [ADDED] }], focus: { kind: "draft", changes: [ADDED] } })));
+
+  const body = await result.json();
+  const working = await step(await baseGraph(), { action: ACTION_ADD, source: "node-c", target: "node-a" });
+  const planned = await planStep({ working, revision: working.head, answers: body.answers, protocol });
+  assert.equal(planned.outcome, OUTCOME_NO_CHANGE);
+  assert.equal(planned.undoRequest, true);
 });
 
-test("v3 rejects malformed requests and off-criteria answers", async () => {
+test("v4 rejects malformed requests and off-criteria answers", async () => {
+  const nine = Array.from({ length: 9 }, () => ({ changes: [ADDED] }));
   const bad = [
-    { ...v3(), extra: true },
-    v3({ edges: [{ ...EDGE, from: "node-z" }] }),
-    v3({ edges: [EDGE, EDGE] }),
-    v3({ focus: { kind: "none", changes: [{ change: "added", from: "node-a", to: "node-b" }] } }),
-    v3({ focus: { kind: "proposal", changes: [] } }),
-    v3({ focus: { kind: "later", changes: [] } }),
+    { ...v4(), extra: true },
+    { kind: "voice-ui.jev.request.v4", state: { ...v4().state, extra: 1 } },
+    { kind: "voice-ui.jev.request.v4", state: { ...v4().state, utterance: "  " } },
+    { kind: "voice-ui.jev.request.v4", state: { ...v4().state, working: { regions: [...REGIONS, "none"], edges: [] } } },
+    v4({ edges: [{ ...EDGE, id: "none" }] }),
+    v4({ edges: [{ ...EDGE, from: "node-z" }] }),
+    v4({ edges: [EDGE, EDGE] }),
+    v4({ draft: nine }),
+    v4({ draft: [{ changes: [] }] }),
+    v4({ focus: { kind: "none", changes: [ADDED] } }),
+    v4({ focus: { kind: "draft", changes: [] } }),
+    v4({ focus: { kind: "proposal", changes: [ADDED] } }),
+    { kind: "voice-ui.jev.request.v3", text: "x", graph: { regions: REGIONS, edges: [] }, focus: { kind: "none", changes: [] } },
   ];
   for (const body of bad) assert.equal((await postJev(body)).status, 422, JSON.stringify(body));
 
   const { result } = await withProvider({
-    action: providerChoice("remove-edge", ["add-edge", "remove-edge", "none"]),
-    source: providerChoice("node-a", REGIONS),
-    target: providerChoice("node-b", REGIONS),
-  }, () => postJev(v3()));
+    action: providerChoice("remove-edge", ["add-edge", "remove-edge", "undo-request", "none"]),
+    source: providerChoice("node-a", NODE_KEYS),
+    target: providerChoice("node-b", NODE_KEYS),
+  }, () => postJev(v4()));
   assert.equal(result.status, 502, "remove offered to nobody must not come back");
 });

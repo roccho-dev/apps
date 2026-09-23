@@ -4,6 +4,10 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <title>voice-ui</title>
+    <style>
+      #panes { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+      #working-notice { font-weight: bold; }
+    </style>
   </head>
   <body>
     <main>
@@ -11,14 +15,25 @@
       <button id="send" type="button">Send</button>
       <button id="mic" type="button">Voice</button>
       <p id="status" role="status"></p>
-      <section id="proposal" aria-label="Unsaved proposal" hidden>
-        <p id="proposal-summary"></p>
-        <ul id="proposal-changes"></ul>
-        <button id="confirm" type="button">Confirm</button>
-        <button id="dismiss" type="button">Dismiss</button>
-      </section>
-      <section id="history" aria-label="History"></section>
-      <section id="surface" aria-label="Result"></section>
+      <div id="panes">
+        <!-- Left: the saved graph. Only 確定図に反映 changes it. -->
+        <section id="confirmed" aria-label="確定図">
+          <h2>確定図</h2>
+          <section id="history" aria-label="確定図の履歴"></section>
+          <div id="confirmed-surface"></div>
+        </section>
+        <!-- Right: the working graph. Speech and typing change only this. -->
+        <section id="working" aria-label="作業図">
+          <h2>作業図</h2>
+          <p id="working-notice">作業図は保存されていません。再読み込みすると消えます。</p>
+          <ol id="draft" aria-label="未反映の変更"></ol>
+          <p id="draft-count"></p>
+          <button id="undo" type="button">元に戻す</button>
+          <button id="discard" type="button">作業図を破棄</button>
+          <button id="apply" type="button">確定図に反映</button>
+          <div id="working-surface"></div>
+        </section>
+      </div>
     </main>
 
     <script type="module">
@@ -37,11 +52,13 @@
       import { renderUiIr } from "/app/src/render.mjs";
       import { GRAPH_PATTERN, selectableRegionIds } from "/app/src/decision/graph-edge.mjs";
       import {
+        DRAFT_MAX,
         OUTCOME_NO_CHANGE,
-        confirmProposal,
+        appendStep,
         edgesOf,
         focusFor,
-        proposeCorrection,
+        planStep,
+        revertStep,
       } from "/app/src/decision/correction.mjs";
       import {
         HistoryConflict,
@@ -51,19 +68,22 @@
         persistHistory,
         projectHistory,
         restoreHistory,
+        statesOf,
+        truncateLog,
       } from "/app/src/decision/history.mjs";
 
       const text = document.querySelector("#text");
       const send = document.querySelector("#send");
       const mic = document.querySelector("#mic");
       const status = document.querySelector("#status");
-      const proposalPanel = document.querySelector("#proposal");
-      const proposalSummary = document.querySelector("#proposal-summary");
-      const proposalChanges = document.querySelector("#proposal-changes");
-      const confirmButton = document.querySelector("#confirm");
-      const dismissButton = document.querySelector("#dismiss");
       const historyPanel = document.querySelector("#history");
-      const surface = document.querySelector("#surface");
+      const confirmedSurface = document.querySelector("#confirmed-surface");
+      const draftList = document.querySelector("#draft");
+      const draftCount = document.querySelector("#draft-count");
+      const undoButton = document.querySelector("#undo");
+      const discardButton = document.querySelector("#discard");
+      const applyButton = document.querySelector("#apply");
+      const workingSurface = document.querySelector("#working-surface");
 
       const protocol = { appendDecision, createDecision, createEnvelope };
 
@@ -120,9 +140,9 @@
       let rendering = false;
       let typedHoldsRender = false;
       let voiceHoldsRender = false;
-      let decisionHoldsRender = false;
+      let controlHoldsRender = false;
 
-      // Fail-closed latch. A stored log that cannot be verified, and a decision
+      // Fail-closed latch. A stored log that cannot be verified, and a change
       // that was saved but could not be drawn, both leave the screen unable to
       // speak for storage. Neither is transient, so the latch is sticky and no
       // in-app control clears it: a reload recovers a display failure, and only
@@ -130,33 +150,43 @@
       // provider rejects.
       let blocked = false;
 
-      // Storage is the authority; `graph` follows it and the DOM projects both.
-      // `stored` is the log this page last read from or wrote to storage, so a
-      // confirmation can tell whether another tab has committed since.
-      let graph;
-      let history;
+      // 確定図: storage is the authority; `saved` follows it and the left pane
+      // projects it. `stored` is the log this page last read from or wrote to
+      // storage, so Apply can tell whether another tab has written since.
+      let saved;
+      let savedHistory;
       let stored = null;
 
-      // The one proposal on screen, if any. Speaking or typing only ever
-      // proposes; nothing reaches the log except through Confirm. `candidate` is
-      // the proposal an input has just built, adopted once it has been drawn.
-      let proposal = null;
+      // 作業図: the saved log plus the unapplied steps, verified by the provider
+      // and kept in memory only. `draft` holds each step's effect, in order.
+      // `candidate` is what an input has just built, adopted once it is drawn.
+      let working;
+      let draft = [];
       let candidate = null;
 
-      // Neither "no change" nor a refusal is a fact, and neither replaces the
-      // proposal already on screen. Only "no change" is not an error.
+      // Nothing a request produces except a drawn step changes the working
+      // graph. "No change" - including an undo asked for by voice and a full
+      // working graph - is an ordinary answer, not an error.
       class NoChange extends Error {
-        constructor(reason) {
+        constructor(reason, state = "no-change") {
           super(reason);
           this.name = "NoChange";
+          this.state = state;
         }
       }
 
+      const draftFull = () => draft.length >= DRAFT_MAX;
+
       const syncBusy = () => {
-        send.disabled = rendering || blocked;
-        mic.disabled = capturing || rendering || blocked;
-        confirmButton.disabled = rendering || blocked || !proposal;
-        dismissButton.disabled = rendering || blocked || !proposal;
+        const idle = !rendering && !blocked;
+        send.disabled = !idle;
+        mic.disabled = capturing || !idle;
+        undoButton.disabled = !idle || draft.length === 0;
+        discardButton.disabled = !idle || draft.length === 0;
+        applyButton.disabled = !idle || draft.length === 0;
+        for (const button of historyPanel.querySelectorAll("button[data-revert]")) {
+          button.disabled = !idle || draftFull() || button.dataset.revertable !== "true";
+        }
       };
 
       const setState = (state, message) => {
@@ -171,63 +201,64 @@
         return element;
       };
 
-      // The screen has to keep apart where this graph started, what has been
-      // confirmed on top of it, and what failed. Only entries under `confirmed`
-      // are facts: each one is a Decision the provider verified and storage
-      // accepted.
-      const renderHistory = (projection, failure) => {
+      // "+node-c->node-a" for an added edge, "-node-c->node-a" for a removed one.
+      const describe = fact => {
+        const sign = fact.change === "added" ? "+" : fact.change === "removed" ? "-" : "~";
+        return (fact.kind ?? "relation") === "relation"
+          ? `${sign}${fact.from}->${fact.to}`
+          : `${sign}${fact.kind}${fact.id ? ` ${fact.id}` : ""}`;
+      };
+
+      // 確定図's history: where the graph started and every applied Decision.
+      // Each entry that changed only edges can be reverted, which adds its
+      // opposite to 作業図 - never to this pane.
+      const renderHistory = failure => {
         historyPanel.replaceChildren();
         historyPanel.append(line(
           "initial",
-          `initial: ${projection.initial.regions.join(", ")} (${projection.initial.relations.length} edges)`,
+          `initial: ${savedHistory.initial.regions.join(", ")} (${savedHistory.initial.relations.length} edges)`,
         ));
 
-        // One item per confirmed Decision; a reversal is one item holding the
-        // removed and the added direction.
-        const confirmed = document.createElement("ol");
-        confirmed.dataset.history = "confirmed";
-        for (const entry of projection.entries) {
+        const applied = document.createElement("ol");
+        applied.dataset.history = "confirmed";
+        savedHistory.entries.forEach((entry, index) => {
           const item = document.createElement("li");
           item.dataset.entry = entry.id;
           const facts = entry.facts.map(describe);
           item.dataset.facts = facts.join(" ");
-          item.textContent = facts.join(", ");
-          confirmed.append(item);
-        }
-        historyPanel.append(confirmed);
-        historyPanel.append(line("count", `confirmed: ${confirmed.childElementCount}`));
+          item.append(document.createTextNode(facts.join(", ")));
+          const revert = document.createElement("button");
+          revert.type = "button";
+          revert.textContent = "取り消しを作業図に追加";
+          revert.dataset.revert = String(index);
+          revert.dataset.revertable = String(entry.facts.every(fact => fact.kind === "relation"));
+          item.append(" ", revert);
+          applied.append(item);
+        });
+        historyPanel.append(applied);
+        historyPanel.append(line("count", `confirmed: ${applied.childElementCount}`));
         if (failure) historyPanel.append(line("failure", failure));
       };
 
-      // "+node-c->node-a" for an added edge, "-node-c->node-a" for a removed one.
-      const describe = fact => {
-        const sign = fact.change === "added" ? "+" : fact.change === "removed" ? "-" : "~";
-        return fact.kind === "relation" ? `${sign}${fact.from}->${fact.to}` : `${sign}${fact.kind}${fact.id ? ` ${fact.id}` : ""}`;
-      };
-
-      // The proposal panel is the authority on what is pending: the map inside
-      // the frame overlays the same change, but only this panel's Confirm can
-      // apply it, and it says plainly that nothing is saved yet.
-      const renderProposal = () => {
-        proposalPanel.hidden = proposal === null;
-        proposalChanges.replaceChildren();
-        if (!proposal) {
-          proposalSummary.textContent = "";
-          return;
-        }
-        proposalSummary.textContent = `Unsaved proposal (${proposal.action}) - nothing changes until you confirm.`;
-        for (const change of proposal.changes) {
+      // 作業図's unapplied steps, in order, with the cap stated.
+      const renderDraft = () => {
+        draftList.replaceChildren();
+        for (const step of draft) {
           const item = document.createElement("li");
-          item.dataset.change = describe({ ...change, kind: "relation" });
-          item.textContent = item.dataset.change;
-          proposalChanges.append(item);
+          item.dataset.step = step.action;
+          item.dataset.changes = step.changes.map(describe).join(" ");
+          item.textContent = item.dataset.changes;
+          draftList.append(item);
         }
+        draftCount.textContent = `未反映: ${draft.length} / ${DRAFT_MAX}`
+          + (draftFull() ? " - 上限です。確定図に反映・元に戻す・作業図を破棄のいずれかを選んでください。" : "");
       };
 
-      // What the user is looking at, for a follow-up like "reverse that".
+      // What the user is looking at, for a follow-up like "reverse that": the
+      // latest working step, else the latest applied change.
       const currentFocus = () => focusFor({
-        proposal,
-        lastConfirmed: (history.entries.at(-1)?.facts ?? [])
+        draft,
+        lastApplied: (savedHistory.entries.at(-1)?.facts ?? [])
           .filter(fact => fact.kind === "relation")
           .map(({ change, from, to }) => ({ change, from, to })),
       });
@@ -251,33 +282,46 @@
         return response.json();
       };
 
-      // Send and Voice take the same path, and neither writes anything: the
-      // request is judged against the graph and the focus on screen, and the
-      // answer becomes a proposal drawn over the unchanged graph. The v1 and v2
-      // HTTP contracts are still served; this screen drives v3.
-      const decideProposal = async value => {
-        // Nothing typed, or a transcript with nothing in it, asks for nothing:
-        // no request goes to Jev and the pending proposal stays as it is.
+      // Send and Voice take the same path, and neither touches 確定図 or
+      // storage: the utterance is judged against 作業図 and every unapplied
+      // step, and a usable answer becomes one more step on 作業図. The v1 and v2
+      // HTTP contracts are still served; this screen drives v4.
+      const decideStep = async value => {
+        // Nothing typed, or a transcript with nothing in it, asks for nothing,
+        // and a full working graph takes no more steps: in both cases no
+        // request goes to Jev at all.
         if (typeof value !== "string" || value.trim().length === 0) {
           throw new NoChange("nothing was said or typed");
         }
+        if (draftFull()) {
+          throw new NoChange("作業図の未反映は上限です。確定図に反映・元に戻す・作業図を破棄のいずれかを選んでください", "draft-full");
+        }
+
+        // The answer is bound to the working graph as it was when asked.
+        const revision = working.head;
         const decision = await postJev({
-          kind: "voice-ui.jev.request.v3",
-          text: value,
-          graph: {
-            regions: selectableRegionIds(graph.records),
-            edges: edgesOf(graph.records).map(({ id, from, to }) => ({ id, from, to })),
+          kind: "voice-ui.jev.request.v4",
+          state: {
+            utterance: value,
+            working: {
+              regions: selectableRegionIds(working.records),
+              edges: edgesOf(working.records).map(({ id, from, to }) => ({ id, from, to })),
+            },
+            draft: draft.map(step => ({ changes: step.changes.map(({ change, from, to }) => ({ change, from, to })) })),
+            focus: currentFocus(),
           },
-          focus: currentFocus(),
         });
-        const result = await proposeCorrection({ graph, answers: decision.answers, protocol, pending: proposal });
-        if (result.outcome === OUTCOME_NO_CHANGE) throw new NoChange(result.reason);
-        candidate = result.proposal;
-        return result.ir;
+        const planned = await planStep({ working, revision, answers: decision.answers, protocol });
+        if (planned.outcome === OUTCOME_NO_CHANGE) {
+          throw new NoChange(planned.reason, planned.undoRequest ? "undo-request" : "no-change");
+        }
+        const next = await appendStep({ working, step: planned.step, protocol });
+        candidate = { working: next, step: planned.step };
+        return graphIr(next);
       };
 
       // The typed handler already owns the surface by the time it calls this.
-      const decideTyped = value => decideProposal(value);
+      const decideTyped = value => decideStep(value);
 
       // Transcription has already finished by the time this runs, so this is
       // where the surface critical section begins for voice. The claim is taken
@@ -288,12 +332,11 @@
         voiceHoldsRender = true;
         syncBusy();
 
-        return decideProposal(value);
+        return decideStep(value);
       };
 
-      // graph-edge.mjs builds this shape around a decision. Drawing a graph that
-      // nobody just decided on - one restored from storage - needs the same
-      // shape with no decision in it, which is not that module's business.
+      // Each pane draws a plain graph: no proposal overlay, no review controls
+      // that could stand in for 確定図に反映.
       const graphIr = async current => ({
         kind: "ui.ir.v1",
         capability: "render.semantic-map",
@@ -301,14 +344,16 @@
         payload: await createEnvelope(current.log, null, { pattern: GRAPH_PATTERN }),
       });
 
-      const render = ir => renderUiIr({
+      const renderInto = mount => ir => renderUiIr({
         ir,
         validateUiIr,
         renderTrustedSurface,
         renderSemanticMap,
         document,
-        mount: surface,
+        mount,
       });
+      const renderConfirmed = renderInto(confirmedSurface);
+      const renderWorking = renderInto(workingSurface);
 
       let hayamimi;
       const transcribe = async () => {
@@ -338,29 +383,36 @@
         });
       };
 
-      const typedApp = createVoiceUiApp({ transcribe, decide: decideTyped, render });
-      const voiceApp = createVoiceUiApp({ transcribe, decide: decideVoice, render });
+      const typedApp = createVoiceUiApp({ transcribe, decide: decideTyped, render: renderWorking });
+      const voiceApp = createVoiceUiApp({ transcribe, decide: decideVoice, render: renderWorking });
 
-      // How an input ends. Only a drawn proposal replaces the one on screen; a
-      // "no change" answer and a refusal leave it exactly as it was, and neither
-      // writes anything. "No change" is an ordinary answer, not an error.
-      const finishInput = (prefix, error) => {
-        if (!error) {
-          proposal = candidate;
+      // How an input ends. Only a step that was drawn joins 作業図; "no change"
+      // and a refusal leave it exactly as it was. 確定図 and storage are never
+      // touched here.
+      const finishInput = async (prefix, error) => {
+        // A step was built but could not be drawn: 作業図 did not change, so
+        // put the pane back to what it actually holds before reporting.
+        if (error && candidate !== null) {
           candidate = null;
-          renderProposal();
-          setState("proposed", `${prefix}: proposed - not saved until you confirm`);
-          renderHistory(history);
+          await renderWorking(await graphIr(working)).catch(() => {});
+        }
+        if (!error) {
+          working = candidate.working;
+          draft = [...draft, candidate.step];
+          candidate = null;
+          renderDraft();
+          setState("drafted", `${prefix}: 作業図に追加しました (未反映)`);
+          renderHistory();
           return;
         }
         candidate = null;
         if (error instanceof NoChange) {
-          setState("no-change", `${prefix}: no change - ${error.message}`);
-          renderHistory(history);
+          setState(error.state, `${prefix}: no change - ${error.message}`);
+          renderHistory();
           return;
         }
         setState("failed", `${prefix}: failed`);
-        renderHistory(history, `failed: ${error.message}`);
+        renderHistory(`failed: ${error.message}`);
       };
 
       send.addEventListener("click", async () => {
@@ -376,9 +428,9 @@
         setState("pending", "type: working");
         try {
           await typedApp.submitType(text.value);
-          finishInput("type", null);
+          await finishInput("type", null);
         } catch (error) {
-          finishInput("type", error);
+          await finishInput("type", error);
         } finally {
           if (typedHoldsRender) {
             rendering = false;
@@ -400,11 +452,11 @@
         setState("pending", "voice: listening");
         try {
           // submitVoice carries transcription, decision and render, so reaching
-          // here means the proposal is drawn.
+          // here means the step is drawn on 作業図.
           await voiceApp.submitVoice(null);
-          finishInput("voice", null);
+          await finishInput("voice", null);
         } catch (error) {
-          finishInput("voice", error);
+          await finishInput("voice", error);
         } finally {
           if (voiceHoldsRender) {
             rendering = false;
@@ -415,78 +467,119 @@
         }
       });
 
-      // Confirm and Dismiss share the surface with the inputs, so they take the
-      // same exclusive hold and release it only as its owner.
-      const withSurface = async run => {
-        if (blocked || rendering || !proposal) return;
+      // The working-graph controls share the surface with the inputs, so they
+      // take the same exclusive hold and release it only as its owner. While a
+      // request is in flight every one of them is therefore disabled.
+      const withSurface = async (label, run) => {
+        if (blocked || rendering) return;
         rendering = true;
-        decisionHoldsRender = true;
+        controlHoldsRender = true;
         syncBusy();
+        setState("pending", `${label}: working`);
         try {
-          await run(proposal);
+          await run();
+        } catch (error) {
+          setState("failed", `${label}: failed`);
+          renderHistory(`failed: ${error.message}`);
         } finally {
-          if (decisionHoldsRender) {
+          if (controlHoldsRender) {
             rendering = false;
-            decisionHoldsRender = false;
+            controlHoldsRender = false;
           }
           syncBusy();
         }
       };
 
-      // The only way anything reaches the log. The proposal is applied exactly as
-      // shown, then storage takes it before memory or the screen follow - and
-      // only if storage still holds what this page last saw, so a second tab's
-      // commit is never overwritten.
-      confirmButton.addEventListener("click", () => withSurface(async chosen => {
-        let saved = false;
-        setState("pending", "confirm: saving");
+      // 元に戻す drops the last unapplied step and nothing else: the working log
+      // is cut back by one Decision and verified again. It never goes below
+      // what is saved, and there is no redo.
+      undoButton.addEventListener("click", () => withSurface("undo", async () => {
+        if (draft.length === 0) return;
+        const previous = await truncateLog(working, {
+          count: working.decisions.length - 1,
+          floor: saved.decisions.length,
+          verifyDecisionLog,
+        });
+        await renderWorking(await graphIr(previous));
+        working = previous;
+        draft = draft.slice(0, -1);
+        renderDraft();
+        setState("undone", "作業図の最後の変更を元に戻しました");
+        renderHistory();
+      }));
+
+      // 作業図を破棄 returns the working graph to the saved one.
+      discardButton.addEventListener("click", () => withSurface("discard", async () => {
+        if (draft.length === 0) return;
+        await renderWorking(await graphIr(saved));
+        working = saved;
+        draft = [];
+        renderDraft();
+        setState("discarded", "作業図を破棄しました");
+        renderHistory();
+      }));
+
+      // 確定図に反映: the only write to storage and the only change to 確定図.
+      // All unapplied Decisions are written as they are, in one setItem, and only
+      // if storage still holds the log this page last saw. That check is a read
+      // before the write, not a transaction: it refuses a write another tab made
+      // earlier, but two tabs writing at the same instant are not excluded. A
+      // refused Apply keeps 作業図 exactly as it was.
+      applyButton.addEventListener("click", () => withSurface("apply", async () => {
+        if (draft.length === 0) return;
+        let written = false;
         try {
-          const committed = await confirmProposal({ graph, proposal: chosen, protocol });
-          await persistHistory({ write, read, expected: stored, graph: committed.graph });
-          saved = true;
-          stored = committed.graph.log;
-          graph = committed.graph;
-          proposal = null;
-          renderProposal();
-          history = await projectHistory(graph, { verifyDecisionLog });
-          await render(committed.ir);
-          setState("confirmed", "confirm: confirmed");
-          renderHistory(history);
+          await persistHistory({ write, read, expected: stored, graph: working });
+          written = true;
+          stored = working.log;
+          saved = working;
+          draft = [];
+          renderDraft();
+          savedHistory = await projectHistory(saved, { verifyDecisionLog });
+          await renderConfirmed(await graphIr(saved));
+          setState("applied", "確定図に反映しました");
+          renderHistory();
         } catch (error) {
-          if (saved) {
-            // Saved, but the screen could not be brought up to date. Storage
-            // leads, so stop rather than take another decision on top of a view
-            // that is already behind; a reload re-projects the saved graph.
+          if (written) {
+            // Saved, but 確定図 could not be brought up to date. Storage leads,
+            // so stop until a reload re-projects what was saved.
             blocked = true;
-            setState("saved-display-failed", "confirm: saved, display failed - reload to recover");
-          } else {
-            // Nothing was written. A conflict means this page is behind another
-            // tab: it stops here and a reload shows what is actually stored.
-            if (error instanceof HistoryConflict) {
-              blocked = true;
-              proposal = null;
-              renderProposal();
-            }
-            setState("failed", "confirm: failed");
+            setState("saved-display-failed", "apply: saved, display failed - reload to recover");
+            renderHistory(`display failed: ${error.message}`);
+            return;
           }
-          renderHistory(history, `${saved ? "display failed" : "failed"}: ${error.message}`);
+          const reason = error instanceof HistoryConflict
+            ? "別のタブが先に確定図を変更しました。作業図はそのまま残しています"
+            : error.message;
+          setState("failed", "apply: failed");
+          renderHistory(`failed: ${reason}`);
         }
       }));
 
-      // Dropping a proposal writes nothing; the committed graph is drawn again.
-      dismissButton.addEventListener("click", () => withSurface(async () => {
-        setState("pending", "dismiss: working");
-        proposal = null;
-        renderProposal();
-        try {
-          await render(await graphIr(graph));
-          setState("dismissed", "proposal dismissed - nothing was saved");
-          renderHistory(history);
-        } catch (error) {
-          setState("failed", "dismiss: failed");
-          renderHistory(history, `failed: ${error.message}`);
-        }
-      }));
+      // 取り消しを作業図に追加: the opposite of an applied entry, read off the
+      // provider's states on either side of it, checked against 作業図 as it is
+      // now, and added there as one more step. 確定図 is untouched until Apply.
+      historyPanel.addEventListener("click", event => {
+        const button = event.target.closest("button[data-revert]");
+        if (!button || button.disabled) return;
+        const index = Number(button.dataset.revert);
+        withSurface("revert", async () => {
+          if (draftFull()) {
+            setState("draft-full", "作業図の未反映は上限です。確定図に反映・元に戻す・作業図を破棄のいずれかを選んでください");
+            renderHistory();
+            return;
+          }
+          const states = await statesOf(saved.log, verifyDecisionLog);
+          const step = await revertStep({ before: states[index], after: states[index + 1], working, protocol });
+          const next = await appendStep({ working, step, protocol });
+          await renderWorking(await graphIr(next));
+          working = next;
+          draft = [...draft, step];
+          renderDraft();
+          setState("drafted", "取り消しを作業図に追加しました (未反映)");
+          renderHistory();
+        });
+      });
 
       // Storage decides what this origin starts from. An absent log is a first
       // visit; one the provider rejects is damage, and its bytes are left
@@ -498,35 +591,40 @@
       const restored = await restoreHistory({ read, verifyDecisionLog, genesis });
 
       if (restored.status === RESTORE_RESTORED) {
-        graph = restored.graph;
-        history = restored.projection;
+        saved = restored.graph;
+        savedHistory = restored.projection;
         stored = restored.graph.log;
       } else if (restored.status === RESTORE_EMPTY || restored.status === RESTORE_CORRUPT) {
-        graph = await initialGraph();
-        history = await projectHistory(graph, { verifyDecisionLog });
+        saved = await initialGraph();
+        savedHistory = await projectHistory(saved, { verifyDecisionLog });
         blocked = restored.status === RESTORE_CORRUPT;
       } else {
         throw new Error(`unknown restore status: ${restored.status}`);
       }
+      // 作業図 always starts as the saved graph: nothing unapplied survives a
+      // reload, and the pane says so.
+      working = saved;
+      renderDraft();
 
       try {
-        await render(await graphIr(graph));
+        await renderConfirmed(await graphIr(saved));
+        await renderWorking(await graphIr(working));
         if (blocked) {
           setState("failed", "saved history is unreadable - clear this site's storage to start over");
-          renderHistory(history, `stored log rejected: ${restored.reason}`);
+          renderHistory(`stored log rejected: ${restored.reason}`);
         } else if (restored.status === RESTORE_RESTORED) {
-          setState("confirmed", `restored: ${history.entries.length} confirmed`);
-          renderHistory(history);
+          setState("restored", `restored: ${savedHistory.entries.length} confirmed`);
+          renderHistory();
         } else {
           setState("initial", "ready");
-          renderHistory(history);
+          renderHistory();
         }
       } catch (error) {
         // The stored graph is intact but undrawable. Nothing was lost, so this
         // is the same saved-but-not-displayed state a failed render produces.
         blocked = true;
         setState("saved-display-failed", "stored graph could not be drawn - reload to retry");
-        renderHistory(history, `display failed: ${error.message}`);
+        renderHistory(`display failed: ${error.message}`);
       }
 
       syncBusy();

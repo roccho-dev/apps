@@ -57,31 +57,51 @@ const validEdges = (value, regions) =>
     regions.includes(edge.to)) &&
   new Set(value.map(edge => edge.id)).size === value.length;
 
-const FOCUS_KINDS = ["none", "proposal", "confirmed"];
+// Every slot also offers this option, so it may not be a node or edge id.
+const NONE = "none";
+
+// The working graph holds at most this many unapplied steps; the page never
+// sends more, and never a shortened list.
+const DRAFT_MAX = 8;
+
+const FOCUS_KINDS = ["none", "draft", "applied"];
+
+const validChange = change =>
+  exactObject(change, ["change", "from", "to"]) &&
+  (change.change === "added" || change.change === "removed") &&
+  validId(change.from) &&
+  validId(change.to);
+
+const validChanges = value =>
+  Array.isArray(value) && value.length >= 1 && value.length <= 8 && value.every(validChange);
 
 const validFocus = value =>
   exactObject(value, ["kind", "changes"]) &&
   FOCUS_KINDS.includes(value.kind) &&
   Array.isArray(value.changes) &&
-  value.changes.length <= 8 &&
-  (value.kind === "none") === (value.changes.length === 0) &&
-  value.changes.every(change =>
-    exactObject(change, ["change", "from", "to"]) &&
-    (change.change === "added" || change.change === "removed") &&
-    validId(change.from) &&
-    validId(change.to));
+  (value.kind === "none" ? value.changes.length === 0 : validChanges(value.changes));
 
-// v3 carries what the user can see: every node and edge on the graph, and the
-// change they are looking at - an unsaved proposal or the last confirmed one -
-// so a follow-up like "reverse that" can be judged against it.
-const validRequestV3 = value =>
-  exactObject(value, ["kind", "text", "graph", "focus"]) &&
-  value.kind === "voice-ui.jev.request.v3" &&
-  validText(value.text) &&
-  exactObject(value.graph, ["regions", "edges"]) &&
-  validRegions(value.graph.regions) &&
-  validEdges(value.graph.edges, value.graph.regions) &&
-  validFocus(value.focus);
+const validDraft = value =>
+  Array.isArray(value) &&
+  value.length <= DRAFT_MAX &&
+  value.every(step => exactObject(step, ["changes"]) && validChanges(step.changes));
+
+// v4 sends Jev one named state object: the utterance, the working graph it is
+// spoken into, the effect of every unapplied step in order, and the focus (the
+// latest step, else the latest applied change). No earlier utterances, no saved
+// graph, no log or hash, no list of actions - the questions carry the options.
+const validRequestV4 = value =>
+  exactObject(value, ["kind", "state"]) &&
+  value.kind === "voice-ui.jev.request.v4" &&
+  exactObject(value.state, ["utterance", "working", "draft", "focus"]) &&
+  validText(value.state.utterance) &&
+  exactObject(value.state.working, ["regions", "edges"]) &&
+  validRegions(value.state.working.regions) &&
+  !value.state.working.regions.includes(NONE) &&
+  validEdges(value.state.working.edges, value.state.working.regions) &&
+  value.state.working.edges.every(edge => edge.id !== NONE) &&
+  validDraft(value.state.draft) &&
+  validFocus(value.state.focus);
 
 const typedAnswer = value => {
   const answer = value?.answers?.live;
@@ -206,69 +226,63 @@ async function decideGraphEdge(input, env) {
   });
 }
 
-const CORRECTION_ACTIONS = {
-  "add-edge": "the request asks to add one directed edge between two existing nodes",
-  "remove-edge": "the request asks to remove one existing edge",
-  "reverse-edge": "the request asks to reverse the direction of one existing edge",
-  none: "the request asks for anything else, or for no change to the graph",
+const STEP_ACTIONS = {
+  "add-edge": "the utterance asks to add one directed edge between two nodes of the working graph",
+  "remove-edge": "the utterance asks to remove one edge of the working graph",
+  "reverse-edge": "the utterance asks to reverse the direction of one edge of the working graph",
+  "undo-request": "the utterance asks to undo, take back or go back on an earlier change",
+  none: "the utterance asks for anything else, or for no change to the graph",
 };
 
-const arrow = ({ from, to }) => `${from} -> ${to}`;
-
-// The situation the request is spoken into, stated from the request's own
-// structured fields. Jev judges the request against it; nothing here tries to
-// interpret the request text.
-const situation = ({ graph, focus }) => {
-  const edges = graph.edges.length > 0
-    ? `The graph currently has these edges: ${graph.edges.map(arrow).join(", ")}.`
-    : "The graph currently has no edges.";
-  const looking = focus.changes.map(change => `${change.change} the edge ${arrow(change)}`).join(" and ");
-  const attention = focus.kind === "proposal"
-    ? ` The user is looking at an unsaved proposal that has ${looking}; a follow-up may refer to it.`
-      + " Remove and reverse apply only to edges that already exist; to change an edge the proposal"
-      + " would add, answer with the whole addition that should replace it."
-    : focus.kind === "confirmed"
-      ? ` The user just confirmed a change that ${looking}; a follow-up may refer to it.`
-      : "";
-  return edges + attention;
-};
-
-async function decideCorrection(input, env) {
-  const { regions, edges } = input.graph;
-  // Remove and reverse need an existing edge, so they are only offered when
-  // there is one; the edge question is asked only then.
+// The state is sent to Jev as the named object it arrived as, per the TypeSafe
+// guidance that state carries the content and the questions carry only the
+// judgments. Nothing here interprets the utterance.
+async function decideStep(input, env) {
+  const { state } = input;
+  const { regions, edges } = state.working;
+  // Remove and reverse need an edge, so they are only offered when there is
+  // one, and the edge question is asked only then. Every slot offers "none".
   const actions = edges.length > 0
-    ? ["add-edge", "remove-edge", "reverse-edge", "none"]
-    : ["add-edge", "none"];
-  const context = situation(input);
+    ? ["add-edge", "remove-edge", "reverse-edge", "undo-request", "none"]
+    : ["add-edge", "undo-request", "none"];
+  const nodeKeys = [...regions, NONE];
+  const edgeKeys = [...edges.map(edge => edge.id), NONE];
 
   const questions = {
     action: {
       type: "choice",
-      instructions: `${context} Which change to the graph does this request ask for?`,
-      criteria: criteria(actions, action => CORRECTION_ACTIONS[action]),
+      instructions: "Which change to the working graph does the utterance ask for? "
+        + "A follow-up such as \"that\" refers to the focus.",
+      criteria: criteria(actions, action => STEP_ACTIONS[action]),
     },
     source: {
       type: "choice",
-      instructions: "If an edge is to be added, which existing node does it start at?",
-      criteria: criteria(regions, region => `the edge starts at ${region}`),
+      instructions: "If the utterance asks to add an edge, which node of the working graph does it start at?",
+      criteria: criteria(nodeKeys, key => key === NONE
+        ? "the utterance names no node of the working graph as the start"
+        : `the edge starts at ${key}`),
     },
     target: {
       type: "choice",
-      instructions: "If an edge is to be added, which existing node does it end at?",
-      criteria: criteria(regions, region => `the edge ends at ${region}`),
+      instructions: "If the utterance asks to add an edge, which node of the working graph does it end at?",
+      criteria: criteria(nodeKeys, key => key === NONE
+        ? "the utterance names no node of the working graph as the end"
+        : `the edge ends at ${key}`),
     },
   };
   if (edges.length > 0) {
     const byId = new Map(edges.map(edge => [edge.id, edge]));
     questions.edge = {
       type: "choice",
-      instructions: `${context} If an existing edge is to be removed or reversed, which one?`,
-      criteria: criteria(edges.map(edge => edge.id), id => `the edge from ${arrow(byId.get(id))}`),
+      instructions: "If the utterance asks to remove or reverse an edge, which edge of the working graph? "
+        + "\"That edge\" means the edge named by the focus.",
+      criteria: criteria(edgeKeys, key => key === NONE
+        ? "the utterance refers to no edge of the working graph"
+        : `the edge from ${byId.get(key).from} to ${byId.get(key).to}`),
     };
   }
 
-  const { provider, error } = await callProvider(env, { model: "jev-latest", state: input.text, questions });
+  const { provider, error } = await callProvider(env, { model: "jev-latest", state, questions });
   if (error) return error;
 
   let result;
@@ -277,17 +291,17 @@ async function decideCorrection(input, env) {
     if (typeof value?.model !== "string") throw new TypeError("provider typed contract mismatch");
     const answers = {
       action: choice(value.answers, "action", actions),
-      source: choice(value.answers, "source", regions),
-      target: choice(value.answers, "target", regions),
+      source: choice(value.answers, "source", nodeKeys),
+      target: choice(value.answers, "target", nodeKeys),
     };
-    if (edges.length > 0) answers.edge = choice(value.answers, "edge", edges.map(edge => edge.id));
+    if (edges.length > 0) answers.edge = choice(value.answers, "edge", edgeKeys);
     result = { model: value.model, answers };
   } catch {
     return json({ error: "provider_contract_error" }, 502);
   }
 
   return json({
-    kind: "voice-ui.jev.decision.v3",
+    kind: "voice-ui.jev.decision.v4",
     model: result.model,
     answers: result.answers,
   });
@@ -304,7 +318,7 @@ export async function onRequestPost({ request, env }) {
   } catch {
     return json({ error: "invalid_json" }, 400);
   }
-  if (validRequestV3(input)) return decideCorrection(input, env);
+  if (validRequestV4(input)) return decideStep(input, env);
   if (validRequestV2(input)) return decideGraphEdge(input, env);
   if (!validRequest(input)) return json({ error: "invalid_request" }, 422);
 
