@@ -161,4 +161,4 @@ assert.deepEqual(failedRequests, []);
 assert.deepEqual(failedResponses, []);
 
 await browser.close();
-process.stdout.write("public-e2e: PASS type+voice+semantic-map-maxGraph\n");
+process.stdout.write("public-e2e: PASS type+voice+a2ui | semantic-map+maxGraph rendered from an injected fixture, not caused by voice\n");

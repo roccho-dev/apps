@@ -1,9 +1,11 @@
-name: voice-ui pages
+name: voice-ui artifact
 
 on:
   pull_request:
     paths:
       - ".github/workflows/voice-ui-pages.yml"
+      - "flake.nix"
+      - "flake.lock"
       - "packages/voice-ui/**"
   workflow_dispatch:
 
@@ -11,444 +13,53 @@ permissions:
   contents: read
 
 concurrency:
-  group: voice-ui-pages-${{ github.event.pull_request.number || github.ref }}
+  group: voice-ui-artifact-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
 
 env:
   APP_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
-  UI_SHA: 44a5cf6027fbf2dddc4ed15740e93470c2eb589f
-  OPS_SHA: 1c51c5312a88fec10c6d3ab1e70054f434e6e48c
-  PROJECT: voice-ui
-  WRANGLER_VERSION: 4.112.0
-  EMSDK_VERSION: 4.0.23
-  EMSDK_SHA: c0bb220cb6e6f4e0fabb6f6db9efd53390ef5e56
 
 jobs:
-  hayamimi-proof:
-    name: hayamimi-proof
-    runs-on: ubuntu-24.04
-    timeout-minutes: 60
-    steps:
-      - name: Checkout exact Hayamimi authority
-        uses: actions/checkout@v4
-        with:
-          repository: roccho-dev/ops
-          ref: ${{ env.OPS_SHA }}
-          path: .proof/ops
-          persist-credentials: false
-
-      - name: Verify exact Hayamimi authority
-        shell: bash
-        run: |
-          set -euo pipefail
-          test "$(git -C .proof/ops rev-parse HEAD)" = "$OPS_SHA"
-
-      - name: Install WASM and browser proof dependencies
-        shell: bash
-        run: |
-          set -euo pipefail
-          python3 -m pip install --disable-pip-version-check playwright==1.63.0
-          python3 -m playwright install --with-deps chromium
-          git clone --depth 1 --branch "$EMSDK_VERSION" https://github.com/emscripten-core/emsdk.git "$RUNNER_TEMP/emsdk"
-          test "$(git -C "$RUNNER_TEMP/emsdk" rev-parse HEAD)" = "$EMSDK_SHA"
-          "$RUNNER_TEMP/emsdk/emsdk" install "$EMSDK_VERSION"
-          "$RUNNER_TEMP/emsdk/emsdk" activate "$EMSDK_VERSION"
-
-      - name: Fetch and verify pinned Hayamimi sources
-        shell: bash
-        run: |
-          set -euo pipefail
-          python3 .proof/ops/packages/hayamimi-web/build/fetch.py             --root .proof/ops/packages/hayamimi-web             --work "$RUNNER_TEMP/hayamimi"
-          python3 .proof/ops/packages/hayamimi-web/build/verify-sources.py             --root .proof/ops/packages/hayamimi-web             --work "$RUNNER_TEMP/hayamimi"
-
-      - name: Build Hayamimi WebAssembly
-        shell: bash
-        run: |
-          set -euo pipefail
-          source "$RUNNER_TEMP/emsdk/emsdk_env.sh"
-          bash .proof/ops/packages/hayamimi-web/build/wasm.sh "$RUNNER_TEMP/hayamimi"
-
-      - name: Assemble and verify Hayamimi dist
-        shell: bash
-        run: |
-          set -euo pipefail
-          python3 .proof/ops/packages/hayamimi-web/build/assemble.py \
-            --root .proof/ops/packages/hayamimi-web \
-            --work "$RUNNER_TEMP/hayamimi" \
-            --out "$RUNNER_TEMP/hayamimi-dist"
-          python3 .proof/ops/packages/hayamimi-web/build/verify-dist.py "$RUNNER_TEMP/hayamimi-dist"
-
-      - name: Real Chromium Hayamimi ASR
-        shell: bash
-        run: |
-          set -euo pipefail
-          python3 -m http.server 4173 --directory "$RUNNER_TEMP/hayamimi-dist" >"$RUNNER_TEMP/hayamimi-http.log" 2>&1 &
-          server=$!
-          trap 'kill "$server" || true' EXIT
-          python3 .proof/ops/packages/hayamimi-web/tests/browser-asr.py \
-            http://127.0.0.1:4173/ \
-            "$RUNNER_TEMP/hayamimi/sources/hayamimi/tests/golden/ja/ja_014.wav" \
-            "$RUNNER_TEMP/hayamimi/sources/hayamimi/tests/golden/ja/golden.json"
-
-      - name: Stage Hayamimi composition input
-        shell: bash
-        run: |
-          set -euo pipefail
-          mkdir -p .lane/hayamimi/golden
-          cp -R "$RUNNER_TEMP/hayamimi-dist/runtime" .lane/hayamimi/runtime
-          cp -R "$RUNNER_TEMP/hayamimi-dist/sherpa" .lane/hayamimi/sherpa
-          cp "$RUNNER_TEMP/hayamimi-dist/THIRD_PARTY_NOTICES.md" .lane/hayamimi/THIRD_PARTY_NOTICES.md
-          cp "$RUNNER_TEMP/hayamimi/sources/hayamimi/tests/golden/ja/ja_014.wav" .lane/hayamimi/golden/ja_014.wav
-          cp "$RUNNER_TEMP/hayamimi/sources/hayamimi/tests/golden/ja/golden.json" .lane/hayamimi/golden/golden.json
-          test ! -e .lane/hayamimi/sherpa-pja
-
-      - name: Upload Hayamimi proof artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: hayamimi-primary-${{ env.OPS_SHA }}
-          path: .lane/hayamimi
-          retention-days: 1
-          compression-level: 0
-          if-no-files-found: error
-
-  cloudflare-preflight:
-    name: cloudflare-preflight
-    runs-on: ubuntu-24.04
-    timeout-minutes: 10
-    env:
-      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-      CLOUDFLARE_ACCOUNT_ID: ${{ vars.CLOUDFLARE_ACCOUNT_ID }}
-    steps:
-      - name: Verify Cloudflare Pages access and project
-        shell: bash
-        run: |
-          set -euo pipefail
-          test -n "$CLOUDFLARE_API_TOKEN"
-          test -n "$CLOUDFLARE_ACCOUNT_ID"
-          project_api="https://api.cloudflare.com/client/v4/accounts/$CLOUDFLARE_ACCOUNT_ID/pages/projects/$PROJECT"
-          response="$(
-            curl --silent --show-error \
-              --header "Authorization: Bearer $CLOUDFLARE_API_TOKEN" \
-              "$project_api"
-          )"
-          if jq -e --arg name "$PROJECT" '.success == true and .result.name == $name' <<<"$response" >/dev/null; then
-            exit 0
-          fi
-          if jq -e 'any(.errors[]?; .code == 8000007 or .code == 8000001)' <<<"$response" >/dev/null; then
-            npx --yes wrangler@$WRANGLER_VERSION pages project create "$PROJECT" --production-branch proposals
-            exit 0
-          fi
-          jq -c '{success,errors}' <<<"$response" >&2
-          exit 3
-
-  jev-proof:
-    name: jev-proof
-    needs: cloudflare-preflight
-    runs-on: ubuntu-24.04
-    timeout-minutes: 5
-    steps:
-      - name: Fail closed on public/private reusable-workflow boundary
-        shell: bash
-        run: |
-          set -euo pipefail
-          echo "::error::BLOCKED_BY_PUBLIC_APPS_PRIVATE_ENVS" >&2
-          echo "apps is public; envs is private; GitHub public callers cannot use private reusable workflows." >&2
-          exit 78
-
-  ui-proof:
-    name: ui-proof
-    runs-on: ubuntu-24.04
-    timeout-minutes: 20
-    steps:
-      - name: Checkout apps exact head
-        uses: actions/checkout@v4
-        with:
-          ref: ${{ env.APP_SHA }}
-          fetch-depth: 1
-          persist-credentials: false
-
-      - name: Checkout exact UI integration authority
-        uses: actions/checkout@v4
-        with:
-          repository: roccho-dev/ui
-          ref: ${{ env.UI_SHA }}
-          path: .proof/ui
-          persist-credentials: false
-
-      - name: Verify exact UI authorities
-        shell: bash
-        run: |
-          set -euo pipefail
-          test "$(git rev-parse HEAD)" = "$APP_SHA"
-          test "$(git -C .proof/ui rev-parse HEAD)" = "$UI_SHA"
-          test -f .proof/ui/packages/ui-ir/src/index.mjs
-          test -f .proof/ui/packages/a2ui-browser/src/index.mjs
-          test -f .proof/ui/packages/semantic-map/runtime.js
-          test -f .proof/ui/packages/semantic-map/renderer-maxgraph/adapter.js
-          test -f .proof/ui/packages/semantic-map/vendor/maxgraph/view/GraphDataModel.js
-
-      - name: UI IR proof
-        run: node .proof/ui/packages/ui-ir/tests/run.mjs
-
-      - name: A2UI integration proof
-        run: node .proof/ui/packages/a2ui-browser/tests/run.mjs
-
-      - name: Install UI browser proof
-        shell: bash
-        run: |
-          set -euo pipefail
-          python3 -m pip install --disable-pip-version-check playwright==1.63.0
-          python3 -m playwright install --with-deps chromium
-
-      - name: Build exact ui271 Semantic Map for apps serve
-        shell: bash
-        run: |
-          set -euo pipefail
-          rm -rf .ui-proof .proof/ui/.apps-proof
-          mkdir -p .ui-proof/site .proof/ui/.apps-proof
-
-          jq '.request.inputs[0].source.value'             .proof/ui/apps/artifact-shell/capabilities/render-semantic-map/fixtures/graph.pass.json             > .proof/ui/.apps-proof/envelope.json
-
-          node .proof/ui/packages/semantic-map/scripts/build-browser-example.mjs             --input=.apps-proof/envelope.json             --out=.apps-proof/dist
-
-          cp -R .proof/ui/.apps-proof/dist/. .ui-proof/site/
-          test -s .ui-proof/site/index.html
-          test -s .ui-proof/site/receipt.json
-          grep -q 'semantic-map-example-build/1' .ui-proof/site/receipt.json
-          grep -q 'ui:packages/semantic-map/renderer-maxgraph/adapter.js' .ui-proof/site/index.html
-          grep -q 'ui:packages/semantic-map/vendor/maxgraph/' .ui-proof/site/index.html
-          grep -q 'render.semantic-map' packages/voice-ui/src/render.mjs
-          grep -q '/ui/semantic-map/runtime.js' packages/voice-ui/web/index.html
-
-      - name: Serve apps Semantic Map and prove maxGraph
-        shell: bash
-        run: |
-          set -euo pipefail
-          python3 -m http.server 4174 --directory .ui-proof/site >"$RUNNER_TEMP/ui-proof-http.log" 2>&1 &
-          server=$!
-          trap 'kill "$server" || true' EXIT
-          python3 packages/voice-ui/tests/ui-maxgraph-serve.py http://127.0.0.1:4174/
-
-  composition-deploy-e2e:
-    name: composition-deploy-e2e
-    needs:
-      - hayamimi-proof
-      - jev-proof
-      - ui-proof
+  artifact:
+    name: voice-ui-dist
     runs-on: ubuntu-24.04
     timeout-minutes: 30
-    env:
-      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-      CLOUDFLARE_ACCOUNT_ID: ${{ vars.CLOUDFLARE_ACCOUNT_ID }}
     steps:
-      - name: Checkout apps exact head
+      - name: Checkout exact apps head
         uses: actions/checkout@v4
         with:
           ref: ${{ env.APP_SHA }}
           fetch-depth: 1
           persist-credentials: false
 
-      - name: Checkout exact UI integration authority
-        uses: actions/checkout@v4
-        with:
-          repository: roccho-dev/ui
-          ref: ${{ env.UI_SHA }}
-          path: .proof/ui
-          persist-credentials: false
-
-      - name: Download proven Hayamimi runtime
-        uses: actions/download-artifact@v4
-        with:
-          name: hayamimi-primary-${{ env.OPS_SHA }}
-          path: .proof/hayamimi
-
-      - name: Verify composition inputs
+      - name: Verify exact apps head
         shell: bash
         run: |
           set -euo pipefail
           test "$(git rev-parse HEAD)" = "$APP_SHA"
-          test "$(git -C .proof/ui rev-parse HEAD)" = "$UI_SHA"
-          test -f .proof/hayamimi/runtime/api/hayamimi.mjs
-          test -f .proof/hayamimi/sherpa/sherpa-onnx-wasm-main-vad-asr.wasm
-          test -f .proof/hayamimi/sherpa/sherpa-onnx-wasm-main-vad-asr.data
-          test -f .proof/hayamimi/golden/ja_014.wav
-          test -f .proof/hayamimi/golden/golden.json
-          test -n "$CLOUDFLARE_API_TOKEN"
-          test -n "$CLOUDFLARE_ACCOUNT_ID"
 
-      - name: Check current deployed state
-        shell: bash
-        run: |
-          set -euo pipefail
-          api="https://api.cloudflare.com/client/v4/accounts/$CLOUDFLARE_ACCOUNT_ID/pages/projects/$PROJECT/deployments"
-          response="$(
-            curl --silent --show-error               --header "Authorization: Bearer $CLOUDFLARE_API_TOKEN"               "$api"
-          )"
-          jq -e '.success == true' <<<"$response" >/dev/null
-          printf 'deployment_count=%s\n' "$(jq '.result | length' <<<"$response")"
-
-      - name: Materialize deterministic Pages tree
-        shell: bash
-        run: |
-          set -euo pipefail
-          rm -rf .pages
-          mkdir -p             .pages/site/app             .pages/site/ui/ui-ir             .pages/site/ui/a2ui-browser             .pages/site/ui             .pages/site/hayamimi             .pages/functions/api
-
-          cp packages/voice-ui/web/index.html .pages/site/index.html
-          cp -R packages/voice-ui/src .pages/site/app/src
-          cp .proof/ui/packages/ui-ir/src/index.mjs .pages/site/ui/ui-ir/index.mjs
-          cp -R .proof/ui/packages/a2ui-browser/src/. .pages/site/ui/a2ui-browser/
-          cp -R .proof/ui/packages/semantic-map .pages/site/ui/semantic-map
-          rm -rf             .pages/site/ui/semantic-map/tests             .pages/site/ui/semantic-map/examples             .pages/site/ui/semantic-map/scripts
-          cp -R .proof/hayamimi/runtime .pages/site/hayamimi/runtime
-          cp -R .proof/hayamimi/sherpa .pages/site/hayamimi/sherpa
-          cp .proof/hayamimi/THIRD_PARTY_NOTICES.md .pages/site/hayamimi/THIRD_PARTY_NOTICES.md
-          cp packages/voice-ui/functions/api/jev.mjs .pages/functions/api/jev.mjs
-
-          python3 - <<'PY'
-          import hashlib, json
-          from pathlib import Path
-
-          site = Path(".pages/site")
-          data = site / "hayamimi/sherpa/sherpa-onnx-wasm-main-vad-asr.data"
-          chunk_size = 20 * 1024 * 1024
-          raw = data.read_bytes()
-          parts = []
-          for index, start in enumerate(range(0, len(raw), chunk_size)):
-              part = raw[start:start + chunk_size]
-              name = f"data.part{index:03d}"
-              (data.parent / name).write_bytes(part)
-              parts.append({
-                  "path": name,
-                  "bytes": len(part),
-                  "sha256": hashlib.sha256(part).hexdigest(),
-              })
-          (data.parent / "data.parts.json").write_text(
-              json.dumps({"bytes": len(raw), "parts": parts}, separators=(",", ":")) + "\n",
-              encoding="utf-8",
-          )
-          data.unlink()
-
-          sw = r'''const target="/hayamimi/sherpa/sherpa-onnx-wasm-main-vad-asr.data";
-          self.addEventListener("install",()=>self.skipWaiting());
-          self.addEventListener("activate",event=>event.waitUntil(self.clients.claim()));
-          self.addEventListener("fetch",event=>{
-            const url=new URL(event.request.url);
-            if(event.request.method!=="GET"||url.origin!==self.location.origin||url.pathname!==target)return;
-            event.respondWith((async()=>{
-              const metaResponse=await fetch("/hayamimi/sherpa/data.parts.json",{cache:"no-store"});
-              if(!metaResponse.ok)return new Response("model manifest unavailable",{status:502});
-              const meta=await metaResponse.json();
-              const stream=new ReadableStream({async start(controller){
-                try{
-                  for(const part of meta.parts){
-                    const response=await fetch("/hayamimi/sherpa/"+part.path);
-                    if(!response.ok)throw new Error("model chunk unavailable");
-                    const reader=response.body.getReader();
-                    while(true){
-                      const value=await reader.read();
-                      if(value.done)break;
-                      controller.enqueue(value.value);
-                    }
-                  }
-                  controller.close();
-                }catch(error){controller.error(error);}
-              }});
-              return new Response(stream,{headers:{
-                "content-type":"application/octet-stream",
-                "content-length":String(meta.bytes),
-                "cache-control":"public, max-age=31536000, immutable"
-              }});
-            })());
-          });'''
-          (site / "sw.js").write_text(sw + "\n", encoding="utf-8")
-
-          files = [path for path in site.rglob("*") if path.is_file()]
-          limit = 25 * 1024 * 1024
-          oversized = [(str(path), path.stat().st_size) for path in files if path.stat().st_size > limit]
-          if oversized:
-              raise SystemExit(f"Pages file limit exceeded: {oversized}")
-          if any("sherpa-pja" in path.as_posix() for path in files):
-              raise SystemExit("second-opinion runtime must not be projected")
-          if any(b"JEV_API_KEY" in path.read_bytes() for path in files):
-              raise SystemExit("JEV secret identifier leaked into public static tree")
-          PY
-
-      - name: Check Pages Function build
-        shell: bash
-        run: |
-          set -euo pipefail
-          npx --yes wrangler@$WRANGLER_VERSION pages functions build .pages/functions             --project-directory .pages             --outfile "$RUNNER_TEMP/voice-ui-worker.js"
-          test -s "$RUNNER_TEMP/voice-ui-worker.js"
-
-      - name: Deploy Pages + Pages Functions
-        id: deploy
-        uses: cloudflare/wrangler-action@v4
+      - uses: cachix/install-nix-action@v31
         with:
-          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          accountId: ${{ vars.CLOUDFLARE_ACCOUNT_ID }}
-          wranglerVersion: "4.112.0"
-          workingDirectory: ".pages"
-          command: >-
-            pages deploy site
-            --project-name=voice-ui
-            --branch=proposals
-            --commit-hash=${{ env.APP_SHA }}
+          extra_nix_config: |
+            extra-experimental-features = nix-command flakes
 
-      - name: Public readback
-        env:
-          DEPLOYMENT_URL: ${{ steps.deploy.outputs.deployment-url }}
-          ALIAS_URL: ${{ steps.deploy.outputs.pages-deployment-alias-url }}
+      - name: Build complete voice-ui artifact
         shell: bash
         run: |
           set -euo pipefail
-          test -n "$DEPLOYMENT_URL"
-          curl --fail --silent --show-error --retry 10 --retry-delay 3 "$DEPLOYMENT_URL/" -o "$RUNNER_TEMP/deployment-index.html"
-          grep -q 'id="surface"' "$RUNNER_TEMP/deployment-index.html"
-          curl --fail --silent --show-error --retry 10 --retry-delay 3             "$DEPLOYMENT_URL/ui/semantic-map/runtime.js"             -o "$RUNNER_TEMP/semantic-map-runtime.js"
-          curl --fail --silent --show-error --retry 10 --retry-delay 3             "$DEPLOYMENT_URL/ui/semantic-map/renderer-maxgraph/adapter.js"             -o "$RUNNER_TEMP/renderer-maxgraph-adapter.js"
-          test -s "$RUNNER_TEMP/semantic-map-runtime.js"
-          test -s "$RUNNER_TEMP/renderer-maxgraph-adapter.js"
-          if [ -n "$ALIAS_URL" ]; then
-            curl --fail --silent --show-error --retry 10 --retry-delay 3 "$ALIAS_URL/" -o "$RUNNER_TEMP/alias-index.html"
-            cmp "$RUNNER_TEMP/deployment-index.html" "$RUNNER_TEMP/alias-index.html"
-          fi
+          out="$(nix build --no-link --print-out-paths .#voice-ui-dist)"
+          python3 packages/voice-ui/dist.py verify --dist "$out"
+          rm -rf artifact-output
+          mkdir artifact-output
+          cp -R "$out"/. artifact-output/
+          jq -e --arg sha "$APP_SHA" '.sources.apps == $sha' artifact-output/manifest.json >/dev/null
 
-      - name: Install composition browser proof
-        shell: bash
-        run: |
-          set -euo pipefail
-          npm install --no-save playwright@1.63.0
-          npx playwright install --with-deps chromium
-
-      - name: Public type and voice E2E
-        env:
-          DEPLOYMENT_URL: ${{ steps.deploy.outputs.deployment-url }}
-          VOICE_WAV: ${{ github.workspace }}/.proof/hayamimi/golden/ja_014.wav
-          VOICE_GOLDEN: ${{ github.workspace }}/.proof/hayamimi/golden/golden.json
-          SEMANTIC_MAP_FIXTURE: ${{ github.workspace }}/.proof/ui/apps/artifact-shell/capabilities/render-semantic-map/fixtures/graph.pass.json
-        shell: bash
-        run: |
-          set -euo pipefail
-          node packages/voice-ui/tests/public-e2e.mjs "$DEPLOYMENT_URL"
-
-      - name: Verify deployed head after E2E
-        env:
-          DEPLOYMENT_URL: ${{ steps.deploy.outputs.deployment-url }}
-        shell: bash
-        run: |
-          set -euo pipefail
-          api="https://api.cloudflare.com/client/v4/accounts/$CLOUDFLARE_ACCOUNT_ID/pages/projects/$PROJECT/deployments"
-          response="$(
-            curl --silent --show-error               --header "Authorization: Bearer $CLOUDFLARE_API_TOKEN"               "$api"
-          )"
-          jq -e '.success == true' <<<"$response" >/dev/null
-          jq -e --arg sha "$APP_SHA" --arg url "$DEPLOYMENT_URL"             'any(.result[]; .deployment_trigger.metadata.commit_hash == $sha and .latest_stage.status == "success" and .url == $url)'             <<<"$response" >/dev/null
-
-      - name: Result
-        env:
-          DEPLOYMENT_URL: ${{ steps.deploy.outputs.deployment-url }}
-          ALIAS_URL: ${{ steps.deploy.outputs.pages-deployment-alias-url }}
-        shell: bash
-        run: |
-          printf 'hayamimi=PASS\njev=PASS\nui=PASS\ncomposition=PASS\ndeployment=%s\nalias=%s\n'             "$DEPLOYMENT_URL" "$ALIAS_URL"
+      - name: Upload exact artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: voice-ui-dist-${{ env.APP_SHA }}
+          path: artifact-output
+          retention-days: 30
+          compression-level: 0
+          if-no-files-found: error
+          include-hidden-files: true
