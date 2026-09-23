@@ -274,8 +274,13 @@ async function decideStep(input, env) {
     const byId = new Map(edges.map(edge => [edge.id, edge]));
     questions.edge = {
       type: "choice",
-      instructions: "If the utterance asks to remove or reverse an edge, which edge of the working graph? "
-        + "\"That edge\" means the edge named by the focus.",
+      // An edge the utterance names by its two nodes wins. The focus only
+      // resolves a reference such as "that edge" when no edge is named - it may
+      // describe a change whose edge no longer exists, and must not outweigh an
+      // explicit name.
+      instructions: "If the utterance asks to remove or reverse an edge, which edge of the working graph does it mean? "
+        + "If it names the edge by its two nodes, choose that edge. "
+        + "Only if it names no edge and refers to one (for example \"that edge\"), choose the edge the focus describes.",
       criteria: criteria(edgeKeys, key => key === NONE
         ? "the utterance refers to no edge of the working graph"
         : `the edge from ${byId.get(key).from} to ${byId.get(key).to}`),

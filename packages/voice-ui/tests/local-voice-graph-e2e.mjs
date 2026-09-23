@@ -99,34 +99,45 @@ const settle = target =>
   target.waitForFunction(() => document.body.dataset.state !== "pending", null, { timeout: 360000 });
 
 // Everything the screen claims, read in one pass. `state` is the authority the
-// app sets on the body; the rest is what a person would actually see.
+// app sets on the body; the rest is what a person would actually see in the
+// two panes, plus the exact bytes this origin has stored.
 const screen = target => target.evaluate(key => ({
   state: document.body.dataset.state,
   status: document.querySelector("#status").textContent,
   initialLine: document.querySelector("[data-history=initial]")?.textContent ?? null,
+  // 確定図's applied entries.
   confirmed: [...document.querySelectorAll("[data-history=confirmed] li")]
     .map(item => item.dataset.facts),
   failure: document.querySelector("[data-history=failure]")?.textContent ?? null,
-  proposal: document.querySelector("#proposal").hidden
-    ? null
-    : [...document.querySelectorAll("#proposal-changes li")].map(item => item.dataset.change),
+  // 作業図's unapplied steps.
+  draft: [...document.querySelectorAll("#draft li")].map(item => item.dataset.changes),
+  draftCount: document.querySelector("#draft-count").textContent,
+  notice: document.querySelector("#working-notice")?.textContent ?? null,
   sendDisabled: document.querySelector("#send").disabled,
   micDisabled: document.querySelector("#mic").disabled,
-  confirmDisabled: document.querySelector("#confirm").disabled,
-  frames: document.querySelectorAll('iframe[data-package="semantic-map"]').length,
+  undoDisabled: document.querySelector("#undo").disabled,
+  discardDisabled: document.querySelector("#discard").disabled,
+  applyDisabled: document.querySelector("#apply").disabled,
+  revertDisabled: [...document.querySelectorAll("button[data-revert]")].map(button => button.disabled),
+  frames: {
+    confirmed: document.querySelectorAll('#confirmed-surface iframe[data-package="semantic-map"]').length,
+    working: document.querySelectorAll('#working-surface iframe[data-package="semantic-map"]').length,
+    total: document.querySelectorAll('iframe[data-package="semantic-map"]').length,
+  },
   stored: localStorage.getItem(key),
+  storageKeys: Object.keys(localStorage).sort(),
 }), STORAGE_KEY);
 
-// The live maxGraph adapter inside the mounted iframe. Its edges are the only
-// committed-edge evidence that counts: not the envelope, not the status text.
-// A proposal is drawn as a review overlay on top of them, never into them.
-const drawn = target => target.evaluate(async () => {
-  const frame = document.querySelector('iframe[data-package="semantic-map"]');
-  if (!frame) throw new Error("semantic map iframe missing");
+// The live maxGraph adapter inside one pane's own frame - selected by the
+// pane, never "the first frame on the page". Its edges are the only drawn-edge
+// evidence that counts: not the envelope, not the status text.
+const drawn = (target, pane) => target.evaluate(async pane => {
+  const frame = document.querySelector(`#${pane}-surface iframe[data-package="semantic-map"]`);
+  if (!frame) throw new Error(`${pane} semantic map iframe missing`);
 
   const started = performance.now();
   while (frame.contentWindow?.semanticMapSite?.ready !== true) {
-    if (performance.now() - started > 60000) throw new Error("semantic map ready timeout");
+    if (performance.now() - started > 60000) throw new Error(`${pane} semantic map ready timeout`);
     await new Promise(resolve => setTimeout(resolve, 25));
   }
 
@@ -143,7 +154,28 @@ const drawn = target => target.evaluate(async () => {
     proposal: Boolean(win.semanticMapSite.runtime.proposal),
     svg: Boolean(box && box.width > 0 && box.height > 0),
   };
+}, pane);
+
+// Both panes' drawn edges.
+const panes = async target => ({
+  confirmed: (await drawn(target, "confirmed")).edges,
+  working: (await drawn(target, "working")).edges,
 });
+
+// The embedded map's own review Accept has no authority in either pane.
+// Whether it is shown enabled or not, activating it must change nothing.
+const pressEmbeddedAccepts = target => target.evaluate(() =>
+  ["confirmed", "working"].map(pane => {
+    const button = document.querySelector(`#${pane}-surface iframe[data-package="semantic-map"]`)
+      ?.contentDocument?.querySelector("#review-accept");
+    if (!button) return `${pane}: absent`;
+    const disabled = button.disabled;
+    button.click();
+    return `${pane}: present, ${disabled ? "disabled" : "enabled, inert"}`;
+  }));
+
+const sortedEdges = edges => edges.map(edge => `${edge.from}->${edge.to}`).sort();
+const lineCount = log => log.split("\n").length - 1;
 
 const jevExchange = target => ({
   request: target.waitForRequest(
@@ -179,6 +211,19 @@ const press = async (target, selector) => {
 };
 
 const edgeOf = answers => `${answers.source.choice}->${answers.target.choice}`;
+const flip = edge => edge.split("->").reverse().join("->");
+
+// Every request this page sends to Jev, counted, so "no request at all" can be
+// asserted rather than assumed.
+const countJev = target => {
+  const counter = { count: 0 };
+  const listener = request => {
+    if (new URL(request.url()).pathname === "/api/jev") counter.count += 1;
+  };
+  target.on("request", listener);
+  counter.stop = () => target.off("request", listener);
+  return counter;
+};
 
 const addGolden = readGolden(goldenPath, wav);
 const correctionGolden = readGolden(correctionGoldenPath, correctionWav);
@@ -191,95 +236,82 @@ assert.equal(navigation?.status(), 200);
 await ready(page);
 assert.equal((await page.content()).includes("JEV_API_KEY"), false);
 
-// (i) A first visit starts from the bounded initial graph. It is drawn, so the
-// screen shows where this session began - and it carries no confirmed fact and
-// no edge, so nothing about it can be mistaken for a decision.
+// (i) A first visit: both panes are drawn from the same bounded initial graph,
+// each in its own frame, nothing is stored, and 作業図 says it is not saved.
 const opening = await screen(page);
 assert.equal(opening.state, "initial");
 assert.equal(opening.stored, null, "a first visit must not have a stored log");
-assert.deepEqual(opening.confirmed, [], "a first visit must have no confirmed facts");
-assert.equal(opening.proposal, null, "a first visit must have no proposal");
-assert.equal(opening.frames, 1, "the initial graph must be drawn");
+assert.deepEqual(opening.confirmed, [], "a first visit must have no applied entries");
+assert.deepEqual(opening.draft, [], "a first visit must have no unapplied steps");
+assert.deepEqual(opening.frames, { confirmed: 1, working: 1, total: 2 }, "each pane must draw its own frame");
+assert.match(opening.notice ?? "", /保存されていません/u);
 assert.equal(opening.sendDisabled, false);
 assert.equal(opening.micDisabled, false);
-assert.equal(opening.confirmDisabled, true, "there is nothing to confirm yet");
+assert.equal(opening.undoDisabled, true, "there is nothing to undo yet");
+assert.equal(opening.applyDisabled, true, "there is nothing to apply yet");
 
-const beforeVoice = await drawn(page);
+const beforeVoice = await drawn(page, "working");
 assert.equal(beforeVoice.pattern, "graph/1");
 assert.equal(beforeVoice.cells, 4, "expected root boundary plus three initial regions");
-assert.deepEqual(beforeVoice.edges, [], "the initial graph must have no edges");
+assert.deepEqual(await panes(page), { confirmed: [], working: [] });
 
-// (ii) The spoken utterance becomes a proposal - drawn, but not applied. Nothing
-// is written and the committed graph has no edge yet.
+// (ii) The spoken add changes 作業図 only. The request carries the utterance
+// Hayamimi heard and the working graph it was spoken into; the answer is Jev's
+// typed choice; the edge appears on the right and nowhere else.
 const voiceAdd = await speak(page);
-assert.equal(voiceAdd.sent.kind, "voice-ui.jev.request.v3");
-assert.deepEqual(voiceAdd.sent.graph, { regions: ["node-a", "node-b", "node-c"], edges: [] });
-assert.deepEqual(voiceAdd.sent.focus, { kind: "none", changes: [] });
-assertHeard(voiceAdd.sent.text, addGolden);
+assert.equal(voiceAdd.sent.kind, "voice-ui.jev.request.v4");
+assert.deepEqual(voiceAdd.sent.state.working, { regions: ["node-a", "node-b", "node-c"], edges: [] });
+assert.deepEqual(voiceAdd.sent.state.draft, []);
+assert.deepEqual(voiceAdd.sent.state.focus, { kind: "none", changes: [] });
+assertHeard(voiceAdd.sent.state.utterance, addGolden);
 
-assert.equal(voiceAdd.decision.kind, "voice-ui.jev.decision.v3");
+assert.equal(voiceAdd.decision.kind, "voice-ui.jev.decision.v4");
 assert.equal(voiceAdd.decision.answers.action.choice, "add-edge");
 const voiceEdge = edgeOf(voiceAdd.decision.answers);
 
-const proposedAdd = await screen(page);
-assert.equal(proposedAdd.state, "proposed");
-assert.deepEqual(proposedAdd.proposal, [`+${voiceEdge}`]);
-assert.equal(proposedAdd.stored, null, "a proposal must not be saved");
-assert.deepEqual(proposedAdd.confirmed, [], "a proposal is not a fact");
-assert.equal(proposedAdd.confirmDisabled, false);
+const drafted = await screen(page);
+assert.equal(drafted.state, "drafted");
+assert.deepEqual(drafted.draft, [`+${voiceEdge}`]);
+assert.equal(drafted.stored, null, "a working step must not be saved");
+assert.deepEqual(drafted.confirmed, [], "a working step is not an applied entry");
+assert.deepEqual(await panes(page), { confirmed: [], working: [voiceEdge] });
 
-const proposedDrawing = await drawn(page);
-assert.equal(proposedDrawing.proposal, true, "the proposal must be drawn over the graph");
-assert.deepEqual(proposedDrawing.edges, [], "a proposal must not be drawn as a committed edge");
-assert.equal(proposedDrawing.svg, true);
-
-// (ii-b) The map's own review Accept has no authority. Whether it is shown
-// enabled or not, activating it must not save, confirm or draw anything.
-const frameAccept = await page.evaluate(() => {
-  const button = document.querySelector('iframe[data-package="semantic-map"]')
-    ?.contentDocument?.querySelector("#review-accept");
-  if (!button) return { present: false };
-  const disabled = button.disabled;
-  button.click();
-  return { present: true, disabled };
-});
+// (ii-b) Neither pane's embedded Accept can apply or save anything.
+const embeddedAccepts = await pressEmbeddedAccepts(page);
 await page.waitForTimeout(500);
-const afterFrameAccept = await screen(page);
-assert.equal(afterFrameAccept.stored, null, "the frame's Accept must not save anything");
-assert.deepEqual(afterFrameAccept.confirmed, [], "the frame's Accept must not confirm anything");
-assert.deepEqual(afterFrameAccept.proposal, [`+${voiceEdge}`], "the app's proposal must still be pending");
-assert.deepEqual((await drawn(page)).edges, [], "the frame's Accept must not commit an edge");
+const afterAccepts = await screen(page);
+assert.equal(afterAccepts.stored, null, "an embedded Accept must not save anything");
+assert.deepEqual(afterAccepts.confirmed, []);
+assert.deepEqual(afterAccepts.draft, [`+${voiceEdge}`]);
+assert.deepEqual(await panes(page), { confirmed: [], working: [voiceEdge] });
 
-// (iii) Confirm is the only way in: the proposal is applied exactly as shown,
-// saved, and drawn as a committed edge.
-await press(page, "#confirm");
-const committed = await screen(page);
-assert.equal(committed.state, "confirmed");
-assert.equal(committed.proposal, null);
-assert.deepEqual(committed.confirmed, [`+${voiceEdge}`]);
-assert.equal(committed.failure, null);
-assert.ok(committed.stored, "the confirmed decision must have been persisted");
-const savedLog = committed.stored;
+// (iii) 確定図に反映 is the only way into 確定図 and storage.
+await press(page, "#apply");
+const applied = await screen(page);
+assert.equal(applied.state, "applied");
+assert.deepEqual(applied.draft, [], "Apply empties the working steps");
+assert.deepEqual(applied.confirmed, [`+${voiceEdge}`]);
+assert.equal(applied.failure, null);
+assert.ok(applied.stored, "the applied step must have been persisted");
+assert.equal(lineCount(applied.stored), 2, "the initial graph plus exactly one applied Decision");
+const savedLog = applied.stored;
+assert.deepEqual(await panes(page), { confirmed: [voiceEdge], working: [voiceEdge] });
 
-const afterConfirm = await drawn(page);
-assert.deepEqual(afterConfirm.edges, [voiceEdge]);
-assert.equal(afterConfirm.proposal, false);
-assert.equal(afterConfirm.cells, 4);
-
-// (iv) Reload. The same graph and the same history come back from storage, with
-// no second utterance and no second decision: this is restore, not a replay.
+// (iv) Reload restores 確定図 from storage without rewriting it; 作業図 starts
+// again from the saved graph.
 await page.reload({ waitUntil: "commit" });
 await ready(page);
 const restored = await screen(page);
-assert.equal(restored.state, "confirmed");
+assert.equal(restored.state, "restored");
 assert.equal(restored.stored, savedLog, "reload must not rewrite the stored log");
 assert.deepEqual(restored.confirmed, [`+${voiceEdge}`]);
-assert.equal(restored.frames, 1);
+assert.deepEqual(restored.draft, []);
 assert.match(restored.initialLine, /\(0 edges\)/u, "the initial graph must still read as edgeless");
-assert.deepEqual((await drawn(page)).edges, [voiceEdge]);
+assert.deepEqual(await panes(page), { confirmed: [voiceEdge], working: [voiceEdge] });
 
-// What the second browser starts from: exactly what this one saved.
-const afterVoiceAdd = await first.context.storageState();
+// What the second browser starts from: exactly the bytes this one saved. The
+// working graph is never carried across - it lives in memory only.
+const afterVoiceApply = await first.context.storageState();
 
 // (v) A stored log the provider rejects is damage. The app fails closed, keeps
 // the bytes exactly as they are, and refuses both inputs.
@@ -293,7 +325,7 @@ assert.deepEqual(corrupt.confirmed, [], "a rejected log must not restore any fac
 assert.ok(corrupt.failure, "a rejected log must be reported on screen");
 assert.equal(corrupt.sendDisabled, true, "typing must be refused while the stored log is unreadable");
 assert.equal(corrupt.micDisabled, true, "voice must be refused while the stored log is unreadable");
-assert.deepEqual((await drawn(page)).edges, [], "a rejected log must not draw an edge");
+assert.deepEqual((await drawn(page, "confirmed")).edges, [], "a rejected log must not draw an edge");
 
 // (vi) It is not transient. Reloading alone does not clear it, which is the
 // whole point: there is no in-app reset that could quietly discard the evidence.
@@ -338,7 +370,7 @@ assert.match(foreign.failure ?? "", /genesis/u);
 assert.doesNotMatch(foreign.initialLine, /node-z/u, "a foreign map must not be shown as the initial graph");
 assert.equal(foreign.sendDisabled, true);
 assert.equal(foreign.micDisabled, true);
-assert.deepEqual((await drawn(page)).edges, [], "a foreign log must not draw an edge");
+assert.deepEqual((await drawn(page, "confirmed")).edges, [], "a foreign log must not draw an edge");
 
 // (vii) Clearing this origin's storage from outside the app is the documented
 // way out, and it works: the app comes back to a first visit.
@@ -352,93 +384,69 @@ assert.deepEqual(recovered.confirmed, []);
 assert.equal(recovered.sendDisabled, false);
 assert.equal(recovered.micDisabled, false);
 
-// (viii) Typed input takes the same proposal path as voice. It runs on the
-// recovered, edgeless graph, so it cannot borrow the utterance's result.
-const typedFirst = await type(page, "add an edge from a to b");
-assert.equal(typedFirst.sent.kind, "voice-ui.jev.request.v3", "Send must use the typed graph decision");
-assert.equal(typedFirst.decision.answers.action.choice, "add-edge");
-const dismissedEdge = edgeOf(typedFirst.decision.answers);
-assert.deepEqual((await screen(page)).proposal, [`+${dismissedEdge}`]);
+// From here on this browser works on the recovered, edgeless graph, so none of
+// the typed proofs below can borrow the spoken add.
 
-// Dismiss drops it without writing anything.
-await press(page, "#dismiss");
-const dismissed = await screen(page);
-assert.equal(dismissed.state, "dismissed");
-assert.equal(dismissed.proposal, null);
-assert.equal(dismissed.stored, null, "a dismissed proposal must not be saved");
-assert.deepEqual(dismissed.confirmed, []);
-const afterDismiss = await drawn(page);
-assert.deepEqual(afterDismiss.edges, []);
-assert.equal(afterDismiss.proposal, false);
-
-// A new input replaces the proposal on screen; only the latest is confirmed.
-await type(page, "add an edge from a to b");
-const replacing = await type(page, "add an edge from b to c");
-assert.equal(replacing.decision.answers.action.choice, "add-edge");
-const typedEdge = edgeOf(replacing.decision.answers);
-assert.notEqual(typedEdge, dismissedEdge, "precondition: Jev must choose the new pair");
-assert.deepEqual((await screen(page)).proposal, [`+${typedEdge}`], "the newer proposal must replace the older one");
-
-await press(page, "#confirm");
-const afterTyped = await screen(page);
-assert.equal(afterTyped.state, "confirmed");
-assert.deepEqual(afterTyped.confirmed, [`+${typedEdge}`], "only the replacing proposal may be applied");
-assert.ok(afterTyped.stored, "a typed decision must be persisted like a spoken one");
-assert.deepEqual((await drawn(page)).edges, [typedEdge]);
-
-// (ix) And it survives a reload the same way.
-await page.reload({ waitUntil: "commit" });
-await ready(page);
-const typedRestored = await screen(page);
-assert.equal(typedRestored.state, "confirmed");
-assert.deepEqual(typedRestored.confirmed, [`+${typedEdge}`]);
-assert.deepEqual((await drawn(page)).edges, [typedEdge]);
-
-// The negatives below each start from this confirmed state and must leave it
-// exactly as it is: no new fact, no new edge, not one stored byte changed.
-const assertUnchanged = async (label, state, pattern) => {
+// (viii) Typed steps change 作業図 only; each one is sent with every earlier
+// step and the latest as the focus. 元に戻す pops exactly one step at a time,
+// and 確定図に反映 writes all of them at once.
+const assertSavedUntouched = async (label, expectedStored, expectedApplied, expectedLeft) => {
   const now = await screen(page);
-  assert.equal(now.state, state, `${label} must end as ${state}`);
-  if (pattern) assert.match(now.failure ?? "", pattern, `${label} must fail for its own reason`);
-  else assert.equal(now.failure, null, `${label} is not an error`);
-  assert.deepEqual(now.confirmed, typedRestored.confirmed, `${label} must add no fact`);
-  assert.equal(now.stored, typedRestored.stored, `${label} must not change the stored log`);
-  assert.deepEqual((await drawn(page)).edges, [typedEdge], `${label} must draw no new edge`);
-  assert.equal(now.sendDisabled, false, `${label} must not block the app`);
+  assert.equal(now.stored, expectedStored, `${label}: the stored bytes must not change`);
+  assert.deepEqual(now.confirmed, expectedApplied, `${label}: 確定図's entries must not change`);
+  assert.deepEqual((await drawn(page, "confirmed")).edges, expectedLeft, `${label}: 確定図 must not change`);
   return now;
 };
 
-// (x) Duplicate: the confirmed request again. Jev choosing the same pair is the
-// precondition; the proposal code must then refuse it.
-const duplicate = await type(page, "add an edge from b to c");
-assert.equal(duplicate.decision.answers.action.choice, "add-edge");
-assert.equal(edgeOf(duplicate.decision.answers), typedEdge, "precondition: Jev must choose the confirmed pair");
-const afterDuplicate = await assertUnchanged("a duplicate", "failed", /relation already exists/u);
-assert.equal(afterDuplicate.proposal, null, "a refusal must not produce a proposal");
+const typedA = await type(page, "add an edge from a to b");
+assert.equal(typedA.sent.kind, "voice-ui.jev.request.v4", "Send must use the typed graph decision");
+assert.equal(typedA.decision.answers.action.choice, "add-edge");
+const edgeA = edgeOf(typedA.decision.answers);
+await assertSavedUntouched("first typed step", null, [], []);
+assert.deepEqual((await screen(page)).draft, [`+${edgeA}`]);
+assert.deepEqual((await drawn(page, "working")).edges, [edgeA]);
 
-// (xi) No change: text that asks for nothing. This is a neutral answer, not an
-// error, and it proposes nothing.
-const nothing = await type(page, "what is the weather like today");
-assert.equal(nothing.decision.answers.action.choice, "none", "precondition: Jev must answer with no action");
-await assertUnchanged("no change", "no-change", null);
+const typedB = await type(page, "add an edge from b to c");
+const edgeB = edgeOf(typedB.decision.answers);
+assert.notEqual(edgeB, edgeA, "precondition: Jev must choose the new pair");
+const [aFrom, aTo] = edgeA.split("->");
+assert.deepEqual(typedB.sent.state.draft, [{ changes: [{ change: "added", from: aFrom, to: aTo }] }]);
+assert.deepEqual(typedB.sent.state.focus, { kind: "draft", changes: [{ change: "added", from: aFrom, to: aTo }] });
+await assertSavedUntouched("second typed step", null, [], []);
+assert.deepEqual((await screen(page)).draft, [`+${edgeA}`, `+${edgeB}`]);
+assert.deepEqual((await drawn(page, "working")).edges, [edgeA, edgeB].sort());
 
-// (xi-b) And a no-change answer leaves a pending proposal exactly where it was.
-const pending = await type(page, "add an edge from a to b");
-let pendingEdge = edgeOf(pending.decision.answers);
-assert.deepEqual((await screen(page)).proposal, [`+${pendingEdge}`]);
-await type(page, "what is the weather like today");
-const stillPending = await screen(page);
-assert.equal(stillPending.state, "no-change");
-assert.deepEqual(stillPending.proposal, [`+${pendingEdge}`], "no change must not discard the pending proposal");
-assert.equal(stillPending.stored, typedRestored.stored);
+await press(page, "#undo");
+assert.equal((await screen(page)).state, "undone");
+assert.deepEqual((await screen(page)).draft, [`+${edgeA}`]);
+assert.deepEqual((await drawn(page, "working")).edges, [edgeA]);
+await press(page, "#undo");
+const undoneAll = await assertSavedUntouched("two undos", null, [], []);
+assert.deepEqual(undoneAll.draft, []);
+assert.equal(undoneAll.undoDisabled, true, "undo never goes below what is saved");
+assert.deepEqual((await drawn(page, "working")).edges, []);
 
-// (xi-c) Empty input asks for nothing: no request reaches Jev at all, the
-// answer is a neutral no-change, and the pending proposal stays.
-let jevRequests = 0;
-const countJev = request => {
-  if (new URL(request.url()).pathname === "/api/jev") jevRequests += 1;
-};
-page.on("request", countJev);
+await type(page, "add an edge from a to b");
+await type(page, "add an edge from b to c");
+assert.deepEqual((await screen(page)).draft, [`+${edgeA}`, `+${edgeB}`]);
+await press(page, "#apply");
+const appliedTwo = await screen(page);
+assert.equal(appliedTwo.state, "applied");
+assert.deepEqual(appliedTwo.draft, []);
+assert.deepEqual(appliedTwo.confirmed, [`+${edgeA}`, `+${edgeB}`], "Apply writes every step as its own entry");
+assert.equal(lineCount(appliedTwo.stored), 3, "the initial graph plus exactly the two applied Decisions");
+const savedTwo = appliedTwo.stored;
+assert.deepEqual(await panes(page), { confirmed: [edgeA, edgeB].sort(), working: [edgeA, edgeB].sort() });
+
+// (ix) Things that ask for no change leave both panes and storage untouched:
+// empty input sends no request at all; "undo that" is a neutral undo-request
+// that points at the button and never pops a step; "none" is neutral too.
+const typedC = await type(page, "add an edge from c to a");
+const edgeC = edgeOf(typedC.decision.answers);
+const withOneStep = await screen(page);
+assert.deepEqual(withOneStep.draft, [`+${edgeC}`]);
+
+const blanks = countJev(page);
 for (const blank of ["", "   "]) {
   await page.locator("#text").fill(blank);
   await page.locator("#send").click();
@@ -446,42 +454,123 @@ for (const blank of ["", "   "]) {
   const afterBlank = await screen(page);
   assert.equal(afterBlank.state, "no-change", `${JSON.stringify(blank)} must be a no-change`);
   assert.equal(afterBlank.failure, null, `${JSON.stringify(blank)} is not an error`);
-  assert.deepEqual(afterBlank.proposal, [`+${pendingEdge}`], `${JSON.stringify(blank)} must keep the pending proposal`);
+  assert.deepEqual(afterBlank.draft, withOneStep.draft, `${JSON.stringify(blank)} must keep the working steps`);
 }
-page.off("request", countJev);
-assert.equal(jevRequests, 0, "empty input must send no request to Jev");
+blanks.stop();
+assert.equal(blanks.count, 0, "empty input must send no request to Jev");
 
-// (xi-d) While a proposal is pending, "reverse that" is about the proposal. The
-// page must never answer it by reversing or removing some other, committed
-// edge and silently discarding the user's proposal. Jev may answer with a
-// replacing addition (a new proposal) or pick a committed edge (then it is a
-// no-change and the proposal stays); either way nothing is removed or saved.
-const aboutPending = await type(page, "reverse that");
-const afterAboutPending = await screen(page);
-assert.equal(afterAboutPending.stored, typedRestored.stored, "nothing may be saved");
-assert.ok(
-  (afterAboutPending.proposal ?? []).every(change => change.startsWith("+")),
-  `a pending addition must not turn into a removal of a committed edge: ${JSON.stringify(afterAboutPending.proposal)}`,
-);
-assert.deepEqual((await drawn(page)).edges, [typedEdge], "no committed edge may move");
-const pendingOutcome = afterAboutPending.state === "no-change"
-  ? `no-change (Jev chose ${aboutPending.decision.answers.action.choice})`
-  : `replaced by ${JSON.stringify(afterAboutPending.proposal)}`;
-if (afterAboutPending.state === "no-change") {
-  assert.match(afterAboutPending.status, /a proposal is pending/u);
-  assert.deepEqual(afterAboutPending.proposal, [`+${pendingEdge}`], "the pending proposal must stay");
-} else {
-  assert.equal(afterAboutPending.state, "proposed");
-  assert.equal(aboutPending.decision.answers.action.choice, "add-edge");
-  assert.equal(afterAboutPending.proposal.length, 1);
-  pendingEdge = afterAboutPending.proposal[0].slice(1);
+const spokenUndo = await type(page, "undo that");
+assert.equal(spokenUndo.decision.answers.action.choice, "undo-request", "precondition: Jev must answer undo-request");
+const afterSpokenUndo = await assertSavedUntouched("undo by text", savedTwo, [`+${edgeA}`, `+${edgeB}`], [edgeA, edgeB].sort());
+assert.equal(afterSpokenUndo.state, "undo-request");
+assert.match(afterSpokenUndo.status, /元に戻す/u);
+assert.deepEqual(afterSpokenUndo.draft, withOneStep.draft, "an undo-request must never pop a step");
+assert.deepEqual((await drawn(page, "working")).edges, [edgeA, edgeB, edgeC].sort());
+
+const nothing = await type(page, "what is the weather like today");
+assert.equal(nothing.decision.answers.action.choice, "none", "precondition: Jev must answer with no action");
+const afterNothing = await assertSavedUntouched("no change", savedTwo, [`+${edgeA}`, `+${edgeB}`], [edgeA, edgeB].sort());
+assert.equal(afterNothing.state, "no-change");
+assert.deepEqual(afterNothing.draft, withOneStep.draft);
+
+await press(page, "#discard");
+assert.equal((await screen(page)).state, "discarded");
+assert.deepEqual((await screen(page)).draft, []);
+assert.deepEqual((await drawn(page, "working")).edges, [edgeA, edgeB].sort());
+
+// (x) Revert: an applied entry's opposite is added to 作業図 - never to 確定図 -
+// and reaches storage only through Apply, as one more Decision after the rest.
+await page.locator('button[data-revert="1"]').click();
+await settle(page);
+const reverting = await assertSavedUntouched("revert", savedTwo, [`+${edgeA}`, `+${edgeB}`], [edgeA, edgeB].sort());
+assert.equal(reverting.state, "drafted");
+assert.deepEqual(reverting.draft, [`-${edgeB}`]);
+assert.deepEqual((await drawn(page, "working")).edges, [edgeA]);
+
+await press(page, "#apply");
+const appliedRevert = await screen(page);
+assert.deepEqual(appliedRevert.confirmed, [`+${edgeA}`, `+${edgeB}`, `-${edgeB}`]);
+assert.ok(appliedRevert.stored.startsWith(savedTwo), "a revert adds to the saved log; it rewrites nothing");
+assert.equal(lineCount(appliedRevert.stored), lineCount(savedTwo) + 1);
+const savedThree = appliedRevert.stored;
+assert.deepEqual(await panes(page), { confirmed: [edgeA], working: [edgeA] });
+
+// (x-b) A revert overtaken by a later working step is a refused conflict.
+const removeA = await type(page, "remove the edge from a to b");
+assert.equal(removeA.decision.answers.action.choice, "remove-edge", "precondition: Jev must answer remove-edge");
+assert.deepEqual((await screen(page)).draft, [`-${edgeA}`]);
+await page.locator('button[data-revert="0"]').click();
+await settle(page);
+const conflict = await assertSavedUntouched("revert conflict", savedThree, [`+${edgeA}`, `+${edgeB}`, `-${edgeB}`], [edgeA]);
+assert.equal(conflict.state, "failed");
+assert.match(conflict.failure ?? "", /later change/u);
+assert.deepEqual(conflict.draft, [`-${edgeA}`], "a refused revert must not change the working steps");
+assert.deepEqual((await drawn(page, "working")).edges, []);
+await press(page, "#discard");
+
+// (xi) While a request is in flight every control that could move 作業図 is
+// disabled, and the answer lands on the working graph it was asked about. The
+// Jev request is held at the network until the controls have been read.
+await type(page, "add an edge from c to a");
+assert.deepEqual((await screen(page)).draft, [`+${edgeC}`]);
+const jevUrl = new URL("/api/jev", url).href;
+let releaseJev;
+const heldJev = new Promise(resolve => { releaseJev = resolve; });
+await page.route(jevUrl, async route => {
+  await heldJev;
+  await route.continue();
+}, { times: 1 });
+const held = jevExchange(page);
+await page.locator("#text").fill("add an edge from b to c");
+await page.locator("#send").click();
+const heldRequest = await held.request;
+const locked = await screen(page);
+assert.equal(locked.state, "pending");
+for (const control of ["sendDisabled", "micDisabled", "undoDisabled", "discardDisabled", "applyDisabled"]) {
+  assert.equal(locked[control], true, `${control} while a request is in flight`);
 }
+assert.ok(locked.revertDisabled.length > 0 && locked.revertDisabled.every(Boolean), "every revert while a request is in flight");
+const heldSent = JSON.parse(heldRequest.postData());
+assert.deepEqual(sortedEdges(heldSent.state.working.edges), [edgeA, edgeC].sort());
+assert.deepEqual(heldSent.state.draft.length, 1);
+releaseJev();
+const heldResponse = await held.response;
+await settle(page);
+const heldEdge = edgeOf((await heldResponse.json()).answers);
+const afterHeld = await assertSavedUntouched("held request", savedThree, [`+${edgeA}`, `+${edgeB}`, `-${edgeB}`], [edgeA]);
+assert.deepEqual(afterHeld.draft, [`+${edgeC}`, `+${heldEdge}`], "the answer lands on the revision it was asked about");
+assert.deepEqual((await drawn(page, "working")).edges, [edgeA, edgeC, heldEdge].sort());
+await press(page, "#discard");
 
-// (xii) Storage write failure: a real quota exhaustion, not a stub. Every byte
-// this origin may still store is taken by filler keys, then the pending sound
-// proposal is confirmed. Only the write can fail it - and a write that does not
-// land must leave the graph, the history and the screen untouched, with the
-// proposal still there to retry.
+// (xii) 作業図 holds at most 8 unapplied steps. At the cap nothing is dropped,
+// no request is sent, and revert is disabled too; the page says what to do.
+for (let index = 0; index < 4; index += 1) {
+  const add = await type(page, "add an edge from c to a");
+  assert.equal(add.decision.answers.action.choice, "add-edge", `precondition: step ${2 * index + 1} adds`);
+  const remove = await type(page, "remove the edge from c to a");
+  assert.equal(remove.decision.answers.action.choice, "remove-edge", `precondition: step ${2 * index + 2} removes`);
+}
+const full = await assertSavedUntouched("full working graph", savedThree, [`+${edgeA}`, `+${edgeB}`, `-${edgeB}`], [edgeA]);
+assert.equal(full.draft.length, 8);
+assert.match(full.draftCount, /8 \/ 8/u);
+assert.match(full.draftCount, /上限/u);
+assert.ok(full.revertDisabled.every(Boolean), "revert must be disabled at the cap");
+assert.equal(full.applyDisabled, false);
+
+const atCap = countJev(page);
+await page.locator("#text").fill("add an edge from b to c");
+await page.locator("#send").click();
+await settle(page);
+atCap.stop();
+const refusedAtCap = await screen(page);
+assert.equal(atCap.count, 0, "a full working graph must send no request to Jev");
+assert.equal(refusedAtCap.state, "draft-full");
+assert.deepEqual(refusedAtCap.draft, full.draft, "nothing is dropped at the cap");
+await press(page, "#discard");
+
+// (xiii) Apply's write fails on a genuinely exhausted quota: nothing is saved,
+// 確定図 is unchanged, and 作業図 keeps its steps to retry.
+await type(page, "add an edge from c to a");
 const fillers = await page.evaluate(() => {
   let size = 1 << 20;
   let count = 0;
@@ -497,57 +586,57 @@ const fillers = await page.evaluate(() => {
 });
 assert.ok(fillers > 0, "storage quota could not be exhausted");
 
-await press(page, "#confirm");
-const afterFailedWrite = await assertUnchanged("a failed write", "failed", /not persisted/u);
-assert.deepEqual(afterFailedWrite.proposal, [`+${pendingEdge}`], "an unsaved proposal must stay available to retry");
+await press(page, "#apply");
+const afterFailedWrite = await assertSavedUntouched("a failed write", savedThree, [`+${edgeA}`, `+${edgeB}`, `-${edgeB}`], [edgeA]);
+assert.equal(afterFailedWrite.state, "failed");
+assert.match(afterFailedWrite.failure ?? "", /not persisted/u);
+assert.deepEqual(afterFailedWrite.draft, [`+${edgeC}`], "a refused Apply keeps the working steps to retry");
+assert.equal(afterFailedWrite.applyDisabled, false, "a failed write must not block the app");
 
 await page.evaluate(count => {
   for (let index = 0; index < count; index += 1) localStorage.removeItem(`quota-filler-${index}`);
 }, fillers);
-await press(page, "#dismiss");
 
-// (xiii) Two tabs of one origin. Each proposes; the other tab confirms first.
-// This tab's Confirm must then be refused rather than overwrite the history the
-// other tab just saved, and this tab stops until a reload.
+// (xiv) Two tabs of one origin. The other tab applies first; this tab's Apply
+// is then refused rather than overwrite that history, and this tab's working
+// steps stay exactly as they were.
 const otherTab = watch(await first.context.newPage());
 await otherTab.goto(url, { waitUntil: "commit", timeout: 120000 });
 await ready(otherTab);
-const mine = await type(page, "add an edge from a to b");
-assert.equal((await screen(page)).state, "proposed", `precondition: this tab must hold a proposal (${edgeOf(mine.decision.answers)})`);
-const theirs = await type(otherTab, "add an edge from c to a");
+const theirs = await type(otherTab, "add an edge from b to c");
 const theirEdge = edgeOf(theirs.decision.answers);
-await press(otherTab, "#confirm");
+await press(otherTab, "#apply");
 const theirSaved = (await screen(otherTab)).stored;
-assert.notEqual(theirSaved, typedRestored.stored, "precondition: the other tab must have saved");
+assert.notEqual(theirSaved, savedThree, "precondition: the other tab must have saved");
 
-await press(page, "#confirm");
+await press(page, "#apply");
 const conflicted = await screen(page);
 assert.equal(conflicted.state, "failed");
-assert.match(conflicted.failure ?? "", /changed elsewhere/u);
+assert.match(conflicted.failure ?? "", /別のタブ/u);
 assert.equal(conflicted.stored, theirSaved, "the other tab's history must not be overwritten");
-assert.equal(conflicted.sendDisabled, true, "a page behind storage must stop until reloaded");
-assert.equal(conflicted.proposal, null);
+assert.deepEqual(conflicted.draft, [`+${edgeC}`], "a refused Apply keeps the working steps exactly");
+assert.deepEqual((await drawn(page, "working")).edges, [edgeA, edgeC].sort());
 await otherTab.close();
 
-// And storage agrees: after a reload, nothing from the failures exists and the
-// other tab's confirmed change is what this tab now sees.
+// (xv) A reload drops the unapplied steps, as 作業図 says it will; both panes
+// start again from what is actually stored, and nothing else was ever stored.
 await page.reload({ waitUntil: "commit" });
 await ready(page);
-const afterNegatives = await screen(page);
-assert.equal(afterNegatives.state, "confirmed");
-assert.equal(afterNegatives.stored, theirSaved);
-assert.deepEqual(afterNegatives.confirmed, [`+${typedEdge}`, `+${theirEdge}`]);
-assert.deepEqual((await drawn(page)).edges, [typedEdge, theirEdge].sort());
+const afterReload = await screen(page);
+assert.equal(afterReload.state, "restored");
+assert.deepEqual(afterReload.draft, [], "unapplied steps do not survive a reload");
+assert.equal(afterReload.stored, theirSaved);
+assert.deepEqual(afterReload.storageKeys, [STORAGE_KEY], "the working graph is never written to storage");
+assert.deepEqual(afterReload.confirmed, [`+${edgeA}`, `+${edgeB}`, `-${edgeB}`, `+${theirEdge}`]);
+assert.deepEqual(await panes(page), { confirmed: [edgeA, theirEdge].sort(), working: [edgeA, theirEdge].sort() });
 
-// (xiii-b) Saved, but not displayed. The decision is confirmed and its write
-// lands; only the drawing that follows fails - the semantic-map frame document
-// is refused for exactly that one render, so the frame never becomes ready and
-// the runtime gives up. Storage now leads the screen, so the page must say so,
-// block every further action, and a reload must draw what was saved.
-const beforeUndrawn = afterNegatives.stored;
-const undrawnRequest = await type(page, "add an edge from a to b");
-const undrawnEdge = edgeOf(undrawnRequest.decision.answers);
-assert.deepEqual((await screen(page)).proposal, [`+${undrawnEdge}`]);
+// (xvi) Saved, but not displayed. Apply's write lands; only the drawing of
+// 確定図 that follows fails - its frame document is refused for exactly that
+// one render. Storage now leads the screen, so the page must say so, block
+// every further action, and a reload must draw what was saved.
+const beforeUndrawn = afterReload.stored;
+await type(page, "add an edge from c to a");
+assert.deepEqual((await screen(page)).draft, [`+${edgeC}`]);
 
 const frameDocument = new URL("/ui/semantic-map/authoring/pages/embed.html", url).href;
 const injected = [];
@@ -557,121 +646,108 @@ const noteInjected = request => {
 page.on("requestfailed", noteInjected);
 await page.route(frameDocument, route => route.abort("failed"), { times: 1 });
 
-await press(page, "#confirm");
+await press(page, "#apply");
 const undrawn = await screen(page);
 page.off("requestfailed", noteInjected);
 assert.equal(undrawn.state, "saved-display-failed");
 assert.match(undrawn.failure ?? "", /display failed/u);
-assert.notEqual(undrawn.stored, beforeUndrawn, "the write must have landed before the drawing failed");
-assert.equal(undrawn.stored.split("\n").length, beforeUndrawn.split("\n").length + 1, "exactly one Decision must be added");
-assert.equal(undrawn.sendDisabled, true, "typing must stop while the screen is behind storage");
-assert.equal(undrawn.micDisabled, true, "voice must stop while the screen is behind storage");
-assert.equal(undrawn.confirmDisabled, true, "confirming must stop while the screen is behind storage");
+assert.ok(undrawn.stored.startsWith(beforeUndrawn), "the write must add to what was saved");
+assert.equal(lineCount(undrawn.stored), lineCount(beforeUndrawn) + 1, "exactly one Decision must be added");
+for (const control of ["sendDisabled", "micDisabled", "undoDisabled", "discardDisabled", "applyDisabled"]) {
+  assert.equal(undrawn[control], true, `${control} while the screen is behind storage`);
+}
 assert.deepEqual(injected, ["net::ERR_FAILED"], "the only refused request must be the injected frame document");
 
 await page.reload({ waitUntil: "commit" });
 await ready(page);
 const redrawn = await screen(page);
-assert.equal(redrawn.state, "confirmed");
+assert.equal(redrawn.state, "restored");
 assert.equal(redrawn.stored, undrawn.stored, "reload must draw what was saved, not rewrite it");
-assert.deepEqual(redrawn.confirmed, [`+${typedEdge}`, `+${theirEdge}`, `+${undrawnEdge}`]);
-assert.deepEqual((await drawn(page)).edges, [typedEdge, theirEdge, undrawnEdge].sort());
+assert.deepEqual((await drawn(page, "confirmed")).edges, [edgeA, theirEdge, edgeC].sort());
 assert.equal(redrawn.sendDisabled, false);
 
 await first.browser.close();
 
-// (xiv) The spoken correction, heard by browsers that hear only the correction
-// file and start from exactly what the first browser saved after the spoken
-// add. The utterance names no node: which edge it means comes from the focus
-// the page sends with it.
-//
-// Each hearing gets its own browser process. The fake microphone loops its
-// file from process start, so a second capture in the same process can begin
-// part-way through the utterance and hear it clipped; a fresh process always
-// hears it from the beginning.
-const openCorrection = async storageState => {
-  const opened = await openBrowser(correctionWav, storageState);
-  page = opened.page;
-  await page.goto(url, { waitUntil: "commit", timeout: 120000 });
-  await ready(page);
-  const carried = await screen(page);
-  assert.equal(carried.state, "confirmed");
-  assert.equal(carried.stored, savedLog, "a correction browser must start from the saved spoken add");
-  assert.deepEqual(carried.confirmed, [`+${voiceEdge}`]);
-  assert.deepEqual((await drawn(page)).edges, [voiceEdge]);
-  return opened;
-};
+// (xvii) The spoken correction. A second browser, which hears only the
+// correction file, starts from exactly the bytes the first saved after the
+// spoken add - never from a working graph, which is memory only. In this
+// browser a typed step is made first, so the correction is spoken into a
+// working graph that holds an unapplied step, and "that edge" must be read off
+// the focus: the typed step, not the saved edge.
+const second = await openBrowser(correctionWav, afterVoiceApply);
+page = second.page;
+await page.goto(url, { waitUntil: "commit", timeout: 120000 });
+await ready(page);
+const carried = await screen(page);
+assert.equal(carried.state, "restored");
+assert.equal(carried.stored, savedLog, "the second browser must start from the saved spoken add");
+assert.deepEqual(carried.confirmed, [`+${voiceEdge}`]);
+assert.deepEqual(carried.draft, []);
+assert.deepEqual(await panes(page), { confirmed: [voiceEdge], working: [voiceEdge] });
 
-const second = await openCorrection(afterVoiceAdd);
+const typedStep = await type(page, "add an edge from a to b");
+assert.equal(typedStep.decision.answers.action.choice, "add-edge");
+const typedEdge = edgeOf(typedStep.decision.answers);
+assert.notEqual(typedEdge, voiceEdge);
+assert.notEqual(typedEdge, flip(voiceEdge));
+assert.deepEqual((await screen(page)).draft, [`+${typedEdge}`]);
+assert.equal((await screen(page)).stored, savedLog);
+assert.deepEqual(await panes(page), { confirmed: [voiceEdge], working: [voiceEdge, typedEdge].sort() });
 
-const [voiceFrom, voiceTo] = voiceEdge.split("->");
-const reversedEdge = `${voiceTo}->${voiceFrom}`;
+const [typedFrom, typedTo] = typedEdge.split("->");
+const heard = await speak(page);
+assert.equal(heard.sent.kind, "voice-ui.jev.request.v4");
+assertHeard(heard.sent.state.utterance, correctionGolden);
+assert.deepEqual(sortedEdges(heard.sent.state.working.edges), [voiceEdge, typedEdge].sort());
+assert.deepEqual(heard.sent.state.draft, [{ changes: [{ change: "added", from: typedFrom, to: typedTo }] }]);
+assert.deepEqual(heard.sent.state.focus, { kind: "draft", changes: [{ change: "added", from: typedFrom, to: typedTo }] });
+assert.equal(heard.decision.kind, "voice-ui.jev.decision.v4");
+assert.equal(heard.decision.answers.action.choice, "reverse-edge");
+const typedEdgeId = heard.sent.state.working.edges.find(edge => edge.from === typedFrom && edge.to === typedTo).id;
+assert.equal(heard.decision.answers.edge.choice, typedEdgeId, "\"that edge\" must be the focused working step");
 
-const hearCorrection = async () => {
-  const heard = await speak(page);
-  assert.equal(heard.sent.kind, "voice-ui.jev.request.v3");
-  assert.deepEqual(heard.sent.graph.edges.map(edge => `${edge.from}->${edge.to}`), [voiceEdge]);
-  assert.deepEqual(heard.sent.focus, { kind: "confirmed", changes: [{ change: "added", from: voiceFrom, to: voiceTo }] });
-  assertHeard(heard.sent.text, correctionGolden);
-  assert.equal(heard.decision.answers.action.choice, "reverse-edge");
-  assert.equal(heard.decision.answers.edge.choice, heard.sent.graph.edges[0].id);
-
-  const now = await screen(page);
-  assert.equal(now.state, "proposed");
-  assert.deepEqual(now.proposal, [`-${voiceEdge}`, `+${reversedEdge}`]);
-  assert.equal(now.stored, savedLog, "a spoken correction is only a proposal until confirmed");
-  const drawing = await drawn(page);
-  assert.deepEqual(drawing.edges, [voiceEdge], "the committed edge must not move before Confirm");
-  assert.equal(drawing.proposal, true);
-  return heard.sent.text;
-};
-
-const firstHearing = await hearCorrection();
-
-// Dismissed: nothing changes.
-await press(page, "#dismiss");
-const afterCorrectionDismiss = await screen(page);
-assert.equal(afterCorrectionDismiss.state, "dismissed");
-assert.equal(afterCorrectionDismiss.stored, savedLog);
-assert.deepEqual((await drawn(page)).edges, [voiceEdge]);
-
-// Dismissing wrote nothing, so the next browser starts from the same saved add.
-const afterDismissState = await second.context.storageState();
-await second.browser.close();
-
-// Spoken again, proposed again, and this time confirmed: the reverse applies as
-// one Decision.
-const third = await openCorrection(afterDismissState);
-const secondHearing = await hearCorrection();
-await press(page, "#confirm");
 const corrected = await screen(page);
-assert.equal(corrected.state, "confirmed");
-assert.deepEqual(corrected.confirmed, [`+${voiceEdge}`, `-${voiceEdge} +${reversedEdge}`]);
-assert.notEqual(corrected.stored, savedLog);
-assert.deepEqual((await drawn(page)).edges, [reversedEdge]);
+assert.equal(corrected.state, "drafted");
+assert.deepEqual(corrected.draft, [`+${typedEdge}`, `-${typedEdge} +${flip(typedEdge)}`]);
+assert.equal(corrected.stored, savedLog, "a spoken correction changes 作業図 only");
+assert.deepEqual(corrected.confirmed, [`+${voiceEdge}`]);
+assert.deepEqual(await panes(page), { confirmed: [voiceEdge], working: [voiceEdge, flip(typedEdge)].sort() });
 
-// (xv) Reload in the same browser: the final graph and both history entries
-// come back from storage.
+const correctionAccepts = await pressEmbeddedAccepts(page);
+await page.waitForTimeout(500);
+assert.equal((await screen(page)).stored, savedLog, "an embedded Accept must not save anything");
+assert.deepEqual((await screen(page)).draft, corrected.draft);
+
+await press(page, "#apply");
+const final = await screen(page);
+assert.equal(final.state, "applied");
+assert.deepEqual(final.confirmed, [`+${voiceEdge}`, `+${typedEdge}`, `-${typedEdge} +${flip(typedEdge)}`]);
+assert.ok(final.stored.startsWith(savedLog));
+assert.equal(lineCount(final.stored), lineCount(savedLog) + 2, "both working steps are applied as they are");
+assert.deepEqual(await panes(page), { confirmed: [voiceEdge, flip(typedEdge)].sort(), working: [voiceEdge, flip(typedEdge)].sort() });
+
+// (xviii) Reload in the same browser: the final graph and every entry come back.
 await page.reload({ waitUntil: "commit" });
 await ready(page);
-const final = await screen(page);
-assert.equal(final.state, "confirmed");
-assert.equal(final.stored, corrected.stored);
-assert.deepEqual(final.confirmed, [`+${voiceEdge}`, `-${voiceEdge} +${reversedEdge}`]);
-assert.deepEqual((await drawn(page)).edges, [reversedEdge]);
+const restoredFinal = await screen(page);
+assert.equal(restoredFinal.state, "restored");
+assert.equal(restoredFinal.stored, final.stored);
+assert.deepEqual(restoredFinal.confirmed, final.confirmed);
+assert.deepEqual(restoredFinal.draft, []);
+assert.deepEqual(await panes(page), { confirmed: [voiceEdge, flip(typedEdge)].sort(), working: [voiceEdge, flip(typedEdge)].sort() });
 
-await third.browser.close();
+await second.browser.close();
 
 assert.deepEqual(errors, []);
 assert.deepEqual(failedResponses, []);
 
 process.stdout.write(
-  `local-voice-graph-e2e: PASS voice add proposed then confirmed edge=${voiceEdge} `
-  + `(frame Accept ${frameAccept.present ? (frameAccept.disabled ? "present, disabled" : "present, enabled, inert") : "absent"}) `
-  + `| restored after reload | corrupt and foreign logs fail closed | typed dismiss, replace, confirm edge=${typedEdge} `
-  + `| duplicate, no-change, empty input (0 Jev requests), failed write and cross-tab conflict leave storage unchanged `
-  + `| "reverse that" over a pending proposal: ${pendingOutcome} `
-  + `| saved-but-undrawn ${undrawnEdge} blocks, then reload draws it `
-  + `| spoken correction heard as "${firstHearing}" / "${secondHearing}" -> reverse proposed, dismissed, re-proposed, `
-  + `confirmed edge=${reversedEdge} | restored after reload\n`,
+  `local-voice-graph-e2e: PASS spoken add "${voiceAdd.sent.state.utterance}" -> 作業図 only, applied edge=${voiceEdge} `
+  + `| embedded Accept [${embeddedAccepts.join("; ")}] / [${correctionAccepts.join("; ")}] `
+  + `| corrupt and foreign logs fail closed | typed ${edgeA}, ${edgeB}: 2 undos, then 2-step apply `
+  + `| empty input (0 Jev requests), undo-request and none change nothing | relation revert applied, overtaken revert refused `
+  + `| controls locked while a request is in flight, answer on its own revision (${heldEdge}) `
+  + `| cap 8 with 0 Jev requests at the cap | quota and other-tab Apply refused, working steps kept | reload drops the working steps `
+  + `| saved-but-undrawn blocks, reload draws it | browser 2: typed ${typedEdge}, then spoken "${heard.sent.state.utterance}" `
+  + `-> reverse of the focused step, applied with it, restored after reload\n`,
 );
