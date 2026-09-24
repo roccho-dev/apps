@@ -301,8 +301,9 @@ test("the focus is the latest working step, else the latest applied change, else
   assert.equal(DRAFT_MAX, 8);
 });
 
-// The Pages Function side of v4: which questions are put to Jev for a given
-// working graph, draft and focus, and what shape comes back.
+// The Pages Function side of v5: which questions are put to Jev for a given
+// working graph, draft, focus and recent conversation, and what shape comes
+// back. Only the request moved to v5; the answer is still decision.v4.
 
 const postJev = body =>
   onRequestPost({
@@ -343,18 +344,28 @@ const NODE_KEYS = [...REGIONS, "none"];
 const EDGE = { id: "voice-node-c-to-node-a", from: "node-c", to: "node-a" };
 const ADDED = { change: "added", from: "node-c", to: "node-a" };
 
-const v4 = ({
+const v5 = ({
   utterance = "reverse that edge",
   edges = [],
   draft = [],
   focus = { kind: "none", changes: [] },
+  recent = [],
 } = {}) => ({
-  kind: "voice-ui.jev.request.v4",
-  state: { utterance, working: { regions: REGIONS, edges }, draft, focus },
+  kind: "voice-ui.jev.request.v5",
+  state: { utterance, working: { regions: REGIONS, edges }, draft, focus, context: { recent } },
 });
 
-test("v4 on an edgeless working graph asks only about adding, and forwards the named state object", async () => {
-  const request = v4({ utterance: "add an edge from c to a" });
+// Earlier utterances as the page sends them: one per outcome.
+const HEARD = [
+  { seq: 1, source: "typed", text: "b is the database", outcome: "no-change" },
+  { seq: 2, source: "voice", text: "ADD AN EDGE FROM C TO A", outcome: "step", effect: { changes: [ADDED] } },
+  { seq: 4, source: "typed", text: "undo that", outcome: "undo-request" },
+  { seq: 5, source: "typed", text: "add an edge from c to c", outcome: "refused" },
+  { seq: 7, source: "voice", text: "ADD AN EDGE FROM A TO B", outcome: "undone" },
+];
+
+test("v5 on an edgeless working graph asks only about adding, and forwards the named state object", async () => {
+  const request = v5({ utterance: "add an edge from c to a" });
   const { result, calls } = await withProvider({
     action: providerChoice("add-edge", ["add-edge", "undo-request", "none"]),
     source: providerChoice("node-c", NODE_KEYS),
@@ -374,9 +385,9 @@ test("v4 on an edgeless working graph asks only about adding, and forwards the n
   assert.deepEqual(Object.keys(call.questions.target.criteria), NODE_KEYS);
 });
 
-test("v4 with a working edge offers remove, reverse, that edge or none, and feeds planStep", async () => {
+test("v5 with a working edge offers remove, reverse, that edge or none, and feeds planStep", async () => {
   const actions = ["add-edge", "remove-edge", "reverse-edge", "undo-request", "none"];
-  const request = v4({ edges: [EDGE], draft: [{ changes: [ADDED] }], focus: { kind: "draft", changes: [ADDED] } });
+  const request = v5({ edges: [EDGE], draft: [{ changes: [ADDED] }], focus: { kind: "draft", changes: [ADDED] } });
   const { result, calls } = await withProvider({
     action: providerChoice("reverse-edge", actions),
     source: providerChoice("none", NODE_KEYS),
@@ -398,14 +409,14 @@ test("v4 with a working edge offers remove, reverse, that edge or none, and feed
   assert.equal(planned.step.action, ACTION_REVERSE);
 });
 
-test("v4 passes an undo-request through; the step code turns it into no change", async () => {
+test("v5 passes an undo-request through; the step code turns it into no change", async () => {
   const actions = ["add-edge", "remove-edge", "reverse-edge", "undo-request", "none"];
   const { result } = await withProvider({
     action: providerChoice("undo-request", actions),
     source: providerChoice("none", NODE_KEYS),
     target: providerChoice("none", NODE_KEYS),
     edge: providerChoice(EDGE.id, [EDGE.id, "none"]),
-  }, () => postJev(v4({ utterance: "undo that", edges: [EDGE], draft: [{ changes: [ADDED] }], focus: { kind: "draft", changes: [ADDED] } })));
+  }, () => postJev(v5({ utterance: "undo that", edges: [EDGE], draft: [{ changes: [ADDED] }], focus: { kind: "draft", changes: [ADDED] } })));
 
   const body = await result.json();
   const working = await step(await baseGraph(), { action: ACTION_ADD, source: "node-c", target: "node-a" });
@@ -414,21 +425,21 @@ test("v4 passes an undo-request through; the step code turns it into no change",
   assert.equal(planned.undoRequest, true);
 });
 
-test("v4 rejects malformed requests and off-criteria answers", async () => {
+test("v5 rejects malformed requests and off-criteria answers", async () => {
   const nine = Array.from({ length: 9 }, () => ({ changes: [ADDED] }));
   const bad = [
-    { ...v4(), extra: true },
-    { kind: "voice-ui.jev.request.v4", state: { ...v4().state, extra: 1 } },
-    { kind: "voice-ui.jev.request.v4", state: { ...v4().state, utterance: "  " } },
-    { kind: "voice-ui.jev.request.v4", state: { ...v4().state, working: { regions: [...REGIONS, "none"], edges: [] } } },
-    v4({ edges: [{ ...EDGE, id: "none" }] }),
-    v4({ edges: [{ ...EDGE, from: "node-z" }] }),
-    v4({ edges: [EDGE, EDGE] }),
-    v4({ draft: nine }),
-    v4({ draft: [{ changes: [] }] }),
-    v4({ focus: { kind: "none", changes: [ADDED] } }),
-    v4({ focus: { kind: "draft", changes: [] } }),
-    v4({ focus: { kind: "proposal", changes: [ADDED] } }),
+    { ...v5(), extra: true },
+    { kind: "voice-ui.jev.request.v5", state: { ...v5().state, extra: 1 } },
+    { kind: "voice-ui.jev.request.v5", state: { ...v5().state, utterance: "  " } },
+    { kind: "voice-ui.jev.request.v5", state: { ...v5().state, working: { regions: [...REGIONS, "none"], edges: [] } } },
+    v5({ edges: [{ ...EDGE, id: "none" }] }),
+    v5({ edges: [{ ...EDGE, from: "node-z" }] }),
+    v5({ edges: [EDGE, EDGE] }),
+    v5({ draft: nine }),
+    v5({ draft: [{ changes: [] }] }),
+    v5({ focus: { kind: "none", changes: [ADDED] } }),
+    v5({ focus: { kind: "draft", changes: [] } }),
+    v5({ focus: { kind: "proposal", changes: [ADDED] } }),
     { kind: "voice-ui.jev.request.v3", text: "x", graph: { regions: REGIONS, edges: [] }, focus: { kind: "none", changes: [] } },
   ];
   for (const body of bad) assert.equal((await postJev(body)).status, 422, JSON.stringify(body));
@@ -437,8 +448,60 @@ test("v4 rejects malformed requests and off-criteria answers", async () => {
     action: providerChoice("remove-edge", ["add-edge", "remove-edge", "undo-request", "none"]),
     source: providerChoice("node-a", NODE_KEYS),
     target: providerChoice("node-b", NODE_KEYS),
-  }, () => postJev(v4()));
+  }, () => postJev(v5()));
   assert.equal(result.status, 502, "remove offered to nobody must not come back");
+});
+
+test("v5 forwards the recent conversation unchanged and tells every question it is unverified", async () => {
+  const request = v5({ utterance: "connect a to the database", recent: HEARD });
+  const { result, calls } = await withProvider({
+    action: providerChoice("add-edge", ["add-edge", "undo-request", "none"]),
+    source: providerChoice("node-a", NODE_KEYS),
+    target: providerChoice("node-b", NODE_KEYS),
+  }, () => postJev(request));
+
+  assert.equal(result.status, 200);
+  assert.equal((await result.json()).kind, "voice-ui.jev.decision.v4", "the answer's contract is unchanged");
+  const [call] = calls;
+  assert.deepEqual(call.state, request.state, "the context reaches Jev exactly as the page sent it");
+  for (const [name, question] of Object.entries(call.questions)) {
+    assert.match(question.instructions, /unverified/u, `${name} must say the context is unverified`);
+    assert.match(question.instructions, /the current utterance, the working graph and the focus are the facts/u, name);
+  }
+});
+
+test("v5 refuses a malformed recent conversation, and a v4 request is no longer served", async () => {
+  const [noChange, stepEntry] = HEARD;
+  const bad = [
+    // A v4 request, exactly as the previous page sent it.
+    { kind: "voice-ui.jev.request.v4", state: { utterance: "x", working: { regions: REGIONS, edges: [] }, draft: [], focus: { kind: "none", changes: [] } } },
+    // v5 without the context, or with a different shape.
+    { kind: "voice-ui.jev.request.v5", state: { utterance: "x", working: { regions: REGIONS, edges: [] }, draft: [], focus: { kind: "none", changes: [] } } },
+    { ...v5(), state: { ...v5().state, context: [] } },
+    { ...v5(), state: { ...v5().state, context: { recent: [], extra: 1 } } },
+    v5({ recent: [...HEARD, { ...noChange, seq: 9 }] }),
+    v5({ recent: [{ ...noChange, text: "x".repeat(201) }] }),
+    v5({ recent: [{ ...noChange, text: "  " }] }),
+    v5({ recent: [{ ...noChange, seq: 0 }] }),
+    v5({ recent: [{ ...noChange, seq: 1.5 }] }),
+    v5({ recent: [{ ...noChange, source: "said" }] }),
+    v5({ recent: [{ ...noChange, outcome: "applied" }] }),
+    v5({ recent: [{ ...noChange, extra: true }] }),
+    v5({ recent: [{ ...noChange, effect: stepEntry.effect }] }),
+    v5({ recent: [{ seq: 2, source: "voice", text: "x", outcome: "step" }] }),
+    v5({ recent: [{ ...stepEntry, effect: { changes: [] } }] }),
+    v5({ recent: [{ ...stepEntry, seq: 3 }, { ...noChange, seq: 3 }] }),
+    v5({ recent: [{ ...stepEntry, seq: 3 }, { ...noChange, seq: 2 }] }),
+  ];
+  for (const body of bad) assert.equal((await postJev(body)).status, 422, JSON.stringify(body));
+
+  const exactlyFull = v5({ recent: HEARD.map(entry => ({ ...entry, text: entry.text.padEnd(200, ".") })) });
+  const { result } = await withProvider({
+    action: providerChoice("none", ["add-edge", "undo-request", "none"]),
+    source: providerChoice("none", NODE_KEYS),
+    target: providerChoice("none", NODE_KEYS),
+  }, () => postJev(exactlyFull));
+  assert.equal(result.status, 200, "five entries of 200 characters are accepted");
 });
 
 // A provider that never answers. With `headers`, the status arrives but the body
@@ -474,7 +537,7 @@ for (const headers of [false, true]) {
       let called;
       const sent = new Promise(resolve => { called = resolve; });
       globalThis.fetch = hangingProvider({ headers, called });
-      const pending = postJev(v4({ utterance: "add an edge from c to a" }));
+      const pending = postJev(v5({ utterance: "add an edge from c to a" }));
       await sent;
       assert.equal(await settledAfter(pending, 9999), false, "still waiting just before the limit");
       assert.equal(await settledAfter(pending, 1), true, "given up exactly at the limit");
@@ -491,7 +554,7 @@ for (const headers of [false, true]) {
       action: providerChoice("add-edge", ["add-edge", "undo-request", "none"]),
       source: providerChoice("node-c", NODE_KEYS),
       target: providerChoice("node-a", NODE_KEYS),
-    }, () => postJev(v4({ utterance: "add an edge from c to a" })));
+    }, () => postJev(v5({ utterance: "add an edge from c to a" })));
     assert.equal(result.status, 200);
     assert.equal((await result.json()).answers.action.choice, "add-edge");
   });
@@ -501,7 +564,7 @@ test("a provider that refuses the connection is still unreachable, not a timeout
   const original = globalThis.fetch;
   globalThis.fetch = async () => { throw new TypeError("fetch failed"); };
   try {
-    const result = await postJev(v4());
+    const result = await postJev(v5());
     assert.equal(result.status, 502);
     assert.deepEqual(await result.json(), { error: "provider_unreachable" });
   } finally {

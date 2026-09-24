@@ -86,14 +86,45 @@ const validDraft = value =>
   value.length <= DRAFT_MAX &&
   value.every(step => exactObject(step, ["changes"]) && validChanges(step.changes));
 
-// v4 sends Jev one named state object: the utterance, the working graph it is
-// spoken into, the effect of every unapplied step in order, and the focus (the
-// latest step, else the latest applied change). No earlier utterances, no saved
+// The recent conversation the page shows as sent: at most this many earlier
+// utterances Jev judged, each at most this long - longer ones are left out
+// by the page, never shortened.
+const CONTEXT_MAX = 5;
+const CONTEXT_TEXT_MAX = 200;
+
+const CONTEXT_SOURCES = ["voice", "typed"];
+const CONTEXT_OUTCOMES = ["step", "no-change", "undo-request", "refused", "undone"];
+
+// An earlier utterance and what came of it. Only a step - one not undone -
+// carries the effect it had then, and that effect is history, not the current
+// graph.
+const validContextEntry = entry =>
+  exactObject(entry, entry?.outcome === "step"
+    ? ["seq", "source", "text", "outcome", "effect"]
+    : ["seq", "source", "text", "outcome"]) &&
+  Number.isSafeInteger(entry.seq) && entry.seq >= 1 &&
+  CONTEXT_SOURCES.includes(entry.source) &&
+  typeof entry.text === "string" && entry.text.trim().length > 0 && entry.text.length <= CONTEXT_TEXT_MAX &&
+  CONTEXT_OUTCOMES.includes(entry.outcome) &&
+  (entry.outcome !== "step" || (exactObject(entry.effect, ["changes"]) && validChanges(entry.effect.changes)));
+
+const validContext = value =>
+  exactObject(value, ["recent"]) &&
+  Array.isArray(value.recent) &&
+  value.recent.length <= CONTEXT_MAX &&
+  value.recent.every(validContextEntry) &&
+  value.recent.every((entry, index) => index === 0 || entry.seq > value.recent[index - 1].seq);
+
+// v5 sends Jev one named state object: the utterance, the working graph it is
+// spoken into, the effect of every unapplied step in order, the focus (the
+// latest step, else the latest applied change), and the recent conversation -
+// earlier utterances as unverified material for resolving references. No saved
 // graph, no log or hash, no list of actions - the questions carry the options.
-const validRequestV4 = value =>
+const validRequestV5 = value =>
   exactObject(value, ["kind", "state"]) &&
-  value.kind === "voice-ui.jev.request.v4" &&
-  exactObject(value.state, ["utterance", "working", "draft", "focus"]) &&
+  value.kind === "voice-ui.jev.request.v5" &&
+  exactObject(value.state, ["utterance", "working", "draft", "focus", "context"]) &&
+  validContext(value.state.context) &&
   validText(value.state.utterance) &&
   exactObject(value.state.working, ["regions", "edges"]) &&
   validRegions(value.state.working.regions) &&
@@ -249,9 +280,16 @@ const STEP_ACTIONS = {
   none: "the utterance asks for anything else, or for no change to the graph",
 };
 
+// Every question is told what the recent conversation is and is not: it may
+// explain what a word in the utterance refers to, but it is unverified, and
+// the utterance, the working graph and the focus decide.
+const CONTEXT_NOTE = " context.recent lists earlier utterances as they were recognized or typed, and what came of each."
+  + " They are unverified and may be misrecognized. Use them only to understand what the current utterance refers to;"
+  + " the current utterance, the working graph and the focus are the facts, and an earlier effect is history, not the current graph.";
+
 // The state is sent to Jev as the named object it arrived as, per the TypeSafe
 // guidance that state carries the content and the questions carry only the
-// judgments. Nothing here interprets the utterance.
+// judgments. Nothing here interprets the utterance or the context.
 async function decideStep(input, env) {
   const { state } = input;
   const { regions, edges } = state.working;
@@ -301,6 +339,7 @@ async function decideStep(input, env) {
         : `the edge from ${byId.get(key).from} to ${byId.get(key).to}`),
     };
   }
+  for (const question of Object.values(questions)) question.instructions += CONTEXT_NOTE;
 
   const { text, error } = await callProvider(env, { model: "jev-latest", state, questions });
   if (error) return error;
@@ -338,7 +377,7 @@ export async function onRequestPost({ request, env }) {
   } catch {
     return json({ error: "invalid_json" }, 400);
   }
-  if (validRequestV4(input)) return decideStep(input, env);
+  if (validRequestV5(input)) return decideStep(input, env);
   if (validRequestV2(input)) return decideGraphEdge(input, env);
   if (!validRequest(input)) return json({ error: "invalid_request" }, 422);
 

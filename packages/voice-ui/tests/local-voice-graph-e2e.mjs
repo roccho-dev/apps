@@ -44,6 +44,9 @@ const distance = (left, right) => {
 const errors = [];
 const failedResponses = [];
 const consoleMessages = [];
+// Answers the real Jev gave through the dev server during this run, reported
+// so its cost is visible. Answers the test fakes at the network are not here.
+let jevAnswered = 0;
 
 const watch = target => {
   target.on("pageerror", error => errors.push(String(error)));
@@ -51,6 +54,9 @@ const watch = target => {
   target.on("response", response => {
     if (response.status() >= 400) {
       failedResponses.push(response.status() + " " + response.url());
+    }
+    if (new URL(response.url()).pathname === "/api/jev" && response.status() === 200 && !response.request().isNavigationRequest()) {
+      jevAnswered += 1;
     }
   });
   return target;
@@ -166,6 +172,11 @@ const screen = target => target.evaluate(key => ({
     elements: item.querySelectorAll("[data-input] *, img, b, script").length,
   })),
   draftHeading: document.querySelector("#draft-heading")?.textContent ?? null,
+  // The recent conversation as the panel shows it - the entries themselves.
+  context: [...document.querySelectorAll("#context-recent li")].map(item => JSON.parse(item.dataset.entry)),
+  contextHeading: document.querySelector("#context-heading")?.textContent ?? null,
+  contextSkipped: document.querySelector("#context-skipped").textContent,
+  contextClearDisabled: document.querySelector("#context-clear").disabled,
   draftCount: document.querySelector("#draft-count").textContent,
   notice: document.querySelector("#working-notice")?.textContent ?? null,
   sendDisabled: document.querySelector("#send").disabled,
@@ -244,24 +255,32 @@ const jevExchange = target => ({
 });
 
 // Every text that has gone to Jev so far. A request carries its own text as
-// state.utterance and no other: each draft entry is its changes only, and no
-// earlier text appears anywhere else in the body.
+// state.utterance, and earlier text only inside state.context.recent - the
+// recent conversation, which is exactly what the panel showed when the input
+// was made. Each draft entry is its changes only, and no earlier text appears
+// anywhere else in the body.
 const inputsSent = new Set();
-const assertOnlyCurrentInput = sent => {
-  const { utterance, ...rest } = sent.state;
+const assertOnlyCurrentInput = (sent, panelBefore) => {
+  assert.equal(sent.kind, "voice-ui.jev.request.v5");
+  const { utterance, context, ...rest } = sent.state;
+  assert.deepEqual(context.recent, panelBefore, "the request must send exactly the recent conversation the panel showed");
   for (const entry of sent.state.draft) {
     assert.deepEqual(Object.keys(entry), ["changes"], "a draft entry sent to Jev must be its changes only");
   }
   const body = JSON.stringify({ ...sent, state: rest });
   for (const earlier of inputsSent) {
-    assert.equal(body.includes(earlier), false, `an earlier input reached Jev: ${earlier}`);
+    assert.equal(body.includes(earlier), false, `an earlier input reached Jev outside the context: ${earlier}`);
   }
   inputsSent.add(utterance);
 };
 
+const contextPanel = target => target.evaluate(() =>
+  [...document.querySelectorAll("#context-recent li")].map(item => JSON.parse(item.dataset.entry)));
+
 // Speak or type, and return what was sent and what Jev answered once the page
 // has settled.
 const ask = async (target, act) => {
+  const panelBefore = await contextPanel(target);
   const exchange = jevExchange(target);
   await act();
   const request = await exchange.request;
@@ -269,9 +288,24 @@ const ask = async (target, act) => {
   assert.equal(response.status(), 200);
   await settle(target);
   const sent = JSON.parse(request.postData());
-  assertOnlyCurrentInput(sent);
+  assertOnlyCurrentInput(sent, panelBefore);
   return { sent, decision: await response.json() };
 };
+
+// A recent-conversation entry as expected, without its sequence number: the
+// text sent for that input and what came of it. A step carries the changes it
+// made then, read off the same form as data-changes.
+const changesOf = changes => changes.split(" ").map(change => {
+  const [from, to] = change.slice(1).split("->");
+  return { change: change.startsWith("+") ? "added" : "removed", from, to };
+});
+const heardAs = (asked, source, outcome, changes = null) => ({
+  source,
+  text: asked.sent.state.utterance,
+  outcome,
+  ...(changes === null ? {} : { effect: { changes: changesOf(changes) } }),
+});
+const withoutSeq = entries => entries.map(({ seq, ...entry }) => entry);
 
 // What an unapplied step should show: the exact text sent to Jev for it
 // (認識文 for voice, 入力文 for typed), or nothing for a revert, and its
@@ -377,7 +411,8 @@ assert.deepEqual(await panes(page), { confirmed: [], working: [] });
 // Hayamimi heard and the working graph it was spoken into; the answer is Jev's
 // typed choice; the edge appears on the right and nowhere else.
 const voiceAdd = await speak(page);
-assert.equal(voiceAdd.sent.kind, "voice-ui.jev.request.v4");
+assert.equal(voiceAdd.sent.kind, "voice-ui.jev.request.v5");
+assert.deepEqual(voiceAdd.sent.state.context, { recent: [] }, "a first visit has no recent conversation");
 assert.deepEqual(voiceAdd.sent.state.working, { regions: ["node-a", "node-b", "node-c"], edges: [] });
 assert.deepEqual(voiceAdd.sent.state.draft, []);
 assert.deepEqual(voiceAdd.sent.state.focus, { kind: "none", changes: [] });
@@ -392,6 +427,9 @@ assert.equal(drafted.state, "drafted");
 assert.deepEqual(drafted.draft, [`+${voiceEdge}`]);
 assert.equal(drafted.draftHeading, "未反映の操作");
 assert.deepEqual(drafted.items, [voiceItem(voiceAdd, `+${voiceEdge}`)], "the step shows the recognized text it was judged from");
+// The judged utterance joins the recent conversation, with the step it made.
+assert.equal(drafted.contextHeading, "Jevが参照する最近の会話（未検証）");
+assert.deepEqual(withoutSeq(drafted.context), [heardAs(voiceAdd, "voice", "step", `+${voiceEdge}`)]);
 assert.equal(drafted.stored, null, "a working step must not be saved");
 assert.deepEqual(drafted.confirmed, [], "a working step is not an applied entry");
 assert.deepEqual(await panes(page), { confirmed: [], working: [voiceEdge] });
@@ -414,6 +452,7 @@ assert.deepEqual(applied.confirmed, [`+${voiceEdge}`]);
 assert.equal(applied.failure, null);
 assert.ok(applied.stored, "the applied step must have been persisted");
 assert.equal(lineCount(applied.stored), 2, "the initial graph plus exactly one applied Decision");
+assert.deepEqual(applied.context, drafted.context, "Apply keeps the recent conversation");
 const savedLog = applied.stored;
 assert.deepEqual(await panes(page), { confirmed: [voiceEdge], working: [voiceEdge] });
 
@@ -427,6 +466,9 @@ assert.equal(restored.stored, savedLog, "reload must not rewrite the stored log"
 assert.deepEqual(restored.confirmed, [`+${voiceEdge}`]);
 assert.deepEqual(restored.draft, []);
 assert.match(restored.initialLine, /\(0 edges\)/u, "the initial graph must still read as edgeless");
+assert.deepEqual(restored.context, [], "a reload erases the recent conversation");
+assert.equal(restored.contextSkipped, "");
+assert.equal(restored.contextClearDisabled, true, "there is nothing to clear");
 assert.deepEqual(await panes(page), { confirmed: [voiceEdge], working: [voiceEdge] });
 
 // What the second browser starts from: exactly the bytes this one saved. The
@@ -519,12 +561,13 @@ const assertSavedUntouched = async (label, expectedStored, expectedApplied, expe
 };
 
 const typedA = await type(page, "add an edge from a to b");
-assert.equal(typedA.sent.kind, "voice-ui.jev.request.v4", "Send must use the typed graph decision");
+assert.equal(typedA.sent.kind, "voice-ui.jev.request.v5", "Send must use the typed graph decision");
 assert.equal(typedA.decision.answers.action.choice, "add-edge");
 const edgeA = edgeOf(typedA.decision.answers);
 await assertSavedUntouched("first typed step", null, [], []);
 assert.deepEqual((await screen(page)).draft, [`+${edgeA}`]);
 assert.deepEqual((await screen(page)).items, [typedItem(typedA, `+${edgeA}`)]);
+assert.deepEqual(withoutSeq((await screen(page)).context), [heardAs(typedA, "typed", "step", `+${edgeA}`)]);
 assert.deepEqual((await drawn(page, "working")).edges, [edgeA]);
 
 const typedB = await type(page, "add an edge from b to c");
@@ -542,18 +585,30 @@ await press(page, "#undo");
 assert.equal((await screen(page)).state, "undone");
 assert.deepEqual((await screen(page)).draft, [`+${edgeA}`]);
 assert.deepEqual((await screen(page)).items, [typedItem(typedA, `+${edgeA}`)], "Undo keeps the remaining step's text");
+// Undo marks exactly the step it took back as undone, in place, without an effect.
+assert.deepEqual(withoutSeq((await screen(page)).context), [
+  heardAs(typedA, "typed", "step", `+${edgeA}`),
+  heardAs(typedB, "typed", "undone"),
+]);
 assert.deepEqual((await drawn(page, "working")).edges, [edgeA]);
 await press(page, "#undo");
 const undoneAll = await assertSavedUntouched("two undos", null, [], []);
+assert.deepEqual(withoutSeq(undoneAll.context), [heardAs(typedA, "typed", "undone"), heardAs(typedB, "typed", "undone")]);
 assert.deepEqual(undoneAll.draft, []);
 assert.equal(undoneAll.undoDisabled, true, "undo never goes below what is saved");
 assert.deepEqual((await drawn(page, "working")).edges, []);
 
-await type(page, "add an edge from a to b");
-await type(page, "add an edge from b to c");
+const typedA2 = await type(page, "add an edge from a to b");
+const typedB2 = await type(page, "add an edge from b to c");
 assert.deepEqual((await screen(page)).draft, [`+${edgeA}`, `+${edgeB}`]);
+const beforeApplyTwo = await screen(page);
 await press(page, "#apply");
 const appliedTwo = await screen(page);
+assert.deepEqual(appliedTwo.context, beforeApplyTwo.context, "Apply keeps the recent conversation and its effects, now history");
+assert.deepEqual(withoutSeq(appliedTwo.context).slice(-2), [
+  heardAs(typedA2, "typed", "step", `+${edgeA}`),
+  heardAs(typedB2, "typed", "step", `+${edgeB}`),
+]);
 assert.equal(appliedTwo.state, "applied");
 assert.deepEqual(appliedTwo.draft, []);
 assert.deepEqual(appliedTwo.items, []);
@@ -583,6 +638,10 @@ for (const blank of ["", "   "]) {
 }
 blanks.stop();
 assert.equal(blanks.count, 0, "empty input must send no request to Jev");
+assert.deepEqual((await screen(page)).context, withOneStep.context, "input Jev never judged does not join the conversation");
+// Five entries now, the most recent last: the window is full.
+assert.equal(withOneStep.context.length, 5);
+assert.deepEqual(withoutSeq(withOneStep.context).at(-1), heardAs(typedC, "typed", "step", `+${edgeC}`));
 
 const spokenUndo = await type(page, "undo that");
 assert.equal(spokenUndo.decision.answers.action.choice, "undo-request", "precondition: Jev must answer undo-request");
@@ -590,18 +649,32 @@ const afterSpokenUndo = await assertSavedUntouched("undo by text", savedTwo, [`+
 assert.equal(afterSpokenUndo.state, "undo-request");
 assert.match(afterSpokenUndo.status, /元に戻す/u);
 assert.deepEqual(afterSpokenUndo.draft, withOneStep.draft, "an undo-request must never pop a step");
+// The undo-request joins the conversation; the window moves on by one.
+assert.deepEqual(afterSpokenUndo.context.slice(0, 4), withOneStep.context.slice(1));
+assert.deepEqual(withoutSeq(afterSpokenUndo.context).at(-1), heardAs(spokenUndo, "typed", "undo-request"));
 assert.deepEqual((await drawn(page, "working")).edges, [edgeA, edgeB, edgeC].sort());
 
-const nothing = await type(page, "what is the weather like today");
+// This no-change is longer than 200 characters: it is remembered but never
+// sent, and never shortened - the panel counts it instead.
+const longNothing = "what is the weather like today? "
+  + "I am only asking about the weather outside and not about the graph at all. ".repeat(3);
+assert.ok(longNothing.length > 200);
+const nothing = await type(page, longNothing);
 assert.equal(nothing.decision.answers.action.choice, "none", "precondition: Jev must answer with no action");
 const afterNothing = await assertSavedUntouched("no change", savedTwo, [`+${edgeA}`, `+${edgeB}`], [edgeA, edgeB].sort());
 assert.equal(afterNothing.state, "no-change");
 assert.deepEqual(afterNothing.draft, withOneStep.draft);
+assert.deepEqual(afterNothing.context, afterSpokenUndo.context, "a text over 200 characters is left out of the window");
+assert.equal(afterNothing.contextSkipped, "長すぎるため参照しない発話 1件");
 
 await press(page, "#discard");
 assert.equal((await screen(page)).state, "discarded");
 assert.deepEqual((await screen(page)).draft, []);
 assert.deepEqual((await screen(page)).items, []);
+// Discard marks the step it dropped as undone.
+const typedCEntry = withOneStep.context.at(-1);
+assert.deepEqual((await screen(page)).context.find(entry => entry.seq === typedCEntry.seq),
+  { seq: typedCEntry.seq, source: "typed", text: typedCEntry.text, outcome: "undone" });
 assert.deepEqual((await drawn(page, "working")).edges, [edgeA, edgeB].sort());
 
 // (x) Revert: an applied entry's opposite is added to 作業図 - never to 確定図 -
@@ -686,10 +759,13 @@ const controlsOf = now => ({
   apply: now.applyDisabled,
   revert: now.revertDisabled,
 });
-const assertUnmoved = async (label, now) => {
+// `contextBefore` is the conversation just before the request in question:
+// answers Jev did give in between (the retry below) join it as usual.
+const assertUnmoved = async (label, now, contextBefore = idle.context) => {
   assert.equal(now.stored, idle.stored, `${label}: the stored bytes must not change`);
   assert.deepEqual(now.confirmed, idle.confirmed, `${label}: 確定図's entries must not change`);
   assert.deepEqual(now.draft, idle.draft, `${label}: the working steps must not change`);
+  assert.deepEqual(now.context, contextBefore, `${label}: an utterance Jev never judged must not join the conversation`);
   assert.deepEqual(await panes(page), idlePanes, `${label}: neither pane may change`);
   assert.deepEqual(controlsOf(now), controlsOf(idle), `${label}: every control must be given back`);
 };
@@ -731,6 +807,9 @@ const retried = await type(page, "add an edge from b to c");
 const retriedEdge = edgeOf(retried.decision.answers);
 assert.deepEqual((await screen(page)).draft, [`+${edgeC}`, `+${retriedEdge}`], "a retry is answered as usual");
 await press(page, "#undo");
+// The retry was judged, so it joined the conversation - and Undo marked it undone.
+const beforeTimeout = await screen(page);
+assert.deepEqual(withoutSeq(beforeTimeout.context).at(-1), heardAs(retried, "typed", "undone"));
 
 // (xi-c) The Function's own answer when the provider hangs: 504
 // provider_timeout. The page reports it and gives everything back the same way.
@@ -749,7 +828,7 @@ await settle(page);
 const reported = await screen(page);
 assert.equal(reported.state, "failed");
 assert.match(reported.failure ?? "", /provider_timeout/u);
-await assertUnmoved("a provider timeout", reported);
+await assertUnmoved("a provider timeout", reported, beforeTimeout.context);
 assert.deepEqual(failedResponses.splice(beforeTimeoutAnswer), [`504 ${jevUrl}`]);
 
 const retriedAgain = await type(page, "add an edge from b to c");
@@ -780,11 +859,28 @@ const refusedAtCap = await screen(page);
 assert.equal(atCap.count, 0, "a full working graph must send no request to Jev");
 assert.equal(refusedAtCap.state, "draft-full");
 assert.deepEqual(refusedAtCap.draft, full.draft, "nothing is dropped at the cap");
+// Still at most five entries, oldest first, none longer than 200 characters.
+assert.equal(full.context.length, 5);
+assert.ok(full.context.every((entry, index) => index === 0 || entry.seq > full.context[index - 1].seq));
+assert.ok(full.context.every(entry => entry.text.length <= 200));
 await press(page, "#discard");
+
+// (xii-b) 会話をクリア forgets the recent conversation and changes nothing
+// else; the next request sends none.
+const beforeClear = await screen(page);
+assert.ok(beforeClear.context.length > 0 && beforeClear.contextClearDisabled === false);
+await page.locator("#context-clear").click();
+const cleared = await screen(page);
+assert.deepEqual(cleared.context, []);
+assert.equal(cleared.contextSkipped, "", "clearing forgets the long utterance too");
+assert.equal(cleared.contextClearDisabled, true);
+assert.equal(cleared.stored, beforeClear.stored);
+assert.deepEqual(cleared.draft, beforeClear.draft);
 
 // (xiii) Apply's write fails on a genuinely exhausted quota: nothing is saved,
 // 確定図 is unchanged, and 作業図 keeps its steps to retry.
 const quotaStep = await type(page, "add an edge from c to a");
+assert.deepEqual(quotaStep.sent.state.context, { recent: [] }, "after clearing, the next request sends no conversation");
 const fillers = await page.evaluate(() => {
   let size = 1 << 20;
   let count = 0;
@@ -842,6 +938,7 @@ const afterReload = await screen(page);
 assert.equal(afterReload.state, "restored");
 assert.deepEqual(afterReload.draft, [], "unapplied steps do not survive a reload");
 assert.deepEqual(afterReload.items, []);
+assert.deepEqual(afterReload.context, [], "a reload erases the recent conversation");
 assertNotStored(afterReload.stored);
 assert.equal(afterReload.stored, theirSaved);
 assert.deepEqual(afterReload.storageKeys, [STORAGE_KEY], "the working graph is never written to storage");
@@ -950,7 +1047,10 @@ for (const control of ["sendDisabled", "micDisabled", "undoDisabled", "discardDi
 
 const [typedFrom, typedTo] = typedEdge.split("->");
 const heard = await speak(page);
-assert.equal(heard.sent.kind, "voice-ui.jev.request.v4");
+assert.equal(heard.sent.kind, "voice-ui.jev.request.v5");
+// The spoken correction carries the typed step before it as recent context:
+// what was typed, and the step it made.
+assert.deepEqual(withoutSeq(heard.sent.state.context.recent), [heardAs(typedStep, "typed", "step", `+${typedEdge}`)]);
 assertHeard(heard.sent.state.utterance, correctionGolden);
 assert.deepEqual(sortedEdges(heard.sent.state.working.edges), [voiceEdge, typedEdge].sort());
 assert.deepEqual(heard.sent.state.draft, [{ changes: [{ change: "added", from: typedFrom, to: typedTo }] }]);
@@ -1010,7 +1110,11 @@ process.stdout.write(
   `local-voice-graph-e2e: PASS spoken add "${voiceAdd.sent.state.utterance}" -> 作業図 only, applied edge=${voiceEdge} `
   + `| each voice press: one click, 0 text focus, 0 Send, [${voiceAdd.trace.join(" ")}], 1 Jev request `
   + `| every step shows its exact text (認識文/入力文) and verified effect through Undo, revert, refused and successful Apply, reload; `
-  + `${inputsSent.size} distinct inputs never re-sent to Jev, stored or logged; markup-like text literal `
+  + `${inputsSent.size} distinct inputs: earlier ones reach Jev only in state.context.recent, which equalled the panel on every request, `
+  + "never stored or logged; markup-like text literal "
+  + "| recent conversation: step, undone by Undo and Discard, undo-request and no-change kept, >200 characters counted not sent, "
+  + "window of 5, kept by Apply, erased by reload and 会話をクリア, nothing from blank input or timeouts "
+  + `| ${jevAnswered} real Jev answers in this run `
   + `| refused microphone: [${voicePhases(refusalTrace).map(entry => entry.kind).join(" ")}], 0 Jev requests, nothing changed, controls given back `
   + `| embedded Accept [${embeddedAccepts.join("; ")}] / [${correctionAccepts.join("; ")}] `
   + `| corrupt and foreign logs fail closed | typed ${edgeA}, ${edgeB}: 2 undos, then 2-step apply `
