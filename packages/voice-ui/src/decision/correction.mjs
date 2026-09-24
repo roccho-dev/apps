@@ -1,6 +1,5 @@
 import {
   DecisionRefused,
-  GRAPH_PATTERN,
   MIN_CONFIDENCE,
   RELATION_KIND,
   relationIdFor,
@@ -9,19 +8,30 @@ import {
   selectableRegionIds,
 } from "./graph-edge.mjs";
 
-// The correction loop: an utterance or typed request is judged by Jev against
-// the graph on screen and whatever the user is looking at, and the answer
-// becomes a *proposal* - a provider Decision that is shown but not applied.
-// Only an explicit confirmation appends it. Nothing here touches storage or the
-// DOM; the codec is injected, as in graph-edge.mjs and history.mjs.
+// The working side of the two-pane graph. An utterance or typed request is
+// judged by Jev against the working graph and every unapplied step, and a
+// usable answer becomes one *draft step*: a provider Decision appended to the
+// working log in memory. Nothing here writes storage or touches the saved
+// graph; only Apply does that, in the page. The codec is injected, as in
+// graph-edge.mjs and history.mjs.
 
-export const DECISION_KIND = "voice-ui.jev.decision.v3";
+export const DECISION_KIND = "voice-ui.jev.decision.v4";
 export const ACTION_ADD = "add-edge";
 export const ACTION_REMOVE = "remove-edge";
 export const ACTION_REVERSE = "reverse-edge";
+export const ACTION_UNDO_REQUEST = "undo-request";
 export const ACTION_NONE = "none";
+export const ACTION_REVERT = "revert";
 
-export const OUTCOME_PROPOSED = "proposed";
+// Every slot also offers "none", so a request that names no usable node or edge
+// has somewhere to go other than the nearest wrong answer.
+export const OPTION_NONE = "none";
+
+// The working graph holds at most this many unapplied steps. At the cap nothing
+// is dropped; new steps are refused until the user applies, undoes or discards.
+export const DRAFT_MAX = 8;
+
+export const OUTCOME_STEP = "step";
 export const OUTCOME_NO_CHANGE = "no-change";
 
 const refuse = (condition, reason) => {
@@ -37,19 +47,22 @@ export function edgesOf(records) {
   );
 }
 
-// Only operations the current graph can actually carry out are offered. With
-// no edge there is nothing to remove or reverse, so those choices are not put
-// to Jev at all rather than being offered and then refused.
+// Only operations the working graph can actually carry out are offered. With no
+// edge there is nothing to remove or reverse, so those choices are not put to
+// Jev at all. "undo-request" is always offered: it is where a spoken "undo"
+// lands, so that it cannot be mistaken for the nearest graph edit.
 export function correctionCriteria(records) {
   const regions = selectableRegionIds(records);
   refuse(regions.length >= 2, "graph has fewer than two selectable regions");
+  refuse(!regions.includes(OPTION_NONE), `a region may not be named "${OPTION_NONE}"`);
   const edges = edgesOf(records);
+  refuse(edges.every(edge => edge.id !== OPTION_NONE), `an edge may not be named "${OPTION_NONE}"`);
   return Object.freeze({
     actions: Object.freeze(edges.length > 0
-      ? [ACTION_ADD, ACTION_REMOVE, ACTION_REVERSE, ACTION_NONE]
-      : [ACTION_ADD, ACTION_NONE]),
-    regions,
-    edges: Object.freeze(edges.map(edge => edge.id)),
+      ? [ACTION_ADD, ACTION_REMOVE, ACTION_REVERSE, ACTION_UNDO_REQUEST, ACTION_NONE]
+      : [ACTION_ADD, ACTION_UNDO_REQUEST, ACTION_NONE]),
+    regions: Object.freeze([...regions, OPTION_NONE]),
+    edges: Object.freeze(edges.length > 0 ? [...edges.map(edge => edge.id), OPTION_NONE] : []),
   });
 }
 
@@ -87,19 +100,28 @@ function readAnswers(answers, criteria) {
   });
 }
 
-const noChange = reason => Object.freeze({ outcome: OUTCOME_NO_CHANGE, reason });
+const noChange = (reason, extra = {}) => Object.freeze({ outcome: OUTCOME_NO_CHANGE, reason, ...extra });
 
 // Turn a validated answer into the operations it means, or into "no change".
-// "No change" is an ordinary answer - nothing to do, or not sure enough to act
-// - and is never reported as an error. A request that cannot be carried out on
-// this graph (a self edge, a duplicate, a vanished target) is a refusal.
+// "No change" is an ordinary answer - nothing to do, a slot answered "none", an
+// undo asked for by voice, or not sure enough to act - and is never reported as
+// an error. A request that cannot be carried out on this graph (a self edge, a
+// duplicate, a vanished target) is a refusal.
 function operationsFor(read, records) {
   if (read.action.choice === ACTION_NONE) return noChange("no graph change was requested");
+  // Undo is a button. A spoken or typed "undo" never changes either graph: it
+  // is answered with where the button is, and nothing else happens.
+  if (read.action.choice === ACTION_UNDO_REQUEST) {
+    return noChange("undo is not done by voice or text; use the 元に戻す button", { undoRequest: true });
+  }
 
   const edges = edgesOf(records);
   const existing = relationKeys(records);
 
   if (read.action.choice === ACTION_ADD) {
+    if (read.source.choice === OPTION_NONE || read.target.choice === OPTION_NONE) {
+      return noChange("the request did not name two existing nodes");
+    }
     const confidence = Math.min(read.action.confidence, read.source.confidence, read.target.confidence);
     if (confidence < MIN_CONFIDENCE) return noChange("not confident enough to propose a change");
     refuse(read.source.choice !== read.target.choice, "source and target are the same region");
@@ -119,6 +141,7 @@ function operationsFor(read, records) {
     });
   }
 
+  if (read.edge.choice === OPTION_NONE) return noChange("the request did not name an existing edge");
   const confidence = Math.min(read.action.confidence, read.edge.confidence);
   if (confidence < MIN_CONFIDENCE) return noChange("not confident enough to propose a change");
   const edge = edges.find(candidate => candidate.id === read.edge.choice);
@@ -157,13 +180,6 @@ function operationsFor(read, records) {
   });
 }
 
-const uiIrFor = envelope => Object.freeze({
-  kind: "ui.ir.v1",
-  capability: "render.semantic-map",
-  payloadKind: "semantic-map-envelope/3",
-  payload: envelope,
-});
-
 const viaProvider = async (reason, run) => {
   try {
     return await run();
@@ -173,79 +189,118 @@ const viaProvider = async (reason, run) => {
   }
 };
 
-// Judge an answer against the verified graph and, if it asks for a change,
-// build it as a provider Decision bound to the current head. The Decision is
-// validated by the provider here, so a proposal that is shown can be applied
-// exactly as shown - but nothing is appended: the log and graph are untouched.
-//
-// `pending` is the proposal already on screen, if any. While one is pending, the
-// user's attention is on it, so a remove or reverse must be about an edge that
-// proposal itself names. An answer that picks some other committed edge cannot
-// mean what the page told Jev, and would silently throw the user's proposal
-// away; it is a no-change instead, and the pending proposal stays. Adding is
-// unaffected: a new addition simply replaces the proposal.
-export async function proposeCorrection({ graph, answers, protocol, pending = null } = {}) {
+const requireGraph = graph => {
   refuse(typeof graph?.log === "string" && graph.log.length > 0, "graph.log must be a non-empty string");
   refuse(typeof graph?.head === "string" && graph.head.length > 0, "graph.head must be a non-empty string");
-  refuse(typeof protocol?.createDecision === "function", "protocol.createDecision is required");
-  refuse(typeof protocol?.createEnvelope === "function", "protocol.createEnvelope is required");
+};
 
-  const read = readAnswers(answers, correctionCriteria(graph.records));
-  const planned = operationsFor(read, graph.records);
+const step = (revision, action, changes, decision, confidence = null) => Object.freeze({
+  revision,
+  action,
+  confidence,
+  changes: Object.freeze(changes.map(change => Object.freeze({ ...change }))),
+  decision,
+});
+
+// Judge an answer against the working graph it was asked about. `revision` is
+// the working head recorded when the request was sent: an answer that arrives
+// after the working graph has moved describes a graph the user no longer sees,
+// so it is refused rather than applied to a different one. A usable answer is
+// built into a provider Decision on that head, so the provider validates the
+// step before it ever reaches the working graph. Nothing is appended here.
+export async function planStep({ working, revision, answers, protocol } = {}) {
+  requireGraph(working);
+  refuse(typeof protocol?.createDecision === "function", "protocol.createDecision is required");
+  refuse(revision === working.head, "the answer is stale: the working graph changed after the request was sent");
+
+  const read = readAnswers(answers, correctionCriteria(working.records));
+  const planned = operationsFor(read, working.records);
   if (planned.outcome === OUTCOME_NO_CHANGE) return planned;
 
-  if (pending && (planned.action === ACTION_REMOVE || planned.action === ACTION_REVERSE)) {
-    const [target] = planned.changes;
-    const named = pending.changes.some(change => change.from === target.from && change.to === target.to);
-    if (!named) {
-      return noChange(
-        "a proposal is pending: remove or reverse can only refer to an edge it names; "
-        + "replace it with a new addition, or confirm or dismiss it first",
-      );
-    }
-  }
-
   const { decision } = await viaProvider("the provider rejected the change",
-    () => protocol.createDecision(graph.head, planned.operations, graph.records));
-  const envelope = await protocol.createEnvelope(graph.log, decision, { pattern: GRAPH_PATTERN });
-
+    () => protocol.createDecision(working.head, planned.operations, working.records));
   return Object.freeze({
-    outcome: OUTCOME_PROPOSED,
-    proposal: Object.freeze({
-      head: graph.head,
-      action: planned.action,
-      confidence: planned.confidence,
-      changes: Object.freeze(planned.changes.map(Object.freeze)),
-      decision,
-    }),
-    ir: uiIrFor(envelope),
+    outcome: OUTCOME_STEP,
+    step: step(working.head, planned.action, planned.changes, decision, planned.confidence),
   });
 }
 
-// Apply a proposal the user confirmed. It must still sit on the head it was
-// made against: a graph that moved on underneath it makes it stale, and it is
-// refused rather than re-based onto a graph the user never looked at.
-export async function confirmProposal({ graph, proposal, protocol } = {}) {
+// Put a planned step onto the working graph. It must still sit on the head it
+// was planned against; the provider refuses the append otherwise as well.
+export async function appendStep({ working, step: planned, protocol } = {}) {
+  requireGraph(working);
   refuse(typeof protocol?.appendDecision === "function", "protocol.appendDecision is required");
-  refuse(typeof protocol?.createEnvelope === "function", "protocol.createEnvelope is required");
-  refuse(proposal?.decision !== undefined, "there is no proposal to confirm");
-  refuse(proposal.head === graph?.head, "the proposal is stale: the graph changed after it was made");
+  refuse(planned?.decision !== undefined, "there is no step to append");
+  refuse(planned.revision === working.head, "the step is stale: the working graph changed after it was planned");
 
-  const appended = await viaProvider("the provider refused to append the proposal",
-    () => protocol.appendDecision(graph.log, proposal.decision));
-  const envelope = await protocol.createEnvelope(appended.log, null, { pattern: GRAPH_PATTERN });
-  return Object.freeze({ ir: uiIrFor(envelope), graph: appended.verified });
+  const appended = await viaProvider("the provider refused to append the step",
+    () => protocol.appendDecision(working.log, planned.decision));
+  return appended.verified;
+}
+
+const relationsById = records => new Map(
+  records.filter(record => record?.type === "relation").map(record => [record.id, record]),
+);
+const regionIds = records => records.filter(record => record?.type === "region").map(record => record.id).sort();
+const sameEdge = (left, right) => left?.from === right?.from && left?.to === right?.to;
+
+// Undo a saved entry by adding its opposite to the working graph. `before` and
+// `after` are the provider's states around that entry; the opposite is read off
+// their difference - edges it added are removed, edges it removed are put back
+// with the id, kind and label they had - and checked against the working graph
+// as it is now. Only edge changes can be reverted. A later change that already
+// altered one of those edges makes the revert a conflict, and it is refused
+// rather than guessed at. The saved graph is never touched.
+export async function revertStep({ before, after, working, protocol } = {}) {
+  requireGraph(working);
+  refuse(Array.isArray(before) && Array.isArray(after), "before and after states are required");
+  refuse(typeof protocol?.createDecision === "function", "protocol.createDecision is required");
+  refuse(JSON.stringify(regionIds(before)) === JSON.stringify(regionIds(after)), "only edge changes can be reverted");
+
+  const earlier = relationsById(before);
+  const later = relationsById(after);
+  const added = [...later.values()].filter(relation => !sameEdge(earlier.get(relation.id), relation));
+  const removed = [...earlier.values()].filter(relation => !sameEdge(later.get(relation.id), relation));
+  refuse(added.length + removed.length > 0, "that entry changed no edge");
+
+  const current = relationsById(working.records);
+  for (const relation of added) {
+    refuse(sameEdge(current.get(relation.id), relation), "a later change already altered this edge; nothing was reverted");
+  }
+  for (const relation of removed) {
+    refuse(!current.has(relation.id), "a later change already reused this edge; nothing was reverted");
+  }
+
+  const operations = [
+    ...(added.length > 0
+      ? [{ type: "RemoveSelection", regionIds: [], relationIds: added.map(relation => relation.id) }]
+      : []),
+    ...removed.map(relation => ({
+      type: "ConnectRegions",
+      relationId: relation.id,
+      from: relation.from,
+      to: relation.to,
+      kind: relation.kind,
+      label: relation.label,
+    })),
+  ];
+  const { decision } = await viaProvider("the provider rejected the revert",
+    () => protocol.createDecision(working.head, operations, working.records));
+  return step(working.head, ACTION_REVERT, [
+    ...added.map(({ from, to }) => ({ change: "removed", from, to })),
+    ...removed.map(({ from, to }) => ({ change: "added", from, to })),
+  ], decision);
 }
 
 // What the user is looking at, so a follow-up like "reverse that" can be judged
-// against it: the pending proposal if there is one, otherwise the most recently
-// confirmed change, otherwise nothing.
-export function focusFor({ proposal = null, lastConfirmed = null } = {}) {
+// against it: the latest working step if there is one, otherwise the most
+// recently applied change, otherwise nothing.
+export function focusFor({ draft = [], lastApplied = [] } = {}) {
   const pick = (kind, changes) => Object.freeze({
     kind,
     changes: Object.freeze(changes.map(({ change, from, to }) => Object.freeze({ change, from, to }))),
   });
-  if (proposal) return pick("proposal", proposal.changes);
-  if (lastConfirmed?.length) return pick("confirmed", lastConfirmed);
+  if (draft.length > 0) return pick("draft", draft.at(-1).changes);
+  if (lastApplied.length > 0) return pick("applied", lastApplied);
   return pick("none", []);
 }

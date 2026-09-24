@@ -83,8 +83,9 @@ const changesBetween = (before, after, operations) => {
 };
 
 // The provider state after each Decision, obtained by verifying each prefix of
-// the log. Every prefix of a valid log is itself a valid log.
-const statesOf = async (log, verifyDecisionLog) => {
+// the log. Every prefix of a valid log is itself a valid log. Exported because
+// a revert of a saved entry is read off the states on either side of it.
+export const statesOf = async (log, verifyDecisionLog) => {
   const lines = log.split("\n").slice(0, -1);
   const states = [];
   for (let count = 1; count <= lines.length; count += 1) {
@@ -92,6 +93,19 @@ const statesOf = async (log, verifyDecisionLog) => {
   }
   return states;
 };
+
+// The same log cut back to its first `count` Decisions, verified again by the
+// provider. This is what the working graph's Undo is: the last unapplied step
+// is dropped, and nothing compensating is added. `floor` is the number of
+// Decisions already saved, below which a working log may never be cut.
+export async function truncateLog(graph, { count, floor, verifyDecisionLog } = {}) {
+  demand(typeof graph?.log === "string" && graph.log.length > 0, "graph.log must be a non-empty string");
+  demand(typeof verifyDecisionLog === "function", "verifyDecisionLog is required");
+  const lines = graph.log.split("\n").slice(0, -1);
+  demand(Number.isInteger(count) && count >= 1 && count <= lines.length, "count is outside the log");
+  demand(Number.isInteger(floor) && count >= floor, "a working log cannot be cut below what is saved");
+  return verifyDecisionLog(`${lines.slice(0, count).join("\n")}\n`);
+}
 
 // Project a provider-verified log into what the screen has to distinguish: the
 // initial graph, the accumulated confirmed facts in log order, and the current

@@ -14,6 +14,8 @@ import {
   persistHistory,
   projectHistory,
   restoreHistory,
+  statesOf,
+  truncateLog,
 } from "../src/decision/history.mjs";
 
 const store = process.env.SEMANTIC_MAP;
@@ -319,4 +321,48 @@ test("a write is refused when another tab changed the stored log in between", as
   const next = await withEdge(first, "node-a", "node-b");
   await persistHistory({ write: storage.write, read: storage.read, expected: first.log, graph: next });
   assert.equal(storage.values.get(HISTORY_KEY), next.log);
+});
+
+// 作業図's 元に戻す: the working log cut back by one Decision, verified again.
+
+test("undo cuts the working log back to its exact previous prefix", async () => {
+  const saved = await withEdge(await baseGraph(), "node-c", "node-a");
+  const oneStep = await withEdge(saved, "node-a", "node-b");
+  const twoSteps = await withEdge(oneStep, "node-b", "node-c");
+
+  const undoneOnce = await truncateLog(twoSteps, {
+    count: twoSteps.decisions.length - 1,
+    floor: saved.decisions.length,
+    verifyDecisionLog,
+  });
+  assert.equal(undoneOnce.log, oneStep.log, "one undo must give back exactly the earlier working log");
+  assert.equal(undoneOnce.head, oneStep.head);
+
+  const undoneTwice = await truncateLog(undoneOnce, {
+    count: undoneOnce.decisions.length - 1,
+    floor: saved.decisions.length,
+    verifyDecisionLog,
+  });
+  assert.equal(undoneTwice.log, saved.log, "undoing every step gives back exactly the saved log");
+});
+
+test("undo never cuts below what is saved", async () => {
+  const saved = await withEdge(await baseGraph(), "node-c", "node-a");
+  await assert.rejects(
+    truncateLog(saved, { count: saved.decisions.length - 1, floor: saved.decisions.length, verifyDecisionLog }),
+    /cannot be cut below what is saved/u,
+  );
+  await assert.rejects(
+    truncateLog(saved, { count: 0, floor: 0, verifyDecisionLog }),
+    /count is outside the log/u,
+  );
+});
+
+test("the state after each Decision is the provider's own state for that prefix", async () => {
+  const first = await withEdge(await baseGraph(), "node-c", "node-a");
+  const second = await withEdge(first, "node-a", "node-b");
+  const states = await statesOf(second.log, verifyDecisionLog);
+  assert.equal(states.length, second.decisions.length);
+  assert.deepEqual(states[1], first.records);
+  assert.deepEqual(states[2], second.records);
 });

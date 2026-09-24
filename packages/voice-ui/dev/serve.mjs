@@ -167,9 +167,14 @@ const server = createServer((request, response) => {
 });
 
 const port = Number(process.env.PORT ?? 8787);
-server.listen(port, "127.0.0.1", () => {
+// Loopback only, unless HOST is set explicitly. Inside a throwaway container
+// HOST=0.0.0.0 lets the container's published port reach the server; which
+// host addresses may reach that port is decided by the publish, not here.
+const host = process.env.HOST || "127.0.0.1";
+server.listen(port, host, () => {
   // Provider identity is part of the evidence, so it is printed, never the key.
-  process.stdout.write(`voice-ui dev: http://127.0.0.1:${port}/\n`);
+  const bound = server.address();
+  process.stdout.write(`voice-ui dev: listening on ${bound.address}:${bound.port}\n`);
   for (const [name, value] of Object.entries(stores)) {
     process.stdout.write(`voice-ui dev: ${name}=${value}\n`);
   }
