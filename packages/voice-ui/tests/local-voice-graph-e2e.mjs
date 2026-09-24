@@ -43,9 +43,11 @@ const distance = (left, right) => {
 
 const errors = [];
 const failedResponses = [];
+const consoleMessages = [];
 
 const watch = target => {
   target.on("pageerror", error => errors.push(String(error)));
+  target.on("console", message => consoleMessages.push(message.text()));
   target.on("response", response => {
     if (response.status() >= 400) {
       failedResponses.push(response.status() + " " + response.url());
@@ -155,6 +157,15 @@ const screen = target => target.evaluate(key => ({
   failure: document.querySelector("[data-history=failure]")?.textContent ?? null,
   // 作業図's unapplied steps.
   draft: [...document.querySelectorAll("#draft li")].map(item => item.dataset.changes),
+  // Each unapplied step as shown: where its text came from, that text, what it
+  // does, and whether any element was created inside the item's text.
+  items: [...document.querySelectorAll("#draft li")].map(item => ({
+    source: item.dataset.source,
+    input: item.querySelector("[data-input]")?.textContent ?? null,
+    effect: item.querySelector("[data-effect]")?.textContent ?? null,
+    elements: item.querySelectorAll("[data-input] *, img, b, script").length,
+  })),
+  draftHeading: document.querySelector("#draft-heading")?.textContent ?? null,
   draftCount: document.querySelector("#draft-count").textContent,
   notice: document.querySelector("#working-notice")?.textContent ?? null,
   sendDisabled: document.querySelector("#send").disabled,
@@ -232,6 +243,22 @@ const jevExchange = target => ({
   ),
 });
 
+// Every text that has gone to Jev so far. A request carries its own text as
+// state.utterance and no other: each draft entry is its changes only, and no
+// earlier text appears anywhere else in the body.
+const inputsSent = new Set();
+const assertOnlyCurrentInput = sent => {
+  const { utterance, ...rest } = sent.state;
+  for (const entry of sent.state.draft) {
+    assert.deepEqual(Object.keys(entry), ["changes"], "a draft entry sent to Jev must be its changes only");
+  }
+  const body = JSON.stringify({ ...sent, state: rest });
+  for (const earlier of inputsSent) {
+    assert.equal(body.includes(earlier), false, `an earlier input reached Jev: ${earlier}`);
+  }
+  inputsSent.add(utterance);
+};
+
 // Speak or type, and return what was sent and what Jev answered once the page
 // has settled.
 const ask = async (target, act) => {
@@ -241,7 +268,25 @@ const ask = async (target, act) => {
   const response = await exchange.response;
   assert.equal(response.status(), 200);
   await settle(target);
-  return { sent: JSON.parse(request.postData()), decision: await response.json() };
+  const sent = JSON.parse(request.postData());
+  assertOnlyCurrentInput(sent);
+  return { sent, decision: await response.json() };
+};
+
+// What an unapplied step should show: the exact text sent to Jev for it
+// (認識文 for voice, 入力文 for typed), or nothing for a revert, and its
+// effect in words read off the same verified changes as data-changes.
+const effectText = changes => {
+  const [first, second] = changes.split(" ");
+  if (second === undefined) return `${first.startsWith("+") ? "追加" : "削除"} ${first.slice(1)}`;
+  return `反転 ${first.slice(1)} ⇒ ${second.slice(1)}`;
+};
+const itemFor = (source, input, changes) => ({ source, input, effect: effectText(changes), elements: 0 });
+const typedItem = (asked, changes) => itemFor("typed", asked.sent.state.utterance, changes);
+const voiceItem = (asked, changes) => itemFor("voice", asked.sent.state.utterance, changes);
+const revertItem = changes => itemFor("revert", null, changes);
+const assertNotStored = stored => {
+  for (const input of inputsSent) assert.equal(stored.includes(input), false, `an input was stored: ${input}`);
 };
 
 const voiceTrace = (target, from = 0) => target.evaluate(from => window.voiceTrace.slice(from), from);
@@ -345,6 +390,8 @@ const voiceEdge = edgeOf(voiceAdd.decision.answers);
 const drafted = await screen(page);
 assert.equal(drafted.state, "drafted");
 assert.deepEqual(drafted.draft, [`+${voiceEdge}`]);
+assert.equal(drafted.draftHeading, "未反映の操作");
+assert.deepEqual(drafted.items, [voiceItem(voiceAdd, `+${voiceEdge}`)], "the step shows the recognized text it was judged from");
 assert.equal(drafted.stored, null, "a working step must not be saved");
 assert.deepEqual(drafted.confirmed, [], "a working step is not an applied entry");
 assert.deepEqual(await panes(page), { confirmed: [], working: [voiceEdge] });
@@ -477,6 +524,7 @@ assert.equal(typedA.decision.answers.action.choice, "add-edge");
 const edgeA = edgeOf(typedA.decision.answers);
 await assertSavedUntouched("first typed step", null, [], []);
 assert.deepEqual((await screen(page)).draft, [`+${edgeA}`]);
+assert.deepEqual((await screen(page)).items, [typedItem(typedA, `+${edgeA}`)]);
 assert.deepEqual((await drawn(page, "working")).edges, [edgeA]);
 
 const typedB = await type(page, "add an edge from b to c");
@@ -487,11 +535,13 @@ assert.deepEqual(typedB.sent.state.draft, [{ changes: [{ change: "added", from: 
 assert.deepEqual(typedB.sent.state.focus, { kind: "draft", changes: [{ change: "added", from: aFrom, to: aTo }] });
 await assertSavedUntouched("second typed step", null, [], []);
 assert.deepEqual((await screen(page)).draft, [`+${edgeA}`, `+${edgeB}`]);
+assert.deepEqual((await screen(page)).items, [typedItem(typedA, `+${edgeA}`), typedItem(typedB, `+${edgeB}`)]);
 assert.deepEqual((await drawn(page, "working")).edges, [edgeA, edgeB].sort());
 
 await press(page, "#undo");
 assert.equal((await screen(page)).state, "undone");
 assert.deepEqual((await screen(page)).draft, [`+${edgeA}`]);
+assert.deepEqual((await screen(page)).items, [typedItem(typedA, `+${edgeA}`)], "Undo keeps the remaining step's text");
 assert.deepEqual((await drawn(page, "working")).edges, [edgeA]);
 await press(page, "#undo");
 const undoneAll = await assertSavedUntouched("two undos", null, [], []);
@@ -506,6 +556,8 @@ await press(page, "#apply");
 const appliedTwo = await screen(page);
 assert.equal(appliedTwo.state, "applied");
 assert.deepEqual(appliedTwo.draft, []);
+assert.deepEqual(appliedTwo.items, []);
+assertNotStored(appliedTwo.stored);
 assert.deepEqual(appliedTwo.confirmed, [`+${edgeA}`, `+${edgeB}`], "Apply writes every step as its own entry");
 assert.equal(lineCount(appliedTwo.stored), 3, "the initial graph plus exactly the two applied Decisions");
 const savedTwo = appliedTwo.stored;
@@ -549,6 +601,7 @@ assert.deepEqual(afterNothing.draft, withOneStep.draft);
 await press(page, "#discard");
 assert.equal((await screen(page)).state, "discarded");
 assert.deepEqual((await screen(page)).draft, []);
+assert.deepEqual((await screen(page)).items, []);
 assert.deepEqual((await drawn(page, "working")).edges, [edgeA, edgeB].sort());
 
 // (x) Revert: an applied entry's opposite is added to 作業図 - never to 確定図 -
@@ -558,6 +611,7 @@ await settle(page);
 const reverting = await assertSavedUntouched("revert", savedTwo, [`+${edgeA}`, `+${edgeB}`], [edgeA, edgeB].sort());
 assert.equal(reverting.state, "drafted");
 assert.deepEqual(reverting.draft, [`-${edgeB}`]);
+assert.deepEqual(reverting.items, [revertItem(`-${edgeB}`)], "a revert shows 取り消し and no text");
 assert.deepEqual((await drawn(page, "working")).edges, [edgeA]);
 
 await press(page, "#apply");
@@ -578,6 +632,7 @@ const conflict = await assertSavedUntouched("revert conflict", savedThree, [`+${
 assert.equal(conflict.state, "failed");
 assert.match(conflict.failure ?? "", /later change/u);
 assert.deepEqual(conflict.draft, [`-${edgeA}`], "a refused revert must not change the working steps");
+assert.deepEqual(conflict.items, [typedItem(removeA, `-${edgeA}`)]);
 assert.deepEqual((await drawn(page, "working")).edges, []);
 await press(page, "#discard");
 
@@ -729,7 +784,7 @@ await press(page, "#discard");
 
 // (xiii) Apply's write fails on a genuinely exhausted quota: nothing is saved,
 // 確定図 is unchanged, and 作業図 keeps its steps to retry.
-await type(page, "add an edge from c to a");
+const quotaStep = await type(page, "add an edge from c to a");
 const fillers = await page.evaluate(() => {
   let size = 1 << 20;
   let count = 0;
@@ -750,6 +805,7 @@ const afterFailedWrite = await assertSavedUntouched("a failed write", savedThree
 assert.equal(afterFailedWrite.state, "failed");
 assert.match(afterFailedWrite.failure ?? "", /not persisted/u);
 assert.deepEqual(afterFailedWrite.draft, [`+${edgeC}`], "a refused Apply keeps the working steps to retry");
+assert.deepEqual(afterFailedWrite.items, [typedItem(quotaStep, `+${edgeC}`)], "a refused Apply keeps each step's text");
 assert.equal(afterFailedWrite.applyDisabled, false, "a failed write must not block the app");
 
 await page.evaluate(count => {
@@ -774,6 +830,7 @@ assert.equal(conflicted.state, "failed");
 assert.match(conflicted.failure ?? "", /別のタブ/u);
 assert.equal(conflicted.stored, theirSaved, "the other tab's history must not be overwritten");
 assert.deepEqual(conflicted.draft, [`+${edgeC}`], "a refused Apply keeps the working steps exactly");
+assert.deepEqual(conflicted.items, [typedItem(quotaStep, `+${edgeC}`)]);
 assert.deepEqual((await drawn(page, "working")).edges, [edgeA, edgeC].sort());
 await otherTab.close();
 
@@ -784,6 +841,8 @@ await ready(page);
 const afterReload = await screen(page);
 assert.equal(afterReload.state, "restored");
 assert.deepEqual(afterReload.draft, [], "unapplied steps do not survive a reload");
+assert.deepEqual(afterReload.items, []);
+assertNotStored(afterReload.stored);
 assert.equal(afterReload.stored, theirSaved);
 assert.deepEqual(afterReload.storageKeys, [STORAGE_KEY], "the working graph is never written to storage");
 assert.deepEqual(afterReload.confirmed, [`+${edgeA}`, `+${edgeB}`, `-${edgeB}`, `+${theirEdge}`]);
@@ -794,8 +853,12 @@ assert.deepEqual(await panes(page), { confirmed: [edgeA, theirEdge].sort(), work
 // one render. Storage now leads the screen, so the page must say so, block
 // every further action, and a reload must draw what was saved.
 const beforeUndrawn = afterReload.stored;
-await type(page, "add an edge from c to a");
-assert.deepEqual((await screen(page)).draft, [`+${edgeC}`]);
+// The text of this step looks like markup. It must be shown literally, as
+// text, and nothing in it may run or become an element.
+const hostile = await type(page, 'add an edge from c to a <img src=x onerror="window.injected=1"><b>now</b>');
+assert.deepEqual((await screen(page)).draft, [`+${edgeC}`], "precondition: Jev must still add c->a");
+assert.deepEqual((await screen(page)).items, [typedItem(hostile, `+${edgeC}`)], "markup-like text is shown literally");
+assert.equal(await page.evaluate(() => window.injected), undefined, "nothing in the text may run");
 
 const frameDocument = new URL("/ui/semantic-map/authoring/pages/embed.html", url).href;
 const injected = [];
@@ -812,6 +875,7 @@ assert.equal(undrawn.state, "saved-display-failed");
 assert.match(undrawn.failure ?? "", /display failed/u);
 assert.ok(undrawn.stored.startsWith(beforeUndrawn), "the write must add to what was saved");
 assert.equal(lineCount(undrawn.stored), lineCount(beforeUndrawn) + 1, "exactly one Decision must be added");
+assertNotStored(undrawn.stored);
 for (const control of ["sendDisabled", "micDisabled", "undoDisabled", "discardDisabled", "applyDisabled"]) {
   assert.equal(undrawn[control], true, `${control} while the screen is behind storage`);
 }
@@ -850,6 +914,7 @@ const typedEdge = edgeOf(typedStep.decision.answers);
 assert.notEqual(typedEdge, voiceEdge);
 assert.notEqual(typedEdge, flip(voiceEdge));
 assert.deepEqual((await screen(page)).draft, [`+${typedEdge}`]);
+assert.deepEqual((await screen(page)).items, [typedItem(typedStep, `+${typedEdge}`)]);
 assert.equal((await screen(page)).stored, savedLog);
 assert.deepEqual(await panes(page), { confirmed: [voiceEdge], working: [voiceEdge, typedEdge].sort() });
 
@@ -898,6 +963,12 @@ assert.equal(heard.decision.answers.edge.choice, typedEdgeId, "\"that edge\" mus
 const corrected = await screen(page);
 assert.equal(corrected.state, "drafted");
 assert.deepEqual(corrected.draft, [`+${typedEdge}`, `-${typedEdge} +${flip(typedEdge)}`]);
+// Each step keeps the text it was judged from: the typed one its typed text,
+// the spoken one exactly the recognized text that was sent to Jev.
+assert.deepEqual(corrected.items, [
+  typedItem(typedStep, `+${typedEdge}`),
+  voiceItem(heard, `-${typedEdge} +${flip(typedEdge)}`),
+]);
 assert.equal(corrected.stored, savedLog, "a spoken correction changes 作業図 only");
 assert.deepEqual(corrected.confirmed, [`+${voiceEdge}`]);
 assert.deepEqual(await panes(page), { confirmed: [voiceEdge], working: [voiceEdge, flip(typedEdge)].sort() });
@@ -910,6 +981,8 @@ assert.deepEqual((await screen(page)).draft, corrected.draft);
 await press(page, "#apply");
 const final = await screen(page);
 assert.equal(final.state, "applied");
+assert.deepEqual(final.items, []);
+assertNotStored(final.stored);
 assert.deepEqual(final.confirmed, [`+${voiceEdge}`, `+${typedEdge}`, `-${typedEdge} +${flip(typedEdge)}`]);
 assert.ok(final.stored.startsWith(savedLog));
 assert.equal(lineCount(final.stored), lineCount(savedLog) + 2, "both working steps are applied as they are");
@@ -929,10 +1002,15 @@ await second.browser.close();
 
 assert.deepEqual(errors, []);
 assert.deepEqual(failedResponses, []);
+for (const input of inputsSent) {
+  assert.equal(consoleMessages.some(message => message.includes(input)), false, `an input was logged to the console: ${input}`);
+}
 
 process.stdout.write(
   `local-voice-graph-e2e: PASS spoken add "${voiceAdd.sent.state.utterance}" -> 作業図 only, applied edge=${voiceEdge} `
   + `| each voice press: one click, 0 text focus, 0 Send, [${voiceAdd.trace.join(" ")}], 1 Jev request `
+  + `| every step shows its exact text (認識文/入力文) and verified effect through Undo, revert, refused and successful Apply, reload; `
+  + `${inputsSent.size} distinct inputs never re-sent to Jev, stored or logged; markup-like text literal `
   + `| refused microphone: [${voicePhases(refusalTrace).map(entry => entry.kind).join(" ")}], 0 Jev requests, nothing changed, controls given back `
   + `| embedded Accept [${embeddedAccepts.join("; ")}] / [${correctionAccepts.join("; ")}] `
   + `| corrupt and foreign logs fail closed | typed ${edgeA}, ${edgeB}: 2 undos, then 2-step apply `

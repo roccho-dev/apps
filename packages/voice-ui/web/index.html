@@ -26,7 +26,8 @@
         <section id="working" aria-label="作業図">
           <h2>作業図</h2>
           <p id="working-notice">作業図は保存されていません。再読み込みすると消えます。</p>
-          <ol id="draft" aria-label="未反映の変更"></ol>
+          <h3 id="draft-heading">未反映の操作</h3>
+          <ol id="draft" aria-labelledby="draft-heading"></ol>
           <p id="draft-count"></p>
           <button id="undo" type="button">元に戻す</button>
           <button id="discard" type="button">作業図を破棄</button>
@@ -164,6 +165,12 @@
       let draft = [];
       let candidate = null;
 
+      // The text each adopted step was judged from - what Hayamimi recognized,
+      // or what was typed - keyed by that exact step. It is only shown next to
+      // the step: it is never sent to Jev again and never stored, and a step
+      // that leaves the draft takes its entry with it. A revert has none.
+      const inputOf = new WeakMap();
+
       // Nothing a request produces except a drawn step changes the working
       // graph. "No change" - including an undo asked for by voice and a full
       // working graph - is an ordinary answer, not an error.
@@ -253,14 +260,45 @@
         if (failure) historyPanel.append(line("failure", failure));
       };
 
-      // 作業図's unapplied steps, in order, with the cap stated.
+      // What a step does, in words, read off its provider-verified changes: one
+      // added edge, one removed edge, or one edge removed and its opposite added.
+      // Anything else is listed as it is.
+      const effectOf = changes => {
+        const [first, second] = changes;
+        if (changes.length === 1 && first.change === "added") return `追加 ${first.from}->${first.to}`;
+        if (changes.length === 1 && first.change === "removed") return `削除 ${first.from}->${first.to}`;
+        if (
+          changes.length === 2 && first.change === "removed" && second.change === "added"
+          && second.from === first.to && second.to === first.from
+        ) {
+          return `反転 ${first.from}->${first.to} ⇒ ${second.from}->${second.to}`;
+        }
+        return changes.map(describe).join(" ");
+      };
+
+      // 作業図's unapplied steps, in order, with the cap stated. Each shows the
+      // text it was judged from and what it does. The text is set as text only.
       const renderDraft = () => {
         draftList.replaceChildren();
         for (const step of draft) {
           const item = document.createElement("li");
           item.dataset.step = step.action;
           item.dataset.changes = step.changes.map(describe).join(" ");
-          item.textContent = item.dataset.changes;
+          const input = inputOf.get(step);
+          item.dataset.source = input?.source ?? "revert";
+          const label = document.createElement("span");
+          label.textContent = input === undefined ? "取り消し" : input.source === "voice" ? "認識文: " : "入力文: ";
+          item.append(label);
+          if (input !== undefined) {
+            const said = document.createElement("q");
+            said.dataset.input = "";
+            said.textContent = input.text;
+            item.append(said);
+          }
+          const effect = document.createElement("span");
+          effect.dataset.effect = "";
+          effect.textContent = effectOf(step.changes);
+          item.append(" → ", effect);
           draftList.append(item);
         }
         draftCount.textContent = `未反映: ${draft.length} / ${DRAFT_MAX}`
@@ -321,7 +359,7 @@
       // storage: the utterance is judged against 作業図 and every unapplied
       // step, and a usable answer becomes one more step on 作業図. The v1 and v2
       // HTTP contracts are still served; this screen drives v4.
-      const decideStep = async value => {
+      const decideStep = async (value, source) => {
         // Nothing typed, or a transcript with nothing in it, asks for nothing,
         // and a full working graph takes no more steps: in both cases no
         // request goes to Jev at all.
@@ -351,12 +389,12 @@
           throw new NoChange(planned.reason, planned.undoRequest ? "undo-request" : "no-change");
         }
         const next = await appendStep({ working, step: planned.step, protocol });
-        candidate = { working: next, step: planned.step };
+        candidate = { working: next, step: planned.step, input: { source, text: value } };
         return graphIr(next);
       };
 
       // The typed handler already owns the surface by the time it calls this.
-      const decideTyped = value => decideStep(value);
+      const decideTyped = value => decideStep(value, "typed");
 
       // Transcription has already finished by the time this runs, so this is
       // where the surface critical section begins for voice. The claim is taken
@@ -368,7 +406,7 @@
         syncBusy();
         setVoice("deciding", "voice: 判定中");
 
-        return decideStep(value);
+        return decideStep(value, "voice");
       };
 
       // Each pane draws a plain graph: no proposal overlay, no review controls
@@ -446,6 +484,7 @@
         if (!error) {
           working = candidate.working;
           draft = [...draft, candidate.step];
+          inputOf.set(candidate.step, candidate.input);
           candidate = null;
           renderDraft();
           setState("drafted", `${prefix}: 作業図に追加しました (未反映)`);
