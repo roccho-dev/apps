@@ -9,10 +9,12 @@ import {
   ACTION_ADD,
   ACTION_ADD_PART,
   ACTION_NONE,
+  ACTION_PLACE_PART,
   ACTION_REMOVE,
   ACTION_REVERSE,
   ACTION_REVERT,
   ACTION_UNDO_REQUEST,
+  DIRECTIONS,
   DRAFT_MAX,
   OPTION_NONE,
   OUTCOME_NO_CHANGE,
@@ -24,11 +26,14 @@ import {
   edgesOf,
   focusFor,
   freeSlot,
+  neighbourBounds,
   nextPartId,
+  placeableIds,
+  spotIsFree,
   planStep,
   revertStep,
 } from "../src/decision/correction.mjs";
-import { statesOf, truncateLog } from "../src/decision/history.mjs";
+import { projectHistory, statesOf, truncateLog } from "../src/decision/history.mjs";
 
 const store = process.env.SEMANTIC_MAP;
 if (!store) throw new Error("SEMANTIC_MAP must point at the pinned semantic-map store path");
@@ -470,9 +475,189 @@ test("the focus is the latest working step, else the latest applied change, else
   assert.equal(DRAFT_MAX, 8);
 });
 
-// The Pages Function side of v6: which questions are put to Jev for a given
-// working graph, draft, focus and recent conversation, and what shape comes
-// back. Only the request moved to v6; the answer is still decision.v4.
+// Placement: the app asks the provider where the graph is drawn, and offers
+// Jev only parts and sides. Jev never sees or returns a coordinate.
+
+const layoutOf = graph => protocol.layoutBoundsFor(graph.records, { pattern: "graph/1" });
+
+const placeAnswers = (graph, layout, { move, anchor, direction, confidence = 0.9 }) => {
+  const criteria = correctionCriteria(graph.records, layout);
+  const answers = {
+    action: choice(ACTION_PLACE_PART, confidence),
+    source: choice(OPTION_NONE, confidence),
+    target: choice(OPTION_NONE, confidence),
+    part: choice(OPTION_NONE, confidence),
+    move: choice(move, confidence),
+    anchor: choice(anchor, confidence),
+    direction: choice(direction, confidence),
+  };
+  if (criteria.edges.length > 0) answers.edge = choice(criteria.edges[0], confidence);
+  return answers;
+};
+
+const place = (graph, spec) => {
+  const layout = layoutOf(graph);
+  return planStep({ working: graph, revision: graph.head, answers: placeAnswers(graph, layout, spec), protocol, layout });
+};
+
+test("the parts offered for placement are the ones the view actually draws", async () => {
+  const graph = await baseGraph();
+  const layout = layoutOf(graph);
+  assert.deepEqual(placeableIds(layout, graph.records), ["node-a", "node-b", "node-c"]);
+  assert.equal(Object.hasOwn(layout.bounds, "root"), true, "the view places the boundary");
+  assert.equal(placeableIds(layout, graph.records).includes("root"), false, "the boundary is never offered");
+
+  const criteria = correctionCriteria(graph.records, layout);
+  assert.ok(criteria.actions.includes(ACTION_PLACE_PART));
+  assert.deepEqual(criteria.placeable, ["node-a", "node-b", "node-c", OPTION_NONE]);
+  assert.deepEqual(criteria.directions, [...DIRECTIONS, OPTION_NONE]);
+
+  const blind = correctionCriteria(graph.records);
+  assert.equal(blind.actions.includes(ACTION_PLACE_PART), false, "no layout, no placement offered");
+  assert.deepEqual(blind.placeable, []);
+});
+
+test("a neighbouring spot takes its size and position from the view, not from us", async () => {
+  const graph = await baseGraph();
+  const layout = layoutOf(graph);
+  const [ax, ay, aw, ah] = layout.bounds["node-a"];
+  const [, , tw, th] = layout.bounds["node-c"];
+  assert.equal(tw, 180, "precondition: the view sizes parts itself");
+  assert.equal(th, 92);
+
+  assert.deepEqual(neighbourBounds(layout, "node-c", "node-a", "right"), [ax + aw + 24, ay, tw, th]);
+  assert.deepEqual(neighbourBounds(layout, "node-c", "node-a", "left"), [ax - tw - 24, ay, tw, th]);
+  assert.deepEqual(neighbourBounds(layout, "node-c", "node-a", "above"), [ax, ay - th - 24, tw, th]);
+  assert.deepEqual(neighbourBounds(layout, "node-c", "node-a", "below"), [ax, ay + ah + 24, tw, th]);
+  assert.throws(() => neighbourBounds(layout, "node-c", "node-a", "diagonal"), /unknown direction/u);
+  assert.throws(() => neighbourBounds(layout, "node-c", "missing", "right"), /anchor is not placed/u);
+});
+
+test("placing a part builds one PinRegions at the spot beside its anchor", async () => {
+  const graph = await baseGraph();
+  const layout = layoutOf(graph);
+  const planned = await place(graph, { move: "node-c", anchor: "node-a", direction: "right" });
+
+  assert.equal(planned.outcome, OUTCOME_STEP);
+  assert.equal(planned.step.action, ACTION_PLACE_PART);
+  const expected = neighbourBounds(layout, "node-c", "node-a", "right");
+  assert.deepEqual(planned.step.decision.operations, [{
+    type: "PinRegions",
+    items: [{ regionId: "node-c", bounds: [...expected] }],
+  }]);
+  assert.deepEqual(planned.step.changes, [{
+    change: "placed", kind: "region", id: "node-c", anchor: "node-a", direction: "right",
+  }]);
+
+  const working = await appendStep({ working: graph, step: planned.step, protocol });
+  const after = layoutOf(working);
+  assert.deepEqual(after.bounds["node-c"], [...expected], "the view places it where the pin says");
+  assert.deepEqual(after.pinned, ["node-c"]);
+  assert.notDeepEqual(after.bounds["node-c"], layout.bounds["node-c"], "and that is not where it was");
+  for (const id of ["node-a", "node-b"]) {
+    assert.deepEqual(after.bounds[id], layout.bounds[id], id + " keeps its automatic position");
+  }
+});
+
+test("an anchor that has already been placed is used where it is now", async () => {
+  const graph = await baseGraph();
+  const first = await place(graph, { move: "node-c", anchor: "node-a", direction: "right" });
+  const moved = await appendStep({ working: graph, step: first.step, protocol });
+
+  const layout = layoutOf(moved);
+  assert.deepEqual(layout.pinned, ["node-c"]);
+  const second = await place(moved, { move: "node-b", anchor: "node-c", direction: "below" });
+  assert.equal(second.outcome, OUTCOME_STEP);
+  assert.deepEqual(
+    second.step.decision.operations[0].items[0].bounds,
+    [...neighbourBounds(layout, "node-b", "node-c", "below")],
+    "computed against node-c's pinned position, not the one it used to have",
+  );
+});
+
+test("a taken spot, a part beside itself, or the same move twice changes nothing", async () => {
+  const graph = await baseGraph();
+  const layout = layoutOf(graph);
+
+  // The view stacks this graph a, b, c downwards, so the spot just above b is
+  // the one a already occupies.
+  assert.equal(spotIsFree(layout, graph.records, "node-c", neighbourBounds(layout, "node-c", "node-b", "above")), false);
+  const taken = await place(graph, { move: "node-c", anchor: "node-b", direction: "above" });
+  assert.equal(taken.outcome, OUTCOME_NO_CHANGE);
+  assert.match(taken.reason, /別の部品があります/u);
+
+  // ...while the spot beside b is empty, so the same check says yes there.
+  assert.equal(spotIsFree(layout, graph.records, "node-c", neighbourBounds(layout, "node-c", "node-b", "right")), true);
+
+  await assert.rejects(
+    place(graph, { move: "node-c", anchor: "node-c", direction: "right" }),
+    error => error instanceof DecisionRefused && /beside itself/u.test(error.message),
+  );
+
+  const first = await place(graph, { move: "node-c", anchor: "node-a", direction: "right" });
+  const moved = await appendStep({ working: graph, step: first.step, protocol });
+  const again = await place(moved, { move: "node-c", anchor: "node-a", direction: "right" });
+  assert.equal(again.outcome, OUTCOME_NO_CHANGE);
+  assert.match(again.reason, /すでにそこにあります/u);
+});
+
+test("none in any placement slot, or low confidence, changes nothing", async () => {
+  const graph = await baseGraph();
+  for (const spec of [
+    { move: OPTION_NONE, anchor: "node-a", direction: "right" },
+    { move: "node-c", anchor: OPTION_NONE, direction: "right" },
+    { move: "node-c", anchor: "node-a", direction: OPTION_NONE },
+  ]) {
+    const answer = await place(graph, spec);
+    assert.equal(answer.outcome, OUTCOME_NO_CHANGE, JSON.stringify(spec));
+    assert.match(answer.reason, /did not name a part, a neighbour and a side/u);
+  }
+  const unsure = await place(graph, { move: "node-c", anchor: "node-a", direction: "right", confidence: 0.3 });
+  assert.equal(unsure.outcome, OUTCOME_NO_CHANGE);
+  assert.match(unsure.reason, /not confident enough/u);
+});
+
+test("a placement is a history fact, and reverting it puts the part back", async () => {
+  const graph = await baseGraph();
+  const planned = await place(graph, { move: "node-c", anchor: "node-a", direction: "right" });
+  const moved = await appendStep({ working: graph, step: planned.step, protocol });
+  const states = await statesOf(moved.log, verifyDecisionLog);
+
+  const projected = await projectHistory(moved, { verifyDecisionLog });
+  const facts = projected.entries.at(-1).facts;
+  assert.equal(facts.length, 1, "a placement must leave exactly one fact");
+  assert.equal(facts[0].kind, "layout");
+  assert.equal(facts[0].id, "node-c");
+
+  const revert = await revertStep({ before: states[0], after: states[1], working: moved, protocol });
+  assert.deepEqual(revert.decision.operations, [{ type: "UnpinRegions", regionIds: ["node-c"] }]);
+  const back = await appendStep({ working: moved, step: revert, protocol });
+  const layout = layoutOf(back);
+  assert.deepEqual(layout.pinned, [], "the part is back under automatic layout");
+  assert.deepEqual(layout.bounds["node-c"], layoutOf(graph).bounds["node-c"], "and back where it was");
+});
+
+test("a second placement restores the first position, and a later move refuses the revert", async () => {
+  const graph = await baseGraph();
+  const first = await appendStep({ working: graph, step: (await place(graph, { move: "node-c", anchor: "node-a", direction: "right" })).step, protocol });
+  const second = await appendStep({ working: first, step: (await place(first, { move: "node-c", anchor: "node-b", direction: "below" })).step, protocol });
+  const states = await statesOf(second.log, verifyDecisionLog);
+
+  const revert = await revertStep({ before: states[1], after: states[2], working: second, protocol });
+  assert.equal(revert.decision.operations[0].type, "PinRegions", "the earlier pin is restored, not removed");
+  assert.deepEqual(revert.decision.operations[0].items[0].bounds, [...layoutOf(first).bounds["node-c"]]);
+
+  const third = await appendStep({ working: second, step: (await place(second, { move: "node-c", anchor: "node-a", direction: "above" })).step, protocol });
+  await assert.rejects(
+    revertStep({ before: states[1], after: states[2], working: third, protocol }),
+    error => error instanceof DecisionRefused && /already moved this part/u.test(error.message),
+  );
+});
+
+// The Pages Function side of v7: which questions are put to Jev for a given
+// working graph, draft, focus, recent conversation and placeable parts, and
+// what shape comes back. Only the request moved to v7; the answer is still
+// decision.v4.
 
 const postJev = body =>
   onRequestPost({
@@ -522,8 +707,8 @@ const v5 = ({
   focus = { kind: "none", changes: [] },
   recent = [],
 } = {}) => ({
-  kind: "voice-ui.jev.request.v6",
-  state: { utterance, working: { regions: REGIONS, edges }, draft, focus, context: { recent } },
+  kind: "voice-ui.jev.request.v7",
+  state: { utterance, working: { regions: REGIONS, edges, placeable: [] }, draft, focus, context: { recent } },
 });
 
 // Earlier utterances as the page sends them: one per outcome.
@@ -535,7 +720,7 @@ const HEARD = [
   { seq: 7, source: "voice", text: "ADD AN EDGE FROM A TO B", outcome: "undone" },
 ];
 
-test("v6 on an edgeless working graph asks only about adding, and forwards the named state object", async () => {
+test("v7 on an edgeless working graph asks only about adding, and forwards the named state object", async () => {
   const request = v5({ utterance: "add an edge from c to a" });
   const { result, calls } = await withProvider({
     action: providerChoice("add-edge", ["add-edge", "add-part", "undo-request", "none"]),
@@ -557,7 +742,7 @@ test("v6 on an edgeless working graph asks only about adding, and forwards the n
   assert.deepEqual(Object.keys(call.questions.target.criteria), NODE_KEYS);
 });
 
-test("v6 with a working edge offers remove, reverse, that edge or none, and feeds planStep", async () => {
+test("v7 with a working edge offers remove, reverse, that edge or none, and feeds planStep", async () => {
   const actions = ["add-edge", "add-part", "remove-edge", "reverse-edge", "undo-request", "none"];
   const request = v5({ edges: [EDGE], draft: [{ changes: [ADDED] }], focus: { kind: "draft", changes: [ADDED] } });
   const { result, calls } = await withProvider({
@@ -582,7 +767,7 @@ test("v6 with a working edge offers remove, reverse, that edge or none, and feed
   assert.equal(planned.step.action, ACTION_REVERSE);
 });
 
-test("v6 passes an undo-request through; the step code turns it into no change", async () => {
+test("v7 passes an undo-request through; the step code turns it into no change", async () => {
   const actions = ["add-edge", "add-part", "remove-edge", "reverse-edge", "undo-request", "none"];
   const { result } = await withProvider({
     action: providerChoice("undo-request", actions),
@@ -599,13 +784,13 @@ test("v6 passes an undo-request through; the step code turns it into no change",
   assert.equal(planned.undoRequest, true);
 });
 
-test("v6 rejects malformed requests and off-criteria answers", async () => {
+test("v7 rejects malformed requests and off-criteria answers", async () => {
   const nine = Array.from({ length: 9 }, () => ({ changes: [ADDED] }));
   const bad = [
     { ...v5(), extra: true },
-    { kind: "voice-ui.jev.request.v6", state: { ...v5().state, extra: 1 } },
-    { kind: "voice-ui.jev.request.v6", state: { ...v5().state, utterance: "  " } },
-    { kind: "voice-ui.jev.request.v6", state: { ...v5().state, working: { regions: [...REGIONS, "none"], edges: [] } } },
+    { kind: "voice-ui.jev.request.v7", state: { ...v5().state, extra: 1 } },
+    { kind: "voice-ui.jev.request.v7", state: { ...v5().state, utterance: "  " } },
+    { kind: "voice-ui.jev.request.v7", state: { ...v5().state, working: { regions: [...REGIONS, "none"], edges: [], placeable: [] } } },
     v5({ edges: [{ ...EDGE, id: "none" }] }),
     v5({ edges: [{ ...EDGE, from: "node-z" }] }),
     v5({ edges: [EDGE, EDGE] }),
@@ -627,7 +812,7 @@ test("v6 rejects malformed requests and off-criteria answers", async () => {
   assert.equal(result.status, 502, "remove offered to nobody must not come back");
 });
 
-test("v6 forwards the recent conversation unchanged and tells every question it is unverified", async () => {
+test("v7 forwards the recent conversation unchanged and tells every question it is unverified", async () => {
   const request = v5({ utterance: "connect a to the database", recent: HEARD });
   const { result, calls } = await withProvider({
     action: providerChoice("add-edge", ["add-edge", "add-part", "undo-request", "none"]),
@@ -646,13 +831,13 @@ test("v6 forwards the recent conversation unchanged and tells every question it 
   }
 });
 
-test("v6 refuses a malformed recent conversation, and a v4 request is no longer served", async () => {
+test("v7 refuses a malformed recent conversation, and a v4 request is no longer served", async () => {
   const [noChange, stepEntry] = HEARD;
   const bad = [
     // A v4 request, exactly as the previous page sent it.
     { kind: "voice-ui.jev.request.v4", state: { utterance: "x", working: { regions: REGIONS, edges: [] }, draft: [], focus: { kind: "none", changes: [] } } },
     // v5 without the context, or with a different shape.
-    { kind: "voice-ui.jev.request.v6", state: { utterance: "x", working: { regions: REGIONS, edges: [] }, draft: [], focus: { kind: "none", changes: [] } } },
+    { kind: "voice-ui.jev.request.v7", state: { utterance: "x", working: { regions: REGIONS, edges: [] }, draft: [], focus: { kind: "none", changes: [] } } },
     { ...v5(), state: { ...v5().state, context: [] } },
     { ...v5(), state: { ...v5().state, context: { recent: [], extra: 1 } } },
     v5({ recent: [...HEARD, { ...noChange, seq: 9 }] }),
@@ -681,7 +866,7 @@ test("v6 refuses a malformed recent conversation, and a v4 request is no longer 
   assert.equal(result.status, 200, "five entries of 200 characters are accepted");
 });
 
-test("v6 carries part effects in the draft, focus and conversation, and offers the palette", async () => {
+test("v7 carries part effects in the draft, focus and conversation, and offers the palette", async () => {
   const request = v5({
     utterance: "add a decision",
     draft: [{ changes: [PART_ADDED] }],
@@ -717,7 +902,7 @@ test("v6 carries part effects in the draft, focus and conversation, and offers t
   assert.equal(planned.step.action, ACTION_ADD_PART);
 });
 
-test("v6 refuses a malformed part effect, and a v5 request is no longer served", async () => {
+test("v7 refuses a malformed part effect, and a v5 request is no longer served", async () => {
   const bad = [
     // The previous contract, exactly as the earlier page sent it.
     {
@@ -746,6 +931,148 @@ test("the palette the page validates against is exactly the one Jev is offered",
   const offered = Object.keys(calls[0].questions.part.criteria);
   assert.deepEqual(offered, correctionCriteria((await baseGraph()).records).parts,
     "the worker's part options and the app's palette must not drift apart");
+});
+
+const PLACED = { change: "placed", kind: "region", id: "node-c", anchor: "node-a", direction: "right" };
+
+test("v7 offers placement only when the view placed two parts, and never a coordinate", async () => {
+  const actions = ["add-edge", "add-part", "place-part", "undo-request", "none"];
+  const request = v5({ utterance: "put c to the right of a" });
+  request.state.working = { ...request.state.working, placeable: REGIONS };
+  const { result, calls } = await withProvider({
+    action: providerChoice("place-part", actions),
+    source: providerChoice("none", NODE_KEYS),
+    target: providerChoice("none", NODE_KEYS),
+    part: providerChoice("none", PART_KEYS),
+    move: providerChoice("node-c", NODE_KEYS),
+    anchor: providerChoice("node-a", NODE_KEYS),
+    direction: providerChoice("right", [...DIRECTIONS, "none"]),
+  }, () => postJev(request));
+
+  assert.equal(result.status, 200);
+  const body = await result.json();
+  assert.equal(body.kind, "voice-ui.jev.decision.v4", "the answer's contract is unchanged");
+  assert.deepEqual(Object.keys(body.answers), ["action", "source", "target", "part", "move", "anchor", "direction"]);
+
+  const [call] = calls;
+  assert.deepEqual(call.state, request.state, "Jev gets the page's state object, unchanged");
+  assert.deepEqual(Object.keys(call.questions.action.criteria), actions);
+  assert.deepEqual(Object.keys(call.questions.move.criteria), NODE_KEYS);
+  assert.deepEqual(Object.keys(call.questions.anchor.criteria), NODE_KEYS);
+  assert.deepEqual(Object.keys(call.questions.direction.criteria), [...DIRECTIONS, "none"]);
+  assert.equal(JSON.stringify(call).includes("bounds"), false, "Jev is never told where anything is drawn");
+
+  // One part on screen is nobody to stand beside.
+  const alone = v5({ utterance: "put c to the right of a" });
+  alone.state.working = { ...alone.state.working, placeable: ["node-a"] };
+  const { calls: lonely } = await withProvider({
+    action: providerChoice("none", ["add-edge", "add-part", "undo-request", "none"]),
+    source: providerChoice("none", NODE_KEYS),
+    target: providerChoice("none", NODE_KEYS),
+    part: providerChoice("none", PART_KEYS),
+  }, () => postJev(alone));
+  assert.deepEqual(Object.keys(lonely[0].questions.action.criteria), ["add-edge", "add-part", "undo-request", "none"]);
+  assert.deepEqual(Object.keys(lonely[0].questions).filter(name => ["move", "anchor", "direction"].includes(name)), []);
+});
+
+test("v7 refuses an unplaceable part, a placement answer nobody was offered, and a malformed placement effect", async () => {
+  const bad = [
+    { kind: "voice-ui.jev.request.v7", state: { ...v5().state, working: { regions: REGIONS, edges: [] } } },
+    { kind: "voice-ui.jev.request.v7", state: { ...v5().state, working: { regions: REGIONS, edges: [], placeable: ["node-z"] } } },
+    { kind: "voice-ui.jev.request.v7", state: { ...v5().state, working: { regions: REGIONS, edges: [], placeable: ["node-a", "node-a"] } } },
+    v5({ draft: [{ changes: [{ ...PLACED, direction: "diagonal" }] }] }),
+    v5({ draft: [{ changes: [{ ...PLACED, anchor: "node-c" }] }] }),
+    v5({ draft: [{ changes: [{ ...PLACED, kind: "relation" }] }] }),
+    v5({ draft: [{ changes: [{ ...PLACED, bounds: [0, 0, 1, 1] }] }] }),
+    v5({ draft: [{ changes: [{ change: "placed", from: "node-a", to: "node-c" }] }] }),
+    // Half-undone: a neighbour with no side, or a side with no neighbour.
+    v5({ focus: { kind: "draft", changes: [{ ...PLACED, anchor: "none" }] } }),
+    v5({ focus: { kind: "draft", changes: [{ ...PLACED, direction: "none" }] } }),
+  ];
+  for (const body of bad) assert.equal((await postJev(body)).status, 422, JSON.stringify(body));
+
+  // A revert says a part went back: no neighbour and no side, which is the one
+  // shape the step code produces for undoing a placement.
+  const graph = await baseGraph();
+  const moved = await appendStep({
+    working: graph,
+    step: (await place(graph, { move: "node-c", anchor: "node-a", direction: "right" })).step,
+    protocol,
+  });
+  const states = await statesOf(moved.log, verifyDecisionLog);
+  const undo = await revertStep({ before: states[0], after: states[1], working: moved, protocol });
+  const [restored] = changesForJev(undo.changes);
+  assert.deepEqual(restored, { change: "placed", kind: "region", id: "node-c", anchor: "none", direction: "none" });
+  const { result: accepted } = await withProvider({
+    action: providerChoice("none", ["add-edge", "add-part", "undo-request", "none"]),
+    source: providerChoice("none", NODE_KEYS),
+    target: providerChoice("none", NODE_KEYS),
+    part: providerChoice("none", PART_KEYS),
+  }, () => postJev(v5({ draft: [{ changes: [restored] }], focus: { kind: "draft", changes: [restored] } })));
+  assert.equal(accepted.status, 200);
+
+  // Placement offered to nobody must not come back as an answer.
+  const { result } = await withProvider({
+    action: providerChoice("place-part", ["add-edge", "add-part", "place-part", "undo-request", "none"]),
+    source: providerChoice("none", NODE_KEYS),
+    target: providerChoice("none", NODE_KEYS),
+    part: providerChoice("none", PART_KEYS),
+  }, () => postJev(v5()));
+  assert.equal(result.status, 502);
+});
+
+test("v7 carries a placement effect back to Jev, and its answer feeds the step code", async () => {
+  const graph = await baseGraph();
+  const layout = layoutOf(graph);
+  const request = v5({
+    utterance: "now put b below c",
+    draft: [{ changes: [PLACED] }],
+    focus: { kind: "draft", changes: [PLACED] },
+    recent: [{ seq: 1, source: "typed", text: "put c right of a", outcome: "step", effect: { changes: [PLACED] } }],
+  });
+  request.state.working = { ...request.state.working, placeable: [...placeableIds(layout, graph.records)] };
+
+  const { result, calls } = await withProvider({
+    action: providerChoice("place-part", ["add-edge", "add-part", "place-part", "undo-request", "none"]),
+    source: providerChoice("none", NODE_KEYS),
+    target: providerChoice("none", NODE_KEYS),
+    part: providerChoice("none", PART_KEYS),
+    move: providerChoice("node-b", NODE_KEYS),
+    anchor: providerChoice("node-c", NODE_KEYS),
+    direction: providerChoice("below", [...DIRECTIONS, "none"]),
+  }, () => postJev(request));
+
+  assert.equal(result.status, 200);
+  const body = await result.json();
+  assert.deepEqual(calls[0].state, request.state, "a placement effect reaches Jev exactly as the page sent it");
+
+  const planned = await planStep({ working: graph, revision: graph.head, answers: body.answers, protocol, layout });
+  assert.equal(planned.outcome, OUTCOME_STEP);
+  assert.equal(planned.step.action, ACTION_PLACE_PART);
+  assert.deepEqual(
+    planned.step.decision.operations[0].items[0].bounds,
+    [...neighbourBounds(layout, "node-b", "node-c", "below")],
+  );
+});
+
+test("the parts the page offers for placement are exactly the ones Jev is asked about", async () => {
+  const graph = await baseGraph();
+  const offered = correctionCriteria(graph.records, layoutOf(graph)).placeable;
+  const request = v5();
+  request.state.working = { ...request.state.working, placeable: offered.filter(key => key !== OPTION_NONE) };
+  const { calls } = await withProvider({
+    action: providerChoice("none", ["add-edge", "add-part", "place-part", "undo-request", "none"]),
+    source: providerChoice("none", NODE_KEYS),
+    target: providerChoice("none", NODE_KEYS),
+    part: providerChoice("none", PART_KEYS),
+    move: providerChoice("none", NODE_KEYS),
+    anchor: providerChoice("none", NODE_KEYS),
+    direction: providerChoice("none", [...DIRECTIONS, "none"]),
+  }, () => postJev(request));
+  assert.deepEqual(Object.keys(calls[0].questions.move.criteria), offered,
+    "the worker's placement options and the app's must not drift apart");
+  assert.deepEqual(Object.keys(calls[0].questions.direction.criteria),
+    correctionCriteria(graph.records, layoutOf(graph)).directions);
 });
 
 // A provider that never answers. With `headers`, the status arrives but the body

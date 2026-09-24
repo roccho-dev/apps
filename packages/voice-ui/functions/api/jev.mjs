@@ -71,8 +71,20 @@ const FOCUS_KINDS = ["none", "draft", "applied"];
 // effect the provider already verified, never a request for one.
 const PART_LABEL_MAX = 120;
 
+const DIRECTIONS = ["left", "right", "above", "below"];
+
 const validChange = change =>
-  (change?.kind === "region"
+  (change?.kind === "region" && change?.change === "placed"
+    ? exactObject(change, ["change", "kind", "id", "anchor", "direction"]) &&
+      // A placement names the part, the part it was put beside and the side.
+      // Putting one back where it was has no neighbour and no side, so both
+      // slots also carry none - but never a part beside itself.
+      validId(change.id) &&
+      (validId(change.anchor) || change.anchor === NONE) &&
+      (DIRECTIONS.includes(change.direction) || change.direction === NONE) &&
+      change.anchor !== change.id &&
+      (change.anchor === NONE) === (change.direction === NONE)
+    : change?.kind === "region"
     ? exactObject(change, ["change", "kind", "id", "label"]) &&
       validId(change.id) &&
       typeof change.label === "string" &&
@@ -81,7 +93,8 @@ const validChange = change =>
     : exactObject(change, ["change", "from", "to"]) &&
       validId(change.from) &&
       validId(change.to)) &&
-  (change.change === "added" || change.change === "removed");
+  (change.change === "added" || change.change === "removed"
+    || (change.change === "placed" && change.kind === "region"));
 
 const validChanges = value =>
   Array.isArray(value) && value.length >= 1 && value.length <= 8 && value.every(validChange);
@@ -126,19 +139,23 @@ const validContext = value =>
   value.recent.every(validContextEntry) &&
   value.recent.every((entry, index) => index === 0 || entry.seq > value.recent[index - 1].seq);
 
-// v6 sends Jev one named state object: the utterance, the working graph it is
+// v7 sends Jev one named state object: the utterance, the working graph it is
 // spoken into, the effect of every unapplied step in order, the focus (the
 // latest step, else the latest applied change), and the recent conversation -
 // earlier utterances as unverified material for resolving references. An
 // effect may now be a part as well as an edge. No saved graph, no log or hash,
 // no list of actions - the questions carry the options.
-const validRequestV6 = value =>
+const validRequestV7 = value =>
   exactObject(value, ["kind", "state"]) &&
-  value.kind === "voice-ui.jev.request.v6" &&
+  value.kind === "voice-ui.jev.request.v7" &&
   exactObject(value.state, ["utterance", "working", "draft", "focus", "context"]) &&
   validContext(value.state.context) &&
   validText(value.state.utterance) &&
-  exactObject(value.state.working, ["regions", "edges"]) &&
+  exactObject(value.state.working, ["regions", "edges", "placeable"]) &&
+  Array.isArray(value.state.working.placeable) &&
+  value.state.working.placeable.length <= 64 &&
+  value.state.working.placeable.every(id => value.state.working.regions.includes(id)) &&
+  new Set(value.state.working.placeable).size === value.state.working.placeable.length &&
   validRegions(value.state.working.regions) &&
   !value.state.working.regions.includes(NONE) &&
   validEdges(value.state.working.edges, value.state.working.regions) &&
@@ -287,6 +304,7 @@ async function decideGraphEdge(input, env) {
 const STEP_ACTIONS = {
   "add-edge": "the utterance asks to add one directed edge between two nodes of the working graph",
   "add-part": "the utterance asks to add one new part, node, box or step to the graph itself",
+  "place-part": "the utterance asks to move one part next to another one - beside, above or below it",
   "remove-edge": "the utterance asks to remove one edge of the working graph",
   "reverse-edge": "the utterance asks to reverse the direction of one edge of the working graph",
   "undo-request": "the utterance asks to undo, take back or go back on an earlier change",
@@ -320,9 +338,16 @@ async function decideStep(input, env) {
   const { regions, edges } = state.working;
   // Remove and reverse need an edge, so they are only offered when there is
   // one, and the edge question is asked only then. Every slot offers "none".
-  const actions = edges.length > 0
-    ? ["add-edge", "add-part", "remove-edge", "reverse-edge", "undo-request", "none"]
-    : ["add-edge", "add-part", "undo-request", "none"];
+  const placeable = state.working.placeable;
+  const canPlace = placeable.length >= 2;
+  const actions = [
+    "add-edge",
+    "add-part",
+    ...(canPlace ? ["place-part"] : []),
+    ...(edges.length > 0 ? ["remove-edge", "reverse-edge"] : []),
+    "undo-request",
+    "none",
+  ];
   const nodeKeys = [...regions, NONE];
   const edgeKeys = [...edges.map(edge => edge.id), NONE];
   const partKeys = Object.keys(PART_KINDS);
@@ -354,6 +379,31 @@ async function decideStep(input, env) {
       criteria: criteria(partKeys, key => PART_KINDS[key]),
     },
   };
+  if (canPlace) {
+    const placeKeys = [...placeable, NONE];
+    const directionKeys = [...DIRECTIONS, NONE];
+    questions.move = {
+      type: "choice",
+      instructions: "If the utterance asks to move a part next to another one, which part is being moved?",
+      criteria: criteria(placeKeys, key => key === NONE
+        ? "the utterance asks to move no part"
+        : `the part ${key} is the one being moved`),
+    };
+    questions.anchor = {
+      type: "choice",
+      instructions: "If the utterance asks to move a part next to another one, which part is it being put beside?",
+      criteria: criteria(placeKeys, key => key === NONE
+        ? "the utterance names no part to put it beside"
+        : `it is put beside the part ${key}`),
+    };
+    questions.direction = {
+      type: "choice",
+      instructions: "If the utterance asks to move a part next to another one, which side of that part does it go?",
+      criteria: criteria(directionKeys, key => key === NONE
+        ? "the utterance names no side"
+        : `it goes to the ${key} of the other part`),
+    };
+  }
   if (edges.length > 0) {
     const byId = new Map(edges.map(edge => [edge.id, edge]));
     questions.edge = {
@@ -385,6 +435,11 @@ async function decideStep(input, env) {
       target: choice(value.answers, "target", nodeKeys),
       part: choice(value.answers, "part", partKeys),
     };
+    if (canPlace) {
+      answers.move = choice(value.answers, "move", [...placeable, NONE]);
+      answers.anchor = choice(value.answers, "anchor", [...placeable, NONE]);
+      answers.direction = choice(value.answers, "direction", [...DIRECTIONS, NONE]);
+    }
     if (edges.length > 0) answers.edge = choice(value.answers, "edge", edgeKeys);
     result = { model: value.model, answers };
   } catch {
@@ -409,7 +464,7 @@ export async function onRequestPost({ request, env }) {
   } catch {
     return json({ error: "invalid_json" }, 400);
   }
-  if (validRequestV6(input)) return decideStep(input, env);
+  if (validRequestV7(input)) return decideStep(input, env);
   if (validRequestV2(input)) return decideGraphEdge(input, env);
   if (!validRequest(input)) return json({ error: "invalid_request" }, 422);
 
