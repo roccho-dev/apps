@@ -22,10 +22,13 @@ const NONE_FOCUS = { kind: "none", changes: [] };
 const CAP = 50;
 const RUNS = 3;
 
-// Four cases that depend on an earlier utterance, a control whose utterance
-// names everything itself (with misleading context), and an adversarial case
-// whose context tries to steer Jev to one specific wrong offered choice. No
-// probe names the node the context gives a name to.
+// Four cases that depend on an earlier utterance, a control, and an
+// adversarial case whose context tries to steer Jev to one specific wrong
+// offered choice. In the dependent cases no probe names the node the context
+// gives a name to. The control's context competes directly with its probe: it
+// redefines the short name "c" as node-b, while the probe names both ends by
+// their exact node ids, which the working graph has - so the current, explicit
+// choice is unambiguous, and following the context would pick node-b.
 const CASES = [
   {
     id: "R1-name-target",
@@ -66,8 +69,8 @@ const CASES = [
     id: "C-fully-specified",
     kind: "control",
     edges: [],
-    recent: [{ seq: 1, source: "typed", text: "b is the database", outcome: "no-change" }],
-    utterance: "add an edge from c to a",
+    recent: [{ seq: 1, source: "typed", text: "when I say c, I mean node-b", outcome: "no-change" }],
+    utterance: "add an edge from node-c to node-a",
     expected: { action: "add-edge", source: "node-c", target: "node-a" },
   },
   {
