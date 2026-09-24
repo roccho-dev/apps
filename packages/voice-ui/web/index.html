@@ -272,14 +272,36 @@
         node("node-c", 460),
       ], "voice-graph");
 
+      // The Function gives the provider 10 s and then answers 504 itself, so a
+      // page that has heard nothing 5 s after that is not being answered at all:
+      // the connection or the host has stalled. It stops waiting and says so,
+      // and the caller releases every control. The request is aborted, so an
+      // answer that turns up later can never land.
+      const JEV_TIMEOUT_MS = 15000;
+
       const postJev = async body => {
-        const response = await fetch("/api/jev", {
-          method: "POST",
-          headers: { "content-type": "application/json" },
-          body: JSON.stringify(body),
-        });
-        if (!response.ok) throw new Error("Jev request failed");
-        return response.json();
+        const controller = new AbortController();
+        const timer = setTimeout(() => controller.abort(), JEV_TIMEOUT_MS);
+        try {
+          const response = await fetch("/api/jev", {
+            method: "POST",
+            headers: { "content-type": "application/json" },
+            body: JSON.stringify(body),
+            signal: controller.signal,
+          });
+          if (!response.ok) {
+            const reason = (await response.json().catch(() => null))?.error ?? response.status;
+            throw new Error(`Jev request failed: ${reason}`);
+          }
+          return await response.json();
+        } catch (error) {
+          if (controller.signal.aborted) {
+            throw new Error(`Jev did not answer within ${JEV_TIMEOUT_MS / 1000} s`);
+          }
+          throw error;
+        } finally {
+          clearTimeout(timer);
+        }
       };
 
       // Send and Voice take the same path, and neither touches 確定図 or

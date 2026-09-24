@@ -166,27 +166,42 @@ const typedDecision = (value, regions) => {
   };
 };
 
+// How long the provider gets to answer, headers and body together. Measured on
+// 2026-09-24 through the dev server against the live provider, 56 v4 calls:
+// median about 0.3 s, slowest 0.92 s, and 0.65-0.81 s for a first call after an
+// idle gap. Ten seconds is more than ten times the slowest; a provider that has
+// not answered by then is treated as not answering, and the page is told so
+// rather than left waiting.
+const PROVIDER_TIMEOUT_MS = 10000;
+
+// Returns the provider's body text, or the error response to send instead.
 const callProvider = async (env, body) => {
-  let provider;
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), PROVIDER_TIMEOUT_MS);
   try {
-    provider = await fetch("https://api.typesafe.ai/v1/systemone", {
+    const provider = await fetch("https://api.typesafe.ai/v1/systemone", {
       method: "POST",
       headers: {
         authorization: "Bearer " + env.JEV_API_KEY,
         "content-type": "application/json",
       },
       body: JSON.stringify(body),
+      signal: controller.signal,
     });
+    if (!provider.ok) return { error: json({ error: "provider_error" }, 502) };
+    return { text: await provider.text() };
   } catch {
-    return { error: json({ error: "provider_unreachable" }, 502) };
+    return controller.signal.aborted
+      ? { error: json({ error: "provider_timeout" }, 504) }
+      : { error: json({ error: "provider_unreachable" }, 502) };
+  } finally {
+    clearTimeout(timer);
   }
-  if (!provider.ok) return { error: json({ error: "provider_error" }, 502) };
-  return { provider };
 };
 
 async function decideGraphEdge(input, env) {
   const regions = input.graph.regions;
-  const { provider, error } = await callProvider(env, {
+  const { text, error } = await callProvider(env, {
     model: "jev-latest",
     state: input.text,
     questions: {
@@ -214,7 +229,7 @@ async function decideGraphEdge(input, env) {
 
   let result;
   try {
-    result = typedDecision(await provider.json(), regions);
+    result = typedDecision(JSON.parse(text), regions);
   } catch {
     return json({ error: "provider_contract_error" }, 502);
   }
@@ -287,12 +302,12 @@ async function decideStep(input, env) {
     };
   }
 
-  const { provider, error } = await callProvider(env, { model: "jev-latest", state, questions });
+  const { text, error } = await callProvider(env, { model: "jev-latest", state, questions });
   if (error) return error;
 
   let result;
   try {
-    const value = await provider.json();
+    const value = JSON.parse(text);
     if (typeof value?.model !== "string") throw new TypeError("provider typed contract mismatch");
     const answers = {
       action: choice(value.answers, "action", actions),
@@ -327,7 +342,7 @@ export async function onRequestPost({ request, env }) {
   if (validRequestV2(input)) return decideGraphEdge(input, env);
   if (!validRequest(input)) return json({ error: "invalid_request" }, 422);
 
-  const { provider, error } = await callProvider(env, {
+  const { text, error } = await callProvider(env, {
     model: "jev-latest",
     state: input.text,
     questions: {
@@ -341,7 +356,7 @@ export async function onRequestPost({ request, env }) {
 
   let result;
   try {
-    result = typedAnswer(await provider.json());
+    result = typedAnswer(JSON.parse(text));
   } catch {
     return json({ error: "provider_contract_error" }, 502);
   }

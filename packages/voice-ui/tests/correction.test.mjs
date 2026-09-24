@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import path from "node:path";
-import test from "node:test";
+import test, { mock } from "node:test";
 import { pathToFileURL } from "node:url";
 
 import { onRequestPost } from "../functions/api/jev.mjs";
@@ -439,4 +439,72 @@ test("v4 rejects malformed requests and off-criteria answers", async () => {
     target: providerChoice("node-b", NODE_KEYS),
   }, () => postJev(v4()));
   assert.equal(result.status, 502, "remove offered to nobody must not come back");
+});
+
+// A provider that never answers. With `headers`, the status arrives but the body
+// never ends. Either way it gives up only when the Function aborts the request.
+// `called` resolves once the Function has sent the request, and so has started
+// its clock.
+const hangingProvider = ({ headers = false, called }) => async (url, init) => {
+  called();
+  const aborted = new Promise((resolve, reject) =>
+    init.signal.addEventListener("abort", () => reject(init.signal.reason), { once: true }));
+  if (!headers) return aborted;
+  return new Response(new ReadableStream({
+    start(controller) {
+      controller.enqueue(new TextEncoder().encode('{"model":'));
+      aborted.catch(reason => controller.error(reason));
+    },
+  }), { status: 200, headers: { "content-type": "application/json" } });
+};
+
+const settledAfter = async (pending, ms) => {
+  let settled = false;
+  pending.then(() => { settled = true; }, () => { settled = true; });
+  mock.timers.tick(ms);
+  await new Promise(resolve => setImmediate(resolve));
+  return settled;
+};
+
+for (const headers of [false, true]) {
+  test(`a provider that ${headers ? "never finishes its body" : "never answers"} fails as 504 after 10 s, and a retry is answered`, async () => {
+    const original = globalThis.fetch;
+    mock.timers.enable({ apis: ["setTimeout"] });
+    try {
+      let called;
+      const sent = new Promise(resolve => { called = resolve; });
+      globalThis.fetch = hangingProvider({ headers, called });
+      const pending = postJev(v4({ utterance: "add an edge from c to a" }));
+      await sent;
+      assert.equal(await settledAfter(pending, 9999), false, "still waiting just before the limit");
+      assert.equal(await settledAfter(pending, 1), true, "given up exactly at the limit");
+      const result = await pending;
+      assert.equal(result.status, 504);
+      assert.deepEqual(await result.json(), { error: "provider_timeout" });
+    } finally {
+      mock.timers.reset();
+      globalThis.fetch = original;
+    }
+
+    // Nothing is left behind: the next request is answered as usual.
+    const { result } = await withProvider({
+      action: providerChoice("add-edge", ["add-edge", "undo-request", "none"]),
+      source: providerChoice("node-c", NODE_KEYS),
+      target: providerChoice("node-a", NODE_KEYS),
+    }, () => postJev(v4({ utterance: "add an edge from c to a" })));
+    assert.equal(result.status, 200);
+    assert.equal((await result.json()).answers.action.choice, "add-edge");
+  });
+}
+
+test("a provider that refuses the connection is still unreachable, not a timeout", async () => {
+  const original = globalThis.fetch;
+  globalThis.fetch = async () => { throw new TypeError("fetch failed"); };
+  try {
+    const result = await postJev(v4());
+    assert.equal(result.status, 502);
+    assert.deepEqual(await result.json(), { error: "provider_unreachable" });
+  } finally {
+    globalThis.fetch = original;
+  }
 });

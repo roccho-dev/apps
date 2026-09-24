@@ -542,6 +542,92 @@ assert.deepEqual(afterHeld.draft, [`+${edgeC}`, `+${heldEdge}`], "the answer lan
 assert.deepEqual((await drawn(page, "working")).edges, [edgeA, edgeC, heldEdge].sort());
 await press(page, "#discard");
 
+// (xi-b) Jev never answers. The page gives up after 15 s by its own clock,
+// says so, and hands every control back exactly as it was; both panes, the
+// working steps and the stored bytes are untouched. The answer is then let
+// through late, and it must not land. A retry is answered as usual.
+await type(page, "add an edge from c to a");
+const idle = await screen(page);
+assert.deepEqual(idle.draft, [`+${edgeC}`]);
+const idlePanes = await panes(page);
+const controlsOf = now => ({
+  send: now.sendDisabled,
+  mic: now.micDisabled,
+  undo: now.undoDisabled,
+  discard: now.discardDisabled,
+  apply: now.applyDisabled,
+  revert: now.revertDisabled,
+});
+const assertUnmoved = async (label, now) => {
+  assert.equal(now.stored, idle.stored, `${label}: the stored bytes must not change`);
+  assert.deepEqual(now.confirmed, idle.confirmed, `${label}: 確定図's entries must not change`);
+  assert.deepEqual(now.draft, idle.draft, `${label}: the working steps must not change`);
+  assert.deepEqual(await panes(page), idlePanes, `${label}: neither pane may change`);
+  assert.deepEqual(controlsOf(now), controlsOf(idle), `${label}: every control must be given back`);
+};
+
+let releaseLate;
+const late = new Promise(resolve => { releaseLate = resolve; });
+let lateRoute;
+await page.route(jevUrl, async route => {
+  lateRoute = route;
+  await late;
+  await route.continue().catch(() => {});
+}, { times: 1 });
+// Only the request is awaited: this one gets no response.
+const hung = page.waitForRequest(
+  value => new URL(value.url()).pathname === "/api/jev" && value.method() === "POST",
+  { timeout: 120000 },
+);
+await page.locator("#text").fill("add an edge from b to c");
+const hangStarted = Date.now();
+await page.locator("#send").click();
+await hung;
+assert.equal((await screen(page)).sendDisabled, true, "precondition: the request holds the controls");
+await settle(page);
+const hangMs = Date.now() - hangStarted;
+assert.ok(hangMs >= 15000 && hangMs < 20000, `the page must give up at 15 s, took ${hangMs} ms`);
+const gaveUp = await screen(page);
+assert.equal(gaveUp.state, "failed");
+assert.match(gaveUp.failure ?? "", /did not answer within 15 s/u);
+await assertUnmoved("a request Jev never answered", gaveUp);
+
+releaseLate();
+await page.waitForTimeout(3000);
+assert.ok(lateRoute, "precondition: the held request reached the route");
+const afterLate = await screen(page);
+assert.equal(afterLate.state, "failed", "an answer after the page gave up must not land");
+await assertUnmoved("a late answer", afterLate);
+
+const retried = await type(page, "add an edge from b to c");
+const retriedEdge = edgeOf(retried.decision.answers);
+assert.deepEqual((await screen(page)).draft, [`+${edgeC}`, `+${retriedEdge}`], "a retry is answered as usual");
+await press(page, "#undo");
+
+// (xi-c) The Function's own answer when the provider hangs: 504
+// provider_timeout. The page reports it and gives everything back the same way.
+const beforeTimeoutAnswer = failedResponses.length;
+await page.route(jevUrl, route => route.fulfill({
+  status: 504,
+  contentType: "application/json; charset=utf-8",
+  body: JSON.stringify({ error: "provider_timeout" }),
+}), { times: 1 });
+const timeoutAnswer = jevExchange(page);
+await page.locator("#text").fill("add an edge from b to c");
+await page.locator("#send").click();
+await timeoutAnswer.request;
+assert.equal((await timeoutAnswer.response).status(), 504, "precondition: the 504 reached the page");
+await settle(page);
+const reported = await screen(page);
+assert.equal(reported.state, "failed");
+assert.match(reported.failure ?? "", /provider_timeout/u);
+await assertUnmoved("a provider timeout", reported);
+assert.deepEqual(failedResponses.splice(beforeTimeoutAnswer), [`504 ${jevUrl}`]);
+
+const retriedAgain = await type(page, "add an edge from b to c");
+assert.deepEqual((await screen(page)).draft, [`+${edgeC}`, `+${edgeOf(retriedAgain.decision.answers)}`]);
+await press(page, "#discard");
+
 // (xii) 作業図 holds at most 8 unapplied steps. At the cap nothing is dropped,
 // no request is sent, and revert is disabled too; the page says what to do.
 for (let index = 0; index < 4; index += 1) {
@@ -747,6 +833,8 @@ process.stdout.write(
   + `| corrupt and foreign logs fail closed | typed ${edgeA}, ${edgeB}: 2 undos, then 2-step apply `
   + `| empty input (0 Jev requests), undo-request and none change nothing | relation revert applied, overtaken revert refused `
   + `| controls locked while a request is in flight, answer on its own revision (${heldEdge}) `
+  + `| unanswered request failed at ${hangMs} ms, late answer dropped, 504 provider_timeout reported, `
+  + "controls given back and nothing changed, both retries answered "
   + `| cap 8 with 0 Jev requests at the cap | quota and other-tab Apply refused, working steps kept | reload drops the working steps `
   + `| saved-but-undrawn blocks, reload draws it | browser 2: typed ${typedEdge}, then spoken "${heard.sent.state.utterance}" `
   + `-> reverse of the focused step, applied with it, restored after reload\n`,
