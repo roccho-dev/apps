@@ -284,11 +284,19 @@ function operationsFor(read, working, reserved, layout) {
     refuse(read.move.choice !== read.anchor.choice, "a part cannot be placed beside itself");
 
     const box = neighbourBounds(layout, read.move.choice, read.anchor.choice, read.direction.choice);
+    // The frame as it is *before* this pin. The view grows the boundary to
+    // contain whatever it is told to pin, so a spot measured against the frame
+    // afterwards is inside it by construction and proves nothing. Measured
+    // before, it is the picture the person is actually looking at: a part put
+    // past that edge is carried outside the view and simply stops being drawn.
+    if (!inside(layout.rootBounds, box)) {
+      return noChange("その場所は今の図の外になります");
+    }
     if (!spotIsFree(layout, records, read.move.choice, box)) {
       return noChange("その場所には別の部品があります");
     }
     const previous = layout.pinned.includes(read.move.choice) ? layout.bounds[read.move.choice] : null;
-    if (previous !== null && previous[0] === box[0] && previous[1] === box[1]) {
+    if (previous !== null && previous.every((value, index) => value === box[index])) {
       return noChange("その部品はすでにそこにあります");
     }
     return Object.freeze({

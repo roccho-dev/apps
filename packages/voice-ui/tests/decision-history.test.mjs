@@ -3,6 +3,7 @@ import path from "node:path";
 import test from "node:test";
 import { pathToFileURL } from "node:url";
 
+import { revertStep } from "../src/decision/correction.mjs";
 import { ACTION_ADD_EDGE, compileCommittedDecision } from "../src/decision/graph-edge.mjs";
 import {
   HISTORY_KEY,
@@ -365,4 +366,103 @@ test("the state after each Decision is the provider's own state for that prefix"
   assert.equal(states.length, second.decisions.length);
   assert.deepEqual(states[1], first.records);
   assert.deepEqual(states[2], second.records);
+});
+
+// Where a part sits is history too. A placement changes no region and no
+// relation, so unless the projection reads the pinned layout, a Decision that
+// moved something shows up as an entry with nothing in it - and nothing to
+// undo. These go through the same canonical log as every other change.
+
+const layoutOf = graph => protocol.layoutBoundsFor(graph.records, { pattern: "graph/1" });
+
+const withPlacement = (graph, regionId, bounds) =>
+  commitOperations(graph, [{ type: "PinRegions", items: [{ regionId, bounds: [...bounds] }] }]);
+
+const layoutFacts = entry => entry.facts.filter(fact => fact.kind === "layout");
+
+test("a placement is one history fact: the part and where it now is", async () => {
+  const graph = await baseGraph();
+  const spot = [434, 72, 180, 92];
+  const moved = await withPlacement(graph, "node-c", spot);
+
+  const projection = await projectHistory(moved, { verifyDecisionLog });
+  assert.equal(projection.entries.length, 1);
+  assert.deepEqual(projection.entries[0].facts, [
+    { change: "added", kind: "layout", id: "node-c", bounds: spot },
+  ]);
+  assert.deepEqual(layoutOf(moved).bounds["node-c"], spot, "and the view draws it there");
+  assert.deepEqual(layoutOf(graph).bounds["node-c"], [230, 316, 180, 92], "which is not where it was");
+});
+
+test("moving a part that was already placed names the position it left and the one it took", async () => {
+  const first = await withPlacement(await baseGraph(), "node-c", [434, 72, 180, 92]);
+  const second = await withPlacement(first, "node-c", [434, 194, 180, 92]);
+
+  const projection = await projectHistory(second, { verifyDecisionLog });
+  assert.equal(projection.entries.length, 2);
+  assert.deepEqual(projection.entries[1].facts, [
+    { change: "removed", kind: "layout", id: "node-c", bounds: [434, 72, 180, 92] },
+    { change: "added", kind: "layout", id: "node-c", bounds: [434, 194, 180, 92] },
+  ]);
+});
+
+test("a placement survives Apply and reload as the same canonical log", async () => {
+  const spot = [434, 72, 180, 92];
+  const graph = await withEdge(await withPlacement(await baseGraph(), "node-c", spot), "node-c", "node-a");
+  const storage = fakeStorage();
+  await persistHistory({ write: storage.write, graph });
+
+  const restored = await restore(storage);
+  assert.equal(restored.status, RESTORE_RESTORED);
+  assert.equal(restored.graph.log, graph.log, "the stored bytes are the log itself");
+  assert.deepEqual(layoutOf(restored.graph).bounds["node-c"], spot, "reload draws it where it was left");
+  assert.deepEqual(restored.projection.entries.map(entry => entry.facts), [
+    [{ change: "added", kind: "layout", id: "node-c", bounds: spot }],
+    [{ change: "added", kind: "relation", id: "voice-node-c-to-node-a", from: "node-c", to: "node-a" }],
+  ], "a placement and an edge are both ordinary entries");
+});
+
+test("undo cuts a placement back out, and what is saved keeps it", async () => {
+  const spot = [434, 72, 180, 92];
+  const saved = await withPlacement(await baseGraph(), "node-c", spot);
+  const working = await withPlacement(saved, "node-b", [26, 316, 180, 92]);
+
+  const undone = await truncateLog(working, {
+    count: working.decisions.length - 1,
+    floor: saved.decisions.length,
+    verifyDecisionLog,
+  });
+  assert.equal(undone.log, saved.log, "undo gives back exactly the saved log");
+  assert.deepEqual(layoutOf(undone).pinned, ["node-c"], "the undone placement is gone; the saved one stays");
+
+  await assert.rejects(
+    truncateLog(saved, { count: saved.decisions.length - 1, floor: saved.decisions.length, verifyDecisionLog }),
+    /cannot be cut below what is saved/u,
+    "a saved placement is not undoable, only revertable",
+  );
+});
+
+test("reverting a saved placement is another entry, and reload replays both", async () => {
+  const spot = [434, 72, 180, 92];
+  const moved = await withPlacement(await baseGraph(), "node-c", spot);
+  const states = await statesOf(moved.log, verifyDecisionLog);
+
+  // The app's own revert, not a hand-made opposite.
+  const undo = await revertStep({ before: states[0], after: states[1], working: moved, protocol });
+  const reverted = (await protocol.appendDecision(moved.log, undo.decision)).verified;
+
+  const storage = fakeStorage();
+  await persistHistory({ write: storage.write, graph: reverted });
+  const restored = await restore(storage);
+  assert.equal(restored.status, RESTORE_RESTORED);
+  assert.deepEqual(restored.projection.entries.map(layoutFacts), [
+    [{ change: "added", kind: "layout", id: "node-c", bounds: spot }],
+    [{ change: "removed", kind: "layout", id: "node-c", bounds: spot }],
+  ], "the placement and its undoing are both in the history");
+  assert.deepEqual(layoutOf(restored.graph).pinned, [], "and after reload the part is back under automatic layout");
+  assert.deepEqual(
+    layoutOf(restored.graph).bounds["node-c"],
+    layoutOf(await baseGraph()).bounds["node-c"],
+    "exactly where it was before it was ever moved",
+  );
 });

@@ -601,6 +601,50 @@ test("a taken spot, a part beside itself, or the same move twice changes nothing
   assert.match(again.reason, /すでにそこにあります/u);
 });
 
+// R's counterexample on apps#19 @4f76c70, measured in a real browser: chained
+// placements walk a part off the right of the picture. The view grows the
+// boundary to contain every pin, so the part stays "inside root" and the
+// contract still reports its bounds - and the browser draws nothing, because
+// the camera does not follow. The frame before the pin is the only one that
+// answers the question the person is asking.
+test("a spot past the edge of the picture is a no-change, however far the boundary would stretch", async () => {
+  const graph = await baseGraph();
+  const layout = layoutOf(graph);
+  const [, , frameWidth] = layout.rootBounds;
+
+  // node-c is already at the right-hand column; two steps right of it is past
+  // the frame the person is looking at.
+  const near = await place(graph, { move: "node-c", anchor: "node-a", direction: "right" });
+  assert.equal(near.outcome, OUTCOME_STEP, "one step right is still inside the picture");
+  const moved = await appendStep({ working: graph, step: near.step, protocol });
+
+  const far = await place(moved, { move: "node-b", anchor: "node-c", direction: "right" });
+  assert.equal(far.outcome, OUTCOME_NO_CHANGE);
+  assert.match(far.reason, /今の図の外/u);
+
+  // Why the frame has to be read before the pin: pinning it there anyway makes
+  // the boundary stretch around it, so the same check afterwards says yes.
+  const outside = neighbourBounds(layoutOf(moved), "node-b", "node-c", "right");
+  assert.ok(outside[0] + outside[2] > frameWidth, "precondition: the spot is past the right edge");
+  const { decision } = await protocol.createDecision(
+    moved.head,
+    [{ type: "PinRegions", items: [{ regionId: "node-b", bounds: [...outside] }] }],
+    moved.records,
+  );
+  const stretched = await appendStep({
+    working: moved,
+    step: { revision: moved.head, action: ACTION_PLACE_PART, changes: [{ change: "placed", kind: "region", id: "node-b", anchor: "node-c", direction: "right" }], decision },
+    protocol,
+  });
+  const after = layoutOf(stretched);
+  assert.deepEqual(after.bounds["node-b"], [...outside], "the contract still reports it");
+  assert.ok(after.rootBounds[2] > frameWidth, "and the boundary stretched to contain it");
+  assert.ok(
+    outside[0] + outside[2] <= after.rootBounds[0] + after.rootBounds[2],
+    "so a check against the boundary after the pin can never fail: it proves nothing",
+  );
+});
+
 test("none in any placement slot, or low confidence, changes nothing", async () => {
   const graph = await baseGraph();
   for (const spec of [
@@ -647,7 +691,7 @@ test("a second placement restores the first position, and a later move refuses t
   assert.equal(revert.decision.operations[0].type, "PinRegions", "the earlier pin is restored, not removed");
   assert.deepEqual(revert.decision.operations[0].items[0].bounds, [...layoutOf(first).bounds["node-c"]]);
 
-  const third = await appendStep({ working: second, step: (await place(second, { move: "node-c", anchor: "node-a", direction: "above" })).step, protocol });
+  const third = await appendStep({ working: second, step: (await place(second, { move: "node-c", anchor: "node-b", direction: "right" })).step, protocol });
   await assert.rejects(
     revertStep({ before: states[1], after: states[2], working: third, protocol }),
     error => error instanceof DecisionRefused && /already moved this part/u.test(error.message),
@@ -1025,7 +1069,7 @@ test("v7 carries a placement effect back to Jev, and its answer feeds the step c
   const graph = await baseGraph();
   const layout = layoutOf(graph);
   const request = v5({
-    utterance: "now put b below c",
+    utterance: "now put b to the left of c",
     draft: [{ changes: [PLACED] }],
     focus: { kind: "draft", changes: [PLACED] },
     recent: [{ seq: 1, source: "typed", text: "put c right of a", outcome: "step", effect: { changes: [PLACED] } }],
@@ -1039,7 +1083,7 @@ test("v7 carries a placement effect back to Jev, and its answer feeds the step c
     part: providerChoice("none", PART_KEYS),
     move: providerChoice("node-b", NODE_KEYS),
     anchor: providerChoice("node-c", NODE_KEYS),
-    direction: providerChoice("below", [...DIRECTIONS, "none"]),
+    direction: providerChoice("left", [...DIRECTIONS, "none"]),
   }, () => postJev(request));
 
   assert.equal(result.status, 200);
@@ -1051,7 +1095,7 @@ test("v7 carries a placement effect back to Jev, and its answer feeds the step c
   assert.equal(planned.step.action, ACTION_PLACE_PART);
   assert.deepEqual(
     planned.step.decision.operations[0].items[0].bounds,
-    [...neighbourBounds(layout, "node-b", "node-c", "below")],
+    [...neighbourBounds(layout, "node-b", "node-c", "left")],
   );
 });
 
