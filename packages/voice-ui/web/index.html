@@ -64,6 +64,7 @@
         DRAFT_MAX,
         OUTCOME_NO_CHANGE,
         appendStep,
+        changesForJev,
         edgesOf,
         focusFor,
         planStep,
@@ -200,7 +201,7 @@
       const remember = ({ source, text }, outcome, changes = null) => {
         const entry = { seq: nextSeq, source, text, outcome };
         if (outcome === "step") {
-          entry.effect = { changes: changes.map(({ change, from, to }) => ({ change, from, to })) };
+          entry.effect = { changes: [...changesForJev(changes)] };
         }
         nextSeq += 1;
         conversation = [...conversation, entry];
@@ -219,6 +220,14 @@
       // What the next request sends, and exactly what the panel shows: the most
       // recent entries short enough to send whole. A longer one is left out,
       // never shortened.
+      // Every part name this page has handed out, kept for as long as the page
+      // lives. Undo cuts a part's Decision out of the working log and Discard
+      // drops the step, but the conversation, the history and anything the
+      // user said still refer to that name, so it is never given to a second
+      // part. A reload starts a new page from the saved log, where every name
+      // still in use is written down.
+      const issuedParts = new Set();
+
       const contextWindow = () =>
         conversation.filter(entry => entry.text.length <= CONTEXT_TEXT_MAX).slice(-CONTEXT_MAX);
 
@@ -273,12 +282,25 @@
         return element;
       };
 
-      // "+node-c->node-a" for an added edge, "-node-c->node-a" for a removed one.
+      // "+node-c->node-a" for an added edge, "-node-c->node-a" for a removed
+      // one, "+part-1" for a part with the label it is shown by.
       const describe = fact => {
         const sign = fact.change === "added" ? "+" : fact.change === "removed" ? "-" : "~";
-        return (fact.kind ?? "relation") === "relation"
-          ? `${sign}${fact.from}->${fact.to}`
-          : `${sign}${fact.kind}${fact.id ? ` ${fact.id}` : ""}`;
+        if ((fact.kind ?? "relation") === "relation") return `${sign}${fact.from}->${fact.to}`;
+        if (fact.kind === "region") return `${sign}${fact.id}${fact.label ? `「${fact.label}」` : ""}`;
+        return `${sign}${fact.kind}${fact.id ? ` ${fact.id}` : ""}`;
+      };
+
+      // An entry can be taken back only if its opposite is itself a single
+      // safe change: edges, or parts that are still standing alone. A part that
+      // has since gained an edge or a child would take them with it, so that
+      // entry is not offered.
+      const revertableEntry = entry => {
+        if (entry.facts.every(fact => fact.kind === "relation")) return true;
+        return entry.facts.every(fact => fact.kind === "region" && fact.change === "added")
+          && entry.facts.every(fact =>
+            savedHistory.regions.includes(fact.id)
+            && !savedHistory.relations.some(relation => relation.from === fact.id || relation.to === fact.id));
       };
 
       // 確定図's history: where the graph started and every applied Decision.
@@ -303,7 +325,7 @@
           revert.type = "button";
           revert.textContent = "取り消しを作業図に追加";
           revert.dataset.revert = String(index);
-          revert.dataset.revertable = String(entry.facts.every(fact => fact.kind === "relation"));
+          revert.dataset.revertable = String(revertableEntry(entry));
           item.append(" ", revert);
           applied.append(item);
         });
@@ -317,6 +339,9 @@
       // Anything else is listed as it is.
       const effectOf = changes => {
         const [first, second] = changes;
+        if (changes.length === 1 && first.kind === "region") {
+          return `${first.change === "added" ? "部品追加" : "部品削除"} ${first.id}「${first.label}」`;
+        }
         if (changes.length === 1 && first.change === "added") return `追加 ${first.from}->${first.to}`;
         if (changes.length === 1 && first.change === "removed") return `削除 ${first.from}->${first.to}`;
         if (
@@ -391,8 +416,7 @@
       const currentFocus = () => focusFor({
         draft,
         lastApplied: (savedHistory.entries.at(-1)?.facts ?? [])
-          .filter(fact => fact.kind === "relation")
-          .map(({ change, from, to }) => ({ change, from, to })),
+          .filter(fact => fact.kind === "relation" || fact.kind === "region"),
       });
 
       // One bounded starting graph: three known regions and no relations.
@@ -456,23 +480,35 @@
         // The answer is bound to the working graph as it was when asked.
         const revision = working.head;
         const decision = await postJev({
-          kind: "voice-ui.jev.request.v5",
+          kind: "voice-ui.jev.request.v6",
           state: {
             utterance: value,
             working: {
               regions: selectableRegionIds(working.records),
               edges: edgesOf(working.records).map(({ id, from, to }) => ({ id, from, to })),
             },
-            draft: draft.map(step => ({ changes: step.changes.map(({ change, from, to }) => ({ change, from, to })) })),
+            draft: draft.map(step => ({ changes: [...changesForJev(step.changes)] })),
             focus: currentFocus(),
             context: { recent: contextWindow() },
           },
         });
         // Jev has judged this utterance; whatever comes of it is remembered.
         judged[source] = { source, text: value };
-        const planned = await planStep({ working, revision, answers: decision.answers, protocol });
+        const planned = await planStep({
+          working,
+          revision,
+          answers: decision.answers,
+          protocol,
+          // Part names this page has already handed out. Undo cuts a part's
+          // Decision out of the working log, but the conversation still refers
+          // to it, so its name must not come back for a different part.
+          reserved: [...issuedParts],
+        });
         if (planned.outcome === OUTCOME_NO_CHANGE) {
           throw new NoChange(planned.reason, planned.undoRequest ? "undo-request" : "no-change");
+        }
+        for (const change of planned.step.changes) {
+          if (change.kind === "region") issuedParts.add(change.id);
         }
         const next = await appendStep({ working, step: planned.step, protocol });
         candidate = { working: next, step: planned.step, input: { source, text: value } };

@@ -17,6 +17,7 @@ import {
 
 export const DECISION_KIND = "voice-ui.jev.decision.v4";
 export const ACTION_ADD = "add-edge";
+export const ACTION_ADD_PART = "add-part";
 export const ACTION_REMOVE = "remove-edge";
 export const ACTION_REVERSE = "reverse-edge";
 export const ACTION_UNDO_REQUEST = "undo-request";
@@ -33,6 +34,28 @@ export const DRAFT_MAX = 8;
 
 export const OUTCOME_STEP = "step";
 export const OUTCOME_NO_CHANGE = "no-change";
+
+// The parts a person may ask for, each a kind the graph view already draws
+// differently. The app owns this list: Jev chooses one of these keys, never a
+// kind or a label of its own, so no answer can invent a shape the view cannot
+// show. A part is named after the id it gets, so two parts never share a name.
+export const PART_PALETTE = Object.freeze([
+  Object.freeze({ key: "step", label: "工程", kind: "step" }),
+  Object.freeze({ key: "decision", label: "判断", kind: "decision" }),
+  Object.freeze({ key: "data", label: "データ", kind: "data" }),
+  Object.freeze({ key: "start", label: "開始", kind: "start" }),
+  Object.freeze({ key: "end", label: "終了", kind: "end" }),
+]);
+
+// A new part is the size of an initial node, laid out on a fixed grid inside
+// the enclosing boundary. The graph view lays parts out by itself and ignores
+// these bounds, but the provider requires them and a later spatial view would
+// draw them, so they are real, inside the parent and never overlapping - never
+// a placeholder every part shares.
+const PART_WIDTH = 140;
+const PART_HEIGHT = 64;
+const PART_GAP = 20;
+const PART_ID_PREFIX = "part-";
 
 const refuse = (condition, reason) => {
   if (!condition) throw new DecisionRefused(reason);
@@ -51,6 +74,59 @@ export function edgesOf(records) {
 // edge there is nothing to remove or reverse, so those choices are not put to
 // Jev at all. "undo-request" is always offered: it is where a spoken "undo"
 // lands, so that it cannot be mistaken for the nearest graph edit.
+const boundsOf = record => Object.freeze({
+  x: record.bounds[0], y: record.bounds[1], w: record.bounds[2], h: record.bounds[3],
+});
+
+const overlaps = (left, right) =>
+  left.x < right.x + right.w && right.x < left.x + left.w
+  && left.y < right.y + right.h && right.y < left.y + left.h;
+
+// The first free place on the grid inside the enclosing boundary, in reading
+// order, that no existing region already occupies. There is a finite number of
+// them: a full boundary is an honest "no room", not a part dropped on top of
+// another.
+export function freeSlot(records) {
+  refuse(Array.isArray(records), "records must be an array");
+  const root = records.find(record => record?.type === "region" && record.parent === null);
+  refuse(root !== undefined, "the graph has no enclosing boundary");
+  const frame = boundsOf(root);
+  const taken = records
+    .filter(record => record?.type === "region" && record.parent !== null)
+    .map(boundsOf);
+
+  for (let y = frame.y + PART_GAP; y + PART_HEIGHT <= frame.y + frame.h; y += PART_HEIGHT + PART_GAP) {
+    for (let x = frame.x + PART_GAP; x + PART_WIDTH <= frame.x + frame.w; x += PART_WIDTH + PART_GAP) {
+      const slot = { x, y, w: PART_WIDTH, h: PART_HEIGHT };
+      if (!taken.some(used => overlaps(slot, used))) return Object.freeze([x, y, PART_WIDTH, PART_HEIGHT]);
+    }
+  }
+  return null;
+}
+
+// The next part name, counted over the whole log rather than the current
+// graph, plus any name the page has already handed out. A part that was added
+// and then removed keeps its name for good, and so does one the page undid -
+// undo cuts its Decision out of the log, but the conversation still refers to
+// it - so a name in the history or in an earlier utterance can never come to
+// mean a second part.
+export function nextPartId(graph, reserved = []) {
+  refuse(Array.isArray(graph?.decisions), "graph.decisions is required");
+  const named = [
+    ...reserved,
+    ...graph.records.filter(record => record?.type === "region").map(record => record.id),
+    ...graph.decisions.flatMap(decision => (decision.operations ?? []).flatMap(operation =>
+      operation.type === "AddRegion" ? [operation.regionId]
+        : operation.type === "CreateMap" ? operation.records.filter(record => record?.type === "region").map(record => record.id)
+          : [])),
+  ];
+  const used = named
+    .filter(id => id.startsWith(PART_ID_PREFIX))
+    .map(id => Number(id.slice(PART_ID_PREFIX.length)))
+    .filter(Number.isSafeInteger);
+  return `${PART_ID_PREFIX}${Math.max(0, ...used) + 1}`;
+}
+
 export function correctionCriteria(records) {
   const regions = selectableRegionIds(records);
   refuse(regions.length >= 2, "graph has fewer than two selectable regions");
@@ -59,10 +135,11 @@ export function correctionCriteria(records) {
   refuse(edges.every(edge => edge.id !== OPTION_NONE), `an edge may not be named "${OPTION_NONE}"`);
   return Object.freeze({
     actions: Object.freeze(edges.length > 0
-      ? [ACTION_ADD, ACTION_REMOVE, ACTION_REVERSE, ACTION_UNDO_REQUEST, ACTION_NONE]
-      : [ACTION_ADD, ACTION_UNDO_REQUEST, ACTION_NONE]),
+      ? [ACTION_ADD, ACTION_ADD_PART, ACTION_REMOVE, ACTION_REVERSE, ACTION_UNDO_REQUEST, ACTION_NONE]
+      : [ACTION_ADD, ACTION_ADD_PART, ACTION_UNDO_REQUEST, ACTION_NONE]),
     regions: Object.freeze([...regions, OPTION_NONE]),
     edges: Object.freeze(edges.length > 0 ? [...edges.map(edge => edge.id), OPTION_NONE] : []),
+    parts: Object.freeze([...PART_PALETTE.map(part => part.key), OPTION_NONE]),
   });
 }
 
@@ -87,8 +164,8 @@ function readAnswers(answers, criteria) {
     "answers must be an object",
   );
   const expected = criteria.edges.length > 0
-    ? ["action", "source", "target", "edge"]
-    : ["action", "source", "target"];
+    ? ["action", "source", "target", "part", "edge"]
+    : ["action", "source", "target", "part"];
   for (const key of expected) refuse(Object.hasOwn(answers, key), `answers.${key} is required`);
   for (const key of Object.keys(answers)) refuse(expected.includes(key), `answers.${key} is not allowed`);
 
@@ -96,6 +173,7 @@ function readAnswers(answers, criteria) {
     action: choiceOf(answers, "action", criteria.actions),
     source: choiceOf(answers, "source", criteria.regions),
     target: choiceOf(answers, "target", criteria.regions),
+    part: choiceOf(answers, "part", criteria.parts),
     edge: criteria.edges.length > 0 ? choiceOf(answers, "edge", criteria.edges) : null,
   });
 }
@@ -107,7 +185,8 @@ const noChange = (reason, extra = {}) => Object.freeze({ outcome: OUTCOME_NO_CHA
 // undo asked for by voice, or not sure enough to act - and is never reported as
 // an error. A request that cannot be carried out on this graph (a self edge, a
 // duplicate, a vanished target) is a refusal.
-function operationsFor(read, records) {
+function operationsFor(read, working, reserved) {
+  const records = working.records;
   if (read.action.choice === ACTION_NONE) return noChange("no graph change was requested");
   // Undo is a button. A spoken or typed "undo" never changes either graph: it
   // is answered with where the button is, and nothing else happens.
@@ -117,6 +196,36 @@ function operationsFor(read, records) {
 
   const edges = edgesOf(records);
   const existing = relationKeys(records);
+
+  // A new part: the palette says what it is, and the app says where it goes and
+  // what it is called. Jev chooses neither a name nor a place, so an answer can
+  // never put two parts in one spot or reuse a name.
+  if (read.action.choice === ACTION_ADD_PART) {
+    if (read.part.choice === OPTION_NONE) return noChange("the request did not name a part to add");
+    const confidence = Math.min(read.action.confidence, read.part.confidence);
+    if (confidence < MIN_CONFIDENCE) return noChange("not confident enough to propose a change");
+    const palette = PART_PALETTE.find(candidate => candidate.key === read.part.choice);
+    refuse(palette !== undefined, "the chosen part is not in the palette");
+    const bounds = freeSlot(records);
+    if (bounds === null) return noChange("図に部品を置く場所がありません");
+
+    const regionId = nextPartId(working, reserved);
+    const label = `${palette.label} ${regionId.slice(PART_ID_PREFIX.length)}`;
+    return Object.freeze({
+      action: ACTION_ADD_PART,
+      confidence,
+      operations: [{
+        type: "AddRegion",
+        regionId,
+        parentId: records.find(record => record?.type === "region" && record.parent === null).id,
+        label,
+        kind: palette.kind,
+        summary: "",
+        bounds: [...bounds],
+      }],
+      changes: [{ change: "added", kind: "region", id: regionId, label }],
+    });
+  }
 
   if (read.action.choice === ACTION_ADD) {
     if (read.source.choice === OPTION_NONE || read.target.choice === OPTION_NONE) {
@@ -208,13 +317,16 @@ const step = (revision, action, changes, decision, confidence = null) => Object.
 // so it is refused rather than applied to a different one. A usable answer is
 // built into a provider Decision on that head, so the provider validates the
 // step before it ever reaches the working graph. Nothing is appended here.
-export async function planStep({ working, revision, answers, protocol } = {}) {
+// `reserved` is every part name this page has already handed out, including
+// ones since undone. The log alone cannot know them, because undo removes the
+// Decision that named them.
+export async function planStep({ working, revision, answers, protocol, reserved = [] } = {}) {
   requireGraph(working);
   refuse(typeof protocol?.createDecision === "function", "protocol.createDecision is required");
   refuse(revision === working.head, "the answer is stale: the working graph changed after the request was sent");
 
   const read = readAnswers(answers, correctionCriteria(working.records));
-  const planned = operationsFor(read, working.records);
+  const planned = operationsFor(read, working, reserved);
   if (planned.outcome === OUTCOME_NO_CHANGE) return planned;
 
   const { decision } = await viaProvider("the provider rejected the change",
@@ -255,7 +367,38 @@ export async function revertStep({ before, after, working, protocol } = {}) {
   requireGraph(working);
   refuse(Array.isArray(before) && Array.isArray(after), "before and after states are required");
   refuse(typeof protocol?.createDecision === "function", "protocol.createDecision is required");
-  refuse(JSON.stringify(regionIds(before)) === JSON.stringify(regionIds(after)), "only edge changes can be reverted");
+
+  // An entry that only added parts is undone by removing them again, but only
+  // while each is still a leaf: RemoveSelection would take a part's children
+  // and edges with it, which is more than that entry did. Anything else that
+  // changed a region - a removal, a rename, several at once - is refused
+  // rather than guessed at.
+  const addedRegions = regionIds(after).filter(id => !regionIds(before).includes(id));
+  const removedRegions = regionIds(before).filter(id => !regionIds(after).includes(id));
+  if (addedRegions.length > 0 || removedRegions.length > 0) {
+    refuse(removedRegions.length === 0, "only an added part can be reverted");
+    const present = new Set(regionIds(working.records));
+    for (const id of addedRegions) {
+      refuse(present.has(id), "a later change already removed this part; nothing was reverted");
+      refuse(
+        !working.records.some(record => record?.type === "region" && record.parent === id),
+        "this part now holds other parts; nothing was reverted",
+      );
+      refuse(
+        !working.records.some(record => record?.type === "relation" && (record.from === id || record.to === id)),
+        "this part now has an edge; nothing was reverted",
+      );
+    }
+    const labelOf = id => after.find(record => record?.type === "region" && record.id === id)?.label ?? id;
+    const { decision } = await viaProvider("the provider rejected the revert",
+      () => protocol.createDecision(
+        working.head,
+        [{ type: "RemoveSelection", regionIds: [...addedRegions], relationIds: [] }],
+        working.records,
+      ));
+    return step(working.head, ACTION_REVERT,
+      addedRegions.map(id => ({ change: "removed", kind: "region", id, label: labelOf(id) })), decision);
+  }
 
   const earlier = relationsById(before);
   const later = relationsById(after);
@@ -295,11 +438,18 @@ export async function revertStep({ before, after, working, protocol } = {}) {
 // What the user is looking at, so a follow-up like "reverse that" can be judged
 // against it: the latest working step if there is one, otherwise the most
 // recently applied change, otherwise nothing.
+// One change as Jev is told it: an edge by its two ends, a part by its id and
+// the label it is shown by. Everything else a step carries stays in the page.
+export function changesForJev(changes) {
+  return Object.freeze((changes ?? []).map(change => Object.freeze(
+    change.kind === "region"
+      ? { change: change.change, kind: "region", id: change.id, label: change.label }
+      : { change: change.change, from: change.from, to: change.to },
+  )));
+}
+
 export function focusFor({ draft = [], lastApplied = [] } = {}) {
-  const pick = (kind, changes) => Object.freeze({
-    kind,
-    changes: Object.freeze(changes.map(({ change, from, to }) => Object.freeze({ change, from, to }))),
-  });
+  const pick = (kind, changes) => Object.freeze({ kind, changes: changesForJev(changes) });
   if (draft.length > 0) return pick("draft", draft.at(-1).changes);
   if (lastApplied.length > 0) return pick("applied", lastApplied);
   return pick("none", []);
