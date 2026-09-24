@@ -194,6 +194,19 @@
         status.textContent = message;
       };
 
+      // Where a voice press has got to: preparing the microphone and the
+      // recognizer, listening, or deciding what was heard. The body state stays
+      // `pending` for the whole press; this only says what the user may do now,
+      // so "話してください" appears once capture has actually started.
+      const setVoice = (phase, message) => {
+        if (phase === null) {
+          delete document.body.dataset.voice;
+          return;
+        }
+        document.body.dataset.voice = phase;
+        status.textContent = message;
+      };
+
       const line = (kind, value) => {
         const element = document.createElement("p");
         element.dataset.history = kind;
@@ -353,6 +366,7 @@
         rendering = true;
         voiceHoldsRender = true;
         syncBusy();
+        setVoice("deciding", "voice: 判定中");
 
         return decideStep(value);
       };
@@ -382,11 +396,14 @@
         await serviceWorkerReady;
         hayamimi ??= createHayamimi();
         return new Promise((resolve, reject) => {
+          let settled = false;
           const timeout = setTimeout(() => {
+            settled = true;
             hayamimi.onText = null;
             reject(new Error("voice transcription timed out"));
           }, 300000);
           hayamimi.onText = async value => {
+            settled = true;
             clearTimeout(timeout);
             hayamimi.onText = null;
             try {
@@ -397,11 +414,19 @@
               reject(error);
             }
           };
-          hayamimi.start().catch(error => {
-            clearTimeout(timeout);
-            hayamimi.onText = null;
-            reject(error);
-          });
+          // start() resolves once the recognizer is loaded and the microphone
+          // is feeding it, so only then is the user asked to speak.
+          hayamimi.start().then(
+            () => {
+              if (!settled) setVoice("listening", "voice: 聞いています。話してください");
+            },
+            error => {
+              settled = true;
+              clearTimeout(timeout);
+              hayamimi.onText = null;
+              reject(error);
+            },
+          );
         });
       };
 
@@ -471,7 +496,9 @@
         capturing = true;
         syncBusy();
 
-        setState("pending", "voice: listening");
+        // One press is all it takes: nothing here needs the text field.
+        setState("pending", "voice: preparing");
+        setVoice("preparing", "voice: 準備中です。まだ話さないでください");
         try {
           // submitVoice carries transcription, decision and render, so reaching
           // here means the step is drawn on 作業図.
@@ -485,6 +512,7 @@
             voiceHoldsRender = false;
           }
           capturing = false;
+          setVoice(null);
           syncBusy();
         }
       });

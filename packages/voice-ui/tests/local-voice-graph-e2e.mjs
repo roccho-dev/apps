@@ -54,6 +54,49 @@ const watch = target => {
   return target;
 };
 
+// A test-only trace, installed before the page's own scripts, of what a voice
+// press actually does in order: when the microphone stream and the capture
+// worklet became ready, every change of the page's voice phase (with the body
+// state at that moment), and any focus on the text field or click on Send.
+// The page exposes nothing for this; the browser APIs it calls are wrapped.
+const traceVoice = () => {
+  if (window !== window.top) return;
+  const trace = [];
+  window.voiceTrace = trace;
+  const note = (kind, state) => trace.push({ kind, state });
+
+  const getUserMedia = navigator.mediaDevices.getUserMedia.bind(navigator.mediaDevices);
+  navigator.mediaDevices.getUserMedia = async constraints => {
+    if (window.failNextMicrophone) {
+      window.failNextMicrophone = false;
+      throw new DOMException("microphone refused by the test", "NotAllowedError");
+    }
+    const stream = await getUserMedia(constraints);
+    note("microphone");
+    return stream;
+  };
+  const addModule = AudioWorklet.prototype.addModule;
+  AudioWorklet.prototype.addModule = async function (...args) {
+    const result = await addModule.apply(this, args);
+    note("worklet");
+    return result;
+  };
+
+  document.addEventListener("focusin", event => {
+    if (event.target.id === "text") note("text-focus");
+  }, true);
+  document.addEventListener("click", event => {
+    if (event.target.closest?.("#send")) note("send-click");
+  }, true);
+  new MutationObserver(() => {
+    const phase = document.body.dataset.voice ?? "idle";
+    if (trace.findLast(entry => entry.kind.startsWith("voice:"))?.kind !== `voice:${phase}`) {
+      note(`voice:${phase}`, document.body.dataset.state);
+    }
+  // The document itself: no element exists yet when this runs.
+  }).observe(document, { subtree: true, attributes: true, attributeFilter: ["data-voice"] });
+};
+
 // One browser process per spoken file. `storageState` carries this origin's
 // storage - bytes the app itself wrote - from one process to the next in
 // memory, the way a restarted browser would find it on disk.
@@ -73,6 +116,7 @@ const openBrowser = async (audio, storageState) => {
     ],
   });
   const context = await opened.newContext(storageState ? { storageState } : {});
+  await context.addInitScript(traceVoice);
   await context.grantPermissions(["microphone"], { origin: new URL(url).origin });
   return { browser: opened, context, page: watch(await context.newPage()) };
 };
@@ -200,7 +244,36 @@ const ask = async (target, act) => {
   return { sent: JSON.parse(request.postData()), decision: await response.json() };
 };
 
-const speak = target => ask(target, () => target.locator("#mic").click());
+const voiceTrace = (target, from = 0) => target.evaluate(from => window.voiceTrace.slice(from), from);
+const voicePhases = trace => trace.filter(entry => entry.kind.startsWith("voice:"));
+const voiceIdle = target => target.waitForFunction(() => document.body.dataset.voice === undefined);
+
+// One press of Voice and nothing else: the text field is never focused and
+// Send never clicked. The page says it is preparing, asks the user to speak
+// only after both the microphone stream and the capture worklet are ready,
+// then decides, and the body state stays `pending` throughout. Exactly one
+// Jev request follows from the one utterance.
+const speak = async target => {
+  const from = (await voiceTrace(target)).length;
+  const jev = countJev(target);
+  const result = await ask(target, () => target.locator("#mic").click());
+  await voiceIdle(target);
+  jev.stop();
+  const trace = await voiceTrace(target, from);
+  const kinds = trace.map(entry => entry.kind);
+  assert.equal(kinds.includes("text-focus"), false, "a voice press must not focus the text field");
+  assert.equal(kinds.includes("send-click"), false, "a voice press must not need Send");
+  const phases = voicePhases(trace);
+  assert.deepEqual(phases.map(entry => entry.kind), ["voice:preparing", "voice:listening", "voice:deciding", "voice:idle"]);
+  assert.deepEqual(phases.slice(0, 3).map(entry => entry.state), ["pending", "pending", "pending"]);
+  const listening = kinds.indexOf("voice:listening");
+  for (const ready of ["microphone", "worklet"]) {
+    const at = kinds.indexOf(ready);
+    assert.ok(at > kinds.indexOf("voice:preparing") && at < listening, `${ready} must be ready before the user is asked to speak`);
+  }
+  assert.equal(jev.count, 1, "one utterance must send exactly one Jev request");
+  return { ...result, trace: kinds };
+};
 const type = (target, value) => ask(target, async () => {
   await target.locator("#text").fill(value);
   await target.locator("#send").click();
@@ -780,6 +853,36 @@ assert.deepEqual((await screen(page)).draft, [`+${typedEdge}`]);
 assert.equal((await screen(page)).stored, savedLog);
 assert.deepEqual(await panes(page), { confirmed: [voiceEdge], working: [voiceEdge, typedEdge].sort() });
 
+// (xvii-b) A press whose microphone is refused - the browser API is made to
+// reject, as a denied permission would. The page never asks the user to
+// speak, sends nothing to Jev, reports the failure, and gives every control
+// back with both panes, the working steps and the stored bytes unchanged. The
+// next press is the spoken correction below.
+const beforeRefusal = await screen(page);
+const panesBeforeRefusal = await panes(page);
+const refusalFrom = (await voiceTrace(page)).length;
+const refusalJev = countJev(page);
+await page.evaluate(() => { window.failNextMicrophone = true; });
+await page.locator("#mic").click();
+await settle(page);
+await voiceIdle(page);
+refusalJev.stop();
+const refused = await screen(page);
+const refusalTrace = await voiceTrace(page, refusalFrom);
+assert.equal(refused.state, "failed");
+assert.match(refused.failure ?? "", /microphone refused by the test/u);
+assert.deepEqual(voicePhases(refusalTrace).map(entry => entry.kind), ["voice:preparing", "voice:idle"],
+  "a refused microphone must never ask the user to speak");
+assert.equal(refusalTrace.some(entry => entry.kind === "text-focus"), false);
+assert.equal(refusalJev.count, 0, "a refused microphone must send nothing to Jev");
+assert.equal(refused.stored, beforeRefusal.stored);
+assert.deepEqual(refused.confirmed, beforeRefusal.confirmed);
+assert.deepEqual(refused.draft, beforeRefusal.draft);
+assert.deepEqual(await panes(page), panesBeforeRefusal);
+for (const control of ["sendDisabled", "micDisabled", "undoDisabled", "discardDisabled", "applyDisabled", "revertDisabled"]) {
+  assert.deepEqual(refused[control], beforeRefusal[control], `${control} must be given back after a refused microphone`);
+}
+
 const [typedFrom, typedTo] = typedEdge.split("->");
 const heard = await speak(page);
 assert.equal(heard.sent.kind, "voice-ui.jev.request.v4");
@@ -829,6 +932,8 @@ assert.deepEqual(failedResponses, []);
 
 process.stdout.write(
   `local-voice-graph-e2e: PASS spoken add "${voiceAdd.sent.state.utterance}" -> 作業図 only, applied edge=${voiceEdge} `
+  + `| each voice press: one click, 0 text focus, 0 Send, [${voiceAdd.trace.join(" ")}], 1 Jev request `
+  + `| refused microphone: [${voicePhases(refusalTrace).map(entry => entry.kind).join(" ")}], 0 Jev requests, nothing changed, controls given back `
   + `| embedded Accept [${embeddedAccepts.join("; ")}] / [${correctionAccepts.join("; ")}] `
   + `| corrupt and foreign logs fail closed | typed ${edgeA}, ${edgeB}: 2 undos, then 2-step apply `
   + `| empty input (0 Jev requests), undo-request and none change nothing | relation revert applied, overtaken revert refused `
