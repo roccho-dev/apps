@@ -47,6 +47,8 @@ const consoleMessages = [];
 // Answers the real Jev gave through the dev server during this run, reported
 // so its cost is visible. Answers the test fakes at the network are not here.
 let jevAnswered = 0;
+let craftedAnswered = 0;
+const pendingCounts = [];
 
 const watch = target => {
   target.on("pageerror", error => errors.push(String(error)));
@@ -55,8 +57,13 @@ const watch = target => {
     if (response.status() >= 400) {
       failedResponses.push(response.status() + " " + response.url());
     }
+    // An answer fulfilled by the test at the network is also a 200 here, so it
+    // is told apart by the model name every crafted answer carries.
     if (new URL(response.url()).pathname === "/api/jev" && response.status() === 200 && !response.request().isNavigationRequest()) {
-      jevAnswered += 1;
+      pendingCounts.push(response.json().then(
+        body => { if (body?.model !== "jev-test") jevAnswered += 1; else craftedAnswered += 1; },
+        () => {},
+      ));
     }
   });
   return target;
@@ -168,9 +175,14 @@ const screen = target => target.evaluate(key => ({
   draft: [...document.querySelectorAll("#draft li")].map(item => item.dataset.changes),
   // Each unapplied step as shown: where its text came from, that text, what it
   // does, and whether any element was created inside the item's text.
+  // The piece a near-placement is waiting for, if any. In memory only.
+  pending: document.body.dataset.pending ?? null,
   items: [...document.querySelectorAll("#draft li")].map(item => ({
     source: item.dataset.source,
     input: item.querySelector("[data-input]")?.textContent ?? null,
+    // A step completed by a second utterance also shows the first one.
+    originSource: item.dataset.originSource ?? null,
+    origin: item.querySelector("[data-origin]")?.textContent ?? null,
     effect: item.querySelector("[data-effect]")?.textContent ?? null,
     elements: item.querySelectorAll("[data-input] *, img, b, script").length,
   })),
@@ -317,7 +329,7 @@ const jevExchange = target => ({
 // anywhere else in the body.
 const inputsSent = new Set();
 const assertOnlyCurrentInput = (sent, panelBefore) => {
-  assert.equal(sent.kind, "voice-ui.jev.request.v7");
+  assert.equal(sent.kind, "voice-ui.jev.request.v8");
   const { utterance, context, ...rest } = sent.state;
   assert.deepEqual(context.recent, panelBefore, "the request must send exactly the recent conversation the panel showed");
   for (const entry of sent.state.draft) {
@@ -371,7 +383,9 @@ const effectText = changes => {
   if (second === undefined) return `${first.startsWith("+") ? "追加" : "削除"} ${first.slice(1)}`;
   return `反転 ${first.slice(1)} ⇒ ${second.slice(1)}`;
 };
-const itemFor = (source, input, changes) => ({ source, input, effect: effectText(changes), elements: 0 });
+const itemFor = (source, input, changes) => ({
+  source, input, originSource: null, origin: null, effect: effectText(changes), elements: 0,
+});
 const typedItem = (asked, changes) => itemFor("typed", asked.sent.state.utterance, changes);
 const voiceItem = (asked, changes) => itemFor("voice", asked.sent.state.utterance, changes);
 const revertItem = changes => itemFor("revert", null, changes);
@@ -467,7 +481,7 @@ assert.deepEqual(await panes(page), { confirmed: [], working: [] });
 // Hayamimi heard and the working graph it was spoken into; the answer is Jev's
 // typed choice; the edge appears on the right and nowhere else.
 const voiceAdd = await speak(page);
-assert.equal(voiceAdd.sent.kind, "voice-ui.jev.request.v7");
+assert.equal(voiceAdd.sent.kind, "voice-ui.jev.request.v8");
 assert.deepEqual(voiceAdd.sent.state.context, { recent: [] }, "a first visit has no recent conversation");
 assert.deepEqual(voiceAdd.sent.state.working, {
   // Every part the view has drawn is a part that can be put beside another.
@@ -622,7 +636,7 @@ const assertSavedUntouched = async (label, expectedStored, expectedApplied, expe
 };
 
 const typedA = await type(page, "add an edge from a to b");
-assert.equal(typedA.sent.kind, "voice-ui.jev.request.v7", "Send must use the typed graph decision");
+assert.equal(typedA.sent.kind, "voice-ui.jev.request.v8", "Send must use the typed graph decision");
 assert.equal(typedA.decision.answers.action.choice, "add-edge");
 const edgeA = edgeOf(typedA.decision.answers);
 await assertSavedUntouched("first typed step", null, [], []);
@@ -1066,6 +1080,8 @@ assert.match(partId, /^part-\d+$/u, "the page names the part, not Jev");
 assert.deepEqual(parted.items, [{
   source: "typed",
   input: addPart.sent.state.utterance,
+  originSource: null,
+  origin: null,
   effect: `部品追加 ${partId}「判断 1」`,
   elements: 0,
 }], "the step shows what was typed and the part it made");
@@ -1419,12 +1435,23 @@ for (const value of Object.values(diagnosed.diagnostic)) {
 }
 // Only the moved part was unsure (0.44) and the placement itself was sure
 // (0.91), so the person is told which piece did not come through - in the
-// status they already read, without any part id, and nothing is held for the
-// next utterance.
-assert.equal(diagnosed.status, "type: no change - 動かす部品が聞き取れませんでした。その部品の名前を入れて、もう一度言ってください",
+// status they already read, without any part id - and that one piece is now
+// held, in memory, for the next utterance.
+assert.equal(diagnosed.status,
+  "type: no change - 動かす部品が聞き取れませんでした。どの部品を動かしますか。部品の名前だけでも、指示全体でも言ってください",
   "exactly one unsure piece is named");
 assert.equal(/node-|part-/u.test(diagnosed.status), false, "no part id is read out");
 assert.deepEqual(diagnosed.draft, [], "and nothing was drafted");
+assert.equal(diagnosed.pending, "move", "the missing piece is held for one utterance");
+
+// Each of the following crafted turns stands on its own, so any piece held by
+// the one before is dropped first - with 会話をクリア, which drops it by design.
+const dropPending = async () => {
+  if ((await screen(page)).pending === null) return;
+  await page.locator("#context-clear").click();
+  assert.equal((await screen(page)).pending, null, "会話をクリア drops a held piece");
+};
+await dropPending();
 
 // The measured real turn itself, replayed with its own confidences: action
 // 0.94, move 0.86, anchor 0.39, direction 0.97. Only the neighbour is named.
@@ -1449,10 +1476,12 @@ const weakAnchor = await measuredTurn({
 }, "一を濃度A の左に置いてください");
 assert.equal(weakAnchor.state, "no-change");
 assert.equal(weakAnchor.status,
-  "type: no change - 隣に置く相手の部品が聞き取れませんでした。相手の部品の名前を入れて、もう一度言ってください",
+  "type: no change - 隣に置く相手の部品が聞き取れませんでした。どの部品の隣ですか。部品の名前だけでも、指示全体でも言ってください",
   "the measured turn names the neighbour, and only the neighbour");
 assert.equal(weakAnchor.diagnostic.diagAnchor, `${anchorId}:0.39`, "the diagnostic shows the same shortfall");
 assert.deepEqual(weakAnchor.draft, []);
+assert.equal(weakAnchor.pending, "anchor");
+await dropPending();
 
 // A part named as its own neighbour, with only the side unsure: supplying the
 // side would only reach "cannot be placed beside itself", so the whole
@@ -1467,6 +1496,7 @@ assert.equal(selfAnchor.state, "no-change", "a self-anchor with one unsure piece
 assert.equal(selfAnchor.status,
   "type: no change - 配置の指示を聞き取れませんでした。動かす部品・隣の部品・方向をそろえて、もう一度言ってください");
 assert.deepEqual(selfAnchor.draft, []);
+assert.equal(selfAnchor.pending, null, "a part beside itself is never held");
 
 // Not eligible for naming one piece: the placement action itself was unsure.
 // The whole instruction is asked for again instead.
@@ -1488,6 +1518,7 @@ assert.equal(restated.state, "no-change");
 assert.equal(restated.status, "type: no change - 配置の指示を聞き取れませんでした。動かす部品・隣の部品・方向をそろえて、もう一度言ってください",
   "an unsure action asks for the whole instruction, never for one word");
 assert.deepEqual(restated.draft, []);
+assert.equal(restated.pending, null, "an unsure action is never held");
 
 // Nothing persisted.
 assert.equal(diagnosed.stored, appliedPlacement.stored, "the diagnostic is not written to storage");
@@ -1530,6 +1561,203 @@ assert.deepEqual(replaced.diagnostic, {
 }, "the whole set is replaced, never merged with the turn before");
 assert.equal(Object.keys(replaced.diagnostic).length, Object.keys(diagnosed.diagnostic).length,
   "and the set stays bounded");
+
+// (xvi-d) One-slot repair, in the real app. The first turn of each pair is the
+// measured near-placement answered from the test - the real trigger depends on
+// speech recognition and cannot be reproduced on demand. Where a second turn is
+// marked real, Jev itself judges it, with the pending placement in the request.
+const NEAR = {
+  action: { type: "choice", choice: "place-part", confidence: 0.94 },
+  move: { type: "choice", choice: moveId, confidence: 0.86 },
+  anchor: { type: "choice", choice: anchorId, confidence: 0.39 },
+  // Above the neighbour: earlier in this run the moved part was applied below
+  // it, so below would rightly answer "already there".
+  direction: { type: "choice", choice: "above", confidence: 0.97 },
+};
+const nearTurn = async (text = "一を濃度A の上に置いてください") => {
+  const before = await screen(page);
+  const near = await measuredTurn(NEAR, text);
+  assert.equal(near.state, "no-change", "precondition: a near-placement");
+  assert.equal(near.pending, "anchor", "precondition: the neighbour is held");
+  assert.deepEqual(near.draft, before.draft, "precondition: nothing drafted");
+  return near;
+};
+const replyTurn = answers => measuredTurn(answers, "補足");
+const LOW = { type: "choice", choice: "none", confidence: 0.99 };
+// A complete, confident placement of a different part onto a free spot on the
+// pane, well away from where the held placement would go: the remaining node
+// below the added part.
+const OTHER_PART = placeableDrawn.find(id => id !== moveId && id !== anchorId && id.startsWith("node-"));
+const COMPLETE_OTHER = {
+  action: { type: "choice", choice: "place-part", confidence: 0.95 },
+  move: { type: "choice", choice: OTHER_PART, confidence: 0.95 },
+  anchor: { type: "choice", choice: rebuiltId, confidence: 0.95 },
+  direction: { type: "choice", choice: "below", confidence: 0.95 },
+};
+await dropPending();
+
+// A blank input is not an utterance: no request, nothing spent.
+await nearTurn();
+const blankJev = countJev(page);
+await page.locator("#text").fill("");
+await page.locator("#send").click();
+await settle(page);
+blankJev.stop();
+assert.equal(blankJev.count, 0, "a blank input sends nothing to Jev");
+assert.equal((await screen(page)).pending, "anchor", "and leaves the held piece alone");
+
+// Real Jev: the person names only the neighbour. Jev hears it with the pending
+// placement in the request, and the placement is completed on 作業図 only.
+const repairJev = jevExchange(page);
+await page.locator("#text").fill(`相手は${anchorId}です`);
+await page.locator("#send").click();
+const repairRequest = JSON.parse((await repairJev.request).postData());
+assert.equal((await repairJev.response).status(), 200);
+await settle(page);
+assert.equal(repairRequest.kind, "voice-ui.jev.request.v8");
+assert.deepEqual(repairRequest.state.pending, { missing: "anchor", move: moveId, anchor: null, direction: "above" },
+  "the request carries the held ids and side - never the first utterance's text");
+assert.equal(JSON.stringify(repairRequest.state.pending).includes("一を濃度A"), false);
+const repaired = await screen(page);
+assert.equal(repaired.state, "drafted",
+  `the real Jev reply must complete the placement: ${repaired.status} ${JSON.stringify(repaired.diagnostic)}`);
+assert.equal(repaired.pending, null, "the one repair is spent");
+assert.deepEqual(repaired.draft, [`~${moveId}`]);
+assert.deepEqual({
+  source: repaired.items[0].source,
+  input: repaired.items[0].input,
+  originSource: repaired.items[0].originSource,
+  origin: repaired.items[0].origin,
+}, { source: "typed", input: `相手は${anchorId}です`, originSource: "typed", origin: "一を濃度A の上に置いてください" },
+"both utterances are shown with where each came from");
+assert.match(repaired.items[0].effect, new RegExp(`配置 ${moveId} を ${anchorId} の上へ`, "u"));
+const repairedBox = (await boxes(page, "working"))[moveId].box;
+const [rax, ray] = drawnBefore[anchorId].box;
+const [, , rtw, rth] = drawnBefore[moveId].box;
+assert.deepEqual(repairedBox, [rax, ray - rth - gap, rtw, rth], "drawn above the neighbour, measured from the view");
+const repairedPaint = await page.evaluate(regionId => {
+  const surface = document.querySelector("#working-surface");
+  const frame = surface.querySelector('iframe[data-package="semantic-map"]');
+  const adapter = frame.contentWindow.semanticMapApp.adapter;
+  const node = adapter.graph.getView().getState(adapter.cellsByRegionId.get(regionId))?.shape?.node;
+  const rect = node?.getBoundingClientRect();
+  const pane = frame.contentDocument.querySelector("#graph-container").getBoundingClientRect();
+  if (!rect) return null;
+  const w = Math.max(0, Math.min(rect.right, pane.right) - Math.max(rect.left, pane.left));
+  const h = Math.max(0, Math.min(rect.bottom, pane.bottom) - Math.max(rect.top, pane.top));
+  return { visible: w * h, whole: rect.width * rect.height };
+}, moveId);
+assert.ok(repairedPaint !== null && repairedPaint.whole > 0 && repairedPaint.visible >= repairedPaint.whole - 0.5,
+  `the repaired part is wholly painted inside the pane: ${JSON.stringify(repairedPaint)}`);
+assert.equal(repaired.stored, restated.stored, "確定図 and storage are untouched until Apply");
+assert.equal(JSON.stringify(repaired.stored ?? "").includes("相手は"), false, "no utterance reaches storage");
+
+// Undo takes the repaired step - and its two texts - away together.
+await press(page, "#undo");
+const undoneRepair = await screen(page);
+assert.deepEqual(undoneRepair.draft, []);
+assert.equal(undoneRepair.items.length, 0, "the shown texts leave with the step");
+
+// A second failure spends the one repair: after it, a bare neighbour is no
+// longer read as completing anything.
+await nearTurn();
+const failed = await replyTurn({ action: LOW, move: LOW, anchor: LOW, direction: LOW });
+assert.equal(failed.state, "no-change");
+assert.equal(failed.status, "type: no change - 足りなかった部分が聞き取れませんでした。指示全体をもう一度言ってください");
+assert.equal(failed.pending, null, "a failed repair drops the held piece");
+const afterSpent = await replyTurn({
+  action: LOW, move: LOW, direction: LOW, anchor: { type: "choice", choice: anchorId, confidence: 0.95 },
+});
+assert.equal(afterSpent.state, "no-change", "nothing is held any more, so the bare neighbour completes nothing");
+assert.deepEqual(afterSpent.draft, []);
+
+// The repair reply names the moved part itself as the neighbour: a reasoned
+// no change, not a failure.
+await nearTurn();
+const selfRepair = await replyTurn({
+  action: LOW, move: LOW, direction: LOW, anchor: { type: "choice", choice: moveId, confidence: 0.95 },
+});
+assert.equal(selfRepair.state, "no-change");
+assert.equal(selfRepair.status, "type: no change - 同じ部品の隣には置けません。指示全体をもう一度言ってください");
+assert.equal(selfRepair.pending, null);
+
+// An unrelated complete instruction wins, and is judged as itself.
+await nearTurn();
+const other = await replyTurn(COMPLETE_OTHER);
+assert.equal(other.state, "drafted", `a complete instruction is judged as itself: ${other.status}`);
+assert.equal(other.pending, null);
+assert.deepEqual(other.draft, [`~${OTHER_PART}`], "it moved what it named, not the held part");
+assert.equal(other.items[0].origin, null, "and shows only its own text");
+
+// Undo, Discard, Apply and Revert each drop a held piece; so does a reload.
+await nearTurn();
+await press(page, "#undo");
+assert.equal((await screen(page)).pending, null, "Undo drops it");
+
+await replyTurn(COMPLETE_OTHER);
+await nearTurn();
+await press(page, "#discard");
+assert.equal((await screen(page)).pending, null, "Discard drops it");
+
+await replyTurn(COMPLETE_OTHER);
+await nearTurn();
+await press(page, "#apply");
+const appliedWithHeld = await screen(page);
+assert.equal(appliedWithHeld.state, "applied");
+assert.equal(appliedWithHeld.pending, null, "Apply drops it");
+
+await nearTurn();
+const lastEntry = appliedWithHeld.confirmed.length - 1;
+await page.locator(`button[data-revert="${lastEntry}"]`).click();
+await settle(page);
+assert.equal((await screen(page)).pending, null, "Revert drops it");
+await press(page, "#discard");
+
+await nearTurn();
+await page.reload({ waitUntil: "commit" });
+await ready(page);
+assert.equal((await screen(page)).pending, null, "a reload drops it");
+
+// A provider timeout after the request still spends the one repair.
+await nearTurn();
+await page.route(jevUrl, route => route.fulfill({
+  status: 504,
+  contentType: "application/json; charset=utf-8",
+  body: JSON.stringify({ error: "provider_timeout" }),
+}), { times: 1 });
+const timeoutRepair = jevExchange(page);
+await page.locator("#text").fill(`相手は${anchorId}です`);
+await page.locator("#send").click();
+await timeoutRepair.request;
+await settle(page);
+assert.equal((await screen(page)).state, "failed");
+assert.equal((await screen(page)).pending, null, "a timed-out repair is spent all the same");
+assert.deepEqual(failedResponses.splice(0), [`504 ${jevUrl}`], "the only failed response is the one crafted here");
+
+// A voice first utterance and a typed reply. The microphone press is real - the
+// fixture audio through the real recognizer - and only its Jev answer is
+// crafted as the near-placement; the typed reply's answer is crafted too.
+await page.route(jevUrl, route => route.fulfill({
+  status: 200,
+  contentType: "application/json; charset=utf-8",
+  body: JSON.stringify({ ...craftedAnswer, answers: { ...craftedAnswer.answers, ...NEAR } }),
+}), { times: 1 });
+const spokenNear = await speak(page);
+const heardText = spokenNear.sent.state.utterance;
+assert.equal((await screen(page)).pending, "anchor", "a spoken near-placement is held the same way");
+const pairTurn = await replyTurn({
+  action: LOW, move: LOW, direction: LOW, anchor: { type: "choice", choice: anchorId, confidence: 0.95 },
+});
+assert.equal(pairTurn.state, "drafted", `the typed reply completes the spoken placement: ${pairTurn.status}`);
+assert.deepEqual({
+  source: pairTurn.items[0].source,
+  input: pairTurn.items[0].input,
+  originSource: pairTurn.items[0].originSource,
+  origin: pairTurn.items[0].origin,
+}, { source: "typed", input: "補足", originSource: "voice", origin: heardText },
+"the spoken text is labelled as recognized, the typed one as typed");
+assert.equal(pairTurn.items[0].elements, 0, "both texts are set as text only");
+await press(page, "#discard");
 
 await first.browser.close();
 
@@ -1592,7 +1820,7 @@ for (const control of ["sendDisabled", "micDisabled", "undoDisabled", "discardDi
 
 const [typedFrom, typedTo] = typedEdge.split("->");
 const heard = await speak(page);
-assert.equal(heard.sent.kind, "voice-ui.jev.request.v7");
+assert.equal(heard.sent.kind, "voice-ui.jev.request.v8");
 // The spoken correction carries the typed step before it as recent context:
 // what was typed, and the step it made.
 assert.deepEqual(withoutSeq(heard.sent.state.context.recent), [heardAs(typedStep, "typed", "step", `+${typedEdge}`)]);
@@ -1651,6 +1879,9 @@ for (const input of inputsSent) {
   assert.equal(consoleMessages.some(message => message.includes(input)), false, `an input was logged to the console: ${input}`);
 }
 
+await Promise.all(pendingCounts);
+assert.ok(craftedAnswered > 0, "precondition: the crafted turns were answered and counted apart");
+
 process.stdout.write(
   `local-voice-graph-e2e: PASS spoken add "${voiceAdd.sent.state.utterance}" -> 作業図 only, applied edge=${voiceEdge} `
   + `| each voice press: one click, 0 text focus, 0 Send, [${voiceAdd.trace.join(" ")}], 1 Jev request `
@@ -1668,7 +1899,10 @@ process.stdout.write(
   + `at head ${frameBefore.head.slice(0, 14)}, panes equal at ${widths.working}px; `
   + `ceiling in the same run: ${JSON.stringify(ceilingSpot)} is outside that frame - ${offscreenGuard}; `
   + "Apply and reload draw it in the same place in both panes, revert puts it back drawn "
-  + `| ${jevAnswered} real Jev answers in this run `
+  + `| ${jevAnswered} real Jev answers in this run, ${craftedAnswered} crafted by the test `
+  + `| one-slot repair: real Jev completed "相手は${anchorId}です" into ${moveId} above ${anchorId}, `
+  + "both texts shown with their sources, blank not spent, failure/self/unrelated/timeout each drop it, "
+  + "Undo/Discard/Apply/Revert/reload each drop it "
   + `| refused microphone: [${voicePhases(refusalTrace).map(entry => entry.kind).join(" ")}], 0 Jev requests, nothing changed, controls given back `
   + `| embedded Accept [${embeddedAccepts.join("; ")}] / [${correctionAccepts.join("; ")}] `
   + `| corrupt and foreign logs fail closed | typed ${edgeA}, ${edgeB}: 2 undos, then 2-step apply `

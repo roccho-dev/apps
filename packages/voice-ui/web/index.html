@@ -72,7 +72,9 @@
         changesForJev,
         edgesOf,
         focusFor,
+        pendingForJev,
         planStep,
+        repairStep,
         revertStep,
       } from "/app/src/decision/correction.mjs";
       import {
@@ -181,6 +183,19 @@
       let working;
       let draft = [];
       let candidate = null;
+
+      // A placement the last utterance nearly made, lacking one piece, and the
+      // utterance itself. Held in memory for exactly one more utterance sent to
+      // Jev, whatever that utterance's result, and dropped by Undo, Discard,
+      // Apply, Revert, 会話をクリア and reload. A blank input or an empty
+      // transcript is not an utterance and leaves it alone. Never stored, never
+      // put in the log; only its part ids and side go to Jev.
+      let pending = null;
+      const setPending = value => {
+        pending = value;
+        if (value === null) delete document.body.dataset.pending;
+        else document.body.dataset.pending = value.intent.missing;
+      };
 
       // The text each adopted step was judged from - what Hayamimi recognized,
       // or what was typed - keyed by that exact step. It is only shown next to
@@ -418,6 +433,19 @@
           item.dataset.changes = step.changes.map(describe).join(" ");
           const input = inputOf.get(step);
           item.dataset.source = input?.source ?? "revert";
+          // A step completed by a second utterance shows the first one too,
+          // each labelled with where it came from.
+          if (input?.origin !== undefined) {
+            item.dataset.originSource = input.origin.source;
+            const originLabel = document.createElement("span");
+            originLabel.textContent = input.origin.source === "voice" ? "認識文: " : "入力文: ";
+            const originSaid = document.createElement("q");
+            originSaid.dataset.origin = "";
+            originSaid.textContent = input.origin.text;
+            const joined = document.createElement("span");
+            joined.textContent = " + 補足 ";
+            item.append(originLabel, originSaid, joined);
+          }
           const label = document.createElement("span");
           label.textContent = input === undefined ? "取り消し" : input.source === "voice" ? "認識文: " : "入力文: ";
           item.append(label);
@@ -569,9 +597,14 @@
         const revision = working.head;
         const layout = workingLayout();
         const placeable = layout === null ? [] : [...placeableIds(layout, working.records)];
+        // This utterance is the one repair. It is used up here, before the
+        // request, so a timeout or a refusal spends it just as an answer does.
+        const repairing = pending;
+        setPending(null);
         const decision = await postJev({
-          kind: "voice-ui.jev.request.v7",
+          kind: "voice-ui.jev.request.v8",
           state: {
+            pending: pendingForJev(repairing?.intent ?? null),
             utterance: value,
             working: {
               placeable,
@@ -590,7 +623,7 @@
         // been panned, zoomed, resized or re-rendered. planStep judges the spot
         // before its own first await, so this value cannot go stale in between.
         const visibleFrame = workingVisibleFrame();
-        const planned = await planStep({
+        const judgment = {
           working,
           revision,
           visibleFrame,
@@ -603,8 +636,17 @@
           // The same layout the request was built from, so the answer is
           // judged against the positions the user was looking at.
           layout,
-        });
+        };
+        // Both judge before their first await, so the frame is still current.
+        const planned = repairing === null
+          ? await planStep(judgment)
+          : await repairStep({ ...judgment, pending: repairing.intent });
         if (planned.outcome === OUTCOME_NO_CHANGE) {
+          // Only an ordinary utterance can leave a placement pending; the one
+          // repair never leaves another.
+          if (repairing === null && planned.pending !== undefined) {
+            setPending({ intent: planned.pending, input: { source, text: value } });
+          }
           // Synchronous, after the decision is already made: it reads what this
           // turn used and changes nothing about it.
           recordNoChangeDiagnostic({
@@ -620,7 +662,14 @@
           if (change.kind === "region") issuedParts.add(change.id);
         }
         const next = await appendStep({ working, step: planned.step, protocol });
-        candidate = { working: next, step: planned.step, input: { source, text: value } };
+        // A repaired step was judged from two utterances, and shows both.
+        candidate = {
+          working: next,
+          step: planned.step,
+          input: planned.repaired === true
+            ? { source, text: value, origin: repairing.input }
+            : { source, text: value },
+        };
         return graphIr(next);
       };
 
@@ -802,6 +851,9 @@
       // request is in flight every one of them is therefore disabled.
       const withSurface = async (label, run) => {
         if (blocked || rendering) return;
+        // Undo, Discard, Apply and Revert change what a pending placement was
+        // said against, so each of them drops it.
+        setPending(null);
         rendering = true;
         controlHoldsRender = true;
         syncBusy();
@@ -844,6 +896,7 @@
       // none. It changes neither pane.
       contextClear.addEventListener("click", () => {
         if (blocked || rendering) return;
+        setPending(null);
         conversation = [];
         renderContext();
         syncBusy();
