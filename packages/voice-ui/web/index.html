@@ -7,19 +7,61 @@
     <style>
       #panes { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
       #working-notice { font-weight: bold; }
-      /* The embed sizes itself min(78vh, 900px). In a 1280x720 window that is
-         562 px, and its own floating buttons then sit over a composed diagram's
-         steps (measured). Both panes take the embed's own cap instead - the same
-         height, so the frame read from 作業図 still holds for 確定図. */
-      #confirmed-surface iframe, #working-surface iframe { height: 900px !important; }
+      /* Every line of the band keeps one line's height whether or not it has
+         text, and both pane headings are one row, so neither graph moves when
+         a status changes or a list grows. */
+      #composer { display: flex; gap: 8px; }
+      #text { flex: 1; resize: none; }
+      #band p { margin: 2px 0; min-height: 1.4em; line-height: 1.4; }
+      .pane-head { display: flex; gap: 8px; align-items: center; height: 2.4rem; }
+      .pane-head h2 { margin: 0; font-size: 1.2rem; }
+      /* Both panes the same height, so the frame read from 作業図 still holds
+         for 確定図. The embed sizes itself min(78vh, 900px) and keeps its own
+         buttons docked along its bottom edge; the graph sits in the middle.
+         Measured at 1280x720 with the composed diagram: at 562-640 px the dock
+         covers the approver's lane and the decision step, and from 660 px they
+         fall below the window; the window height less the band above the
+         panes (70 px) leaves both clear. */
+      #confirmed-surface iframe, #working-surface iframe { height: calc(100vh - 70px) !important; }
     </style>
   </head>
   <body>
     <main>
-      <textarea id="text" aria-label="Input"></textarea>
-      <button id="send" type="button">Send</button>
-      <button id="mic" type="button">Voice</button>
-      <p id="status" role="status"></p>
+      <!-- One short band, then both graphs: what was just said and what it
+           drew are on the first screen together, and the next utterance can
+           follow at once. Nothing above the graphs grows with use. -->
+      <div id="band">
+        <div id="composer">
+          <textarea id="text" aria-label="Input" rows="1"></textarea>
+          <button id="send" type="button">Send</button>
+          <button id="mic" type="button">Voice</button>
+        </div>
+        <p id="status" role="status"></p>
+        <p id="working-notice">作業図は保存されていません。再読み込みすると消えます。</p>
+        <!-- Parts still in 作業図 that the pane does not show whole. -->
+        <p id="out-of-view" aria-live="polite"></p>
+      </div>
+      <div id="panes">
+        <!-- Left: the saved graph. Only 確定図に反映 changes it. -->
+        <section id="confirmed" aria-label="確定図">
+          <div class="pane-head"><h2>確定図</h2></div>
+          <div id="confirmed-surface"></div>
+          <section id="history" aria-label="確定図の履歴"></section>
+        </section>
+        <!-- Right: the working graph. Speech and typing change only this. -->
+        <section id="working" aria-label="作業図">
+          <div class="pane-head">
+            <h2>作業図</h2>
+            <button id="undo" type="button">元に戻す</button>
+            <button id="discard" type="button">作業図を破棄</button>
+            <button id="apply" type="button">確定図に反映</button>
+          </div>
+          <div id="working-surface"></div>
+          <h3 id="draft-heading">未反映の操作</h3>
+          <ol id="draft" aria-labelledby="draft-heading"></ol>
+          <p id="draft-count"></p>
+        </section>
+      </div>
       <!-- Earlier utterances Jev judged, exactly as the next request sends them.
            Unverified: only to help Jev understand what an utterance refers to. -->
       <section id="context" aria-labelledby="context-heading">
@@ -28,28 +70,6 @@
         <p id="context-skipped"></p>
         <button id="context-clear" type="button">会話をクリア</button>
       </section>
-      <div id="panes">
-        <!-- Left: the saved graph. Only 確定図に反映 changes it. -->
-        <section id="confirmed" aria-label="確定図">
-          <h2>確定図</h2>
-          <section id="history" aria-label="確定図の履歴"></section>
-          <div id="confirmed-surface"></div>
-        </section>
-        <!-- Right: the working graph. Speech and typing change only this. -->
-        <section id="working" aria-label="作業図">
-          <h2>作業図</h2>
-          <p id="working-notice">作業図は保存されていません。再読み込みすると消えます。</p>
-          <!-- Parts still in 作業図 that the pane does not show whole. -->
-          <p id="out-of-view" aria-live="polite"></p>
-          <h3 id="draft-heading">未反映の操作</h3>
-          <ol id="draft" aria-labelledby="draft-heading"></ol>
-          <p id="draft-count"></p>
-          <button id="undo" type="button">元に戻す</button>
-          <button id="discard" type="button">作業図を破棄</button>
-          <button id="apply" type="button">確定図に反映</button>
-          <div id="working-surface"></div>
-        </section>
-      </div>
     </main>
 
     <script type="module">

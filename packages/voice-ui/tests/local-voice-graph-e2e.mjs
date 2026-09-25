@@ -2400,6 +2400,40 @@ const outOfViewNotice = target => target.evaluate(() => {
 assert.deepEqual(await outOfViewNotice(page), { parts: "", text: "" }, "the genesis graph fits the pane, and nothing is said");
 assert.deepEqual(page.viewportSize(), { width: 1280, height: 720 }, "the named viewport for what follows");
 
+// The first screen, never scrolled: where both graphs start, and whether each
+// thing the person needs next - the input, Send, Voice, the status, both
+// notices and Undo/Discard/Apply - is what a click at its centre reaches,
+// inside the window.
+const FIRST_SCREEN = ["#text", "#send", "#mic", "#status", "#working-notice", "#out-of-view", "#undo", "#discard", "#apply"];
+const firstScreen = target => target.evaluate(selectors => ({
+  scrollY: window.scrollY,
+  tops: ["confirmed", "working"].map(pane => document.querySelector(`#${pane}-surface`).getBoundingClientRect().top),
+  widths: ["confirmed", "working"].map(pane => document.querySelector(`#${pane}-surface`).getBoundingClientRect().width),
+  unreachable: selectors.filter(selector => {
+    const element = document.querySelector(selector);
+    const rect = element.getBoundingClientRect();
+    const x = rect.left + rect.width / 2;
+    const y = rect.top + rect.height / 2;
+    if (rect.width === 0 || rect.height === 0 || x < 0 || y < 0 || x > innerWidth || y > innerHeight) return true;
+    const hit = document.elementFromPoint(x, y);
+    return !(hit === element || element.contains(hit));
+  }),
+}), FIRST_SCREEN);
+const screenStart = await firstScreen(page);
+assert.equal(screenStart.scrollY, 0);
+assert.deepEqual(screenStart.unreachable, [], `on the first screen: ${JSON.stringify(screenStart)}`);
+assert.equal(screenStart.tops[0], screenStart.tops[1], "both graphs start at the same height");
+assert.equal(screenStart.widths[0], screenStart.widths[1], "and are the same width");
+// Still the first screen, the graphs where they were, and nothing scrolled.
+const assertFirstScreen = async when => {
+  const now = await firstScreen(page);
+  assert.equal(now.scrollY, 0, `${when}: the page was not scrolled`);
+  assert.deepEqual(now.tops, screenStart.tops, `${when}: neither graph moved: ${JSON.stringify(now)}`);
+  assert.deepEqual(now.widths, screenStart.widths, `${when}: the panes stay equal`);
+  assert.deepEqual(now.unreachable, [], `${when}: the input, buttons and notices stay reachable: ${JSON.stringify(now)}`);
+  return now;
+};
+
 // Edges as the working or confirmed pane draws them: endpoints, whether the
 // view draws them as directed, the arrowhead, and whether the shape is live.
 const drawnEdges = (target, pane) => target.evaluate(pane => {
@@ -2489,14 +2523,17 @@ const stepCovered = await page.evaluate(ids => {
 assert.deepEqual(await boxes(page, "confirmed"), confirmedStart, "確定図 is unchanged before Apply");
 assert.equal(diagramDrafted.stored, diagramStart.stored, "storage is unchanged before Apply");
 if (process.env.VOICE_DIAGRAM_SHOTS) {
-  await page.locator("#working-surface").screenshot({ path: path.join(process.env.VOICE_DIAGRAM_SHOTS, "working-drafted.png") });
+  // The window as the person sees it; a screenshot of the pane itself would
+  // scroll the page to it.
+  await page.screenshot({ path: path.join(process.env.VOICE_DIAGRAM_SHOTS, "first-screen-drafted.png") });
 }
 
-// Seen, not only laid out: in this 1280x720 window each lane and step of the
-// diagram, and its label, is what the person reaches at nine points across it -
-// with the pane scrolled to it, nothing of the page or of the embed's own
-// buttons over it. A point counts only if the page hit-tests to the pane there
-// and the pane hit-tests to its own graph drawing.
+// Seen, not only laid out: in this 1280x720 window, with the page exactly as
+// the request left it - never scrolled - each lane and step of the diagram, and
+// its label, is what the person reaches at nine points across it, with nothing
+// of the page or of the embed's own buttons over it. A point counts only if it
+// is inside the window, the page hit-tests to the pane there, and the pane
+// hit-tests to its own graph drawing.
 const unobscured = id => page.evaluate(id => {
   const frame = document.querySelector('#working-surface iframe[data-package="semantic-map"]');
   const adapter = frame.contentWindow.semanticMapApp.adapter;
@@ -2505,8 +2542,6 @@ const unobscured = id => page.evaluate(id => {
   const text = state?.text?.node;
   if (!shape?.isConnected || !text?.isConnected) return { drawn: false };
   const svg = shape.ownerSVGElement;
-  const middle = shape.getBoundingClientRect();
-  window.scrollBy(0, frame.getBoundingClientRect().top + frame.clientTop + middle.top + middle.height / 2 - window.innerHeight / 2);
   const pane = frame.getBoundingClientRect();
   const clear = element => {
     const rect = element.getBoundingClientRect();
@@ -2516,17 +2551,19 @@ const unobscured = id => page.evaluate(id => {
         const x = rect.x + rect.width * fx;
         const y = rect.y + rect.height * fy;
         if (x < 0 || y < 0 || x > frame.clientWidth || y > frame.clientHeight) continue;
-        if (document.elementFromPoint(pane.left + frame.clientLeft + x, pane.top + frame.clientTop + y) !== frame) continue;
+        const pageX = pane.left + frame.clientLeft + x;
+        const pageY = pane.top + frame.clientTop + y;
+        if (pageX > innerWidth || pageY > innerHeight) continue;
+        if (document.elementFromPoint(pageX, pageY) !== frame) continue;
         const hit = frame.contentDocument.elementFromPoint(x, y);
         if (hit && (svg.contains(hit) || text.contains(hit))) count += 1;
       }
     }
     return count;
   };
-  const seen = { drawn: true, label: text.textContent.trim(), shape: clear(shape), text: clear(text) };
-  window.scrollTo(0, 0);
-  return seen;
+  return { drawn: true, label: text.textContent.trim(), shape: clear(shape), text: clear(text) };
 }, id);
+await assertFirstScreen("after the purpose request");
 const labelOf = Object.fromEntries([laneA, laneB, stepSubmit, stepReview, stepReceive].map((id, index) =>
   [id, ["申請者", "承認者", "申請する", "確認して判断する", "結果を受け取る"][index]]));
 const seenCells = {};
@@ -2566,6 +2603,7 @@ assert.notEqual(laneLinkScreen.state, "drafted", `an arrow from a lane drafts no
 assert.deepEqual(laneLinkScreen.draft, diagramDrafted.draft, "the draft is exactly the diagram still");
 assert.equal(laneLinkScreen.stored, diagramStart.stored);
 assert.equal((await drawnEdges(page, "working")).length, 2, "no link was drawn");
+await assertFirstScreen("after the lane request");
 
 // The draft is refined like any other graph: a link back, named by its parts.
 const refined = await type(page, `${stepReview} から ${stepSubmit} へ差し戻しの矢印を足して`);
@@ -2576,6 +2614,12 @@ assert.equal(refinedScreen.state, "drafted", refinedScreen.status);
 assert.deepEqual(refinedScreen.draft.at(-1), `+${stepReview}->${stepSubmit}`);
 assert.ok((await drawnEdges(page, "working")).some(edge =>
   edge.from === stepReview && edge.to === stepSubmit && edge.directed && edge.rendered), "the link back is drawn");
+// Said straight after, from the same input, with nothing scrolled - and the
+// composed parts are still all in view with the longer draft list.
+await assertFirstScreen("after the refinement");
+for (const id of composedRegions) {
+  assert.deepEqual(await unobscured(id), seenCells[id], `${id} is still unobscured after the refinement`);
+}
 
 // Undo takes the refinement, then the whole diagram - every lane, step and
 // link together - and nothing else.
@@ -2587,6 +2631,7 @@ assert.deepEqual(undoneDiagram.draft, [], "the second Undo takes the whole diagr
 const afterUndo = await boxes(page, "working");
 assert.deepEqual(composedRegions.filter(id => afterUndo[id]), [], "no lane or step is left drawn");
 assert.deepEqual(await drawnEdges(page, "working"), [], "and no link");
+await assertFirstScreen("after both Undos");
 
 // Asked again, it is composed under new names; then applied and reloaded.
 const again = await type(page, "申請と承認の流れの図を作ってください");
@@ -2597,7 +2642,14 @@ assert.equal(againScreen.state, "drafted", againScreen.status);
 const againRegions = [...againScreen.draft[0].matchAll(/\+(part-\d+)「/gu)].map(match => match[1]);
 assert.equal(againRegions.length, 5);
 assert.deepEqual(againRegions.filter(id => composedRegions.includes(id)), [], "names handed out before are never reused");
+await assertFirstScreen("after composing again");
+for (const id of againRegions) {
+  const seen = await unobscured(id);
+  assert.equal(seen.shape === 9 && seen.text === 9, true, `${id} is unobscured on the first screen: ${JSON.stringify(seen)}`);
+}
 await press(page, "#apply");
+// The history of 確定図 grew, below its graph.
+await assertFirstScreen("after Apply");
 const appliedDiagram = await screen(page);
 assert.equal(appliedDiagram.state, "applied");
 assert.equal(lineCount(appliedDiagram.stored ?? ""), lineCount(diagramStart.stored ?? "") + (diagramStart.stored ? 1 : 2),
@@ -2618,14 +2670,17 @@ for (const pane of ["confirmed", "working"]) {
   assert.equal(links.filter(edge => againRegions.includes(edge.from) && againRegions.includes(edge.to) && edge.directed && edge.rendered).length, 2,
     `${pane} draws both directed links after reload`);
 }
+await assertFirstScreen("after reload");
 if (process.env.VOICE_DIAGRAM_SHOTS) {
-  await page.locator("#confirmed-surface").screenshot({ path: path.join(process.env.VOICE_DIAGRAM_SHOTS, "confirmed-reloaded.png") });
+  await page.screenshot({ path: path.join(process.env.VOICE_DIAGRAM_SHOTS, "first-screen-reloaded.png") });
 }
 const diagramSummary = `unsupported "AWS の構成図を作って" -> ${awsScreen.status}; `
   + `"${asked.sent.state.utterance}" -> one step: lanes ${laneA},${laneB}, steps ${stepSubmit},${stepReview},${stepReceive}, `
   + `links ${composedLinks.join(" ")} drawn directed; lanes as ${laneLayout}; genesis parts wholly on the pane: `
   + `[${genesisOnPane.join(",")}]; steps covered by the embed's controls at their centre: [${stepCovered.join(",")}]; `
-  + "at 1280x720 every lane and step and its label hit-tested at 9/9 points; "
+  + "at 1280x720 on the first screen, never scrolled, every lane and step and its label hit-tested at 9/9 points, "
+  + `the input, Send, Voice, status, notices and Undo/Discard/Apply reachable, both graphs at top ${screenStart.tops[0]}px `
+  + `and ${screenStart.widths[0]}px wide through refinement, Undo, recompose, Apply and reload; `
   + `out-of-view notice named [${genesisOffPane.join(",")}]: "${composedNotice.text}"; `
   + `"${laneLink.sent.state.utterance}" offered no lane and drafted nothing (${laneLinkScreen.state}: ${laneLinkScreen.status}); `
   + `refined with ${stepReview}->${stepSubmit}, Undo took it then the whole diagram, recomposed as ${againRegions.join(",")}, `
