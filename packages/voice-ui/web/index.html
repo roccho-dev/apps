@@ -74,6 +74,9 @@
         focusFor,
         pendingForJev,
         pendingHolds,
+        ACTION_COMPOSE,
+        DIAGRAM_CATALOG,
+        diagramCandidatesForJev,
         planStep,
         repairStep,
         revertStep,
@@ -403,7 +406,21 @@
       // Anything else is listed as it is.
       const DIRECTION_WORDS = { left: "左", right: "右", above: "上", below: "下" };
 
-      const effectOf = changes => {
+      // A composed diagram says which one it is and what it added; every part
+      // and link is still listed by id, as for any other step.
+      const composedEffect = changes => {
+        const regions = changes.filter(change => change.kind === "region");
+        const links = changes.filter(change => change.kind !== "region");
+        const candidate = DIAGRAM_CATALOG.find(entry =>
+          entry.lanes.length + entry.steps.length === regions.length
+          && [...entry.lanes, ...entry.steps].every((spec, index) => spec.label === regions[index].label));
+        return `図の提案${candidate ? `「${candidate.label}」` : ""}: `
+          + regions.map(change => `${change.id}「${change.label}」`).join(" ")
+          + (links.length > 0 ? ` / ${links.map(change => `${change.from}->${change.to}`).join(" ")}` : "");
+      };
+
+      const effectOf = (changes, action) => {
+        if (action === ACTION_COMPOSE) return composedEffect(changes);
         const [first, second] = changes;
         if (changes.length === 1 && first.kind === "region" && first.change === "placed") {
           return first.anchor === "none"
@@ -458,7 +475,7 @@
           }
           const effect = document.createElement("span");
           effect.dataset.effect = "";
-          effect.textContent = effectOf(step.changes);
+          effect.textContent = effectOf(step.changes, step.action);
           item.append(" → ", effect);
           draftList.append(item);
         }
@@ -614,9 +631,13 @@
         // complete instruction of its own.
         const stillHeld = repairing !== null
           && pendingHolds(repairing.intent, { head: revision, frame: offeredFrame, offered: placeable });
+        // The whole diagrams this page can compose, offered by key and purpose
+        // only; what each one contains stays here.
+        const candidates = diagramCandidatesForJev();
         const decision = await postJev({
-          kind: "voice-ui.jev.request.v8",
+          kind: "voice-ui.jev.request.v9",
           state: {
+            candidates: candidates.map(({ key, purpose }) => ({ key, purpose })),
             pending: stillHeld ? pendingForJev(repairing.intent) : null,
             utterance: value,
             working: {
@@ -652,6 +673,8 @@
           // And the same frame its placeable parts were chosen from, so the
           // answer is checked against exactly what Jev was offered.
           offeredFrame,
+          // And the same diagram candidates.
+          candidates: candidates.map(candidate => candidate.key),
         };
         // Both judge before their first await, so the frame is still current.
         const planned = repairing === null

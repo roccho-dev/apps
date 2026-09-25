@@ -177,6 +177,33 @@ const validRequestV8 = value =>
   validStepState(value.state) &&
   validPending(value.state.pending, value.state.working.placeable);
 
+// v9 is v8 plus the whole diagrams the page can compose: for each, a key and
+// what it is for, and nothing more. The page owns every candidate's roles,
+// steps, labels and links; Jev only chooses a key, or none.
+const CANDIDATE_MAX = 8;
+const CANDIDATE_PURPOSE_MAX = 300;
+const validCandidates = value =>
+  Array.isArray(value) &&
+  value.length >= 1 &&
+  value.length <= CANDIDATE_MAX &&
+  value.every(candidate =>
+    exactObject(candidate, ["key", "purpose"]) &&
+    typeof candidate.key === "string" &&
+    /^[a-z][a-z0-9-]{0,63}$/.test(candidate.key) &&
+    candidate.key !== NONE &&
+    typeof candidate.purpose === "string" &&
+    candidate.purpose.trim().length > 0 &&
+    candidate.purpose.length <= CANDIDATE_PURPOSE_MAX) &&
+  new Set(value.map(candidate => candidate.key)).size === value.length;
+
+const validRequestV9 = value =>
+  exactObject(value, ["kind", "state"]) &&
+  value.kind === "voice-ui.jev.request.v9" &&
+  exactObject(value.state, ["utterance", "working", "draft", "focus", "context", "pending", "candidates"]) &&
+  validStepState(value.state) &&
+  validPending(value.state.pending, value.state.working.placeable) &&
+  validCandidates(value.state.candidates);
+
 function validStepState(state) {
   const value = { state };
   return validContext(value.state.context) &&
@@ -339,6 +366,7 @@ const STEP_ACTIONS = {
   "remove-edge": "the utterance asks to remove one edge of the working graph",
   "reverse-edge": "the utterance asks to reverse the direction of one edge of the working graph",
   "undo-request": "the utterance asks to undo, take back or go back on an earlier change",
+  "compose-diagram": "the utterance asks for a whole diagram or chart by what it is for, rather than one edit",
   none: "the utterance asks for anything else, or for no change to the graph",
 };
 
@@ -371,11 +399,15 @@ async function decideStep(input, env) {
   // one, and the edge question is asked only then. Every slot offers "none".
   const placeable = state.working.placeable;
   const canPlace = placeable.length >= 2;
+  // Whole diagrams are offered only when the request carries candidates.
+  const candidates = state.candidates ?? [];
+  const canCompose = candidates.length > 0;
   const actions = [
     "add-edge",
     "add-part",
     ...(canPlace ? ["place-part"] : []),
     ...(edges.length > 0 ? ["remove-edge", "reverse-edge"] : []),
+    ...(canCompose ? ["compose-diagram"] : []),
     "undo-request",
     "none",
   ];
@@ -465,6 +497,19 @@ async function decideStep(input, env) {
         : `the edge from ${byId.get(key).from} to ${byId.get(key).to}`),
     };
   }
+  if (canCompose) {
+    const diagramKeys = [...candidates.map(candidate => candidate.key), NONE];
+    const purposeOf = new Map(candidates.map(candidate => [candidate.key, candidate.purpose]));
+    questions.diagram = {
+      type: "choice",
+      instructions: "If the utterance asks for a whole diagram or chart by what it is for, which of state.candidates is it? "
+        + "Choose a candidate only if its purpose is what the utterance asks for; "
+        + "if it asks for a kind of diagram that is not among them, answer none.",
+      criteria: criteria(diagramKeys, key => key === NONE
+        ? "the utterance asks for no whole diagram, or for a kind of diagram that is not among the candidates"
+        : `the utterance asks for ${purposeOf.get(key)}`),
+    };
+  }
   for (const question of Object.values(questions)) question.instructions += CONTEXT_NOTE;
 
   const { text, error } = await callProvider(env, { model: "jev-latest", state, questions });
@@ -486,6 +531,9 @@ async function decideStep(input, env) {
       answers.direction = choice(value.answers, "direction", [...DIRECTIONS, NONE]);
     }
     if (edges.length > 0) answers.edge = choice(value.answers, "edge", edgeKeys);
+    if (canCompose) {
+      answers.diagram = choice(value.answers, "diagram", [...candidates.map(candidate => candidate.key), NONE]);
+    }
     result = { model: value.model, answers };
   } catch {
     return json({ error: "provider_contract_error" }, 502);
@@ -509,7 +557,7 @@ export async function onRequestPost({ request, env }) {
   } catch {
     return json({ error: "invalid_json" }, 400);
   }
-  if (validRequestV8(input) || validRequestV7(input)) return decideStep(input, env);
+  if (validRequestV9(input) || validRequestV8(input) || validRequestV7(input)) return decideStep(input, env);
   if (validRequestV2(input)) return decideGraphEdge(input, env);
   if (!validRequest(input)) return json({ error: "invalid_request" }, 422);
 
