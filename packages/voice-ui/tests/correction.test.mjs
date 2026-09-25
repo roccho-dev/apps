@@ -30,6 +30,7 @@ import {
   pendingHolds,
   ACTION_COMPOSE,
   DIAGRAM_CATALOG,
+  DIAGRAM_NO_ROOM,
   DIAGRAM_NOT_OFFERED,
   DIAGRAM_RESTATE,
   diagramCandidatesForJev,
@@ -1969,8 +1970,10 @@ test("a chosen diagram is composed whole, as one Decision, beside what was alrea
   const laneIds = ["part-1", "part-2"];
   const stepIds = ["part-3", "part-4", "part-5"];
   assert.deepEqual(operations.map(operation => operation.type),
-    ["AddRegion", "AddRegion", "AddRegion", "AddRegion", "AddRegion", "ConnectRegions", "ConnectRegions"],
-    "every lane, step and link is in the one Decision");
+    ["AddRegion", "AddRegion", "AddRegion", "AddRegion", "AddRegion", "ConnectRegions", "ConnectRegions", "PinRegions"],
+    "every lane, step and link, and the one PinRegions that lays them out, is in the one Decision");
+  assert.deepEqual(operations[7].items.map(item => item.regionId), ["part-1", "part-2", "part-3", "part-4", "part-5"],
+    "both bands and all three steps are pinned");
   operations.slice(0, 2).forEach((operation, index) => {
     assert.equal(operation.regionId, laneIds[index]);
     assert.equal(operation.parentId, "root");
@@ -1986,7 +1989,7 @@ test("a chosen diagram is composed whole, as one Decision, beside what was alrea
     assert.equal(operation.label, spec.label);
     assert.equal(operation.kind, spec.kind);
   });
-  assert.deepEqual(operations.slice(5).map(operation => `${operation.from}->${operation.to}`),
+  assert.deepEqual(operations.slice(5, 7).map(operation => `${operation.from}->${operation.to}`),
     ["part-3->part-4", "part-4->part-5"], "directed links, each crossing between the two roles");
   assert.equal(planned.step.changes.length, 7);
 
@@ -2000,15 +2003,71 @@ test("a chosen diagram is composed whole, as one Decision, beside what was alrea
     assert.notEqual(region(from).parent, region(to).parent, `${from}->${to} crosses roles`);
   }
 
-  // The view nests each step inside its lane, beside the parts already there.
+  // What the provider draws after the Decision is applied is exactly what was
+  // pinned: two bands one above the other, each step inside its own lane's
+  // band, the steps in flow order from left to right, and nothing overlapping
+  // anything it is not nested in.
   const layout = layoutOf(working);
+  const pinnedAt = new Map(operations[7].items.map(item => [item.regionId, item.bounds]));
+  for (const [id, bounds] of pinnedAt) assert.deepEqual(layout.bounds[id], bounds, `${id} is drawn where it was pinned`);
+  assert.deepEqual([...layout.pinned].sort(), [...laneIds, ...stepIds].sort());
   const inside = (outer, inner) => inner[0] >= outer[0] && inner[1] >= outer[1]
     && inner[0] + inner[2] <= outer[0] + outer[2] && inner[1] + inner[3] <= outer[1] + outer[3];
+  const [bandA, bandB] = laneIds.map(id => layout.bounds[id]);
+  assert.ok(bandA[1] + bandA[3] <= bandB[1], "the lanes are bands one above the other: disjoint in y");
+  assert.ok(bandA[0] < bandB[0] + bandB[2] && bandB[0] < bandA[0] + bandA[2], "and overlapping in x");
   for (const id of stepIds) {
-    assert.ok(inside(layout.bounds[region(id).parent], layout.bounds[id]), `${id} is drawn inside its lane`);
+    assert.ok(inside(layout.bounds[region(id).parent], layout.bounds[id]), `${id} is drawn inside its own lane`);
   }
-  for (const id of ["node-a", "node-b", "node-c", ...laneIds]) assert.ok(layout.bounds[id], `${id} is placed`);
+  const xs = stepIds.map(id => layout.bounds[id][0]);
+  assert.ok(xs[0] < xs[1] && xs[1] < xs[2], `the steps run left to right in flow order: ${xs}`);
+  const ids = Object.keys(layout.bounds).filter(id => id !== "root");
+  const nested = (a, b) => [a, b].some(inner => {
+    for (let at = region(inner).parent; at !== null; at = region(at).parent) if (at === (inner === a ? b : a)) return true;
+    return false;
+  });
+  const overlaps = ids.flatMap((a, i) => ids.slice(i + 1).filter(b => !nested(a, b) && (() => {
+    const [p, q] = [layout.bounds[a], layout.bounds[b]];
+    return p[0] < q[0] + q[2] && q[0] < p[0] + p[2] && p[1] < q[1] + q[3] && q[1] < p[1] + p[3];
+  })()).map(b => `${a}x${b}`));
+  assert.deepEqual(overlaps, [], "no region overlaps one it is not nested in");
+  for (const id of ["node-a", "node-b", "node-c"]) assert.ok(layout.bounds[id], `${id} is placed`);
   assert.equal(graph.head === working.head, false, "only the working graph moved");
+});
+
+test("a diagram is not drawn over a part the person placed; the pins never reach Jev", async () => {
+  // node-c put beside node-a, into the area the bands would take.
+  const graph = await baseGraph();
+  const layout = layoutOf(graph);
+  const moved = await place(graph, { move: "node-c", anchor: "node-a", direction: "right" });
+  assert.equal(moved.outcome, OUTCOME_STEP);
+  const placedGraph = await appendStep({ working: graph, step: moved.step, protocol });
+  assert.ok(layout.bounds["node-a"], "precondition");
+  const refused = await compose(placedGraph);
+  assert.equal(refused.outcome, OUTCOME_NO_CHANGE, "an overlap is an explicit no-change, never a draft");
+  assert.equal(refused.reason, DIAGRAM_NO_ROOM);
+  assert.equal(refused.step, undefined);
+
+  // Where there is room, the pins are operations only: Jev is told the same
+  // seven changes as before, and after Apply the focus it is sent stays within
+  // its limit of eight even though the history also records five placements.
+  const planned = await compose(graph);
+  assert.equal(planned.step.changes.length, 7);
+  assert.equal(changesForJev(planned.step.changes).length, 7);
+  const working = await appendStep({ working: graph, step: planned.step, protocol });
+  const history = await projectHistory(working, { verifyDecisionLog });
+  const facts = history.entries.at(-1).facts;
+  assert.equal(facts.filter(fact => fact.kind === "layout").length, 5, "the history keeps the five pins");
+  const focus = focusFor({ draft: [], lastApplied: facts.filter(fact => fact.kind === "relation" || fact.kind === "region") });
+  assert.ok(focus.changes.length <= 8, `post-Apply focus fits Jev's limit: ${focus.changes.length}`);
+
+  // Undo takes the pins with the rest of the diagram.
+  const undone = await truncateLog(working, { count: working.decisions.length - 1, floor: graph.decisions.length, verifyDecisionLog });
+  assert.equal(undone.records.some(record => record.type === "layout"), false, "no pin survives the Undo");
+
+  // A second diagram composed onto the first finds room of its own.
+  const second = await compose(working, {}, ["part-5"]);
+  assert.equal(second.outcome, OUTCOME_STEP, second.reason);
 });
 
 test("an unsupported or unsure diagram request changes nothing", async () => {

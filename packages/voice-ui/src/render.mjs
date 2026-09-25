@@ -18,11 +18,16 @@ export async function renderUiIr({
     return ir;
   }
 
+  // This app never lets the embed edit its input, and it owns every control
+  // around the graph itself, so the embed is asked for the diagram alone: the
+  // provider's opt-in 'chrome-free' presentation, which draws none of its own
+  // topbar, dock, status, toast, Active list or ID chip over the cells.
   if (ir.capability === "render.semantic-map" && ir.payloadKind === "semantic-map-envelope/3") {
     await renderSemanticMap({
       document,
       input: { envelope: ir.payload },
       surfaceMount: mount,
+      presentation: "chrome-free",
     });
     return ir;
   }
