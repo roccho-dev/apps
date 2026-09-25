@@ -1951,6 +1951,17 @@ test("every catalogue diagram fits one step and tells Jev only its key and purpo
     for (const step of entry.steps) {
       assert.ok(laneRefs.has(step.lane), `${step.ref} sits in a lane of the diagram`);
       assert.ok(kinds.has(step.kind), `${step.ref} is a kind the view already draws`);
+      // A diamond or an ellipse has little width away from its middle, and the
+      // view keeps text at a fixed screen size as the camera shrinks the shape:
+      // measured in a real browser, 「確認して判断する」 ran out of its diamond
+      // into the links. These shapes get at most four full-width characters;
+      // any other label a looser cap of eight.
+      const limit = ["start", "decision", "end"].includes(step.kind) ? 4 : 8;
+      assert.ok([...step.label].length <= limit,
+        `${entry.key}.${step.ref} (${step.kind}) 「${step.label}」 is longer than ${limit} characters`);
+    }
+    for (const lane of entry.lanes) {
+      assert.ok([...lane.label].length <= 8, `${entry.key}.${lane.ref} 「${lane.label}」 is longer than 8 characters`);
     }
     for (const [from, to] of entry.links) assert.ok(stepLane.has(from) && stepLane.has(to));
     assert.ok(entry.links.some(([from, to]) => stepLane.get(from) !== stepLane.get(to)),

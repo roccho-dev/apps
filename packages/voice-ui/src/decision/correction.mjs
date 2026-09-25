@@ -60,6 +60,12 @@ export const PART_PALETTE = Object.freeze([
 //
 // One candidate for now: two roles handing one request across and back, the
 // smallest shape of a cross-functional (swimlane) flow.
+//
+// Step labels are short on purpose. The view keeps a label's text at a fixed
+// size on screen while the shape shrinks with the camera, and a diamond or an
+// ellipse has little width away from its middle, so a longer label wraps and
+// runs out of its shape into the links. The catalogue test holds every start,
+// decision and end label to four full-width characters.
 export const DIAGRAM_CATALOG = Object.freeze([
   Object.freeze({
     key: "request-approval-flow",
@@ -72,8 +78,8 @@ export const DIAGRAM_CATALOG = Object.freeze([
     ]),
     steps: Object.freeze([
       Object.freeze({ ref: "submit", lane: "requester", label: "申請する", kind: "start" }),
-      Object.freeze({ ref: "review", lane: "approver", label: "確認して判断する", kind: "decision" }),
-      Object.freeze({ ref: "receive", lane: "requester", label: "結果を受け取る", kind: "end" }),
+      Object.freeze({ ref: "review", lane: "approver", label: "承認可否", kind: "decision" }),
+      Object.freeze({ ref: "receive", lane: "requester", label: "結果受領", kind: "end" }),
     ]),
     links: Object.freeze([
       Object.freeze(["submit", "review"]),

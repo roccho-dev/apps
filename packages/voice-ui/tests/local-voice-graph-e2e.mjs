@@ -2704,7 +2704,7 @@ const unobscured = id => page.evaluate(id => {
 }, id);
 await assertFirstScreen("after the purpose request");
 const labelOf = Object.fromEntries([laneA, laneB, stepSubmit, stepReview, stepReceive].map((id, index) =>
-  [id, ["申請者", "承認者", "申請する", "確認して判断する", "結果を受け取る"][index]]));
+  [id, ["申請者", "承認者", "申請する", "承認可否", "結果受領"][index]]));
 const seenCells = {};
 for (const id of composedRegions) {
   seenCells[id] = await unobscured(id);
@@ -2857,7 +2857,7 @@ const laptopBands = bandsDrawn(laptopCells, [laptopLaneA, laptopLaneB], [laptopS
 assert.ok(laptopBands.bands && laptopBands.flow, `bands and flow order at 1366x657: ${JSON.stringify(laptopBands)}`);
 assert.deepEqual(await presentations(page), { confirmed: CHROME_FREE, working: CHROME_FREE });
 const laptopLabels = Object.fromEntries(laptopRegions.map((id, index) =>
-  [id, ["申請者", "承認者", "申請する", "確認して判断する", "結果を受け取る"][index]]));
+  [id, ["申請者", "承認者", "申請する", "承認可否", "結果受領"][index]]));
 const laptopSeen = async when => {
   const now = await firstScreen(page);
   assert.equal(now.scrollY, 0, `${when}: the page was not scrolled`);
