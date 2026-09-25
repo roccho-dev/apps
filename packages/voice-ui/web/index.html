@@ -568,7 +568,12 @@
         // The answer is bound to the working graph as it was when asked.
         const revision = working.head;
         const layout = workingLayout();
-        const placeable = layout === null ? [] : [...placeableIds(layout, working.records)];
+        // Jev is offered only the parts wholly on the pane as it is now. A frame
+        // that cannot be read, or that shows another head, narrows nothing here:
+        // the frame read after the answer then says why no placement is made.
+        const askedFrame = workingVisibleFrame();
+        const offeredFrame = askedFrame !== null && askedFrame.head === revision ? askedFrame.frame : null;
+        const placeable = layout === null ? [] : [...placeableIds(layout, working.records, offeredFrame)];
         const decision = await postJev({
           kind: "voice-ui.jev.request.v7",
           state: {
@@ -603,6 +608,9 @@
           // The same layout the request was built from, so the answer is
           // judged against the positions the user was looking at.
           layout,
+          // And the same frame its placeable parts were chosen from, so the
+          // answer is checked against exactly what Jev was offered.
+          offeredFrame,
         });
         if (planned.outcome === OUTCOME_NO_CHANGE) {
           // Synchronous, after the decision is already made: it reads what this

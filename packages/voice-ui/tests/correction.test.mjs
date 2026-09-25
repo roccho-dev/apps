@@ -697,10 +697,147 @@ test("a spot only partly on the pane is a no-change", async () => {
     assert.equal(answer.outcome, OUTCOME_NO_CHANGE, label);
     assert.match(answer.reason, /今の表示の外/u, label);
   }
-  // Exactly containing it is enough.
+  // Exactly containing it - with the anchor and the moving part, which must be
+  // on the pane as well - is enough.
+  const boxes = [spot, layout.bounds["node-a"], layout.bounds["node-c"]];
+  const left = Math.min(...boxes.map(box => box[0]));
+  const top = Math.min(...boxes.map(box => box[1]));
+  const right = Math.max(...boxes.map(box => box[0] + box[2]));
+  const bottom = Math.max(...boxes.map(box => box[1] + box[3]));
   const exact = await place(graph, { move: "node-c", anchor: "node-a", direction: "right" },
-    frameOf(graph, [...spot]));
-  assert.equal(exact.outcome, OUTCOME_STEP, "a frame that exactly contains the spot is enough");
+    frameOf(graph, [left, top, right - left, bottom - top]));
+  assert.equal(exact.outcome, OUTCOME_STEP, "a frame that exactly contains spot, anchor and part is enough");
+});
+
+// R's counterexample (D) on apps#19: the view's bounds are pre-culling, so with
+// ten parts stacked down a pane that shows the top of them, every part still has
+// bounds - and Jev used to be offered all ten, and a spot beside a part nobody
+// could see was accepted. The pane decides what can be named, and what is
+// judged. The frame is R's measured viewport height.
+const tenParts = async () => {
+  let graph = await baseGraph();
+  for (let index = 0; index < 7; index += 1) {
+    graph = await appendStep({ working: graph, step: (await addPart(graph, "decision")).step, protocol });
+  }
+  return graph;
+};
+const TOP_OF_TEN = [0, 0, 640, 562];
+const wholly = (frame, box) => box[0] >= frame[0] && box[1] >= frame[1]
+  && box[0] + box[2] <= frame[0] + frame[2] && box[1] + box[3] <= frame[1] + frame[3];
+
+test("only the parts wholly on the pane are offered, and every part still blocks its spot", async () => {
+  const graph = await tenParts();
+  const layout = layoutOf(graph);
+  const all = placeableIds(layout, graph.records);
+  assert.equal(all.length, 10, "precondition: the view has bounds for all ten, on screen or not");
+  assert.deepEqual([...layout.rootBounds], [0, 0, 640, 1288], "precondition: R's measured layout");
+
+  const onPane = placeableIds(layout, graph.records, TOP_OF_TEN);
+  assert.deepEqual(onPane, all.filter(id => wholly(TOP_OF_TEN, layout.bounds[id])));
+  assert.deepEqual(onPane, ["node-a", "node-b", "node-c", "part-1"]);
+  assert.equal(onPane.includes("part-2"), false, "part-2 shows 2 px of itself and is not offered");
+
+  const criteria = correctionCriteria(graph.records, layout, TOP_OF_TEN);
+  assert.deepEqual(criteria.placeable, [...onPane, OPTION_NONE]);
+
+  // A part off the pane is not offered, but it still occupies its spot.
+  const underPart3 = [...layout.bounds["part-3"]];
+  assert.equal(onPane.includes("part-3"), false);
+  assert.equal(spotIsFree(layout, graph.records, "node-a", underPart3), false);
+});
+
+test("an answer naming a part that was not on the pane when asked is refused", async () => {
+  const graph = await tenParts();
+  const layout = layoutOf(graph);
+  await assert.rejects(
+    planStep({
+      working: graph,
+      revision: graph.head,
+      answers: placeAnswers(graph, layout, { move: "part-1", anchor: "part-2", direction: "above" }),
+      protocol,
+      layout,
+      visibleFrame: frameOf(graph, TOP_OF_TEN),
+      offeredFrame: TOP_OF_TEN,
+    }),
+    error => error instanceof DecisionRefused && /outside the offered criteria/u.test(error.message),
+  );
+});
+
+test("a spot beside a part off the pane is a no-change, even when the spot is on it", async () => {
+  const graph = await tenParts();
+  const layout = layoutOf(graph);
+  const spot = neighbourBounds(layout, "part-1", "part-2", "above");
+  assert.ok(wholly(TOP_OF_TEN, spot), "precondition: the spot itself is on the pane");
+  assert.equal(wholly(TOP_OF_TEN, layout.bounds["part-2"]), false, "precondition: the anchor is not");
+
+  // Judged against the frame read after the answer, whatever was offered.
+  const answer = await place(graph, { move: "part-1", anchor: "part-2", direction: "above" },
+    frameOf(graph, TOP_OF_TEN));
+  assert.equal(answer.outcome, OUTCOME_NO_CHANGE, "at apps#19 8d63d4b5 this was a step");
+  assert.match(answer.reason, /基準の部品が今の表示の外/u);
+  assert.equal(answer.step, undefined);
+});
+
+test("moving a part that is off the pane is a no-change, even to a spot on it", async () => {
+  const graph = await tenParts();
+  const layout = layoutOf(graph);
+  const spot = neighbourBounds(layout, "part-5", "node-a", "right");
+  assert.ok(wholly(TOP_OF_TEN, spot) && wholly(TOP_OF_TEN, layout.bounds["node-a"]),
+    "precondition: the spot and the anchor are on the pane");
+  assert.equal(wholly(TOP_OF_TEN, layout.bounds["part-5"]), false, "precondition: the part is not");
+
+  const answer = await place(graph, { move: "part-5", anchor: "node-a", direction: "right" },
+    frameOf(graph, TOP_OF_TEN));
+  assert.equal(answer.outcome, OUTCOME_NO_CHANGE);
+  assert.match(answer.reason, /動かす部品が今の表示の外/u);
+
+  // The same move with everything on the pane is a step.
+  const wide = await place(graph, { move: "part-5", anchor: "node-a", direction: "right" });
+  assert.equal(wide.outcome, OUTCOME_STEP);
+});
+
+test("a pane that moved after Jev was asked is judged as it is now", async () => {
+  const graph = await tenParts();
+  const layout = layoutOf(graph);
+  // Offered from the top of the picture; by the answer the pane has scrolled
+  // down past the top of node-a, while the spot below it is still on the pane.
+  const moved = [0, 120, 640, 562];
+  assert.ok(wholly(moved, neighbourBounds(layout, "part-1", "node-a", "below")), "precondition: the spot is on it");
+  assert.equal(wholly(moved, layout.bounds["node-a"]), false, "precondition: the anchor no longer is");
+  const answer = await planStep({
+    working: graph,
+    revision: graph.head,
+    answers: placeAnswers(graph, layout, { move: "part-1", anchor: "node-a", direction: "below" }),
+    protocol,
+    layout,
+    visibleFrame: frameOf(graph, moved),
+    offeredFrame: TOP_OF_TEN,
+  });
+  assert.equal(answer.outcome, OUTCOME_NO_CHANGE);
+  assert.match(answer.reason, /基準の部品が今の表示の外/u);
+});
+
+test("fewer than two parts on the pane offers no placement at all", async () => {
+  const graph = await tenParts();
+  const layout = layoutOf(graph);
+  const onlyA = [...layout.bounds["node-a"]];
+  assert.deepEqual(placeableIds(layout, graph.records, onlyA), ["node-a"]);
+  const criteria = correctionCriteria(graph.records, layout, onlyA);
+  assert.equal(criteria.actions.includes(ACTION_PLACE_PART), false);
+  assert.deepEqual(criteria.placeable, []);
+  assert.deepEqual(criteria.directions, []);
+});
+
+test("every way of not placing reads as its own sentence", async () => {
+  const graph = await tenParts();
+  const reasons = new Set();
+  const spec = { move: "part-1", anchor: "node-a", direction: "right" };
+  reasons.add((await place(graph, spec, null)).reason);
+  reasons.add((await place(graph, spec, { ...frameOf(graph), head: "sha256:stale" })).reason);
+  reasons.add((await place(graph, spec, frameOf(graph, [0, 0, 10, 10]))).reason);
+  reasons.add((await place(graph, { move: "part-1", anchor: "part-2", direction: "above" }, frameOf(graph, TOP_OF_TEN))).reason);
+  reasons.add((await place(graph, { move: "part-5", anchor: "node-a", direction: "right" }, frameOf(graph, TOP_OF_TEN))).reason);
+  assert.equal(reasons.size, 5, [...reasons].join(" / "));
 });
 
 test("none in any placement slot, or low confidence, changes nothing", async () => {

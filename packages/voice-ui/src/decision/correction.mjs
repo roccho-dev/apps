@@ -97,10 +97,16 @@ const inside = (frame, box) =>
 // endpoints - never the enclosing boundary, which cannot be pinned - and only
 // those the view actually places. A part the view folds away has no position
 // to put anything beside.
-export function placeableIds(layout, records) {
+// With `frame` - the pane's visible frame, in the same coordinates - only the
+// parts lying wholly inside it. The view's bounds are pre-culling: a part has
+// them whether or not it is on screen, and even a drawn cell can sit in the
+// margin band nobody sees. Without a frame this is every placed part, which is
+// what collision checks need: a part off screen still occupies its spot.
+export function placeableIds(layout, records, frame = null) {
   refuse(layout?.bounds !== undefined, "layout bounds are required");
   return Object.freeze(selectableRegionIds(records)
     .filter(regionId => Object.hasOwn(layout.bounds, regionId))
+    .filter(regionId => frame === null || inside(frame, layout.bounds[regionId]))
     .sort());
 }
 
@@ -184,14 +190,17 @@ export function nextPartId(graph, reserved = []) {
 
 // `layout` is the provider's public answer about where this graph is drawn.
 // Placement is offered only when it is present and holds at least two parts:
-// something to move, and something to put it beside.
-export function correctionCriteria(records, layout = null) {
+// something to move, and something to put it beside. `offeredFrame` is the
+// visible frame the request was built from, or null when none could be read;
+// the page and this check must be given the same one, so that what is judged is
+// exactly what Jev was offered.
+export function correctionCriteria(records, layout = null, offeredFrame = null) {
   const regions = selectableRegionIds(records);
   refuse(regions.length >= 2, "graph has fewer than two selectable regions");
   refuse(!regions.includes(OPTION_NONE), `a region may not be named "${OPTION_NONE}"`);
   const edges = edgesOf(records);
   refuse(edges.every(edge => edge.id !== OPTION_NONE), `an edge may not be named "${OPTION_NONE}"`);
-  const placeable = layout === null ? [] : placeableIds(layout, records);
+  const placeable = layout === null ? [] : placeableIds(layout, records, offeredFrame);
   const canPlace = placeable.length >= 2;
   return Object.freeze({
     actions: Object.freeze([
@@ -270,9 +279,9 @@ function operationsFor(read, working, reserved, layout, visibleFrame) {
   const existing = relationKeys(records);
 
   // Put a part beside another one. Jev chooses which part, which neighbour and
-  // which side, all from what is on screen; the app asks the view where those
-  // parts actually are and computes the position. Jev never sees a coordinate,
-  // and the app never invents a size.
+  // which side, from the parts that were wholly on the pane when it was asked;
+  // the app asks the view where those parts actually are and computes the
+  // position. Jev never sees a coordinate, and the app never invents a size.
   if (read.action.choice === ACTION_PLACE_PART) {
     if (read.move.choice === OPTION_NONE || read.anchor.choice === OPTION_NONE || read.direction.choice === OPTION_NONE) {
       return noChange("the request did not name a part, a neighbour and a side");
@@ -299,6 +308,16 @@ function operationsFor(read, working, reserved, layout, visibleFrame) {
     }
     if (!inside(visibleFrame.frame, box)) {
       return noChange("その場所は今の表示の外になります");
+    }
+    // The part to put something beside, and the part being put, must both be
+    // on the pane now too: a spot beside a part nobody can see, or a part
+    // nobody can see arriving, is not something the person asked for looking
+    // at this picture. The pane may also have moved since Jev was asked.
+    if (!inside(visibleFrame.frame, layout.bounds[read.anchor.choice])) {
+      return noChange("基準の部品が今の表示の外にあります");
+    }
+    if (!inside(visibleFrame.frame, layout.bounds[read.move.choice])) {
+      return noChange("動かす部品が今の表示の外にあります");
     }
     if (!spotIsFree(layout, records, read.move.choice, box)) {
       return noChange("その場所には別の部品があります");
@@ -448,14 +467,17 @@ const step = (revision, action, changes, decision, confidence = null) => Object.
 // same synchronous turn as this call: everything up to and including
 // `operationsFor` runs before the first await below, so no camera, resize or
 // re-render can slip in between reading the frame and judging a spot against it.
+// `offeredFrame` is the frame the request's placeable parts were chosen from
+// (see correctionCriteria), read before Jev was asked; `visibleFrame` is read
+// after.
 export async function planStep({
-  working, revision, answers, protocol, reserved = [], layout = null, visibleFrame = null,
+  working, revision, answers, protocol, reserved = [], layout = null, visibleFrame = null, offeredFrame = null,
 } = {}) {
   requireGraph(working);
   refuse(typeof protocol?.createDecision === "function", "protocol.createDecision is required");
   refuse(revision === working.head, "the answer is stale: the working graph changed after the request was sent");
 
-  const read = readAnswers(answers, correctionCriteria(working.records, layout));
+  const read = readAnswers(answers, correctionCriteria(working.records, layout, offeredFrame));
   const planned = operationsFor(read, working, reserved, layout, visibleFrame);
   if (planned.outcome === OUTCOME_NO_CHANGE) return planned;
 

@@ -45,8 +45,11 @@ const errors = [];
 const failedResponses = [];
 const consoleMessages = [];
 // Answers the real Jev gave through the dev server during this run, reported
-// so its cost is visible. Answers the test fakes at the network are not here.
+// so its cost is visible. Answers the test crafts at the network carry the
+// model "jev-test" and are counted apart, never as real ones.
 let jevAnswered = 0;
+let craftedAnswered = 0;
+const answerCounts = [];
 
 const watch = target => {
   target.on("pageerror", error => errors.push(String(error)));
@@ -56,7 +59,10 @@ const watch = target => {
       failedResponses.push(response.status() + " " + response.url());
     }
     if (new URL(response.url()).pathname === "/api/jev" && response.status() === 200 && !response.request().isNavigationRequest()) {
-      jevAnswered += 1;
+      answerCounts.push(response.json().then(
+        body => { if (body?.model === "jev-test") craftedAnswered += 1; else jevAnswered += 1; },
+        () => { jevAnswered += 1; },
+      ));
     }
   });
   return target;
@@ -277,6 +283,14 @@ const mountWidths = target => target.evaluate(() => ({
 // Whether a box is wholly inside a frame, in the view's own coordinates.
 const insideFrame = (box, frame) => box[0] >= frame[0] && box[1] >= frame[1]
   && box[0] + box[2] <= frame[0] + frame[2] && box[1] + box[3] <= frame[1] + frame[3];
+
+// The parts wholly on a pane: drawn cells whose own boxes lie inside the
+// provider's frame. A cell alone is not enough - the renderer builds cells in a
+// margin band just outside the frame that nobody sees.
+const onPane = (drawnBoxes, frame) => Object.entries(drawnBoxes)
+  .filter(([id, drawn]) => id !== "root" && drawn.box !== null && insideFrame(drawn.box, frame))
+  .map(([id]) => id)
+  .sort();
 
 // Both panes' drawn edges.
 const panes = async target => ({
@@ -1165,12 +1179,46 @@ assert.deepEqual(placeBefore.draft, [], "precondition: nothing unapplied");
 assert.equal(frameBefore.head, confirmedFrameBefore.head,
   "both panes show the same head here, so head is provenance and never pane identity");
 
-// The view lays this graph out as one row, so the free spot is under it.
-const placed = await type(page, "move node-c below node-a");
+// The parts Jev may name are the ones wholly on 作業図 as the request is built:
+// the provider's frame and the adapter's own cells, never the layout contract's
+// pre-culling bounds.
+const offeredBefore = onPane(drawnBefore, frameBefore.frame);
+assert.ok(offeredBefore.length >= 2, `precondition: at least two parts are on the pane: ${JSON.stringify(offeredBefore)}`);
+
+// A request that can succeed here: two parts on the pane and a side of the
+// anchor that is free and on the pane too, worked out from the drawn cells and
+// the provider's frame. Which parts that is depends on how the earlier steps
+// laid the graph out, so it is chosen, not assumed.
+const sideWords = { left: "to the left of", right: "to the right of", above: "above", below: "below" };
+const spotBeside = (anchorBox, moverBox, side) => side === "left" ? [anchorBox[0] - moverBox[2] - 24, anchorBox[1], moverBox[2], moverBox[3]]
+  : side === "right" ? [anchorBox[0] + anchorBox[2] + 24, anchorBox[1], moverBox[2], moverBox[3]]
+  : side === "above" ? [anchorBox[0], anchorBox[1] - moverBox[3] - 24, moverBox[2], moverBox[3]]
+  : [anchorBox[0], anchorBox[1] + anchorBox[3] + 24, moverBox[2], moverBox[3]];
+const freeOf = (drawnBoxes, box, except) => Object.entries(drawnBoxes).every(([id, cell]) =>
+  id === "root" || id === except || cell.box === null
+  || !(box[0] < cell.box[0] + cell.box[2] && cell.box[0] < box[0] + box[2]
+    && box[1] < cell.box[1] + cell.box[3] && cell.box[1] < box[1] + box[3]));
+const request = (() => {
+  for (const anchor of offeredBefore) {
+    for (const mover of offeredBefore) {
+      if (mover === anchor) continue;
+      for (const side of ["below", "right", "left", "above"]) {
+        const spot = spotBeside(drawnBefore[anchor].box, drawnBefore[mover].box, side);
+        if (insideFrame(spot, frameBefore.frame) && freeOf(drawnBefore, spot, mover)) return { anchor, mover, side };
+      }
+    }
+  }
+  return null;
+})();
+assert.notEqual(request, null, `precondition: some free spot on the pane beside an on-pane part: `
+  + JSON.stringify({ offeredBefore, frame: frameBefore.frame }));
+
+const placed = await type(page, `move ${request.mover} ${sideWords[request.side]} ${request.anchor}`);
 assert.deepEqual(
   [...placed.sent.state.working.placeable].sort(),
-  placeableDrawn,
-  "the parts offered to Jev are exactly the ones the view draws - never the boundary, and never an empty list from a swallowed layout failure",
+  offeredBefore,
+  "the parts offered to Jev are exactly the ones wholly on the pane - never the boundary, never a part the "
+    + "pane cuts off, and never an empty list from a swallowed layout failure",
 );
 assert.equal(placed.sent.state.working.placeable.includes("root"), false);
 assert.equal(JSON.stringify(placed.sent).includes("bounds"), false, "Jev is never told where anything is drawn");
@@ -1178,7 +1226,7 @@ assert.equal(placed.decision.answers.action.choice, "place-part", "precondition:
 const moveId = placed.decision.answers.move.choice;
 const anchorId = placed.decision.answers.anchor.choice;
 const direction = placed.decision.answers.direction.choice;
-assert.ok(placeableDrawn.includes(moveId) && placeableDrawn.includes(anchorId), "both parts are drawn ones");
+assert.ok(offeredBefore.includes(moveId) && offeredBefore.includes(anchorId), "both parts are ones on the pane");
 assert.ok(["left", "right", "above", "below"].includes(direction));
 
 const placedScreen = await screen(page);
@@ -1254,10 +1302,12 @@ assert.deepEqual(confirmedDuring[moveId].box, drawnBefore[moveId].box, "確定�
 // Both coordinates are measured, so the refusal is shown to be geometric.
 const frameAtCeiling = await visibleFrame(page, "working");
 assert.notEqual(frameAtCeiling, null, "the pane still reports a frame");
-const leftmost = placeableDrawn
+// Both named parts are on the pane, so the only thing off it is the spot.
+const offeredAtCeiling = onPane(drawnAfter, frameAtCeiling.frame);
+const leftmost = offeredAtCeiling
   .map(id => [id, drawnAfter[id].box])
   .sort((left, right) => left[1][0] - right[1][0])[0][0];
-const mover = placeableDrawn.find(id => id !== leftmost);
+const mover = offeredAtCeiling.find(id => id !== leftmost);
 const ceilingSpot = [
   drawnAfter[leftmost].box[0] - drawnAfter[mover].box[2] - gap,
   drawnAfter[leftmost].box[1],
@@ -1366,6 +1416,11 @@ assert.deepEqual((await boxes(page, "working"))[moveId].box, target, "Discard pu
 // rather than by Jev, so the numbers are fixed and the assertion is exact.
 const diagBefore = (await screen(page)).diagnostic;
 assert.equal(diagBefore.diag, undefined, "a turn that ended in a step leaves no diagnostic behind");
+// What this turn will offer: the parts wholly on the pane now. The crafted
+// answer below names two of them, so it is judged rather than refused.
+const offeredAtDiag = onPane(await boxes(page, "working"), (await visibleFrame(page, "working")).frame);
+assert.ok(offeredAtDiag.includes(moveId) && offeredAtDiag.includes(anchorId),
+  `precondition: ${moveId} and ${anchorId} are on the pane: ${JSON.stringify(offeredAtDiag)}`);
 
 // Shaped exactly as the page's own reader expects: the edge slot exists only
 // while the working graph has an edge to name, and "none" is always offered.
@@ -1402,7 +1457,7 @@ assert.equal(diagnosed.state, "no-change", "a slot under the floor is a no chang
 assert.deepEqual(diagnosed.diagnostic, {
   diag: "jev-no-change",
   diagOutcome: "no-change",
-  diagPlaceable: String(placeableDrawn.length),
+  diagPlaceable: String(offeredAtDiag.length),
   diagPlaceOffered: "yes",
   diagAction: "place-part:0.91",
   diagMove: `${moveId}:0.44`,
@@ -1451,7 +1506,7 @@ assert.equal(replaced.state, "no-change");
 assert.deepEqual(replaced.diagnostic, {
   diag: "jev-no-change",
   diagOutcome: "no-change",
-  diagPlaceable: String(placeableDrawn.length),
+  diagPlaceable: String(offeredAtDiag.length),
   diagPlaceOffered: "yes",
   diagAction: "none:0.99",
   diagMove: "none:0.99",
@@ -1461,6 +1516,181 @@ assert.deepEqual(replaced.diagnostic, {
 }, "the whole set is replaced, never merged with the turn before");
 assert.equal(Object.keys(replaced.diagnostic).length, Object.keys(diagnosed.diagnostic).length,
   "and the set stays bounded");
+
+// (xvi-d) R's counterexample (D): more parts than the pane shows. The layout
+// contract keeps bounds for every part, on screen or not, and the renderer
+// builds cells in a margin band nobody sees - so neither can say what a person
+// could name. Every answer here is crafted from the request it answers, so the
+// geometry, not Jev's hearing, decides the outcome.
+const craftFor = (sent, answers) => ({
+  kind: "voice-ui.jev.decision.v4",
+  model: "jev-test",
+  answers: {
+    source: { type: "choice", choice: "none", confidence: 0.9 },
+    target: { type: "choice", choice: "none", confidence: 0.9 },
+    part: { type: "choice", choice: "none", confidence: 0.9 },
+    ...(sent.state.working.placeable.length >= 2
+      ? {
+        move: { type: "choice", choice: "none", confidence: 0.9 },
+        anchor: { type: "choice", choice: "none", confidence: 0.9 },
+        direction: { type: "choice", choice: "none", confidence: 0.9 },
+      }
+      : {}),
+    ...(sent.state.working.edges.length > 0 ? { edge: { type: "choice", choice: "none", confidence: 0.9 } } : {}),
+    ...answers,
+  },
+});
+const answerFrom = answers => route => route.fulfill({
+  status: 200,
+  contentType: "application/json; charset=utf-8",
+  body: JSON.stringify(craftFor(JSON.parse(route.request().postData()), answers)),
+});
+const tallBefore = await screen(page);
+assert.deepEqual(tallBefore.draft, [], "precondition: nothing unapplied");
+
+// Grow 作業図 one crafted part at a time until the pane no longer holds them all.
+const addDecision = { action: { type: "choice", choice: "add-part", confidence: 0.95 },
+  part: { type: "choice", choice: "decision", confidence: 0.95 } };
+let tall = null;
+for (let index = 0; index < 7 && tall === null; index += 1) {
+  await page.route(jevUrl, answerFrom(addDecision), { times: 1 });
+  await type(page, `add decision number ${index + 1} to the tall graph`);
+  assert.equal((await screen(page)).state, "drafted", "each crafted part is one working step");
+  const cells = await boxes(page, "working");
+  const frameNow = (await visibleFrame(page, "working")).frame;
+  const regions = Object.keys(cells).filter(id => id !== "root");
+  const cutOff = regions.filter(id => !insideFrame(cells[id].box, frameNow));
+  if (cutOff.length > 0) tall = { cells, frame: frameNow };
+}
+assert.notEqual(tall, null, "precondition: seven more parts carry the graph past the pane");
+
+// The offer. The request is built from the frame read as it is sent: exactly
+// the parts wholly inside it, whatever the layout contract or the cells say.
+await page.route(jevUrl, answerFrom({ action: { type: "choice", choice: "none", confidence: 0.99 } }), { times: 1 });
+const frameAsked = (await visibleFrame(page, "working")).frame;
+const cellsAsked = await boxes(page, "working");
+const askedTall = await type(page, "which parts can I see now");
+const offeredTall = [...askedTall.sent.state.working.placeable].sort();
+assert.deepEqual(offeredTall, onPane(cellsAsked, frameAsked),
+  "Jev is offered exactly the parts wholly on the pane");
+const allParts = askedTall.sent.state.working.regions;
+const notOffered = allParts.filter(id => !offeredTall.includes(id));
+assert.ok(notOffered.length > 0, `some parts are off the pane and not offered: ${JSON.stringify({ allParts, offeredTall })}`);
+const inMarginBand = notOffered.filter(id => cellsAsked[id]?.rendered === true);
+assert.ok(inMarginBand.length > 0,
+  `a part with a live cell - built in the margin band - is still not offered: ${JSON.stringify(notOffered)}`);
+
+// The judgement. One request is held; while it is out the pane narrows, so a
+// part that was wholly on it when Jev was asked is cut off by the time the
+// answer lands. The spot beside it stays on the pane.
+const narrowFrom = page.viewportSize();
+let releaseNarrow;
+const narrowAnswer = new Promise(resolve => { releaseNarrow = resolve; });
+await page.route(jevUrl, async route => {
+  await route.fulfill({
+    status: 200,
+    contentType: "application/json; charset=utf-8",
+    body: JSON.stringify(craftFor(JSON.parse(route.request().postData()), await narrowAnswer)),
+  });
+}, { times: 1 });
+const narrowExchange = jevExchange(page);
+await page.locator("#text").fill("put that one beside the other");
+await page.locator("#send").click();
+const narrowSent = JSON.parse((await narrowExchange.request).postData());
+const narrowOffered = narrowSent.state.working.placeable;
+const cellsWide = await boxes(page, "working");
+const frameWide = (await visibleFrame(page, "working")).frame;
+const mountWide = (await mountWidths(page)).working;
+await page.setViewportSize({ width: 700, height: narrowFrom.height });
+await page.waitForFunction(width => {
+  const mount = document.querySelector("#working-surface");
+  return mount !== null && mount.getBoundingClientRect().width < width;
+}, mountWide);
+let frameNarrow = null;
+for (let attempt = 0; attempt < 40; attempt += 1) {
+  const current = await visibleFrame(page, "working");
+  if (current !== null && current.frame[2] < frameWide[2]) {
+    frameNarrow = current.frame;
+    break;
+  }
+  await page.waitForTimeout(100);
+}
+assert.notEqual(frameNarrow, null, `the narrowed pane reports a narrower frame than ${JSON.stringify(frameWide)}`);
+const beside = (anchorBox, moverBox, side) => side === "left" ? [anchorBox[0] - moverBox[2] - gap, anchorBox[1], moverBox[2], moverBox[3]]
+  : side === "right" ? [anchorBox[0] + anchorBox[2] + gap, anchorBox[1], moverBox[2], moverBox[3]]
+  : side === "above" ? [anchorBox[0], anchorBox[1] - moverBox[3] - gap, moverBox[2], moverBox[3]]
+  : [anchorBox[0], anchorBox[1] + anchorBox[3] + gap, moverBox[2], moverBox[3]];
+const overlapsAny = (box, except) => Object.entries(cellsWide).some(([id, cell]) =>
+  id !== "root" && id !== except && cell.box !== null
+  && box[0] < cell.box[0] + cell.box[2] && cell.box[0] < box[0] + box[2]
+  && box[1] < cell.box[1] + cell.box[3] && cell.box[1] < box[1] + box[3]);
+let cutAnchor = null;
+for (const anchor of narrowOffered) {
+  for (const mover of narrowOffered) {
+    for (const side of ["left", "right", "above", "below"]) {
+      if (cutAnchor !== null || mover === anchor) continue;
+      const spot = beside(cellsWide[anchor].box, cellsWide[mover].box, side);
+      if (insideFrame(spot, frameWide) && insideFrame(spot, frameNarrow)
+        && insideFrame(cellsWide[anchor].box, frameWide) && !insideFrame(cellsWide[anchor].box, frameNarrow)
+        && !overlapsAny(spot, mover)) {
+        cutAnchor = { anchor, mover, side, spot };
+      }
+    }
+  }
+}
+assert.notEqual(cutAnchor, null,
+  `precondition: some offered anchor is cut off by the narrower pane while a free spot beside it stays on it: `
+  + JSON.stringify({ narrowOffered, frameWide, frameNarrow }));
+const placeCut = {
+  action: { type: "choice", choice: "place-part", confidence: 0.95 },
+  move: { type: "choice", choice: cutAnchor.mover, confidence: 0.95 },
+  anchor: { type: "choice", choice: cutAnchor.anchor, confidence: 0.95 },
+  direction: { type: "choice", choice: cutAnchor.side, confidence: 0.95 },
+};
+const draftBeforeCut = (await screen(page)).draft;
+releaseNarrow(placeCut);
+await narrowExchange.response;
+await settle(page);
+const cutScreen = await screen(page);
+assert.equal(cutScreen.state, "no-change", "an anchor the pane no longer shows places nothing");
+assert.match(cutScreen.status, /基準の部品が今の表示の外/u, "and it says the anchor is off the pane");
+assert.deepEqual(cutScreen.draft, draftBeforeCut, "the draft is untouched");
+// The narrow pane culls some cells, so which cells exist differs; where each
+// remaining one is drawn does not.
+for (const [id, cell] of Object.entries(await boxes(page, "working"))) {
+  assert.deepEqual(cell.box, cellsWide[id]?.box, `${id} did not move`);
+}
+
+// The same answer at the width it was asked at is a step: only the pane differs.
+await page.setViewportSize(narrowFrom);
+let frameBack = null;
+for (let attempt = 0; attempt < 40; attempt += 1) {
+  const current = await visibleFrame(page, "working");
+  if (current !== null && JSON.stringify(current.frame) === JSON.stringify(frameWide)) {
+    frameBack = current.frame;
+    break;
+  }
+  await page.waitForTimeout(100);
+}
+assert.notEqual(frameBack, null, "the pane returns to the frame the request was asked from");
+// The renderer rebuilds culled cells on its next render, not on a resize, so
+// only the positions of the cells it has are compared.
+for (const [id, cell] of Object.entries(await boxes(page, "working"))) {
+  assert.deepEqual(cell.box, cellsWide[id]?.box, `${id} is where it was when the request was asked`);
+}
+await page.route(jevUrl, answerFrom(placeCut), { times: 1 });
+await type(page, "put that one beside the other again");
+const wideScreen = await screen(page);
+assert.equal(wideScreen.state, "drafted", `with the anchor on the pane it is a placement: ${wideScreen.status}`);
+assert.deepEqual(wideScreen.draft.at(-1), `~${cutAnchor.mover}`);
+assert.deepEqual((await boxes(page, "working"))[cutAnchor.mover].box, cutAnchor.spot, "drawn exactly beside it");
+const tallGuard = `${offeredTall.length} of ${allParts.length} parts offered on a tall graph; `
+  + `${cutAnchor.mover} ${cutAnchor.side} of ${cutAnchor.anchor} refused once the pane cut the anchor off, placed once it did not`;
+
+await press(page, "#discard");
+const tallAfter = await screen(page);
+assert.deepEqual(tallAfter.draft, [], "Discard clears the tall graph's steps");
+assert.equal(tallAfter.stored, tallBefore.stored, "and nothing from them was ever saved");
 
 await first.browser.close();
 
@@ -1581,6 +1811,7 @@ assert.deepEqual(failedResponses, []);
 for (const input of inputsSent) {
   assert.equal(consoleMessages.some(message => message.includes(input)), false, `an input was logged to the console: ${input}`);
 }
+await Promise.all(answerCounts);
 
 process.stdout.write(
   `local-voice-graph-e2e: PASS spoken add "${voiceAdd.sent.state.utterance}" -> 作業図 only, applied edge=${voiceEdge} `
@@ -1599,7 +1830,8 @@ process.stdout.write(
   + `at head ${frameBefore.head.slice(0, 14)}, panes equal at ${widths.working}px; `
   + `ceiling in the same run: ${JSON.stringify(ceilingSpot)} is outside that frame - ${offscreenGuard}; `
   + "Apply and reload draw it in the same place in both panes, revert puts it back drawn "
-  + `| ${jevAnswered} real Jev answers in this run `
+  + `| tall graph: ${tallGuard} `
+  + `| ${jevAnswered} real Jev answers in this run, ${craftedAnswered} crafted by the test `
   + `| refused microphone: [${voicePhases(refusalTrace).map(entry => entry.kind).join(" ")}], 0 Jev requests, nothing changed, controls given back `
   + `| embedded Accept [${embeddedAccepts.join("; ")}] / [${correctionAccepts.join("; ")}] `
   + `| corrupt and foreign logs fail closed | typed ${edgeA}, ${edgeB}: 2 undos, then 2-step apply `
