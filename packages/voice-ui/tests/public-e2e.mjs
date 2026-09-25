@@ -77,11 +77,11 @@ assert.equal(v1Ir.kind, "ui.ir.v1");
 assert.equal(v1Ir.capability, "a2ui-browser");
 assert.equal(v1Ir.payloadKind, "a2ui.surface.v1");
 
-// Every edge the live adapter holds, read from inside the mounted iframe. This
-// is the graph the page actually drew, not an envelope handed to it.
-const drawnEdges = () => page.evaluate(async () => {
-  const frame = document.querySelector('iframe[data-package="semantic-map"]');
-  if (!frame) throw new Error("semantic map iframe missing");
+// Every edge one pane's live adapter holds, read from inside that pane's own
+// frame. This is the graph the page actually drew, not an envelope handed to it.
+const drawnEdges = pane => page.evaluate(async pane => {
+  const frame = document.querySelector(`#${pane}-surface iframe[data-package="semantic-map"]`);
+  if (!frame) throw new Error(`${pane} semantic map iframe missing`);
 
   const started = performance.now();
   while (frame.contentWindow?.semanticMapSite?.ready !== true) {
@@ -99,11 +99,15 @@ const drawnEdges = () => page.evaluate(async () => {
       .map(edge => `${edge.semantic.from}->${edge.semantic.to}`)
       .sort(),
   };
-});
+}, pane);
 
-const confirmedFacts = () => page.evaluate(() =>
-  [...document.querySelectorAll("[data-history=confirmed] li")].map(item => item.dataset.fact).sort()
+const appliedFacts = () => page.evaluate(() =>
+  [...document.querySelectorAll("[data-history=confirmed] li")].map(item => item.dataset.facts).sort()
 );
+const draftSteps = () => page.evaluate(() =>
+  [...document.querySelectorAll("#draft li")].map(item => item.dataset.changes)
+);
+const storedLog = () => page.evaluate(key => localStorage.getItem(key), STORAGE_KEY);
 
 const waitForState = state => page.waitForFunction(
   value => document.body.dataset.state === value,
@@ -111,11 +115,20 @@ const waitForState = state => page.waitForFunction(
   { timeout: 360000 },
 );
 
-assert.equal(await page.evaluate(() => document.body.dataset.state), "initial");
-assert.deepEqual((await drawnEdges()).edges, [], "a first visit must draw no edge");
+// Speaking and typing change 作業図 only. Until 確定図に反映, 確定図 and the
+// stored bytes must not move.
+const assertSavedUntouched = async label => {
+  assert.equal(await storedLog(), null, `${label}: nothing may be stored before Apply`);
+  assert.deepEqual(await appliedFacts(), [], `${label}: 確定図 must have no entry before Apply`);
+  assert.deepEqual((await drawnEdges("confirmed")).edges, [], `${label}: 確定図 must draw no edge before Apply`);
+};
 
-// Send now takes the typed graph decision. A rendered string is no longer
-// evidence of anything; a confirmed, drawn edge is.
+assert.equal(await page.evaluate(() => document.body.dataset.state), "initial");
+assert.deepEqual((await drawnEdges("confirmed")).edges, [], "a first visit must draw no edge");
+assert.deepEqual((await drawnEdges("working")).edges, [], "a first visit must draw no edge");
+
+// Send takes the typed graph decision. A rendered string is not evidence of
+// anything; a step drawn on 作業図 and then applied to 確定図 is.
 await page.locator("#text").fill("add an edge from a to b");
 const typeResponsePromise = page.waitForResponse(
   response => new URL(response.url()).pathname === "/api/jev" && response.request().method() === "POST",
@@ -125,11 +138,12 @@ await page.locator("#send").click();
 const typeResponse = await typeResponsePromise;
 assert.equal(typeResponse.status(), 200);
 const typeDecision = await typeResponse.json();
-assert.equal(typeDecision.kind, "voice-ui.jev.decision.v2");
-await waitForState("confirmed");
+assert.equal(typeDecision.kind, "voice-ui.jev.decision.v4");
+await waitForState("drafted");
 const typedEdge = `${typeDecision.answers.source.choice}->${typeDecision.answers.target.choice}`;
-assert.deepEqual(await confirmedFacts(), [typedEdge]);
-assert.deepEqual((await drawnEdges()).edges, [typedEdge]);
+assert.deepEqual(await draftSteps(), [`+${typedEdge}`]);
+assert.deepEqual((await drawnEdges("working")).edges, [typedEdge]);
+await assertSavedUntouched("typed step");
 
 const golden = JSON.parse(fs.readFileSync(goldenPath, "utf8"));
 const clip = golden.clips.find(value => value.wav === path.basename(wav));
@@ -143,8 +157,9 @@ await page.locator("#mic").click();
 const voiceResponse = await voiceResponsePromise;
 assert.equal(voiceResponse.status(), 200);
 const voiceDecision = await voiceResponse.json();
-assert.equal(voiceDecision.kind, "voice-ui.jev.decision.v2");
-await waitForState("confirmed");
+assert.equal(voiceDecision.kind, "voice-ui.jev.decision.v4");
+await page.waitForFunction(() => document.body.dataset.state !== "pending", null, { timeout: 360000 });
+assert.equal(await page.evaluate(() => document.body.dataset.state), "drafted");
 
 const actual = normalize(await page.locator("#text").inputValue());
 const expected = normalize(clip.reference);
@@ -153,22 +168,32 @@ assert.ok(cer <= Number(golden._cer_tolerance), "voice CER exceeded pinned toler
 
 const voiceEdge = `${voiceDecision.answers.source.choice}->${voiceDecision.answers.target.choice}`;
 const bothEdges = [typedEdge, voiceEdge].sort();
-assert.deepEqual(await confirmedFacts(), bothEdges);
+assert.deepEqual(await draftSteps(), [`+${typedEdge}`, `+${voiceEdge}`]);
+assert.deepEqual((await drawnEdges("working")).edges, bothEdges);
+await assertSavedUntouched("spoken step");
 
-const drawn = await drawnEdges();
+// 確定図に反映 writes both steps at once and 確定図 then draws exactly them.
+await page.locator("#apply").click();
+await waitForState("applied");
+assert.deepEqual(await draftSteps(), []);
+assert.deepEqual(await appliedFacts(), bothEdges.map(edge => `+${edge}`).sort());
+const saved = await storedLog();
+assert.ok(saved, "applied steps must be persisted");
+assert.equal(saved.split("\n").length - 1, 3, "the initial graph plus exactly the two applied Decisions");
+
+const drawn = await drawnEdges("confirmed");
 assert.equal(drawn.pattern, "graph/1");
 assert.equal(drawn.svg, true);
-assert.deepEqual(drawn.edges, bothEdges, "the drawn graph must hold exactly the confirmed edges");
+assert.deepEqual(drawn.edges, bothEdges, "確定図 must draw exactly the applied edges");
 
-// Both decisions come back from this origin's storage after a reload.
-const saved = await page.evaluate(key => localStorage.getItem(key), STORAGE_KEY);
-assert.ok(saved, "confirmed decisions must be persisted");
+// Both entries come back from this origin's storage after a reload.
 await page.reload({ waitUntil: "commit" });
 await page.waitForFunction(() => window.voiceUiReady === true, null, { timeout: 120000 });
-assert.equal(await page.evaluate(() => document.body.dataset.state), "confirmed");
-assert.equal(await page.evaluate(key => localStorage.getItem(key), STORAGE_KEY), saved);
-assert.deepEqual(await confirmedFacts(), bothEdges);
-assert.deepEqual((await drawnEdges()).edges, bothEdges);
+assert.equal(await page.evaluate(() => document.body.dataset.state), "restored");
+assert.equal(await storedLog(), saved);
+assert.deepEqual(await appliedFacts(), bothEdges.map(edge => `+${edge}`).sort());
+assert.deepEqual((await drawnEdges("confirmed")).edges, bothEdges);
+assert.deepEqual((await drawnEdges("working")).edges, bothEdges);
 
 assert.deepEqual(errors, []);
 assert.deepEqual(failedRequests, []);
@@ -177,5 +202,5 @@ assert.deepEqual(failedResponses, []);
 await browser.close();
 process.stdout.write(
   `public-e2e: PASS v1 contract direct | typed edge=${typedEdge} + voice edge=${voiceEdge} `
-  + "confirmed, drawn and restored after reload\n",
+  + "drawn on 作業図 only, applied together to 確定図, restored after reload\n",
 );

@@ -6,6 +6,7 @@ import { pathToFileURL } from "node:url";
 import { ACTION_ADD_EDGE, compileCommittedDecision } from "../src/decision/graph-edge.mjs";
 import {
   HISTORY_KEY,
+  HistoryConflict,
   HistoryPersistFailed,
   RESTORE_CORRUPT,
   RESTORE_EMPTY,
@@ -13,6 +14,8 @@ import {
   persistHistory,
   projectHistory,
   restoreHistory,
+  statesOf,
+  truncateLog,
 } from "../src/decision/history.mjs";
 
 const store = process.env.SEMANTIC_MAP;
@@ -131,8 +134,9 @@ test("a persisted committed edge restores as one confirmed fact over an unchange
   assert.deepEqual(restored.projection.initial.relations, []);
   assert.equal(restored.projection.entries.length, 1);
   assert.deepEqual(restored.projection.entries[0].facts, [{
-    type: "ConnectRegions",
-    relationId: "voice-node-c-to-node-a",
+    change: "added",
+    kind: "relation",
+    id: "voice-node-c-to-node-a",
     from: "node-c",
     to: "node-a",
   }]);
@@ -249,7 +253,116 @@ test("persist refuses a graph that carries no canonical log", async () => {
   assert.equal(storage.writes.length, 0);
 });
 
-test("projection refuses a verified log it cannot describe", () => {
-  assert.throws(() => projectHistory(null), /verified log is required/u);
-  assert.throws(() => projectHistory({ decisions: [] }), /verified log has no Decisions/u);
+test("projection refuses a verified log it cannot describe", async () => {
+  await assert.rejects(projectHistory(null, { verifyDecisionLog }), /verified log is required/u);
+  await assert.rejects(projectHistory({ decisions: [] }, { verifyDecisionLog }), /verified log has no Decisions/u);
+  await assert.rejects(projectHistory(await baseGraph()), /verifyDecisionLog is required/u);
+});
+
+// Removals and reversals, committed through the provider exactly as the
+// correction loop does it.
+const commitOperations = async (graph, operations) => {
+  const { decision } = await protocol.createDecision(graph.head, operations, graph.records);
+  return (await protocol.appendDecision(graph.log, decision)).verified;
+};
+
+test("a removal is described with the endpoints the edge had before it", async () => {
+  const added = await withEdge(await baseGraph(), "node-c", "node-a");
+  const removed = await commitOperations(added, [
+    { type: "RemoveSelection", regionIds: [], relationIds: ["voice-node-c-to-node-a"] },
+  ]);
+
+  const projection = await projectHistory(removed, { verifyDecisionLog });
+  assert.deepEqual(projection.entries.map(entry => entry.facts), [
+    [{ change: "added", kind: "relation", id: "voice-node-c-to-node-a", from: "node-c", to: "node-a" }],
+    [{ change: "removed", kind: "relation", id: "voice-node-c-to-node-a", from: "node-c", to: "node-a" }],
+  ]);
+  assert.deepEqual(projection.relations, []);
+});
+
+test("a reversal is one entry: the old direction removed, the new one added", async () => {
+  const added = await withEdge(await baseGraph(), "node-c", "node-a");
+  const reversed = await commitOperations(added, [
+    { type: "RemoveSelection", regionIds: [], relationIds: ["voice-node-c-to-node-a"] },
+    { type: "ConnectRegions", relationId: "voice-node-a-to-node-c", from: "node-a", to: "node-c", kind: "flow", label: "" },
+  ]);
+
+  const storage = fakeStorage();
+  await persistHistory({ write: storage.write, graph: reversed });
+  const restored = await restore(storage);
+  assert.equal(restored.status, RESTORE_RESTORED);
+  assert.equal(restored.projection.entries.length, 2);
+  assert.deepEqual(restored.projection.entries[1].facts, [
+    { change: "removed", kind: "relation", id: "voice-node-c-to-node-a", from: "node-c", to: "node-a" },
+    { change: "added", kind: "relation", id: "voice-node-a-to-node-c", from: "node-a", to: "node-c" },
+  ]);
+  assert.deepEqual(restored.projection.initial.relations, []);
+  assert.deepEqual(restored.projection.relations.map(relation => [relation.from, relation.to]), [["node-a", "node-c"]]);
+});
+
+test("a write is refused when another tab changed the stored log in between", async () => {
+  const first = await withEdge(await baseGraph(), "node-c", "node-a");
+  const other = await withEdge(await baseGraph(), "node-a", "node-b");
+  const storage = fakeStorage();
+
+  // Nothing stored yet: a page that expects nothing may write.
+  await persistHistory({ write: storage.write, read: storage.read, expected: null, graph: first });
+  assert.equal(storage.values.get(HISTORY_KEY), first.log);
+
+  // A page that still believes storage is empty must not overwrite it.
+  await assert.rejects(
+    persistHistory({ write: storage.write, read: storage.read, expected: null, graph: other }),
+    error => error instanceof HistoryConflict,
+  );
+  assert.equal(storage.values.get(HISTORY_KEY), first.log, "the other tab's history must survive");
+  assert.equal(storage.writes.length, 1);
+
+  // The page that read what is stored may write on top of it.
+  const next = await withEdge(first, "node-a", "node-b");
+  await persistHistory({ write: storage.write, read: storage.read, expected: first.log, graph: next });
+  assert.equal(storage.values.get(HISTORY_KEY), next.log);
+});
+
+// 作業図's 元に戻す: the working log cut back by one Decision, verified again.
+
+test("undo cuts the working log back to its exact previous prefix", async () => {
+  const saved = await withEdge(await baseGraph(), "node-c", "node-a");
+  const oneStep = await withEdge(saved, "node-a", "node-b");
+  const twoSteps = await withEdge(oneStep, "node-b", "node-c");
+
+  const undoneOnce = await truncateLog(twoSteps, {
+    count: twoSteps.decisions.length - 1,
+    floor: saved.decisions.length,
+    verifyDecisionLog,
+  });
+  assert.equal(undoneOnce.log, oneStep.log, "one undo must give back exactly the earlier working log");
+  assert.equal(undoneOnce.head, oneStep.head);
+
+  const undoneTwice = await truncateLog(undoneOnce, {
+    count: undoneOnce.decisions.length - 1,
+    floor: saved.decisions.length,
+    verifyDecisionLog,
+  });
+  assert.equal(undoneTwice.log, saved.log, "undoing every step gives back exactly the saved log");
+});
+
+test("undo never cuts below what is saved", async () => {
+  const saved = await withEdge(await baseGraph(), "node-c", "node-a");
+  await assert.rejects(
+    truncateLog(saved, { count: saved.decisions.length - 1, floor: saved.decisions.length, verifyDecisionLog }),
+    /cannot be cut below what is saved/u,
+  );
+  await assert.rejects(
+    truncateLog(saved, { count: 0, floor: 0, verifyDecisionLog }),
+    /count is outside the log/u,
+  );
+});
+
+test("the state after each Decision is the provider's own state for that prefix", async () => {
+  const first = await withEdge(await baseGraph(), "node-c", "node-a");
+  const second = await withEdge(first, "node-a", "node-b");
+  const states = await statesOf(second.log, verifyDecisionLog);
+  assert.equal(states.length, second.decisions.length);
+  assert.deepEqual(states[1], first.records);
+  assert.deepEqual(states[2], second.records);
 });
