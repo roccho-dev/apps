@@ -22,6 +22,7 @@ export const ACTION_PLACE_PART = "place-part";
 export const ACTION_REMOVE = "remove-edge";
 export const ACTION_REVERSE = "reverse-edge";
 export const ACTION_UNDO_REQUEST = "undo-request";
+export const ACTION_COMPOSE = "compose-diagram";
 export const ACTION_NONE = "none";
 export const ACTION_REVERT = "revert";
 
@@ -47,6 +48,54 @@ export const PART_PALETTE = Object.freeze([
   Object.freeze({ key: "start", label: "開始", kind: "start" }),
   Object.freeze({ key: "end", label: "終了", kind: "end" }),
 ]);
+
+// Whole diagrams a person may ask for by purpose rather than edit by edit. The
+// app owns every one: its roles (lanes), its steps and their kinds, their
+// labels and the directed links between them. Jev only says which candidate,
+// if any, the utterance asks for - never a label, a role or a link of its own -
+// so an answer can neither invent business content nor a shape the graph
+// cannot draw. The labels are a generic template, not facts about anyone's
+// work; the person corrects the draft afterwards like any other.
+//
+// One candidate for now: two roles handing one request across and back, the
+// smallest shape of a cross-functional (swimlane) flow.
+export const DIAGRAM_CATALOG = Object.freeze([
+  Object.freeze({
+    key: "request-approval-flow",
+    purpose: "a cross-functional flow chart between two roles: a requester submits a request, "
+      + "an approver reviews and decides on it, and the requester receives the result",
+    label: "申請と承認の流れ",
+    lanes: Object.freeze([
+      Object.freeze({ ref: "requester", label: "申請者" }),
+      Object.freeze({ ref: "approver", label: "承認者" }),
+    ]),
+    steps: Object.freeze([
+      Object.freeze({ ref: "submit", lane: "requester", label: "申請する", kind: "start" }),
+      Object.freeze({ ref: "review", lane: "approver", label: "確認して判断する", kind: "decision" }),
+      Object.freeze({ ref: "receive", lane: "requester", label: "結果を受け取る", kind: "end" }),
+    ]),
+    links: Object.freeze([
+      Object.freeze(["submit", "review"]),
+      Object.freeze(["review", "receive"]),
+    ]),
+  }),
+]);
+
+// What Jev is told about each candidate: its key and what it is for. The
+// structure stays with the app.
+export const diagramCandidatesForJev = () =>
+  Object.freeze(DIAGRAM_CATALOG.map(({ key, purpose }) => Object.freeze({ key, purpose })));
+
+// A lane is a region that holds steps, drawn by the graph view as a boundary
+// around them. It is a "group": the view opens a group's contents once it
+// covers 16 000 px² on screen, where any other container needs 160 000 px² -
+// measured, a two-role lane at the pane's usual zoom shows its steps only as a
+// group. Never "actor": the graph view leaves that kind out of its layout.
+const LANE_KIND = "group";
+const LANE_HEADER = 120;
+
+export const DIAGRAM_NOT_OFFERED = "その種類の図はまだ用意していません。個別の変更は今まで通り指示できます";
+export const DIAGRAM_RESTATE = "どの図を作るのか聞き取れませんでした。作りたい図の目的をもう一度言ってください";
 
 // A new part is the size of an initial node, laid out on a fixed grid inside
 // the enclosing boundary. The graph view lays parts out by itself and ignores
@@ -121,21 +170,43 @@ const inside = (frame, box) =>
   box[0] >= frame[0] && box[1] >= frame[1]
   && box[0] + box[2] <= frame[0] + frame[2] && box[1] + box[3] <= frame[1] + frame[3];
 
-// The parts a person can talk about: the regions this graph offers as
-// endpoints - never the enclosing boundary, which cannot be pinned - and only
-// those the view actually places. A part the view folds away has no position
-// to put anything beside.
+// The parts Jev may name: every region the graph offers as an endpoint except a
+// lane. A lane is a container - its steps are what the flow connects - so an
+// edge to it, or a part put beside it, is never something the person can be
+// heard as asking for. It still exists, is drawn and occupies its space.
+export function speakableRegionIds(records) {
+  refuse(Array.isArray(records), "records must be an array");
+  const lanes = new Set(records
+    .filter(record => record?.type === "region" && record.kind === LANE_KIND)
+    .map(record => record.id));
+  return Object.freeze(selectableRegionIds(records).filter(regionId => !lanes.has(regionId)));
+}
+
+// The edges Jev may name: those between two parts it may name.
+export function speakableEdges(records) {
+  const regions = speakableRegionIds(records);
+  return Object.freeze(edgesOf(records).filter(edge => regions.includes(edge.from) && regions.includes(edge.to)));
+}
+
+// The parts the view actually places, out of `ids`. A part the view folds away
+// has no position to put anything beside.
 // With `frame` - the pane's visible frame, in the same coordinates - only the
 // parts lying wholly inside it. The view's bounds are pre-culling: a part has
 // them whether or not it is on screen, and even a drawn cell can sit in the
-// margin band nobody sees. Without a frame this is every placed part, which is
-// what collision checks need: a part off screen still occupies its spot.
-export function placeableIds(layout, records, frame = null) {
+// margin band nobody sees.
+const placedIds = (layout, ids, frame) => {
   refuse(layout?.bounds !== undefined, "layout bounds are required");
-  return Object.freeze(selectableRegionIds(records)
+  return Object.freeze(ids
     .filter(regionId => Object.hasOwn(layout.bounds, regionId))
     .filter(regionId => frame === null || inside(frame, layout.bounds[regionId]))
     .sort());
+};
+
+// The parts a person can put beside one another: the ones Jev may name - never
+// the enclosing boundary, which cannot be pinned, nor a lane - that the view
+// places, and with a frame only those wholly inside it.
+export function placeableIds(layout, records, frame = null) {
+  return placedIds(layout, speakableRegionIds(records), frame);
 }
 
 // The bounds a part would take beside its anchor: the anchor's own position
@@ -154,11 +225,11 @@ export function neighbourBounds(layout, targetId, anchorId, direction) {
   return Object.freeze([ax, ay + ah + NEIGHBOUR_GAP, tw, th]);
 }
 
-// A spot is usable only if nothing else the view placed already sits there.
-// The part being moved does not block its own move.
+// A spot is usable only if nothing else the view placed already sits there -
+// a lane included, and a part off screen too: it still occupies its spot. The
+// part being moved does not block its own move.
 export function spotIsFree(layout, records, targetId, box) {
-  const placeable = placeableIds(layout, records);
-  return placeable
+  return placedIds(layout, selectableRegionIds(records), null)
     .filter(regionId => regionId !== targetId)
     .every(regionId => !overlapping(box, layout.bounds[regionId]));
 }
@@ -222,23 +293,32 @@ export function nextPartId(graph, reserved = []) {
 // visible frame the request was built from, or null when none could be read;
 // the page and this check must be given the same one, so that what is judged is
 // exactly what Jev was offered.
-export function correctionCriteria(records, layout = null, offeredFrame = null) {
-  const regions = selectableRegionIds(records);
+// `candidates` is the diagram keys the request offered, or none; a diagram is
+// only a choice when the request offered one, so an older request is judged
+// exactly as before.
+export function correctionCriteria(records, layout = null, offeredFrame = null, candidates = []) {
+  const regions = speakableRegionIds(records);
   refuse(regions.length >= 2, "graph has fewer than two selectable regions");
   refuse(!regions.includes(OPTION_NONE), `a region may not be named "${OPTION_NONE}"`);
-  const edges = edgesOf(records);
+  const edges = speakableEdges(records);
   refuse(edges.every(edge => edge.id !== OPTION_NONE), `an edge may not be named "${OPTION_NONE}"`);
   const placeable = layout === null ? [] : placeableIds(layout, records, offeredFrame);
   const canPlace = placeable.length >= 2;
+  refuse(Array.isArray(candidates), "candidates must be an array");
+  refuse(candidates.every(key => DIAGRAM_CATALOG.some(entry => entry.key === key)),
+    "a candidate is not in the diagram catalogue");
+  const canCompose = candidates.length > 0;
   return Object.freeze({
     actions: Object.freeze([
       ACTION_ADD,
       ACTION_ADD_PART,
       ...(canPlace ? [ACTION_PLACE_PART] : []),
       ...(edges.length > 0 ? [ACTION_REMOVE, ACTION_REVERSE] : []),
+      ...(canCompose ? [ACTION_COMPOSE] : []),
       ACTION_UNDO_REQUEST,
       ACTION_NONE,
     ]),
+    diagrams: Object.freeze(canCompose ? [...candidates, OPTION_NONE] : []),
     regions: Object.freeze([...regions, OPTION_NONE]),
     edges: Object.freeze(edges.length > 0 ? [...edges.map(edge => edge.id), OPTION_NONE] : []),
     parts: Object.freeze([...PART_PALETTE.map(part => part.key), OPTION_NONE]),
@@ -271,6 +351,7 @@ function readAnswers(answers, criteria) {
     "action", "source", "target", "part",
     ...(criteria.placeable.length > 0 ? ["move", "anchor", "direction"] : []),
     ...(criteria.edges.length > 0 ? ["edge"] : []),
+    ...(criteria.diagrams.length > 0 ? ["diagram"] : []),
   ];
   for (const key of expected) refuse(Object.hasOwn(answers, key), `answers.${key} is required`);
   for (const key of Object.keys(answers)) refuse(expected.includes(key), `answers.${key} is not allowed`);
@@ -284,7 +365,80 @@ function readAnswers(answers, criteria) {
     anchor: criteria.placeable.length > 0 ? choiceOf(answers, "anchor", criteria.placeable) : null,
     direction: criteria.directions.length > 0 ? choiceOf(answers, "direction", criteria.directions) : null,
     edge: criteria.edges.length > 0 ? choiceOf(answers, "edge", criteria.edges) : null,
+    diagram: criteria.diagrams.length > 0 ? choiceOf(answers, "diagram", criteria.diagrams) : null,
   });
+}
+
+// A whole candidate diagram as one set of canonical operations: each lane a
+// region under the enclosing boundary, each step a region inside its lane,
+// each link a directed relation - all in one Decision, so it is proposed,
+// undone and applied whole. Names come from the same counter as parts, so none
+// is ever reused. The graph view lays everything out by itself and ignores
+// record bounds; the bounds given are a deterministic sketch of the swimlane -
+// lanes as horizontal bands below everything already there, steps inside their
+// lane in flow order - so a later spatial view has real, non-overlapping values.
+function composeDiagram(candidate, working, reserved) {
+  const records = working.records;
+  const root = records.find(record => record?.type === "region" && record.parent === null);
+  const first = Number(nextPartId(working, reserved).slice(PART_ID_PREFIX.length));
+  const refs = [...candidate.lanes.map(lane => lane.ref), ...candidate.steps.map(stepSpec => stepSpec.ref)];
+  const idOf = new Map(refs.map((ref, index) => [ref, `${PART_ID_PREFIX}${first + index}`]));
+
+  const regions = records.filter(record => record?.type === "region").map(boundsOf);
+  const top = Math.max(...regions.map(region => region.y + region.h)) + PART_GAP;
+  const left = boundsOf(root).x;
+  const laneHeight = PART_HEIGHT + 2 * PART_GAP;
+  const laneWidth = LANE_HEADER + candidate.steps.length * (PART_WIDTH + PART_GAP) + PART_GAP;
+
+  const operations = [];
+  const changes = [];
+  candidate.lanes.forEach((lane, index) => {
+    const regionId = idOf.get(lane.ref);
+    operations.push({
+      type: "AddRegion",
+      regionId,
+      parentId: root.id,
+      label: lane.label,
+      kind: LANE_KIND,
+      summary: "",
+      bounds: [left, top + index * (laneHeight + PART_GAP), laneWidth, laneHeight],
+      order: index,
+    });
+    changes.push({ change: "added", kind: "region", id: regionId, label: lane.label });
+  });
+  candidate.steps.forEach((stepSpec, column) => {
+    const laneIndex = candidate.lanes.findIndex(lane => lane.ref === stepSpec.lane);
+    refuse(laneIndex >= 0, `step ${stepSpec.ref} names an unknown lane`);
+    const regionId = idOf.get(stepSpec.ref);
+    operations.push({
+      type: "AddRegion",
+      regionId,
+      parentId: idOf.get(stepSpec.lane),
+      label: stepSpec.label,
+      kind: stepSpec.kind,
+      summary: "",
+      bounds: [
+        left + LANE_HEADER + PART_GAP + column * (PART_WIDTH + PART_GAP),
+        top + laneIndex * (laneHeight + PART_GAP) + PART_GAP,
+        PART_WIDTH,
+        PART_HEIGHT,
+      ],
+      order: column,
+    });
+    changes.push({ change: "added", kind: "region", id: regionId, label: stepSpec.label });
+  });
+  for (const [from, to] of candidate.links) {
+    operations.push({
+      type: "ConnectRegions",
+      relationId: relationIdFor(idOf.get(from), idOf.get(to)),
+      from: idOf.get(from),
+      to: idOf.get(to),
+      kind: RELATION_KIND,
+      label: "",
+    });
+    changes.push({ change: "added", from: idOf.get(from), to: idOf.get(to) });
+  }
+  return { operations, changes };
 }
 
 const noChange = (reason, extra = {}) => Object.freeze({ outcome: OUTCOME_NO_CHANGE, reason, ...extra });
@@ -301,6 +455,19 @@ function operationsFor(read, working, reserved, layout, visibleFrame) {
   // is answered with where the button is, and nothing else happens.
   if (read.action.choice === ACTION_UNDO_REQUEST) {
     return noChange("undo is not done by voice or text; use the 元に戻す button", { undoRequest: true });
+  }
+
+  // A whole diagram by purpose. Jev chose only which candidate; "none" means the
+  // utterance asked for a diagram this app does not have, and that is said
+  // plainly rather than guessed at with the nearest one.
+  if (read.action.choice === ACTION_COMPOSE) {
+    if (read.diagram.choice === OPTION_NONE) return noChange(DIAGRAM_NOT_OFFERED);
+    const confidence = Math.min(read.action.confidence, read.diagram.confidence);
+    if (confidence < MIN_CONFIDENCE) return noChange(DIAGRAM_RESTATE);
+    const candidate = DIAGRAM_CATALOG.find(entry => entry.key === read.diagram.choice);
+    refuse(candidate !== undefined, "the chosen diagram is not in the catalogue");
+    const { operations, changes } = composeDiagram(candidate, working, reserved);
+    return Object.freeze({ action: ACTION_COMPOSE, confidence, operations, changes });
   }
 
   const edges = edgesOf(records);
@@ -512,10 +679,11 @@ const step = (revision, action, changes, decision, confidence = null) => Object.
 // picture (see pendingHolds).
 export async function planStep({
   working, revision, answers, protocol, reserved = [], layout = null, visibleFrame = null, offeredFrame = null,
+  candidates = [],
 } = {}) {
   requireGraph(working);
   refuse(typeof protocol?.createDecision === "function", "protocol.createDecision is required");
-  const { read, planned } = judge({ working, revision, answers, reserved, layout, visibleFrame, offeredFrame });
+  const { read, planned } = judge({ working, revision, answers, reserved, layout, visibleFrame, offeredFrame, candidates });
   if (planned.outcome === OUTCOME_NO_CHANGE) {
     const weak = weakPlacementSlot(read);
     const context = weak === null ? null : heldContext(working, layout, visibleFrame, offeredFrame);
@@ -526,9 +694,9 @@ export async function planStep({
 
 // Everything that decides, with no await: the frame the caller read is judged
 // against in the same synchronous run it was read in.
-function judge({ working, revision, answers, reserved, layout, visibleFrame, offeredFrame = null }) {
+function judge({ working, revision, answers, reserved, layout, visibleFrame, offeredFrame = null, candidates = [] }) {
   refuse(revision === working.head, "the answer is stale: the working graph changed after the request was sent");
-  const read = readAnswers(answers, correctionCriteria(working.records, layout, offeredFrame));
+  const read = readAnswers(answers, correctionCriteria(working.records, layout, offeredFrame, candidates));
   return { read, planned: operationsFor(read, working, reserved, layout, visibleFrame) };
 }
 
@@ -625,6 +793,7 @@ export async function repairStep(options = {}) {
 
 async function attemptRepair({
   working, revision, answers, protocol, reserved = [], layout = null, visibleFrame = null, offeredFrame = null, pending,
+  candidates = [],
 } = {}) {
   requireGraph(working);
   refuse(typeof protocol?.createDecision === "function", "protocol.createDecision is required");
@@ -633,7 +802,7 @@ async function attemptRepair({
   let own = null;
   let refusal = null;
   try {
-    own = judge({ working, revision, answers, reserved, layout, visibleFrame, offeredFrame });
+    own = judge({ working, revision, answers, reserved, layout, visibleFrame, offeredFrame, candidates });
   } catch (error) {
     if (!(error instanceof DecisionRefused)) throw error;
     refusal = error;
@@ -661,7 +830,7 @@ async function attemptRepair({
     || visibleFrame === null || visibleFrame.head !== working.head || !sameFrame(visibleFrame.frame, pending.frame)) {
     return noChange(REPAIR_CONTEXT_CHANGED);
   }
-  const criteria = correctionCriteria(working.records, layout, offeredFrame);
+  const criteria = correctionCriteria(working.records, layout, offeredFrame, candidates);
   const read = readAnswers(answers, criteria);
   const supplied = read[pending.missing];
 
@@ -711,6 +880,7 @@ async function attemptRepair({
     layout,
     visibleFrame,
     offeredFrame,
+    candidates,
   });
   if (repaired.planned.outcome === OUTCOME_NO_CHANGE) return repaired.planned;
   const done = await materialize(working, repaired.planned, protocol);

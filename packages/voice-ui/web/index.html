@@ -7,14 +7,64 @@
     <style>
       #panes { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
       #working-notice { font-weight: bold; }
+      /* Every line of the band keeps one line's height whether or not it has
+         text, and both pane headings are one row, so neither graph moves when
+         a status changes or a list grows. */
+      #composer { display: flex; gap: 8px; }
+      #text { flex: 1; resize: none; }
+      #band p { margin: 2px 0; min-height: 1.4em; line-height: 1.4; }
+      .pane-head { display: flex; gap: 8px; align-items: center; height: 2.4rem; }
+      .pane-head h2 { margin: 0; font-size: 1.2rem; }
+      /* Both panes the same height, so the frame read from 作業図 still holds
+         for 確定図. The embed sizes itself min(78vh, 900px) and keeps its own
+         buttons docked along its bottom edge; the graph sits in the middle.
+         Measured in a 1280x720 window with the composed diagram, varying only
+         the pane height: at 562-640 px the dock covers the approver's lane and
+         the decision step, and from 660 px they fall below the window. The
+         70 px is an empirical offset, not the height of the band above the
+         panes (they start about 143 px down): it puts the dock just below the
+         window's bottom edge. Proven for 1280x720 only; below about 700 px of
+         window height the dock covers the decision step again. */
+      #confirmed-surface iframe, #working-surface iframe { height: calc(100vh - 70px) !important; }
     </style>
   </head>
   <body>
     <main>
-      <textarea id="text" aria-label="Input"></textarea>
-      <button id="send" type="button">Send</button>
-      <button id="mic" type="button">Voice</button>
-      <p id="status" role="status"></p>
+      <!-- One short band, then both graphs: what was just said and what it
+           drew are on the first screen together, and the next utterance can
+           follow at once. Nothing above the graphs grows with use. -->
+      <div id="band">
+        <div id="composer">
+          <textarea id="text" aria-label="Input" rows="1"></textarea>
+          <button id="send" type="button">Send</button>
+          <button id="mic" type="button">Voice</button>
+        </div>
+        <p id="status" role="status"></p>
+        <p id="working-notice">作業図は保存されていません。再読み込みすると消えます。</p>
+        <!-- Parts still in 作業図 that the pane does not show whole. -->
+        <p id="out-of-view" aria-live="polite"></p>
+      </div>
+      <div id="panes">
+        <!-- Left: the saved graph. Only 確定図に反映 changes it. -->
+        <section id="confirmed" aria-label="確定図">
+          <div class="pane-head"><h2>確定図</h2></div>
+          <div id="confirmed-surface"></div>
+          <section id="history" aria-label="確定図の履歴"></section>
+        </section>
+        <!-- Right: the working graph. Speech and typing change only this. -->
+        <section id="working" aria-label="作業図">
+          <div class="pane-head">
+            <h2>作業図</h2>
+            <button id="undo" type="button">元に戻す</button>
+            <button id="discard" type="button">作業図を破棄</button>
+            <button id="apply" type="button">確定図に反映</button>
+          </div>
+          <div id="working-surface"></div>
+          <h3 id="draft-heading">未反映の操作</h3>
+          <ol id="draft" aria-labelledby="draft-heading"></ol>
+          <p id="draft-count"></p>
+        </section>
+      </div>
       <!-- Earlier utterances Jev judged, exactly as the next request sends them.
            Unverified: only to help Jev understand what an utterance refers to. -->
       <section id="context" aria-labelledby="context-heading">
@@ -23,26 +73,6 @@
         <p id="context-skipped"></p>
         <button id="context-clear" type="button">会話をクリア</button>
       </section>
-      <div id="panes">
-        <!-- Left: the saved graph. Only 確定図に反映 changes it. -->
-        <section id="confirmed" aria-label="確定図">
-          <h2>確定図</h2>
-          <section id="history" aria-label="確定図の履歴"></section>
-          <div id="confirmed-surface"></div>
-        </section>
-        <!-- Right: the working graph. Speech and typing change only this. -->
-        <section id="working" aria-label="作業図">
-          <h2>作業図</h2>
-          <p id="working-notice">作業図は保存されていません。再読み込みすると消えます。</p>
-          <h3 id="draft-heading">未反映の操作</h3>
-          <ol id="draft" aria-labelledby="draft-heading"></ol>
-          <p id="draft-count"></p>
-          <button id="undo" type="button">元に戻す</button>
-          <button id="discard" type="button">作業図を破棄</button>
-          <button id="apply" type="button">確定図に反映</button>
-          <div id="working-surface"></div>
-        </section>
-      </div>
     </main>
 
     <script type="module">
@@ -63,17 +93,21 @@
         verifyDecisionLog,
       } from "/ui/semantic-map/protocol/index.js";
       import { renderUiIr } from "/app/src/render.mjs";
-      import { GRAPH_PATTERN, selectableRegionIds } from "/app/src/decision/graph-edge.mjs";
+      import { GRAPH_PATTERN } from "/app/src/decision/graph-edge.mjs";
       import {
         DRAFT_MAX,
         placeableIds,
         OUTCOME_NO_CHANGE,
         appendStep,
         changesForJev,
-        edgesOf,
         focusFor,
+        speakableEdges,
+        speakableRegionIds,
         pendingForJev,
         pendingHolds,
+        ACTION_COMPOSE,
+        DIAGRAM_CATALOG,
+        diagramCandidatesForJev,
         planStep,
         repairStep,
         revertStep,
@@ -102,6 +136,7 @@
       const discardButton = document.querySelector("#discard");
       const applyButton = document.querySelector("#apply");
       const workingSurface = document.querySelector("#working-surface");
+      const outOfView = document.querySelector("#out-of-view");
       const contextList = document.querySelector("#context-recent");
       const contextSkipped = document.querySelector("#context-skipped");
       const contextClear = document.querySelector("#context-clear");
@@ -403,7 +438,21 @@
       // Anything else is listed as it is.
       const DIRECTION_WORDS = { left: "左", right: "右", above: "上", below: "下" };
 
-      const effectOf = changes => {
+      // A composed diagram says which one it is and what it added; every part
+      // and link is still listed by id, as for any other step.
+      const composedEffect = changes => {
+        const regions = changes.filter(change => change.kind === "region");
+        const links = changes.filter(change => change.kind !== "region");
+        const candidate = DIAGRAM_CATALOG.find(entry =>
+          entry.lanes.length + entry.steps.length === regions.length
+          && [...entry.lanes, ...entry.steps].every((spec, index) => spec.label === regions[index].label));
+        return `図の提案${candidate ? `「${candidate.label}」` : ""}: `
+          + regions.map(change => `${change.id}「${change.label}」`).join(" ")
+          + (links.length > 0 ? ` / ${links.map(change => `${change.from}->${change.to}`).join(" ")}` : "");
+      };
+
+      const effectOf = (changes, action) => {
+        if (action === ACTION_COMPOSE) return composedEffect(changes);
         const [first, second] = changes;
         if (changes.length === 1 && first.kind === "region" && first.change === "placed") {
           return first.anchor === "none"
@@ -458,7 +507,7 @@
           }
           const effect = document.createElement("span");
           effect.dataset.effect = "";
-          effect.textContent = effectOf(step.changes);
+          effect.textContent = effectOf(step.changes, step.action);
           item.append(" → ", effect);
           draftList.append(item);
         }
@@ -527,6 +576,27 @@
         } catch {
           return null;
         }
+      };
+
+      // The pane's camera does not follow the graph, so a large step - a whole
+      // diagram above all - can leave parts that were on screen outside it. They
+      // are still in 作業図; the person is told which ones, never that they are
+      // still visible. Read after each drawing of 作業図; a frame that cannot be
+      // read is said to be unknown rather than taken as "all visible".
+      const renderOutOfView = () => {
+        const layout = workingLayout();
+        const shown = workingVisibleFrame();
+        if (layout === null || shown === null || shown.head !== working.head) {
+          outOfView.dataset.parts = "";
+          outOfView.textContent = "表示範囲を読み取れないため、表示に収まっていない部品があるか確かめられません";
+          return;
+        }
+        const whole = placeableIds(layout, working.records, shown.frame);
+        const outside = placeableIds(layout, working.records).filter(id => !whole.includes(id));
+        outOfView.dataset.parts = outside.join(" ");
+        outOfView.textContent = outside.length > 0
+          ? `表示に収まっていない部品: ${outside.join(", ")}（作業図には残っています。表示の外か、一部しか見えていません）`
+          : "";
       };
 
       const currentFocus = () => focusFor({
@@ -614,15 +684,20 @@
         // complete instruction of its own.
         const stillHeld = repairing !== null
           && pendingHolds(repairing.intent, { head: revision, frame: offeredFrame, offered: placeable });
+        // The whole diagrams this page can compose, offered by key and purpose
+        // only; what each one contains stays here.
+        const candidates = diagramCandidatesForJev();
         const decision = await postJev({
-          kind: "voice-ui.jev.request.v8",
+          kind: "voice-ui.jev.request.v9",
           state: {
+            candidates: candidates.map(({ key, purpose }) => ({ key, purpose })),
             pending: stillHeld ? pendingForJev(repairing.intent) : null,
             utterance: value,
             working: {
               placeable,
-              regions: selectableRegionIds(working.records),
-              edges: edgesOf(working.records).map(({ id, from, to }) => ({ id, from, to })),
+              // A lane is never named: only the parts inside it.
+              regions: speakableRegionIds(working.records),
+              edges: speakableEdges(working.records).map(({ id, from, to }) => ({ id, from, to })),
             },
             draft: draft.map(step => ({ changes: [...changesForJev(step.changes)] })),
             focus: currentFocus(),
@@ -652,6 +727,8 @@
           // And the same frame its placeable parts were chosen from, so the
           // answer is checked against exactly what Jev was offered.
           offeredFrame,
+          // And the same diagram candidates.
+          candidates: candidates.map(candidate => candidate.key),
         };
         // Both judge before their first await, so the frame is still current.
         const planned = repairing === null
@@ -788,6 +865,7 @@
           inputOf.set(candidate.step, { ...candidate.input, seq });
           candidate = null;
           renderDraft();
+          renderOutOfView();
           renderContext();
           setState("drafted", `${prefix}: 作業図に追加しました (未反映)`);
           renderHistory();
@@ -907,6 +985,7 @@
         markUndone(draft.at(-1));
         draft = draft.slice(0, -1);
         renderDraft();
+        renderOutOfView();
         renderContext();
         setState("undone", "作業図の最後の変更を元に戻しました");
         renderHistory();
@@ -931,6 +1010,7 @@
         for (const step of draft) markUndone(step);
         draft = [];
         renderDraft();
+        renderOutOfView();
         renderContext();
         setState("discarded", "作業図を破棄しました");
         renderHistory();
@@ -993,6 +1073,7 @@
           working = next;
           draft = [...draft, step];
           renderDraft();
+          renderOutOfView();
           setState("drafted", "取り消しを作業図に追加しました (未反映)");
           renderHistory();
         });
@@ -1027,6 +1108,7 @@
       try {
         await renderConfirmed(await graphIr(saved));
         await renderWorking(await graphIr(working));
+        renderOutOfView();
         if (blocked) {
           setState("failed", "saved history is unreadable - clear this site's storage to start over");
           renderHistory(`stored log rejected: ${restored.reason}`);

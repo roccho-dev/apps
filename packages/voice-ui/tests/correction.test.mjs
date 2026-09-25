@@ -28,6 +28,11 @@ import {
   REPAIR_SELF,
   pendingForJev,
   pendingHolds,
+  ACTION_COMPOSE,
+  DIAGRAM_CATALOG,
+  DIAGRAM_NOT_OFFERED,
+  DIAGRAM_RESTATE,
+  diagramCandidatesForJev,
   repairStep,
   weakPlacementSlot,
   appendStep,
@@ -39,6 +44,8 @@ import {
   neighbourBounds,
   nextPartId,
   placeableIds,
+  speakableEdges,
+  speakableRegionIds,
   spotIsFree,
   planStep,
   revertStep,
@@ -1917,4 +1924,268 @@ test("a provider that refuses the connection is still unreachable, not a timeout
   } finally {
     globalThis.fetch = original;
   }
+});
+
+// Whole diagrams by purpose. Jev chooses only a catalogue key; the app composes
+// that candidate - its roles, steps, labels and links - as one Decision.
+
+const CATALOG_KEYS = DIAGRAM_CATALOG.map(entry => entry.key);
+const APPROVAL = DIAGRAM_CATALOG.find(entry => entry.key === "request-approval-flow");
+const composeAnswers = (graph, { action = ACTION_COMPOSE, diagram = APPROVAL.key, confidence = 0.9, diagramConfidence = confidence, ...rest } = {}) => ({
+  ...answersFor(graph, { action, confidence, ...rest }),
+  diagram: choice(diagram, diagramConfidence),
+});
+const compose = (graph, spec = {}, reserved = []) => planStep({
+  working: graph, revision: graph.head, answers: composeAnswers(graph, spec), protocol, reserved, candidates: CATALOG_KEYS,
+});
+
+test("every catalogue diagram fits one step and tells Jev only its key and purpose", () => {
+  assert.ok(DIAGRAM_CATALOG.length >= 1);
+  const kinds = new Set(PART_PALETTE.map(part => part.kind));
+  for (const entry of DIAGRAM_CATALOG) {
+    assert.ok(entry.lanes.length + entry.steps.length + entry.links.length <= 8,
+      `${entry.key} must fit the eight changes one step may carry`);
+    const laneRefs = new Set(entry.lanes.map(lane => lane.ref));
+    const stepLane = new Map(entry.steps.map(step => [step.ref, step.lane]));
+    for (const step of entry.steps) {
+      assert.ok(laneRefs.has(step.lane), `${step.ref} sits in a lane of the diagram`);
+      assert.ok(kinds.has(step.kind), `${step.ref} is a kind the view already draws`);
+    }
+    for (const [from, to] of entry.links) assert.ok(stepLane.has(from) && stepLane.has(to));
+    assert.ok(entry.links.some(([from, to]) => stepLane.get(from) !== stepLane.get(to)),
+      "a cross-functional flow crosses between roles");
+  }
+  assert.deepEqual(diagramCandidatesForJev().map(candidate => Object.keys(candidate).sort()),
+    DIAGRAM_CATALOG.map(() => ["key", "purpose"]), "Jev is told the key and the purpose, never the structure");
+});
+
+test("a chosen diagram is composed whole, as one Decision, beside what was already there", async () => {
+  const graph = await baseGraph();
+  const planned = await compose(graph);
+  assert.equal(planned.outcome, OUTCOME_STEP);
+  assert.equal(planned.step.action, ACTION_COMPOSE);
+
+  const operations = planned.step.decision.operations;
+  const laneIds = ["part-1", "part-2"];
+  const stepIds = ["part-3", "part-4", "part-5"];
+  assert.deepEqual(operations.map(operation => operation.type),
+    ["AddRegion", "AddRegion", "AddRegion", "AddRegion", "AddRegion", "ConnectRegions", "ConnectRegions"],
+    "every lane, step and link is in the one Decision");
+  operations.slice(0, 2).forEach((operation, index) => {
+    assert.equal(operation.regionId, laneIds[index]);
+    assert.equal(operation.parentId, "root");
+    assert.equal(operation.kind, "group", "a group, which the view opens at pane size");
+    assert.equal(operation.label, APPROVAL.lanes[index].label, "the label is the catalogue's, never Jev's");
+    assert.equal(operation.order, index);
+  });
+  const laneOf = { submit: "part-1", review: "part-2", receive: "part-1" };
+  operations.slice(2, 5).forEach((operation, index) => {
+    const spec = APPROVAL.steps[index];
+    assert.equal(operation.regionId, stepIds[index]);
+    assert.equal(operation.parentId, laneOf[spec.ref], `${spec.ref} is inside its role's lane`);
+    assert.equal(operation.label, spec.label);
+    assert.equal(operation.kind, spec.kind);
+  });
+  assert.deepEqual(operations.slice(5).map(operation => `${operation.from}->${operation.to}`),
+    ["part-3->part-4", "part-4->part-5"], "directed links, each crossing between the two roles");
+  assert.equal(planned.step.changes.length, 7);
+
+  const working = await appendStep({ working: graph, step: planned.step, protocol });
+  const region = id => working.records.find(record => record.type === "region" && record.id === id);
+  for (const id of ["node-a", "node-b", "node-c"]) {
+    assert.deepEqual(region(id), graph.records.find(record => record.id === id), `${id} is kept as it was`);
+  }
+  assert.deepEqual(edges(working), ["part-3->part-4", "part-4->part-5"]);
+  for (const [from, to] of [["part-3", "part-4"], ["part-4", "part-5"]]) {
+    assert.notEqual(region(from).parent, region(to).parent, `${from}->${to} crosses roles`);
+  }
+
+  // The view nests each step inside its lane, beside the parts already there.
+  const layout = layoutOf(working);
+  const inside = (outer, inner) => inner[0] >= outer[0] && inner[1] >= outer[1]
+    && inner[0] + inner[2] <= outer[0] + outer[2] && inner[1] + inner[3] <= outer[1] + outer[3];
+  for (const id of stepIds) {
+    assert.ok(inside(layout.bounds[region(id).parent], layout.bounds[id]), `${id} is drawn inside its lane`);
+  }
+  for (const id of ["node-a", "node-b", "node-c", ...laneIds]) assert.ok(layout.bounds[id], `${id} is placed`);
+  assert.equal(graph.head === working.head, false, "only the working graph moved");
+});
+
+test("an unsupported or unsure diagram request changes nothing", async () => {
+  const graph = await baseGraph();
+  const notOffered = await compose(graph, { diagram: "none" });
+  assert.equal(notOffered.outcome, OUTCOME_NO_CHANGE);
+  assert.equal(notOffered.reason, DIAGRAM_NOT_OFFERED);
+  const unsure = await compose(graph, { diagramConfidence: 0.4 });
+  assert.equal(unsure.outcome, OUTCOME_NO_CHANGE);
+  assert.equal(unsure.reason, DIAGRAM_RESTATE);
+  const nothing = await compose(graph, { action: "none", diagram: "none" });
+  assert.equal(nothing.outcome, OUTCOME_NO_CHANGE);
+  for (const answer of [notOffered, unsure, nothing]) assert.equal(answer.step, undefined);
+});
+
+test("a diagram answer must be exactly what was offered", async () => {
+  const graph = await baseGraph();
+  const base = { working: graph, revision: graph.head, protocol };
+  await assert.rejects(planStep({ ...base, answers: answersFor(graph, { action: "none" }), candidates: CATALOG_KEYS }),
+    /answers\.diagram is required/u);
+  await assert.rejects(planStep({ ...base, answers: composeAnswers(graph), candidates: [] }),
+    /answers\.diagram is not allowed/u, "no candidates offered, so no diagram answer");
+  await assert.rejects(planStep({ ...base, answers: composeAnswers(graph, { diagram: "aws-architecture" }), candidates: CATALOG_KEYS }),
+    /outside the offered criteria/u);
+  await assert.rejects(planStep({ ...base, answers: composeAnswers(graph), candidates: ["aws-architecture"] }),
+    /not in the diagram catalogue/u);
+});
+
+test("a composed diagram is undone whole, and is not offered as a revert", async () => {
+  const graph = await baseGraph();
+  const working = await appendStep({ working: graph, step: (await compose(graph)).step, protocol });
+  const undone = await truncateLog(working, { count: working.decisions.length - 1, floor: graph.decisions.length, verifyDecisionLog });
+  assert.equal(undone.log, graph.log, "one Undo takes every lane, step and link away together");
+
+  const states = await statesOf(working.log, verifyDecisionLog);
+  await assert.rejects(revertStep({ before: states[0], after: states[1], working, protocol }),
+    error => error instanceof DecisionRefused, "reverting a whole diagram is not supported");
+});
+
+test("a composed draft is refined like any other graph, and its names are never reused", async () => {
+  const graph = await baseGraph();
+  const working = await appendStep({ working: graph, step: (await compose(graph)).step, protocol });
+  const refine = await planStep({
+    working,
+    revision: working.head,
+    answers: { ...answersFor(working, { action: "add-edge", source: "part-4", target: "part-3" }), diagram: choice("none") },
+    protocol,
+    candidates: CATALOG_KEYS,
+  });
+  assert.equal(refine.outcome, OUTCOME_STEP);
+  const refined = await appendStep({ working, step: refine.step, protocol });
+  assert.deepEqual(edges(refined).sort(), ["part-3->part-4", "part-4->part-3", "part-4->part-5"]);
+
+  const again = await compose(refined, {}, ["part-9"]);
+  assert.deepEqual(again.step.decision.operations.filter(operation => operation.type === "AddRegion").map(operation => operation.regionId),
+    ["part-10", "part-11", "part-12", "part-13", "part-14"], "a second diagram takes new names after every one handed out");
+});
+
+test("a lane is never an endpoint or a placement option, yet still occupies its space", async () => {
+  const graph = await baseGraph();
+  const working = await appendStep({ working: graph, step: (await compose(graph)).step, protocol });
+  const layout = layoutOf(working);
+  const lanes = ["part-1", "part-2"];
+  const parts = ["node-a", "node-b", "node-c", "part-3", "part-4", "part-5"];
+  assert.deepEqual([...speakableRegionIds(working.records)].sort(), parts);
+  const criteria = correctionCriteria(working.records, layout, null, CATALOG_KEYS);
+  assert.deepEqual(criteria.regions.filter(id => id !== OPTION_NONE).sort(), parts, "no lane as a source or target");
+  assert.deepEqual(criteria.placeable.filter(id => id !== OPTION_NONE), parts, "no lane to move or put beside");
+  assert.deepEqual([...placeableIds(layout, working.records)], parts);
+  for (const lane of lanes) assert.ok(layout.bounds[lane], `${lane} is still placed by the view`);
+  assert.equal(spotIsFree(layout, working.records, "node-a", layout.bounds["part-1"]), false,
+    "a part cannot be put where a lane is drawn");
+
+  const base = { working, revision: working.head, protocol, layout, visibleFrame: frameOf(working), candidates: CATALOG_KEYS };
+  const refused = async (answers, run = planStep) =>
+    assert.rejects(run({ ...base, answers }), /outside the offered criteria/u);
+  const placing = spec => ({ ...placeAnswers(working, layout, spec), diagram: choice("none") });
+  const linking = (source, target) => ({
+    ...placing({ move: OPTION_NONE, anchor: OPTION_NONE, direction: OPTION_NONE }),
+    action: choice(ACTION_ADD),
+    source: choice(source),
+    target: choice(target),
+  });
+  assert.equal((await planStep({ ...base, answers: linking("part-3", "node-a") })).outcome, OUTCOME_STEP,
+    "a step inside a lane is an endpoint like any other part");
+  await refused(linking("part-1", "part-3"));
+  await refused(linking("part-3", "part-2"));
+  await refused(placing({ move: "part-1", anchor: "node-a", direction: "below" }));
+  await refused(placing({ move: "node-a", anchor: "part-2", direction: "below" }));
+  // Nor can a lane come in as the one missing piece of a held placement.
+  const frame = frameOf(working).frame;
+  const pending = Object.freeze({
+    missing: "anchor",
+    head: working.head,
+    frame,
+    offered: placeableIds(layout, working.records, frame),
+    action: choice(ACTION_PLACE_PART),
+    move: choice("node-a"),
+    anchor: null,
+    direction: choice("below"),
+  });
+  await refused(placing({ move: OPTION_NONE, anchor: "part-1", direction: OPTION_NONE }),
+    options => repairStep({ ...options, offeredFrame: frame, pending }));
+
+  // An edge that already touches a lane is left out of what Jev may name, so
+  // the request never offers an endpoint it does not list.
+  const { decision } = await protocol.createDecision(working.head, [{
+    type: "ConnectRegions", relationId: "lane-edge", from: "part-1", to: "node-a", kind: "flow", label: "",
+  }], working.records);
+  const withLaneEdge = (await protocol.appendDecision(working.log, decision)).verified;
+  assert.deepEqual(speakableEdges(withLaneEdge.records).map(edge => edge.id).includes("lane-edge"), false);
+  assert.equal(correctionCriteria(withLaneEdge.records, null, null, CATALOG_KEYS).edges.includes("lane-edge"), false);
+});
+
+// v9: v8 plus the candidates, by key and purpose only.
+const v9 = (overrides = {}) => {
+  const base = v8(null, { utterance: "申請して承認してもらう流れを図にして" });
+  return {
+    kind: "voice-ui.jev.request.v9",
+    state: { ...base.state, candidates: diagramCandidatesForJev().map(({ key, purpose }) => ({ key, purpose })), ...overrides },
+  };
+};
+const V9_ACTIONS = ["add-edge", "add-part", "place-part", "compose-diagram", "undo-request", "none"];
+const DIAGRAM_KEYS = [...CATALOG_KEYS, "none"];
+const V9_ANSWERS = {
+  action: providerChoice("compose-diagram", V9_ACTIONS),
+  source: providerChoice("none", NODE_KEYS),
+  target: providerChoice("none", NODE_KEYS),
+  part: providerChoice("none", PART_KEYS),
+  move: providerChoice("none", NODE_KEYS),
+  anchor: providerChoice("none", NODE_KEYS),
+  direction: providerChoice("none", [...DIRECTIONS, "none"]),
+  diagram: providerChoice(APPROVAL.key, DIAGRAM_KEYS),
+};
+
+test("v9 offers Jev the diagrams by key and purpose, and a diagram answer comes back as a key", async () => {
+  const request = v9();
+  const { result, calls } = await withProvider(V9_ANSWERS, () => postJev(request));
+  assert.equal(result.status, 200);
+  const body = await result.json();
+  assert.equal(body.kind, "voice-ui.jev.decision.v4");
+  assert.equal(body.answers.action.choice, "compose-diagram");
+  assert.equal(body.answers.diagram.choice, APPROVAL.key);
+
+  const [call] = calls;
+  assert.deepEqual(call.state, request.state, "the candidates reach Jev exactly as sent");
+  assert.deepEqual(Object.keys(call.questions.action.criteria), V9_ACTIONS);
+  assert.deepEqual(Object.keys(call.questions.diagram.criteria), DIAGRAM_KEYS, "a finite choice, with none");
+  assert.match(call.questions.diagram.criteria[APPROVAL.key], /two roles/u, "each choice says what the diagram is for");
+  for (const label of [...APPROVAL.lanes, ...APPROVAL.steps].map(spec => spec.label)) {
+    assert.equal(JSON.stringify(call).includes(label), false, `${label} stays with the page`);
+  }
+
+  // Without candidates nothing about diagrams is asked.
+  const { calls: plain } = await withProvider(V8_ANSWERS, () => postJev(v8(null)));
+  assert.equal(Object.hasOwn(plain[0].questions, "diagram"), false);
+  assert.equal(Object.keys(plain[0].questions.action.criteria).includes("compose-diagram"), false);
+
+  // An answer that leaves out the diagram is the provider breaking the contract.
+  const { diagram, ...missing } = V9_ANSWERS;
+  const { result: broken } = await withProvider(missing, () => postJev(v9()));
+  assert.equal(broken.status, 502);
+  assert.deepEqual(await broken.json(), { error: "provider_contract_error" });
+});
+
+test("v9 refuses malformed candidates", async () => {
+  const one = diagramCandidatesForJev()[0];
+  const bad = [
+    v9({ candidates: [] }),
+    v9({ candidates: [{ ...one, lanes: ["申請者"] }] }),
+    v9({ candidates: [{ ...one, key: "none" }] }),
+    v9({ candidates: [{ ...one, key: "Request Flow" }] }),
+    v9({ candidates: [one, one] }),
+    v9({ candidates: [{ ...one, purpose: "x".repeat(301) }] }),
+    v9({ candidates: [{ ...one, purpose: " " }] }),
+    { kind: "voice-ui.jev.request.v9", state: v8(null).state },
+    { kind: "voice-ui.jev.request.v8", state: v9().state },
+  ];
+  for (const body of bad) assert.equal((await postJev(body)).status, 422, JSON.stringify(body).slice(0, 200));
 });
