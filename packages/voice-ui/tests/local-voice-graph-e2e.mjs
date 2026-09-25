@@ -1269,28 +1269,45 @@ assert.equal(insideFrame(ceilingSpot, frameAtCeiling.frame), false,
 assert.ok(insideFrame(target, frameAtCeiling.frame),
   "the spot that was placed is inside this same frame, so only geometry separates the two");
 const offscreen = await type(page, `move ${mover} to the left of ${leftmost}`);
-let offscreenGuard;
-if (offscreen.decision.answers.action.choice === "place-part"
-  && offscreen.decision.answers.direction.choice === "left"
-  && offscreen.decision.answers.anchor.choice === leftmost
-  && offscreen.decision.answers.move.choice === mover) {
-  const refusedScreen = await screen(page);
-  assert.equal(refusedScreen.state, "no-change", "a spot past the edge is a no change");
-  assert.match(refusedScreen.status, /今の表示の外/u, "and it says why, in the words for being off the pane");
-  assert.equal(/読み取れない|追いついていない/u.test(refusedScreen.status), false,
-    "not the words for having no frame or for a pane that has not caught up");
-  assert.equal(refusedScreen.state === "failed", false, "ordinary speech is never an error");
-  assert.deepEqual(refusedScreen.draft, placedScreen.draft, "the draft is untouched");
-  assert.deepEqual(await boxes(page, "working"), drawnAfter, "and nothing on the screen moved");
-  offscreenGuard = `a spot left of ${leftmost} is past the edge and was refused, nothing moved`;
-} else {
-  console.log(`  off-screen probe: Jev answered ${JSON.stringify(offscreen.decision.answers.action.choice)} / `
-    + `move=${JSON.stringify(offscreen.decision.answers.move?.choice)} `
-    + `anchor=${JSON.stringify(offscreen.decision.answers.anchor?.choice)} `
-    + `side=${JSON.stringify(offscreen.decision.answers.direction?.choice)}, `
-    + "so the edge guard was not exercised by this utterance");
-  offscreenGuard = "the edge guard was not exercised by this run";
+const refusedScreen = await screen(page);
+
+// Whatever Jev made of that sentence, the safety property holds unconditionally:
+// nothing may be placed at a spot outside the frame. Any placement step the draft
+// gained has to name a spot inside it.
+const placementSteps = refusedScreen.items
+  .map((item, index) => ({ item, changes: refusedScreen.draft[index] }))
+  .filter(entry => /^[~+-][^@]+$/u.test(entry.changes) && /配置/u.test(entry.item.effect ?? ""));
+const frameNow = await visibleFrame(page, "working");
+for (const [regionId, drawn] of Object.entries(await boxes(page, "working"))) {
+  if (regionId === "root") continue;
+  if (JSON.stringify(drawn.box) === JSON.stringify(drawnAfter[regionId]?.box)) continue;
+  assert.ok(insideFrame(drawn.box, frameNow.frame),
+    `${regionId} moved to ${JSON.stringify(drawn.box)}, which is outside the frame `
+    + `${JSON.stringify(frameNow.frame)} - nothing may be placed where it cannot be seen`);
 }
+
+// And the evidence R asked for - the ceiling in the same run as the placement -
+// is not optional. If Jev heard this sentence as something else the run cannot
+// produce that evidence, so it fails rather than passing quietly.
+assert.deepEqual(
+  {
+    action: offscreen.decision.answers.action.choice,
+    move: offscreen.decision.answers.move?.choice,
+    anchor: offscreen.decision.answers.anchor?.choice,
+    direction: offscreen.decision.answers.direction?.choice,
+  },
+  { action: "place-part", move: mover, anchor: leftmost, direction: "left" },
+  "the ceiling has to be exercised in this run, so Jev must hear this sentence as that placement; "
+  + `${placementSteps.length} placement steps in the draft`,
+);
+assert.equal(refusedScreen.state, "no-change", "a spot past the edge is a no change");
+assert.match(refusedScreen.status, /今の表示の外/u, "and it says why, in the words for being off the pane");
+assert.equal(/読み取れない|追いついていない/u.test(refusedScreen.status), false,
+  "not the words for having no frame or for a pane that has not caught up");
+assert.equal(refusedScreen.state === "failed", false, "ordinary speech is never an error");
+assert.deepEqual(refusedScreen.draft, placedScreen.draft, "the draft is untouched");
+assert.deepEqual(await boxes(page, "working"), drawnAfter, "and nothing on the screen moved");
+const offscreenGuard = `a spot left of ${leftmost} is past the edge and was refused, nothing moved`;
 
 // Apply writes it, and a reload draws it from the stored log alone.
 await press(page, "#apply");
