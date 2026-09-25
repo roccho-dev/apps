@@ -18,10 +18,13 @@
       /* Both panes the same height, so the frame read from 作業図 still holds
          for 確定図. The embed sizes itself min(78vh, 900px) and keeps its own
          buttons docked along its bottom edge; the graph sits in the middle.
-         Measured at 1280x720 with the composed diagram: at 562-640 px the dock
-         covers the approver's lane and the decision step, and from 660 px they
-         fall below the window; the window height less the band above the
-         panes (70 px) leaves both clear. */
+         Measured in a 1280x720 window with the composed diagram, varying only
+         the pane height: at 562-640 px the dock covers the approver's lane and
+         the decision step, and from 660 px they fall below the window. The
+         70 px is an empirical offset, not the height of the band above the
+         panes (they start about 143 px down): it puts the dock just below the
+         window's bottom edge. Proven for 1280x720 only; below about 700 px of
+         window height the dock covers the decision step again. */
       #confirmed-surface iframe, #working-surface iframe { height: calc(100vh - 70px) !important; }
     </style>
   </head>
