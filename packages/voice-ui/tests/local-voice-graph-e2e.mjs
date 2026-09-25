@@ -156,6 +156,9 @@ const settle = target =>
 const screen = target => target.evaluate(key => ({
   state: document.body.dataset.state,
   status: document.querySelector("#status").textContent,
+  // The transient per-turn diagnostic. Present only for a no-change Jev judged,
+  // replaced on every input, never stored.
+  diagnostic: { ...document.querySelector("#status").dataset },
   initialLine: document.querySelector("[data-history=initial]")?.textContent ?? null,
   // 確定図's applied entries.
   confirmed: [...document.querySelectorAll("[data-history=confirmed] li")]
@@ -1355,6 +1358,109 @@ assert.deepEqual(afterRevert[moveId].box, drawnBefore[moveId].box, "back where t
 assert.equal(revertingPlacement.stored, appliedPlacement.stored, "確定図 is untouched until Apply");
 await press(page, "#discard");
 assert.deepEqual((await boxes(page, "working"))[moveId].box, target, "Discard puts 作業図 back");
+
+// (xvi-c) The per-turn diagnostic. A real refusal is the one thing a person
+// cannot report usefully: the reason is on screen, but not the context that
+// produced it - how many parts were on offer, what Jev actually chose and how
+// sure it was, and what the pane said. This turn is answered from the test
+// rather than by Jev, so the numbers are fixed and the assertion is exact.
+const diagBefore = (await screen(page)).diagnostic;
+assert.equal(diagBefore.diag, undefined, "a turn that ended in a step leaves no diagnostic behind");
+
+// Shaped exactly as the page's own reader expects: the edge slot exists only
+// while the working graph has an edge to name, and "none" is always offered.
+const craftedAnswer = {
+  kind: "voice-ui.jev.decision.v4",
+  model: "jev-test",
+  answers: {
+    action: { type: "choice", choice: "place-part", confidence: 0.91 },
+    source: { type: "choice", choice: "none", confidence: 0.9 },
+    target: { type: "choice", choice: "none", confidence: 0.9 },
+    part: { type: "choice", choice: "none", confidence: 0.9 },
+    move: { type: "choice", choice: moveId, confidence: 0.44 },
+    anchor: { type: "choice", choice: anchorId, confidence: 0.87 },
+    direction: { type: "choice", choice: "left", confidence: 0.93 },
+    ...((await panes(page)).working.length > 0
+      ? { edge: { type: "choice", choice: "none", confidence: 0.9 } }
+      : {}),
+  },
+};
+await page.route(jevUrl, route => route.fulfill({
+  status: 200,
+  contentType: "application/json; charset=utf-8",
+  body: JSON.stringify(craftedAnswer),
+}), { times: 1 });
+const diagExchange = jevExchange(page);
+await page.locator("#text").fill("この部品をその隣に置いて");
+await page.locator("#send").click();
+await diagExchange.request;
+assert.equal((await diagExchange.response).status(), 200, "precondition: the crafted answer reached the page");
+await settle(page);
+
+const diagnosed = await screen(page);
+assert.equal(diagnosed.state, "no-change", "a slot under the floor is a no change");
+assert.deepEqual(diagnosed.diagnostic, {
+  diag: "jev-no-change",
+  diagOutcome: "no-change",
+  diagPlaceable: String(placeableDrawn.length),
+  diagPlaceOffered: "yes",
+  diagAction: "place-part:0.91",
+  diagMove: `${moveId}:0.44`,
+  diagAnchor: `${anchorId}:0.87`,
+  diagDirection: "left:0.93",
+  diagFrame: "ok",
+}, "the turn is inspectable: what was offered, what was chosen, how sure, and what the pane said");
+// The reason itself is the status text, so the attributes never repeat it - and
+// they never carry the utterance, a probability distribution, or anything else.
+assert.equal(Object.keys(diagnosed.diagnostic).every(key => key === "diag" || key.startsWith("diag")), true);
+for (const value of Object.values(diagnosed.diagnostic)) {
+  assert.equal(value.includes("この部品をその隣に置いて"), false, "no utterance in the diagnostic");
+  assert.ok(value.length <= 40, `bounded values only: ${value}`);
+}
+assert.match(diagnosed.status, /not confident enough/u, "the reason stays where it already was");
+assert.deepEqual(diagnosed.draft, [], "and nothing was drafted");
+
+// Nothing persisted.
+assert.equal(diagnosed.stored, appliedPlacement.stored, "the diagnostic is not written to storage");
+assert.deepEqual(diagnosed.storageKeys, appliedPlacement.storageKeys, "and adds no storage key");
+
+// Replaced on the next turn rather than accumulating: the same crafted route,
+// this time a confident "none", so every value must change together and nothing
+// from the previous turn may survive.
+await page.route(jevUrl, route => route.fulfill({
+  status: 200,
+  contentType: "application/json; charset=utf-8",
+  body: JSON.stringify({
+    ...craftedAnswer,
+    answers: {
+      ...craftedAnswer.answers,
+      action: { type: "choice", choice: "none", confidence: 0.99 },
+      move: { type: "choice", choice: "none", confidence: 0.99 },
+      anchor: { type: "choice", choice: "none", confidence: 0.99 },
+      direction: { type: "choice", choice: "none", confidence: 0.99 },
+    },
+  }),
+}), { times: 1 });
+const replacedExchange = jevExchange(page);
+await page.locator("#text").fill("なんでもない");
+await page.locator("#send").click();
+await replacedExchange.request;
+await settle(page);
+const replaced = await screen(page);
+assert.equal(replaced.state, "no-change");
+assert.deepEqual(replaced.diagnostic, {
+  diag: "jev-no-change",
+  diagOutcome: "no-change",
+  diagPlaceable: String(placeableDrawn.length),
+  diagPlaceOffered: "yes",
+  diagAction: "none:0.99",
+  diagMove: "none:0.99",
+  diagAnchor: "none:0.99",
+  diagDirection: "none:0.99",
+  diagFrame: "ok",
+}, "the whole set is replaced, never merged with the turn before");
+assert.equal(Object.keys(replaced.diagnostic).length, Object.keys(diagnosed.diagnostic).length,
+  "and the set stays bounded");
 
 await first.browser.close();
 

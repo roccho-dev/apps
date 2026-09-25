@@ -267,6 +267,45 @@
         status.textContent = message;
       };
 
+      // Why a turn Jev judged came to nothing, for whoever is looking at this
+      // screen during a test. The reason itself is already the status text; what
+      // cannot be read off the screen is the context that produced it, so that
+      // goes here as data attributes and nowhere else.
+      //
+      // Bounded and transient: a fixed set of short values, replaced on every
+      // input and cleared before each one, never stored, never sent. It carries
+      // no utterance, no provider prompt and no probability distribution - only
+      // the counts, the chosen options and their single confidences, which are
+      // already on their way into the page's own decision.
+      const DIAGNOSTIC_KEYS = [
+        "diag", "diagOutcome", "diagPlaceable", "diagPlaceOffered",
+        "diagAction", "diagMove", "diagAnchor", "diagDirection", "diagFrame",
+      ];
+      const clearDiagnostics = () => {
+        for (const key of DIAGNOSTIC_KEYS) delete status.dataset[key];
+      };
+      const slotDiagnostic = slot =>
+        slot === undefined || slot === null ? null : `${slot.choice}:${slot.confidence.toFixed(2)}`;
+      const recordNoChangeDiagnostic = ({ answers, placeable, undoRequest, frame, revision }) => {
+        status.dataset.diag = "jev-no-change";
+        status.dataset.diagOutcome = undoRequest === true ? "undo-request" : "no-change";
+        status.dataset.diagPlaceable = String(placeable.length);
+        status.dataset.diagPlaceOffered = placeable.length >= 2 ? "yes" : "no";
+        for (const [key, name] of [
+          ["diagAction", "action"], ["diagMove", "move"],
+          ["diagAnchor", "anchor"], ["diagDirection", "direction"],
+        ]) {
+          const value = slotDiagnostic(answers?.[name]);
+          if (value !== null) status.dataset[key] = value;
+        }
+        // Only meaningful once placement was on the table at all.
+        if (placeable.length >= 2) {
+          status.dataset.diagFrame = frame === null
+            ? "null"
+            : frame.head === revision ? "ok" : "head-mismatch";
+        }
+      };
+
       // Where a voice press has got to: preparing the microphone and the
       // recognizer, listening, or deciding what was heard. The body state stays
       // `pending` for the whole press; this only says what the user may do now,
@@ -515,6 +554,7 @@
       // contracts are still served; this screen drives v5.
       const decideStep = async (value, source) => {
         judged[source] = null;
+        clearDiagnostics();
         // Nothing typed, or a transcript with nothing in it, asks for nothing,
         // and a full working graph takes no more steps: in both cases no
         // request goes to Jev at all.
@@ -528,12 +568,13 @@
         // The answer is bound to the working graph as it was when asked.
         const revision = working.head;
         const layout = workingLayout();
+        const placeable = layout === null ? [] : [...placeableIds(layout, working.records)];
         const decision = await postJev({
           kind: "voice-ui.jev.request.v7",
           state: {
             utterance: value,
             working: {
-              placeable: layout === null ? [] : [...placeableIds(layout, working.records)],
+              placeable,
               regions: selectableRegionIds(working.records),
               edges: edgesOf(working.records).map(({ id, from, to }) => ({ id, from, to })),
             },
@@ -564,6 +605,15 @@
           layout,
         });
         if (planned.outcome === OUTCOME_NO_CHANGE) {
+          // Synchronous, after the decision is already made: it reads what this
+          // turn used and changes nothing about it.
+          recordNoChangeDiagnostic({
+            answers: decision.answers,
+            placeable,
+            undoRequest: planned.undoRequest,
+            frame: visibleFrame,
+            revision,
+          });
           throw new NoChange(planned.reason, planned.undoRequest ? "undo-request" : "no-change");
         }
         for (const change of planned.step.changes) {
