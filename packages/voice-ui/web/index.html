@@ -50,18 +50,23 @@
       import { createHayamimi } from "/hayamimi/runtime/api/hayamimi.mjs";
       import { validateUiIr } from "/ui/ui-ir/index.mjs";
       import { renderTrustedSurface } from "/ui/a2ui-browser/render/trusted-dom.mjs";
-      import { executeArtifactPackage as renderSemanticMap } from "/ui/semantic-map/runtime.js";
+      import {
+        executeArtifactPackage as renderSemanticMap,
+        visibleFrameOf,
+      } from "/ui/semantic-map/runtime.js";
       import {
         appendDecision,
         createDecision,
         createDecisionLog,
         createEnvelope,
+        layoutBoundsFor,
         verifyDecisionLog,
       } from "/ui/semantic-map/protocol/index.js";
       import { renderUiIr } from "/app/src/render.mjs";
       import { GRAPH_PATTERN, selectableRegionIds } from "/app/src/decision/graph-edge.mjs";
       import {
         DRAFT_MAX,
+        placeableIds,
         OUTCOME_NO_CHANGE,
         appendStep,
         changesForJev,
@@ -262,6 +267,45 @@
         status.textContent = message;
       };
 
+      // Why a turn Jev judged came to nothing, for whoever is looking at this
+      // screen during a test. The reason itself is already the status text; what
+      // cannot be read off the screen is the context that produced it, so that
+      // goes here as data attributes and nowhere else.
+      //
+      // Bounded and transient: a fixed set of short values, replaced on every
+      // input and cleared before each one, never stored, never sent. It carries
+      // no utterance, no provider prompt and no probability distribution - only
+      // the counts, the chosen options and their single confidences, which are
+      // already on their way into the page's own decision.
+      const DIAGNOSTIC_KEYS = [
+        "diag", "diagOutcome", "diagPlaceable", "diagPlaceOffered",
+        "diagAction", "diagMove", "diagAnchor", "diagDirection", "diagFrame",
+      ];
+      const clearDiagnostics = () => {
+        for (const key of DIAGNOSTIC_KEYS) delete status.dataset[key];
+      };
+      const slotDiagnostic = slot =>
+        slot === undefined || slot === null ? null : `${slot.choice}:${slot.confidence.toFixed(2)}`;
+      const recordNoChangeDiagnostic = ({ answers, placeable, undoRequest, frame, revision }) => {
+        status.dataset.diag = "jev-no-change";
+        status.dataset.diagOutcome = undoRequest === true ? "undo-request" : "no-change";
+        status.dataset.diagPlaceable = String(placeable.length);
+        status.dataset.diagPlaceOffered = placeable.length >= 2 ? "yes" : "no";
+        for (const [key, name] of [
+          ["diagAction", "action"], ["diagMove", "move"],
+          ["diagAnchor", "anchor"], ["diagDirection", "direction"],
+        ]) {
+          const value = slotDiagnostic(answers?.[name]);
+          if (value !== null) status.dataset[key] = value;
+        }
+        // Only meaningful once placement was on the table at all.
+        if (placeable.length >= 2) {
+          status.dataset.diagFrame = frame === null
+            ? "null"
+            : frame.head === revision ? "ok" : "head-mismatch";
+        }
+      };
+
       // Where a voice press has got to: preparing the microphone and the
       // recognizer, listening, or deciding what was heard. The body state stays
       // `pending` for the whole press; this only says what the user may do now,
@@ -288,6 +332,7 @@
         const sign = fact.change === "added" ? "+" : fact.change === "removed" ? "-" : "~";
         if ((fact.kind ?? "relation") === "relation") return `${sign}${fact.from}->${fact.to}`;
         if (fact.kind === "region") return `${sign}${fact.id}${fact.label ? `「${fact.label}」` : ""}`;
+        if (fact.kind === "layout") return `${sign}${fact.id}@${fact.bounds.join(",")}`;
         return `${sign}${fact.kind}${fact.id ? ` ${fact.id}` : ""}`;
       };
 
@@ -297,6 +342,9 @@
       // entry is not offered.
       const revertableEntry = entry => {
         if (entry.facts.every(fact => fact.kind === "relation")) return true;
+        // A placement is undone by putting the part back where it was, which is
+        // always safe: it moves nothing else and removes nothing.
+        if (entry.facts.every(fact => fact.kind === "layout")) return true;
         return entry.facts.every(fact => fact.kind === "region" && fact.change === "added")
           && entry.facts.every(fact =>
             savedHistory.regions.includes(fact.id)
@@ -337,8 +385,15 @@
       // What a step does, in words, read off its provider-verified changes: one
       // added edge, one removed edge, or one edge removed and its opposite added.
       // Anything else is listed as it is.
+      const DIRECTION_WORDS = { left: "左", right: "右", above: "上", below: "下" };
+
       const effectOf = changes => {
         const [first, second] = changes;
+        if (changes.length === 1 && first.kind === "region" && first.change === "placed") {
+          return first.anchor === "none"
+            ? `配置を戻す ${first.id}`
+            : `配置 ${first.id} を ${first.anchor} の${DIRECTION_WORDS[first.direction] ?? first.direction}へ`;
+        }
         if (changes.length === 1 && first.kind === "region") {
           return `${first.change === "added" ? "部品追加" : "部品削除"} ${first.id}「${first.label}」`;
         }
@@ -413,6 +468,38 @@
 
       // What the user is looking at, for a follow-up like "reverse that": the
       // latest working step, else the latest applied change.
+      // Where the working graph is actually drawn, answered by the provider's
+      // public layout contract. The app never computes a position itself and
+      // never reads the renderer's internals; a part can only be put beside
+      // another one because the view says where that other one is.
+      const workingLayout = () => {
+        try {
+          return layoutBoundsFor(working.records, { pattern: GRAPH_PATTERN });
+        } catch {
+          // A graph this view cannot lay out offers no placement; everything
+          // else still works.
+          return null;
+        }
+      };
+
+      // What 作業図 is showing right now, answered by the provider. The pane's
+      // camera does not follow the diagram as it grows, so this is a finite
+      // window: once a spot falls outside it there is no placement there, and
+      // the app says so rather than proposing something nobody can see.
+      //
+      // Only 作業図 is asked, which is sound while the two panes are the same
+      // size - #panes is a 1fr 1fr grid and the embed fixes its own height, so
+      // both cameras resolve alike. A different ratio would need 確定図 asked
+      // too, and the browser test asserts the widths are equal so that change
+      // cannot pass unnoticed.
+      const workingVisibleFrame = () => {
+        try {
+          return visibleFrameOf(workingSurface);
+        } catch {
+          return null;
+        }
+      };
+
       const currentFocus = () => focusFor({
         draft,
         lastApplied: (savedHistory.entries.at(-1)?.facts ?? [])
@@ -467,6 +554,7 @@
       // contracts are still served; this screen drives v5.
       const decideStep = async (value, source) => {
         judged[source] = null;
+        clearDiagnostics();
         // Nothing typed, or a transcript with nothing in it, asks for nothing,
         // and a full working graph takes no more steps: in both cases no
         // request goes to Jev at all.
@@ -479,11 +567,19 @@
 
         // The answer is bound to the working graph as it was when asked.
         const revision = working.head;
+        const layout = workingLayout();
+        // Jev is offered only the parts wholly on the pane as it is now. A frame
+        // that cannot be read, or that shows another head, narrows nothing here:
+        // the frame read after the answer then says why no placement is made.
+        const askedFrame = workingVisibleFrame();
+        const offeredFrame = askedFrame !== null && askedFrame.head === revision ? askedFrame.frame : null;
+        const placeable = layout === null ? [] : [...placeableIds(layout, working.records, offeredFrame)];
         const decision = await postJev({
-          kind: "voice-ui.jev.request.v6",
+          kind: "voice-ui.jev.request.v7",
           state: {
             utterance: value,
             working: {
+              placeable,
               regions: selectableRegionIds(working.records),
               edges: edgesOf(working.records).map(({ id, from, to }) => ({ id, from, to })),
             },
@@ -494,17 +590,38 @@
         });
         // Jev has judged this utterance; whatever comes of it is remembered.
         judged[source] = { source, text: value };
+        // Read last, with nothing awaited between here and the containment
+        // check: the request took seconds, and in that time the pane may have
+        // been panned, zoomed, resized or re-rendered. planStep judges the spot
+        // before its own first await, so this value cannot go stale in between.
+        const visibleFrame = workingVisibleFrame();
         const planned = await planStep({
           working,
           revision,
+          visibleFrame,
           answers: decision.answers,
           protocol,
           // Part names this page has already handed out. Undo cuts a part's
           // Decision out of the working log, but the conversation still refers
           // to it, so its name must not come back for a different part.
           reserved: [...issuedParts],
+          // The same layout the request was built from, so the answer is
+          // judged against the positions the user was looking at.
+          layout,
+          // And the same frame its placeable parts were chosen from, so the
+          // answer is checked against exactly what Jev was offered.
+          offeredFrame,
         });
         if (planned.outcome === OUTCOME_NO_CHANGE) {
+          // Synchronous, after the decision is already made: it reads what this
+          // turn used and changes nothing about it.
+          recordNoChangeDiagnostic({
+            answers: decision.answers,
+            placeable,
+            undoRequest: planned.undoRequest,
+            frame: visibleFrame,
+            revision,
+          });
           throw new NoChange(planned.reason, planned.undoRequest ? "undo-request" : "no-change");
         }
         for (const change of planned.step.changes) {
@@ -695,6 +812,10 @@
         if (blocked || rendering) return;
         rendering = true;
         controlHoldsRender = true;
+        // The diagnostic describes the last turn Jev judged. Once a control
+        // has acted it would describe a screen that is no longer there, so it
+        // goes, whatever the control does.
+        clearDiagnostics();
         syncBusy();
         setState("pending", `${label}: working`);
         try {
@@ -736,6 +857,7 @@
       contextClear.addEventListener("click", () => {
         if (blocked || rendering) return;
         conversation = [];
+        clearDiagnostics();
         renderContext();
         syncBusy();
       });

@@ -68,8 +68,22 @@ const relationsOf = records =>
 // before and after it. A removal names only a relation id; the endpoints it had
 // exist only in the earlier state, and reading them out of the id string would
 // be guessing. So every change is a difference between two provider states.
+// Where a part has been pinned. A placement changes no region and no relation,
+// so without this a Decision that moved something would leave no fact behind:
+// the history would show only an operation name, and it could never be undone.
+const layoutOf = records =>
+  Object.freeze(
+    (records ?? [])
+      .filter(record => record?.type === "layout")
+      .map(record => Object.freeze({ id: record.regionId, bounds: Object.freeze([...record.bounds]) })),
+  );
+
 const keyed = records => new Map([
   ...regionsOf(records).map(region => [`region ${region.id}`, Object.freeze({ kind: "region", ...region })]),
+  ...layoutOf(records).map(entry => [
+    `layout ${entry.id} ${entry.bounds.join(",")}`,
+    Object.freeze({ kind: "layout", id: entry.id, bounds: entry.bounds }),
+  ]),
   ...relationsOf(records).map(relation => [
     `relation ${relation.id} ${relation.from} ${relation.to}`,
     Object.freeze({ kind: "relation", ...relation }),

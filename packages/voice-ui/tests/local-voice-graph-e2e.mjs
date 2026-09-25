@@ -45,8 +45,11 @@ const errors = [];
 const failedResponses = [];
 const consoleMessages = [];
 // Answers the real Jev gave through the dev server during this run, reported
-// so its cost is visible. Answers the test fakes at the network are not here.
+// so its cost is visible. Answers the test crafts at the network carry the
+// model "jev-test" and are counted apart, never as real ones.
 let jevAnswered = 0;
+let craftedAnswered = 0;
+const answerCounts = [];
 
 const watch = target => {
   target.on("pageerror", error => errors.push(String(error)));
@@ -56,7 +59,10 @@ const watch = target => {
       failedResponses.push(response.status() + " " + response.url());
     }
     if (new URL(response.url()).pathname === "/api/jev" && response.status() === 200 && !response.request().isNavigationRequest()) {
-      jevAnswered += 1;
+      answerCounts.push(response.json().then(
+        body => { if (body?.model === "jev-test") craftedAnswered += 1; else jevAnswered += 1; },
+        () => { jevAnswered += 1; },
+      ));
     }
   });
   return target;
@@ -156,6 +162,9 @@ const settle = target =>
 const screen = target => target.evaluate(key => ({
   state: document.body.dataset.state,
   status: document.querySelector("#status").textContent,
+  // The transient per-turn diagnostic. Present only for a no-change Jev judged,
+  // replaced on every input, never stored.
+  diagnostic: { ...document.querySelector("#status").dataset },
   initialLine: document.querySelector("[data-history=initial]")?.textContent ?? null,
   // 確定図's applied entries.
   confirmed: [...document.querySelectorAll("[data-history=confirmed] li")]
@@ -222,6 +231,67 @@ const drawn = (target, pane) => target.evaluate(async pane => {
   };
 }, pane);
 
+// Where each part is really drawn, read off the live adapter's own cells and
+// their rendered shapes. This is the only evidence that counts for a placement:
+// the layout contract reports bounds for a part the view has culled, and the
+// boundary stretches around any pin, so neither can tell a drawn part from a
+// vanished one. A part with no cell, or a cell with no shape in the document,
+// is not on the screen however good its numbers look.
+const boxes = (target, pane) => target.evaluate(async pane => {
+  const frame = document.querySelector(`#${pane}-surface iframe[data-package="semantic-map"]`);
+  if (!frame) throw new Error(`${pane} semantic map iframe missing`);
+
+  const started = performance.now();
+  while (frame.contentWindow?.semanticMapSite?.ready !== true) {
+    if (performance.now() - started > 60000) throw new Error(`${pane} semantic map ready timeout`);
+    await new Promise(resolve => setTimeout(resolve, 25));
+  }
+
+  const adapter = frame.contentWindow.semanticMapApp.adapter;
+  const view = adapter.graph.getView();
+  const drawn = {};
+  for (const [regionId, cell] of adapter.cellsByRegionId) {
+    const geometry = cell.getGeometry();
+    const state = view.getState(cell);
+    drawn[regionId] = {
+      box: geometry ? [geometry.x, geometry.y, geometry.width, geometry.height] : null,
+      rendered: Boolean(state?.shape?.node?.isConnected),
+    };
+  }
+  return drawn;
+}, pane);
+
+// What a pane is showing now, from the provider's own public contract - the same
+// call the page makes. Never computed here, so the test cannot agree with the app
+// by repeating its arithmetic.
+const visibleFrame = (target, pane) => target.evaluate(async pane => {
+  const runtime = await import("/ui/semantic-map/runtime.js");
+  return runtime.visibleFrameOf(document.querySelector(`#${pane}-surface`));
+}, pane);
+
+// The width of each pane's mount. The app asks only 作業図 whether a spot is
+// visible, which is sound while both panes resolve the same camera; #panes is a
+// 1fr 1fr grid and the embed fixes its own height, so equal widths are the whole
+// of that condition. A future ratio change must fail here rather than quietly
+// let a spot pass on the right and land off-pane on the left.
+const mountWidths = target => target.evaluate(() => ({
+  confirmed: document.querySelector("#confirmed-surface").getBoundingClientRect().width,
+  working: document.querySelector("#working-surface").getBoundingClientRect().width,
+  columns: getComputedStyle(document.querySelector("#panes")).gridTemplateColumns,
+}));
+
+// Whether a box is wholly inside a frame, in the view's own coordinates.
+const insideFrame = (box, frame) => box[0] >= frame[0] && box[1] >= frame[1]
+  && box[0] + box[2] <= frame[0] + frame[2] && box[1] + box[3] <= frame[1] + frame[3];
+
+// The parts wholly on a pane: drawn cells whose own boxes lie inside the
+// provider's frame. A cell alone is not enough - the renderer builds cells in a
+// margin band just outside the frame that nobody sees.
+const onPane = (drawnBoxes, frame) => Object.entries(drawnBoxes)
+  .filter(([id, drawn]) => id !== "root" && drawn.box !== null && insideFrame(drawn.box, frame))
+  .map(([id]) => id)
+  .sort();
+
 // Both panes' drawn edges.
 const panes = async target => ({
   confirmed: (await drawn(target, "confirmed")).edges,
@@ -261,7 +331,7 @@ const jevExchange = target => ({
 // anywhere else in the body.
 const inputsSent = new Set();
 const assertOnlyCurrentInput = (sent, panelBefore) => {
-  assert.equal(sent.kind, "voice-ui.jev.request.v6");
+  assert.equal(sent.kind, "voice-ui.jev.request.v7");
   const { utterance, context, ...rest } = sent.state;
   assert.deepEqual(context.recent, panelBefore, "the request must send exactly the recent conversation the panel showed");
   for (const entry of sent.state.draft) {
@@ -411,9 +481,14 @@ assert.deepEqual(await panes(page), { confirmed: [], working: [] });
 // Hayamimi heard and the working graph it was spoken into; the answer is Jev's
 // typed choice; the edge appears on the right and nowhere else.
 const voiceAdd = await speak(page);
-assert.equal(voiceAdd.sent.kind, "voice-ui.jev.request.v6");
+assert.equal(voiceAdd.sent.kind, "voice-ui.jev.request.v7");
 assert.deepEqual(voiceAdd.sent.state.context, { recent: [] }, "a first visit has no recent conversation");
-assert.deepEqual(voiceAdd.sent.state.working, { regions: ["node-a", "node-b", "node-c"], edges: [] });
+assert.deepEqual(voiceAdd.sent.state.working, {
+  // Every part the view has drawn is a part that can be put beside another.
+  placeable: ["node-a", "node-b", "node-c"],
+  regions: ["node-a", "node-b", "node-c"],
+  edges: [],
+});
 assert.deepEqual(voiceAdd.sent.state.draft, []);
 assert.deepEqual(voiceAdd.sent.state.focus, { kind: "none", changes: [] });
 assertHeard(voiceAdd.sent.state.utterance, addGolden);
@@ -561,7 +636,7 @@ const assertSavedUntouched = async (label, expectedStored, expectedApplied, expe
 };
 
 const typedA = await type(page, "add an edge from a to b");
-assert.equal(typedA.sent.kind, "voice-ui.jev.request.v6", "Send must use the typed graph decision");
+assert.equal(typedA.sent.kind, "voice-ui.jev.request.v7", "Send must use the typed graph decision");
 assert.equal(typedA.decision.answers.action.choice, "add-edge");
 const edgeA = edgeOf(typedA.decision.answers);
 await assertSavedUntouched("first typed step", null, [], []);
@@ -1077,6 +1152,690 @@ await page.waitForTimeout(300);
 assert.equal((await screen(page)).stored, attached.stored, "a disabled revert does nothing");
 assert.deepEqual((await screen(page)).draft, []);
 
+// (xvi-b) Putting one part beside another, and proving it is actually drawn
+// there. The layout contract and the boundary both keep reporting a part the
+// view has culled, so every claim below is read off the adapter's own cells.
+const placeBefore = await screen(page);
+const drawnBefore = await boxes(page, "working");
+const placeableDrawn = Object.keys(drawnBefore).filter(id => id !== "root").sort();
+assert.ok(placeableDrawn.length >= 2, "precondition: at least two parts are drawn");
+
+// The condition the single-pane guard rests on. If the panes ever stop being
+// equal, this fails instead of the guard silently going wrong.
+const widths = await mountWidths(page);
+assert.equal(widths.working, widths.confirmed,
+  `the guard asks 作業図 only, which needs both panes the same width: ${JSON.stringify(widths)}`);
+assert.match(widths.columns, /^([\d.]+)px \1px$/u, `#panes must resolve to two equal columns: ${widths.columns}`);
+
+// What 作業図 is showing. With no unapplied step both panes show the same head,
+// which is exactly why head can never be what tells the panes apart.
+const frameBefore = await visibleFrame(page, "working");
+const confirmedFrameBefore = await visibleFrame(page, "confirmed");
+assert.notEqual(frameBefore, null, "作業図 must report a visible frame");
+assert.equal(frameBefore.schema, "semantic-map-visible-frame/1");
+assert.equal(frameBefore.pattern, "graph/1");
+assert.equal(frameBefore.frame.length, 4);
+assert.deepEqual(placeBefore.draft, [], "precondition: nothing unapplied");
+assert.equal(frameBefore.head, confirmedFrameBefore.head,
+  "both panes show the same head here, so head is provenance and never pane identity");
+
+// The parts Jev may name are the ones wholly on 作業図 as the request is built:
+// the provider's frame and the adapter's own cells, never the layout contract's
+// pre-culling bounds.
+const offeredBefore = onPane(drawnBefore, frameBefore.frame);
+assert.ok(offeredBefore.length >= 2, `precondition: at least two parts are on the pane: ${JSON.stringify(offeredBefore)}`);
+
+// A request that can succeed here: two parts on the pane and a side of the
+// anchor that is free and on the pane too, worked out from the drawn cells and
+// the provider's frame. Which parts that is depends on how the earlier steps
+// laid the graph out, so it is chosen, not assumed.
+const sideWords = { left: "to the left of", right: "to the right of", above: "above", below: "below" };
+const spotBeside = (anchorBox, moverBox, side) => side === "left" ? [anchorBox[0] - moverBox[2] - 24, anchorBox[1], moverBox[2], moverBox[3]]
+  : side === "right" ? [anchorBox[0] + anchorBox[2] + 24, anchorBox[1], moverBox[2], moverBox[3]]
+  : side === "above" ? [anchorBox[0], anchorBox[1] - moverBox[3] - 24, moverBox[2], moverBox[3]]
+  : [anchorBox[0], anchorBox[1] + anchorBox[3] + 24, moverBox[2], moverBox[3]];
+const freeOf = (drawnBoxes, box, except) => Object.entries(drawnBoxes).every(([id, cell]) =>
+  id === "root" || id === except || cell.box === null
+  || !(box[0] < cell.box[0] + cell.box[2] && cell.box[0] < box[0] + box[2]
+    && box[1] < cell.box[1] + cell.box[3] && cell.box[1] < box[1] + box[3]));
+const request = (() => {
+  for (const anchor of offeredBefore) {
+    for (const mover of offeredBefore) {
+      if (mover === anchor) continue;
+      for (const side of ["below", "right", "left", "above"]) {
+        const spot = spotBeside(drawnBefore[anchor].box, drawnBefore[mover].box, side);
+        if (insideFrame(spot, frameBefore.frame) && freeOf(drawnBefore, spot, mover)) return { anchor, mover, side };
+      }
+    }
+  }
+  return null;
+})();
+assert.notEqual(request, null, `precondition: some free spot on the pane beside an on-pane part: `
+  + JSON.stringify({ offeredBefore, frame: frameBefore.frame }));
+
+const placed = await type(page, `move ${request.mover} ${sideWords[request.side]} ${request.anchor}`);
+assert.deepEqual(
+  [...placed.sent.state.working.placeable].sort(),
+  offeredBefore,
+  "the parts offered to Jev are exactly the ones wholly on the pane - never the boundary, never a part the "
+    + "pane cuts off, and never an empty list from a swallowed layout failure",
+);
+assert.equal(placed.sent.state.working.placeable.includes("root"), false);
+assert.equal(JSON.stringify(placed.sent).includes("bounds"), false, "Jev is never told where anything is drawn");
+assert.equal(placed.decision.answers.action.choice, "place-part", "precondition: Jev must hear this as a placement");
+const moveId = placed.decision.answers.move.choice;
+const anchorId = placed.decision.answers.anchor.choice;
+const direction = placed.decision.answers.direction.choice;
+assert.ok(offeredBefore.includes(moveId) && offeredBefore.includes(anchorId), "both parts are ones on the pane");
+assert.ok(["left", "right", "above", "below"].includes(direction));
+
+const placedScreen = await screen(page);
+assert.equal(placedScreen.state, "drafted",
+  `placement was not drafted: ${placedScreen.status} | answers=${JSON.stringify(placed.decision.answers)} `
+  + `| drawn=${JSON.stringify(drawnBefore)}`);
+assert.equal(placedScreen.draft.length, 1, "a placement is one step on 作業図");
+assert.deepEqual(placedScreen.draft, [`~${moveId}`], "the step names the part Jev chose");
+assert.match(placedScreen.items[0].effect, new RegExp(`配置 ${moveId} を ${anchorId} の[左右上下]へ`, "u"),
+  "and says in words where it went");
+
+// Where it should land, worked out here from the geometry the view itself is
+// using - not read back off the app's own label.
+const gap = 24;
+const [ax, ay, aw, ah] = drawnBefore[anchorId].box;
+const [, , tw, th] = drawnBefore[moveId].box;
+const target = direction === "left" ? [ax - tw - gap, ay, tw, th]
+  : direction === "right" ? [ax + aw + gap, ay, tw, th]
+  : direction === "above" ? [ax, ay - th - gap, tw, th]
+  : [ax, ay + ah + gap, tw, th];
+
+// The claim under test: the cell exists, it is rendered, and it is there.
+const drawnAfter = await boxes(page, "working");
+assert.ok(drawnAfter[moveId], `${moveId} must still have a cell after being moved`);
+assert.equal(drawnAfter[moveId].rendered, true, `${moveId} must still be drawn after being moved`);
+assert.deepEqual(drawnAfter[moveId].box, target, "and drawn exactly where the step says");
+assert.notDeepEqual(drawnAfter[moveId].box, drawnBefore[moveId].box, "which is not where it was");
+for (const id of Object.keys(drawnBefore)) {
+  // The boundary is the frame, not a part: it is allowed to fit itself around
+  // what it holds. Every actual part must stay exactly where it was.
+  if (id === moveId || id === "root") continue;
+  assert.deepEqual(drawnAfter[id].box, drawnBefore[id].box, `${id} must not move`);
+  assert.equal(drawnAfter[id].rendered, true, `${id} must stay drawn`);
+}
+// The promise the guard makes: the spot was inside what 作業図 was showing when
+// the answer came back - the provider's frame, not the enclosing boundary.
+assert.ok(insideFrame(target, frameBefore.frame),
+  `the new spot ${JSON.stringify(target)} must be inside the visible frame ${JSON.stringify(frameBefore.frame)}`);
+// And it is on screen in the ordinary sense: the whole cell's own rectangle
+// falls inside the pane's own rectangle.
+const paintedInPane = await page.evaluate(regionId => {
+  const surface = document.querySelector("#working-surface");
+  const win = surface.querySelector('iframe[data-package="semantic-map"]').contentWindow;
+  const doc = surface.querySelector('iframe[data-package="semantic-map"]').contentDocument;
+  const adapter = win.semanticMapApp.adapter;
+  const cell = adapter.cellsByRegionId.get(regionId);
+  const shape = adapter.graph.getView().getState(cell)?.shape?.node ?? null;
+  const rect = shape?.getBoundingClientRect?.() ?? null;
+  const pane = doc.querySelector("#graph-container").getBoundingClientRect();
+  if (rect === null) return { rect: null };
+  const w = Math.max(0, Math.min(rect.right, pane.right) - Math.max(rect.left, pane.left));
+  const h = Math.max(0, Math.min(rect.bottom, pane.bottom) - Math.max(rect.top, pane.top));
+  return {
+    rect: { x: rect.x, y: rect.y, w: rect.width, h: rect.height },
+    pane: { x: pane.x, y: pane.y, w: pane.width, h: pane.height },
+    visibleArea: w * h,
+    wholeArea: rect.width * rect.height,
+  };
+}, moveId);
+assert.notEqual(paintedInPane.rect, null, "the moved part must have a painted shape");
+assert.ok(paintedInPane.wholeArea > 0, "and that shape must have area");
+assert.ok(paintedInPane.visibleArea >= paintedInPane.wholeArea - 0.5,
+  `the whole moved part must be inside the pane: ${JSON.stringify(paintedInPane)}`);
+assert.equal(Object.keys(drawnAfter).length, Object.keys(drawnBefore).length, "no cell appears or disappears");
+assert.equal(placedScreen.stored, placeBefore.stored, "nothing is saved before Apply");
+assert.deepEqual(await boxes(page, "confirmed"), await boxes(page, "confirmed"), "確定図 is read twice identically");
+const confirmedDuring = await boxes(page, "confirmed");
+assert.deepEqual(confirmedDuring[moveId].box, drawnBefore[moveId].box, "確定図 must not move the part before Apply");
+
+// The ceiling, in the same run and immediately after the placement above. The
+// pane's camera does not follow the diagram as it grows, so the window is
+// finite: a spot past its edge is a truthful no change, not a hidden failure.
+// Both coordinates are measured, so the refusal is shown to be geometric.
+const frameAtCeiling = await visibleFrame(page, "working");
+assert.notEqual(frameAtCeiling, null, "the pane still reports a frame");
+// Both named parts are on the pane, so the only thing off it is the spot.
+const offeredAtCeiling = onPane(drawnAfter, frameAtCeiling.frame);
+const leftmost = offeredAtCeiling
+  .map(id => [id, drawnAfter[id].box])
+  .sort((left, right) => left[1][0] - right[1][0])[0][0];
+const mover = offeredAtCeiling.find(id => id !== leftmost);
+const ceilingSpot = [
+  drawnAfter[leftmost].box[0] - drawnAfter[mover].box[2] - gap,
+  drawnAfter[leftmost].box[1],
+  drawnAfter[mover].box[2],
+  drawnAfter[mover].box[3],
+];
+assert.equal(insideFrame(ceilingSpot, frameAtCeiling.frame), false,
+  `precondition: the spot left of ${leftmost} at ${JSON.stringify(ceilingSpot)} is outside the visible `
+  + `frame ${JSON.stringify(frameAtCeiling.frame)}`);
+// The positive spot from a moment ago was inside the very same frame, so the two
+// outcomes differ by geometry alone.
+assert.ok(insideFrame(target, frameAtCeiling.frame),
+  "the spot that was placed is inside this same frame, so only geometry separates the two");
+const offscreen = await type(page, `move ${mover} to the left of ${leftmost}`);
+const refusedScreen = await screen(page);
+
+// Whatever Jev made of that sentence, the safety property holds unconditionally:
+// nothing may be placed at a spot outside the frame. Any placement step the draft
+// gained has to name a spot inside it.
+const placementSteps = refusedScreen.items
+  .map((item, index) => ({ item, changes: refusedScreen.draft[index] }))
+  .filter(entry => /^[~+-][^@]+$/u.test(entry.changes) && /配置/u.test(entry.item.effect ?? ""));
+const frameNow = await visibleFrame(page, "working");
+for (const [regionId, drawn] of Object.entries(await boxes(page, "working"))) {
+  if (regionId === "root") continue;
+  if (JSON.stringify(drawn.box) === JSON.stringify(drawnAfter[regionId]?.box)) continue;
+  assert.ok(insideFrame(drawn.box, frameNow.frame),
+    `${regionId} moved to ${JSON.stringify(drawn.box)}, which is outside the frame `
+    + `${JSON.stringify(frameNow.frame)} - nothing may be placed where it cannot be seen`);
+}
+
+// And the evidence R asked for - the ceiling in the same run as the placement -
+// is not optional. If Jev heard this sentence as something else the run cannot
+// produce that evidence, so it fails rather than passing quietly.
+assert.deepEqual(
+  {
+    action: offscreen.decision.answers.action.choice,
+    move: offscreen.decision.answers.move?.choice,
+    anchor: offscreen.decision.answers.anchor?.choice,
+    direction: offscreen.decision.answers.direction?.choice,
+  },
+  { action: "place-part", move: mover, anchor: leftmost, direction: "left" },
+  "the ceiling has to be exercised in this run, so Jev must hear this sentence as that placement; "
+  + `${placementSteps.length} placement steps in the draft`,
+);
+assert.equal(refusedScreen.state, "no-change", "a spot past the edge is a no change");
+assert.match(refusedScreen.status, /今の表示の外/u, "and it says why, in the words for being off the pane");
+assert.equal(/読み取れない|追いついていない/u.test(refusedScreen.status), false,
+  "not the words for having no frame or for a pane that has not caught up");
+assert.equal(refusedScreen.state === "failed", false, "ordinary speech is never an error");
+assert.deepEqual(refusedScreen.draft, placedScreen.draft, "the draft is untouched");
+assert.deepEqual(await boxes(page, "working"), drawnAfter, "and nothing on the screen moved");
+const offscreenGuard = `a spot left of ${leftmost} is past the edge and was refused, nothing moved`;
+
+// Apply writes it, and a reload draws it from the stored log alone.
+await press(page, "#apply");
+const appliedPlacement = await screen(page);
+assert.equal(appliedPlacement.state, "applied");
+assert.deepEqual(appliedPlacement.draft, []);
+assert.equal(lineCount(appliedPlacement.stored), lineCount(placeBefore.stored) + 1, "exactly one Decision is added");
+assert.equal(appliedPlacement.confirmed.at(-1), `+${moveId}@${target.join(",")}`,
+  "確定図 records the part and exactly where it went");
+const placementEntry = appliedPlacement.confirmed.length - 1;
+assert.equal(appliedPlacement.revertDisabled[placementEntry], false, "a placement can be taken back");
+
+await page.reload({ waitUntil: "commit" });
+await ready(page);
+const afterPlacementReload = await screen(page);
+assert.equal(afterPlacementReload.state, "restored");
+assert.equal(afterPlacementReload.stored, appliedPlacement.stored, "reload must not rewrite the stored log");
+const reloaded = await boxes(page, "working");
+assert.equal(reloaded[moveId].rendered, true, "the moved part comes back drawn");
+assert.deepEqual(reloaded[moveId].box, target, "in exactly the same place");
+assert.deepEqual((await boxes(page, "confirmed"))[moveId].box, target, "and 確定図 now draws it there too");
+// 確定図 shows the same world geometry and, while the panes are equal, the same
+// visible frame - so what the person approved on the right is what they see on
+// the left. This is where an unequal ratio would show up.
+const reloadedFrames = {
+  working: await visibleFrame(page, "working"),
+  confirmed: await visibleFrame(page, "confirmed"),
+};
+assert.deepEqual(reloadedFrames.confirmed.frame, reloadedFrames.working.frame,
+  `equal panes must resolve the same frame: ${JSON.stringify(reloadedFrames)}`);
+assert.equal(reloadedFrames.confirmed.head, reloadedFrames.working.head, "and the same head once applied");
+assert.ok(insideFrame(target, reloadedFrames.confirmed.frame),
+  "the applied placement is inside what 確定図 shows, not only what 作業図 showed");
+
+// Revert puts it back where the view had it, and that is drawn as well.
+await page.locator(`button[data-revert="${placementEntry}"]`).click();
+await settle(page);
+const revertingPlacement = await screen(page);
+assert.equal(revertingPlacement.state, "drafted");
+assert.deepEqual(revertingPlacement.draft, [`~${moveId}`], "the revert takes back exactly that part");
+assert.equal(revertingPlacement.items[0].effect, `配置を戻す ${moveId}`, "and says so in words");
+const afterRevert = await boxes(page, "working");
+assert.equal(afterRevert[moveId].rendered, true, "the part is still drawn after being put back");
+assert.deepEqual(afterRevert[moveId].box, drawnBefore[moveId].box, "back where the view had put it itself");
+assert.equal(revertingPlacement.stored, appliedPlacement.stored, "確定図 is untouched until Apply");
+await press(page, "#discard");
+assert.deepEqual((await boxes(page, "working"))[moveId].box, target, "Discard puts 作業図 back");
+
+// (xvi-c) The per-turn diagnostic. A real refusal is the one thing a person
+// cannot report usefully: the reason is on screen, but not the context that
+// produced it - how many parts were on offer, what Jev actually chose and how
+// sure it was, and what the pane said. This turn is answered from the test
+// rather than by Jev, so the numbers are fixed and the assertion is exact.
+const diagBefore = (await screen(page)).diagnostic;
+assert.equal(diagBefore.diag, undefined, "a turn that ended in a step leaves no diagnostic behind");
+// What this turn will offer: the parts wholly on the pane now. The crafted
+// answer below names two of them, so it is judged rather than refused.
+const offeredAtDiag = onPane(await boxes(page, "working"), (await visibleFrame(page, "working")).frame);
+assert.ok(offeredAtDiag.includes(moveId) && offeredAtDiag.includes(anchorId),
+  `precondition: ${moveId} and ${anchorId} are on the pane: ${JSON.stringify(offeredAtDiag)}`);
+
+// Shaped exactly as the page's own reader expects: the edge slot exists only
+// while the working graph has an edge to name, and "none" is always offered.
+const craftedAnswer = {
+  kind: "voice-ui.jev.decision.v4",
+  model: "jev-test",
+  answers: {
+    action: { type: "choice", choice: "place-part", confidence: 0.91 },
+    source: { type: "choice", choice: "none", confidence: 0.9 },
+    target: { type: "choice", choice: "none", confidence: 0.9 },
+    part: { type: "choice", choice: "none", confidence: 0.9 },
+    move: { type: "choice", choice: moveId, confidence: 0.44 },
+    anchor: { type: "choice", choice: anchorId, confidence: 0.87 },
+    direction: { type: "choice", choice: "left", confidence: 0.93 },
+    ...((await panes(page)).working.length > 0
+      ? { edge: { type: "choice", choice: "none", confidence: 0.9 } }
+      : {}),
+  },
+};
+await page.route(jevUrl, route => route.fulfill({
+  status: 200,
+  contentType: "application/json; charset=utf-8",
+  body: JSON.stringify(craftedAnswer),
+}), { times: 1 });
+const diagExchange = jevExchange(page);
+await page.locator("#text").fill("この部品をその隣に置いて");
+await page.locator("#send").click();
+await diagExchange.request;
+assert.equal((await diagExchange.response).status(), 200, "precondition: the crafted answer reached the page");
+await settle(page);
+
+const diagnosed = await screen(page);
+assert.equal(diagnosed.state, "no-change", "a slot under the floor is a no change");
+assert.deepEqual(diagnosed.diagnostic, {
+  diag: "jev-no-change",
+  diagOutcome: "no-change",
+  diagPlaceable: String(offeredAtDiag.length),
+  diagPlaceOffered: "yes",
+  diagAction: "place-part:0.91",
+  diagMove: `${moveId}:0.44`,
+  diagAnchor: `${anchorId}:0.87`,
+  diagDirection: "left:0.93",
+  diagFrame: "ok",
+}, "the turn is inspectable: what was offered, what was chosen, how sure, and what the pane said");
+// The reason itself is the status text, so the attributes never repeat it - and
+// they never carry the utterance, a probability distribution, or anything else.
+assert.equal(Object.keys(diagnosed.diagnostic).every(key => key === "diag" || key.startsWith("diag")), true);
+for (const value of Object.values(diagnosed.diagnostic)) {
+  assert.equal(value.includes("この部品をその隣に置いて"), false, "no utterance in the diagnostic");
+  assert.ok(value.length <= 40, `bounded values only: ${value}`);
+}
+assert.match(diagnosed.status, /not confident enough/u, "the reason stays where it already was");
+assert.deepEqual(diagnosed.draft, [], "and nothing was drafted");
+
+// Nothing persisted.
+assert.equal(diagnosed.stored, appliedPlacement.stored, "the diagnostic is not written to storage");
+assert.deepEqual(diagnosed.storageKeys, appliedPlacement.storageKeys, "and adds no storage key");
+
+// Replaced on the next turn rather than accumulating: the same crafted route,
+// this time a confident "none", so every value must change together and nothing
+// from the previous turn may survive.
+await page.route(jevUrl, route => route.fulfill({
+  status: 200,
+  contentType: "application/json; charset=utf-8",
+  body: JSON.stringify({
+    ...craftedAnswer,
+    answers: {
+      ...craftedAnswer.answers,
+      action: { type: "choice", choice: "none", confidence: 0.99 },
+      move: { type: "choice", choice: "none", confidence: 0.99 },
+      anchor: { type: "choice", choice: "none", confidence: 0.99 },
+      direction: { type: "choice", choice: "none", confidence: 0.99 },
+    },
+  }),
+}), { times: 1 });
+const replacedExchange = jevExchange(page);
+await page.locator("#text").fill("なんでもない");
+await page.locator("#send").click();
+await replacedExchange.request;
+await settle(page);
+const replaced = await screen(page);
+assert.equal(replaced.state, "no-change");
+assert.deepEqual(replaced.diagnostic, {
+  diag: "jev-no-change",
+  diagOutcome: "no-change",
+  diagPlaceable: String(offeredAtDiag.length),
+  diagPlaceOffered: "yes",
+  diagAction: "none:0.99",
+  diagMove: "none:0.99",
+  diagAnchor: "none:0.99",
+  diagDirection: "none:0.99",
+  diagFrame: "ok",
+}, "the whole set is replaced, never merged with the turn before");
+assert.equal(Object.keys(replaced.diagnostic).length, Object.keys(diagnosed.diagnostic).length,
+  "and the set stays bounded");
+
+// The other two things the pane can say, each produced for real while one
+// answer is held: a pane that cannot be read, and a pane still showing another
+// head. Both are no-changes with their own sentences, and the diagnostic names
+// them - which is what attributes a refused real-microphone turn later.
+const confidentPlace = {
+  ...craftedAnswer.answers,
+  action: { type: "choice", choice: "place-part", confidence: 0.95 },
+  move: { type: "choice", choice: moveId, confidence: 0.95 },
+  anchor: { type: "choice", choice: anchorId, confidence: 0.95 },
+  direction: { type: "choice", choice: "left", confidence: 0.95 },
+};
+const heldTurn = async (text, whileHeld, undo) => {
+  let release;
+  const gate = new Promise(resolve => { release = resolve; });
+  await page.route(jevUrl, async route => {
+    await gate;
+    await route.fulfill({
+      status: 200,
+      contentType: "application/json; charset=utf-8",
+      body: JSON.stringify({ ...craftedAnswer, answers: confidentPlace }),
+    });
+  }, { times: 1 });
+  const exchange = jevExchange(page);
+  await page.locator("#text").fill(text);
+  await page.locator("#send").click();
+  await exchange.request;
+  await whileHeld();
+  release();
+  await exchange.response;
+  await settle(page);
+  const result = await screen(page);
+  await undo();
+  return result;
+};
+const workingBeforeHeld = await boxes(page, "working");
+
+const unreadable = await heldTurn("この部品を左へ", () => page.evaluate(() => {
+  document.querySelector("#working-surface").style.display = "none";
+}), async () => {
+  await page.evaluate(() => { document.querySelector("#working-surface").style.display = ""; });
+  await page.waitForFunction(async () => {
+    const runtime = await import("/ui/semantic-map/runtime.js");
+    return runtime.visibleFrameOf(document.querySelector("#working-surface")) !== null;
+  });
+});
+assert.equal(unreadable.state, "no-change", "a pane that cannot be read places nothing");
+assert.match(unreadable.status, /読み取れない/u);
+assert.equal(unreadable.diagnostic.diagFrame, "null", "and the diagnostic says the frame was null");
+assert.deepEqual(unreadable.draft, [], "nothing was drafted");
+assert.equal(unreadable.stored, appliedPlacement.stored);
+
+const otherHead = await heldTurn("その部品を左へ", () => page.evaluate(() => {
+  const runtime = document.querySelector('#working-surface iframe[data-package="semantic-map"]')
+    .contentWindow.semanticMapSite.runtime;
+  window.heldHead = Object.getOwnPropertyDescriptor(runtime, "head");
+  Object.defineProperty(runtime, "head", { ...window.heldHead, value: "sha256:another-head" });
+}), () => page.evaluate(() => {
+  const runtime = document.querySelector('#working-surface iframe[data-package="semantic-map"]')
+    .contentWindow.semanticMapSite.runtime;
+  Object.defineProperty(runtime, "head", window.heldHead);
+  delete window.heldHead;
+}));
+assert.equal(otherHead.state, "no-change", "a pane still showing another head places nothing");
+assert.match(otherHead.status, /追いついていない/u);
+assert.equal(otherHead.diagnostic.diagFrame, "head-mismatch", "and the diagnostic says the heads differed");
+assert.deepEqual(otherHead.draft, [], "nothing was drafted");
+assert.equal(otherHead.stored, appliedPlacement.stored);
+assert.notEqual(unreadable.status, otherHead.status, "two conditions, two sentences");
+assert.deepEqual(await boxes(page, "working"), workingBeforeHeld, "neither turn moved anything");
+
+// A diagnostic describes the last turn Jev judged. Any control that changes
+// what is on screen - or the conversation - removes it, so a later reading can
+// never pin an old turn on a new screen.
+const noChangeTurn = async text => {
+  await page.route(jevUrl, route => route.fulfill({
+    status: 200,
+    contentType: "application/json; charset=utf-8",
+    body: JSON.stringify({
+      ...craftedAnswer,
+      answers: {
+        ...craftedAnswer.answers,
+        action: { type: "choice", choice: "none", confidence: 0.99 },
+        move: { type: "choice", choice: "none", confidence: 0.99 },
+        anchor: { type: "choice", choice: "none", confidence: 0.99 },
+        direction: { type: "choice", choice: "none", confidence: 0.99 },
+      },
+    }),
+  }), { times: 1 });
+  const exchange = jevExchange(page);
+  await page.locator("#text").fill(text);
+  await page.locator("#send").click();
+  await exchange.response;
+  await settle(page);
+  assert.equal((await screen(page)).diagnostic.diag, "jev-no-change", `precondition: ${text} left a diagnostic`);
+};
+const partStep = async text => {
+  await page.route(jevUrl, route => route.fulfill({
+    status: 200,
+    contentType: "application/json; charset=utf-8",
+    body: JSON.stringify({
+      ...craftedAnswer,
+      answers: {
+        ...craftedAnswer.answers,
+        action: { type: "choice", choice: "add-part", confidence: 0.95 },
+        part: { type: "choice", choice: "decision", confidence: 0.95 },
+        move: { type: "choice", choice: "none", confidence: 0.9 },
+        anchor: { type: "choice", choice: "none", confidence: 0.9 },
+        direction: { type: "choice", choice: "none", confidence: 0.9 },
+      },
+    }),
+  }), { times: 1 });
+  const exchange = jevExchange(page);
+  await page.locator("#text").fill(text);
+  await page.locator("#send").click();
+  await exchange.response;
+  await settle(page);
+  assert.equal((await screen(page)).state, "drafted", `precondition: ${text} drafted a part`);
+};
+const clearedBy = {};
+await partStep("add a part to undo");
+await noChangeTurn("nothing for undo");
+await press(page, "#undo");
+clearedBy.undo = (await screen(page)).diagnostic;
+await partStep("add a part to discard");
+await noChangeTurn("nothing for discard");
+await press(page, "#discard");
+clearedBy.discard = (await screen(page)).diagnostic;
+await partStep("add a part to apply");
+await noChangeTurn("nothing for apply");
+await press(page, "#apply");
+const appliedForRevert = await screen(page);
+clearedBy.apply = appliedForRevert.diagnostic;
+await noChangeTurn("nothing for revert");
+await page.locator(`button[data-revert="${appliedForRevert.confirmed.length - 1}"]`).click();
+await settle(page);
+clearedBy.revert = (await screen(page)).diagnostic;
+await press(page, "#discard");
+await noChangeTurn("nothing for clearing the conversation");
+await page.locator("#context-clear").click();
+clearedBy.contextClear = (await screen(page)).diagnostic;
+assert.deepEqual(clearedBy, { undo: {}, discard: {}, apply: {}, revert: {}, contextClear: {} },
+  "Undo, Discard, Apply, Revert and 会話をクリア each remove the previous turn's diagnostic");
+assert.deepEqual((await screen(page)).draft, [], "and the graph is back to what was applied");
+
+// (xvi-d) R's counterexample (D): more parts than the pane shows. The layout
+// contract keeps bounds for every part, on screen or not, and the renderer
+// builds cells in a margin band nobody sees - so neither can say what a person
+// could name. Every answer here is crafted from the request it answers, so the
+// geometry, not Jev's hearing, decides the outcome.
+const craftFor = (sent, answers) => ({
+  kind: "voice-ui.jev.decision.v4",
+  model: "jev-test",
+  answers: {
+    source: { type: "choice", choice: "none", confidence: 0.9 },
+    target: { type: "choice", choice: "none", confidence: 0.9 },
+    part: { type: "choice", choice: "none", confidence: 0.9 },
+    ...(sent.state.working.placeable.length >= 2
+      ? {
+        move: { type: "choice", choice: "none", confidence: 0.9 },
+        anchor: { type: "choice", choice: "none", confidence: 0.9 },
+        direction: { type: "choice", choice: "none", confidence: 0.9 },
+      }
+      : {}),
+    ...(sent.state.working.edges.length > 0 ? { edge: { type: "choice", choice: "none", confidence: 0.9 } } : {}),
+    ...answers,
+  },
+});
+const answerFrom = answers => route => route.fulfill({
+  status: 200,
+  contentType: "application/json; charset=utf-8",
+  body: JSON.stringify(craftFor(JSON.parse(route.request().postData()), answers)),
+});
+const tallBefore = await screen(page);
+assert.deepEqual(tallBefore.draft, [], "precondition: nothing unapplied");
+
+// Grow 作業図 one crafted part at a time until the pane no longer holds them all.
+const addDecision = { action: { type: "choice", choice: "add-part", confidence: 0.95 },
+  part: { type: "choice", choice: "decision", confidence: 0.95 } };
+let tall = null;
+for (let index = 0; index < 7 && tall === null; index += 1) {
+  await page.route(jevUrl, answerFrom(addDecision), { times: 1 });
+  await type(page, `add decision number ${index + 1} to the tall graph`);
+  assert.equal((await screen(page)).state, "drafted", "each crafted part is one working step");
+  const cells = await boxes(page, "working");
+  const frameNow = (await visibleFrame(page, "working")).frame;
+  const regions = Object.keys(cells).filter(id => id !== "root");
+  const cutOff = regions.filter(id => !insideFrame(cells[id].box, frameNow));
+  if (cutOff.length > 0) tall = { cells, frame: frameNow };
+}
+assert.notEqual(tall, null, "precondition: seven more parts carry the graph past the pane");
+
+// The offer. The request is built from the frame read as it is sent: exactly
+// the parts wholly inside it, whatever the layout contract or the cells say.
+await page.route(jevUrl, answerFrom({ action: { type: "choice", choice: "none", confidence: 0.99 } }), { times: 1 });
+const frameAsked = (await visibleFrame(page, "working")).frame;
+const cellsAsked = await boxes(page, "working");
+const askedTall = await type(page, "which parts can I see now");
+const offeredTall = [...askedTall.sent.state.working.placeable].sort();
+assert.deepEqual(offeredTall, onPane(cellsAsked, frameAsked),
+  "Jev is offered exactly the parts wholly on the pane");
+const allParts = askedTall.sent.state.working.regions;
+const notOffered = allParts.filter(id => !offeredTall.includes(id));
+assert.ok(notOffered.length > 0, `some parts are off the pane and not offered: ${JSON.stringify({ allParts, offeredTall })}`);
+const inMarginBand = notOffered.filter(id => cellsAsked[id]?.rendered === true);
+assert.ok(inMarginBand.length > 0,
+  `a part with a live cell - built in the margin band - is still not offered: ${JSON.stringify(notOffered)}`);
+
+// The judgement. One request is held; while it is out the pane narrows, so a
+// part that was wholly on it when Jev was asked is cut off by the time the
+// answer lands. The spot beside it stays on the pane.
+const narrowFrom = page.viewportSize();
+let releaseNarrow;
+const narrowAnswer = new Promise(resolve => { releaseNarrow = resolve; });
+await page.route(jevUrl, async route => {
+  await route.fulfill({
+    status: 200,
+    contentType: "application/json; charset=utf-8",
+    body: JSON.stringify(craftFor(JSON.parse(route.request().postData()), await narrowAnswer)),
+  });
+}, { times: 1 });
+const narrowExchange = jevExchange(page);
+await page.locator("#text").fill("put that one beside the other");
+await page.locator("#send").click();
+const narrowSent = JSON.parse((await narrowExchange.request).postData());
+const narrowOffered = narrowSent.state.working.placeable;
+const cellsWide = await boxes(page, "working");
+const frameWide = (await visibleFrame(page, "working")).frame;
+const mountWide = (await mountWidths(page)).working;
+await page.setViewportSize({ width: 700, height: narrowFrom.height });
+await page.waitForFunction(width => {
+  const mount = document.querySelector("#working-surface");
+  return mount !== null && mount.getBoundingClientRect().width < width;
+}, mountWide);
+let frameNarrow = null;
+for (let attempt = 0; attempt < 40; attempt += 1) {
+  const current = await visibleFrame(page, "working");
+  if (current !== null && current.frame[2] < frameWide[2]) {
+    frameNarrow = current.frame;
+    break;
+  }
+  await page.waitForTimeout(100);
+}
+assert.notEqual(frameNarrow, null, `the narrowed pane reports a narrower frame than ${JSON.stringify(frameWide)}`);
+const beside = (anchorBox, moverBox, side) => side === "left" ? [anchorBox[0] - moverBox[2] - gap, anchorBox[1], moverBox[2], moverBox[3]]
+  : side === "right" ? [anchorBox[0] + anchorBox[2] + gap, anchorBox[1], moverBox[2], moverBox[3]]
+  : side === "above" ? [anchorBox[0], anchorBox[1] - moverBox[3] - gap, moverBox[2], moverBox[3]]
+  : [anchorBox[0], anchorBox[1] + anchorBox[3] + gap, moverBox[2], moverBox[3]];
+const overlapsAny = (box, except) => Object.entries(cellsWide).some(([id, cell]) =>
+  id !== "root" && id !== except && cell.box !== null
+  && box[0] < cell.box[0] + cell.box[2] && cell.box[0] < box[0] + box[2]
+  && box[1] < cell.box[1] + cell.box[3] && cell.box[1] < box[1] + box[3]);
+let cutAnchor = null;
+for (const anchor of narrowOffered) {
+  for (const mover of narrowOffered) {
+    for (const side of ["left", "right", "above", "below"]) {
+      if (cutAnchor !== null || mover === anchor) continue;
+      const spot = beside(cellsWide[anchor].box, cellsWide[mover].box, side);
+      if (insideFrame(spot, frameWide) && insideFrame(spot, frameNarrow)
+        && insideFrame(cellsWide[anchor].box, frameWide) && !insideFrame(cellsWide[anchor].box, frameNarrow)
+        && !overlapsAny(spot, mover)) {
+        cutAnchor = { anchor, mover, side, spot };
+      }
+    }
+  }
+}
+assert.notEqual(cutAnchor, null,
+  `precondition: some offered anchor is cut off by the narrower pane while a free spot beside it stays on it: `
+  + JSON.stringify({ narrowOffered, frameWide, frameNarrow }));
+const placeCut = {
+  action: { type: "choice", choice: "place-part", confidence: 0.95 },
+  move: { type: "choice", choice: cutAnchor.mover, confidence: 0.95 },
+  anchor: { type: "choice", choice: cutAnchor.anchor, confidence: 0.95 },
+  direction: { type: "choice", choice: cutAnchor.side, confidence: 0.95 },
+};
+const draftBeforeCut = (await screen(page)).draft;
+releaseNarrow(placeCut);
+await narrowExchange.response;
+await settle(page);
+const cutScreen = await screen(page);
+assert.equal(cutScreen.state, "no-change", "an anchor the pane no longer shows places nothing");
+assert.match(cutScreen.status, /基準の部品が今の表示の外/u, "and it says the anchor is off the pane");
+assert.deepEqual(cutScreen.draft, draftBeforeCut, "the draft is untouched");
+// The narrow pane culls some cells, so which cells exist differs; where each
+// remaining one is drawn does not.
+for (const [id, cell] of Object.entries(await boxes(page, "working"))) {
+  assert.deepEqual(cell.box, cellsWide[id]?.box, `${id} did not move`);
+}
+
+// The same answer at the width it was asked at is a step: only the pane differs.
+await page.setViewportSize(narrowFrom);
+let frameBack = null;
+for (let attempt = 0; attempt < 40; attempt += 1) {
+  const current = await visibleFrame(page, "working");
+  if (current !== null && JSON.stringify(current.frame) === JSON.stringify(frameWide)) {
+    frameBack = current.frame;
+    break;
+  }
+  await page.waitForTimeout(100);
+}
+assert.notEqual(frameBack, null, "the pane returns to the frame the request was asked from");
+// The renderer rebuilds culled cells on its next render, not on a resize, so
+// only the positions of the cells it has are compared.
+for (const [id, cell] of Object.entries(await boxes(page, "working"))) {
+  assert.deepEqual(cell.box, cellsWide[id]?.box, `${id} is where it was when the request was asked`);
+}
+await page.route(jevUrl, answerFrom(placeCut), { times: 1 });
+await type(page, "put that one beside the other again");
+const wideScreen = await screen(page);
+assert.equal(wideScreen.state, "drafted", `with the anchor on the pane it is a placement: ${wideScreen.status}`);
+assert.deepEqual(wideScreen.draft.at(-1), `~${cutAnchor.mover}`);
+assert.deepEqual((await boxes(page, "working"))[cutAnchor.mover].box, cutAnchor.spot, "drawn exactly beside it");
+const tallGuard = `${offeredTall.length} of ${allParts.length} parts offered on a tall graph; `
+  + `${cutAnchor.mover} ${cutAnchor.side} of ${cutAnchor.anchor} refused once the pane cut the anchor off, placed once it did not`;
+
+await press(page, "#discard");
+const tallAfter = await screen(page);
+assert.deepEqual(tallAfter.draft, [], "Discard clears the tall graph's steps");
+assert.equal(tallAfter.stored, tallBefore.stored, "and nothing from them was ever saved");
+
 await first.browser.close();
 
 // (xvii) The spoken correction. A second browser, which hears only the
@@ -1138,7 +1897,7 @@ for (const control of ["sendDisabled", "micDisabled", "undoDisabled", "discardDi
 
 const [typedFrom, typedTo] = typedEdge.split("->");
 const heard = await speak(page);
-assert.equal(heard.sent.kind, "voice-ui.jev.request.v6");
+assert.equal(heard.sent.kind, "voice-ui.jev.request.v7");
 // The spoken correction carries the typed step before it as recent context:
 // what was typed, and the step it made.
 assert.deepEqual(withoutSeq(heard.sent.state.context.recent), [heardAs(typedStep, "typed", "step", `+${typedEdge}`)]);
@@ -1196,6 +1955,7 @@ assert.deepEqual(failedResponses, []);
 for (const input of inputsSent) {
   assert.equal(consoleMessages.some(message => message.includes(input)), false, `an input was logged to the console: ${input}`);
 }
+await Promise.all(answerCounts);
 
 process.stdout.write(
   `local-voice-graph-e2e: PASS spoken add "${voiceAdd.sent.state.utterance}" -> 作業図 only, applied edge=${voiceEdge} `
@@ -1208,7 +1968,16 @@ process.stdout.write(
   + `| part: one typed request drew ${rebuiltId}「判断 2」 on 作業図 only, the next request carried it as an effect, `
   + `Undo removed it and spent its name (${partId} never reused), Apply and reload kept it, `
   + "lone-part revert drafted then discarded, a part with an edge is not revertable "
-  + `| ${jevAnswered} real Jev answers in this run `
+  + `| placement: "${placed.sent.state.utterance}" -> ${moveId} ${direction} ${anchorId}, `
+  + `drawn cell present and rendered at ${JSON.stringify(target)} (was ${JSON.stringify(drawnBefore[moveId].box)}), `
+  + `wholly inside the pane, every other part unmoved; visible frame ${JSON.stringify(frameBefore.frame)} `
+  + `at head ${frameBefore.head.slice(0, 14)}, panes equal at ${widths.working}px; `
+  + `ceiling in the same run: ${JSON.stringify(ceilingSpot)} is outside that frame - ${offscreenGuard}; `
+  + "Apply and reload draw it in the same place in both panes, revert puts it back drawn "
+  + "| diagnostic: frame ok, null (pane hidden) and head-mismatch (pane on another head) each named on a held turn; "
+  + "cleared by Undo, Discard, Apply, Revert and 会話をクリア "
+  + `| tall graph: ${tallGuard} `
+  + `| ${jevAnswered} real Jev answers in this run, ${craftedAnswered} crafted by the test `
   + `| refused microphone: [${voicePhases(refusalTrace).map(entry => entry.kind).join(" ")}], 0 Jev requests, nothing changed, controls given back `
   + `| embedded Accept [${embeddedAccepts.join("; ")}] / [${correctionAccepts.join("; ")}] `
   + `| corrupt and foreign logs fail closed | typed ${edgeA}, ${edgeB}: 2 undos, then 2-step apply `
