@@ -1417,8 +1417,35 @@ for (const value of Object.values(diagnosed.diagnostic)) {
   assert.equal(value.includes("この部品をその隣に置いて"), false, "no utterance in the diagnostic");
   assert.ok(value.length <= 40, `bounded values only: ${value}`);
 }
-assert.match(diagnosed.status, /not confident enough/u, "the reason stays where it already was");
+// Only the moved part was unsure (0.44) and the placement itself was sure
+// (0.91), so the person is told which piece did not come through - in the
+// status they already read, without any part id, and nothing is held for the
+// next utterance.
+assert.equal(diagnosed.status, "type: no change - 動かす部品が聞き取れませんでした。その部品の名前を入れて、もう一度言ってください",
+  "exactly one unsure piece is named");
+assert.equal(/node-|part-/u.test(diagnosed.status), false, "no part id is read out");
 assert.deepEqual(diagnosed.draft, [], "and nothing was drafted");
+
+// Not eligible for naming one piece: the placement action itself was unsure.
+// The whole instruction is asked for again instead.
+await page.route(jevUrl, route => route.fulfill({
+  status: 200,
+  contentType: "application/json; charset=utf-8",
+  body: JSON.stringify({
+    ...craftedAnswer,
+    answers: { ...craftedAnswer.answers, action: { type: "choice", choice: "place-part", confidence: 0.41 } },
+  }),
+}), { times: 1 });
+const restateExchange = jevExchange(page);
+await page.locator("#text").fill("この部品をその隣に置いて");
+await page.locator("#send").click();
+await restateExchange.request;
+await settle(page);
+const restated = await screen(page);
+assert.equal(restated.state, "no-change");
+assert.equal(restated.status, "type: no change - 配置の指示を聞き取れませんでした。動かす部品・隣の部品・方向をそろえて、もう一度言ってください",
+  "an unsure action asks for the whole instruction, never for one word");
+assert.deepEqual(restated.draft, []);
 
 // Nothing persisted.
 assert.equal(diagnosed.stored, appliedPlacement.stored, "the diagnostic is not written to storage");

@@ -81,6 +81,29 @@ export function edgesOf(records) {
 // directions of a part that is already on screen.
 export const DIRECTIONS = Object.freeze(["left", "right", "above", "below"]);
 
+// What to say when a placement was not confident enough. If Jev was sure this
+// is a placement and sure of every piece but one, the person is told which
+// piece did not come through. Anything else - an unsure action, a slot Jev
+// answered "none", or two unsure pieces - asks for the whole instruction again,
+// because naming one word would suggest the rest had been understood. No part
+// id is read out: those are the very names speech recognition mangles.
+export const PLACEMENT_SLOTS = Object.freeze(["move", "anchor", "direction"]);
+export const PLACEMENT_RESTATE = "配置の指示を聞き取れませんでした。動かす部品・隣の部品・方向をそろえて、もう一度言ってください";
+export const PLACEMENT_SLOT_GUIDANCE = Object.freeze({
+  move: "動かす部品が聞き取れませんでした。その部品の名前を入れて、もう一度言ってください",
+  anchor: "隣に置く相手の部品が聞き取れませんでした。相手の部品の名前を入れて、もう一度言ってください",
+  direction: "置く方向が聞き取れませんでした。左・右・上・下のどれかを入れて、もう一度言ってください",
+});
+
+// The one slot that fell short, or null when the shortfall is not exactly one
+// placement slot with a confident placement action and no "none" anywhere.
+export function weakPlacementSlot(read) {
+  if (read?.action?.choice !== ACTION_PLACE_PART ||!(read.action.confidence >= MIN_CONFIDENCE)) return null;
+  if (PLACEMENT_SLOTS.some(slot => read[slot] == null || read[slot].choice === OPTION_NONE)) return null;
+  const weak = PLACEMENT_SLOTS.filter(slot => !(read[slot].confidence >= MIN_CONFIDENCE));
+  return weak.length === 1 ? weak[0] : null;
+}
+
 // The gap between a part and the one it is placed beside. The sizes come from
 // the view; only this spacing is ours.
 const NEIGHBOUR_GAP = 24;
@@ -275,12 +298,18 @@ function operationsFor(read, working, reserved, layout, visibleFrame) {
   // and the app never invents a size.
   if (read.action.choice === ACTION_PLACE_PART) {
     if (read.move.choice === OPTION_NONE || read.anchor.choice === OPTION_NONE || read.direction.choice === OPTION_NONE) {
-      return noChange("the request did not name a part, a neighbour and a side");
+      return noChange(PLACEMENT_RESTATE);
     }
     const confidence = Math.min(
       read.action.confidence, read.move.confidence, read.anchor.confidence, read.direction.confidence,
     );
-    if (confidence < MIN_CONFIDENCE) return noChange("not confident enough to propose a change");
+    if (confidence < MIN_CONFIDENCE) {
+      // When everything but one word came through, say which word. Otherwise
+      // the whole instruction has to be said again. Either way nothing changes
+      // and nothing is held for the next utterance.
+      const weak = weakPlacementSlot(read);
+      return noChange(weak === null ? PLACEMENT_RESTATE : PLACEMENT_SLOT_GUIDANCE[weak]);
+    }
     refuse(read.move.choice !== read.anchor.choice, "a part cannot be placed beside itself");
 
     const box = neighbourBounds(layout, read.move.choice, read.anchor.choice, read.direction.choice);

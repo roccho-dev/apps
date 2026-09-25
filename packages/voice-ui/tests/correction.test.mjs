@@ -20,6 +20,10 @@ import {
   OUTCOME_NO_CHANGE,
   OUTCOME_STEP,
   PART_PALETTE,
+  PLACEMENT_RESTATE,
+  PLACEMENT_SLOTS,
+  PLACEMENT_SLOT_GUIDANCE,
+  weakPlacementSlot,
   appendStep,
   changesForJev,
   correctionCriteria,
@@ -480,16 +484,19 @@ test("the focus is the latest working step, else the latest applied change, else
 
 const layoutOf = graph => protocol.layoutBoundsFor(graph.records, { pattern: "graph/1" });
 
-const placeAnswers = (graph, layout, { move, anchor, direction, confidence = 0.9 }) => {
+// `confidence` sets every slot; `sure` overrides single slots, so a test can say
+// exactly which piece Jev was unsure of.
+const placeAnswers = (graph, layout, { move, anchor, direction, confidence = 0.9, sure = {} }) => {
   const criteria = correctionCriteria(graph.records, layout);
+  const at = slot => sure[slot] ?? confidence;
   const answers = {
-    action: choice(ACTION_PLACE_PART, confidence),
+    action: choice(ACTION_PLACE_PART, at("action")),
     source: choice(OPTION_NONE, confidence),
     target: choice(OPTION_NONE, confidence),
     part: choice(OPTION_NONE, confidence),
-    move: choice(move, confidence),
-    anchor: choice(anchor, confidence),
-    direction: choice(direction, confidence),
+    move: choice(move, at("move")),
+    anchor: choice(anchor, at("anchor")),
+    direction: choice(direction, at("direction")),
   };
   if (criteria.edges.length > 0) answers.edge = choice(criteria.edges[0], confidence);
   return answers;
@@ -712,11 +719,72 @@ test("none in any placement slot, or low confidence, changes nothing", async () 
   ]) {
     const answer = await place(graph, spec);
     assert.equal(answer.outcome, OUTCOME_NO_CHANGE, JSON.stringify(spec));
-    assert.match(answer.reason, /did not name a part, a neighbour and a side/u);
+    assert.equal(answer.reason, PLACEMENT_RESTATE, "a none slot asks for the whole instruction again");
   }
   const unsure = await place(graph, { move: "node-c", anchor: "node-a", direction: "right", confidence: 0.3 });
   assert.equal(unsure.outcome, OUTCOME_NO_CHANGE);
-  assert.match(unsure.reason, /not confident enough/u);
+  assert.equal(unsure.reason, PLACEMENT_RESTATE, "everything unsure asks for the whole instruction again");
+});
+
+// The measured real turn: action 0.94, move 0.86, anchor 0.39, direction 0.97.
+// Everything came through but the neighbour, so the person is told that - and
+// only when it is exactly one piece of a confident placement.
+test("exactly one unsure placement piece is named; nothing else is", async () => {
+  const graph = await baseGraph();
+  const spec = { move: "node-c", anchor: "node-a", direction: "right" };
+
+  for (const slot of PLACEMENT_SLOTS) {
+    const answer = await place(graph, { ...spec, sure: { action: 0.94, [slot]: 0.39 } });
+    assert.equal(answer.outcome, OUTCOME_NO_CHANGE, slot);
+    assert.equal(answer.reason, PLACEMENT_SLOT_GUIDANCE[slot], `${slot} alone is named`);
+    assert.equal(answer.step, undefined, `${slot}: nothing is proposed`);
+    assert.equal(answer.undoRequest, undefined, `${slot}: not heard as an undo`);
+  }
+  const measured = await place(graph, { ...spec, sure: { action: 0.94, move: 0.86, anchor: 0.39, direction: 0.97 } });
+  assert.equal(measured.reason, PLACEMENT_SLOT_GUIDANCE.anchor, "the measured turn asks for the neighbour");
+
+  // Not eligible: an unsure action, two unsure pieces, or a none - all ask for
+  // the whole instruction, never for one word.
+  for (const [label, sure] of [
+    ["unsure action", { action: 0.41 }],
+    ["unsure action and one piece", { action: 0.41, anchor: 0.39 }],
+    ["two unsure pieces", { anchor: 0.39, direction: 0.4 }],
+    ["three unsure pieces", { move: 0.3, anchor: 0.3, direction: 0.3 }],
+  ]) {
+    const answer = await place(graph, { ...spec, sure });
+    assert.equal(answer.outcome, OUTCOME_NO_CHANGE, label);
+    assert.equal(answer.reason, PLACEMENT_RESTATE, label);
+  }
+  const noneAndUnsure = await place(graph, { move: "node-c", anchor: OPTION_NONE, direction: "right", sure: { direction: 0.3 } });
+  assert.equal(noneAndUnsure.reason, PLACEMENT_RESTATE, "a none is never narrowed to one word");
+
+  // The floor is where it was: 0.5 exactly is enough.
+  const atFloor = await place(graph, { ...spec, sure: { anchor: 0.5 } });
+  assert.equal(atFloor.outcome, OUTCOME_STEP, "0.5 still passes");
+
+  // The three sentences are distinct, and none of them reads out a part id.
+  const sentences = [PLACEMENT_RESTATE, ...Object.values(PLACEMENT_SLOT_GUIDANCE)];
+  assert.equal(new Set(sentences).size, 4);
+  for (const sentence of sentences) {
+    assert.equal(/node-|part-/u.test(sentence), false, `no id is read out: ${sentence}`);
+  }
+});
+
+test("the weak-slot rule is the same function the step code uses", () => {
+  const read = (confidences, overrides = {}) => Object.fromEntries(
+    ["action", "move", "anchor", "direction"].map(slot => [slot, {
+      choice: overrides[slot] ?? (slot === "action" ? ACTION_PLACE_PART : slot === "direction" ? "left" : "node-a"),
+      confidence: confidences[slot] ?? 0.9,
+    }]),
+  );
+  assert.equal(weakPlacementSlot(read({ anchor: 0.39 })), "anchor");
+  assert.equal(weakPlacementSlot(read({ move: 0.2 })), "move");
+  assert.equal(weakPlacementSlot(read({})), null, "nothing weak");
+  assert.equal(weakPlacementSlot(read({ action: 0.49, anchor: 0.39 })), null);
+  assert.equal(weakPlacementSlot(read({ anchor: 0.39, move: 0.4 })), null);
+  assert.equal(weakPlacementSlot(read({ anchor: 0.39 }, { direction: OPTION_NONE })), null);
+  assert.equal(weakPlacementSlot(read({ anchor: 0.39 }, { action: ACTION_ADD })), null, "only placements");
+  assert.equal(weakPlacementSlot(undefined), null);
 });
 
 test("a placement is a history fact, and reverting it puts the part back", async () => {
