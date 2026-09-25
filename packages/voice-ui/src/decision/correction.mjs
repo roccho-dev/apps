@@ -89,10 +89,12 @@ export const DIRECTIONS = Object.freeze(["left", "right", "above", "below"]);
 // id is read out: those are the very names speech recognition mangles.
 export const PLACEMENT_SLOTS = Object.freeze(["move", "anchor", "direction"]);
 export const PLACEMENT_RESTATE = "配置の指示を聞き取れませんでした。動かす部品・隣の部品・方向をそろえて、もう一度言ってください";
+// The next utterance may supply just that piece, once; saying the whole
+// instruction again works too.
 export const PLACEMENT_SLOT_GUIDANCE = Object.freeze({
-  move: "動かす部品が聞き取れませんでした。その部品の名前を入れて、もう一度言ってください",
-  anchor: "隣に置く相手の部品が聞き取れませんでした。相手の部品の名前を入れて、もう一度言ってください",
-  direction: "置く方向が聞き取れませんでした。左・右・上・下のどれかを入れて、もう一度言ってください",
+  move: "動かす部品が聞き取れませんでした。どの部品を動かしますか。部品の名前だけでも、指示全体でも言ってください",
+  anchor: "隣に置く相手の部品が聞き取れませんでした。どの部品の隣ですか。部品の名前だけでも、指示全体でも言ってください",
+  direction: "置く方向が聞き取れませんでした。左・右・上・下のどれですか。方向だけでも、指示全体でも言ってください",
 });
 
 // The one slot that fell short, or null when the shortfall is not exactly one
@@ -480,23 +482,138 @@ const step = (revision, action, changes, decision, confidence = null) => Object.
 // same synchronous turn as this call: everything up to and including
 // `operationsFor` runs before the first await below, so no camera, resize or
 // re-render can slip in between reading the frame and judging a spot against it.
+//
+// A no-change that left exactly one placement piece unsure also carries
+// `pending`: what the next utterance may complete. It is only ever held in the
+// page's memory, for that one utterance.
 export async function planStep({
   working, revision, answers, protocol, reserved = [], layout = null, visibleFrame = null,
 } = {}) {
   requireGraph(working);
   refuse(typeof protocol?.createDecision === "function", "protocol.createDecision is required");
+  const { read, planned } = judge({ working, revision, answers, reserved, layout, visibleFrame });
+  if (planned.outcome === OUTCOME_NO_CHANGE) {
+    const weak = weakPlacementSlot(read);
+    return weak === null ? planned : Object.freeze({ ...planned, pending: pendingFrom(read, weak, working.head) });
+  }
+  return materialize(working, planned, protocol);
+}
+
+// Everything that decides, with no await: the frame the caller read is judged
+// against in the same synchronous run it was read in.
+function judge({ working, revision, answers, reserved, layout, visibleFrame }) {
   refuse(revision === working.head, "the answer is stale: the working graph changed after the request was sent");
-
   const read = readAnswers(answers, correctionCriteria(working.records, layout));
-  const planned = operationsFor(read, working, reserved, layout, visibleFrame);
-  if (planned.outcome === OUTCOME_NO_CHANGE) return planned;
+  return { read, planned: operationsFor(read, working, reserved, layout, visibleFrame) };
+}
 
+async function materialize(working, planned, protocol) {
   const { decision } = await viaProvider("the provider rejected the change",
     () => protocol.createDecision(working.head, planned.operations, working.records));
   return Object.freeze({
     outcome: OUTCOME_STEP,
     step: step(working.head, planned.action, planned.changes, decision, planned.confidence),
   });
+}
+
+// What an utterance left behind when all but one piece of a placement came
+// through: the working head it was said against, how sure Jev was that it is
+// a placement, and the pieces that were understood - never any text.
+function pendingFrom(read, missing, head) {
+  const kept = slot => (slot === missing ? null : Object.freeze({ ...read[slot] }));
+  return Object.freeze({
+    missing,
+    head,
+    action: Object.freeze({ ...read.action }),
+    move: kept("move"),
+    anchor: kept("anchor"),
+    direction: kept("direction"),
+  });
+}
+
+// The pending placement as the next request carries it: part ids and a side.
+export function pendingForJev(pending) {
+  if (pending == null) return null;
+  return Object.freeze({
+    missing: pending.missing,
+    move: pending.move?.choice ?? null,
+    anchor: pending.anchor?.choice ?? null,
+    direction: pending.direction?.choice ?? null,
+  });
+}
+
+export const REPAIR_FAILED = "足りなかった部分が聞き取れませんでした。指示全体をもう一度言ってください";
+export const REPAIR_CONTEXT_CHANGED = "図が変わったので補えませんでした。指示全体をもう一度言ってください";
+export const REPAIR_SELF = "同じ部品の隣には置けません。指示全体をもう一度言ってください";
+
+// The one utterance after a near-placement. It is judged on its own first, so
+// a complete instruction - a placement or anything else that makes a step -
+// always wins. Only an utterance heard as a placement, or as no change at all,
+// can be the missing piece; anything else was about something else, and is
+// answered exactly as it would have been. The repaired placement goes through
+// the same checks as any other, at the same floor, and never creates a new
+// pending placement: there is one repair, whatever its result.
+//
+// Like planStep, everything that decides runs before the first await.
+export async function repairStep({
+  working, revision, answers, protocol, reserved = [], layout = null, visibleFrame = null, pending,
+} = {}) {
+  requireGraph(working);
+  refuse(typeof protocol?.createDecision === "function", "protocol.createDecision is required");
+  refuse(pending != null, "there is no pending placement to repair");
+
+  let own = null;
+  let refusal = null;
+  try {
+    own = judge({ working, revision, answers, reserved, layout, visibleFrame });
+  } catch (error) {
+    if (!(error instanceof DecisionRefused)) throw error;
+    refusal = error;
+  }
+  // operationsFor marks only a no-change with an outcome; anything else is a step.
+  if (own !== null && own.planned.outcome !== OUTCOME_NO_CHANGE) return materialize(working, own.planned, protocol);
+
+  const heardAs = answers?.action?.choice;
+  if (heardAs !== ACTION_PLACE_PART && heardAs !== ACTION_NONE) {
+    if (refusal !== null) throw refusal;
+    return own.planned;
+  }
+  // Of the refusals, only "a part cannot be placed beside itself" leaves
+  // something to repair with: a reply like "ノードAです" can be heard as that
+  // part beside itself, yet still name the one missing piece. A stale answer or
+  // one outside the offered criteria is refused exactly as before.
+  if (own === null && !/beside itself/u.test(refusal.message)) throw refusal;
+
+  if (pending.head !== working.head) return noChange(REPAIR_CONTEXT_CHANGED);
+  const criteria = correctionCriteria(working.records, layout);
+  const supplied = readAnswers(answers, criteria)[pending.missing];
+  if (supplied == null || supplied.choice === OPTION_NONE || !(supplied.confidence >= MIN_CONFIDENCE)) {
+    return noChange(REPAIR_FAILED);
+  }
+  const pieces = {
+    move: pending.move,
+    anchor: pending.anchor,
+    direction: pending.direction,
+    [pending.missing]: supplied,
+  };
+  if (!criteria.placeable.includes(pieces.move.choice)
+    || !criteria.placeable.includes(pieces.anchor.choice)
+    || !criteria.directions.includes(pieces.direction.choice)) {
+    return noChange(REPAIR_CONTEXT_CHANGED);
+  }
+  if (pieces.move.choice === pieces.anchor.choice) return noChange(REPAIR_SELF);
+
+  const repaired = judge({
+    working,
+    revision,
+    answers: { ...answers, action: pending.action, ...pieces },
+    reserved,
+    layout,
+    visibleFrame,
+  });
+  if (repaired.planned.outcome === OUTCOME_NO_CHANGE) return repaired.planned;
+  const done = await materialize(working, repaired.planned, protocol);
+  return Object.freeze({ ...done, repaired: true });
 }
 
 // Put a planned step onto the working graph. It must still sit on the head it
