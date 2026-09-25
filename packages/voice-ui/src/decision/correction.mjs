@@ -81,6 +81,34 @@ export function edgesOf(records) {
 // directions of a part that is already on screen.
 export const DIRECTIONS = Object.freeze(["left", "right", "above", "below"]);
 
+// What to say when a placement was not confident enough. If Jev was sure this
+// is a placement and sure of every piece but one, the person is told which
+// piece did not come through. Anything else - an unsure action, a slot Jev
+// answered "none", or two unsure pieces - asks for the whole instruction again,
+// because naming one word would suggest the rest had been understood. No part
+// id is read out: those are the very names speech recognition mangles.
+export const PLACEMENT_SLOTS = Object.freeze(["move", "anchor", "direction"]);
+export const PLACEMENT_RESTATE = "配置の指示を聞き取れませんでした。動かす部品・隣の部品・方向をそろえて、もう一度言ってください";
+// The next utterance may supply just that piece, once; saying the whole
+// instruction again works too.
+export const PLACEMENT_SLOT_GUIDANCE = Object.freeze({
+  move: "動かす部品が聞き取れませんでした。どの部品を動かしますか。部品の名前だけでも、指示全体でも言ってください",
+  anchor: "隣に置く相手の部品が聞き取れませんでした。どの部品の隣ですか。部品の名前だけでも、指示全体でも言ってください",
+  direction: "置く方向が聞き取れませんでした。左・右・上・下のどれですか。方向だけでも、指示全体でも言ってください",
+});
+
+// The one slot that fell short, or null when the shortfall is not exactly one
+// placement slot with a confident placement action and no "none" anywhere. A
+// part named as its own neighbour is never narrowed to one word either: adding
+// the missing word would only lead to "a part cannot be placed beside itself".
+export function weakPlacementSlot(read) {
+  if (read?.action?.choice !== ACTION_PLACE_PART || !(read.action.confidence >= MIN_CONFIDENCE)) return null;
+  if (PLACEMENT_SLOTS.some(slot => read[slot] == null || read[slot].choice === OPTION_NONE)) return null;
+  if (read.move.choice === read.anchor.choice) return null;
+  const weak = PLACEMENT_SLOTS.filter(slot => !(read[slot].confidence >= MIN_CONFIDENCE));
+  return weak.length === 1 ? weak[0] : null;
+}
+
 // The gap between a part and the one it is placed beside. The sizes come from
 // the view; only this spacing is ours.
 const NEIGHBOUR_GAP = 24;
@@ -284,12 +312,18 @@ function operationsFor(read, working, reserved, layout, visibleFrame) {
   // position. Jev never sees a coordinate, and the app never invents a size.
   if (read.action.choice === ACTION_PLACE_PART) {
     if (read.move.choice === OPTION_NONE || read.anchor.choice === OPTION_NONE || read.direction.choice === OPTION_NONE) {
-      return noChange("the request did not name a part, a neighbour and a side");
+      return noChange(PLACEMENT_RESTATE);
     }
     const confidence = Math.min(
       read.action.confidence, read.move.confidence, read.anchor.confidence, read.direction.confidence,
     );
-    if (confidence < MIN_CONFIDENCE) return noChange("not confident enough to propose a change");
+    if (confidence < MIN_CONFIDENCE) {
+      // When everything but one word came through, say which word. Otherwise
+      // the whole instruction has to be said again. Either way nothing changes
+      // and nothing is held for the next utterance.
+      const weak = weakPlacementSlot(read);
+      return noChange(weak === null ? PLACEMENT_RESTATE : PLACEMENT_SLOT_GUIDANCE[weak]);
+    }
     refuse(read.move.choice !== read.anchor.choice, "a part cannot be placed beside itself");
 
     const box = neighbourBounds(layout, read.move.choice, read.anchor.choice, read.direction.choice);
@@ -470,23 +504,217 @@ const step = (revision, action, changes, decision, confidence = null) => Object.
 // `offeredFrame` is the frame the request's placeable parts were chosen from
 // (see correctionCriteria), read before Jev was asked; `visibleFrame` is read
 // after.
+//
+// A no-change that left exactly one placement piece unsure also carries
+// `pending`: what the next utterance may complete. It is only ever held in the
+// page's memory, for that one utterance, and only when the pane could be read
+// and did not move while this turn was judged - it is bound to that exact
+// picture (see pendingHolds).
 export async function planStep({
   working, revision, answers, protocol, reserved = [], layout = null, visibleFrame = null, offeredFrame = null,
 } = {}) {
   requireGraph(working);
   refuse(typeof protocol?.createDecision === "function", "protocol.createDecision is required");
+  const { read, planned } = judge({ working, revision, answers, reserved, layout, visibleFrame, offeredFrame });
+  if (planned.outcome === OUTCOME_NO_CHANGE) {
+    const weak = weakPlacementSlot(read);
+    const context = weak === null ? null : heldContext(working, layout, visibleFrame, offeredFrame);
+    return context === null ? planned : Object.freeze({ ...planned, pending: pendingFrom(read, weak, context) });
+  }
+  return materialize(working, planned, protocol);
+}
+
+// Everything that decides, with no await: the frame the caller read is judged
+// against in the same synchronous run it was read in.
+function judge({ working, revision, answers, reserved, layout, visibleFrame, offeredFrame = null }) {
   refuse(revision === working.head, "the answer is stale: the working graph changed after the request was sent");
-
   const read = readAnswers(answers, correctionCriteria(working.records, layout, offeredFrame));
-  const planned = operationsFor(read, working, reserved, layout, visibleFrame);
-  if (planned.outcome === OUTCOME_NO_CHANGE) return planned;
+  return { read, planned: operationsFor(read, working, reserved, layout, visibleFrame) };
+}
 
+async function materialize(working, planned, protocol) {
   const { decision } = await viaProvider("the provider rejected the change",
     () => protocol.createDecision(working.head, planned.operations, working.records));
   return Object.freeze({
     outcome: OUTCOME_STEP,
     step: step(working.head, planned.action, planned.changes, decision, planned.confidence),
   });
+}
+
+const sameFrame = (left, right) => Array.isArray(left) && Array.isArray(right)
+  && left.length === 4 && right.length === 4 && left.every((value, index) => value === right[index]);
+const sameIds = (left, right) => Array.isArray(left) && Array.isArray(right)
+  && left.length === right.length && left.every((value, index) => value === right[index]);
+
+// The exact picture a held placement was said against: the working head, the
+// pane's frame and the parts offered from it. There is one only when the pane
+// could be read, showed that head, and did not move between asking Jev and
+// judging the answer; otherwise nothing is held, because there is nothing to
+// hold it to.
+function heldContext(working, layout, visibleFrame, offeredFrame) {
+  if (layout === null || offeredFrame === null || visibleFrame === null) return null;
+  if (visibleFrame.head !== working.head || !sameFrame(visibleFrame.frame, offeredFrame)) return null;
+  return Object.freeze({
+    head: working.head,
+    frame: Object.freeze([...offeredFrame]),
+    offered: placeableIds(layout, working.records, offeredFrame),
+  });
+}
+
+// Whether a held placement still describes what is in front of the person:
+// the same head, the same frame to the unit, and the same parts on offer. Any
+// difference at all - a pan, a resize, a part added or scrolled away - and the
+// piece the next utterance supplies would complete a different picture.
+export function pendingHolds(pending, { head, frame, offered }) {
+  return pending != null && pending.head === head && sameFrame(pending.frame, frame)
+    && sameIds(pending.offered, offered);
+}
+
+// What an utterance left behind when all but one piece of a placement came
+// through: the picture it was said against, how sure Jev was that it is a
+// placement, and the pieces that were understood - never any text.
+function pendingFrom(read, missing, context) {
+  const kept = slot => (slot === missing ? null : Object.freeze({ ...read[slot] }));
+  return Object.freeze({
+    missing,
+    head: context.head,
+    frame: context.frame,
+    offered: context.offered,
+    action: Object.freeze({ ...read.action }),
+    move: kept("move"),
+    anchor: kept("anchor"),
+    direction: kept("direction"),
+  });
+}
+
+// The pending placement as the next request carries it: part ids and a side.
+export function pendingForJev(pending) {
+  if (pending == null) return null;
+  return Object.freeze({
+    missing: pending.missing,
+    move: pending.move?.choice ?? null,
+    anchor: pending.anchor?.choice ?? null,
+    direction: pending.direction?.choice ?? null,
+  });
+}
+
+export const REPAIR_FAILED = "足りなかった部分が聞き取れませんでした。指示全体をもう一度言ってください";
+export const REPAIR_CONTEXT_CHANGED = "図が変わったので補えませんでした。指示全体をもう一度言ってください";
+export const REPAIR_SELF = "同じ部品の隣には置けません。指示全体をもう一度言ってください";
+
+// The one utterance after a near-placement. It is judged on its own first, so
+// a complete instruction - a placement or anything else that makes a step -
+// always wins. Only an utterance heard as a placement, or as no change at all,
+// can be the missing piece; anything else was about something else, and is
+// answered exactly as it would have been. The repaired placement goes through
+// the same checks as any other, at the same floor, and never creates a new
+// pending placement: there is one repair, whatever its result.
+//
+// Like planStep, everything that decides runs before the first await.
+//
+// A repair turn never holds another piece, so it must never offer the one-word
+// follow-up either: if its own answer would ask for one missing piece, it asks
+// for the whole instruction instead. Nothing is decided differently - only what
+// the person is told they can say next.
+export async function repairStep(options = {}) {
+  const result = await attemptRepair(options);
+  const promisesFollowUp = result.outcome === OUTCOME_NO_CHANGE
+    && Object.values(PLACEMENT_SLOT_GUIDANCE).includes(result.reason);
+  return promisesFollowUp ? noChange(PLACEMENT_RESTATE) : result;
+}
+
+async function attemptRepair({
+  working, revision, answers, protocol, reserved = [], layout = null, visibleFrame = null, offeredFrame = null, pending,
+} = {}) {
+  requireGraph(working);
+  refuse(typeof protocol?.createDecision === "function", "protocol.createDecision is required");
+  refuse(pending != null, "there is no pending placement to repair");
+
+  let own = null;
+  let refusal = null;
+  try {
+    own = judge({ working, revision, answers, reserved, layout, visibleFrame, offeredFrame });
+  } catch (error) {
+    if (!(error instanceof DecisionRefused)) throw error;
+    refusal = error;
+  }
+  // operationsFor marks only a no-change with an outcome; anything else is a step.
+  if (own !== null && own.planned.outcome !== OUTCOME_NO_CHANGE) return materialize(working, own.planned, protocol);
+
+  const heardAs = answers?.action?.choice;
+  if (heardAs !== ACTION_PLACE_PART && heardAs !== ACTION_NONE) {
+    if (refusal !== null) throw refusal;
+    return own.planned;
+  }
+  // Of the refusals, only "a part cannot be placed beside itself" leaves
+  // something to repair with: a reply like "ノードAです" can be heard as that
+  // part beside itself, yet still name the one missing piece. A stale answer or
+  // one outside the offered criteria is refused exactly as before.
+  if (own === null && !/beside itself/u.test(refusal.message)) throw refusal;
+
+  // The held piece belongs to one exact picture. If the head, the frame the
+  // reply was offered from, the frame it was judged against, or the parts on
+  // offer differ in any way from when it was held, the piece supplied now would
+  // complete something the person was not looking at.
+  const offeredNow = layout === null ? [] : placeableIds(layout, working.records, offeredFrame);
+  if (!pendingHolds(pending, { head: working.head, frame: offeredFrame, offered: offeredNow })
+    || visibleFrame === null || visibleFrame.head !== working.head || !sameFrame(visibleFrame.frame, pending.frame)) {
+    return noChange(REPAIR_CONTEXT_CHANGED);
+  }
+  const criteria = correctionCriteria(working.records, layout, offeredFrame);
+  const read = readAnswers(answers, criteria);
+  const supplied = read[pending.missing];
+
+  // A reply is a repair only if it says nothing else. Every other placement
+  // piece must be "none", the same as what is held, or - for a part - an echo
+  // of the part it supplies ("ノードBです" heard as node-b beside node-b). A
+  // confident piece that says something different is its own instruction,
+  // however that instruction came out, and gets its own answer; the held piece
+  // is already spent. An unsure one is ambiguity, never a guess.
+  const echoes = slot => (slot === "move" || slot === "anchor")
+    && (pending.missing === "move" || pending.missing === "anchor")
+    && read[slot].choice === supplied?.choice;
+  let unsure = false;
+  for (const slot of PLACEMENT_SLOTS) {
+    if (slot === pending.missing) continue;
+    const said = read[slot];
+    if (said.choice === OPTION_NONE || said.choice === pending[slot].choice || echoes(slot)) continue;
+    if (said.confidence >= MIN_CONFIDENCE) {
+      if (refusal !== null) throw refusal;
+      return own.planned;
+    }
+    unsure = true;
+  }
+  if (unsure) return noChange(REPAIR_FAILED);
+
+  if (supplied == null || supplied.choice === OPTION_NONE || !(supplied.confidence >= MIN_CONFIDENCE)) {
+    return noChange(REPAIR_FAILED);
+  }
+  const pieces = {
+    move: pending.move,
+    anchor: pending.anchor,
+    direction: pending.direction,
+    [pending.missing]: supplied,
+  };
+  if (!criteria.placeable.includes(pieces.move.choice)
+    || !criteria.placeable.includes(pieces.anchor.choice)
+    || !criteria.directions.includes(pieces.direction.choice)) {
+    return noChange(REPAIR_CONTEXT_CHANGED);
+  }
+  if (pieces.move.choice === pieces.anchor.choice) return noChange(REPAIR_SELF);
+
+  const repaired = judge({
+    working,
+    revision,
+    answers: { ...answers, action: pending.action, ...pieces },
+    reserved,
+    layout,
+    visibleFrame,
+    offeredFrame,
+  });
+  if (repaired.planned.outcome === OUTCOME_NO_CHANGE) return repaired.planned;
+  const done = await materialize(working, repaired.planned, protocol);
+  return Object.freeze({ ...done, repaired: true });
 }
 
 // Put a planned step onto the working graph. It must still sit on the head it

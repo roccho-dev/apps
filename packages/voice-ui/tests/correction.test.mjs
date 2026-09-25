@@ -20,6 +20,16 @@ import {
   OUTCOME_NO_CHANGE,
   OUTCOME_STEP,
   PART_PALETTE,
+  PLACEMENT_RESTATE,
+  PLACEMENT_SLOTS,
+  PLACEMENT_SLOT_GUIDANCE,
+  REPAIR_CONTEXT_CHANGED,
+  REPAIR_FAILED,
+  REPAIR_SELF,
+  pendingForJev,
+  pendingHolds,
+  repairStep,
+  weakPlacementSlot,
   appendStep,
   changesForJev,
   correctionCriteria,
@@ -480,16 +490,19 @@ test("the focus is the latest working step, else the latest applied change, else
 
 const layoutOf = graph => protocol.layoutBoundsFor(graph.records, { pattern: "graph/1" });
 
-const placeAnswers = (graph, layout, { move, anchor, direction, confidence = 0.9 }) => {
+// `confidence` sets every slot; `sure` overrides single slots, so a test can say
+// exactly which piece Jev was unsure of.
+const placeAnswers = (graph, layout, { move, anchor, direction, confidence = 0.9, sure = {} }) => {
   const criteria = correctionCriteria(graph.records, layout);
+  const at = slot => sure[slot] ?? confidence;
   const answers = {
-    action: choice(ACTION_PLACE_PART, confidence),
+    action: choice(ACTION_PLACE_PART, at("action")),
     source: choice(OPTION_NONE, confidence),
     target: choice(OPTION_NONE, confidence),
     part: choice(OPTION_NONE, confidence),
-    move: choice(move, confidence),
-    anchor: choice(anchor, confidence),
-    direction: choice(direction, confidence),
+    move: choice(move, at("move")),
+    anchor: choice(anchor, at("anchor")),
+    direction: choice(direction, at("direction")),
   };
   if (criteria.edges.length > 0) answers.edge = choice(criteria.edges[0], confidence);
   return answers;
@@ -849,11 +862,459 @@ test("none in any placement slot, or low confidence, changes nothing", async () 
   ]) {
     const answer = await place(graph, spec);
     assert.equal(answer.outcome, OUTCOME_NO_CHANGE, JSON.stringify(spec));
-    assert.match(answer.reason, /did not name a part, a neighbour and a side/u);
+    assert.equal(answer.reason, PLACEMENT_RESTATE, "a none slot asks for the whole instruction again");
   }
   const unsure = await place(graph, { move: "node-c", anchor: "node-a", direction: "right", confidence: 0.3 });
   assert.equal(unsure.outcome, OUTCOME_NO_CHANGE);
-  assert.match(unsure.reason, /not confident enough/u);
+  assert.equal(unsure.reason, PLACEMENT_RESTATE, "everything unsure asks for the whole instruction again");
+});
+
+// The measured real turn: action 0.94, move 0.86, anchor 0.39, direction 0.97.
+// Everything came through but the neighbour, so the person is told that - and
+// only when it is exactly one piece of a confident placement.
+test("exactly one unsure placement piece is named; nothing else is", async () => {
+  const graph = await baseGraph();
+  const spec = { move: "node-c", anchor: "node-a", direction: "right" };
+
+  for (const slot of PLACEMENT_SLOTS) {
+    const answer = await place(graph, { ...spec, sure: { action: 0.94, [slot]: 0.39 } });
+    assert.equal(answer.outcome, OUTCOME_NO_CHANGE, slot);
+    assert.equal(answer.reason, PLACEMENT_SLOT_GUIDANCE[slot], `${slot} alone is named`);
+    assert.equal(answer.step, undefined, `${slot}: nothing is proposed`);
+    assert.equal(answer.undoRequest, undefined, `${slot}: not heard as an undo`);
+  }
+  const measured = await place(graph, { ...spec, sure: { action: 0.94, move: 0.86, anchor: 0.39, direction: 0.97 } });
+  assert.equal(measured.reason, PLACEMENT_SLOT_GUIDANCE.anchor, "the measured turn asks for the neighbour");
+
+  // Not eligible: an unsure action, two unsure pieces, or a none - all ask for
+  // the whole instruction, never for one word.
+  for (const [label, sure] of [
+    ["unsure action", { action: 0.41 }],
+    ["unsure action and one piece", { action: 0.41, anchor: 0.39 }],
+    ["two unsure pieces", { anchor: 0.39, direction: 0.4 }],
+    ["three unsure pieces", { move: 0.3, anchor: 0.3, direction: 0.3 }],
+  ]) {
+    const answer = await place(graph, { ...spec, sure });
+    assert.equal(answer.outcome, OUTCOME_NO_CHANGE, label);
+    assert.equal(answer.reason, PLACEMENT_RESTATE, label);
+  }
+  const noneAndUnsure = await place(graph, { move: "node-c", anchor: OPTION_NONE, direction: "right", sure: { direction: 0.3 } });
+  assert.equal(noneAndUnsure.reason, PLACEMENT_RESTATE, "a none is never narrowed to one word");
+
+  // A part named as its own neighbour: supplying the missing side would only
+  // reach "cannot be placed beside itself", so it is never narrowed to one word
+  // - whichever piece was the unsure one.
+  for (const slot of PLACEMENT_SLOTS) {
+    const self = await place(graph, { move: "node-c", anchor: "node-c", direction: "right", sure: { [slot]: 0.39 } });
+    assert.equal(self.outcome, OUTCOME_NO_CHANGE, `self-anchor, ${slot} unsure`);
+    assert.equal(self.reason, PLACEMENT_RESTATE, `self-anchor, ${slot} unsure: whole instruction`);
+  }
+  // A confident self-anchor is unchanged from v7: still refused.
+  await assert.rejects(
+    place(graph, { move: "node-c", anchor: "node-c", direction: "right" }),
+    error => error instanceof DecisionRefused && /beside itself/u.test(error.message),
+    "confident self-anchor keeps its v7 refusal",
+  );
+
+  // The floor is where it was: 0.5 exactly is enough.
+  const atFloor = await place(graph, { ...spec, sure: { anchor: 0.5 } });
+  assert.equal(atFloor.outcome, OUTCOME_STEP, "0.5 still passes");
+
+  // The three sentences are distinct, and none of them reads out a part id.
+  const sentences = [PLACEMENT_RESTATE, ...Object.values(PLACEMENT_SLOT_GUIDANCE)];
+  assert.equal(new Set(sentences).size, 4);
+  for (const sentence of sentences) {
+    assert.equal(/node-|part-/u.test(sentence), false, `no id is read out: ${sentence}`);
+  }
+});
+
+test("the weak-slot rule is the same function the step code uses", () => {
+  const read = (confidences, overrides = {}) => Object.fromEntries(
+    ["action", "move", "anchor", "direction"].map(slot => [slot, {
+      choice: overrides[slot] ?? { action: ACTION_PLACE_PART, move: "node-c", anchor: "node-a", direction: "left" }[slot],
+      confidence: confidences[slot] ?? 0.9,
+    }]),
+  );
+  assert.equal(weakPlacementSlot(read({ anchor: 0.39 })), "anchor");
+  assert.equal(weakPlacementSlot(read({ move: 0.2 })), "move");
+  assert.equal(weakPlacementSlot(read({})), null, "nothing weak");
+  assert.equal(weakPlacementSlot(read({ action: 0.49, anchor: 0.39 })), null);
+  assert.equal(weakPlacementSlot(read({ anchor: 0.39, move: 0.4 })), null);
+  assert.equal(weakPlacementSlot(read({ anchor: 0.39 }, { direction: OPTION_NONE })), null);
+  assert.equal(weakPlacementSlot(read({ anchor: 0.39 }, { action: ACTION_ADD })), null, "only placements");
+  assert.equal(weakPlacementSlot(read({ direction: 0.39 }, { move: "node-a", anchor: "node-a" })), null, "never for self-anchor");
+  assert.equal(weakPlacementSlot(undefined), null);
+});
+
+// One-slot repair. The first utterance is the measured real turn: sure it is a
+// placement, sure of the part and the side, unsure of the neighbour. The second
+// is whatever the person says next - judged by Jev, and completed only here.
+
+// Answers with any action, shaped exactly as the page's reader expects.
+const answersWith = (graph, layout, {
+  action = OPTION_NONE, move = OPTION_NONE, anchor = OPTION_NONE, direction = OPTION_NONE,
+  source = OPTION_NONE, target = OPTION_NONE, part = OPTION_NONE, sure = {},
+}) => {
+  const criteria = correctionCriteria(graph.records, layout);
+  const at = slot => sure[slot] ?? 0.9;
+  const answers = {
+    action: choice(action, at("action")),
+    source: choice(source, at("source")),
+    target: choice(target, at("target")),
+    part: choice(part, at("part")),
+    move: choice(move, at("move")),
+    anchor: choice(anchor, at("anchor")),
+    direction: choice(direction, at("direction")),
+  };
+  if (criteria.edges.length > 0) answers.edge = choice(OPTION_NONE, 0.9);
+  return answers;
+};
+
+const MEASURED = { action: 0.94, move: 0.86, anchor: 0.39, direction: 0.97 };
+
+const nearPlacement = async graph => {
+  const layout = layoutOf(graph);
+  return planStep({
+    working: graph,
+    revision: graph.head,
+    answers: answersWith(graph, layout, {
+      action: ACTION_PLACE_PART, move: "node-c", anchor: "node-a", direction: "right", sure: MEASURED,
+    }),
+    protocol,
+    layout,
+    visibleFrame: frameOf(graph),
+    // The page offers from the frame it read before asking; here the pane did
+    // not move, so it is the same frame.
+    offeredFrame: frameOf(graph).frame,
+  });
+};
+
+// A reply as the page makes it: offered from the frame it read before asking,
+// when that frame shows the working head, and judged against `visibleFrame`.
+const reply = (graph, pending, spec, visibleFrame = frameOf(graph),
+  offeredFrame = visibleFrame !== null && visibleFrame.head === graph.head ? visibleFrame.frame : null) => {
+  const layout = layoutOf(graph);
+  return repairStep({
+    working: graph, revision: graph.head, answers: answersWith(graph, layout, spec), protocol, layout, visibleFrame, offeredFrame, pending,
+  });
+};
+
+test("a near-placement leaves one pending piece, with no text in it", async () => {
+  const graph = await baseGraph();
+  const near = await nearPlacement(graph);
+  assert.equal(near.outcome, OUTCOME_NO_CHANGE);
+  assert.equal(near.reason, PLACEMENT_SLOT_GUIDANCE.anchor);
+  assert.equal(near.pending.missing, "anchor");
+  assert.equal(near.pending.head, graph.head, "bound to the head it was said against");
+  assert.equal(near.pending.anchor, null);
+  assert.deepEqual([near.pending.move.choice, near.pending.direction.choice], ["node-c", "right"]);
+  assert.deepEqual(pendingForJev(near.pending), { missing: "anchor", move: "node-c", anchor: null, direction: "right" },
+    "the request carries ids and a side only");
+  assert.equal(pendingForJev(null), null);
+
+  // Nothing else leaves a pending piece.
+  const layout = layoutOf(graph);
+  for (const [label, spec] of [
+    ["unsure action", { action: ACTION_PLACE_PART, move: "node-c", anchor: "node-a", direction: "right", sure: { action: 0.41, anchor: 0.39 } }],
+    ["two unsure pieces", { action: ACTION_PLACE_PART, move: "node-c", anchor: "node-a", direction: "right", sure: { anchor: 0.39, direction: 0.4 } }],
+    ["a none", { action: ACTION_PLACE_PART, move: "node-c", anchor: OPTION_NONE, direction: "right", sure: { direction: 0.3 } }],
+    ["self-anchor", { action: ACTION_PLACE_PART, move: "node-c", anchor: "node-c", direction: "right", sure: { direction: 0.39 } }],
+    ["unsure edge", { action: ACTION_ADD, source: "node-a", target: "node-b", sure: { action: 0.3 } }],
+  ]) {
+    const answer = await planStep({
+      working: graph, revision: graph.head, answers: answersWith(graph, layout, spec), protocol, layout,
+      visibleFrame: frameOf(graph), offeredFrame: frameOf(graph).frame,
+    });
+    assert.equal(answer.outcome, OUTCOME_NO_CHANGE, label);
+    assert.equal(answer.pending, undefined, `${label}: nothing is held`);
+  }
+});
+
+test("naming just the missing piece completes the placement, at the unchanged floor", async () => {
+  const graph = await baseGraph();
+  const { pending } = await nearPlacement(graph);
+
+  // "相手はノードAです": Jev hears no change of its own, but names the neighbour.
+  const repaired = await reply(graph, pending, { action: ACTION_NONE, anchor: "node-a", sure: { action: 0.91 } });
+  assert.equal(repaired.outcome, OUTCOME_STEP);
+  assert.equal(repaired.repaired, true);
+  assert.equal(repaired.step.action, ACTION_PLACE_PART);
+  assert.deepEqual(repaired.step.changes, [{ change: "placed", kind: "region", id: "node-c", anchor: "node-a", direction: "right" }]);
+  assert.deepEqual(repaired.step.decision.operations[0].items[0].bounds,
+    [...neighbourBounds(layoutOf(graph), "node-c", "node-a", "right")]);
+
+  // Exactly the floor is enough; just under is not.
+  const atFloor = await reply(graph, pending, { action: ACTION_NONE, anchor: "node-a", sure: { anchor: 0.5 } });
+  assert.equal(atFloor.outcome, OUTCOME_STEP);
+  const under = await reply(graph, pending, { action: ACTION_NONE, anchor: "node-a", sure: { anchor: 0.49 } });
+  assert.equal(under.outcome, OUTCOME_NO_CHANGE);
+  assert.equal(under.reason, REPAIR_FAILED);
+
+  // Heard as the part beside itself, the reply still names the neighbour.
+  const heardAsSelf = await reply(graph, pending, {
+    action: ACTION_PLACE_PART, move: "node-a", anchor: "node-a", direction: "right",
+  });
+  assert.equal(heardAsSelf.outcome, OUTCOME_STEP, "only the missing piece is taken from the reply");
+  assert.equal(heardAsSelf.step.changes[0].id, "node-c");
+});
+
+test("a complete or unrelated instruction wins over the pending piece", async () => {
+  const graph = await baseGraph();
+  const { pending } = await nearPlacement(graph);
+
+  const other = await reply(graph, pending, { action: ACTION_PLACE_PART, move: "node-b", anchor: "node-a", direction: "right" });
+  assert.equal(other.outcome, OUTCOME_STEP);
+  assert.equal(other.repaired, undefined, "judged as itself");
+  assert.equal(other.step.changes[0].id, "node-b");
+
+  const edge = await reply(graph, pending, { action: ACTION_ADD, source: "node-a", target: "node-b", anchor: "node-b" });
+  assert.equal(edge.outcome, OUTCOME_STEP);
+  assert.deepEqual(edge.step.changes, [{ change: "added", from: "node-a", to: "node-b" }], "an edge, not a repair");
+
+  const unsureEdge = await reply(graph, pending, { action: ACTION_ADD, source: "node-a", target: "node-b", anchor: "node-b", sure: { action: 0.3 } });
+  assert.equal(unsureEdge.outcome, OUTCOME_NO_CHANGE);
+  assert.match(unsureEdge.reason, /not confident enough/u, "an unsure edge is an unsure edge, not a repair");
+
+  const undo = await reply(graph, pending, { action: ACTION_UNDO_REQUEST, anchor: "node-a" });
+  assert.equal(undo.outcome, OUTCOME_NO_CHANGE);
+  assert.equal(undo.undoRequest, true, "a spoken undo is still an undo request");
+});
+
+// R's RED on 15cf4ba: a complete instruction that did not itself make a step
+// was mined for the one missing piece and turned into a placement nobody asked
+// for. A reply is a repair only if everything else it says is none, the same as
+// what is held, or an echo of the part it names. Anything else is its own
+// instruction and gets its own answer.
+test("a complete instruction that is blocked is answered as itself, never mined for the missing piece", async () => {
+  const graph = await baseGraph();
+  const { pending } = await nearPlacement(graph);
+
+  // "node-a を node-b の下に": the spot is taken, so it is a no change of its
+  // own - and must stay one.
+  const occupied = await reply(graph, pending, {
+    action: ACTION_PLACE_PART, move: "node-a", anchor: "node-b", direction: "below", sure: { action: 0.93, move: 0.92, anchor: 0.92, direction: 0.92 },
+  });
+  assert.equal(occupied.outcome, OUTCOME_NO_CHANGE);
+  assert.match(occupied.reason, /別の部品があります/u, "the instruction's own reason");
+  assert.equal(occupied.step, undefined, "no placement is proposed");
+  assert.equal(occupied.repaired, undefined);
+
+  // "node-b を node-b の上に": a different part beside itself, with a side that
+  // contradicts the held one - the existing refusal, not a repair.
+  await assert.rejects(
+    reply(graph, pending, { action: ACTION_PLACE_PART, move: "node-b", anchor: "node-b", direction: "above" }),
+    error => error instanceof DecisionRefused && /beside itself/u.test(error.message),
+    "a different part beside itself keeps its own refusal",
+  );
+
+  // A confident side that contradicts the held one, with no placement of its
+  // own: it is not a repair, and is answered as what it is.
+  const contradicting = await reply(graph, pending, { action: ACTION_NONE, anchor: "node-a", direction: "left" });
+  assert.equal(contradicting.outcome, OUTCOME_NO_CHANGE);
+  assert.equal(contradicting.step, undefined);
+  assert.match(contradicting.reason, /no graph change/u, "answered as the no change it was heard as");
+
+  // An unsure contradiction is ambiguity: a no change, never a guess.
+  const unsure = await reply(graph, pending, { action: ACTION_NONE, anchor: "node-a", direction: "left", sure: { direction: 0.3 } });
+  assert.equal(unsure.outcome, OUTCOME_NO_CHANGE);
+  assert.equal(unsure.reason, REPAIR_FAILED);
+
+  // Truly slot-only replies still repair: the other pieces none, the same as
+  // held, or an echo of the part named.
+  for (const [label, spec] of [
+    ["others none", { action: ACTION_NONE, anchor: "node-b" }],
+    // Agreeing with what is held - even unsure of it - is not a contradiction.
+    ["others as held", { action: ACTION_PLACE_PART, move: "node-c", anchor: "node-b", direction: "right", sure: { move: 0.3 } }],
+    ["echo of the named part", { action: ACTION_NONE, move: "node-b", anchor: "node-b" }],
+  ]) {
+    const ok = await reply(graph, pending, spec);
+    assert.equal(ok.outcome, OUTCOME_STEP, label);
+    assert.equal(ok.repaired, true, label);
+    assert.deepEqual(ok.step.changes, [{ change: "placed", kind: "region", id: "node-c", anchor: "node-b", direction: "right" }], label);
+  }
+});
+
+// R's finding on d58ebb4: a repair turn whose own answer is a new near-placement
+// used to say "部品の名前だけでも" - a follow-up that cannot work, because a
+// repair turn never holds another piece. It now asks for the whole instruction,
+// and a bare name afterwards completes nothing.
+test("a repair turn never offers a one-word follow-up it cannot keep", async () => {
+  const graph = await baseGraph();
+  const { pending } = await nearPlacement(graph);
+
+  const newNear = await reply(graph, pending, {
+    action: ACTION_PLACE_PART, move: "node-b", anchor: "node-a", direction: "right",
+    sure: { action: 0.93, move: 0.92, anchor: 0.3, direction: 0.92 },
+  });
+  assert.equal(newNear.outcome, OUTCOME_NO_CHANGE);
+  assert.equal(newNear.reason, PLACEMENT_RESTATE, "the whole instruction, not one word");
+  assert.equal(newNear.pending, undefined, "nothing is held after a repair turn");
+  assert.equal(newNear.step, undefined);
+  for (const sentence of Object.values(PLACEMENT_SLOT_GUIDANCE)) {
+    assert.notEqual(newNear.reason, sentence);
+  }
+
+  // The bare name that follows is an ordinary utterance with nothing held: it
+  // completes nothing.
+  const bareName = await place(graph, { move: OPTION_NONE, anchor: "node-a", direction: OPTION_NONE });
+  assert.equal(bareName.outcome, OUTCOME_NO_CHANGE);
+  assert.equal(bareName.step, undefined);
+
+  // Outside a repair the one-word guidance is unchanged.
+  const ordinary = await nearPlacement(graph);
+  assert.equal(ordinary.reason, PLACEMENT_SLOT_GUIDANCE.anchor);
+  assert.notEqual(ordinary.pending, undefined);
+});
+
+test("every way a repair can fail is a reasoned no change, and never holds another", async () => {
+  const graph = await baseGraph();
+  const { pending } = await nearPlacement(graph);
+
+  const none = await reply(graph, pending, { action: ACTION_NONE, anchor: OPTION_NONE, sure: { anchor: 0.99 } });
+  assert.equal(none.reason, REPAIR_FAILED, "a confident none is not an answer");
+
+  const self = await reply(graph, pending, { action: ACTION_NONE, anchor: "node-c" });
+  assert.equal(self.outcome, OUTCOME_NO_CHANGE);
+  assert.equal(self.reason, REPAIR_SELF, "the moved part beside itself is a no change, not a failure");
+
+  const moved = await appendStep({
+    working: graph,
+    step: (await place(graph, { move: "node-b", anchor: "node-a", direction: "right" })).step,
+    protocol,
+  });
+  const afterMove = await reply(moved, pending, { action: ACTION_NONE, anchor: "node-a" });
+  assert.equal(afterMove.reason, REPAIR_CONTEXT_CHANGED, "a different working head");
+
+  const stale = await reply(graph, { ...pending, move: { type: "choice", choice: "node-z", confidence: 0.9 } },
+    { action: ACTION_NONE, anchor: "node-a" });
+  assert.equal(stale.reason, REPAIR_CONTEXT_CHANGED, "a piece no longer among the candidates");
+
+  // The held piece belongs to the exact picture it was said against, so a
+  // reply whose pane cannot be read, shows another head, or shows a different
+  // frame is told the picture changed - not the ordinary placement reasons,
+  // which would suggest the piece itself had been judged.
+  const blind = await reply(graph, pending, { action: ACTION_NONE, anchor: "node-a" }, null);
+  assert.equal(blind.reason, REPAIR_CONTEXT_CHANGED, "no frame: the held picture cannot be confirmed");
+  const behind = await reply(graph, pending, { action: ACTION_NONE, anchor: "node-a" }, { ...frameOf(graph), head: "sha256:stale" });
+  assert.equal(behind.reason, REPAIR_CONTEXT_CHANGED, "a frame behind the working head");
+  // Offered from the held frame; by the answer the pane shows almost nothing.
+  const offPane = await reply(graph, pending, { action: ACTION_NONE, anchor: "node-a" },
+    frameOf(graph, [0, 0, 10, 10]), frameOf(graph).frame);
+  assert.equal(offPane.reason, REPAIR_CONTEXT_CHANGED, "a different frame");
+
+  // A reply that is itself a near-placement short of the very same piece fails
+  // the repair, and is not held in turn: one repair only.
+  const again = await reply(graph, pending, {
+    action: ACTION_PLACE_PART, move: "node-c", anchor: "node-b", direction: "right", sure: { anchor: 0.3 },
+  });
+  assert.equal(again.outcome, OUTCOME_NO_CHANGE);
+  assert.equal(again.reason, REPAIR_FAILED);
+  assert.equal(again.pending, undefined, "a repair never holds another");
+
+  for (const answer of [none, self, afterMove, stale, blind, behind, offPane, again]) {
+    assert.equal(answer.step, undefined);
+  }
+  await assert.rejects(
+    repairStep({ working: graph, revision: graph.head, answers: {}, protocol, pending: null }),
+    /no pending placement/u,
+  );
+});
+
+test("outside a repair, a confident part beside itself is still refused as in v7", async () => {
+  const graph = await baseGraph();
+  await assert.rejects(
+    place(graph, { move: "node-c", anchor: "node-c", direction: "right" }),
+    error => error instanceof DecisionRefused && /beside itself/u.test(error.message),
+  );
+  // And a stale answer is refused during a repair exactly as it is outside one.
+  const { pending } = await nearPlacement(graph);
+  const layout = layoutOf(graph);
+  await assert.rejects(
+    repairStep({
+      working: graph, revision: "sha256:old", answers: answersWith(graph, layout, { action: ACTION_NONE, anchor: "node-a" }),
+      protocol, layout, visibleFrame: frameOf(graph), pending,
+    }),
+    /stale/u,
+  );
+});
+
+// The held piece is bound to the exact picture it was said against: the working
+// head, the frame to the unit, and the parts offered from it. It is kept in
+// the page's memory only, and Jev is only ever told the ids and the side.
+test("a held piece records its head, frame and offered parts, and Jev sees none of the geometry", async () => {
+  const graph = await baseGraph();
+  const layout = layoutOf(graph);
+  const { pending } = await nearPlacement(graph);
+  assert.equal(pending.head, graph.head);
+  assert.deepEqual([...pending.frame], [...frameOf(graph).frame]);
+  assert.deepEqual([...pending.offered], [...placeableIds(layout, graph.records, frameOf(graph).frame)]);
+  assert.deepEqual(Object.keys(pendingForJev(pending)).sort(), ["anchor", "direction", "missing", "move"],
+    "no frame, head or offered list goes to Jev");
+  assert.equal(pendingHolds(pending, { head: graph.head, frame: frameOf(graph).frame, offered: pending.offered }), true);
+});
+
+test("any change to the frame, the head or the parts on offer drops the held piece", async () => {
+  const graph = await baseGraph();
+  const { pending } = await nearPlacement(graph);
+  const spec = { action: ACTION_NONE, anchor: "node-a" };
+  const held = frameOf(graph);
+  const shifted = frameOf(graph, [held.frame[0] + 1, ...held.frame.slice(1)]);
+
+  // Same picture: the bare neighbour completes it.
+  const same = await reply(graph, pending, spec);
+  assert.equal(same.outcome, OUTCOME_STEP, "precondition: unchanged, the repair completes");
+
+  // Offered from a frame one unit off, judged against the held one.
+  const offeredMoved = await reply(graph, pending, spec, held, shifted.frame);
+  assert.equal(offeredMoved.reason, REPAIR_CONTEXT_CHANGED, "the frame the reply was offered from moved");
+
+  // Offered from the held frame, but the pane moved one unit before judging.
+  const judgedMoved = await reply(graph, pending, spec, shifted, held.frame);
+  assert.equal(judgedMoved.reason, REPAIR_CONTEXT_CHANGED, "the frame the reply was judged against moved");
+
+  // The same frame and head, but a different list of parts on offer.
+  const otherOffer = await reply(graph, { ...pending, offered: Object.freeze(pending.offered.slice(1)) }, spec);
+  assert.equal(otherOffer.reason, REPAIR_CONTEXT_CHANGED, "the parts on offer changed");
+
+  // The pane could not be read when the reply was asked.
+  const unoffered = await reply(graph, pending, spec, held, null);
+  assert.equal(unoffered.reason, REPAIR_CONTEXT_CHANGED, "no offered frame to compare");
+
+  for (const answer of [offeredMoved, judgedMoved, otherOffer, unoffered]) {
+    assert.equal(answer.outcome, OUTCOME_NO_CHANGE);
+    assert.equal(answer.step, undefined);
+    assert.equal(answer.pending, undefined, "and nothing is held in its place");
+  }
+});
+
+test("a complete new instruction still wins after the picture changed", async () => {
+  const graph = await baseGraph();
+  const { pending } = await nearPlacement(graph);
+  const held = frameOf(graph);
+  const shifted = frameOf(graph, [held.frame[0] + 1, ...held.frame.slice(1)]);
+  const complete = await reply(graph, pending,
+    { action: ACTION_PLACE_PART, move: "node-b", anchor: "node-a", direction: "right" }, shifted, shifted.frame);
+  assert.equal(complete.outcome, OUTCOME_STEP, "a complete placement is judged as itself");
+  assert.equal(complete.repaired, undefined, "and is not a repair");
+});
+
+test("nothing is held when the pane could not be read, showed another head, or moved during the turn", async () => {
+  const graph = await baseGraph();
+  const layout = layoutOf(graph);
+  const answers = answersWith(graph, layout, {
+    action: ACTION_PLACE_PART, move: "node-c", anchor: "node-a", direction: "right", sure: MEASURED,
+  });
+  const held = frameOf(graph);
+  for (const [label, visibleFrame, offeredFrame] of [
+    ["no frame when judging", null, held.frame],
+    ["no frame when asking", held, null],
+    ["another head", { ...held, head: "sha256:stale" }, held.frame],
+    ["moved between asking and judging", held, [held.frame[0] + 1, ...held.frame.slice(1)]],
+  ]) {
+    const near = await planStep({ working: graph, revision: graph.head, answers, protocol, layout, visibleFrame, offeredFrame });
+    assert.equal(near.outcome, OUTCOME_NO_CHANGE, label);
+    assert.equal(near.pending, undefined, `${label}: nothing is held`);
+  }
 });
 
 test("a placement is a history fact, and reverting it puts the part back", async () => {
@@ -1295,6 +1756,78 @@ test("v7 carries a placement effect back to Jev, and its answer feeds the step c
     planned.step.decision.operations[0].items[0].bounds,
     [...neighbourBounds(layout, "node-b", "node-c", "left")],
   );
+});
+
+// v8 is v7 plus the pending placement. The questions are the same, so a
+// complete or unrelated instruction is judged as without it; only the missing
+// piece's question says that a reply may supply just that piece.
+const v8 = (pending, overrides = {}) => {
+  const base = v5({ utterance: "相手はノードAです", ...overrides });
+  return {
+    kind: "voice-ui.jev.request.v8",
+    state: { ...base.state, working: { ...base.state.working, placeable: REGIONS }, pending },
+  };
+};
+const PENDING = { missing: "anchor", move: "node-c", anchor: null, direction: "left" };
+const V8_ANSWERS = {
+  action: providerChoice("none", ["add-edge", "add-part", "place-part", "undo-request", "none"]),
+  source: providerChoice("none", NODE_KEYS),
+  target: providerChoice("none", NODE_KEYS),
+  part: providerChoice("none", PART_KEYS),
+  move: providerChoice("none", NODE_KEYS),
+  anchor: providerChoice("node-a", NODE_KEYS),
+  direction: providerChoice("none", [...DIRECTIONS, "none"]),
+};
+
+test("v8 carries the pending placement to Jev and asks the same questions", async () => {
+  const request = v8(PENDING);
+  const { result, calls } = await withProvider(V8_ANSWERS, () => postJev(request));
+  assert.equal(result.status, 200);
+  const body = await result.json();
+  assert.equal(body.kind, "voice-ui.jev.decision.v4", "the answer's contract is unchanged");
+  assert.equal(body.answers.anchor.choice, "node-a");
+
+  const [call] = calls;
+  assert.deepEqual(call.state, request.state, "the pending placement reaches Jev exactly as sent");
+  assert.deepEqual(Object.keys(call.questions), ["action", "source", "target", "part", "move", "anchor", "direction"]);
+  assert.match(call.questions.anchor.instructions, /state\.pending/u, "the missing piece's question says so");
+  for (const name of ["action", "move", "direction", "source", "target", "part"]) {
+    assert.equal(call.questions[name].instructions.includes("state.pending"), false, `${name} is asked as usual`);
+  }
+  assert.deepEqual(Object.keys(call.questions.anchor.criteria), NODE_KEYS, "the same finite choices");
+  assert.equal(JSON.stringify(call).includes("bounds"), false, "still no coordinate");
+
+  // With nothing pending the questions are exactly v7's.
+  const { calls: plain } = await withProvider(V8_ANSWERS, () => postJev(v8(null)));
+  const v7Request = v5({ utterance: "相手はノードAです" });
+  v7Request.state.working = { ...v7Request.state.working, placeable: REGIONS };
+  const { calls: old } = await withProvider(V8_ANSWERS, () => postJev(v7Request));
+  assert.deepEqual(plain[0].questions, old[0].questions, "v8 with nothing pending asks what v7 asks");
+});
+
+test("v8 refuses a malformed pending placement, and v7 is still served", async () => {
+  const bad = [
+    v8({ ...PENDING, anchor: "node-a" }),
+    v8({ ...PENDING, move: null }),
+    v8({ ...PENDING, missing: "action" }),
+    v8({ ...PENDING, move: "node-z" }),
+    v8({ ...PENDING, direction: "diagonal" }),
+    v8({ missing: "direction", move: "node-a", anchor: "node-a", direction: null }),
+    v8({ ...PENDING, text: "相手はノードAです" }),
+    v8({ ...PENDING, confidence: 0.39 }),
+    { ...v8(PENDING), state: { ...v8(PENDING).state, working: { regions: REGIONS, edges: [], placeable: ["node-a"] } } },
+    { kind: "voice-ui.jev.request.v8", state: v5().state },
+    { kind: "voice-ui.jev.request.v7", state: v8(PENDING).state },
+  ];
+  for (const body of bad) assert.equal((await postJev(body)).status, 422, JSON.stringify(body));
+
+  const { result } = await withProvider({
+    action: providerChoice("none", ["add-edge", "add-part", "undo-request", "none"]),
+    source: providerChoice("none", NODE_KEYS),
+    target: providerChoice("none", NODE_KEYS),
+    part: providerChoice("none", PART_KEYS),
+  }, () => postJev(v5()));
+  assert.equal(result.status, 200, "v7 is still served");
 });
 
 test("the parts the page offers for placement are exactly the ones Jev is asked about", async () => {

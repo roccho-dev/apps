@@ -149,7 +149,37 @@ const validRequestV7 = value =>
   exactObject(value, ["kind", "state"]) &&
   value.kind === "voice-ui.jev.request.v7" &&
   exactObject(value.state, ["utterance", "working", "draft", "focus", "context"]) &&
-  validContext(value.state.context) &&
+  validStepState(value.state);
+
+// v8 is v7 plus one field: the placement the previous utterance nearly made,
+// held for this one utterance only. It names the one piece that did not come
+// through and the pieces that did - part ids and a side, nothing else, never
+// text. null when nothing is pending. The questions are the same as v7's, so an
+// unrelated or complete instruction is judged exactly as it would be otherwise.
+const PLACEMENT_SLOTS = ["move", "anchor", "direction"];
+const validPending = (pending, placeable) =>
+  pending === null || (
+    exactObject(pending, ["missing", "move", "anchor", "direction"]) &&
+    PLACEMENT_SLOTS.includes(pending.missing) &&
+    placeable.length >= 2 &&
+    PLACEMENT_SLOTS.every(slot => slot === pending.missing
+      ? pending[slot] === null
+      : slot === "direction"
+        ? DIRECTIONS.includes(pending[slot])
+        : placeable.includes(pending[slot])) &&
+    (pending.move === null || pending.anchor === null || pending.move !== pending.anchor)
+  );
+
+const validRequestV8 = value =>
+  exactObject(value, ["kind", "state"]) &&
+  value.kind === "voice-ui.jev.request.v8" &&
+  exactObject(value.state, ["utterance", "working", "draft", "focus", "context", "pending"]) &&
+  validStepState(value.state) &&
+  validPending(value.state.pending, value.state.working.placeable);
+
+function validStepState(state) {
+  const value = { state };
+  return validContext(value.state.context) &&
   validText(value.state.utterance) &&
   exactObject(value.state.working, ["regions", "edges", "placeable"]) &&
   Array.isArray(value.state.working.placeable) &&
@@ -162,6 +192,7 @@ const validRequestV7 = value =>
   value.state.working.edges.every(edge => edge.id !== NONE) &&
   validDraft(value.state.draft) &&
   validFocus(value.state.focus);
+}
 
 const typedAnswer = value => {
   const answer = value?.answers?.live;
@@ -403,6 +434,20 @@ async function decideStep(input, env) {
         ? "the utterance names no side"
         : `it goes to the ${key} of the other part`),
     };
+    // The previous utterance nearly placed a part and lacked only this piece.
+    // Say so on that one question, so that a reply naming just the missing
+    // piece can be answered - and leave every other question as it is, so a
+    // complete or unrelated instruction is judged exactly as without it.
+    const pending = state.pending ?? null;
+    if (pending !== null) {
+      questions[pending.missing] = {
+        ...questions[pending.missing],
+        instructions: questions[pending.missing].instructions
+          + " state.pending is a placement the previous utterance nearly made, lacking only this piece."
+          + " If the utterance only supplies this piece for it - for example by naming just a part or a side -"
+          + " answer with that. Otherwise answer from the utterance as usual.",
+      };
+    }
   }
   if (edges.length > 0) {
     const byId = new Map(edges.map(edge => [edge.id, edge]));
@@ -464,7 +509,7 @@ export async function onRequestPost({ request, env }) {
   } catch {
     return json({ error: "invalid_json" }, 400);
   }
-  if (validRequestV7(input)) return decideStep(input, env);
+  if (validRequestV8(input) || validRequestV7(input)) return decideStep(input, env);
   if (validRequestV2(input)) return decideGraphEdge(input, env);
   if (!validRequest(input)) return json({ error: "invalid_request" }, 422);
 
