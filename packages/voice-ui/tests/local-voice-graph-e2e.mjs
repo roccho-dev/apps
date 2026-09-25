@@ -1716,6 +1716,29 @@ assert.equal(unrelatedSelf.state, "failed", "a different part beside itself keep
 assert.deepEqual(unrelatedSelf.draft, draftBeforeBlocked, "no placement is proposed on 作業図");
 assert.equal(unrelatedSelf.pending, null);
 
+// R's finding on d58ebb4: the repair turn's own answer is a new near-placement.
+// Nothing is held after a repair turn, so it must not invite one word - it asks
+// for the whole instruction, and the bare name that follows completes nothing.
+await nearTurn();
+const newNearInRepair = await replyTurn({
+  action: { type: "choice", choice: "place-part", confidence: 0.93 },
+  move: { type: "choice", choice: OTHER_PART, confidence: 0.92 },
+  anchor: { type: "choice", choice: anchorId, confidence: 0.3 },
+  direction: { type: "choice", choice: "right", confidence: 0.92 },
+});
+assert.equal(newNearInRepair.state, "no-change");
+assert.equal(newNearInRepair.status,
+  "type: no change - 配置の指示を聞き取れませんでした。動かす部品・隣の部品・方向をそろえて、もう一度言ってください",
+  "the whole instruction, never a one-word follow-up that cannot be kept");
+assert.equal(newNearInRepair.pending, null, "nothing is held after a repair turn");
+assert.deepEqual(newNearInRepair.draft, draftBeforeBlocked);
+const bareAfterRepair = await replyTurn({
+  action: LOW, move: LOW, direction: LOW, anchor: { type: "choice", choice: anchorId, confidence: 0.95 },
+});
+assert.equal(bareAfterRepair.state, "no-change", "the bare name completes nothing");
+assert.deepEqual(bareAfterRepair.draft, draftBeforeBlocked, "作業図 is unchanged");
+assert.equal(bareAfterRepair.pending, null);
+
 // Undo, Discard, Apply and Revert each drop a held piece; so does a reload.
 await nearTurn();
 await press(page, "#undo");

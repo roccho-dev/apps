@@ -989,6 +989,38 @@ test("a complete instruction that is blocked is answered as itself, never mined 
   }
 });
 
+// R's finding on d58ebb4: a repair turn whose own answer is a new near-placement
+// used to say "部品の名前だけでも" - a follow-up that cannot work, because a
+// repair turn never holds another piece. It now asks for the whole instruction,
+// and a bare name afterwards completes nothing.
+test("a repair turn never offers a one-word follow-up it cannot keep", async () => {
+  const graph = await baseGraph();
+  const { pending } = await nearPlacement(graph);
+
+  const newNear = await reply(graph, pending, {
+    action: ACTION_PLACE_PART, move: "node-b", anchor: "node-a", direction: "right",
+    sure: { action: 0.93, move: 0.92, anchor: 0.3, direction: 0.92 },
+  });
+  assert.equal(newNear.outcome, OUTCOME_NO_CHANGE);
+  assert.equal(newNear.reason, PLACEMENT_RESTATE, "the whole instruction, not one word");
+  assert.equal(newNear.pending, undefined, "nothing is held after a repair turn");
+  assert.equal(newNear.step, undefined);
+  for (const sentence of Object.values(PLACEMENT_SLOT_GUIDANCE)) {
+    assert.notEqual(newNear.reason, sentence);
+  }
+
+  // The bare name that follows is an ordinary utterance with nothing held: it
+  // completes nothing.
+  const bareName = await place(graph, { move: OPTION_NONE, anchor: "node-a", direction: OPTION_NONE });
+  assert.equal(bareName.outcome, OUTCOME_NO_CHANGE);
+  assert.equal(bareName.step, undefined);
+
+  // Outside a repair the one-word guidance is unchanged.
+  const ordinary = await nearPlacement(graph);
+  assert.equal(ordinary.reason, PLACEMENT_SLOT_GUIDANCE.anchor);
+  assert.notEqual(ordinary.pending, undefined);
+});
+
 test("every way a repair can fail is a reasoned no change, and never holds another", async () => {
   const graph = await baseGraph();
   const { pending } = await nearPlacement(graph);

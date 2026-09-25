@@ -555,7 +555,19 @@ export const REPAIR_SELF = "同じ部品の隣には置けません。指示全�
 // pending placement: there is one repair, whatever its result.
 //
 // Like planStep, everything that decides runs before the first await.
-export async function repairStep({
+//
+// A repair turn never holds another piece, so it must never offer the one-word
+// follow-up either: if its own answer would ask for one missing piece, it asks
+// for the whole instruction instead. Nothing is decided differently - only what
+// the person is told they can say next.
+export async function repairStep(options = {}) {
+  const result = await attemptRepair(options);
+  const promisesFollowUp = result.outcome === OUTCOME_NO_CHANGE
+    && Object.values(PLACEMENT_SLOT_GUIDANCE).includes(result.reason);
+  return promisesFollowUp ? noChange(PLACEMENT_RESTATE) : result;
+}
+
+async function attemptRepair({
   working, revision, answers, protocol, reserved = [], layout = null, visibleFrame = null, pending,
 } = {}) {
   requireGraph(working);
