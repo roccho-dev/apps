@@ -758,6 +758,21 @@ test("exactly one unsure placement piece is named; nothing else is", async () =>
   const noneAndUnsure = await place(graph, { move: "node-c", anchor: OPTION_NONE, direction: "right", sure: { direction: 0.3 } });
   assert.equal(noneAndUnsure.reason, PLACEMENT_RESTATE, "a none is never narrowed to one word");
 
+  // A part named as its own neighbour: supplying the missing side would only
+  // reach "cannot be placed beside itself", so it is never narrowed to one word
+  // - whichever piece was the unsure one.
+  for (const slot of PLACEMENT_SLOTS) {
+    const self = await place(graph, { move: "node-c", anchor: "node-c", direction: "right", sure: { [slot]: 0.39 } });
+    assert.equal(self.outcome, OUTCOME_NO_CHANGE, `self-anchor, ${slot} unsure`);
+    assert.equal(self.reason, PLACEMENT_RESTATE, `self-anchor, ${slot} unsure: whole instruction`);
+  }
+  // A confident self-anchor is unchanged from v7: still refused.
+  await assert.rejects(
+    place(graph, { move: "node-c", anchor: "node-c", direction: "right" }),
+    error => error instanceof DecisionRefused && /beside itself/u.test(error.message),
+    "confident self-anchor keeps its v7 refusal",
+  );
+
   // The floor is where it was: 0.5 exactly is enough.
   const atFloor = await place(graph, { ...spec, sure: { anchor: 0.5 } });
   assert.equal(atFloor.outcome, OUTCOME_STEP, "0.5 still passes");
@@ -773,7 +788,7 @@ test("exactly one unsure placement piece is named; nothing else is", async () =>
 test("the weak-slot rule is the same function the step code uses", () => {
   const read = (confidences, overrides = {}) => Object.fromEntries(
     ["action", "move", "anchor", "direction"].map(slot => [slot, {
-      choice: overrides[slot] ?? (slot === "action" ? ACTION_PLACE_PART : slot === "direction" ? "left" : "node-a"),
+      choice: overrides[slot] ?? { action: ACTION_PLACE_PART, move: "node-c", anchor: "node-a", direction: "left" }[slot],
       confidence: confidences[slot] ?? 0.9,
     }]),
   );
@@ -784,6 +799,7 @@ test("the weak-slot rule is the same function the step code uses", () => {
   assert.equal(weakPlacementSlot(read({ anchor: 0.39, move: 0.4 })), null);
   assert.equal(weakPlacementSlot(read({ anchor: 0.39 }, { direction: OPTION_NONE })), null);
   assert.equal(weakPlacementSlot(read({ anchor: 0.39 }, { action: ACTION_ADD })), null, "only placements");
+  assert.equal(weakPlacementSlot(read({ direction: 0.39 }, { move: "node-a", anchor: "node-a" })), null, "never for self-anchor");
   assert.equal(weakPlacementSlot(undefined), null);
 });
 

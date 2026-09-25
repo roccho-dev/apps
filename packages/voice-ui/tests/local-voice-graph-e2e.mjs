@@ -1426,6 +1426,48 @@ assert.equal(diagnosed.status, "type: no change - 動かす部品が聞き取れ
 assert.equal(/node-|part-/u.test(diagnosed.status), false, "no part id is read out");
 assert.deepEqual(diagnosed.draft, [], "and nothing was drafted");
 
+// The measured real turn itself, replayed with its own confidences: action
+// 0.94, move 0.86, anchor 0.39, direction 0.97. Only the neighbour is named.
+const measuredTurn = async (answers, text) => {
+  await page.route(jevUrl, route => route.fulfill({
+    status: 200,
+    contentType: "application/json; charset=utf-8",
+    body: JSON.stringify({ ...craftedAnswer, answers: { ...craftedAnswer.answers, ...answers } }),
+  }), { times: 1 });
+  const exchange = jevExchange(page);
+  await page.locator("#text").fill(text);
+  await page.locator("#send").click();
+  await exchange.request;
+  await settle(page);
+  return screen(page);
+};
+const weakAnchor = await measuredTurn({
+  action: { type: "choice", choice: "place-part", confidence: 0.94 },
+  move: { type: "choice", choice: moveId, confidence: 0.86 },
+  anchor: { type: "choice", choice: anchorId, confidence: 0.39 },
+  direction: { type: "choice", choice: "left", confidence: 0.97 },
+}, "一を濃度A の左に置いてください");
+assert.equal(weakAnchor.state, "no-change");
+assert.equal(weakAnchor.status,
+  "type: no change - 隣に置く相手の部品が聞き取れませんでした。相手の部品の名前を入れて、もう一度言ってください",
+  "the measured turn names the neighbour, and only the neighbour");
+assert.equal(weakAnchor.diagnostic.diagAnchor, `${anchorId}:0.39`, "the diagnostic shows the same shortfall");
+assert.deepEqual(weakAnchor.draft, []);
+
+// A part named as its own neighbour, with only the side unsure: supplying the
+// side would only reach "cannot be placed beside itself", so the whole
+// instruction is asked for - never the side alone, and never a failure.
+const selfAnchor = await measuredTurn({
+  action: { type: "choice", choice: "place-part", confidence: 0.94 },
+  move: { type: "choice", choice: moveId, confidence: 0.9 },
+  anchor: { type: "choice", choice: moveId, confidence: 0.9 },
+  direction: { type: "choice", choice: "left", confidence: 0.39 },
+}, "これをこれの隣に置いて");
+assert.equal(selfAnchor.state, "no-change", "a self-anchor with one unsure piece is a no change, not a failure");
+assert.equal(selfAnchor.status,
+  "type: no change - 配置の指示を聞き取れませんでした。動かす部品・隣の部品・方向をそろえて、もう一度言ってください");
+assert.deepEqual(selfAnchor.draft, []);
+
 // Not eligible for naming one piece: the placement action itself was unsure.
 // The whole instruction is asked for again instead.
 await page.route(jevUrl, route => route.fulfill({

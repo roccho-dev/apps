@@ -96,10 +96,13 @@ export const PLACEMENT_SLOT_GUIDANCE = Object.freeze({
 });
 
 // The one slot that fell short, or null when the shortfall is not exactly one
-// placement slot with a confident placement action and no "none" anywhere.
+// placement slot with a confident placement action and no "none" anywhere. A
+// part named as its own neighbour is never narrowed to one word either: adding
+// the missing word would only lead to "a part cannot be placed beside itself".
 export function weakPlacementSlot(read) {
-  if (read?.action?.choice !== ACTION_PLACE_PART ||!(read.action.confidence >= MIN_CONFIDENCE)) return null;
+  if (read?.action?.choice !== ACTION_PLACE_PART || !(read.action.confidence >= MIN_CONFIDENCE)) return null;
   if (PLACEMENT_SLOTS.some(slot => read[slot] == null || read[slot].choice === OPTION_NONE)) return null;
+  if (read.move.choice === read.anchor.choice) return null;
   const weak = PLACEMENT_SLOTS.filter(slot => !(read[slot].confidence >= MIN_CONFIDENCE));
   return weak.length === 1 ? weak[0] : null;
 }
