@@ -7,6 +7,11 @@
     <style>
       #panes { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
       #working-notice { font-weight: bold; }
+      /* The embed sizes itself min(78vh, 900px). In a 1280x720 window that is
+         562 px, and its own floating buttons then sit over a composed diagram's
+         steps (measured). Both panes take the embed's own cap instead - the same
+         height, so the frame read from 作業図 still holds for 確定図. */
+      #confirmed-surface iframe, #working-surface iframe { height: 900px !important; }
     </style>
   </head>
   <body>
@@ -34,6 +39,8 @@
         <section id="working" aria-label="作業図">
           <h2>作業図</h2>
           <p id="working-notice">作業図は保存されていません。再読み込みすると消えます。</p>
+          <!-- Parts still in 作業図 that the pane does not show whole. -->
+          <p id="out-of-view" aria-live="polite"></p>
           <h3 id="draft-heading">未反映の操作</h3>
           <ol id="draft" aria-labelledby="draft-heading"></ol>
           <p id="draft-count"></p>
@@ -63,15 +70,16 @@
         verifyDecisionLog,
       } from "/ui/semantic-map/protocol/index.js";
       import { renderUiIr } from "/app/src/render.mjs";
-      import { GRAPH_PATTERN, selectableRegionIds } from "/app/src/decision/graph-edge.mjs";
+      import { GRAPH_PATTERN } from "/app/src/decision/graph-edge.mjs";
       import {
         DRAFT_MAX,
         placeableIds,
         OUTCOME_NO_CHANGE,
         appendStep,
         changesForJev,
-        edgesOf,
         focusFor,
+        speakableEdges,
+        speakableRegionIds,
         pendingForJev,
         pendingHolds,
         ACTION_COMPOSE,
@@ -105,6 +113,7 @@
       const discardButton = document.querySelector("#discard");
       const applyButton = document.querySelector("#apply");
       const workingSurface = document.querySelector("#working-surface");
+      const outOfView = document.querySelector("#out-of-view");
       const contextList = document.querySelector("#context-recent");
       const contextSkipped = document.querySelector("#context-skipped");
       const contextClear = document.querySelector("#context-clear");
@@ -546,6 +555,27 @@
         }
       };
 
+      // The pane's camera does not follow the graph, so a large step - a whole
+      // diagram above all - can leave parts that were on screen outside it. They
+      // are still in 作業図; the person is told which ones, never that they are
+      // still visible. Read after each drawing of 作業図; a frame that cannot be
+      // read is said to be unknown rather than taken as "all visible".
+      const renderOutOfView = () => {
+        const layout = workingLayout();
+        const shown = workingVisibleFrame();
+        if (layout === null || shown === null || shown.head !== working.head) {
+          outOfView.dataset.parts = "";
+          outOfView.textContent = "表示範囲を読み取れないため、表示に収まっていない部品があるか確かめられません";
+          return;
+        }
+        const whole = placeableIds(layout, working.records, shown.frame);
+        const outside = placeableIds(layout, working.records).filter(id => !whole.includes(id));
+        outOfView.dataset.parts = outside.join(" ");
+        outOfView.textContent = outside.length > 0
+          ? `表示に収まっていない部品: ${outside.join(", ")}（作業図には残っています。表示の外か、一部しか見えていません）`
+          : "";
+      };
+
       const currentFocus = () => focusFor({
         draft,
         lastApplied: (savedHistory.entries.at(-1)?.facts ?? [])
@@ -642,8 +672,9 @@
             utterance: value,
             working: {
               placeable,
-              regions: selectableRegionIds(working.records),
-              edges: edgesOf(working.records).map(({ id, from, to }) => ({ id, from, to })),
+              // A lane is never named: only the parts inside it.
+              regions: speakableRegionIds(working.records),
+              edges: speakableEdges(working.records).map(({ id, from, to }) => ({ id, from, to })),
             },
             draft: draft.map(step => ({ changes: [...changesForJev(step.changes)] })),
             focus: currentFocus(),
@@ -811,6 +842,7 @@
           inputOf.set(candidate.step, { ...candidate.input, seq });
           candidate = null;
           renderDraft();
+          renderOutOfView();
           renderContext();
           setState("drafted", `${prefix}: 作業図に追加しました (未反映)`);
           renderHistory();
@@ -930,6 +962,7 @@
         markUndone(draft.at(-1));
         draft = draft.slice(0, -1);
         renderDraft();
+        renderOutOfView();
         renderContext();
         setState("undone", "作業図の最後の変更を元に戻しました");
         renderHistory();
@@ -954,6 +987,7 @@
         for (const step of draft) markUndone(step);
         draft = [];
         renderDraft();
+        renderOutOfView();
         renderContext();
         setState("discarded", "作業図を破棄しました");
         renderHistory();
@@ -1016,6 +1050,7 @@
           working = next;
           draft = [...draft, step];
           renderDraft();
+          renderOutOfView();
           setState("drafted", "取り消しを作業図に追加しました (未反映)");
           renderHistory();
         });
@@ -1050,6 +1085,7 @@
       try {
         await renderConfirmed(await graphIr(saved));
         await renderWorking(await graphIr(working));
+        renderOutOfView();
         if (blocked) {
           setState("failed", "saved history is unreadable - clear this site's storage to start over");
           renderHistory(`stored log rejected: ${restored.reason}`);

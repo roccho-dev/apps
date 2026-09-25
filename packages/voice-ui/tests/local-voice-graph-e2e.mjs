@@ -2392,6 +2392,13 @@ await ready(page);
 const diagramStart = await screen(page);
 assert.deepEqual(diagramStart.draft, [], "precondition: a fresh page with nothing unapplied");
 const confirmedStart = await boxes(page, "confirmed");
+// The page's own notice of parts that 作業図 holds but does not show whole.
+const outOfViewNotice = target => target.evaluate(() => {
+  const notice = document.querySelector("#out-of-view");
+  return { parts: notice.dataset.parts ?? null, text: notice.textContent };
+});
+assert.deepEqual(await outOfViewNotice(page), { parts: "", text: "" }, "the genesis graph fits the pane, and nothing is said");
+assert.deepEqual(page.viewportSize(), { width: 1280, height: 720 }, "the named viewport for what follows");
 
 // Edges as the working or confirmed pane draws them: endpoints, whether the
 // view draws them as directed, the arrowhead, and whether the shape is live.
@@ -2485,6 +2492,81 @@ if (process.env.VOICE_DIAGRAM_SHOTS) {
   await page.locator("#working-surface").screenshot({ path: path.join(process.env.VOICE_DIAGRAM_SHOTS, "working-drafted.png") });
 }
 
+// Seen, not only laid out: in this 1280x720 window each lane and step of the
+// diagram, and its label, is what the person reaches at nine points across it -
+// with the pane scrolled to it, nothing of the page or of the embed's own
+// buttons over it. A point counts only if the page hit-tests to the pane there
+// and the pane hit-tests to its own graph drawing.
+const unobscured = id => page.evaluate(id => {
+  const frame = document.querySelector('#working-surface iframe[data-package="semantic-map"]');
+  const adapter = frame.contentWindow.semanticMapApp.adapter;
+  const state = adapter.graph.getView().getState(adapter.cellsByRegionId.get(id));
+  const shape = state?.shape?.node;
+  const text = state?.text?.node;
+  if (!shape?.isConnected || !text?.isConnected) return { drawn: false };
+  const svg = shape.ownerSVGElement;
+  const middle = shape.getBoundingClientRect();
+  window.scrollBy(0, frame.getBoundingClientRect().top + frame.clientTop + middle.top + middle.height / 2 - window.innerHeight / 2);
+  const pane = frame.getBoundingClientRect();
+  const clear = element => {
+    const rect = element.getBoundingClientRect();
+    let count = 0;
+    for (const fx of [0.2, 0.5, 0.8]) {
+      for (const fy of [0.2, 0.5, 0.8]) {
+        const x = rect.x + rect.width * fx;
+        const y = rect.y + rect.height * fy;
+        if (x < 0 || y < 0 || x > frame.clientWidth || y > frame.clientHeight) continue;
+        if (document.elementFromPoint(pane.left + frame.clientLeft + x, pane.top + frame.clientTop + y) !== frame) continue;
+        const hit = frame.contentDocument.elementFromPoint(x, y);
+        if (hit && (svg.contains(hit) || text.contains(hit))) count += 1;
+      }
+    }
+    return count;
+  };
+  const seen = { drawn: true, label: text.textContent.trim(), shape: clear(shape), text: clear(text) };
+  window.scrollTo(0, 0);
+  return seen;
+}, id);
+const labelOf = Object.fromEntries([laneA, laneB, stepSubmit, stepReview, stepReceive].map((id, index) =>
+  [id, ["申請者", "承認者", "申請する", "確認して判断する", "結果を受け取る"][index]]));
+const seenCells = {};
+for (const id of composedRegions) {
+  seenCells[id] = await unobscured(id);
+  assert.deepEqual(seenCells[id], { drawn: true, label: labelOf[id], shape: 9, text: 9 },
+    `${id} and its label are drawn and unobscured at 1280x720: ${JSON.stringify(seenCells[id])}`);
+}
+
+// The parts already there stay in 作業図 whether or not the pane shows them,
+// and the page says which ones it does not show whole - never that they are
+// visible. The view's own frame decides, exactly as it does for placement.
+const genesisOffPane = ["node-a", "node-b", "node-c"].filter(id => !genesisOnPane.includes(id));
+const composedNotice = await outOfViewNotice(page);
+assert.deepEqual(composedNotice.parts.split(" ").filter(Boolean), genesisOffPane,
+  `the notice names exactly the parts not wholly on the pane: ${JSON.stringify(composedNotice)}`);
+if (genesisOffPane.length > 0) {
+  assert.match(composedNotice.text, /^表示に収まっていない部品: .*（作業図には残っています。表示の外か、一部しか見えていません）$/u);
+  for (const id of genesisOffPane) assert.ok(composedNotice.text.includes(id), `${id} is named`);
+}
+
+// A lane is a container, never an endpoint: the next request does not offer
+// it, and a real Jev asked for an arrow from it drafts nothing.
+const laneLink = await type(page, `${laneA} から ${stepSubmit} へ矢印を足して`);
+assert.notEqual(laneLink.decision.model, "jev-test", "answered by the real Jev");
+const laneOffer = laneLink.sent.state.working;
+for (const lane of [laneA, laneB]) {
+  assert.equal(laneOffer.regions.includes(lane), false, `${lane} is not offered as an endpoint`);
+  assert.equal(laneOffer.placeable.includes(lane), false, `${lane} is not offered for placement`);
+  assert.equal(laneOffer.edges.some(edge => edge.from === lane || edge.to === lane), false);
+}
+for (const id of ["node-a", "node-b", "node-c", stepSubmit, stepReview, stepReceive]) {
+  assert.ok(laneOffer.regions.includes(id), `${id} is still in 作業図 and offered, on the pane or not`);
+}
+const laneLinkScreen = await screen(page);
+assert.notEqual(laneLinkScreen.state, "drafted", `an arrow from a lane drafts nothing: ${laneLinkScreen.status}`);
+assert.deepEqual(laneLinkScreen.draft, diagramDrafted.draft, "the draft is exactly the diagram still");
+assert.equal(laneLinkScreen.stored, diagramStart.stored);
+assert.equal((await drawnEdges(page, "working")).length, 2, "no link was drawn");
+
 // The draft is refined like any other graph: a link back, named by its parts.
 const refined = await type(page, `${stepReview} から ${stepSubmit} へ差し戻しの矢印を足して`);
 assert.equal(refined.decision.answers.action.choice, "add-edge",
@@ -2543,6 +2625,9 @@ const diagramSummary = `unsupported "AWS の構成図を作って" -> ${awsScree
   + `"${asked.sent.state.utterance}" -> one step: lanes ${laneA},${laneB}, steps ${stepSubmit},${stepReview},${stepReceive}, `
   + `links ${composedLinks.join(" ")} drawn directed; lanes as ${laneLayout}; genesis parts wholly on the pane: `
   + `[${genesisOnPane.join(",")}]; steps covered by the embed's controls at their centre: [${stepCovered.join(",")}]; `
+  + "at 1280x720 every lane and step and its label hit-tested at 9/9 points; "
+  + `out-of-view notice named [${genesisOffPane.join(",")}]: "${composedNotice.text}"; `
+  + `"${laneLink.sent.state.utterance}" offered no lane and drafted nothing (${laneLinkScreen.state}: ${laneLinkScreen.status}); `
   + `refined with ${stepReview}->${stepSubmit}, Undo took it then the whole diagram, recomposed as ${againRegions.join(",")}, `
   + "applied, revert not offered, reload drew it in both panes";
 await third.browser.close();

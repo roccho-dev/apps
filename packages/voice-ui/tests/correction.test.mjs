@@ -44,6 +44,8 @@ import {
   neighbourBounds,
   nextPartId,
   placeableIds,
+  speakableEdges,
+  speakableRegionIds,
   spotIsFree,
   planStep,
   revertStep,
@@ -2063,6 +2065,62 @@ test("a composed draft is refined like any other graph, and its names are never 
   const again = await compose(refined, {}, ["part-9"]);
   assert.deepEqual(again.step.decision.operations.filter(operation => operation.type === "AddRegion").map(operation => operation.regionId),
     ["part-10", "part-11", "part-12", "part-13", "part-14"], "a second diagram takes new names after every one handed out");
+});
+
+test("a lane is never an endpoint or a placement option, yet still occupies its space", async () => {
+  const graph = await baseGraph();
+  const working = await appendStep({ working: graph, step: (await compose(graph)).step, protocol });
+  const layout = layoutOf(working);
+  const lanes = ["part-1", "part-2"];
+  const parts = ["node-a", "node-b", "node-c", "part-3", "part-4", "part-5"];
+  assert.deepEqual([...speakableRegionIds(working.records)].sort(), parts);
+  const criteria = correctionCriteria(working.records, layout, null, CATALOG_KEYS);
+  assert.deepEqual(criteria.regions.filter(id => id !== OPTION_NONE).sort(), parts, "no lane as a source or target");
+  assert.deepEqual(criteria.placeable.filter(id => id !== OPTION_NONE), parts, "no lane to move or put beside");
+  assert.deepEqual([...placeableIds(layout, working.records)], parts);
+  for (const lane of lanes) assert.ok(layout.bounds[lane], `${lane} is still placed by the view`);
+  assert.equal(spotIsFree(layout, working.records, "node-a", layout.bounds["part-1"]), false,
+    "a part cannot be put where a lane is drawn");
+
+  const base = { working, revision: working.head, protocol, layout, visibleFrame: frameOf(working), candidates: CATALOG_KEYS };
+  const refused = async (answers, run = planStep) =>
+    assert.rejects(run({ ...base, answers }), /outside the offered criteria/u);
+  const placing = spec => ({ ...placeAnswers(working, layout, spec), diagram: choice("none") });
+  const linking = (source, target) => ({
+    ...placing({ move: OPTION_NONE, anchor: OPTION_NONE, direction: OPTION_NONE }),
+    action: choice(ACTION_ADD),
+    source: choice(source),
+    target: choice(target),
+  });
+  assert.equal((await planStep({ ...base, answers: linking("part-3", "node-a") })).outcome, OUTCOME_STEP,
+    "a step inside a lane is an endpoint like any other part");
+  await refused(linking("part-1", "part-3"));
+  await refused(linking("part-3", "part-2"));
+  await refused(placing({ move: "part-1", anchor: "node-a", direction: "below" }));
+  await refused(placing({ move: "node-a", anchor: "part-2", direction: "below" }));
+  // Nor can a lane come in as the one missing piece of a held placement.
+  const frame = frameOf(working).frame;
+  const pending = Object.freeze({
+    missing: "anchor",
+    head: working.head,
+    frame,
+    offered: placeableIds(layout, working.records, frame),
+    action: choice(ACTION_PLACE_PART),
+    move: choice("node-a"),
+    anchor: null,
+    direction: choice("below"),
+  });
+  await refused(placing({ move: OPTION_NONE, anchor: "part-1", direction: OPTION_NONE }),
+    options => repairStep({ ...options, offeredFrame: frame, pending }));
+
+  // An edge that already touches a lane is left out of what Jev may name, so
+  // the request never offers an endpoint it does not list.
+  const { decision } = await protocol.createDecision(working.head, [{
+    type: "ConnectRegions", relationId: "lane-edge", from: "part-1", to: "node-a", kind: "flow", label: "",
+  }], working.records);
+  const withLaneEdge = (await protocol.appendDecision(working.log, decision)).verified;
+  assert.deepEqual(speakableEdges(withLaneEdge.records).map(edge => edge.id).includes("lane-edge"), false);
+  assert.equal(correctionCriteria(withLaneEdge.records, null, null, CATALOG_KEYS).edges.includes("lane-edge"), false);
 });
 
 // v9: v8 plus the candidates, by key and purpose only.

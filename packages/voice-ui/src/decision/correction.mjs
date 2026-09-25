@@ -170,21 +170,43 @@ const inside = (frame, box) =>
   box[0] >= frame[0] && box[1] >= frame[1]
   && box[0] + box[2] <= frame[0] + frame[2] && box[1] + box[3] <= frame[1] + frame[3];
 
-// The parts a person can talk about: the regions this graph offers as
-// endpoints - never the enclosing boundary, which cannot be pinned - and only
-// those the view actually places. A part the view folds away has no position
-// to put anything beside.
+// The parts Jev may name: every region the graph offers as an endpoint except a
+// lane. A lane is a container - its steps are what the flow connects - so an
+// edge to it, or a part put beside it, is never something the person can be
+// heard as asking for. It still exists, is drawn and occupies its space.
+export function speakableRegionIds(records) {
+  refuse(Array.isArray(records), "records must be an array");
+  const lanes = new Set(records
+    .filter(record => record?.type === "region" && record.kind === LANE_KIND)
+    .map(record => record.id));
+  return Object.freeze(selectableRegionIds(records).filter(regionId => !lanes.has(regionId)));
+}
+
+// The edges Jev may name: those between two parts it may name.
+export function speakableEdges(records) {
+  const regions = speakableRegionIds(records);
+  return Object.freeze(edgesOf(records).filter(edge => regions.includes(edge.from) && regions.includes(edge.to)));
+}
+
+// The parts the view actually places, out of `ids`. A part the view folds away
+// has no position to put anything beside.
 // With `frame` - the pane's visible frame, in the same coordinates - only the
 // parts lying wholly inside it. The view's bounds are pre-culling: a part has
 // them whether or not it is on screen, and even a drawn cell can sit in the
-// margin band nobody sees. Without a frame this is every placed part, which is
-// what collision checks need: a part off screen still occupies its spot.
-export function placeableIds(layout, records, frame = null) {
+// margin band nobody sees.
+const placedIds = (layout, ids, frame) => {
   refuse(layout?.bounds !== undefined, "layout bounds are required");
-  return Object.freeze(selectableRegionIds(records)
+  return Object.freeze(ids
     .filter(regionId => Object.hasOwn(layout.bounds, regionId))
     .filter(regionId => frame === null || inside(frame, layout.bounds[regionId]))
     .sort());
+};
+
+// The parts a person can put beside one another: the ones Jev may name - never
+// the enclosing boundary, which cannot be pinned, nor a lane - that the view
+// places, and with a frame only those wholly inside it.
+export function placeableIds(layout, records, frame = null) {
+  return placedIds(layout, speakableRegionIds(records), frame);
 }
 
 // The bounds a part would take beside its anchor: the anchor's own position
@@ -203,11 +225,11 @@ export function neighbourBounds(layout, targetId, anchorId, direction) {
   return Object.freeze([ax, ay + ah + NEIGHBOUR_GAP, tw, th]);
 }
 
-// A spot is usable only if nothing else the view placed already sits there.
-// The part being moved does not block its own move.
+// A spot is usable only if nothing else the view placed already sits there -
+// a lane included, and a part off screen too: it still occupies its spot. The
+// part being moved does not block its own move.
 export function spotIsFree(layout, records, targetId, box) {
-  const placeable = placeableIds(layout, records);
-  return placeable
+  return placedIds(layout, selectableRegionIds(records), null)
     .filter(regionId => regionId !== targetId)
     .every(regionId => !overlapping(box, layout.bounds[regionId]));
 }
@@ -275,10 +297,10 @@ export function nextPartId(graph, reserved = []) {
 // only a choice when the request offered one, so an older request is judged
 // exactly as before.
 export function correctionCriteria(records, layout = null, offeredFrame = null, candidates = []) {
-  const regions = selectableRegionIds(records);
+  const regions = speakableRegionIds(records);
   refuse(regions.length >= 2, "graph has fewer than two selectable regions");
   refuse(!regions.includes(OPTION_NONE), `a region may not be named "${OPTION_NONE}"`);
-  const edges = edgesOf(records);
+  const edges = speakableEdges(records);
   refuse(edges.every(edge => edge.id !== OPTION_NONE), `an edge may not be named "${OPTION_NONE}"`);
   const placeable = layout === null ? [] : placeableIds(layout, records, offeredFrame);
   const canPlace = placeable.length >= 2;
