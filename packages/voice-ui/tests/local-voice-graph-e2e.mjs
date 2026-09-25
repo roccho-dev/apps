@@ -478,8 +478,55 @@ const countJev = target => {
 const addGolden = readGolden(goldenPath, wav);
 const correctionGolden = readGolden(correctionGoldenPath, correctionWav);
 
+// VOICE_E2E_FOCUS=diagram runs only (xix) and (xx): each opens a fresh browser
+// from the genesis graph and empty storage and depends on nothing an earlier
+// section did, so they prove the same thing on their own. Their Jev turns are
+// the real Jev's, exactly as in the full run; nothing here is mocked that the
+// full run does not also craft. It does not replace the full run: sections
+// (i)-(xviii) are not executed, and the result line says so - it is never the
+// full run's "local-voice-graph-e2e: PASS". Any other value is refused.
+const FOCUS = process.env.VOICE_E2E_FOCUS ?? "";
+assert.ok(FOCUS === "" || FOCUS === "diagram", `VOICE_E2E_FOCUS must be unset or "diagram", not ${JSON.stringify(FOCUS)}`);
+const focused = FOCUS === "diagram";
+
+// Shared by the sections that run in both modes.
+const jevUrl = new URL("/api/jev", url).href;
+// A Jev answer crafted from the request it answers, for turns where geometry
+// or the app's own refusal - not Jev's hearing - is what is under test.
+const craftFor = (sent, answers) => ({
+  kind: "voice-ui.jev.decision.v4",
+  model: "jev-test",
+  answers: {
+    source: { type: "choice", choice: "none", confidence: 0.9 },
+    target: { type: "choice", choice: "none", confidence: 0.9 },
+    part: { type: "choice", choice: "none", confidence: 0.9 },
+    ...(sent.state.working.placeable.length >= 2
+      ? {
+        move: { type: "choice", choice: "none", confidence: 0.9 },
+        anchor: { type: "choice", choice: "none", confidence: 0.9 },
+        direction: { type: "choice", choice: "none", confidence: 0.9 },
+      }
+      : {}),
+    ...(sent.state.working.edges.length > 0 ? { edge: { type: "choice", choice: "none", confidence: 0.9 } } : {}),
+    ...(sent.state.candidates?.length > 0 ? { diagram: { type: "choice", choice: "none", confidence: 0.9 } } : {}),
+    ...answers,
+  },
+});
+const answerFrom = answers => route => route.fulfill({
+  status: 200,
+  contentType: "application/json; charset=utf-8",
+  body: JSON.stringify(craftFor(JSON.parse(route.request().postData()), answers)),
+});
+
+let page;
+// What sections (i)-(xviii) report, captured while their values are in scope.
+let fullRunSummary = null;
+
+// Sections (i)-(xviii), the full run only. The body is not re-indented, to
+// keep this change to its boundaries.
+if (!focused) {
 const first = await openBrowser(wav);
-let page = first.page;
+page = first.page;
 
 const navigation = await page.goto(url, { waitUntil: "commit", timeout: 120000 });
 assert.equal(navigation?.status(), 200);
@@ -817,7 +864,6 @@ await press(page, "#discard");
 // Jev request is held at the network until the controls have been read.
 await type(page, "add an edge from c to a");
 assert.deepEqual((await screen(page)).draft, [`+${edgeC}`]);
-const jevUrl = new URL("/api/jev", url).href;
 let releaseJev;
 const heldJev = new Promise(resolve => { releaseJev = resolve; });
 await page.route(jevUrl, async route => {
@@ -2118,32 +2164,8 @@ assert.deepEqual((await screen(page)).draft, [], "and the graph is back to what 
 // (xvi-f) R's counterexample (D): more parts than the pane shows. The layout
 // contract keeps bounds for every part, on screen or not, and the renderer
 // builds cells in a margin band nobody sees - so neither can say what a person
-// could name. Every answer here is crafted from the request it answers, so the
-// geometry, not Jev's hearing, decides the outcome.
-const craftFor = (sent, answers) => ({
-  kind: "voice-ui.jev.decision.v4",
-  model: "jev-test",
-  answers: {
-    source: { type: "choice", choice: "none", confidence: 0.9 },
-    target: { type: "choice", choice: "none", confidence: 0.9 },
-    part: { type: "choice", choice: "none", confidence: 0.9 },
-    ...(sent.state.working.placeable.length >= 2
-      ? {
-        move: { type: "choice", choice: "none", confidence: 0.9 },
-        anchor: { type: "choice", choice: "none", confidence: 0.9 },
-        direction: { type: "choice", choice: "none", confidence: 0.9 },
-      }
-      : {}),
-    ...(sent.state.working.edges.length > 0 ? { edge: { type: "choice", choice: "none", confidence: 0.9 } } : {}),
-    ...(sent.state.candidates?.length > 0 ? { diagram: { type: "choice", choice: "none", confidence: 0.9 } } : {}),
-    ...answers,
-  },
-});
-const answerFrom = answers => route => route.fulfill({
-  status: 200,
-  contentType: "application/json; charset=utf-8",
-  body: JSON.stringify(craftFor(JSON.parse(route.request().postData()), answers)),
-});
+// could name. Every answer here is crafted from the request it answers
+// (craftFor), so the geometry, not Jev's hearing, decides the outcome.
 const tallBefore = await screen(page);
 assert.deepEqual(tallBefore.draft, [], "precondition: nothing unapplied");
 
@@ -2418,6 +2440,42 @@ assert.deepEqual(restoredFinal.draft, []);
 assert.deepEqual(await panes(page), { confirmed: [voiceEdge, flip(typedEdge)].sort(), working: [voiceEdge, flip(typedEdge)].sort() });
 
 await second.browser.close();
+
+fullRunSummary = {
+  head: `spoken add "${voiceAdd.sent.state.utterance}" -> 作業図 only, applied edge=${voiceEdge} `
+    + `| each voice press: one click, 0 text focus, 0 Send, [${voiceAdd.trace.join(" ")}], 1 Jev request `
+    + `| every step shows its exact text (認識文/入力文) and verified effect through Undo, revert, refused and successful Apply, reload; `
+    + `${inputsSent.size} distinct inputs: earlier ones reach Jev only in state.context.recent, which equalled the panel on every request, `
+    + "never stored or logged; markup-like text literal "
+    + "| recent conversation: step, undone by Undo and Discard, undo-request and no-change kept, >200 characters counted not sent, "
+    + "window of 5, kept by Apply, erased by reload and 会話をクリア, nothing from blank input or timeouts "
+    + `| part: one typed request drew ${rebuiltId}「判断 2」 on 作業図 only, the next request carried it as an effect, `
+    + `Undo removed it and spent its name (${partId} never reused), Apply and reload kept it, `
+    + "lone-part revert drafted then discarded, a part with an edge is not revertable "
+    + `| placement: "${placed.sent.state.utterance}" -> ${moveId} ${direction} ${anchorId}, `
+    + `drawn cell present and rendered at ${JSON.stringify(target)} (was ${JSON.stringify(drawnBefore[moveId].box)}), `
+    + `wholly inside the pane, every other part unmoved; visible frame ${JSON.stringify(frameBefore.frame)} `
+    + `at head ${frameBefore.head.slice(0, 14)}, panes equal at ${widths.working}px; `
+    + `ceiling in the same run: ${JSON.stringify(ceilingSpot)} is outside that frame - ${offscreenGuard}; `
+    + "Apply and reload draw it in the same place in both panes, revert puts it back drawn "
+    + `| one-slot repair: real Jev completed "相手は${anchorId}です" into ${moveId} above ${anchorId}, `
+    + "both texts shown with their sources, blank not spent, failure/self/unrelated/timeout each drop it, "
+    + "Undo/Discard/Apply/Revert/reload each drop it; a held piece is dropped once the pane changes "
+    + "| diagnostic: frame ok, null (pane hidden) and head-mismatch (pane on another head) each named on a held turn; "
+    + "cleared by Undo, Discard, Apply, Revert and 会話をクリア "
+    + `| tall graph: ${tallGuard} `,
+  tail: `| refused microphone: [${voicePhases(refusalTrace).map(entry => entry.kind).join(" ")}], 0 Jev requests, nothing changed, controls given back `
+    + `| embedded Accept [${embeddedAccepts.join("; ")}] / [${correctionAccepts.join("; ")}] `
+    + `| corrupt and foreign logs fail closed | typed ${edgeA}, ${edgeB}: 2 undos, then 2-step apply `
+    + `| empty input (0 Jev requests), undo-request and none change nothing | relation revert applied, overtaken revert refused `
+    + `| controls locked while a request is in flight, answer on its own revision (${heldEdge}) `
+    + `| unanswered request failed at ${hangMs} ms, late answer dropped, 504 provider_timeout reported, `
+    + "controls given back and nothing changed, both retries answered "
+    + `| cap 8 with 0 Jev requests at the cap | quota and other-tab Apply refused, working steps kept | reload drops the working steps `
+    + `| saved-but-undrawn blocks, reload draws it | browser 2: typed ${typedEdge}, then spoken "${heard.sent.state.utterance}" `
+    + "-> reverse of the focused step, applied with it, restored after reload\n",
+};
+}
 
 // (xix) A whole diagram by purpose. A fresh browser, so the proof starts from
 // the genesis graph and empty storage. Every Jev answer in this section is the
@@ -2858,40 +2916,17 @@ for (const input of inputsSent) {
 await Promise.all(pendingCounts);
 assert.ok(craftedAnswered > 0, "precondition: the crafted turns were answered and counted apart");
 
-process.stdout.write(
-  `local-voice-graph-e2e: PASS spoken add "${voiceAdd.sent.state.utterance}" -> 作業図 only, applied edge=${voiceEdge} `
-  + `| each voice press: one click, 0 text focus, 0 Send, [${voiceAdd.trace.join(" ")}], 1 Jev request `
-  + `| every step shows its exact text (認識文/入力文) and verified effect through Undo, revert, refused and successful Apply, reload; `
-  + `${inputsSent.size} distinct inputs: earlier ones reach Jev only in state.context.recent, which equalled the panel on every request, `
-  + "never stored or logged; markup-like text literal "
-  + "| recent conversation: step, undone by Undo and Discard, undo-request and no-change kept, >200 characters counted not sent, "
-  + "window of 5, kept by Apply, erased by reload and 会話をクリア, nothing from blank input or timeouts "
-  + `| part: one typed request drew ${rebuiltId}「判断 2」 on 作業図 only, the next request carried it as an effect, `
-  + `Undo removed it and spent its name (${partId} never reused), Apply and reload kept it, `
-  + "lone-part revert drafted then discarded, a part with an edge is not revertable "
-  + `| placement: "${placed.sent.state.utterance}" -> ${moveId} ${direction} ${anchorId}, `
-  + `drawn cell present and rendered at ${JSON.stringify(target)} (was ${JSON.stringify(drawnBefore[moveId].box)}), `
-  + `wholly inside the pane, every other part unmoved; visible frame ${JSON.stringify(frameBefore.frame)} `
-  + `at head ${frameBefore.head.slice(0, 14)}, panes equal at ${widths.working}px; `
-  + `ceiling in the same run: ${JSON.stringify(ceilingSpot)} is outside that frame - ${offscreenGuard}; `
-  + "Apply and reload draw it in the same place in both panes, revert puts it back drawn "
-  + `| one-slot repair: real Jev completed "相手は${anchorId}です" into ${moveId} above ${anchorId}, `
-  + "both texts shown with their sources, blank not spent, failure/self/unrelated/timeout each drop it, "
-  + "Undo/Discard/Apply/Revert/reload each drop it; a held piece is dropped once the pane changes "
-  + "| diagnostic: frame ok, null (pane hidden) and head-mismatch (pane on another head) each named on a held turn; "
-  + "cleared by Undo, Discard, Apply, Revert and 会話をクリア "
-  + `| tall graph: ${tallGuard} `
-  + `| ${jevAnswered} real Jev answers in this run, ${craftedAnswered} crafted by the test `
+const diagramParts = `| ${jevAnswered} real Jev answers in this run, ${craftedAnswered} crafted by the test `
   + `| whole diagram (fresh browser, real Jev): ${diagramSummary} `
-  + `| ${laptopSummary} `
-  + `| refused microphone: [${voicePhases(refusalTrace).map(entry => entry.kind).join(" ")}], 0 Jev requests, nothing changed, controls given back `
-  + `| embedded Accept [${embeddedAccepts.join("; ")}] / [${correctionAccepts.join("; ")}] `
-  + `| corrupt and foreign logs fail closed | typed ${edgeA}, ${edgeB}: 2 undos, then 2-step apply `
-  + `| empty input (0 Jev requests), undo-request and none change nothing | relation revert applied, overtaken revert refused `
-  + `| controls locked while a request is in flight, answer on its own revision (${heldEdge}) `
-  + `| unanswered request failed at ${hangMs} ms, late answer dropped, 504 provider_timeout reported, `
-  + "controls given back and nothing changed, both retries answered "
-  + `| cap 8 with 0 Jev requests at the cap | quota and other-tab Apply refused, working steps kept | reload drops the working steps `
-  + `| saved-but-undrawn blocks, reload draws it | browser 2: typed ${typedEdge}, then spoken "${heard.sent.state.utterance}" `
-  + `-> reverse of the focused step, applied with it, restored after reload\n`,
-);
+  + `| ${laptopSummary} `;
+if (focused) {
+  // Never the full run's PASS line: it names what did not run.
+  assert.equal(fullRunSummary, null, "focused mode ran none of sections (i)-(xviii)");
+  process.stdout.write(
+    "local-voice-graph-e2e: FOCUSED diagram sections (xix)-(xx) PASS; sections (i)-(xviii) NOT RUN "
+    + `${diagramParts}\n`,
+  );
+} else {
+  assert.notEqual(fullRunSummary, null, "the full run reached the end of section (xviii)");
+  process.stdout.write(`local-voice-graph-e2e: PASS ${fullRunSummary.head}${diagramParts}${fullRunSummary.tail}`);
+}
