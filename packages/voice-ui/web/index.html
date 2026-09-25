@@ -812,6 +812,10 @@
         if (blocked || rendering) return;
         rendering = true;
         controlHoldsRender = true;
+        // The diagnostic describes the last turn Jev judged. Once a control
+        // has acted it would describe a screen that is no longer there, so it
+        // goes, whatever the control does.
+        clearDiagnostics();
         syncBusy();
         setState("pending", `${label}: working`);
         try {
@@ -853,6 +857,7 @@
       contextClear.addEventListener("click", () => {
         if (blocked || rendering) return;
         conversation = [];
+        clearDiagnostics();
         renderContext();
         syncBusy();
       });

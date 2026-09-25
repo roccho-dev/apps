@@ -1517,6 +1517,150 @@ assert.deepEqual(replaced.diagnostic, {
 assert.equal(Object.keys(replaced.diagnostic).length, Object.keys(diagnosed.diagnostic).length,
   "and the set stays bounded");
 
+// The other two things the pane can say, each produced for real while one
+// answer is held: a pane that cannot be read, and a pane still showing another
+// head. Both are no-changes with their own sentences, and the diagnostic names
+// them - which is what attributes a refused real-microphone turn later.
+const confidentPlace = {
+  ...craftedAnswer.answers,
+  action: { type: "choice", choice: "place-part", confidence: 0.95 },
+  move: { type: "choice", choice: moveId, confidence: 0.95 },
+  anchor: { type: "choice", choice: anchorId, confidence: 0.95 },
+  direction: { type: "choice", choice: "left", confidence: 0.95 },
+};
+const heldTurn = async (text, whileHeld, undo) => {
+  let release;
+  const gate = new Promise(resolve => { release = resolve; });
+  await page.route(jevUrl, async route => {
+    await gate;
+    await route.fulfill({
+      status: 200,
+      contentType: "application/json; charset=utf-8",
+      body: JSON.stringify({ ...craftedAnswer, answers: confidentPlace }),
+    });
+  }, { times: 1 });
+  const exchange = jevExchange(page);
+  await page.locator("#text").fill(text);
+  await page.locator("#send").click();
+  await exchange.request;
+  await whileHeld();
+  release();
+  await exchange.response;
+  await settle(page);
+  const result = await screen(page);
+  await undo();
+  return result;
+};
+const workingBeforeHeld = await boxes(page, "working");
+
+const unreadable = await heldTurn("この部品を左へ", () => page.evaluate(() => {
+  document.querySelector("#working-surface").style.display = "none";
+}), async () => {
+  await page.evaluate(() => { document.querySelector("#working-surface").style.display = ""; });
+  await page.waitForFunction(async () => {
+    const runtime = await import("/ui/semantic-map/runtime.js");
+    return runtime.visibleFrameOf(document.querySelector("#working-surface")) !== null;
+  });
+});
+assert.equal(unreadable.state, "no-change", "a pane that cannot be read places nothing");
+assert.match(unreadable.status, /読み取れない/u);
+assert.equal(unreadable.diagnostic.diagFrame, "null", "and the diagnostic says the frame was null");
+assert.deepEqual(unreadable.draft, [], "nothing was drafted");
+assert.equal(unreadable.stored, appliedPlacement.stored);
+
+const otherHead = await heldTurn("その部品を左へ", () => page.evaluate(() => {
+  const runtime = document.querySelector('#working-surface iframe[data-package="semantic-map"]')
+    .contentWindow.semanticMapSite.runtime;
+  window.heldHead = Object.getOwnPropertyDescriptor(runtime, "head");
+  Object.defineProperty(runtime, "head", { ...window.heldHead, value: "sha256:another-head" });
+}), () => page.evaluate(() => {
+  const runtime = document.querySelector('#working-surface iframe[data-package="semantic-map"]')
+    .contentWindow.semanticMapSite.runtime;
+  Object.defineProperty(runtime, "head", window.heldHead);
+  delete window.heldHead;
+}));
+assert.equal(otherHead.state, "no-change", "a pane still showing another head places nothing");
+assert.match(otherHead.status, /追いついていない/u);
+assert.equal(otherHead.diagnostic.diagFrame, "head-mismatch", "and the diagnostic says the heads differed");
+assert.deepEqual(otherHead.draft, [], "nothing was drafted");
+assert.equal(otherHead.stored, appliedPlacement.stored);
+assert.notEqual(unreadable.status, otherHead.status, "two conditions, two sentences");
+assert.deepEqual(await boxes(page, "working"), workingBeforeHeld, "neither turn moved anything");
+
+// A diagnostic describes the last turn Jev judged. Any control that changes
+// what is on screen - or the conversation - removes it, so a later reading can
+// never pin an old turn on a new screen.
+const noChangeTurn = async text => {
+  await page.route(jevUrl, route => route.fulfill({
+    status: 200,
+    contentType: "application/json; charset=utf-8",
+    body: JSON.stringify({
+      ...craftedAnswer,
+      answers: {
+        ...craftedAnswer.answers,
+        action: { type: "choice", choice: "none", confidence: 0.99 },
+        move: { type: "choice", choice: "none", confidence: 0.99 },
+        anchor: { type: "choice", choice: "none", confidence: 0.99 },
+        direction: { type: "choice", choice: "none", confidence: 0.99 },
+      },
+    }),
+  }), { times: 1 });
+  const exchange = jevExchange(page);
+  await page.locator("#text").fill(text);
+  await page.locator("#send").click();
+  await exchange.response;
+  await settle(page);
+  assert.equal((await screen(page)).diagnostic.diag, "jev-no-change", `precondition: ${text} left a diagnostic`);
+};
+const partStep = async text => {
+  await page.route(jevUrl, route => route.fulfill({
+    status: 200,
+    contentType: "application/json; charset=utf-8",
+    body: JSON.stringify({
+      ...craftedAnswer,
+      answers: {
+        ...craftedAnswer.answers,
+        action: { type: "choice", choice: "add-part", confidence: 0.95 },
+        part: { type: "choice", choice: "decision", confidence: 0.95 },
+        move: { type: "choice", choice: "none", confidence: 0.9 },
+        anchor: { type: "choice", choice: "none", confidence: 0.9 },
+        direction: { type: "choice", choice: "none", confidence: 0.9 },
+      },
+    }),
+  }), { times: 1 });
+  const exchange = jevExchange(page);
+  await page.locator("#text").fill(text);
+  await page.locator("#send").click();
+  await exchange.response;
+  await settle(page);
+  assert.equal((await screen(page)).state, "drafted", `precondition: ${text} drafted a part`);
+};
+const clearedBy = {};
+await partStep("add a part to undo");
+await noChangeTurn("nothing for undo");
+await press(page, "#undo");
+clearedBy.undo = (await screen(page)).diagnostic;
+await partStep("add a part to discard");
+await noChangeTurn("nothing for discard");
+await press(page, "#discard");
+clearedBy.discard = (await screen(page)).diagnostic;
+await partStep("add a part to apply");
+await noChangeTurn("nothing for apply");
+await press(page, "#apply");
+const appliedForRevert = await screen(page);
+clearedBy.apply = appliedForRevert.diagnostic;
+await noChangeTurn("nothing for revert");
+await page.locator(`button[data-revert="${appliedForRevert.confirmed.length - 1}"]`).click();
+await settle(page);
+clearedBy.revert = (await screen(page)).diagnostic;
+await press(page, "#discard");
+await noChangeTurn("nothing for clearing the conversation");
+await page.locator("#context-clear").click();
+clearedBy.contextClear = (await screen(page)).diagnostic;
+assert.deepEqual(clearedBy, { undo: {}, discard: {}, apply: {}, revert: {}, contextClear: {} },
+  "Undo, Discard, Apply, Revert and 会話をクリア each remove the previous turn's diagnostic");
+assert.deepEqual((await screen(page)).draft, [], "and the graph is back to what was applied");
+
 // (xvi-d) R's counterexample (D): more parts than the pane shows. The layout
 // contract keeps bounds for every part, on screen or not, and the renderer
 // builds cells in a margin band nobody sees - so neither can say what a person
@@ -1830,6 +1974,8 @@ process.stdout.write(
   + `at head ${frameBefore.head.slice(0, 14)}, panes equal at ${widths.working}px; `
   + `ceiling in the same run: ${JSON.stringify(ceilingSpot)} is outside that frame - ${offscreenGuard}; `
   + "Apply and reload draw it in the same place in both panes, revert puts it back drawn "
+  + "| diagnostic: frame ok, null (pane hidden) and head-mismatch (pane on another head) each named on a held turn; "
+  + "cleared by Undo, Discard, Apply, Revert and 会話をクリア "
   + `| tall graph: ${tallGuard} `
   + `| ${jevAnswered} real Jev answers in this run, ${craftedAnswered} crafted by the test `
   + `| refused microphone: [${voicePhases(refusalTrace).map(entry => entry.kind).join(" ")}], 0 Jev requests, nothing changed, controls given back `
