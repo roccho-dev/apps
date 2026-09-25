@@ -277,15 +277,34 @@ const visibleFrame = (target, pane) => target.evaluate(async pane => {
 }, pane);
 
 // The width of each pane's mount. The app asks only 作業図 whether a spot is
-// visible, which is sound while both panes resolve the same camera; #panes is a
-// 1fr 1fr grid and the embed fixes its own height, so equal widths are the whole
-// of that condition. A future ratio change must fail here rather than quietly
-// let a spot pass on the right and land off-pane on the left.
+// visible, which is sound while both panes resolve the same camera: #panes is a
+// 1fr 1fr grid of equal sections, and both are given the same View.frame. Equal
+// widths are one half of that condition and equal frames (bothFrames) the other.
+// A future ratio change must fail here rather than quietly let a spot pass on
+// the right and land off-pane on the left.
 const mountWidths = target => target.evaluate(() => ({
   confirmed: document.querySelector("#confirmed-surface").getBoundingClientRect().width,
   working: document.querySelector("#working-surface").getBoundingClientRect().width,
   columns: getComputedStyle(document.querySelector("#panes")).gridTemplateColumns,
 }));
+
+// Both panes' visible frames, from the provider's own contract.
+const bothFrames = async target => ({
+  confirmed: (await visibleFrame(target, "confirmed"))?.frame ?? null,
+  working: (await visibleFrame(target, "working"))?.frame ?? null,
+});
+
+// What each pane's embed says it presents. Only the pinned provider (ui#308)
+// marks these; an older one would ignore the option without a word and keep its
+// own chrome over the cells, so a missing marker is a wrong pin, not a detail.
+const presentations = target => target.evaluate(() => Object.fromEntries(["confirmed", "working"].map(pane => {
+  const frame = document.querySelector(`#${pane}-surface iframe[data-package="semantic-map"]`);
+  return [pane, {
+    iframe: frame?.dataset.presentation ?? null,
+    document: frame?.contentDocument?.documentElement?.dataset.presentation ?? null,
+  }];
+})));
+const CHROME_FREE = { iframe: "chrome-free", document: "chrome-free" };
 
 // Whether a box is wholly inside a frame, in the view's own coordinates.
 const insideFrame = (box, frame) => box[0] >= frame[0] && box[1] >= frame[1]
@@ -459,8 +478,55 @@ const countJev = target => {
 const addGolden = readGolden(goldenPath, wav);
 const correctionGolden = readGolden(correctionGoldenPath, correctionWav);
 
+// VOICE_E2E_FOCUS=diagram runs only (xix) and (xx): each opens a fresh browser
+// from the genesis graph and empty storage and depends on nothing an earlier
+// section did, so they prove the same thing on their own. Their Jev turns are
+// the real Jev's, exactly as in the full run; nothing here is mocked that the
+// full run does not also craft. It does not replace the full run: sections
+// (i)-(xviii) are not executed, and the result line says so - it is never the
+// full run's "local-voice-graph-e2e: PASS". Any other value is refused.
+const FOCUS = process.env.VOICE_E2E_FOCUS ?? "";
+assert.ok(FOCUS === "" || FOCUS === "diagram", `VOICE_E2E_FOCUS must be unset or "diagram", not ${JSON.stringify(FOCUS)}`);
+const focused = FOCUS === "diagram";
+
+// Shared by the sections that run in both modes.
+const jevUrl = new URL("/api/jev", url).href;
+// A Jev answer crafted from the request it answers, for turns where geometry
+// or the app's own refusal - not Jev's hearing - is what is under test.
+const craftFor = (sent, answers) => ({
+  kind: "voice-ui.jev.decision.v4",
+  model: "jev-test",
+  answers: {
+    source: { type: "choice", choice: "none", confidence: 0.9 },
+    target: { type: "choice", choice: "none", confidence: 0.9 },
+    part: { type: "choice", choice: "none", confidence: 0.9 },
+    ...(sent.state.working.placeable.length >= 2
+      ? {
+        move: { type: "choice", choice: "none", confidence: 0.9 },
+        anchor: { type: "choice", choice: "none", confidence: 0.9 },
+        direction: { type: "choice", choice: "none", confidence: 0.9 },
+      }
+      : {}),
+    ...(sent.state.working.edges.length > 0 ? { edge: { type: "choice", choice: "none", confidence: 0.9 } } : {}),
+    ...(sent.state.candidates?.length > 0 ? { diagram: { type: "choice", choice: "none", confidence: 0.9 } } : {}),
+    ...answers,
+  },
+});
+const answerFrom = answers => route => route.fulfill({
+  status: 200,
+  contentType: "application/json; charset=utf-8",
+  body: JSON.stringify(craftFor(JSON.parse(route.request().postData()), answers)),
+});
+
+let page;
+// What sections (i)-(xviii) report, captured while their values are in scope.
+let fullRunSummary = null;
+
+// Sections (i)-(xviii), the full run only. The body is not re-indented, to
+// keep this change to its boundaries.
+if (!focused) {
 const first = await openBrowser(wav);
-let page = first.page;
+page = first.page;
 
 const navigation = await page.goto(url, { waitUntil: "commit", timeout: 120000 });
 assert.equal(navigation?.status(), 200);
@@ -798,7 +864,6 @@ await press(page, "#discard");
 // Jev request is held at the network until the controls have been read.
 await type(page, "add an edge from c to a");
 assert.deepEqual((await screen(page)).draft, [`+${edgeC}`]);
-const jevUrl = new URL("/api/jev", url).href;
 let releaseJev;
 const heldJev = new Promise(resolve => { releaseJev = resolve; });
 await page.route(jevUrl, async route => {
@@ -1177,6 +1242,11 @@ const widths = await mountWidths(page);
 assert.equal(widths.working, widths.confirmed,
   `the guard asks 作業図 only, which needs both panes the same width: ${JSON.stringify(widths)}`);
 assert.match(widths.columns, /^([\d.]+)px \1px$/u, `#panes must resolve to two equal columns: ${widths.columns}`);
+assert.deepEqual(await presentations(page), { confirmed: CHROME_FREE, working: CHROME_FREE },
+  "both panes are drawn by the pinned provider's chrome-free presentation");
+const framesAtStart = await bothFrames(page);
+assert.deepEqual(framesAtStart.confirmed, framesAtStart.working,
+  `and both are given the same View.frame: ${JSON.stringify(framesAtStart)}`);
 
 // What 作業図 is showing. With no unapplied step both panes show the same head,
 // which is exactly why head can never be what tells the panes apart.
@@ -2094,50 +2164,39 @@ assert.deepEqual((await screen(page)).draft, [], "and the graph is back to what 
 // (xvi-f) R's counterexample (D): more parts than the pane shows. The layout
 // contract keeps bounds for every part, on screen or not, and the renderer
 // builds cells in a margin band nobody sees - so neither can say what a person
-// could name. Every answer here is crafted from the request it answers, so the
-// geometry, not Jev's hearing, decides the outcome.
-const craftFor = (sent, answers) => ({
-  kind: "voice-ui.jev.decision.v4",
-  model: "jev-test",
-  answers: {
-    source: { type: "choice", choice: "none", confidence: 0.9 },
-    target: { type: "choice", choice: "none", confidence: 0.9 },
-    part: { type: "choice", choice: "none", confidence: 0.9 },
-    ...(sent.state.working.placeable.length >= 2
-      ? {
-        move: { type: "choice", choice: "none", confidence: 0.9 },
-        anchor: { type: "choice", choice: "none", confidence: 0.9 },
-        direction: { type: "choice", choice: "none", confidence: 0.9 },
-      }
-      : {}),
-    ...(sent.state.working.edges.length > 0 ? { edge: { type: "choice", choice: "none", confidence: 0.9 } } : {}),
-    ...(sent.state.candidates?.length > 0 ? { diagram: { type: "choice", choice: "none", confidence: 0.9 } } : {}),
-    ...answers,
-  },
-});
-const answerFrom = answers => route => route.fulfill({
-  status: 200,
-  contentType: "application/json; charset=utf-8",
-  body: JSON.stringify(craftFor(JSON.parse(route.request().postData()), answers)),
-});
+// could name. Every answer here is crafted from the request it answers
+// (craftFor), so the geometry, not Jev's hearing, decides the outcome.
 const tallBefore = await screen(page);
 assert.deepEqual(tallBefore.draft, [], "precondition: nothing unapplied");
 
-// Grow 作業図 one crafted part at a time until the pane no longer holds them all.
+// Grow 作業図 by crafted parts. Each drawing fits the camera to the whole
+// working graph, so growth alone never pushes a part off the pane - that is
+// asserted, not assumed. The camera does not follow a later resize, though,
+// so a shorter window afterwards really does leave parts outside the frame:
+// that is the pane this guard is about.
 const addDecision = { action: { type: "choice", choice: "add-part", confidence: 0.95 },
   part: { type: "choice", choice: "decision", confidence: 0.95 } };
-let tall = null;
-for (let index = 0; index < 7 && tall === null; index += 1) {
+for (let index = 0; index < 4; index += 1) {
   await page.route(jevUrl, answerFrom(addDecision), { times: 1 });
   await type(page, `add decision number ${index + 1} to the tall graph`);
   assert.equal((await screen(page)).state, "drafted", "each crafted part is one working step");
   const cells = await boxes(page, "working");
   const frameNow = (await visibleFrame(page, "working")).frame;
-  const regions = Object.keys(cells).filter(id => id !== "root");
-  const cutOff = regions.filter(id => !insideFrame(cells[id].box, frameNow));
-  if (cutOff.length > 0) tall = { cells, frame: frameNow };
+  const cutOff = Object.keys(cells).filter(id => id !== "root" && !insideFrame(cells[id].box, frameNow));
+  assert.deepEqual(cutOff, [], `a drawing fits the whole working graph, so no part is off the pane: ${JSON.stringify({ cutOff, frameNow })}`);
 }
-assert.notEqual(tall, null, "precondition: seven more parts carry the graph past the pane");
+const tallFrom = page.viewportSize();
+let tall = null;
+for (const height of [600, 520, 440, 380, 320]) {
+  if (tall !== null) break;
+  await page.setViewportSize({ width: tallFrom.width, height });
+  await page.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))));
+  const cells = await boxes(page, "working");
+  const frameNow = (await visibleFrame(page, "working")).frame;
+  const cutOff = Object.keys(cells).filter(id => id !== "root" && !insideFrame(cells[id].box, frameNow));
+  if (cutOff.length > 0) tall = { cells, frame: frameNow, height };
+}
+assert.notEqual(tall, null, "precondition: a shorter window leaves some parts past the pane");
 
 // The offer. The request is built from the frame read as it is sent: exactly
 // the parts wholly inside it, whatever the layout contract or the cells say.
@@ -2259,7 +2318,8 @@ const wideScreen = await screen(page);
 assert.equal(wideScreen.state, "drafted", `with the anchor on the pane it is a placement: ${wideScreen.status}`);
 assert.deepEqual(wideScreen.draft.at(-1), `~${cutAnchor.mover}`);
 assert.deepEqual((await boxes(page, "working"))[cutAnchor.mover].box, cutAnchor.spot, "drawn exactly beside it");
-const tallGuard = `${offeredTall.length} of ${allParts.length} parts offered on a tall graph; `
+const tallGuard = `every drawing fit the growing graph; a ${tall.height} px window then left parts off the pane - `
+  + `${offeredTall.length} of ${allParts.length} parts offered; `
   + `${cutAnchor.mover} ${cutAnchor.side} of ${cutAnchor.anchor} refused once the pane cut the anchor off, placed once it did not`;
 
 await press(page, "#discard");
@@ -2381,6 +2441,42 @@ assert.deepEqual(await panes(page), { confirmed: [voiceEdge, flip(typedEdge)].so
 
 await second.browser.close();
 
+fullRunSummary = {
+  head: `spoken add "${voiceAdd.sent.state.utterance}" -> 作業図 only, applied edge=${voiceEdge} `
+    + `| each voice press: one click, 0 text focus, 0 Send, [${voiceAdd.trace.join(" ")}], 1 Jev request `
+    + `| every step shows its exact text (認識文/入力文) and verified effect through Undo, revert, refused and successful Apply, reload; `
+    + `${inputsSent.size} distinct inputs: earlier ones reach Jev only in state.context.recent, which equalled the panel on every request, `
+    + "never stored or logged; markup-like text literal "
+    + "| recent conversation: step, undone by Undo and Discard, undo-request and no-change kept, >200 characters counted not sent, "
+    + "window of 5, kept by Apply, erased by reload and 会話をクリア, nothing from blank input or timeouts "
+    + `| part: one typed request drew ${rebuiltId}「判断 2」 on 作業図 only, the next request carried it as an effect, `
+    + `Undo removed it and spent its name (${partId} never reused), Apply and reload kept it, `
+    + "lone-part revert drafted then discarded, a part with an edge is not revertable "
+    + `| placement: "${placed.sent.state.utterance}" -> ${moveId} ${direction} ${anchorId}, `
+    + `drawn cell present and rendered at ${JSON.stringify(target)} (was ${JSON.stringify(drawnBefore[moveId].box)}), `
+    + `wholly inside the pane, every other part unmoved; visible frame ${JSON.stringify(frameBefore.frame)} `
+    + `at head ${frameBefore.head.slice(0, 14)}, panes equal at ${widths.working}px; `
+    + `ceiling in the same run: ${JSON.stringify(ceilingSpot)} is outside that frame - ${offscreenGuard}; `
+    + "Apply and reload draw it in the same place in both panes, revert puts it back drawn "
+    + `| one-slot repair: real Jev completed "相手は${anchorId}です" into ${moveId} above ${anchorId}, `
+    + "both texts shown with their sources, blank not spent, failure/self/unrelated/timeout each drop it, "
+    + "Undo/Discard/Apply/Revert/reload each drop it; a held piece is dropped once the pane changes "
+    + "| diagnostic: frame ok, null (pane hidden) and head-mismatch (pane on another head) each named on a held turn; "
+    + "cleared by Undo, Discard, Apply, Revert and 会話をクリア "
+    + `| tall graph: ${tallGuard} `,
+  tail: `| refused microphone: [${voicePhases(refusalTrace).map(entry => entry.kind).join(" ")}], 0 Jev requests, nothing changed, controls given back `
+    + `| embedded Accept [${embeddedAccepts.join("; ")}] / [${correctionAccepts.join("; ")}] `
+    + `| corrupt and foreign logs fail closed | typed ${edgeA}, ${edgeB}: 2 undos, then 2-step apply `
+    + `| empty input (0 Jev requests), undo-request and none change nothing | relation revert applied, overtaken revert refused `
+    + `| controls locked while a request is in flight, answer on its own revision (${heldEdge}) `
+    + `| unanswered request failed at ${hangMs} ms, late answer dropped, 504 provider_timeout reported, `
+    + "controls given back and nothing changed, both retries answered "
+    + `| cap 8 with 0 Jev requests at the cap | quota and other-tab Apply refused, working steps kept | reload drops the working steps `
+    + `| saved-but-undrawn blocks, reload draws it | browser 2: typed ${typedEdge}, then spoken "${heard.sent.state.utterance}" `
+    + "-> reverse of the focused step, applied with it, restored after reload\n",
+};
+}
+
 // (xix) A whole diagram by purpose. A fresh browser, so the proof starts from
 // the genesis graph and empty storage. Every Jev answer in this section is the
 // real Jev's. The diagram's roles, steps, labels and links are the app's; Jev
@@ -2501,10 +2597,29 @@ for (const link of composedLinks) {
   assert.equal(drawn.endArrow, "classic", `${link} has an arrowhead at ${to}`);
   assert.equal(drawn.rendered, true, `${link} is painted`);
 }
-// Where the lanes and the parts already there sit, measured - not claimed.
-const laneLayout = diagramCells[laneA].box[0] + diagramCells[laneA].box[2] <= diagramCells[laneB].box[0]
-  ? "columns side by side" : diagramCells[laneA].box[1] + diagramCells[laneA].box[3] <= diagramCells[laneB].box[1]
-    ? "bands one above the other" : "overlapping";
+// The shape of a cross-functional flow, measured from the drawn cells: the two
+// lanes are bands one above the other - disjoint in y, overlapping in x - and
+// the steps run left to right in flow order.
+const bandsDrawn = (cells, lanes, steps) => {
+  const [boxA, boxB] = lanes.map(id => cells[id].box);
+  const xs = steps.map(id => cells[id].box[0]);
+  return {
+    bands: boxA[1] + boxA[3] <= boxB[1] && boxA[0] < boxB[0] + boxB[2] && boxB[0] < boxA[0] + boxA[2],
+    flow: xs[0] < xs[1] && xs[1] < xs[2],
+    lanes: [boxA, boxB],
+    xs,
+  };
+};
+const diagramBands = bandsDrawn(diagramCells, [laneA, laneB], [stepSubmit, stepReview, stepReceive]);
+assert.ok(diagramBands.bands, `the lanes are drawn as bands one above the other: ${JSON.stringify(diagramBands.lanes)}`);
+assert.ok(diagramBands.flow, `the steps are drawn left to right in flow order: ${JSON.stringify(diagramBands.xs)}`);
+const laneLayout = `bands one above the other ${JSON.stringify(diagramBands.lanes)}, steps at x ${diagramBands.xs.join(" < ")}`;
+// Both panes are the pinned provider's chrome-free presentation, and show the
+// same frame: 確定図 was drawn again at the frame the grown working graph needs.
+assert.deepEqual(await presentations(page), { confirmed: CHROME_FREE, working: CHROME_FREE });
+const framesComposed = await bothFrames(page);
+assert.deepEqual(framesComposed.confirmed, framesComposed.working,
+  `both panes show the same frame after the diagram: ${JSON.stringify(framesComposed)}`);
 const genesisOnPane = ["node-a", "node-b", "node-c"].filter(id => diagramCells[id] && insideFrame(diagramCells[id].box, diagramFrame));
 // Whether each step's own shape is what a click at its centre reaches, or the
 // embed's own controls cover it.
@@ -2528,21 +2643,39 @@ if (process.env.VOICE_DIAGRAM_SHOTS) {
   await page.screenshot({ path: path.join(process.env.VOICE_DIAGRAM_SHOTS, "first-screen-drafted.png") });
 }
 
-// Seen, not only laid out: in this 1280x720 window, with the page exactly as
-// the request left it - never scrolled - each lane and step of the diagram, and
-// its label, is what the person reaches at nine points across it, with nothing
-// of the page or of the embed's own buttons over it. A point counts only if it
-// is inside the window, the page hit-tests to the pane there, and the pane
-// hit-tests to its own graph drawing.
+// Seen, not only laid out: with the page exactly as the request left it -
+// never scrolled - each lane and step of the diagram, and its label, is what
+// the person reaches at nine points across it. A point counts only if it is
+// inside the window, the page hit-tests to the pane there, and inside the pane
+// what is there is this cell's own shape or label, a cell nested in it, a link,
+// or the graph's empty background. Another cell there - one band over the
+// other's label, a step over a part already placed - does not count, nor does
+// anything of the embed's own, nor maxGraph's in-cell editor (which only a
+// double-click opens, and which is reported, never counted as clear).
 const unobscured = id => page.evaluate(id => {
   const frame = document.querySelector('#working-surface iframe[data-package="semantic-map"]');
   const adapter = frame.contentWindow.semanticMapApp.adapter;
-  const state = adapter.graph.getView().getState(adapter.cellsByRegionId.get(id));
+  const view = adapter.graph.getView();
+  const cell = adapter.cellsByRegionId.get(id);
+  const state = view.getState(cell);
   const shape = state?.shape?.node;
   const text = state?.text?.node;
   if (!shape?.isConnected || !text?.isConnected) return { drawn: false };
-  const svg = shape.ownerSVGElement;
+  const container = frame.contentDocument.querySelector("#graph-container");
+  // maxGraph's own cell tree is flat; which region a cell sits in is the
+  // projection's parentRegionId the view put on it.
+  const parentOf = regionId => adapter.cellsByRegionId.get(regionId)?.semantic?.parentRegionId ?? null;
+  const within = (inner, outer) => {
+    for (let at = inner; at != null; at = parentOf(at)) if (at === outer) return true;
+    return false;
+  };
+  const owners = [];
+  for (const [regionId, other] of adapter.cellsByRegionId) {
+    const drawn = view.getState(other);
+    for (const node of [drawn?.shape?.node, drawn?.text?.node]) if (node) owners.push({ node, regionId, own: within(regionId, id) });
+  }
   const pane = frame.getBoundingClientRect();
+  const blockers = new Set();
   const clear = element => {
     const rect = element.getBoundingClientRect();
     let count = 0;
@@ -2550,26 +2683,32 @@ const unobscured = id => page.evaluate(id => {
       for (const fy of [0.2, 0.5, 0.8]) {
         const x = rect.x + rect.width * fx;
         const y = rect.y + rect.height * fy;
-        if (x < 0 || y < 0 || x > frame.clientWidth || y > frame.clientHeight) continue;
         const pageX = pane.left + frame.clientLeft + x;
         const pageY = pane.top + frame.clientTop + y;
-        if (pageX > innerWidth || pageY > innerHeight) continue;
-        if (document.elementFromPoint(pageX, pageY) !== frame) continue;
+        if (x < 0 || y < 0 || x > frame.clientWidth || y > frame.clientHeight
+          || pageX < 0 || pageY < 0 || pageX > innerWidth || pageY > innerHeight) { blockers.add("outside"); continue; }
+        if (document.elementFromPoint(pageX, pageY) !== frame) { blockers.add("page"); continue; }
         const hit = frame.contentDocument.elementFromPoint(x, y);
-        if (hit && (svg.contains(hit) || text.contains(hit))) count += 1;
+        if (hit === null || !container.contains(hit)) { blockers.add(`embed:${hit?.id || hit?.className || hit?.tagName}`); continue; }
+        if (hit.closest(".mxCellEditor")) { blockers.add("in-cell-editor"); continue; }
+        const owner = owners.find(item => item.node.contains(hit));
+        if (owner && !owner.own) { blockers.add(`cell:${owner.regionId}`); continue; }
+        count += 1;
       }
     }
     return count;
   };
-  return { drawn: true, label: text.textContent.trim(), shape: clear(shape), text: clear(text) };
+  const shapeClear = clear(shape);
+  const textClear = clear(text);
+  return { drawn: true, label: text.textContent.trim(), shape: shapeClear, text: textClear, blockers: [...blockers].sort() };
 }, id);
 await assertFirstScreen("after the purpose request");
 const labelOf = Object.fromEntries([laneA, laneB, stepSubmit, stepReview, stepReceive].map((id, index) =>
-  [id, ["申請者", "承認者", "申請する", "確認して判断する", "結果を受け取る"][index]]));
+  [id, ["申請者", "承認者", "申請する", "承認可否", "結果受領"][index]]));
 const seenCells = {};
 for (const id of composedRegions) {
   seenCells[id] = await unobscured(id);
-  assert.deepEqual(seenCells[id], { drawn: true, label: labelOf[id], shape: 9, text: 9 },
+  assert.deepEqual(seenCells[id], { drawn: true, label: labelOf[id], shape: 9, text: 9, blockers: [] },
     `${id} and its label are drawn and unobscured at 1280x720: ${JSON.stringify(seenCells[id])}`);
 }
 
@@ -2620,6 +2759,9 @@ await assertFirstScreen("after the refinement");
 for (const id of composedRegions) {
   assert.deepEqual(await unobscured(id), seenCells[id], `${id} is still unobscured after the refinement`);
 }
+const framesRefined = await bothFrames(page);
+assert.deepEqual(framesRefined.confirmed, framesRefined.working,
+  `both panes still show the same frame after the refinement: ${JSON.stringify(framesRefined)}`);
 
 // Undo takes the refinement, then the whole diagram - every lane, step and
 // link together - and nothing else.
@@ -2687,6 +2829,87 @@ const diagramSummary = `unsupported "AWS の構成図を作って" -> ${awsScree
   + "applied, revert not offered, reload drew it in both panes";
 await third.browser.close();
 
+// (xx) The same purpose request in a 1366x657 window - a common laptop's inner
+// height - from a fresh browser and the genesis graph. Real Jev for the
+// composition and the refinement; the placed-part counterexample afterwards is
+// crafted, because what it tests is the app's own refusal, not Jev's hearing.
+const fourth = await openBrowser(wav);
+page = fourth.page;
+await page.setViewportSize({ width: 1366, height: 657 });
+await page.goto(url, { waitUntil: "commit", timeout: 120000 });
+await ready(page);
+const laptopStart = await screen(page);
+assert.deepEqual(laptopStart.draft, [], "precondition: a fresh page with nothing unapplied");
+const laptopScreen = await firstScreen(page);
+assert.equal(laptopScreen.scrollY, 0);
+assert.deepEqual(laptopScreen.unreachable, [], `1366x657 first screen: ${JSON.stringify(laptopScreen)}`);
+const laptopAsked = await type(page, "申請して承認してもらう流れを図にして");
+assert.notEqual(laptopAsked.decision.model, "jev-test", "answered by the real Jev");
+assert.equal(laptopAsked.decision.answers.diagram.choice, "request-approval-flow",
+  `the real Jev must choose the approval flow: ${JSON.stringify(laptopAsked.decision.answers)}`);
+const laptopDrafted = await screen(page);
+assert.equal(laptopDrafted.state, "drafted", laptopDrafted.status);
+const laptopRegions = [...laptopDrafted.draft[0].matchAll(/\+(part-\d+)「/gu)].map(match => match[1]);
+assert.equal(laptopRegions.length, 5);
+const [laptopLaneA, laptopLaneB, laptopSubmit, laptopReview, laptopReceive] = laptopRegions;
+const laptopCells = await boxes(page, "working");
+const laptopBands = bandsDrawn(laptopCells, [laptopLaneA, laptopLaneB], [laptopSubmit, laptopReview, laptopReceive]);
+assert.ok(laptopBands.bands && laptopBands.flow, `bands and flow order at 1366x657: ${JSON.stringify(laptopBands)}`);
+assert.deepEqual(await presentations(page), { confirmed: CHROME_FREE, working: CHROME_FREE });
+const laptopLabels = Object.fromEntries(laptopRegions.map((id, index) =>
+  [id, ["申請者", "承認者", "申請する", "承認可否", "結果受領"][index]]));
+const laptopSeen = async when => {
+  const now = await firstScreen(page);
+  assert.equal(now.scrollY, 0, `${when}: the page was not scrolled`);
+  assert.deepEqual(now.unreachable, [], `${when}: input, buttons and notices reachable: ${JSON.stringify(now)}`);
+  for (const id of laptopRegions) {
+    assert.deepEqual(await unobscured(id), { drawn: true, label: laptopLabels[id], shape: 9, text: 9, blockers: [] },
+      `${when}: ${id} and its label are unobscured at 1366x657`);
+  }
+  const frames = await bothFrames(page);
+  assert.deepEqual(frames.confirmed, frames.working, `${when}: both panes show the same frame: ${JSON.stringify(frames)}`);
+  return now;
+};
+const laptopComposed = await laptopSeen("1366x657 after the purpose request");
+const laptopRefined = await type(page, `${laptopReview} から ${laptopSubmit} へ差し戻しの矢印を足して`);
+assert.equal(laptopRefined.decision.answers.action.choice, "add-edge",
+  `the real Jev must hear one more link: ${JSON.stringify(laptopRefined.decision.answers)}`);
+assert.equal((await screen(page)).state, "drafted");
+const laptopAfter = await laptopSeen("1366x657 after the refinement");
+assert.deepEqual(laptopAfter.tops, laptopComposed.tops, "neither graph moved with the refinement");
+
+// A diagram is never drawn over a part the person placed: node-c put beside
+// node-a, into the space the bands would take, then the same diagram asked for.
+await press(page, "#discard");
+await page.route(jevUrl, answerFrom({
+  action: { type: "choice", choice: "place-part", confidence: 0.95 },
+  move: { type: "choice", choice: "node-c", confidence: 0.95 },
+  anchor: { type: "choice", choice: "node-a", confidence: 0.95 },
+  direction: { type: "choice", choice: "right", confidence: 0.95 },
+}), { times: 1 });
+await type(page, "node-c を node-a の右に置いて");
+const placedFirst = await screen(page);
+assert.equal(placedFirst.state, "drafted",
+  `precondition: node-c is placed: ${placedFirst.status} | page failure: ${placedFirst.failure}`);
+const cellsPlaced = await boxes(page, "working");
+await page.route(jevUrl, answerFrom({
+  action: { type: "choice", choice: "compose-diagram", confidence: 0.95 },
+  diagram: { type: "choice", choice: "request-approval-flow", confidence: 0.95 },
+}), { times: 1 });
+await type(page, "申請して承認してもらう流れを図にして");
+const noRoom = await screen(page);
+assert.equal(noRoom.state, "no-change",
+  `a diagram over a placed part is a no-change: ${noRoom.status} | page failure: ${noRoom.failure}`);
+assert.match(noRoom.status, /図を置く場所にほかの部品があります/u, "and it says why");
+assert.deepEqual(noRoom.draft, placedFirst.draft, "the draft is untouched");
+assert.deepEqual(await boxes(page, "working"), cellsPlaced, "and nothing on the screen moved");
+assert.equal(noRoom.stored, laptopStart.stored, "nothing was saved");
+const laptopSummary = `1366x657 (fresh browser, real Jev): "${laptopAsked.sent.state.utterance}" -> bands `
+  + `${JSON.stringify(laptopBands.lanes)}, steps at x ${laptopBands.xs.join(" < ")}, every lane and step and its label 9/9 `
+  + `before and after the real refinement ${laptopReview}->${laptopSubmit}, never scrolled, equal pane frames; `
+  + `a crafted compose over a placed node-c -> "${noRoom.status}", nothing drawn`;
+await fourth.browser.close();
+
 assert.deepEqual(errors, []);
 assert.deepEqual(failedResponses, []);
 for (const input of inputsSent) {
@@ -2695,39 +2918,17 @@ for (const input of inputsSent) {
 await Promise.all(pendingCounts);
 assert.ok(craftedAnswered > 0, "precondition: the crafted turns were answered and counted apart");
 
-process.stdout.write(
-  `local-voice-graph-e2e: PASS spoken add "${voiceAdd.sent.state.utterance}" -> 作業図 only, applied edge=${voiceEdge} `
-  + `| each voice press: one click, 0 text focus, 0 Send, [${voiceAdd.trace.join(" ")}], 1 Jev request `
-  + `| every step shows its exact text (認識文/入力文) and verified effect through Undo, revert, refused and successful Apply, reload; `
-  + `${inputsSent.size} distinct inputs: earlier ones reach Jev only in state.context.recent, which equalled the panel on every request, `
-  + "never stored or logged; markup-like text literal "
-  + "| recent conversation: step, undone by Undo and Discard, undo-request and no-change kept, >200 characters counted not sent, "
-  + "window of 5, kept by Apply, erased by reload and 会話をクリア, nothing from blank input or timeouts "
-  + `| part: one typed request drew ${rebuiltId}「判断 2」 on 作業図 only, the next request carried it as an effect, `
-  + `Undo removed it and spent its name (${partId} never reused), Apply and reload kept it, `
-  + "lone-part revert drafted then discarded, a part with an edge is not revertable "
-  + `| placement: "${placed.sent.state.utterance}" -> ${moveId} ${direction} ${anchorId}, `
-  + `drawn cell present and rendered at ${JSON.stringify(target)} (was ${JSON.stringify(drawnBefore[moveId].box)}), `
-  + `wholly inside the pane, every other part unmoved; visible frame ${JSON.stringify(frameBefore.frame)} `
-  + `at head ${frameBefore.head.slice(0, 14)}, panes equal at ${widths.working}px; `
-  + `ceiling in the same run: ${JSON.stringify(ceilingSpot)} is outside that frame - ${offscreenGuard}; `
-  + "Apply and reload draw it in the same place in both panes, revert puts it back drawn "
-  + `| one-slot repair: real Jev completed "相手は${anchorId}です" into ${moveId} above ${anchorId}, `
-  + "both texts shown with their sources, blank not spent, failure/self/unrelated/timeout each drop it, "
-  + "Undo/Discard/Apply/Revert/reload each drop it; a held piece is dropped once the pane changes "
-  + "| diagnostic: frame ok, null (pane hidden) and head-mismatch (pane on another head) each named on a held turn; "
-  + "cleared by Undo, Discard, Apply, Revert and 会話をクリア "
-  + `| tall graph: ${tallGuard} `
-  + `| ${jevAnswered} real Jev answers in this run, ${craftedAnswered} crafted by the test `
+const diagramParts = `| ${jevAnswered} real Jev answers in this run, ${craftedAnswered} crafted by the test `
   + `| whole diagram (fresh browser, real Jev): ${diagramSummary} `
-  + `| refused microphone: [${voicePhases(refusalTrace).map(entry => entry.kind).join(" ")}], 0 Jev requests, nothing changed, controls given back `
-  + `| embedded Accept [${embeddedAccepts.join("; ")}] / [${correctionAccepts.join("; ")}] `
-  + `| corrupt and foreign logs fail closed | typed ${edgeA}, ${edgeB}: 2 undos, then 2-step apply `
-  + `| empty input (0 Jev requests), undo-request and none change nothing | relation revert applied, overtaken revert refused `
-  + `| controls locked while a request is in flight, answer on its own revision (${heldEdge}) `
-  + `| unanswered request failed at ${hangMs} ms, late answer dropped, 504 provider_timeout reported, `
-  + "controls given back and nothing changed, both retries answered "
-  + `| cap 8 with 0 Jev requests at the cap | quota and other-tab Apply refused, working steps kept | reload drops the working steps `
-  + `| saved-but-undrawn blocks, reload draws it | browser 2: typed ${typedEdge}, then spoken "${heard.sent.state.utterance}" `
-  + `-> reverse of the focused step, applied with it, restored after reload\n`,
-);
+  + `| ${laptopSummary} `;
+if (focused) {
+  // Never the full run's PASS line: it names what did not run.
+  assert.equal(fullRunSummary, null, "focused mode ran none of sections (i)-(xviii)");
+  process.stdout.write(
+    "local-voice-graph-e2e: FOCUSED diagram sections (xix)-(xx) PASS; sections (i)-(xviii) NOT RUN "
+    + `${diagramParts}\n`,
+  );
+} else {
+  assert.notEqual(fullRunSummary, null, "the full run reached the end of section (xviii)");
+  process.stdout.write(`local-voice-graph-e2e: PASS ${fullRunSummary.head}${diagramParts}${fullRunSummary.tail}`);
+}

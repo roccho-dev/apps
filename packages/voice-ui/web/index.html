@@ -15,24 +15,30 @@
       #band p { margin: 2px 0; min-height: 1.4em; line-height: 1.4; }
       .pane-head { display: flex; gap: 8px; align-items: center; height: 2.4rem; }
       .pane-head h2 { margin: 0; font-size: 1.2rem; }
-      /* Both panes the same height, so the frame read from 作業図 still holds
-         for 確定図. The embed sizes itself min(78vh, 900px) and keeps its own
-         buttons docked along its bottom edge; the graph sits in the middle.
-         Measured in a 1280x720 window with the composed diagram, varying only
-         the pane height: at 562-640 px the dock covers the approver's lane and
-         the decision step, and from 660 px they fall below the window. The
-         70 px is an empirical offset, not the height of the band above the
-         panes (they start about 143 px down): it puts the dock just below the
-         window's bottom edge. Proven for 1280x720 only; below about 700 px of
-         window height the dock covers the decision step again. */
-      #confirmed-surface iframe, #working-surface iframe { height: calc(100vh - 70px) !important; }
+      /* The first screen is the band and both graphs, filling the window by
+         layout alone: the graphs take whatever height the band leaves, so no
+         window size puts them below the fold. The embed is asked for its
+         chrome-free presentation (src/render.mjs), so nothing of its own sits
+         over the cells, and its own sizing - min(78vh, 900px), at least 560 px -
+         is replaced by the pane's box. Both panes have the same box, so the
+         frame read from 作業図 still holds for 確定図. What grows with use - the
+         history, the unapplied steps, the conversation - comes after it. */
+      body { margin: 0; }
+      #stage { box-sizing: border-box; height: 100vh; padding: 8px; display: flex; flex-direction: column; }
+      #panes { flex: 1; min-height: 0; grid-template-rows: minmax(0, 1fr); }
+      #panes > section { display: flex; flex-direction: column; min-height: 0; }
+      #confirmed-surface, #working-surface { flex: 1; min-height: 0; }
+      #confirmed-surface iframe, #working-surface iframe { height: 100% !important; min-height: 0 !important; }
+      #pane-details { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; padding: 0 8px; }
+      #context { padding: 0 8px; }
     </style>
   </head>
   <body>
     <main>
       <!-- One short band, then both graphs: what was just said and what it
            drew are on the first screen together, and the next utterance can
-           follow at once. Nothing above the graphs grows with use. -->
+           follow at once. Nothing on this screen grows with use. -->
+      <div id="stage">
       <div id="band">
         <div id="composer">
           <textarea id="text" aria-label="Input" rows="1"></textarea>
@@ -49,7 +55,6 @@
         <section id="confirmed" aria-label="確定図">
           <div class="pane-head"><h2>確定図</h2></div>
           <div id="confirmed-surface"></div>
-          <section id="history" aria-label="確定図の履歴"></section>
         </section>
         <!-- Right: the working graph. Speech and typing change only this. -->
         <section id="working" aria-label="作業図">
@@ -60,10 +65,18 @@
             <button id="apply" type="button">確定図に反映</button>
           </div>
           <div id="working-surface"></div>
+        </section>
+      </div>
+      </div>
+      <!-- Under each graph, what grows with use: 確定図's history, 作業図's
+           unapplied steps. -->
+      <div id="pane-details">
+        <section id="history" aria-label="確定図の履歴"></section>
+        <div id="working-details">
           <h3 id="draft-heading">未反映の操作</h3>
           <ol id="draft" aria-labelledby="draft-heading"></ol>
           <p id="draft-count"></p>
-        </section>
+        </div>
       </div>
       <!-- Earlier utterances Jev judged, exactly as the next request sends them.
            Unverified: only to help Jev understand what an utterance refers to. -->
@@ -141,7 +154,7 @@
       const contextSkipped = document.querySelector("#context-skipped");
       const contextClear = document.querySelector("#context-clear");
 
-      const protocol = { appendDecision, createDecision, createEnvelope };
+      const protocol = { appendDecision, createDecision, createEnvelope, layoutBoundsFor };
 
       // The only place in the app that touches browser storage. history.mjs is
       // pure and takes these as collaborators, so the restore contract stays
@@ -560,16 +573,18 @@
         }
       };
 
-      // What 作業図 is showing right now, answered by the provider. The pane's
-      // camera does not follow the diagram as it grows, so this is a finite
-      // window: once a spot falls outside it there is no placement there, and
-      // the app says so rather than proposing something nobody can see.
+      // What 作業図 is showing right now, answered by the provider. Each drawing
+      // fits the camera to the whole working graph (see graphIr), but the
+      // camera does not follow later - a resize, say - so this is still a
+      // finite window: once a spot falls outside it there is no placement
+      // there, and the app says so rather than proposing something nobody can
+      // see.
       //
-      // Only 作業図 is asked, which is sound while the two panes are the same
-      // size - #panes is a 1fr 1fr grid and the embed fixes its own height, so
-      // both cameras resolve alike. A different ratio would need 確定図 asked
-      // too, and the browser test asserts the widths are equal so that change
-      // cannot pass unnoticed.
+      // Only 作業図 is asked, which is sound while the two panes show the same
+      // frame: both have the same box (#panes is a 1fr 1fr grid of equal
+      // sections) and both are given the same View.frame. The browser test
+      // asserts equal widths and equal frames, so a change to either cannot
+      // pass unnoticed.
       const workingVisibleFrame = () => {
         try {
           return visibleFrameOf(workingSurface);
@@ -578,11 +593,11 @@
         }
       };
 
-      // The pane's camera does not follow the graph, so a large step - a whole
-      // diagram above all - can leave parts that were on screen outside it. They
-      // are still in 作業図; the person is told which ones, never that they are
-      // still visible. Read after each drawing of 作業図; a frame that cannot be
-      // read is said to be unknown rather than taken as "all visible".
+      // Each drawing fits the whole working graph, but the camera does not
+      // follow a later resize, so parts can still end up outside the pane.
+      // They are still in 作業図; the person is told which ones, never that
+      // they are still visible. Read after each drawing of 作業図; a frame that
+      // cannot be read is said to be unknown rather than taken as "all visible".
       const renderOutOfView = () => {
         const layout = workingLayout();
         const shown = workingVisibleFrame();
@@ -782,14 +797,68 @@
         return decideStep(value, "voice");
       };
 
+      // Where both panes point their cameras: the public View.frame, fitted to
+      // the whole working graph as the provider lays it out, in the pixels the
+      // pane's own box gives it. Both panes get the same frame - 確定図 shows
+      // its smaller graph at 作業図's scale - so the frame read from 作業図
+      // holds for 確定図. No frame when there is nothing to fit: a graph the
+      // view cannot lay out, or a pane with no box (hidden).
+      const frameFor = graph => {
+        const width = workingSurface.clientWidth;
+        const height = workingSurface.clientHeight;
+        if (!(width > 0 && height > 0)) return null;
+        try {
+          const { rootBounds } = layoutBoundsFor(graph.records, { pattern: GRAPH_PATTERN });
+          return { bbox: [...rootBounds], viewport: [width, height] };
+        } catch {
+          return null;
+        }
+      };
+      const sameFrame = (left, right) => JSON.stringify(left) === JSON.stringify(right);
+
       // Each pane draws a plain graph: no proposal overlay, no review controls
-      // that could stand in for 確定図に反映.
-      const graphIr = async current => ({
-        kind: "ui.ir.v1",
-        capability: "render.semantic-map",
-        payloadKind: "semantic-map-envelope/3",
-        payload: await createEnvelope(current.log, null, { pattern: GRAPH_PATTERN }),
-      });
+      // that could stand in for 確定図に反映. `frameGraph` is the working graph
+      // the camera is fitted to, which for 作業図 is the graph it draws.
+      const graphIr = async (current, frameGraph = current) => {
+        const frame = frameFor(frameGraph);
+        return {
+          kind: "ui.ir.v1",
+          capability: "render.semantic-map",
+          payloadKind: "semantic-map-envelope/3",
+          payload: await createEnvelope(current.log, null, {
+            pattern: GRAPH_PATTERN,
+            ...(frame === null ? {} : { frame }),
+          }),
+        };
+      };
+
+      // 確定図 is drawn at the frame 作業図 has now. It is drawn again only when
+      // that frame changed, so an edit that leaves the working graph's extent
+      // alone does not redraw the saved graph.
+      let confirmedFrame;
+      const drawConfirmed = async () => {
+        const frame = frameFor(working);
+        await renderConfirmed(await graphIr(saved, working));
+        confirmedFrame = frame;
+      };
+      const followWorkingFrame = async () => {
+        if (!sameFrame(confirmedFrame, frameFor(working))) await drawConfirmed();
+      };
+      // After a change to 作業図, which stands whatever happens here: redraw
+      // 確定図 at the new frame, or say plainly that it could not be - the two
+      // panes then show different frames - rather than report a clean step.
+      // The next change tries again. Returns true when the page reported it.
+      const followOrReport = async (state, message) => {
+        try {
+          await followWorkingFrame();
+          return false;
+        } catch (error) {
+          confirmedFrame = undefined;
+          setState("confirmed-display-failed", `${message}。ただし確定図を同じ表示範囲で描き直せませんでした`);
+          renderHistory(`display failed (${state}): ${error.message}`);
+          return true;
+        }
+      };
 
       const renderInto = mount => ir => renderUiIr({
         ir,
@@ -867,8 +936,11 @@
           renderDraft();
           renderOutOfView();
           renderContext();
-          setState("drafted", `${prefix}: 作業図に追加しました (未反映)`);
-          renderHistory();
+          const drafted = `${prefix}: 作業図に追加しました (未反映)`;
+          if (!(await followOrReport("drafted", drafted))) {
+            setState("drafted", drafted);
+            renderHistory();
+          }
           return;
         }
         candidate = null;
@@ -987,8 +1059,11 @@
         renderDraft();
         renderOutOfView();
         renderContext();
-        setState("undone", "作業図の最後の変更を元に戻しました");
-        renderHistory();
+        const undone = "作業図の最後の変更を元に戻しました";
+        if (!(await followOrReport("undone", undone))) {
+          setState("undone", undone);
+          renderHistory();
+        }
       }));
 
       // 会話をクリア forgets the recent conversation; the next request sends
@@ -1012,8 +1087,11 @@
         renderDraft();
         renderOutOfView();
         renderContext();
-        setState("discarded", "作業図を破棄しました");
-        renderHistory();
+        const discarded = "作業図を破棄しました";
+        if (!(await followOrReport("discarded", discarded))) {
+          setState("discarded", discarded);
+          renderHistory();
+        }
       }));
 
       // 確定図に反映: the only write to storage and the only change to 確定図.
@@ -1033,7 +1111,7 @@
           draft = [];
           renderDraft();
           savedHistory = await projectHistory(saved, { verifyDecisionLog });
-          await renderConfirmed(await graphIr(saved));
+          await drawConfirmed();
           setState("applied", "確定図に反映しました");
           renderHistory();
         } catch (error) {
@@ -1074,8 +1152,11 @@
           draft = [...draft, step];
           renderDraft();
           renderOutOfView();
-          setState("drafted", "取り消しを作業図に追加しました (未反映)");
-          renderHistory();
+          const reverted = "取り消しを作業図に追加しました (未反映)";
+          if (!(await followOrReport("drafted", reverted))) {
+            setState("drafted", reverted);
+            renderHistory();
+          }
         });
       });
 
@@ -1106,7 +1187,7 @@
       renderContext();
 
       try {
-        await renderConfirmed(await graphIr(saved));
+        await drawConfirmed();
         await renderWorking(await graphIr(working));
         renderOutOfView();
         if (blocked) {

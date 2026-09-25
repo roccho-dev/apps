@@ -1,5 +1,6 @@
 import {
   DecisionRefused,
+  GRAPH_PATTERN,
   MIN_CONFIDENCE,
   RELATION_KIND,
   relationIdFor,
@@ -59,6 +60,12 @@ export const PART_PALETTE = Object.freeze([
 //
 // One candidate for now: two roles handing one request across and back, the
 // smallest shape of a cross-functional (swimlane) flow.
+//
+// Step labels are short on purpose. The view keeps a label's text at a fixed
+// size on screen while the shape shrinks with the camera, and a diamond or an
+// ellipse has little width away from its middle, so a longer label wraps and
+// runs out of its shape into the links. The catalogue test holds every start,
+// decision and end label to four full-width characters.
 export const DIAGRAM_CATALOG = Object.freeze([
   Object.freeze({
     key: "request-approval-flow",
@@ -71,8 +78,8 @@ export const DIAGRAM_CATALOG = Object.freeze([
     ]),
     steps: Object.freeze([
       Object.freeze({ ref: "submit", lane: "requester", label: "申請する", kind: "start" }),
-      Object.freeze({ ref: "review", lane: "approver", label: "確認して判断する", kind: "decision" }),
-      Object.freeze({ ref: "receive", lane: "requester", label: "結果を受け取る", kind: "end" }),
+      Object.freeze({ ref: "review", lane: "approver", label: "承認可否", kind: "decision" }),
+      Object.freeze({ ref: "receive", lane: "requester", label: "結果受領", kind: "end" }),
     ]),
     links: Object.freeze([
       Object.freeze(["submit", "review"]),
@@ -94,8 +101,20 @@ export const diagramCandidatesForJev = () =>
 const LANE_KIND = "group";
 const LANE_HEADER = 120;
 
+// How a composed diagram is drawn: its lanes as bands one above the other,
+// each step inside its own lane's band, all steps in flow order from left to
+// right - the shape of a cross-functional flow. The view would otherwise put
+// the lanes side by side and stack a lane's steps, so the bands are pinned.
+// These are this app's own choices of spacing; the steps keep the size the
+// view gives them.
+const BAND_LABEL_ROOM = 36;
+const BAND_PADDING = 12;
+const BAND_GAP = 16;
+const STEP_GAP = 24;
+
 export const DIAGRAM_NOT_OFFERED = "その種類の図はまだ用意していません。個別の変更は今まで通り指示できます";
 export const DIAGRAM_RESTATE = "どの図を作るのか聞き取れませんでした。作りたい図の目的をもう一度言ってください";
+export const DIAGRAM_NO_ROOM = "図を置く場所にほかの部品があります。その部品を動かすか作業図を破棄してから、もう一度言ってください";
 
 // A new part is the size of an initial node, laid out on a fixed grid inside
 // the enclosing boundary. The graph view lays parts out by itself and ignores
@@ -371,13 +390,21 @@ function readAnswers(answers, criteria) {
 
 // A whole candidate diagram as one set of canonical operations: each lane a
 // region under the enclosing boundary, each step a region inside its lane,
-// each link a directed relation - all in one Decision, so it is proposed,
+// each link a directed relation, and one PinRegions that draws the lanes as
+// bands and the steps in flow order - all in one Decision, so it is proposed,
 // undone and applied whole. Names come from the same counter as parts, so none
-// is ever reused. The graph view lays everything out by itself and ignores
-// record bounds; the bounds given are a deterministic sketch of the swimlane -
-// lanes as horizontal bands below everything already there, steps inside their
-// lane in flow order - so a later spatial view has real, non-overlapping values.
-function composeDiagram(candidate, working, reserved) {
+// is ever reused. Record bounds are only a sketch the graph view ignores; the
+// pins decide where it draws. The pins are layout, not changes Jev is told
+// about: the changes stay the lanes, steps and links.
+//
+// Where the pins go is asked of the provider's own public layout, for exactly
+// the records this Decision adds: the bands start where the view would have
+// put the first lane, which nothing else occupies. The pinned result is laid
+// out again the same way and checked: every pin must be drawn where it was put,
+// and no region may overlap another it is not nested in - a part the person
+// placed there earlier included. If one would, `noRoom` says so and nothing is
+// drawn over it.
+function composeDiagram(candidate, working, reserved, layoutBoundsFor) {
   const records = working.records;
   const root = records.find(record => record?.type === "region" && record.parent === null);
   const first = Number(nextPartId(working, reserved).slice(PART_ID_PREFIX.length));
@@ -438,7 +465,82 @@ function composeDiagram(candidate, working, reserved) {
     });
     changes.push({ change: "added", from: idOf.get(from), to: idOf.get(to) });
   }
-  return { operations, changes };
+
+  // The records these operations add, laid out as the view would lay them out.
+  const added = operations.map(operation => (operation.type === "AddRegion"
+    ? {
+      type: "region",
+      id: operation.regionId,
+      parent: operation.parentId,
+      label: operation.label,
+      kind: operation.kind,
+      bounds: operation.bounds,
+      summary: operation.summary,
+      order: operation.order,
+    }
+    : {
+      type: "relation",
+      id: operation.relationId,
+      from: operation.from,
+      to: operation.to,
+      kind: operation.kind,
+      label: operation.label,
+    }));
+  // A state lists its regions before its relations, and layout pins last.
+  const stateWith = extra => [
+    ...[...records, ...extra].filter(record => record?.type !== "relation" && record?.type !== "layout"),
+    ...[...records, ...extra].filter(record => record?.type === "relation"),
+    ...[...records, ...extra].filter(record => record?.type === "layout"),
+  ];
+  const auto = layoutBoundsFor(stateWith(added), { pattern: GRAPH_PATTERN });
+  const laneIds = candidate.lanes.map(lane => idOf.get(lane.ref));
+  const stepIds = candidate.steps.map(stepSpec => idOf.get(stepSpec.ref));
+  refuse([...laneIds, ...stepIds].every(id => auto.bounds[id] !== undefined), "the view does not place the composed diagram");
+  const stepWidth = Math.max(...stepIds.map(id => auto.bounds[id][2]));
+  const stepHeight = Math.max(...stepIds.map(id => auto.bounds[id][3]));
+  const [x0, y0] = auto.bounds[laneIds[0]];
+  const bandWidth = 2 * BAND_PADDING + stepIds.length * stepWidth + (stepIds.length - 1) * STEP_GAP;
+  const bandHeight = BAND_LABEL_ROOM + stepHeight + BAND_PADDING;
+  const bandY = index => y0 + index * (bandHeight + BAND_GAP);
+  const pins = new Map(laneIds.map((id, index) => [id, [x0, bandY(index), bandWidth, bandHeight]]));
+  candidate.steps.forEach((stepSpec, column) => {
+    const laneIndex = candidate.lanes.findIndex(lane => lane.ref === stepSpec.lane);
+    pins.set(idOf.get(stepSpec.ref), [
+      x0 + BAND_PADDING + column * (stepWidth + STEP_GAP),
+      bandY(laneIndex) + BAND_LABEL_ROOM,
+      stepWidth,
+      stepHeight,
+    ]);
+  });
+  operations.push({ type: "PinRegions", items: [...pins].map(([regionId, bounds]) => ({ regionId, bounds: [...bounds] })) });
+
+  const pinned = layoutBoundsFor(stateWith([
+    ...added,
+    ...[...pins].map(([regionId, bounds]) => ({ type: "layout", regionId, pin: "hard", bounds: [...bounds] })),
+  ]), { pattern: GRAPH_PATTERN });
+  for (const [regionId, bounds] of pins) {
+    refuse(JSON.stringify(pinned.bounds[regionId]) === JSON.stringify(bounds),
+      `the view does not draw ${regionId} where it was pinned`);
+  }
+  // The overlaps this composition would bring about: those between regions not
+  // nested in each other that the view draws after it but not before it. An
+  // overlap already there is not this Decision's doing and does not stop it;
+  // one it causes - a band over a part the person placed, or a part the new
+  // lanes push into a pinned one - does.
+  const parentOf = new Map([...records, ...added].filter(record => record?.type === "region").map(record => [record.id, record.parent]));
+  const within = (inner, outer) => {
+    for (let at = parentOf.get(inner); at != null; at = parentOf.get(at)) if (at === outer) return true;
+    return false;
+  };
+  const overlapsIn = layout => {
+    const placed = Object.keys(layout.bounds).filter(id => parentOf.get(id) != null).sort();
+    return new Set(placed.flatMap((left, index) => placed.slice(index + 1)
+      .filter(right => !within(left, right) && !within(right, left) && overlapping(layout.bounds[left], layout.bounds[right]))
+      .map(right => `${left} ${right}`)));
+  };
+  const before = overlapsIn(layoutBoundsFor(stateWith([]), { pattern: GRAPH_PATTERN }));
+  const noRoom = [...overlapsIn(pinned)].some(pair => !before.has(pair));
+  return { operations, changes, noRoom };
 }
 
 const noChange = (reason, extra = {}) => Object.freeze({ outcome: OUTCOME_NO_CHANGE, reason, ...extra });
@@ -448,7 +550,7 @@ const noChange = (reason, extra = {}) => Object.freeze({ outcome: OUTCOME_NO_CHA
 // undo asked for by voice, or not sure enough to act - and is never reported as
 // an error. A request that cannot be carried out on this graph (a self edge, a
 // duplicate, a vanished target) is a refusal.
-function operationsFor(read, working, reserved, layout, visibleFrame) {
+function operationsFor(read, working, reserved, layout, visibleFrame, protocol) {
   const records = working.records;
   if (read.action.choice === ACTION_NONE) return noChange("no graph change was requested");
   // Undo is a button. A spoken or typed "undo" never changes either graph: it
@@ -466,7 +568,9 @@ function operationsFor(read, working, reserved, layout, visibleFrame) {
     if (confidence < MIN_CONFIDENCE) return noChange(DIAGRAM_RESTATE);
     const candidate = DIAGRAM_CATALOG.find(entry => entry.key === read.diagram.choice);
     refuse(candidate !== undefined, "the chosen diagram is not in the catalogue");
-    const { operations, changes } = composeDiagram(candidate, working, reserved);
+    refuse(typeof protocol?.layoutBoundsFor === "function", "protocol.layoutBoundsFor is required to compose a diagram");
+    const { operations, changes, noRoom } = composeDiagram(candidate, working, reserved, protocol.layoutBoundsFor);
+    if (noRoom) return noChange(DIAGRAM_NO_ROOM);
     return Object.freeze({ action: ACTION_COMPOSE, confidence, operations, changes });
   }
 
@@ -683,7 +787,7 @@ export async function planStep({
 } = {}) {
   requireGraph(working);
   refuse(typeof protocol?.createDecision === "function", "protocol.createDecision is required");
-  const { read, planned } = judge({ working, revision, answers, reserved, layout, visibleFrame, offeredFrame, candidates });
+  const { read, planned } = judge({ working, revision, answers, reserved, layout, visibleFrame, offeredFrame, candidates, protocol });
   if (planned.outcome === OUTCOME_NO_CHANGE) {
     const weak = weakPlacementSlot(read);
     const context = weak === null ? null : heldContext(working, layout, visibleFrame, offeredFrame);
@@ -694,10 +798,10 @@ export async function planStep({
 
 // Everything that decides, with no await: the frame the caller read is judged
 // against in the same synchronous run it was read in.
-function judge({ working, revision, answers, reserved, layout, visibleFrame, offeredFrame = null, candidates = [] }) {
+function judge({ working, revision, answers, reserved, layout, visibleFrame, offeredFrame = null, candidates = [], protocol }) {
   refuse(revision === working.head, "the answer is stale: the working graph changed after the request was sent");
   const read = readAnswers(answers, correctionCriteria(working.records, layout, offeredFrame, candidates));
-  return { read, planned: operationsFor(read, working, reserved, layout, visibleFrame) };
+  return { read, planned: operationsFor(read, working, reserved, layout, visibleFrame, protocol) };
 }
 
 async function materialize(working, planned, protocol) {
@@ -802,7 +906,7 @@ async function attemptRepair({
   let own = null;
   let refusal = null;
   try {
-    own = judge({ working, revision, answers, reserved, layout, visibleFrame, offeredFrame, candidates });
+    own = judge({ working, revision, answers, reserved, layout, visibleFrame, offeredFrame, candidates, protocol });
   } catch (error) {
     if (!(error instanceof DecisionRefused)) throw error;
     refusal = error;
@@ -881,6 +985,7 @@ async function attemptRepair({
     visibleFrame,
     offeredFrame,
     candidates,
+    protocol,
   });
   if (repaired.planned.outcome === OUTCOME_NO_CHANGE) return repaired.planned;
   const done = await materialize(working, repaired.planned, protocol);
