@@ -20,7 +20,14 @@
       import { validateUiIr } from "/ui/ui-ir/index.mjs";
       import { renderTrustedSurface } from "/ui/a2ui-browser/render/trusted-dom.mjs";
       import { executeArtifactPackage as renderSemanticMap } from "/ui/semantic-map/runtime.js";
+      import {
+        appendDecision,
+        createDecision,
+        createDecisionLog,
+        createEnvelope,
+      } from "/ui/semantic-map/protocol/index.js";
       import { renderUiIr } from "/app/src/render.mjs";
+      import { compileCommittedDecision, selectableRegionIds } from "/app/src/decision/graph-edge.mjs";
 
       const text = document.querySelector("#text");
       const send = document.querySelector("#send");
@@ -28,7 +35,18 @@
       const status = document.querySelector("#status");
       const surface = document.querySelector("#surface");
 
+      // The service worker only exists to reassemble the chunked ASR model that
+      // the Cloudflare 25MB file limit forces. A host that serves the model whole
+      // answers the probe with 204, so registration is skipped there.
       const serviceWorkerReady = (async () => {
+        const manifest = await fetch("/hayamimi/sherpa/data.parts.json", { cache: "no-store" });
+        // 204 is the host stating there are no chunks to reassemble. It has to
+        // be read before `ok`, which is true for 204 and would otherwise
+        // register a worker with nothing to do. Anything else that is not a
+        // served manifest is unexpected and must surface rather than silently
+        // disable the worker.
+        if (manifest.status === 204) return;
+        if (!manifest.ok) throw new Error(`chunk manifest probe failed: ${manifest.status}`);
         if (!("serviceWorker" in navigator)) throw new Error("service worker is required");
         await navigator.serviceWorker.register("/sw.js", { scope: "/" });
         await navigator.serviceWorker.ready;
@@ -39,14 +57,86 @@
         }
       })();
 
-      const decide = async value => {
+      const node = (id, x) => ({
+        type: "region",
+        id,
+        parent: "root",
+        label: id,
+        kind: "node",
+        bounds: [x, 90, 140, 64],
+        summary: "",
+      });
+
+      // Capture and the surface are separate resources, so they are owned
+      // separately. `capturing` makes microphone capture exclusive to one voice
+      // attempt; `rendering` makes the decide-and-render critical section
+      // exclusive across both inputs. Typed submission is therefore allowed
+      // while voice is only listening, and refused only while the surface is
+      // being decided or rendered. Each path releases `rendering` solely when
+      // it is the owner, so neither can free the other's hold.
+      let capturing = false;
+      let rendering = false;
+      let typedHoldsRender = false;
+      let voiceHoldsRender = false;
+
+      // The next committed graph is staged by the voice decision and adopted by
+      // the host only once the render promise has resolved.
+      let pendingGraph = null;
+
+      const syncBusy = () => {
+        send.disabled = rendering;
+        mic.disabled = capturing || rendering;
+      };
+
+      // One bounded starting graph: three known regions and no relations.
+      let graph = await createDecisionLog([
+        { type: "meta", schema: "semantic-map-state/1", root: "root", title: "voice graph" },
+        { type: "region", id: "root", parent: null, label: "voice graph", kind: "boundary", bounds: [0, 0, 720, 260], summary: "" },
+        node("node-a", 40),
+        node("node-b", 250),
+        node("node-c", 460),
+      ], "voice-graph");
+
+      const postJev = async body => {
         const response = await fetch("/api/jev", {
           method: "POST",
           headers: { "content-type": "application/json" },
-          body: JSON.stringify({ kind: "voice-ui.jev.request.v1", text: value }),
+          body: JSON.stringify(body),
         });
         if (!response.ok) throw new Error("Jev request failed");
         return response.json();
+      };
+
+      // Typed input keeps the v1 surface unchanged.
+      const decideTyped = value =>
+        postJev({ kind: "voice-ui.jev.request.v1", text: value });
+
+      // Voice input carries the current graph and is answered with a typed
+      // choice, which apps compiles into a committed semantic-map envelope.
+      // This is the explicit opt-in to the direct-apply sibling; the proposal
+      // primitive is unchanged and simply not selected here.
+      //
+      // Transcription has already finished by the time this runs, so this is
+      // where the surface critical section begins. The claim is taken before
+      // the first await, and the caller's finally releases it.
+      const decideVoice = async value => {
+        if (rendering) throw new Error("surface is busy");
+        rendering = true;
+        voiceHoldsRender = true;
+        syncBusy();
+
+        const decision = await postJev({
+          kind: "voice-ui.jev.request.v2",
+          text: value,
+          graph: { regions: selectableRegionIds(graph.records) },
+        });
+        const committed = await compileCommittedDecision({
+          graph,
+          answers: decision.answers,
+          protocol: { appendDecision, createDecision, createEnvelope },
+        });
+        pendingGraph = committed.graph;
+        return committed.ir;
       };
 
       const render = ir => renderUiIr({
@@ -86,28 +176,65 @@
         });
       };
 
-      const app = createVoiceUiApp({ transcribe, decide, render });
+      const typedApp = createVoiceUiApp({ transcribe, decide: decideTyped, render });
+      const voiceApp = createVoiceUiApp({ transcribe, decide: decideVoice, render });
 
       send.addEventListener("click", async () => {
+        if (rendering) {
+          status.textContent = "type: busy";
+          return;
+        }
+        rendering = true;
+        typedHoldsRender = true;
+        syncBusy();
+
         status.textContent = "type: working";
         try {
-          await app.submitType(text.value);
+          await typedApp.submitType(text.value);
           status.textContent = "type: rendered";
         } catch {
           status.textContent = "type: failed";
+        } finally {
+          if (typedHoldsRender) {
+            rendering = false;
+            typedHoldsRender = false;
+          }
+          syncBusy();
         }
       });
 
       mic.addEventListener("click", async () => {
+        if (capturing || rendering) {
+          status.textContent = "voice: busy";
+          return;
+        }
+        capturing = true;
+        pendingGraph = null;
+        syncBusy();
+
         status.textContent = "voice: listening";
         try {
-          await app.submitVoice(null);
+          // submitVoice carries transcription, decision and render. The host
+          // adopts the committed graph only after all three have resolved, and
+          // a missing stage is an error rather than a silent no-op.
+          await voiceApp.submitVoice(null);
+          if (!pendingGraph) throw new Error("committed graph was not staged");
+          graph = pendingGraph;
           status.textContent = "voice: rendered";
         } catch {
           status.textContent = "voice: failed";
+        } finally {
+          if (voiceHoldsRender) {
+            rendering = false;
+            voiceHoldsRender = false;
+          }
+          capturing = false;
+          pendingGraph = null;
+          syncBusy();
         }
       });
 
+      syncBusy();
       window.voiceUiReady = true;
     </script>
   </body>
