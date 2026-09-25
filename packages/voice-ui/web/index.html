@@ -50,7 +50,10 @@
       import { createHayamimi } from "/hayamimi/runtime/api/hayamimi.mjs";
       import { validateUiIr } from "/ui/ui-ir/index.mjs";
       import { renderTrustedSurface } from "/ui/a2ui-browser/render/trusted-dom.mjs";
-      import { executeArtifactPackage as renderSemanticMap } from "/ui/semantic-map/runtime.js";
+      import {
+        executeArtifactPackage as renderSemanticMap,
+        visibleFrameOf,
+      } from "/ui/semantic-map/runtime.js";
       import {
         appendDecision,
         createDecision,
@@ -440,6 +443,24 @@
         }
       };
 
+      // What 作業図 is showing right now, answered by the provider. The pane's
+      // camera does not follow the diagram as it grows, so this is a finite
+      // window: once a spot falls outside it there is no placement there, and
+      // the app says so rather than proposing something nobody can see.
+      //
+      // Only 作業図 is asked, which is sound while the two panes are the same
+      // size - #panes is a 1fr 1fr grid and the embed fixes its own height, so
+      // both cameras resolve alike. A different ratio would need 確定図 asked
+      // too, and the browser test asserts the widths are equal so that change
+      // cannot pass unnoticed.
+      const workingVisibleFrame = () => {
+        try {
+          return visibleFrameOf(workingSurface);
+        } catch {
+          return null;
+        }
+      };
+
       const currentFocus = () => focusFor({
         draft,
         lastApplied: (savedHistory.entries.at(-1)?.facts ?? [])
@@ -523,9 +544,15 @@
         });
         // Jev has judged this utterance; whatever comes of it is remembered.
         judged[source] = { source, text: value };
+        // Read last, with nothing awaited between here and the containment
+        // check: the request took seconds, and in that time the pane may have
+        // been panned, zoomed, resized or re-rendered. planStep judges the spot
+        // before its own first await, so this value cannot go stale in between.
+        const visibleFrame = workingVisibleFrame();
         const planned = await planStep({
           working,
           revision,
+          visibleFrame,
           answers: decision.answers,
           protocol,
           // Part names this page has already handed out. Undo cuts a part's

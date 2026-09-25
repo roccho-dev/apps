@@ -252,6 +252,29 @@ const boxes = (target, pane) => target.evaluate(async pane => {
   return drawn;
 }, pane);
 
+// What a pane is showing now, from the provider's own public contract - the same
+// call the page makes. Never computed here, so the test cannot agree with the app
+// by repeating its arithmetic.
+const visibleFrame = (target, pane) => target.evaluate(async pane => {
+  const runtime = await import("/ui/semantic-map/runtime.js");
+  return runtime.visibleFrameOf(document.querySelector(`#${pane}-surface`));
+}, pane);
+
+// The width of each pane's mount. The app asks only 作業図 whether a spot is
+// visible, which is sound while both panes resolve the same camera; #panes is a
+// 1fr 1fr grid and the embed fixes its own height, so equal widths are the whole
+// of that condition. A future ratio change must fail here rather than quietly
+// let a spot pass on the right and land off-pane on the left.
+const mountWidths = target => target.evaluate(() => ({
+  confirmed: document.querySelector("#confirmed-surface").getBoundingClientRect().width,
+  working: document.querySelector("#working-surface").getBoundingClientRect().width,
+  columns: getComputedStyle(document.querySelector("#panes")).gridTemplateColumns,
+}));
+
+// Whether a box is wholly inside a frame, in the view's own coordinates.
+const insideFrame = (box, frame) => box[0] >= frame[0] && box[1] >= frame[1]
+  && box[0] + box[2] <= frame[0] + frame[2] && box[1] + box[3] <= frame[1] + frame[3];
+
 // Both panes' drawn edges.
 const panes = async target => ({
   confirmed: (await drawn(target, "confirmed")).edges,
@@ -1120,6 +1143,25 @@ const drawnBefore = await boxes(page, "working");
 const placeableDrawn = Object.keys(drawnBefore).filter(id => id !== "root").sort();
 assert.ok(placeableDrawn.length >= 2, "precondition: at least two parts are drawn");
 
+// The condition the single-pane guard rests on. If the panes ever stop being
+// equal, this fails instead of the guard silently going wrong.
+const widths = await mountWidths(page);
+assert.equal(widths.working, widths.confirmed,
+  `the guard asks 作業図 only, which needs both panes the same width: ${JSON.stringify(widths)}`);
+assert.match(widths.columns, /^([\d.]+)px \1px$/u, `#panes must resolve to two equal columns: ${widths.columns}`);
+
+// What 作業図 is showing. With no unapplied step both panes show the same head,
+// which is exactly why head can never be what tells the panes apart.
+const frameBefore = await visibleFrame(page, "working");
+const confirmedFrameBefore = await visibleFrame(page, "confirmed");
+assert.notEqual(frameBefore, null, "作業図 must report a visible frame");
+assert.equal(frameBefore.schema, "semantic-map-visible-frame/1");
+assert.equal(frameBefore.pattern, "graph/1");
+assert.equal(frameBefore.frame.length, 4);
+assert.deepEqual(placeBefore.draft, [], "precondition: nothing unapplied");
+assert.equal(frameBefore.head, confirmedFrameBefore.head,
+  "both panes show the same head here, so head is provenance and never pane identity");
+
 // The view lays this graph out as one row, so the free spot is under it.
 const placed = await type(page, "move node-c below node-a");
 assert.deepEqual(
@@ -1168,27 +1210,64 @@ for (const id of Object.keys(drawnBefore)) {
   assert.deepEqual(drawnAfter[id].box, drawnBefore[id].box, `${id} must not move`);
   assert.equal(drawnAfter[id].rendered, true, `${id} must stay drawn`);
 }
-// The promise the edge guard makes: the part lands inside the picture the
-// person was already looking at, not in a frame stretched to cover it.
-const [fx, fy, fw, fh] = drawnBefore.root.box;
-assert.ok(target[0] >= fx && target[1] >= fy
-  && target[0] + target[2] <= fx + fw && target[1] + target[3] <= fy + fh,
-  `the new spot ${JSON.stringify(target)} must be inside the frame ${JSON.stringify(drawnBefore.root.box)} as it was before the move`);
+// The promise the guard makes: the spot was inside what 作業図 was showing when
+// the answer came back - the provider's frame, not the enclosing boundary.
+assert.ok(insideFrame(target, frameBefore.frame),
+  `the new spot ${JSON.stringify(target)} must be inside the visible frame ${JSON.stringify(frameBefore.frame)}`);
+// And it is on screen in the ordinary sense: the whole cell's own rectangle
+// falls inside the pane's own rectangle.
+const paintedInPane = await page.evaluate(regionId => {
+  const surface = document.querySelector("#working-surface");
+  const win = surface.querySelector('iframe[data-package="semantic-map"]').contentWindow;
+  const doc = surface.querySelector('iframe[data-package="semantic-map"]').contentDocument;
+  const adapter = win.semanticMapApp.adapter;
+  const cell = adapter.cellsByRegionId.get(regionId);
+  const shape = adapter.graph.getView().getState(cell)?.shape?.node ?? null;
+  const rect = shape?.getBoundingClientRect?.() ?? null;
+  const pane = doc.querySelector("#graph-container").getBoundingClientRect();
+  if (rect === null) return { rect: null };
+  const w = Math.max(0, Math.min(rect.right, pane.right) - Math.max(rect.left, pane.left));
+  const h = Math.max(0, Math.min(rect.bottom, pane.bottom) - Math.max(rect.top, pane.top));
+  return {
+    rect: { x: rect.x, y: rect.y, w: rect.width, h: rect.height },
+    pane: { x: pane.x, y: pane.y, w: pane.width, h: pane.height },
+    visibleArea: w * h,
+    wholeArea: rect.width * rect.height,
+  };
+}, moveId);
+assert.notEqual(paintedInPane.rect, null, "the moved part must have a painted shape");
+assert.ok(paintedInPane.wholeArea > 0, "and that shape must have area");
+assert.ok(paintedInPane.visibleArea >= paintedInPane.wholeArea - 0.5,
+  `the whole moved part must be inside the pane: ${JSON.stringify(paintedInPane)}`);
 assert.equal(Object.keys(drawnAfter).length, Object.keys(drawnBefore).length, "no cell appears or disappears");
 assert.equal(placedScreen.stored, placeBefore.stored, "nothing is saved before Apply");
 assert.deepEqual(await boxes(page, "confirmed"), await boxes(page, "confirmed"), "確定図 is read twice identically");
 const confirmedDuring = await boxes(page, "confirmed");
 assert.deepEqual(confirmedDuring[moveId].box, drawnBefore[moveId].box, "確定図 must not move the part before Apply");
 
-// A spot past the edge of the picture: the app must refuse it rather than
-// carry the part outside the view, where the boundary would still contain it
-// and the camera would not follow.
+// The ceiling, in the same run and immediately after the placement above. The
+// pane's camera does not follow the diagram as it grows, so the window is
+// finite: a spot past its edge is a truthful no change, not a hidden failure.
+// Both coordinates are measured, so the refusal is shown to be geometric.
+const frameAtCeiling = await visibleFrame(page, "working");
+assert.notEqual(frameAtCeiling, null, "the pane still reports a frame");
 const leftmost = placeableDrawn
   .map(id => [id, drawnAfter[id].box])
   .sort((left, right) => left[1][0] - right[1][0])[0][0];
 const mover = placeableDrawn.find(id => id !== leftmost);
-assert.ok(drawnAfter[leftmost].box[0] - gap - drawnAfter[mover].box[2] < drawnAfter.root.box[0],
-  `precondition: the spot left of ${leftmost} is off the left edge of the picture`);
+const ceilingSpot = [
+  drawnAfter[leftmost].box[0] - drawnAfter[mover].box[2] - gap,
+  drawnAfter[leftmost].box[1],
+  drawnAfter[mover].box[2],
+  drawnAfter[mover].box[3],
+];
+assert.equal(insideFrame(ceilingSpot, frameAtCeiling.frame), false,
+  `precondition: the spot left of ${leftmost} at ${JSON.stringify(ceilingSpot)} is outside the visible `
+  + `frame ${JSON.stringify(frameAtCeiling.frame)}`);
+// The positive spot from a moment ago was inside the very same frame, so the two
+// outcomes differ by geometry alone.
+assert.ok(insideFrame(target, frameAtCeiling.frame),
+  "the spot that was placed is inside this same frame, so only geometry separates the two");
 const offscreen = await type(page, `move ${mover} to the left of ${leftmost}`);
 let offscreenGuard;
 if (offscreen.decision.answers.action.choice === "place-part"
@@ -1197,7 +1276,10 @@ if (offscreen.decision.answers.action.choice === "place-part"
   && offscreen.decision.answers.move.choice === mover) {
   const refusedScreen = await screen(page);
   assert.equal(refusedScreen.state, "no-change", "a spot past the edge is a no change");
-  assert.match(refusedScreen.status, /図の外/u, "and it says why");
+  assert.match(refusedScreen.status, /今の表示の外/u, "and it says why, in the words for being off the pane");
+  assert.equal(/読み取れない|追いついていない/u.test(refusedScreen.status), false,
+    "not the words for having no frame or for a pane that has not caught up");
+  assert.equal(refusedScreen.state === "failed", false, "ordinary speech is never an error");
   assert.deepEqual(refusedScreen.draft, placedScreen.draft, "the draft is untouched");
   assert.deepEqual(await boxes(page, "working"), drawnAfter, "and nothing on the screen moved");
   offscreenGuard = `a spot left of ${leftmost} is past the edge and was refused, nothing moved`;
@@ -1230,6 +1312,18 @@ const reloaded = await boxes(page, "working");
 assert.equal(reloaded[moveId].rendered, true, "the moved part comes back drawn");
 assert.deepEqual(reloaded[moveId].box, target, "in exactly the same place");
 assert.deepEqual((await boxes(page, "confirmed"))[moveId].box, target, "and 確定図 now draws it there too");
+// 確定図 shows the same world geometry and, while the panes are equal, the same
+// visible frame - so what the person approved on the right is what they see on
+// the left. This is where an unequal ratio would show up.
+const reloadedFrames = {
+  working: await visibleFrame(page, "working"),
+  confirmed: await visibleFrame(page, "confirmed"),
+};
+assert.deepEqual(reloadedFrames.confirmed.frame, reloadedFrames.working.frame,
+  `equal panes must resolve the same frame: ${JSON.stringify(reloadedFrames)}`);
+assert.equal(reloadedFrames.confirmed.head, reloadedFrames.working.head, "and the same head once applied");
+assert.ok(insideFrame(target, reloadedFrames.confirmed.frame),
+  "the applied placement is inside what 確定図 shows, not only what 作業図 showed");
 
 // Revert puts it back where the view had it, and that is drawn as well.
 await page.locator(`button[data-revert="${placementEntry}"]`).click();
@@ -1378,8 +1472,10 @@ process.stdout.write(
   + "lone-part revert drafted then discarded, a part with an edge is not revertable "
   + `| placement: "${placed.sent.state.utterance}" -> ${moveId} ${direction} ${anchorId}, `
   + `drawn cell present and rendered at ${JSON.stringify(target)} (was ${JSON.stringify(drawnBefore[moveId].box)}), `
-  + `every other part unmoved, inside the frame as it was before the move; ${offscreenGuard}; `
-  + "Apply and reload draw it in the same place, revert puts it back drawn "
+  + `wholly inside the pane, every other part unmoved; visible frame ${JSON.stringify(frameBefore.frame)} `
+  + `at head ${frameBefore.head.slice(0, 14)}, panes equal at ${widths.working}px; `
+  + `ceiling in the same run: ${JSON.stringify(ceilingSpot)} is outside that frame - ${offscreenGuard}; `
+  + "Apply and reload draw it in the same place in both panes, revert puts it back drawn "
   + `| ${jevAnswered} real Jev answers in this run `
   + `| refused microphone: [${voicePhases(refusalTrace).map(entry => entry.kind).join(" ")}], 0 Jev requests, nothing changed, controls given back `
   + `| embedded Accept [${embeddedAccepts.join("; ")}] / [${correctionAccepts.join("; ")}] `

@@ -495,9 +495,26 @@ const placeAnswers = (graph, layout, { move, anchor, direction, confidence = 0.9
   return answers;
 };
 
-const place = (graph, spec) => {
+// What 作業図 is showing, as the provider's visible-frame contract reports it.
+// The default is a window wide enough for this graph, so a test says what it is
+// about by narrowing it rather than by working around it.
+const frameOf = (graph, frame = [-400, -400, 2000, 2000]) => Object.freeze({
+  schema: "semantic-map-visible-frame/1",
+  pattern: "graph/1",
+  head: graph.head,
+  frame: Object.freeze([...frame]),
+});
+
+const place = (graph, spec, visibleFrame = frameOf(graph)) => {
   const layout = layoutOf(graph);
-  return planStep({ working: graph, revision: graph.head, answers: placeAnswers(graph, layout, spec), protocol, layout });
+  return planStep({
+    working: graph,
+    revision: graph.head,
+    answers: placeAnswers(graph, layout, spec),
+    protocol,
+    layout,
+    visibleFrame,
+  });
 };
 
 test("the parts offered for placement are the ones the view actually draws", async () => {
@@ -607,42 +624,83 @@ test("a taken spot, a part beside itself, or the same move twice changes nothing
 // contract still reports its bounds - and the browser draws nothing, because
 // the camera does not follow. The frame before the pin is the only one that
 // answers the question the person is asking.
-test("a spot past the edge of the picture is a no-change, however far the boundary would stretch", async () => {
+// What the pane is showing decides, and the enclosing boundary does not. Both
+// halves of that were measured in a real browser: a spot inside the boundary can
+// be off screen, and a spot outside it can be plainly visible.
+test("the visible frame decides, not the enclosing boundary", async () => {
   const graph = await baseGraph();
   const layout = layoutOf(graph);
-  const [, , frameWidth] = layout.rootBounds;
+  const root = layout.rootBounds;
+  const spot = neighbourBounds(layout, "node-c", "node-a", "right");
 
-  // node-c is already at the right-hand column; two steps right of it is past
-  // the frame the person is looking at.
-  const near = await place(graph, { move: "node-c", anchor: "node-a", direction: "right" });
-  assert.equal(near.outcome, OUTCOME_STEP, "one step right is still inside the picture");
-  const moved = await appendStep({ working: graph, step: near.step, protocol });
+  // Inside the boundary, outside the pane: a no-change, however much room the
+  // boundary has.
+  assert.ok(spot[0] >= root[0] && spot[0] + spot[2] <= root[0] + root[2],
+    "precondition: this spot is inside the enclosing boundary");
+  const offPane = await place(graph, { move: "node-c", anchor: "node-a", direction: "right" },
+    frameOf(graph, [0, 0, spot[0] + spot[2] - 1, root[3]]));
+  assert.equal(offPane.outcome, OUTCOME_NO_CHANGE, "one pixel short of the spot is still short");
+  assert.match(offPane.reason, /今の表示の外/u);
 
-  const far = await place(moved, { move: "node-b", anchor: "node-c", direction: "right" });
-  assert.equal(far.outcome, OUTCOME_NO_CHANGE);
-  assert.match(far.reason, /今の図の外/u);
+  // Outside the boundary, inside the pane: a step. The view grows the boundary
+  // around the pin, so nothing is orphaned by this.
+  const above = neighbourBounds(layout, "node-c", "node-a", "above");
+  assert.ok(above[1] < root[1], "precondition: this spot is above the enclosing boundary");
+  const onPane = await place(graph, { move: "node-c", anchor: "node-a", direction: "above" });
+  assert.equal(onPane.outcome, OUTCOME_STEP, "outside the boundary but inside the pane is placeable");
+  const moved = await appendStep({ working: graph, step: onPane.step, protocol });
+  assert.deepEqual(layoutOf(moved).bounds["node-c"], [...above], "and the view draws it there");
+  assert.ok(layoutOf(moved).rootBounds[1] <= above[1], "the boundary grew to hold it");
+});
 
-  // Why the frame has to be read before the pin: pinning it there anyway makes
-  // the boundary stretch around it, so the same check afterwards says yes.
-  const outside = neighbourBounds(layoutOf(moved), "node-b", "node-c", "right");
-  assert.ok(outside[0] + outside[2] > frameWidth, "precondition: the spot is past the right edge");
-  const { decision } = await protocol.createDecision(
-    moved.head,
-    [{ type: "PinRegions", items: [{ regionId: "node-b", bounds: [...outside] }] }],
-    moved.records,
-  );
-  const stretched = await appendStep({
-    working: moved,
-    step: { revision: moved.head, action: ACTION_PLACE_PART, changes: [{ change: "placed", kind: "region", id: "node-b", anchor: "node-c", direction: "right" }], decision },
-    protocol,
-  });
-  const after = layoutOf(stretched);
-  assert.deepEqual(after.bounds["node-b"], [...outside], "the contract still reports it");
-  assert.ok(after.rootBounds[2] > frameWidth, "and the boundary stretched to contain it");
-  assert.ok(
-    outside[0] + outside[2] <= after.rootBounds[0] + after.rootBounds[2],
-    "so a check against the boundary after the pin can never fail: it proves nothing",
-  );
+// The three ways of having no answer are different facts for the person, so they
+// are different sentences. "I cannot see the picture" is not "that spot is off
+// the picture", and neither is an error about what was said.
+test("no frame, a pane that has not caught up, and a spot off the pane read differently", async () => {
+  const graph = await baseGraph();
+  const spec = { move: "node-c", anchor: "node-a", direction: "right" };
+
+  const blind = await place(graph, spec, null);
+  assert.equal(blind.outcome, OUTCOME_NO_CHANGE);
+  assert.match(blind.reason, /読み取れない/u);
+
+  const behind = await place(graph, spec, { ...frameOf(graph), head: "sha256:stale" });
+  assert.equal(behind.outcome, OUTCOME_NO_CHANGE);
+  assert.match(behind.reason, /追いついていない/u);
+
+  const outside = await place(graph, spec, frameOf(graph, [0, 0, 10, 10]));
+  assert.equal(outside.outcome, OUTCOME_NO_CHANGE);
+  assert.match(outside.reason, /今の表示の外/u);
+
+  const reasons = new Set([blind.reason, behind.reason, outside.reason]);
+  assert.equal(reasons.size, 3, "three conditions, three sentences");
+  for (const answer of [blind, behind, outside]) {
+    assert.equal(answer.step, undefined, "none of them proposes a change");
+    assert.equal(answer.undoRequest, undefined, "and none of them is heard as an undo");
+  }
+});
+
+// Partly on the pane is not on the pane: a part the person can only half see is
+// not a part they can see.
+test("a spot only partly on the pane is a no-change", async () => {
+  const graph = await baseGraph();
+  const layout = layoutOf(graph);
+  const spot = neighbourBounds(layout, "node-c", "node-a", "right");
+  for (const [label, frame] of [
+    ["cut on the right", [spot[0] - 40, spot[1] - 40, spot[2] + 20, spot[3] + 80]],
+    ["cut on the bottom", [spot[0] - 40, spot[1] - 40, spot[2] + 80, spot[3] + 20]],
+    ["cut on the left", [spot[0] + 20, spot[1] - 40, spot[2] + 80, spot[3] + 80]],
+    ["cut on the top", [spot[0] - 40, spot[1] + 20, spot[2] + 80, spot[3] + 80]],
+  ]) {
+    const answer = await place(graph, { move: "node-c", anchor: "node-a", direction: "right" },
+      frameOf(graph, frame));
+    assert.equal(answer.outcome, OUTCOME_NO_CHANGE, label);
+    assert.match(answer.reason, /今の表示の外/u, label);
+  }
+  // Exactly containing it is enough.
+  const exact = await place(graph, { move: "node-c", anchor: "node-a", direction: "right" },
+    frameOf(graph, [...spot]));
+  assert.equal(exact.outcome, OUTCOME_STEP, "a frame that exactly contains the spot is enough");
 });
 
 test("none in any placement slot, or low confidence, changes nothing", async () => {
@@ -1090,7 +1148,10 @@ test("v7 carries a placement effect back to Jev, and its answer feeds the step c
   const body = await result.json();
   assert.deepEqual(calls[0].state, request.state, "a placement effect reaches Jev exactly as the page sent it");
 
-  const planned = await planStep({ working: graph, revision: graph.head, answers: body.answers, protocol, layout });
+  const planned = await planStep({
+    working: graph, revision: graph.head, answers: body.answers, protocol, layout,
+    visibleFrame: frameOf(graph),
+  });
   assert.equal(planned.outcome, OUTCOME_STEP);
   assert.equal(planned.step.action, ACTION_PLACE_PART);
   assert.deepEqual(

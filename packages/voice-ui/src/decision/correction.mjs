@@ -257,7 +257,7 @@ const noChange = (reason, extra = {}) => Object.freeze({ outcome: OUTCOME_NO_CHA
 // undo asked for by voice, or not sure enough to act - and is never reported as
 // an error. A request that cannot be carried out on this graph (a self edge, a
 // duplicate, a vanished target) is a refusal.
-function operationsFor(read, working, reserved, layout) {
+function operationsFor(read, working, reserved, layout, visibleFrame) {
   const records = working.records;
   if (read.action.choice === ACTION_NONE) return noChange("no graph change was requested");
   // Undo is a button. A spoken or typed "undo" never changes either graph: it
@@ -284,13 +284,21 @@ function operationsFor(read, working, reserved, layout) {
     refuse(read.move.choice !== read.anchor.choice, "a part cannot be placed beside itself");
 
     const box = neighbourBounds(layout, read.move.choice, read.anchor.choice, read.direction.choice);
-    // The frame as it is *before* this pin. The view grows the boundary to
-    // contain whatever it is told to pin, so a spot measured against the frame
-    // afterwards is inside it by construction and proves nothing. Measured
-    // before, it is the picture the person is actually looking at: a part put
-    // past that edge is carried outside the view and simply stops being drawn.
-    if (!inside(layout.rootBounds, box)) {
-      return noChange("その場所は今の図の外になります");
+    // Whether the person can actually see the spot, asked of the pane itself.
+    // The enclosing boundary is no answer to that: the view grows it around
+    // whatever it is told to pin, and a part can be inside it and off screen or
+    // outside it and plainly visible - both measured. So the only thing worth
+    // asking is the provider's own visible frame, and the three ways of not
+    // having one are told apart, because "I cannot see right now" and "that spot
+    // is off the picture" are different facts for the person.
+    if (visibleFrame === null) {
+      return noChange("いま表示中の図を読み取れないので、位置を確かめられません");
+    }
+    if (visibleFrame.head !== working.head) {
+      return noChange("表示中の図がまだ追いついていないので、位置を確かめられません");
+    }
+    if (!inside(visibleFrame.frame, box)) {
+      return noChange("その場所は今の表示の外になります");
     }
     if (!spotIsFree(layout, records, read.move.choice, box)) {
       return noChange("その場所には別の部品があります");
@@ -436,13 +444,19 @@ const step = (revision, action, changes, decision, confidence = null) => Object.
 // `reserved` is every part name this page has already handed out, including
 // ones since undone. The log alone cannot know them, because undo removes the
 // Decision that named them.
-export async function planStep({ working, revision, answers, protocol, reserved = [], layout = null } = {}) {
+// `visibleFrame` is what the pane is showing *now*, read by the caller in the
+// same synchronous turn as this call: everything up to and including
+// `operationsFor` runs before the first await below, so no camera, resize or
+// re-render can slip in between reading the frame and judging a spot against it.
+export async function planStep({
+  working, revision, answers, protocol, reserved = [], layout = null, visibleFrame = null,
+} = {}) {
   requireGraph(working);
   refuse(typeof protocol?.createDecision === "function", "protocol.createDecision is required");
   refuse(revision === working.head, "the answer is stale: the working graph changed after the request was sent");
 
   const read = readAnswers(answers, correctionCriteria(working.records, layout));
-  const planned = operationsFor(read, working, reserved, layout);
+  const planned = operationsFor(read, working, reserved, layout, visibleFrame);
   if (planned.outcome === OUTCOME_NO_CHANGE) return planned;
 
   const { decision } = await viaProvider("the provider rejected the change",
