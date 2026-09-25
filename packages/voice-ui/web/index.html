@@ -15,6 +15,14 @@
       <button id="send" type="button">Send</button>
       <button id="mic" type="button">Voice</button>
       <p id="status" role="status"></p>
+      <!-- Earlier utterances Jev judged, exactly as the next request sends them.
+           Unverified: only to help Jev understand what an utterance refers to. -->
+      <section id="context" aria-labelledby="context-heading">
+        <h3 id="context-heading">Jevが参照する最近の会話（未検証）</h3>
+        <ol id="context-recent" aria-labelledby="context-heading"></ol>
+        <p id="context-skipped"></p>
+        <button id="context-clear" type="button">会話をクリア</button>
+      </section>
       <div id="panes">
         <!-- Left: the saved graph. Only 確定図に反映 changes it. -->
         <section id="confirmed" aria-label="確定図">
@@ -85,6 +93,9 @@
       const discardButton = document.querySelector("#discard");
       const applyButton = document.querySelector("#apply");
       const workingSurface = document.querySelector("#working-surface");
+      const contextList = document.querySelector("#context-recent");
+      const contextSkipped = document.querySelector("#context-skipped");
+      const contextClear = document.querySelector("#context-clear");
 
       const protocol = { appendDecision, createDecision, createEnvelope };
 
@@ -171,6 +182,46 @@
       // that leaves the draft takes its entry with it. A revert has none.
       const inputOf = new WeakMap();
 
+      // The recent conversation: each utterance Jev actually judged on this
+      // page, in order, with what came of it - a step (with the effect it had),
+      // no change, an undo request, a refusal, or a step later undone. Nothing
+      // Jev did not judge is here: no empty input, no full draft, no timeout.
+      // It lives in memory only; a reload or 会話をクリア erases it, and Apply
+      // keeps it. Jev gets the latest few as unverified material for what an
+      // utterance refers to; the working graph stays the fact.
+      const CONTEXT_MAX = 5;
+      const CONTEXT_TEXT_MAX = 200;
+      let conversation = [];
+      let nextSeq = 1;
+      // What the current typed and the current voice input sent to Jev, set
+      // only once Jev has answered it. Each kind has one input at a time.
+      const judged = { typed: null, voice: null };
+
+      const remember = ({ source, text }, outcome, changes = null) => {
+        const entry = { seq: nextSeq, source, text, outcome };
+        if (outcome === "step") {
+          entry.effect = { changes: changes.map(({ change, from, to }) => ({ change, from, to })) };
+        }
+        nextSeq += 1;
+        conversation = [...conversation, entry];
+        return entry.seq;
+      };
+
+      // A step that leaves the draft by Undo or Discard is recorded as undone,
+      // in place, and no longer carries an effect.
+      const markUndone = step => {
+        const seq = inputOf.get(step)?.seq;
+        conversation = conversation.map(entry => entry.seq === seq
+          ? { seq: entry.seq, source: entry.source, text: entry.text, outcome: "undone" }
+          : entry);
+      };
+
+      // What the next request sends, and exactly what the panel shows: the most
+      // recent entries short enough to send whole. A longer one is left out,
+      // never shortened.
+      const contextWindow = () =>
+        conversation.filter(entry => entry.text.length <= CONTEXT_TEXT_MAX).slice(-CONTEXT_MAX);
+
       // Nothing a request produces except a drawn step changes the working
       // graph. "No change" - including an undo asked for by voice and a full
       // working graph - is an ordinary answer, not an error.
@@ -194,6 +245,7 @@
         for (const button of historyPanel.querySelectorAll("button[data-revert]")) {
           button.disabled = !idle || draftFull() || button.dataset.revertable !== "true";
         }
+        contextClear.disabled = !idle || conversation.length === 0;
       };
 
       const setState = (state, message) => {
@@ -305,6 +357,35 @@
           + (draftFull() ? " - 上限です。確定図に反映・元に戻す・作業図を破棄のいずれかを選んでください。" : "");
       };
 
+      const OUTCOME_LABELS = {
+        "no-change": "変更なし",
+        "undo-request": "元に戻す依頼（ボタンで行います）",
+        refused: "受け付けませんでした",
+        undone: "取り消し済み",
+      };
+
+      // The recent conversation exactly as the next request will send it. Each
+      // item carries the entry itself for checking; its text is set as text.
+      const renderContext = () => {
+        contextList.replaceChildren();
+        for (const entry of contextWindow()) {
+          const item = document.createElement("li");
+          item.dataset.entry = JSON.stringify(entry);
+          const label = document.createElement("span");
+          label.textContent = entry.source === "voice" ? "認識文: " : "入力文: ";
+          const said = document.createElement("q");
+          said.textContent = entry.text;
+          const outcome = document.createElement("span");
+          outcome.textContent = entry.outcome === "step"
+            ? `${effectOf(entry.effect.changes)}（当時）`
+            : OUTCOME_LABELS[entry.outcome];
+          item.append(label, said, " → ", outcome);
+          contextList.append(item);
+        }
+        const skipped = conversation.filter(entry => entry.text.length > CONTEXT_TEXT_MAX).length;
+        contextSkipped.textContent = skipped > 0 ? `長すぎるため参照しない発話 ${skipped}件` : "";
+      };
+
       // What the user is looking at, for a follow-up like "reverse that": the
       // latest working step, else the latest applied change.
       const currentFocus = () => focusFor({
@@ -357,9 +438,11 @@
 
       // Send and Voice take the same path, and neither touches 確定図 or
       // storage: the utterance is judged against 作業図 and every unapplied
-      // step, and a usable answer becomes one more step on 作業図. The v1 and v2
-      // HTTP contracts are still served; this screen drives v4.
+      // step, and a usable answer becomes one more step on 作業図. The recent
+      // conversation goes with it as unverified context. The v1 and v2 HTTP
+      // contracts are still served; this screen drives v5.
       const decideStep = async (value, source) => {
+        judged[source] = null;
         // Nothing typed, or a transcript with nothing in it, asks for nothing,
         // and a full working graph takes no more steps: in both cases no
         // request goes to Jev at all.
@@ -373,7 +456,7 @@
         // The answer is bound to the working graph as it was when asked.
         const revision = working.head;
         const decision = await postJev({
-          kind: "voice-ui.jev.request.v4",
+          kind: "voice-ui.jev.request.v5",
           state: {
             utterance: value,
             working: {
@@ -382,8 +465,11 @@
             },
             draft: draft.map(step => ({ changes: step.changes.map(({ change, from, to }) => ({ change, from, to })) })),
             focus: currentFocus(),
+            context: { recent: contextWindow() },
           },
         });
+        // Jev has judged this utterance; whatever comes of it is remembered.
+        judged[source] = { source, text: value };
         const planned = await planStep({ working, revision, answers: decision.answers, protocol });
         if (planned.outcome === OUTCOME_NO_CHANGE) {
           throw new NoChange(planned.reason, planned.undoRequest ? "undo-request" : "no-change");
@@ -481,22 +567,32 @@
           candidate = null;
           await renderWorking(await graphIr(working)).catch(() => {});
         }
+        // Only an utterance Jev judged joins the recent conversation.
+        const source = prefix === "type" ? "typed" : "voice";
+        const asked = judged[source];
+        judged[source] = null;
         if (!error) {
           working = candidate.working;
           draft = [...draft, candidate.step];
-          inputOf.set(candidate.step, candidate.input);
+          const seq = remember(asked, "step", candidate.step.changes);
+          inputOf.set(candidate.step, { ...candidate.input, seq });
           candidate = null;
           renderDraft();
+          renderContext();
           setState("drafted", `${prefix}: 作業図に追加しました (未反映)`);
           renderHistory();
           return;
         }
         candidate = null;
         if (error instanceof NoChange) {
+          if (asked !== null) remember(asked, error.state === "undo-request" ? "undo-request" : "no-change");
+          renderContext();
           setState(error.state, `${prefix}: no change - ${error.message}`);
           renderHistory();
           return;
         }
+        if (asked !== null) remember(asked, "refused");
+        renderContext();
         setState("failed", `${prefix}: failed`);
         renderHistory(`failed: ${error.message}`);
       };
@@ -591,19 +687,32 @@
         });
         await renderWorking(await graphIr(previous));
         working = previous;
+        markUndone(draft.at(-1));
         draft = draft.slice(0, -1);
         renderDraft();
+        renderContext();
         setState("undone", "作業図の最後の変更を元に戻しました");
         renderHistory();
       }));
+
+      // 会話をクリア forgets the recent conversation; the next request sends
+      // none. It changes neither pane.
+      contextClear.addEventListener("click", () => {
+        if (blocked || rendering) return;
+        conversation = [];
+        renderContext();
+        syncBusy();
+      });
 
       // 作業図を破棄 returns the working graph to the saved one.
       discardButton.addEventListener("click", () => withSurface("discard", async () => {
         if (draft.length === 0) return;
         await renderWorking(await graphIr(saved));
         working = saved;
+        for (const step of draft) markUndone(step);
         draft = [];
         renderDraft();
+        renderContext();
         setState("discarded", "作業図を破棄しました");
         renderHistory();
       }));
@@ -691,9 +800,10 @@
         throw new Error(`unknown restore status: ${restored.status}`);
       }
       // 作業図 always starts as the saved graph: nothing unapplied survives a
-      // reload, and the pane says so.
+      // reload, and the pane says so. The recent conversation starts empty.
       working = saved;
       renderDraft();
+      renderContext();
 
       try {
         await renderConfirmed(await graphIr(saved));
