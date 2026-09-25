@@ -2070,6 +2070,36 @@ test("a diagram is not drawn over a part the person placed; the pins never reach
   assert.equal(second.outcome, OUTCOME_STEP, second.reason);
 });
 
+test("only an overlap the diagram itself brings about stops it", async () => {
+  const pinned = async (graph, items) => {
+    const { decision } = await protocol.createDecision(graph.head, [{ type: "PinRegions", items }], graph.records);
+    return (await protocol.appendDecision(graph.log, decision)).verified;
+  };
+  const graph = await baseGraph();
+
+  // Two parts already overlapping each other, well away from where the bands
+  // go. That overlap is not the diagram's doing, so it composes.
+  const alreadyOverlapping = await pinned(graph, [
+    { regionId: "node-b", bounds: [900, 600, 180, 92] },
+    { regionId: "node-c", bounds: [950, 620, 180, 92] },
+  ]);
+  const overlapBefore = layoutOf(alreadyOverlapping).bounds;
+  assert.ok(overlapBefore["node-b"][0] < overlapBefore["node-c"][0] + 180 && overlapBefore["node-c"][0] < overlapBefore["node-b"][0] + 180,
+    "precondition: node-b and node-c already overlap");
+  const composed = await compose(alreadyOverlapping);
+  assert.equal(composed.outcome, OUTCOME_STEP, `a pre-existing overlap does not stop the diagram: ${composed.reason}`);
+
+  // node-c pinned where node-a will be pushed once the lanes come in above it.
+  // Nothing overlaps before; the diagram would make node-a overlap node-c, so
+  // it is refused even though neither is part of the diagram.
+  const inTheWay = await pinned(graph, [{ regionId: "node-c", bounds: [70, 414, 180, 92] }]);
+  const quietBefore = layoutOf(inTheWay).bounds;
+  assert.ok(quietBefore["node-a"][1] + quietBefore["node-a"][3] <= 414, "precondition: nothing overlaps node-c before");
+  const pushed = await compose(inTheWay);
+  assert.equal(pushed.outcome, OUTCOME_NO_CHANGE, "an overlap the diagram causes between two old parts stops it");
+  assert.equal(pushed.reason, DIAGRAM_NO_ROOM);
+});
+
 test("an unsupported or unsure diagram request changes nothing", async () => {
   const graph = await baseGraph();
   const notOffered = await compose(graph, { diagram: "none" });

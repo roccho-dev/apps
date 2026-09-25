@@ -516,14 +516,24 @@ function composeDiagram(candidate, working, reserved, layoutBoundsFor) {
     refuse(JSON.stringify(pinned.bounds[regionId]) === JSON.stringify(bounds),
       `the view does not draw ${regionId} where it was pinned`);
   }
+  // The overlaps this composition would bring about: those between regions not
+  // nested in each other that the view draws after it but not before it. An
+  // overlap already there is not this Decision's doing and does not stop it;
+  // one it causes - a band over a part the person placed, or a part the new
+  // lanes push into a pinned one - does.
   const parentOf = new Map([...records, ...added].filter(record => record?.type === "region").map(record => [record.id, record.parent]));
   const within = (inner, outer) => {
     for (let at = parentOf.get(inner); at != null; at = parentOf.get(at)) if (at === outer) return true;
     return false;
   };
-  const placed = Object.keys(pinned.bounds).filter(id => parentOf.get(id) != null);
-  const noRoom = placed.some((left, index) => placed.slice(index + 1).some(right =>
-    !within(left, right) && !within(right, left) && overlapping(pinned.bounds[left], pinned.bounds[right])));
+  const overlapsIn = layout => {
+    const placed = Object.keys(layout.bounds).filter(id => parentOf.get(id) != null).sort();
+    return new Set(placed.flatMap((left, index) => placed.slice(index + 1)
+      .filter(right => !within(left, right) && !within(right, left) && overlapping(layout.bounds[left], layout.bounds[right]))
+      .map(right => `${left} ${right}`)));
+  };
+  const before = overlapsIn(layoutBoundsFor(stateWith([]), { pattern: GRAPH_PATTERN }));
+  const noRoom = [...overlapsIn(pinned)].some(pair => !before.has(pair));
   return { operations, changes, noRoom };
 }
 

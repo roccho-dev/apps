@@ -844,6 +844,21 @@
       const followWorkingFrame = async () => {
         if (!sameFrame(confirmedFrame, frameFor(working))) await drawConfirmed();
       };
+      // After a change to 作業図, which stands whatever happens here: redraw
+      // 確定図 at the new frame, or say plainly that it could not be - the two
+      // panes then show different frames - rather than report a clean step.
+      // The next change tries again. Returns true when the page reported it.
+      const followOrReport = async (state, message) => {
+        try {
+          await followWorkingFrame();
+          return false;
+        } catch (error) {
+          confirmedFrame = undefined;
+          setState("confirmed-display-failed", `${message}。ただし確定図を同じ表示範囲で描き直せませんでした`);
+          renderHistory(`display failed (${state}): ${error.message}`);
+          return true;
+        }
+      };
 
       const renderInto = mount => ir => renderUiIr({
         ir,
@@ -919,11 +934,13 @@
           inputOf.set(candidate.step, { ...candidate.input, seq });
           candidate = null;
           renderDraft();
-          await followWorkingFrame().catch(() => { confirmedFrame = undefined; });
           renderOutOfView();
           renderContext();
-          setState("drafted", `${prefix}: 作業図に追加しました (未反映)`);
-          renderHistory();
+          const drafted = `${prefix}: 作業図に追加しました (未反映)`;
+          if (!(await followOrReport("drafted", drafted))) {
+            setState("drafted", drafted);
+            renderHistory();
+          }
           return;
         }
         candidate = null;
@@ -1040,11 +1057,13 @@
         markUndone(draft.at(-1));
         draft = draft.slice(0, -1);
         renderDraft();
-        await followWorkingFrame().catch(() => { confirmedFrame = undefined; });
         renderOutOfView();
         renderContext();
-        setState("undone", "作業図の最後の変更を元に戻しました");
-        renderHistory();
+        const undone = "作業図の最後の変更を元に戻しました";
+        if (!(await followOrReport("undone", undone))) {
+          setState("undone", undone);
+          renderHistory();
+        }
       }));
 
       // 会話をクリア forgets the recent conversation; the next request sends
@@ -1066,11 +1085,13 @@
         for (const step of draft) markUndone(step);
         draft = [];
         renderDraft();
-        await followWorkingFrame().catch(() => { confirmedFrame = undefined; });
         renderOutOfView();
         renderContext();
-        setState("discarded", "作業図を破棄しました");
-        renderHistory();
+        const discarded = "作業図を破棄しました";
+        if (!(await followOrReport("discarded", discarded))) {
+          setState("discarded", discarded);
+          renderHistory();
+        }
       }));
 
       // 確定図に反映: the only write to storage and the only change to 確定図.
@@ -1130,10 +1151,12 @@
           working = next;
           draft = [...draft, step];
           renderDraft();
-          await followWorkingFrame().catch(() => { confirmedFrame = undefined; });
           renderOutOfView();
-          setState("drafted", "取り消しを作業図に追加しました (未反映)");
-          renderHistory();
+          const reverted = "取り消しを作業図に追加しました (未反映)";
+          if (!(await followOrReport("drafted", reverted))) {
+            setState("drafted", reverted);
+            renderHistory();
+          }
         });
       });
 

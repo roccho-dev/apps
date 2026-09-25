@@ -2889,7 +2889,8 @@ await page.route(jevUrl, answerFrom({
 }), { times: 1 });
 await type(page, "node-c を node-a の右に置いて");
 const placedFirst = await screen(page);
-assert.equal(placedFirst.state, "drafted", `precondition: node-c is placed: ${placedFirst.status}`);
+assert.equal(placedFirst.state, "drafted",
+  `precondition: node-c is placed: ${placedFirst.status} | page failure: ${placedFirst.failure}`);
 const cellsPlaced = await boxes(page, "working");
 await page.route(jevUrl, answerFrom({
   action: { type: "choice", choice: "compose-diagram", confidence: 0.95 },
@@ -2897,7 +2898,8 @@ await page.route(jevUrl, answerFrom({
 }), { times: 1 });
 await type(page, "申請して承認してもらう流れを図にして");
 const noRoom = await screen(page);
-assert.equal(noRoom.state, "no-change", `a diagram over a placed part is a no-change: ${noRoom.status}`);
+assert.equal(noRoom.state, "no-change",
+  `a diagram over a placed part is a no-change: ${noRoom.status} | page failure: ${noRoom.failure}`);
 assert.match(noRoom.status, /図を置く場所にほかの部品があります/u, "and it says why");
 assert.deepEqual(noRoom.draft, placedFirst.draft, "the draft is untouched");
 assert.deepEqual(await boxes(page, "working"), cellsPlaced, "and nothing on the screen moved");
