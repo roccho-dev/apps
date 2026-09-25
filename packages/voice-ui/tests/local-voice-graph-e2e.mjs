@@ -1689,6 +1689,33 @@ assert.equal(other.pending, null);
 assert.deepEqual(other.draft, [`~${OTHER_PART}`], "it moved what it named, not the held part");
 assert.equal(other.items[0].origin, null, "and shows only its own text");
 
+// R's RED on 15cf4ba: an unrelated complete instruction that is itself blocked
+// was mined for the missing piece and proposed a placement nobody asked for.
+// Now it gets its own answer and the draft does not move.
+await nearTurn();
+const draftBeforeBlocked = (await screen(page)).draft;
+const blocked = await replyTurn({
+  action: { type: "choice", choice: "place-part", confidence: 0.93 },
+  move: { type: "choice", choice: OTHER_PART, confidence: 0.92 },
+  anchor: { type: "choice", choice: rebuiltId, confidence: 0.92 },
+  direction: { type: "choice", choice: "right", confidence: 0.92 },
+});
+assert.equal(blocked.state, "no-change", `a blocked complete instruction is its own no change: ${blocked.status}`);
+assert.match(blocked.status, /別の部品があります/u, "with its own reason");
+assert.deepEqual(blocked.draft, draftBeforeBlocked, "no placement is proposed on 作業図");
+assert.equal(blocked.pending, null, "and the held piece is spent");
+
+await nearTurn();
+const unrelatedSelf = await replyTurn({
+  action: { type: "choice", choice: "place-part", confidence: 0.95 },
+  move: { type: "choice", choice: OTHER_PART, confidence: 0.95 },
+  anchor: { type: "choice", choice: OTHER_PART, confidence: 0.95 },
+  direction: { type: "choice", choice: "below", confidence: 0.95 },
+});
+assert.equal(unrelatedSelf.state, "failed", "a different part beside itself keeps its v7 refusal");
+assert.deepEqual(unrelatedSelf.draft, draftBeforeBlocked, "no placement is proposed on 作業図");
+assert.equal(unrelatedSelf.pending, null);
+
 // Undo, Discard, Apply and Revert each drop a held piece; so does a reload.
 await nearTurn();
 await press(page, "#undo");
@@ -1730,8 +1757,15 @@ await page.locator("#text").fill(`相手は${anchorId}です`);
 await page.locator("#send").click();
 await timeoutRepair.request;
 await settle(page);
-assert.equal((await screen(page)).state, "failed");
-assert.equal((await screen(page)).pending, null, "a timed-out repair is spent all the same");
+// The utterance was sent to Jev, so the held piece is spent. What failed is the
+// provider, and it is reported as that - not as a verdict on what was said.
+const timedOut = await screen(page);
+assert.equal(timedOut.state, "failed");
+assert.equal(timedOut.status, "type: failed", "a transport failure, not a repair no-change");
+assert.match(timedOut.failure ?? "", /provider_timeout/u, "naming the provider timeout");
+assert.equal(/聞き取れませんでした|補えませんでした/u.test(`${timedOut.status} ${timedOut.failure}`), false,
+  "and never dressed up as a repair reason");
+assert.equal(timedOut.pending, null, "a timed-out repair is spent all the same");
 assert.deepEqual(failedResponses.splice(0), [`504 ${jevUrl}`], "the only failed response is the one crafted here");
 
 // A voice first utterance and a typed reply. The microphone press is real - the

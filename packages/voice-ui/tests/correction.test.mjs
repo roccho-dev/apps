@@ -935,6 +935,60 @@ test("a complete or unrelated instruction wins over the pending piece", async ()
   assert.equal(undo.undoRequest, true, "a spoken undo is still an undo request");
 });
 
+// R's RED on 15cf4ba: a complete instruction that did not itself make a step
+// was mined for the one missing piece and turned into a placement nobody asked
+// for. A reply is a repair only if everything else it says is none, the same as
+// what is held, or an echo of the part it names. Anything else is its own
+// instruction and gets its own answer.
+test("a complete instruction that is blocked is answered as itself, never mined for the missing piece", async () => {
+  const graph = await baseGraph();
+  const { pending } = await nearPlacement(graph);
+
+  // "node-a を node-b の下に": the spot is taken, so it is a no change of its
+  // own - and must stay one.
+  const occupied = await reply(graph, pending, {
+    action: ACTION_PLACE_PART, move: "node-a", anchor: "node-b", direction: "below", sure: { action: 0.93, move: 0.92, anchor: 0.92, direction: 0.92 },
+  });
+  assert.equal(occupied.outcome, OUTCOME_NO_CHANGE);
+  assert.match(occupied.reason, /別の部品があります/u, "the instruction's own reason");
+  assert.equal(occupied.step, undefined, "no placement is proposed");
+  assert.equal(occupied.repaired, undefined);
+
+  // "node-b を node-b の上に": a different part beside itself, with a side that
+  // contradicts the held one - the existing refusal, not a repair.
+  await assert.rejects(
+    reply(graph, pending, { action: ACTION_PLACE_PART, move: "node-b", anchor: "node-b", direction: "above" }),
+    error => error instanceof DecisionRefused && /beside itself/u.test(error.message),
+    "a different part beside itself keeps its own refusal",
+  );
+
+  // A confident side that contradicts the held one, with no placement of its
+  // own: it is not a repair, and is answered as what it is.
+  const contradicting = await reply(graph, pending, { action: ACTION_NONE, anchor: "node-a", direction: "left" });
+  assert.equal(contradicting.outcome, OUTCOME_NO_CHANGE);
+  assert.equal(contradicting.step, undefined);
+  assert.match(contradicting.reason, /no graph change/u, "answered as the no change it was heard as");
+
+  // An unsure contradiction is ambiguity: a no change, never a guess.
+  const unsure = await reply(graph, pending, { action: ACTION_NONE, anchor: "node-a", direction: "left", sure: { direction: 0.3 } });
+  assert.equal(unsure.outcome, OUTCOME_NO_CHANGE);
+  assert.equal(unsure.reason, REPAIR_FAILED);
+
+  // Truly slot-only replies still repair: the other pieces none, the same as
+  // held, or an echo of the part named.
+  for (const [label, spec] of [
+    ["others none", { action: ACTION_NONE, anchor: "node-b" }],
+    // Agreeing with what is held - even unsure of it - is not a contradiction.
+    ["others as held", { action: ACTION_PLACE_PART, move: "node-c", anchor: "node-b", direction: "right", sure: { move: 0.3 } }],
+    ["echo of the named part", { action: ACTION_NONE, move: "node-b", anchor: "node-b" }],
+  ]) {
+    const ok = await reply(graph, pending, spec);
+    assert.equal(ok.outcome, OUTCOME_STEP, label);
+    assert.equal(ok.repaired, true, label);
+    assert.deepEqual(ok.step.changes, [{ change: "placed", kind: "region", id: "node-c", anchor: "node-b", direction: "right" }], label);
+  }
+});
+
 test("every way a repair can fail is a reasoned no change, and never holds another", async () => {
   const graph = await baseGraph();
   const { pending } = await nearPlacement(graph);

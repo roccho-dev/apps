@@ -586,7 +586,31 @@ export async function repairStep({
 
   if (pending.head !== working.head) return noChange(REPAIR_CONTEXT_CHANGED);
   const criteria = correctionCriteria(working.records, layout);
-  const supplied = readAnswers(answers, criteria)[pending.missing];
+  const read = readAnswers(answers, criteria);
+  const supplied = read[pending.missing];
+
+  // A reply is a repair only if it says nothing else. Every other placement
+  // piece must be "none", the same as what is held, or - for a part - an echo
+  // of the part it supplies ("ノードBです" heard as node-b beside node-b). A
+  // confident piece that says something different is its own instruction,
+  // however that instruction came out, and gets its own answer; the held piece
+  // is already spent. An unsure one is ambiguity, never a guess.
+  const echoes = slot => (slot === "move" || slot === "anchor")
+    && (pending.missing === "move" || pending.missing === "anchor")
+    && read[slot].choice === supplied?.choice;
+  let unsure = false;
+  for (const slot of PLACEMENT_SLOTS) {
+    if (slot === pending.missing) continue;
+    const said = read[slot];
+    if (said.choice === OPTION_NONE || said.choice === pending[slot].choice || echoes(slot)) continue;
+    if (said.confidence >= MIN_CONFIDENCE) {
+      if (refusal !== null) throw refusal;
+      return own.planned;
+    }
+    unsure = true;
+  }
+  if (unsure) return noChange(REPAIR_FAILED);
+
   if (supplied == null || supplied.choice === OPTION_NONE || !(supplied.confidence >= MIN_CONFIDENCE)) {
     return noChange(REPAIR_FAILED);
   }
