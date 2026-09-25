@@ -125,10 +125,16 @@ const inside = (frame, box) =>
 // endpoints - never the enclosing boundary, which cannot be pinned - and only
 // those the view actually places. A part the view folds away has no position
 // to put anything beside.
-export function placeableIds(layout, records) {
+// With `frame` - the pane's visible frame, in the same coordinates - only the
+// parts lying wholly inside it. The view's bounds are pre-culling: a part has
+// them whether or not it is on screen, and even a drawn cell can sit in the
+// margin band nobody sees. Without a frame this is every placed part, which is
+// what collision checks need: a part off screen still occupies its spot.
+export function placeableIds(layout, records, frame = null) {
   refuse(layout?.bounds !== undefined, "layout bounds are required");
   return Object.freeze(selectableRegionIds(records)
     .filter(regionId => Object.hasOwn(layout.bounds, regionId))
+    .filter(regionId => frame === null || inside(frame, layout.bounds[regionId]))
     .sort());
 }
 
@@ -212,14 +218,17 @@ export function nextPartId(graph, reserved = []) {
 
 // `layout` is the provider's public answer about where this graph is drawn.
 // Placement is offered only when it is present and holds at least two parts:
-// something to move, and something to put it beside.
-export function correctionCriteria(records, layout = null) {
+// something to move, and something to put it beside. `offeredFrame` is the
+// visible frame the request was built from, or null when none could be read;
+// the page and this check must be given the same one, so that what is judged is
+// exactly what Jev was offered.
+export function correctionCriteria(records, layout = null, offeredFrame = null) {
   const regions = selectableRegionIds(records);
   refuse(regions.length >= 2, "graph has fewer than two selectable regions");
   refuse(!regions.includes(OPTION_NONE), `a region may not be named "${OPTION_NONE}"`);
   const edges = edgesOf(records);
   refuse(edges.every(edge => edge.id !== OPTION_NONE), `an edge may not be named "${OPTION_NONE}"`);
-  const placeable = layout === null ? [] : placeableIds(layout, records);
+  const placeable = layout === null ? [] : placeableIds(layout, records, offeredFrame);
   const canPlace = placeable.length >= 2;
   return Object.freeze({
     actions: Object.freeze([
@@ -298,9 +307,9 @@ function operationsFor(read, working, reserved, layout, visibleFrame) {
   const existing = relationKeys(records);
 
   // Put a part beside another one. Jev chooses which part, which neighbour and
-  // which side, all from what is on screen; the app asks the view where those
-  // parts actually are and computes the position. Jev never sees a coordinate,
-  // and the app never invents a size.
+  // which side, from the parts that were wholly on the pane when it was asked;
+  // the app asks the view where those parts actually are and computes the
+  // position. Jev never sees a coordinate, and the app never invents a size.
   if (read.action.choice === ACTION_PLACE_PART) {
     if (read.move.choice === OPTION_NONE || read.anchor.choice === OPTION_NONE || read.direction.choice === OPTION_NONE) {
       return noChange(PLACEMENT_RESTATE);
@@ -333,6 +342,16 @@ function operationsFor(read, working, reserved, layout, visibleFrame) {
     }
     if (!inside(visibleFrame.frame, box)) {
       return noChange("その場所は今の表示の外になります");
+    }
+    // The part to put something beside, and the part being put, must both be
+    // on the pane now too: a spot beside a part nobody can see, or a part
+    // nobody can see arriving, is not something the person asked for looking
+    // at this picture. The pane may also have moved since Jev was asked.
+    if (!inside(visibleFrame.frame, layout.bounds[read.anchor.choice])) {
+      return noChange("基準の部品が今の表示の外にあります");
+    }
+    if (!inside(visibleFrame.frame, layout.bounds[read.move.choice])) {
+      return noChange("動かす部品が今の表示の外にあります");
     }
     if (!spotIsFree(layout, records, read.move.choice, box)) {
       return noChange("その場所には別の部品があります");
@@ -482,28 +501,34 @@ const step = (revision, action, changes, decision, confidence = null) => Object.
 // same synchronous turn as this call: everything up to and including
 // `operationsFor` runs before the first await below, so no camera, resize or
 // re-render can slip in between reading the frame and judging a spot against it.
+// `offeredFrame` is the frame the request's placeable parts were chosen from
+// (see correctionCriteria), read before Jev was asked; `visibleFrame` is read
+// after.
 //
 // A no-change that left exactly one placement piece unsure also carries
 // `pending`: what the next utterance may complete. It is only ever held in the
-// page's memory, for that one utterance.
+// page's memory, for that one utterance, and only when the pane could be read
+// and did not move while this turn was judged - it is bound to that exact
+// picture (see pendingHolds).
 export async function planStep({
-  working, revision, answers, protocol, reserved = [], layout = null, visibleFrame = null,
+  working, revision, answers, protocol, reserved = [], layout = null, visibleFrame = null, offeredFrame = null,
 } = {}) {
   requireGraph(working);
   refuse(typeof protocol?.createDecision === "function", "protocol.createDecision is required");
-  const { read, planned } = judge({ working, revision, answers, reserved, layout, visibleFrame });
+  const { read, planned } = judge({ working, revision, answers, reserved, layout, visibleFrame, offeredFrame });
   if (planned.outcome === OUTCOME_NO_CHANGE) {
     const weak = weakPlacementSlot(read);
-    return weak === null ? planned : Object.freeze({ ...planned, pending: pendingFrom(read, weak, working.head) });
+    const context = weak === null ? null : heldContext(working, layout, visibleFrame, offeredFrame);
+    return context === null ? planned : Object.freeze({ ...planned, pending: pendingFrom(read, weak, context) });
   }
   return materialize(working, planned, protocol);
 }
 
 // Everything that decides, with no await: the frame the caller read is judged
 // against in the same synchronous run it was read in.
-function judge({ working, revision, answers, reserved, layout, visibleFrame }) {
+function judge({ working, revision, answers, reserved, layout, visibleFrame, offeredFrame = null }) {
   refuse(revision === working.head, "the answer is stale: the working graph changed after the request was sent");
-  const read = readAnswers(answers, correctionCriteria(working.records, layout));
+  const read = readAnswers(answers, correctionCriteria(working.records, layout, offeredFrame));
   return { read, planned: operationsFor(read, working, reserved, layout, visibleFrame) };
 }
 
@@ -516,14 +541,45 @@ async function materialize(working, planned, protocol) {
   });
 }
 
+const sameFrame = (left, right) => Array.isArray(left) && Array.isArray(right)
+  && left.length === 4 && right.length === 4 && left.every((value, index) => value === right[index]);
+const sameIds = (left, right) => Array.isArray(left) && Array.isArray(right)
+  && left.length === right.length && left.every((value, index) => value === right[index]);
+
+// The exact picture a held placement was said against: the working head, the
+// pane's frame and the parts offered from it. There is one only when the pane
+// could be read, showed that head, and did not move between asking Jev and
+// judging the answer; otherwise nothing is held, because there is nothing to
+// hold it to.
+function heldContext(working, layout, visibleFrame, offeredFrame) {
+  if (layout === null || offeredFrame === null || visibleFrame === null) return null;
+  if (visibleFrame.head !== working.head || !sameFrame(visibleFrame.frame, offeredFrame)) return null;
+  return Object.freeze({
+    head: working.head,
+    frame: Object.freeze([...offeredFrame]),
+    offered: placeableIds(layout, working.records, offeredFrame),
+  });
+}
+
+// Whether a held placement still describes what is in front of the person:
+// the same head, the same frame to the unit, and the same parts on offer. Any
+// difference at all - a pan, a resize, a part added or scrolled away - and the
+// piece the next utterance supplies would complete a different picture.
+export function pendingHolds(pending, { head, frame, offered }) {
+  return pending != null && pending.head === head && sameFrame(pending.frame, frame)
+    && sameIds(pending.offered, offered);
+}
+
 // What an utterance left behind when all but one piece of a placement came
-// through: the working head it was said against, how sure Jev was that it is
-// a placement, and the pieces that were understood - never any text.
-function pendingFrom(read, missing, head) {
+// through: the picture it was said against, how sure Jev was that it is a
+// placement, and the pieces that were understood - never any text.
+function pendingFrom(read, missing, context) {
   const kept = slot => (slot === missing ? null : Object.freeze({ ...read[slot] }));
   return Object.freeze({
     missing,
-    head,
+    head: context.head,
+    frame: context.frame,
+    offered: context.offered,
     action: Object.freeze({ ...read.action }),
     move: kept("move"),
     anchor: kept("anchor"),
@@ -568,7 +624,7 @@ export async function repairStep(options = {}) {
 }
 
 async function attemptRepair({
-  working, revision, answers, protocol, reserved = [], layout = null, visibleFrame = null, pending,
+  working, revision, answers, protocol, reserved = [], layout = null, visibleFrame = null, offeredFrame = null, pending,
 } = {}) {
   requireGraph(working);
   refuse(typeof protocol?.createDecision === "function", "protocol.createDecision is required");
@@ -577,7 +633,7 @@ async function attemptRepair({
   let own = null;
   let refusal = null;
   try {
-    own = judge({ working, revision, answers, reserved, layout, visibleFrame });
+    own = judge({ working, revision, answers, reserved, layout, visibleFrame, offeredFrame });
   } catch (error) {
     if (!(error instanceof DecisionRefused)) throw error;
     refusal = error;
@@ -596,8 +652,16 @@ async function attemptRepair({
   // one outside the offered criteria is refused exactly as before.
   if (own === null && !/beside itself/u.test(refusal.message)) throw refusal;
 
-  if (pending.head !== working.head) return noChange(REPAIR_CONTEXT_CHANGED);
-  const criteria = correctionCriteria(working.records, layout);
+  // The held piece belongs to one exact picture. If the head, the frame the
+  // reply was offered from, the frame it was judged against, or the parts on
+  // offer differ in any way from when it was held, the piece supplied now would
+  // complete something the person was not looking at.
+  const offeredNow = layout === null ? [] : placeableIds(layout, working.records, offeredFrame);
+  if (!pendingHolds(pending, { head: working.head, frame: offeredFrame, offered: offeredNow })
+    || visibleFrame === null || visibleFrame.head !== working.head || !sameFrame(visibleFrame.frame, pending.frame)) {
+    return noChange(REPAIR_CONTEXT_CHANGED);
+  }
+  const criteria = correctionCriteria(working.records, layout, offeredFrame);
   const read = readAnswers(answers, criteria);
   const supplied = read[pending.missing];
 
@@ -646,6 +710,7 @@ async function attemptRepair({
     reserved,
     layout,
     visibleFrame,
+    offeredFrame,
   });
   if (repaired.planned.outcome === OUTCOME_NO_CHANGE) return repaired.planned;
   const done = await materialize(working, repaired.planned, protocol);

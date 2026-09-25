@@ -73,6 +73,7 @@
         edgesOf,
         focusFor,
         pendingForJev,
+        pendingHolds,
         planStep,
         repairStep,
         revertStep,
@@ -596,15 +597,27 @@
         // The answer is bound to the working graph as it was when asked.
         const revision = working.head;
         const layout = workingLayout();
-        const placeable = layout === null ? [] : [...placeableIds(layout, working.records)];
+        // Jev is offered only the parts wholly on the pane as it is now. A frame
+        // that cannot be read, or that shows another head, narrows nothing here:
+        // the frame read after the answer then says why no placement is made.
+        const askedFrame = workingVisibleFrame();
+        const offeredFrame = askedFrame !== null && askedFrame.head === revision ? askedFrame.frame : null;
+        const placeable = layout === null ? [] : [...placeableIds(layout, working.records, offeredFrame)];
         // This utterance is the one repair. It is used up here, before the
         // request, so a timeout or a refusal spends it just as an answer does.
         const repairing = pending;
         setPending(null);
+        // A held piece is offered to Jev only while it still describes this
+        // exact picture - the same head, frame and parts on offer. Otherwise it
+        // is not sent at all (never as ids the request no longer offers), and
+        // repairStep answers with its own reason unless the utterance is a
+        // complete instruction of its own.
+        const stillHeld = repairing !== null
+          && pendingHolds(repairing.intent, { head: revision, frame: offeredFrame, offered: placeable });
         const decision = await postJev({
           kind: "voice-ui.jev.request.v8",
           state: {
-            pending: pendingForJev(repairing?.intent ?? null),
+            pending: stillHeld ? pendingForJev(repairing.intent) : null,
             utterance: value,
             working: {
               placeable,
@@ -636,6 +649,9 @@
           // The same layout the request was built from, so the answer is
           // judged against the positions the user was looking at.
           layout,
+          // And the same frame its placeable parts were chosen from, so the
+          // answer is checked against exactly what Jev was offered.
+          offeredFrame,
         };
         // Both judge before their first await, so the frame is still current.
         const planned = repairing === null
@@ -856,6 +872,10 @@
         setPending(null);
         rendering = true;
         controlHoldsRender = true;
+        // The diagnostic describes the last turn Jev judged. Once a control
+        // has acted it would describe a screen that is no longer there, so it
+        // goes, whatever the control does.
+        clearDiagnostics();
         syncBusy();
         setState("pending", `${label}: working`);
         try {
@@ -898,6 +918,7 @@
         if (blocked || rendering) return;
         setPending(null);
         conversation = [];
+        clearDiagnostics();
         renderContext();
         syncBusy();
       });
