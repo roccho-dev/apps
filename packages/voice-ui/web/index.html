@@ -11,6 +11,7 @@
       <button id="send" type="button">Send</button>
       <button id="mic" type="button">Voice</button>
       <p id="status" role="status"></p>
+      <section id="history" aria-label="History"></section>
       <section id="surface" aria-label="Result"></section>
     </main>
 
@@ -25,21 +26,45 @@
         createDecision,
         createDecisionLog,
         createEnvelope,
+        verifyDecisionLog,
       } from "/ui/semantic-map/protocol/index.js";
       import { renderUiIr } from "/app/src/render.mjs";
-      import { compileCommittedDecision, selectableRegionIds } from "/app/src/decision/graph-edge.mjs";
+      import {
+        GRAPH_PATTERN,
+        compileCommittedDecision,
+        selectableRegionIds,
+      } from "/app/src/decision/graph-edge.mjs";
+      import {
+        RESTORE_CORRUPT,
+        RESTORE_EMPTY,
+        RESTORE_RESTORED,
+        persistHistory,
+        projectHistory,
+        restoreHistory,
+      } from "/app/src/decision/history.mjs";
 
       const text = document.querySelector("#text");
       const send = document.querySelector("#send");
       const mic = document.querySelector("#mic");
       const status = document.querySelector("#status");
+      const historyPanel = document.querySelector("#history");
       const surface = document.querySelector("#surface");
+
+      // The only place in the app that touches browser storage. history.mjs is
+      // pure and takes these as collaborators, so the restore contract stays
+      // provable under `node --test` while the browser global lives here.
+      const read = key => localStorage.getItem(key);
+      const write = (key, value) => localStorage.setItem(key, value);
 
       // The service worker only exists to reassemble the chunked ASR model that
       // the Cloudflare 25MB file limit forces. A host that serves the model whole
       // answers the probe with 204, so registration is skipped there.
       const serviceWorkerReady = (async () => {
         const manifest = await fetch("/hayamimi/sherpa/data.parts.json", { cache: "no-store" });
+        // Only the status is needed, but the body is drained all the same. A
+        // response left unread is cancelled by the browser, which reports the
+        // probe as an aborted request even though the host answered it.
+        await manifest.arrayBuffer();
         // 204 is the host stating there are no chunks to reassemble. It has to
         // be read before `ok`, which is true for 204 and would otherwise
         // register a worker with nothing to do. Anything else that is not a
@@ -79,17 +104,72 @@
       let typedHoldsRender = false;
       let voiceHoldsRender = false;
 
-      // The next committed graph is staged by the voice decision and adopted by
-      // the host only once the render promise has resolved.
-      let pendingGraph = null;
+      // Fail-closed latch. A stored log that cannot be verified, and a decision
+      // that was saved but could not be drawn, both leave the screen unable to
+      // speak for storage. Neither is transient, so the latch is sticky and no
+      // in-app control clears it: a reload recovers a display failure, and only
+      // clearing this origin's storage from outside the app recovers a log the
+      // provider rejects.
+      let blocked = false;
+
+      // Set the moment an attempt's own write lands, so a later render failure
+      // is reported as "saved but not displayed" rather than as a decision that
+      // was lost. One flag per input, like the render holds: typing is allowed
+      // while voice is still listening, so a shared flag would let one attempt's
+      // write be read as the other's and claim a save that never happened.
+      let typedPersisted = false;
+      let voicePersisted = false;
+
+      // Storage is the authority; `graph` follows it and the DOM projects both.
+      let graph;
+      let history;
 
       const syncBusy = () => {
-        send.disabled = rendering;
-        mic.disabled = capturing || rendering;
+        send.disabled = rendering || blocked;
+        mic.disabled = capturing || rendering || blocked;
+      };
+
+      const setState = (state, message) => {
+        document.body.dataset.state = state;
+        status.textContent = message;
+      };
+
+      const line = (kind, value) => {
+        const element = document.createElement("p");
+        element.dataset.history = kind;
+        element.textContent = value;
+        return element;
+      };
+
+      // The screen has to keep apart where this graph started, what has been
+      // confirmed on top of it, and what failed. Only entries under `confirmed`
+      // are facts: each one is a Decision the provider verified and storage
+      // accepted.
+      const renderHistory = (projection, failure) => {
+        historyPanel.replaceChildren();
+        historyPanel.append(line(
+          "initial",
+          `initial: ${projection.initial.regions.join(", ")} (${projection.initial.relations.length} edges)`,
+        ));
+
+        const confirmed = document.createElement("ol");
+        confirmed.dataset.history = "confirmed";
+        for (const entry of projection.entries) {
+          for (const fact of entry.facts) {
+            const item = document.createElement("li");
+            const edge = fact.from && fact.to ? `${fact.from}->${fact.to}` : fact.type;
+            item.dataset.fact = edge;
+            item.textContent = edge;
+            confirmed.append(item);
+          }
+        }
+        historyPanel.append(confirmed);
+        historyPanel.append(line("count", `confirmed: ${confirmed.childElementCount}`));
+        if (failure) historyPanel.append(line("failure", failure));
       };
 
       // One bounded starting graph: three known regions and no relations.
-      let graph = await createDecisionLog([
+      const initialGraph = () => createDecisionLog([
         { type: "meta", schema: "semantic-map-state/1", root: "root", title: "voice graph" },
         { type: "region", id: "root", parent: null, label: "voice graph", kind: "boundary", bounds: [0, 0, 720, 260], summary: "" },
         node("node-a", 40),
@@ -107,24 +187,11 @@
         return response.json();
       };
 
-      // Typed input keeps the v1 surface unchanged.
-      const decideTyped = value =>
-        postJev({ kind: "voice-ui.jev.request.v1", text: value });
-
-      // Voice input carries the current graph and is answered with a typed
-      // choice, which apps compiles into a committed semantic-map envelope.
-      // This is the explicit opt-in to the direct-apply sibling; the proposal
-      // primitive is unchanged and simply not selected here.
-      //
-      // Transcription has already finished by the time this runs, so this is
-      // where the surface critical section begins. The claim is taken before
-      // the first await, and the caller's finally releases it.
-      const decideVoice = async value => {
-        if (rendering) throw new Error("surface is busy");
-        rendering = true;
-        voiceHoldsRender = true;
-        syncBusy();
-
+      // Send and Voice take the same committed path; the only difference is
+      // where the text came from. The v1 HTTP contract is untouched and still
+      // served, it is simply no longer what this screen drives, because a
+      // rendered string was never evidence that the graph changed.
+      const decideCommitted = async (value, markPersisted) => {
         const decision = await postJev({
           kind: "voice-ui.jev.request.v2",
           text: value,
@@ -135,9 +202,44 @@
           answers: decision.answers,
           protocol: { appendDecision, createDecision, createEnvelope },
         });
-        pendingGraph = committed.graph;
+
+        // Storage first. A write that does not land throws here, leaving the
+        // in-memory graph and the DOM exactly as they were, so a failure can
+        // never show an edge that was not saved.
+        await persistHistory({ write, graph: committed.graph });
+        markPersisted();
+
+        // Only now does memory follow storage. The caller renders afterwards,
+        // and a render that fails is reported as saved-but-not-displayed.
+        graph = committed.graph;
+        history = projectHistory(graph);
         return committed.ir;
       };
+
+      // The typed handler already owns the surface by the time it calls this.
+      const decideTyped = value => decideCommitted(value, () => { typedPersisted = true; });
+
+      // Transcription has already finished by the time this runs, so this is
+      // where the surface critical section begins for voice. The claim is taken
+      // before the first await, and the caller's finally releases it.
+      const decideVoice = async value => {
+        if (rendering) throw new Error("surface is busy");
+        rendering = true;
+        voiceHoldsRender = true;
+        syncBusy();
+
+        return decideCommitted(value, () => { voicePersisted = true; });
+      };
+
+      // graph-edge.mjs builds this shape around a decision. Drawing a graph that
+      // nobody just decided on - one restored from storage - needs the same
+      // shape with no decision in it, which is not that module's business.
+      const graphIr = async current => ({
+        kind: "ui.ir.v1",
+        capability: "render.semantic-map",
+        payloadKind: "semantic-map-envelope/3",
+        payload: await createEnvelope(current.log, null, { pattern: GRAPH_PATTERN }),
+      });
 
       const render = ir => renderUiIr({
         ir,
@@ -179,21 +281,45 @@
       const typedApp = createVoiceUiApp({ transcribe, decide: decideTyped, render });
       const voiceApp = createVoiceUiApp({ transcribe, decide: decideVoice, render });
 
+      // One place decides how an attempt ends, because the three endings are
+      // easy to confuse and only one of them is a fact. `persisted` is the
+      // calling attempt's own flag, never the other input's.
+      const finish = (prefix, error, persisted) => {
+        if (!error) {
+          setState("confirmed", `${prefix}: confirmed`);
+          renderHistory(history);
+          return;
+        }
+        if (persisted) {
+          // Saved, but the screen could not be brought up to date. Storage
+          // leads, so stop rather than take another decision on top of a view
+          // that is already behind; a reload re-projects the saved graph.
+          blocked = true;
+          setState("saved-display-failed", `${prefix}: saved, display failed - reload to recover`);
+          renderHistory(history, `display failed: ${error.message}`);
+          return;
+        }
+        setState("failed", `${prefix}: failed`);
+        renderHistory(history, `failed: ${error.message}`);
+      };
+
       send.addEventListener("click", async () => {
+        if (blocked) return;
         if (rendering) {
-          status.textContent = "type: busy";
+          setState("pending", "type: busy");
           return;
         }
         rendering = true;
         typedHoldsRender = true;
+        typedPersisted = false;
         syncBusy();
 
-        status.textContent = "type: working";
+        setState("pending", "type: working");
         try {
           await typedApp.submitType(text.value);
-          status.textContent = "type: rendered";
-        } catch {
-          status.textContent = "type: failed";
+          finish("type", null, typedPersisted);
+        } catch (error) {
+          finish("type", error, typedPersisted);
         } finally {
           if (typedHoldsRender) {
             rendering = false;
@@ -204,35 +330,73 @@
       });
 
       mic.addEventListener("click", async () => {
+        if (blocked) return;
         if (capturing || rendering) {
-          status.textContent = "voice: busy";
+          setState("pending", "voice: busy");
           return;
         }
         capturing = true;
-        pendingGraph = null;
+        voicePersisted = false;
         syncBusy();
 
-        status.textContent = "voice: listening";
+        setState("pending", "voice: listening");
         try {
-          // submitVoice carries transcription, decision and render. The host
-          // adopts the committed graph only after all three have resolved, and
-          // a missing stage is an error rather than a silent no-op.
+          // submitVoice carries transcription, decision and render. The decision
+          // persists and binds before the render, so reaching here means the
+          // whole chain landed.
           await voiceApp.submitVoice(null);
-          if (!pendingGraph) throw new Error("committed graph was not staged");
-          graph = pendingGraph;
-          status.textContent = "voice: rendered";
-        } catch {
-          status.textContent = "voice: failed";
+          finish("voice", null, voicePersisted);
+        } catch (error) {
+          finish("voice", error, voicePersisted);
         } finally {
           if (voiceHoldsRender) {
             rendering = false;
             voiceHoldsRender = false;
           }
           capturing = false;
-          pendingGraph = null;
           syncBusy();
         }
       });
+
+      // Storage decides what this origin starts from. An absent log is a first
+      // visit; one the provider rejects is damage, and its bytes are left
+      // exactly where they are rather than quietly replaced, so the only way
+      // forward is an explicit clear from outside the app. A log that verifies
+      // but does not start from this app's own initial graph is foreign, and is
+      // treated the same way.
+      const genesis = (await initialGraph()).head;
+      const restored = await restoreHistory({ read, verifyDecisionLog, genesis });
+
+      if (restored.status === RESTORE_RESTORED) {
+        graph = restored.graph;
+        history = restored.projection;
+      } else if (restored.status === RESTORE_EMPTY || restored.status === RESTORE_CORRUPT) {
+        graph = await initialGraph();
+        history = projectHistory(graph);
+        blocked = restored.status === RESTORE_CORRUPT;
+      } else {
+        throw new Error(`unknown restore status: ${restored.status}`);
+      }
+
+      try {
+        await render(await graphIr(graph));
+        if (blocked) {
+          setState("failed", "saved history is unreadable - clear this site's storage to start over");
+          renderHistory(history, `stored log rejected: ${restored.reason}`);
+        } else if (restored.status === RESTORE_RESTORED) {
+          setState("confirmed", `restored: ${history.entries.length} confirmed`);
+          renderHistory(history);
+        } else {
+          setState("initial", "ready");
+          renderHistory(history);
+        }
+      } catch (error) {
+        // The stored graph is intact but undrawable. Nothing was lost, so this
+        // is the same saved-but-not-displayed state a failed render produces.
+        blocked = true;
+        setState("saved-display-failed", "stored graph could not be drawn - reload to retry");
+        renderHistory(history, `display failed: ${error.message}`);
+      }
 
       syncBusy();
       window.voiceUiReady = true;
