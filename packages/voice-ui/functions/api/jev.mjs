@@ -66,11 +66,22 @@ const DRAFT_MAX = 8;
 
 const FOCUS_KINDS = ["none", "draft", "applied"];
 
+// What one step did. An edge change names the two nodes it runs between; a
+// part change names the part and the label it is shown by. Both describe an
+// effect the provider already verified, never a request for one.
+const PART_LABEL_MAX = 120;
+
 const validChange = change =>
-  exactObject(change, ["change", "from", "to"]) &&
-  (change.change === "added" || change.change === "removed") &&
-  validId(change.from) &&
-  validId(change.to);
+  (change?.kind === "region"
+    ? exactObject(change, ["change", "kind", "id", "label"]) &&
+      validId(change.id) &&
+      typeof change.label === "string" &&
+      change.label.trim().length > 0 &&
+      change.label.length <= PART_LABEL_MAX
+    : exactObject(change, ["change", "from", "to"]) &&
+      validId(change.from) &&
+      validId(change.to)) &&
+  (change.change === "added" || change.change === "removed");
 
 const validChanges = value =>
   Array.isArray(value) && value.length >= 1 && value.length <= 8 && value.every(validChange);
@@ -115,14 +126,15 @@ const validContext = value =>
   value.recent.every(validContextEntry) &&
   value.recent.every((entry, index) => index === 0 || entry.seq > value.recent[index - 1].seq);
 
-// v5 sends Jev one named state object: the utterance, the working graph it is
+// v6 sends Jev one named state object: the utterance, the working graph it is
 // spoken into, the effect of every unapplied step in order, the focus (the
 // latest step, else the latest applied change), and the recent conversation -
-// earlier utterances as unverified material for resolving references. No saved
-// graph, no log or hash, no list of actions - the questions carry the options.
-const validRequestV5 = value =>
+// earlier utterances as unverified material for resolving references. An
+// effect may now be a part as well as an edge. No saved graph, no log or hash,
+// no list of actions - the questions carry the options.
+const validRequestV6 = value =>
   exactObject(value, ["kind", "state"]) &&
-  value.kind === "voice-ui.jev.request.v5" &&
+  value.kind === "voice-ui.jev.request.v6" &&
   exactObject(value.state, ["utterance", "working", "draft", "focus", "context"]) &&
   validContext(value.state.context) &&
   validText(value.state.utterance) &&
@@ -274,6 +286,7 @@ async function decideGraphEdge(input, env) {
 
 const STEP_ACTIONS = {
   "add-edge": "the utterance asks to add one directed edge between two nodes of the working graph",
+  "add-part": "the utterance asks to add one new part, node, box or step to the graph itself",
   "remove-edge": "the utterance asks to remove one edge of the working graph",
   "reverse-edge": "the utterance asks to reverse the direction of one edge of the working graph",
   "undo-request": "the utterance asks to undo, take back or go back on an earlier change",
@@ -287,6 +300,18 @@ const CONTEXT_NOTE = " context.recent lists earlier utterances as they were reco
   + " They are unverified and may be misrecognized. Use them only to understand what the current utterance refers to;"
   + " the current utterance, the working graph and the focus are the facts, and an earlier effect is history, not the current graph.";
 
+// The kinds of part the page offers. The app owns the list, the name and the
+// place; Jev only says which kind was asked for, so no answer can invent a
+// shape the graph cannot draw.
+const PART_KINDS = {
+  step: "the utterance asks for an ordinary step, task or box",
+  decision: "the utterance asks for a decision, choice or branch",
+  data: "the utterance asks for data, a document, an input or an output",
+  start: "the utterance asks for a start or beginning",
+  end: "the utterance asks for an end, finish or result",
+  none: "the utterance asks for no new part, or names a kind that is not offered",
+};
+
 // The state is sent to Jev as the named object it arrived as, per the TypeSafe
 // guidance that state carries the content and the questions carry only the
 // judgments. Nothing here interprets the utterance or the context.
@@ -296,10 +321,11 @@ async function decideStep(input, env) {
   // Remove and reverse need an edge, so they are only offered when there is
   // one, and the edge question is asked only then. Every slot offers "none".
   const actions = edges.length > 0
-    ? ["add-edge", "remove-edge", "reverse-edge", "undo-request", "none"]
-    : ["add-edge", "undo-request", "none"];
+    ? ["add-edge", "add-part", "remove-edge", "reverse-edge", "undo-request", "none"]
+    : ["add-edge", "add-part", "undo-request", "none"];
   const nodeKeys = [...regions, NONE];
   const edgeKeys = [...edges.map(edge => edge.id), NONE];
+  const partKeys = Object.keys(PART_KINDS);
 
   const questions = {
     action: {
@@ -321,6 +347,11 @@ async function decideStep(input, env) {
       criteria: criteria(nodeKeys, key => key === NONE
         ? "the utterance names no node of the working graph as the end"
         : `the edge ends at ${key}`),
+    },
+    part: {
+      type: "choice",
+      instructions: "If the utterance asks to add a new part to the graph, which kind of part is it?",
+      criteria: criteria(partKeys, key => PART_KINDS[key]),
     },
   };
   if (edges.length > 0) {
@@ -352,6 +383,7 @@ async function decideStep(input, env) {
       action: choice(value.answers, "action", actions),
       source: choice(value.answers, "source", nodeKeys),
       target: choice(value.answers, "target", nodeKeys),
+      part: choice(value.answers, "part", partKeys),
     };
     if (edges.length > 0) answers.edge = choice(value.answers, "edge", edgeKeys);
     result = { model: value.model, answers };
@@ -377,7 +409,7 @@ export async function onRequestPost({ request, env }) {
   } catch {
     return json({ error: "invalid_json" }, 400);
   }
-  if (validRequestV5(input)) return decideStep(input, env);
+  if (validRequestV6(input)) return decideStep(input, env);
   if (validRequestV2(input)) return decideGraphEdge(input, env);
   if (!validRequest(input)) return json({ error: "invalid_request" }, 422);
 

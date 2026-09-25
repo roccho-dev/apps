@@ -261,7 +261,7 @@ const jevExchange = target => ({
 // anywhere else in the body.
 const inputsSent = new Set();
 const assertOnlyCurrentInput = (sent, panelBefore) => {
-  assert.equal(sent.kind, "voice-ui.jev.request.v5");
+  assert.equal(sent.kind, "voice-ui.jev.request.v6");
   const { utterance, context, ...rest } = sent.state;
   assert.deepEqual(context.recent, panelBefore, "the request must send exactly the recent conversation the panel showed");
   for (const entry of sent.state.draft) {
@@ -411,7 +411,7 @@ assert.deepEqual(await panes(page), { confirmed: [], working: [] });
 // Hayamimi heard and the working graph it was spoken into; the answer is Jev's
 // typed choice; the edge appears on the right and nowhere else.
 const voiceAdd = await speak(page);
-assert.equal(voiceAdd.sent.kind, "voice-ui.jev.request.v5");
+assert.equal(voiceAdd.sent.kind, "voice-ui.jev.request.v6");
 assert.deepEqual(voiceAdd.sent.state.context, { recent: [] }, "a first visit has no recent conversation");
 assert.deepEqual(voiceAdd.sent.state.working, { regions: ["node-a", "node-b", "node-c"], edges: [] });
 assert.deepEqual(voiceAdd.sent.state.draft, []);
@@ -561,7 +561,7 @@ const assertSavedUntouched = async (label, expectedStored, expectedApplied, expe
 };
 
 const typedA = await type(page, "add an edge from a to b");
-assert.equal(typedA.sent.kind, "voice-ui.jev.request.v5", "Send must use the typed graph decision");
+assert.equal(typedA.sent.kind, "voice-ui.jev.request.v6", "Send must use the typed graph decision");
 assert.equal(typedA.decision.answers.action.choice, "add-edge");
 const edgeA = edgeOf(typedA.decision.answers);
 await assertSavedUntouched("first typed step", null, [], []);
@@ -986,6 +986,97 @@ assert.equal(redrawn.stored, undrawn.stored, "reload must draw what was saved, n
 assert.deepEqual((await drawn(page, "confirmed")).edges, [edgeA, theirEdge, edgeC].sort());
 assert.equal(redrawn.sendDisabled, false);
 
+// (xvi-b) A part. One typed request adds one new part to 作業図 only: the page
+// names it, places it and draws it, and 確定図 and the stored bytes do not move
+// until Apply.
+const cellsOf = async () => (await drawn(page, "working")).cells;
+const beforePart = await screen(page);
+const cellsBeforePart = await cellsOf();
+assert.deepEqual(beforePart.draft, [], "precondition: nothing unapplied before the part");
+
+const addPart = await type(page, "add a new decision box");
+assert.equal(addPart.decision.answers.action.choice, "add-part", "precondition: Jev must answer add-part");
+assert.equal(addPart.decision.answers.part.choice, "decision", "precondition: Jev must choose the decision kind");
+const parted = await screen(page);
+assert.equal(parted.state, "drafted");
+assert.equal(parted.draft.length, 1);
+const partId = parted.draft[0].replace(/^\+/u, "").replace(/「.*$/u, "");
+assert.match(partId, /^part-\d+$/u, "the page names the part, not Jev");
+assert.deepEqual(parted.items, [{
+  source: "typed",
+  input: addPart.sent.state.utterance,
+  effect: `部品追加 ${partId}「判断 1」`,
+  elements: 0,
+}], "the step shows what was typed and the part it made");
+assert.equal(await cellsOf(), cellsBeforePart + 1, "作業図 must draw exactly one more cell");
+assert.equal(parted.stored, beforePart.stored, "a part must not be saved before Apply");
+assert.deepEqual(parted.confirmed, beforePart.confirmed, "確定図 must not move before Apply");
+assert.deepEqual((await drawn(page, "confirmed")).cells, cellsBeforePart, "確定図 must not draw the part");
+
+// The request after it carries the part as an effect. A contract that knew
+// only edges would refuse this one with 422 and the conversation would stop.
+const afterPart = await type(page, "what is the weather like today");
+assert.deepEqual(afterPart.sent.state.draft, [{
+  changes: [{ change: "added", kind: "region", id: partId, label: "判断 1" }],
+}], "a part effect reaches Jev as its id and label");
+assert.deepEqual(afterPart.sent.state.focus, { kind: "draft", changes: afterPart.sent.state.draft[0].changes });
+assert.equal((await screen(page)).state, "no-change");
+assert.deepEqual((await screen(page)).draft, parted.draft, "a no-change keeps the part in the draft");
+
+// Undo takes it away again, and its name is spent.
+await press(page, "#undo");
+assert.deepEqual((await screen(page)).draft, [], "Undo removes the part");
+assert.equal(await cellsOf(), cellsBeforePart, "作業図 draws one fewer cell again");
+
+const rebuilt = await type(page, "add a new decision box");
+assert.equal(rebuilt.decision.answers.action.choice, "add-part");
+const rebuiltId = (await screen(page)).draft[0].replace(/^\+/u, "").replace(/「.*$/u, "");
+assert.notEqual(rebuiltId, partId, "a part name is never reused, not even after Undo");
+
+await press(page, "#apply");
+const appliedPart = await screen(page);
+assert.equal(appliedPart.state, "applied");
+assert.deepEqual(appliedPart.draft, []);
+assert.ok(appliedPart.confirmed.at(-1).startsWith(`+${rebuiltId}`), "確定図 records the part");
+assert.ok(appliedPart.stored.includes(rebuiltId), "Apply is what writes the part");
+assert.equal(lineCount(appliedPart.stored), lineCount(beforePart.stored) + 1, "exactly one Decision is added");
+const savedWithPart = appliedPart.stored;
+const partEntry = appliedPart.confirmed.length - 1;
+assert.equal(appliedPart.revertDisabled[partEntry], false, "a part standing alone can be taken back");
+
+await page.reload({ waitUntil: "commit" });
+await ready(page);
+const afterPartReload = await screen(page);
+assert.equal(afterPartReload.state, "restored");
+assert.equal(afterPartReload.stored, savedWithPart, "reload must not rewrite the stored log");
+assert.ok(afterPartReload.confirmed.at(-1).startsWith(`+${rebuiltId}`));
+assert.equal(await cellsOf(), cellsBeforePart + 1, "both panes come back with the part");
+
+// Taking the part back is one more step on 作業図, and Apply writes it.
+await page.locator(`button[data-revert="${partEntry}"]`).click();
+await settle(page);
+const revertingPart = await screen(page);
+assert.equal(revertingPart.state, "drafted");
+assert.deepEqual(revertingPart.draft, [`-${rebuiltId}「判断 2」`], "the revert removes exactly that part");
+assert.equal(revertingPart.stored, savedWithPart, "確定図 is untouched until Apply");
+assert.equal(await cellsOf(), cellsBeforePart, "作業図 already shows it gone");
+await press(page, "#discard");
+assert.equal(await cellsOf(), cellsBeforePart + 1, "Discard puts 作業図 back");
+
+// A part that has since gained an edge is not offered for revert: removing it
+// would take the edge with it, which is more than that entry did.
+const attach = await type(page, `add an edge from ${rebuiltId} to node-a`);
+assert.equal(attach.decision.answers.action.choice, "add-edge", "precondition: Jev must connect the part");
+await press(page, "#apply");
+const attached = await screen(page);
+assert.equal(attached.revertDisabled[partEntry], true, "a part with an edge is not offered for revert");
+// Even activated directly, a disabled revert must do nothing: the page's own
+// handler checks it, so the guard is not only in how the button looks.
+await page.locator(`button[data-revert="${partEntry}"]`).dispatchEvent("click");
+await page.waitForTimeout(300);
+assert.equal((await screen(page)).stored, attached.stored, "a disabled revert does nothing");
+assert.deepEqual((await screen(page)).draft, []);
+
 await first.browser.close();
 
 // (xvii) The spoken correction. A second browser, which hears only the
@@ -1047,7 +1138,7 @@ for (const control of ["sendDisabled", "micDisabled", "undoDisabled", "discardDi
 
 const [typedFrom, typedTo] = typedEdge.split("->");
 const heard = await speak(page);
-assert.equal(heard.sent.kind, "voice-ui.jev.request.v5");
+assert.equal(heard.sent.kind, "voice-ui.jev.request.v6");
 // The spoken correction carries the typed step before it as recent context:
 // what was typed, and the step it made.
 assert.deepEqual(withoutSeq(heard.sent.state.context.recent), [heardAs(typedStep, "typed", "step", `+${typedEdge}`)]);
@@ -1114,6 +1205,9 @@ process.stdout.write(
   + "never stored or logged; markup-like text literal "
   + "| recent conversation: step, undone by Undo and Discard, undo-request and no-change kept, >200 characters counted not sent, "
   + "window of 5, kept by Apply, erased by reload and 会話をクリア, nothing from blank input or timeouts "
+  + `| part: one typed request drew ${rebuiltId}「判断 2」 on 作業図 only, the next request carried it as an effect, `
+  + `Undo removed it and spent its name (${partId} never reused), Apply and reload kept it, `
+  + "lone-part revert drafted then discarded, a part with an edge is not revertable "
   + `| ${jevAnswered} real Jev answers in this run `
   + `| refused microphone: [${voicePhases(refusalTrace).map(entry => entry.kind).join(" ")}], 0 Jev requests, nothing changed, controls given back `
   + `| embedded Accept [${embeddedAccepts.join("; ")}] / [${correctionAccepts.join("; ")}] `

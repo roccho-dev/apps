@@ -49,6 +49,14 @@ const regionIdsOf = records =>
       .map(record => record.id),
   );
 
+// A part as the history has to name it: its id, and the label it is shown by.
+const regionsOf = records =>
+  Object.freeze(
+    (records ?? [])
+      .filter(record => record?.type === "region" && record.parent !== null)
+      .map(record => Object.freeze({ id: record.id, label: record.label })),
+  );
+
 const relationsOf = records =>
   Object.freeze(
     (records ?? [])
@@ -61,7 +69,7 @@ const relationsOf = records =>
 // exist only in the earlier state, and reading them out of the id string would
 // be guessing. So every change is a difference between two provider states.
 const keyed = records => new Map([
-  ...regionIdsOf(records).map(id => [`region ${id}`, Object.freeze({ kind: "region", id })]),
+  ...regionsOf(records).map(region => [`region ${region.id}`, Object.freeze({ kind: "region", ...region })]),
   ...relationsOf(records).map(relation => [
     `relation ${relation.id} ${relation.from} ${relation.to}`,
     Object.freeze({ kind: "relation", ...relation }),

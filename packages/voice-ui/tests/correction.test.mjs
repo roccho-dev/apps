@@ -7,6 +7,7 @@ import { onRequestPost } from "../functions/api/jev.mjs";
 import { DecisionRefused } from "../src/decision/graph-edge.mjs";
 import {
   ACTION_ADD,
+  ACTION_ADD_PART,
   ACTION_NONE,
   ACTION_REMOVE,
   ACTION_REVERSE,
@@ -16,14 +17,18 @@ import {
   OPTION_NONE,
   OUTCOME_NO_CHANGE,
   OUTCOME_STEP,
+  PART_PALETTE,
   appendStep,
+  changesForJev,
   correctionCriteria,
   edgesOf,
   focusFor,
+  freeSlot,
+  nextPartId,
   planStep,
   revertStep,
 } from "../src/decision/correction.mjs";
-import { statesOf } from "../src/decision/history.mjs";
+import { statesOf, truncateLog } from "../src/decision/history.mjs";
 
 const store = process.env.SEMANTIC_MAP;
 if (!store) throw new Error("SEMANTIC_MAP must point at the pinned semantic-map store path");
@@ -55,11 +60,12 @@ const choice = (value, confidence = 0.9) => ({ type: "choice", choice: value, co
 
 // Answers shaped exactly like the questions a working graph gets asked: the
 // edge question exists only when there is an edge.
-const answersFor = (graph, { action, source = "node-a", target = "node-b", edge, confidence = 0.9 }) => {
+const answersFor = (graph, { action, source = "node-a", target = "node-b", part = OPTION_NONE, edge, confidence = 0.9 }) => {
   const answers = {
     action: choice(action, confidence),
     source: choice(source, confidence),
     target: choice(target, confidence),
+    part: choice(part, confidence),
   };
   if (edgesOf(graph.records).length > 0) answers.edge = choice(edge ?? edgesOf(graph.records)[0].id, confidence);
   return answers;
@@ -81,15 +87,16 @@ const verifyDecisionLog = protocol.verifyDecisionLog;
 
 test("an edgeless working graph is offered add, undo-request or no change, and every slot offers none", async () => {
   const criteria = correctionCriteria((await baseGraph()).records);
-  assert.deepEqual(criteria.actions, [ACTION_ADD, ACTION_UNDO_REQUEST, ACTION_NONE]);
+  assert.deepEqual(criteria.actions, [ACTION_ADD, ACTION_ADD_PART, ACTION_UNDO_REQUEST, ACTION_NONE]);
   assert.deepEqual(criteria.edges, []);
+  assert.deepEqual(criteria.parts, [...PART_PALETTE.map(part => part.key), OPTION_NONE]);
   assert.deepEqual(criteria.regions, ["node-a", "node-b", "node-c", OPTION_NONE]);
 });
 
 test("a working graph with an edge is also offered removing or reversing it, or no edge", async () => {
   const working = await step(await baseGraph(), { action: ACTION_ADD, source: "node-c", target: "node-a" });
   const criteria = correctionCriteria(working.records);
-  assert.deepEqual(criteria.actions, [ACTION_ADD, ACTION_REMOVE, ACTION_REVERSE, ACTION_UNDO_REQUEST, ACTION_NONE]);
+  assert.deepEqual(criteria.actions, [ACTION_ADD, ACTION_ADD_PART, ACTION_REMOVE, ACTION_REVERSE, ACTION_UNDO_REQUEST, ACTION_NONE]);
   assert.deepEqual(criteria.edges, ["voice-node-c-to-node-a", OPTION_NONE]);
 });
 
@@ -282,13 +289,175 @@ test("a revert that a later change has overtaken is refused, and nothing changes
   assert.deepEqual(edges(later), ["node-a->node-c"]);
 });
 
-test("only edge changes can be reverted", async () => {
+test("a removed region cannot be reverted", async () => {
   const graph = await baseGraph();
-  const withRegion = [...graph.records, { ...graph.records.find(record => record.id === "node-a"), id: "node-d" }];
+  const withoutOne = graph.records.filter(record => record.id !== "node-a");
   await assert.rejects(
-    revertStep({ before: graph.records, after: withRegion, working: graph, protocol }),
-    /only edge changes can be reverted/u,
+    revertStep({ before: graph.records, after: withoutOne, working: graph, protocol }),
+    /only an added part can be reverted/u,
   );
+});
+
+// Parts: Jev chooses only which kind of part was asked for. The app names it,
+// places it and refuses when there is nowhere to put it.
+
+const addPart = (working, part, confidence = 0.9) =>
+  planStep({ working, revision: working.head, answers: answersFor(working, { action: ACTION_ADD_PART, part, confidence }), protocol });
+
+const regionsOf = graph => graph.records.filter(record => record.type === "region" && record.parent !== null);
+
+test("adding a part builds one AddRegion with an app-issued name, kind and free slot", async () => {
+  const graph = await baseGraph();
+  const planned = await addPart(graph, "decision");
+
+  assert.equal(planned.outcome, OUTCOME_STEP);
+  assert.equal(planned.step.action, ACTION_ADD_PART);
+  assert.deepEqual(planned.step.decision.operations, [{
+    type: "AddRegion",
+    regionId: "part-1",
+    parentId: "root",
+    label: "判断 1",
+    kind: "decision",
+    summary: "",
+    bounds: [20, 20, 140, 64],
+  }]);
+  assert.deepEqual(planned.step.changes, [{ change: "added", kind: "region", id: "part-1", label: "判断 1" }]);
+
+  const working = await appendStep({ working: graph, step: planned.step, protocol });
+  const part = regionsOf(working).find(record => record.id === "part-1");
+  assert.equal(part.label, "判断 1");
+  assert.equal(part.kind, "decision");
+  assert.deepEqual(edges(working), [], "a part is not an edge");
+});
+
+test("every palette key is offered, builds its own kind, and nothing else is accepted", async () => {
+  let working = await baseGraph();
+  for (const entry of PART_PALETTE) {
+    const planned = await addPart(working, entry.key);
+    assert.equal(planned.outcome, OUTCOME_STEP, entry.key);
+    const [operation] = planned.step.decision.operations;
+    assert.equal(operation.kind, entry.kind, entry.key);
+    assert.match(operation.label, new RegExp(`^${entry.label} \\d+$`, "u"), entry.key);
+    working = await appendStep({ working, step: planned.step, protocol });
+  }
+  assert.equal(regionsOf(working).length, 3 + PART_PALETTE.length);
+
+  const answers = answersFor(working, { action: ACTION_ADD_PART, part: OPTION_NONE });
+  await assert.rejects(
+    planStep({ working, revision: working.head, answers: { ...answers, part: choice("group") }, protocol }),
+    error => error instanceof DecisionRefused && /outside the offered criteria/u.test(error.message),
+  );
+});
+
+test("a part name is never reused, not even after the part is reverted away", async () => {
+  const graph = await baseGraph();
+  const first = await addPart(graph, "step");
+  const withPart = await appendStep({ working: graph, step: first.step, protocol });
+  assert.equal(nextPartId(withPart), "part-2");
+
+  // Take part-1 away again, exactly as a revert of that entry does.
+  const states = await statesOf(withPart.log, verifyDecisionLog);
+  const revert = await revertStep({ before: states[0], after: states[1], working: withPart, protocol });
+  const removed = await appendStep({ working: withPart, step: revert.step ?? revert, protocol });
+  assert.deepEqual(regionsOf(removed).map(record => record.id), ["node-a", "node-b", "node-c"]);
+
+  // The name is spent: the next part is part-2, so an earlier utterance about
+  // part-1 can never come to mean a different part.
+  assert.equal(nextPartId(removed), "part-2");
+  const next = await addPart(removed, "step");
+  assert.equal(next.step.decision.operations[0].regionId, "part-2");
+});
+
+test("a name the page has handed out is spent even when undo cut it out of the log", async () => {
+  const graph = await baseGraph();
+  const first = await addPart(graph, "step");
+  const withPart = await appendStep({ working: graph, step: first.step, protocol });
+
+  // Undo is a truncation: the log no longer mentions part-1 at all.
+  const undone = await truncateLog(withPart, {
+    count: graph.decisions.length,
+    floor: graph.decisions.length,
+    verifyDecisionLog,
+  });
+  assert.equal(nextPartId(undone), "part-1", "the log alone cannot know the name was used");
+
+  // The page remembers it, because its conversation still refers to it.
+  assert.equal(nextPartId(undone, ["part-1"]), "part-2");
+  const planned = await planStep({
+    working: undone,
+    revision: undone.head,
+    answers: answersFor(undone, { action: ACTION_ADD_PART, part: "step" }),
+    protocol,
+    reserved: ["part-1"],
+  });
+  assert.equal(planned.step.decision.operations[0].regionId, "part-2");
+});
+
+test("an added part can be reverted only while it stands alone", async () => {
+  const graph = await baseGraph();
+  const planned = await addPart(graph, "data");
+  const withPart = await appendStep({ working: graph, step: planned.step, protocol });
+  const states = await statesOf(withPart.log, verifyDecisionLog);
+
+  const attached = await step(withPart, { action: ACTION_ADD, source: "part-1", target: "node-a" });
+  await assert.rejects(
+    revertStep({ before: states[0], after: states[1], working: attached, protocol }),
+    error => error instanceof DecisionRefused && /now has an edge/u.test(error.message),
+  );
+  assert.deepEqual(regionsOf(attached).map(record => record.id).sort(), ["node-a", "node-b", "node-c", "part-1"]);
+
+  const revert = await revertStep({ before: states[0], after: states[1], working: withPart, protocol });
+  assert.deepEqual(revert.changes, [{ change: "removed", kind: "region", id: "part-1", label: "データ 1" }]);
+  const undone = await appendStep({ working: withPart, step: revert, protocol });
+  assert.deepEqual(regionsOf(undone).map(record => record.id), ["node-a", "node-b", "node-c"]);
+});
+
+test("slots fill in reading order, never overlap, and a full graph is a no-change", async () => {
+  let working = await baseGraph();
+  const placed = [];
+  for (let count = 0; count < 8; count += 1) {
+    const planned = await addPart(working, "step");
+    assert.equal(planned.outcome, OUTCOME_STEP, `part ${count + 1}`);
+    placed.push(planned.step.decision.operations[0].bounds);
+    working = await appendStep({ working, step: planned.step, protocol });
+  }
+  // Inside the boundary, and no two parts on the same spot.
+  for (const [x, y, w, h] of placed) {
+    assert.ok(x >= 0 && y >= 0 && x + w <= 720 && y + h <= 260, `${x},${y} is outside the boundary`);
+  }
+  assert.equal(new Set(placed.map(bounds => bounds.join(","))).size, placed.length);
+  assert.deepEqual(placed[0], [20, 20, 140, 64]);
+  assert.deepEqual(placed[1], [180, 20, 140, 64]);
+
+  const full = await addPart(working, "step");
+  assert.equal(full.outcome, OUTCOME_NO_CHANGE);
+  assert.match(full.reason, /場所がありません/u);
+  assert.equal(freeSlot(working.records), null);
+});
+
+test("a part nobody asked for, or one asked for too vaguely, changes nothing", async () => {
+  const graph = await baseGraph();
+  const none = await addPart(graph, OPTION_NONE);
+  assert.equal(none.outcome, OUTCOME_NO_CHANGE);
+  assert.match(none.reason, /did not name a part/u);
+
+  const unsure = await addPart(graph, "step", 0.4);
+  assert.equal(unsure.outcome, OUTCOME_NO_CHANGE);
+  assert.match(unsure.reason, /not confident enough/u);
+  assert.deepEqual(regionsOf(graph).map(record => record.id), ["node-a", "node-b", "node-c"]);
+});
+
+test("a part change reaches Jev as its id and label; an edge change as its two ends", () => {
+  const region = { change: "added", kind: "region", id: "part-1", label: "判断 1", decision: "ignored" };
+  const edge = { change: "removed", from: "node-a", to: "node-b", extra: 1 };
+  assert.deepEqual(changesForJev([region, edge]), [
+    { change: "added", kind: "region", id: "part-1", label: "判断 1" },
+    { change: "removed", from: "node-a", to: "node-b" },
+  ]);
+  assert.deepEqual(focusFor({ draft: [{ changes: [region] }] }), {
+    kind: "draft",
+    changes: [{ change: "added", kind: "region", id: "part-1", label: "判断 1" }],
+  });
 });
 
 test("the focus is the latest working step, else the latest applied change, else nothing", () => {
@@ -301,9 +470,9 @@ test("the focus is the latest working step, else the latest applied change, else
   assert.equal(DRAFT_MAX, 8);
 });
 
-// The Pages Function side of v5: which questions are put to Jev for a given
+// The Pages Function side of v6: which questions are put to Jev for a given
 // working graph, draft, focus and recent conversation, and what shape comes
-// back. Only the request moved to v5; the answer is still decision.v4.
+// back. Only the request moved to v6; the answer is still decision.v4.
 
 const postJev = body =>
   onRequestPost({
@@ -341,8 +510,10 @@ const providerChoice = (value, keys, confidence = 0.8) => ({
 
 const REGIONS = ["node-a", "node-b", "node-c"];
 const NODE_KEYS = [...REGIONS, "none"];
+const PART_KEYS = [...PART_PALETTE.map(part => part.key), "none"];
 const EDGE = { id: "voice-node-c-to-node-a", from: "node-c", to: "node-a" };
 const ADDED = { change: "added", from: "node-c", to: "node-a" };
+const PART_ADDED = { change: "added", kind: "region", id: "part-1", label: "判断 1" };
 
 const v5 = ({
   utterance = "reverse that edge",
@@ -351,7 +522,7 @@ const v5 = ({
   focus = { kind: "none", changes: [] },
   recent = [],
 } = {}) => ({
-  kind: "voice-ui.jev.request.v5",
+  kind: "voice-ui.jev.request.v6",
   state: { utterance, working: { regions: REGIONS, edges }, draft, focus, context: { recent } },
 });
 
@@ -364,34 +535,36 @@ const HEARD = [
   { seq: 7, source: "voice", text: "ADD AN EDGE FROM A TO B", outcome: "undone" },
 ];
 
-test("v5 on an edgeless working graph asks only about adding, and forwards the named state object", async () => {
+test("v6 on an edgeless working graph asks only about adding, and forwards the named state object", async () => {
   const request = v5({ utterance: "add an edge from c to a" });
   const { result, calls } = await withProvider({
-    action: providerChoice("add-edge", ["add-edge", "undo-request", "none"]),
+    action: providerChoice("add-edge", ["add-edge", "add-part", "undo-request", "none"]),
     source: providerChoice("node-c", NODE_KEYS),
     target: providerChoice("node-a", NODE_KEYS),
+    part: providerChoice("none", PART_KEYS),
   }, () => postJev(request));
 
   assert.equal(result.status, 200);
   const body = await result.json();
   assert.equal(body.kind, "voice-ui.jev.decision.v4");
-  assert.deepEqual(Object.keys(body.answers), ["action", "source", "target"]);
+  assert.deepEqual(Object.keys(body.answers), ["action", "source", "target", "part"]);
 
   const [call] = calls;
   assert.deepEqual(call.state, request.state, "Jev gets the page's state object, unchanged");
-  assert.deepEqual(Object.keys(call.questions), ["action", "source", "target"]);
-  assert.deepEqual(Object.keys(call.questions.action.criteria), ["add-edge", "undo-request", "none"]);
+  assert.deepEqual(Object.keys(call.questions), ["action", "source", "target", "part"]);
+  assert.deepEqual(Object.keys(call.questions.action.criteria), ["add-edge", "add-part", "undo-request", "none"]);
   assert.deepEqual(Object.keys(call.questions.source.criteria), NODE_KEYS);
   assert.deepEqual(Object.keys(call.questions.target.criteria), NODE_KEYS);
 });
 
-test("v5 with a working edge offers remove, reverse, that edge or none, and feeds planStep", async () => {
-  const actions = ["add-edge", "remove-edge", "reverse-edge", "undo-request", "none"];
+test("v6 with a working edge offers remove, reverse, that edge or none, and feeds planStep", async () => {
+  const actions = ["add-edge", "add-part", "remove-edge", "reverse-edge", "undo-request", "none"];
   const request = v5({ edges: [EDGE], draft: [{ changes: [ADDED] }], focus: { kind: "draft", changes: [ADDED] } });
   const { result, calls } = await withProvider({
     action: providerChoice("reverse-edge", actions),
     source: providerChoice("none", NODE_KEYS),
     target: providerChoice("none", NODE_KEYS),
+    part: providerChoice("none", PART_KEYS),
     edge: providerChoice(EDGE.id, [EDGE.id, "none"]),
   }, () => postJev(request));
 
@@ -409,12 +582,13 @@ test("v5 with a working edge offers remove, reverse, that edge or none, and feed
   assert.equal(planned.step.action, ACTION_REVERSE);
 });
 
-test("v5 passes an undo-request through; the step code turns it into no change", async () => {
-  const actions = ["add-edge", "remove-edge", "reverse-edge", "undo-request", "none"];
+test("v6 passes an undo-request through; the step code turns it into no change", async () => {
+  const actions = ["add-edge", "add-part", "remove-edge", "reverse-edge", "undo-request", "none"];
   const { result } = await withProvider({
     action: providerChoice("undo-request", actions),
     source: providerChoice("none", NODE_KEYS),
     target: providerChoice("none", NODE_KEYS),
+    part: providerChoice("none", PART_KEYS),
     edge: providerChoice(EDGE.id, [EDGE.id, "none"]),
   }, () => postJev(v5({ utterance: "undo that", edges: [EDGE], draft: [{ changes: [ADDED] }], focus: { kind: "draft", changes: [ADDED] } })));
 
@@ -425,13 +599,13 @@ test("v5 passes an undo-request through; the step code turns it into no change",
   assert.equal(planned.undoRequest, true);
 });
 
-test("v5 rejects malformed requests and off-criteria answers", async () => {
+test("v6 rejects malformed requests and off-criteria answers", async () => {
   const nine = Array.from({ length: 9 }, () => ({ changes: [ADDED] }));
   const bad = [
     { ...v5(), extra: true },
-    { kind: "voice-ui.jev.request.v5", state: { ...v5().state, extra: 1 } },
-    { kind: "voice-ui.jev.request.v5", state: { ...v5().state, utterance: "  " } },
-    { kind: "voice-ui.jev.request.v5", state: { ...v5().state, working: { regions: [...REGIONS, "none"], edges: [] } } },
+    { kind: "voice-ui.jev.request.v6", state: { ...v5().state, extra: 1 } },
+    { kind: "voice-ui.jev.request.v6", state: { ...v5().state, utterance: "  " } },
+    { kind: "voice-ui.jev.request.v6", state: { ...v5().state, working: { regions: [...REGIONS, "none"], edges: [] } } },
     v5({ edges: [{ ...EDGE, id: "none" }] }),
     v5({ edges: [{ ...EDGE, from: "node-z" }] }),
     v5({ edges: [EDGE, EDGE] }),
@@ -445,19 +619,21 @@ test("v5 rejects malformed requests and off-criteria answers", async () => {
   for (const body of bad) assert.equal((await postJev(body)).status, 422, JSON.stringify(body));
 
   const { result } = await withProvider({
-    action: providerChoice("remove-edge", ["add-edge", "remove-edge", "undo-request", "none"]),
+    action: providerChoice("remove-edge", ["add-edge", "add-part", "remove-edge", "undo-request", "none"]),
     source: providerChoice("node-a", NODE_KEYS),
     target: providerChoice("node-b", NODE_KEYS),
+    part: providerChoice("none", PART_KEYS),
   }, () => postJev(v5()));
   assert.equal(result.status, 502, "remove offered to nobody must not come back");
 });
 
-test("v5 forwards the recent conversation unchanged and tells every question it is unverified", async () => {
+test("v6 forwards the recent conversation unchanged and tells every question it is unverified", async () => {
   const request = v5({ utterance: "connect a to the database", recent: HEARD });
   const { result, calls } = await withProvider({
-    action: providerChoice("add-edge", ["add-edge", "undo-request", "none"]),
+    action: providerChoice("add-edge", ["add-edge", "add-part", "undo-request", "none"]),
     source: providerChoice("node-a", NODE_KEYS),
     target: providerChoice("node-b", NODE_KEYS),
+    part: providerChoice("none", PART_KEYS),
   }, () => postJev(request));
 
   assert.equal(result.status, 200);
@@ -470,13 +646,13 @@ test("v5 forwards the recent conversation unchanged and tells every question it 
   }
 });
 
-test("v5 refuses a malformed recent conversation, and a v4 request is no longer served", async () => {
+test("v6 refuses a malformed recent conversation, and a v4 request is no longer served", async () => {
   const [noChange, stepEntry] = HEARD;
   const bad = [
     // A v4 request, exactly as the previous page sent it.
     { kind: "voice-ui.jev.request.v4", state: { utterance: "x", working: { regions: REGIONS, edges: [] }, draft: [], focus: { kind: "none", changes: [] } } },
     // v5 without the context, or with a different shape.
-    { kind: "voice-ui.jev.request.v5", state: { utterance: "x", working: { regions: REGIONS, edges: [] }, draft: [], focus: { kind: "none", changes: [] } } },
+    { kind: "voice-ui.jev.request.v6", state: { utterance: "x", working: { regions: REGIONS, edges: [] }, draft: [], focus: { kind: "none", changes: [] } } },
     { ...v5(), state: { ...v5().state, context: [] } },
     { ...v5(), state: { ...v5().state, context: { recent: [], extra: 1 } } },
     v5({ recent: [...HEARD, { ...noChange, seq: 9 }] }),
@@ -497,11 +673,79 @@ test("v5 refuses a malformed recent conversation, and a v4 request is no longer 
 
   const exactlyFull = v5({ recent: HEARD.map(entry => ({ ...entry, text: entry.text.padEnd(200, ".") })) });
   const { result } = await withProvider({
-    action: providerChoice("none", ["add-edge", "undo-request", "none"]),
+    action: providerChoice("none", ["add-edge", "add-part", "undo-request", "none"]),
     source: providerChoice("none", NODE_KEYS),
     target: providerChoice("none", NODE_KEYS),
+    part: providerChoice("none", PART_KEYS),
   }, () => postJev(exactlyFull));
   assert.equal(result.status, 200, "five entries of 200 characters are accepted");
+});
+
+test("v6 carries part effects in the draft, focus and conversation, and offers the palette", async () => {
+  const request = v5({
+    utterance: "add a decision",
+    draft: [{ changes: [PART_ADDED] }],
+    focus: { kind: "draft", changes: [PART_ADDED] },
+    recent: [{ seq: 1, source: "typed", text: "add a decision", outcome: "step", effect: { changes: [PART_ADDED] } }],
+  });
+  const { result, calls } = await withProvider({
+    action: providerChoice("add-part", ["add-edge", "add-part", "undo-request", "none"]),
+    source: providerChoice("none", NODE_KEYS),
+    target: providerChoice("none", NODE_KEYS),
+    part: providerChoice("decision", PART_KEYS),
+  }, () => postJev(request));
+
+  assert.equal(result.status, 200);
+  const body = await result.json();
+  assert.equal(body.kind, "voice-ui.jev.decision.v4", "the answer's contract is unchanged");
+  assert.equal(body.answers.part.choice, "decision");
+
+  const [call] = calls;
+  assert.deepEqual(call.state, request.state, "a part effect reaches Jev exactly as the page sent it");
+  assert.deepEqual(Object.keys(call.questions.part.criteria), PART_KEYS);
+  assert.deepEqual(Object.keys(call.questions.action.criteria), ["add-edge", "add-part", "undo-request", "none"]);
+  assert.match(call.questions.part.instructions, /which kind of part/u);
+
+  // The step code takes that answer and makes exactly one part.
+  const planned = await planStep({
+    working: await baseGraph(),
+    revision: (await baseGraph()).head,
+    answers: body.answers,
+    protocol,
+  });
+  assert.equal(planned.outcome, OUTCOME_STEP);
+  assert.equal(planned.step.action, ACTION_ADD_PART);
+});
+
+test("v6 refuses a malformed part effect, and a v5 request is no longer served", async () => {
+  const bad = [
+    // The previous contract, exactly as the earlier page sent it.
+    {
+      kind: "voice-ui.jev.request.v5",
+      state: { ...v5().state },
+    },
+    v5({ draft: [{ changes: [{ ...PART_ADDED, kind: "relation" }] }] }),
+    v5({ draft: [{ changes: [{ change: "added", kind: "region", id: "part-1" }] }] }),
+    v5({ draft: [{ changes: [{ ...PART_ADDED, label: "" }] }] }),
+    v5({ draft: [{ changes: [{ ...PART_ADDED, label: "x".repeat(121) }] }] }),
+    v5({ draft: [{ changes: [{ ...PART_ADDED, extra: true }] }] }),
+    v5({ draft: [{ changes: [{ ...PART_ADDED, change: "moved" }] }] }),
+    v5({ focus: { kind: "draft", changes: [{ ...PART_ADDED, from: "node-a" }] } }),
+    v5({ recent: [{ seq: 1, source: "typed", text: "x", outcome: "step", effect: { changes: [{ ...PART_ADDED, id: "" }] } }] }),
+  ];
+  for (const body of bad) assert.equal((await postJev(body)).status, 422, JSON.stringify(body));
+});
+
+test("the palette the page validates against is exactly the one Jev is offered", async () => {
+  const { calls } = await withProvider({
+    action: providerChoice("none", ["add-edge", "add-part", "undo-request", "none"]),
+    source: providerChoice("none", NODE_KEYS),
+    target: providerChoice("none", NODE_KEYS),
+    part: providerChoice("none", PART_KEYS),
+  }, () => postJev(v5()));
+  const offered = Object.keys(calls[0].questions.part.criteria);
+  assert.deepEqual(offered, correctionCriteria((await baseGraph()).records).parts,
+    "the worker's part options and the app's palette must not drift apart");
 });
 
 // A provider that never answers. With `headers`, the status arrives but the body
@@ -551,9 +795,10 @@ for (const headers of [false, true]) {
 
     // Nothing is left behind: the next request is answered as usual.
     const { result } = await withProvider({
-      action: providerChoice("add-edge", ["add-edge", "undo-request", "none"]),
+      action: providerChoice("add-edge", ["add-edge", "add-part", "undo-request", "none"]),
       source: providerChoice("node-c", NODE_KEYS),
       target: providerChoice("node-a", NODE_KEYS),
+      part: providerChoice("none", PART_KEYS),
     }, () => postJev(v5({ utterance: "add an edge from c to a" })));
     assert.equal(result.status, 200);
     assert.equal((await result.json()).answers.action.choice, "add-edge");
