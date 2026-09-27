@@ -141,7 +141,7 @@
             for _ in $(seq 1 120); do
               line="$(grep -m1 'voice-ui dev: listening on ' "$log" || true)"
               if [ -n "$line" ]; then
-                port="${line##*:}"
+                port="''${line##*:}"
                 break
               fi
               if ! kill -0 "$server_pid" 2>/dev/null; then
