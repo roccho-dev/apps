@@ -115,6 +115,54 @@
             touch "$out"
           '';
 
+          voice-ui-scenarios = pkgs.runCommand "voice-ui-scenarios-check" {
+            nativeBuildInputs = [ pkgs.nodejs pkgs.curl pkgs.playwright-test ];
+            PLAYWRIGHT_BROWSERS_PATH = pkgs.playwright-driver.browsers-chromium;
+            PLAYWRIGHT_SKIP_VALIDATE_HOST_REQUIREMENTS = "1";
+            PLAYWRIGHT_MODULE = "file://${pkgs.playwright-test}/lib/node_modules/playwright/index.mjs";
+            VOICE_UI_UI_IR = uiIr;
+            VOICE_UI_A2UI = a2uiBrowser;
+            VOICE_UI_SEMANTIC_MAP = semanticMap;
+            VOICE_UI_HAYAMIMI = hayamimiWeb;
+          } ''
+            export HOME="$TMPDIR/home"
+            mkdir -p "$HOME"
+
+            log="$TMPDIR/voice-ui-scenario-server.log"
+            PORT=0 node ${self}/packages/voice-ui/dev/serve.mjs >"$log" 2>&1 &
+            server_pid=$!
+            cleanup() {
+              kill "$server_pid" 2>/dev/null || true
+              wait "$server_pid" 2>/dev/null || true
+            }
+            trap cleanup EXIT
+
+            port=""
+            for _ in $(seq 1 120); do
+              line="$(grep -m1 'voice-ui dev: listening on ' "$log" || true)"
+              if [ -n "$line" ]; then
+                port="${line##*:}"
+                break
+              fi
+              if ! kill -0 "$server_pid" 2>/dev/null; then
+                break
+              fi
+              sleep 0.25
+            done
+
+            if [ -z "$port" ] || ! curl -fsS "http://127.0.0.1:$port/" >/dev/null; then
+              cat "$log" >&2
+              exit 1
+            fi
+
+            if ! node ${self}/packages/voice-ui/tests/e2e/run.mjs "http://127.0.0.1:$port"; then
+              cat "$log" >&2
+              exit 1
+            fi
+
+            touch "$out"
+          '';
+
           provider-artifacts = pkgs.runCommand "provider-artifacts-check" { } ''
             set -euo pipefail
 
