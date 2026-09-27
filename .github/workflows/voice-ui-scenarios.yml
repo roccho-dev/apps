@@ -1,0 +1,31 @@
+name: voice-ui scenarios
+
+on:
+  pull_request:
+    paths:
+      - "packages/voice-ui/**"
+      - "flake.nix"
+      - "flake.lock"
+      - ".github/workflows/voice-ui-scenarios.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  accepted-scenarios:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout exact apps head
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+      - name: Verify exact apps head
+        env:
+          APPS_SHA: ${{ github.event.pull_request.head.sha }}
+        run: test "$(git rev-parse HEAD)" = "$APPS_SHA"
+      - uses: cachix/install-nix-action@v31
+        with:
+          extra_nix_config: |
+            extra-experimental-features = nix-command flakes
+      - name: Run accepted user-goal scenarios
+        run: nix run --no-write-lock-file .#scenarios
