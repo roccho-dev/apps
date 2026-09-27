@@ -29,8 +29,12 @@ export const evaluateInvariant = (expectation, { initial, current }) => {
   }
 
   if (invariant === "confirmed-unchanged") {
-    const ok = worldKey(initial.confirmed) === worldKey(current.confirmed);
-    return result(invariant, ok, ok ? "confirmed world stayed unchanged" : "confirmed world changed before Apply");
+    const ok = initial.stored === current.stored;
+    return result(
+      invariant,
+      ok,
+      ok ? "accepted storage stayed unchanged" : "accepted storage changed before Apply",
+    );
   }
 
   if (invariant === "cross-functional-flow") {
