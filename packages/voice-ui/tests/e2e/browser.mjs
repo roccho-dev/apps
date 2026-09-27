@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { chromium } from "playwright";
+const { chromium } = await import(process.env.PLAYWRIGHT_MODULE ?? "playwright");
 
 const STORAGE_KEY = "voice-ui.decision-log.v1";
 
