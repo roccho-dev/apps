@@ -83,10 +83,10 @@
               export PLAYWRIGHT_BROWSERS_PATH=${pkgs.playwright-driver.browsers-chromium}
               export PLAYWRIGHT_SKIP_VALIDATE_HOST_REQUIREMENTS=1
               export PLAYWRIGHT_MODULE=file://${pkgs.playwright-test}/lib/node_modules/playwright/index.mjs
-              export HOME="${TMPDIR:-/tmp}/voice-ui-scenarios-home"
+              export HOME="''${TMPDIR:-/tmp}/voice-ui-scenarios-home"
               mkdir -p "$HOME"
 
-              log="${TMPDIR:-/tmp}/voice-ui-scenario-server.log"
+              log="''${TMPDIR:-/tmp}/voice-ui-scenario-server.log"
               PORT=0 node ${self}/packages/voice-ui/dev/serve.mjs >"$log" 2>&1 &
               server_pid=$!
               cleanup() {
