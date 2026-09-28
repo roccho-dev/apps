@@ -120,6 +120,7 @@ def build(args):
     copy_file(app / "artifact.jsonl", out / ".envs/artifact.jsonl")
     copy_file(app / "tests/local-voice-graph-e2e.mjs", out / "e2e/local-voice-graph-e2e.mjs")
     copy_file(app / "tests/public-e2e.mjs", out / "e2e/public-e2e.mjs")
+    copy_file(app / "tests/runtime-acceptance.mjs", out / "e2e/runtime-acceptance.mjs")
     copy_file(app / "tests/fixtures/voice-add-edge-en.wav", out / "e2e/fixtures/voice-add-edge-en.wav")
     copy_file(app / "tests/fixtures/voice-add-edge-en.golden.json", out / "e2e/fixtures/voice-add-edge-en.golden.json")
     copy_file(app / "tests/fixtures/voice-reverse-edge-en.wav", out / "e2e/fixtures/voice-reverse-edge-en.wav")
@@ -138,6 +139,8 @@ def build(args):
         "auth": ".envs/artifact.jsonl",
         "e2e": {
             "entrypoint": "e2e/local-voice-graph-e2e.mjs",
+            "runtime_entrypoint": "e2e/runtime-acceptance.mjs",
+            "public_entrypoint": "e2e/public-e2e.mjs",
             "wav": "e2e/fixtures/voice-add-edge-en.wav",
             "golden": "e2e/fixtures/voice-add-edge-en.golden.json",
             "correction_wav": "e2e/fixtures/voice-reverse-edge-en.wav",
@@ -216,6 +219,8 @@ def verify_dist(root):
         "functions/api/jev.mjs",
         ".envs/artifact.jsonl",
         "e2e/local-voice-graph-e2e.mjs",
+        "e2e/public-e2e.mjs",
+        "e2e/runtime-acceptance.mjs",
         "e2e/fixtures/voice-add-edge-en.wav",
         "e2e/fixtures/voice-add-edge-en.golden.json",
         "e2e/fixtures/voice-reverse-edge-en.wav",
@@ -225,6 +230,18 @@ def verify_dist(root):
         path = root / rel
         if not path.is_file() or path.stat().st_size == 0:
             raise SystemExit(f"required artifact missing: {rel}")
+
+    expected_e2e = {
+        "entrypoint": "e2e/local-voice-graph-e2e.mjs",
+        "runtime_entrypoint": "e2e/runtime-acceptance.mjs",
+        "public_entrypoint": "e2e/public-e2e.mjs",
+        "wav": "e2e/fixtures/voice-add-edge-en.wav",
+        "golden": "e2e/fixtures/voice-add-edge-en.golden.json",
+        "correction_wav": "e2e/fixtures/voice-reverse-edge-en.wav",
+        "correction_golden": "e2e/fixtures/voice-reverse-edge-en.golden.json",
+    }
+    if manifest.get("e2e") != expected_e2e:
+        raise SystemExit("runtime acceptance contract mismatch")
 
     if (root / "site/hayamimi/sherpa/sherpa-onnx-wasm-main-vad-asr.data").exists():
         raise SystemExit("whole ASR model must be chunked before publication")
