@@ -34,7 +34,7 @@
           hayamimiWeb = ops.packages.${system}.hayamimi-web;
 
           mkVoiceUiDist = name: pkgs.runCommand name {
-            nativeBuildInputs = [ pkgs.python3 ];
+            nativeBuildInputs = [ pkgs.python3 pkgs.esbuild ];
           } ''
             python3 ${self}/packages/voice-ui/dist.py build \
               --app ${self}/packages/voice-ui \
@@ -94,7 +94,7 @@
           voiceUiAuth = self.packages.${system}.voice-ui-auth;
           voiceUiDist = self.packages.${system}.voice-ui-dist;
           mkRepro = name: pkgs.runCommand name {
-            nativeBuildInputs = [ pkgs.python3 ];
+            nativeBuildInputs = [ pkgs.python3 pkgs.esbuild ];
           } ''
             python3 ${self}/packages/voice-ui/dist.py build \
               --app ${self}/packages/voice-ui \
@@ -112,6 +112,10 @@
           reproB = mkRepro "voice-ui-dist-repro-b";
         in {
           voice-ui-acceptance-boundary = (acceptanceFor system).check;
+          voice-ui-worker = pkgs.runCommand "voice-ui-worker-check" { nativeBuildInputs = [ pkgs.nodejs ]; } ''
+            node ${./packages/voice-ui/acceptance/worker-smoke.mjs} ${voiceUiDist}/worker/worker.mjs
+            touch "$out"
+          '';
           voice-ui = pkgs.runCommand "voice-ui-check" {
             nativeBuildInputs = [ pkgs.nodejs ];
             SEMANTIC_MAP = semanticMap;
