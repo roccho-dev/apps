@@ -94,6 +94,7 @@ export async function proposeSession({
   offeredFrame = null,
   candidates = [],
   input = null,
+  repair = undefined,
 } = {}) {
   requireGraph("session.accepted", session?.accepted);
   requireGraph("session.working", session?.working);
@@ -118,12 +119,13 @@ export async function proposeSession({
     offeredFrame,
     candidates,
   };
-  const planned = session.pending === null
+  const repairing = repair === undefined ? session.pending : repair;
+  const planned = repairing === null
     ? await planStep(options)
-    : await repairStep({ ...options, pending: session.pending.intent });
+    : await repairStep({ ...options, pending: repairing.intent });
 
   if (planned.outcome === OUTCOME_NO_CHANGE) {
-    const pending = session.pending === null && planned.pending !== undefined
+    const pending = repairing === null && planned.pending !== undefined
       ? Object.freeze({ intent: planned.pending, input })
       : null;
     const status = planned.undoRequest === true ? SESSION_UNDO_REQUEST : SESSION_NO_CHANGE;
