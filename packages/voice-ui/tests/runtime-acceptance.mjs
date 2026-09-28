@@ -9,7 +9,6 @@ import {
   rmSync,
   writeFileSync,
 } from "node:fs";
-import { tmpdir } from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -124,8 +123,9 @@ export function loadAcceptanceArtifact({ artifactRoot, expectedAppsSha, expected
 
 function atomicJson(pathname, value) {
   const target = path.resolve(pathname);
-  mkdirSync(path.dirname(target), { recursive: true });
-  const temporaryDirectory = mkdtempSync(path.join(tmpdir(), "voice-ui-runtime-receipt-"));
+  const directory = path.dirname(target);
+  mkdirSync(directory, { recursive: true });
+  const temporaryDirectory = mkdtempSync(path.join(directory, ".voice-ui-runtime-receipt-"));
   const temporary = path.join(temporaryDirectory, "receipt.json");
   try {
     writeFileSync(temporary, `${JSON.stringify(value, null, 2)}\n`, { encoding: "utf8", mode: 0o600 });
