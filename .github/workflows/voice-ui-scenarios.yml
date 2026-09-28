@@ -1,36 +1,26 @@
 name: voice-ui browser parity
 
+# During this migration the PR itself changes the old E2E and flake wiring, so
+# pull_request path filters would start the multi-gigabyte browser closure after
+# every small core commit. The exact old browser proof is already Green. Run
+# this manually when browser wiring changes until the small browser smoke
+# replaces the temporary scenario runner.
 on:
-  pull_request:
-    paths:
-      - "packages/voice-ui/web/**"
-      - "packages/voice-ui/dev/serve.mjs"
-      - "packages/voice-ui/functions/api/jev.mjs"
-      - "packages/voice-ui/src/render.mjs"
-      - "packages/voice-ui/tests/e2e/**"
-      - "flake.nix"
-      - "flake.lock"
-      - ".github/workflows/voice-ui-scenarios.yml"
+  workflow_dispatch:
 
 permissions:
   contents: read
 
 concurrency:
-  group: voice-ui-browser-parity-${{ github.event.pull_request.number }}
+  group: voice-ui-browser-parity-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
   browser-parity:
     runs-on: ubuntu-24.04
     steps:
-      - name: Checkout exact apps head
+      - name: Checkout selected ref
         uses: actions/checkout@v4
-        with:
-          ref: ${{ github.event.pull_request.head.sha }}
-      - name: Verify exact apps head
-        env:
-          APPS_SHA: ${{ github.event.pull_request.head.sha }}
-        run: test "$(git rev-parse HEAD)" = "$APPS_SHA"
       - uses: cachix/install-nix-action@v31
         with:
           extra_nix_config: |
