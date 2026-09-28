@@ -50,7 +50,7 @@ export function createSession({ accepted, stored = null } = {}) {
 }
 
 const issuedBy = step => (step?.changes ?? [])
-  .filter(change => change?.kind === "region" && typeof change.id === "string")
+  .filter(change => change?.change === "added" && change?.kind === "region" && typeof change.id === "string")
   .map(change => change.id);
 
 const withStatus = (session, status, extra = {}) => freezeSession({
