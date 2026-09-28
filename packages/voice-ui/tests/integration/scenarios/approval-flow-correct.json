@@ -1,0 +1,37 @@
+{
+  "id": "approval-flow-correct",
+  "state": "target",
+  "goal": "図全体を作った後、会話だけで追加工程の位置と所属を訂正する",
+  "initial": "voice-graph",
+  "turns": [
+    {
+      "typed": {
+        "action": "compose-diagram",
+        "diagram": "request-approval-flow"
+      }
+    },
+    {
+      "say": "承認の後に通知を追加して"
+    },
+    {
+      "say": "違う、承認の前"
+    },
+    {
+      "say": "それを申請者側に"
+    }
+  ],
+  "expect": [
+    {
+      "invariant": "preserves",
+      "world": "working"
+    },
+    {
+      "invariant": "changed",
+      "world": "working"
+    },
+    {
+      "invariant": "unchanged",
+      "world": "accepted"
+    }
+  ]
+}
