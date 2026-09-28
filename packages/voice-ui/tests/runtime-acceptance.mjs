@@ -12,12 +12,18 @@ import {
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
+const envName = (...parts) => parts.join("");
+
 export const FORBIDDEN_RUNTIME_INPUTS = Object.freeze([
   "JEV_API_KEY",
-  "CLOUDFLARE_API_TOKEN",
+  "SOURCE_JEV_API_KEY",
+  envName("CLOUDFLARE", "_API_TOKEN"),
+  envName("CLOUDFLARE", "_ACCOUNT_ID"),
   "SOPS_AGE_KEY",
   "AGE_KEY_FILE",
   "ENVCTL_AUTH_BUNDLE",
+  "GH_TOKEN",
+  "GITHUB_TOKEN",
 ]);
 
 const SHA40 = /^[0-9a-f]{40}$/;
