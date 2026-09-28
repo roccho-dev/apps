@@ -1,29 +1,32 @@
 name: voice-ui browser parity
 
-# During this migration the PR itself changes the old E2E and flake wiring, so
-# pull_request path filters would start the multi-gigabyte browser closure after
-# every small core commit. The exact old browser proof is already Green. Run
-# this manually when browser wiring changes until the small browser smoke
-# replaces the temporary scenario runner.
 on:
-  workflow_dispatch:
+  pull_request:
+    paths:
+      - "packages/voice-ui/web/**"
+      - "packages/voice-ui/src/session.mjs"
+      - "packages/voice-ui/tests/e2e/**"
+      - "flake.nix"
+      - ".github/workflows/voice-ui-scenarios.yml"
 
 permissions:
   contents: read
 
 concurrency:
-  group: voice-ui-browser-parity-${{ github.ref }}
+  group: voice-ui-browser-parity-${{ github.event.pull_request.number }}
   cancel-in-progress: true
 
 jobs:
   browser-parity:
     runs-on: ubuntu-24.04
     steps:
-      - name: Checkout selected ref
+      - name: Checkout exact apps head
         uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
       - uses: cachix/install-nix-action@v31
         with:
           extra_nix_config: |
             extra-experimental-features = nix-command flakes
-      - name: Run temporary browser parity scenario
+      - name: Run temporary accepted browser scenario
         run: nix run --no-write-lock-file .#scenarios
