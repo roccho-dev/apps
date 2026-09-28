@@ -111,7 +111,7 @@
             SEMANTIC_MAP = semanticMap;
           } ''
             cd ${self}
-            node --test packages/voice-ui/tests/*.test.mjs
+            node --test packages/voice-ui/tests/*.test.mjs packages/voice-ui/tests/unit/*.test.mjs packages/voice-ui/tests/integration/*.test.mjs
             touch "$out"
           '';
 

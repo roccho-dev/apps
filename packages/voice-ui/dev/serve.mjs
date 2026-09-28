@@ -42,6 +42,8 @@ function resolveUnder(root, relative) {
 function route(pathname) {
   if (pathname === "/") return path.join(packageRoot, "web/index.html");
 
+  if (pathname === "/app.mjs") return path.join(packageRoot, "web/app.mjs");
+
   const rest = suffix => pathname.slice(suffix.length);
 
   if (pathname.startsWith("/app/src/")) {

@@ -1,0 +1,51 @@
+{
+  "id": "approval-flow",
+  "state": "accepted",
+  "goal": "申請して承認して結果を返す流れを作る",
+  "initial": "voice-graph",
+  "examples": [
+    "申請して承認してもらう流れを図にして"
+  ],
+  "turns": [
+    {
+      "typed": {
+        "action": "compose-diagram",
+        "diagram": "request-approval-flow"
+      }
+    }
+  ],
+  "expect": [
+    {
+      "invariant": "status",
+      "value": "drafted"
+    },
+    {
+      "invariant": "changed",
+      "world": "working"
+    },
+    {
+      "invariant": "unchanged",
+      "world": "accepted"
+    },
+    {
+      "invariant": "contains",
+      "world": "working",
+      "record": "region",
+      "kind": "group",
+      "min": 2
+    },
+    {
+      "invariant": "contains",
+      "world": "working",
+      "record": "region",
+      "parentKind": "group",
+      "min": 3
+    },
+    {
+      "invariant": "contains",
+      "world": "working",
+      "record": "relation",
+      "min": 2
+    }
+  ]
+}

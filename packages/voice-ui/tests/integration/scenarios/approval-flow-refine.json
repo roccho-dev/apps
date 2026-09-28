@@ -1,0 +1,34 @@
+{
+  "id": "approval-flow-refine",
+  "state": "target",
+  "goal": "申請承認の流れを作り、却下経路と承認前の確認工程を追加する",
+  "initial": "voice-graph",
+  "turns": [
+    {
+      "typed": {
+        "action": "compose-diagram",
+        "diagram": "request-approval-flow"
+      }
+    },
+    {
+      "say": "却下されたら申請者に戻して"
+    },
+    {
+      "say": "承認者の前に一次確認を入れて"
+    }
+  ],
+  "expect": [
+    {
+      "invariant": "preserves",
+      "world": "working"
+    },
+    {
+      "invariant": "changed",
+      "world": "working"
+    },
+    {
+      "invariant": "unchanged",
+      "world": "accepted"
+    }
+  ]
+}
