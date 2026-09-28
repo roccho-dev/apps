@@ -103,7 +103,7 @@ def build(args):
         shutil.rmtree(out)
     site = out / "site"
 
-    copy_file(app / "web/index.html", site / "index.html")
+    copy_tree(app / "web", site)
     copy_tree(app / "src", site / "app/src")
     copy_tree(app / "functions", out / "functions")
 
@@ -200,6 +200,7 @@ def verify_dist(root):
 
     required = [
         "site/index.html",
+        "site/app.mjs",
         "site/app/src/app.mjs",
         "site/app/src/render.mjs",
         "site/app/src/decision/graph-edge.mjs",
