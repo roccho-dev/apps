@@ -1,7 +1,9 @@
 import assert from "node:assert/strict";
 import fs from "node:fs";
 import path from "node:path";
-import { chromium } from "playwright";
+import { createRequire } from "node:module";
+// The approved acceptance runtime supplies this pinned dependency, never npm at run time.
+const { chromium } = createRequire(import.meta.url)("playwright-core");
 
 const url = process.argv[2];
 if (!url) throw new Error("public URL is required");

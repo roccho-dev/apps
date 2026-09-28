@@ -20,6 +20,10 @@
       appRevision = revisionOf self;
       uiRevision = revisionOf ui;
       opsRevision = revisionOf ops;
+      acceptanceFor = system: import ./packages/voice-ui/acceptance {
+        pkgs = import nixpkgs { inherit system; };
+        artifact = self.packages.${system}.voice-ui-dist;
+      };
     in {
       packages = forEachSystem (system:
         let
@@ -56,6 +60,7 @@
           '';
 
           voice-ui-dist = mkVoiceUiDist "voice-ui-dist";
+          voice-ui-acceptance-runtime = (acceptanceFor system).runtime;
         });
 
       apps = forEachSystem (system:
@@ -106,6 +111,7 @@
           reproA = mkRepro "voice-ui-dist-repro-a";
           reproB = mkRepro "voice-ui-dist-repro-b";
         in {
+          voice-ui-acceptance-boundary = (acceptanceFor system).check;
           voice-ui = pkgs.runCommand "voice-ui-check" {
             nativeBuildInputs = [ pkgs.nodejs ];
             SEMANTIC_MAP = semanticMap;
