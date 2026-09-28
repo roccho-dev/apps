@@ -22,12 +22,26 @@
   ],
   "expect": [
     {
-      "invariant": "unchanged",
+      "invariant": "changed",
       "world": "accepted"
     },
     {
       "invariant": "changed",
       "world": "working"
+    },
+    {
+      "invariant": "contains",
+      "world": "accepted",
+      "record": "region",
+      "kind": "group",
+      "min": 2
+    },
+    {
+      "invariant": "contains",
+      "world": "working",
+      "record": "region",
+      "kind": "group",
+      "min": 2
     }
   ]
 }

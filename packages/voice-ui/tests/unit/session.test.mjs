@@ -13,7 +13,7 @@ import {
   discardSession,
   proposeSession,
   undoSession,
-} from "../src/session.mjs";
+} from "../../src/session.mjs";
 
 const store = process.env.SEMANTIC_MAP;
 if (!store) throw new Error("SEMANTIC_MAP must point at the pinned semantic-map store path");
