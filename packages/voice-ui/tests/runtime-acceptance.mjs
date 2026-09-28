@@ -56,11 +56,11 @@ function requiredString(value, label) {
   return value;
 }
 
-function normalizeTarget(value) {
+export function normalizeTarget(value) {
   const parsed = new URL(requiredString(value, "target URL"));
-  if (parsed.protocol !== "https:" && parsed.hostname !== "127.0.0.1" && parsed.hostname !== "localhost") {
-    throw new Error("target URL must use https outside localhost");
-  }
+  const localhost = parsed.hostname === "127.0.0.1" || parsed.hostname === "localhost";
+  const allowed = parsed.protocol === "https:" || (localhost && parsed.protocol === "http:");
+  if (!allowed) throw new Error("target URL must use https outside localhost and http/https on localhost");
   parsed.hash = "";
   return parsed.href;
 }
