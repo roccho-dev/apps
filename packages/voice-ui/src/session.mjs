@@ -59,6 +59,28 @@ const withStatus = (session, status, extra = {}) => freezeSession({
   status,
 });
 
+export function clearPendingSession(session) {
+  requireGraph("session.accepted", session?.accepted);
+  requireGraph("session.working", session?.working);
+  return freezeSession({ ...session, pending: null });
+}
+
+export async function appendSessionStep({ session, step, protocol } = {}) {
+  requireGraph("session.accepted", session?.accepted);
+  requireGraph("session.working", session?.working);
+  demand(Array.isArray(session?.draft), "session.draft is required");
+  demand(Array.isArray(session?.issuedPartIds), "session.issuedPartIds is required");
+
+  const working = await appendStep({ working: session.working, step, protocol });
+  const issuedPartIds = new Set([...session.issuedPartIds, ...issuedBy(step)]);
+  return withStatus(session, SESSION_DRAFTED, {
+    working,
+    draft: [...session.draft, step],
+    pending: null,
+    issuedPartIds: [...issuedPartIds],
+  });
+}
+
 // One typed interaction against the current working world. This is the same
 // state transition the browser uses: decision rules produce a provider
 // Decision, the provider appends and verifies it, then the working state and
@@ -115,14 +137,7 @@ export async function proposeSession({
     });
   }
 
-  const working = await appendStep({ working: session.working, step: planned.step, protocol });
-  const issuedPartIds = new Set([...session.issuedPartIds, ...issuedBy(planned.step)]);
-  const next = withStatus(session, SESSION_DRAFTED, {
-    working,
-    draft: [...session.draft, planned.step],
-    pending: null,
-    issuedPartIds: [...issuedPartIds],
-  });
+  const next = await appendSessionStep({ session, step: planned.step, protocol });
 
   return Object.freeze({
     session: next,
