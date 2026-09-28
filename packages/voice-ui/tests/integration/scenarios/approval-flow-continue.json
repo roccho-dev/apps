@@ -1,0 +1,33 @@
+{
+  "id": "approval-flow-continue",
+  "state": "target",
+  "goal": "確定して再読込した図を、そのaccepted worldから会話で編集し続ける",
+  "initial": "voice-graph",
+  "turns": [
+    {
+      "typed": {
+        "action": "compose-diagram",
+        "diagram": "request-approval-flow"
+      }
+    },
+    {
+      "control": "apply"
+    },
+    {
+      "control": "restore"
+    },
+    {
+      "say": "承認の後に監査工程を追加して"
+    }
+  ],
+  "expect": [
+    {
+      "invariant": "unchanged",
+      "world": "accepted"
+    },
+    {
+      "invariant": "changed",
+      "world": "working"
+    }
+  ]
+}
