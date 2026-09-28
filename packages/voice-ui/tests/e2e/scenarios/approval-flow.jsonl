@@ -1,1 +1,0 @@
-{"id":"approval-flow","state":"accepted","goal":"申請して承認して結果を返す流れを作る","initial":"genesis","turns":[{"say":{"text":"申請して承認してもらう流れを図にして","as":{"action":"compose-diagram","diagram":"request-approval-flow"}}}],"expect":[{"invariant":"working-changed"},{"invariant":"confirmed-unchanged"},{"invariant":"cross-functional-flow","rolesMin":2,"stepsMin":3,"linksMin":2}]}
