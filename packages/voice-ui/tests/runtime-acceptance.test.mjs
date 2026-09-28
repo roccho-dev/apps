@@ -17,6 +17,7 @@ import {
   assertNoSecretInputs,
   assertSha256,
   loadAcceptanceArtifact,
+  normalizeTarget,
   runAcceptance,
 } from "./runtime-acceptance.mjs";
 
@@ -69,6 +70,14 @@ test("exact identities reject branch names and malformed digests", () => {
   assert.equal(assertSha256("a".repeat(64)), "a".repeat(64));
   assert.throws(() => assertExactSha("proposals"), /exact 40-character/);
   assert.throws(() => assertSha256("sha256:abc"), /sha256 digest/);
+});
+
+test("runtime target accepts HTTPS and localhost HTTP only", () => {
+  assert.equal(normalizeTarget("https://voice-ui.example.test/#fragment"), "https://voice-ui.example.test/");
+  assert.equal(normalizeTarget("http://127.0.0.1:4173/"), "http://127.0.0.1:4173/");
+  assert.equal(normalizeTarget("http://localhost:4173/"), "http://localhost:4173/");
+  assert.throws(() => normalizeTarget("http://voice-ui.example.test/"), /must use https/);
+  assert.throws(() => normalizeTarget("ftp://localhost/runtime"), /must use https/);
 });
 
 test("known secret-bearing inputs are rejected instead of ignored", () => {
