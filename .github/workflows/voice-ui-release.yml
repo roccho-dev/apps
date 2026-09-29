@@ -1,0 +1,154 @@
+name: voice-ui release
+
+on:
+  pull_request:
+    paths:
+      - ".github/workflows/voice-ui-release.yml"
+      - ".github/voice-ui-release/**"
+  workflow_dispatch:
+    inputs:
+      publish:
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+jobs:
+  build-test:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+    permissions:
+      contents: read
+      pull-requests: read
+    env:
+      EXACT_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+      PUBLISH: ${{ github.event_name == 'workflow_dispatch' && inputs.publish && github.ref == 'refs/heads/proposals' && github.event.repository.default_branch == 'proposals' }}
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          fetch-depth: 1
+          persist-credentials: false
+      - uses: cachix/install-nix-action@13d8dd58da0234aa297dedd986986ccb8e7f3e24 # v31
+        with:
+          extra_nix_config: |
+            extra-experimental-features = nix-command flakes
+      - name: Lint release workflow
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "$EXACT_SHA"
+          nix shell --inputs-from . nixpkgs#yq-go nixpkgs#python3 -c sh -c '
+            yq -o=json . .github/workflows/voice-ui-release.yml | python3 .github/voice-ui-release/release.py lint
+            python3 .github/voice-ui-release/release.py selftest'
+      - name: Build complete voice-ui artifact
+        run: |
+          set -euo pipefail
+          out="$(nix build --no-link --print-out-paths .#voice-ui-dist)"
+          python3 packages/voice-ui/dist.py verify --dist "$out"
+          mkdir -p dist/release
+          cp -R "$out" dist/voice-ui-dist
+          chmod -R u+w dist/voice-ui-dist
+          jq -e --arg sha "$EXACT_SHA" '.sources.apps == $sha' dist/voice-ui-dist/manifest.json >/dev/null
+      - name: Provider source guard
+        run: |
+          set -euo pipefail
+          guard=(python3 .github/voice-ui-release/release.py provider-guard --lock flake.lock --manifest dist/voice-ui-dist/manifest.json)
+          if [ "$PUBLISH" = true ]; then
+            "${guard[@]}"
+          elif ! "${guard[@]}"; then
+            echo "::notice::apps still consumes ops source; publication stays blocked until the provider-artifact input lands"
+          fi
+      - name: Flake check at the exact publish SHA
+        if: env.PUBLISH == 'true'
+        run: |
+          set -euo pipefail
+          nix flake check -L --no-write-lock-file
+      - name: Package and re-open
+        run: |
+          set -euo pipefail
+          (cd dist && zip -qr release/voice-ui-dist.zip voice-ui-dist)
+          (cd dist/release && sha256sum voice-ui-dist.zip > voice-ui-dist.zip.sha256)
+          reopened="$(mktemp -d)"
+          unzip -q dist/release/voice-ui-dist.zip -d "$reopened"
+          test "$(ls -A "$reopened")" = voice-ui-dist
+          diff -r dist/voice-ui-dist "$reopened/voice-ui-dist"
+      - name: Record merged-PR proof and provenance
+        if: env.PUBLISH == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          api="repos/$GITHUB_REPOSITORY"
+          # shellcheck disable=SC2016 # $ENV is read by the jq filter, not the shell
+          pr="$(gh api "$api/commits/$EXACT_SHA/pulls" --jq '[.[] | select(.merged_at != null and .base.ref == "proposals" and .merge_commit_sha == $ENV.EXACT_SHA)] | if length == 1 then .[0].number else error("need exactly one merged proposals PR") end')"
+          gh api "$api/pulls/$pr" > "$RUNNER_TEMP/pr.json"
+          gh api "$api/pulls/$pr/reviews?per_page=100" > "$RUNNER_TEMP/reviews.json"
+          head="$(jq -r .head.sha "$RUNNER_TEMP/pr.json")"
+          python3 .github/voice-ui-release/release.py proof \
+            --pr "$RUNNER_TEMP/pr.json" --reviews "$RUNNER_TEMP/reviews.json" \
+            --head-tree "$(gh api "$api/git/commits/$head" --jq .tree.sha)" \
+            --merge-sha "$EXACT_SHA" --merge-tree "$(git rev-parse 'HEAD^{tree}')" \
+            --out dist/release/merged-pr-proof.json
+          python3 .github/voice-ui-release/release.py provenance \
+            --zip dist/release/voice-ui-dist.zip --root . --repository "$GITHUB_REPOSITORY" \
+            --sha "$EXACT_SHA" --tree "$(git rev-parse 'HEAD^{tree}')" \
+            --workflow-ref "$GITHUB_WORKFLOW_REF" --run-id "$GITHUB_RUN_ID" --run-attempt "$GITHUB_RUN_ATTEMPT" \
+            --out dist/release/provenance.json
+          python3 .github/voice-ui-release/release.py verify dist/release \
+            --sha "$EXACT_SHA" --repository "$GITHUB_REPOSITORY"
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: voice-ui-dist-release
+          path: dist/release/
+          if-no-files-found: error
+
+  # Publishes only the bytes built and checked by build-test in this run.
+  # Runs no Nix; release.py lint enforces that and the guard.
+  publish:
+    if: github.event_name == 'workflow_dispatch' && inputs.publish && github.ref == 'refs/heads/proposals' && github.event.repository.default_branch == 'proposals'
+    needs: build-test
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    permissions:
+      contents: write
+    env:
+      EXACT_SHA: ${{ github.sha }}
+      TAG: voice-ui-dist-${{ github.sha }}
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 1
+          persist-credentials: false
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+        with:
+          name: voice-ui-dist-release
+          path: release
+      - name: Verify release set
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "$EXACT_SHA"
+          python3 .github/voice-ui-release/release.py verify release \
+            --sha "$EXACT_SHA" --repository "$GITHUB_REPOSITORY"
+      - name: Publish GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          gh release create "$TAG" \
+            release/voice-ui-dist.zip release/voice-ui-dist.zip.sha256 \
+            release/provenance.json release/merged-pr-proof.json \
+            --title "$TAG" --notes "voice-ui-dist exact artifact built from $EXACT_SHA" \
+            --target "$EXACT_SHA" --repo "$GITHUB_REPOSITORY"
+      - name: Re-download and compare bytes
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          readback="$(mktemp -d)"
+          gh release download "$TAG" --repo "$GITHUB_REPOSITORY" --dir "$readback"
+          test "$(cd "$readback" && find . -type f | sort)" = "$(cd release && find . -type f | sort)"
+          for f in release/*; do cmp "$f" "$readback/$(basename "$f")"; done
+          python3 .github/voice-ui-release/release.py verify "$readback" \
+            --sha "$EXACT_SHA" --repository "$GITHUB_REPOSITORY"
