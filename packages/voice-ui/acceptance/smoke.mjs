@@ -1,40 +1,96 @@
 import assert from "node:assert/strict";
 import { spawn } from "node:child_process";
 import { createHash } from "node:crypto";
-import { mkdirSync, mkdtempSync, readFileSync, rmSync } from "node:fs";
+import { mkdirSync, mkdtempSync, readFileSync, statSync } from "node:fs";
 import http from "node:http";
 import { tmpdir } from "node:os";
 import path from "node:path";
 
-// Real packaged entry + real Chromium; only the endpoint is a controlled negative.
-// Never emits an application PASS or contacts Jev/Cloudflare.
+// The packaged runtime and public E2E entrypoints, real Chromium, and the
+// artifact's exact site bytes served unmodified with the isolation headers the
+// page needs. Only /api/jev is controlled: every request to it gets a 503
+// jev_unavailable, and each clean start must make exactly one - from the page
+// itself, same-origin - and end as an explicit NOT_RUN with that reason and a
+// RED receipt. Never emits an application PASS or contacts Jev/Cloudflare.
 const [runtime, root] = process.argv.slice(2);
 assert.ok(path.isAbsolute(runtime) && path.isAbsolute(root));
 const bytes = readFileSync(path.join(root, "manifest.json"));
 const manifest = JSON.parse(bytes);
 const digest = createHash("sha256").update(bytes).digest("hex");
-let providerCalls = 0;
-const server = http.createServer((req, res) => {
-  if (req.url === "/api/jev" && req.method === "POST") {
-    providerCalls++;
-    req.resume();
-    res.writeHead(503, { "Content-Type": "application/json" });
-    res.end(JSON.stringify({ error: "jev_unavailable" }));
-  } else {
-    res.writeHead(200, { "Content-Type": "text/html" });
-    res.end("<!doctype html><script>window.voiceUiReady=true</script>");
+const site = path.join(root, "site");
+
+const TYPES = new Map(Object.entries({
+  ".html": "text/html; charset=utf-8",
+  ".mjs": "text/javascript; charset=utf-8",
+  ".js": "text/javascript; charset=utf-8",
+  ".json": "application/json; charset=utf-8",
+  ".css": "text/css; charset=utf-8",
+  ".wasm": "application/wasm",
+  ".md": "text/plain; charset=utf-8",
+}));
+const ISOLATION = {
+  "cross-origin-opener-policy": "same-origin",
+  "cross-origin-embedder-policy": "require-corp",
+  "cross-origin-resource-policy": "same-origin",
+};
+
+// A site path to a file under the site root, or null. Traversal is refused.
+const fileFor = pathname => {
+  const relative = pathname === "/" ? "index.html" : decodeURIComponent(pathname.slice(1));
+  const resolved = path.resolve(site, relative);
+  if (!resolved.startsWith(site + path.sep)) return null;
+  try {
+    return statSync(resolved).isFile() ? resolved : null;
+  } catch {
+    return null;
   }
+};
+
+const apiRequests = [];
+const server = http.createServer((req, res) => {
+  const { pathname } = new URL(req.url, "http://127.0.0.1");
+  if (pathname === "/api/jev") {
+    apiRequests.push({
+      method: req.method,
+      origin: req.headers.origin ?? null,
+      fetchSite: req.headers["sec-fetch-site"] ?? null,
+    });
+    req.resume();
+    res.writeHead(503, { "content-type": "application/json", "cache-control": "no-store" });
+    res.end(JSON.stringify({ error: "jev_unavailable" }));
+    return;
+  }
+  const file = fileFor(pathname);
+  if (file === null) {
+    res.writeHead(404, { "content-type": "text/plain; charset=utf-8", ...ISOLATION });
+    res.end("not found");
+    return;
+  }
+  const body = readFileSync(file);
+  res.writeHead(200, {
+    "content-type": TYPES.get(path.extname(file)) ?? "application/octet-stream",
+    "content-length": body.byteLength,
+    "cache-control": "no-store",
+    ...ISOLATION,
+  });
+  res.end(body);
 });
+
+// Each start gets a fresh workspace inside this unique directory. It is left
+// in place: the check runs in an ephemeral build sandbox, and nothing here
+// deletes recursively.
 const work = mkdtempSync(path.join(tmpdir(), "voice-ui-boundary-"));
 let child;
+const starts = [];
 try {
   await new Promise(resolve => server.listen(0, "127.0.0.1", resolve));
-  const target = `http://127.0.0.1:${server.address().port}/`;
+  const origin = `http://127.0.0.1:${server.address().port}`;
+  const target = `${origin}/`;
   for (let run = 1; run <= 2; run++) {
     const home = path.join(work, `run-${run}`);
     mkdirSync(home);
     const receipt = path.join(home, "receipt.json");
-    const before = providerCalls;
+    const before = apiRequests.length;
     const output = await new Promise((resolve, reject) => {
       child = spawn(runtime, [path.join(root, manifest.e2e.runtime_entrypoint),
         "--artifact-root", root, "--url", target, "--expected-apps-sha", manifest.sources.apps,
@@ -44,27 +100,34 @@ try {
       const timer = setTimeout(() => {
         try { process.kill(-child.pid, "SIGKILL"); } catch {}
         reject(new Error("acceptance boundary timed out"));
-      }, 60000);
+      }, 300000);
       child.stdout.on("data", chunk => { stdout += chunk; });
       child.stderr.on("data", chunk => { stderr += chunk; });
       child.once("error", error => { clearTimeout(timer); reject(error); });
       child.once("close", code => { clearTimeout(timer); resolve({ code, stderr, stdout }); });
     });
+    const requests = apiRequests.slice(before);
     assert.equal(output.code, 1, output.stderr);
-    assert.equal(providerCalls - before, 1, output.stderr);
     assert.doesNotMatch(output.stderr, /ERR_MODULE_NOT_FOUND|Executable doesn't exist|browserType.launch:/);
+    // Exactly one /api/jev request in this start, and it is the page's own.
+    assert.deepEqual(requests, [{ method: "POST", origin, fetchSite: "same-origin" }],
+      `start ${run} must make exactly one same-origin page request to /api/jev: ${JSON.stringify(requests)}\n${output.stderr}`);
+    // The run ended on that controlled 503, as an explicit NOT_RUN - not on
+    // some later or unrelated failure.
+    assert.match(output.stderr, /NOT_RUN: jev_unavailable/u, output.stderr);
     const result = JSON.parse(readFileSync(receipt));
     assert.equal(result.status, "RED");
     assert.equal(result.stage, "application-e2e");
     assert.equal(result.sources.artifactManifestSha256, digest);
     assert.equal(result.checks.find(row => row.id === "public-application-e2e").status, "RED");
     assert.deepEqual(result.dependencies.secretInputs, []);
+    starts.push({ run, request: requests[0], receipt: result.status, reason: "NOT_RUN: jev_unavailable" });
   }
   console.log(JSON.stringify({ kind: "voice-ui.acceptanceBoundaryCheck.v1", status: "PASS",
-    independentStarts: 2, controlledProviderCalls: providerCalls, applicationVerdict: "RED_EXPECTED", liveProviderCalls: 0 }));
+    independentStarts: 2, controlledProviderCalls: apiRequests.length, callOrigin: "chromium-same-origin",
+    applicationVerdict: "RED_EXPECTED", applicationReason: "NOT_RUN: jev_unavailable", liveProviderCalls: 0, starts }));
 } finally {
   if (child?.pid) { try { process.kill(-child.pid, "SIGKILL"); } catch {} }
   server.closeAllConnections();
   await new Promise(resolve => server.close(resolve));
-  rmSync(work, { recursive: true, force: true });
 }

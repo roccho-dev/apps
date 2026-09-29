@@ -82,16 +82,6 @@ assert.equal(await page.evaluate(() => document.body.dataset.state), "no-log");
 assert.equal(await page.locator('iframe[data-package="semantic-map"]').count(), 0);
 assert.equal(await page.locator("#send").isDisabled(), true);
 
-// The deployed Function serves only the current request kind: a legacy kind is
-// refused before any provider call.
-const legacy = await fetch(new URL("/api/jev", url), {
-  method: "POST",
-  headers: { "content-type": "application/json" },
-  body: JSON.stringify({ kind: "voice-ui.jev.request.v1", text: "public legacy refusal proof" }),
-});
-assert.equal(legacy.status, 422);
-assert.deepEqual(await legacy.json(), { error: "invalid_request" });
-
 // A fixture of three plain nodes, built by the pinned provider in the page and
 // stored in this app's namespace, then loaded the way a saved log is.
 const fixtureLog = await page.evaluate(async key => {
@@ -160,8 +150,18 @@ const assertSavedUntouched = async label => {
 assert.deepEqual((await drawnEdges("confirmed")).edges, [], "the fixture has no edge");
 assert.deepEqual((await drawnEdges("working")).edges, [], "the fixture has no edge");
 
+// No credential or no provider is not a result: the run stops as NOT_RUN,
+// which is RED, and names the reason the service gave.
+const requireAnswered = async response => {
+  if (response.status() === 503) {
+    throw new Error(`NOT_RUN: jev_unavailable - the Jev service or its credential is unavailable (${await response.text()}); this run is RED, not PASS`);
+  }
+  assert.equal(response.status(), 200);
+};
+
 // Send takes the typed graph decision. A rendered string is not evidence of
-// anything; a step drawn on 作業図 and then applied to 確定図 is.
+// anything; a step drawn on 作業図 and then applied to 確定図 is. This is the
+// first request the page makes to /api/jev, and it comes from Chromium itself.
 await page.locator("#text").fill("add an edge from a to b");
 const typeResponsePromise = page.waitForResponse(
   response => new URL(response.url()).pathname === "/api/jev" && response.request().method() === "POST",
@@ -170,7 +170,7 @@ const typeResponsePromise = page.waitForResponse(
 await page.locator("#send").click();
 const typeResponse = await typeResponsePromise;
 assert.equal(JSON.parse(typeResponse.request().postData()).kind, REQUEST_KIND);
-assert.equal(typeResponse.status(), 200);
+await requireAnswered(typeResponse);
 const typeDecision = await typeResponse.json();
 assert.equal(typeDecision.kind, DECISION_KIND);
 await waitForState("drafted");
@@ -178,6 +178,16 @@ const typedEdge = `${typeDecision.answers.source.choice}->${typeDecision.answers
 assert.deepEqual(await draftSteps(), [`+${typedEdge}`]);
 assert.deepEqual((await drawnEdges("working")).edges, [typedEdge]);
 await assertSavedUntouched("typed step");
+
+// The deployed Function serves only the current request kind: a legacy kind is
+// refused before any provider call. Checked after the page's own first call.
+const legacy = await fetch(new URL("/api/jev", url), {
+  method: "POST",
+  headers: { "content-type": "application/json" },
+  body: JSON.stringify({ kind: "voice-ui.jev.request.v1", text: "public legacy refusal proof" }),
+});
+assert.equal(legacy.status, 422);
+assert.deepEqual(await legacy.json(), { error: "invalid_request" });
 
 const golden = JSON.parse(fs.readFileSync(goldenPath, "utf8"));
 const clip = golden.clips.find(value => value.wav === path.basename(wav));
@@ -189,7 +199,7 @@ const voiceResponsePromise = page.waitForResponse(
 );
 await page.locator("#mic").click();
 const voiceResponse = await voiceResponsePromise;
-assert.equal(voiceResponse.status(), 200);
+await requireAnswered(voiceResponse);
 const voiceDecision = await voiceResponse.json();
 assert.equal(voiceDecision.kind, DECISION_KIND);
 await page.waitForFunction(() => document.body.dataset.state !== "pending", null, { timeout: 360000 });
