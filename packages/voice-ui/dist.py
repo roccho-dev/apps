@@ -141,7 +141,7 @@ def build(args):
         "sources": {
             "apps": args.app_rev,
             "ui": args.ui_rev,
-            "ops": args.ops_rev,
+            "hayamimi-web": json.loads(args.hayamimi_artifact),
             "system": args.system,
         },
         "auth": ".envs/artifact.jsonl",
@@ -320,7 +320,7 @@ def main():
     build_parser.add_argument("--out", required=True)
     build_parser.add_argument("--app-rev", required=True)
     build_parser.add_argument("--ui-rev", required=True)
-    build_parser.add_argument("--ops-rev", required=True)
+    build_parser.add_argument("--hayamimi-artifact", required=True)
     build_parser.add_argument("--system", required=True)
 
     verify_parser = sub.add_parser("verify")
