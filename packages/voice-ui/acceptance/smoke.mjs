@@ -78,8 +78,10 @@ const server = http.createServer((req, res) => {
 
 // Each start gets a fresh workspace inside this unique directory. It is left
 // in place: the check runs in an ephemeral build sandbox, and nothing here
-// deletes recursively.
-const work = mkdtempSync(path.join(tmpdir(), "voice-ui-boundary-"));
+// deletes recursively. The names are short because Chromium keeps a Unix
+// socket under each start's TMPDIR, and a socket path has a hard length limit
+// that a long build directory prefix otherwise exceeds.
+const work = mkdtempSync(path.join(tmpdir(), "vub-"));
 let child;
 const starts = [];
 try {
@@ -87,7 +89,7 @@ try {
   const origin = `http://127.0.0.1:${server.address().port}`;
   const target = `${origin}/`;
   for (let run = 1; run <= 2; run++) {
-    const home = path.join(work, `run-${run}`);
+    const home = path.join(work, `r${run}`);
     mkdirSync(home);
     const receipt = path.join(home, "receipt.json");
     const before = apiRequests.length;
