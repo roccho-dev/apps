@@ -105,6 +105,9 @@ jobs:
 
   # Publishes only the bytes built and checked by build-test in this run.
   # Runs no Nix; release.py lint enforces that and the guard.
+  # A rerun after a partial publish fails closed: the tag or release already
+  # exists, so nothing is recreated, and downstream digest pins reject any
+  # unverified asset.
   publish:
     if: github.event_name == 'workflow_dispatch' && inputs.publish && github.ref == 'refs/heads/proposals' && github.event.repository.default_branch == 'proposals'
     needs: build-test
@@ -136,19 +139,35 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
+          api="https://api.github.com/repos/$GITHUB_REPOSITORY"
+          status() { curl -sS -o /dev/null -w '%{http_code}' -H "Authorization: Bearer $GH_TOKEN" "$1"; }
+          # gh release create reuses an existing tag and ignores --target, so both must be absent.
+          test "$(status "$api/git/ref/tags/$TAG")" = 404
+          test "$(status "$api/releases/tags/$TAG")" = 404
           gh release create "$TAG" \
             release/voice-ui-dist.zip release/voice-ui-dist.zip.sha256 \
             release/provenance.json release/merged-pr-proof.json \
             --title "$TAG" --notes "voice-ui-dist exact artifact built from $EXACT_SHA" \
             --target "$EXACT_SHA" --repo "$GITHUB_REPOSITORY"
-      - name: Re-download and compare bytes
-        env:
-          GH_TOKEN: ${{ github.token }}
+          test "$(gh api "repos/$GITHUB_REPOSITORY/git/ref/tags/$TAG" --jq '.object.type + " " + .object.sha')" = "commit $EXACT_SHA"
+          test "$(gh release view "$TAG" --repo "$GITHUB_REPOSITORY" --json assets --jq '[.assets[].name] | sort | join(" ")')" \
+            = "$(cd release && find . -type f -printf '%f\n' | sort | paste -sd ' ')"
+      - name: Anonymously fetch the public locators and compare bytes
         run: |
           set -euo pipefail
           readback="$(mktemp -d)"
-          gh release download "$TAG" --repo "$GITHUB_REPOSITORY" --dir "$readback"
-          test "$(cd "$readback" && find . -type f | sort)" = "$(cd release && find . -type f | sort)"
-          for f in release/*; do cmp "$f" "$readback/$(basename "$f")"; done
+          base="https://github.com/$GITHUB_REPOSITORY/releases/download/$TAG"
+          # No token, netrc or git credentials: this is the URL downstream pins.
+          fetch() { env -i PATH="$PATH" HOME="$(mktemp -d)" curl -fsSL --proto '=https' --retry 5 --retry-all-errors -o "$2" "$1"; }
+          for f in release/*; do
+            name="$(basename "$f")"
+            fetch "$base/$name" "$readback/$name"
+            cmp "$f" "$readback/$name"
+          done
+          locator="$(jq -r .locator release/provenance.json)"
+          test "$locator" = "$base/voice-ui-dist.zip"
+          fetch "$locator" "$readback/locator.zip"
+          cmp release/voice-ui-dist.zip "$readback/locator.zip"
+          rm "$readback/locator.zip"
           python3 .github/voice-ui-release/release.py verify "$readback" \
             --sha "$EXACT_SHA" --repository "$GITHUB_REPOSITORY"
