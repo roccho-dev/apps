@@ -2,10 +2,9 @@
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/f9948418dc8628ac02b6d6337e191ade9429d59d";
     ui.url = "github:roccho-dev/ui/57cd621206ef416dc2525e113a5a12b77c082065";
-    ops.url = "github:roccho-dev/ops/268a7b8e26c1f32ca29604ee45a08a61be97b507";
   };
 
-  outputs = { self, nixpkgs, ui, ops }:
+  outputs = { self, nixpkgs, ui }:
     let
       systems = [ "x86_64-linux" "aarch64-linux" ];
       forEachSystem = f:
@@ -19,17 +18,61 @@
         else "working-tree";
       appRevision = revisionOf self;
       uiRevision = revisionOf ui;
-      opsRevision = revisionOf ops;
       acceptanceFor = system: import ./packages/voice-ui/acceptance {
         pkgs = import nixpkgs { inherit system; };
         artifact = self.packages.${system}.voice-ui-dist;
       };
+      # hayamimi-web is the exact ops release (roccho-dev/ops#446), not ops
+      # source. The zip and its merged-PR proof are pinned by digest, and the
+      # proof must match this exact PR/review/merge before the zip is used.
+      # Bytes are not claimed to be reproducible across hosts.
+      hayamimiRelease = {
+        base = "https://github.com/roccho-dev/ops/releases/download/hayamimi-web-1665d5195a0dd70c2e0253c20351e5305db35f3f";
+        sha256 = "c12b51e2ea396a64131b917439ffbda1aa1cd70a9fd7f9567ea05030897c672a";
+        proofSha256 = "a0bb1478a5ffe9440f46682ca143382cd000d0d1d6f736723baad96541be4e27";
+        proof = {
+          pr_number = 447;
+          base = "proposals";
+          reviewed_head = "ab1be5d0c7471c71fa10b17a98f2fa3353f891a9";
+          r_exact_head_verdict_ref = "https://github.com/roccho-dev/ops/pull/447#pullrequestreview-5349013341";
+          merge_sha = "1665d5195a0dd70c2e0253c20351e5305db35f3f";
+          reviewed_tree = "1719da5f952165cdae0325249daa01816e9f6311";
+          merge_tree = "1719da5f952165cdae0325249daa01816e9f6311";
+        };
+      };
+      hayamimiArtifact = builtins.toJSON {
+        locator = "${hayamimiRelease.base}/hayamimi-web.zip";
+        inherit (hayamimiRelease) sha256;
+        proof_sha256 = hayamimiRelease.proofSha256;
+      };
+      hayamimiFor = system:
+        let
+          pkgs = import nixpkgs { inherit system; };
+          fetch = name: sha256: pkgs.fetchurl { url = "${hayamimiRelease.base}/${name}"; inherit sha256; };
+        in pkgs.runCommand "hayamimi-web" {
+          nativeBuildInputs = [ pkgs.python3 pkgs.unzip ];
+          expected = builtins.toJSON hayamimiRelease.proof;
+          proof = fetch "merged-pr-proof.json" hayamimiRelease.proofSha256;
+          zip = fetch "hayamimi-web.zip" hayamimiRelease.sha256;
+        } ''
+          python3 - <<'PY'
+          import json, os
+          proof = json.load(open(os.environ["proof"]))
+          expected = json.loads(os.environ["expected"])
+          assert set(proof) == set(expected) | {"merged_at"}, sorted(proof)
+          assert all(proof[k] == v for k, v in expected.items()), proof
+          assert proof["reviewed_tree"] == proof["merge_tree"] and proof["merged_at"], proof
+          PY
+          unzip -q "$zip" -d unpacked
+          test "$(ls -A unpacked)" = hayamimi-web
+          cp -R unpacked/hayamimi-web "$out"
+        '';
     in {
       packages = forEachSystem (system:
         let
           pkgs = import nixpkgs { inherit system; };
           semanticMap = ui.packages.${system}.semantic-map;
-          hayamimiWeb = ops.packages.${system}.hayamimi-web;
+          hayamimiWeb = hayamimiFor system;
 
           mkVoiceUiDist = name: pkgs.runCommand name {
             nativeBuildInputs = [ pkgs.python3 pkgs.esbuild ];
@@ -41,7 +84,7 @@
               --out "$out" \
               --app-rev ${appRevision} \
               --ui-rev ${uiRevision} \
-              --ops-rev ${opsRevision} \
+              --hayamimi-artifact '${hayamimiArtifact}' \
               --system ${system}
           '';
         in {
@@ -65,7 +108,7 @@
             runtimeInputs = [ pkgs.nodejs ];
             text = ''
               export VOICE_UI_SEMANTIC_MAP=${ui.packages.${system}.semantic-map}
-              export VOICE_UI_HAYAMIMI=${ops.packages.${system}.hayamimi-web}
+              export VOICE_UI_HAYAMIMI=${hayamimiFor system}
               exec node ${self}/packages/voice-ui/dev/serve.mjs "$@"
             '';
           };
@@ -80,7 +123,7 @@
         let
           pkgs = import nixpkgs { inherit system; };
           semanticMap = ui.packages.${system}.semantic-map;
-          hayamimiWeb = ops.packages.${system}.hayamimi-web;
+          hayamimiWeb = hayamimiFor system;
           voiceUiAuth = self.packages.${system}.voice-ui-auth;
           voiceUiDist = self.packages.${system}.voice-ui-dist;
           mkRepro = name: pkgs.runCommand name {
@@ -93,7 +136,7 @@
               --out "$out" \
               --app-rev ${appRevision} \
               --ui-rev ${uiRevision} \
-              --ops-rev ${opsRevision} \
+              --hayamimi-artifact '${hayamimiArtifact}' \
               --system ${system}
           '';
           reproA = mkRepro "voice-ui-dist-repro-a";
