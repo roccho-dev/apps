@@ -1,58 +1,66 @@
-import { createVoiceUiApp } from "/app/src/app.mjs";
 import { createHayamimi } from "/hayamimi/runtime/api/hayamimi.mjs";
-import { validateUiIr } from "/ui/ui-ir/index.mjs";
-import { renderTrustedSurface } from "/ui/a2ui-browser/render/trusted-dom.mjs";
 import {
   executeArtifactPackage as renderSemanticMap,
   visibleFrameOf,
 } from "/ui/semantic-map/runtime.js";
+import * as protocol from "/ui/semantic-map/protocol/index.js";
+import { DECISION_KIND, ERRORS } from "/app/src/contract.mjs";
+import { readBundle } from "/app/src/bundle.mjs";
 import {
-  appendDecision,
-  createDecision,
-  createDecisionLog,
-  createEnvelope,
-  layoutBoundsFor,
-  verifyDecisionLog,
-} from "/ui/semantic-map/protocol/index.js";
-import { renderUiIr } from "/app/src/render.mjs";
-import { GRAPH_PATTERN } from "/app/src/decision/graph-edge.mjs";
+  COMMIT_COMMITTED,
+  RESTORE_NO_LOG,
+  RESTORE_RESTORED,
+  commitLog,
+  projectHistory,
+  restoreLog,
+  statesOf,
+} from "/app/src/log.mjs";
 import {
-  DRAFT_MAX,
-  placeableIds,
-  changesForJev,
-  focusFor,
-  speakableEdges,
-  speakableRegionIds,
-  pendingForJev,
-  pendingHolds,
-  ACTION_COMPOSE,
-  DIAGRAM_CATALOG,
-  diagramCandidatesForJev,
-  revertStep,
-} from "/app/src/decision/correction.mjs";
-import {
-  appendSessionStep,
-  applySession,
-  clearPendingSession,
+  appendRevert,
+  apply,
+  clearConversation,
+  clearPending,
   createSession,
-  discardSession,
-  proposeSession,
-  undoSession,
+  discard,
+  draftFull,
+  noteRefused,
+  propose,
+  recentConversation,
+  spendPending,
+  startNew,
+  undo,
 } from "/app/src/session.mjs";
 import {
-  HistoryConflict,
-  RESTORE_CORRUPT,
-  RESTORE_EMPTY,
-  RESTORE_RESTORED,
-  persistHistory,
-  projectHistory,
-  restoreHistory,
-  statesOf,
-} from "/app/src/decision/history.mjs";
+  OUTCOME_NO_CHANGE,
+  OUTCOME_STEP,
+  focusFor,
+  pendingForJev,
+  pendingHolds,
+  placeableIds,
+  requestFor,
+  revertStep,
+  revertable,
+} from "/app/src/turn.mjs";
+import {
+  drawGraph,
+  frameFor,
+  reasonText,
+  renderContext,
+  renderControls,
+  renderDiagnostic,
+  renderDraft,
+  renderHistory,
+  renderOutOfView,
+} from "/app/src/render.mjs";
+
+// The browser side of the app and nothing else: the elements, the platform
+// adapters (storage, the origin-wide lock, fetch, the recognizer, the service
+// worker) and the events that move one session reference from state to state.
 
 const text = document.querySelector("#text");
 const send = document.querySelector("#send");
 const mic = document.querySelector("#mic");
+const newButton = document.querySelector("#new");
 const status = document.querySelector("#status");
 const historyPanel = document.querySelector("#history");
 const confirmedSurface = document.querySelector("#confirmed-surface");
@@ -67,13 +75,25 @@ const contextList = document.querySelector("#context-recent");
 const contextSkipped = document.querySelector("#context-skipped");
 const contextClear = document.querySelector("#context-clear");
 
-const protocol = { appendDecision, createDecision, createEnvelope, layoutBoundsFor };
+const controls = {
+  send,
+  mic,
+  newMap: newButton,
+  undo: undoButton,
+  discard: discardButton,
+  apply: applyButton,
+  history: historyPanel,
+  contextClear,
+};
 
-// The only place in the app that touches browser storage. history.mjs is
-// pure and takes these as collaborators, so the restore contract stays
-// provable under `node --test` while the browser global lives here.
+const { verifyDecisionLog } = protocol;
+
+// The only place in the app that touches browser storage and its lock. The
+// modules are pure and take these as arguments.
 const read = key => localStorage.getItem(key);
 const write = (key, value) => localStorage.setItem(key, value);
+const lock = (name, run) => navigator.locks.request(name, run);
+const commit = ({ graph, expected }) => commitLog({ graph, expected, read, write, lock, verifyDecisionLog });
 
 // The service worker only exists to reassemble the chunked ASR model that
 // the Cloudflare 25MB file limit forces. A host that serves the model whole
@@ -101,22 +121,12 @@ const serviceWorkerReady = (async () => {
   }
 })();
 
-const node = (id, x) => ({
-  type: "region",
-  id,
-  parent: "root",
-  label: id,
-  kind: "node",
-  bounds: [x, 90, 140, 64],
-  summary: "",
-});
-
 // Capture and the surface are separate resources, so they are owned
 // separately. `capturing` makes microphone capture exclusive to one voice
 // attempt; `rendering` makes the decide-and-render critical section
-// exclusive across both inputs. Typed submission is therefore allowed
-// while voice is only listening, and refused only while the surface is
-// being decided or rendered. Each path releases `rendering` solely when
+// exclusive across every input and control. Typed submission is therefore
+// allowed while voice is only listening, and refused only while the surface
+// is being decided or rendered. Each path releases `rendering` solely when
 // it is the owner, so neither can free the other's hold.
 let capturing = false;
 let rendering = false;
@@ -124,175 +134,49 @@ let typedHoldsRender = false;
 let voiceHoldsRender = false;
 let controlHoldsRender = false;
 
-// Fail-closed latch. A stored log that cannot be verified, and a change
+// Fail-closed latch. A stored log that is corrupt or foreign, and a change
 // that was saved but could not be drawn, both leave the screen unable to
-// speak for storage. Neither is transient, so the latch is sticky and no
-// in-app control clears it: a reload recovers a display failure, and only
-// clearing this origin's storage from outside the app recovers a log the
-// provider rejects.
+// speak for storage. Neither is transient, so no in-app control clears it:
+// a reload recovers a display failure, and only clearing this origin's
+// storage from outside the app recovers a log that is not usable here.
 let blocked = false;
 
-// 確定図: storage is the authority; `saved` follows it and the left pane
-// projects it. `stored` is the log this page last read from or wrote to
-// storage, so Apply can tell whether another tab has written since.
+// The one session reference, the saved graph's history as the left pane
+// shows it, and the DataBundle this page loaded once.
 let session;
-let saved;
-let savedHistory;
-let stored = null;
+let savedHistory = null;
+let bundle;
 
-// 作業図: the saved log plus the unapplied steps, verified by the provider
-// and kept in memory only. `draft` holds each step's effect, in order.
-// `candidate` is what an input has just built, adopted once it is drawn.
-let working;
-let draft = [];
-let candidate = null;
-
-// A placement the last utterance nearly made, lacking one piece, and the
-// utterance itself. Held in memory for exactly one more utterance sent to
-// Jev, whatever that utterance's result, and dropped by Undo, Discard,
-// Apply, Revert, 会話をクリア and reload. A blank input or an empty
-// transcript is not an utterance and leaves it alone. Never stored, never
-// put in the log; only its part ids and side go to Jev.
-let pending = null;
-
-// The text each adopted step was judged from - what Hayamimi recognized,
-// or what was typed - keyed by that exact step. It is only shown next to
-// the step: it is never sent to Jev again and never stored, and a step
-// that leaves the draft takes its entry with it. A revert has none.
-const inputOf = new WeakMap();
-
-// The recent conversation: each utterance Jev actually judged on this
-// page, in order, with what came of it - a step (with the effect it had),
-// no change, an undo request, a refusal, or a step later undone. Nothing
-// Jev did not judge is here: no empty input, no full draft, no timeout.
-// It lives in memory only; a reload or 会話をクリア erases it, and Apply
-// keeps it. Jev gets the latest few as unverified material for what an
-// utterance refers to; the working graph stays the fact.
-const CONTEXT_MAX = 5;
-const CONTEXT_TEXT_MAX = 200;
-let conversation = [];
-let nextSeq = 1;
-// What the current typed and the current voice input sent to Jev, set
-// only once Jev has answered it. Each kind has one input at a time.
-const judged = { typed: null, voice: null };
-
-const remember = ({ source, text }, outcome, changes = null) => {
-  const entry = { seq: nextSeq, source, text, outcome };
-  if (outcome === "step") {
-    entry.effect = { changes: [...changesForJev(changes)] };
-  }
-  nextSeq += 1;
-  conversation = [...conversation, entry];
-  return entry.seq;
-};
-
-// A step that leaves the draft by Undo or Discard is recorded as undone,
-// in place, and no longer carries an effect.
-const markUndone = step => {
-  const seq = inputOf.get(step)?.seq;
-  conversation = conversation.map(entry => entry.seq === seq
-    ? { seq: entry.seq, source: entry.source, text: entry.text, outcome: "undone" }
-    : entry);
-};
-
-// What the next request sends, and exactly what the panel shows: the most
-// recent entries short enough to send whole. A longer one is left out,
-// never shortened.
-// Every part name this page has handed out, kept for as long as the page
-// lives. Undo cuts a part's Decision out of the working log and Discard
-// drops the step, but the conversation, the history and anything the
-// user said still refer to that name, so it is never given to a second
-// part. A reload starts a new page from the saved log, where every name
-// still in use is written down.
-const issuedParts = new Set();
-
-const adoptSession = next => {
+const adopt = next => {
   session = next;
-  saved = next.accepted;
-  working = next.working;
-  draft = [...next.draft];
-  stored = next.stored;
-  pending = next.pending;
-  issuedParts.clear();
-  for (const id of next.issuedPartIds) issuedParts.add(id);
-  if (pending === null) delete document.body.dataset.pending;
-  else document.body.dataset.pending = pending.intent.missing;
+  if (next.pending === null) delete document.body.dataset.pending;
+  else document.body.dataset.pending = next.pending.intent.missing;
 };
 
-const clearPending = () => adoptSession(clearPendingSession(session));
-
-const contextWindow = () =>
-  conversation.filter(entry => entry.text.length <= CONTEXT_TEXT_MAX).slice(-CONTEXT_MAX);
-
-// Nothing a request produces except a drawn step changes the working
-// graph. "No change" - including an undo asked for by voice and a full
-// working graph - is an ordinary answer, not an error.
-class NoChange extends Error {
-  constructor(reason, state = "no-change") {
-    super(reason);
-    this.name = "NoChange";
-    this.state = state;
-  }
-}
-
-const draftFull = () => draft.length >= DRAFT_MAX;
-
-const syncBusy = () => {
-  const idle = !rendering && !blocked;
-  send.disabled = !idle;
-  mic.disabled = capturing || !idle;
-  undoButton.disabled = !idle || draft.length === 0;
-  discardButton.disabled = !idle || draft.length === 0;
-  applyButton.disabled = !idle || draft.length === 0;
-  for (const button of historyPanel.querySelectorAll("button[data-revert]")) {
-    button.disabled = !idle || draftFull() || button.dataset.revertable !== "true";
-  }
-  contextClear.disabled = !idle || conversation.length === 0;
-};
+const sync = () => renderControls(controls, {
+  idle: !rendering && !blocked,
+  capturing,
+  noLog: session.accepted === null,
+  working: session.working !== null,
+  draftLength: session.draft.length,
+  conversationLength: session.conversation.length,
+});
 
 const setState = (state, message) => {
   document.body.dataset.state = state;
   status.textContent = message;
 };
 
-// Why a turn Jev judged came to nothing, for whoever is looking at this
-// screen during a test. The reason itself is already the status text; what
-// cannot be read off the screen is the context that produced it, so that
-// goes here as data attributes and nowhere else.
-//
-// Bounded and transient: a fixed set of short values, replaced on every
-// input and cleared before each one, never stored, never sent. It carries
-// no utterance, no provider prompt and no probability distribution - only
-// the counts, the chosen options and their single confidences, which are
-// already on their way into the page's own decision.
-const DIAGNOSTIC_KEYS = [
-  "diag", "diagOutcome", "diagPlaceable", "diagPlaceOffered",
-  "diagAction", "diagMove", "diagAnchor", "diagDirection", "diagFrame",
-];
-const clearDiagnostics = () => {
-  for (const key of DIAGNOSTIC_KEYS) delete status.dataset[key];
+const showLists = () => {
+  renderDraft(draftList, draftCount, { draft: session.draft, bundle });
+  renderContext(contextList, contextSkipped, recentConversation(session));
 };
-const slotDiagnostic = slot =>
-  slot === undefined || slot === null ? null : `${slot.choice}:${slot.confidence.toFixed(2)}`;
-const recordNoChangeDiagnostic = ({ answers, placeable, undoRequest, frame, revision }) => {
-  status.dataset.diag = "jev-no-change";
-  status.dataset.diagOutcome = undoRequest === true ? "undo-request" : "no-change";
-  status.dataset.diagPlaceable = String(placeable.length);
-  status.dataset.diagPlaceOffered = placeable.length >= 2 ? "yes" : "no";
-  for (const [key, name] of [
-    ["diagAction", "action"], ["diagMove", "move"],
-    ["diagAnchor", "anchor"], ["diagDirection", "direction"],
-  ]) {
-    const value = slotDiagnostic(answers?.[name]);
-    if (value !== null) status.dataset[key] = value;
-  }
-  // Only meaningful once placement was on the table at all.
-  if (placeable.length >= 2) {
-    status.dataset.diagFrame = frame === null
-      ? "null"
-      : frame.head === revision ? "ok" : "head-mismatch";
-  }
-};
+
+const showHistory = (note = null) => renderHistory(historyPanel, {
+  projection: savedHistory,
+  revertable: savedHistory === null ? [] : savedHistory.entries.map(entry => revertable(entry, savedHistory)),
+  failure: note,
+});
 
 // Where a voice press has got to: preparing the microphone and the
 // recognizer, listening, or deciding what was heard. The body state stays
@@ -307,251 +191,39 @@ const setVoice = (phase, message) => {
   status.textContent = message;
 };
 
-const line = (kind, value) => {
-  const element = document.createElement("p");
-  element.dataset.history = kind;
-  element.textContent = value;
-  return element;
-};
-
-// "+node-c->node-a" for an added edge, "-node-c->node-a" for a removed
-// one, "+part-1" for a part with the label it is shown by.
-const describe = fact => {
-  const sign = fact.change === "added" ? "+" : fact.change === "removed" ? "-" : "~";
-  if ((fact.kind ?? "relation") === "relation") return `${sign}${fact.from}->${fact.to}`;
-  if (fact.kind === "region") return `${sign}${fact.id}${fact.label ? `「${fact.label}」` : ""}`;
-  if (fact.kind === "layout") return `${sign}${fact.id}@${fact.bounds.join(",")}`;
-  return `${sign}${fact.kind}${fact.id ? ` ${fact.id}` : ""}`;
-};
-
-// An entry can be taken back only if its opposite is itself a single
-// safe change: edges, or parts that are still standing alone. A part that
-// has since gained an edge or a child would take them with it, so that
-// entry is not offered.
-const revertableEntry = entry => {
-  if (entry.facts.every(fact => fact.kind === "relation")) return true;
-  // A placement is undone by putting the part back where it was, which is
-  // always safe: it moves nothing else and removes nothing.
-  if (entry.facts.every(fact => fact.kind === "layout")) return true;
-  return entry.facts.every(fact => fact.kind === "region" && fact.change === "added")
-    && entry.facts.every(fact =>
-      savedHistory.regions.includes(fact.id)
-      && !savedHistory.relations.some(relation => relation.from === fact.id || relation.to === fact.id));
-};
-
-// 確定図's history: where the graph started and every applied Decision.
-// Each entry that changed only edges can be reverted, which adds its
-// opposite to 作業図 - never to this pane.
-const renderHistory = failure => {
-  historyPanel.replaceChildren();
-  historyPanel.append(line(
-    "initial",
-    `initial: ${savedHistory.initial.regions.join(", ")} (${savedHistory.initial.relations.length} edges)`,
-  ));
-
-  const applied = document.createElement("ol");
-  applied.dataset.history = "confirmed";
-  savedHistory.entries.forEach((entry, index) => {
-    const item = document.createElement("li");
-    item.dataset.entry = entry.id;
-    const facts = entry.facts.map(describe);
-    item.dataset.facts = facts.join(" ");
-    item.append(document.createTextNode(facts.join(", ")));
-    const revert = document.createElement("button");
-    revert.type = "button";
-    revert.textContent = "取り消しを作業図に追加";
-    revert.dataset.revert = String(index);
-    revert.dataset.revertable = String(revertableEntry(entry));
-    item.append(" ", revert);
-    applied.append(item);
-  });
-  historyPanel.append(applied);
-  historyPanel.append(line("count", `confirmed: ${applied.childElementCount}`));
-  if (failure) historyPanel.append(line("failure", failure));
-};
-
-// What a step does, in words, read off its provider-verified changes: one
-// added edge, one removed edge, or one edge removed and its opposite added.
-// Anything else is listed as it is.
-const DIRECTION_WORDS = { left: "左", right: "右", above: "上", below: "下" };
-
-// A composed diagram says which one it is and what it added; every part
-// and link is still listed by id, as for any other step.
-const composedEffect = changes => {
-  const regions = changes.filter(change => change.kind === "region");
-  const links = changes.filter(change => change.kind !== "region");
-  const candidate = DIAGRAM_CATALOG.find(entry =>
-    entry.lanes.length + entry.steps.length === regions.length
-    && [...entry.lanes, ...entry.steps].every((spec, index) => spec.label === regions[index].label));
-  return `図の提案${candidate ? `「${candidate.label}」` : ""}: `
-    + regions.map(change => `${change.id}「${change.label}」`).join(" ")
-    + (links.length > 0 ? ` / ${links.map(change => `${change.from}->${change.to}`).join(" ")}` : "");
-};
-
-const effectOf = (changes, action) => {
-  if (action === ACTION_COMPOSE) return composedEffect(changes);
-  const [first, second] = changes;
-  if (changes.length === 1 && first.kind === "region" && first.change === "placed") {
-    return first.anchor === "none"
-      ? `配置を戻す ${first.id}`
-      : `配置 ${first.id} を ${first.anchor} の${DIRECTION_WORDS[first.direction] ?? first.direction}へ`;
-  }
-  if (changes.length === 1 && first.kind === "region") {
-    return `${first.change === "added" ? "部品追加" : "部品削除"} ${first.id}「${first.label}」`;
-  }
-  if (changes.length === 1 && first.change === "added") return `追加 ${first.from}->${first.to}`;
-  if (changes.length === 1 && first.change === "removed") return `削除 ${first.from}->${first.to}`;
-  if (
-    changes.length === 2 && first.change === "removed" && second.change === "added"
-    && second.from === first.to && second.to === first.from
-  ) {
-    return `反転 ${first.from}->${first.to} ⇒ ${second.from}->${second.to}`;
-  }
-  return changes.map(describe).join(" ");
-};
-
-// 作業図's unapplied steps, in order, with the cap stated. Each shows the
-// text it was judged from and what it does. The text is set as text only.
-const renderDraft = () => {
-  draftList.replaceChildren();
-  for (const step of draft) {
-    const item = document.createElement("li");
-    item.dataset.step = step.action;
-    item.dataset.changes = step.changes.map(describe).join(" ");
-    const input = inputOf.get(step);
-    item.dataset.source = input?.source ?? "revert";
-    // A step completed by a second utterance shows the first one too,
-    // each labelled with where it came from.
-    if (input?.origin !== undefined) {
-      item.dataset.originSource = input.origin.source;
-      const originLabel = document.createElement("span");
-      originLabel.textContent = input.origin.source === "voice" ? "認識文: " : "入力文: ";
-      const originSaid = document.createElement("q");
-      originSaid.dataset.origin = "";
-      originSaid.textContent = input.origin.text;
-      const joined = document.createElement("span");
-      joined.textContent = " + 補足 ";
-      item.append(originLabel, originSaid, joined);
-    }
-    const label = document.createElement("span");
-    label.textContent = input === undefined ? "取り消し" : input.source === "voice" ? "認識文: " : "入力文: ";
-    item.append(label);
-    if (input !== undefined) {
-      const said = document.createElement("q");
-      said.dataset.input = "";
-      said.textContent = input.text;
-      item.append(said);
-    }
-    const effect = document.createElement("span");
-    effect.dataset.effect = "";
-    effect.textContent = effectOf(step.changes, step.action);
-    item.append(" → ", effect);
-    draftList.append(item);
-  }
-  draftCount.textContent = `未反映: ${draft.length} / ${DRAFT_MAX}`
-    + (draftFull() ? " - 上限です。確定図に反映・元に戻す・作業図を破棄のいずれかを選んでください。" : "");
-};
-
-const OUTCOME_LABELS = {
-  "no-change": "変更なし",
-  "undo-request": "元に戻す依頼（ボタンで行います）",
-  refused: "受け付けませんでした",
-  undone: "取り消し済み",
-};
-
-// The recent conversation exactly as the next request will send it. Each
-// item carries the entry itself for checking; its text is set as text.
-const renderContext = () => {
-  contextList.replaceChildren();
-  for (const entry of contextWindow()) {
-    const item = document.createElement("li");
-    item.dataset.entry = JSON.stringify(entry);
-    const label = document.createElement("span");
-    label.textContent = entry.source === "voice" ? "認識文: " : "入力文: ";
-    const said = document.createElement("q");
-    said.textContent = entry.text;
-    const outcome = document.createElement("span");
-    outcome.textContent = entry.outcome === "step"
-      ? `${effectOf(entry.effect.changes)}（当時）`
-      : OUTCOME_LABELS[entry.outcome];
-    item.append(label, said, " → ", outcome);
-    contextList.append(item);
-  }
-  const skipped = conversation.filter(entry => entry.text.length > CONTEXT_TEXT_MAX).length;
-  contextSkipped.textContent = skipped > 0 ? `長すぎるため参照しない発話 ${skipped}件` : "";
-};
-
-// What the user is looking at, for a follow-up like "reverse that": the
-// latest working step, else the latest applied change.
-// Where the working graph is actually drawn, answered by the provider's
-// public layout contract. The app never computes a position itself and
-// never reads the renderer's internals; a part can only be put beside
-// another one because the view says where that other one is.
+// Where the working graph is drawn, answered by the provider's public layout
+// contract. The app never computes a position itself; a part can only be put
+// beside another because the view says where that other one is. A graph the
+// view cannot lay out offers no placement; everything else still works.
 const workingLayout = () => {
+  if (session.working === null) return null;
   try {
-    return layoutBoundsFor(working.records, { pattern: GRAPH_PATTERN });
-  } catch {
-    // A graph this view cannot lay out offers no placement; everything
-    // else still works.
-    return null;
-  }
-};
-
-// What 作業図 is showing right now, answered by the provider. Each drawing
-// fits the camera to the whole working graph (see graphIr), but the
-// camera does not follow later - a resize, say - so this is still a
-// finite window: once a spot falls outside it there is no placement
-// there, and the app says so rather than proposing something nobody can
-// see.
-//
-// Only 作業図 is asked, which is sound while the two panes show the same
-// frame: both have the same box (#panes is a 1fr 1fr grid of equal
-// sections) and both are given the same View.frame. The browser test
-// asserts equal widths and equal frames, so a change to either cannot
-// pass unnoticed.
-const workingVisibleFrame = () => {
-  try {
-    return visibleFrameOf(workingSurface);
+    return protocol.layoutBoundsFor(session.working.records, { pattern: protocol.GRAPH_PATTERN });
   } catch {
     return null;
   }
 };
 
-// Each drawing fits the whole working graph, but the camera does not
-// follow a later resize, so parts can still end up outside the pane.
-// They are still in 作業図; the person is told which ones, never that
-// they are still visible. Read after each drawing of 作業図; a frame that
-// cannot be read is said to be unknown rather than taken as "all visible".
-const renderOutOfView = () => {
-  const layout = workingLayout();
-  const shown = workingVisibleFrame();
-  if (layout === null || shown === null || shown.head !== working.head) {
-    outOfView.dataset.parts = "";
-    outOfView.textContent = "表示範囲を読み取れないため、表示に収まっていない部品があるか確かめられません";
+// Each drawing fits the whole working graph, but the camera does not follow
+// a later resize, so parts can still end up outside the pane. They are still
+// in 作業図; the person is told which ones, never that they are visible. Only
+// 作業図 is asked, which is sound while both panes show the same frame: both
+// have the same box and are given the same View.frame, which the browser test
+// asserts.
+const showOutOfView = () => {
+  if (session.working === null) {
+    renderOutOfView(outOfView, { outside: [] });
     return;
   }
-  const whole = placeableIds(layout, working.records, shown.frame);
-  const outside = placeableIds(layout, working.records).filter(id => !whole.includes(id));
-  outOfView.dataset.parts = outside.join(" ");
-  outOfView.textContent = outside.length > 0
-    ? `表示に収まっていない部品: ${outside.join(", ")}（作業図には残っています。表示の外か、一部しか見えていません）`
-    : "";
+  const layout = workingLayout();
+  const shown = visibleFrameOf(workingSurface);
+  if (layout === null || shown === null || shown.head !== session.working.head) {
+    renderOutOfView(outOfView, { outside: null });
+    return;
+  }
+  const whole = placeableIds(layout, session.working.records, shown.frame);
+  renderOutOfView(outOfView, { outside: placeableIds(layout, session.working.records).filter(id => !whole.includes(id)) });
 };
-
-const currentFocus = () => focusFor({
-  draft,
-  lastApplied: (savedHistory.entries.at(-1)?.facts ?? [])
-    .filter(fact => fact.kind === "relation" || fact.kind === "region"),
-});
-
-// One bounded starting graph: three known regions and no relations.
-const initialGraph = () => createDecisionLog([
-  { type: "meta", schema: "semantic-map-state/1", root: "root", title: "voice graph" },
-  { type: "region", id: "root", parent: null, label: "voice graph", kind: "boundary", bounds: [0, 0, 720, 260], summary: "" },
-  node("node-a", 40),
-  node("node-b", 250),
-  node("node-c", 460),
-], "voice-graph");
 
 // The Function gives the provider 10 s and then answers 504 itself, so a
 // page that has heard nothing 5 s after that is not being answered at all:
@@ -560,180 +232,59 @@ const initialGraph = () => createDecisionLog([
 // answer that turns up later can never land.
 const JEV_TIMEOUT_MS = 15000;
 
-const postJev = async body => {
+const failure = (reason, detail = null) => Object.freeze({ kind: "failed", reason, detail });
+
+// Jev's answer, or why there is none.
+const postJev = async request => {
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), JEV_TIMEOUT_MS);
   try {
     const response = await fetch("/api/jev", {
       method: "POST",
       headers: { "content-type": "application/json" },
-      body: JSON.stringify(body),
+      body: JSON.stringify(request),
       signal: controller.signal,
     });
     if (!response.ok) {
-      const reason = (await response.json().catch(() => null))?.error ?? response.status;
-      throw new Error(`Jev request failed: ${reason}`);
+      const code = (await response.json().catch(() => null))?.error;
+      return failure("jev-failed", Object.values(ERRORS).includes(code) ? code : String(response.status));
     }
-    return await response.json();
+    const decision = await response.json().catch(() => null);
+    if (decision?.kind !== DECISION_KIND || typeof decision.model !== "string") return failure("jev-contract");
+    return Object.freeze({ kind: "answered", decision });
   } catch (error) {
-    if (controller.signal.aborted) {
-      throw new Error(`Jev did not answer within ${JEV_TIMEOUT_MS / 1000} s`);
-    }
-    throw error;
+    return controller.signal.aborted
+      ? failure("jev-timeout", `${JEV_TIMEOUT_MS / 1000} s`)
+      : failure("jev-failed", String(error?.message ?? error));
   } finally {
     clearTimeout(timer);
   }
 };
 
-// Send and Voice take the same path, and neither touches 確定図 or
-// storage: the utterance is judged against 作業図 and every unapplied
-// step, and a usable answer becomes one more step on 作業図. The recent
-// conversation goes with it as unverified context. The v1 and v2 HTTP
-// contracts are still served; this screen drives v5.
-const decideStep = async (value, source) => {
-  judged[source] = null;
-  clearDiagnostics();
-  if (typeof value !== "string" || value.trim().length === 0) {
-    throw new NoChange("nothing was said or typed");
-  }
-  if (draftFull()) {
-    throw new NoChange("作業図の未反映は上限です。確定図に反映・元に戻す・作業図を破棄のいずれかを選んでください", "draft-full");
-  }
-
-  const revision = working.head;
-  const layout = workingLayout();
-  const askedFrame = workingVisibleFrame();
-  const offeredFrame = askedFrame !== null && askedFrame.head === revision ? askedFrame.frame : null;
-  const placeable = layout === null ? [] : [...placeableIds(layout, working.records, offeredFrame)];
-
-  // A pending repair is spent by this utterance even if the provider later
-  // times out or refuses it. The repair itself is passed explicitly to the
-  // production session transition after Jev answers.
-  const repairing = pending;
-  clearPending();
-  const stillHeld = repairing !== null
-    && pendingHolds(repairing.intent, { head: revision, frame: offeredFrame, offered: placeable });
-
-  const candidates = diagramCandidatesForJev();
-  const decision = await postJev({
-    kind: "voice-ui.jev.request.v9",
-    state: {
-      candidates: candidates.map(({ key, purpose }) => ({ key, purpose })),
-      pending: stillHeld ? pendingForJev(repairing.intent) : null,
-      utterance: value,
-      working: {
-        placeable,
-        regions: speakableRegionIds(working.records),
-        edges: speakableEdges(working.records).map(({ id, from, to }) => ({ id, from, to })),
-      },
-      draft: draft.map(step => ({ changes: [...changesForJev(step.changes)] })),
-      focus: currentFocus(),
-      context: { recent: contextWindow() },
-    },
-  });
-  judged[source] = { source, text: value };
-
-  const visibleFrame = workingVisibleFrame();
-  const transition = await proposeSession({
-    session,
-    answers: decision.answers,
-    protocol,
-    layout,
-    visibleFrame,
-    offeredFrame,
-    candidates: candidates.map(candidate => candidate.key),
-    input: { source, text: value },
-    repair: repairing,
-  });
-
-  if (transition.result.kind === "no-change") {
-    adoptSession(transition.session);
-    recordNoChangeDiagnostic({
-      answers: decision.answers,
-      placeable,
-      undoRequest: transition.result.undoRequest,
-      frame: visibleFrame,
-      revision,
-    });
-    throw new NoChange(
-      transition.result.reason,
-      transition.result.undoRequest ? "undo-request" : "no-change",
-    );
-  }
-
-  candidate = {
-    session: transition.session,
-    working: transition.session.working,
-    step: transition.result.step,
-    input: transition.result.repaired === true
-      ? { source, text: value, origin: repairing.input }
-      : { source, text: value },
-  };
-  return graphIr(transition.session.working);
-};
-
-// The typed handler already owns the surface by the time it calls this.
-const decideTyped = value => decideStep(value, "typed");
-
-// Transcription has already finished by the time this runs, so this is
-// where the surface critical section begins for voice. The claim is taken
-// before the first await, and the caller's finally releases it.
-const decideVoice = async value => {
-  if (rendering) throw new Error("surface is busy");
-  rendering = true;
-  voiceHoldsRender = true;
-  syncBusy();
-  setVoice("deciding", "voice: 判定中");
-
-  return decideStep(value, "voice");
-};
-
-// Where both panes point their cameras: the public View.frame, fitted to
-// the whole working graph as the provider lays it out, in the pixels the
-// pane's own box gives it. Both panes get the same frame - 確定図 shows
-// its smaller graph at 作業図's scale - so the frame read from 作業図
-// holds for 確定図. No frame when there is nothing to fit: a graph the
-// view cannot lay out, or a pane with no box (hidden).
-const frameFor = graph => {
-  const width = workingSurface.clientWidth;
-  const height = workingSurface.clientHeight;
-  if (!(width > 0 && height > 0)) return null;
-  try {
-    const { rootBounds } = layoutBoundsFor(graph.records, { pattern: GRAPH_PATTERN });
-    return { bbox: [...rootBounds], viewport: [width, height] };
-  } catch {
-    return null;
-  }
-};
+// Both panes point their cameras at the frame the working graph needs in the
+// working pane's box, so the frame read from 作業図 holds for 確定図 too.
+const paneFrame = graph => frameFor({
+  graph,
+  width: workingSurface.clientWidth,
+  height: workingSurface.clientHeight,
+  protocol,
+});
 const sameFrame = (left, right) => JSON.stringify(left) === JSON.stringify(right);
+const drawWorking = graph => drawGraph({
+  graph, frame: paneFrame(graph), mount: workingSurface, protocol, renderSemanticMap, document,
+});
 
-// Each pane draws a plain graph: no proposal overlay, no review controls
-// that could stand in for 確定図に反映. `frameGraph` is the working graph
-// the camera is fitted to, which for 作業図 is the graph it draws.
-const graphIr = async (current, frameGraph = current) => {
-  const frame = frameFor(frameGraph);
-  return {
-    kind: "ui.ir.v1",
-    capability: "render.semantic-map",
-    payloadKind: "semantic-map-envelope/3",
-    payload: await createEnvelope(current.log, null, {
-      pattern: GRAPH_PATTERN,
-      ...(frame === null ? {} : { frame }),
-    }),
-  };
-};
-
-// 確定図 is drawn at the frame 作業図 has now. It is drawn again only when
-// that frame changed, so an edit that leaves the working graph's extent
-// alone does not redraw the saved graph.
+// 確定図 is drawn at the frame 作業図 has now, and again only when that frame
+// changed, so an edit that leaves the working graph's extent alone does not
+// redraw the saved graph.
 let confirmedFrame;
 const drawConfirmed = async () => {
-  const frame = frameFor(working);
-  await renderConfirmed(await graphIr(saved, working));
+  const frame = paneFrame(session.working);
+  await drawGraph({ graph: session.accepted, frame, mount: confirmedSurface, protocol, renderSemanticMap, document });
   confirmedFrame = frame;
 };
 const followWorkingFrame = async () => {
-  if (!sameFrame(confirmedFrame, frameFor(working))) await drawConfirmed();
+  if (!sameFrame(confirmedFrame, paneFrame(session.working))) await drawConfirmed();
 };
 // After a change to 作業図, which stands whatever happens here: redraw
 // 確定図 at the new frame, or say plainly that it could not be - the two
@@ -746,21 +297,10 @@ const followOrReport = async (state, message) => {
   } catch (error) {
     confirmedFrame = undefined;
     setState("confirmed-display-failed", `${message}。ただし確定図を同じ表示範囲で描き直せませんでした`);
-    renderHistory(`display failed (${state}): ${error.message}`);
+    showHistory(`display failed (${state}): ${error.message}`);
     return true;
   }
 };
-
-const renderInto = mount => ir => renderUiIr({
-  ir,
-  validateUiIr,
-  renderTrustedSurface,
-  renderSemanticMap,
-  document,
-  mount,
-});
-const renderConfirmed = renderInto(confirmedSurface);
-const renderWorking = renderInto(workingSurface);
 
 let hayamimi;
 const transcribe = async () => {
@@ -801,50 +341,110 @@ const transcribe = async () => {
   });
 };
 
-const typedApp = createVoiceUiApp({ transcribe, decide: decideTyped, render: renderWorking });
-const voiceApp = createVoiceUiApp({ transcribe, decide: decideVoice, render: renderWorking });
+// The changes that are not graph edges and that the focus may point at: the
+// latest applied entry's edges and parts.
+const lastApplied = () => (savedHistory?.entries.at(-1)?.facts ?? [])
+  .filter(fact => fact.kind === "relation" || fact.kind === "region");
 
-// How an input ends. Only a step that was drawn joins 作業図; "no change"
-// and a refusal leave it exactly as it was. 確定図 and storage are never
-// touched here.
-const finishInput = async (prefix, error) => {
-  // A step was built but could not be drawn: 作業図 did not change, so
-  // put the pane back to what it actually holds before reporting.
-  if (error && candidate !== null) {
-    candidate = null;
-    await renderWorking(await graphIr(working)).catch(() => {});
+// Send and Voice take the same path, and neither touches 確定図 or storage:
+// the utterance is judged against 作業図 and every unapplied step, and a
+// usable answer becomes one more step on 作業図, drawn before it is adopted.
+// Returns how the input ended; only an utterance Jev judged joins the
+// conversation, which the session records.
+const decide = async (value, source) => {
+  renderDiagnostic(status, null);
+  if (typeof value !== "string" || value.trim().length === 0) {
+    return Object.freeze({ kind: OUTCOME_NO_CHANGE, reason: "nothing-said" });
   }
-  // Only an utterance Jev judged joins the recent conversation.
-  const source = prefix === "type" ? "typed" : "voice";
-  const asked = judged[source];
-  judged[source] = null;
-  if (!error) {
-    adoptSession(candidate.session);
-    const seq = remember(asked, "step", candidate.step.changes);
-    inputOf.set(candidate.step, { ...candidate.input, seq });
-    candidate = null;
-    renderDraft();
-    renderOutOfView();
-    renderContext();
+  if (draftFull(session)) return Object.freeze({ kind: OUTCOME_NO_CHANGE, reason: "draft-full", state: "draft-full" });
+
+  const working = session.working;
+  const layout = workingLayout();
+  const asked = visibleFrameOf(workingSurface);
+  const offeredFrame = asked !== null && asked.head === working.head ? asked.frame : null;
+  const placeable = layout === null ? [] : [...placeableIds(layout, working.records, offeredFrame)];
+
+  // A held placement is spent by this utterance even if the provider later
+  // times out or refuses it, and is passed on explicitly for the repair.
+  const spent = spendPending(session);
+  adopt(spent.session);
+  const held = spent.held;
+  const stillHeld = held !== null && pendingHolds(held.intent, { head: working.head, frame: offeredFrame, offered: placeable });
+
+  const steps = session.draft.map(item => item.step);
+  const { turn, request } = requestFor({
+    working,
+    utterance: value,
+    bundle,
+    layout,
+    offeredFrame,
+    draft: steps,
+    focus: focusFor({ draft: steps, lastApplied: lastApplied() }),
+    pending: stillHeld ? pendingForJev(held.intent) : null,
+    recent: recentConversation(session).recent,
+  });
+  const answer = await postJev(request);
+  if (answer.kind === "failed") return answer;
+
+  // Read in the same synchronous run the answer is judged in.
+  const visibleFrame = visibleFrameOf(workingSurface);
+  const input = Object.freeze({ source, text: value });
+  const before = session;
+  const transition = await propose(session, {
+    turn, answers: answer.decision.answers, protocol, bundle, layout, visibleFrame, input, repair: held,
+  });
+  if (transition.result.outcome === OUTCOME_NO_CHANGE) {
+    adopt(transition.session);
+    renderDiagnostic(status, {
+      answers: answer.decision.answers,
+      placeable,
+      undoRequest: transition.result.undoRequest === true,
+      frame: visibleFrame,
+      revision: working.head,
+    });
+    return Object.freeze({
+      kind: OUTCOME_NO_CHANGE,
+      reason: transition.result.reason,
+      state: transition.result.undoRequest === true ? "undo-request" : "no-change",
+    });
+  }
+  if (transition.result.outcome !== OUTCOME_STEP) {
+    adopt(transition.session);
+    return failure(transition.result.reason, transition.result.detail ?? null);
+  }
+  // A step joins 作業図 only once it is drawn. If it cannot be, the pane is
+  // put back to what 作業図 actually holds and the utterance counts as refused.
+  try {
+    await drawWorking(transition.session.working);
+  } catch (error) {
+    await drawWorking(before.working).catch(() => {});
+    adopt(noteRefused(before, input));
+    return failure("display-failed", String(error?.message ?? error));
+  }
+  adopt(transition.session);
+  return Object.freeze({ kind: OUTCOME_STEP });
+};
+
+// How an input ends. Only a drawn step changes 作業図; "no change" and a
+// failure leave it exactly as it was. 確定図 and storage are never touched.
+const finish = async (prefix, outcome) => {
+  showLists();
+  if (outcome.kind === OUTCOME_STEP) {
+    showOutOfView();
     const drafted = `${prefix}: 作業図に追加しました (未反映)`;
     if (!(await followOrReport("drafted", drafted))) {
       setState("drafted", drafted);
-      renderHistory();
+      showHistory();
     }
     return;
   }
-  candidate = null;
-  if (error instanceof NoChange) {
-    if (asked !== null) remember(asked, error.state === "undo-request" ? "undo-request" : "no-change");
-    renderContext();
-    setState(error.state, `${prefix}: no change - ${error.message}`);
-    renderHistory();
+  if (outcome.kind === OUTCOME_NO_CHANGE) {
+    setState(outcome.state ?? "no-change", `${prefix}: no change - ${reasonText(outcome.reason)}`);
+    showHistory();
     return;
   }
-  if (asked !== null) remember(asked, "refused");
-  renderContext();
   setState("failed", `${prefix}: failed`);
-  renderHistory(`failed: ${error.message}`);
+  showHistory(`failed: ${reasonText(outcome.reason, outcome.detail)}`);
 };
 
 send.addEventListener("click", async () => {
@@ -855,22 +455,35 @@ send.addEventListener("click", async () => {
   }
   rendering = true;
   typedHoldsRender = true;
-  syncBusy();
+  sync();
 
   setState("pending", "type: working");
   try {
-    await typedApp.submitType(text.value);
-    await finishInput("type", null);
+    await finish("type", await decide(text.value, "typed"));
   } catch (error) {
-    await finishInput("type", error);
+    await finish("type", failure("error", String(error?.message ?? error)));
   } finally {
     if (typedHoldsRender) {
       rendering = false;
       typedHoldsRender = false;
     }
-    syncBusy();
+    sync();
   }
 });
+
+// One press is all it takes: nothing here needs the text field. The surface
+// critical section begins once transcription has finished; its claim is taken
+// before the first await after that, and the finally releases it.
+const hear = async () => {
+  const heard = await transcribe();
+  if (typeof heard !== "string") return failure("voice-failed", "Hayamimi must return text");
+  if (rendering) return failure("error", "surface is busy");
+  rendering = true;
+  voiceHoldsRender = true;
+  sync();
+  setVoice("deciding", "voice: 判定中");
+  return decide(heard, "voice");
+};
 
 mic.addEventListener("click", async () => {
   if (blocked) return;
@@ -879,18 +492,14 @@ mic.addEventListener("click", async () => {
     return;
   }
   capturing = true;
-  syncBusy();
+  sync();
 
-  // One press is all it takes: nothing here needs the text field.
   setState("pending", "voice: preparing");
   setVoice("preparing", "voice: 準備中です。まだ話さないでください");
   try {
-    // submitVoice carries transcription, decision and render, so reaching
-    // here means the step is drawn on 作業図.
-    await voiceApp.submitVoice(null);
-    await finishInput("voice", null);
+    await finish("voice", await hear());
   } catch (error) {
-    await finishInput("voice", error);
+    await finish("voice", failure("voice-failed", String(error?.message ?? error)));
   } finally {
     if (voiceHoldsRender) {
       rendering = false;
@@ -898,202 +507,193 @@ mic.addEventListener("click", async () => {
     }
     capturing = false;
     setVoice(null);
-    syncBusy();
+    sync();
   }
 });
 
-// The working-graph controls share the surface with the inputs, so they
-// take the same exclusive hold and release it only as its owner. While a
-// request is in flight every one of them is therefore disabled.
+// The working-graph controls share the surface with the inputs, so they take
+// the same exclusive hold and release it only as its owner. Each drops a held
+// placement and the last turn's diagnostic, whatever it then does.
 const withSurface = async (label, run) => {
   if (blocked || rendering) return;
-  // Undo, Discard, Apply and Revert change what a pending placement was
-  // said against, so each of them drops it.
-  clearPending();
+  adopt(clearPending(session));
   rendering = true;
   controlHoldsRender = true;
-  // The diagnostic describes the last turn Jev judged. Once a control
-  // has acted it would describe a screen that is no longer there, so it
-  // goes, whatever the control does.
-  clearDiagnostics();
-  syncBusy();
+  renderDiagnostic(status, null);
+  sync();
   setState("pending", `${label}: working`);
   try {
     await run();
   } catch (error) {
     setState("failed", `${label}: failed`);
-    renderHistory(`failed: ${error.message}`);
+    showHistory(`failed: ${String(error?.message ?? error)}`);
   } finally {
     if (controlHoldsRender) {
       rendering = false;
       controlHoldsRender = false;
     }
-    syncBusy();
+    sync();
   }
 };
 
-// 元に戻す drops the last unapplied step and nothing else: the working log
-// is cut back by one Decision and verified again. It never goes below
-// what is saved, and there is no redo.
-undoButton.addEventListener("click", () => withSurface("undo", async () => {
-  if (draft.length === 0) return;
-  const removed = draft.at(-1);
-  const next = await undoSession({ session, verifyDecisionLog });
-  await renderWorking(await graphIr(next.working));
-  adoptSession(next);
-  markUndone(removed);
-  renderDraft();
-  renderOutOfView();
-  renderContext();
-  const undone = "作業図の最後の変更を元に戻しました";
-  if (!(await followOrReport("undone", undone))) {
-    setState("undone", undone);
-    renderHistory();
+// Draw a new working graph and adopt it, then report as a control does.
+const showWorking = async (next, state, message) => {
+  await drawWorking(next.working);
+  adopt(next);
+  showLists();
+  showOutOfView();
+  if (!(await followOrReport(state, message))) {
+    setState(state, message);
+    showHistory();
   }
+};
+
+const refusedBy = (label, result) => {
+  if (result.outcome === OUTCOME_NO_CHANGE) {
+    setState(result.reason === "draft-full" ? "draft-full" : "no-change", `${label}: no change - ${reasonText(result.reason)}`);
+    showHistory();
+    return;
+  }
+  setState("failed", `${label}: failed`);
+  showHistory(`failed: ${reasonText(result.reason, result.detail ?? null)}`);
+};
+
+// 新しい図: only where there is no log. The typed name becomes a new, empty
+// map on 作業図; nothing is stored until 確定図に反映.
+newButton.addEventListener("click", () => withSurface("new", async () => {
+  const { session: next, result } = await startNew(session, { title: text.value, protocol });
+  if (result.outcome !== OUTCOME_STEP) {
+    refusedBy("new", result);
+    return;
+  }
+  await showWorking(next, "drafted", "new: 作業図に新しい図を作りました (未反映)");
 }));
 
-// 会話をクリア forgets the recent conversation; the next request sends
-// none. It changes neither pane.
-contextClear.addEventListener("click", () => {
-  if (blocked || rendering) return;
-  clearPending();
-  conversation = [];
-  clearDiagnostics();
-  renderContext();
-  syncBusy();
-});
+// 元に戻す drops the last unapplied step and nothing else, never below what is
+// saved, and there is no redo.
+undoButton.addEventListener("click", () => withSurface("undo", async () => {
+  if (session.draft.length === 0) return;
+  await showWorking(await undo(session, { verifyDecisionLog }), "undone", "作業図の最後の変更を元に戻しました");
+}));
 
 // 作業図を破棄 returns the working graph to the saved one.
 discardButton.addEventListener("click", () => withSurface("discard", async () => {
-  if (draft.length === 0) return;
-  const removed = [...draft];
-  const next = discardSession(session);
-  await renderWorking(await graphIr(next.working));
-  adoptSession(next);
-  for (const step of removed) markUndone(step);
-  renderDraft();
-  renderOutOfView();
-  renderContext();
-  const discarded = "作業図を破棄しました";
-  if (!(await followOrReport("discarded", discarded))) {
-    setState("discarded", discarded);
-    renderHistory();
-  }
+  if (session.draft.length === 0) return;
+  await showWorking(discard(session), "discarded", "作業図を破棄しました");
 }));
 
-// 確定図に反映: the only write to storage and the only change to 確定図.
-// All unapplied Decisions are written as they are, in one setItem, and only
-// if storage still holds the log this page last saw. That check is a read
-// before the write, not a transaction: it refuses a write another tab made
-// earlier, but two tabs writing at the same instant are not excluded. A
-// refused Apply keeps 作業図 exactly as it was.
+// 会話をクリア forgets the recent conversation; the next request sends none.
+// It changes neither pane.
+contextClear.addEventListener("click", () => {
+  if (blocked || rendering) return;
+  adopt(clearConversation(session));
+  renderDiagnostic(status, null);
+  showLists();
+  sync();
+});
+
+// 確定図に反映: the only write to storage and the only change to 確定図. Every
+// unapplied Decision is written at once, under the origin-wide lock, only as
+// a verified strict extension of what storage still holds, and read back. A
+// refused Apply keeps 作業図 exactly as it was. Once the write has landed,
+// a failure to draw it blocks the page until a reload.
 applyButton.addEventListener("click", () => withSurface("apply", async () => {
-  if (draft.length === 0) return;
-  let written = false;
-  try {
-    const next = await applySession({
-      session,
-      persist: async ({ graph, expected }) => {
-        await persistHistory({ write, read, expected, graph });
-        written = true;
-      },
-    });
-    adoptSession(next);
-    renderDraft();
-    savedHistory = await projectHistory(saved, { verifyDecisionLog });
-    await drawConfirmed();
-    setState("applied", "確定図に反映しました");
-    renderHistory();
-  } catch (error) {
-    if (written) {
-      blocked = true;
-      setState("saved-display-failed", "apply: saved, display failed - reload to recover");
-      renderHistory(`display failed: ${error.message}`);
-      return;
-    }
-    const reason = error instanceof HistoryConflict
-      ? "別のタブが先に確定図を変更しました。作業図はそのまま残しています"
-      : error.message;
+  if (session.draft.length === 0) return;
+  const { session: next, result } = await apply(session, { commit });
+  if (result.status !== COMMIT_COMMITTED) {
     setState("failed", "apply: failed");
-    renderHistory(`failed: ${reason}`);
+    showHistory(`failed: ${reasonText(result.status, result.reason ?? null)}`);
+    return;
   }
+  adopt(next);
+  showLists();
+  try {
+    savedHistory = await projectHistory(next.accepted, { verifyDecisionLog });
+    await drawConfirmed();
+  } catch (error) {
+    blocked = true;
+    setState("saved-display-failed", "apply: saved, display failed - reload to recover");
+    showHistory(`display failed: ${String(error?.message ?? error)}`);
+    return;
+  }
+  setState("applied", "確定図に反映しました");
+  showHistory();
 }));
 
 // 取り消しを作業図に追加: the opposite of an applied entry, read off the
-// provider's states on either side of it, checked against 作業図 as it is
-// now, and added there as one more step. 確定図 is untouched until Apply.
+// provider's states on either side of it, checked against 作業図 as it is now,
+// and added there as one more step. 確定図 is untouched until Apply.
 historyPanel.addEventListener("click", event => {
   const button = event.target.closest("button[data-revert]");
   if (!button || button.disabled) return;
   const index = Number(button.dataset.revert);
   withSurface("revert", async () => {
-    if (draftFull()) {
-      setState("draft-full", "作業図の未反映は上限です。確定図に反映・元に戻す・作業図を破棄のいずれかを選んでください");
-      renderHistory();
+    const states = await statesOf(session.accepted.log, verifyDecisionLog);
+    const built = await revertStep({ before: states[index], after: states[index + 1], working: session.working, protocol });
+    if (built.outcome !== OUTCOME_STEP) {
+      refusedBy("revert", built);
       return;
     }
-    const states = await statesOf(saved.log, verifyDecisionLog);
-    const step = await revertStep({ before: states[index], after: states[index + 1], working, protocol });
-    const next = await appendSessionStep({ session, step, protocol });
-    await renderWorking(await graphIr(next.working));
-    adoptSession(next);
-    renderDraft();
-    renderOutOfView();
-    const reverted = "取り消しを作業図に追加しました (未反映)";
-    if (!(await followOrReport("drafted", reverted))) {
-      setState("drafted", reverted);
-      renderHistory();
+    const { session: next, result } = await appendRevert(session, { step: built.step, protocol });
+    if (result.outcome !== OUTCOME_STEP) {
+      refusedBy("revert", result);
+      return;
     }
+    await showWorking(next, "drafted", "取り消しを作業図に追加しました (未反映)");
   });
 });
 
-// Storage decides what this origin starts from. An absent log is a first
-// visit; one the provider rejects is damage, and its bytes are left
-// exactly where they are rather than quietly replaced, so the only way
-// forward is an explicit clear from outside the app. A log that verifies
-// but does not start from this app's own initial graph is foreign, and is
-// treated the same way.
-const genesis = (await initialGraph()).head;
-const restored = await restoreHistory({ read, verifyDecisionLog, genesis });
+// The DataBundle this page offers from. One that cannot be fetched or read
+// disables only the capabilities it would have provided.
+const loadBundle = async () => {
+  try {
+    const response = await fetch("/data/bundle.v1.json", { cache: "no-store" });
+    return readBundle(response.ok ? await response.json() : null);
+  } catch {
+    return readBundle(null);
+  }
+};
 
+// Storage decides what this origin starts from. No log is NO_LOG: nothing is
+// drawn until the person makes a map. A corrupt or foreign log is left exactly
+// where it is, blocks the page and draws nothing; the only way forward is an
+// explicit clear from outside the app. 作業図 starts as the saved graph:
+// nothing unapplied survives a reload, and the conversation starts empty.
+bundle = await loadBundle();
+const restored = await restoreLog({ read, verifyDecisionLog });
 if (restored.status === RESTORE_RESTORED) {
-  saved = restored.graph;
   savedHistory = restored.projection;
-  stored = restored.graph.log;
-} else if (restored.status === RESTORE_EMPTY || restored.status === RESTORE_CORRUPT) {
-  saved = await initialGraph();
-  savedHistory = await projectHistory(saved, { verifyDecisionLog });
-  blocked = restored.status === RESTORE_CORRUPT;
+  adopt(createSession({ accepted: restored.graph, stored: restored.graph.log }));
 } else {
-  throw new Error(`unknown restore status: ${restored.status}`);
+  blocked = restored.status !== RESTORE_NO_LOG;
+  adopt(createSession({ accepted: null, stored: null }));
 }
-// 作業図 always starts as the saved graph: nothing unapplied survives a
-// reload, and the pane says so. The recent conversation starts empty.
-adoptSession(createSession({ accepted: saved, stored }));
-renderDraft();
-renderContext();
+showLists();
 
+let bootState;
+let bootMessage;
+let bootFailure = null;
 try {
   await drawConfirmed();
-  await renderWorking(await graphIr(working));
-  renderOutOfView();
+  await drawWorking(session.working);
+  showOutOfView();
   if (blocked) {
-    setState("failed", "saved history is unreadable - clear this site's storage to start over");
-    renderHistory(`stored log rejected: ${restored.reason}`);
+    [bootState, bootMessage] = ["failed", "saved history is unusable - clear this site's storage to start over"];
+    bootFailure = `stored log rejected: ${restored.reason}`;
   } else if (restored.status === RESTORE_RESTORED) {
-    setState("restored", `restored: ${savedHistory.entries.length} confirmed`);
-    renderHistory();
+    [bootState, bootMessage] = ["restored", `restored: ${savedHistory.entries.length} confirmed`];
   } else {
-    setState("initial", "ready");
-    renderHistory();
+    [bootState, bootMessage] = ["no-log", "no saved graph - type a name and press 新しい図"];
   }
 } catch (error) {
-  // The stored graph is intact but undrawable. Nothing was lost, so this
-  // is the same saved-but-not-displayed state a failed render produces.
+  // The stored graph is intact but undrawable. Nothing was lost, so this is
+  // the same saved-but-not-displayed state a failed render produces.
   blocked = true;
-  setState("saved-display-failed", "stored graph could not be drawn - reload to retry");
-  renderHistory(`display failed: ${error.message}`);
+  [bootState, bootMessage] = ["saved-display-failed", "stored graph could not be drawn - reload to retry"];
+  bootFailure = `display failed: ${String(error?.message ?? error)}`;
 }
-
-syncBusy();
-window.voiceUiReady = true;
+// The body state is set last, with every control already in its place: it is
+// what tells anyone watching that the page is ready.
+showHistory(bootFailure);
+sync();
+setState(bootState, bootMessage);

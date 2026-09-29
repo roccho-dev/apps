@@ -61,23 +61,55 @@ page.on("response", response => {
   }
 });
 
+// The one current Jev contract; this file ships alone in the artifact.
+const REQUEST_KIND = "voice-ui.jev.request.v10";
+const DECISION_KIND = "voice-ui.jev.decision.v5";
+
+// The page sets its body state last, once every control is in place.
+const ready = () => page.waitForFunction(
+  () => document.body.dataset.state !== undefined && document.body.dataset.state !== "pending",
+  null,
+  { timeout: 120000 },
+);
+
 const navigation = await page.goto(url, { waitUntil: "domcontentloaded", timeout: 120000 });
 assert.equal(navigation?.status(), 200);
-await page.waitForFunction(() => window.voiceUiReady === true);
+await ready();
 assert.equal((await page.content()).includes("JEV_API_KEY"), false);
 
-// The v1 HTTP contract is kept even though the screen no longer drives it, so it
-// is checked directly against the deployed function rather than through #send.
-const v1 = await fetch(new URL("/api/jev", url), {
+// A first visit is NO_LOG: nothing stored, nothing drawn, nothing to speak to.
+assert.equal(await page.evaluate(() => document.body.dataset.state), "no-log");
+assert.equal(await page.locator('iframe[data-package="semantic-map"]').count(), 0);
+assert.equal(await page.locator("#send").isDisabled(), true);
+
+// The deployed Function serves only the current request kind: a legacy kind is
+// refused before any provider call.
+const legacy = await fetch(new URL("/api/jev", url), {
   method: "POST",
   headers: { "content-type": "application/json" },
-  body: JSON.stringify({ kind: "voice-ui.jev.request.v1", text: "public v1 contract proof" }),
+  body: JSON.stringify({ kind: "voice-ui.jev.request.v1", text: "public legacy refusal proof" }),
 });
-assert.equal(v1.status, 200);
-const v1Ir = await v1.json();
-assert.equal(v1Ir.kind, "ui.ir.v1");
-assert.equal(v1Ir.capability, "a2ui-browser");
-assert.equal(v1Ir.payloadKind, "a2ui.surface.v1");
+assert.equal(legacy.status, 422);
+assert.deepEqual(await legacy.json(), { error: "invalid_request" });
+
+// A fixture of three plain nodes, built by the pinned provider in the page and
+// stored in this app's namespace, then loaded the way a saved log is.
+const fixtureLog = await page.evaluate(async key => {
+  const protocol = await import("/ui/semantic-map/protocol/index.js");
+  const node = (id, x) => ({ type: "region", id, parent: "root", label: id, kind: "node", bounds: [x, 90, 140, 64], summary: "" });
+  const graph = await protocol.createDecisionLog([
+    { type: "meta", schema: "semantic-map-state/1", root: "root", title: "public fixture" },
+    { type: "region", id: "root", parent: null, label: "public fixture", kind: "boundary", bounds: [0, 0, 720, 260], summary: "" },
+    node("node-a", 40),
+    node("node-b", 250),
+    node("node-c", 460),
+  ], "voice-graph");
+  localStorage.setItem(key, graph.log);
+  return graph.log;
+}, STORAGE_KEY);
+await page.reload({ waitUntil: "commit" });
+await ready();
+assert.equal(await page.evaluate(() => document.body.dataset.state), "restored");
 
 // Every edge one pane's live adapter holds, read from inside that pane's own
 // frame. This is the graph the page actually drew, not an envelope handed to it.
@@ -120,14 +152,13 @@ const waitForState = state => page.waitForFunction(
 // Speaking and typing change 作業図 only. Until 確定図に反映, 確定図 and the
 // stored bytes must not move.
 const assertSavedUntouched = async label => {
-  assert.equal(await storedLog(), null, `${label}: nothing may be stored before Apply`);
+  assert.equal(await storedLog(), fixtureLog, `${label}: nothing may be stored before Apply`);
   assert.deepEqual(await appliedFacts(), [], `${label}: 確定図 must have no entry before Apply`);
   assert.deepEqual((await drawnEdges("confirmed")).edges, [], `${label}: 確定図 must draw no edge before Apply`);
 };
 
-assert.equal(await page.evaluate(() => document.body.dataset.state), "initial");
-assert.deepEqual((await drawnEdges("confirmed")).edges, [], "a first visit must draw no edge");
-assert.deepEqual((await drawnEdges("working")).edges, [], "a first visit must draw no edge");
+assert.deepEqual((await drawnEdges("confirmed")).edges, [], "the fixture has no edge");
+assert.deepEqual((await drawnEdges("working")).edges, [], "the fixture has no edge");
 
 // Send takes the typed graph decision. A rendered string is not evidence of
 // anything; a step drawn on 作業図 and then applied to 確定図 is.
@@ -138,9 +169,10 @@ const typeResponsePromise = page.waitForResponse(
 );
 await page.locator("#send").click();
 const typeResponse = await typeResponsePromise;
+assert.equal(JSON.parse(typeResponse.request().postData()).kind, REQUEST_KIND);
 assert.equal(typeResponse.status(), 200);
 const typeDecision = await typeResponse.json();
-assert.equal(typeDecision.kind, "voice-ui.jev.decision.v4");
+assert.equal(typeDecision.kind, DECISION_KIND);
 await waitForState("drafted");
 const typedEdge = `${typeDecision.answers.source.choice}->${typeDecision.answers.target.choice}`;
 assert.deepEqual(await draftSteps(), [`+${typedEdge}`]);
@@ -159,7 +191,7 @@ await page.locator("#mic").click();
 const voiceResponse = await voiceResponsePromise;
 assert.equal(voiceResponse.status(), 200);
 const voiceDecision = await voiceResponse.json();
-assert.equal(voiceDecision.kind, "voice-ui.jev.decision.v4");
+assert.equal(voiceDecision.kind, DECISION_KIND);
 await page.waitForFunction(() => document.body.dataset.state !== "pending", null, { timeout: 360000 });
 assert.equal(await page.evaluate(() => document.body.dataset.state), "drafted");
 
@@ -181,7 +213,8 @@ assert.deepEqual(await draftSteps(), []);
 assert.deepEqual(await appliedFacts(), bothEdges.map(edge => `+${edge}`).sort());
 const saved = await storedLog();
 assert.ok(saved, "applied steps must be persisted");
-assert.equal(saved.split("\n").length - 1, 3, "the initial graph plus exactly the two applied Decisions");
+assert.equal(saved.split("\n").length - 1, 3, "the fixture plus exactly the two applied Decisions");
+assert.ok(saved.startsWith(fixtureLog), "Apply adds to the stored log; it rewrites nothing");
 
 const drawn = await drawnEdges("confirmed");
 assert.equal(drawn.pattern, "graph/1");
@@ -190,7 +223,7 @@ assert.deepEqual(drawn.edges, bothEdges, "確定図 must draw exactly the applie
 
 // Both entries come back from this origin's storage after a reload.
 await page.reload({ waitUntil: "commit" });
-await page.waitForFunction(() => window.voiceUiReady === true, null, { timeout: 120000 });
+await ready();
 assert.equal(await page.evaluate(() => document.body.dataset.state), "restored");
 assert.equal(await storedLog(), saved);
 assert.deepEqual(await appliedFacts(), bothEdges.map(edge => `+${edge}`).sort());
@@ -203,6 +236,6 @@ assert.deepEqual(failedResponses, []);
 
 await browser.close();
 process.stdout.write(
-  `public-e2e: PASS v1 contract direct | typed edge=${typedEdge} + voice edge=${voiceEdge} `
+  `public-e2e: PASS NO_LOG first visit, legacy kind refused | typed edge=${typedEdge} + voice edge=${voiceEdge} `
   + "drawn on 作業図 only, applied together to 確定図, restored after reload\n",
 );

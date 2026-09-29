@@ -1,0 +1,468 @@
+import assert from "node:assert/strict";
+import fs from "node:fs";
+import path from "node:path";
+import test from "node:test";
+import { fileURLToPath, pathToFileURL } from "node:url";
+
+import { readBundle } from "../src/bundle.mjs";
+import {
+  ACTION_ADD_EDGE,
+  ACTION_ADD_PART,
+  ACTION_COMPOSE,
+  ACTION_PLACE_PART,
+  ACTION_REMOVE_EDGE,
+  ACTION_REVERSE_EDGE,
+  ACTION_UNDO_REQUEST,
+  DIRECTIONS,
+  NONE,
+  REQUEST_KIND,
+  isRequest,
+} from "../src/contract.mjs";
+import { MAP_ID, STATE_SCHEMA, restoreLog, statesOf, truncateLog } from "../src/log.mjs";
+import {
+  ACTION_NEW,
+  OUTCOME_NO_CHANGE,
+  OUTCOME_REFUSED,
+  OUTCOME_STEP,
+  appendStep,
+  changesForJev,
+  focusFor,
+  newMap,
+  pendingForJev,
+  pendingHolds,
+  placeableIds,
+  planStep,
+  repairStep,
+  requestFor,
+  revertStep,
+  revertable,
+} from "../src/turn.mjs";
+
+const store = process.env.SEMANTIC_MAP;
+if (!store) throw new Error("SEMANTIC_MAP must point at the pinned semantic-map store path");
+const protocol = await import(pathToFileURL(path.join(store, "packages/semantic-map/protocol/index.js")).href);
+const verifyDecisionLog = protocol.verifyDecisionLog;
+
+// The shipped DataBundle, read the way the page reads it.
+const here = path.dirname(fileURLToPath(import.meta.url));
+const BUNDLE = readBundle(JSON.parse(fs.readFileSync(path.join(here, "../web/data/bundle.v1.json"), "utf8")));
+const NO_BUNDLE = readBundle(null);
+
+// A fixture graph of three plain nodes, built through this app's own map
+// namespace and state schema.
+const node = (id, x) => ({ type: "region", id, parent: "root", label: id, kind: "node", bounds: [x, 90, 140, 64], summary: "" });
+const baseGraph = () => protocol.createDecisionLog([
+  { type: "meta", schema: STATE_SCHEMA, root: "root", title: "fixture" },
+  { type: "region", id: "root", parent: null, label: "fixture", kind: "boundary", bounds: [0, 0, 720, 260], summary: "" },
+  node("node-a", 40),
+  node("node-b", 250),
+  node("node-c", 460),
+], MAP_ID);
+
+const layoutOf = graph => protocol.layoutBoundsFor(graph.records, { pattern: protocol.GRAPH_PATTERN });
+const WIDE = [-400, -400, 2000, 2000];
+const frameOf = (graph, frame = WIDE) => Object.freeze({ head: graph.head, frame: Object.freeze([...frame]) });
+
+// One turn as the page builds it, and an answer shaped exactly like the
+// questions it asked: every slot "none" unless the test says otherwise.
+const ask = (working, { bundle = BUNDLE, layout = null, offeredFrame = null, draft = [], focus = null, pending = null } = {}) =>
+  requestFor({ working, utterance: "test utterance", bundle, layout, offeredFrame, draft, focus, pending, recent: [] });
+const choice = (value, confidence = 0.9) => ({ type: "choice", choice: value, confidence });
+const answer = (turn, picks = {}, confidence = 0.9) => Object.fromEntries(Object.keys(turn.slots).map(name => [
+  name,
+  picks[name] === undefined ? choice(NONE, confidence) : typeof picks[name] === "string" ? choice(picks[name], confidence) : picks[name],
+]));
+
+const plan = async (working, picks, options = {}) => {
+  const layout = options.layout ?? null;
+  const { turn } = ask(working, { layout, offeredFrame: options.offeredFrame ?? null, bundle: options.bundle ?? BUNDLE });
+  return planStep({
+    working,
+    turn,
+    answers: answer(turn, picks, options.confidence),
+    protocol,
+    bundle: options.bundle ?? BUNDLE,
+    reserved: options.reserved ?? [],
+    layout,
+    visibleFrame: options.visibleFrame ?? null,
+  });
+};
+
+const step = async (working, picks, options) => {
+  const planned = await plan(working, picks, options);
+  assert.equal(planned.outcome, OUTCOME_STEP, JSON.stringify(planned));
+  const appended = await appendStep({ working, step: planned.step, protocol });
+  assert.equal(appended.outcome, OUTCOME_STEP);
+  return appended.graph;
+};
+
+const edges = graph => graph.records.filter(record => record.type === "relation").map(record => `${record.from}->${record.to}`).sort();
+const partIds = graph => graph.records.filter(record => record.type === "region" && record.parent !== null).map(record => record.id);
+
+test("a request is exactly the declared read set, and the Function's own check accepts it", async () => {
+  const graph = await baseGraph();
+  const { request, turn } = ask(graph, { layout: layoutOf(graph), offeredFrame: WIDE });
+  assert.equal(request.kind, REQUEST_KIND);
+  assert.deepEqual(Object.keys(request.state).sort(), ["context", "draft", "focus", "graph", "offers", "pending", "utterance"]);
+  assert.deepEqual(request.state.graph.regions, [
+    { id: "node-a", label: "node-a" }, { id: "node-b", label: "node-b" }, { id: "node-c", label: "node-c" },
+  ], "every part by id and label; never the boundary");
+  assert.deepEqual(request.state.offers, {
+    parts: BUNDLE.parts.map(({ key, purpose }) => ({ key, purpose })),
+    diagrams: BUNDLE.diagrams.map(({ key, purpose }) => ({ key, purpose })),
+  }, "offers carry keys and purposes only");
+  const body = JSON.stringify(request);
+  for (const hidden of [graph.head, "bounds", "sha256", "lanes", "steps", ...BUNDLE.parts.map(part => part.label)]) {
+    assert.equal(body.includes(hidden), false, `${hidden} never reaches Jev`);
+  }
+  assert.ok(isRequest(request));
+  assert.deepEqual(turn.bundle, { version: BUNDLE.version, sections: ["parts", "diagrams"] });
+  assert.equal(turn.head, graph.head);
+});
+
+test("each action is offered only when this graph can carry it out", async () => {
+  const graph = await baseGraph();
+  const edgeless = ask(graph).turn.slots;
+  assert.deepEqual(edgeless.action, [ACTION_ADD_EDGE, ACTION_ADD_PART, ACTION_COMPOSE, ACTION_UNDO_REQUEST, NONE]);
+  assert.deepEqual(edgeless.source, ["node-a", "node-b", "node-c", NONE]);
+  assert.equal(edgeless.edge, undefined, "no edge, no edge question");
+  assert.equal(edgeless.move, undefined, "no layout, no placement");
+
+  const joined = await step(graph, { action: ACTION_ADD_EDGE, source: "node-c", target: "node-a" });
+  const withEdge = ask(joined, { layout: layoutOf(joined), offeredFrame: WIDE }).turn.slots;
+  assert.deepEqual(withEdge.action, [
+    ACTION_ADD_EDGE, ACTION_ADD_PART, ACTION_PLACE_PART, ACTION_REMOVE_EDGE, ACTION_REVERSE_EDGE, ACTION_COMPOSE, ACTION_UNDO_REQUEST, NONE,
+  ]);
+  assert.deepEqual(withEdge.edge, ["voice-node-c-to-node-a", NONE]);
+  assert.deepEqual(withEdge.direction, [...DIRECTIONS, NONE]);
+});
+
+test("without a bundle only the graph's own edits are offered, and T binds no bundle", async () => {
+  const graph = await baseGraph();
+  const { turn, request } = ask(graph, { bundle: NO_BUNDLE });
+  assert.deepEqual(turn.slots.action, [ACTION_ADD_EDGE, ACTION_UNDO_REQUEST, NONE]);
+  assert.deepEqual(request.state.offers, { parts: [], diagrams: [] });
+  assert.equal(turn.bundle, null);
+
+  const partsOnly = readBundle({ ...JSON.parse(fs.readFileSync(path.join(here, "../web/data/bundle.v1.json"), "utf8")), diagrams: [] });
+  assert.deepEqual(ask(graph, { bundle: partsOnly }).turn.bundle, { version: partsOnly.version, sections: ["parts"] });
+});
+
+test("a new map is named by the person and holds nothing else; it restores as this app's", async () => {
+  assert.deepEqual(await newMap({ title: "   ", protocol }), { outcome: OUTCOME_NO_CHANGE, reason: "no-title" });
+  assert.deepEqual(await newMap({ title: "x".repeat(121), protocol }), { outcome: OUTCOME_REFUSED, reason: "title-too-long" });
+
+  const made = await newMap({ title: " 業務の図 ", protocol });
+  assert.equal(made.outcome, OUTCOME_STEP);
+  assert.equal(made.step.action, ACTION_NEW);
+  assert.deepEqual(made.step.changes, [{ change: "added", kind: "region", id: "root", label: "業務の図" }]);
+  assert.equal(made.graph.mapId, MAP_ID);
+  assert.deepEqual(partIds(made.graph), [], "no starter parts");
+  assert.equal((await restoreLog({ read: async () => made.graph.log, verifyDecisionLog })).status, "restored");
+
+  // On an empty map a part can be asked for and nothing needs two nodes.
+  const { turn } = ask(made.graph);
+  assert.deepEqual(turn.slots.action, [ACTION_ADD_PART, ACTION_COMPOSE, ACTION_UNDO_REQUEST, NONE]);
+  assert.equal(turn.slots.source, undefined);
+  const first = await step(made.graph, { action: ACTION_ADD_PART, part: "step" });
+  assert.deepEqual(partIds(first), ["part-1"]);
+});
+
+test("planning builds a provider Decision on the working head and appends nothing", async () => {
+  const working = await baseGraph();
+  const planned = await plan(working, { action: ACTION_ADD_EDGE, source: "node-c", target: "node-a" });
+  assert.equal(planned.outcome, OUTCOME_STEP);
+  assert.equal(planned.step.revision, working.head);
+  assert.equal(planned.step.decision.parent, working.head);
+  assert.deepEqual(planned.step.changes, [{ change: "added", from: "node-c", to: "node-a" }]);
+  assert.deepEqual(edges(working), []);
+
+  const appended = await appendStep({ working, step: planned.step, protocol });
+  assert.equal(appended.graph.decisions.length, working.decisions.length + 1);
+  assert.ok(appended.graph.log.startsWith(working.log));
+});
+
+test("undo-request, none, a none slot and low confidence are ordinary no-changes", async () => {
+  const working = await step(await baseGraph(), { action: ACTION_ADD_EDGE, source: "node-c", target: "node-a" });
+  const undo = await plan(working, { action: ACTION_UNDO_REQUEST });
+  assert.deepEqual(undo, { outcome: OUTCOME_NO_CHANGE, reason: "undo-by-button", undoRequest: true });
+  for (const [picks, reason, confidence] of [
+    [{ action: NONE }, "none-requested"],
+    [{ action: ACTION_ADD_EDGE, target: "node-b" }, "no-two-nodes"],
+    [{ action: ACTION_REMOVE_EDGE }, "no-edge-named"],
+    [{ action: ACTION_ADD_EDGE, source: "node-a", target: "node-b" }, "not-confident", 0.3],
+    [{ action: ACTION_ADD_PART }, "no-part-named"],
+  ]) {
+    assert.deepEqual(await plan(working, picks, { confidence }), { outcome: OUTCOME_NO_CHANGE, reason }, reason);
+  }
+});
+
+test("a change this graph cannot carry out, an answer off the questions, or a stale answer is refused", async () => {
+  const working = await step(await baseGraph(), { action: ACTION_ADD_EDGE, source: "node-c", target: "node-a" });
+  assert.deepEqual(await plan(working, { action: ACTION_ADD_EDGE, source: "node-b", target: "node-b" }), { outcome: OUTCOME_REFUSED, reason: "same-region" });
+  assert.deepEqual(await plan(working, { action: ACTION_ADD_EDGE, source: "node-c", target: "node-a" }), { outcome: OUTCOME_REFUSED, reason: "edge-exists" });
+  assert.deepEqual(await plan(working, { action: ACTION_REMOVE_EDGE, edge: "voice-node-a-to-node-b" }), { outcome: OUTCOME_REFUSED, reason: "answer-invalid" });
+
+  const { turn } = ask(working);
+  const extra = { ...answer(turn, { action: NONE }), diagramish: choice(NONE) };
+  const missing = answer(turn, { action: NONE });
+  delete missing.part;
+  for (const answers of [extra, missing]) {
+    assert.deepEqual(await planStep({ working, turn, answers, protocol, bundle: BUNDLE }), { outcome: OUTCOME_REFUSED, reason: "answer-invalid" });
+  }
+
+  const moved = await step(working, { action: ACTION_ADD_EDGE, source: "node-a", target: "node-b" });
+  assert.deepEqual(await planStep({ working: moved, turn, answers: answer(turn, { action: NONE }), protocol, bundle: BUNDLE }),
+    { outcome: OUTCOME_REFUSED, reason: "stale" });
+  const planned = await plan(working, { action: ACTION_ADD_EDGE, source: "node-b", target: "node-c" });
+  assert.deepEqual(await appendStep({ working: moved, step: planned.step, protocol }), { outcome: OUTCOME_REFUSED, reason: "stale" });
+  const relabelled = await appendStep({ working: moved, step: { ...planned.step, revision: moved.head }, protocol });
+  assert.equal(relabelled.reason, "provider-rejected");
+  assert.equal(typeof relabelled.detail, "string");
+});
+
+test("removing and reversing are steps; a reverse is one Decision holding both halves", async () => {
+  const added = await step(await baseGraph(), { action: ACTION_ADD_EDGE, source: "node-c", target: "node-a" });
+  const removal = await plan(added, { action: ACTION_REMOVE_EDGE, edge: "voice-node-c-to-node-a" });
+  assert.deepEqual(removal.step.changes, [{ change: "removed", from: "node-c", to: "node-a" }]);
+
+  const reversal = await plan(added, { action: ACTION_REVERSE_EDGE, edge: "voice-node-c-to-node-a" });
+  assert.deepEqual(reversal.step.decision.operations.map(operation => operation.type), ["RemoveSelection", "ConnectRegions"]);
+  const reversed = (await appendStep({ working: added, step: reversal.step, protocol })).graph;
+  assert.deepEqual(edges(reversed), ["node-a->node-c"]);
+  const readded = await step(reversed, { action: ACTION_ADD_EDGE, source: "node-c", target: "node-a" });
+  assert.deepEqual(edges(readded), ["node-a->node-c", "node-c->node-a"]);
+  assert.deepEqual(await plan(readded, { action: ACTION_REVERSE_EDGE, edge: "voice-node-c-to-node-a" }), { outcome: OUTCOME_REFUSED, reason: "reversed-exists" });
+});
+
+test("a part takes its kind and label from the bundle, and its name and place from the app", async () => {
+  let working = await baseGraph();
+  const planned = await plan(working, { action: ACTION_ADD_PART, part: "decision" });
+  const decision = BUNDLE.parts.find(part => part.key === "decision");
+  assert.deepEqual(planned.step.decision.operations, [{
+    type: "AddRegion", regionId: "part-1", parentId: "root", label: `${decision.label} 1`, kind: decision.kind, summary: "", bounds: [20, 20, 140, 64],
+  }]);
+  for (const part of BUNDLE.parts) {
+    const made = await plan(working, { action: ACTION_ADD_PART, part: part.key });
+    assert.equal(made.step.decision.operations[0].kind, part.kind);
+    working = (await appendStep({ working, step: made.step, protocol })).graph;
+  }
+  assert.equal(partIds(working).length, 3 + BUNDLE.parts.length);
+  for (let count = BUNDLE.parts.length; count < 8; count += 1) {
+    working = await step(working, { action: ACTION_ADD_PART, part: "step" });
+  }
+  assert.deepEqual(await plan(working, { action: ACTION_ADD_PART, part: "step" }), { outcome: OUTCOME_NO_CHANGE, reason: "no-room-for-part" });
+});
+
+test("a part name is never reused, not after a revert and not after an undo", async () => {
+  const graph = await baseGraph();
+  const withPart = await step(graph, { action: ACTION_ADD_PART, part: "step" });
+  const undone = await truncateLog(withPart, { count: 1, floor: 1, verifyDecisionLog });
+  const nameOf = planned => planned.step.decision.operations[0].regionId;
+  assert.equal(nameOf(await plan(undone, { action: ACTION_ADD_PART, part: "step" })), "part-1",
+    "the log alone cannot know the name was used");
+  assert.equal(nameOf(await plan(undone, { action: ACTION_ADD_PART, part: "step" }, { reserved: ["part-1"] })), "part-2");
+
+  const states = await statesOf(withPart.log, verifyDecisionLog);
+  const revert = await revertStep({ before: states[0], after: states[1], working: withPart, protocol });
+  const removed = (await appendStep({ working: withPart, step: revert.step, protocol })).graph;
+  assert.equal(nameOf(await plan(removed, { action: ACTION_ADD_PART, part: "step" })), "part-2");
+});
+
+// Placement: the view says where parts are; Jev chooses only parts and a side.
+const place = (graph, picks, visibleFrame = frameOf(graph), offeredFrame = WIDE) =>
+  plan(graph, { action: ACTION_PLACE_PART, ...picks }, { layout: layoutOf(graph), offeredFrame, visibleFrame });
+const beside = (layout, move, anchor, direction) => {
+  const [ax, ay, aw, ah] = layout.bounds[anchor];
+  const [, , tw, th] = layout.bounds[move];
+  return direction === "left" ? [ax - tw - 24, ay, tw, th]
+    : direction === "right" ? [ax + aw + 24, ay, tw, th]
+      : direction === "above" ? [ax, ay - th - 24, tw, th]
+        : [ax, ay + ah + 24, tw, th];
+};
+
+test("placing a part builds one PinRegions at the spot beside its anchor, as the view measures it", async () => {
+  const graph = await baseGraph();
+  const layout = layoutOf(graph);
+  const planned = await place(graph, { move: "node-c", anchor: "node-a", direction: "right" });
+  assert.deepEqual(planned.step.decision.operations, [{ type: "PinRegions", items: [{ regionId: "node-c", bounds: beside(layout, "node-c", "node-a", "right") }] }]);
+  assert.deepEqual(planned.step.changes, [{ change: "placed", kind: "region", id: "node-c", anchor: "node-a", direction: "right" }]);
+  const moved = (await appendStep({ working: graph, step: planned.step, protocol })).graph;
+  assert.deepEqual(layoutOf(moved).bounds["node-c"], beside(layout, "node-c", "node-a", "right"));
+  assert.deepEqual(await place(moved, { move: "node-c", anchor: "node-a", direction: "right" }), { outcome: OUTCOME_NO_CHANGE, reason: "already-there" });
+});
+
+test("every way of not placing is its own reason, and a part beside itself is refused", async () => {
+  const graph = await baseGraph();
+  const layout = layoutOf(graph);
+  const spec = { move: "node-c", anchor: "node-a", direction: "right" };
+  const spot = beside(layout, "node-c", "node-a", "right");
+  assert.deepEqual(await place(graph, spec, null), { outcome: OUTCOME_NO_CHANGE, reason: "frame-unreadable" });
+  assert.deepEqual(await place(graph, spec, { head: "sha256:another", frame: WIDE }), { outcome: OUTCOME_NO_CHANGE, reason: "frame-behind" });
+  assert.deepEqual(await place(graph, spec, frameOf(graph, [0, 0, 10, 10])), { outcome: OUTCOME_NO_CHANGE, reason: "spot-off-pane" });
+  const anchorCut = [spot[0] - 1, spot[1] - 1, spot[2] + 2, spot[3] + 2];
+  assert.deepEqual(await place(graph, spec, frameOf(graph, anchorCut)), { outcome: OUTCOME_NO_CHANGE, reason: "anchor-off-pane" });
+  const a = layout.bounds["node-a"];
+  const both = [Math.min(a[0], spot[0]) - 1, Math.min(a[1], spot[1]) - 1, spot[0] + spot[2] - a[0] + 2, Math.max(a[3], spot[3]) + 2];
+  assert.deepEqual(await place(graph, spec, frameOf(graph, both)), { outcome: OUTCOME_NO_CHANGE, reason: "mover-off-pane" });
+  assert.deepEqual(await place(graph, { move: "node-c", anchor: "node-b", direction: "above" }), { outcome: OUTCOME_NO_CHANGE, reason: "spot-taken" });
+  assert.deepEqual(await place(graph, { move: "node-c", anchor: "node-c", direction: "right" }), { outcome: OUTCOME_REFUSED, reason: "beside-itself" });
+  assert.deepEqual(await place(graph, { move: NONE, anchor: "node-a", direction: "right" }), { outcome: OUTCOME_NO_CHANGE, reason: "placement-restate" });
+});
+
+test("only the parts wholly on the pane are offered", async () => {
+  const graph = await baseGraph();
+  const layout = layoutOf(graph);
+  const onlyA = [...layout.bounds["node-a"]];
+  assert.deepEqual(placeableIds(layout, graph.records, onlyA), ["node-a"]);
+  const { turn, request } = ask(graph, { layout, offeredFrame: onlyA });
+  assert.equal(turn.slots.move, undefined, "fewer than two parts on the pane offers no placement");
+  assert.deepEqual(request.state.graph.placeable, ["node-a"]);
+});
+
+test("one unsure placement piece is held, bound to the exact picture, and never carries text", async () => {
+  const graph = await baseGraph();
+  const layout = layoutOf(graph);
+  const near = await plan(graph, {
+    action: ACTION_PLACE_PART, move: "node-c", anchor: choice("node-a", 0.39), direction: "right",
+  }, { layout, offeredFrame: WIDE, visibleFrame: frameOf(graph) });
+  assert.equal(near.reason, "placement-missing-anchor");
+  assert.equal(near.pending.missing, "anchor");
+  assert.equal(near.pending.head, graph.head);
+  assert.deepEqual(near.pending.offered, ["node-a", "node-b", "node-c"]);
+  assert.deepEqual(pendingForJev(near.pending), { missing: "anchor", move: "node-c", anchor: null, direction: "right" });
+  assert.ok(pendingHolds(near.pending, { head: graph.head, frame: WIDE, offered: ["node-a", "node-b", "node-c"] }));
+  assert.equal(pendingHolds(near.pending, { head: graph.head, frame: [0, 0, 1, 1], offered: ["node-a", "node-b", "node-c"] }), false);
+
+  // Nothing is held when the pane moved during the turn, or two pieces were unsure.
+  const moved = await plan(graph, { action: ACTION_PLACE_PART, move: "node-c", anchor: choice("node-a", 0.39), direction: "right" },
+    { layout, offeredFrame: WIDE, visibleFrame: frameOf(graph, [-399, -400, 2000, 2000]) });
+  assert.equal(moved.pending, undefined);
+  const two = await place(graph, { move: choice("node-c", 0.3), anchor: choice("node-a", 0.3), direction: "right" });
+  assert.deepEqual(two, { outcome: OUTCOME_NO_CHANGE, reason: "placement-restate" });
+});
+
+test("the one repair completes the held placement, and only when the reply says nothing else", async () => {
+  const graph = await baseGraph();
+  const layout = layoutOf(graph);
+  const near = await plan(graph, { action: ACTION_PLACE_PART, move: "node-c", anchor: choice("node-a", 0.39), direction: "right" },
+    { layout, offeredFrame: WIDE, visibleFrame: frameOf(graph) });
+  const pending = near.pending;
+  const reply = async (picks, visibleFrame = frameOf(graph)) => {
+    const { turn } = ask(graph, { layout, offeredFrame: WIDE, pending: pendingForJev(pending) });
+    return repairStep({ working: graph, turn, answers: answer(turn, picks), protocol, bundle: BUNDLE, layout, visibleFrame, pending });
+  };
+  const repaired = await reply({ action: NONE, anchor: "node-a" });
+  assert.equal(repaired.outcome, OUTCOME_STEP);
+  assert.equal(repaired.repaired, true);
+  assert.deepEqual(repaired.step.changes, [{ change: "placed", kind: "region", id: "node-c", anchor: "node-a", direction: "right" }]);
+
+  // "ノードAです" heard as node-a beside itself still names the missing piece.
+  assert.equal((await reply({ action: ACTION_PLACE_PART, move: "node-a", anchor: "node-a" })).outcome, OUTCOME_STEP);
+  // A complete, different instruction wins and is judged as itself.
+  const other = await reply({ action: ACTION_PLACE_PART, move: "node-b", anchor: "node-a", direction: "right" });
+  assert.equal(other.outcome, OUTCOME_STEP);
+  assert.equal(other.repaired, undefined);
+  assert.deepEqual(await reply({ action: NONE }), { outcome: OUTCOME_NO_CHANGE, reason: "repair-failed" });
+  assert.deepEqual(await reply({ action: NONE, anchor: "node-c" }), { outcome: OUTCOME_NO_CHANGE, reason: "repair-self" });
+  assert.deepEqual(await reply({ action: NONE, anchor: "node-a" }, frameOf(graph, [0, 0, 5000, 5000])),
+    { outcome: OUTCOME_NO_CHANGE, reason: "repair-context-changed" });
+  // A repair turn never promises a one-word follow-up it cannot keep.
+  assert.deepEqual(await reply({ action: ACTION_PLACE_PART, move: "node-b", anchor: choice("node-a", 0.3), direction: "left" }),
+    { outcome: OUTCOME_NO_CHANGE, reason: "placement-restate" });
+});
+
+test("a bundle diagram is composed whole, as one Decision, with its key as provenance", async () => {
+  const graph = await baseGraph();
+  const diagram = BUNDLE.diagrams[0];
+  const planned = await plan(graph, { action: ACTION_COMPOSE, diagram: diagram.key });
+  assert.equal(planned.outcome, OUTCOME_STEP);
+  assert.equal(planned.step.template, diagram.key, "the step carries the chosen key; nothing re-derives it from labels");
+  const regions = planned.step.changes.filter(change => change.kind === "region");
+  assert.deepEqual(regions.map(change => change.label), [...diagram.lanes, ...diagram.steps].map(entry => entry.label));
+  assert.equal(planned.step.changes.length - regions.length, diagram.links.length);
+  assert.deepEqual(planned.step.decision.operations.map(operation => operation.type).at(-1), "PinRegions");
+  const composed = (await appendStep({ working: graph, step: planned.step, protocol })).graph;
+  assert.equal(partIds(composed).length, 3 + regions.length);
+  // Lanes are containers: never an endpoint, never offered for placement.
+  const lanes = regions.slice(0, diagram.lanes.length).map(change => change.id);
+  const next = ask(composed, { layout: layoutOf(composed), offeredFrame: WIDE }).request.state.graph;
+  for (const lane of lanes) {
+    assert.equal(next.regions.some(region => region.id === lane), false);
+    assert.equal(next.placeable.includes(lane), false);
+  }
+
+  assert.deepEqual(await plan(graph, { action: ACTION_COMPOSE }), { outcome: OUTCOME_NO_CHANGE, reason: "diagram-not-offered" });
+  assert.deepEqual(await plan(graph, { action: ACTION_COMPOSE, diagram: diagram.key }, { confidence: 0.3 }),
+    { outcome: OUTCOME_NO_CHANGE, reason: "diagram-restate" });
+});
+
+test("a diagram is never drawn over a part the person placed", async () => {
+  const graph = await baseGraph();
+  const layout = layoutOf(graph);
+  const moved = await step(graph, { action: ACTION_PLACE_PART, move: "node-c", anchor: "node-a", direction: "right" },
+    { layout, offeredFrame: WIDE, visibleFrame: frameOf(graph) });
+  assert.deepEqual(await plan(moved, { action: ACTION_COMPOSE, diagram: BUNDLE.diagrams[0].key }),
+    { outcome: OUTCOME_NO_CHANGE, reason: "diagram-no-room" });
+});
+
+test("reverts add the opposite of an entry, and a later change makes them a refused conflict", async () => {
+  const graph = await baseGraph();
+  const added = await step(graph, { action: ACTION_ADD_EDGE, source: "node-c", target: "node-a" });
+  const removed = await step(added, { action: ACTION_REMOVE_EDGE, edge: "voice-node-c-to-node-a" });
+  const states = await statesOf(removed.log, verifyDecisionLog);
+
+  const undoAdd = await revertStep({ before: states[0], after: states[1], working: added, protocol });
+  assert.equal(undoAdd.step.action, "revert");
+  assert.deepEqual(undoAdd.step.changes, [{ change: "removed", from: "node-c", to: "node-a" }]);
+  const putBack = await revertStep({ before: states[1], after: states[2], working: removed, protocol });
+  assert.deepEqual(putBack.step.changes, [{ change: "added", from: "node-c", to: "node-a" }]);
+  const restored = (await appendStep({ working: removed, step: putBack.step, protocol })).graph;
+  assert.deepEqual(restored.records.find(record => record.type === "relation"), states[1].find(record => record.type === "relation"));
+
+  assert.deepEqual(await revertStep({ before: states[0], after: states[1], working: removed, protocol }), { outcome: OUTCOME_REFUSED, reason: "revert-altered" });
+  assert.deepEqual(await revertStep({ before: graph.records, after: graph.records.filter(record => record.id !== "node-a"), working: graph, protocol }),
+    { outcome: OUTCOME_REFUSED, reason: "revert-unsupported" });
+  assert.deepEqual(await revertStep({ before: graph.records, after: graph.records, working: graph, protocol }), { outcome: OUTCOME_REFUSED, reason: "revert-nothing" });
+});
+
+test("an added part can be reverted only while it stands alone; a placement is put back", async () => {
+  const graph = await baseGraph();
+  const withPart = await step(graph, { action: ACTION_ADD_PART, part: "data" });
+  const states = await statesOf(withPart.log, verifyDecisionLog);
+  const attached = await step(withPart, { action: ACTION_ADD_EDGE, source: "part-1", target: "node-a" });
+  assert.deepEqual(await revertStep({ before: states[0], after: states[1], working: attached, protocol }), { outcome: OUTCOME_REFUSED, reason: "revert-has-edge" });
+  const alone = await revertStep({ before: states[0], after: states[1], working: withPart, protocol });
+  const data = BUNDLE.parts.find(part => part.key === "data");
+  assert.deepEqual(alone.step.changes, [{ change: "removed", kind: "region", id: "part-1", label: `${data.label} 1` }]);
+
+  const layout = layoutOf(graph);
+  const placed = await step(graph, { action: ACTION_PLACE_PART, move: "node-c", anchor: "node-a", direction: "right" },
+    { layout, offeredFrame: WIDE, visibleFrame: frameOf(graph) });
+  const placedStates = await statesOf(placed.log, verifyDecisionLog);
+  const back = await revertStep({ before: placedStates[0], after: placedStates[1], working: placed, protocol });
+  assert.deepEqual(back.step.changes, [{ change: "placed", kind: "region", id: "node-c", anchor: NONE, direction: NONE }]);
+  const unpinned = (await appendStep({ working: placed, step: back.step, protocol })).graph;
+  assert.deepEqual(layoutOf(unpinned).bounds["node-c"], layout.bounds["node-c"]);
+});
+
+test("an entry is offered for revert only when its opposite is one safe change", () => {
+  const projection = { regions: ["node-a", "part-1", "part-2"], relations: [{ id: "e", from: "part-2", to: "node-a" }] };
+  assert.equal(revertable({ facts: [{ kind: "relation", change: "added" }] }, projection), true);
+  assert.equal(revertable({ facts: [{ kind: "layout", change: "added" }] }, projection), true);
+  assert.equal(revertable({ facts: [{ kind: "region", change: "added", id: "part-1" }] }, projection), true);
+  assert.equal(revertable({ facts: [{ kind: "region", change: "added", id: "part-2" }] }, projection), false, "it has an edge now");
+  assert.equal(revertable({ facts: [{ kind: "region", change: "added", id: "x" }, { kind: "relation", change: "added" }] }, projection), false);
+});
+
+test("changes reach Jev in their own shape, and the focus is the latest step, else the latest applied, else null", () => {
+  const region = { change: "added", kind: "region", id: "part-1", label: "L", extra: 1 };
+  const edge = { change: "removed", from: "node-a", to: "node-b", extra: 1 };
+  assert.deepEqual(changesForJev([region, edge]), [
+    { change: "added", kind: "region", id: "part-1", label: "L" },
+    { change: "removed", from: "node-a", to: "node-b" },
+  ]);
+  assert.deepEqual(focusFor({ draft: [{ changes: [edge] }], lastApplied: [region] }).kind, "draft");
+  assert.deepEqual(focusFor({ draft: [], lastApplied: [edge] }), { kind: "applied", changes: [{ change: "removed", from: "node-a", to: "node-b" }] });
+  assert.equal(focusFor({ draft: [], lastApplied: [] }), null);
+});

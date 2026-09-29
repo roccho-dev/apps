@@ -3,7 +3,7 @@ import fs from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
-import { onRequestPost } from "../functions/api/jev.mjs";
+import worker from "../functions/pages-worker.mjs";
 
 const packageRoot = path.resolve(fileURLToPath(new URL("../", import.meta.url)));
 
@@ -16,8 +16,6 @@ const requireStore = name => {
 // Exact provider Nix outputs, handed in by the flake app. Nothing is vendored
 // and nothing is copied: the store paths are served in place.
 const stores = {
-  uiIr: requireStore("VOICE_UI_UI_IR"),
-  a2ui: requireStore("VOICE_UI_A2UI"),
   semanticMap: requireStore("VOICE_UI_SEMANTIC_MAP"),
   hayamimi: requireStore("VOICE_UI_HAYAMIMI"),
 };
@@ -44,19 +42,12 @@ function route(pathname) {
 
   if (pathname === "/app.mjs") return path.join(packageRoot, "web/app.mjs");
 
+  if (pathname === "/data/bundle.v1.json") return path.join(packageRoot, "web/data/bundle.v1.json");
+
   const rest = suffix => pathname.slice(suffix.length);
 
   if (pathname.startsWith("/app/src/")) {
     return resolveUnder(path.join(packageRoot, "src"), rest("/app/src/"));
-  }
-  if (pathname === "/ui/ui-ir/index.mjs") {
-    return path.join(stores.uiIr, "packages/ui-ir/src/index.mjs");
-  }
-  if (pathname.startsWith("/ui/a2ui-browser/")) {
-    return resolveUnder(
-      path.join(stores.a2ui, "packages/a2ui-browser/src"),
-      rest("/ui/a2ui-browser/"),
-    );
   }
   // semantic-map plus the sibling packages it imports (data-pin, core-port, ...).
   if (pathname.startsWith("/ui/")) {
@@ -114,25 +105,37 @@ async function serveChunkManifest(response, file) {
   await serveFile(response, file);
 }
 
+// The production router itself answers /api/jev: every method, header and
+// body goes to the Worker the artifact ships, so its routing, its 405 and its
+// closed error set are what this server exercises. The key is read from the
+// injected process env only. Static files never reach the Worker here, so its
+// asset binding fails loudly if routing ever sends one there.
+const workerEnv = {
+  JEV_API_KEY: process.env.JEV_API_KEY,
+  ASSETS: {
+    fetch: async request => {
+      throw new Error(`the dev server routes static files itself, not ${new URL(request.url).pathname}`);
+    },
+  },
+};
+
 async function serveJev(request, response) {
   const chunks = [];
   for await (const chunk of request) chunks.push(chunk);
-  const proxied = new Request("http://localhost/api/jev", {
-    method: "POST",
-    headers: { "content-type": "application/json" },
-    body: Buffer.concat(chunks),
+  const headers = Object.entries(request.headers)
+    .filter(([name]) => !["connection", "host", "keep-alive", "transfer-encoding", "content-length"].includes(name))
+    .flatMap(([name, value]) => (Array.isArray(value) ? value : [value]).map(item => [name, item]));
+  const forwarded = new Request(new URL(request.url, "http://localhost"), {
+    method: request.method,
+    headers,
+    body: ["GET", "HEAD"].includes(request.method) ? undefined : Buffer.concat(chunks),
   });
 
-  // The Pages Function is invoked directly. No second adapter, no re-implemented
-  // provider call, and the key is read from the injected process env only.
-  const result = await onRequestPost({
-    request: proxied,
-    env: { JEV_API_KEY: process.env.JEV_API_KEY },
-  });
+  const result = await worker.fetch(forwarded, workerEnv);
 
   const body = Buffer.from(await result.arrayBuffer());
   response.writeHead(result.status, {
-    "content-type": result.headers.get("content-type") ?? "application/json",
+    ...Object.fromEntries(result.headers),
     "content-length": body.byteLength,
     "cache-control": "no-store",
   });
@@ -143,11 +146,6 @@ const server = createServer((request, response) => {
   const { pathname } = new URL(request.url, "http://localhost");
 
   if (pathname === "/api/jev") {
-    if (request.method !== "POST") {
-      response.writeHead(405, { "content-type": "text/plain; charset=utf-8" });
-      response.end("method not allowed");
-      return;
-    }
     serveJev(request, response).catch(() => {
       response.writeHead(500, { "content-type": "application/json; charset=utf-8" });
       response.end(JSON.stringify({ error: "dev_server_error" }));
