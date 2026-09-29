@@ -5,13 +5,18 @@ import { createRequire } from "node:module";
 // The approved acceptance runtime supplies this pinned dependency, never npm at run time.
 const { chromium } = createRequire(import.meta.url)("playwright-core");
 
-// The one current Jev contract. This file ships alone in the artifact, so the
-// kinds are written here; the page's own contract module supplies the slots.
-const REQUEST_KIND = "voice-ui.jev.request.v10";
-const DECISION_KIND = "voice-ui.jev.decision.v5";
-
 const url = process.argv[2];
 if (!url) throw new Error("localhost URL is required");
+
+// The one current Jev contract, as the target itself serves it: its contract
+// module is fetched and imported unchanged, so every kind, slot and answer
+// check below is the physical contract the page and the Function use - never
+// a copy kept here. This file ships alone in the artifact, which is why it is
+// read from the target rather than from a path.
+const served = await fetch(new URL("/app/src/contract.mjs", url));
+assert.equal(served.status, 200, "the target serves its contract module");
+const contract = await import(`data:text/javascript;base64,${Buffer.from(await served.text()).toString("base64")}`);
+const { REQUEST_KIND, DECISION_KIND } = contract;
 
 const wav = process.env.VOICE_WAV;
 const goldenPath = process.env.VOICE_GOLDEN;
@@ -51,15 +56,39 @@ const distance = (left, right) => {
 const errors = [];
 const failedResponses = [];
 const consoleMessages = [];
-// REAL evidence, counted where it happens. `qualifying` is every /api/jev 200
-// whose body is the current success shape; `intercepted` is every 200 this
-// test fulfilled itself, counted at the interception. REAL is the difference,
-// and it must be above zero: crafted answers are never promoted to real ones,
-// and an unparsable 200 is a failure, not an answer.
+// REAL evidence, counted where it happens. A 200 from /api/jev qualifies only
+// when its body is exactly the current success shape and every answer is a
+// choice from the slots that very request offered, checked with the served
+// contract's own readAnswers. `intercepted` counts every 200 this test
+// fulfilled itself, at the interception. REAL is qualifying minus intercepted
+// and must be above zero: a crafted answer is never promoted to a real one,
+// and a malformed 200 is a failure that never raises REAL.
 let qualifying = 0;
 let intercepted = 0;
+const interceptedRequests = new Set();
 const unparsable = [];
 const pendingCounts = [];
+
+const qualifies = async response => {
+  if (response.status() !== 200) return false;
+  let body;
+  let sent;
+  try {
+    body = await response.json();
+    sent = JSON.parse(response.request().postData());
+  } catch {
+    return false;
+  }
+  return body !== null && typeof body === "object" && !Array.isArray(body)
+    && Object.keys(body).sort().join(",") === "answers,kind,model"
+    && body.kind === DECISION_KIND
+    && typeof body.model === "string"
+    && contract.isRequest(sent)
+    && contract.readAnswers(body.answers, contract.slotsFor(sent.state)) !== null;
+};
+
+// Whether one exchange is REAL: a qualifying answer this test did not fulfil.
+const realAnswer = async response => !interceptedRequests.has(response.request()) && await qualifies(response);
 
 const watch = target => {
   target.on("pageerror", error => errors.push(String(error)));
@@ -69,14 +98,10 @@ const watch = target => {
       failedResponses.push(response.status() + " " + response.url());
     }
     if (new URL(response.url()).pathname === "/api/jev" && response.status() === 200 && !response.request().isNavigationRequest()) {
-      pendingCounts.push(response.json().then(
-        body => {
-          if (body?.kind === DECISION_KIND && typeof body.model === "string"
-            && body.answers !== null && typeof body.answers === "object") qualifying += 1;
-          else unparsable.push(response.url());
-        },
-        () => { unparsable.push(response.url()); },
-      ));
+      pendingCounts.push(qualifies(response).then(ok => {
+        if (ok) qualifying += 1;
+        else unparsable.push(response.url());
+      }));
     }
   });
   return target;
@@ -84,7 +109,10 @@ const watch = target => {
 
 // A Jev answer or failure fulfilled by this test at the network.
 const fulfil = (route, body, status = 200) => {
-  if (status === 200) intercepted += 1;
+  if (status === 200) {
+    intercepted += 1;
+    interceptedRequests.add(route.request());
+  }
   return route.fulfill({ status, contentType: "application/json; charset=utf-8", body: JSON.stringify(body) });
 };
 
@@ -440,7 +468,7 @@ const ask = async (target, act) => {
   await settle(target);
   const sent = JSON.parse(request.postData());
   assertOnlyCurrentInput(sent, panelBefore);
-  return { sent, decision: await response.json() };
+  return { sent, decision: await response.json(), real: await realAnswer(response) };
 };
 
 // A recent-conversation entry as expected, without its sequence number: the
@@ -536,21 +564,17 @@ const correctionGolden = readGolden(correctionGoldenPath, correctionWav);
 const jevUrl = new URL("/api/jev", url).href;
 // A Jev answer crafted from the request it answers, for turns where geometry
 // or the app's own refusal - not Jev's hearing - is what is under test. The
-// questions it answers are the page's own: the served contract module says
-// which slots the request offered, and every slot not named here is "none".
+// questions it answers are the page's own: the served contract says which
+// slots the request offered, and every slot not named here is "none". Whether
+// an answer is crafted is known only from the interception, never its model.
 let page;
-const craftFor = async (sent, answers) => {
-  const slots = await page.evaluate(async state => {
-    const contract = await import("/app/src/contract.mjs");
-    return Object.keys(contract.slotsFor(state));
-  }, sent.state);
-  return {
-    kind: DECISION_KIND,
-    model: "jev-test",
-    answers: Object.fromEntries(slots.map(name => [name, answers[name] ?? { type: "choice", choice: "none", confidence: 0.9 }])),
-  };
-};
-const answerFrom = answers => async route => fulfil(route, await craftFor(JSON.parse(route.request().postData()), answers));
+const craftFor = (sent, answers) => ({
+  kind: DECISION_KIND,
+  model: "crafted-by-test",
+  answers: Object.fromEntries(Object.keys(contract.slotsFor(sent.state))
+    .map(name => [name, answers[name] ?? { type: "choice", choice: "none", confidence: 0.9 }])),
+});
+const answerFrom = answers => route => fulfil(route, craftFor(JSON.parse(route.request().postData()), answers));
 
 // What sections (i)-(xviii) report, captured while their values are in scope.
 let fullRunSummary = null;
@@ -615,6 +639,42 @@ assert.equal(newApplied.sendDisabled, false, "the new map can be spoken to");
 await page.reload({ waitUntil: "commit" });
 await ready(page);
 assert.equal((await screen(page)).stored, newApplied.stored, "reload restores the new map without rewriting it");
+
+// (i-b) Storage that cannot be vouched for after Apply. In a separate context
+// the page's storage takes the write and then reads back other bytes, as a
+// failing disk would, so nothing can say what is stored. The page stops
+// speaking for storage: it blocks every control until a reload, and keeps
+// the step. Instrumentation only - the main frame's storage object is
+// replaced before the page's own scripts run.
+const lyingContext = await first.browser.newContext();
+await lyingContext.addInitScript(key => {
+  if (window !== window.top) return;
+  const values = new Map();
+  const lying = {
+    getItem: name => values.get(name) ?? null,
+    setItem: (name, value) => { values.set(name, name === key ? `${value}unverifiable\n` : String(value)); },
+    removeItem: name => { values.delete(name); },
+    clear: () => values.clear(),
+    key: index => [...values.keys()][index] ?? null,
+    get length() { return values.size; },
+  };
+  Object.defineProperty(window, "localStorage", { configurable: true, get: () => lying });
+}, STORAGE_KEY);
+const lyingPage = watch(await lyingContext.newPage());
+await lyingPage.goto(url, { waitUntil: "commit", timeout: 120000 });
+await ready(lyingPage);
+assert.equal((await screen(lyingPage)).state, "no-log", "precondition: the instrumented page starts at NO_LOG");
+await lyingPage.locator("#text").fill("unverifiable map");
+await press(lyingPage, "#new");
+await press(lyingPage, "#apply");
+const unverified = await screen(lyingPage);
+assert.equal(unverified.state, "storage-unverified", `a write that cannot be read back blocks: ${unverified.status}`);
+assert.match(unverified.failure ?? "", /could not be verified/u);
+for (const control of ["sendDisabled", "micDisabled", "newDisabled", "undoDisabled", "discardDisabled", "applyDisabled"]) {
+  assert.equal(unverified[control], true, `${control} while storage cannot be vouched for`);
+}
+assert.deepEqual(unverified.draft, ["+root「unverifiable map」"], "the step is kept, not dropped");
+await lyingContext.close();
 
 // From here on the proofs work on a fixture of three plain nodes, stored the
 // way a person's own log is.
@@ -1900,7 +1960,7 @@ await settle(page);
 assert.equal(movedRequest.kind, REQUEST_KIND);
 assert.equal(movedRequest.state.pending, null, "a held piece from another picture is never sent");
 assert.equal(movedResponse.status(), 200, "the request passes the server's check - no 422");
-assert.equal((await movedResponse.json()).model === "jev-test", false, "answered by the real Jev");
+assert.ok(await realAnswer(movedResponse), "answered by the real Jev: a qualifying answer the test did not intercept");
 const movedReply = await screen(page);
 assert.equal(movedReply.state, "no-change", `an explicit no-change, not a failure: ${movedReply.status}`);
 assert.equal(movedReply.status, "type: no change - 図が変わったので補えませんでした。指示全体をもう一度言ってください");
@@ -2064,7 +2124,7 @@ const heldTurn = async (text, whileHeld, undo) => {
   await page.route(jevUrl, async route => {
     await gate;
     const sent = JSON.parse(route.request().postData());
-    await fulfil(route, await craftFor(sent, confidentPlace(sent)));
+    await fulfil(route, craftFor(sent, confidentPlace(sent)));
   }, { times: 1 });
   const exchange = jevExchange(page);
   await page.locator("#text").fill(text);
@@ -2231,7 +2291,7 @@ const narrowFrom = page.viewportSize();
 let releaseNarrow;
 const narrowAnswer = new Promise(resolve => { releaseNarrow = resolve; });
 await page.route(jevUrl, async route => {
-  await fulfil(route, await craftFor(JSON.parse(route.request().postData()), await narrowAnswer));
+  await fulfil(route, craftFor(JSON.parse(route.request().postData()), await narrowAnswer));
 }, { times: 1 });
 const narrowExchange = jevExchange(page);
 await page.locator("#text").fill("put that one beside the other");
@@ -2349,7 +2409,7 @@ const raceEdge = nth => async route => {
   const taken = new Set(sent.state.graph.edges.map(edge => `${edge.from}->${edge.to}`));
   const [from, to] = ids.flatMap(source => ids.filter(target => target !== source && !taken.has(`${source}->${target}`))
     .map(target => [source, target]))[nth];
-  await fulfil(route, await craftFor(sent, {
+  await fulfil(route, craftFor(sent, {
     action: { type: "choice", choice: "add-edge", confidence: 0.95 },
     source: { type: "choice", choice: from, confidence: 0.95 },
     target: { type: "choice", choice: to, confidence: 0.95 },
@@ -2517,6 +2577,7 @@ fullRunSummary = {
   tail: `| refused microphone: [${voicePhases(refusalTrace).map(entry => entry.kind).join(" ")}], 0 Jev requests, nothing changed, controls given back `
     + `| embedded Accept [${embeddedAccepts.join("; ")}] / [${correctionAccepts.join("; ")}] `
     + "| NO_LOG draws nothing; New drafts, Undo returns to NO_LOG, Apply stores one Decision "
+    + "| storage that reads back other bytes blocks every control, step kept "
     + `| corrupt and foreign logs fail closed | typed ${edgeA}, ${edgeB}: 2 undos, then 2-step apply `
     + `| empty input (0 Jev requests), undo-request and none change nothing | relation revert applied, overtaken revert refused `
     + `| controls locked while a request is in flight, answer on its own revision (${heldEdge}) `
@@ -2603,7 +2664,7 @@ assert.equal(aws.sent.kind, REQUEST_KIND);
 assert.deepEqual(aws.sent.state.offers.diagrams.map(offer => offer.key), ["request-approval-flow"],
   "the page offers its diagrams by key and purpose");
 assert.equal(JSON.stringify(aws.sent).includes("申請者"), false, "and never their contents");
-assert.notEqual(aws.decision.model, "jev-test", "answered by the real Jev");
+assert.ok(aws.real, "answered by the real Jev: a qualifying answer the test did not intercept");
 assert.notEqual(aws.decision.answers.diagram.choice, "request-approval-flow",
   `the real Jev must not pass an AWS diagram off as the approval flow: ${JSON.stringify(aws.decision.answers)}`);
 const awsScreen = await screen(page);
@@ -2613,7 +2674,7 @@ assert.equal(awsScreen.stored, diagramStart.stored);
 
 // The purpose-level request: no part, side or link is named.
 const asked = await type(page, "申請して承認してもらう流れを図にして");
-assert.notEqual(asked.decision.model, "jev-test", "answered by the real Jev");
+assert.ok(asked.real, "answered by the real Jev: a qualifying answer the test did not intercept");
 assert.equal(asked.decision.answers.action.choice, "compose-diagram",
   `the real Jev must hear a whole diagram: ${JSON.stringify(asked.decision.answers)}`);
 assert.equal(asked.decision.answers.diagram.choice, "request-approval-flow");
@@ -2779,7 +2840,7 @@ if (fixtureOffPane.length > 0) {
 // A lane is a container, never an endpoint: the next request does not offer
 // it, and a real Jev asked for an arrow from it drafts nothing.
 const laneLink = await type(page, `${laneA} から ${stepSubmit} へ矢印を足して`);
-assert.notEqual(laneLink.decision.model, "jev-test", "answered by the real Jev");
+assert.ok(laneLink.real, "answered by the real Jev: a qualifying answer the test did not intercept");
 const laneOffer = laneLink.sent.state.graph;
 const offeredIds = laneOffer.regions.map(region => region.id);
 for (const lane of [laneA, laneB]) {
@@ -2898,7 +2959,7 @@ const laptopScreen = await firstScreen(page);
 assert.equal(laptopScreen.scrollY, 0);
 assert.deepEqual(laptopScreen.unreachable, [], `1366x657 first screen: ${JSON.stringify(laptopScreen)}`);
 const laptopAsked = await type(page, "申請して承認してもらう流れを図にして");
-assert.notEqual(laptopAsked.decision.model, "jev-test", "answered by the real Jev");
+assert.ok(laptopAsked.real, "answered by the real Jev: a qualifying answer the test did not intercept");
 assert.equal(laptopAsked.decision.answers.diagram.choice, "request-approval-flow",
   `the real Jev must choose the approval flow: ${JSON.stringify(laptopAsked.decision.answers)}`);
 const laptopDrafted = await screen(page);

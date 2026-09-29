@@ -8,6 +8,7 @@ import { DECISION_KIND, ERRORS } from "/app/src/contract.mjs";
 import { readBundle } from "/app/src/bundle.mjs";
 import {
   COMMIT_COMMITTED,
+  COMMIT_UNVERIFIED,
   RESTORE_NO_LOG,
   RESTORE_RESTORED,
   commitLog,
@@ -600,6 +601,14 @@ contextClear.addEventListener("click", () => {
 applyButton.addEventListener("click", () => withSurface("apply", async () => {
   if (session.draft.length === 0) return;
   const { session: next, result } = await apply(session, { commit });
+  // Storage that cannot be vouched for after a write leaves the screen unable
+  // to speak for it: the page blocks until a reload reads what is really there.
+  if (result.status === COMMIT_UNVERIFIED) {
+    blocked = true;
+    setState("storage-unverified", "apply: storage could not be verified - reload to recover");
+    showHistory(`failed: ${reasonText(result.status, result.reason)}`);
+    return;
+  }
   if (result.status !== COMMIT_COMMITTED) {
     setState("failed", "apply: failed");
     showHistory(`failed: ${reasonText(result.status, result.reason ?? null)}`);

@@ -25,6 +25,7 @@ export const COMMIT_COMMITTED = "committed";
 const COMMIT_CONFLICT = "conflict";
 const COMMIT_REJECTED = "rejected";
 const COMMIT_NOT_PERSISTED = "not-persisted";
+export const COMMIT_UNVERIFIED = "unverified";
 
 const demand = (condition, reason) => {
   if (!condition) throw new TypeError(`decision log: ${reason}`);
@@ -165,8 +166,13 @@ export async function restoreLog({ read, verifyDecisionLog }) {
 // The one durable write. Under the origin-wide lock it succeeds only when
 // storage still holds `expected` - the log this page last read or wrote - and
 // the new log is a provider-verified, identity-checked strict extension of it.
-// The bytes are then written and read back. Anything else changes nothing and
-// says which of the three ways it failed; a committed Decision is never lost.
+// The bytes are then written and read back. A conflict or a rejection writes
+// nothing; a write that fails is read back too, and is `not-persisted` only
+// when storage still holds exactly what it held before. When the bytes in
+// storage cannot be vouched for - the write failed and they changed, or they
+// read back as something else, or cannot be read - the result is `unverified`,
+// and the page must stop speaking for storage. A committed Decision is never
+// lost.
 export async function commitLog({ graph, expected, read, write, lock, verifyDecisionLog }) {
   demand(typeof graph?.log === "string" && graph.log.length > 0, "graph.log must be a non-empty string");
   demand(expected === null || typeof expected === "string", "expected must be null or a string");
@@ -183,14 +189,25 @@ export async function commitLog({ graph, expected, read, write, lock, verifyDeci
     } catch (error) {
       return Object.freeze({ status: COMMIT_REJECTED, reason: message(error) });
     }
+    let failed = null;
     try {
       await write(HISTORY_KEY, next);
     } catch (error) {
-      return Object.freeze({ status: COMMIT_NOT_PERSISTED, reason: message(error) });
+      failed = message(error);
     }
-    const readBack = await read(HISTORY_KEY);
+    let readBack;
+    try {
+      readBack = (await read(HISTORY_KEY)) ?? null;
+    } catch (error) {
+      return Object.freeze({ status: COMMIT_UNVERIFIED, reason: `the stored bytes cannot be read back: ${message(error)}` });
+    }
+    if (failed !== null) {
+      return readBack === current
+        ? Object.freeze({ status: COMMIT_NOT_PERSISTED, reason: failed })
+        : Object.freeze({ status: COMMIT_UNVERIFIED, reason: `the write failed (${failed}) and storage changed` });
+    }
     if (readBack !== next) {
-      return Object.freeze({ status: COMMIT_NOT_PERSISTED, reason: "the stored bytes read back differently" });
+      return Object.freeze({ status: COMMIT_UNVERIFIED, reason: "the stored bytes read back differently" });
     }
     return Object.freeze({ status: COMMIT_COMMITTED, stored: next });
   });

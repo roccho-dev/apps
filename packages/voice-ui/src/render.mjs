@@ -54,6 +54,7 @@ const REASONS = Object.freeze({
   conflict: "別のタブが先に確定図を変更しました。作業図はそのまま残しています",
   rejected: "decision log was rejected",
   "not-persisted": "decision log was not persisted",
+  unverified: "the stored decision log could not be verified",
   "jev-failed": "Jev request failed",
   "jev-timeout": "Jev did not answer within",
   "jev-contract": "Jev answered outside the contract",

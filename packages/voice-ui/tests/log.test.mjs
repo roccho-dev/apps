@@ -5,6 +5,7 @@ import { pathToFileURL } from "node:url";
 
 import {
   COMMIT_COMMITTED,
+  COMMIT_UNVERIFIED,
   MAP_ID,
   RESTORE_NO_LOG,
   RESTORE_RESTORED,
@@ -251,18 +252,46 @@ test("an unverifiable or foreign log is rejected before anything is written", as
   assert.deepEqual([...store.writes, ...empty.writes], []);
 });
 
-test("a write that fails or reads back differently is not persisted, and says so", async () => {
+test("a failed write that left storage exactly as it was is not persisted, and says so", async () => {
   const next = await extend(GOLDEN_LOG, ["node-a", "node-b"]);
   const failing = storage(GOLDEN_LOG);
   failing.write = async () => { throw new Error("quota exceeded"); };
   assert.deepEqual(await commitWith(failing, next, GOLDEN_LOG), { status: COMMIT_NOT_PERSISTED, reason: "quota exceeded" });
-  assert.equal(failing.values.get(HISTORY_KEY), GOLDEN_LOG);
+  assert.equal(failing.values.get(HISTORY_KEY), GOLDEN_LOG, "read back unchanged");
+});
 
+test("storage that cannot be vouched for after a write is unverified, never committed or merely failed", async () => {
+  const next = await extend(GOLDEN_LOG, ["node-a", "node-b"]);
+
+  // The write said it landed, but other bytes read back.
   const lying = storage(GOLDEN_LOG);
   lying.write = async () => {};
-  const result = await commitWith(lying, next, GOLDEN_LOG);
-  assert.equal(result.status, COMMIT_NOT_PERSISTED);
-  assert.match(result.reason, /read back/u);
+  const differs = await commitWith(lying, next, GOLDEN_LOG);
+  assert.equal(differs.status, COMMIT_UNVERIFIED);
+  assert.match(differs.reason, /read back differently/u);
+
+  // The write failed, yet storage no longer holds what it did.
+  const torn = storage(GOLDEN_LOG);
+  torn.write = async key => {
+    torn.values.set(key, "partial");
+    throw new Error("disk error");
+  };
+  const changed = await commitWith(torn, next, GOLDEN_LOG);
+  assert.equal(changed.status, COMMIT_UNVERIFIED);
+  assert.match(changed.reason, /disk error.*storage changed/u);
+
+  // The bytes cannot be read back at all.
+  const blind = storage(GOLDEN_LOG);
+  let reads = 0;
+  const firstRead = blind.read;
+  blind.read = async key => {
+    reads += 1;
+    if (reads > 1) throw new Error("storage unavailable");
+    return firstRead(key);
+  };
+  const unreadable = await commitWith(blind, next, GOLDEN_LOG);
+  assert.equal(unreadable.status, COMMIT_UNVERIFIED);
+  assert.match(unreadable.reason, /cannot be read back/u);
 });
 
 test("two Applies from the same saved log never lose a committed Decision", async () => {

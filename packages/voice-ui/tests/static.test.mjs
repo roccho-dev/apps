@@ -28,7 +28,7 @@ const NEW_FUNCTION = /\bnew\s+Function\b/u;
 const NEW_CALL = /\bnew\s+([A-Za-z_$][\w$]*)\s*\(/gu;
 // Python authored-OOP mechanisms.
 const PY_CLASS = /^\s*class\s+\w+\s*[(:]/mu;
-const PY_TYPE = /\btype\s*\([^()\n]*,[^()\n]*,/u;
+const PY_TYPE = /\btype\s*\(/u;
 // Skip-as-pass forms.
 const SKIP_BANS = [
   "test.skip",
@@ -124,6 +124,22 @@ test("no authored class, prototype chain, receiver-based object, constructor typ
   assert.deepEqual(found, []);
   const inPython = python.flatMap(file => [PY_CLASS, PY_TYPE].filter(pattern => pattern.test(read(file))).map(pattern => `${file} ${pattern}`));
   assert.deepEqual(inPython, []);
+});
+
+// The gate's own rules, tried on what each one exists to catch, so a rule
+// that is loosened until it matches nothing fails here rather than passing.
+test("every rule still catches what it exists to catch", () => {
+  const pythonCatches = [
+    [PY_CLASS, "class A:\n"],
+    [PY_CLASS, "class A(Base):\n"],
+    [PY_CLASS, "    class Inner(object):\n"],
+    [PY_TYPE, "A = type(\"A\", (object,), {})"],
+    [PY_TYPE, "A = type (\"A\", (Base,), {\"x\": 1})"],
+    [PY_TYPE, "kind = type(value)"],
+  ];
+  for (const [rule, sample] of pythonCatches) assert.ok(rule.test(sample), `${rule} must catch ${JSON.stringify(sample)}`);
+  assert.equal(PY_TYPE.test("the content type of a response"), false, "prose without a call is not a match");
+  assert.equal(PY_CLASS.test("a class of failure"), false, "prose without a declaration is not a match");
 });
 
 test("new calls only the reviewed platform constructors, and every one of them is used", () => {
