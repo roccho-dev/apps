@@ -8,6 +8,15 @@ const { chromium } = createRequire(import.meta.url)("playwright-core");
 const url = process.argv[2];
 if (!url) throw new Error("public URL is required");
 
+// The one current Jev contract, as the target itself serves it: its contract
+// module is fetched and imported unchanged, so every kind, slot and answer
+// check below is the contract the page and the Function use - never a copy
+// kept here. This file ships alone in the artifact.
+const served = await fetch(new URL("/app/src/contract.mjs", url));
+assert.equal(served.status, 200, "the target serves its contract module");
+const contract = await import(`data:text/javascript;base64,${Buffer.from(await served.text()).toString("base64")}`);
+const { REQUEST_KIND, DECISION_KIND } = contract;
+
 const wav = process.env.VOICE_WAV;
 const goldenPath = process.env.VOICE_GOLDEN;
 if (!wav || !goldenPath) throw new Error("VOICE_WAV and VOICE_GOLDEN are required");
@@ -61,10 +70,6 @@ page.on("response", response => {
   }
 });
 
-// The one current Jev contract; this file ships alone in the artifact.
-const REQUEST_KIND = "voice-ui.jev.request.v10";
-const DECISION_KIND = "voice-ui.jev.decision.v5";
-
 // The page sets its body state last, once every control is in place.
 const ready = () => page.waitForFunction(
   () => document.body.dataset.state !== undefined && document.body.dataset.state !== "pending",
@@ -82,9 +87,15 @@ assert.equal(await page.evaluate(() => document.body.dataset.state), "no-log");
 assert.equal(await page.locator('iframe[data-package="semantic-map"]').count(), 0);
 assert.equal(await page.locator("#send").isDisabled(), true);
 
-// A fixture of three plain nodes, built by the pinned provider in the page and
-// stored in this app's namespace, then loaded the way a saved log is.
-const fixtureLog = await page.evaluate(async key => {
+// Two edges that are already saved. After the first typed step 作業図 offers
+// three edges, so which one "that edge" means cannot be read off the graph.
+const SEEDED = [["node-b", "node-c"], ["node-a", "node-c"]];
+const seededEdges = SEEDED.map(([from, to]) => `${from}->${to}`).sort();
+
+// A fixture of three plain nodes and the two saved edges, built by the pinned
+// provider in the page and stored in this app's namespace, then loaded the way
+// a saved log is.
+const fixtureLog = await page.evaluate(async ({ key, seeded }) => {
   const protocol = await import("/ui/semantic-map/protocol/index.js");
   const node = (id, x) => ({ type: "region", id, parent: "root", label: id, kind: "node", bounds: [x, 90, 140, 64], summary: "" });
   const graph = await protocol.createDecisionLog([
@@ -93,10 +104,11 @@ const fixtureLog = await page.evaluate(async key => {
     node("node-a", 40),
     node("node-b", 250),
     node("node-c", 460),
+    ...seeded.map(([from, to]) => ({ type: "relation", id: `fixture-${from}-to-${to}`, from, to, kind: "flow", label: "" })),
   ], "voice-graph");
   localStorage.setItem(key, graph.log);
   return graph.log;
-}, STORAGE_KEY);
+}, { key: STORAGE_KEY, seeded: SEEDED });
 await page.reload({ waitUntil: "commit" });
 await ready();
 assert.equal(await page.evaluate(() => document.body.dataset.state), "restored");
@@ -132,6 +144,10 @@ const draftSteps = () => page.evaluate(() =>
   [...document.querySelectorAll("#draft li")].map(item => item.dataset.changes)
 );
 const storedLog = () => page.evaluate(key => localStorage.getItem(key), STORAGE_KEY);
+// The recent conversation as the panel shows it, entry by entry.
+const contextPanel = () => page.evaluate(() =>
+  [...document.querySelectorAll("#context-recent li")].map(item => JSON.parse(item.dataset.entry))
+);
 
 const waitForState = state => page.waitForFunction(
   value => document.body.dataset.state === value,
@@ -144,11 +160,11 @@ const waitForState = state => page.waitForFunction(
 const assertSavedUntouched = async label => {
   assert.equal(await storedLog(), fixtureLog, `${label}: nothing may be stored before Apply`);
   assert.deepEqual(await appliedFacts(), [], `${label}: 確定図 must have no entry before Apply`);
-  assert.deepEqual((await drawnEdges("confirmed")).edges, [], `${label}: 確定図 must draw no edge before Apply`);
+  assert.deepEqual((await drawnEdges("confirmed")).edges, seededEdges, `${label}: 確定図 must draw only the saved edges before Apply`);
 };
 
-assert.deepEqual((await drawnEdges("confirmed")).edges, [], "the fixture has no edge");
-assert.deepEqual((await drawnEdges("working")).edges, [], "the fixture has no edge");
+assert.deepEqual((await drawnEdges("confirmed")).edges, seededEdges, "確定図 draws the saved edges");
+assert.deepEqual((await drawnEdges("working")).edges, seededEdges, "作業図 starts from the saved edges");
 
 // No credential or no provider is not a result: the run stops as NOT_RUN,
 // which is RED, and names the reason the service gave.
@@ -159,25 +175,68 @@ const requireAnswered = async response => {
   assert.equal(response.status(), 200);
 };
 
-// Send takes the typed graph decision. A rendered string is not evidence of
-// anything; a step drawn on 作業図 and then applied to 確定図 is. This is the
-// first request the page makes to /api/jev, and it comes from Chromium itself.
-await page.locator("#text").fill("add an edge from a to b");
-const typeResponsePromise = page.waitForResponse(
+// A REAL answer: a 200 the page got from the network - this file installs no
+// route, and the service worker must not have answered it - whose body is
+// exactly the current success shape, and whose every answer is a choice from
+// the slots the request actually sent offered, checked with the served
+// contract's own functions. Anything else is RED; a crafted or malformed 200
+// never counts. Returns the request as sent and the Decision as received.
+const requireReal = async (response, label) => {
+  const sent = JSON.parse(response.request().postData());
+  assert.equal(sent.kind, REQUEST_KIND, `${label}: the page sends the current request kind`);
+  assert.ok(contract.isRequest(sent), `${label}: the page's request is a valid current request`);
+  await requireAnswered(response);
+  assert.equal(response.fromServiceWorker(), false, `${label}: answered by the network, not by a service worker`);
+  const decision = await response.json();
+  assert.deepEqual(Object.keys(decision).sort(), ["answers", "kind", "model"], `${label}: exactly the success shape`);
+  assert.equal(decision.kind, DECISION_KIND, `${label}: the current Decision kind`);
+  assert.equal(typeof decision.model, "string", `${label}: the provider's model is named`);
+  const read = contract.readAnswers(decision.answers, contract.slotsFor(sent.state));
+  assert.notEqual(read, null, `${label}: every answer is a choice from the slots this request offered`);
+  assert.deepEqual(decision.answers, read, `${label}: the answers are exactly what the contract reads`);
+  return { sent, decision };
+};
+
+const jevResponse = timeout => page.waitForResponse(
   response => new URL(response.url()).pathname === "/api/jev" && response.request().method() === "POST",
-  { timeout: 120000 },
+  { timeout },
 );
-await page.locator("#send").click();
-const typeResponse = await typeResponsePromise;
-assert.equal(JSON.parse(typeResponse.request().postData()).kind, REQUEST_KIND);
-await requireAnswered(typeResponse);
-const typeDecision = await typeResponse.json();
-assert.equal(typeDecision.kind, DECISION_KIND);
-await waitForState("drafted");
-const typedEdge = `${typeDecision.answers.source.choice}->${typeDecision.answers.target.choice}`;
-assert.deepEqual(await draftSteps(), [`+${typedEdge}`]);
-assert.deepEqual((await drawnEdges("working")).edges, [typedEdge]);
-await assertSavedUntouched("typed step");
+
+// One typed input through Send, and the /api/jev response it caused.
+const typed = async value => {
+  await page.locator("#text").fill(value);
+  const responsePromise = jevResponse(120000);
+  await page.locator("#send").click();
+  return responsePromise;
+};
+
+// The input has settled once the page leaves `pending`; it must have drafted.
+const settledDrafted = async label => {
+  await page.waitForFunction(() => document.body.dataset.state !== "pending", null, { timeout: 360000 });
+  const state = await page.evaluate(() => [document.body.dataset.state, document.querySelector("#status").textContent]);
+  assert.equal(state[0], "drafted", `${label}: the step must be drafted (${state[1]})`);
+};
+
+// A two-turn scenario whose second answer is only right if Jev took the first
+// turn into account. A rendered string is not evidence of anything; the
+// request as sent, a REAL Decision, the step drawn on 作業図 and then applied
+// to 確定図 and restored after reload are.
+//
+// Turn 1 names its edge. It is the first request the page makes to /api/jev,
+// and it comes from Chromium itself.
+const TURN_1 = "add an edge from a to b";
+const turn1 = await requireReal(await typed(TURN_1), "turn 1");
+assert.deepEqual(turn1.sent.state.context, { recent: [] }, "turn 1 has no earlier conversation");
+assert.equal(turn1.sent.state.focus, null, "turn 1 has nothing in focus");
+assert.equal(turn1.decision.answers.action.choice, "add-edge", `turn 1 must be heard as one added edge: ${JSON.stringify(turn1.decision.answers)}`);
+await settledDrafted("turn 1");
+const first = { from: turn1.decision.answers.source.choice, to: turn1.decision.answers.target.choice };
+const firstEdge = `${first.from}->${first.to}`;
+const reversedEdge = `${first.to}->${first.from}`;
+assert.equal(seededEdges.includes(firstEdge), false, "turn 1 adds an edge that was not saved");
+assert.deepEqual(await draftSteps(), [`+${firstEdge}`]);
+assert.deepEqual((await drawnEdges("working")).edges, [...seededEdges, firstEdge].sort());
+await assertSavedUntouched("turn 1");
 
 // The deployed Function serves only the current request kind: a legacy kind is
 // refused before any provider call. Checked after the page's own first call.
@@ -189,56 +248,96 @@ const legacy = await fetch(new URL("/api/jev", url), {
 assert.equal(legacy.status, 422);
 assert.deepEqual(await legacy.json(), { error: "invalid_request" });
 
+// Turn 2 names no node. Three edges are offered, so the only way to the right
+// one is what turn 1 left behind: its text and outcome in the recent
+// conversation, the effect the app itself derived from its Decision, and the
+// focus on that step. Everything expected here is read off turn 1's actual
+// Decision, never written down in advance.
+const firstEffect = { change: "added", from: first.from, to: first.to };
+const panelBefore = await contextPanel();
+assert.equal(panelBefore.length, 1, "the panel shows turn 1 and nothing else");
+assert.ok(Number.isSafeInteger(panelBefore[0].seq));
+assert.deepEqual(panelBefore, [{
+  seq: panelBefore[0].seq, source: "typed", text: TURN_1, outcome: "step", effect: { changes: [firstEffect] },
+}], "the panel shows turn 1's text, its outcome and the effect it had");
+
+const TURN_2 = "reverse that edge";
+const turn2 = await requireReal(await typed(TURN_2), "turn 2");
+const asked = turn2.sent.state;
+assert.equal(asked.utterance, TURN_2);
+for (const region of asked.graph.regions) {
+  for (const name of [region.id, region.label]) {
+    assert.equal(TURN_2.toLowerCase().includes(name.toLowerCase()), false, `turn 2 must not name ${name}`);
+  }
+}
+const offeredEdges = asked.graph.edges.map(edge => `${edge.from}->${edge.to}`).sort();
+assert.deepEqual(offeredEdges, [...seededEdges, firstEdge].sort(), "turn 2 is asked about the saved edges and turn 1's");
+assert.ok(contract.slotsFor(asked).edge.filter(key => key !== contract.NONE).length >= 3, "at least three edges are candidates");
+assert.deepEqual(asked.context.recent, panelBefore, "turn 2 sends exactly the conversation the panel showed");
+assert.deepEqual(asked.focus, { kind: "draft", changes: [firstEffect] }, "turn 2's focus is turn 1's step");
+assert.deepEqual(asked.draft, [{ changes: [firstEffect] }]);
+
+const firstEdgeId = asked.graph.edges.find(edge => edge.from === first.from && edge.to === first.to).id;
+assert.equal(turn2.decision.answers.action.choice, "reverse-edge", `turn 2 must be heard as a reversal: ${JSON.stringify(turn2.decision.answers)}`);
+assert.equal(turn2.decision.answers.edge.choice, firstEdgeId, `"that edge" must be turn 1's edge, not a saved one: ${JSON.stringify(turn2.decision.answers)}`);
+
+// The reversal is one more step on 作業図: turn 1's edge is gone from the
+// drawing, its reverse is drawn, the saved edges stay, and nothing is saved.
+await settledDrafted("turn 2");
+assert.deepEqual(await draftSteps(), [`+${firstEdge}`, `-${firstEdge} +${reversedEdge}`]);
+assert.deepEqual((await drawnEdges("working")).edges, [...seededEdges, reversedEdge].sort());
+await assertSavedUntouched("turn 2");
+
 const golden = JSON.parse(fs.readFileSync(goldenPath, "utf8"));
 const clip = golden.clips.find(value => value.wav === path.basename(wav));
 assert.ok(clip, "voice golden fixture is missing");
 
-const voiceResponsePromise = page.waitForResponse(
-  response => new URL(response.url()).pathname === "/api/jev" && response.request().method() === "POST",
-  { timeout: 360000 },
-);
+// The recorded-file voice path: the fixture audio through the artifact's own
+// recognizer, then Jev. This is fixture-audio/ASR evidence only, never a real
+// microphone, and not part of the two-turn scenario above.
+const voiceResponsePromise = jevResponse(360000);
 await page.locator("#mic").click();
-const voiceResponse = await voiceResponsePromise;
-await requireAnswered(voiceResponse);
-const voiceDecision = await voiceResponse.json();
-assert.equal(voiceDecision.kind, DECISION_KIND);
-await page.waitForFunction(() => document.body.dataset.state !== "pending", null, { timeout: 360000 });
-assert.equal(await page.evaluate(() => document.body.dataset.state), "drafted");
+const voice = await requireReal(await voiceResponsePromise, "voice");
+await settledDrafted("voice");
 
 const actual = normalize(await page.locator("#text").inputValue());
 const expected = normalize(clip.reference);
 const cer = distance(actual, expected) / Math.max(1, expected.length);
 assert.ok(cer <= Number(golden._cer_tolerance), "voice CER exceeded pinned tolerance");
 
-const voiceEdge = `${voiceDecision.answers.source.choice}->${voiceDecision.answers.target.choice}`;
-const bothEdges = [typedEdge, voiceEdge].sort();
-assert.deepEqual(await draftSteps(), [`+${typedEdge}`, `+${voiceEdge}`]);
-assert.deepEqual((await drawnEdges("working")).edges, bothEdges);
+const voiceEdge = `${voice.decision.answers.source.choice}->${voice.decision.answers.target.choice}`;
+const appliedSteps = [`+${firstEdge}`, `-${firstEdge} +${reversedEdge}`, `+${voiceEdge}`];
+const finalEdges = [...seededEdges, reversedEdge, voiceEdge].sort();
+assert.deepEqual(await draftSteps(), appliedSteps);
+assert.deepEqual((await drawnEdges("working")).edges, finalEdges);
 await assertSavedUntouched("spoken step");
 
-// 確定図に反映 writes both steps at once and 確定図 then draws exactly them.
+// 確定図に反映 writes all three steps at once, appended after the saved bytes,
+// and 確定図 then draws the reversal instead of turn 1's edge.
 await page.locator("#apply").click();
 await waitForState("applied");
 assert.deepEqual(await draftSteps(), []);
-assert.deepEqual(await appliedFacts(), bothEdges.map(edge => `+${edge}`).sort());
+assert.deepEqual(await appliedFacts(), [...appliedSteps].sort());
 const saved = await storedLog();
 assert.ok(saved, "applied steps must be persisted");
-assert.equal(saved.split("\n").length - 1, 3, "the fixture plus exactly the two applied Decisions");
 assert.ok(saved.startsWith(fixtureLog), "Apply adds to the stored log; it rewrites nothing");
+assert.equal(saved.split("\n").length - 1, fixtureLog.split("\n").length - 1 + appliedSteps.length,
+  "the fixture plus exactly the three applied Decisions");
 
 const drawn = await drawnEdges("confirmed");
 assert.equal(drawn.pattern, "graph/1");
 assert.equal(drawn.svg, true);
-assert.deepEqual(drawn.edges, bothEdges, "確定図 must draw exactly the applied edges");
+assert.deepEqual(drawn.edges, finalEdges, "確定図 must draw exactly the saved and applied edges");
+assert.equal(drawn.edges.includes(firstEdge), false, "確定図 draws the reversal, not turn 1's edge");
 
-// Both entries come back from this origin's storage after a reload.
+// Every entry comes back from this origin's storage after a reload.
 await page.reload({ waitUntil: "commit" });
 await ready();
 assert.equal(await page.evaluate(() => document.body.dataset.state), "restored");
 assert.equal(await storedLog(), saved);
-assert.deepEqual(await appliedFacts(), bothEdges.map(edge => `+${edge}`).sort());
-assert.deepEqual((await drawnEdges("confirmed")).edges, bothEdges);
-assert.deepEqual((await drawnEdges("working")).edges, bothEdges);
+assert.deepEqual(await appliedFacts(), [...appliedSteps].sort());
+assert.deepEqual((await drawnEdges("confirmed")).edges, finalEdges);
+assert.deepEqual((await drawnEdges("working")).edges, finalEdges);
 
 assert.deepEqual(errors, []);
 assert.deepEqual(failedRequests, []);
@@ -246,6 +345,8 @@ assert.deepEqual(failedResponses, []);
 
 await browser.close();
 process.stdout.write(
-  `public-e2e: PASS NO_LOG first visit, legacy kind refused | typed edge=${typedEdge} + voice edge=${voiceEdge} `
-  + "drawn on 作業図 only, applied together to 確定図, restored after reload\n",
+  `public-e2e: PASS NO_LOG first visit, legacy kind refused | REAL turn 1 "${TURN_1}" -> +${firstEdge}, `
+  + `REAL turn 2 "${TURN_2}" among ${offeredEdges.length} edges -> ${firstEdgeId} reversed to ${reversedEdge} `
+  + `from turn 1's context and focus | fixture-audio voice edge=${voiceEdge} `
+  + "| drawn on 作業図 only, applied together to 確定図 as a strict append, restored after reload\n",
 );
