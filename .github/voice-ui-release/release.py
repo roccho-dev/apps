@@ -8,7 +8,7 @@ lint            workflow JSON on stdin (`yq -o=json`): 40-hex action pins,
 provider-guard  fail while apps still consumes ops source: any roccho-dev/ops
                 node in flake.lock or `sources.ops` in the dist manifest
 proof           merged-PR proof from GitHub API JSON (pull and its reviews);
-                the latest review on the exact head must declare ROUND_n_GREEN
+                the latest non-dismissed review on the exact head must be Green
 provenance      provenance for the packaged zip
 verify          a release directory holds exactly the published set, and its
                 digests, provenance and proof agree with one exact SHA
@@ -22,6 +22,7 @@ DIGEST = re.compile(r'[0-9a-f]{64}')
 PIN = re.compile(r'^[A-Za-z0-9_.-]+/[A-Za-z0-9_./-]+@[0-9a-f]{40}$')
 NIX = re.compile(r'(?<![\w.-])(?:nix|nix-build|nix-shell|nix-store|nix-env|nix-instantiate)(?![\w.-])')
 GREEN = re.compile(r'\bROUND_\d+_GREEN\b')
+CORRECTIONS = re.compile(r'\bROUND_\d+_CORRECTIONS\b')
 WRITE_USES = {
     'actions/checkout@11d5960a326750d5838078e36cf38b85af677262',
     'actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093',
@@ -120,18 +121,21 @@ def provider_guard(a):
 
 
 def green_verdict(reviews, head):
-    """URL of the latest review on the exact head, which must declare ROUND_n_GREEN.
+    """URL of the latest non-dismissed review on the exact head, which must be Green.
 
-    This is verdict evidence, not reviewer identity: the review token is the
-    only machine-readable signal, and a later non-Green review on the same
-    head withdraws it.
+    Green means the body has exactly one distinct ROUND_<n>_GREEN token and no
+    ROUND_<n>_CORRECTIONS token, so a Corrections review that names the future
+    Green token does not count. This is verdict evidence, not reviewer
+    identity: the token is the only machine-readable signal, and a later
+    non-Green review on the same head withdraws it.
     """
-    on_head = sorted((r for r in reviews if r.get('commit_id') == head and r.get('submitted_at')),
-                     key=lambda r: r['submitted_at'])
+    on_head = sorted((r for r in reviews if r.get('commit_id') == head and r.get('submitted_at')
+                      and r.get('state') != 'DISMISSED'), key=lambda r: r['submitted_at'])
     if not on_head:
-        raise SystemExit('no review recorded on the exact reviewed head')
+        raise SystemExit('no non-dismissed review recorded on the exact reviewed head')
     latest = on_head[-1]
-    if not GREEN.search(latest.get('body') or '') or not latest.get('html_url'):
+    body = latest.get('body') or ''
+    if len(set(GREEN.findall(body))) != 1 or CORRECTIONS.search(body) or not latest.get('html_url'):
         raise SystemExit('latest review on the exact reviewed head is not a ROUND_n_GREEN verdict')
     return latest['html_url']
 
@@ -243,15 +247,27 @@ def selftest(a):
         assert provider_errors(lock, manifest), f'provider guard accepted {lock} {manifest}'
     assert provider_errors({'nodes': {'x': {'locked': {'url': 'https://github.com/roccho-dev/ops-extra'}}}}, clean_manifest) == []
     head = 'a' * 40
-    review = lambda body, at, commit=head: {'commit_id': commit, 'submitted_at': at, 'body': body, 'html_url': f'u/{at}'}
-    assert green_verdict([review('Verdict: `ROUND_2_GREEN`.', 't2')], head) == 'u/t2'
-    assert green_verdict([review('ROUND_1_CORRECTIONS', 't1'), review('ROUND_2_GREEN', 't2')], head) == 'u/t2'
+    review = lambda body, at, commit=head, state='COMMENTED': {
+        'commit_id': commit, 'submitted_at': at, 'body': body, 'html_url': f'u/{at}', 'state': state}
+    good_verdicts = [
+        [review('Verdict: `ROUND_2_GREEN`.', 't2')],
+        [review('ROUND_1_CORRECTIONS', 't1'), review('ROUND_2_GREEN', 't2')],
+        [review('ROUND_1_GREEN', 't1', state='DISMISSED'), review('ROUND_2_GREEN', 't2')],
+        [review('ROUND_2_GREEN', 't1'), review('ROUND_2_CORRECTIONS', 't2', state='DISMISSED')],
+    ]
+    for reviews in good_verdicts:
+        assert green_verdict(reviews, head) == [r for r in reviews if r['state'] != 'DISMISSED'][-1]['html_url'], reviews
     bad_verdicts = [
         [review('Verdict: `ROUND_1_CORRECTIONS`.', 't1')],
         [review('ROUND_1_GREEN', 't1'), review('ROUND_2_CORRECTIONS', 't2')],
         [],
         [review('ROUND_1_GREEN', 't1', commit='b' * 40)],
         [review('green, looks fine', 't1')],
+        [review('ROUND_2_CORRECTIONS; post ROUND_2_GREEN only after CI', 't1')],
+        [review('ROUND_3_GREEN. The earlier ROUND_2_CORRECTIONS items are closed.', 't1')],
+        [review('ROUND_2_GREEN', 't1', state='DISMISSED')],
+        [review('ROUND_1_GREEN then ROUND_2_GREEN', 't1')],
+        [review('round_2_green, ROUND_2_GREENISH, xROUND_2_GREEN', 't1')],
     ]
     for reviews in bad_verdicts:
         try:
@@ -261,7 +277,7 @@ def selftest(a):
         raise AssertionError(f'accepted a non-Green verdict: {reviews}')
     print(json.dumps({'lint': {'positive': 1, 'negative': len(bad_workflows)},
                       'provider_guard': {'positive': 2, 'negative': len(bad_providers)},
-                      'verdict': {'positive': 2, 'negative': len(bad_verdicts)}}))
+                      'verdict': {'positive': len(good_verdicts), 'negative': len(bad_verdicts)}}))
 
 
 def main():
