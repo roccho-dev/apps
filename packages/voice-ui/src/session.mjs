@@ -1,199 +1,192 @@
+import { CONTEXT_MAX, CONTEXT_TEXT_MAX, DRAFT_MAX } from "./contract.mjs";
+import { COMMIT_COMMITTED, truncateLog } from "./log.mjs";
 import {
-  DRAFT_MAX,
   OUTCOME_NO_CHANGE,
+  OUTCOME_REFUSED,
+  OUTCOME_STEP,
   appendStep,
+  changesForJev,
+  newMap,
   planStep,
   repairStep,
-} from "./decision/correction.mjs";
-import { truncateLog } from "./decision/history.mjs";
+} from "./turn.mjs";
 
-export const SESSION_READY = "ready";
-export const SESSION_DRAFTED = "drafted";
-export const SESSION_NO_CHANGE = "no-change";
-export const SESSION_UNDO_REQUEST = "undo-request";
-export const SESSION_DRAFT_FULL = "draft-full";
-export const SESSION_APPLIED = "applied";
-export const SESSION_UNDONE = "undone";
-export const SESSION_DISCARDED = "discarded";
+// The page's whole in-memory state, as one frozen value that only these
+// transitions replace:
+//   accepted      the saved graph, or null while there is no log (NO_LOG)
+//   working       the saved graph plus every unapplied step, or null
+//   stored        the log this page last read or wrote, or null
+//   draft         each unapplied step with the input it was judged from
+//   pending       a placement held for exactly one more utterance, or null
+//   issuedPartIds every part name this page has handed out, never reused
+//   conversation  every utterance Jev judged here, and what came of it
+// Nothing here renders, stores or touches a browser; Apply is handed the one
+// durable write as a function.
 
 const demand = (condition, reason) => {
   if (!condition) throw new TypeError(`voice-ui session: ${reason}`);
 };
 
-const requireGraph = (name, graph) => {
-  demand(typeof graph?.log === "string" && graph.log.length > 0, `${name}.log is required`);
-  demand(typeof graph?.head === "string" && graph.head.length > 0, `${name}.head is required`);
-  demand(Array.isArray(graph?.records), `${name}.records is required`);
-  demand(Array.isArray(graph?.decisions), `${name}.decisions is required`);
-};
-
-const freezeList = values => Object.freeze([...values]);
-
-const freezeSession = value => Object.freeze({
+const freeze = value => Object.freeze({
   ...value,
-  draft: freezeList(value.draft),
-  issuedPartIds: freezeList(value.issuedPartIds),
+  draft: Object.freeze([...value.draft]),
+  issuedPartIds: Object.freeze([...value.issuedPartIds]),
+  conversation: Object.freeze([...value.conversation]),
 });
 
-export function createSession({ accepted, stored = null } = {}) {
-  requireGraph("accepted", accepted);
-  demand(stored === null || typeof stored === "string", "stored must be null or a string");
-  return freezeSession({
+const noChange = reason => Object.freeze({ outcome: OUTCOME_NO_CHANGE, reason });
+
+export function createSession({ accepted, stored }) {
+  demand((accepted === null) === (stored === null), "a saved graph and its stored log come together");
+  return freeze({
     accepted,
     working: accepted,
+    stored,
     draft: [],
     pending: null,
     issuedPartIds: [],
-    stored,
-    status: SESSION_READY,
+    conversation: [],
+    nextSeq: 1,
   });
 }
 
-const issuedBy = step => (step?.changes ?? [])
-  .filter(change => change?.change === "added" && change?.kind === "region" && typeof change.id === "string")
-  .map(change => change.id);
+export const draftFull = session => session.draft.length >= DRAFT_MAX;
 
-const withStatus = (session, status, extra = {}) => freezeSession({
-  ...session,
-  ...extra,
-  status,
-});
-
-export function clearPendingSession(session) {
-  requireGraph("session.accepted", session?.accepted);
-  requireGraph("session.working", session?.working);
-  return freezeSession({ ...session, pending: null });
-}
-
-export async function appendSessionStep({ session, step, protocol } = {}) {
-  requireGraph("session.accepted", session?.accepted);
-  requireGraph("session.working", session?.working);
-  demand(Array.isArray(session?.draft), "session.draft is required");
-  demand(Array.isArray(session?.issuedPartIds), "session.issuedPartIds is required");
-
-  const working = await appendStep({ working: session.working, step, protocol });
-  const issuedPartIds = new Set([...session.issuedPartIds, ...issuedBy(step)]);
-  return withStatus(session, SESSION_DRAFTED, {
-    working,
-    draft: [...session.draft, step],
-    pending: null,
-    issuedPartIds: [...issuedPartIds],
+// What the next request sends and the panel shows: the most recent entries
+// short enough to send whole, and how many were left out for being longer.
+export function recentConversation(session) {
+  return Object.freeze({
+    recent: Object.freeze(session.conversation.filter(entry => entry.text.length <= CONTEXT_TEXT_MAX).slice(-CONTEXT_MAX)),
+    skipped: session.conversation.filter(entry => entry.text.length > CONTEXT_TEXT_MAX).length,
   });
 }
 
-// One typed interaction against the current working world. This is the same
-// state transition the browser uses: decision rules produce a provider
-// Decision, the provider appends and verifies it, then the working state and
-// draft advance together. Nothing here renders, persists or touches a browser.
-export async function proposeSession({
-  session,
-  answers,
-  protocol,
-  layout = null,
-  visibleFrame = null,
-  offeredFrame = null,
-  candidates = [],
-  input = null,
-  repair = undefined,
-} = {}) {
-  requireGraph("session.accepted", session?.accepted);
-  requireGraph("session.working", session?.working);
-  demand(Array.isArray(session?.draft), "session.draft is required");
-  demand(Array.isArray(session?.issuedPartIds), "session.issuedPartIds is required");
+const remember = (session, { source, text }, outcome, changes = null) => {
+  const entry = Object.freeze({
+    seq: session.nextSeq,
+    source,
+    text,
+    outcome,
+    ...(changes === null ? {} : { effect: Object.freeze({ changes: changesForJev(changes) }) }),
+  });
+  return freeze({ ...session, conversation: [...session.conversation, entry], nextSeq: session.nextSeq + 1 });
+};
 
-  if (session.draft.length >= DRAFT_MAX) {
-    return Object.freeze({
-      session: withStatus(session, SESSION_DRAFT_FULL),
-      result: Object.freeze({ kind: SESSION_NO_CHANGE, reason: SESSION_DRAFT_FULL }),
-    });
-  }
+// A step that leaves the draft by Undo or Discard is marked undone in place,
+// and no longer carries an effect.
+const markUndone = (session, items) => {
+  const seqs = new Set(items.map(item => item.input?.seq).filter(seq => seq !== undefined));
+  return freeze({
+    ...session,
+    conversation: session.conversation.map(entry => seqs.has(entry.seq)
+      ? Object.freeze({ seq: entry.seq, source: entry.source, text: entry.text, outcome: "undone" })
+      : entry),
+  });
+};
 
-  const options = {
-    working: session.working,
-    revision: session.working.head,
-    answers,
-    protocol,
-    reserved: session.issuedPartIds,
-    layout,
-    visibleFrame,
-    offeredFrame,
-    candidates,
-  };
-  const repairing = repair === undefined ? session.pending : repair;
-  const planned = repairing === null
+// A held placement is spent by the utterance that follows it, whatever that
+// utterance's result; the caller passes what was held to `propose`.
+export function spendPending(session) {
+  return Object.freeze({ session: freeze({ ...session, pending: null }), held: session.pending });
+}
+
+export const clearPending = session => freeze({ ...session, pending: null });
+
+// Forget the recent conversation; the next request sends none.
+export const clearConversation = session => freeze({ ...session, pending: null, conversation: [] });
+
+// One more step on the working graph, never past the cap. The provider appends
+// and verifies it; its input, if any, travels with it.
+async function appendItem(session, step, input, protocol) {
+  if (draftFull(session)) return Object.freeze({ session, result: noChange("draft-full") });
+  const appended = await appendStep({ working: session.working, step, protocol });
+  if (appended.outcome !== OUTCOME_STEP) return Object.freeze({ session, result: appended });
+  const issued = step.changes
+    .filter(change => change.change === "added" && change.kind === "region")
+    .map(change => change.id);
+  return Object.freeze({
+    session: freeze({
+      ...session,
+      working: appended.graph,
+      draft: [...session.draft, Object.freeze({ step, input })],
+      pending: null,
+      issuedPartIds: [...new Set([...session.issuedPartIds, ...issued])],
+    }),
+    result: Object.freeze({ outcome: OUTCOME_STEP, step }),
+  });
+}
+
+// NO_LOG only: a new, empty map named by the person becomes the first
+// unapplied step. There is no other way a graph comes into being here.
+export async function startNew(session, { title, protocol }) {
+  demand(session.accepted === null && session.working === null, "a new map starts only where there is no log");
+  const made = await newMap({ title, protocol });
+  if (made.outcome !== OUTCOME_STEP) return Object.freeze({ session, result: made });
+  return Object.freeze({
+    session: freeze({ ...session, working: made.graph, draft: [Object.freeze({ step: made.step, input: null })], pending: null }),
+    result: Object.freeze({ outcome: OUTCOME_STEP, step: made.step }),
+  });
+}
+
+// One judged utterance against the working graph. A step joins the draft with
+// its input; a near-placement is held for the next utterance, unless this one
+// was itself the repair; and the utterance joins the conversation with what
+// came of it.
+export async function propose(session, { turn, answers, protocol, bundle, layout, visibleFrame, input, repair }) {
+  const options = { working: session.working, turn, answers, protocol, bundle, reserved: session.issuedPartIds, layout, visibleFrame };
+  const planned = repair === null
     ? await planStep(options)
-    : await repairStep({ ...options, pending: repairing.intent });
+    : await repairStep({ ...options, pending: repair.intent });
 
   if (planned.outcome === OUTCOME_NO_CHANGE) {
-    const pending = repairing === null && planned.pending !== undefined
-      ? Object.freeze({ intent: planned.pending, input })
-      : null;
-    const status = planned.undoRequest === true ? SESSION_UNDO_REQUEST : SESSION_NO_CHANGE;
-    return Object.freeze({
-      session: withStatus(session, status, { pending }),
-      result: Object.freeze({
-        kind: SESSION_NO_CHANGE,
-        reason: planned.reason,
-        undoRequest: planned.undoRequest === true,
-      }),
-    });
+    const pending = repair === null && planned.pending !== undefined ? Object.freeze({ intent: planned.pending, input }) : null;
+    const next = remember(freeze({ ...session, pending }), input, planned.undoRequest === true ? "undo-request" : "no-change");
+    return Object.freeze({ session: next, result: planned });
   }
+  if (planned.outcome === OUTCOME_REFUSED) return Object.freeze({ session: noteRefused(session, input), result: planned });
 
-  const next = await appendSessionStep({ session, step: planned.step, protocol });
+  const judged = remember(session, input, "step", planned.step.changes);
+  const withOrigin = planned.repaired === true
+    ? { ...input, origin: repair.input, seq: session.nextSeq }
+    : { ...input, seq: session.nextSeq };
+  const appended = await appendItem(judged, planned.step, Object.freeze(withOrigin), protocol);
+  if (appended.result.outcome !== OUTCOME_STEP) {
+    return Object.freeze({ session: noteRefused(session, input), result: appended.result });
+  }
+  return appended;
+}
 
+// An utterance Jev judged whose step could not be kept.
+export const noteRefused = (session, input) => remember(session, input, "refused");
+
+// A revert of a saved entry: one more unapplied step, with no input.
+export const appendRevert = (session, { step, protocol }) => appendItem(session, step, null, protocol);
+
+// Drop the last unapplied step and nothing else, never below what is saved.
+// Undoing a new map returns to NO_LOG.
+export async function undo(session, { verifyDecisionLog }) {
+  if (session.draft.length === 0) return session;
+  const removed = session.draft.at(-1);
+  const floor = session.accepted?.decisions.length ?? 1;
+  const working = session.working.decisions.length - 1 < floor
+    ? null
+    : await truncateLog(session.working, { count: session.working.decisions.length - 1, floor, verifyDecisionLog });
+  return markUndone(freeze({ ...session, working, draft: session.draft.slice(0, -1), pending: null }), [removed]);
+}
+
+export function discard(session) {
+  if (session.draft.length === 0) return session;
+  return markUndone(freeze({ ...session, working: session.accepted, draft: [], pending: null }), session.draft);
+}
+
+// Apply hands the working log to the one durable write and advances only when
+// it reports the log committed. Anything else leaves every step in place.
+export async function apply(session, { commit }) {
+  if (session.draft.length === 0) return Object.freeze({ session, result: null });
+  const result = await commit({ graph: session.working, expected: session.stored });
+  if (result.status !== COMMIT_COMMITTED) return Object.freeze({ session, result });
   return Object.freeze({
-    session: next,
-    result: Object.freeze({
-      kind: SESSION_DRAFTED,
-      step: planned.step,
-      repaired: planned.repaired === true,
-    }),
-  });
-}
-
-// Apply is deliberately a port: production binds it to history.persistHistory
-// and localStorage, while integration scenarios bind it to isolated memory.
-// State advances only after the port confirms the write.
-export async function applySession({ session, persist } = {}) {
-  requireGraph("session.accepted", session?.accepted);
-  requireGraph("session.working", session?.working);
-  demand(typeof persist === "function", "persist is required");
-  if (session.draft.length === 0) return session;
-
-  await persist({ graph: session.working, expected: session.stored });
-  return withStatus(session, SESSION_APPLIED, {
-    accepted: session.working,
-    draft: [],
-    pending: null,
-    stored: session.working.log,
-  });
-}
-
-export async function undoSession({ session, verifyDecisionLog } = {}) {
-  requireGraph("session.accepted", session?.accepted);
-  requireGraph("session.working", session?.working);
-  demand(typeof verifyDecisionLog === "function", "verifyDecisionLog is required");
-  if (session.draft.length === 0) return session;
-
-  const working = await truncateLog(session.working, {
-    count: session.working.decisions.length - 1,
-    floor: session.accepted.decisions.length,
-    verifyDecisionLog,
-  });
-  return withStatus(session, SESSION_UNDONE, {
-    working,
-    draft: session.draft.slice(0, -1),
-    pending: null,
-  });
-}
-
-export function discardSession(session) {
-  requireGraph("session.accepted", session?.accepted);
-  requireGraph("session.working", session?.working);
-  if (session.draft.length === 0) return session;
-  return withStatus(session, SESSION_DISCARDED, {
-    working: session.accepted,
-    draft: [],
-    pending: null,
+    session: freeze({ ...session, accepted: session.working, stored: result.stored, draft: [], pending: null }),
+    result,
   });
 }

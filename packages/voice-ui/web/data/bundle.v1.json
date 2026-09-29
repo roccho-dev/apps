@@ -1,0 +1,31 @@
+{
+  "schema": "voice-ui.bundle/1",
+  "version": "1",
+  "parts": [
+    { "key": "step", "purpose": "an ordinary step, task or box", "label": "工程", "kind": "step" },
+    { "key": "decision", "purpose": "a decision, choice or branch", "label": "判断", "kind": "decision" },
+    { "key": "data", "purpose": "data, a document, an input or an output", "label": "データ", "kind": "data" },
+    { "key": "start", "purpose": "a start or beginning", "label": "開始", "kind": "start" },
+    { "key": "end", "purpose": "an end, finish or result", "label": "終了", "kind": "end" }
+  ],
+  "diagrams": [
+    {
+      "key": "request-approval-flow",
+      "purpose": "a cross-functional flow chart between two roles: a requester submits a request, an approver reviews and decides on it, and the requester receives the result",
+      "label": "申請と承認の流れ",
+      "lanes": [
+        { "ref": "requester", "label": "申請者" },
+        { "ref": "approver", "label": "承認者" }
+      ],
+      "steps": [
+        { "ref": "submit", "lane": "requester", "label": "申請する", "kind": "start" },
+        { "ref": "review", "lane": "approver", "label": "承認可否", "kind": "decision" },
+        { "ref": "receive", "lane": "requester", "label": "結果受領", "kind": "end" }
+      ],
+      "links": [
+        ["submit", "review"],
+        ["review", "receive"]
+      ]
+    }
+  ]
+}

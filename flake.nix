@@ -71,8 +71,6 @@
       packages = forEachSystem (system:
         let
           pkgs = import nixpkgs { inherit system; };
-          uiIr = ui.packages.${system}.ui-ir;
-          a2uiBrowser = ui.packages.${system}.a2ui-browser;
           semanticMap = ui.packages.${system}.semantic-map;
           hayamimiWeb = hayamimiFor system;
 
@@ -81,8 +79,6 @@
           } ''
             python3 ${self}/packages/voice-ui/dist.py build \
               --app ${self}/packages/voice-ui \
-              --ui-ir ${uiIr} \
-              --a2ui ${a2uiBrowser} \
               --semantic-map ${semanticMap} \
               --hayamimi ${hayamimiWeb} \
               --out "$out" \
@@ -92,8 +88,6 @@
               --system ${system}
           '';
         in {
-          ui-ir = uiIr;
-          a2ui-browser = a2uiBrowser;
           semantic-map = semanticMap;
           hayamimi-web = hayamimiWeb;
 
@@ -113,8 +107,6 @@
             name = "voice-ui-dev";
             runtimeInputs = [ pkgs.nodejs ];
             text = ''
-              export VOICE_UI_UI_IR=${ui.packages.${system}.ui-ir}
-              export VOICE_UI_A2UI=${ui.packages.${system}.a2ui-browser}
               export VOICE_UI_SEMANTIC_MAP=${ui.packages.${system}.semantic-map}
               export VOICE_UI_HAYAMIMI=${hayamimiFor system}
               exec node ${self}/packages/voice-ui/dev/serve.mjs "$@"
@@ -130,8 +122,6 @@
       checks = forEachSystem (system:
         let
           pkgs = import nixpkgs { inherit system; };
-          uiIr = ui.packages.${system}.ui-ir;
-          a2uiBrowser = ui.packages.${system}.a2ui-browser;
           semanticMap = ui.packages.${system}.semantic-map;
           hayamimiWeb = hayamimiFor system;
           voiceUiAuth = self.packages.${system}.voice-ui-auth;
@@ -141,8 +131,6 @@
           } ''
             python3 ${self}/packages/voice-ui/dist.py build \
               --app ${self}/packages/voice-ui \
-              --ui-ir ${uiIr} \
-              --a2ui ${a2uiBrowser} \
               --semantic-map ${semanticMap} \
               --hayamimi ${hayamimiWeb} \
               --out "$out" \
@@ -164,14 +152,16 @@
             SEMANTIC_MAP = semanticMap;
           } ''
             cd ${self}
-            node --test packages/voice-ui/tests/*.test.mjs packages/voice-ui/tests/unit/*.test.mjs packages/voice-ui/tests/integration/*.test.mjs
+            # A pattern that matches no test fails here, so an empty scope can never pass.
+            shopt -s failglob
+            node --test packages/voice-ui/tests/*.test.mjs
             touch "$out"
           '';
 
           provider-artifacts = pkgs.runCommand "provider-artifacts-check" { } ''
             set -euo pipefail
 
-            for artifact in ${uiIr} ${a2uiBrowser} ${semanticMap}; do
+            for artifact in ${semanticMap}; do
               test -d "$artifact"
               test -n "$(ls -A "$artifact")"
             done

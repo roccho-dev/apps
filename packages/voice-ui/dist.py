@@ -106,7 +106,8 @@ def build(args):
 
     copy_tree(app / "web", site)
     copy_tree(app / "src", site / "app/src")
-    copy_tree(app / "functions", out / "functions")
+    # The compiled Worker is the artifact's only provider route. Raw functions/
+    # are never shipped: their imports resolve only inside the app tree.
     worker = out / "worker/worker.mjs"
     worker.parent.mkdir(parents=True, exist_ok=True)
     subprocess.run([
@@ -115,9 +116,6 @@ def build(args):
         f"--outfile={worker.resolve()}",
     ], cwd=app, check=True)
 
-    copy_tree(Path(args.ui_ir) / "packages/ui-ir/src", site / "ui/ui-ir")
-    copy_tree(Path(args.a2ui) / "packages/a2ui-browser/src", site / "ui/a2ui-browser")
-    copy_tree(Path(args.a2ui) / "packages/core-port/src", site / "core-port/src")
     copy_tree(Path(args.semantic_map) / "packages", site / "ui")
 
     hayamimi = Path(args.hayamimi)
@@ -212,11 +210,13 @@ def verify_dist(root):
     required = [
         "site/index.html",
         "site/app.mjs",
-        "site/app/src/app.mjs",
+        "site/data/bundle.v1.json",
+        "site/app/src/contract.mjs",
+        "site/app/src/bundle.mjs",
+        "site/app/src/log.mjs",
+        "site/app/src/session.mjs",
+        "site/app/src/turn.mjs",
         "site/app/src/render.mjs",
-        "site/app/src/decision/graph-edge.mjs",
-        "site/ui/ui-ir/index.mjs",
-        "site/ui/a2ui-browser/render/trusted-dom.mjs",
         "site/ui/semantic-map/runtime.js",
         "site/ui/semantic-map/protocol/index.js",
         "site/ui/semantic-map/authoring/pages/embed.html",
@@ -224,7 +224,6 @@ def verify_dist(root):
         "site/hayamimi/sherpa/sherpa-onnx-wasm-main-vad-asr.wasm",
         "site/hayamimi/sherpa/data.parts.json",
         "site/sw.js",
-        "functions/api/jev.mjs",
         "worker/worker.mjs",
         ".envs/artifact.jsonl",
         "e2e/local-voice-graph-e2e.mjs",
@@ -313,8 +312,6 @@ def main():
 
     build_parser = sub.add_parser("build")
     build_parser.add_argument("--app", required=True)
-    build_parser.add_argument("--ui-ir", required=True)
-    build_parser.add_argument("--a2ui", required=True)
     build_parser.add_argument("--semantic-map", required=True)
     build_parser.add_argument("--hayamimi", required=True)
     build_parser.add_argument("--out", required=True)
