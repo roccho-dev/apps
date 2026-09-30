@@ -19,12 +19,43 @@ const { chromium } = createRequire(import.meta.url)("playwright-core");
 // ended and in how long, the closed answers, and what the page then showed.
 // Never a request's state, headers or any source, stored or secret text.
 //
-// node architecture-e2e.mjs --mode fixture|live <url of the dev server root>
-const [flag, mode, url] = process.argv.slice(2);
-if (flag !== "--mode" || !["fixture", "live"].includes(mode) || !url) {
-  throw new Error("usage: architecture-e2e.mjs --mode fixture|live <url>");
+// And in exactly one explicitly named scenario - the same stages, checks and
+// requirements, only the words of the utterances differ:
+//
+//   natural  the utterances as a person says them, by what a part does. This
+//            is the acceptance scenario.
+//   named    each utterance names its target part by its file path or
+//            identifier - never a role or relation it should be given - and
+//            the correction names its edge by both ends and kind. It shows
+//            only whether the code can be reached and judged when named; it
+//            is never a PASS of the natural scenario.
+//
+// node architecture-e2e.mjs --mode fixture|live --scenario natural|named <url of the dev server root>
+const [flag, mode, scenarioFlag, scenario, url] = process.argv.slice(2);
+if (flag !== "--mode" || !["fixture", "live"].includes(mode) || scenarioFlag !== "--scenario"
+  || !["natural", "named"].includes(scenario) || !url) {
+  throw new Error("usage: architecture-e2e.mjs --mode fixture|live --scenario natural|named <url>");
 }
 const FIXTURE = mode === "fixture";
+const LABEL = `architecture-e2e[${mode}/${scenario}]`;
+const UTTERANCES = {
+  natural: {
+    whole: "このアプリの構成を図にして",
+    app: "画面のコードの役割を詳しく見せて",
+    credential: "認証とJevへの接続を詳しく見せて",
+    storage: "ブラウザ保存に関わる部分を詳しく見せて",
+    save: "保存の仕組みを詳しく見せて",
+    correction: "その保存の関係は違うので消して",
+  },
+  named: {
+    whole: "このアプリの構成を図にして",
+    app: "web/app.mjs を詳しく見せて",
+    credential: "JEV_API_KEY を詳しく見せて",
+    storage: "localStorage を詳しく見せて",
+    save: "src/log.mjs を詳しく見せて",
+    correction: "web/app.mjs から localStorage への stores-in の関係を消して",
+  },
+}[scenario];
 const PAGE = new URL("/architecture", url).href;
 const ROOT_KEY = "voice-ui.decision-log.v1";
 
@@ -237,7 +268,7 @@ try {
 
   // (1) The whole architecture: structure only, one request, no code sent.
   reached.push("whole");
-  const whole = await say("whole", "このアプリの構成を図にして", picksFor(contract.NONE), 1);
+  const whole = await say("whole", UTTERANCES.whole, picksFor(contract.NONE), 1);
   need(whole.sent.length === 1 && whole.sent[0].sent.kind === contract.ARCHITECTURE_INTENT_KIND, "the whole view is one intent");
   need(whole.sent.every(entry => !codeIn(entry.sent)), "the page never sends source text");
   need(whole.now.state === "drafted", `the whole view was drafted (state ${whole.now.state}: ${whole.now.failure ?? whole.now.status})`);
@@ -261,7 +292,7 @@ try {
 
   // (2) The page's own code: its roles, its call to the Worker, its storage.
   reached.push("app");
-  const app = await say("app", "画面のコードの役割を詳しく見せて", picksFor(APP), 2);
+  const app = await say("app", UTTERANCES.app, picksFor(APP), 2);
   need(app.sent.map(entry => entry.sent.kind).join(" ") === `${contract.ARCHITECTURE_INTENT_KIND} ${contract.ARCHITECTURE_JUDGE_KIND}`,
     "a focused utterance is an intent, then a judge");
   need(app.sent.every(entry => entry.status === 200), `both were answered (${app.sent.map(entry => entry.status).join(", ")})`);
@@ -277,7 +308,7 @@ try {
 
   // (3) The credential: the Function authenticates with it and calls the provider.
   reached.push("credential");
-  const auth = await say("credential", "認証とJevへの接続を詳しく見せて", picksFor("ext-jev-api-key"), 2);
+  const auth = await say("credential", UTTERANCES.credential, picksFor("ext-jev-api-key"), 2);
   need(auth.sent.every(entry => entry.status === 200), `the credential focus was answered (${auth.sent.map(entry => entry.status).join(", ")})`);
   need(inferredAt(auth.now, `arch-authenticates-with-${FUNCTION}-to-ext-jev-api-key`), "the Function authenticates with the key");
   need(inferredAt(auth.now, `arch-calls-${FUNCTION}-to-ext-api-typesafe-ai`), "the Function calls the provider");
@@ -286,7 +317,7 @@ try {
 
   // (4) Storage: every admitted file that names it, whole.
   reached.push("storage");
-  const stored = await say("storage", "ブラウザ保存に関わる部分を詳しく見せて", picksFor("ext-localstorage"), 2);
+  const stored = await say("storage", UTTERANCES.storage, picksFor("ext-localstorage"), 2);
   need(stored.sent.every(entry => entry.status === 200), `the storage focus was answered (${stored.sent.map(entry => entry.status).join(", ")})`);
   need(stored.sent.at(-1)?.sent.state.architecture?.bodies?.length === 4, "the storage section opens the four files that name it");
   need(hasRole(stored.now, "src-config-mjs", "config"), "the config module is judged config");
@@ -295,7 +326,7 @@ try {
   // already drawn, so the role alone must still become a change of the graph.
   reached.push("save");
   need(inferredAt(stored.now, `arch-calls-${APP}-to-${LOG}`), "the page -> decision log relation is already there");
-  const saveAgain = () => say("save", "保存の仕組みを詳しく見せて", picksFor(LOG), 2);
+  const saveAgain = () => say("save", UTTERANCES.save, picksFor(LOG), 2);
   const save = await saveAgain();
   need(save.sent.every(entry => entry.status === 200), `the save focus was answered (${save.sent.map(entry => entry.status).join(", ")})`);
   need(save.now.state === "drafted", `the log's role is drafted (state ${save.now.state}: ${save.now.failure ?? save.now.status})`);
@@ -325,7 +356,7 @@ try {
   // one more utterance - and Undo takes it back.
   reached.push("correction");
   const storageEdge = `arch-stores-in-${APP}-to-ext-localstorage`;
-  const corrected = await say("correction", "その保存の関係は違うので消して", (name, sent) => {
+  const corrected = await say("correction", UTTERANCES.correction, (name, sent) => {
     if (name === "action") return "remove-edge";
     if (name === "edge") return sent.state.graph.edges.find(edge => edge.id === storageEdge)?.id;
     return contract.NONE;
@@ -383,7 +414,7 @@ const answered = exchanges.filter(entry => entry.status === 200);
 const models = [...new Set(answered.map(entry => entry.body?.model ?? "UNKNOWN"))];
 const failure = thrown === null || thrown === HALT ? null : String(thrown?.message ?? thrown).split("\n")[0];
 report({
-  event: "summary", mode, stoppedAt, error: failure, cleanup, verdicts, notRun: STAGES.filter(stage => !reached.includes(stage)),
+  event: "summary", mode, scenario, stoppedAt, error: failure, cleanup, verdicts, notRun: STAGES.filter(stage => !reached.includes(stage)),
   requests: exchanges.length, answered: exchanges.filter(entry => entry.status !== null).length,
   failed: exchanges.filter(entry => entry.error !== null).length, models,
   // Whatever no turn reported - a turn that ended in an error - in full.
@@ -397,21 +428,22 @@ const summary = `${answered.length}/${exchanges.length} answered Jev exchanges (
   + (stoppedAt === null ? "" : ` | stopped after ${stoppedAt}`);
 if (failure !== null) {
   // An error of the run itself is never a verdict: it is reported and rethrown.
-  process.stdout.write(`architecture-e2e[${mode}]: ERROR | ${failure}${cleanup === null ? "" : ` | close failed: ${cleanup}`} | ${summary}\n`);
+  process.stdout.write(`${LABEL}: ERROR | ${failure}${cleanup === null ? "" : ` | close failed: ${cleanup}`} | ${summary}\n`);
   throw thrown;
 }
 if (cleanup !== null) {
   // A browser that could not be closed makes the run an error, whatever it found.
-  process.stdout.write(`architecture-e2e[${mode}]: ERROR | close failed: ${cleanup} | ${summary}\n`);
+  process.stdout.write(`${LABEL}: ERROR | close failed: ${cleanup} | ${summary}\n`);
   process.exitCode = 1;
 } else if (FIXTURE) {
   assert.deepEqual(verdicts, [], "the page's mechanics");
   assert.equal(stoppedAt, null, "every stage ran");
   assert.deepEqual(models, ["crafted-by-test"], "fixture answers only, never evidence about Jev or the code");
-  process.stdout.write(`architecture-e2e[fixture]: PASS mechanics only (crafted answers) | ${summary}\n`);
+  process.stdout.write(`${LABEL}: PASS mechanics only (crafted answers) | ${summary}\n`);
 } else if (verdicts.length > 0 || stoppedAt !== null) {
-  process.stdout.write(`architecture-e2e[live]: NOT_PASS | ${verdicts.join("; ")} | ${summary}\n`);
+  process.stdout.write(`${LABEL}: NOT_PASS | ${verdicts.join("; ")} | ${summary}\n`);
   process.exitCode = 1;
 } else {
-  process.stdout.write(`architecture-e2e[live]: PASS local source-dev only, typed input (not the microphone gate) | ${summary}\n`);
+  process.stdout.write(`${LABEL}: PASS local source-dev only, typed input (not the microphone gate)`
+    + `${scenario === "named" ? ", named targets only - never a PASS of the natural scenario" : ""} | ${summary}\n`);
 }
