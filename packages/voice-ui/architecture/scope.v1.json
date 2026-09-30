@@ -58,6 +58,7 @@
     "relations other than static imports are candidates for Jev to judge, never source-declared",
     "an identifier found in a file's text makes a candidate pair, nothing more: it is a string match, not an analysis",
     "an import resolved through the scope's URL mapping rests on that mapping, not on what a server actually serves",
+    "a role's node is a term of this scope's vocabulary, not something the code does; a has-role edge is Jev's judgement at that time, and a later judgement of none does not remove it",
     "only packages/voice-ui is in scope; envs, windows and credentials are outside it, and anything outside is unknown"
   ]
 }

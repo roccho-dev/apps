@@ -124,6 +124,16 @@ test("the manifest is read whole: available, unavailable with its reason, or inv
     { ...MANIFEST, facts: [{ ...MANIFEST.facts[0], path: "a.mjs" }] }]) {
     assert.equal(readManifest(broken).status, "invalid");
   }
+  // No chosen relation may shadow an edge kind drawn here.
+  for (const reserved of ["has-role", "imports", "declares"]) {
+    assert.match(readManifest({ ...structuredClone(MANIFEST), relations: [...MANIFEST.relations, { key: reserved, purpose: "x" }] }).reason,
+      /shadows an edge kind/u, reserved);
+  }
+  // A file whose path makes the same id as a role's node would make two records one.
+  const clash = structuredClone(MANIFEST);
+  clash.files.push({ path: "role/persistence", blob: "6".repeat(40), class: "admitted", entity: "role-persistence" });
+  clash.entities.push({ id: "role-persistence", label: "role/persistence", kind: "file", path: "role/persistence" });
+  assert.match(readManifest(clash).reason, /would share an id/u);
 });
 
 test("an intent carries the plain request, the parts by path or identifier, and no code; the plain request is unchanged", async () => {
@@ -204,8 +214,8 @@ test("the whole view is structure only: files, facts and imports declared, the o
   assert.deepEqual(claimOf("arch-ext-store"), { record: { type: "region", id: "arch-ext-store" }, origin: "unknown", basis: [{ scope: "external" }] });
   assert.deepEqual(claimOf("arch-import-a-mjs-to-b-mjs").basis, [{ path: "a.mjs", specifier: "./b.mjs", resolution: "relative" }]);
   assert.deepEqual(claimOf("arch-fact-store-key").basis, [{ path: "c.json", pointer: "/key" }]);
-  assert.equal(claimsOf(planned).some(claim => claim.role !== undefined || claim.origin === "model-inferred"), false,
-    "with no focus nothing is judged: every role stays unknown");
+  assert.equal(claimsOf(planned).some(claim => claim.origin === "model-inferred" || claim.origin === "scope-declared"), false,
+    "with no focus nothing is judged: no role, no role node, no chosen relation");
   const next = await appendAll(working, planned);
   assert.equal(next.decisions.length, 1 + planned.steps.length);
 });
@@ -223,22 +233,48 @@ test("a focus adds the relations and the several roles Jev confirmed from that s
     },
   });
   assert.equal(planned.outcome, "step");
-  assert.deepEqual(changesOf(planned), [{ change: "added", from: "arch-b-mjs", to: "arch-ext-store" }], "only the new, confident relation");
+  assert.deepEqual(changesOf(planned), [
+    { change: "added", kind: "region", id: "arch-role-persistence", label: "role:persistence" },
+    { change: "added", from: "arch-b-mjs", to: "arch-ext-store" },
+    { change: "added", from: "arch-b-mjs", to: "arch-role-persistence" },
+  ], "the role's node first, then the confident relation and the role's edge; nothing unsure");
   assert.deepEqual(claimsOf(planned), [
+    { record: { type: "region", id: "arch-role-persistence" }, origin: "scope-declared", basis: [{ vocabulary: "roles", key: "persistence" }] },
     { record: { type: "relation", id: "arch-stores-in-b-mjs-to-ext-store" }, origin: "model-inferred", basis: [{ candidate: "c-b-mjs--ext-store" }] },
-    { record: { type: "region", id: "arch-b-mjs" }, origin: "model-inferred", basis: [{ path: "b.mjs" }], role: "persistence" },
-  ], "a role rests on the file itself and annotates its existing region; an unsure role or relation is none");
+    { record: { type: "relation", id: "arch-has-role-b-mjs-to-persistence" }, origin: "model-inferred", basis: [{ path: "b.mjs" }] },
+  ], "the node is the scope's term; the edge is Jev's, judged from the file's own text");
+  const drawn = (await appendAll(working, planned)).records.find(record => record.id === "arch-has-role-b-mjs-to-persistence");
+  assert.deepEqual(drawn, { type: "relation", id: "arch-has-role-b-mjs-to-persistence", from: "arch-b-mjs", to: "arch-role-persistence", kind: "has-role", label: "has-role" },
+    "a native provider relation");
 
   const both = await plan(working, manifest, {
     focus: "b-mjs",
-    judge: { [roleSlot("b-mjs", "persistence")]: YES, [roleSlot("b-mjs", "config")]: YES, [relationSlot("c-b-mjs--ext-store")]: "stores-in" },
+    judge: { [roleSlot("b-mjs", "persistence")]: YES, [roleSlot("b-mjs", "config")]: YES },
   });
-  assert.deepEqual(claimsOf(both).filter(claim => claim.role !== undefined).map(claim => claim.role), ["persistence", "config"],
-    "a file may have several roles");
+  assert.deepEqual(claimsOf(both).filter(claim => claim.record.id.startsWith("arch-has-role-")).map(claim => claim.record.id),
+    ["arch-has-role-b-mjs-to-persistence", "arch-has-role-b-mjs-to-config"], "a file may have several roles");
 
   const after = await appendAll(working, planned);
-  const repeat = await plan(after, manifest, { focus: "b-mjs", judge: { [relationSlot("c-b-mjs--ext-store")]: "stores-in" } });
-  assert.deepEqual(repeat, { outcome: "no-change", reason: "architecture-nothing-new" });
+  const repeat = await plan(after, manifest, {
+    focus: "b-mjs", judge: { [roleSlot("b-mjs", "persistence")]: YES, [relationSlot("c-b-mjs--ext-store")]: "stores-in" },
+  });
+  assert.deepEqual(repeat, { outcome: "no-change", reason: "architecture-nothing-new" }, "the same judgement again adds nothing");
+  const none = await plan(after, manifest, { focus: "b-mjs" });
+  assert.deepEqual(none, { outcome: "no-change", reason: "architecture-nothing-new" }, "a later none takes nothing back");
+});
+
+test("a role judged later is drawn even when every relation of the section is already there", async () => {
+  const manifest = readManifest(structuredClone(MANIFEST));
+  const whole = await appendAll(await mapGraph(), await plan(await mapGraph(), manifest));
+  const related = await appendAll(whole, await plan(whole, manifest, { focus: "b-mjs", judge: { [relationSlot("c-b-mjs--ext-store")]: "stores-in" } }));
+  const roled = await plan(related, manifest, { focus: "b-mjs", judge: { [roleSlot("b-mjs", "persistence")]: YES, [relationSlot("c-b-mjs--ext-store")]: "stores-in" } });
+  assert.equal(roled.outcome, "step", "the role alone is a change of the graph");
+  assert.deepEqual(changesOf(roled).map(change => change.id ?? `${change.from}->${change.to}`),
+    ["arch-role-persistence", "arch-b-mjs->arch-role-persistence"]);
+  // A second file given a role whose node is drawn adds only its edge.
+  const withRole = await appendAll(related, roled);
+  const second = await plan(withRole, manifest, { focus: "a-mjs", judge: { [roleSlot("a-mjs", "persistence")]: YES } });
+  assert.deepEqual(changesOf(second), [{ change: "added", from: "arch-a-mjs", to: "arch-role-persistence" }]);
 });
 
 test("a view larger than the provider takes in one Decision is split at the limit passed in, never refused or cut short", async () => {
@@ -280,7 +316,7 @@ test("an unsure action, a stale head or an answer off the questions changes noth
   assert.equal(focusOf(turn, answerFor(turn.slots, { action: ACTION_ARCHITECTURE, focus: choice("b-mjs", 0.3) })), null, "an unsure focus is none");
 });
 
-test("this package's whole snapshot, drawn, still fits the intent's bounds", async () => {
+test("this package's whole snapshot, drawn, still fits the intent's bounds", async t => {
   const here = path.dirname(fileURLToPath(import.meta.url));
   const out = fs.mkdtempSync(path.join(os.tmpdir(), "voice-ui-architecture-"));
   const prepared = spawnSync(process.execPath, [
@@ -290,12 +326,35 @@ test("this package's whole snapshot, drawn, still fits the intent's bounds", asy
   assert.equal(prepared.status, 0, prepared.stderr);
   const manifest = readManifest(JSON.parse(fs.readFileSync(path.join(out, "manifest.json"), "utf8")));
   assert.equal(manifest.status, "available", manifest.reason);
-  const working = await mapGraph();
-  const planned = await plan(working, manifest);
-  const drawn = await appendAll(working, planned);
-  const changes = changesOf(planned);
-  // Everything any focus could still add: one chosen relation per pair.
-  const intent = withArchitecture(plainFor(drawn, [{ changes: [...changes, ...manifest.candidates.map(candidate => ({ change: "added", from: candidate.from, to: candidate.to }))] }]), manifest);
-  assert.ok(isRequest(JSON.parse(JSON.stringify(intent.request))), "the drawn snapshot and one whole utterance are a valid intent");
-  assert.ok(intent.request.state.graph.edges.length + manifest.candidates.length <= 128, "and room remains for every pair's relation");
+  // The scenario the browser test walks: the whole view, then the page's
+  // file, the credential and the decision log, each with its roles and pairs.
+  let working = await mapGraph();
+  const units = [];
+  const say = async (focus, judge) => {
+    const planned = await plan(working, manifest, { focus, judge });
+    assert.equal(planned.outcome, "step", `${focus}: ${planned.reason}`);
+    units.push({ changes: changesOf(planned) });
+    working = await appendAll(working, planned);
+  };
+  await say(null, {});
+  await say("web-app-mjs", {
+    ...Object.fromEntries(["voice-input", "jev-boundary", "graph-mutation", "persistence"].map(role => [roleSlot("web-app-mjs", role), YES])),
+    [relationSlot("c-web-app-mjs--functions-pages-worker-mjs")]: "calls",
+    [relationSlot("c-web-app-mjs--ext-localstorage")]: "stores-in",
+    [relationSlot("c-web-app-mjs--src-log-mjs")]: "calls",
+  });
+  await say("ext-jev-api-key", {
+    [roleSlot("functions-api-jev-mjs", "jev-boundary")]: YES, [roleSlot("functions-api-jev-mjs", "auth")]: YES,
+    [roleSlot("dev-serve-mjs", "auth")]: YES, [roleSlot("dev-serve-mjs", "config")]: YES,
+    [relationSlot("c-functions-api-jev-mjs--ext-jev-api-key")]: "authenticates-with",
+    [relationSlot("c-functions-api-jev-mjs--ext-api-typesafe-ai")]: "calls",
+  });
+  await say("src-log-mjs", { [roleSlot("src-log-mjs", "persistence")]: YES });
+  const intent = withArchitecture(plainFor(working, units), manifest);
+  assert.ok(isRequest(JSON.parse(JSON.stringify(intent.request))), "the drawn scenario, its utterances included, is a valid intent");
+  const { regions, edges } = intent.request.state.graph;
+  assert.ok(regions.length <= 128 && edges.length <= 128);
+  t.diagnostic(`scenario graph: ${regions.length} regions, ${edges.length} edges `
+    + `(${edges.filter(edge => edge.id.startsWith("arch-has-role-")).length} has-role), `
+    + `${units.length} utterances with ${units.map(unit => unit.changes.length).join("/")} changes; bound 128/128`);
 });
