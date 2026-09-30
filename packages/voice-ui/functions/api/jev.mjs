@@ -12,6 +12,7 @@ import {
   ERRORS,
   NONE,
   REQUEST_KIND,
+  WHOLE,
   YES,
   isJudgeRequest,
   isRequest,
@@ -188,12 +189,15 @@ function questionsFor(state, slots) {
     const labelOf = new Map(state.architecture.entities.map(entity => [entity.id, entity.label]));
     questions.focus = {
       type: "choice",
-      instructions: "If the utterance asks how this code is built, which one part of it does it ask to see in more detail? "
+      instructions: "If the utterance asks how this code is built, does it ask for the code as a whole, "
+        + "or which one part of it does it ask to see in more detail? "
         + "state.architecture.entities names each part by its file path or, for what lies outside the source, "
         + "by the identifier or URL the source uses for it.",
-      criteria: criteria(slots.focus, key => key === NONE
-        ? "the code as a whole, or no one part of it"
-        : `the part ${labelOf.get(key)}`),
+      criteria: criteria(slots.focus, key => (key === WHOLE
+        ? "the code as a whole"
+        : key === NONE
+          ? "neither one part nor the whole is clear, or it asks for neither"
+          : `the part ${labelOf.get(key)}`)),
     };
   }
   for (const question of Object.values(questions)) question.instructions += CONTEXT_NOTE;

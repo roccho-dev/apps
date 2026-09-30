@@ -21,6 +21,7 @@ import {
   ARCHITECTURE_INTENT_KIND,
   NONE,
   REQUEST_KIND,
+  WHOLE,
   YES,
   isJudgeRequest,
   isRequest,
@@ -105,7 +106,8 @@ const answerFor = (slots, picks) => Object.fromEntries(Object.keys(slots).map(na
 // judge's answer on that focus's section.
 const plan = async (working, manifest, { focus = null, intent = {}, judge = {} } = {}) => {
   const { turn } = turnFor(working, manifest);
-  const answers = answerFor(turn.slots, { action: ACTION_ARCHITECTURE, ...(focus === null ? {} : { focus }), ...intent });
+  // Without a part, this fixture asks for the whole - explicitly, as Jev must.
+  const answers = answerFor(turn.slots, { action: ACTION_ARCHITECTURE, focus: focus ?? WHOLE, ...intent });
   const request = focus === null ? null : judgeRequestOf(manifest, focus, "show it");
   const judged = request === null ? null
     : { section: request.state.architecture, answers: answerFor(judgeSlotsFor(request.state.architecture), judge) };
@@ -149,7 +151,7 @@ test("an intent carries the plain request, the parts by path or identifier, and 
       { id: "d-mjs", label: "d.mjs" }, { id: "ext-store", label: "store" },
     ],
   });
-  assert.deepEqual(turn.slots.focus, ["a-mjs", "b-mjs", "c-json", "d-mjs", "ext-store", NONE]);
+  assert.deepEqual(turn.slots.focus, ["a-mjs", "b-mjs", "c-json", "d-mjs", "ext-store", WHOLE, NONE]);
   assert.ok(turn.slots.action.includes(ACTION_ARCHITECTURE));
   assert.equal(Object.keys(turn.slots).some(name => name.startsWith("role-") || name.startsWith("relation-")), false,
     "an intent asks nothing about the code");
@@ -314,6 +316,64 @@ test("an unsure action, a stale head or an answer off the questions changes noth
   const off = await plan(working, manifest, { focus: "b-mjs", judge: { [roleSlot("b-mjs", "persistence")]: "invented" } });
   assert.equal(off.reason, "answer-invalid");
   assert.equal(focusOf(turn, answerFor(turn.slots, { action: ACTION_ARCHITECTURE, focus: choice("b-mjs", 0.3) })), null, "an unsure focus is none");
+});
+
+test("only a confident whole draws the structure; none or any unsure focus is an honest no-change", async () => {
+  const manifest = readManifest(structuredClone(MANIFEST));
+  const working = await mapGraph();
+  const { turn } = turnFor(working, manifest);
+  const unclear = { outcome: "no-change", reason: "architecture-focus-unclear" };
+  for (const focus of [NONE, choice(WHOLE, 0.3), choice("b-mjs", 0.3), choice(NONE, 0.2)]) {
+    const answers = answerFor(turn.slots, { action: ACTION_ARCHITECTURE, focus });
+    assert.equal(focusOf(turn, answers), null);
+    assert.deepEqual(await planArchitecture({ working, turn, answers, judged: null, manifest, protocol, operationsMax: MAX_DECISION_OPERATIONS }),
+      unclear, JSON.stringify(focus));
+  }
+  assert.equal(focusOf(turn, answerFor(turn.slots, { action: ACTION_ARCHITECTURE, focus: WHOLE })), null, "the whole is never a part");
+
+  // The whole, confidently: the structure, at the weaker of the two confidences.
+  const whole = await planArchitecture({
+    working, turn, judged: null, manifest, protocol, operationsMax: MAX_DECISION_OPERATIONS,
+    answers: answerFor(turn.slots, { action: choice(ACTION_ARCHITECTURE, 0.9), focus: choice(WHOLE, 0.6) }),
+  });
+  assert.equal(whole.outcome, "step");
+  assert.ok(whole.steps.every(item => item.step.confidence === 0.6));
+  assert.equal(claimsOf(whole).some(claim => claim.origin === "model-inferred"), false);
+
+  // A section judged for another focus than the answer's is a caller error, never drawn.
+  const request = judgeRequestOf(manifest, "b-mjs", "show it");
+  await assert.rejects(planArchitecture({
+    working, turn, manifest, protocol, operationsMax: MAX_DECISION_OPERATIONS,
+    answers: answerFor(turn.slots, { action: ACTION_ARCHITECTURE, focus: WHOLE }),
+    judged: { section: request.state.architecture, answers: answerFor(judgeSlotsFor(request.state.architecture), {}) },
+  }), /the judged section is the one this answer asked for/u);
+});
+
+test("a part confidently asked for that no section opens is refused, never drawn as the whole", async () => {
+  // A snapshot of its own: one more external part that no admitted file names.
+  const source = structuredClone(MANIFEST);
+  source.entities.push({ id: "ext-orphan", label: "orphan", kind: "external" });
+  const manifest = readManifest(source);
+  assert.equal(manifest.status, "available", manifest.reason);
+  assert.equal(judgeSectionOf(manifest, "ext-orphan"), null, "no admitted file names it");
+  const working = await mapGraph();
+  const { turn } = turnFor(working, manifest);
+  const answers = answerFor(turn.slots, { action: ACTION_ARCHITECTURE, focus: "ext-orphan" });
+  assert.equal(focusOf(turn, answers), "ext-orphan");
+  assert.deepEqual(await planArchitecture({ working, turn, answers, judged: null, manifest, protocol, operationsMax: MAX_DECISION_OPERATIONS }),
+    { outcome: "refused", reason: "architecture-judge-missing" });
+});
+
+test("the whole is reserved: no part may be called whole, in the manifest or in an intent", async () => {
+  const source = structuredClone(MANIFEST);
+  source.files.push({ path: "whole", blob: "7".repeat(40), class: "admitted", entity: "whole" });
+  source.entities.push({ id: "whole", label: "whole", kind: "file", path: "whole" });
+  assert.equal(readManifest(source).status, "invalid");
+  const { request } = turnFor(await mapGraph(), readManifest(structuredClone(MANIFEST)));
+  const intent = JSON.parse(JSON.stringify(request));
+  assert.ok(isRequest(intent));
+  intent.state.architecture.entities.push({ id: WHOLE, label: "whole" });
+  assert.equal(isRequest(intent), false);
 });
 
 test("this package's whole snapshot, drawn, still fits the intent's bounds", async t => {

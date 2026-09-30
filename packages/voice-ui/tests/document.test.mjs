@@ -5,7 +5,7 @@ import { pathToFileURL } from "node:url";
 
 import { judgeRequestOf, planArchitecture, readManifest, withArchitecture } from "../src/architecture.mjs";
 import { readBundle } from "../src/bundle.mjs";
-import { ACTION_ARCHITECTURE, NONE, YES, judgeSlotsFor, relationSlot, roleSlot } from "../src/contract.mjs";
+import { ACTION_ARCHITECTURE, NONE, WHOLE, YES, judgeSlotsFor, relationSlot, roleSlot } from "../src/contract.mjs";
 import { EVIDENCE_CURRENT, commitDocument, currentClaims, restoreDocument } from "../src/document.mjs";
 import { COMMIT_COMMITTED, MAP_ID, STATE_SCHEMA } from "../src/log.mjs";
 import { apply, createSession, draftForJev, draftUsed, proposeArchitecture, startNew, undo } from "../src/session.mjs";
@@ -79,7 +79,8 @@ const planOn = async (working, manifest, focus = null, picks = {}) => {
     working, utterance: "show the code", bundle: readBundle(null), layout: null, offeredFrame: null,
     draft: [], focus: null, pending: null, recent: [],
   }), manifest);
-  const answers = answering(turn.slots, { action: ACTION_ARCHITECTURE, ...(focus === null ? {} : { focus }) });
+  // Without a part, this fixture asks for the whole - explicitly, as Jev must.
+  const answers = answering(turn.slots, { action: ACTION_ARCHITECTURE, focus: focus ?? WHOLE });
   const request = focus === null ? null : judgeRequestOf(manifest, focus, "show it");
   const judged = request === null ? null
     : { section: request.state.architecture, answers: answering(judgeSlotsFor(request.state.architecture), picks) };
@@ -145,7 +146,7 @@ test("one architecture utterance is one entry of the draft: counted, sent and un
   }), MANIFEST);
   // A small limit, so that one utterance takes several Decisions.
   const planned = await planArchitecture({
-    working: started.working, turn, answers: answering(turn.slots, { action: ACTION_ARCHITECTURE }), judged: null,
+    working: started.working, turn, answers: answering(turn.slots, { action: ACTION_ARCHITECTURE, focus: WHOLE }), judged: null,
     manifest: MANIFEST, protocol, operationsMax: 3,
   });
   assert.equal(planned.steps.length, 3);
