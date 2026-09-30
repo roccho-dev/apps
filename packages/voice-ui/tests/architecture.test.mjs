@@ -1,18 +1,41 @@
 import assert from "node:assert/strict";
+import { spawnSync } from "node:child_process";
+import fs from "node:fs";
+import os from "node:os";
 import path from "node:path";
 import test from "node:test";
-import { pathToFileURL } from "node:url";
+import { fileURLToPath, pathToFileURL } from "node:url";
 
-import { planArchitecture, readManifest, withArchitecture } from "../src/architecture.mjs";
+import {
+  focusOf,
+  focusedEvidence,
+  judgeRequestOf,
+  judgeSectionOf,
+  planArchitecture,
+  readManifest,
+  withArchitecture,
+} from "../src/architecture.mjs";
 import { readBundle } from "../src/bundle.mjs";
-import { ACTION_ARCHITECTURE, NONE, isRequest, relationSlot, roleSlot } from "../src/contract.mjs";
+import {
+  ACTION_ARCHITECTURE,
+  ARCHITECTURE_INTENT_KIND,
+  NONE,
+  REQUEST_KIND,
+  YES,
+  isJudgeRequest,
+  isRequest,
+  judgeSlotsFor,
+  relationSlot,
+  roleSlot,
+} from "../src/contract.mjs";
 import { MAP_ID, STATE_SCHEMA } from "../src/log.mjs";
 import { requestFor } from "../src/turn.mjs";
 
 const store = process.env.SEMANTIC_MAP;
 if (!store) throw new Error("SEMANTIC_MAP must point at the pinned semantic-map store path");
 const protocol = await import(pathToFileURL(path.join(store, "packages/semantic-map/protocol/index.js")).href);
-// The provider's own limit, read from the provider, never restated here.
+// The provider's own limit, read from the provider and passed in as the page
+// passes it, never restated here.
 const { MAX_DECISION_OPERATIONS } = await import(pathToFileURL(path.join(store, "packages/semantic-map/domain/operation.js")).href);
 
 // Every step of a plan, appended in order onto the working graph.
@@ -26,33 +49,42 @@ const changesOf = planned => planned.steps.flatMap(item => item.step.changes);
 
 const COMMIT = "0123456789abcdef0123456789abcdef01234567";
 
-// A prepared source of its own: two files importing one another, a store the
-// scope names outside them, one candidate by co-occurrence, one declared fact.
+// A prepared source of its own: a file importing another, a store outside the
+// source that the second names, a JSON file with one declared fact, and an
+// unrelated file that imports nothing and is named by nothing.
 const MANIFEST = Object.freeze({
   schema: "voice-ui.architecture-source/1",
   status: "available",
   source: { handle: "fixture", commit: COMMIT },
   files: [
-    { path: "a.mjs", blob: "1".repeat(40), class: "admitted", entity: "page-app" },
-    { path: "b.mjs", blob: "2".repeat(40), class: "admitted", entity: "saver" },
-    { path: "c.json", blob: "3".repeat(40), class: "admitted", entity: "settings" },
+    { path: "a.mjs", blob: "1".repeat(40), class: "admitted", entity: "a-mjs" },
+    { path: "b.mjs", blob: "2".repeat(40), class: "admitted", entity: "b-mjs" },
+    { path: "c.json", blob: "3".repeat(40), class: "admitted", entity: "c-json" },
+    { path: "d.mjs", blob: "5".repeat(40), class: "admitted", entity: "d-mjs" },
     { path: "t.test.mjs", blob: "4".repeat(40), class: "excluded", reason: "test" },
   ],
   entities: [
-    { id: "page-app", label: "Page (a.mjs)", kind: "file", path: "a.mjs" },
-    { id: "saver", label: "Saver (b.mjs)", kind: "file", path: "b.mjs" },
-    { id: "settings", label: "Settings (c.json)", kind: "file", path: "c.json" },
-    { id: "browser-store", label: "Browser store", kind: "external" },
+    { id: "a-mjs", label: "a.mjs", kind: "file", path: "a.mjs" },
+    { id: "b-mjs", label: "b.mjs", kind: "file", path: "b.mjs" },
+    { id: "c-json", label: "c.json", kind: "file", path: "c.json" },
+    { id: "d-mjs", label: "d.mjs", kind: "file", path: "d.mjs" },
+    { id: "ext-store", label: "store", kind: "external" },
   ],
-  imports: [{ from: "page-app", to: "saver", path: "a.mjs", specifier: "./b.mjs" }],
+  imports: [{ from: "a-mjs", to: "b-mjs", path: "a.mjs", specifier: "./b.mjs", resolution: "relative" }],
   candidates: [
-    { id: "c-page-app--saver", from: "page-app", to: "saver", reasons: ["import"] },
-    { id: "c-saver--browser-store", from: "saver", to: "browser-store", reasons: ["cooccurrence:localStorage"] },
+    { id: "c-a-mjs--b-mjs", from: "a-mjs", to: "b-mjs", reasons: ["import:./b.mjs"] },
+    { id: "c-b-mjs--ext-store", from: "b-mjs", to: "ext-store", reasons: ["identifier:store"] },
   ],
-  facts: [{ id: "store-key", entity: "settings", path: "c.json", pointer: "/key", value: "k1" }],
+  facts: [{ id: "store-key", entity: "c-json", path: "c.json", pointer: "/key", value: "k1" }],
   roles: [{ key: "persistence", purpose: "stores data" }, { key: "config", purpose: "declares configuration" }],
   relations: [{ key: "calls", purpose: "calls it" }, { key: "stores-in", purpose: "stores data in it" }],
   coverage: { unsupported: [{ path: "c.json", reason: "not an ES module" }], skipped: [], notAnalyzed: ["dynamic import() is not analyzed"] },
+});
+const FILES = Object.freeze({
+  "a-mjs": "import { save } from \"./b.mjs\";\nexport const run = () => save(1);\n",
+  "b-mjs": "export const save = value => store.setItem(\"k\", value);\n",
+  "c-json": "{\"key\": \"k1\"}\n",
+  "d-mjs": "export const unrelated = 1;\n",
 });
 
 const mapGraph = () => protocol.createDecisionLog([
@@ -61,137 +93,209 @@ const mapGraph = () => protocol.createDecisionLog([
 ], MAP_ID);
 
 const choice = (value, confidence = 0.9) => ({ type: "choice", choice: value, confidence });
-const turnFor = (working, manifest) => withArchitecture(requestFor({
+const plainFor = (working, draft = []) => requestFor({
   working, utterance: "show how this code is built", bundle: readBundle(null), layout: null, offeredFrame: null,
-  draft: [], focus: null, pending: null, recent: [],
-}), manifest);
-const answerFor = (turn, picks) => Object.fromEntries(Object.keys(turn.slots).map(name => [
+  draft, focus: null, pending: null, recent: [],
+});
+const turnFor = (working, manifest) => withArchitecture(plainFor(working), manifest);
+const answerFor = (slots, picks) => Object.fromEntries(Object.keys(slots).map(name => [
   name, picks[name] === undefined ? choice(NONE) : typeof picks[name] === "string" ? choice(picks[name]) : picks[name],
 ]));
+// One utterance as the page plans it: the intent's answer, and for a focus the
+// judge's answer on that focus's section.
+const plan = async (working, manifest, { focus = null, intent = {}, judge = {} } = {}) => {
+  const { turn } = turnFor(working, manifest);
+  const answers = answerFor(turn.slots, { action: ACTION_ARCHITECTURE, ...(focus === null ? {} : { focus }), ...intent });
+  const request = focus === null ? null : judgeRequestOf(manifest, focus, "show it");
+  const judged = request === null ? null
+    : { section: request.state.architecture, answers: answerFor(judgeSlotsFor(request.state.architecture), judge) };
+  return planArchitecture({ working, turn, answers, judged, manifest, protocol, operationsMax: MAX_DECISION_OPERATIONS });
+};
 
 test("the manifest is read whole: available, unavailable with its reason, or invalid", () => {
   assert.equal(readManifest(structuredClone(MANIFEST)).status, "available");
   assert.deepEqual(readManifest({ schema: "voice-ui.architecture-source/1", status: "unavailable", reason: "dirty" }),
     { status: "unavailable", reason: "dirty" });
   for (const broken of [null, {}, { ...MANIFEST, extra: 1 }, { ...MANIFEST, source: { handle: "fixture", commit: "HEAD" } },
-    { ...MANIFEST, candidates: [{ id: "c", from: "page-app", to: "nobody", reasons: ["import"] }] }]) {
+    { ...MANIFEST, candidates: [{ id: "c", from: "a-mjs", to: "nobody", reasons: ["import:./x.mjs"] }] },
+    { ...MANIFEST, candidates: [{ id: "c", from: "a-mjs", to: "b-mjs", reasons: ["import"] }] },
+    { ...MANIFEST, entities: MANIFEST.entities.map(entity => (entity.id === "a-mjs" ? { ...entity, label: "The page" } : entity)) },
+    { ...MANIFEST, imports: [{ ...MANIFEST.imports[0], resolution: "guessed" }] },
+    { ...MANIFEST, facts: [{ ...MANIFEST.facts[0], path: "a.mjs" }] }]) {
     assert.equal(readManifest(broken).status, "invalid");
   }
 });
 
-test("the request carries the public section and the questions it implies, and nothing else", async () => {
-  const manifest = readManifest(structuredClone(MANIFEST));
-  const { turn, request } = turnFor(await mapGraph(), manifest);
-  assert.ok(isRequest(JSON.parse(JSON.stringify(request))));
-  assert.deepEqual(Object.keys(request.state.architecture).sort(), ["candidates", "entities", "relations", "roles", "source"]);
-  assert.equal(JSON.stringify(request).includes("blob"), false, "no identity or text beyond the public section");
-  assert.ok(turn.slots.action.includes(ACTION_ARCHITECTURE));
-  assert.deepEqual(turn.slots.focus, ["persistence", "config", NONE]);
-  assert.deepEqual(turn.slots[roleSlot("browser-store")], ["persistence", "config", NONE]);
-  assert.deepEqual(turn.slots[relationSlot("c-saver--browser-store")], ["calls", "stores-in", NONE]);
-  const tampered = JSON.parse(JSON.stringify(request));
-  tampered.state.architecture.candidates[0].to = "nobody";
-  assert.equal(isRequest(tampered), false);
-});
-
-test("a view is built from the source only: files and imports declared, roles and relations chosen, the rest unknown", async () => {
+test("an intent carries the plain request, the parts by path or identifier, and no code; the plain request is unchanged", async () => {
   const manifest = readManifest(structuredClone(MANIFEST));
   const working = await mapGraph();
-  const { turn } = turnFor(working, manifest);
-  const planned = await planArchitecture({
-    working, turn, manifest, protocol,
-    answers: answerFor(turn, {
-      action: ACTION_ARCHITECTURE,
-      [roleSlot("saver")]: "persistence",
-      [roleSlot("settings")]: choice("config", 0.3),
-      [relationSlot("c-saver--browser-store")]: "stores-in",
-      [relationSlot("c-page-app--saver")]: choice("calls", 0.4),
-    }),
+  const { turn, request } = turnFor(working, manifest);
+  assert.equal(request.kind, ARCHITECTURE_INTENT_KIND);
+  assert.ok(isRequest(JSON.parse(JSON.stringify(request))));
+  assert.deepEqual(request.state.architecture, {
+    source: { handle: "fixture", commit: COMMIT },
+    entities: [
+      { id: "a-mjs", label: "a.mjs" }, { id: "b-mjs", label: "b.mjs" }, { id: "c-json", label: "c.json" },
+      { id: "d-mjs", label: "d.mjs" }, { id: "ext-store", label: "store" },
+    ],
   });
+  assert.deepEqual(turn.slots.focus, ["a-mjs", "b-mjs", "c-json", "d-mjs", "ext-store", NONE]);
+  assert.ok(turn.slots.action.includes(ACTION_ARCHITECTURE));
+  assert.equal(Object.keys(turn.slots).some(name => name.startsWith("role-") || name.startsWith("relation-")), false,
+    "an intent asks nothing about the code");
+
+  // The plain request is exactly what it was: its own kind, no architecture,
+  // and at most 8 changes a step - which an intent may exceed.
+  const plain = plainFor(working);
+  assert.equal(plain.request.kind, REQUEST_KIND);
+  const wide = Array.from({ length: 9 }, (_, index) => ({ change: "added", from: `x${index}`, to: "y" }));
+  const withDraft = kind => JSON.parse(JSON.stringify({ ...request, kind, state: { ...request.state, draft: [{ changes: wide }] } }));
+  assert.equal(isRequest(withDraft(ARCHITECTURE_INTENT_KIND)), true);
+  const { architecture, ...plainState } = withDraft(REQUEST_KIND).state;
+  assert.equal(isRequest({ kind: REQUEST_KIND, state: plainState }), false, "the plain request keeps its bound of 8");
+  assert.equal(isRequest({ kind: REQUEST_KIND, state: { ...plainState, architecture } }), false, "and takes no architecture");
+});
+
+test("a focus opens its own file, or every file that names it, and exactly the pairs that touch them", () => {
+  const manifest = readManifest(structuredClone(MANIFEST));
+  const own = judgeSectionOf(manifest, "b-mjs");
+  assert.equal(own.focus, "b-mjs");
+  assert.deepEqual(own.bodies, ["b-mjs"]);
+  assert.deepEqual(own.candidates.map(candidate => candidate.id), ["c-a-mjs--b-mjs", "c-b-mjs--ext-store"]);
+  assert.deepEqual(own.entities.map(entity => entity.id), ["a-mjs", "b-mjs", "ext-store"], "never the unrelated file");
+
+  const outside = judgeSectionOf(manifest, "ext-store");
+  assert.deepEqual(outside.bodies, ["b-mjs"], "the file whose text names the store");
+  assert.equal(judgeSectionOf(manifest, "d-mjs").candidates.length, 0);
+  assert.equal(judgeSectionOf(manifest, "nobody"), null);
+
+  const request = JSON.parse(JSON.stringify(judgeRequestOf(manifest, "b-mjs", "show the saver")));
+  assert.ok(isJudgeRequest(request));
+  assert.equal(isRequest(request), false);
+  const slots = judgeSlotsFor(request.state.architecture);
+  assert.deepEqual(Object.keys(slots), [
+    roleSlot("b-mjs", "persistence"), roleSlot("b-mjs", "config"), relationSlot("c-a-mjs--b-mjs"), relationSlot("c-b-mjs--ext-store"),
+  ], "a role question only for the body file, several roles each yes or none");
+  assert.deepEqual(slots[roleSlot("b-mjs", "persistence")], [YES, NONE]);
+  assert.deepEqual(slots[relationSlot("c-b-mjs--ext-store")], ["calls", "stores-in", NONE]);
+
+  // The body whole; of the other files, only the lines holding what a pair rests on.
+  const evidence = focusedEvidence(own, manifest, FILES);
+  assert.deepEqual(evidence.bodies, [{ path: "b.mjs", text: FILES["b-mjs"] }]);
+  assert.deepEqual(evidence.lines, [{ path: "a.mjs", line: 1, text: "import { save } from \"./b.mjs\";" }]);
+  assert.equal(JSON.stringify(evidence).includes("unrelated"), false);
+});
+
+test("the whole view is structure only: files, facts and imports declared, the outside unknown, no role and no judged relation", async () => {
+  const manifest = readManifest(structuredClone(MANIFEST));
+  const working = await mapGraph();
+  const planned = await plan(working, manifest);
   assert.equal(planned.outcome, "step");
   const added = changesOf(planned);
-  assert.deepEqual(added.filter(change => change.kind === "region").map(change => change.id).sort(),
-    ["arch-browser-store", "arch-page-app", "arch-saver", "arch-settings"]);
-  assert.deepEqual(added.filter(change => change.kind !== "region").map(change => `${change.from}->${change.to}`).sort(),
-    ["arch-page-app->arch-saver", "arch-saver->arch-browser-store"], "the import, and the one confident relation");
-  assert.deepEqual(planned.steps.map(item => item.step.changes.length), [4, 1, 1],
-    "regions, then the declared import, then the chosen relation - which Undo removes first");
+  assert.deepEqual(added.filter(change => change.kind === "region").map(change => [change.id, change.label]), [
+    ["arch-a-mjs", "a.mjs"], ["arch-b-mjs", "b.mjs"], ["arch-c-json", "c.json"], ["arch-d-mjs", "d.mjs"], ["arch-ext-store", "store"],
+    ["arch-fact-store-key", "c.json /key = \"k1\""],
+  ], "each file by its own path, each fact by where it is written and what it says");
+  assert.deepEqual(added.filter(change => change.kind !== "region").map(change => `${change.from}->${change.to}`),
+    ["arch-a-mjs->arch-b-mjs", "arch-fact-store-key->arch-c-json"]);
 
-  const claimOf = (id, origin) => claimsOf(planned).find(claim => claim.record.id === id && claim.origin === origin);
-  assert.deepEqual(claimOf("arch-page-app", "source-declared").basis, [{ path: "a.mjs" }]);
-  assert.deepEqual(claimOf("arch-browser-store", "unknown").basis, [{ scope: "external" }]);
-  assert.deepEqual(claimOf("arch-import-page-app-to-saver", "source-declared").basis, [{ path: "a.mjs", specifier: "./b.mjs" }]);
-  assert.deepEqual(claimOf("arch-stores-in-saver-to-browser-store", "model-inferred").basis, [{ candidate: "c-saver--browser-store" }]);
-  assert.equal(claimOf("arch-saver", "model-inferred").role, "persistence");
-  assert.equal(claimOf("arch-settings", "model-inferred"), undefined, "an unsure role is no role");
-  assert.equal(claimsOf(planned).some(claim => claim.record.id.startsWith("arch-calls")), false, "an unsure relation is not drawn");
-  assert.equal(claimsOf(planned).some(claim => claim.origin === "source-declared" && claim.basis.some(entry => entry.candidate)), false,
-    "a model-selected relation is never source-declared");
-  assert.ok(planned.steps.at(-1).claims.some(claim => claim.role === "persistence"), "roles come with the last step");
-
-  // The provider built each step on the one before: consecutive Decisions.
+  const claimOf = id => claimsOf(planned).find(claim => claim.record.id === id);
+  assert.deepEqual(claimOf("arch-a-mjs"), { record: { type: "region", id: "arch-a-mjs" }, origin: "source-declared", basis: [{ path: "a.mjs" }] });
+  assert.deepEqual(claimOf("arch-ext-store"), { record: { type: "region", id: "arch-ext-store" }, origin: "unknown", basis: [{ scope: "external" }] });
+  assert.deepEqual(claimOf("arch-import-a-mjs-to-b-mjs").basis, [{ path: "a.mjs", specifier: "./b.mjs", resolution: "relative" }]);
+  assert.deepEqual(claimOf("arch-fact-store-key").basis, [{ path: "c.json", pointer: "/key" }]);
+  assert.equal(claimsOf(planned).some(claim => claim.role !== undefined || claim.origin === "model-inferred"), false,
+    "with no focus nothing is judged: every role stays unknown");
   const next = await appendAll(working, planned);
   assert.equal(next.decisions.length, 1 + planned.steps.length);
 });
 
-test("a view larger than the provider takes in one Decision is split, never refused or cut short", async () => {
+test("a focus adds the relations and the several roles Jev confirmed from that section's text, and nothing unsure", async () => {
+  const manifest = readManifest(structuredClone(MANIFEST));
+  const working = await appendAll(await mapGraph(), await plan(await mapGraph(), manifest));
+  const planned = await plan(working, manifest, {
+    focus: "b-mjs",
+    judge: {
+      [roleSlot("b-mjs", "persistence")]: YES,
+      [roleSlot("b-mjs", "config")]: choice(YES, 0.3),
+      [relationSlot("c-b-mjs--ext-store")]: "stores-in",
+      [relationSlot("c-a-mjs--b-mjs")]: choice("calls", 0.4),
+    },
+  });
+  assert.equal(planned.outcome, "step");
+  assert.deepEqual(changesOf(planned), [{ change: "added", from: "arch-b-mjs", to: "arch-ext-store" }], "only the new, confident relation");
+  assert.deepEqual(claimsOf(planned), [
+    { record: { type: "relation", id: "arch-stores-in-b-mjs-to-ext-store" }, origin: "model-inferred", basis: [{ candidate: "c-b-mjs--ext-store" }] },
+    { record: { type: "region", id: "arch-b-mjs" }, origin: "model-inferred", basis: [{ path: "b.mjs" }], role: "persistence" },
+  ], "a role rests on the file itself and annotates its existing region; an unsure role or relation is none");
+
+  const both = await plan(working, manifest, {
+    focus: "b-mjs",
+    judge: { [roleSlot("b-mjs", "persistence")]: YES, [roleSlot("b-mjs", "config")]: YES, [relationSlot("c-b-mjs--ext-store")]: "stores-in" },
+  });
+  assert.deepEqual(claimsOf(both).filter(claim => claim.role !== undefined).map(claim => claim.role), ["persistence", "config"],
+    "a file may have several roles");
+
+  const after = await appendAll(working, planned);
+  const repeat = await plan(after, manifest, { focus: "b-mjs", judge: { [relationSlot("c-b-mjs--ext-store")]: "stores-in" } });
+  assert.deepEqual(repeat, { outcome: "no-change", reason: "architecture-nothing-new" });
+});
+
+test("a view larger than the provider takes in one Decision is split at the limit passed in, never refused or cut short", async () => {
   const many = Array.from({ length: 40 }, (_, index) => `part-${String(index).padStart(2, "0")}`);
   const manifest = readManifest({
     ...structuredClone(MANIFEST),
-    files: many.map(id => ({ path: `${id}.mjs`, blob: "1".repeat(40), class: "admitted", entity: id })),
-    entities: many.map(id => ({ id, label: id, kind: "file", path: `${id}.mjs` })),
-    imports: many.slice(1).map((id, index) => ({ from: many[index], to: id, path: `${many[index]}.mjs`, specifier: `./${id}.mjs` })),
+    files: many.map(id => ({ path: `${id}.mjs`, blob: "1".repeat(40), class: "admitted", entity: `${id}-mjs` })),
+    entities: many.map(id => ({ id: `${id}-mjs`, label: `${id}.mjs`, kind: "file", path: `${id}.mjs` })),
+    imports: many.slice(1).map((id, index) => ({ from: `${many[index]}-mjs`, to: `${id}-mjs`, path: `${many[index]}.mjs`, specifier: `./${id}.mjs`, resolution: "relative" })),
     candidates: [],
     facts: [],
   });
   const working = await mapGraph();
-  const { turn } = turnFor(working, manifest);
-  const planned = await planArchitecture({ working, turn, manifest, protocol, answers: answerFor(turn, { action: ACTION_ARCHITECTURE }) });
+  const planned = await plan(working, manifest);
   assert.equal(planned.outcome, "step", planned.detail);
-  assert.ok(planned.steps.length > 2);
-  for (const { step } of planned.steps) assert.ok(step.changes.length <= MAX_DECISION_OPERATIONS);
-  assert.equal(changesOf(planned).length, 40 + 39, "every region and every import, nothing dropped");
+  assert.deepEqual(planned.steps.map(item => item.step.changes.length), [32, 32, 15]);
+  assert.equal(MAX_DECISION_OPERATIONS, 32, "the split above is the provider's own limit");
   const next = await appendAll(working, planned);
   assert.equal(next.records.filter(record => record.type === "region").length, 1 + 40);
-});
-
-test("a focus adds the declared facts of the entities in that role, and a repeat adds nothing", async () => {
-  const manifest = readManifest(structuredClone(MANIFEST));
-  const first = await mapGraph();
-  const firstTurn = turnFor(first, manifest).turn;
-  const whole = await planArchitecture({
-    working: first, turn: firstTurn, manifest, protocol,
-    answers: answerFor(firstTurn, { action: ACTION_ARCHITECTURE, [roleSlot("settings")]: "config" }),
-  });
-  const working = await appendAll(first, whole);
   const { turn } = turnFor(working, manifest);
-  const focused = await planArchitecture({
-    working, turn, manifest, protocol,
-    answers: answerFor(turn, { action: ACTION_ARCHITECTURE, focus: "config", [roleSlot("settings")]: "config" }),
-  });
-  assert.equal(focused.outcome, "step");
-  assert.deepEqual(changesOf(focused).map(change => change.id ?? `${change.from}->${change.to}`),
-    ["arch-fact-store-key", "arch-fact-store-key->arch-settings"]);
-  assert.equal(changesOf(focused)[0].label, "/key: k1");
-  assert.ok(claimsOf(focused).every(claim => claim.origin !== "source-declared" || claim.basis.every(entry => entry.pointer === "/key")));
-
-  const after = await appendAll(working, focused);
-  const again = turnFor(after, manifest).turn;
-  const repeat = await planArchitecture({
-    working: after, turn: again, manifest, protocol,
-    answers: answerFor(again, { action: ACTION_ARCHITECTURE, focus: "config", [roleSlot("settings")]: "config" }),
-  });
-  assert.deepEqual(repeat, { outcome: "no-change", reason: "architecture-nothing-new" });
+  await assert.rejects(planArchitecture({
+    working, turn, judged: null, manifest, protocol, operationsMax: undefined,
+    answers: answerFor(turn.slots, { action: ACTION_ARCHITECTURE }),
+  }), /operation limit/u, "no limit of its own");
 });
 
 test("an unsure action, a stale head or an answer off the questions changes nothing", async () => {
   const manifest = readManifest(structuredClone(MANIFEST));
   const working = await mapGraph();
+  assert.deepEqual(await plan(working, manifest, { intent: { action: choice(ACTION_ARCHITECTURE, 0.2) } }), { outcome: "no-change", reason: "not-confident" });
   const { turn } = turnFor(working, manifest);
-  const unsure = await planArchitecture({ working, turn, manifest, protocol, answers: answerFor(turn, { action: choice(ACTION_ARCHITECTURE, 0.2) }) });
-  assert.deepEqual(unsure, { outcome: "no-change", reason: "not-confident" });
-  const stale = await planArchitecture({ working, turn: { ...turn, head: "sha256:other" }, manifest, protocol, answers: answerFor(turn, { action: ACTION_ARCHITECTURE }) });
+  const stale = await planArchitecture({
+    working, turn: { ...turn, head: "sha256:other" }, judged: null, manifest, protocol, operationsMax: MAX_DECISION_OPERATIONS,
+    answers: answerFor(turn.slots, { action: ACTION_ARCHITECTURE }),
+  });
   assert.equal(stale.reason, "stale");
-  const off = answerFor(turn, { action: ACTION_ARCHITECTURE, [roleSlot("saver")]: "invented-role" });
-  assert.equal((await planArchitecture({ working, turn, manifest, protocol, answers: off })).reason, "answer-invalid");
+  const off = await plan(working, manifest, { focus: "b-mjs", judge: { [roleSlot("b-mjs", "persistence")]: "invented" } });
+  assert.equal(off.reason, "answer-invalid");
+  assert.equal(focusOf(turn, answerFor(turn.slots, { action: ACTION_ARCHITECTURE, focus: choice("b-mjs", 0.3) })), null, "an unsure focus is none");
+});
+
+test("this package's whole snapshot, drawn, still fits the intent's bounds", async () => {
+  const here = path.dirname(fileURLToPath(import.meta.url));
+  const out = fs.mkdtempSync(path.join(os.tmpdir(), "voice-ui-architecture-"));
+  const prepared = spawnSync(process.execPath, [
+    "--experimental-vm-modules", path.join(here, "../architecture/prepare.mjs"),
+    "--scope", path.join(here, "../architecture/scope.v1.json"), "--root", path.join(here, ".."), "--commit", COMMIT, "--out", out,
+  ], { encoding: "utf8" });
+  assert.equal(prepared.status, 0, prepared.stderr);
+  const manifest = readManifest(JSON.parse(fs.readFileSync(path.join(out, "manifest.json"), "utf8")));
+  assert.equal(manifest.status, "available", manifest.reason);
+  const working = await mapGraph();
+  const planned = await plan(working, manifest);
+  const drawn = await appendAll(working, planned);
+  const changes = changesOf(planned);
+  // Everything any focus could still add: one chosen relation per pair.
+  const intent = withArchitecture(plainFor(drawn, [{ changes: [...changes, ...manifest.candidates.map(candidate => ({ change: "added", from: candidate.from, to: candidate.to }))] }]), manifest);
+  assert.ok(isRequest(JSON.parse(JSON.stringify(intent.request))), "the drawn snapshot and one whole utterance are a valid intent");
+  assert.ok(intent.request.state.graph.edges.length + manifest.candidates.length <= 128, "and room remains for every pair's relation");
 });

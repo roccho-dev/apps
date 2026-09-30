@@ -4,10 +4,13 @@ import {
   visibleFrameOf,
 } from "/ui/semantic-map/runtime.js";
 import * as protocol from "/ui/semantic-map/protocol/index.js";
+// The provider's own limit on operations in one Decision, which its protocol
+// entry does not carry; the architecture view is planned within it.
+import { MAX_DECISION_OPERATIONS } from "/ui/semantic-map/domain/operation.js";
 import { ACTION_ARCHITECTURE, DECISION_KIND, ERRORS } from "/app/src/contract.mjs";
 import { readBundle } from "/app/src/bundle.mjs";
 import { FORMAT_ARCHITECTURE, readConfig } from "/app/src/config.mjs";
-import { planArchitecture, readManifest, withArchitecture } from "/app/src/architecture.mjs";
+import { focusOf, judgeRequestOf, planArchitecture, readManifest, withArchitecture } from "/app/src/architecture.mjs";
 import { EVIDENCE_CURRENT, commitDocument, currentClaims, restoreDocument } from "/app/src/document.mjs";
 import {
   COMMIT_COMMITTED,
@@ -26,7 +29,9 @@ import {
   clearPending,
   createSession,
   discard,
+  draftForJev,
   draftFull,
+  draftUsed,
   noteRefused,
   propose,
   proposeArchitecture,
@@ -200,7 +205,7 @@ const setState = (state, message) => {
 };
 
 const showLists = () => {
-  renderDraft(draftList, draftCount, { draft: session.draft, bundle });
+  renderDraft(draftList, draftCount, { draft: session.draft, used: draftUsed(session), bundle });
   renderContext(contextList, contextSkipped, recentConversation(session));
 };
 
@@ -429,7 +434,7 @@ const decide = async (value, source) => {
   const held = spent.held;
   const stillHeld = held !== null && pendingHolds(held.intent, { head: working.head, frame: offeredFrame, offered: placeable });
 
-  const steps = session.draft.map(item => item.step);
+  const steps = draftForJev(session);
   const plain = requestFor({
     working,
     utterance: value,
@@ -441,20 +446,36 @@ const decide = async (value, source) => {
     pending: stillHeld ? pendingForJev(held.intent) : null,
     recent: recentConversation(session).recent,
   });
-  // On the architecture page, while its source can be cited, the request also
-  // carries the prepared source's entities and candidate pairs.
-  const { turn, request } = architectureReady() ? withArchitecture(plain, manifest) : plain;
+  // On the architecture page, while its source can be cited, the request is
+  // an architecture intent: the same request, with the snapshot's parts by
+  // path or identifier beside it, and no code.
+  const architecture = architectureReady();
+  const { turn, request } = architecture ? withArchitecture(plain, manifest) : plain;
   const answer = await postJev(request);
   if (answer.kind === "failed") return answer;
+  const answers = answer.decision.answers;
+
+  // An architecture answer that names one part is judged once more: that
+  // part's section alone, whose text the server adds.
+  const composing = architecture && answers?.action?.choice === ACTION_ARCHITECTURE;
+  const focus = composing ? focusOf(turn, answers) : null;
+  const judge = focus === null ? null : judgeRequestOf(manifest, focus, value);
+  let judged = null;
+  if (judge !== null) {
+    const second = await postJev(judge);
+    if (second.kind === "failed") return second;
+    judged = Object.freeze({ section: judge.state.architecture, answers: second.decision.answers });
+  }
 
   // Read in the same synchronous run the answer is judged in.
   const visibleFrame = visibleFrameOf(workingSurface);
   const input = Object.freeze({ source, text: value });
   const before = session;
-  const answers = answer.decision.answers;
-  const transition = architectureReady() && answers?.action?.choice === ACTION_ARCHITECTURE
+  const transition = composing
     ? await proposeArchitecture(session, {
-      planned: await planArchitecture({ working, turn, answers, manifest, protocol }), input, protocol,
+      planned: await planArchitecture({ working, turn, answers, judged, manifest, protocol, operationsMax: MAX_DECISION_OPERATIONS }),
+      input,
+      protocol,
     })
     : await propose(session, { turn, answers, protocol, bundle, layout, visibleFrame, input, repair: held });
   if (transition.result.outcome === OUTCOME_NO_CHANGE) {

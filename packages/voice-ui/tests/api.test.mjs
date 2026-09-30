@@ -8,8 +8,22 @@ import { fileURLToPath } from "node:url";
 
 import { onRequestPost } from "../functions/api/jev.mjs";
 import worker from "../functions/pages-worker.mjs";
-import { architectureOf, readManifest } from "../src/architecture.mjs";
-import { ACTION_ARCHITECTURE, DECISION_KIND, ERRORS, NONE, REQUEST_KIND, isRequest, slotsFor } from "../src/contract.mjs";
+import { intentSectionOf, judgeRequestOf, readManifest } from "../src/architecture.mjs";
+import {
+  ACTION_ARCHITECTURE,
+  ARCHITECTURE_INTENT_KIND,
+  DECISION_KIND,
+  ERRORS,
+  NONE,
+  REQUEST_KIND,
+  YES,
+  isJudgeRequest,
+  isRequest,
+  judgeSlotsFor,
+  relationSlot,
+  roleSlot,
+  slotsFor,
+} from "../src/contract.mjs";
 
 // A request as the page sends it: the declared read set and nothing more.
 const request = (state = {}) => ({
@@ -204,7 +218,17 @@ const prepared = (() => {
   return Object.freeze({ manifest: readOut("manifest.json"), evidence: readOut("evidence.json") });
 })();
 const ARCHITECTURE_ENV = Object.freeze({ JEV_API_KEY: "test-only-value", ARCHITECTURE: prepared });
-const architectureRequest = (architecture = architectureOf(readManifest(prepared.manifest))) => request({ architecture });
+const MANIFEST = readManifest(prepared.manifest);
+const intentRequest = (architecture = intentSectionOf(MANIFEST)) => ({ ...request({ architecture }), kind: ARCHITECTURE_INTENT_KIND });
+const judgeRequest = focus => JSON.parse(JSON.stringify(judgeRequestOf(MANIFEST, focus, "show me that part")));
+
+// Whether any line of any admitted file - longer than a bare brace or keyword -
+// appears in what was sent.
+const carriesCode = sent => {
+  const text = JSON.stringify(sent);
+  return Object.values(prepared.evidence.files).some(file => file.split("\n")
+    .some(line => line.trim().length >= 40 && text.includes(JSON.stringify(line).slice(1, -1))));
+};
 
 test("an architecture request without this server's prepared source is refused before the provider", async () => {
   const unavailable = { schema: "voice-ui.architecture-source/1", status: "unavailable", reason: "no exact commit" };
@@ -214,54 +238,92 @@ test("an architecture request without this server's prepared source is refused b
     ["evidence of another snapshot", { JEV_API_KEY: "test-only-value",
       ARCHITECTURE: { manifest: prepared.manifest, evidence: { ...prepared.evidence, source: { ...prepared.evidence.source, commit: "f".repeat(40) } } } }],
   ];
-  const { result, calls } = await withProvider(answering(noneTo), () => Promise.all(cases.map(([, env]) => post(architectureRequest(), env))));
-  for (const [index, response] of result.entries()) {
-    assert.equal(response.status, 503, cases[index][0]);
-    assert.deepEqual(await response.json(), { error: ERRORS.architectureUnavailable }, cases[index][0]);
+  for (const body of [intentRequest(), judgeRequest("web-app-mjs")]) {
+    const { result, calls } = await withProvider(answering(noneTo), () => Promise.all(cases.map(([, env]) => post(body, env))));
+    for (const [index, response] of result.entries()) {
+      assert.equal(response.status, 503, `${body.kind}: ${cases[index][0]}`);
+      assert.deepEqual(await response.json(), { error: ERRORS.architectureUnavailable }, cases[index][0]);
+    }
+    assert.equal(calls.length, 0);
   }
-  assert.equal(calls.length, 0);
 });
 
 test("an architecture section that is not exactly this server's snapshot is refused before the provider", async () => {
-  const own = architectureOf(readManifest(prepared.manifest));
+  const own = intentSectionOf(MANIFEST);
+  const judge = judgeRequest("src-log-mjs");
   const altered = [
-    { ...own, source: { ...own.source, commit: "f".repeat(40) } },
-    { ...own, entities: own.entities.map((entity, index) => (index === 0 ? { ...entity, label: "renamed" } : entity)) },
-    { ...own, candidates: own.candidates.slice(1) },
+    intentRequest({ ...own, source: { ...own.source, commit: "f".repeat(40) } }),
+    intentRequest({ ...own, entities: own.entities.map((entity, index) => (index === 0 ? { ...entity, label: "renamed" } : entity)) }),
+    intentRequest({ ...own, entities: own.entities.slice(1) }),
+    { ...judge, state: { ...judge.state, architecture: { ...judge.state.architecture, bodies: ["web-app-mjs"] } } },
+    { ...judge, state: { ...judge.state, architecture: { ...judge.state.architecture, candidates: judge.state.architecture.candidates.slice(1) } } },
+    { ...judge, state: { ...judge.state, architecture: { ...judge.state.architecture, focus: "src-session-mjs" } } },
   ];
-  const { result, calls } = await withProvider(answering(noneTo), () => Promise.all(altered.map(architecture => post(architectureRequest(architecture), ARCHITECTURE_ENV))));
-  for (const response of result) {
-    assert.equal(response.status, 422);
+  const { result, calls } = await withProvider(answering(noneTo), () => Promise.all(altered.map(body => post(body, ARCHITECTURE_ENV))));
+  for (const [index, response] of result.entries()) {
+    assert.equal(response.status, 422, `case ${index}`);
     assert.deepEqual(await response.json(), { error: ERRORS.architectureMismatch });
   }
   assert.equal(calls.length, 0);
+  // A plain request stays exactly the plain request: no architecture in it.
+  const { result: plain } = await withProvider(answering(noneTo), () => post(request({ architecture: own }), ARCHITECTURE_ENV));
+  assert.equal(plain.status, 422);
+  assert.deepEqual(await plain.json(), { error: ERRORS.invalidRequest });
 });
 
-test("the provider is asked with the admitted text and closed architecture questions, and none of the text comes back", async t => {
-  const body = architectureRequest();
-  assert.ok(isRequest(body));
+test("a plain request and an intent carry no code; an intent adds one closed question, which part", async () => {
+  const bodies = [request(), intentRequest()];
+  const { result, calls } = await withProvider(answering(noneTo), () => Promise.all(bodies.map(body => post(body, ARCHITECTURE_ENV))));
+  assert.deepEqual(result.map(response => response.status), [200, 200]);
+  for (const [index, call] of calls.entries()) {
+    assert.equal(carriesCode(call), false, `${bodies[index].kind} sends no line of code`);
+    assert.equal(JSON.stringify(call).includes("\"evidence\""), false);
+    assert.deepEqual(call.state, bodies[index].state, "sent as it came");
+  }
+  const [plain, intent] = calls;
+  assert.deepEqual(Object.keys(intent.questions).filter(name => !Object.hasOwn(plain.questions, name)), ["focus"]);
+  assert.deepEqual(Object.keys(intent.questions.focus.criteria), [...MANIFEST.entities.map(entity => entity.id), NONE]);
+  assert.ok(Object.keys(intent.questions.action.criteria).includes(ACTION_ARCHITECTURE));
+  assert.match(intent.questions.focus.criteria["web-app-mjs"], /web\/app\.mjs/u);
+});
+
+test("a judge is asked from exactly its section's text: body files whole, other files by matching line", async () => {
+  const body = judgeRequest("ext-jev-api-key");
+  assert.ok(isJudgeRequest(body));
   const { result, calls } = await withProvider(answering(noneTo), () => post(body, ARCHITECTURE_ENV));
   assert.equal(result.status, 200);
   const [call] = calls;
-  const slots = slotsFor(body.state);
-  assert.deepEqual(Object.keys(call.questions).sort(), Object.keys(slots).sort());
-  for (const [name, question] of Object.entries(call.questions)) assert.deepEqual(Object.keys(question.criteria), slots[name], name);
-  assert.ok(slots.action.includes(ACTION_ARCHITECTURE));
-  assert.match(call.questions["role-jev-function"].instructions, /Judge only from that text/u);
-  assert.match(call.questions["relation-c-jev-function--jev-credential"].instructions, /cooccurrence:JEV_API_KEY/u);
-
-  // The evidence is exactly the admitted files of the snapshot, added here.
-  const admitted = prepared.manifest.entities.filter(entity => entity.kind === "file").map(entity => entity.id).sort();
-  assert.deepEqual(Object.keys(call.state.architecture.evidence).sort(), admitted);
-  for (const id of admitted) assert.equal(call.state.architecture.evidence[id], prepared.evidence.files[id]);
-  const { evidence, facts, ...sent } = call.state.architecture;
+  const { evidence, ...sent } = call.state.architecture;
   assert.deepEqual(sent, body.state.architecture, "the page's section is forwarded unchanged");
-  assert.deepEqual(facts.map(fact => fact.pointer), prepared.manifest.facts.map(fact => fact.pointer));
+  assert.deepEqual(evidence.bodies.map(file => file.path), ["functions/api/jev.mjs", "dev/serve.mjs"].sort(),
+    "every admitted file that names the credential, whole");
+  for (const file of evidence.bodies) assert.equal(file.text, fs.readFileSync(path.join(PACKAGE, file.path), "utf8"));
+  assert.ok(evidence.lines.length > 0);
+  for (const { path: file, line, text } of evidence.lines) {
+    assert.equal(fs.readFileSync(path.join(PACKAGE, file), "utf8").split("\n")[line - 1], text, `${file}:${line} is that very line`);
+  }
+  const slots = judgeSlotsFor(body.state.architecture);
+  assert.deepEqual(Object.keys(call.questions), Object.keys(slots));
+  for (const [name, question] of Object.entries(call.questions)) assert.deepEqual(Object.keys(question.criteria), slots[name], name);
+  assert.deepEqual(slots[roleSlot("functions-api-jev-mjs", "auth")], [YES, NONE]);
+  assert.match(call.questions[relationSlot("c-functions-api-jev-mjs--ext-jev-api-key")].instructions, /identifier:JEV_API_KEY/u);
   const answered = await result.text();
-  assert.equal(answered.includes(prepared.evidence.files["jev-function"].slice(0, 200)), false, "no admitted text in the answer");
+  assert.equal(answered.includes(evidence.bodies[0].text.slice(0, 200)), false, "no admitted text in the answer");
+});
 
-  // Measured, not assumed: what one architecture request sends the provider.
-  t.diagnostic(`architecture provider request: ${Buffer.byteLength(JSON.stringify(call))} bytes, `
-    + `${Object.keys(call.questions).length} questions, ${Object.keys(evidence).length} evidence files `
-    + `(${Object.values(evidence).reduce((sum, value) => sum + Buffer.byteLength(value), 0)} bytes of text)`);
+test("measured, not assumed: what each focus sends the provider, by the Function's own builder", async t => {
+  const { calls } = await withProvider(answering(noneTo), () => Promise.all([request(), intentRequest()].map(body => post(body, ARCHITECTURE_ENV))));
+  for (const [index, call] of calls.entries()) {
+    t.diagnostic(`${index === 0 ? "plain" : "intent"}: ${Buffer.byteLength(JSON.stringify(call))} bytes, `
+      + `${Object.keys(call.questions).length} questions, code bytes 0`);
+  }
+  for (const focus of ["web-app-mjs", "ext-jev-api-key", "ext-localstorage", "src-log-mjs"]) {
+    const { result, calls: [call] } = await withProvider(answering(noneTo), () => post(judgeRequest(focus), ARCHITECTURE_ENV));
+    assert.equal(result.status, 200, focus);
+    const { bodies, lines } = call.state.architecture.evidence;
+    const ranges = Object.entries(Object.groupBy(lines, entry => entry.path)).map(([file, entries]) => `${file}:${entries.map(entry => entry.line).join(",")}`);
+    t.diagnostic(`judge ${focus}: ${Buffer.byteLength(JSON.stringify(call))} bytes, ${Object.keys(call.questions).length} questions, `
+      + `bodies [${bodies.map(file => `${file.path} ${Buffer.byteLength(file.text)}B`).join("; ")}], `
+      + `neighbour lines [${ranges.join("; ")}] (${lines.reduce((sum, entry) => sum + Buffer.byteLength(entry.text), 0)}B)`);
+  }
 });

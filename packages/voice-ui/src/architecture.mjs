@@ -1,34 +1,50 @@
 import {
   ACTION_ARCHITECTURE,
+  ARCHITECTURE_INTENT_KIND,
+  ARCHITECTURE_JUDGE_KIND,
   KEY_PATTERN,
   LABEL_MAX,
   MIN_CONFIDENCE,
   NONE,
+  YES,
+  judgeSlotsFor,
   readAnswers,
   relationSlot,
   roleSlot,
   slotsFor,
 } from "./contract.mjs";
-import { ORIGIN_MODEL, ORIGIN_SOURCE, ORIGIN_UNKNOWN } from "./document.mjs";
 import { OUTCOME_NO_CHANGE, OUTCOME_REFUSED, OUTCOME_STEP } from "./turn.mjs";
 
 // The architecture view of one prepared source snapshot. The manifest is the
-// only authority for what exists: admitted files as entities, the entities the
-// scope names outside them, static imports, the candidate pairs Jev may judge,
-// declared facts and the vocabulary. Jev only chooses, from closed options, a
-// role per entity, a relation (or none) per candidate pair and a focus; this
-// module turns those choices into the provider's own operations and says,
-// for every record, where it comes from. It invents no entity, label or
-// relation, and never calls a model-selected relation source-declared.
+// only authority for what exists: admitted files as entities named by their
+// paths, the identifiers the scope names outside them, static imports, the
+// candidate pairs Jev may judge, declared facts and the vocabulary. This
+// module is the one place that says which graph record stands for what, and
+// where each comes from: it builds the records and their claims, and it is
+// what a saved document is checked against. Jev only chooses, from closed
+// options: which one part to look at (asked with no code at all), and then,
+// shown that part's own text, which roles its files have and which relation,
+// if any, holds for each of its candidate pairs. Nothing here invents an
+// entity, label or relation, or calls a model-selected one source-declared.
 
 const MANIFEST_SCHEMA = "voice-ui.architecture-source/1";
 const COMMIT = /^[0-9a-f]{40}$/u;
+
+// Where a claim comes from. Only a file, a static import or a declared fact
+// is source-declared; what Jev chose is model-inferred; what the person did is
+// user-asserted; what the source names but does not contain is unknown.
+export const ORIGIN_SOURCE = "source-declared";
+export const ORIGIN_MODEL = "model-inferred";
+export const ORIGIN_USER = "user-asserted";
+export const ORIGIN_UNKNOWN = "unknown";
 
 const IMPORT_KIND = "imports";
 const DECLARES_KIND = "declares";
 const NODE_KIND = "node";
 const REGION_PREFIX = "arch-";
 const FACT_PREFIX = "arch-fact-";
+const RESOLUTIONS = Object.freeze(["relative", "scope-url-map", "scope-external-url"]);
+const REASON = /^(import|identifier):./u;
 
 // New regions sit on a fixed grid below what is already drawn; the view lays
 // the graph out itself, and the provider only needs real, non-overlapping bounds.
@@ -58,14 +74,25 @@ const deepFreeze = value => {
   return value;
 };
 
+const scalar = value => ["string", "number", "boolean"].includes(typeof value);
 const validFile = file => typeof file?.path === "string" && typeof file.blob === "string" && (
   (exactObject(file, ["path", "blob", "class", "entity"]) && file.class === "admitted" && key(file.entity))
   || (exactObject(file, ["path", "blob", "class", "reason"]) && file.class === "excluded" && text(file.reason)));
+// An admitted file is labelled by its own path; anything else by the
+// identifier or URL the source uses for it.
 const validEntity = entity =>
-  (exactObject(entity, ["id", "label", "kind", "path"]) && entity.kind === "file" && typeof entity.path === "string")
+  (exactObject(entity, ["id", "label", "kind", "path"]) && entity.kind === "file" && entity.label === entity.path)
   || (exactObject(entity, ["id", "label", "kind"]) && entity.kind === "external");
+const validFact = fact => exactObject(fact, Object.hasOwn(fact ?? {}, "row")
+  ? ["id", "entity", "path", "row", "pointer", "value"] : ["id", "entity", "path", "pointer", "value"])
+  && key(fact.id) && typeof fact.path === "string" && typeof fact.pointer === "string"
+  && (fact.row === undefined || (Number.isSafeInteger(fact.row) && fact.row >= 1))
+  && (scalar(fact.value) || (Array.isArray(fact.value) && fact.value.every(scalar)));
 const validVocabulary = list => Array.isArray(list) && list.length > 0
   && list.every(entry => exactObject(entry, ["key", "purpose"]) && key(entry.key) && text(entry.purpose));
+
+// A declared fact as it is drawn: where it is written and what it says.
+const factLabel = fact => `${fact.path}${fact.row === undefined ? "" : `:${fact.row}`} ${fact.pointer} = ${JSON.stringify(fact.value)}`;
 
 // The public manifest, checked whole: available and exactly this shape, or
 // unavailable with the reason the preparation gave, or invalid.
@@ -84,40 +111,103 @@ export function readManifest(value) {
     && text(entity.label) && entity.label.length <= LABEL_MAX)) return invalid("entities are not well-formed");
   const ids = value.entities.map(entity => entity.id);
   if (new Set(ids).size !== ids.length) return invalid("entity ids repeat");
-  if (!Array.isArray(value.imports) || !value.imports.every(edge => exactObject(edge, ["from", "to", "path", "specifier"])
-    && ids.includes(edge.from) && ids.includes(edge.to))) return invalid("imports are not well-formed");
+  const pathOf = new Map(value.entities.filter(entity => entity.kind === "file").map(entity => [entity.id, entity.path]));
+  if (!Array.isArray(value.imports) || !value.imports.every(edge => exactObject(edge, ["from", "to", "path", "specifier", "resolution"])
+    && pathOf.get(edge.from) === edge.path && ids.includes(edge.to) && typeof edge.specifier === "string"
+    && RESOLUTIONS.includes(edge.resolution))) return invalid("imports are not well-formed");
   if (!Array.isArray(value.candidates) || !value.candidates.every(candidate => exactObject(candidate, ["id", "from", "to", "reasons"])
-    && ids.includes(candidate.from) && ids.includes(candidate.to) && candidate.from !== candidate.to
-    && Array.isArray(candidate.reasons) && candidate.reasons.length > 0)) return invalid("candidates are not well-formed");
-  if (!Array.isArray(value.facts) || !value.facts.every(fact => exactObject(fact, ["id", "entity", "path", "pointer", "value"])
-    && key(fact.id) && ids.includes(fact.entity) && ["string", "number", "boolean"].includes(typeof fact.value))) return invalid("facts are not well-formed");
+    && typeof candidate.id === "string" && ids.includes(candidate.from) && ids.includes(candidate.to) && candidate.from !== candidate.to
+    && Array.isArray(candidate.reasons) && candidate.reasons.length > 0
+    && candidate.reasons.every(reason => typeof reason === "string" && REASON.test(reason)))) return invalid("candidates are not well-formed");
+  if (new Set(value.candidates.map(candidate => candidate.id)).size !== value.candidates.length) return invalid("candidate ids repeat");
+  if (!Array.isArray(value.facts) || !value.facts.every(fact => validFact(fact) && pathOf.get(fact.entity) === fact.path
+    && factLabel(fact).length <= LABEL_MAX)) return invalid("facts are not well-formed");
+  if (new Set(value.facts.map(fact => fact.id)).size !== value.facts.length) return invalid("fact ids repeat");
   if (!validVocabulary(value.roles) || !validVocabulary(value.relations)) return invalid("the vocabulary is not well-formed");
   if (!exactObject(value.coverage, ["unsupported", "skipped", "notAnalyzed"])) return invalid("coverage is not well-formed");
   return deepFreeze(structuredClone(value));
 }
 
-// What the page sends Jev about the snapshot: its identity, entities with
-// their labels, candidate pairs with why they are candidates, and the
-// vocabulary. The server checks it against its own copy and adds the evidence.
-export function architectureOf(manifest) {
+// What the page may say about the snapshot with no code at all: its identity
+// and its parts, each by its path or identifier. The server checks it against
+// its own copy.
+export function intentSectionOf(manifest) {
   demand(manifest?.status === "available", "an available manifest is required");
   return deepFreeze({
     source: { ...manifest.source },
     entities: manifest.entities.map(entity => ({ id: entity.id, label: entity.label })),
-    candidates: manifest.candidates.map(candidate => ({ id: candidate.id, from: candidate.from, to: candidate.to, reasons: [...candidate.reasons] })),
+  });
+}
+
+// A request as the plain turn built it, as the architecture page's intent:
+// the same state, the snapshot's parts beside it, and the question which one
+// part, if any, the utterance asks to see. No code is sent.
+export function withArchitecture({ turn, request }, manifest) {
+  const state = Object.freeze({ ...request.state, architecture: intentSectionOf(manifest) });
+  return Object.freeze({
+    turn: Object.freeze({ ...turn, slots: slotsFor(state) }),
+    request: Object.freeze({ kind: ARCHITECTURE_INTENT_KIND, state }),
+  });
+}
+
+// The one part a confident compose-architecture answer asks to see, or null.
+export function focusOf(turn, answers) {
+  const read = readAnswers(answers, turn.slots);
+  if (read === null || read.action.choice !== ACTION_ARCHITECTURE) return null;
+  return read.focus.choice !== NONE && read.focus.confidence >= MIN_CONFIDENCE ? read.focus.choice : null;
+}
+
+// The part of the snapshot one focus opens, decided by the manifest alone.
+// Its body files are the focus's own file, or - for a part outside the
+// source - every admitted file whose text names it; its pairs are exactly the
+// candidate pairs that touch the focus or a body file; its parts are those
+// and their other ends. Null when the focus opens no file.
+export function judgeSectionOf(manifest, focus) {
+  demand(manifest?.status === "available", "an available manifest is required");
+  const byId = new Map(manifest.entities.map(entity => [entity.id, entity]));
+  if (!byId.has(focus)) return null;
+  const touching = id => manifest.candidates.filter(candidate => candidate.from === id || candidate.to === id);
+  const opened = byId.get(focus).kind === "file"
+    ? new Set([focus])
+    : new Set(touching(focus).map(candidate => (candidate.from === focus ? candidate.to : candidate.from)).filter(id => byId.get(id).kind === "file"));
+  if (opened.size === 0) return null;
+  const centre = new Set([focus, ...opened]);
+  const candidates = manifest.candidates.filter(candidate => centre.has(candidate.from) || centre.has(candidate.to));
+  const parts = new Set([...centre, ...candidates.flatMap(candidate => [candidate.from, candidate.to])]);
+  return deepFreeze({
+    source: { ...manifest.source },
+    focus,
+    entities: manifest.entities.filter(entity => parts.has(entity.id)).map(entity => ({ id: entity.id, label: entity.label })),
+    bodies: manifest.entities.filter(entity => opened.has(entity.id)).map(entity => entity.id),
+    candidates: candidates.map(candidate => ({ id: candidate.id, from: candidate.from, to: candidate.to, reasons: [...candidate.reasons] })),
     roles: manifest.roles.map(role => ({ ...role })),
     relations: manifest.relations.map(relation => ({ ...relation })),
   });
 }
 
-// A request as the plain turn built it, with the architecture section and
-// the questions that come with it.
-export function withArchitecture({ turn, request }, manifest) {
-  const state = Object.freeze({ ...request.state, architecture: architectureOf(manifest) });
-  return Object.freeze({
-    turn: Object.freeze({ ...turn, slots: slotsFor(state) }),
-    request: Object.freeze({ ...request, state }),
-  });
+// The second request of a focused utterance: the utterance and the focused
+// section. The server adds that section's text and nothing else.
+export function judgeRequestOf(manifest, focus, utterance) {
+  const section = judgeSectionOf(manifest, focus);
+  return section === null ? null : deepFreeze({ kind: ARCHITECTURE_JUDGE_KIND, state: { utterance, architecture: section } });
+}
+
+// The text a judge request is answered from, for the server to add: every
+// body file whole; and from every other admitted file of the section, exactly
+// the lines holding the text one of its pairs rests on - an import specifier
+// or an identifier - each with its path and line number, and nothing around it.
+export function focusedEvidence(section, manifest, files) {
+  const pathOf = new Map(manifest.entities.filter(entity => entity.kind === "file").map(entity => [entity.id, entity.path]));
+  const bodies = section.bodies.map(id => ({ path: pathOf.get(id), text: files[id] }));
+  const lines = [];
+  for (const { id } of section.entities.filter(entity => pathOf.has(entity.id) && !section.bodies.includes(entity.id))) {
+    const tokens = section.candidates.filter(candidate => candidate.from === id || candidate.to === id)
+      .flatMap(candidate => candidate.reasons.map(reason => reason.slice(reason.indexOf(":") + 1)));
+    files[id].split("\n").forEach((line, index) => {
+      if (tokens.some(token => line.includes(token))) lines.push({ path: pathOf.get(id), line: index + 1, text: line });
+    });
+  }
+  return deepFreeze({ bodies, lines });
 }
 
 const regionIdOf = entityId => `${REGION_PREFIX}${entityId}`;
@@ -126,93 +216,29 @@ const importIdOf = (from, to) => `${REGION_PREFIX}import-${from}-to-${to}`;
 const relationIdOf = (relation, from, to) => `${REGION_PREFIX}${relation}-${from}-to-${to}`;
 const declaresIdOf = factId => `${REGION_PREFIX}declares-${factId}`;
 
-const noChange = reason => Object.freeze({ outcome: OUTCOME_NO_CHANGE, reason });
-const refused = (reason, detail = null) => Object.freeze({ outcome: OUTCOME_REFUSED, reason, ...(detail === null ? {} : { detail }) });
+const factBasis = fact => (fact.row === undefined
+  ? { path: fact.path, pointer: fact.pointer }
+  : { path: fact.path, row: fact.row, pointer: fact.pointer });
+const entry = (record, origin, basis) => Object.freeze({
+  record: Object.freeze(record),
+  claim: Object.freeze({ record: Object.freeze({ type: record.type, id: record.id }), origin, basis: Object.freeze(basis) }),
+});
 
-// The provider takes at most this many operations in one Decision (its
-// MAX_DECISION_OPERATIONS, which its protocol entry does not export). A test
-// holds every planned step to the provider's own constant.
-const DECISION_OPERATIONS_MAX = 32;
-
-// Where each added record goes, so a view can be taken back layer by layer:
-// first the regions, then what the source declares between them, and last the
-// relations Jev chose - which Undo therefore removes first.
-const LAYER_REGIONS = 0;
-const LAYER_DECLARED = 1;
-const LAYER_INFERRED = 2;
-
-// The steps for one compose-architecture answer against the working graph: the
-// entities, their static imports, the relations Jev chose among the candidate
-// pairs, and - for a focus - the declared facts of the entities in that role.
-// Only what the working graph lacks is added: regions, then declared relations,
-// then chosen relations, each as consecutive Decisions within the provider's
-// limit, planned on one another. Every region and relation gets its claim;
-// every entity also gets the role Jev gave it, or none, in the last step.
-export async function planArchitecture({ working, turn, answers, manifest, protocol }) {
-  demand(manifest?.status === "available", "an available manifest is required");
-  if (turn.head !== working.head) return refused("stale");
-  const read = readAnswers(answers, turn.slots);
-  if (read === null) return refused("answer-invalid");
-  demand(read.action.choice === ACTION_ARCHITECTURE, "only a compose-architecture answer is planned here");
-  if (read.action.confidence < MIN_CONFIDENCE) return noChange("not-confident");
-
-  const confident = slot => (read[slot].choice !== NONE && read[slot].confidence >= MIN_CONFIDENCE ? read[slot].choice : null);
-  const roleOf = new Map(manifest.entities.map(entity => [entity.id, confident(roleSlot(entity.id))]));
-  const focus = confident("focus");
-
-  const records = working.records;
-  const root = records.find(record => record?.type === "region" && record.parent === null);
-  const has = id => records.some(record => (record?.type === "region" || record?.type === "relation") && record.id === id);
-
-  // Every record to add: its layer, the provider operation, the change it
-  // shows, and the claim about it.
-  const boxes = records.filter(record => record?.type === "region").map(record => record.bounds);
-  const top = Math.max(...boxes.map(box => box[1] + box[3])) + PART_GAP;
-  let placed = 0;
-  const items = [];
-  const addRegion = (regionId, label, claim) => {
-    const index = placed;
-    placed += 1;
-    items.push({
-      layer: LAYER_REGIONS,
-      operation: {
-        type: "AddRegion",
-        regionId,
-        parentId: root.id,
-        label,
-        kind: NODE_KIND,
-        summary: "",
-        bounds: [
-          root.bounds[0] + PART_GAP + (index % COLUMNS) * (PART_WIDTH + PART_GAP),
-          top + Math.floor(index / COLUMNS) * (PART_HEIGHT + PART_GAP),
-          PART_WIDTH,
-          PART_HEIGHT,
-        ],
-      },
-      change: { change: "added", kind: "region", id: regionId, label },
-      claim,
-    });
-  };
-  const connect = (layer, relation, claim) => items.push({
-    layer,
-    operation: { type: "ConnectRegions", ...relation },
-    change: { change: "added", from: relation.from, to: relation.to },
-    claim,
-  });
-
-  const roleClaims = [];
+// Every record the snapshot itself grounds, keyed by type and id, with what
+// it must look like and the one claim that says where it comes from: a region
+// per part and per fact, one import edge per importing pair citing every
+// import statement it rests on, and one edge from each fact to its file.
+function sourceRecords(manifest) {
+  const records = new Map();
+  const put = value => records.set(`${value.record.type} ${value.record.id}`, value);
   for (const entity of manifest.entities) {
-    const regionId = regionIdOf(entity.id);
-    if (!has(regionId)) {
-      addRegion(regionId, entity.label, entity.kind === "file"
-        ? { record: { type: "region", id: regionId }, origin: ORIGIN_SOURCE, basis: [{ path: entity.path }] }
-        : { record: { type: "region", id: regionId }, origin: ORIGIN_UNKNOWN, basis: [{ scope: "external" }] });
-    }
-    const role = roleOf.get(entity.id);
-    if (role !== null) roleClaims.push({ record: { type: "region", id: regionId }, origin: ORIGIN_MODEL, basis: [], role });
+    put(entity.kind === "file"
+      ? entry({ type: "region", id: regionIdOf(entity.id), label: entity.label }, ORIGIN_SOURCE, [{ path: entity.path }])
+      : entry({ type: "region", id: regionIdOf(entity.id), label: entity.label }, ORIGIN_UNKNOWN, [{ scope: "external" }]));
   }
-
-  // One import edge per pair of entities, citing every import statement it rests on.
+  for (const fact of manifest.facts) {
+    put(entry({ type: "region", id: factIdOf(fact.id), label: factLabel(fact) }, ORIGIN_SOURCE, [factBasis(fact)]));
+  }
   const importsByPair = new Map();
   for (const edge of manifest.imports) {
     const pair = `${edge.from} ${edge.to}`;
@@ -220,50 +246,145 @@ export async function planArchitecture({ working, turn, answers, manifest, proto
   }
   for (const edges of importsByPair.values()) {
     const { from, to } = edges[0];
-    const relationId = importIdOf(from, to);
-    if (has(relationId)) continue;
-    connect(LAYER_DECLARED, { relationId, from: regionIdOf(from), to: regionIdOf(to), kind: IMPORT_KIND, label: "import" }, {
-      record: { type: "relation", id: relationId },
-      origin: ORIGIN_SOURCE,
-      basis: edges.map(edge => ({ path: edge.path, specifier: edge.specifier })),
-    });
+    put(entry({ type: "relation", id: importIdOf(from, to), from: regionIdOf(from), to: regionIdOf(to), kind: IMPORT_KIND, label: IMPORT_KIND },
+      ORIGIN_SOURCE, edges.map(edge => ({ path: edge.path, specifier: edge.specifier, resolution: edge.resolution }))));
   }
+  for (const fact of manifest.facts) {
+    put(entry({ type: "relation", id: declaresIdOf(fact.id), from: factIdOf(fact.id), to: regionIdOf(fact.entity), kind: DECLARES_KIND, label: DECLARES_KIND },
+      ORIGIN_SOURCE, [factBasis(fact)]));
+  }
+  return records;
+}
 
-  if (focus !== null) {
-    for (const fact of manifest.facts.filter(entry => roleOf.get(entry.entity) === focus)) {
-      const regionId = factIdOf(fact.id);
-      const basis = [{ path: fact.path, pointer: fact.pointer }];
-      if (!has(regionId)) {
-        addRegion(regionId, `${fact.pointer}: ${String(fact.value)}`.slice(0, LABEL_MAX),
-          { record: { type: "region", id: regionId }, origin: ORIGIN_SOURCE, basis });
-      }
-      const relationId = declaresIdOf(fact.id);
-      if (!has(relationId)) {
-        connect(LAYER_DECLARED, { relationId, from: regionId, to: regionIdOf(fact.entity), kind: DECLARES_KIND, label: DECLARES_KIND },
-          { record: { type: "relation", id: relationId }, origin: ORIGIN_SOURCE, basis });
+// The relation Jev chose for a candidate pair.
+const inferredRecord = (candidate, kind) => entry(
+  { type: "relation", id: relationIdOf(kind, candidate.from, candidate.to), from: regionIdOf(candidate.from), to: regionIdOf(candidate.to), kind, label: kind },
+  ORIGIN_MODEL, [{ candidate: candidate.id }]);
+
+// A role Jev gave an admitted file, resting on that file's own text.
+const roleClaim = (entity, role) => Object.freeze({
+  record: Object.freeze({ type: "region", id: regionIdOf(entity.id) }), origin: ORIGIN_MODEL, basis: Object.freeze([{ path: entity.path }]), role,
+});
+
+const equal = (left, right) => left === right || (
+  left !== null && right !== null && typeof left === "object" && typeof right === "object"
+  && Array.isArray(left) === Array.isArray(right)
+  && Object.keys(left).length === Object.keys(right).length
+  && Object.keys(left).every(name => Object.hasOwn(right, name) && equal(left[name], right[name])));
+
+// How a saved claim is checked against the snapshot it cites: a function of
+// the claim and the record as its Decision left it, answering why the claim
+// is not what this snapshot grounds, or null. A source-declared or unknown
+// claim must be exactly the snapshot's own claim for that record, and the
+// record exactly as the snapshot draws it - label, ends and kind. A relation
+// Jev chose must be a relation of the closed vocabulary between the two ends
+// of the one candidate pair it cites. A role must be a closed role of an
+// admitted file's region, resting on that file.
+export function claimCheckFor(manifest) {
+  const known = sourceRecords(manifest);
+  const candidates = new Map(manifest.candidates.map(candidate => [candidate.id, candidate]));
+  const relations = manifest.relations.map(relation => relation.key);
+  const roles = manifest.roles.map(role => role.key);
+  const files = new Map(manifest.entities.filter(entity => entity.kind === "file").map(entity => [regionIdOf(entity.id), entity]));
+  return (claim, record) => {
+    const name = `${claim.record.type} ${claim.record.id}`;
+    if (claim.role !== undefined) {
+      const entity = files.get(claim.record.id);
+      if (claim.record.type !== "region" || entity === undefined) return `${name}: only an admitted file has a role`;
+      if (!roles.includes(claim.role)) return `${name}: ${claim.role} is not a role of this snapshot`;
+      return equal(claim, roleClaim(entity, claim.role)) ? null : `${name}: a role rests on the file itself`;
+    }
+    let expected = known.get(name);
+    if (claim.origin === ORIGIN_MODEL) {
+      const candidate = claim.basis.length === 1 ? candidates.get(claim.basis[0].candidate) : undefined;
+      if (candidate === undefined || !relations.includes(record?.kind)) return `${name}: not a closed relation of a candidate pair`;
+      expected = inferredRecord(candidate, record.kind);
+    }
+    if (expected === undefined || !equal(expected.claim, claim)) return `${name}: not a claim this snapshot grounds`;
+    const drawn = Object.keys(expected.record).every(field => equal(expected.record[field], record?.[field]));
+    return drawn ? null : `${name}: not drawn as this snapshot says`;
+  };
+}
+
+const noChange = reason => Object.freeze({ outcome: OUTCOME_NO_CHANGE, reason });
+const refused = (reason, detail = null) => Object.freeze({ outcome: OUTCOME_REFUSED, reason, ...(detail === null ? {} : { detail }) });
+
+// The steps for one compose-architecture utterance against the working graph.
+// Every region and edge the snapshot grounds that the working graph lacks;
+// for a focused utterance also each relation Jev chose, confidently, for a
+// pair of the section, and each role it confirmed for a body file. Regions
+// come first, then edges, as consecutive Decisions of at most `operationsMax`
+// operations each - the provider's own limit, passed in by the caller - each
+// planned on the one before. Every record carries its claim; the roles, which
+// add no record, ride with the last step. Without a focus nothing is judged:
+// the view is structure only, and every role stays unknown.
+export async function planArchitecture({ working, turn, answers, judged, manifest, protocol, operationsMax }) {
+  demand(manifest?.status === "available", "an available manifest is required");
+  demand(Number.isSafeInteger(operationsMax) && operationsMax > 0, "the provider's operation limit is required");
+  if (turn.head !== working.head) return refused("stale");
+  const read = readAnswers(answers, turn.slots);
+  if (read === null) return refused("answer-invalid");
+  demand(read.action.choice === ACTION_ARCHITECTURE, "only a compose-architecture answer is planned here");
+  if (read.action.confidence < MIN_CONFIDENCE) return noChange("not-confident");
+  let judge = null;
+  if (judged !== null) {
+    demand(judged.section.focus === focusOf(turn, answers), "the judged section is the one this answer asked for");
+    judge = readAnswers(judged.answers, judgeSlotsFor(judged.section));
+    if (judge === null) return refused("answer-invalid");
+  }
+  const confident = slot => (judge[slot].choice !== NONE && judge[slot].confidence >= MIN_CONFIDENCE ? judge[slot].choice : null);
+
+  const records = working.records;
+  const root = records.find(record => record?.type === "region" && record.parent === null);
+  const has = id => records.some(record => (record?.type === "region" || record?.type === "relation") && record.id === id);
+
+  const wanted = [...sourceRecords(manifest).values()];
+  const roleClaims = [];
+  if (judge !== null) {
+    for (const candidate of judged.section.candidates) {
+      const kind = confident(relationSlot(candidate.id));
+      if (kind !== null) wanted.push(inferredRecord(candidate, kind));
+    }
+    for (const entity of manifest.entities.filter(part => judged.section.bodies.includes(part.id))) {
+      for (const role of judged.section.roles) {
+        if (confident(roleSlot(entity.id, role.key)) === YES) roleClaims.push(roleClaim(entity, role.key));
       }
     }
   }
+  const fresh = wanted.filter(value => !has(value.record.id));
+  if (fresh.length === 0) return noChange("architecture-nothing-new");
 
-  for (const candidate of manifest.candidates) {
-    const relation = confident(relationSlot(candidate.id));
-    if (relation === null) continue;
-    const relationId = relationIdOf(relation, candidate.from, candidate.to);
-    if (has(relationId)) continue;
-    connect(LAYER_INFERRED, { relationId, from: regionIdOf(candidate.from), to: regionIdOf(candidate.to), kind: relation, label: relation },
-      { record: { type: "relation", id: relationId }, origin: ORIGIN_MODEL, basis: [{ candidate: candidate.id }] });
-  }
-
-  if (items.length === 0) return noChange("architecture-nothing-new");
-
-  // Consecutive Decisions: each layer in turn, never more operations than the
-  // provider takes, each built on the one before it.
-  const chunks = [LAYER_REGIONS, LAYER_DECLARED, LAYER_INFERRED].flatMap(layer => {
-    const inLayer = items.filter(item => item.layer === layer);
-    return Array.from({ length: Math.ceil(inLayer.length / DECISION_OPERATIONS_MAX) },
-      (_, index) => inLayer.slice(index * DECISION_OPERATIONS_MAX, (index + 1) * DECISION_OPERATIONS_MAX));
-  });
-  const confidence = Math.min(read.action.confidence, ...(focus === null ? [] : [read.focus.confidence]));
+  // The provider operation and the change it shows, for each fresh record;
+  // new regions sit on a grid below what is already drawn.
+  const boxes = records.filter(record => record?.type === "region").map(record => record.bounds);
+  const top = Math.max(...boxes.map(box => box[1] + box[3])) + PART_GAP;
+  const regions = fresh.filter(value => value.record.type === "region").map(({ record, claim }, index) => ({
+    operation: {
+      type: "AddRegion",
+      regionId: record.id,
+      parentId: root.id,
+      label: record.label,
+      kind: NODE_KIND,
+      summary: "",
+      bounds: [
+        root.bounds[0] + PART_GAP + (index % COLUMNS) * (PART_WIDTH + PART_GAP),
+        top + Math.floor(index / COLUMNS) * (PART_HEIGHT + PART_GAP),
+        PART_WIDTH,
+        PART_HEIGHT,
+      ],
+    },
+    change: { change: "added", kind: "region", id: record.id, label: record.label },
+    claim,
+  }));
+  const edges = fresh.filter(value => value.record.type === "relation").map(({ record, claim }) => ({
+    operation: { type: "ConnectRegions", relationId: record.id, from: record.from, to: record.to, kind: record.kind, label: record.label },
+    change: { change: "added", from: record.from, to: record.to },
+    claim,
+  }));
+  const items = [...regions, ...edges];
+  const chunks = Array.from({ length: Math.ceil(items.length / operationsMax) },
+    (_, index) => items.slice(index * operationsMax, (index + 1) * operationsMax));
+  const confidence = Math.min(read.action.confidence, ...(judged === null ? [] : [read.focus.confidence]));
   const steps = [];
   let graph = working;
   for (const [index, chunk] of chunks.entries()) {

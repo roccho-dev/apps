@@ -1,5 +1,5 @@
-// What the page and the Function agree on, in one place: the one request and
-// answer kind, their shapes, the options each question offers, and every
+// What the page and the Function agree on, in one place: the request kinds and
+// the one answer kind, their shapes, the options each question offers, and every
 // finite limit and key both sides check. The page builds requests and reads
 // answers with these; the Function validates requests and provider answers
 // with the same ones. Question wording is the Function's own; product words
@@ -7,6 +7,12 @@
 
 export const REQUEST_KIND = "voice-ui.jev.request.v10";
 export const DECISION_KIND = "voice-ui.jev.decision.v5";
+// The architecture page's two requests, each its own closed kind. The intent
+// is the plain request with the prepared snapshot's parts beside it, by path
+// or identifier only, and never any code. The judge follows an intent that
+// chose one part: that part's section alone, whose text the server adds.
+export const ARCHITECTURE_INTENT_KIND = "voice-ui.jev.architecture-intent.v1";
+export const ARCHITECTURE_JUDGE_KIND = "voice-ui.jev.architecture-judge.v1";
 
 // Every slot also offers this option, so it may not be a part, edge or key.
 export const NONE = "none";
@@ -18,9 +24,10 @@ export const ACTION_REMOVE_EDGE = "remove-edge";
 export const ACTION_REVERSE_EDGE = "reverse-edge";
 export const ACTION_COMPOSE = "compose-diagram";
 export const ACTION_UNDO_REQUEST = "undo-request";
-// Offered only on the architecture page, whose requests carry the prepared
-// source's public entities and candidate pairs.
+// Offered only in an architecture intent.
 export const ACTION_ARCHITECTURE = "compose-architecture";
+// A judge's answer that a file has a role; its other option is NONE.
+export const YES = "yes";
 
 export const DIRECTIONS = Object.freeze(["left", "right", "above", "below"]);
 export const PLACEMENT_SLOTS = Object.freeze(["move", "anchor", "direction"]);
@@ -49,9 +56,14 @@ export const KEY_PATTERN = /^[a-z][a-z0-9-]{0,63}$/u;
 const TEXT_MAX = 8000;
 const GRAPH_MAX = 64;
 const ID_MAX = 240;
-// One step changes at most every region and every edge a graph may hold: an
-// architecture view is drafted whole, as one step.
-const CHANGES_MAX = 2 * GRAPH_MAX;
+const CHANGES_MAX = 8;
+// An architecture intent's graph holds a whole prepared snapshot - a region
+// per part and per fact, an edge per import, fact and chosen relation - and
+// one utterance there may add all of it at once, so its draft entries, focus
+// and remembered effects may carry that many changes. A test holds this
+// package's own snapshot within these bounds; the plain request keeps its own.
+const ARCHITECTURE_GRAPH_MAX = 128;
+const ARCHITECTURE_CHANGES_MAX = 2 * ARCHITECTURE_GRAPH_MAX;
 const CONTEXT_SOURCES = Object.freeze(["voice", "typed"]);
 const CONTEXT_OUTCOMES = Object.freeze(["step", "no-change", "undo-request", "refused", "undone"]);
 const FOCUS_KINDS = Object.freeze(["draft", "applied"]);
@@ -106,28 +118,34 @@ const validChange = change => {
     && id(change.to);
 };
 
-const validChanges = value =>
-  Array.isArray(value) && value.length >= 1 && value.length <= CHANGES_MAX && value.every(validChange);
+// The bounds each request kind is held to.
+const LIMITS = new Map([
+  [REQUEST_KIND, Object.freeze({ graph: GRAPH_MAX, changes: CHANGES_MAX, architecture: false })],
+  [ARCHITECTURE_INTENT_KIND, Object.freeze({ graph: ARCHITECTURE_GRAPH_MAX, changes: ARCHITECTURE_CHANGES_MAX, architecture: true })],
+]);
 
-const validGraph = graph => {
+const validChanges = (value, max) =>
+  Array.isArray(value) && value.length >= 1 && value.length <= max && value.every(validChange);
+
+const validGraph = (graph, max) => {
   if (!exactObject(graph, ["regions", "edges", "placeable"])) return false;
   const { regions, edges, placeable } = graph;
-  if (!Array.isArray(regions) || regions.length > GRAPH_MAX) return false;
+  if (!Array.isArray(regions) || regions.length > max) return false;
   if (!regions.every(region => exactObject(region, ["id", "label"]) && id(region.id) && text(region.label, LABEL_MAX))) return false;
   const ids = regions.map(region => region.id);
   if (!unique(ids)) return false;
-  if (!Array.isArray(edges) || edges.length > GRAPH_MAX) return false;
+  if (!Array.isArray(edges) || edges.length > max) return false;
   if (!edges.every(edge => exactObject(edge, ["id", "from", "to"]) && id(edge.id) && ids.includes(edge.from) && ids.includes(edge.to))) return false;
   if (!unique(edges.map(edge => edge.id))) return false;
   return Array.isArray(placeable) && placeable.every(value => ids.includes(value)) && unique(placeable);
 };
 
-const validFocus = focus => focus === null
-  || (exactObject(focus, ["kind", "changes"]) && FOCUS_KINDS.includes(focus.kind) && validChanges(focus.changes));
+const validFocus = (focus, max) => focus === null
+  || (exactObject(focus, ["kind", "changes"]) && FOCUS_KINDS.includes(focus.kind) && validChanges(focus.changes, max));
 
 // An earlier utterance and what came of it. Only a step, not undone, carries
 // the effect the page built from it then.
-const validContextEntry = entry =>
+const validContextEntry = (entry, max) =>
   exactObject(entry, entry?.outcome === "step"
     ? ["seq", "source", "text", "outcome", "effect"]
     : ["seq", "source", "text", "outcome"])
@@ -135,13 +153,13 @@ const validContextEntry = entry =>
   && CONTEXT_SOURCES.includes(entry.source)
   && text(entry.text, CONTEXT_TEXT_MAX)
   && CONTEXT_OUTCOMES.includes(entry.outcome)
-  && (entry.outcome !== "step" || (exactObject(entry.effect, ["changes"]) && validChanges(entry.effect.changes)));
+  && (entry.outcome !== "step" || (exactObject(entry.effect, ["changes"]) && validChanges(entry.effect.changes, max)));
 
-const validContext = context =>
+const validContext = (context, max) =>
   exactObject(context, ["recent"])
   && Array.isArray(context.recent)
   && context.recent.length <= CONTEXT_MAX
-  && context.recent.every(validContextEntry)
+  && context.recent.every(entry => validContextEntry(entry, max))
   && context.recent.every((entry, index) => index === 0 || entry.seq > context.recent[index - 1].seq);
 
 // The placement the previous utterance nearly made: part ids and a side, the
@@ -166,51 +184,78 @@ const validOffer = list =>
 
 const COMMIT = /^[0-9a-f]{40}$/u;
 
-// The prepared source as the architecture page sends it: its identity, the
-// entities and candidate pairs of its public manifest, and the vocabulary Jev
-// may choose from. Never file contents; the server adds those itself.
-const validArchitecture = architecture => {
-  if (!exactObject(architecture, ["source", "entities", "candidates", "roles", "relations"])) return false;
-  const { source, entities, candidates, roles, relations } = architecture;
-  if (!exactObject(source, ["handle", "commit"]) || !KEY_PATTERN.test(source.handle ?? "") || !COMMIT.test(source.commit ?? "")) return false;
-  if (!Array.isArray(entities) || entities.length === 0 || entities.length > GRAPH_MAX) return false;
-  if (!entities.every(entity => exactObject(entity, ["id", "label"]) && KEY_PATTERN.test(entity.id ?? "") && entity.id !== NONE
-    && text(entity.label, LABEL_MAX))) return false;
-  const ids = entities.map(entity => entity.id);
-  if (!unique(ids)) return false;
-  if (!Array.isArray(candidates) || candidates.length > GRAPH_MAX) return false;
-  if (!candidates.every(candidate => exactObject(candidate, ["id", "from", "to", "reasons"]) && id(candidate.id)
-    && ids.includes(candidate.from) && ids.includes(candidate.to) && candidate.from !== candidate.to
-    && Array.isArray(candidate.reasons) && candidate.reasons.length > 0 && candidate.reasons.every(reason => text(reason, LABEL_MAX)))) return false;
-  if (!unique(candidates.map(candidate => candidate.id))) return false;
-  return validOffer(roles) && roles.length > 0 && validOffer(relations) && relations.length > 0;
-};
+// The prepared snapshot's identity, and its parts by id and path or identifier.
+const validParts = (source, entities) =>
+  exactObject(source, ["handle", "commit"]) && KEY_PATTERN.test(source.handle ?? "") && COMMIT.test(source.commit ?? "")
+  && Array.isArray(entities) && entities.length > 0 && entities.length <= ARCHITECTURE_GRAPH_MAX
+  && entities.every(entity => exactObject(entity, ["id", "label"]) && KEY_PATTERN.test(entity.id ?? "") && entity.id !== NONE
+    && text(entity.label, LABEL_MAX))
+  && unique(entities.map(entity => entity.id));
+
+// An intent's section: the parts and nothing else.
+const validIntent = section => exactObject(section, ["source", "entities"]) && validParts(section.source, section.entities);
 
 const STATE_KEYS = Object.freeze(["utterance", "graph", "draft", "focus", "pending", "context", "offers"]);
 
+// A plain request, or an architecture intent, each held to its own bounds.
 export function isRequest(value) {
-  if (!exactObject(value, ["kind", "state"]) || value.kind !== REQUEST_KIND) return false;
+  if (!exactObject(value, ["kind", "state"]) || !LIMITS.has(value.kind)) return false;
+  const { graph, changes, architecture } = LIMITS.get(value.kind);
   const { state } = value;
-  const architecture = state !== null && typeof state === "object" && Object.hasOwn(state, "architecture");
   return exactObject(state, architecture ? [...STATE_KEYS, "architecture"] : STATE_KEYS)
-    && (!architecture || validArchitecture(state.architecture))
+    && (!architecture || validIntent(state.architecture))
     && text(state.utterance, TEXT_MAX)
-    && validGraph(state.graph)
+    && validGraph(state.graph, graph)
     && Array.isArray(state.draft)
     && state.draft.length <= DRAFT_MAX
-    && state.draft.every(step => exactObject(step, ["changes"]) && validChanges(step.changes))
-    && validFocus(state.focus)
+    && state.draft.every(step => exactObject(step, ["changes"]) && validChanges(step.changes, changes))
+    && validFocus(state.focus, changes)
     && validPending(state.pending, state.graph.placeable)
-    && validContext(state.context)
+    && validContext(state.context, changes)
     && exactObject(state.offers, ["parts", "diagrams"])
     && validOffer(state.offers.parts)
     && validOffer(state.offers.diagrams);
 }
 
-// The architecture questions' names: one role per entity, one relation per
-// candidate pair.
-export const roleSlot = entityId => `role-${entityId}`;
+// An architecture judge: the utterance and one focused section - its parts,
+// which of them are body files, the candidate pairs among them with the text
+// each rests on, and the vocabulary. Never file contents; the server adds
+// those itself.
+export function isJudgeRequest(value) {
+  if (!exactObject(value, ["kind", "state"]) || value.kind !== ARCHITECTURE_JUDGE_KIND) return false;
+  const { state } = value;
+  if (!exactObject(state, ["utterance", "architecture"]) || !text(state.utterance, TEXT_MAX)) return false;
+  const section = state.architecture;
+  if (!exactObject(section, ["source", "focus", "entities", "bodies", "candidates", "roles", "relations"])
+    || !validParts(section.source, section.entities)) return false;
+  const ids = section.entities.map(entity => entity.id);
+  const { candidates } = section;
+  return ids.includes(section.focus)
+    && Array.isArray(section.bodies) && section.bodies.length > 0 && section.bodies.every(body => ids.includes(body)) && unique(section.bodies)
+    && Array.isArray(candidates) && candidates.length <= ARCHITECTURE_GRAPH_MAX
+    && candidates.every(candidate => exactObject(candidate, ["id", "from", "to", "reasons"]) && id(candidate.id)
+      && ids.includes(candidate.from) && ids.includes(candidate.to) && candidate.from !== candidate.to
+      && Array.isArray(candidate.reasons) && candidate.reasons.length > 0 && candidate.reasons.every(reason => text(reason, LABEL_MAX)))
+    && unique(candidates.map(candidate => candidate.id))
+    && validOffer(section.roles) && section.roles.length > 0 && validOffer(section.relations) && section.relations.length > 0;
+}
+
+// A judge's questions by name: one per role of each body file, one per pair.
+export const roleSlot = (entityId, role) => `role-${entityId}--${role}`;
 export const relationSlot = candidateId => `relation-${candidateId}`;
+
+// The questions a judge request puts to Jev and the options of each: whether
+// a body file has a role, yes or none; and which relation, or none, holds for
+// a pair.
+export function judgeSlotsFor(section) {
+  const relations = section.relations.map(relation => relation.key);
+  const slots = {};
+  for (const body of section.bodies) {
+    for (const role of section.roles) slots[roleSlot(body, role.key)] = [YES, NONE];
+  }
+  for (const candidate of section.candidates) slots[relationSlot(candidate.id)] = [...relations, NONE];
+  return Object.freeze(Object.fromEntries(Object.entries(slots).map(([name, keys]) => [name, Object.freeze(keys)])));
+}
 
 // The questions a request puts to Jev and the options of each, derived from
 // the request alone. An action is offered only when the graph can carry it
@@ -234,13 +279,7 @@ export function slotsFor(state) {
       NONE,
     ],
   };
-  if (state.architecture) {
-    const roles = state.architecture.roles.map(role => role.key);
-    const relations = state.architecture.relations.map(relation => relation.key);
-    slots.focus = [...roles, NONE];
-    for (const entity of state.architecture.entities) slots[roleSlot(entity.id)] = [...roles, NONE];
-    for (const candidate of state.architecture.candidates) slots[relationSlot(candidate.id)] = [...relations, NONE];
-  }
+  if (state.architecture) slots.focus = [...state.architecture.entities.map(entity => entity.id), NONE];
   if (canEdge) {
     slots.source = [...nodes, NONE];
     slots.target = [...nodes, NONE];

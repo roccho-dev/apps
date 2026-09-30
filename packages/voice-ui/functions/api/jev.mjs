@@ -7,16 +7,21 @@ import {
   ACTION_REMOVE_EDGE,
   ACTION_REVERSE_EDGE,
   ACTION_UNDO_REQUEST,
+  ARCHITECTURE_INTENT_KIND,
   DECISION_KIND,
   ERRORS,
   NONE,
+  REQUEST_KIND,
+  YES,
+  isJudgeRequest,
   isRequest,
+  judgeSlotsFor,
   readAnswers,
   relationSlot,
   roleSlot,
   slotsFor,
 } from "../../src/contract.mjs";
-import { architectureOf, readManifest } from "../../src/architecture.mjs";
+import { focusedEvidence, intentSectionOf, judgeSectionOf, readManifest } from "../../src/architecture.mjs";
 
 const json = (body, status = 200) =>
   new Response(JSON.stringify(body), {
@@ -72,7 +77,7 @@ const ACTION_WORDS = {
   [ACTION_REVERSE_EDGE]: "the utterance asks to reverse the direction of one edge of the working graph",
   [ACTION_UNDO_REQUEST]: "the utterance asks to undo, take back or go back on an earlier change",
   [ACTION_COMPOSE]: "the utterance asks for a whole diagram or chart by what it is for, rather than one edit",
-  [ACTION_ARCHITECTURE]: "the utterance asks for a diagram of how this code is built, or for more detail on one kind of part of it",
+  [ACTION_ARCHITECTURE]: "the utterance asks for a diagram of how this code is built, or for more detail on one part of it",
   [NONE]: "the utterance asks for anything else, or for no change to the graph",
 };
 
@@ -179,47 +184,51 @@ function questionsFor(state, slots) {
         : `the utterance asks for ${purposeOf.get(key)}`),
     };
   }
-  if (state.architecture) Object.assign(questions, architectureQuestions(state.architecture));
+  if (slots.focus) {
+    const labelOf = new Map(state.architecture.entities.map(entity => [entity.id, entity.label]));
+    questions.focus = {
+      type: "choice",
+      instructions: "If the utterance asks how this code is built, which one part of it does it ask to see in more detail? "
+        + "state.architecture.entities names each part by its file path or, for what lies outside the source, "
+        + "by the identifier or URL the source uses for it.",
+      criteria: criteria(slots.focus, key => key === NONE
+        ? "the code as a whole, or no one part of it"
+        : `the part ${labelOf.get(key)}`),
+    };
+  }
   for (const question of Object.values(questions)) question.instructions += CONTEXT_NOTE;
   return questions;
 }
 
-// The architecture questions: a focus, a role for every entity and a relation
-// for every candidate pair, each from the prepared vocabulary or none. The
-// evidence is the admitted files' own text, which only this Function adds.
-const EVIDENCE_NOTE = " state.architecture.evidence holds the admitted source files' text by entity id;"
-  + " an entity without evidence is outside the admitted source and known only by its label."
-  + " Judge only from that text; if it does not show the answer, answer none.";
+// A judge's questions: for each body file, whether it has each role; for each
+// pair, which relation holds, if any. Every answer rests only on the text
+// this Function adds: whole body files, and single lines of other files.
+const EVIDENCE_NOTE = " state.architecture.evidence.bodies holds whole files, each with its path;"
+  + " state.architecture.evidence.lines holds single lines of other files, each with its path and line number, and nothing around them."
+  + " A part with no text there is known only by its name. Judge only from that text; if it does not show the answer, answer none.";
 
-function architectureQuestions(architecture) {
-  const labelOf = new Map(architecture.entities.map(entity => [entity.id, entity.label]));
-  const roleWords = new Map(architecture.roles.map(role => [role.key, role.purpose]));
-  const relationWords = new Map(architecture.relations.map(relation => [relation.key, relation.purpose]));
-  const questions = {
-    focus: {
-      type: "choice",
-      instructions: "If the utterance asks for the code architecture, which kind of part does it ask to see in more detail?",
-      criteria: criteria([...roleWords.keys(), NONE], key => key === NONE
-        ? "the whole architecture, or no particular kind of part"
-        : `parts that ${roleWords.get(key)}`),
-    },
-  };
-  for (const entity of architecture.entities) {
-    questions[roleSlot(entity.id)] = {
-      type: "choice",
-      instructions: `Which role does "${entity.label}" (entity ${entity.id}) play in this code?${EVIDENCE_NOTE}`,
-      criteria: criteria([...roleWords.keys(), NONE], key => key === NONE
-        ? "none of these roles, or the evidence does not show one"
-        : `it ${roleWords.get(key)}`),
-    };
+function judgeQuestions(section, slots) {
+  const labelOf = new Map(section.entities.map(entity => [entity.id, entity.label]));
+  const questions = {};
+  for (const body of section.bodies) {
+    for (const role of section.roles) {
+      questions[roleSlot(body, role.key)] = {
+        type: "choice",
+        instructions: `Does the file ${labelOf.get(body)}, whose whole text is in state.architecture.evidence.bodies, ${role.purpose}?${EVIDENCE_NOTE}`,
+        criteria: criteria(slots[roleSlot(body, role.key)], key => key === YES
+          ? `yes: its own text shows that it ${role.purpose}`
+          : "no, or its text does not show it"),
+      };
+    }
   }
-  for (const candidate of architecture.candidates) {
+  const relationWords = new Map(section.relations.map(relation => [relation.key, relation.purpose]));
+  for (const candidate of section.candidates) {
     questions[relationSlot(candidate.id)] = {
       type: "choice",
-      instructions: `From "${labelOf.get(candidate.from)}" to "${labelOf.get(candidate.to)}" (a candidate pair because of: ${candidate.reasons.join(", ")}):`
+      instructions: `From ${labelOf.get(candidate.from)} to ${labelOf.get(candidate.to)} (a candidate pair because of: ${candidate.reasons.join(", ")}):`
         + ` which relation holds at run time from the first to the second? Being a candidate is not evidence of any relation.${EVIDENCE_NOTE}`,
-      criteria: criteria([...relationWords.keys(), NONE], key => key === NONE
-        ? "no relation of these kinds holds, or the evidence does not show one"
+      criteria: criteria(slots[relationSlot(candidate.id)], key => key === NONE
+        ? "no relation of these kinds holds, or the text does not show one"
         : relationWords.get(key)),
     };
   }
@@ -236,9 +245,12 @@ function boundArchitecture(env) {
   return { manifest, files: evidence.files };
 }
 
-// One request kind in, one answer kind out, and a closed set of failures. The
-// state is sent to Jev as the named object it arrived as; the questions carry
-// only the judgments.
+// The request kinds in, one answer kind out, and a closed set of failures.
+// The state is sent to Jev as the named object it arrived as; the questions
+// carry only the judgments. An architecture request must name exactly this
+// server's own snapshot, or it is refused before the provider is asked: an
+// intent is sent as it came, with no code; a judge is sent with its section's
+// text added here, which is never sent back.
 export async function onRequestPost({ request, env }) {
   if (typeof env?.JEV_API_KEY !== "string" || env.JEV_API_KEY.length === 0) {
     return json({ error: ERRORS.unavailable }, 503);
@@ -250,27 +262,30 @@ export async function onRequestPost({ request, env }) {
   } catch {
     return json({ error: ERRORS.invalidJson }, 400);
   }
-  if (!isRequest(input)) return json({ error: ERRORS.invalidRequest }, 422);
+  if (!isRequest(input) && !isJudgeRequest(input)) return json({ error: ERRORS.invalidRequest }, 422);
 
-  const { state } = input;
-  const slots = slotsFor(state);
-  // The architecture section must be exactly this server's own snapshot;
-  // anything else is refused before the provider is asked. The evidence is
-  // added here, and never sent back.
+  const { kind, state } = input;
   let asked = state;
-  if (state.architecture !== undefined) {
+  let slots;
+  let questions;
+  if (kind === REQUEST_KIND) {
+    slots = slotsFor(state);
+    questions = questionsFor(state, slots);
+  } else {
     const bound = boundArchitecture(env);
     if (bound === null) return json({ error: ERRORS.architectureUnavailable }, 503);
-    if (JSON.stringify(state.architecture) !== JSON.stringify(architectureOf(bound.manifest))) {
-      return json({ error: ERRORS.architectureMismatch }, 422);
+    const own = kind === ARCHITECTURE_INTENT_KIND ? intentSectionOf(bound.manifest) : judgeSectionOf(bound.manifest, state.architecture.focus);
+    if (JSON.stringify(state.architecture) !== JSON.stringify(own)) return json({ error: ERRORS.architectureMismatch }, 422);
+    if (kind === ARCHITECTURE_INTENT_KIND) {
+      slots = slotsFor(state);
+      questions = questionsFor(state, slots);
+    } else {
+      slots = judgeSlotsFor(own);
+      questions = judgeQuestions(own, slots);
+      asked = { ...state, architecture: { ...own, evidence: focusedEvidence(own, bound.manifest, bound.files) } };
     }
-    const evidence = Object.fromEntries(state.architecture.entities
-      .filter(entity => Object.hasOwn(bound.files, entity.id))
-      .map(entity => [entity.id, bound.files[entity.id]]));
-    const facts = bound.manifest.facts.map(fact => ({ entity: fact.entity, path: fact.path, pointer: fact.pointer, value: fact.value }));
-    asked = { ...state, architecture: { ...state.architecture, facts, evidence } };
   }
-  const { text, error } = await callProvider(env, { model: "jev-latest", state: asked, questions: questionsFor(state, slots) });
+  const { text, error } = await callProvider(env, { model: "jev-latest", state: asked, questions });
   if (error) return error;
 
   let value;
