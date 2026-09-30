@@ -253,6 +253,35 @@ test("an architecture request without this server's prepared source is refused b
   }
 });
 
+test("a prepared source whose private text is not exactly the admitted files is refused before the provider, for every kind", async () => {
+  const files = prepared.evidence.files;
+  const [first] = Object.keys(files);
+  const { [first]: dropped, ...missing } = files;
+  assert.equal(typeof dropped, "string");
+  const broken = [
+    ["a file's text missing", missing],
+    ["an extra file", { ...files, "not-admitted": "text" }],
+    ["a text that is not a string", { ...files, [first]: null }],
+    ["no files at all", null],
+    ["files as a list", Object.values(files)],
+  ];
+  for (const [label, value] of broken) {
+    const env = { JEV_API_KEY: "test-only-value", ARCHITECTURE: { manifest: prepared.manifest, evidence: { ...prepared.evidence, files: value } } };
+    for (const body of [intentRequest(), locateRequest(), judgeRequest("web-app-mjs")]) {
+      const { result, calls } = await withProvider(answering(noneTo), () => post(body, env));
+      assert.equal(result.status, 503, `${label}: ${body.kind}`);
+      assert.deepEqual(await result.json(), { error: ERRORS.architectureUnavailable }, `${label}: ${body.kind}`);
+      assert.equal(calls.length, 0, `${label}: ${body.kind} never reaches the provider`);
+    }
+  }
+  // An admitted file may be empty: its text is then the empty string, still sent.
+  const empty = { ...files, [first]: "" };
+  const { result, calls } = await withProvider(answering(noneTo), () => post(locateRequest(),
+    { JEV_API_KEY: "test-only-value", ARCHITECTURE: { manifest: prepared.manifest, evidence: { ...prepared.evidence, files: empty } } }));
+  assert.equal(result.status, 200);
+  assert.ok(calls[0].state.architecture.evidence.bodies.every(body => typeof body.text === "string"));
+});
+
 test("an architecture section that is not exactly this server's snapshot is refused before the provider", async () => {
   const own = intentSectionOf(MANIFEST);
   const judge = judgeRequest("src-log-mjs");
