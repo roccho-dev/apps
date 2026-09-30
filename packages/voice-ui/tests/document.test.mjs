@@ -64,8 +64,9 @@ const drafted = async () => {
   answers[roleSlot("saver")] = { type: "choice", choice: "persistence", confidence: 0.9 };
   answers[relationSlot("c-page-app--saver")] = { type: "choice", choice: "calls", confidence: 0.9 };
   const planned = await planArchitecture({ working: created, turn, answers, manifest: MANIFEST, protocol });
-  const graph = (await protocol.appendDecision(created.log, planned.step.decision)).verified;
-  return { created, graph, draft: [{ step: { decision: created.decisions[0] } }, { step: planned.step, claims: planned.claims }] };
+  let graph = created;
+  for (const { step } of planned.steps) graph = (await protocol.appendDecision(graph.log, step.decision)).verified;
+  return { created, graph, draft: [{ step: { decision: created.decisions[0] } }, ...planned.steps] };
 };
 
 const commitWith = (origin, graph, draft, saved, expected, manifest = MANIFEST) => commitDocument({

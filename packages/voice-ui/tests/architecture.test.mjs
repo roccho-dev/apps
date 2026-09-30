@@ -12,6 +12,17 @@ import { requestFor } from "../src/turn.mjs";
 const store = process.env.SEMANTIC_MAP;
 if (!store) throw new Error("SEMANTIC_MAP must point at the pinned semantic-map store path");
 const protocol = await import(pathToFileURL(path.join(store, "packages/semantic-map/protocol/index.js")).href);
+// The provider's own limit, read from the provider, never restated here.
+const { MAX_DECISION_OPERATIONS } = await import(pathToFileURL(path.join(store, "packages/semantic-map/domain/operation.js")).href);
+
+// Every step of a plan, appended in order onto the working graph.
+const appendAll = async (working, planned) => {
+  let graph = working;
+  for (const { step } of planned.steps) graph = (await protocol.appendDecision(graph.log, step.decision)).verified;
+  return graph;
+};
+const claimsOf = planned => planned.steps.flatMap(item => item.claims);
+const changesOf = planned => planned.steps.flatMap(item => item.step.changes);
 
 const COMMIT = "0123456789abcdef0123456789abcdef01234567";
 
@@ -98,26 +109,50 @@ test("a view is built from the source only: files and imports declared, roles an
     }),
   });
   assert.equal(planned.outcome, "step");
-  const added = planned.step.changes;
+  const added = changesOf(planned);
   assert.deepEqual(added.filter(change => change.kind === "region").map(change => change.id).sort(),
     ["arch-browser-store", "arch-page-app", "arch-saver", "arch-settings"]);
   assert.deepEqual(added.filter(change => change.kind !== "region").map(change => `${change.from}->${change.to}`).sort(),
     ["arch-page-app->arch-saver", "arch-saver->arch-browser-store"], "the import, and the one confident relation");
+  assert.deepEqual(planned.steps.map(item => item.step.changes.length), [4, 1, 1],
+    "regions, then the declared import, then the chosen relation - which Undo removes first");
 
-  const claimOf = (id, origin) => planned.claims.find(claim => claim.record.id === id && claim.origin === origin);
+  const claimOf = (id, origin) => claimsOf(planned).find(claim => claim.record.id === id && claim.origin === origin);
   assert.deepEqual(claimOf("arch-page-app", "source-declared").basis, [{ path: "a.mjs" }]);
   assert.deepEqual(claimOf("arch-browser-store", "unknown").basis, [{ scope: "external" }]);
   assert.deepEqual(claimOf("arch-import-page-app-to-saver", "source-declared").basis, [{ path: "a.mjs", specifier: "./b.mjs" }]);
   assert.deepEqual(claimOf("arch-stores-in-saver-to-browser-store", "model-inferred").basis, [{ candidate: "c-saver--browser-store" }]);
   assert.equal(claimOf("arch-saver", "model-inferred").role, "persistence");
   assert.equal(claimOf("arch-settings", "model-inferred"), undefined, "an unsure role is no role");
-  assert.equal(planned.claims.some(claim => claim.record.id.startsWith("arch-calls")), false, "an unsure relation is not drawn");
-  assert.equal(planned.claims.some(claim => claim.origin === "source-declared" && claim.basis.some(entry => entry.candidate)), false,
+  assert.equal(claimsOf(planned).some(claim => claim.record.id.startsWith("arch-calls")), false, "an unsure relation is not drawn");
+  assert.equal(claimsOf(planned).some(claim => claim.origin === "source-declared" && claim.basis.some(entry => entry.candidate)), false,
     "a model-selected relation is never source-declared");
+  assert.ok(planned.steps.at(-1).claims.some(claim => claim.role === "persistence"), "roles come with the last step");
 
-  // The provider built it on the working head: one Decision.
-  const next = (await protocol.appendDecision(working.log, planned.step.decision)).verified;
-  assert.equal(next.decisions.length, 2);
+  // The provider built each step on the one before: consecutive Decisions.
+  const next = await appendAll(working, planned);
+  assert.equal(next.decisions.length, 1 + planned.steps.length);
+});
+
+test("a view larger than the provider takes in one Decision is split, never refused or cut short", async () => {
+  const many = Array.from({ length: 40 }, (_, index) => `part-${String(index).padStart(2, "0")}`);
+  const manifest = readManifest({
+    ...structuredClone(MANIFEST),
+    files: many.map(id => ({ path: `${id}.mjs`, blob: "1".repeat(40), class: "admitted", entity: id })),
+    entities: many.map(id => ({ id, label: id, kind: "file", path: `${id}.mjs` })),
+    imports: many.slice(1).map((id, index) => ({ from: many[index], to: id, path: `${many[index]}.mjs`, specifier: `./${id}.mjs` })),
+    candidates: [],
+    facts: [],
+  });
+  const working = await mapGraph();
+  const { turn } = turnFor(working, manifest);
+  const planned = await planArchitecture({ working, turn, manifest, protocol, answers: answerFor(turn, { action: ACTION_ARCHITECTURE }) });
+  assert.equal(planned.outcome, "step", planned.detail);
+  assert.ok(planned.steps.length > 2);
+  for (const { step } of planned.steps) assert.ok(step.changes.length <= MAX_DECISION_OPERATIONS);
+  assert.equal(changesOf(planned).length, 40 + 39, "every region and every import, nothing dropped");
+  const next = await appendAll(working, planned);
+  assert.equal(next.records.filter(record => record.type === "region").length, 1 + 40);
 });
 
 test("a focus adds the declared facts of the entities in that role, and a repeat adds nothing", async () => {
@@ -128,19 +163,19 @@ test("a focus adds the declared facts of the entities in that role, and a repeat
     working: first, turn: firstTurn, manifest, protocol,
     answers: answerFor(firstTurn, { action: ACTION_ARCHITECTURE, [roleSlot("settings")]: "config" }),
   });
-  const working = (await protocol.appendDecision(first.log, whole.step.decision)).verified;
+  const working = await appendAll(first, whole);
   const { turn } = turnFor(working, manifest);
   const focused = await planArchitecture({
     working, turn, manifest, protocol,
     answers: answerFor(turn, { action: ACTION_ARCHITECTURE, focus: "config", [roleSlot("settings")]: "config" }),
   });
   assert.equal(focused.outcome, "step");
-  assert.deepEqual(focused.step.changes.map(change => change.id ?? `${change.from}->${change.to}`),
+  assert.deepEqual(changesOf(focused).map(change => change.id ?? `${change.from}->${change.to}`),
     ["arch-fact-store-key", "arch-fact-store-key->arch-settings"]);
-  assert.equal(focused.step.changes[0].label, "/key: k1");
-  assert.ok(focused.claims.every(claim => claim.origin !== "source-declared" || claim.basis.every(entry => entry.pointer === "/key")));
+  assert.equal(changesOf(focused)[0].label, "/key: k1");
+  assert.ok(claimsOf(focused).every(claim => claim.origin !== "source-declared" || claim.basis.every(entry => entry.pointer === "/key")));
 
-  const after = (await protocol.appendDecision(working.log, focused.step.decision)).verified;
+  const after = await appendAll(working, focused);
   const again = turnFor(after, manifest).turn;
   const repeat = await planArchitecture({
     working: after, turn: again, manifest, protocol,

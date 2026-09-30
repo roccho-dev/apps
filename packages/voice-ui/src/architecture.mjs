@@ -129,11 +129,25 @@ const declaresIdOf = factId => `${REGION_PREFIX}declares-${factId}`;
 const noChange = reason => Object.freeze({ outcome: OUTCOME_NO_CHANGE, reason });
 const refused = (reason, detail = null) => Object.freeze({ outcome: OUTCOME_REFUSED, reason, ...(detail === null ? {} : { detail }) });
 
-// The step for one compose-architecture answer against the working graph: the
+// The provider takes at most this many operations in one Decision (its
+// MAX_DECISION_OPERATIONS, which its protocol entry does not export). A test
+// holds every planned step to the provider's own constant.
+const DECISION_OPERATIONS_MAX = 32;
+
+// Where each added record goes, so a view can be taken back layer by layer:
+// first the regions, then what the source declares between them, and last the
+// relations Jev chose - which Undo therefore removes first.
+const LAYER_REGIONS = 0;
+const LAYER_DECLARED = 1;
+const LAYER_INFERRED = 2;
+
+// The steps for one compose-architecture answer against the working graph: the
 // entities, their static imports, the relations Jev chose among the candidate
 // pairs, and - for a focus - the declared facts of the entities in that role.
-// Only what the working graph lacks is added, as one Decision. Every region and
-// relation gets its claim; every entity also gets the role Jev gave it, or none.
+// Only what the working graph lacks is added: regions, then declared relations,
+// then chosen relations, each as consecutive Decisions within the provider's
+// limit, planned on one another. Every region and relation gets its claim;
+// every entity also gets the role Jev gave it, or none, in the last step.
 export async function planArchitecture({ working, turn, answers, manifest, protocol }) {
   demand(manifest?.status === "available", "an available manifest is required");
   if (turn.head !== working.head) return refused("stale");
@@ -150,19 +164,52 @@ export async function planArchitecture({ working, turn, answers, manifest, proto
   const root = records.find(record => record?.type === "region" && record.parent === null);
   const has = id => records.some(record => (record?.type === "region" || record?.type === "relation") && record.id === id);
 
-  const regions = [];
-  const relations = [];
-  const claims = [];
+  // Every record to add: its layer, the provider operation, the change it
+  // shows, and the claim about it.
+  const boxes = records.filter(record => record?.type === "region").map(record => record.bounds);
+  const top = Math.max(...boxes.map(box => box[1] + box[3])) + PART_GAP;
+  let placed = 0;
+  const items = [];
+  const addRegion = (regionId, label, claim) => {
+    const index = placed;
+    placed += 1;
+    items.push({
+      layer: LAYER_REGIONS,
+      operation: {
+        type: "AddRegion",
+        regionId,
+        parentId: root.id,
+        label,
+        kind: NODE_KIND,
+        summary: "",
+        bounds: [
+          root.bounds[0] + PART_GAP + (index % COLUMNS) * (PART_WIDTH + PART_GAP),
+          top + Math.floor(index / COLUMNS) * (PART_HEIGHT + PART_GAP),
+          PART_WIDTH,
+          PART_HEIGHT,
+        ],
+      },
+      change: { change: "added", kind: "region", id: regionId, label },
+      claim,
+    });
+  };
+  const connect = (layer, relation, claim) => items.push({
+    layer,
+    operation: { type: "ConnectRegions", ...relation },
+    change: { change: "added", from: relation.from, to: relation.to },
+    claim,
+  });
+
+  const roleClaims = [];
   for (const entity of manifest.entities) {
     const regionId = regionIdOf(entity.id);
     if (!has(regionId)) {
-      regions.push({ regionId, label: entity.label });
-      claims.push(entity.kind === "file"
+      addRegion(regionId, entity.label, entity.kind === "file"
         ? { record: { type: "region", id: regionId }, origin: ORIGIN_SOURCE, basis: [{ path: entity.path }] }
         : { record: { type: "region", id: regionId }, origin: ORIGIN_UNKNOWN, basis: [{ scope: "external" }] });
     }
     const role = roleOf.get(entity.id);
-    if (role !== null) claims.push({ record: { type: "region", id: regionId }, origin: ORIGIN_MODEL, basis: [], role });
+    if (role !== null) roleClaims.push({ record: { type: "region", id: regionId }, origin: ORIGIN_MODEL, basis: [], role });
   }
 
   // One import edge per pair of entities, citing every import statement it rests on.
@@ -175,12 +222,27 @@ export async function planArchitecture({ working, turn, answers, manifest, proto
     const { from, to } = edges[0];
     const relationId = importIdOf(from, to);
     if (has(relationId)) continue;
-    relations.push({ relationId, from: regionIdOf(from), to: regionIdOf(to), kind: IMPORT_KIND, label: "import" });
-    claims.push({
+    connect(LAYER_DECLARED, { relationId, from: regionIdOf(from), to: regionIdOf(to), kind: IMPORT_KIND, label: "import" }, {
       record: { type: "relation", id: relationId },
       origin: ORIGIN_SOURCE,
       basis: edges.map(edge => ({ path: edge.path, specifier: edge.specifier })),
     });
+  }
+
+  if (focus !== null) {
+    for (const fact of manifest.facts.filter(entry => roleOf.get(entry.entity) === focus)) {
+      const regionId = factIdOf(fact.id);
+      const basis = [{ path: fact.path, pointer: fact.pointer }];
+      if (!has(regionId)) {
+        addRegion(regionId, `${fact.pointer}: ${String(fact.value)}`.slice(0, LABEL_MAX),
+          { record: { type: "region", id: regionId }, origin: ORIGIN_SOURCE, basis });
+      }
+      const relationId = declaresIdOf(fact.id);
+      if (!has(relationId)) {
+        connect(LAYER_DECLARED, { relationId, from: regionId, to: regionIdOf(fact.entity), kind: DECLARES_KIND, label: DECLARES_KIND },
+          { record: { type: "relation", id: relationId }, origin: ORIGIN_SOURCE, basis });
+      }
+    }
   }
 
   for (const candidate of manifest.candidates) {
@@ -188,67 +250,47 @@ export async function planArchitecture({ working, turn, answers, manifest, proto
     if (relation === null) continue;
     const relationId = relationIdOf(relation, candidate.from, candidate.to);
     if (has(relationId)) continue;
-    relations.push({ relationId, from: regionIdOf(candidate.from), to: regionIdOf(candidate.to), kind: relation, label: relation });
-    claims.push({ record: { type: "relation", id: relationId }, origin: ORIGIN_MODEL, basis: [{ candidate: candidate.id }] });
+    connect(LAYER_INFERRED, { relationId, from: regionIdOf(candidate.from), to: regionIdOf(candidate.to), kind: relation, label: relation },
+      { record: { type: "relation", id: relationId }, origin: ORIGIN_MODEL, basis: [{ candidate: candidate.id }] });
   }
 
-  if (focus !== null) {
-    for (const fact of manifest.facts.filter(entry => roleOf.get(entry.entity) === focus)) {
-      const regionId = factIdOf(fact.id);
-      if (!has(regionId)) {
-        regions.push({ regionId, label: `${fact.pointer}: ${String(fact.value)}`.slice(0, LABEL_MAX) });
-        claims.push({ record: { type: "region", id: regionId }, origin: ORIGIN_SOURCE, basis: [{ path: fact.path, pointer: fact.pointer }] });
-      }
-      const relationId = declaresIdOf(fact.id);
-      if (!has(relationId)) {
-        relations.push({ relationId, from: regionId, to: regionIdOf(fact.entity), kind: DECLARES_KIND, label: DECLARES_KIND });
-        claims.push({ record: { type: "relation", id: relationId }, origin: ORIGIN_SOURCE, basis: [{ path: fact.path, pointer: fact.pointer }] });
+  if (items.length === 0) return noChange("architecture-nothing-new");
+
+  // Consecutive Decisions: each layer in turn, never more operations than the
+  // provider takes, each built on the one before it.
+  const chunks = [LAYER_REGIONS, LAYER_DECLARED, LAYER_INFERRED].flatMap(layer => {
+    const inLayer = items.filter(item => item.layer === layer);
+    return Array.from({ length: Math.ceil(inLayer.length / DECISION_OPERATIONS_MAX) },
+      (_, index) => inLayer.slice(index * DECISION_OPERATIONS_MAX, (index + 1) * DECISION_OPERATIONS_MAX));
+  });
+  const confidence = Math.min(read.action.confidence, ...(focus === null ? [] : [read.focus.confidence]));
+  const steps = [];
+  let graph = working;
+  for (const [index, chunk] of chunks.entries()) {
+    let built;
+    try {
+      built = await protocol.createDecision(graph.head, chunk.map(item => item.operation), graph.records);
+    } catch (error) {
+      return refused("provider-rejected", String(error?.message ?? error));
+    }
+    const last = index === chunks.length - 1;
+    steps.push({
+      step: {
+        revision: graph.head,
+        action: ACTION_ARCHITECTURE,
+        confidence,
+        changes: chunk.map(item => item.change),
+        decision: built.decision,
+      },
+      claims: [...chunk.map(item => item.claim), ...(last ? roleClaims : [])],
+    });
+    if (!last) {
+      try {
+        graph = (await protocol.appendDecision(graph.log, built.decision)).verified;
+      } catch (error) {
+        return refused("provider-rejected", String(error?.message ?? error));
       }
     }
   }
-
-  if (regions.length === 0 && relations.length === 0) return noChange("architecture-nothing-new");
-
-  const boxes = records.filter(record => record?.type === "region").map(record => record.bounds);
-  const top = Math.max(...boxes.map(box => box[1] + box[3])) + PART_GAP;
-  const operations = [
-    ...regions.map((region, index) => ({
-      type: "AddRegion",
-      regionId: region.regionId,
-      parentId: root.id,
-      label: region.label,
-      kind: NODE_KIND,
-      summary: "",
-      bounds: [
-        root.bounds[0] + PART_GAP + (index % COLUMNS) * (PART_WIDTH + PART_GAP),
-        top + Math.floor(index / COLUMNS) * (PART_HEIGHT + PART_GAP),
-        PART_WIDTH,
-        PART_HEIGHT,
-      ],
-    })),
-    ...relations.map(relation => ({ type: "ConnectRegions", ...relation })),
-  ];
-  const changes = [
-    ...regions.map(region => ({ change: "added", kind: "region", id: region.regionId, label: region.label })),
-    ...relations.map(relation => ({ change: "added", from: relation.from, to: relation.to })),
-  ];
-
-  let built;
-  try {
-    built = await protocol.createDecision(working.head, operations, records);
-  } catch (error) {
-    return refused("provider-rejected", String(error?.message ?? error));
-  }
-  const confidence = Math.min(read.action.confidence, ...(focus === null ? [] : [read.focus.confidence]));
-  return Object.freeze({
-    outcome: OUTCOME_STEP,
-    step: Object.freeze({
-      revision: working.head,
-      action: ACTION_ARCHITECTURE,
-      confidence,
-      changes: Object.freeze(changes.map(change => Object.freeze(change))),
-      decision: built.decision,
-    }),
-    claims: deepFreeze(claims),
-  });
+  return Object.freeze({ outcome: OUTCOME_STEP, steps: deepFreeze(steps) });
 }

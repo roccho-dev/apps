@@ -158,7 +158,11 @@ const corrected = await say("その保存の関係は違うので消して", (na
   return contract.NONE;
 });
 const removedOne = corrected.now.draft.length === detail.now.draft.length + 1;
-if (FIXTURE) assert.ok(removedOne, "the person's correction is one more step");
+if (FIXTURE) {
+  assert.ok(removedOne, `the person's correction is one more step (state ${corrected.now.state}: `
+    + `${corrected.now.failure ?? corrected.now.status}; Jev ${corrected.exchange?.status} ${JSON.stringify(corrected.exchange?.body)}; `
+    + `so far: ${verdicts.join("; ") || "no other finding"})`);
+}
 
 // Undo takes the correction back; Apply saves the new map and both views.
 if (removedOne) {
