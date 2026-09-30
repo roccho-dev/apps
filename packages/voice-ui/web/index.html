@@ -90,6 +90,14 @@
         <p id="context-skipped"></p>
         <button id="context-clear" type="button">会話をクリア</button>
       </section>
+      <!-- The architecture page only: which source snapshot the drawing cites,
+           where each drawn record comes from, and what was not analyzed. -->
+      <section id="architecture" aria-labelledby="architecture-heading" hidden>
+        <h3 id="architecture-heading">構成図の出典（推定を含む・稼働確認ではない）</h3>
+        <p id="architecture-status"></p>
+        <ul id="architecture-claims" aria-labelledby="architecture-heading"></ul>
+        <ul id="architecture-coverage"></ul>
+      </section>
     </main>
 
     <script type="module" src="/app.mjs"></script>

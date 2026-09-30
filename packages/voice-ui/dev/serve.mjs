@@ -18,7 +18,13 @@ const requireStore = name => {
 const stores = {
   semanticMap: requireStore("VOICE_UI_SEMANTIC_MAP"),
   hayamimi: requireStore("VOICE_UI_HAYAMIMI"),
+  // This package's own source, prepared at build time from the exact commit
+  // (or marked unavailable when there was none): a public manifest the
+  // architecture page reads, and evidence only the Function below is given.
+  architecture: requireStore("VOICE_UI_ARCHITECTURE"),
 };
+const prepared = name => fs.readFile(path.join(stores.architecture, name), "utf8").then(JSON.parse);
+const architecture = { manifest: await prepared("manifest.json"), evidence: await prepared("evidence.json") };
 
 const TYPES = new Map(Object.entries({
   ".html": "text/html; charset=utf-8",
@@ -45,6 +51,12 @@ function route(pathname) {
   if (pathname === "/data/config.v1.json") return path.join(packageRoot, "web/data/config.v1.json");
 
   if (pathname === "/data/bundle.v1.json") return path.join(packageRoot, "web/data/bundle.v1.json");
+
+  // The architecture page: the same page and app under its own path, reading
+  // its own config beside it and the prepared source's public manifest.
+  if (pathname === "/architecture/") return path.join(packageRoot, "web/index.html");
+  if (pathname === "/architecture/data/config.v1.json") return path.join(packageRoot, "dev/architecture-config.v1.json");
+  if (pathname === "/architecture/data/source.v1.json") return path.join(stores.architecture, "manifest.json");
 
   const rest = suffix => pathname.slice(suffix.length);
 
@@ -114,6 +126,7 @@ async function serveChunkManifest(response, file) {
 // asset binding fails loudly if routing ever sends one there.
 const workerEnv = {
   JEV_API_KEY: process.env.JEV_API_KEY,
+  ARCHITECTURE: architecture,
   ASSETS: {
     fetch: async request => {
       throw new Error(`the dev server routes static files itself, not ${new URL(request.url).pathname}`);
@@ -146,6 +159,13 @@ async function serveJev(request, response) {
 
 const server = createServer((request, response) => {
   const { pathname } = new URL(request.url, "http://localhost");
+
+  // Without the slash the page would read the root's config; send it to its own.
+  if (pathname === "/architecture") {
+    response.writeHead(308, { location: "/architecture/", "cache-control": "no-store" });
+    response.end();
+    return;
+  }
 
   if (pathname === "/api/jev") {
     serveJev(request, response).catch(() => {

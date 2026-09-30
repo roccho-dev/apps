@@ -60,6 +60,8 @@ const REASONS = Object.freeze({
   "jev-contract": "Jev answered outside the contract",
   "voice-failed": "voice input failed",
   "display-failed": "the step could not be drawn",
+  "architecture-nothing-new": "the architecture view already shows everything this answer names",
+  "architecture-unavailable": "the prepared source is not available, so the architecture view cannot be drawn or extended",
   error: "unexpected error",
 });
 
@@ -290,6 +292,48 @@ export function renderBundleNotice(notice, { affected, reason }) {
   notice.textContent = affected.length > 0
     ? `部品と図のひな形を読み込めなかったため使えません: ${affected.join(", ")} (${reason})。保存済みの図の表示と確定図への反映はできます`
     : "";
+}
+
+// The architecture page's account of what it drew: the snapshot the saved
+// graph cites and whether it can still be checked, then every drawn record
+// with each claim about it - where it comes from and, for an entity, the role
+// Jev chose - and what the preparation did not analyze. A claim is never
+// presented as a live check of the running system.
+const ORIGIN_WORDS = Object.freeze({
+  "source-declared": "コードに記載",
+  "model-inferred": "Jevの推定",
+  "user-asserted": "利用者の指定",
+  unknown: "不明（取り込み範囲外）",
+});
+const basisText = entry => {
+  if (entry.candidate !== undefined) return `候補 ${entry.candidate}`;
+  if (entry.specifier !== undefined) return `${entry.path} の import "${entry.specifier}"`;
+  if (entry.pointer !== undefined) return `${entry.path} ${entry.pointer}`;
+  if (entry.path !== undefined) return entry.path;
+  return "取り込み範囲の宣言のみ";
+};
+export function renderArchitecture(section, { status, claims, labels, coverage }) {
+  const document = section.ownerDocument;
+  section.hidden = false;
+  section.querySelector("#architecture-status").textContent = status;
+  const list = section.querySelector("#architecture-claims");
+  list.replaceChildren(...claims.map(({ record, claims: about }) => {
+    const item = document.createElement("li");
+    item.dataset.record = `${record.type} ${record.id}`;
+    item.dataset.origins = [...new Set(about.map(claim => claim.origin))].join(" ");
+    const role = about.findLast(claim => claim.role !== undefined)?.role ?? null;
+    if (role !== null) item.dataset.role = role;
+    item.textContent = `${labels.get(record.id) ?? record.id}: `
+      + about.map(claim => `${ORIGIN_WORDS[claim.origin]}${claim.role === undefined ? "" : ` 役割=${claim.role}`}`
+        + (claim.basis.length === 0 ? "" : ` (${claim.basis.map(basisText).join("; ")})`)).join(" / ");
+    return item;
+  }));
+  const gaps = section.querySelector("#architecture-coverage");
+  gaps.replaceChildren(...coverage.map(line => {
+    const item = document.createElement("li");
+    item.textContent = line;
+    return item;
+  }));
 }
 
 const DIAGNOSTIC_KEYS = Object.freeze([

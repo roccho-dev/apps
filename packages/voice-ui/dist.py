@@ -228,6 +228,8 @@ def verify_dist(root):
         "site/app/src/session.mjs",
         "site/app/src/turn.mjs",
         "site/app/src/render.mjs",
+        "site/app/src/architecture.mjs",
+        "site/app/src/document.mjs",
         "site/ui/semantic-map/runtime.js",
         "site/ui/semantic-map/protocol/index.js",
         "site/ui/semantic-map/authoring/pages/embed.html",

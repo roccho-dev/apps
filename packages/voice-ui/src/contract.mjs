@@ -18,6 +18,9 @@ export const ACTION_REMOVE_EDGE = "remove-edge";
 export const ACTION_REVERSE_EDGE = "reverse-edge";
 export const ACTION_COMPOSE = "compose-diagram";
 export const ACTION_UNDO_REQUEST = "undo-request";
+// Offered only on the architecture page, whose requests carry the prepared
+// source's public entities and candidate pairs.
+export const ACTION_ARCHITECTURE = "compose-architecture";
 
 export const DIRECTIONS = Object.freeze(["left", "right", "above", "below"]);
 export const PLACEMENT_SLOTS = Object.freeze(["move", "anchor", "direction"]);
@@ -46,7 +49,9 @@ export const KEY_PATTERN = /^[a-z][a-z0-9-]{0,63}$/u;
 const TEXT_MAX = 8000;
 const GRAPH_MAX = 64;
 const ID_MAX = 240;
-const CHANGES_MAX = 8;
+// One step changes at most every region and every edge a graph may hold: an
+// architecture view is drafted whole, as one step.
+const CHANGES_MAX = 2 * GRAPH_MAX;
 const CONTEXT_SOURCES = Object.freeze(["voice", "typed"]);
 const CONTEXT_OUTCOMES = Object.freeze(["step", "no-change", "undo-request", "refused", "undone"]);
 const FOCUS_KINDS = Object.freeze(["draft", "applied"]);
@@ -61,6 +66,8 @@ export const ERRORS = Object.freeze({
   providerTimeout: "provider_timeout",
   providerUnreachable: "provider_unreachable",
   providerContract: "provider_contract_error",
+  architectureUnavailable: "architecture_unavailable",
+  architectureMismatch: "architecture_mismatch",
 });
 
 const exactObject = (value, keys) =>
@@ -157,10 +164,36 @@ const validOffer = list =>
     && text(offer.purpose, PURPOSE_MAX))
   && unique(list.map(offer => offer.key));
 
+const COMMIT = /^[0-9a-f]{40}$/u;
+
+// The prepared source as the architecture page sends it: its identity, the
+// entities and candidate pairs of its public manifest, and the vocabulary Jev
+// may choose from. Never file contents; the server adds those itself.
+const validArchitecture = architecture => {
+  if (!exactObject(architecture, ["source", "entities", "candidates", "roles", "relations"])) return false;
+  const { source, entities, candidates, roles, relations } = architecture;
+  if (!exactObject(source, ["handle", "commit"]) || !KEY_PATTERN.test(source.handle ?? "") || !COMMIT.test(source.commit ?? "")) return false;
+  if (!Array.isArray(entities) || entities.length === 0 || entities.length > GRAPH_MAX) return false;
+  if (!entities.every(entity => exactObject(entity, ["id", "label"]) && KEY_PATTERN.test(entity.id ?? "") && entity.id !== NONE
+    && text(entity.label, LABEL_MAX))) return false;
+  const ids = entities.map(entity => entity.id);
+  if (!unique(ids)) return false;
+  if (!Array.isArray(candidates) || candidates.length > GRAPH_MAX) return false;
+  if (!candidates.every(candidate => exactObject(candidate, ["id", "from", "to", "reasons"]) && id(candidate.id)
+    && ids.includes(candidate.from) && ids.includes(candidate.to) && candidate.from !== candidate.to
+    && Array.isArray(candidate.reasons) && candidate.reasons.length > 0 && candidate.reasons.every(reason => text(reason, LABEL_MAX)))) return false;
+  if (!unique(candidates.map(candidate => candidate.id))) return false;
+  return validOffer(roles) && roles.length > 0 && validOffer(relations) && relations.length > 0;
+};
+
+const STATE_KEYS = Object.freeze(["utterance", "graph", "draft", "focus", "pending", "context", "offers"]);
+
 export function isRequest(value) {
   if (!exactObject(value, ["kind", "state"]) || value.kind !== REQUEST_KIND) return false;
   const { state } = value;
-  return exactObject(state, ["utterance", "graph", "draft", "focus", "pending", "context", "offers"])
+  const architecture = state !== null && typeof state === "object" && Object.hasOwn(state, "architecture");
+  return exactObject(state, architecture ? [...STATE_KEYS, "architecture"] : STATE_KEYS)
+    && (!architecture || validArchitecture(state.architecture))
     && text(state.utterance, TEXT_MAX)
     && validGraph(state.graph)
     && Array.isArray(state.draft)
@@ -173,6 +206,11 @@ export function isRequest(value) {
     && validOffer(state.offers.parts)
     && validOffer(state.offers.diagrams);
 }
+
+// The architecture questions' names: one role per entity, one relation per
+// candidate pair.
+export const roleSlot = entityId => `role-${entityId}`;
+export const relationSlot = candidateId => `relation-${candidateId}`;
 
 // The questions a request puts to Jev and the options of each, derived from
 // the request alone. An action is offered only when the graph can carry it
@@ -191,10 +229,18 @@ export function slotsFor(state) {
       ...(canPlace ? [ACTION_PLACE_PART] : []),
       ...(hasEdges ? [ACTION_REMOVE_EDGE, ACTION_REVERSE_EDGE] : []),
       ...(canCompose ? [ACTION_COMPOSE] : []),
+      ...(state.architecture ? [ACTION_ARCHITECTURE] : []),
       ACTION_UNDO_REQUEST,
       NONE,
     ],
   };
+  if (state.architecture) {
+    const roles = state.architecture.roles.map(role => role.key);
+    const relations = state.architecture.relations.map(relation => relation.key);
+    slots.focus = [...roles, NONE];
+    for (const entity of state.architecture.entities) slots[roleSlot(entity.id)] = [...roles, NONE];
+    for (const candidate of state.architecture.candidates) slots[relationSlot(candidate.id)] = [...relations, NONE];
+  }
   if (canEdge) {
     slots.source = [...nodes, NONE];
     slots.target = [...nodes, NONE];

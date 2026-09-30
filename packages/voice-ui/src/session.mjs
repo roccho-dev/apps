@@ -96,8 +96,9 @@ export const clearPending = session => freeze({ ...session, pending: null });
 export const clearConversation = session => freeze({ ...session, pending: null, conversation: [] });
 
 // One more step on the working graph, never past the cap. The provider appends
-// and verifies it; its input, if any, travels with it.
-async function appendItem(session, step, input, protocol) {
+// and verifies it; its input, if any, travels with it, and so do the claims an
+// architecture step carries about where each of its records comes from.
+async function appendItem(session, step, input, protocol, claims = undefined) {
   if (draftFull(session)) return Object.freeze({ session, result: noChange("draft-full") });
   const appended = await appendStep({ working: session.working, step, protocol });
   if (appended.outcome !== OUTCOME_STEP) return Object.freeze({ session, result: appended });
@@ -108,7 +109,7 @@ async function appendItem(session, step, input, protocol) {
     session: freeze({
       ...session,
       working: appended.graph,
-      draft: [...session.draft, Object.freeze({ step, input })],
+      draft: [...session.draft, Object.freeze(claims === undefined ? { step, input } : { step, input, claims })],
       pending: null,
       issuedPartIds: [...new Set([...session.issuedPartIds, ...issued])],
     }),
@@ -156,6 +157,22 @@ export async function propose(session, { turn, answers, protocol, bundle, layout
   return appended;
 }
 
+// An utterance Jev judged as an architecture view, already planned against the
+// prepared source: it joins the conversation like any other judged utterance,
+// and its step joins the draft with its claims.
+export async function proposeArchitecture(session, { planned, input, protocol }) {
+  if (planned.outcome !== OUTCOME_STEP) {
+    const next = planned.outcome === OUTCOME_NO_CHANGE ? remember(session, input, "no-change") : noteRefused(session, input);
+    return Object.freeze({ session: next, result: planned });
+  }
+  const judged = remember(session, input, "step", planned.step.changes);
+  const appended = await appendItem(judged, planned.step, Object.freeze({ ...input, seq: session.nextSeq }), protocol, planned.claims);
+  if (appended.result.outcome !== OUTCOME_STEP) {
+    return Object.freeze({ session: noteRefused(session, input), result: appended.result });
+  }
+  return appended;
+}
+
 // An utterance Jev judged whose step could not be kept.
 export const noteRefused = (session, input) => remember(session, input, "refused");
 
@@ -179,11 +196,13 @@ export function discard(session) {
   return markUndone(freeze({ ...session, working: session.accepted, draft: [], pending: null }), session.draft);
 }
 
-// Apply hands the working log to the one durable write and advances only when
-// it reports the log committed. Anything else leaves every step in place.
+// Apply hands the working log - and the unapplied steps it grew by, for a
+// format that records where each came from - to the one durable write, and
+// advances only when it reports the value committed. Anything else leaves
+// every step in place.
 export async function apply(session, { commit }) {
   if (session.draft.length === 0) return Object.freeze({ session, result: null });
-  const result = await commit({ graph: session.working, expected: session.stored });
+  const result = await commit({ graph: session.working, expected: session.stored, draft: session.draft });
   if (result.status !== COMMIT_COMMITTED) return Object.freeze({ session, result });
   return Object.freeze({
     session: freeze({ ...session, accepted: session.working, stored: result.stored, draft: [], pending: null }),

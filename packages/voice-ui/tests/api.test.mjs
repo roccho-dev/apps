@@ -1,9 +1,15 @@
 import assert from "node:assert/strict";
+import { spawnSync } from "node:child_process";
+import fs from "node:fs";
+import os from "node:os";
+import path from "node:path";
 import test from "node:test";
+import { fileURLToPath } from "node:url";
 
 import { onRequestPost } from "../functions/api/jev.mjs";
 import worker from "../functions/pages-worker.mjs";
-import { DECISION_KIND, ERRORS, NONE, REQUEST_KIND, isRequest, slotsFor } from "../src/contract.mjs";
+import { architectureOf, readManifest } from "../src/architecture.mjs";
+import { ACTION_ARCHITECTURE, DECISION_KIND, ERRORS, NONE, REQUEST_KIND, isRequest, slotsFor } from "../src/contract.mjs";
 
 // A request as the page sends it: the declared read set and nothing more.
 const request = (state = {}) => ({
@@ -181,4 +187,81 @@ test("the Advanced Mode Worker routes /api/jev to this Function and everything e
   });
   assert.equal(await asset.text(), "{}");
   assert.equal(assets, 1);
+});
+
+// The architecture page's requests, against this package's own source,
+// prepared exactly as the build prepares it, into a scratch directory.
+const PACKAGE = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
+const prepared = (() => {
+  const out = fs.mkdtempSync(path.join(os.tmpdir(), "voice-ui-api-"));
+  const result = spawnSync(process.execPath, [
+    "--experimental-vm-modules", path.join(PACKAGE, "architecture/prepare.mjs"),
+    "--scope", path.join(PACKAGE, "architecture/scope.v1.json"), "--root", PACKAGE,
+    "--commit", "0123456789abcdef0123456789abcdef01234567", "--out", out,
+  ], { encoding: "utf8" });
+  assert.equal(result.status, 0, result.stderr);
+  const readOut = name => JSON.parse(fs.readFileSync(path.join(out, name), "utf8"));
+  return Object.freeze({ manifest: readOut("manifest.json"), evidence: readOut("evidence.json") });
+})();
+const ARCHITECTURE_ENV = Object.freeze({ JEV_API_KEY: "test-only-value", ARCHITECTURE: prepared });
+const architectureRequest = (architecture = architectureOf(readManifest(prepared.manifest))) => request({ architecture });
+
+test("an architecture request without this server's prepared source is refused before the provider", async () => {
+  const unavailable = { schema: "voice-ui.architecture-source/1", status: "unavailable", reason: "no exact commit" };
+  const cases = [
+    ["no source bound", { JEV_API_KEY: "test-only-value" }],
+    ["an unavailable source", { JEV_API_KEY: "test-only-value", ARCHITECTURE: { manifest: unavailable, evidence: prepared.evidence } }],
+    ["evidence of another snapshot", { JEV_API_KEY: "test-only-value",
+      ARCHITECTURE: { manifest: prepared.manifest, evidence: { ...prepared.evidence, source: { ...prepared.evidence.source, commit: "f".repeat(40) } } } }],
+  ];
+  const { result, calls } = await withProvider(answering(noneTo), () => Promise.all(cases.map(([, env]) => post(architectureRequest(), env))));
+  for (const [index, response] of result.entries()) {
+    assert.equal(response.status, 503, cases[index][0]);
+    assert.deepEqual(await response.json(), { error: ERRORS.architectureUnavailable }, cases[index][0]);
+  }
+  assert.equal(calls.length, 0);
+});
+
+test("an architecture section that is not exactly this server's snapshot is refused before the provider", async () => {
+  const own = architectureOf(readManifest(prepared.manifest));
+  const altered = [
+    { ...own, source: { ...own.source, commit: "f".repeat(40) } },
+    { ...own, entities: own.entities.map((entity, index) => (index === 0 ? { ...entity, label: "renamed" } : entity)) },
+    { ...own, candidates: own.candidates.slice(1) },
+  ];
+  const { result, calls } = await withProvider(answering(noneTo), () => Promise.all(altered.map(architecture => post(architectureRequest(architecture), ARCHITECTURE_ENV))));
+  for (const response of result) {
+    assert.equal(response.status, 422);
+    assert.deepEqual(await response.json(), { error: ERRORS.architectureMismatch });
+  }
+  assert.equal(calls.length, 0);
+});
+
+test("the provider is asked with the admitted text and closed architecture questions, and none of the text comes back", async t => {
+  const body = architectureRequest();
+  assert.ok(isRequest(body));
+  const { result, calls } = await withProvider(answering(noneTo), () => post(body, ARCHITECTURE_ENV));
+  assert.equal(result.status, 200);
+  const [call] = calls;
+  const slots = slotsFor(body.state);
+  assert.deepEqual(Object.keys(call.questions).sort(), Object.keys(slots).sort());
+  for (const [name, question] of Object.entries(call.questions)) assert.deepEqual(Object.keys(question.criteria), slots[name], name);
+  assert.ok(slots.action.includes(ACTION_ARCHITECTURE));
+  assert.match(call.questions["role-jev-function"].instructions, /Judge only from that text/u);
+  assert.match(call.questions["relation-c-jev-function--jev-credential"].instructions, /cooccurrence:JEV_API_KEY/u);
+
+  // The evidence is exactly the admitted files of the snapshot, added here.
+  const admitted = prepared.manifest.entities.filter(entity => entity.kind === "file").map(entity => entity.id).sort();
+  assert.deepEqual(Object.keys(call.state.architecture.evidence).sort(), admitted);
+  for (const id of admitted) assert.equal(call.state.architecture.evidence[id], prepared.evidence.files[id]);
+  const { evidence, facts, ...sent } = call.state.architecture;
+  assert.deepEqual(sent, body.state.architecture, "the page's section is forwarded unchanged");
+  assert.deepEqual(facts.map(fact => fact.pointer), prepared.manifest.facts.map(fact => fact.pointer));
+  const answered = await result.text();
+  assert.equal(answered.includes(prepared.evidence.files["jev-function"].slice(0, 200)), false, "no admitted text in the answer");
+
+  // Measured, not assumed: what one architecture request sends the provider.
+  t.diagnostic(`architecture provider request: ${Buffer.byteLength(JSON.stringify(call))} bytes, `
+    + `${Object.keys(call.questions).length} questions, ${Object.keys(evidence).length} evidence files `
+    + `(${Object.values(evidence).reduce((sum, value) => sum + Buffer.byteLength(value), 0)} bytes of text)`);
 });
