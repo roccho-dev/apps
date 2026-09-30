@@ -7,26 +7,32 @@ import test from "node:test";
 import { fileURLToPath, pathToFileURL } from "node:url";
 
 import {
-  focusOf,
   focusedEvidence,
   judgeRequestOf,
   judgeSectionOf,
+  locateRequestOf,
+  locatedOf,
   planArchitecture,
   readManifest,
+  routeOf,
   withArchitecture,
 } from "../src/architecture.mjs";
 import { readBundle } from "../src/bundle.mjs";
 import {
   ACTION_ARCHITECTURE,
   ARCHITECTURE_INTENT_KIND,
+  ARCHITECTURE_LOCATE_KIND,
   NONE,
   REQUEST_KIND,
   WHOLE,
   YES,
   isJudgeRequest,
+  isLocateRequest,
   isRequest,
   judgeSlotsFor,
+  locateSlotsFor,
   relationSlot,
+  relevantSlot,
   roleSlot,
 } from "../src/contract.mjs";
 import { MAP_ID, STATE_SCHEMA } from "../src/log.mjs";
@@ -108,7 +114,7 @@ const plan = async (working, manifest, { focus = null, intent = {}, judge = {} }
   const { turn } = turnFor(working, manifest);
   // Without a part, this fixture asks for the whole - explicitly, as Jev must.
   const answers = answerFor(turn.slots, { action: ACTION_ARCHITECTURE, focus: focus ?? WHOLE, ...intent });
-  const request = focus === null ? null : judgeRequestOf(manifest, focus, "show it");
+  const request = focus === null ? null : judgeRequestOf(manifest, [focus], "show it");
   const judged = request === null ? null
     : { section: request.state.architecture, answers: answerFor(judgeSlotsFor(request.state.architecture), judge) };
   return planArchitecture({ working, turn, answers, judged, manifest, protocol, operationsMax: MAX_DECISION_OPERATIONS });
@@ -170,18 +176,20 @@ test("an intent carries the plain request, the parts by path or identifier, and 
 
 test("a focus opens its own file, or every file that names it, and exactly the pairs that touch them", () => {
   const manifest = readManifest(structuredClone(MANIFEST));
-  const own = judgeSectionOf(manifest, "b-mjs");
-  assert.equal(own.focus, "b-mjs");
+  const own = judgeSectionOf(manifest, ["b-mjs"]);
+  assert.deepEqual(own.focus, ["b-mjs"]);
   assert.deepEqual(own.bodies, ["b-mjs"]);
   assert.deepEqual(own.candidates.map(candidate => candidate.id), ["c-a-mjs--b-mjs", "c-b-mjs--ext-store"]);
   assert.deepEqual(own.entities.map(entity => entity.id), ["a-mjs", "b-mjs", "ext-store"], "never the unrelated file");
 
-  const outside = judgeSectionOf(manifest, "ext-store");
+  const outside = judgeSectionOf(manifest, ["ext-store"]);
   assert.deepEqual(outside.bodies, ["b-mjs"], "the file whose text names the store");
-  assert.equal(judgeSectionOf(manifest, "d-mjs").candidates.length, 0);
-  assert.equal(judgeSectionOf(manifest, "nobody"), null);
+  assert.equal(judgeSectionOf(manifest, ["d-mjs"]).candidates.length, 0);
+  for (const focus of [["nobody"], [], "b-mjs", ["b-mjs", "a-mjs"], ["a-mjs", "a-mjs"]]) {
+    assert.equal(judgeSectionOf(manifest, focus), null, `${JSON.stringify(focus)} is no focus: known parts, sorted, once each`);
+  }
 
-  const request = JSON.parse(JSON.stringify(judgeRequestOf(manifest, "b-mjs", "show the saver")));
+  const request = JSON.parse(JSON.stringify(judgeRequestOf(manifest, ["b-mjs"], "show the saver")));
   assert.ok(isJudgeRequest(request));
   assert.equal(isRequest(request), false);
   const slots = judgeSlotsFor(request.state.architecture);
@@ -315,21 +323,29 @@ test("an unsure action, a stale head or an answer off the questions changes noth
   assert.equal(stale.reason, "stale");
   const off = await plan(working, manifest, { focus: "b-mjs", judge: { [roleSlot("b-mjs", "persistence")]: "invented" } });
   assert.equal(off.reason, "answer-invalid");
-  assert.equal(focusOf(turn, answerFor(turn.slots, { action: ACTION_ARCHITECTURE, focus: choice("b-mjs", 0.3) })), null, "an unsure focus is none");
+  assert.deepEqual(routeOf(turn, answerFor(turn.slots, { action: ACTION_ARCHITECTURE, focus: choice("b-mjs", 0.3) })), { route: "locate" },
+    "an unsure part is located, never taken as named");
+  assert.equal(routeOf(turn, answerFor(turn.slots, { action: choice(ACTION_ARCHITECTURE, 0.3), focus: NONE })), null, "an unsure action goes nowhere");
 });
 
-test("only a confident whole draws the structure; none or any unsure focus is an honest no-change", async () => {
+test("only a confident whole draws the structure; none or any unsure focus is located, and nothing located is an honest no-change", async () => {
   const manifest = readManifest(structuredClone(MANIFEST));
   const working = await mapGraph();
   const { turn } = turnFor(working, manifest);
-  const unclear = { outcome: "no-change", reason: "architecture-focus-unclear" };
+  const nothing = answerFor(locateSlotsFor(manifest.entities.map(entity => entity.id)), {});
   for (const focus of [NONE, choice(WHOLE, 0.3), choice("b-mjs", 0.3), choice(NONE, 0.2)]) {
     const answers = answerFor(turn.slots, { action: ACTION_ARCHITECTURE, focus });
-    assert.equal(focusOf(turn, answers), null);
-    assert.deepEqual(await planArchitecture({ working, turn, answers, judged: null, manifest, protocol, operationsMax: MAX_DECISION_OPERATIONS }),
-      unclear, JSON.stringify(focus));
+    assert.deepEqual(routeOf(turn, answers), { route: "locate" }, JSON.stringify(focus));
+    assert.deepEqual(await planArchitecture({ working, turn, answers, located: nothing, manifest, protocol, operationsMax: MAX_DECISION_OPERATIONS }),
+      { outcome: "no-change", reason: "architecture-focus-unclear" }, JSON.stringify(focus));
+    await assert.rejects(planArchitecture({ working, turn, answers, manifest, protocol, operationsMax: MAX_DECISION_OPERATIONS }),
+      /an unclear focus is located before it is planned/u, "never planned without its locate");
   }
-  assert.equal(focusOf(turn, answerFor(turn.slots, { action: ACTION_ARCHITECTURE, focus: WHOLE })), null, "the whole is never a part");
+  assert.deepEqual(routeOf(turn, answerFor(turn.slots, { action: ACTION_ARCHITECTURE, focus: WHOLE })), { route: "whole" }, "the whole is never a part");
+  await assert.rejects(planArchitecture({
+    working, turn, answers: answerFor(turn.slots, { action: ACTION_ARCHITECTURE, focus: WHOLE }), located: nothing,
+    manifest, protocol, operationsMax: MAX_DECISION_OPERATIONS,
+  }), /only an unclear focus is located/u, "the whole reads no code");
 
   // The whole, confidently: the structure, at the weaker of the two confidences.
   const whole = await planArchitecture({
@@ -341,12 +357,12 @@ test("only a confident whole draws the structure; none or any unsure focus is an
   assert.equal(claimsOf(whole).some(claim => claim.origin === "model-inferred"), false);
 
   // A section judged for another focus than the answer's is a caller error, never drawn.
-  const request = judgeRequestOf(manifest, "b-mjs", "show it");
+  const request = judgeRequestOf(manifest, ["b-mjs"], "show it");
   await assert.rejects(planArchitecture({
     working, turn, manifest, protocol, operationsMax: MAX_DECISION_OPERATIONS,
     answers: answerFor(turn.slots, { action: ACTION_ARCHITECTURE, focus: WHOLE }),
     judged: { section: request.state.architecture, answers: answerFor(judgeSlotsFor(request.state.architecture), {}) },
-  }), /the judged section is the one this answer asked for/u);
+  }), /the whole is never judged/u);
 });
 
 test("a part confidently asked for that no section opens is refused, never drawn as the whole", async () => {
@@ -355,12 +371,95 @@ test("a part confidently asked for that no section opens is refused, never drawn
   source.entities.push({ id: "ext-orphan", label: "orphan", kind: "external" });
   const manifest = readManifest(source);
   assert.equal(manifest.status, "available", manifest.reason);
-  assert.equal(judgeSectionOf(manifest, "ext-orphan"), null, "no admitted file names it");
+  assert.equal(judgeSectionOf(manifest, ["ext-orphan"]), null, "no admitted file names it");
   const working = await mapGraph();
   const { turn } = turnFor(working, manifest);
   const answers = answerFor(turn.slots, { action: ACTION_ARCHITECTURE, focus: "ext-orphan" });
-  assert.equal(focusOf(turn, answers), "ext-orphan");
+  assert.deepEqual(routeOf(turn, answers), { route: "part", focus: ["ext-orphan"] });
   assert.deepEqual(await planArchitecture({ working, turn, answers, judged: null, manifest, protocol, operationsMax: MAX_DECISION_OPERATIONS }),
+    { outcome: "refused", reason: "architecture-judge-missing" });
+});
+
+test("a locate carries the utterance, the conversation and the snapshot's identity exactly - never any code", async () => {
+  const manifest = readManifest(structuredClone(MANIFEST));
+  const { request } = turnFor(await mapGraph(), manifest);
+  const locate = JSON.parse(JSON.stringify(locateRequestOf(manifest, request)));
+  assert.deepEqual(locate, {
+    kind: ARCHITECTURE_LOCATE_KIND,
+    state: { utterance: request.state.utterance, context: request.state.context, architecture: { source: manifest.source } },
+  });
+  assert.ok(isLocateRequest(locate));
+  assert.equal(isRequest(locate), false);
+  assert.equal(isJudgeRequest(locate), false);
+  for (const text of Object.values(FILES)) assert.equal(JSON.stringify(locate).includes(text.trim()), false, "no file text");
+  const broken = [
+    { ...locate, extra: 1 },
+    { ...locate, state: { ...locate.state, graph: request.state.graph } },
+    { ...locate, state: { utterance: locate.state.utterance, architecture: locate.state.architecture } },
+    { ...locate, state: { ...locate.state, architecture: { source: manifest.source, entities: [] } } },
+    { ...locate, state: { ...locate.state, architecture: { source: { ...manifest.source, commit: "HEAD" } } } },
+    { ...locate, state: { ...locate.state, context: { recent: [{ seq: 1, source: "typed", text: "x", outcome: "invented" }] } } },
+  ];
+  for (const value of broken) assert.equal(isLocateRequest(value), false, JSON.stringify(value.state).slice(0, 80));
+});
+
+test("a locate answer is complete or nothing; what it found is exactly every confident yes, sorted", () => {
+  const manifest = readManifest(structuredClone(MANIFEST));
+  const ids = manifest.entities.map(entity => entity.id);
+  const slots = locateSlotsFor(ids);
+  assert.deepEqual(Object.keys(slots), ids.map(relevantSlot), "one question per part the snapshot knows, files and outside alike");
+  const found = locatedOf(manifest, answerFor(slots, {
+    [relevantSlot("ext-store")]: choice(YES, 0.7), [relevantSlot("b-mjs")]: choice(YES, 0.9), [relevantSlot("a-mjs")]: choice(YES, 0.4),
+  }));
+  assert.deepEqual(found, { focus: ["b-mjs", "ext-store"], confidence: 0.7 }, "an unsure yes is not found");
+  assert.deepEqual(locatedOf(manifest, answerFor(slots, {})).focus, [], "every part none: nothing found");
+  const complete = answerFor(slots, {});
+  const { [relevantSlot("d-mjs")]: dropped, ...missing } = complete;
+  assert.ok(dropped);
+  for (const answers of [missing, { ...complete, extra: choice(YES) }, { ...complete, [relevantSlot("a-mjs")]: choice("maybe") }, null]) {
+    assert.equal(locatedOf(manifest, answers), null);
+  }
+});
+
+test("every located part is judged together, the judge bound to exactly what was located, at the weakest confidence", async () => {
+  const manifest = readManifest(structuredClone(MANIFEST));
+  const working = await appendAll(await mapGraph(), await plan(await mapGraph(), manifest));
+  const { turn } = turnFor(working, manifest);
+  const answers = answerFor(turn.slots, { action: choice(ACTION_ARCHITECTURE, 0.9), focus: NONE });
+  const locateSlots = locateSlotsFor(manifest.entities.map(entity => entity.id));
+  const located = answerFor(locateSlots, { [relevantSlot("ext-store")]: choice(YES, 0.8), [relevantSlot("a-mjs")]: choice(YES, 0.6) });
+  const focus = locatedOf(manifest, located).focus;
+  assert.deepEqual(focus, ["a-mjs", "ext-store"]);
+
+  // A part outside the source opens the files that name it: one section for both.
+  const section = judgeSectionOf(manifest, focus);
+  assert.deepEqual(section.focus, ["a-mjs", "ext-store"]);
+  assert.deepEqual(section.bodies, ["a-mjs", "b-mjs"]);
+  assert.deepEqual(judgeSectionOf(manifest, ["b-mjs", "ext-store"]).bodies, ["b-mjs"], "a file opened twice is one body");
+  const judgeAnswers = answerFor(judgeSlotsFor(section), {
+    [roleSlot("a-mjs", "persistence")]: YES, [relationSlot("c-b-mjs--ext-store")]: "stores-in",
+  });
+  const planned = await planArchitecture({
+    working, turn, answers, located, judged: { section, answers: judgeAnswers }, manifest, protocol, operationsMax: MAX_DECISION_OPERATIONS,
+  });
+  assert.equal(planned.outcome, "step");
+  assert.deepEqual(claimsOf(planned).map(claim => claim.record.id).sort(),
+    ["arch-has-role-a-mjs-to-persistence", "arch-role-persistence", "arch-stores-in-b-mjs-to-ext-store"]);
+  assert.ok(planned.steps.every(item => item.step.confidence === 0.6), "the weaker of the action and the weakest located part");
+
+  // Bound exactly: a judge of fewer parts than were located is a caller error.
+  const fewer = judgeSectionOf(manifest, ["ext-store"]);
+  await assert.rejects(planArchitecture({
+    working, turn, answers, located, judged: { section: fewer, answers: answerFor(judgeSlotsFor(fewer), {}) },
+    manifest, protocol, operationsMax: MAX_DECISION_OPERATIONS,
+  }), /the judged section is the one this answer asked for/u);
+  // An incomplete locate answer is an error, never nothing found.
+  const { [relevantSlot("d-mjs")]: dropped, ...incomplete } = located;
+  assert.ok(dropped);
+  assert.deepEqual(await planArchitecture({ working, turn, answers, located: incomplete, manifest, protocol, operationsMax: MAX_DECISION_OPERATIONS }),
+    { outcome: "refused", reason: "answer-invalid" });
+  // Located, but not judged: nothing is drawn.
+  assert.deepEqual(await planArchitecture({ working, turn, answers, located, manifest, protocol, operationsMax: MAX_DECISION_OPERATIONS }),
     { outcome: "refused", reason: "architecture-judge-missing" });
 });
 

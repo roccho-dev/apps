@@ -81,7 +81,7 @@ const planOn = async (working, manifest, focus = null, picks = {}) => {
   }), manifest);
   // Without a part, this fixture asks for the whole - explicitly, as Jev must.
   const answers = answering(turn.slots, { action: ACTION_ARCHITECTURE, focus: focus ?? WHOLE });
-  const request = focus === null ? null : judgeRequestOf(manifest, focus, "show it");
+  const request = focus === null ? null : judgeRequestOf(manifest, [focus], "show it");
   const judged = request === null ? null
     : { section: request.state.architecture, answers: answering(judgeSlotsFor(request.state.architecture), picks) };
   return planArchitecture({ working, turn, answers, judged, manifest, protocol, operationsMax: MAX_DECISION_OPERATIONS });
@@ -171,7 +171,7 @@ test("a role's node and its edge in different Decisions are still one utterance:
     working: viewed.working, utterance: "show b", bundle: readBundle(null), layout: null, offeredFrame: null,
     draft: [], focus: null, pending: null, recent: [],
   }), MANIFEST);
-  const request = judgeRequestOf(MANIFEST, "b-mjs", "show b");
+  const request = judgeRequestOf(MANIFEST, ["b-mjs"], "show b");
   // A limit of one operation, for this test only: the node and the edge land in different Decisions.
   const planned = await planArchitecture({
     working: viewed.working, turn, answers: answering(turn.slots, { action: ACTION_ARCHITECTURE, focus: "b-mjs" }),

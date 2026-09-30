@@ -8,6 +8,7 @@ import {
   ACTION_REVERSE_EDGE,
   ACTION_UNDO_REQUEST,
   ARCHITECTURE_INTENT_KIND,
+  ARCHITECTURE_LOCATE_KIND,
   DECISION_KIND,
   ERRORS,
   NONE,
@@ -15,10 +16,13 @@ import {
   WHOLE,
   YES,
   isJudgeRequest,
+  isLocateRequest,
   isRequest,
   judgeSlotsFor,
+  locateSlotsFor,
   readAnswers,
   relationSlot,
+  relevantSlot,
   roleSlot,
   slotsFor,
 } from "../../src/contract.mjs";
@@ -239,6 +243,28 @@ function judgeQuestions(section, slots) {
   return questions;
 }
 
+// A locate's questions: for every part the snapshot knows, whether the
+// utterance asks for it, judged from every admitted file's whole text - a
+// part outside the source only by how those files use it.
+const LOCATE_NOTE = " state.architecture.evidence.bodies holds every admitted source file whole, each with its path;"
+  + " a part outside the source has no file there and is known only by how those files use it."
+  + " Judge only from that text and the utterance; if they do not show it, answer none.";
+
+function locateQuestions(manifest, slots) {
+  const questions = {};
+  for (const entity of manifest.entities) {
+    const part = entity.kind === "file" ? `the file ${entity.label}` : `${entity.label}, outside the source`;
+    questions[relevantSlot(entity.id)] = {
+      type: "choice",
+      instructions: `Does the utterance ask to see ${part}, as it is actually used in this original code?${LOCATE_NOTE}${CONTEXT_NOTE}`,
+      criteria: criteria(slots[relevantSlot(entity.id)], key => key === YES
+        ? "yes: the utterance asks for this part, as the code shows it"
+        : "no, or the code does not show that the utterance asks for it"),
+    };
+  }
+  return questions;
+}
+
 // The prepared source this server was started with, or null: the manifest
 // available and the evidence of the very same snapshot.
 function boundArchitecture(env) {
@@ -253,8 +279,9 @@ function boundArchitecture(env) {
 // The state is sent to Jev as the named object it arrived as; the questions
 // carry only the judgments. An architecture request must name exactly this
 // server's own snapshot, or it is refused before the provider is asked: an
-// intent is sent as it came, with no code; a judge is sent with its section's
-// text added here, which is never sent back.
+// intent is sent as it came, with no code; a locate is sent with every
+// admitted file's text added here; a judge is sent with its section's text
+// added here. That text is never sent back.
 export async function onRequestPost({ request, env }) {
   if (typeof env?.JEV_API_KEY !== "string" || env.JEV_API_KEY.length === 0) {
     return json({ error: ERRORS.unavailable }, 503);
@@ -266,7 +293,7 @@ export async function onRequestPost({ request, env }) {
   } catch {
     return json({ error: ERRORS.invalidJson }, 400);
   }
-  if (!isRequest(input) && !isJudgeRequest(input)) return json({ error: ERRORS.invalidRequest }, 422);
+  if (!isRequest(input) && !isLocateRequest(input) && !isJudgeRequest(input)) return json({ error: ERRORS.invalidRequest }, 422);
 
   const { kind, state } = input;
   let asked = state;
@@ -278,9 +305,19 @@ export async function onRequestPost({ request, env }) {
   } else {
     const bound = boundArchitecture(env);
     if (bound === null) return json({ error: ERRORS.architectureUnavailable }, 503);
-    const own = kind === ARCHITECTURE_INTENT_KIND ? intentSectionOf(bound.manifest) : judgeSectionOf(bound.manifest, state.architecture.focus);
+    const own = kind === ARCHITECTURE_INTENT_KIND ? intentSectionOf(bound.manifest)
+      : kind === ARCHITECTURE_LOCATE_KIND ? { source: bound.manifest.source }
+        : judgeSectionOf(bound.manifest, state.architecture.focus);
     if (JSON.stringify(state.architecture) !== JSON.stringify(own)) return json({ error: ERRORS.architectureMismatch }, 422);
-    if (kind === ARCHITECTURE_INTENT_KIND) {
+    if (kind === ARCHITECTURE_LOCATE_KIND) {
+      // Every part the snapshot knows is asked about; every admitted file is
+      // shown whole, and nothing is shown for what lies outside the source.
+      slots = locateSlotsFor(bound.manifest.entities.map(entity => entity.id));
+      questions = locateQuestions(bound.manifest, slots);
+      const bodies = bound.manifest.entities.filter(entity => entity.kind === "file")
+        .map(entity => ({ path: entity.path, text: bound.files[entity.id] }));
+      asked = { ...state, architecture: { ...state.architecture, evidence: { bodies } } };
+    } else if (kind === ARCHITECTURE_INTENT_KIND) {
       slots = slotsFor(state);
       questions = questionsFor(state, slots);
     } else {

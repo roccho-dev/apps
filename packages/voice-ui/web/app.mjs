@@ -10,7 +10,15 @@ import { MAX_DECISION_OPERATIONS } from "/ui/semantic-map/domain/operation.js";
 import { ACTION_ARCHITECTURE, DECISION_KIND, ERRORS } from "/app/src/contract.mjs";
 import { readBundle } from "/app/src/bundle.mjs";
 import { FORMAT_ARCHITECTURE, readConfig } from "/app/src/config.mjs";
-import { focusOf, judgeRequestOf, planArchitecture, readManifest, withArchitecture } from "/app/src/architecture.mjs";
+import {
+  judgeRequestOf,
+  locateRequestOf,
+  locatedOf,
+  planArchitecture,
+  readManifest,
+  routeOf,
+  withArchitecture,
+} from "/app/src/architecture.mjs";
 import { EVIDENCE_CURRENT, commitDocument, currentClaims, restoreDocument } from "/app/src/document.mjs";
 import {
   COMMIT_COMMITTED,
@@ -456,9 +464,21 @@ const decide = async (value, source) => {
   const answers = answer.decision.answers;
 
   // An architecture answer that names one part is judged once more: that
-  // part's section alone, whose text the server adds.
+  // part's section alone, whose text the server adds. One that names neither
+  // the whole nor a part confidently is first located from the code itself -
+  // the server adds every admitted file's text - and every part located is
+  // then judged together, in one section.
   const composing = architecture && answers?.action?.choice === ACTION_ARCHITECTURE;
-  const focus = composing ? focusOf(turn, answers) : null;
+  const route = composing ? routeOf(turn, answers) : null;
+  let focus = route?.route === "part" ? route.focus : null;
+  let located = null;
+  if (route?.route === "locate") {
+    const locating = await postJev(locateRequestOf(manifest, request));
+    if (locating.kind === "failed") return locating;
+    located = locating.decision.answers;
+    const found = locatedOf(manifest, located);
+    focus = found !== null && found.focus.length > 0 ? found.focus : null;
+  }
   const judge = focus === null ? null : judgeRequestOf(manifest, focus, value);
   let judged = null;
   if (judge !== null) {
@@ -473,7 +493,7 @@ const decide = async (value, source) => {
   const before = session;
   const transition = composing
     ? await proposeArchitecture(session, {
-      planned: await planArchitecture({ working, turn, answers, judged, manifest, protocol, operationsMax: MAX_DECISION_OPERATIONS }),
+      planned: await planArchitecture({ working, turn, answers, judged, located, manifest, protocol, operationsMax: MAX_DECISION_OPERATIONS }),
       input,
       protocol,
     })
