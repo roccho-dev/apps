@@ -268,7 +268,7 @@ try {
 
   // (1) The whole architecture: structure only, one request, no code sent.
   reached.push("whole");
-  const whole = await say("whole", UTTERANCES.whole, picksFor(contract.NONE), 1);
+  const whole = await say("whole", UTTERANCES.whole, picksFor(contract.WHOLE), 1);
   need(whole.sent.length === 1 && whole.sent[0].sent.kind === contract.ARCHITECTURE_INTENT_KIND, "the whole view is one intent");
   need(whole.sent.every(entry => !codeIn(entry.sent)), "the page never sends source text");
   need(whole.now.state === "drafted", `the whole view was drafted (state ${whole.now.state}: ${whole.now.failure ?? whole.now.status})`);

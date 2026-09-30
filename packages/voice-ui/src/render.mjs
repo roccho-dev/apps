@@ -62,6 +62,8 @@ const REASONS = Object.freeze({
   "display-failed": "the step could not be drawn",
   "architecture-nothing-new": "the architecture view already shows everything this answer names",
   "architecture-unavailable": "the prepared source is not available, so the architecture view cannot be drawn or extended",
+  "architecture-focus-unclear": "どこを見たいのか分かりませんでした。全体か、ファイル名などで指定してください",
+  "architecture-judge-missing": "対象のコード判定がないため、図を更新しませんでした",
   error: "unexpected error",
 });
 

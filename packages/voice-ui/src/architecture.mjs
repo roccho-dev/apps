@@ -6,6 +6,7 @@ import {
   LABEL_MAX,
   MIN_CONFIDENCE,
   NONE,
+  WHOLE,
   YES,
   judgeSlotsFor,
   readAnswers,
@@ -116,7 +117,7 @@ export function readManifest(value) {
   }
   if (!Array.isArray(value.files) || !value.files.every(validFile)) return invalid("files are not well-formed");
   if (!Array.isArray(value.entities) || !value.entities.every(entity => validEntity(entity) && key(entity.id)
-    && text(entity.label) && entity.label.length <= LABEL_MAX)) return invalid("entities are not well-formed");
+    && text(entity.label) && entity.label.length <= LABEL_MAX && entity.id !== WHOLE)) return invalid("entities are not well-formed");
   const ids = value.entities.map(entity => entity.id);
   if (new Set(ids).size !== ids.length) return invalid("entity ids repeat");
   const pathOf = new Map(value.entities.filter(entity => entity.kind === "file").map(entity => [entity.id, entity.path]));
@@ -162,11 +163,13 @@ export function withArchitecture({ turn, request }, manifest) {
   });
 }
 
-// The one part a confident compose-architecture answer asks to see, or null.
+// The one part a confident compose-architecture answer asks to see, or null:
+// never the whole, never none.
 export function focusOf(turn, answers) {
   const read = readAnswers(answers, turn.slots);
   if (read === null || read.action.choice !== ACTION_ARCHITECTURE) return null;
-  return read.focus.choice !== NONE && read.focus.confidence >= MIN_CONFIDENCE ? read.focus.choice : null;
+  const { choice, confidence } = read.focus;
+  return choice !== NONE && choice !== WHOLE && confidence >= MIN_CONFIDENCE ? choice : null;
 }
 
 // The part of the snapshot one focus opens, decided by the manifest alone.
@@ -352,9 +355,12 @@ const refused = (reason, detail = null) => Object.freeze({ outcome: OUTCOME_REFU
 // then edges, as consecutive Decisions of at most `operationsMax` operations
 // each - the provider's own limit, passed in by the caller - each planned on
 // the one before; the page keeps them as one utterance. Every record carries
-// its claim. Without a focus nothing is judged: the view is structure only,
-// with no role at all. Nothing drawn is ever taken back here: a role or
-// relation judged none later stays until the person removes it.
+// its claim. Only an answer that confidently asks for the whole gets the view
+// with nothing judged: structure only, with no role at all. None, or any
+// focus below the threshold, is an honest no-change - never taken as the
+// whole; and a confident part whose section was not judged changes nothing.
+// Nothing drawn is ever taken back here: a role or relation judged none later
+// stays until the person removes it.
 export async function planArchitecture({ working, turn, answers, judged, manifest, protocol, operationsMax }) {
   demand(manifest?.status === "available", "an available manifest is required");
   demand(Number.isSafeInteger(operationsMax) && operationsMax > 0, "the provider's operation limit is required");
@@ -363,6 +369,12 @@ export async function planArchitecture({ working, turn, answers, judged, manifes
   if (read === null) return refused("answer-invalid");
   demand(read.action.choice === ACTION_ARCHITECTURE, "only a compose-architecture answer is planned here");
   if (read.action.confidence < MIN_CONFIDENCE) return noChange("not-confident");
+  if (judged === null) {
+    // A part confidently asked for whose section could not be judged - such
+    // as something outside the source that no admitted file names.
+    if (focusOf(turn, answers) !== null) return refused("architecture-judge-missing");
+    if (!(read.focus.choice === WHOLE && read.focus.confidence >= MIN_CONFIDENCE)) return noChange("architecture-focus-unclear");
+  }
   let judge = null;
   if (judged !== null) {
     demand(judged.section.focus === focusOf(turn, answers), "the judged section is the one this answer asked for");
@@ -420,7 +432,7 @@ export async function planArchitecture({ working, turn, answers, judged, manifes
   const items = [...regions, ...edges];
   const chunks = Array.from({ length: Math.ceil(items.length / operationsMax) },
     (_, index) => items.slice(index * operationsMax, (index + 1) * operationsMax));
-  const confidence = Math.min(read.action.confidence, ...(judged === null ? [] : [read.focus.confidence]));
+  const confidence = Math.min(read.action.confidence, read.focus.confidence);
   const steps = [];
   let graph = working;
   for (const [index, chunk] of chunks.entries()) {

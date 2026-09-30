@@ -16,6 +16,9 @@ export const ARCHITECTURE_JUDGE_KIND = "voice-ui.jev.architecture-judge.v1";
 
 // Every slot also offers this option, so it may not be a part, edge or key.
 export const NONE = "none";
+// An architecture intent's focus also offers the code as a whole, apart from
+// none, so it may not be a part either.
+export const WHOLE = "whole";
 
 export const ACTION_ADD_EDGE = "add-edge";
 export const ACTION_ADD_PART = "add-part";
@@ -188,7 +191,7 @@ const COMMIT = /^[0-9a-f]{40}$/u;
 const validParts = (source, entities) =>
   exactObject(source, ["handle", "commit"]) && KEY_PATTERN.test(source.handle ?? "") && COMMIT.test(source.commit ?? "")
   && Array.isArray(entities) && entities.length > 0 && entities.length <= ARCHITECTURE_GRAPH_MAX
-  && entities.every(entity => exactObject(entity, ["id", "label"]) && KEY_PATTERN.test(entity.id ?? "") && entity.id !== NONE
+  && entities.every(entity => exactObject(entity, ["id", "label"]) && KEY_PATTERN.test(entity.id ?? "") && entity.id !== NONE && entity.id !== WHOLE
     && text(entity.label, LABEL_MAX))
   && unique(entities.map(entity => entity.id));
 
@@ -279,7 +282,7 @@ export function slotsFor(state) {
       NONE,
     ],
   };
-  if (state.architecture) slots.focus = [...state.architecture.entities.map(entity => entity.id), NONE];
+  if (state.architecture) slots.focus = [...state.architecture.entities.map(entity => entity.id), WHOLE, NONE];
   if (canEdge) {
     slots.source = [...nodes, NONE];
     slots.target = [...nodes, NONE];

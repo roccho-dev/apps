@@ -16,6 +16,7 @@ import {
   ERRORS,
   NONE,
   REQUEST_KIND,
+  WHOLE,
   YES,
   isJudgeRequest,
   isRequest,
@@ -282,7 +283,10 @@ test("a plain request and an intent carry no code; an intent adds one closed que
   }
   const [plain, intent] = calls;
   assert.deepEqual(Object.keys(intent.questions).filter(name => !Object.hasOwn(plain.questions, name)), ["focus"]);
-  assert.deepEqual(Object.keys(intent.questions.focus.criteria), [...MANIFEST.entities.map(entity => entity.id), NONE]);
+  assert.deepEqual(Object.keys(intent.questions.focus.criteria), [...MANIFEST.entities.map(entity => entity.id), WHOLE, NONE]);
+  // The whole and none are told apart by what they mean, with no example words.
+  assert.equal(intent.questions.focus.criteria[WHOLE], "the code as a whole");
+  assert.equal(intent.questions.focus.criteria[NONE], "neither one part nor the whole is clear, or it asks for neither");
   assert.ok(Object.keys(intent.questions.action.criteria).includes(ACTION_ARCHITECTURE));
   assert.match(intent.questions.focus.criteria["web-app-mjs"], /web\/app\.mjs/u);
 });
