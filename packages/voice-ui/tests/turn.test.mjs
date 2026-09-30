@@ -159,7 +159,7 @@ test("a new map is named by the person and holds nothing else; it restores as th
   assert.deepEqual(made.step.changes, [{ change: "added", kind: "region", id: "root", label: "業務の図" }]);
   assert.equal(made.graph.mapId, MAP_ID);
   assert.deepEqual(partIds(made.graph), [], "no starter parts");
-  assert.equal((await restoreLog({ read: async () => made.graph.log, verifyDecisionLog })).status, "restored");
+  assert.equal((await restoreLog({ key: "turn test key", read: async () => made.graph.log, verifyDecisionLog })).status, "restored");
 
   // On an empty map a part can be asked for and nothing needs two nodes.
   const { turn } = ask(made.graph);

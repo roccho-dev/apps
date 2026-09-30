@@ -27,7 +27,8 @@ const store = process.env.SEMANTIC_MAP;
 if (!store) throw new Error("SEMANTIC_MAP must point at the pinned semantic-map store path");
 const protocol = await import(pathToFileURL(path.join(store, "packages/semantic-map/protocol/index.js")).href);
 const verifyDecisionLog = protocol.verifyDecisionLog;
-const HISTORY_KEY = "voice-ui.decision-log.v1";
+// A storage key of this test's own; the page passes the one its config declares.
+const HISTORY_KEY = "session test key";
 const COMMIT_CONFLICT = "conflict";
 const here = path.dirname(fileURLToPath(import.meta.url));
 const bundle = readBundle(JSON.parse(fs.readFileSync(path.join(here, "../web/data/bundle.v1.json"), "utf8")));
@@ -82,6 +83,7 @@ const storage = initial => {
     commit: ({ graph, expected }) => commitLog({
       graph,
       expected,
+      key: HISTORY_KEY,
       read: async key => values.get(key) ?? null,
       write: async (key, value) => { values.set(key, value); },
       lock: (name, run) => run(),

@@ -21,8 +21,6 @@ const wav = process.env.VOICE_WAV;
 const goldenPath = process.env.VOICE_GOLDEN;
 if (!wav || !goldenPath) throw new Error("VOICE_WAV and VOICE_GOLDEN are required");
 
-const STORAGE_KEY = "voice-ui.decision-log.v1";
-
 const normalize = value =>
   value.normalize("NFKC").replace(/[\s。、．，,.!?！？・]/gu, "");
 
@@ -86,6 +84,29 @@ assert.equal((await page.content()).includes("JEV_API_KEY"), false);
 assert.equal(await page.evaluate(() => document.body.dataset.state), "no-log");
 assert.equal(await page.locator('iframe[data-package="semantic-map"]').count(), 0);
 assert.equal(await page.locator("#send").isDisabled(), true);
+
+// The configuration the target serves, read by its own production modules in
+// the page: it is valid, and the data bundle it names gives every capability,
+// so the page shows no unavailable notice. The storage key below is the one
+// it declares.
+const configured = await page.evaluate(async () => {
+  const { readConfig } = await import("/app/src/config.mjs");
+  const { readBundle } = await import("/app/src/bundle.mjs");
+  const config = readConfig(await (await fetch("/data/config.v1.json", { cache: "no-store" })).json());
+  if (config.error !== undefined) return { config };
+  const bundle = readBundle(await (await fetch(config.data.bundle, { cache: "no-store" })).json());
+  return {
+    config,
+    parts: bundle.parts !== null,
+    diagrams: bundle.diagrams !== null,
+    notice: document.querySelector("#bundle-notice").textContent,
+  };
+});
+assert.equal(configured.config.error, undefined, `the served config is valid: ${configured.config.error}`);
+assert.equal(configured.config.persistence.mechanism, "localStorage");
+assert.deepEqual([configured.parts, configured.diagrams, configured.notice], [true, true, ""],
+  "the configured bundle gives parts and diagrams, and nothing is shown as unavailable");
+const STORAGE_KEY = configured.config.persistence.key;
 
 // Two edges that are already saved. After the first typed step 作業図 offers
 // three edges, so which one "that edge" means cannot be read off the graph.
