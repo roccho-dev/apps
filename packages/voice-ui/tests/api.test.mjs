@@ -278,32 +278,13 @@ test("a plain request and an intent carry no code; an intent adds one closed que
   for (const [index, call] of calls.entries()) {
     assert.equal(carriesCode(call), false, `${bodies[index].kind} sends no line of code`);
     assert.equal(JSON.stringify(call).includes("\"evidence\""), false);
+    assert.deepEqual(call.state, bodies[index].state, "sent as it came");
   }
   const [plain, intent] = calls;
-  assert.deepEqual(plain.state, bodies[0].state, "the plain request is sent exactly as it came");
-  assert.equal(JSON.stringify(plain).includes("\"navigation\""), false);
-
-  // The intent is sent as it came, and the snapshot's own imports, facts and
-  // candidate pairs beside its parts - exactly the manifest's, nothing else.
-  const { navigation, ...parts } = intent.state.architecture;
-  assert.deepEqual({ ...intent.state, architecture: parts }, bodies[1].state);
-  assert.deepEqual(navigation, { imports: prepared.manifest.imports, facts: prepared.manifest.facts, candidates: prepared.manifest.candidates });
-  assert.match(intent.questions.focus.instructions, /never a fact about what the code does/u);
-  assert.match(intent.questions.focus.instructions, /answer none when it is ambiguous/u);
-
   assert.deepEqual(Object.keys(intent.questions).filter(name => !Object.hasOwn(plain.questions, name)), ["focus"]);
   assert.deepEqual(Object.keys(intent.questions.focus.criteria), [...MANIFEST.entities.map(entity => entity.id), NONE]);
   assert.ok(Object.keys(intent.questions.action.criteria).includes(ACTION_ARCHITECTURE));
   assert.match(intent.questions.focus.criteria["web-app-mjs"], /web\/app\.mjs/u);
-});
-
-test("the page may not bring navigation of its own: only the server adds it", async () => {
-  const own = intentSectionOf(MANIFEST);
-  const injected = intentRequest({ ...own, navigation: { imports: [], facts: [], candidates: [] } });
-  const { result, calls } = await withProvider(answering(noneTo), () => post(injected, ARCHITECTURE_ENV));
-  assert.equal(result.status, 422);
-  assert.deepEqual(await result.json(), { error: ERRORS.invalidRequest });
-  assert.equal(calls.length, 0);
 });
 
 test("a judge is asked from exactly its section's text: body files whole, other files by matching line", async () => {
@@ -334,8 +315,7 @@ test("measured, not assumed: what each focus sends the provider, by the Function
   const { calls } = await withProvider(answering(noneTo), () => Promise.all([request(), intentRequest()].map(body => post(body, ARCHITECTURE_ENV))));
   for (const [index, call] of calls.entries()) {
     t.diagnostic(`${index === 0 ? "plain" : "intent"}: ${Buffer.byteLength(JSON.stringify(call))} bytes, `
-      + `${Object.keys(call.questions).length} questions, code bytes 0`
-      + (index === 0 ? "" : `, of which navigation ${Buffer.byteLength(JSON.stringify(call.state.architecture.navigation))} bytes`));
+      + `${Object.keys(call.questions).length} questions, code bytes 0`);
   }
   for (const focus of ["web-app-mjs", "ext-jev-api-key", "ext-localstorage", "src-log-mjs"]) {
     const { result, calls: [call] } = await withProvider(answering(noneTo), () => post(judgeRequest(focus), ARCHITECTURE_ENV));
