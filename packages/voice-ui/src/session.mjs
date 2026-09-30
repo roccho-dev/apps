@@ -158,19 +158,25 @@ export async function propose(session, { turn, answers, protocol, bundle, layout
 }
 
 // An utterance Jev judged as an architecture view, already planned against the
-// prepared source: it joins the conversation like any other judged utterance,
-// and its step joins the draft with its claims.
+// prepared source as consecutive steps: it joins the conversation like any
+// other judged utterance, and its steps join the draft in order, each with its
+// claims - all of them or none. Only the first carries the utterance, so the
+// utterance counts as undone once Undo has taken the whole view back.
 export async function proposeArchitecture(session, { planned, input, protocol }) {
   if (planned.outcome !== OUTCOME_STEP) {
     const next = planned.outcome === OUTCOME_NO_CHANGE ? remember(session, input, "no-change") : noteRefused(session, input);
     return Object.freeze({ session: next, result: planned });
   }
-  const judged = remember(session, input, "step", planned.step.changes);
-  const appended = await appendItem(judged, planned.step, Object.freeze({ ...input, seq: session.nextSeq }), protocol, planned.claims);
-  if (appended.result.outcome !== OUTCOME_STEP) {
-    return Object.freeze({ session: noteRefused(session, input), result: appended.result });
+  let next = remember(session, input, "step", planned.steps.flatMap(item => item.step.changes));
+  for (const [index, item] of planned.steps.entries()) {
+    const stepInput = index === 0 ? Object.freeze({ ...input, seq: session.nextSeq }) : null;
+    const appended = await appendItem(next, item.step, stepInput, protocol, item.claims);
+    if (appended.result.outcome !== OUTCOME_STEP) {
+      return Object.freeze({ session: noteRefused(session, input), result: appended.result });
+    }
+    next = appended.session;
   }
-  return appended;
+  return Object.freeze({ session: next, result: Object.freeze({ outcome: OUTCOME_STEP, steps: planned.steps.map(item => item.step) }) });
 }
 
 // An utterance Jev judged whose step could not be kept.
