@@ -100,7 +100,7 @@ export function loadAcceptanceArtifact({ artifactRoot, expectedAppsSha, expected
   if (manifestDigest !== expectedManifestSha256) throw new Error("artifact manifest digest mismatch");
 
   const manifest = JSON.parse(readFileSync(manifestPath, "utf8"));
-  if (manifest.schema !== "voice-ui-dist/1") throw new Error("artifact manifest schema mismatch");
+  if (manifest.schema !== "voice-ui-dist/2") throw new Error("artifact manifest schema mismatch");
   assertExactSha(expectedAppsSha, "expected apps SHA");
   if (manifest.sources?.apps !== expectedAppsSha) throw new Error("artifact apps SHA mismatch");
 

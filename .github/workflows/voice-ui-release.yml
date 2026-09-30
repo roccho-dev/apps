@@ -73,6 +73,22 @@ jobs:
           unzip -q dist/release/voice-ui-dist.zip -d "$reopened"
           test "$(ls -A "$reopened")" = voice-ui-dist
           diff -r dist/voice-ui-dist "$reopened/voice-ui-dist"
+      - name: Export the acceptance runtime closure
+        run: |
+          set -euo pipefail
+          root="$(nix build --no-link --print-out-paths .#voice-ui-acceptance-runtime)"
+          test -x "$root/bin/voice-ui-acceptance-node"
+          mapfile -t closure < <(nix-store --query --requisites "$root")
+          nix-store --export "${closure[@]}" > dist/release/voice-ui-acceptance-runtime.nix-export
+          (cd dist/release && sha256sum voice-ui-acceptance-runtime.nix-export > voice-ui-acceptance-runtime.nix-export.sha256)
+          nix path-info --json --recursive "$root" > dist/acceptance-path-info.json
+          # The recorded closure is exactly the exported one.
+          diff <(printf '%s\n' "${closure[@]}" | sort) \
+            <(jq -r 'if type == "array" then .[].path else keys[] end' dist/acceptance-path-info.json | sort)
+          printf '%s' "$root" > dist/acceptance-root
+          python3 .github/voice-ui-release/release.py acceptance \
+            --export dist/release/voice-ui-acceptance-runtime.nix-export \
+            --root "$root" --path-info dist/acceptance-path-info.json
       - name: Record merged-PR proof and provenance
         if: env.PUBLISH == 'true'
         env:
@@ -94,6 +110,8 @@ jobs:
             --zip dist/release/voice-ui-dist.zip --root . --repository "$GITHUB_REPOSITORY" \
             --sha "$EXACT_SHA" --tree "$(git rev-parse 'HEAD^{tree}')" \
             --workflow-ref "$GITHUB_WORKFLOW_REF" --run-id "$GITHUB_RUN_ID" --run-attempt "$GITHUB_RUN_ATTEMPT" \
+            --acceptance-export dist/release/voice-ui-acceptance-runtime.nix-export \
+            --acceptance-root "$(cat dist/acceptance-root)" --acceptance-path-info dist/acceptance-path-info.json \
             --out dist/release/provenance.json
           python3 .github/voice-ui-release/release.py verify dist/release \
             --sha "$EXACT_SHA" --repository "$GITHUB_REPOSITORY"
@@ -112,7 +130,8 @@ jobs:
     if: github.event_name == 'workflow_dispatch' && inputs.publish && github.ref == 'refs/heads/proposals' && github.event.repository.default_branch == 'proposals'
     needs: build-test
     runs-on: ubuntu-24.04
-    timeout-minutes: 15
+    # Uploads and anonymously re-downloads the ~0.9 GB acceptance closure.
+    timeout-minutes: 45
     permissions:
       contents: write
     env:
@@ -146,6 +165,7 @@ jobs:
           test "$(status "$api/releases/tags/$TAG")" = 404
           gh release create "$TAG" \
             release/voice-ui-dist.zip release/voice-ui-dist.zip.sha256 \
+            release/voice-ui-acceptance-runtime.nix-export release/voice-ui-acceptance-runtime.nix-export.sha256 \
             release/provenance.json release/merged-pr-proof.json \
             --title "$TAG" --notes "voice-ui-dist exact artifact built from $EXACT_SHA" \
             --target "$EXACT_SHA" --repo "$GITHUB_REPOSITORY"

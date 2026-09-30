@@ -9,15 +9,27 @@ provider-guard  fail while apps still consumes ops source: any roccho-dev/ops
                 node in flake.lock or `sources.ops` in the dist manifest
 proof           merged-PR proof from GitHub API JSON (pull and its reviews);
                 the latest non-dismissed review on the exact head must be Green
-provenance      provenance for the packaged zip
+acceptance      the acceptance runtime's `nix-store --export` closure: under the
+                release asset limit, its root in the native path-info closure
+                and the entry inside that root
+provenance      provenance for the packaged zip and the acceptance closure
 verify          a release directory holds exactly the published set, and its
                 digests, provenance and proof agree with one exact SHA
-selftest        negative cases for lint, provider-guard and the verdict rule
+selftest        negative cases for lint, provider-guard, the verdict rule, the
+                acceptance closure record and a published set whose provenance
+                tree differs from the merged tree
 """
-import argparse, copy, hashlib, json, pathlib, re, sys
+import argparse, copy, hashlib, json, pathlib, re, sys, tempfile
 
 ZIP = 'voice-ui-dist.zip'
-ASSETS = {ZIP, ZIP + '.sha256', 'provenance.json', 'merged-pr-proof.json'}
+# The existing acceptance runtime, as one full `nix-store --export` of its closure.
+ACCEPTANCE = 'voice-ui-acceptance-runtime.nix-export'
+ACCEPTANCE_ENTRY = 'bin/voice-ui-acceptance-node'
+ASSETS = {ZIP, ZIP + '.sha256', ACCEPTANCE, ACCEPTANCE + '.sha256', 'provenance.json', 'merged-pr-proof.json'}
+PROVENANCE = 'roccho.voice-ui-dist.release-provenance/2'
+ASSET_LIMIT = 2 * 1024 ** 3  # GitHub release assets must be smaller than 2 GiB.
+STORE_PATH = re.compile(r'/nix/store/[0-9a-df-np-sv-z]{32}-[A-Za-z0-9+._?=-]+')
+NAR_HASH = re.compile(r'sha256[-:][A-Za-z0-9+/=]+')
 DIGEST = re.compile(r'[0-9a-f]{64}')
 PIN = re.compile(r'^[A-Za-z0-9_.-]+/[A-Za-z0-9_./-]+@[0-9a-f]{40}$')
 NIX = re.compile(r'(?<![\w.-])(?:nix|nix-build|nix-shell|nix-store|nix-env|nix-instantiate)(?![\w.-])')
@@ -49,8 +61,8 @@ def write(path, value):
     pathlib.Path(path).write_text(json.dumps(value, indent=2, sort_keys=True) + '\n')
 
 
-def locator(repository, sha):
-    return f'https://github.com/{repository}/releases/download/voice-ui-dist-{sha}/{ZIP}'
+def locator(repository, sha, name=ZIP):
+    return f'https://github.com/{repository}/releases/download/voice-ui-dist-{sha}/{name}'
 
 
 def writes(permissions):
@@ -104,6 +116,52 @@ def provider_errors(lock, manifest):
     if 'ops' in (manifest.get('sources') or {}):
         errors.append('dist manifest still records sources.ops')
     return errors
+
+
+def closure_errors(record):
+    """Structural checks of an acceptance closure record; bytes are checked by the caller."""
+    errors = []
+    paths = [p.get('path') for p in record.get('closure') or []]
+    if not paths or len(set(paths)) != len(paths):
+        errors.append('closure is empty or lists a path twice')
+    for p in record.get('closure') or []:
+        if not STORE_PATH.fullmatch(str(p.get('path'))) or not NAR_HASH.fullmatch(str(p.get('narHash'))) \
+                or not isinstance(p.get('narSize'), int) or p['narSize'] <= 0:
+            errors.append(f'closure member is not a store path with narHash and narSize: {p}')
+    if record.get('root') not in paths:
+        errors.append('root is not in its own closure')
+    if record.get('entry') != f"{record.get('root')}/{ACCEPTANCE_ENTRY}":
+        errors.append('entry is not the runtime entry inside the root')
+    if not isinstance(record.get('bytes'), int) or not 0 < record['bytes'] < ASSET_LIMIT:
+        errors.append('export size is empty or not under the release asset limit')
+    if not DIGEST.fullmatch(str(record.get('sha256'))):
+        errors.append('export sha256 is not a hex digest')
+    return errors
+
+
+def acceptance_record(export, root, path_info):
+    """The acceptance closure record from the export file and native `nix path-info --json -r` output."""
+    info = json.loads(pathlib.Path(path_info).read_text())
+    rows = info.items() if isinstance(info, dict) else ((r.get('path'), r) for r in info)  # both Nix JSON shapes
+    record = {
+        'name': ACCEPTANCE,
+        'format': 'nix-store --export',
+        'bytes': pathlib.Path(export).stat().st_size,
+        'sha256': sha256(export),
+        'root': root,
+        'entry': f'{root}/{ACCEPTANCE_ENTRY}',
+        'closure': sorted(({'path': p, 'narHash': r.get('narHash'), 'narSize': r.get('narSize')} for p, r in rows),
+                          key=lambda r: r['path']),
+    }
+    errors = closure_errors(record)
+    if errors:
+        raise SystemExit('acceptance closure record failed:\n' + '\n'.join(errors))
+    return record
+
+
+def acceptance(a):
+    r = acceptance_record(a.export, a.root, a.path_info)
+    print(f"acceptance closure: PASS {len(r['closure'])} paths, {r['bytes']} bytes (limit {ASSET_LIMIT}), sha256 {r['sha256']}")
 
 
 def lint(a):
@@ -163,13 +221,16 @@ def proof(a):
 
 def provenance(a):
     z = pathlib.Path(a.zip)
+    accept = acceptance_record(a.acceptance_export, a.acceptance_root, a.acceptance_path_info)
+    accept['locator'] = locator(a.repository, a.sha, ACCEPTANCE)
     write(a.out, {
-        'schema': 'roccho.voice-ui-dist.release-provenance/1',
+        'schema': PROVENANCE,
         'producer': {'repository': a.repository, 'workflow_ref': a.workflow_ref, 'run_id': a.run_id, 'run_attempt': a.run_attempt},
         'source': {'repository': a.repository, 'commit': a.sha, 'tree': a.tree},
         'input_digests': {'flake.lock': sha256(pathlib.Path(a.root) / 'flake.lock')},
         'artifact': {'name': ZIP, 'bytes': z.stat().st_size, 'sha256': sha256(z)},
         'locator': locator(a.repository, a.sha),
+        'acceptance': accept,
         'cross_host_bytes_reproducible': False,
     })
 
@@ -182,10 +243,20 @@ def verify(a):
     digest = sha256(d / ZIP)
     if (d / (ZIP + '.sha256')).read_text().split() != [digest, ZIP]:
         raise SystemExit('zip sha256 file does not match the zip')
+    accept_digest = sha256(d / ACCEPTANCE)
+    if (d / (ACCEPTANCE + '.sha256')).read_text().split() != [accept_digest, ACCEPTANCE]:
+        raise SystemExit('acceptance sha256 file does not match the export')
     p = json.loads((d / 'provenance.json').read_text())
     q = json.loads((d / 'merged-pr-proof.json').read_text())
+    accept = p.get('acceptance') or {}
     checks = {
+        'provenance schema': p.get('schema') == PROVENANCE,
+        'acceptance digest': accept.get('name') == ACCEPTANCE and accept.get('sha256') == accept_digest
+                             and accept.get('bytes') == (d / ACCEPTANCE).stat().st_size,
+        'acceptance locator': accept.get('locator') == locator(a.repository, a.sha, ACCEPTANCE),
+        'acceptance closure': accept.get('format') == 'nix-store --export' and not closure_errors(accept),
         'provenance source commit': p['source']['commit'] == a.sha,
+        'provenance source tree': p['source']['tree'] == q['merge_tree'],
         'provenance repository': p['source']['repository'] == a.repository,
         'provenance digest': p['artifact'] == {'name': ZIP, 'bytes': (d / ZIP).stat().st_size, 'sha256': digest},
         'provenance locator': p['locator'] == locator(a.repository, a.sha),
@@ -275,9 +346,61 @@ def selftest(a):
         except SystemExit:
             continue
         raise AssertionError(f'accepted a non-Green verdict: {reviews}')
+    root = '/nix/store/' + 'a' * 32 + '-voice-ui-acceptance-node'
+    dep = '/nix/store/' + 'b' * 32 + '-nodejs-24'
+    good_closure = {'bytes': 1, 'sha256': 'c' * 64, 'root': root, 'entry': f'{root}/{ACCEPTANCE_ENTRY}',
+                    'closure': [{'path': p, 'narHash': 'sha256-' + 'd' * 43 + '=', 'narSize': 8} for p in (root, dep)]}
+    assert closure_errors(good_closure) == [], closure_errors(good_closure)
+    bad_closures = [
+        lambda r: r['closure'].pop(0),
+        lambda r: r.__setitem__('entry', f'{dep}/{ACCEPTANCE_ENTRY}'),
+        lambda r: r.__setitem__('entry', f'{root}/bin/sh'),
+        lambda r: r.__setitem__('bytes', ASSET_LIMIT),
+        lambda r: r.__setitem__('bytes', 0),
+        lambda r: r['closure'].append(dict(r['closure'][1])),
+        lambda r: r['closure'][1].__setitem__('path', '/tmp/' + 'b' * 32 + '-nodejs-24'),
+        lambda r: r['closure'][1].__setitem__('path', '/nix/store/' + 'e' * 32 + '-nodejs-24'),
+        lambda r: r['closure'][1].pop('narHash'),
+        lambda r: r['closure'][1].__setitem__('narSize', 0),
+        lambda r: r.__setitem__('sha256', 'sha256:' + 'c' * 64),
+    ]
+    for mutate in bad_closures:
+        r = copy.deepcopy(good_closure)
+        mutate(r)
+        assert closure_errors(r), f'closure check accepted {r}'
+    # verify() on a tiny synthetic release set. Its proof is marked NEVER_PUBLISHED: it only
+    # exercises the checks and is not a proof, an admission or anything a release carries.
+    repo, sha, tree = 'roccho-dev/apps', '1' * 40, '2' * 40
+    with tempfile.TemporaryDirectory() as tmp:
+        d = pathlib.Path(tmp)
+        (d / ZIP).write_bytes(b'zip')
+        (d / ACCEPTANCE).write_bytes(b'export')
+        for name in (ZIP, ACCEPTANCE):
+            (d / (name + '.sha256')).write_text(f'{sha256(d / name)}  {name}\n')
+        accept = dict(copy.deepcopy(good_closure), name=ACCEPTANCE, format='nix-store --export', bytes=6,
+                      sha256=sha256(d / ACCEPTANCE), locator=locator(repo, sha, ACCEPTANCE))
+        prov = {'schema': PROVENANCE, 'source': {'repository': repo, 'commit': sha, 'tree': tree},
+                'input_digests': {'flake.lock': 'f' * 64}, 'artifact': {'name': ZIP, 'bytes': 3, 'sha256': sha256(d / ZIP)},
+                'locator': locator(repo, sha), 'acceptance': accept, 'cross_host_bytes_reproducible': False}
+        write(d / 'merged-pr-proof.json', {
+            'pr_number': 1, 'r_exact_head_verdict_ref': 'NEVER_PUBLISHED selftest', 'merged_at': 'NEVER_PUBLISHED',
+            'base': 'proposals', 'reviewed_head': '3' * 40, 'reviewed_tree': tree, 'merge_sha': sha, 'merge_tree': tree})
+        write(d / 'provenance.json', prov)
+        args = argparse.Namespace(dir=tmp, sha=sha, repository=repo)
+        verify(args)  # the consistent set passes, so the negative below is not vacuous
+        prov['source']['tree'] = '4' * 40
+        write(d / 'provenance.json', prov)
+        try:
+            verify(args)
+        except SystemExit as refused:
+            assert str(refused) == 'release record mismatch: provenance source tree', refused
+        else:
+            raise AssertionError('verify accepted a provenance source tree that differs from the merged tree')
     print(json.dumps({'lint': {'positive': 1, 'negative': len(bad_workflows)},
                       'provider_guard': {'positive': 2, 'negative': len(bad_providers)},
-                      'verdict': {'positive': len(good_verdicts), 'negative': len(bad_verdicts)}}))
+                      'verdict': {'positive': len(good_verdicts), 'negative': len(bad_verdicts)},
+                      'acceptance_closure': {'positive': 1, 'negative': len(bad_closures)},
+                      'release_set': {'positive': 1, 'negative': 1}}))
 
 
 def main():
@@ -291,8 +414,12 @@ def main():
     p = sub.add_parser('proof')
     for k in ('--pr', '--reviews', '--head-tree', '--merge-sha', '--merge-tree', '--out'):
         p.add_argument(k, required=True)
+    p = sub.add_parser('acceptance')
+    for k in ('--export', '--root', '--path-info'):
+        p.add_argument(k, required=True)
     p = sub.add_parser('provenance')
-    for k in ('--zip', '--root', '--repository', '--sha', '--tree', '--workflow-ref', '--run-id', '--run-attempt', '--out'):
+    for k in ('--zip', '--root', '--repository', '--sha', '--tree', '--workflow-ref', '--run-id', '--run-attempt', '--out',
+              '--acceptance-export', '--acceptance-root', '--acceptance-path-info'):
         p.add_argument(k, required=True)
     p = sub.add_parser('verify')
     p.add_argument('dir')
@@ -300,7 +427,7 @@ def main():
         p.add_argument(k, required=True)
     a = ap.parse_args()
     {'lint': lint, 'selftest': selftest, 'provider-guard': provider_guard, 'proof': proof,
-     'provenance': provenance, 'verify': verify}[a.cmd](a)
+     'acceptance': acceptance, 'provenance': provenance, 'verify': verify}[a.cmd](a)
 
 
 if __name__ == '__main__':

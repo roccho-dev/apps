@@ -6,6 +6,6 @@
 
 The artifact's only provider route is the compiled Worker (`worker/worker.mjs`); raw `functions/` are not shipped. That is an artifact-contract decision, not proof of any live deployment, admission or acceptance.
 
-Ops owns provisioning the already-built closure and admitting its exact identity, then passing the verified artifact entrypoint. The immutable Nix store closure, not just the shell wrapper's digest, defines the runtime. Normal invocation does not contact Nix/npm/package registries. The source Nix pin is shared with the root flake.
+The release publishes this already-built closure as `voice-ui-acceptance-runtime.nix-export` (one full `nix-store --export` of every path) with its `.sha256`. Release provenance `/2` records its bytes, digest and locator, its root and `bin/voice-ui-acceptance-node` entry, and every closure path with its narHash and narSize, checked equal to the exported set and under the release asset limit. Ops owns admitting that exact identity, importing the closure with `nix-store --import` (unsigned, so the importing Nix must trust it; not yet proven on a fresh consumer), then passing the verified artifact entrypoint. The immutable Nix store closure, not just the shell wrapper's digest, defines the runtime. Normal invocation does not contact Nix/npm/package registries. The source Nix pin is shared with the root flake.
 
 Physical completion of apps#27 still requires the actual deployed endpoint, target-native auth and complete application acceptance. CI's controlled endpoint must never be used for that claim.
