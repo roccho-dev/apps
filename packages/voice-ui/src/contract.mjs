@@ -7,12 +7,17 @@
 
 export const REQUEST_KIND = "voice-ui.jev.request.v10";
 export const DECISION_KIND = "voice-ui.jev.decision.v5";
-// The architecture page's two requests, each its own closed kind. The intent
-// is the plain request with the prepared snapshot's parts beside it, by path
-// or identifier only, and never any code. The judge follows an intent that
-// chose one part: that part's section alone, whose text the server adds.
+// The architecture page's requests, each its own closed kind. The intent is
+// the plain request with the prepared snapshot's parts beside it, by path or
+// identifier only, and never any code. When the intent names no part
+// confidently, the locate asks the code itself which parts the utterance
+// means: it carries the utterance and conversation only, and the server adds
+// every admitted file's text. The judge follows with the section of the parts
+// chosen - one named part, or every part located - whose text the server adds.
 export const ARCHITECTURE_INTENT_KIND = "voice-ui.jev.architecture-intent.v1";
-export const ARCHITECTURE_JUDGE_KIND = "voice-ui.jev.architecture-judge.v1";
+export const ARCHITECTURE_LOCATE_KIND = "voice-ui.jev.architecture-locate.v1";
+// v2: the focus is a sorted list of part ids, no longer one id.
+export const ARCHITECTURE_JUDGE_KIND = "voice-ui.jev.architecture-judge.v2";
 
 // Every slot also offers this option, so it may not be a part, edge or key.
 export const NONE = "none";
@@ -187,9 +192,16 @@ const validOffer = list =>
 
 const COMMIT = /^[0-9a-f]{40}$/u;
 
+// The prepared snapshot's identity.
+const validSource = source =>
+  exactObject(source, ["handle", "commit"]) && KEY_PATTERN.test(source.handle ?? "") && COMMIT.test(source.commit ?? "");
+
+// A list of ids in strictly increasing order: sorted, with no repeats.
+const sortedUnique = list => list.every((value, index) => index === 0 || list[index - 1] < value);
+
 // The prepared snapshot's identity, and its parts by id and path or identifier.
 const validParts = (source, entities) =>
-  exactObject(source, ["handle", "commit"]) && KEY_PATTERN.test(source.handle ?? "") && COMMIT.test(source.commit ?? "")
+  validSource(source)
   && Array.isArray(entities) && entities.length > 0 && entities.length <= ARCHITECTURE_GRAPH_MAX
   && entities.every(entity => exactObject(entity, ["id", "label"]) && KEY_PATTERN.test(entity.id ?? "") && entity.id !== NONE && entity.id !== WHOLE
     && text(entity.label, LABEL_MAX))
@@ -220,10 +232,22 @@ export function isRequest(value) {
     && validOffer(state.offers.diagrams);
 }
 
-// An architecture judge: the utterance and one focused section - its parts,
-// which of them are body files, the candidate pairs among them with the text
-// each rests on, and the vocabulary. Never file contents; the server adds
-// those itself.
+// An architecture locate: the utterance and the recent conversation exactly as
+// the intent carried them, and the snapshot's identity. Never file contents;
+// the server adds those itself.
+export function isLocateRequest(value) {
+  if (!exactObject(value, ["kind", "state"]) || value.kind !== ARCHITECTURE_LOCATE_KIND) return false;
+  const { state } = value;
+  return exactObject(state, ["utterance", "context", "architecture"])
+    && text(state.utterance, TEXT_MAX)
+    && validContext(state.context, ARCHITECTURE_CHANGES_MAX)
+    && exactObject(state.architecture, ["source"]) && validSource(state.architecture.source);
+}
+
+// An architecture judge: the utterance and one focused section - the parts it
+// was asked for, sorted; its parts, which of them are body files, the
+// candidate pairs among them with the text each rests on, and the vocabulary.
+// Never file contents; the server adds those itself.
 export function isJudgeRequest(value) {
   if (!exactObject(value, ["kind", "state"]) || value.kind !== ARCHITECTURE_JUDGE_KIND) return false;
   const { state } = value;
@@ -233,7 +257,8 @@ export function isJudgeRequest(value) {
     || !validParts(section.source, section.entities)) return false;
   const ids = section.entities.map(entity => entity.id);
   const { candidates } = section;
-  return ids.includes(section.focus)
+  return Array.isArray(section.focus) && section.focus.length > 0 && section.focus.every(part => ids.includes(part))
+    && sortedUnique(section.focus)
     && Array.isArray(section.bodies) && section.bodies.length > 0 && section.bodies.every(body => ids.includes(body)) && unique(section.bodies)
     && Array.isArray(candidates) && candidates.length <= ARCHITECTURE_GRAPH_MAX
     && candidates.every(candidate => exactObject(candidate, ["id", "from", "to", "reasons"]) && id(candidate.id)
@@ -242,6 +267,12 @@ export function isJudgeRequest(value) {
     && unique(candidates.map(candidate => candidate.id))
     && validOffer(section.roles) && section.roles.length > 0 && validOffer(section.relations) && section.relations.length > 0;
 }
+
+// A locate's questions by name, one per part the snapshot knows; and the
+// options of each: whether the utterance asks for that part, yes or none.
+export const relevantSlot = entityId => `relevant-${entityId}`;
+export const locateSlotsFor = entityIds => Object.freeze(Object.fromEntries(
+  entityIds.map(entityId => [relevantSlot(entityId), Object.freeze([YES, NONE])])));
 
 // A judge's questions by name: one per role of each body file, one per pair.
 export const roleSlot = (entityId, role) => `role-${entityId}--${role}`;

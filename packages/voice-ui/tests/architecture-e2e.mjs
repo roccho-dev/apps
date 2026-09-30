@@ -65,6 +65,11 @@ assert.equal(served.status, 200, "the target serves its contract module");
 const contract = await import(`data:text/javascript;base64,${Buffer.from(await served.text()).toString("base64")}`);
 const config = await (await fetch(new URL("/architecture/data/config.v1.json", url))).json();
 const KEY = config.persistence.key;
+// The snapshot's public manifest as the target serves it: its parts, which a
+// locate asks about, and the commit every architecture request must name.
+const MANIFEST = await (await fetch(new URL(config.data.source, url))).json();
+const ENTITY_IDS = MANIFEST.entities.map(entity => entity.id);
+const SERVED_COMMIT = MANIFEST.source.commit;
 
 const browser = await chromium.launch({ headless: true, channel: "chromium" });
 const context = await browser.newContext();
@@ -121,11 +126,17 @@ const sanitized = entry => ({
 });
 const report = value => process.stdout.write(`${JSON.stringify(value)}\n`);
 
+// The questions a request put to Jev, as the served contract derives them for
+// its kind.
+const slotsOf = sent => (sent.kind === contract.ARCHITECTURE_JUDGE_KIND ? contract.judgeSlotsFor(sent.state.architecture)
+  : sent.kind === contract.ARCHITECTURE_LOCATE_KIND ? contract.locateSlotsFor(ENTITY_IDS)
+    : contract.slotsFor(sent.state));
+
 // Fixture mode only: the answer to a request, crafted from its own questions -
-// an intent's or a judge's, each as the served contract derives them.
+// an intent's, a locate's or a judge's.
 const craft = picks => async route => {
   const sent = JSON.parse(route.request().postData());
-  const slots = sent.kind === contract.ARCHITECTURE_JUDGE_KIND ? contract.judgeSlotsFor(sent.state.architecture) : contract.slotsFor(sent.state);
+  const slots = slotsOf(sent);
   const answers = Object.fromEntries(Object.entries(slots).map(([name, options]) => {
     const picked = picks(name, sent);
     return [name, { type: "choice", choice: options.includes(picked) ? picked : contract.NONE, confidence: 0.9 }];
@@ -158,14 +169,36 @@ const domOf = now => ({
 // What the page showed last, for the summary.
 let last = null;
 
-// One utterance in the named stage, expected to make `calls` requests: an
-// intent, and a judge when the intent names one part. The page is pending
-// from the click until it has finished the utterance, however it ended; then
-// the requests it actually made are counted. Fewer or more, or any not
-// answered, is a finding of this stage - never a wait for more.
-const say = async (stage, utterance, picks, calls) => {
+// The requests one utterance must make, from the answers it actually got: an
+// intent; then a judge of exactly [the part] when the intent names one part
+// confidently; or, when it names neither the whole nor a part confidently, a
+// locate, and a judge of exactly every confidently located part, sorted, if
+// there is any. Nothing else.
+const expectedOf = sent => {
+  const kinds = [contract.ARCHITECTURE_INTENT_KIND];
+  const intent = sent[0]?.body?.answers;
+  if (intent?.action?.choice !== contract.ACTION_ARCHITECTURE || !(intent.action.confidence >= contract.MIN_CONFIDENCE)) return { kinds, focus: null };
+  const { choice, confidence } = intent.focus ?? {};
+  const sure = confidence >= contract.MIN_CONFIDENCE;
+  if (choice === contract.WHOLE && sure) return { kinds, focus: null };
+  if (choice !== contract.NONE && choice !== contract.WHOLE && sure) return { kinds: [...kinds, contract.ARCHITECTURE_JUDGE_KIND], focus: [choice] };
+  const located = sent[1]?.body?.answers ?? {};
+  const found = ENTITY_IDS.filter(id => located[contract.relevantSlot(id)]?.choice === contract.YES
+    && located[contract.relevantSlot(id)].confidence >= contract.MIN_CONFIDENCE).sort();
+  return found.length === 0
+    ? { kinds: [...kinds, contract.ARCHITECTURE_LOCATE_KIND], focus: null }
+    : { kinds: [...kinds, contract.ARCHITECTURE_LOCATE_KIND, contract.ARCHITECTURE_JUDGE_KIND], focus: found };
+};
+
+// One utterance in the named stage. The page is pending from the click until
+// it has finished the utterance, however it ended; then the requests it
+// actually made are checked against what their own answers call for: their
+// kinds and order, every one answered 200 with a complete answer, every one
+// naming the served snapshot, and a judge bound to exactly the parts asked
+// for. Anything else is a finding of this stage - never a wait for more.
+const say = async (stage, utterance, picks) => {
   const route = new URL("/api/jev", url).href;
-  if (FIXTURE) await page.route(route, craft(picks), { times: calls });
+  if (FIXTURE) await page.route(route, craft(picks), { times: 3 });
   const before = exchanges.length;
   await page.locator("#text").fill(utterance);
   await page.locator("#send").click();
@@ -176,10 +209,19 @@ const say = async (stage, utterance, picks, calls) => {
   const now = await screen();
   last = now;
   const answered = sent.filter(entry => entry.status !== null).length;
-  report({ event: "turn", stage, expected: calls, requests: sent.length, answered, failed: sent.filter(entry => entry.error !== null).length,
+  const expected = expectedOf(sent);
+  report({ event: "turn", stage, expected: expected.kinds, requests: sent.length, answered, failed: sent.filter(entry => entry.error !== null).length,
     exchanges: sent.map(sanitized), dom: domOf(now) });
   for (const entry of sent) entry.reported = true;
-  need(sent.length === calls && answered === calls, `${stage}: ${calls} requests expected, ${sent.length} made, ${answered} answered`);
+  const kinds = sent.map(entry => entry.sent.kind);
+  need(JSON.stringify(kinds) === JSON.stringify(expected.kinds), `${stage}: requests ${kinds.join(", ")} where the answers call for ${expected.kinds.join(", ")}`);
+  need(sent.every(entry => entry.status === 200 && contract.readAnswers(entry.body?.answers, slotsOf(entry.sent)) !== null),
+    `${stage}: every request answered 200 with a complete answer`);
+  need(sent.every(entry => entry.sent.kind === contract.REQUEST_KIND || entry.sent.state.architecture.source.commit === SERVED_COMMIT),
+    `${stage}: every request names the served snapshot`);
+  const judge = sent.find(entry => entry.sent.kind === contract.ARCHITECTURE_JUDGE_KIND);
+  need(judge === undefined || JSON.stringify(judge.sent.state.architecture.focus) === JSON.stringify(expected.focus),
+    `${stage}: the judge is bound to exactly ${JSON.stringify(expected.focus)}`);
   return { now, sent };
 };
 const claimOf = (now, record) => now.claims.find(claim => claim.record === record) ?? null;
@@ -225,6 +267,10 @@ const RELATIONS = {
   [`c-${FUNCTION}--ext-jev-api-key`]: "authenticates-with",
   [`c-${FUNCTION}--ext-api-typesafe-ai`]: "calls",
 };
+// In the natural fixture a part is never named: the intent answers none, and
+// the part is located - so the locate and its judge are what the fixture
+// exercises. The named fixture names it.
+const LOCATES = FIXTURE && scenario === "natural";
 const picksFor = focus => (name, sent) => {
   if (sent.kind === contract.ARCHITECTURE_JUDGE_KIND) {
     const role = Object.entries(ROLES).flatMap(([entity, roles]) => roles.map(key => [contract.roleSlot(entity, key), key]))
@@ -232,10 +278,13 @@ const picksFor = focus => (name, sent) => {
     if (role !== undefined) return contract.YES;
     return name.startsWith("relation-") ? RELATIONS[name.slice("relation-".length)] : contract.NONE;
   }
+  if (sent.kind === contract.ARCHITECTURE_LOCATE_KIND) return name === contract.relevantSlot(focus) ? contract.YES : contract.NONE;
   if (name === "action") return contract.ACTION_ARCHITECTURE;
-  if (name === "focus") return focus;
+  if (name === "focus") return LOCATES && focus !== contract.WHOLE ? contract.NONE : focus;
   return contract.NONE;
 };
+// In the natural fixture, a focus stage went through its locate.
+const located = result => !LOCATES || result.sent.some(entry => entry.sent.kind === contract.ARCHITECTURE_LOCATE_KIND);
 const codeIn = sent => JSON.stringify(sent).includes("export function") || JSON.stringify(sent).includes("\"evidence\"");
 
 const inferredAt = (now, id) => claimOf(now, `relation ${id}`)?.origins.includes("model-inferred") === true;
@@ -268,7 +317,7 @@ try {
 
   // (1) The whole architecture: structure only, one request, no code sent.
   reached.push("whole");
-  const whole = await say("whole", UTTERANCES.whole, picksFor(contract.WHOLE), 1);
+  const whole = await say("whole", UTTERANCES.whole, picksFor(contract.WHOLE));
   need(whole.sent.length === 1 && whole.sent[0].sent.kind === contract.ARCHITECTURE_INTENT_KIND, "the whole view is one intent");
   need(whole.sent.every(entry => !codeIn(entry.sent)), "the page never sends source text");
   need(whole.now.state === "drafted", `the whole view was drafted (state ${whole.now.state}: ${whole.now.failure ?? whole.now.status})`);
@@ -292,11 +341,11 @@ try {
 
   // (2) The page's own code: its roles, its call to the Worker, its storage.
   reached.push("app");
-  const app = await say("app", UTTERANCES.app, picksFor(APP), 2);
-  need(app.sent.map(entry => entry.sent.kind).join(" ") === `${contract.ARCHITECTURE_INTENT_KIND} ${contract.ARCHITECTURE_JUDGE_KIND}`,
-    "a focused utterance is an intent, then a judge");
-  need(app.sent.every(entry => entry.status === 200), `both were answered (${app.sent.map(entry => entry.status).join(", ")})`);
-  need(app.sent.every(entry => !codeIn(entry.sent)), "the page sends no code in either; the server adds it");
+  const app = await say("app", UTTERANCES.app, picksFor(APP));
+  need(app.sent.at(-1)?.sent.kind === contract.ARCHITECTURE_JUDGE_KIND, "a focused utterance ends in a judge of its parts");
+  need(located(app), "the natural fixture located the page's part");
+  need(app.sent.every(entry => entry.status === 200), `every request was answered (${app.sent.map(entry => entry.status).join(", ")})`);
+  need(app.sent.every(entry => !codeIn(entry.sent)), "the page sends no code in any request; the server adds it");
   for (const role of ["voice-input", "jev-boundary", "graph-mutation", "persistence"]) need(hasRole(app.now, APP, role), `the page's file is judged ${role}`);
   need(claimOf(app.now, `region arch-${APP}`)?.origins.join(" ") === "source-declared", "the file itself stays the source's");
   need(inferredAt(app.now, `arch-calls-${APP}-to-functions-pages-worker-mjs`), "the page calls the Worker");
@@ -308,7 +357,8 @@ try {
 
   // (3) The credential: the Function authenticates with it and calls the provider.
   reached.push("credential");
-  const auth = await say("credential", UTTERANCES.credential, picksFor("ext-jev-api-key"), 2);
+  const auth = await say("credential", UTTERANCES.credential, picksFor("ext-jev-api-key"));
+  need(located(auth), "the natural fixture located the credential");
   need(auth.sent.every(entry => entry.status === 200), `the credential focus was answered (${auth.sent.map(entry => entry.status).join(", ")})`);
   need(inferredAt(auth.now, `arch-authenticates-with-${FUNCTION}-to-ext-jev-api-key`), "the Function authenticates with the key");
   need(inferredAt(auth.now, `arch-calls-${FUNCTION}-to-ext-api-typesafe-ai`), "the Function calls the provider");
@@ -317,17 +367,30 @@ try {
 
   // (4) Storage: every admitted file that names it, whole.
   reached.push("storage");
-  const stored = await say("storage", UTTERANCES.storage, picksFor("ext-localstorage"), 2);
+  const stored = await say("storage", UTTERANCES.storage, picksFor("ext-localstorage"));
+  need(located(stored), "the natural fixture located the storage");
   need(stored.sent.every(entry => entry.status === 200), `the storage focus was answered (${stored.sent.map(entry => entry.status).join(", ")})`);
-  need(stored.sent.at(-1)?.sent.state.architecture?.bodies?.length === 4, "the storage section opens the four files that name it");
+  // The four files that name localStorage, from the served manifest: exactly
+  // these for the named part; for a natural request all of them, any other
+  // body only because the judged section - the server's own, for exactly the
+  // located parts - opens it.
+  const STORAGE_FILES = MANIFEST.candidates.filter(candidate => candidate.to === "ext-localstorage").map(candidate => candidate.from).sort();
+  const storageBodies = [...(stored.sent.at(-1)?.sent.kind === contract.ARCHITECTURE_JUDGE_KIND ? stored.sent.at(-1).sent.state.architecture.bodies : [])].sort();
+  need(JSON.stringify(STORAGE_FILES) === JSON.stringify(["dev-architecture-config-v1-json", "src-config-mjs", "web-app-mjs", "web-data-config-v1-json"]),
+    `the snapshot's files that name localStorage are the original four (${STORAGE_FILES.join(", ")})`);
+  need(scenario === "named"
+    ? JSON.stringify(storageBodies) === JSON.stringify(STORAGE_FILES)
+    : STORAGE_FILES.every(file => storageBodies.includes(file)),
+  `the storage section opens ${scenario === "named" ? "exactly" : "all of"} the four files that name it (${storageBodies.join(", ")})`);
   need(hasRole(stored.now, "src-config-mjs", "config"), "the config module is judged config");
 
   // (5) The save flow: the decision log's own code. The page -> log relation is
   // already drawn, so the role alone must still become a change of the graph.
   reached.push("save");
   need(inferredAt(stored.now, `arch-calls-${APP}-to-${LOG}`), "the page -> decision log relation is already there");
-  const saveAgain = () => say("save", UTTERANCES.save, picksFor(LOG), 2);
+  const saveAgain = () => say("save", UTTERANCES.save, picksFor(LOG));
   const save = await saveAgain();
+  need(located(save), "the natural fixture located the decision log");
   need(save.sent.every(entry => entry.status === 200), `the save focus was answered (${save.sent.map(entry => entry.status).join(", ")})`);
   need(save.now.state === "drafted", `the log's role is drafted (state ${save.now.state}: ${save.now.failure ?? save.now.status})`);
   need(hasRole(save.now, LOG, "persistence"), "the decision log is judged persistence");
@@ -360,7 +423,7 @@ try {
     if (name === "action") return "remove-edge";
     if (name === "edge") return sent.state.graph.edges.find(edge => edge.id === storageEdge)?.id;
     return contract.NONE;
-  }, 1);
+  });
   const removedOne = corrected.now.draft.length === judgedDraft + 1 && claimOf(corrected.now, `relation ${storageEdge}`) === null;
   need(removedOne, `the person's correction removes the judged relation as one more step (state ${corrected.now.state}: `
     + `${corrected.now.failure ?? corrected.now.status})`);

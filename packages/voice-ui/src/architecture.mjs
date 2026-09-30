@@ -2,6 +2,7 @@ import {
   ACTION_ARCHITECTURE,
   ARCHITECTURE_INTENT_KIND,
   ARCHITECTURE_JUDGE_KIND,
+  ARCHITECTURE_LOCATE_KIND,
   KEY_PATTERN,
   LABEL_MAX,
   MIN_CONFIDENCE,
@@ -9,8 +10,10 @@ import {
   WHOLE,
   YES,
   judgeSlotsFor,
+  locateSlotsFor,
   readAnswers,
   relationSlot,
+  relevantSlot,
   roleSlot,
   slotsFor,
 } from "./contract.mjs";
@@ -23,11 +26,14 @@ import { OUTCOME_NO_CHANGE, OUTCOME_REFUSED, OUTCOME_STEP } from "./turn.mjs";
 // module is the one place that says which graph record stands for what, and
 // where each comes from: it builds the records and their claims, and it is
 // what a saved document is checked against. Jev only chooses, from closed
-// options: which one part to look at (asked with no code at all), and then,
-// shown that part's own text, which roles its files have and which relation,
-// if any, holds for each of its candidate pairs. A role Jev confirms is drawn
-// as an edge from the file to that role's node. Nothing here invents an
-// entity, label or relation, or calls a model-selected one source-declared.
+// options: the whole or one part to look at (asked with no code at all); when
+// neither is clear, which parts the utterance asks for (asked with every
+// admitted file's text); and then, shown the chosen parts' own text, which
+// roles its files have and which relation, if any, holds for each of its
+// candidate pairs. A role Jev confirms is drawn as an edge from the file to
+// that role's node. Nothing here invents an entity, label or relation, or
+// calls a model-selected one source-declared; which parts were located is
+// never drawn or stored as a claim.
 
 const MANIFEST_SCHEMA = "voice-ui.architecture-source/1";
 const COMMIT = /^[0-9a-f]{40}$/u;
@@ -165,33 +171,70 @@ export function withArchitecture({ turn, request }, manifest) {
 
 // The one part a confident compose-architecture answer asks to see, or null:
 // never the whole, never none.
-export function focusOf(turn, answers) {
+function focusOf(turn, answers) {
   const read = readAnswers(answers, turn.slots);
   if (read === null || read.action.choice !== ACTION_ARCHITECTURE) return null;
   const { choice, confidence } = read.focus;
   return choice !== NONE && choice !== WHOLE && confidence >= MIN_CONFIDENCE ? choice : null;
 }
 
-// The part of the snapshot one focus opens, decided by the manifest alone.
-// Its body files are the focus's own file, or - for a part outside the
-// source - every admitted file whose text names it; its pairs are exactly the
-// candidate pairs that touch the focus or a body file; its parts are those
-// and their other ends. Null when the focus opens no file.
+// Where a confident compose-architecture answer goes next: to the whole, to
+// the one part it names, or - when neither is confident - to the code itself,
+// to locate what the utterance means. Null for any other answer.
+export function routeOf(turn, answers) {
+  const read = readAnswers(answers, turn.slots);
+  if (read === null || read.action.choice !== ACTION_ARCHITECTURE || read.action.confidence < MIN_CONFIDENCE) return null;
+  if (read.focus.choice === WHOLE && read.focus.confidence >= MIN_CONFIDENCE) return Object.freeze({ route: "whole" });
+  const part = focusOf(turn, answers);
+  return part === null ? Object.freeze({ route: "locate" }) : Object.freeze({ route: "part", focus: Object.freeze([part]) });
+}
+
+// The locate for an unclear focus: the utterance and the recent conversation
+// exactly as the intent carried them, and the snapshot's identity - no code.
+// The server adds every admitted file's text and asks, of every part the
+// snapshot knows, whether the utterance asks for it.
+export function locateRequestOf(manifest, intent) {
+  demand(manifest?.status === "available", "an available manifest is required");
+  return deepFreeze({
+    kind: ARCHITECTURE_LOCATE_KIND,
+    state: { utterance: intent.state.utterance, context: intent.state.context, architecture: { source: { ...manifest.source } } },
+  });
+}
+
+// What a locate answer found: every part answered yes at or above the
+// threshold, sorted, and the weakest of those answers' confidences. Null when
+// it is not a complete answer to exactly the questions asked.
+export function locatedOf(manifest, answers) {
+  const ids = manifest.entities.map(entity => entity.id);
+  const read = readAnswers(answers, locateSlotsFor(ids));
+  if (read === null) return null;
+  const found = ids.filter(id => read[relevantSlot(id)].choice === YES && read[relevantSlot(id)].confidence >= MIN_CONFIDENCE).sort();
+  return deepFreeze({ focus: found, confidence: Math.min(...found.map(id => read[relevantSlot(id)].confidence)) });
+}
+
+// The part of the snapshot a focus opens, decided by the manifest alone. A
+// focus is a sorted list of known parts. Its body files are each focused
+// file, and - for a part outside the source - every admitted file whose text
+// names it; its pairs are exactly the candidate pairs that touch a focused
+// part or a body file; its parts are those and their other ends. Null when
+// the focus is not such a list, or opens no file.
 export function judgeSectionOf(manifest, focus) {
   demand(manifest?.status === "available", "an available manifest is required");
   const byId = new Map(manifest.entities.map(entity => [entity.id, entity]));
-  if (!byId.has(focus)) return null;
+  if (!Array.isArray(focus) || focus.length === 0 || !focus.every(id => byId.has(id))
+    || !focus.every((id, index) => index === 0 || focus[index - 1] < id)) return null;
   const touching = id => manifest.candidates.filter(candidate => candidate.from === id || candidate.to === id);
-  const opened = byId.get(focus).kind === "file"
-    ? new Set([focus])
-    : new Set(touching(focus).map(candidate => (candidate.from === focus ? candidate.to : candidate.from)).filter(id => byId.get(id).kind === "file"));
+  const opens = part => (byId.get(part).kind === "file"
+    ? [part]
+    : touching(part).map(candidate => (candidate.from === part ? candidate.to : candidate.from)).filter(id => byId.get(id).kind === "file"));
+  const opened = new Set(focus.flatMap(opens));
   if (opened.size === 0) return null;
-  const centre = new Set([focus, ...opened]);
+  const centre = new Set([...focus, ...opened]);
   const candidates = manifest.candidates.filter(candidate => centre.has(candidate.from) || centre.has(candidate.to));
   const parts = new Set([...centre, ...candidates.flatMap(candidate => [candidate.from, candidate.to])]);
   return deepFreeze({
     source: { ...manifest.source },
-    focus,
+    focus: [...focus],
     entities: manifest.entities.filter(entity => parts.has(entity.id)).map(entity => ({ id: entity.id, label: entity.label })),
     bodies: manifest.entities.filter(entity => opened.has(entity.id)).map(entity => entity.id),
     candidates: candidates.map(candidate => ({ id: candidate.id, from: candidate.from, to: candidate.to, reasons: [...candidate.reasons] })),
@@ -200,8 +243,8 @@ export function judgeSectionOf(manifest, focus) {
   });
 }
 
-// The second request of a focused utterance: the utterance and the focused
-// section. The server adds that section's text and nothing else.
+// The judge of a focused utterance: the utterance and the focused section.
+// The server adds that section's text and nothing else.
 export function judgeRequestOf(manifest, focus, utterance) {
   const section = judgeSectionOf(manifest, focus);
   return section === null ? null : deepFreeze({ kind: ARCHITECTURE_JUDGE_KIND, state: { utterance, architecture: section } });
@@ -356,12 +399,16 @@ const refused = (reason, detail = null) => Object.freeze({ outcome: OUTCOME_REFU
 // each - the provider's own limit, passed in by the caller - each planned on
 // the one before; the page keeps them as one utterance. Every record carries
 // its claim. Only an answer that confidently asks for the whole gets the view
-// with nothing judged: structure only, with no role at all. None, or any
-// focus below the threshold, is an honest no-change - never taken as the
-// whole; and a confident part whose section was not judged changes nothing.
-// Nothing drawn is ever taken back here: a role or relation judged none later
-// stays until the person removes it.
-export async function planArchitecture({ working, turn, answers, judged, manifest, protocol, operationsMax }) {
+// with nothing judged: structure only, with no role at all. A focus that is
+// neither a confident whole nor a confident part is located from the code:
+// the `located` answer must be exactly a complete answer to the locate's
+// questions, and when it finds nothing the utterance is an honest no-change -
+// never taken as the whole. A focus - the named part, or exactly every part
+// located - whose section was not judged changes nothing. The step is as sure
+// as the weaker of the action and the focus: the named part's answer, or the
+// weakest located part's. Nothing drawn is ever taken back here: a role or
+// relation judged none later stays until the person removes it.
+export async function planArchitecture({ working, turn, answers, judged = null, located = null, manifest, protocol, operationsMax }) {
   demand(manifest?.status === "available", "an available manifest is required");
   demand(Number.isSafeInteger(operationsMax) && operationsMax > 0, "the provider's operation limit is required");
   if (turn.head !== working.head) return refused("stale");
@@ -369,15 +416,28 @@ export async function planArchitecture({ working, turn, answers, judged, manifes
   if (read === null) return refused("answer-invalid");
   demand(read.action.choice === ACTION_ARCHITECTURE, "only a compose-architecture answer is planned here");
   if (read.action.confidence < MIN_CONFIDENCE) return noChange("not-confident");
-  if (judged === null) {
-    // A part confidently asked for whose section could not be judged - such
-    // as something outside the source that no admitted file names.
-    if (focusOf(turn, answers) !== null) return refused("architecture-judge-missing");
-    if (!(read.focus.choice === WHOLE && read.focus.confidence >= MIN_CONFIDENCE)) return noChange("architecture-focus-unclear");
+  const route = routeOf(turn, answers);
+  let focus = null;
+  let focusConfidence = read.focus.confidence;
+  if (route.route === "locate") {
+    demand(located !== null, "an unclear focus is located before it is planned");
+    const found = locatedOf(manifest, located);
+    if (found === null) return refused("answer-invalid");
+    if (found.focus.length === 0) return noChange("architecture-focus-unclear");
+    focus = found.focus;
+    focusConfidence = found.confidence;
+  } else {
+    demand(located === null, "only an unclear focus is located");
+    if (route.route === "part") focus = route.focus;
   }
   let judge = null;
-  if (judged !== null) {
-    demand(judged.section.focus === focusOf(turn, answers), "the judged section is the one this answer asked for");
+  if (focus === null) {
+    demand(judged === null, "the whole is never judged");
+  } else {
+    // A focus whose section could not be judged - such as something outside
+    // the source that no admitted file names.
+    if (judged === null) return refused("architecture-judge-missing");
+    demand(equal(judged.section.focus, focus), "the judged section is the one this answer asked for");
     judge = readAnswers(judged.answers, judgeSlotsFor(judged.section));
     if (judge === null) return refused("answer-invalid");
   }
@@ -432,7 +492,7 @@ export async function planArchitecture({ working, turn, answers, judged, manifes
   const items = [...regions, ...edges];
   const chunks = Array.from({ length: Math.ceil(items.length / operationsMax) },
     (_, index) => items.slice(index * operationsMax, (index + 1) * operationsMax));
-  const confidence = Math.min(read.action.confidence, read.focus.confidence);
+  const confidence = Math.min(read.action.confidence, focusConfidence);
   const steps = [];
   let graph = working;
   for (const [index, chunk] of chunks.entries()) {
