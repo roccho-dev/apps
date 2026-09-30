@@ -59,7 +59,12 @@ const callProvider = async (env, body) => {
       body: JSON.stringify(body),
       signal: controller.signal,
     });
-    if (!provider.ok) return { error: json({ error: ERRORS.providerError }, 502) };
+    if (!provider.ok) {
+      // A refusal is logged on the server as its numeric HTTP status only: never
+      // its body, which is not read, nor its status text, headers or the request.
+      console.warn(JSON.stringify({ event: "provider-status", status: provider.status }));
+      return { error: json({ error: ERRORS.providerError }, 502) };
+    }
     return { text: await provider.text() };
   } catch {
     return controller.signal.aborted

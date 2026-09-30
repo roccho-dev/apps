@@ -151,7 +151,9 @@ test("a success is one kind carrying only choice and confidence per offered slot
   }
 });
 
-test("every failure is one of a closed set of codes and carries no Jev content", async () => {
+test("every failure is one of a closed set of codes and carries no Jev content", async t => {
+  // The refusal below logs its status; kept here, not printed with the results.
+  t.mock.method(console, "warn", () => {});
   const cases = [
     ["no credential", () => post(request(), {}), 503, ERRORS.unavailable],
     ["not JSON", () => post("{"), 400, ERRORS.invalidJson],
@@ -179,7 +181,29 @@ test("every failure is one of a closed set of codes and carries no Jev content",
   }
 });
 
+test("a provider refusal logs only its numeric status, and the page still sees the same closed code", async t => {
+  const warn = t.mock.method(console, "warn", () => {});
+  for (const status of [401, 429]) {
+    warn.mock.resetCalls();
+    const refusal = new Response("denied", { status });
+    const clone = t.mock.method(refusal, "clone");
+    const { result } = await withProvider(async () => refusal, () => post(request()));
+    assert.equal(result.status, 502, `${status}`);
+    assert.deepEqual(await result.json(), { error: ERRORS.providerError }, `${status}`);
+    assert.deepEqual(warn.mock.calls.map(call => call.arguments), [[`{"event":"provider-status","status":${status}}`]]);
+    assert.equal(JSON.stringify(warn.mock.calls).includes("denied"), false);
+    assert.equal(refusal.bodyUsed, false, "the refusal's body is never read");
+    assert.equal(clone.mock.callCount(), 0, "nor cloned");
+  }
+
+  warn.mock.resetCalls();
+  assert.equal((await withProvider(answering(noneTo), () => post(request()))).result.status, 200);
+  assert.equal((await withProvider(async () => { throw new TypeError("fetch failed"); }, () => post(request()))).result.status, 502);
+  assert.equal(warn.mock.callCount(), 0, "an answer or an unreachable provider logs nothing");
+});
+
 test("a provider that never answers is a timeout after ten seconds, never a hang", async t => {
+  const warn = t.mock.method(console, "warn", () => {});
   t.mock.timers.enable({ apis: ["setTimeout"] });
   const { result } = await withProvider((body, init) => new Promise((resolve, reject) => {
     init.signal.addEventListener("abort", () => reject(new DOMException("aborted", "AbortError")));
@@ -191,6 +215,7 @@ test("a provider that never answers is a timeout after ten seconds, never a hang
   });
   assert.equal(result.status, 504);
   assert.deepEqual(await result.json(), { error: ERRORS.providerTimeout });
+  assert.equal(warn.mock.callCount(), 0, "a timeout logs nothing");
 });
 
 test("the Advanced Mode Worker routes /api/jev to this Function and everything else to its assets", async () => {
