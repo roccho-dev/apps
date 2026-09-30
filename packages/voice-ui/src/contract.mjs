@@ -11,11 +11,13 @@ export const DECISION_KIND = "voice-ui.jev.decision.v5";
 // the plain request with the prepared snapshot's parts beside it, by path or
 // identifier only, and never any code. When the intent names no part
 // confidently, the locate asks the code itself which parts the utterance
-// means: it carries the utterance and conversation only, and the server adds
-// every admitted file's text. The judge follows with the section of the parts
-// chosen - one named part, or every part located - whose text the server adds.
+// means, one frame per part: each carries the utterance, the conversation and
+// that one part only, and the server adds that part's own text. The judge
+// follows with the section of the parts chosen - one named part, or every
+// part located - whose text the server adds.
 export const ARCHITECTURE_INTENT_KIND = "voice-ui.jev.architecture-intent.v1";
-export const ARCHITECTURE_LOCATE_KIND = "voice-ui.jev.architecture-locate.v1";
+// v2: one frame asks about one part, no longer every part at once.
+export const ARCHITECTURE_LOCATE_KIND = "voice-ui.jev.architecture-locate.v2";
 // v2: the focus is a sorted list of part ids, no longer one id.
 export const ARCHITECTURE_JUDGE_KIND = "voice-ui.jev.architecture-judge.v2";
 
@@ -232,16 +234,18 @@ export function isRequest(value) {
     && validOffer(state.offers.diagrams);
 }
 
-// An architecture locate: the utterance and the recent conversation exactly as
-// the intent carried them, and the snapshot's identity. Never file contents;
-// the server adds those itself.
+// An architecture locate frame: the utterance and the recent conversation
+// exactly as the intent carried them, the snapshot's identity, and the one
+// part it asks about. Never file contents; the server adds those itself.
 export function isLocateRequest(value) {
   if (!exactObject(value, ["kind", "state"]) || value.kind !== ARCHITECTURE_LOCATE_KIND) return false;
   const { state } = value;
   return exactObject(state, ["utterance", "context", "architecture"])
     && text(state.utterance, TEXT_MAX)
     && validContext(state.context, ARCHITECTURE_CHANGES_MAX)
-    && exactObject(state.architecture, ["source"]) && validSource(state.architecture.source);
+    && exactObject(state.architecture, ["source", "focus"]) && validSource(state.architecture.source)
+    && Array.isArray(state.architecture.focus) && state.architecture.focus.length === 1
+    && KEY_PATTERN.test(state.architecture.focus[0] ?? "") && ![NONE, WHOLE].includes(state.architecture.focus[0]);
 }
 
 // An architecture judge: the utterance and one focused section - the parts it
@@ -268,8 +272,8 @@ export function isJudgeRequest(value) {
     && validOffer(section.roles) && section.roles.length > 0 && validOffer(section.relations) && section.relations.length > 0;
 }
 
-// A locate's questions by name, one per part the snapshot knows; and the
-// options of each: whether the utterance asks for that part, yes or none.
+// A locate frame's question by name, one for its part; and its options:
+// whether the utterance asks for that part, yes or none.
 export const relevantSlot = entityId => `relevant-${entityId}`;
 export const locateSlotsFor = entityIds => Object.freeze(Object.fromEntries(
   entityIds.map(entityId => [relevantSlot(entityId), Object.freeze([YES, NONE])])));

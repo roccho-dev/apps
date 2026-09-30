@@ -27,8 +27,8 @@ import { OUTCOME_NO_CHANGE, OUTCOME_REFUSED, OUTCOME_STEP } from "./turn.mjs";
 // where each comes from: it builds the records and their claims, and it is
 // what a saved document is checked against. Jev only chooses, from closed
 // options: the whole or one part to look at (asked with no code at all); when
-// neither is clear, which parts the utterance asks for (asked with every
-// admitted file's text); and then, shown the chosen parts' own text, which
+// neither is clear, which parts the utterance asks for (asked of each part in
+// turn, with that part's own text); and then, shown the chosen parts' own text, which
 // roles its files have and which relation, if any, holds for each of its
 // candidate pairs. A role Jev confirms is drawn as an edge from the file to
 // that role's node. Nothing here invents an entity, label or relation, or
@@ -189,27 +189,47 @@ export function routeOf(turn, answers) {
   return part === null ? Object.freeze({ route: "locate" }) : Object.freeze({ route: "part", focus: Object.freeze([part]) });
 }
 
-// The locate for an unclear focus: the utterance and the recent conversation
-// exactly as the intent carried them, and the snapshot's identity - no code.
-// The server adds every admitted file's text and asks, of every part the
-// snapshot knows, whether the utterance asks for it.
-export function locateRequestOf(manifest, intent) {
+// Whether every part the snapshot knows opens some text to be asked about.
+const everyPartOpens = manifest => manifest.entities.every(entity => judgeSectionOf(manifest, [entity.id]) !== null);
+
+// The locate for an unclear focus: one frame for every part the snapshot
+// knows, in its order, each with the utterance and the recent conversation
+// exactly as the intent carried them, the snapshot's identity and that one
+// part - no code. The server adds that part's own text, exactly what its judge
+// would be shown, and asks whether the utterance asks for it. Null when some
+// part opens no text: then no part is asked about, and none is left out.
+export function locateRequestsOf(manifest, intent) {
   demand(manifest?.status === "available", "an available manifest is required");
-  return deepFreeze({
+  if (!everyPartOpens(manifest)) return null;
+  return deepFreeze(manifest.entities.map(entity => ({
     kind: ARCHITECTURE_LOCATE_KIND,
-    state: { utterance: intent.state.utterance, context: intent.state.context, architecture: { source: { ...manifest.source } } },
-  });
+    state: {
+      utterance: intent.state.utterance,
+      context: intent.state.context,
+      architecture: { source: { ...manifest.source }, focus: [entity.id] },
+    },
+  })));
 }
 
-// What a locate answer found: every part answered yes at or above the
-// threshold, sorted, and the weakest of those answers' confidences. Null when
-// it is not a complete answer to exactly the questions asked.
-export function locatedOf(manifest, answers) {
+// What a locate found, from its frames as sent, each with its answer: every
+// part whose own frame answered yes at or above the threshold, sorted, and the
+// weakest of those answers' confidences. Null unless the frames are exactly
+// one per part in the snapshot's order, all of one utterance and conversation,
+// each answered completely on its own question.
+export function locatedOf(manifest, frames) {
   const ids = manifest.entities.map(entity => entity.id);
-  const read = readAnswers(answers, locateSlotsFor(ids));
-  if (read === null) return null;
-  const found = ids.filter(id => read[relevantSlot(id)].choice === YES && read[relevantSlot(id)].confidence >= MIN_CONFIDENCE).sort();
-  return deepFreeze({ focus: found, confidence: Math.min(...found.map(id => read[relevantSlot(id)].confidence)) });
+  if (!Array.isArray(frames) || frames.length !== ids.length) return null;
+  const { utterance, context } = frames[0]?.request?.state ?? {};
+  const found = [];
+  for (const [index, id] of ids.entries()) {
+    const expected = { kind: ARCHITECTURE_LOCATE_KIND, state: { utterance, context, architecture: { source: manifest.source, focus: [id] } } };
+    if (!equal(frames[index]?.request, expected)) return null;
+    const read = readAnswers(frames[index].answers, locateSlotsFor([id]));
+    if (read === null) return null;
+    const answer = read[relevantSlot(id)];
+    if (answer.choice === YES && answer.confidence >= MIN_CONFIDENCE) found.push([id, answer.confidence]);
+  }
+  return deepFreeze({ focus: found.map(([id]) => id).sort(), confidence: Math.min(...found.map(([, confidence]) => confidence)) });
 }
 
 // The part of the snapshot a focus opens, decided by the manifest alone. A
@@ -401,9 +421,10 @@ const refused = (reason, detail = null) => Object.freeze({ outcome: OUTCOME_REFU
 // its claim. Only an answer that confidently asks for the whole gets the view
 // with nothing judged: structure only, with no role at all. A focus that is
 // neither a confident whole nor a confident part is located from the code:
-// the `located` answer must be exactly a complete answer to the locate's
-// questions, and when it finds nothing the utterance is an honest no-change -
-// never taken as the whole. A focus - the named part, or exactly every part
+// `located` must be exactly every locate frame, each answered completely, and
+// when it finds nothing the utterance is an honest no-change - never taken as
+// the whole. A snapshot with a part that opens no text is never located: the
+// utterance is refused, with no part left out. A focus - the named part, or exactly every part
 // located - whose section was not judged changes nothing. The step is as sure
 // as the weaker of the action and the focus: the named part's answer, or the
 // weakest located part's. Nothing drawn is ever taken back here: a role or
@@ -420,6 +441,7 @@ export async function planArchitecture({ working, turn, answers, judged = null, 
   let focus = null;
   let focusConfidence = read.focus.confidence;
   if (route.route === "locate") {
+    if (!everyPartOpens(manifest)) return refused("architecture-judge-missing");
     demand(located !== null, "an unclear focus is located before it is planned");
     const found = locatedOf(manifest, located);
     if (found === null) return refused("answer-invalid");
