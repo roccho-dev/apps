@@ -413,12 +413,11 @@ const decide = async (value, source) => {
     adopt(transition.session);
     return failure(transition.result.reason, transition.result.detail ?? null);
   }
-  // A step joins 作業図 only once it is drawn. If it cannot be, the pane is
-  // put back to what 作業図 actually holds and the utterance counts as refused.
+  // A step joins 作業図 only once it is drawn. If it cannot be, the pane still
+  // shows the map it had (drawGraph keeps it) and the utterance counts as refused.
   try {
     await drawWorking(transition.session.working);
   } catch (error) {
-    await drawWorking(before.working).catch(() => {});
     adopt(noteRefused(before, input));
     return failure("display-failed", String(error?.message ?? error));
   }
@@ -444,7 +443,8 @@ const finish = async (prefix, outcome) => {
     showHistory();
     return;
   }
-  setState("failed", `${prefix}: failed`);
+  // The status names the phase that failed; history keeps what was said about it.
+  setState("failed", `${prefix}: failed - ${reasonText(outcome.reason)}`);
   showHistory(`failed: ${reasonText(outcome.reason, outcome.detail)}`);
 };
 

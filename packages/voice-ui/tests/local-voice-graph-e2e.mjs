@@ -1124,6 +1124,82 @@ const retriedAgain = await type(page, "add an edge from b to c");
 assert.deepEqual((await screen(page)).draft, [`+${edgeC}`, `+${edgeOf(retriedAgain.decision.answers)}`]);
 await press(page, "#discard");
 
+// (xi-d) Jev answers with a step, but 作業図 cannot draw it: the frame document
+// of that one new drawing is refused. The pane keeps the map it was showing -
+// the very same element, still ready and visible - with one map per pane and
+// nothing left over. The page names the failed drawing; 確定図, the working
+// steps and the stored bytes do not move; every control comes back; and the
+// next press of Send, with the text still in the field, drafts the step.
+const embedDocument = new URL("/ui/semantic-map/authoring/pages/embed.html", url).href;
+const addUnusedEdge = async route => {
+  const sent = JSON.parse(route.request().postData());
+  const ids = sent.state.graph.regions.map(region => region.id);
+  const taken = new Set(sent.state.graph.edges.map(edge => `${edge.from}->${edge.to}`));
+  const [from, to] = ids.flatMap(source => ids.filter(target => target !== source && !taken.has(`${source}->${target}`))
+    .map(target => [source, target]))[0];
+  await fulfil(route, craftFor(sent, {
+    action: { type: "choice", choice: "add-edge", confidence: 0.95 },
+    source: { type: "choice", choice: from, confidence: 0.95 },
+    target: { type: "choice", choice: to, confidence: 0.95 },
+  }));
+};
+const beforeUndrawnStep = await screen(page);
+const panesBeforeUndrawnStep = await panes(page);
+const frameBeforeUndrawnStep = await visibleFrame(page, "working");
+assert.notEqual(frameBeforeUndrawnStep, null, "precondition: 作業図 reports its visible frame");
+const shownMap = await page.evaluateHandle(() => document.querySelector('#working-surface iframe[data-package="semantic-map"]'));
+const refusedDrawing = [];
+const noteRefusedDrawing = request => {
+  if (request.url() === embedDocument) refusedDrawing.push(request.failure()?.errorText ?? "failed");
+};
+page.on("requestfailed", noteRefusedDrawing);
+await page.route(jevUrl, addUnusedEdge, { times: 1 });
+await page.route(embedDocument, route => route.abort("failed"), { times: 1 });
+const undrawnStep = jevExchange(page);
+await page.locator("#text").fill("add an edge the pane cannot draw");
+await page.locator("#send").click();
+await undrawnStep.request;
+assert.equal((await undrawnStep.response).status(), 200, "precondition: the step reached the page");
+await settle(page);
+page.off("requestfailed", noteRefusedDrawing);
+const keptMap = await screen(page);
+assert.deepEqual(refusedDrawing, ["net::ERR_FAILED"], "the only refused request must be the injected frame document");
+assert.equal(keptMap.state, "failed");
+assert.equal(keptMap.status, "type: failed - the step could not be drawn", "the status names the drawing that failed");
+assert.match(keptMap.failure ?? "", /could not be drawn/u);
+assert.deepEqual(keptMap.draft, beforeUndrawnStep.draft, "a step that was not drawn is not added");
+assert.deepEqual(keptMap.confirmed, beforeUndrawnStep.confirmed, "確定図's entries must not change");
+assert.equal(keptMap.stored, beforeUndrawnStep.stored, "the stored bytes must not change");
+assert.deepEqual(keptMap.frames, { confirmed: 1, working: 1, total: 2 }, "one map per pane, nothing left of the failed drawing");
+assert.deepEqual(await page.evaluate(map => ({
+  same: map === document.querySelector('#working-surface iframe[data-package="semantic-map"]'),
+  connected: map.isConnected,
+  ready: map.contentWindow?.semanticMapSite?.ready === true,
+  visibility: getComputedStyle(map).visibility,
+}), shownMap), { same: true, connected: true, ready: true, visibility: "visible" },
+"作業図 keeps the very map it was showing, ready and visible");
+assert.deepEqual(await panes(page), panesBeforeUndrawnStep, "neither pane may change");
+assert.deepEqual((await visibleFrame(page, "working"))?.frame, frameBeforeUndrawnStep.frame,
+  "the kept map still answers the provider's visible frame");
+assert.deepEqual(controlsOf(keptMap), controlsOf(beforeUndrawnStep), "every control must be given back");
+assert.equal(await page.locator("#text").inputValue(), "add an edge the pane cannot draw", "the text stays for the next press");
+await shownMap.dispose();
+
+await page.route(jevUrl, addUnusedEdge, { times: 1 });
+const drawnStep = jevExchange(page);
+await page.locator("#send").click();
+await drawnStep.request;
+assert.equal((await drawnStep.response).status(), 200, "precondition: the retried step reached the page");
+await settle(page);
+const redrawnStep = await screen(page);
+assert.equal(redrawnStep.state, "drafted", "the next press drafts the step");
+assert.equal(redrawnStep.draft.length, beforeUndrawnStep.draft.length + 1);
+assert.equal(redrawnStep.stored, beforeUndrawnStep.stored, "drafting stores nothing");
+assert.deepEqual(redrawnStep.frames, { confirmed: 1, working: 1, total: 2 });
+assert.deepEqual((await drawn(page, "working")).edges,
+  [...panesBeforeUndrawnStep.working, redrawnStep.draft.at(-1).slice(1)].sort(), "the retried step is drawn on 作業図");
+await press(page, "#discard");
+
 // (xii) 作業図 holds at most 8 unapplied steps. At the cap nothing is dropped,
 // no request is sent, and revert is disabled too; the page says what to do.
 for (let index = 0; index < 4; index += 1) {
@@ -2074,7 +2150,7 @@ await settle(page);
 // provider, and it is reported as that - not as a verdict on what was said.
 const timedOut = await screen(page);
 assert.equal(timedOut.state, "failed");
-assert.equal(timedOut.status, "type: failed", "a transport failure, not a repair no-change");
+assert.equal(timedOut.status, "type: failed - Jev request failed", "a transport failure, named as the Jev request, not a repair no-change");
 assert.match(timedOut.failure ?? "", /provider_timeout/u, "naming the provider timeout");
 assert.equal(/聞き取れませんでした|補えませんでした/u.test(`${timedOut.status} ${timedOut.failure}`), false,
   "and never dressed up as a repair reason");
