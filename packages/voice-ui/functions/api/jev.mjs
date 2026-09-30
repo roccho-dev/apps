@@ -190,7 +190,13 @@ function questionsFor(state, slots) {
       type: "choice",
       instructions: "If the utterance asks how this code is built, which one part of it does it ask to see in more detail? "
         + "state.architecture.entities names each part by its file path or, for what lies outside the source, "
-        + "by the identifier or URL the source uses for it.",
+        + "by the identifier or URL the source uses for it. "
+        + "state.architecture.navigation lists what the prepared source declares between parts, and no code: "
+        + "static imports (some resolved only through the scope's URL mapping, which does not show what a server serves), "
+        + "declared configuration facts, and candidate pairs - a candidate is a string match or an import, never a fact about what the code does. "
+        + "An utterance may name a part by what it is responsible for rather than by its path; "
+        + "choose a part only when the utterance and this list make one part clear, and answer none when it is ambiguous. "
+        + "No code is shown here, so do not treat a part as judged from its code.",
       criteria: criteria(slots.focus, key => key === NONE
         ? "the code as a whole, or no one part of it"
         : `the part ${labelOf.get(key)}`),
@@ -249,8 +255,9 @@ function boundArchitecture(env) {
 // The state is sent to Jev as the named object it arrived as; the questions
 // carry only the judgments. An architecture request must name exactly this
 // server's own snapshot, or it is refused before the provider is asked: an
-// intent is sent as it came, with no code; a judge is sent with its section's
-// text added here, which is never sent back.
+// intent is sent with the snapshot's own imports, facts and candidate pairs
+// added here, and no code; a judge is sent with its section's text added here.
+// Neither is ever sent back.
 export async function onRequestPost({ request, env }) {
   if (typeof env?.JEV_API_KEY !== "string" || env.JEV_API_KEY.length === 0) {
     return json({ error: ERRORS.unavailable }, 503);
@@ -279,6 +286,10 @@ export async function onRequestPost({ request, env }) {
     if (kind === ARCHITECTURE_INTENT_KIND) {
       slots = slotsFor(state);
       questions = questionsFor(state, slots);
+      // What the snapshot declares between its parts, as the manifest has it,
+      // for the provider only: never any file's text.
+      const { imports, facts, candidates } = bound.manifest;
+      asked = { ...state, architecture: { ...state.architecture, navigation: { imports, facts, candidates } } };
     } else {
       slots = judgeSlotsFor(own);
       questions = judgeQuestions(own, slots);
