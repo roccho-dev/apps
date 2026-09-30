@@ -42,21 +42,29 @@ const errors = [];
 page.on("pageerror", error => errors.push(String(error)));
 
 // Every request the page makes to /api/jev, held by the browser's own request
-// object, as it was sent and as it ended: answered with a status, or failed
-// with the browser's own error text, and how long either took. A body is read
-// once, and every read is awaited before anything is reported.
+// object, as it was sent and as it ended: answered with a status and a body
+// read whole - or "body-unreadable" - or failed with the browser's own error
+// text, and how long until then. A body is read once, and every read is
+// awaited before anything is reported. Each is marked once a turn reports it.
 const exchanges = [];
 page.on("request", request => {
   if (new URL(request.url()).pathname !== "/api/jev") return;
-  exchanges.push({ request, sent: JSON.parse(request.postData()), at: Date.now(), status: null, error: null, ms: null, body: null, read: null });
+  exchanges.push({
+    request, sent: JSON.parse(request.postData()), at: Date.now(), status: null, error: null, ms: null, body: null, read: null, reported: false,
+  });
 });
 const exchangeOf = request => exchanges.find(entry => entry.request === request);
 page.on("response", response => {
   const entry = exchangeOf(response.request());
   if (entry === undefined) return;
   entry.status = response.status();
-  entry.ms = Date.now() - entry.at;
-  entry.read = response.json().then(body => { entry.body = body; }, () => { entry.body = null; });
+  entry.read = response.json().then(body => {
+    entry.body = body;
+  }, () => {
+    entry.error = "body-unreadable";
+  }).finally(() => {
+    entry.ms = Date.now() - entry.at;
+  });
 });
 page.on("requestfailed", request => {
   const entry = exchangeOf(request);
@@ -139,6 +147,7 @@ const say = async (stage, utterance, picks, calls) => {
   const answered = sent.filter(entry => entry.status !== null).length;
   report({ event: "turn", stage, expected: calls, requests: sent.length, answered, failed: sent.filter(entry => entry.error !== null).length,
     exchanges: sent.map(sanitized), dom: domOf(now) });
+  for (const entry of sent) entry.reported = true;
   need(sent.length === calls && answered === calls, `${stage}: ${calls} requests expected, ${sent.length} made, ${answered} answered`);
   return { now, sent };
 };
@@ -201,6 +210,7 @@ const codeIn = sent => JSON.stringify(sent).includes("export function") || JSON.
 const inferredAt = (now, id) => claimOf(now, `relation ${id}`)?.origins.includes("model-inferred") === true;
 
 let thrown = null;
+let cleanup = null;
 let rootBefore;
 let applied = null;
 let reloaded = null;
@@ -360,9 +370,12 @@ try {
 } catch (error) {
   thrown = error;
 } finally {
-  // Every body is read and the browser closed, however the run ended.
-  await drain().catch(() => null);
-  await browser.close().catch(() => null);
+  // Every body is read (no read rejects: each ends in its own record) and the
+  // browser closed, however the run ended; a failure to close is kept.
+  await drain();
+  await browser.close().catch(error => {
+    cleanup = String(error?.message ?? error).split("\n")[0];
+  });
 }
 need(errors.length === 0, `no page error: ${errors.join(" | ")}`);
 
@@ -370,9 +383,11 @@ const answered = exchanges.filter(entry => entry.status === 200);
 const models = [...new Set(answered.map(entry => entry.body?.model ?? "UNKNOWN"))];
 const failure = thrown === null || thrown === HALT ? null : String(thrown?.message ?? thrown).split("\n")[0];
 report({
-  event: "summary", mode, stoppedAt, error: failure, verdicts, notRun: STAGES.filter(stage => !reached.includes(stage)),
+  event: "summary", mode, stoppedAt, error: failure, cleanup, verdicts, notRun: STAGES.filter(stage => !reached.includes(stage)),
   requests: exchanges.length, answered: exchanges.filter(entry => entry.status !== null).length,
   failed: exchanges.filter(entry => entry.error !== null).length, models,
+  // Whatever no turn reported - a turn that ended in an error - in full.
+  unreported: exchanges.filter(entry => !entry.reported).map(sanitized),
 });
 
 const shown = last?.claims ?? [];
@@ -382,10 +397,14 @@ const summary = `${answered.length}/${exchanges.length} answered Jev exchanges (
   + (stoppedAt === null ? "" : ` | stopped after ${stoppedAt}`);
 if (failure !== null) {
   // An error of the run itself is never a verdict: it is reported and rethrown.
-  process.stdout.write(`architecture-e2e[${mode}]: ERROR | ${failure} | ${summary}\n`);
+  process.stdout.write(`architecture-e2e[${mode}]: ERROR | ${failure}${cleanup === null ? "" : ` | close failed: ${cleanup}`} | ${summary}\n`);
   throw thrown;
 }
-if (FIXTURE) {
+if (cleanup !== null) {
+  // A browser that could not be closed makes the run an error, whatever it found.
+  process.stdout.write(`architecture-e2e[${mode}]: ERROR | close failed: ${cleanup} | ${summary}\n`);
+  process.exitCode = 1;
+} else if (FIXTURE) {
   assert.deepEqual(verdicts, [], "the page's mechanics");
   assert.equal(stoppedAt, null, "every stage ran");
   assert.deepEqual(models, ["crafted-by-test"], "fixture answers only, never evidence about Jev or the code");
