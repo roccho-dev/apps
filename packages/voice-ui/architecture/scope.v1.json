@@ -1,0 +1,92 @@
+{
+  "schema": "voice-ui.architecture-scope/1",
+  "handle": "apps-voice-ui",
+  "root": "packages/voice-ui",
+  "urls": [
+    { "prefix": "/app/src/", "path": "src/" },
+    { "prefix": "/app.mjs", "path": "web/app.mjs" }
+  ],
+  "admitted": [
+    { "path": "web/app.mjs", "entity": "browser-app", "label": "画面と操作 (web/app.mjs)" },
+    { "path": "web/index.html", "entity": "page", "label": "ページ (web/index.html)" },
+    { "path": "src/contract.mjs", "entity": "jev-contract", "label": "Jev要求と回答の契約 (src/contract.mjs)" },
+    { "path": "src/session.mjs", "entity": "session", "label": "作業図とApply (src/session.mjs)" },
+    { "path": "src/log.mjs", "entity": "decision-log", "label": "保存と検証 (src/log.mjs)" },
+    { "path": "src/document.mjs", "entity": "architecture-document", "label": "構成図の文書 (src/document.mjs)" },
+    { "path": "src/architecture.mjs", "entity": "architecture-builder", "label": "構成図の組み立て (src/architecture.mjs)" },
+    { "path": "src/config.mjs", "entity": "config", "label": "設定の検証 (src/config.mjs)" },
+    { "path": "functions/api/jev.mjs", "entity": "jev-function", "label": "Jev API関数 (functions/api/jev.mjs)" },
+    { "path": "functions/pages-worker.mjs", "entity": "worker", "label": "Worker入口 (functions/pages-worker.mjs)" },
+    { "path": "dev/serve.mjs", "entity": "dev-server", "label": "開発サーバ (dev/serve.mjs)" },
+    { "path": "web/data/config.v1.json", "entity": "normal-config", "label": "通常の設定 (web/data/config.v1.json)" },
+    { "path": "dev/architecture-config.v1.json", "entity": "architecture-config", "label": "構成図の設定 (dev/architecture-config.v1.json)" }
+  ],
+  "excluded": [
+    { "path": "architecture/scope.v1.json", "reason": "preparation input, not part of the running app" },
+    { "path": "architecture/prepare.mjs", "reason": "build-time preparation, not part of the running app" },
+    { "path": "src/turn.mjs", "reason": "not admitted in this version: internal turn logic" },
+    { "path": "src/render.mjs", "reason": "not admitted in this version: display detail" },
+    { "path": "src/bundle.mjs", "reason": "not admitted in this version: product vocabulary validation" },
+    { "path": "web/data/bundle.v1.json", "reason": "product vocabulary data" },
+    { "path": "dist.py", "reason": "packaging" },
+    { "path": "artifact.jsonl", "reason": "packaging" },
+    { "path": "acceptance/README.md", "reason": "acceptance harness" },
+    { "path": "acceptance/default.nix", "reason": "acceptance harness" },
+    { "path": "acceptance/smoke.mjs", "reason": "acceptance harness" },
+    { "path": "acceptance/worker-smoke.mjs", "reason": "acceptance harness" },
+    { "path": "acceptance/worker.md", "reason": "acceptance harness" },
+    { "path": "tests/api.test.mjs", "reason": "test" },
+    { "path": "tests/architecture-e2e.mjs", "reason": "test" },
+    { "path": "tests/architecture.test.mjs", "reason": "test" },
+    { "path": "tests/artifact-contract.test.mjs", "reason": "test" },
+    { "path": "tests/bundle.test.mjs", "reason": "test" },
+    { "path": "tests/config.test.mjs", "reason": "test" },
+    { "path": "tests/document.test.mjs", "reason": "test" },
+    { "path": "tests/fixtures/voice-add-edge-en.golden.json", "reason": "test fixture" },
+    { "path": "tests/fixtures/voice-add-edge-en.wav", "reason": "test fixture" },
+    { "path": "tests/fixtures/voice-reverse-edge-en.golden.json", "reason": "test fixture" },
+    { "path": "tests/fixtures/voice-reverse-edge-en.wav", "reason": "test fixture" },
+    { "path": "tests/local-voice-graph-e2e.mjs", "reason": "test" },
+    { "path": "tests/log.test.mjs", "reason": "test" },
+    { "path": "tests/prepare.test.mjs", "reason": "test" },
+    { "path": "tests/public-e2e.mjs", "reason": "test" },
+    { "path": "tests/runtime-acceptance.mjs", "reason": "test" },
+    { "path": "tests/runtime-acceptance.test.mjs", "reason": "test" },
+    { "path": "tests/session.test.mjs", "reason": "test" },
+    { "path": "tests/static.test.mjs", "reason": "test" },
+    { "path": "tests/turn.test.mjs", "reason": "test" }
+  ],
+  "external": [
+    { "entity": "jev-provider", "label": "Jev provider (外部API・未検証)", "urls": [], "identifiers": ["api.typesafe.ai"] },
+    { "entity": "jev-credential", "label": "Jev資格情報 (envs・範囲外)", "urls": [], "identifiers": ["JEV_API_KEY"] },
+    { "entity": "browser-storage", "label": "ブラウザ保存 (localStorage)", "urls": [], "identifiers": ["localStorage"] },
+    { "entity": "semantic-map", "label": "図の描画 (semantic-map)", "urls": ["/ui/"], "identifiers": [] },
+    { "entity": "hayamimi", "label": "音声認識 (hayamimi)", "urls": ["/hayamimi/"], "identifiers": [] }
+  ],
+  "facts": [
+    { "id": "normal-format", "path": "web/data/config.v1.json", "pointer": "/persistence/format" },
+    { "id": "normal-key", "path": "web/data/config.v1.json", "pointer": "/persistence/key" },
+    { "id": "architecture-format", "path": "dev/architecture-config.v1.json", "pointer": "/persistence/format" },
+    { "id": "architecture-key", "path": "dev/architecture-config.v1.json", "pointer": "/persistence/key" },
+    { "id": "architecture-source", "path": "dev/architecture-config.v1.json", "pointer": "/data/source" }
+  ],
+  "roles": [
+    { "key": "voice-input", "purpose": "captures the person's speech or typed words and turns them into a request" },
+    { "key": "jev-boundary", "purpose": "sends a request to the Jev judgement service or defines what may be sent and read back" },
+    { "key": "graph-mutation", "purpose": "changes the working graph or draws it" },
+    { "key": "persistence", "purpose": "stores, restores or verifies saved data" },
+    { "key": "auth", "purpose": "holds, passes or requires a credential" },
+    { "key": "config", "purpose": "declares or validates configuration" }
+  ],
+  "relations": [
+    { "key": "calls", "purpose": "at run time the first sends requests to, or invokes, the second" },
+    { "key": "stores-in", "purpose": "the first writes or reads saved data in the second" },
+    { "key": "authenticates-with", "purpose": "the first uses a credential that comes from the second" },
+    { "key": "configures", "purpose": "the first supplies configuration that the second reads" }
+  ],
+  "notAnalyzed": [
+    "dynamic import() and run-time effects are not analyzed",
+    "relations other than static imports are candidates for Jev to judge, never source-declared",
+    "only packages/voice-ui is in scope; envs, windows and credentials are outside it"
+  ]
+}

@@ -1,6 +1,7 @@
 import {
   ACTION_ADD_EDGE,
   ACTION_ADD_PART,
+  ACTION_ARCHITECTURE,
   ACTION_COMPOSE,
   ACTION_PLACE_PART,
   ACTION_REMOVE_EDGE,
@@ -11,8 +12,11 @@ import {
   NONE,
   isRequest,
   readAnswers,
+  relationSlot,
+  roleSlot,
   slotsFor,
 } from "../../src/contract.mjs";
+import { architectureOf, readManifest } from "../../src/architecture.mjs";
 
 const json = (body, status = 200) =>
   new Response(JSON.stringify(body), {
@@ -68,6 +72,7 @@ const ACTION_WORDS = {
   [ACTION_REVERSE_EDGE]: "the utterance asks to reverse the direction of one edge of the working graph",
   [ACTION_UNDO_REQUEST]: "the utterance asks to undo, take back or go back on an earlier change",
   [ACTION_COMPOSE]: "the utterance asks for a whole diagram or chart by what it is for, rather than one edit",
+  [ACTION_ARCHITECTURE]: "the utterance asks for a diagram of how this code is built, or for more detail on one kind of part of it",
   [NONE]: "the utterance asks for anything else, or for no change to the graph",
 };
 
@@ -174,8 +179,61 @@ function questionsFor(state, slots) {
         : `the utterance asks for ${purposeOf.get(key)}`),
     };
   }
+  if (state.architecture) Object.assign(questions, architectureQuestions(state.architecture));
   for (const question of Object.values(questions)) question.instructions += CONTEXT_NOTE;
   return questions;
+}
+
+// The architecture questions: a focus, a role for every entity and a relation
+// for every candidate pair, each from the prepared vocabulary or none. The
+// evidence is the admitted files' own text, which only this Function adds.
+const EVIDENCE_NOTE = " state.architecture.evidence holds the admitted source files' text by entity id;"
+  + " an entity without evidence is outside the admitted source and known only by its label."
+  + " Judge only from that text; if it does not show the answer, answer none.";
+
+function architectureQuestions(architecture) {
+  const labelOf = new Map(architecture.entities.map(entity => [entity.id, entity.label]));
+  const roleWords = new Map(architecture.roles.map(role => [role.key, role.purpose]));
+  const relationWords = new Map(architecture.relations.map(relation => [relation.key, relation.purpose]));
+  const questions = {
+    focus: {
+      type: "choice",
+      instructions: "If the utterance asks for the code architecture, which kind of part does it ask to see in more detail?",
+      criteria: criteria([...roleWords.keys(), NONE], key => key === NONE
+        ? "the whole architecture, or no particular kind of part"
+        : `parts that ${roleWords.get(key)}`),
+    },
+  };
+  for (const entity of architecture.entities) {
+    questions[roleSlot(entity.id)] = {
+      type: "choice",
+      instructions: `Which role does "${entity.label}" (entity ${entity.id}) play in this code?${EVIDENCE_NOTE}`,
+      criteria: criteria([...roleWords.keys(), NONE], key => key === NONE
+        ? "none of these roles, or the evidence does not show one"
+        : `it ${roleWords.get(key)}`),
+    };
+  }
+  for (const candidate of architecture.candidates) {
+    questions[relationSlot(candidate.id)] = {
+      type: "choice",
+      instructions: `From "${labelOf.get(candidate.from)}" to "${labelOf.get(candidate.to)}" (a candidate pair because of: ${candidate.reasons.join(", ")}):`
+        + ` which relation holds at run time from the first to the second? Being a candidate is not evidence of any relation.${EVIDENCE_NOTE}`,
+      criteria: criteria([...relationWords.keys(), NONE], key => key === NONE
+        ? "no relation of these kinds holds, or the evidence does not show one"
+        : relationWords.get(key)),
+    };
+  }
+  return questions;
+}
+
+// The prepared source this server was started with, or null: the manifest
+// available and the evidence of the very same snapshot.
+function boundArchitecture(env) {
+  const manifest = readManifest(env?.ARCHITECTURE?.manifest ?? null);
+  const evidence = env?.ARCHITECTURE?.evidence;
+  if (manifest.status !== "available" || evidence?.status !== "available") return null;
+  if (evidence.source?.handle !== manifest.source.handle || evidence.source?.commit !== manifest.source.commit) return null;
+  return { manifest, files: evidence.files };
 }
 
 // One request kind in, one answer kind out, and a closed set of failures. The
@@ -196,7 +254,23 @@ export async function onRequestPost({ request, env }) {
 
   const { state } = input;
   const slots = slotsFor(state);
-  const { text, error } = await callProvider(env, { model: "jev-latest", state, questions: questionsFor(state, slots) });
+  // The architecture section must be exactly this server's own snapshot;
+  // anything else is refused before the provider is asked. The evidence is
+  // added here, and never sent back.
+  let asked = state;
+  if (state.architecture !== undefined) {
+    const bound = boundArchitecture(env);
+    if (bound === null) return json({ error: ERRORS.architectureUnavailable }, 503);
+    if (JSON.stringify(state.architecture) !== JSON.stringify(architectureOf(bound.manifest))) {
+      return json({ error: ERRORS.architectureMismatch }, 422);
+    }
+    const evidence = Object.fromEntries(state.architecture.entities
+      .filter(entity => Object.hasOwn(bound.files, entity.id))
+      .map(entity => [entity.id, bound.files[entity.id]]));
+    const facts = bound.manifest.facts.map(fact => ({ entity: fact.entity, path: fact.path, pointer: fact.pointer, value: fact.value }));
+    asked = { ...state, architecture: { ...state.architecture, facts, evidence } };
+  }
+  const { text, error } = await callProvider(env, { model: "jev-latest", state: asked, questions: questionsFor(state, slots) });
   if (error) return error;
 
   let value;
