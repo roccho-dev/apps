@@ -210,9 +210,11 @@ def verify_dist(root):
     required = [
         "site/index.html",
         "site/app.mjs",
+        "site/data/config.v1.json",
         "site/data/bundle.v1.json",
         "site/app/src/contract.mjs",
         "site/app/src/bundle.mjs",
+        "site/app/src/config.mjs",
         "site/app/src/log.mjs",
         "site/app/src/session.mjs",
         "site/app/src/turn.mjs",

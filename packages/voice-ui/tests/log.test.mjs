@@ -17,8 +17,10 @@ import {
   truncateLog,
 } from "../src/log.mjs";
 
-// The storage key and the outcomes the page never branches on by name.
-const HISTORY_KEY = "voice-ui.decision-log.v1";
+// A storage key of this test's own, not the product's: the log reads, writes
+// and locks exactly the key it is given. Then the outcomes the page never
+// branches on by name.
+const HISTORY_KEY = "log test key";
 const RESTORE_CORRUPT = "corrupt";
 const RESTORE_FOREIGN = "foreign";
 const COMMIT_CONFLICT = "conflict";
@@ -76,7 +78,7 @@ test("the pinned provider still verifies a stored log holding an edge, a part an
 });
 
 test("a stored log holding a part and a placement still restores as this app's and projects", async () => {
-  const restored = await restoreLog({ read: () => GOLDEN_LOG, verifyDecisionLog: protocol.verifyDecisionLog });
+  const restored = await restoreLog({ key: HISTORY_KEY, read: () => GOLDEN_LOG, verifyDecisionLog: protocol.verifyDecisionLog });
   assert.equal(restored.status, RESTORE_RESTORED, "identity is namespace, schema and verification, not starter content");
 
   const projected = restored.projection;
@@ -146,19 +148,31 @@ const extend = async (log, relation) => {
   return (await protocol.appendDecision(base.log, decision)).verified;
 };
 const commitWith = (store, graph, expected, lock = serialLock()) =>
-  commitLog({ graph, expected, read: store.read, write: store.write, lock, verifyDecisionLog });
+  commitLog({ graph, expected, key: HISTORY_KEY, read: store.read, write: store.write, lock, verifyDecisionLog });
 
 test("absent storage is NO_LOG, never a starter graph", async () => {
   for (const absent of [null, undefined]) {
-    const restored = await restoreLog({ read: async () => absent, verifyDecisionLog });
+    const restored = await restoreLog({ key: HISTORY_KEY, read: async () => absent, verifyDecisionLog });
     assert.deepEqual(restored, { status: RESTORE_NO_LOG });
   }
+});
+
+test("the storage key is always given: none or a blank one is refused, and only that key is read or written", async () => {
+  const store = storage(GOLDEN_LOG);
+  for (const key of [undefined, null, "", "   ", 1]) {
+    await assert.rejects(restoreLog({ key, read: store.read, verifyDecisionLog }), /storage key/u, JSON.stringify(key));
+    await assert.rejects(commitLog({ graph: { log: GOLDEN_LOG }, expected: null, key, read: store.read, write: store.write, lock: serialLock(), verifyDecisionLog }),
+      /storage key/u, JSON.stringify(key));
+  }
+  assert.deepEqual(await restoreLog({ key: "another key", read: store.read, verifyDecisionLog }), { status: RESTORE_NO_LOG },
+    "a log under another key is not this key's log");
+  assert.deepEqual(store.writes, []);
 });
 
 test("a log the provider rejects is corrupt and restoring it writes nothing", async () => {
   for (const bytes of ['{"not":"a decision"}\n', "", GOLDEN_LOG.slice(0, -1)]) {
     const store = storage(bytes);
-    const restored = await restoreLog({ read: store.read, verifyDecisionLog });
+    const restored = await restoreLog({ key: HISTORY_KEY, read: store.read, verifyDecisionLog });
     assert.equal(restored.status, RESTORE_CORRUPT, JSON.stringify(bytes));
     assert.equal(typeof restored.reason, "string");
     assert.deepEqual(store.writes, [], "restoring never writes");
@@ -170,7 +184,7 @@ test("a valid log under another map namespace is foreign, never this app's histo
     { type: "meta", schema: STATE_SCHEMA, root: "root", title: "other graph" },
     { type: "region", id: "root", parent: null, label: "other graph", kind: "boundary", bounds: [0, 0, 720, 260], summary: "" },
   ], "some-other-map");
-  const restored = await restoreLog({ read: async () => other.log, verifyDecisionLog });
+  const restored = await restoreLog({ key: HISTORY_KEY, read: async () => other.log, verifyDecisionLog });
   assert.equal(restored.status, RESTORE_FOREIGN);
   assert.match(restored.reason, /foreign/u);
   assert.match(restored.reason, new RegExp(MAP_ID, "u"));

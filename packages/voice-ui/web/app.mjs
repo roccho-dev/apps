@@ -6,6 +6,7 @@ import {
 import * as protocol from "/ui/semantic-map/protocol/index.js";
 import { DECISION_KIND, ERRORS } from "/app/src/contract.mjs";
 import { readBundle } from "/app/src/bundle.mjs";
+import { readConfig } from "/app/src/config.mjs";
 import {
   COMMIT_COMMITTED,
   COMMIT_UNVERIFIED,
@@ -50,6 +51,7 @@ import {
   renderControls,
   renderDiagnostic,
   renderDraft,
+  renderBundleNotice,
   renderHistory,
   renderOutOfView,
 } from "/app/src/render.mjs";
@@ -72,6 +74,7 @@ const discardButton = document.querySelector("#discard");
 const applyButton = document.querySelector("#apply");
 const workingSurface = document.querySelector("#working-surface");
 const outOfView = document.querySelector("#out-of-view");
+const bundleNotice = document.querySelector("#bundle-notice");
 const contextList = document.querySelector("#context-recent");
 const contextSkipped = document.querySelector("#context-skipped");
 const contextClear = document.querySelector("#context-clear");
@@ -89,12 +92,20 @@ const controls = {
 
 const { verifyDecisionLog } = protocol;
 
+// The configuration this page was given (web/data/config.v1.json), set once
+// it has been read and found valid; nothing below runs against storage or data
+// before that.
+let config;
+
 // The only place in the app that touches browser storage and its lock. The
-// modules are pure and take these as arguments.
+// modules are pure and take these as arguments. localStorage is the one
+// mechanism the config may name, and the key it declares also names the lock.
 const read = key => localStorage.getItem(key);
 const write = (key, value) => localStorage.setItem(key, value);
 const lock = (name, run) => navigator.locks.request(name, run);
-const commit = ({ graph, expected }) => commitLog({ graph, expected, read, write, lock, verifyDecisionLog });
+const commit = ({ graph, expected }) => commitLog({
+  graph, expected, key: config.persistence.key, read, write, lock, verifyDecisionLog,
+});
 
 // The service worker only exists to reassemble the chunked ASR model that
 // the Cloudflare 25MB file limit forces. A host that serves the model whole
@@ -652,54 +663,95 @@ historyPanel.addEventListener("click", event => {
   });
 });
 
-// The DataBundle this page offers from. One that cannot be fetched or read
-// disables only the capabilities it would have provided.
-const loadBundle = async () => {
+// A JSON document of this origin, or why there is none: the network, the
+// status, or a body that is not JSON.
+const fetchJson = async path => {
+  let response;
   try {
-    const response = await fetch("/data/bundle.v1.json", { cache: "no-store" });
-    return readBundle(response.ok ? await response.json() : null);
-  } catch {
-    return readBundle(null);
+    response = await fetch(path, { cache: "no-store" });
+  } catch (error) {
+    return Object.freeze({ reason: `network: ${String(error?.message ?? error)}` });
+  }
+  if (!response.ok) return Object.freeze({ reason: `HTTP ${response.status}` });
+  try {
+    return Object.freeze({ value: await response.json() });
+  } catch (error) {
+    return Object.freeze({ reason: `invalid JSON: ${String(error?.message ?? error)}` });
   }
 };
 
-// Storage decides what this origin starts from. No log is NO_LOG: nothing is
-// drawn until the person makes a map. A corrupt or foreign log is left exactly
-// where it is, blocks the page and draws nothing; the only way forward is an
-// explicit clear from outside the app. 作業図 starts as the saved graph:
-// nothing unapplied survives a reload, and the conversation starts empty.
-bundle = await loadBundle();
-const restored = await restoreLog({ read, verifyDecisionLog });
-if (restored.status === RESTORE_RESTORED) {
-  savedHistory = restored.projection;
-  adopt(createSession({ accepted: restored.graph, stored: restored.graph.log }));
-} else {
-  blocked = restored.status !== RESTORE_NO_LOG;
-  adopt(createSession({ accepted: null, stored: null }));
-}
-showLists();
+// The configuration is the first thing read, from its one fixed place.
+const CONFIG_PATH = "/data/config.v1.json";
+const loadConfig = async () => {
+  const fetched = await fetchJson(CONFIG_PATH);
+  return fetched.reason === undefined ? readConfig(fetched.value) : Object.freeze({ error: fetched.reason });
+};
+
+// The DataBundle from where the config says. One that cannot be fetched or
+// read disables only the capabilities it would have provided, and the notice
+// names them and says why; nothing is offered in their place.
+const BUNDLE_CAPABILITIES = Object.freeze({ parts: "部品の追加", diagrams: "図の作成" });
+const loadBundle = async path => {
+  const fetched = await fetchJson(path);
+  const offered = readBundle(fetched.reason === undefined ? fetched.value : null);
+  const affected = Object.keys(BUNDLE_CAPABILITIES).filter(name => offered[name] === null).map(name => BUNDLE_CAPABILITIES[name]);
+  const reason = fetched.reason ?? (offered.version === null ? "invalid bundle" : "invalid section");
+  return { offered, affected, reason };
+};
 
 let bootState;
 let bootMessage;
 let bootFailure = null;
-try {
-  await drawConfirmed();
-  await drawWorking(session.working);
-  showOutOfView();
-  if (blocked) {
-    [bootState, bootMessage] = ["failed", "saved history is unusable - clear this site's storage to start over"];
-    bootFailure = `stored log rejected: ${restored.reason}`;
-  } else if (restored.status === RESTORE_RESTORED) {
-    [bootState, bootMessage] = ["restored", `restored: ${savedHistory.entries.length} confirmed`];
-  } else {
-    [bootState, bootMessage] = ["no-log", "no saved graph - type a name and press 新しい図"];
-  }
-} catch (error) {
-  // The stored graph is intact but undrawable. Nothing was lost, so this is
-  // the same saved-but-not-displayed state a failed render produces.
+const configured = await loadConfig();
+if (configured.error !== undefined) {
+  // Without a valid config nothing is read, fetched, asked or drawn, and the
+  // page is blocked until a reload finds one.
   blocked = true;
-  [bootState, bootMessage] = ["saved-display-failed", "stored graph could not be drawn - reload to retry"];
-  bootFailure = `display failed: ${String(error?.message ?? error)}`;
+  bundle = readBundle(null);
+  adopt(createSession({ accepted: null, stored: null }));
+  showLists();
+  [bootState, bootMessage] = ["failed", "the configuration is unusable - nothing was read or drawn"];
+  bootFailure = `config rejected: ${configured.error}`;
+} else {
+  config = configured;
+  const loaded = await loadBundle(config.data.bundle);
+  bundle = loaded.offered;
+  renderBundleNotice(bundleNotice, loaded);
+
+  // Storage decides what this origin starts from. No log is NO_LOG: nothing is
+  // drawn until the person makes a map. A corrupt or foreign log is left exactly
+  // where it is, blocks the page and draws nothing; the only way forward is an
+  // explicit clear from outside the app. 作業図 starts as the saved graph:
+  // nothing unapplied survives a reload, and the conversation starts empty.
+  const restored = await restoreLog({ key: config.persistence.key, read, verifyDecisionLog });
+  if (restored.status === RESTORE_RESTORED) {
+    savedHistory = restored.projection;
+    adopt(createSession({ accepted: restored.graph, stored: restored.graph.log }));
+  } else {
+    blocked = restored.status !== RESTORE_NO_LOG;
+    adopt(createSession({ accepted: null, stored: null }));
+  }
+  showLists();
+
+  try {
+    await drawConfirmed();
+    await drawWorking(session.working);
+    showOutOfView();
+    if (blocked) {
+      [bootState, bootMessage] = ["failed", "saved history is unusable - clear this site's storage to start over"];
+      bootFailure = `stored log rejected: ${restored.reason}`;
+    } else if (restored.status === RESTORE_RESTORED) {
+      [bootState, bootMessage] = ["restored", `restored: ${savedHistory.entries.length} confirmed`];
+    } else {
+      [bootState, bootMessage] = ["no-log", "no saved graph - type a name and press 新しい図"];
+    }
+  } catch (error) {
+    // The stored graph is intact but undrawable. Nothing was lost, so this is
+    // the same saved-but-not-displayed state a failed render produces.
+    blocked = true;
+    [bootState, bootMessage] = ["saved-display-failed", "stored graph could not be drawn - reload to retry"];
+    bootFailure = `display failed: ${String(error?.message ?? error)}`;
+  }
 }
 // The body state is set last, with every control already in its place: it is
 // what tells anyone watching that the page is ready.

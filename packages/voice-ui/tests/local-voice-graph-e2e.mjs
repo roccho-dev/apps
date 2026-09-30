@@ -30,7 +30,10 @@ if (!correctionWav || !correctionGoldenPath) {
   throw new Error("VOICE_CORRECTION_WAV and VOICE_CORRECTION_GOLDEN are required");
 }
 
-const STORAGE_KEY = "voice-ui.decision-log.v1";
+// The storage key the target is configured with, as it serves its config.
+const CONFIG_URL = new URL("/data/config.v1.json", url).href;
+const servedConfig = await (await fetch(CONFIG_URL)).json();
+const STORAGE_KEY = servedConfig.persistence.key;
 const CORRUPT_LOG = '{"not":"a decision"}\n';
 
 const normalize = value =>
@@ -271,6 +274,9 @@ const screen = target => target.evaluate(key => ({
   contextClearDisabled: document.querySelector("#context-clear").disabled,
   draftCount: document.querySelector("#draft-count").textContent,
   notice: document.querySelector("#working-notice")?.textContent ?? null,
+  // What the data bundle could not provide, and the capabilities it names.
+  bundleNotice: document.querySelector("#bundle-notice").textContent,
+  bundleAffected: document.querySelector("#bundle-notice").dataset.affected ?? null,
   sendDisabled: document.querySelector("#send").disabled,
   micDisabled: document.querySelector("#mic").disabled,
   newHidden: document.querySelector("#new").hidden,
@@ -765,6 +771,105 @@ assert.deepEqual(await panes(page), { confirmed: [voiceEdge], working: [voiceEdg
 // What the second browser starts from: exactly the bytes this one saved. The
 // working graph is never carried across - it lives in memory only.
 const afterVoiceApply = await first.context.storageState();
+
+// (iv-b) The config comes first. When it is missing or not exactly the declared
+// shape, the page blocks with the reason before anything else: the stored log
+// is not restored or touched, the bundle is not fetched, Jev is not asked and
+// nothing is drawn.
+const bundleUrl = new URL(servedConfig.data.bundle, url).href;
+for (const [label, serve] of [
+  ["missing", route => route.fulfill({ status: 404, contentType: "text/plain", body: "not found" })],
+  ["unknown mechanism", route => route.fulfill({
+    status: 200, contentType: "application/json; charset=utf-8",
+    body: JSON.stringify({ ...servedConfig, persistence: { ...servedConfig.persistence, mechanism: "indexedDB" } }),
+  })],
+]) {
+  const bundleFetches = [];
+  const noteBundle = request => { if (request.url() === bundleUrl) bundleFetches.push(request.url()); };
+  page.on("request", noteBundle);
+  const noJev = countJev(page);
+  const failedBefore = failedResponses.length;
+  await page.route(CONFIG_URL, serve, { times: 1 });
+  await page.reload({ waitUntil: "commit" });
+  await ready(page);
+  const unconfigured = await screen(page);
+  page.off("request", noteBundle);
+  noJev.stop();
+  assert.deepEqual(failedResponses.splice(failedBefore), label === "missing" ? [`404 ${CONFIG_URL}`] : [],
+    `${label} config: the only refusal is the injected one`);
+  assert.equal(unconfigured.state, "failed", `${label} config: the page is blocked`);
+  assert.match(unconfigured.failure ?? "", /config rejected/u, `${label} config: the reason is shown`);
+  assert.equal(unconfigured.stored, savedLog, `${label} config: the stored log is not touched`);
+  assert.deepEqual(unconfigured.confirmed, [], `${label} config: nothing is restored`);
+  assert.deepEqual(unconfigured.frames, { confirmed: 0, working: 0, total: 0 }, `${label} config: nothing is drawn`);
+  for (const control of ["sendDisabled", "micDisabled", "newDisabled", "undoDisabled", "discardDisabled", "applyDisabled"]) {
+    assert.equal(unconfigured[control], true, `${label} config: ${control}`);
+  }
+  assert.deepEqual(bundleFetches, [], `${label} config: the bundle is not fetched`);
+  assert.equal(noJev.count, 0, `${label} config: Jev is not asked`);
+  assert.equal(unconfigured.bundleNotice, "", `${label} config: a config failure is not a bundle notice`);
+}
+
+// (iv-c) A bundle that cannot be had disables only what it provides. The page
+// says which capabilities and why, for as long as it is open; the valid log is
+// still restored and drawn, and a change that needs no bundle - here a revert -
+// is still applied and saved.
+const failedBeforeBundle = failedResponses.length;
+await page.route(bundleUrl, route => route.fulfill({ status: 404, contentType: "text/plain", body: "not found" }), { times: 1 });
+await page.reload({ waitUntil: "commit" });
+await ready(page);
+const noBundle = await screen(page);
+assert.deepEqual(failedResponses.splice(failedBeforeBundle), [`404 ${bundleUrl}`], "the only refusal is the injected one");
+assert.equal(noBundle.state, "restored", "a valid log is restored without the bundle");
+assert.equal(noBundle.stored, savedLog);
+assert.deepEqual(await panes(page), { confirmed: [voiceEdge], working: [voiceEdge] });
+assert.equal(noBundle.bundleAffected, "部品の追加 図の作成", "the notice names both capabilities");
+assert.match(noBundle.bundleNotice, /HTTP 404/u, "the notice says why");
+const countBundleFree = countJev(page);
+await page.locator("button[data-revert]").first().click();
+await settle(page);
+await press(page, "#apply");
+countBundleFree.stop();
+const appliedWithoutBundle = await screen(page);
+assert.equal(countBundleFree.count, 0, "a revert and Apply ask Jev nothing");
+assert.equal(appliedWithoutBundle.state, "applied");
+assert.ok(appliedWithoutBundle.stored.startsWith(savedLog));
+assert.equal(lineCount(appliedWithoutBundle.stored), lineCount(savedLog) + 1, "exactly one Decision is added");
+assert.match(appliedWithoutBundle.bundleNotice, /HTTP 404/u, "the notice stays while the page is open");
+
+// (iv-d) The key is the configured one, for reading, writing and reading back.
+// Under another configured key, the log saved under the product key is not
+// this page's: the page starts at NO_LOG, a new map is applied under the
+// configured key only, and a reload restores it from there - while the bytes
+// under the product key never change.
+const ALTERNATE_KEY = "voice-ui.e2e-alternate-key";
+const productBytes = appliedWithoutBundle.stored;
+await page.evaluate(key => localStorage.removeItem(key), ALTERNATE_KEY);
+const alternateConfig = JSON.stringify({ ...servedConfig, persistence: { ...servedConfig.persistence, key: ALTERNATE_KEY } });
+await page.route(CONFIG_URL, route => route.fulfill({ status: 200, contentType: "application/json; charset=utf-8", body: alternateConfig }), { times: 2 });
+const noJevForKey = countJev(page);
+await page.reload({ waitUntil: "commit" });
+await ready(page);
+const underAlternate = await screen(page);
+assert.equal(underAlternate.state, "no-log", "the product key's log is not read under another configured key");
+assert.equal(underAlternate.stored, productBytes);
+await page.locator("#text").fill("alternate key map");
+await press(page, "#new");
+await press(page, "#apply");
+const alternateBytes = await page.evaluate(key => localStorage.getItem(key), ALTERNATE_KEY);
+const appliedUnderAlternate = await screen(page);
+assert.equal(appliedUnderAlternate.state, "applied");
+assert.equal(lineCount(alternateBytes ?? ""), 1, "the new map is saved under the configured key");
+assert.equal(appliedUnderAlternate.stored, productBytes, "the product key's bytes are unchanged");
+await page.reload({ waitUntil: "commit" });
+await ready(page);
+const reloadedAlternate = await screen(page);
+noJevForKey.stop();
+assert.equal(reloadedAlternate.state, "restored", "a reload restores from the configured key");
+assert.equal(await page.evaluate(key => localStorage.getItem(key), ALTERNATE_KEY), alternateBytes, "and does not rewrite it");
+assert.equal(reloadedAlternate.stored, productBytes);
+assert.equal(noJevForKey.count, 0, "the key proof asks Jev nothing");
+await page.evaluate(key => localStorage.removeItem(key), ALTERNATE_KEY);
 
 // (v) A stored log the provider rejects is damage. The app fails closed, keeps
 // the bytes exactly as they are, and refuses both inputs.

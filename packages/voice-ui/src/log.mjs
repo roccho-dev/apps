@@ -5,9 +5,9 @@
 // browser storage and every rule here is provable under `node --test`.
 //
 // What is stored is the provider's own canonical log string, so restoring is a
-// provider verification rather than a bespoke parse.
-
-const HISTORY_KEY = "voice-ui.decision-log.v1";
+// provider verification rather than a bespoke parse. Where it is stored - the
+// storage key, which also names the lock - is always passed in, as declared in
+// web/data/config.v1.json; nothing here chooses it.
 
 // This app's identity inside a log: the map namespace its CreateMap names and
 // the state schema its meta record declares. Together with the storage key and
@@ -32,6 +32,8 @@ const demand = (condition, reason) => {
 };
 
 const message = error => String(error?.message ?? error);
+
+const demandKey = key => demand(typeof key === "string" && key.trim().length > 0, "the storage key must be a non-empty string");
 
 // Why a provider-verified log is not this app's, or null when it is.
 function foreignReason(verified) {
@@ -137,8 +139,9 @@ export async function projectHistory(verified, { verifyDecisionLog }) {
 // provider rejects is corrupt, and a valid log that is not this app's is
 // foreign; both are left exactly as they are - never deleted, never
 // overwritten - and neither is ever replaced by a graph of the app's own.
-export async function restoreLog({ read, verifyDecisionLog }) {
-  const stored = await read(HISTORY_KEY);
+export async function restoreLog({ key, read, verifyDecisionLog }) {
+  demandKey(key);
+  const stored = await read(key);
   if (stored === null || stored === undefined) return Object.freeze({ status: RESTORE_NO_LOG });
 
   let verified;
@@ -173,12 +176,13 @@ export async function restoreLog({ read, verifyDecisionLog }) {
 // read back as something else, or cannot be read - the result is `unverified`,
 // and the page must stop speaking for storage. A committed Decision is never
 // lost.
-export async function commitLog({ graph, expected, read, write, lock, verifyDecisionLog }) {
+export async function commitLog({ graph, expected, key, read, write, lock, verifyDecisionLog }) {
+  demandKey(key);
   demand(typeof graph?.log === "string" && graph.log.length > 0, "graph.log must be a non-empty string");
   demand(expected === null || typeof expected === "string", "expected must be null or a string");
   const next = graph.log;
-  return lock(HISTORY_KEY, async () => {
-    const current = (await read(HISTORY_KEY)) ?? null;
+  return lock(key, async () => {
+    const current = (await read(key)) ?? null;
     if (current !== expected) return Object.freeze({ status: COMMIT_CONFLICT });
     if (current !== null && !(next.length > current.length && next.startsWith(current))) {
       return Object.freeze({ status: COMMIT_REJECTED, reason: "the new log does not strictly extend the stored one" });
@@ -191,13 +195,13 @@ export async function commitLog({ graph, expected, read, write, lock, verifyDeci
     }
     let failed = null;
     try {
-      await write(HISTORY_KEY, next);
+      await write(key, next);
     } catch (error) {
       failed = message(error);
     }
     let readBack;
     try {
-      readBack = (await read(HISTORY_KEY)) ?? null;
+      readBack = (await read(key)) ?? null;
     } catch (error) {
       return Object.freeze({ status: COMMIT_UNVERIFIED, reason: `the stored bytes cannot be read back: ${message(error)}` });
     }

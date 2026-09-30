@@ -42,6 +42,8 @@ function route(pathname) {
 
   if (pathname === "/app.mjs") return path.join(packageRoot, "web/app.mjs");
 
+  if (pathname === "/data/config.v1.json") return path.join(packageRoot, "web/data/config.v1.json");
+
   if (pathname === "/data/bundle.v1.json") return path.join(packageRoot, "web/data/bundle.v1.json");
 
   const rest = suffix => pathname.slice(suffix.length);

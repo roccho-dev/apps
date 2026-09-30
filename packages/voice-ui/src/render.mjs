@@ -282,6 +282,16 @@ export function renderOutOfView(notice, { outside }) {
     : "";
 }
 
+// The capabilities the data bundle could not provide and why, or nothing when
+// it provided every one. Set once when the page loads; the rest of the page
+// works without them.
+export function renderBundleNotice(notice, { affected, reason }) {
+  notice.dataset.affected = affected.join(" ");
+  notice.textContent = affected.length > 0
+    ? `部品と図のひな形を読み込めなかったため使えません: ${affected.join(", ")} (${reason})。保存済みの図の表示と確定図への反映はできます`
+    : "";
+}
+
 const DIAGNOSTIC_KEYS = Object.freeze([
   "diag", "diagOutcome", "diagPlaceable", "diagPlaceOffered",
   "diagAction", "diagMove", "diagAnchor", "diagDirection", "diagFrame",
