@@ -63,7 +63,7 @@ const screen = () => page.evaluate(([key, rootKey]) => ({
   sourceStatus: document.querySelector("#architecture-status").textContent,
   shown: !document.querySelector("#architecture").hidden,
   claims: [...document.querySelectorAll("#architecture-claims li")].map(item => ({
-    record: item.dataset.record, origins: item.dataset.origins.split(" "), roles: item.dataset.roles?.split(" ") ?? [],
+    record: item.dataset.record, origins: item.dataset.origins.split(" "),
   })),
   coverage: [...document.querySelectorAll("#architecture-coverage li")].map(item => item.textContent),
   stored: localStorage.getItem(key),
@@ -90,6 +90,9 @@ page.on("response", async response => {
   entry.body = await response.json().catch(() => null);
 });
 const claimOf = (now, record) => now.claims.find(claim => claim.record === record) ?? null;
+// A role Jev gave a file, as drawn: the has-role edge, and the role's node.
+const hasRole = (now, entity, role) => claimOf(now, `relation arch-has-role-${entity}-to-${role}`)?.origins.join(" ") === "model-inferred"
+  && claimOf(now, `region arch-role-${role}`)?.origins.join(" ") === "scope-declared";
 
 // The slash-less path is sent to the architecture page's own path.
 const opened = await page.goto(PAGE, { waitUntil: "commit", timeout: 120000 });
@@ -120,6 +123,9 @@ const ROLES = {
   [APP]: ["voice-input", "jev-boundary", "graph-mutation", "persistence"],
   [FUNCTION]: ["jev-boundary", "auth"],
   "dev-serve-mjs": ["auth", "config"],
+  "src-config-mjs": ["config"],
+  "web-data-config-v1-json": ["config"],
+  "dev-architecture-config-v1-json": ["config"],
   [LOG]: ["persistence"],
 };
 const RELATIONS = {
@@ -148,8 +154,8 @@ need(whole.sent.length === 1 && whole.sent[0].sent.kind === contract.ARCHITECTUR
 need(whole.sent.every(entry => !codeIn(entry.sent)), "the page never sends source text");
 need(whole.now.state === "drafted", `the whole view was drafted (state ${whole.now.state}: ${whole.now.failure ?? whole.now.status})`);
 need(claimOf(whole.now, `region arch-${APP}`)?.origins.includes("source-declared"), "the page's file is drawn from the source");
-need(whole.now.claims.every(claim => !claim.origins.includes("model-inferred") && claim.roles.length === 0),
-  "the whole view judges nothing: every role stays unknown");
+need(whole.now.claims.every(claim => !claim.origins.includes("model-inferred") && !claim.origins.includes("scope-declared")),
+  "the whole view judges nothing: no role, no role node, no chosen relation");
 need(/未反映: 2 \/ 8/u.test(whole.now.draftCount), `the whole view counts as one utterance (${whole.now.draftCount})`);
 
 // Undo takes the whole utterance back - every Decision it added.
@@ -165,8 +171,8 @@ need(app.sent.map(entry => entry.sent.kind).join(" ") === `${contract.ARCHITECTU
   "a focused utterance is an intent, then a judge");
 need(app.sent.every(entry => entry.status === 200), `both were answered (${app.sent.map(entry => entry.status).join(", ")})`);
 need(app.sent.every(entry => !codeIn(entry.sent)), "the page sends no code in either; the server adds it");
-const appRoles = claimOf(app.now, `region arch-${APP}`)?.roles ?? [];
-for (const role of ["voice-input", "jev-boundary", "graph-mutation", "persistence"]) need(appRoles.includes(role), `the page's file is judged ${role}`);
+for (const role of ["voice-input", "jev-boundary", "graph-mutation", "persistence"]) need(hasRole(app.now, APP, role), `the page's file is judged ${role}`);
+need(claimOf(app.now, `region arch-${APP}`)?.origins.join(" ") === "source-declared", "the file itself stays the source's");
 const inferredAt = (now, id) => claimOf(now, `relation ${id}`)?.origins.includes("model-inferred") === true;
 need(inferredAt(app.now, `arch-calls-${APP}-to-functions-pages-worker-mjs`), "the page calls the Worker");
 need(claimOf(app.now, "relation arch-import-functions-pages-worker-mjs-to-functions-api-jev-mjs")?.origins.includes("source-declared"),
@@ -179,14 +185,39 @@ need(auth.sent.every(entry => entry.status === 200), `the credential focus was a
 need(inferredAt(auth.now, `arch-authenticates-with-${FUNCTION}-to-ext-jev-api-key`), "the Function authenticates with the key");
 need(inferredAt(auth.now, `arch-calls-${FUNCTION}-to-ext-api-typesafe-ai`), "the Function calls the provider");
 need(claimOf(auth.now, "region arch-ext-jev-api-key")?.origins.join(" ") === "unknown", "the credential itself stays unknown");
+need(hasRole(auth.now, FUNCTION, "auth"), "the Function is judged auth");
 
-// (4) The save flow: the decision log's own code.
-const save = await say("保存の仕組みを詳しく見せて", picksFor(LOG), 2);
+// (4) Storage: every admitted file that names it, whole.
+const stored = await say("ブラウザ保存に関わる部分を詳しく見せて", picksFor("ext-localstorage"), 2);
+need(stored.sent.every(entry => entry.status === 200), `the storage focus was answered (${stored.sent.map(entry => entry.status).join(", ")})`);
+need(stored.sent.at(-1)?.sent.state.architecture.bodies.length === 4, "the storage section opens the four files that name it");
+need(hasRole(stored.now, "src-config-mjs", "config"), "the config module is judged config");
+
+// (5) The save flow: the decision log's own code. The page -> log relation is
+// already drawn, so the role alone must still become a change of the graph.
+need(inferredAt(stored.now, `arch-calls-${APP}-to-${LOG}`), "the page -> decision log relation is already there");
+const saveAgain = () => say("保存の仕組みを詳しく見せて", picksFor(LOG), 2);
+const save = await saveAgain();
 need(save.sent.every(entry => entry.status === 200), `the save focus was answered (${save.sent.map(entry => entry.status).join(", ")})`);
-need((claimOf(save.now, `region arch-${LOG}`)?.roles ?? []).includes("persistence"), "the decision log is judged persistence");
+need(save.now.state === "drafted", `the log's role is drafted (state ${save.now.state}: ${save.now.failure ?? save.now.status})`);
+need(hasRole(save.now, LOG, "persistence"), "the decision log is judged persistence");
 need(claimOf(save.now, `relation arch-import-${APP}-to-${LOG}`)?.origins.includes("source-declared"), "the page imports the decision log");
 need(save.now.claims.every(claim => !(claim.record.startsWith("relation arch-import-") && claim.origins.includes("model-inferred"))),
   "an import edge is never model-inferred");
+if (FIXTURE) {
+  // The same judgement again adds nothing.
+  const repeat = await saveAgain();
+  need(repeat.now.state === "no-change" && repeat.now.draft.length === save.now.draft.length, `a repeated role is nothing new (${repeat.now.state})`);
+  // Undo takes the log's utterance back: its edge goes, the shared node stays.
+  await page.locator("#undo").click();
+  await settle();
+  const back = await screen();
+  need(!hasRole(back, LOG, "persistence") && claimOf(back, `region arch-role-persistence`) !== null,
+    "Undo removes the log's role edge and keeps the persistence node the page's role drew");
+  // A new utterance judges it again.
+  need(hasRole((await saveAgain()).now, LOG, "persistence"), "judged again, the log's role is drawn again");
+}
+const judgedDraft = (await screen()).draft.length;
 
 // (5) A correction by the person: the judged storage relation is taken out -
 // one more utterance - and Undo takes it back.
@@ -196,7 +227,7 @@ const corrected = await say("その保存の関係は違うので消して", (na
   if (name === "edge") return sent.state.graph.edges.find(edge => edge.id === storageEdge)?.id;
   return contract.NONE;
 }, 1);
-const removedOne = corrected.now.draft.length === save.now.draft.length + 1 && claimOf(corrected.now, `relation ${storageEdge}`) === null;
+const removedOne = corrected.now.draft.length === judgedDraft + 1 && claimOf(corrected.now, `relation ${storageEdge}`) === null;
 need(removedOne, `the person's correction removes the judged relation as one more step (state ${corrected.now.state}: `
   + `${corrected.now.failure ?? corrected.now.status})`);
 if (removedOne) {
@@ -221,7 +252,11 @@ await ready();
 const reloaded = await screen();
 need(reloaded.state === "restored", `reload restores the document (state ${reloaded.state}: ${reloaded.failure ?? reloaded.status})`);
 need(reloaded.stored === applied.stored, "reload does not rewrite the document");
-need(JSON.stringify(reloaded.claims) === JSON.stringify(applied.claims), "the same records, origins and roles come back");
+need(JSON.stringify(reloaded.claims) === JSON.stringify(applied.claims), "the same records and origins come back");
+const originsAfter = [...new Set(reloaded.claims.flatMap(claim => claim.origins))].sort();
+need(JSON.stringify(originsAfter) === JSON.stringify(["model-inferred", "scope-declared", "source-declared", "unknown", "user-asserted"]),
+  `all five origins come back (${originsAfter.join(", ")})`);
+need(hasRole(reloaded, LOG, "persistence") && hasRole(reloaded, APP, "persistence"), "the roles come back as drawn");
 need(/^出典: apps-voice-ui@/u.test(reloaded.sourceStatus), "the cited snapshot is still checkable");
 need(errors.length === 0, `no page error: ${errors.join(" | ")}`);
 
@@ -231,7 +266,7 @@ await browser.close();
 
 const summary = `${answered.length}/${exchanges.length} answered Jev exchanges (model ${models.join(", ")}), `
   + `${reloaded.claims.length} claimed records, ${reloaded.claims.filter(claim => claim.origins.includes("model-inferred")).length} with model-inferred claims, `
-  + `roles of ${APP}: ${(claimOf(reloaded, `region arch-${APP}`)?.roles ?? []).join(",") || "none"}`;
+  + `${reloaded.claims.filter(claim => claim.record.startsWith("relation arch-has-role-")).length} has-role edges`;
 if (FIXTURE) {
   assert.deepEqual(verdicts, [], "the page's mechanics");
   assert.deepEqual(models, ["crafted-by-test"], "fixture answers only, never evidence about Jev or the code");

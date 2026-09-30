@@ -24,7 +24,8 @@ import { OUTCOME_NO_CHANGE, OUTCOME_REFUSED, OUTCOME_STEP } from "./turn.mjs";
 // what a saved document is checked against. Jev only chooses, from closed
 // options: which one part to look at (asked with no code at all), and then,
 // shown that part's own text, which roles its files have and which relation,
-// if any, holds for each of its candidate pairs. Nothing here invents an
+// if any, holds for each of its candidate pairs. A role Jev confirms is drawn
+// as an edge from the file to that role's node. Nothing here invents an
 // entity, label or relation, or calls a model-selected one source-declared.
 
 const MANIFEST_SCHEMA = "voice-ui.architecture-source/1";
@@ -32,17 +33,24 @@ const COMMIT = /^[0-9a-f]{40}$/u;
 
 // Where a claim comes from. Only a file, a static import or a declared fact
 // is source-declared; what Jev chose is model-inferred; what the person did is
-// user-asserted; what the source names but does not contain is unknown.
+// user-asserted; what the source names but does not contain is unknown; and a
+// role's node, a term of the scope's closed vocabulary - a taxonomy, never
+// something the code does - is scope-declared.
 export const ORIGIN_SOURCE = "source-declared";
 export const ORIGIN_MODEL = "model-inferred";
 export const ORIGIN_USER = "user-asserted";
 export const ORIGIN_UNKNOWN = "unknown";
+export const ORIGIN_SCOPE = "scope-declared";
 
 const IMPORT_KIND = "imports";
 const DECLARES_KIND = "declares";
+const HAS_ROLE_KIND = "has-role";
+// Edge kinds this module draws itself, which no chosen relation may shadow.
+const RESERVED_KINDS = Object.freeze([IMPORT_KIND, DECLARES_KIND, HAS_ROLE_KIND]);
 const NODE_KIND = "node";
 const REGION_PREFIX = "arch-";
 const FACT_PREFIX = "arch-fact-";
+const ROLE_PREFIX = "arch-role-";
 const RESOLUTIONS = Object.freeze(["relative", "scope-url-map", "scope-external-url"]);
 const REASON = /^(import|identifier):./u;
 
@@ -124,8 +132,12 @@ export function readManifest(value) {
     && factLabel(fact).length <= LABEL_MAX)) return invalid("facts are not well-formed");
   if (new Set(value.facts.map(fact => fact.id)).size !== value.facts.length) return invalid("fact ids repeat");
   if (!validVocabulary(value.roles) || !validVocabulary(value.relations)) return invalid("the vocabulary is not well-formed");
+  if (value.relations.some(relation => RESERVED_KINDS.includes(relation.key))) return invalid("a relation shadows an edge kind drawn here");
   if (!exactObject(value.coverage, ["unsupported", "skipped", "notAnalyzed"])) return invalid("coverage is not well-formed");
-  return deepFreeze(structuredClone(value));
+  const manifest = deepFreeze(structuredClone(value));
+  const recordIds = everyRecordOf(manifest).map(({ record }) => record.id);
+  if (new Set(recordIds).size !== recordIds.length) return invalid("two records of this snapshot would share an id");
+  return manifest;
 }
 
 // What the page may say about the snapshot with no code at all: its identity
@@ -261,10 +273,27 @@ const inferredRecord = (candidate, kind) => entry(
   { type: "relation", id: relationIdOf(kind, candidate.from, candidate.to), from: regionIdOf(candidate.from), to: regionIdOf(candidate.to), kind, label: kind },
   ORIGIN_MODEL, [{ candidate: candidate.id }]);
 
-// A role Jev gave an admitted file, resting on that file's own text.
-const roleClaim = (entity, role) => Object.freeze({
-  record: Object.freeze({ type: "region", id: regionIdOf(entity.id) }), origin: ORIGIN_MODEL, basis: Object.freeze([{ path: entity.path }]), role,
-});
+// A role's node: the scope's term, drawn once it is first assigned.
+const roleIdOf = key => `${ROLE_PREFIX}${key}`;
+const roleNode = key => entry({ type: "region", id: roleIdOf(key), label: `role:${key}` }, ORIGIN_SCOPE, [{ vocabulary: "roles", key }]);
+
+// A role Jev confirmed for an admitted file, judged from that file's whole text.
+const roleEdge = (entity, key) => entry(
+  { type: "relation", id: `${REGION_PREFIX}${HAS_ROLE_KIND}-${entity.id}-to-${key}`, from: regionIdOf(entity.id), to: roleIdOf(key), kind: HAS_ROLE_KIND, label: HAS_ROLE_KIND },
+  ORIGIN_MODEL, [{ path: entity.path }]);
+
+// Every record this snapshot could ever draw: what the source grounds, every
+// role node, every relation any pair could be given and every role any file
+// could be given. No two of them may share an id.
+const everyRecordOf = manifest => {
+  const files = manifest.entities.filter(entity => entity.kind === "file");
+  return [
+    ...sourceRecords(manifest).values(),
+    ...manifest.roles.map(role => roleNode(role.key)),
+    ...manifest.candidates.flatMap(candidate => manifest.relations.map(relation => inferredRecord(candidate, relation.key))),
+    ...files.flatMap(entity => manifest.roles.map(role => roleEdge(entity, role.key))),
+  ];
+};
 
 const equal = (left, right) => left === right || (
   left !== null && right !== null && typeof left === "object" && typeof right === "object"
@@ -274,31 +303,37 @@ const equal = (left, right) => left === right || (
 
 // How a saved claim is checked against the snapshot it cites: a function of
 // the claim and the record as its Decision left it, answering why the claim
-// is not what this snapshot grounds, or null. A source-declared or unknown
-// claim must be exactly the snapshot's own claim for that record, and the
-// record exactly as the snapshot draws it - label, ends and kind. A relation
+// is not what this snapshot grounds, or null. A source-declared, unknown or
+// scope-declared claim must be exactly the snapshot's own claim for that
+// record - a role's node only for a role of the closed vocabulary - and the
+// record exactly as the snapshot draws it: label, ends and kind. A relation
 // Jev chose must be a relation of the closed vocabulary between the two ends
-// of the one candidate pair it cites. A role must be a closed role of an
-// admitted file's region, resting on that file.
+// of the one candidate pair it cites. A role Jev confirmed must be the
+// has-role edge from the admitted file whose path it cites to the node of a
+// role of the closed vocabulary.
 export function claimCheckFor(manifest) {
-  const known = sourceRecords(manifest);
+  const known = new Map([...sourceRecords(manifest).values(), ...manifest.roles.map(role => roleNode(role.key))]
+    .map(value => [`${value.record.type} ${value.record.id}`, value]));
   const candidates = new Map(manifest.candidates.map(candidate => [candidate.id, candidate]));
   const relations = manifest.relations.map(relation => relation.key);
-  const roles = manifest.roles.map(role => role.key);
-  const files = new Map(manifest.entities.filter(entity => entity.kind === "file").map(entity => [regionIdOf(entity.id), entity]));
+  const roles = new Map(manifest.roles.map(role => [roleIdOf(role.key), role.key]));
+  const files = new Map(manifest.entities.filter(entity => entity.kind === "file").map(entity => [entity.path, entity]));
   return (claim, record) => {
     const name = `${claim.record.type} ${claim.record.id}`;
-    if (claim.role !== undefined) {
-      const entity = files.get(claim.record.id);
-      if (claim.record.type !== "region" || entity === undefined) return `${name}: only an admitted file has a role`;
-      if (!roles.includes(claim.role)) return `${name}: ${claim.role} is not a role of this snapshot`;
-      return equal(claim, roleClaim(entity, claim.role)) ? null : `${name}: a role rests on the file itself`;
-    }
     let expected = known.get(name);
     if (claim.origin === ORIGIN_MODEL) {
-      const candidate = claim.basis.length === 1 ? candidates.get(claim.basis[0].candidate) : undefined;
-      if (candidate === undefined || !relations.includes(record?.kind)) return `${name}: not a closed relation of a candidate pair`;
-      expected = inferredRecord(candidate, record.kind);
+      const [basis] = claim.basis;
+      if (claim.basis.length === 1 && basis.path !== undefined) {
+        const entity = files.get(basis.path);
+        if (entity === undefined || record?.kind !== HAS_ROLE_KIND || !roles.has(record?.to)) {
+          return `${name}: not a closed role of an admitted file`;
+        }
+        expected = roleEdge(entity, roles.get(record.to));
+      } else {
+        const candidate = claim.basis.length === 1 ? candidates.get(basis.candidate) : undefined;
+        if (candidate === undefined || !relations.includes(record?.kind)) return `${name}: not a closed relation of a candidate pair`;
+        expected = inferredRecord(candidate, record.kind);
+      }
     }
     if (expected === undefined || !equal(expected.claim, claim)) return `${name}: not a claim this snapshot grounds`;
     const drawn = Object.keys(expected.record).every(field => equal(expected.record[field], record?.[field]));
@@ -312,12 +347,14 @@ const refused = (reason, detail = null) => Object.freeze({ outcome: OUTCOME_REFU
 // The steps for one compose-architecture utterance against the working graph.
 // Every region and edge the snapshot grounds that the working graph lacks;
 // for a focused utterance also each relation Jev chose, confidently, for a
-// pair of the section, and each role it confirmed for a body file. Regions
-// come first, then edges, as consecutive Decisions of at most `operationsMax`
-// operations each - the provider's own limit, passed in by the caller - each
-// planned on the one before. Every record carries its claim; the roles, which
-// add no record, ride with the last step. Without a focus nothing is judged:
-// the view is structure only, and every role stays unknown.
+// pair of the section, and a has-role edge for each role it confirmed for a
+// body file, with that role's node if it is not drawn yet. Regions come first,
+// then edges, as consecutive Decisions of at most `operationsMax` operations
+// each - the provider's own limit, passed in by the caller - each planned on
+// the one before; the page keeps them as one utterance. Every record carries
+// its claim. Without a focus nothing is judged: the view is structure only,
+// with no role at all. Nothing drawn is ever taken back here: a role or
+// relation judged none later stays until the person removes it.
 export async function planArchitecture({ working, turn, answers, judged, manifest, protocol, operationsMax }) {
   demand(manifest?.status === "available", "an available manifest is required");
   demand(Number.isSafeInteger(operationsMax) && operationsMax > 0, "the provider's operation limit is required");
@@ -339,7 +376,6 @@ export async function planArchitecture({ working, turn, answers, judged, manifes
   const has = id => records.some(record => (record?.type === "region" || record?.type === "relation") && record.id === id);
 
   const wanted = [...sourceRecords(manifest).values()];
-  const roleClaims = [];
   if (judge !== null) {
     for (const candidate of judged.section.candidates) {
       const kind = confident(relationSlot(candidate.id));
@@ -347,11 +383,11 @@ export async function planArchitecture({ working, turn, answers, judged, manifes
     }
     for (const entity of manifest.entities.filter(part => judged.section.bodies.includes(part.id))) {
       for (const role of judged.section.roles) {
-        if (confident(roleSlot(entity.id, role.key)) === YES) roleClaims.push(roleClaim(entity, role.key));
+        if (confident(roleSlot(entity.id, role.key)) === YES) wanted.push(roleNode(role.key), roleEdge(entity, role.key));
       }
     }
   }
-  const fresh = wanted.filter(value => !has(value.record.id));
+  const fresh = [...new Map(wanted.filter(value => !has(value.record.id)).map(value => [value.record.id, value])).values()];
   if (fresh.length === 0) return noChange("architecture-nothing-new");
 
   // The provider operation and the change it shows, for each fresh record;
@@ -403,7 +439,7 @@ export async function planArchitecture({ working, turn, answers, judged, manifes
         changes: chunk.map(item => item.change),
         decision: built.decision,
       },
-      claims: [...chunk.map(item => item.claim), ...(last ? roleClaims : [])],
+      claims: chunk.map(item => item.claim),
     });
     if (!last) {
       try {

@@ -297,14 +297,16 @@ export function renderBundleNotice(notice, { affected, reason }) {
 
 // The architecture page's account of what it drew: the snapshot the saved
 // graph cites and whether it can still be checked, then every drawn record
-// with each claim about it - where it comes from and, for a file, each role
-// Jev confirmed - and what the preparation did not analyze. A claim is never
-// presented as a live check of the running system.
+// with each claim about it - where it comes from - and what the preparation
+// did not analyze. A role is drawn as an edge to that role's node, so it is
+// listed like any other record. A claim is never presented as a live check of
+// the running system.
 const ORIGIN_WORDS = Object.freeze({
   "source-declared": "コードに記載",
   "model-inferred": "Jevの推定",
   "user-asserted": "利用者の指定",
   unknown: "不明（取り込み範囲外）",
+  "scope-declared": "取り込み範囲の分類（コードの事実ではない）",
 });
 const RESOLUTION_WORDS = Object.freeze({
   relative: "",
@@ -316,6 +318,7 @@ const basisText = entry => {
   if (entry.specifier !== undefined) return `${entry.path} の import "${entry.specifier}"${RESOLUTION_WORDS[entry.resolution] ?? ""}`;
   if (entry.pointer !== undefined) return `${entry.path}${entry.row === undefined ? "" : ` ${entry.row}行目`} ${entry.pointer}`;
   if (entry.path !== undefined) return entry.path;
+  if (entry.vocabulary !== undefined) return `役割の語彙 ${entry.key}`;
   return "取り込み範囲の外";
 };
 export function renderArchitecture(section, { status, claims, labels, coverage }) {
@@ -327,10 +330,8 @@ export function renderArchitecture(section, { status, claims, labels, coverage }
     const item = document.createElement("li");
     item.dataset.record = `${record.type} ${record.id}`;
     item.dataset.origins = [...new Set(about.map(claim => claim.origin))].join(" ");
-    const roles = [...new Set(about.filter(claim => claim.role !== undefined).map(claim => claim.role))];
-    if (roles.length > 0) item.dataset.roles = roles.join(" ");
     item.textContent = `${labels.get(record.id) ?? record.id}: `
-      + about.map(claim => `${ORIGIN_WORDS[claim.origin]}${claim.role === undefined ? "" : ` 役割=${claim.role}`}`
+      + about.map(claim => ORIGIN_WORDS[claim.origin]
         + (claim.basis.length === 0 ? "" : ` (${claim.basis.map(basisText).join("; ")})`)).join(" / ");
     return item;
   }));

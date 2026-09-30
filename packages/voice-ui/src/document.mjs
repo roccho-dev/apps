@@ -1,4 +1,4 @@
-import { ORIGIN_MODEL, ORIGIN_SOURCE, ORIGIN_UNKNOWN, ORIGIN_USER, claimCheckFor } from "./architecture.mjs";
+import { ORIGIN_MODEL, ORIGIN_SCOPE, ORIGIN_SOURCE, ORIGIN_UNKNOWN, ORIGIN_USER, claimCheckFor } from "./architecture.mjs";
 import { RESTORE_NO_LOG, RESTORE_RESTORED, commitStored, inspectLog, statesOf } from "./log.mjs";
 
 // The architecture page's one stored value: the provider's own DecisionLog,
@@ -10,18 +10,19 @@ import { RESTORE_NO_LOG, RESTORE_RESTORED, commitStored, inspectLog, statesOf } 
 //     its provenance: the Decision's id and one claim per record it changed
 //
 // Only the provider verifies the Decisions, taken out as its own log; this
-// module checks everything else: the pairing, and each claim against what its
-// own Decision did - a person's claim is exactly a change it made, any other
-// claim a record it added, or a region it leaves in place for a role. While
-// the same snapshot is available, every claim other than a person's is also
-// checked by the architecture module, the one authority for which record
-// stands for what, against that snapshot. It only ever grows, under the same
-// write core as a plain log. No source text, raw answer or confidence is
+// module checks everything else: the pairing, and that each Decision's claims
+// name exactly what it changed, each change once - a person's claim any
+// change, any other claim a record it added. A record whose meaning changed
+// under the same id counts as removed and added, so no earlier claim outlives
+// it. While the same snapshot is available, every claim other than a person's
+// is also checked by the architecture module, the one authority for which
+// record stands for what, against that snapshot. It only ever grows, under the
+// same write core as a plain log. No source text, raw answer or confidence is
 // stored here.
 
 const DOCUMENT_SCHEMA = "voice-ui.architecture-document/1";
 
-const ORIGINS = Object.freeze([ORIGIN_SOURCE, ORIGIN_MODEL, ORIGIN_USER, ORIGIN_UNKNOWN]);
+const ORIGINS = Object.freeze([ORIGIN_SOURCE, ORIGIN_MODEL, ORIGIN_USER, ORIGIN_UNKNOWN, ORIGIN_SCOPE]);
 const RECORD_TYPES = Object.freeze(["region", "relation", "layout"]);
 
 const DOCUMENT_CORRUPT = "corrupt";
@@ -58,8 +59,8 @@ const canonicalLine = line => {
 };
 
 // What a claim may cite: a file, an import statement and how it was resolved,
-// a fact at a pointer (of one row, for JSONL), a candidate pair, or nothing
-// but being outside the source.
+// a fact at a pointer (of one row, for JSONL), a candidate pair, a term of the
+// scope's role vocabulary, or nothing but being outside the source.
 const validBasis = basis => Array.isArray(basis) && basis.every(entry =>
   (exactObject(entry, ["path"]) && typeof entry.path === "string")
   || (exactObject(entry, ["path", "specifier", "resolution"]) && typeof entry.path === "string"
@@ -68,18 +69,17 @@ const validBasis = basis => Array.isArray(basis) && basis.every(entry =>
   || (exactObject(entry, ["path", "row", "pointer"]) && typeof entry.path === "string"
     && Number.isSafeInteger(entry.row) && typeof entry.pointer === "string")
   || (exactObject(entry, ["candidate"]) && typeof entry.candidate === "string")
+  || (exactObject(entry, ["vocabulary", "key"]) && entry.vocabulary === "roles" && typeof entry.key === "string")
   || (exactObject(entry, ["scope"]) && entry.scope === "external"));
 
-// A role is Jev's, about a region; a removal is the person's.
+// A removal is only ever the person's.
 const validClaim = claim => {
-  const keys = ["record", "origin", "basis", ...(Object.hasOwn(claim ?? {}, "role") ? ["role"] : []),
-    ...(Object.hasOwn(claim ?? {}, "change") ? ["change"] : [])];
+  const keys = ["record", "origin", "basis", ...(Object.hasOwn(claim ?? {}, "change") ? ["change"] : [])];
   return exactObject(claim, keys)
     && exactObject(claim.record, ["type", "id"]) && RECORD_TYPES.includes(claim.record.type)
     && typeof claim.record.id === "string" && claim.record.id.length > 0
     && ORIGINS.includes(claim.origin)
     && validBasis(claim.basis)
-    && (claim.role === undefined || (typeof claim.role === "string" && claim.origin === ORIGIN_MODEL && claim.record.type === "region"))
     && (claim.change === undefined || (claim.change === "removed" && claim.origin === ORIGIN_USER));
 };
 
@@ -90,13 +90,18 @@ const recordOf = (records, { type, id }) => records.find(record => record?.type 
   && (type === "layout" ? record.regionId === id : record.id === id));
 const recordPresent = (records, claimed) => recordOf(records, claimed) !== undefined;
 
-// Why a claim is not about what its own Decision did, or null. `changed` is
-// every change the Decision made, as a person's claims name them.
-const changeReason = (claim, before, after, changed) => {
-  const name = `${claim.record.type} ${claim.record.id}`;
-  if (claim.origin === ORIGIN_USER) return changed.has(claimKey(claim)) ? null : `${name} is not a change that Decision made`;
-  if (claim.role !== undefined) return recordPresent(after, claim.record) ? null : `${name} is not there to have a role`;
-  return !recordPresent(before, claim.record) && recordPresent(after, claim.record) ? null : `${name} is not a record that Decision added`;
+// Why a Decision's claims do not name exactly what it changed, or null: every
+// claim is one change it made - a person's any change, any other an added
+// record - and every change it made is named by exactly one claim.
+const coverageReason = (claims, before, after) => {
+  const changes = userClaims(before, after).map(claimKey);
+  const named = claims.map(claimKey);
+  const stray = named.find(key => !changes.includes(key));
+  if (stray !== undefined) return `${stray} is not a change that Decision made`;
+  const twice = named.find((key, index) => named.indexOf(key) !== index);
+  if (twice !== undefined) return `${twice} is claimed twice`;
+  const unnamed = changes.find(key => !named.includes(key));
+  return unnamed === undefined ? null : `${unnamed} is a change no claim names`;
 };
 
 const sameSource = (left, right) => left?.handle === right?.handle && left?.commit === right?.commit;
@@ -133,10 +138,10 @@ async function inspectDocument(text, { verifyDecisionLog, manifest }) {
     if (item.decision !== graph.ids[index]) return corrupt(`provenance ${index + 1} names another Decision`);
     const before = index === 0 ? [] : states[index - 1];
     const after = states[index];
-    const changed = new Set(userClaims(before, after).map(claimKey));
-    for (const claim of item.claims) {
-      const reason = changeReason(claim, before, after, changed)
-        ?? (grounded === null || claim.origin === ORIGIN_USER ? null : grounded(claim, recordOf(after, claim.record)));
+    const uncovered = coverageReason(item.claims, before, after);
+    if (uncovered !== null) return corrupt(`provenance ${index + 1}: ${uncovered}`);
+    for (const claim of item.claims.filter(entry => grounded !== null && entry.origin !== ORIGIN_USER)) {
+      const reason = grounded(claim, recordOf(after, claim.record));
       if (reason !== null) return corrupt(`provenance ${index + 1}: ${reason}`);
     }
   }
@@ -168,13 +173,17 @@ const documentFor = ({ source, graph, provenance }) => {
 };
 
 // Claims for what the person did in one Decision: every record it added or
-// removed, as the provider's states before and after show it.
+// removed, as the provider's states before and after show it. A record is
+// keyed by what it means - a region's label, kind and parent, a relation's
+// ends, kind and label, a layout's bounds - so the same id with another
+// meaning is one removed and one added, while moving a region is no change.
+const MEANING = Object.freeze({ region: ["label", "kind", "parent"], relation: ["from", "to", "kind", "label"], layout: ["bounds"] });
 const recordsOf = records => new Map(records
   .filter(record => RECORD_TYPES.includes(record?.type))
   .map(record => {
     const id = record.type === "layout" ? record.regionId : record.id;
-    const key = record.type === "layout" ? `layout ${id} ${record.bounds.join(",")}` : `${record.type} ${id}`;
-    return [key, Object.freeze({ type: record.type, id })];
+    const meaning = Object.fromEntries(MEANING[record.type].map(field => [field, record[field] ?? null]));
+    return [`${record.type} ${id} ${canonical(meaning)}`, Object.freeze({ type: record.type, id })];
   }));
 function userClaims(before, after) {
   const previous = recordsOf(before);
