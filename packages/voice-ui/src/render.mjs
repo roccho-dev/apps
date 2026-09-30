@@ -202,8 +202,9 @@ const effectOf = (changes, { action = null, template = null, bundle = null } = {
 const saidBy = source => (source === "voice" ? "認識文: " : "入力文: ");
 
 // 作業図's unapplied steps in order, each with the text it was judged from and
-// what it does, and the cap stated. Text is set as text only.
-export function renderDraft(list, count, { draft, bundle }) {
+// what it does, and the cap stated against the utterances `used`. Text is set
+// as text only.
+export function renderDraft(list, count, { draft, used, bundle }) {
   const document = list.ownerDocument;
   list.replaceChildren();
   for (const { step, input } of draft) {
@@ -238,8 +239,8 @@ export function renderDraft(list, count, { draft, bundle }) {
     item.append(" → ", effect);
     list.append(item);
   }
-  const full = draft.length >= DRAFT_MAX;
-  count.textContent = `未反映: ${draft.length} / ${DRAFT_MAX}`
+  const full = used >= DRAFT_MAX;
+  count.textContent = `未反映: ${used} / ${DRAFT_MAX}`
     + (full ? " - 上限です。確定図に反映・元に戻す・作業図を破棄のいずれかを選んでください。" : "");
 }
 
@@ -296,8 +297,8 @@ export function renderBundleNotice(notice, { affected, reason }) {
 
 // The architecture page's account of what it drew: the snapshot the saved
 // graph cites and whether it can still be checked, then every drawn record
-// with each claim about it - where it comes from and, for an entity, the role
-// Jev chose - and what the preparation did not analyze. A claim is never
+// with each claim about it - where it comes from and, for a file, each role
+// Jev confirmed - and what the preparation did not analyze. A claim is never
 // presented as a live check of the running system.
 const ORIGIN_WORDS = Object.freeze({
   "source-declared": "コードに記載",
@@ -305,12 +306,17 @@ const ORIGIN_WORDS = Object.freeze({
   "user-asserted": "利用者の指定",
   unknown: "不明（取り込み範囲外）",
 });
+const RESOLUTION_WORDS = Object.freeze({
+  relative: "",
+  "scope-url-map": " (取り込み範囲のURL対応で解決。配信の確認ではありません)",
+  "scope-external-url": " (取り込み範囲外のURL)",
+});
 const basisText = entry => {
   if (entry.candidate !== undefined) return `候補 ${entry.candidate}`;
-  if (entry.specifier !== undefined) return `${entry.path} の import "${entry.specifier}"`;
-  if (entry.pointer !== undefined) return `${entry.path} ${entry.pointer}`;
+  if (entry.specifier !== undefined) return `${entry.path} の import "${entry.specifier}"${RESOLUTION_WORDS[entry.resolution] ?? ""}`;
+  if (entry.pointer !== undefined) return `${entry.path}${entry.row === undefined ? "" : ` ${entry.row}行目`} ${entry.pointer}`;
   if (entry.path !== undefined) return entry.path;
-  return "取り込み範囲の宣言のみ";
+  return "取り込み範囲の外";
 };
 export function renderArchitecture(section, { status, claims, labels, coverage }) {
   const document = section.ownerDocument;
@@ -321,8 +327,8 @@ export function renderArchitecture(section, { status, claims, labels, coverage }
     const item = document.createElement("li");
     item.dataset.record = `${record.type} ${record.id}`;
     item.dataset.origins = [...new Set(about.map(claim => claim.origin))].join(" ");
-    const role = about.findLast(claim => claim.role !== undefined)?.role ?? null;
-    if (role !== null) item.dataset.role = role;
+    const roles = [...new Set(about.filter(claim => claim.role !== undefined).map(claim => claim.role))];
+    if (roles.length > 0) item.dataset.roles = roles.join(" ");
     item.textContent = `${labels.get(record.id) ?? record.id}: `
       + about.map(claim => `${ORIGIN_WORDS[claim.origin]}${claim.role === undefined ? "" : ` 役割=${claim.role}`}`
         + (claim.basis.length === 0 ? "" : ` (${claim.basis.map(basisText).join("; ")})`)).join(" / ");

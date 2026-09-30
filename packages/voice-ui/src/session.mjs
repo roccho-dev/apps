@@ -50,7 +50,22 @@ export function createSession({ accepted, stored }) {
   });
 }
 
-export const draftFull = session => session.draft.length >= DRAFT_MAX;
+// The draft as utterances: the steps of one architecture utterance share its
+// seq as their group and are counted, sent and undone as one; any other step
+// stands alone. This is in memory only; what is saved is each Decision.
+const unitsOf = draft => draft.reduce((units, item) => {
+  if (item.group !== undefined && units.at(-1)?.[0].group === item.group) units.at(-1).push(item);
+  else units.push([item]);
+  return units;
+}, []);
+
+export const draftUsed = session => unitsOf(session.draft).length;
+export const draftFull = session => draftUsed(session) >= DRAFT_MAX;
+
+// The draft as the next request carries it: one entry per utterance, with
+// every change it made.
+export const draftForJev = session => unitsOf(session.draft)
+  .map(unit => Object.freeze({ changes: unit.flatMap(item => item.step.changes) }));
 
 // What the next request sends and the panel shows: the most recent entries
 // short enough to send whole, and how many were left out for being longer.
@@ -95,11 +110,13 @@ export const clearPending = session => freeze({ ...session, pending: null });
 // Forget the recent conversation; the next request sends none.
 export const clearConversation = session => freeze({ ...session, pending: null, conversation: [] });
 
-// One more step on the working graph, never past the cap. The provider appends
-// and verifies it; its input, if any, travels with it, and so do the claims an
-// architecture step carries about where each of its records comes from.
-async function appendItem(session, step, input, protocol, claims = undefined) {
-  if (draftFull(session)) return Object.freeze({ session, result: noChange("draft-full") });
+// One more step on the working graph, never past the cap - which a later step
+// of the same utterance does not count against again. The provider appends and
+// verifies it; its input, if any, travels with it, and so do an architecture
+// step's claims about where each of its records comes from, and its group.
+async function appendItem(session, step, input, protocol, claims = undefined, group = undefined) {
+  const continues = group !== undefined && session.draft.at(-1)?.group === group;
+  if (draftFull(session) && !continues) return Object.freeze({ session, result: noChange("draft-full") });
   const appended = await appendStep({ working: session.working, step, protocol });
   if (appended.outcome !== OUTCOME_STEP) return Object.freeze({ session, result: appended });
   const issued = step.changes
@@ -109,7 +126,7 @@ async function appendItem(session, step, input, protocol, claims = undefined) {
     session: freeze({
       ...session,
       working: appended.graph,
-      draft: [...session.draft, Object.freeze(claims === undefined ? { step, input } : { step, input, claims })],
+      draft: [...session.draft, Object.freeze(claims === undefined ? { step, input } : { step, input, claims, group })],
       pending: null,
       issuedPartIds: [...new Set([...session.issuedPartIds, ...issued])],
     }),
@@ -160,17 +177,19 @@ export async function propose(session, { turn, answers, protocol, bundle, layout
 // An utterance Jev judged as an architecture view, already planned against the
 // prepared source as consecutive steps: it joins the conversation like any
 // other judged utterance, and its steps join the draft in order, each with its
-// claims - all of them or none. Only the first carries the utterance, so the
-// utterance counts as undone once Undo has taken the whole view back.
+// claims and all in the utterance's group - all of them or none. Only the
+// first carries the utterance; Undo takes the whole group back at once.
 export async function proposeArchitecture(session, { planned, input, protocol }) {
   if (planned.outcome !== OUTCOME_STEP) {
     const next = planned.outcome === OUTCOME_NO_CHANGE ? remember(session, input, "no-change") : noteRefused(session, input);
     return Object.freeze({ session: next, result: planned });
   }
+  if (draftFull(session)) return Object.freeze({ session: noteRefused(session, input), result: noChange("draft-full") });
+  const group = session.nextSeq;
   let next = remember(session, input, "step", planned.steps.flatMap(item => item.step.changes));
   for (const [index, item] of planned.steps.entries()) {
-    const stepInput = index === 0 ? Object.freeze({ ...input, seq: session.nextSeq }) : null;
-    const appended = await appendItem(next, item.step, stepInput, protocol, item.claims);
+    const stepInput = index === 0 ? Object.freeze({ ...input, seq: group }) : null;
+    const appended = await appendItem(next, item.step, stepInput, protocol, item.claims, group);
     if (appended.result.outcome !== OUTCOME_STEP) {
       return Object.freeze({ session: noteRefused(session, input), result: appended.result });
     }
@@ -185,16 +204,15 @@ export const noteRefused = (session, input) => remember(session, input, "refused
 // A revert of a saved entry: one more unapplied step, with no input.
 export const appendRevert = (session, { step, protocol }) => appendItem(session, step, null, protocol);
 
-// Drop the last unapplied step and nothing else, never below what is saved.
-// Undoing a new map returns to NO_LOG.
+// Drop the last unapplied utterance - every step it added - and nothing else,
+// never below what is saved. Undoing a new map returns to NO_LOG.
 export async function undo(session, { verifyDecisionLog }) {
   if (session.draft.length === 0) return session;
-  const removed = session.draft.at(-1);
+  const removed = unitsOf(session.draft).at(-1);
   const floor = session.accepted?.decisions.length ?? 1;
-  const working = session.working.decisions.length - 1 < floor
-    ? null
-    : await truncateLog(session.working, { count: session.working.decisions.length - 1, floor, verifyDecisionLog });
-  return markUndone(freeze({ ...session, working, draft: session.draft.slice(0, -1), pending: null }), [removed]);
+  const count = session.working.decisions.length - removed.length;
+  const working = count < floor ? null : await truncateLog(session.working, { count, floor, verifyDecisionLog });
+  return markUndone(freeze({ ...session, working, draft: session.draft.slice(0, -removed.length), pending: null }), removed);
 }
 
 export function discard(session) {

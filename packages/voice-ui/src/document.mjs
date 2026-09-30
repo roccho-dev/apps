@@ -1,3 +1,4 @@
+import { ORIGIN_MODEL, ORIGIN_SOURCE, ORIGIN_UNKNOWN, ORIGIN_USER, claimCheckFor } from "./architecture.mjs";
 import { RESTORE_NO_LOG, RESTORE_RESTORED, commitStored, inspectLog, statesOf } from "./log.mjs";
 
 // The architecture page's one stored value: the provider's own DecisionLog,
@@ -9,22 +10,17 @@ import { RESTORE_NO_LOG, RESTORE_RESTORED, commitStored, inspectLog, statesOf } 
 //     its provenance: the Decision's id and one claim per record it changed
 //
 // Only the provider verifies the Decisions, taken out as its own log; this
-// module checks everything else: the pairing, each provenance line against
-// its Decision and the records that Decision left, and - while the same
-// snapshot is available - every cited file, import, fact and candidate. It
-// only ever grows, under the same write core as a plain log. No source text,
-// raw answer or confidence is stored here.
+// module checks everything else: the pairing, and each claim against what its
+// own Decision did - a person's claim is exactly a change it made, any other
+// claim a record it added, or a region it leaves in place for a role. While
+// the same snapshot is available, every claim other than a person's is also
+// checked by the architecture module, the one authority for which record
+// stands for what, against that snapshot. It only ever grows, under the same
+// write core as a plain log. No source text, raw answer or confidence is
+// stored here.
 
 const DOCUMENT_SCHEMA = "voice-ui.architecture-document/1";
 
-// Where a claim comes from. Only a file, a static import or a declared fact
-// is source-declared; what Jev chose is model-inferred; what the person did is
-// user-asserted; an entity the scope names but no admitted file declares is
-// unknown.
-export const ORIGIN_SOURCE = "source-declared";
-export const ORIGIN_MODEL = "model-inferred";
-const ORIGIN_USER = "user-asserted";
-export const ORIGIN_UNKNOWN = "unknown";
 const ORIGINS = Object.freeze([ORIGIN_SOURCE, ORIGIN_MODEL, ORIGIN_USER, ORIGIN_UNKNOWN]);
 const RECORD_TYPES = Object.freeze(["region", "relation", "layout"]);
 
@@ -61,13 +57,20 @@ const canonicalLine = line => {
   return canonical(value) === line ? value : undefined;
 };
 
+// What a claim may cite: a file, an import statement and how it was resolved,
+// a fact at a pointer (of one row, for JSONL), a candidate pair, or nothing
+// but being outside the source.
 const validBasis = basis => Array.isArray(basis) && basis.every(entry =>
   (exactObject(entry, ["path"]) && typeof entry.path === "string")
-  || (exactObject(entry, ["path", "specifier"]) && typeof entry.path === "string" && typeof entry.specifier === "string")
+  || (exactObject(entry, ["path", "specifier", "resolution"]) && typeof entry.path === "string"
+    && typeof entry.specifier === "string" && typeof entry.resolution === "string")
   || (exactObject(entry, ["path", "pointer"]) && typeof entry.path === "string" && typeof entry.pointer === "string")
+  || (exactObject(entry, ["path", "row", "pointer"]) && typeof entry.path === "string"
+    && Number.isSafeInteger(entry.row) && typeof entry.pointer === "string")
   || (exactObject(entry, ["candidate"]) && typeof entry.candidate === "string")
   || (exactObject(entry, ["scope"]) && entry.scope === "external"));
 
+// A role is Jev's, about a region; a removal is the person's.
 const validClaim = claim => {
   const keys = ["record", "origin", "basis", ...(Object.hasOwn(claim ?? {}, "role") ? ["role"] : []),
     ...(Object.hasOwn(claim ?? {}, "change") ? ["change"] : [])];
@@ -77,30 +80,24 @@ const validClaim = claim => {
     && ORIGINS.includes(claim.origin)
     && validBasis(claim.basis)
     && (claim.role === undefined || (typeof claim.role === "string" && claim.origin === ORIGIN_MODEL && claim.record.type === "region"))
-    && (claim.change === undefined || claim.change === "removed");
+    && (claim.change === undefined || (claim.change === "removed" && claim.origin === ORIGIN_USER));
 };
 
 const validProvenance = value => exactObject(value, ["decision", "claims"])
   && typeof value.decision === "string" && Array.isArray(value.claims) && value.claims.every(validClaim);
 
-const recordPresent = (records, { type, id }) => records.some(record => record?.type === type
+const recordOf = (records, { type, id }) => records.find(record => record?.type === type
   && (type === "layout" ? record.regionId === id : record.id === id));
+const recordPresent = (records, claimed) => recordOf(records, claimed) !== undefined;
 
-// Every cited file, import, fact and candidate exists in the manifest of the
-// same snapshot; null when they all do.
-function unciteable(provenance, manifest) {
-  const files = new Set(manifest.files.map(file => file.path));
-  const imports = new Set(manifest.imports.map(edge => `${edge.path} ${edge.specifier}`));
-  const pointers = new Set(manifest.facts.map(fact => `${fact.path} ${fact.pointer}`));
-  const candidates = new Set(manifest.candidates.map(candidate => candidate.id));
-  for (const entry of provenance.flatMap(item => item.claims.flatMap(claim => claim.basis))) {
-    if (entry.candidate !== undefined && !candidates.has(entry.candidate)) return `unknown candidate ${entry.candidate}`;
-    if (entry.specifier !== undefined && !imports.has(`${entry.path} ${entry.specifier}`)) return `unknown import ${entry.path} ${entry.specifier}`;
-    if (entry.pointer !== undefined && !pointers.has(`${entry.path} ${entry.pointer}`)) return `unknown fact ${entry.path} ${entry.pointer}`;
-    if (entry.path !== undefined && !files.has(entry.path)) return `unknown file ${entry.path}`;
-  }
-  return null;
-}
+// Why a claim is not about what its own Decision did, or null. `changed` is
+// every change the Decision made, as a person's claims name them.
+const changeReason = (claim, before, after, changed) => {
+  const name = `${claim.record.type} ${claim.record.id}`;
+  if (claim.origin === ORIGIN_USER) return changed.has(claimKey(claim)) ? null : `${name} is not a change that Decision made`;
+  if (claim.role !== undefined) return recordPresent(after, claim.record) ? null : `${name} is not there to have a role`;
+  return !recordPresent(before, claim.record) && recordPresent(after, claim.record) ? null : `${name} is not a record that Decision added`;
+};
 
 const sameSource = (left, right) => left?.handle === right?.handle && left?.commit === right?.commit;
 
@@ -130,20 +127,18 @@ async function inspectDocument(text, { verifyDecisionLog, manifest }) {
   } catch (error) {
     return corrupt(message(error));
   }
+  const checkable = manifest?.status === "available" && sameSource(manifest.source, header.source);
+  const grounded = checkable ? claimCheckFor(manifest) : null;
   for (const [index, item] of provenance.entries()) {
     if (item.decision !== graph.ids[index]) return corrupt(`provenance ${index + 1} names another Decision`);
+    const before = index === 0 ? [] : states[index - 1];
+    const after = states[index];
+    const changed = new Set(userClaims(before, after).map(claimKey));
     for (const claim of item.claims) {
-      const present = recordPresent(states[index], claim.record);
-      if (claim.change === "removed" ? present && claim.record.type !== "layout" : !present) {
-        return corrupt(`provenance ${index + 1} claims ${claim.record.type} ${claim.record.id}, which that Decision did not leave so`);
-      }
+      const reason = changeReason(claim, before, after, changed)
+        ?? (grounded === null || claim.origin === ORIGIN_USER ? null : grounded(claim, recordOf(after, claim.record)));
+      if (reason !== null) return corrupt(`provenance ${index + 1}: ${reason}`);
     }
-  }
-
-  const checkable = manifest?.status === "available" && sameSource(manifest.source, header.source);
-  if (checkable) {
-    const reason = unciteable(provenance, manifest);
-    if (reason !== null) return corrupt(reason);
   }
   return Object.freeze({
     status: RESTORE_RESTORED,
@@ -181,14 +176,17 @@ const recordsOf = records => new Map(records
     const key = record.type === "layout" ? `layout ${id} ${record.bounds.join(",")}` : `${record.type} ${id}`;
     return [key, Object.freeze({ type: record.type, id })];
   }));
-const userClaims = (before, after) => {
+function userClaims(before, after) {
   const previous = recordsOf(before);
   const next = recordsOf(after);
   return [
     ...[...previous].filter(([key]) => !next.has(key)).map(([, record]) => ({ record, origin: ORIGIN_USER, basis: [], change: "removed" })),
     ...[...next].filter(([key]) => !previous.has(key)).map(([, record]) => ({ record, origin: ORIGIN_USER, basis: [] })),
   ];
-};
+}
+function claimKey(claim) {
+  return `${claim.change ?? "added"} ${claim.record.type} ${claim.record.id}`;
+}
 
 // Apply for the architecture page. The saved Decisions keep their provenance;
 // each unapplied one takes the claims its step carries - the architecture
