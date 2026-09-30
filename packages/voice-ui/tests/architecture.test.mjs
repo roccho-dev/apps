@@ -10,7 +10,7 @@ import {
   focusedEvidence,
   judgeRequestOf,
   judgeSectionOf,
-  locateRequestOf,
+  locateRequestsOf,
   locatedOf,
   planArchitecture,
   readManifest,
@@ -119,6 +119,9 @@ const plan = async (working, manifest, { focus = null, intent = {}, judge = {} }
     : { section: request.state.architecture, answers: answerFor(judgeSlotsFor(request.state.architecture), judge) };
   return planArchitecture({ working, turn, answers, judged, manifest, protocol, operationsMax: MAX_DECISION_OPERATIONS });
 };
+// Every locate frame of an intent as the page sends them, each with its answer.
+const framesFor = (manifest, request, picks = {}) => locateRequestsOf(manifest, request)
+  .map(frame => ({ request: frame, answers: answerFor(locateSlotsFor(frame.state.architecture.focus), picks) }));
 
 test("the manifest is read whole: available, unavailable with its reason, or invalid", () => {
   assert.equal(readManifest(structuredClone(MANIFEST)).status, "available");
@@ -331,8 +334,8 @@ test("an unsure action, a stale head or an answer off the questions changes noth
 test("only a confident whole draws the structure; none or any unsure focus is located, and nothing located is an honest no-change", async () => {
   const manifest = readManifest(structuredClone(MANIFEST));
   const working = await mapGraph();
-  const { turn } = turnFor(working, manifest);
-  const nothing = answerFor(locateSlotsFor(manifest.entities.map(entity => entity.id)), {});
+  const { turn, request: intent } = turnFor(working, manifest);
+  const nothing = framesFor(manifest, intent);
   for (const focus of [NONE, choice(WHOLE, 0.3), choice("b-mjs", 0.3), choice(NONE, 0.2)]) {
     const answers = answerFor(turn.slots, { action: ACTION_ARCHITECTURE, focus });
     assert.deepEqual(routeOf(turn, answers), { route: "locate" }, JSON.stringify(focus));
@@ -380,54 +383,89 @@ test("a part confidently asked for that no section opens is refused, never drawn
     { outcome: "refused", reason: "architecture-judge-missing" });
 });
 
-test("a locate carries the utterance, the conversation and the snapshot's identity exactly - never any code", async () => {
+test("a locate is one frame per part the snapshot knows, in its order: the utterance, the conversation and that one part - never any code", async () => {
   const manifest = readManifest(structuredClone(MANIFEST));
   const { request } = turnFor(await mapGraph(), manifest);
-  const locate = JSON.parse(JSON.stringify(locateRequestOf(manifest, request)));
-  assert.deepEqual(locate, {
+  const frames = JSON.parse(JSON.stringify(locateRequestsOf(manifest, request)));
+  assert.deepEqual(frames, manifest.entities.map(entity => ({
     kind: ARCHITECTURE_LOCATE_KIND,
-    state: { utterance: request.state.utterance, context: request.state.context, architecture: { source: manifest.source } },
-  });
-  assert.ok(isLocateRequest(locate));
-  assert.equal(isRequest(locate), false);
-  assert.equal(isJudgeRequest(locate), false);
-  for (const text of Object.values(FILES)) assert.equal(JSON.stringify(locate).includes(text.trim()), false, "no file text");
+    state: { utterance: request.state.utterance, context: request.state.context, architecture: { source: manifest.source, focus: [entity.id] } },
+  })), "files and outside parts alike, derived from the manifest");
+  for (const frame of frames) {
+    assert.ok(isLocateRequest(frame));
+    assert.equal(isRequest(frame), false);
+    assert.equal(isJudgeRequest(frame), false);
+  }
+  for (const text of Object.values(FILES)) assert.equal(JSON.stringify(frames).includes(text.trim()), false, "no file text");
+  const [locate] = frames;
+  const architecture = locate.state.architecture;
   const broken = [
     { ...locate, extra: 1 },
     { ...locate, state: { ...locate.state, graph: request.state.graph } },
-    { ...locate, state: { utterance: locate.state.utterance, architecture: locate.state.architecture } },
-    { ...locate, state: { ...locate.state, architecture: { source: manifest.source, entities: [] } } },
-    { ...locate, state: { ...locate.state, architecture: { source: { ...manifest.source, commit: "HEAD" } } } },
+    { ...locate, state: { utterance: locate.state.utterance, architecture } },
+    { ...locate, state: { ...locate.state, architecture: { source: manifest.source } } },
+    { ...locate, state: { ...locate.state, architecture: { ...architecture, focus: ["a-mjs", "b-mjs"] } } },
+    { ...locate, state: { ...locate.state, architecture: { ...architecture, focus: [] } } },
+    { ...locate, state: { ...locate.state, architecture: { ...architecture, focus: "a-mjs" } } },
+    { ...locate, state: { ...locate.state, architecture: { ...architecture, focus: [NONE] } } },
+    { ...locate, state: { ...locate.state, architecture: { ...architecture, focus: [WHOLE] } } },
+    { ...locate, state: { ...locate.state, architecture: { ...architecture, evidence: { bodies: [] } } } },
+    { ...locate, state: { ...locate.state, architecture: { ...architecture, source: { ...manifest.source, commit: "HEAD" } } } },
     { ...locate, state: { ...locate.state, context: { recent: [{ seq: 1, source: "typed", text: "x", outcome: "invented" }] } } },
   ];
-  for (const value of broken) assert.equal(isLocateRequest(value), false, JSON.stringify(value.state).slice(0, 80));
+  for (const value of broken) assert.equal(isLocateRequest(value), false, JSON.stringify(value.state).slice(0, 120));
 });
 
-test("a locate answer is complete or nothing; what it found is exactly every confident yes, sorted", () => {
+test("a locate is every frame answered, exactly as sent, or nothing; what it found is exactly every confident yes, sorted", async () => {
   const manifest = readManifest(structuredClone(MANIFEST));
-  const ids = manifest.entities.map(entity => entity.id);
-  const slots = locateSlotsFor(ids);
-  assert.deepEqual(Object.keys(slots), ids.map(relevantSlot), "one question per part the snapshot knows, files and outside alike");
-  const found = locatedOf(manifest, answerFor(slots, {
+  const { request } = turnFor(await mapGraph(), manifest);
+  const found = locatedOf(manifest, framesFor(manifest, request, {
     [relevantSlot("ext-store")]: choice(YES, 0.7), [relevantSlot("b-mjs")]: choice(YES, 0.9), [relevantSlot("a-mjs")]: choice(YES, 0.4),
   }));
   assert.deepEqual(found, { focus: ["b-mjs", "ext-store"], confidence: 0.7 }, "an unsure yes is not found");
-  assert.deepEqual(locatedOf(manifest, answerFor(slots, {})).focus, [], "every part none: nothing found");
-  const complete = answerFor(slots, {});
-  const { [relevantSlot("d-mjs")]: dropped, ...missing } = complete;
-  assert.ok(dropped);
-  for (const answers of [missing, { ...complete, extra: choice(YES) }, { ...complete, [relevantSlot("a-mjs")]: choice("maybe") }, null]) {
-    assert.equal(locatedOf(manifest, answers), null);
-  }
+  assert.deepEqual(locatedOf(manifest, framesFor(manifest, request)).focus, [], "every part none: nothing found");
+
+  const frames = framesFor(manifest, request);
+  const other = turnFor(await mapGraph(), manifest).request;
+  const reworded = locateRequestsOf(manifest, { ...other, state: { ...other.state, utterance: "something else" } });
+  const answer = frames[1].answers;
+  const broken = [
+    ["a frame missing", frames.slice(1)],
+    ["a frame repeated in another's place", [frames[0], frames[0], ...frames.slice(2)]],
+    ["an extra frame", [...frames, frames[0]]],
+    ["frames out of the manifest's order", [frames[1], frames[0], ...frames.slice(2)]],
+    ["a frame of another utterance", [frames[0], { request: reworded[1], answers: answer }, ...frames.slice(2)]],
+    ["a frame of another snapshot", [frames[0], { request: { ...frames[1].request, state: { ...frames[1].request.state,
+      architecture: { ...frames[1].request.state.architecture, source: { ...manifest.source, commit: "f".repeat(40) } } } }, answers: answer }, ...frames.slice(2)]],
+    ["an answer missing its question", [frames[0], { ...frames[1], answers: {} }, ...frames.slice(2)]],
+    ["an answer to another frame's question", [frames[0], { ...frames[1], answers: frames[0].answers }, ...frames.slice(2)]],
+    ["an option not offered", [frames[0], { ...frames[1], answers: { [relevantSlot("b-mjs")]: choice("maybe") } }, ...frames.slice(2)]],
+    ["no frames", []],
+    ["nothing", null],
+  ];
+  for (const [label, value] of broken) assert.equal(locatedOf(manifest, value), null, label);
+});
+
+test("a snapshot with a part no section opens is never located: the utterance is refused before any frame is asked", async () => {
+  const source = structuredClone(MANIFEST);
+  source.entities.push({ id: "ext-orphan", label: "orphan", kind: "external" });
+  const manifest = readManifest(source);
+  assert.equal(manifest.status, "available", manifest.reason);
+  const working = await mapGraph();
+  const { turn, request } = turnFor(working, manifest);
+  assert.equal(locateRequestsOf(manifest, request), null, "no frame is built, and none is left out");
+  const answers = answerFor(turn.slots, { action: ACTION_ARCHITECTURE, focus: NONE });
+  assert.deepEqual(routeOf(turn, answers), { route: "locate" });
+  assert.deepEqual(await planArchitecture({ working, turn, answers, manifest, protocol, operationsMax: MAX_DECISION_OPERATIONS }),
+    { outcome: "refused", reason: "architecture-judge-missing" });
 });
 
 test("every located part is judged together, the judge bound to exactly what was located, at the weakest confidence", async () => {
   const manifest = readManifest(structuredClone(MANIFEST));
   const working = await appendAll(await mapGraph(), await plan(await mapGraph(), manifest));
-  const { turn } = turnFor(working, manifest);
+  const { turn, request } = turnFor(working, manifest);
   const answers = answerFor(turn.slots, { action: choice(ACTION_ARCHITECTURE, 0.9), focus: NONE });
-  const locateSlots = locateSlotsFor(manifest.entities.map(entity => entity.id));
-  const located = answerFor(locateSlots, { [relevantSlot("ext-store")]: choice(YES, 0.8), [relevantSlot("a-mjs")]: choice(YES, 0.6) });
+  const located = framesFor(manifest, request, { [relevantSlot("ext-store")]: choice(YES, 0.8), [relevantSlot("a-mjs")]: choice(YES, 0.6) });
   const focus = locatedOf(manifest, located).focus;
   assert.deepEqual(focus, ["a-mjs", "ext-store"]);
 
@@ -453,11 +491,12 @@ test("every located part is judged together, the judge bound to exactly what was
     working, turn, answers, located, judged: { section: fewer, answers: answerFor(judgeSlotsFor(fewer), {}) },
     manifest, protocol, operationsMax: MAX_DECISION_OPERATIONS,
   }), /the judged section is the one this answer asked for/u);
-  // An incomplete locate answer is an error, never nothing found.
-  const { [relevantSlot("d-mjs")]: dropped, ...incomplete } = located;
-  assert.ok(dropped);
-  assert.deepEqual(await planArchitecture({ working, turn, answers, located: incomplete, manifest, protocol, operationsMax: MAX_DECISION_OPERATIONS }),
-    { outcome: "refused", reason: "answer-invalid" });
+  // An incomplete locate - a frame left out, or one answered off its question -
+  // is an error, never nothing found.
+  for (const incomplete of [located.slice(0, -1), located.map((frame, index) => (index === 3 ? { ...frame, answers: {} } : frame))]) {
+    assert.deepEqual(await planArchitecture({ working, turn, answers, located: incomplete, manifest, protocol, operationsMax: MAX_DECISION_OPERATIONS }),
+      { outcome: "refused", reason: "answer-invalid" });
+  }
   // Located, but not judged: nothing is drawn.
   assert.deepEqual(await planArchitecture({ working, turn, answers, located, manifest, protocol, operationsMax: MAX_DECISION_OPERATIONS }),
     { outcome: "refused", reason: "architecture-judge-missing" });

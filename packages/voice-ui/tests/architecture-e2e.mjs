@@ -37,6 +37,14 @@ if (flag !== "--mode" || !["fixture", "live"].includes(mode) || scenarioFlag !==
   throw new Error("usage: architecture-e2e.mjs --mode fixture|live --scenario natural|named <url>");
 }
 const FIXTURE = mode === "fixture";
+// In the natural fixture a part is never named: the intent answers none, and
+// the part is located - so the locate frames and their judge are what the
+// fixture exercises, failures included. The named fixture names it.
+const LOCATES = FIXTURE && scenario === "natural";
+// The model every crafted answer names; and another, for the stages that prove
+// one utterance never mixes answers of two models.
+const CRAFTED = "crafted-by-test";
+const OTHER_MODEL = "crafted-by-test-other-model";
 const LABEL = `architecture-e2e[${mode}/${scenario}]`;
 const UTTERANCES = {
   natural: {
@@ -70,6 +78,9 @@ const KEY = config.persistence.key;
 const MANIFEST = await (await fetch(new URL(config.data.source, url))).json();
 const ENTITY_IDS = MANIFEST.entities.map(entity => entity.id);
 const SERVED_COMMIT = MANIFEST.source.commit;
+// The most requests one utterance can make: its intent, one locate frame per
+// part, and a judge.
+const MOST = 1 + ENTITY_IDS.length + 1;
 
 const browser = await chromium.launch({ headless: true, channel: "chromium" });
 const context = await browser.newContext();
@@ -110,13 +121,14 @@ page.on("requestfailed", request => {
 });
 const drain = () => Promise.all(exchanges.map(entry => entry.read));
 
-// What of an exchange may be printed: its kind, a judge's focus and body file
-// ids, how it ended, the model and the closed answers as choice and confidence.
+// What of an exchange may be printed: its kind, a locate frame's part, a
+// judge's focus and body file ids, how it ended, the model and the closed
+// answers as choice and confidence.
 const sanitized = entry => ({
   kind: entry.sent.kind,
   ...(entry.sent.kind === contract.ARCHITECTURE_JUDGE_KIND
     ? { focus: entry.sent.state.architecture.focus, bodies: entry.sent.state.architecture.bodies }
-    : {}),
+    : entry.sent.kind === contract.ARCHITECTURE_LOCATE_KIND ? { focus: entry.sent.state.architecture.focus } : {}),
   status: entry.status,
   error: entry.error ?? entry.body?.error ?? null,
   ms: entry.ms,
@@ -129,20 +141,32 @@ const report = value => process.stdout.write(`${JSON.stringify(value)}\n`);
 // The questions a request put to Jev, as the served contract derives them for
 // its kind.
 const slotsOf = sent => (sent.kind === contract.ARCHITECTURE_JUDGE_KIND ? contract.judgeSlotsFor(sent.state.architecture)
-  : sent.kind === contract.ARCHITECTURE_LOCATE_KIND ? contract.locateSlotsFor(ENTITY_IDS)
+  : sent.kind === contract.ARCHITECTURE_LOCATE_KIND ? contract.locateSlotsFor(sent.state.architecture.focus)
     : contract.slotsFor(sent.state));
 
 // Fixture mode only: the answer to a request, crafted from its own questions -
-// an intent's, a locate's or a judge's.
-const craft = picks => async route => {
-  const sent = JSON.parse(route.request().postData());
-  const slots = slotsOf(sent);
-  const answers = Object.fromEntries(Object.entries(slots).map(([name, options]) => {
-    const picked = picks(name, sent);
-    return [name, { type: "choice", choice: options.includes(picked) ? picked : contract.NONE, confidence: 0.9 }];
-  }));
-  await route.fulfill({ status: 200, contentType: "application/json; charset=utf-8",
-    body: JSON.stringify({ kind: contract.DECISION_KIND, model: "crafted-by-test", answers }) });
+// an intent's, a locate frame's or a judge's. For a stage that proves a
+// failure, `fault` may replace the answer to one request of the utterance, by
+// its place (0 the intent): with a status and body of its own, or with
+// another model.
+const craft = (picks, fault = () => null) => {
+  let index = 0;
+  return async route => {
+    const sent = JSON.parse(route.request().postData());
+    const faulty = fault(index);
+    index += 1;
+    if (faulty?.status !== undefined) {
+      await route.fulfill({ status: faulty.status, contentType: "application/json; charset=utf-8", body: JSON.stringify(faulty.body) });
+      return;
+    }
+    const slots = slotsOf(sent);
+    const answers = Object.fromEntries(Object.entries(slots).map(([name, options]) => {
+      const picked = picks(name, sent);
+      return [name, { type: "choice", choice: options.includes(picked) ? picked : contract.NONE, confidence: 0.9 }];
+    }));
+    await route.fulfill({ status: 200, contentType: "application/json; charset=utf-8",
+      body: JSON.stringify({ kind: contract.DECISION_KIND, model: faulty?.model ?? CRAFTED, answers }) });
+  };
 };
 
 const ready = () => page.waitForFunction(() => document.body.dataset.state && document.body.dataset.state !== "pending", null, { timeout: 120000 });
@@ -171,9 +195,9 @@ let last = null;
 
 // The requests one utterance must make, from the answers it actually got: an
 // intent; then a judge of exactly [the part] when the intent names one part
-// confidently; or, when it names neither the whole nor a part confidently, a
-// locate, and a judge of exactly every confidently located part, sorted, if
-// there is any. Nothing else.
+// confidently; or, when it names neither the whole nor a part confidently, one
+// locate frame per part the snapshot knows, and a judge of exactly every part
+// its own frame answered yes confidently, sorted, if there is any. Nothing else.
 const expectedOf = sent => {
   const kinds = [contract.ARCHITECTURE_INTENT_KIND];
   const intent = sent[0]?.body?.answers;
@@ -182,23 +206,28 @@ const expectedOf = sent => {
   const sure = confidence >= contract.MIN_CONFIDENCE;
   if (choice === contract.WHOLE && sure) return { kinds, focus: null };
   if (choice !== contract.NONE && choice !== contract.WHOLE && sure) return { kinds: [...kinds, contract.ARCHITECTURE_JUDGE_KIND], focus: [choice] };
-  const located = sent[1]?.body?.answers ?? {};
-  const found = ENTITY_IDS.filter(id => located[contract.relevantSlot(id)]?.choice === contract.YES
-    && located[contract.relevantSlot(id)].confidence >= contract.MIN_CONFIDENCE).sort();
+  const locates = ENTITY_IDS.map(() => contract.ARCHITECTURE_LOCATE_KIND);
+  const found = sent.slice(1, 1 + ENTITY_IDS.length).flatMap(entry => {
+    const [part] = entry.sent.state?.architecture?.focus ?? [];
+    const answer = entry.body?.answers?.[contract.relevantSlot(part)];
+    return answer?.choice === contract.YES && answer.confidence >= contract.MIN_CONFIDENCE ? [part] : [];
+  }).sort();
   return found.length === 0
-    ? { kinds: [...kinds, contract.ARCHITECTURE_LOCATE_KIND], focus: null }
-    : { kinds: [...kinds, contract.ARCHITECTURE_LOCATE_KIND, contract.ARCHITECTURE_JUDGE_KIND], focus: found };
+    ? { kinds: [...kinds, ...locates], focus: null }
+    : { kinds: [...kinds, ...locates, contract.ARCHITECTURE_JUDGE_KIND], focus: found };
 };
 
 // One utterance in the named stage. The page is pending from the click until
 // it has finished the utterance, however it ended; then the requests it
 // actually made are checked against what their own answers call for: their
 // kinds and order, every one answered 200 with a complete answer, every one
-// naming the served snapshot, and a judge bound to exactly the parts asked
-// for. Anything else is a finding of this stage - never a wait for more.
+// naming the served snapshot, one locate frame per part in the snapshot's
+// order, each carrying the intent's utterance and conversation exactly, and a
+// judge bound to exactly the parts asked for. Anything else is a finding of
+// this stage - never a wait for more.
 const say = async (stage, utterance, picks) => {
   const route = new URL("/api/jev", url).href;
-  if (FIXTURE) await page.route(route, craft(picks), { times: 3 });
+  if (FIXTURE) await page.route(route, craft(picks), { times: MOST });
   const before = exchanges.length;
   await page.locator("#text").fill(utterance);
   await page.locator("#send").click();
@@ -219,10 +248,44 @@ const say = async (stage, utterance, picks) => {
     `${stage}: every request answered 200 with a complete answer`);
   need(sent.every(entry => entry.sent.kind === contract.REQUEST_KIND || entry.sent.state.architecture.source.commit === SERVED_COMMIT),
     `${stage}: every request names the served snapshot`);
+  const frames = sent.filter(entry => entry.sent.kind === contract.ARCHITECTURE_LOCATE_KIND);
+  need(frames.length === 0 || JSON.stringify(frames.map(entry => entry.sent.state.architecture.focus)) === JSON.stringify(ENTITY_IDS.map(id => [id])),
+    `${stage}: one locate frame per part, in the snapshot's order`);
+  need(frames.every(entry => entry.sent.state.utterance === sent[0].sent.state.utterance
+    && JSON.stringify(entry.sent.state.context) === JSON.stringify(sent[0].sent.state.context)),
+  `${stage}: every locate frame carries the intent's utterance and conversation exactly`);
   const judge = sent.find(entry => entry.sent.kind === contract.ARCHITECTURE_JUDGE_KIND);
   need(judge === undefined || JSON.stringify(judge.sent.state.architecture.focus) === JSON.stringify(expected.focus),
     `${stage}: the judge is bound to exactly ${JSON.stringify(expected.focus)}`);
   return { now, sent };
+};
+// The natural fixture only: one save utterance whose request at place `at` (0
+// its intent) fails as `fault` says. The page must ask nothing after it, and
+// draw, draft and store nothing: the draft, the claims and both stored values
+// stay exactly as they were just before this utterance.
+const failing = async (stage, at, fault, why) => {
+  const route = new URL("/api/jev", url).href;
+  const baseline = await screen();
+  await page.route(route, craft(picksFor(LOG), index => (index === at ? fault : null)), { times: MOST });
+  const before = exchanges.length;
+  await page.locator("#text").fill(UTTERANCES.save);
+  await page.locator("#send").click();
+  await settle();
+  await drain();
+  await page.unroute(route);
+  const sent = exchanges.slice(before);
+  const now = await screen();
+  last = now;
+  const expected = [contract.ARCHITECTURE_INTENT_KIND, ...ENTITY_IDS.map(() => contract.ARCHITECTURE_LOCATE_KIND), contract.ARCHITECTURE_JUDGE_KIND]
+    .slice(0, at + 1);
+  report({ event: "turn", stage, expected, requests: sent.length, answered: sent.filter(entry => entry.status !== null).length,
+    failed: sent.filter(entry => entry.error !== null).length, exchanges: sent.map(sanitized), dom: domOf(now) });
+  for (const entry of sent) entry.reported = true;
+  need(JSON.stringify(sent.map(entry => entry.sent.kind)) === JSON.stringify(expected),
+    `${stage}: nothing is asked after the failing request (${sent.length} requests, ${expected.length} expected)`);
+  need(now.state === "failed" && (now.failure ?? "").includes(why), `${stage}: the utterance fails with ${why} (state ${now.state}: ${now.failure ?? now.status})`);
+  need(JSON.stringify(now.draft) === JSON.stringify(baseline.draft) && JSON.stringify(now.claims) === JSON.stringify(baseline.claims)
+    && now.stored === baseline.stored && now.root === baseline.root, `${stage}: nothing is drawn, drafted or stored`);
 };
 const claimOf = (now, record) => now.claims.find(claim => claim.record === record) ?? null;
 // A role Jev gave a file, as drawn: the has-role edge, and the role's node.
@@ -235,8 +298,9 @@ const need = (condition, what) => { if (!condition) verdicts.push(what); };
 // The stages in order. A stage whose outcome a later one stands on ends the
 // run when it fails - nothing is undone or built on a state the next stage
 // assumes - and every stage not reached is reported as not run.
+const FAULTS = ["failed-frame", "frame-model-mix", "judge-model-mix"];
 const STAGES = ["open", "whole", "whole-undo", "app", "credential", "storage", "save", ...(FIXTURE ? ["save-again"] : []),
-  "correction", "apply", "reload"];
+  ...(LOCATES ? FAULTS : []), "correction", "apply", "reload"];
 const reached = [];
 let stoppedAt = null;
 const HALT = new Error("a stage a later one stands on failed");
@@ -267,10 +331,6 @@ const RELATIONS = {
   [`c-${FUNCTION}--ext-jev-api-key`]: "authenticates-with",
   [`c-${FUNCTION}--ext-api-typesafe-ai`]: "calls",
 };
-// In the natural fixture a part is never named: the intent answers none, and
-// the part is located - so the locate and its judge are what the fixture
-// exercises. The named fixture names it.
-const LOCATES = FIXTURE && scenario === "natural";
 const picksFor = focus => (name, sent) => {
   if (sent.kind === contract.ARCHITECTURE_JUDGE_KIND) {
     const role = Object.entries(ROLES).flatMap(([entity, roles]) => roles.map(key => [contract.roleSlot(entity, key), key]))
@@ -413,6 +473,18 @@ try {
     // A new utterance judges it again.
     need(hasRole((await saveAgain()).now, LOG, "persistence"), "judged again, the log's role is drawn again");
   }
+  if (LOCATES) {
+    // A failure part-way through an utterance leaves everything as it was: a
+    // frame that fails, a frame answered by another model than the intent,
+    // and a judge answered by another model - after which nothing is asked.
+    const middle = 1 + Math.floor(ENTITY_IDS.length / 2);
+    reached.push("failed-frame");
+    await failing("failed-frame", middle, { status: 502, body: { error: contract.ERRORS.providerError } }, contract.ERRORS.providerError);
+    reached.push("frame-model-mix");
+    await failing("frame-model-mix", middle, { model: OTHER_MODEL }, "model-mismatch");
+    reached.push("judge-model-mix");
+    await failing("judge-model-mix", 1 + ENTITY_IDS.length, { model: OTHER_MODEL }, "model-mismatch");
+  }
   const judgedDraft = (await screen()).draft.length;
 
   // (6) A correction by the person: the judged storage relation is taken out -
@@ -501,7 +573,7 @@ if (cleanup !== null) {
 } else if (FIXTURE) {
   assert.deepEqual(verdicts, [], "the page's mechanics");
   assert.equal(stoppedAt, null, "every stage ran");
-  assert.deepEqual(models, ["crafted-by-test"], "fixture answers only, never evidence about Jev or the code");
+  assert.deepEqual(models, LOCATES ? [CRAFTED, OTHER_MODEL] : [CRAFTED], "fixture answers only, never evidence about Jev or the code");
   process.stdout.write(`${LABEL}: PASS mechanics only (crafted answers) | ${summary}\n`);
 } else if (verdicts.length > 0 || stoppedAt !== null) {
   process.stdout.write(`${LABEL}: NOT_PASS | ${verdicts.join("; ")} | ${summary}\n`);

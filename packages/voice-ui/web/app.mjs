@@ -12,7 +12,7 @@ import { readBundle } from "/app/src/bundle.mjs";
 import { FORMAT_ARCHITECTURE, readConfig } from "/app/src/config.mjs";
 import {
   judgeRequestOf,
-  locateRequestOf,
+  locateRequestsOf,
   locatedOf,
   planArchitecture,
   readManifest,
@@ -305,8 +305,10 @@ const JEV_TIMEOUT_MS = 15000;
 
 const failure = (reason, detail = null) => Object.freeze({ kind: "failed", reason, detail });
 
-// Jev's answer, or why there is none.
-const postJev = async request => {
+// Jev's answer, or why there is none. Every answer after an utterance's first
+// must come from the model that gave the first: one step never weighs the
+// confidences of two models against each other.
+const postJev = async (request, expectedModel) => {
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), JEV_TIMEOUT_MS);
   try {
@@ -322,6 +324,7 @@ const postJev = async request => {
     }
     const decision = await response.json().catch(() => null);
     if (decision?.kind !== DECISION_KIND || typeof decision.model !== "string") return failure("jev-contract");
+    if (expectedModel !== undefined && decision.model !== expectedModel) return failure("jev-contract", "model-mismatch");
     return Object.freeze({ kind: "answered", decision });
   } catch (error) {
     return controller.signal.aborted
@@ -466,23 +469,30 @@ const decide = async (value, source) => {
   // An architecture answer that names one part is judged once more: that
   // part's section alone, whose text the server adds. One that names neither
   // the whole nor a part confidently is first located from the code itself -
-  // the server adds every admitted file's text - and every part located is
-  // then judged together, in one section.
+  // one frame per part, one after another, each shown that part's own text by
+  // the server; the first that fails ends the utterance, and nothing after it
+  // is asked - and every part located is then judged together, in one section.
   const composing = architecture && answers?.action?.choice === ACTION_ARCHITECTURE;
   const route = composing ? routeOf(turn, answers) : null;
+  const model = answer.decision.model;
   let focus = route?.route === "part" ? route.focus : null;
   let located = null;
-  if (route?.route === "locate") {
-    const locating = await postJev(locateRequestOf(manifest, request));
-    if (locating.kind === "failed") return locating;
-    located = locating.decision.answers;
+  const frames = route?.route === "locate" ? locateRequestsOf(manifest, request) : null;
+  if (frames !== null) {
+    const answered = [];
+    for (const frame of frames) {
+      const locating = await postJev(frame, model);
+      if (locating.kind === "failed") return locating;
+      answered.push(Object.freeze({ request: frame, answers: locating.decision.answers }));
+    }
+    located = Object.freeze(answered);
     const found = locatedOf(manifest, located);
     focus = found !== null && found.focus.length > 0 ? found.focus : null;
   }
   const judge = focus === null ? null : judgeRequestOf(manifest, focus, value);
   let judged = null;
   if (judge !== null) {
-    const second = await postJev(judge);
+    const second = await postJev(judge, model);
     if (second.kind === "failed") return second;
     judged = Object.freeze({ section: judge.state.architecture, answers: second.decision.answers });
   }
