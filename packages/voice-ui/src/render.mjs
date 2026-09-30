@@ -86,6 +86,12 @@ export function frameFor({ graph, width, height, protocol }) {
 // One pane: the log drawn by the pinned provider's embed, asked for the
 // diagram alone (its chrome-free presentation), or nothing when there is no
 // graph. The embed never edits its input; this app owns every control.
+//
+// The new drawing is made in a candidate that covers the whole pane, hidden,
+// while the map already shown stays exactly as it is. Only once the embed is
+// ready is the old map removed and the candidate shown where it was drawn:
+// its iframe is never moved, which would reload it. A drawing that fails
+// removes the candidate alone and rethrows, so the pane keeps the map it had.
 export async function drawGraph({ graph, frame, mount, protocol, renderSemanticMap, document }) {
   if (graph === null) {
     mount.replaceChildren();
@@ -95,7 +101,21 @@ export async function drawGraph({ graph, frame, mount, protocol, renderSemanticM
     pattern: protocol.GRAPH_PATTERN,
     ...(frame === null ? {} : { frame }),
   });
-  await renderSemanticMap({ document, input: { envelope }, surfaceMount: mount, presentation: "chrome-free" });
+  if (document.defaultView.getComputedStyle(mount).position === "static") mount.style.position = "relative";
+  const candidate = document.createElement("div");
+  candidate.style.cssText = "position:absolute;inset:0;visibility:hidden;pointer-events:none;";
+  mount.append(candidate);
+  try {
+    await renderSemanticMap({ document, input: { envelope }, surfaceMount: candidate, presentation: "chrome-free" });
+  } catch (error) {
+    candidate.remove();
+    throw error;
+  }
+  for (const child of [...mount.children]) {
+    if (child !== candidate) child.remove();
+  }
+  candidate.style.visibility = "";
+  candidate.style.pointerEvents = "";
 }
 
 const line = (document, kind, value) => {
