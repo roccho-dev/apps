@@ -7,7 +7,7 @@ import * as protocol from "/ui/semantic-map/protocol/index.js";
 // The provider's own limit on operations in one Decision, which its protocol
 // entry does not carry; the architecture view is planned within it.
 import { MAX_DECISION_OPERATIONS } from "/ui/semantic-map/domain/operation.js";
-import { ACTION_ARCHITECTURE, DECISION_KIND, ERRORS } from "/app/src/contract.mjs";
+import { ACTION_ARCHITECTURE, DECISION_KIND, ERRORS, locateSlotsFor, readAnswers } from "/app/src/contract.mjs";
 import { readBundle } from "/app/src/bundle.mjs";
 import { FORMAT_ARCHITECTURE, readConfig } from "/app/src/config.mjs";
 import {
@@ -470,8 +470,9 @@ const decide = async (value, source) => {
   // part's section alone, whose text the server adds. One that names neither
   // the whole nor a part confidently is first located from the code itself -
   // one frame per part, one after another, each shown that part's own text by
-  // the server; the first that fails ends the utterance, and nothing after it
-  // is asked - and every part located is then judged together, in one section.
+  // the server; the first that fails, or is not answered completely on its own
+  // question, ends the utterance, and nothing after it is asked - and every
+  // part located is then judged together, in one section.
   const composing = architecture && answers?.action?.choice === ACTION_ARCHITECTURE;
   const route = composing ? routeOf(turn, answers) : null;
   const model = answer.decision.model;
@@ -483,6 +484,7 @@ const decide = async (value, source) => {
     for (const frame of frames) {
       const locating = await postJev(frame, model);
       if (locating.kind === "failed") return locating;
+      if (readAnswers(locating.decision.answers, locateSlotsFor(frame.state.architecture.focus)) === null) return failure("jev-contract");
       answered.push(Object.freeze({ request: frame, answers: locating.decision.answers }));
     }
     located = Object.freeze(answered);

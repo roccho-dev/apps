@@ -147,8 +147,8 @@ const slotsOf = sent => (sent.kind === contract.ARCHITECTURE_JUDGE_KIND ? contra
 // Fixture mode only: the answer to a request, crafted from its own questions -
 // an intent's, a locate frame's or a judge's. For a stage that proves a
 // failure, `fault` may replace the answer to one request of the utterance, by
-// its place (0 the intent): with a status and body of its own, or with
-// another model.
+// its place (0 the intent): with a status and body of its own, with another
+// model, or with answers of its own.
 const craft = (picks, fault = () => null) => {
   let index = 0;
   return async route => {
@@ -165,7 +165,7 @@ const craft = (picks, fault = () => null) => {
       return [name, { type: "choice", choice: options.includes(picked) ? picked : contract.NONE, confidence: 0.9 }];
     }));
     await route.fulfill({ status: 200, contentType: "application/json; charset=utf-8",
-      body: JSON.stringify({ kind: contract.DECISION_KIND, model: faulty?.model ?? CRAFTED, answers }) });
+      body: JSON.stringify({ kind: contract.DECISION_KIND, model: faulty?.model ?? CRAFTED, answers: faulty?.answers ?? answers }) });
   };
 };
 
@@ -298,7 +298,7 @@ const need = (condition, what) => { if (!condition) verdicts.push(what); };
 // The stages in order. A stage whose outcome a later one stands on ends the
 // run when it fails - nothing is undone or built on a state the next stage
 // assumes - and every stage not reached is reported as not run.
-const FAULTS = ["failed-frame", "frame-model-mix", "judge-model-mix"];
+const FAULTS = ["failed-frame", "incomplete-frame", "frame-model-mix", "judge-model-mix"];
 const STAGES = ["open", "whole", "whole-undo", "app", "credential", "storage", "save", ...(FIXTURE ? ["save-again"] : []),
   ...(LOCATES ? FAULTS : []), "correction", "apply", "reload"];
 const reached = [];
@@ -475,11 +475,14 @@ try {
   }
   if (LOCATES) {
     // A failure part-way through an utterance leaves everything as it was: a
-    // frame that fails, a frame answered by another model than the intent,
-    // and a judge answered by another model - after which nothing is asked.
+    // frame that fails, a frame answered 200 by the same model but without its
+    // question, a frame answered by another model than the intent, and a judge
+    // answered by another model - after which nothing is asked.
     const middle = 1 + Math.floor(ENTITY_IDS.length / 2);
     reached.push("failed-frame");
     await failing("failed-frame", middle, { status: 502, body: { error: contract.ERRORS.providerError } }, contract.ERRORS.providerError);
+    reached.push("incomplete-frame");
+    await failing("incomplete-frame", middle, { answers: {} }, "Jev answered outside the contract");
     reached.push("frame-model-mix");
     await failing("frame-model-mix", middle, { model: OTHER_MODEL }, "model-mismatch");
     reached.push("judge-model-mix");

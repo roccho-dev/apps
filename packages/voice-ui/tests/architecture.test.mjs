@@ -442,6 +442,14 @@ test("a locate is every frame answered, exactly as sent, or nothing; what it fou
     ["an option not offered", [frames[0], { ...frames[1], answers: { [relevantSlot("b-mjs")]: choice("maybe") } }, ...frames.slice(2)]],
     ["no frames", []],
     ["nothing", null],
+    // Frames of one shape among themselves, but not a locate frame's shape.
+    ["every frame with an empty conversation object", frames.map(frame => ({ ...frame, request: { ...frame.request, state: { ...frame.request.state, context: {} } } }))],
+    ["every frame with an empty utterance", frames.map(frame => ({ ...frame, request: { ...frame.request, state: { ...frame.request.state, utterance: "" } } }))],
+    ["every frame without its conversation", frames.map(frame => {
+      const { context, ...state } = frame.request.state;
+      assert.ok(context);
+      return { ...frame, request: { ...frame.request, state } };
+    })],
   ];
   for (const [label, value] of broken) assert.equal(locatedOf(manifest, value), null, label);
 });
