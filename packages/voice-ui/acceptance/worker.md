@@ -1,9 +1,9 @@
 # Exact deployable Worker
 
-The artifact contains `worker/worker.mjs`, compiled once by apps with the root's pinned esbuild. It delegates `/api/jev` to the existing onRequestPost implementation and all static requests to Pages' ASSETS binding. No app behavior is reimplemented by ops.
+The artifact contains `worker/worker.mjs`, compiled once by apps with the root's pinned esbuild. It delegates `/api/jev` to the existing onRequestPost implementation and all static requests to the `ASSETS` binding. No app behavior is reimplemented by ops.
 
-Ops stages the exact `site/` bytes and this worker as the reserved `_worker.js` upload entry, then deploys with Wrangler `--no-bundle`. Staging changes placement only, not bytes. The worker is not a public static asset, so the site tree remains free of the JEV_API_KEY identifier.
+The `voice-ui-dist/2` manifest declares what a deploy step needs, in its `runtime` block: main module `worker/worker.mjs`, static assets `site/` bound as `ASSETS`, compatibility date `2026-09-01` with no flags, and the required secret `JEV_API_KEY` for the auth contract's `jev-api` capability. `dist.py verify` requires exactly this block, the secrets to match `.envs/artifact.jsonl`, and the compiled Worker to read every declared binding. These are declared requirements, not a deployment: no target, account or secret value is named, and the consumer deploys these exact bytes unchanged. The worker is not a public static asset, so the site tree remains free of the JEV_API_KEY identifier.
 
-The ordinary artifact manifest and reproducibility checks cover the compiled Worker. `voice-ui-worker` imports the actual compiled output and checks missing-auth, invalid-input, method and static-routing boundaries without external calls. The existing Chromium acceptance-boundary check is retained.
+The ordinary artifact manifest and reproducibility checks cover the compiled Worker, and the `voice-ui-dist` check refuses an old schema, a tampered runtime block, or a Worker that does not read a declared binding. `voice-ui-worker` imports the actual compiled output and checks missing-auth, invalid-input, method and static-routing boundaries without external calls. The existing Chromium acceptance-boundary check is retained.
 
 This source proof does not prove live Cloudflare deployment or Jev use. Existing accepted artifacts are not modified; consumers must admit the new artifact digest. Ops still owns actual deployment/readback and secret-free acceptance invocation.

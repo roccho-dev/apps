@@ -135,7 +135,7 @@ def build(args):
     split_model(site)
 
     manifest = {
-        "schema": "voice-ui-dist/1",
+        "schema": "voice-ui-dist/2",
         "sources": {
             "apps": args.app_rev,
             "ui": args.ui_rev,
@@ -151,6 +151,15 @@ def build(args):
             "golden": "e2e/fixtures/voice-add-edge-en.golden.json",
             "correction_wav": "e2e/fixtures/voice-reverse-edge-en.wav",
             "correction_golden": "e2e/fixtures/voice-reverse-edge-en.golden.json",
+        },
+        # Declared Worker requirements for a consumer's deploy step. Declared,
+        # not proven: no target, account or secret value is named here.
+        "runtime": {
+            "main_module": "worker/worker.mjs",
+            "assets": {"directory": "site", "binding": "ASSETS"},
+            "compatibility_date": "2026-09-01",
+            "compatibility_flags": [],
+            "secrets": [{"name": "JEV_API_KEY", "capability": "jev-api"}],
         },
     }
     write_manifest(out, manifest)
@@ -204,7 +213,7 @@ def verify_dist(root):
     if not manifest_path.is_file():
         raise SystemExit("manifest missing")
     manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
-    if manifest.get("schema") != "voice-ui-dist/1":
+    if manifest.get("schema") != "voice-ui-dist/2":
         raise SystemExit("manifest schema mismatch")
 
     required = [
@@ -252,6 +261,16 @@ def verify_dist(root):
     }
     if manifest.get("e2e") != expected_e2e:
         raise SystemExit("runtime acceptance contract mismatch")
+
+    expected_runtime = {
+        "main_module": "worker/worker.mjs",
+        "assets": {"directory": "site", "binding": "ASSETS"},
+        "compatibility_date": "2026-09-01",
+        "compatibility_flags": [],
+        "secrets": [{"name": "JEV_API_KEY", "capability": "jev-api"}],
+    }
+    if manifest.get("runtime") != expected_runtime:
+        raise SystemExit("declared Worker runtime mismatch")
 
     if (root / "site/hayamimi/sherpa/sherpa-onnx-wasm-main-vad-asr.data").exists():
         raise SystemExit("whole ASR model must be chunked before publication")
@@ -307,6 +326,16 @@ def verify_dist(root):
         "requiredCapabilities": ["jev-api"],
     }:
         raise SystemExit("auth contract mismatch")
+
+    # The declared secrets are exactly the auth contract's capabilities, and the
+    # compiled Worker reads every declared binding by name.
+    runtime = manifest["runtime"]
+    if [s["capability"] for s in runtime["secrets"]] != auth["requiredCapabilities"]:
+        raise SystemExit("declared secrets differ from the auth contract")
+    worker = (root / runtime["main_module"]).read_bytes()
+    for name in [runtime["assets"]["binding"]] + [s["name"] for s in runtime["secrets"]]:
+        if f"env.{name}".encode() not in worker and f"env?.{name}".encode() not in worker:
+            raise SystemExit(f"compiled Worker does not read declared binding: {name}")
 
 def main():
     parser = argparse.ArgumentParser()

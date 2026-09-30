@@ -42,7 +42,7 @@ function makeArtifact() {
   }
 
   const manifest = {
-    schema: "voice-ui-dist/1",
+    schema: "voice-ui-dist/2",
     sources: { apps: APPS_SHA },
     e2e: {
       runtime_entrypoint: "e2e/runtime-acceptance.mjs",

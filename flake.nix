@@ -189,6 +189,50 @@
             nativeBuildInputs = [ pkgs.python3 ];
           } ''
             python3 ${self}/packages/voice-ui/dist.py verify --dist ${voiceUiDist}
+            # The declared runtime is verified, not trusted: an old schema, a
+            # tampered runtime block or a Worker that does not read a declared
+            # binding (its manifest row updated to match) must each be refused.
+            # One real copy, hard-linked per case so paths resolve inside each
+            # tree; a mutation replaces files, never edits a shared one.
+            cp -R ${voiceUiDist} base
+            chmod -R u+w base
+            # Each case must be refused with its own reason, not an earlier one.
+            i=0
+            refuse() {
+              i=$((i + 1))
+              cp -al base "tampered-$i"
+              python3 - "tampered-$i" "$2" <<'PY'
+            import hashlib, json, os, sys
+            root, mutation = sys.argv[1], sys.argv[2]
+            m = json.load(open(os.path.join(root, "manifest.json")))
+            def rewrite(rel, data):
+                os.remove(os.path.join(root, rel))
+                open(os.path.join(root, rel), "wb").write(data)
+                row = next(r for r in m["files"] if r["path"] == rel)
+                row.update(bytes=len(data), sha256=hashlib.sha256(data).hexdigest())
+            exec(mutation)
+            os.remove(os.path.join(root, "manifest.json"))
+            json.dump(m, open(os.path.join(root, "manifest.json"), "w"))
+            PY
+              if err="$(python3 ${self}/packages/voice-ui/dist.py verify --dist "tampered-$i" 2>&1)"; then
+                echo "dist verify accepted a tampered artifact: $2" >&2
+                exit 1
+              fi
+              case "$err" in
+                *"$1"*) echo "refused as expected: $1" ;;
+                *) echo "refused for another reason ($err), expected: $1" >&2; exit 1 ;;
+              esac
+            }
+            refuse "manifest schema mismatch" 'm["schema"] = "voice-ui-dist/1"'
+            refuse "declared Worker runtime mismatch" 'm["runtime"]["secrets"] = []'
+            refuse "declared Worker runtime mismatch" 'm["runtime"]["assets"]["binding"] = "STATIC"'
+            refuse "declared Worker runtime mismatch" 'm["runtime"]["main_module"] = "site/app.mjs"'
+            refuse "declared Worker runtime mismatch" 'm["runtime"]["compatibility_date"] = "2026-01-01"'
+            refuse "compiled Worker does not read declared binding: ASSETS" \
+              'rewrite("worker/worker.mjs", b"export default {fetch(){return new Response(null)}}\n")'
+            refuse "compiled Worker does not read declared binding: JEV_API_KEY" \
+              'rewrite("worker/worker.mjs", open(os.path.join(root, "worker/worker.mjs"), "rb").read().replace(b"JEV_API_KEY", b"JEV_API_KEX"))'
+            test "$i" = 7
             touch "$out"
           '';
 
