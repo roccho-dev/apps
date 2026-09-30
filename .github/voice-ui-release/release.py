@@ -15,10 +15,11 @@ acceptance      the acceptance runtime's `nix-store --export` closure: under the
 provenance      provenance for the packaged zip and the acceptance closure
 verify          a release directory holds exactly the published set, and its
                 digests, provenance and proof agree with one exact SHA
-selftest        negative cases for lint, provider-guard, the verdict rule and
-                the acceptance closure record
+selftest        negative cases for lint, provider-guard, the verdict rule, the
+                acceptance closure record and a published set whose provenance
+                tree differs from the merged tree
 """
-import argparse, copy, hashlib, json, pathlib, re, sys
+import argparse, copy, hashlib, json, pathlib, re, sys, tempfile
 
 ZIP = 'voice-ui-dist.zip'
 # The existing acceptance runtime, as one full `nix-store --export` of its closure.
@@ -255,6 +256,7 @@ def verify(a):
         'acceptance locator': accept.get('locator') == locator(a.repository, a.sha, ACCEPTANCE),
         'acceptance closure': accept.get('format') == 'nix-store --export' and not closure_errors(accept),
         'provenance source commit': p['source']['commit'] == a.sha,
+        'provenance source tree': p['source']['tree'] == q['merge_tree'],
         'provenance repository': p['source']['repository'] == a.repository,
         'provenance digest': p['artifact'] == {'name': ZIP, 'bytes': (d / ZIP).stat().st_size, 'sha256': digest},
         'provenance locator': p['locator'] == locator(a.repository, a.sha),
@@ -366,10 +368,39 @@ def selftest(a):
         r = copy.deepcopy(good_closure)
         mutate(r)
         assert closure_errors(r), f'closure check accepted {r}'
+    # verify() on a tiny synthetic release set. Its proof is marked NEVER_PUBLISHED: it only
+    # exercises the checks and is not a proof, an admission or anything a release carries.
+    repo, sha, tree = 'roccho-dev/apps', '1' * 40, '2' * 40
+    with tempfile.TemporaryDirectory() as tmp:
+        d = pathlib.Path(tmp)
+        (d / ZIP).write_bytes(b'zip')
+        (d / ACCEPTANCE).write_bytes(b'export')
+        for name in (ZIP, ACCEPTANCE):
+            (d / (name + '.sha256')).write_text(f'{sha256(d / name)}  {name}\n')
+        accept = dict(copy.deepcopy(good_closure), name=ACCEPTANCE, format='nix-store --export', bytes=6,
+                      sha256=sha256(d / ACCEPTANCE), locator=locator(repo, sha, ACCEPTANCE))
+        prov = {'schema': PROVENANCE, 'source': {'repository': repo, 'commit': sha, 'tree': tree},
+                'input_digests': {'flake.lock': 'f' * 64}, 'artifact': {'name': ZIP, 'bytes': 3, 'sha256': sha256(d / ZIP)},
+                'locator': locator(repo, sha), 'acceptance': accept, 'cross_host_bytes_reproducible': False}
+        write(d / 'merged-pr-proof.json', {
+            'pr_number': 1, 'r_exact_head_verdict_ref': 'NEVER_PUBLISHED selftest', 'merged_at': 'NEVER_PUBLISHED',
+            'base': 'proposals', 'reviewed_head': '3' * 40, 'reviewed_tree': tree, 'merge_sha': sha, 'merge_tree': tree})
+        write(d / 'provenance.json', prov)
+        args = argparse.Namespace(dir=tmp, sha=sha, repository=repo)
+        verify(args)  # the consistent set passes, so the negative below is not vacuous
+        prov['source']['tree'] = '4' * 40
+        write(d / 'provenance.json', prov)
+        try:
+            verify(args)
+        except SystemExit as refused:
+            assert str(refused) == 'release record mismatch: provenance source tree', refused
+        else:
+            raise AssertionError('verify accepted a provenance source tree that differs from the merged tree')
     print(json.dumps({'lint': {'positive': 1, 'negative': len(bad_workflows)},
                       'provider_guard': {'positive': 2, 'negative': len(bad_providers)},
                       'verdict': {'positive': len(good_verdicts), 'negative': len(bad_verdicts)},
-                      'acceptance_closure': {'positive': 1, 'negative': len(bad_closures)}}))
+                      'acceptance_closure': {'positive': 1, 'negative': len(bad_closures)},
+                      'release_set': {'positive': 1, 'negative': 1}}))
 
 
 def main():
