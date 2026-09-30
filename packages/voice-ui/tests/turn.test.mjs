@@ -19,6 +19,7 @@ import {
   isRequest,
 } from "../src/contract.mjs";
 import { MAP_ID, STATE_SCHEMA, restoreLog, statesOf, truncateLog } from "../src/log.mjs";
+import { drawGraph } from "../src/render.mjs";
 import {
   ACTION_NEW,
   OUTCOME_NO_CHANGE,
@@ -465,4 +466,106 @@ test("changes reach Jev in their own shape, and the focus is the latest step, el
   assert.deepEqual(focusFor({ draft: [{ changes: [edge] }], lastApplied: [region] }).kind, "draft");
   assert.deepEqual(focusFor({ draft: [], lastApplied: [edge] }), { kind: "applied", changes: [{ change: "removed", from: "node-a", to: "node-b" }] });
   assert.equal(focusFor({ draft: [], lastApplied: [] }), null);
+});
+
+// A stand-in for the few DOM members drawGraph uses, made of plain closures.
+// Every element records its parent and how often it was inserted, so a move -
+// which would reload a real iframe - is counted rather than assumed.
+const fakeStyle = () => {
+  const style = { position: "" };
+  Object.defineProperty(style, "cssText", {
+    set: text => {
+      for (const rule of text.split(";").filter(Boolean)) {
+        const [name, value] = rule.split(":");
+        style[name.trim().replace(/-([a-z])/gu, (_, letter) => letter.toUpperCase())] = value.trim();
+      }
+    },
+  });
+  return style;
+};
+const detach = child => {
+  if (child.parent !== null) child.parent.childList.splice(child.parent.childList.indexOf(child), 1);
+  child.parent = null;
+};
+const fakeElement = tag => {
+  const element = { tag, parent: null, inserted: 0, childList: [], style: fakeStyle() };
+  element.append = child => {
+    detach(child);
+    child.parent = element;
+    child.inserted += 1;
+    element.childList.push(child);
+  };
+  element.replaceChildren = (...children) => {
+    for (const child of [...element.childList]) detach(child);
+    for (const child of children) element.append(child);
+  };
+  element.remove = () => detach(element);
+  Object.defineProperty(element, "children", { get: () => [...element.childList] });
+  return element;
+};
+const fakeDocument = Object.freeze({
+  createElement: fakeElement,
+  defaultView: { getComputedStyle: element => ({ position: element.style.position || "static" }) },
+});
+const fakeProtocol = Object.freeze({ GRAPH_PATTERN: "graph/1", createEnvelope: async (log, _, options) => ({ log, options }) });
+// A pane already showing a map: one wrapper holding one embed.
+const shownPane = () => {
+  const mount = fakeElement("section");
+  const wrapper = fakeElement("div");
+  const frame = fakeElement("iframe");
+  wrapper.append(frame);
+  mount.append(wrapper);
+  return { mount, wrapper, frame };
+};
+// Like the provider: the new embed goes into the mount it is given.
+const embedInto = frames => async ({ surfaceMount }) => {
+  const frame = fakeElement("iframe");
+  frames.push(frame);
+  surfaceMount.replaceChildren(frame);
+};
+const drawInto = (mount, renderSemanticMap, graph = { log: "log" }) =>
+  drawGraph({ graph, frame: null, mount, protocol: fakeProtocol, renderSemanticMap, document: fakeDocument });
+
+test("a drawing replaces the shown map only once it is ready, in place: one wrapper, one embed, never moved", async () => {
+  const { mount, wrapper: old } = shownPane();
+  const frames = [];
+  await drawInto(mount, embedInto(frames));
+  assert.equal(frames.length, 1);
+  const [frame] = frames;
+  assert.equal(mount.children.length, 1, "exactly one child is left in the pane");
+  const [shown] = mount.children;
+  assert.deepEqual(shown.children, [frame], "the wrapper holds the embed and is not empty");
+  assert.equal(frame.parent, shown);
+  assert.equal(frame.inserted, 1, "the embed was inserted once and never moved");
+  assert.equal(shown.inserted, 1, "the wrapper was inserted once and never moved");
+  assert.equal(old.parent, null, "the map shown before is gone");
+  assert.deepEqual([shown.style.position, shown.style.inset, shown.style.visibility, shown.style.pointerEvents],
+    ["absolute", "0", "", ""], "the wrapper covers the pane and is shown");
+  assert.equal(mount.style.position, "relative", "a static pane becomes the wrapper's containing block");
+
+  const kept = fakeElement("section");
+  kept.style.position = "absolute";
+  await drawInto(kept, embedInto([]));
+  assert.equal(kept.style.position, "absolute", "a pane that is already positioned keeps its position");
+});
+
+test("a drawing that fails removes only its own candidate and rethrows: the shown map is untouched", async () => {
+  const { mount, wrapper, frame } = shownPane();
+  const failure = new Error("embedded semantic map ready timed out");
+  const failing = async ({ surfaceMount }) => {
+    surfaceMount.replaceChildren(fakeElement("iframe"));
+    throw failure;
+  };
+  await assert.rejects(drawInto(mount, failing), error => error === failure, "the renderer's own error, not a new one");
+  assert.equal(mount.children.length, 1, "no candidate is left");
+  assert.equal(mount.children[0], wrapper, "the shown map is the very same element");
+  assert.deepEqual(wrapper.children, [frame]);
+  assert.equal(frame.inserted, 1, "the shown embed was never moved");
+  assert.equal(frame.parent, wrapper);
+});
+
+test("no graph clears the pane", async () => {
+  const { mount } = shownPane();
+  await drawInto(mount, embedInto([]), null);
+  assert.deepEqual(mount.children, []);
 });

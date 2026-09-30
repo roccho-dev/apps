@@ -1329,6 +1329,8 @@ const noteInjected = request => {
 };
 page.on("requestfailed", noteInjected);
 await page.route(frameDocument, route => route.abort("failed"), { times: 1 });
+const confirmedBeforeUndrawn = (await drawn(page, "confirmed")).edges;
+const shownConfirmed = await page.evaluateHandle(() => document.querySelector('#confirmed-surface iframe[data-package="semantic-map"]'));
 
 await press(page, "#apply");
 const undrawn = await screen(page);
@@ -1342,6 +1344,22 @@ for (const control of ["sendDisabled", "micDisabled", "undoDisabled", "discardDi
   assert.equal(undrawn[control], true, `${control} while the screen is behind storage`);
 }
 assert.deepEqual(injected, ["net::ERR_FAILED"], "the only refused request must be the injected frame document");
+// Storage is ahead and the screen says so, rather than showing a success it
+// did not draw: 確定図 keeps the map it showed before the write - the very same
+// embed, ready and visible, without the new edge - with one map per pane.
+assert.equal(undrawn.status, "apply: saved, display failed - reload to recover");
+assert.deepEqual(undrawn.frames, { confirmed: 1, working: 1, total: 2 }, "one map per pane, nothing left of the failed drawing");
+assert.deepEqual(await page.evaluate(map => ({
+  same: map === document.querySelector('#confirmed-surface iframe[data-package="semantic-map"]'),
+  connected: map.isConnected,
+  ready: map.contentWindow?.semanticMapSite?.ready === true,
+  visibility: getComputedStyle(map).visibility,
+}), shownConfirmed), { same: true, connected: true, ready: true, visibility: "visible" },
+"確定図 keeps the very map it showed before the write, ready and visible");
+const confirmedAfterUndrawn = (await drawn(page, "confirmed")).edges;
+assert.deepEqual(confirmedAfterUndrawn, confirmedBeforeUndrawn, "確定図 still draws what it drew before the write");
+assert.equal(confirmedAfterUndrawn.includes(edgeC), false, "the saved-but-undrawn edge is not shown as drawn");
+await shownConfirmed.dispose();
 
 await page.reload({ waitUntil: "commit" });
 await ready(page);
