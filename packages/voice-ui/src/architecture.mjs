@@ -9,6 +9,7 @@ import {
   NONE,
   WHOLE,
   YES,
+  isLocateRequest,
   judgeSlotsFor,
   locateSlotsFor,
   readAnswers,
@@ -214,8 +215,9 @@ export function locateRequestsOf(manifest, intent) {
 // What a locate found, from its frames as sent, each with its answer: every
 // part whose own frame answered yes at or above the threshold, sorted, and the
 // weakest of those answers' confidences. Null unless the frames are exactly
-// one per part in the snapshot's order, all of one utterance and conversation,
-// each answered completely on its own question.
+// one per part in the snapshot's order, each a locate frame of the contract's
+// own shape, all of one utterance and conversation, each answered completely
+// on its own question.
 export function locatedOf(manifest, frames) {
   const ids = manifest.entities.map(entity => entity.id);
   if (!Array.isArray(frames) || frames.length !== ids.length) return null;
@@ -223,7 +225,7 @@ export function locatedOf(manifest, frames) {
   const found = [];
   for (const [index, id] of ids.entries()) {
     const expected = { kind: ARCHITECTURE_LOCATE_KIND, state: { utterance, context, architecture: { source: manifest.source, focus: [id] } } };
-    if (!equal(frames[index]?.request, expected)) return null;
+    if (!isLocateRequest(frames[index]?.request) || !equal(frames[index].request, expected)) return null;
     const read = readAnswers(frames[index].answers, locateSlotsFor([id]));
     if (read === null) return null;
     const answer = read[relevantSlot(id)];
