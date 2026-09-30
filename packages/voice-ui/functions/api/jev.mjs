@@ -272,7 +272,14 @@ function boundArchitecture(env) {
   const evidence = env?.ARCHITECTURE?.evidence;
   if (manifest.status !== "available" || evidence?.status !== "available") return null;
   if (evidence.source?.handle !== manifest.source.handle || evidence.source?.commit !== manifest.source.commit) return null;
-  return { manifest, files: evidence.files };
+  // The text of exactly the admitted files, each a string: no file missing,
+  // none extra, so a request is never answered from a path without its text.
+  const { files } = evidence;
+  if (files === null || typeof files !== "object" || Array.isArray(files)) return null;
+  const admitted = manifest.entities.filter(entity => entity.kind === "file").map(entity => entity.id).sort();
+  if (JSON.stringify(Object.keys(files).sort()) !== JSON.stringify(admitted)) return null;
+  if (!Object.values(files).every(text => typeof text === "string")) return null;
+  return { manifest, files };
 }
 
 // The request kinds in, one answer kind out, and a closed set of failures.
