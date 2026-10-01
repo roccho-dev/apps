@@ -8,8 +8,8 @@ import path from "node:path";
 
 // The packaged runtime and public E2E entrypoints, real Chromium, and the
 // artifact's exact site bytes served unmodified with the isolation headers the
-// page needs. In the first two starts, /api/jev is controlled: every request
-// gets a 503 jev_unavailable, and each must make exactly one - from the page
+// page needs. In the first two starts, /api/judge is controlled: every request
+// gets a 503 judge_unavailable, and each must make exactly one - from the page
 // itself, same-origin - and end as an explicit NOT_RUN with that reason and a
 // RED receipt. The third start serves the unchanged entry module as HTML and
 // must end RED before any application call. Never emits an application PASS
@@ -53,7 +53,7 @@ const misdeliveredResponses = [];
 let htmlMisdelivery = false;
 const server = http.createServer((req, res) => {
   const { pathname } = new URL(req.url, "http://127.0.0.1");
-  if (pathname === "/api/jev") {
+  if (pathname === "/api/judge") {
     apiRequests.push({
       method: req.method,
       origin: req.headers.origin ?? null,
@@ -61,7 +61,7 @@ const server = http.createServer((req, res) => {
     });
     req.resume();
     res.writeHead(503, { "content-type": "application/json", "cache-control": "no-store" });
-    res.end(JSON.stringify({ error: "jev_unavailable" }));
+    res.end(JSON.stringify({ error: "judge_unavailable" }));
     return;
   }
   const file = fileFor(pathname);
@@ -94,6 +94,18 @@ const server = http.createServer((req, res) => {
 // that a long build directory prefix otherwise exceeds.
 const work = mkdtempSync(path.join(tmpdir(), "vub-"));
 let child;
+const runChild = (args, home) => new Promise((resolve, reject) => {
+  child = spawn(runtime, args, { cwd: home, env: { PATH: process.env.PATH, HOME: home, TMPDIR: home, LANG: "C.UTF-8" }, detached: true });
+  let stderr = "", stdout = "";
+  const timer = setTimeout(() => {
+    try { process.kill(-child.pid, "SIGKILL"); } catch {}
+    reject(new Error("acceptance boundary timed out"));
+  }, 300000);
+  child.stdout.on("data", chunk => { stdout += chunk; });
+  child.stderr.on("data", chunk => { stderr += chunk; });
+  child.once("error", error => { clearTimeout(timer); reject(error); });
+  child.once("close", code => { clearTimeout(timer); resolve({ code, stderr, stdout }); });
+});
 const starts = [];
 try {
   await new Promise(resolve => server.listen(0, "127.0.0.1", resolve));
@@ -106,21 +118,9 @@ try {
     const receipt = path.join(home, "receipt.json");
     const before = apiRequests.length;
     const beforeMisdelivery = misdeliveredResponses.length;
-    const output = await new Promise((resolve, reject) => {
-      child = spawn(runtime, [path.join(root, manifest.e2e.runtime_entrypoint),
-        "--artifact-root", root, "--url", target, "--expected-apps-sha", manifest.sources.apps,
-        "--expected-manifest-sha256", digest, "--handoff-id", `ci-boundary/${run}`, "--receipt", receipt],
-      { cwd: home, env: { PATH: process.env.PATH, HOME: home, TMPDIR: home, LANG: "C.UTF-8" }, detached: true });
-      let stderr = "", stdout = "";
-      const timer = setTimeout(() => {
-        try { process.kill(-child.pid, "SIGKILL"); } catch {}
-        reject(new Error("acceptance boundary timed out"));
-      }, 300000);
-      child.stdout.on("data", chunk => { stdout += chunk; });
-      child.stderr.on("data", chunk => { stderr += chunk; });
-      child.once("error", error => { clearTimeout(timer); reject(error); });
-      child.once("close", code => { clearTimeout(timer); resolve({ code, stderr, stdout }); });
-    });
+    const output = await runChild([path.join(root, manifest.e2e.runtime_entrypoint),
+      "--artifact-root", root, "--url", target, "--expected-apps-sha", manifest.sources.apps,
+      "--expected-manifest-sha256", digest, "--handoff-id", "ci-boundary/" + run, "--receipt", receipt], home);
     const requests = apiRequests.slice(before);
     assert.equal(output.code, 1, output.stderr);
     assert.doesNotMatch(output.stderr, /ERR_MODULE_NOT_FOUND|Executable doesn't exist|browserType.launch:/);
@@ -129,8 +129,8 @@ try {
         pathname: "/app.mjs", status: 200, contentType: "text/html; charset=utf-8",
         sha256: createHash("sha256").update(readFileSync(path.join(site, "app.mjs"))).digest("hex"),
       }], "the entry module must actually be served unchanged as 200 text/html");
-      assert.deepEqual(requests, [], "HTML entry misdelivery must fail before /api/jev");
-      assert.doesNotMatch(output.stderr, /NOT_RUN: jev_unavailable/u, output.stderr);
+      assert.deepEqual(requests, [], "HTML entry misdelivery must fail before /api/judge");
+      assert.doesNotMatch(output.stderr, /NOT_RUN: judge_unavailable/u, output.stderr);
       const result = JSON.parse(readFileSync(receipt));
       assert.equal(result.status, "RED");
       assert.equal(result.stage, "application-e2e");
@@ -141,20 +141,28 @@ try {
         moduleResponse: misdeliveredResponses[beforeMisdelivery], applicationCalls: requests.length });
       continue;
     }
-    // Exactly one /api/jev request in this start, and it is the page's own.
+    // Exactly one /api/judge request in this start, and it is the page's own.
     assert.deepEqual(requests, [{ method: "POST", origin, fetchSite: "same-origin" }],
-      `start ${run} must make exactly one same-origin page request to /api/jev: ${JSON.stringify(requests)}\n${output.stderr}`);
+      `start ${run} must make exactly one same-origin page request to /api/judge: ${JSON.stringify(requests)}\n${output.stderr}`);
     // The run ended on that controlled 503, as an explicit NOT_RUN - not on
     // some later or unrelated failure.
-    assert.match(output.stderr, /NOT_RUN: jev_unavailable/u, output.stderr);
+    assert.match(output.stderr, /NOT_RUN: judge_unavailable/u, output.stderr);
     const result = JSON.parse(readFileSync(receipt));
     assert.equal(result.status, "RED");
     assert.equal(result.stage, "application-e2e");
     assert.equal(result.sources.artifactManifestSha256, digest);
     assert.equal(result.checks.find(row => row.id === "public-application-e2e").status, "RED");
     assert.deepEqual(result.dependencies.secretInputs, []);
-    starts.push({ run, request: requests[0], receipt: result.status, reason: "NOT_RUN: jev_unavailable" });
+    starts.push({ run, request: requests[0], receipt: result.status, reason: "NOT_RUN: judge_unavailable" });
   }
+  htmlMisdelivery = false;
+  const bindingHome = path.join(work, "bindings"); mkdirSync(bindingHome);
+  const beforeBindings = apiRequests.length;
+  const bindings = await runChild([path.join(root, manifest.e2e.public_entrypoint), target, "--binding-contract"], bindingHome);
+  assert.equal(bindings.code, 0, bindings.stderr);
+  assert.match(bindings.stdout, /binding-contract: PASS actual app/u);
+  assert.equal(apiRequests.length, beforeBindings, "alternate judgment must not reach the API");
+  process.stdout.write(bindings.stdout);
   console.log(JSON.stringify({ kind: "voice-ui.acceptanceBoundaryCheck.v1", status: "PASS",
     independentStarts: starts.length, controlledProviderCalls: apiRequests.length, callOrigin: "chromium-same-origin",
     applicationVerdict: "RED_EXPECTED", applicationReason: "per-start", liveProviderCalls: 0, starts }));

@@ -5,6 +5,9 @@ on:
     paths:
       - ".github/workflows/voice-ui-release.yml"
       - ".github/voice-ui-release/**"
+      - "packages/voice-ui/**"
+      - "flake.nix"
+      - "flake.lock"
   workflow_dispatch:
     inputs:
       publish:

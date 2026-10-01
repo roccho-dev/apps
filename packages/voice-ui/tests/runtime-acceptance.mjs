@@ -155,6 +155,12 @@ export function buildReceipt({
   if (!HANDOFF_ID.test(handoffId)) throw new Error("handoff id is invalid");
   return {
     kind: "voice-ui.runtimeAcceptanceReceipt.v1",
+    limits: {
+      scope: "application-e2e",
+      providerIdentity: "NOT_PROVEN",
+      providerAuthentication: "NOT_PROVEN",
+      liveMicrophone: "NOT_RUN",
+    },
     status,
     stage,
     target: { url: targetUrl },

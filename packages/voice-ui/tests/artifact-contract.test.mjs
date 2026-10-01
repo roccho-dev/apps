@@ -1,6 +1,15 @@
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import test from "node:test";
+import { createTranscription } from "../web/adapters/transcription.mjs";
+import { DECISION_KIND } from "../src/contract.mjs";
+
+// One browser URL mapping, not a substitute implementation: import the exact
+// authored adapter with its sole absolute application import resolved for Node.
+const judgmentSource = await readFile(new URL("../web/adapters/judgment.mjs", import.meta.url), "utf8");
+assert.equal(judgmentSource.split('"/app/src/contract.mjs"').length, 2);
+const mapped = judgmentSource.replace('"/app/src/contract.mjs"', JSON.stringify(new URL("../src/contract.mjs", import.meta.url).href));
+const { createJudgment } = await import("data:text/javascript;base64," + Buffer.from(mapped).toString("base64"));
 
 const path = new URL("../artifact.jsonl", import.meta.url);
 
@@ -33,5 +42,86 @@ test("artifact auth capabilities are non-empty unique ids", async () => {
   assert.equal(new Set(capabilities).size, capabilities.length);
   for (const capability of capabilities) {
     assert.match(capability, /^[a-z0-9][a-z0-9-]*$/);
+  }
+});
+
+const flush = () => new Promise(resolve => setImmediate(resolve));
+const recognizer = (start = async () => {}) => {
+  const value = { onText: null, stops: 0, closes: 0, start,
+    async stop() { value.stops += 1; }, close() { value.closes += 1; } };
+  return value;
+};
+test("selected transcription binding owns normal completion and closed callback failure cleanup", async () => {
+  for (const fails of [false, true]) {
+    const owned = recognizer();
+    const capture = createTranscription({ prepare: async () => {}, loadRecognizer: async () => owned });
+    const pending = capture({ onListening: () => { if (fails) throw new Error("synthetic-private-body"); } });
+    const outcome = fails ? assert.rejects(pending, { code: "transcription_failed" }) : pending;
+    await flush();
+    if (!fails) owned.onText("fixture words");
+    assert.equal(await outcome, fails ? undefined : "fixture words");
+    assert.equal(owned.stops, 1); assert.equal(owned.closes, 1); assert.equal(owned.onText, null);
+  }
+});
+test("cancelled late start cannot clean up a subsequent attempt's recognizer", async () => {
+  let release;
+  const first = recognizer(() => new Promise(resolve => { release = resolve; }));
+  const second = recognizer();
+  const offered = [first, second];
+  const capture = createTranscription({ prepare: async () => {}, loadRecognizer: async () => offered.shift() });
+  const controller = new AbortController();
+  const a = capture({ signal: controller.signal });
+  const rejected = assert.rejects(a, { code: "transcription_cancelled" });
+  await flush(); const stale = first.onText; controller.abort(); await rejected;
+  const b = capture(); await flush(); const active = second.onText;
+  release(); await flush(); stale("late text"); await flush();
+  assert.equal(first.stops, 2); assert.equal(first.closes, 2);
+  assert.equal(second.stops, 0); assert.equal(second.closes, 0); assert.equal(second.onText, active);
+  second.onText("second words"); assert.equal(await b, "second words");
+  assert.equal(second.stops, 1); assert.equal(second.closes, 1);
+});
+test("the 300 second transcription timeout closes owned resources and ignores late startup", async t => {
+  t.mock.timers.enable({ apis: ["setTimeout"] });
+  let release;
+  const owned = recognizer(() => new Promise(resolve => { release = resolve; }));
+  const capture = createTranscription({ prepare: async () => {}, loadRecognizer: async () => owned });
+  const pending = capture(); const rejected = assert.rejects(pending, { code: "transcription_timeout" });
+  await flush(); t.mock.timers.tick(299999); assert.equal(owned.stops, 0);
+  t.mock.timers.tick(1); await rejected;
+  release(); await flush(); assert.equal(owned.stops, 2); assert.equal(owned.closes, 2); assert.equal(owned.onText, null);
+});
+test("transcription stop errors remain closed while close is still called", async () => {
+  for (const closeFails of [false, true]) {
+    const owned = recognizer();
+    if (closeFails) owned.close = async () => { owned.closes += 1; throw new Error("synthetic-private-body"); };
+    else owned.stop = async () => { throw new Error("synthetic-private-body"); };
+    const capture = createTranscription({ prepare: async () => {}, loadRecognizer: async () => owned });
+    const pending = capture(); const rejected = assert.rejects(pending, { code: "transcription_stop_failed", message: "transcription_stop_failed" });
+    await flush(); owned.onText("fixture"); await rejected; assert.equal(owned.closes, 1);
+  }
+});
+
+test("HTTP judgment closes raw error/body/model surfaces without losing valid typed answers", async () => {
+  for (const [fetchImpl, expected] of [
+    [async () => { throw new Error("synthetic-private-body"); }, { kind: "failed", reason: "judge-failed", detail: "network_error" }],
+    [async () => new Response(JSON.stringify({ error: "synthetic-private-body" }), { status: 502 }), { kind: "failed", reason: "judge-failed", detail: "http_error" }],
+    [async () => new Response(JSON.stringify({ kind: DECISION_KIND, answers: {}, model: "synthetic-private-body" })), { kind: "failed", reason: "judge-contract", detail: null }],
+    [async () => new Response(JSON.stringify({ kind: DECISION_KIND, answers: {} })), { kind: "answered", decision: { kind: DECISION_KIND, answers: {} } }],
+  ]) {
+    let calls = 0;
+    const binding = createJudgment({ fetchImpl: (...args) => { calls += 1; assert.equal(args[0], "/api/judge"); return fetchImpl(...args); } });
+    assert.deepEqual(await binding({}), expected); assert.equal(calls, 1);
+  }
+});
+test("HTTP judgment bounds hung headers and body even when a fixture ignores abort", async t => {
+  t.mock.timers.enable({ apis: ["setTimeout"] });
+  for (const body of [false, true]) {
+    const hung = () => new Promise(() => {});
+    let calls = 0, settled = false;
+    const binding = createJudgment({ fetchImpl: () => { calls += 1; return body ? { ok: true, json: hung } : hung(); } });
+    const pending = binding({}).then(value => { settled = true; return value; });
+    await flush(); t.mock.timers.tick(14999); await flush(); assert.equal(settled, false);
+    t.mock.timers.tick(1); assert.deepEqual(await pending, { kind: "failed", reason: "judge-timeout", detail: "15 s" });
+    assert.equal(calls, 1);
   }
 });

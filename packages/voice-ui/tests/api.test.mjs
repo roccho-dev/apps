@@ -1,8 +1,11 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import { onRequestPost } from "../functions/api/jev.mjs";
-import worker from "../functions/pages-worker.mjs";
+import { onRequestPost } from "../functions/api/judge.mjs";
+if (!process.env.JUDGE_PROVIDER_ENTRY || !process.env.VOICE_UI_WORKER) throw new Error("actual provider and produced Worker entries are required");
+const { judgeNamedChoices } = await import(process.env.JUDGE_PROVIDER_ENTRY);
+const { default: worker } = await import(process.env.VOICE_UI_WORKER);
+const judge = (request, { key, signal }) => judgeNamedChoices({ request, apiKey: key, signal });
 import { DECISION_KIND, ERRORS, NONE, REQUEST_KIND, isRequest, slotsFor } from "../src/contract.mjs";
 
 // A request as the page sends it: the declared read set and nothing more.
@@ -27,14 +30,11 @@ const request = (state = {}) => ({
   },
 });
 
-const post = (body, env = { JEV_API_KEY: "test-only-value" }) => onRequestPost({
-  request: new Request("http://localhost/api/jev", {
+const post = (body, env = { JEV_API_KEY: "test-only-value" }) => worker.fetch(new Request("http://localhost/api/judge", {
     method: "POST",
     headers: { "content-type": "application/json" },
     body: typeof body === "string" ? body : JSON.stringify(body),
-  }),
-  env,
-});
+  }), env);
 
 // The provider as the network presents it. Every call is counted, and nothing
 // here can be mistaken for the real provider: its model is "jev-test".
@@ -64,6 +64,7 @@ test("every legacy or unknown request kind is 422 and never reaches the provider
     { kind: "voice-ui.jev.request.v7", state: request().state },
     { kind: "voice-ui.jev.request.v8", state: request().state },
     { kind: "voice-ui.jev.request.v9", state: request().state },
+    { kind: "voice-ui.jev.request.v10", state: request().state },
     { kind: "voice-ui.jev.request.v11", state: request().state },
     { ...request(), extra: 1 },
     {},
@@ -120,8 +121,8 @@ test("a success is one kind carrying only choice and confidence per offered slot
   const { result } = await withProvider(answering(noneTo), () => post(request()));
   const answer = await result.json();
   assert.equal(answer.kind, DECISION_KIND);
-  assert.equal(answer.model, "jev-test");
-  assert.deepEqual(Object.keys(answer).sort(), ["answers", "kind", "model"]);
+  assert.equal("model" in answer, false);
+  assert.deepEqual(Object.keys(answer).sort(), ["answers", "kind"]);
   for (const value of Object.values(answer.answers)) {
     assert.deepEqual(Object.keys(value).sort(), ["choice", "confidence", "type"], "probabilities never leave the Function");
   }
@@ -143,6 +144,9 @@ test("every failure is one of a closed set of codes and carries no Jev content",
     ["provider unreachable", async () => { throw new TypeError("fetch failed"); }, 502, ERRORS.providerUnreachable],
     ["not JSON", async () => new Response("<html>", { status: 200 }), 502, ERRORS.providerContract],
     ["no model", async () => new Response(JSON.stringify({ answers: {} }), { status: 200 }), 502, ERRORS.providerContract],
+    ["model is not a string", async () => new Response(JSON.stringify({ model: 1, answers: {} }), { status: 200 }), 502, ERRORS.providerContract],
+    ["unknown answer field", answering(body => ({ ...noneTo(body), action: { ...noneTo(body).action, privateField: "synthetic-canary" } })), 502, ERRORS.providerContract],
+    ["extra answered slot", answering(body => ({ ...noneTo(body), unknown: { type: "choice", choice: NONE, confidence: 0.9 } })), 502, ERRORS.providerContract],
     ["a slot missing", answering(body => { const answers = noneTo(body); delete answers.action; return answers; }), 502, ERRORS.providerContract],
     ["an option not offered", answering(body => ({ ...noneTo(body), action: { type: "choice", choice: "delete-all", confidence: 0.9 } })), 502, ERRORS.providerContract],
     ["confidence outside [0,1]", answering(body => ({ ...noneTo(body), action: { type: "choice", choice: NONE, confidence: 2 } })), 502, ERRORS.providerContract],
@@ -155,24 +159,37 @@ test("every failure is one of a closed set of codes and carries no Jev content",
   }
 });
 
-test("a provider that never answers is a timeout after ten seconds, never a hang", async t => {
+test("the compiled binding has one ten second deadline for headers and body", async t => {
   t.mock.timers.enable({ apis: ["setTimeout"] });
-  const { result } = await withProvider((body, init) => new Promise((resolve, reject) => {
-    init.signal.addEventListener("abort", () => reject(new DOMException("aborted", "AbortError")));
-  }), async () => {
-    const pending = post(request());
-    await new Promise(resolve => setImmediate(resolve));
-    t.mock.timers.tick(10000);
-    return pending;
-  });
-  assert.equal(result.status, 504);
-  assert.deepEqual(await result.json(), { error: ERRORS.providerTimeout });
+  for (const phase of ["headers", "body"]) {
+    const hung = () => new Promise(() => {});
+    const { result, calls } = await withProvider(() => phase === "headers" ? hung() : { ok: true, json: hung }, async () => {
+      let settled = false;
+      const pending = post(request()).then(value => { settled = true; return value; });
+      await new Promise(resolve => setImmediate(resolve));
+      t.mock.timers.tick(9999); await new Promise(resolve => setImmediate(resolve)); assert.equal(settled, false);
+      t.mock.timers.tick(1); return pending;
+    });
+    assert.equal(result.status, 504); assert.equal(calls.length, 1);
+    assert.deepEqual(await result.json(), { error: ERRORS.providerTimeout });
+  }
+});
+test("the compiled binding forwards pre-aborted and active cancellation", async () => {
+  for (const active of [false, true]) {
+    const controller = new AbortController(); if (!active) controller.abort();
+    const { result, calls } = await withProvider(() => ({ ok: true, json: () => new Promise(() => {}) }), async () => {
+      const pending = worker.fetch(new Request("http://localhost/api/judge", { method: "POST", body: JSON.stringify(request()), signal: controller.signal }), { JEV_API_KEY: "fixture" });
+      await new Promise(resolve => setImmediate(resolve)); if (active) controller.abort(); return pending;
+    });
+    assert.equal(result.status, 502); assert.equal(calls.length, active ? 1 : 0);
+    assert.deepEqual(await result.json(), { error: ERRORS.providerUnreachable });
+  }
 });
 
-test("the Advanced Mode Worker routes /api/jev to this Function and everything else to its assets", async () => {
-  const unavailable = await worker.fetch(new Request("https://voice-ui.invalid/api/jev", { method: "POST", body: "{}" }), {});
+test("the Advanced Mode Worker routes /api/judge to this Function and everything else to its assets", async () => {
+  const unavailable = await worker.fetch(new Request("https://voice-ui.invalid/api/judge", { method: "POST", body: "{}" }), {});
   assert.equal(unavailable.status, 503);
-  const wrongMethod = await worker.fetch(new Request("https://voice-ui.invalid/api/jev"), {});
+  const wrongMethod = await worker.fetch(new Request("https://voice-ui.invalid/api/judge"), {});
   assert.equal(wrongMethod.status, 405);
   assert.equal(wrongMethod.headers.get("allow"), "POST");
   let assets = 0;
@@ -181,4 +198,30 @@ test("the Advanced Mode Worker routes /api/jev to this Function and everything e
   });
   assert.equal(await asset.text(), "{}");
   assert.equal(assets, 1);
+});
+
+test("key precedence preserves the original nonempty-string domain", async () => {
+  for (const key of [undefined, null, 0, ""]) {
+    const { result, calls } = await withProvider(answering(noneTo), () => post("{", { JEV_API_KEY: key }));
+    assert.equal(result.status, 503); assert.equal(calls.length, 0);
+  }
+});
+test("unknown and prototype error codes remain closed failures", async () => {
+  for (const error of [{ code: "toString" }, { code: "constructor" }, { code: "unknown" }, { get code() { throw new Error("synthetic-canary"); } }]) {
+    const result = await onRequestPost({ request: new Request("http://localhost/api/judge", { method: "POST", body: JSON.stringify(request()) }), key: "fixture" }, async () => { throw error; });
+    assert.equal(result.status, 502); assert.deepEqual(await result.json(), { error: ERRORS.providerUnreachable });
+  }
+});
+test("compatible extras and finite subset probabilities do not change the low-confidence decision", async () => {
+  for (const probabilities of [undefined, { [NONE]: 2 }]) {
+    const { result, calls } = await withProvider(async body => new Response(JSON.stringify({ model: "synthetic-model-canary", extra: true, answers: Object.fromEntries(Object.entries(noneTo(body)).map(([name, answer]) => [name, { ...answer, confidence: 0.49, probabilities }])) })), () => post(request()));
+    assert.equal(result.status, 200); assert.equal(calls.length, 1);
+    const value = await result.json(); assert.equal("model" in value, false);
+    assert.ok(Object.values(value.answers).every(answer => answer.confidence === 0.49));
+  }
+});
+test("the actual produced Worker binds the actual admitted provider entry", async () => {
+  const { result, calls } = await withProvider(answering(noneTo), () => worker.fetch(new Request("http://localhost/api/judge", { method: "POST", body: JSON.stringify(request()) }), { JEV_API_KEY: "fixture" }));
+  assert.equal(result.status, 200); assert.equal(calls.length, 1);
+  const value = await result.json(); assert.equal(value.kind, DECISION_KIND); assert.equal("model" in value, false);
 });

@@ -5,8 +5,8 @@
 // with the same ones. Question wording is the Function's own; product words
 // come from the DataBundle and never from here.
 
-export const REQUEST_KIND = "voice-ui.jev.request.v10";
-export const DECISION_KIND = "voice-ui.jev.decision.v5";
+export const REQUEST_KIND = "voice-ui.judge.request.v1";
+export const DECISION_KIND = "voice-ui.judge.decision.v1";
 
 // Every slot also offers this option, so it may not be a part, edge or key.
 export const NONE = "none";
@@ -51,10 +51,10 @@ const CONTEXT_SOURCES = Object.freeze(["voice", "typed"]);
 const CONTEXT_OUTCOMES = Object.freeze(["step", "no-change", "undo-request", "refused", "undone"]);
 const FOCUS_KINDS = Object.freeze(["draft", "applied"]);
 
-// The closed set of failures the Function answers with. None carries Jev
+// The closed set of failures the Function answers with. None carries the judgment binding
 // content.
 export const ERRORS = Object.freeze({
-  unavailable: "jev_unavailable",
+  unavailable: "judge_unavailable",
   invalidJson: "invalid_json",
   invalidRequest: "invalid_request",
   providerError: "provider_error",
@@ -174,7 +174,7 @@ export function isRequest(value) {
     && validOffer(state.offers.diagrams);
 }
 
-// The questions a request puts to Jev and the options of each, derived from
+// The questions a request puts to the judgment binding and the options of each, derived from
 // the request alone. An action is offered only when the graph can carry it
 // out, and a slot exists only when an action that needs it is offered.
 export function slotsFor(state) {
@@ -236,3 +236,10 @@ export function readAnswers(answers, slots) {
   }
   return Object.freeze(read);
 }
+
+// Adopted ports: Judge(request) resolves {kind:"answered",decision} or a closed
+// {kind:"failed",reason,detail}; Transcription({onListening,signal}) resolves text
+// or rejects with a closed code and owns start/stop/300s cleanup.
+// UI createDecision/appendDecision/createDecisionLog/verifyDecisionLog and
+// layoutBoundsFor/createEnvelope preserve the accepted world schema/kernel;
+// a display binding renders the envelope without owning application decisions.

@@ -18,7 +18,7 @@ import {
 import { offersOf } from "./bundle.mjs";
 import { MAP_ID, STATE_SCHEMA } from "./log.mjs";
 
-// One turn: what Jev is asked about the working graph, and what its answer
+// One turn: what the judgment binding is asked about the working graph, and what its answer
 // means there. Every Decision the app makes is built here - a graph edit, a
 // placement, a whole diagram, a revert, a new map - always by the provider,
 // so it is validated before it ever reaches the working log. Nothing here
@@ -94,7 +94,7 @@ function edgesOf(records) {
     .map(record => Object.freeze({ id: record.id, from: record.from, to: record.to })));
 }
 
-// The parts Jev may name: every region under the boundary except a lane. A
+// The parts the judgment binding may name: every region under the boundary except a lane. A
 // lane is a container - its steps are what the flow connects - so it is never
 // an endpoint and never put beside anything. It is still drawn.
 function speakableRegions(records) {
@@ -108,7 +108,7 @@ function speakableRegions(records) {
 
 const speakableIds = records => speakableRegions(records).map(region => region.id);
 
-// The edges Jev may name: those between two parts it may name.
+// The edges the judgment binding may name: those between two parts it may name.
 function speakableEdges(records) {
   const ids = speakableIds(records);
   return Object.freeze(edgesOf(records).filter(edge => ids.includes(edge.from) && ids.includes(edge.to)));
@@ -129,7 +129,7 @@ const placedIds = (layout, ids, frame) => Object.freeze(ids
   .filter(regionId => frame === null || inside(frame, layout.bounds[regionId]))
   .sort());
 
-// The parts a person can put beside one another: the ones Jev may name that
+// The parts a person can put beside one another: the ones the judgment binding may name that
 // the view places, and with a frame only those wholly inside it.
 export function placeableIds(layout, records, frame = null) {
   return placedIds(layout, speakableIds(records), frame);
@@ -187,9 +187,9 @@ function nextPartId(graph, reserved = []) {
   return `${PART_ID_PREFIX}${Math.max(0, ...used) + 1}`;
 }
 
-// One change as Jev is told it: an edge by its two ends, a part by its id and
+// One change as the judgment binding is told it: an edge by its two ends, a part by its id and
 // label, a placement by part, neighbour and side.
-export function changesForJev(changes) {
+export function changesForJudgment(changes) {
   return Object.freeze(changes.map(change => Object.freeze(
     change.kind === "region" && change.change === "placed"
       ? { change: "placed", kind: "region", id: change.id, anchor: change.anchor, direction: change.direction }
@@ -202,13 +202,13 @@ export function changesForJev(changes) {
 // What the person is looking at, for a follow-up like "reverse that": the
 // latest working step, else the latest applied change, else nothing.
 export function focusFor({ draft, lastApplied }) {
-  if (draft.length > 0) return Object.freeze({ kind: "draft", changes: changesForJev(draft.at(-1).changes) });
-  if (lastApplied.length > 0) return Object.freeze({ kind: "applied", changes: changesForJev(lastApplied) });
+  if (draft.length > 0) return Object.freeze({ kind: "draft", changes: changesForJudgment(draft.at(-1).changes) });
+  if (lastApplied.length > 0) return Object.freeze({ kind: "applied", changes: changesForJudgment(lastApplied) });
   return null;
 }
 
 // The pending placement as the next request carries it: part ids and a side.
-export function pendingForJev(pending) {
+export function pendingForJudgment(pending) {
   return Object.freeze({
     missing: pending.missing,
     move: pending.move?.choice ?? null,
@@ -238,7 +238,7 @@ export function requestFor({ working, utterance, bundle, layout, offeredFrame, d
   const state = Object.freeze({
     utterance,
     graph: Object.freeze({ regions: speakableRegions(working.records), edges: speakableEdges(working.records), placeable }),
-    draft: Object.freeze(draft.map(step => Object.freeze({ changes: changesForJev(step.changes) }))),
+    draft: Object.freeze(draft.map(step => Object.freeze({ changes: changesForJudgment(step.changes) }))),
     focus,
     pending,
     context: Object.freeze({ recent }),
@@ -430,7 +430,7 @@ function operationsFor(read, context) {
     return composeDiagram(bundle.diagrams.find(entry => entry.key === read.diagram.choice), confidence, context);
   }
 
-  // Put a part beside another one. Jev chooses the part, its neighbour and the
+  // Put a part beside another one. the judgment binding chooses the part, its neighbour and the
   // side from the parts wholly on the pane; the view says where they are.
   if (action === ACTION_PLACE_PART) {
     if (read.move.choice === NONE || read.anchor.choice === NONE || read.direction.choice === NONE) {
@@ -460,7 +460,7 @@ function operationsFor(read, context) {
   }
 
   // A new part: the bundle says what it is, the app says where it goes and
-  // what it is called. Jev chooses neither a name nor a place.
+  // what it is called. the judgment binding chooses neither a name nor a place.
   if (action === ACTION_ADD_PART) {
     if (read.part.choice === NONE) return noChange("no-part-named");
     const confidence = Math.min(read.action.confidence, read.part.confidence);
@@ -574,7 +574,7 @@ function heldContext(working, layout, visibleFrame, offeredFrame) {
 }
 
 // What an utterance left behind when all but one piece of a placement came
-// through: the picture it was said against, how sure Jev was that it is a
+// through: the picture it was said against, how sure the judgment binding was that it is a
 // placement, and the pieces that were understood - never any text.
 function pendingFrom(read, missing, context) {
   const kept = slot => (slot === missing ? null : Object.freeze({ ...read[slot] }));

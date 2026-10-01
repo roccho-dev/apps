@@ -59,13 +59,13 @@ const distance = (left, right) => {
 const errors = [];
 const failedResponses = [];
 const consoleMessages = [];
-// REAL evidence, counted where it happens. A 200 from /api/jev qualifies only
+// UNCONTROLLED_NETWORK evidence, counted where it happens. A 200 from /api/judge qualifies only
 // when its body is exactly the current success shape and every answer is a
 // choice from the slots that very request offered, checked with the served
 // contract's own readAnswers. `intercepted` counts every 200 this test
-// fulfilled itself, at the interception. REAL is qualifying minus intercepted
-// and must be above zero: a crafted answer is never promoted to a real one,
-// and a malformed 200 is a failure that never raises REAL.
+// fulfilled itself, at the interception. UNCONTROLLED_NETWORK is qualifying minus intercepted
+// and must be above zero: a crafted answer is never promoted to an upstream-identity proof,
+// and a malformed 200 is a failure that never raises UNCONTROLLED_NETWORK.
 let qualifying = 0;
 let intercepted = 0;
 const interceptedRequests = new Set();
@@ -83,15 +83,14 @@ const qualifies = async response => {
     return false;
   }
   return body !== null && typeof body === "object" && !Array.isArray(body)
-    && Object.keys(body).sort().join(",") === "answers,kind,model"
+    && Object.keys(body).sort().join(",") === "answers,kind"
     && body.kind === DECISION_KIND
-    && typeof body.model === "string"
     && contract.isRequest(sent)
     && contract.readAnswers(body.answers, contract.slotsFor(sent.state)) !== null;
 };
 
-// Whether one exchange is REAL: a qualifying answer this test did not fulfil.
-const realAnswer = async response => !interceptedRequests.has(response.request()) && await qualifies(response);
+// Whether one exchange is UNCONTROLLED_NETWORK: a qualifying answer this test did not fulfil.
+const uncontrolledAnswer = async response => !interceptedRequests.has(response.request()) && await qualifies(response);
 
 const watch = target => {
   target.on("pageerror", error => errors.push(String(error)));
@@ -100,7 +99,7 @@ const watch = target => {
     if (response.status() >= 400) {
       failedResponses.push(response.status() + " " + response.url());
     }
-    if (new URL(response.url()).pathname === "/api/jev" && response.status() === 200 && !response.request().isNavigationRequest()) {
+    if (new URL(response.url()).pathname === "/api/judge" && response.status() === 200 && !response.request().isNavigationRequest()) {
       pendingCounts.push(qualifies(response).then(ok => {
         if (ok) qualifying += 1;
         else unparsable.push(response.url());
@@ -423,13 +422,13 @@ const pressEmbeddedAccepts = target => target.evaluate(() =>
 const sortedEdges = edges => edges.map(edge => `${edge.from}->${edge.to}`).sort();
 const lineCount = log => log.split("\n").length - 1;
 
-const jevExchange = target => ({
+const judgeExchange = target => ({
   request: target.waitForRequest(
-    value => new URL(value.url()).pathname === "/api/jev" && value.method() === "POST",
+    value => new URL(value.url()).pathname === "/api/judge" && value.method() === "POST",
     { timeout: 360000 },
   ),
   response: target.waitForResponse(
-    value => new URL(value.url()).pathname === "/api/jev" && value.request().method() === "POST",
+    value => new URL(value.url()).pathname === "/api/judge" && value.request().method() === "POST",
     { timeout: 360000 },
   ),
 });
@@ -461,7 +460,7 @@ const contextPanel = target => target.evaluate(() =>
 // has settled.
 const ask = async (target, act) => {
   const panelBefore = await contextPanel(target);
-  const exchange = jevExchange(target);
+  const exchange = judgeExchange(target);
   await act();
   const request = await exchange.request;
   const response = await exchange.response;
@@ -474,7 +473,7 @@ const ask = async (target, act) => {
   await settle(target);
   const sent = JSON.parse(request.postData());
   assertOnlyCurrentInput(sent, panelBefore);
-  return { sent, decision: await response.json(), real: await realAnswer(response) };
+  return { sent, decision: await response.json(), uncontrolled: await uncontrolledAnswer(response) };
 };
 
 // A recent-conversation entry as expected, without its sequence number: the
@@ -521,7 +520,7 @@ const voiceIdle = target => target.waitForFunction(() => document.body.dataset.v
 // Jev request follows from the one utterance.
 const speak = async target => {
   const from = (await voiceTrace(target)).length;
-  const jev = countJev(target);
+  const jev = countJudge(target);
   const result = await ask(target, () => target.locator("#mic").click());
   await voiceIdle(target);
   jev.stop();
@@ -554,10 +553,10 @@ const flip = edge => edge.split("->").reverse().join("->");
 
 // Every request this page sends to Jev, counted, so "no request at all" can be
 // asserted rather than assumed.
-const countJev = target => {
+const countJudge = target => {
   const counter = { count: 0 };
   const listener = request => {
-    if (new URL(request.url()).pathname === "/api/jev") counter.count += 1;
+    if (new URL(request.url()).pathname === "/api/judge") counter.count += 1;
   };
   target.on("request", listener);
   counter.stop = () => target.off("request", listener);
@@ -567,7 +566,7 @@ const countJev = target => {
 const addGolden = readGolden(goldenPath, wav);
 const correctionGolden = readGolden(correctionGoldenPath, correctionWav);
 
-const jevUrl = new URL("/api/jev", url).href;
+const judgeUrl = new URL("/api/judge", url).href;
 // A Jev answer crafted from the request it answers, for turns where geometry
 // or the app's own refusal - not Jev's hearing - is what is under test. The
 // questions it answers are the page's own: the served contract says which
@@ -576,7 +575,6 @@ const jevUrl = new URL("/api/jev", url).href;
 let page;
 const craftFor = (sent, answers) => ({
   kind: DECISION_KIND,
-  model: "crafted-by-test",
   answers: Object.fromEntries(Object.keys(contract.slotsFor(sent.state))
     .map(name => [name, answers[name] ?? { type: "choice", choice: "none", confidence: 0.9 }])),
 });
@@ -787,7 +785,7 @@ for (const [label, serve] of [
   const bundleFetches = [];
   const noteBundle = request => { if (request.url() === bundleUrl) bundleFetches.push(request.url()); };
   page.on("request", noteBundle);
-  const noJev = countJev(page);
+  const noJev = countJudge(page);
   const failedBefore = failedResponses.length;
   await page.route(CONFIG_URL, serve, { times: 1 });
   await page.reload({ waitUntil: "commit" });
@@ -825,7 +823,7 @@ assert.equal(noBundle.stored, savedLog);
 assert.deepEqual(await panes(page), { confirmed: [voiceEdge], working: [voiceEdge] });
 assert.equal(noBundle.bundleAffected, "部品の追加 図の作成", "the notice names both capabilities");
 assert.match(noBundle.bundleNotice, /HTTP 404/u, "the notice says why");
-const countBundleFree = countJev(page);
+const countBundleFree = countJudge(page);
 await page.locator("button[data-revert]").first().click();
 await settle(page);
 await press(page, "#apply");
@@ -847,7 +845,7 @@ const productBytes = appliedWithoutBundle.stored;
 await page.evaluate(key => localStorage.removeItem(key), ALTERNATE_KEY);
 const alternateConfig = JSON.stringify({ ...servedConfig, persistence: { ...servedConfig.persistence, key: ALTERNATE_KEY } });
 await page.route(CONFIG_URL, route => route.fulfill({ status: 200, contentType: "application/json; charset=utf-8", body: alternateConfig }), { times: 2 });
-const noJevForKey = countJev(page);
+const noJevForKey = countJudge(page);
 await page.reload({ waitUntil: "commit" });
 await ready(page);
 const underAlternate = await screen(page);
@@ -1025,7 +1023,7 @@ const edgeC = edgeOf(typedC.decision.answers);
 const withOneStep = await screen(page);
 assert.deepEqual(withOneStep.draft, [`+${edgeC}`]);
 
-const blanks = countJev(page);
+const blanks = countJudge(page);
 for (const blank of ["", "   "]) {
   await page.locator("#text").fill(blank);
   await page.locator("#send").click();
@@ -1115,11 +1113,11 @@ await type(page, "add an edge from c to a");
 assert.deepEqual((await screen(page)).draft, [`+${edgeC}`]);
 let releaseJev;
 const heldJev = new Promise(resolve => { releaseJev = resolve; });
-await page.route(jevUrl, async route => {
+await page.route(judgeUrl, async route => {
   await heldJev;
   await route.continue();
 }, { times: 1 });
-const held = jevExchange(page);
+const held = judgeExchange(page);
 await page.locator("#text").fill("add an edge from b to c");
 await page.locator("#send").click();
 const heldRequest = await held.request;
@@ -1171,14 +1169,14 @@ const assertUnmoved = async (label, now, contextBefore = idle.context) => {
 let releaseLate;
 const late = new Promise(resolve => { releaseLate = resolve; });
 let lateRoute;
-await page.route(jevUrl, async route => {
+await page.route(judgeUrl, async route => {
   lateRoute = route;
   await late;
   await route.continue().catch(() => {});
 }, { times: 1 });
 // Only the request is awaited: this one gets no response.
 const hung = page.waitForRequest(
-  value => new URL(value.url()).pathname === "/api/jev" && value.method() === "POST",
+  value => new URL(value.url()).pathname === "/api/judge" && value.method() === "POST",
   { timeout: 120000 },
 );
 await page.locator("#text").fill("add an edge from b to c");
@@ -1212,8 +1210,8 @@ assert.deepEqual(withoutSeq(beforeTimeout.context).at(-1), heardAs(retried, "typ
 // (xi-c) The Function's own answer when the provider hangs: 504
 // provider_timeout. The page reports it and gives everything back the same way.
 const beforeTimeoutAnswer = failedResponses.length;
-await page.route(jevUrl, route => fulfil(route, { error: "provider_timeout" }, 504), { times: 1 });
-const timeoutAnswer = jevExchange(page);
+await page.route(judgeUrl, route => fulfil(route, { error: "provider_timeout" }, 504), { times: 1 });
+const timeoutAnswer = judgeExchange(page);
 await page.locator("#text").fill("add an edge from b to c");
 await page.locator("#send").click();
 await timeoutAnswer.request;
@@ -1223,7 +1221,7 @@ const reported = await screen(page);
 assert.equal(reported.state, "failed");
 assert.match(reported.failure ?? "", /provider_timeout/u);
 await assertUnmoved("a provider timeout", reported, beforeTimeout.context);
-assert.deepEqual(failedResponses.splice(beforeTimeoutAnswer), [`504 ${jevUrl}`]);
+assert.deepEqual(failedResponses.splice(beforeTimeoutAnswer), [`504 ${judgeUrl}`]);
 
 const retriedAgain = await type(page, "add an edge from b to c");
 assert.deepEqual((await screen(page)).draft, [`+${edgeC}`, `+${edgeOf(retriedAgain.decision.answers)}`]);
@@ -1258,9 +1256,9 @@ const noteRefusedDrawing = request => {
   if (request.url() === embedDocument) refusedDrawing.push(request.failure()?.errorText ?? "failed");
 };
 page.on("requestfailed", noteRefusedDrawing);
-await page.route(jevUrl, addUnusedEdge, { times: 1 });
+await page.route(judgeUrl, addUnusedEdge, { times: 1 });
 await page.route(embedDocument, route => route.abort("failed"), { times: 1 });
-const undrawnStep = jevExchange(page);
+const undrawnStep = judgeExchange(page);
 await page.locator("#text").fill("add an edge the pane cannot draw");
 await page.locator("#send").click();
 await undrawnStep.request;
@@ -1290,8 +1288,8 @@ assert.deepEqual(controlsOf(keptMap), controlsOf(beforeUndrawnStep), "every cont
 assert.equal(await page.locator("#text").inputValue(), "add an edge the pane cannot draw", "the text stays for the next press");
 await shownMap.dispose();
 
-await page.route(jevUrl, addUnusedEdge, { times: 1 });
-const drawnStep = jevExchange(page);
+await page.route(judgeUrl, addUnusedEdge, { times: 1 });
+const drawnStep = judgeExchange(page);
 await page.locator("#send").click();
 await drawnStep.request;
 assert.equal((await drawnStep.response).status(), 200, "precondition: the retried step reached the page");
@@ -1320,7 +1318,7 @@ assert.match(full.draftCount, /上限/u);
 assert.ok(full.revertDisabled.every(Boolean), "revert must be disabled at the cap");
 assert.equal(full.applyDisabled, false);
 
-const atCap = countJev(page);
+const atCap = countJudge(page);
 await page.locator("#text").fill("add an edge from b to c");
 await page.locator("#send").click();
 await settle(page);
@@ -1850,8 +1848,8 @@ const CRAFTED = {
   anchor: { type: "choice", choice: anchorId, confidence: 0.87 },
   direction: { type: "choice", choice: "left", confidence: 0.93 },
 };
-await page.route(jevUrl, answerFrom(CRAFTED), { times: 1 });
-const diagExchange = jevExchange(page);
+await page.route(judgeUrl, answerFrom(CRAFTED), { times: 1 });
+const diagExchange = judgeExchange(page);
 await page.locator("#text").fill("この部品をその隣に置いて");
 await page.locator("#send").click();
 await diagExchange.request;
@@ -1861,7 +1859,7 @@ await settle(page);
 const diagnosed = await screen(page);
 assert.equal(diagnosed.state, "no-change", "a slot under the floor is a no change");
 assert.deepEqual(diagnosed.diagnostic, {
-  diag: "jev-no-change",
+  diag: "judge-no-change",
   diagOutcome: "no-change",
   diagPlaceable: String(offeredAtDiag.length),
   diagPlaceOffered: "yes",
@@ -1901,8 +1899,8 @@ await dropPending();
 // The measured real turn itself, replayed with its own confidences: action
 // 0.94, move 0.86, anchor 0.39, direction 0.97. Only the neighbour is named.
 const measuredTurn = async (answers, text) => {
-  await page.route(jevUrl, answerFrom({ ...CRAFTED, ...answers }), { times: 1 });
-  const exchange = jevExchange(page);
+  await page.route(judgeUrl, answerFrom({ ...CRAFTED, ...answers }), { times: 1 });
+  const exchange = judgeExchange(page);
   await page.locator("#text").fill(text);
   await page.locator("#send").click();
   await exchange.request;
@@ -1941,8 +1939,8 @@ assert.equal(selfAnchor.pending, null, "a part beside itself is never held");
 
 // Not eligible for naming one piece: the placement action itself was unsure.
 // The whole instruction is asked for again instead.
-await page.route(jevUrl, answerFrom({ ...CRAFTED, action: { type: "choice", choice: "place-part", confidence: 0.41 } }), { times: 1 });
-const restateExchange = jevExchange(page);
+await page.route(judgeUrl, answerFrom({ ...CRAFTED, action: { type: "choice", choice: "place-part", confidence: 0.41 } }), { times: 1 });
+const restateExchange = judgeExchange(page);
 await page.locator("#text").fill("この部品をその隣に置いて");
 await page.locator("#send").click();
 await restateExchange.request;
@@ -1961,13 +1959,13 @@ assert.deepEqual(diagnosed.storageKeys, appliedPlacement.storageKeys, "and adds 
 // Replaced on the next turn rather than accumulating: the same crafted route,
 // this time a confident "none", so every value must change together and nothing
 // from the previous turn may survive.
-await page.route(jevUrl, answerFrom({
+await page.route(judgeUrl, answerFrom({
   action: { type: "choice", choice: "none", confidence: 0.99 },
   move: { type: "choice", choice: "none", confidence: 0.99 },
   anchor: { type: "choice", choice: "none", confidence: 0.99 },
   direction: { type: "choice", choice: "none", confidence: 0.99 },
 }), { times: 1 });
-const replacedExchange = jevExchange(page);
+const replacedExchange = judgeExchange(page);
 await page.locator("#text").fill("なんでもない");
 await page.locator("#send").click();
 await replacedExchange.request;
@@ -1975,7 +1973,7 @@ await settle(page);
 const replaced = await screen(page);
 assert.equal(replaced.state, "no-change");
 assert.deepEqual(replaced.diagnostic, {
-  diag: "jev-no-change",
+  diag: "judge-no-change",
   diagOutcome: "no-change",
   diagPlaceable: String(offeredAtDiag.length),
   diagPlaceOffered: "yes",
@@ -1991,7 +1989,7 @@ assert.equal(Object.keys(replaced.diagnostic).length, Object.keys(diagnosed.diag
 // (xvi-d) One-slot repair, in the real app. The first turn of each pair is the
 // measured near-placement answered from the test - the real trigger depends on
 // speech recognition and cannot be reproduced on demand. Where a second turn is
-// marked real, Jev itself judges it, with the pending placement in the request.
+// marked uncontrolled, the endpoint answers it, with the pending placement in the request.
 const NEAR = {
   action: { type: "choice", choice: "place-part", confidence: 0.94 },
   move: { type: "choice", choice: moveId, confidence: 0.86 },
@@ -2049,7 +2047,7 @@ await dropPending();
 
 // A blank input is not an utterance: no request, nothing spent.
 await nearTurn();
-const blankJev = countJev(page);
+const blankJev = countJudge(page);
 await page.locator("#text").fill("");
 await page.locator("#send").click();
 await settle(page);
@@ -2057,9 +2055,9 @@ blankJev.stop();
 assert.equal(blankJev.count, 0, "a blank input sends nothing to Jev");
 assert.equal((await screen(page)).pending, "anchor", "and leaves the held piece alone");
 
-// Real Jev: the person names only the neighbour. Jev hears it with the pending
+// Uncontrolled network judgment: the person names only the neighbour. Jev hears it with the pending
 // placement in the request, and the placement is completed on 作業図 only.
-const repairJev = jevExchange(page);
+const repairJev = judgeExchange(page);
 await page.locator("#text").fill(`相手は${anchorId}です`);
 await page.locator("#send").click();
 const repairRequest = JSON.parse((await repairJev.request).postData());
@@ -2071,7 +2069,7 @@ assert.deepEqual(repairRequest.state.pending, { missing: "anchor", move: moveId,
 assert.equal(JSON.stringify(repairRequest.state.pending).includes("一を濃度A"), false);
 const repaired = await screen(page);
 assert.equal(repaired.state, "drafted",
-  `the real Jev reply must complete the placement: ${repaired.status} ${JSON.stringify(repaired.diagnostic)}`);
+  `the uncontrolled network judgment reply must complete the placement: ${repaired.status} ${JSON.stringify(repaired.diagnostic)}`);
 assert.equal(repaired.pending, null, "the one repair is spent");
 assert.deepEqual(repaired.draft, [`~${moveId}`]);
 assert.deepEqual({
@@ -2134,7 +2132,7 @@ assert.equal(selfRepair.pending, null);
 
 // The held piece belongs to the exact picture it was said against. The window
 // narrows a little between hold and reply - every part still on the pane, only
-// the frame different - and the reply goes to the real Jev through the real
+// the frame different - and the reply goes to the uncontrolled network judgment through the real
 // server. It must not carry the held piece, must pass the server's own request
 // check (200, never 422), and must come back as an explicit no-change that
 // says why, with the piece spent.
@@ -2150,7 +2148,7 @@ for (let attempt = 0; attempt < 40 && frameMoved === null; attempt += 1) {
 }
 assert.notEqual(frameMoved, null, `precondition: the pane's frame changed from ${JSON.stringify(frameHeld)}`);
 const failedBeforeMoved = failedResponses.length;
-const movedJev = jevExchange(page);
+const movedJev = judgeExchange(page);
 await page.locator("#text").fill(`相手は${anchorId}です`);
 await page.locator("#send").click();
 const movedRequest = JSON.parse((await movedJev.request).postData());
@@ -2159,7 +2157,7 @@ await settle(page);
 assert.equal(movedRequest.kind, REQUEST_KIND);
 assert.equal(movedRequest.state.pending, null, "a held piece from another picture is never sent");
 assert.equal(movedResponse.status(), 200, "the request passes the server's check - no 422");
-assert.ok(await realAnswer(movedResponse), "answered by the real Jev: a qualifying answer the test did not intercept");
+assert.ok(await uncontrolledAnswer(movedResponse), "answered by the uncontrolled network judgment: a qualifying answer the test did not intercept");
 const movedReply = await screen(page);
 assert.equal(movedReply.state, "no-change", `an explicit no-change, not a failure: ${movedReply.status}`);
 assert.equal(movedReply.status, "type: no change - 図が変わったので補えませんでした。指示全体をもう一度言ってください");
@@ -2263,8 +2261,8 @@ assert.equal((await screen(page)).pending, null, "a reload drops it");
 
 // A provider timeout after the request still spends the one repair.
 await nearTurn();
-await page.route(jevUrl, route => fulfil(route, { error: "provider_timeout" }, 504), { times: 1 });
-const timeoutRepair = jevExchange(page);
+await page.route(judgeUrl, route => fulfil(route, { error: "provider_timeout" }, 504), { times: 1 });
+const timeoutRepair = judgeExchange(page);
 await page.locator("#text").fill(`相手は${anchorId}です`);
 await page.locator("#send").click();
 await timeoutRepair.request;
@@ -2273,17 +2271,17 @@ await settle(page);
 // provider, and it is reported as that - not as a verdict on what was said.
 const timedOut = await screen(page);
 assert.equal(timedOut.state, "failed");
-assert.equal(timedOut.status, "type: failed - Jev request failed", "a transport failure, named as the Jev request, not a repair no-change");
+assert.equal(timedOut.status, "type: failed - the judgment binding request failed", "a transport failure, named as the Jev request, not a repair no-change");
 assert.match(timedOut.failure ?? "", /provider_timeout/u, "naming the provider timeout");
 assert.equal(/聞き取れませんでした|補えませんでした/u.test(`${timedOut.status} ${timedOut.failure}`), false,
   "and never dressed up as a repair reason");
 assert.equal(timedOut.pending, null, "a timed-out repair is spent all the same");
-assert.deepEqual(failedResponses.splice(0), [`504 ${jevUrl}`], "the only failed response is the one crafted here");
+assert.deepEqual(failedResponses.splice(0), [`504 ${judgeUrl}`], "the only failed response is the one crafted here");
 
 // A voice first utterance and a typed reply. The microphone press is real - the
 // fixture audio through the real recognizer - and only its Jev answer is
 // crafted as the near-placement; the typed reply's answer is crafted too.
-await page.route(jevUrl, answerFrom({ ...CRAFTED, ...NEAR }), { times: 1 });
+await page.route(judgeUrl, answerFrom({ ...CRAFTED, ...NEAR }), { times: 1 });
 const spokenNear = await speak(page);
 const heardText = spokenNear.sent.state.utterance;
 assert.equal((await screen(page)).pending, "anchor", "a spoken near-placement is held the same way");
@@ -2320,12 +2318,12 @@ const confidentPlace = sent => {
 const heldTurn = async (text, whileHeld, undo) => {
   let release;
   const gate = new Promise(resolve => { release = resolve; });
-  await page.route(jevUrl, async route => {
+  await page.route(judgeUrl, async route => {
     await gate;
     const sent = JSON.parse(route.request().postData());
     await fulfil(route, craftFor(sent, confidentPlace(sent)));
   }, { times: 1 });
-  const exchange = jevExchange(page);
+  const exchange = judgeExchange(page);
   await page.locator("#text").fill(text);
   await page.locator("#send").click();
   await exchange.request;
@@ -2379,25 +2377,25 @@ assert.deepEqual(await boxes(page, "working"), workingBeforeHeld, "neither turn 
 // what is on screen - or the conversation - removes it, so a later reading can
 // never pin an old turn on a new screen.
 const noChangeTurn = async text => {
-  await page.route(jevUrl, answerFrom({
+  await page.route(judgeUrl, answerFrom({
     action: { type: "choice", choice: "none", confidence: 0.99 },
     move: { type: "choice", choice: "none", confidence: 0.99 },
     anchor: { type: "choice", choice: "none", confidence: 0.99 },
     direction: { type: "choice", choice: "none", confidence: 0.99 },
   }), { times: 1 });
-  const exchange = jevExchange(page);
+  const exchange = judgeExchange(page);
   await page.locator("#text").fill(text);
   await page.locator("#send").click();
   await exchange.response;
   await settle(page);
-  assert.equal((await screen(page)).diagnostic.diag, "jev-no-change", `precondition: ${text} left a diagnostic`);
+  assert.equal((await screen(page)).diagnostic.diag, "judge-no-change", `precondition: ${text} left a diagnostic`);
 };
 const partStep = async text => {
-  await page.route(jevUrl, answerFrom({
+  await page.route(judgeUrl, answerFrom({
     action: { type: "choice", choice: "add-part", confidence: 0.95 },
     part: { type: "choice", choice: "decision", confidence: 0.95 },
   }), { times: 1 });
-  const exchange = jevExchange(page);
+  const exchange = judgeExchange(page);
   await page.locator("#text").fill(text);
   await page.locator("#send").click();
   await exchange.response;
@@ -2446,7 +2444,7 @@ assert.deepEqual(tallBefore.draft, [], "precondition: nothing unapplied");
 const addDecision = { action: { type: "choice", choice: "add-part", confidence: 0.95 },
   part: { type: "choice", choice: "decision", confidence: 0.95 } };
 for (let index = 0; index < 4; index += 1) {
-  await page.route(jevUrl, answerFrom(addDecision), { times: 1 });
+  await page.route(judgeUrl, answerFrom(addDecision), { times: 1 });
   await type(page, `add decision number ${index + 1} to the tall graph`);
   assert.equal((await screen(page)).state, "drafted", "each crafted part is one working step");
   const cells = await boxes(page, "working");
@@ -2469,7 +2467,7 @@ assert.notEqual(tall, null, "precondition: a shorter window leaves some parts pa
 
 // The offer. The request is built from the frame read as it is sent: exactly
 // the parts wholly inside it, whatever the layout contract or the cells say.
-await page.route(jevUrl, answerFrom({ action: { type: "choice", choice: "none", confidence: 0.99 } }), { times: 1 });
+await page.route(judgeUrl, answerFrom({ action: { type: "choice", choice: "none", confidence: 0.99 } }), { times: 1 });
 const frameAsked = (await visibleFrame(page, "working")).frame;
 const cellsAsked = await boxes(page, "working");
 const askedTall = await type(page, "which parts can I see now");
@@ -2489,10 +2487,10 @@ assert.ok(inMarginBand.length > 0,
 const narrowFrom = page.viewportSize();
 let releaseNarrow;
 const narrowAnswer = new Promise(resolve => { releaseNarrow = resolve; });
-await page.route(jevUrl, async route => {
+await page.route(judgeUrl, async route => {
   await fulfil(route, craftFor(JSON.parse(route.request().postData()), await narrowAnswer));
 }, { times: 1 });
-const narrowExchange = jevExchange(page);
+const narrowExchange = judgeExchange(page);
 await page.locator("#text").fill("put that one beside the other");
 await page.locator("#send").click();
 const narrowSent = JSON.parse((await narrowExchange.request).postData());
@@ -2577,7 +2575,7 @@ assert.notEqual(frameBack, null, "the pane returns to the frame the request was 
 for (const [id, cell] of Object.entries(await boxes(page, "working"))) {
   assert.deepEqual(cell.box, cellsWide[id]?.box, `${id} is where it was when the request was asked`);
 }
-await page.route(jevUrl, answerFrom(placeCut), { times: 1 });
+await page.route(judgeUrl, answerFrom(placeCut), { times: 1 });
 await type(page, "put that one beside the other again");
 const wideScreen = await screen(page);
 assert.equal(wideScreen.state, "drafted", `with the anchor on the pane it is a placement: ${wideScreen.status}`);
@@ -2614,9 +2612,9 @@ const raceEdge = nth => async route => {
     target: { type: "choice", choice: to, confidence: 0.95 },
   }));
 };
-await page.route(jevUrl, raceEdge(0), { times: 1 });
+await page.route(judgeUrl, raceEdge(0), { times: 1 });
 await type(page, "race step on the first page");
-await racer.route(jevUrl, raceEdge(1), { times: 1 });
+await racer.route(judgeUrl, raceEdge(1), { times: 1 });
 await type(racer, "race step on the second page");
 assert.equal((await screen(page)).draft.length, 1, "precondition: the first page has one step");
 assert.equal((await screen(racer)).draft.length, 1, "precondition: the second page has one step");
@@ -2672,7 +2670,7 @@ assert.deepEqual(await panes(page), { confirmed: [voiceEdge], working: [voiceEdg
 const beforeRefusal = await screen(page);
 const panesBeforeRefusal = await panes(page);
 const refusalFrom = (await voiceTrace(page)).length;
-const refusalJev = countJev(page);
+const refusalJev = countJudge(page);
 await page.evaluate(() => { window.failNextMicrophone = true; });
 await page.locator("#mic").click();
 await settle(page);
@@ -2681,7 +2679,7 @@ refusalJev.stop();
 const refused = await screen(page);
 const refusalTrace = await voiceTrace(page, refusalFrom);
 assert.equal(refused.state, "failed");
-assert.match(refused.failure ?? "", /microphone refused by the test/u);
+assert.match(refused.failure ?? "", /transcription_failed/u);
 assert.deepEqual(voicePhases(refusalTrace).map(entry => entry.kind), ["voice:preparing", "voice:idle"],
   "a refused microphone must never ask the user to speak");
 assert.equal(refusalTrace.some(entry => entry.kind === "text-focus"), false);
@@ -2766,7 +2764,7 @@ fullRunSummary = {
     + `at head ${frameBefore.head.slice(0, 14)}, panes equal at ${widths.working}px; `
     + `ceiling in the same run: ${JSON.stringify(ceilingSpot)} is outside that frame - ${offscreenGuard}; `
     + "Apply and reload draw it in the same place in both panes, revert puts it back drawn "
-    + `| one-slot repair: real Jev completed "相手は${anchorId}です" into ${moveId} above ${anchorId}, `
+    + `| one-slot repair: uncontrolled network judgment completed "相手は${anchorId}です" into ${moveId} above ${anchorId}, `
     + "both texts shown with their sources, blank not spent, failure/self/unrelated/timeout each drop it, "
     + "Undo/Discard/Apply/Revert/reload each drop it; a held piece is dropped once the pane changes "
     + "| diagnostic: frame ok, null (pane hidden) and head-mismatch (pane on another head) each named on a held turn; "
@@ -2789,7 +2787,7 @@ fullRunSummary = {
 }
 
 // (xix) A whole diagram by purpose. A fresh browser, so the proof starts from
-// a freshly stored fixture. Every Jev answer in this section is the real Jev's.
+// a freshly stored fixture. Every Jev answer in this section is the uncontrolled network judgment's.
 // The diagram's roles, steps, labels and links are the DataBundle's; Jev only
 // chooses an offered key, or none.
 const third = await openBrowser(wav);
@@ -2863,9 +2861,9 @@ assert.equal(aws.sent.kind, REQUEST_KIND);
 assert.deepEqual(aws.sent.state.offers.diagrams.map(offer => offer.key), ["request-approval-flow"],
   "the page offers its diagrams by key and purpose");
 assert.equal(JSON.stringify(aws.sent).includes("申請者"), false, "and never their contents");
-assert.ok(aws.real, "answered by the real Jev: a qualifying answer the test did not intercept");
+assert.ok(aws.uncontrolled, "answered by the uncontrolled network judgment: a qualifying answer the test did not intercept");
 assert.notEqual(aws.decision.answers.diagram.choice, "request-approval-flow",
-  `the real Jev must not pass an AWS diagram off as the approval flow: ${JSON.stringify(aws.decision.answers)}`);
+  `the uncontrolled network judgment must not pass an AWS diagram off as the approval flow: ${JSON.stringify(aws.decision.answers)}`);
 const awsScreen = await screen(page);
 assert.equal(awsScreen.state, "no-change", `an unsupported diagram changes nothing: ${awsScreen.status}`);
 assert.deepEqual(awsScreen.draft, []);
@@ -2873,9 +2871,9 @@ assert.equal(awsScreen.stored, diagramStart.stored);
 
 // The purpose-level request: no part, side or link is named.
 const asked = await type(page, "申請して承認してもらう流れを図にして");
-assert.ok(asked.real, "answered by the real Jev: a qualifying answer the test did not intercept");
+assert.ok(asked.uncontrolled, "answered by the uncontrolled network judgment: a qualifying answer the test did not intercept");
 assert.equal(asked.decision.answers.action.choice, "compose-diagram",
-  `the real Jev must hear a whole diagram: ${JSON.stringify(asked.decision.answers)}`);
+  `the uncontrolled network judgment must hear a whole diagram: ${JSON.stringify(asked.decision.answers)}`);
 assert.equal(asked.decision.answers.diagram.choice, "request-approval-flow");
 const diagramDrafted = await screen(page);
 assert.equal(diagramDrafted.state, "drafted", `the diagram is drafted: ${diagramDrafted.status}`);
@@ -3037,9 +3035,9 @@ if (fixtureOffPane.length > 0) {
 }
 
 // A lane is a container, never an endpoint: the next request does not offer
-// it, and a real Jev asked for an arrow from it drafts nothing.
+// it, and a uncontrolled network judgment asked for an arrow from it drafts nothing.
 const laneLink = await type(page, `${laneA} から ${stepSubmit} へ矢印を足して`);
-assert.ok(laneLink.real, "answered by the real Jev: a qualifying answer the test did not intercept");
+assert.ok(laneLink.uncontrolled, "answered by the uncontrolled network judgment: a qualifying answer the test did not intercept");
 const laneOffer = laneLink.sent.state.graph;
 const offeredIds = laneOffer.regions.map(region => region.id);
 for (const lane of [laneA, laneB]) {
@@ -3060,7 +3058,7 @@ await assertFirstScreen("after the lane request");
 // The draft is refined like any other graph: a link back, named by its parts.
 const refined = await type(page, `${stepReview} から ${stepSubmit} へ差し戻しの矢印を足して`);
 assert.equal(refined.decision.answers.action.choice, "add-edge",
-  `the real Jev must hear one more link: ${JSON.stringify(refined.decision.answers)}`);
+  `the uncontrolled network judgment must hear one more link: ${JSON.stringify(refined.decision.answers)}`);
 const refinedScreen = await screen(page);
 assert.equal(refinedScreen.state, "drafted", refinedScreen.status);
 assert.deepEqual(refinedScreen.draft.at(-1), `+${stepReview}->${stepSubmit}`);
@@ -3091,7 +3089,7 @@ await assertFirstScreen("after both Undos");
 // Asked again, it is composed under new names; then applied and reloaded.
 const again = await type(page, "申請と承認の流れの図を作ってください");
 assert.equal(again.decision.answers.diagram.choice, "request-approval-flow",
-  `the real Jev must choose the approval flow again: ${JSON.stringify(again.decision.answers)}`);
+  `the uncontrolled network judgment must choose the approval flow again: ${JSON.stringify(again.decision.answers)}`);
 const againScreen = await screen(page);
 assert.equal(againScreen.state, "drafted", againScreen.status);
 const againRegions = [...againScreen.draft[0].matchAll(/\+(part-\d+)「/gu)].map(match => match[1]);
@@ -3143,7 +3141,7 @@ const diagramSummary = `unsupported "AWS の構成図を作って" -> ${awsScree
 await third.browser.close();
 
 // (xx) The same purpose request in a 1366x657 window - a common laptop's inner
-// height - from a fresh browser and a freshly stored fixture. Real Jev for the
+// height - from a fresh browser and a freshly stored fixture. Uncontrolled network judgment for the
 // composition and the refinement; the placed-part counterexample afterwards is
 // crafted, because what it tests is the app's own refusal, not Jev's hearing.
 const fourth = await openBrowser(wav);
@@ -3158,9 +3156,9 @@ const laptopScreen = await firstScreen(page);
 assert.equal(laptopScreen.scrollY, 0);
 assert.deepEqual(laptopScreen.unreachable, [], `1366x657 first screen: ${JSON.stringify(laptopScreen)}`);
 const laptopAsked = await type(page, "申請して承認してもらう流れを図にして");
-assert.ok(laptopAsked.real, "answered by the real Jev: a qualifying answer the test did not intercept");
+assert.ok(laptopAsked.uncontrolled, "answered by the uncontrolled network judgment: a qualifying answer the test did not intercept");
 assert.equal(laptopAsked.decision.answers.diagram.choice, "request-approval-flow",
-  `the real Jev must choose the approval flow: ${JSON.stringify(laptopAsked.decision.answers)}`);
+  `the uncontrolled network judgment must choose the approval flow: ${JSON.stringify(laptopAsked.decision.answers)}`);
 const laptopDrafted = await screen(page);
 assert.equal(laptopDrafted.state, "drafted", laptopDrafted.status);
 const laptopRegions = [...laptopDrafted.draft[0].matchAll(/\+(part-\d+)「/gu)].map(match => match[1]);
@@ -3187,7 +3185,7 @@ const laptopSeen = async when => {
 const laptopComposed = await laptopSeen("1366x657 after the purpose request");
 const laptopRefined = await type(page, `${laptopReview} から ${laptopSubmit} へ差し戻しの矢印を足して`);
 assert.equal(laptopRefined.decision.answers.action.choice, "add-edge",
-  `the real Jev must hear one more link: ${JSON.stringify(laptopRefined.decision.answers)}`);
+  `the uncontrolled network judgment must hear one more link: ${JSON.stringify(laptopRefined.decision.answers)}`);
 assert.equal((await screen(page)).state, "drafted");
 const laptopAfter = await laptopSeen("1366x657 after the refinement");
 assert.deepEqual(laptopAfter.tops, laptopComposed.tops, "neither graph moved with the refinement");
@@ -3195,7 +3193,7 @@ assert.deepEqual(laptopAfter.tops, laptopComposed.tops, "neither graph moved wit
 // A diagram is never drawn over a part the person placed: node-c put beside
 // node-a, into the space the bands would take, then the same diagram asked for.
 await press(page, "#discard");
-await page.route(jevUrl, answerFrom({
+await page.route(judgeUrl, answerFrom({
   action: { type: "choice", choice: "place-part", confidence: 0.95 },
   move: { type: "choice", choice: "node-c", confidence: 0.95 },
   anchor: { type: "choice", choice: "node-a", confidence: 0.95 },
@@ -3206,7 +3204,7 @@ const placedFirst = await screen(page);
 assert.equal(placedFirst.state, "drafted",
   `precondition: node-c is placed: ${placedFirst.status} | page failure: ${placedFirst.failure}`);
 const cellsPlaced = await boxes(page, "working");
-await page.route(jevUrl, answerFrom({
+await page.route(judgeUrl, answerFrom({
   action: { type: "choice", choice: "compose-diagram", confidence: 0.95 },
   diagram: { type: "choice", choice: "request-approval-flow", confidence: 0.95 },
 }), { times: 1 });
@@ -3218,7 +3216,7 @@ assert.match(noRoom.status, /図を置く場所にほかの部品があります
 assert.deepEqual(noRoom.draft, placedFirst.draft, "the draft is untouched");
 assert.deepEqual(await boxes(page, "working"), cellsPlaced, "and nothing on the screen moved");
 assert.equal(noRoom.stored, laptopStart.stored, "nothing was saved");
-const laptopSummary = `1366x657 (fresh browser, real Jev): "${laptopAsked.sent.state.utterance}" -> bands `
+const laptopSummary = `1366x657 (fresh browser, uncontrolled network judgment): "${laptopAsked.sent.state.utterance}" -> bands `
   + `${JSON.stringify(laptopBands.lanes)}, steps at x ${laptopBands.xs.join(" < ")}, every lane and step and its label 9/9 `
   + `before and after the real refinement ${laptopReview}->${laptopSubmit}, never scrolled, equal pane frames; `
   + `a crafted compose over a placed node-c -> "${noRoom.status}", nothing drawn`;
@@ -3230,13 +3228,15 @@ for (const input of inputsSent) {
   assert.equal(consoleMessages.some(message => message.includes(input)), false, `an input was logged to the console: ${input}`);
 }
 await Promise.all(pendingCounts);
-assert.deepEqual(unparsable, [], "every /api/jev 200 is the current success shape");
+assert.deepEqual(unparsable, [], "every /api/judge 200 is the current success shape");
 assert.ok(intercepted > 0, "precondition: the crafted turns were answered and counted at the interception");
-const real = qualifying - intercepted;
-assert.ok(real > 0, `REAL evidence is required: ${qualifying} qualifying answers, ${intercepted} of them intercepted`);
+const uncontrolled = qualifying - intercepted;
+assert.ok(uncontrolled > 0, `UNCONTROLLED_NETWORK evidence is required: ${qualifying} qualifying answers, ${intercepted} of them intercepted`);
 assert.notEqual(fullRunSummary, null, "the run reached the end of section (xviii)");
 
-const diagramParts = `| REAL ${real} Jev answers in this run (${qualifying} qualifying, ${intercepted} intercepted by the test) `
-  + `| whole diagram (fresh browser, real Jev): ${diagramSummary} `
+const diagramParts = `| UNCONTROLLED_NETWORK ${uncontrolled} network answers in this run (${qualifying} qualifying, ${intercepted} intercepted by the test) `
+  + `| whole diagram (fresh browser, uncontrolled network judgment): ${diagramSummary} `
   + `| ${laptopSummary} `;
+// Network structure is not upstream identity/authentication evidence.
+process.stdout.write("provider identity/authentication: NOT_PROVEN; live microphone and whole-product acceptance: NOTRUN; scenario PASS is not provider PASS\n");
 process.stdout.write(`local-voice-graph-e2e: PASS ${fullRunSummary.head}${diagramParts}${fullRunSummary.tail}`);

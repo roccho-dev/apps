@@ -5,7 +5,7 @@ import test from "node:test";
 import { fileURLToPath, pathToFileURL } from "node:url";
 
 import { readBundle } from "../src/bundle.mjs";
-import { ACTION_ADD_EDGE, ACTION_ADD_PART, ACTION_PLACE_PART, ACTION_UNDO_REQUEST, DRAFT_MAX, NONE } from "../src/contract.mjs";
+import { ACTION_ADD_EDGE, ACTION_ADD_PART, ACTION_PLACE_PART, ACTION_UNDO_REQUEST, DECISION_KIND, DRAFT_MAX, NONE, slotsFor } from "../src/contract.mjs";
 import { COMMIT_COMMITTED, MAP_ID, STATE_SCHEMA, commitLog, statesOf } from "../src/log.mjs";
 import {
   appendRevert,
@@ -21,7 +21,7 @@ import {
   startNew,
   undo,
 } from "../src/session.mjs";
-import { OUTCOME_NO_CHANGE, OUTCOME_REFUSED, OUTCOME_STEP, pendingForJev, requestFor, revertStep } from "../src/turn.mjs";
+import { OUTCOME_NO_CHANGE, OUTCOME_REFUSED, OUTCOME_STEP, pendingForJudgment, requestFor, revertStep } from "../src/turn.mjs";
 
 const store = process.env.SEMANTIC_MAP;
 if (!store) throw new Error("SEMANTIC_MAP must point at the pinned semantic-map store path");
@@ -63,7 +63,7 @@ const say = async (session, picks, { text = "said", source = "typed", layout = f
     offeredFrame: layout ? WIDE : null,
     draft: spent.draft.map(item => item.step),
     focus: null,
-    pending: held === null ? null : pendingForJev(held.intent),
+    pending: held === null ? null : pendingForJudgment(held.intent),
     recent: recentConversation(spent).recent,
   });
   const answers = Object.fromEntries(Object.keys(turn.slots).map(name => [
@@ -233,4 +233,24 @@ test("the conversation window is the last five short enough to send; longer ones
   assert.deepEqual(recent.map(entry => entry.text), ["t2", "t3", "t4", "t5", "t6"]);
   assert.equal(skipped, 1);
   assert.deepEqual(recentConversation(clearConversation(session)), { recent: [], skipped: 0 });
+});
+
+test("independent transcription and judgment bindings preserve the same session meaning and saved world", async () => {
+  // Independent call-shape implementations: no concrete ASR/provider module,
+  // authentication, network, or original judgment implementation is called.
+  const transcribe = async () => "a to b";
+  const judge = async input => ({ kind: "answered", decision: { kind: DECISION_KIND, answers: Object.fromEntries(Object.keys(slotsFor(input.state)).map(name => [name, choice(({ action: ACTION_ADD_EDGE, source: "node-a", target: "node-b" })[name] ?? NONE)])) } });
+  const original = await opened();
+  const expected = await say(original, { action: ACTION_ADD_EDGE, source: "node-a", target: "node-b" }, { text: "a to b", source: "voice" });
+  const text = await transcribe();
+  const { request, turn } = requestFor({ working: original.working, utterance: text, bundle, layout: null, offeredFrame: null, draft: [], focus: null, pending: null, recent: [] });
+  const answer = await judge(request);
+  const actual = await propose(original, { turn, answers: answer.decision.answers, protocol, bundle, layout: null, visibleFrame: null, input: { source: "voice", text }, repair: null });
+  assert.deepEqual(actual.result, expected.result); assert.deepEqual(actual.session.conversation, expected.session.conversation);
+  assert.equal(actual.session.working.log, expected.session.working.log);
+  const origin = storage(original.stored);
+  const committed = await apply(actual.session, { commit: origin.commit });
+  assert.equal(committed.result.status, COMMIT_COMMITTED);
+  assert.equal(origin.values.get(HISTORY_KEY), expected.session.working.log);
+  assert.equal((await verifyDecisionLog(origin.values.get(HISTORY_KEY))).head, expected.session.working.head);
 });

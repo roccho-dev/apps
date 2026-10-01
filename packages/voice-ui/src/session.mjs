@@ -5,7 +5,7 @@ import {
   OUTCOME_REFUSED,
   OUTCOME_STEP,
   appendStep,
-  changesForJev,
+  changesForJudgment,
   newMap,
   planStep,
   repairStep,
@@ -19,7 +19,7 @@ import {
 //   draft         each unapplied step with the input it was judged from
 //   pending       a placement held for exactly one more utterance, or null
 //   issuedPartIds every part name this page has handed out, never reused
-//   conversation  every utterance Jev judged here, and what came of it
+//   conversation  every utterance the judgment binding judged here, and what came of it
 // Nothing here renders, stores or touches a browser; Apply is handed the one
 // durable write as a function.
 
@@ -67,7 +67,7 @@ const remember = (session, { source, text }, outcome, changes = null) => {
     source,
     text,
     outcome,
-    ...(changes === null ? {} : { effect: Object.freeze({ changes: changesForJev(changes) }) }),
+    ...(changes === null ? {} : { effect: Object.freeze({ changes: changesForJudgment(changes) }) }),
   });
   return freeze({ ...session, conversation: [...session.conversation, entry], nextSeq: session.nextSeq + 1 });
 };
@@ -156,7 +156,7 @@ export async function propose(session, { turn, answers, protocol, bundle, layout
   return appended;
 }
 
-// An utterance Jev judged whose step could not be kept.
+// An utterance the judgment binding judged whose step could not be kept.
 export const noteRefused = (session, input) => remember(session, input, "refused");
 
 // A revert of a saved entry: one more unapplied step, with no input.

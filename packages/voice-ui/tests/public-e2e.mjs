@@ -17,6 +17,110 @@ assert.equal(served.status, 200, "the target serves its contract module");
 const contract = await import(`data:text/javascript;base64,${Buffer.from(await served.text()).toString("base64")}`);
 const { REQUEST_KIND, DECISION_KIND } = contract;
 
+if (process.argv[3] === "--binding-contract") {
+  // Controlled composition proof only: the actual app imports three independent
+  // bindings separately against one saved world; joint ownership is a fifth case.
+  // Network answers are controlled; no microphone or upstream provider runs.
+  const browser = await chromium.launch({ headless: true, channel: "chromium" });
+  try {
+    let seedLog = null;
+    const outcomes = [];
+    for (const variant of ["baseline", "asr", "judge", "ui", "joint"]) {
+    const swapAsr = variant === "asr" || variant === "joint";
+    const swapJudge = variant === "judge" || variant === "joint";
+    const swapUi = variant === "ui" || variant === "joint";
+    let apiCalls = 0;
+    const page = await browser.newPage();
+    await page.addInitScript(() => {
+      globalThis.fixtureServiceWorkerCalls = 0;
+      globalThis.fixtureMediaCalls = 0;
+      navigator.serviceWorker.register = () => { globalThis.fixtureServiceWorkerCalls += 1; throw new Error("fixture forbids service worker registration"); };
+      navigator.mediaDevices.getUserMedia = () => { globalThis.fixtureMediaCalls += 1; throw new Error("fixture forbids microphone acquisition"); };
+    });
+    const errors = [], resources = [];
+    page.on("pageerror", error => errors.push(String(error)));
+    page.on("request", request => resources.push(new URL(request.url()).pathname));
+    if (swapAsr) await page.route("**/adapters/transcription.mjs", route => route.fulfill({ contentType: "text/javascript", body: [
+      'export const createTranscription=()=>({onListening})=>new Promise(resolve=>{',
+      'document.body.dataset.fixtureCaptures=String(Number(document.body.dataset.fixtureCaptures||0)+1);',
+      'onListening();document.body.dataset.fixtureListening="yes";',
+      'window.addEventListener("fixture-text",event=>{delete document.body.dataset.fixtureListening;resolve(event.detail)},{once:true});});',
+    ].join("\n") }));
+    if (swapJudge) await page.route("**/adapters/judgment.mjs", route => route.fulfill({ contentType: "text/javascript", body: [
+      'import {isRequest,slotsFor,NONE,DECISION_KIND} from "/app/src/contract.mjs";',
+      'export const createJudgment=()=>async request=>{if(!isRequest(request))throw new Error("fixture invalid port request");',
+      'document.body.dataset.fixtureJudgments=String(Number(document.body.dataset.fixtureJudgments||0)+1);',
+      'const offered=slotsFor(request.state);const selected=request.state.utterance==="add edge"?{action:"add-edge",source:"node-a",target:"node-b"}:{};',
+      'return {kind:"answered",decision:{kind:DECISION_KIND,answers:Object.fromEntries(Object.keys(offered).map(name=>[name,{type:"choice",choice:selected[name]||NONE,confidence:.9}]))}};};',
+    ].join("\n") }));
+    if (swapUi) await page.route("**/ui/semantic-map/runtime.js", route => route.fulfill({ contentType: "text/javascript", body: [
+      'import {inspectEnvelope} from "/ui/semantic-map/protocol/index.js";',
+      'export const visibleFrameOf=()=>null;',
+      'export const executeArtifactPackage=async ({document,input,surfaceMount})=>{',
+      'if(document.body.dataset.fixtureHold==="yes"){document.body.dataset.fixtureRendering="yes";await new Promise(resolve=>window.addEventListener("fixture-render",resolve,{once:true}));delete document.body.dataset.fixtureRendering;}',
+      'const value=await inspectEnvelope(input.envelope);const list=document.createElement("ol");list.dataset.fixtureProjection="yes";',
+      'for(const row of value.base.records.filter(row=>row.type==="relation")){const item=document.createElement("li");item.textContent=row.from+"->"+row.to;list.append(item);}surfaceMount.replaceChildren(list);};',
+    ].join("\n") }));
+    await page.route("**/api/judge", async route => {
+      apiCalls += 1; const request=route.request().postDataJSON();assert.ok(contract.isRequest(request));
+      const selected=request.state.utterance==="add edge"?{action:"add-edge",source:"node-a",target:"node-b"}:{};
+      const answers=Object.fromEntries(Object.keys(contract.slotsFor(request.state)).map(name=>[name,{type:"choice",choice:selected[name]||contract.NONE,confidence:.9}]));
+      await route.fulfill({contentType:"application/json",body:JSON.stringify({kind:DECISION_KIND,answers})});
+    });
+    const ready = () => page.waitForFunction(() => document.body.dataset.state && document.body.dataset.state !== "pending");
+    await page.goto(url); await ready();
+    const seeded = await page.evaluate(async seedLog => {
+      const protocol = await import("/ui/semantic-map/protocol/index.js");
+      const config = await (await fetch("/data/config.v1.json")).json();
+      const graph = await protocol.createDecisionLog([
+        {type:"meta",schema:"semantic-map-state/1",root:"root",title:"binding fixture"},
+        {type:"region",id:"root",parent:null,label:"binding fixture",kind:"boundary",bounds:[0,0,720,260],summary:""},
+        ...["node-a","node-b"].map((id,index)=>({type:"region",id,parent:"root",label:id,kind:"node",bounds:[40+index*250,90,140,64],summary:""})),
+      ], "voice-graph");
+      const log=seedLog ?? graph.log;localStorage.setItem(config.persistence.key,log);return {key:config.persistence.key,log};
+    }, seedLog);
+    seedLog ??= seeded.log;
+    await page.reload(); await ready();
+    assert.equal(await page.evaluate(() => document.body.dataset.state), "restored");
+    if(swapAsr){await page.locator("#mic").click();await page.waitForFunction(()=>document.body.dataset.fixtureListening==="yes");}
+    // Pending capture does not own rendering; the same typed no-change works.
+    await page.locator("#text").fill("no change");await page.locator("#send").click();
+    await page.waitForFunction(()=>document.body.dataset.state==="no-change");
+    if(swapAsr){
+      assert.equal(await page.evaluate(()=>document.body.dataset.fixtureCaptures),"1");
+      assert.equal(await page.locator("#mic").isDisabled(),true);
+      await page.evaluate(hold=>{if(hold)document.body.dataset.fixtureHold="yes";const event=document.createEvent("CustomEvent");event.initCustomEvent("fixture-text",false,false,"add edge");window.dispatchEvent(event);},variant==="joint");
+    }else{await page.locator("#text").fill("add edge");await page.locator("#send").click();}
+    if(variant==="joint"){
+      await page.waitForFunction(()=>document.body.dataset.fixtureRendering==="yes");
+      await page.evaluate(()=>{document.querySelector("#mic").click();document.querySelector("#send").click();});
+      assert.deepEqual(await page.evaluate(()=>[document.body.dataset.fixtureCaptures,document.body.dataset.fixtureJudgments]),["1","2"]);
+      await page.evaluate(()=>{delete document.body.dataset.fixtureHold;const event=document.createEvent("Event");event.initEvent("fixture-render",false,false);window.dispatchEvent(event);});
+    }
+    await page.waitForFunction(() => document.body.dataset.state === "drafted");
+    assert.equal(await page.locator("#send").isDisabled(), false);
+    assert.equal(await page.locator("#mic").isDisabled(), false);
+    assert.deepEqual(await page.locator("#draft li").evaluateAll(rows => rows.map(row => row.dataset.changes)), ["+node-a->node-b"]);
+    const projected=async pane=>swapUi?page.locator("#"+pane+"-surface [data-fixture-projection] li").allTextContents():page.evaluate(pane=>[...document.querySelector("#"+pane+"-surface iframe").contentWindow.semanticMapApp.adapter.edgesByProjectionKey.values()].map(edge=>edge.semantic.from+"->"+edge.semantic.to).sort(),pane);
+    assert.deepEqual(await projected("working"),["node-a->node-b"]);
+    assert.equal(await page.evaluate(key => localStorage.getItem(key), seeded.key), seeded.log);
+    await page.locator("#apply").click();await page.waitForFunction(() => document.body.dataset.state === "applied");
+    const saved = await page.evaluate(key => localStorage.getItem(key), seeded.key);
+    assert.ok(saved.startsWith(seeded.log));
+    assert.equal(saved.split("\n").length,seeded.log.split("\n").length+1);
+    assert.deepEqual(await page.evaluate(()=>[globalThis.fixtureServiceWorkerCalls,globalThis.fixtureMediaCalls]),[0,0]);
+    await page.reload();await ready();
+    assert.equal(await page.evaluate(key => localStorage.getItem(key), seeded.key),saved);
+    assert.deepEqual(await projected("confirmed"),["node-a->node-b"]);
+    assert.deepEqual(resources.filter(value => value.startsWith("/hayamimi/") || value === "/sw.js"),[]);
+    assert.deepEqual(errors,[]);
+    assert.deepEqual(await page.evaluate(() => [globalThis.fixtureServiceWorkerCalls,globalThis.fixtureMediaCalls]),[0,0]);
+    assert.equal(apiCalls,swapJudge?0:2);outcomes.push({variant,saved,apiCalls});await page.close();
+    }
+    assert.ok(outcomes.every(value=>value.saved===outcomes[0].saved),"each independent binding preserves exact saved world bytes, not normalized approximations");
+    process.stdout.write("binding-contract: PASS actual app, baseline and ASR-only/Judge-only/UI-only identical saved world; joint capture/render ownership; serviceWorker/media/ASR-resource/upstream calls 0; controlled API calls baseline/asr/ui=2 judge/joint=0; mechanical only\n");
+  } finally {await browser.close();}
+} else {
 const wav = process.env.VOICE_WAV;
 const goldenPath = process.env.VOICE_GOLDEN;
 if (!wav || !goldenPath) throw new Error("VOICE_WAV and VOICE_GOLDEN are required");
@@ -191,42 +295,41 @@ assert.deepEqual((await drawnEdges("working")).edges, seededEdges, "作業図 st
 // which is RED, and names the reason the service gave.
 const requireAnswered = async response => {
   if (response.status() === 503) {
-    throw new Error(`NOT_RUN: jev_unavailable - the Jev service or its credential is unavailable (${await response.text()}); this run is RED, not PASS`);
+    throw new Error(`NOT_RUN: judge_unavailable - the Jev service or its credential is unavailable (${await response.text()}); this run is RED, not PASS`);
   }
   assert.equal(response.status(), 200);
 };
 
-// A REAL answer: a 200 the page got from the network - this file installs no
+// A UNCONTROLLED_NETWORK answer: a 200 the page got from the network - this file installs no
 // route, and the service worker must not have answered it - whose body is
 // exactly the current success shape, and whose every answer is a choice from
 // the slots the request actually sent offered, checked with the served
 // contract's own functions. Anything else is RED; a crafted or malformed 200
 // never counts. Returns the request as sent and the Decision as received.
-const requireReal = async (response, label) => {
+const requireNetwork = async (response, label) => {
   const sent = JSON.parse(response.request().postData());
   assert.equal(sent.kind, REQUEST_KIND, `${label}: the page sends the current request kind`);
   assert.ok(contract.isRequest(sent), `${label}: the page's request is a valid current request`);
   await requireAnswered(response);
   assert.equal(response.fromServiceWorker(), false, `${label}: answered by the network, not by a service worker`);
   const decision = await response.json();
-  assert.deepEqual(Object.keys(decision).sort(), ["answers", "kind", "model"], `${label}: exactly the success shape`);
+  assert.deepEqual(Object.keys(decision).sort(), ["answers", "kind"], `${label}: exactly the success shape`);
   assert.equal(decision.kind, DECISION_KIND, `${label}: the current Decision kind`);
-  assert.equal(typeof decision.model, "string", `${label}: the provider's model is named`);
   const read = contract.readAnswers(decision.answers, contract.slotsFor(sent.state));
   assert.notEqual(read, null, `${label}: every answer is a choice from the slots this request offered`);
   assert.deepEqual(decision.answers, read, `${label}: the answers are exactly what the contract reads`);
   return { sent, decision };
 };
 
-const jevResponse = timeout => page.waitForResponse(
-  response => new URL(response.url()).pathname === "/api/jev" && response.request().method() === "POST",
+const judgeResponse = timeout => page.waitForResponse(
+  response => new URL(response.url()).pathname === "/api/judge" && response.request().method() === "POST",
   { timeout },
 );
 
-// One typed input through Send, and the /api/jev response it caused.
+// One typed input through Send, and the /api/judge response it caused.
 const typed = async value => {
   await page.locator("#text").fill(value);
-  const responsePromise = jevResponse(120000);
+  const responsePromise = judgeResponse(120000);
   await page.locator("#send").click();
   return responsePromise;
 };
@@ -240,13 +343,13 @@ const settledDrafted = async label => {
 
 // A two-turn scenario whose second answer is only right if Jev took the first
 // turn into account. A rendered string is not evidence of anything; the
-// request as sent, a REAL Decision, the step drawn on 作業図 and then applied
+// request as sent, a UNCONTROLLED_NETWORK Decision, the step drawn on 作業図 and then applied
 // to 確定図 and restored after reload are.
 //
-// Turn 1 names its edge. It is the first request the page makes to /api/jev,
+// Turn 1 names its edge. It is the first request the page makes to /api/judge,
 // and it comes from Chromium itself.
 const TURN_1 = "add an edge from a to b";
-const turn1 = await requireReal(await typed(TURN_1), "turn 1");
+const turn1 = await requireNetwork(await typed(TURN_1), "turn 1");
 assert.deepEqual(turn1.sent.state.context, { recent: [] }, "turn 1 has no earlier conversation");
 assert.equal(turn1.sent.state.focus, null, "turn 1 has nothing in focus");
 assert.equal(turn1.decision.answers.action.choice, "add-edge", `turn 1 must be heard as one added edge: ${JSON.stringify(turn1.decision.answers)}`);
@@ -261,7 +364,7 @@ await assertSavedUntouched("turn 1");
 
 // The deployed Function serves only the current request kind: a legacy kind is
 // refused before any provider call. Checked after the page's own first call.
-const legacy = await fetch(new URL("/api/jev", url), {
+const legacy = await fetch(new URL("/api/judge", url), {
   method: "POST",
   headers: { "content-type": "application/json" },
   body: JSON.stringify({ kind: "voice-ui.jev.request.v1", text: "public legacy refusal proof" }),
@@ -283,7 +386,7 @@ assert.deepEqual(panelBefore, [{
 }], "the panel shows turn 1's text, its outcome and the effect it had");
 
 const TURN_2 = "reverse that edge";
-const turn2 = await requireReal(await typed(TURN_2), "turn 2");
+const turn2 = await requireNetwork(await typed(TURN_2), "turn 2");
 const asked = turn2.sent.state;
 assert.equal(asked.utterance, TURN_2);
 for (const region of asked.graph.regions) {
@@ -316,9 +419,9 @@ assert.ok(clip, "voice golden fixture is missing");
 // The recorded-file voice path: the fixture audio through the artifact's own
 // recognizer, then Jev. This is fixture-audio/ASR evidence only, never a real
 // microphone, and not part of the two-turn scenario above.
-const voiceResponsePromise = jevResponse(360000);
+const voiceResponsePromise = judgeResponse(360000);
 await page.locator("#mic").click();
-const voice = await requireReal(await voiceResponsePromise, "voice");
+const voice = await requireNetwork(await voiceResponsePromise, "voice");
 await settledDrafted("voice");
 
 const actual = normalize(await page.locator("#text").inputValue());
@@ -365,9 +468,12 @@ assert.deepEqual(failedRequests, []);
 assert.deepEqual(failedResponses, []);
 
 await browser.close();
+// Network structure is not upstream identity/authentication evidence.
+process.stdout.write("provider identity/authentication: NOT_PROVEN; live microphone and whole-product acceptance: NOTRUN; scenario PASS is not provider PASS\n");
 process.stdout.write(
-  `public-e2e: PASS NO_LOG first visit, legacy kind refused | REAL turn 1 "${TURN_1}" -> +${firstEdge}, `
-  + `REAL turn 2 "${TURN_2}" among ${offeredEdges.length} edges -> ${firstEdgeId} reversed to ${reversedEdge} `
+  `public-e2e: PASS NO_LOG first visit, legacy kind refused | UNCONTROLLED_NETWORK turn 1 "${TURN_1}" -> +${firstEdge}, `
+  + `UNCONTROLLED_NETWORK turn 2 "${TURN_2}" among ${offeredEdges.length} edges -> ${firstEdgeId} reversed to ${reversedEdge} `
   + `from turn 1's context and focus | fixture-audio voice edge=${voiceEdge} `
   + "| drawn on 作業図 only, applied together to 確定図 as a strict append, restored after reload\n",
 );
+}

@@ -3,8 +3,6 @@ import fs from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
-import worker from "../functions/pages-worker.mjs";
-
 const packageRoot = path.resolve(fileURLToPath(new URL("../", import.meta.url)));
 
 const requireStore = name => {
@@ -12,6 +10,9 @@ const requireStore = name => {
   if (!value) throw new Error(`${name} must point at the pinned provider store path`);
   return value;
 };
+
+// Producer compilation happens before the target secret is injected.
+const { default: worker } = await import(requireStore("VOICE_UI_WORKER"));
 
 // Exact provider Nix outputs, handed in by the flake app. Nothing is vendored
 // and nothing is copied: the store paths are served in place.
@@ -50,6 +51,9 @@ function route(pathname) {
 
   if (pathname.startsWith("/app/src/")) {
     return resolveUnder(path.join(packageRoot, "src"), rest("/app/src/"));
+  }
+  if (pathname.startsWith("/adapters/")) {
+    return resolveUnder(path.join(packageRoot, "web/adapters"), rest("/adapters/"));
   }
   // semantic-map plus the sibling packages it imports (data-pin, core-port, ...).
   if (pathname.startsWith("/ui/")) {
@@ -107,7 +111,7 @@ async function serveChunkManifest(response, file) {
   await serveFile(response, file);
 }
 
-// The production router itself answers /api/jev: every method, header and
+// The production router itself answers /api/judge: every method, header and
 // body goes to the Worker the artifact ships, so its routing, its 405 and its
 // closed error set are what this server exercises. The key is read from the
 // injected process env only. Static files never reach the Worker here, so its
@@ -121,7 +125,7 @@ const workerEnv = {
   },
 };
 
-async function serveJev(request, response) {
+async function serveJudge(request, response) {
   const chunks = [];
   for await (const chunk of request) chunks.push(chunk);
   const headers = Object.entries(request.headers)
@@ -147,8 +151,8 @@ async function serveJev(request, response) {
 const server = createServer((request, response) => {
   const { pathname } = new URL(request.url, "http://localhost");
 
-  if (pathname === "/api/jev") {
-    serveJev(request, response).catch(() => {
+  if (pathname === "/api/judge") {
+    serveJudge(request, response).catch(() => {
       response.writeHead(500, { "content-type": "application/json; charset=utf-8" });
       response.end(JSON.stringify({ error: "dev_server_error" }));
     });

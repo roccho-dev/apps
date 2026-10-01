@@ -138,6 +138,7 @@ test("a new process PASS produces only a non-secret application receipt", () => 
 
     assert.equal(result.exitCode, 0);
     assert.equal(result.receipt.status, "PASS");
+    assert.deepEqual(result.receipt.limits, { scope: "application-e2e", providerIdentity: "NOT_PROVEN", providerAuthentication: "NOT_PROVEN", liveMicrophone: "NOT_RUN" });
     assert.deepEqual(result.receipt.dependencies, { envsRuntime: [], secretInputs: [] });
     assert.equal(result.receipt.sources.apps, APPS_SHA);
     assert.equal(result.receipt.handoffId, "dev/jev-api/run-1");
@@ -168,6 +169,7 @@ test("application failure is RED and never promoted from an executed receipt", (
 
     assert.equal(result.exitCode, 7);
     assert.equal(result.receipt.status, "RED");
+    assert.deepEqual(result.receipt.limits, { scope: "application-e2e", providerIdentity: "NOT_PROVEN", providerAuthentication: "NOT_PROVEN", liveMicrophone: "NOT_RUN" });
     assert.equal(result.receipt.stage, "application-e2e");
     assert.equal(result.receipt.checks.at(-1).status, "RED");
   } finally {
