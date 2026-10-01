@@ -1,9 +1,34 @@
 import assert from "node:assert/strict";
+import { spawnSync } from "node:child_process";
+import fs from "node:fs";
+import os from "node:os";
+import path from "node:path";
 import test from "node:test";
+import { fileURLToPath } from "node:url";
 
 import { onRequestPost } from "../functions/api/jev.mjs";
 import worker from "../functions/pages-worker.mjs";
-import { DECISION_KIND, ERRORS, NONE, REQUEST_KIND, isRequest, slotsFor } from "../src/contract.mjs";
+import { focusedEvidence, intentSectionOf, judgeRequestsOf, judgeSectionOf, locateRequestsOf, readManifest } from "../src/architecture.mjs";
+import {
+  ACTION_ARCHITECTURE,
+  ARCHITECTURE_INTENT_KIND,
+  DECISION_KIND,
+  ERRORS,
+  NONE,
+  REQUEST_KIND,
+  WHOLE,
+  YES,
+  isJudgeRequest,
+  isLocateRequest,
+  isRequest,
+  judgeFramesFor,
+  judgeSlotsFor,
+  locateSlotsFor,
+  relationSlot,
+  relevantSlot,
+  roleSlot,
+  slotsFor,
+} from "../src/contract.mjs";
 
 // A request as the page sends it: the declared read set and nothing more.
 const request = (state = {}) => ({
@@ -127,7 +152,9 @@ test("a success is one kind carrying only choice and confidence per offered slot
   }
 });
 
-test("every failure is one of a closed set of codes and carries no Jev content", async () => {
+test("every failure is one of a closed set of codes and carries no Jev content", async t => {
+  // The refusal below logs its status; kept here, not printed with the results.
+  t.mock.method(console, "warn", () => {});
   const cases = [
     ["no credential", () => post(request(), {}), 503, ERRORS.unavailable],
     ["not JSON", () => post("{"), 400, ERRORS.invalidJson],
@@ -155,7 +182,29 @@ test("every failure is one of a closed set of codes and carries no Jev content",
   }
 });
 
+test("a provider refusal logs only its numeric status, and the page still sees the same closed code", async t => {
+  const warn = t.mock.method(console, "warn", () => {});
+  for (const status of [401, 429]) {
+    warn.mock.resetCalls();
+    const refusal = new Response("denied", { status });
+    const clone = t.mock.method(refusal, "clone");
+    const { result } = await withProvider(async () => refusal, () => post(request()));
+    assert.equal(result.status, 502, `${status}`);
+    assert.deepEqual(await result.json(), { error: ERRORS.providerError }, `${status}`);
+    assert.deepEqual(warn.mock.calls.map(call => call.arguments), [[`{"event":"provider-status","status":${status}}`]]);
+    assert.equal(JSON.stringify(warn.mock.calls).includes("denied"), false);
+    assert.equal(refusal.bodyUsed, false, "the refusal's body is never read");
+    assert.equal(clone.mock.callCount(), 0, "nor cloned");
+  }
+
+  warn.mock.resetCalls();
+  assert.equal((await withProvider(answering(noneTo), () => post(request()))).result.status, 200);
+  assert.equal((await withProvider(async () => { throw new TypeError("fetch failed"); }, () => post(request()))).result.status, 502);
+  assert.equal(warn.mock.callCount(), 0, "an answer or an unreachable provider logs nothing");
+});
+
 test("a provider that never answers is a timeout after ten seconds, never a hang", async t => {
+  const warn = t.mock.method(console, "warn", () => {});
   t.mock.timers.enable({ apis: ["setTimeout"] });
   const { result } = await withProvider((body, init) => new Promise((resolve, reject) => {
     init.signal.addEventListener("abort", () => reject(new DOMException("aborted", "AbortError")));
@@ -167,6 +216,7 @@ test("a provider that never answers is a timeout after ten seconds, never a hang
   });
   assert.equal(result.status, 504);
   assert.deepEqual(await result.json(), { error: ERRORS.providerTimeout });
+  assert.equal(warn.mock.callCount(), 0, "a timeout logs nothing");
 });
 
 test("the Advanced Mode Worker routes /api/jev to this Function and everything else to its assets", async () => {
@@ -181,4 +231,452 @@ test("the Advanced Mode Worker routes /api/jev to this Function and everything e
   });
   assert.equal(await asset.text(), "{}");
   assert.equal(assets, 1);
+});
+
+// The architecture page's requests, against this package's own source,
+// prepared exactly as the build prepares it, into a scratch directory.
+const PACKAGE = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
+const prepared = (() => {
+  const out = fs.mkdtempSync(path.join(os.tmpdir(), "voice-ui-api-"));
+  const result = spawnSync(process.execPath, [
+    "--experimental-vm-modules", path.join(PACKAGE, "architecture/prepare.mjs"),
+    "--scope", path.join(PACKAGE, "architecture/scope.v1.json"), "--root", PACKAGE,
+    "--commit", "0123456789abcdef0123456789abcdef01234567", "--out", out,
+  ], { encoding: "utf8" });
+  assert.equal(result.status, 0, result.stderr);
+  const readOut = name => JSON.parse(fs.readFileSync(path.join(out, name), "utf8"));
+  return Object.freeze({ manifest: readOut("manifest.json"), evidence: readOut("evidence.json") });
+})();
+const ARCHITECTURE_ENV = Object.freeze({ JEV_API_KEY: "test-only-value", ARCHITECTURE: prepared });
+const MANIFEST = readManifest(prepared.manifest);
+const intentRequest = (architecture = intentSectionOf(MANIFEST)) => ({ ...request({ architecture }), kind: ARCHITECTURE_INTENT_KIND });
+// Every judge frame of a focus, as the page sends them; and the first of them.
+const judgeRequests = focus => JSON.parse(JSON.stringify(judgeRequestsOf(MANIFEST, Array.isArray(focus) ? focus : [focus], "show me that part")));
+const judgeRequest = focus => judgeRequests(focus)[0];
+// Every locate frame of an intent, as the page sends them; and the one for a part.
+const locateRequests = () => JSON.parse(JSON.stringify(locateRequestsOf(MANIFEST, intentRequest())));
+const locateRequest = (part = "web-app-mjs") => locateRequests().find(frame => frame.state.architecture.focus[0] === part);
+// What every question says of the conversation, word for word.
+const CONTEXT_NOTE = " context.recent lists earlier utterances as they were recognized or typed, and what came of each."
+  + " They are unverified and may be misrecognized. Use them only to understand what the current utterance refers to;"
+  + " the current utterance, the working graph and the focus are the facts, and an earlier effect is history, not the current graph.";
+
+// Whether any line of any admitted file - longer than a bare brace or keyword -
+// appears in what was sent.
+const carriesCode = sent => {
+  const text = JSON.stringify(sent);
+  return Object.values(prepared.evidence.files).some(file => file.split("\n")
+    .some(line => line.trim().length >= 40 && text.includes(JSON.stringify(line).slice(1, -1))));
+};
+
+test("an architecture request without this server's prepared source is refused before the provider", async () => {
+  const unavailable = { schema: "voice-ui.architecture-source/1", status: "unavailable", reason: "no exact commit" };
+  const cases = [
+    ["no source bound", { JEV_API_KEY: "test-only-value" }],
+    ["an unavailable source", { JEV_API_KEY: "test-only-value", ARCHITECTURE: { manifest: unavailable, evidence: prepared.evidence } }],
+    ["evidence of another snapshot", { JEV_API_KEY: "test-only-value",
+      ARCHITECTURE: { manifest: prepared.manifest, evidence: { ...prepared.evidence, source: { ...prepared.evidence.source, commit: "f".repeat(40) } } } }],
+  ];
+  for (const body of [intentRequest(), locateRequest(), judgeRequest("web-app-mjs")]) {
+    const { result, calls } = await withProvider(answering(noneTo), () => Promise.all(cases.map(([, env]) => post(body, env))));
+    for (const [index, response] of result.entries()) {
+      assert.equal(response.status, 503, `${body.kind}: ${cases[index][0]}`);
+      assert.deepEqual(await response.json(), { error: ERRORS.architectureUnavailable }, cases[index][0]);
+    }
+    assert.equal(calls.length, 0);
+  }
+});
+
+test("a prepared source whose private text is not exactly the admitted files is refused before the provider, for every kind", async () => {
+  const files = prepared.evidence.files;
+  const [first] = Object.keys(files);
+  const { [first]: dropped, ...missing } = files;
+  assert.equal(typeof dropped, "string");
+  const broken = [
+    ["a file's text missing", missing],
+    ["an extra file", { ...files, "not-admitted": "text" }],
+    ["a text that is not a string", { ...files, [first]: null }],
+    ["no files at all", null],
+    ["files as a list", Object.values(files)],
+  ];
+  for (const [label, value] of broken) {
+    const env = { JEV_API_KEY: "test-only-value", ARCHITECTURE: { manifest: prepared.manifest, evidence: { ...prepared.evidence, files: value } } };
+    for (const body of [intentRequest(), locateRequest(), judgeRequest("web-app-mjs")]) {
+      const { result, calls } = await withProvider(answering(noneTo), () => post(body, env));
+      assert.equal(result.status, 503, `${label}: ${body.kind}`);
+      assert.deepEqual(await result.json(), { error: ERRORS.architectureUnavailable }, `${label}: ${body.kind}`);
+      assert.equal(calls.length, 0, `${label}: ${body.kind} never reaches the provider`);
+    }
+  }
+  // An admitted file may be empty: its text is then the empty string, still sent.
+  const empty = { ...files, [first]: "" };
+  const { result, calls } = await withProvider(answering(noneTo), () => post(locateRequest(first),
+    { JEV_API_KEY: "test-only-value", ARCHITECTURE: { manifest: prepared.manifest, evidence: { ...prepared.evidence, files: empty } } }));
+  assert.equal(result.status, 200);
+  const emptyPath = MANIFEST.entities.find(entity => entity.id === first).path;
+  assert.equal(calls[0].state.architecture.evidence.bodies.find(body => body.path === emptyPath)?.text, "");
+});
+
+test("an architecture section that is not exactly this server's snapshot is refused before the provider", async () => {
+  const own = intentSectionOf(MANIFEST);
+  const judge = judgeRequest("src-log-mjs");
+  // Two body files with no pair between them: a frame of this shape that the
+  // section's own plan does not hold.
+  const credential = judgeRequest("ext-jev-api-key");
+  assert.deepEqual([...credential.state.architecture.bodies].sort(), ["dev-serve-mjs", "functions-api-jev-mjs"]);
+  const unplanned = { ...credential, state: { ...credential.state, frame: ["dev-serve-mjs", "functions-api-jev-mjs"] } };
+  assert.ok(isJudgeRequest(unplanned));
+  const altered = [
+    intentRequest({ ...own, source: { ...own.source, commit: "f".repeat(40) } }),
+    intentRequest({ ...own, entities: own.entities.map((entity, index) => (index === 0 ? { ...entity, label: "renamed" } : entity)) }),
+    intentRequest({ ...own, entities: own.entities.slice(1) }),
+    { ...judge, state: { ...judge.state, architecture: { ...judge.state.architecture, bodies: ["web-app-mjs"] }, frame: ["web-app-mjs"] } },
+    { ...judge, state: { ...judge.state, architecture: { ...judge.state.architecture, candidates: judge.state.architecture.candidates.slice(1) } } },
+    { ...judge, state: { ...judge.state, architecture: { ...judge.state.architecture, focus: ["src-session-mjs"] } } },
+    unplanned,
+    { ...locateRequest(), state: { ...locateRequest().state, architecture: { ...locateRequest().state.architecture, source: { ...own.source, commit: "f".repeat(40) } } } },
+    { ...locateRequest(), state: { ...locateRequest().state, architecture: { ...locateRequest().state.architecture, focus: ["not-a-part"] } } },
+  ];
+  const { result, calls } = await withProvider(answering(noneTo), () => Promise.all(altered.map(body => post(body, ARCHITECTURE_ENV))));
+  for (const [index, response] of result.entries()) {
+    assert.equal(response.status, 422, `case ${index}`);
+    assert.deepEqual(await response.json(), { error: ERRORS.architectureMismatch });
+  }
+  assert.equal(calls.length, 0);
+  // A plain request stays exactly the plain request: no architecture in it.
+  const { result: plain } = await withProvider(answering(noneTo), () => post(request({ architecture: own }), ARCHITECTURE_ENV));
+  assert.equal(plain.status, 422);
+  assert.deepEqual(await plain.json(), { error: ERRORS.invalidRequest });
+});
+
+test("a plain request and an intent carry no code; an intent adds one closed question, which part", async () => {
+  const bodies = [request(), intentRequest()];
+  const { result, calls } = await withProvider(answering(noneTo), () => Promise.all(bodies.map(body => post(body, ARCHITECTURE_ENV))));
+  assert.deepEqual(result.map(response => response.status), [200, 200]);
+  for (const [index, call] of calls.entries()) {
+    assert.equal(carriesCode(call), false, `${bodies[index].kind} sends no line of code`);
+    assert.equal(JSON.stringify(call).includes("\"evidence\""), false);
+    assert.deepEqual(call.state, bodies[index].state, "sent as it came");
+  }
+  const [plain, intent] = calls;
+  assert.deepEqual(Object.keys(intent.questions).filter(name => !Object.hasOwn(plain.questions, name)), ["focus"]);
+  assert.deepEqual(Object.keys(intent.questions.focus.criteria), [...MANIFEST.entities.map(entity => entity.id), WHOLE, NONE]);
+  // The whole and none are told apart by what they mean, with no example words.
+  assert.equal(intent.questions.focus.criteria[WHOLE], "the code as a whole");
+  assert.equal(intent.questions.focus.criteria[NONE], "neither one part nor the whole is clear, or it asks for neither");
+  assert.ok(Object.keys(intent.questions.action.criteria).includes(ACTION_ARCHITECTURE));
+  assert.match(intent.questions.focus.criteria["web-app-mjs"], /web\/app\.mjs/u);
+});
+
+test("an intent tells each edge the snapshot defines by its kind; any other edge, and every plain edge, by its two ends only", async () => {
+  const labelOf = id => MANIFEST.entities.find(entity => entity.id === id).label;
+  const region = id => ({ id: `arch-${id}`, label: labelOf(id) });
+  const end = id => `arch-${id} (shown as "${labelOf(id)}")`;
+  const purposeOf = key => MANIFEST.relations.find(relation => relation.key === key).purpose;
+  const regions = ["web-app-mjs", "web-data-config-v1-json", "ext-localstorage", "functions-pages-worker-mjs", "functions-api-jev-mjs"].map(region);
+  const stores = { id: "arch-stores-in-web-app-mjs-to-ext-localstorage", from: "arch-web-app-mjs", to: "arch-ext-localstorage" };
+  const configures = { id: "arch-configures-web-data-config-v1-json-to-ext-localstorage", from: "arch-web-data-config-v1-json", to: "arch-ext-localstorage" };
+  const imports = { id: "arch-import-functions-pages-worker-mjs-to-functions-api-jev-mjs", from: "arch-functions-pages-worker-mjs", to: "arch-functions-api-jev-mjs" };
+  const user = { id: "voice-arch-web-app-mjs-to-arch-ext-localstorage", from: "arch-web-app-mjs", to: "arch-ext-localstorage" };
+  const edgeCriteria = async (body, env = ARCHITECTURE_ENV) => {
+    const { result, calls: [call] } = await withProvider(answering(noneTo), () => post(body, env));
+    assert.equal(result.status, 200);
+    return call.questions.edge.criteria;
+  };
+  const intent = edges => ({ ...request({ graph: { regions, edges, placeable: [] }, architecture: intentSectionOf(MANIFEST) }), kind: ARCHITECTURE_INTENT_KIND });
+  const ends = edge => `the edge from ${end(edge.from.slice("arch-".length))} to ${end(edge.to.slice("arch-".length))}`;
+
+  // Two edges into one part, told apart by what the snapshot defines each as:
+  // a relation of the vocabulary with its own purpose, a reserved kind by its
+  // kind alone, and an edge the person made by its two ends only.
+  const criteria = await edgeCriteria(intent([stores, configures, imports, user]));
+  assert.equal(criteria[stores.id], `${ends(stores)}, which this snapshot defines as stores-in: ${purposeOf("stores-in")}`);
+  assert.equal(criteria[configures.id], `${ends(configures)}, which this snapshot defines as configures: ${purposeOf("configures")}`);
+  assert.equal(criteria[imports.id], `${ends(imports)}, which this snapshot defines as imports`);
+  assert.equal(criteria[user.id], ends(user));
+
+  // An id the snapshot knows, but not with these ends, borrows no kind: other
+  // ends, the ends swapped, another pair's id.
+  for (const forged of [
+    { ...stores, from: "arch-web-data-config-v1-json" },
+    { ...stores, from: stores.to, to: stores.from },
+    { ...configures, from: "arch-web-app-mjs" },
+  ]) {
+    assert.equal((await edgeCriteria(intent([forged])))[forged.id], ends(forged), JSON.stringify(forged));
+  }
+
+  // The plain request has no snapshot: every edge by its two ends, as before.
+  const plain = await edgeCriteria(request({ graph: { regions, edges: [stores, configures, imports, user], placeable: [] } }));
+  for (const edge of [stores, configures, imports, user]) assert.equal(plain[edge.id], ends(edge), edge.id);
+});
+
+// The judge's one kind, by its own name: the section whole and, beside it, the
+// frame this request asks. The kind before it, which had no frame, is gone.
+test("a judge under the v3 kind, its section whole and its frame beside it, is answered by one provider call", async () => {
+  const section = JSON.parse(JSON.stringify(judgeSectionOf(MANIFEST, ["src-log-mjs"])));
+  const body = { kind: "voice-ui.jev.architecture-judge.v3", state: { utterance: "show me that part", architecture: section, frame: ["src-log-mjs"] } };
+  const { result, calls } = await withProvider(answering(noneTo), () => post(body, ARCHITECTURE_ENV));
+  assert.equal(result.status, 200);
+  assert.equal(calls.length, 1);
+});
+
+test("a judge under the v2 kind, a section and no frame, is refused before the provider", async () => {
+  const section = JSON.parse(JSON.stringify(judgeSectionOf(MANIFEST, ["src-log-mjs"])));
+  const body = { kind: "voice-ui.jev.architecture-judge.v2", state: { utterance: "show me that part", architecture: section } };
+  const { result, calls } = await withProvider(answering(noneTo), () => post(body, ARCHITECTURE_ENV));
+  assert.equal(result.status, 422);
+  assert.deepEqual(await result.json(), { error: ERRORS.invalidRequest });
+  assert.equal(calls.length, 0);
+});
+
+// What a judge says of its text, and a judge's questions for a section, word
+// for word, in the order they are asked.
+const EVIDENCE_NOTE = " state.architecture.evidence.bodies holds whole files, each with its path;"
+  + " state.architecture.evidence.lines holds single lines of other files, each with its path and line number, and nothing around them."
+  + " A part with no text there is known only by its name. Judge only from that text; if it does not show the answer, answer none.";
+const judgeQuestionsOf = section => {
+  const labelOf = id => section.entities.find(entity => entity.id === id).label;
+  return {
+    ...Object.fromEntries(section.bodies.flatMap(body => section.roles.map(role => [roleSlot(body, role.key), {
+      type: "choice",
+      instructions: `Does the file ${labelOf(body)}, whose whole text is in state.architecture.evidence.bodies, ${role.purpose}?${EVIDENCE_NOTE}`,
+      criteria: { [YES]: `yes: its own text shows that it ${role.purpose}`, [NONE]: "no, or its text does not show it" },
+    }]))),
+    ...Object.fromEntries(section.candidates.map(candidate => [relationSlot(candidate.id), {
+      type: "choice",
+      instructions: `From ${labelOf(candidate.from)} to ${labelOf(candidate.to)} (a candidate pair because of: ${candidate.reasons.join(", ")}):`
+        + ` which relation holds at run time from the first to the second? Being a candidate is not evidence of any relation.${EVIDENCE_NOTE}`,
+      criteria: {
+        ...Object.fromEntries(section.relations.map(relation => [relation.key, relation.purpose])),
+        [NONE]: "no relation of these kinds holds, or the text does not show one",
+      },
+    }])),
+  };
+};
+// Exactly what the provider is sent for one part of a section: the utterance,
+// that part with its own text, and its questions - and nothing else.
+const providerBodyOf = (utterance, section) => ({
+  model: "jev-latest",
+  state: { utterance, architecture: { ...section, evidence: focusedEvidence(section, MANIFEST, prepared.evidence.files) } },
+  questions: judgeQuestionsOf(section),
+});
+
+test("a judge frame is asked from exactly its own text: its body files whole, other files by matching line, and never which frame it is", async () => {
+  const bodies = judgeRequests("ext-jev-api-key");
+  const section = judgeSectionOf(MANIFEST, ["ext-jev-api-key"]);
+  const plan = judgeFramesFor(section);
+  assert.deepEqual(bodies.map(body => body.state.frame), [["dev-serve-mjs"], ["functions-api-jev-mjs"]], "one frame for each file that names the credential");
+  const asked = [];
+  for (const [index, body] of bodies.entries()) {
+    assert.ok(isJudgeRequest(body));
+    assert.deepEqual(body.state.architecture, JSON.parse(JSON.stringify(section)), "the page sends the section whole");
+    assert.equal(carriesCode(body), false, "and no line of code");
+    const { result, calls } = await withProvider(answering(noneTo), () => post(body, ARCHITECTURE_ENV));
+    assert.equal(result.status, 200);
+    assert.equal(calls.length, 1);
+    const [call] = calls;
+    assert.deepEqual(Object.keys(call), ["model", "state", "questions"]);
+    assert.deepEqual(Object.keys(call.state), ["utterance", "architecture"], "the frame's name stays between the page and this Function");
+    assert.equal(JSON.stringify(call).includes("\"frame\""), false);
+    const { evidence, ...sent } = call.state.architecture;
+    assert.deepEqual(sent, JSON.parse(JSON.stringify(plan[index].section)), "the frame's own part of the section");
+    assert.deepEqual(evidence.bodies.map(file => file.path), [MANIFEST.entities.find(entity => entity.id === body.state.frame[0]).path],
+      "that frame's file whole, and no other");
+    for (const file of evidence.bodies) assert.equal(file.text, fs.readFileSync(path.join(PACKAGE, file.path), "utf8"));
+    for (const { path: file, line, text } of evidence.lines) {
+      assert.equal(fs.readFileSync(path.join(PACKAGE, file), "utf8").split("\n")[line - 1], text, `${file}:${line} is that very line`);
+    }
+    assert.equal(JSON.stringify(call), JSON.stringify(providerBodyOf(body.state.utterance, plan[index].section)), "word for word, byte for byte");
+    const slots = judgeSlotsFor(plan[index].section);
+    assert.deepEqual(Object.keys(call.questions), Object.keys(slots));
+    for (const [name, question] of Object.entries(call.questions)) assert.deepEqual(Object.keys(question.criteria), slots[name], name);
+    const answered = await result.text();
+    assert.equal(answered.includes(evidence.bodies[0].text.slice(0, 200)), false, "no admitted text in the answer");
+    assert.deepEqual(Object.keys(JSON.parse(answered).answers), Object.keys(slots), "answered on exactly that frame's questions");
+    asked.push(call);
+  }
+  const questions = Object.assign({}, ...asked.map(call => call.questions));
+  assert.deepEqual(Object.keys(questions).sort(), Object.keys(judgeSlotsFor(section)).sort(), "the frames together ask every question of the section, once");
+  assert.equal(asked.reduce((sum, call) => sum + Object.keys(call.questions).length, 0), Object.keys(questions).length);
+  assert.deepEqual(judgeSlotsFor(section)[roleSlot("functions-api-jev-mjs", "auth")], [YES, NONE]);
+  assert.match(questions[relationSlot("c-functions-api-jev-mjs--ext-jev-api-key")].instructions, /identifier:JEV_API_KEY/u);
+  assert.ok(asked.some(call => call.state.architecture.evidence.lines.length > 0), "a file its pairs name is shown by line");
+});
+
+test("a section asked in one frame is sent the provider exactly as the section whole would be, on the same input", async () => {
+  const single = MANIFEST.entities.map(entity => entity.id).filter(id => judgeRequests(id).length === 1);
+  assert.ok(single.includes("web-app-mjs") && single.includes("src-log-mjs"), "the page's own file and the decision log among them");
+  for (const id of single) {
+    const section = judgeSectionOf(MANIFEST, [id]);
+    const [body] = judgeRequests(id);
+    const { result, calls: [call] } = await withProvider(answering(noneTo), () => post(body, ARCHITECTURE_ENV));
+    assert.equal(result.status, 200, id);
+    assert.equal(JSON.stringify(call), JSON.stringify(providerBodyOf(body.state.utterance, section)), `${id}: state and questions, byte for byte`);
+  }
+});
+
+test("a locate frame carries no code from the page; the server adds exactly that part's own section text and asks one question naming it", async () => {
+  const frames = locateRequests();
+  assert.deepEqual(frames.map(frame => frame.state.architecture.focus), MANIFEST.entities.map(entity => [entity.id]),
+    "one frame per part the snapshot knows, in its order");
+  for (const body of frames) {
+    const [part] = body.state.architecture.focus;
+    assert.ok(isLocateRequest(body), part);
+    assert.equal(carriesCode(body), false, `${part}: the page sends no line of code`);
+    const { result, calls } = await withProvider(answering(noneTo), () => post(body, ARCHITECTURE_ENV));
+    assert.equal(result.status, 200, part);
+    const [call] = calls;
+    // Only the utterance, the conversation, the snapshot, the part and its text:
+    // none of the section's parts, pairs or vocabulary.
+    assert.deepEqual(Object.keys(call.state), ["utterance", "context", "architecture"], part);
+    assert.deepEqual(Object.keys(call.state.architecture), ["source", "focus", "evidence"], part);
+    const { evidence, ...sent } = call.state.architecture;
+    assert.deepEqual({ ...call.state, architecture: sent }, body.state, `${part}: the page's state is forwarded unchanged`);
+    assert.deepEqual(evidence, JSON.parse(JSON.stringify(focusedEvidence(judgeSectionOf(MANIFEST, [part]), MANIFEST, prepared.evidence.files))),
+      `${part}: exactly the text of the section it opens`);
+    assert.deepEqual(Object.keys(call.questions), [relevantSlot(part)], part);
+    const question = call.questions[relevantSlot(part)];
+    assert.deepEqual(Object.keys(question.criteria), locateSlotsFor([part])[relevantSlot(part)], part);
+    // The provider never sees the question's name: the words name the part and its text.
+    const entity = MANIFEST.entities.find(item => item.id === part);
+    assert.ok(question.instructions.includes(entity.label), `${part}: the question names its part`);
+    assert.match(question.instructions, entity.kind === "file" ? /the file /u : /outside the source/u, part);
+    for (const file of evidence.bodies) assert.ok(question.instructions.includes(file.path), `${part}: the question names ${file.path}`);
+    // The whole question, word for word: what this part's own text does for a
+    // file, how the shown code uses it for a part outside the source.
+    const lined = [...new Set(evidence.lines.map(line => line.path))];
+    const shown = ` state.architecture.evidence.bodies holds ${evidence.bodies.map(file => file.path).join(", ")} whole`
+      + (lined.length === 0 ? "." : `; state.architecture.evidence.lines holds single lines of ${lined.join(", ")}, each with its path and line number.`)
+      + " Judge only from that text and the utterance." + CONTEXT_NOTE;
+    assert.equal(question.instructions, (entity.kind === "file"
+      ? `Does the original text of the file ${entity.label} implement behaviour, or declare data, that the current utterance asks about or refers to?`
+      : `Does the shown original code use ${entity.label}, which lies outside the source, for behaviour or data that the current utterance asks about or refers to?`)
+      + shown, part);
+    assert.deepEqual(question.criteria, entity.kind === "file"
+      ? {
+        [YES]: "its own text implements that behaviour or declares that data, whether or not the utterance names the file",
+        [NONE]: "its text does not, even if it mentions or imports another part that does",
+      }
+      : {
+        [YES]: "the shown code uses it for that behaviour or data, whether or not the utterance names it",
+        [NONE]: "the shown code does not use it for that, or only names it",
+      }, part);
+    const answered = await result.text();
+    assert.equal(answered.includes(evidence.bodies[0].text.slice(0, 200)), false, `${part}: no admitted text in the answer`);
+  }
+  // A part outside the source is shown the files that name it, whole.
+  const { calls: [storage] } = await withProvider(answering(noneTo), () => post(locateRequest("ext-localstorage"), ARCHITECTURE_ENV));
+  assert.deepEqual(storage.state.architecture.evidence.bodies.map(file => file.path).sort(),
+    ["dev/architecture-config.v1.json", "src/config.mjs", "web/app.mjs", "web/data/config.v1.json"]);
+  for (const file of storage.state.architecture.evidence.bodies) {
+    assert.equal(file.text, fs.readFileSync(path.join(PACKAGE, file.path), "utf8"), `${file.path} is that very file`);
+  }
+});
+
+test("a locate or judge the page shapes otherwise, or the provider answers incompletely, is refused", async () => {
+  const locate = locateRequest();
+  const shaped = [
+    { ...locate, state: { ...locate.state, architecture: { ...locate.state.architecture, evidence: { bodies: [] } } } },
+    { ...locate, state: { ...locate.state, graph: { regions: [], edges: [], placeable: [] } } },
+    { ...locate, state: { ...locate.state, architecture: { ...locate.state.architecture, focus: ["web-app-mjs", "src-log-mjs"] } } },
+    { ...locate, state: { ...locate.state, architecture: { source: locate.state.architecture.source } } },
+    { ...judgeRequest("src-log-mjs"), state: { ...judgeRequest("src-log-mjs").state, architecture: { ...judgeRequest("src-log-mjs").state.architecture, focus: "src-log-mjs" } } },
+    { ...judgeRequest("web-app-mjs"), state: { ...judgeRequest("web-app-mjs").state, architecture: { ...judgeRequest("web-app-mjs").state.architecture, focus: ["web-app-mjs", "src-log-mjs"] } } },
+    { ...judgeRequest("web-app-mjs"), state: { ...judgeRequest("web-app-mjs").state, frame: [] } },
+    { ...judgeRequest("web-app-mjs"), state: { ...judgeRequest("web-app-mjs").state, frame: ["src-log-mjs"] } },
+    { ...judgeRequest("ext-jev-api-key"), state: { ...judgeRequest("ext-jev-api-key").state, frame: ["functions-api-jev-mjs", "dev-serve-mjs"] } },
+  ];
+  const { result, calls } = await withProvider(answering(noneTo), () => Promise.all(shaped.map(body => post(body, ARCHITECTURE_ENV))));
+  for (const [index, response] of result.entries()) {
+    assert.equal(response.status, 422, `case ${index}`);
+    assert.deepEqual(await response.json(), { error: ERRORS.invalidRequest });
+  }
+  assert.equal(calls.length, 0);
+
+  // A provider answer missing one part's question is no answer at all.
+  const dropOne = body => { const answers = noneTo(body); delete answers[relevantSlot("web-app-mjs")]; return answers; };
+  const { result: incomplete } = await withProvider(answering(dropOne), () => post(locate, ARCHITECTURE_ENV));
+  assert.equal(incomplete.status, 502);
+  assert.deepEqual(await incomplete.json(), { error: ERRORS.providerContract });
+  // Nor is a judge frame's answer missing one of that frame's questions, or
+  // carrying a question of another frame.
+  const [first, second] = judgeRequests("ext-jev-api-key");
+  assert.deepEqual([first.state.frame, second.state.frame], [["dev-serve-mjs"], ["functions-api-jev-mjs"]]);
+  const dropRole = body => { const answers = noneTo(body); delete answers[roleSlot("dev-serve-mjs", "auth")]; return answers; };
+  const addOther = body => ({ ...noneTo(body), [roleSlot("functions-api-jev-mjs", "auth")]: { type: "choice", choice: NONE, confidence: 0.9 } });
+  for (const answersFor of [dropRole, addOther]) {
+    const { result: partial } = await withProvider(answering(answersFor), () => post(first, ARCHITECTURE_ENV));
+    assert.equal(partial.status, 502);
+    assert.deepEqual(await partial.json(), { error: ERRORS.providerContract });
+  }
+  assert.equal((await withProvider(answering(noneTo), () => post(second, ARCHITECTURE_ENV))).result.status, 200);
+});
+
+test("a judge of several parts is one section, the server's own, asked in frames that together open every file they open", async () => {
+  const focus = ["dev-architecture-config-v1-json", "src-config-mjs", "web-app-mjs", "web-data-config-v1-json"];
+  const union = judgeRequests(focus);
+  const section = judgeSectionOf(MANIFEST, focus);
+  const opened = new Set();
+  const questions = [];
+  for (const body of union) {
+    assert.ok(isJudgeRequest(body));
+    const { result, calls: [call] } = await withProvider(answering(noneTo), () => post(body, ARCHITECTURE_ENV));
+    assert.equal(result.status, 200, `${body.state.frame}`);
+    assert.deepEqual(call.state.architecture.focus, focus, "every frame says the whole focus");
+    assert.equal(call.state.architecture.evidence.bodies.length, body.state.frame.length, `${body.state.frame}: its own files and no other`);
+    for (const file of call.state.architecture.evidence.bodies) opened.add(file.path);
+    questions.push(...Object.keys(call.questions));
+  }
+  assert.deepEqual([...opened].sort(), ["dev/architecture-config.v1.json", "src/config.mjs", "web/app.mjs", "web/data/config.v1.json"]);
+  assert.deepEqual([...questions].sort(), Object.keys(judgeSlotsFor(section)).sort(), "every question of the section, once");
+  assert.ok(union.some(body => body.state.frame.length === 2), "a pair of two body files is asked with both whole");
+  // One named part outside the source opens the same four files.
+  assert.deepEqual([...judgeRequest("ext-localstorage").state.architecture.bodies].sort(),
+    ["dev-architecture-config-v1-json", "src-config-mjs", "web-app-mjs", "web-data-config-v1-json"]);
+});
+
+test("measured, not assumed: what each focus sends the provider, by the Function's own builder", async t => {
+  const { calls } = await withProvider(answering(noneTo), () => Promise.all([request(), intentRequest()].map(body => post(body, ARCHITECTURE_ENV))));
+  for (const [index, call] of calls.entries()) {
+    t.diagnostic(`${index === 0 ? "plain" : "intent"}: ${Buffer.byteLength(JSON.stringify(call))} bytes, `
+      + `${Object.keys(call.questions).length} questions, code bytes 0`);
+  }
+  // Offline: this builder with the bound snapshot's own files, a stubbed provider,
+  // no key - every locate frame the page would send, as the provider would get it.
+  const sizes = [];
+  for (const frame of locateRequests()) {
+    const { result, calls: [call] } = await withProvider(answering(noneTo), () => post(frame, ARCHITECTURE_ENV));
+    assert.equal(result.status, 200, frame.state.architecture.focus[0]);
+    const { bodies, lines } = call.state.architecture.evidence;
+    sizes.push(Buffer.byteLength(JSON.stringify(call)));
+    t.diagnostic(`locate ${frame.state.architecture.focus[0]} (offline): ${sizes.at(-1)} bytes, ${Object.keys(call.questions).length} question, `
+      + `bodies [${bodies.map(file => `${file.path} ${Buffer.byteLength(file.text)}B`).join("; ")}], ${lines.length} neighbour lines`);
+  }
+  t.diagnostic(`locate frames (offline): ${sizes.length}, ${sizes.reduce((sum, size) => sum + size, 0)} bytes in all, largest ${Math.max(...sizes)} bytes`);
+  // Every judge frame the page could send, likewise: each part alone - four of
+  // them the scenario's named parts - and every part together, which holds
+  // every pair of body files. Bytes as measured here, not tokens, and no limit.
+  const ids = MANIFEST.entities.map(entity => entity.id);
+  const named = ["web-app-mjs", "ext-jev-api-key", "ext-localstorage", "src-log-mjs"];
+  for (const [label, focus] of [...ids.map(id => [named.includes(id) ? `${id} (scenario)` : id, [id]]), ["every-part", [...ids].sort()]]) {
+    const frames = judgeRequests(focus);
+    const totals = { payload: 0, text: 0, questions: 0 };
+    for (const frame of frames) {
+      const { result, calls: [call] } = await withProvider(answering(noneTo), () => post(frame, ARCHITECTURE_ENV));
+      assert.equal(result.status, 200, `${label} ${frame.state.frame}`);
+      const { bodies, lines } = call.state.architecture.evidence;
+      const measured = {
+        payload: Buffer.byteLength(JSON.stringify(call)),
+        state: Buffer.byteLength(JSON.stringify(call.state)),
+        text: bodies.reduce((sum, file) => sum + Buffer.byteLength(file.text), 0),
+        questions: Object.keys(call.questions).length,
+        longest: Math.max(...Object.values(call.questions).map(question => Buffer.byteLength(JSON.stringify(question)))),
+      };
+      for (const name of Object.keys(totals)) totals[name] += measured[name];
+      t.diagnostic(`judge ${label} frame ${frame.state.frame.join("+")} (offline): payload ${measured.payload} bytes, state ${measured.state} bytes, `
+        + `whole-file text ${measured.text} bytes, ${measured.questions} questions, longest question ${measured.longest} bytes, ${lines.length} neighbour lines`);
+    }
+    t.diagnostic(`judge ${label} (offline): ${frames.length} frames, ${totals.questions} questions, payload ${totals.payload} bytes in all, `
+      + `whole-file text ${totals.text} bytes in all`);
+  }
 });

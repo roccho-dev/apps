@@ -1,18 +1,33 @@
 import {
   ACTION_ADD_EDGE,
   ACTION_ADD_PART,
+  ACTION_ARCHITECTURE,
   ACTION_COMPOSE,
   ACTION_PLACE_PART,
   ACTION_REMOVE_EDGE,
   ACTION_REVERSE_EDGE,
   ACTION_UNDO_REQUEST,
+  ARCHITECTURE_INTENT_KIND,
+  ARCHITECTURE_LOCATE_KIND,
   DECISION_KIND,
   ERRORS,
   NONE,
+  REQUEST_KIND,
+  WHOLE,
+  YES,
+  isJudgeRequest,
+  isLocateRequest,
   isRequest,
+  judgeFramesFor,
+  judgeSlotsFor,
+  locateSlotsFor,
   readAnswers,
+  relationSlot,
+  relevantSlot,
+  roleSlot,
   slotsFor,
 } from "../../src/contract.mjs";
+import { definedRelation, focusedEvidence, intentSectionOf, judgeSectionOf, readManifest } from "../../src/architecture.mjs";
 
 const json = (body, status = 200) =>
   new Response(JSON.stringify(body), {
@@ -45,7 +60,12 @@ const callProvider = async (env, body) => {
       body: JSON.stringify(body),
       signal: controller.signal,
     });
-    if (!provider.ok) return { error: json({ error: ERRORS.providerError }, 502) };
+    if (!provider.ok) {
+      // A refusal is logged on the server as its numeric HTTP status only: never
+      // its body, which is not read, nor its status text, headers or the request.
+      console.warn(JSON.stringify({ event: "provider-status", status: provider.status }));
+      return { error: json({ error: ERRORS.providerError }, 502) };
+    }
     return { text: await provider.text() };
   } catch {
     return controller.signal.aborted
@@ -68,6 +88,7 @@ const ACTION_WORDS = {
   [ACTION_REVERSE_EDGE]: "the utterance asks to reverse the direction of one edge of the working graph",
   [ACTION_UNDO_REQUEST]: "the utterance asks to undo, take back or go back on an earlier change",
   [ACTION_COMPOSE]: "the utterance asks for a whole diagram or chart by what it is for, rather than one edit",
+  [ACTION_ARCHITECTURE]: "the utterance asks for a diagram of how this code is built, or for more detail on one part of it",
   [NONE]: "the utterance asks for anything else, or for no change to the graph",
 };
 
@@ -81,10 +102,16 @@ const CONTEXT_NOTE = " context.recent lists earlier utterances as they were reco
 // The questions for exactly the slots the request offers. Each option is a
 // key the request carries; the words around it are this Function's own, and
 // every product word - a part's or a diagram's purpose - comes from the
-// request's offers.
-function questionsFor(state, slots) {
+// request's offers. `defined` says what the server's own snapshot defines an
+// edge as, or null: an architecture intent passes it, and a plain request,
+// which has no snapshot, describes every edge by its two ends only.
+function questionsFor(state, slots, defined = () => null) {
   const labelOf = new Map(state.graph.regions.map(region => [region.id, region.label]));
   const node = key => labelOf.get(key) === key ? key : `${key} (shown as "${labelOf.get(key)}")`;
+  const definedAs = edge => {
+    const relation = defined(edge);
+    return relation === null ? "" : `, which this snapshot defines as ${relation.kind}${relation.purpose === null ? "" : `: ${relation.purpose}`}`;
+  };
   const questions = {
     action: {
       type: "choice",
@@ -159,7 +186,7 @@ function questionsFor(state, slots) {
         + "Only if it names no edge and refers to one (for example \"that edge\"), choose the edge the focus describes.",
       criteria: criteria(slots.edge, key => key === NONE
         ? "the utterance refers to no edge of the working graph"
-        : `the edge from ${node(byId.get(key).from)} to ${node(byId.get(key).to)}`),
+        : `the edge from ${node(byId.get(key).from)} to ${node(byId.get(key).to)}${definedAs(byId.get(key))}`),
     };
   }
   if (slots.diagram) {
@@ -174,13 +201,117 @@ function questionsFor(state, slots) {
         : `the utterance asks for ${purposeOf.get(key)}`),
     };
   }
+  if (slots.focus) {
+    const labelOf = new Map(state.architecture.entities.map(entity => [entity.id, entity.label]));
+    questions.focus = {
+      type: "choice",
+      instructions: "If the utterance asks how this code is built, does it ask for the code as a whole, "
+        + "or which one part of it does it ask to see in more detail? "
+        + "state.architecture.entities names each part by its file path or, for what lies outside the source, "
+        + "by the identifier or URL the source uses for it.",
+      criteria: criteria(slots.focus, key => (key === WHOLE
+        ? "the code as a whole"
+        : key === NONE
+          ? "neither one part nor the whole is clear, or it asks for neither"
+          : `the part ${labelOf.get(key)}`)),
+    };
+  }
   for (const question of Object.values(questions)) question.instructions += CONTEXT_NOTE;
   return questions;
 }
 
-// One request kind in, one answer kind out, and a closed set of failures. The
-// state is sent to Jev as the named object it arrived as; the questions carry
-// only the judgments.
+// A judge's questions: for each body file, whether it has each role; for each
+// pair, which relation holds, if any. Every answer rests only on the text
+// this Function adds: whole body files, and single lines of other files.
+const EVIDENCE_NOTE = " state.architecture.evidence.bodies holds whole files, each with its path;"
+  + " state.architecture.evidence.lines holds single lines of other files, each with its path and line number, and nothing around them."
+  + " A part with no text there is known only by its name. Judge only from that text; if it does not show the answer, answer none.";
+
+function judgeQuestions(section, slots) {
+  const labelOf = new Map(section.entities.map(entity => [entity.id, entity.label]));
+  const questions = {};
+  for (const body of section.bodies) {
+    for (const role of section.roles) {
+      questions[roleSlot(body, role.key)] = {
+        type: "choice",
+        instructions: `Does the file ${labelOf.get(body)}, whose whole text is in state.architecture.evidence.bodies, ${role.purpose}?${EVIDENCE_NOTE}`,
+        criteria: criteria(slots[roleSlot(body, role.key)], key => key === YES
+          ? `yes: its own text shows that it ${role.purpose}`
+          : "no, or its text does not show it"),
+      };
+    }
+  }
+  const relationWords = new Map(section.relations.map(relation => [relation.key, relation.purpose]));
+  for (const candidate of section.candidates) {
+    questions[relationSlot(candidate.id)] = {
+      type: "choice",
+      instructions: `From ${labelOf.get(candidate.from)} to ${labelOf.get(candidate.to)} (a candidate pair because of: ${candidate.reasons.join(", ")}):`
+        + ` which relation holds at run time from the first to the second? Being a candidate is not evidence of any relation.${EVIDENCE_NOTE}`,
+      criteria: criteria(slots[relationSlot(candidate.id)], key => key === NONE
+        ? "no relation of these kinds holds, or the text does not show one"
+        : relationWords.get(key)),
+    };
+  }
+  return questions;
+}
+
+// A locate frame's one question, judged from its part's own text - the files
+// it opens whole, and single lines of other files that name it - which the
+// question names by path, since the provider never sees the question's name.
+// For a file: whether its own text does or declares what the utterance is
+// about. For a part outside the source: whether the shown code uses it for
+// that. The utterance need not name the part; the options say where the line
+// falls.
+function locateQuestion(entity, evidence, slots) {
+  const file = entity.kind === "file";
+  const lined = [...new Set(evidence.lines.map(line => line.path))];
+  return {
+    [relevantSlot(entity.id)]: {
+      type: "choice",
+      instructions: (file
+        ? `Does the original text of the file ${entity.label} implement behaviour, or declare data, that the current utterance asks about or refers to?`
+        : `Does the shown original code use ${entity.label}, which lies outside the source, for behaviour or data that the current utterance asks about or refers to?`)
+        + ` state.architecture.evidence.bodies holds ${evidence.bodies.map(body => body.path).join(", ")} whole`
+        + (lined.length === 0 ? "." : `; state.architecture.evidence.lines holds single lines of ${lined.join(", ")}, each with its path and line number.`)
+        + " Judge only from that text and the utterance."
+        + CONTEXT_NOTE,
+      criteria: criteria(slots[relevantSlot(entity.id)], key => (file
+        ? key === YES
+          ? "its own text implements that behaviour or declares that data, whether or not the utterance names the file"
+          : "its text does not, even if it mentions or imports another part that does"
+        : key === YES
+          ? "the shown code uses it for that behaviour or data, whether or not the utterance names it"
+          : "the shown code does not use it for that, or only names it")),
+    },
+  };
+}
+
+// The prepared source this server was started with, or null: the manifest
+// available and the evidence of the very same snapshot.
+function boundArchitecture(env) {
+  const manifest = readManifest(env?.ARCHITECTURE?.manifest ?? null);
+  const evidence = env?.ARCHITECTURE?.evidence;
+  if (manifest.status !== "available" || evidence?.status !== "available") return null;
+  if (evidence.source?.handle !== manifest.source.handle || evidence.source?.commit !== manifest.source.commit) return null;
+  // The text of exactly the admitted files, each a string: no file missing,
+  // none extra, so a request is never answered from a path without its text.
+  const { files } = evidence;
+  if (files === null || typeof files !== "object" || Array.isArray(files)) return null;
+  const admitted = manifest.entities.filter(entity => entity.kind === "file").map(entity => entity.id).sort();
+  if (JSON.stringify(Object.keys(files).sort()) !== JSON.stringify(admitted)) return null;
+  if (!Object.values(files).every(text => typeof text === "string")) return null;
+  return { manifest, files };
+}
+
+// The request kinds in, one answer kind out, and a closed set of failures.
+// The state is sent to Jev as the named object it arrived as; the questions
+// carry only the judgments. An architecture request must name exactly this
+// server's own snapshot, or it is refused before the provider is asked: an
+// intent is sent as it came, with no code; a locate frame is sent with its
+// part's own text added here - the text of the section that part opens, and
+// none of that section's parts, pairs or vocabulary; a judge is sent the one
+// frame of its section it names, with that frame's text added here. That text
+// is never sent back.
 export async function onRequestPost({ request, env }) {
   if (typeof env?.JEV_API_KEY !== "string" || env.JEV_API_KEY.length === 0) {
     return json({ error: ERRORS.unavailable }, 503);
@@ -192,11 +323,46 @@ export async function onRequestPost({ request, env }) {
   } catch {
     return json({ error: ERRORS.invalidJson }, 400);
   }
-  if (!isRequest(input)) return json({ error: ERRORS.invalidRequest }, 422);
+  if (!isRequest(input) && !isLocateRequest(input) && !isJudgeRequest(input)) return json({ error: ERRORS.invalidRequest }, 422);
 
-  const { state } = input;
-  const slots = slotsFor(state);
-  const { text, error } = await callProvider(env, { model: "jev-latest", state, questions: questionsFor(state, slots) });
+  const { kind, state } = input;
+  let asked = state;
+  let slots;
+  let questions;
+  if (kind === REQUEST_KIND) {
+    slots = slotsFor(state);
+    questions = questionsFor(state, slots);
+  } else {
+    const bound = boundArchitecture(env);
+    if (bound === null) return json({ error: ERRORS.architectureUnavailable }, 503);
+    // A locate frame's part opens the section a judge of it would: null for a part
+    // the snapshot does not know, or one that opens no text.
+    const opened = kind === ARCHITECTURE_LOCATE_KIND ? judgeSectionOf(bound.manifest, state.architecture.focus) : null;
+    const own = kind === ARCHITECTURE_INTENT_KIND ? intentSectionOf(bound.manifest)
+      : kind === ARCHITECTURE_LOCATE_KIND ? opened && { source: bound.manifest.source, focus: opened.focus }
+        : judgeSectionOf(bound.manifest, state.architecture.focus);
+    if (JSON.stringify(state.architecture) !== JSON.stringify(own)) return json({ error: ERRORS.architectureMismatch }, 422);
+    if (kind === ARCHITECTURE_LOCATE_KIND) {
+      const [part] = opened.focus;
+      const evidence = focusedEvidence(opened, bound.manifest, bound.files);
+      slots = locateSlotsFor([part]);
+      questions = locateQuestion(bound.manifest.entities.find(entity => entity.id === part), evidence, slots);
+      asked = { utterance: state.utterance, context: state.context, architecture: { ...state.architecture, evidence } };
+    } else if (kind === ARCHITECTURE_INTENT_KIND) {
+      slots = slotsFor(state);
+      questions = questionsFor(state, slots, edge => definedRelation(bound.manifest, edge));
+    } else {
+      // A judge asks one frame of this section's own plan: that frame's
+      // questions, from that frame's text. Which frame is the page's to say
+      // and never the provider's to see.
+      const framed = judgeFramesFor(own)?.find(({ frame }) => JSON.stringify(frame) === JSON.stringify(state.frame));
+      if (framed === undefined) return json({ error: ERRORS.architectureMismatch }, 422);
+      slots = judgeSlotsFor(framed.section);
+      questions = judgeQuestions(framed.section, slots);
+      asked = { utterance: state.utterance, architecture: { ...framed.section, evidence: focusedEvidence(framed.section, bound.manifest, bound.files) } };
+    }
+  }
+  const { text, error } = await callProvider(env, { model: "jev-latest", state: asked, questions });
   if (error) return error;
 
   let value;
