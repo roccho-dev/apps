@@ -54,6 +54,7 @@
     { "key": "configures", "purpose": "the first supplies configuration that the second reads" }
   ],
   "notAnalyzed": [
+    "model-inferred relations with a subject whose unchanged whole UTF-8 text parses as JSON are not analyzed; all JSON values count, not just objects, and syntax says nothing about execution. Original candidates, focus, roles, imports and declared facts remain. Legitimate JSON-to-reader configures inferences are deliberately not analyzed either",
     "dynamic import() and run-time effects are not analyzed",
     "relations other than static imports are candidates for Jev to judge, never source-declared",
     "an identifier found in a file's text makes a candidate pair, nothing more: it is a string match, not an analysis",

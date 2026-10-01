@@ -38,7 +38,7 @@ import { OUTCOME_NO_CHANGE, OUTCOME_REFUSED, OUTCOME_STEP } from "./turn.mjs";
 // calls a model-selected one source-declared; which parts were located is
 // never drawn or stored as a claim.
 
-const MANIFEST_SCHEMA = "voice-ui.architecture-source/1";
+const MANIFEST_SCHEMA = "voice-ui.architecture-source/2";
 const COMMIT = /^[0-9a-f]{40}$/u;
 
 // Where a claim comes from. Only a file, a static import or a declared fact
@@ -93,13 +93,13 @@ const deepFreeze = value => {
 };
 
 const scalar = value => ["string", "number", "boolean"].includes(typeof value);
-const validFile = file => typeof file?.path === "string" && typeof file.blob === "string" && (
-  (exactObject(file, ["path", "blob", "class", "entity"]) && file.class === "admitted" && key(file.entity))
+const validFile = file => text(file?.path) && COMMIT.test(file.blob ?? "") && (
+  (exactObject(file, ["path", "blob", "class", "entity", "jsonSyntax"]) && file.class === "admitted" && key(file.entity) && typeof file.jsonSyntax === "boolean")
   || (exactObject(file, ["path", "blob", "class", "reason"]) && file.class === "excluded" && text(file.reason)));
 // An admitted file is labelled by its own path; anything else by the
 // identifier or URL the source uses for it.
 const validEntity = entity =>
-  (exactObject(entity, ["id", "label", "kind", "path"]) && entity.kind === "file" && entity.label === entity.path)
+  (exactObject(entity, ["id", "label", "kind", "path"]) && entity.kind === "file" && text(entity.path) && entity.label === entity.path)
   || (exactObject(entity, ["id", "label", "kind"]) && entity.kind === "external");
 const validFact = fact => exactObject(fact, Object.hasOwn(fact ?? {}, "row")
   ? ["id", "entity", "path", "row", "pointer", "value"] : ["id", "entity", "path", "pointer", "value"])
@@ -129,6 +129,15 @@ export function readManifest(value) {
     && text(entity.label) && entity.label.length <= LABEL_MAX && entity.id !== WHOLE)) return invalid("entities are not well-formed");
   const ids = value.entities.map(entity => entity.id);
   if (new Set(ids).size !== ids.length) return invalid("entity ids repeat");
+  if (new Set(value.files.map(file => file.path)).size !== value.files.length) return invalid("file paths repeat");
+  const admitted = value.files.filter(file => file.class === "admitted");
+  const fileEntities = value.entities.filter(entity => entity.kind === "file");
+  if (new Set(admitted.map(file => file.entity)).size !== admitted.length
+    || new Set(fileEntities.map(entity => entity.path)).size !== fileEntities.length
+    || admitted.length !== fileEntities.length
+    || !admitted.every(file => fileEntities.some(entity => entity.id === file.entity && entity.path === file.path))) {
+    return invalid("admitted files and file entities must correspond exactly, once each");
+  }
   const pathOf = new Map(value.entities.filter(entity => entity.kind === "file").map(entity => [entity.id, entity.path]));
   if (!Array.isArray(value.imports) || !value.imports.every(edge => exactObject(edge, ["from", "to", "path", "specifier", "resolution"])
     && pathOf.get(edge.from) === edge.path && ids.includes(edge.to) && typeof edge.specifier === "string"
@@ -242,6 +251,18 @@ export function locatedOf(manifest, frames) {
 // names it; its pairs are exactly the candidate pairs that touch a focused
 // part or a body file; its parts are those and their other ends. Null when
 // the focus is not such a list, or opens no file.
+// One deliberately bounded analysis rule, not a claim about execution.
+// Original pairs still discover/open files; only model relation questions
+// and the claims they could ground exclude a positive-JSON subject.
+const relationEligible = (manifest, candidate) => {
+  const entity = manifest.entities.find(value => value.id === candidate.from);
+  demand(entity !== undefined, "a relation subject must be a known entity");
+  if (entity.kind === "external") return true;
+  const file = manifest.files.find(value => value.class === "admitted" && value.entity === entity.id && value.path === entity.path);
+  demand(file !== undefined && typeof file.jsonSyntax === "boolean", "a file subject requires its validated JSON syntax fact");
+  return !file.jsonSyntax;
+};
+
 export function judgeSectionOf(manifest, focus) {
   demand(manifest?.status === "available", "an available manifest is required");
   const byId = new Map(manifest.entities.map(entity => [entity.id, entity]));
@@ -254,7 +275,8 @@ export function judgeSectionOf(manifest, focus) {
   const opened = new Set(focus.flatMap(opens));
   if (opened.size === 0) return null;
   const centre = new Set([...focus, ...opened]);
-  const candidates = manifest.candidates.filter(candidate => centre.has(candidate.from) || centre.has(candidate.to));
+  const candidates = manifest.candidates.filter(candidate => relationEligible(manifest, candidate)
+    && (centre.has(candidate.from) || centre.has(candidate.to)));
   const parts = new Set([...centre, ...candidates.flatMap(candidate => [candidate.from, candidate.to])]);
   return deepFreeze({
     source: { ...manifest.source },
@@ -387,7 +409,8 @@ const everyRecordOf = manifest => {
   return [
     ...sourceRecords(manifest).values(),
     ...manifest.roles.map(role => roleNode(role.key)),
-    ...manifest.candidates.flatMap(candidate => manifest.relations.map(relation => inferredRecord(candidate, relation.key))),
+    ...manifest.candidates.filter(candidate => relationEligible(manifest, candidate))
+      .flatMap(candidate => manifest.relations.map(relation => inferredRecord(candidate, relation.key))),
     ...files.flatMap(entity => manifest.roles.map(role => roleEdge(entity, role.key))),
   ];
 };
@@ -424,7 +447,7 @@ const equal = (left, right) => left === right || (
 export function claimCheckFor(manifest) {
   const known = new Map([...sourceRecords(manifest).values(), ...manifest.roles.map(role => roleNode(role.key))]
     .map(value => [`${value.record.type} ${value.record.id}`, value]));
-  const candidates = new Map(manifest.candidates.map(candidate => [candidate.id, candidate]));
+  const candidates = new Map(manifest.candidates.filter(candidate => relationEligible(manifest, candidate)).map(candidate => [candidate.id, candidate]));
   const relations = manifest.relations.map(relation => relation.key);
   const roles = new Map(manifest.roles.map(role => [roleIdOf(role.key), role.key]));
   const files = new Map(manifest.entities.filter(entity => entity.kind === "file").map(entity => [entity.path, entity]));

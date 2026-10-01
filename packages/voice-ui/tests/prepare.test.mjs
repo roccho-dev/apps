@@ -206,3 +206,30 @@ test("a file in no class, or a missing platform parser, stops the preparation", 
   assert.equal(noFlag.status, 1);
   assert.match(noFlag.stderr, /unavailable: node:vm SourceTextModule is missing/u);
 });
+
+test("JSON syntax is required for every admitted original whole text, regardless of extension or value", () => {
+  const { root, scopeFile } = fixture();
+  const bodies = {
+    "object.txt": "{\"key\":1}\n", "array.mjs": "[1,true,null]",
+    "string.bin": "\"store\"", "number.data": "42", "boolean.js": "true", "null.jsonl": "null",
+    "space.txt": " \nnull\t", "bom.txt": "\uFEFFnull",
+    "trailing.json": "{} trailing", "rows.jsonl": "{}\n{}", "expression.mjs": "({key:1})",
+  };
+  const scope = JSON.parse(fs.readFileSync(scopeFile, "utf8"));
+  for (const [name, body] of Object.entries(bodies)) {
+    fs.writeFileSync(path.join(root, name), body);
+    scope.classes.push({ match: name, class: "admitted" });
+  }
+  fs.writeFileSync(scopeFile, JSON.stringify(scope));
+  const prepared = run({ scope: scopeFile, root });
+  assert.equal(prepared.status, 0, prepared.stderr);
+  assert.equal(prepared.manifest.schema, "voice-ui.architecture-source/2");
+  for (const file of prepared.manifest.files.filter(file => file.class === "admitted")) {
+    const original = fs.readFileSync(path.join(root, file.path), "utf8");
+    let positive = false;
+    try { JSON.parse(original); positive = true; } catch {}
+    assert.equal(file.jsonSyntax, positive, file.path);
+    assert.equal(prepared.evidence.files[file.entity], original, "original bytes are not cleaned or reserialized");
+  }
+  assert.ok(prepared.manifest.files.filter(file => file.class === "excluded").every(file => !Object.hasOwn(file, "jsonSyntax")));
+});

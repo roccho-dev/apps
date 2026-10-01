@@ -7,6 +7,7 @@ import test from "node:test";
 import { fileURLToPath, pathToFileURL } from "node:url";
 
 import {
+  claimCheckFor,
   definedRelation,
   focusedEvidence,
   judgeRequestsOf,
@@ -63,14 +64,14 @@ const COMMIT = "0123456789abcdef0123456789abcdef01234567";
 // source that the second names, a JSON file with one declared fact, and an
 // unrelated file that imports nothing and is named by nothing.
 const MANIFEST = Object.freeze({
-  schema: "voice-ui.architecture-source/1",
+  schema: "voice-ui.architecture-source/2",
   status: "available",
   source: { handle: "fixture", commit: COMMIT },
   files: [
-    { path: "a.mjs", blob: "1".repeat(40), class: "admitted", entity: "a-mjs" },
-    { path: "b.mjs", blob: "2".repeat(40), class: "admitted", entity: "b-mjs" },
-    { path: "c.json", blob: "3".repeat(40), class: "admitted", entity: "c-json" },
-    { path: "d.mjs", blob: "5".repeat(40), class: "admitted", entity: "d-mjs" },
+    { path: "a.mjs", blob: "1".repeat(40), class: "admitted", entity: "a-mjs", jsonSyntax: false },
+    { path: "b.mjs", blob: "2".repeat(40), class: "admitted", entity: "b-mjs", jsonSyntax: false },
+    { path: "c.json", blob: "3".repeat(40), class: "admitted", entity: "c-json", jsonSyntax: true },
+    { path: "d.mjs", blob: "5".repeat(40), class: "admitted", entity: "d-mjs", jsonSyntax: false },
     { path: "t.test.mjs", blob: "4".repeat(40), class: "excluded", reason: "test" },
   ],
   entities: [
@@ -134,7 +135,7 @@ const framesFor = (manifest, request, picks = {}) => locateRequestsOf(manifest, 
 
 test("the manifest is read whole: available, unavailable with its reason, or invalid", () => {
   assert.equal(readManifest(structuredClone(MANIFEST)).status, "available");
-  assert.deepEqual(readManifest({ schema: "voice-ui.architecture-source/1", status: "unavailable", reason: "dirty" }),
+  assert.deepEqual(readManifest({ schema: "voice-ui.architecture-source/2", status: "unavailable", reason: "dirty" }),
     { status: "unavailable", reason: "dirty" });
   for (const broken of [null, {}, { ...MANIFEST, extra: 1 }, { ...MANIFEST, source: { handle: "fixture", commit: "HEAD" } },
     { ...MANIFEST, candidates: [{ id: "c", from: "a-mjs", to: "nobody", reasons: ["import:./x.mjs"] }] },
@@ -151,9 +152,58 @@ test("the manifest is read whole: available, unavailable with its reason, or inv
   }
   // A file whose path makes the same id as a role's node would make two records one.
   const clash = structuredClone(MANIFEST);
-  clash.files.push({ path: "role/persistence", blob: "6".repeat(40), class: "admitted", entity: "role-persistence" });
+  clash.files.push({ path: "role/persistence", blob: "6".repeat(40), class: "admitted", entity: "role-persistence", jsonSyntax: false });
   clash.entities.push({ id: "role-persistence", label: "role/persistence", kind: "file", path: "role/persistence" });
   assert.match(readManifest(clash).reason, /would share an id/u);
+});
+
+test("required syntax facts cannot be bypassed by a missing, mismatched or duplicate file/entity link", () => {
+  const source = structuredClone(MANIFEST);
+  source.schema = "voice-ui.architecture-source/2";
+  source.files = source.files.map(file => file.class === "admitted" ? { ...file, jsonSyntax: file.path === "c.json" } : file);
+  assert.equal(readManifest(source).status, "available");
+  const changes = [
+    value => { delete value.files[0].jsonSyntax; },
+    value => { value.files[0].jsonSyntax = "false"; },
+    value => { value.files = value.files.slice(1); },
+    value => { value.files[0].entity = "ext-store"; },
+    value => { value.entities[0].path = value.entities[0].label = "missing.mjs"; },
+    value => { value.files.push({ ...value.files[0] }); },
+    value => { value.files.push({ ...value.files[0], path: "other.mjs" }); },
+    value => { value.entities.push({ ...value.entities[0], id: "other" }); },
+    value => { value.entities[0] = { id: "a-mjs", label: "a.mjs", kind: "external" }; },
+  ];
+  for (const change of changes) {
+    const invalid = structuredClone(source); change(invalid);
+    assert.equal(readManifest(invalid).status, "invalid", change.toString());
+  }
+  assert.equal(readManifest({ ...source, schema: "voice-ui.architecture-source/1" }).status, "invalid", "no old manifest fallback");
+});
+
+test("positive JSON subjects lose only inferred relations; original pairs, target eligibility, roles and facts remain", () => {
+  const source = structuredClone(MANIFEST);
+  source.schema = "voice-ui.architecture-source/2";
+  source.files = source.files.map(file => file.class === "admitted" ? { ...file, jsonSyntax: file.path === "c.json" } : file);
+  source.candidates.push(
+    { id: "c-c-json--ext-store", from: "c-json", to: "ext-store", reasons: ["identifier:store"] },
+    { id: "c-b-mjs--c-json", from: "b-mjs", to: "c-json", reasons: ["identifier:key"] },
+    { id: "c-ext-store--c-json", from: "ext-store", to: "c-json", reasons: ["identifier:key"] },
+  );
+  const manifest = readManifest(source);
+  assert.equal(manifest.status, "available", manifest.reason);
+  assert.deepEqual(manifest.candidates, source.candidates, "discovery evidence stays original");
+  const section = judgeSectionOf(manifest, ["ext-store"]);
+  assert.deepEqual(section.bodies, ["b-mjs", "c-json"], "a JSON body is still opened by original candidate pairs");
+  assert.ok(section.candidates.some(candidate => candidate.id === "c-b-mjs--c-json"));
+  assert.ok(section.candidates.some(candidate => candidate.id === "c-ext-store--c-json"), "known external subject is explicit, not a missing-file fallback");
+  assert.ok(!section.candidates.some(candidate => candidate.from === "c-json"));
+  assert.ok(Object.hasOwn(judgeSlotsFor(section), roleSlot("c-json", "config")));
+  const excluded = { type: "relation", id: "arch-stores-in-c-json-to-ext-store", from: "arch-c-json", to: "arch-ext-store", kind: "stores-in", label: "stores-in" };
+  assert.equal(definedRelation(manifest, excluded), null);
+  assert.deepEqual(definedRelation(manifest, { id: "arch-calls-b-mjs-to-c-json", from: "arch-b-mjs", to: "arch-c-json" }), { kind: "calls", purpose: "calls it" });
+  assert.deepEqual(definedRelation(manifest, { id: "arch-declares-store-key", from: "arch-fact-store-key", to: "arch-c-json" }), { kind: "declares", purpose: null });
+  const forged = { record: { type: "relation", id: excluded.id }, origin: "model-inferred", basis: [{ candidate: "c-c-json--ext-store", from: "c-json", to: "ext-store", reasons: ["identifier:store"] }] };
+  assert.match(claimCheckFor(manifest)(forged, excluded), /not a closed relation/u);
 });
 
 test("an intent carries the plain request, the parts by path or identifier, and no code; the plain request is unchanged", async () => {
@@ -306,7 +356,7 @@ test("a view larger than the provider takes in one Decision is split at the limi
   const many = Array.from({ length: 40 }, (_, index) => `part-${String(index).padStart(2, "0")}`);
   const manifest = readManifest({
     ...structuredClone(MANIFEST),
-    files: many.map(id => ({ path: `${id}.mjs`, blob: "1".repeat(40), class: "admitted", entity: `${id}-mjs` })),
+    files: many.map(id => ({ path: `${id}.mjs`, blob: "1".repeat(40), class: "admitted", entity: `${id}-mjs`, jsonSyntax: false })),
     entities: many.map(id => ({ id: `${id}-mjs`, label: `${id}.mjs`, kind: "file", path: `${id}.mjs` })),
     imports: many.slice(1).map((id, index) => ({ from: `${many[index]}-mjs`, to: `${id}-mjs`, path: `${many[index]}.mjs`, specifier: `./${id}.mjs`, resolution: "relative" })),
     candidates: [],
@@ -691,7 +741,7 @@ test("an edge is what the snapshot defines only by its id and both its ends; any
 
 test("the whole is reserved: no part may be called whole, in the manifest or in an intent", async () => {
   const source = structuredClone(MANIFEST);
-  source.files.push({ path: "whole", blob: "7".repeat(40), class: "admitted", entity: "whole" });
+  source.files.push({ path: "whole", blob: "7".repeat(40), class: "admitted", entity: "whole", jsonSyntax: false });
   source.entities.push({ id: "whole", label: "whole", kind: "file", path: "whole" });
   assert.equal(readManifest(source).status, "invalid");
   const { request } = turnFor(await mapGraph(), readManifest(structuredClone(MANIFEST)));

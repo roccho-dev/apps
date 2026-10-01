@@ -20,13 +20,13 @@ const { verifyDecisionLog } = protocol;
 const KEY = "document test key";
 const COMMIT = "0123456789abcdef0123456789abcdef01234567";
 const SOURCE = Object.freeze({
-  schema: "voice-ui.architecture-source/1",
+  schema: "voice-ui.architecture-source/2",
   status: "available",
   source: { handle: "fixture", commit: COMMIT },
   files: [
-    { path: "a.mjs", blob: "1".repeat(40), class: "admitted", entity: "a-mjs" },
-    { path: "b.mjs", blob: "2".repeat(40), class: "admitted", entity: "b-mjs" },
-    { path: "c.json", blob: "3".repeat(40), class: "admitted", entity: "c-json" },
+    { path: "a.mjs", blob: "1".repeat(40), class: "admitted", entity: "a-mjs", jsonSyntax: false },
+    { path: "b.mjs", blob: "2".repeat(40), class: "admitted", entity: "b-mjs", jsonSyntax: false },
+    { path: "c.json", blob: "3".repeat(40), class: "admitted", entity: "c-json", jsonSyntax: true },
   ],
   entities: [
     { id: "a-mjs", label: "a.mjs", kind: "file", path: "a.mjs" },
@@ -385,10 +385,49 @@ test("without the cited snapshot the saved graph is still restored, as not check
   const { graph, draft } = await drafted();
   const first = await commitWith(origin, graph, draft, null, null);
   const elsewhere = readManifest({ ...structuredClone(MANIFEST), source: { handle: "fixture", commit: "f".repeat(40) } });
-  for (const manifest of [elsewhere, { status: "unavailable", reason: "no exact commit" }]) {
+  const previousVersion = structuredClone(SOURCE);
+  previousVersion.schema = "voice-ui.architecture-source/1";
+  previousVersion.files.forEach(file => { delete file.jsonSyntax; });
+  for (const manifest of [elsewhere, readManifest(previousVersion), { status: "unavailable", reason: "no exact commit" }]) {
     const restored = await restoreDocument({ key: KEY, read: origin.read, verifyDecisionLog, manifest });
     assert.equal(restored.status, "restored");
     assert.notEqual(restored.evidence, EVIDENCE_CURRENT);
     assert.equal(restored.stored, first.stored);
   }
+});
+
+test("an excluded JSON-subject relation is refused on Apply and reload; its roles and facts remain grounded", async () => {
+  const source = structuredClone(SOURCE);
+  source.candidates.push({ id: "c-c-json--ext-store", from: "c-json", to: "ext-store", reasons: ["identifier:store"] });
+  const actual = readManifest(source);
+  assert.equal(actual.status, "available", actual.reason);
+  const lyingSource = structuredClone(source);
+  lyingSource.files.find(file => file.entity === "c-json").jsonSyntax = false;
+  const falseAccount = readManifest(lyingSource);
+  const { graph, draft } = await drafted(falseAccount);
+  const extra = await planOn(graph, falseAccount, "c-json", { [relationSlot("c-c-json--ext-store")]: "stores-in" });
+  const forgedGraph = await appendAll(graph, extra);
+  const forgedDraft = [...draft, ...extra.steps];
+  const made = await commitWith(storage(), forgedGraph, forgedDraft, null, null, falseAccount);
+  assert.equal(made.status, COMMIT_COMMITTED, made.reason);
+  const rejected = await commitWith(storage(), forgedGraph, forgedDraft, null, null, actual);
+  assert.equal(rejected.status, "rejected");
+  assert.match(rejected.reason, /not a closed relation of a candidate pair/u);
+  const origin = storage(); origin.values.set(KEY, made.stored);
+  const restored = await restoreDocument({ key: KEY, read: origin.read, verifyDecisionLog, manifest: actual });
+  assert.equal(restored.status, "corrupt");
+  assert.match(restored.reason, /not a closed relation of a candidate pair/u);
+  assert.equal(origin.values.get(KEY), made.stored, "even the refused bytes are never repaired or overwritten");
+  const newSource = readManifest({ ...source, source: { ...source.source, commit: "f".repeat(40) } });
+  const unavailable = await restoreDocument({ key: KEY, read: origin.read, verifyDecisionLog, manifest: newSource });
+  assert.equal(unavailable.status, "restored");
+  assert.notEqual(unavailable.evidence, EVIDENCE_CURRENT, "another source is unavailable evidence, not same-source repair");
+  assert.equal(unavailable.stored, made.stored);
+  const honest = await drafted(actual);
+  const roled = await planOn(honest.graph, actual, "c-json", { [roleSlot("c-json", "config")]: YES });
+  const roledGraph = await appendAll(honest.graph, roled);
+  const accepted = await commitWith(storage(), roledGraph, [...honest.draft, ...roled.steps], null, null, actual);
+  assert.equal(accepted.status, COMMIT_COMMITTED, accepted.reason);
+  assert.ok(roledGraph.records.some(record => record.id === "arch-has-role-c-json-to-config"));
+  assert.ok(roledGraph.records.some(record => record.id === "arch-declares-store-key"));
 });

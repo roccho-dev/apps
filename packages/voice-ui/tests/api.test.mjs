@@ -256,6 +256,21 @@ const judgeRequest = focus => judgeRequests(focus)[0];
 // Every locate frame of an intent, as the page sends them; and the one for a part.
 const locateRequests = () => JSON.parse(JSON.stringify(locateRequestsOf(MANIFEST, intentRequest())));
 const locateRequest = (part = "web-app-mjs") => locateRequests().find(frame => frame.state.architecture.focus[0] === part);
+
+test("the original storage pairs still open all four files, while positive JSON subjects ask no inferred relation", () => {
+  const section = judgeSectionOf(MANIFEST, ["ext-localstorage"]);
+  assert.deepEqual(section.bodies, ["dev-architecture-config-v1-json", "src-config-mjs", "web-app-mjs", "web-data-config-v1-json"]);
+  for (const subject of ["dev-architecture-config-v1-json", "web-data-config-v1-json"]) {
+    assert.ok(MANIFEST.candidates.some(candidate => candidate.from === subject && candidate.to === "ext-localstorage"));
+    assert.ok(!section.candidates.some(candidate => candidate.from === subject));
+    assert.ok(Object.hasOwn(judgeSlotsFor(section), roleSlot(subject, "config")));
+    assert.ok(MANIFEST.facts.some(fact => fact.entity === subject));
+  }
+  for (const id of section.bodies) {
+    const entity = MANIFEST.entities.find(value => value.id === id);
+    assert.equal(prepared.evidence.files[id], fs.readFileSync(path.join(PACKAGE, entity.path), "utf8"));
+  }
+});
 // What every question says of the conversation, word for word.
 const CONTEXT_NOTE = " context.recent lists earlier utterances as they were recognized or typed, and what came of each."
   + " They are unverified and may be misrecognized. Use them only to understand what the current utterance refers to;"
@@ -270,7 +285,7 @@ const carriesCode = sent => {
 };
 
 test("an architecture request without this server's prepared source is refused before the provider", async () => {
-  const unavailable = { schema: "voice-ui.architecture-source/1", status: "unavailable", reason: "no exact commit" };
+  const unavailable = { schema: "voice-ui.architecture-source/2", status: "unavailable", reason: "no exact commit" };
   const cases = [
     ["no source bound", { JEV_API_KEY: "test-only-value" }],
     ["an unavailable source", { JEV_API_KEY: "test-only-value", ARCHITECTURE: { manifest: unavailable, evidence: prepared.evidence } }],
@@ -315,6 +330,26 @@ test("a prepared source whose private text is not exactly the admitted files is 
   assert.equal(result.status, 200);
   const emptyPath = MANIFEST.entities.find(entity => entity.id === first).path;
   assert.equal(calls[0].state.architecture.evidence.bodies.find(body => body.path === emptyPath)?.text, "");
+});
+
+test("malformed syntax facts and broken source/entity links refuse every architecture kind before the provider", async () => {
+  const changes = [
+    value => { delete value.files.find(file => file.class === "admitted").jsonSyntax; },
+    value => { value.files.find(file => file.class === "admitted").jsonSyntax = null; },
+    value => { value.files = value.files.filter(file => file.entity !== "web-app-mjs"); },
+    value => { value.files.find(file => file.entity === "web-app-mjs").entity = "ext-localstorage"; },
+    value => { value.files.push({ ...value.files.find(file => file.class === "admitted") }); },
+  ];
+  for (const change of changes) {
+    const manifest = structuredClone(prepared.manifest); change(manifest);
+    const env = { JEV_API_KEY: "test-only-value", ARCHITECTURE: { manifest, evidence: prepared.evidence } };
+    for (const body of [intentRequest(), locateRequest(), judgeRequest("web-app-mjs")]) {
+      const { result, calls } = await withProvider(answering(noneTo), () => post(body, env));
+      assert.equal(result.status, 503);
+      assert.deepEqual(await result.json(), { error: ERRORS.architectureUnavailable });
+      assert.equal(calls.length, 0);
+    }
+  }
 });
 
 test("an architecture section that is not exactly this server's snapshot is refused before the provider", async () => {
@@ -391,7 +426,7 @@ test("an intent tells each edge the snapshot defines by its kind; any other edge
   // kind alone, and an edge the person made by its two ends only.
   const criteria = await edgeCriteria(intent([stores, configures, imports, user]));
   assert.equal(criteria[stores.id], `${ends(stores)}, which this snapshot defines as stores-in: ${purposeOf("stores-in")}`);
-  assert.equal(criteria[configures.id], `${ends(configures)}, which this snapshot defines as configures: ${purposeOf("configures")}`);
+  assert.equal(criteria[configures.id], ends(configures), "the JSON-subject inference is deliberately not analyzed; only the endpoints are known");
   assert.equal(criteria[imports.id], `${ends(imports)}, which this snapshot defines as imports`);
   assert.equal(criteria[user.id], ends(user));
 

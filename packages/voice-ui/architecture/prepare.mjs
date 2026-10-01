@@ -21,7 +21,7 @@ import vm from "node:vm";
 // absence is reported as unavailable, never replaced by another parser.
 const { SourceTextModule } = vm;
 
-const MANIFEST_SCHEMA = "voice-ui.architecture-source/1";
+const MANIFEST_SCHEMA = "voice-ui.architecture-source/2";
 const EVIDENCE_SCHEMA = "voice-ui.architecture-evidence/1";
 const SCOPE_SCHEMA = "voice-ui.architecture-scope/2";
 const COMMIT = /^[0-9a-f]{40}$/u;
@@ -177,6 +177,12 @@ function prepare({ scope: scopeFile, root, commit, out }) {
 
   const bytesOf = new Map(files.map(file => [file, fs.readFileSync(path.join(root, file))]));
   const textOf = file => bytesOf.get(file).toString("utf8");
+  // Syntax only, over the identical whole original text. No extension gate,
+  // cleaning or reserialization; every JSON value, including null, counts.
+  const jsonSyntaxOf = new Map(admitted.map(file => {
+    try { JSON.parse(textOf(file)); return [file, true]; }
+    catch { return [file, false]; }
+  }));
   const entityOfPath = new Map(admitted.map(file => [file, idFrom(file)]));
   const externals = scope.external.map(entry => ({ ...entry, entity: `${EXTERNAL_PREFIX}${idFrom(entry.url ?? entry.identifier)}` }));
   const entities = [
@@ -289,7 +295,7 @@ function prepare({ scope: scopeFile, root, commit, out }) {
     status: "available",
     source,
     files: files.map(file => classOf.get(file).class === ADMITTED
-      ? { path: file, blob: blobOf(bytesOf.get(file)), class: ADMITTED, entity: entityOfPath.get(file) }
+      ? { path: file, blob: blobOf(bytesOf.get(file)), class: ADMITTED, entity: entityOfPath.get(file), jsonSyntax: jsonSyntaxOf.get(file) }
       : { path: file, blob: blobOf(bytesOf.get(file)), class: EXCLUDED, reason: classOf.get(file).reason }),
     entities,
     imports: imports.sort((left, right) => `${left.from} ${left.to} ${left.specifier}`.localeCompare(`${right.from} ${right.to} ${right.specifier}`)),
