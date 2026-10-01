@@ -57,6 +57,7 @@ const PLATFORM_CONSTRUCTORS = [
   "Request",
   "Response",
   "Set",
+  "SourceTextModule",
   "TypeError",
   "URL",
 ];

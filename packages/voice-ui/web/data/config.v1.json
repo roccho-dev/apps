@@ -1,5 +1,5 @@
 {
-  "schema": "voice-ui.config/1",
-  "persistence": { "mechanism": "localStorage", "key": "voice-ui.decision-log.v1" },
+  "schema": "voice-ui.config/2",
+  "persistence": { "format": "decision-log/1", "mechanism": "localStorage", "key": "voice-ui.decision-log.v1" },
   "data": { "bundle": "/data/bundle.v1.json" }
 }
