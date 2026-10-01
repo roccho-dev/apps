@@ -17,6 +17,86 @@ assert.equal(served.status, 200, "the target serves its contract module");
 const contract = await import(`data:text/javascript;base64,${Buffer.from(await served.text()).toString("base64")}`);
 const { REQUEST_KIND, DECISION_KIND } = contract;
 
+if (process.argv[3] === "--binding-contract") {
+  // Controlled composition proof only: the actual app imports three independent
+  // bindings; no microphone, provider request or original display renderer runs.
+  const browser = await chromium.launch({ headless: true, channel: "chromium" });
+  try {
+    const page = await browser.newPage();
+    const errors = [], resources = [];
+    page.on("pageerror", error => errors.push(String(error)));
+    page.on("request", request => resources.push(new URL(request.url()).pathname));
+    await page.route("**/adapters/transcription.mjs", route => route.fulfill({ contentType: "text/javascript", body: [
+      'export const createTranscription=()=>({onListening})=>new Promise(resolve=>{',
+      'document.body.dataset.fixtureCaptures=String(Number(document.body.dataset.fixtureCaptures||0)+1);',
+      'onListening();document.body.dataset.fixtureListening="yes";',
+      'window.addEventListener("fixture-text",event=>{delete document.body.dataset.fixtureListening;resolve(event.detail)},{once:true});});',
+    ].join("\n") }));
+    await page.route("**/adapters/judgment.mjs", route => route.fulfill({ contentType: "text/javascript", body: [
+      'import {isRequest,slotsFor,NONE,DECISION_KIND} from "/app/src/contract.mjs";',
+      'export const createJudgment=()=>async request=>{if(!isRequest(request))throw new Error("fixture invalid port request");',
+      'document.body.dataset.fixtureJudgments=String(Number(document.body.dataset.fixtureJudgments||0)+1);',
+      'const offered=slotsFor(request.state);const selected=request.state.utterance==="add edge"?{action:"add-edge",source:"node-a",target:"node-b"}:{};',
+      'return {kind:"answered",decision:{kind:DECISION_KIND,answers:Object.fromEntries(Object.keys(offered).map(name=>[name,{type:"choice",choice:selected[name]||NONE,confidence:.9}]))}};};',
+    ].join("\n") }));
+    await page.route("**/ui/semantic-map/runtime.js", route => route.fulfill({ contentType: "text/javascript", body: [
+      'import {inspectEnvelope} from "/ui/semantic-map/protocol/index.js";',
+      'export const visibleFrameOf=()=>null;',
+      'export const executeArtifactPackage=async ({document,input,surfaceMount})=>{',
+      'if(document.body.dataset.fixtureHold==="yes"){document.body.dataset.fixtureRendering="yes";await new Promise(resolve=>window.addEventListener("fixture-render",resolve,{once:true}));delete document.body.dataset.fixtureRendering;}',
+      'const value=await inspectEnvelope(input.envelope);const list=document.createElement("ol");list.dataset.fixtureProjection="yes";',
+      'for(const row of value.base.records.filter(row=>row.type==="relation")){const item=document.createElement("li");item.textContent=row.from+"->"+row.to;list.append(item);}surfaceMount.replaceChildren(list);};',
+    ].join("\n") }));
+    const ready = () => page.waitForFunction(() => document.body.dataset.state && document.body.dataset.state !== "pending");
+    await page.goto(url); await ready();
+    const seeded = await page.evaluate(async () => {
+      const protocol = await import("/ui/semantic-map/protocol/index.js");
+      const config = await (await fetch("/data/config.v1.json")).json();
+      const graph = await protocol.createDecisionLog([
+        {type:"meta",schema:"semantic-map-state/1",root:"root",title:"binding fixture"},
+        {type:"region",id:"root",parent:null,label:"binding fixture",kind:"boundary",bounds:[0,0,720,260],summary:""},
+        ...["node-a","node-b"].map((id,index)=>({type:"region",id,parent:"root",label:id,kind:"node",bounds:[40+index*250,90,140,64],summary:""})),
+      ], "voice-graph");
+      localStorage.setItem(config.persistence.key,graph.log);return {key:config.persistence.key,log:graph.log};
+    });
+    await page.reload(); await ready();
+    assert.equal(await page.evaluate(() => document.body.dataset.state), "restored");
+    await page.locator("#mic").click();
+    await page.waitForFunction(() => document.body.dataset.fixtureListening === "yes");
+    // Voice owns capture but not rendering while waiting; typed input is legal.
+    await page.locator("#text").fill("no change"); await page.locator("#send").click();
+    await page.waitForFunction(() => document.body.dataset.fixtureJudgments === "1");
+    assert.equal(await page.evaluate(() => document.body.dataset.fixtureCaptures), "1");
+    assert.equal(await page.locator("#mic").isDisabled(), true);
+    await page.evaluate(() => {
+      document.body.dataset.fixtureHold="yes";
+      const event=document.createEvent("CustomEvent");event.initCustomEvent("fixture-text",false,false,"add edge");window.dispatchEvent(event);
+    });
+    await page.waitForFunction(() => document.body.dataset.fixtureRendering === "yes");
+    // Rendering owns the surface: neither another capture nor typed work starts.
+    await page.evaluate(() => {document.querySelector("#mic").click();document.querySelector("#send").click();});
+    assert.deepEqual(await page.evaluate(() => [document.body.dataset.fixtureCaptures,document.body.dataset.fixtureJudgments]),["1","2"]);
+    await page.evaluate(() => {delete document.body.dataset.fixtureHold;});
+    // Dispatch a named platform event, without introducing a production hook.
+    await page.evaluate(() => {const event=document.createEvent("Event");event.initEvent("fixture-render",false,false);window.dispatchEvent(event);});
+    await page.waitForFunction(() => document.body.dataset.state === "drafted");
+    assert.equal(await page.locator("#send").isDisabled(), false);
+    assert.equal(await page.locator("#mic").isDisabled(), false);
+    assert.deepEqual(await page.locator("#draft li").evaluateAll(rows => rows.map(row => row.dataset.changes)), ["+node-a->node-b"]);
+    assert.deepEqual(await page.locator("#working-surface [data-fixture-projection] li").allTextContents(), ["node-a->node-b"]);
+    assert.equal(await page.evaluate(key => localStorage.getItem(key), seeded.key), seeded.log);
+    await page.locator("#apply").click();await page.waitForFunction(() => document.body.dataset.state === "applied");
+    const saved = await page.evaluate(key => localStorage.getItem(key), seeded.key);
+    assert.ok(saved.startsWith(seeded.log));
+    assert.equal(saved.split("\n").length,seeded.log.split("\n").length+1);
+    await page.reload();await ready();
+    assert.equal(await page.evaluate(key => localStorage.getItem(key), seeded.key),saved);
+    assert.deepEqual(await page.locator("#confirmed-surface [data-fixture-projection] li").allTextContents(),["node-a->node-b"]);
+    assert.deepEqual(resources.filter(value => value.startsWith("/hayamimi/") || value === "/sw.js" || value === "/api/judge"),[]);
+    assert.deepEqual(errors,[]);
+    process.stdout.write("binding-contract: PASS actual app, independent ASR/Judge/projection; saved world/append/restore; capture/render ownership; provider/ASR-resource/API calls 0; mechanical only\n");
+  } finally {await browser.close();}
+} else {
 const wav = process.env.VOICE_WAV;
 const goldenPath = process.env.VOICE_GOLDEN;
 if (!wav || !goldenPath) throw new Error("VOICE_WAV and VOICE_GOLDEN are required");
@@ -372,3 +452,4 @@ process.stdout.write(
   + `from turn 1's context and focus | fixture-audio voice edge=${voiceEdge} `
   + "| drawn on 作業図 only, applied together to 確定図 as a strict append, restored after reload\n",
 );
+}

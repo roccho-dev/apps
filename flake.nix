@@ -232,6 +232,11 @@
           jevProvider = jevFor system;
           voiceUiAuth = self.packages.${system}.voice-ui-auth;
           voiceUiDist = self.packages.${system}.voice-ui-dist;
+          # Local supplied-byte location changes only: no formal URL/proof
+          # identity change or general future supplier guarantee is claimed.
+          jevRelocated = pkgs.runCommand "jev-provider-relocated" { } ''
+            cp -R ${jevProvider} "$out"
+          '';
           mkRepro =
             name:
             pkgs.runCommand name
@@ -246,7 +251,7 @@
                   --app ${self}/packages/voice-ui \
                   --semantic-map ${semanticMap} \
                   --hayamimi ${hayamimiWeb} \
-                  --judge ${jevProvider} \
+                  --judge ${if name == "voice-ui-dist-repro-b" then jevRelocated else jevProvider} \
                   --judge-artifact '${jevArtifact}' \
                   --out "$out" \
                   --app-rev ${appRevision} \

@@ -94,6 +94,18 @@ const server = http.createServer((req, res) => {
 // that a long build directory prefix otherwise exceeds.
 const work = mkdtempSync(path.join(tmpdir(), "vub-"));
 let child;
+const runChild = (args, home) => new Promise((resolve, reject) => {
+  child = spawn(runtime, args, { cwd: home, env: { PATH: process.env.PATH, HOME: home, TMPDIR: home, LANG: "C.UTF-8" }, detached: true });
+  let stderr = "", stdout = "";
+  const timer = setTimeout(() => {
+    try { process.kill(-child.pid, "SIGKILL"); } catch {}
+    reject(new Error("acceptance boundary timed out"));
+  }, 300000);
+  child.stdout.on("data", chunk => { stdout += chunk; });
+  child.stderr.on("data", chunk => { stderr += chunk; });
+  child.once("error", error => { clearTimeout(timer); reject(error); });
+  child.once("close", code => { clearTimeout(timer); resolve({ code, stderr, stdout }); });
+});
 const starts = [];
 try {
   await new Promise(resolve => server.listen(0, "127.0.0.1", resolve));
@@ -106,21 +118,9 @@ try {
     const receipt = path.join(home, "receipt.json");
     const before = apiRequests.length;
     const beforeMisdelivery = misdeliveredResponses.length;
-    const output = await new Promise((resolve, reject) => {
-      child = spawn(runtime, [path.join(root, manifest.e2e.runtime_entrypoint),
-        "--artifact-root", root, "--url", target, "--expected-apps-sha", manifest.sources.apps,
-        "--expected-manifest-sha256", digest, "--handoff-id", `ci-boundary/${run}`, "--receipt", receipt],
-      { cwd: home, env: { PATH: process.env.PATH, HOME: home, TMPDIR: home, LANG: "C.UTF-8" }, detached: true });
-      let stderr = "", stdout = "";
-      const timer = setTimeout(() => {
-        try { process.kill(-child.pid, "SIGKILL"); } catch {}
-        reject(new Error("acceptance boundary timed out"));
-      }, 300000);
-      child.stdout.on("data", chunk => { stdout += chunk; });
-      child.stderr.on("data", chunk => { stderr += chunk; });
-      child.once("error", error => { clearTimeout(timer); reject(error); });
-      child.once("close", code => { clearTimeout(timer); resolve({ code, stderr, stdout }); });
-    });
+    const output = await runChild([path.join(root, manifest.e2e.runtime_entrypoint),
+      "--artifact-root", root, "--url", target, "--expected-apps-sha", manifest.sources.apps,
+      "--expected-manifest-sha256", digest, "--handoff-id", "ci-boundary/" + run, "--receipt", receipt], home);
     const requests = apiRequests.slice(before);
     assert.equal(output.code, 1, output.stderr);
     assert.doesNotMatch(output.stderr, /ERR_MODULE_NOT_FOUND|Executable doesn't exist|browserType.launch:/);
@@ -155,6 +155,14 @@ try {
     assert.deepEqual(result.dependencies.secretInputs, []);
     starts.push({ run, request: requests[0], receipt: result.status, reason: "NOT_RUN: judge_unavailable" });
   }
+  htmlMisdelivery = false;
+  const bindingHome = path.join(work, "bindings"); mkdirSync(bindingHome);
+  const beforeBindings = apiRequests.length;
+  const bindings = await runChild([path.join(root, manifest.e2e.public_entrypoint), target, "--binding-contract"], bindingHome);
+  assert.equal(bindings.code, 0, bindings.stderr);
+  assert.match(bindings.stdout, /binding-contract: PASS actual app/u);
+  assert.equal(apiRequests.length, beforeBindings, "alternate judgment must not reach the API");
+  process.stdout.write(bindings.stdout);
   console.log(JSON.stringify({ kind: "voice-ui.acceptanceBoundaryCheck.v1", status: "PASS",
     independentStarts: starts.length, controlledProviderCalls: apiRequests.length, callOrigin: "chromium-same-origin",
     applicationVerdict: "RED_EXPECTED", applicationReason: "per-start", liveProviderCalls: 0, starts }));
