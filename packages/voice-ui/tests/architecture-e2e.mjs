@@ -79,8 +79,12 @@ const MANIFEST = await (await fetch(new URL(config.data.source, url))).json();
 const ENTITY_IDS = MANIFEST.entities.map(entity => entity.id);
 const SERVED_COMMIT = MANIFEST.source.commit;
 // The most requests one utterance can make: its intent, one locate frame per
-// part, and a judge.
-const MOST = 1 + ENTITY_IDS.length + 1;
+// part, and a judge of every part - one frame per file, and one per two files
+// some candidate pair joins.
+const FILE_IDS = MANIFEST.entities.filter(entity => entity.kind === "file").map(entity => entity.id);
+const MOST = 1 + ENTITY_IDS.length + FILE_IDS.length + new Set(MANIFEST.candidates
+  .filter(candidate => FILE_IDS.includes(candidate.from) && FILE_IDS.includes(candidate.to))
+  .map(candidate => [candidate.from, candidate.to].sort().join(" "))).size;
 
 const browser = await chromium.launch({ headless: true, channel: "chromium" });
 const context = await browser.newContext();
@@ -122,12 +126,12 @@ page.on("requestfailed", request => {
 const drain = () => Promise.all(exchanges.map(entry => entry.read));
 
 // What of an exchange may be printed: its kind, a locate frame's part, a
-// judge's focus and body file ids, how it ended, the model and the closed
-// answers as choice and confidence.
+// judge's focus, body file ids and the frame of them it asks, how it ended,
+// the model and the closed answers as choice and confidence.
 const sanitized = entry => ({
   kind: entry.sent.kind,
   ...(entry.sent.kind === contract.ARCHITECTURE_JUDGE_KIND
-    ? { focus: entry.sent.state.architecture.focus, bodies: entry.sent.state.architecture.bodies }
+    ? { focus: entry.sent.state.architecture.focus, bodies: entry.sent.state.architecture.bodies, frame: entry.sent.state.frame }
     : entry.sent.kind === contract.ARCHITECTURE_LOCATE_KIND ? { focus: entry.sent.state.architecture.focus } : {}),
   status: entry.status,
   error: entry.error ?? entry.body?.error ?? null,
@@ -138,28 +142,35 @@ const sanitized = entry => ({
 });
 const report = value => process.stdout.write(`${JSON.stringify(value)}\n`);
 
-// The questions a request put to Jev, as the served contract derives them for
-// its kind.
-const slotsOf = sent => (sent.kind === contract.ARCHITECTURE_JUDGE_KIND ? contract.judgeSlotsFor(sent.state.architecture)
-  : sent.kind === contract.ARCHITECTURE_LOCATE_KIND ? contract.locateSlotsFor(sent.state.architecture.focus)
-    : contract.slotsFor(sent.state));
+// The frames a judge's section is asked in, as the served contract plans
+// them; and the questions a request put to Jev, as it derives them for its
+// kind - for a judge, those of the one frame it names, or null when its
+// section's plan holds no such frame.
+const framesOf = section => contract.judgeFramesFor(section) ?? [];
+const slotsOf = sent => {
+  if (sent.kind === contract.ARCHITECTURE_LOCATE_KIND) return contract.locateSlotsFor(sent.state.architecture.focus);
+  if (sent.kind !== contract.ARCHITECTURE_JUDGE_KIND) return contract.slotsFor(sent.state);
+  const framed = framesOf(sent.state.architecture).find(item => JSON.stringify(item.frame) === JSON.stringify(sent.state.frame));
+  return framed === undefined ? null : contract.judgeSlotsFor(framed.section);
+};
 
 // Fixture mode only: the answer to a request, crafted from its own questions -
-// an intent's, a locate frame's or a judge's. For a stage that proves a
+// an intent's, a locate frame's or a judge frame's. For a stage that proves a
 // failure, `fault` may replace the answer to one request of the utterance, by
 // its place (0 the intent): with a status and body of its own, with another
-// model, or with answers of its own.
+// model, or with answers of its own. A judge naming a frame its section's
+// plan does not hold is refused, as the Function refuses it.
 const craft = (picks, fault = () => null) => {
   let index = 0;
   return async route => {
     const sent = JSON.parse(route.request().postData());
-    const faulty = fault(index);
+    const slots = slotsOf(sent);
+    const faulty = slots === null ? { status: 422, body: { error: contract.ERRORS.architectureMismatch } } : fault(index);
     index += 1;
     if (faulty?.status !== undefined) {
       await route.fulfill({ status: faulty.status, contentType: "application/json; charset=utf-8", body: JSON.stringify(faulty.body) });
       return;
     }
-    const slots = slotsOf(sent);
     const answers = Object.fromEntries(Object.entries(slots).map(([name, options]) => {
       const picked = picks(name, sent);
       return [name, { type: "choice", choice: options.includes(picked) ? picked : contract.NONE, confidence: 0.9 }];
@@ -197,15 +208,23 @@ let last = null;
 // intent; then a judge of exactly [the part] when the intent names one part
 // confidently; or, when it names neither the whole nor a part confidently, one
 // locate frame per part the snapshot knows, and a judge of exactly every part
-// its own frame answered yes confidently, sorted, if there is any. Nothing else.
+// its own frame answered yes confidently, sorted, if there is any. A judge is
+// one request for every frame the served contract plans for the section its
+// first request carries - at least one. Nothing else.
 const expectedOf = sent => {
   const kinds = [contract.ARCHITECTURE_INTENT_KIND];
   const intent = sent[0]?.body?.answers;
-  if (intent?.action?.choice !== contract.ACTION_ARCHITECTURE || !(intent.action.confidence >= contract.MIN_CONFIDENCE)) return { kinds, focus: null };
+  if (intent?.action?.choice !== contract.ACTION_ARCHITECTURE || !(intent.action.confidence >= contract.MIN_CONFIDENCE)) return { kinds, focus: null, frames: [] };
   const { choice, confidence } = intent.focus ?? {};
   const sure = confidence >= contract.MIN_CONFIDENCE;
-  if (choice === contract.WHOLE && sure) return { kinds, focus: null };
-  if (choice !== contract.NONE && choice !== contract.WHOLE && sure) return { kinds: [...kinds, contract.ARCHITECTURE_JUDGE_KIND], focus: [choice] };
+  if (choice === contract.WHOLE && sure) return { kinds, focus: null, frames: [] };
+  const judged = (before, focus) => {
+    const first = sent[before.length]?.sent;
+    const planned = first?.kind === contract.ARCHITECTURE_JUDGE_KIND ? framesOf(first.state.architecture).map(item => item.frame) : [];
+    const frames = planned.length === 0 ? [null] : planned;
+    return { kinds: [...before, ...frames.map(() => contract.ARCHITECTURE_JUDGE_KIND)], focus, frames };
+  };
+  if (choice !== contract.NONE && choice !== contract.WHOLE && sure) return judged(kinds, [choice]);
   const locates = ENTITY_IDS.map(() => contract.ARCHITECTURE_LOCATE_KIND);
   const found = sent.slice(1, 1 + ENTITY_IDS.length).flatMap(entry => {
     const [part] = entry.sent.state?.architecture?.focus ?? [];
@@ -213,8 +232,8 @@ const expectedOf = sent => {
     return answer?.choice === contract.YES && answer.confidence >= contract.MIN_CONFIDENCE ? [part] : [];
   }).sort();
   return found.length === 0
-    ? { kinds: [...kinds, ...locates], focus: null }
-    : { kinds: [...kinds, ...locates, contract.ARCHITECTURE_JUDGE_KIND], focus: found };
+    ? { kinds: [...kinds, ...locates], focus: null, frames: [] }
+    : judged([...kinds, ...locates], found);
 };
 
 // One utterance in the named stage. The page is pending from the click until
@@ -223,8 +242,10 @@ const expectedOf = sent => {
 // kinds and order, every one answered 200 with a complete answer, every one
 // naming the served snapshot, one locate frame per part in the snapshot's
 // order, each carrying the intent's utterance and conversation exactly, and a
-// judge bound to exactly the parts asked for. Anything else is a finding of
-// this stage - never a wait for more.
+// judge bound to exactly the parts asked for, every request of it carrying the
+// same section and the utterance, and naming that section's frames once each
+// in the contract's order. Anything else is a finding of this stage - never a
+// wait for more.
 const say = async (stage, utterance, picks) => {
   const route = new URL("/api/jev", url).href;
   if (FIXTURE) await page.route(route, craft(picks), { times: MOST });
@@ -244,7 +265,7 @@ const say = async (stage, utterance, picks) => {
   for (const entry of sent) entry.reported = true;
   const kinds = sent.map(entry => entry.sent.kind);
   need(JSON.stringify(kinds) === JSON.stringify(expected.kinds), `${stage}: requests ${kinds.join(", ")} where the answers call for ${expected.kinds.join(", ")}`);
-  need(sent.every(entry => entry.status === 200 && contract.readAnswers(entry.body?.answers, slotsOf(entry.sent)) !== null),
+  need(sent.every(entry => entry.status === 200 && slotsOf(entry.sent) !== null && contract.readAnswers(entry.body?.answers, slotsOf(entry.sent)) !== null),
     `${stage}: every request answered 200 with a complete answer`);
   need(sent.every(entry => entry.sent.kind === contract.REQUEST_KIND || entry.sent.state.architecture.source.commit === SERVED_COMMIT),
     `${stage}: every request names the served snapshot`);
@@ -254,21 +275,27 @@ const say = async (stage, utterance, picks) => {
   need(frames.every(entry => entry.sent.state.utterance === sent[0].sent.state.utterance
     && JSON.stringify(entry.sent.state.context) === JSON.stringify(sent[0].sent.state.context)),
   `${stage}: every locate frame carries the intent's utterance and conversation exactly`);
-  const judge = sent.find(entry => entry.sent.kind === contract.ARCHITECTURE_JUDGE_KIND);
-  need(judge === undefined || JSON.stringify(judge.sent.state.architecture.focus) === JSON.stringify(expected.focus),
+  const judges = sent.filter(entry => entry.sent.kind === contract.ARCHITECTURE_JUDGE_KIND);
+  need(judges.every(entry => JSON.stringify(entry.sent.state.architecture.focus) === JSON.stringify(expected.focus)),
     `${stage}: the judge is bound to exactly ${JSON.stringify(expected.focus)}`);
+  need(judges.every(entry => JSON.stringify(entry.sent.state.architecture) === JSON.stringify(judges[0].sent.state.architecture)
+    && entry.sent.state.utterance === sent[0].sent.state.utterance)
+    && (judges.length === 0 || JSON.stringify(judges.map(entry => entry.sent.state.frame)) === JSON.stringify(expected.frames)),
+  `${stage}: every judge frame carries the one section and the utterance, and the frames are that section's, once each and in order`);
   return { now, sent };
 };
-// The natural fixture only: one save utterance whose request at place `at` (0
-// its intent) fails as `fault` says. The page must ask nothing after it, and
-// draw, draft and store nothing: the draft, the claims and both stored values
-// stay exactly as they were just before this utterance.
-const failing = async (stage, at, fault, why) => {
+// The natural fixture only: one utterance - the save one, unless another is
+// named with the part it is located to - whose request at place `at` (0 its
+// intent, then one locate frame per part, then its judge's frames) fails as
+// `fault` says. The page must ask nothing after it, and draw, draft and store
+// nothing: the draft, the claims and both stored values stay exactly as they
+// were just before this utterance.
+const failing = async (stage, at, fault, why, { utterance = UTTERANCES.save, focus = LOG } = {}) => {
   const route = new URL("/api/jev", url).href;
   const baseline = await screen();
-  await page.route(route, craft(picksFor(LOG), index => (index === at ? fault : null)), { times: MOST });
+  await page.route(route, craft(picksFor(focus), index => (index === at ? fault : null)), { times: MOST });
   const before = exchanges.length;
-  await page.locator("#text").fill(UTTERANCES.save);
+  await page.locator("#text").fill(utterance);
   await page.locator("#send").click();
   await settle();
   await drain();
@@ -276,13 +303,22 @@ const failing = async (stage, at, fault, why) => {
   const sent = exchanges.slice(before);
   const now = await screen();
   last = now;
-  const expected = [contract.ARCHITECTURE_INTENT_KIND, ...ENTITY_IDS.map(() => contract.ARCHITECTURE_LOCATE_KIND), contract.ARCHITECTURE_JUDGE_KIND]
-    .slice(0, at + 1);
+  const expected = Array.from({ length: at + 1 }, (_, index) => (index === 0 ? contract.ARCHITECTURE_INTENT_KIND
+    : index <= ENTITY_IDS.length ? contract.ARCHITECTURE_LOCATE_KIND : contract.ARCHITECTURE_JUDGE_KIND));
   report({ event: "turn", stage, expected, requests: sent.length, answered: sent.filter(entry => entry.status !== null).length,
     failed: sent.filter(entry => entry.error !== null).length, exchanges: sent.map(sanitized), dom: domOf(now) });
   for (const entry of sent) entry.reported = true;
   need(JSON.stringify(sent.map(entry => entry.sent.kind)) === JSON.stringify(expected),
     `${stage}: nothing is asked after the failing request (${sent.length} requests, ${expected.length} expected)`);
+  // What the page sent agrees with itself and the served plan - so a fault at
+  // a judge's second frame lands on that frame, not on its first sent twice.
+  // Nothing is said of what a server would hold; no judge sent, nothing to check.
+  const judges = sent.filter(entry => entry.sent.kind === contract.ARCHITECTURE_JUDGE_KIND);
+  need(judges.every((entry, index) => JSON.stringify(entry.sent.state.architecture.focus) === JSON.stringify([focus])
+    && JSON.stringify(entry.sent.state.architecture) === JSON.stringify(judges[0].sent.state.architecture)
+    && entry.sent.state.utterance === sent[0].sent.state.utterance
+    && JSON.stringify(entry.sent.state.frame) === JSON.stringify(framesOf(judges[0].sent.state.architecture)[index]?.frame)),
+  `${stage}: every judge frame sent is of [${focus}], the one section and the utterance, and they are that section's first frames in order`);
   need(now.state === "failed" && (now.failure ?? "").includes(why), `${stage}: the utterance fails with ${why} (state ${now.state}: ${now.failure ?? now.status})`);
   need(JSON.stringify(now.draft) === JSON.stringify(baseline.draft) && JSON.stringify(now.claims) === JSON.stringify(baseline.claims)
     && now.stored === baseline.stored && now.root === baseline.root, `${stage}: nothing is drawn, drafted or stored`);
@@ -298,7 +334,7 @@ const need = (condition, what) => { if (!condition) verdicts.push(what); };
 // The stages in order. A stage whose outcome a later one stands on ends the
 // run when it fails - nothing is undone or built on a state the next stage
 // assumes - and every stage not reached is reported as not run.
-const FAULTS = ["failed-frame", "incomplete-frame", "frame-model-mix", "judge-model-mix"];
+const FAULTS = ["failed-frame", "incomplete-frame", "frame-model-mix", "judge-model-mix", "incomplete-judge-frame"];
 const STAGES = ["open", "whole", "whole-undo", "app", "credential", "storage", "save", ...(FIXTURE ? ["save-again"] : []),
   ...(LOCATES ? FAULTS : []), "correction", "apply", "reload"];
 const reached = [];
@@ -476,8 +512,10 @@ try {
   if (LOCATES) {
     // A failure part-way through an utterance leaves everything as it was: a
     // frame that fails, a frame answered 200 by the same model but without its
-    // question, a frame answered by another model than the intent, and a judge
-    // answered by another model - after which nothing is asked.
+    // question, a frame answered by another model than the intent, a judge
+    // answered by another model, and - for the storage, whose judge has
+    // several frames - a judge's second frame answered 200 by the same model
+    // but without its questions: after each, nothing is asked.
     const middle = 1 + Math.floor(ENTITY_IDS.length / 2);
     reached.push("failed-frame");
     await failing("failed-frame", middle, { status: 502, body: { error: contract.ERRORS.providerError } }, contract.ERRORS.providerError);
@@ -487,6 +525,9 @@ try {
     await failing("frame-model-mix", middle, { model: OTHER_MODEL }, "model-mismatch");
     reached.push("judge-model-mix");
     await failing("judge-model-mix", 1 + ENTITY_IDS.length, { model: OTHER_MODEL }, "model-mismatch");
+    reached.push("incomplete-judge-frame");
+    await failing("incomplete-judge-frame", 1 + ENTITY_IDS.length + 1, { answers: {} }, "Jev answered outside the contract",
+      { utterance: UTTERANCES.storage, focus: "ext-localstorage" });
   }
   const judgedDraft = (await screen()).draft.length;
 

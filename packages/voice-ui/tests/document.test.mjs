@@ -3,7 +3,7 @@ import path from "node:path";
 import test from "node:test";
 import { pathToFileURL } from "node:url";
 
-import { judgeRequestOf, planArchitecture, readManifest, withArchitecture } from "../src/architecture.mjs";
+import { judgeSectionOf, planArchitecture, readManifest, withArchitecture } from "../src/architecture.mjs";
 import { readBundle } from "../src/bundle.mjs";
 import { ACTION_ARCHITECTURE, NONE, WHOLE, YES, judgeSlotsFor, relationSlot, roleSlot } from "../src/contract.mjs";
 import { EVIDENCE_CURRENT, commitDocument, currentClaims, restoreDocument } from "../src/document.mjs";
@@ -81,9 +81,9 @@ const planOn = async (working, manifest, focus = null, picks = {}) => {
   }), manifest);
   // Without a part, this fixture asks for the whole - explicitly, as Jev must.
   const answers = answering(turn.slots, { action: ACTION_ARCHITECTURE, focus: focus ?? WHOLE });
-  const request = focus === null ? null : judgeRequestOf(manifest, [focus], "show it");
-  const judged = request === null ? null
-    : { section: request.state.architecture, answers: answering(judgeSlotsFor(request.state.architecture), picks) };
+  const section = focus === null ? null : judgeSectionOf(manifest, [focus]);
+  const judged = section === null ? null
+    : { section, answers: answering(judgeSlotsFor(section), picks) };
   return planArchitecture({ working, turn, answers, judged, manifest, protocol, operationsMax: MAX_DECISION_OPERATIONS });
 };
 const appendAll = async (working, planned) => {
@@ -171,11 +171,11 @@ test("a role's node and its edge in different Decisions are still one utterance:
     working: viewed.working, utterance: "show b", bundle: readBundle(null), layout: null, offeredFrame: null,
     draft: [], focus: null, pending: null, recent: [],
   }), MANIFEST);
-  const request = judgeRequestOf(MANIFEST, ["b-mjs"], "show b");
+  const section = judgeSectionOf(MANIFEST, ["b-mjs"]);
   // A limit of one operation, for this test only: the node and the edge land in different Decisions.
   const planned = await planArchitecture({
     working: viewed.working, turn, answers: answering(turn.slots, { action: ACTION_ARCHITECTURE, focus: "b-mjs" }),
-    judged: { section: request.state.architecture, answers: answering(judgeSlotsFor(request.state.architecture), { [roleSlot("b-mjs", "persistence")]: YES }) },
+    judged: { section, answers: answering(judgeSlotsFor(section), { [roleSlot("b-mjs", "persistence")]: YES }) },
     manifest: MANIFEST, protocol, operationsMax: 1,
   });
   assert.deepEqual(planned.steps.map(item => item.claims.map(claim => claim.record.id)),

@@ -14,12 +14,14 @@ export const DECISION_KIND = "voice-ui.jev.decision.v5";
 // means, one frame per part: each carries the utterance, the conversation and
 // that one part only, and the server adds that part's own text. The judge
 // follows with the section of the parts chosen - one named part, or every
-// part located - whose text the server adds.
+// part located - asked in frames: each carries the section whole and names
+// the one or two body files its own questions rest on, whose text the server
+// adds.
 export const ARCHITECTURE_INTENT_KIND = "voice-ui.jev.architecture-intent.v1";
 // v2: one frame asks about one part, no longer every part at once.
 export const ARCHITECTURE_LOCATE_KIND = "voice-ui.jev.architecture-locate.v2";
-// v2: the focus is a sorted list of part ids, no longer one id.
-export const ARCHITECTURE_JUDGE_KIND = "voice-ui.jev.architecture-judge.v2";
+// v3: one request asks one frame of the section, no longer every question at once.
+export const ARCHITECTURE_JUDGE_KIND = "voice-ui.jev.architecture-judge.v3";
 
 // Every slot also offers this option, so it may not be a part, edge or key.
 export const NONE = "none";
@@ -248,20 +250,24 @@ export function isLocateRequest(value) {
     && KEY_PATTERN.test(state.architecture.focus[0] ?? "") && ![NONE, WHOLE].includes(state.architecture.focus[0]);
 }
 
-// An architecture judge: the utterance and one focused section - the parts it
+// An architecture judge: the utterance, one focused section - the parts it
 // was asked for, sorted; its parts, which of them are body files, the
-// candidate pairs among them with the text each rests on, and the vocabulary.
+// candidate pairs among them with the text each rests on, and the vocabulary -
+// and the frame of it this request asks: one or two of its body files, sorted.
 // Never file contents; the server adds those itself.
 export function isJudgeRequest(value) {
   if (!exactObject(value, ["kind", "state"]) || value.kind !== ARCHITECTURE_JUDGE_KIND) return false;
   const { state } = value;
-  if (!exactObject(state, ["utterance", "architecture"]) || !text(state.utterance, TEXT_MAX)) return false;
+  if (!exactObject(state, ["utterance", "architecture", "frame"]) || !text(state.utterance, TEXT_MAX)) return false;
   const section = state.architecture;
   if (!exactObject(section, ["source", "focus", "entities", "bodies", "candidates", "roles", "relations"])
     || !validParts(section.source, section.entities)) return false;
   const ids = section.entities.map(entity => entity.id);
   const { candidates } = section;
-  return Array.isArray(section.focus) && section.focus.length > 0 && section.focus.every(part => ids.includes(part))
+  const { frame } = state;
+  return Array.isArray(frame) && (frame.length === 1 || frame.length === 2)
+    && Array.isArray(section.bodies) && frame.every(body => section.bodies.includes(body)) && sortedUnique(frame)
+    && Array.isArray(section.focus) && section.focus.length > 0 && section.focus.every(part => ids.includes(part))
     && sortedUnique(section.focus)
     && Array.isArray(section.bodies) && section.bodies.length > 0 && section.bodies.every(body => ids.includes(body)) && unique(section.bodies)
     && Array.isArray(candidates) && candidates.length <= ARCHITECTURE_GRAPH_MAX
@@ -293,6 +299,43 @@ export function judgeSlotsFor(section) {
   }
   for (const candidate of section.candidates) slots[relationSlot(candidate.id)] = [...relations, NONE];
   return Object.freeze(Object.fromEntries(Object.entries(slots).map(([name, keys]) => [name, Object.freeze(keys)])));
+}
+
+// The frames a judge of a section is asked in, decided by the section alone.
+// Every question rests on whole body files: a role on its own file, a pair on
+// whichever of its two ends are body files. A frame is one such set of one or
+// two files, sorted, with every question that rests on exactly that set - so
+// a pair of two body files shares its frame with the pair the other way - and
+// each question of the section is in exactly one frame. Frames come in the
+// order their first question has among the section's. Each is given as the
+// part of the section it asks, in the section's own shape and order: the
+// frame's files as its bodies, its own pairs, only the parts those name, and
+// the roles for one file but none for two, whose roles their own frames ask.
+// Null when a pair rests on no body file: then nothing is asked.
+export function judgeFramesFor(section) {
+  const groups = new Map(section.bodies.map(body => [body, { frame: [body], candidates: [] }]));
+  for (const candidate of section.candidates) {
+    const frame = [candidate.from, candidate.to].filter(end => section.bodies.includes(end)).sort();
+    if (frame.length === 0) return null;
+    const name = frame.join(" ");
+    if (!groups.has(name)) groups.set(name, { frame, candidates: [] });
+    groups.get(name).candidates.push(candidate);
+  }
+  return Object.freeze([...groups.values()].map(({ frame, candidates }) => {
+    const parts = new Set([...frame, ...candidates.flatMap(candidate => [candidate.from, candidate.to])]);
+    return Object.freeze({
+      frame: Object.freeze(frame),
+      section: Object.freeze({
+        source: section.source,
+        focus: section.focus,
+        entities: Object.freeze(section.entities.filter(entity => parts.has(entity.id))),
+        bodies: Object.freeze(section.bodies.filter(body => frame.includes(body))),
+        candidates: Object.freeze(candidates),
+        roles: frame.length === 1 ? section.roles : Object.freeze([]),
+        relations: section.relations,
+      }),
+    });
+  }));
 }
 
 // The questions a request puts to Jev and the options of each, derived from

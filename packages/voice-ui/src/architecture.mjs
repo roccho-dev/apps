@@ -9,7 +9,9 @@ import {
   NONE,
   WHOLE,
   YES,
+  isJudgeRequest,
   isLocateRequest,
+  judgeFramesFor,
   judgeSlotsFor,
   locateSlotsFor,
   readAnswers,
@@ -196,8 +198,8 @@ const everyPartOpens = manifest => manifest.entities.every(entity => judgeSectio
 // The locate for an unclear focus: one frame for every part the snapshot
 // knows, in its order, each with the utterance and the recent conversation
 // exactly as the intent carried them, the snapshot's identity and that one
-// part - no code. The server adds that part's own text, exactly what its judge
-// would be shown, and asks whether the utterance asks for it. Null when some
+// part - no code. The server adds that part's own text, the text of the
+// section it opens, and asks whether the utterance asks for it. Null when some
 // part opens no text: then no part is asked about, and none is left out.
 export function locateRequestsOf(manifest, intent) {
   demand(manifest?.status === "available", "an available manifest is required");
@@ -265,11 +267,38 @@ export function judgeSectionOf(manifest, focus) {
   });
 }
 
-// The judge of a focused utterance: the utterance and the focused section.
-// The server adds that section's text and nothing else.
-export function judgeRequestOf(manifest, focus, utterance) {
+// The judge of a focused utterance: one request for every frame of the
+// focused section, in the contract's order, each with the utterance, the
+// section whole and the frame it asks - no code. The server adds that frame's
+// own text and nothing else. Null when the focus opens no section, or the
+// section cannot be asked in frames.
+export function judgeRequestsOf(manifest, focus, utterance) {
   const section = judgeSectionOf(manifest, focus);
-  return section === null ? null : deepFreeze({ kind: ARCHITECTURE_JUDGE_KIND, state: { utterance, architecture: section } });
+  const frames = section === null ? null : judgeFramesFor(section);
+  return frames === null ? null : deepFreeze(frames.map(({ frame }) => (
+    { kind: ARCHITECTURE_JUDGE_KIND, state: { utterance, architecture: section, frame } })));
+}
+
+// What a judge found, from its frames as sent, each with its answer: the
+// focused section and one answer for each of its questions, in the section's
+// own order. Null unless the frames are exactly the requests this focus is
+// judged by, once each and in order, all of one utterance, each answered
+// completely on its own frame's questions. Nothing is weighed or merged: every
+// question was asked in exactly one frame, and its answer is that frame's.
+export function judgedOf(manifest, focus, frames) {
+  if (!Array.isArray(frames)) return null;
+  const requests = judgeRequestsOf(manifest, focus, frames[0]?.request?.state?.utterance);
+  if (requests === null || frames.length !== requests.length) return null;
+  const section = requests[0].state.architecture;
+  const plan = judgeFramesFor(section);
+  const found = {};
+  for (const [index, request] of requests.entries()) {
+    if (!isJudgeRequest(frames[index]?.request) || !equal(frames[index].request, request)) return null;
+    const read = readAnswers(frames[index].answers, judgeSlotsFor(plan[index].section));
+    if (read === null) return null;
+    Object.assign(found, read);
+  }
+  return Object.freeze({ section, answers: Object.freeze(Object.fromEntries(Object.keys(judgeSlotsFor(section)).map(slot => [slot, found[slot]]))) });
 }
 
 // The text a judge request is answered from, for the server to add: every
