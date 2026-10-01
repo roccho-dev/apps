@@ -3,7 +3,7 @@ name: nix-check
 on:
   pull_request:
   push:
-    branches: [main]
+    branches: [main, proposals]
 
 permissions:
   contents: read
@@ -17,15 +17,26 @@ jobs:
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          persist-credentials: false
       - uses: cachix/install-nix-action@v31
         with:
           extra_nix_config: |
             extra-experimental-features = nix-command flakes
       - name: Run flake check
+        env:
+          EXPECTED_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
         run: |
           set -euo pipefail
           log="nix-flake-check.log"
-          if ! nix flake check --show-trace --no-write-lock-file >"$log" 2>&1; then
+          actual="$(git rev-parse HEAD)"
+          printf 'expected HEAD: %s\nactual HEAD: %s\n' "$EXPECTED_SHA" "$actual" >"$log"
+          if [ "$actual" != "$EXPECTED_SHA" ]; then
+            tail -n 220 "$log" >&2
+            exit 1
+          fi
+          if ! nix flake check --show-trace --no-write-lock-file >>"$log" 2>&1; then
             tail -n 220 "$log" >&2
             exit 1
           fi
