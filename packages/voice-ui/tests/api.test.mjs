@@ -467,6 +467,8 @@ test("qualified edge references precede unrelated edit focus; only bare referenc
     assert.equal(result.status, 200, label);
     assert.deepEqual(call.state.focus, focus, 'the honest edit focus is not changed');
     assert.match(call.questions.action.instructions, /Only a bare, unqualified reference/u, label);
+    assert.match(call.questions.action.instructions, /qualified by endpoints or semantic description refers to matching current graph candidates, not the focus/u, label);
+    assert.match(call.questions.action.instructions, /clear remove or reverse request still names that action when its edge is unresolved; answer none for the edge/u, label);
     assert.match(call.questions.edge.instructions, /endpoints or its semantic description/u, label);
     assert.match(call.questions.edge.instructions, /no edge or more than one edge matches.*none/u, label);
     assert.match(call.questions.edge.instructions, /never use focus to override a qualification/u, label);
