@@ -159,8 +159,6 @@ test("the manifest is read whole: available, unavailable with its reason, or inv
 
 test("required syntax facts cannot be bypassed by a missing, mismatched or duplicate file/entity link", () => {
   const source = structuredClone(MANIFEST);
-  source.schema = "voice-ui.architecture-source/2";
-  source.files = source.files.map(file => file.class === "admitted" ? { ...file, jsonSyntax: file.path === "c.json" } : file);
   assert.equal(readManifest(source).status, "available");
   const changes = [
     value => { delete value.files[0].jsonSyntax; },
@@ -184,8 +182,6 @@ test("required syntax facts cannot be bypassed by a missing, mismatched or dupli
 
 test("positive JSON subjects lose only inferred relations; original pairs, target eligibility, roles and facts remain", () => {
   const source = structuredClone(MANIFEST);
-  source.schema = "voice-ui.architecture-source/2";
-  source.files = source.files.map(file => file.class === "admitted" ? { ...file, jsonSyntax: file.path === "c.json" } : file);
   source.candidates.push(
     { id: "c-c-json--ext-store", from: "c-json", to: "ext-store", reasons: ["identifier:store"] },
     { id: "c-b-mjs--c-json", from: "b-mjs", to: "c-json", reasons: ["identifier:key"] },
