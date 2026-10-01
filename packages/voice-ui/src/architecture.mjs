@@ -363,6 +363,19 @@ const everyRecordOf = manifest => {
   ];
 };
 
+// What this snapshot defines a graph edge as, told by the edge's id and both
+// its ends: the relation's kind and, for a relation of the scope's vocabulary,
+// that relation's own purpose - a reserved kind has none. Null for any edge
+// the snapshot does not define exactly so: another id, other ends or a region.
+// It says what the snapshot defines, never what a graph actually holds.
+export function definedRelation(manifest, edge) {
+  demand(manifest?.status === "available", "an available manifest is required");
+  const found = everyRecordOf(manifest).map(value => value.record)
+    .find(record => record.type === "relation" && record.id === edge?.id && record.from === edge.from && record.to === edge.to);
+  if (found === undefined) return null;
+  return Object.freeze({ kind: found.kind, purpose: manifest.relations.find(relation => relation.key === found.kind)?.purpose ?? null });
+}
+
 const equal = (left, right) => left === right || (
   left !== null && right !== null && typeof left === "object" && typeof right === "object"
   && Array.isArray(left) === Array.isArray(right)

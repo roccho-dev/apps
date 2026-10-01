@@ -26,7 +26,7 @@ import {
   roleSlot,
   slotsFor,
 } from "../../src/contract.mjs";
-import { focusedEvidence, intentSectionOf, judgeSectionOf, readManifest } from "../../src/architecture.mjs";
+import { definedRelation, focusedEvidence, intentSectionOf, judgeSectionOf, readManifest } from "../../src/architecture.mjs";
 
 const json = (body, status = 200) =>
   new Response(JSON.stringify(body), {
@@ -101,10 +101,16 @@ const CONTEXT_NOTE = " context.recent lists earlier utterances as they were reco
 // The questions for exactly the slots the request offers. Each option is a
 // key the request carries; the words around it are this Function's own, and
 // every product word - a part's or a diagram's purpose - comes from the
-// request's offers.
-function questionsFor(state, slots) {
+// request's offers. `defined` says what the server's own snapshot defines an
+// edge as, or null: an architecture intent passes it, and a plain request,
+// which has no snapshot, describes every edge by its two ends only.
+function questionsFor(state, slots, defined = () => null) {
   const labelOf = new Map(state.graph.regions.map(region => [region.id, region.label]));
   const node = key => labelOf.get(key) === key ? key : `${key} (shown as "${labelOf.get(key)}")`;
+  const definedAs = edge => {
+    const relation = defined(edge);
+    return relation === null ? "" : `, which this snapshot defines as ${relation.kind}${relation.purpose === null ? "" : `: ${relation.purpose}`}`;
+  };
   const questions = {
     action: {
       type: "choice",
@@ -179,7 +185,7 @@ function questionsFor(state, slots) {
         + "Only if it names no edge and refers to one (for example \"that edge\"), choose the edge the focus describes.",
       criteria: criteria(slots.edge, key => key === NONE
         ? "the utterance refers to no edge of the working graph"
-        : `the edge from ${node(byId.get(key).from)} to ${node(byId.get(key).to)}`),
+        : `the edge from ${node(byId.get(key).from)} to ${node(byId.get(key).to)}${definedAs(byId.get(key))}`),
     };
   }
   if (slots.diagram) {
@@ -248,24 +254,33 @@ function judgeQuestions(section, slots) {
   return questions;
 }
 
-// A locate frame's one question: whether the utterance asks for its part,
-// judged from that part's own text - the files it opens whole, and single
-// lines of other files that name it - which the question names by path, since
-// the provider never sees the question's name.
+// A locate frame's one question, judged from its part's own text - the files
+// it opens whole, and single lines of other files that name it - which the
+// question names by path, since the provider never sees the question's name.
+// For a file: whether its own text does or declares what the utterance is
+// about. For a part outside the source: whether the shown code uses it for
+// that. The utterance need not name the part; the options say where the line
+// falls.
 function locateQuestion(entity, evidence, slots) {
-  const part = entity.kind === "file" ? `the file ${entity.label}` : `${entity.label}, which lies outside the source`;
+  const file = entity.kind === "file";
   const lined = [...new Set(evidence.lines.map(line => line.path))];
   return {
     [relevantSlot(entity.id)]: {
       type: "choice",
-      instructions: `Does the utterance ask to see ${part}, as it is actually used in this original code?`
+      instructions: (file
+        ? `Does the original text of the file ${entity.label} implement behaviour, or declare data, that the current utterance asks about or refers to?`
+        : `Does the shown original code use ${entity.label}, which lies outside the source, for behaviour or data that the current utterance asks about or refers to?`)
         + ` state.architecture.evidence.bodies holds ${evidence.bodies.map(body => body.path).join(", ")} whole`
         + (lined.length === 0 ? "." : `; state.architecture.evidence.lines holds single lines of ${lined.join(", ")}, each with its path and line number.`)
-        + " Judge only from that text and the utterance; if they do not show that the utterance asks for it, answer none."
+        + " Judge only from that text and the utterance."
         + CONTEXT_NOTE,
-      criteria: criteria(slots[relevantSlot(entity.id)], key => key === YES
-        ? "yes: the utterance asks for this part, as the code shows it"
-        : "no, or the code does not show that the utterance asks for it"),
+      criteria: criteria(slots[relevantSlot(entity.id)], key => (file
+        ? key === YES
+          ? "its own text implements that behaviour or declares that data, whether or not the utterance names the file"
+          : "its text does not, even if it mentions or imports another part that does"
+        : key === YES
+          ? "the shown code uses it for that behaviour or data, whether or not the utterance names it"
+          : "the shown code does not use it for that, or only names it")),
     },
   };
 }
@@ -333,7 +348,7 @@ export async function onRequestPost({ request, env }) {
       asked = { utterance: state.utterance, context: state.context, architecture: { ...state.architecture, evidence } };
     } else if (kind === ARCHITECTURE_INTENT_KIND) {
       slots = slotsFor(state);
-      questions = questionsFor(state, slots);
+      questions = questionsFor(state, slots, edge => definedRelation(bound.manifest, edge));
     } else {
       slots = judgeSlotsFor(own);
       questions = judgeQuestions(own, slots);

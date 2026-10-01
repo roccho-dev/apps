@@ -7,6 +7,7 @@ import test from "node:test";
 import { fileURLToPath, pathToFileURL } from "node:url";
 
 import {
+  definedRelation,
   focusedEvidence,
   judgeRequestOf,
   judgeSectionOf,
@@ -508,6 +509,31 @@ test("every located part is judged together, the judge bound to exactly what was
   // Located, but not judged: nothing is drawn.
   assert.deepEqual(await planArchitecture({ working, turn, answers, located, manifest, protocol, operationsMax: MAX_DECISION_OPERATIONS }),
     { outcome: "refused", reason: "architecture-judge-missing" });
+});
+
+test("an edge is what the snapshot defines only by its id and both its ends; anything else has no kind to borrow", () => {
+  const manifest = readManifest(structuredClone(MANIFEST));
+  const stores = { id: "arch-stores-in-b-mjs-to-ext-store", from: "arch-b-mjs", to: "arch-ext-store" };
+  // A relation of the vocabulary carries its own purpose; a reserved kind has none.
+  assert.deepEqual(definedRelation(manifest, stores), { kind: "stores-in", purpose: "stores data in it" });
+  assert.deepEqual(definedRelation(manifest, { id: "arch-calls-a-mjs-to-b-mjs", from: "arch-a-mjs", to: "arch-b-mjs" }), { kind: "calls", purpose: "calls it" });
+  assert.deepEqual(definedRelation(manifest, { id: "arch-import-a-mjs-to-b-mjs", from: "arch-a-mjs", to: "arch-b-mjs" }), { kind: "imports", purpose: null });
+  assert.deepEqual(definedRelation(manifest, { id: "arch-declares-store-key", from: "arch-fact-store-key", to: "arch-c-json" }), { kind: "declares", purpose: null });
+  assert.deepEqual(definedRelation(manifest, { id: "arch-has-role-a-mjs-to-persistence", from: "arch-a-mjs", to: "arch-role-persistence" }),
+    { kind: "has-role", purpose: null }, "a role's purpose is not the edge's");
+  const undefinedEdges = [
+    ["one end changed", { ...stores, from: "arch-a-mjs" }],
+    ["the other end changed", { ...stores, to: "arch-c-json" }],
+    ["the ends swapped", { ...stores, from: stores.to, to: stores.from }],
+    ["another pair's id on these ends", { ...stores, id: "arch-calls-a-mjs-to-b-mjs" }],
+    ["a region's id", { id: "arch-b-mjs", from: "arch-b-mjs", to: "arch-ext-store" }],
+    ["an edge the person made", { id: "voice-arch-b-mjs-to-arch-ext-store", from: "arch-b-mjs", to: "arch-ext-store" }],
+    ["an edge the person reversed", { id: "voice-arch-ext-store-to-arch-b-mjs", from: "arch-ext-store", to: "arch-b-mjs" }],
+    ["a relation outside this snapshot's vocabulary", { id: "arch-authenticates-with-b-mjs-to-ext-store", from: "arch-b-mjs", to: "arch-ext-store" }],
+    ["an id it never draws", { id: "arch-stores-in-d-mjs-to-ext-store", from: "arch-d-mjs", to: "arch-ext-store" }],
+    ["no edge", null],
+  ];
+  for (const [label, edge] of undefinedEdges) assert.equal(definedRelation(manifest, edge), null, label);
 });
 
 test("the whole is reserved: no part may be called whole, in the manifest or in an intent", async () => {
