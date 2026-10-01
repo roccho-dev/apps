@@ -55,9 +55,9 @@ const REASONS = Object.freeze({
   rejected: "decision log was rejected",
   "not-persisted": "decision log was not persisted",
   unverified: "the stored decision log could not be verified",
-  "jev-failed": "Jev request failed",
-  "jev-timeout": "Jev did not answer within",
-  "jev-contract": "Jev answered outside the contract",
+  "judge-failed": "the judgment binding request failed",
+  "judge-timeout": "the judgment binding did not answer within",
+  "judge-contract": "the judgment binding answered outside the contract",
   "voice-failed": "voice input failed",
   "display-failed": "the step could not be drawn",
   error: "unexpected error",
@@ -67,7 +67,7 @@ const REASONS = Object.freeze({
 // after it when there is anything.
 export const reasonText = (reason, detail = null) => {
   const words = REASONS[reason] ?? reason;
-  return detail === null ? words : reason === "jev-timeout" ? `${words} ${detail}` : `${words}: ${detail}`;
+  return detail === null ? words : reason === "judge-timeout" ? `${words} ${detail}` : `${words}: ${detail}`;
 };
 
 // Where both panes point their cameras: the provider's own layout of the
@@ -92,7 +92,7 @@ export function frameFor({ graph, width, height, protocol }) {
 // ready is the old map removed and the candidate shown where it was drawn:
 // its iframe is never moved, which would reload it. A drawing that fails
 // removes the candidate alone and rethrows, so the pane keeps the map it had.
-export async function drawGraph({ graph, frame, mount, protocol, renderSemanticMap, document }) {
+export async function drawGraph({ graph, frame, mount, protocol, renderProjection, document }) {
   if (graph === null) {
     mount.replaceChildren();
     return;
@@ -106,7 +106,7 @@ export async function drawGraph({ graph, frame, mount, protocol, renderSemanticM
   candidate.style.cssText = "position:absolute;inset:0;visibility:hidden;pointer-events:none;";
   mount.append(candidate);
   try {
-    await renderSemanticMap({ document, input: { envelope }, surfaceMount: candidate, presentation: "chrome-free" });
+    await renderProjection({ document, input: { envelope }, surfaceMount: candidate, presentation: "chrome-free" });
   } catch (error) {
     candidate.remove();
     throw error;
@@ -298,7 +298,7 @@ const DIAGNOSTIC_KEYS = Object.freeze([
 ]);
 const slotDiagnostic = slot => (slot === undefined ? null : `${slot.choice}:${slot.confidence.toFixed(2)}`);
 
-// Why a turn Jev judged came to nothing, for whoever is looking at this screen
+// Why a turn the judgment binding judged came to nothing, for whoever is looking at this screen
 // during a test: a fixed set of short values on the status line, replaced on
 // every turn and cleared by any control, never stored or sent. No utterance,
 // no provider prompt, no probability distribution.
@@ -306,7 +306,7 @@ export function renderDiagnostic(status, diagnostic) {
   for (const key of DIAGNOSTIC_KEYS) delete status.dataset[key];
   if (diagnostic === null) return;
   const { answers, placeable, undoRequest, frame, revision } = diagnostic;
-  status.dataset.diag = "jev-no-change";
+  status.dataset.diag = "judge-no-change";
   status.dataset.diagOutcome = undoRequest ? "undo-request" : "no-change";
   status.dataset.diagPlaceable = String(placeable.length);
   status.dataset.diagPlaceOffered = placeable.length >= 2 ? "yes" : "no";

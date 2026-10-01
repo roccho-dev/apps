@@ -1,10 +1,10 @@
-import { createHayamimi } from "/hayamimi/runtime/api/hayamimi.mjs";
+import { createJudgment } from "/adapters/judgment.mjs";
+import { createTranscription } from "/adapters/transcription.mjs";
 import {
   executeArtifactPackage as renderSemanticMap,
   visibleFrameOf,
 } from "/ui/semantic-map/runtime.js";
 import * as protocol from "/ui/semantic-map/protocol/index.js";
-import { DECISION_KIND, ERRORS } from "/app/src/contract.mjs";
 import { readBundle } from "/app/src/bundle.mjs";
 import { readConfig } from "/app/src/config.mjs";
 import {
@@ -36,7 +36,7 @@ import {
   OUTCOME_NO_CHANGE,
   OUTCOME_STEP,
   focusFor,
-  pendingForJev,
+  pendingForJudgment,
   pendingHolds,
   placeableIds,
   requestFor,
@@ -106,32 +106,6 @@ const lock = (name, run) => navigator.locks.request(name, run);
 const commit = ({ graph, expected }) => commitLog({
   graph, expected, key: config.persistence.key, read, write, lock, verifyDecisionLog,
 });
-
-// The service worker only exists to reassemble the chunked ASR model that
-// the Cloudflare 25MB file limit forces. A host that serves the model whole
-// answers the probe with 204, so registration is skipped there.
-const serviceWorkerReady = (async () => {
-  const manifest = await fetch("/hayamimi/sherpa/data.parts.json", { cache: "no-store" });
-  // Only the status is needed, but the body is drained all the same. A
-  // response left unread is cancelled by the browser, which reports the
-  // probe as an aborted request even though the host answered it.
-  await manifest.arrayBuffer();
-  // 204 is the host stating there are no chunks to reassemble. It has to
-  // be read before `ok`, which is true for 204 and would otherwise
-  // register a worker with nothing to do. Anything else that is not a
-  // served manifest is unexpected and must surface rather than silently
-  // disable the worker.
-  if (manifest.status === 204) return;
-  if (!manifest.ok) throw new Error(`chunk manifest probe failed: ${manifest.status}`);
-  if (!("serviceWorker" in navigator)) throw new Error("service worker is required");
-  await navigator.serviceWorker.register("/sw.js", { scope: "/" });
-  await navigator.serviceWorker.ready;
-  if (!navigator.serviceWorker.controller) {
-    await new Promise(resolve =>
-      navigator.serviceWorker.addEventListener("controllerchange", resolve, { once: true })
-    );
-  }
-})();
 
 // Capture and the surface are separate resources, so they are owned
 // separately. `capturing` makes microphone capture exclusive to one voice
@@ -237,41 +211,8 @@ const showOutOfView = () => {
   renderOutOfView(outOfView, { outside: placeableIds(layout, session.working.records).filter(id => !whole.includes(id)) });
 };
 
-// The Function gives the provider 10 s and then answers 504 itself, so a
-// page that has heard nothing 5 s after that is not being answered at all:
-// the connection or the host has stalled. It stops waiting and says so,
-// and the caller releases every control. The request is aborted, so an
-// answer that turns up later can never land.
-const JEV_TIMEOUT_MS = 15000;
-
 const failure = (reason, detail = null) => Object.freeze({ kind: "failed", reason, detail });
-
-// Jev's answer, or why there is none.
-const postJev = async request => {
-  const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), JEV_TIMEOUT_MS);
-  try {
-    const response = await fetch("/api/jev", {
-      method: "POST",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify(request),
-      signal: controller.signal,
-    });
-    if (!response.ok) {
-      const code = (await response.json().catch(() => null))?.error;
-      return failure("jev-failed", Object.values(ERRORS).includes(code) ? code : String(response.status));
-    }
-    const decision = await response.json().catch(() => null);
-    if (decision?.kind !== DECISION_KIND || typeof decision.model !== "string") return failure("jev-contract");
-    return Object.freeze({ kind: "answered", decision });
-  } catch (error) {
-    return controller.signal.aborted
-      ? failure("jev-timeout", `${JEV_TIMEOUT_MS / 1000} s`)
-      : failure("jev-failed", String(error?.message ?? error));
-  } finally {
-    clearTimeout(timer);
-  }
-};
+const judge = createJudgment();
 
 // Both panes point their cameras at the frame the working graph needs in the
 // working pane's box, so the frame read from 作業図 holds for 確定図 too.
@@ -283,7 +224,7 @@ const paneFrame = graph => frameFor({
 });
 const sameFrame = (left, right) => JSON.stringify(left) === JSON.stringify(right);
 const drawWorking = graph => drawGraph({
-  graph, frame: paneFrame(graph), mount: workingSurface, protocol, renderSemanticMap, document,
+  graph, frame: paneFrame(graph), mount: workingSurface, protocol, renderProjection: renderSemanticMap, document,
 });
 
 // 確定図 is drawn at the frame 作業図 has now, and again only when that frame
@@ -292,7 +233,7 @@ const drawWorking = graph => drawGraph({
 let confirmedFrame;
 const drawConfirmed = async () => {
   const frame = paneFrame(session.working);
-  await drawGraph({ graph: session.accepted, frame, mount: confirmedSurface, protocol, renderSemanticMap, document });
+  await drawGraph({ graph: session.accepted, frame, mount: confirmedSurface, protocol, renderProjection: renderSemanticMap, document });
   confirmedFrame = frame;
 };
 const followWorkingFrame = async () => {
@@ -309,48 +250,16 @@ const followOrReport = async (state, message) => {
   } catch (error) {
     confirmedFrame = undefined;
     setState("confirmed-display-failed", `${message}。ただし確定図を同じ表示範囲で描き直せませんでした`);
-    showHistory(`display failed (${state}): ${error.message}`);
+    showHistory(`display failed (${state}): display_error`);
     return true;
   }
 };
 
-let hayamimi;
+const transcription = createTranscription();
 const transcribe = async () => {
-  await serviceWorkerReady;
-  hayamimi ??= createHayamimi();
-  return new Promise((resolve, reject) => {
-    let settled = false;
-    const timeout = setTimeout(() => {
-      settled = true;
-      hayamimi.onText = null;
-      reject(new Error("voice transcription timed out"));
-    }, 300000);
-    hayamimi.onText = async value => {
-      settled = true;
-      clearTimeout(timeout);
-      hayamimi.onText = null;
-      try {
-        await hayamimi.stop();
-        text.value = value;
-        resolve(value);
-      } catch (error) {
-        reject(error);
-      }
-    };
-    // start() resolves once the recognizer is loaded and the microphone
-    // is feeding it, so only then is the user asked to speak.
-    hayamimi.start().then(
-      () => {
-        if (!settled) setVoice("listening", "voice: 聞いています。話してください");
-      },
-      error => {
-        settled = true;
-        clearTimeout(timeout);
-        hayamimi.onText = null;
-        reject(error);
-      },
-    );
-  });
+  const value = await transcription({ onListening: () => setVoice("listening", "voice: 聞いています。話してください") });
+  text.value = value;
+  return value;
 };
 
 // The changes that are not graph edges and that the focus may point at: the
@@ -361,7 +270,7 @@ const lastApplied = () => (savedHistory?.entries.at(-1)?.facts ?? [])
 // Send and Voice take the same path, and neither touches 確定図 or storage:
 // the utterance is judged against 作業図 and every unapplied step, and a
 // usable answer becomes one more step on 作業図, drawn before it is adopted.
-// Returns how the input ended; only an utterance Jev judged joins the
+// Returns how the input ended; only an utterance the judgment binding judged joins the
 // conversation, which the session records.
 const decide = async (value, source) => {
   renderDiagnostic(status, null);
@@ -392,10 +301,10 @@ const decide = async (value, source) => {
     offeredFrame,
     draft: steps,
     focus: focusFor({ draft: steps, lastApplied: lastApplied() }),
-    pending: stillHeld ? pendingForJev(held.intent) : null,
+    pending: stillHeld ? pendingForJudgment(held.intent) : null,
     recent: recentConversation(session).recent,
   });
-  const answer = await postJev(request);
+  const answer = await judge(request);
   if (answer.kind === "failed") return answer;
 
   // Read in the same synchronous run the answer is judged in.
@@ -430,7 +339,7 @@ const decide = async (value, source) => {
     await drawWorking(transition.session.working);
   } catch (error) {
     adopt(noteRefused(before, input));
-    return failure("display-failed", String(error?.message ?? error));
+    return failure("display-failed", "operation_failed");
   }
   adopt(transition.session);
   return Object.freeze({ kind: OUTCOME_STEP });
@@ -473,7 +382,7 @@ send.addEventListener("click", async () => {
   try {
     await finish("type", await decide(text.value, "typed"));
   } catch (error) {
-    await finish("type", failure("error", String(error?.message ?? error)));
+    await finish("type", failure("error", "operation_failed"));
   } finally {
     if (typedHoldsRender) {
       rendering = false;
@@ -488,7 +397,7 @@ send.addEventListener("click", async () => {
 // before the first await after that, and the finally releases it.
 const hear = async () => {
   const heard = await transcribe();
-  if (typeof heard !== "string") return failure("voice-failed", "Hayamimi must return text");
+  if (typeof heard !== "string") return failure("voice-failed", "transcription_invalid_text");
   if (rendering) return failure("error", "surface is busy");
   rendering = true;
   voiceHoldsRender = true;
@@ -511,7 +420,7 @@ mic.addEventListener("click", async () => {
   try {
     await finish("voice", await hear());
   } catch (error) {
-    await finish("voice", failure("voice-failed", String(error?.message ?? error)));
+    await finish("voice", failure("voice-failed", "operation_failed"));
   } finally {
     if (voiceHoldsRender) {
       rendering = false;
@@ -538,7 +447,7 @@ const withSurface = async (label, run) => {
     await run();
   } catch (error) {
     setState("failed", `${label}: failed`);
-    showHistory(`failed: ${String(error?.message ?? error)}`);
+    showHistory(`failed: ${"operation_failed"}`);
   } finally {
     if (controlHoldsRender) {
       rendering = false;
@@ -633,7 +542,7 @@ applyButton.addEventListener("click", () => withSurface("apply", async () => {
   } catch (error) {
     blocked = true;
     setState("saved-display-failed", "apply: saved, display failed - reload to recover");
-    showHistory(`display failed: ${String(error?.message ?? error)}`);
+    showHistory(`display failed: ${"operation_failed"}`);
     return;
   }
   setState("applied", "確定図に反映しました");
@@ -670,13 +579,13 @@ const fetchJson = async path => {
   try {
     response = await fetch(path, { cache: "no-store" });
   } catch (error) {
-    return Object.freeze({ reason: `network: ${String(error?.message ?? error)}` });
+    return Object.freeze({ reason: `network: ${"operation_failed"}` });
   }
   if (!response.ok) return Object.freeze({ reason: `HTTP ${response.status}` });
   try {
     return Object.freeze({ value: await response.json() });
   } catch (error) {
-    return Object.freeze({ reason: `invalid JSON: ${String(error?.message ?? error)}` });
+    return Object.freeze({ reason: `invalid JSON: ${"operation_failed"}` });
   }
 };
 
@@ -750,7 +659,7 @@ if (configured.error !== undefined) {
     // the same saved-but-not-displayed state a failed render produces.
     blocked = true;
     [bootState, bootMessage] = ["saved-display-failed", "stored graph could not be drawn - reload to retry"];
-    bootFailure = `display failed: ${String(error?.message ?? error)}`;
+    bootFailure = `display failed: ${"operation_failed"}`;
   }
 }
 // The body state is set last, with every control already in its place: it is

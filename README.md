@@ -1,3 +1,11 @@
 # apps
 
 `apps` owns deployable application composition. Reusable UI capabilities, runtime packages, environment/secret authority, and deployment effects remain in their owning repositories.
+
+## voice-ui provider boundaries
+
+Application questions, offered choices, typed operations, confidence threshold and durable-world semantics remain in the flat voice-ui core. Explicit judgment and transcription call shapes are adopted in its existing contract; browser composition selects two small concrete adapters. The adopted UI world/schema/serialization kernel is retained, while projection can be replaced independently. These mechanical swap tests do not prove user experience, ASR accuracy or live provider success.
+
+Jev mechanism is supplied as an exact reviewed ops ESM artifact and compiled only into the server Worker. Hayamimi is also an exact provided artifact; neither provider consumes an ops source checkout or rebuild. The UI producer source pin at 57cd621206ef416dc2525e113a5a12b77c082065 remains an explicit exception: this is not an all-repository artifact-only claim. /api/judge returns typed application answers, not raw provider model/error bodies. JEV_API_KEY and the jev-api capability are unchanged, Worker-only requirements.
+
+Producer assembly precedes the target-owned SOPS child. Dev consumes the produced Worker; a consumer of the formal artifact does not build, install or check out source. Input ESM identity and compiled Worker identity are recorded separately. Publication supplies PRODUCT and ACCEPTANCE as six assets; a later ops convergence stage supplies DEPLOY and a fresh same-object gate. New identities require new evidence; old artifacts and real receipts are not inherited.

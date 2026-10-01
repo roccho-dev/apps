@@ -26,10 +26,10 @@ import {
   OUTCOME_REFUSED,
   OUTCOME_STEP,
   appendStep,
-  changesForJev,
+  changesForJudgment,
   focusFor,
   newMap,
-  pendingForJev,
+  pendingForJudgment,
   pendingHolds,
   placeableIds,
   planStep,
@@ -331,7 +331,7 @@ test("one unsure placement piece is held, bound to the exact picture, and never 
   assert.equal(near.pending.missing, "anchor");
   assert.equal(near.pending.head, graph.head);
   assert.deepEqual(near.pending.offered, ["node-a", "node-b", "node-c"]);
-  assert.deepEqual(pendingForJev(near.pending), { missing: "anchor", move: "node-c", anchor: null, direction: "right" });
+  assert.deepEqual(pendingForJudgment(near.pending), { missing: "anchor", move: "node-c", anchor: null, direction: "right" });
   assert.ok(pendingHolds(near.pending, { head: graph.head, frame: WIDE, offered: ["node-a", "node-b", "node-c"] }));
   assert.equal(pendingHolds(near.pending, { head: graph.head, frame: [0, 0, 1, 1], offered: ["node-a", "node-b", "node-c"] }), false);
 
@@ -350,7 +350,7 @@ test("the one repair completes the held placement, and only when the reply says 
     { layout, offeredFrame: WIDE, visibleFrame: frameOf(graph) });
   const pending = near.pending;
   const reply = async (picks, visibleFrame = frameOf(graph)) => {
-    const { turn } = ask(graph, { layout, offeredFrame: WIDE, pending: pendingForJev(pending) });
+    const { turn } = ask(graph, { layout, offeredFrame: WIDE, pending: pendingForJudgment(pending) });
     return repairStep({ working: graph, turn, answers: answer(turn, picks), protocol, bundle: BUNDLE, layout, visibleFrame, pending });
   };
   const repaired = await reply({ action: NONE, anchor: "node-a" });
@@ -459,7 +459,7 @@ test("an entry is offered for revert only when its opposite is one safe change",
 test("changes reach Jev in their own shape, and the focus is the latest step, else the latest applied, else null", () => {
   const region = { change: "added", kind: "region", id: "part-1", label: "L", extra: 1 };
   const edge = { change: "removed", from: "node-a", to: "node-b", extra: 1 };
-  assert.deepEqual(changesForJev([region, edge]), [
+  assert.deepEqual(changesForJudgment([region, edge]), [
     { change: "added", kind: "region", id: "part-1", label: "L" },
     { change: "removed", from: "node-a", to: "node-b" },
   ]);
@@ -523,8 +523,8 @@ const embedInto = frames => async ({ surfaceMount }) => {
   frames.push(frame);
   surfaceMount.replaceChildren(frame);
 };
-const drawInto = (mount, renderSemanticMap, graph = { log: "log" }) =>
-  drawGraph({ graph, frame: null, mount, protocol: fakeProtocol, renderSemanticMap, document: fakeDocument });
+const drawInto = (mount, renderProjection, graph = { log: "log" }) =>
+  drawGraph({ graph, frame: null, mount, protocol: fakeProtocol, renderProjection, document: fakeDocument });
 
 test("a drawing replaces the shown map only once it is ready, in place: one wrapper, one embed, never moved", async () => {
   const { mount, wrapper: old } = shownPane();
@@ -568,4 +568,23 @@ test("no graph clears the pane", async () => {
   const { mount } = shownPane();
   await drawInto(mount, embedInto([]), null);
   assert.deepEqual(mount.children, []);
+});
+
+test("an independent projection renderer shares the accepted world kernel, not the original renderer", async () => {
+  const graph = await step(await baseGraph(), { action: ACTION_ADD_EDGE, source: "node-a", target: "node-b" });
+  const before = graph.log;
+  let seen;
+  const projection = async ({ input, surfaceMount }) => {
+    const inspected = await protocol.inspectEnvelope(input.envelope);
+    seen = inspected.base.records.filter(record => record.type === "relation").map(record => record.from + "->" + record.to).sort();
+    const list = fakeElement("ol");
+    for (const edge of seen) { const item = fakeElement("li"); item.textContent = edge; list.append(item); }
+    surfaceMount.replaceChildren(list);
+  };
+  const mount = fakeElement("section");
+  await drawGraph({ graph, frame: null, mount, protocol, renderProjection: projection, document: fakeDocument });
+  assert.deepEqual(seen, edges(graph)); assert.deepEqual(seen, ["node-a->node-b"]);
+  assert.equal(mount.children[0].children[0].tag, "ol");
+  assert.equal(mount.children[0].children[0].children[0].textContent, "node-a->node-b");
+  assert.equal(graph.log, before); assert.equal((await verifyDecisionLog(before)).head, graph.head);
 });

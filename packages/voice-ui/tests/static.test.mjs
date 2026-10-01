@@ -77,7 +77,7 @@ const python = files.filter(file => file.endsWith(".py"));
 const read = file => fs.readFileSync(path.join(root, file), "utf8");
 const lines = file => read(file).split("\n");
 
-const PRODUCTION = /^(src\/.+\.mjs|web\/[^/]+\.mjs|functions\/.+\.mjs|dev\/.+\.mjs)$/u;
+const PRODUCTION = /^(src\/.+\.mjs|web\/.+\.mjs|functions\/.+\.mjs|dev\/.+\.mjs)$/u;
 const production = javascript.filter(file => PRODUCTION.test(file));
 const ENTRYPOINTS = Object.freeze({
   "web/app.mjs": [],
@@ -257,10 +257,35 @@ const IMPORT = /\bimport\s+(?:([A-Za-z_$][\w$]*)\s*,?\s*)?(?:\{([^}]*)\}|\*\s+as
 const EXPORT = /^export\s+(?:async\s+)?(?:function\s*\*?\s*|const\s+|let\s+)([A-Za-z_$][\w$]*)/gmu;
 const resolve = (file, spec) => {
   if (spec.startsWith(".")) return path.posix.normalize(path.posix.join(path.posix.dirname(file), spec));
+  if (spec.startsWith("/adapters/")) return `web/adapters/${spec.slice("/adapters/".length)}`;
   if (spec.startsWith("/app/src/")) return `src/${spec.slice("/app/src/".length)}`;
   assert.equal(spec.startsWith("/app/"), false, `${file}: ${spec} is not under the one /app/src/ mapping`);
   return null;
 };
+
+test("core import reachability is closed over apps meaning, not concrete bindings", () => {
+  const visit = (file, sourceFor, seen = new Set()) => {
+    if (seen.has(file)) return seen;
+    seen.add(file);
+    const source = sourceFor(file);
+    const specs = [...source.matchAll(IMPORT)].map(match => match[4]);
+    specs.push(...[...source.matchAll(/\bimport\s*\(\s*["']([^"']+)["']\s*\)/gu)].map(match => match[1]));
+    assert.doesNotMatch(source, /\bimport\s*\((?!\s*["'])/u, "computed dependency cannot be certified");
+    for (const spec of specs) {
+      const target = resolve(file, spec);
+      assert.ok(target?.startsWith("src/"), "core dependency leaves app meaning: " + spec);
+      assert.ok(production.includes(target), "dependency must exist: " + target);
+      visit(target, sourceFor, seen);
+    }
+    return seen;
+  };
+  const roots = production.filter(file => file.startsWith("src/"));
+  const reached = new Set(roots.flatMap(file => [...visit(file, read)]));
+  assert.deepEqual([...reached].sort(), roots.sort());
+  for (const spec of ["/hayamimi/runtime/api/hayamimi.mjs", "voice-ui-judge-provider", "../web/adapters/judgment.mjs"]) {
+    assert.throws(() => visit("src/contract.mjs", () => "import x from " + JSON.stringify(spec) + ";"), /core dependency leaves app meaning/);
+  }
+});
 
 test("every production export has a production importer or is a named entrypoint; nothing is re-exported", () => {
   const used = new Map(production.map(file => [file, new Set()]));

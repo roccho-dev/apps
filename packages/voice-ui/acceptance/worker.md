@@ -1,6 +1,8 @@
 # Exact deployable Worker
 
-The artifact contains `worker/worker.mjs`, compiled once by apps with the root's pinned esbuild. It delegates `/api/jev` to the existing onRequestPost implementation and all static requests to the `ASSETS` binding. No app behavior is reimplemented by ops.
+The artifact contains worker/worker.mjs, compiled once by apps with the pinned esbuild. It delegates /api/judge to apps-owned judgment semantics, binds the verified standalone ops Jev ESM through a thin call-shape adapter, and delegates static requests to ASSETS. Ops owns provider wire/auth/transport; apps owns questions, exact slots and typed choices. Raw provider model strings are validated and discarded, not returned to the browser or durable log.
+
+The manifest records the admitted provider locator, contract and ZIP/proof/provenance/entry/manifest digests. These identify the exact input; the bundled Worker has a separate digest, not byte equality with its ESM input. Dev launches that same produced Worker. The flake launcher compiles before the target-owned SOPS child receives its secret; an arbitrary direct invocation with environment overrides is not an admission or secret-provenance guarantee.
 
 The `voice-ui-dist/2` manifest declares what a deploy step needs, in its `runtime` block: main module `worker/worker.mjs`, static assets `site/` bound as `ASSETS`, compatibility date `2026-09-01` with no flags, and the required secret `JEV_API_KEY` for the auth contract's `jev-api` capability. `dist.py verify` requires exactly this block, the secrets to match `.envs/artifact.jsonl`, and the compiled Worker to read every declared binding. These are declared requirements, not a deployment: no target, account or secret value is named, and the consumer deploys these exact bytes unchanged. The worker is not a public static asset, so the site tree remains free of the JEV_API_KEY identifier.
 

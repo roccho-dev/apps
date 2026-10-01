@@ -191,42 +191,41 @@ assert.deepEqual((await drawnEdges("working")).edges, seededEdges, "作業図 st
 // which is RED, and names the reason the service gave.
 const requireAnswered = async response => {
   if (response.status() === 503) {
-    throw new Error(`NOT_RUN: jev_unavailable - the Jev service or its credential is unavailable (${await response.text()}); this run is RED, not PASS`);
+    throw new Error(`NOT_RUN: judge_unavailable - the Jev service or its credential is unavailable (${await response.text()}); this run is RED, not PASS`);
   }
   assert.equal(response.status(), 200);
 };
 
-// A REAL answer: a 200 the page got from the network - this file installs no
+// A UNCONTROLLED_NETWORK answer: a 200 the page got from the network - this file installs no
 // route, and the service worker must not have answered it - whose body is
 // exactly the current success shape, and whose every answer is a choice from
 // the slots the request actually sent offered, checked with the served
 // contract's own functions. Anything else is RED; a crafted or malformed 200
 // never counts. Returns the request as sent and the Decision as received.
-const requireReal = async (response, label) => {
+const requireNetwork = async (response, label) => {
   const sent = JSON.parse(response.request().postData());
   assert.equal(sent.kind, REQUEST_KIND, `${label}: the page sends the current request kind`);
   assert.ok(contract.isRequest(sent), `${label}: the page's request is a valid current request`);
   await requireAnswered(response);
   assert.equal(response.fromServiceWorker(), false, `${label}: answered by the network, not by a service worker`);
   const decision = await response.json();
-  assert.deepEqual(Object.keys(decision).sort(), ["answers", "kind", "model"], `${label}: exactly the success shape`);
+  assert.deepEqual(Object.keys(decision).sort(), ["answers", "kind"], `${label}: exactly the success shape`);
   assert.equal(decision.kind, DECISION_KIND, `${label}: the current Decision kind`);
-  assert.equal(typeof decision.model, "string", `${label}: the provider's model is named`);
   const read = contract.readAnswers(decision.answers, contract.slotsFor(sent.state));
   assert.notEqual(read, null, `${label}: every answer is a choice from the slots this request offered`);
   assert.deepEqual(decision.answers, read, `${label}: the answers are exactly what the contract reads`);
   return { sent, decision };
 };
 
-const jevResponse = timeout => page.waitForResponse(
-  response => new URL(response.url()).pathname === "/api/jev" && response.request().method() === "POST",
+const judgeResponse = timeout => page.waitForResponse(
+  response => new URL(response.url()).pathname === "/api/judge" && response.request().method() === "POST",
   { timeout },
 );
 
-// One typed input through Send, and the /api/jev response it caused.
+// One typed input through Send, and the /api/judge response it caused.
 const typed = async value => {
   await page.locator("#text").fill(value);
-  const responsePromise = jevResponse(120000);
+  const responsePromise = judgeResponse(120000);
   await page.locator("#send").click();
   return responsePromise;
 };
@@ -240,13 +239,13 @@ const settledDrafted = async label => {
 
 // A two-turn scenario whose second answer is only right if Jev took the first
 // turn into account. A rendered string is not evidence of anything; the
-// request as sent, a REAL Decision, the step drawn on 作業図 and then applied
+// request as sent, a UNCONTROLLED_NETWORK Decision, the step drawn on 作業図 and then applied
 // to 確定図 and restored after reload are.
 //
-// Turn 1 names its edge. It is the first request the page makes to /api/jev,
+// Turn 1 names its edge. It is the first request the page makes to /api/judge,
 // and it comes from Chromium itself.
 const TURN_1 = "add an edge from a to b";
-const turn1 = await requireReal(await typed(TURN_1), "turn 1");
+const turn1 = await requireNetwork(await typed(TURN_1), "turn 1");
 assert.deepEqual(turn1.sent.state.context, { recent: [] }, "turn 1 has no earlier conversation");
 assert.equal(turn1.sent.state.focus, null, "turn 1 has nothing in focus");
 assert.equal(turn1.decision.answers.action.choice, "add-edge", `turn 1 must be heard as one added edge: ${JSON.stringify(turn1.decision.answers)}`);
@@ -261,7 +260,7 @@ await assertSavedUntouched("turn 1");
 
 // The deployed Function serves only the current request kind: a legacy kind is
 // refused before any provider call. Checked after the page's own first call.
-const legacy = await fetch(new URL("/api/jev", url), {
+const legacy = await fetch(new URL("/api/judge", url), {
   method: "POST",
   headers: { "content-type": "application/json" },
   body: JSON.stringify({ kind: "voice-ui.jev.request.v1", text: "public legacy refusal proof" }),
@@ -283,7 +282,7 @@ assert.deepEqual(panelBefore, [{
 }], "the panel shows turn 1's text, its outcome and the effect it had");
 
 const TURN_2 = "reverse that edge";
-const turn2 = await requireReal(await typed(TURN_2), "turn 2");
+const turn2 = await requireNetwork(await typed(TURN_2), "turn 2");
 const asked = turn2.sent.state;
 assert.equal(asked.utterance, TURN_2);
 for (const region of asked.graph.regions) {
@@ -316,9 +315,9 @@ assert.ok(clip, "voice golden fixture is missing");
 // The recorded-file voice path: the fixture audio through the artifact's own
 // recognizer, then Jev. This is fixture-audio/ASR evidence only, never a real
 // microphone, and not part of the two-turn scenario above.
-const voiceResponsePromise = jevResponse(360000);
+const voiceResponsePromise = judgeResponse(360000);
 await page.locator("#mic").click();
-const voice = await requireReal(await voiceResponsePromise, "voice");
+const voice = await requireNetwork(await voiceResponsePromise, "voice");
 await settledDrafted("voice");
 
 const actual = normalize(await page.locator("#text").inputValue());
@@ -365,9 +364,11 @@ assert.deepEqual(failedRequests, []);
 assert.deepEqual(failedResponses, []);
 
 await browser.close();
+// Network structure is not upstream identity/authentication evidence.
+process.stdout.write("provider identity/authentication: NOT_PROVEN; live microphone and whole-product acceptance: NOTRUN; scenario PASS is not provider PASS\n");
 process.stdout.write(
-  `public-e2e: PASS NO_LOG first visit, legacy kind refused | REAL turn 1 "${TURN_1}" -> +${firstEdge}, `
-  + `REAL turn 2 "${TURN_2}" among ${offeredEdges.length} edges -> ${firstEdgeId} reversed to ${reversedEdge} `
+  `public-e2e: PASS NO_LOG first visit, legacy kind refused | UNCONTROLLED_NETWORK turn 1 "${TURN_1}" -> +${firstEdge}, `
+  + `UNCONTROLLED_NETWORK turn 2 "${TURN_2}" among ${offeredEdges.length} edges -> ${firstEdgeId} reversed to ${reversedEdge} `
   + `from turn 1's context and focus | fixture-audio voice edge=${voiceEdge} `
   + "| drawn on 作業図 only, applied together to 確定図 as a strict append, restored after reload\n",
 );
