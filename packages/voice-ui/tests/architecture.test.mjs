@@ -9,8 +9,9 @@ import { fileURLToPath, pathToFileURL } from "node:url";
 import {
   definedRelation,
   focusedEvidence,
-  judgeRequestOf,
+  judgeRequestsOf,
   judgeSectionOf,
+  judgedOf,
   locateRequestsOf,
   locatedOf,
   planArchitecture,
@@ -30,6 +31,7 @@ import {
   isJudgeRequest,
   isLocateRequest,
   isRequest,
+  judgeFramesFor,
   judgeSlotsFor,
   locateSlotsFor,
   relationSlot,
@@ -115,10 +117,16 @@ const plan = async (working, manifest, { focus = null, intent = {}, judge = {} }
   const { turn } = turnFor(working, manifest);
   // Without a part, this fixture asks for the whole - explicitly, as Jev must.
   const answers = answerFor(turn.slots, { action: ACTION_ARCHITECTURE, focus: focus ?? WHOLE, ...intent });
-  const request = focus === null ? null : judgeRequestOf(manifest, [focus], "show it");
-  const judged = request === null ? null
-    : { section: request.state.architecture, answers: answerFor(judgeSlotsFor(request.state.architecture), judge) };
+  const section = focus === null ? null : judgeSectionOf(manifest, [focus]);
+  const judged = section === null ? null : { section, answers: answerFor(judgeSlotsFor(section), judge) };
   return planArchitecture({ working, turn, answers, judged, manifest, protocol, operationsMax: MAX_DECISION_OPERATIONS });
+};
+// Every judge frame of a focus as the page sends them, each with its answer
+// on that frame's own questions.
+const judgeFramesOf = (manifest, focus, picks = {}, utterance = "show it") => {
+  const requests = judgeRequestsOf(manifest, focus, utterance);
+  return judgeFramesFor(requests[0].state.architecture)
+    .map(({ section }, index) => ({ request: requests[index], answers: answerFor(judgeSlotsFor(section), picks) }));
 };
 // Every locate frame of an intent as the page sends them, each with its answer.
 const framesFor = (manifest, request, picks = {}) => locateRequestsOf(manifest, request)
@@ -193,7 +201,10 @@ test("a focus opens its own file, or every file that names it, and exactly the p
     assert.equal(judgeSectionOf(manifest, focus), null, `${JSON.stringify(focus)} is no focus: known parts, sorted, once each`);
   }
 
-  const request = JSON.parse(JSON.stringify(judgeRequestOf(manifest, ["b-mjs"], "show the saver")));
+  const requests = JSON.parse(JSON.stringify(judgeRequestsOf(manifest, ["b-mjs"], "show the saver")));
+  assert.equal(requests.length, 1, "one body file whose pairs rest on it alone: one frame");
+  const [request] = requests;
+  assert.deepEqual(request.state.frame, ["b-mjs"]);
   assert.ok(isJudgeRequest(request));
   assert.equal(isRequest(request), false);
   const slots = judgeSlotsFor(request.state.architecture);
@@ -361,11 +372,11 @@ test("only a confident whole draws the structure; none or any unsure focus is lo
   assert.equal(claimsOf(whole).some(claim => claim.origin === "model-inferred"), false);
 
   // A section judged for another focus than the answer's is a caller error, never drawn.
-  const request = judgeRequestOf(manifest, ["b-mjs"], "show it");
+  const section = judgeSectionOf(manifest, ["b-mjs"]);
   await assert.rejects(planArchitecture({
     working, turn, manifest, protocol, operationsMax: MAX_DECISION_OPERATIONS,
     answers: answerFor(turn.slots, { action: ACTION_ARCHITECTURE, focus: WHOLE }),
-    judged: { section: request.state.architecture, answers: answerFor(judgeSlotsFor(request.state.architecture), {}) },
+    judged: { section, answers: answerFor(judgeSlotsFor(section), {}) },
   }), /the whole is never judged/u);
 });
 
@@ -511,6 +522,148 @@ test("every located part is judged together, the judge bound to exactly what was
     { outcome: "refused", reason: "architecture-judge-missing" });
 });
 
+test("a judge's questions are asked in frames, each resting on one or two whole body files, and every question is in exactly one", () => {
+  // A snapshot of its own: the two files also named the other way round.
+  const source = structuredClone(MANIFEST);
+  source.candidates.push({ id: "c-b-mjs--a-mjs", from: "b-mjs", to: "a-mjs", reasons: ["identifier:run"] });
+  const manifest = readManifest(source);
+  assert.equal(manifest.status, "available", manifest.reason);
+  const section = judgeSectionOf(manifest, ["a-mjs", "b-mjs"]);
+  const frames = judgeFramesFor(section);
+  assert.deepEqual(frames.map(item => item.frame), [["a-mjs"], ["b-mjs"], ["a-mjs", "b-mjs"]],
+    "in the order their first question has among the section's");
+  assert.deepEqual(frames.map(item => Object.keys(judgeSlotsFor(item.section))), [
+    [roleSlot("a-mjs", "persistence"), roleSlot("a-mjs", "config")],
+    [roleSlot("b-mjs", "persistence"), roleSlot("b-mjs", "config"), relationSlot("c-b-mjs--ext-store")],
+    [relationSlot("c-a-mjs--b-mjs"), relationSlot("c-b-mjs--a-mjs")],
+  ], "a file's roles and the pairs resting on it alone; a pair of two body files with the pair the other way, and no role");
+  assert.deepEqual(frames.flatMap(item => Object.keys(judgeSlotsFor(item.section))).sort(), Object.keys(judgeSlotsFor(section)).sort(),
+    "every question of the section, once");
+
+  // Each frame is the part of the section it asks, in the section's own shape.
+  const [, alone, pair] = frames;
+  assert.deepEqual(alone.section, {
+    source: section.source, focus: ["a-mjs", "b-mjs"],
+    entities: [{ id: "b-mjs", label: "b.mjs" }, { id: "ext-store", label: "store" }],
+    bodies: ["b-mjs"], candidates: [section.candidates[1]], roles: section.roles, relations: section.relations,
+  }, "the whole focus stays; only the parts its own pairs name");
+  assert.deepEqual(pair.section, {
+    source: section.source, focus: ["a-mjs", "b-mjs"],
+    entities: [{ id: "a-mjs", label: "a.mjs" }, { id: "b-mjs", label: "b.mjs" }],
+    bodies: ["a-mjs", "b-mjs"], candidates: [section.candidates[0], section.candidates[2]], roles: [], relations: section.relations,
+  }, "two files ask no role: each file's own frame does");
+  assert.deepEqual(focusedEvidence(pair.section, manifest, FILES),
+    { bodies: [{ path: "a.mjs", text: FILES["a-mjs"] }, { path: "b.mjs", text: FILES["b-mjs"] }], lines: [] }, "both files whole");
+  assert.deepEqual(focusedEvidence(alone.section, manifest, FILES), { bodies: [{ path: "b.mjs", text: FILES["b-mjs"] }], lines: [] },
+    "no line of a file its own pairs do not name");
+  assert.ok(Object.isFrozen(frames) && frames.every(item => Object.isFrozen(item) && Object.isFrozen(item.frame)
+    && Object.isFrozen(item.section) && Object.values(item.section).every(Object.isFrozen)), "a plan is never changed");
+
+  // A section asked in one frame is asked whole: the frame is the section.
+  const single = judgeSectionOf(manifest, ["b-mjs"]);
+  assert.deepEqual(judgeFramesFor(single), [{ frame: ["b-mjs"], section: single }]);
+  assert.equal(JSON.stringify(judgeFramesFor(single)[0].section), JSON.stringify(single), "key for key, in the same order");
+
+  // A pair resting on no body file: nothing is asked, and no request is built.
+  const outside = structuredClone(MANIFEST);
+  outside.entities.push({ id: "ext-other", label: "other", kind: "external" });
+  outside.candidates.push({ id: "c-ext-store--ext-other", from: "ext-store", to: "ext-other", reasons: ["identifier:other"] });
+  const unrested = readManifest(outside);
+  assert.equal(unrested.status, "available", unrested.reason);
+  assert.deepEqual(judgeSectionOf(unrested, ["ext-store"]).bodies, ["b-mjs"]);
+  assert.equal(judgeFramesFor(judgeSectionOf(unrested, ["ext-store"])), null);
+  assert.equal(judgeRequestsOf(unrested, ["ext-store"], "show it"), null);
+  assert.equal(judgeRequestsOf(manifest, ["nobody"], "show it"), null, "nor for a focus that opens no section");
+});
+
+test("a judge is one request per frame, the section whole and the frame beside it - never any code", () => {
+  const manifest = readManifest(structuredClone(MANIFEST));
+  const focus = ["a-mjs", "ext-store"];
+  const section = JSON.parse(JSON.stringify(judgeSectionOf(manifest, focus)));
+  const requests = JSON.parse(JSON.stringify(judgeRequestsOf(manifest, focus, "show it")));
+  assert.deepEqual(requests, [["a-mjs"], ["b-mjs"], ["a-mjs", "b-mjs"]].map(frame => (
+    { kind: "voice-ui.jev.architecture-judge.v3", state: { utterance: "show it", architecture: section, frame } })));
+  for (const request of requests) {
+    assert.ok(isJudgeRequest(request));
+    assert.equal(isRequest(request), false);
+    assert.equal(isLocateRequest(request), false);
+  }
+  for (const text of Object.values(FILES)) assert.equal(JSON.stringify(requests).includes(text.trim()), false, "no file text");
+  const [first] = requests;
+  const { frame, ...unframed } = first.state;
+  const wide = JSON.parse(JSON.stringify(judgeRequestsOf(manifest, ["a-mjs", "c-json", "ext-store"], "show it")))[0];
+  assert.deepEqual(wide.state.architecture.bodies, ["a-mjs", "b-mjs", "c-json"]);
+  const broken = [
+    { ...first, extra: 1 },
+    { ...first, kind: "voice-ui.jev.architecture-judge.v2" },
+    { kind: "voice-ui.jev.architecture-judge.v2", state: unframed },
+    { ...first, state: unframed },
+    { ...first, state: { ...first.state, context: { recent: [] } } },
+    { ...first, state: { ...first.state, frame: [] } },
+    { ...first, state: { ...first.state, frame: "a-mjs" } },
+    { ...first, state: { ...first.state, frame: ["b-mjs", "a-mjs"] } },
+    { ...first, state: { ...first.state, frame: ["a-mjs", "a-mjs"] } },
+    { ...first, state: { ...first.state, frame: ["ext-store"] } },
+    { ...first, state: { ...first.state, frame: ["d-mjs"] } },
+    { ...first, state: { ...first.state, frame: [null] } },
+    { ...wide, state: { ...wide.state, frame: ["a-mjs", "b-mjs", "c-json"] } },
+    { ...first, state: { ...first.state, architecture: { ...section, evidence: { bodies: [] } } } },
+  ];
+  assert.deepEqual(frame, ["a-mjs"]);
+  for (const value of broken) assert.equal(isJudgeRequest(value), false, `${value.kind} ${JSON.stringify(value.state.frame)} ${Object.keys(value.state)}`);
+});
+
+test("a judge is every frame answered, exactly as sent and in order, or nothing; what it found is the section with one answer for each question", async () => {
+  const manifest = readManifest(structuredClone(MANIFEST));
+  const focus = ["a-mjs", "ext-store"];
+  const section = judgeSectionOf(manifest, focus);
+  const picks = { [roleSlot("a-mjs", "persistence")]: YES, [relationSlot("c-b-mjs--ext-store")]: choice("stores-in", 0.7), [relationSlot("c-a-mjs--b-mjs")]: "calls" };
+  const frames = judgeFramesOf(manifest, focus, picks);
+  assert.equal(frames.length, 3);
+  const judged = judgedOf(manifest, focus, frames);
+  assert.deepEqual(judged.section, section, "the section whole, not a frame of it");
+  assert.deepEqual(Object.keys(judged.answers), Object.keys(judgeSlotsFor(section)), "every question, in the section's own order");
+  assert.deepEqual(judged.answers, answerFor(judgeSlotsFor(section), picks), "each answer is its own frame's, unweighed");
+
+  // What it found is planned as one judge of the section.
+  const working = await appendAll(await mapGraph(), await plan(await mapGraph(), manifest));
+  const { turn, request } = turnFor(working, manifest);
+  const located = framesFor(manifest, request, { [relevantSlot("ext-store")]: YES, [relevantSlot("a-mjs")]: YES });
+  const planned = await planArchitecture({
+    working, turn, located, judged, manifest, protocol, operationsMax: MAX_DECISION_OPERATIONS,
+    answers: answerFor(turn.slots, { action: ACTION_ARCHITECTURE, focus: NONE }),
+  });
+  assert.deepEqual(claimsOf(planned).map(claim => claim.record.id).sort(),
+    ["arch-calls-a-mjs-to-b-mjs", "arch-has-role-a-mjs-to-persistence", "arch-role-persistence", "arch-stores-in-b-mjs-to-ext-store"]);
+
+  const reworded = judgeFramesOf(manifest, focus, picks, "something else");
+  const answer = frames[1].answers;
+  const withRequest = change => ({ request: change(JSON.parse(JSON.stringify(frames[1].request))), answers: answer });
+  const broken = [
+    ["a frame missing", frames.slice(1)],
+    ["the last frame missing", frames.slice(0, -1)],
+    ["a frame repeated in another's place", [frames[0], frames[0], frames[2]]],
+    ["an extra frame", [...frames, frames[0]]],
+    ["frames out of the plan's order", [frames[1], frames[0], frames[2]]],
+    ["a frame of another utterance", [frames[0], reworded[1], frames[2]]],
+    ["every frame of another utterance but the first", [frames[0], ...reworded.slice(1)]],
+    ["a frame of another snapshot", [frames[0], withRequest(value => { value.state.architecture.source.commit = "f".repeat(40); return value; }), frames[2]]],
+    ["a frame of another section", [frames[0], withRequest(value => { value.state.architecture.candidates.pop(); return value; }), frames[2]]],
+    ["a frame naming its files out of order", [frames[0], frames[1], { ...frames[2], request: { ...frames[2].request, state: { ...frames[2].request.state, frame: ["b-mjs", "a-mjs"] } } }]],
+    ["a frame of the kind before", [frames[0], withRequest(value => { value.kind = "voice-ui.jev.architecture-judge.v2"; return value; }), frames[2]]],
+    ["the first frame answered with nothing", [{ ...frames[0], answers: {} }, frames[1], frames[2]]],
+    ["an answer missing a question", [frames[0], { ...frames[1], answers: {} }, frames[2]]],
+    ["an answer to another frame's questions", [frames[0], { ...frames[1], answers: frames[0].answers }, frames[2]]],
+    ["an answer to the whole section's questions", [frames[0], { ...frames[1], answers: answerFor(judgeSlotsFor(section), picks) }, frames[2]]],
+    ["an option not offered", [frames[0], { ...frames[1], answers: { ...answer, [roleSlot("b-mjs", "config")]: choice("maybe") } }, frames[2]]],
+    ["no frames", []],
+    ["nothing", null],
+  ];
+  for (const [label, value] of broken) assert.equal(judgedOf(manifest, focus, value), null, label);
+  assert.equal(judgedOf(manifest, ["a-mjs"], frames), null, "frames of another focus than the one asked for");
+  assert.equal(judgedOf(manifest, focus, judgeFramesOf(manifest, ["a-mjs"], picks)), null);
+});
+
 test("an edge is what the snapshot defines only by its id and both its ends; anything else has no kind to borrow", () => {
   const manifest = readManifest(structuredClone(MANIFEST));
   const stores = { id: "arch-stores-in-b-mjs-to-ext-store", from: "arch-b-mjs", to: "arch-ext-store" };
@@ -548,7 +701,8 @@ test("the whole is reserved: no part may be called whole, in the manifest or in 
   assert.equal(isRequest(intent), false);
 });
 
-test("this package's whole snapshot, drawn, still fits the intent's bounds", async t => {
+// This package's own source, prepared exactly as the build prepares it.
+const ownManifest = () => {
   const here = path.dirname(fileURLToPath(import.meta.url));
   const out = fs.mkdtempSync(path.join(os.tmpdir(), "voice-ui-architecture-"));
   const prepared = spawnSync(process.execPath, [
@@ -558,6 +712,60 @@ test("this package's whole snapshot, drawn, still fits the intent's bounds", asy
   assert.equal(prepared.status, 0, prepared.stderr);
   const manifest = readManifest(JSON.parse(fs.readFileSync(path.join(out, "manifest.json"), "utf8")));
   assert.equal(manifest.status, "available", manifest.reason);
+  return manifest;
+};
+
+test("this package's own snapshot: whatever is focused, its judge's frames ask every question of the section exactly once", t => {
+  const manifest = ownManifest();
+  const ids = manifest.entities.map(entity => entity.id);
+  // Every part alone - among them, as the scenario's input, the four parts it
+  // names - and every part together, which holds every pair of body files
+  // there is.
+  const named = ["web-app-mjs", "ext-jev-api-key", "ext-localstorage", "src-log-mjs"];
+  assert.ok(named.every(id => ids.includes(id)));
+  for (const focus of [...ids.map(id => [id]), [...ids].sort()]) {
+    const section = judgeSectionOf(manifest, focus);
+    const frames = judgeFramesFor(section);
+    assert.notEqual(frames, null, `${focus}: every pair rests on a body file`);
+    const slots = judgeSlotsFor(section);
+    const asked = frames.flatMap(item => Object.entries(judgeSlotsFor(item.section)));
+    assert.deepEqual(asked.map(([name]) => name).sort(), Object.keys(slots).sort(), `${focus}: every question once, none twice, none new`);
+    for (const [name, options] of asked) assert.deepEqual(options, slots[name], `${focus}: ${name} keeps its options`);
+    const first = name => Object.keys(slots).indexOf(name);
+    const starts = frames.map(item => Math.min(...Object.keys(judgeSlotsFor(item.section)).map(first)));
+    assert.deepEqual(starts, [...starts].sort((left, right) => left - right), `${focus}: in the order of each frame's first question`);
+    assert.equal(new Set(frames.map(item => item.frame.join(" "))).size, frames.length, `${focus}: no frame twice`);
+    for (const item of frames) {
+      const label = `${focus}: frame ${item.frame}`;
+      assert.ok(item.frame.length === 1 || item.frame.length === 2, label);
+      assert.deepEqual(item.frame, [...item.frame].sort(), label);
+      assert.deepEqual([...item.section.bodies].sort(), item.frame, `${label}: its bodies are exactly its files`);
+      assert.deepEqual(item.section.bodies, section.bodies.filter(body => item.frame.includes(body)), `${label}: in the section's order`);
+      assert.deepEqual(item.section.candidates, section.candidates.filter(candidate => item.section.candidates.includes(candidate)), label);
+      for (const candidate of item.section.candidates) {
+        assert.deepEqual([candidate.from, candidate.to].filter(end => section.bodies.includes(end)).sort(), item.frame, `${label}: ${candidate.id} rests on exactly these`);
+      }
+      const parts = new Set([...item.frame, ...item.section.candidates.flatMap(candidate => [candidate.from, candidate.to])]);
+      assert.deepEqual(item.section.entities, section.entities.filter(entity => parts.has(entity.id)), `${label}: only the parts it names, in order`);
+      assert.deepEqual(item.section.roles, item.frame.length === 1 ? section.roles : [], label);
+      assert.deepEqual([item.section.source, item.section.focus, item.section.relations], [section.source, section.focus, section.relations], label);
+    }
+    if (frames.length === 1) assert.equal(JSON.stringify(frames[0].section), JSON.stringify(section), `${focus}: one frame is the section itself`);
+    // The requests are those frames, and every one answered is the whole judge.
+    const requests = judgeRequestsOf(manifest, focus, "show it");
+    assert.deepEqual(requests.map(request => request.state.frame), frames.map(item => item.frame), `${focus}`);
+    assert.ok(requests.every(request => isJudgeRequest(JSON.parse(JSON.stringify(request)))), `${focus}`);
+    assert.deepEqual(Object.keys(judgedOf(manifest, focus, judgeFramesOf(manifest, focus)).answers), Object.keys(slots), `${focus}`);
+  }
+  const every = judgeFramesFor(judgeSectionOf(manifest, [...ids].sort()));
+  const framesOf = id => judgeFramesFor(judgeSectionOf(manifest, [id])).length;
+  t.diagnostic(`frames (offline): each part alone ${ids.map(framesOf).join("/")}; `
+    + `the scenario's named parts ${named.map(id => `${id} ${framesOf(id)}`).join(", ")}; `
+    + `every part ${every.length}, of which ${every.filter(item => item.frame.length === 2).length} of two files`);
+});
+
+test("this package's whole snapshot, drawn, still fits the intent's bounds", async t => {
+  const manifest = ownManifest();
   // The scenario the browser test walks: the whole view, then the page's
   // file, the credential and the decision log, each with its roles and pairs.
   let working = await mapGraph();

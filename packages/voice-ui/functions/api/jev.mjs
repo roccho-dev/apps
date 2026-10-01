@@ -18,6 +18,7 @@ import {
   isJudgeRequest,
   isLocateRequest,
   isRequest,
+  judgeFramesFor,
   judgeSlotsFor,
   locateSlotsFor,
   readAnswers,
@@ -307,9 +308,10 @@ function boundArchitecture(env) {
 // carry only the judgments. An architecture request must name exactly this
 // server's own snapshot, or it is refused before the provider is asked: an
 // intent is sent as it came, with no code; a locate frame is sent with its
-// part's own text added here - exactly what that part's judge is shown, and
-// none of its section's parts, pairs or vocabulary; a judge is sent with its
-// section's text added here. That text is never sent back.
+// part's own text added here - the text of the section that part opens, and
+// none of that section's parts, pairs or vocabulary; a judge is sent the one
+// frame of its section it names, with that frame's text added here. That text
+// is never sent back.
 export async function onRequestPost({ request, env }) {
   if (typeof env?.JEV_API_KEY !== "string" || env.JEV_API_KEY.length === 0) {
     return json({ error: ERRORS.unavailable }, 503);
@@ -333,7 +335,7 @@ export async function onRequestPost({ request, env }) {
   } else {
     const bound = boundArchitecture(env);
     if (bound === null) return json({ error: ERRORS.architectureUnavailable }, 503);
-    // A locate frame's part opens the section its judge would: null for a part
+    // A locate frame's part opens the section a judge of it would: null for a part
     // the snapshot does not know, or one that opens no text.
     const opened = kind === ARCHITECTURE_LOCATE_KIND ? judgeSectionOf(bound.manifest, state.architecture.focus) : null;
     const own = kind === ARCHITECTURE_INTENT_KIND ? intentSectionOf(bound.manifest)
@@ -350,9 +352,14 @@ export async function onRequestPost({ request, env }) {
       slots = slotsFor(state);
       questions = questionsFor(state, slots, edge => definedRelation(bound.manifest, edge));
     } else {
-      slots = judgeSlotsFor(own);
-      questions = judgeQuestions(own, slots);
-      asked = { ...state, architecture: { ...own, evidence: focusedEvidence(own, bound.manifest, bound.files) } };
+      // A judge asks one frame of this section's own plan: that frame's
+      // questions, from that frame's text. Which frame is the page's to say
+      // and never the provider's to see.
+      const framed = judgeFramesFor(own)?.find(({ frame }) => JSON.stringify(frame) === JSON.stringify(state.frame));
+      if (framed === undefined) return json({ error: ERRORS.architectureMismatch }, 422);
+      slots = judgeSlotsFor(framed.section);
+      questions = judgeQuestions(framed.section, slots);
+      asked = { utterance: state.utterance, architecture: { ...framed.section, evidence: focusedEvidence(framed.section, bound.manifest, bound.files) } };
     }
   }
   const { text, error } = await callProvider(env, { model: "jev-latest", state: asked, questions });

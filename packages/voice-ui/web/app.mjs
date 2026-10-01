@@ -7,11 +7,12 @@ import * as protocol from "/ui/semantic-map/protocol/index.js";
 // The provider's own limit on operations in one Decision, which its protocol
 // entry does not carry; the architecture view is planned within it.
 import { MAX_DECISION_OPERATIONS } from "/ui/semantic-map/domain/operation.js";
-import { ACTION_ARCHITECTURE, DECISION_KIND, ERRORS, locateSlotsFor, readAnswers } from "/app/src/contract.mjs";
+import { ACTION_ARCHITECTURE, DECISION_KIND, ERRORS, judgeFramesFor, judgeSlotsFor, locateSlotsFor, readAnswers } from "/app/src/contract.mjs";
 import { readBundle } from "/app/src/bundle.mjs";
 import { FORMAT_ARCHITECTURE, readConfig } from "/app/src/config.mjs";
 import {
-  judgeRequestOf,
+  judgeRequestsOf,
+  judgedOf,
   locateRequestsOf,
   locatedOf,
   planArchitecture,
@@ -466,13 +467,16 @@ const decide = async (value, source) => {
   if (answer.kind === "failed") return answer;
   const answers = answer.decision.answers;
 
-  // An architecture answer that names one part is judged once more: that
-  // part's section alone, whose text the server adds. One that names neither
-  // the whole nor a part confidently is first located from the code itself -
-  // one frame per part, one after another, each shown that part's own text by
-  // the server; the first that fails, or is not answered completely on its own
-  // question, ends the utterance, and nothing after it is asked - and every
-  // part located is then judged together, in one section.
+  // An architecture answer that names one part goes on to a judge of that
+  // part's section alone. One that names neither the whole nor a part
+  // confidently is first located from the code itself - one frame per part,
+  // one after another, each shown that part's own text by the server; the
+  // first that fails, or is not answered completely on its own question, ends
+  // the utterance, and nothing after it is asked - and every part located is
+  // then judged together, as one section. A section is judged in its frames -
+  // one request, or several - one after another, each shown its own files by
+  // the server, and ended by the first that fails or is not answered
+  // completely on its own questions, just as a locate is.
   const composing = architecture && answers?.action?.choice === ACTION_ARCHITECTURE;
   const route = composing ? routeOf(turn, answers) : null;
   const model = answer.decision.model;
@@ -491,12 +495,19 @@ const decide = async (value, source) => {
     const found = locatedOf(manifest, located);
     focus = found !== null && found.focus.length > 0 ? found.focus : null;
   }
-  const judge = focus === null ? null : judgeRequestOf(manifest, focus, value);
+  const judges = focus === null ? null : judgeRequestsOf(manifest, focus, value);
   let judged = null;
-  if (judge !== null) {
-    const second = await postJev(judge, model);
-    if (second.kind === "failed") return second;
-    judged = Object.freeze({ section: judge.state.architecture, answers: second.decision.answers });
+  if (judges !== null) {
+    const plan = judgeFramesFor(judges[0].state.architecture);
+    const answered = [];
+    for (const [index, frame] of judges.entries()) {
+      const judging = await postJev(frame, model);
+      if (judging.kind === "failed") return judging;
+      if (readAnswers(judging.decision.answers, judgeSlotsFor(plan[index].section)) === null) return failure("jev-contract");
+      answered.push(Object.freeze({ request: frame, answers: judging.decision.answers }));
+    }
+    judged = judgedOf(manifest, focus, Object.freeze(answered));
+    if (judged === null) return failure("jev-contract");
   }
 
   // Read in the same synchronous run the answer is judged in.
