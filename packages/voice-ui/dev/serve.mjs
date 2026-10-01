@@ -4,6 +4,10 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 
 const packageRoot = path.resolve(fileURLToPath(new URL("../", import.meta.url)));
+if (process.argv.length > 2 && !(process.argv.length === 3 && process.argv[2] === "--formal")) throw new Error("unsupported server mode");
+// In the shipped e2e/serve.mjs, this own-location root is the PRODUCT.
+// The target admits PRODUCT/ACCEPTANCE before its secret child; no path override.
+const formalRoot = process.argv[2] === "--formal" ? packageRoot : null;
 
 const requireStore = name => {
   const value = process.env[name];
@@ -12,11 +16,11 @@ const requireStore = name => {
 };
 
 // Producer compilation happens before the target secret is injected.
-const { default: worker } = await import(requireStore("VOICE_UI_WORKER"));
+const { default: worker } = await import(formalRoot ? path.join(formalRoot, "worker/worker.mjs") : requireStore("VOICE_UI_WORKER"));
 
 // Exact provider Nix outputs, handed in by the flake app. Nothing is vendored
 // and nothing is copied: the store paths are served in place.
-const stores = {
+const stores = formalRoot ? {} : {
   semanticMap: requireStore("VOICE_UI_SEMANTIC_MAP"),
   hayamimi: requireStore("VOICE_UI_HAYAMIMI"),
 };
@@ -39,6 +43,9 @@ function resolveUnder(root, relative) {
 }
 
 function route(pathname) {
+  if (formalRoot) {
+    return resolveUnder(path.join(formalRoot, "site"), pathname === "/" ? "index.html" : pathname.slice(1));
+  }
   if (pathname === "/") return path.join(packageRoot, "web/index.html");
 
   if (pathname === "/app.mjs") return path.join(packageRoot, "web/app.mjs");
@@ -165,7 +172,7 @@ const server = createServer((request, response) => {
     response.end("not found");
     return;
   }
-  const serve = pathname === CHUNK_MANIFEST ? serveChunkManifest : serveFile;
+  const serve = !formalRoot && pathname === CHUNK_MANIFEST ? serveChunkManifest : serveFile;
   serve(response, file).catch(() => {
     response.writeHead(500, { "content-type": "text/plain; charset=utf-8" });
     response.end("read failed");

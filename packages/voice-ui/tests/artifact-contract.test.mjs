@@ -1,8 +1,10 @@
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
+import { spawn } from "node:child_process";
+import { dirname, join } from "node:path";
 import test from "node:test";
 import { createTranscription } from "../web/adapters/transcription.mjs";
-import { DECISION_KIND } from "../src/contract.mjs";
+import { DECISION_KIND, ERRORS } from "../src/contract.mjs";
 
 // One browser URL mapping, not a substitute implementation: import the exact
 // authored adapter with its sole absolute application import resolved for Node.
@@ -123,5 +125,37 @@ test("HTTP judgment bounds hung headers and body even when a fixture ignores abo
     await flush(); t.mock.timers.tick(14999); await flush(); assert.equal(settled, false);
     t.mock.timers.tick(1); assert.deepEqual(await pending, { kind: "failed", reason: "judge-timeout", detail: "15 s" });
     assert.equal(calls, 1);
+  }
+});
+
+test("the supplied fixed formal server serves the same site and compiled auth gate", { timeout: 15000 }, async t => {
+  assert.ok(process.env.VOICE_UI_WORKER, "the actual produced Worker is required");
+  const root = dirname(dirname(process.env.VOICE_UI_WORKER));
+  const manifest = JSON.parse(await readFile(join(root, "manifest.json"), "utf8"));
+  assert.equal(manifest.e2e.local_serve_entrypoint, "e2e/serve.mjs");
+  const child = spawn(process.execPath, [join(root, manifest.e2e.local_serve_entrypoint), "--formal"], {
+    env: { PATH: process.env.PATH, HOME: process.env.HOME, LANG: "C.UTF-8", PORT: "0", HOST: "127.0.0.1" }, stdio: ["ignore", "pipe", "pipe"],
+  });
+  t.after(() => child.kill());
+  let output = "";
+  try {
+    const origin = await new Promise((resolve, reject) => {
+      child.once("error", reject);
+      child.once("exit", () => reject(new Error("formal server exited before readiness")));
+      child.stdout.on("data", chunk => {
+        output += chunk;
+        const found = /listening on 127\.0\.0\.1:(\d+)/.exec(output);
+        if (found) resolve("http://127.0.0.1:" + found[1]);
+      });
+    });
+    const staticResponse = await fetch(origin + "/app.mjs");
+    assert.equal(staticResponse.status, 200);
+    assert.deepEqual(Buffer.from(await staticResponse.arrayBuffer()), await readFile(join(root, "site/app.mjs")));
+    const refused = await fetch(origin + "/api/judge", { method: "POST", body: "{" });
+    assert.equal(refused.status, 503);
+    assert.deepEqual(await refused.json(), { error: ERRORS.unavailable });
+  } finally {
+    child.kill();
+    await new Promise(resolve => child.exitCode !== null || child.signalCode !== null ? resolve() : child.once("exit", resolve));
   }
 });

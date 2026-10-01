@@ -138,14 +138,16 @@ def admit_judge(archive, proof_path, provenance_path, expected, out):
     except (zipfile.BadZipFile, UnicodeDecodeError):
         raise SystemExit("judge_admission:manifest_mismatch") from None
     manifest = judge_json(manifest_bytes, "manifest_mismatch")
-    judge_require(manifest.get("schema") == "jev-provider/1" and manifest.get("contract") == expected["contract"] == "named-choices/1", "unsupported_contract")
+    judge_require(manifest.get("schema") == "jev-provider/1" and manifest.get("contract") == expected["contract"] == "named-choices/2", "unsupported_contract")
     module_sha = hashlib.sha256(module).hexdigest()
-    judge_require(manifest.get("entry") == "batch.mjs" and manifest.get("exports") == ["JudgeProviderError", "judgeNamedChoices"]
+    judge_require(manifest.get("entry") == "batch.mjs" and manifest.get("exports") == ["JudgeProviderError", "bindJev", "judgeNamedChoices"]
                   and manifest.get("importClosure") == []
                   and manifest.get("files") == [{"path": "batch.mjs", "bytes": len(module), "sha256": module_sha}]
                   and provenance.get("manifestSha256") == hashlib.sha256(manifest_bytes).hexdigest()
                   and provenance.get("artifact", {}).get("bytes") == archive.stat().st_size
-                  and provenance.get("inputDigests", {}).get("packages/jev/src/batch.mjs") == module_sha
+                  and set(provenance["inputDigests"]) == {"flake.lock", "packages/jev/src/core.mjs", "packages/jev/src/batch.mjs", "packages/jev/default.nix", "tools/jev-provider-artifact.py"}
+                  and all(isinstance(v, str) and re.fullmatch(r"[0-9a-f]{64}", v) for v in provenance["inputDigests"].values())
+                  and provenance.get("entrySha256") == module_sha
                   and module_sha == expected["entry_sha256"]
                   and hashlib.sha256(manifest_bytes).hexdigest() == expected["manifest_sha256"], "manifest_mismatch")
     try:
@@ -161,7 +163,7 @@ def admit_judge(archive, proof_path, provenance_path, expected, out):
     # Controlled import, not a provider invocation. No key is passed, no app
     # state/commit exists here; fetch during module initialization is rejected.
     probe = r'''let calls=0;globalThis.fetch=()=>{calls++;throw new Error("forbidden")};
-    try{const m=await import(process.argv[1]);if(calls!==0||typeof m.judgeNamedChoices!=="function"||typeof m.JudgeProviderError!=="function")process.exit(1)}catch{process.exit(1)}'''
+    try{const m=await import(process.argv[1]);if(calls!==0||typeof m.bindJev!=="function"||typeof m.judgeNamedChoices!=="function"||typeof m.JudgeProviderError!=="function")process.exit(1)}catch{process.exit(1)}'''
     try:
         imported = subprocess.run(["node", "--input-type=module", "-e", probe, entry.resolve().as_uri()], capture_output=True, timeout=10)
     except subprocess.TimeoutExpired:
@@ -225,7 +227,7 @@ def test_judge_admission(args):
         expected["manifest_sha256"] = hashlib.sha256(manifest_bytes).hexdigest()
         provenance["artifact"] = {"bytes": archive.stat().st_size, "sha256": expected["sha256"]}
         provenance["manifestSha256"] = expected["manifest_sha256"]
-        provenance["inputDigests"]["packages/jev/src/batch.mjs"] = module_sha
+        provenance["entrySha256"] = module_sha
         proof_path = folder / "proof.json"
         proof_path.write_bytes(original_proof)
         provenance_path = folder / "provenance.json"
@@ -280,6 +282,7 @@ def build(args):
     copy_file(app / "tests/local-voice-graph-e2e.mjs", out / "e2e/local-voice-graph-e2e.mjs")
     copy_file(app / "tests/public-e2e.mjs", out / "e2e/public-e2e.mjs")
     copy_file(app / "tests/runtime-acceptance.mjs", out / "e2e/runtime-acceptance.mjs")
+    copy_file(app / "dev/serve.mjs", out / "e2e/serve.mjs")
     copy_file(app / "tests/fixtures/voice-add-edge-en.wav", out / "e2e/fixtures/voice-add-edge-en.wav")
     copy_file(app / "tests/fixtures/voice-add-edge-en.golden.json", out / "e2e/fixtures/voice-add-edge-en.golden.json")
     copy_file(app / "tests/fixtures/voice-reverse-edge-en.wav", out / "e2e/fixtures/voice-reverse-edge-en.wav")
@@ -300,6 +303,7 @@ def build(args):
         "e2e": {
             "entrypoint": "e2e/local-voice-graph-e2e.mjs",
             "runtime_entrypoint": "e2e/runtime-acceptance.mjs",
+            "local_serve_entrypoint": "e2e/serve.mjs",
             "public_entrypoint": "e2e/public-e2e.mjs",
             "wav": "e2e/fixtures/voice-add-edge-en.wav",
             "golden": "e2e/fixtures/voice-add-edge-en.golden.json",
@@ -397,6 +401,7 @@ def verify_dist(root):
         "e2e/local-voice-graph-e2e.mjs",
         "e2e/public-e2e.mjs",
         "e2e/runtime-acceptance.mjs",
+        "e2e/serve.mjs",
         "e2e/fixtures/voice-add-edge-en.wav",
         "e2e/fixtures/voice-add-edge-en.golden.json",
         "e2e/fixtures/voice-reverse-edge-en.wav",
@@ -410,6 +415,7 @@ def verify_dist(root):
     expected_e2e = {
         "entrypoint": "e2e/local-voice-graph-e2e.mjs",
         "runtime_entrypoint": "e2e/runtime-acceptance.mjs",
+            "local_serve_entrypoint": "e2e/serve.mjs",
         "public_entrypoint": "e2e/public-e2e.mjs",
         "wav": "e2e/fixtures/voice-add-edge-en.wav",
         "golden": "e2e/fixtures/voice-add-edge-en.golden.json",

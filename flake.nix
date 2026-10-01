@@ -64,22 +64,22 @@
       };
       # Completed reviewed provider bytes; no ops source checkout/build input.
       jevRelease = {
-        base = "https://github.com/roccho-dev/ops/releases/download/jev-provider-7758b4cf8b89088d5475a3acb700c027a665d7e3";
-        locator = "https://github.com/roccho-dev/ops/releases/download/jev-provider-7758b4cf8b89088d5475a3acb700c027a665d7e3/jev-provider.zip";
-        sha256 = "fd0bceae63863c0d562d8ffd716828afcdffd5e02d1ad0139bad240a03148fb1";
-        proof_sha256 = "a7e5ee3ea10639ce85d1205e9cdc14057802f7c125684510ca0cbf3e343faa1a";
-        provenance_sha256 = "3f61a5842c61f4f516bbf5904b4e0f8a6e0e11e2921c69ca1257c8cbcf5a2287";
-        entry_sha256 = "1b1f393a3cde7b4e5dde26baa9327a9858bda48b9ec9a2a98874830557595ded";
-        manifest_sha256 = "05b6642095392276293df53733594c2055b55b243e2562a331dd5a758f4f7fed";
-        contract = "named-choices/1";
+        base = "https://github.com/roccho-dev/ops/releases/download/jev-provider-11a209e10d9fcc1f51e9779898729a97b31fdd3b";
+        locator = "https://github.com/roccho-dev/ops/releases/download/jev-provider-11a209e10d9fcc1f51e9779898729a97b31fdd3b/jev-provider.zip";
+        sha256 = "0f111892288c44677a1f457591a9a7473377c2c276a1c17ad2b0c54dc23064ac";
+        proof_sha256 = "a68388cfad2ae1b5640f5329e7caa0f9eb23fc4417e38fc9e977e33f4c75021c";
+        provenance_sha256 = "e5a01640a2e67fa1e45b3eb69bfea935883330302f2420922518ef253dca9392";
+        entry_sha256 = "cfcd0badc97abb611182aae9d5e1c1de4ae3794eef5ea70f73b2bfdcc03f6582";
+        manifest_sha256 = "ff5a32758de6845c8f1f505a33b78852468b6f1dca3d0a88aef0adacbeea73fa";
+        contract = "named-choices/2";
         proof = {
-          pr_number = 464;
+          pr_number = 465;
           base = "proposals";
-          reviewed_head = "9eae8cae13215f31aa75520528e8ce1fa3d17c54";
-          r_exact_head_verdict_ref = "https://github.com/roccho-dev/ops/pull/464#pullrequestreview-5378764707";
-          merge_sha = "7758b4cf8b89088d5475a3acb700c027a665d7e3";
-          reviewed_tree = "52a71d4d56ba28bbe297bf1342fc54da1c2ba14c";
-          merge_tree = "52a71d4d56ba28bbe297bf1342fc54da1c2ba14c";
+          reviewed_head = "ce527027b05a47e3f2603b5a9222bda593fb0e31";
+          r_exact_head_verdict_ref = "https://github.com/roccho-dev/ops/pull/465#pullrequestreview-5386584462";
+          merge_sha = "11a209e10d9fcc1f51e9779898729a97b31fdd3b";
+          reviewed_tree = "f930dd23e8e4a39e1ef2617a31aaf28f92920b4c";
+          merge_tree = "f930dd23e8e4a39e1ef2617a31aaf28f92920b4c";
         };
       };
       jevArtifact = builtins.toJSON (

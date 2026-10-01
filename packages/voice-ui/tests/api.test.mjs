@@ -3,9 +3,9 @@ import test from "node:test";
 
 import { onRequestPost } from "../functions/api/judge.mjs";
 if (!process.env.JUDGE_PROVIDER_ENTRY || !process.env.VOICE_UI_WORKER) throw new Error("actual provider and produced Worker entries are required");
-const { judgeNamedChoices } = await import(process.env.JUDGE_PROVIDER_ENTRY);
+const { bindJev, judgeNamedChoices } = await import(process.env.JUDGE_PROVIDER_ENTRY);
 const { default: worker } = await import(process.env.VOICE_UI_WORKER);
-const judge = (request, { key, signal }) => judgeNamedChoices({ request, apiKey: key, signal });
+const judgeFor = provider => (request, { signal }) => judgeNamedChoices({ request, provider, signal });
 import { DECISION_KIND, ERRORS, NONE, REQUEST_KIND, isRequest, slotsFor } from "../src/contract.mjs";
 
 // A request as the page sends it: the declared read set and nothing more.
@@ -208,7 +208,7 @@ test("key precedence preserves the original nonempty-string domain", async () =>
 });
 test("unknown and prototype error codes remain closed failures", async () => {
   for (const error of [{ code: "toString" }, { code: "constructor" }, { code: "unknown" }, { get code() { throw new Error("synthetic-canary"); } }]) {
-    const result = await onRequestPost({ request: new Request("http://localhost/api/judge", { method: "POST", body: JSON.stringify(request()) }), key: "fixture" }, async () => { throw error; });
+    const result = await onRequestPost({ request: new Request("http://localhost/api/judge", { method: "POST", body: JSON.stringify(request()) }), available: true }, async () => { throw error; });
     assert.equal(result.status, 502); assert.deepEqual(await result.json(), { error: ERRORS.providerUnreachable });
   }
 });
@@ -224,4 +224,14 @@ test("the actual produced Worker binds the actual admitted provider entry", asyn
   const { result, calls } = await withProvider(answering(noneTo), () => worker.fetch(new Request("http://localhost/api/judge", { method: "POST", body: JSON.stringify(request()) }), { JEV_API_KEY: "fixture" }));
   assert.equal(result.status, 200); assert.equal(calls.length, 1);
   const value = await result.json(); assert.equal(value.kind, DECISION_KIND); assert.equal("model" in value, false);
+});
+
+test("the app operation receives a bound provider, not a credential", async () => {
+  const { result, calls } = await withProvider(answering(noneTo), () => {
+    const provider = bindJev({ apiKey: "fixture" });
+    return onRequestPost({ request: new Request("http://localhost/api/judge", { method: "POST", body: JSON.stringify(request()) }), available: provider.available }, judgeFor(provider));
+  });
+  assert.equal(result.status, 200); assert.equal(calls.length, 1);
+  const unavailable = await onRequestPost({ request: new Request("http://localhost/api/judge", { method: "POST", body: "{" }), available: false }, () => { throw new Error("must not call"); });
+  assert.equal(unavailable.status, 503);
 });
