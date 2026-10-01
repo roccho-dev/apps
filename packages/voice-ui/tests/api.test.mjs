@@ -253,6 +253,10 @@ const judgeRequest = focus => JSON.parse(JSON.stringify(judgeRequestOf(MANIFEST,
 // Every locate frame of an intent, as the page sends them; and the one for a part.
 const locateRequests = () => JSON.parse(JSON.stringify(locateRequestsOf(MANIFEST, intentRequest())));
 const locateRequest = (part = "web-app-mjs") => locateRequests().find(frame => frame.state.architecture.focus[0] === part);
+// What every question says of the conversation, word for word.
+const CONTEXT_NOTE = " context.recent lists earlier utterances as they were recognized or typed, and what came of each."
+  + " They are unverified and may be misrecognized. Use them only to understand what the current utterance refers to;"
+  + " the current utterance, the working graph and the focus are the facts, and an earlier effect is history, not the current graph.";
 
 // Whether any line of any admitted file - longer than a bare brace or keyword -
 // appears in what was sent.
@@ -354,6 +358,48 @@ test("a plain request and an intent carry no code; an intent adds one closed que
   assert.match(intent.questions.focus.criteria["web-app-mjs"], /web\/app\.mjs/u);
 });
 
+test("an intent tells each edge the snapshot defines by its kind; any other edge, and every plain edge, by its two ends only", async () => {
+  const labelOf = id => MANIFEST.entities.find(entity => entity.id === id).label;
+  const region = id => ({ id: `arch-${id}`, label: labelOf(id) });
+  const end = id => `arch-${id} (shown as "${labelOf(id)}")`;
+  const purposeOf = key => MANIFEST.relations.find(relation => relation.key === key).purpose;
+  const regions = ["web-app-mjs", "web-data-config-v1-json", "ext-localstorage", "functions-pages-worker-mjs", "functions-api-jev-mjs"].map(region);
+  const stores = { id: "arch-stores-in-web-app-mjs-to-ext-localstorage", from: "arch-web-app-mjs", to: "arch-ext-localstorage" };
+  const configures = { id: "arch-configures-web-data-config-v1-json-to-ext-localstorage", from: "arch-web-data-config-v1-json", to: "arch-ext-localstorage" };
+  const imports = { id: "arch-import-functions-pages-worker-mjs-to-functions-api-jev-mjs", from: "arch-functions-pages-worker-mjs", to: "arch-functions-api-jev-mjs" };
+  const user = { id: "voice-arch-web-app-mjs-to-arch-ext-localstorage", from: "arch-web-app-mjs", to: "arch-ext-localstorage" };
+  const edgeCriteria = async (body, env = ARCHITECTURE_ENV) => {
+    const { result, calls: [call] } = await withProvider(answering(noneTo), () => post(body, env));
+    assert.equal(result.status, 200);
+    return call.questions.edge.criteria;
+  };
+  const intent = edges => ({ ...request({ graph: { regions, edges, placeable: [] }, architecture: intentSectionOf(MANIFEST) }), kind: ARCHITECTURE_INTENT_KIND });
+  const ends = edge => `the edge from ${end(edge.from.slice("arch-".length))} to ${end(edge.to.slice("arch-".length))}`;
+
+  // Two edges into one part, told apart by what the snapshot defines each as:
+  // a relation of the vocabulary with its own purpose, a reserved kind by its
+  // kind alone, and an edge the person made by its two ends only.
+  const criteria = await edgeCriteria(intent([stores, configures, imports, user]));
+  assert.equal(criteria[stores.id], `${ends(stores)}, which this snapshot defines as stores-in: ${purposeOf("stores-in")}`);
+  assert.equal(criteria[configures.id], `${ends(configures)}, which this snapshot defines as configures: ${purposeOf("configures")}`);
+  assert.equal(criteria[imports.id], `${ends(imports)}, which this snapshot defines as imports`);
+  assert.equal(criteria[user.id], ends(user));
+
+  // An id the snapshot knows, but not with these ends, borrows no kind: other
+  // ends, the ends swapped, another pair's id.
+  for (const forged of [
+    { ...stores, from: "arch-web-data-config-v1-json" },
+    { ...stores, from: stores.to, to: stores.from },
+    { ...configures, from: "arch-web-app-mjs" },
+  ]) {
+    assert.equal((await edgeCriteria(intent([forged])))[forged.id], ends(forged), JSON.stringify(forged));
+  }
+
+  // The plain request has no snapshot: every edge by its two ends, as before.
+  const plain = await edgeCriteria(request({ graph: { regions, edges: [stores, configures, imports, user], placeable: [] } }));
+  for (const edge of [stores, configures, imports, user]) assert.equal(plain[edge.id], ends(edge), edge.id);
+});
+
 test("a judge is asked from exactly its section's text: body files whole, other files by matching line", async () => {
   const body = judgeRequest("ext-jev-api-key");
   assert.ok(isJudgeRequest(body));
@@ -405,6 +451,25 @@ test("a locate frame carries no code from the page; the server adds exactly that
     assert.ok(question.instructions.includes(entity.label), `${part}: the question names its part`);
     assert.match(question.instructions, entity.kind === "file" ? /the file /u : /outside the source/u, part);
     for (const file of evidence.bodies) assert.ok(question.instructions.includes(file.path), `${part}: the question names ${file.path}`);
+    // The whole question, word for word: what this part's own text does for a
+    // file, how the shown code uses it for a part outside the source.
+    const lined = [...new Set(evidence.lines.map(line => line.path))];
+    const shown = ` state.architecture.evidence.bodies holds ${evidence.bodies.map(file => file.path).join(", ")} whole`
+      + (lined.length === 0 ? "." : `; state.architecture.evidence.lines holds single lines of ${lined.join(", ")}, each with its path and line number.`)
+      + " Judge only from that text and the utterance." + CONTEXT_NOTE;
+    assert.equal(question.instructions, (entity.kind === "file"
+      ? `Does the original text of the file ${entity.label} implement behaviour, or declare data, that the current utterance asks about or refers to?`
+      : `Does the shown original code use ${entity.label}, which lies outside the source, for behaviour or data that the current utterance asks about or refers to?`)
+      + shown, part);
+    assert.deepEqual(question.criteria, entity.kind === "file"
+      ? {
+        [YES]: "its own text implements that behaviour or declares that data, whether or not the utterance names the file",
+        [NONE]: "its text does not, even if it mentions or imports another part that does",
+      }
+      : {
+        [YES]: "the shown code uses it for that behaviour or data, whether or not the utterance names it",
+        [NONE]: "the shown code does not use it for that, or only names it",
+      }, part);
     const answered = await result.text();
     assert.equal(answered.includes(evidence.bodies[0].text.slice(0, 200)), false, `${part}: no admitted text in the answer`);
   }
