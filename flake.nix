@@ -251,7 +251,7 @@
                   --app ${self}/packages/voice-ui \
                   --semantic-map ${semanticMap} \
                   --hayamimi ${hayamimiWeb} \
-                  --judge ${if name == "voice-ui-dist-repro-b" then jevRelocated else jevProvider} \
+                  --judge ${if name == "voice-ui-dist-relocated" then jevRelocated else jevProvider} \
                   --judge-artifact '${jevArtifact}' \
                   --out "$out" \
                   --app-rev ${appRevision} \
@@ -261,6 +261,7 @@
               '';
           reproA = mkRepro "voice-ui-dist-repro-a";
           reproB = mkRepro "voice-ui-dist-repro-b";
+          relocated = mkRepro "voice-ui-dist-relocated";
         in
         {
           voice-ui-acceptance-boundary = (acceptanceFor system).check;
@@ -384,10 +385,21 @@
           voice-ui-dist-repro =
             pkgs.runCommand "voice-ui-dist-repro-check"
               {
-                nativeBuildInputs = [ pkgs.diffutils ];
+                nativeBuildInputs = [
+                  pkgs.diffutils
+                  pkgs.nodejs
+                ];
               }
               ''
                 diff -qr ${reproA} ${reproB}
+                # Input storepath comments can change bundled Worker bytes;
+                # only core/corpus byte equality and the same actual API
+                # semantics are claimed for local supplied-byte relocation.
+                diff -qr ${reproA}/site ${relocated}/site
+                diff -qr ${reproA}/e2e ${relocated}/e2e
+                export JUDGE_PROVIDER_ENTRY=${jevRelocated}/batch.mjs
+                export VOICE_UI_WORKER=${relocated}/worker/worker.mjs
+                node --test ${self}/packages/voice-ui/tests/api.test.mjs
                 touch "$out"
               '';
         }
