@@ -232,7 +232,21 @@
               'rewrite("worker/worker.mjs", b"export default {fetch(){return new Response(null)}}\n")'
             refuse "compiled Worker does not read declared binding: JEV_API_KEY" \
               'rewrite("worker/worker.mjs", open(os.path.join(root, "worker/worker.mjs"), "rb").read().replace(b"JEV_API_KEY", b"JEV_API_KEX"))'
-            test "$i" = 7
+            # Reach each artifact guard independently: keep manifest closure
+            # valid when the import or chunk contract is the intended failure.
+            refuse "missing imported module" \
+              'rel="site/hayamimi/runtime/asr/client.mjs"; os.remove(os.path.join(root, rel)); m["files"] = [r for r in m["files"] if r["path"] != rel]'
+            refuse "chunk mismatch" \
+              'rel="site/hayamimi/sherpa/" + json.load(open(os.path.join(root, "site/hayamimi/sherpa/data.parts.json")))["parts"][0]["path"]; os.remove(os.path.join(root, rel)); m["files"] = [r for r in m["files"] if r["path"] != rel]'
+            refuse "chunk mismatch" \
+              'rel="site/hayamimi/sherpa/" + json.load(open(os.path.join(root, "site/hayamimi/sherpa/data.parts.json")))["parts"][0]["path"]; data=open(os.path.join(root, rel), "rb").read(); rewrite(rel, bytes([data[0] ^ 1]) + data[1:])'
+            refuse "manifest mismatch" \
+              'rel="site/index.html"; data=open(os.path.join(root, rel), "rb").read() + b"\n<!-- byte mismatch -->\n"; os.remove(os.path.join(root, rel)); open(os.path.join(root, rel), "wb").write(data)'
+            refuse "manifest closure mismatch" \
+              'open(os.path.join(root, "unlisted-test.txt"), "wb").write(b"unlisted public test file\n")'
+            refuse "secret material marker" \
+              'rewrite("site/index.html", open(os.path.join(root, "site/index.html"), "rb").read() + b"\n<!-- AGE-SECRET-KEY-TEST-ONLY -->\n")'
+            test "$i" = 13
             touch "$out"
           '';
 

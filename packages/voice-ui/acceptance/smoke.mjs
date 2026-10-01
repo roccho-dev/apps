@@ -8,10 +8,12 @@ import path from "node:path";
 
 // The packaged runtime and public E2E entrypoints, real Chromium, and the
 // artifact's exact site bytes served unmodified with the isolation headers the
-// page needs. Only /api/jev is controlled: every request to it gets a 503
-// jev_unavailable, and each clean start must make exactly one - from the page
+// page needs. In the first two starts, /api/jev is controlled: every request
+// gets a 503 jev_unavailable, and each must make exactly one - from the page
 // itself, same-origin - and end as an explicit NOT_RUN with that reason and a
-// RED receipt. Never emits an application PASS or contacts Jev/Cloudflare.
+// RED receipt. The third start serves the unchanged entry module as HTML and
+// must end RED before any application call. Never emits an application PASS
+// or contacts Jev/Cloudflare.
 const [runtime, root] = process.argv.slice(2);
 assert.ok(path.isAbsolute(runtime) && path.isAbsolute(root));
 const bytes = readFileSync(path.join(root, "manifest.json"));
@@ -47,6 +49,8 @@ const fileFor = pathname => {
 };
 
 const apiRequests = [];
+const misdeliveredResponses = [];
+let htmlMisdelivery = false;
 const server = http.createServer((req, res) => {
   const { pathname } = new URL(req.url, "http://127.0.0.1");
   if (pathname === "/api/jev") {
@@ -67,8 +71,15 @@ const server = http.createServer((req, res) => {
     return;
   }
   const body = readFileSync(file);
+  const misdelivered = htmlMisdelivery && pathname === "/app.mjs";
+  const contentType = misdelivered ? "text/html; charset=utf-8"
+    : TYPES.get(path.extname(file)) ?? "application/octet-stream";
+  if (misdelivered) {
+    misdeliveredResponses.push({ pathname, status: 200, contentType,
+      sha256: createHash("sha256").update(body).digest("hex") });
+  }
   res.writeHead(200, {
-    "content-type": TYPES.get(path.extname(file)) ?? "application/octet-stream",
+    "content-type": contentType,
     "content-length": body.byteLength,
     "cache-control": "no-store",
     ...ISOLATION,
@@ -88,11 +99,13 @@ try {
   await new Promise(resolve => server.listen(0, "127.0.0.1", resolve));
   const origin = `http://127.0.0.1:${server.address().port}`;
   const target = `${origin}/`;
-  for (let run = 1; run <= 2; run++) {
+  for (let run = 1; run <= 3; run++) {
+    htmlMisdelivery = run === 3;
     const home = path.join(work, `r${run}`);
     mkdirSync(home);
     const receipt = path.join(home, "receipt.json");
     const before = apiRequests.length;
+    const beforeMisdelivery = misdeliveredResponses.length;
     const output = await new Promise((resolve, reject) => {
       child = spawn(runtime, [path.join(root, manifest.e2e.runtime_entrypoint),
         "--artifact-root", root, "--url", target, "--expected-apps-sha", manifest.sources.apps,
@@ -111,6 +124,23 @@ try {
     const requests = apiRequests.slice(before);
     assert.equal(output.code, 1, output.stderr);
     assert.doesNotMatch(output.stderr, /ERR_MODULE_NOT_FOUND|Executable doesn't exist|browserType.launch:/);
+    if (htmlMisdelivery) {
+      assert.deepEqual(misdeliveredResponses.slice(beforeMisdelivery), [{
+        pathname: "/app.mjs", status: 200, contentType: "text/html; charset=utf-8",
+        sha256: createHash("sha256").update(readFileSync(path.join(site, "app.mjs"))).digest("hex"),
+      }], "the entry module must actually be served unchanged as 200 text/html");
+      assert.deepEqual(requests, [], "HTML entry misdelivery must fail before /api/jev");
+      assert.doesNotMatch(output.stderr, /NOT_RUN: jev_unavailable/u, output.stderr);
+      const result = JSON.parse(readFileSync(receipt));
+      assert.equal(result.status, "RED");
+      assert.equal(result.stage, "application-e2e");
+      assert.equal(result.sources.artifactManifestSha256, digest);
+      assert.equal(result.checks.find(row => row.id === "public-application-e2e").status, "RED");
+      assert.deepEqual(result.dependencies.secretInputs, []);
+      starts.push({ run, receipt: result.status, reason: "entry-module-html-misdelivery",
+        moduleResponse: misdeliveredResponses[beforeMisdelivery], applicationCalls: requests.length });
+      continue;
+    }
     // Exactly one /api/jev request in this start, and it is the page's own.
     assert.deepEqual(requests, [{ method: "POST", origin, fetchSite: "same-origin" }],
       `start ${run} must make exactly one same-origin page request to /api/jev: ${JSON.stringify(requests)}\n${output.stderr}`);
@@ -126,8 +156,8 @@ try {
     starts.push({ run, request: requests[0], receipt: result.status, reason: "NOT_RUN: jev_unavailable" });
   }
   console.log(JSON.stringify({ kind: "voice-ui.acceptanceBoundaryCheck.v1", status: "PASS",
-    independentStarts: 2, controlledProviderCalls: apiRequests.length, callOrigin: "chromium-same-origin",
-    applicationVerdict: "RED_EXPECTED", applicationReason: "NOT_RUN: jev_unavailable", liveProviderCalls: 0, starts }));
+    independentStarts: starts.length, controlledProviderCalls: apiRequests.length, callOrigin: "chromium-same-origin",
+    applicationVerdict: "RED_EXPECTED", applicationReason: "per-start", liveProviderCalls: 0, starts }));
 } finally {
   if (child?.pid) { try { process.kill(-child.pid, "SIGKILL"); } catch {} }
   server.closeAllConnections();
