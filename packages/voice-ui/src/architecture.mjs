@@ -93,7 +93,7 @@ const deepFreeze = value => {
 };
 
 const scalar = value => ["string", "number", "boolean"].includes(typeof value);
-const validFile = file => text(file?.path) && COMMIT.test(file.blob ?? "") && (
+const validFile = file => text(file?.path) && typeof file.blob === "string" && COMMIT.test(file.blob) && (
   (exactObject(file, ["path", "blob", "class", "entity", "jsonSyntax"]) && file.class === "admitted" && key(file.entity) && typeof file.jsonSyntax === "boolean")
   || (exactObject(file, ["path", "blob", "class", "reason"]) && file.class === "excluded" && text(file.reason)));
 // An admitted file is labelled by its own path; anything else by the

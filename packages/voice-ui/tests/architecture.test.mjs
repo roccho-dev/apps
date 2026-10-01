@@ -165,6 +165,8 @@ test("required syntax facts cannot be bypassed by a missing, mismatched or dupli
   const changes = [
     value => { delete value.files[0].jsonSyntax; },
     value => { value.files[0].jsonSyntax = "false"; },
+    value => { value.files[0].blob = [value.files[0].blob]; },
+    value => { value.files[0].blob = "HEAD"; },
     value => { value.files = value.files.slice(1); },
     value => { value.files[0].entity = "ext-store"; },
     value => { value.entities[0].path = value.entities[0].label = "missing.mjs"; },
