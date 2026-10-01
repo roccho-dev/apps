@@ -445,6 +445,67 @@ test("an intent tells each edge the snapshot defines by its kind; any other edge
   for (const edge of [stores, configures, imports, user]) assert.equal(plain[edge.id], ends(edge), edge.id);
 });
 
+test("qualified edge references precede unrelated edit focus; only bare references use it", async () => {
+  const region = id => ({ id: 'arch-' + id, label: MANIFEST.entities.find(entity => entity.id === id).label });
+  const regions = ['web-app-mjs', 'ext-localstorage', 'src-session-mjs'].map(region);
+  regions.push({ id: 'arch-role-jev-boundary', label: 'model boundary' });
+  const stored = { id: 'arch-stores-in-web-app-mjs-to-ext-localstorage', from: 'arch-web-app-mjs', to: 'arch-ext-localstorage' };
+  const focused = { id: 'arch-has-role-src-session-mjs-to-jev-boundary', from: 'arch-src-session-mjs', to: 'arch-role-jev-boundary' };
+  const focus = { kind: 'draft', changes: [{ change: 'added', from: focused.from, to: focused.to }] };
+  const cases = [
+    ['explicit endpoints', 'remove the edge from web/app.mjs to localStorage', 'remove-edge', stored.id],
+    ['semantic qualification', 'remove that saving relation', 'remove-edge', stored.id],
+    ['unmatched qualification', 'remove that scheduling relation', 'remove-edge', NONE],
+    ['bare reference', 'reverse that edge', 'reverse-edge', focused.id],
+  ];
+  for (const [label, utterance, action, edge] of cases) {
+    const body = { ...request({ utterance, graph: { regions, edges: [stored, focused], placeable: [] }, focus,
+      architecture: intentSectionOf(MANIFEST) }), kind: ARCHITECTURE_INTENT_KIND };
+    const { result, calls: [call] } = await withProvider(answering(call => ({ ...noneTo(call),
+      action: { type: 'choice', choice: action, confidence: .9 }, edge: { type: 'choice', choice: edge, confidence: .9 },
+    })), () => post(body, ARCHITECTURE_ENV));
+    assert.equal(result.status, 200, label);
+    assert.deepEqual(call.state.focus, focus, 'the honest edit focus is not changed');
+    assert.match(call.questions.action.instructions, /Only a bare, unqualified reference/u, label);
+    assert.match(call.questions.edge.instructions, /endpoints or its semantic description/u, label);
+    assert.match(call.questions.edge.instructions, /no edge or more than one edge matches.*none/u, label);
+    assert.match(call.questions.edge.instructions, /never use focus to override a qualification/u, label);
+    assert.match(call.questions.edge.criteria[stored.id], /stores-in: /u);
+    assert.match(call.questions.edge.criteria[focused.id], /which this snapshot defines as has-role$/u);
+    assert.match(call.questions.edge.criteria[stored.id], /web\/app\.mjs.*localStorage/u);
+    assert.deepEqual(Object.keys(call.questions.edge.criteria), [...slotsFor(body.state).edge]);
+    const decision = await result.json();
+    assert.equal(decision.answers.action.choice, action, label);
+    assert.equal(decision.answers.edge.choice, edge, label);
+  }
+});
+
+test("an ambiguous qualified edge reference offers NONE without arbitrary sole-edge or focus fallback", async () => {
+  const graph = {
+    regions: [{ id: 'node-a', label: 'sender' }, { id: 'node-b', label: 'receiver' }, { id: 'node-c', label: 'receiver' }],
+    edges: [{ id: 'edge-ab', from: 'node-a', to: 'node-b' }, { id: 'edge-ac', from: 'node-a', to: 'node-c' }], placeable: [],
+  };
+  for (const [label, utterance, edges] of [
+    ['ambiguous candidates', 'remove that transfer relation', graph.edges],
+    ['single unmatched candidate', 'remove that scheduling relation', graph.edges.slice(0, 1)],
+  ]) {
+    const body = request({ utterance, graph: { ...graph, edges },
+      focus: { kind: 'applied', changes: [{ change: 'added', from: 'node-a', to: 'node-b' }] } });
+    const { result, calls: [call] } = await withProvider(answering(call => ({ ...noneTo(call),
+      action: { type: 'choice', choice: 'remove-edge', confidence: .9 }, edge: { type: 'choice', choice: NONE, confidence: .9 },
+    })), () => post(body));
+    assert.equal(result.status, 200, label);
+    assert.match(call.questions.edge.instructions, /no edge or more than one edge matches.*none/u, label);
+    assert.match(call.questions.edge.instructions, /never use focus to override a qualification/u, label);
+    assert.match(call.questions.edge.instructions, /Do not pick an edge just because it is the only edge/u, label);
+    assert.deepEqual(Object.keys(call.questions.edge.criteria), [...slotsFor(body.state).edge], label);
+    assert.equal(call.questions.edge.criteria[NONE], 'no unique edge matches the qualified reference, or no unqualified reference identifies a current edge');
+    const decision = await result.json();
+    assert.equal(decision.answers.action.choice, 'remove-edge', label);
+    assert.equal(decision.answers.edge.choice, NONE, 'a clear action can retain an unresolved target');
+  }
+});
+
 // The judge's one kind, by its own name: the section whole and, beside it, the
 // frame this request asks. The kind before it, which had no frame, is gone.
 test("a judge under the v3 kind, its section whole and its frame beside it, is answered by one provider call", async () => {

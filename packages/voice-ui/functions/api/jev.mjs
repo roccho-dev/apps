@@ -116,7 +116,9 @@ function questionsFor(state, slots, defined = () => null) {
     action: {
       type: "choice",
       instructions: "Which change to the working graph does the utterance ask for? "
-        + "A follow-up such as \"that\" refers to the focus.",
+        + "A reference qualified by endpoints or semantic description refers to matching current graph candidates, not the focus. "
+        + "Only a bare, unqualified reference such as \"that edge\" may use the focus. "
+        + "A clear remove or reverse request still names that action when its edge is unresolved; answer none for the edge.",
       criteria: criteria(slots.action, action => ACTION_WORDS[action]),
     },
   };
@@ -177,15 +179,18 @@ function questionsFor(state, slots, defined = () => null) {
   }
   if (slots.edge) {
     const byId = new Map(state.graph.edges.map(edge => [edge.id, edge]));
-    // An edge the utterance names by its two nodes wins. The focus only
-    // resolves a reference such as "that edge" when no edge is named.
+    // Existing candidate descriptions resolve qualified references first.
+    // Edit focus is evidence only for a bare, unqualified reference.
     questions.edge = {
       type: "choice",
       instructions: "If the utterance asks to remove or reverse an edge, which edge of the working graph does it mean? "
-        + "If it names the edge by its two nodes, choose that edge. "
-        + "Only if it names no edge and refers to one (for example \"that edge\"), choose the edge the focus describes.",
+        + "If it identifies an edge by its endpoints or its semantic description, match that qualification against the offered edges, "
+        + "using their current node labels and any snapshot-defined kind or purpose. Choose the matching edge only if it is unique; "
+        + "if no edge or more than one edge matches, answer none. In particular, never use focus to override a qualification. "
+        + "Only a bare, unqualified reference (for example \"that edge\") may use the edge the focus describes; "
+        + "if it identifies no unique current edge, answer none. Do not pick an edge just because it is the only edge.",
       criteria: criteria(slots.edge, key => key === NONE
-        ? "the utterance refers to no edge of the working graph"
+        ? "no unique edge matches the qualified reference, or no unqualified reference identifies a current edge"
         : `the edge from ${node(byId.get(key).from)} to ${node(byId.get(key).to)}${definedAs(byId.get(key))}`),
     };
   }
