@@ -280,9 +280,9 @@ const workingLayout = () => {
   }
 };
 
-// Each drawing fits the whole working graph, but the camera does not follow
-// a later resize, so parts can still end up outside the pane. They are still
-// in 作業図; the person is told which ones, never that they are visible. Only
+// The overview fits the whole graph; a selected local camera and a resize can
+// leave parts outside the pane. They are still in 作業図; the person is told
+// which ones, never that they are visible. Only
 // 作業図 is asked, which is sound while both panes show the same frame: both
 // have the same box and are given the same View.frame, which the browser test
 // asserts.
@@ -332,18 +332,15 @@ const followWorkingFrame = async () => {
     confirmedFrame = frame;
   }
 };
-// After a change to 作業図, which stands whatever happens here: redraw
-// 確定図 at the new frame, or say plainly that it could not be - the two
-// panes then show different frames - rather than report a clean step.
-// The next change tries again. Returns true when the page reported it.
-const followOrReport = async (state, message) => {
+// After a change to 作業図, the adopted draft stands whatever happens here.
+// Either pane can fail; invalidate the pair rather than accepting another
+// mutation against an unverified shared view. Returns true on failure.
+const followOrReport = async () => {
   try {
     await followWorkingFrame();
     return false;
   } catch (error) {
-    confirmedFrame = undefined;
-    setState("confirmed-display-failed", `${message}。ただし確定図を同じ表示範囲で描き直せませんでした`);
-    showHistory(`display failed (${state}): display_error`);
+    invalidateView();
     return true;
   }
 };
@@ -503,7 +500,7 @@ const finish = async (prefix, outcome) => {
   if (outcome.kind === OUTCOME_STEP) {
     showOutOfView();
     const drafted = `${prefix}: 作業図に追加しました (未反映)`;
-    if (!(await followOrReport("drafted", drafted))) {
+    if (!(await followOrReport())) {
       setState("drafted", drafted);
       showHistory();
     }
@@ -615,7 +612,7 @@ const showWorking = async (next, state, message) => {
   showLists();
   showArchitecture();
   showOutOfView();
-  if (!(await followOrReport(state, message))) {
+  if (!(await followOrReport())) {
     setState(state, message);
     showHistory();
   }

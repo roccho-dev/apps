@@ -205,6 +205,7 @@ const screen = () => page.evaluate(([key, rootKey]) => ({
   })(),
   notice: document.querySelector("#working-notice").textContent,
   camera: document.querySelector("#camera-part").value,
+  pending: document.body.dataset.pending ?? null,
   root: localStorage.getItem(rootKey),
 }), [KEY, ROOT_KEY]);
 const domOf = now => ({
@@ -622,11 +623,24 @@ try {
   need(hasRole(reloaded, LOG, "persistence") && hasRole(reloaded, APP, "persistence"), "the roles come back as drawn");
   need(/^出典: apps-voice-ui@/u.test(reloaded.sourceStatus), "the cited snapshot is still checkable");
   if (FIXTURE) {
-    const beforeCamera = reloaded;
+    let beforeCamera = reloaded;
     const choices = await page.locator("#camera-part option").evaluateAll(options => options.filter(option => option.value).map(option => ({ id: option.value, label: option.textContent })));
     const file = choices.find(option => option.label === "web/app.mjs");
     assert.ok(file, "the actual source-file camera is offered");
     const long = choices.reduce((best, option) => option.label.length > best.label.length ? option : best, file);
+    const heldPlacement = stage => say(stage, "fixture incomplete placement", {
+      action: contract.ACTION_PLACE_PART, move: file.id, anchor: contract.NONE, direction: "right",
+    });
+    const heldCamera = await heldPlacement("camera-pending");
+    assert.equal(heldCamera.now.pending, "anchor", "the controlled placement really holds its missing anchor");
+    await page.locator("#camera-part").selectOption(file.id);
+    await settle();
+    const clearedCamera = await screen();
+    assert.equal(clearedCamera.pending, null, "camera deliberately clears the existing held placement");
+    for (const key of ["draft", "claims", "context", "stored"]) assert.deepEqual(clearedCamera[key], heldCamera.now[key], key);
+    assert.deepEqual(clearedCamera.graph.records, heldCamera.now.graph.records);
+    assert.equal(clearedCamera.graph.head, heldCamera.now.graph.head);
+    beforeCamera = clearedCamera;
     const labelVisible = label => page.evaluate(label => {
       const iframe = document.querySelector("#working-surface iframe[data-package=semantic-map]");
       const doc = iframe.contentDocument;
@@ -654,6 +668,15 @@ try {
     await page.locator("#camera-part").selectOption("");
     await settle();
     const viewport = page.viewportSize();
+    const heldResize = await heldPlacement("resize-pending");
+    assert.equal(heldResize.now.pending, "anchor");
+    await page.setViewportSize({ ...viewport, height: viewport.height + 20 });
+    await page.waitForFunction(() => document.body.dataset.state === "resized");
+    const clearedResize = await screen();
+    assert.equal(clearedResize.pending, null, "resize deliberately clears the existing held placement");
+    for (const key of ["draft", "claims", "context", "stored"]) assert.deepEqual(clearedResize[key], heldResize.now[key], key);
+    assert.deepEqual(clearedResize.graph.records, heldResize.now.graph.records);
+    assert.equal(clearedResize.graph.head, heldResize.now.graph.head);
     await Promise.all([
       page.locator("#camera-part").selectOption(file.id),
       page.setViewportSize({ ...viewport, height: viewport.height + 40 }),
