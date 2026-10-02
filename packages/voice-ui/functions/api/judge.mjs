@@ -15,10 +15,10 @@ const failures = Object.freeze({
   auth_missing: [503, ERRORS.unavailable],
 });
 
-// A single call injection: the composition supplies verified ESM and an opaque
-// key. There is no provider endpoint, header, model or dynamic loader here.
-export async function onRequestPost({ request, key }, judge) {
-  if (typeof key !== "string" || key.length === 0) return json({ error: ERRORS.unavailable }, 503);
+// A single call injection: the composition supplies a bound operation and nonsecret
+// availability. No credential, endpoint, header, model or dynamic loader enters here.
+export async function onRequestPost({ request, available }, judge) {
+  if (available !== true) return json({ error: ERRORS.unavailable }, 503);
   let input;
   try { input = await request.json(); }
   catch { return json({ error: ERRORS.invalidJson }, 400); }
@@ -26,7 +26,7 @@ export async function onRequestPost({ request, key }, judge) {
   const slots = slotsFor(input.state);
   let result;
   try {
-    result = await judge({ state: input.state, questions: questionsFor(input.state, slots) }, { key, signal: request.signal });
+    result = await judge({ state: input.state, questions: questionsFor(input.state, slots) }, { signal: request.signal });
   } catch (error) {
     let failureCode;
     try { failureCode = error?.code; } catch {}
