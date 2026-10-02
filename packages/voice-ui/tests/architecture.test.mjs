@@ -819,6 +819,10 @@ test("this package's whole snapshot, drawn, still fits the intent's bounds", asy
   let working = await mapGraph();
   const units = [];
   const say = async (focus, judge) => {
+    if (focus !== null) {
+      const slots = judgeSlotsFor(judgeSectionOf(manifest, [focus]));
+      for (const [name, pick] of Object.entries(judge)) assert.ok(slots[name]?.includes(pick), `${focus}: ${name} offers ${pick}`);
+    }
     const planned = await plan(working, manifest, { focus, judge });
     assert.equal(planned.outcome, "step", `${focus}: ${planned.reason}`);
     units.push({ changes: changesOf(planned) });
@@ -827,16 +831,21 @@ test("this package's whole snapshot, drawn, still fits the intent's bounds", asy
   await say(null, {});
   await say("web-app-mjs", {
     ...Object.fromEntries(["voice-input", "jev-boundary", "graph-mutation", "persistence"].map(role => [roleSlot("web-app-mjs", role), YES])),
-    [relationSlot("c-web-app-mjs--functions-pages-worker-mjs")]: "calls",
+    [relationSlot("c-web-app-mjs--web-adapters-judgment-mjs")]: "calls",
     [relationSlot("c-web-app-mjs--ext-localstorage")]: "stores-in",
     [relationSlot("c-web-app-mjs--src-log-mjs")]: "calls",
   });
   await say("ext-jev-api-key", {
-    [roleSlot("functions-api-judge-mjs", "jev-boundary")]: YES, [roleSlot("functions-api-judge-mjs", "auth")]: YES,
+    [roleSlot("functions-pages-worker-mjs", "jev-boundary")]: YES, [roleSlot("functions-pages-worker-mjs", "auth")]: YES,
     [roleSlot("dev-serve-mjs", "auth")]: YES, [roleSlot("dev-serve-mjs", "config")]: YES,
-    [relationSlot("c-functions-api-judge-mjs--ext-jev-api-key")]: "authenticates-with",
-    [relationSlot("c-functions-api-judge-mjs--ext-voice-ui-judge-provider")]: "calls",
+    [relationSlot("c-functions-pages-worker-mjs--ext-jev-api-key")]: "authenticates-with",
+    [relationSlot("c-functions-pages-worker-mjs--ext-voice-ui-judge-provider")]: "calls",
   });
+  for (const id of ["arch-calls-web-app-mjs-to-web-adapters-judgment-mjs",
+    "arch-authenticates-with-functions-pages-worker-mjs-to-ext-jev-api-key",
+    "arch-calls-functions-pages-worker-mjs-to-ext-voice-ui-judge-provider"]) {
+    assert.ok(working.records.some(record => record.type === "relation" && record.id === id), `${id} is actually drawn before bounds are checked`);
+  }
   await say("src-log-mjs", { [roleSlot("src-log-mjs", "persistence")]: YES });
   const intent = withArchitecture(plainFor(working, units), manifest);
   assert.ok(isRequest(JSON.parse(JSON.stringify(intent.request))), "the drawn scenario, its utterances included, is a valid intent");
