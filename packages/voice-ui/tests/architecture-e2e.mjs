@@ -147,6 +147,9 @@ const sanitized = entry => {
   upstreamStatus: entry.status === 502 && entry.body?.error === contract.ERRORS.providerError
     && Number.isInteger(entry.body?.upstreamStatus) && entry.body.upstreamStatus >= 300 && entry.body.upstreamStatus <= 599
     ? entry.body.upstreamStatus : "UNKNOWN",
+  diagnostic: entry.status === 502 && entry.body?.error === contract.ERRORS.providerError
+    && entry.body?.upstreamStatus === 400 && entry.body?.diagnostic === "context-limit-vocabulary-observed"
+    ? "context-limit-vocabulary-observed" : "UNKNOWN",
   ms: entry.ms,
   providerIdentity: "UNKNOWN",
   answers: answers === null ? null
@@ -829,6 +832,15 @@ if (cleanup !== null) {
   }
   assert.equal(sanitized({ ...exchanges[0], status: 200 }).upstreamStatus, "UNKNOWN");
   assert.equal(sanitized({ ...exchanges[0], body: { error: contract.ERRORS.providerContract, upstreamStatus: 401 } }).upstreamStatus, "UNKNOWN");
+  const observed = { ...exchanges[0], body: { error: contract.ERRORS.providerError, upstreamStatus: 400, diagnostic: "context-limit-vocabulary-observed" } };
+  assert.equal(sanitized(observed).diagnostic, "context-limit-vocabulary-observed");
+  for (const diagnostic of [undefined,null,"private-diagnostic-canary",{},["context-limit-vocabulary-observed"],400]) {
+    const reported = sanitized({ ...observed, body: { ...observed.body, diagnostic } });
+    assert.equal(reported.diagnostic, "UNKNOWN");assert.ok(!JSON.stringify(reported).includes("private-diagnostic-canary"));
+  }
+  assert.equal(sanitized({ ...observed, status: 200 }).diagnostic, "UNKNOWN");
+  assert.equal(sanitized({ ...observed, body: { ...observed.body, upstreamStatus: 401 } }).diagnostic, "UNKNOWN");
+  assert.equal(sanitized({ ...observed, body: { ...observed.body, error: contract.ERRORS.providerContract } }).diagnostic, "UNKNOWN");
   assert.equal(sanitized({ ...exchanges[0], body: { answers: null } }).answers, null);
   for (const error of ["private-canary", { detail: "private-canary" }, ["private-canary"], 401, true]) {
     const reported = sanitized({ ...exchanges[0], error: null, body: { error, upstreamStatus: 401 } });

@@ -107,6 +107,11 @@ export async function onRequestPost({ request, available, architecture }, judge)
       let upstreamStatus;
       try { upstreamStatus = error?.upstreamStatus; } catch {}
       if (Number.isInteger(upstreamStatus) && upstreamStatus >= 300 && upstreamStatus <= 599) body.upstreamStatus = upstreamStatus;
+      if (upstreamStatus === 400) {
+        let diagnostic;
+        try { diagnostic = error?.diagnostic; } catch {}
+        if (diagnostic === "context-limit-vocabulary-observed") body.diagnostic = diagnostic;
+      }
     }
     return json(body, status);
   }

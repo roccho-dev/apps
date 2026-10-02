@@ -219,6 +219,28 @@ test("only the typed HTTP error can expose an allowlisted status, never raw deta
   assert.deepEqual(await (await invoke(unreadable)).json(), { error: ERRORS.providerError });
 });
 
+test("only the exact typed400 diagnostic constant escapes the API trust boundary", async () => {
+  const invoke = error => onRequestPost({ request: new Request("http://localhost/api/judge", { method: "POST", body: JSON.stringify(request()) }), available: true }, async () => { throw error; });
+  const flag="context-limit-vocabulary-observed";
+  for(const diagnostic of [flag,undefined,null,"private-canary",{},[flag],400,true]){
+    const response=await invoke({code:"provider_http_error",upstreamStatus:400,diagnostic,message:"private-canary",body:"private-canary"});
+    assert.equal(response.status,502);const body=await response.json();
+    assert.deepEqual(body,diagnostic===flag?{error:ERRORS.providerError,upstreamStatus:400,diagnostic:flag}:{error:ERRORS.providerError,upstreamStatus:400});
+    assert.ok(!JSON.stringify(body).includes("private-canary"));
+  }
+  for(const error of [{code:"provider_http_error",upstreamStatus:401,diagnostic:flag},{code:"provider_timeout",upstreamStatus:400,diagnostic:flag},{code:"provider_http_error",upstreamStatus:"400",diagnostic:flag},{code:"provider_http_error",upstreamStatus:400,get diagnostic(){throw Error("private-canary");}}]){
+    assert.equal(Object.hasOwn(await(await invoke(error)).json(),"diagnostic"),false);
+  }
+});
+test("produced Worker and admitted provider expose only fixed400 vocabulary observation", async () => {
+  const flag="context-limit-vocabulary-observed";
+  for(const [value,expected]of [[{detail:"private-canary context length"},true],[{message:"not a context limit private-canary"},true],[{error:{message:"context limit private-canary"}},true],[{detail:"context",message:"length"},false],[{input:{message:"context limit private-canary"}},false],[{detail:{message:"context limit private-canary"}},false],[{detail:"unrecognized private-canary"},false]]){
+    let reads=0;const bytes=new TextEncoder().encode(JSON.stringify(value));
+    const {result,calls}=await withProvider(async()=>({ok:false,status:400,body:new ReadableStream({start(c){c.enqueue(bytes);c.close();}}),json(){reads++;throw Error("private-canary");},text(){reads++;throw Error("private-canary");},get headers(){reads++;throw Error("private-canary");}}),()=>post(request()));
+    assert.equal(calls.length,1);assert.equal(reads,0);assert.equal(result.status,502);const body=await result.json();
+    assert.deepEqual(body,expected?{error:ERRORS.providerError,upstreamStatus:400,diagnostic:flag}:{error:ERRORS.providerError,upstreamStatus:400});assert.ok(!JSON.stringify(body).includes("private-canary"));
+  }
+});
 test("produced Worker and admitted provider retain HTTP status without reading error content or retrying", async () => {
   for (const upstreamStatus of [429, 503]) {
     let reads = 0;
