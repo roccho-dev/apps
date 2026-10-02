@@ -102,7 +102,13 @@ export async function onRequestPost({ request, available, architecture }, judge)
     try { failureCode = error?.code; } catch {}
     const [status, code] = typeof failureCode === "string" && Object.hasOwn(failures, failureCode)
       ? failures[failureCode] : [502, ERRORS.providerUnreachable];
-    return json({ error: code }, status);
+    const body = { error: code };
+    if (failureCode === "provider_http_error") {
+      let upstreamStatus;
+      try { upstreamStatus = error?.upstreamStatus; } catch {}
+      if (Number.isInteger(upstreamStatus) && upstreamStatus >= 300 && upstreamStatus <= 599) body.upstreamStatus = upstreamStatus;
+    }
+    return json(body, status);
   }
   // Application slots are checked again independently of generic provider
   // validation. Action thresholds remain in turn/application, never HTTP 502.

@@ -120,7 +120,7 @@ page.on("response", response => {
 page.on("requestfailed", request => {
   const entry = exchangeOf(request);
   if (entry === undefined) return;
-  entry.error = request.failure()?.errorText ?? "failed";
+  entry.error = "transport-failed";
   entry.ms = Date.now() - entry.at;
 });
 const drain = () => Promise.all(exchanges.map(entry => entry.read));
@@ -128,18 +128,31 @@ const drain = () => Promise.all(exchanges.map(entry => entry.read));
 // What of an exchange may be printed: its kind, a locate frame's part, a
 // judge's focus, body file ids and the frame of them it asks, how it ended,
 // the unavailable provider identity and the closed answers as choice and confidence.
-const sanitized = entry => ({
+const sanitized = entry => {
+  let answers = null;
+  try {
+    const slots = slotsOf(entry.sent);
+    if (slots !== null) answers = contract.readAnswers(entry.body?.answers, slots);
+  } catch {}
+  return ({
   kind: entry.sent.kind,
   ...(entry.sent.kind === contract.ARCHITECTURE_JUDGE_KIND
     ? { focus: entry.sent.state.architecture.focus, bodies: entry.sent.state.architecture.bodies, frame: entry.sent.state.frame }
     : entry.sent.kind === contract.ARCHITECTURE_LOCATE_KIND ? { focus: entry.sent.state.architecture.focus } : {}),
   status: entry.status,
-  error: entry.error ?? entry.body?.error ?? null,
+  error: entry.error !== null && entry.error !== undefined
+    ? ["body-unreadable", "transport-failed"].includes(entry.error) ? entry.error : "UNKNOWN"
+    : entry.body?.error === null || entry.body?.error === undefined ? null
+      : Object.values(contract.ERRORS).includes(entry.body.error) ? entry.body.error : "UNKNOWN",
+  upstreamStatus: entry.status === 502 && entry.body?.error === contract.ERRORS.providerError
+    && Number.isInteger(entry.body?.upstreamStatus) && entry.body.upstreamStatus >= 300 && entry.body.upstreamStatus <= 599
+    ? entry.body.upstreamStatus : "UNKNOWN",
   ms: entry.ms,
   providerIdentity: "UNKNOWN",
-  answers: entry.body?.answers === undefined ? null
-    : Object.fromEntries(Object.entries(entry.body.answers).map(([name, answer]) => [name, [answer?.choice ?? null, answer?.confidence ?? null]])),
-});
+  answers: answers === null ? null
+    : Object.fromEntries(Object.entries(answers).map(([name, answer]) => [name, [answer.choice, answer.confidence]])),
+  });
+};
 const report = value => process.stdout.write(`${JSON.stringify(value)}\n`);
 
 // The frames a judge's section is asked in, as the served contract plans
@@ -269,7 +282,7 @@ let stopBaseline = null;
 const say = async (stage, utterance, picks) => {
   const route = new URL("/api/judge", url).href;
   if (STOP_FIXTURE) stopBaseline = await screen();
-  if (FIXTURE) await page.route(route, craft(picks, () => STOP_FIXTURE ? { status: 502, body: { error: contract.ERRORS.providerError } } : null), { times: MOST });
+  if (FIXTURE) await page.route(route, craft(picks, () => STOP_FIXTURE ? { status: 502, body: { error: contract.ERRORS.providerError, upstreamStatus: 401 } } : null), { times: MOST });
   const before = exchanges.length;
   await page.locator("#text").fill(utterance);
   await click("send");
@@ -806,6 +819,26 @@ if (cleanup !== null) {
   assert.equal(exchanges.length, 1);
   assert.equal(exchanges[0].status, 502);
   assert.equal(exchanges[0].body?.error, contract.ERRORS.providerError);
+  assert.equal(sanitized(exchanges[0]).upstreamStatus, 401);
+  for (const upstreamStatus of [300,599,undefined,null,"401",200,299,600,401.5,NaN,{}]) {
+    const entry = { ...exchanges[0], body: { error: contract.ERRORS.providerError, upstreamStatus } };
+    const allowed = Number.isInteger(upstreamStatus) && upstreamStatus >= 300 && upstreamStatus <= 599;
+    assert.equal(sanitized(entry).upstreamStatus, allowed ? upstreamStatus : "UNKNOWN");
+  }
+  assert.equal(sanitized({ ...exchanges[0], status: 200 }).upstreamStatus, "UNKNOWN");
+  assert.equal(sanitized({ ...exchanges[0], body: { error: contract.ERRORS.providerContract, upstreamStatus: 401 } }).upstreamStatus, "UNKNOWN");
+  assert.equal(sanitized({ ...exchanges[0], body: { answers: null } }).answers, null);
+  for (const error of ["private-canary", { detail: "private-canary" }, ["private-canary"], 401, true]) {
+    const reported = sanitized({ ...exchanges[0], error: null, body: { error, upstreamStatus: 401 } });
+    assert.equal(reported.error, "UNKNOWN");
+    assert.equal(reported.upstreamStatus, "UNKNOWN");
+    assert.ok(!JSON.stringify(reported).includes("private-canary"));
+  }
+  for (const error of Object.values(contract.ERRORS))
+    assert.equal(sanitized({ ...exchanges[0], error: null, body: { error } }).error, error);
+  for (const error of ["body-unreadable", "transport-failed"])
+    assert.equal(sanitized({ ...exchanges[0], error }).error, error);
+  assert.equal(sanitized({ ...exchanges[0], error: "private-canary" }).error, "UNKNOWN");
   assert.equal(last.state, "failed");
   assert.equal(protocolFailure?.stage, "whole");
   assert.ok(protocolFailure.defects.includes("whole: every request answered 200 with a complete answer"));

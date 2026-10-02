@@ -182,7 +182,7 @@ test("every failure is one of a closed set of codes and carries no Jev content",
   }
 
   const providerCases = [
-    ["provider refused", async () => new Response("denied", { status: 401 }), 502, ERRORS.providerError],
+    ["provider refused", async () => new Response("denied", { status: 401 }), 502, ERRORS.providerError, 401],
     ["provider unreachable", async () => { throw new TypeError("fetch failed"); }, 502, ERRORS.providerUnreachable],
     ["not JSON", async () => new Response("<html>", { status: 200 }), 502, ERRORS.providerContract],
     ["no model", async () => new Response(JSON.stringify({ answers: {} }), { status: 200 }), 502, ERRORS.providerContract],
@@ -194,13 +194,48 @@ test("every failure is one of a closed set of codes and carries no Jev content",
     ["confidence outside [0,1]", answering(body => ({ ...noneTo(body), action: { type: "choice", choice: NONE, confidence: 2 } })), 502, ERRORS.providerContract],
     ["a probability for another key", answering(body => ({ ...noneTo(body), action: { type: "choice", choice: NONE, confidence: 0.9, probabilities: { other: 1 } } })), 502, ERRORS.providerContract],
   ];
-  for (const [label, respond, status, code] of providerCases) {
+  for (const [label, respond, status, code, upstreamStatus] of providerCases) {
     const { result } = await withProvider(respond, () => post(request()));
     assert.equal(result.status, status, label);
-    assert.deepEqual(await result.json(), { error: code }, label);
+    assert.deepEqual(await result.json(), upstreamStatus === undefined ? { error: code } : { error: code, upstreamStatus }, label);
   }
 });
 
+test("only the typed HTTP error can expose an allowlisted status, never raw detail", async () => {
+  const invoke = error => onRequestPost({ request: new Request("http://localhost/api/judge", {
+    method: "POST", body: JSON.stringify(request()),
+  }), available: true }, async () => { throw error; });
+  for (const upstreamStatus of [300,401,429,500,599,undefined,null,"401",200,299,600,-1,NaN,Infinity,401.5,true,{}]) {
+    const result = await invoke({ code: "provider_http_error", upstreamStatus, message: "private-canary", body: "private-canary", headers: { secret: "private-canary" }, model: "private-canary" });
+    assert.equal(result.status, 502);
+    const allowed = Number.isInteger(upstreamStatus) && upstreamStatus >= 300 && upstreamStatus <= 599;
+    assert.deepEqual(await result.json(), allowed ? { error: ERRORS.providerError, upstreamStatus } : { error: ERRORS.providerError });
+  }
+  for (const code of ["provider_timeout","provider_unavailable","provider_contract_error","auth_missing","unknown"]) {
+    const result = await invoke({ code, upstreamStatus: 401 });
+    assert.equal(Object.hasOwn(await result.json(), "upstreamStatus"), false);
+  }
+  const unreadable = { code: "provider_http_error", get upstreamStatus() { throw Error("private-canary"); } };
+  assert.deepEqual(await (await invoke(unreadable)).json(), { error: ERRORS.providerError });
+});
+
+test("produced Worker and admitted provider retain HTTP status without reading error content or retrying", async () => {
+  for (const upstreamStatus of [429, 503]) {
+    let reads = 0;
+    const { result, calls } = await withProvider(async () => ({
+      ok: false, status: upstreamStatus,
+      json: () => { reads++; throw Error("private-canary"); },
+      text: () => { reads++; throw Error("private-canary"); },
+      get headers() { reads++; throw Error("private-canary"); },
+    }), () => post(request()));
+    assert.equal(calls.length, 1, "one controlled upstream call, no retry");
+    assert.equal(reads, 0, "error body and headers are not read");
+    assert.equal(result.status, 502, "neutral response status remains unchanged");
+    const body = await result.json();
+    assert.deepEqual(body, { error: ERRORS.providerError, upstreamStatus });
+    assert.ok(!JSON.stringify(body).includes("private-canary"));
+  }
+});
 test("the compiled binding has one ten second deadline for headers and body", async t => {
   t.mock.timers.enable({ apis: ["setTimeout"] });
   for (const phase of ["headers", "body"]) {
