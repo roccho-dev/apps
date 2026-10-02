@@ -661,7 +661,12 @@ const runScenario = async () => {
   if (removedOne) {
     await click("undo");
     await settle();
-    need(claimOf(await screen(), `relation ${storageEdge}`) !== null, "Undo brings the judged relation back");
+    const restored = await screen();
+    need(claimOf(restored, `relation ${storageEdge}`) !== null, "Undo brings the judged relation back");
+    if (CONTEXTUAL) {
+      contextEvidence.undoStorageUntouched = restored.stored === start.stored && restored.root === rootBefore;
+      need(contextEvidence.undoStorageUntouched, "Undo does not write either accepted storage key");
+    }
   }
 
   // This independent source/Working scenario stops before legacy Apply/reload.
