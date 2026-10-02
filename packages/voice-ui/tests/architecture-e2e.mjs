@@ -192,7 +192,11 @@ const screen = () => page.evaluate(([key, rootKey]) => ({
   })),
   coverage: [...document.querySelectorAll("#architecture-coverage li")].map(item => item.textContent),
   context: [...document.querySelectorAll("#context-recent li")].map(item => JSON.parse(item.dataset.entry)),
-  graph: document.querySelector("#working-surface iframe[data-package=semantic-map]")?.contentWindow?.semanticMapRuntime?.view?.pattern ?? null,
+  graph: (() => {
+    const runtime = document.querySelector("#working-surface iframe[data-package=semantic-map]")?.contentWindow?.semanticMapRuntime;
+    return runtime && Array.isArray(runtime.records) && runtime.records.length > 0 && typeof runtime.head === "string"
+      ? { head: runtime.head, records: runtime.records, view: runtime.view } : null;
+  })(),
   stored: localStorage.getItem(key),
   root: localStorage.getItem(rootKey),
 }), [KEY, ROOT_KEY]);
@@ -322,6 +326,7 @@ const failing = async (stage, at, fault, why, { utterance = UTTERANCES.save, foc
   const displayedReason = await page.evaluate(async code => (await import("/app/src/render.mjs")).reasonText(code), why);
   need(now.state === "failed" && (now.failure ?? "").includes(displayedReason), `${stage}: the utterance fails with ${why} (state ${now.state}: ${now.failure ?? now.status})`);
   need(JSON.stringify(now.draft) === JSON.stringify(baseline.draft) && JSON.stringify(now.claims) === JSON.stringify(baseline.claims)
+    && baseline.graph !== null && JSON.stringify(now.graph) === JSON.stringify(baseline.graph)
     && now.stored === baseline.stored && now.root === baseline.root, `${stage}: nothing is drawn, drafted or stored`);
 };
 const claimOf = (now, record) => now.claims.find(claim => claim.record === record) ?? null;
