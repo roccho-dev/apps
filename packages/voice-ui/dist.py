@@ -389,6 +389,8 @@ def verify_dist(root):
         "site/app/src/judgment.mjs",
         "site/adapters/judgment.mjs",
         "site/adapters/transcription.mjs",
+        "site/app/src/architecture.mjs",
+        "site/app/src/document.mjs",
         "site/ui/semantic-map/runtime.js",
         "site/ui/semantic-map/protocol/index.js",
         "site/ui/semantic-map/authoring/pages/embed.html",

@@ -143,10 +143,15 @@ export async function restoreLog({ key, read, verifyDecisionLog }) {
   demandKey(key);
   const stored = await read(key);
   if (stored === null || stored === undefined) return Object.freeze({ status: RESTORE_NO_LOG });
+  return inspectLog(stored, verifyDecisionLog);
+}
 
+// A stored DecisionLog as restored, corrupt or foreign - the same judgement
+// whether the log is stored on its own or inside an architecture document.
+export async function inspectLog(log, verifyDecisionLog) {
   let verified;
   try {
-    verified = await verifyDecisionLog(stored);
+    verified = await verifyDecisionLog(log);
   } catch (error) {
     return Object.freeze({ status: RESTORE_CORRUPT, reason: message(error) });
   }
@@ -177,22 +182,41 @@ export async function restoreLog({ key, read, verifyDecisionLog }) {
 // and the page must stop speaking for storage. A committed Decision is never
 // lost.
 export async function commitLog({ graph, expected, key, read, write, lock, verifyDecisionLog }) {
-  demandKey(key);
   demand(typeof graph?.log === "string" && graph.log.length > 0, "graph.log must be a non-empty string");
+  return commitStored({
+    next: graph.log,
+    expected,
+    key,
+    read,
+    write,
+    lock,
+    // The reason `next` may not be stored, or null.
+    check: async next => {
+      try {
+        return foreignReason(await verifyDecisionLog(next));
+      } catch (error) {
+        return message(error);
+      }
+    },
+  });
+}
+
+// The write itself, for any stored value that only ever grows: the same lock,
+// the same conflict rule, the same strict extension and the same read-back.
+// `check` says why `next` may not be stored, or null; it is the one place a
+// format adds its own verification.
+export async function commitStored({ next, expected, key, read, write, lock, check }) {
+  demandKey(key);
+  demand(typeof next === "string" && next.length > 0, "the value to store must be a non-empty string");
   demand(expected === null || typeof expected === "string", "expected must be null or a string");
-  const next = graph.log;
   return lock(key, async () => {
     const current = (await read(key)) ?? null;
     if (current !== expected) return Object.freeze({ status: COMMIT_CONFLICT });
     if (current !== null && !(next.length > current.length && next.startsWith(current))) {
-      return Object.freeze({ status: COMMIT_REJECTED, reason: "the new log does not strictly extend the stored one" });
+      return Object.freeze({ status: COMMIT_REJECTED, reason: "the new value does not strictly extend the stored one" });
     }
-    try {
-      const foreign = foreignReason(await verifyDecisionLog(next));
-      if (foreign !== null) return Object.freeze({ status: COMMIT_REJECTED, reason: foreign });
-    } catch (error) {
-      return Object.freeze({ status: COMMIT_REJECTED, reason: message(error) });
-    }
+    const refusal = await check(next);
+    if (refusal !== null) return Object.freeze({ status: COMMIT_REJECTED, reason: refusal });
     let failed = null;
     try {
       await write(key, next);

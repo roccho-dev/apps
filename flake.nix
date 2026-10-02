@@ -33,6 +33,19 @@
           "working-tree";
       appRevision = revisionOf self;
       uiRevision = revisionOf ui;
+      # This package's own source, prepared for the architecture page from the
+      # exact commit only. A tree with uncommitted changes has no commit, so the
+      # preparation records that it is unavailable and why; the architecture
+      # page stays blocked while the rest of the dev server works as before.
+      architectureFor = system:
+        let pkgs = import nixpkgs { inherit system; };
+        in pkgs.runCommand "voice-ui-architecture-source" { nativeBuildInputs = [ pkgs.nodejs ]; } ''
+          node --experimental-vm-modules ${self}/packages/voice-ui/architecture/prepare.mjs \
+            --scope ${self}/packages/voice-ui/architecture/scope.v1.json \
+            --root ${self}/packages/voice-ui \
+            --commit '${if self ? rev then self.rev else ""}' \
+            --out "$out"
+        '';
       acceptanceFor =
         system:
         import ./packages/voice-ui/acceptance {
@@ -197,6 +210,7 @@
 
           voice-ui-dist = mkVoiceUiDist "voice-ui-dist";
           voice-ui-acceptance-runtime = (acceptanceFor system).runtime;
+          voice-ui-architecture-source = architectureFor system;
         }
       );
 
@@ -211,6 +225,7 @@
               export VOICE_UI_SEMANTIC_MAP=${ui.packages.${system}.semantic-map}
               export VOICE_UI_HAYAMIMI=${hayamimiFor system}
               export VOICE_UI_WORKER=${self.packages.${system}.voice-ui-dist}/worker/worker.mjs
+              export VOICE_UI_ARCHITECTURE=${architectureFor system}
               exec node ${self}/packages/voice-ui/dev/serve.mjs "$@"
             '';
           };

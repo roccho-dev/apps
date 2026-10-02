@@ -1,16 +1,5 @@
-import {
-  ACTION_ADD_EDGE,
-  ACTION_ADD_PART,
-  ACTION_COMPOSE,
-  ACTION_PLACE_PART,
-  ACTION_REMOVE_EDGE,
-  ACTION_REVERSE_EDGE,
-  ACTION_UNDO_REQUEST,
-  NONE,
-} from "./contract.mjs";
+import { ACTION_ADD_EDGE, ACTION_ADD_PART, ACTION_ARCHITECTURE, ACTION_COMPOSE, ACTION_PLACE_PART, ACTION_REMOVE_EDGE, ACTION_REVERSE_EDGE, ACTION_UNDO_REQUEST, ARCHITECTURE_INTENT_KIND, ARCHITECTURE_JUDGE_KIND, ARCHITECTURE_LOCATE_KIND, NONE, WHOLE, YES, relationSlot, relevantSlot, roleSlot } from "./contract.mjs";
 
-
-// Application-owned questions and option meaning; no provider wire fields.
 // A choice question offers its alternatives as a criteria map keyed by the
 // value to be returned.
 const criteria = (keys, describe) => Object.fromEntries(keys.map(key => [key, describe(key)]));
@@ -23,6 +12,7 @@ const ACTION_WORDS = {
   [ACTION_REVERSE_EDGE]: "the utterance asks to reverse the direction of one edge of the working graph",
   [ACTION_UNDO_REQUEST]: "the utterance asks to undo, take back or go back on an earlier change",
   [ACTION_COMPOSE]: "the utterance asks for a whole diagram or chart by what it is for, rather than one edit",
+  [ACTION_ARCHITECTURE]: "the utterance asks for a diagram of how this code is built, or for more detail on one part of it",
   [NONE]: "the utterance asks for anything else, or for no change to the graph",
 };
 
@@ -36,14 +26,25 @@ const CONTEXT_NOTE = " context.recent lists earlier utterances as they were reco
 // The questions for exactly the slots the request offers. Each option is a
 // key the request carries; the words around it are this Function's own, and
 // every product word - a part's or a diagram's purpose - comes from the
-// request's offers.
-export function questionsFor(state, slots) {
+// request's offers. `defined` says what the server's own snapshot defines an
+// edge as, or null: an architecture intent passes it, and a plain request,
+// which has no snapshot, describes every edge by its two ends only.
+export function questionsFor(state, slots, context) {
+  if (context.kind === ARCHITECTURE_LOCATE_KIND) return locateQuestion(context.entity, context.evidence, slots);
+  if (context.kind === ARCHITECTURE_JUDGE_KIND) return judgeQuestions(context.section, slots);
+  const defined = context.kind === ARCHITECTURE_INTENT_KIND ? context.relationOf : () => null;
   const labelOf = new Map(state.graph.regions.map(region => [region.id, region.label]));
   const node = key => labelOf.get(key) === key ? key : `${key} (shown as "${labelOf.get(key)}")`;
+  const definedAs = edge => {
+    const relation = defined(edge);
+    return relation === null ? "" : `, which this snapshot defines as ${relation.kind}${relation.purpose === null ? "" : `: ${relation.purpose}`}`;
+  };
   const questions = {
     action: {
       instruction: "Which change to the working graph does the utterance ask for? "
-        + "A follow-up such as \"that\" refers to the focus.",
+        + "A reference qualified by endpoints or semantic description refers to matching current graph candidates, not the focus. "
+        + "Only a bare, unqualified reference such as \"that edge\" may use the focus. "
+        + "A clear remove or reverse request still names that action when its edge is unresolved; answer none for the edge.",
       options: criteria(slots.action, action => ACTION_WORDS[action]),
     },
   };
@@ -98,15 +99,21 @@ export function questionsFor(state, slots) {
   }
   if (slots.edge) {
     const byId = new Map(state.graph.edges.map(edge => [edge.id, edge]));
-    // An edge the utterance names by its two nodes wins. The focus only
-    // resolves a reference such as "that edge" when no edge is named.
+    // Existing candidate descriptions resolve qualified references first.
+    // Edit focus is evidence only for a bare, unqualified reference.
     questions.edge = {
       instruction: "If the utterance asks to remove or reverse an edge, which edge of the working graph does it mean? "
-        + "If it names the edge by its two nodes, choose that edge. "
-        + "Only if it names no edge and refers to one (for example \"that edge\"), choose the edge the focus describes.",
+        + "If it identifies an edge by its endpoints or its semantic description, match that qualification against the offered edges, "
+        + "using their current node labels and any snapshot-defined kind or purpose. Choose the matching edge only if it is unique; "
+        + "For a description of what a relationship does, compare the relationship itself, not merely a related endpoint label: "
+        + "membership in a role and interaction with another part are different relationships. "
+        + "An explicit identification by endpoints remains valid, including endpoints named by their displayed labels. "
+        + "if no edge or more than one edge matches, answer none. In particular, never use focus to override a qualification. "
+        + "Only a bare, unqualified reference (for example \"that edge\") may use the edge the focus describes; "
+        + "if it identifies no unique current edge, answer none. Do not pick an edge just because it is the only edge.",
       options: criteria(slots.edge, key => key === NONE
-        ? "the utterance refers to no edge of the working graph"
-        : `the edge from ${node(byId.get(key).from)} to ${node(byId.get(key).to)}`),
+        ? "no unique edge matches the qualified reference, or no unqualified reference identifies a current edge"
+        : `the edge from ${node(byId.get(key).from)} to ${node(byId.get(key).to)}${definedAs(byId.get(key))}`),
     };
   }
   if (slots.diagram) {
@@ -120,6 +127,83 @@ export function questionsFor(state, slots) {
         : `the utterance asks for ${purposeOf.get(key)}`),
     };
   }
+  if (slots.focus) {
+    const labelOf = new Map(state.architecture.entities.map(entity => [entity.id, entity.label]));
+    questions.focus = {
+      instruction: "If the utterance asks how this code is built, does it ask for the code as a whole, "
+        + "or which one part of it does it ask to see in more detail? "
+        + "state.architecture.entities names each part by its file path or, for what lies outside the source, "
+        + "by the identifier or URL the source uses for it.",
+      options: criteria(slots.focus, key => (key === WHOLE
+        ? "the code as a whole"
+        : key === NONE
+          ? "neither one part nor the whole is clear, or it asks for neither"
+          : `the part ${labelOf.get(key)}`)),
+    };
+  }
   for (const question of Object.values(questions)) question.instruction += CONTEXT_NOTE;
   return questions;
+}
+
+// A judge's questions: for each body file, whether it has each role; for each
+// pair, which relation holds, if any. Every answer rests only on the text
+// this Function adds: whole body files, and single lines of other files.
+const EVIDENCE_NOTE = " state.architecture.evidence.bodies holds whole files, each with its path;"
+  + " state.architecture.evidence.lines holds single lines of other files, each with its path and line number, and nothing around them."
+  + " A part with no text there is known only by its name. Judge only from that text; if it does not show the answer, answer none.";
+
+function judgeQuestions(section, slots) {
+  const labelOf = new Map(section.entities.map(entity => [entity.id, entity.label]));
+  const questions = {};
+  for (const body of section.bodies) {
+    for (const role of section.roles) {
+      questions[roleSlot(body, role.key)] = {
+        instruction: `Does the file ${labelOf.get(body)}, whose whole text is in state.architecture.evidence.bodies, ${role.purpose}?${EVIDENCE_NOTE}`,
+        options: criteria(slots[roleSlot(body, role.key)], key => key === YES
+          ? `yes: its own text shows that it ${role.purpose}`
+          : "no, or its text does not show it"),
+      };
+    }
+  }
+  const relationWords = new Map(section.relations.map(relation => [relation.key, relation.purpose]));
+  for (const candidate of section.candidates) {
+    questions[relationSlot(candidate.id)] = {
+      instruction: `From ${labelOf.get(candidate.from)} to ${labelOf.get(candidate.to)} (a candidate pair because of: ${candidate.reasons.join(", ")}):`
+        + ` which relation holds at run time from the first to the second? Being a candidate is not evidence of any relation.${EVIDENCE_NOTE}`,
+      options: criteria(slots[relationSlot(candidate.id)], key => key === NONE
+        ? "no relation of these kinds holds, or the text does not show one"
+        : relationWords.get(key)),
+    };
+  }
+  return questions;
+}
+
+// A locate frame's one question, judged from its part's own text - the files
+// it opens whole, and single lines of other files that name it - which the
+// question names by path, since the provider never sees the question's name.
+// For a file: whether its own text does or declares what the utterance is
+// about. For a part outside the source: whether the shown code uses it for
+// that. The utterance need not name the part; the options say where the line
+// falls.
+function locateQuestion(entity, evidence, slots) {
+  const file = entity.kind === "file";
+  const lined = [...new Set(evidence.lines.map(line => line.path))];
+  return {
+    [relevantSlot(entity.id)]: {
+      instruction: (file
+        ? `Does the original text of the file ${entity.label} implement behaviour, or declare data, that the current utterance asks about or refers to?`
+        : `Does the shown original code use ${entity.label}, which lies outside the source, for behaviour or data that the current utterance asks about or refers to?`)
+        + ` state.architecture.evidence.bodies holds ${evidence.bodies.map(body => body.path).join(", ")} whole`
+        + (lined.length === 0 ? "." : `; state.architecture.evidence.lines holds single lines of ${lined.join(", ")}, each with its path and line number.`)
+        + " Judge only from that text and the utterance."
+        + CONTEXT_NOTE,
+      options: criteria(slots[relevantSlot(entity.id)], key => (file
+        ? key === YES
+          ? "its own text implements that behaviour or declares that data, whether or not the utterance names the file"
+          : "its text does not, even if it mentions or imports another part that does"
+        : key === YES
+          ? "the shown code uses it for that behaviour or data, whether or not the utterance names it"
+          : "the shown code does not use it for that, or only names it")),
+    },
+  };
 }
