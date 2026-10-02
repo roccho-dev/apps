@@ -5,8 +5,23 @@ import {
   visibleFrameOf,
 } from "/ui/semantic-map/runtime.js";
 import * as protocol from "/ui/semantic-map/protocol/index.js";
+// The provider's own limit on operations in one Decision, which its protocol
+// entry does not carry; the architecture view is planned within it.
+import { MAX_DECISION_OPERATIONS } from "/ui/semantic-map/domain/operation.js";
+import { ACTION_ARCHITECTURE, judgeFramesFor, judgeSlotsFor, locateSlotsFor, readAnswers } from "/app/src/contract.mjs";
 import { readBundle } from "/app/src/bundle.mjs";
-import { readConfig } from "/app/src/config.mjs";
+import { FORMAT_ARCHITECTURE, readConfig } from "/app/src/config.mjs";
+import {
+  judgeRequestsOf,
+  judgedOf,
+  locateRequestsOf,
+  locatedOf,
+  planArchitecture,
+  readManifest,
+  routeOf,
+  withArchitecture,
+} from "/app/src/architecture.mjs";
+import { EVIDENCE_CURRENT, commitDocument, currentClaims, restoreDocument } from "/app/src/document.mjs";
 import {
   COMMIT_COMMITTED,
   COMMIT_UNVERIFIED,
@@ -24,9 +39,12 @@ import {
   clearPending,
   createSession,
   discard,
+  draftForJudgment,
   draftFull,
+  draftUsed,
   noteRefused,
   propose,
+  proposeArchitecture,
   recentConversation,
   spendPending,
   startNew,
@@ -50,10 +68,12 @@ import {
   renderContext,
   renderControls,
   renderDiagnostic,
+  renderArchitecture,
   renderDraft,
   renderBundleNotice,
   renderHistory,
   renderOutOfView,
+  renderWorkingNotice,
 } from "/app/src/render.mjs";
 
 // The browser side of the app and nothing else: the elements, the platform
@@ -78,6 +98,11 @@ const bundleNotice = document.querySelector("#bundle-notice");
 const contextList = document.querySelector("#context-recent");
 const contextSkipped = document.querySelector("#context-skipped");
 const contextClear = document.querySelector("#context-clear");
+const architectureSection = document.querySelector("#architecture");
+const workingNotice = document.querySelector("#working-notice");
+const cameraPart = document.querySelector("#camera-part");
+// Local presentation only; never saved, sent to judgment, or used as focus.
+let camera = null;
 
 const controls = {
   send,
@@ -92,20 +117,35 @@ const controls = {
 
 const { verifyDecisionLog } = protocol;
 
-// The configuration this page was given (web/data/config.v1.json), set once
-// it has been read and found valid; nothing below runs against storage or data
-// before that.
+// The configuration this page was given (the config.v1.json beside it), set
+// once it has been read and found valid; nothing below runs against storage or
+// data before that.
 let config;
+// The architecture page only: the prepared source's public manifest as read
+// (available, unavailable or invalid), and the saved document's cited snapshot
+// and provenance, or null while nothing is saved.
+let manifest = null;
+let savedDocument = null;
+const architecturePage = () => config?.persistence.format === FORMAT_ARCHITECTURE;
+// Jev is asked about the source only while the manifest is available and is
+// the very snapshot the saved document cites; otherwise nothing grounded in
+// the source may be added.
+const architectureReady = () => architecturePage() && manifest?.status === "available"
+  && (savedDocument === null || savedDocument.evidence === EVIDENCE_CURRENT);
 
 // The only place in the app that touches browser storage and its lock. The
 // modules are pure and take these as arguments. localStorage is the one
 // mechanism the config may name, and the key it declares also names the lock.
+// The format it declares decides what is stored: the plain DecisionLog, or the
+// architecture document that carries the same log with its provenance.
 const read = key => localStorage.getItem(key);
 const write = (key, value) => localStorage.setItem(key, value);
 const lock = (name, run) => navigator.locks.request(name, run);
-const commit = ({ graph, expected }) => commitLog({
-  graph, expected, key: config.persistence.key, read, write, lock, verifyDecisionLog,
-});
+const commit = ({ graph, expected, draft }) => (architecturePage()
+  ? commitDocument({
+    graph, draft, saved: savedDocument, expected, key: config.persistence.key, read, write, lock, verifyDecisionLog, manifest,
+  })
+  : commitLog({ graph, expected, key: config.persistence.key, read, write, lock, verifyDecisionLog }));
 
 // Capture and the surface are separate resources, so they are owned
 // separately. `capturing` makes microphone capture exclusive to one voice
@@ -126,6 +166,10 @@ let controlHoldsRender = false;
 // a reload recovers a display failure, and only clearing this origin's
 // storage from outside the app recovers a log that is not usable here.
 let blocked = false;
+let storageEvidence = "unread";
+let displayFailed = false;
+let ready = false;
+let resizePending = false;
 
 // The one session reference, the saved graph's history as the left pane
 // shows it, and the DataBundle this page loaded once.
@@ -139,14 +183,22 @@ const adopt = next => {
   else document.body.dataset.pending = next.pending.intent.missing;
 };
 
-const sync = () => renderControls(controls, {
+const sync = () => {
+  renderControls(controls, {
   idle: !rendering && !blocked,
   capturing,
   noLog: session.accepted === null,
   working: session.working !== null,
   draftLength: session.draft.length,
   conversationLength: session.conversation.length,
-});
+  });
+  cameraPart.disabled = rendering || blocked || session.working === null;
+  renderWorkingNotice(workingNotice, { working: session.working !== null, draftLength: session.draft.length, storage: storageEvidence, displayFailed });
+  if (ready && resizePending && !rendering && !blocked) {
+    resizePending = false;
+    queueMicrotask(() => withSurface("resize", resizeView));
+  }
+};
 
 const setState = (state, message) => {
   document.body.dataset.state = state;
@@ -154,8 +206,46 @@ const setState = (state, message) => {
 };
 
 const showLists = () => {
-  renderDraft(draftList, draftCount, { draft: session.draft, bundle });
-  renderContext(contextList, contextSkipped, recentConversation(session));
+  renderDraft(draftList, draftCount, { draft: session.draft, used: draftUsed(session), bundle });
+  renderContext(contextList, contextSkipped, recentConversation(session, { architecture: architectureReady() }));
+  const parts = session.working?.records.filter(record => record.type === "region" && record.parent !== null) ?? [];
+  cameraPart.replaceChildren();
+  const whole = document.createElement("option");
+  whole.value = ""; whole.textContent = "全体の概要";
+  cameraPart.append(whole);
+  const layout = workingLayout();
+  for (const part of parts.filter(part => layout?.bounds[part.id] !== undefined)) {
+    const option = document.createElement("option");
+    option.value = part.id; option.textContent = part.label;
+    cameraPart.append(option);
+  }
+  cameraPart.value = camera ?? "";
+};
+
+// The architecture page's account of what 作業図 now holds: the cited
+// snapshot and whether it can still be checked, every drawn record with the
+// claims about it (saved ones and those of unapplied architecture steps), and
+// what the preparation did not analyze. Nothing on the plain page.
+const showArchitecture = () => {
+  if (!architecturePage()) return;
+  const records = session.working?.records ?? [];
+  const labelOf = new Map(records.filter(record => record?.type === "region").map(record => [record.id, record.label]));
+  const labels = new Map([...labelOf, ...records.filter(record => record?.type === "relation")
+    .map(record => [record.id, `${labelOf.get(record.from) ?? record.from} -[${record.kind}]-> ${labelOf.get(record.to) ?? record.to}`])]);
+  const provenance = [...(savedDocument?.provenance ?? []), ...session.draft.filter(item => item.claims !== undefined)];
+  const cited = savedDocument?.source ?? (manifest?.status === "available" ? manifest.source : null);
+  const status = manifest?.status !== "available"
+    ? `構成図の出典を利用できません: ${manifest?.reason ?? "未読込"}。コードに基づく追加はできません`
+    : savedDocument !== null && savedDocument.evidence !== EVIDENCE_CURRENT
+      ? `保存済みの図は ${savedDocument.source.handle}@${savedDocument.source.commit} を出典とし、現在の出典 ${manifest.source.commit} とは異なります。コードに基づく追加はできません`
+      : `出典: ${cited.handle}@${cited.commit}`;
+  const coverage = manifest?.status !== "available" ? [] : [
+    ...manifest.coverage.notAnalyzed,
+    ...manifest.coverage.unsupported.map(entry => `未解析: ${entry.path} (${entry.reason})`),
+    ...manifest.coverage.skipped.map(entry => `図に含めないimport: ${entry.path} "${entry.specifier}" (${entry.reason})`),
+    ...manifest.files.filter(file => file.class === "excluded").map(file => `取り込み対象外: ${file.path} (${file.reason})`),
+  ];
+  renderArchitecture(architectureSection, { status, claims: currentClaims(provenance, records), labels, coverage });
 };
 
 const showHistory = (note = null) => renderHistory(historyPanel, {
@@ -190,9 +280,9 @@ const workingLayout = () => {
   }
 };
 
-// Each drawing fits the whole working graph, but the camera does not follow
-// a later resize, so parts can still end up outside the pane. They are still
-// in 作業図; the person is told which ones, never that they are visible. Only
+// The overview fits the whole graph; a selected local camera and a resize can
+// leave parts outside the pane. They are still in 作業図; the person is told
+// which ones, never that they are visible. Only
 // 作業図 is asked, which is sound while both panes show the same frame: both
 // have the same box and are given the same View.frame, which the browser test
 // asserts.
@@ -221,36 +311,36 @@ const paneFrame = graph => frameFor({
   width: workingSurface.clientWidth,
   height: workingSurface.clientHeight,
   protocol,
+  part: camera,
 });
 const sameFrame = (left, right) => JSON.stringify(left) === JSON.stringify(right);
-const drawWorking = graph => drawGraph({
-  graph, frame: paneFrame(graph), mount: workingSurface, protocol, renderProjection: renderSemanticMap, document,
-});
+const drawWorking = (graph, frame = paneFrame(graph)) => {
+  if (graph !== null && camera !== null && frame === null) throw new Error("the selected camera part is not placed");
+  return drawGraph({ graph, frame, mount: workingSurface, protocol, renderProjection: renderSemanticMap, document });
+};
 
 // 確定図 is drawn at the frame 作業図 has now, and again only when that frame
 // changed, so an edit that leaves the working graph's extent alone does not
 // redraw the saved graph.
 let confirmedFrame;
-const drawConfirmed = async () => {
-  const frame = paneFrame(session.working);
-  await drawGraph({ graph: session.accepted, frame, mount: confirmedSurface, protocol, renderProjection: renderSemanticMap, document });
-  confirmedFrame = frame;
-};
 const followWorkingFrame = async () => {
-  if (!sameFrame(confirmedFrame, paneFrame(session.working))) await drawConfirmed();
+  await new Promise(resolve => requestAnimationFrame(resolve));
+  const frame = paneFrame(session.working);
+  if (!sameFrame(confirmedFrame, frame)) {
+    await drawGraph({ graph: session.accepted, frame, mount: confirmedSurface, protocol, renderProjection: renderSemanticMap, document });
+    await drawWorking(session.working, frame);
+    confirmedFrame = frame;
+  }
 };
-// After a change to 作業図, which stands whatever happens here: redraw
-// 確定図 at the new frame, or say plainly that it could not be - the two
-// panes then show different frames - rather than report a clean step.
-// The next change tries again. Returns true when the page reported it.
-const followOrReport = async (state, message) => {
+// After a change to 作業図, the adopted draft stands whatever happens here.
+// Either pane can fail; invalidate the pair rather than accepting another
+// mutation against an unverified shared view. Returns true on failure.
+const followOrReport = async () => {
   try {
     await followWorkingFrame();
     return false;
   } catch (error) {
-    confirmedFrame = undefined;
-    setState("confirmed-display-failed", `${message}。ただし確定図を同じ表示範囲で描き直せませんでした`);
-    showHistory(`display failed (${state}): display_error`);
+    invalidateView();
     return true;
   }
 };
@@ -292,8 +382,8 @@ const decide = async (value, source) => {
   const held = spent.held;
   const stillHeld = held !== null && pendingHolds(held.intent, { head: working.head, frame: offeredFrame, offered: placeable });
 
-  const steps = session.draft.map(item => item.step);
-  const { turn, request } = requestFor({
+  const steps = draftForJudgment(session);
+  const plain = requestFor({
     working,
     utterance: value,
     bundle,
@@ -304,16 +394,73 @@ const decide = async (value, source) => {
     pending: stillHeld ? pendingForJudgment(held.intent) : null,
     recent: recentConversation(session).recent,
   });
+  // On the architecture page, while its source can be cited, the request is
+  // an architecture intent: the same request, with the snapshot's parts by
+  // path or identifier beside it, and no code.
+  const architecture = architectureReady();
+  const bound = architecture ? withArchitecture(plain, manifest) : plain;
+  const turn = bound.turn;
+  const request = architecture ? { ...bound.request, state: { ...bound.request.state,
+    context: { recent: recentConversation(session, { architecture: true }).recent },
+  } } : bound.request;
   const answer = await judge(request);
   if (answer.kind === "failed") return answer;
+  const answers = answer.decision.answers;
+
+  // An architecture answer that names one part goes on to a judge of that
+  // part's section alone. One that names neither the whole nor a part
+  // confidently is first located from the code itself - one frame per part,
+  // one after another, each shown that part's own text by the server; the
+  // first that fails, or is not answered completely on its own question, ends
+  // the utterance, and nothing after it is asked - and every part located is
+  // then judged together, as one section. A section is judged in its frames -
+  // one request, or several - one after another, each shown its own files by
+  // the server, and ended by the first that fails or is not answered
+  // completely on its own questions, just as a locate is.
+  const composing = architecture && answers?.action?.choice === ACTION_ARCHITECTURE;
+  const route = composing ? routeOf(turn, answers) : null;
+  let focus = route?.route === "part" ? route.focus : null;
+  let located = null;
+  const frames = route?.route === "locate" ? locateRequestsOf(manifest, request) : null;
+  if (frames !== null) {
+    const answered = [];
+    for (const frame of frames) {
+      const locating = await judge(frame);
+      if (locating.kind === "failed") return locating;
+      if (readAnswers(locating.decision.answers, locateSlotsFor(frame.state.architecture.focus)) === null) return failure("judge-contract");
+      answered.push(Object.freeze({ request: frame, answers: locating.decision.answers }));
+    }
+    located = Object.freeze(answered);
+    const found = locatedOf(manifest, located);
+    focus = found !== null && found.focus.length > 0 ? found.focus : null;
+  }
+  const judges = focus === null ? null : judgeRequestsOf(manifest, focus, value);
+  let judged = null;
+  if (judges !== null) {
+    const plan = judgeFramesFor(judges[0].state.architecture);
+    const answered = [];
+    for (const [index, frame] of judges.entries()) {
+      const judging = await judge(frame);
+      if (judging.kind === "failed") return judging;
+      if (readAnswers(judging.decision.answers, judgeSlotsFor(plan[index].section)) === null) return failure("judge-contract");
+      answered.push(Object.freeze({ request: frame, answers: judging.decision.answers }));
+    }
+    judged = judgedOf(manifest, focus, Object.freeze(answered));
+    if (judged === null) return failure("judge-contract");
+  }
 
   // Read in the same synchronous run the answer is judged in.
   const visibleFrame = visibleFrameOf(workingSurface);
   const input = Object.freeze({ source, text: value });
   const before = session;
-  const transition = await propose(session, {
-    turn, answers: answer.decision.answers, protocol, bundle, layout, visibleFrame, input, repair: held,
-  });
+  const transition = composing
+    ? await proposeArchitecture(session, {
+      planned: await planArchitecture({ working, turn, answers, judged, located, manifest, protocol, operationsMax: MAX_DECISION_OPERATIONS }),
+      input,
+      protocol,
+      reference: judged === null ? null : { source: manifest.source, focus: judged.section.focus },
+    })
+    : await propose(session, { turn, answers, protocol, bundle, layout, visibleFrame, input, repair: held });
   if (transition.result.outcome === OUTCOME_NO_CHANGE) {
     adopt(transition.session);
     renderDiagnostic(status, {
@@ -349,10 +496,11 @@ const decide = async (value, source) => {
 // failure leave it exactly as it was. 確定図 and storage are never touched.
 const finish = async (prefix, outcome) => {
   showLists();
+  showArchitecture();
   if (outcome.kind === OUTCOME_STEP) {
     showOutOfView();
     const drafted = `${prefix}: 作業図に追加しました (未反映)`;
-    if (!(await followOrReport("drafted", drafted))) {
+    if (!(await followOrReport())) {
       setState("drafted", drafted);
       showHistory();
     }
@@ -436,7 +584,7 @@ mic.addEventListener("click", async () => {
 // the same exclusive hold and release it only as its owner. Each drops a held
 // placement and the last turn's diagnostic, whatever it then does.
 const withSurface = async (label, run) => {
-  if (blocked || rendering) return;
+  if (!ready || blocked || rendering) return;
   adopt(clearPending(session));
   rendering = true;
   controlHoldsRender = true;
@@ -462,8 +610,9 @@ const showWorking = async (next, state, message) => {
   await drawWorking(next.working);
   adopt(next);
   showLists();
+  showArchitecture();
   showOutOfView();
-  if (!(await followOrReport(state, message))) {
+  if (!(await followOrReport())) {
     setState(state, message);
     showHistory();
   }
@@ -513,6 +662,37 @@ contextClear.addEventListener("click", () => {
   sync();
 });
 
+// A partial pair render cannot truthfully advertise a shared frame. Keep the
+// requested camera visible, block mutations, and recover by reading on reload.
+const invalidateView = () => {
+  confirmedFrame = undefined;
+  displayFailed = true;
+  blocked = true;
+  setState("view-unverified", "両方の表示枠を確認できません。再読み込みしてください");
+  showHistory("display failed: operation_failed");
+};
+const resizeView = async () => {
+  try {
+    confirmedFrame = undefined;
+    await followWorkingFrame();
+    showOutOfView();
+    setState("resized", "両方の図を現在の表示枠に合わせました");
+  } catch { invalidateView(); }
+};
+cameraPart.addEventListener("change", () => withSurface("camera", async () => {
+  camera = cameraPart.value || null;
+  try {
+    await drawWorking(session.working);
+    await followWorkingFrame();
+    showOutOfView();
+    setState("camera", camera === null ? "全体の概要を表示しています" : "選んだ部品を等倍で表示しています。表示外の部品も図には残っています。長いラベルは収まらない場合があります");
+  } catch { invalidateView(); }
+}));
+window.addEventListener("resize", () => {
+  resizePending = true;
+  if (ready) sync();
+});
+
 // 確定図に反映: the only write to storage and the only change to 確定図. Every
 // unapplied Decision is written at once, under the origin-wide lock, only as
 // a verified strict extension of what storage still holds, and read back. A
@@ -524,23 +704,38 @@ applyButton.addEventListener("click", () => withSurface("apply", async () => {
   // Storage that cannot be vouched for after a write leaves the screen unable
   // to speak for it: the page blocks until a reload reads what is really there.
   if (result.status === COMMIT_UNVERIFIED) {
+    storageEvidence = "unverified";
     blocked = true;
     setState("storage-unverified", "apply: storage could not be verified - reload to recover");
     showHistory(`failed: ${reasonText(result.status, result.reason)}`);
     return;
   }
   if (result.status !== COMMIT_COMMITTED) {
+    storageEvidence = "unread";
     setState("failed", "apply: failed");
     showHistory(`failed: ${reasonText(result.status, result.reason ?? null)}`);
     return;
   }
   adopt(next);
+  storageEvidence = "verified";
   showLists();
   try {
     savedHistory = await projectHistory(next.accepted, { verifyDecisionLog });
-    await drawConfirmed();
+    // The provenance now saved, read back as stored rather than assumed.
+    if (architecturePage()) {
+      const saved = await restoreDocument({ key: config.persistence.key, read, verifyDecisionLog, manifest });
+      if (saved.status !== RESTORE_RESTORED || saved.stored !== next.stored) throw new Error(`the saved document reads back as ${saved.status}`);
+      savedDocument = saved;
+    }
+    showArchitecture();
+    showHistory();
+    sync();
+    confirmedFrame = undefined;
+    await followWorkingFrame();
+    showOutOfView();
   } catch (error) {
     blocked = true;
+    displayFailed = true;
     setState("saved-display-failed", "apply: saved, display failed - reload to recover");
     showHistory(`display failed: ${"operation_failed"}`);
     return;
@@ -589,8 +784,10 @@ const fetchJson = async path => {
   }
 };
 
-// The configuration is the first thing read, from its one fixed place.
-const CONFIG_PATH = "/data/config.v1.json";
+// The configuration is the first thing read, from its one fixed name beside
+// the page: /data/config.v1.json for the plain page, and the architecture
+// page's own under /architecture/.
+const CONFIG_PATH = new URL("data/config.v1.json", document.baseURI).pathname;
 const loadConfig = async () => {
   const fetched = await fetchJson(CONFIG_PATH);
   return fetched.reason === undefined ? readConfig(fetched.value) : Object.freeze({ error: fetched.reason });
@@ -632,21 +829,42 @@ if (configured.error !== undefined) {
   // where it is, blocks the page and draws nothing; the only way forward is an
   // explicit clear from outside the app. 作業図 starts as the saved graph:
   // nothing unapplied survives a reload, and the conversation starts empty.
-  const restored = await restoreLog({ key: config.persistence.key, read, verifyDecisionLog });
+  //
+  // The architecture page reads its prepared source's public manifest first; a
+  // saved document is checked against it only when it cites the same snapshot.
+  if (architecturePage()) {
+    const fetched = await fetchJson(config.data.source);
+    manifest = fetched.reason === undefined ? readManifest(fetched.value) : Object.freeze({ status: "unavailable", reason: fetched.reason });
+  }
+  const restored = architecturePage()
+    ? await restoreDocument({ key: config.persistence.key, read, verifyDecisionLog, manifest })
+    : await restoreLog({ key: config.persistence.key, read, verifyDecisionLog });
   if (restored.status === RESTORE_RESTORED) {
+    storageEvidence = "verified";
     savedHistory = restored.projection;
-    adopt(createSession({ accepted: restored.graph, stored: restored.graph.log }));
+    if (architecturePage()) savedDocument = restored;
+    adopt(createSession({ accepted: restored.graph, stored: architecturePage() ? restored.stored : restored.graph.log }));
   } else {
+    storageEvidence = restored.status === RESTORE_NO_LOG ? "absent" : "invalid";
     blocked = restored.status !== RESTORE_NO_LOG;
     adopt(createSession({ accepted: null, stored: null }));
   }
+  // With no source to cite and nothing saved, the architecture page has
+  // nothing it could truthfully draw or save: it says why and stays blocked.
+  const sourceMissing = architecturePage() && manifest.status !== "available" && restored.status === RESTORE_NO_LOG;
+  if (sourceMissing) blocked = true;
   showLists();
+  showArchitecture();
+  showHistory(bootFailure);
+  sync();
 
   try {
-    await drawConfirmed();
-    await drawWorking(session.working);
+    await followWorkingFrame();
     showOutOfView();
-    if (blocked) {
+    if (sourceMissing) {
+      [bootState, bootMessage] = ["failed", "the prepared source is unavailable - nothing can be drawn from it"];
+      bootFailure = `${reasonText("architecture-unavailable")}: ${manifest.reason}`;
+    } else if (blocked) {
       [bootState, bootMessage] = ["failed", "saved history is unusable - clear this site's storage to start over"];
       bootFailure = `stored log rejected: ${restored.reason}`;
     } else if (restored.status === RESTORE_RESTORED) {
@@ -658,6 +876,7 @@ if (configured.error !== undefined) {
     // The stored graph is intact but undrawable. Nothing was lost, so this is
     // the same saved-but-not-displayed state a failed render produces.
     blocked = true;
+    displayFailed = true;
     [bootState, bootMessage] = ["saved-display-failed", "stored graph could not be drawn - reload to retry"];
     bootFailure = `display failed: ${"operation_failed"}`;
   }
@@ -665,5 +884,6 @@ if (configured.error !== undefined) {
 // The body state is set last, with every control already in its place: it is
 // what tells anyone watching that the page is ready.
 showHistory(bootFailure);
+ready = true;
 sync();
 setState(bootState, bootMessage);

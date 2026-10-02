@@ -1,0 +1,66 @@
+{
+  "schema": "voice-ui.architecture-scope/2",
+  "handle": "apps-voice-ui",
+  "root": "packages/voice-ui",
+  "urls": [
+    { "prefix": "/app/src/", "path": "src/" },
+    { "prefix": "/adapters/", "path": "web/adapters/" },
+    { "prefix": "/app.mjs", "path": "web/app.mjs" }
+  ],
+  "classes": [
+    { "match": "src/", "class": "admitted" },
+    { "match": "web/", "class": "admitted" },
+    { "match": "functions/", "class": "admitted" },
+    { "match": "dev/", "class": "admitted" },
+    { "match": "artifact.jsonl", "class": "admitted" },
+    { "match": "architecture/", "class": "excluded", "reason": "the preparation of this view, not part of the running app" },
+    { "match": "tests/", "class": "excluded", "reason": "tests and their fixtures" },
+    { "match": "acceptance/", "class": "excluded", "reason": "the acceptance harness" },
+    { "match": "dist.py", "class": "excluded", "reason": "the packaging script" }
+  ],
+  "external": [
+    { "identifier": "voice-ui-judge-provider" },
+    { "identifier": "JEV_API_KEY" },
+    { "identifier": "localStorage" },
+    { "url": "/ui/" },
+    { "identifier": "/hayamimi/" }
+  ],
+  "shared": [
+    { "identifier": "/api/judge", "declaredBy": "functions/pages-worker.mjs" }
+  ],
+  "facts": [
+    { "id": "normal-format", "path": "web/data/config.v1.json", "pointer": "/persistence/format" },
+    { "id": "normal-mechanism", "path": "web/data/config.v1.json", "pointer": "/persistence/mechanism" },
+    { "id": "normal-key", "path": "web/data/config.v1.json", "pointer": "/persistence/key" },
+    { "id": "normal-bundle", "path": "web/data/config.v1.json", "pointer": "/data/bundle" },
+    { "id": "architecture-format", "path": "dev/architecture-config.v1.json", "pointer": "/persistence/format" },
+    { "id": "architecture-mechanism", "path": "dev/architecture-config.v1.json", "pointer": "/persistence/mechanism" },
+    { "id": "architecture-key", "path": "dev/architecture-config.v1.json", "pointer": "/persistence/key" },
+    { "id": "architecture-bundle", "path": "dev/architecture-config.v1.json", "pointer": "/data/bundle" },
+    { "id": "architecture-source", "path": "dev/architecture-config.v1.json", "pointer": "/data/source" },
+    { "id": "required-capabilities", "path": "artifact.jsonl", "row": 1, "pointer": "/requiredCapabilities" }
+  ],
+  "roles": [
+    { "key": "voice-input", "purpose": "captures the person's speech or typed words and turns them into a request" },
+    { "key": "jev-boundary", "purpose": "sends a request to the judgment binding or defines what may be sent and read back" },
+    { "key": "graph-mutation", "purpose": "changes the working graph or draws it" },
+    { "key": "persistence", "purpose": "stores, restores or verifies saved data" },
+    { "key": "auth", "purpose": "holds, passes or requires a credential" },
+    { "key": "config", "purpose": "declares or validates configuration" }
+  ],
+  "relations": [
+    { "key": "calls", "purpose": "at run time the first sends requests to, or invokes, the second" },
+    { "key": "stores-in", "purpose": "the first writes or reads saved data in the second" },
+    { "key": "authenticates-with", "purpose": "the first uses a credential that comes from the second" },
+    { "key": "configures", "purpose": "the first supplies configuration that the second reads" }
+  ],
+  "notAnalyzed": [
+    "model-inferred relations with a subject whose unchanged whole UTF-8 text parses as JSON are not analyzed; all JSON values count, not just objects, and syntax says nothing about execution. Original candidates, focus, roles, imports and declared facts remain. Legitimate JSON-to-reader configures inferences are deliberately not analyzed either",
+    "dynamic import() and run-time effects are not analyzed",
+    "relations other than static imports are candidates for Jev to judge, never source-declared",
+    "an identifier found in a file's text makes a candidate pair, nothing more: it is a string match, not an analysis",
+    "an import resolved through the scope's URL mapping rests on that mapping, not on what a server actually serves",
+    "a role's node is a term of this scope's vocabulary, not something the code does; a has-role edge is Jev's judgement at that time, and a later judgement of none does not remove it",
+    "only packages/voice-ui is in scope; envs, windows and credentials are outside it, and anything outside is unknown"
+  ]
+}

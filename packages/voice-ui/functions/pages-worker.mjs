@@ -12,7 +12,7 @@ export default {
       // Credentials bind only at this request composition, never in app operations.
       const provider = bindJev({ apiKey: env?.JEV_API_KEY });
       const judge = (request, { signal }) => judgeNamedChoices({ request, provider, signal });
-      return onRequestPost({ request, available: provider.available }, judge);
+      return onRequestPost({ request, available: provider.available, architecture: env?.ARCHITECTURE }, judge);
     }
     return env.ASSETS.fetch(request);
   },

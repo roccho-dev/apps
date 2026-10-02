@@ -12,7 +12,9 @@
          a status changes or a list grows. */
       #composer { display: flex; gap: 8px; }
       #text { flex: 1; resize: none; }
-      #band p { margin: 2px 0; min-height: 1.4em; line-height: 1.4; }
+      #band p { margin: 2px 0; height: 2.8em; line-height: 1.4; overflow: auto; }
+      #camera-controls { display: flex; gap: 8px; align-items: center; }
+      #camera-part { flex: 1; min-width: 0; }
       .pane-head { display: flex; gap: 8px; align-items: center; height: 2.4rem; }
       .pane-head h2 { margin: 0; font-size: 1.2rem; }
       /* The first screen is the band and both graphs, filling the window by
@@ -48,7 +50,10 @@
           <button id="new" type="button" hidden>新しい図</button>
         </div>
         <p id="status" role="status"></p>
-        <p id="working-notice">作業図は保存されていません。再読み込みすると消えます。</p>
+        <p id="working-notice" aria-live="polite"></p>
+        <div id="camera-controls"><label for="camera-part">表示範囲（会話の参照先とは別）</label>
+          <select id="camera-part"><option value="">全体の概要</option></select>
+        </div>
         <!-- Parts still in 作業図 that the pane does not show whole. -->
         <p id="out-of-view" aria-live="polite"></p>
         <!-- What the data bundle could not provide, and why. -->
@@ -89,6 +94,14 @@
         <ol id="context-recent" aria-labelledby="context-heading"></ol>
         <p id="context-skipped"></p>
         <button id="context-clear" type="button">会話をクリア</button>
+      </section>
+      <!-- The architecture page only: which source snapshot the drawing cites,
+           where each drawn record comes from, and what was not analyzed. -->
+      <section id="architecture" aria-labelledby="architecture-heading" hidden>
+        <h3 id="architecture-heading">構成図の出典（推定を含む・稼働確認ではない）</h3>
+        <p id="architecture-status"></p>
+        <ul id="architecture-claims" aria-labelledby="architecture-heading"></ul>
+        <ul id="architecture-coverage"></ul>
       </section>
     </main>
 

@@ -33,6 +33,19 @@
           "working-tree";
       appRevision = revisionOf self;
       uiRevision = revisionOf ui;
+      # This package's own source, prepared for the architecture page from the
+      # exact commit only. A tree with uncommitted changes has no commit, so the
+      # preparation records that it is unavailable and why; the architecture
+      # page stays blocked while the rest of the dev server works as before.
+      architectureFor = system:
+        let pkgs = import nixpkgs { inherit system; };
+        in pkgs.runCommand "voice-ui-architecture-source" { nativeBuildInputs = [ pkgs.nodejs ]; } ''
+          node --experimental-vm-modules ${self}/packages/voice-ui/architecture/prepare.mjs \
+            --scope ${self}/packages/voice-ui/architecture/scope.v1.json \
+            --root ${self}/packages/voice-ui \
+            --commit '${if self ? rev then self.rev else ""}' \
+            --out "$out"
+        '';
       acceptanceFor =
         system:
         import ./packages/voice-ui/acceptance {
@@ -64,22 +77,22 @@
       };
       # Completed reviewed provider bytes; no ops source checkout/build input.
       jevRelease = {
-        base = "https://github.com/roccho-dev/ops/releases/download/jev-provider-11a209e10d9fcc1f51e9779898729a97b31fdd3b";
-        locator = "https://github.com/roccho-dev/ops/releases/download/jev-provider-11a209e10d9fcc1f51e9779898729a97b31fdd3b/jev-provider.zip";
-        sha256 = "0f111892288c44677a1f457591a9a7473377c2c276a1c17ad2b0c54dc23064ac";
-        proof_sha256 = "a68388cfad2ae1b5640f5329e7caa0f9eb23fc4417e38fc9e977e33f4c75021c";
-        provenance_sha256 = "e5a01640a2e67fa1e45b3eb69bfea935883330302f2420922518ef253dca9392";
-        entry_sha256 = "cfcd0badc97abb611182aae9d5e1c1de4ae3794eef5ea70f73b2bfdcc03f6582";
-        manifest_sha256 = "ff5a32758de6845c8f1f505a33b78852468b6f1dca3d0a88aef0adacbeea73fa";
+        base = "https://github.com/roccho-dev/ops/releases/download/jev-provider-3e863e70ce193dd0c9e49c394dc8c53a0f606c10";
+        locator = "https://github.com/roccho-dev/ops/releases/download/jev-provider-3e863e70ce193dd0c9e49c394dc8c53a0f606c10/jev-provider.zip";
+        sha256 = "d05a5401723bf946a01485e556e698277667c278c848b137019ccf7d08fdb60e";
+        proof_sha256 = "ca7edea6667dd0cae74479c45b2b17c53f33114acee76dca4ee31099e60933f1";
+        provenance_sha256 = "a66e67ea3375e5ebd2571c8cb24ae13a3b87a91b995c7182bba40a3dbb722279";
+        entry_sha256 = "3d28dcccb3622319db4e7e0fd55d89c704f71c50c44f2df1ea6588dfcf3b6204";
+        manifest_sha256 = "80653b19f5efabfe25f1e7facf97a39e23f2875d61df48f82a3eb0fae4f54793";
         contract = "named-choices/2";
         proof = {
-          pr_number = 465;
+          pr_number = 468;
           base = "proposals";
-          reviewed_head = "ce527027b05a47e3f2603b5a9222bda593fb0e31";
-          r_exact_head_verdict_ref = "https://github.com/roccho-dev/ops/pull/465#pullrequestreview-5386584462";
-          merge_sha = "11a209e10d9fcc1f51e9779898729a97b31fdd3b";
-          reviewed_tree = "f930dd23e8e4a39e1ef2617a31aaf28f92920b4c";
-          merge_tree = "f930dd23e8e4a39e1ef2617a31aaf28f92920b4c";
+          reviewed_head = "71e615fea15a4f43e991a30c1789ece7f09f1368";
+          r_exact_head_verdict_ref = "https://github.com/roccho-dev/ops/pull/468#pullrequestreview-5389692303";
+          merge_sha = "3e863e70ce193dd0c9e49c394dc8c53a0f606c10";
+          reviewed_tree = "11aa93c8cc92975092f6c51d2b8be8981f1eab01";
+          merge_tree = "11aa93c8cc92975092f6c51d2b8be8981f1eab01";
         };
       };
       jevArtifact = builtins.toJSON (
@@ -169,6 +182,7 @@
                 nativeBuildInputs = [
                   pkgs.python3
                   pkgs.esbuild
+                  pkgs.nodejs
                 ];
               }
               ''
@@ -176,6 +190,7 @@
                   --app ${self}/packages/voice-ui \
                   --semantic-map ${semanticMap} \
                   --hayamimi ${hayamimiWeb} \
+                  --architecture ${architectureFor system} \
                   --judge ${jevProvider} \
                   --judge-artifact '${jevArtifact}' \
                   --out "$out" \
@@ -197,6 +212,7 @@
 
           voice-ui-dist = mkVoiceUiDist "voice-ui-dist";
           voice-ui-acceptance-runtime = (acceptanceFor system).runtime;
+          voice-ui-architecture-source = architectureFor system;
         }
       );
 
@@ -211,6 +227,7 @@
               export VOICE_UI_SEMANTIC_MAP=${ui.packages.${system}.semantic-map}
               export VOICE_UI_HAYAMIMI=${hayamimiFor system}
               export VOICE_UI_WORKER=${self.packages.${system}.voice-ui-dist}/worker/worker.mjs
+              export VOICE_UI_ARCHITECTURE=${architectureFor system}
               exec node ${self}/packages/voice-ui/dev/serve.mjs "$@"
             '';
           };
@@ -244,6 +261,7 @@
                 nativeBuildInputs = [
                   pkgs.python3
                   pkgs.esbuild
+                  pkgs.nodejs
                 ];
               }
               ''
@@ -251,6 +269,7 @@
                   --app ${self}/packages/voice-ui \
                   --semantic-map ${semanticMap} \
                   --hayamimi ${hayamimiWeb} \
+                  --architecture ${architectureFor system} \
                   --judge ${if name == "voice-ui-dist-relocated" then jevRelocated else jevProvider} \
                   --judge-artifact '${jevArtifact}' \
                   --out "$out" \
@@ -317,7 +336,7 @@
           voice-ui-dist =
             pkgs.runCommand "voice-ui-dist-check"
               {
-                nativeBuildInputs = [ pkgs.python3 ];
+                nativeBuildInputs = [ pkgs.python3 pkgs.nodejs ];
               }
               ''
                 python3 ${self}/packages/voice-ui/dist.py verify --dist ${voiceUiDist}
@@ -378,7 +397,16 @@
                   'open(os.path.join(root, "unlisted-test.txt"), "wb").write(b"unlisted public test file\n")'
                 refuse "secret material marker" \
                   'rewrite("site/index.html", open(os.path.join(root, "site/index.html"), "rb").read() + b"\n<!-- AGE-SECRET-KEY-TEST-ONLY -->\n")'
-                test "$i" = 13
+                refuse "architecture source identity mismatch" \
+                  'rel="site/architecture/data/source.v1.json"; s=json.load(open(os.path.join(root, rel))); s["source"]["commit"]="f"*40; rewrite(rel, json.dumps(s).encode())'
+                refuse "architecture evidence closure mismatch" \
+                  'rel="architecture/evidence.json"; e=json.load(open(os.path.join(root, rel))); del e["files"][next(iter(e["files"]))]; rewrite(rel, json.dumps(e).encode())'
+                refuse "architecture evidence blob mismatch" \
+                  'rel="architecture/evidence.json"; e=json.load(open(os.path.join(root, rel))); e["files"][next(iter(e["files"]))]+="\nchanged"; rewrite(rel, json.dumps(e).encode())'
+                refuse "architecture provenance mismatch" 'm["sources"]["architecture"]["manifest_sha256"]="0"*64'
+                refuse "architecture public manifest invalid" \
+                  'rel="site/architecture/data/source.v1.json"; s=json.load(open(os.path.join(root, rel))); s["text"]="not public metadata"; rewrite(rel, json.dumps(s).encode())'
+                test "$i" = 18
                 touch "$out"
               '';
 

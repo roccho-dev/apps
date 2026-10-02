@@ -60,6 +60,10 @@ const REASONS = Object.freeze({
   "judge-contract": "the judgment binding answered outside the contract",
   "voice-failed": "voice input failed",
   "display-failed": "the step could not be drawn",
+  "architecture-nothing-new": "the architecture view already shows everything this answer names",
+  "architecture-unavailable": "the prepared source is not available, so the architecture view cannot be drawn or extended",
+  "architecture-focus-unclear": "どこを見たいのか分かりませんでした。全体か、ファイル名などで指定してください",
+  "architecture-judge-missing": "対象のコード判定がないため、図を更新しませんでした",
   error: "unexpected error",
 });
 
@@ -73,14 +77,31 @@ export const reasonText = (reason, detail = null) => {
 // Where both panes point their cameras: the provider's own layout of the
 // working graph, fitted to the pane's box. No frame when there is nothing to
 // fit - no graph, a graph the view cannot lay out, or a pane with no box.
-export function frameFor({ graph, width, height, protocol }) {
+export function frameFor({ graph, width, height, protocol, part = null }) {
   if (graph === null || !(width > 0 && height > 0)) return null;
   try {
-    const { rootBounds } = protocol.layoutBoundsFor(graph.records, { pattern: protocol.GRAPH_PATTERN });
-    return { bbox: [...rootBounds], viewport: [width, height] };
+    const { rootBounds, bounds } = protocol.layoutBoundsFor(graph.records, { pattern: protocol.GRAPH_PATTERN });
+    if (part === null) return { bbox: [...rootBounds], viewport: [width, height] };
+    const selected = bounds[part];
+    if (selected === undefined) return null;
+    // One layout unit per pixel: a readable local camera around this part,
+    // not a new layout, filtered graph or conversational reference.
+    const [x, y, w, h] = selected;
+    return { bbox: [x + w / 2 - width / 2, y + h / 2 - height / 2, width, height], viewport: [width, height] };
   } catch {
     return null;
   }
+}
+
+export function renderWorkingNotice(notice, { working, draftLength, storage, displayFailed }) {
+  if (!["unread", "absent", "verified", "invalid", "unverified"].includes(storage)) throw new Error("unknown storage evidence");
+  notice.textContent = storage === "unread" ? "保存内容はまだ読み取っていません。"
+    : storage === "invalid" ? "保存内容を復元できません。保存内容は変更していません。"
+      : storage === "unverified" ? "書き込み後の保存内容を確認できません。再読み込みして確認してください。"
+        : displayFailed ? (storage === "verified" ? "保存内容は確認済みですが、表示を確認できません。再読み込みしてください。" : "保存済みの図はありません。表示を確認できないため再読み込みしてください。")
+          : !working ? "作業図はまだありません。保存済みの図もありません。"
+            : draftLength > 0 || storage === "absent" ? "未反映の変更は保存されていません。再読み込みすると未反映分が消えます。"
+              : "作業図は保存済みです。再読み込みしても保存内容を復元します。";
 }
 
 // One pane: the log drawn by the pinned provider's embed, asked for the
@@ -200,8 +221,9 @@ const effectOf = (changes, { action = null, template = null, bundle = null } = {
 const saidBy = source => (source === "voice" ? "認識文: " : "入力文: ");
 
 // 作業図's unapplied steps in order, each with the text it was judged from and
-// what it does, and the cap stated. Text is set as text only.
-export function renderDraft(list, count, { draft, bundle }) {
+// what it does, and the cap stated against the utterances `used`. Text is set
+// as text only.
+export function renderDraft(list, count, { draft, used, bundle }) {
   const document = list.ownerDocument;
   list.replaceChildren();
   for (const { step, input } of draft) {
@@ -236,8 +258,8 @@ export function renderDraft(list, count, { draft, bundle }) {
     item.append(" → ", effect);
     list.append(item);
   }
-  const full = draft.length >= DRAFT_MAX;
-  count.textContent = `未反映: ${draft.length} / ${DRAFT_MAX}`
+  const full = used >= DRAFT_MAX;
+  count.textContent = `未反映: ${used} / ${DRAFT_MAX}`
     + (full ? " - 上限です。確定図に反映・元に戻す・作業図を破棄のいずれかを選んでください。" : "");
 }
 
@@ -290,6 +312,54 @@ export function renderBundleNotice(notice, { affected, reason }) {
   notice.textContent = affected.length > 0
     ? `部品と図のひな形を読み込めなかったため使えません: ${affected.join(", ")} (${reason})。保存済みの図の表示と確定図への反映はできます`
     : "";
+}
+
+// The architecture page's account of what it drew: the snapshot the saved
+// graph cites and whether it can still be checked, then every drawn record
+// with each claim about it - where it comes from - and what the preparation
+// did not analyze. A role is drawn as an edge to that role's node, so it is
+// listed like any other record. A claim is never presented as a live check of
+// the running system.
+const ORIGIN_WORDS = Object.freeze({
+  "source-declared": "コードに記載",
+  "model-inferred": "Jevの推定",
+  "user-asserted": "利用者の指定",
+  unknown: "不明（取り込み範囲外）",
+  "scope-declared": "取り込み範囲の分類（コードの事実ではない）",
+});
+const RESOLUTION_WORDS = Object.freeze({
+  relative: "",
+  "scope-url-map": " (取り込み範囲のURL対応で解決。配信の確認ではありません)",
+  "scope-external-url": " (取り込み範囲外のURL)",
+});
+const basisText = entry => {
+  if (entry.candidate !== undefined) return `候補 ${entry.candidate}`;
+  if (entry.specifier !== undefined) return `${entry.path} の import "${entry.specifier}"${RESOLUTION_WORDS[entry.resolution] ?? ""}`;
+  if (entry.pointer !== undefined) return `${entry.path}${entry.row === undefined ? "" : ` ${entry.row}行目`} ${entry.pointer}`;
+  if (entry.path !== undefined) return entry.path;
+  if (entry.vocabulary !== undefined) return `役割の語彙 ${entry.key}`;
+  return "取り込み範囲の外";
+};
+export function renderArchitecture(section, { status, claims, labels, coverage }) {
+  const document = section.ownerDocument;
+  section.hidden = false;
+  section.querySelector("#architecture-status").textContent = status;
+  const list = section.querySelector("#architecture-claims");
+  list.replaceChildren(...claims.map(({ record, claims: about }) => {
+    const item = document.createElement("li");
+    item.dataset.record = `${record.type} ${record.id}`;
+    item.dataset.origins = [...new Set(about.map(claim => claim.origin))].join(" ");
+    item.textContent = `${labels.get(record.id) ?? record.id}: `
+      + about.map(claim => ORIGIN_WORDS[claim.origin]
+        + (claim.basis.length === 0 ? "" : ` (${claim.basis.map(basisText).join("; ")})`)).join(" / ");
+    return item;
+  }));
+  const gaps = section.querySelector("#architecture-coverage");
+  gaps.replaceChildren(...coverage.map(line => {
+    const item = document.createElement("li");
+    item.textContent = line;
+    return item;
+  }));
 }
 
 const DIAGNOSTIC_KEYS = Object.freeze([

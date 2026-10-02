@@ -4,7 +4,8 @@ import { spawn } from "node:child_process";
 import { dirname, join } from "node:path";
 import test from "node:test";
 import { createTranscription } from "../web/adapters/transcription.mjs";
-import { DECISION_KIND, ERRORS } from "../src/contract.mjs";
+import { ARCHITECTURE_INTENT_KIND, DECISION_KIND, ERRORS, isRequest } from "../src/contract.mjs";
+import { intentSectionOf } from "../src/architecture.mjs";
 
 // One browser URL mapping, not a substitute implementation: import the exact
 // authored adapter with its sole absolute application import resolved for Node.
@@ -128,13 +129,16 @@ test("HTTP judgment bounds hung headers and body even when a fixture ignores abo
   }
 });
 
-test("the supplied fixed formal server serves the same site and compiled auth gate", { timeout: 15000 }, async t => {
+const withFormalServer = async (t, env, check) => {
   assert.ok(process.env.VOICE_UI_WORKER, "the actual produced Worker is required");
   const root = dirname(dirname(process.env.VOICE_UI_WORKER));
   const manifest = JSON.parse(await readFile(join(root, "manifest.json"), "utf8"));
   assert.equal(manifest.e2e.local_serve_entrypoint, "e2e/serve.mjs");
-  const child = spawn(process.execPath, [join(root, manifest.e2e.local_serve_entrypoint), "--formal"], {
-    env: { PATH: process.env.PATH, HOME: process.env.HOME, LANG: "C.UTF-8", PORT: "0", HOST: "127.0.0.1" }, stdio: ["ignore", "pipe", "pipe"],
+  // Exercise the exact shipped entry, but forbid all provider network calls in this control.
+  const child = spawn(process.execPath, ["--input-type=module", "--eval",
+    'globalThis.fetch = async () => { throw new Error("provider invocation forbidden"); }; await import(process.argv[1]);',
+    join(root, manifest.e2e.local_serve_entrypoint), "--formal"], {
+    env: { PATH: process.env.PATH, HOME: process.env.HOME, LANG: "C.UTF-8", PORT: "0", HOST: "127.0.0.1", ...env }, stdio: ["ignore", "pipe", "pipe"],
   });
   t.after(() => child.kill());
   let output = "";
@@ -148,14 +152,53 @@ test("the supplied fixed formal server serves the same site and compiled auth ga
         if (found) resolve("http://127.0.0.1:" + found[1]);
       });
     });
+    await check({ origin, root, manifest });
+  } finally {
+    child.kill();
+    await new Promise(resolve => child.exitCode !== null || child.signalCode !== null ? resolve() : child.once("exit", resolve));
+  }
+};
+
+test("the supplied fixed formal server serves the same site and compiled auth gate", { timeout: 15000 }, async t => {
+  await withFormalServer(t, {}, async ({ origin, root }) => {
     const staticResponse = await fetch(origin + "/app.mjs");
     assert.equal(staticResponse.status, 200);
     assert.deepEqual(Buffer.from(await staticResponse.arrayBuffer()), await readFile(join(root, "site/app.mjs")));
     const refused = await fetch(origin + "/api/judge", { method: "POST", body: "{" });
     assert.equal(refused.status, 503);
     assert.deepEqual(await refused.json(), { error: ERRORS.unavailable });
-  } finally {
-    child.kill();
-    await new Promise(resolve => child.exitCode !== null || child.signalCode !== null ? resolve() : child.once("exit", resolve));
-  }
+  });
+});
+
+test("formal architecture serves exact public bytes and binds private source before the provider", { timeout: 15000 }, async t => {
+  await withFormalServer(t, { JEV_API_KEY: "test-only-value" }, async ({ origin, root, manifest }) => {
+    assert.equal(manifest.e2e.architecture_entrypoint, "e2e/architecture-e2e.mjs");
+    for (const [url, file] of [
+      ["/architecture/", "site/index.html"],
+      ["/architecture/data/config.v1.json", "site/architecture/data/config.v1.json"],
+      ["/architecture/data/source.v1.json", "site/architecture/data/source.v1.json"],
+    ]) {
+      const response = await fetch(origin + url);
+      assert.equal(response.status, 200, url);
+      assert.deepEqual(Buffer.from(await response.arrayBuffer()), await readFile(join(root, file)), url);
+    }
+    const source = JSON.parse(await readFile(join(root, "site/architecture/data/source.v1.json"), "utf8"));
+    assert.equal(source.status, "available", "an exact committed artifact snapshot is required");
+    assert.deepEqual(manifest.sources.architecture.source, source.source);
+    assert.equal(source.source.commit, manifest.sources.apps);
+    for (const url of ["/architecture/evidence.json", "/evidence.json", "/architecture/../architecture/evidence.json"]) {
+      assert.equal((await fetch(origin + url)).status, 404, "private source is outside the public site");
+    }
+    const architecture = JSON.parse(JSON.stringify(intentSectionOf(source)));
+    architecture.source.commit = "f".repeat(40);
+    const body = { kind: ARCHITECTURE_INTENT_KIND, state: {
+      utterance: "show this code", graph: { regions: [], edges: [], placeable: [] },
+      draft: [], focus: null, pending: null, context: { recent: [] },
+      offers: { parts: [], diagrams: [] }, architecture,
+    } };
+    assert.equal(isRequest(body), true, "a valid wire with another source identity");
+    const refused = await fetch(origin + "/api/judge", { method: "POST", body: JSON.stringify(body) });
+    assert.equal(refused.status, 422, "bound source rejects mismatch, not architecture-unavailable");
+    assert.deepEqual(await refused.json(), { error: ERRORS.architectureMismatch });
+  });
 });

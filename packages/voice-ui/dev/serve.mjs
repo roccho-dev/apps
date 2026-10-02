@@ -23,7 +23,16 @@ const { default: worker } = await import(formalRoot ? path.join(formalRoot, "wor
 const stores = formalRoot ? {} : {
   semanticMap: requireStore("VOICE_UI_SEMANTIC_MAP"),
   hayamimi: requireStore("VOICE_UI_HAYAMIMI"),
+  // This package's own source, prepared at build time from the exact commit
+  // (or marked unavailable when there was none): a public manifest the
+  // architecture page reads, and evidence only the Function below is given.
+  architecture: requireStore("VOICE_UI_ARCHITECTURE"),
 };
+const architectureFiles = formalRoot
+  ? { manifest: path.join(formalRoot, "site/architecture/data/source.v1.json"), evidence: path.join(formalRoot, "architecture/evidence.json") }
+  : { manifest: path.join(stores.architecture, "manifest.json"), evidence: path.join(stores.architecture, "evidence.json") };
+const architecture = Object.fromEntries(await Promise.all(Object.entries(architectureFiles)
+  .map(async ([name, file]) => [name, JSON.parse(await fs.readFile(file, "utf8"))])));
 
 const TYPES = new Map(Object.entries({
   ".html": "text/html; charset=utf-8",
@@ -44,7 +53,7 @@ function resolveUnder(root, relative) {
 
 function route(pathname) {
   if (formalRoot) {
-    return resolveUnder(path.join(formalRoot, "site"), pathname === "/" ? "index.html" : pathname.slice(1));
+    return resolveUnder(path.join(formalRoot, "site"), ["/", "/architecture/"].includes(pathname) ? "index.html" : pathname.slice(1));
   }
   if (pathname === "/") return path.join(packageRoot, "web/index.html");
 
@@ -53,6 +62,12 @@ function route(pathname) {
   if (pathname === "/data/config.v1.json") return path.join(packageRoot, "web/data/config.v1.json");
 
   if (pathname === "/data/bundle.v1.json") return path.join(packageRoot, "web/data/bundle.v1.json");
+
+  // The architecture page: the same page and app under its own path, reading
+  // its own config beside it and the prepared source's public manifest.
+  if (pathname === "/architecture/") return path.join(packageRoot, "web/index.html");
+  if (pathname === "/architecture/data/config.v1.json") return path.join(packageRoot, "dev/architecture-config.v1.json");
+  if (pathname === "/architecture/data/source.v1.json") return path.join(stores.architecture, "manifest.json");
 
   const rest = suffix => pathname.slice(suffix.length);
 
@@ -125,6 +140,7 @@ async function serveChunkManifest(response, file) {
 // asset binding fails loudly if routing ever sends one there.
 const workerEnv = {
   JEV_API_KEY: process.env.JEV_API_KEY,
+  ARCHITECTURE: architecture,
   ASSETS: {
     fetch: async request => {
       throw new Error(`the dev server routes static files itself, not ${new URL(request.url).pathname}`);
@@ -157,6 +173,13 @@ async function serveJudge(request, response) {
 
 const server = createServer((request, response) => {
   const { pathname } = new URL(request.url, "http://localhost");
+
+  // Without the slash the page would read the root's config; send it to its own.
+  if (pathname === "/architecture") {
+    response.writeHead(308, { location: "/architecture/", "cache-control": "no-store" });
+    response.end();
+    return;
+  }
 
   if (pathname === "/api/judge") {
     serveJudge(request, response).catch(() => {

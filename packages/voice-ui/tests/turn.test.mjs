@@ -19,7 +19,36 @@ import {
   isRequest,
 } from "../src/contract.mjs";
 import { MAP_ID, STATE_SCHEMA, restoreLog, statesOf, truncateLog } from "../src/log.mjs";
-import { drawGraph } from "../src/render.mjs";
+import { drawGraph, frameFor, renderWorkingNotice } from "../src/render.mjs";
+
+test("local camera uses declared layout without changing records or assuming every label fits", () => {
+  const records = [{ id: "a" }];
+  const graph = { records };
+  const protocol = { GRAPH_PATTERN: "graph/1", layoutBoundsFor: actual => {
+    assert.equal(actual, records);
+    return { rootBounds: [0, 0, 1804, 2462], bounds: { a: [100, 200, 140, 64] } };
+  } };
+  assert.deepEqual(frameFor({ graph, width: 619, height: 541, protocol }), { bbox: [0, 0, 1804, 2462], viewport: [619, 541] });
+  assert.deepEqual(frameFor({ graph, width: 619, height: 541, protocol, part: "a" }), { bbox: [-139.5, -38.5, 619, 541], viewport: [619, 541] });
+  assert.equal(frameFor({ graph, width: 619, height: 541, protocol, part: "missing" }), null);
+  assert.equal(frameFor({ graph, width: 0, height: 541, protocol }), null);
+  assert.deepEqual(records, [{ id: "a" }]);
+});
+
+test("working notice distinguishes storage evidence from display failure and draft emptiness", () => {
+  const notice = {};
+  const show = values => { renderWorkingNotice(notice, { working: true, draftLength: 0, displayFailed: false, ...values }); return notice.textContent; };
+  assert.match(show({ storage: "verified" }), /保存済み/u);
+  assert.match(show({ storage: "verified", draftLength: 1 }), /未反映/u);
+  assert.match(show({ storage: "absent" }), /未反映/u);
+  assert.match(show({ storage: "absent", working: false }), /保存済みの図もありません/u);
+  assert.match(show({ storage: "verified", displayFailed: true }), /保存内容は確認済み.*表示を確認できません/u);
+  assert.match(show({ storage: "absent", displayFailed: true }), /保存済みの図はありません/u);
+  assert.match(show({ storage: "invalid" }), /復元できません/u);
+  assert.match(show({ storage: "unverified" }), /書き込み後/u);
+  assert.match(show({ storage: "unread" }), /まだ読み取っていません/u);
+  assert.throws(() => show({ storage: "unknown" }), /unknown storage evidence/u);
+});
 import {
   ACTION_NEW,
   OUTCOME_NO_CHANGE,
