@@ -628,9 +628,9 @@ try {
     const file = choices.find(option => option.label === "web/app.mjs");
     assert.ok(file, "the actual source-file camera is offered");
     const long = choices.reduce((best, option) => option.label.length > best.label.length ? option : best, file);
-    const heldPlacement = stage => say(stage, "fixture incomplete placement", {
+    const heldPlacement = stage => say(stage, "fixture incomplete placement", name => ({
       action: contract.ACTION_PLACE_PART, move: file.id, anchor: contract.NONE, direction: "right",
-    });
+    })[name] ?? contract.NONE);
     const heldCamera = await heldPlacement("camera-pending");
     assert.equal(heldCamera.now.pending, "anchor", "the controlled placement really holds its missing anchor");
     await page.locator("#camera-part").selectOption(file.id);
