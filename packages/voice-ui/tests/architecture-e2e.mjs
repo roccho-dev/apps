@@ -170,8 +170,9 @@ const craft = (picks, fault = () => null) => {
     }
     const answers = Object.fromEntries(Object.entries(slots).map(([name, options]) => {
       const picked = picks(name, sent);
-      const value = typeof picked === "string" ? { choice: picked, confidence: 0.9 } : picked;
-      if (typeof picked !== "string") assert.ok(options.includes(value.choice), name + ": the controlled uncertain choice is actually offered");
+      const structured = picked !== null && typeof picked === "object";
+      const value = structured ? picked : { choice: picked, confidence: 0.9 };
+      if (structured) assert.ok(options.includes(value.choice), name + ": the controlled uncertain choice is actually offered");
       return [name, { type: "choice", choice: options.includes(value.choice) ? value.choice : contract.NONE, confidence: value.confidence }];
     }));
     await route.fulfill({ status: 200, contentType: "application/json; charset=utf-8",
