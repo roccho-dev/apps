@@ -69,20 +69,24 @@ export const draftForJudgment = session => unitsOf(session.draft)
 
 // What the next request sends and the panel shows: the most recent entries
 // short enough to send whole, and how many were left out for being longer.
-export function recentConversation(session) {
+export function recentConversation(session, { architecture = false } = {}) {
   return Object.freeze({
-    recent: Object.freeze(session.conversation.filter(entry => entry.text.length <= CONTEXT_TEXT_MAX).slice(-CONTEXT_MAX)),
+    recent: Object.freeze(session.conversation.filter(entry => entry.text.length <= CONTEXT_TEXT_MAX).slice(-CONTEXT_MAX)
+      .map(({ reference, ...entry }) => Object.freeze(architecture ? { ...entry, reference: reference ?? null } : entry))),
     skipped: session.conversation.filter(entry => entry.text.length > CONTEXT_TEXT_MAX).length,
   });
 }
 
-const remember = (session, { source, text }, outcome, changes = null) => {
+const remember = (session, { source, text }, outcome, changes = null, reference = null) => {
   const entry = Object.freeze({
     seq: session.nextSeq,
     source,
     text,
     outcome,
     ...(changes === null ? {} : { effect: Object.freeze({ changes: changesForJudgment(changes) }) }),
+    ...(reference === null ? {} : { reference: Object.freeze({
+      source: Object.freeze({ ...reference.source }), focus: Object.freeze([...reference.focus]),
+    }) }),
   });
   return freeze({ ...session, conversation: [...session.conversation, entry], nextSeq: session.nextSeq + 1 });
 };
@@ -179,14 +183,16 @@ export async function propose(session, { turn, answers, protocol, bundle, layout
 // other judged utterance, and its steps join the draft in order, each with its
 // claims and all in the utterance's group - all of them or none. Only the
 // first carries the utterance; Undo takes the whole group back at once.
-export async function proposeArchitecture(session, { planned, input, protocol }) {
+export async function proposeArchitecture(session, { planned, input, protocol, reference = null }) {
   if (planned.outcome !== OUTCOME_STEP) {
-    const next = planned.outcome === OUTCOME_NO_CHANGE ? remember(session, input, "no-change") : noteRefused(session, input);
+    const next = planned.outcome === OUTCOME_NO_CHANGE
+      ? remember(session, input, "no-change", null, planned.reason === "architecture-nothing-new" ? reference : null)
+      : noteRefused(session, input);
     return Object.freeze({ session: next, result: planned });
   }
   if (draftFull(session)) return Object.freeze({ session: noteRefused(session, input), result: noChange("draft-full") });
   const group = session.nextSeq;
-  let next = remember(session, input, "step", planned.steps.flatMap(item => item.step.changes));
+  let next = remember(session, input, "step", planned.steps.flatMap(item => item.step.changes), reference);
   for (const [index, item] of planned.steps.entries()) {
     const stepInput = index === 0 ? Object.freeze({ ...input, seq: group }) : null;
     const appended = await appendItem(next, item.step, stepInput, protocol, item.claims, group);

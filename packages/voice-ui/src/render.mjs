@@ -77,14 +77,31 @@ export const reasonText = (reason, detail = null) => {
 // Where both panes point their cameras: the provider's own layout of the
 // working graph, fitted to the pane's box. No frame when there is nothing to
 // fit - no graph, a graph the view cannot lay out, or a pane with no box.
-export function frameFor({ graph, width, height, protocol }) {
+export function frameFor({ graph, width, height, protocol, part = null }) {
   if (graph === null || !(width > 0 && height > 0)) return null;
   try {
-    const { rootBounds } = protocol.layoutBoundsFor(graph.records, { pattern: protocol.GRAPH_PATTERN });
-    return { bbox: [...rootBounds], viewport: [width, height] };
+    const { rootBounds, bounds } = protocol.layoutBoundsFor(graph.records, { pattern: protocol.GRAPH_PATTERN });
+    if (part === null) return { bbox: [...rootBounds], viewport: [width, height] };
+    const selected = bounds[part];
+    if (selected === undefined) return null;
+    // One layout unit per pixel: a readable local camera around this part,
+    // not a new layout, filtered graph or conversational reference.
+    const [x, y, w, h] = selected;
+    return { bbox: [x + w / 2 - width / 2, y + h / 2 - height / 2, width, height], viewport: [width, height] };
   } catch {
     return null;
   }
+}
+
+export function renderWorkingNotice(notice, { working, draftLength, storage, displayFailed }) {
+  if (!["unread", "absent", "verified", "invalid", "unverified"].includes(storage)) throw new Error("unknown storage evidence");
+  notice.textContent = storage === "unread" ? "保存内容はまだ読み取っていません。"
+    : storage === "invalid" ? "保存内容を復元できません。保存内容は変更していません。"
+      : storage === "unverified" ? "書き込み後の保存内容を確認できません。再読み込みして確認してください。"
+        : displayFailed ? (storage === "verified" ? "保存内容は確認済みですが、表示を確認できません。再読み込みしてください。" : "保存済みの図はありません。表示を確認できないため再読み込みしてください。")
+          : !working ? "作業図はまだありません。保存済みの図もありません。"
+            : draftLength > 0 || storage === "absent" ? "未反映の変更は保存されていません。再読み込みすると未反映分が消えます。"
+              : "作業図は保存済みです。再読み込みしても保存内容を復元します。";
 }
 
 // One pane: the log drawn by the pinned provider's embed, asked for the

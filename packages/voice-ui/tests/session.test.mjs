@@ -16,6 +16,7 @@ import {
   draftFull,
   noteRefused,
   propose,
+  proposeArchitecture,
   recentConversation,
   spendPending,
   startNew,
@@ -45,6 +46,41 @@ const opened = async () => {
   const graph = await saved();
   return createSession({ accepted: graph, stored: graph.log });
 };
+
+test("analysis reference is ephemeral history projected out of plain requests", async () => {
+  const original = await opened();
+  const reference = { source: { handle: "voice-ui", commit: "a".repeat(40) }, focus: ["web-app-mjs"] };
+  const input = { source: "typed", text: "show storage" };
+  const acknowledged = await proposeArchitecture(original, {
+    planned: { outcome: OUTCOME_NO_CHANGE, reason: "architecture-nothing-new" }, input, protocol, reference,
+  });
+  assert.deepEqual(recentConversation(acknowledged.session, { architecture: true }).recent[0].reference, reference);
+  assert.equal(Object.hasOwn(recentConversation(acknowledged.session).recent[0], "reference"), false);
+  assert.equal(Object.isFrozen(acknowledged.session.conversation[0].reference.focus), true);
+  assert.equal(acknowledged.session.working, original.working);
+  assert.deepEqual(acknowledged.session.draft, original.draft);
+  const ordinary = await say(acknowledged.session, { action: ACTION_ADD_EDGE, source: "node-a", target: "node-b" });
+  const changed = await proposeArchitecture(acknowledged.session, {
+    planned: { outcome: OUTCOME_STEP, steps: [{ step: ordinary.result.step, claims: [] }] }, input, protocol, reference,
+  });
+  assert.equal(changed.result.outcome, OUTCOME_STEP);
+  const undone = await undo(changed.session, { verifyDecisionLog });
+  const context = recentConversation(undone, { architecture: true }).recent;
+  assert.deepEqual(context[0].reference, reference, "Undo preserves the earlier justified acknowledgement");
+  assert.equal(context[1].outcome, "undone");
+  assert.equal(context[1].reference, null, "Undo invalidates only the associated successful step");
+  assert.equal(undone.working.head, original.working.head);
+  for (const planned of [
+    { outcome: OUTCOME_NO_CHANGE, reason: "architecture-focus-unclear" },
+    { outcome: OUTCOME_REFUSED, reason: "answer-invalid" },
+    { outcome: OUTCOME_STEP, steps: [{ step: { changes: [] }, claims: [] }] },
+  ]) {
+    const refused = await proposeArchitecture(original, { planned, input, protocol, reference });
+    assert.equal(recentConversation(refused.session, { architecture: true }).recent[0].reference, null);
+    assert.equal(refused.session.working, original.working);
+  }
+  assert.deepEqual(recentConversation(clearConversation(acknowledged.session), { architecture: true }).recent, []);
+});
 
 const choice = (value, confidence = 0.9) => ({ type: "choice", choice: value, confidence });
 const WIDE = [-400, -400, 2000, 2000];

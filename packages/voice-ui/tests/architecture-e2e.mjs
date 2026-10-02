@@ -198,12 +198,19 @@ const screen = () => page.evaluate(([key, rootKey]) => ({
       ? { head: runtime.head, records: runtime.records, view: runtime.view } : null;
   })(),
   stored: localStorage.getItem(key),
+  confirmedGraph: (() => {
+    const runtime = document.querySelector("#confirmed-surface iframe[data-package=semantic-map]")?.contentWindow?.semanticMapRuntime;
+    return runtime && Array.isArray(runtime.records) && runtime.records.length > 0 && typeof runtime.head === "string"
+      ? { head: runtime.head, records: runtime.records, view: runtime.view } : null;
+  })(),
+  notice: document.querySelector("#working-notice").textContent,
+  camera: document.querySelector("#camera-part").value,
   root: localStorage.getItem(rootKey),
 }), [KEY, ROOT_KEY]);
 const domOf = now => ({
   state: now.state, status: now.status, failure: now.failure, draftSteps: now.draft.length, draftCount: now.draftCount,
   claims: now.claims.map(claim => `${claim.record} ${claim.origins.join("+")}`),
-  draft: now.draft, context: now.context, graph: now.graph,
+  draft: now.draft, context: now.context, graph: now.graph, confirmedGraph: now.confirmedGraph, notice: now.notice, camera: now.camera,
 });
 // What the page showed last, for the summary.
 let last = null;
@@ -589,6 +596,8 @@ try {
   need(applied.state === "applied", `Apply saved the document (state ${applied.state}: ${applied.failure ?? applied.status})`);
   need(applied.stored?.startsWith('{"schema":"voice-ui.architecture-document/1"'), "the architecture key holds the document");
   need(applied.root === rootBefore, "the plain page's stored value is untouched");
+  need(applied.confirmedGraph !== null && JSON.stringify(applied.confirmedGraph.view) === JSON.stringify(applied.graph?.view), "Apply gives both panes the same settled view");
+  need(applied.notice.includes("保存済み") && !applied.notice.includes("消えます"), "verified Apply has no unsaved warning");
   need(applied.stored !== null && !applied.stored.includes("export function") && !applied.stored.includes("confidence"),
     "no source text, raw answer or confidence is saved");
 
@@ -601,6 +610,8 @@ try {
   report({ event: "turn", stage: "reload", expected: 0, requests: 0, answered: 0, failed: 0, exchanges: [], dom: domOf(reloaded) });
   need(reloaded.state === "restored", `reload restores the document (state ${reloaded.state}: ${reloaded.failure ?? reloaded.status})`);
   need(reloaded.stored === applied.stored, "reload does not rewrite the document");
+  need(reloaded.confirmedGraph !== null && JSON.stringify(reloaded.confirmedGraph.view) === JSON.stringify(reloaded.graph?.view), "reload gives both panes the same settled view");
+  need(reloaded.notice.includes("保存済み") && !reloaded.notice.includes("消えます"), "verified restore has no unsaved warning");
   need(JSON.stringify(reloaded.claims) === JSON.stringify(applied.claims), "the same records and origins come back");
   need(applied.graph !== null && reloaded.graph !== null
     && JSON.stringify(reloaded.graph.records) === JSON.stringify(applied.graph.records)
@@ -610,6 +621,86 @@ try {
     `all five origins come back (${originsAfter.join(", ")})`);
   need(hasRole(reloaded, LOG, "persistence") && hasRole(reloaded, APP, "persistence"), "the roles come back as drawn");
   need(/^出典: apps-voice-ui@/u.test(reloaded.sourceStatus), "the cited snapshot is still checkable");
+  if (FIXTURE) {
+    const beforeCamera = reloaded;
+    const choices = await page.locator("#camera-part option").evaluateAll(options => options.filter(option => option.value).map(option => ({ id: option.value, label: option.textContent })));
+    const file = choices.find(option => option.label === "web/app.mjs");
+    assert.ok(file, "the actual source-file camera is offered");
+    const long = choices.reduce((best, option) => option.label.length > best.label.length ? option : best, file);
+    const labelVisible = label => page.evaluate(label => {
+      const iframe = document.querySelector("#working-surface iframe[data-package=semantic-map]");
+      const doc = iframe.contentDocument;
+      return [...doc.querySelectorAll("svg text, svg foreignObject")].some(node => {
+        const rect = node.getBoundingClientRect(), style = iframe.contentWindow.getComputedStyle(node);
+        return node.textContent.includes(label) && rect.width > 0 && rect.height > 0
+          && rect.right > 0 && rect.bottom > 0 && rect.left < iframe.clientWidth && rect.top < iframe.clientHeight
+          && style.display !== "none" && style.visibility !== "hidden";
+      });
+    }, label);
+    for (const chosen of [file, long]) {
+      await page.locator("#camera-part").selectOption(chosen.id);
+      await settle();
+      const focused = await screen();
+      assert.equal(focused.state, "camera", focused.status);
+      assert.deepEqual(focused.graph.records, beforeCamera.graph.records);
+      assert.deepEqual(focused.confirmedGraph.view, focused.graph.view);
+      assert.deepEqual(focused.context, beforeCamera.context, "camera does not create conversational reference");
+      assert.equal(focused.stored, beforeCamera.stored);
+      const visible = await labelVisible(chosen.label);
+      if (chosen === file) assert.equal(visible, true, "the actual source-file label is visible in the rendered graph");
+      else if (!visible) assert.match(focused.status, /長いラベルは収まらない/u, "long-label limitation is explicit, not a math-only readability claim");
+      report({ event: "camera", part: chosen.id, label: chosen.label, labelVisible: visible, dom: domOf(focused) });
+    }
+    await page.locator("#camera-part").selectOption("");
+    await settle();
+    const viewport = page.viewportSize();
+    await Promise.all([
+      page.locator("#camera-part").selectOption(file.id),
+      page.setViewportSize({ ...viewport, height: viewport.height + 40 }),
+    ]);
+    await page.waitForFunction(() => {
+      const mount = document.querySelector("#working-surface"), runtime = mount.querySelector("iframe")?.contentWindow?.semanticMapRuntime;
+      return document.body.dataset.state !== "pending" && runtime?.view?.frame?.viewport?.[1] === mount.clientHeight;
+    });
+    const resized = await screen();
+    assert.deepEqual(resized.confirmedGraph.view, resized.graph.view, "locked resize eventually synchronizes both panes");
+    await page.setViewportSize(viewport);
+    await page.waitForFunction(() => document.body.dataset.state !== "pending");
+    await page.locator("#camera-part").selectOption("");
+    await settle();
+    // Fail the second pane after the working pane adopted its new frame.
+    // This changes neither the graph nor provider requests.
+    await page.evaluate(() => {
+      const mount = document.querySelector("#confirmed-surface");
+      const append = mount.append;
+      mount.append = function (...nodes) { mount.append = append; throw new Error("controlled second-pane insertion failure"); };
+    });
+    await page.locator("#camera-part").selectOption(file.id);
+    await settle();
+    const failedPair = await screen();
+    assert.equal(failedPair.state, "view-unverified");
+    assert.equal(await page.locator("#send").isDisabled(), true);
+    assert.equal(await page.locator("#camera-part").isDisabled(), true);
+    assert.equal(failedPair.stored, beforeCamera.stored);
+    assert.deepEqual(failedPair.graph.records, beforeCamera.graph.records);
+    assert.deepEqual(failedPair.draft, beforeCamera.draft);
+    assert.match(failedPair.notice, /保存内容は確認済み.*表示を確認できません/u);
+    report({ event: "camera-failure", dom: domOf(failedPair) });
+    // Resize during the fixture recovery reload: queue until boot has a
+    // session, rather than throwing or permanently dropping dimensions.
+    await Promise.all([page.reload({ waitUntil: "commit" }), page.setViewportSize({ ...viewport, height: viewport.height + 24 })]);
+    await ready();
+    await page.waitForFunction(() => {
+      const mount = document.querySelector("#working-surface"), runtime = mount.querySelector("iframe")?.contentWindow?.semanticMapRuntime;
+      return runtime?.view?.frame?.viewport?.[1] === mount.clientHeight;
+    });
+    const recovered = await screen();
+    assert.equal(recovered.camera, "", "camera is ephemeral, not restored from storage");
+    assert.deepEqual(recovered.confirmedGraph.view, recovered.graph.view);
+    assert.equal(recovered.stored, beforeCamera.stored);
+    assert.deepEqual(recovered.graph.records, beforeCamera.graph.records);
+    report({ event: "camera-recovered", dom: domOf(recovered) });
+  }
 } catch (error) {
   thrown = error;
 } finally {

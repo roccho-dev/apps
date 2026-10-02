@@ -17,10 +17,12 @@ export const DECISION_KIND = "voice-ui.judge.decision.v1";
 // part located - asked in frames: each carries the section whole and names
 // the one or two body files its own questions rest on, whose text the server
 // adds.
-export const ARCHITECTURE_INTENT_KIND = "voice-ui.judge.architecture-intent.v1";
-// v2: one frame asks about one part, no longer every part at once.
-export const ARCHITECTURE_LOCATE_KIND = "voice-ui.judge.architecture-locate.v1";
-// v3: one request asks one frame of the section, no longer every question at once.
+export const ARCHITECTURE_INTENT_KIND = "voice-ui.judge.architecture-intent.v2";
+// Intent/locate v2 require an explicit nullable reference on every context
+// entry. Plain v1 keeps its exact original shape; old architecture kinds are
+// not admitted. Judge v1 is unchanged: it carries no conversation.
+export const ARCHITECTURE_LOCATE_KIND = "voice-ui.judge.architecture-locate.v2";
+// One judge request asks one frame of the section.
 export const ARCHITECTURE_JUDGE_KIND = "voice-ui.judge.architecture-judge.v1";
 
 // Every slot also offers this option, so it may not be a part, edge or key.
@@ -157,21 +159,29 @@ const validFocus = (focus, max) => focus === null
 
 // An earlier utterance and what came of it. Only a step, not undone, carries
 // the effect the page built from it then.
-const validContextEntry = (entry, max) =>
+const validReference = reference => reference === null || (
+  exactObject(reference, ["source", "focus"]) && validSource(reference.source)
+  && Array.isArray(reference.focus) && reference.focus.length > 0 && reference.focus.length <= ARCHITECTURE_GRAPH_MAX
+  && reference.focus.every(part => KEY_PATTERN.test(part ?? "") && ![NONE, WHOLE].includes(part))
+  && sortedUnique(reference.focus)
+);
+const validContextEntry = (entry, max, architecture) =>
   exactObject(entry, entry?.outcome === "step"
-    ? ["seq", "source", "text", "outcome", "effect"]
-    : ["seq", "source", "text", "outcome"])
+    ? ["seq", "source", "text", "outcome", "effect", ...(architecture ? ["reference"] : [])]
+    : ["seq", "source", "text", "outcome", ...(architecture ? ["reference"] : [])])
   && Number.isSafeInteger(entry.seq) && entry.seq >= 1
   && CONTEXT_SOURCES.includes(entry.source)
   && text(entry.text, CONTEXT_TEXT_MAX)
   && CONTEXT_OUTCOMES.includes(entry.outcome)
+  && (!architecture || (validReference(entry.reference)
+    && (entry.reference === null || ["step", "no-change"].includes(entry.outcome))))
   && (entry.outcome !== "step" || (exactObject(entry.effect, ["changes"]) && validChanges(entry.effect.changes, max)));
 
-const validContext = (context, max) =>
+const validContext = (context, max, architecture = false) =>
   exactObject(context, ["recent"])
   && Array.isArray(context.recent)
   && context.recent.length <= CONTEXT_MAX
-  && context.recent.every(entry => validContextEntry(entry, max))
+  && context.recent.every(entry => validContextEntry(entry, max, architecture))
   && context.recent.every((entry, index) => index === 0 || entry.seq > context.recent[index - 1].seq);
 
 // The placement the previous utterance nearly made: part ids and a side, the
@@ -230,7 +240,7 @@ export function isRequest(value) {
     && state.draft.every(step => exactObject(step, ["changes"]) && validChanges(step.changes, changes))
     && validFocus(state.focus, changes)
     && validPending(state.pending, state.graph.placeable)
-    && validContext(state.context, changes)
+    && validContext(state.context, changes, architecture)
     && exactObject(state.offers, ["parts", "diagrams"])
     && validOffer(state.offers.parts)
     && validOffer(state.offers.diagrams);
@@ -244,7 +254,7 @@ export function isLocateRequest(value) {
   const { state } = value;
   return exactObject(state, ["utterance", "context", "architecture"])
     && text(state.utterance, TEXT_MAX)
-    && validContext(state.context, ARCHITECTURE_CHANGES_MAX)
+    && validContext(state.context, ARCHITECTURE_CHANGES_MAX, true)
     && exactObject(state.architecture, ["source", "focus"]) && validSource(state.architecture.source)
     && Array.isArray(state.architecture.focus) && state.architecture.focus.length === 1
     && KEY_PATTERN.test(state.architecture.focus[0] ?? "") && ![NONE, WHOLE].includes(state.architecture.focus[0]);

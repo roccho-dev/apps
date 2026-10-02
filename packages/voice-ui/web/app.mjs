@@ -73,6 +73,7 @@ import {
   renderBundleNotice,
   renderHistory,
   renderOutOfView,
+  renderWorkingNotice,
 } from "/app/src/render.mjs";
 
 // The browser side of the app and nothing else: the elements, the platform
@@ -98,6 +99,10 @@ const contextList = document.querySelector("#context-recent");
 const contextSkipped = document.querySelector("#context-skipped");
 const contextClear = document.querySelector("#context-clear");
 const architectureSection = document.querySelector("#architecture");
+const workingNotice = document.querySelector("#working-notice");
+const cameraPart = document.querySelector("#camera-part");
+// Local presentation only; never saved, sent to judgment, or used as focus.
+let camera = null;
 
 const controls = {
   send,
@@ -161,6 +166,10 @@ let controlHoldsRender = false;
 // a reload recovers a display failure, and only clearing this origin's
 // storage from outside the app recovers a log that is not usable here.
 let blocked = false;
+let storageEvidence = "unread";
+let displayFailed = false;
+let ready = false;
+let resizePending = false;
 
 // The one session reference, the saved graph's history as the left pane
 // shows it, and the DataBundle this page loaded once.
@@ -174,14 +183,22 @@ const adopt = next => {
   else document.body.dataset.pending = next.pending.intent.missing;
 };
 
-const sync = () => renderControls(controls, {
+const sync = () => {
+  renderControls(controls, {
   idle: !rendering && !blocked,
   capturing,
   noLog: session.accepted === null,
   working: session.working !== null,
   draftLength: session.draft.length,
   conversationLength: session.conversation.length,
-});
+  });
+  cameraPart.disabled = rendering || blocked || session.working === null;
+  renderWorkingNotice(workingNotice, { working: session.working !== null, draftLength: session.draft.length, storage: storageEvidence, displayFailed });
+  if (ready && resizePending && !rendering && !blocked) {
+    resizePending = false;
+    queueMicrotask(() => withSurface("resize", resizeView));
+  }
+};
 
 const setState = (state, message) => {
   document.body.dataset.state = state;
@@ -190,7 +207,19 @@ const setState = (state, message) => {
 
 const showLists = () => {
   renderDraft(draftList, draftCount, { draft: session.draft, used: draftUsed(session), bundle });
-  renderContext(contextList, contextSkipped, recentConversation(session));
+  renderContext(contextList, contextSkipped, recentConversation(session, { architecture: architectureReady() }));
+  const parts = session.working?.records.filter(record => record.type === "region" && record.parent !== null) ?? [];
+  cameraPart.replaceChildren();
+  const whole = document.createElement("option");
+  whole.value = ""; whole.textContent = "全体の概要";
+  cameraPart.append(whole);
+  const layout = workingLayout();
+  for (const part of parts.filter(part => layout?.bounds[part.id] !== undefined)) {
+    const option = document.createElement("option");
+    option.value = part.id; option.textContent = part.label;
+    cameraPart.append(option);
+  }
+  cameraPart.value = camera ?? "";
 };
 
 // The architecture page's account of what 作業図 now holds: the cited
@@ -282,23 +311,26 @@ const paneFrame = graph => frameFor({
   width: workingSurface.clientWidth,
   height: workingSurface.clientHeight,
   protocol,
+  part: camera,
 });
 const sameFrame = (left, right) => JSON.stringify(left) === JSON.stringify(right);
-const drawWorking = graph => drawGraph({
-  graph, frame: paneFrame(graph), mount: workingSurface, protocol, renderProjection: renderSemanticMap, document,
-});
+const drawWorking = (graph, frame = paneFrame(graph)) => {
+  if (graph !== null && camera !== null && frame === null) throw new Error("the selected camera part is not placed");
+  return drawGraph({ graph, frame, mount: workingSurface, protocol, renderProjection: renderSemanticMap, document });
+};
 
 // 確定図 is drawn at the frame 作業図 has now, and again only when that frame
 // changed, so an edit that leaves the working graph's extent alone does not
 // redraw the saved graph.
 let confirmedFrame;
-const drawConfirmed = async () => {
-  const frame = paneFrame(session.working);
-  await drawGraph({ graph: session.accepted, frame, mount: confirmedSurface, protocol, renderProjection: renderSemanticMap, document });
-  confirmedFrame = frame;
-};
 const followWorkingFrame = async () => {
-  if (!sameFrame(confirmedFrame, paneFrame(session.working))) await drawConfirmed();
+  await new Promise(resolve => requestAnimationFrame(resolve));
+  const frame = paneFrame(session.working);
+  if (!sameFrame(confirmedFrame, frame)) {
+    await drawGraph({ graph: session.accepted, frame, mount: confirmedSurface, protocol, renderProjection: renderSemanticMap, document });
+    await drawWorking(session.working, frame);
+    confirmedFrame = frame;
+  }
 };
 // After a change to 作業図, which stands whatever happens here: redraw
 // 確定図 at the new frame, or say plainly that it could not be - the two
@@ -369,7 +401,11 @@ const decide = async (value, source) => {
   // an architecture intent: the same request, with the snapshot's parts by
   // path or identifier beside it, and no code.
   const architecture = architectureReady();
-  const { turn, request } = architecture ? withArchitecture(plain, manifest) : plain;
+  const bound = architecture ? withArchitecture(plain, manifest) : plain;
+  const turn = bound.turn;
+  const request = architecture ? { ...bound.request, state: { ...bound.request.state,
+    context: { recent: recentConversation(session, { architecture: true }).recent },
+  } } : bound.request;
   const answer = await judge(request);
   if (answer.kind === "failed") return answer;
   const answers = answer.decision.answers;
@@ -425,6 +461,7 @@ const decide = async (value, source) => {
       planned: await planArchitecture({ working, turn, answers, judged, located, manifest, protocol, operationsMax: MAX_DECISION_OPERATIONS }),
       input,
       protocol,
+      reference: judged === null ? null : { source: manifest.source, focus: judged.section.focus },
     })
     : await propose(session, { turn, answers, protocol, bundle, layout, visibleFrame, input, repair: held });
   if (transition.result.outcome === OUTCOME_NO_CHANGE) {
@@ -550,7 +587,7 @@ mic.addEventListener("click", async () => {
 // the same exclusive hold and release it only as its owner. Each drops a held
 // placement and the last turn's diagnostic, whatever it then does.
 const withSurface = async (label, run) => {
-  if (blocked || rendering) return;
+  if (!ready || blocked || rendering) return;
   adopt(clearPending(session));
   rendering = true;
   controlHoldsRender = true;
@@ -628,6 +665,37 @@ contextClear.addEventListener("click", () => {
   sync();
 });
 
+// A partial pair render cannot truthfully advertise a shared frame. Keep the
+// requested camera visible, block mutations, and recover by reading on reload.
+const invalidateView = () => {
+  confirmedFrame = undefined;
+  displayFailed = true;
+  blocked = true;
+  setState("view-unverified", "両方の表示枠を確認できません。再読み込みしてください");
+  showHistory("display failed: operation_failed");
+};
+const resizeView = async () => {
+  try {
+    confirmedFrame = undefined;
+    await followWorkingFrame();
+    showOutOfView();
+    setState("resized", "両方の図を現在の表示枠に合わせました");
+  } catch { invalidateView(); }
+};
+cameraPart.addEventListener("change", () => withSurface("camera", async () => {
+  camera = cameraPart.value || null;
+  try {
+    await drawWorking(session.working);
+    await followWorkingFrame();
+    showOutOfView();
+    setState("camera", camera === null ? "全体の概要を表示しています" : "選んだ部品を等倍で表示しています。表示外の部品も図には残っています。長いラベルは収まらない場合があります");
+  } catch { invalidateView(); }
+}));
+window.addEventListener("resize", () => {
+  resizePending = true;
+  if (ready) sync();
+});
+
 // 確定図に反映: the only write to storage and the only change to 確定図. Every
 // unapplied Decision is written at once, under the origin-wide lock, only as
 // a verified strict extension of what storage still holds, and read back. A
@@ -639,17 +707,20 @@ applyButton.addEventListener("click", () => withSurface("apply", async () => {
   // Storage that cannot be vouched for after a write leaves the screen unable
   // to speak for it: the page blocks until a reload reads what is really there.
   if (result.status === COMMIT_UNVERIFIED) {
+    storageEvidence = "unverified";
     blocked = true;
     setState("storage-unverified", "apply: storage could not be verified - reload to recover");
     showHistory(`failed: ${reasonText(result.status, result.reason)}`);
     return;
   }
   if (result.status !== COMMIT_COMMITTED) {
+    storageEvidence = "unread";
     setState("failed", "apply: failed");
     showHistory(`failed: ${reasonText(result.status, result.reason ?? null)}`);
     return;
   }
   adopt(next);
+  storageEvidence = "verified";
   showLists();
   try {
     savedHistory = await projectHistory(next.accepted, { verifyDecisionLog });
@@ -660,9 +731,14 @@ applyButton.addEventListener("click", () => withSurface("apply", async () => {
       savedDocument = saved;
     }
     showArchitecture();
-    await drawConfirmed();
+    showHistory();
+    sync();
+    confirmedFrame = undefined;
+    await followWorkingFrame();
+    showOutOfView();
   } catch (error) {
     blocked = true;
+    displayFailed = true;
     setState("saved-display-failed", "apply: saved, display failed - reload to recover");
     showHistory(`display failed: ${"operation_failed"}`);
     return;
@@ -767,10 +843,12 @@ if (configured.error !== undefined) {
     ? await restoreDocument({ key: config.persistence.key, read, verifyDecisionLog, manifest })
     : await restoreLog({ key: config.persistence.key, read, verifyDecisionLog });
   if (restored.status === RESTORE_RESTORED) {
+    storageEvidence = "verified";
     savedHistory = restored.projection;
     if (architecturePage()) savedDocument = restored;
     adopt(createSession({ accepted: restored.graph, stored: architecturePage() ? restored.stored : restored.graph.log }));
   } else {
+    storageEvidence = restored.status === RESTORE_NO_LOG ? "absent" : "invalid";
     blocked = restored.status !== RESTORE_NO_LOG;
     adopt(createSession({ accepted: null, stored: null }));
   }
@@ -780,10 +858,11 @@ if (configured.error !== undefined) {
   if (sourceMissing) blocked = true;
   showLists();
   showArchitecture();
+  showHistory(bootFailure);
+  sync();
 
   try {
-    await drawConfirmed();
-    await drawWorking(session.working);
+    await followWorkingFrame();
     showOutOfView();
     if (sourceMissing) {
       [bootState, bootMessage] = ["failed", "the prepared source is unavailable - nothing can be drawn from it"];
@@ -800,6 +879,7 @@ if (configured.error !== undefined) {
     // The stored graph is intact but undrawable. Nothing was lost, so this is
     // the same saved-but-not-displayed state a failed render produces.
     blocked = true;
+    displayFailed = true;
     [bootState, bootMessage] = ["saved-display-failed", "stored graph could not be drawn - reload to retry"];
     bootFailure = `display failed: ${"operation_failed"}`;
   }
@@ -807,5 +887,6 @@ if (configured.error !== undefined) {
 // The body state is set last, with every control already in its place: it is
 // what tells anyone watching that the page is ready.
 showHistory(bootFailure);
+ready = true;
 sync();
 setState(bootState, bootMessage);

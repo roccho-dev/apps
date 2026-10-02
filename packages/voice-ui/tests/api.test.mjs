@@ -295,12 +295,70 @@ const prepared = (() => {
 const ARCHITECTURE_ENV = Object.freeze({ JEV_API_KEY: "test-only-value", ARCHITECTURE: prepared });
 const MANIFEST = readManifest(prepared.manifest);
 const intentRequest = (architecture = intentSectionOf(MANIFEST)) => ({ ...request({ architecture }), kind: ARCHITECTURE_INTENT_KIND });
+
+test("architecture references are required nullable keys reopened canonically before judgment", async () => {
+  const entry = { seq: 1, source: "typed", text: "show storage", outcome: "no-change", reference: null };
+  const body = intentRequest();
+  body.state.context = { recent: [entry] };
+  assert.equal(isRequest(body), true);
+  const reference = { source: MANIFEST.source, focus: ["ext-localstorage"] };
+  entry.reference = reference;
+  body.state.graph = {
+    regions: [{ id: "one", label: "one" }, { id: "two", label: "two" }, { id: "three", label: "three" }],
+    edges: [{ id: "edge-one", from: "one", to: "two" }, { id: "edge-two", from: "two", to: "three" }],
+    placeable: [],
+  };
+  const { result, calls } = await withProvider(answering(noneTo), () => post(body, ARCHITECTURE_ENV));
+  assert.equal(result.status, 200);
+  assert.deepEqual(calls[0].state.context.recent[0].reference, judgeSectionOf(MANIFEST, reference.focus));
+  assert.match(calls[0].questions.action.instructions, /association.*unverified/u);
+  assert.match(calls[0].questions.edge.instructions, /Do not replace an explicit endpoint or semantic qualification/u);
+  assert.match(calls[0].questions.edge.instructions, /Match against all current edges/u);
+  assert.match(calls[0].questions.edge.instructions, /does not identify one unique edge, answer none/u);
+  assert.deepEqual(Object.keys(calls[0].questions.edge.criteria).sort(), [NONE, "edge-one", "edge-two"].sort(),
+    "the reference subset cannot prune globally explicit edges");
+  for (const altered of [
+    { ...entry, reference: undefined },
+    { ...entry, reference: { ...reference, focus: ["missing"] } },
+    { ...entry, reference: { ...reference, source: { ...reference.source, commit: "f".repeat(40) } } },
+    { ...entry, reference: { ...reference, descriptors: [] } },
+    { ...entry, outcome: "refused" },
+  ]) {
+    const malformed = { ...body, state: { ...body.state, context: { recent: [altered] } } };
+    const checked = await withProvider(answering(noneTo), () => post(malformed, ARCHITECTURE_ENV));
+    assert.equal(checked.result.status, 422);
+    assert.equal(checked.calls.length, 0);
+  }
+  assert.equal(isRequest(request({ context: { recent: [entry] } })), false);
+  assert.equal(isRequest({ ...body, kind: "voice-ui.judge.architecture-intent.v1" }), false);
+});
 // Every judge frame of a focus, as the page sends them; and the first of them.
 const judgeRequests = focus => JSON.parse(JSON.stringify(judgeRequestsOf(MANIFEST, Array.isArray(focus) ? focus : [focus], "show me that part")));
 const judgeRequest = focus => judgeRequests(focus)[0];
 // Every locate frame of an intent, as the page sends them; and the one for a part.
 const locateRequests = () => JSON.parse(JSON.stringify(locateRequestsOf(MANIFEST, intentRequest())));
 const locateRequest = (part = "web-app-mjs") => locateRequests().find(frame => frame.state.architecture.focus[0] === part);
+
+test("locate references use the same canonical authority and cannot enter the plain wire", async () => {
+  const reference = { source: MANIFEST.source, focus: ["ext-localstorage"] };
+  const entry = { seq: 1, source: "typed", text: "show storage", outcome: "no-change", reference };
+  const body = locateRequest();
+  body.state.context = { recent: [entry] };
+  const accepted = await withProvider(answering(noneTo), () => post(body, ARCHITECTURE_ENV));
+  assert.equal(accepted.result.status, 200);
+  assert.deepEqual(accepted.calls[0].state.context.recent[0].reference, judgeSectionOf(MANIFEST, reference.focus));
+  for (const malformed of [
+    { ...body, state: { ...body.state, context: { recent: [{ ...entry, reference: undefined }] } } },
+    { ...body, state: { ...body.state, context: { recent: [{ ...entry, reference: { ...reference, focus: ["missing"] } }] } } },
+    { ...body, state: { ...body.state, context: { recent: [{ ...entry, reference: { ...reference, source: { ...reference.source, commit: "f".repeat(40) } } }] } } },
+    { ...body, kind: "voice-ui.judge.architecture-locate.v1" },
+    request({ context: { recent: [entry] } }),
+  ]) {
+    const refused = await withProvider(answering(noneTo), () => post(malformed, ARCHITECTURE_ENV));
+    assert.equal(refused.result.status, 422);
+    assert.equal(refused.calls.length, 0);
+  }
+});
 
 test("the original storage pairs still open all four files, while positive JSON subjects ask no inferred relation", () => {
   const section = judgeSectionOf(MANIFEST, ["ext-localstorage"]);
@@ -696,10 +754,14 @@ test("a locate frame carries no code from the page; the server adds exactly that
     const shown = ` state.architecture.evidence.bodies holds ${evidence.bodies.map(file => file.path).join(", ")} whole`
       + (lined.length === 0 ? "." : `; state.architecture.evidence.lines holds single lines of ${lined.join(", ")}, each with its path and line number.`)
       + " Judge only from that text and the utterance." + CONTEXT_NOTE;
-    assert.equal(question.instructions, (entity.kind === "file"
+    assert.ok(question.instructions.startsWith((entity.kind === "file"
       ? `Does the original text of the file ${entity.label} implement behaviour, or declare data, that the current utterance asks about or refers to?`
       : `Does the shown original code use ${entity.label}, which lies outside the source, for behaviour or data that the current utterance asks about or refers to?`)
-      + shown, part);
+      + shown), part);
+    assert.match(question.instructions, /association.*unverified/u, part);
+    assert.match(question.instructions, /Do not replace an explicit endpoint or semantic qualification/u, part);
+    assert.match(question.instructions, /Match against all current edges/u, part);
+    assert.match(question.instructions, /does not identify one unique edge, answer none/u, part);
     assert.deepEqual(question.criteria, entity.kind === "file"
       ? {
         [YES]: "its own text implements that behaviour or declares that data, whether or not the utterance names the file",

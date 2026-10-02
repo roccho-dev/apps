@@ -22,6 +22,11 @@ const ACTION_WORDS = {
 const CONTEXT_NOTE = " context.recent lists earlier utterances as they were recognized or typed, and what came of each."
   + " They are unverified and may be misrecognized. Use them only to understand what the current utterance refers to;"
   + " the current utterance, the working graph and the focus are the facts, and an earlier effect is history, not the current graph.";
+const REFERENCE_NOTE = " An architecture conversation entry may carry reference: the server reopened its section from the current source."
+  + " The historical association with that utterance is still unverified, not proof of its intent or of a unique edge."
+  + " Use the earlier utterance together with that section's entities and candidate relationships to understand an anaphoric qualification."
+  + " Do not replace an explicit endpoint or semantic qualification with the latest analysis, camera selection or edit focus."
+  + " Match against all current edges; if the conversational qualification does not identify one unique edge, answer none.";
 
 // The questions for exactly the slots the request offers. Each option is a
 // key the request carries; the words around it are this Function's own, and
@@ -141,7 +146,8 @@ export function questionsFor(state, slots, context) {
           : `the part ${labelOf.get(key)}`)),
     };
   }
-  for (const question of Object.values(questions)) question.instruction += CONTEXT_NOTE;
+  for (const question of Object.values(questions)) question.instruction += CONTEXT_NOTE
+    + (context.kind === ARCHITECTURE_INTENT_KIND ? REFERENCE_NOTE : "");
   return questions;
 }
 
@@ -196,7 +202,7 @@ function locateQuestion(entity, evidence, slots) {
         + ` state.architecture.evidence.bodies holds ${evidence.bodies.map(body => body.path).join(", ")} whole`
         + (lined.length === 0 ? "." : `; state.architecture.evidence.lines holds single lines of ${lined.join(", ")}, each with its path and line number.`)
         + " Judge only from that text and the utterance."
-        + CONTEXT_NOTE,
+        + CONTEXT_NOTE + REFERENCE_NOTE,
       options: criteria(slots[relevantSlot(entity.id)], key => (file
         ? key === YES
           ? "its own text implements that behaviour or declares that data, whether or not the utterance names the file"

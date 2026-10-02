@@ -59,12 +59,27 @@ export async function onRequestPost({ request, available, architecture }, judge)
       : kind === ARCHITECTURE_LOCATE_KIND ? opened && { source: bound.manifest.source, focus: opened.focus }
         : judgeSectionOf(bound.manifest, state.architecture.focus);
     if (JSON.stringify(state.architecture) !== JSON.stringify(own)) return json({ error: ERRORS.architectureMismatch }, 422);
+    // A historical client association is not authenticated past analysis or
+    // intended-edge authority. Re-open its section from this exact source;
+    // never accept client-written labels, bodies, candidates or descriptors.
+    if (state.context !== undefined) {
+      const recent = [];
+      for (const entry of state.context.recent) {
+        const reference = entry.reference;
+        const section = reference === null ? null : judgeSectionOf(bound.manifest, reference.focus);
+        if (reference !== null && (JSON.stringify(reference.source) !== JSON.stringify(bound.manifest.source) || section === null)) {
+          return json({ error: ERRORS.architectureMismatch }, 422);
+        }
+        recent.push({ ...entry, reference: section });
+      }
+      asked = { ...state, context: { recent } };
+    }
     if (kind === ARCHITECTURE_LOCATE_KIND) {
       const [part] = opened.focus;
       const evidence = focusedEvidence(opened, bound.manifest, bound.files);
       slots = locateSlotsFor([part]);
       questions = questionsFor(state, slots, { kind, entity: bound.manifest.entities.find(entity => entity.id === part), evidence });
-      asked = { utterance: state.utterance, context: state.context, architecture: { ...state.architecture, evidence } };
+      asked = { utterance: state.utterance, context: asked.context, architecture: { ...state.architecture, evidence } };
     } else if (kind === ARCHITECTURE_INTENT_KIND) {
       slots = slotsFor(state);
       questions = questionsFor(state, slots, { kind, relationOf: edge => definedRelation(bound.manifest, edge) });
