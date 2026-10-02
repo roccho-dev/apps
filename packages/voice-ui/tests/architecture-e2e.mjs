@@ -9,6 +9,7 @@ const { chromium } = createRequire(import.meta.url)("playwright-core");
 //            the request the page actually sent. It proves the page's own
 //            mechanics - request, plan, claims, draft, Undo, Apply, reload -
 //            and is never evidence about Jev or the code.
+//   fixture-stop injects a first-turn 502 and proves cross-stage STOP only.
 //   live     nothing is intercepted and nothing is crafted. The real service
 //            judges this code; the run is PASS only if the required flows are
 //            actually drawn and classified, NOT_PASS otherwise. Its input is
@@ -30,13 +31,14 @@ const { chromium } = createRequire(import.meta.url)("playwright-core");
 //            only whether the code can be reached and judged when named; it
 //            is never a PASS of the natural scenario.
 //
-// node architecture-e2e.mjs --mode fixture|live --scenario natural|named <url of the dev server root>
+// node architecture-e2e.mjs --mode fixture|fixture-stop|live --scenario natural|named <url of the dev server root>
 const [flag, mode, scenarioFlag, scenario, url] = process.argv.slice(2);
-if (flag !== "--mode" || !["fixture", "live"].includes(mode) || scenarioFlag !== "--scenario"
+if (flag !== "--mode" || !["fixture", "fixture-stop", "live"].includes(mode) || scenarioFlag !== "--scenario"
   || !["natural", "named"].includes(scenario) || !url) {
-  throw new Error("usage: architecture-e2e.mjs --mode fixture|live --scenario natural|named <url>");
+  throw new Error("usage: architecture-e2e.mjs --mode fixture|fixture-stop|live --scenario natural|named <url>");
 }
-const FIXTURE = mode === "fixture";
+const STOP_FIXTURE = mode === "fixture-stop";
+const FIXTURE = mode !== "live";
 // In the natural fixture a part is never named: the intent answers none, and
 // the part is located - so the locate frames and their judge are what the
 // fixture exercises, failures included. The named fixture names it.
@@ -261,12 +263,16 @@ const expectedOf = sent => {
 // same section and the utterance, and naming that section's frames once each
 // in the contract's order. Anything else is a finding of this stage - never a
 // wait for more.
+const actions = { new: 0, send: 0, undo: 0, apply: 0, reload: 0 };
+const click = async control => { actions[control]++; await page.locator("#" + control).click(); };
+let stopBaseline = null;
 const say = async (stage, utterance, picks) => {
   const route = new URL("/api/judge", url).href;
-  if (FIXTURE) await page.route(route, craft(picks), { times: MOST });
+  if (STOP_FIXTURE) stopBaseline = await screen();
+  if (FIXTURE) await page.route(route, craft(picks, () => STOP_FIXTURE ? { status: 502, body: { error: contract.ERRORS.providerError } } : null), { times: MOST });
   const before = exchanges.length;
   await page.locator("#text").fill(utterance);
-  await page.locator("#send").click();
+  await click("send");
   await settle();
   await drain();
   if (FIXTURE) await page.unroute(route);
@@ -274,29 +280,49 @@ const say = async (stage, utterance, picks) => {
   const now = await screen();
   last = now;
   const answered = sent.filter(entry => entry.status !== null).length;
-  const expected = expectedOf(sent);
+  let expected, planningError = null;
+  try { expected = expectedOf(sent); } catch (error) {
+    planningError = String(error?.message ?? error).split("\n")[0];
+    expected = { kinds: [], focus: null, frames: [] };
+  }
   report({ event: "turn", stage, expected: expected.kinds, requests: sent.length, answered, failed: sent.filter(entry => entry.error !== null).length,
     exchanges: sent.map(sanitized), dom: domOf(now) });
   for (const entry of sent) entry.reported = true;
+  const defects = [];
+  const valid = (condition, message) => { if (!condition) defects.push(message); };
+  valid(planningError === null, `request plan could not be validated: ${planningError}`);
+  try {
   const kinds = sent.map(entry => entry.sent.kind);
-  need(JSON.stringify(kinds) === JSON.stringify(expected.kinds), `${stage}: requests ${kinds.join(", ")} where the answers call for ${expected.kinds.join(", ")}`);
-  need(sent.every(entry => entry.status === 200 && slotsOf(entry.sent) !== null && contract.readAnswers(entry.body?.answers, slotsOf(entry.sent)) !== null),
+  valid(JSON.stringify(kinds) === JSON.stringify(expected.kinds), `${stage}: requests ${kinds.join(", ")} where the answers call for ${expected.kinds.join(", ")}`);
+  valid(sent.every(entry => entry.status === 200 && entry.error === null && entry.body !== null
+    && typeof entry.body === "object" && !Array.isArray(entry.body)
+    && JSON.stringify(Object.keys(entry.body).sort()) === JSON.stringify(["answers", "kind"])
+    && entry.body.kind === contract.DECISION_KIND && slotsOf(entry.sent) !== null && contract.readAnswers(entry.body?.answers, slotsOf(entry.sent)) !== null),
     `${stage}: every request answered 200 with a complete answer`);
-  need(sent.every(entry => entry.sent.kind === contract.REQUEST_KIND || entry.sent.state.architecture.source.commit === SERVED_COMMIT),
+  valid(sent.every(entry => entry.sent.kind === contract.REQUEST_KIND || entry.sent.state?.architecture?.source?.commit === SERVED_COMMIT),
     `${stage}: every request names the served snapshot`);
   const frames = sent.filter(entry => entry.sent.kind === contract.ARCHITECTURE_LOCATE_KIND);
-  need(frames.length === 0 || JSON.stringify(frames.map(entry => entry.sent.state.architecture.focus)) === JSON.stringify(ENTITY_IDS.map(id => [id])),
+  valid(frames.length === 0 || JSON.stringify(frames.map(entry => entry.sent.state.architecture.focus)) === JSON.stringify(ENTITY_IDS.map(id => [id])),
     `${stage}: one locate frame per part, in the snapshot's order`);
-  need(frames.every(entry => entry.sent.state.utterance === sent[0].sent.state.utterance
+  valid(frames.every(entry => entry.sent.state.utterance === sent[0].sent.state.utterance
     && JSON.stringify(entry.sent.state.context) === JSON.stringify(sent[0].sent.state.context)),
   `${stage}: every locate frame carries the intent's utterance and conversation exactly`);
   const judges = sent.filter(entry => entry.sent.kind === contract.ARCHITECTURE_JUDGE_KIND);
-  need(judges.every(entry => JSON.stringify(entry.sent.state.architecture.focus) === JSON.stringify(expected.focus)),
+  valid(judges.every(entry => JSON.stringify(entry.sent.state.architecture.focus) === JSON.stringify(expected.focus)),
     `${stage}: the judge is bound to exactly ${JSON.stringify(expected.focus)}`);
-  need(judges.every(entry => JSON.stringify(entry.sent.state.architecture) === JSON.stringify(judges[0].sent.state.architecture)
+  valid(judges.every(entry => JSON.stringify(entry.sent.state.architecture) === JSON.stringify(judges[0].sent.state.architecture)
     && entry.sent.state.utterance === sent[0].sent.state.utterance)
     && (judges.length === 0 || JSON.stringify(judges.map(entry => entry.sent.state.frame)) === JSON.stringify(expected.frames)),
   `${stage}: every judge frame carries the one section and the utterance, and the frames are that section's, once each and in order`);
+  } catch (error) {
+    defects.push(`protocol validation could not complete: ${String(error?.message ?? error).split("\n")[0]}`);
+  }
+  valid(errors.length === 0, `no page error: ${errors.join(" | ")}`);
+  if (defects.length > 0) {
+    protocolFailure = { stage, defects };
+    stoppedAt = stage;
+    throw PROTOCOL_HALT;
+  }
   return { now, sent };
 };
 // The natural fixture only: one utterance - the save one, unless another is
@@ -311,7 +337,7 @@ const failing = async (stage, at, fault, why, { utterance = UTTERANCES.save, foc
   await page.route(route, craft(picksFor(focus), index => (index === at ? fault : null)), { times: MOST });
   const before = exchanges.length;
   await page.locator("#text").fill(utterance);
-  await page.locator("#send").click();
+  await click("send");
   await settle();
   await drain();
   await page.unroute(route);
@@ -362,6 +388,8 @@ const STAGES = ["open", "whole", "whole-undo", "app", "credential", "storage", "
 const reached = [];
 let stoppedAt = null;
 const HALT = new Error("a stage a later one stands on failed");
+const PROTOCOL_HALT = new Error("protocol failure: no later action is permitted");
+let protocolFailure = null;
 const prerequisite = (condition, stage) => {
   if (condition) return;
   stoppedAt = stage;
@@ -432,7 +460,7 @@ try {
 
   // The person names a new map; nothing is saved yet.
   await page.locator("#text").fill("voice-ui の構成");
-  await page.locator("#new").click();
+  await click("new");
   await settle();
   assert.equal((await screen()).state, "drafted");
 
@@ -451,7 +479,7 @@ try {
 
   // Undo takes the whole utterance back - every Decision it added.
   reached.push("whole-undo");
-  await page.locator("#undo").click();
+  await click("undo");
   await settle();
   const undone = await screen();
   last = undone;
@@ -544,7 +572,7 @@ try {
     need(judgedPersistence(repeat) && repeat.now.state === "no-change" && stable(save.now, repeat.now)
       && acknowledged(save.now, repeat.now), "a repeated fresh affirmative role preserves graph/draft and appends its acknowledgement");
     if (!existing) {
-      await page.locator("#undo").click();
+      await click("undo");
       await settle();
       const back = await screen();
       need(!hasRole(back, LOG, "persistence") && claimOf(back, "region arch-role-persistence") !== null,
@@ -585,14 +613,14 @@ try {
   need(removedOne, `the person's correction removes the judged relation as one more step (state ${corrected.now.state}: `
     + `${corrected.now.failure ?? corrected.now.status})`);
   if (removedOne) {
-    await page.locator("#undo").click();
+    await click("undo");
     await settle();
     need(claimOf(await screen(), `relation ${storageEdge}`) !== null, "Undo brings the judged relation back");
   }
 
   // Apply saves the new map and every view.
   reached.push("apply");
-  await page.locator("#apply").click();
+  await click("apply");
   await settle();
   applied = await screen();
   last = applied;
@@ -607,6 +635,7 @@ try {
 
   // Reload restores the same graph with every claim and role, checked against the source.
   reached.push("reload");
+  actions.reload++;
   await page.reload({ waitUntil: "commit" });
   await ready();
   reloaded = await screen();
@@ -732,6 +761,7 @@ try {
   }
 } catch (error) {
   thrown = error;
+  if (stoppedAt === null) stoppedAt = reached.at(-1) ?? "open";
 } finally {
   // Every body is read (no read rejects: each ends in its own record) and the
   // browser closed, however the run ended; a failure to close is kept.
@@ -744,11 +774,12 @@ need(errors.length === 0, `no page error: ${errors.join(" | ")}`);
 
 const answered = exchanges.filter(entry => entry.status === 200);
 const providerIdentity = "UNKNOWN";
-const failure = thrown === null || thrown === HALT ? null : String(thrown?.message ?? thrown).split("\n")[0];
+const failure = thrown === null || thrown === HALT || thrown === PROTOCOL_HALT ? null : String(thrown?.message ?? thrown).split("\n")[0];
 report({
-  event: "summary", mode, scenario, stoppedAt, error: failure, cleanup, verdicts, notRun: STAGES.filter(stage => !reached.includes(stage)),
+  event: "summary", mode, scenario, stoppedAt, error: failure, cleanup, protocolFailure, actions, verdicts, notRun: STAGES.filter(stage => !reached.includes(stage)),
   requests: exchanges.length, answered: exchanges.filter(entry => entry.status !== null).length,
-  failed: exchanges.filter(entry => entry.error !== null).length, providerIdentity,
+  failed: exchanges.filter(entry => entry.error !== null).length,
+  non200: exchanges.filter(entry => entry.status !== null && entry.status !== 200).length, providerIdentity,
   // Whatever no turn reported - a turn that ended in an error - in full.
   unreported: exchanges.filter(entry => !entry.reported).map(sanitized),
 });
@@ -766,6 +797,31 @@ if (failure !== null) {
 if (cleanup !== null) {
   // A browser that could not be closed makes the run an error, whatever it found.
   process.stdout.write(`${LABEL}: ERROR | close failed: ${cleanup} | ${summary}\n`);
+  process.exitCode = 1;
+} else if (STOP_FIXTURE) {
+  assert.equal(thrown, PROTOCOL_HALT);
+  assert.equal(stoppedAt, "whole");
+  assert.deepEqual(reached, ["open", "whole"]);
+  assert.deepEqual(actions, { new: 1, send: 1, undo: 0, apply: 0, reload: 0 });
+  assert.equal(exchanges.length, 1);
+  assert.equal(exchanges[0].status, 502);
+  assert.equal(exchanges[0].body?.error, contract.ERRORS.providerError);
+  assert.equal(last.state, "failed");
+  assert.equal(protocolFailure?.stage, "whole");
+  assert.ok(protocolFailure.defects.includes("whole: every request answered 200 with a complete answer"));
+  assert.equal(cleanup, null);
+  assert.ok(STAGES.filter(stage => !reached.includes(stage)).includes("apply"));
+  assert.ok(STAGES.filter(stage => !reached.includes(stage)).includes("reload"));
+  assert.ok(exchanges.every(entry => entry.reported));
+  assert.deepEqual(last.graph, stopBaseline.graph);
+  assert.deepEqual(last.claims, stopBaseline.claims);
+  assert.deepEqual(last.draft, stopBaseline.draft);
+  assert.equal(last.stored, stopBaseline.stored);
+  assert.equal(last.root, stopBaseline.root);
+  assert.deepEqual(verdicts, []);
+  process.stdout.write(`${LABEL}: PASS stop mechanics only (simulated protocol RED, no later actions) | ${summary}\n`);
+} else if (protocolFailure !== null) {
+  process.stdout.write(`${LABEL}: PROTOCOL_RED | ${protocolFailure.defects.join("; ")} | ${summary}\n`);
   process.exitCode = 1;
 } else if (FIXTURE) {
   assert.deepEqual(verdicts, [], "the page's mechanics");
