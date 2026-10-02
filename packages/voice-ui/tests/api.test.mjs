@@ -235,8 +235,10 @@ test("only the exact typed400 diagnostic constant escapes the API trust boundary
 test("produced Worker and admitted provider expose only fixed400 vocabulary observation", async () => {
   const flag="context-limit-vocabulary-observed";
   for(const [value,expected]of [[{detail:"private-canary context length"},true],[{message:"not a context limit private-canary"},true],[{error:{message:"context limit private-canary"}},true],[{detail:"context",message:"length"},false],[{input:{message:"context limit private-canary"}},false],[{detail:{message:"context limit private-canary"}},false],[{detail:"unrecognized private-canary"},false]]){
-    let reads=0;const bytes=new TextEncoder().encode(JSON.stringify(value));
-    const {result,calls}=await withProvider(async()=>({ok:false,status:400,body:new ReadableStream({start(c){c.enqueue(bytes);c.close();}}),json(){reads++;throw Error("private-canary");},text(){reads++;throw Error("private-canary");},get headers(){reads++;throw Error("private-canary");}}),()=>post(request()));
+    let reads=0,streamReads=0,releases=0;const bytes=Buffer.from(JSON.stringify(value));
+    const reader={read:async()=>streamReads++===0?{done:false,value:bytes}:{done:true},cancel(){throw Error("unexpected cancel");},releaseLock(){releases++;}};
+    const {result,calls}=await withProvider(async()=>({ok:false,status:400,body:{getReader:()=>reader},json(){reads++;throw Error("private-canary");},text(){reads++;throw Error("private-canary");},get headers(){reads++;throw Error("private-canary");}}),()=>post(request()));
+    assert.equal(streamReads,2);assert.equal(releases,1);
     assert.equal(calls.length,1);assert.equal(reads,0);assert.equal(result.status,502);const body=await result.json();
     assert.deepEqual(body,expected?{error:ERRORS.providerError,upstreamStatus:400,diagnostic:flag}:{error:ERRORS.providerError,upstreamStatus:400});assert.ok(!JSON.stringify(body).includes("private-canary"));
   }
