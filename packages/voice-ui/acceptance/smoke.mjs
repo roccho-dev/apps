@@ -181,10 +181,27 @@ try {
       if (found) { clearTimeout(timer); resolve("http://127.0.0.1:" + found[1]); }
     });
   });
-  const architecture = await runChild([path.join(root, manifest.e2e.architecture_entrypoint),
-    "--mode", "fixture", "--scenario", "natural", formalOrigin], architectureHome);
-  assert.equal(architecture.code, 0, architecture.stderr);
-  assert.match(architecture.stdout, /PASS mechanics only \(crafted answers\)/u);
+  for (const [index, [mode, scenario]] of [["fixture", "natural"], ["fixture", "contextual"], ["fixture-stop", "contextual"]].entries()) {
+    const home = path.join(work, "a" + index); mkdirSync(home);
+    const architecture = await runChild([path.join(root, manifest.e2e.architecture_entrypoint),
+      "--mode", mode, "--scenario", scenario, formalOrigin], home);
+    assert.equal(architecture.code, 0, architecture.stderr);
+    assert.match(architecture.stdout, mode === "fixture-stop"
+      ? /PASS stop mechanics only/u : /PASS mechanics only \(crafted answers\)/u);
+    if (scenario === "contextual") {
+      const summary = architecture.stdout.split("\n").filter(line => line.startsWith("{"))
+        .map(line => JSON.parse(line)).find(row => row.event === "summary");
+      assert.equal(summary.actions.apply, 0); assert.equal(summary.actions.reload, 0);
+      if (mode === "fixture") {
+        assert.equal(summary.contextEvidence.workingEdgePresent, true);
+        assert.equal(summary.contextEvidence.graphChanged, true);
+        assert.equal(summary.contextEvidence.acceptedIntegration, "NOT_PROVEN");
+      } else {
+        assert.equal(summary.contextEvidence, null);
+        assert.deepEqual(summary.notRun, ["correction"]);
+      }
+    }
+  }
   process.stdout.write(JSON.stringify({ kind: "voice-ui.architectureShapeCheck.v1", status: "PASS",
     scope: "artifact-shape/controlled-mechanics", artifactManifestSha256: digest, source: manifest.sources.architecture,
     entry: manifest.e2e.architecture_entrypoint, liveProviderCalls: 0, acceptedIntegration: "NOT_PROVEN" }) + "\n");

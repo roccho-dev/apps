@@ -31,18 +31,23 @@ const { chromium } = createRequire(import.meta.url)("playwright-core");
 //            only whether the code can be reached and judged when named; it
 //            is never a PASS of the natural scenario.
 //
-// node architecture-e2e.mjs --mode fixture|fixture-stop|live --scenario natural|named <url of the dev server root>
+//   contextual  focused source judgment followed by a conversational correction.
+//               Reuses natural utterances and strict source/protocol checks;
+//               no legacy Apply/reload and never an authority or microphone PASS.
+//
+// node architecture-e2e.mjs --mode fixture|fixture-stop|live --scenario natural|named|contextual <url of the dev server root>
 const [flag, mode, scenarioFlag, scenario, url] = process.argv.slice(2);
 if (flag !== "--mode" || !["fixture", "fixture-stop", "live"].includes(mode) || scenarioFlag !== "--scenario"
-  || !["natural", "named"].includes(scenario) || !url) {
-  throw new Error("usage: architecture-e2e.mjs --mode fixture|fixture-stop|live --scenario natural|named <url>");
+  || !["natural", "named", "contextual"].includes(scenario) || !url) {
+  throw new Error("usage: architecture-e2e.mjs --mode fixture|fixture-stop|live --scenario natural|named|contextual <url>");
 }
 const STOP_FIXTURE = mode === "fixture-stop";
 const FIXTURE = mode !== "live";
 // In the natural fixture a part is never named: the intent answers none, and
 // the part is located - so the locate frames and their judge are what the
 // fixture exercises, failures included. The named fixture names it.
-const LOCATES = FIXTURE && scenario === "natural";
+const CONTEXTUAL = scenario === "contextual";
+const LOCATES = FIXTURE && scenario !== "named";
 // The neutral app boundary never exposes a provider model identity.
 // Extra envelope fields are refused; no fixture can prove model homogeneity.
 const LABEL = `architecture-e2e[${mode}/${scenario}]`;
@@ -63,7 +68,7 @@ const UTTERANCES = {
     save: "src/log.mjs を詳しく見せて",
     correction: "web/app.mjs から localStorage への stores-in の関係を消して",
   },
-}[scenario];
+}[CONTEXTUAL ? "natural" : scenario];
 const PAGE = new URL("/architecture", url).href;
 const ROOT_KEY = "voice-ui.decision-log.v1";
 
@@ -399,7 +404,7 @@ const need = (condition, what) => { if (!condition) verdicts.push(what); };
 // run when it fails - nothing is undone or built on a state the next stage
 // assumes - and every stage not reached is reported as not run.
 const FAULTS = ["failed-frame", "incomplete-frame", "frame-extra-envelope", "judge-extra-envelope", "incomplete-judge-frame"];
-const STAGES = ["open", "whole", "whole-undo", "app", "credential", "storage", "save", ...(FIXTURE ? ["save-again"] : []),
+const STAGES = CONTEXTUAL ? ["open", "app", "correction"] : ["open", "whole", "whole-undo", "app", "credential", "storage", "save", ...(FIXTURE ? ["save-again"] : []),
   ...(LOCATES ? FAULTS : []), "correction", "apply", "reload", ...(FIXTURE ? ["camera-pending", "resize-pending"] : [])];
 const reached = [];
 let stoppedAt = null;
@@ -457,9 +462,10 @@ const inferredAt = (now, id) => claimOf(now, `relation ${id}`)?.origins.includes
 let thrown = null;
 let cleanup = null;
 let rootBefore;
+let contextEvidence = null;
 let applied = null;
 let reloaded = null;
-try {
+const runScenario = async () => {
   // The slash-less path is sent to the architecture page's own path.
   reached.push("open");
   const opened = await page.goto(PAGE, { waitUntil: "commit", timeout: 120000 });
@@ -480,29 +486,32 @@ try {
   await settle();
   assert.equal((await screen()).state, "drafted");
 
-  // (1) The whole architecture: structure only, one request, no code sent.
-  reached.push("whole");
-  const whole = await say("whole", UTTERANCES.whole, picksFor(contract.WHOLE));
-  need(whole.sent.length === 1 && whole.sent[0].sent.kind === contract.ARCHITECTURE_INTENT_KIND, "the whole view is one intent");
-  need(whole.sent.every(entry => !codeIn(entry.sent)), "the page never sends source text");
-  need(whole.now.state === "drafted", `the whole view was drafted (state ${whole.now.state}: ${whole.now.failure ?? whole.now.status})`);
-  need(claimOf(whole.now, `region arch-${APP}`)?.origins.includes("source-declared"), "the page's file is drawn from the source");
-  need(whole.now.claims.every(claim => !claim.origins.includes("model-inferred") && !claim.origins.includes("scope-declared")),
-    "the whole view judges nothing: no role, no role node, no chosen relation");
-  need(/未反映: 2 \/ 8/u.test(whole.now.draftCount), `the whole view counts as one utterance (${whole.now.draftCount})`);
-  // Undo would otherwise take back the new map itself.
-  prerequisite(whole.now.state === "drafted", "whole");
+  if (!CONTEXTUAL) {
+    // (1) The whole architecture: structure only, one request, no code sent.
+    reached.push("whole");
+    const whole = await say("whole", UTTERANCES.whole, picksFor(contract.WHOLE));
+    need(whole.sent.length === 1 && whole.sent[0].sent.kind === contract.ARCHITECTURE_INTENT_KIND, "the whole view is one intent");
+    need(whole.sent.every(entry => !codeIn(entry.sent)), "the page never sends source text");
+    need(whole.now.state === "drafted", `the whole view was drafted (state ${whole.now.state}: ${whole.now.failure ?? whole.now.status})`);
+    need(claimOf(whole.now, `region arch-${APP}`)?.origins.includes("source-declared"), "the page's file is drawn from the source");
+    need(whole.now.claims.every(claim => !claim.origins.includes("model-inferred") && !claim.origins.includes("scope-declared")),
+      "the whole view judges nothing: no role, no role node, no chosen relation");
+    need(/未反映: 2 \/ 8/u.test(whole.now.draftCount), `the whole view counts as one utterance (${whole.now.draftCount})`);
+    // Undo would otherwise take back the new map itself.
+    prerequisite(whole.now.state === "drafted", "whole");
 
-  // Undo takes the whole utterance back - every Decision it added.
-  reached.push("whole-undo");
-  await click("undo");
-  await settle();
-  const undone = await screen();
-  last = undone;
-  report({ event: "turn", stage: "whole-undo", expected: 0, requests: 0, answered: 0, failed: 0, exchanges: [], dom: domOf(undone) });
-  need(undone.draft.length === 1 && undone.claims.every(claim => !claim.record.startsWith("region arch-")),
-    `Undo takes the whole view back (${undone.draft.length} steps left)`);
-  prerequisite(undone.draft.length === 1, "whole-undo");
+    // Undo takes the whole utterance back - every Decision it added.
+    reached.push("whole-undo");
+    await click("undo");
+    await settle();
+    const undone = await screen();
+    last = undone;
+    report({ event: "turn", stage: "whole-undo", expected: 0, requests: 0, answered: 0, failed: 0, exchanges: [], dom: domOf(undone) });
+    need(undone.draft.length === 1 && undone.claims.every(claim => !claim.record.startsWith("region arch-")),
+      `Undo takes the whole view back (${undone.draft.length} steps left)`);
+    prerequisite(undone.draft.length === 1, "whole-undo");
+
+  }
 
   // (2) The page's own code: its roles, its call to the Worker, its storage.
   reached.push("app");
@@ -520,100 +529,103 @@ try {
   // Every later stage stands on the structure this utterance drew.
   prerequisite(app.now.state === "drafted", "app");
 
-  // (3) The credential: the Function authenticates with it and calls the provider.
-  reached.push("credential");
-  const auth = await say("credential", UTTERANCES.credential, picksFor("ext-jev-api-key"));
-  need(located(auth), "the natural fixture located the credential");
-  need(auth.sent.every(entry => entry.status === 200), `the credential focus was answered (${auth.sent.map(entry => entry.status).join(", ")})`);
-  need(inferredAt(auth.now, `arch-authenticates-with-${WORKER}-to-ext-jev-api-key`), "the Worker holds and passes the credential");
-  need(inferredAt(auth.now, `arch-calls-${WORKER}-to-ext-voice-ui-judge-provider`), "the Worker invokes the imported provider binding");
-  need(claimOf(auth.now, "region arch-ext-voice-ui-judge-provider")?.origins.join(" ") === "unknown", "the non-admitted provider alias stays unknown");
-  need(claimOf(auth.now, "region arch-ext-jev-api-key")?.origins.join(" ") === "unknown", "the credential itself stays unknown");
-  need(hasRole(auth.now, WORKER, "auth"), "the Worker is judged as holding or passing a credential, not as implementing provider HTTP authorization");
+  if (!CONTEXTUAL) {
+    // (3) The credential: the Function authenticates with it and calls the provider.
+    reached.push("credential");
+    const auth = await say("credential", UTTERANCES.credential, picksFor("ext-jev-api-key"));
+    need(located(auth), "the natural fixture located the credential");
+    need(auth.sent.every(entry => entry.status === 200), `the credential focus was answered (${auth.sent.map(entry => entry.status).join(", ")})`);
+    need(inferredAt(auth.now, `arch-authenticates-with-${WORKER}-to-ext-jev-api-key`), "the Worker holds and passes the credential");
+    need(inferredAt(auth.now, `arch-calls-${WORKER}-to-ext-voice-ui-judge-provider`), "the Worker invokes the imported provider binding");
+    need(claimOf(auth.now, "region arch-ext-voice-ui-judge-provider")?.origins.join(" ") === "unknown", "the non-admitted provider alias stays unknown");
+    need(claimOf(auth.now, "region arch-ext-jev-api-key")?.origins.join(" ") === "unknown", "the credential itself stays unknown");
+    need(hasRole(auth.now, WORKER, "auth"), "the Worker is judged as holding or passing a credential, not as implementing provider HTTP authorization");
 
-  // (4) Storage: every admitted file that names it, whole.
-  reached.push("storage");
-  const stored = await say("storage", UTTERANCES.storage, picksFor("ext-localstorage"));
-  need(located(stored), "the natural fixture located the storage");
-  need(stored.sent.every(entry => entry.status === 200), `the storage focus was answered (${stored.sent.map(entry => entry.status).join(", ")})`);
-  // The four files that name localStorage, from the served manifest: exactly
-  // these for the named part; for a natural request all of them, any other
-  // body only because the judged section - the server's own, for exactly the
-  // located parts - opens it.
-  const STORAGE_FILES = MANIFEST.candidates.filter(candidate => candidate.to === "ext-localstorage").map(candidate => candidate.from).sort();
-  const storageBodies = [...(stored.sent.at(-1)?.sent.kind === contract.ARCHITECTURE_JUDGE_KIND ? stored.sent.at(-1).sent.state.architecture.bodies : [])].sort();
-  need(JSON.stringify(STORAGE_FILES) === JSON.stringify(["dev-architecture-config-v1-json", "src-config-mjs", "web-app-mjs", "web-data-config-v1-json"]),
-    `the snapshot's files that name localStorage are the original four (${STORAGE_FILES.join(", ")})`);
-  need(scenario === "named"
-    ? JSON.stringify(storageBodies) === JSON.stringify(STORAGE_FILES)
-    : STORAGE_FILES.every(file => storageBodies.includes(file)),
-  `the storage section opens ${scenario === "named" ? "exactly" : "all of"} the four files that name it (${storageBodies.join(", ")})`);
-  need(hasRole(stored.now, "src-config-mjs", "config"), "the config module is judged config");
+    // (4) Storage: every admitted file that names it, whole.
+    reached.push("storage");
+    const stored = await say("storage", UTTERANCES.storage, picksFor("ext-localstorage"));
+    need(located(stored), "the natural fixture located the storage");
+    need(stored.sent.every(entry => entry.status === 200), `the storage focus was answered (${stored.sent.map(entry => entry.status).join(", ")})`);
+    // The four files that name localStorage, from the served manifest: exactly
+    // these for the named part; for a natural request all of them, any other
+    // body only because the judged section - the server's own, for exactly the
+    // located parts - opens it.
+    const STORAGE_FILES = MANIFEST.candidates.filter(candidate => candidate.to === "ext-localstorage").map(candidate => candidate.from).sort();
+    const storageBodies = [...(stored.sent.at(-1)?.sent.kind === contract.ARCHITECTURE_JUDGE_KIND ? stored.sent.at(-1).sent.state.architecture.bodies : [])].sort();
+    need(JSON.stringify(STORAGE_FILES) === JSON.stringify(["dev-architecture-config-v1-json", "src-config-mjs", "web-app-mjs", "web-data-config-v1-json"]),
+      `the snapshot's files that name localStorage are the original four (${STORAGE_FILES.join(", ")})`);
+    need(scenario === "named"
+      ? JSON.stringify(storageBodies) === JSON.stringify(STORAGE_FILES)
+      : STORAGE_FILES.every(file => storageBodies.includes(file)),
+    `the storage section opens ${scenario === "named" ? "exactly" : "all of"} the four files that name it (${storageBodies.join(", ")})`);
+    need(hasRole(stored.now, "src-config-mjs", "config"), "the config module is judged config");
 
-  // (5) A fresh source-bound judgment may add a missing role or acknowledge
-  // an already present role. No-change alone is not success.
-  reached.push("save");
-  need(inferredAt(stored.now, `arch-calls-${APP}-to-${LOG}`), "the page -> decision log relation is already there");
-  const beforeSave = await screen();
-  const saveAgain = () => say("save", UTTERANCES.save, picksFor(LOG));
-  const save = await saveAgain();
-  const judgedPersistence = result => result.sent.some(entry => entry.sent.kind === contract.ARCHITECTURE_JUDGE_KIND
-    && entry.sent.state.architecture.focus.includes(LOG)
-    && entry.body?.answers?.[contract.roleSlot(LOG, "persistence")]?.choice === contract.YES
-    && entry.body.answers[contract.roleSlot(LOG, "persistence")].confidence >= contract.MIN_CONFIDENCE);
-  const acknowledged = (before, after) => {
-    const last = after.context.at(-1);
-    return last?.text === UTTERANCES.save && last.source === "typed" && last.outcome === "no-change"
-      && last.seq > (before.context.at(-1)?.seq ?? 0)
-      && JSON.stringify(after.context.slice(0, -1)) === JSON.stringify(before.context.slice(-(contract.CONTEXT_MAX - 1)));
-  };
-  const stable = (before, after) => JSON.stringify(after.claims) === JSON.stringify(before.claims)
-    && JSON.stringify(after.draft) === JSON.stringify(before.draft)
-    && before.graph !== null && JSON.stringify(after.graph) === JSON.stringify(before.graph);
-  need(located(save), "the natural fixture located the decision log");
-  need(save.sent.every(entry => entry.status === 200) && judgedPersistence(save), "fresh focused completed judgments affirm log persistence");
-  const existing = hasRole(beforeSave, LOG, "persistence");
-  need(existing
-    ? save.now.state === "no-change" && stable(beforeSave, save.now) && acknowledged(beforeSave, save.now)
-    : save.now.state === "drafted",
-  `the log's role is ${existing ? "freshly acknowledged with stable graph/draft and appended conversation" : "newly drafted"} (state ${save.now.state})`);
-  need(hasRole(save.now, LOG, "persistence"), "the decision log is judged persistence with its required provenance");
-  need(claimOf(save.now, `relation arch-import-${APP}-to-${LOG}`)?.origins.includes("source-declared"), "the page imports the decision log");
-  need(save.now.claims.every(claim => !(claim.record.startsWith("relation arch-import-") && claim.origins.includes("model-inferred"))),
-    "an import edge is never model-inferred");
-  if (FIXTURE) {
-    prerequisite(existing ? save.now.state === "no-change" : save.now.state === "drafted", "save");
-    reached.push("save-again");
-    const repeat = await saveAgain();
-    need(judgedPersistence(repeat) && repeat.now.state === "no-change" && stable(save.now, repeat.now)
-      && acknowledged(save.now, repeat.now), "a repeated fresh affirmative role preserves graph/draft and appends its acknowledgement");
-    if (!existing) {
-      await click("undo");
-      await settle();
-      const back = await screen();
-      need(!hasRole(back, LOG, "persistence") && claimOf(back, "region arch-role-persistence") !== null,
-        "Undo removes the newly added log role and keeps the shared persistence node");
-      need(hasRole((await saveAgain()).now, LOG, "persistence"), "a fresh judgment draws the missing role again");
+    // (5) A fresh source-bound judgment may add a missing role or acknowledge
+    // an already present role. No-change alone is not success.
+    reached.push("save");
+    need(inferredAt(stored.now, `arch-calls-${APP}-to-${LOG}`), "the page -> decision log relation is already there");
+    const beforeSave = await screen();
+    const saveAgain = () => say("save", UTTERANCES.save, picksFor(LOG));
+    const save = await saveAgain();
+    const judgedPersistence = result => result.sent.some(entry => entry.sent.kind === contract.ARCHITECTURE_JUDGE_KIND
+      && entry.sent.state.architecture.focus.includes(LOG)
+      && entry.body?.answers?.[contract.roleSlot(LOG, "persistence")]?.choice === contract.YES
+      && entry.body.answers[contract.roleSlot(LOG, "persistence")].confidence >= contract.MIN_CONFIDENCE);
+    const acknowledged = (before, after) => {
+      const last = after.context.at(-1);
+      return last?.text === UTTERANCES.save && last.source === "typed" && last.outcome === "no-change"
+        && last.seq > (before.context.at(-1)?.seq ?? 0)
+        && JSON.stringify(after.context.slice(0, -1)) === JSON.stringify(before.context.slice(-(contract.CONTEXT_MAX - 1)));
+    };
+    const stable = (before, after) => JSON.stringify(after.claims) === JSON.stringify(before.claims)
+      && JSON.stringify(after.draft) === JSON.stringify(before.draft)
+      && before.graph !== null && JSON.stringify(after.graph) === JSON.stringify(before.graph);
+    need(located(save), "the natural fixture located the decision log");
+    need(save.sent.every(entry => entry.status === 200) && judgedPersistence(save), "fresh focused completed judgments affirm log persistence");
+    const existing = hasRole(beforeSave, LOG, "persistence");
+    need(existing
+      ? save.now.state === "no-change" && stable(beforeSave, save.now) && acknowledged(beforeSave, save.now)
+      : save.now.state === "drafted",
+    `the log's role is ${existing ? "freshly acknowledged with stable graph/draft and appended conversation" : "newly drafted"} (state ${save.now.state})`);
+    need(hasRole(save.now, LOG, "persistence"), "the decision log is judged persistence with its required provenance");
+    need(claimOf(save.now, `relation arch-import-${APP}-to-${LOG}`)?.origins.includes("source-declared"), "the page imports the decision log");
+    need(save.now.claims.every(claim => !(claim.record.startsWith("relation arch-import-") && claim.origins.includes("model-inferred"))),
+      "an import edge is never model-inferred");
+    if (FIXTURE) {
+      prerequisite(existing ? save.now.state === "no-change" : save.now.state === "drafted", "save");
+      reached.push("save-again");
+      const repeat = await saveAgain();
+      need(judgedPersistence(repeat) && repeat.now.state === "no-change" && stable(save.now, repeat.now)
+        && acknowledged(save.now, repeat.now), "a repeated fresh affirmative role preserves graph/draft and appends its acknowledgement");
+      if (!existing) {
+        await click("undo");
+        await settle();
+        const back = await screen();
+        need(!hasRole(back, LOG, "persistence") && claimOf(back, "region arch-role-persistence") !== null,
+          "Undo removes the newly added log role and keeps the shared persistence node");
+        need(hasRole((await saveAgain()).now, LOG, "persistence"), "a fresh judgment draws the missing role again");
+      }
+    }
+    if (LOCATES) {
+      // A failure part-way through an utterance leaves everything as it was: a
+      // frame that fails, a frame answered 200 without its question, a locate or judge
+      // with an unexpected envelope field, and - for storage, whose judge has
+      // several frames - a judge's second frame answered 200 without its questions: after each, nothing is asked.
+      const middle = 1 + Math.floor(ENTITY_IDS.length / 2);
+      reached.push("failed-frame");
+      await failing("failed-frame", middle, { status: 502, body: { error: contract.ERRORS.providerError } }, contract.ERRORS.providerError);
+      reached.push("incomplete-frame");
+      await failing("incomplete-frame", middle, { answers: {} }, "judge-contract");
+      reached.push("frame-extra-envelope");
+      await failing("frame-extra-envelope", middle, { extra: { model: "unexpected-provider-label" } }, "judge-contract");
+      reached.push("judge-extra-envelope");
+      await failing("judge-extra-envelope", 1 + ENTITY_IDS.length, { extra: { model: "unexpected-provider-label" } }, "judge-contract");
+      reached.push("incomplete-judge-frame");
+      await failing("incomplete-judge-frame", 1 + ENTITY_IDS.length + 1, { answers: {} }, "judge-contract",
+        { utterance: UTTERANCES.storage, focus: "ext-localstorage" });
     }
   }
-  if (LOCATES) {
-    // A failure part-way through an utterance leaves everything as it was: a
-    // frame that fails, a frame answered 200 without its question, a locate or judge
-    // with an unexpected envelope field, and - for storage, whose judge has
-    // several frames - a judge's second frame answered 200 without its questions: after each, nothing is asked.
-    const middle = 1 + Math.floor(ENTITY_IDS.length / 2);
-    reached.push("failed-frame");
-    await failing("failed-frame", middle, { status: 502, body: { error: contract.ERRORS.providerError } }, contract.ERRORS.providerError);
-    reached.push("incomplete-frame");
-    await failing("incomplete-frame", middle, { answers: {} }, "judge-contract");
-    reached.push("frame-extra-envelope");
-    await failing("frame-extra-envelope", middle, { extra: { model: "unexpected-provider-label" } }, "judge-contract");
-    reached.push("judge-extra-envelope");
-    await failing("judge-extra-envelope", 1 + ENTITY_IDS.length, { extra: { model: "unexpected-provider-label" } }, "judge-contract");
-    reached.push("incomplete-judge-frame");
-    await failing("incomplete-judge-frame", 1 + ENTITY_IDS.length + 1, { answers: {} }, "judge-contract",
-      { utterance: UTTERANCES.storage, focus: "ext-localstorage" });
-  }
+
   const judgedDraft = (await screen()).draft.length;
 
   // (6) A correction by the person: the judged storage relation is taken out -
@@ -628,11 +640,37 @@ try {
   const removedOne = corrected.now.draft.length === judgedDraft + 1 && claimOf(corrected.now, `relation ${storageEdge}`) === null;
   need(removedOne, `the person's correction removes the judged relation as one more step (state ${corrected.now.state}: `
     + `${corrected.now.failure ?? corrected.now.status})`);
+  if (CONTEXTUAL) {
+    const request = corrected.sent[0]?.sent.state;
+    const prior = request?.context.recent.find(entry => entry.text === UTTERANCES.app);
+    const workingEdgePresent = request?.graph.edges.some(edge => edge.id === storageEdge) === true;
+    const graphChanged = app.now.graph !== null && corrected.now.graph !== null
+      && app.now.graph.head !== corrected.now.graph.head;
+    need(prior?.reference?.source.commit === SERVED_COMMIT && prior.reference.focus.includes(APP),
+      "the follow-up carries the earlier source-bound conversational reference");
+    need(workingEdgePresent, "the follow-up carries the actual previously judged Working relation");
+    need(graphChanged && removedOne, "the real Working projection changes with the typed correction");
+    need(corrected.now.stored === start.stored && corrected.now.root === rootBefore,
+      "the contextual source proof does not save or replace Accepted");
+    contextEvidence = { source: SERVED_COMMIT, priorSequence: prior?.seq ?? null,
+      priorFocus: prior?.reference?.focus ?? null, workingEdgePresent, removed: storageEdge,
+      graphChanged, graphBefore: app.now.graph?.head ?? null, graphAfter: corrected.now.graph?.head ?? null,
+      typedEvaluations: app.sent.length + corrected.sent.length, acceptedIntegration: "NOT_PROVEN" };
+    report({ event: "context-evidence", ...contextEvidence });
+  }
   if (removedOne) {
     await click("undo");
     await settle();
-    need(claimOf(await screen(), `relation ${storageEdge}`) !== null, "Undo brings the judged relation back");
+    const restored = await screen();
+    need(claimOf(restored, `relation ${storageEdge}`) !== null, "Undo brings the judged relation back");
+    if (CONTEXTUAL) {
+      contextEvidence.undoStorageUntouched = restored.stored === start.stored && restored.root === rootBefore;
+      need(contextEvidence.undoStorageUntouched, "Undo does not write either accepted storage key");
+    }
   }
+
+  // This independent source/Working scenario stops before legacy Apply/reload.
+  if (CONTEXTUAL) return;
 
   // Apply saves the new map and every view.
   reached.push("apply");
@@ -777,6 +815,9 @@ try {
     assert.deepEqual(recovered.graph.records, beforeCamera.graph.records);
     report({ event: "camera-recovered", dom: domOf(recovered) });
   }
+};
+try {
+  await runScenario();
 } catch (error) {
   thrown = error;
   if (stoppedAt === null) stoppedAt = reached.at(-1) ?? "open";
@@ -794,7 +835,7 @@ const answered = exchanges.filter(entry => entry.status === 200);
 const providerIdentity = "UNKNOWN";
 const failure = thrown === null || thrown === HALT || thrown === PROTOCOL_HALT ? null : String(thrown?.message ?? thrown).split("\n")[0];
 report({
-  event: "summary", mode, scenario, stoppedAt, error: failure, cleanup, protocolFailure, actions, verdicts, notRun: STAGES.filter(stage => !reached.includes(stage)),
+  event: "summary", mode, scenario, contextEvidence, stoppedAt, error: failure, cleanup, protocolFailure, actions, verdicts, notRun: STAGES.filter(stage => !reached.includes(stage)),
   requests: exchanges.length, answered: exchanges.filter(entry => entry.status !== null).length,
   failed: exchanges.filter(entry => entry.error !== null).length,
   non200: exchanges.filter(entry => entry.status !== null && entry.status !== 200).length, providerIdentity,
@@ -818,8 +859,9 @@ if (cleanup !== null) {
   process.exitCode = 1;
 } else if (STOP_FIXTURE) {
   assert.equal(thrown, PROTOCOL_HALT);
-  assert.equal(stoppedAt, "whole");
-  assert.deepEqual(reached, ["open", "whole"]);
+  const stopStage = CONTEXTUAL ? "app" : "whole";
+  assert.equal(stoppedAt, stopStage);
+  assert.deepEqual(reached, ["open", stopStage]);
   assert.deepEqual(actions, { new: 1, send: 1, undo: 0, apply: 0, reload: 0 });
   assert.equal(exchanges.length, 1);
   assert.equal(exchanges[0].status, 502);
@@ -854,13 +896,16 @@ if (cleanup !== null) {
     assert.equal(sanitized({ ...exchanges[0], error }).error, error);
   assert.equal(sanitized({ ...exchanges[0], error: "private-canary" }).error, "UNKNOWN");
   assert.equal(last.state, "failed");
-  assert.equal(protocolFailure?.stage, "whole");
-  assert.ok(protocolFailure.defects.includes("whole: every request answered 200 with a complete answer"));
+  assert.equal(protocolFailure?.stage, stopStage);
+  assert.ok(protocolFailure.defects.includes(stopStage + ": every request answered 200 with a complete answer"));
   assert.equal(cleanup, null);
-  assert.ok(STAGES.filter(stage => !reached.includes(stage)).includes("apply"));
-  assert.ok(STAGES.filter(stage => !reached.includes(stage)).includes("reload"));
-  assert.ok(STAGES.filter(stage => !reached.includes(stage)).includes("camera-pending"));
-  assert.ok(STAGES.filter(stage => !reached.includes(stage)).includes("resize-pending"));
+  if (CONTEXTUAL) assert.deepEqual(STAGES.filter(stage => !reached.includes(stage)), ["correction"]);
+  else {
+    assert.ok(STAGES.filter(stage => !reached.includes(stage)).includes("apply"));
+    assert.ok(STAGES.filter(stage => !reached.includes(stage)).includes("reload"));
+    assert.ok(STAGES.filter(stage => !reached.includes(stage)).includes("camera-pending"));
+    assert.ok(STAGES.filter(stage => !reached.includes(stage)).includes("resize-pending"));
+  }
   assert.ok(exchanges.every(entry => entry.reported));
   assert.deepEqual(last.graph, stopBaseline.graph);
   assert.deepEqual(last.claims, stopBaseline.claims);
@@ -868,6 +913,7 @@ if (cleanup !== null) {
   assert.equal(last.stored, stopBaseline.stored);
   assert.equal(last.root, stopBaseline.root);
   assert.deepEqual(verdicts, []);
+  assert.equal(contextEvidence, null);
   process.stdout.write(`${LABEL}: PASS stop mechanics only (simulated protocol RED, no later actions) | ${summary}\n`);
 } else if (protocolFailure !== null) {
   process.stdout.write(`${LABEL}: PROTOCOL_RED | ${protocolFailure.defects.join("; ")} | ${summary}\n`);
