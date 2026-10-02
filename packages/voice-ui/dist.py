@@ -250,11 +250,23 @@ def architecture_identity(root, app_rev):
     private = Path(root) / "architecture/evidence.json"
     source = json.loads(public.read_text(encoding="utf-8"))
     evidence = json.loads(private.read_text(encoding="utf-8"))
+    # Reuse the app's closed public-metadata validator, not a second schema implementation.
+    probe = 'import fs from "node:fs"; import { readManifest } from "./src/architecture.mjs"; const v=JSON.parse(fs.readFileSync(0,"utf8")); if(readManifest(v).status!==v.status) process.exitCode=1;'
+    try:
+        checked = subprocess.run(["node", "--input-type=module", "--eval", probe],
+                                 cwd=Path(__file__).parent, input=public.read_bytes(),
+                                 capture_output=True, timeout=10)
+    except subprocess.TimeoutExpired:
+        raise SystemExit("architecture public manifest invalid") from None
+    if checked.returncode != 0:
+        raise SystemExit("architecture public manifest invalid")
     if (source.get("schema") != "voice-ui.architecture-source/2"
             or evidence.get("schema") != "voice-ui.architecture-evidence/1"
             or source.get("status") != evidence.get("status")):
         raise SystemExit("architecture binding mismatch")
     if source["status"] == "available":
+        if set(evidence) != {"schema", "status", "source", "files"}:
+            raise SystemExit("architecture evidence closure mismatch")
         identity = source.get("source")
         if (not isinstance(identity, dict) or set(identity) != {"handle", "commit"}
                 or not re.fullmatch(r"[0-9a-f]{40}", app_rev)
@@ -272,6 +284,7 @@ def architecture_identity(root, app_rev):
             if blob != admitted[entity]["blob"]:
                 raise SystemExit("architecture evidence blob mismatch")
     elif (source["status"] == "unavailable" and not re.fullmatch(r"[0-9a-f]{40}", app_rev)
+          and set(evidence) == {"schema", "status", "reason"}
           and source.get("reason") == evidence.get("reason")):
         # Preserve source-dev builds of a dirty tree, without granting an exact snapshot.
         identity = None

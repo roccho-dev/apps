@@ -182,6 +182,7 @@
                 nativeBuildInputs = [
                   pkgs.python3
                   pkgs.esbuild
+                  pkgs.nodejs
                 ];
               }
               ''
@@ -260,6 +261,7 @@
                 nativeBuildInputs = [
                   pkgs.python3
                   pkgs.esbuild
+                  pkgs.nodejs
                 ];
               }
               ''
@@ -334,7 +336,7 @@
           voice-ui-dist =
             pkgs.runCommand "voice-ui-dist-check"
               {
-                nativeBuildInputs = [ pkgs.python3 ];
+                nativeBuildInputs = [ pkgs.python3 pkgs.nodejs ];
               }
               ''
                 python3 ${self}/packages/voice-ui/dist.py verify --dist ${voiceUiDist}
@@ -402,7 +404,9 @@
                 refuse "architecture evidence blob mismatch" \
                   'rel="architecture/evidence.json"; e=json.load(open(os.path.join(root, rel))); e["files"][next(iter(e["files"]))]+="\nchanged"; rewrite(rel, json.dumps(e).encode())'
                 refuse "architecture provenance mismatch" 'm["sources"]["architecture"]["manifest_sha256"]="0"*64'
-                test "$i" = 17
+                refuse "architecture public manifest invalid" \
+                  'rel="site/architecture/data/source.v1.json"; s=json.load(open(os.path.join(root, rel))); s["text"]="not public metadata"; rewrite(rel, json.dumps(s).encode())'
+                test "$i" = 18
                 touch "$out"
               '';
 
