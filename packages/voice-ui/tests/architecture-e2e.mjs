@@ -397,7 +397,7 @@ const need = (condition, what) => { if (!condition) verdicts.push(what); };
 // assumes - and every stage not reached is reported as not run.
 const FAULTS = ["failed-frame", "incomplete-frame", "frame-extra-envelope", "judge-extra-envelope", "incomplete-judge-frame"];
 const STAGES = ["open", "whole", "whole-undo", "app", "credential", "storage", "save", ...(FIXTURE ? ["save-again"] : []),
-  ...(LOCATES ? FAULTS : []), "correction", "apply", "reload"];
+  ...(LOCATES ? FAULTS : []), "correction", "apply", "reload", ...(FIXTURE ? ["camera-pending", "resize-pending"] : [])];
 const reached = [];
 let stoppedAt = null;
 const HALT = new Error("a stage a later one stands on failed");
@@ -677,6 +677,7 @@ try {
       action: contract.ACTION_PLACE_PART, move: file.id,
       anchor: { choice: choices.find(option => option.id !== file.id).id, confidence: 0.39 }, direction: "right",
     })[name] ?? contract.NONE);
+    reached.push("camera-pending");
     const heldCamera = await heldPlacement("camera-pending");
     assert.equal(heldCamera.now.pending, "anchor", "the controlled placement really holds its missing anchor");
     await page.locator("#camera-part").selectOption(file.id);
@@ -715,6 +716,7 @@ try {
     await page.locator("#camera-part").selectOption("");
     await settle();
     const viewport = page.viewportSize();
+    reached.push("resize-pending");
     const heldResize = await heldPlacement("resize-pending");
     assert.equal(heldResize.now.pending, "anchor");
     await page.setViewportSize({ ...viewport, height: viewport.height + 20 });
@@ -845,6 +847,8 @@ if (cleanup !== null) {
   assert.equal(cleanup, null);
   assert.ok(STAGES.filter(stage => !reached.includes(stage)).includes("apply"));
   assert.ok(STAGES.filter(stage => !reached.includes(stage)).includes("reload"));
+  assert.ok(STAGES.filter(stage => !reached.includes(stage)).includes("camera-pending"));
+  assert.ok(STAGES.filter(stage => !reached.includes(stage)).includes("resize-pending"));
   assert.ok(exchanges.every(entry => entry.reported));
   assert.deepEqual(last.graph, stopBaseline.graph);
   assert.deepEqual(last.claims, stopBaseline.claims);
