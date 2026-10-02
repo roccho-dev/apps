@@ -181,8 +181,8 @@ try {
       if (found) { clearTimeout(timer); resolve("http://127.0.0.1:" + found[1]); }
     });
   });
-  for (const [mode, scenario] of [["fixture", "natural"], ["fixture", "contextual"], ["fixture-stop", "contextual"]]) {
-    const home = path.join(work, "arch-" + mode + "-" + scenario); mkdirSync(home);
+  for (const [index, [mode, scenario]] of [["fixture", "natural"], ["fixture", "contextual"], ["fixture-stop", "contextual"]].entries()) {
+    const home = path.join(work, "a" + index); mkdirSync(home);
     const architecture = await runChild([path.join(root, manifest.e2e.architecture_entrypoint),
       "--mode", mode, "--scenario", scenario, formalOrigin], home);
     assert.equal(architecture.code, 0, architecture.stderr);
