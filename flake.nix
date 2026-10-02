@@ -189,6 +189,7 @@
                   --app ${self}/packages/voice-ui \
                   --semantic-map ${semanticMap} \
                   --hayamimi ${hayamimiWeb} \
+                  --architecture ${architectureFor system} \
                   --judge ${jevProvider} \
                   --judge-artifact '${jevArtifact}' \
                   --out "$out" \
@@ -266,6 +267,7 @@
                   --app ${self}/packages/voice-ui \
                   --semantic-map ${semanticMap} \
                   --hayamimi ${hayamimiWeb} \
+                  --architecture ${architectureFor system} \
                   --judge ${if name == "voice-ui-dist-relocated" then jevRelocated else jevProvider} \
                   --judge-artifact '${jevArtifact}' \
                   --out "$out" \
@@ -393,7 +395,14 @@
                   'open(os.path.join(root, "unlisted-test.txt"), "wb").write(b"unlisted public test file\n")'
                 refuse "secret material marker" \
                   'rewrite("site/index.html", open(os.path.join(root, "site/index.html"), "rb").read() + b"\n<!-- AGE-SECRET-KEY-TEST-ONLY -->\n")'
-                test "$i" = 13
+                refuse "architecture source identity mismatch" \
+                  'rel="site/architecture/data/source.v1.json"; s=json.load(open(os.path.join(root, rel))); s["source"]["commit"]="f"*40; rewrite(rel, json.dumps(s).encode())'
+                refuse "architecture evidence closure mismatch" \
+                  'rel="architecture/evidence.json"; e=json.load(open(os.path.join(root, rel))); del e["files"][next(iter(e["files"]))]; rewrite(rel, json.dumps(e).encode())'
+                refuse "architecture evidence blob mismatch" \
+                  'rel="architecture/evidence.json"; e=json.load(open(os.path.join(root, rel))); e["files"][next(iter(e["files"]))]+="\nchanged"; rewrite(rel, json.dumps(e).encode())'
+                refuse "architecture provenance mismatch" 'm["sources"]["architecture"]["manifest_sha256"]="0"*64'
+                test "$i" = 17
                 touch "$out"
               '';
 

@@ -93,7 +93,7 @@ const server = http.createServer((req, res) => {
 // socket under each start's TMPDIR, and a socket path has a hard length limit
 // that a long build directory prefix otherwise exceeds.
 const work = mkdtempSync(path.join(tmpdir(), "vub-"));
-let child;
+let child, formal;
 const runChild = (args, home) => new Promise((resolve, reject) => {
   child = spawn(runtime, args, { cwd: home, env: { PATH: process.env.PATH, HOME: home, TMPDIR: home, LANG: "C.UTF-8" }, detached: true });
   let stderr = "", stdout = "";
@@ -163,11 +163,40 @@ try {
   assert.match(bindings.stdout, /binding-contract: PASS actual app/u);
   assert.equal(apiRequests.length, beforeBindings, "alternate judgment must not reach the API");
   process.stdout.write(bindings.stdout);
+  // A separate controlled grade, on the actual artifact-owned formal entry.
+  // The child's explicit env has no key, and the scenario intercepts judgments.
+  const architectureHome = path.join(work, "arch"); mkdirSync(architectureHome);
+  formal = spawn(runtime, [path.join(root, manifest.e2e.local_serve_entrypoint), "--formal"], {
+    cwd: architectureHome, env: { PATH: process.env.PATH, HOME: architectureHome, TMPDIR: architectureHome,
+      LANG: "C.UTF-8", PORT: "0", HOST: "127.0.0.1" }, detached: true,
+  });
+  const formalOrigin = await new Promise((resolve, reject) => {
+    let output = "";
+    const timer = setTimeout(() => reject(new Error("formal architecture server readiness timed out")), 15000);
+    formal.once("error", error => { clearTimeout(timer); reject(error); });
+    formal.once("exit", () => { clearTimeout(timer); reject(new Error("formal architecture server exited")); });
+    formal.stdout.on("data", chunk => {
+      output += chunk;
+      const found = /listening on 127\.0\.0\.1:(\d+)/u.exec(output);
+      if (found) { clearTimeout(timer); resolve("http://127.0.0.1:" + found[1]); }
+    });
+  });
+  const architecture = await runChild([path.join(root, manifest.e2e.architecture_entrypoint),
+    "--mode", "fixture", "--scenario", "natural", formalOrigin], architectureHome);
+  assert.equal(architecture.code, 0, architecture.stderr);
+  assert.match(architecture.stdout, /PASS mechanics only \(crafted answers\)/u);
+  process.stdout.write(JSON.stringify({ kind: "voice-ui.architectureShapeCheck.v1", status: "PASS",
+    scope: "artifact-shape/controlled-mechanics", artifactManifestSha256: digest, source: manifest.sources.architecture,
+    entry: manifest.e2e.architecture_entrypoint, liveProviderCalls: 0, acceptedIntegration: "NOT_PROVEN" }) + "\n");
   console.log(JSON.stringify({ kind: "voice-ui.acceptanceBoundaryCheck.v1", status: "PASS",
     independentStarts: starts.length, controlledProviderCalls: apiRequests.length, callOrigin: "chromium-same-origin",
     applicationVerdict: "RED_EXPECTED", applicationReason: "per-start", liveProviderCalls: 0, starts }));
 } finally {
   if (child?.pid) { try { process.kill(-child.pid, "SIGKILL"); } catch {} }
+  if (formal?.pid) {
+    try { process.kill(-formal.pid, "SIGTERM"); } catch {}
+    await new Promise(resolve => formal.exitCode !== null || formal.signalCode !== null ? resolve() : formal.once("exit", resolve));
+  }
   server.closeAllConnections();
   await new Promise(resolve => server.close(resolve));
 }

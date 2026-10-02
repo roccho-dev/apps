@@ -245,6 +245,42 @@ def test_judge_admission(args):
             raise AssertionError("admission unexpectedly accepted " + label)
     print("judge admission: actual supplied positive 1; typed refusal controls 8; credential injection/provider invocation/app commit 0")
 
+def architecture_identity(root, app_rev):
+    public = Path(root) / "site/architecture/data/source.v1.json"
+    private = Path(root) / "architecture/evidence.json"
+    source = json.loads(public.read_text(encoding="utf-8"))
+    evidence = json.loads(private.read_text(encoding="utf-8"))
+    if (source.get("schema") != "voice-ui.architecture-source/2"
+            or evidence.get("schema") != "voice-ui.architecture-evidence/1"
+            or source.get("status") != evidence.get("status")):
+        raise SystemExit("architecture binding mismatch")
+    if source["status"] == "available":
+        identity = source.get("source")
+        if (not isinstance(identity, dict) or set(identity) != {"handle", "commit"}
+                or not re.fullmatch(r"[0-9a-f]{40}", app_rev)
+                or identity["commit"] != app_rev or evidence.get("source") != identity):
+            raise SystemExit("architecture source identity mismatch")
+        admitted = {f["entity"]: f for f in source["files"] if f["class"] == "admitted"}
+        files = evidence.get("files")
+        if not isinstance(files, dict) or set(files) != set(admitted):
+            raise SystemExit("architecture evidence closure mismatch")
+        for entity, text in files.items():
+            if not isinstance(text, str):
+                raise SystemExit("architecture evidence blob mismatch")
+            raw = text.encode("utf-8")
+            blob = hashlib.sha1(b"blob " + str(len(raw)).encode() + b"\0" + raw).hexdigest()
+            if blob != admitted[entity]["blob"]:
+                raise SystemExit("architecture evidence blob mismatch")
+    elif (source["status"] == "unavailable" and not re.fullmatch(r"[0-9a-f]{40}", app_rev)
+          and source.get("reason") == evidence.get("reason")):
+        # Preserve source-dev builds of a dirty tree, without granting an exact snapshot.
+        identity = None
+    else:
+        raise SystemExit("architecture source unavailable for exact artifact")
+    return {"status": source["status"], "source": identity,
+            "manifest_sha256": sha256(public), "evidence_sha256": sha256(private)}
+
+
 def build(args):
     app = Path(args.app)
     out = Path(args.out)
@@ -260,6 +296,9 @@ def build(args):
 
     copy_tree(app / "web", site)
     copy_tree(app / "src", site / "app/src")
+    copy_file(app / "dev/architecture-config.v1.json", site / "architecture/data/config.v1.json")
+    copy_file(Path(args.architecture) / "manifest.json", site / "architecture/data/source.v1.json")
+    copy_file(Path(args.architecture) / "evidence.json", out / "architecture/evidence.json")
     # The compiled Worker is the artifact's only provider route. Raw functions/
     # are never shipped: their imports resolve only inside the app tree.
     worker = out / "worker/worker.mjs"
@@ -281,6 +320,7 @@ def build(args):
     copy_file(app / "artifact.jsonl", out / ".envs/artifact.jsonl")
     copy_file(app / "tests/local-voice-graph-e2e.mjs", out / "e2e/local-voice-graph-e2e.mjs")
     copy_file(app / "tests/public-e2e.mjs", out / "e2e/public-e2e.mjs")
+    copy_file(app / "tests/architecture-e2e.mjs", out / "e2e/architecture-e2e.mjs")
     copy_file(app / "tests/runtime-acceptance.mjs", out / "e2e/runtime-acceptance.mjs")
     copy_file(app / "dev/serve.mjs", out / "e2e/serve.mjs")
     copy_file(app / "tests/fixtures/voice-add-edge-en.wav", out / "e2e/fixtures/voice-add-edge-en.wav")
@@ -294,6 +334,7 @@ def build(args):
         "schema": "voice-ui-dist/2",
         "sources": {
             "apps": args.app_rev,
+            "architecture": architecture_identity(out, args.app_rev),
             "ui": args.ui_rev,
             "hayamimi-web": json.loads(args.hayamimi_artifact),
             "jev-provider": judge_identity,
@@ -305,6 +346,7 @@ def build(args):
             "runtime_entrypoint": "e2e/runtime-acceptance.mjs",
             "local_serve_entrypoint": "e2e/serve.mjs",
             "public_entrypoint": "e2e/public-e2e.mjs",
+            "architecture_entrypoint": "e2e/architecture-e2e.mjs",
             "wav": "e2e/fixtures/voice-add-edge-en.wav",
             "golden": "e2e/fixtures/voice-add-edge-en.golden.json",
             "correction_wav": "e2e/fixtures/voice-reverse-edge-en.wav",
@@ -379,6 +421,9 @@ def verify_dist(root):
         "site/app.mjs",
         "site/data/config.v1.json",
         "site/data/bundle.v1.json",
+        "site/architecture/data/config.v1.json",
+        "site/architecture/data/source.v1.json",
+        "architecture/evidence.json",
         "site/app/src/contract.mjs",
         "site/app/src/bundle.mjs",
         "site/app/src/config.mjs",
@@ -402,6 +447,7 @@ def verify_dist(root):
         ".envs/artifact.jsonl",
         "e2e/local-voice-graph-e2e.mjs",
         "e2e/public-e2e.mjs",
+        "e2e/architecture-e2e.mjs",
         "e2e/runtime-acceptance.mjs",
         "e2e/serve.mjs",
         "e2e/fixtures/voice-add-edge-en.wav",
@@ -419,6 +465,7 @@ def verify_dist(root):
         "runtime_entrypoint": "e2e/runtime-acceptance.mjs",
             "local_serve_entrypoint": "e2e/serve.mjs",
         "public_entrypoint": "e2e/public-e2e.mjs",
+        "architecture_entrypoint": "e2e/architecture-e2e.mjs",
         "wav": "e2e/fixtures/voice-add-edge-en.wav",
         "golden": "e2e/fixtures/voice-add-edge-en.golden.json",
         "correction_wav": "e2e/fixtures/voice-reverse-edge-en.wav",
@@ -437,6 +484,9 @@ def verify_dist(root):
     if manifest.get("runtime") != expected_runtime:
         raise SystemExit("declared Worker runtime mismatch")
 
+    if manifest.get("sources", {}).get("architecture") != architecture_identity(root, manifest["sources"]["apps"]):
+        raise SystemExit("architecture provenance mismatch")
+
     if (root / "site/hayamimi/sherpa/sherpa-onnx-wasm-main-vad-asr.data").exists():
         raise SystemExit("whole ASR model must be chunked before publication")
     if any("sherpa-pja" in path.as_posix() for path in root.rglob("*")):
@@ -447,7 +497,9 @@ def verify_dist(root):
         if path.stat().st_size > PAGE_FILE_LIMIT:
             raise SystemExit(f"Pages file limit exceeded: {path.relative_to(root)}")
         data = path.read_bytes()
-        if b"JEV_API_KEY" in data:
+        # The exact public source manifest declares identifiers, never source text or key values.
+        # Its paired source identity and evidence blobs were checked above; other site files retain the ban.
+        if b"JEV_API_KEY" in data and path != site / "architecture/data/source.v1.json":
             raise SystemExit(f"Jev secret identifier leaked into public site: {path.relative_to(root)}")
 
     for path in (p for p in root.rglob("*") if p.is_file()):
@@ -510,6 +562,7 @@ def main():
     build_parser.add_argument("--app", required=True)
     build_parser.add_argument("--semantic-map", required=True)
     build_parser.add_argument("--hayamimi", required=True)
+    build_parser.add_argument("--architecture", required=True)
     build_parser.add_argument("--out", required=True)
     build_parser.add_argument("--app-rev", required=True)
     build_parser.add_argument("--ui-rev", required=True)

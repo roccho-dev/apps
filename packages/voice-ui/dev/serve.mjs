@@ -28,8 +28,11 @@ const stores = formalRoot ? {} : {
   // architecture page reads, and evidence only the Function below is given.
   architecture: requireStore("VOICE_UI_ARCHITECTURE"),
 };
-const prepared = name => fs.readFile(path.join(stores.architecture, name), "utf8").then(JSON.parse);
-const architecture = formalRoot ? undefined : { manifest: await prepared("manifest.json"), evidence: await prepared("evidence.json") };
+const architectureFiles = formalRoot
+  ? { manifest: path.join(formalRoot, "site/architecture/data/source.v1.json"), evidence: path.join(formalRoot, "architecture/evidence.json") }
+  : { manifest: path.join(stores.architecture, "manifest.json"), evidence: path.join(stores.architecture, "evidence.json") };
+const architecture = Object.fromEntries(await Promise.all(Object.entries(architectureFiles)
+  .map(async ([name, file]) => [name, JSON.parse(await fs.readFile(file, "utf8"))])));
 
 const TYPES = new Map(Object.entries({
   ".html": "text/html; charset=utf-8",
@@ -50,7 +53,7 @@ function resolveUnder(root, relative) {
 
 function route(pathname) {
   if (formalRoot) {
-    return resolveUnder(path.join(formalRoot, "site"), pathname === "/" ? "index.html" : pathname.slice(1));
+    return resolveUnder(path.join(formalRoot, "site"), ["/", "/architecture/"].includes(pathname) ? "index.html" : pathname.slice(1));
   }
   if (pathname === "/") return path.join(packageRoot, "web/index.html");
 
