@@ -323,8 +323,12 @@ const failing = async (stage, at, fault, why, { utterance = UTTERANCES.save, foc
     && entry.sent.state.utterance === sent[0].sent.state.utterance
     && JSON.stringify(entry.sent.state.frame) === JSON.stringify(framesOf(judges[0].sent.state.architecture)[index]?.frame)),
   `${stage}: every judge frame sent is of [${focus}], the one section and the utterance, and they are that section's first frames in order`);
-  const displayedReason = await page.evaluate(async code => (await import("/app/src/render.mjs")).reasonText(code), why);
+  const { displayedReason, genericReason } = await page.evaluate(async code => {
+    const { reasonText } = await import("/app/src/render.mjs");
+    return { displayedReason: reasonText(code), genericReason: reasonText("error") };
+  }, why);
   need(typeof displayedReason === "string" && displayedReason.trim().length > 0
+    && displayedReason !== genericReason
     && now.state === "failed" && (now.failure ?? "").includes(displayedReason), `${stage}: the utterance fails with ${why} (state ${now.state}: ${now.failure ?? now.status})`);
   need(JSON.stringify(now.draft) === JSON.stringify(baseline.draft) && JSON.stringify(now.claims) === JSON.stringify(baseline.claims)
     && baseline.graph !== null && JSON.stringify(now.graph) === JSON.stringify(baseline.graph)
