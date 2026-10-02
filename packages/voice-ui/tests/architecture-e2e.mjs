@@ -324,7 +324,8 @@ const failing = async (stage, at, fault, why, { utterance = UTTERANCES.save, foc
     && JSON.stringify(entry.sent.state.frame) === JSON.stringify(framesOf(judges[0].sent.state.architecture)[index]?.frame)),
   `${stage}: every judge frame sent is of [${focus}], the one section and the utterance, and they are that section's first frames in order`);
   const displayedReason = await page.evaluate(async code => (await import("/app/src/render.mjs")).reasonText(code), why);
-  need(now.state === "failed" && (now.failure ?? "").includes(displayedReason), `${stage}: the utterance fails with ${why} (state ${now.state}: ${now.failure ?? now.status})`);
+  need(typeof displayedReason === "string" && displayedReason.trim().length > 0
+    && now.state === "failed" && (now.failure ?? "").includes(displayedReason), `${stage}: the utterance fails with ${why} (state ${now.state}: ${now.failure ?? now.status})`);
   need(JSON.stringify(now.draft) === JSON.stringify(baseline.draft) && JSON.stringify(now.claims) === JSON.stringify(baseline.claims)
     && baseline.graph !== null && JSON.stringify(now.graph) === JSON.stringify(baseline.graph)
     && now.stored === baseline.stored && now.root === baseline.root, `${stage}: nothing is drawn, drafted or stored`);
@@ -597,6 +598,9 @@ try {
   need(reloaded.state === "restored", `reload restores the document (state ${reloaded.state}: ${reloaded.failure ?? reloaded.status})`);
   need(reloaded.stored === applied.stored, "reload does not rewrite the document");
   need(JSON.stringify(reloaded.claims) === JSON.stringify(applied.claims), "the same records and origins come back");
+  need(applied.graph !== null && reloaded.graph !== null
+    && JSON.stringify(reloaded.graph.records) === JSON.stringify(applied.graph.records)
+    && JSON.stringify(reloaded.graph.view) === JSON.stringify(applied.graph.view), "the complete rendered records and view come back");
   const originsAfter = [...new Set(reloaded.claims.flatMap(claim => claim.origins))].sort();
   need(JSON.stringify(originsAfter) === JSON.stringify(["model-inferred", "scope-declared", "source-declared", "unknown", "user-asserted"]),
     `all five origins come back (${originsAfter.join(", ")})`);
