@@ -170,7 +170,9 @@ const craft = (picks, fault = () => null) => {
     }
     const answers = Object.fromEntries(Object.entries(slots).map(([name, options]) => {
       const picked = picks(name, sent);
-      return [name, { type: "choice", choice: options.includes(picked) ? picked : contract.NONE, confidence: 0.9 }];
+      const value = typeof picked === "string" ? { choice: picked, confidence: 0.9 } : picked;
+      if (typeof picked !== "string") assert.ok(options.includes(value.choice), name + ": the controlled uncertain choice is actually offered");
+      return [name, { type: "choice", choice: options.includes(value.choice) ? value.choice : contract.NONE, confidence: value.confidence }];
     }));
     await route.fulfill({ status: 200, contentType: "application/json; charset=utf-8",
       body: JSON.stringify({ kind: contract.DECISION_KIND, answers: faulty?.answers ?? answers, ...(faulty?.extra ?? {}) }) });
@@ -211,7 +213,7 @@ const screen = () => page.evaluate(([key, rootKey]) => ({
 const domOf = now => ({
   state: now.state, status: now.status, failure: now.failure, draftSteps: now.draft.length, draftCount: now.draftCount,
   claims: now.claims.map(claim => `${claim.record} ${claim.origins.join("+")}`),
-  draft: now.draft, context: now.context, graph: now.graph, confirmedGraph: now.confirmedGraph, notice: now.notice, camera: now.camera,
+  draft: now.draft, context: now.context, graph: now.graph, confirmedGraph: now.confirmedGraph, notice: now.notice, camera: now.camera, pending: now.pending,
 });
 // What the page showed last, for the summary.
 let last = null;
@@ -629,7 +631,8 @@ try {
     assert.ok(file, "the actual source-file camera is offered");
     const long = choices.reduce((best, option) => option.label.length > best.label.length ? option : best, file);
     const heldPlacement = stage => say(stage, "fixture incomplete placement", name => ({
-      action: contract.ACTION_PLACE_PART, move: file.id, anchor: contract.NONE, direction: "right",
+      action: contract.ACTION_PLACE_PART, move: file.id,
+      anchor: { choice: choices.find(option => option.id !== file.id).id, confidence: 0.39 }, direction: "right",
     })[name] ?? contract.NONE);
     const heldCamera = await heldPlacement("camera-pending");
     assert.equal(heldCamera.now.pending, "anchor", "the controlled placement really holds its missing anchor");
@@ -640,6 +643,7 @@ try {
     for (const key of ["draft", "claims", "context", "stored"]) assert.deepEqual(clearedCamera[key], heldCamera.now[key], key);
     assert.deepEqual(clearedCamera.graph.records, heldCamera.now.graph.records);
     assert.equal(clearedCamera.graph.head, heldCamera.now.graph.head);
+    report({ event: "camera-clears-pending", dom: domOf(clearedCamera) });
     beforeCamera = clearedCamera;
     const labelVisible = label => page.evaluate(label => {
       const iframe = document.querySelector("#working-surface iframe[data-package=semantic-map]");
@@ -677,6 +681,7 @@ try {
     for (const key of ["draft", "claims", "context", "stored"]) assert.deepEqual(clearedResize[key], heldResize.now[key], key);
     assert.deepEqual(clearedResize.graph.records, heldResize.now.graph.records);
     assert.equal(clearedResize.graph.head, heldResize.now.graph.head);
+    report({ event: "resize-clears-pending", dom: domOf(clearedResize) });
     await Promise.all([
       page.locator("#camera-part").selectOption(file.id),
       page.setViewportSize({ ...viewport, height: viewport.height + 40 }),
