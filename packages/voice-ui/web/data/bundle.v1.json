@@ -7,13 +7,13 @@
     { "key": "data", "purpose": "data, a document, an input or an output", "label": "データ", "kind": "data" },
     { "key": "start", "purpose": "a start or beginning", "label": "開始", "kind": "start" },
     { "key": "end", "purpose": "an end, finish or result", "label": "終了", "kind": "end" },
-    { "key": "api", "purpose": "an API service that receives requests", "label": "API", "kind": "step" },
-    { "key": "db", "purpose": "a DB database that persists application data", "label": "DB", "kind": "data" }
+    { "key": "api", "purpose": "an application programming interface service that receives requests", "label": "API", "kind": "step" },
+    { "key": "db", "purpose": "a database that persists application data", "label": "DB", "kind": "data" }
   ],
   "diagrams": [
     {
       "key": "container-example",
-      "purpose": "a prepared example with an OCI container group and another unrelated group, before adding new services",
+      "purpose": "a prepared example with a container group and another unrelated group, before adding new services",
       "label": "Container preparation",
       "lanes": [
         { "ref": "auxiliary", "label": "Auxiliary" },

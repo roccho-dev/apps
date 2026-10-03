@@ -98,3 +98,32 @@ test("cancel, stale response, protocol failure and draw unknown stop without sel
     assert.equal(session.working, before.working);
   }
 });
+
+test("thrown judgment counts the started call and preserves only previously adopted history", async () => {
+  for (const successful of [0, 1]) {
+    const before = await opened(); let session = before; let calls = 0;
+    const result = await runGoal({ utterance, bundle, protocol, current: () => session, cancelled: () => false,
+      ask: async () => { if (calls++ === successful) throw new Error("not public"); return answer("api"); },
+      adopt: async next => { session = next; },
+    });
+    assert.equal(result.reason, "judge-unknown");
+    assert.equal(result.requests, successful + 1);
+    assert.equal(result.selected.length, successful);
+    assert.equal(result.trace.at(-1).failure, "judge-unknown");
+    if (successful) {
+      const reverted = await undo(session, { verifyDecisionLog: protocol.verifyDecisionLog });
+      assert.deepEqual(reverted.working.records, before.working.records);
+    } else assert.equal(session, before);
+  }
+});
+
+test("malformed resolved judgment is a counted contract stop, not a thrown-call UNKNOWN", async () => {
+  for (const value of [null, undefined, {}, { kind: "answered" }]) {
+    const session = await opened();
+    const result = await runGoal({ utterance, bundle, protocol, current: () => session, cancelled: () => false,
+      ask: async () => value, adopt: async () => { throw new Error("unexpected adoption"); },
+    });
+    assert.equal(result.reason, "judge-failed"); assert.equal(result.requests, 1);
+    assert.equal(result.trace[0].failure, "judge-contract"); assert.deepEqual(result.selected, []);
+  }
+});

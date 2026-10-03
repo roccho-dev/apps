@@ -200,6 +200,7 @@ const sync = () => {
   cameraPart.disabled = rendering || blocked || session.working === null;
   goalButton.disabled = rendering || blocked || session.working === null || draftFull(session);
   goalCancel.hidden = !goalActive;
+  text.disabled = goalActive;
   renderWorkingNotice(workingNotice, { working: session.working !== null, draftLength: session.draft.length, storage: storageEvidence, displayFailed });
   if (ready && resizePending && !rendering && !blocked) {
     resizePending = false;

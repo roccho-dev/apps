@@ -30,9 +30,14 @@ export async function runGoal({ utterance, bundle, protocol, current, ask, adopt
     } };
     if (!isRequest(request)) return stop("invalid-goal-request");
     const head = expected.working.head;
-    const answered = await ask(request);
-    const read = answered.kind === "answered" ? readAnswers(answered.decision.answers, slotsFor(request.state)) : null;
-    trace.push(Object.freeze({ head, answers: read, failure: answered.kind === "failed" ? answered.reason : null }));
+    let answered;
+    try { answered = await ask(request); }
+    catch {
+      trace.push(Object.freeze({ head, answers: null, failure: "judge-unknown" }));
+      return stop("judge-unknown");
+    }
+    const read = answered?.kind === "answered" ? readAnswers(answered.decision?.answers, slotsFor(request.state)) : null;
+    trace.push(Object.freeze({ head, answers: read, failure: answered?.kind === "failed" ? answered.reason : read === null ? "judge-contract" : null }));
     if (read === null) return stop("judge-failed");
     if (cancelled()) return stop("cancelled");
     if (now() - started >= 180000) return stop("budget-time");

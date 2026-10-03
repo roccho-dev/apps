@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { createHash } from "node:crypto";
 import { createRequire } from "node:module";
 // The approved acceptance runtime supplies this pinned dependency, never npm at run time.
 const { chromium } = createRequire(import.meta.url)("playwright-core");
@@ -34,14 +35,17 @@ const { chromium } = createRequire(import.meta.url)("playwright-core");
 //
 // contextual-reverse evaluates source, reverses one calls edge as a hypothetical,
 // then strictly restores Working with Undo, without Apply/reload or authority proof.
-// node architecture-e2e.mjs --mode fixture|fixture-stop|fixture-semantic-stop|live --scenario natural|named|contextual-reverse <url>
+// goal-addition uses a separate Goal button: one public preparation request,
+// finite additions, independent post-STOP graph oracle, then whole-Goal Undo.
+// node architecture-e2e.mjs --mode fixture|fixture-stop|fixture-semantic-stop|live --scenario natural|named|contextual-reverse|goal-addition <url>
 const [flag, mode, scenarioFlag, scenario, url] = process.argv.slice(2);
 if (flag !== "--mode" || !["fixture", "fixture-stop", "fixture-semantic-stop", "live"].includes(mode) || scenarioFlag !== "--scenario"
-  || !["natural", "named", "contextual-reverse"].includes(scenario) || !url
+  || !["natural", "named", "contextual-reverse", "goal-addition"].includes(scenario) || !url
   || (mode === "fixture-semantic-stop" && scenario !== "contextual-reverse")) {
-  throw new Error("usage: architecture-e2e.mjs --mode fixture|fixture-stop|fixture-semantic-stop|live --scenario natural|named|contextual-reverse <url>");
+  throw new Error("usage: architecture-e2e.mjs --mode fixture|fixture-stop|fixture-semantic-stop|live --scenario natural|named|contextual-reverse|goal-addition <url>");
 }
 const REVERSE = scenario === "contextual-reverse";
+const GOAL = scenario === "goal-addition";
 const SEMANTIC_STOP = mode === "fixture-semantic-stop";
 const STOP_FIXTURE = mode === "fixture-stop";
 const FIXTURE = mode !== "live";
@@ -69,7 +73,7 @@ const UTTERANCES = {
     save: "src/log.mjs を詳しく見せて",
     correction: "web/app.mjs から localStorage への stores-in の関係を消して",
   },
-}[REVERSE ? "natural" : scenario];
+}[REVERSE || GOAL ? "natural" : scenario];
 const REVERSE_UTTERANCE = "さっき詳しく見た画面が判定を頼む呼び出しを、試案として逆向きにして";
 const PAGE = new URL("/architecture", url).href;
 const ROOT_KEY = "voice-ui.decision-log.v1";
@@ -94,7 +98,7 @@ const MOST = 1 + ENTITY_IDS.length + FILE_IDS.length + new Set(MANIFEST.candidat
   .map(candidate => [candidate.from, candidate.to].sort().join(" "))).size;
 
 const browser = await chromium.launch({ headless: true, channel: "chromium" });
-const context = await browser.newContext(REVERSE ? { viewport: { width: 1280, height: 720 } } : {});
+const context = await browser.newContext(REVERSE || GOAL ? { viewport: { width: 1280, height: 720 } } : {});
 const page = await context.newPage();
 const errors = [];
 page.on("pageerror", error => errors.push(String(error)));
@@ -286,7 +290,7 @@ const expectedOf = sent => {
 // same section and the utterance, and naming that section's frames once each
 // in the contract's order. Anything else is a finding of this stage - never a
 // wait for more.
-const actions = { new: 0, send: 0, undo: 0, apply: 0, reload: 0, ...(FIXTURE ? { discard: 0 } : {}) };
+const actions = { new: 0, send: 0, undo: 0, apply: 0, reload: 0, ...(FIXTURE ? { discard: 0 } : {}), ...(GOAL ? { goal: 0 } : {}) };
 const click = async control => { actions[control]++; await page.locator("#" + control).click(); };
 let stopBaseline = null;
 const say = async (stage, utterance, picks) => {
@@ -406,7 +410,7 @@ const need = (condition, what) => { if (!condition) verdicts.push(what); };
 // run when it fails - nothing is undone or built on a state the next stage
 // assumes - and every stage not reached is reported as not run.
 const FAULTS = ["failed-frame", "incomplete-frame", "frame-extra-envelope", "judge-extra-envelope", "incomplete-judge-frame"];
-const STAGES = REVERSE ? ["open", "app", "reverse", "reverse-undo"] : ["open", "whole", "whole-undo",
+const STAGES = GOAL ? ["open", "prepare", "goal", "goal-undo"] : REVERSE ? ["open", "app", "reverse", "reverse-undo"] : ["open", "whole", "whole-undo",
   ...(FIXTURE ? ["camera-undo", "camera-discard-draft", "camera-undo-render-failure", "camera-discard", "camera-discard-new"] : []),
   "app", "credential", "storage", "save", ...(FIXTURE ? ["save-again"] : []),
   ...(LOCATES ? FAULTS : []), "correction", ...(FIXTURE ? ["camera-surviving-undo"] : []),
@@ -470,7 +474,82 @@ let rootBefore;
 let applied = null;
 let reloaded = null;
 let contextEvidence = null;
+let goalEvidence = null;
+const goalScenario = async () => {
+  const goalText = "OCIの中にAPIとDBを追加して";
+  reached.push("open");
+  await page.goto(PAGE, { waitUntil: "commit", timeout: 120000 });
+  await ready();
+  await page.locator("#text").fill("Goal example");
+  await click("new"); await settle();
+  const route = new URL("/api/judge", url).href;
+  reached.push("prepare");
+  if (FIXTURE) await page.route(route, craft(name => name === "action" ? contract.ACTION_COMPOSE
+    : name === "diagram" ? "container-example" : contract.NONE), { times: 1 });
+  await page.locator("#text").fill("OCIコンテナと別グループがある準備図を作って");
+  await click("send"); await settle(); await drain();
+  if (FIXTURE) await page.unroute(route);
+  const before = await screen(); last = before;
+  const container = before.graph?.records.find(record => record.type === "region" && record.kind === "group" && record.label === "OCI");
+  need(exchanges.length === 1 && exchanges[0].status === 200 && before.state === "drafted" && container !== undefined,
+    "one preparation request draws the public existing group");
+  prerequisite(verdicts.length === 0, "prepare");
+  const prepared = exchanges.length;
+  if (FIXTURE) await page.route(route, craft((name, sent) => {
+    if (name === "parent") return container.id;
+    return ["api", "db"].find(key => !sent.state.selected.some(item => item.key === key)) ?? contract.NONE;
+  }, () => STOP_FIXTURE ? { status: 502, body: { error: contract.ERRORS.providerError } } : null), { times: 8 });
+  reached.push("goal");
+  await page.locator("#text").fill(goalText);
+  await click("goal"); await settle(); await drain();
+  if (FIXTURE) await page.unroute(route);
+  const after = await screen(); last = after;
+  const attempt = await page.evaluate(() => JSON.parse(document.body.dataset.goal));
+  const sent = exchanges.slice(prepared);
+  const added = after.graph.records.filter(record => !before.graph.records.some(old => old.id === record.id));
+  const expected = [
+    { label: "API", kind: "step", parent: container.id },
+    { label: "DB", kind: "data", parent: container.id },
+  ];
+  const actual = added.map(({ label, kind, parent }) => ({ label: label.replace(/ \d+$/u, ""), kind, parent }));
+  const semanticMet = JSON.stringify(actual) === JSON.stringify(expected);
+  const digest = value => createHash("sha256").update(JSON.stringify(value)).digest("hex");
+  // Independent public-information baseline: literal catalogue/parent name
+  // matching. No gold remainder or baseline decision goes to the product.
+  const publicBundle = await (await fetch(new URL(config.data.bundle, url))).json();
+  const namedParents = before.graph.records.filter(record => record.type === "region" && record.kind === "group" && goalText.includes(record.label));
+  const baseline = namedParents.length !== 1 ? [] : publicBundle.parts.filter(part => goalText.includes(part.label))
+    .map(part => ({ label: part.label, kind: part.kind, parent: namedParents[0].id }));
+  goalEvidence = { reason: attempt.reason, goalMet: semanticMet, requests: sent.length, setupRequests: prepared,
+    selected: attempt.selected, actual, baseline, baselineMet: JSON.stringify(baseline) === JSON.stringify(expected),
+    addedValue: "NOT_PROVEN", graphBefore: digest(before.graph.records), graphAfter: digest(after.graph.records),
+    undoRestored: false, noSave: after.stored === before.stored && after.root === before.root,
+    exchanges: sent.map(sanitized), setupExchanges: exchanges.slice(0, prepared).map(sanitized),
+    requestHistories: sent.map(entry => entry.sent.state.selected),
+    providerIdentity: "UNKNOWN", acceptedIntegration: "NOT_PROVEN" };
+  need(sent.length >= 1 && sent.length <= 8 && sent.every(entry => entry.sent.kind === contract.GOAL_REQUEST_KIND
+    && entry.sent.state.utterance === goalText && contract.isRequest(entry.sent)), "bounded requests carry the one Goal and closed public state");
+  need(attempt.requests === sent.length, "logical request accounting matches actual application requests");
+  need(after.stored === before.stored && after.root === before.root, "Goal never saves");
+  if (STOP_FIXTURE) {
+    assert.equal(sent.length, 1); assert.equal(sent[0].status, 502);
+    assert.equal(attempt.reason, "judge-failed"); assert.deepEqual(attempt.selected, []);
+    assert.deepEqual(after.graph.records, before.graph.records); assert.deepEqual(after.draft, before.draft);
+    assert.deepEqual(verdicts, []);
+    return;
+  }
+  need(sent.every(entry => entry.status === 200 && contract.readAnswers(entry.body?.answers, slotsOf(entry.sent)) !== null), "every Goal response is complete");
+  need(attempt.reason === "none" && semanticMet, "independent expected graph is reached before unconfirmed NONE");
+  need(before.graph.records.every(record => after.graph.records.some(next => JSON.stringify(next) === JSON.stringify(record))), "Goal preserves every baseline record");
+  reached.push("goal-undo"); await click("undo"); await settle();
+  const reverted = await screen(); last = reverted;
+  for (const key of ["draft", "claims", "stored", "root", "confirmedGraph"]) assert.deepEqual(reverted[key], before[key], key);
+  assert.deepEqual(reverted.graph.records, before.graph.records);
+  goalEvidence.undoRestored = true;
+  for (const entry of exchanges) entry.reported = true;
+};
 const runScenario = async () => {
+  if (GOAL) return goalScenario();
   // The slash-less path is sent to the architecture page's own path.
   reached.push("open");
   const opened = await page.goto(PAGE, { waitUntil: "commit", timeout: 120000 });
@@ -960,8 +1039,8 @@ const answered = exchanges.filter(entry => entry.status === 200);
 const providerIdentity = "UNKNOWN";
 const failure = thrown === null || thrown === HALT || thrown === PROTOCOL_HALT ? null : String(thrown?.message ?? thrown).split("\n")[0];
 report({
-  event: "summary", mode, scenario, contextEvidence, source: SERVED_COMMIT, viewport: page.viewportSize(), reached,
-  dom: last === null ? null : domOf(last), stoppedAt, error: failure, cleanup, protocolFailure, actions, verdicts, notRun: STAGES.filter(stage => !reached.includes(stage)),
+  event: "summary", mode, scenario, contextEvidence, ...(GOAL ? { goalEvidence } : {}), source: SERVED_COMMIT, viewport: page.viewportSize(), reached,
+  dom: GOAL || last === null ? null : domOf(last), stoppedAt, error: failure, cleanup, protocolFailure, actions, verdicts, notRun: STAGES.filter(stage => !reached.includes(stage)),
   requests: exchanges.length, answered: exchanges.filter(entry => entry.status !== null).length,
   failed: exchanges.filter(entry => entry.error !== null).length,
   non200: exchanges.filter(entry => entry.status !== null && entry.status !== 200).length, providerIdentity,
@@ -983,6 +1062,10 @@ if (cleanup !== null) {
   // A browser that could not be closed makes the run an error, whatever it found.
   process.stdout.write(`${LABEL}: ERROR | close failed: ${cleanup} | ${summary}\n`);
   process.exitCode = 1;
+} else if (GOAL) {
+  assert.deepEqual(verdicts, [], "the Goal's bounded mechanics and independently sealed result");
+  assert.equal(thrown, null);
+  process.stdout.write(`${LABEL}: PASS ${FIXTURE ? "controlled Goal mechanics only" : "local source-dev Goal only"} | ${summary}\n`);
 } else if (STOP_FIXTURE) {
   assert.equal(thrown, PROTOCOL_HALT);
   const stopStage = REVERSE ? "app" : "whole";
