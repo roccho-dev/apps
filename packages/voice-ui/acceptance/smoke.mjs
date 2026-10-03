@@ -279,7 +279,7 @@ try {
     assert.deepEqual(evidence.trace, ["current-read", "write-attempt", unknown ? "readback-unavailable" : "readback-old"]);
     assert.equal(evidence.actualWrite, unknown);
     assert.equal(evidence.failedApply, unknown ? "unverified" : "not-persisted");
-    for (const key of ["workingPreserved", "confirmedPreserved", "nativeRestored"]) assert.equal(evidence[key], true);
+    for (const key of ["workingPreserved", "confirmedPreserved", "nativeRestored", "nativeDescriptorsRestored"]) assert.equal(evidence[key], true);
     assert.equal(evidence.recovery, unknown ? "verified-known-document" : "NOT_RUN");
     assert.equal(evidence.acceptedIntegration, "NOT_PROVEN");
     if (unknown) {

@@ -613,7 +613,7 @@ const runScenario = async () => {
       const proto = Storage.prototype;
       const get = Object.getOwnPropertyDescriptor(proto, "getItem");
       const set = Object.getOwnPropertyDescriptor(proto, "setItem");
-      const fault = window.__storageFault = { trace: [], next: null, written: false, restored: false };
+      const fault = window.__storageFault = { trace: [], next: null, written: false, restored: false, original: { getItem: get, setItem: set } };
       fault.restore = () => {
         Object.defineProperty(proto, "getItem", get);
         Object.defineProperty(proto, "setItem", set);
@@ -648,7 +648,11 @@ const runScenario = async () => {
       await settle(); // DOM-only: no getItem probe can consume the fault.
       fault = await page.evaluate(() => {
         const { trace, next, written, restored } = window.__storageFault;
-        return { trace, next, written, restored };
+        const nativeDescriptors = Object.entries(window.__storageFault.original).every(([name, original]) => {
+          const actual = Object.getOwnPropertyDescriptor(Storage.prototype, name);
+          return Object.keys(original).every(key => actual[key] === original[key]);
+        });
+        return { trace, next, written, restored, nativeDescriptors };
       });
     } finally {
       await page.evaluate(() => { window.__storageFault.restore(); delete window.__storageFault; });
@@ -657,15 +661,17 @@ const runScenario = async () => {
     last = failed;
     const unknown = scenario === "storage-readback-unknown";
     assert.equal(fault.restored, true, "commit readback restored native descriptors before observation");
+    assert.equal(fault.nativeDescriptors, true, "actual native descriptors match their originals");
     assert.deepEqual(fault.trace, ["current-read", "write-attempt", unknown ? "readback-unavailable" : "readback-old"]);
     assert.equal(fault.written, unknown);
     assert.equal(failed.state, unknown ? "storage-unverified" : "failed");
+    assert.match(failed.failure, unknown ? /controlled readback unavailable/ : /controlled write refused/);
     for (const key of ["graph", "draft", "claims", "context", "root", "confirmedGraph"]) assert.deepEqual(failed[key], before[key], key);
     for (const id of ["new", "send", "undo", "apply", "discard"]) assert.equal(await page.locator(`#${id}`).isDisabled(), unknown, id);
     assert.equal(exchanges.length, requests, "Apply makes no judgment request");
     storageEvidence = { source: SERVED_COMMIT, key: KEY, trace: fault.trace, actualWrite: fault.written,
       failedApply: unknown ? "unverified" : "not-persisted", workingPreserved: true, confirmedPreserved: true,
-      nativeRestored: true, recovery: "NOT_RUN", acceptedIntegration: "NOT_PROVEN" };
+      nativeRestored: true, nativeDescriptorsRestored: true, recovery: "NOT_RUN", acceptedIntegration: "NOT_PROVEN" };
     if (!unknown) assert.equal(failed.stored, before.stored);
     else {
       assert.equal(failed.stored, fault.next, "native observation sees exactly the bytes actually written");
