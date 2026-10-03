@@ -569,6 +569,7 @@ const goalScenario = async () => {
   need(["none", "no-room-for-part", "offers-exhausted", "budget-requests", "budget-time"].includes(attempt.reason) && semanticMet,
     "independent expected graph is reached after a known mechanical stop, never from the stop alone");
   need(labelsVisible.length === 2 && labelsVisible.every(Boolean), "both actual added labels intersect the unchanged Working viewport");
+  need(goalEvidence.timeBudgetMet && attempt.elapsedMs >= 0, "the independently graded Goal time envelope is met");
   need(before.graph.records.every(record => after.graph.records.some(next => JSON.stringify(next) === JSON.stringify(record))), "Goal preserves every baseline record");
   reached.push("goal-undo"); await click("undo"); await settle();
   const reverted = await screen(); last = reverted;
