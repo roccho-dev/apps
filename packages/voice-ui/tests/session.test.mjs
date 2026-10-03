@@ -261,6 +261,58 @@ test("a refused Apply leaves every step in place; a committed one saves them all
   assert.deepEqual(committed.session.conversation, session.conversation, "Apply keeps the conversation");
 });
 
+test("Apply refuses malformed committed values without replacing any core state", async () => {
+  const drafted = (await say(await opened(), { action: ACTION_ADD_EDGE, source: "node-a", target: "node-b" })).session;
+  const held = (await say(drafted, {
+    action: ACTION_PLACE_PART, move: "node-c", anchor: choice("node-a", 0.39), direction: "right",
+  }, { layout: true })).session;
+  assert.notEqual(held.pending, null);
+  const made = (await startNew(createSession({ accepted: null, stored: null }), { title: "new", protocol })).session;
+  for (const session of [held, made]) {
+    const before = { ...session };
+    for (const result of [
+      { status: COMMIT_COMMITTED },
+      ...[null, undefined, {}, 1, ""].map(stored => ({ status: COMMIT_COMMITTED, stored })),
+    ]) {
+      await assert.rejects(apply(session, { commit: async () => result }), TypeError);
+      assert.deepEqual(session, before);
+      for (const key of Object.keys(before)) assert.equal(session[key], before[key], key);
+    }
+  }
+});
+
+test("Apply preserves non-confirmed results and thrown errors, and never commits an empty draft", async () => {
+  const openedSession = await opened();
+  const session = (await say(openedSession, { action: ACTION_ADD_EDGE, source: "node-a", target: "node-b" })).session;
+  for (const status of ["conflict", "rejected", "not-persisted", "unverified", "unknown"]) {
+    const result = { status };
+    const refused = await apply(session, { commit: async () => result });
+    assert.equal(refused.session, session);
+    assert.equal(refused.result, result);
+  }
+  const failure = new Error("commit failed");
+  await assert.rejects(apply(session, { commit: async () => { throw failure; } }), error => error === failure);
+  let calls = 0;
+  const empty = await apply(openedSession, { commit: async () => { calls += 1; } });
+  assert.equal(calls, 0);
+  assert.equal(empty.session, openedSession);
+  assert.equal(empty.result, null);
+});
+
+test("Apply accepts a confirmed opaque serialization without requiring graph log bytes", async () => {
+  const session = (await say(await opened(), { action: ACTION_ADD_EDGE, source: "node-a", target: "node-b" })).session;
+  const result = { status: COMMIT_COMMITTED, stored: "opaque document serialization" };
+  assert.notEqual(result.stored, session.working.log);
+  const committed = await apply(session, { commit: async () => result });
+  assert.equal(committed.result, result);
+  assert.equal(committed.session.accepted, session.working);
+  assert.equal(committed.session.working, session.working);
+  assert.equal(committed.session.stored, result.stored);
+  assert.deepEqual(committed.session.draft, []);
+  assert.equal(committed.session.pending, null);
+  assert.deepEqual(committed.session.conversation, session.conversation);
+});
+
 test("the conversation window is the last five short enough to send; longer ones are counted, never cut", async () => {
   let session = await opened();
   for (let index = 1; index <= 6; index += 1) session = (await say(session, { action: NONE }, { text: `t${index}` })).session;
