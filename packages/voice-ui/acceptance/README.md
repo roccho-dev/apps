@@ -2,11 +2,13 @@
 
 ## Bounded Goal additions
 
+Semantic graph attainment, elapsed-budget compliance and display observation are separate grades. A closed budget-time stop may leave the expected graph but does not meet the time envelope. Label visibility proves nonzero rendered text intersecting the unchanged viewport, not full text fit or human readability; independent P UI remains required. Incomplete HTTP, supervisor timeout or unknown drawing never becomes a known successful stop.
+
 The separate Goal button takes one natural-language text and makes only finite additions inside existing groups with room. Public parts and a preparation diagram are in the existing DataBundle; preparation is not Goal generation. Ordinary Send retains its root-based single-edit behavior. No new planner, reparent operation or external Accepted contract is supplied.
 
 The small chain is DataBundle → closed part/parent questions → legal AddRegion → session group → draw/adopt → actual selected history → mechanical STOP. The full catalogue stays public; only already adopted keys leave the next part choice. NONE, exhaustion, cancellation and budgets are unconfirmed stops, not semantic success. Goal steps share one Undo group, including partial known success; issued IDs remain monotonic. Cancel cooperatively stops further requests, not proven upstream cancellation. Display/adoption UNKNOWN requires reload/reconciliation, never blind retry.
 
-`goal-addition` on the existing architecture entry prepares the public example, types “OCIの中にAPIとDBを追加して” once into Goal, and evaluates actual label/kind/parent records only after the product stops. Its independent sealed oracle never controls candidate generation. The literal-name baseline uses the same public Goal/catalogue/group labels; a solved literal example does not prove Jev added value. Whole-Goal Undo restores baseline records/draft/claims/storage/confirmed view.
+`goal-addition` on the existing architecture entry prepares the public example, types “OCIの中にAPIとDBを追加して” once into Goal, and evaluates the unordered actual label/kind/parent records only after the product stops. Its independent sealed oracle never controls candidate generation. The literal-name baseline uses that first actual request's offered keys and eligible group labels, with output words from the same bundle authority. A solved literal example does not prove Jev added value. Product HTTP/planning/draw elapsed and baseline selection-only CPU elapsed have different measurement scopes; no price or internal model count is inferred. Whole-Goal Undo restores baseline records/draft/claims/storage/confirmed view.
 
 The same packed boundary adds mandatory fixture-positive and first-Goal protocol STOP controls; pure tests cover wrong-parent retention, closed request rejection, cancellation, stale/unknown effects and partial-group Undo. These controls are not real Jev. Existing natural/camera, contextual-reverse, binding, shape and RED guards remain mandatory.
 

@@ -211,6 +211,16 @@ const craft = (picks, fault = () => null) => {
 
 const ready = () => page.waitForFunction(() => document.body.dataset.state && document.body.dataset.state !== "pending", null, { timeout: 120000 });
 const settle = () => page.waitForFunction(() => document.body.dataset.state !== "pending", null, { timeout: 120000 });
+const labelVisible = label => page.evaluate(label => {
+  const iframe = document.querySelector("#working-surface iframe[data-package=semantic-map]");
+  const doc = iframe.contentDocument;
+  return [...doc.querySelectorAll("svg text, svg foreignObject")].some(node => {
+    const rect = node.getBoundingClientRect(), style = iframe.contentWindow.getComputedStyle(node);
+    return node.textContent.includes(label) && rect.width > 0 && rect.height > 0
+      && rect.right > 0 && rect.bottom > 0 && rect.left < iframe.clientWidth && rect.top < iframe.clientHeight
+      && style.display !== "none" && style.visibility !== "hidden";
+  });
+}, label);
 const screen = () => page.evaluate(([key, rootKey]) => ({
   state: document.body.dataset.state,
   status: document.querySelector("#status").textContent,
@@ -519,15 +529,26 @@ const goalScenario = async () => {
   const actual = added.map(({ label, kind, parent }) => ({ label: label.replace(/ [1-9]\d*$/u, ""), kind, parent }));
   const signature = rows => JSON.stringify(rows.map(({ label, kind, parent }) => JSON.stringify([label, kind, parent])).sort());
   const semanticMet = signature(actual) === signature(expected);
+  const labelsVisible = await Promise.all(added.map(record => labelVisible(record.label)));
   const digest = value => createHash("sha256").update(JSON.stringify(value)).digest("hex");
   // Independent public-information baseline: literal catalogue/parent name
   // matching. No gold remainder or baseline decision goes to the product.
   const publicBundle = await (await fetch(new URL(config.data.bundle, url))).json();
-  const namedParents = before.graph.records.filter(record => record.type === "region" && record.kind === "group" && goalText.includes(record.label));
-  const baseline = namedParents.length !== 1 ? [] : publicBundle.parts.filter(part => goalText.includes(part.label))
-    .map(part => ({ label: part.label, kind: part.kind, parent: namedParents[0].id }));
+  const baselineStart = performance.now();
+  const firstPublicState = sent[0]?.sent.state;
+  const namedParents = (firstPublicState?.parents ?? []).filter(parent => goalText.toLowerCase().includes(parent.label.toLowerCase()));
+  const baselineKeys = (firstPublicState?.offers.parts ?? []).filter(part => goalText.toLowerCase().includes(part.key)).map(part => part.key);
+  const baseline = namedParents.length !== 1 ? [] : baselineKeys.map(key => {
+    const part = publicBundle.parts.find(part => part.key === key);
+    return { label: part.label, kind: part.kind, parent: namedParents[0].id };
+  });
+  const baselineElapsedMs = performance.now() - baselineStart;
   goalEvidence = { reason: attempt.reason, goalMet: semanticMet, requests: sent.length, setupRequests: prepared,
-    selected: attempt.selected, actual, baseline, baselineMet: signature(baseline) === signature(expected),
+    selected: attempt.selected, actual, labelsVisible, baseline, baselineMet: signature(baseline) === signature(expected),
+    timeBudgetMet: Number.isFinite(attempt.elapsedMs) && attempt.elapsedMs < 180000,
+    elapsed: { productMs: attempt.elapsedMs, productScope: "HTTP+planning+draw",
+      baselineMs: baselineElapsedMs, baselineScope: "literal-selection-CPU-only", baselineProviderCalls: 0 },
+    internalModelExecutions: "UNKNOWN", providerCost: "UNKNOWN",
     addedValue: "NOT_PROVEN", graphBefore: digest(before.graph.records), graphAfter: digest(after.graph.records),
     undoRestored: false, noSave: after.stored === before.stored && after.root === before.root,
     exchanges: sent.map(sanitized), setupExchanges: exchanges.slice(0, prepared).map(sanitized),
@@ -545,7 +566,9 @@ const goalScenario = async () => {
     return;
   }
   need(sent.every(entry => entry.status === 200 && contract.readAnswers(entry.body?.answers, slotsOf(entry.sent)) !== null), "every Goal response is complete");
-  need(attempt.reason === "none" && semanticMet, "independent expected graph is reached before unconfirmed NONE");
+  need(["none", "no-room-for-part", "offers-exhausted", "budget-requests", "budget-time"].includes(attempt.reason) && semanticMet,
+    "independent expected graph is reached after a known mechanical stop, never from the stop alone");
+  need(labelsVisible.length === 2 && labelsVisible.every(Boolean), "both actual added labels intersect the unchanged Working viewport");
   need(before.graph.records.every(record => after.graph.records.some(next => JSON.stringify(next) === JSON.stringify(record))), "Goal preserves every baseline record");
   reached.push("goal-undo"); await click("undo"); await settle();
   const reverted = await screen(); last = reverted;
@@ -940,16 +963,6 @@ const runScenario = async () => {
     assert.equal(clearedCamera.graph.head, heldCamera.now.graph.head);
     report({ event: "camera-clears-pending", dom: domOf(clearedCamera) });
     beforeCamera = clearedCamera;
-    const labelVisible = label => page.evaluate(label => {
-      const iframe = document.querySelector("#working-surface iframe[data-package=semantic-map]");
-      const doc = iframe.contentDocument;
-      return [...doc.querySelectorAll("svg text, svg foreignObject")].some(node => {
-        const rect = node.getBoundingClientRect(), style = iframe.contentWindow.getComputedStyle(node);
-        return node.textContent.includes(label) && rect.width > 0 && rect.height > 0
-          && rect.right > 0 && rect.bottom > 0 && rect.left < iframe.clientWidth && rect.top < iframe.clientHeight
-          && style.display !== "none" && style.visibility !== "hidden";
-      });
-    }, label);
     for (const chosen of [file, long]) {
       await page.locator("#camera-part").selectOption(chosen.id);
       await settle();

@@ -40,6 +40,7 @@ test("one Goal adopts two real AddRegions and whole-group Undo without claiming 
   });
   assert.equal(result.reason, "none");
   assert.equal(result.requests, 3);
+  assert.equal(Number.isFinite(result.elapsedMs) && result.elapsedMs >= 0, true);
   assert.equal(requests.every(request => request.kind === GOAL_REQUEST_KIND && isRequest(request)), true);
   assert.equal(requests.every(request => request.state.utterance === utterance && request.state.offers.parts.length === 7), true);
   assert.equal(slotsFor(requests[1].state).part.includes(order[0]), false);
@@ -159,6 +160,7 @@ test("early NONE, no room and elapsed budget stop at their actual request count"
     });
     assert.equal(result.reason, reason);
     assert.equal(result.requests, reason === "no-room-for-part" ? 0 : 1);
+    assert.equal(result.elapsedMs, reason === "budget-time" ? 180000 : 0);
     assert.equal(calls, result.requests); assert.deepEqual(result.selected, []);
   }
 });

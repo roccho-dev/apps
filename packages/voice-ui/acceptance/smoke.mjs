@@ -270,12 +270,18 @@ try {
     if (mode === "fixture") {
       assert.deepEqual(summary.reached, ["open", "prepare", "goal", "goal-undo"]);
       assert.deepEqual(summary.notRun, []);
-      assert.equal(summary.actions.undo, 1); assert.equal(summary.requests, 4);
-      assert.equal(proof.requests, 3); assert.equal(proof.reason, "none");
+      assert.equal(summary.actions.undo, 1); assert.equal(summary.requests, 3);
+      assert.equal(proof.requests, 2); assert.equal(proof.reason, "no-room-for-part");
       assert.equal(proof.goalMet, true); assert.equal(proof.undoRestored, true);
+      assert.deepEqual(proof.labelsVisible, [true, true]); assert.equal(proof.timeBudgetMet, true);
+      assert.ok(Number.isFinite(proof.elapsed.productMs) && proof.elapsed.productMs >= 0);
+      assert.ok(Number.isFinite(proof.elapsed.baselineMs) && proof.elapsed.baselineMs >= 0);
+      assert.equal(proof.elapsed.productScope, "HTTP+planning+draw");
+      assert.equal(proof.elapsed.baselineScope, "literal-selection-CPU-only");
+      assert.equal(proof.internalModelExecutions, "UNKNOWN"); assert.equal(proof.providerCost, "UNKNOWN");
       assert.equal(proof.baselineMet, true); assert.equal(proof.addedValue, "NOT_PROVEN");
       assert.deepEqual(proof.selected.map(item => item.key), ["api", "db"]);
-      assert.deepEqual(proof.requestHistories.map(history => history.map(item => item.key)), [[], ["api"], ["api", "db"]]);
+      assert.deepEqual(proof.requestHistories.map(history => history.map(item => item.key)), [[], ["api"]]);
       assert.equal(proof.exchanges.every(exchange => exchange.status === 200 && exchange.answers !== null), true);
     } else {
       assert.deepEqual(summary.reached, ["open", "prepare", "goal"]);

@@ -6,13 +6,14 @@ import { proposeGoal } from "./session.mjs";
 // One bounded AddRegion attempt. Ports own HTTP and the draw/adopt effect;
 // this coordinator owns only actual selected history and mechanical STOP.
 // It has no semantic goal oracle and never writes durable state.
-export async function runGoal({ utterance, bundle, protocol, current, ask, adopt, cancelled, now = Date.now }) {
+export async function runGoal({ utterance, bundle, protocol, current, ask, adopt, cancelled, now = () => performance.now() }) {
   const first = current();
   const group = first.nextSeq;
   const selected = [];
   const trace = [];
   const started = now();
-  const stop = reason => Object.freeze({ reason, requests: trace.length, selected: Object.freeze([...selected]), trace: Object.freeze([...trace]) });
+  const stop = reason => Object.freeze({ reason, requests: trace.length, elapsedMs: Math.max(0, now() - started),
+    selected: Object.freeze([...selected]), trace: Object.freeze([...trace]) });
   let expected = first;
   for (let count = 0; count < GOAL_REQUEST_MAX; count += 1) {
     if (cancelled()) return stop("cancelled");
