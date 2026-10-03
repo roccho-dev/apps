@@ -279,7 +279,7 @@ const expectedOf = sent => {
 // same section and the utterance, and naming that section's frames once each
 // in the contract's order. Anything else is a finding of this stage - never a
 // wait for more.
-const actions = { new: 0, send: 0, undo: 0, apply: 0, reload: 0 };
+const actions = { new: 0, send: 0, undo: 0, apply: 0, reload: 0, ...(FIXTURE ? { discard: 0 } : {}) };
 const click = async control => { actions[control]++; await page.locator("#" + control).click(); };
 let stopBaseline = null;
 const say = async (stage, utterance, picks) => {
@@ -399,8 +399,11 @@ const need = (condition, what) => { if (!condition) verdicts.push(what); };
 // run when it fails - nothing is undone or built on a state the next stage
 // assumes - and every stage not reached is reported as not run.
 const FAULTS = ["failed-frame", "incomplete-frame", "frame-extra-envelope", "judge-extra-envelope", "incomplete-judge-frame"];
-const STAGES = ["open", "whole", "whole-undo", "app", "credential", "storage", "save", ...(FIXTURE ? ["save-again"] : []),
-  ...(LOCATES ? FAULTS : []), "correction", "apply", "reload", ...(FIXTURE ? ["camera-pending", "resize-pending"] : [])];
+const STAGES = ["open", "whole", "whole-undo",
+  ...(FIXTURE ? ["camera-undo", "camera-discard-draft", "camera-undo-render-failure", "camera-discard", "camera-discard-new"] : []),
+  "app", "credential", "storage", "save", ...(FIXTURE ? ["save-again"] : []),
+  ...(LOCATES ? FAULTS : []), "correction", ...(FIXTURE ? ["camera-surviving-undo"] : []),
+  "apply", "reload", ...(FIXTURE ? ["camera-pending", "resize-pending"] : [])];
 const reached = [];
 let stoppedAt = null;
 const HALT = new Error("a stage a later one stands on failed");
@@ -494,15 +497,78 @@ try {
   prerequisite(whole.now.state === "drafted", "whole");
 
   // Undo takes the whole utterance back - every Decision it added.
+  let cameraControlBefore;
+  let cameraControlRequests;
+  if (FIXTURE) {
+    await page.locator("#camera-part").selectOption(`arch-${APP}`);
+    await settle();
+    cameraControlBefore = await screen();
+    cameraControlRequests = exchanges.length;
+    assert.equal(cameraControlBefore.camera, `arch-${APP}`);
+  }
   reached.push("whole-undo");
   await click("undo");
   await settle();
   const undone = await screen();
   last = undone;
+  if (FIXTURE) {
+    reached.push("camera-undo");
+    assert.equal(undone.camera, "", "Undo reconciles the disappeared draft camera to overview");
+    assert.equal(undone.draft.length, 1, "selected draft camera does not block Undo");
+    assert.equal(exchanges.length, cameraControlRequests, "camera and Undo make no judgment requests");
+    for (const key of ["stored", "root", "confirmedGraph"]) assert.deepEqual(undone[key], cameraControlBefore[key], key);
+    report({ event: "camera-undo", requests: 0, dom: domOf(undone) });
+  }
   report({ event: "turn", stage: "whole-undo", expected: 0, requests: 0, answered: 0, failed: 0, exchanges: [], dom: domOf(undone) });
   need(undone.draft.length === 1 && undone.claims.every(claim => !claim.record.startsWith("region arch-")),
     `Undo takes the whole view back (${undone.draft.length} steps left)`);
   prerequisite(undone.draft.length === 1, "whole-undo");
+  if (FIXTURE) {
+    // A separate crafted draft exercises failed rendering and Discard.
+    // The natural/live scenario above and all its original utterances stay unchanged.
+    reached.push("camera-discard-draft");
+    const draft = await say("camera-discard-draft", UTTERANCES.whole, picksFor(contract.WHOLE));
+    assert.equal(draft.now.state, "drafted");
+    await page.locator("#camera-part").selectOption(`arch-${APP}`);
+    await settle();
+    const before = await screen();
+    const requests = exchanges.length;
+    await page.evaluate(() => {
+      const mount = document.querySelector("#working-surface"), append = mount.append;
+      mount.append = function (...nodes) { mount.append = append; throw new Error("controlled first-pane insertion failure"); };
+    });
+    reached.push("camera-undo-render-failure");
+    await click("undo");
+    await settle();
+    const failed = await screen();
+    last = failed;
+    assert.equal(failed.state, "failed");
+    for (const key of ["camera", "graph", "draft", "claims", "stored", "root", "confirmedGraph"]) assert.deepEqual(failed[key], before[key], key);
+    assert.equal(exchanges.length, requests, "failed Undo makes no judgment requests");
+    report({ event: "camera-undo-render-failure", requests: 0, dom: domOf(failed) });
+    reached.push("camera-discard");
+    await click("discard");
+    await settle();
+    const discarded = await screen();
+    last = discarded;
+    assert.equal(discarded.graph, null);
+    assert.equal(discarded.camera, "", "Discard with no Accepted graph clears the disappeared camera");
+    assert.equal(discarded.draft.length, 0);
+    for (const key of ["stored", "root", "confirmedGraph"]) assert.deepEqual(discarded[key], before[key], key);
+    report({ event: "camera-discard", requests: 0, dom: domOf(discarded) });
+    reached.push("camera-discard-new");
+    await page.locator("#text").fill("voice-ui の構成");
+    await click("new");
+    await settle();
+    const renewed = await screen();
+    last = renewed;
+    assert.equal(renewed.state, "drafted", "New is not blocked by the discarded camera");
+    assert.equal(renewed.camera, "");
+    assert.equal(renewed.draft.length, 1);
+    assert.equal(exchanges.length, requests, "Discard and New make no judgment requests");
+    for (const key of ["stored", "root", "confirmedGraph"]) assert.deepEqual(renewed[key], before[key], key);
+    report({ event: "camera-discard-new", requests: 0, dom: domOf(renewed) });
+  }
 
   // (2) The page's own code: its roles, its call to the Worker, its storage.
   reached.push("app");
@@ -629,9 +695,30 @@ try {
   need(removedOne, `the person's correction removes the judged relation as one more step (state ${corrected.now.state}: `
     + `${corrected.now.failure ?? corrected.now.status})`);
   if (removedOne) {
+    let beforeUndo, requests;
+    if (FIXTURE) {
+      reached.push("camera-surviving-undo");
+      await page.locator("#camera-part").selectOption(`arch-${APP}`);
+      await settle();
+      beforeUndo = await screen();
+      requests = exchanges.length;
+    }
     await click("undo");
     await settle();
-    need(claimOf(await screen(), `relation ${storageEdge}`) !== null, "Undo brings the judged relation back");
+    const back = await screen();
+    last = back;
+    need(claimOf(back, `relation ${storageEdge}`) !== null, "Undo brings the judged relation back");
+    if (FIXTURE) {
+      assert.equal(back.camera, `arch-${APP}`, "Undo preserves a camera whose region survives");
+      assert.notEqual(back.state, "failed");
+      assert.equal(back.draft.length, judgedDraft);
+      for (const key of ["stored", "root", "confirmedGraph"]) assert.deepEqual(back[key], beforeUndo[key], key);
+      assert.equal(exchanges.length, requests, "surviving-camera Undo makes no judgment requests");
+      report({ event: "camera-surviving-undo", requests: 0, dom: domOf(back) });
+      // Return this added fixture checkpoint to the original Apply/reload view.
+      await page.locator("#camera-part").selectOption("");
+      await settle();
+    }
   }
 
   // Apply saves the new map and every view.
@@ -820,7 +907,7 @@ if (cleanup !== null) {
   assert.equal(thrown, PROTOCOL_HALT);
   assert.equal(stoppedAt, "whole");
   assert.deepEqual(reached, ["open", "whole"]);
-  assert.deepEqual(actions, { new: 1, send: 1, undo: 0, apply: 0, reload: 0 });
+  assert.deepEqual(actions, { new: 1, send: 1, undo: 0, apply: 0, reload: 0, discard: 0 });
   assert.equal(exchanges.length, 1);
   assert.equal(exchanges[0].status, 502);
   assert.equal(exchanges[0].body?.error, contract.ERRORS.providerError);
@@ -873,6 +960,7 @@ if (cleanup !== null) {
   process.stdout.write(`${LABEL}: PROTOCOL_RED | ${protocolFailure.defects.join("; ")} | ${summary}\n`);
   process.exitCode = 1;
 } else if (FIXTURE) {
+  assert.deepEqual(STAGES.filter(stage => !reached.includes(stage)), [], "all controlled checkpoints must be reached");
   assert.deepEqual(verdicts, [], "the page's mechanics");
   assert.equal(stoppedAt, null, "every stage ran");
   assert.equal(providerIdentity, "UNKNOWN", "the neutral envelope never proves a provider identity");

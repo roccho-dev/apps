@@ -306,17 +306,24 @@ const judge = createJudgment();
 
 // Both panes point their cameras at the frame the working graph needs in the
 // working pane's box, so the frame read from 作業図 holds for 確定図 too.
-const paneFrame = graph => frameFor({
+const paneFrame = (graph, part = camera) => frameFor({
   graph,
   width: workingSurface.clientWidth,
   height: workingSurface.clientHeight,
   protocol,
-  part: camera,
+  part,
 });
 const sameFrame = (left, right) => JSON.stringify(left) === JSON.stringify(right);
-const drawWorking = (graph, frame = paneFrame(graph)) => {
-  if (graph !== null && camera !== null && frame === null) throw new Error("the selected camera part is not placed");
-  return drawGraph({ graph, frame, mount: workingSurface, protocol, renderProjection: renderSemanticMap, document });
+const drawWorking = async (graph, frame) => {
+  // A removed region clears only this local view selection, never graph data.
+  // Keep the old camera until the candidate Working drawing has succeeded.
+  const nextCamera = graph?.records.some(record => record.type === "region" && record.id === camera) ? camera : null;
+  const nextFrame = frame === undefined ? paneFrame(graph, nextCamera) : frame;
+  if (graph !== null && camera !== null && nextFrame === null) {
+    throw new Error("the selected camera part is not placed");
+  }
+  await drawGraph({ graph, frame: nextFrame, mount: workingSurface, protocol, renderProjection: renderSemanticMap, document });
+  camera = nextCamera;
 };
 
 // 確定図 is drawn at the frame 作業図 has now, and again only when that frame
