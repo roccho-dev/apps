@@ -598,6 +598,13 @@ const runScenario = async () => {
 
   if (REVERSE) {
     assert.deepEqual(page.viewportSize(), { width: 1280, height: 720 });
+    const firstReference = app.now.context.at(-1);
+    need(app.sent[0]?.sent.state.utterance === UTTERANCES.app, "the first actual request carries the fixed source utterance");
+    need(firstReference?.text === UTTERANCES.app && firstReference.source === "typed" && firstReference.outcome === "step"
+      && firstReference.reference?.source.handle === MANIFEST.source.handle
+      && firstReference.reference.source.commit === SERVED_COMMIT
+      && JSON.stringify(firstReference.reference.focus) === JSON.stringify(app.sent.at(-1)?.sent.state.architecture.focus),
+      "the first DOM reference matches its actual judged source and focus");
     const originalId = `arch-calls-${APP}-to-${ADAPTER}`;
     const original = app.now.graph?.records.find(record => record.type === "relation" && record.id === originalId);
     need(original?.kind === "calls", "the source evaluation draws the expected calls relation");
@@ -617,8 +624,9 @@ const runScenario = async () => {
       "the fresh reverse evaluation is exactly one intent, not another body judgment");
     need(reversed.sent[0]?.body?.answers?.action?.choice === contract.ACTION_REVERSE_EDGE
       && reversed.sent[0]?.body?.answers?.edge?.choice === originalId, "the fresh typed answer selects the calls edge");
-    need(prior?.reference?.source.commit === SERVED_COMMIT && prior.reference.focus.includes(APP),
-      "the actual follow-up carries the prior source-bound reference");
+    need(request?.utterance === REVERSE_UTTERANCE, "the second actual request carries the fixed hypothetical utterance");
+    need(JSON.stringify(prior) === JSON.stringify(firstReference),
+      "the actual follow-up carries exactly the first DOM conversation entry and source reference");
     need(request?.graph.edges.some(edge => edge.id === originalId && edge.from === original.from && edge.to === original.to),
       "the actual follow-up carries the selected Working relation");
     need(reversed.now.state === "drafted" && reversed.now.draft.length === app.now.draft.length + 1
