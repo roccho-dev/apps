@@ -1,7 +1,5 @@
 import assert from "node:assert/strict";
 import { createRequire } from "node:module";
-// The approved acceptance runtime supplies this pinned dependency, never npm at run time.
-const { chromium } = createRequire(import.meta.url)("playwright-core");
 
 // The architecture page end to end, in exactly one explicitly named mode:
 //
@@ -34,13 +32,31 @@ const { chromium } = createRequire(import.meta.url)("playwright-core");
 //
 // contextual-reverse evaluates source, reverses one calls edge as a hypothetical,
 // then strictly restores Working with Undo, without Apply/reload or authority proof.
-// node architecture-e2e.mjs --mode fixture|fixture-stop|fixture-semantic-stop|live --scenario natural|named|contextual-reverse <url>
-const [flag, mode, scenarioFlag, scenario, url] = process.argv.slice(2);
+// node architecture-e2e.mjs --mode fixture|fixture-stop|fixture-semantic-stop|live --scenario natural|named|contextual-reverse <url> [--skip-live-contextual-reverse]
+const args = process.argv.slice(2);
+const [flag, mode, scenarioFlag, scenario, url, option] = args;
 if (flag !== "--mode" || !["fixture", "fixture-stop", "fixture-semantic-stop", "live"].includes(mode) || scenarioFlag !== "--scenario"
   || !["natural", "named", "contextual-reverse"].includes(scenario) || !url
-  || (mode === "fixture-semantic-stop" && scenario !== "contextual-reverse")) {
-  throw new Error("usage: architecture-e2e.mjs --mode fixture|fixture-stop|fixture-semantic-stop|live --scenario natural|named|contextual-reverse <url>");
+  || (mode === "fixture-semantic-stop" && scenario !== "contextual-reverse")
+  || !(args.length === 5 || (args.length === 6 && option === "--skip-live-contextual-reverse"
+    && mode === "live" && scenario === "contextual-reverse"))) {
+  throw new Error("usage: architecture-e2e.mjs --mode fixture|fixture-stop|fixture-semantic-stop|live --scenario natural|named|contextual-reverse <url> [--skip-live-contextual-reverse]");
 }
+if (option === "--skip-live-contextual-reverse") {
+  const summary = { event: "summary", mode, scenario, result: "SKIPPED", reason: "explicit-operator-request",
+    execution: "NOT_STARTED", testExecuted: false, source: null, providerIdentity: "UNKNOWN",
+    reached: [], notRun: ["open", "app", "reverse", "reverse-undo"],
+    actions: { new: 0, send: 0, undo: 0, apply: 0, reload: 0, discard: 0 },
+    requests: 0, answered: 0, failed: 0, non200: 0, cleanup: null, realGoal: "NOT_PROVEN" };
+  // Deliver the whole nonexecution record before exiting. Exit2 is deliberately
+  // neither test success0 nor test failure1; a caller must handle it explicitly.
+  await new Promise((resolve, reject) => process.stdout.write(JSON.stringify(summary) + "\n"
+    + "architecture-e2e[live/contextual-reverse]: SKIPPED (explicit request; no execution)\n",
+  error => error ? reject(error) : resolve()));
+  process.exit(2);
+}
+// The approved acceptance runtime supplies this pinned dependency, never npm at run time.
+const { chromium } = createRequire(import.meta.url)("playwright-core");
 const REVERSE = scenario === "contextual-reverse";
 const SEMANTIC_STOP = mode === "fixture-semantic-stop";
 const STOP_FIXTURE = mode === "fixture-stop";
