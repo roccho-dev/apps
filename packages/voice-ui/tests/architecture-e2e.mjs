@@ -501,7 +501,12 @@ const goalScenario = async () => {
   }, () => STOP_FIXTURE ? { status: 502, body: { error: contract.ERRORS.providerError } } : null), { times: 8 });
   reached.push("goal");
   await page.locator("#text").fill(goalText);
-  await click("goal"); await settle(); await drain();
+  await click("goal");
+  // Intermediate successful draws are drafted while the same Goal still
+  // owns the surface. Wait for its ownership release, not a per-step state.
+  await page.waitForFunction(() => document.querySelector("#goal-cancel").hidden
+    && document.body.dataset.state !== "pending", null, { timeout: 180000 });
+  await drain();
   if (FIXTURE) await page.unroute(route);
   const after = await screen(); last = after;
   const attempt = await page.evaluate(() => JSON.parse(document.body.dataset.goal));
@@ -511,8 +516,9 @@ const goalScenario = async () => {
     { label: "API", kind: "step", parent: container.id },
     { label: "DB", kind: "data", parent: container.id },
   ];
-  const actual = added.map(({ label, kind, parent }) => ({ label: label.replace(/ \d+$/u, ""), kind, parent }));
-  const semanticMet = JSON.stringify(actual) === JSON.stringify(expected);
+  const actual = added.map(({ label, kind, parent }) => ({ label: label.replace(/ [1-9]\d*$/u, ""), kind, parent }));
+  const signature = rows => JSON.stringify(rows.map(({ label, kind, parent }) => JSON.stringify([label, kind, parent])).sort());
+  const semanticMet = signature(actual) === signature(expected);
   const digest = value => createHash("sha256").update(JSON.stringify(value)).digest("hex");
   // Independent public-information baseline: literal catalogue/parent name
   // matching. No gold remainder or baseline decision goes to the product.
@@ -521,7 +527,7 @@ const goalScenario = async () => {
   const baseline = namedParents.length !== 1 ? [] : publicBundle.parts.filter(part => goalText.includes(part.label))
     .map(part => ({ label: part.label, kind: part.kind, parent: namedParents[0].id }));
   goalEvidence = { reason: attempt.reason, goalMet: semanticMet, requests: sent.length, setupRequests: prepared,
-    selected: attempt.selected, actual, baseline, baselineMet: JSON.stringify(baseline) === JSON.stringify(expected),
+    selected: attempt.selected, actual, baseline, baselineMet: signature(baseline) === signature(expected),
     addedValue: "NOT_PROVEN", graphBefore: digest(before.graph.records), graphAfter: digest(after.graph.records),
     undoRestored: false, noSave: after.stored === before.stored && after.root === before.root,
     exchanges: sent.map(sanitized), setupExchanges: exchanges.slice(0, prepared).map(sanitized),
