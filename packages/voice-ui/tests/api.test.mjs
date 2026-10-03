@@ -16,6 +16,7 @@ import {
   ACTION_ARCHITECTURE,
   ARCHITECTURE_INTENT_KIND,
   DECISION_KIND,
+  GOAL_REQUEST_KIND,
   ERRORS,
   NONE,
   REQUEST_KIND,
@@ -62,6 +63,31 @@ const post = (body, env = { JEV_API_KEY: "test-only-value" }) => worker.fetch(ne
     headers: { "content-type": "application/json" },
     body: typeof body === "string" ? body : JSON.stringify(body),
   }), env);
+
+// The provider as the network presents it. Every call is counted, and nothing
+test("Goal boundary asks exactly part and parent and refuses extra answers without architecture fanout", async () => {
+  const body = { kind: GOAL_REQUEST_KIND, state: {
+    utterance: "add the offered service inside the existing container",
+    graph: [{ id: "root", label: "world", parent: null }, { id: "container", label: "container", parent: "root" }],
+    parents: [{ id: "container", label: "container", kind: "group", parent: "root" }],
+    offers: { parts: [{ key: "service", purpose: "a service" }] }, selected: [],
+  } };
+  let calls = 0;
+  const invoke = async (input, extra = false) => onRequestPost({ available: true,
+    request: new Request("http://localhost/api/judge", { method: "POST", body: JSON.stringify(input) }),
+  }, async ({ state, questions }) => {
+    calls += 1;
+    assert.deepEqual(state, body.state);
+    assert.deepEqual(Object.keys(questions), ["part", "parent"]);
+    return { answers: { part: { choice: "service", confidence: 1 }, parent: { choice: "container", confidence: 1 },
+      ...(extra ? { action: { choice: NONE, confidence: 1 } } : {}) } };
+  });
+  assert.equal((await invoke(body)).status, 200);
+  assert.equal((await invoke(body, true)).status, 502);
+  const invalid = structuredClone(body); invalid.state.parents[0].kind = "step";
+  assert.equal((await invoke(invalid)).status, 422);
+  assert.equal(calls, 2);
+});
 
 // The provider as the network presents it. Every call is counted, and nothing
 // here can be mistaken for the real provider: its model is "jev-test".

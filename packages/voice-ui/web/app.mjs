@@ -10,6 +10,7 @@ import * as protocol from "/ui/semantic-map/protocol/index.js";
 import { MAX_DECISION_OPERATIONS } from "/ui/semantic-map/domain/operation.js";
 import { ACTION_ARCHITECTURE, judgeFramesFor, judgeSlotsFor, locateSlotsFor, readAnswers } from "/app/src/contract.mjs";
 import { readBundle } from "/app/src/bundle.mjs";
+import { runGoal } from "/app/src/goal.mjs";
 import { FORMAT_ARCHITECTURE, readConfig } from "/app/src/config.mjs";
 import {
   judgeRequestsOf,
@@ -82,6 +83,8 @@ import {
 
 const text = document.querySelector("#text");
 const send = document.querySelector("#send");
+const goalButton = document.querySelector("#goal");
+const goalCancel = document.querySelector("#goal-cancel");
 const mic = document.querySelector("#mic");
 const newButton = document.querySelector("#new");
 const status = document.querySelector("#status");
@@ -159,6 +162,8 @@ let rendering = false;
 let typedHoldsRender = false;
 let voiceHoldsRender = false;
 let controlHoldsRender = false;
+let goalActive = false;
+let goalCancelled = false;
 
 // Fail-closed latch. A stored log that is corrupt or foreign, and a change
 // that was saved but could not be drawn, both leave the screen unable to
@@ -193,6 +198,8 @@ const sync = () => {
   conversationLength: session.conversation.length,
   });
   cameraPart.disabled = rendering || blocked || session.working === null;
+  goalButton.disabled = rendering || blocked || session.working === null || draftFull(session);
+  goalCancel.hidden = !goalActive;
   renderWorkingNotice(workingNotice, { working: session.working !== null, draftLength: session.draft.length, storage: storageEvidence, displayFailed });
   if (ready && resizePending && !rendering && !blocked) {
     resizePending = false;
@@ -634,6 +641,32 @@ const refusedBy = (label, result) => {
   setState("failed", `${label}: failed`);
   showHistory(`failed: ${reasonText(result.reason, result.detail ?? null)}`);
 };
+
+// Goal is a separate, finite multi-step meaning; ordinary Send is unchanged.
+// One input owns the surface until mechanical STOP, never until an oracle
+// says the goal succeeded. Cancel cannot undo an already adopted step.
+goalCancel.addEventListener("click", () => { goalCancelled = true; });
+goalButton.addEventListener("click", () => withSurface("goal", async () => {
+  goalActive = true;
+  goalCancelled = false;
+  delete document.body.dataset.goal;
+  sync();
+  try {
+    const result = await runGoal({ utterance: text.value, bundle, protocol,
+      current: () => session, ask: judge, cancelled: () => goalCancelled || resizePending || blocked,
+      adopt: async next => {
+        await showWorking(next, "drafted", "goal: Working updated (unconfirmed)");
+        if (blocked) throw new Error("goal display unverified");
+      },
+    });
+    document.body.dataset.goal = JSON.stringify(result);
+    if (result.reason === "adoption-unknown") invalidateView();
+    else setState("goal-stopped", `goal: stopped - ${result.reason} (unconfirmed)`);
+  } finally {
+    goalActive = false;
+    sync();
+  }
+}));
 
 // 新しい図: only where there is no log. The typed name becomes a new, empty
 // map on 作業図; nothing is stored until 確定図に反映.

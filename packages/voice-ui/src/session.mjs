@@ -130,7 +130,9 @@ async function appendItem(session, step, input, protocol, claims = undefined, gr
     session: freeze({
       ...session,
       working: appended.graph,
-      draft: [...session.draft, Object.freeze(claims === undefined ? { step, input } : { step, input, claims, group })],
+      draft: [...session.draft, Object.freeze({ step, input,
+        ...(claims === undefined ? {} : { claims }), ...(group === undefined ? {} : { group }),
+      })],
       pending: null,
       issuedPartIds: [...new Set([...session.issuedPartIds, ...issued])],
     }),
@@ -206,6 +208,23 @@ export async function proposeArchitecture(session, { planned, input, protocol, r
 
 // An utterance the judgment binding judged whose step could not be kept.
 export const noteRefused = (session, input) => remember(session, input, "refused");
+
+// A finite Goal is one utterance, even when it appends several Decisions.
+// Its next value is only a proposal: the browser adopts after a successful
+// draw. A later refusal leaves previously adopted group steps untouched.
+export async function proposeGoal(session, { step, input, group, protocol }) {
+  const first = session.draft.at(-1)?.group !== group;
+  if (first && session.nextSeq !== group) return Object.freeze({ session, result: noChange("stale-goal") });
+  const appended = await appendItem(session, step, first ? Object.freeze({ ...input, seq: group }) : null, protocol, undefined, group);
+  if (appended.result.outcome !== OUTCOME_STEP) return appended;
+  const changes = appended.session.draft.filter(item => item.group === group).flatMap(item => item.step.changes);
+  const next = first ? remember(appended.session, input, "step", changes) : freeze({
+    ...appended.session,
+    conversation: appended.session.conversation.map(entry => entry.seq === group
+      ? Object.freeze({ ...entry, effect: Object.freeze({ changes: changesForJudgment(changes) }) }) : entry),
+  });
+  return Object.freeze({ session: next, result: appended.result });
+}
 
 // A revert of a saved entry: one more unapplied step, with no input.
 export const appendRevert = (session, { step, protocol }) => appendItem(session, step, null, protocol);

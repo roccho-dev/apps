@@ -6,9 +6,26 @@
     { "key": "decision", "purpose": "a decision, choice or branch", "label": "判断", "kind": "decision" },
     { "key": "data", "purpose": "data, a document, an input or an output", "label": "データ", "kind": "data" },
     { "key": "start", "purpose": "a start or beginning", "label": "開始", "kind": "start" },
-    { "key": "end", "purpose": "an end, finish or result", "label": "終了", "kind": "end" }
+    { "key": "end", "purpose": "an end, finish or result", "label": "終了", "kind": "end" },
+    { "key": "api", "purpose": "an API service that receives requests", "label": "API", "kind": "step" },
+    { "key": "db", "purpose": "a DB database that persists application data", "label": "DB", "kind": "data" }
   ],
   "diagrams": [
+    {
+      "key": "container-example",
+      "purpose": "a prepared example with an OCI container group and another unrelated group, before adding new services",
+      "label": "Container preparation",
+      "lanes": [
+        { "ref": "auxiliary", "label": "Auxiliary" },
+        { "ref": "oci", "label": "OCI" }
+      ],
+      "steps": [
+        { "ref": "helper-left", "lane": "auxiliary", "label": "Helper left", "kind": "step" },
+        { "ref": "helper-right", "lane": "auxiliary", "label": "Helper right", "kind": "step" },
+        { "ref": "existing-helper", "lane": "oci", "label": "Existing helper", "kind": "step" }
+      ],
+      "links": []
+    },
     {
       "key": "request-approval-flow",
       "purpose": "a cross-functional flow chart between two roles: a requester submits a request, an approver reviews and decides on it, and the requester receives the result",

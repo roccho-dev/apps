@@ -156,9 +156,10 @@ const spotIsFree = (layout, records, targetId, box) =>
 
 // The first free place on the grid inside the enclosing boundary, in reading
 // order. A full boundary is an honest "no room", not a part dropped on top.
-function freeSlot(records) {
-  const [fx, fy, fw, fh] = rootOf(records).bounds;
-  const taken = records.filter(record => record?.type === "region" && record.parent !== null).map(record => record.bounds);
+function freeSlot(records, parent = null) {
+  const [fx, fy, fw, fh] = (parent ?? rootOf(records)).bounds;
+  const taken = records.filter(record => record?.type === "region"
+    && (parent === null ? record.parent !== null : record.parent === parent.id)).map(record => record.bounds);
   for (let y = fy + PART_GAP; y + PART_HEIGHT <= fy + fh; y += PART_HEIGHT + PART_GAP) {
     for (let x = fx + PART_GAP; x + PART_WIDTH <= fx + fw; x += PART_WIDTH + PART_GAP) {
       const slot = [x, y, PART_WIDTH, PART_HEIGHT];
@@ -559,6 +560,29 @@ async function materialize(working, planned, protocol) {
     outcome: OUTCOME_STEP,
     step: step(working.head, planned.action, planned.changes, built.decision, planned.confidence, extra),
   });
+}
+
+// Only existing groups with a legal free slot are offered to a Goal. The
+// ordinary add-part path still chooses the enclosing root as before.
+export const additionParents = working => Object.freeze(working.records
+  .filter(record => record.type === "region" && record.kind === LANE_KIND && record.parent !== null)
+  .filter(record => freeSlot(working.records, record) !== null)
+  .map(({ id, label, kind, parent }) => Object.freeze({ id, label, kind, parent })));
+
+export async function planAddition({ working, head, partKey, parentId, confidence, bundle, reserved = [], protocol }) {
+  requireGraph(working);
+  if (working.head !== head) return refused("stale-head");
+  const part = bundle.parts?.find(entry => entry.key === partKey);
+  const parent = working.records.find(record => record.type === "region" && record.id === parentId && record.kind === LANE_KIND);
+  if (part === undefined || parent === undefined || parent.parent === null) return refused("invalid-addition");
+  if (!(confidence >= MIN_CONFIDENCE && confidence <= 1)) return noChange("not-confident");
+  const bounds = freeSlot(working.records, parent);
+  if (bounds === null) return noChange("no-room-for-part");
+  const regionId = nextPartId(working, reserved);
+  const label = `${part.label} ${regionId.slice(PART_ID_PREFIX.length)}`;
+  return materialize(working, plan(ACTION_ADD_PART, confidence, [{
+    type: "AddRegion", regionId, parentId, label, kind: part.kind, summary: "", bounds: [...bounds],
+  }], [{ change: "added", kind: "region", id: regionId, label }]), protocol);
 }
 
 // The exact picture a held placement was said against, or null when the pane
