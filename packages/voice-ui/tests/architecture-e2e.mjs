@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { createHash } from "node:crypto";
 import { createRequire } from "node:module";
 // The approved acceptance runtime supplies this pinned dependency, never npm at run time.
 const { chromium } = createRequire(import.meta.url)("playwright-core");
@@ -34,14 +35,18 @@ const { chromium } = createRequire(import.meta.url)("playwright-core");
 //
 // contextual-reverse evaluates source, reverses one calls edge as a hypothetical,
 // then strictly restores Working with Undo, without Apply/reload or authority proof.
-// node architecture-e2e.mjs --mode fixture|fixture-stop|fixture-semantic-stop|live --scenario natural|named|contextual-reverse <url>
+// storage-write-refusal and storage-readback-unknown are fixture-only Apply
+// boundary controls; the latter reloads known written bytes, not a successful Apply.
+// node architecture-e2e.mjs --mode fixture|fixture-stop|fixture-semantic-stop|live --scenario natural|named|contextual-reverse|storage-write-refusal|storage-readback-unknown <url>
 const [flag, mode, scenarioFlag, scenario, url] = process.argv.slice(2);
 if (flag !== "--mode" || !["fixture", "fixture-stop", "fixture-semantic-stop", "live"].includes(mode) || scenarioFlag !== "--scenario"
-  || !["natural", "named", "contextual-reverse"].includes(scenario) || !url
+  || !["natural", "named", "contextual-reverse", "storage-write-refusal", "storage-readback-unknown"].includes(scenario) || !url
+  || (scenario.startsWith("storage-") && mode !== "fixture")
   || (mode === "fixture-semantic-stop" && scenario !== "contextual-reverse")) {
-  throw new Error("usage: architecture-e2e.mjs --mode fixture|fixture-stop|fixture-semantic-stop|live --scenario natural|named|contextual-reverse <url>");
+  throw new Error("usage: architecture-e2e.mjs --mode fixture|fixture-stop|fixture-semantic-stop|live --scenario natural|named|contextual-reverse|storage-write-refusal|storage-readback-unknown <url> (storage scenarios are fixture-only)");
 }
 const REVERSE = scenario === "contextual-reverse";
+const STORAGE = scenario.startsWith("storage-");
 const SEMANTIC_STOP = mode === "fixture-semantic-stop";
 const STOP_FIXTURE = mode === "fixture-stop";
 const FIXTURE = mode !== "live";
@@ -69,7 +74,7 @@ const UTTERANCES = {
     save: "src/log.mjs を詳しく見せて",
     correction: "web/app.mjs から localStorage への stores-in の関係を消して",
   },
-}[REVERSE ? "natural" : scenario];
+}[REVERSE || STORAGE ? "natural" : scenario];
 const REVERSE_UTTERANCE = "さっき詳しく見た画面が判定を頼む呼び出しを、試案として逆向きにして";
 const PAGE = new URL("/architecture", url).href;
 const ROOT_KEY = "voice-ui.decision-log.v1";
@@ -406,7 +411,8 @@ const need = (condition, what) => { if (!condition) verdicts.push(what); };
 // run when it fails - nothing is undone or built on a state the next stage
 // assumes - and every stage not reached is reported as not run.
 const FAULTS = ["failed-frame", "incomplete-frame", "frame-extra-envelope", "judge-extra-envelope", "incomplete-judge-frame"];
-const STAGES = REVERSE ? ["open", "app", "reverse", "reverse-undo"] : ["open", "whole", "whole-undo",
+const STAGES = STORAGE ? ["open", "app", "apply-fault", ...(scenario === "storage-readback-unknown" ? ["reload"] : [])]
+  : REVERSE ? ["open", "app", "reverse", "reverse-undo"] : ["open", "whole", "whole-undo",
   ...(FIXTURE ? ["camera-undo", "camera-discard-draft", "camera-undo-render-failure", "camera-discard", "camera-discard-new"] : []),
   "app", "credential", "storage", "save", ...(FIXTURE ? ["save-again"] : []),
   ...(LOCATES ? FAULTS : []), "correction", ...(FIXTURE ? ["camera-surviving-undo"] : []),
@@ -470,6 +476,7 @@ let rootBefore;
 let applied = null;
 let reloaded = null;
 let contextEvidence = null;
+let storageEvidence = null;
 const runScenario = async () => {
   // The slash-less path is sent to the architecture page's own path.
   reached.push("open");
@@ -491,7 +498,7 @@ const runScenario = async () => {
   await settle();
   assert.equal((await screen()).state, "drafted");
 
-  if (!REVERSE) {
+  if (!REVERSE && !STORAGE) {
   // (1) The whole architecture: structure only, one request, no code sent.
   reached.push("whole");
   const whole = await say("whole", UTTERANCES.whole, picksFor(contract.WHOLE));
@@ -595,6 +602,108 @@ const runScenario = async () => {
   need(inferredAt(app.now, `arch-stores-in-${APP}-to-ext-localstorage`), "the page stores in localStorage");
   // Every later stage stands on the structure this utterance drew.
   prerequisite(app.now.state === "drafted", "app");
+
+  if (STORAGE) {
+    prerequisite(verdicts.length === 0, "app");
+    const before = app.now, requests = exchanges.length;
+    reached.push("apply-fault");
+    // One owned Apply phase, not bootstrap or diagnostic read counts. Restore
+    // descriptors at the commit readback, before screen() can read storage.
+    await page.evaluate(([key, unknown]) => {
+      const proto = Storage.prototype;
+      const get = Object.getOwnPropertyDescriptor(proto, "getItem");
+      const set = Object.getOwnPropertyDescriptor(proto, "setItem");
+      const fault = window.__storageFault = { trace: [], next: null, written: false, restored: false };
+      fault.restore = () => {
+        Object.defineProperty(proto, "getItem", get);
+        Object.defineProperty(proto, "setItem", set);
+        fault.restored = true;
+      };
+      Object.defineProperty(proto, "getItem", { ...get, value: function (name) {
+        if (name !== key) return get.value.call(this, name);
+        if (fault.next === null) {
+          fault.trace.push("current-read");
+          return get.value.call(this, name);
+        }
+        fault.restore();
+        if (unknown) {
+          fault.trace.push("readback-unavailable");
+          throw new Error("controlled readback unavailable");
+        }
+        fault.trace.push("readback-old");
+        return get.value.call(this, name);
+      } });
+      Object.defineProperty(proto, "setItem", { ...set, value: function (name, value) {
+        if (name !== key) return set.value.call(this, name, value);
+        fault.trace.push("write-attempt");
+        fault.next = value;
+        if (!unknown) throw new Error("controlled write refused");
+        set.value.call(this, name, value);
+        fault.written = true;
+      } });
+    }, [KEY, scenario === "storage-readback-unknown"]);
+    let fault;
+    try {
+      await click("apply");
+      await settle(); // DOM-only: no getItem probe can consume the fault.
+      fault = await page.evaluate(() => {
+        const { trace, next, written, restored } = window.__storageFault;
+        return { trace, next, written, restored };
+      });
+    } finally {
+      await page.evaluate(() => { window.__storageFault.restore(); delete window.__storageFault; });
+    }
+    const failed = await screen();
+    last = failed;
+    const unknown = scenario === "storage-readback-unknown";
+    assert.equal(fault.restored, true, "commit readback restored native descriptors before observation");
+    assert.deepEqual(fault.trace, ["current-read", "write-attempt", unknown ? "readback-unavailable" : "readback-old"]);
+    assert.equal(fault.written, unknown);
+    assert.equal(failed.state, unknown ? "storage-unverified" : "failed");
+    for (const key of ["graph", "draft", "claims", "context", "root", "confirmedGraph"]) assert.deepEqual(failed[key], before[key], key);
+    for (const id of ["new", "send", "undo", "apply", "discard"]) assert.equal(await page.locator(`#${id}`).isDisabled(), unknown, id);
+    assert.equal(exchanges.length, requests, "Apply makes no judgment request");
+    storageEvidence = { source: SERVED_COMMIT, key: KEY, trace: fault.trace, actualWrite: fault.written,
+      failedApply: unknown ? "unverified" : "not-persisted", workingPreserved: true, confirmedPreserved: true,
+      nativeRestored: true, recovery: "NOT_RUN", acceptedIntegration: "NOT_PROVEN" };
+    if (!unknown) assert.equal(failed.stored, before.stored);
+    else {
+      assert.equal(failed.stored, fault.next, "native observation sees exactly the bytes actually written");
+      assert.notEqual(fault.next, before.stored);
+      reached.push("reload");
+      actions.reload++;
+      await page.reload({ waitUntil: "commit" });
+      await ready();
+      const recovered = await screen();
+      last = recovered;
+      assert.equal(recovered.stored, fault.next);
+      assert.equal(recovered.root, before.root);
+      assert.equal(recovered.draft.length, 0);
+      assert.equal(recovered.graph.head, before.graph.head);
+      assert.deepEqual(recovered.graph.records, before.graph.records);
+      assert.deepEqual(recovered.confirmedGraph, recovered.graph);
+      // Reload's strict restore validates these persisted Decision/provenance
+      // pairs. Compare the UI with their projection, not ephemeral draft claims.
+      const projected = await page.evaluate(async text => {
+        const { currentClaims } = await import("/app/src/document.mjs");
+        const lines = text.split("\n").slice(0, -1).map(JSON.parse);
+        const records = document.querySelector("#working-surface iframe").contentWindow.semanticMapRuntime.records;
+        return { source: lines[0].source, claims: currentClaims(lines.filter((_, i) => i > 0 && i % 2 === 0), records)
+          .map(item => ({ record: `${item.record.type} ${item.record.id}`, origins: [...new Set(item.claims.map(claim => claim.origin))] })) };
+      }, fault.next);
+      assert.deepEqual(projected.source, MANIFEST.source);
+      assert.deepEqual(recovered.claims, projected.claims);
+      assert.equal(recovered.sourceStatus, before.sourceStatus);
+      assert.equal(exchanges.length, requests, "reload makes no judgment request");
+      for (const id of ["new", "send"]) assert.equal(await page.locator(`#${id}`).isDisabled(), false, id);
+      storageEvidence.recovery = "verified-known-document";
+      storageEvidence.storedSHA256 = createHash("sha256").update(fault.next).digest("hex");
+      storageEvidence.graphHead = recovered.graph.head;
+      storageEvidence.provenanceProjected = true;
+    }
+    report({ event: "storage-evidence", ...storageEvidence });
+    return;
+  }
 
   if (REVERSE) {
     assert.deepEqual(page.viewportSize(), { width: 1280, height: 720 });
@@ -960,7 +1069,7 @@ const answered = exchanges.filter(entry => entry.status === 200);
 const providerIdentity = "UNKNOWN";
 const failure = thrown === null || thrown === HALT || thrown === PROTOCOL_HALT ? null : String(thrown?.message ?? thrown).split("\n")[0];
 report({
-  event: "summary", mode, scenario, contextEvidence, source: SERVED_COMMIT, viewport: page.viewportSize(), reached,
+  event: "summary", mode, scenario, contextEvidence, ...(STORAGE ? { storageEvidence } : {}), source: SERVED_COMMIT, viewport: page.viewportSize(), reached,
   dom: last === null ? null : domOf(last), stoppedAt, error: failure, cleanup, protocolFailure, actions, verdicts, notRun: STAGES.filter(stage => !reached.includes(stage)),
   requests: exchanges.length, answered: exchanges.filter(entry => entry.status !== null).length,
   failed: exchanges.filter(entry => entry.error !== null).length,
