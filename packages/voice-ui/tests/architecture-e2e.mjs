@@ -10,6 +10,7 @@ const { chromium } = createRequire(import.meta.url)("playwright-core");
 //            mechanics - request, plan, claims, draft, Undo, Apply, reload -
 //            and is never evidence about Jev or the code.
 //   fixture-stop injects a first-turn 502 and proves cross-stage STOP only.
+//   fixture-semantic-stop is reverse-only: valid answers omit one required role.
 //   live     nothing is intercepted and nothing is crafted. The real service
 //            judges this code; the run is PASS only if the required flows are
 //            actually drawn and classified, NOT_PASS otherwise. Its input is
@@ -31,18 +32,23 @@ const { chromium } = createRequire(import.meta.url)("playwright-core");
 //            only whether the code can be reached and judged when named; it
 //            is never a PASS of the natural scenario.
 //
-// node architecture-e2e.mjs --mode fixture|fixture-stop|live --scenario natural|named <url of the dev server root>
+// contextual-reverse evaluates source, reverses one calls edge as a hypothetical,
+// then strictly restores Working with Undo, without Apply/reload or authority proof.
+// node architecture-e2e.mjs --mode fixture|fixture-stop|fixture-semantic-stop|live --scenario natural|named|contextual-reverse <url>
 const [flag, mode, scenarioFlag, scenario, url] = process.argv.slice(2);
-if (flag !== "--mode" || !["fixture", "fixture-stop", "live"].includes(mode) || scenarioFlag !== "--scenario"
-  || !["natural", "named"].includes(scenario) || !url) {
-  throw new Error("usage: architecture-e2e.mjs --mode fixture|fixture-stop|live --scenario natural|named <url>");
+if (flag !== "--mode" || !["fixture", "fixture-stop", "fixture-semantic-stop", "live"].includes(mode) || scenarioFlag !== "--scenario"
+  || !["natural", "named", "contextual-reverse"].includes(scenario) || !url
+  || (mode === "fixture-semantic-stop" && scenario !== "contextual-reverse")) {
+  throw new Error("usage: architecture-e2e.mjs --mode fixture|fixture-stop|fixture-semantic-stop|live --scenario natural|named|contextual-reverse <url>");
 }
+const REVERSE = scenario === "contextual-reverse";
+const SEMANTIC_STOP = mode === "fixture-semantic-stop";
 const STOP_FIXTURE = mode === "fixture-stop";
 const FIXTURE = mode !== "live";
 // In the natural fixture a part is never named: the intent answers none, and
 // the part is located - so the locate frames and their judge are what the
 // fixture exercises, failures included. The named fixture names it.
-const LOCATES = FIXTURE && scenario === "natural";
+const LOCATES = FIXTURE && scenario !== "named";
 // The neutral app boundary never exposes a provider model identity.
 // Extra envelope fields are refused; no fixture can prove model homogeneity.
 const LABEL = `architecture-e2e[${mode}/${scenario}]`;
@@ -63,7 +69,8 @@ const UTTERANCES = {
     save: "src/log.mjs を詳しく見せて",
     correction: "web/app.mjs から localStorage への stores-in の関係を消して",
   },
-}[scenario];
+}[REVERSE ? "natural" : scenario];
+const REVERSE_UTTERANCE = "さっき詳しく見た画面が判定を頼む呼び出しを、試案として逆向きにして";
 const PAGE = new URL("/architecture", url).href;
 const ROOT_KEY = "voice-ui.decision-log.v1";
 
@@ -87,7 +94,7 @@ const MOST = 1 + ENTITY_IDS.length + FILE_IDS.length + new Set(MANIFEST.candidat
   .map(candidate => [candidate.from, candidate.to].sort().join(" "))).size;
 
 const browser = await chromium.launch({ headless: true, channel: "chromium" });
-const context = await browser.newContext();
+const context = await browser.newContext(REVERSE ? { viewport: { width: 1280, height: 720 } } : {});
 const page = await context.newPage();
 const errors = [];
 page.on("pageerror", error => errors.push(String(error)));
@@ -399,7 +406,7 @@ const need = (condition, what) => { if (!condition) verdicts.push(what); };
 // run when it fails - nothing is undone or built on a state the next stage
 // assumes - and every stage not reached is reported as not run.
 const FAULTS = ["failed-frame", "incomplete-frame", "frame-extra-envelope", "judge-extra-envelope", "incomplete-judge-frame"];
-const STAGES = ["open", "whole", "whole-undo",
+const STAGES = REVERSE ? ["open", "app", "reverse", "reverse-undo"] : ["open", "whole", "whole-undo",
   ...(FIXTURE ? ["camera-undo", "camera-discard-draft", "camera-undo-render-failure", "camera-discard", "camera-discard-new"] : []),
   "app", "credential", "storage", "save", ...(FIXTURE ? ["save-again"] : []),
   ...(LOCATES ? FAULTS : []), "correction", ...(FIXTURE ? ["camera-surviving-undo"] : []),
@@ -443,7 +450,7 @@ const picksFor = focus => (name, sent) => {
   if (sent.kind === contract.ARCHITECTURE_JUDGE_KIND) {
     const role = Object.entries(ROLES).flatMap(([entity, roles]) => roles.map(key => [contract.roleSlot(entity, key), key]))
       .find(([slot]) => slot === name);
-    if (role !== undefined) return contract.YES;
+    if (role !== undefined) return SEMANTIC_STOP && name === contract.roleSlot(APP, "jev-boundary") ? contract.NONE : contract.YES;
     return name.startsWith("relation-") ? RELATIONS[name.slice("relation-".length)] : contract.NONE;
   }
   if (sent.kind === contract.ARCHITECTURE_LOCATE_KIND) return name === contract.relevantSlot(focus) ? contract.YES : contract.NONE;
@@ -462,7 +469,8 @@ let cleanup = null;
 let rootBefore;
 let applied = null;
 let reloaded = null;
-try {
+let contextEvidence = null;
+const runScenario = async () => {
   // The slash-less path is sent to the architecture page's own path.
   reached.push("open");
   const opened = await page.goto(PAGE, { waitUntil: "commit", timeout: 120000 });
@@ -483,6 +491,7 @@ try {
   await settle();
   assert.equal((await screen()).state, "drafted");
 
+  if (!REVERSE) {
   // (1) The whole architecture: structure only, one request, no code sent.
   reached.push("whole");
   const whole = await say("whole", UTTERANCES.whole, picksFor(contract.WHOLE));
@@ -570,6 +579,7 @@ try {
     report({ event: "camera-discard-new", requests: 0, dom: domOf(renewed) });
   }
 
+  }
   // (2) The page's own code: its roles, its call to the Worker, its storage.
   reached.push("app");
   const app = await say("app", UTTERANCES.app, picksFor(APP));
@@ -585,6 +595,72 @@ try {
   need(inferredAt(app.now, `arch-stores-in-${APP}-to-ext-localstorage`), "the page stores in localStorage");
   // Every later stage stands on the structure this utterance drew.
   prerequisite(app.now.state === "drafted", "app");
+
+  if (REVERSE) {
+    assert.deepEqual(page.viewportSize(), { width: 1280, height: 720 });
+    const firstReference = app.now.context.at(-1);
+    need(app.sent[0]?.sent.state.utterance === UTTERANCES.app, "the first actual request carries the fixed source utterance");
+    need(firstReference?.text === UTTERANCES.app && firstReference.source === "typed" && firstReference.outcome === "step"
+      && firstReference.reference?.source.handle === MANIFEST.source.handle
+      && firstReference.reference.source.commit === SERVED_COMMIT
+      && JSON.stringify(firstReference.reference.focus) === JSON.stringify(app.sent.at(-1)?.sent.state.architecture.focus),
+      "the first DOM reference matches its actual judged source and focus");
+    const originalId = `arch-calls-${APP}-to-${ADAPTER}`;
+    const original = app.now.graph?.records.find(record => record.type === "relation" && record.id === originalId);
+    need(original?.kind === "calls", "the source evaluation draws the expected calls relation");
+    need(app.now.graph?.records.filter(record => record.type === "relation" && record.from === original?.from
+      && record.to === original?.to && record.kind === "calls").length === 1, "the calls target is unique, distinct from imports");
+    need(!app.now.graph?.records.some(record => record.type === "relation" && record.from === original?.to
+      && record.to === original?.from), "the reversed endpoint pair is absent");
+    prerequisite(verdicts.length === 0, "app");
+    reached.push("reverse");
+    const reversed = await say("reverse", REVERSE_UTTERANCE, name => name === "action"
+      ? contract.ACTION_REVERSE_EDGE : name === "edge" ? originalId : contract.NONE);
+    const request = reversed.sent[0]?.sent.state;
+    const prior = request?.context.recent.find(entry => entry.text === UTTERANCES.app);
+    const reverseId = `voice-${original.to}-to-${original.from}`;
+    const added = reversed.now.graph?.records.find(record => record.type === "relation" && record.id === reverseId);
+    need(reversed.sent.length === 1 && reversed.sent[0].sent.kind === contract.ARCHITECTURE_INTENT_KIND,
+      "the fresh reverse evaluation is exactly one intent, not another body judgment");
+    need(reversed.sent[0]?.body?.answers?.action?.choice === contract.ACTION_REVERSE_EDGE
+      && reversed.sent[0]?.body?.answers?.edge?.choice === originalId, "the fresh typed answer selects the calls edge");
+    need(request?.utterance === REVERSE_UTTERANCE, "the second actual request carries the fixed hypothetical utterance");
+    need(JSON.stringify(prior) === JSON.stringify(firstReference),
+      "the actual follow-up carries exactly the first DOM conversation entry and source reference");
+    need(request?.graph.edges.some(edge => edge.id === originalId && edge.from === original.from && edge.to === original.to),
+      "the actual follow-up carries the selected Working relation");
+    need(reversed.now.state === "drafted" && reversed.now.draft.length === app.now.draft.length + 1
+      && reversed.now.graph?.head !== app.now.graph.head, "the typed reversal changes the actual projected Working graph");
+    need(JSON.stringify(reversed.now.draft.slice(0, -1)) === JSON.stringify(app.now.draft)
+      && reversed.now.draft.at(-1) === `-${original.from}->${original.to} +${original.to}->${original.from}`,
+      "one appended draft exposes the remove/connect pair and preserves earlier drafts");
+    need(!reversed.now.graph?.records.some(record => record.id === originalId)
+      && added?.from === original.to && added?.to === original.from && added?.kind === original.kind
+      && added?.label === original.label, "Remove+Connect replaces exactly the calls direction and retains kind/label");
+    need(JSON.stringify(reversed.now.graph?.records.filter(record => record.id !== reverseId))
+      === JSON.stringify(app.now.graph.records.filter(record => record.id !== originalId)), "all other projected records are unchanged");
+    need(claimOf(reversed.now, `relation ${reverseId}`) === null
+      && JSON.stringify(reversed.now.claims) === JSON.stringify(app.now.claims.filter(claim => claim.record !== `relation ${originalId}`)),
+      "the hypothetical reverse has no false source/user claim; only the removed relation claim disappears");
+    for (const key of ["stored", "root", "confirmedGraph"]) need(JSON.stringify(reversed.now[key]) === JSON.stringify(start[key]), `${key} stays unchanged`);
+    prerequisite(verdicts.length === 0, "reverse");
+    reached.push("reverse-undo");
+    const beforeUndo = exchanges.length;
+    await click("undo");
+    await settle();
+    const restored = await screen();
+    last = restored;
+    assert.equal(exchanges.length, beforeUndo, "Undo makes no judgment request");
+    for (const key of ["claims", "draft", "stored", "root", "confirmedGraph"]) assert.deepEqual(restored[key], app.now[key], key);
+    assert.deepEqual(restored.graph.records, app.now.graph.records);
+    assert.equal(restored.graph.head, app.now.graph.head);
+    contextEvidence = { source: SERVED_COMMIT, priorSequence: prior.seq, priorFocus: prior.reference.focus,
+      workingEdge: originalId, reversedEdge: reverseId, graphBefore: app.now.graph.head,
+      graphAfter: reversed.now.graph.head, undoRestored: true, noSave: true,
+      viewport: page.viewportSize(), acceptedIntegration: "NOT_PROVEN" };
+    report({ event: "context-evidence", ...contextEvidence, dom: domOf(restored) });
+    return;
+  }
 
   // (3) The credential: the Function authenticates with it and calls the provider.
   reached.push("credential");
@@ -864,6 +940,9 @@ try {
     assert.deepEqual(recovered.graph.records, beforeCamera.graph.records);
     report({ event: "camera-recovered", dom: domOf(recovered) });
   }
+};
+try {
+  await runScenario();
 } catch (error) {
   thrown = error;
   if (stoppedAt === null) stoppedAt = reached.at(-1) ?? "open";
@@ -881,7 +960,8 @@ const answered = exchanges.filter(entry => entry.status === 200);
 const providerIdentity = "UNKNOWN";
 const failure = thrown === null || thrown === HALT || thrown === PROTOCOL_HALT ? null : String(thrown?.message ?? thrown).split("\n")[0];
 report({
-  event: "summary", mode, scenario, stoppedAt, error: failure, cleanup, protocolFailure, actions, verdicts, notRun: STAGES.filter(stage => !reached.includes(stage)),
+  event: "summary", mode, scenario, contextEvidence, source: SERVED_COMMIT, viewport: page.viewportSize(), reached,
+  dom: last === null ? null : domOf(last), stoppedAt, error: failure, cleanup, protocolFailure, actions, verdicts, notRun: STAGES.filter(stage => !reached.includes(stage)),
   requests: exchanges.length, answered: exchanges.filter(entry => entry.status !== null).length,
   failed: exchanges.filter(entry => entry.error !== null).length,
   non200: exchanges.filter(entry => entry.status !== null && entry.status !== 200).length, providerIdentity,
@@ -905,8 +985,9 @@ if (cleanup !== null) {
   process.exitCode = 1;
 } else if (STOP_FIXTURE) {
   assert.equal(thrown, PROTOCOL_HALT);
-  assert.equal(stoppedAt, "whole");
-  assert.deepEqual(reached, ["open", "whole"]);
+  const stopStage = REVERSE ? "app" : "whole";
+  assert.equal(stoppedAt, stopStage);
+  assert.deepEqual(reached, ["open", stopStage]);
   assert.deepEqual(actions, { new: 1, send: 1, undo: 0, apply: 0, reload: 0, discard: 0 });
   assert.equal(exchanges.length, 1);
   assert.equal(exchanges[0].status, 502);
@@ -941,13 +1022,16 @@ if (cleanup !== null) {
     assert.equal(sanitized({ ...exchanges[0], error }).error, error);
   assert.equal(sanitized({ ...exchanges[0], error: "private-canary" }).error, "UNKNOWN");
   assert.equal(last.state, "failed");
-  assert.equal(protocolFailure?.stage, "whole");
-  assert.ok(protocolFailure.defects.includes("whole: every request answered 200 with a complete answer"));
+  assert.equal(protocolFailure?.stage, stopStage);
+  assert.ok(protocolFailure.defects.includes(stopStage + ": every request answered 200 with a complete answer"));
   assert.equal(cleanup, null);
+  if (REVERSE) assert.deepEqual(STAGES.filter(stage => !reached.includes(stage)), ["reverse", "reverse-undo"]);
+  else {
   assert.ok(STAGES.filter(stage => !reached.includes(stage)).includes("apply"));
   assert.ok(STAGES.filter(stage => !reached.includes(stage)).includes("reload"));
   assert.ok(STAGES.filter(stage => !reached.includes(stage)).includes("camera-pending"));
   assert.ok(STAGES.filter(stage => !reached.includes(stage)).includes("resize-pending"));
+  }
   assert.ok(exchanges.every(entry => entry.reported));
   assert.deepEqual(last.graph, stopBaseline.graph);
   assert.deepEqual(last.claims, stopBaseline.claims);
@@ -956,6 +1040,17 @@ if (cleanup !== null) {
   assert.equal(last.root, stopBaseline.root);
   assert.deepEqual(verdicts, []);
   process.stdout.write(`${LABEL}: PASS stop mechanics only (simulated protocol RED, no later actions) | ${summary}\n`);
+} else if (SEMANTIC_STOP) {
+  assert.equal(thrown, HALT);
+  assert.equal(stoppedAt, "app");
+  assert.equal(protocolFailure, null);
+  assert.deepEqual(reached, ["open", "app"]);
+  assert.deepEqual(STAGES.filter(stage => !reached.includes(stage)), ["reverse", "reverse-undo"]);
+  assert.deepEqual(actions, { new: 1, send: 1, undo: 0, apply: 0, reload: 0, discard: 0 });
+  assert.deepEqual(verdicts, ["the page's file is judged jev-boundary"]);
+  assert.ok(exchanges.every(entry => entry.status === 200 && entry.reported));
+  assert.equal(contextEvidence, null);
+  process.stdout.write(`${LABEL}: PASS semantic STOP mechanics only (valid answers, missing required role) | ${summary}\n`);
 } else if (protocolFailure !== null) {
   process.stdout.write(`${LABEL}: PROTOCOL_RED | ${protocolFailure.defects.join("; ")} | ${summary}\n`);
   process.exitCode = 1;

@@ -185,6 +185,69 @@ try {
     "--mode", "fixture", "--scenario", "natural", formalOrigin], architectureHome);
   assert.equal(architecture.code, 0, architecture.stderr);
   assert.match(architecture.stdout, /PASS mechanics only \(crafted answers\)/u);
+  const reverseControls = [];
+  for (const [index, mode] of ["fixture", "fixture-stop", "fixture-semantic-stop"].entries()) {
+    const home = path.join(work, `rv${index}`); mkdirSync(home);
+    const output = await runChild([path.join(root, manifest.e2e.architecture_entrypoint),
+      "--mode", mode, "--scenario", "contextual-reverse", formalOrigin], home);
+    assert.equal(output.code, 0, output.stderr + output.stdout);
+    const summary = output.stdout.split("\n").filter(line => line.startsWith("{"))
+      .map(line => JSON.parse(line)).find(row => row.event === "summary");
+    assert.ok(summary, "the actual reverse run emits a summary");
+    assert.equal(summary.mode, mode);
+    assert.equal(summary.scenario, "contextual-reverse");
+    assert.equal(summary.source, manifest.sources.apps);
+    assert.deepEqual(summary.viewport, { width: 1280, height: 720 });
+    assert.equal(summary.cleanup, null);
+    assert.equal(summary.error, null);
+    assert.equal(summary.actions.new, 1);
+    assert.equal(summary.actions.apply, 0);
+    assert.equal(summary.actions.reload, 0);
+    assert.equal(summary.actions.discard, 0);
+    assert.equal(summary.providerIdentity, "UNKNOWN");
+    assert.deepEqual(summary.unreported, []);
+    if (mode === "fixture") {
+      assert.deepEqual(summary.reached, ["open", "app", "reverse", "reverse-undo"]);
+      assert.deepEqual(summary.notRun, []);
+      assert.deepEqual(summary.verdicts, []);
+      assert.equal(summary.protocolFailure, null);
+      assert.equal(summary.stoppedAt, null);
+      assert.equal(summary.actions.send, 2);
+      assert.equal(summary.actions.undo, 1);
+      assert.equal(summary.contextEvidence.source, manifest.sources.apps);
+      assert.ok(Number.isSafeInteger(summary.contextEvidence.priorSequence));
+      assert.ok(summary.contextEvidence.priorFocus.includes("web-app-mjs"));
+      assert.equal(summary.contextEvidence.workingEdge, "arch-calls-web-app-mjs-to-web-adapters-judgment-mjs");
+      assert.equal(summary.contextEvidence.reversedEdge, "voice-arch-web-adapters-judgment-mjs-to-arch-web-app-mjs");
+      assert.notEqual(summary.contextEvidence.graphBefore, summary.contextEvidence.graphAfter);
+      assert.equal(summary.contextEvidence.undoRestored, true);
+      assert.equal(summary.contextEvidence.noSave, true);
+      assert.equal(summary.contextEvidence.acceptedIntegration, "NOT_PROVEN");
+    } else {
+      assert.deepEqual(summary.reached, ["open", "app"]);
+      assert.deepEqual(summary.notRun, ["reverse", "reverse-undo"]);
+      assert.equal(summary.stoppedAt, "app");
+      assert.equal(summary.actions.send, 1);
+      assert.equal(summary.actions.undo, 0);
+      assert.equal(summary.contextEvidence, null);
+      if (mode === "fixture-stop") {
+        assert.equal(summary.protocolFailure.stage, "app");
+        assert.equal(summary.requests, 1);
+        assert.equal(summary.non200, 1);
+        assert.deepEqual(summary.verdicts, []);
+      } else {
+        assert.equal(summary.protocolFailure, null);
+        assert.equal(summary.non200, 0);
+        assert.equal(summary.answered, summary.requests);
+        assert.deepEqual(summary.verdicts, ["the page's file is judged jev-boundary"]);
+      }
+    }
+    reverseControls.push({ mode, scenario: summary.scenario, source: summary.source,
+      reached: summary.reached, notRun: summary.notRun, actions: summary.actions,
+      contextEvidence: summary.contextEvidence, verdicts: summary.verdicts, cleanup: summary.cleanup });
+  }
+  process.stdout.write(JSON.stringify({ kind: "voice-ui.contextualReverseControls.v1", status: "PASS",
+    artifactManifestSha256: digest, liveProviderCalls: 0, controls: reverseControls }) + "\n");
   process.stdout.write(JSON.stringify({ kind: "voice-ui.architectureShapeCheck.v1", status: "PASS",
     scope: "artifact-shape/controlled-mechanics", artifactManifestSha256: digest, source: manifest.sources.architecture,
     entry: manifest.e2e.architecture_entrypoint, liveProviderCalls: 0, acceptedIntegration: "NOT_PROVEN" }) + "\n");
