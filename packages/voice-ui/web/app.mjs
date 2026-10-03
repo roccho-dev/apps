@@ -319,7 +319,7 @@ const drawWorking = async (graph, frame) => {
   // Keep the old camera until the candidate Working drawing has succeeded.
   const nextCamera = graph?.records.some(record => record.type === "region" && record.id === camera) ? camera : null;
   const nextFrame = frame === undefined ? paneFrame(graph, nextCamera) : frame;
-  if (graph !== null && (nextCamera !== null || nextCamera !== camera) && nextFrame === null) {
+  if (graph !== null && camera !== null && nextFrame === null) {
     throw new Error("the selected camera part is not placed");
   }
   await drawGraph({ graph, frame: nextFrame, mount: workingSurface, protocol, renderProjection: renderSemanticMap, document });

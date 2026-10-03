@@ -519,7 +519,6 @@ try {
     for (const key of ["stored", "root", "confirmedGraph"]) assert.deepEqual(undone[key], cameraControlBefore[key], key);
     report({ event: "camera-undo", requests: 0, dom: domOf(undone) });
   }
-  last = undone;
   report({ event: "turn", stage: "whole-undo", expected: 0, requests: 0, answered: 0, failed: 0, exchanges: [], dom: domOf(undone) });
   need(undone.draft.length === 1 && undone.claims.every(claim => !claim.record.startsWith("region arch-")),
     `Undo takes the whole view back (${undone.draft.length} steps left)`);
@@ -716,6 +715,9 @@ try {
       for (const key of ["stored", "root", "confirmedGraph"]) assert.deepEqual(back[key], beforeUndo[key], key);
       assert.equal(exchanges.length, requests, "surviving-camera Undo makes no judgment requests");
       report({ event: "camera-surviving-undo", requests: 0, dom: domOf(back) });
+      // Return this added fixture checkpoint to the original Apply/reload view.
+      await page.locator("#camera-part").selectOption("");
+      await settle();
     }
   }
 
