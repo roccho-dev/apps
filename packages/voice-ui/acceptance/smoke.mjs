@@ -248,6 +248,51 @@ try {
   }
   process.stdout.write(JSON.stringify({ kind: "voice-ui.contextualReverseControls.v1", status: "PASS",
     artifactManifestSha256: digest, liveProviderCalls: 0, controls: reverseControls }) + "\n");
+  const storageControls = [];
+  for (const [index, scenario] of ["storage-write-refusal", "storage-readback-unknown"].entries()) {
+    const home = path.join(work, `st${index}`); mkdirSync(home);
+    const output = await runChild([path.join(root, manifest.e2e.architecture_entrypoint),
+      "--mode", "fixture", "--scenario", scenario, formalOrigin], home);
+    assert.equal(output.code, 0, output.stderr + output.stdout);
+    const summary = output.stdout.split("\n").filter(line => line.startsWith("{"))
+      .map(line => JSON.parse(line)).find(row => row.event === "summary");
+    const unknown = index === 1;
+    assert.ok(summary, "the actual storage control emits its summary");
+    assert.equal(summary.mode, "fixture");
+    assert.equal(summary.scenario, scenario);
+    assert.equal(summary.source, manifest.sources.apps);
+    assert.equal(summary.cleanup, null);
+    assert.equal(summary.error, null);
+    assert.equal(summary.protocolFailure, null);
+    assert.equal(summary.stoppedAt, null);
+    assert.deepEqual(summary.verdicts, []);
+    assert.deepEqual(summary.notRun, []);
+    assert.deepEqual(summary.reached, ["open", "app", "apply-fault", ...(unknown ? ["reload"] : [])]);
+    assert.deepEqual(summary.actions, { new: 1, send: 1, undo: 0, apply: 1, reload: unknown ? 1 : 0, discard: 0 });
+    assert.equal(summary.non200, 0);
+    assert.equal(summary.failed, 0);
+    assert.equal(summary.answered, summary.requests);
+    assert.deepEqual(summary.unreported, []);
+    const evidence = summary.storageEvidence;
+    assert.equal(evidence.source, manifest.sources.apps);
+    assert.equal(evidence.key, JSON.parse(readFileSync(path.join(site, "architecture/data/config.v1.json"))).persistence.key);
+    assert.deepEqual(evidence.trace, ["current-read", "write-attempt", unknown ? "readback-unavailable" : "readback-old"]);
+    assert.equal(evidence.actualWrite, unknown);
+    assert.equal(evidence.failedApply, unknown ? "unverified" : "not-persisted");
+    for (const key of ["workingPreserved", "confirmedPreserved", "nativeRestored", "nativeDescriptorsRestored"]) assert.equal(evidence[key], true);
+    assert.equal(evidence.recovery, unknown ? "verified-known-document" : "NOT_RUN");
+    assert.equal(evidence.acceptedIntegration, "NOT_PROVEN");
+    if (unknown) {
+      assert.match(evidence.storedSHA256, /^[0-9a-f]{64}$/);
+      assert.ok(evidence.graphHead);
+      assert.equal(evidence.provenanceProjected, true);
+      assert.equal(evidence.recoveryState, "restored");
+    }
+    storageControls.push({ scenario, source: summary.source, reached: summary.reached,
+      actions: summary.actions, evidence, cleanup: summary.cleanup });
+  }
+  process.stdout.write(JSON.stringify({ kind: "voice-ui.storageBoundaryControls.v1", status: "PASS",
+    artifactManifestSha256: digest, liveProviderCalls: 0, controls: storageControls }) + "\n");
   process.stdout.write(JSON.stringify({ kind: "voice-ui.architectureShapeCheck.v1", status: "PASS",
     scope: "artifact-shape/controlled-mechanics", artifactManifestSha256: digest, source: manifest.sources.architecture,
     entry: manifest.e2e.architecture_entrypoint, liveProviderCalls: 0, acceptedIntegration: "NOT_PROVEN" }) + "\n");
