@@ -286,6 +286,7 @@ try {
       assert.match(evidence.storedSHA256, /^[0-9a-f]{64}$/);
       assert.ok(evidence.graphHead);
       assert.equal(evidence.provenanceProjected, true);
+      assert.equal(evidence.recoveryState, "restored");
     }
     storageControls.push({ scenario, source: summary.source, reached: summary.reached,
       actions: summary.actions, evidence, cleanup: summary.cleanup });

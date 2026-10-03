@@ -606,6 +606,8 @@ const runScenario = async () => {
   if (STORAGE) {
     prerequisite(verdicts.length === 0, "app");
     const before = app.now, requests = exchanges.length;
+    const controlIDs = ["new", "send", "undo", "apply", "discard"];
+    const beforeDisabled = Object.fromEntries(await Promise.all(controlIDs.map(async id => [id, await page.locator(`#${id}`).isDisabled()])));
     reached.push("apply-fault");
     // One owned Apply phase, not bootstrap or diagnostic read counts. Restore
     // descriptors at the commit readback, before screen() can read storage.
@@ -667,7 +669,7 @@ const runScenario = async () => {
     assert.equal(failed.state, unknown ? "storage-unverified" : "failed");
     assert.match(failed.failure, unknown ? /controlled readback unavailable/ : /controlled write refused/);
     for (const key of ["graph", "draft", "claims", "context", "root", "confirmedGraph"]) assert.deepEqual(failed[key], before[key], key);
-    for (const id of ["new", "send", "undo", "apply", "discard"]) assert.equal(await page.locator(`#${id}`).isDisabled(), unknown, id);
+    for (const id of controlIDs) assert.equal(await page.locator(`#${id}`).isDisabled(), unknown || beforeDisabled[id], id);
     assert.equal(exchanges.length, requests, "Apply makes no judgment request");
     storageEvidence = { source: SERVED_COMMIT, key: KEY, trace: fault.trace, actualWrite: fault.written,
       failedApply: unknown ? "unverified" : "not-persisted", workingPreserved: true, confirmedPreserved: true,
@@ -682,6 +684,8 @@ const runScenario = async () => {
       await ready();
       const recovered = await screen();
       last = recovered;
+      assert.equal(recovered.state, "restored");
+      assert.equal(recovered.failure, null);
       assert.equal(recovered.stored, fault.next);
       assert.equal(recovered.root, before.root);
       assert.equal(recovered.draft.length, 0);
@@ -701,8 +705,10 @@ const runScenario = async () => {
       assert.deepEqual(recovered.claims, projected.claims);
       assert.equal(recovered.sourceStatus, before.sourceStatus);
       assert.equal(exchanges.length, requests, "reload makes no judgment request");
-      for (const id of ["new", "send"]) assert.equal(await page.locator(`#${id}`).isDisabled(), false, id);
+      assert.equal(await page.locator("#send").isDisabled(), false, "restored Working is editable");
+      assert.equal(await page.locator("#new").isDisabled(), true, "a restored map is not a new-map state");
       storageEvidence.recovery = "verified-known-document";
+      storageEvidence.recoveryState = recovered.state;
       storageEvidence.storedSHA256 = createHash("sha256").update(fault.next).digest("hex");
       storageEvidence.graphHead = recovered.graph.head;
       storageEvidence.provenanceProjected = true;
