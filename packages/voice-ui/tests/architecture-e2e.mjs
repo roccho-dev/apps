@@ -494,15 +494,70 @@ try {
   prerequisite(whole.now.state === "drafted", "whole");
 
   // Undo takes the whole utterance back - every Decision it added.
+  let cameraControlBefore;
+  let cameraControlRequests;
+  if (FIXTURE) {
+    await page.locator("#camera-part").selectOption(`arch-${APP}`);
+    await settle();
+    cameraControlBefore = await screen();
+    cameraControlRequests = exchanges.length;
+    assert.equal(cameraControlBefore.camera, `arch-${APP}`);
+  }
   reached.push("whole-undo");
   await click("undo");
   await settle();
   const undone = await screen();
+  if (FIXTURE) {
+    assert.equal(undone.camera, "", "Undo reconciles the disappeared draft camera to overview");
+    assert.equal(undone.draft.length, 1, "selected draft camera does not block Undo");
+    assert.equal(exchanges.length, cameraControlRequests, "camera and Undo make no judgment requests");
+    for (const key of ["stored", "root", "confirmedGraph"]) assert.deepEqual(undone[key], cameraControlBefore[key], key);
+    report({ event: "camera-undo", requests: 0, dom: domOf(undone) });
+  }
   last = undone;
   report({ event: "turn", stage: "whole-undo", expected: 0, requests: 0, answered: 0, failed: 0, exchanges: [], dom: domOf(undone) });
   need(undone.draft.length === 1 && undone.claims.every(claim => !claim.record.startsWith("region arch-")),
     `Undo takes the whole view back (${undone.draft.length} steps left)`);
   prerequisite(undone.draft.length === 1, "whole-undo");
+  if (FIXTURE) {
+    // A separate crafted draft exercises failed rendering and Discard.
+    // The natural/live scenario above and all its original utterances stay unchanged.
+    const draft = await say("camera-discard-draft", UTTERANCES.whole, picksFor(contract.WHOLE));
+    assert.equal(draft.now.state, "drafted");
+    await page.locator("#camera-part").selectOption(`arch-${APP}`);
+    await settle();
+    const before = await screen();
+    const requests = exchanges.length;
+    await page.evaluate(() => {
+      const mount = document.querySelector("#working-surface"), append = mount.append;
+      mount.append = function (...nodes) { mount.append = append; throw new Error("controlled first-pane insertion failure"); };
+    });
+    await click("undo");
+    await settle();
+    const failed = await screen();
+    assert.equal(failed.state, "failed");
+    for (const key of ["camera", "graph", "draft", "claims", "stored", "root", "confirmedGraph"]) assert.deepEqual(failed[key], before[key], key);
+    assert.equal(exchanges.length, requests, "failed Undo makes no judgment requests");
+    report({ event: "camera-undo-render-failure", requests: 0, dom: domOf(failed) });
+    await page.locator("#discard").click();
+    await settle();
+    const discarded = await screen();
+    assert.equal(discarded.graph, null);
+    assert.equal(discarded.camera, "", "Discard with no Accepted graph clears the disappeared camera");
+    assert.equal(discarded.draft.length, 0);
+    for (const key of ["stored", "root", "confirmedGraph"]) assert.deepEqual(discarded[key], before[key], key);
+    report({ event: "camera-discard", requests: 0, dom: domOf(discarded) });
+    await page.locator("#text").fill("voice-ui の構成");
+    await click("new");
+    await settle();
+    const renewed = await screen();
+    assert.equal(renewed.state, "drafted", "New is not blocked by the discarded camera");
+    assert.equal(renewed.camera, "");
+    assert.equal(renewed.draft.length, 1);
+    assert.equal(exchanges.length, requests, "Discard and New make no judgment requests");
+    for (const key of ["stored", "root", "confirmedGraph"]) assert.deepEqual(renewed[key], before[key], key);
+    report({ event: "camera-discard-new", requests: 0, dom: domOf(renewed) });
+  }
 
   // (2) The page's own code: its roles, its call to the Worker, its storage.
   reached.push("app");
