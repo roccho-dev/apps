@@ -111,6 +111,38 @@ try {
   await new Promise(resolve => server.listen(0, "127.0.0.1", resolve));
   const origin = `http://127.0.0.1:${server.address().port}`;
   const target = `${origin}/`;
+  // The optional manual live case can be deliberately left unexecuted, never
+  // passed. An unreachable target proves no bootstrap GET can be required.
+  const skipHome = path.join(work, "sk"); mkdirSync(skipHome);
+  const checker = path.join(root, manifest.e2e.architecture_entrypoint);
+  const skipArgs = ["--mode", "live", "--scenario", "contextual-reverse", "http://127.0.0.1:1", "--skip-live-contextual-reverse"];
+  const skipped = await runChild([checker, ...skipArgs], skipHome);
+  assert.equal(skipped.code, 2, skipped.stderr);
+  const skipLines = skipped.stdout.trim().split("\n");
+  assert.equal(skipLines.length, 2, "one complete structured summary and one explicit SKIPPED line");
+  const skipSummary = JSON.parse(skipLines[0]);
+  assert.deepEqual(skipSummary, { event: "summary", mode: "live", scenario: "contextual-reverse",
+    result: "SKIPPED", reason: "explicit-operator-request", execution: "NOT_STARTED", testExecuted: false,
+    source: null, providerIdentity: "UNKNOWN", reached: [], notRun: ["open", "app", "reverse", "reverse-undo"],
+    actions: { new: 0, send: 0, undo: 0, apply: 0, reload: 0, discard: 0 },
+    requests: 0, answered: 0, failed: 0, non200: 0, cleanup: null, realGoal: "NOT_PROVEN" });
+  assert.match(skipLines[1], /^architecture-e2e\[live\/contextual-reverse\]: SKIPPED /u);
+  assert.doesNotMatch(skipped.stdout, /PASS/u);
+  const invalid = [
+    ...["fixture", "fixture-stop", "fixture-semantic-stop"].map(mode => ["--mode", mode, ...skipArgs.slice(2)]),
+    ...["natural", "named"].map(scenario => ["--mode", "live", "--scenario", scenario, ...skipArgs.slice(4)]),
+    [...skipArgs, "extra"], [...skipArgs.slice(0, 5), "--unknown"],
+  ];
+  for (const args of invalid) {
+    const output = await runChild([checker, ...args], skipHome);
+    assert.notEqual(output.code, 0);
+    assert.notEqual(output.code, 2);
+    assert.match(output.stderr, /usage: architecture-e2e.mjs/u);
+    assert.equal(output.stdout, "", "invalid usage is not SKIPPED or a target observation");
+  }
+  process.stdout.write(JSON.stringify({ kind: "voice-ui.contextualReverseSkipControl.v1", status: "PASS",
+    artifactManifestSha256: digest, mechanismOnly: true, exitCode: skipped.code, summary: skipSummary,
+    invalidUsageCases: invalid.length, liveProviderCalls: 0 }) + "\n");
   for (let run = 1; run <= 3; run++) {
     htmlMisdelivery = run === 3;
     const home = path.join(work, `r${run}`);
