@@ -234,6 +234,8 @@ export async function apply(session, { commit }) {
   if (session.draft.length === 0) return Object.freeze({ session, result: null });
   const result = await commit({ graph: session.working, expected: session.stored, draft: session.draft });
   if (result.status !== COMMIT_COMMITTED) return Object.freeze({ session, result });
+  demand(typeof result.stored === "string" && result.stored.length > 0,
+    "a committed result must carry a non-empty stored value");
   return Object.freeze({
     session: freeze({ ...session, accepted: session.working, stored: result.stored, draft: [], pending: null }),
     result,
