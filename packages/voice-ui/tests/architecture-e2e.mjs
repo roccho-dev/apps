@@ -631,6 +631,9 @@ const runScenario = async () => {
       "the actual follow-up carries the selected Working relation");
     need(reversed.now.state === "drafted" && reversed.now.draft.length === app.now.draft.length + 1
       && reversed.now.graph?.head !== app.now.graph.head, "the typed reversal changes the actual projected Working graph");
+    need(JSON.stringify(reversed.now.draft.slice(0, -1)) === JSON.stringify(app.now.draft)
+      && reversed.now.draft.at(-1) === `-${original.from}->${original.to} +${original.to}->${original.from}`,
+      "one appended draft exposes the remove/connect pair and preserves earlier drafts");
     need(!reversed.now.graph?.records.some(record => record.id === originalId)
       && added?.from === original.to && added?.to === original.from && added?.kind === original.kind
       && added?.label === original.label, "Remove+Connect replaces exactly the calls direction and retains kind/label");
