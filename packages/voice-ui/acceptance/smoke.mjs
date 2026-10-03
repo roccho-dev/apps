@@ -135,8 +135,7 @@ try {
   ];
   for (const args of invalid) {
     const output = await runChild([checker, ...args], skipHome);
-    assert.notEqual(output.code, 0);
-    assert.notEqual(output.code, 2);
+    assert.equal(output.code, 1, output.stderr);
     assert.match(output.stderr, /usage: architecture-e2e.mjs/u);
     assert.equal(output.stdout, "", "invalid usage is not SKIPPED or a target observation");
   }
