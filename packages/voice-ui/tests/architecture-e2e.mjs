@@ -612,20 +612,21 @@ const runScenario = async () => {
     // One owned Apply phase, not bootstrap or diagnostic read counts. Restore
     // descriptors at the commit readback, before screen() can read storage.
     await page.evaluate(([key, unknown]) => {
-      const proto = Storage.prototype;
-      const get = Object.getOwnPropertyDescriptor(proto, "getItem");
-      const set = Object.getOwnPropertyDescriptor(proto, "setItem");
-      const fault = window.__storageFault = { trace: [], next: null, written: false, restored: false, original: { getItem: get, setItem: set } };
+      const original = Object.getOwnPropertyDescriptor(window, "localStorage");
+      if (original?.configurable !== true) throw new Error("owned localStorage descriptor must be configurable");
+      const get = localStorage.getItem.bind(localStorage);
+      const set = localStorage.setItem.bind(localStorage);
+      const fault = window.__storageFault = { trace: [], next: null, written: false, restored: false, original };
       fault.restore = () => {
-        Object.defineProperty(proto, "getItem", get);
-        Object.defineProperty(proto, "setItem", set);
+        Object.defineProperty(window, "localStorage", original);
         fault.restored = true;
       };
-      Object.defineProperty(proto, "getItem", { ...get, value: function (name) {
-        if (name !== key) return get.value.call(this, name);
+      Object.defineProperty(window, "localStorage", { configurable: true, value: {
+        getItem: name => {
+        if (name !== key) return get(name);
         if (fault.next === null) {
           fault.trace.push("current-read");
-          return get.value.call(this, name);
+          return get(name);
         }
         fault.restore();
         if (unknown) {
@@ -633,16 +634,16 @@ const runScenario = async () => {
           throw new Error("controlled readback unavailable");
         }
         fault.trace.push("readback-old");
-        return get.value.call(this, name);
-      } });
-      Object.defineProperty(proto, "setItem", { ...set, value: function (name, value) {
-        if (name !== key) return set.value.call(this, name, value);
+        return get(name);
+      },
+        setItem: (name, value) => {
+        if (name !== key) return set(name, value);
         fault.trace.push("write-attempt");
         fault.next = value;
         if (!unknown) throw new Error("controlled write refused");
-        set.value.call(this, name, value);
+        set(name, value);
         fault.written = true;
-      } });
+      } } });
     }, [KEY, scenario === "storage-readback-unknown"]);
     let fault;
     try {
@@ -650,10 +651,9 @@ const runScenario = async () => {
       await settle(); // DOM-only: no getItem probe can consume the fault.
       fault = await page.evaluate(() => {
         const { trace, next, written, restored } = window.__storageFault;
-        const nativeDescriptors = Object.entries(window.__storageFault.original).every(([name, original]) => {
-          const actual = Object.getOwnPropertyDescriptor(Storage.prototype, name);
-          return Object.keys(original).every(key => actual[key] === original[key]);
-        });
+        const original = window.__storageFault.original;
+        const actual = Object.getOwnPropertyDescriptor(window, "localStorage");
+        const nativeDescriptors = Object.keys(original).every(key => actual[key] === original[key]);
         return { trace, next, written, restored, nativeDescriptors };
       });
     } finally {
