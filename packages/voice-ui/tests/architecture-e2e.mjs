@@ -37,12 +37,12 @@ const { chromium } = createRequire(import.meta.url)("playwright-core");
 // then strictly restores Working with Undo, without Apply/reload or authority proof.
 // goal-addition uses a separate Goal button: one public preparation request,
 // finite additions, independent post-STOP graph oracle, then whole-Goal Undo.
-// node architecture-e2e.mjs --mode fixture|fixture-stop|fixture-semantic-stop|live --scenario natural|named|contextual-reverse|goal-addition <url>
+// node architecture-e2e.mjs --mode fixture|fixture-stop|fixture-semantic-stop|live --scenario natural|named|contextual-reverse|goal-addition|goal-flow <url>
 const [flag, mode, scenarioFlag, scenario, url] = process.argv.slice(2);
 if (flag !== "--mode" || !["fixture", "fixture-stop", "fixture-semantic-stop", "live"].includes(mode) || scenarioFlag !== "--scenario"
   || !["natural", "named", "contextual-reverse", "goal-addition", "goal-flow"].includes(scenario) || !url
   || (mode === "fixture-semantic-stop" && scenario !== "contextual-reverse")) {
-  throw new Error("usage: architecture-e2e.mjs --mode fixture|fixture-stop|fixture-semantic-stop|live --scenario natural|named|contextual-reverse|goal-addition <url>");
+  throw new Error("usage: architecture-e2e.mjs --mode fixture|fixture-stop|fixture-semantic-stop|live --scenario natural|named|contextual-reverse|goal-addition|goal-flow <url>");
 }
 const REVERSE = scenario === "contextual-reverse";
 const FLOW = scenario === "goal-flow";

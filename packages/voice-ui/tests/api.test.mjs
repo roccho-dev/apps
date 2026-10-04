@@ -87,7 +87,7 @@ test("Goal flow candidates retain legal wrong directions and reject malformed or
     state => { state.edges.push({ id: "existing", from: "a", to: "b" }); },
     state => { state.candidates[0].kind = "made-up"; },
   ]) { const bad = structuredClone(body); mutate(bad.state); assert.equal(isRequest(bad), false); }
-  assert.equal(isRequest({ ...body, kind: "voice-ui.judge.goal-executable-addition.v2" }), false);
+  assert.equal(isRequest({ ...body, kind: "voice-ui.judge.goal-addition.v2" }), false);
 });
 
 test("Goal v3 boundary asks one executable delta and refuses extra answers without architecture fanout", async () => {

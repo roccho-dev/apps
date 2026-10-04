@@ -251,7 +251,8 @@ try {
   const goalControls = [];
   for (const scenario of ["goal-addition", "goal-flow"]) for (const [index, mode] of ["fixture", "fixture-stop"].entries()) {
     const flow = scenario === "goal-flow";
-    const home = path.join(work, `${scenario}${index}`); mkdirSync(home);
+    // Keep Chromium's Unix socket pathname short, as for the existing starts.
+    const home = path.join(work, `${flow ? "f" : "g"}${index}`); mkdirSync(home);
     const output = await runChild([path.join(root, manifest.e2e.architecture_entrypoint),
       "--mode", mode, "--scenario", scenario, formalOrigin], home);
     assert.equal(output.code, 0, output.stderr + output.stdout);
