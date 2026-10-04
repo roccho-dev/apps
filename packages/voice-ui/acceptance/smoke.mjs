@@ -248,6 +248,64 @@ try {
   }
   process.stdout.write(JSON.stringify({ kind: "voice-ui.contextualReverseControls.v1", status: "PASS",
     artifactManifestSha256: digest, liveProviderCalls: 0, controls: reverseControls }) + "\n");
+  // Evaluation data is separate from the fixed, explicitly controlled answers.
+  // No expected result selects a response or filters a product candidate.
+  const evaluationBase = { version: "voice-ui.goal-evaluation.v1", id: "controlled-order", goal: "OCIの中にAPIとDBを追加して", order: "reverse",
+    expected: { kind: "change", regions: [{ partKey: "api", parentLabel: "OCI" }, { partKey: "db", parentLabel: "OCI" }], flows: [] } };
+  const evaluationCases = [
+    { data: evaluationBase, mode: "fixture", scenario: "goal-addition", semantic: "PASS" },
+    { data: { ...evaluationBase, id: "controlled-mixed-order", expected: { ...evaluationBase.expected,
+      flows: [{ from: { addedPart: "api" }, to: { addedPart: "db" } }] } }, mode: "fixture", scenario: "goal-flow", semantic: "PASS" },
+    { data: { ...evaluationBase, id: "controlled-none", goal: "図は変更せず、そのままにして", order: "normal",
+      expected: { kind: "none", regions: [], flows: [] } }, mode: "fixture-none", scenario: "goal-addition", semantic: "PASS" },
+    { data: { ...evaluationBase, id: "controlled-wrong-expected", order: "normal",
+      expected: { ...evaluationBase.expected, regions: [evaluationBase.expected.regions[0]] } }, mode: "fixture", scenario: "goal-addition", semantic: "NOT_MET" },
+  ];
+  const evaluationControls = [];
+  for (const [index, entry] of evaluationCases.entries()) {
+    const home = path.join(work, `e${index}`); mkdirSync(home);
+    const output = await runChild([path.join(root, manifest.e2e.architecture_entrypoint), "--mode", entry.mode,
+      "--scenario", entry.scenario, formalOrigin, "--goal-case", JSON.stringify(entry.data)], home);
+    const summary = output.stdout.split("\n").filter(line => line.startsWith("{"))
+      .map(JSON.parse).find(row => row.event === "summary");
+    assert.ok(summary, "complete evaluator summary");
+    assert.equal(summary.source, manifest.sources.apps); assert.equal(summary.error, null); assert.equal(summary.cleanup, null);
+    const proof = summary.goalEvidence;
+    assert.equal(proof.evaluation.semanticGrade, entry.semantic);
+    assert.equal(proof.noSave, true); assert.equal(summary.actions.apply, 0); assert.equal(summary.actions.reload, 0);
+    assert.equal(proof.exchanges.every(exchange => exchange.status === 200 && exchange.answers !== null), true);
+    if (entry.data.order === "reverse") {
+      assert.equal(proof.evaluation.orderInterventions.length, proof.requests);
+      for (const order of proof.evaluation.orderInterventions) {
+        assert.deepEqual(order.after, [...order.before].reverse()); assert.equal(order.sameEntriesAndOtherState, true);
+      }
+    }
+    if (entry.mode === "fixture-none") {
+      assert.equal(proof.evaluation.firstNone, true); assert.equal(proof.requests, 1);
+      assert.deepEqual(proof.rawAdded, []); assert.deepEqual(proof.newEdges, []); assert.deepEqual(proof.newPins, []);
+      assert.equal(proof.graphBefore, proof.graphAfter); assert.equal(summary.actions.undo, 0);
+      assert.deepEqual(summary.notRun, []); assert.equal(output.code, 0, output.stderr);
+    } else assert.equal(proof.undoRestored, true);
+    if (entry.semantic === "NOT_MET") assert.notEqual(output.code, 0, "wrong oracle cannot turn into PASS");
+    // Existing arrow FAIL remains an independent overall FAIL, not a semantic waiver.
+    evaluationControls.push({ id: entry.data.id, scenario: entry.scenario, mode: entry.mode, code: output.code,
+      semantic: proof.evaluation.semanticGrade, paint: proof.evaluation.paintGrade, proof });
+  }
+  for (const [index, data] of [null, { ...evaluationBase, extra: true },
+    { ...evaluationBase, expected: { ...evaluationBase.expected, regions: [null] } },
+    { ...evaluationBase, expected: { ...evaluationBase.expected, regions: [{ partKey: "unknown", parentLabel: "OCI" }] } },
+    { ...evaluationBase, expected: { ...evaluationBase.expected, flows: [{ from: { baselineRegion: "oci" }, to: { addedPart: "api" } }] } },
+    { ...evaluationBase, expected: { ...evaluationBase.expected, regions: [evaluationBase.expected.regions[0], evaluationBase.expected.regions[0]] } },
+  ].entries()) {
+    const home = path.join(work, `i${index}`); mkdirSync(home);
+    const output = await runChild([path.join(root, manifest.e2e.architecture_entrypoint), "--mode", "fixture", "--scenario", "goal-addition",
+      formalOrigin, "--goal-case", JSON.stringify(data)], home);
+    assert.notEqual(output.code, 0); assert.equal(output.stdout.includes('"event":"summary"'), false, "invalid input rejected before browser scenario");
+    assert.doesNotMatch(output.stderr, /browserType\.launch|Target page, context or browser/);
+  }
+  process.stdout.write(JSON.stringify({ kind: "voice-ui.goalEvaluationControls.v1", status: "PASS",
+    scope: "controlled evaluator only; not real selection or overall arrow PASS", liveProviderCalls: 0,
+    artifactManifestSha256: digest, controls: evaluationControls }) + "\n");
   const goalControls = [];
   for (const scenario of ["goal-addition", "goal-flow"]) for (const [index, mode] of ["fixture", "fixture-stop"].entries()) {
     const flow = scenario === "goal-flow";

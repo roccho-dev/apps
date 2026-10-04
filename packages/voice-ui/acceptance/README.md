@@ -1,5 +1,51 @@
 # Acceptance execution boundary
 
+## Finite evaluator input (shared-review source v5)
+
+The existing architecture checker accepts an optional `--goal-case <JSON>` after
+the existing URL for either Goal scenario. The exact input keys are `version`,
+`id`, `goal`, `order`, and `expected`; version is `voice-ui.goal-evaluation.v1`,
+order is `normal` or `reverse`. Expected has exactly `kind` (`change` or `none`),
+`regions` (`partKey`, `parentLabel`) and `flows` (`from`, `to`). Each endpoint is
+either `{ "addedPart": "api" }` or `{ "baselineRegion": "existing-helper" }`.
+The latter is the fixed public container-example **step.ref**, not a guessed
+allocated record ID. Unknown keys, unsupported/duplicate parts or flows, root or
+group endpoints, self edges and ambiguous public parent labels are rejected before
+browser/provider invocation. Actual preparation is separately checked against the
+complete public seed; unique exact label/kind/parent correspondence binds each
+public seed step to its observed record ID before the Goal.
+
+Expected data is evaluator-only gold: never sent to the app/provider, used to
+filter a candidate, choose a fixture answer, or plan a change. Existing default
+inputs retain their old scripted controls. The explicit `fixture-none` mode always
+answers NONE, independently of expected data, and proves controlled mechanics
+only. NONE success requires a nonempty actual legal catalogue, the first closed
+NONE answer, zero adoption and unchanged full baseline/draft/claims/storage; no
+meaningless Undo is required. Change evaluation compares exact added region/flow
+multisets and preserves every old record/pin, rather than checking a positive
+subset. All applicable existing node/edge paint predicates and overall exit
+failure remain unchanged: independent `evaluation.semanticGrade` is not an
+overall paint/CI/owner PASS.
+
+Reversed presentation uses the same stable IDs and full candidate entries with
+deep-equal other request state. The checker records before/after IDs and hashes,
+actual closed answers and membership. In live mode this is an explicit
+`route.continue` request intervention, not a claim of independently observed
+provider wire or an unmodified ordinary request. Inputs/source/hash/order are
+bound in each receipt. Sealed heldout Goal/expected data is supplied by R/P only
+after production freeze; the checker generates neither.
+
+This slice changes only the existing checker, smoke controls and this document.
+Product/provider/schema/public data/pins remain unchanged. The W-owned prior
+diagnostic preimage is retained separately; extra raw SVG diagnostics are not
+new quality evidence. Current missing classic/perimeter paint and overall
+boundary/flake failure remain unmet producer dependencies until their own exact
+repair and composed proof. These source/controlled checks do not authorize real
+Jev, SOPS, display replacement or any C–F actual trial. Actual selection,
+generalization and added value remain NOT_PROVEN/NOT_RUN until separately
+registered first attempts; literal Add-only baseline is not a fair Connect
+baseline. Internal model execution/time/cost are UNKNOWN.
+
 ## Local mixed Goal Choice v3
 
 Goal requests choose one request-local executable change: AddRegion/new-child

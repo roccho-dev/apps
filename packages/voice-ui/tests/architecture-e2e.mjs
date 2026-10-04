@@ -38,10 +38,12 @@ const { chromium } = createRequire(import.meta.url)("playwright-core");
 // goal-addition uses a separate Goal button: one public preparation request,
 // finite additions, independent post-STOP graph oracle, then whole-Goal Undo.
 // node architecture-e2e.mjs --mode fixture|fixture-stop|fixture-semantic-stop|live --scenario natural|named|contextual-reverse|goal-addition|goal-flow <url>
-const [flag, mode, scenarioFlag, scenario, url] = process.argv.slice(2);
-if (flag !== "--mode" || !["fixture", "fixture-stop", "fixture-semantic-stop", "live"].includes(mode) || scenarioFlag !== "--scenario"
+const [flag, mode, scenarioFlag, scenario, url, caseFlag, caseJson, ...extra] = process.argv.slice(2);
+if (flag !== "--mode" || !["fixture", "fixture-none", "fixture-stop", "fixture-semantic-stop", "live"].includes(mode) || scenarioFlag !== "--scenario"
   || !["natural", "named", "contextual-reverse", "goal-addition", "goal-flow"].includes(scenario) || !url
-  || (mode === "fixture-semantic-stop" && scenario !== "contextual-reverse")) {
+  || (mode === "fixture-semantic-stop" && scenario !== "contextual-reverse") || extra.length !== 0
+  || (caseFlag !== undefined && (caseFlag !== "--goal-case" || caseJson === undefined))
+  || ((caseFlag !== undefined || mode === "fixture-none") && !["goal-addition", "goal-flow"].includes(scenario))) {
   throw new Error("usage: architecture-e2e.mjs --mode fixture|fixture-stop|fixture-semantic-stop|live --scenario natural|named|contextual-reverse|goal-addition|goal-flow <url>");
 }
 const REVERSE = scenario === "contextual-reverse";
@@ -50,6 +52,19 @@ const GOAL = scenario === "goal-addition" || FLOW;
 const SEMANTIC_STOP = mode === "fixture-semantic-stop";
 const STOP_FIXTURE = mode === "fixture-stop";
 const FIXTURE = mode !== "live";
+// A finite evaluator input, never a product request or fixture-answer source.
+const exactKeys = (value, keys) => value !== null && typeof value === "object" && !Array.isArray(value)
+  && JSON.stringify(Object.keys(value).sort()) === JSON.stringify([...keys].sort());
+const evaluation = caseFlag === undefined ? null : JSON.parse(caseJson);
+if (caseFlag !== undefined) {
+  assert.ok(exactKeys(evaluation, ["version", "id", "goal", "order", "expected"])
+    && evaluation.version === "voice-ui.goal-evaluation.v1" && typeof evaluation.id === "string" && evaluation.id.length > 0
+    && typeof evaluation.goal === "string" && evaluation.goal.trim().length > 0
+    && ["normal", "reverse"].includes(evaluation.order)
+    && exactKeys(evaluation.expected, ["kind", "regions", "flows"])
+    && ["change", "none"].includes(evaluation.expected.kind)
+    && Array.isArray(evaluation.expected.regions) && Array.isArray(evaluation.expected.flows), "closed finite evaluator input");
+}
 // In the natural fixture a part is never named: the intent answers none, and
 // the part is located - so the locate frames and their judge are what the
 // fixture exercises, failures included. The named fixture names it.
@@ -97,6 +112,41 @@ const FILE_IDS = MANIFEST.entities.filter(entity => entity.kind === "file").map(
 const MOST = 1 + ENTITY_IDS.length + FILE_IDS.length + new Set(MANIFEST.candidates
   .filter(candidate => FILE_IDS.includes(candidate.from) && FILE_IDS.includes(candidate.to))
   .map(candidate => [candidate.from, candidate.to].sort().join(" "))).size;
+
+const publicBundle = GOAL ? await (await fetch(new URL(config.data.bundle, url))).json() : null;
+const seed = publicBundle?.diagrams.find(diagram => diagram.key === "container-example");
+const expectedCase = evaluation?.expected ?? { kind: "change", regions: [
+  { partKey: "api", parentLabel: "OCI" }, { partKey: "db", parentLabel: "OCI" },
+], flows: FLOW ? [{ from: { addedPart: "api" }, to: { addedPart: "db" } }] : [] };
+if (GOAL) {
+  assert.ok(expectedCase.regions.length <= publicBundle.parts.length && expectedCase.flows.length <= 90, "finite oracle size");
+  assert.ok(expectedCase.regions.every(region => exactKeys(region, ["partKey", "parentLabel"])), "closed expected regions");
+  const partKeys = expectedCase.regions.map(region => region.partKey);
+  assert.equal(new Set(partKeys).size, partKeys.length, "unique expected parts");
+  for (const region of expectedCase.regions) assert.ok(exactKeys(region, ["partKey", "parentLabel"])
+    && publicBundle.parts.some(part => part.key === region.partKey)
+    && seed.lanes.filter(lane => lane.label === region.parentLabel).length === 1, "public part and unique seed parent");
+  const endpoint = value => exactKeys(value, ["addedPart"]) && partKeys.includes(value.addedPart)
+    || exactKeys(value, ["baselineRegion"]) && seed.steps.filter(step => step.ref === value.baselineRegion).length === 1;
+  for (const flow of expectedCase.flows) assert.ok(exactKeys(flow, ["from", "to"]) && endpoint(flow.from) && endpoint(flow.to)
+    && JSON.stringify(flow.from) !== JSON.stringify(flow.to), "public directed flow endpoints");
+  assert.equal(new Set(expectedCase.flows.map(flow => JSON.stringify(flow))).size, expectedCase.flows.length, "unique expected flows");
+  assert.ok(expectedCase.kind === "none" ? expectedCase.regions.length === 0 && expectedCase.flows.length === 0
+    : expectedCase.regions.length + expectedCase.flows.length > 0, "explicit change or NONE oracle");
+}
+const orderInterventions = [];
+const presentation = sent => {
+  if (evaluation?.order !== "reverse" || sent.kind !== contract.GOAL_REQUEST_KIND) return sent;
+  const next = { ...sent, state: { ...sent.state, candidates: [...sent.state.candidates].reverse() } };
+  assert.deepEqual({ ...next, state: { ...next.state, candidates: sent.state.candidates } }, sent);
+  assert.deepEqual([...next.state.candidates].sort((a, b) => a.id.localeCompare(b.id)),
+    [...sent.state.candidates].sort((a, b) => a.id.localeCompare(b.id)));
+  const digest = value => createHash("sha256").update(JSON.stringify(value)).digest("hex");
+  orderInterventions.push({ before: sent.state.candidates.map(candidate => candidate.id),
+    after: next.state.candidates.map(candidate => candidate.id), beforeHash: digest(sent), afterHash: digest(next),
+    sameEntriesAndOtherState: true, attribution: FIXTURE ? "controlled presentation only" : "route.continue request intervention; not independently observed provider wire" });
+  return next;
+};
 
 const browser = await chromium.launch({ headless: true, channel: "chromium" });
 const context = await browser.newContext(REVERSE || GOAL ? { viewport: { width: 1280, height: 720 } } : {});
@@ -190,7 +240,7 @@ const slotsOf = sent => {
 const craft = (picks, fault = () => null) => {
   let index = 0;
   return async route => {
-    const sent = JSON.parse(route.request().postData());
+    const sent = presentation(JSON.parse(route.request().postData()));
     const slots = slotsOf(sent);
     const faulty = slots === null ? { status: 422, body: { error: contract.ERRORS.architectureMismatch } } : fault(index);
     index += 1;
@@ -289,7 +339,11 @@ const paintedGoal = (container, records, edge = null) => page.evaluate(({ contai
         && /z\s*$/iu.test(node.getAttribute("d") ?? "");
     });
     if (lines.length !== 1 || markers.length !== 1) {
-      if (lines.length > 0 || markers.length > 0) observedEdges.push({ lines: lines.length, markers: markers.length });
+      if (paths.length > 0) observedEdges.push({ lines: lines.length, markers: markers.length,
+        paths: paths.map(node => { const s = iframe.contentWindow.getComputedStyle(node);
+          return { d: node.getAttribute("d"), fill: s.fill, stroke: s.stroke, opacity: s.opacity,
+            fillOpacity: s.fillOpacity, strokeOpacity: s.strokeOpacity,
+            parent: node.parentElement.localName, parentChildren: node.parentElement.children.length }; }) });
       continue;
     }
     const line = lines[0], marker = markers[0];
@@ -526,7 +580,7 @@ const need = (condition, what) => { if (!condition) verdicts.push(what); };
 // run when it fails - nothing is undone or built on a state the next stage
 // assumes - and every stage not reached is reported as not run.
 const FAULTS = ["failed-frame", "incomplete-frame", "frame-extra-envelope", "judge-extra-envelope", "incomplete-judge-frame"];
-const STAGES = GOAL ? ["open", "prepare", "goal", "goal-undo"] : REVERSE ? ["open", "app", "reverse", "reverse-undo"] : ["open", "whole", "whole-undo",
+const STAGES = GOAL ? ["open", "prepare", "goal", ...(expectedCase.kind === "none" ? [] : ["goal-undo"])] : REVERSE ? ["open", "app", "reverse", "reverse-undo"] : ["open", "whole", "whole-undo",
   ...(FIXTURE ? ["camera-undo", "camera-discard-draft", "camera-undo-render-failure", "camera-discard", "camera-discard-new"] : []),
   "app", "credential", "storage", "save", ...(FIXTURE ? ["save-again"] : []),
   ...(LOCATES ? FAULTS : []), "correction", ...(FIXTURE ? ["camera-surviving-undo"] : []),
@@ -592,7 +646,7 @@ let reloaded = null;
 let contextEvidence = null;
 let goalEvidence = null;
 const goalScenario = async () => {
-  const goalText = FLOW ? "OCIの中にAPIとDBを追加し、APIからDBへ矢印をつないで。他は変えない" : "OCIの中にAPIとDBを追加して";
+  const goalText = evaluation?.goal ?? (FLOW ? "OCIの中にAPIとDBを追加し、APIからDBへ矢印をつないで。他は変えない" : "OCIの中にAPIとDBを追加して");
   reached.push("open");
   await page.goto(PAGE, { waitUntil: "commit", timeout: 120000 });
   await ready();
@@ -606,8 +660,6 @@ const goalScenario = async () => {
   await click("send"); await settle(); await drain();
   if (FIXTURE) await page.unroute(route);
   const before = await screen(); last = before;
-  const publicBundle = await (await fetch(new URL(config.data.bundle, url))).json();
-  const seed = publicBundle.diagrams.find(diagram => diagram.key === "container-example");
   const preparationAnswers = exchanges.map(entry => contract.readAnswers(entry.body?.answers, slotsOf(entry.sent)));
   const seedChoice = preparationAnswers[0]?.diagram?.choice;
   const regions = before.graph?.records.filter(record => record.type === "region") ?? [];
@@ -630,14 +682,25 @@ const goalScenario = async () => {
     && before.graph.records.filter(record => record.type === "relation").length === seed.links.length,
     "the actual selected public preparation has every group and helper with the declared parent and kind");
   prerequisite(verdicts.length === 0, "prepare");
+  const baselineIds = new Map(seed.steps.map(step => {
+    const matches = regions.filter(record => record.label === step.label && record.kind === step.kind
+      && parentLabel(record.parent) === seed.lanes.find(lane => lane.ref === step.lane).label);
+    assert.equal(matches.length, 1, "actual prepared seed endpoint is unique");
+    return [step.ref, matches[0].id];
+  }));
   const prepared = exchanges.length;
   if (FIXTURE) await page.route(route, craft((name, sent) => {
+    if (mode === "fixture-none") return contract.NONE;
     const part = ["api", "db"].find(key => !sent.state.selected.some(item => item.key === key));
     if (part !== undefined) return sent.state.candidates.find(candidate => candidate.part === part && candidate.parent === container.id)?.id ?? contract.NONE;
     const from = sent.state.selected.find(item => item.key === "api")?.region;
     const to = sent.state.selected.find(item => item.key === "db")?.region;
     return FLOW ? sent.state.candidates.find(candidate => candidate.action === "add-edge" && candidate.from === from && candidate.to === to)?.id ?? contract.NONE : contract.NONE;
   }, () => STOP_FIXTURE ? { status: 502, body: { error: contract.ERRORS.providerError } } : null), { times: 8 });
+  else if (evaluation?.order === "reverse") await page.route(route, async intercepted => {
+    const next = presentation(JSON.parse(intercepted.request().postData()));
+    await intercepted.continue({ postData: JSON.stringify(next) });
+  });
   reached.push("goal");
   await page.locator("#text").fill(goalText);
   await click("goal");
@@ -646,31 +709,49 @@ const goalScenario = async () => {
   await page.waitForFunction(() => document.querySelector("#goal-cancel").hidden
     && document.body.dataset.state !== "pending", null, { timeout: 180000 });
   await drain();
-  if (FIXTURE) await page.unroute(route);
+  if (FIXTURE || evaluation?.order === "reverse") await page.unroute(route);
   const after = await screen(); last = after;
   const attempt = await page.evaluate(() => JSON.parse(document.body.dataset.goal));
   const sent = exchanges.slice(prepared);
   const added = after.graph.records.filter(record => record.type === "region" && !before.graph.records.some(old => old.id === record.id));
   const newPins = after.graph.records.filter(record => record.type === "layout"
     && !before.graph.records.some(old => JSON.stringify(old) === JSON.stringify(record)));
-  const expected = [
-    { label: "API", kind: "step", parent: container.id },
-    { label: "DB", kind: "data", parent: container.id },
-  ];
+  const expected = expectedCase.regions.map(region => {
+    const part = publicBundle.parts.find(part => part.key === region.partKey);
+    const parents = regions.filter(record => record.kind === "group" && record.label === region.parentLabel);
+    assert.equal(parents.length, 1, "actual expected parent is unique");
+    return { label: part.label, kind: part.kind, parent: parents[0].id };
+  });
   const actual = added.map(({ label, kind, parent }) => ({ label: label.replace(/ [1-9]\d*$/u, ""), kind, parent }));
   const signature = rows => JSON.stringify(rows.map(({ label, kind, parent }) => JSON.stringify([label, kind, parent])).sort());
   const newEdges = after.graph.records.filter(record => record.type === "relation" && !before.graph.records.some(old => old.id === record.id));
   const api = added.find(record => record.label.replace(/ [1-9]\d*$/u, "") === "API");
   const db = added.find(record => record.label.replace(/ [1-9]\d*$/u, "") === "DB");
-  const semanticMet = signature(actual) === signature(expected) && (FLOW
-    ? newEdges.length === 1 && newEdges[0].from === api?.id && newEdges[0].to === db?.id && newEdges[0].kind === "flow" && newEdges[0].label === ""
-    : newEdges.length === 0);
+  const endpointId = endpoint => {
+    if (endpoint.baselineRegion !== undefined) return baselineIds.get(endpoint.baselineRegion);
+    const index = expectedCase.regions.findIndex(region => region.partKey === endpoint.addedPart), target = expected[index];
+    const matches = added.filter(record => record.label.replace(/ [1-9]\d*$/u, "") === target.label
+      && record.kind === target.kind && record.parent === target.parent);
+    return matches.length === 1 ? matches[0].id : null;
+  };
+  const expectedEdges = expectedCase.flows.map(flow => ({ from: endpointId(flow.from), to: endpointId(flow.to), kind: "flow", label: "" }));
+  const edgeSignature = edges => JSON.stringify(edges.map(({ from, to, kind, label }) => JSON.stringify([from, to, kind, label])).sort());
+  const baselinePreserved = before.graph.records.every(record => after.graph.records.some(next => JSON.stringify(next) === JSON.stringify(record)));
+  const firstNone = sent.length === 1 && sent[0].sent.state.candidates.length > 0
+    && contract.readAnswers(sent[0].body?.answers, slotsOf(sent[0].sent))?.delta?.choice === contract.NONE;
+  const semanticMet = signature(actual) === signature(expected) && edgeSignature(newEdges) === edgeSignature(expectedEdges)
+    && baselinePreserved && (expectedCase.kind !== "none" || firstNone && newPins.length === 0
+      && JSON.stringify(after.graph.records) === JSON.stringify(before.graph.records) && JSON.stringify(after.draft) === JSON.stringify(before.draft));
   const labelsVisible = await Promise.all(added.map(record => labelVisible(record.label)));
   const paintedRecords = after.graph.records.filter(record => record.type === "region" && record.parent === container.id);
   const painted = await paintedGoal(container, paintedRecords, FLOW ? { from: api?.id, to: db?.id } : null);
   const reversedPaint = FLOW ? await paintedGoal(container, paintedRecords, { from: db?.id, to: api?.id }) : null;
   const disconnectedPaint = FLOW ? await paintedGoal(container, paintedRecords,
     { from: api?.id, to: paintedRecords.find(record => record.id !== api?.id && record.id !== db?.id)?.id }) : null;
+  const paintedGroups = await Promise.all([...(expectedCase.kind === "none" ? [container.id] : new Set(expected.map(record => record.parent)))].map(id =>
+    paintedGoal(regions.find(record => record.id === id), after.graph.records.filter(record => record.type === "region" && record.parent === id))));
+  const edgePaints = await Promise.all(expectedEdges.map(edge => paintedGoal(container,
+    after.graph.records.filter(record => record.type === "region" && record.parent !== null && record.kind !== "group"), edge)));
   const digest = value => createHash("sha256").update(JSON.stringify(value)).digest("hex");
   // Independent public-information baseline: literal catalogue/parent name
   // matching. No gold remainder or baseline decision goes to the product.
@@ -684,9 +765,12 @@ const goalScenario = async () => {
   });
   const baselineElapsedMs = performance.now() - baselineStart;
   goalEvidence = { reason: attempt.reason, goalMet: semanticMet, requests: sent.length, setupRequests: prepared,
+    evaluation: { id: evaluation?.id ?? scenario, version: "voice-ui.goal-evaluation.v1", inputHash: digest(evaluation ?? { goal: goalText, expected: expectedCase, order: "normal" }),
+      source: SERVED_COMMIT, order: evaluation?.order ?? "normal", orderInterventions, expected, expectedEdges,
+      firstNone, baselinePreserved, semanticGrade: "NOT_PROVEN", paintGrade: "NOT_PROVEN" },
     preparationDiagram: seedChoice, preparationSignature: seedActual,
     selected: attempt.selected, actual, rawAdded: added.map(({ id, label, kind, parent }) => ({ id, label, kind, parent })),
-    painted, reversedPaint, disconnectedPaint, newPins, newEdges, labelsVisible, baseline, baselineMet: !FLOW && signature(baseline) === signature(expected),
+    painted, paintedGroups, edgePaints, reversedPaint, disconnectedPaint, newPins, newEdges, labelsVisible, baseline, baselineMet: expectedEdges.length === 0 && signature(baseline) === signature(expected),
     timeBudgetMet: Number.isFinite(attempt.elapsedMs) && attempt.elapsedMs < 180000,
     elapsed: { productMs: attempt.elapsedMs, productScope: "HTTP+planning+draw",
       baselineMs: baselineElapsedMs, baselineScope: "literal-selection-CPU-only", baselineProviderCalls: 0 },
@@ -711,15 +795,30 @@ const goalScenario = async () => {
   need(sent.every(entry => entry.status === 200 && contract.readAnswers(entry.body?.answers, slotsOf(entry.sent)) !== null), "every Goal response is complete");
   need(["none", "no-executable-delta", "budget-requests", "budget-time"].includes(attempt.reason) && semanticMet,
     "independent expected graph is reached after a known mechanical stop, never from the stop alone");
-  need(labelsVisible.length === 2 && labelsVisible.every(Boolean), "both actual added labels intersect the unchanged Working viewport");
-  need(painted.complete && painted.contained && painted.nonoverlap,
+  need(labelsVisible.length === expected.length && labelsVisible.every(Boolean), "all actual added labels intersect the unchanged Working viewport");
+  need(paintedGroups.every(group => group.complete && group.contained && group.nonoverlap),
     "actual painted children are wholly inside the painted OCI shape and do not overlap siblings");
-  if (FLOW) need(painted.edge.complete && !reversedPaint.edge.complete && !disconnectedPaint.edge.complete,
+  if (expectedEdges.length > 0) need(edgePaints.every(proof => proof.edge.complete)
+    && (!FLOW || expectedCase.flows.length !== 1 || !reversedPaint.edge.complete && !disconnectedPaint.edge.complete),
     "one actual painted classic arrow connects API to DB, not the reverse or another visible part");
-  need(newPins.length === 2 && newPins.every(pin => added.some(record => record.id === pin.regionId)),
+  need(newPins.length === expected.length && newPins.every(pin => added.some(record => record.id === pin.regionId)),
     "only the two new children gain layout pins");
   need(goalEvidence.timeBudgetMet && attempt.elapsedMs >= 0, "the independently graded Goal time envelope is met");
   need(before.graph.records.every(record => after.graph.records.some(next => JSON.stringify(next) === JSON.stringify(record))), "Goal preserves every baseline record");
+  goalEvidence.evaluation.semanticGrade = semanticMet && goalEvidence.noSave && goalEvidence.timeBudgetMet
+    && Number.isFinite(attempt.elapsedMs) && attempt.elapsedMs >= 0 && attempt.requests === sent.length
+    && sent.length >= 1 && sent.length <= 8 && sent.every(entry => entry.status === 200
+      && entry.error === null && contract.isRequest(entry.sent) && entry.sent.state.utterance === goalText
+      && contract.readAnswers(entry.body?.answers, slotsOf(entry.sent)) !== null)
+    && ["none", "no-executable-delta", "budget-requests", "budget-time"].includes(attempt.reason)
+    && newPins.length === expected.length && newPins.every(pin => added.some(record => record.id === pin.regionId)) ? "PASS" : "NOT_MET";
+  goalEvidence.evaluation.paintGrade = paintedGroups.every(group => group.complete && group.contained && group.nonoverlap)
+    && edgePaints.every(proof => proof.edge.complete) ? "PASS" : "NOT_MET";
+  if (expectedCase.kind === "none") {
+    for (const key of ["draft", "claims", "stored", "root", "confirmedGraph"]) assert.deepEqual(after[key], before[key], key);
+    for (const entry of exchanges) entry.reported = true;
+    return;
+  }
   reached.push("goal-undo"); await click("undo"); await settle();
   const reverted = await screen(); last = reverted;
   for (const key of ["draft", "claims", "stored", "root", "confirmedGraph"]) assert.deepEqual(reverted[key], before[key], key);
