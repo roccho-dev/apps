@@ -9,7 +9,7 @@ import { runGoal } from "../src/goal.mjs";
 import { createSession, undo, draftUsed, proposeArchitecture } from "../src/session.mjs";
 import { currentClaims } from "../src/document.mjs";
 import { MAP_ID, STATE_SCHEMA } from "../src/log.mjs";
-import { legalAdditions, proveAddition } from "../src/turn.mjs";
+import { legalAdditions, proveAddition, legalLocalDeltas, proveLocalDelta } from "../src/turn.mjs";
 
 if (!process.env.SEMANTIC_MAP) throw new Error("SEMANTIC_MAP is required");
 const protocol = await import(pathToFileURL(path.join(process.env.SEMANTIC_MAP, "packages/semantic-map/protocol/index.js")).href);
@@ -44,6 +44,37 @@ const answer = (request, part, parent = "container") => ({ kind: "answered", dec
   delta: { type: "choice", choice: part === NONE ? NONE
     : request.state.candidates.find(candidate => candidate.part === part && candidate.parent === parent)?.id ?? "unknown", confidence: 1 },
 } } });
+
+test("mixed Goal uses one held ADD/Connect alphabet and strictly restores the whole group", async () => {
+  const before = await opened(); let session = before; let calls = 0;
+  const result = await runGoal({ utterance: "add two offered parts and connect the first to the second", bundle, protocol,
+    current: () => session, cancelled: () => false, ask: async request => {
+      calls += 1;
+      if (calls <= 2) return answer(request, calls === 1 ? "api" : "db");
+      const [from, to] = request.state.selected.map(item => item.region);
+      const candidate = request.state.candidates.find(item => item.action === "add-edge" && item.from === from && item.to === to);
+      assert.equal(isRequest(request), true);
+      return { kind: "answered", decision: { answers: { delta: { type: "choice", choice: calls === 3 ? candidate.id : NONE, confidence: 1 } } } };
+    }, adopt: async next => { session = next; } });
+  assert.equal(result.reason, "none"); assert.equal(result.requests, 4);
+  const [from, to] = result.selected.map(item => item.region);
+  assert.deepEqual(session.working.records.filter(item => item.type === "relation").map(({ from, to, kind, label }) => ({ from, to, kind, label })),
+    [{ from, to, kind: "flow", label: "" }]);
+  const legacy = legalAdditions(session.working, { bundle, protocol, selected: result.selected });
+  assert.equal(legacy.candidates.some(item => item.operations.some(op => op.type === "ConnectRegions")), false,
+    "canonical add-only catalogue cannot supply the mixed Goal's edge");
+  const held = legalLocalDeltas(session.working, { bundle, protocol, selected: result.selected });
+  assert.equal(held.candidates.some(item => item.from === from && item.to === to), false);
+  assert.equal(held.candidates.some(item => item.from === to && item.to === from), true);
+  assert.equal(held.candidates.every(item => item.from === undefined || item.from !== item.to), true);
+  const connection = held.candidates.find(item => item.from !== undefined);
+  const proved = await proveLocalDelta({ working: session.working, held, candidateId: connection.id,
+    confidence: 1, bundle, protocol, selected: result.selected });
+  assert.deepEqual(proved.step.decision.operations, connection.operations);
+  const reverted = await undo(session, { verifyDecisionLog: protocol.verifyDecisionLog });
+  assert.deepEqual(reverted.working.records, before.working.records);
+  assert.deepEqual(reverted.draft, before.draft); assert.equal(reverted.stored, before.stored);
+});
 
 test("one Goal adopts two real AddRegions and whole-group Undo without claiming NONE is goal success", async () => {
   for (const order of [["api", "db"], ["db", "api"]]) {
@@ -164,9 +195,9 @@ test("addition rechecks stale head, non-group parent, confidence and full group 
 });
 
 test("early NONE, no room and elapsed budget stop at their actual request count", async () => {
-  for (const reason of ["none", "no-room-for-part", "budget-time"]) {
+  for (const reason of ["none", "no-executable-delta", "budget-time"]) {
     const before = await opened();
-    const session = reason !== "no-room-for-part" ? before : { ...before, working: { ...before.working,
+    const session = reason !== "no-executable-delta" ? before : { ...before, working: { ...before.working,
       records: before.working.records.map(record => record.kind === "group" ? { ...record, bounds: [0, 0, 24, 18] } : record),
     } };
     let calls = 0;
@@ -176,7 +207,7 @@ test("early NONE, no room and elapsed budget stop at their actual request count"
       adopt: async () => { throw new Error("unexpected adoption"); },
     });
     assert.equal(result.reason, reason);
-    assert.equal(result.requests, reason === "no-room-for-part" ? 0 : 1);
+    assert.equal(result.requests, reason === "no-executable-delta" ? 0 : 1);
     assert.equal(result.elapsedMs, reason === "budget-time" ? 180000 : 0);
     assert.equal(calls, result.requests); assert.deepEqual(result.selected, []);
   }
@@ -214,7 +245,7 @@ test("partial successful Goal keeps one grouped edit when a later cancel, stale 
   }
 });
 
-test("seven actual offers exhaust before eight, while the admitted eight-offer maximum proves no ninth request", async () => {
+test("ADD/Connect candidates remain bounded by eight requests, never a ninth", async () => {
   for (const count of [7, 8]) {
     const before = await opened(); let session = before; let calls = 0;
     const offered = count === 7 ? bundle : { ...bundle, parts: [...bundle.parts,
@@ -222,11 +253,13 @@ test("seven actual offers exhaust before eight, while the admitted eight-offer m
     };
     const result = await runGoal({ utterance: "add all offered parts", bundle: offered, protocol,
       current: () => session, cancelled: () => false,
-      ask: async request => { calls += 1; return answer(request, request.state.candidates[0].part, request.state.candidates[0].parent); },
+      ask: async request => { calls += 1; return { kind: "answered", decision: { answers: {
+        delta: { type: "choice", choice: request.state.candidates[0].id, confidence: 1 },
+      } } }; },
       adopt: async next => { session = next; },
     });
-    assert.equal(result.reason, count === 7 ? "offers-exhausted" : "budget-requests");
-    assert.equal(result.requests, count); assert.equal(calls, count); assert.equal(result.selected.length, count);
+    assert.equal(result.reason, "budget-requests");
+    assert.equal(result.requests, 8); assert.equal(calls, 8); assert.equal(result.selected.length, count);
     const reverted = await undo(session, { verifyDecisionLog: protocol.verifyDecisionLog });
     assert.deepEqual(reverted.working.records, before.working.records);
   }
@@ -275,7 +308,7 @@ test("a smaller-only fit is an executable single choice without claiming model q
   const result = await runGoal({ utterance: "OCIにAPIをひとつ追加して。他は変えない", bundle: offered, protocol, current: () => session,
     cancelled: () => false, ask: async request => { calls += 1; assert.equal(Object.keys(slotsFor(request.state)).length, 1);
       return answer(request, "api"); }, adopt: async next => { session = next; } });
-  assert.equal(result.reason, "no-room-for-part"); assert.equal(result.requests, 1); assert.equal(calls, 1);
+  assert.equal(result.reason, "no-executable-delta"); assert.equal(result.requests, 1); assert.equal(calls, 1);
   assert.deepEqual(result.selected.map(item => [item.key, item.parent]), [["api", "container"]]);
   const added = session.working.records.filter(record => record.type === "region" && !graph.records.some(old => old.id === record.id));
   assert.deepEqual(added.map(record => [record.kind, record.parent, record.label.replace(/ [1-9]\d*$/u, "")]), [["step", "container", "API"]]);

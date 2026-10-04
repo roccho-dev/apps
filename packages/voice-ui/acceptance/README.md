@@ -1,19 +1,28 @@
 # Acceptance execution boundary
 
-## Executable Goal Choice v2
+## Local mixed Goal Choice v3
 
-Goal requests now choose one request-local executable addition (part, existing
-parent and deterministic placement), or NONE. The catalogue retains its exact
-AddRegion/new-child PinRegions and placement read set. Latest-state proof rejects
-changed inputs or placement; adoption uses the original held delta, not a replan.
-Zero candidates and more than 254 candidates stop before asking. The closed v2
-boundary rejects old Goal v1; ordinary Send v1 is unchanged.
+Goal requests choose one request-local executable change: AddRegion/new-child
+PinRegions at a proved placement, or the existing directed flow ConnectRegions
+between two nonroot, nongroup parts, or NONE. Typed part vocabulary is public
+data, not an operator registry. The local join excludes self and existing same
+direction edges, but keeps legal wrong directions and endpoints. It never filters
+by the Goal's expected answer. Latest-state proof binds all records, pins, bundle,
+reserved IDs and actual adopted history; adoption uses the original held effect,
+not a replan. Zero candidates (`no-executable-delta`) and more than 254 candidates
+stop before asking. Goal v3 rejects older Goal kinds; ordinary Send v1 is unchanged.
 
 The smaller-only-fit fixture uses the same 220×160 parent and 40×40 other group:
 one small offer fits while a wider offer does not. Its independent expected graph
 and whole Undo prove finite coverage and controlled execution, not Sys1 judgment
 quality or added value. The existing two-addition packed fixture still makes two
-Goal application requests, now one Choice each; preparation remains separate.
+adoptions; with the mixed alphabet it asks NONE separately after those two
+successful additions. `goal-flow` adds the same two parts then one empty-label
+directed flow API→DB and asks NONE: four Goal requests, one Choice each in the
+controlled positive fixture. Preparation remains separate. Its actual SVG stroke
+and pinned classic filled arrow marker must uniquely connect the two raw-label
+painted shapes in the expected direction; reverse and disconnected geometry
+controls must fail. Logical relation records alone are not painted-edge proof.
 Actual Jev and P screen evaluation for this change are NOT_RUN, added value is
 NOT_PROVEN. Existing paint, persistence/readback and refusal regressions remain.
 
@@ -21,9 +30,9 @@ NOT_PROVEN. Existing paint, persistence/readback and refusal regressions remain.
 
 Semantic graph attainment, elapsed-budget compliance and display observation are separate grades. A closed budget-time stop may leave the expected graph but does not meet the time envelope. Label visibility proves nonzero rendered text intersecting the unchanged viewport, not full text fit or human readability; independent P UI remains required. Incomplete HTTP, supervisor timeout or unknown drawing never becomes a known successful stop.
 
-The separate Goal button takes one natural-language text and makes only finite additions inside existing groups with room. Public parts and a preparation diagram are in the existing DataBundle; preparation is not Goal generation. Ordinary Send retains its root-based single-edit behavior. No new planner, reparent operation or external Accepted contract is supplied.
+The separate Goal button takes one natural-language text and makes finite additions inside existing groups with room or directed flow connections between existing parts. Public parts and a preparation diagram are in the existing DataBundle; preparation is not Goal generation. Ordinary Send retains its single-edit behavior. No new planner, reparent operation or external Accepted contract is supplied.
 
-The small chain is DataBundle/Working → legal executable addition catalogue → one closed delta Choice → latest-state proof → held AddRegion/new-child pin → session group → draw/adopt → actual selected history → mechanical STOP. The public catalogue contains only individually executable pairs; already adopted keys leave the next catalogue. NONE, exhaustion, cancellation and budgets are unconfirmed stops, not semantic success. Goal steps share one Undo group, including partial known success; issued IDs remain monotonic. Cancel cooperatively stops further requests, not proven upstream cancellation. Display/adoption UNKNOWN requires reload/reconciliation, never blind retry.
+The small chain is DataBundle/Working → local executable ADD/Connect catalogue → one closed delta Choice → latest-state proof → original held operation → session group → draw/adopt → actual adopted state → mechanical STOP. The public catalogue contains only individually executable pairs; already adopted part keys and existing directed edges leave the next catalogue. NONE, no executable delta, cancellation and budgets are unconfirmed stops, not semantic success. Goal steps share one Undo group, including partial known success; issued IDs remain monotonic. Cancel cooperatively stops further requests, not proven upstream cancellation. Display/adoption UNKNOWN requires reload/reconciliation, never blind retry.
 
 `goal-addition` on the existing architecture entry prepares the public example, types “OCIの中にAPIとDBを追加して” once into Goal, and evaluates the unordered actual label/kind/parent records only after the product stops. Its independent sealed oracle never controls candidate generation. The literal-name baseline uses that first actual request's offered keys and eligible group labels, with output words from the same bundle authority. A solved literal example does not prove Jev added value. Product HTTP/planning/draw elapsed and baseline selection-only CPU elapsed have different measurement scopes; no price or internal model count is inferred. Whole-Goal Undo restores baseline records/draft/claims/storage/confirmed view.
 

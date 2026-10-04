@@ -59,6 +59,8 @@ import {
   appendStep,
   legalAdditions,
   proveAddition,
+  legalLocalDeltas,
+  proveLocalDelta,
   changesForJudgment,
   focusFor,
   newMap,
@@ -104,6 +106,34 @@ const baseGraph = () => protocol.createDecisionLog([
   node("node-c", 460),
 ], MAP_ID);
 
+test("mixed catalogue supplies the existing directed flow family and proves the original held effect", async () => {
+  const graph = await baseGraph();
+  const options = { bundle: BUNDLE, protocol, reserved: [], selected: [] };
+  // Identical three nongroup endpoints expose the add-only canonical gap.
+  assert.equal(legalAdditions(graph, options).candidates.length, 0);
+  const held = legalLocalDeltas(graph, options);
+  assert.equal(held.candidates.length, 6);
+  assert.equal(new Set(held.candidates.map(item => JSON.stringify([item.from, item.to]))).size, 6);
+  assert.equal(held.candidates.every(item => item.from !== item.to && item.operations.length === 1
+    && item.operations[0].type === "ConnectRegions" && item.operations[0].kind === "flow" && item.operations[0].label === ""), true);
+  const candidate = held.candidates.find(item => item.from === "node-a" && item.to === "node-b");
+  assert.throws(() => { candidate.operations[0].to = "node-c"; }, TypeError);
+  const input = { working: graph, held, candidateId: candidate.id, confidence: 1, ...options };
+  const proved = await proveLocalDelta(input);
+  assert.equal(proved.outcome, OUTCOME_STEP);
+  assert.deepEqual(proved.step.decision.operations, candidate.operations);
+  assert.equal((await proveLocalDelta({ ...input, candidateId: "unknown" })).reason, "invalid-addition");
+  assert.equal((await proveLocalDelta({ ...input, confidence: 0.49 })).reason, "not-confident");
+  assert.equal((await proveLocalDelta({ ...input, reserved: ["future-id"] })).reason, "stale-addition");
+  const adopted = await appendStep({ working: graph, step: proved.step, protocol });
+  assert.equal(adopted.outcome, OUTCOME_STEP);
+  const next = legalLocalDeltas(adopted.graph, options);
+  assert.equal(next.candidates.length, 5);
+  assert.equal(next.candidates.some(item => item.from === "node-a" && item.to === "node-b"), false);
+  assert.equal(next.candidates.some(item => item.from === "node-b" && item.to === "node-a"), true);
+  assert.equal((await proveLocalDelta({ ...input, working: adopted.graph })).reason, "stale-addition");
+});
+
 test("legal addition catalogue is finite, complete for the deterministic pairs and empty without groups", async () => {
   assert.deepEqual(legalAdditions(await baseGraph(), { bundle: BUNDLE, protocol }).candidates, []);
   const groups = Array.from({ length: 32 }, (_, index) => ({ type: "region", id: `group-${index}`,
@@ -130,6 +160,37 @@ test("legal addition catalogue is finite, complete for the deterministic pairs a
     adopt: async () => assert.fail("overflow must not adopt") });
   assert.equal(result.reason, "candidate-overflow"); assert.equal(result.requests, 0); assert.equal(calls, 0);
   assert.deepEqual(result.selected, []);
+});
+
+test("public seed mixed catalogues report actual reachable counts separately from the conservative bound", async () => {
+  const initial = (await newMap({ title: "mixed public seed", protocol })).graph;
+  const composition = await plan(initial, { action: ACTION_COMPOSE, diagram: "container-example" });
+  assert.equal(composition.outcome, OUTCOME_STEP);
+  let working = (await appendStep({ working: initial, step: composition.step, protocol })).graph;
+  const selected = [];
+  const counts = [];
+  for (const key of ["api", "db", null]) {
+    const held = legalLocalDeltas(working, { bundle: BUNDLE, protocol, selected });
+    const endpoints = working.records.filter(record => record.type === "region" && record.parent !== null && record.kind !== "group").length;
+    const add = held.candidates.filter(candidate => candidate.part !== undefined).length;
+    const connect = held.candidates.length - add;
+    counts.push({ endpoints, add, connect, total: held.candidates.length });
+    assert.equal(BUNDLE.parts.length, 7);
+    assert.equal(working.records.filter(record => record.type === "region" && record.kind === "group").length, 2);
+    assert.ok(endpoints <= 10 && add <= 14 && connect <= 90 && held.candidates.length <= 104);
+    assert.equal(connect, endpoints * (endpoints - 1)); // This trace has no edge yet.
+    if (key === null) break;
+    const container = working.records.find(record => record.type === "region" && record.label === "OCI" && record.kind === "group");
+    const candidate = held.candidates.find(item => item.part === key && item.parent === container.id);
+    assert.ok(candidate, "the public seed actually supplies the requested pair");
+    const proved = await proveLocalDelta({ working, held, candidateId: candidate.id, confidence: 1, bundle: BUNDLE, protocol, selected });
+    assert.equal(proved.outcome, OUTCOME_STEP);
+    working = (await appendStep({ working, step: proved.step, protocol })).graph;
+    selected.push({ key, region: candidate.operations[0].regionId, parent: container.id });
+  }
+  assert.deepEqual(counts.map(row => [row.endpoints, row.connect]), [[3, 6], [4, 12], [5, 20]]);
+  process.stdout.write(JSON.stringify({ kind: "voice-ui.publicSeedCatalogueCounts.v1", counts,
+    conservativeBound: 104, scope: "this reachable trace, not all-state coverage" }) + "\n");
 });
 
 const layoutOf = graph => protocol.layoutBoundsFor(graph.records, { pattern: protocol.GRAPH_PATTERN });

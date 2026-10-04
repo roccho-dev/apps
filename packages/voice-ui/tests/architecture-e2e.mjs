@@ -40,12 +40,13 @@ const { chromium } = createRequire(import.meta.url)("playwright-core");
 // node architecture-e2e.mjs --mode fixture|fixture-stop|fixture-semantic-stop|live --scenario natural|named|contextual-reverse|goal-addition <url>
 const [flag, mode, scenarioFlag, scenario, url] = process.argv.slice(2);
 if (flag !== "--mode" || !["fixture", "fixture-stop", "fixture-semantic-stop", "live"].includes(mode) || scenarioFlag !== "--scenario"
-  || !["natural", "named", "contextual-reverse", "goal-addition"].includes(scenario) || !url
+  || !["natural", "named", "contextual-reverse", "goal-addition", "goal-flow"].includes(scenario) || !url
   || (mode === "fixture-semantic-stop" && scenario !== "contextual-reverse")) {
   throw new Error("usage: architecture-e2e.mjs --mode fixture|fixture-stop|fixture-semantic-stop|live --scenario natural|named|contextual-reverse|goal-addition <url>");
 }
 const REVERSE = scenario === "contextual-reverse";
-const GOAL = scenario === "goal-addition";
+const FLOW = scenario === "goal-flow";
+const GOAL = scenario === "goal-addition" || FLOW;
 const SEMANTIC_STOP = mode === "fixture-semantic-stop";
 const STOP_FIXTURE = mode === "fixture-stop";
 const FIXTURE = mode !== "live";
@@ -223,7 +224,7 @@ const labelVisible = label => page.evaluate(label => {
 }, label);
 // Maxgraph orders each cell's painted shape immediately before its label
 // group. Bind the unique actual label, not a label clip or layout pin marker.
-const paintedGoal = (container, records) => page.evaluate(({ container, records }) => {
+const paintedGoal = (container, records, edge = null) => page.evaluate(({ container, records, edge }) => {
   const iframe = document.querySelector("#working-surface iframe[data-package=semantic-map]");
   const doc = iframe.contentDocument;
   const box = node => {
@@ -260,12 +261,66 @@ const paintedGoal = (container, records) => page.evaluate(({ container, records 
     && bounds[0] + bounds[2] <= frame[0] + frame[2] && bounds[1] + bounds[3] <= frame[1] + frame[3];
   const overlap = (a, b) => a !== null && b !== null && a[0] < b[0] + b[2] && b[0] < a[0] + a[2]
     && a[1] < b[1] + b[3] && b[1] < a[1] + a[3];
+  // The pinned classic marker starts at its tip (createArrow); ConnectorShape
+  // paints the stroke and this filled marker in the same cell group. Match
+  // actual screen-space terminals to the unique painted node shapes. This is
+  // not an inference from the logical relation or a label clip.
+  const boundary = (p, b, padding) => b !== null && p !== null
+    && p[0] >= b[0] - padding && p[0] <= b[0] + b[2] + padding
+    && p[1] >= b[1] - padding && p[1] <= b[1] + b[3] + padding
+    && Math.min(Math.abs(p[0] - b[0]), Math.abs(p[0] - b[0] - b[2]),
+      Math.abs(p[1] - b[1]), Math.abs(p[1] - b[1] - b[3])) <= padding;
+  const arrows = [];
+  if (edge !== null) for (const group of doc.querySelectorAll("svg g")) {
+    const paths = [...group.children].filter(node => {
+      if (node.localName !== "path") return false;
+      const r = node.getBoundingClientRect(), s = iframe.contentWindow.getComputedStyle(node);
+      return [r.left, r.top, r.width, r.height].every(Number.isFinite) && (r.width > 0 || r.height > 0)
+        && s.display !== "none" && s.visibility !== "hidden";
+    });
+    const lines = paths.filter(node => {
+      const s = iframe.contentWindow.getComputedStyle(node);
+      return s.fill === "none" && s.stroke !== "none" && Number(s.opacity) > 0 && Number(s.strokeOpacity) > 0;
+    });
+    const markers = paths.filter(node => {
+      const s = iframe.contentWindow.getComputedStyle(node);
+      return s.fill !== "none" && s.stroke !== "none" && Number(s.opacity) > 0 && Number(s.fillOpacity) > 0
+        && /z\s*$/iu.test(node.getAttribute("d") ?? "");
+    });
+    if (lines.length !== 1 || markers.length !== 1) continue;
+    const line = lines[0], marker = markers[0];
+    const point = (node, length) => {
+      const matrix = node.getScreenCTM();
+      if (matrix === null || !Number.isFinite(length)) return null;
+      const p = node.getPointAtLength(length), screen = new iframe.contentWindow.DOMPoint(p.x, p.y).matrixTransform(matrix);
+      return [screen.x, screen.y].every(Number.isFinite) ? [screen.x, screen.y] : null;
+    };
+    const length = line.getTotalLength(), markerLength = marker.getTotalLength();
+    if (!(Number.isFinite(length) && length > 0 && Number.isFinite(markerLength) && markerLength > 0)) continue;
+    const start = point(line, 0), end = point(line, length), tip = point(marker, 0);
+    const beforeEnd = point(line, Math.max(0, length - 1));
+    const from = shapes.find(item => item.id === edge.from)?.bounds ?? null;
+    const to = shapes.find(item => item.id === edge.to)?.bounds ?? null;
+    const matrix = marker.getScreenCTM();
+    const scale = matrix === null ? NaN : Math.max(Math.hypot(matrix.a, matrix.b), Math.hypot(matrix.c, matrix.d));
+    const stroke = Number.parseFloat(iframe.contentWindow.getComputedStyle(marker).strokeWidth) * scale;
+    // Pinned createArrow shortens the tip by 1.118 stroke widths; SVG canvas
+    // serializes coordinates at finite pixel precision. No layout-size slack.
+    const padding = Number.isFinite(stroke) && stroke > 0 ? 1.118 * stroke + 1 : NaN;
+    const directed = end !== null && tip !== null && beforeEnd !== null
+      && (end[0] - beforeEnd[0]) * (tip[0] - end[0]) + (end[1] - beforeEnd[1]) * (tip[1] - end[1]) > 0;
+    if (boundary(start, from, padding) && boundary(tip, to, padding) && directed)
+      arrows.push({ start, end, tip, stroke, padding, lineLength: length, markerLength });
+  }
   return { association: "pinned-maxgraph-shape-before-unique-raw-label",
     container: { id: container.id, kind: "painted-dashed-group-boundary", bounds: frame }, shapes,
+    edge: edge === null ? null : { from: edge.from, to: edge.to,
+      association: "pinned-classic-marker-tip-and-stroke-in-one-cell-group", matches: arrows,
+      complete: arrows.length === 1 },
     contained: shapes.every(item => inside(item.bounds)),
     nonoverlap: shapes.every((item, i) => shapes.every((other, j) => i === j || !overlap(item.bounds, other.bounds))),
     complete: frame !== null && shapes.every(item => item.bounds !== null) };
-}, { container, records });
+}, { container, records, edge });
 const screen = () => page.evaluate(([key, rootKey]) => ({
   state: document.body.dataset.state,
   status: document.querySelector("#status").textContent,
@@ -531,7 +586,7 @@ let reloaded = null;
 let contextEvidence = null;
 let goalEvidence = null;
 const goalScenario = async () => {
-  const goalText = "OCIの中にAPIとDBを追加して";
+  const goalText = FLOW ? "OCIの中にAPIとDBを追加し、APIからDBへ矢印をつないで。他は変えない" : "OCIの中にAPIとDBを追加して";
   reached.push("open");
   await page.goto(PAGE, { waitUntil: "commit", timeout: 120000 });
   await ready();
@@ -572,7 +627,10 @@ const goalScenario = async () => {
   const prepared = exchanges.length;
   if (FIXTURE) await page.route(route, craft((name, sent) => {
     const part = ["api", "db"].find(key => !sent.state.selected.some(item => item.key === key));
-    return sent.state.candidates.find(candidate => candidate.part === part && candidate.parent === container.id)?.id ?? contract.NONE;
+    if (part !== undefined) return sent.state.candidates.find(candidate => candidate.part === part && candidate.parent === container.id)?.id ?? contract.NONE;
+    const from = sent.state.selected.find(item => item.key === "api")?.region;
+    const to = sent.state.selected.find(item => item.key === "db")?.region;
+    return FLOW ? sent.state.candidates.find(candidate => candidate.action === "add-edge" && candidate.from === from && candidate.to === to)?.id ?? contract.NONE : contract.NONE;
   }, () => STOP_FIXTURE ? { status: 502, body: { error: contract.ERRORS.providerError } } : null), { times: 8 });
   reached.push("goal");
   await page.locator("#text").fill(goalText);
@@ -595,9 +653,18 @@ const goalScenario = async () => {
   ];
   const actual = added.map(({ label, kind, parent }) => ({ label: label.replace(/ [1-9]\d*$/u, ""), kind, parent }));
   const signature = rows => JSON.stringify(rows.map(({ label, kind, parent }) => JSON.stringify([label, kind, parent])).sort());
-  const semanticMet = signature(actual) === signature(expected);
+  const newEdges = after.graph.records.filter(record => record.type === "relation" && !before.graph.records.some(old => old.id === record.id));
+  const api = added.find(record => record.label.replace(/ [1-9]\d*$/u, "") === "API");
+  const db = added.find(record => record.label.replace(/ [1-9]\d*$/u, "") === "DB");
+  const semanticMet = signature(actual) === signature(expected) && (FLOW
+    ? newEdges.length === 1 && newEdges[0].from === api?.id && newEdges[0].to === db?.id && newEdges[0].kind === "flow" && newEdges[0].label === ""
+    : newEdges.length === 0);
   const labelsVisible = await Promise.all(added.map(record => labelVisible(record.label)));
-  const painted = await paintedGoal(container, after.graph.records.filter(record => record.type === "region" && record.parent === container.id));
+  const paintedRecords = after.graph.records.filter(record => record.type === "region" && record.parent === container.id);
+  const painted = await paintedGoal(container, paintedRecords, FLOW ? { from: api?.id, to: db?.id } : null);
+  const reversedPaint = FLOW ? await paintedGoal(container, paintedRecords, { from: db?.id, to: api?.id }) : null;
+  const disconnectedPaint = FLOW ? await paintedGoal(container, paintedRecords,
+    { from: api?.id, to: paintedRecords.find(record => record.id !== api?.id && record.id !== db?.id)?.id }) : null;
   const digest = value => createHash("sha256").update(JSON.stringify(value)).digest("hex");
   // Independent public-information baseline: literal catalogue/parent name
   // matching. No gold remainder or baseline decision goes to the product.
@@ -613,7 +680,7 @@ const goalScenario = async () => {
   goalEvidence = { reason: attempt.reason, goalMet: semanticMet, requests: sent.length, setupRequests: prepared,
     preparationDiagram: seedChoice, preparationSignature: seedActual,
     selected: attempt.selected, actual, rawAdded: added.map(({ id, label, kind, parent }) => ({ id, label, kind, parent })),
-    painted, newPins, labelsVisible, baseline, baselineMet: signature(baseline) === signature(expected),
+    painted, reversedPaint, disconnectedPaint, newPins, newEdges, labelsVisible, baseline, baselineMet: !FLOW && signature(baseline) === signature(expected),
     timeBudgetMet: Number.isFinite(attempt.elapsedMs) && attempt.elapsedMs < 180000,
     elapsed: { productMs: attempt.elapsedMs, productScope: "HTTP+planning+draw",
       baselineMs: baselineElapsedMs, baselineScope: "literal-selection-CPU-only", baselineProviderCalls: 0 },
@@ -636,11 +703,13 @@ const goalScenario = async () => {
     return;
   }
   need(sent.every(entry => entry.status === 200 && contract.readAnswers(entry.body?.answers, slotsOf(entry.sent)) !== null), "every Goal response is complete");
-  need(["none", "no-room-for-part", "offers-exhausted", "budget-requests", "budget-time"].includes(attempt.reason) && semanticMet,
+  need(["none", "no-executable-delta", "budget-requests", "budget-time"].includes(attempt.reason) && semanticMet,
     "independent expected graph is reached after a known mechanical stop, never from the stop alone");
   need(labelsVisible.length === 2 && labelsVisible.every(Boolean), "both actual added labels intersect the unchanged Working viewport");
   need(painted.complete && painted.contained && painted.nonoverlap,
     "actual painted children are wholly inside the painted OCI shape and do not overlap siblings");
+  if (FLOW) need(painted.edge.complete && !reversedPaint.edge.complete && !disconnectedPaint.edge.complete,
+    "one actual painted classic arrow connects API to DB, not the reverse or another visible part");
   need(newPins.length === 2 && newPins.every(pin => added.some(record => record.id === pin.regionId)),
     "only the two new children gain layout pins");
   need(goalEvidence.timeBudgetMet && attempt.elapsedMs >= 0, "the independently graded Goal time envelope is met");
