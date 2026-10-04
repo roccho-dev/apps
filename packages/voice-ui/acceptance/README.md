@@ -1,5 +1,22 @@
 # Acceptance execution boundary
 
+## Executable Goal Choice v2
+
+Goal requests now choose one request-local executable addition (part, existing
+parent and deterministic placement), or NONE. The catalogue retains its exact
+AddRegion/new-child PinRegions and placement read set. Latest-state proof rejects
+changed inputs or placement; adoption uses the original held delta, not a replan.
+Zero candidates and more than 254 candidates stop before asking. The closed v2
+boundary rejects old Goal v1; ordinary Send v1 is unchanged.
+
+The smaller-only-fit fixture uses the same 220×160 parent and 40×40 other group:
+one small offer fits while a wider offer does not. Its independent expected graph
+and whole Undo prove finite coverage and controlled execution, not Sys1 judgment
+quality or added value. The existing two-addition packed fixture still makes two
+Goal application requests, now one Choice each; preparation remains separate.
+Actual Jev and P screen evaluation for this change are NOT_RUN, added value is
+NOT_PROVEN. Existing paint, persistence/readback and refusal regressions remain.
+
 ## Bounded Goal additions
 
 Semantic graph attainment, elapsed-budget compliance and display observation are separate grades. A closed budget-time stop may leave the expected graph but does not meet the time envelope. Label visibility proves nonzero rendered text intersecting the unchanged viewport, not full text fit or human readability; independent P UI remains required. Incomplete HTTP, supervisor timeout or unknown drawing never becomes a known successful stop.

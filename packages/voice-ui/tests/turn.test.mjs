@@ -5,6 +5,8 @@ import test from "node:test";
 import { fileURLToPath, pathToFileURL } from "node:url";
 
 import { readBundle } from "../src/bundle.mjs";
+import { runGoal } from "../src/goal.mjs";
+import { createSession } from "../src/session.mjs";
 import {
   ACTION_ADD_EDGE,
   ACTION_ADD_PART,
@@ -56,6 +58,7 @@ import {
   OUTCOME_STEP,
   appendStep,
   planAddition,
+  legalAdditions,
   changesForJudgment,
   focusFor,
   newMap,
@@ -78,6 +81,34 @@ const verifyDecisionLog = protocol.verifyDecisionLog;
 const here = path.dirname(fileURLToPath(import.meta.url));
 const BUNDLE = readBundle(JSON.parse(fs.readFileSync(path.join(here, "../web/data/bundle.v1.json"), "utf8")));
 const NO_BUNDLE = readBundle(null);
+
+test("legal addition catalogue is finite, complete for the deterministic pairs and empty without groups", async () => {
+  assert.deepEqual(legalAdditions(await baseGraph(), { bundle: BUNDLE, protocol }).candidates, []);
+  const groups = Array.from({ length: 32 }, (_, index) => ({ type: "region", id: `group-${index}`,
+    parent: "root", label: `Fixture group ${index}`, kind: "group", summary: "", bounds: [0, index * 300, 700, 200] }));
+  const graph = await protocol.createDecisionLog([
+    { type: "meta", schema: STATE_SCHEMA, root: "root", title: "finite catalogue" },
+    { type: "region", id: "root", parent: null, label: "fixture", kind: "boundary", bounds: [0, 0, 3000, 20000], summary: "" },
+    ...groups,
+  ], MAP_ID);
+  const decision = await protocol.createDecision(graph.head, [{ type: "PinRegions",
+    items: groups.map((group, index) => ({ regionId: group.id, bounds: [0, index * 600, 2000, 500] })) }], graph.records);
+  const prepared = (await protocol.appendDecision(graph.log, decision.decision)).verified;
+  const offered = { ...BUNDLE, parts: [...BUNDLE.parts, { key: "extra", purpose: "bounded extra fixture", label: "Extra", kind: "step" }] };
+  const held = legalAdditions(prepared, { bundle: offered, protocol });
+  assert.equal(held.candidates.length, 256);
+  assert.equal(new Set(held.candidates.map(candidate => candidate.id)).size, 256);
+  assert.equal(new Set(held.candidates.map(candidate => JSON.stringify([candidate.part, candidate.parent]))).size, 256);
+  assert.equal(held.candidates.every(candidate => candidate.operations.length === 2
+    && candidate.operations[0].type === "AddRegion" && candidate.operations[1].type === "PinRegions"), true);
+  const session = createSession({ accepted: prepared, stored: prepared.log });
+  let calls = 0;
+  const result = await runGoal({ utterance: "add an offered part", bundle: offered, protocol,
+    current: () => session, cancelled: () => false, ask: async () => { calls += 1; assert.fail("overflow must not ask"); },
+    adopt: async () => assert.fail("overflow must not adopt") });
+  assert.equal(result.reason, "candidate-overflow"); assert.equal(result.requests, 0); assert.equal(calls, 0);
+  assert.deepEqual(result.selected, []);
+});
 
 // A fixture graph of three plain nodes, built through this app's own map
 // namespace and state schema.

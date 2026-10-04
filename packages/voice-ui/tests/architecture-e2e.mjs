@@ -571,8 +571,8 @@ const goalScenario = async () => {
   prerequisite(verdicts.length === 0, "prepare");
   const prepared = exchanges.length;
   if (FIXTURE) await page.route(route, craft((name, sent) => {
-    if (name === "parent") return container.id;
-    return ["api", "db"].find(key => !sent.state.selected.some(item => item.key === key)) ?? contract.NONE;
+    const part = ["api", "db"].find(key => !sent.state.selected.some(item => item.key === key));
+    return sent.state.candidates.find(candidate => candidate.part === part && candidate.parent === container.id)?.id ?? contract.NONE;
   }, () => STOP_FIXTURE ? { status: 502, body: { error: contract.ERRORS.providerError } } : null), { times: 8 });
   reached.push("goal");
   await page.locator("#text").fill(goalText);
@@ -622,6 +622,7 @@ const goalScenario = async () => {
     undoRestored: false, noSave: after.stored === before.stored && after.root === before.root,
     exchanges: sent.map(sanitized), setupExchanges: exchanges.slice(0, prepared).map(sanitized),
     requestHistories: sent.map(entry => entry.sent.state.selected),
+    questionCounts: sent.map(entry => Object.keys(slotsOf(entry.sent)).length),
     providerIdentity: "UNKNOWN", acceptedIntegration: "NOT_PROVEN" };
   need(sent.length >= 1 && sent.length <= 8 && sent.every(entry => entry.sent.kind === contract.GOAL_REQUEST_KIND
     && entry.sent.state.utterance === goalText && contract.isRequest(entry.sent)), "bounded requests carry the one Goal and closed public state");

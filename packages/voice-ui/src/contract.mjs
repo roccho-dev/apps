@@ -7,7 +7,7 @@
 
 export const REQUEST_KIND = "voice-ui.judge.request.v1";
 export const DECISION_KIND = "voice-ui.judge.decision.v1";
-export const GOAL_REQUEST_KIND = "voice-ui.judge.goal-addition.v1";
+export const GOAL_REQUEST_KIND = "voice-ui.judge.goal-addition.v2";
 export const GOAL_REQUEST_MAX = 8;
 // The architecture page's requests, each its own closed kind. The intent is
 // the plain request with the prepared snapshot's parts beside it, by path or
@@ -207,11 +207,11 @@ const validOffer = list =>
   && unique(list.map(offer => offer.key));
 
 const COMMIT = /^[0-9a-f]{40}$/u;
-// A separate two-choice boundary; ordinary v1 requests keep their exact shape.
+// One executable candidate choice; ordinary v1 requests keep their exact shape.
 const validGoalRequest = value => {
   if (!exactObject(value, ["kind", "state"])) return false;
   const state = value.state;
-  if (!exactObject(state, ["utterance", "graph", "parents", "offers", "selected"])) return false;
+  if (!exactObject(state, ["utterance", "graph", "parents", "offers", "selected", "candidates"])) return false;
   if (!text(state.utterance, TEXT_MAX) || !Array.isArray(state.graph) || state.graph.length > GRAPH_MAX) return false;
   if (!state.graph.every(region => exactObject(region, ["id", "label", "parent"])
     && id(region.id) && text(region.label, LABEL_MAX) && (region.parent === null || id(region.parent)))) return false;
@@ -233,13 +233,20 @@ const validGoalRequest = value => {
         && region.label === parent.label && region.parent === parent.parent))
     || !unique(state.parents.map(parent => parent.id))) return false;
   if (!exactObject(state.offers, ["parts"]) || !validOffer(state.offers.parts)) return false;
+  if (!Array.isArray(state.candidates) || state.candidates.length < 1 || state.candidates.length > 254
+    || !state.candidates.every(candidate => exactObject(candidate, ["id", "part", "parent"])
+      && id(candidate.id) && state.offers.parts.some(part => part.key === candidate.part)
+      && state.parents.some(parent => parent.id === candidate.parent))
+    || !unique(state.candidates.map(candidate => candidate.id))
+    || !unique(state.candidates.map(candidate => JSON.stringify([candidate.part, candidate.parent])))) return false;
   return Array.isArray(state.selected) && state.selected.length <= OFFER_MAX
     && state.selected.every(item => exactObject(item, ["key", "region", "parent"])
       && KEY_PATTERN.test(item.key ?? "") && item.key !== NONE && ids.includes(item.region)
       && ids.includes(item.parent) && state.graph.some(region => region.id === item.region && region.parent === item.parent))
     && unique(state.selected.map(item => item.key))
     && unique(state.selected.map(item => item.region))
-    && state.selected.every(item => state.offers.parts.some(part => part.key === item.key));
+    && state.selected.every(item => state.offers.parts.some(part => part.key === item.key))
+    && state.candidates.every(candidate => !state.selected.some(item => item.key === candidate.part));
 };
 
 // The prepared snapshot's identity.
@@ -389,10 +396,7 @@ export function judgeFramesFor(section) {
 // the request alone. An action is offered only when the graph can carry it
 // out, and a slot exists only when an action that needs it is offered.
 export function slotsFor(state) {
-  if (state.parents !== undefined) return Object.freeze({
-    part: Object.freeze([...state.offers.parts.filter(part => !state.selected.some(item => item.key === part.key)).map(part => part.key), NONE]),
-    parent: Object.freeze([...state.parents.map(parent => parent.id), NONE]),
-  });
+  if (state.candidates !== undefined) return Object.freeze({ delta: Object.freeze([...state.candidates.map(candidate => candidate.id), NONE]) });
   const nodes = state.graph.regions.map(region => region.id);
   const canEdge = nodes.length >= 2;
   const canPart = state.offers.parts.length > 0;

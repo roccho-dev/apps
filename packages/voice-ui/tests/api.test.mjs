@@ -65,12 +65,13 @@ const post = (body, env = { JEV_API_KEY: "test-only-value" }) => worker.fetch(ne
   }), env);
 
 // The provider as the network presents it. Every call is counted, and nothing
-test("Goal boundary asks exactly part and parent and refuses extra answers without architecture fanout", async () => {
+test("Goal v2 boundary asks one executable delta and refuses extra answers without architecture fanout", async () => {
   const body = { kind: GOAL_REQUEST_KIND, state: {
     utterance: "add the offered service inside the existing container",
     graph: [{ id: "root", label: "world", parent: null }, { id: "container", label: "container", parent: "root" }],
     parents: [{ id: "container", label: "container", kind: "group", parent: "root" }],
     offers: { parts: [{ key: "service", purpose: "a service" }] }, selected: [],
+    candidates: [{ id: "delta-1", part: "service", parent: "container" }],
   } };
   let calls = 0;
   const invoke = async (input, extra = false) => onRequestPost({ available: true,
@@ -78,14 +79,19 @@ test("Goal boundary asks exactly part and parent and refuses extra answers witho
   }, async ({ state, questions }) => {
     calls += 1;
     assert.deepEqual(state, body.state);
-    assert.deepEqual(Object.keys(questions), ["part", "parent"]);
-    return { answers: { part: { choice: "service", confidence: 1 }, parent: { choice: "container", confidence: 1 },
+    assert.deepEqual(Object.keys(questions), ["delta"]);
+    return { answers: { delta: { choice: "delta-1", confidence: 1 },
       ...(extra ? { action: { choice: NONE, confidence: 1 } } : {}) } };
   });
   assert.equal((await invoke(body)).status, 200);
   assert.equal((await invoke(body, true)).status, 502);
   const invalid = structuredClone(body); invalid.state.parents[0].kind = "step";
   assert.equal((await invoke(invalid)).status, 422);
+  assert.equal((await invoke({ ...body, kind: "voice-ui.judge.goal-addition.v1" })).status, 422);
+  for (const candidates of [[], Array.from({ length: 255 }, (_, index) => ({ id: `delta-${index + 1}`, part: "service", parent: "container" })),
+    [{ id: "delta-1", part: "absent", parent: "container" }], [{ id: "delta-1", part: "service", parent: "root" }]]) {
+    assert.equal((await invoke({ ...body, state: { ...body.state, candidates } })).status, 422);
+  }
   assert.equal(calls, 2);
 });
 
