@@ -55,6 +55,7 @@ import {
   OUTCOME_REFUSED,
   OUTCOME_STEP,
   appendStep,
+  planAddition,
   changesForJudgment,
   focusFor,
   newMap,
@@ -128,6 +129,31 @@ const step = async (working, picks, options) => {
 
 const edges = graph => graph.records.filter(record => record.type === "relation").map(record => `${record.from}->${record.to}`).sort();
 const partIds = graph => graph.records.filter(record => record.type === "region" && record.parent !== null).map(record => record.id);
+
+test("Goal additions are painted inside the pinned composed parent, not merely parented in records", async () => {
+  for (const order of [["api", "db"], ["db", "api"]]) {
+    const seed = await step(await baseGraph(), { action: ACTION_COMPOSE, diagram: "container-example" });
+    const parent = seed.records.find(record => record.type === "region" && record.label === "OCI");
+    let graph = seed;
+    for (const partKey of order) {
+      const result = await planAddition({ working: graph, head: graph.head, parentId: parent.id,
+        partKey, confidence: 1, bundle: BUNDLE, protocol });
+      assert.equal(result.outcome, OUTCOME_STEP, JSON.stringify(result));
+      graph = (await appendStep({ working: graph, step: result.step, protocol })).graph;
+      const regionId = result.step.decision.operations.find(operation => operation.type === "AddRegion").regionId;
+      const layout = layoutOf(graph), box = layout.bounds[regionId], frame = layout.bounds[parent.id];
+      assert.equal(box[0] >= frame[0] && box[1] >= frame[1]
+        && box[0] + box[2] <= frame[0] + frame[2] && box[1] + box[3] <= frame[1] + frame[3], true);
+      assert.equal(result.step.decision.operations.filter(operation => operation.type === "PinRegions").length, 1);
+      for (const sibling of graph.records.filter(record => record.type === "region" && record.parent === parent.id && record.id !== regionId)) {
+        const other = layout.bounds[sibling.id];
+        assert.equal(box[0] < other[0] + other[2] && other[0] < box[0] + box[2]
+          && box[1] < other[1] + other[3] && other[1] < box[1] + box[3], false);
+      }
+      assert.equal(seed.records.every(record => graph.records.some(next => JSON.stringify(record) === JSON.stringify(next))), true);
+    }
+  }
+});
 
 test("a request is exactly the declared read set, and the Function's own check accepts it", async () => {
   const graph = await baseGraph();

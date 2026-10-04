@@ -274,6 +274,11 @@ try {
       assert.equal(proof.requests, 2); assert.equal(proof.reason, "no-room-for-part");
       assert.equal(proof.goalMet, true); assert.equal(proof.undoRestored, true);
       assert.deepEqual(proof.labelsVisible, [true, true]); assert.equal(proof.timeBudgetMet, true);
+      assert.equal(proof.painted.complete, true); assert.equal(proof.painted.contained, true);
+      assert.equal(proof.painted.nonoverlap, true);
+      assert.equal(proof.rawAdded.length, 2); assert.equal(proof.newPins.length, 2);
+      assert.deepEqual(proof.rawAdded.map(record => record.label.replace(/ [1-9]\d*$/u, "")), ["API", "DB"]);
+      assert.equal(proof.newPins.every(pin => proof.rawAdded.some(record => record.id === pin.regionId)), true);
       assert.ok(Number.isFinite(proof.elapsed.productMs) && proof.elapsed.productMs >= 0);
       assert.ok(Number.isFinite(proof.elapsed.baselineMs) && proof.elapsed.baselineMs >= 0);
       assert.equal(proof.elapsed.productScope, "HTTP+planning+draw");

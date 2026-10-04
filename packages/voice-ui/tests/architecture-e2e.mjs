@@ -221,6 +221,50 @@ const labelVisible = label => page.evaluate(label => {
       && style.display !== "none" && style.visibility !== "hidden";
   });
 }, label);
+// Maxgraph orders each cell's painted shape immediately before its label
+// group. Bind the unique actual label, not a label clip or layout pin marker.
+const paintedGoal = (container, records) => page.evaluate(({ container, records }) => {
+  const iframe = document.querySelector("#working-surface iframe[data-package=semantic-map]");
+  const doc = iframe.contentDocument;
+  const box = node => {
+    if (!node) return null;
+    const r = node.getBoundingClientRect(), style = iframe.contentWindow.getComputedStyle(node);
+    return [r.left, r.top, r.width, r.height].every(Number.isFinite)
+      && r.width > 0 && r.height > 0 && style.display !== "none" && style.visibility !== "hidden"
+      ? [r.left, r.top, r.width, r.height] : null;
+  };
+  const boundaries = [...doc.querySelectorAll("rect[data-set-id]")].filter(node => node.getAttribute("data-set-id") === container.id);
+  const frame = boundaries.length === 1 ? box(boundaries[0]) : null;
+  const shape = label => {
+    const labels = [...doc.querySelectorAll("svg text, svg foreignObject")].filter(node => node.textContent.trim() === label);
+    if (labels.length !== 1) return null;
+    for (let group = labels[0].parentElement; group?.localName === "g"; group = group.parentElement) {
+      const previous = group.previousElementSibling;
+      if (previous?.localName === "g" && !previous.querySelector("text, foreignObject")
+        && previous.querySelector("rect, path, ellipse, polygon")) {
+        const geometry = [...previous.children].filter(node => {
+          if (!["rect", "path", "ellipse", "polygon"].includes(node.localName)
+            || node.getAttribute("pointer-events") !== "all") return false;
+          const style = iframe.contentWindow.getComputedStyle(node);
+          return Number(style.opacity) > 0 && ((style.fill !== "none" && Number(style.fillOpacity) > 0)
+            || (style.stroke !== "none" && Number(style.strokeOpacity) > 0));
+        });
+        return geometry.length === 1 ? box(geometry[0]) : null;
+      }
+    }
+    return null;
+  };
+  const shapes = records.map(record => ({ id: record.id, rawLabel: record.label, bounds: shape(record.label) }));
+  const inside = bounds => frame !== null && bounds !== null && bounds[0] >= frame[0] && bounds[1] >= frame[1]
+    && bounds[0] + bounds[2] <= frame[0] + frame[2] && bounds[1] + bounds[3] <= frame[1] + frame[3];
+  const overlap = (a, b) => a !== null && b !== null && a[0] < b[0] + b[2] && b[0] < a[0] + a[2]
+    && a[1] < b[1] + b[3] && b[1] < a[1] + a[3];
+  return { association: "pinned-maxgraph-shape-before-unique-raw-label",
+    container: { id: container.id, kind: "painted-dashed-group-boundary", bounds: frame }, shapes,
+    contained: shapes.every(item => inside(item.bounds)),
+    nonoverlap: shapes.every((item, i) => shapes.every((other, j) => i === j || !overlap(item.bounds, other.bounds))),
+    complete: frame !== null && shapes.every(item => item.bounds !== null) };
+}, { container, records });
 const screen = () => page.evaluate(([key, rootKey]) => ({
   state: document.body.dataset.state,
   status: document.querySelector("#status").textContent,
@@ -541,7 +585,9 @@ const goalScenario = async () => {
   const after = await screen(); last = after;
   const attempt = await page.evaluate(() => JSON.parse(document.body.dataset.goal));
   const sent = exchanges.slice(prepared);
-  const added = after.graph.records.filter(record => !before.graph.records.some(old => old.id === record.id));
+  const added = after.graph.records.filter(record => record.type === "region" && !before.graph.records.some(old => old.id === record.id));
+  const newPins = after.graph.records.filter(record => record.type === "layout"
+    && !before.graph.records.some(old => JSON.stringify(old) === JSON.stringify(record)));
   const expected = [
     { label: "API", kind: "step", parent: container.id },
     { label: "DB", kind: "data", parent: container.id },
@@ -550,6 +596,7 @@ const goalScenario = async () => {
   const signature = rows => JSON.stringify(rows.map(({ label, kind, parent }) => JSON.stringify([label, kind, parent])).sort());
   const semanticMet = signature(actual) === signature(expected);
   const labelsVisible = await Promise.all(added.map(record => labelVisible(record.label)));
+  const painted = await paintedGoal(container, after.graph.records.filter(record => record.type === "region" && record.parent === container.id));
   const digest = value => createHash("sha256").update(JSON.stringify(value)).digest("hex");
   // Independent public-information baseline: literal catalogue/parent name
   // matching. No gold remainder or baseline decision goes to the product.
@@ -564,7 +611,8 @@ const goalScenario = async () => {
   const baselineElapsedMs = performance.now() - baselineStart;
   goalEvidence = { reason: attempt.reason, goalMet: semanticMet, requests: sent.length, setupRequests: prepared,
     preparationDiagram: seedChoice, preparationSignature: seedActual,
-    selected: attempt.selected, actual, labelsVisible, baseline, baselineMet: signature(baseline) === signature(expected),
+    selected: attempt.selected, actual, rawAdded: added.map(({ id, label, kind, parent }) => ({ id, label, kind, parent })),
+    painted, newPins, labelsVisible, baseline, baselineMet: signature(baseline) === signature(expected),
     timeBudgetMet: Number.isFinite(attempt.elapsedMs) && attempt.elapsedMs < 180000,
     elapsed: { productMs: attempt.elapsedMs, productScope: "HTTP+planning+draw",
       baselineMs: baselineElapsedMs, baselineScope: "literal-selection-CPU-only", baselineProviderCalls: 0 },
@@ -589,6 +637,10 @@ const goalScenario = async () => {
   need(["none", "no-room-for-part", "offers-exhausted", "budget-requests", "budget-time"].includes(attempt.reason) && semanticMet,
     "independent expected graph is reached after a known mechanical stop, never from the stop alone");
   need(labelsVisible.length === 2 && labelsVisible.every(Boolean), "both actual added labels intersect the unchanged Working viewport");
+  need(painted.complete && painted.contained && painted.nonoverlap,
+    "actual painted children are wholly inside the painted OCI shape and do not overlap siblings");
+  need(newPins.length === 2 && newPins.every(pin => added.some(record => record.id === pin.regionId)),
+    "only the two new children gain layout pins");
   need(goalEvidence.timeBudgetMet && attempt.elapsedMs >= 0, "the independently graded Goal time envelope is met");
   need(before.graph.records.every(record => after.graph.records.some(next => JSON.stringify(next) === JSON.stringify(record))), "Goal preserves every baseline record");
   reached.push("goal-undo"); await click("undo"); await settle();

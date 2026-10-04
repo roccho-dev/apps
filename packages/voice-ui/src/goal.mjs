@@ -19,9 +19,9 @@ export async function runGoal({ utterance, bundle, protocol, current, ask, adopt
     if (cancelled()) return stop("cancelled");
     if (now() - started >= 180000) return stop("budget-time");
     if (current() !== expected || expected.working === null) return stop("stale-goal");
-    const parents = additionParents(expected.working);
     const parts = offersOf(bundle).parts;
     if (parts.every(part => selected.some(item => item.key === part.key))) return stop("offers-exhausted");
+    const parents = additionParents(expected.working, { bundle, protocol, reserved: expected.issuedPartIds, selected });
     if (parents.length === 0) return stop("no-room-for-part");
     const request = { kind: GOAL_REQUEST_KIND, state: {
       utterance,

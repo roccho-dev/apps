@@ -562,11 +562,48 @@ async function materialize(working, planned, protocol) {
   });
 }
 
-// Only existing groups with a legal free slot are offered to a Goal. The
-// ordinary add-part path still chooses the enclosing root as before.
-export const additionParents = working => Object.freeze(working.records
+// Keep raw kernel legality and painted placement separate. Preview is pure:
+// the provider owns candidate dimensions; only our existing spacing is used.
+function additionSlot(working, parent, part, reserved, protocol) {
+  const raw = freeSlot(working.records, parent);
+  if (raw === null) return null;
+  const regionId = nextPartId(working, reserved);
+  const operation = { type: "AddRegion", regionId, parentId: parent.id,
+    label: `${part.label} ${regionId.slice(PART_ID_PREFIX.length)}`, kind: part.kind, summary: "", bounds: [...raw] };
+  const region = { type: "region", id: regionId, parent: parent.id, label: operation.label,
+    kind: part.kind, summary: "", bounds: [...raw] };
+  const records = [...working.records.filter(record => record.type !== "layout" && record.type !== "relation"), region,
+    ...working.records.filter(record => record.type === "relation" || record.type === "layout")];
+  const view = { pattern: protocol.GRAPH_PATTERN };
+  const validBox = box => Array.isArray(box) && box.length === 4 && box.every(Number.isFinite) && box[2] > 0 && box[3] > 0;
+  try {
+    const current = protocol.layoutBoundsFor(working.records, view);
+    const preview = protocol.layoutBoundsFor(records, view);
+    const frame = current.bounds[parent.id], size = preview.bounds[regionId];
+    if (!validBox(frame) || !validBox(size)) return null;
+    const siblings = working.records.filter(record => record.type === "region" && record.parent === parent.id);
+    if (siblings.some(record => !validBox(current.bounds[record.id]))) return null;
+    for (let y = frame[1] + BAND_LABEL_ROOM; y + size[3] <= frame[1] + frame[3] - BAND_PADDING; y += size[3] + STEP_GAP) {
+      for (let x = frame[0] + BAND_PADDING; x + size[2] <= frame[0] + frame[2] - BAND_PADDING; x += size[2] + STEP_GAP) {
+        const bounds = [x, y, size[2], size[3]];
+        if (siblings.some(record => overlapping(bounds, current.bounds[record.id]))) continue;
+        const pinned = protocol.layoutBoundsFor([...records, { type: "layout", regionId, pin: "hard", bounds }], view);
+        if (![parent.id, regionId, ...siblings.map(record => record.id)].every(id => validBox(pinned.bounds[id]))
+          || !inside(pinned.bounds[parent.id], pinned.bounds[regionId])
+          || siblings.some(record => overlapping(pinned.bounds[regionId], pinned.bounds[record.id]))) return null;
+        return { operation, bounds };
+      }
+    }
+  } catch { return null; }
+  return null;
+}
+
+// Each remaining offer must individually fit; this is conservative, not a
+// promise that every legal part/parent pair or simultaneous packing is offered.
+export const additionParents = (working, { bundle, protocol, reserved = [], selected = [] }) => Object.freeze(working.records
   .filter(record => record.type === "region" && record.kind === LANE_KIND && record.parent !== null)
-  .filter(record => freeSlot(working.records, record) !== null)
+  .filter(record => bundle.parts.filter(part => !selected.some(item => item.key === part.key))
+    .every(part => additionSlot(working, record, part, reserved, protocol) !== null))
   .map(({ id, label, kind, parent }) => Object.freeze({ id, label, kind, parent })));
 
 export async function planAddition({ working, head, partKey, parentId, confidence, bundle, reserved = [], protocol }) {
@@ -576,13 +613,12 @@ export async function planAddition({ working, head, partKey, parentId, confidenc
   const parent = working.records.find(record => record.type === "region" && record.id === parentId && record.kind === LANE_KIND);
   if (part === undefined || parent === undefined || parent.parent === null) return refused("invalid-addition");
   if (!(confidence >= MIN_CONFIDENCE && confidence <= 1)) return noChange("not-confident");
-  const bounds = freeSlot(working.records, parent);
-  if (bounds === null) return noChange("no-room-for-part");
-  const regionId = nextPartId(working, reserved);
-  const label = `${part.label} ${regionId.slice(PART_ID_PREFIX.length)}`;
-  return materialize(working, plan(ACTION_ADD_PART, confidence, [{
-    type: "AddRegion", regionId, parentId, label, kind: part.kind, summary: "", bounds: [...bounds],
-  }], [{ change: "added", kind: "region", id: regionId, label }]), protocol);
+  const slot = additionSlot(working, parent, part, reserved, protocol);
+  if (slot === null) return noChange("no-room-for-part");
+  const { regionId, label } = slot.operation;
+  return materialize(working, plan(ACTION_ADD_PART, confidence, [slot.operation,
+    { type: "PinRegions", items: [{ regionId, bounds: [...slot.bounds] }] }],
+  [{ change: "added", kind: "region", id: regionId, label }]), protocol);
 }
 
 // The exact picture a held placement was said against, or null when the pane
