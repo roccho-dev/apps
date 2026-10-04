@@ -95,6 +95,29 @@ test("Goal v2 boundary asks one executable delta and refuses extra answers witho
   assert.equal(calls, 2);
 });
 
+test("Goal candidate cap accepts 254 unique pairs and refuses 255 before provider invocation", async () => {
+  const parents = Array.from({ length: 32 }, (_, index) => ({ id: `group-${index}`, label: `Group ${index}`, kind: "group", parent: "root" }));
+  const parts = Array.from({ length: 8 }, (_, index) => ({ key: `part-${index}`, purpose: `Offered part ${index}` }));
+  const pairs = parents.flatMap(parent => parts.map(part => ({ part: part.key, parent: parent.id })))
+    .map((pair, index) => ({ id: `delta-${index + 1}`, ...pair }));
+  let calls = 0;
+  for (const count of [254, 255]) {
+    const body = { kind: GOAL_REQUEST_KIND, state: { utterance: "one offered addition",
+      graph: [{ id: "root", label: "World", parent: null }, ...parents.map(({ id, label, parent }) => ({ id, label, parent }))],
+      parents, offers: { parts }, selected: [], candidates: pairs.slice(0, count),
+    } };
+    assert.equal(isRequest(body), count === 254);
+    const response = await onRequestPost({ available: true,
+      request: new Request("http://localhost/api/judge", { method: "POST", body: JSON.stringify(body) }),
+    }, async ({ questions }) => { calls += 1;
+      assert.equal(Object.keys(questions.delta.options).length, 255);
+      return { answers: { delta: { choice: NONE, confidence: 1 } } };
+    });
+    assert.equal(response.status, count === 254 ? 200 : 422);
+  }
+  assert.equal(calls, 1);
+});
+
 // The provider as the network presents it. Every call is counted, and nothing
 // here can be mistaken for the real provider: its model is "jev-test".
 const withProvider = async (respond, run) => {

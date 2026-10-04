@@ -598,14 +598,6 @@ function additionSlot(working, parent, part, reserved, protocol) {
   return null;
 }
 
-// Each remaining offer must individually fit; this is conservative, not a
-// promise that every legal part/parent pair or simultaneous packing is offered.
-export const additionParents = (working, { bundle, protocol, reserved = [], selected = [] }) => Object.freeze(working.records
-  .filter(record => record.type === "region" && record.kind === LANE_KIND && record.parent !== null)
-  .filter(record => bundle.parts.filter(part => !selected.some(item => item.key === part.key))
-    .every(part => additionSlot(working, record, part, reserved, protocol) !== null))
-  .map(({ id, label, kind, parent }) => Object.freeze({ id, label, kind, parent })));
-
 // A request-local catalogue, not an ID registry. Each pair owns its exact
 // AddRegion and new-child pin; the read set includes every placement input.
 const additionReadSet = (working, bundle, reserved, selected) => JSON.stringify({
@@ -643,21 +635,6 @@ export async function proveAddition({ working, held, candidateId, confidence, bu
   // Adopt the original held operations, never a silently replanned replacement.
   return materialize(working, plan(ACTION_ADD_PART, confidence, candidate.operations,
     [{ change: "added", kind: "region", id: operation.regionId, label: operation.label }]), protocol);
-}
-
-export async function planAddition({ working, head, partKey, parentId, confidence, bundle, reserved = [], protocol }) {
-  requireGraph(working);
-  if (working.head !== head) return refused("stale-head");
-  const part = bundle.parts?.find(entry => entry.key === partKey);
-  const parent = working.records.find(record => record.type === "region" && record.id === parentId && record.kind === LANE_KIND);
-  if (part === undefined || parent === undefined || parent.parent === null) return refused("invalid-addition");
-  if (!(confidence >= MIN_CONFIDENCE && confidence <= 1)) return noChange("not-confident");
-  const slot = additionSlot(working, parent, part, reserved, protocol);
-  if (slot === null) return noChange("no-room-for-part");
-  const { regionId, label } = slot.operation;
-  return materialize(working, plan(ACTION_ADD_PART, confidence, [slot.operation,
-    { type: "PinRegions", items: [{ regionId, bounds: [...slot.bounds] }] }],
-  [{ change: "added", kind: "region", id: regionId, label }]), protocol);
 }
 
 // The exact picture a held placement was said against, or null when the pane

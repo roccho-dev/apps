@@ -57,8 +57,8 @@ import {
   OUTCOME_REFUSED,
   OUTCOME_STEP,
   appendStep,
-  planAddition,
   legalAdditions,
+  proveAddition,
   changesForJudgment,
   focusFor,
   newMap,
@@ -81,6 +81,28 @@ const verifyDecisionLog = protocol.verifyDecisionLog;
 const here = path.dirname(fileURLToPath(import.meta.url));
 const BUNDLE = readBundle(JSON.parse(fs.readFileSync(path.join(here, "../web/data/bundle.v1.json"), "utf8")));
 const NO_BUNDLE = readBundle(null);
+// Test fixture convenience delegates to the production catalogue/prove path.
+const planAddition = async ({ working, head, partKey, parentId, confidence, bundle, reserved = [], protocol }) => {
+  if (working.head !== head) return { reason: "stale-head" };
+  const parent = working.records.find(record => record.type === "region" && record.id === parentId && record.kind === "group" && record.parent !== null);
+  if (!parent || !bundle.parts.some(part => part.key === partKey)) return { reason: "invalid-addition" };
+  const held = legalAdditions(working, { bundle, reserved, protocol });
+  const candidate = held.candidates.find(item => item.part === partKey && item.parent === parentId);
+  if (!candidate) return { reason: "no-room-for-part" };
+  return proveAddition({ working, held, candidateId: candidate.id, confidence, bundle, reserved, protocol });
+};
+
+
+// A fixture graph of three plain nodes, built through this app's own map
+// namespace and state schema.
+const node = (id, x) => ({ type: "region", id, parent: "root", label: id, kind: "node", bounds: [x, 90, 140, 64], summary: "" });
+const baseGraph = () => protocol.createDecisionLog([
+  { type: "meta", schema: STATE_SCHEMA, root: "root", title: "fixture" },
+  { type: "region", id: "root", parent: null, label: "fixture", kind: "boundary", bounds: [0, 0, 720, 260], summary: "" },
+  node("node-a", 40),
+  node("node-b", 250),
+  node("node-c", 460),
+], MAP_ID);
 
 test("legal addition catalogue is finite, complete for the deterministic pairs and empty without groups", async () => {
   assert.deepEqual(legalAdditions(await baseGraph(), { bundle: BUNDLE, protocol }).candidates, []);
@@ -109,17 +131,6 @@ test("legal addition catalogue is finite, complete for the deterministic pairs a
   assert.equal(result.reason, "candidate-overflow"); assert.equal(result.requests, 0); assert.equal(calls, 0);
   assert.deepEqual(result.selected, []);
 });
-
-// A fixture graph of three plain nodes, built through this app's own map
-// namespace and state schema.
-const node = (id, x) => ({ type: "region", id, parent: "root", label: id, kind: "node", bounds: [x, 90, 140, 64], summary: "" });
-const baseGraph = () => protocol.createDecisionLog([
-  { type: "meta", schema: STATE_SCHEMA, root: "root", title: "fixture" },
-  { type: "region", id: "root", parent: null, label: "fixture", kind: "boundary", bounds: [0, 0, 720, 260], summary: "" },
-  node("node-a", 40),
-  node("node-b", 250),
-  node("node-c", 460),
-], MAP_ID);
 
 const layoutOf = graph => protocol.layoutBoundsFor(graph.records, { pattern: protocol.GRAPH_PATTERN });
 const WIDE = [-400, -400, 2000, 2000];
