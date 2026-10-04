@@ -352,7 +352,8 @@ const paintedGoal = (container, records, edge = null) => page.evaluate(({ contai
     try {
       const matrix = node.getScreenCTM(), length = node.getTotalLength();
       const ctm = matrix && [matrix.a, matrix.b, matrix.c, matrix.d, matrix.e, matrix.f];
-      if (!ctm || !ctm.every(Number.isFinite) || matrix.a * matrix.d - matrix.b * matrix.c === 0
+      const determinant = matrix && matrix.a * matrix.d - matrix.b * matrix.c;
+      if (!ctm || !ctm.every(Number.isFinite) || !Number.isFinite(determinant) || determinant === 0
         || !Number.isFinite(length) || length <= 0) return null;
       const n = Math.ceil(length * Math.hypot(matrix.a, matrix.b, matrix.c, matrix.d) / 0.5);
       if (!Number.isSafeInteger(n) || n < 1 || n > 32768) return null;
@@ -380,6 +381,8 @@ const paintedGoal = (container, records, edge = null) => page.evaluate(({ contai
     { ...probe, getScreenCTM: () => null },
     { ...probe, getScreenCTM: () => ({ ...identity, a: NaN }) },
     { ...probe, getScreenCTM: () => ({ ...identity, d: 0 }) },
+    { ...probe, getScreenCTM: () => ({ a: 1e155, b: 1e155, c: 1e155, d: 1e155, e: 0, f: 0 }),
+      getTotalLength: () => 1e-155 },
     { ...probe, getTotalLength: () => 0 },
     { ...probe, getTotalLength: () => Infinity },
     { ...probe, getTotalLength: () => 32768 },
