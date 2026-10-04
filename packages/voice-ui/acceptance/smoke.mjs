@@ -271,7 +271,7 @@ try {
       assert.deepEqual(summary.reached, ["open", "prepare", "goal", "goal-undo"]);
       assert.deepEqual(summary.notRun, []);
       assert.equal(summary.actions.undo, 1); assert.equal(summary.requests, 3);
-      assert.equal(proof.requests, 2); assert.equal(proof.reason, "no-room-for-part");
+      assert.equal(proof.requests, 2); assert.deepEqual(proof.questionCounts, [1, 1]); assert.equal(proof.reason, "no-room-for-part");
       assert.equal(proof.goalMet, true); assert.equal(proof.undoRestored, true);
       assert.deepEqual(proof.labelsVisible, [true, true]); assert.equal(proof.timeBudgetMet, true);
       assert.equal(proof.painted.complete, true); assert.equal(proof.painted.contained, true);

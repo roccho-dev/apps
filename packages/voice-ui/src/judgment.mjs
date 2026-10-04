@@ -35,17 +35,17 @@ const REFERENCE_NOTE = " An architecture conversation entry may carry reference:
 // edge as, or null: an architecture intent passes it, and a plain request,
 // which has no snapshot, describes every edge by its two ends only.
 export function questionsFor(state, slots, context) {
-  if (state.parents !== undefined) {
+  if (state.candidates !== undefined) {
     const purposes = new Map(state.offers.parts.map(part => [part.key, part.purpose]));
     const parents = new Map(state.parents.map(parent => [parent.id, parent]));
     return {
-      part: {
-        instruction: "Choose one still-needed offered part to add toward the utterance's goal. selected is actual adopted history, not a goal oracle. Do not repeat it. If nothing offered is still needed, or the request is ambiguous, choose none.",
-        options: criteria(slots.part, key => key === NONE ? "no remaining offered part is clearly requested" : purposes.get(key)),
-      },
-      parent: {
-        instruction: "Which offered existing group must contain that new part? Choose none if no unique offered group is requested. Do not create or move a group.",
-        options: criteria(slots.parent, key => key === NONE ? "no unique offered parent is requested" : `${parents.get(key).label} (${key})`),
+      delta: {
+        instruction: "Choose one executable addition toward the utterance's goal. Each candidate adds its offered part inside its existing group at a proved placement. selected is actual adopted history, not a goal oracle. Choose none when no candidate is clearly needed or the request is ambiguous. Do not create or move groups.",
+        options: criteria(slots.delta, key => {
+          if (key === NONE) return "no offered executable addition is clearly requested";
+          const candidate = state.candidates.find(item => item.id === key);
+          return `${purposes.get(candidate.part)} inside ${parents.get(candidate.parent).label} (${candidate.parent})`;
+        }),
       },
     };
   }

@@ -65,12 +65,13 @@ const post = (body, env = { JEV_API_KEY: "test-only-value" }) => worker.fetch(ne
   }), env);
 
 // The provider as the network presents it. Every call is counted, and nothing
-test("Goal boundary asks exactly part and parent and refuses extra answers without architecture fanout", async () => {
+test("Goal v2 boundary asks one executable delta and refuses extra answers without architecture fanout", async () => {
   const body = { kind: GOAL_REQUEST_KIND, state: {
     utterance: "add the offered service inside the existing container",
     graph: [{ id: "root", label: "world", parent: null }, { id: "container", label: "container", parent: "root" }],
     parents: [{ id: "container", label: "container", kind: "group", parent: "root" }],
     offers: { parts: [{ key: "service", purpose: "a service" }] }, selected: [],
+    candidates: [{ id: "delta-1", part: "service", parent: "container" }],
   } };
   let calls = 0;
   const invoke = async (input, extra = false) => onRequestPost({ available: true,
@@ -78,15 +79,43 @@ test("Goal boundary asks exactly part and parent and refuses extra answers witho
   }, async ({ state, questions }) => {
     calls += 1;
     assert.deepEqual(state, body.state);
-    assert.deepEqual(Object.keys(questions), ["part", "parent"]);
-    return { answers: { part: { choice: "service", confidence: 1 }, parent: { choice: "container", confidence: 1 },
+    assert.deepEqual(Object.keys(questions), ["delta"]);
+    return { answers: { delta: { choice: "delta-1", confidence: 1 },
       ...(extra ? { action: { choice: NONE, confidence: 1 } } : {}) } };
   });
   assert.equal((await invoke(body)).status, 200);
   assert.equal((await invoke(body, true)).status, 502);
   const invalid = structuredClone(body); invalid.state.parents[0].kind = "step";
   assert.equal((await invoke(invalid)).status, 422);
+  assert.equal((await invoke({ ...body, kind: "voice-ui.judge.goal-addition.v1" })).status, 422);
+  for (const candidates of [[], Array.from({ length: 255 }, (_, index) => ({ id: `delta-${index + 1}`, part: "service", parent: "container" })),
+    [{ id: "delta-1", part: "absent", parent: "container" }], [{ id: "delta-1", part: "service", parent: "root" }]]) {
+    assert.equal((await invoke({ ...body, state: { ...body.state, candidates } })).status, 422);
+  }
   assert.equal(calls, 2);
+});
+
+test("Goal candidate cap accepts 254 unique pairs and refuses 255 before provider invocation", async () => {
+  const parents = Array.from({ length: 32 }, (_, index) => ({ id: `group-${index}`, label: `Group ${index}`, kind: "group", parent: "root" }));
+  const parts = Array.from({ length: 8 }, (_, index) => ({ key: `part-${index}`, purpose: `Offered part ${index}` }));
+  const pairs = parents.flatMap(parent => parts.map(part => ({ part: part.key, parent: parent.id })))
+    .map((pair, index) => ({ id: `delta-${index + 1}`, ...pair }));
+  let calls = 0;
+  for (const count of [254, 255]) {
+    const body = { kind: GOAL_REQUEST_KIND, state: { utterance: "one offered addition",
+      graph: [{ id: "root", label: "World", parent: null }, ...parents.map(({ id, label, parent }) => ({ id, label, parent }))],
+      parents, offers: { parts }, selected: [], candidates: pairs.slice(0, count),
+    } };
+    assert.equal(isRequest(body), count === 254);
+    const response = await onRequestPost({ available: true,
+      request: new Request("http://localhost/api/judge", { method: "POST", body: JSON.stringify(body) }),
+    }, async ({ questions }) => { calls += 1;
+      assert.equal(Object.keys(questions.delta.options).length, 255);
+      return { answers: { delta: { choice: NONE, confidence: 1 } } };
+    });
+    assert.equal(response.status, count === 254 ? 200 : 422);
+  }
+  assert.equal(calls, 1);
 });
 
 // The provider as the network presents it. Every call is counted, and nothing
