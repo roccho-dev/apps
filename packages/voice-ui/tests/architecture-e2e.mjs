@@ -326,7 +326,9 @@ const paintedGoal = (container, records, edge = null) => page.evaluate(({ contai
             || (style.stroke !== "none" && Number(style.strokeOpacity) > 0));
         });
         const primitive = uniquePrimitive(geometry);
-        return primitive instanceof iframe.contentWindow.SVGGeometryElement
+        return primitive !== null && primitive.namespaceURI === "http://www.w3.org/2000/svg"
+          && typeof primitive.getScreenCTM === "function" && typeof primitive.getTotalLength === "function"
+          && typeof primitive.getPointAtLength === "function"
           && box(primitive) !== null ? primitive : null;
       }
     }
