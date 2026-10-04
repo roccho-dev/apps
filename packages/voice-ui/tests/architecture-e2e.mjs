@@ -500,9 +500,29 @@ const goalScenario = async () => {
   await click("send"); await settle(); await drain();
   if (FIXTURE) await page.unroute(route);
   const before = await screen(); last = before;
+  const publicBundle = await (await fetch(new URL(config.data.bundle, url))).json();
+  const seed = publicBundle.diagrams.find(diagram => diagram.key === "container-example");
+  const preparationAnswers = exchanges.map(entry => contract.readAnswers(entry.body?.answers, slotsOf(entry.sent)));
+  const seedChoice = preparationAnswers[0]?.diagram?.choice;
+  const regions = before.graph?.records.filter(record => record.type === "region") ?? [];
+  const root = regions.find(record => record.parent === null);
+  const parentLabel = id => regions.find(record => record.id === id)?.label;
+  const seedSignature = rows => JSON.stringify(rows.map(row => JSON.stringify(row)).sort());
+  const seedExpected = [
+    ...seed.lanes.map(lane => [lane.label, "group", root?.label]),
+    ...seed.steps.map(step => [step.label, step.kind, seed.lanes.find(lane => lane.ref === step.lane).label]),
+  ];
+  const seedActual = regions.filter(record => record !== root)
+    .map(record => [record.label, record.kind, parentLabel(record.parent)]);
   const container = before.graph?.records.find(record => record.type === "region" && record.kind === "group" && record.label === "OCI");
-  need(exchanges.length === 1 && exchanges[0].status === 200 && before.state === "drafted" && container !== undefined,
-    "one preparation request draws the public existing group");
+  need((FIXTURE ? exchanges.length === 1 : exchanges.length >= 1)
+    && exchanges.every((entry, index) => entry.status === 200 && preparationAnswers[index] !== null)
+    && before.state === "drafted" && container !== undefined,
+    "complete preparation responses draw the public existing group");
+  need(seedChoice === seed.key && root !== undefined && regions.filter(record => record.parent === null).length === 1
+    && seedSignature(seedActual) === seedSignature(seedExpected)
+    && before.graph.records.filter(record => record.type === "relation").length === seed.links.length,
+    "the actual selected public preparation has every group and helper with the declared parent and kind");
   prerequisite(verdicts.length === 0, "prepare");
   const prepared = exchanges.length;
   if (FIXTURE) await page.route(route, craft((name, sent) => {
@@ -533,7 +553,6 @@ const goalScenario = async () => {
   const digest = value => createHash("sha256").update(JSON.stringify(value)).digest("hex");
   // Independent public-information baseline: literal catalogue/parent name
   // matching. No gold remainder or baseline decision goes to the product.
-  const publicBundle = await (await fetch(new URL(config.data.bundle, url))).json();
   const baselineStart = performance.now();
   const firstPublicState = sent[0]?.sent.state;
   const namedParents = (firstPublicState?.parents ?? []).filter(parent => goalText.toLowerCase().includes(parent.label.toLowerCase()));
@@ -544,6 +563,7 @@ const goalScenario = async () => {
   });
   const baselineElapsedMs = performance.now() - baselineStart;
   goalEvidence = { reason: attempt.reason, goalMet: semanticMet, requests: sent.length, setupRequests: prepared,
+    preparationDiagram: seedChoice, preparationSignature: seedActual,
     selected: attempt.selected, actual, labelsVisible, baseline, baselineMet: signature(baseline) === signature(expected),
     timeBudgetMet: Number.isFinite(attempt.elapsedMs) && attempt.elapsedMs < 180000,
     elapsed: { productMs: attempt.elapsedMs, productScope: "HTTP+planning+draw",
