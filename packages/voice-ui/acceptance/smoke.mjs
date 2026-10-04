@@ -296,6 +296,10 @@ try {
     { ...evaluationBase, expected: { ...evaluationBase.expected, regions: [{ partKey: "unknown", parentLabel: "OCI" }] } },
     { ...evaluationBase, expected: { ...evaluationBase.expected, flows: [{ from: { baselineRegion: "oci" }, to: { addedPart: "api" } }] } },
     { ...evaluationBase, expected: { ...evaluationBase.expected, regions: [evaluationBase.expected.regions[0], evaluationBase.expected.regions[0]] } },
+    { ...evaluationBase, expected: { ...evaluationBase.expected, flows: [
+      { from: { addedPart: "api" }, to: { addedPart: "db" } },
+      { to: { addedPart: "db" }, from: { addedPart: "api" } },
+    ] } },
   ].entries()) {
     const home = path.join(work, `i${index}`); mkdirSync(home);
     const output = await runChild([path.join(root, manifest.e2e.architecture_entrypoint), "--mode", "fixture", "--scenario", "goal-addition",

@@ -114,6 +114,8 @@ Any real source-grade run requires a separate exact registration and permission 
 
 ## Goal painted containment
 
+The finite evaluator grades NONE only after exact graph, draft, claims, stored/root and confirmed-view equality. New pin owners must form a one-to-one multiset with added children. Expected flow identity is independent of JSON property order. Every expected edge's paint grade includes visible added labels and endpoint-bound reverse/disconnected negative geometry; these requirements do not waive the full arrow or overall boundary gate.
+
 Goal candidates individually check an effective-layout slot for each remaining public part/group pair, not simultaneous packing or full legal reachability. A small-only fit is no longer excluded by an unrelated wider offer. The provider supplies preview dimensions; the selected held child placement is rechecked and added with its own pin in one Decision. Existing records and pins are retained. The mandatory Goal control records raw suffixed labels separately from catalogue-normalized labels and checks actual SVG child shapes inside the painted OCI boundary, sibling nonoverlap and whole-Goal Undo. Logical parent and label viewport visibility alone are not containment proof. Historical logical-only PASS and visual NOT_MET/collector UNKNOWN receipts remain unchanged; fresh real/UI evidence requires separate admission.
 
 The pure request-exhaustion fixture has explicit roomy provider pins so seven/eight actual offers can exercise their request bound; raw record bounds alone never promise painted capacity. This test-only setup does not change the public container-example seed, actual Goal input, provider dimensions or acceptance thresholds.

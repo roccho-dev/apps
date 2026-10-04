@@ -55,6 +55,22 @@ const FIXTURE = mode !== "live";
 // A finite evaluator input, never a product request or fixture-answer source.
 const exactKeys = (value, keys) => value !== null && typeof value === "object" && !Array.isArray(value)
   && JSON.stringify(Object.keys(value).sort()) === JSON.stringify([...keys].sort());
+const endpointIdentity = endpoint => JSON.stringify(endpoint.addedPart !== undefined
+  ? ["addedPart", endpoint.addedPart] : ["baselineRegion", endpoint.baselineRegion]);
+const flowIdentity = flow => JSON.stringify([endpointIdentity(flow.from), endpointIdentity(flow.to)]);
+const sameNoneBaseline = (before, after) => ["draft", "claims", "stored", "root", "confirmedGraph"]
+  .every(key => JSON.stringify(after[key]) === JSON.stringify(before[key]))
+  && JSON.stringify(after.graph.records) === JSON.stringify(before.graph.records);
+const exactChildPins = (added, pins) => JSON.stringify(added.map(record => record.id).sort())
+  === JSON.stringify(pins.map(pin => pin.regionId).sort());
+// Same predicates used by the grades: a changed claim/view or a duplicated
+// owner pin must not pass merely because graph/count/membership match.
+const unchanged = { graph: { records: [] }, draft: [], claims: [], stored: null, root: null, confirmedGraph: null };
+assert.equal(sameNoneBaseline(unchanged, unchanged), true);
+for (const key of ["draft", "claims", "stored", "root", "confirmedGraph"])
+  assert.equal(sameNoneBaseline(unchanged, { ...unchanged, [key]: ["changed"] }), false);
+assert.equal(exactChildPins([{ id: "a" }, { id: "b" }], [{ regionId: "b" }, { regionId: "a" }]), true);
+assert.equal(exactChildPins([{ id: "a" }, { id: "b" }], [{ regionId: "a" }, { regionId: "a" }]), false);
 const evaluation = caseFlag === undefined ? null : JSON.parse(caseJson);
 if (caseFlag !== undefined) {
   assert.ok(exactKeys(evaluation, ["version", "id", "goal", "order", "expected"])
@@ -130,7 +146,7 @@ if (GOAL) {
     || exactKeys(value, ["baselineRegion"]) && seed.steps.filter(step => step.ref === value.baselineRegion).length === 1;
   for (const flow of expectedCase.flows) assert.ok(exactKeys(flow, ["from", "to"]) && endpoint(flow.from) && endpoint(flow.to)
     && JSON.stringify(flow.from) !== JSON.stringify(flow.to), "public directed flow endpoints");
-  assert.equal(new Set(expectedCase.flows.map(flow => JSON.stringify(flow))).size, expectedCase.flows.length, "unique expected flows");
+  assert.equal(new Set(expectedCase.flows.map(flowIdentity)).size, expectedCase.flows.length, "unique expected flows");
   assert.ok(expectedCase.kind === "none" ? expectedCase.regions.length === 0 && expectedCase.flows.length === 0
     : expectedCase.regions.length + expectedCase.flows.length > 0, "explicit change or NONE oracle");
 }
@@ -741,7 +757,8 @@ const goalScenario = async () => {
     && contract.readAnswers(sent[0].body?.answers, slotsOf(sent[0].sent))?.delta?.choice === contract.NONE;
   const semanticMet = signature(actual) === signature(expected) && edgeSignature(newEdges) === edgeSignature(expectedEdges)
     && baselinePreserved && (expectedCase.kind !== "none" || firstNone && newPins.length === 0
-      && JSON.stringify(after.graph.records) === JSON.stringify(before.graph.records) && JSON.stringify(after.draft) === JSON.stringify(before.draft));
+      && sameNoneBaseline(before, after));
+  const pinsExact = exactChildPins(added, newPins);
   const labelsVisible = await Promise.all(added.map(record => labelVisible(record.label)));
   const paintedRecords = after.graph.records.filter(record => record.type === "region" && record.parent === container.id);
   const painted = await paintedGoal(container, paintedRecords, FLOW ? { from: api?.id, to: db?.id } : null);
@@ -752,6 +769,21 @@ const goalScenario = async () => {
     paintedGoal(regions.find(record => record.id === id), after.graph.records.filter(record => record.type === "region" && record.parent === id))));
   const edgePaints = await Promise.all(expectedEdges.map(edge => paintedGoal(container,
     after.graph.records.filter(record => record.type === "region" && record.parent !== null && record.kind !== "group"), edge)));
+  const edgeCounterPaints = await Promise.all(expectedEdges.map(async edge => {
+    const endpoints = after.graph.records.filter(record => record.type === "region" && record.parent !== null && record.kind !== "group");
+    const expectedPair = (from, to) => expectedEdges.some(expected => expected.from === from && expected.to === to);
+    const reverseApplicable = !expectedPair(edge.to, edge.from);
+    const other = endpoints.find(record => record.id !== edge.from && record.id !== edge.to && !expectedPair(edge.from, record.id));
+    return { from: edge.from, to: edge.to,
+      reverseApplicable, disconnectedApplicable: other !== undefined,
+      reverse: reverseApplicable ? await paintedGoal(container, endpoints, { from: edge.to, to: edge.from }) : null,
+      disconnected: other ? await paintedGoal(container, endpoints, { from: edge.from, to: other.id }) : null };
+  }));
+  const labelsMet = labelsVisible.length === expected.length && labelsVisible.every(Boolean);
+  const edgePaintMet = edgePaints.every(proof => proof.edge.complete)
+    && edgeCounterPaints.every(proof => (!proof.reverseApplicable || !proof.reverse.edge.complete)
+      && (!proof.disconnectedApplicable || !proof.disconnected.edge.complete));
+  const paintMet = labelsMet && paintedGroups.every(group => group.complete && group.contained && group.nonoverlap) && edgePaintMet;
   const digest = value => createHash("sha256").update(JSON.stringify(value)).digest("hex");
   // Independent public-information baseline: literal catalogue/parent name
   // matching. No gold remainder or baseline decision goes to the product.
@@ -770,7 +802,7 @@ const goalScenario = async () => {
       firstNone, baselinePreserved, semanticGrade: "NOT_PROVEN", paintGrade: "NOT_PROVEN" },
     preparationDiagram: seedChoice, preparationSignature: seedActual,
     selected: attempt.selected, actual, rawAdded: added.map(({ id, label, kind, parent }) => ({ id, label, kind, parent })),
-    painted, paintedGroups, edgePaints, reversedPaint, disconnectedPaint, newPins, newEdges, labelsVisible, baseline, baselineMet: expectedEdges.length === 0 && signature(baseline) === signature(expected),
+    painted, paintedGroups, edgePaints, edgeCounterPaints, reversedPaint, disconnectedPaint, newPins, pinsExact, newEdges, labelsVisible, baseline, baselineMet: expectedEdges.length === 0 && signature(baseline) === signature(expected),
     timeBudgetMet: Number.isFinite(attempt.elapsedMs) && attempt.elapsedMs < 180000,
     elapsed: { productMs: attempt.elapsedMs, productScope: "HTTP+planning+draw",
       baselineMs: baselineElapsedMs, baselineScope: "literal-selection-CPU-only", baselineProviderCalls: 0 },
@@ -795,14 +827,12 @@ const goalScenario = async () => {
   need(sent.every(entry => entry.status === 200 && contract.readAnswers(entry.body?.answers, slotsOf(entry.sent)) !== null), "every Goal response is complete");
   need(["none", "no-executable-delta", "budget-requests", "budget-time"].includes(attempt.reason) && semanticMet,
     "independent expected graph is reached after a known mechanical stop, never from the stop alone");
-  need(labelsVisible.length === expected.length && labelsVisible.every(Boolean), "all actual added labels intersect the unchanged Working viewport");
+  need(labelsMet, "all actual added labels intersect the unchanged Working viewport");
   need(paintedGroups.every(group => group.complete && group.contained && group.nonoverlap),
     "actual painted children are wholly inside the painted OCI shape and do not overlap siblings");
-  if (expectedEdges.length > 0) need(edgePaints.every(proof => proof.edge.complete)
-    && (!FLOW || expectedCase.flows.length !== 1 || !reversedPaint.edge.complete && !disconnectedPaint.edge.complete),
-    "one actual painted classic arrow connects API to DB, not the reverse or another visible part");
-  need(newPins.length === expected.length && newPins.every(pin => added.some(record => record.id === pin.regionId)),
-    "only the two new children gain layout pins");
+  if (expectedEdges.length > 0) need(edgePaintMet,
+    "each expected actual painted classic arrow connects its declared endpoints, not the reverse or another visible part");
+  need(pinsExact, "each actual added child gains exactly one new layout pin and no other owner gains one");
   need(goalEvidence.timeBudgetMet && attempt.elapsedMs >= 0, "the independently graded Goal time envelope is met");
   need(before.graph.records.every(record => after.graph.records.some(next => JSON.stringify(next) === JSON.stringify(record))), "Goal preserves every baseline record");
   goalEvidence.evaluation.semanticGrade = semanticMet && goalEvidence.noSave && goalEvidence.timeBudgetMet
@@ -811,9 +841,8 @@ const goalScenario = async () => {
       && entry.error === null && contract.isRequest(entry.sent) && entry.sent.state.utterance === goalText
       && contract.readAnswers(entry.body?.answers, slotsOf(entry.sent)) !== null)
     && ["none", "no-executable-delta", "budget-requests", "budget-time"].includes(attempt.reason)
-    && newPins.length === expected.length && newPins.every(pin => added.some(record => record.id === pin.regionId)) ? "PASS" : "NOT_MET";
-  goalEvidence.evaluation.paintGrade = paintedGroups.every(group => group.complete && group.contained && group.nonoverlap)
-    && edgePaints.every(proof => proof.edge.complete) ? "PASS" : "NOT_MET";
+    && pinsExact ? "PASS" : "NOT_MET";
+  goalEvidence.evaluation.paintGrade = paintMet ? "PASS" : "NOT_MET";
   if (expectedCase.kind === "none") {
     for (const key of ["draft", "claims", "stored", "root", "confirmedGraph"]) assert.deepEqual(after[key], before[key], key);
     for (const entry of exchanges) entry.reported = true;
