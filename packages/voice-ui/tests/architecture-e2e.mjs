@@ -233,9 +233,7 @@ const paintedGoal = (container, records) => page.evaluate(({ container, records 
       && r.width > 0 && r.height > 0 && style.display !== "none" && style.visibility !== "hidden"
       ? [r.left, r.top, r.width, r.height] : null;
   };
-  const boundaries = [...doc.querySelectorAll("rect[data-set-id]")].filter(node => node.getAttribute("data-set-id") === container.id);
-  const frame = boundaries.length === 1 ? box(boundaries[0]) : null;
-  const shape = label => {
+  const shape = (label, boundary = false) => {
     const labels = [...doc.querySelectorAll("svg text, svg foreignObject")].filter(node => node.textContent.trim() === label);
     if (labels.length !== 1) return null;
     for (let group = labels[0].parentElement; group?.localName === "g"; group = group.parentElement) {
@@ -243,9 +241,11 @@ const paintedGoal = (container, records) => page.evaluate(({ container, records 
       if (previous?.localName === "g" && !previous.querySelector("text, foreignObject")
         && previous.querySelector("rect, path, ellipse, polygon")) {
         const geometry = [...previous.children].filter(node => {
-          if (!["rect", "path", "ellipse", "polygon"].includes(node.localName)
-            || node.getAttribute("pointer-events") !== "all") return false;
+          if (!["rect", "path", "ellipse", "polygon"].includes(node.localName)) return false;
           const style = iframe.contentWindow.getComputedStyle(node);
+          if (boundary) return node.localName === "rect" && style.stroke !== "none"
+            && style.strokeDasharray !== "none" && Number(style.strokeOpacity) > 0 && Number(style.opacity) > 0;
+          if (node.getAttribute("pointer-events") !== "all") return false;
           return Number(style.opacity) > 0 && ((style.fill !== "none" && Number(style.fillOpacity) > 0)
             || (style.stroke !== "none" && Number(style.strokeOpacity) > 0));
         });
@@ -254,6 +254,7 @@ const paintedGoal = (container, records) => page.evaluate(({ container, records 
     }
     return null;
   };
+  const frame = shape(container.label, true);
   const shapes = records.map(record => ({ id: record.id, rawLabel: record.label, bounds: shape(record.label) }));
   const inside = bounds => frame !== null && bounds !== null && bounds[0] >= frame[0] && bounds[1] >= frame[1]
     && bounds[0] + bounds[2] <= frame[0] + frame[2] && bounds[1] + bounds[3] <= frame[1] + frame[3];
