@@ -603,7 +603,7 @@ function additionSlot(working, parent, part, reserved, protocol) {
 const additionReadSet = (working, bundle, reserved, selected) => JSON.stringify({
   head: working.head, records: working.records, parts: bundle.parts, reserved, selected,
 });
-export function legalAdditions(working, { bundle, protocol, reserved = [], selected = [] }) {
+function legalAdditions(working, { bundle, protocol, reserved = [], selected = [] }) {
   requireGraph(working);
   const candidates = [];
   const parents = working.records.filter(record => record.type === "region"
@@ -623,7 +623,7 @@ export function legalAdditions(working, { bundle, protocol, reserved = [], selec
     candidates: Object.freeze(candidates) });
 }
 
-export async function proveAddition({ working, held, candidateId, confidence, bundle, reserved = [], selected = [], protocol }) {
+async function proveAddition({ working, held, candidateId, confidence, bundle, reserved = [], selected = [], protocol }) {
   requireGraph(working);
   if (held.readSet !== additionReadSet(working, bundle, reserved, selected)) return refused("stale-addition");
   const candidate = held.candidates.find(item => item.id === candidateId);

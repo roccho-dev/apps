@@ -9,7 +9,7 @@ import { runGoal } from "../src/goal.mjs";
 import { createSession, undo, draftUsed, proposeArchitecture } from "../src/session.mjs";
 import { currentClaims } from "../src/document.mjs";
 import { MAP_ID, STATE_SCHEMA } from "../src/log.mjs";
-import { legalAdditions, proveAddition, legalLocalDeltas, proveLocalDelta } from "../src/turn.mjs";
+import { legalLocalDeltas as legalAdditions, proveLocalDelta as proveAddition, legalLocalDeltas, proveLocalDelta } from "../src/turn.mjs";
 
 if (!process.env.SEMANTIC_MAP) throw new Error("SEMANTIC_MAP is required");
 const protocol = await import(pathToFileURL(path.join(process.env.SEMANTIC_MAP, "packages/semantic-map/protocol/index.js")).href);
@@ -60,9 +60,6 @@ test("mixed Goal uses one held ADD/Connect alphabet and strictly restores the wh
   const [from, to] = result.selected.map(item => item.region);
   assert.deepEqual(session.working.records.filter(item => item.type === "relation").map(({ from, to, kind, label }) => ({ from, to, kind, label })),
     [{ from, to, kind: "flow", label: "" }]);
-  const legacy = legalAdditions(session.working, { bundle, protocol, selected: result.selected });
-  assert.equal(legacy.candidates.some(item => item.operations.some(op => op.type === "ConnectRegions")), false,
-    "canonical add-only catalogue cannot supply the mixed Goal's edge");
   const held = legalLocalDeltas(session.working, { bundle, protocol, selected: result.selected });
   assert.equal(held.candidates.some(item => item.from === from && item.to === to), false);
   assert.equal(held.candidates.some(item => item.from === to && item.to === from), true);

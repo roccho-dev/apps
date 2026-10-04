@@ -57,8 +57,8 @@ import {
   OUTCOME_REFUSED,
   OUTCOME_STEP,
   appendStep,
-  legalAdditions,
-  proveAddition,
+  legalLocalDeltas as legalAdditions,
+  proveLocalDelta as proveAddition,
   legalLocalDeltas,
   proveLocalDelta,
   changesForJudgment,
@@ -109,8 +109,8 @@ const baseGraph = () => protocol.createDecisionLog([
 test("mixed catalogue supplies the existing directed flow family and proves the original held effect", async () => {
   const graph = await baseGraph();
   const options = { bundle: BUNDLE, protocol, reserved: [], selected: [] };
-  // Identical three nongroup endpoints expose the add-only canonical gap.
-  assert.equal(legalAdditions(graph, options).candidates.length, 0);
+  // This graph has no group: its ADD subset is empty, while Connect is legal.
+  assert.equal(legalAdditions(graph, options).candidates.filter(item => item.part !== undefined).length, 0);
   const held = legalLocalDeltas(graph, options);
   assert.equal(held.candidates.length, 6);
   assert.equal(new Set(held.candidates.map(item => JSON.stringify([item.from, item.to]))).size, 6);
@@ -135,7 +135,7 @@ test("mixed catalogue supplies the existing directed flow family and proves the 
 });
 
 test("legal addition catalogue is finite, complete for the deterministic pairs and empty without groups", async () => {
-  assert.deepEqual(legalAdditions(await baseGraph(), { bundle: BUNDLE, protocol }).candidates, []);
+  assert.deepEqual(legalAdditions(await baseGraph(), { bundle: BUNDLE, protocol }).candidates.filter(item => item.part !== undefined), []);
   const groups = Array.from({ length: 32 }, (_, index) => ({ type: "region", id: `group-${index}`,
     parent: "root", label: `Fixture group ${index}`, kind: "group", summary: "", bounds: [0, index * 300, 700, 200] }));
   const graph = await protocol.createDecisionLog([

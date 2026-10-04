@@ -271,6 +271,7 @@ const paintedGoal = (container, records, edge = null) => page.evaluate(({ contai
     && Math.min(Math.abs(p[0] - b[0]), Math.abs(p[0] - b[0] - b[2]),
       Math.abs(p[1] - b[1]), Math.abs(p[1] - b[1] - b[3])) <= padding;
   const arrows = [];
+  const observedEdges = [];
   if (edge !== null) for (const group of doc.querySelectorAll("svg g")) {
     const paths = [...group.children].filter(node => {
       if (node.localName !== "path") return false;
@@ -287,7 +288,10 @@ const paintedGoal = (container, records, edge = null) => page.evaluate(({ contai
       return s.fill !== "none" && s.stroke !== "none" && Number(s.opacity) > 0 && Number(s.fillOpacity) > 0
         && /z\s*$/iu.test(node.getAttribute("d") ?? "");
     });
-    if (lines.length !== 1 || markers.length !== 1) continue;
+    if (lines.length !== 1 || markers.length !== 1) {
+      if (lines.length > 0 || markers.length > 0) observedEdges.push({ lines: lines.length, markers: markers.length });
+      continue;
+    }
     const line = lines[0], marker = markers[0];
     const point = (node, length) => {
       const matrix = node.getScreenCTM();
@@ -309,13 +313,15 @@ const paintedGoal = (container, records, edge = null) => page.evaluate(({ contai
     const padding = Number.isFinite(stroke) && stroke > 0 ? 1.118 * stroke + 1 : NaN;
     const directed = end !== null && tip !== null && beforeEnd !== null
       && (end[0] - beforeEnd[0]) * (tip[0] - end[0]) + (end[1] - beforeEnd[1]) * (tip[1] - end[1]) > 0;
+    observedEdges.push({ start, end, tip, stroke, padding, lineLength: length, markerLength,
+      fromConnected: boundary(start, from, padding), toConnected: boundary(tip, to, padding), directed });
     if (boundary(start, from, padding) && boundary(tip, to, padding) && directed)
       arrows.push({ start, end, tip, stroke, padding, lineLength: length, markerLength });
   }
   return { association: "pinned-maxgraph-shape-before-unique-raw-label",
     container: { id: container.id, kind: "painted-dashed-group-boundary", bounds: frame }, shapes,
     edge: edge === null ? null : { from: edge.from, to: edge.to,
-      association: "pinned-classic-marker-tip-and-stroke-in-one-cell-group", matches: arrows,
+      association: "pinned-classic-marker-tip-and-stroke-in-one-cell-group", observed: observedEdges, matches: arrows,
       complete: arrows.length === 1 },
     contained: shapes.every(item => inside(item.bounds)),
     nonoverlap: shapes.every((item, i) => shapes.every((other, j) => i === j || !overlap(item.bounds, other.bounds))),
