@@ -1,4 +1,4 @@
-import { ARCHITECTURE_INTENT_KIND, ARCHITECTURE_LOCATE_KIND, DECISION_KIND, ERRORS, REQUEST_KIND, isJudgeRequest, isLocateRequest, isRequest, judgeFramesFor, judgeSlotsFor, locateSlotsFor, readAnswers, slotsFor } from "../../src/contract.mjs";
+import { ARCHITECTURE_INTENT_KIND, ARCHITECTURE_LOCATE_KIND, DECISION_KIND, ERRORS, GOAL_REQUEST_KIND, REQUEST_KIND, isJudgeRequest, isLocateRequest, isRequest, judgeFramesFor, judgeSlotsFor, locateSlotsFor, readAnswers, slotsFor } from "../../src/contract.mjs";
 import { questionsFor } from "../../src/judgment.mjs";
 import { definedRelation, focusedEvidence, intentSectionOf, judgeSectionOf, readManifest } from "../../src/architecture.mjs";
 
@@ -46,7 +46,7 @@ export async function onRequestPost({ request, available, architecture }, judge)
   let asked = state;
   let slots;
   let questions;
-  if (kind === REQUEST_KIND) {
+  if (kind === REQUEST_KIND || kind === GOAL_REQUEST_KIND) {
     slots = slotsFor(state);
     questions = questionsFor(state, slots, { kind });
   } else {

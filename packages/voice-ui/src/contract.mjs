@@ -7,6 +7,8 @@
 
 export const REQUEST_KIND = "voice-ui.judge.request.v1";
 export const DECISION_KIND = "voice-ui.judge.decision.v1";
+export const GOAL_REQUEST_KIND = "voice-ui.judge.goal-addition.v1";
+export const GOAL_REQUEST_MAX = 8;
 // The architecture page's requests, each its own closed kind. The intent is
 // the plain request with the prepared snapshot's parts beside it, by path or
 // identifier only, and never any code. When the intent names no part
@@ -205,6 +207,40 @@ const validOffer = list =>
   && unique(list.map(offer => offer.key));
 
 const COMMIT = /^[0-9a-f]{40}$/u;
+// A separate two-choice boundary; ordinary v1 requests keep their exact shape.
+const validGoalRequest = value => {
+  if (!exactObject(value, ["kind", "state"])) return false;
+  const state = value.state;
+  if (!exactObject(state, ["utterance", "graph", "parents", "offers", "selected"])) return false;
+  if (!text(state.utterance, TEXT_MAX) || !Array.isArray(state.graph) || state.graph.length > GRAPH_MAX) return false;
+  if (!state.graph.every(region => exactObject(region, ["id", "label", "parent"])
+    && id(region.id) && text(region.label, LABEL_MAX) && (region.parent === null || id(region.parent)))) return false;
+  const ids = state.graph.map(region => region.id);
+  if (!unique(ids) || !state.graph.every(region => region.parent === null || ids.includes(region.parent))) return false;
+  if (state.graph.filter(region => region.parent === null).length !== 1) return false;
+  const parentOf = new Map(state.graph.map(region => [region.id, region.parent]));
+  for (const region of state.graph) {
+    const seen = new Set();
+    for (let at = region.id; at !== null; at = parentOf.get(at)) {
+      if (seen.has(at)) return false;
+      seen.add(at);
+    }
+  }
+  if (!Array.isArray(state.parents) || state.parents.length > GRAPH_MAX
+    || !state.parents.every(parent => exactObject(parent, ["id", "label", "kind", "parent"])
+      && ids.includes(parent.id) && text(parent.label, LABEL_MAX) && parent.kind === "group"
+      && ids.includes(parent.parent) && state.graph.some(region => region.id === parent.id
+        && region.label === parent.label && region.parent === parent.parent))
+    || !unique(state.parents.map(parent => parent.id))) return false;
+  if (!exactObject(state.offers, ["parts"]) || !validOffer(state.offers.parts)) return false;
+  return Array.isArray(state.selected) && state.selected.length <= OFFER_MAX
+    && state.selected.every(item => exactObject(item, ["key", "region", "parent"])
+      && KEY_PATTERN.test(item.key ?? "") && item.key !== NONE && ids.includes(item.region)
+      && ids.includes(item.parent) && state.graph.some(region => region.id === item.region && region.parent === item.parent))
+    && unique(state.selected.map(item => item.key))
+    && unique(state.selected.map(item => item.region))
+    && state.selected.every(item => state.offers.parts.some(part => part.key === item.key));
+};
 
 // The prepared snapshot's identity.
 const validSource = source =>
@@ -228,6 +264,7 @@ const STATE_KEYS = Object.freeze(["utterance", "graph", "draft", "focus", "pendi
 
 // A plain request, or an architecture intent, each held to its own bounds.
 export function isRequest(value) {
+  if (value?.kind === GOAL_REQUEST_KIND) return validGoalRequest(value);
   if (!exactObject(value, ["kind", "state"]) || !LIMITS.has(value.kind)) return false;
   const { graph, changes, architecture } = LIMITS.get(value.kind);
   const { state } = value;
@@ -352,6 +389,10 @@ export function judgeFramesFor(section) {
 // the request alone. An action is offered only when the graph can carry it
 // out, and a slot exists only when an action that needs it is offered.
 export function slotsFor(state) {
+  if (state.parents !== undefined) return Object.freeze({
+    part: Object.freeze([...state.offers.parts.filter(part => !state.selected.some(item => item.key === part.key)).map(part => part.key), NONE]),
+    parent: Object.freeze([...state.parents.map(parent => parent.id), NONE]),
+  });
   const nodes = state.graph.regions.map(region => region.id);
   const canEdge = nodes.length >= 2;
   const canPart = state.offers.parts.length > 0;
