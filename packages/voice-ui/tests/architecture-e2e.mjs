@@ -293,13 +293,22 @@ const labelVisible = label => page.evaluate(label => {
 const paintedGoal = (container, records, edge = null) => page.evaluate(({ container, records, edge }) => {
   const iframe = document.querySelector("#working-surface iframe[data-package=semantic-map]");
   const doc = iframe.contentDocument;
+  const visible = node => {
+    if (!node) return false;
+    for (let parent = node; parent !== null; parent = parent.parentElement) {
+      const style = iframe.contentWindow.getComputedStyle(parent);
+      if (style.display === "none" || style.visibility === "hidden" || Number(style.opacity) === 0) return false;
+    }
+    return true;
+  };
   const box = node => {
     if (!node) return null;
     const r = node.getBoundingClientRect(), style = iframe.contentWindow.getComputedStyle(node);
     return [r.left, r.top, r.width, r.height].every(Number.isFinite)
-      && r.width > 0 && r.height > 0 && style.display !== "none" && style.visibility !== "hidden"
+      && r.width > 0 && r.height > 0 && visible(node) && style.display !== "none" && style.visibility !== "hidden"
       ? [r.left, r.top, r.width, r.height] : null;
   };
+  const uniquePrimitive = geometry => geometry.length === 1 ? geometry[0] : null;
   const shape = (label, boundary = false) => {
     const labels = [...doc.querySelectorAll("svg text, svg foreignObject")].filter(node => node.textContent.trim() === label);
     if (labels.length !== 1) return null;
@@ -316,13 +325,16 @@ const paintedGoal = (container, records, edge = null) => page.evaluate(({ contai
           return Number(style.opacity) > 0 && ((style.fill !== "none" && Number(style.fillOpacity) > 0)
             || (style.stroke !== "none" && Number(style.strokeOpacity) > 0));
         });
-        return geometry.length === 1 ? box(geometry[0]) : null;
+        const primitive = uniquePrimitive(geometry);
+        return primitive instanceof iframe.contentWindow.SVGGeometryElement
+          && box(primitive) !== null ? primitive : null;
       }
     }
     return null;
   };
-  const frame = shape(container.label, true);
-  const shapes = records.map(record => ({ id: record.id, rawLabel: record.label, bounds: shape(record.label) }));
+  const frame = box(shape(container.label, true));
+  const primitives = records.map(record => shape(record.label));
+  const shapes = records.map((record, i) => ({ id: record.id, rawLabel: record.label, bounds: box(primitives[i]) }));
   const inside = bounds => frame !== null && bounds !== null && bounds[0] >= frame[0] && bounds[1] >= frame[1]
     && bounds[0] + bounds[2] <= frame[0] + frame[2] && bounds[1] + bounds[3] <= frame[1] + frame[3];
   const overlap = (a, b) => a !== null && b !== null && a[0] < b[0] + b[2] && b[0] < a[0] + a[2]
@@ -331,11 +343,50 @@ const paintedGoal = (container, records, edge = null) => page.evaluate(({ contai
   // paints the stroke and this filled marker in the same cell group. Match
   // actual screen-space terminals to the unique painted node shapes. This is
   // not an inference from the logical relation or a label clip.
-  const boundary = (p, b, padding) => b !== null && p !== null
-    && p[0] >= b[0] - padding && p[0] <= b[0] + b[2] + padding
-    && p[1] >= b[1] - padding && p[1] <= b[1] + b[3] + padding
-    && Math.min(Math.abs(p[0] - b[0]), Math.abs(p[0] - b[0] - b[2]),
-      Math.abs(p[1] - b[1]), Math.abs(p[1] - b[1] - b[3])) <= padding;
+  // Actual points on the painted perimeter give an upper bound on its nearest
+  // distance, including multiple subpaths: never connect them with fake chords.
+  const outline = (node, p, isVisible = visible(node)) => {
+    if (!node || !isVisible || !Array.isArray(p) || p.length !== 2 || !p.every(Number.isFinite)) return null;
+    try {
+      const matrix = node.getScreenCTM(), length = node.getTotalLength();
+      const ctm = matrix && [matrix.a, matrix.b, matrix.c, matrix.d, matrix.e, matrix.f];
+      if (!ctm || !ctm.every(Number.isFinite) || matrix.a * matrix.d - matrix.b * matrix.c === 0
+        || !Number.isFinite(length) || length <= 0) return null;
+      const n = Math.ceil(length * Math.hypot(matrix.a, matrix.b, matrix.c, matrix.d) / 0.5);
+      if (!Number.isSafeInteger(n) || n < 1 || n > 32768) return null;
+      let distanceUpper = Infinity;
+      for (let i = 0; i <= n; i++) {
+        const point = node.getPointAtLength(length * i / n);
+        const x = matrix.a * point.x + matrix.c * point.y + matrix.e;
+        const y = matrix.b * point.x + matrix.d * point.y + matrix.f;
+        if (![x, y].every(Number.isFinite)) return null;
+        distanceUpper = Math.min(distanceUpper, Math.hypot(x - p[0], y - p[1]));
+      }
+      return { tag: node.localName, ctm, samples: n + 1, distanceUpper };
+    } catch { return null; }
+  };
+  // Controlled refusal inputs exercise the very same measurement path, not
+  // producer geometry or evidence that a real rendered node was measured.
+  const identity = { a: 1, b: 0, c: 0, d: 1, e: 0, f: 0 };
+  const probe = { localName: "controlled", getScreenCTM: () => identity,
+    getTotalLength: () => 1, getPointAtLength: length => ({ x: length, y: 0 }) };
+  const hidden = doc.createElementNS("http://www.w3.org/2000/svg", "g");
+  const hiddenChild = doc.createElementNS("http://www.w3.org/2000/svg", "rect");
+  hidden.style.display = "none";
+  hidden.appendChild(hiddenChild); // Detached controlled tree, not the actual graph.
+  const refused = [null,
+    { ...probe, getScreenCTM: () => null },
+    { ...probe, getScreenCTM: () => ({ ...identity, a: NaN }) },
+    { ...probe, getScreenCTM: () => ({ ...identity, d: 0 }) },
+    { ...probe, getTotalLength: () => 0 },
+    { ...probe, getTotalLength: () => Infinity },
+    { ...probe, getTotalLength: () => 32768 },
+    { ...probe, getPointAtLength: () => ({ x: NaN, y: 0 }) }];
+  if (outline(probe, [0, 0], true)?.distanceUpper !== 0
+    || refused.some(node => outline(node, [0, 0], true) !== null)
+    || outline(probe, [0, 0], false) !== null || visible(hiddenChild)
+    || uniquePrimitive([]) !== null || uniquePrimitive([probe, probe]) !== null)
+    throw new Error("actual-outline controlled refusal failed");
   const arrows = [];
   const observedEdges = [];
   if (edge !== null) for (const group of doc.querySelectorAll("svg g")) {
@@ -373,8 +424,8 @@ const paintedGoal = (container, records, edge = null) => page.evaluate(({ contai
     if (!(Number.isFinite(length) && length > 0 && Number.isFinite(markerLength) && markerLength > 0)) continue;
     const start = point(line, 0), end = point(line, length), tip = point(marker, 0);
     const beforeEnd = point(line, Math.max(0, length - 1));
-    const from = shapes.find(item => item.id === edge.from)?.bounds ?? null;
-    const to = shapes.find(item => item.id === edge.to)?.bounds ?? null;
+    const from = outline(primitives[records.findIndex(item => item.id === edge.from)], start);
+    const to = outline(primitives[records.findIndex(item => item.id === edge.to)], tip);
     const matrix = marker.getScreenCTM();
     const scale = matrix === null ? NaN : Math.max(Math.hypot(matrix.a, matrix.b), Math.hypot(matrix.c, matrix.d));
     const stroke = Number.parseFloat(iframe.contentWindow.getComputedStyle(marker).strokeWidth) * scale;
@@ -384,8 +435,10 @@ const paintedGoal = (container, records, edge = null) => page.evaluate(({ contai
     const directed = end !== null && tip !== null && beforeEnd !== null
       && (end[0] - beforeEnd[0]) * (tip[0] - end[0]) + (end[1] - beforeEnd[1]) * (tip[1] - end[1]) > 0;
     observedEdges.push({ start, end, tip, stroke, padding, lineLength: length, markerLength,
-      fromConnected: boundary(start, from, padding), toConnected: boundary(tip, to, padding), directed });
-    if (boundary(start, from, padding) && boundary(tip, to, padding) && directed)
+      fromOutline: from, toOutline: to,
+      fromConnected: from !== null && from.distanceUpper <= padding,
+      toConnected: to !== null && to.distanceUpper <= padding, directed });
+    if (from !== null && to !== null && from.distanceUpper <= padding && to.distanceUpper <= padding && directed)
       arrows.push({ start, end, tip, stroke, padding, lineLength: length, markerLength });
   }
   return { association: "pinned-maxgraph-shape-before-unique-raw-label",
