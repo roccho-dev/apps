@@ -35,6 +35,20 @@ const REFERENCE_NOTE = " An architecture conversation entry may carry reference:
 // edge as, or null: an architecture intent passes it, and a plain request,
 // which has no snapshot, describes every edge by its two ends only.
 export function questionsFor(state, slots, context) {
+  if (state.parents !== undefined) {
+    const purposes = new Map(state.offers.parts.map(part => [part.key, part.purpose]));
+    const parents = new Map(state.parents.map(parent => [parent.id, parent]));
+    return {
+      part: {
+        instruction: "Choose one still-needed offered part to add toward the utterance's goal. selected is actual adopted history, not a goal oracle. Do not repeat it. If nothing offered is still needed, or the request is ambiguous, choose none.",
+        options: criteria(slots.part, key => key === NONE ? "no remaining offered part is clearly requested" : purposes.get(key)),
+      },
+      parent: {
+        instruction: "Which offered existing group must contain that new part? Choose none if no unique offered group is requested. Do not create or move a group.",
+        options: criteria(slots.parent, key => key === NONE ? "no unique offered parent is requested" : `${parents.get(key).label} (${key})`),
+      },
+    };
+  }
   if (context.kind === ARCHITECTURE_LOCATE_KIND) return locateQuestion(context.entity, context.evidence, slots);
   if (context.kind === ARCHITECTURE_JUDGE_KIND) return judgeQuestions(context.section, slots);
   const defined = context.kind === ARCHITECTURE_INTENT_KIND ? context.relationOf : () => null;

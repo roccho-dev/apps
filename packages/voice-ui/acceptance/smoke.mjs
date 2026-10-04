@@ -248,6 +248,59 @@ try {
   }
   process.stdout.write(JSON.stringify({ kind: "voice-ui.contextualReverseControls.v1", status: "PASS",
     artifactManifestSha256: digest, liveProviderCalls: 0, controls: reverseControls }) + "\n");
+  const goalControls = [];
+  for (const [index, mode] of ["fixture", "fixture-stop"].entries()) {
+    const home = path.join(work, `goal${index}`); mkdirSync(home);
+    const output = await runChild([path.join(root, manifest.e2e.architecture_entrypoint),
+      "--mode", mode, "--scenario", "goal-addition", formalOrigin], home);
+    assert.equal(output.code, 0, output.stderr + output.stdout);
+    const summary = output.stdout.split("\n").filter(line => line.startsWith("{"))
+      .map(JSON.parse).find(row => row.event === "summary");
+    assert.equal(summary.source, manifest.sources.apps);
+    assert.equal(summary.scenario, "goal-addition"); assert.equal(summary.mode, mode);
+    assert.equal(summary.cleanup, null); assert.equal(summary.error, null);
+    assert.deepEqual(summary.viewport, { width: 1280, height: 720 });
+    assert.deepEqual(summary.verdicts, []);
+    assert.equal(summary.actions.goal, 1); assert.equal(summary.actions.send, 1);
+    assert.equal(summary.actions.new, 1); assert.equal(summary.actions.apply, 0);
+    assert.equal(summary.actions.reload, 0); assert.equal(summary.actions.discard, 0);
+    const proof = summary.goalEvidence;
+    assert.equal(proof.setupRequests, 1); assert.equal(proof.noSave, true);
+    assert.equal(proof.providerIdentity, "UNKNOWN"); assert.equal(proof.acceptedIntegration, "NOT_PROVEN");
+    if (mode === "fixture") {
+      assert.deepEqual(summary.reached, ["open", "prepare", "goal", "goal-undo"]);
+      assert.deepEqual(summary.notRun, []);
+      assert.equal(summary.actions.undo, 1); assert.equal(summary.requests, 3);
+      assert.equal(proof.requests, 2); assert.equal(proof.reason, "no-room-for-part");
+      assert.equal(proof.goalMet, true); assert.equal(proof.undoRestored, true);
+      assert.deepEqual(proof.labelsVisible, [true, true]); assert.equal(proof.timeBudgetMet, true);
+      assert.equal(proof.painted.complete, true); assert.equal(proof.painted.contained, true);
+      assert.equal(proof.painted.nonoverlap, true);
+      assert.equal(proof.rawAdded.length, 2); assert.equal(proof.newPins.length, 2);
+      assert.deepEqual(proof.rawAdded.map(record => record.label.replace(/ [1-9]\d*$/u, "")), ["API", "DB"]);
+      assert.equal(proof.newPins.every(pin => proof.rawAdded.some(record => record.id === pin.regionId)), true);
+      assert.ok(Number.isFinite(proof.elapsed.productMs) && proof.elapsed.productMs >= 0);
+      assert.ok(Number.isFinite(proof.elapsed.baselineMs) && proof.elapsed.baselineMs >= 0);
+      assert.equal(proof.elapsed.productScope, "HTTP+planning+draw");
+      assert.equal(proof.elapsed.baselineScope, "literal-selection-CPU-only");
+      assert.equal(proof.internalModelExecutions, "UNKNOWN"); assert.equal(proof.providerCost, "UNKNOWN");
+      assert.equal(proof.baselineMet, true); assert.equal(proof.addedValue, "NOT_PROVEN");
+      assert.deepEqual(proof.selected.map(item => item.key), ["api", "db"]);
+      assert.deepEqual(proof.requestHistories.map(history => history.map(item => item.key)), [[], ["api"]]);
+      assert.equal(proof.exchanges.every(exchange => exchange.status === 200 && exchange.answers !== null), true);
+    } else {
+      assert.deepEqual(summary.reached, ["open", "prepare", "goal"]);
+      assert.deepEqual(summary.notRun, ["goal-undo"]);
+      assert.equal(summary.actions.undo, 0); assert.equal(summary.requests, 2);
+      assert.equal(proof.requests, 1); assert.equal(proof.reason, "judge-failed");
+      assert.equal(proof.goalMet, false); assert.equal(proof.undoRestored, false);
+      assert.deepEqual(proof.selected, []); assert.equal(proof.graphBefore, proof.graphAfter);
+      assert.equal(proof.exchanges[0].status, 502);
+    }
+    goalControls.push({ mode, source: summary.source, actions: summary.actions, reached: summary.reached, proof });
+  }
+  process.stdout.write(JSON.stringify({ kind: "voice-ui.goalAdditionControls.v1", status: "PASS",
+    artifactManifestSha256: digest, liveProviderCalls: 0, controls: goalControls }) + "\n");
   process.stdout.write(JSON.stringify({ kind: "voice-ui.architectureShapeCheck.v1", status: "PASS",
     scope: "artifact-shape/controlled-mechanics", artifactManifestSha256: digest, source: manifest.sources.architecture,
     entry: manifest.e2e.architecture_entrypoint, liveProviderCalls: 0, acceptedIntegration: "NOT_PROVEN" }) + "\n");

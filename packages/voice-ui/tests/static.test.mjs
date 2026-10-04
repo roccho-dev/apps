@@ -238,6 +238,21 @@ test("production executables carry only the current protocol, and no starter or 
   assert.deepEqual(found, []);
 });
 
+// Identifier-shaped ASCII words match whole identifier lexemes, not the
+// middle of technical identifiers. This is lexical, not business semantics.
+const containsProductWord = (source, word) => /^[A-Za-z_$][A-Za-z0-9_$]*$/u.test(word)
+  ? new RegExp(`(^|[^A-Za-z0-9_$])${word.replace(/[.*+?^${}()|[\]\\]/gu, "\\$&")}($|[^A-Za-z0-9_$])`, "u").test(source)
+  : source.includes(word);
+
+test("product word predicate rejects standalone literals without matching compound technical identifiers", () => {
+  for (const source of ['"API"', '"API server"', '// API', 'const API = 1']) assert.equal(containsProductWord(source, "API"), true);
+  for (const source of ['JEV_API_KEY', 'getAPI', 'APIserver', '$API', 'API2']) assert.equal(containsProductWord(source, "API"), false);
+  assert.equal(containsProductWord('"$x"', '$x'), true);
+  assert.equal(containsProductWord('a$x', '$x'), false);
+  assert.equal(containsProductWord('x工程y', '工程'), true);
+  assert.equal(containsProductWord('xpart.namey', 'part.name'), true);
+});
+
 test("no product word from the DataBundle is written into executable code", () => {
   const bundle = JSON.parse(read("web/data/bundle.v1.json"));
   const words = [
@@ -248,7 +263,7 @@ test("no product word from the DataBundle is written into executable code", () =
       ...diagram.steps.flatMap(step => [step.ref, step.label]),
     ]),
   ];
-  const found = production.flatMap(file => words.filter(word => read(file).includes(word)).map(word => `${file}: ${word}`));
+  const found = production.flatMap(file => words.filter(word => containsProductWord(read(file), word)).map(word => `${file}: ${word}`));
   assert.deepEqual(found, []);
 });
 
