@@ -1229,6 +1229,12 @@ const sourceScenario = async () => {
     edgesTouchFocus: request !== null && request.candidates.filter(item => item.action === "add-edge")
       .every(item => focusRegions.includes(item.from) || focusRegions.includes(item.to)),
     ineligible, chosen, predrawn: chosen === null ? null : drawn(request, chosen.from, chosen.to),
+    // Each manifest pair touching the focus: drawn either way, and offered as a candidate either way.
+    manifestPairs: request === null ? [] : MANIFEST.candidates
+      .filter(pair => focusRegions.includes(`arch-${pair.from}`) || focusRegions.includes(`arch-${pair.to}`))
+      .map(pair => { const from = `arch-${pair.from}`, to = `arch-${pair.to}`;
+        return { pair: pair.id, drawn: drawn(request, from, to),
+          offered: request.candidates.some(item => item.action === "add-edge" && (item.from === from && item.to === to || item.from === to && item.to === from)) }; }),
     reason: attempt.reason, requests: attempt.requests, exchanges: sent.map(sanitized),
     newEdges: newEdges.map(({ id, from, to, kind }) => ({ id, from, to, kind })), sceneEndpoints: null,
     newEdgeDrawn: chosen !== null && newEdges.length === 1 && newEdges[0].from === chosen.from && newEdges[0].to === chosen.to
