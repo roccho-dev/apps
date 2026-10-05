@@ -579,12 +579,17 @@ function grownSlot(records, current, parent, regionId, size) {
     const grown = [box[0], box[1], Math.max(box[2], inner[0] + inner[2] + BAND_PADDING - box[0]),
       Math.max(box[3], inner[1] + inner[3] + BAND_PADDING - box[1])];
     if (grown[2] === box[2] && grown[3] === box[3]) break;
-    if (childrenOf(parentOf.get(node)).some(record => record.id !== node && overlapping(grown, current.bounds[record.id]))) return null;
+    if (childrenOf(parentOf.get(node)).some(record => record.id !== node && crowding(grown, current.bounds[record.id]))) return null;
     ancestors.push({ regionId: node, bounds: grown });
     inner = grown;
   }
   return { bounds, ancestors };
 }
+
+// Painted siblings keep at least the band padding between them: a box that
+// reaches into another box grown by that padding is too close, touching is not.
+const crowding = (box, other) => overlapping(box, [other[0] - BAND_PADDING, other[1] - BAND_PADDING,
+  other[2] + 2 * BAND_PADDING, other[3] + 2 * BAND_PADDING]);
 
 // Keep raw kernel legality and painted placement separate. Preview is pure:
 // the provider owns candidate dimensions; only our existing spacing is used.
@@ -620,17 +625,30 @@ function additionSlot(working, parent, part, reserved, protocol, grows = false) 
       const parentOf = new Map(records.filter(record => record.type === "region").map(record => [record.id, record.parent]));
       if (!pins.every(item => JSON.stringify(pinned.bounds[item.regionId]) === JSON.stringify(item.bounds))
         || !pins.every(item => parentOf.get(item.regionId) === null || inside(pinned.bounds[parentOf.get(item.regionId)], item.bounds))
-        || siblings.some(record => overlapping(pinned.bounds[regionId], pinned.bounds[record.id]))) return null;
+        || siblings.some(record => crowding(pinned.bounds[regionId], pinned.bounds[record.id]))) return null;
       return { operation, bounds: grown.bounds, ancestors: grown.ancestors };
     }
-    for (let y = frame[1] + BAND_LABEL_ROOM; y + size[3] <= frame[1] + frame[3] - BAND_PADDING; y += size[3] + STEP_GAP) {
-      for (let x = frame[0] + BAND_PADDING; x + size[2] <= frame[0] + frame[2] - BAND_PADDING; x += size[2] + STEP_GAP) {
+    // The existing grid first; then, off the grid, one band padding after an
+    // actual sibling, so a part may sit between siblings the grid misses.
+    const axis = (first, end, step, after) => {
+      const grid = [];
+      for (let at = first; at <= end; at += step) grid.push(at);
+      const off = after.filter(at => at >= first && at <= end && !grid.includes(at)).sort((a, b) => a - b);
+      return [...grid, ...new Set(off)];
+    };
+    const boxes = siblings.map(record => current.bounds[record.id]);
+    const ys = axis(frame[1] + BAND_LABEL_ROOM, frame[1] + frame[3] - BAND_PADDING - size[3], size[3] + STEP_GAP,
+      boxes.map(box => box[1] + box[3] + BAND_PADDING));
+    const xs = axis(frame[0] + BAND_PADDING, frame[0] + frame[2] - BAND_PADDING - size[2], size[2] + STEP_GAP,
+      boxes.map(box => box[0] + box[2] + BAND_PADDING));
+    for (const y of ys) {
+      for (const x of xs) {
         const bounds = [x, y, size[2], size[3]];
-        if (siblings.some(record => overlapping(bounds, current.bounds[record.id]))) continue;
+        if (boxes.some(box => crowding(bounds, box))) continue;
         const pinned = protocol.layoutBoundsFor([...records, { type: "layout", regionId, pin: "hard", bounds }], view);
         if (![parent.id, regionId, ...siblings.map(record => record.id)].every(id => validBox(pinned.bounds[id]))
           || !inside(pinned.bounds[parent.id], pinned.bounds[regionId])
-          || siblings.some(record => overlapping(pinned.bounds[regionId], pinned.bounds[record.id]))) return null;
+          || siblings.some(record => crowding(pinned.bounds[regionId], pinned.bounds[record.id]))) return null;
         return { operation, bounds, ancestors: [] };
       }
     }
