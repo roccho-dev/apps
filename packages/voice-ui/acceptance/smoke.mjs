@@ -313,7 +313,8 @@ try {
       assert.equal(camera.groupPaint.contained && camera.groupPaint.nonoverlap && camera.groupPaint.complete, true);
       assert.equal(camera.edges.length, 1); assert.equal(camera.edges[0].paint.edge.matches.length, 1);
       assert.equal(camera.edges[0].reverse.edge.complete, false);
-      assert.equal(camera.edges[0].disconnected === null || camera.edges[0].disconnected.edge.complete === false, true);
+      assert.notEqual(camera.edges[0].disconnected, null, "a visible disconnected counter-paint is measured");
+      assert.equal(camera.edges[0].disconnected.edge.complete, false);
       assert.equal(camera.recordsUnchanged && camera.storedUnchanged && camera.overviewRestored, true);
       assert.equal(proof.nest.cameraMet, true);
     }

@@ -939,7 +939,7 @@ const goalScenario = async () => {
       && camera.recordsUnchanged && camera.storedUnchanged && camera.groupOpen && camera.childrenRepresented.every(Boolean)
       && camera.labelsVisible.every(Boolean) && groupMet(camera.groupPaint) && camera.edges.length === expectedEdges.length
       && camera.edges.every(edge => edge.paint.edge.complete && edge.paint.edge.matches.length === 1
-        && (edge.reverse === null || !edge.reverse.edge.complete) && (edge.disconnected === null || !edge.disconnected.edge.complete))
+        && edge.reverse !== null && !edge.reverse.edge.complete && edge.disconnected !== null && !edge.disconnected.edge.complete)
       && camera.overviewRestored;
   }
   const labelsMet = labelsVisible.length === expected.length && (NEST
