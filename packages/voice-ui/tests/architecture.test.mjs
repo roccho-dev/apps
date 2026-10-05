@@ -910,7 +910,7 @@ test("a Goal after a source focus in the same session is scoped to it, asks, and
       requests.push(request);
       // A judgment port that tries to rewrite the held scope must not succeed.
       for (const mutate of [() => request.state.scope.focus.push("src-log-mjs"), () => { request.state.scope.source.commit = "f".repeat(40); }]) {
-        try { mutate(); attempts.push("mutated"); } catch (error) { attempts.push(error instanceof TypeError ? "refused" : "other"); }
+        try { mutate(); attempts.push("mutated"); } catch (error) { attempts.push(error?.name === "TypeError" ? "refused" : "other"); }
       }
       const choice = requests.length === 1
         ? request.state.candidates.find(candidate => candidate.action === "add-edge" && candidate.from === from && candidate.to === to).id : NONE;
