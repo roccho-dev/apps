@@ -401,6 +401,8 @@ try {
     assert.equal(f1.proof.evaluation.semanticGrade, "PASS"); assert.equal(f1.proof.evaluation.paintGrade, "PASS");
     assert.equal(f1.proof.fairBaseline.craftEqual, true); assert.equal(f1.proof.undoRestored, true);
     const crossing = f1.proof.nest.camera.edges[0];
+    assert.deepEqual(f1.proof.nest.camera.groupLabels.filter((visible, index) => f1.proof.rawAdded[index].parent === f1.proof.selected[0].region), [true],
+      "the nested child label shows on the group camera");
     assert.equal(crossing.met, true); assert.equal(crossing.frame.inView, true);
     assert.equal(crossing.frame.edge.matches.length, 1); assert.equal(crossing.frame.reverse.complete, false);
     assert.notEqual(crossing.frame.disconnected, null); assert.equal(crossing.frame.disconnected.complete, false);

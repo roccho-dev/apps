@@ -204,10 +204,11 @@ part whose shape is in view do not connect. A nested Goal tries the group camera
 then the existing camera on the arrow from end, then its to end; frames are never
 combined. The group camera still proves separately that the added group opens,
 its children are represented and painted inside it; an added label must show on
-the group camera or on its own existing camera, else the Goal is NOT_MET.
+the group camera or on its own existing camera, else the Goal is NOT_MET; a child of the added
+group must show its label on the group camera itself, never on its own camera.
 Previously the nested camera only measured parts whose labels were in view, so an
 arrow from inside an added group to a seed part outside it (the seen r31-f1
-regression) could not be graded. Matcher, padding and negatives are unchanged;
+regression) could not be graded; that seen regression is not a fresh D case. Matcher, padding and negatives are unchanged;
 these are controlled checks, not Jev quality.
 
 The smaller-only-fit fixture uses the same 220×160 parent and 40×40 other group:

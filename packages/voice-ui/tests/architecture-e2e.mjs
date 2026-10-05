@@ -1062,13 +1062,15 @@ const goalScenario = async () => {
       await page.locator("#camera-part").selectOption(""); await settle();
       const back = await screen(); last = back;
       camera.overviewRestored = back.camera === "" && JSON.stringify(back.graph?.view) === JSON.stringify(after.graph.view)
-        && JSON.stringify(back.graph?.records) === JSON.stringify(after.graph.records);
+        && JSON.stringify(back.graph?.records) === JSON.stringify(after.graph.records)
+        && back.stored === after.stored && back.root === after.root;
     }
     nest = { overview, camera };
     nest.cameraMet = camera !== null && camera.state === "camera" && camera.part === nestedGroup.id && camera.view !== null
       && (camera.confirmedView === null ? after.confirmedGraph === null : JSON.stringify(camera.confirmedView) === JSON.stringify(camera.view))
       && camera.recordsUnchanged && camera.storedUnchanged && camera.groupOpen && camera.childrenRepresented.every(Boolean)
       && camera.labelsVisible.every(Boolean) && groupMet(camera.groupPaint) && camera.edges.length === expectedEdges.length
+      && camera.groupLabels.every((visible, index) => !nestedChildren.includes(added[index]) || visible)
       && camera.edges.every(edge => edge.met)
       && camera.overviewRestored;
   }
