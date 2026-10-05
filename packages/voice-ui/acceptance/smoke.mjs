@@ -362,6 +362,12 @@ try {
       data: { ...evaluationBase, id: "connect-only", order: "normal", goal: "Existing helperからHelper rightへ矢印をつないで",
         expected: { kind: "change", regions: [], flows: [{ from: { baselineRegion: "existing-helper" }, to: { baselineRegion: "helper-right" } }] } } },
     { id: "first-weak", mode: "fixture-weak", scenario: "goal-flow", data: { ...evaluationBase, id: "first-weak", order: "normal" } },
+    // r31-f1-nest-out (seen when its keyless preflight exposed the observer
+    // gap): an arrow from a part inside an added group to a seed part outside.
+    { id: "seen-f1", mode: "fixture-baseline", scenario: "goal-nest",
+      data: { version: "voice-ui.goal-evaluation.v1", id: "r31-f1-nest-out", goal: "OCIにグループを作り、そのグループの中にDBを置いて、DBからExisting helperへ矢印をつないで", order: "normal",
+        expected: { kind: "change", regions: [{ partKey: "group", parentLabel: "OCI" }, { partKey: "db", parent: { addedPart: "group" } }],
+          flows: [{ from: { addedPart: "db" }, to: { baselineRegion: "existing-helper" } }] } } },
   ];
   const regressions = {};
   for (const [index, entry] of regressionCases.entries()) {
@@ -388,6 +394,14 @@ try {
     assert.notEqual(weak.code, 0); assert.equal(weak.proof.reason, "not-confident"); assert.equal(weak.proof.requests, 1);
     assert.equal(weak.proof.goalEffect, "none"); assert.equal(weak.proof.graphBefore, weak.proof.graphAfter);
     assert.deepEqual(weak.summary.notRun, ["goal-undo"]); assert.equal(weak.summary.actions.undo, 0);
+    const f1 = regressions["seen-f1"];
+    assert.equal(f1.code, 0, JSON.stringify(f1.summary.verdicts));
+    assert.equal(f1.proof.evaluation.semanticGrade, "PASS"); assert.equal(f1.proof.evaluation.paintGrade, "PASS");
+    assert.equal(f1.proof.fairBaseline.craftEqual, true); assert.equal(f1.proof.undoRestored, true);
+    const crossing = f1.proof.nest.camera.edges[0];
+    assert.equal(crossing.met, true); assert.equal(crossing.frame.inView, true);
+    assert.equal(crossing.frame.edge.matches.length, 1); assert.equal(crossing.frame.reverse.complete, false);
+    assert.notEqual(crossing.frame.disconnected, null); assert.equal(crossing.frame.disconnected.complete, false);
   }
   process.stdout.write(JSON.stringify({ kind: "voice-ui.goalRegressionControls.v1", status: "PASS", liveProviderCalls: 0,
     scope: "seen regressions and controlled negatives; not Jev quality", artifactManifestSha256: digest,
