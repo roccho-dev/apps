@@ -886,11 +886,72 @@ const goalScenario = async () => {
       reverse: reverseApplicable ? await paintedGoal(container, endpoints, { from: edge.to, to: edge.from }) : null,
       disconnected: other ? await paintedGoal(container, endpoints, { from: edge.from, to: other.id }) : null };
   }));
-  const labelsMet = labelsVisible.length === expected.length && labelsVisible.every(Boolean);
-  const edgePaintMet = edgePaints.every(proof => proof.edge.complete)
+  // goal-nest only. The default overview is read as the provider scene reports
+  // it (its own open groups and represented regions): a small added group may
+  // be closed there, which is recorded and never graded as painted. The
+  // existing camera control then opens that group, and the nested child, its
+  // label and each expected arrow are proven on that actual frame.
+  const sceneOf = () => page.evaluate(() => {
+    const scene = document.querySelector("#working-surface iframe[data-package=semantic-map]")?.contentWindow?.semanticMapApp?.snapshot().scene;
+    return scene ? { detailIds: [...scene.detailIds], regionIds: [...scene.regionIds] } : null;
+  });
+  const groupMet = group => group.complete && group.contained && group.nonoverlap;
+  const expectedPair = (from, to) => expectedEdges.some(expected => expected.from === from && expected.to === to);
+  const nestedGroup = NEST ? added.find(record => record.kind === "group" && added.some(child => child.parent === record.id)) ?? null : null;
+  const nestedChildren = nestedGroup === null ? [] : added.filter(record => record.parent === nestedGroup.id);
+  let nest = null;
+  if (NEST) {
+    const scene = await sceneOf();
+    const overview = { view: after.graph.view, groupOpen: nestedGroup !== null && scene?.detailIds.includes(nestedGroup.id) === true,
+      childrenRepresented: nestedChildren.map(record => scene?.regionIds.includes(record.id) === true),
+      childrenPainted: paintedGroups.find(group => group.container.id === nestedGroup?.id)?.shapes.map(shape => shape.bounds !== null) ?? [] };
+    overview.closed = nestedGroup !== null && scene !== null && !overview.groupOpen
+      && overview.childrenRepresented.every(value => !value) && overview.childrenPainted.every(value => !value);
+    let camera = null;
+    if (nestedGroup !== null) {
+      await page.locator("#camera-part").selectOption(nestedGroup.id); await settle();
+      const opened = await screen(); const openedScene = await sceneOf();
+      const endpoints = after.graph.records.filter(record => record.type === "region" && record.parent !== null && record.kind !== "group");
+      const shownFlags = await Promise.all(endpoints.map(record => labelVisible(record.label)));
+      const shown = endpoints.filter((record, index) => shownFlags[index]);
+      camera = { part: opened.camera, state: opened.state, status: opened.status, view: opened.graph?.view ?? null,
+        confirmedView: opened.confirmedGraph?.view ?? null,
+        recordsUnchanged: JSON.stringify(opened.graph?.records) === JSON.stringify(after.graph.records),
+        storedUnchanged: opened.stored === after.stored && opened.root === after.root,
+        groupOpen: openedScene?.detailIds.includes(nestedGroup.id) === true,
+        childrenRepresented: nestedChildren.map(record => openedScene?.regionIds.includes(record.id) === true),
+        labelsVisible: await Promise.all(added.map(record => labelVisible(record.label))),
+        groupPaint: await paintedGoal(nestedGroup, after.graph.records.filter(record => record.type === "region" && record.parent === nestedGroup.id)),
+        edges: await Promise.all(expectedEdges.map(async edge => {
+          const other = shown.find(record => record.id !== edge.from && record.id !== edge.to && !expectedPair(edge.from, record.id));
+          return { from: edge.from, to: edge.to, paint: await paintedGoal(container, shown, edge),
+            reverse: expectedPair(edge.to, edge.from) ? null : await paintedGoal(container, shown, { from: edge.to, to: edge.from }),
+            disconnected: other ? await paintedGoal(container, shown, { from: edge.from, to: other.id }) : null };
+        })) };
+      await page.locator("#camera-part").selectOption(""); await settle();
+      const back = await screen(); last = back;
+      camera.overviewRestored = back.camera === "" && JSON.stringify(back.graph?.view) === JSON.stringify(after.graph.view)
+        && JSON.stringify(back.graph?.records) === JSON.stringify(after.graph.records);
+    }
+    nest = { overview, camera };
+    nest.cameraMet = camera !== null && camera.state === "camera" && camera.part === nestedGroup.id && camera.view !== null
+      && (camera.confirmedView === null ? after.confirmedGraph === null : JSON.stringify(camera.confirmedView) === JSON.stringify(camera.view))
+      && camera.recordsUnchanged && camera.storedUnchanged && camera.groupOpen && camera.childrenRepresented.every(Boolean)
+      && camera.labelsVisible.every(Boolean) && groupMet(camera.groupPaint) && camera.edges.length === expectedEdges.length
+      && camera.edges.every(edge => edge.paint.edge.complete && edge.paint.edge.matches.length === 1
+        && (edge.reverse === null || !edge.reverse.edge.complete) && (edge.disconnected === null || !edge.disconnected.edge.complete))
+      && camera.overviewRestored;
+  }
+  const labelsMet = labelsVisible.length === expected.length && (NEST
+    ? nest.cameraMet && labelsVisible.every((visible, index) => visible || nest.overview.closed && nestedChildren.includes(added[index]))
+    : labelsVisible.every(Boolean));
+  const groupsMet = NEST
+    ? nest.cameraMet && paintedGroups.every(group => group.container.id === nestedGroup?.id ? nest.overview.closed || groupMet(group) : groupMet(group))
+    : paintedGroups.every(groupMet);
+  const edgePaintMet = NEST ? nest.cameraMet : edgePaints.every(proof => proof.edge.complete)
     && edgeCounterPaints.every(proof => (!proof.reverseApplicable || !proof.reverse.edge.complete)
       && (!proof.disconnectedApplicable || !proof.disconnected.edge.complete));
-  const paintMet = labelsMet && paintedGroups.every(group => group.complete && group.contained && group.nonoverlap) && edgePaintMet;
+  const paintMet = labelsMet && groupsMet && edgePaintMet;
   const digest = value => createHash("sha256").update(JSON.stringify(value)).digest("hex");
   // Independent public-information baseline: literal catalogue/parent name
   // matching. No gold remainder or baseline decision goes to the product.
@@ -909,7 +970,7 @@ const goalScenario = async () => {
     firstNone, baselinePreserved, grownPins: grown.map(record => record.regionId), semanticGrade: "NOT_PROVEN", paintGrade: "NOT_PROVEN" },
     preparationDiagram: seedChoice, preparationSignature: seedActual,
     selected: attempt.selected, actual, rawAdded: added.map(({ id, label, kind, parent }) => ({ id, label, kind, parent })),
-    painted, paintedGroups, edgePaints, edgeCounterPaints, reversedPaint, disconnectedPaint, newPins, pinsExact, newEdges, labelsVisible, baseline, baselineMet: expectedEdges.length === 0 && signature(baseline) === signature(expected),
+    painted, paintedGroups, edgePaints, edgeCounterPaints, reversedPaint, disconnectedPaint, nest, newPins, pinsExact, newEdges, labelsVisible, baseline, baselineMet: expectedEdges.length === 0 && signature(baseline) === signature(expected),
     timeBudgetMet: Number.isFinite(attempt.elapsedMs) && attempt.elapsedMs < 180000,
     elapsed: { productMs: attempt.elapsedMs, productScope: "HTTP+planning+draw",
       baselineMs: baselineElapsedMs, baselineScope: "literal-selection-CPU-only", baselineProviderCalls: 0 },
@@ -934,9 +995,10 @@ const goalScenario = async () => {
   need(sent.every(entry => entry.status === 200 && contract.readAnswers(entry.body?.answers, slotsOf(entry.sent)) !== null), "every Goal response is complete");
   need(["none", "no-executable-delta", "budget-requests", "budget-time"].includes(attempt.reason) && semanticMet,
     "independent expected graph is reached after a known mechanical stop, never from the stop alone");
-  need(labelsMet, "all actual added labels intersect the unchanged Working viewport");
-  need(paintedGroups.every(group => group.complete && group.contained && group.nonoverlap),
-    "actual painted children are wholly inside the painted OCI shape and do not overlap siblings");
+  need(labelsMet, NEST ? "added labels intersect the overview, but a child of an observed closed group, which the selected group camera shows"
+    : "all actual added labels intersect the unchanged Working viewport");
+  need(groupsMet, NEST ? "painted children sit inside their painted group without overlap; a closed added group is proven open on its camera"
+    : "actual painted children are wholly inside the painted OCI shape and do not overlap siblings");
   if (expectedEdges.length > 0) need(edgePaintMet,
     "each expected actual painted classic arrow connects its declared endpoints, not the reverse or another visible part");
   need(pinsExact, "each actual added child gains exactly one new layout pin and no other owner gains one, but an allowed grown ancestor");

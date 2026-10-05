@@ -301,6 +301,21 @@ try {
       assert.equal(proof.evaluation.paintGrade, "PASS");
       assert.equal(proof.rawAdded.length, 3); assert.equal(proof.newPins.length, 4);
       assert.equal(proof.newEdges.length, 1);
+      // The overview closes the small added group (provider scene state); the
+      // existing camera control opens it and proves the child and the arrow.
+      const [group, db] = proof.selected.map(item => item.region);
+      assert.equal(proof.nest.overview.closed, true); assert.deepEqual(proof.nest.overview.childrenRepresented, [false]);
+      const camera = proof.nest.camera;
+      assert.equal(camera.part, group); assert.equal(camera.state, "camera");
+      assert.equal(camera.groupOpen, true); assert.deepEqual(camera.childrenRepresented, [true]);
+      assert.deepEqual(camera.labelsVisible, [true, true, true]);
+      assert.deepEqual(camera.groupPaint.shapes.map(shape => shape.id), [db]);
+      assert.equal(camera.groupPaint.contained && camera.groupPaint.nonoverlap && camera.groupPaint.complete, true);
+      assert.equal(camera.edges.length, 1); assert.equal(camera.edges[0].paint.edge.matches.length, 1);
+      assert.equal(camera.edges[0].reverse.edge.complete, false);
+      assert.equal(camera.edges[0].disconnected === null || camera.edges[0].disconnected.edge.complete === false, true);
+      assert.equal(camera.recordsUnchanged && camera.storedUnchanged && camera.overviewRestored, true);
+      assert.equal(proof.nest.cameraMet, true);
     }
     if (entry.semantic === "NOT_MET") assert.notEqual(output.code, 0, "wrong oracle cannot turn into PASS");
     // Existing arrow FAIL remains an independent overall FAIL, not a semantic waiver.
