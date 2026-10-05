@@ -1187,6 +1187,16 @@ const sourceScenario = async () => {
   sourceEvidence = { source: SERVED_COMMIT, focus: reference?.focus ?? null, utterance: SOURCE_GOAL,
     wholeSize, goalWorkingSize: { regions: before.graph.records.filter(record => record.type === "region").length,
       relations: before.graph.records.filter(record => record.type === "relation").length },
+    // What of the actual pre-Goal Working the closed Goal v5 edge rule refuses:
+    // a repeated directed pair, or an arrow at the root or a group.
+    goalEdgeShape: (() => {
+      const regions = before.graph.records.filter(record => record.type === "region");
+      const endpoint = id => regions.some(region => region.id === id && region.parent !== null && region.kind !== "group");
+      const relations = before.graph.records.filter(record => record.type === "relation");
+      const pairs = relations.map(record => JSON.stringify([record.from, record.to]));
+      return { repeatedPairs: relations.filter((record, index) => pairs.indexOf(pairs[index]) !== index).map(record => record.id),
+        nonEndpoint: relations.filter(record => !endpoint(record.from) || !endpoint(record.to)).map(record => record.id) };
+    })(),
     scopeMatchesReference: request !== null && JSON.stringify(request.scope)
       === JSON.stringify(reference === null ? null : { source: reference.source, focus: reference.focus }),
     contextMatches: request !== null && JSON.stringify(request.context.recent)
