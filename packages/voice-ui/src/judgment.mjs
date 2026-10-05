@@ -11,8 +11,8 @@ const ACTION_WORDS = {
   [ACTION_REMOVE_EDGE]: "the utterance asks to remove one edge of the working graph",
   [ACTION_REVERSE_EDGE]: "the utterance asks to reverse the direction of one edge of the working graph",
   [ACTION_UNDO_REQUEST]: "the utterance asks to undo, take back or go back on an earlier change",
-  [ACTION_COMPOSE]: "the utterance asks for a whole diagram or chart by what it is for, rather than one edit",
-  [ACTION_ARCHITECTURE]: "the utterance asks for a diagram of how this code is built, or for more detail on one part of it",
+  [ACTION_COMPOSE]: "the utterance asks for one of the prepared diagrams in state.offers.diagrams, as a whole, by what it is for, rather than one edit",
+  [ACTION_ARCHITECTURE]: "the utterance asks for a diagram of how the code of this application, given in state.architecture, is built, or for more detail on one part of it",
   [NONE]: "the utterance asks for anything else, or for no change to the graph",
 };
 

@@ -589,7 +589,10 @@ function grownSlot(records, current, parent, regionId, size) {
 // Keep raw kernel legality and painted placement separate. Preview is pure:
 // the provider owns candidate dimensions; only our existing spacing is used.
 function additionSlot(working, parent, part, reserved, protocol, grows = false) {
-  const raw = grows ? [...parent.bounds] : freeSlot(working.records, parent);
+  // The raw bounds are only the AddRegion placeholder: when the raw grid is
+  // full, the parent box stands in, and the painted search below with the
+  // provider layout still decides whether a part fits.
+  const raw = grows ? [...parent.bounds] : (freeSlot(working.records, parent) ?? [...parent.bounds]);
   if (raw === null) return null;
   const regionId = nextPartId(working, reserved);
   const operation = { type: "AddRegion", regionId, parentId: parent.id,
