@@ -7,7 +7,7 @@
 
 export const REQUEST_KIND = "voice-ui.judge.request.v1";
 export const DECISION_KIND = "voice-ui.judge.decision.v1";
-export const GOAL_REQUEST_KIND = "voice-ui.judge.goal-local-delta.v3";
+export const GOAL_REQUEST_KIND = "voice-ui.judge.goal-local-delta.v4";
 export const GOAL_REQUEST_MAX = 8;
 // The architecture page's requests, each its own closed kind. The intent is
 // the plain request with the prepared snapshot's parts beside it, by path or
@@ -211,7 +211,11 @@ const COMMIT = /^[0-9a-f]{40}$/u;
 const validGoalRequest = value => {
   if (!exactObject(value, ["kind", "state"])) return false;
   const state = value.state;
-  if (!exactObject(state, ["utterance", "graph", "edges", "parents", "offers", "selected", "candidates"])) return false;
+  if (!exactObject(state, ["utterance", "graph", "edges", "parents", "offers", "selected", "candidates", "context"])) return false;
+  // The page's recent conversation, required and plain: no section reference,
+  // since only the architecture path reopens one from source. An earlier
+  // architecture utterance may have carried a whole snapshot's changes.
+  if (!validContext(state.context, ARCHITECTURE_CHANGES_MAX)) return false;
   if (!text(state.utterance, TEXT_MAX) || !Array.isArray(state.graph) || state.graph.length > GRAPH_MAX) return false;
   if (!state.graph.every(region => exactObject(region, ["id", "label", "parent"])
     && id(region.id) && text(region.label, LABEL_MAX) && (region.parent === null || id(region.parent)))) return false;

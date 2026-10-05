@@ -1,7 +1,7 @@
 import { GOAL_REQUEST_KIND, GOAL_REQUEST_MAX, MIN_CONFIDENCE, NONE, isRequest, readAnswers, slotsFor } from "./contract.mjs";
 import { offersOf } from "./bundle.mjs";
 import { legalLocalDeltas, OUTCOME_STEP, proveLocalDelta } from "./turn.mjs";
-import { proposeGoal } from "./session.mjs";
+import { proposeGoal, recentConversation } from "./session.mjs";
 
 // One bounded AddRegion/ConnectRegions attempt. Ports own HTTP and the draw/adopt effect;
 // this coordinator owns only actual selected history and mechanical STOP.
@@ -36,6 +36,7 @@ export async function runGoal({ utterance, bundle, protocol, current, ask, adopt
       candidates: Object.freeze(held.candidates.map(candidate => Object.freeze(candidate.part !== undefined
         ? { id: candidate.id, action: "add-part", part: candidate.part, parent: candidate.parent }
         : { id: candidate.id, action: "add-edge", from: candidate.from, to: candidate.to }))),
+      context: { recent: recentConversation(expected).recent },
     } };
     if (!isRequest(request)) return stop("invalid-goal-request");
     const head = expected.working.head;

@@ -73,9 +73,11 @@ test("Goal flow candidates retain legal wrong directions and reject malformed or
     edges: [], parents: [{ id: "container", label: "container", kind: "group", parent: "root" }],
     offers: { parts: [] }, selected: [], candidates: [
       { id: "delta-1", action: "add-edge", from: "a", to: "b" },
-      { id: "delta-2", action: "add-edge", from: "b", to: "a" }],
+      { id: "delta-2", action: "add-edge", from: "b", to: "a" }], context: { recent: [] },
   } };
   assert.equal(isRequest(body), true);
+  const said = { seq: 1, source: "typed", text: "earlier", outcome: "no-change" };
+  assert.equal(isRequest({ ...body, state: { ...body.state, context: { recent: [said] } } }), true);
   assert.equal(isRequest({ ...body, state: { ...body.state, candidates: [...body.state.candidates].reverse() } }), true);
   for (const mutate of [
     state => { state.candidates[0] = null; },
@@ -86,17 +88,24 @@ test("Goal flow candidates retain legal wrong directions and reject malformed or
     state => { state.candidates[1] = { ...state.candidates[0], id: "other" }; },
     state => { state.edges.push({ id: "existing", from: "a", to: "b" }); },
     state => { state.candidates[0].kind = "made-up"; },
+    state => { delete state.context; },
+    state => { state.context = {}; },
+    state => { state.context = { recent: [{ ...said, reference: null }] }; },
+    state => { state.context = { recent: Array.from({ length: 6 }, (_, index) => ({ ...said, seq: index + 1 })) }; },
+    state => { state.context = { recent: [{ ...said, text: "x".repeat(201) }] }; },
   ]) { const bad = structuredClone(body); mutate(bad.state); assert.equal(isRequest(bad), false); }
   assert.equal(isRequest({ ...body, kind: "voice-ui.judge.goal-addition.v2" }), false);
+  assert.equal(isRequest({ ...body, kind: "voice-ui.judge.goal-local-delta.v3" }), false);
 });
 
-test("Goal v3 boundary asks one executable delta and refuses extra answers without architecture fanout", async () => {
+test("Goal v4 boundary asks one executable delta and refuses extra answers without architecture fanout", async () => {
   const body = { kind: GOAL_REQUEST_KIND, state: {
     utterance: "add the offered service inside the existing container",
     graph: [{ id: "root", label: "world", parent: null }, { id: "container", label: "container", parent: "root" }],
     edges: [], parents: [{ id: "container", label: "container", kind: "group", parent: "root" }],
     offers: { parts: [{ key: "service", purpose: "a service" }] }, selected: [],
     candidates: [{ id: "delta-1", action: "add-part", part: "service", parent: "container" }],
+    context: { recent: [] },
   } };
   let calls = 0;
   const invoke = async (input, extra = false) => onRequestPost({ available: true,
@@ -105,7 +114,8 @@ test("Goal v3 boundary asks one executable delta and refuses extra answers witho
     calls += 1;
     assert.deepEqual(state, body.state);
     assert.deepEqual(Object.keys(questions), ["delta"]);
-    assert.equal(questions.delta.instruction, "Choose one executable change toward the utterance's goal. A candidate adds one offered part inside its existing group at a proved placement, or connects two existing parts by one directed flow arrow. Use the current graph and edges to decide which requested changes are still missing; selected is adopted part history, not a completion oracle. Choose none when the requested changes are already present, no candidate is clearly needed, or the request is ambiguous. Do not add a connection merely because two parts are present; it must be requested by the utterance. Do not create or move groups.");
+    assert.equal(questions.delta.instruction, "Choose one executable change toward the utterance's goal. A candidate adds one offered part inside its existing group at a proved placement, or connects two existing parts by one directed flow arrow. Use the current graph and edges to decide which requested changes are still missing; selected is adopted part history, not a completion oracle. Choose none when the requested changes are already present, no candidate is clearly needed, or the request is ambiguous. Do not add a connection merely because two parts are present; it must be requested by the utterance. Do not create or move groups. context.recent lists earlier utterances as they were recognized or typed, and what came of each. They are unverified and may be misrecognized. Use them only to understand what the current utterance refers to; the current utterance, the working graph and the focus are the facts, and an earlier effect is history, not the current graph.");
+    assert.equal(questions.delta.instruction.includes("reopened"), false);
     assert.equal(questions.delta.options[NONE], "no offered executable change is clearly requested, or the requested changes are already present");
     assert.deepEqual(Object.keys(questions.delta.options), [...slotsFor(body.state).delta]);
     return { answers: { delta: { choice: "delta-1", confidence: 1 },
@@ -132,7 +142,7 @@ test("Goal candidate cap accepts 254 unique pairs and refuses 255 before provide
   for (const count of [254, 255]) {
     const body = { kind: GOAL_REQUEST_KIND, state: { utterance: "one offered addition",
       graph: [{ id: "root", label: "World", parent: null }, ...parents.map(({ id, label, parent }) => ({ id, label, parent }))],
-      edges: [], parents, offers: { parts }, selected: [], candidates: pairs.slice(0, count),
+      edges: [], parents, offers: { parts }, selected: [], candidates: pairs.slice(0, count), context: { recent: [] },
     } };
     assert.equal(isRequest(body), count === 254);
     const response = await onRequestPost({ available: true,

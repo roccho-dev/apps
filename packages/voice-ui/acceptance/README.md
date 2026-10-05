@@ -38,15 +38,15 @@ after production freeze; the checker generates neither.
 This slice changes only the existing checker, smoke controls and this document.
 Product/provider/schema/public data/pins remain unchanged. The W-owned prior
 diagnostic preimage is retained separately; extra raw SVG diagnostics are not
-new quality evidence. Current missing classic/perimeter paint and overall
-boundary/flake failure remain unmet producer dependencies until their own exact
-repair and composed proof. These source/controlled checks do not authorize real
+new quality evidence. At that point classic/perimeter paint and the overall
+boundary/flake check were unmet producer dependencies; the later UI 8a pin repaired
+them and same-head CI passed (apps#59). These source/controlled checks do not authorize real
 Jev, SOPS, display replacement or any C–F actual trial. Actual selection,
 generalization and added value remain NOT_PROVEN/NOT_RUN until separately
 registered first attempts; literal Add-only baseline is not a fair Connect
 baseline. Internal model execution/time/cost are UNKNOWN.
 
-## Local mixed Goal Choice v3
+## Local mixed Goal Choice v4
 
 Goal requests choose one request-local executable change: AddRegion/new-child
 PinRegions at a proved placement, or the existing directed flow ConnectRegions
@@ -56,7 +56,12 @@ direction edges, but keeps legal wrong directions and endpoints. It never filter
 by the Goal's expected answer. Latest-state proof binds all records, pins, bundle,
 reserved IDs and actual adopted history; adoption uses the original held effect,
 not a replan. Zero candidates (`no-executable-delta`) and more than 254 candidates
-stop before asking. Goal v3 rejects older Goal kinds; ordinary Send v1 is unchanged.
+stop before asking. Goal v4 also requires the page's recent conversation as
+`context`, in the same bounded plain shape ordinary Send uses (at most five
+earlier utterances of at most 200 characters; effects bounded like architecture
+utterances). It carries no section reference: the Goal path does not reopen
+source, so a Goal claims no source understanding. Goal v4 rejects older Goal
+kinds; ordinary Send v1 is unchanged.
 
 The smaller-only-fit fixture uses the same 220×160 parent and 40×40 other group:
 one small offer fits while a wider offer does not. Its independent expected graph

@@ -107,6 +107,27 @@ test("one Goal adopts two real AddRegions and whole-group Undo without claiming 
   }
 });
 
+test("paired histories with the same Working, utterance and catalogue differ only in the explicit Goal context", async () => {
+  const base = await opened();
+  const said = text => Object.freeze({ seq: 1, source: "typed", text, outcome: "no-change" });
+  const requests = [];
+  for (const text of ["Helper left は何の役？", "Helper right は何の役？"]) {
+    const session = Object.freeze({ ...base, conversation: Object.freeze([said(text)]), nextSeq: 2 });
+    const result = await runGoal({ utterance: "さっき話題にした部品から Existing helper へ矢印をつないで。他は変えない", bundle, protocol,
+      current: () => session, cancelled: () => false, adopt: async () => { throw new Error("NONE adopts nothing"); },
+      ask: async request => { requests.push(request); return answer(request, NONE); } });
+    assert.equal(result.reason, "none");
+  }
+  const [left, right] = requests;
+  assert.equal(isRequest(left) && isRequest(right), true);
+  assert.deepEqual(left.state.candidates, right.state.candidates);
+  const { context: leftContext, ...leftRest } = left.state;
+  const { context: rightContext, ...rightRest } = right.state;
+  assert.deepEqual(leftRest, rightRest);
+  assert.deepEqual(leftContext, { recent: [said("Helper left は何の役？")] });
+  assert.deepEqual(rightContext, { recent: [said("Helper right は何の役？")] });
+});
+
 test("legal wrong parent is retained; independent expected graph rejects it rather than repairing it", async () => {
   const before = await opened(); let session = before; let calls = 0;
   const result = await runGoal({ utterance, bundle, protocol, current: () => session, cancelled: () => false,
