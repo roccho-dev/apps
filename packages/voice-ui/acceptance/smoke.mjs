@@ -331,13 +331,15 @@ try {
       const camera = proof.nest.camera;
       assert.equal(camera.part, group); assert.equal(camera.state, "camera");
       assert.equal(camera.groupOpen, true); assert.deepEqual(camera.childrenRepresented, [true]);
-      assert.deepEqual(camera.labelsVisible, [true, true, true]);
+      assert.deepEqual(camera.labelsVisible, [true, true, true]); assert.deepEqual(camera.groupLabels, [true, true, true]);
       assert.deepEqual(camera.groupPaint.shapes.map(shape => shape.id), [db]);
       assert.equal(camera.groupPaint.contained && camera.groupPaint.nonoverlap && camera.groupPaint.complete, true);
-      assert.equal(camera.edges.length, 1); assert.equal(camera.edges[0].paint.edge.matches.length, 1);
-      assert.equal(camera.edges[0].reverse.edge.complete, false);
-      assert.notEqual(camera.edges[0].disconnected, null, "a visible disconnected counter-paint is measured");
-      assert.equal(camera.edges[0].disconnected.edge.complete, false);
+      assert.equal(camera.edges.length, 1); assert.equal(camera.edges[0].met, true);
+      assert.equal(camera.edges[0].frame.camera, group, "the group camera shows this arrow whole");
+      assert.equal(camera.edges[0].frame.edge.matches.length, 1);
+      assert.equal(camera.edges[0].frame.reverse.complete, false);
+      assert.notEqual(camera.edges[0].frame.disconnected, null, "a disconnected counter-paint in view is measured");
+      assert.equal(camera.edges[0].frame.disconnected.complete, false);
       assert.equal(camera.recordsUnchanged && camera.storedUnchanged && camera.overviewRestored, true);
       assert.equal(proof.nest.cameraMet, true);
     }

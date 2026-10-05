@@ -541,6 +541,33 @@ const paintedGoal = (container, records, edge = null) => page.evaluate(({ contai
     nonoverlap: shapes.every((item, i) => shapes.every((other, j) => i === j || !overlap(item.bounds, other.bounds))),
     complete: frame !== null && shapes.every(item => item.bounds !== null) };
 }, { container, records, edge });
+// One arrow on the current frame, by the existing painted observer: the
+// matched stroke start and marker tip lie inside the zero-margin iframe
+// viewport and both end shapes intersect it, whatever their labels show; on
+// the same frame its reverse (unless itself expected) and an arrow to another
+// part whose shape is in view must not connect. Frames are never combined.
+const within = (view, point) => Array.isArray(point) && point[0] >= view[0] && point[1] >= view[1]
+  && point[0] <= view[0] + view[2] && point[1] <= view[1] + view[3];
+const meets = (view, box) => Array.isArray(box) && box[0] < view[0] + view[2] && box[0] + box[2] > view[0]
+  && box[1] < view[1] + view[3] && box[1] + box[3] > view[1];
+const measureArrow = async (container, endpoints, edge, { reverseExpected = false, related = () => false } = {}) => {
+  const ends = [edge.from, edge.to].map(id => endpoints.find(record => record.id === id) ?? null);
+  if (ends.includes(null)) return { inView: false, edge: null, reverse: null, disconnected: null, met: false };
+  const all = await paintedGoal(container, endpoints, null);
+  const other = endpoints.find((record, index) => !ends.includes(record) && !related(edge.from, record.id)
+    && meets(all.viewport, all.shapes[index].bounds)) ?? null;
+  const records = other === null ? ends : [...ends, other];
+  const painted = await paintedGoal(container, records, edge);
+  const match = painted.edge.matches.length === 1 ? painted.edge.matches[0] : null;
+  const endBounds = painted.shapes.slice(0, 2).map(shape => shape.bounds);
+  const inView = match !== null && within(painted.viewport, match.start) && within(painted.viewport, match.tip)
+    && endBounds.every(box => meets(painted.viewport, box));
+  const reverse = reverseExpected ? "not-applicable" : (await paintedGoal(container, records, { from: edge.to, to: edge.from })).edge;
+  const disconnected = other === null ? null : (await paintedGoal(container, records, { from: edge.from, to: other.id })).edge;
+  return { viewport: painted.viewport, endBounds, other: other?.id ?? null, inView, edge: painted.edge, reverse, disconnected,
+    met: inView && painted.edge.complete && painted.edge.matches.length === 1
+      && (reverse === "not-applicable" || !reverse.complete) && disconnected !== null && !disconnected.complete };
+};
 const screen = () => page.evaluate(([key, rootKey]) => ({
   state: document.body.dataset.state,
   status: document.querySelector("#status").textContent,
@@ -994,22 +1021,44 @@ const goalScenario = async () => {
       await page.locator("#camera-part").selectOption(nestedGroup.id); await settle();
       const opened = await screen(); const openedScene = await sceneOf();
       const endpoints = after.graph.records.filter(record => record.type === "region" && record.parent !== null && record.kind !== "group");
-      const shownFlags = await Promise.all(endpoints.map(record => labelVisible(record.label)));
-      const shown = endpoints.filter((record, index) => shownFlags[index]);
+      const unchanged = now => JSON.stringify(now.graph?.records) === JSON.stringify(after.graph.records)
+        && now.stored === after.stored && now.root === after.root;
+      // The group camera alone proves the opened group, its children and their paint.
       camera = { part: opened.camera, state: opened.state, status: opened.status, view: opened.graph?.view ?? null,
         confirmedView: opened.confirmedGraph?.view ?? null,
         recordsUnchanged: JSON.stringify(opened.graph?.records) === JSON.stringify(after.graph.records),
         storedUnchanged: opened.stored === after.stored && opened.root === after.root,
         groupOpen: openedScene?.detailIds.includes(nestedGroup.id) === true,
         childrenRepresented: nestedChildren.map(record => openedScene?.regionIds.includes(record.id) === true),
-        labelsVisible: await Promise.all(added.map(record => labelVisible(record.label))),
-        groupPaint: await paintedGoal(nestedGroup, after.graph.records.filter(record => record.type === "region" && record.parent === nestedGroup.id)),
-        edges: await Promise.all(expectedEdges.map(async edge => {
-          const other = shown.find(record => record.id !== edge.from && record.id !== edge.to && !expectedPair(edge.from, record.id));
-          return { from: edge.from, to: edge.to, paint: await paintedGoal(container, shown, edge),
-            reverse: expectedPair(edge.to, edge.from) ? null : await paintedGoal(container, shown, { from: edge.to, to: edge.from }),
-            disconnected: other ? await paintedGoal(container, shown, { from: edge.from, to: other.id }) : null };
-        })) };
+        groupLabels: await Promise.all(added.map(record => labelVisible(record.label))),
+        groupPaint: await paintedGoal(nestedGroup, after.graph.records.filter(record => record.type === "region" && record.parent === nestedGroup.id)) };
+      // Each expected arrow: the group camera, then the existing camera on its
+      // from end, then its to end; the first frame showing the whole matched
+      // arrow is graded with that same frame negatives.
+      const arrow = edge => measureArrow(container, endpoints, edge,
+        { reverseExpected: expectedPair(edge.to, edge.from), related: (from, id) => expectedPair(from, id) });
+      const edges = [];
+      for (const edge of expectedEdges) {
+        const frames = [{ camera: nestedGroup.id, ...(await arrow(edge)) }];
+        for (const part of [edge.from, edge.to]) {
+          if (frames.at(-1).inView) break;
+          await page.locator("#camera-part").selectOption(part); await settle();
+          frames.push({ camera: part, ...(await arrow(edge)), recordsUnchanged: unchanged(await screen()) });
+        }
+        if (frames.length > 1) { await page.locator("#camera-part").selectOption(nestedGroup.id); await settle(); }
+        const frame = frames.at(-1);
+        edges.push({ from: edge.from, to: edge.to, frame, met: frame.met && frames.every(item => item.recordsUnchanged !== false),
+          frames: frames.map(item => ({ camera: item.camera, viewport: item.viewport, endBounds: item.endBounds, inView: item.inView,
+            matches: item.edge?.matches.map(({ start, tip }) => ({ start, tip })) ?? [] })) });
+      }
+      camera.edges = edges;
+      // An added label shows on the group camera or on its own existing camera.
+      camera.labelsVisible = [];
+      for (const [index, record] of added.entries()) {
+        if (camera.groupLabels[index]) { camera.labelsVisible.push(true); continue; }
+        await page.locator("#camera-part").selectOption(record.id); await settle();
+        camera.labelsVisible.push(unchanged(await screen()) && await labelVisible(record.label));
+      }
       await page.locator("#camera-part").selectOption(""); await settle();
       const back = await screen(); last = back;
       camera.overviewRestored = back.camera === "" && JSON.stringify(back.graph?.view) === JSON.stringify(after.graph.view)
@@ -1020,8 +1069,7 @@ const goalScenario = async () => {
       && (camera.confirmedView === null ? after.confirmedGraph === null : JSON.stringify(camera.confirmedView) === JSON.stringify(camera.view))
       && camera.recordsUnchanged && camera.storedUnchanged && camera.groupOpen && camera.childrenRepresented.every(Boolean)
       && camera.labelsVisible.every(Boolean) && groupMet(camera.groupPaint) && camera.edges.length === expectedEdges.length
-      && camera.edges.every(edge => edge.paint.edge.complete && edge.paint.edge.matches.length === 1
-        && edge.reverse !== null && !edge.reverse.edge.complete && edge.disconnected !== null && !edge.disconnected.edge.complete)
+      && camera.edges.every(edge => edge.met)
       && camera.overviewRestored;
   }
   const labelsMet = labelsVisible.length === expected.length && (NEST
@@ -1286,27 +1334,10 @@ const sourceScenario = async () => {
     const container = after.graph.records.find(record => record.type === "region"
       && (ends[0].parent === ends[1].parent ? record.id === ends[0].parent : record.parent === null));
     const afterRelations = after.graph.records.filter(record => record.type === "relation");
-    // On one actual frame: the matched stroke start and marker tip lie inside
-    // the zero-margin iframe viewport and both named end shapes intersect it.
-    const within = (view, point) => Array.isArray(point) && point[0] >= view[0] && point[1] >= view[1]
-      && point[0] <= view[0] + view[2] && point[1] <= view[1] + view[3];
-    const meets = (view, box) => Array.isArray(box) && box[0] < view[0] + view[2] && box[0] + box[2] > view[0]
-      && box[1] < view[1] + view[3] && box[1] + box[3] > view[1];
     const measure = async camera => {
       const visible = await Promise.all(endpoints.map(record => labelVisible(record.label)));
-      const other = endpoints.find((record, index) => visible[index] && !ends.includes(record)
-        && !related(afterRelations, target.from, record.id)) ?? null;
-      const records = other === null ? ends : [...ends, other];
-      const painted = await paintedGoal(container, records, target);
-      const edgeOf = async edge => (await paintedGoal(container, records, edge)).edge;
-      const match = painted.edge.matches.length === 1 ? painted.edge.matches[0] : null;
-      const endBounds = painted.shapes.slice(0, 2).map(shape => shape.bounds);
-      return { camera, container: container.id, viewport: painted.viewport, endBounds,
-        endsVisible: ends.map(record => visible[endpoints.indexOf(record)]),
-        inView: match !== null && within(painted.viewport, match.start) && within(painted.viewport, match.tip)
-          && endBounds.every(box => meets(painted.viewport, box)),
-        edge: painted.edge, reverse: await edgeOf({ from: target.to, to: target.from }),
-        disconnected: other === null ? null : await edgeOf({ from: target.from, to: other.id }) };
+      const measured = await measureArrow(container, endpoints, target, { related: (from, id) => related(afterRelations, from, id) });
+      return { camera, container: container.id, ...measured, endsVisible: ends.map(record => visible[endpoints.indexOf(record)]) };
     };
     // The overview first, then the existing camera on the from end, then the
     // to end, each on unchanged records and storage; the first frame that
@@ -1322,8 +1353,7 @@ const sourceScenario = async () => {
     if (frames.length > 1) { await page.locator("#camera-part").selectOption(""); await settle(); }
     const paint = { ...frames.at(-1), frames: frames.map(({ camera, viewport, endBounds, endsVisible, inView, edge }) =>
       ({ camera, viewport, endBounds, endsVisible, inView, matches: edge.matches.map(({ start, tip }) => ({ start, tip })) })) };
-    paint.met = paint.inView && paint.edge.complete && paint.edge.matches.length === 1 && !paint.reverse.complete
-      && paint.disconnected !== null && !paint.disconnected.complete && frames.every(frame => frame.recordsUnchanged !== false);
+    paint.met = paint.met && frames.every(frame => frame.recordsUnchanged !== false);
     sourceEvidence.paint = paint;
   }
   need(sourceEvidence.paint?.met === true, "on one actual frame the painted arrow and both named ends are in view; its reverse and a disconnected part do not connect");
