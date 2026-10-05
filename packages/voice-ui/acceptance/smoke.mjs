@@ -310,6 +310,7 @@ try {
     // start; its first request must equal the product actual first request.
     const fair = proof.fairBaseline;
     assert.equal(fair.replay.sameStart, true, entry.data.id + ": replay starts from the actual pre-Goal Working");
+    assert.equal(fair.replay.preparedEqual, true, entry.data.id + ": served constructors rebuild each actual preparation request");
     assert.equal(fair.replay.firstRequestEqual, true, entry.data.id + ": replayed first request equals the actual one");
     assert.equal(fair.replay.modulesLoadedByPage, true);
     if (entry.baseline !== undefined) {
@@ -450,7 +451,7 @@ try {
   const sourceSummary = sourceRun.stdout.split("\n").filter(line => line.startsWith("{"))
     .map(JSON.parse).find(row => row.event === "summary");
   assert.equal(sourceSummary.source, manifest.sources.apps); assert.equal(sourceSummary.error, null);
-  assert.deepEqual(sourceSummary.reached, ["open", "whole", "whole-undo", "app", "source-goal", "source-undo", "clear", "unscoped"]);
+  assert.deepEqual(sourceSummary.reached, ["open", "whole", "app", "source-goal", "source-undo", "clear", "unscoped"]);
   assert.deepEqual(sourceSummary.verdicts, []);
   const sourceProof = sourceSummary.sourceEvidence;
   assert.equal(sourceProof.scopeMatchesReference, true); assert.equal(sourceProof.contextMatches, true);

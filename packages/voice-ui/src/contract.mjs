@@ -241,11 +241,13 @@ const validGoalRequest = value => {
     || !unique(state.parents.map(parent => parent.id))) return false;
   if (!exactObject(state.offers, ["parts"]) || !validOffer(state.offers.parts)) return false;
   const endpoints = ids.filter(value => parentOf.get(value) !== null && !state.parents.some(parent => parent.id === value));
+  // Existing relations are kept whole: distinct typed relations (an import and
+  // a call) may share a directed pair. Only their IDs are unique; a candidate
+  // may still never repeat an existing directed pair.
   if (!Array.isArray(state.edges) || state.edges.length > GRAPH_MAX
     || !state.edges.every(edge => exactObject(edge, ["id", "from", "to"]) && id(edge.id)
       && endpoints.includes(edge.from) && endpoints.includes(edge.to) && edge.from !== edge.to)
-    || !unique(state.edges.map(edge => edge.id))
-    || !unique(state.edges.map(edge => JSON.stringify([edge.from, edge.to])))) return false;
+    || !unique(state.edges.map(edge => edge.id))) return false;
   if (!Array.isArray(state.candidates) || state.candidates.length < 1 || state.candidates.length > 254
     || !state.candidates.every(candidate => candidate !== null && typeof candidate === "object" && !Array.isArray(candidate)
       && id(candidate.id) && (candidate.action === ACTION_ADD_PART

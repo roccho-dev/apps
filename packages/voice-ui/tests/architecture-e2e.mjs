@@ -675,7 +675,7 @@ const need = (condition, what) => { if (!condition) verdicts.push(what); };
 // run when it fails - nothing is undone or built on a state the next stage
 // assumes - and every stage not reached is reported as not run.
 const FAULTS = ["failed-frame", "incomplete-frame", "frame-extra-envelope", "judge-extra-envelope", "incomplete-judge-frame"];
-const STAGES = SOURCE ? ["open", "whole", "whole-undo", "app", "source-goal", "source-undo", "clear", "unscoped"] : GOAL ? ["open", "prepare", "goal", ...(expectedCase.kind === "none" ? [] : ["goal-undo"])] : REVERSE ? ["open", "app", "reverse", "reverse-undo"] : ["open", "whole", "whole-undo",
+const STAGES = SOURCE ? ["open", "whole", "app", "source-goal", "source-undo", "clear", "unscoped"] : GOAL ? ["open", "prepare", "goal", ...(expectedCase.kind === "none" ? [] : ["goal-undo"])] : REVERSE ? ["open", "app", "reverse", "reverse-undo"] : ["open", "whole", "whole-undo",
   ...(FIXTURE ? ["camera-undo", "camera-discard-draft", "camera-undo-render-failure", "camera-discard", "camera-discard-new"] : []),
   "app", "credential", "storage", "save", ...(FIXTURE ? ["save-again"] : []),
   ...(LOCATES ? FAULTS : []), "correction", ...(FIXTURE ? ["camera-surviving-undo"] : []),
@@ -740,12 +740,13 @@ let applied = null;
 let reloaded = null;
 let contextEvidence = null;
 let goalEvidence = null;
+const GOAL_TITLE = "Goal example";
 const goalScenario = async () => {
   const goalText = evaluation?.goal ?? (FLOW ? "OCIの中にAPIとDBを追加し、APIからDBへ矢印をつないで。他は変えない" : "OCIの中にAPIとDBを追加して");
   reached.push("open");
   await page.goto(PAGE, { waitUntil: "commit", timeout: 120000 });
   await ready();
-  await page.locator("#text").fill("Goal example");
+  await page.locator("#text").fill(GOAL_TITLE);
   await click("new"); await settle();
   const route = new URL("/api/judge", url).href;
   reached.push("prepare");
@@ -1005,19 +1006,37 @@ const goalScenario = async () => {
   }
   // The preregistered deterministic lexical baseline (PR #60): one selector over
   // the actual public request only, replayed in the page through the served
-  // production Goal core from the actual pre-Goal Working, with the same bundle,
-  // history, scope, bounds and STOP rules. It never sees the oracle.
-  const replay = await page.evaluate(async ({ log, utterance, context, draft, bundleUrl }) => {
-    const modules = ["/app/src/goal.mjs", "/app/src/bundle.mjs", "/ui/semantic-map/protocol/index.js"];
+  // production Goal core. Its session is rebuilt by the served production
+  // session/turn/architecture constructors from the actual title and recorded
+  // preparation requests and answers; each rebuilt preparation request, the
+  // resulting log/head/records and the first Goal request must equal what was
+  // actually observed. It never sees the oracle.
+  const replay = await page.evaluate(async ({ log, title, preparation, utterance, bundleUrl, sourceUrl }) => {
+    const modules = ["/app/src/goal.mjs", "/app/src/bundle.mjs", "/ui/semantic-map/protocol/index.js",
+      "/app/src/session.mjs", "/app/src/turn.mjs", "/app/src/architecture.mjs"];
     const loaded = new Set(performance.getEntriesByType("resource").map(entry => new URL(entry.name).pathname));
-    const [{ runGoal }, { readBundle }, protocol] = await Promise.all(modules.map(path => import(path)));
+    const [{ runGoal }, { readBundle }, protocol, { createSession, startNew, propose, draftForJudgment, recentConversation },
+      { requestFor, focusFor }, { readManifest, withArchitecture }] = await Promise.all(modules.map(path => import(path)));
     const bundle = readBundle(await (await fetch(bundleUrl)).json());
-    const working = await protocol.verifyDecisionLog(log);
-    const conversation = context.map(({ reference, ...entry }) => Object.freeze(reference ? { ...entry, reference } : entry));
-    const issued = [...new Set(draft.flatMap(changes => [...changes.matchAll(/\+([^\s「@]+)「/gu)].map(match => match[1])))];
-    let session = Object.freeze({ accepted: null, working, stored: null, pending: null, issuedPartIds: Object.freeze(issued),
-      draft: Object.freeze(draft.map(() => Object.freeze({ step: null, input: null }))),
-      conversation: Object.freeze(conversation), nextSeq: (conversation.at(-1)?.seq ?? 0) + 1 });
+    const manifest = readManifest(await (await fetch(sourceUrl)).json());
+    let session = (await startNew(createSession({ accepted: null, stored: null }), { title, protocol })).session;
+    const preparedEqual = [];
+    for (const { sent, answers } of preparation) {
+      const working = session.working;
+      const layout = protocol.layoutBoundsFor(working.records, { pattern: protocol.GRAPH_PATTERN });
+      const steps = draftForJudgment(session);
+      const plain = requestFor({ working, utterance: sent.state.utterance, bundle, layout, offeredFrame: null, draft: steps,
+        focus: focusFor({ draft: steps, lastApplied: [] }), pending: null, recent: recentConversation(session).recent });
+      const bound = withArchitecture(plain, manifest);
+      const request = { ...bound.request, state: { ...bound.request.state,
+        context: { recent: recentConversation(session, { architecture: true }).recent } } };
+      preparedEqual.push(JSON.stringify(request) === JSON.stringify(sent));
+      session = (await propose(session, { turn: bound.turn, answers, protocol, bundle, layout, visibleFrame: null,
+        input: Object.freeze({ source: "typed", text: sent.state.utterance }), repair: null })).session;
+    }
+    const working = session.working;
+    const provenance = { issuedPartIds: [...session.issuedPartIds], nextSeq: session.nextSeq,
+      conversation: session.conversation.length, draft: session.draft.length };
     const norm = value => value.normalize("NFKC").toLowerCase();
     const select = state => {
       const text = norm(state.utterance);
@@ -1073,20 +1092,29 @@ const goalScenario = async () => {
       },
       adopt: async next => { session = next; } });
     return { head: working.head, startRecords: working.records, first, choices, reason: result.reason, requests: result.requests,
+      sameLog: working.log === log, preparedEqual, provenance,
       records: session.working.records, modulesLoadedByPage: modules.every(path => loaded.has(path)) };
-  }, { log: beforeLog, utterance: goalText, context: before.context, draft: before.draft, bundleUrl: new URL(config.data.bundle, url).href });
+  }, { log: beforeLog, title: GOAL_TITLE, utterance: goalText,
+    preparation: exchanges.slice(0, prepared).map(entry => ({ sent: entry.sent, answers: entry.body?.answers })),
+    bundleUrl: new URL(config.data.bundle, url).href, sourceUrl: new URL(config.data.source, url).href });
   const fairNone = replay.choices[0] === contract.NONE && JSON.stringify(replay.records) === JSON.stringify(before.graph.records);
   const fair = grade(replay.records, () => fairNone);
   goalEvidence.fairBaseline = { selector: "PR60 deterministic lexical, NFKC lowercase longest mention", reason: replay.reason,
     requests: replay.requests, choices: replay.choices, grade: fair.semanticMet ? "PASS" : "NOT_MET", actual: fair.actual,
     newEdges: fair.newEdges.map(({ from, to, kind }) => ({ from, to, kind })),
-    replay: { sameStart: replay.head === before.graph.head && JSON.stringify(replay.startRecords) === JSON.stringify(before.graph.records),
+    // Observed: log, head, records, each preparation request and the first Goal
+    // request. Constructor-derived only: issued IDs, sequence, conversation and
+    // draft count; new reserved IDs are not proven by the first request.
+    replay: { preparedEqual: replay.preparedEqual.length > 0 && replay.preparedEqual.every(Boolean),
+      sameStart: replay.sameLog && replay.head === before.graph.head && JSON.stringify(replay.startRecords) === JSON.stringify(before.graph.records),
       firstRequestEqual: replay.first !== null && JSON.stringify(replay.first) === JSON.stringify(sent[0]?.sent),
-      modulesLoadedByPage: replay.modulesLoadedByPage },
+      modulesLoadedByPage: replay.modulesLoadedByPage, constructorProvenance: replay.provenance },
     scope: "CPU replay of semantic outcome only; no HTTP, paint, speed or Jev superiority claim" };
-  need(goalEvidence.fairBaseline.replay.sameStart && goalEvidence.fairBaseline.replay.firstRequestEqual
+  if (!(goalEvidence.fairBaseline.replay.preparedEqual && goalEvidence.fairBaseline.replay.sameStart
+    && goalEvidence.fairBaseline.replay.firstRequestEqual)) goalEvidence.fairBaseline.grade = "NOT_MET (score withheld: start differs)";
+  need(goalEvidence.fairBaseline.replay.preparedEqual && goalEvidence.fairBaseline.replay.sameStart && goalEvidence.fairBaseline.replay.firstRequestEqual
     && goalEvidence.fairBaseline.replay.modulesLoadedByPage,
-  "the baseline replays the served core from the actual pre-Goal Working and asks the actual first request");
+  "the baseline rebuilds the actual pre-Goal session with the served constructors and asks the actual first request");
   need(sent.every(entry => entry.status === 200 && contract.readAnswers(entry.body?.answers, slotsOf(entry.sent)) !== null), "every Goal response is complete");
   need(["none", "no-executable-delta", "budget-requests", "budget-time"].includes(attempt.reason) && semanticMet,
     "independent expected graph is reached after a known mechanical stop, never from the stop alone");
@@ -1139,13 +1167,9 @@ const sourceScenario = async () => {
   reached.push("whole");
   const whole = await say("whole", UTTERANCES.whole, picksFor(contract.WHOLE));
   prerequisite(whole.now.state === "drafted", "whole");
-  // A Goal request holds at most 64 regions and 64 edges; the drawn whole
-  // account is measured here and taken back, as the natural scenario does.
+  // The drawn whole account stays; its size is recorded.
   const wholeSize = { regions: whole.now.graph.records.filter(record => record.type === "region").length,
     relations: whole.now.graph.records.filter(record => record.type === "relation").length };
-  reached.push("whole-undo");
-  await click("undo"); await settle();
-  prerequisite((await screen()).draft.length === 1, "whole-undo");
   reached.push("app");
   const app = await say("app", UTTERANCES.app, picksFor(APP));
   const reference = app.now.context.at(-1)?.reference ?? null;
