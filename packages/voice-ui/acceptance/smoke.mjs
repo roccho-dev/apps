@@ -346,6 +346,54 @@ try {
     evaluationControls.push({ id: entry.data.id, scenario: entry.scenario, mode: entry.mode, code: output.code,
       semantic: proof.evaluation.semanticGrade, paint: proof.evaluation.paintGrade, proof });
   }
+  // Seen real-case regressions and controlled negatives, never Jev evidence.
+  // r29-g1-nest (issue #58, sealed before the first attempt, now seen) runs in
+  // fixture-baseline: the one public lexical selector answers in Node and must
+  // equal the in-page replay; changing only the expected flow changes grades,
+  // never answers. fixture-weak answers a first offered choice below the floor.
+  const g1 = { version: "voice-ui.goal-evaluation.v1", id: "r29-g1-nest", goal: "OCIの中にグループを作って、そのグループの中にデータを置き、OCIに開始も置いて、開始からデータへ矢印をつないで", order: "normal",
+    expected: { kind: "change", regions: [{ partKey: "group", parentLabel: "OCI" }, { partKey: "data", parent: { addedPart: "group" } },
+      { partKey: "start", parentLabel: "OCI" }], flows: [{ from: { addedPart: "start" }, to: { addedPart: "data" } }] } };
+  const regressionCases = [
+    { id: "seen-g1", mode: "fixture-baseline", scenario: "goal-nest", data: g1 },
+    { id: "seen-g1-altered-expected", mode: "fixture-baseline", scenario: "goal-nest",
+      data: { ...g1, id: "r29-g1-altered-expected", expected: { ...g1.expected, flows: [{ from: { addedPart: "data" }, to: { addedPart: "start" } }] } } },
+    { id: "connect-only", mode: "fixture-baseline", scenario: "goal-flow",
+      data: { ...evaluationBase, id: "connect-only", order: "normal", goal: "Existing helperからHelper rightへ矢印をつないで",
+        expected: { kind: "change", regions: [], flows: [{ from: { baselineRegion: "existing-helper" }, to: { baselineRegion: "helper-right" } }] } } },
+    { id: "first-weak", mode: "fixture-weak", scenario: "goal-flow", data: { ...evaluationBase, id: "first-weak", order: "normal" } },
+  ];
+  const regressions = {};
+  for (const [index, entry] of regressionCases.entries()) {
+    const home = path.join(work, "x" + index); mkdirSync(home);
+    const output = await runChild([path.join(root, manifest.e2e.architecture_entrypoint), "--mode", entry.mode,
+      "--scenario", entry.scenario, formalOrigin, "--goal-case", JSON.stringify(entry.data)], home);
+    const summary = output.stdout.split("\n").filter(line => line.startsWith("{")).map(JSON.parse).find(row => row.event === "summary");
+    assert.ok(summary, entry.id + ": " + output.stderr.slice(-600));
+    assert.equal(summary.source, manifest.sources.apps); assert.equal(summary.error, null); assert.equal(summary.cleanup, null);
+    regressions[entry.id] = { code: output.code, summary, proof: summary.goalEvidence };
+  }
+  {
+    const seen = regressions["seen-g1"], altered = regressions["seen-g1-altered-expected"];
+    assert.equal(seen.code, 0, JSON.stringify(seen.summary.verdicts));
+    assert.equal(seen.proof.evaluation.semanticGrade, "PASS"); assert.equal(seen.proof.evaluation.paintGrade, "PASS");
+    assert.equal(seen.proof.fairBaseline.craftEqual, true); assert.equal(seen.proof.goalEffect, "adopted"); assert.equal(seen.proof.undoRestored, true);
+    assert.deepEqual(seen.proof.selected.map(item => item.key), ["group", "data", "start"]);
+    assert.deepEqual(altered.proof.exchanges.map(item => item.answers), seen.proof.exchanges.map(item => item.answers), "expected data never changes answers");
+    assert.equal(altered.proof.fairBaseline.craftEqual, true); assert.equal(altered.proof.evaluation.semanticGrade, "NOT_MET");
+    const connect = regressions["connect-only"];
+    assert.equal(connect.code, 0, JSON.stringify(connect.summary.verdicts)); assert.deepEqual(connect.proof.selected, []);
+    assert.equal(connect.proof.newEdges.length, 1); assert.equal(connect.proof.goalEffect, "adopted"); assert.equal(connect.proof.undoRestored, true);
+    const weak = regressions["first-weak"];
+    assert.notEqual(weak.code, 0); assert.equal(weak.proof.reason, "not-confident"); assert.equal(weak.proof.requests, 1);
+    assert.equal(weak.proof.goalEffect, "none"); assert.equal(weak.proof.graphBefore, weak.proof.graphAfter);
+    assert.deepEqual(weak.summary.notRun, ["goal-undo"]); assert.equal(weak.summary.actions.undo, 0);
+  }
+  process.stdout.write(JSON.stringify({ kind: "voice-ui.goalRegressionControls.v1", status: "PASS", liveProviderCalls: 0,
+    scope: "seen regressions and controlled negatives; not Jev quality", artifactManifestSha256: digest,
+    controls: Object.fromEntries(Object.entries(regressions).map(([id, item]) => [id, { code: item.code, reason: item.proof.reason,
+      semantic: item.proof.evaluation.semanticGrade, paint: item.proof.evaluation.paintGrade, goalEffect: item.proof.goalEffect,
+      answers: item.proof.exchanges.map(exchange => exchange.answers) }])) }) + "\n");
   for (const [index, data] of [null, { ...evaluationBase, extra: true },
     { ...evaluationBase, expected: { ...evaluationBase.expected, regions: [null] } },
     { ...evaluationBase, expected: { ...evaluationBase.expected, regions: [{ partKey: "unknown", parentLabel: "OCI" }] } },

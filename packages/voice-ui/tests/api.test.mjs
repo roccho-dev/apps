@@ -14,6 +14,7 @@ const judgeFor = provider => (request, { signal }) => judgeNamedChoices({ reques
 import { focusedEvidence, intentSectionOf, judgeRequestsOf, judgeSectionOf, locateRequestsOf, readManifest, regionIdOf } from "../src/architecture.mjs";
 import {
   ACTION_ARCHITECTURE,
+  ACTION_COMPOSE,
   ARCHITECTURE_INTENT_KIND,
   DECISION_KIND,
   GOAL_REQUEST_KIND,
@@ -723,6 +724,9 @@ test("a plain request and an intent carry no code; an intent adds one closed que
   assert.equal(intent.questions.focus.criteria[WHOLE], "the code as a whole");
   assert.equal(intent.questions.focus.criteria[NONE], "neither one part nor the whole is clear, or it asks for neither");
   assert.ok(Object.keys(intent.questions.action.criteria).includes(ACTION_ARCHITECTURE));
+  // Compose and architecture each name the request field they draw on.
+  assert.match(intent.questions.action.criteria[ACTION_COMPOSE], /state\.offers\.diagrams/u);
+  assert.match(intent.questions.action.criteria[ACTION_ARCHITECTURE], /state\.architecture/u);
   assert.match(intent.questions.focus.criteria["web-app-mjs"], /web\/app\.mjs/u);
 });
 

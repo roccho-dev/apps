@@ -307,6 +307,62 @@ test("a Goal-added group takes a second child one step gap below the first", asy
   }
 });
 
+test("a seed group whose raw grid is full still offers its one painted slot, proved and appended by the provider", async () => {
+  // The seed lanes put their steps where the raw grid looks full, while the
+  // painted Auxiliary frame still has room for exactly one more part.
+  const initial = (await newMap({ title: "seed capacity", protocol })).graph;
+  const composition = await plan(initial, { action: ACTION_COMPOSE, diagram: "container-example" });
+  let working = (await appendStep({ working: initial, step: composition.step, protocol })).graph;
+  const regions = () => working.records.filter(record => record.type === "region");
+  const auxiliary = regions().find(record => record.label === "Auxiliary");
+  const ociBefore = legalLocalDeltas(working, { bundle: BUNDLE, protocol }).candidates.filter(item => item.part !== undefined && item.parent !== auxiliary.id);
+  const held = legalLocalDeltas(working, { bundle: BUNDLE, protocol });
+  const intoAux = held.candidates.filter(item => item.part !== undefined && item.parent === auxiliary.id);
+  assert.deepEqual(intoAux.map(item => item.part).sort(), BUNDLE.parts.map(part => part.key).sort(), "every offered part may take the one slot");
+  const db = intoAux.find(item => item.part === "db");
+  const proved = await proveLocalDelta({ working, held, candidateId: db.id, confidence: 1, bundle: BUNDLE, protocol });
+  assert.equal(proved.outcome, OUTCOME_STEP);
+  working = (await appendStep({ working, step: proved.step, protocol })).graph;
+  const added = db.operations[0].regionId;
+  assert.ok(within(boxOf(working, auxiliary.id), boxOf(working, added)));
+  for (const sibling of regions().filter(record => record.parent === auxiliary.id && record.id !== added))
+    assert.ok(apart(boxOf(working, added), boxOf(working, sibling.id)));
+  // The full g2 (db, api) and d1 (step, data) sequences need two parts there;
+  // the frame has one painted slot, so the second is honestly not offered.
+  const selected = [{ key: "db", region: added, parent: auxiliary.id }];
+  assert.equal(legalLocalDeltas(working, { bundle: BUNDLE, protocol, selected }).candidates
+    .some(item => item.part !== undefined && item.parent === auxiliary.id), false);
+  // OCI offers are unchanged by the correction.
+  assert.deepEqual(ociBefore.map(item => [item.part, item.parent]),
+    held.candidates.filter(item => item.part !== undefined && item.parent !== auxiliary.id).map(item => [item.part, item.parent]));
+});
+
+test("a part placed beside a grown group keeps a painted gap from every sibling", async () => {
+  // The observed g1 order: a group in OCI, data inside it, then start in OCI.
+  const initial = (await newMap({ title: "gap after growth", protocol })).graph;
+  const composition = await plan(initial, { action: ACTION_COMPOSE, diagram: "container-example" });
+  let working = (await appendStep({ working: initial, step: composition.step, protocol })).graph;
+  const regions = () => working.records.filter(record => record.type === "region");
+  const container = regions().find(record => record.label === "OCI");
+  const selected = [];
+  const add = async (key, parent) => {
+    const held = legalLocalDeltas(working, { bundle: BUNDLE, protocol, selected });
+    const candidate = held.candidates.find(item => item.part === key && item.parent === parent);
+    assert.ok(candidate, key + " is offered");
+    const proved = await proveLocalDelta({ working, held, candidateId: candidate.id, confidence: 1, bundle: BUNDLE, protocol, selected });
+    working = (await appendStep({ working, step: proved.step, protocol })).graph;
+    selected.push({ key, region: candidate.operations[0].regionId, parent });
+    return candidate.operations[0].regionId;
+  };
+  const group = await add("group", container.id);
+  await add("data", group);
+  const start = await add("start", container.id);
+  const gap = (a, b) => Math.max(b[0] - (a[0] + a[2]), a[0] - (b[0] + b[2]), b[1] - (a[1] + a[3]), a[1] - (b[1] + b[3]));
+  for (const sibling of regions().filter(record => record.parent === container.id && record.id !== start))
+    assert.ok(gap(boxOf(working, start), boxOf(working, sibling.id)) >= 12, sibling.label + " keeps the band padding");
+  assert.ok(within(boxOf(working, container.id), boxOf(working, start)));
+});
+
 test("a growing group refuses when an ancestor would grow into its sibling", async () => {
   const graph = await protocol.createDecisionLog([
     { type: "meta", schema: STATE_SCHEMA, root: "root", title: "tight siblings" },

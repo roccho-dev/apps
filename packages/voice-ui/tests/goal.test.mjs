@@ -9,7 +9,8 @@ import { runGoal } from "../src/goal.mjs";
 import { createSession, undo, draftUsed, proposeArchitecture } from "../src/session.mjs";
 import { currentClaims } from "../src/document.mjs";
 import { MAP_ID, STATE_SCHEMA } from "../src/log.mjs";
-import { legalLocalDeltas as legalAdditions, proveLocalDelta as proveAddition, legalLocalDeltas, proveLocalDelta } from "../src/turn.mjs";
+import { legalLocalDeltas as legalAdditions, proveLocalDelta as proveAddition, legalLocalDeltas, proveLocalDelta,
+  appendStep, OUTCOME_REFUSED } from "../src/turn.mjs";
 
 if (!process.env.SEMANTIC_MAP) throw new Error("SEMANTIC_MAP is required");
 const protocol = await import(pathToFileURL(path.join(process.env.SEMANTIC_MAP, "packages/semantic-map/protocol/index.js")).href);
@@ -26,7 +27,10 @@ const planAddition = async ({ working, head, partKey, parentId, confidence, bund
   return proveAddition({ working, held, candidateId: candidate.id, confidence, bundle, reserved, protocol });
 };
 
-const opened = async () => {
+// The two seed groups are pinned through the verified log; a test may pin one
+// to a tiny painted frame instead, so the log itself says it is full.
+const ROOMY = Object.freeze({ container: [0, 0, 2000, 500], other: [0, 600, 2000, 500] });
+const opened = async (frames = ROOMY) => {
   const graph = await protocol.createDecisionLog([
     { type: "meta", schema: STATE_SCHEMA, root: "root", title: "goal fixture" },
     { type: "region", id: "root", parent: null, label: "fixture", kind: "boundary", bounds: [0, 0, 900, 400], summary: "" },
@@ -34,12 +38,13 @@ const opened = async () => {
     { type: "region", id: "other", parent: "root", label: "Other", kind: "group", bounds: [0, 230, 700, 160], summary: "" },
   ], MAP_ID);
   const pinned = await protocol.createDecision(graph.head, [{ type: "PinRegions", items: [
-    { regionId: "container", bounds: [0, 0, 2000, 500] },
-    { regionId: "other", bounds: [0, 600, 2000, 500] },
+    { regionId: "container", bounds: frames.container },
+    { regionId: "other", bounds: frames.other },
   ] }], graph.records);
   const prepared = (await protocol.appendDecision(graph.log, pinned.decision)).verified;
   return createSession({ accepted: prepared, stored: prepared.log });
 };
+const TINY = [0, 0, 24, 18];
 const answer = (request, part, parent = "container") => ({ kind: "answered", decision: { answers: {
   delta: { type: "choice", choice: part === NONE ? NONE
     : request.state.candidates.find(candidate => candidate.part === part && candidate.parent === parent)?.id ?? "unknown", confidence: 1 },
@@ -246,18 +251,26 @@ test("addition rechecks stale head, non-group parent, confidence and full group 
   assert.equal((await planAddition({ ...base, parentId: "root" })).reason, "invalid-addition");
   assert.equal((await planAddition({ ...base, partKey: "absent" })).reason, "invalid-addition");
   assert.equal((await planAddition({ ...base, confidence: 0.49 })).reason, "not-confident");
-  const full = { ...session.working, records: session.working.records.map(record => record.id === "container"
-    ? { ...record, bounds: [0, 0, 24, 18] } : record) };
-  assert.equal((await planAddition({ ...base, working: full })).reason, "no-room-for-part");
+  // A group whose verified painted frame is full offers no addition.
+  const full = (await opened({ ...ROOMY, container: TINY })).working;
+  assert.equal((await planAddition({ ...base, working: full, head: full.head })).reason, "no-room-for-part");
   assert.equal(legalAdditions(full, { bundle, protocol }).candidates.some(candidate => candidate.parent === "container"), false);
+  // Records edited apart from their log are refused by the provider on append:
+  // the catalogue may offer and prove a step, but nothing is adopted.
+  const tampered = { ...session.working, records: session.working.records.map(record => record.id === "container"
+    ? { ...record, bounds: TINY } : record) };
+  const held = legalAdditions(tampered, { bundle, protocol });
+  const candidate = held.candidates.find(item => item.part === "api" && item.parent === "container");
+  const proved = await proveAddition({ working: tampered, held, candidateId: candidate.id, confidence: 1, bundle, protocol });
+  const appended = await appendStep({ working: tampered, step: proved.step, protocol });
+  assert.equal(appended.outcome, OUTCOME_REFUSED); assert.equal(appended.reason, "provider-rejected");
+  assert.match(appended.detail, /stateHash/u);
+  assert.equal(session.working.log, tampered.log);
 });
 
 test("early NONE, no room and elapsed budget stop at their actual request count", async () => {
   for (const reason of ["none", "no-executable-delta", "budget-time"]) {
-    const before = await opened();
-    const session = reason !== "no-executable-delta" ? before : { ...before, working: { ...before.working,
-      records: before.working.records.map(record => record.kind === "group" ? { ...record, bounds: [0, 0, 24, 18] } : record),
-    } };
+    const session = reason !== "no-executable-delta" ? await opened() : await opened({ container: TINY, other: [0, 600, 24, 18] });
     let calls = 0;
     const result = await runGoal({ utterance, bundle, protocol, current: () => session, cancelled: () => false,
       now: () => reason === "budget-time" && calls > 0 ? 180000 : 0,
@@ -269,6 +282,15 @@ test("early NONE, no room and elapsed budget stop at their actual request count"
     assert.equal(result.elapsedMs, reason === "budget-time" ? 180000 : 0);
     assert.equal(calls, result.requests); assert.deepEqual(result.selected, []);
   }
+  // A Goal over records edited apart from their log asks, but the provider
+  // refuses the append: nothing is adopted and the session stays as it was.
+  const before = await opened();
+  const tampered = { ...before, working: { ...before.working,
+    records: before.working.records.map(record => record.kind === "group" ? { ...record, bounds: TINY } : record) } };
+  const result = await runGoal({ utterance, bundle, protocol, current: () => tampered, cancelled: () => false, now: () => 0,
+    ask: async request => answer(request, "api"), adopt: async () => { throw new Error("unexpected adoption"); } });
+  assert.equal(result.reason, "provider-rejected"); assert.equal(result.requests, 1); assert.deepEqual(result.selected, []);
+  assert.equal(tampered.working.log, before.working.log); assert.equal(tampered.draft.length, before.draft.length);
 });
 
 test("partial successful Goal keeps one grouped edit when a later cancel, stale or weak answer stops", async () => {
