@@ -152,6 +152,8 @@ const NESTED = expectedCase.regions.some(region => parentShape(region) === "adde
 // goal-source runs only on such evaluator data.
 if (SOURCE) {
   assert.ok(FIXTURE || evaluation !== null, "live goal-source requires a finite --goal-case input");
+  assert.ok(!FIXTURE || evaluation === null, "the controlled goal-source takes no evaluator data");
+  assert.ok(evaluation === null || evaluation.order === "normal", "goal-source has no reversed presentation");
   if (evaluation !== null) assert.ok(evaluation.expected.kind === "change" && evaluation.expected.regions.length === 0
     && evaluation.expected.flows.length === 1 && exactKeys(evaluation.expected.flows[0], ["from", "to"])
     && ["from", "to"].every(end => exactKeys(evaluation.expected.flows[0][end], ["baselineRegion"])
@@ -479,6 +481,7 @@ const paintedGoal = (container, records, edge = null) => page.evaluate(({ contai
       arrows.push({ start, end, tip, stroke, padding, lineLength: length, markerLength });
   }
   return { association: "pinned-maxgraph-shape-before-unique-raw-label",
+    viewport: [0, 0, iframe.clientWidth, iframe.clientHeight],
     container: { id: container.id, kind: "painted-dashed-group-boundary", bounds: frame }, shapes,
     edge: edge === null ? null : { from: edge.from, to: edge.to,
       association: "pinned-classic-marker-tip-and-stroke-in-one-cell-group", observed: observedEdges, matches: arrows,
@@ -1256,30 +1259,47 @@ const sourceScenario = async () => {
     const container = after.graph.records.find(record => record.type === "region"
       && (ends[0].parent === ends[1].parent ? record.id === ends[0].parent : record.parent === null));
     const afterRelations = after.graph.records.filter(record => record.type === "relation");
+    // On one actual frame: the matched stroke start and marker tip lie inside
+    // the zero-margin iframe viewport and both named end shapes intersect it.
+    const within = (view, point) => Array.isArray(point) && point[0] >= view[0] && point[1] >= view[1]
+      && point[0] <= view[0] + view[2] && point[1] <= view[1] + view[3];
+    const meets = (view, box) => Array.isArray(box) && box[0] < view[0] + view[2] && box[0] + box[2] > view[0]
+      && box[1] < view[1] + view[3] && box[1] + box[3] > view[1];
     const measure = async camera => {
       const visible = await Promise.all(endpoints.map(record => labelVisible(record.label)));
       const other = endpoints.find((record, index) => visible[index] && !ends.includes(record)
         && !related(afterRelations, target.from, record.id)) ?? null;
       const records = other === null ? ends : [...ends, other];
+      const painted = await paintedGoal(container, records, target);
       const edgeOf = async edge => (await paintedGoal(container, records, edge)).edge;
-      return { camera, container: container.id, endsVisible: ends.map(record => visible[endpoints.indexOf(record)]),
-        edge: await edgeOf(target), reverse: await edgeOf({ from: target.to, to: target.from }),
+      const match = painted.edge.matches.length === 1 ? painted.edge.matches[0] : null;
+      const endBounds = painted.shapes.slice(0, 2).map(shape => shape.bounds);
+      return { camera, container: container.id, viewport: painted.viewport, endBounds,
+        endsVisible: ends.map(record => visible[endpoints.indexOf(record)]),
+        inView: match !== null && within(painted.viewport, match.start) && within(painted.viewport, match.tip)
+          && endBounds.every(box => meets(painted.viewport, box)),
+        edge: painted.edge, reverse: await edgeOf({ from: target.to, to: target.from }),
         disconnected: other === null ? null : await edgeOf({ from: target.from, to: other.id }) };
     };
-    let paint = await measure("");
-    // The existing camera only exposes ends the overview leaves unpainted.
-    if (!paint.endsVisible.every(Boolean)) {
-      await page.locator("#camera-part").selectOption(target.from); await settle();
+    // The overview first, then the existing camera on the from end, then the
+    // to end, each on unchanged records and storage; the first frame that
+    // shows the whole matched arrow is graded, with its own negatives.
+    const frames = [await measure("")];
+    for (const camera of [target.from, target.to]) {
+      if (frames.at(-1).inView) break;
+      await page.locator("#camera-part").selectOption(camera); await settle();
       const focused = await screen();
-      paint = { ...(await measure(target.from)), overview: paint,
-        recordsUnchanged: JSON.stringify(focused.graph?.records) === JSON.stringify(after.graph.records) && focused.stored === after.stored };
-      await page.locator("#camera-part").selectOption(""); await settle();
+      frames.push({ ...(await measure(camera)),
+        recordsUnchanged: JSON.stringify(focused.graph?.records) === JSON.stringify(after.graph.records) && focused.stored === after.stored });
     }
-    paint.met = paint.edge.complete && paint.edge.matches.length === 1 && !paint.reverse.complete
-      && paint.disconnected !== null && !paint.disconnected.complete && paint.recordsUnchanged !== false;
+    if (frames.length > 1) { await page.locator("#camera-part").selectOption(""); await settle(); }
+    const paint = { ...frames.at(-1), frames: frames.map(({ camera, viewport, endBounds, endsVisible, inView, edge }) =>
+      ({ camera, viewport, endBounds, endsVisible, inView, matches: edge.matches.map(({ start, tip }) => ({ start, tip })) })) };
+    paint.met = paint.inView && paint.edge.complete && paint.edge.matches.length === 1 && !paint.reverse.complete
+      && paint.disconnected !== null && !paint.disconnected.complete && frames.every(frame => frame.recordsUnchanged !== false);
     sourceEvidence.paint = paint;
   }
-  need(sourceEvidence.paint?.met === true, "the actual painted arrow joins its named ends; its reverse and a disconnected part do not");
+  need(sourceEvidence.paint?.met === true, "on one actual frame the painted arrow and both named ends are in view; its reverse and a disconnected part do not connect");
   prerequisite(verdicts.length === 0, "source-goal");
   reached.push("source-undo");
   const beforeUndo = exchanges.length;
