@@ -38,15 +38,15 @@ after production freeze; the checker generates neither.
 This slice changes only the existing checker, smoke controls and this document.
 Product/provider/schema/public data/pins remain unchanged. The W-owned prior
 diagnostic preimage is retained separately; extra raw SVG diagnostics are not
-new quality evidence. Current missing classic/perimeter paint and overall
-boundary/flake failure remain unmet producer dependencies until their own exact
-repair and composed proof. These source/controlled checks do not authorize real
+new quality evidence. At that point classic/perimeter paint and the overall
+boundary/flake check were unmet producer dependencies; the later UI 8a pin repaired
+them and same-head CI passed (apps#59). These source/controlled checks do not authorize real
 Jev, SOPS, display replacement or any C–F actual trial. Actual selection,
 generalization and added value remain NOT_PROVEN/NOT_RUN until separately
 registered first attempts; literal Add-only baseline is not a fair Connect
 baseline. Internal model execution/time/cost are UNKNOWN.
 
-## Local mixed Goal Choice v3
+## Local mixed Goal Choice v5
 
 Goal requests choose one request-local executable change: AddRegion/new-child
 PinRegions at a proved placement, or the existing directed flow ConnectRegions
@@ -56,7 +56,19 @@ direction edges, but keeps legal wrong directions and endpoints. It never filter
 by the Goal's expected answer. Latest-state proof binds all records, pins, bundle,
 reserved IDs and actual adopted history; adoption uses the original held effect,
 not a replan. Zero candidates (`no-executable-delta`) and more than 254 candidates
-stop before asking. Goal v3 rejects older Goal kinds; ordinary Send v1 is unchanged.
+stop before asking. A Goal request also carries two required fields. `context` is
+the page's recent conversation in the bounded plain shape ordinary Send uses (at
+most five earlier utterances of at most 200 characters; effects bounded like
+architecture utterances), with no per-entry reference. `scope` is null, or the
+latest `{source, focus}` the session remembered from a source-reopened architecture
+focus, copied and frozen for the whole Goal. With a scope, only arrows touching a
+focused part are offered (either direction, any other legal end), and the server
+matches the scope against the served source, refusing a mismatched source, an
+unknown part or an arrow outside it (422; 503 without the architecture). No source
+text is sent with a Goal and it claims no understanding of the code. Without a
+scope the whole catalogue stays, so a Goal on a drawn source snapshot still stops
+at `candidate-overflow`. Goal v5 rejects older Goal kinds; ordinary Send v1 is
+unchanged. (Goal v4 was the same without `scope`.)
 
 The smaller-only-fit fixture uses the same 220×160 parent and 40×40 other group:
 one small offer fits while a wider offer does not. Its independent expected graph

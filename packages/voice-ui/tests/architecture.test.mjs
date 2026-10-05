@@ -39,8 +39,11 @@ import {
   relevantSlot,
   roleSlot,
 } from "../src/contract.mjs";
-import { MAP_ID, STATE_SCHEMA } from "../src/log.mjs";
-import { requestFor } from "../src/turn.mjs";
+import { COMMIT_COMMITTED, MAP_ID, STATE_SCHEMA } from "../src/log.mjs";
+import { commitDocument } from "../src/document.mjs";
+import { legalLocalDeltas, requestFor } from "../src/turn.mjs";
+import { runGoal } from "../src/goal.mjs";
+import { createSession, proposeArchitecture, startNew } from "../src/session.mjs";
 
 const store = process.env.SEMANTIC_MAP;
 if (!store) throw new Error("SEMANTIC_MAP must point at the pinned semantic-map store path");
@@ -854,4 +857,81 @@ test("this package's whole snapshot, drawn, still fits the intent's bounds", asy
   t.diagnostic(`scenario graph: ${regions.length} regions, ${edges.length} edges `
     + `(${edges.filter(edge => edge.id.startsWith("arch-has-role-")).length} has-role), `
     + `${units.length} utterances with ${units.map(unit => unit.changes.length).join("/")} changes; bound 128/128`);
+});
+
+// Without a source focus in the session, a Goal on the drawn snapshot - every
+// part and fact under the root, no group - is offered every directed pair and
+// stops before asking. Neither the bound nor gold narrows it.
+test("a Goal on this package's drawn snapshot without a focus is offered every pair and stops before asking", async t => {
+  const manifest = ownManifest();
+  const bundle = readBundle(JSON.parse(fs.readFileSync(new URL("../web/data/bundle.v1.json", import.meta.url), "utf8")));
+  let working = await mapGraph();
+  working = await appendAll(working, await plan(working, manifest));
+  working = await appendAll(working, await plan(working, manifest, { focus: "web-app-mjs",
+    judge: { [roleSlot("web-app-mjs", "persistence")]: YES } }));
+  const regions = working.records.filter(record => record.type === "region");
+  const held = legalLocalDeltas(working, { bundle, protocol });
+  assert.equal(regions.some(record => record.kind === "group" && record.parent !== null), false, "the drawn snapshot has no group to add into");
+  assert.equal(held.candidates.some(candidate => candidate.part !== undefined), false);
+  assert.ok(held.candidates.some(candidate => candidate.from === "arch-web-app-mjs" && candidate.to === "arch-ext-localstorage"),
+    "the asked-for pair is legal but undrawn");
+  assert.ok(held.candidates.length > 254);
+  let session = createSession({ accepted: working, stored: working.log });
+  let asked = 0;
+  const result = await runGoal({ utterance: "さっき詳しく見た画面から localStorage へ矢印をつないで。他は変えない", bundle, protocol,
+    current: () => session, cancelled: () => false, ask: async () => { asked += 1; throw new Error("never asked"); },
+    adopt: async next => { session = next; } });
+  assert.deepEqual([result.reason, result.requests, asked], ["candidate-overflow", 0, 0]);
+  t.diagnostic(`source-grounded Goal: ${regions.length} regions, ${regions.length - 1} endpoints, ${held.candidates.length} Connect candidates, 0 Add`);
+});
+
+// The same session as the page: a new map, the whole view, then a focus Jev
+// judged. Its reopened reference scopes the next Goal to arrows touching that
+// part - wrong directions and other ends included - and the arrow it adds is
+// saved as the person's, not the source's.
+test("a Goal after a source focus in the same session is scoped to it, asks, and saves its arrow as the person's", async t => {
+  const manifest = ownManifest();
+  const bundle = readBundle(JSON.parse(fs.readFileSync(new URL("../web/data/bundle.v1.json", import.meta.url), "utf8")));
+  let session = (await startNew(createSession({ accepted: null, stored: null }), { title: "map", protocol })).session;
+  const say = async (focus, judge, text) => {
+    const planned = await plan(session.working, manifest, { focus, judge });
+    assert.equal(planned.outcome, "step", planned.reason);
+    const reference = focus === null ? null : { source: manifest.source, focus: [focus] };
+    session = (await proposeArchitecture(session, { planned, input: { source: "typed", text }, protocol, reference })).session;
+  };
+  await say(null, {}, "このコードの構成を見せて");
+  await say("web-app-mjs", { [roleSlot("web-app-mjs", "persistence")]: YES }, "画面のコードの役割を詳しく見せて");
+  const [from, to] = ["arch-web-app-mjs", "arch-ext-localstorage"];
+  const requests = [];
+  const attempts = [];
+  const result = await runGoal({ utterance: "さっき詳しく見た画面から localStorage へ矢印をつないで。他は変えない", bundle, protocol,
+    current: () => session, cancelled: () => false, adopt: async next => { session = next; },
+    ask: async request => {
+      requests.push(request);
+      // A judgment port that tries to rewrite the held scope must not succeed.
+      for (const mutate of [() => request.state.scope.focus.push("src-log-mjs"), () => { request.state.scope.source.commit = "f".repeat(40); }]) {
+        try { mutate(); attempts.push("mutated"); } catch (error) { attempts.push(error?.name === "TypeError" ? "refused" : "other"); }
+      }
+      const choice = requests.length === 1
+        ? request.state.candidates.find(candidate => candidate.action === "add-edge" && candidate.from === from && candidate.to === to).id : NONE;
+      return { kind: "answered", decision: { answers: { delta: { type: "choice", choice, confidence: 0.9 } } } };
+    } });
+  const edges = requests[0].state.candidates.filter(candidate => candidate.action === "add-edge");
+  assert.deepEqual(requests[0].state.scope, { source: manifest.source, focus: ["web-app-mjs"] });
+  assert.equal(edges.length, 60);
+  assert.equal(edges.every(edge => edge.from === from || edge.to === from), true, "every offered arrow touches the focus");
+  assert.ok(edges.some(edge => edge.from === to && edge.to === from), "the wrong direction stays offered");
+  assert.deepEqual([result.reason, result.requests], ["none", 2]);
+  assert.deepEqual(attempts, ["refused", "refused", "refused", "refused"], "the held scope is frozen through and through");
+  assert.deepEqual(requests[1].state.scope, { source: manifest.source, focus: ["web-app-mjs"] }, "the next request keeps the same scope");
+  assert.ok(session.working.records.some(record => record.type === "relation" && record.from === from && record.to === to));
+  const values = new Map();
+  const saved = await commitDocument({ graph: session.working, draft: session.draft, saved: null, expected: null, key: "document",
+    read: async key => values.get(key) ?? null, write: async (key, value) => { values.set(key, value); }, lock: (name, run) => run(),
+    verifyDecisionLog: protocol.verifyDecisionLog, manifest });
+  assert.equal(saved.status, COMMIT_COMMITTED, saved.reason);
+  const claims = saved.stored.trim().split("\n").map(line => JSON.parse(line)).flatMap(line => line.claims ?? []);
+  assert.deepEqual(claims.filter(claim => claim.record.type === "relation" && claim.record.id === `voice-${from}-to-${to}`).map(claim => claim.origin),
+    ["user-asserted"]);
+  t.diagnostic(`scoped Goal: ${edges.length} Connect candidates touching ${from}`);
 });

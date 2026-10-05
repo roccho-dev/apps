@@ -11,7 +11,7 @@ if (!process.env.JUDGE_PROVIDER_ENTRY || !process.env.VOICE_UI_WORKER) throw new
 const { bindJev, judgeNamedChoices } = await import(process.env.JUDGE_PROVIDER_ENTRY);
 const { default: worker } = await import(process.env.VOICE_UI_WORKER);
 const judgeFor = provider => (request, { signal }) => judgeNamedChoices({ request, provider, signal });
-import { focusedEvidence, intentSectionOf, judgeRequestsOf, judgeSectionOf, locateRequestsOf, readManifest } from "../src/architecture.mjs";
+import { focusedEvidence, intentSectionOf, judgeRequestsOf, judgeSectionOf, locateRequestsOf, readManifest, regionIdOf } from "../src/architecture.mjs";
 import {
   ACTION_ARCHITECTURE,
   ARCHITECTURE_INTENT_KIND,
@@ -73,9 +73,19 @@ test("Goal flow candidates retain legal wrong directions and reject malformed or
     edges: [], parents: [{ id: "container", label: "container", kind: "group", parent: "root" }],
     offers: { parts: [] }, selected: [], candidates: [
       { id: "delta-1", action: "add-edge", from: "a", to: "b" },
-      { id: "delta-2", action: "add-edge", from: "b", to: "a" }],
+      { id: "delta-2", action: "add-edge", from: "b", to: "a" }], context: { recent: [] }, scope: null,
   } };
   assert.equal(isRequest(body), true);
+  const said = { seq: 1, source: "typed", text: "earlier", outcome: "no-change" };
+  assert.equal(isRequest({ ...body, state: { ...body.state, context: { recent: [said] } } }), true);
+  // An earlier architecture utterance may carry a whole snapshot: its bound, not plain Send's eight.
+  const stepped = count => ({ ...body, state: { ...body.state, context: { recent: [{ ...said, outcome: "step",
+    effect: { changes: Array.from({ length: count }, (_, index) => ({ change: "added", from: `from-${index}`, to: `to-${index}` })) } }] } } });
+  assert.equal(isRequest(stepped(9)), true);
+  assert.equal(isRequest(stepped(256)), true);
+  assert.equal(isRequest(stepped(257)), false);
+  const scoped = { source: { handle: "fixture", commit: "0".repeat(40) }, focus: ["web-app-mjs"] };
+  assert.equal(isRequest({ ...body, state: { ...body.state, scope: scoped } }), true);
   assert.equal(isRequest({ ...body, state: { ...body.state, candidates: [...body.state.candidates].reverse() } }), true);
   for (const mutate of [
     state => { state.candidates[0] = null; },
@@ -86,17 +96,29 @@ test("Goal flow candidates retain legal wrong directions and reject malformed or
     state => { state.candidates[1] = { ...state.candidates[0], id: "other" }; },
     state => { state.edges.push({ id: "existing", from: "a", to: "b" }); },
     state => { state.candidates[0].kind = "made-up"; },
+    state => { delete state.context; },
+    state => { state.context = {}; },
+    state => { state.context = { recent: [{ ...said, reference: null }] }; },
+    state => { state.context = { recent: Array.from({ length: 6 }, (_, index) => ({ ...said, seq: index + 1 })) }; },
+    state => { state.context = { recent: [{ ...said, text: "x".repeat(201) }] }; },
+    state => { delete state.scope; },
+    state => { state.scope = { ...scoped, focus: [] }; },
+    state => { state.scope = { focus: scoped.focus }; },
+    state => { state.scope = { ...scoped, focus: ["web-app-mjs", "src-log-mjs"] }; },
   ]) { const bad = structuredClone(body); mutate(bad.state); assert.equal(isRequest(bad), false); }
   assert.equal(isRequest({ ...body, kind: "voice-ui.judge.goal-addition.v2" }), false);
+  assert.equal(isRequest({ ...body, kind: "voice-ui.judge.goal-local-delta.v3" }), false);
+  assert.equal(isRequest({ ...body, kind: "voice-ui.judge.goal-local-delta.v4" }), false);
 });
 
-test("Goal v3 boundary asks one executable delta and refuses extra answers without architecture fanout", async () => {
+test("Goal v5 boundary asks one executable delta and refuses extra answers without architecture fanout", async () => {
   const body = { kind: GOAL_REQUEST_KIND, state: {
     utterance: "add the offered service inside the existing container",
     graph: [{ id: "root", label: "world", parent: null }, { id: "container", label: "container", parent: "root" }],
     edges: [], parents: [{ id: "container", label: "container", kind: "group", parent: "root" }],
     offers: { parts: [{ key: "service", purpose: "a service" }] }, selected: [],
     candidates: [{ id: "delta-1", action: "add-part", part: "service", parent: "container" }],
+    context: { recent: [] }, scope: null,
   } };
   let calls = 0;
   const invoke = async (input, extra = false) => onRequestPost({ available: true,
@@ -105,7 +127,8 @@ test("Goal v3 boundary asks one executable delta and refuses extra answers witho
     calls += 1;
     assert.deepEqual(state, body.state);
     assert.deepEqual(Object.keys(questions), ["delta"]);
-    assert.equal(questions.delta.instruction, "Choose one executable change toward the utterance's goal. A candidate adds one offered part inside its existing group at a proved placement, or connects two existing parts by one directed flow arrow. Use the current graph and edges to decide which requested changes are still missing; selected is adopted part history, not a completion oracle. Choose none when the requested changes are already present, no candidate is clearly needed, or the request is ambiguous. Do not add a connection merely because two parts are present; it must be requested by the utterance. Do not create or move groups.");
+    assert.equal(questions.delta.instruction, "Choose one executable change toward the utterance's goal. A candidate adds one offered part inside its existing group at a proved placement, or connects two existing parts by one directed flow arrow. Use the current graph and edges to decide which requested changes are still missing; selected is adopted part history, not a completion oracle. Choose none when the requested changes are already present, no candidate is clearly needed, or the request is ambiguous. Do not add a connection merely because two parts are present; it must be requested by the utterance. Do not create or move groups. context.recent lists earlier utterances as they were recognized or typed, and what came of each. They are unverified and may be misrecognized. Use them only to understand what the current utterance refers to; the current utterance, the working graph and the focus are the facts, and an earlier effect is history, not the current graph.");
+    assert.equal(questions.delta.instruction.includes("reopened"), false);
     assert.equal(questions.delta.options[NONE], "no offered executable change is clearly requested, or the requested changes are already present");
     assert.deepEqual(Object.keys(questions.delta.options), [...slotsFor(body.state).delta]);
     return { answers: { delta: { choice: "delta-1", confidence: 1 },
@@ -132,7 +155,7 @@ test("Goal candidate cap accepts 254 unique pairs and refuses 255 before provide
   for (const count of [254, 255]) {
     const body = { kind: GOAL_REQUEST_KIND, state: { utterance: "one offered addition",
       graph: [{ id: "root", label: "World", parent: null }, ...parents.map(({ id, label, parent }) => ({ id, label, parent }))],
-      edges: [], parents, offers: { parts }, selected: [], candidates: pairs.slice(0, count),
+      edges: [], parents, offers: { parts }, selected: [], candidates: pairs.slice(0, count), context: { recent: [] }, scope: null,
     } };
     assert.equal(isRequest(body), count === 254);
     const response = await onRequestPost({ available: true,
@@ -437,6 +460,35 @@ const prepared = (() => {
 const ARCHITECTURE_ENV = Object.freeze({ JEV_API_KEY: "test-only-value", ARCHITECTURE: prepared });
 const MANIFEST = readManifest(prepared.manifest);
 const intentRequest = (architecture = intentSectionOf(MANIFEST)) => ({ ...request({ architecture }), kind: ARCHITECTURE_INTENT_KIND });
+
+test("a Goal scope is reopened against the served source and every arrow must touch its focus", async () => {
+  const scope = { source: MANIFEST.source, focus: ["web-app-mjs"] };
+  const body = { kind: GOAL_REQUEST_KIND, state: {
+    utterance: "connect the screen to its storage",
+    graph: [{ id: "root", label: "map", parent: null },
+      ...["web-app-mjs", "ext-localstorage", "src-log-mjs"].map(part => ({ id: regionIdOf(part), label: part, parent: "root" }))],
+    edges: [], parents: [], offers: { parts: [] }, selected: [],
+    candidates: [{ id: "delta-1", action: "add-edge", from: regionIdOf("web-app-mjs"), to: regionIdOf("ext-localstorage") },
+      { id: "delta-2", action: "add-edge", from: regionIdOf("src-log-mjs"), to: regionIdOf("web-app-mjs") }],
+    context: { recent: [] }, scope,
+  } };
+  const calls = [];
+  const invoke = (input, architecture = prepared) => onRequestPost({ available: true, architecture,
+    request: new Request("http://localhost/api/judge", { method: "POST", body: JSON.stringify(input) }),
+  }, async ({ questions }) => { calls.push(questions); return { answers: { delta: { choice: NONE, confidence: 1 } } }; });
+  assert.equal(isRequest(body), true);
+  assert.equal((await invoke(body)).status, 200);
+  assert.match(calls[0].delta.instruction, /state\.scope names the parts in focus/u);
+  assert.equal((await invoke(body, null)).status, 503);
+  for (const bad of [{ ...scope, source: { ...scope.source, commit: "f".repeat(40) } }, { ...scope, focus: ["not-a-part"] }]) {
+    assert.equal((await invoke({ ...body, state: { ...body.state, scope: bad } })).status, 422);
+  }
+  const outside = structuredClone(body);
+  outside.state.candidates[1] = { id: "delta-2", action: "add-edge", from: regionIdOf("src-log-mjs"), to: regionIdOf("ext-localstorage") };
+  assert.equal(isRequest(outside), true);
+  assert.equal((await invoke(outside)).status, 422);
+  assert.equal(calls.length, 1);
+});
 
 test("architecture references are required nullable keys reopened canonically before judgment", async () => {
   const entry = { seq: 1, source: "typed", text: "show storage", outcome: "no-change", reference: null };

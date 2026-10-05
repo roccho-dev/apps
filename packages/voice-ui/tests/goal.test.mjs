@@ -44,6 +44,25 @@ const answer = (request, part, parent = "container") => ({ kind: "answered", dec
   delta: { type: "choice", choice: part === NONE ? NONE
     : request.state.candidates.find(candidate => candidate.part === part && candidate.parent === parent)?.id ?? "unknown", confidence: 1 },
 } } });
+// Two helpers in one group and one existing helper in OCI: both helper-to-existing
+// arrows are legal, so only an earlier utterance can say which one is meant.
+const helpers = async () => {
+  const graph = await protocol.createDecisionLog([
+    { type: "meta", schema: STATE_SCHEMA, root: "root", title: "goal history fixture" },
+    { type: "region", id: "root", parent: null, label: "fixture", kind: "boundary", bounds: [0, 0, 900, 400], summary: "" },
+    { type: "region", id: "container", parent: "root", label: "OCI", kind: "group", bounds: [0, 0, 700, 200], summary: "" },
+    { type: "region", id: "other", parent: "root", label: "Auxiliary", kind: "group", bounds: [0, 230, 700, 160], summary: "" },
+    { type: "region", id: "aux-1", parent: "other", label: "Helper left", kind: "step", bounds: [20, 250, 140, 64], summary: "" },
+    { type: "region", id: "aux-2", parent: "other", label: "Helper right", kind: "step", bounds: [200, 250, 140, 64], summary: "" },
+    { type: "region", id: "oci-1", parent: "container", label: "Existing helper", kind: "step", bounds: [20, 20, 140, 64], summary: "" },
+  ], MAP_ID);
+  const pinned = await protocol.createDecision(graph.head, [{ type: "PinRegions", items: [
+    { regionId: "container", bounds: [0, 0, 2000, 500] },
+    { regionId: "other", bounds: [0, 600, 2000, 500] },
+  ] }], graph.records);
+  const prepared = (await protocol.appendDecision(graph.log, pinned.decision)).verified;
+  return createSession({ accepted: prepared, stored: prepared.log });
+};
 
 test("mixed Goal uses one held ADD/Connect alphabet and strictly restores the whole group", async () => {
   const before = await opened(); let session = before; let calls = 0;
@@ -105,6 +124,48 @@ test("one Goal adopts two real AddRegions and whole-group Undo without claiming 
   assert.equal(reverted.stored, before.stored);
   assert.equal(reverted.conversation[0].outcome, "undone");
   }
+});
+
+test("paired histories with the same Working, utterance and catalogue differ only in the explicit Goal context", async () => {
+  const base = await helpers();
+  const idOf = label => base.working.records.find(record => record.type === "region" && record.label === label).id;
+  const said = text => Object.freeze({ seq: 1, source: "typed", text, outcome: "no-change" });
+  const requests = [];
+  for (const text of ["Helper left は何の役？", "Helper right は何の役？"]) {
+    const session = Object.freeze({ ...base, conversation: Object.freeze([said(text)]), nextSeq: 2 });
+    const result = await runGoal({ utterance: "さっき話題にした部品から Existing helper へ矢印をつないで。他は変えない", bundle, protocol,
+      current: () => session, cancelled: () => false, adopt: async () => { throw new Error("NONE adopts nothing"); },
+      ask: async request => { requests.push(request); return answer(request, NONE); } });
+    assert.equal(result.reason, "none");
+  }
+  const [left, right] = requests;
+  assert.equal(isRequest(left) && isRequest(right), true);
+  assert.deepEqual(left.state.candidates, right.state.candidates);
+  for (const from of [idOf("Helper left"), idOf("Helper right")]) {
+    assert.equal(left.state.candidates.some(candidate => candidate.action === "add-edge"
+      && candidate.from === from && candidate.to === idOf("Existing helper")), true);
+  }
+  const { context: leftContext, ...leftRest } = left.state;
+  const { context: rightContext, ...rightRest } = right.state;
+  assert.deepEqual(leftRest, rightRest);
+  assert.deepEqual(leftContext, { recent: [said("Helper left は何の役？")] });
+  assert.deepEqual(rightContext, { recent: [said("Helper right は何の役？")] });
+});
+
+test("a Goal holds the latest source focus of the whole session, past the five recent utterances", async () => {
+  const base = await helpers();
+  const reference = Object.freeze({ source: Object.freeze({ handle: "fixture", commit: "0".repeat(40) }), focus: Object.freeze(["focus-part"]) });
+  const said = (seq, extra = {}) => Object.freeze({ seq, source: "typed", text: `utterance ${seq}`, outcome: "no-change", ...extra });
+  const session = Object.freeze({ ...base, nextSeq: 8,
+    conversation: Object.freeze([said(1, { reference }), ...[2, 3, 4, 5, 6, 7].map(seq => said(seq))]) });
+  let request = null;
+  const result = await runGoal({ utterance: "connect it", bundle, protocol, current: () => session, cancelled: () => false,
+    adopt: async () => { throw new Error("NONE adopts nothing"); }, ask: async sent => { request = sent; return answer(sent, NONE); } });
+  assert.equal(result.reason, "none");
+  assert.equal(isRequest(request), true);
+  assert.deepEqual(request.state.scope, { source: { handle: "fixture", commit: "0".repeat(40) }, focus: ["focus-part"] });
+  assert.deepEqual(request.state.context.recent.map(entry => entry.seq), [3, 4, 5, 6, 7]);
+  assert.equal(request.state.candidates.some(candidate => candidate.action === "add-edge"), false, "no drawn part is in focus");
 });
 
 test("legal wrong parent is retained; independent expected graph rejects it rather than repairing it", async () => {

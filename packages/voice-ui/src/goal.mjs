@@ -1,7 +1,8 @@
 import { GOAL_REQUEST_KIND, GOAL_REQUEST_MAX, MIN_CONFIDENCE, NONE, isRequest, readAnswers, slotsFor } from "./contract.mjs";
 import { offersOf } from "./bundle.mjs";
+import { regionIdOf } from "./architecture.mjs";
 import { legalLocalDeltas, OUTCOME_STEP, proveLocalDelta } from "./turn.mjs";
-import { proposeGoal } from "./session.mjs";
+import { proposeGoal, recentConversation } from "./session.mjs";
 
 // One bounded AddRegion/ConnectRegions attempt. Ports own HTTP and the draw/adopt effect;
 // this coordinator owns only actual selected history and mechanical STOP.
@@ -15,12 +16,18 @@ export async function runGoal({ utterance, bundle, protocol, current, ask, adopt
   const stop = reason => Object.freeze({ reason, requests: trace.length, elapsedMs: Math.max(0, now() - started),
     selected: Object.freeze([...selected]), trace: Object.freeze([...trace]) });
   let expected = first;
+  // The latest source focus the session remembered, held for the whole Goal so
+  // later utterances cannot push it out of the recent conversation.
+  const reference = [...first.conversation].reverse().find(entry => entry.reference)?.reference ?? null;
+  const scope = reference === null ? null
+    : Object.freeze({ source: Object.freeze({ ...reference.source }), focus: Object.freeze([...reference.focus]) });
+  const regions = scope === null ? null : new Set(scope.focus.map(regionIdOf));
   for (let count = 0; count < GOAL_REQUEST_MAX; count += 1) {
     if (cancelled()) return stop("cancelled");
     if (now() - started >= 180000) return stop("budget-time");
     if (current() !== expected || expected.working === null) return stop("stale-goal");
     const parts = offersOf(bundle).parts;
-    const held = legalLocalDeltas(expected.working, { bundle, protocol, reserved: expected.issuedPartIds, selected });
+    const held = legalLocalDeltas(expected.working, { bundle, protocol, reserved: expected.issuedPartIds, selected, scope: regions });
     if (held.candidates.length === 0) return stop("no-executable-delta");
     if (held.candidates.length > 254) return stop("candidate-overflow");
     const parents = expected.working.records.filter(record => record.type === "region"
@@ -36,6 +43,8 @@ export async function runGoal({ utterance, bundle, protocol, current, ask, adopt
       candidates: Object.freeze(held.candidates.map(candidate => Object.freeze(candidate.part !== undefined
         ? { id: candidate.id, action: "add-part", part: candidate.part, parent: candidate.parent }
         : { id: candidate.id, action: "add-edge", from: candidate.from, to: candidate.to }))),
+      context: { recent: recentConversation(expected).recent },
+      scope,
     } };
     if (!isRequest(request)) return stop("invalid-goal-request");
     const head = expected.working.head;
@@ -56,7 +65,7 @@ export async function runGoal({ utterance, bundle, protocol, current, ask, adopt
     if (confidence < MIN_CONFIDENCE) return stop("not-confident");
     const candidate = held.candidates.find(item => item.id === read.delta.choice);
     const planned = await proveLocalDelta({ working: expected.working, held, candidateId: read.delta.choice,
-      confidence, bundle, reserved: expected.issuedPartIds, selected, protocol });
+      confidence, bundle, reserved: expected.issuedPartIds, selected, scope: regions, protocol });
     if (planned.outcome !== OUTCOME_STEP) return stop(planned.reason);
     if (cancelled() || current() !== expected) return stop("stale-goal");
     const proposed = await proposeGoal(expected, { step: planned.step, input: { source: "typed", text: utterance }, group, protocol });
