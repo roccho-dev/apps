@@ -562,10 +562,34 @@ async function materialize(working, planned, protocol) {
   });
 }
 
+// A direct Add into an existing group stays fit-or-none and never resizes it.
+// A child placed into a group the current Goal added goes below its siblings;
+// that group and each enclosing group under the root grow just enough, origin
+// kept. Growing into an existing sibling refuses.
+function grownSlot(records, current, parent, regionId, size) {
+  const parentOf = new Map(records.filter(record => record.type === "region").map(record => [record.id, record.parent]));
+  const childrenOf = id => records.filter(record => record.type === "region" && record.parent === id && record.id !== regionId);
+  const frame = current.bounds[parent.id];
+  const siblings = childrenOf(parent.id).map(record => current.bounds[record.id]);
+  const top = siblings.length === 0 ? frame[1] + BAND_LABEL_ROOM : Math.max(...siblings.map(box => box[1] + box[3])) + STEP_GAP;
+  const bounds = [frame[0] + BAND_PADDING, top, size[2], size[3]];
+  const ancestors = [];
+  for (let node = parent.id, inner = bounds; parentOf.get(node) !== null; node = parentOf.get(node)) {
+    const box = current.bounds[node];
+    const grown = [box[0], box[1], Math.max(box[2], inner[0] + inner[2] + BAND_PADDING - box[0]),
+      Math.max(box[3], inner[1] + inner[3] + BAND_PADDING - box[1])];
+    if (grown[2] === box[2] && grown[3] === box[3]) break;
+    if (childrenOf(parentOf.get(node)).some(record => record.id !== node && overlapping(grown, current.bounds[record.id]))) return null;
+    ancestors.push({ regionId: node, bounds: grown });
+    inner = grown;
+  }
+  return { bounds, ancestors };
+}
+
 // Keep raw kernel legality and painted placement separate. Preview is pure:
 // the provider owns candidate dimensions; only our existing spacing is used.
-function additionSlot(working, parent, part, reserved, protocol) {
-  const raw = freeSlot(working.records, parent);
+function additionSlot(working, parent, part, reserved, protocol, grows = false) {
+  const raw = grows ? [...parent.bounds] : freeSlot(working.records, parent);
   if (raw === null) return null;
   const regionId = nextPartId(working, reserved);
   const operation = { type: "AddRegion", regionId, parentId: parent.id,
@@ -583,6 +607,19 @@ function additionSlot(working, parent, part, reserved, protocol) {
     if (!validBox(frame) || !validBox(size)) return null;
     const siblings = working.records.filter(record => record.type === "region" && record.parent === parent.id);
     if (siblings.some(record => !validBox(current.bounds[record.id]))) return null;
+    if (grows) {
+      const grown = grownSlot(records, current, parent, regionId, size);
+      if (grown === null) return null;
+      const moved = new Set([regionId, ...grown.ancestors.map(item => item.regionId)]);
+      const pins = [{ regionId, bounds: grown.bounds }, ...grown.ancestors];
+      const pinned = protocol.layoutBoundsFor([...records.filter(record => record.type !== "layout" || !moved.has(record.regionId)),
+        ...pins.map(item => ({ type: "layout", regionId: item.regionId, pin: "hard", bounds: item.bounds }))], view);
+      const parentOf = new Map(records.filter(record => record.type === "region").map(record => [record.id, record.parent]));
+      if (!pins.every(item => JSON.stringify(pinned.bounds[item.regionId]) === JSON.stringify(item.bounds))
+        || !pins.every(item => parentOf.get(item.regionId) === null || inside(pinned.bounds[parentOf.get(item.regionId)], item.bounds))
+        || siblings.some(record => overlapping(pinned.bounds[regionId], pinned.bounds[record.id]))) return null;
+      return { operation, bounds: grown.bounds, ancestors: grown.ancestors };
+    }
     for (let y = frame[1] + BAND_LABEL_ROOM; y + size[3] <= frame[1] + frame[3] - BAND_PADDING; y += size[3] + STEP_GAP) {
       for (let x = frame[0] + BAND_PADDING; x + size[2] <= frame[0] + frame[2] - BAND_PADDING; x += size[2] + STEP_GAP) {
         const bounds = [x, y, size[2], size[3]];
@@ -591,7 +628,7 @@ function additionSlot(working, parent, part, reserved, protocol) {
         if (![parent.id, regionId, ...siblings.map(record => record.id)].every(id => validBox(pinned.bounds[id]))
           || !inside(pinned.bounds[parent.id], pinned.bounds[regionId])
           || siblings.some(record => overlapping(pinned.bounds[regionId], pinned.bounds[record.id]))) return null;
-        return { operation, bounds };
+        return { operation, bounds, ancestors: [] };
       }
     }
   } catch { return null; }
@@ -608,16 +645,19 @@ function legalAdditions(working, { bundle, protocol, reserved = [], selected = [
   const candidates = [];
   const parents = working.records.filter(record => record.type === "region"
     && record.kind === LANE_KIND && record.parent !== null).sort((a, b) => a.id.localeCompare(b.id));
+  // Only a group part this Goal adopted (its selected key and region) takes a
+  // child by growing; its enclosing groups grow with it as needed.
+  const grows = parent => selected.some(item => item.region === parent.id
+    && bundle.parts.some(part => part.key === item.key && part.kind === LANE_KIND));
   const parts = bundle.parts.filter(part => !selected.some(item => item.key === part.key))
     .sort((a, b) => a.key.localeCompare(b.key));
   for (const parent of parents) for (const part of parts) {
-    const slot = additionSlot(working, parent, part, reserved, protocol);
+    const slot = additionSlot(working, parent, part, reserved, protocol, grows(parent));
     if (slot === null) continue;
     candidates.push(Object.freeze({ id: `delta-${candidates.length + 1}`, part: part.key, parent: parent.id,
       operations: Object.freeze([Object.freeze({ ...slot.operation, bounds: Object.freeze([...slot.operation.bounds]) }),
-        Object.freeze({ type: "PinRegions", items: Object.freeze([Object.freeze({
-          regionId: slot.operation.regionId, bounds: Object.freeze([...slot.bounds]),
-        })]) })]) }));
+        Object.freeze({ type: "PinRegions", items: Object.freeze([{ regionId: slot.operation.regionId, bounds: slot.bounds },
+          ...slot.ancestors].map(item => Object.freeze({ regionId: item.regionId, bounds: Object.freeze([...item.bounds]) }))) })]) }));
   }
   return Object.freeze({ readSet: additionReadSet(working, bundle, reserved, selected),
     candidates: Object.freeze(candidates) });

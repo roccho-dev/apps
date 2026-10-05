@@ -70,6 +70,35 @@ scope the whole catalogue stays, so a Goal on a drawn source snapshot still stop
 at `candidate-overflow`. Goal v5 rejects older Goal kinds; ordinary Send v1 is
 unchanged. (Goal v4 was the same without `scope`.)
 
+The public bundle offers one generic group part (kind group) within the eight
+offer cap; a seed diagram step is never a group. A group joins the catalogue as
+a parent only once the same Goal adopted it, by its selected key and region and
+a bundle part of kind group, never by an ID prefix. Its child goes below its
+siblings, and the group and each ancestor under the root grow just enough in the
+same PinRegions, origin kept and never smaller, using the existing padding, label
+room and step gap; growing into an existing sibling refuses. A direct Add into a
+seed group stays fit-or-none without growth (OCI grows only to enclose a child
+of a Goal-added group), and the root is never pinned. The evaluator oracle names a parent as
+`{partKey, parentLabel}` (a unique seed group) or `{partKey, parent: {addedPart}}`
+(a group part of the same oracle), resolved top-down against the actual graph;
+every chain must end at a seed group. Only such a nested oracle admits a replaced
+baseline pin, and only for a non-root ancestor of an actual added group with the
+same origin and no smaller size; flat oracles keep every baseline record exact.
+`goal-nest` drives group, a child in it, a part in OCI and the arrow between them
+with crafted answers and whole Undo; it is controlled mechanics, not Sys1 quality.
+
+In the default overview the provider may close a small added group: its scene
+then lists the group as not open and the child as not represented, and the
+evaluator records that as closed, never as painted. goal-nest then selects the
+added group with the existing camera control (a view operation, not an edit)
+and proves on that actual frame that the group is open, the child is painted
+inside it without overlap, every added label shows, and the expected arrow
+matches once while its reverse and a disconnected counter-paint do not; it
+returns to the overview before Undo. No threshold is computed by the
+evaluator. In this Goal the confirmed pane holds no graph, so equal frames on
+both panes are not observed here. Flat scenarios keep the unchanged-viewport
+grades.
+
 The smaller-only-fit fixture uses the same 220×160 parent and 40×40 other group:
 one small offer fits while a wider offer does not. Its independent expected graph
 and whole Undo prove finite coverage and controlled execution, not Sys1 judgment

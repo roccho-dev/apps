@@ -37,17 +37,20 @@ const { chromium } = createRequire(import.meta.url)("playwright-core");
 // then strictly restores Working with Undo, without Apply/reload or authority proof.
 // goal-addition uses a separate Goal button: one public preparation request,
 // finite additions, independent post-STOP graph oracle, then whole-Goal Undo.
-// node architecture-e2e.mjs --mode fixture|fixture-stop|fixture-semantic-stop|live --scenario natural|named|contextual-reverse|goal-addition|goal-flow <url>
+// goal-nest adds a group to OCI, a part into that group and one into OCI, then
+// connects them; only its added group and that group's ancestors may grow.
+// node architecture-e2e.mjs --mode fixture|fixture-stop|fixture-semantic-stop|live --scenario natural|named|contextual-reverse|goal-addition|goal-flow|goal-nest <url>
 const [flag, mode, scenarioFlag, scenario, url, caseFlag, caseJson, ...extra] = process.argv.slice(2);
 if (flag !== "--mode" || !["fixture", "fixture-none", "fixture-stop", "fixture-semantic-stop", "live"].includes(mode) || scenarioFlag !== "--scenario"
-  || !["natural", "named", "contextual-reverse", "goal-addition", "goal-flow"].includes(scenario) || !url
+  || !["natural", "named", "contextual-reverse", "goal-addition", "goal-flow", "goal-nest"].includes(scenario) || !url
   || (mode === "fixture-semantic-stop" && scenario !== "contextual-reverse") || extra.length !== 0
   || (caseFlag !== undefined && (caseFlag !== "--goal-case" || caseJson === undefined))
-  || ((caseFlag !== undefined || mode === "fixture-none") && !["goal-addition", "goal-flow"].includes(scenario))) {
-  throw new Error("usage: architecture-e2e.mjs --mode fixture|fixture-stop|fixture-semantic-stop|live --scenario natural|named|contextual-reverse|goal-addition|goal-flow <url>");
+  || ((caseFlag !== undefined || mode === "fixture-none") && !["goal-addition", "goal-flow", "goal-nest"].includes(scenario))) {
+  throw new Error("usage: architecture-e2e.mjs --mode fixture|fixture-stop|fixture-semantic-stop|live --scenario natural|named|contextual-reverse|goal-addition|goal-flow|goal-nest <url>");
 }
 const REVERSE = scenario === "contextual-reverse";
-const FLOW = scenario === "goal-flow";
+const NEST = scenario === "goal-nest";
+const FLOW = scenario === "goal-flow" || NEST;
 const GOAL = scenario === "goal-addition" || FLOW;
 const SEMANTIC_STOP = mode === "fixture-semantic-stop";
 const STOP_FIXTURE = mode === "fixture-stop";
@@ -131,17 +134,32 @@ const MOST = 1 + ENTITY_IDS.length + FILE_IDS.length + new Set(MANIFEST.candidat
 
 const publicBundle = GOAL ? await (await fetch(new URL(config.data.bundle, url))).json() : null;
 const seed = publicBundle?.diagrams.find(diagram => diagram.key === "container-example");
-const expectedCase = evaluation?.expected ?? { kind: "change", regions: [
+const expectedCase = evaluation?.expected ?? { kind: "change", regions: NEST ? [
+  { partKey: "group", parentLabel: "OCI" }, { partKey: "db", parent: { addedPart: "group" } }, { partKey: "api", parentLabel: "OCI" },
+] : [
   { partKey: "api", parentLabel: "OCI" }, { partKey: "db", parentLabel: "OCI" },
 ], flows: FLOW ? [{ from: { addedPart: "api" }, to: { addedPart: "db" } }] : [] };
+// An expected parent is a unique seed group by label, or a group part added
+// by the same oracle; every such chain must end at a seed group.
+const parentShape = region => exactKeys(region, ["partKey", "parentLabel"]) ? "seed"
+  : exactKeys(region, ["partKey", "parent"]) && exactKeys(region.parent, ["addedPart"]) ? "added" : null;
+const NESTED = expectedCase.regions.some(region => parentShape(region) === "added");
 if (GOAL) {
   assert.ok(expectedCase.regions.length <= publicBundle.parts.length && expectedCase.flows.length <= 90, "finite oracle size");
-  assert.ok(expectedCase.regions.every(region => exactKeys(region, ["partKey", "parentLabel"])), "closed expected regions");
+  assert.ok(expectedCase.regions.every(region => parentShape(region) !== null), "closed expected regions");
   const partKeys = expectedCase.regions.map(region => region.partKey);
   assert.equal(new Set(partKeys).size, partKeys.length, "unique expected parts");
-  for (const region of expectedCase.regions) assert.ok(exactKeys(region, ["partKey", "parentLabel"])
-    && publicBundle.parts.some(part => part.key === region.partKey)
-    && seed.lanes.filter(lane => lane.label === region.parentLabel).length === 1, "public part and unique seed parent");
+  for (const region of expectedCase.regions) assert.ok(publicBundle.parts.some(part => part.key === region.partKey)
+    && (parentShape(region) === "seed" ? seed.lanes.filter(lane => lane.label === region.parentLabel).length === 1
+      : region.parent.addedPart !== region.partKey && partKeys.includes(region.parent.addedPart)
+        && publicBundle.parts.some(part => part.key === region.parent.addedPart && part.kind === "group")),
+  "public part and a unique seed parent or an expected added group");
+  for (const region of expectedCase.regions) {
+    let node = region;
+    for (let step = 0; parentShape(node) === "added" && step <= expectedCase.regions.length; step++)
+      node = expectedCase.regions.find(other => other.partKey === node.parent.addedPart);
+    assert.equal(parentShape(node), "seed", "every expected parent chain reaches a seed group");
+  }
   const endpoint = value => exactKeys(value, ["addedPart"]) && partKeys.includes(value.addedPart)
     || exactKeys(value, ["baselineRegion"]) && seed.steps.filter(step => step.ref === value.baselineRegion).length === 1;
   for (const flow of expectedCase.flows) assert.ok(exactKeys(flow, ["from", "to"]) && endpoint(flow.from) && endpoint(flow.to)
@@ -335,7 +353,7 @@ const paintedGoal = (container, records, edge = null) => page.evaluate(({ contai
     return null;
   };
   const frame = box(shape(container.label, true));
-  const primitives = records.map(record => shape(record.label));
+  const primitives = records.map(record => shape(record.label, record.kind === "group"));
   const shapes = records.map((record, i) => ({ id: record.id, rawLabel: record.label, bounds: box(primitives[i]) }));
   const inside = bounds => frame !== null && bounds !== null && bounds[0] >= frame[0] && bounds[1] >= frame[1]
     && bounds[0] + bounds[2] <= frame[0] + frame[2] && bounds[1] + bounds[3] <= frame[1] + frame[3];
@@ -765,8 +783,10 @@ const goalScenario = async () => {
   const prepared = exchanges.length;
   if (FIXTURE) await page.route(route, craft((name, sent) => {
     if (mode === "fixture-none") return contract.NONE;
-    const part = ["api", "db"].find(key => !sent.state.selected.some(item => item.key === key));
-    if (part !== undefined) return sent.state.candidates.find(candidate => candidate.part === part && candidate.parent === container.id)?.id ?? contract.NONE;
+    const group = sent.state.selected.find(item => item.key === "group")?.region;
+    const next = (NEST ? [["group", container.id], ["db", group], ["api", container.id]] : [["api", container.id], ["db", container.id]])
+      .find(([key]) => !sent.state.selected.some(item => item.key === key));
+    if (next !== undefined) return sent.state.candidates.find(candidate => candidate.part === next[0] && candidate.parent === next[1])?.id ?? contract.NONE;
     const from = sent.state.selected.find(item => item.key === "api")?.region;
     const to = sent.state.selected.find(item => item.key === "db")?.region;
     return FLOW ? sent.state.candidates.find(candidate => candidate.action === "add-edge" && candidate.from === from && candidate.to === to)?.id ?? contract.NONE : contract.NONE;
@@ -790,12 +810,27 @@ const goalScenario = async () => {
   const added = after.graph.records.filter(record => record.type === "region" && !before.graph.records.some(old => old.id === record.id));
   const newPins = after.graph.records.filter(record => record.type === "layout"
     && !before.graph.records.some(old => JSON.stringify(old) === JSON.stringify(record)));
-  const expected = expectedCase.regions.map(region => {
+  // Parents resolve top-down: a seed group by its label before the Goal, an
+  // added group as the one actual added record its own expectation matches.
+  const matchOf = row => {
+    const matches = added.filter(record => record.label.replace(/ [1-9]\d*$/u, "") === row.label
+      && record.kind === row.kind && record.parent === row.parent);
+    return matches.length === 1 ? matches[0].id : null;
+  };
+  const expected = expectedCase.regions.map(() => null);
+  for (let pass = 0; pass < expectedCase.regions.length; pass++) expectedCase.regions.forEach((region, index) => {
+    if (expected[index] !== null) return;
     const part = publicBundle.parts.find(part => part.key === region.partKey);
-    const parents = regions.filter(record => record.kind === "group" && record.label === region.parentLabel);
-    assert.equal(parents.length, 1, "actual expected parent is unique");
-    return { label: part.label, kind: part.kind, parent: parents[0].id };
+    if (parentShape(region) === "seed") {
+      const parents = regions.filter(record => record.kind === "group" && record.label === region.parentLabel);
+      assert.equal(parents.length, 1, "actual expected parent is unique");
+      expected[index] = { label: part.label, kind: part.kind, parent: parents[0].id };
+      return;
+    }
+    const owner = expected[expectedCase.regions.findIndex(other => other.partKey === region.parent.addedPart)];
+    if (owner !== null) expected[index] = { label: part.label, kind: part.kind, parent: matchOf(owner) };
   });
+  assert.ok(expected.every(row => row !== null), "every expected parent resolves");
   const actual = added.map(({ label, kind, parent }) => ({ label: label.replace(/ [1-9]\d*$/u, ""), kind, parent }));
   const signature = rows => JSON.stringify(rows.map(({ label, kind, parent }) => JSON.stringify([label, kind, parent])).sort());
   const newEdges = after.graph.records.filter(record => record.type === "relation" && !before.graph.records.some(old => old.id === record.id));
@@ -804,19 +839,33 @@ const goalScenario = async () => {
   const endpointId = endpoint => {
     if (endpoint.baselineRegion !== undefined) return baselineIds.get(endpoint.baselineRegion);
     const index = expectedCase.regions.findIndex(region => region.partKey === endpoint.addedPart), target = expected[index];
-    const matches = added.filter(record => record.label.replace(/ [1-9]\d*$/u, "") === target.label
-      && record.kind === target.kind && record.parent === target.parent);
-    return matches.length === 1 ? matches[0].id : null;
+    return matchOf(target);
   };
   const expectedEdges = expectedCase.flows.map(flow => ({ from: endpointId(flow.from), to: endpointId(flow.to), kind: "flow", label: "" }));
   const edgeSignature = edges => JSON.stringify(edges.map(({ from, to, kind, label }) => JSON.stringify([from, to, kind, label])).sort());
-  const baselinePreserved = before.graph.records.every(record => after.graph.records.some(next => JSON.stringify(next) === JSON.stringify(record)));
+  // Only a nested oracle admits growth: a baseline pin of a non-root ancestor
+  // of an actual added group, replaced once, same origin and never smaller.
+  const afterRegion = id => after.graph.records.find(record => record.type === "region" && record.id === id);
+  const growable = new Set();
+  if (NESTED) for (const group of added.filter(record => record.kind === "group"))
+    for (let id = group.parent; afterRegion(id) !== undefined && afterRegion(id).parent !== null; id = afterRegion(id).parent) growable.add(id);
+  const grown = NESTED ? before.graph.records.filter(record => record.type === "layout"
+    && !after.graph.records.some(next => JSON.stringify(next) === JSON.stringify(record))) : [];
+  const grownMet = grown.every(record => {
+    const next = after.graph.records.filter(item => item.type === "layout" && item.regionId === record.regionId);
+    return growable.has(record.regionId) && next.length === 1
+      && JSON.stringify({ ...next[0], bounds: null }) === JSON.stringify({ ...record, bounds: null })
+      && next[0].bounds[0] === record.bounds[0] && next[0].bounds[1] === record.bounds[1]
+      && next[0].bounds[2] >= record.bounds[2] && next[0].bounds[3] >= record.bounds[3];
+  });
+  const baselinePreserved = grownMet && before.graph.records.every(record => grown.includes(record)
+    || after.graph.records.some(next => JSON.stringify(next) === JSON.stringify(record)));
   const firstNone = sent.length === 1 && sent[0].sent.state.candidates.length > 0
     && contract.readAnswers(sent[0].body?.answers, slotsOf(sent[0].sent))?.delta?.choice === contract.NONE;
   const semanticMet = signature(actual) === signature(expected) && edgeSignature(newEdges) === edgeSignature(expectedEdges)
     && baselinePreserved && (expectedCase.kind !== "none" || firstNone && newPins.length === 0
       && sameNoneBaseline(before, after));
-  const pinsExact = exactChildPins(added, newPins);
+  const pinsExact = exactChildPins([...added, ...grown.map(record => ({ id: record.regionId }))], newPins);
   const labelsVisible = await Promise.all(added.map(record => labelVisible(record.label)));
   const paintedRecords = after.graph.records.filter(record => record.type === "region" && record.parent === container.id);
   const painted = await paintedGoal(container, paintedRecords, FLOW ? { from: api?.id, to: db?.id } : null);
@@ -824,7 +873,7 @@ const goalScenario = async () => {
   const disconnectedPaint = FLOW ? await paintedGoal(container, paintedRecords,
     { from: api?.id, to: paintedRecords.find(record => record.id !== api?.id && record.id !== db?.id)?.id }) : null;
   const paintedGroups = await Promise.all([...(expectedCase.kind === "none" ? [container.id] : new Set(expected.map(record => record.parent)))].map(id =>
-    paintedGoal(regions.find(record => record.id === id), after.graph.records.filter(record => record.type === "region" && record.parent === id))));
+    paintedGoal(afterRegion(id) ?? { label: null }, after.graph.records.filter(record => record.type === "region" && record.parent === id))));
   const edgePaints = await Promise.all(expectedEdges.map(edge => paintedGoal(container,
     after.graph.records.filter(record => record.type === "region" && record.parent !== null && record.kind !== "group"), edge)));
   const edgeCounterPaints = await Promise.all(expectedEdges.map(async edge => {
@@ -837,11 +886,72 @@ const goalScenario = async () => {
       reverse: reverseApplicable ? await paintedGoal(container, endpoints, { from: edge.to, to: edge.from }) : null,
       disconnected: other ? await paintedGoal(container, endpoints, { from: edge.from, to: other.id }) : null };
   }));
-  const labelsMet = labelsVisible.length === expected.length && labelsVisible.every(Boolean);
-  const edgePaintMet = edgePaints.every(proof => proof.edge.complete)
+  // goal-nest only. The default overview is read as the provider scene reports
+  // it (its own open groups and represented regions): a small added group may
+  // be closed there, which is recorded and never graded as painted. The
+  // existing camera control then opens that group, and the nested child, its
+  // label and each expected arrow are proven on that actual frame.
+  const sceneOf = () => page.evaluate(() => {
+    const scene = document.querySelector("#working-surface iframe[data-package=semantic-map]")?.contentWindow?.semanticMapApp?.snapshot().scene;
+    return scene ? { detailIds: [...scene.detailIds], regionIds: [...scene.regionIds] } : null;
+  });
+  const groupMet = group => group.complete && group.contained && group.nonoverlap;
+  const expectedPair = (from, to) => expectedEdges.some(expected => expected.from === from && expected.to === to);
+  const nestedGroup = NEST ? added.find(record => record.kind === "group" && added.some(child => child.parent === record.id)) ?? null : null;
+  const nestedChildren = nestedGroup === null ? [] : added.filter(record => record.parent === nestedGroup.id);
+  let nest = null;
+  if (NEST) {
+    const scene = await sceneOf();
+    const overview = { view: after.graph.view, groupOpen: nestedGroup !== null && scene?.detailIds.includes(nestedGroup.id) === true,
+      childrenRepresented: nestedChildren.map(record => scene?.regionIds.includes(record.id) === true),
+      childrenPainted: paintedGroups.find(group => group.container.id === nestedGroup?.id)?.shapes.map(shape => shape.bounds !== null) ?? [] };
+    overview.closed = nestedGroup !== null && scene !== null && !overview.groupOpen
+      && overview.childrenRepresented.every(value => !value) && overview.childrenPainted.every(value => !value);
+    let camera = null;
+    if (nestedGroup !== null) {
+      await page.locator("#camera-part").selectOption(nestedGroup.id); await settle();
+      const opened = await screen(); const openedScene = await sceneOf();
+      const endpoints = after.graph.records.filter(record => record.type === "region" && record.parent !== null && record.kind !== "group");
+      const shownFlags = await Promise.all(endpoints.map(record => labelVisible(record.label)));
+      const shown = endpoints.filter((record, index) => shownFlags[index]);
+      camera = { part: opened.camera, state: opened.state, status: opened.status, view: opened.graph?.view ?? null,
+        confirmedView: opened.confirmedGraph?.view ?? null,
+        recordsUnchanged: JSON.stringify(opened.graph?.records) === JSON.stringify(after.graph.records),
+        storedUnchanged: opened.stored === after.stored && opened.root === after.root,
+        groupOpen: openedScene?.detailIds.includes(nestedGroup.id) === true,
+        childrenRepresented: nestedChildren.map(record => openedScene?.regionIds.includes(record.id) === true),
+        labelsVisible: await Promise.all(added.map(record => labelVisible(record.label))),
+        groupPaint: await paintedGoal(nestedGroup, after.graph.records.filter(record => record.type === "region" && record.parent === nestedGroup.id)),
+        edges: await Promise.all(expectedEdges.map(async edge => {
+          const other = shown.find(record => record.id !== edge.from && record.id !== edge.to && !expectedPair(edge.from, record.id));
+          return { from: edge.from, to: edge.to, paint: await paintedGoal(container, shown, edge),
+            reverse: expectedPair(edge.to, edge.from) ? null : await paintedGoal(container, shown, { from: edge.to, to: edge.from }),
+            disconnected: other ? await paintedGoal(container, shown, { from: edge.from, to: other.id }) : null };
+        })) };
+      await page.locator("#camera-part").selectOption(""); await settle();
+      const back = await screen(); last = back;
+      camera.overviewRestored = back.camera === "" && JSON.stringify(back.graph?.view) === JSON.stringify(after.graph.view)
+        && JSON.stringify(back.graph?.records) === JSON.stringify(after.graph.records);
+    }
+    nest = { overview, camera };
+    nest.cameraMet = camera !== null && camera.state === "camera" && camera.part === nestedGroup.id && camera.view !== null
+      && (camera.confirmedView === null ? after.confirmedGraph === null : JSON.stringify(camera.confirmedView) === JSON.stringify(camera.view))
+      && camera.recordsUnchanged && camera.storedUnchanged && camera.groupOpen && camera.childrenRepresented.every(Boolean)
+      && camera.labelsVisible.every(Boolean) && groupMet(camera.groupPaint) && camera.edges.length === expectedEdges.length
+      && camera.edges.every(edge => edge.paint.edge.complete && edge.paint.edge.matches.length === 1
+        && edge.reverse !== null && !edge.reverse.edge.complete && edge.disconnected !== null && !edge.disconnected.edge.complete)
+      && camera.overviewRestored;
+  }
+  const labelsMet = labelsVisible.length === expected.length && (NEST
+    ? nest.cameraMet && labelsVisible.every((visible, index) => visible || nest.overview.closed && nestedChildren.includes(added[index]))
+    : labelsVisible.every(Boolean));
+  const groupsMet = NEST
+    ? nest.cameraMet && paintedGroups.every(group => group.container.id === nestedGroup?.id ? nest.overview.closed || groupMet(group) : groupMet(group))
+    : paintedGroups.every(groupMet);
+  const edgePaintMet = NEST ? nest.cameraMet : edgePaints.every(proof => proof.edge.complete)
     && edgeCounterPaints.every(proof => (!proof.reverseApplicable || !proof.reverse.edge.complete)
       && (!proof.disconnectedApplicable || !proof.disconnected.edge.complete));
-  const paintMet = labelsMet && paintedGroups.every(group => group.complete && group.contained && group.nonoverlap) && edgePaintMet;
+  const paintMet = labelsMet && groupsMet && edgePaintMet;
   const digest = value => createHash("sha256").update(JSON.stringify(value)).digest("hex");
   // Independent public-information baseline: literal catalogue/parent name
   // matching. No gold remainder or baseline decision goes to the product.
@@ -857,10 +967,10 @@ const goalScenario = async () => {
   goalEvidence = { reason: attempt.reason, goalMet: semanticMet, requests: sent.length, setupRequests: prepared,
     evaluation: { id: evaluation?.id ?? scenario, version: "voice-ui.goal-evaluation.v1", inputHash: digest(evaluation ?? { goal: goalText, expected: expectedCase, order: "normal" }),
       source: SERVED_COMMIT, order: evaluation?.order ?? "normal", orderInterventions, expected, expectedEdges,
-      firstNone, baselinePreserved, semanticGrade: "NOT_PROVEN", paintGrade: "NOT_PROVEN" },
+    firstNone, baselinePreserved, grownPins: grown.map(record => record.regionId), semanticGrade: "NOT_PROVEN", paintGrade: "NOT_PROVEN" },
     preparationDiagram: seedChoice, preparationSignature: seedActual,
     selected: attempt.selected, actual, rawAdded: added.map(({ id, label, kind, parent }) => ({ id, label, kind, parent })),
-    painted, paintedGroups, edgePaints, edgeCounterPaints, reversedPaint, disconnectedPaint, newPins, pinsExact, newEdges, labelsVisible, baseline, baselineMet: expectedEdges.length === 0 && signature(baseline) === signature(expected),
+    painted, paintedGroups, edgePaints, edgeCounterPaints, reversedPaint, disconnectedPaint, nest, newPins, pinsExact, newEdges, labelsVisible, baseline, baselineMet: expectedEdges.length === 0 && signature(baseline) === signature(expected),
     timeBudgetMet: Number.isFinite(attempt.elapsedMs) && attempt.elapsedMs < 180000,
     elapsed: { productMs: attempt.elapsedMs, productScope: "HTTP+planning+draw",
       baselineMs: baselineElapsedMs, baselineScope: "literal-selection-CPU-only", baselineProviderCalls: 0 },
@@ -885,14 +995,15 @@ const goalScenario = async () => {
   need(sent.every(entry => entry.status === 200 && contract.readAnswers(entry.body?.answers, slotsOf(entry.sent)) !== null), "every Goal response is complete");
   need(["none", "no-executable-delta", "budget-requests", "budget-time"].includes(attempt.reason) && semanticMet,
     "independent expected graph is reached after a known mechanical stop, never from the stop alone");
-  need(labelsMet, "all actual added labels intersect the unchanged Working viewport");
-  need(paintedGroups.every(group => group.complete && group.contained && group.nonoverlap),
-    "actual painted children are wholly inside the painted OCI shape and do not overlap siblings");
+  need(labelsMet, NEST ? "added labels intersect the overview, but a child of an observed closed group, which the selected group camera shows"
+    : "all actual added labels intersect the unchanged Working viewport");
+  need(groupsMet, NEST ? "painted children sit inside their painted group without overlap; a closed added group is proven open on its camera"
+    : "actual painted children are wholly inside the painted OCI shape and do not overlap siblings");
   if (expectedEdges.length > 0) need(edgePaintMet,
     "each expected actual painted classic arrow connects its declared endpoints, not the reverse or another visible part");
-  need(pinsExact, "each actual added child gains exactly one new layout pin and no other owner gains one");
+  need(pinsExact, "each actual added child gains exactly one new layout pin and no other owner gains one, but an allowed grown ancestor");
   need(goalEvidence.timeBudgetMet && attempt.elapsedMs >= 0, "the independently graded Goal time envelope is met");
-  need(before.graph.records.every(record => after.graph.records.some(next => JSON.stringify(next) === JSON.stringify(record))), "Goal preserves every baseline record");
+  need(baselinePreserved, "Goal preserves every baseline record, but a grown ancestor pin under a nested oracle");
   goalEvidence.evaluation.semanticGrade = semanticMet && goalEvidence.noSave && goalEvidence.timeBudgetMet
     && Number.isFinite(attempt.elapsedMs) && attempt.elapsedMs >= 0 && attempt.requests === sent.length
     && sent.length >= 1 && sent.length <= 8 && sent.every(entry => entry.status === 200

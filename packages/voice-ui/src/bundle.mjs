@@ -36,7 +36,7 @@ const validDiagram = diagram => {
   const laneRefs = lanes.map(lane => lane.ref);
   if (!Array.isArray(steps) || steps.length < 1 || !steps.every(step =>
     exactObject(step, ["ref", "lane", "label", "kind"]) && key(step.ref) && laneRefs.includes(step.lane)
-    && text(step.label, LABEL_MAX) && PART_KINDS.includes(step.kind))) return false;
+    && text(step.label, LABEL_MAX) && PART_KINDS.includes(step.kind) && step.kind !== "group")) return false;
   const stepRefs = steps.map(step => step.ref);
   if (!unique([...laneRefs, ...stepRefs])) return false;
   return Array.isArray(links) && links.every(link =>

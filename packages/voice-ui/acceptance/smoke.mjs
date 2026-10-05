@@ -252,7 +252,15 @@ try {
   // No expected result selects a response or filters a product candidate.
   const evaluationBase = { version: "voice-ui.goal-evaluation.v1", id: "controlled-order", goal: "OCIの中にAPIとDBを追加して", order: "reverse",
     expected: { kind: "change", regions: [{ partKey: "api", parentLabel: "OCI" }, { partKey: "db", parentLabel: "OCI" }], flows: [] } };
+  // A nested oracle names an added group as a parent; it is resolved against
+  // the actual graph, and never passes a flat one.
+  const nestedBase = { ...evaluationBase, id: "controlled-nest", order: "normal",
+    goal: "OCIの中にグループを作ってその中にDBを置き、OCIにAPIを追加してAPIからDBへ矢印をつないで",
+    expected: { kind: "change", regions: [{ partKey: "group", parentLabel: "OCI" }, { partKey: "db", parent: { addedPart: "group" } },
+      { partKey: "api", parentLabel: "OCI" }], flows: [{ from: { addedPart: "api" }, to: { addedPart: "db" } }] } };
   const evaluationCases = [
+    { data: { ...nestedBase, id: "controlled-nest-on-flat" }, mode: "fixture", scenario: "goal-flow", semantic: "NOT_MET" },
+    { data: nestedBase, mode: "fixture", scenario: "goal-nest", semantic: "PASS" },
     { data: evaluationBase, mode: "fixture", scenario: "goal-addition", semantic: "PASS" },
     { data: { ...evaluationBase, id: "controlled-mixed-order", expected: { ...evaluationBase.expected,
       flows: [{ from: { addedPart: "api" }, to: { addedPart: "db" } }] } }, mode: "fixture", scenario: "goal-flow", semantic: "PASS" },
@@ -268,7 +276,7 @@ try {
       "--scenario", entry.scenario, formalOrigin, "--goal-case", JSON.stringify(entry.data)], home);
     const summary = output.stdout.split("\n").filter(line => line.startsWith("{"))
       .map(JSON.parse).find(row => row.event === "summary");
-    assert.ok(summary, "complete evaluator summary");
+    assert.ok(summary, `complete evaluator summary for ${entry.data.id}: ${output.stderr.slice(-600)}`);
     assert.equal(summary.source, manifest.sources.apps); assert.equal(summary.error, null); assert.equal(summary.cleanup, null);
     const proof = summary.goalEvidence;
     assert.equal(proof.evaluation.semanticGrade, entry.semantic);
@@ -286,6 +294,30 @@ try {
       assert.equal(proof.graphBefore, proof.graphAfter); assert.equal(summary.actions.undo, 0);
       assert.deepEqual(summary.notRun, []); assert.equal(output.code, 0, output.stderr);
     } else assert.equal(proof.undoRestored, true);
+    if (entry.scenario === "goal-nest") {
+      assert.equal(output.code, 0, output.stderr + output.stdout);
+      assert.deepEqual(proof.selected.map(item => item.key), ["group", "db", "api"]);
+      assert.equal(proof.evaluation.baselinePreserved, true); assert.equal(proof.pinsExact, true);
+      assert.equal(proof.evaluation.paintGrade, "PASS");
+      assert.equal(proof.rawAdded.length, 3); assert.equal(proof.newPins.length, 4);
+      assert.equal(proof.newEdges.length, 1);
+      // The overview closes the small added group (provider scene state); the
+      // existing camera control opens it and proves the child and the arrow.
+      const [group, db] = proof.selected.map(item => item.region);
+      assert.equal(proof.nest.overview.closed, true); assert.deepEqual(proof.nest.overview.childrenRepresented, [false]);
+      const camera = proof.nest.camera;
+      assert.equal(camera.part, group); assert.equal(camera.state, "camera");
+      assert.equal(camera.groupOpen, true); assert.deepEqual(camera.childrenRepresented, [true]);
+      assert.deepEqual(camera.labelsVisible, [true, true, true]);
+      assert.deepEqual(camera.groupPaint.shapes.map(shape => shape.id), [db]);
+      assert.equal(camera.groupPaint.contained && camera.groupPaint.nonoverlap && camera.groupPaint.complete, true);
+      assert.equal(camera.edges.length, 1); assert.equal(camera.edges[0].paint.edge.matches.length, 1);
+      assert.equal(camera.edges[0].reverse.edge.complete, false);
+      assert.notEqual(camera.edges[0].disconnected, null, "a visible disconnected counter-paint is measured");
+      assert.equal(camera.edges[0].disconnected.edge.complete, false);
+      assert.equal(camera.recordsUnchanged && camera.storedUnchanged && camera.overviewRestored, true);
+      assert.equal(proof.nest.cameraMet, true);
+    }
     if (entry.semantic === "NOT_MET") assert.notEqual(output.code, 0, "wrong oracle cannot turn into PASS");
     // Existing arrow FAIL remains an independent overall FAIL, not a semantic waiver.
     evaluationControls.push({ id: entry.data.id, scenario: entry.scenario, mode: entry.mode, code: output.code,
@@ -300,6 +332,19 @@ try {
       { from: { addedPart: "api" }, to: { addedPart: "db" } },
       { to: { addedPart: "db" }, from: { addedPart: "api" } },
     ] } },
+    ...[
+      { partKey: "db", parent: { addedPart: "absent" } },
+      { partKey: "db", parent: { addedPart: "api" } },
+      { partKey: "db", parent: { addedPart: "group" }, parentLabel: "OCI" },
+      { partKey: "db" },
+      { partKey: "db", parent: { addedPart: "group", extra: 1 } },
+    ].map(region => ({ ...nestedBase, expected: { ...nestedBase.expected, regions: [nestedBase.expected.regions[0], region,
+      nestedBase.expected.regions[2]] } })),
+    { ...nestedBase, expected: { ...nestedBase.expected, regions: [{ partKey: "group", parent: { addedPart: "group" } },
+      ...nestedBase.expected.regions.slice(1)] } },
+    { ...nestedBase, expected: { ...nestedBase.expected, regions: [{ partKey: "group", parent: { addedPart: "db" } },
+      ...nestedBase.expected.regions.slice(1)] } },
+    { ...nestedBase, expected: { ...nestedBase.expected, regions: nestedBase.expected.regions.slice(1) } },
   ].entries()) {
     const home = path.join(work, `i${index}`); mkdirSync(home);
     const output = await runChild([path.join(root, manifest.e2e.architecture_entrypoint), "--mode", "fixture", "--scenario", "goal-addition",

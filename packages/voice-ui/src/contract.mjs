@@ -51,7 +51,7 @@ export const PLACEMENT_SLOTS = Object.freeze(["move", "anchor", "direction"]);
 // The kinds of part the graph view draws differently. A DataBundle part or
 // diagram step may only name one of these, so no content can ask for a shape
 // the view cannot show.
-export const PART_KINDS = Object.freeze(["step", "decision", "data", "start", "end"]);
+export const PART_KINDS = Object.freeze(["step", "decision", "data", "start", "end", "group"]);
 
 // A choice below this is not acted on; the weakest slot of an action governs.
 export const MIN_CONFIDENCE = 0.5;
