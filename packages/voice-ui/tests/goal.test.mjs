@@ -152,6 +152,22 @@ test("paired histories with the same Working, utterance and catalogue differ onl
   assert.deepEqual(rightContext, { recent: [said("Helper right は何の役？")] });
 });
 
+test("a Goal holds the latest source focus of the whole session, past the five recent utterances", async () => {
+  const base = await helpers();
+  const reference = Object.freeze({ source: Object.freeze({ handle: "fixture", commit: "0".repeat(40) }), focus: Object.freeze(["focus-part"]) });
+  const said = (seq, extra = {}) => Object.freeze({ seq, source: "typed", text: `utterance ${seq}`, outcome: "no-change", ...extra });
+  const session = Object.freeze({ ...base, nextSeq: 8,
+    conversation: Object.freeze([said(1, { reference }), ...[2, 3, 4, 5, 6, 7].map(seq => said(seq))]) });
+  let request = null;
+  const result = await runGoal({ utterance: "connect it", bundle, protocol, current: () => session, cancelled: () => false,
+    adopt: async () => { throw new Error("NONE adopts nothing"); }, ask: async sent => { request = sent; return answer(sent, NONE); } });
+  assert.equal(result.reason, "none");
+  assert.equal(isRequest(request), true);
+  assert.deepEqual(request.state.scope, { source: { handle: "fixture", commit: "0".repeat(40) }, focus: ["focus-part"] });
+  assert.deepEqual(request.state.context.recent.map(entry => entry.seq), [3, 4, 5, 6, 7]);
+  assert.equal(request.state.candidates.some(candidate => candidate.action === "add-edge"), false, "no drawn part is in focus");
+});
+
 test("legal wrong parent is retained; independent expected graph rejects it rather than repairing it", async () => {
   const before = await opened(); let session = before; let calls = 0;
   const result = await runGoal({ utterance, bundle, protocol, current: () => session, cancelled: () => false,

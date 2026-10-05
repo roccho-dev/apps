@@ -22,6 +22,9 @@ const ACTION_WORDS = {
 const CONTEXT_NOTE = " context.recent lists earlier utterances as they were recognized or typed, and what came of each."
   + " They are unverified and may be misrecognized. Use them only to understand what the current utterance refers to;"
   + " the current utterance, the working graph and the focus are the facts, and an earlier effect is history, not the current graph.";
+// A Goal's scope is checked by the server, not taken from the page on trust.
+const SCOPE_NOTE = " state.scope names the parts in focus, which the server matched against the current source;"
+  + " every offered arrow touches one of them. It is not an earlier judgment or authority, and no source text is given.";
 const REFERENCE_NOTE = " An architecture conversation entry may carry reference: the server reopened its section from the current source."
   + " The historical association with that utterance is still unverified, not proof of its intent or of a unique edge."
   + " Use the earlier utterance together with that section's entities and candidate relationships to understand an anaphoric qualification."
@@ -41,7 +44,7 @@ export function questionsFor(state, slots, context) {
     const labels = new Map(state.graph.map(region => [region.id, region.label]));
     return {
       delta: {
-        instruction: "Choose one executable change toward the utterance's goal. A candidate adds one offered part inside its existing group at a proved placement, or connects two existing parts by one directed flow arrow. Use the current graph and edges to decide which requested changes are still missing; selected is adopted part history, not a completion oracle. Choose none when the requested changes are already present, no candidate is clearly needed, or the request is ambiguous. Do not add a connection merely because two parts are present; it must be requested by the utterance. Do not create or move groups." + CONTEXT_NOTE,
+        instruction: "Choose one executable change toward the utterance's goal. A candidate adds one offered part inside its existing group at a proved placement, or connects two existing parts by one directed flow arrow. Use the current graph and edges to decide which requested changes are still missing; selected is adopted part history, not a completion oracle. Choose none when the requested changes are already present, no candidate is clearly needed, or the request is ambiguous. Do not add a connection merely because two parts are present; it must be requested by the utterance. Do not create or move groups." + CONTEXT_NOTE + (state.scope === null ? "" : SCOPE_NOTE),
         options: criteria(slots.delta, key => {
           if (key === NONE) return "no offered executable change is clearly requested, or the requested changes are already present";
           const candidate = state.candidates.find(item => item.id === key);

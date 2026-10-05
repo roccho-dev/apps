@@ -39,10 +39,11 @@ import {
   relevantSlot,
   roleSlot,
 } from "../src/contract.mjs";
-import { MAP_ID, STATE_SCHEMA } from "../src/log.mjs";
+import { COMMIT_COMMITTED, MAP_ID, STATE_SCHEMA } from "../src/log.mjs";
+import { commitDocument } from "../src/document.mjs";
 import { legalLocalDeltas, requestFor } from "../src/turn.mjs";
 import { runGoal } from "../src/goal.mjs";
-import { createSession } from "../src/session.mjs";
+import { createSession, proposeArchitecture, startNew } from "../src/session.mjs";
 
 const store = process.env.SEMANTIC_MAP;
 if (!store) throw new Error("SEMANTIC_MAP must point at the pinned semantic-map store path");
@@ -858,10 +859,10 @@ test("this package's whole snapshot, drawn, still fits the intent's bounds", asy
     + `${units.length} utterances with ${units.map(unit => unit.changes.length).join("/")} changes; bound 128/128`);
 });
 
-// The known source-grounded Goal gap, pinned as it is: the whole view draws every
-// part and fact under the root with no group, so a Goal on it is offered every
-// directed pair and stops before asking. Neither the bound nor gold narrows it.
-test("a Goal on this package's drawn snapshot is offered every pair and stops before asking", async t => {
+// Without a source focus in the session, a Goal on the drawn snapshot - every
+// part and fact under the root, no group - is offered every directed pair and
+// stops before asking. Neither the bound nor gold narrows it.
+test("a Goal on this package's drawn snapshot without a focus is offered every pair and stops before asking", async t => {
   const manifest = ownManifest();
   const bundle = readBundle(JSON.parse(fs.readFileSync(new URL("../web/data/bundle.v1.json", import.meta.url), "utf8")));
   let working = await mapGraph();
@@ -882,4 +883,48 @@ test("a Goal on this package's drawn snapshot is offered every pair and stops be
     adopt: async next => { session = next; } });
   assert.deepEqual([result.reason, result.requests, asked], ["candidate-overflow", 0, 0]);
   t.diagnostic(`source-grounded Goal: ${regions.length} regions, ${regions.length - 1} endpoints, ${held.candidates.length} Connect candidates, 0 Add`);
+});
+
+// The same session as the page: a new map, the whole view, then a focus Jev
+// judged. Its reopened reference scopes the next Goal to arrows touching that
+// part - wrong directions and other ends included - and the arrow it adds is
+// saved as the person's, not the source's.
+test("a Goal after a source focus in the same session is scoped to it, asks, and saves its arrow as the person's", async t => {
+  const manifest = ownManifest();
+  const bundle = readBundle(JSON.parse(fs.readFileSync(new URL("../web/data/bundle.v1.json", import.meta.url), "utf8")));
+  let session = (await startNew(createSession({ accepted: null, stored: null }), { title: "map", protocol })).session;
+  const say = async (focus, judge, text) => {
+    const planned = await plan(session.working, manifest, { focus, judge });
+    assert.equal(planned.outcome, "step", planned.reason);
+    const reference = focus === null ? null : { source: manifest.source, focus: [focus] };
+    session = (await proposeArchitecture(session, { planned, input: { source: "typed", text }, protocol, reference })).session;
+  };
+  await say(null, {}, "このコードの構成を見せて");
+  await say("web-app-mjs", { [roleSlot("web-app-mjs", "persistence")]: YES }, "画面のコードの役割を詳しく見せて");
+  const [from, to] = ["arch-web-app-mjs", "arch-ext-localstorage"];
+  const requests = [];
+  const result = await runGoal({ utterance: "さっき詳しく見た画面から localStorage へ矢印をつないで。他は変えない", bundle, protocol,
+    current: () => session, cancelled: () => false, adopt: async next => { session = next; },
+    ask: async request => {
+      requests.push(request);
+      const choice = requests.length === 1
+        ? request.state.candidates.find(candidate => candidate.action === "add-edge" && candidate.from === from && candidate.to === to).id : NONE;
+      return { kind: "answered", decision: { answers: { delta: { type: "choice", choice, confidence: 0.9 } } } };
+    } });
+  const edges = requests[0].state.candidates.filter(candidate => candidate.action === "add-edge");
+  assert.deepEqual(requests[0].state.scope, { source: manifest.source, focus: ["web-app-mjs"] });
+  assert.equal(edges.length, 60);
+  assert.equal(edges.every(edge => edge.from === from || edge.to === from), true, "every offered arrow touches the focus");
+  assert.ok(edges.some(edge => edge.from === to && edge.to === from), "the wrong direction stays offered");
+  assert.deepEqual([result.reason, result.requests], ["none", 2]);
+  assert.ok(session.working.records.some(record => record.type === "relation" && record.from === from && record.to === to));
+  const values = new Map();
+  const saved = await commitDocument({ graph: session.working, draft: session.draft, saved: null, expected: null, key: "document",
+    read: async key => values.get(key) ?? null, write: async (key, value) => { values.set(key, value); }, lock: (name, run) => run(),
+    verifyDecisionLog: protocol.verifyDecisionLog, manifest });
+  assert.equal(saved.status, COMMIT_COMMITTED, saved.reason);
+  const claims = saved.stored.trim().split("\n").map(line => JSON.parse(line)).flatMap(line => line.claims ?? []);
+  assert.deepEqual(claims.filter(claim => claim.record.type === "relation" && claim.record.id === `voice-${from}-to-${to}`).map(claim => claim.origin),
+    ["user-asserted"]);
+  t.diagnostic(`scoped Goal: ${edges.length} Connect candidates touching ${from}`);
 });

@@ -341,7 +341,7 @@ export function focusedEvidence(section, manifest, files) {
   return deepFreeze({ bodies, lines });
 }
 
-const regionIdOf = entityId => `${REGION_PREFIX}${entityId}`;
+export const regionIdOf = entityId => `${REGION_PREFIX}${entityId}`;
 const factIdOf = factId => `${FACT_PREFIX}${factId}`;
 const importIdOf = (from, to) => `${REGION_PREFIX}import-${from}-to-${to}`;
 const relationIdOf = (relation, from, to) => `${REGION_PREFIX}${relation}-${from}-to-${to}`;

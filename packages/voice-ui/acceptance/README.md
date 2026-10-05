@@ -63,6 +63,14 @@ utterances). It carries no section reference: the Goal path does not reopen
 source, so a Goal claims no source understanding. Goal v4 rejects older Goal
 kinds; ordinary Send v1 is unchanged.
 
+Goal v5 adds a required `scope`: null, or the latest `{source, focus}` the session
+remembered from a source-reopened architecture focus, held for the whole Goal.
+With a scope, only arrows touching a focused part are offered (either direction,
+any other legal end); the server reopens the scope against the served source and
+refuses a mismatched source, an unknown part or an arrow outside it (422). Without
+a scope the whole catalogue stays, so a Goal on a drawn source snapshot still
+stops at `candidate-overflow`. Goal v5 rejects older Goal kinds.
+
 The smaller-only-fit fixture uses the same 220×160 parent and 40×40 other group:
 one small offer fits while a wider offer does not. Its independent expected graph
 and whole Undo prove finite coverage and controlled execution, not Sys1 judgment

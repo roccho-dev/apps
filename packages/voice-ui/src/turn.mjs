@@ -639,13 +639,17 @@ async function proveAddition({ working, held, candidateId, confidence, bundle, r
 
 // One bounded union of existing additions and directed flow connections.
 // Vocabulary stays in the graph/bundle; IDs belong only to this held request.
+// A scope, when given, is a set of region IDs: only arrows touching one of
+// them are offered, in either direction and to any other legal end.
 export function legalLocalDeltas(working, options) {
+  const scope = options.scope ?? null;
   const additions = legalAdditions(working, options);
   const candidates = [...additions.candidates];
   const ids = speakableIds(working.records).sort();
   const existing = relationKeys(working.records);
   for (const from of ids) for (const to of ids) {
     if (from === to || existing.has(relationKey(from, to))) continue;
+    if (scope !== null && !scope.has(from) && !scope.has(to)) continue;
     candidates.push(Object.freeze({ id: `delta-${candidates.length + 1}`, from, to,
       operations: Object.freeze([Object.freeze({ type: "ConnectRegions", relationId: relationIdFor(from, to),
         from, to, kind: RELATION_KIND, label: "" })]) }));
@@ -653,13 +657,13 @@ export function legalLocalDeltas(working, options) {
   return Object.freeze({ readSet: additions.readSet, candidates: Object.freeze(candidates) });
 }
 
-export async function proveLocalDelta({ working, held, candidateId, confidence, bundle, reserved = [], selected = [], protocol }) {
+export async function proveLocalDelta({ working, held, candidateId, confidence, bundle, reserved = [], selected = [], scope = null, protocol }) {
   requireGraph(working);
   if (held.readSet !== additionReadSet(working, bundle, reserved, selected)) return refused("stale-addition");
   const candidate = held.candidates.find(item => item.id === candidateId);
   if (!candidate) return refused("invalid-addition");
   if (!(confidence >= MIN_CONFIDENCE && confidence <= 1)) return noChange("not-confident");
-  const latest = legalLocalDeltas(working, { bundle, protocol, reserved, selected });
+  const latest = legalLocalDeltas(working, { bundle, protocol, reserved, selected, scope });
   if (JSON.stringify(latest.candidates) !== JSON.stringify(held.candidates)) return refused("stale-addition");
   if (candidate.part !== undefined) return proveAddition({ working, held: { ...held,
     candidates: held.candidates.filter(item => item.part !== undefined) }, candidateId, confidence, bundle, reserved, selected, protocol });

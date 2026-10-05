@@ -1,6 +1,6 @@
-import { ARCHITECTURE_INTENT_KIND, ARCHITECTURE_LOCATE_KIND, DECISION_KIND, ERRORS, GOAL_REQUEST_KIND, REQUEST_KIND, isJudgeRequest, isLocateRequest, isRequest, judgeFramesFor, judgeSlotsFor, locateSlotsFor, readAnswers, slotsFor } from "../../src/contract.mjs";
+import { ACTION_ADD_EDGE, ARCHITECTURE_INTENT_KIND, ARCHITECTURE_LOCATE_KIND, DECISION_KIND, ERRORS, GOAL_REQUEST_KIND, REQUEST_KIND, isJudgeRequest, isLocateRequest, isRequest, judgeFramesFor, judgeSlotsFor, locateSlotsFor, readAnswers, slotsFor } from "../../src/contract.mjs";
 import { questionsFor } from "../../src/judgment.mjs";
-import { definedRelation, focusedEvidence, intentSectionOf, judgeSectionOf, readManifest } from "../../src/architecture.mjs";
+import { definedRelation, focusedEvidence, intentSectionOf, judgeSectionOf, readManifest, regionIdOf } from "../../src/architecture.mjs";
 
 const json = (body, status = 200) => new Response(JSON.stringify(body), {
   status, headers: { "content-type": "application/json; charset=utf-8", "cache-control": "no-store" },
@@ -47,6 +47,18 @@ export async function onRequestPost({ request, available, architecture }, judge)
   let slots;
   let questions;
   if (kind === REQUEST_KIND || kind === GOAL_REQUEST_KIND) {
+    // A Goal's scope is reopened against this exact source, and every arrow it
+    // offers must touch the scope's parts; the page's word is not enough.
+    if (kind === GOAL_REQUEST_KIND && state.scope !== null) {
+      const bound = boundArchitecture(architecture);
+      if (bound === null) return json({ error: ERRORS.architectureUnavailable }, 503);
+      const regions = new Set(state.scope.focus.map(regionIdOf));
+      if (JSON.stringify(state.scope.source) !== JSON.stringify(bound.manifest.source)
+        || judgeSectionOf(bound.manifest, state.scope.focus) === null
+        || !state.candidates.every(candidate => candidate.action !== ACTION_ADD_EDGE || regions.has(candidate.from) || regions.has(candidate.to))) {
+        return json({ error: ERRORS.architectureMismatch }, 422);
+      }
+    }
     slots = slotsFor(state);
     questions = questionsFor(state, slots, { kind });
   } else {
