@@ -8,7 +8,8 @@
     { "key": "start", "purpose": "a start or beginning", "label": "開始", "kind": "start" },
     { "key": "end", "purpose": "an end, finish or result", "label": "終了", "kind": "end" },
     { "key": "api", "purpose": "an application programming interface service that receives requests", "label": "API", "kind": "step" },
-    { "key": "db", "purpose": "a database that persists application data", "label": "DB", "kind": "data" }
+    { "key": "db", "purpose": "a database that persists application data", "label": "DB", "kind": "data" },
+    { "key": "group", "purpose": "a group, boundary or container that holds other parts", "label": "グループ", "kind": "group" }
   ],
   "diagrams": [
     {

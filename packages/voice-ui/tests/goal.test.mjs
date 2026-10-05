@@ -106,7 +106,7 @@ test("one Goal adopts two real AddRegions and whole-group Undo without claiming 
   assert.equal(result.requests, 3);
   assert.equal(Number.isFinite(result.elapsedMs) && result.elapsedMs >= 0, true);
   assert.equal(requests.every(request => request.kind === GOAL_REQUEST_KIND && isRequest(request)), true);
-  assert.equal(requests.every(request => request.state.utterance === utterance && request.state.offers.parts.length === 7), true);
+  assert.equal(requests.every(request => request.state.utterance === utterance && request.state.offers.parts.length === 8), true);
   assert.equal(requests[1].state.candidates.some(candidate => candidate.part === order[0]), false);
   assert.equal(requests[1].state.selected[0].key, order[0]);
   const added = session.working.records.filter(record => record.type === "region" && !before.working.records.some(old => old.id === record.id));
@@ -306,9 +306,7 @@ test("partial successful Goal keeps one grouped edit when a later cancel, stale 
 test("ADD/Connect candidates remain bounded by eight requests, never a ninth", async () => {
   for (const count of [7, 8]) {
     const before = await opened(); let session = before; let calls = 0;
-    const offered = count === 7 ? bundle : { ...bundle, parts: [...bundle.parts,
-      { key: "extra", purpose: "another bounded fixture offer", label: "Extra", kind: "step" }],
-    };
+    const offered = count === 8 ? bundle : { ...bundle, parts: bundle.parts.filter(part => part.key !== "group") };
     const result = await runGoal({ utterance: "add all offered parts", bundle: offered, protocol,
       current: () => session, cancelled: () => false,
       ask: async request => { calls += 1; return { kind: "answered", decision: { answers: {
@@ -321,6 +319,40 @@ test("ADD/Connect candidates remain bounded by eight requests, never a ninth", a
     const reverted = await undo(session, { verifyDecisionLog: protocol.verifyDecisionLog });
     assert.deepEqual(reverted.working.records, before.working.records);
   }
+});
+
+test("a Goal nests an offered group, grows it for its child, connects into it and Undo restores every old pin", async () => {
+  const before = await opened(); let session = before; let group = null; let calls = 0;
+  const result = await runGoal({ utterance: "OCIの中にグループを作り、その中にDB、OCIにAPIを置いてAPIからDBへつないで", bundle, protocol,
+    current: () => session, cancelled: () => false, ask: async request => {
+      calls += 1;
+      if (calls === 1) return answer(request, "group");
+      if (calls === 2) {
+        group = request.state.selected[0].region;
+        assert.equal(request.state.candidates.some(candidate => candidate.part === "db" && candidate.parent === group), true);
+        return answer(request, "db", group);
+      }
+      if (calls === 3) return answer(request, "api");
+      const db = request.state.selected[1].region, api = request.state.selected[2].region;
+      const edge = request.state.candidates.find(item => item.action === "add-edge" && item.from === api && item.to === db);
+      return { kind: "answered", decision: { answers: { delta: { type: "choice", choice: calls === 4 ? edge.id : NONE, confidence: 1 } } } };
+    }, adopt: async next => { session = next; } });
+  assert.equal(result.reason, "none"); assert.equal(result.requests, 5);
+  assert.deepEqual(result.selected.map(item => [item.key, item.parent]), [["group", "container"], ["db", group], ["api", "container"]]);
+  const regions = session.working.records.filter(record => record.type === "region");
+  assert.equal(regions.find(record => record.id === group).kind, "group");
+  assert.equal(regions.find(record => record.id === result.selected[1].region).parent, group);
+  assert.deepEqual(session.working.records.filter(item => item.type === "relation").map(({ from, to }) => [from, to]),
+    [[result.selected[2].region, result.selected[1].region]]);
+  const layout = protocol.layoutBoundsFor(session.working.records, { pattern: protocol.GRAPH_PATTERN }).bounds;
+  const inside = (outer, inner) => inner[0] >= outer[0] && inner[1] >= outer[1]
+    && inner[0] + inner[2] <= outer[0] + outer[2] && inner[1] + inner[3] <= outer[1] + outer[3];
+  assert.ok(inside(layout.container, layout[group]) && inside(layout[group], layout[result.selected[1].region]));
+  assert.equal(draftUsed(session), 1);
+  const reverted = await undo(session, { verifyDecisionLog: protocol.verifyDecisionLog });
+  assert.deepEqual(reverted.working.records, before.working.records);
+  assert.deepEqual(protocol.layoutBoundsFor(reverted.working.records, { pattern: protocol.GRAPH_PATTERN }).bounds,
+    protocol.layoutBoundsFor(before.working.records, { pattern: protocol.GRAPH_PATTERN }).bounds);
 });
 
 test("held additions reject unknown IDs, changed placement inputs and silent replanning", async () => {

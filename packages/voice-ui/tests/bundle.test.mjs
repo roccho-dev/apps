@@ -18,6 +18,14 @@ test("the shipped bundle is valid in every section, and frozen once read", () =>
   assert.ok(Object.isFrozen(bundle.parts[0]) && Object.isFrozen(bundle.diagrams[0].lanes[0]));
 });
 
+test("one generic group part is offered within the eight-offer cap", () => {
+  const value = shipped();
+  const bundle = readBundle(value);
+  assert.deepEqual(bundle.parts.filter(part => part.kind === "group").map(part => part.key), ["group"]);
+  assert.equal(bundle.parts.length, 8);
+  assert.equal(readBundle({ ...value, parts: [...value.parts, { ...value.parts[0], key: "ninth" }] }).parts, null, "a ninth offer is refused");
+});
+
 test("a bundle that cannot be read offers nothing, and blocks nothing else", () => {
   for (const value of [null, [], "text", { ...shipped(), schema: "other/1" }, { ...shipped(), version: "" }]) {
     assert.deepEqual(readBundle(value), { version: null, parts: null, diagrams: null });
@@ -35,6 +43,7 @@ test("a broken section disables only its own capability", () => {
   const diagram = value.diagrams[0];
   for (const broken of [
     { ...diagram, steps: [{ ...diagram.steps[0], lane: "nobody" }] },
+    { ...diagram, steps: [{ ...diagram.steps[0], kind: "group" }] },
     { ...diagram, links: [[diagram.steps[0].ref, "nowhere"]] },
     { ...diagram, links: [[diagram.steps[0].ref, diagram.steps[0].ref]] },
     { ...diagram, lanes: [...diagram.lanes, diagram.lanes[0]] },

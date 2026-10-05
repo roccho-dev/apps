@@ -146,7 +146,8 @@ test("legal addition catalogue is finite, complete for the deterministic pairs a
   const decision = await protocol.createDecision(graph.head, [{ type: "PinRegions",
     items: groups.map((group, index) => ({ regionId: group.id, bounds: [0, index * 600, 2000, 500] })) }], graph.records);
   const prepared = (await protocol.appendDecision(graph.log, decision.decision)).verified;
-  const offered = { ...BUNDLE, parts: [...BUNDLE.parts, { key: "extra", purpose: "bounded extra fixture", label: "Extra", kind: "step" }] };
+  const offered = BUNDLE;
+  assert.equal(offered.parts.length, 8);
   const held = legalAdditions(prepared, { bundle: offered, protocol });
   assert.equal(held.candidates.length, 256);
   assert.equal(new Set(held.candidates.map(candidate => candidate.id)).size, 256);
@@ -175,9 +176,9 @@ test("public seed mixed catalogues report actual reachable counts separately fro
     const add = held.candidates.filter(candidate => candidate.part !== undefined).length;
     const connect = held.candidates.length - add;
     counts.push({ endpoints, add, connect, total: held.candidates.length });
-    assert.equal(BUNDLE.parts.length, 7);
+    assert.equal(BUNDLE.parts.length, 8);
     assert.equal(working.records.filter(record => record.type === "region" && record.kind === "group").length, 2);
-    assert.ok(endpoints <= 10 && add <= 14 && connect <= 90 && held.candidates.length <= 104);
+    assert.ok(endpoints <= 10 && add <= 16 && connect <= 90 && held.candidates.length <= 106);
     assert.equal(connect, endpoints * (endpoints - 1)); // This trace has no edge yet.
     if (key === null) break;
     const container = working.records.find(record => record.type === "region" && record.label === "OCI" && record.kind === "group");
@@ -190,7 +191,113 @@ test("public seed mixed catalogues report actual reachable counts separately fro
   }
   assert.deepEqual(counts.map(row => [row.endpoints, row.connect]), [[3, 6], [4, 12], [5, 20]]);
   process.stdout.write(JSON.stringify({ kind: "voice-ui.publicSeedCatalogueCounts.v1", counts,
-    conservativeBound: 104, scope: "this reachable trace, not all-state coverage" }) + "\n");
+    conservativeBound: 106, scope: "this reachable trace, not all-state coverage" }) + "\n");
+});
+
+const boxOf = (graph, id) => protocol.layoutBoundsFor(graph.records, { pattern: protocol.GRAPH_PATTERN }).bounds[id];
+const within = (outer, inner) => inner[0] >= outer[0] && inner[1] >= outer[1]
+  && inner[0] + inner[2] <= outer[0] + outer[2] && inner[1] + inner[3] <= outer[1] + outer[3];
+const apart = (a, b) => a[0] + a[2] <= b[0] || b[0] + b[2] <= a[0] || a[1] + a[3] <= b[1] || b[1] + b[3] <= a[1];
+
+test("only a group this Goal adopted grows to take a child; seed groups stay fit-or-none", async () => {
+  const initial = (await newMap({ title: "nested public seed", protocol })).graph;
+  const composition = await plan(initial, { action: ACTION_COMPOSE, diagram: "container-example" });
+  let working = (await appendStep({ working: initial, step: composition.step, protocol })).graph;
+  const regions = () => working.records.filter(record => record.type === "region");
+  const root = regions().find(record => record.parent === null);
+  const container = regions().find(record => record.label === "OCI" && record.kind === "group");
+  const auxiliary = regions().find(record => record.kind === "group" && record.id !== container.id);
+  const selected = [];
+  const add = async (key, parent) => {
+    const held = legalLocalDeltas(working, { bundle: BUNDLE, protocol, selected });
+    const candidate = held.candidates.find(item => item.part === key && item.parent === parent);
+    assert.ok(candidate, `${key} into ${parent} is offered`);
+    const proved = await proveLocalDelta({ working, held, candidateId: candidate.id, confidence: 1, bundle: BUNDLE, protocol, selected });
+    assert.equal(proved.outcome, OUTCOME_STEP);
+    const before = working;
+    working = (await appendStep({ working, step: proved.step, protocol })).graph;
+    selected.push({ key, region: candidate.operations[0].regionId, parent });
+    return { before, candidate, held };
+  };
+
+  const seedBefore = { container: boxOf(working, container.id), auxiliary: boxOf(working, auxiliary.id) };
+  const containerPins = () => working.records.filter(record => record.type === "layout" && record.regionId === container.id);
+  const seedPins = containerPins();
+  const grouped = await add("group", container.id);
+  const group = grouped.candidate.operations[0].regionId;
+  assert.equal(regions().find(record => record.id === group).kind, "group");
+  assert.deepEqual(grouped.candidate.operations[1].items.map(item => item.regionId), [group]);
+  // The same added group is not adopted history without its selected entry.
+  assert.equal(legalLocalDeltas(working, { bundle: BUNDLE, protocol, selected: [] }).candidates
+    .some(candidate => candidate.parent === group), false);
+
+  const groupBefore = boxOf(working, group);
+  const nested = await add("db", group);
+  const db = nested.candidate.operations[0].regionId;
+  const pins = nested.candidate.operations[1].items;
+  assert.deepEqual(pins.map(item => item.regionId), [db, group, container.id]);
+  const grown = Object.fromEntries(pins.map(item => [item.regionId, item.bounds]));
+  for (const [id, old] of [[group, groupBefore], [container.id, seedBefore.container]]) {
+    assert.deepEqual(grown[id].slice(0, 2), old.slice(0, 2), "origin kept");
+    assert.ok(grown[id][2] >= old[2] && grown[id][3] >= old[3], "never shrinks");
+  }
+  for (const item of pins) assert.deepEqual(boxOf(working, item.regionId), [...item.bounds]);
+  assert.deepEqual(boxOf(working, auxiliary.id), seedBefore.auxiliary);
+
+  const api = (await add("api", container.id)).candidate;
+  assert.deepEqual(api.operations[1].items.map(item => item.regionId), [api.operations[0].regionId], "a seed group never grows");
+  const held = legalLocalDeltas(working, { bundle: BUNDLE, protocol, selected });
+  const edge = held.candidates.find(item => item.from === api.operations[0].regionId && item.to === db);
+  const proved = await proveLocalDelta({ working, held, candidateId: edge.id, confidence: 1, bundle: BUNDLE, protocol, selected });
+  assert.equal(proved.outcome, OUTCOME_STEP);
+  working = (await appendStep({ working, step: proved.step, protocol })).graph;
+
+  const parentOf = id => regions().find(record => record.id === id).parent;
+  for (const record of regions().filter(record => record.parent !== null)) {
+    assert.ok(within(boxOf(working, record.parent), boxOf(working, record.id)), `${record.id} is painted inside its parent`);
+    for (const sibling of regions().filter(other => other.parent === record.parent && other.id !== record.id))
+      assert.ok(apart(boxOf(working, record.id), boxOf(working, sibling.id)), `${record.id} and ${sibling.id} do not overlap`);
+  }
+  assert.equal(parentOf(parentOf(db)), container.id);
+  assert.equal(parentOf(container.id), root.id);
+  process.stdout.write(JSON.stringify({ kind: "voice-ui.nestedGroupTrace.v1",
+    containerPins: { before: seedPins, after: containerPins() },
+    pins: Object.fromEntries(pins.map(item => [regions().find(record => record.id === item.regionId).label, item.bounds])) }) + "\n");
+
+  // A held catalogue from before the group took its child is stale afterwards.
+  assert.equal((await proveLocalDelta({ working: nested.before, held: nested.held, candidateId: nested.candidate.id, confidence: 1,
+    bundle: BUNDLE, protocol, selected: selected.slice(0, 1).concat([{ key: "api", region: "part-90", parent: container.id }]) })).reason, "stale-addition");
+  assert.equal((await proveLocalDelta({ working, held: nested.held, candidateId: nested.candidate.id, confidence: 1,
+    bundle: BUNDLE, protocol, selected: selected.slice(0, 1) })).outcome === OUTCOME_STEP, false);
+});
+
+test("a growing group refuses when an ancestor would grow into its sibling", async () => {
+  const graph = await protocol.createDecisionLog([
+    { type: "meta", schema: STATE_SCHEMA, root: "root", title: "tight siblings" },
+    { type: "region", id: "root", parent: null, label: "fixture", kind: "boundary", bounds: [0, 0, 900, 900], summary: "" },
+    { type: "region", id: "upper", parent: "root", label: "Upper", kind: "group", bounds: [0, 0, 500, 200], summary: "" },
+    { type: "region", id: "lower", parent: "root", label: "Lower", kind: "group", bounds: [0, 300, 500, 100], summary: "" },
+  ], MAP_ID);
+  const decision = await protocol.createDecision(graph.head, [{ type: "PinRegions", items: [
+    { regionId: "upper", bounds: [0, 0, 500, 200] }, { regionId: "lower", bounds: [0, 210, 500, 100] },
+  ] }], graph.records);
+  let working = (await protocol.appendDecision(graph.log, decision.decision)).verified;
+  const selected = [];
+  const add = async (key, parent) => {
+    const held = legalLocalDeltas(working, { bundle: BUNDLE, protocol, selected });
+    const candidate = held.candidates.find(item => item.part === key && item.parent === parent);
+    if (!candidate) return null;
+    const proved = await proveLocalDelta({ working, held, candidateId: candidate.id, confidence: 1, bundle: BUNDLE, protocol, selected });
+    working = (await appendStep({ working, step: proved.step, protocol })).graph;
+    selected.push({ key, region: candidate.operations[0].regionId, parent });
+    return candidate.operations[0].regionId;
+  };
+  const group = await add("group", "upper");
+  assert.ok(group);
+  assert.ok(await add("db", group), "the first child fits inside the unmoved upper group");
+  const lower = boxOf(working, "lower");
+  assert.equal(await add("api", group), null, "a second child would grow upper into lower");
+  assert.deepEqual(boxOf(working, "lower"), lower);
 });
 
 const layoutOf = graph => protocol.layoutBoundsFor(graph.records, { pattern: protocol.GRAPH_PATTERN });
