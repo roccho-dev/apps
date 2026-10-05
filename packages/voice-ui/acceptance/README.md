@@ -163,6 +163,37 @@ first Goal request. Derived only from those constructors: issued part IDs,
 sequence, conversation and draft count; a reserved ID for a new part is not
 proven by the first request. Any difference withholds the score.
 
+## Real-case regressions after the v29 first attempts
+
+The v29 first real attempts (issue #58) are kept as recorded and never rescored.
+Three corrections followed, each from an observed cause:
+
+- At 3d858 a seed lane whose raw grid looked full offered no Add although its
+  painted frame had room, so the sealed g2 and d1 Auxiliary requests were
+  unreachable. The raw box is now only the AddRegion placeholder when the raw
+  grid is full; the painted search and the provider still decide the fit. The
+  seed Auxiliary takes exactly one more part, so the full g2 (two parts) and d1
+  (two parts) sequences remain unreachable.
+- In the observed g1 order a part was placed touching a grown group, and the
+  strict painted nonoverlap check failed by a sub-pixel. A direct addition now
+  tries the existing grid, then off-grid positions one band padding (12) after
+  an actual sibling, and keeps that padding from every painted sibling; a grown
+  group checks its siblings the same way. The checker tolerance is unchanged.
+- Goal-undo ran even when a Goal adopted nothing and then undid the
+  preparation. It now runs only when the Working head changed (this also covers
+  a Connect-only Goal); otherwise records, draft, claims, storage and the
+  confirmed view must be unchanged and the effect is recorded as none.
+
+The preregistered lexical baseline selector is one definition, restored in the
+page from its own source for the CPU replay. The explicit `fixture-baseline`
+mode (Goal scenarios, `--goal-case` required) answers with that same selector
+as a controlled seen regression; its Node answers must equal the replay, and
+changing only the expected data changes grades, never answers. `fixture-weak`
+answers a first offered choice below the confidence floor. These are controls,
+not Jev quality. The intent words for compose and architecture now name
+`state.offers.diagrams` and `state.architecture`; the API test proves only that
+input distinction, not a confidence or quality change.
+
 The smaller-only-fit fixture uses the same 220×160 parent and 40×40 other group:
 one small offer fits while a wider offer does not. Its independent expected graph
 and whole Undo prove finite coverage and controlled execution, not Sys1 judgment
