@@ -19,7 +19,8 @@ export async function runGoal({ utterance, bundle, protocol, current, ask, adopt
   // The latest source focus the session remembered, held for the whole Goal so
   // later utterances cannot push it out of the recent conversation.
   const reference = [...first.conversation].reverse().find(entry => entry.reference)?.reference ?? null;
-  const scope = reference === null ? null : Object.freeze({ source: { ...reference.source }, focus: [...reference.focus] });
+  const scope = reference === null ? null
+    : Object.freeze({ source: Object.freeze({ ...reference.source }), focus: Object.freeze([...reference.focus]) });
   const regions = scope === null ? null : new Set(scope.focus.map(regionIdOf));
   for (let count = 0; count < GOAL_REQUEST_MAX; count += 1) {
     if (cancelled()) return stop("cancelled");

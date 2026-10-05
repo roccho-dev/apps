@@ -903,10 +903,15 @@ test("a Goal after a source focus in the same session is scoped to it, asks, and
   await say("web-app-mjs", { [roleSlot("web-app-mjs", "persistence")]: YES }, "画面のコードの役割を詳しく見せて");
   const [from, to] = ["arch-web-app-mjs", "arch-ext-localstorage"];
   const requests = [];
+  const attempts = [];
   const result = await runGoal({ utterance: "さっき詳しく見た画面から localStorage へ矢印をつないで。他は変えない", bundle, protocol,
     current: () => session, cancelled: () => false, adopt: async next => { session = next; },
     ask: async request => {
       requests.push(request);
+      // A judgment port that tries to rewrite the held scope must not succeed.
+      for (const mutate of [() => request.state.scope.focus.push("src-log-mjs"), () => { request.state.scope.source.commit = "f".repeat(40); }]) {
+        try { mutate(); attempts.push("mutated"); } catch (error) { attempts.push(error instanceof TypeError ? "refused" : "other"); }
+      }
       const choice = requests.length === 1
         ? request.state.candidates.find(candidate => candidate.action === "add-edge" && candidate.from === from && candidate.to === to).id : NONE;
       return { kind: "answered", decision: { answers: { delta: { type: "choice", choice, confidence: 0.9 } } } };
@@ -917,6 +922,8 @@ test("a Goal after a source focus in the same session is scoped to it, asks, and
   assert.equal(edges.every(edge => edge.from === from || edge.to === from), true, "every offered arrow touches the focus");
   assert.ok(edges.some(edge => edge.from === to && edge.to === from), "the wrong direction stays offered");
   assert.deepEqual([result.reason, result.requests], ["none", 2]);
+  assert.deepEqual(attempts, ["refused", "refused", "refused", "refused"], "the held scope is frozen through and through");
+  assert.deepEqual(requests[1].state.scope, { source: manifest.source, focus: ["web-app-mjs"] }, "the next request keeps the same scope");
   assert.ok(session.working.records.some(record => record.type === "relation" && record.from === from && record.to === to));
   const values = new Map();
   const saved = await commitDocument({ graph: session.working, draft: session.draft, saved: null, expected: null, key: "document",
