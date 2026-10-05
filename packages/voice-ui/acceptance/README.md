@@ -127,7 +127,8 @@ trial arrow (画面のコードにつながる試案の矢印): a hypothesis on 
 source fact and never a claim that the code was understood. In live mode the
 existing finite `--goal-case` is required: `regions` empty and one flow whose
 `baselineRegion` ends are served manifest entity IDs, resolved to the actual
-pre-Goal Working; no crafted route or fixture answer is installed. An unknown,
+pre-Goal Working; no crafted route or fixture answer is installed. Fixture
+goal-source takes no evaluator data and the order must be normal. An unknown,
 already related or unoffered target is INELIGIBLE, never success; malformed
 input is refused before the browser starts. A Goal request keeps distinct
 existing relations that share a directed pair (the page code both imports and
@@ -140,13 +141,19 @@ expected arrow with every old non-layout record kept, and the actual painted
 arrow at its named ends by the existing painted observer, with the reverse and
 a disconnected visible part as negatives; the scene relation list is projection
 only, not paint proof. The container is the shared actual parent, else the
-actual root. When an end is not painted in the overview, the existing camera
-selects the source end; records and storage stay unchanged. In the current
-fixture the arrow joins `artifact-jsonl` to `web-app-mjs`; the overview paints
-neither end, the camera on `artifact-jsonl` paints the arrow while the
-`web-app-mjs` label lies outside that frame. Whole-Goal Undo, conversation
-clear with Working and Accepted unchanged, and the same utterance overflowing
-before any provider request follow.
+actual root. PASS needs one actual frame on which the matched stroke start and
+marker tip lie inside the zero-margin iframe viewport and both end shapes
+intersect it, with that frame negatives; geometric connection alone is not a
+viewport result. The overview is tried first, then the existing camera on the
+from end, then on the to end, with records and storage unchanged; label
+visibility is recorded only. In the current fixture the arrow joins
+`artifact-jsonl` to `web-app-mjs`. The overview paints neither end; on the
+`artifact-jsonl` camera (626x434) the stroke runs from (372.8, 263.5) to the
+tip (579.0, 423.6), the `artifact-jsonl` shape is [223, 171, 180, 92] and the
+`web-app-mjs` shape [549, 424, 180, 92] is partly clipped at the frame edge and
+its label lies outside. Whole-Goal Undo, conversation clear with Working and
+Accepted unchanged, and the same utterance overflowing before any provider
+request follow.
 
 The replay session is rebuilt in the page by the served `createSession`,
 `startNew`, `requestFor`, `withArchitecture` and `propose` from the actual title
