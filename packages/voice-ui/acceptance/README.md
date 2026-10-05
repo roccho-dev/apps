@@ -87,6 +87,18 @@ same origin and no smaller size; flat oracles keep every baseline record exact.
 `goal-nest` drives group, a child in it, a part in OCI and the arrow between them
 with crafted answers and whole Undo; it is controlled mechanics, not Sys1 quality.
 
+In the default overview the provider may close a small added group: its scene
+then lists the group as not open and the child as not represented, and the
+evaluator records that as closed, never as painted. goal-nest then selects the
+added group with the existing camera control (a view operation, not an edit)
+and proves on that actual frame that the group is open, the child is painted
+inside it without overlap, every added label shows, and the expected arrow
+matches once while its reverse and a disconnected counter-paint do not; it
+returns to the overview before Undo. No threshold is computed by the
+evaluator. In this Goal the confirmed pane holds no graph, so equal frames on
+both panes are not observed here. Flat scenarios keep the unchanged-viewport
+grades.
+
 The smaller-only-fit fixture uses the same 220×160 parent and 40×40 other group:
 one small offer fits while a wider offer does not. Its independent expected graph
 and whole Undo prove finite coverage and controlled execution, not Sys1 judgment
