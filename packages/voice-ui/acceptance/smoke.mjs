@@ -331,13 +331,15 @@ try {
       const camera = proof.nest.camera;
       assert.equal(camera.part, group); assert.equal(camera.state, "camera");
       assert.equal(camera.groupOpen, true); assert.deepEqual(camera.childrenRepresented, [true]);
-      assert.deepEqual(camera.labelsVisible, [true, true, true]);
+      assert.deepEqual(camera.labelsVisible, [true, true, true]); assert.deepEqual(camera.groupLabels, [true, true, true]);
       assert.deepEqual(camera.groupPaint.shapes.map(shape => shape.id), [db]);
       assert.equal(camera.groupPaint.contained && camera.groupPaint.nonoverlap && camera.groupPaint.complete, true);
-      assert.equal(camera.edges.length, 1); assert.equal(camera.edges[0].paint.edge.matches.length, 1);
-      assert.equal(camera.edges[0].reverse.edge.complete, false);
-      assert.notEqual(camera.edges[0].disconnected, null, "a visible disconnected counter-paint is measured");
-      assert.equal(camera.edges[0].disconnected.edge.complete, false);
+      assert.equal(camera.edges.length, 1); assert.equal(camera.edges[0].met, true);
+      assert.equal(camera.edges[0].frame.camera, group, "the group camera shows this arrow whole");
+      assert.equal(camera.edges[0].frame.edge.matches.length, 1);
+      assert.equal(camera.edges[0].frame.reverse.complete, false);
+      assert.notEqual(camera.edges[0].frame.disconnected, null, "a disconnected counter-paint in view is measured");
+      assert.equal(camera.edges[0].frame.disconnected.complete, false);
       assert.equal(camera.recordsUnchanged && camera.storedUnchanged && camera.overviewRestored, true);
       assert.equal(proof.nest.cameraMet, true);
     }
@@ -362,6 +364,12 @@ try {
       data: { ...evaluationBase, id: "connect-only", order: "normal", goal: "Existing helperからHelper rightへ矢印をつないで",
         expected: { kind: "change", regions: [], flows: [{ from: { baselineRegion: "existing-helper" }, to: { baselineRegion: "helper-right" } }] } } },
     { id: "first-weak", mode: "fixture-weak", scenario: "goal-flow", data: { ...evaluationBase, id: "first-weak", order: "normal" } },
+    // r31-f1-nest-out (seen when its keyless preflight exposed the observer
+    // gap): an arrow from a part inside an added group to a seed part outside.
+    { id: "seen-f1", mode: "fixture-baseline", scenario: "goal-nest",
+      data: { version: "voice-ui.goal-evaluation.v1", id: "r31-f1-nest-out", goal: "OCIにグループを作り、そのグループの中にDBを置いて、DBからExisting helperへ矢印をつないで", order: "normal",
+        expected: { kind: "change", regions: [{ partKey: "group", parentLabel: "OCI" }, { partKey: "db", parent: { addedPart: "group" } }],
+          flows: [{ from: { addedPart: "db" }, to: { baselineRegion: "existing-helper" } }] } } },
   ];
   const regressions = {};
   for (const [index, entry] of regressionCases.entries()) {
@@ -388,6 +396,16 @@ try {
     assert.notEqual(weak.code, 0); assert.equal(weak.proof.reason, "not-confident"); assert.equal(weak.proof.requests, 1);
     assert.equal(weak.proof.goalEffect, "none"); assert.equal(weak.proof.graphBefore, weak.proof.graphAfter);
     assert.deepEqual(weak.summary.notRun, ["goal-undo"]); assert.equal(weak.summary.actions.undo, 0);
+    const f1 = regressions["seen-f1"];
+    assert.equal(f1.code, 0, JSON.stringify(f1.summary.verdicts));
+    assert.equal(f1.proof.evaluation.semanticGrade, "PASS"); assert.equal(f1.proof.evaluation.paintGrade, "PASS");
+    assert.equal(f1.proof.fairBaseline.craftEqual, true); assert.equal(f1.proof.undoRestored, true);
+    const crossing = f1.proof.nest.camera.edges[0];
+    assert.deepEqual(f1.proof.nest.camera.groupLabels.filter((visible, index) => f1.proof.rawAdded[index].parent === f1.proof.selected[0].region), [true],
+      "the nested child label shows on the group camera");
+    assert.equal(crossing.met, true); assert.equal(crossing.frame.inView, true);
+    assert.equal(crossing.frame.edge.matches.length, 1); assert.equal(crossing.frame.reverse.complete, false);
+    assert.notEqual(crossing.frame.disconnected, null); assert.equal(crossing.frame.disconnected.complete, false);
   }
   process.stdout.write(JSON.stringify({ kind: "voice-ui.goalRegressionControls.v1", status: "PASS", liveProviderCalls: 0,
     scope: "seen regressions and controlled negatives; not Jev quality", artifactManifestSha256: digest,
