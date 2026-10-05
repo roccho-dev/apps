@@ -47,7 +47,8 @@ if (flag !== "--mode" || !["fixture", "fixture-none", "fixture-stop", "fixture-s
   || !["natural", "named", "contextual-reverse", "goal-addition", "goal-flow", "goal-nest", "goal-source"].includes(scenario) || !url
   || (mode === "fixture-semantic-stop" && scenario !== "contextual-reverse") || extra.length !== 0
   || (caseFlag !== undefined && (caseFlag !== "--goal-case" || caseJson === undefined))
-  || ((caseFlag !== undefined || mode === "fixture-none") && !["goal-addition", "goal-flow", "goal-nest"].includes(scenario))) {
+  || (caseFlag !== undefined && !["goal-addition", "goal-flow", "goal-nest", "goal-source"].includes(scenario))
+  || (mode === "fixture-none" && !["goal-addition", "goal-flow", "goal-nest"].includes(scenario))) {
   throw new Error("usage: architecture-e2e.mjs --mode fixture|fixture-stop|fixture-semantic-stop|live --scenario natural|named|contextual-reverse|goal-addition|goal-flow|goal-nest|goal-source <url>");
 }
 const REVERSE = scenario === "contextual-reverse";
@@ -147,6 +148,16 @@ const expectedCase = evaluation?.expected ?? { kind: "change", regions: NEST ? [
 const parentShape = region => exactKeys(region, ["partKey", "parentLabel"]) ? "seed"
   : exactKeys(region, ["partKey", "parent"]) && exactKeys(region.parent, ["addedPart"]) ? "added" : null;
 const NESTED = expectedCase.regions.some(region => parentShape(region) === "added");
+// goal-source names one expected arrow by two served manifest entities; live
+// goal-source runs only on such evaluator data.
+if (SOURCE) {
+  assert.ok(FIXTURE || evaluation !== null, "live goal-source requires a finite --goal-case input");
+  if (evaluation !== null) assert.ok(evaluation.expected.kind === "change" && evaluation.expected.regions.length === 0
+    && evaluation.expected.flows.length === 1 && exactKeys(evaluation.expected.flows[0], ["from", "to"])
+    && ["from", "to"].every(end => exactKeys(evaluation.expected.flows[0][end], ["baselineRegion"])
+      && ENTITY_IDS.includes(evaluation.expected.flows[0][end].baselineRegion))
+    && evaluation.expected.flows[0].from.baselineRegion !== evaluation.expected.flows[0].to.baselineRegion, "one expected arrow between served manifest entities");
+}
 if (GOAL) {
   assert.ok(expectedCase.regions.length <= publicBundle.parts.length && expectedCase.flows.length <= 90, "finite oracle size");
   assert.ok(expectedCase.regions.every(region => parentShape(region) !== null), "closed expected regions");
@@ -1148,17 +1159,18 @@ const goalScenario = async () => {
   for (const entry of exchanges) entry.reported = true;
 };
 // goal-source on one page: the whole account, the page code in focus, then a
-// Goal whose request is scoped by that remembered focus. Its controlled answer
-// takes the first manifest pair the Goal catalogue actually offers and Working
-// has not drawn in either direction (a drawn pair is INELIGIBLE): mechanics
-// only, never a claim that the source was understood. Whole Goal Undo, then
+// Goal whose request is scoped by that remembered focus. In fixture mode the
+// controlled answer takes, in request order, the first offered arrow touching
+// the focus whose ends have no relation in either direction: a trial arrow,
+// never a source fact. In live mode the finite --goal-case names the expected
+// arrow by served manifest entities and no answer is crafted. Whole Goal Undo,
 // clearing the conversation, then the same utterance has no reference left.
-const SOURCE_GOAL = "さっき詳しく見た画面のコードから、まだ描かれていない呼び出し先へ矢印をつないで";
+const SOURCE_GOAL = "さっき詳しく見た画面のコードにつながる試案の矢印を1本つないで";
 let sourceEvidence = null;
 const goalDone = () => page.waitForFunction(() => document.querySelector("#goal-cancel").hidden
   && document.body.dataset.state !== "pending", null, { timeout: 180000 });
 const sourceScenario = async () => {
-  assert.equal(mode, "fixture", "goal-source is a controlled composition");
+  const goalText = evaluation?.goal ?? SOURCE_GOAL;
   reached.push("open");
   await page.goto(PAGE, { waitUntil: "commit", timeout: 120000 });
   await ready();
@@ -1179,48 +1191,42 @@ const sourceScenario = async () => {
   prerequisite(verdicts.length === 0, "app");
   const before = app.now;
   const route = new URL("/api/judge", url).href;
-  const drawn = (state, from, to) => state.edges.some(edge => edge.from === from && edge.to === to || edge.from === to && edge.to === from);
-  let chosen = null;
-  const ineligible = [];
-  await page.route(route, craft((name, sent) => {
-    if (chosen !== null) return contract.NONE;
-    for (const pair of MANIFEST.candidates) {
-      const candidate = sent.state.candidates.find(item => item.action === "add-edge"
-        && item.from === `arch-${pair.from}` && item.to === `arch-${pair.to}`);
-      if (candidate === undefined) continue;
-      if (drawn(sent.state, candidate.from, candidate.to)) { ineligible.push(candidate.id); continue; }
-      chosen = candidate;
-      return candidate.id;
-    }
-    return contract.NONE;
+  const related = (edges, from, to) => edges.some(edge => edge.from === from && edge.to === to || edge.from === to && edge.to === from);
+  const focusRegions = (reference?.focus ?? []).map(id => `arch-${id}`);
+  const flow = evaluation?.expected.flows[0] ?? null;
+  let chosen = null, asked = 0;
+  if (FIXTURE) await page.route(route, craft((name, sent) => {
+    if (asked++ > 0) return contract.NONE;
+    chosen = sent.state.candidates.find(item => item.action === "add-edge"
+      && (focusRegions.includes(item.from) || focusRegions.includes(item.to)) && !related(sent.state.edges, item.from, item.to)) ?? null;
+    return chosen?.id ?? contract.NONE;
   }), { times: 8 });
   const prior = exchanges.length;
   reached.push("source-goal");
-  await page.locator("#text").fill(SOURCE_GOAL);
+  await page.locator("#text").fill(goalText);
   await click("goal"); await goalDone(); await drain();
-  await page.unroute(route);
+  if (FIXTURE) await page.unroute(route);
   const after = await screen(); last = after;
   const attempt = await page.evaluate(() => JSON.parse(document.body.dataset.goal));
   const sent = exchanges.slice(prior);
   for (const entry of sent) entry.reported = true;
   const request = sent[0]?.sent.state ?? null;
-  const focusRegions = (reference?.focus ?? []).map(id => `arch-${id}`);
+  // The expected arrow: the controlled choice, or the evaluator data resolved
+  // against the served manifest and the actual pre-Goal Working.
+  const target = FIXTURE ? (chosen === null ? null : { from: chosen.from, to: chosen.to })
+    : flow === null ? null : { from: "arch-" + flow.from.baselineRegion, to: "arch-" + flow.to.baselineRegion };
+  const endpointOf = (records, id) => records.find(record => record.type === "region" && record.id === id
+    && record.parent !== null && record.kind !== "group") ?? null;
+  const beforeRelations = before.graph.records.filter(record => record.type === "relation");
+  const eligible = target !== null && target.from !== target.to
+    && endpointOf(before.graph.records, target.from) !== null && endpointOf(before.graph.records, target.to) !== null
+    && !related(beforeRelations, target.from, target.to) && request !== null
+    && request.candidates.some(item => item.action === "add-edge" && item.from === target.from && item.to === target.to);
   const newEdges = after.graph.records.filter(record => record.type === "relation" && !before.graph.records.some(old => old.id === record.id));
-  const sceneEndpoints = await page.evaluate(() => document.querySelector("#working-surface iframe[data-package=semantic-map]")
-    ?.contentWindow?.semanticMapApp?.snapshot().scene?.relationEndpoints ?? null);
-  sourceEvidence = { source: SERVED_COMMIT, focus: reference?.focus ?? null, utterance: SOURCE_GOAL,
+  const nonLayout = records => records.filter(record => record.type !== "layout");
+  sourceEvidence = { source: SERVED_COMMIT, mode, focus: reference?.focus ?? null, utterance: goalText,
     wholeSize, goalWorkingSize: { regions: before.graph.records.filter(record => record.type === "region").length,
-      relations: before.graph.records.filter(record => record.type === "relation").length },
-    // What of the actual pre-Goal Working the closed Goal v5 edge rule refuses:
-    // a repeated directed pair, or an arrow at the root or a group.
-    goalEdgeShape: (() => {
-      const regions = before.graph.records.filter(record => record.type === "region");
-      const endpoint = id => regions.some(region => region.id === id && region.parent !== null && region.kind !== "group");
-      const relations = before.graph.records.filter(record => record.type === "relation");
-      const pairs = relations.map(record => JSON.stringify([record.from, record.to]));
-      return { repeatedPairs: relations.filter((record, index) => pairs.indexOf(pairs[index]) !== index).map(record => record.id),
-        nonEndpoint: relations.filter(record => !endpoint(record.from) || !endpoint(record.to)).map(record => record.id) };
-    })(),
+      relations: beforeRelations.length },
     scopeMatchesReference: request !== null && JSON.stringify(request.scope)
       === JSON.stringify(reference === null ? null : { source: reference.source, focus: reference.focus }),
     contextMatches: request !== null && JSON.stringify(request.context.recent)
@@ -1228,26 +1234,52 @@ const sourceScenario = async () => {
     candidates: request?.candidates.length ?? 0,
     edgesTouchFocus: request !== null && request.candidates.filter(item => item.action === "add-edge")
       .every(item => focusRegions.includes(item.from) || focusRegions.includes(item.to)),
-    ineligible, chosen, predrawn: chosen === null ? null : drawn(request, chosen.from, chosen.to),
-    // Each manifest pair touching the focus: drawn either way, and offered as a candidate either way.
-    manifestPairs: request === null ? [] : MANIFEST.candidates
-      .filter(pair => focusRegions.includes(`arch-${pair.from}`) || focusRegions.includes(`arch-${pair.to}`))
-      .map(pair => { const from = `arch-${pair.from}`, to = `arch-${pair.to}`;
-        return { pair: pair.id, drawn: drawn(request, from, to),
-          offered: request.candidates.some(item => item.action === "add-edge" && (item.from === from && item.to === to || item.from === to && item.to === from)) }; }),
-    reason: attempt.reason, requests: attempt.requests, exchanges: sent.map(sanitized),
-    newEdges: newEdges.map(({ id, from, to, kind }) => ({ id, from, to, kind })), sceneEndpoints: null,
-    newEdgeDrawn: chosen !== null && newEdges.length === 1 && newEdges[0].from === chosen.from && newEdges[0].to === chosen.to
-      && JSON.stringify(after.graph.records.filter(record => record.id !== newEdges[0].id && record.type !== "layout"))
-        === JSON.stringify(before.graph.records.filter(record => record.type !== "layout"))
-      && Array.isArray(sceneEndpoints) && sceneEndpoints.includes(`${chosen.from}->${chosen.to}`),
-    understanding: "NOT_PROVEN" };
-  sourceEvidence.sceneEndpoints = Array.isArray(sceneEndpoints) ? sceneEndpoints.filter(item => chosen !== null && item.includes(chosen.from)) : null;
+    target, targetBy: FIXTURE ? "controlled: first offered arrow touching the focus with no relation either way" : "evaluator goal-case",
+    eligible, reason: attempt.reason, requests: attempt.requests, exchanges: sent.map(sanitized),
+    newEdges: newEdges.map(({ id, from, to, kind }) => ({ id, from, to, kind })),
+    newEdgeDrawn: eligible && newEdges.length === 1 && newEdges[0].from === target.from && newEdges[0].to === target.to
+      && JSON.stringify(nonLayout(after.graph.records).filter(record => record.id !== newEdges[0].id))
+        === JSON.stringify(nonLayout(before.graph.records)),
+    paint: null, understanding: "NOT_PROVEN" };
   need(sourceEvidence.scopeMatchesReference && sourceEvidence.contextMatches, "the Goal carries the remembered source focus and the prior plain conversation");
   need(sourceEvidence.candidates >= 1 && sourceEvidence.candidates <= 254 && sourceEvidence.edgesTouchFocus, "the scoped catalogue is bounded and every arrow touches the focus");
-  need(chosen !== null && sourceEvidence.predrawn === false, "a manifest pair not yet drawn is offered; a drawn pair is INELIGIBLE, not an update");
-  need(attempt.reason === "none" && attempt.requests === 2 && sent.length === 2 && sourceEvidence.newEdgeDrawn,
-    "the Goal draws exactly the one new directed arrow, then stops on NONE");
+  need(eligible, "the expected arrow joins two known parts with no relation either way and is offered; otherwise INELIGIBLE");
+  need((FIXTURE ? attempt.reason === "none" && attempt.requests === 2 && sent.length === 2
+    : ["none", "no-executable-delta", "budget-requests", "budget-time"].includes(attempt.reason)) && sourceEvidence.newEdgeDrawn,
+  "the Goal draws exactly the one new expected arrow, keeps every old record, and stops mechanically");
+  // The actual painted arrow at its named ends, by the existing observer, with
+  // its reverse and a disconnected visible part as negatives. The container is
+  // the shared actual parent, or the actual root.
+  if (sourceEvidence.newEdgeDrawn) {
+    const endpoints = after.graph.records.filter(record => record.type === "region" && record.parent !== null && record.kind !== "group");
+    const ends = [target.from, target.to].map(id => endpointOf(after.graph.records, id));
+    const container = after.graph.records.find(record => record.type === "region"
+      && (ends[0].parent === ends[1].parent ? record.id === ends[0].parent : record.parent === null));
+    const afterRelations = after.graph.records.filter(record => record.type === "relation");
+    const measure = async camera => {
+      const visible = await Promise.all(endpoints.map(record => labelVisible(record.label)));
+      const other = endpoints.find((record, index) => visible[index] && !ends.includes(record)
+        && !related(afterRelations, target.from, record.id)) ?? null;
+      const records = other === null ? ends : [...ends, other];
+      const edgeOf = async edge => (await paintedGoal(container, records, edge)).edge;
+      return { camera, container: container.id, endsVisible: ends.map(record => visible[endpoints.indexOf(record)]),
+        edge: await edgeOf(target), reverse: await edgeOf({ from: target.to, to: target.from }),
+        disconnected: other === null ? null : await edgeOf({ from: target.from, to: other.id }) };
+    };
+    let paint = await measure("");
+    // The existing camera only exposes ends the overview leaves unpainted.
+    if (!paint.endsVisible.every(Boolean)) {
+      await page.locator("#camera-part").selectOption(target.from); await settle();
+      const focused = await screen();
+      paint = { ...(await measure(target.from)), overview: paint,
+        recordsUnchanged: JSON.stringify(focused.graph?.records) === JSON.stringify(after.graph.records) && focused.stored === after.stored };
+      await page.locator("#camera-part").selectOption(""); await settle();
+    }
+    paint.met = paint.edge.complete && paint.edge.matches.length === 1 && !paint.reverse.complete
+      && paint.disconnected !== null && !paint.disconnected.complete && paint.recordsUnchanged !== false;
+    sourceEvidence.paint = paint;
+  }
+  need(sourceEvidence.paint?.met === true, "the actual painted arrow joins its named ends; its reverse and a disconnected part do not");
   prerequisite(verdicts.length === 0, "source-goal");
   reached.push("source-undo");
   const beforeUndo = exchanges.length;
@@ -1264,10 +1296,10 @@ const sourceScenario = async () => {
   need(sourceEvidence.clearKeepsGraphs, "clearing the conversation leaves Working and Accepted byte-equal");
   reached.push("unscoped");
   const beforeUnscoped = exchanges.length;
-  await page.route(route, craft(() => contract.NONE), { times: 8 });
-  await page.locator("#text").fill(SOURCE_GOAL);
+  if (FIXTURE) await page.route(route, craft(() => contract.NONE), { times: 8 });
+  await page.locator("#text").fill(goalText);
   await click("goal"); await goalDone(); await drain();
-  await page.unroute(route);
+  if (FIXTURE) await page.unroute(route);
   const unscoped = await page.evaluate(() => JSON.parse(document.body.dataset.goal));
   const final = await screen(); last = final;
   sourceEvidence.unscoped = { reason: unscoped.reason, requests: unscoped.requests, newExchanges: exchanges.length - beforeUnscoped };

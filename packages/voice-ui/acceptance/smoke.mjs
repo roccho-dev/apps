@@ -457,10 +457,25 @@ try {
   assert.equal(sourceProof.scopeMatchesReference, true); assert.equal(sourceProof.contextMatches, true);
   assert.ok(sourceProof.candidates >= 1 && sourceProof.candidates <= 254); assert.equal(sourceProof.edgesTouchFocus, true);
   assert.equal(sourceProof.reason, "none"); assert.equal(sourceProof.requests, 2);
-  assert.equal(sourceProof.newEdgeDrawn, true); assert.equal(sourceProof.predrawn, false);
+  assert.equal(sourceProof.eligible, true); assert.equal(sourceProof.newEdgeDrawn, true);
+  assert.equal(sourceProof.paint.met, true); assert.equal(sourceProof.paint.edge.matches.length, 1);
+  assert.equal(sourceProof.paint.reverse.complete, false);
+  assert.notEqual(sourceProof.paint.disconnected, null); assert.equal(sourceProof.paint.disconnected.complete, false);
   assert.equal(sourceProof.undoRestored, true); assert.equal(sourceProof.clearKeepsGraphs, true);
   assert.deepEqual(sourceProof.unscoped, { reason: "candidate-overflow", requests: 0, newExchanges: 0 });
   assert.equal(sourceProof.understanding, "NOT_PROVEN");
+  // Live goal-source needs closed evaluator data naming served manifest
+  // entities; anything else is refused before any browser start.
+  const sourceCase = expected => JSON.stringify({ version: "voice-ui.goal-evaluation.v1", id: "source-input", goal: "x", order: "normal", expected });
+  const arrow = (from, to) => ({ kind: "change", regions: [], flows: [{ from: { baselineRegion: from }, to: { baselineRegion: to } }] });
+  for (const [index, extra] of [[], ["--goal-case", sourceCase(arrow("web-app-mjs", "unknown-entity"))],
+    ["--goal-case", sourceCase(arrow("web-app-mjs", "web-app-mjs"))],
+    ["--goal-case", sourceCase({ ...arrow("web-app-mjs", "src-log-mjs"), regions: [{ partKey: "api", parentLabel: "OCI" }] })]].entries()) {
+    const home = path.join(work, "j" + index); mkdirSync(home);
+    const refused = await runChild([path.join(root, manifest.e2e.architecture_entrypoint), "--mode", "live", "--scenario", "goal-source", formalOrigin, ...extra], home);
+    assert.notEqual(refused.code, 0); assert.equal(refused.stdout.includes("\"event\":\"summary\""), false);
+    assert.doesNotMatch(refused.stderr, /browserType\.launch|Target page, context or browser/);
+  }
   process.stdout.write(JSON.stringify({ kind: "voice-ui.sourceGoalControl.v1", status: "PASS",
     artifactManifestSha256: digest, liveProviderCalls: 0, proof: sourceProof }) + "\n");
   process.stdout.write(JSON.stringify({ kind: "voice-ui.architectureShapeCheck.v1", status: "PASS",
