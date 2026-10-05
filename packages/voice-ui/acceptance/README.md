@@ -194,6 +194,22 @@ not Jev quality. The intent words for compose and architecture now name
 `state.offers.diagrams` and `state.architecture`; the API test proves only that
 input distinction, not a confidence or quality change.
 
+## One-frame arrow measurement across a group boundary
+
+goal-source and goal-nest measure every expected arrow with one shared rule on one
+actual frame: the matched stroke start and marker tip lie inside the zero-margin
+iframe viewport, both end shapes intersect it (whatever their labels show), and on
+the same frame the reverse arrow (unless itself expected) and an arrow to another
+part whose shape is in view do not connect. A nested Goal tries the group camera,
+then the existing camera on the arrow from end, then its to end; frames are never
+combined. The group camera still proves separately that the added group opens,
+its children are represented and painted inside it; an added label must show on
+the group camera or on its own existing camera, else the Goal is NOT_MET.
+Previously the nested camera only measured parts whose labels were in view, so an
+arrow from inside an added group to a seed part outside it (the seen r31-f1
+regression) could not be graded. Matcher, padding and negatives are unchanged;
+these are controlled checks, not Jev quality.
+
 The smaller-only-fit fixture uses the same 220×160 parent and 40×40 other group:
 one small offer fits while a wider offer does not. Its independent expected graph
 and whole Undo prove finite coverage and controlled execution, not Sys1 judgment
