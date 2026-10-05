@@ -120,21 +120,33 @@ c explicit-key nested) are known controls graded PASS, NOT_MET and PASS; they
 are not heldout cases. Sealed fresh Goals come only after production freeze.
 
 `goal-source` composes one page: the whole account, the page code in focus,
-then a Goal scoped by that remembered focus whose controlled answer takes the
-first manifest pair the catalogue offers and Working has not drawn in either
-direction (a drawn pair is INELIGIBLE, a checker rule stricter than the product,
-which still offers a legal reverse arrow). Whole-Goal Undo, conversation clear
-with Working and Accepted unchanged, and the same utterance overflowing before
-any provider request follow. It is mechanics only, never proof that the source
-was understood. A Goal request now keeps distinct existing relations that share
-a directed pair (the page code both imports and calls the log and the judgment
-adapter); only edge IDs are unique, and a candidate may still never repeat an
-existing directed pair. With that, the scoped request matches the remembered
-source focus and plain conversation and offers 62 arrows, each touching the
-focus. It still has no target: all 14 manifest pairs touching the page code are
-already drawn after the app focus, so each is offered only in reverse and is
-INELIGIBLE. The checker records every such pair; choosing a different target
-rule is not made here.
+then a Goal scoped by that remembered focus. In fixture mode the controlled
+answer takes, in request order, the first offered arrow touching the focus
+whose ends have no relation in either direction, and the utterance asks for a
+trial arrow (画面のコードにつながる試案の矢印): a hypothesis on Working, never a
+source fact and never a claim that the code was understood. In live mode the
+existing finite `--goal-case` is required: `regions` empty and one flow whose
+`baselineRegion` ends are served manifest entity IDs, resolved to the actual
+pre-Goal Working; no crafted route or fixture answer is installed. An unknown,
+already related or unoffered target is INELIGIBLE, never success; malformed
+input is refused before the browser starts. A Goal request keeps distinct
+existing relations that share a directed pair (the page code both imports and
+calls the log and the judgment adapter); only edge IDs are unique, and a
+candidate may still never repeat an existing directed pair.
+
+Positive proof needs the remembered source focus and plain conversation on the
+wire, at most 254 offered arrows each touching the focus, exactly one new
+expected arrow with every old non-layout record kept, and the actual painted
+arrow at its named ends by the existing painted observer, with the reverse and
+a disconnected visible part as negatives; the scene relation list is projection
+only, not paint proof. The container is the shared actual parent, else the
+actual root. When an end is not painted in the overview, the existing camera
+selects the source end; records and storage stay unchanged. In the current
+fixture the arrow joins `artifact-jsonl` to `web-app-mjs`; the overview paints
+neither end, the camera on `artifact-jsonl` paints the arrow while the
+`web-app-mjs` label lies outside that frame. Whole-Goal Undo, conversation
+clear with Working and Accepted unchanged, and the same utterance overflowing
+before any provider request follow.
 
 The replay session is rebuilt in the page by the served `createSession`,
 `startNew`, `requestFor`, `withArchitecture` and `propose` from the actual title
