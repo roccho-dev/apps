@@ -43,12 +43,13 @@ const { chromium } = createRequire(import.meta.url)("playwright-core");
 // draws one new arrow; whole Undo, conversation clear, same utterance unscoped.
 // node architecture-e2e.mjs --mode fixture|fixture-stop|fixture-semantic-stop|live --scenario natural|named|contextual-reverse|goal-addition|goal-flow|goal-nest|goal-source <url>
 const [flag, mode, scenarioFlag, scenario, url, caseFlag, caseJson, ...extra] = process.argv.slice(2);
-if (flag !== "--mode" || !["fixture", "fixture-none", "fixture-stop", "fixture-semantic-stop", "live"].includes(mode) || scenarioFlag !== "--scenario"
+if (flag !== "--mode" || !["fixture", "fixture-none", "fixture-stop", "fixture-semantic-stop", "fixture-baseline", "fixture-weak", "live"].includes(mode) || scenarioFlag !== "--scenario"
   || !["natural", "named", "contextual-reverse", "goal-addition", "goal-flow", "goal-nest", "goal-source"].includes(scenario) || !url
   || (mode === "fixture-semantic-stop" && scenario !== "contextual-reverse") || extra.length !== 0
   || (caseFlag !== undefined && (caseFlag !== "--goal-case" || caseJson === undefined))
   || (caseFlag !== undefined && !["goal-addition", "goal-flow", "goal-nest", "goal-source"].includes(scenario))
-  || (mode === "fixture-none" && !["goal-addition", "goal-flow", "goal-nest"].includes(scenario))) {
+  || (["fixture-none", "fixture-weak", "fixture-baseline"].includes(mode) && !["goal-addition", "goal-flow", "goal-nest"].includes(scenario))
+  || (mode === "fixture-baseline" && caseFlag === undefined)) {
   throw new Error("usage: architecture-e2e.mjs --mode fixture|fixture-stop|fixture-semantic-stop|live --scenario natural|named|contextual-reverse|goal-addition|goal-flow|goal-nest|goal-source <url>");
 }
 const REVERSE = scenario === "contextual-reverse";
@@ -59,6 +60,56 @@ const SOURCE = scenario === "goal-source";
 const SEMANTIC_STOP = mode === "fixture-semantic-stop";
 const STOP_FIXTURE = mode === "fixture-stop";
 const FIXTURE = mode !== "live";
+// The preregistered deterministic lexical baseline (PR #60), one definition.
+// It reads only a public Goal request state and the public bundle parts, never
+// evaluator data. The CPU replay restores this same source in the page; the
+// explicit fixture-baseline mode answers with it as a controlled seen
+// regression, never as Jev.
+const lexicalChoice = (state, parts) => {
+  const norm = value => value.normalize("NFKC").toLowerCase();
+  const text = norm(state.utterance);
+  const regionOf = new Map(state.selected.map(item => [item.key, item.region]));
+  const adopted = new Set(state.selected.map(item => item.region));
+  const needles = new Map();
+  const name = (word, part, region) => {
+    const key = norm(word);
+    if (key.length === 0) return;
+    const entry = needles.get(key) ?? { parts: new Set(), regions: new Set() };
+    if (part !== null) entry.parts.add(part);
+    if (region !== undefined) entry.regions.add(region);
+    needles.set(key, entry);
+  };
+  // Public part keys/labels (an adopted part names its region); seed regions by their actual labels.
+  for (const part of parts) for (const word of [part.key, part.label]) name(word, part.key, regionOf.get(part.key));
+  for (const region of state.graph) if (!adopted.has(region.id)) name(region.label.replace(/ [1-9]\d*$/u, ""), null, region.id);
+  const mentions = [];
+  for (let at = 0; at < text.length;) {
+    const hit = [...needles.keys()].filter(word => text.startsWith(word, at)).sort((a, b) => b.length - a.length)[0];
+    if (hit === undefined) { at += 1; continue; }
+    mentions.push({ ...needles.get(hit), consumed: false });
+    at += hit.length;
+  }
+  for (const item of state.selected) {
+    const mention = mentions.find(other => !other.consumed && other.parts.has(item.key));
+    if (mention !== undefined) mention.consumed = true;
+  }
+  const parents = new Set(state.parents.map(parent => parent.id));
+  for (const [index, mention] of mentions.entries()) {
+    if (mention.consumed) continue;
+    const group = mentions.slice(0, index).reverse().find(other => [...other.regions].some(id => parents.has(id)));
+    const add = group && state.candidates.find(candidate => candidate.action === "add-part"
+      && mention.parts.has(candidate.part) && group.regions.has(candidate.parent));
+    if (add) return add.id;
+  }
+  const ends = mention => [...mention.regions].filter(id => !parents.has(id) && state.graph.find(region => region.id === id)?.parent !== null);
+  const open = mentions.filter(mention => !mention.consumed);
+  for (let from = 0; from < open.length; from += 1) for (let to = from + 1; to < open.length; to += 1) {
+    const edge = state.candidates.find(candidate => candidate.action === "add-edge"
+      && ends(open[from]).includes(candidate.from) && ends(open[to]).includes(candidate.to));
+    if (edge) return edge.id;
+  }
+  return "none";
+};
 // A finite evaluator input, never a product request or fixture-answer source.
 const exactKeys = (value, keys) => value !== null && typeof value === "object" && !Array.isArray(value)
   && JSON.stringify(Object.keys(value).sort()) === JSON.stringify([...keys].sort());
@@ -801,8 +852,13 @@ const goalScenario = async () => {
     return [step.ref, matches[0].id];
   }));
   const prepared = exchanges.length;
+  const crafted = [];
   if (FIXTURE) await page.route(route, craft((name, sent) => {
     if (mode === "fixture-none") return contract.NONE;
+    // A controlled seen regression answered by the same public lexical selector.
+    if (mode === "fixture-baseline") { crafted.push(lexicalChoice(sent.state, publicBundle.parts)); return crafted.at(-1); }
+    // A controlled weak first answer: an offered choice below the confidence floor.
+    if (mode === "fixture-weak") return { choice: sent.state.candidates[0].id, confidence: 0.3 };
     const group = sent.state.selected.find(item => item.key === "group")?.region;
     const next = (NEST ? [["group", container.id], ["db", group], ["api", container.id]] : [["api", container.id], ["db", container.id]])
       .find(([key]) => !sent.state.selected.some(item => item.key === key));
@@ -1025,7 +1081,7 @@ const goalScenario = async () => {
   // preparation requests and answers; each rebuilt preparation request, the
   // resulting log/head/records and the first Goal request must equal what was
   // actually observed. It never sees the oracle.
-  const replay = await page.evaluate(async ({ log, title, preparation, utterance, bundleUrl, sourceUrl }) => {
+  const replay = await page.evaluate(async ({ log, title, preparation, utterance, bundleUrl, sourceUrl, selectorSource }) => {
     const modules = ["/app/src/goal.mjs", "/app/src/bundle.mjs", "/ui/semantic-map/protocol/index.js",
       "/app/src/session.mjs", "/app/src/turn.mjs", "/app/src/architecture.mjs"];
     const loaded = new Set(performance.getEntriesByType("resource").map(entry => new URL(entry.name).pathname));
@@ -1051,51 +1107,8 @@ const goalScenario = async () => {
     const working = session.working;
     const provenance = { issuedPartIds: [...session.issuedPartIds], nextSeq: session.nextSeq,
       conversation: session.conversation.length, draft: session.draft.length };
-    const norm = value => value.normalize("NFKC").toLowerCase();
-    const select = state => {
-      const text = norm(state.utterance);
-      const regionOf = new Map(state.selected.map(item => [item.key, item.region]));
-      const adopted = new Set(state.selected.map(item => item.region));
-      const needles = new Map();
-      const name = (word, part, region) => {
-        const key = norm(word);
-        if (key.length === 0) return;
-        const entry = needles.get(key) ?? { parts: new Set(), regions: new Set() };
-        if (part !== null) entry.parts.add(part);
-        if (region !== undefined) entry.regions.add(region);
-        needles.set(key, entry);
-      };
-      // Public part keys/labels (an adopted part names its region); seed regions by their actual labels.
-      for (const part of bundle.parts) for (const word of [part.key, part.label]) name(word, part.key, regionOf.get(part.key));
-      for (const region of state.graph) if (!adopted.has(region.id)) name(region.label.replace(/ [1-9]\d*$/u, ""), null, region.id);
-      const mentions = [];
-      for (let at = 0; at < text.length;) {
-        const hit = [...needles.keys()].filter(word => text.startsWith(word, at)).sort((a, b) => b.length - a.length)[0];
-        if (hit === undefined) { at += 1; continue; }
-        mentions.push({ ...needles.get(hit), consumed: false });
-        at += hit.length;
-      }
-      for (const item of state.selected) {
-        const mention = mentions.find(other => !other.consumed && other.parts.has(item.key));
-        if (mention !== undefined) mention.consumed = true;
-      }
-      const parents = new Set(state.parents.map(parent => parent.id));
-      for (const [index, mention] of mentions.entries()) {
-        if (mention.consumed) continue;
-        const group = mentions.slice(0, index).reverse().find(other => [...other.regions].some(id => parents.has(id)));
-        const add = group && state.candidates.find(candidate => candidate.action === "add-part"
-          && mention.parts.has(candidate.part) && group.regions.has(candidate.parent));
-        if (add) return add.id;
-      }
-      const ends = mention => [...mention.regions].filter(id => !parents.has(id) && state.graph.find(region => region.id === id)?.parent !== null);
-      const open = mentions.filter(mention => !mention.consumed);
-      for (let from = 0; from < open.length; from += 1) for (let to = from + 1; to < open.length; to += 1) {
-        const edge = state.candidates.find(candidate => candidate.action === "add-edge"
-          && ends(open[from]).includes(candidate.from) && ends(open[to]).includes(candidate.to));
-        if (edge) return edge.id;
-      }
-      return "none";
-    };
+    const lexical = (0, eval)("(" + selectorSource + ")");
+    const select = state => lexical(state, bundle.parts);
     let first = null;
     const choices = [];
     const result = await runGoal({ utterance, bundle, protocol, current: () => session, cancelled: () => false,
@@ -1108,7 +1121,7 @@ const goalScenario = async () => {
     return { head: working.head, startRecords: working.records, first, choices, reason: result.reason, requests: result.requests,
       sameLog: working.log === log, preparedEqual, provenance,
       records: session.working.records, modulesLoadedByPage: modules.every(path => loaded.has(path)) };
-  }, { log: beforeLog, title: GOAL_TITLE, utterance: goalText,
+  }, { log: beforeLog, title: GOAL_TITLE, utterance: goalText, selectorSource: lexicalChoice.toString(),
     preparation: exchanges.slice(0, prepared).map(entry => ({ sent: entry.sent, answers: entry.body?.answers })),
     bundleUrl: new URL(config.data.bundle, url).href, sourceUrl: new URL(config.data.source, url).href });
   const fairNone = replay.choices[0] === contract.NONE && JSON.stringify(replay.records) === JSON.stringify(before.graph.records);
@@ -1129,6 +1142,11 @@ const goalScenario = async () => {
   need(goalEvidence.fairBaseline.replay.preparedEqual && goalEvidence.fairBaseline.replay.sameStart && goalEvidence.fairBaseline.replay.firstRequestEqual
     && goalEvidence.fairBaseline.replay.modulesLoadedByPage,
   "the baseline rebuilds the actual pre-Goal session with the served constructors and asks the actual first request");
+  if (mode === "fixture-baseline") {
+    goalEvidence.fairBaseline.craftedChoices = crafted;
+    goalEvidence.fairBaseline.craftEqual = JSON.stringify(crafted) === JSON.stringify(replay.choices);
+    need(goalEvidence.fairBaseline.craftEqual, "the Node fixture answers and the in-page replay choices of the one selector are equal");
+  }
   need(sent.every(entry => entry.status === 200 && contract.readAnswers(entry.body?.answers, slotsOf(entry.sent)) !== null), "every Goal response is complete");
   need(["none", "no-executable-delta", "budget-requests", "budget-time"].includes(attempt.reason) && semanticMet,
     "independent expected graph is reached after a known mechanical stop, never from the stop alone");
@@ -1154,6 +1172,15 @@ const goalScenario = async () => {
     for (const entry of exchanges) entry.reported = true;
     return;
   }
+  // Only an adopted step is taken back; a Goal that adopted nothing changed nothing.
+  if (after.graph.head === before.graph.head) {
+    for (const key of ["draft", "claims", "stored", "root", "confirmedGraph"]) assert.deepEqual(after[key], before[key], key);
+    assert.deepEqual(after.graph.records, before.graph.records);
+    goalEvidence.goalEffect = "none";
+    for (const entry of exchanges) entry.reported = true;
+    return;
+  }
+  goalEvidence.goalEffect = "adopted";
   reached.push("goal-undo"); await click("undo"); await settle();
   const reverted = await screen(); last = reverted;
   for (const key of ["draft", "claims", "stored", "root", "confirmedGraph"]) assert.deepEqual(reverted[key], before[key], key);
