@@ -675,7 +675,7 @@ const need = (condition, what) => { if (!condition) verdicts.push(what); };
 // run when it fails - nothing is undone or built on a state the next stage
 // assumes - and every stage not reached is reported as not run.
 const FAULTS = ["failed-frame", "incomplete-frame", "frame-extra-envelope", "judge-extra-envelope", "incomplete-judge-frame"];
-const STAGES = SOURCE ? ["open", "whole", "app", "source-goal", "source-undo", "clear", "unscoped"] : GOAL ? ["open", "prepare", "goal", ...(expectedCase.kind === "none" ? [] : ["goal-undo"])] : REVERSE ? ["open", "app", "reverse", "reverse-undo"] : ["open", "whole", "whole-undo",
+const STAGES = SOURCE ? ["open", "whole", "whole-undo", "app", "source-goal", "source-undo", "clear", "unscoped"] : GOAL ? ["open", "prepare", "goal", ...(expectedCase.kind === "none" ? [] : ["goal-undo"])] : REVERSE ? ["open", "app", "reverse", "reverse-undo"] : ["open", "whole", "whole-undo",
   ...(FIXTURE ? ["camera-undo", "camera-discard-draft", "camera-undo-render-failure", "camera-discard", "camera-discard-new"] : []),
   "app", "credential", "storage", "save", ...(FIXTURE ? ["save-again"] : []),
   ...(LOCATES ? FAULTS : []), "correction", ...(FIXTURE ? ["camera-surviving-undo"] : []),
@@ -1139,6 +1139,13 @@ const sourceScenario = async () => {
   reached.push("whole");
   const whole = await say("whole", UTTERANCES.whole, picksFor(contract.WHOLE));
   prerequisite(whole.now.state === "drafted", "whole");
+  // A Goal request holds at most 64 regions and 64 edges; the drawn whole
+  // account is measured here and taken back, as the natural scenario does.
+  const wholeSize = { regions: whole.now.graph.records.filter(record => record.type === "region").length,
+    relations: whole.now.graph.records.filter(record => record.type === "relation").length };
+  reached.push("whole-undo");
+  await click("undo"); await settle();
+  prerequisite((await screen()).draft.length === 1, "whole-undo");
   reached.push("app");
   const app = await say("app", UTTERANCES.app, picksFor(APP));
   const reference = app.now.context.at(-1)?.reference ?? null;
@@ -1178,6 +1185,8 @@ const sourceScenario = async () => {
   const sceneEndpoints = await page.evaluate(() => document.querySelector("#working-surface iframe[data-package=semantic-map]")
     ?.contentWindow?.semanticMapApp?.snapshot().scene?.relationEndpoints ?? null);
   sourceEvidence = { source: SERVED_COMMIT, focus: reference?.focus ?? null, utterance: SOURCE_GOAL,
+    wholeSize, goalWorkingSize: { regions: before.graph.records.filter(record => record.type === "region").length,
+      relations: before.graph.records.filter(record => record.type === "relation").length },
     scopeMatchesReference: request !== null && JSON.stringify(request.scope)
       === JSON.stringify(reference === null ? null : { source: reference.source, focus: reference.focus }),
     contextMatches: request !== null && JSON.stringify(request.context.recent)

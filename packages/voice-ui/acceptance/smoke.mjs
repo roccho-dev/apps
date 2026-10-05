@@ -450,7 +450,7 @@ try {
   const sourceSummary = sourceRun.stdout.split("\n").filter(line => line.startsWith("{"))
     .map(JSON.parse).find(row => row.event === "summary");
   assert.equal(sourceSummary.source, manifest.sources.apps); assert.equal(sourceSummary.error, null);
-  assert.deepEqual(sourceSummary.reached, ["open", "whole", "app", "source-goal", "source-undo", "clear", "unscoped"]);
+  assert.deepEqual(sourceSummary.reached, ["open", "whole", "whole-undo", "app", "source-goal", "source-undo", "clear", "unscoped"]);
   assert.deepEqual(sourceSummary.verdicts, []);
   const sourceProof = sourceSummary.sourceEvidence;
   assert.equal(sourceProof.scopeMatchesReference, true); assert.equal(sourceProof.contextMatches, true);
