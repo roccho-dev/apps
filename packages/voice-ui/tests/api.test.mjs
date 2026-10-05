@@ -111,6 +111,31 @@ test("Goal flow candidates retain legal wrong directions and reject malformed or
   assert.equal(isRequest({ ...body, kind: "voice-ui.judge.goal-local-delta.v4" }), false);
 });
 
+test("Goal state keeps distinct existing relations that share a directed pair; only edge IDs and offered pairs are unique", () => {
+  // A source-grounded Working draws both an import and a calls relation from one file to another.
+  const body = { kind: GOAL_REQUEST_KIND, state: {
+    utterance: "connect the requested existing parts",
+    graph: [{ id: "root", label: "world", parent: null }, { id: "container", label: "container", parent: "root" },
+      { id: "a", label: "first", parent: "container" }, { id: "b", label: "second", parent: "container" },
+      { id: "c", label: "third", parent: "container" }],
+    edges: [{ id: "import-a-b", from: "a", to: "b" }, { id: "calls-a-b", from: "a", to: "b" }],
+    parents: [{ id: "container", label: "container", kind: "group", parent: "root" }],
+    offers: { parts: [] }, selected: [], candidates: [
+      { id: "delta-1", action: "add-edge", from: "a", to: "c" },
+      { id: "delta-2", action: "add-edge", from: "b", to: "a" }], context: { recent: [] }, scope: null,
+  } };
+  assert.equal(isRequest(body), true, "parallel distinct existing relations with a fresh legal candidate");
+  for (const mutate of [
+    state => { state.edges[1].id = "import-a-b"; },
+    state => { state.candidates.push({ id: "delta-3", action: "add-edge", from: "a", to: "b" }); },
+    state => { state.edges.push({ id: "to-root", from: "a", to: "root" }); },
+    state => { state.edges.push({ id: "to-group", from: "container", to: "a" }); },
+    state => { state.edges.push({ id: "self", from: "c", to: "c" }); },
+    state => { state.edges.push({ id: "unknown", from: "a", to: "missing" }); },
+    state => { state.edges.push(...Array.from({ length: 63 }, (_, index) => ({ id: "extra-" + index, from: "b", to: "c" }))); },
+  ]) { const bad = structuredClone(body); mutate(bad.state); assert.equal(isRequest(bad), false, JSON.stringify(bad.state.edges.at(-1))); }
+});
+
 test("Goal v5 boundary asks one executable delta and refuses extra answers without architecture fanout", async () => {
   const body = { kind: GOAL_REQUEST_KIND, state: {
     utterance: "add the offered service inside the existing container",
