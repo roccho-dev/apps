@@ -44,6 +44,25 @@ const answer = (request, part, parent = "container") => ({ kind: "answered", dec
   delta: { type: "choice", choice: part === NONE ? NONE
     : request.state.candidates.find(candidate => candidate.part === part && candidate.parent === parent)?.id ?? "unknown", confidence: 1 },
 } } });
+// Two helpers in one group and one existing helper in OCI: both helper-to-existing
+// arrows are legal, so only an earlier utterance can say which one is meant.
+const helpers = async () => {
+  const graph = await protocol.createDecisionLog([
+    { type: "meta", schema: STATE_SCHEMA, root: "root", title: "goal history fixture" },
+    { type: "region", id: "root", parent: null, label: "fixture", kind: "boundary", bounds: [0, 0, 900, 400], summary: "" },
+    { type: "region", id: "container", parent: "root", label: "OCI", kind: "group", bounds: [0, 0, 700, 200], summary: "" },
+    { type: "region", id: "other", parent: "root", label: "Auxiliary", kind: "group", bounds: [0, 230, 700, 160], summary: "" },
+    { type: "region", id: "aux-1", parent: "other", label: "Helper left", kind: "step", bounds: [20, 250, 140, 64], summary: "" },
+    { type: "region", id: "aux-2", parent: "other", label: "Helper right", kind: "step", bounds: [200, 250, 140, 64], summary: "" },
+    { type: "region", id: "oci-1", parent: "container", label: "Existing helper", kind: "step", bounds: [20, 20, 140, 64], summary: "" },
+  ], MAP_ID);
+  const pinned = await protocol.createDecision(graph.head, [{ type: "PinRegions", items: [
+    { regionId: "container", bounds: [0, 0, 2000, 500] },
+    { regionId: "other", bounds: [0, 600, 2000, 500] },
+  ] }], graph.records);
+  const prepared = (await protocol.appendDecision(graph.log, pinned.decision)).verified;
+  return createSession({ accepted: prepared, stored: prepared.log });
+};
 
 test("mixed Goal uses one held ADD/Connect alphabet and strictly restores the whole group", async () => {
   const before = await opened(); let session = before; let calls = 0;
@@ -108,7 +127,8 @@ test("one Goal adopts two real AddRegions and whole-group Undo without claiming 
 });
 
 test("paired histories with the same Working, utterance and catalogue differ only in the explicit Goal context", async () => {
-  const base = await opened();
+  const base = await helpers();
+  const idOf = label => base.working.records.find(record => record.type === "region" && record.label === label).id;
   const said = text => Object.freeze({ seq: 1, source: "typed", text, outcome: "no-change" });
   const requests = [];
   for (const text of ["Helper left は何の役？", "Helper right は何の役？"]) {
@@ -121,6 +141,10 @@ test("paired histories with the same Working, utterance and catalogue differ onl
   const [left, right] = requests;
   assert.equal(isRequest(left) && isRequest(right), true);
   assert.deepEqual(left.state.candidates, right.state.candidates);
+  for (const from of [idOf("Helper left"), idOf("Helper right")]) {
+    assert.equal(left.state.candidates.some(candidate => candidate.action === "add-edge"
+      && candidate.from === from && candidate.to === idOf("Existing helper")), true);
+  }
   const { context: leftContext, ...leftRest } = left.state;
   const { context: rightContext, ...rightRest } = right.state;
   assert.deepEqual(leftRest, rightRest);

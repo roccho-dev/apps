@@ -78,6 +78,12 @@ test("Goal flow candidates retain legal wrong directions and reject malformed or
   assert.equal(isRequest(body), true);
   const said = { seq: 1, source: "typed", text: "earlier", outcome: "no-change" };
   assert.equal(isRequest({ ...body, state: { ...body.state, context: { recent: [said] } } }), true);
+  // An earlier architecture utterance may carry a whole snapshot: its bound, not plain Send's eight.
+  const stepped = count => ({ ...body, state: { ...body.state, context: { recent: [{ ...said, outcome: "step",
+    effect: { changes: Array.from({ length: count }, (_, index) => ({ change: "added", from: `from-${index}`, to: `to-${index}` })) } }] } } });
+  assert.equal(isRequest(stepped(9)), true);
+  assert.equal(isRequest(stepped(256)), true);
+  assert.equal(isRequest(stepped(257)), false);
   assert.equal(isRequest({ ...body, state: { ...body.state, candidates: [...body.state.candidates].reverse() } }), true);
   for (const mutate of [
     state => { state.candidates[0] = null; },
