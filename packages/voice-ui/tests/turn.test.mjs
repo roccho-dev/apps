@@ -337,6 +337,32 @@ test("a seed group whose raw grid is full still offers its one painted slot, pro
     held.candidates.filter(item => item.part !== undefined && item.parent !== auxiliary.id).map(item => [item.part, item.parent]));
 });
 
+test("a part placed beside a grown group keeps a painted gap from every sibling", async () => {
+  // The observed g1 order: a group in OCI, data inside it, then start in OCI.
+  const initial = (await newMap({ title: "gap after growth", protocol })).graph;
+  const composition = await plan(initial, { action: ACTION_COMPOSE, diagram: "container-example" });
+  let working = (await appendStep({ working: initial, step: composition.step, protocol })).graph;
+  const regions = () => working.records.filter(record => record.type === "region");
+  const container = regions().find(record => record.label === "OCI");
+  const selected = [];
+  const add = async (key, parent) => {
+    const held = legalLocalDeltas(working, { bundle: BUNDLE, protocol, selected });
+    const candidate = held.candidates.find(item => item.part === key && item.parent === parent);
+    assert.ok(candidate, key + " is offered");
+    const proved = await proveLocalDelta({ working, held, candidateId: candidate.id, confidence: 1, bundle: BUNDLE, protocol, selected });
+    working = (await appendStep({ working, step: proved.step, protocol })).graph;
+    selected.push({ key, region: candidate.operations[0].regionId, parent });
+    return candidate.operations[0].regionId;
+  };
+  const group = await add("group", container.id);
+  await add("data", group);
+  const start = await add("start", container.id);
+  const gap = (a, b) => Math.max(b[0] - (a[0] + a[2]), a[0] - (b[0] + b[2]), b[1] - (a[1] + a[3]), a[1] - (b[1] + b[3]));
+  for (const sibling of regions().filter(record => record.parent === container.id && record.id !== start))
+    assert.ok(gap(boxOf(working, start), boxOf(working, sibling.id)) >= 12, sibling.label + " keeps the band padding");
+  assert.ok(within(boxOf(working, container.id), boxOf(working, start)));
+});
+
 test("a growing group refuses when an ancestor would grow into its sibling", async () => {
   const graph = await protocol.createDecisionLog([
     { type: "meta", schema: STATE_SCHEMA, root: "root", title: "tight siblings" },
