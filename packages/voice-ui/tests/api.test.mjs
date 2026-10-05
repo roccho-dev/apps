@@ -105,6 +105,9 @@ test("Goal v3 boundary asks one executable delta and refuses extra answers witho
     calls += 1;
     assert.deepEqual(state, body.state);
     assert.deepEqual(Object.keys(questions), ["delta"]);
+    assert.equal(questions.delta.instruction, "Choose one executable change toward the utterance's goal. A candidate adds one offered part inside its existing group at a proved placement, or connects two existing parts by one directed flow arrow. Use the current graph and edges to decide which requested changes are still missing; selected is adopted part history, not a completion oracle. Choose none when the requested changes are already present, no candidate is clearly needed, or the request is ambiguous. Do not add a connection merely because two parts are present; it must be requested by the utterance. Do not create or move groups.");
+    assert.equal(questions.delta.options[NONE], "no offered executable change is clearly requested, or the requested changes are already present");
+    assert.deepEqual(Object.keys(questions.delta.options), [...slotsFor(body.state).delta]);
     return { answers: { delta: { choice: "delta-1", confidence: 1 },
       ...(extra ? { action: { choice: NONE, confidence: 1 } } : {}) } };
   });

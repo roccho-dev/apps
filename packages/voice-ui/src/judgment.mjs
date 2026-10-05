@@ -41,9 +41,9 @@ export function questionsFor(state, slots, context) {
     const labels = new Map(state.graph.map(region => [region.id, region.label]));
     return {
       delta: {
-        instruction: "Choose one executable change toward the utterance's goal. A candidate adds one offered part inside its existing group at a proved placement, or connects two existing parts by one directed flow arrow. selected is actual adopted part history, not a goal oracle. Choose none when no candidate is clearly needed or the request is ambiguous. Do not create or move groups.",
+        instruction: "Choose one executable change toward the utterance's goal. A candidate adds one offered part inside its existing group at a proved placement, or connects two existing parts by one directed flow arrow. Use the current graph and edges to decide which requested changes are still missing; selected is adopted part history, not a completion oracle. Choose none when the requested changes are already present, no candidate is clearly needed, or the request is ambiguous. Do not add a connection merely because two parts are present; it must be requested by the utterance. Do not create or move groups.",
         options: criteria(slots.delta, key => {
-          if (key === NONE) return "no offered executable change is clearly requested";
+          if (key === NONE) return "no offered executable change is clearly requested, or the requested changes are already present";
           const candidate = state.candidates.find(item => item.id === key);
           if (candidate.action === ACTION_ADD_EDGE) return `a directed flow arrow from ${labels.get(candidate.from)} (${candidate.from}) to ${labels.get(candidate.to)} (${candidate.to})`;
           return `${purposes.get(candidate.part)} inside ${parents.get(candidate.parent).label} (${candidate.parent})`;
