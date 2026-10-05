@@ -6,7 +6,8 @@ The existing architecture checker accepts an optional `--goal-case <JSON>` after
 the existing URL for either Goal scenario. The exact input keys are `version`,
 `id`, `goal`, `order`, and `expected`; version is `voice-ui.goal-evaluation.v1`,
 order is `normal` or `reverse`. Expected has exactly `kind` (`change` or `none`),
-`regions` (`partKey`, `parentLabel`) and `flows` (`from`, `to`). Each endpoint is
+`regions` (`partKey` with exactly one of `parentLabel` or `parent: {addedPart}`, see
+below) and `flows` (`from`, `to`). Each endpoint is
 either `{ "addedPart": "api" }` or `{ "baselineRegion": "existing-helper" }`.
 The latter is the fixed public container-example **step.ref**, not a guessed
 allocated record ID. Unknown keys, unsupported/duplicate parts or flows, root or
@@ -98,6 +99,69 @@ returns to the overview before Undo. No threshold is computed by the
 evaluator. In this Goal the confirmed pane holds no graph, so equal frames on
 both panes are not observed here. Flat scenarios keep the unchanged-viewport
 grades.
+
+## Preregistered baseline replay and composed source Goal
+
+Every evaluated Goal also replays the deterministic lexical baseline fixed in
+the PR #60 preregistration. In the page, the checker imports the served
+production `goal.mjs`, `bundle.mjs` and semantic-map protocol (each already
+loaded by the page), verifies the actual pre-Goal Working log, and rebuilds the
+session with the served production constructors (below). One selector reads
+only each public request (NFKC and
+lowercase, longest left-to-right mentions of public part keys/labels and actual
+Working labels; an adopted part is named by its public key/label) and answers
+through the same `runGoal`, catalogue, proof, bounds and STOP rules. Its first
+request must equal the actual first product request and its start must equal
+the actual head and records; otherwise the replay is a verdict, not a score. Its
+final graph is graded by the same independent oracle. This is a CPU replay of
+the semantic outcome only: no HTTP, paint, speed or Jev superiority claim. The
+three byte-fixed calibrations (a literal Add/Connect, b reversed word order,
+c explicit-key nested) are known controls graded PASS, NOT_MET and PASS; they
+are not heldout cases. Sealed fresh Goals come only after production freeze.
+
+`goal-source` composes one page: the whole account, the page code in focus,
+then a Goal scoped by that remembered focus. In fixture mode the controlled
+answer takes, in request order, the first offered arrow touching the focus
+whose ends have no relation in either direction, and the utterance asks for a
+trial arrow (画面のコードにつながる試案の矢印): a hypothesis on Working, never a
+source fact and never a claim that the code was understood. In live mode the
+existing finite `--goal-case` is required: `regions` empty and one flow whose
+`baselineRegion` ends are served manifest entity IDs, resolved to the actual
+pre-Goal Working; no crafted route or fixture answer is installed. Fixture
+goal-source takes no evaluator data and the order must be normal. An unknown,
+already related or unoffered target is INELIGIBLE, never success; malformed
+input is refused before the browser starts. A Goal request keeps distinct
+existing relations that share a directed pair (the page code both imports and
+calls the log and the judgment adapter); only edge IDs are unique, and a
+candidate may still never repeat an existing directed pair.
+
+Positive proof needs the remembered source focus and plain conversation on the
+wire, at most 254 offered arrows each touching the focus, exactly one new
+expected arrow with every old non-layout record kept, and the actual painted
+arrow at its named ends by the existing painted observer, with the reverse and
+a disconnected visible part as negatives; the scene relation list is projection
+only, not paint proof. The container is the shared actual parent, else the
+actual root. PASS needs one actual frame on which the matched stroke start and
+marker tip lie inside the zero-margin iframe viewport and both end shapes
+intersect it, with that frame negatives; geometric connection alone is not a
+viewport result. The overview is tried first, then the existing camera on the
+from end, then on the to end, with records and storage unchanged; label
+visibility is recorded only. In the current fixture the arrow joins
+`artifact-jsonl` to `web-app-mjs`. The overview paints neither end; on the
+`artifact-jsonl` camera (626x434) the stroke runs from (372.8, 263.5) to the
+tip (579.0, 423.6), the `artifact-jsonl` shape is [223, 171, 180, 92] and the
+`web-app-mjs` shape [549, 424, 180, 92] is partly clipped at the frame edge and
+its label lies outside. Whole-Goal Undo, conversation clear with Working and
+Accepted unchanged, and the same utterance overflowing before any provider
+request follow.
+
+The replay session is rebuilt in the page by the served `createSession`,
+`startNew`, `requestFor`, `withArchitecture` and `propose` from the actual title
+and the recorded preparation requests and answers. Observed and compared: each
+rebuilt preparation request, the pre-Goal log, head and records, and the whole
+first Goal request. Derived only from those constructors: issued part IDs,
+sequence, conversation and draft count; a reserved ID for a new part is not
+proven by the first request. Any difference withholds the score.
 
 The smaller-only-fit fixture uses the same 220×160 parent and 40×40 other group:
 one small offer fits while a wider offer does not. Its independent expected graph

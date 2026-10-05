@@ -39,19 +39,23 @@ const { chromium } = createRequire(import.meta.url)("playwright-core");
 // finite additions, independent post-STOP graph oracle, then whole-Goal Undo.
 // goal-nest adds a group to OCI, a part into that group and one into OCI, then
 // connects them; only its added group and that group's ancestors may grow.
-// node architecture-e2e.mjs --mode fixture|fixture-stop|fixture-semantic-stop|live --scenario natural|named|contextual-reverse|goal-addition|goal-flow|goal-nest <url>
+// goal-source: whole, app focus, then a Goal scoped by that remembered focus
+// draws one new arrow; whole Undo, conversation clear, same utterance unscoped.
+// node architecture-e2e.mjs --mode fixture|fixture-stop|fixture-semantic-stop|live --scenario natural|named|contextual-reverse|goal-addition|goal-flow|goal-nest|goal-source <url>
 const [flag, mode, scenarioFlag, scenario, url, caseFlag, caseJson, ...extra] = process.argv.slice(2);
 if (flag !== "--mode" || !["fixture", "fixture-none", "fixture-stop", "fixture-semantic-stop", "live"].includes(mode) || scenarioFlag !== "--scenario"
-  || !["natural", "named", "contextual-reverse", "goal-addition", "goal-flow", "goal-nest"].includes(scenario) || !url
+  || !["natural", "named", "contextual-reverse", "goal-addition", "goal-flow", "goal-nest", "goal-source"].includes(scenario) || !url
   || (mode === "fixture-semantic-stop" && scenario !== "contextual-reverse") || extra.length !== 0
   || (caseFlag !== undefined && (caseFlag !== "--goal-case" || caseJson === undefined))
-  || ((caseFlag !== undefined || mode === "fixture-none") && !["goal-addition", "goal-flow", "goal-nest"].includes(scenario))) {
-  throw new Error("usage: architecture-e2e.mjs --mode fixture|fixture-stop|fixture-semantic-stop|live --scenario natural|named|contextual-reverse|goal-addition|goal-flow|goal-nest <url>");
+  || (caseFlag !== undefined && !["goal-addition", "goal-flow", "goal-nest", "goal-source"].includes(scenario))
+  || (mode === "fixture-none" && !["goal-addition", "goal-flow", "goal-nest"].includes(scenario))) {
+  throw new Error("usage: architecture-e2e.mjs --mode fixture|fixture-stop|fixture-semantic-stop|live --scenario natural|named|contextual-reverse|goal-addition|goal-flow|goal-nest|goal-source <url>");
 }
 const REVERSE = scenario === "contextual-reverse";
 const NEST = scenario === "goal-nest";
 const FLOW = scenario === "goal-flow" || NEST;
 const GOAL = scenario === "goal-addition" || FLOW;
+const SOURCE = scenario === "goal-source";
 const SEMANTIC_STOP = mode === "fixture-semantic-stop";
 const STOP_FIXTURE = mode === "fixture-stop";
 const FIXTURE = mode !== "live";
@@ -108,7 +112,7 @@ const UTTERANCES = {
     save: "src/log.mjs を詳しく見せて",
     correction: "web/app.mjs から localStorage への stores-in の関係を消して",
   },
-}[REVERSE || GOAL ? "natural" : scenario];
+}[REVERSE || GOAL || SOURCE ? "natural" : scenario];
 const REVERSE_UTTERANCE = "さっき詳しく見た画面が判定を頼む呼び出しを、試案として逆向きにして";
 const PAGE = new URL("/architecture", url).href;
 const ROOT_KEY = "voice-ui.decision-log.v1";
@@ -144,6 +148,18 @@ const expectedCase = evaluation?.expected ?? { kind: "change", regions: NEST ? [
 const parentShape = region => exactKeys(region, ["partKey", "parentLabel"]) ? "seed"
   : exactKeys(region, ["partKey", "parent"]) && exactKeys(region.parent, ["addedPart"]) ? "added" : null;
 const NESTED = expectedCase.regions.some(region => parentShape(region) === "added");
+// goal-source names one expected arrow by two served manifest entities; live
+// goal-source runs only on such evaluator data.
+if (SOURCE) {
+  assert.ok(FIXTURE || evaluation !== null, "live goal-source requires a finite --goal-case input");
+  assert.ok(!FIXTURE || evaluation === null, "the controlled goal-source takes no evaluator data");
+  assert.ok(evaluation === null || evaluation.order === "normal", "goal-source has no reversed presentation");
+  if (evaluation !== null) assert.ok(evaluation.expected.kind === "change" && evaluation.expected.regions.length === 0
+    && evaluation.expected.flows.length === 1 && exactKeys(evaluation.expected.flows[0], ["from", "to"])
+    && ["from", "to"].every(end => exactKeys(evaluation.expected.flows[0][end], ["baselineRegion"])
+      && ENTITY_IDS.includes(evaluation.expected.flows[0][end].baselineRegion))
+    && evaluation.expected.flows[0].from.baselineRegion !== evaluation.expected.flows[0].to.baselineRegion, "one expected arrow between served manifest entities");
+}
 if (GOAL) {
   assert.ok(expectedCase.regions.length <= publicBundle.parts.length && expectedCase.flows.length <= 90, "finite oracle size");
   assert.ok(expectedCase.regions.every(region => parentShape(region) !== null), "closed expected regions");
@@ -183,7 +199,7 @@ const presentation = sent => {
 };
 
 const browser = await chromium.launch({ headless: true, channel: "chromium" });
-const context = await browser.newContext(REVERSE || GOAL ? { viewport: { width: 1280, height: 720 } } : {});
+const context = await browser.newContext(REVERSE || GOAL || SOURCE ? { viewport: { width: 1280, height: 720 } } : {});
 const page = await context.newPage();
 const errors = [];
 page.on("pageerror", error => errors.push(String(error)));
@@ -465,6 +481,7 @@ const paintedGoal = (container, records, edge = null) => page.evaluate(({ contai
       arrows.push({ start, end, tip, stroke, padding, lineLength: length, markerLength });
   }
   return { association: "pinned-maxgraph-shape-before-unique-raw-label",
+    viewport: [0, 0, iframe.clientWidth, iframe.clientHeight],
     container: { id: container.id, kind: "painted-dashed-group-boundary", bounds: frame }, shapes,
     edge: edge === null ? null : { from: edge.from, to: edge.to,
       association: "pinned-classic-marker-tip-and-stroke-in-one-cell-group", observed: observedEdges, matches: arrows,
@@ -552,7 +569,7 @@ const expectedOf = sent => {
 // same section and the utterance, and naming that section's frames once each
 // in the contract's order. Anything else is a finding of this stage - never a
 // wait for more.
-const actions = { new: 0, send: 0, undo: 0, apply: 0, reload: 0, ...(FIXTURE ? { discard: 0 } : {}), ...(GOAL ? { goal: 0 } : {}) };
+const actions = { new: 0, send: 0, undo: 0, apply: 0, reload: 0, ...(FIXTURE ? { discard: 0 } : {}), ...(GOAL || SOURCE ? { goal: 0 } : {}) };
 const click = async control => { actions[control]++; await page.locator("#" + control).click(); };
 let stopBaseline = null;
 const say = async (stage, utterance, picks) => {
@@ -672,7 +689,7 @@ const need = (condition, what) => { if (!condition) verdicts.push(what); };
 // run when it fails - nothing is undone or built on a state the next stage
 // assumes - and every stage not reached is reported as not run.
 const FAULTS = ["failed-frame", "incomplete-frame", "frame-extra-envelope", "judge-extra-envelope", "incomplete-judge-frame"];
-const STAGES = GOAL ? ["open", "prepare", "goal", ...(expectedCase.kind === "none" ? [] : ["goal-undo"])] : REVERSE ? ["open", "app", "reverse", "reverse-undo"] : ["open", "whole", "whole-undo",
+const STAGES = SOURCE ? ["open", "whole", "app", "source-goal", "source-undo", "clear", "unscoped"] : GOAL ? ["open", "prepare", "goal", ...(expectedCase.kind === "none" ? [] : ["goal-undo"])] : REVERSE ? ["open", "app", "reverse", "reverse-undo"] : ["open", "whole", "whole-undo",
   ...(FIXTURE ? ["camera-undo", "camera-discard-draft", "camera-undo-render-failure", "camera-discard", "camera-discard-new"] : []),
   "app", "credential", "storage", "save", ...(FIXTURE ? ["save-again"] : []),
   ...(LOCATES ? FAULTS : []), "correction", ...(FIXTURE ? ["camera-surviving-undo"] : []),
@@ -737,12 +754,13 @@ let applied = null;
 let reloaded = null;
 let contextEvidence = null;
 let goalEvidence = null;
+const GOAL_TITLE = "Goal example";
 const goalScenario = async () => {
   const goalText = evaluation?.goal ?? (FLOW ? "OCIの中にAPIとDBを追加し、APIからDBへ矢印をつないで。他は変えない" : "OCIの中にAPIとDBを追加して");
   reached.push("open");
   await page.goto(PAGE, { waitUntil: "commit", timeout: 120000 });
   await ready();
-  await page.locator("#text").fill("Goal example");
+  await page.locator("#text").fill(GOAL_TITLE);
   await click("new"); await settle();
   const route = new URL("/api/judge", url).href;
   reached.push("prepare");
@@ -752,6 +770,8 @@ const goalScenario = async () => {
   await click("send"); await settle(); await drain();
   if (FIXTURE) await page.unroute(route);
   const before = await screen(); last = before;
+  const beforeLog = await page.evaluate(() => document.querySelector("#working-surface iframe[data-package=semantic-map]")
+    ?.contentWindow?.semanticMapRuntime?.log ?? null);
   const preparationAnswers = exchanges.map(entry => contract.readAnswers(entry.body?.answers, slotsOf(entry.sent)));
   const seedChoice = preparationAnswers[0]?.diagram?.choice;
   const regions = before.graph?.records.filter(record => record.type === "region") ?? [];
@@ -807,8 +827,11 @@ const goalScenario = async () => {
   const after = await screen(); last = after;
   const attempt = await page.evaluate(() => JSON.parse(document.body.dataset.goal));
   const sent = exchanges.slice(prepared);
-  const added = after.graph.records.filter(record => record.type === "region" && !before.graph.records.some(old => old.id === record.id));
-  const newPins = after.graph.records.filter(record => record.type === "layout"
+  // One independent oracle for an actual after-state of this Goal: the drawn
+  // product graph, or the replayed baseline graph. noneMet grades a NONE oracle.
+  const grade = (records, noneMet) => {
+  const added = records.filter(record => record.type === "region" && !before.graph.records.some(old => old.id === record.id));
+  const newPins = records.filter(record => record.type === "layout"
     && !before.graph.records.some(old => JSON.stringify(old) === JSON.stringify(record)));
   // Parents resolve top-down: a seed group by its label before the Goal, an
   // added group as the one actual added record its own expectation matches.
@@ -832,40 +855,43 @@ const goalScenario = async () => {
   });
   assert.ok(expected.every(row => row !== null), "every expected parent resolves");
   const actual = added.map(({ label, kind, parent }) => ({ label: label.replace(/ [1-9]\d*$/u, ""), kind, parent }));
-  const signature = rows => JSON.stringify(rows.map(({ label, kind, parent }) => JSON.stringify([label, kind, parent])).sort());
-  const newEdges = after.graph.records.filter(record => record.type === "relation" && !before.graph.records.some(old => old.id === record.id));
-  const api = added.find(record => record.label.replace(/ [1-9]\d*$/u, "") === "API");
-  const db = added.find(record => record.label.replace(/ [1-9]\d*$/u, "") === "DB");
+  const newEdges = records.filter(record => record.type === "relation" && !before.graph.records.some(old => old.id === record.id));
   const endpointId = endpoint => {
     if (endpoint.baselineRegion !== undefined) return baselineIds.get(endpoint.baselineRegion);
     const index = expectedCase.regions.findIndex(region => region.partKey === endpoint.addedPart), target = expected[index];
     return matchOf(target);
   };
   const expectedEdges = expectedCase.flows.map(flow => ({ from: endpointId(flow.from), to: endpointId(flow.to), kind: "flow", label: "" }));
-  const edgeSignature = edges => JSON.stringify(edges.map(({ from, to, kind, label }) => JSON.stringify([from, to, kind, label])).sort());
   // Only a nested oracle admits growth: a baseline pin of a non-root ancestor
   // of an actual added group, replaced once, same origin and never smaller.
-  const afterRegion = id => after.graph.records.find(record => record.type === "region" && record.id === id);
+  const afterRegion = id => records.find(record => record.type === "region" && record.id === id);
   const growable = new Set();
   if (NESTED) for (const group of added.filter(record => record.kind === "group"))
     for (let id = group.parent; afterRegion(id) !== undefined && afterRegion(id).parent !== null; id = afterRegion(id).parent) growable.add(id);
   const grown = NESTED ? before.graph.records.filter(record => record.type === "layout"
-    && !after.graph.records.some(next => JSON.stringify(next) === JSON.stringify(record))) : [];
+    && !records.some(next => JSON.stringify(next) === JSON.stringify(record))) : [];
   const grownMet = grown.every(record => {
-    const next = after.graph.records.filter(item => item.type === "layout" && item.regionId === record.regionId);
+    const next = records.filter(item => item.type === "layout" && item.regionId === record.regionId);
     return growable.has(record.regionId) && next.length === 1
       && JSON.stringify({ ...next[0], bounds: null }) === JSON.stringify({ ...record, bounds: null })
       && next[0].bounds[0] === record.bounds[0] && next[0].bounds[1] === record.bounds[1]
       && next[0].bounds[2] >= record.bounds[2] && next[0].bounds[3] >= record.bounds[3];
   });
   const baselinePreserved = grownMet && before.graph.records.every(record => grown.includes(record)
-    || after.graph.records.some(next => JSON.stringify(next) === JSON.stringify(record)));
+    || records.some(next => JSON.stringify(next) === JSON.stringify(record)));
+  const semanticMet = signature(actual) === signature(expected) && edgeSignature(newEdges) === edgeSignature(expectedEdges)
+    && baselinePreserved && (expectedCase.kind !== "none" || noneMet(newPins));
+  const pinsExact = exactChildPins([...added, ...grown.map(record => ({ id: record.regionId }))], newPins);
+  return { added, newPins, expected, actual, newEdges, expectedEdges, afterRegion, grown, baselinePreserved, semanticMet, pinsExact };
+  };
+  const signature = rows => JSON.stringify(rows.map(({ label, kind, parent }) => JSON.stringify([label, kind, parent])).sort());
+  const edgeSignature = edges => JSON.stringify(edges.map(({ from, to, kind, label }) => JSON.stringify([from, to, kind, label])).sort());
   const firstNone = sent.length === 1 && sent[0].sent.state.candidates.length > 0
     && contract.readAnswers(sent[0].body?.answers, slotsOf(sent[0].sent))?.delta?.choice === contract.NONE;
-  const semanticMet = signature(actual) === signature(expected) && edgeSignature(newEdges) === edgeSignature(expectedEdges)
-    && baselinePreserved && (expectedCase.kind !== "none" || firstNone && newPins.length === 0
-      && sameNoneBaseline(before, after));
-  const pinsExact = exactChildPins([...added, ...grown.map(record => ({ id: record.regionId }))], newPins);
+  const { added, newPins, expected, actual, newEdges, expectedEdges, afterRegion, grown, baselinePreserved, semanticMet, pinsExact }
+    = grade(after.graph.records, pins => firstNone && pins.length === 0 && sameNoneBaseline(before, after));
+  const api = added.find(record => record.label.replace(/ [1-9]\d*$/u, "") === "API");
+  const db = added.find(record => record.label.replace(/ [1-9]\d*$/u, "") === "DB");
   const labelsVisible = await Promise.all(added.map(record => labelVisible(record.label)));
   const paintedRecords = after.graph.records.filter(record => record.type === "region" && record.parent === container.id);
   const painted = await paintedGoal(container, paintedRecords, FLOW ? { from: api?.id, to: db?.id } : null);
@@ -992,6 +1018,117 @@ const goalScenario = async () => {
     assert.deepEqual(verdicts, []);
     return;
   }
+  // The preregistered deterministic lexical baseline (PR #60): one selector over
+  // the actual public request only, replayed in the page through the served
+  // production Goal core. Its session is rebuilt by the served production
+  // session/turn/architecture constructors from the actual title and recorded
+  // preparation requests and answers; each rebuilt preparation request, the
+  // resulting log/head/records and the first Goal request must equal what was
+  // actually observed. It never sees the oracle.
+  const replay = await page.evaluate(async ({ log, title, preparation, utterance, bundleUrl, sourceUrl }) => {
+    const modules = ["/app/src/goal.mjs", "/app/src/bundle.mjs", "/ui/semantic-map/protocol/index.js",
+      "/app/src/session.mjs", "/app/src/turn.mjs", "/app/src/architecture.mjs"];
+    const loaded = new Set(performance.getEntriesByType("resource").map(entry => new URL(entry.name).pathname));
+    const [{ runGoal }, { readBundle }, protocol, { createSession, startNew, propose, draftForJudgment, recentConversation },
+      { requestFor, focusFor }, { readManifest, withArchitecture }] = await Promise.all(modules.map(path => import(path)));
+    const bundle = readBundle(await (await fetch(bundleUrl)).json());
+    const manifest = readManifest(await (await fetch(sourceUrl)).json());
+    let session = (await startNew(createSession({ accepted: null, stored: null }), { title, protocol })).session;
+    const preparedEqual = [];
+    for (const { sent, answers } of preparation) {
+      const working = session.working;
+      const layout = protocol.layoutBoundsFor(working.records, { pattern: protocol.GRAPH_PATTERN });
+      const steps = draftForJudgment(session);
+      const plain = requestFor({ working, utterance: sent.state.utterance, bundle, layout, offeredFrame: null, draft: steps,
+        focus: focusFor({ draft: steps, lastApplied: [] }), pending: null, recent: recentConversation(session).recent });
+      const bound = withArchitecture(plain, manifest);
+      const request = { ...bound.request, state: { ...bound.request.state,
+        context: { recent: recentConversation(session, { architecture: true }).recent } } };
+      preparedEqual.push(JSON.stringify(request) === JSON.stringify(sent));
+      session = (await propose(session, { turn: bound.turn, answers, protocol, bundle, layout, visibleFrame: null,
+        input: Object.freeze({ source: "typed", text: sent.state.utterance }), repair: null })).session;
+    }
+    const working = session.working;
+    const provenance = { issuedPartIds: [...session.issuedPartIds], nextSeq: session.nextSeq,
+      conversation: session.conversation.length, draft: session.draft.length };
+    const norm = value => value.normalize("NFKC").toLowerCase();
+    const select = state => {
+      const text = norm(state.utterance);
+      const regionOf = new Map(state.selected.map(item => [item.key, item.region]));
+      const adopted = new Set(state.selected.map(item => item.region));
+      const needles = new Map();
+      const name = (word, part, region) => {
+        const key = norm(word);
+        if (key.length === 0) return;
+        const entry = needles.get(key) ?? { parts: new Set(), regions: new Set() };
+        if (part !== null) entry.parts.add(part);
+        if (region !== undefined) entry.regions.add(region);
+        needles.set(key, entry);
+      };
+      // Public part keys/labels (an adopted part names its region); seed regions by their actual labels.
+      for (const part of bundle.parts) for (const word of [part.key, part.label]) name(word, part.key, regionOf.get(part.key));
+      for (const region of state.graph) if (!adopted.has(region.id)) name(region.label.replace(/ [1-9]\d*$/u, ""), null, region.id);
+      const mentions = [];
+      for (let at = 0; at < text.length;) {
+        const hit = [...needles.keys()].filter(word => text.startsWith(word, at)).sort((a, b) => b.length - a.length)[0];
+        if (hit === undefined) { at += 1; continue; }
+        mentions.push({ ...needles.get(hit), consumed: false });
+        at += hit.length;
+      }
+      for (const item of state.selected) {
+        const mention = mentions.find(other => !other.consumed && other.parts.has(item.key));
+        if (mention !== undefined) mention.consumed = true;
+      }
+      const parents = new Set(state.parents.map(parent => parent.id));
+      for (const [index, mention] of mentions.entries()) {
+        if (mention.consumed) continue;
+        const group = mentions.slice(0, index).reverse().find(other => [...other.regions].some(id => parents.has(id)));
+        const add = group && state.candidates.find(candidate => candidate.action === "add-part"
+          && mention.parts.has(candidate.part) && group.regions.has(candidate.parent));
+        if (add) return add.id;
+      }
+      const ends = mention => [...mention.regions].filter(id => !parents.has(id) && state.graph.find(region => region.id === id)?.parent !== null);
+      const open = mentions.filter(mention => !mention.consumed);
+      for (let from = 0; from < open.length; from += 1) for (let to = from + 1; to < open.length; to += 1) {
+        const edge = state.candidates.find(candidate => candidate.action === "add-edge"
+          && ends(open[from]).includes(candidate.from) && ends(open[to]).includes(candidate.to));
+        if (edge) return edge.id;
+      }
+      return "none";
+    };
+    let first = null;
+    const choices = [];
+    const result = await runGoal({ utterance, bundle, protocol, current: () => session, cancelled: () => false,
+      ask: async request => {
+        first ??= JSON.parse(JSON.stringify(request));
+        choices.push(select(request.state));
+        return { kind: "answered", decision: { answers: { delta: { type: "choice", choice: choices.at(-1), confidence: 1 } } } };
+      },
+      adopt: async next => { session = next; } });
+    return { head: working.head, startRecords: working.records, first, choices, reason: result.reason, requests: result.requests,
+      sameLog: working.log === log, preparedEqual, provenance,
+      records: session.working.records, modulesLoadedByPage: modules.every(path => loaded.has(path)) };
+  }, { log: beforeLog, title: GOAL_TITLE, utterance: goalText,
+    preparation: exchanges.slice(0, prepared).map(entry => ({ sent: entry.sent, answers: entry.body?.answers })),
+    bundleUrl: new URL(config.data.bundle, url).href, sourceUrl: new URL(config.data.source, url).href });
+  const fairNone = replay.choices[0] === contract.NONE && JSON.stringify(replay.records) === JSON.stringify(before.graph.records);
+  const fair = grade(replay.records, () => fairNone);
+  goalEvidence.fairBaseline = { selector: "PR60 deterministic lexical, NFKC lowercase longest mention", reason: replay.reason,
+    requests: replay.requests, choices: replay.choices, grade: fair.semanticMet ? "PASS" : "NOT_MET", actual: fair.actual,
+    newEdges: fair.newEdges.map(({ from, to, kind }) => ({ from, to, kind })),
+    // Observed: log, head, records, each preparation request and the first Goal
+    // request. Constructor-derived only: issued IDs, sequence, conversation and
+    // draft count; new reserved IDs are not proven by the first request.
+    replay: { preparedEqual: replay.preparedEqual.length > 0 && replay.preparedEqual.every(Boolean),
+      sameStart: replay.sameLog && replay.head === before.graph.head && JSON.stringify(replay.startRecords) === JSON.stringify(before.graph.records),
+      firstRequestEqual: replay.first !== null && JSON.stringify(replay.first) === JSON.stringify(sent[0]?.sent),
+      modulesLoadedByPage: replay.modulesLoadedByPage, constructorProvenance: replay.provenance },
+    scope: "CPU replay of semantic outcome only; no HTTP, paint, speed or Jev superiority claim" };
+  if (!(goalEvidence.fairBaseline.replay.preparedEqual && goalEvidence.fairBaseline.replay.sameStart
+    && goalEvidence.fairBaseline.replay.firstRequestEqual)) goalEvidence.fairBaseline.grade = "NOT_MET (score withheld: start differs)";
+  need(goalEvidence.fairBaseline.replay.preparedEqual && goalEvidence.fairBaseline.replay.sameStart && goalEvidence.fairBaseline.replay.firstRequestEqual
+    && goalEvidence.fairBaseline.replay.modulesLoadedByPage,
+  "the baseline rebuilds the actual pre-Goal session with the served constructors and asks the actual first request");
   need(sent.every(entry => entry.status === 200 && contract.readAnswers(entry.body?.answers, slotsOf(entry.sent)) !== null), "every Goal response is complete");
   need(["none", "no-executable-delta", "budget-requests", "budget-time"].includes(attempt.reason) && semanticMet,
     "independent expected graph is reached after a known mechanical stop, never from the stop alone");
@@ -1024,7 +1161,175 @@ const goalScenario = async () => {
   goalEvidence.undoRestored = true;
   for (const entry of exchanges) entry.reported = true;
 };
+// goal-source on one page: the whole account, the page code in focus, then a
+// Goal whose request is scoped by that remembered focus. In fixture mode the
+// controlled answer takes, in request order, the first offered arrow touching
+// the focus whose ends have no relation in either direction: a trial arrow,
+// never a source fact. In live mode the finite --goal-case names the expected
+// arrow by served manifest entities and no answer is crafted. Whole Goal Undo,
+// clearing the conversation, then the same utterance has no reference left.
+const SOURCE_GOAL = "さっき詳しく見た画面のコードにつながる試案の矢印を1本つないで";
+let sourceEvidence = null;
+const goalDone = () => page.waitForFunction(() => document.querySelector("#goal-cancel").hidden
+  && document.body.dataset.state !== "pending", null, { timeout: 180000 });
+const sourceScenario = async () => {
+  const goalText = evaluation?.goal ?? SOURCE_GOAL;
+  reached.push("open");
+  await page.goto(PAGE, { waitUntil: "commit", timeout: 120000 });
+  await ready();
+  await page.locator("#text").fill("voice-ui の構成");
+  await click("new"); await settle();
+  reached.push("whole");
+  const whole = await say("whole", UTTERANCES.whole, picksFor(contract.WHOLE));
+  prerequisite(whole.now.state === "drafted", "whole");
+  // The drawn whole account stays; its size is recorded.
+  const wholeSize = { regions: whole.now.graph.records.filter(record => record.type === "region").length,
+    relations: whole.now.graph.records.filter(record => record.type === "relation").length };
+  reached.push("app");
+  const app = await say("app", UTTERANCES.app, picksFor(APP));
+  const reference = app.now.context.at(-1)?.reference ?? null;
+  need(app.now.state === "drafted" && reference?.source.commit === SERVED_COMMIT
+    && JSON.stringify(reference.focus) === JSON.stringify(app.sent.at(-1)?.sent.state.architecture.focus),
+  "the app focus is drawn and the DOM remembers its actual judged source and focus");
+  prerequisite(verdicts.length === 0, "app");
+  const before = app.now;
+  const route = new URL("/api/judge", url).href;
+  const related = (edges, from, to) => edges.some(edge => edge.from === from && edge.to === to || edge.from === to && edge.to === from);
+  const focusRegions = (reference?.focus ?? []).map(id => `arch-${id}`);
+  const flow = evaluation?.expected.flows[0] ?? null;
+  let chosen = null, asked = 0;
+  if (FIXTURE) await page.route(route, craft((name, sent) => {
+    if (asked++ > 0) return contract.NONE;
+    chosen = sent.state.candidates.find(item => item.action === "add-edge"
+      && (focusRegions.includes(item.from) || focusRegions.includes(item.to)) && !related(sent.state.edges, item.from, item.to)) ?? null;
+    return chosen?.id ?? contract.NONE;
+  }), { times: 8 });
+  const prior = exchanges.length;
+  reached.push("source-goal");
+  await page.locator("#text").fill(goalText);
+  await click("goal"); await goalDone(); await drain();
+  if (FIXTURE) await page.unroute(route);
+  const after = await screen(); last = after;
+  const attempt = await page.evaluate(() => JSON.parse(document.body.dataset.goal));
+  const sent = exchanges.slice(prior);
+  for (const entry of sent) entry.reported = true;
+  const request = sent[0]?.sent.state ?? null;
+  // The expected arrow: the controlled choice, or the evaluator data resolved
+  // against the served manifest and the actual pre-Goal Working.
+  const target = FIXTURE ? (chosen === null ? null : { from: chosen.from, to: chosen.to })
+    : flow === null ? null : { from: "arch-" + flow.from.baselineRegion, to: "arch-" + flow.to.baselineRegion };
+  const endpointOf = (records, id) => records.find(record => record.type === "region" && record.id === id
+    && record.parent !== null && record.kind !== "group") ?? null;
+  const beforeRelations = before.graph.records.filter(record => record.type === "relation");
+  const eligible = target !== null && target.from !== target.to
+    && endpointOf(before.graph.records, target.from) !== null && endpointOf(before.graph.records, target.to) !== null
+    && !related(beforeRelations, target.from, target.to) && request !== null
+    && request.candidates.some(item => item.action === "add-edge" && item.from === target.from && item.to === target.to);
+  const newEdges = after.graph.records.filter(record => record.type === "relation" && !before.graph.records.some(old => old.id === record.id));
+  const nonLayout = records => records.filter(record => record.type !== "layout");
+  sourceEvidence = { source: SERVED_COMMIT, mode, focus: reference?.focus ?? null, utterance: goalText,
+    wholeSize, goalWorkingSize: { regions: before.graph.records.filter(record => record.type === "region").length,
+      relations: beforeRelations.length },
+    scopeMatchesReference: request !== null && JSON.stringify(request.scope)
+      === JSON.stringify(reference === null ? null : { source: reference.source, focus: reference.focus }),
+    contextMatches: request !== null && JSON.stringify(request.context.recent)
+      === JSON.stringify(before.context.map(({ reference: _, ...entry }) => entry)),
+    candidates: request?.candidates.length ?? 0,
+    edgesTouchFocus: request !== null && request.candidates.filter(item => item.action === "add-edge")
+      .every(item => focusRegions.includes(item.from) || focusRegions.includes(item.to)),
+    target, targetBy: FIXTURE ? "controlled: first offered arrow touching the focus with no relation either way" : "evaluator goal-case",
+    eligible, reason: attempt.reason, requests: attempt.requests, exchanges: sent.map(sanitized),
+    newEdges: newEdges.map(({ id, from, to, kind }) => ({ id, from, to, kind })),
+    newEdgeDrawn: eligible && newEdges.length === 1 && newEdges[0].from === target.from && newEdges[0].to === target.to
+      && JSON.stringify(nonLayout(after.graph.records).filter(record => record.id !== newEdges[0].id))
+        === JSON.stringify(nonLayout(before.graph.records)),
+    paint: null, understanding: "NOT_PROVEN" };
+  need(sourceEvidence.scopeMatchesReference && sourceEvidence.contextMatches, "the Goal carries the remembered source focus and the prior plain conversation");
+  need(sourceEvidence.candidates >= 1 && sourceEvidence.candidates <= 254 && sourceEvidence.edgesTouchFocus, "the scoped catalogue is bounded and every arrow touches the focus");
+  need(eligible, "the expected arrow joins two known parts with no relation either way and is offered; otherwise INELIGIBLE");
+  need((FIXTURE ? attempt.reason === "none" && attempt.requests === 2 && sent.length === 2
+    : ["none", "no-executable-delta", "budget-requests", "budget-time"].includes(attempt.reason)) && sourceEvidence.newEdgeDrawn,
+  "the Goal draws exactly the one new expected arrow, keeps every old record, and stops mechanically");
+  // The actual painted arrow at its named ends, by the existing observer, with
+  // its reverse and a disconnected visible part as negatives. The container is
+  // the shared actual parent, or the actual root.
+  if (sourceEvidence.newEdgeDrawn) {
+    const endpoints = after.graph.records.filter(record => record.type === "region" && record.parent !== null && record.kind !== "group");
+    const ends = [target.from, target.to].map(id => endpointOf(after.graph.records, id));
+    const container = after.graph.records.find(record => record.type === "region"
+      && (ends[0].parent === ends[1].parent ? record.id === ends[0].parent : record.parent === null));
+    const afterRelations = after.graph.records.filter(record => record.type === "relation");
+    // On one actual frame: the matched stroke start and marker tip lie inside
+    // the zero-margin iframe viewport and both named end shapes intersect it.
+    const within = (view, point) => Array.isArray(point) && point[0] >= view[0] && point[1] >= view[1]
+      && point[0] <= view[0] + view[2] && point[1] <= view[1] + view[3];
+    const meets = (view, box) => Array.isArray(box) && box[0] < view[0] + view[2] && box[0] + box[2] > view[0]
+      && box[1] < view[1] + view[3] && box[1] + box[3] > view[1];
+    const measure = async camera => {
+      const visible = await Promise.all(endpoints.map(record => labelVisible(record.label)));
+      const other = endpoints.find((record, index) => visible[index] && !ends.includes(record)
+        && !related(afterRelations, target.from, record.id)) ?? null;
+      const records = other === null ? ends : [...ends, other];
+      const painted = await paintedGoal(container, records, target);
+      const edgeOf = async edge => (await paintedGoal(container, records, edge)).edge;
+      const match = painted.edge.matches.length === 1 ? painted.edge.matches[0] : null;
+      const endBounds = painted.shapes.slice(0, 2).map(shape => shape.bounds);
+      return { camera, container: container.id, viewport: painted.viewport, endBounds,
+        endsVisible: ends.map(record => visible[endpoints.indexOf(record)]),
+        inView: match !== null && within(painted.viewport, match.start) && within(painted.viewport, match.tip)
+          && endBounds.every(box => meets(painted.viewport, box)),
+        edge: painted.edge, reverse: await edgeOf({ from: target.to, to: target.from }),
+        disconnected: other === null ? null : await edgeOf({ from: target.from, to: other.id }) };
+    };
+    // The overview first, then the existing camera on the from end, then the
+    // to end, each on unchanged records and storage; the first frame that
+    // shows the whole matched arrow is graded, with its own negatives.
+    const frames = [await measure("")];
+    for (const camera of [target.from, target.to]) {
+      if (frames.at(-1).inView) break;
+      await page.locator("#camera-part").selectOption(camera); await settle();
+      const focused = await screen();
+      frames.push({ ...(await measure(camera)),
+        recordsUnchanged: JSON.stringify(focused.graph?.records) === JSON.stringify(after.graph.records) && focused.stored === after.stored });
+    }
+    if (frames.length > 1) { await page.locator("#camera-part").selectOption(""); await settle(); }
+    const paint = { ...frames.at(-1), frames: frames.map(({ camera, viewport, endBounds, endsVisible, inView, edge }) =>
+      ({ camera, viewport, endBounds, endsVisible, inView, matches: edge.matches.map(({ start, tip }) => ({ start, tip })) })) };
+    paint.met = paint.inView && paint.edge.complete && paint.edge.matches.length === 1 && !paint.reverse.complete
+      && paint.disconnected !== null && !paint.disconnected.complete && frames.every(frame => frame.recordsUnchanged !== false);
+    sourceEvidence.paint = paint;
+  }
+  need(sourceEvidence.paint?.met === true, "on one actual frame the painted arrow and both named ends are in view; its reverse and a disconnected part do not connect");
+  prerequisite(verdicts.length === 0, "source-goal");
+  reached.push("source-undo");
+  const beforeUndo = exchanges.length;
+  await click("undo"); await settle();
+  const undone = await screen(); last = undone;
+  sourceEvidence.undoRestored = exchanges.length === beforeUndo && undone.graph?.head === before.graph.head
+    && ["graph", "draft", "claims", "stored", "root", "confirmedGraph"].every(key => JSON.stringify(undone[key]) === JSON.stringify(before[key]));
+  need(sourceEvidence.undoRestored, "whole-Goal Undo restores the pre-Goal Working, draft, claims, storage and confirmed view");
+  reached.push("clear");
+  await page.locator("#context-clear").click(); await settle();
+  const cleared = await screen(); last = cleared;
+  sourceEvidence.clearKeepsGraphs = cleared.context.length === 0
+    && ["graph", "draft", "claims", "stored", "root", "confirmedGraph"].every(key => JSON.stringify(cleared[key]) === JSON.stringify(undone[key]));
+  need(sourceEvidence.clearKeepsGraphs, "clearing the conversation leaves Working and Accepted byte-equal");
+  reached.push("unscoped");
+  const beforeUnscoped = exchanges.length;
+  if (FIXTURE) await page.route(route, craft(() => contract.NONE), { times: 8 });
+  await page.locator("#text").fill(goalText);
+  await click("goal"); await goalDone(); await drain();
+  if (FIXTURE) await page.unroute(route);
+  const unscoped = await page.evaluate(() => JSON.parse(document.body.dataset.goal));
+  const final = await screen(); last = final;
+  sourceEvidence.unscoped = { reason: unscoped.reason, requests: unscoped.requests, newExchanges: exchanges.length - beforeUnscoped };
+  need(unscoped.reason === "candidate-overflow" && unscoped.requests === 0 && exchanges.length === beforeUnscoped
+    && JSON.stringify(final.graph) === JSON.stringify(cleared.graph),
+  "without the remembered reference the same utterance overflows before any provider request");
+  report({ event: "source-evidence", ...sourceEvidence });
+};
 const runScenario = async () => {
+  if (SOURCE) return sourceScenario();
   if (GOAL) return goalScenario();
   // The slash-less path is sent to the architecture page's own path.
   reached.push("open");
@@ -1505,8 +1810,8 @@ const answered = exchanges.filter(entry => entry.status === 200);
 const providerIdentity = "UNKNOWN";
 const failure = thrown === null || thrown === HALT || thrown === PROTOCOL_HALT ? null : String(thrown?.message ?? thrown).split("\n")[0];
 report({
-  event: "summary", mode, scenario, contextEvidence, ...(GOAL ? { goalEvidence } : {}), source: SERVED_COMMIT, viewport: page.viewportSize(), reached,
-  dom: GOAL || last === null ? null : domOf(last), stoppedAt, error: failure, cleanup, protocolFailure, actions, verdicts, notRun: STAGES.filter(stage => !reached.includes(stage)),
+  event: "summary", mode, scenario, contextEvidence, ...(GOAL ? { goalEvidence } : {}), ...(SOURCE ? { sourceEvidence } : {}), source: SERVED_COMMIT, viewport: page.viewportSize(), reached,
+  dom: GOAL || SOURCE || last === null ? null : domOf(last), stoppedAt, error: failure, cleanup, protocolFailure, actions, verdicts, notRun: STAGES.filter(stage => !reached.includes(stage)),
   requests: exchanges.length, answered: exchanges.filter(entry => entry.status !== null).length,
   failed: exchanges.filter(entry => entry.error !== null).length,
   non200: exchanges.filter(entry => entry.status !== null && entry.status !== 200).length, providerIdentity,
@@ -1528,7 +1833,7 @@ if (cleanup !== null) {
   // A browser that could not be closed makes the run an error, whatever it found.
   process.stdout.write(`${LABEL}: ERROR | close failed: ${cleanup} | ${summary}\n`);
   process.exitCode = 1;
-} else if (GOAL) {
+} else if (GOAL || SOURCE) {
   assert.deepEqual(verdicts, [], "the Goal's bounded mechanics and independently sealed result");
   assert.equal(thrown, null);
   process.stdout.write(`${LABEL}: PASS ${FIXTURE ? "controlled Goal mechanics only" : "local source-dev Goal only"} | ${summary}\n`);
