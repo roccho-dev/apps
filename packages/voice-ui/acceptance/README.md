@@ -6,7 +6,8 @@ The existing architecture checker accepts an optional `--goal-case <JSON>` after
 the existing URL for either Goal scenario. The exact input keys are `version`,
 `id`, `goal`, `order`, and `expected`; version is `voice-ui.goal-evaluation.v1`,
 order is `normal` or `reverse`. Expected has exactly `kind` (`change` or `none`),
-`regions` (`partKey`, `parentLabel`) and `flows` (`from`, `to`). Each endpoint is
+`regions` (`partKey` with exactly one of `parentLabel` or `parent: {addedPart}`, see
+below) and `flows` (`from`, `to`). Each endpoint is
 either `{ "addedPart": "api" }` or `{ "baselineRegion": "existing-helper" }`.
 The latter is the fixed public container-example **step.ref**, not a guessed
 allocated record ID. Unknown keys, unsupported/duplicate parts or flows, root or
@@ -98,6 +99,38 @@ returns to the overview before Undo. No threshold is computed by the
 evaluator. In this Goal the confirmed pane holds no graph, so equal frames on
 both panes are not observed here. Flat scenarios keep the unchanged-viewport
 grades.
+
+## Preregistered baseline replay and composed source Goal
+
+Every evaluated Goal also replays the deterministic lexical baseline fixed in
+the PR #60 preregistration. In the page, the checker imports the served
+production `goal.mjs`, `bundle.mjs` and semantic-map protocol (each already
+loaded by the page), verifies the actual pre-Goal Working log, and rebuilds the
+session from the actual page history: the shown conversation, draft count and
+issued part IDs. One selector reads only each public request (NFKC and
+lowercase, longest left-to-right mentions of public part keys/labels and actual
+Working labels; an adopted part is named by its public key/label) and answers
+through the same `runGoal`, catalogue, proof, bounds and STOP rules. Its first
+request must equal the actual first product request and its start must equal
+the actual head and records; otherwise the replay is a verdict, not a score. Its
+final graph is graded by the same independent oracle. This is a CPU replay of
+the semantic outcome only: no HTTP, paint, speed or Jev superiority claim. The
+three byte-fixed calibrations (a literal Add/Connect, b reversed word order,
+c explicit-key nested) are known controls graded PASS, NOT_MET and PASS; they
+are not heldout cases. Sealed fresh Goals come only after production freeze.
+
+`goal-source` composes one page: the whole account, Undo of it, the page code
+in focus, then a Goal scoped by that remembered focus whose controlled answer
+takes the first manifest pair the catalogue offers and Working has not drawn in
+either direction (a drawn pair is INELIGIBLE). Whole-Goal Undo, conversation
+clear with Working and Accepted unchanged, and the same utterance overflowing
+before any provider request follow. It is mechanics only, never proof that the
+source was understood. Currently it fails before any Goal request: after the app
+focus, Working holds both an import and a calls relation from the page code to
+the log and to the judgment adapter, and the Goal v5 request refuses a repeated
+directed pair (`invalid-goal-request`, zero provider requests). The checker records
+the whole size, the pre-Goal size and those relation IDs; the product
+correction is outside this slice.
 
 The smaller-only-fit fixture uses the same 220×160 parent and 40×40 other group:
 one small offer fits while a wider offer does not. Its independent expected graph
