@@ -70,6 +70,22 @@ scope the whole catalogue stays, so a Goal on a drawn source snapshot still stop
 at `candidate-overflow`. Goal v5 rejects older Goal kinds; ordinary Send v1 is
 unchanged. (Goal v4 was the same without `scope`.)
 
+The public bundle offers one generic group part (kind group) within the eight
+offer cap; a seed diagram step is never a group. A group joins the catalogue as
+a parent only once the same Goal adopted it, by its selected key and region and
+a bundle part of kind group, never by an ID prefix. Its child goes below its
+siblings, and the group and each ancestor under the root grow just enough in the
+same PinRegions, origin kept and never smaller, using the existing padding, label
+room and step gap; growing into an existing sibling refuses. Seed groups stay
+fit-or-none and the root is never pinned. The evaluator oracle names a parent as
+`{partKey, parentLabel}` (a unique seed group) or `{partKey, parent: {addedPart}}`
+(a group part of the same oracle), resolved top-down against the actual graph;
+every chain must end at a seed group. Only such a nested oracle admits a replaced
+baseline pin, and only for a non-root ancestor of an actual added group with the
+same origin and no smaller size; flat oracles keep every baseline record exact.
+`goal-nest` drives group, a child in it, a part in OCI and the arrow between them
+with crafted answers and whole Undo; it is controlled mechanics, not Sys1 quality.
+
 The smaller-only-fit fixture uses the same 220×160 parent and 40×40 other group:
 one small offer fits while a wider offer does not. Its independent expected graph
 and whole Undo prove finite coverage and controlled execution, not Sys1 judgment
