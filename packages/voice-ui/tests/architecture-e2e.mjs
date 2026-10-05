@@ -111,7 +111,7 @@ const UTTERANCES = {
     save: "src/log.mjs を詳しく見せて",
     correction: "web/app.mjs から localStorage への stores-in の関係を消して",
   },
-}[REVERSE || GOAL ? "natural" : scenario];
+}[REVERSE || GOAL || SOURCE ? "natural" : scenario];
 const REVERSE_UTTERANCE = "さっき詳しく見た画面が判定を頼む呼び出しを、試案として逆向きにして";
 const PAGE = new URL("/architecture", url).href;
 const ROOT_KEY = "voice-ui.decision-log.v1";
