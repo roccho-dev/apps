@@ -76,8 +76,9 @@ a parent only once the same Goal adopted it, by its selected key and region and
 a bundle part of kind group, never by an ID prefix. Its child goes below its
 siblings, and the group and each ancestor under the root grow just enough in the
 same PinRegions, origin kept and never smaller, using the existing padding, label
-room and step gap; growing into an existing sibling refuses. Seed groups stay
-fit-or-none and the root is never pinned. The evaluator oracle names a parent as
+room and step gap; growing into an existing sibling refuses. A direct Add into a
+seed group stays fit-or-none without growth (OCI grows only to enclose a child
+of a Goal-added group), and the root is never pinned. The evaluator oracle names a parent as
 `{partKey, parentLabel}` (a unique seed group) or `{partKey, parent: {addedPart}}`
 (a group part of the same oracle), resolved top-down against the actual graph;
 every chain must end at a seed group. Only such a nested oracle admits a replaced

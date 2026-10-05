@@ -199,7 +199,7 @@ const within = (outer, inner) => inner[0] >= outer[0] && inner[1] >= outer[1]
   && inner[0] + inner[2] <= outer[0] + outer[2] && inner[1] + inner[3] <= outer[1] + outer[3];
 const apart = (a, b) => a[0] + a[2] <= b[0] || b[0] + b[2] <= a[0] || a[1] + a[3] <= b[1] || b[1] + b[3] <= a[1];
 
-test("only a group this Goal adopted grows to take a child; seed groups stay fit-or-none", async () => {
+test("only a group this Goal adopted grows to take a child; a direct seed Add stays fit-or-none", async () => {
   const initial = (await newMap({ title: "nested public seed", protocol })).graph;
   const composition = await plan(initial, { action: ACTION_COMPOSE, diagram: "container-example" });
   let working = (await appendStep({ working: initial, step: composition.step, protocol })).graph;
@@ -245,7 +245,7 @@ test("only a group this Goal adopted grows to take a child; seed groups stay fit
   assert.deepEqual(boxOf(working, auxiliary.id), seedBefore.auxiliary);
 
   const api = (await add("api", container.id)).candidate;
-  assert.deepEqual(api.operations[1].items.map(item => item.regionId), [api.operations[0].regionId], "a seed group never grows");
+  assert.deepEqual(api.operations[1].items.map(item => item.regionId), [api.operations[0].regionId], "a direct seed Add never grows");
   const held = legalLocalDeltas(working, { bundle: BUNDLE, protocol, selected });
   const edge = held.candidates.find(item => item.from === api.operations[0].regionId && item.to === db);
   const proved = await proveLocalDelta({ working, held, candidateId: edge.id, confidence: 1, bundle: BUNDLE, protocol, selected });
@@ -269,6 +269,42 @@ test("only a group this Goal adopted grows to take a child; seed groups stay fit
     bundle: BUNDLE, protocol, selected: selected.slice(0, 1).concat([{ key: "api", region: "part-90", parent: container.id }]) })).reason, "stale-addition");
   assert.equal((await proveLocalDelta({ working, held: nested.held, candidateId: nested.candidate.id, confidence: 1,
     bundle: BUNDLE, protocol, selected: selected.slice(0, 1) })).outcome === OUTCOME_STEP, false);
+});
+
+test("a Goal-added group takes a second child one step gap below the first", async () => {
+  const initial = (await newMap({ title: "second nested child", protocol })).graph;
+  const composition = await plan(initial, { action: ACTION_COMPOSE, diagram: "container-example" });
+  let working = (await appendStep({ working: initial, step: composition.step, protocol })).graph;
+  const regions = () => working.records.filter(record => record.type === "region");
+  const container = regions().find(record => record.label === "OCI" && record.kind === "group");
+  const selected = [];
+  const add = async (key, parent) => {
+    const held = legalLocalDeltas(working, { bundle: BUNDLE, protocol, selected });
+    const candidate = held.candidates.find(item => item.part === key && item.parent === parent);
+    assert.ok(candidate, `${key} into ${parent} is offered`);
+    const proved = await proveLocalDelta({ working, held, candidateId: candidate.id, confidence: 1, bundle: BUNDLE, protocol, selected });
+    assert.equal(proved.outcome, OUTCOME_STEP);
+    working = (await appendStep({ working, step: proved.step, protocol })).graph;
+    selected.push({ key, region: candidate.operations[0].regionId, parent });
+    return candidate.operations[0].regionId;
+  };
+  const ociBefore = boxOf(working, container.id);
+  const group = await add("group", container.id);
+  const groupBefore = boxOf(working, group);
+  const db = await add("db", group);
+  const api = await add("api", group);
+  const [dbBox, apiBox] = [boxOf(working, db), boxOf(working, api)];
+  assert.deepEqual([apiBox[0], apiBox[1]], [dbBox[0], dbBox[1] + dbBox[3] + 24], "the second child goes one step gap below the first");
+  for (const [id, old] of [[group, groupBefore], [container.id, ociBefore]]) {
+    const now = boxOf(working, id);
+    assert.deepEqual(now.slice(0, 2), old.slice(0, 2), "origin kept");
+    assert.ok(now[2] >= old[2] && now[3] >= old[3], "never shrinks");
+  }
+  for (const record of regions().filter(record => record.parent !== null)) {
+    assert.ok(within(boxOf(working, record.parent), boxOf(working, record.id)), `${record.id} is inside its parent`);
+    for (const sibling of regions().filter(other => other.parent === record.parent && other.id !== record.id))
+      assert.ok(apart(boxOf(working, record.id), boxOf(working, sibling.id)), `${record.id} and ${sibling.id} do not overlap`);
+  }
 });
 
 test("a growing group refuses when an ancestor would grow into its sibling", async () => {

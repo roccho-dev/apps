@@ -562,9 +562,10 @@ async function materialize(working, planned, protocol) {
   });
 }
 
-// A group this Goal added grows to take a child: the child goes below its
-// siblings, and the group and each ancestor under the root widen or deepen just
-// enough, origin kept. Growing into a sibling refuses. Seed groups never grow.
+// A direct Add into an existing group stays fit-or-none and never resizes it.
+// A child placed into a group the current Goal added goes below its siblings;
+// that group and each enclosing group under the root grow just enough, origin
+// kept. Growing into an existing sibling refuses.
 function grownSlot(records, current, parent, regionId, size) {
   const parentOf = new Map(records.filter(record => record.type === "region").map(record => [record.id, record.parent]));
   const childrenOf = id => records.filter(record => record.type === "region" && record.parent === id && record.id !== regionId);
@@ -644,7 +645,8 @@ function legalAdditions(working, { bundle, protocol, reserved = [], selected = [
   const candidates = [];
   const parents = working.records.filter(record => record.type === "region"
     && record.kind === LANE_KIND && record.parent !== null).sort((a, b) => a.id.localeCompare(b.id));
-  // Only a group part this Goal adopted (its selected key and region) may grow.
+  // Only a group part this Goal adopted (its selected key and region) takes a
+  // child by growing; its enclosing groups grow with it as needed.
   const grows = parent => selected.some(item => item.region === parent.id
     && bundle.parts.some(part => part.key === item.key && part.kind === LANE_KIND));
   const parts = bundle.parts.filter(part => !selected.some(item => item.key === part.key))
