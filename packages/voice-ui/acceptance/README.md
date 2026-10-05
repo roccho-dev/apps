@@ -106,8 +106,8 @@ Every evaluated Goal also replays the deterministic lexical baseline fixed in
 the PR #60 preregistration. In the page, the checker imports the served
 production `goal.mjs`, `bundle.mjs` and semantic-map protocol (each already
 loaded by the page), verifies the actual pre-Goal Working log, and rebuilds the
-session from the actual page history: the shown conversation, draft count and
-issued part IDs. One selector reads only each public request (NFKC and
+session with the served production constructors (below). One selector reads
+only each public request (NFKC and
 lowercase, longest left-to-right mentions of public part keys/labels and actual
 Working labels; an adopted part is named by its public key/label) and answers
 through the same `runGoal`, catalogue, proof, bounds and STOP rules. Its first
@@ -119,18 +119,30 @@ three byte-fixed calibrations (a literal Add/Connect, b reversed word order,
 c explicit-key nested) are known controls graded PASS, NOT_MET and PASS; they
 are not heldout cases. Sealed fresh Goals come only after production freeze.
 
-`goal-source` composes one page: the whole account, Undo of it, the page code
-in focus, then a Goal scoped by that remembered focus whose controlled answer
-takes the first manifest pair the catalogue offers and Working has not drawn in
-either direction (a drawn pair is INELIGIBLE). Whole-Goal Undo, conversation
-clear with Working and Accepted unchanged, and the same utterance overflowing
-before any provider request follow. It is mechanics only, never proof that the
-source was understood. Currently it fails before any Goal request: after the app
-focus, Working holds both an import and a calls relation from the page code to
-the log and to the judgment adapter, and the Goal v5 request refuses a repeated
-directed pair (`invalid-goal-request`, zero provider requests). The checker records
-the whole size, the pre-Goal size and those relation IDs; the product
-correction is outside this slice.
+`goal-source` composes one page: the whole account, the page code in focus,
+then a Goal scoped by that remembered focus whose controlled answer takes the
+first manifest pair the catalogue offers and Working has not drawn in either
+direction (a drawn pair is INELIGIBLE, a checker rule stricter than the product,
+which still offers a legal reverse arrow). Whole-Goal Undo, conversation clear
+with Working and Accepted unchanged, and the same utterance overflowing before
+any provider request follow. It is mechanics only, never proof that the source
+was understood. A Goal request now keeps distinct existing relations that share
+a directed pair (the page code both imports and calls the log and the judgment
+adapter); only edge IDs are unique, and a candidate may still never repeat an
+existing directed pair. With that, the scoped request matches the remembered
+source focus and plain conversation and offers 62 arrows, each touching the
+focus. It still has no target: all 14 manifest pairs touching the page code are
+already drawn after the app focus, so each is offered only in reverse and is
+INELIGIBLE. The checker records every such pair; choosing a different target
+rule is not made here.
+
+The replay session is rebuilt in the page by the served `createSession`,
+`startNew`, `requestFor`, `withArchitecture` and `propose` from the actual title
+and the recorded preparation requests and answers. Observed and compared: each
+rebuilt preparation request, the pre-Goal log, head and records, and the whole
+first Goal request. Derived only from those constructors: issued part IDs,
+sequence, conversation and draft count; a reserved ID for a new part is not
+proven by the first request. Any difference withholds the score.
 
 The smaller-only-fit fixture uses the same 220×160 parent and 40×40 other group:
 one small offer fits while a wider offer does not. Its independent expected graph
