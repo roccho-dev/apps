@@ -269,6 +269,18 @@ try {
     { data: { ...evaluationBase, id: "controlled-wrong-expected", order: "normal",
       expected: { ...evaluationBase.expected, regions: [evaluationBase.expected.regions[0]] } }, mode: "fixture", scenario: "goal-addition", semantic: "NOT_MET" },
   ];
+  // PR #60 byte-fixed non-heldout calibrations. The scripted product arm is
+  // controlled mechanics; only the replayed deterministic lexical baseline is
+  // graded against the expected outcome fixed before any result.
+  const flowExpected = { kind: "change", regions: [{ partKey: "api", parentLabel: "OCI" }, { partKey: "db", parentLabel: "OCI" }],
+    flows: [{ from: { addedPart: "api" }, to: { addedPart: "db" } }] };
+  const calibration = (id, goal, expected, scenario, baseline) => ({ mode: "fixture", scenario, semantic: "PASS", baseline,
+    data: { version: "voice-ui.goal-evaluation.v1", id, goal, order: "normal", expected } });
+  evaluationCases.push(
+    calibration("calibration-a", "OCIにapiとdbを追加し、apiからdbへつないで", flowExpected, "goal-flow", "PASS"),
+    calibration("calibration-b", "OCIにapiとdbを追加し、dbへapiからつないで", flowExpected, "goal-flow", "NOT_MET"),
+    calibration("calibration-c", "OCIにgroupを追加し、groupにdbを追加し、OCIにapiを追加し、apiからdbへつないで",
+      nestedBase.expected, "goal-nest", "PASS"));
   const evaluationControls = [];
   for (const [index, entry] of evaluationCases.entries()) {
     const home = path.join(work, `e${index}`); mkdirSync(home);
@@ -294,6 +306,16 @@ try {
       assert.equal(proof.graphBefore, proof.graphAfter); assert.equal(summary.actions.undo, 0);
       assert.deepEqual(summary.notRun, []); assert.equal(output.code, 0, output.stderr);
     } else assert.equal(proof.undoRestored, true);
+    // Every evaluated Goal replays the same served core from the same actual
+    // start; its first request must equal the product actual first request.
+    const fair = proof.fairBaseline;
+    assert.equal(fair.replay.sameStart, true, entry.data.id + ": replay starts from the actual pre-Goal Working");
+    assert.equal(fair.replay.firstRequestEqual, true, entry.data.id + ": replayed first request equals the actual one");
+    assert.equal(fair.replay.modulesLoadedByPage, true);
+    if (entry.baseline !== undefined) {
+      assert.equal(fair.grade, entry.baseline, entry.data.id + ": preregistered baseline outcome");
+      assert.equal(fair.reason, "none"); assert.ok(fair.requests >= 1 && fair.requests <= 8);
+    }
     if (entry.scenario === "goal-nest") {
       assert.equal(output.code, 0, output.stderr + output.stdout);
       assert.deepEqual(proof.selected.map(item => item.key), ["group", "db", "api"]);
@@ -418,6 +440,28 @@ try {
   }
   process.stdout.write(JSON.stringify({ kind: "voice-ui.goalAdditionControls.v1", status: "PASS",
     artifactManifestSha256: digest, liveProviderCalls: 0, controls: goalControls }) + "\n");
+  // One composed same-page source Goal: whole, app focus, then a Goal scoped by
+  // that remembered focus draws one new arrow; Undo, clear and the same
+  // utterance without the reference. Controlled mechanics, not understanding.
+  const sourceHome = path.join(work, "s0"); mkdirSync(sourceHome);
+  const sourceRun = await runChild([path.join(root, manifest.e2e.architecture_entrypoint),
+    "--mode", "fixture", "--scenario", "goal-source", formalOrigin], sourceHome);
+  assert.equal(sourceRun.code, 0, sourceRun.stderr + sourceRun.stdout);
+  const sourceSummary = sourceRun.stdout.split("\n").filter(line => line.startsWith("{"))
+    .map(JSON.parse).find(row => row.event === "summary");
+  assert.equal(sourceSummary.source, manifest.sources.apps); assert.equal(sourceSummary.error, null);
+  assert.deepEqual(sourceSummary.reached, ["open", "whole", "app", "source-goal", "source-undo", "clear", "unscoped"]);
+  assert.deepEqual(sourceSummary.verdicts, []);
+  const sourceProof = sourceSummary.sourceEvidence;
+  assert.equal(sourceProof.scopeMatchesReference, true); assert.equal(sourceProof.contextMatches, true);
+  assert.ok(sourceProof.candidates >= 1 && sourceProof.candidates <= 254); assert.equal(sourceProof.edgesTouchFocus, true);
+  assert.equal(sourceProof.reason, "none"); assert.equal(sourceProof.requests, 2);
+  assert.equal(sourceProof.newEdgeDrawn, true); assert.equal(sourceProof.predrawn, false);
+  assert.equal(sourceProof.undoRestored, true); assert.equal(sourceProof.clearKeepsGraphs, true);
+  assert.deepEqual(sourceProof.unscoped, { reason: "candidate-overflow", requests: 0, newExchanges: 0 });
+  assert.equal(sourceProof.understanding, "NOT_PROVEN");
+  process.stdout.write(JSON.stringify({ kind: "voice-ui.sourceGoalControl.v1", status: "PASS",
+    artifactManifestSha256: digest, liveProviderCalls: 0, proof: sourceProof }) + "\n");
   process.stdout.write(JSON.stringify({ kind: "voice-ui.architectureShapeCheck.v1", status: "PASS",
     scope: "artifact-shape/controlled-mechanics", artifactManifestSha256: digest, source: manifest.sources.architecture,
     entry: manifest.e2e.architecture_entrypoint, liveProviderCalls: 0, acceptedIntegration: "NOT_PROVEN" }) + "\n");
