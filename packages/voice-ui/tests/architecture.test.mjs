@@ -40,7 +40,9 @@ import {
   roleSlot,
 } from "../src/contract.mjs";
 import { MAP_ID, STATE_SCHEMA } from "../src/log.mjs";
-import { requestFor } from "../src/turn.mjs";
+import { legalLocalDeltas, requestFor } from "../src/turn.mjs";
+import { runGoal } from "../src/goal.mjs";
+import { createSession } from "../src/session.mjs";
 
 const store = process.env.SEMANTIC_MAP;
 if (!store) throw new Error("SEMANTIC_MAP must point at the pinned semantic-map store path");
@@ -854,4 +856,30 @@ test("this package's whole snapshot, drawn, still fits the intent's bounds", asy
   t.diagnostic(`scenario graph: ${regions.length} regions, ${edges.length} edges `
     + `(${edges.filter(edge => edge.id.startsWith("arch-has-role-")).length} has-role), `
     + `${units.length} utterances with ${units.map(unit => unit.changes.length).join("/")} changes; bound 128/128`);
+});
+
+// The known source-grounded Goal gap, pinned as it is: the whole view draws every
+// part and fact under the root with no group, so a Goal on it is offered every
+// directed pair and stops before asking. Neither the bound nor gold narrows it.
+test("a Goal on this package's drawn snapshot is offered every pair and stops before asking", async t => {
+  const manifest = ownManifest();
+  const bundle = readBundle(JSON.parse(fs.readFileSync(new URL("../web/data/bundle.v1.json", import.meta.url), "utf8")));
+  let working = await mapGraph();
+  working = await appendAll(working, await plan(working, manifest));
+  working = await appendAll(working, await plan(working, manifest, { focus: "web-app-mjs",
+    judge: { [roleSlot("web-app-mjs", "persistence")]: YES } }));
+  const regions = working.records.filter(record => record.type === "region");
+  const held = legalLocalDeltas(working, { bundle, protocol });
+  assert.equal(regions.some(record => record.kind === "group" && record.parent !== null), false, "the drawn snapshot has no group to add into");
+  assert.equal(held.candidates.some(candidate => candidate.part !== undefined), false);
+  assert.ok(held.candidates.some(candidate => candidate.from === "arch-web-app-mjs" && candidate.to === "arch-ext-localstorage"),
+    "the asked-for pair is legal but undrawn");
+  assert.ok(held.candidates.length > 254);
+  let session = createSession({ accepted: working, stored: working.log });
+  let asked = 0;
+  const result = await runGoal({ utterance: "さっき詳しく見た画面から localStorage へ矢印をつないで。他は変えない", bundle, protocol,
+    current: () => session, cancelled: () => false, ask: async () => { asked += 1; throw new Error("never asked"); },
+    adopt: async next => { session = next; } });
+  assert.deepEqual([result.reason, result.requests, asked], ["candidate-overflow", 0, 0]);
+  t.diagnostic(`source-grounded Goal: ${regions.length} regions, ${regions.length - 1} endpoints, ${held.candidates.length} Connect candidates, 0 Add`);
 });
