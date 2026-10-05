@@ -1,19 +1,74 @@
 # Acceptance execution boundary
 
-## Executable Goal Choice v2
+## Finite evaluator input (shared-review source v5)
 
-Goal requests now choose one request-local executable addition (part, existing
-parent and deterministic placement), or NONE. The catalogue retains its exact
-AddRegion/new-child PinRegions and placement read set. Latest-state proof rejects
-changed inputs or placement; adoption uses the original held delta, not a replan.
-Zero candidates and more than 254 candidates stop before asking. The closed v2
-boundary rejects old Goal v1; ordinary Send v1 is unchanged.
+The existing architecture checker accepts an optional `--goal-case <JSON>` after
+the existing URL for either Goal scenario. The exact input keys are `version`,
+`id`, `goal`, `order`, and `expected`; version is `voice-ui.goal-evaluation.v1`,
+order is `normal` or `reverse`. Expected has exactly `kind` (`change` or `none`),
+`regions` (`partKey`, `parentLabel`) and `flows` (`from`, `to`). Each endpoint is
+either `{ "addedPart": "api" }` or `{ "baselineRegion": "existing-helper" }`.
+The latter is the fixed public container-example **step.ref**, not a guessed
+allocated record ID. Unknown keys, unsupported/duplicate parts or flows, root or
+group endpoints, self edges and ambiguous public parent labels are rejected before
+browser/provider invocation. Actual preparation is separately checked against the
+complete public seed; unique exact label/kind/parent correspondence binds each
+public seed step to its observed record ID before the Goal.
+
+Expected data is evaluator-only gold: never sent to the app/provider, used to
+filter a candidate, choose a fixture answer, or plan a change. Existing default
+inputs retain their old scripted controls. The explicit `fixture-none` mode always
+answers NONE, independently of expected data, and proves controlled mechanics
+only. NONE success requires a nonempty actual legal catalogue, the first closed
+NONE answer, zero adoption and unchanged full baseline/draft/claims/storage; no
+meaningless Undo is required. Change evaluation compares exact added region/flow
+multisets and preserves every old record/pin, rather than checking a positive
+subset. All applicable existing node/edge paint predicates and overall exit
+failure remain unchanged: independent `evaluation.semanticGrade` is not an
+overall paint/CI/owner PASS.
+
+Reversed presentation uses the same stable IDs and full candidate entries with
+deep-equal other request state. The checker records before/after IDs and hashes,
+actual closed answers and membership. In live mode this is an explicit
+`route.continue` request intervention, not a claim of independently observed
+provider wire or an unmodified ordinary request. Inputs/source/hash/order are
+bound in each receipt. Sealed heldout Goal/expected data is supplied by R/P only
+after production freeze; the checker generates neither.
+
+This slice changes only the existing checker, smoke controls and this document.
+Product/provider/schema/public data/pins remain unchanged. The W-owned prior
+diagnostic preimage is retained separately; extra raw SVG diagnostics are not
+new quality evidence. Current missing classic/perimeter paint and overall
+boundary/flake failure remain unmet producer dependencies until their own exact
+repair and composed proof. These source/controlled checks do not authorize real
+Jev, SOPS, display replacement or any C–F actual trial. Actual selection,
+generalization and added value remain NOT_PROVEN/NOT_RUN until separately
+registered first attempts; literal Add-only baseline is not a fair Connect
+baseline. Internal model execution/time/cost are UNKNOWN.
+
+## Local mixed Goal Choice v3
+
+Goal requests choose one request-local executable change: AddRegion/new-child
+PinRegions at a proved placement, or the existing directed flow ConnectRegions
+between two nonroot, nongroup parts, or NONE. Typed part vocabulary is public
+data, not an operator registry. The local join excludes self and existing same
+direction edges, but keeps legal wrong directions and endpoints. It never filters
+by the Goal's expected answer. Latest-state proof binds all records, pins, bundle,
+reserved IDs and actual adopted history; adoption uses the original held effect,
+not a replan. Zero candidates (`no-executable-delta`) and more than 254 candidates
+stop before asking. Goal v3 rejects older Goal kinds; ordinary Send v1 is unchanged.
 
 The smaller-only-fit fixture uses the same 220×160 parent and 40×40 other group:
 one small offer fits while a wider offer does not. Its independent expected graph
 and whole Undo prove finite coverage and controlled execution, not Sys1 judgment
 quality or added value. The existing two-addition packed fixture still makes two
-Goal application requests, now one Choice each; preparation remains separate.
+adoptions; with the mixed alphabet it asks NONE separately after those two
+successful additions. `goal-flow` adds the same two parts then one empty-label
+directed flow API→DB and asks NONE: four Goal requests, one Choice each in the
+controlled positive fixture. Preparation remains separate. Its actual SVG stroke
+and pinned classic filled arrow marker must uniquely connect the two raw-label
+painted shapes in the expected direction; reverse and disconnected geometry
+controls must fail. Logical relation records alone are not painted-edge proof.
 Actual Jev and P screen evaluation for this change are NOT_RUN, added value is
 NOT_PROVEN. Existing paint, persistence/readback and refusal regressions remain.
 
@@ -21,9 +76,9 @@ NOT_PROVEN. Existing paint, persistence/readback and refusal regressions remain.
 
 Semantic graph attainment, elapsed-budget compliance and display observation are separate grades. A closed budget-time stop may leave the expected graph but does not meet the time envelope. Label visibility proves nonzero rendered text intersecting the unchanged viewport, not full text fit or human readability; independent P UI remains required. Incomplete HTTP, supervisor timeout or unknown drawing never becomes a known successful stop.
 
-The separate Goal button takes one natural-language text and makes only finite additions inside existing groups with room. Public parts and a preparation diagram are in the existing DataBundle; preparation is not Goal generation. Ordinary Send retains its root-based single-edit behavior. No new planner, reparent operation or external Accepted contract is supplied.
+The separate Goal button takes one natural-language text and makes finite additions inside existing groups with room or directed flow connections between existing parts. Public parts and a preparation diagram are in the existing DataBundle; preparation is not Goal generation. Ordinary Send retains its single-edit behavior. No new planner, reparent operation or external Accepted contract is supplied.
 
-The small chain is DataBundle/Working → legal executable addition catalogue → one closed delta Choice → latest-state proof → held AddRegion/new-child pin → session group → draw/adopt → actual selected history → mechanical STOP. The public catalogue contains only individually executable pairs; already adopted keys leave the next catalogue. NONE, exhaustion, cancellation and budgets are unconfirmed stops, not semantic success. Goal steps share one Undo group, including partial known success; issued IDs remain monotonic. Cancel cooperatively stops further requests, not proven upstream cancellation. Display/adoption UNKNOWN requires reload/reconciliation, never blind retry.
+The small chain is DataBundle/Working → local executable ADD/Connect catalogue → one closed delta Choice → latest-state proof → original held operation → session group → draw/adopt → actual adopted state → mechanical STOP. The public catalogue contains only individually executable pairs; already adopted part keys and existing directed edges leave the next catalogue. NONE, no executable delta, cancellation and budgets are unconfirmed stops, not semantic success. Goal steps share one Undo group, including partial known success; issued IDs remain monotonic. Cancel cooperatively stops further requests, not proven upstream cancellation. Display/adoption UNKNOWN requires reload/reconciliation, never blind retry.
 
 `goal-addition` on the existing architecture entry prepares the public example, types “OCIの中にAPIとDBを追加して” once into Goal, and evaluates the unordered actual label/kind/parent records only after the product stops. Its independent sealed oracle never controls candidate generation. The literal-name baseline uses that first actual request's offered keys and eligible group labels, with output words from the same bundle authority. A solved literal example does not prove Jev added value. Product HTTP/planning/draw elapsed and baseline selection-only CPU elapsed have different measurement scopes; no price or internal model count is inferred. Whole-Goal Undo restores baseline records/draft/claims/storage/confirmed view.
 
@@ -58,6 +113,8 @@ The same packed boundary requires three keyless controls alongside the unchanged
 Any real source-grade run requires a separate exact registration and permission with finite attempts/STOP and the existing lawful launcher; no live call is made by these controls. PR47's storage-removal correction400, receipts and NOT_MET remain unchanged and deferred through 2026-10-31. This distinct calls reversal neither retries nor resolves that case. Formal publication, usable external authority and final same-object Jev/current/P UX remain separate gates.
 
 ## Goal painted containment
+
+The finite evaluator grades NONE only after exact graph, draft, claims, stored/root and confirmed-view equality. New pin owners must form a one-to-one multiset with added children. Expected flow identity is independent of JSON property order. Every expected edge's paint grade includes visible added labels and endpoint-bound reverse/disconnected negative geometry; these requirements do not waive the full arrow or overall boundary gate.
 
 Goal candidates individually check an effective-layout slot for each remaining public part/group pair, not simultaneous packing or full legal reachability. A small-only fit is no longer excluded by an unrelated wider offer. The provider supplies preview dimensions; the selected held child placement is rechecked and added with its own pin in one Decision. Existing records and pins are retained. The mandatory Goal control records raw suffixed labels separately from catalogue-normalized labels and checks actual SVG child shapes inside the painted OCI boundary, sibling nonoverlap and whole-Goal Undo. Logical parent and label viewport visibility alone are not containment proof. Historical logical-only PASS and visual NOT_MET/collector UNKNOWN receipts remain unchanged; fresh real/UI evidence requires separate admission.
 

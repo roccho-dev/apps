@@ -7,7 +7,7 @@
 
 export const REQUEST_KIND = "voice-ui.judge.request.v1";
 export const DECISION_KIND = "voice-ui.judge.decision.v1";
-export const GOAL_REQUEST_KIND = "voice-ui.judge.goal-addition.v2";
+export const GOAL_REQUEST_KIND = "voice-ui.judge.goal-local-delta.v3";
 export const GOAL_REQUEST_MAX = 8;
 // The architecture page's requests, each its own closed kind. The intent is
 // the plain request with the prepared snapshot's parts beside it, by path or
@@ -211,7 +211,7 @@ const COMMIT = /^[0-9a-f]{40}$/u;
 const validGoalRequest = value => {
   if (!exactObject(value, ["kind", "state"])) return false;
   const state = value.state;
-  if (!exactObject(state, ["utterance", "graph", "parents", "offers", "selected", "candidates"])) return false;
+  if (!exactObject(state, ["utterance", "graph", "edges", "parents", "offers", "selected", "candidates"])) return false;
   if (!text(state.utterance, TEXT_MAX) || !Array.isArray(state.graph) || state.graph.length > GRAPH_MAX) return false;
   if (!state.graph.every(region => exactObject(region, ["id", "label", "parent"])
     && id(region.id) && text(region.label, LABEL_MAX) && (region.parent === null || id(region.parent)))) return false;
@@ -233,12 +233,24 @@ const validGoalRequest = value => {
         && region.label === parent.label && region.parent === parent.parent))
     || !unique(state.parents.map(parent => parent.id))) return false;
   if (!exactObject(state.offers, ["parts"]) || !validOffer(state.offers.parts)) return false;
+  const endpoints = ids.filter(value => parentOf.get(value) !== null && !state.parents.some(parent => parent.id === value));
+  if (!Array.isArray(state.edges) || state.edges.length > GRAPH_MAX
+    || !state.edges.every(edge => exactObject(edge, ["id", "from", "to"]) && id(edge.id)
+      && endpoints.includes(edge.from) && endpoints.includes(edge.to) && edge.from !== edge.to)
+    || !unique(state.edges.map(edge => edge.id))
+    || !unique(state.edges.map(edge => JSON.stringify([edge.from, edge.to])))) return false;
   if (!Array.isArray(state.candidates) || state.candidates.length < 1 || state.candidates.length > 254
-    || !state.candidates.every(candidate => exactObject(candidate, ["id", "part", "parent"])
-      && id(candidate.id) && state.offers.parts.some(part => part.key === candidate.part)
-      && state.parents.some(parent => parent.id === candidate.parent))
+    || !state.candidates.every(candidate => candidate !== null && typeof candidate === "object" && !Array.isArray(candidate)
+      && id(candidate.id) && (candidate.action === ACTION_ADD_PART
+      ? exactObject(candidate, ["id", "action", "part", "parent"])
+        && state.offers.parts.some(part => part.key === candidate.part)
+        && state.parents.some(parent => parent.id === candidate.parent)
+      : candidate.action === ACTION_ADD_EDGE && exactObject(candidate, ["id", "action", "from", "to"])
+        && endpoints.includes(candidate.from) && endpoints.includes(candidate.to) && candidate.from !== candidate.to
+        && !state.edges.some(edge => edge.from === candidate.from && edge.to === candidate.to)))
     || !unique(state.candidates.map(candidate => candidate.id))
-    || !unique(state.candidates.map(candidate => JSON.stringify([candidate.part, candidate.parent])))) return false;
+    || !unique(state.candidates.map(candidate => JSON.stringify(candidate.action === ACTION_ADD_PART
+      ? [candidate.action, candidate.part, candidate.parent] : [candidate.action, candidate.from, candidate.to])))) return false;
   return Array.isArray(state.selected) && state.selected.length <= OFFER_MAX
     && state.selected.every(item => exactObject(item, ["key", "region", "parent"])
       && KEY_PATTERN.test(item.key ?? "") && item.key !== NONE && ids.includes(item.region)

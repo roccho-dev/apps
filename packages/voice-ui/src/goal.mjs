@@ -1,9 +1,9 @@
 import { GOAL_REQUEST_KIND, GOAL_REQUEST_MAX, MIN_CONFIDENCE, NONE, isRequest, readAnswers, slotsFor } from "./contract.mjs";
 import { offersOf } from "./bundle.mjs";
-import { legalAdditions, OUTCOME_STEP, proveAddition } from "./turn.mjs";
+import { legalLocalDeltas, OUTCOME_STEP, proveLocalDelta } from "./turn.mjs";
 import { proposeGoal } from "./session.mjs";
 
-// One bounded AddRegion attempt. Ports own HTTP and the draw/adopt effect;
+// One bounded AddRegion/ConnectRegions attempt. Ports own HTTP and the draw/adopt effect;
 // this coordinator owns only actual selected history and mechanical STOP.
 // It has no semantic goal oracle and never writes durable state.
 export async function runGoal({ utterance, bundle, protocol, current, ask, adopt, cancelled, now = () => performance.now() }) {
@@ -20,19 +20,22 @@ export async function runGoal({ utterance, bundle, protocol, current, ask, adopt
     if (now() - started >= 180000) return stop("budget-time");
     if (current() !== expected || expected.working === null) return stop("stale-goal");
     const parts = offersOf(bundle).parts;
-    if (parts.every(part => selected.some(item => item.key === part.key))) return stop("offers-exhausted");
-    const held = legalAdditions(expected.working, { bundle, protocol, reserved: expected.issuedPartIds, selected });
-    if (held.candidates.length === 0) return stop("no-room-for-part");
+    const held = legalLocalDeltas(expected.working, { bundle, protocol, reserved: expected.issuedPartIds, selected });
+    if (held.candidates.length === 0) return stop("no-executable-delta");
     if (held.candidates.length > 254) return stop("candidate-overflow");
     const parents = expected.working.records.filter(record => record.type === "region"
-      && held.candidates.some(candidate => candidate.parent === record.id))
+      && record.kind === "group" && record.parent !== null)
       .map(({ id, label, kind, parent }) => ({ id, label, kind, parent }));
     const request = { kind: GOAL_REQUEST_KIND, state: {
       utterance,
       graph: expected.working.records.filter(record => record.type === "region")
         .map(({ id, label, parent }) => ({ id, label, parent })),
+      edges: expected.working.records.filter(record => record.type === "relation")
+        .map(({ id, from, to }) => ({ id, from, to })),
       parents, offers: { parts }, selected: [...selected],
-      candidates: Object.freeze(held.candidates.map(({ id, part, parent }) => Object.freeze({ id, part, parent }))),
+      candidates: Object.freeze(held.candidates.map(candidate => Object.freeze(candidate.part !== undefined
+        ? { id: candidate.id, action: "add-part", part: candidate.part, parent: candidate.parent }
+        : { id: candidate.id, action: "add-edge", from: candidate.from, to: candidate.to }))),
     } };
     if (!isRequest(request)) return stop("invalid-goal-request");
     const head = expected.working.head;
@@ -52,7 +55,7 @@ export async function runGoal({ utterance, bundle, protocol, current, ask, adopt
     const confidence = read.delta.confidence;
     if (confidence < MIN_CONFIDENCE) return stop("not-confident");
     const candidate = held.candidates.find(item => item.id === read.delta.choice);
-    const planned = await proveAddition({ working: expected.working, held, candidateId: read.delta.choice,
+    const planned = await proveLocalDelta({ working: expected.working, held, candidateId: read.delta.choice,
       confidence, bundle, reserved: expected.issuedPartIds, selected, protocol });
     if (planned.outcome !== OUTCOME_STEP) return stop(planned.reason);
     if (cancelled() || current() !== expected) return stop("stale-goal");
@@ -62,7 +65,13 @@ export async function runGoal({ utterance, bundle, protocol, current, ask, adopt
     try { await adopt(proposed.session); }
     catch { return stop("adoption-unknown"); }
     if (current() !== proposed.session) return stop("adoption-unknown");
-    const operation = planned.step.decision.operations.find(item => item.type === "AddRegion");
+    const operation = planned.step.decision.operations.find(item => item.type === "AddRegion" || item.type === "ConnectRegions");
+    if (operation.type === "ConnectRegions") {
+      const edge = proposed.session.working.records.find(item => item.type === "relation" && item.id === operation.relationId);
+      if (edge?.from !== operation.from || edge.to !== operation.to || edge.kind !== operation.kind || edge.label !== operation.label) return stop("adoption-unknown");
+      expected = proposed.session;
+      continue;
+    }
     const record = proposed.session.working.records.find(item => item.type === "region" && item.id === operation.regionId);
     const part = bundle.parts.find(item => item.key === candidate.part);
     if (record?.parent !== candidate.parent || record.kind !== part.kind || record.label !== operation.label) return stop("adoption-unknown");

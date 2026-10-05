@@ -65,13 +65,38 @@ const post = (body, env = { JEV_API_KEY: "test-only-value" }) => worker.fetch(ne
   }), env);
 
 // The provider as the network presents it. Every call is counted, and nothing
-test("Goal v2 boundary asks one executable delta and refuses extra answers without architecture fanout", async () => {
+test("Goal flow candidates retain legal wrong directions and reject malformed or existing edges", () => {
+  const body = { kind: GOAL_REQUEST_KIND, state: {
+    utterance: "connect the requested existing parts",
+    graph: [{ id: "root", label: "world", parent: null }, { id: "container", label: "container", parent: "root" },
+      { id: "a", label: "first", parent: "container" }, { id: "b", label: "second", parent: "container" }],
+    edges: [], parents: [{ id: "container", label: "container", kind: "group", parent: "root" }],
+    offers: { parts: [] }, selected: [], candidates: [
+      { id: "delta-1", action: "add-edge", from: "a", to: "b" },
+      { id: "delta-2", action: "add-edge", from: "b", to: "a" }],
+  } };
+  assert.equal(isRequest(body), true);
+  assert.equal(isRequest({ ...body, state: { ...body.state, candidates: [...body.state.candidates].reverse() } }), true);
+  for (const mutate of [
+    state => { state.candidates[0] = null; },
+    state => { state.candidates[0].to = "a"; },
+    state => { state.candidates[0].from = "root"; },
+    state => { state.candidates[0].from = "container"; },
+    state => { state.candidates[0].to = "missing"; },
+    state => { state.candidates[1] = { ...state.candidates[0], id: "other" }; },
+    state => { state.edges.push({ id: "existing", from: "a", to: "b" }); },
+    state => { state.candidates[0].kind = "made-up"; },
+  ]) { const bad = structuredClone(body); mutate(bad.state); assert.equal(isRequest(bad), false); }
+  assert.equal(isRequest({ ...body, kind: "voice-ui.judge.goal-addition.v2" }), false);
+});
+
+test("Goal v3 boundary asks one executable delta and refuses extra answers without architecture fanout", async () => {
   const body = { kind: GOAL_REQUEST_KIND, state: {
     utterance: "add the offered service inside the existing container",
     graph: [{ id: "root", label: "world", parent: null }, { id: "container", label: "container", parent: "root" }],
-    parents: [{ id: "container", label: "container", kind: "group", parent: "root" }],
+    edges: [], parents: [{ id: "container", label: "container", kind: "group", parent: "root" }],
     offers: { parts: [{ key: "service", purpose: "a service" }] }, selected: [],
-    candidates: [{ id: "delta-1", part: "service", parent: "container" }],
+    candidates: [{ id: "delta-1", action: "add-part", part: "service", parent: "container" }],
   } };
   let calls = 0;
   const invoke = async (input, extra = false) => onRequestPost({ available: true,
@@ -80,6 +105,9 @@ test("Goal v2 boundary asks one executable delta and refuses extra answers witho
     calls += 1;
     assert.deepEqual(state, body.state);
     assert.deepEqual(Object.keys(questions), ["delta"]);
+    assert.equal(questions.delta.instruction, "Choose one executable change toward the utterance's goal. A candidate adds one offered part inside its existing group at a proved placement, or connects two existing parts by one directed flow arrow. Use the current graph and edges to decide which requested changes are still missing; selected is adopted part history, not a completion oracle. Choose none when the requested changes are already present, no candidate is clearly needed, or the request is ambiguous. Do not add a connection merely because two parts are present; it must be requested by the utterance. Do not create or move groups.");
+    assert.equal(questions.delta.options[NONE], "no offered executable change is clearly requested, or the requested changes are already present");
+    assert.deepEqual(Object.keys(questions.delta.options), [...slotsFor(body.state).delta]);
     return { answers: { delta: { choice: "delta-1", confidence: 1 },
       ...(extra ? { action: { choice: NONE, confidence: 1 } } : {}) } };
   });
@@ -88,7 +116,7 @@ test("Goal v2 boundary asks one executable delta and refuses extra answers witho
   const invalid = structuredClone(body); invalid.state.parents[0].kind = "step";
   assert.equal((await invoke(invalid)).status, 422);
   assert.equal((await invoke({ ...body, kind: "voice-ui.judge.goal-addition.v1" })).status, 422);
-  for (const candidates of [[], Array.from({ length: 255 }, (_, index) => ({ id: `delta-${index + 1}`, part: "service", parent: "container" })),
+  for (const candidates of [[], [null], Array.from({ length: 255 }, (_, index) => ({ id: `delta-${index + 1}`, part: "service", parent: "container" })),
     [{ id: "delta-1", part: "absent", parent: "container" }], [{ id: "delta-1", part: "service", parent: "root" }]]) {
     assert.equal((await invoke({ ...body, state: { ...body.state, candidates } })).status, 422);
   }
@@ -99,12 +127,12 @@ test("Goal candidate cap accepts 254 unique pairs and refuses 255 before provide
   const parents = Array.from({ length: 32 }, (_, index) => ({ id: `group-${index}`, label: `Group ${index}`, kind: "group", parent: "root" }));
   const parts = Array.from({ length: 8 }, (_, index) => ({ key: `part-${index}`, purpose: `Offered part ${index}` }));
   const pairs = parents.flatMap(parent => parts.map(part => ({ part: part.key, parent: parent.id })))
-    .map((pair, index) => ({ id: `delta-${index + 1}`, ...pair }));
+    .map((pair, index) => ({ id: `delta-${index + 1}`, action: "add-part", ...pair }));
   let calls = 0;
   for (const count of [254, 255]) {
     const body = { kind: GOAL_REQUEST_KIND, state: { utterance: "one offered addition",
       graph: [{ id: "root", label: "World", parent: null }, ...parents.map(({ id, label, parent }) => ({ id, label, parent }))],
-      parents, offers: { parts }, selected: [], candidates: pairs.slice(0, count),
+      edges: [], parents, offers: { parts }, selected: [], candidates: pairs.slice(0, count),
     } };
     assert.equal(isRequest(body), count === 254);
     const response = await onRequestPost({ available: true,

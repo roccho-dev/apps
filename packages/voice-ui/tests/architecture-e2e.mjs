@@ -37,18 +37,50 @@ const { chromium } = createRequire(import.meta.url)("playwright-core");
 // then strictly restores Working with Undo, without Apply/reload or authority proof.
 // goal-addition uses a separate Goal button: one public preparation request,
 // finite additions, independent post-STOP graph oracle, then whole-Goal Undo.
-// node architecture-e2e.mjs --mode fixture|fixture-stop|fixture-semantic-stop|live --scenario natural|named|contextual-reverse|goal-addition <url>
-const [flag, mode, scenarioFlag, scenario, url] = process.argv.slice(2);
-if (flag !== "--mode" || !["fixture", "fixture-stop", "fixture-semantic-stop", "live"].includes(mode) || scenarioFlag !== "--scenario"
-  || !["natural", "named", "contextual-reverse", "goal-addition"].includes(scenario) || !url
-  || (mode === "fixture-semantic-stop" && scenario !== "contextual-reverse")) {
-  throw new Error("usage: architecture-e2e.mjs --mode fixture|fixture-stop|fixture-semantic-stop|live --scenario natural|named|contextual-reverse|goal-addition <url>");
+// node architecture-e2e.mjs --mode fixture|fixture-stop|fixture-semantic-stop|live --scenario natural|named|contextual-reverse|goal-addition|goal-flow <url>
+const [flag, mode, scenarioFlag, scenario, url, caseFlag, caseJson, ...extra] = process.argv.slice(2);
+if (flag !== "--mode" || !["fixture", "fixture-none", "fixture-stop", "fixture-semantic-stop", "live"].includes(mode) || scenarioFlag !== "--scenario"
+  || !["natural", "named", "contextual-reverse", "goal-addition", "goal-flow"].includes(scenario) || !url
+  || (mode === "fixture-semantic-stop" && scenario !== "contextual-reverse") || extra.length !== 0
+  || (caseFlag !== undefined && (caseFlag !== "--goal-case" || caseJson === undefined))
+  || ((caseFlag !== undefined || mode === "fixture-none") && !["goal-addition", "goal-flow"].includes(scenario))) {
+  throw new Error("usage: architecture-e2e.mjs --mode fixture|fixture-stop|fixture-semantic-stop|live --scenario natural|named|contextual-reverse|goal-addition|goal-flow <url>");
 }
 const REVERSE = scenario === "contextual-reverse";
-const GOAL = scenario === "goal-addition";
+const FLOW = scenario === "goal-flow";
+const GOAL = scenario === "goal-addition" || FLOW;
 const SEMANTIC_STOP = mode === "fixture-semantic-stop";
 const STOP_FIXTURE = mode === "fixture-stop";
 const FIXTURE = mode !== "live";
+// A finite evaluator input, never a product request or fixture-answer source.
+const exactKeys = (value, keys) => value !== null && typeof value === "object" && !Array.isArray(value)
+  && JSON.stringify(Object.keys(value).sort()) === JSON.stringify([...keys].sort());
+const endpointIdentity = endpoint => JSON.stringify(endpoint.addedPart !== undefined
+  ? ["addedPart", endpoint.addedPart] : ["baselineRegion", endpoint.baselineRegion]);
+const flowIdentity = flow => JSON.stringify([endpointIdentity(flow.from), endpointIdentity(flow.to)]);
+const sameNoneBaseline = (before, after) => ["draft", "claims", "stored", "root", "confirmedGraph"]
+  .every(key => JSON.stringify(after[key]) === JSON.stringify(before[key]))
+  && JSON.stringify(after.graph.records) === JSON.stringify(before.graph.records);
+const exactChildPins = (added, pins) => JSON.stringify(added.map(record => record.id).sort())
+  === JSON.stringify(pins.map(pin => pin.regionId).sort());
+// Same predicates used by the grades: a changed claim/view or a duplicated
+// owner pin must not pass merely because graph/count/membership match.
+const unchanged = { graph: { records: [] }, draft: [], claims: [], stored: null, root: null, confirmedGraph: null };
+assert.equal(sameNoneBaseline(unchanged, unchanged), true);
+for (const key of ["draft", "claims", "stored", "root", "confirmedGraph"])
+  assert.equal(sameNoneBaseline(unchanged, { ...unchanged, [key]: ["changed"] }), false);
+assert.equal(exactChildPins([{ id: "a" }, { id: "b" }], [{ regionId: "b" }, { regionId: "a" }]), true);
+assert.equal(exactChildPins([{ id: "a" }, { id: "b" }], [{ regionId: "a" }, { regionId: "a" }]), false);
+const evaluation = caseFlag === undefined ? null : JSON.parse(caseJson);
+if (caseFlag !== undefined) {
+  assert.ok(exactKeys(evaluation, ["version", "id", "goal", "order", "expected"])
+    && evaluation.version === "voice-ui.goal-evaluation.v1" && typeof evaluation.id === "string" && evaluation.id.length > 0
+    && typeof evaluation.goal === "string" && evaluation.goal.trim().length > 0
+    && ["normal", "reverse"].includes(evaluation.order)
+    && exactKeys(evaluation.expected, ["kind", "regions", "flows"])
+    && ["change", "none"].includes(evaluation.expected.kind)
+    && Array.isArray(evaluation.expected.regions) && Array.isArray(evaluation.expected.flows), "closed finite evaluator input");
+}
 // In the natural fixture a part is never named: the intent answers none, and
 // the part is located - so the locate frames and their judge are what the
 // fixture exercises, failures included. The named fixture names it.
@@ -96,6 +128,41 @@ const FILE_IDS = MANIFEST.entities.filter(entity => entity.kind === "file").map(
 const MOST = 1 + ENTITY_IDS.length + FILE_IDS.length + new Set(MANIFEST.candidates
   .filter(candidate => FILE_IDS.includes(candidate.from) && FILE_IDS.includes(candidate.to))
   .map(candidate => [candidate.from, candidate.to].sort().join(" "))).size;
+
+const publicBundle = GOAL ? await (await fetch(new URL(config.data.bundle, url))).json() : null;
+const seed = publicBundle?.diagrams.find(diagram => diagram.key === "container-example");
+const expectedCase = evaluation?.expected ?? { kind: "change", regions: [
+  { partKey: "api", parentLabel: "OCI" }, { partKey: "db", parentLabel: "OCI" },
+], flows: FLOW ? [{ from: { addedPart: "api" }, to: { addedPart: "db" } }] : [] };
+if (GOAL) {
+  assert.ok(expectedCase.regions.length <= publicBundle.parts.length && expectedCase.flows.length <= 90, "finite oracle size");
+  assert.ok(expectedCase.regions.every(region => exactKeys(region, ["partKey", "parentLabel"])), "closed expected regions");
+  const partKeys = expectedCase.regions.map(region => region.partKey);
+  assert.equal(new Set(partKeys).size, partKeys.length, "unique expected parts");
+  for (const region of expectedCase.regions) assert.ok(exactKeys(region, ["partKey", "parentLabel"])
+    && publicBundle.parts.some(part => part.key === region.partKey)
+    && seed.lanes.filter(lane => lane.label === region.parentLabel).length === 1, "public part and unique seed parent");
+  const endpoint = value => exactKeys(value, ["addedPart"]) && partKeys.includes(value.addedPart)
+    || exactKeys(value, ["baselineRegion"]) && seed.steps.filter(step => step.ref === value.baselineRegion).length === 1;
+  for (const flow of expectedCase.flows) assert.ok(exactKeys(flow, ["from", "to"]) && endpoint(flow.from) && endpoint(flow.to)
+    && JSON.stringify(flow.from) !== JSON.stringify(flow.to), "public directed flow endpoints");
+  assert.equal(new Set(expectedCase.flows.map(flowIdentity)).size, expectedCase.flows.length, "unique expected flows");
+  assert.ok(expectedCase.kind === "none" ? expectedCase.regions.length === 0 && expectedCase.flows.length === 0
+    : expectedCase.regions.length + expectedCase.flows.length > 0, "explicit change or NONE oracle");
+}
+const orderInterventions = [];
+const presentation = sent => {
+  if (evaluation?.order !== "reverse" || sent.kind !== contract.GOAL_REQUEST_KIND) return sent;
+  const next = { ...sent, state: { ...sent.state, candidates: [...sent.state.candidates].reverse() } };
+  assert.deepEqual({ ...next, state: { ...next.state, candidates: sent.state.candidates } }, sent);
+  assert.deepEqual([...next.state.candidates].sort((a, b) => a.id.localeCompare(b.id)),
+    [...sent.state.candidates].sort((a, b) => a.id.localeCompare(b.id)));
+  const digest = value => createHash("sha256").update(JSON.stringify(value)).digest("hex");
+  orderInterventions.push({ before: sent.state.candidates.map(candidate => candidate.id),
+    after: next.state.candidates.map(candidate => candidate.id), beforeHash: digest(sent), afterHash: digest(next),
+    sameEntriesAndOtherState: true, attribution: FIXTURE ? "controlled presentation only" : "route.continue request intervention; not independently observed provider wire" });
+  return next;
+};
 
 const browser = await chromium.launch({ headless: true, channel: "chromium" });
 const context = await browser.newContext(REVERSE || GOAL ? { viewport: { width: 1280, height: 720 } } : {});
@@ -189,7 +256,7 @@ const slotsOf = sent => {
 const craft = (picks, fault = () => null) => {
   let index = 0;
   return async route => {
-    const sent = JSON.parse(route.request().postData());
+    const sent = presentation(JSON.parse(route.request().postData()));
     const slots = slotsOf(sent);
     const faulty = slots === null ? { status: 422, body: { error: contract.ERRORS.architectureMismatch } } : fault(index);
     index += 1;
@@ -223,16 +290,25 @@ const labelVisible = label => page.evaluate(label => {
 }, label);
 // Maxgraph orders each cell's painted shape immediately before its label
 // group. Bind the unique actual label, not a label clip or layout pin marker.
-const paintedGoal = (container, records) => page.evaluate(({ container, records }) => {
+const paintedGoal = (container, records, edge = null) => page.evaluate(({ container, records, edge }) => {
   const iframe = document.querySelector("#working-surface iframe[data-package=semantic-map]");
   const doc = iframe.contentDocument;
+  const visible = node => {
+    if (!node) return false;
+    for (let parent = node; parent !== null; parent = parent.parentElement) {
+      const style = iframe.contentWindow.getComputedStyle(parent);
+      if (style.display === "none" || style.visibility === "hidden" || Number(style.opacity) === 0) return false;
+    }
+    return true;
+  };
   const box = node => {
     if (!node) return null;
     const r = node.getBoundingClientRect(), style = iframe.contentWindow.getComputedStyle(node);
     return [r.left, r.top, r.width, r.height].every(Number.isFinite)
-      && r.width > 0 && r.height > 0 && style.display !== "none" && style.visibility !== "hidden"
+      && r.width > 0 && r.height > 0 && visible(node) && style.display !== "none" && style.visibility !== "hidden"
       ? [r.left, r.top, r.width, r.height] : null;
   };
+  const uniquePrimitive = geometry => geometry.length === 1 ? geometry[0] : null;
   const shape = (label, boundary = false) => {
     const labels = [...doc.querySelectorAll("svg text, svg foreignObject")].filter(node => node.textContent.trim() === label);
     if (labels.length !== 1) return null;
@@ -249,23 +325,136 @@ const paintedGoal = (container, records) => page.evaluate(({ container, records 
           return Number(style.opacity) > 0 && ((style.fill !== "none" && Number(style.fillOpacity) > 0)
             || (style.stroke !== "none" && Number(style.strokeOpacity) > 0));
         });
-        return geometry.length === 1 ? box(geometry[0]) : null;
+        const primitive = uniquePrimitive(geometry);
+        return primitive !== null && primitive.namespaceURI === "http://www.w3.org/2000/svg"
+          && typeof primitive.getScreenCTM === "function" && typeof primitive.getTotalLength === "function"
+          && typeof primitive.getPointAtLength === "function"
+          && box(primitive) !== null ? primitive : null;
       }
     }
     return null;
   };
-  const frame = shape(container.label, true);
-  const shapes = records.map(record => ({ id: record.id, rawLabel: record.label, bounds: shape(record.label) }));
+  const frame = box(shape(container.label, true));
+  const primitives = records.map(record => shape(record.label));
+  const shapes = records.map((record, i) => ({ id: record.id, rawLabel: record.label, bounds: box(primitives[i]) }));
   const inside = bounds => frame !== null && bounds !== null && bounds[0] >= frame[0] && bounds[1] >= frame[1]
     && bounds[0] + bounds[2] <= frame[0] + frame[2] && bounds[1] + bounds[3] <= frame[1] + frame[3];
   const overlap = (a, b) => a !== null && b !== null && a[0] < b[0] + b[2] && b[0] < a[0] + a[2]
     && a[1] < b[1] + b[3] && b[1] < a[1] + a[3];
+  // The pinned classic marker starts at its tip (createArrow); ConnectorShape
+  // paints the stroke and this filled marker in the same cell group. Match
+  // actual screen-space terminals to the unique painted node shapes. This is
+  // not an inference from the logical relation or a label clip.
+  // Actual points on the painted perimeter give an upper bound on its nearest
+  // distance, including multiple subpaths: never connect them with fake chords.
+  const outline = (node, p, isVisible = visible(node)) => {
+    if (!node || !isVisible || !Array.isArray(p) || p.length !== 2 || !p.every(Number.isFinite)) return null;
+    try {
+      const matrix = node.getScreenCTM(), length = node.getTotalLength();
+      const ctm = matrix && [matrix.a, matrix.b, matrix.c, matrix.d, matrix.e, matrix.f];
+      const determinant = matrix && matrix.a * matrix.d - matrix.b * matrix.c;
+      if (!ctm || !ctm.every(Number.isFinite) || !Number.isFinite(determinant) || determinant === 0
+        || !Number.isFinite(length) || length <= 0) return null;
+      const n = Math.ceil(length * Math.hypot(matrix.a, matrix.b, matrix.c, matrix.d) / 0.5);
+      if (!Number.isSafeInteger(n) || n < 1 || n > 32768) return null;
+      let distanceUpper = Infinity;
+      for (let i = 0; i <= n; i++) {
+        const point = node.getPointAtLength(length * i / n);
+        const x = matrix.a * point.x + matrix.c * point.y + matrix.e;
+        const y = matrix.b * point.x + matrix.d * point.y + matrix.f;
+        if (![x, y].every(Number.isFinite)) return null;
+        distanceUpper = Math.min(distanceUpper, Math.hypot(x - p[0], y - p[1]));
+      }
+      return { tag: node.localName, ctm, samples: n + 1, distanceUpper };
+    } catch { return null; }
+  };
+  // Controlled refusal inputs exercise the very same measurement path, not
+  // producer geometry or evidence that a real rendered node was measured.
+  const identity = { a: 1, b: 0, c: 0, d: 1, e: 0, f: 0 };
+  const probe = { localName: "controlled", getScreenCTM: () => identity,
+    getTotalLength: () => 1, getPointAtLength: length => ({ x: length, y: 0 }) };
+  const hidden = doc.createElementNS("http://www.w3.org/2000/svg", "g");
+  const hiddenChild = doc.createElementNS("http://www.w3.org/2000/svg", "rect");
+  hidden.style.display = "none";
+  hidden.appendChild(hiddenChild); // Detached controlled tree, not the actual graph.
+  const refused = [null,
+    { ...probe, getScreenCTM: () => null },
+    { ...probe, getScreenCTM: () => ({ ...identity, a: NaN }) },
+    { ...probe, getScreenCTM: () => ({ ...identity, d: 0 }) },
+    { ...probe, getScreenCTM: () => ({ a: 1e155, b: 1e155, c: 1e155, d: 1e155, e: 0, f: 0 }),
+      getTotalLength: () => 1e-155 },
+    { ...probe, getTotalLength: () => 0 },
+    { ...probe, getTotalLength: () => Infinity },
+    { ...probe, getTotalLength: () => 32768 },
+    { ...probe, getPointAtLength: () => ({ x: NaN, y: 0 }) }];
+  if (outline(probe, [0, 0], true)?.distanceUpper !== 0
+    || refused.some(node => outline(node, [0, 0], true) !== null)
+    || outline(probe, [0, 0], false) !== null || visible(hiddenChild)
+    || uniquePrimitive([]) !== null || uniquePrimitive([probe, probe]) !== null)
+    throw new Error("actual-outline controlled refusal failed");
+  const arrows = [];
+  const observedEdges = [];
+  if (edge !== null) for (const group of doc.querySelectorAll("svg g")) {
+    const paths = [...group.children].filter(node => {
+      if (node.localName !== "path") return false;
+      const r = node.getBoundingClientRect(), s = iframe.contentWindow.getComputedStyle(node);
+      return [r.left, r.top, r.width, r.height].every(Number.isFinite) && (r.width > 0 || r.height > 0)
+        && s.display !== "none" && s.visibility !== "hidden";
+    });
+    const lines = paths.filter(node => {
+      const s = iframe.contentWindow.getComputedStyle(node);
+      return s.fill === "none" && s.stroke !== "none" && Number(s.opacity) > 0 && Number(s.strokeOpacity) > 0;
+    });
+    const markers = paths.filter(node => {
+      const s = iframe.contentWindow.getComputedStyle(node);
+      return s.fill !== "none" && s.stroke !== "none" && Number(s.opacity) > 0 && Number(s.fillOpacity) > 0
+        && /z\s*$/iu.test(node.getAttribute("d") ?? "");
+    });
+    if (lines.length !== 1 || markers.length !== 1) {
+      if (paths.length > 0) observedEdges.push({ lines: lines.length, markers: markers.length,
+        paths: paths.map(node => { const s = iframe.contentWindow.getComputedStyle(node);
+          return { d: node.getAttribute("d"), fill: s.fill, stroke: s.stroke, opacity: s.opacity,
+            fillOpacity: s.fillOpacity, strokeOpacity: s.strokeOpacity,
+            parent: node.parentElement.localName, parentChildren: node.parentElement.children.length }; }) });
+      continue;
+    }
+    const line = lines[0], marker = markers[0];
+    const point = (node, length) => {
+      const matrix = node.getScreenCTM();
+      if (matrix === null || !Number.isFinite(length)) return null;
+      const p = node.getPointAtLength(length), screen = new iframe.contentWindow.DOMPoint(p.x, p.y).matrixTransform(matrix);
+      return [screen.x, screen.y].every(Number.isFinite) ? [screen.x, screen.y] : null;
+    };
+    const length = line.getTotalLength(), markerLength = marker.getTotalLength();
+    if (!(Number.isFinite(length) && length > 0 && Number.isFinite(markerLength) && markerLength > 0)) continue;
+    const start = point(line, 0), end = point(line, length), tip = point(marker, 0);
+    const beforeEnd = point(line, Math.max(0, length - 1));
+    const from = outline(primitives[records.findIndex(item => item.id === edge.from)], start);
+    const to = outline(primitives[records.findIndex(item => item.id === edge.to)], tip);
+    const matrix = marker.getScreenCTM();
+    const scale = matrix === null ? NaN : Math.max(Math.hypot(matrix.a, matrix.b), Math.hypot(matrix.c, matrix.d));
+    const stroke = Number.parseFloat(iframe.contentWindow.getComputedStyle(marker).strokeWidth) * scale;
+    // Pinned createArrow shortens the tip by 1.118 stroke widths; SVG canvas
+    // serializes coordinates at finite pixel precision. No layout-size slack.
+    const padding = Number.isFinite(stroke) && stroke > 0 ? 1.118 * stroke + 1 : NaN;
+    const directed = end !== null && tip !== null && beforeEnd !== null
+      && (end[0] - beforeEnd[0]) * (tip[0] - end[0]) + (end[1] - beforeEnd[1]) * (tip[1] - end[1]) > 0;
+    observedEdges.push({ start, end, tip, stroke, padding, lineLength: length, markerLength,
+      fromOutline: from, toOutline: to,
+      fromConnected: from !== null && from.distanceUpper <= padding,
+      toConnected: to !== null && to.distanceUpper <= padding, directed });
+    if (from !== null && to !== null && from.distanceUpper <= padding && to.distanceUpper <= padding && directed)
+      arrows.push({ start, end, tip, stroke, padding, lineLength: length, markerLength });
+  }
   return { association: "pinned-maxgraph-shape-before-unique-raw-label",
     container: { id: container.id, kind: "painted-dashed-group-boundary", bounds: frame }, shapes,
+    edge: edge === null ? null : { from: edge.from, to: edge.to,
+      association: "pinned-classic-marker-tip-and-stroke-in-one-cell-group", observed: observedEdges, matches: arrows,
+      complete: arrows.length === 1 },
     contained: shapes.every(item => inside(item.bounds)),
     nonoverlap: shapes.every((item, i) => shapes.every((other, j) => i === j || !overlap(item.bounds, other.bounds))),
     complete: frame !== null && shapes.every(item => item.bounds !== null) };
-}, { container, records });
+}, { container, records, edge });
 const screen = () => page.evaluate(([key, rootKey]) => ({
   state: document.body.dataset.state,
   status: document.querySelector("#status").textContent,
@@ -465,7 +654,7 @@ const need = (condition, what) => { if (!condition) verdicts.push(what); };
 // run when it fails - nothing is undone or built on a state the next stage
 // assumes - and every stage not reached is reported as not run.
 const FAULTS = ["failed-frame", "incomplete-frame", "frame-extra-envelope", "judge-extra-envelope", "incomplete-judge-frame"];
-const STAGES = GOAL ? ["open", "prepare", "goal", "goal-undo"] : REVERSE ? ["open", "app", "reverse", "reverse-undo"] : ["open", "whole", "whole-undo",
+const STAGES = GOAL ? ["open", "prepare", "goal", ...(expectedCase.kind === "none" ? [] : ["goal-undo"])] : REVERSE ? ["open", "app", "reverse", "reverse-undo"] : ["open", "whole", "whole-undo",
   ...(FIXTURE ? ["camera-undo", "camera-discard-draft", "camera-undo-render-failure", "camera-discard", "camera-discard-new"] : []),
   "app", "credential", "storage", "save", ...(FIXTURE ? ["save-again"] : []),
   ...(LOCATES ? FAULTS : []), "correction", ...(FIXTURE ? ["camera-surviving-undo"] : []),
@@ -531,7 +720,7 @@ let reloaded = null;
 let contextEvidence = null;
 let goalEvidence = null;
 const goalScenario = async () => {
-  const goalText = "OCIの中にAPIとDBを追加して";
+  const goalText = evaluation?.goal ?? (FLOW ? "OCIの中にAPIとDBを追加し、APIからDBへ矢印をつないで。他は変えない" : "OCIの中にAPIとDBを追加して");
   reached.push("open");
   await page.goto(PAGE, { waitUntil: "commit", timeout: 120000 });
   await ready();
@@ -545,8 +734,6 @@ const goalScenario = async () => {
   await click("send"); await settle(); await drain();
   if (FIXTURE) await page.unroute(route);
   const before = await screen(); last = before;
-  const publicBundle = await (await fetch(new URL(config.data.bundle, url))).json();
-  const seed = publicBundle.diagrams.find(diagram => diagram.key === "container-example");
   const preparationAnswers = exchanges.map(entry => contract.readAnswers(entry.body?.answers, slotsOf(entry.sent)));
   const seedChoice = preparationAnswers[0]?.diagram?.choice;
   const regions = before.graph?.records.filter(record => record.type === "region") ?? [];
@@ -569,11 +756,25 @@ const goalScenario = async () => {
     && before.graph.records.filter(record => record.type === "relation").length === seed.links.length,
     "the actual selected public preparation has every group and helper with the declared parent and kind");
   prerequisite(verdicts.length === 0, "prepare");
+  const baselineIds = new Map(seed.steps.map(step => {
+    const matches = regions.filter(record => record.label === step.label && record.kind === step.kind
+      && parentLabel(record.parent) === seed.lanes.find(lane => lane.ref === step.lane).label);
+    assert.equal(matches.length, 1, "actual prepared seed endpoint is unique");
+    return [step.ref, matches[0].id];
+  }));
   const prepared = exchanges.length;
   if (FIXTURE) await page.route(route, craft((name, sent) => {
+    if (mode === "fixture-none") return contract.NONE;
     const part = ["api", "db"].find(key => !sent.state.selected.some(item => item.key === key));
-    return sent.state.candidates.find(candidate => candidate.part === part && candidate.parent === container.id)?.id ?? contract.NONE;
+    if (part !== undefined) return sent.state.candidates.find(candidate => candidate.part === part && candidate.parent === container.id)?.id ?? contract.NONE;
+    const from = sent.state.selected.find(item => item.key === "api")?.region;
+    const to = sent.state.selected.find(item => item.key === "db")?.region;
+    return FLOW ? sent.state.candidates.find(candidate => candidate.action === "add-edge" && candidate.from === from && candidate.to === to)?.id ?? contract.NONE : contract.NONE;
   }, () => STOP_FIXTURE ? { status: 502, body: { error: contract.ERRORS.providerError } } : null), { times: 8 });
+  else if (evaluation?.order === "reverse") await page.route(route, async intercepted => {
+    const next = presentation(JSON.parse(intercepted.request().postData()));
+    await intercepted.continue({ postData: JSON.stringify(next) });
+  });
   reached.push("goal");
   await page.locator("#text").fill(goalText);
   await click("goal");
@@ -582,22 +783,65 @@ const goalScenario = async () => {
   await page.waitForFunction(() => document.querySelector("#goal-cancel").hidden
     && document.body.dataset.state !== "pending", null, { timeout: 180000 });
   await drain();
-  if (FIXTURE) await page.unroute(route);
+  if (FIXTURE || evaluation?.order === "reverse") await page.unroute(route);
   const after = await screen(); last = after;
   const attempt = await page.evaluate(() => JSON.parse(document.body.dataset.goal));
   const sent = exchanges.slice(prepared);
   const added = after.graph.records.filter(record => record.type === "region" && !before.graph.records.some(old => old.id === record.id));
   const newPins = after.graph.records.filter(record => record.type === "layout"
     && !before.graph.records.some(old => JSON.stringify(old) === JSON.stringify(record)));
-  const expected = [
-    { label: "API", kind: "step", parent: container.id },
-    { label: "DB", kind: "data", parent: container.id },
-  ];
+  const expected = expectedCase.regions.map(region => {
+    const part = publicBundle.parts.find(part => part.key === region.partKey);
+    const parents = regions.filter(record => record.kind === "group" && record.label === region.parentLabel);
+    assert.equal(parents.length, 1, "actual expected parent is unique");
+    return { label: part.label, kind: part.kind, parent: parents[0].id };
+  });
   const actual = added.map(({ label, kind, parent }) => ({ label: label.replace(/ [1-9]\d*$/u, ""), kind, parent }));
   const signature = rows => JSON.stringify(rows.map(({ label, kind, parent }) => JSON.stringify([label, kind, parent])).sort());
-  const semanticMet = signature(actual) === signature(expected);
+  const newEdges = after.graph.records.filter(record => record.type === "relation" && !before.graph.records.some(old => old.id === record.id));
+  const api = added.find(record => record.label.replace(/ [1-9]\d*$/u, "") === "API");
+  const db = added.find(record => record.label.replace(/ [1-9]\d*$/u, "") === "DB");
+  const endpointId = endpoint => {
+    if (endpoint.baselineRegion !== undefined) return baselineIds.get(endpoint.baselineRegion);
+    const index = expectedCase.regions.findIndex(region => region.partKey === endpoint.addedPart), target = expected[index];
+    const matches = added.filter(record => record.label.replace(/ [1-9]\d*$/u, "") === target.label
+      && record.kind === target.kind && record.parent === target.parent);
+    return matches.length === 1 ? matches[0].id : null;
+  };
+  const expectedEdges = expectedCase.flows.map(flow => ({ from: endpointId(flow.from), to: endpointId(flow.to), kind: "flow", label: "" }));
+  const edgeSignature = edges => JSON.stringify(edges.map(({ from, to, kind, label }) => JSON.stringify([from, to, kind, label])).sort());
+  const baselinePreserved = before.graph.records.every(record => after.graph.records.some(next => JSON.stringify(next) === JSON.stringify(record)));
+  const firstNone = sent.length === 1 && sent[0].sent.state.candidates.length > 0
+    && contract.readAnswers(sent[0].body?.answers, slotsOf(sent[0].sent))?.delta?.choice === contract.NONE;
+  const semanticMet = signature(actual) === signature(expected) && edgeSignature(newEdges) === edgeSignature(expectedEdges)
+    && baselinePreserved && (expectedCase.kind !== "none" || firstNone && newPins.length === 0
+      && sameNoneBaseline(before, after));
+  const pinsExact = exactChildPins(added, newPins);
   const labelsVisible = await Promise.all(added.map(record => labelVisible(record.label)));
-  const painted = await paintedGoal(container, after.graph.records.filter(record => record.type === "region" && record.parent === container.id));
+  const paintedRecords = after.graph.records.filter(record => record.type === "region" && record.parent === container.id);
+  const painted = await paintedGoal(container, paintedRecords, FLOW ? { from: api?.id, to: db?.id } : null);
+  const reversedPaint = FLOW ? await paintedGoal(container, paintedRecords, { from: db?.id, to: api?.id }) : null;
+  const disconnectedPaint = FLOW ? await paintedGoal(container, paintedRecords,
+    { from: api?.id, to: paintedRecords.find(record => record.id !== api?.id && record.id !== db?.id)?.id }) : null;
+  const paintedGroups = await Promise.all([...(expectedCase.kind === "none" ? [container.id] : new Set(expected.map(record => record.parent)))].map(id =>
+    paintedGoal(regions.find(record => record.id === id), after.graph.records.filter(record => record.type === "region" && record.parent === id))));
+  const edgePaints = await Promise.all(expectedEdges.map(edge => paintedGoal(container,
+    after.graph.records.filter(record => record.type === "region" && record.parent !== null && record.kind !== "group"), edge)));
+  const edgeCounterPaints = await Promise.all(expectedEdges.map(async edge => {
+    const endpoints = after.graph.records.filter(record => record.type === "region" && record.parent !== null && record.kind !== "group");
+    const expectedPair = (from, to) => expectedEdges.some(expected => expected.from === from && expected.to === to);
+    const reverseApplicable = !expectedPair(edge.to, edge.from);
+    const other = endpoints.find(record => record.id !== edge.from && record.id !== edge.to && !expectedPair(edge.from, record.id));
+    return { from: edge.from, to: edge.to,
+      reverseApplicable, disconnectedApplicable: other !== undefined,
+      reverse: reverseApplicable ? await paintedGoal(container, endpoints, { from: edge.to, to: edge.from }) : null,
+      disconnected: other ? await paintedGoal(container, endpoints, { from: edge.from, to: other.id }) : null };
+  }));
+  const labelsMet = labelsVisible.length === expected.length && labelsVisible.every(Boolean);
+  const edgePaintMet = edgePaints.every(proof => proof.edge.complete)
+    && edgeCounterPaints.every(proof => (!proof.reverseApplicable || !proof.reverse.edge.complete)
+      && (!proof.disconnectedApplicable || !proof.disconnected.edge.complete));
+  const paintMet = labelsMet && paintedGroups.every(group => group.complete && group.contained && group.nonoverlap) && edgePaintMet;
   const digest = value => createHash("sha256").update(JSON.stringify(value)).digest("hex");
   // Independent public-information baseline: literal catalogue/parent name
   // matching. No gold remainder or baseline decision goes to the product.
@@ -611,9 +855,12 @@ const goalScenario = async () => {
   });
   const baselineElapsedMs = performance.now() - baselineStart;
   goalEvidence = { reason: attempt.reason, goalMet: semanticMet, requests: sent.length, setupRequests: prepared,
+    evaluation: { id: evaluation?.id ?? scenario, version: "voice-ui.goal-evaluation.v1", inputHash: digest(evaluation ?? { goal: goalText, expected: expectedCase, order: "normal" }),
+      source: SERVED_COMMIT, order: evaluation?.order ?? "normal", orderInterventions, expected, expectedEdges,
+      firstNone, baselinePreserved, semanticGrade: "NOT_PROVEN", paintGrade: "NOT_PROVEN" },
     preparationDiagram: seedChoice, preparationSignature: seedActual,
     selected: attempt.selected, actual, rawAdded: added.map(({ id, label, kind, parent }) => ({ id, label, kind, parent })),
-    painted, newPins, labelsVisible, baseline, baselineMet: signature(baseline) === signature(expected),
+    painted, paintedGroups, edgePaints, edgeCounterPaints, reversedPaint, disconnectedPaint, newPins, pinsExact, newEdges, labelsVisible, baseline, baselineMet: expectedEdges.length === 0 && signature(baseline) === signature(expected),
     timeBudgetMet: Number.isFinite(attempt.elapsedMs) && attempt.elapsedMs < 180000,
     elapsed: { productMs: attempt.elapsedMs, productScope: "HTTP+planning+draw",
       baselineMs: baselineElapsedMs, baselineScope: "literal-selection-CPU-only", baselineProviderCalls: 0 },
@@ -636,15 +883,29 @@ const goalScenario = async () => {
     return;
   }
   need(sent.every(entry => entry.status === 200 && contract.readAnswers(entry.body?.answers, slotsOf(entry.sent)) !== null), "every Goal response is complete");
-  need(["none", "no-room-for-part", "offers-exhausted", "budget-requests", "budget-time"].includes(attempt.reason) && semanticMet,
+  need(["none", "no-executable-delta", "budget-requests", "budget-time"].includes(attempt.reason) && semanticMet,
     "independent expected graph is reached after a known mechanical stop, never from the stop alone");
-  need(labelsVisible.length === 2 && labelsVisible.every(Boolean), "both actual added labels intersect the unchanged Working viewport");
-  need(painted.complete && painted.contained && painted.nonoverlap,
+  need(labelsMet, "all actual added labels intersect the unchanged Working viewport");
+  need(paintedGroups.every(group => group.complete && group.contained && group.nonoverlap),
     "actual painted children are wholly inside the painted OCI shape and do not overlap siblings");
-  need(newPins.length === 2 && newPins.every(pin => added.some(record => record.id === pin.regionId)),
-    "only the two new children gain layout pins");
+  if (expectedEdges.length > 0) need(edgePaintMet,
+    "each expected actual painted classic arrow connects its declared endpoints, not the reverse or another visible part");
+  need(pinsExact, "each actual added child gains exactly one new layout pin and no other owner gains one");
   need(goalEvidence.timeBudgetMet && attempt.elapsedMs >= 0, "the independently graded Goal time envelope is met");
   need(before.graph.records.every(record => after.graph.records.some(next => JSON.stringify(next) === JSON.stringify(record))), "Goal preserves every baseline record");
+  goalEvidence.evaluation.semanticGrade = semanticMet && goalEvidence.noSave && goalEvidence.timeBudgetMet
+    && Number.isFinite(attempt.elapsedMs) && attempt.elapsedMs >= 0 && attempt.requests === sent.length
+    && sent.length >= 1 && sent.length <= 8 && sent.every(entry => entry.status === 200
+      && entry.error === null && contract.isRequest(entry.sent) && entry.sent.state.utterance === goalText
+      && contract.readAnswers(entry.body?.answers, slotsOf(entry.sent)) !== null)
+    && ["none", "no-executable-delta", "budget-requests", "budget-time"].includes(attempt.reason)
+    && pinsExact ? "PASS" : "NOT_MET";
+  goalEvidence.evaluation.paintGrade = paintMet ? "PASS" : "NOT_MET";
+  if (expectedCase.kind === "none") {
+    for (const key of ["draft", "claims", "stored", "root", "confirmedGraph"]) assert.deepEqual(after[key], before[key], key);
+    for (const entry of exchanges) entry.reported = true;
+    return;
+  }
   reached.push("goal-undo"); await click("undo"); await settle();
   const reverted = await screen(); last = reverted;
   for (const key of ["draft", "claims", "stored", "root", "confirmedGraph"]) assert.deepEqual(reverted[key], before[key], key);

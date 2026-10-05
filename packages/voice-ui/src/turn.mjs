@@ -603,7 +603,7 @@ function additionSlot(working, parent, part, reserved, protocol) {
 const additionReadSet = (working, bundle, reserved, selected) => JSON.stringify({
   head: working.head, records: working.records, parts: bundle.parts, reserved, selected,
 });
-export function legalAdditions(working, { bundle, protocol, reserved = [], selected = [] }) {
+function legalAdditions(working, { bundle, protocol, reserved = [], selected = [] }) {
   requireGraph(working);
   const candidates = [];
   const parents = working.records.filter(record => record.type === "region"
@@ -623,7 +623,7 @@ export function legalAdditions(working, { bundle, protocol, reserved = [], selec
     candidates: Object.freeze(candidates) });
 }
 
-export async function proveAddition({ working, held, candidateId, confidence, bundle, reserved = [], selected = [], protocol }) {
+async function proveAddition({ working, held, candidateId, confidence, bundle, reserved = [], selected = [], protocol }) {
   requireGraph(working);
   if (held.readSet !== additionReadSet(working, bundle, reserved, selected)) return refused("stale-addition");
   const candidate = held.candidates.find(item => item.id === candidateId);
@@ -635,6 +635,36 @@ export async function proveAddition({ working, held, candidateId, confidence, bu
   // Adopt the original held operations, never a silently replanned replacement.
   return materialize(working, plan(ACTION_ADD_PART, confidence, candidate.operations,
     [{ change: "added", kind: "region", id: operation.regionId, label: operation.label }]), protocol);
+}
+
+// One bounded union of existing additions and directed flow connections.
+// Vocabulary stays in the graph/bundle; IDs belong only to this held request.
+export function legalLocalDeltas(working, options) {
+  const additions = legalAdditions(working, options);
+  const candidates = [...additions.candidates];
+  const ids = speakableIds(working.records).sort();
+  const existing = relationKeys(working.records);
+  for (const from of ids) for (const to of ids) {
+    if (from === to || existing.has(relationKey(from, to))) continue;
+    candidates.push(Object.freeze({ id: `delta-${candidates.length + 1}`, from, to,
+      operations: Object.freeze([Object.freeze({ type: "ConnectRegions", relationId: relationIdFor(from, to),
+        from, to, kind: RELATION_KIND, label: "" })]) }));
+  }
+  return Object.freeze({ readSet: additions.readSet, candidates: Object.freeze(candidates) });
+}
+
+export async function proveLocalDelta({ working, held, candidateId, confidence, bundle, reserved = [], selected = [], protocol }) {
+  requireGraph(working);
+  if (held.readSet !== additionReadSet(working, bundle, reserved, selected)) return refused("stale-addition");
+  const candidate = held.candidates.find(item => item.id === candidateId);
+  if (!candidate) return refused("invalid-addition");
+  if (!(confidence >= MIN_CONFIDENCE && confidence <= 1)) return noChange("not-confident");
+  const latest = legalLocalDeltas(working, { bundle, protocol, reserved, selected });
+  if (JSON.stringify(latest.candidates) !== JSON.stringify(held.candidates)) return refused("stale-addition");
+  if (candidate.part !== undefined) return proveAddition({ working, held: { ...held,
+    candidates: held.candidates.filter(item => item.part !== undefined) }, candidateId, confidence, bundle, reserved, selected, protocol });
+  return materialize(working, plan(ACTION_ADD_EDGE, confidence, candidate.operations,
+    [{ change: "added", from: candidate.from, to: candidate.to }]), protocol);
 }
 
 // The exact picture a held placement was said against, or null when the pane
