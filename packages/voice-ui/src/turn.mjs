@@ -702,8 +702,10 @@ async function proveAddition({ working, held, candidateId, confidence, bundle, r
 // Vocabulary stays in the graph/bundle; IDs belong only to this held request.
 // A scope, when given, is a set of region IDs: only arrows touching one of
 // them are offered, in either direction and to any other legal end.
-// A pair, when given, is the one directed arrow an intent resolved: only that
-// arrow is offered, and only while it is legal here; no addition is offered.
+// A pair, when given, is the directed arrow an intent resolved: a named end is
+// that part, and an end left null is open, ranging only over the scope - so
+// with no scope, or both ends open, nothing is offered. Only legal arrows are
+// offered, and no addition.
 export function legalLocalDeltas(working, options) {
   requireGraph(working);
   const scope = options.scope ?? null;
@@ -712,8 +714,9 @@ export function legalLocalDeltas(working, options) {
   const candidates = additions === null ? [] : [...additions.candidates];
   const ids = speakableIds(working.records).sort();
   const existing = relationKeys(working.records);
-  const fromIds = pair === null ? ids : ids.filter(id => id === pair.from);
-  const toIds = pair === null ? ids : ids.filter(id => id === pair.to);
+  const endOf = named => id => (named === null ? scope !== null && scope.has(id) : id === named);
+  const fromIds = pair === null ? ids : pair.from === null && pair.to === null ? [] : ids.filter(endOf(pair.from));
+  const toIds = pair === null ? ids : ids.filter(endOf(pair.to));
   for (const from of fromIds) for (const to of toIds) {
     if (from === to || existing.has(relationKey(from, to))) continue;
     if (scope !== null && !scope.has(from) && !scope.has(to)) continue;

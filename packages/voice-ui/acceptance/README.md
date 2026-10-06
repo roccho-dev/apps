@@ -64,13 +64,23 @@ architecture utterances), with no per-entry reference. `scope` is null, or the
 latest `{source, focus}` the session remembered from a source-reopened architecture
 focus, copied and frozen for the whole Goal. With a scope, every iteration first
 asks the page's own architecture intent, built for the latest session as Send
-builds it (no frame or held placement), which one arrow to draw. Its kind, head
-and questions must be the latest Working's own and its add-edge source and
-target confident; otherwise the Goal stops and adopts nothing further, keeping
-any earlier step of its group. The Goal
-request then offers at most that one legal arrow, touching a focused part, and
-shows only a bounded local view: the root, the two ends with their ancestors,
-and every relation between the two ends. Legality, proof and adoption still use
+builds it (no frame or held placement), which arrow to draw. Its kind, head and
+questions must be the latest Working's own, its action add-edge with at least one
+named end, and the weakest of action, source and target - an end answered none
+included - at least the floor; otherwise the Goal stops and adopts nothing
+further, keeping any earlier step of its group. With both ends named the Goal
+request offers at most that one legal arrow. With one end named, the end answered
+none is open: it ranges only over the focused parts, never the named end itself
+or an existing directed pair, and the Goal judgment picks one of those arrows or
+none; the intent's none is never taken as an endpoint. Every offered arrow
+touches a focused part. The request shows only a bounded local view: the root,
+every offered end with its ancestors, and every relation between the named end
+and an offered end (not those between two focused parts), never cropped; a view
+over 64 regions or relations stops as `invalid-goal-request` before the Goal
+request. After an adoption the next iteration resolves again, and a separate Goal
+judgment decides whether anything remains. The open end is controlled mechanics
+with fixture answers; real selection is NOT_PROVEN, and real trial 40 (source
+answered none, no Goal request) is the recorded real negative. Legality, proof and adoption still use
 the whole Working. Resolve and Goal requests share the one bound of eight, and a
 scoped Goal without a resolver asks nothing. The server
 matches the scope against the served source, refusing a mismatched source, an
@@ -150,8 +160,9 @@ calls the log and the judgment adapter); only edge IDs are unique, and a
 candidate may still never repeat an existing directed pair.
 
 Positive proof needs the remembered source focus and plain conversation on the
-wire, at least one offered arrow (a scoped Goal offers at most the one resolved
-arrow), each touching the focus, exactly one new
+wire, at least one offered arrow (a scoped Goal offers the one resolved arrow,
+or with one end named at most one per remaining focused part), each touching the
+focus, exactly one new
 expected arrow with every old non-layout record kept, and the actual painted
 arrow at its named ends by the existing painted observer, with the reverse and
 a disconnected visible part as negatives; the scene relation list is projection
