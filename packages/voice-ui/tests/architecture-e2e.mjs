@@ -1371,11 +1371,19 @@ const sourceScenario = async () => {
       return { camera, container: container.id, ...measured, endsVisible: ends.map(record => visible[endpoints.indexOf(record)]) };
     };
     // The overview first, then the existing camera on the from end, then the
-    // to end, each on unchanged records and storage; the first frame that
-    // shows the whole matched arrow is graded, with its own negatives.
+    // to end, then the camera on the new arrow itself, each on unchanged
+    // records and storage; the first frame that shows the whole matched arrow
+    // is graded, with its own negatives. The arrow camera must be offered by
+    // exactly one option; otherwise that frame is recorded unmet and nothing
+    // stands in for it.
     const frames = [await measure("")];
-    for (const camera of [target.from, target.to]) {
+    for (const camera of [target.from, target.to, newEdges[0].id]) {
       if (frames.at(-1).inView) break;
+      if (camera === newEdges[0].id) {
+        const offered = await page.locator("#camera-part option")
+          .evaluateAll((options, id) => options.filter(option => option.value === id).length, camera);
+        if (offered !== 1) { frames.push({ camera, offered, inView: false, met: false, edge: { matches: [] } }); break; }
+      }
       await page.locator("#camera-part").selectOption(camera); await settle();
       const focused = await screen();
       frames.push({ ...(await measure(camera)),

@@ -77,11 +77,32 @@ export const reasonText = (reason, detail = null) => {
 // Where both panes point their cameras: the provider's own layout of the
 // working graph, fitted to the pane's box. No frame when there is nothing to
 // fit - no graph, a graph the view cannot lay out, or a pane with no box.
+// A camera on two or more different parts fits the union of their declared
+// boxes, centred, at a scale of at most one; any other list, a part without a
+// real box, or a fit that is not finite has no frame.
 export function frameFor({ graph, width, height, protocol, part = null }) {
   if (graph === null || !(width > 0 && height > 0)) return null;
+  if (Array.isArray(part) && (part.length < 2 || new Set(part).size !== part.length
+    || !part.every(id => typeof id === "string") || !Number.isFinite(width) || !Number.isFinite(height))) return null;
   try {
     const { rootBounds, bounds } = protocol.layoutBoundsFor(graph.records, { pattern: protocol.GRAPH_PATTERN });
     if (part === null) return { bbox: [...rootBounds], viewport: [width, height] };
+    if (Array.isArray(part)) {
+      const boxes = part.map(id => (Object.hasOwn(bounds, id) ? bounds[id] : undefined));
+      if (!boxes.every(box => Array.isArray(box) && box.length === 4 && box.every(Number.isFinite) && box[2] > 0 && box[3] > 0)) {
+        return null;
+      }
+      const left = Math.min(...boxes.map(box => box[0]));
+      const top = Math.min(...boxes.map(box => box[1]));
+      const right = Math.max(...boxes.map(box => box[0] + box[2]));
+      const bottom = Math.max(...boxes.map(box => box[1] + box[3]));
+      if (![left, top, right, bottom].every(Number.isFinite) || !(right > left && bottom > top)) return null;
+      const scale = Math.min(1, width / (right - left), height / (bottom - top));
+      const [cx, cy] = [(left + right) / 2, (top + bottom) / 2];
+      const bbox = [cx - width / (2 * scale), cy - height / (2 * scale), width / scale, height / scale];
+      if (!(Number.isFinite(scale) && scale > 0) || !bbox.every(Number.isFinite)) return null;
+      return { bbox, viewport: [width, height] };
+    }
     const selected = bounds[part];
     if (selected === undefined) return null;
     // One layout unit per pixel: a readable local camera around this part,

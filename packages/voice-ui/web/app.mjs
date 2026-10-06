@@ -8,7 +8,7 @@ import * as protocol from "/ui/semantic-map/protocol/index.js";
 // The provider's own limit on operations in one Decision, which its protocol
 // entry does not carry; the architecture view is planned within it.
 import { MAX_DECISION_OPERATIONS } from "/ui/semantic-map/domain/operation.js";
-import { ACTION_ARCHITECTURE, judgeFramesFor, judgeSlotsFor, locateSlotsFor, readAnswers } from "/app/src/contract.mjs";
+import { ACTION_ADD_EDGE, ACTION_ARCHITECTURE, judgeFramesFor, judgeSlotsFor, locateSlotsFor, readAnswers } from "/app/src/contract.mjs";
 import { readBundle } from "/app/src/bundle.mjs";
 import { runGoal } from "/app/src/goal.mjs";
 import { FORMAT_ARCHITECTURE, readConfig } from "/app/src/config.mjs";
@@ -213,6 +213,35 @@ const setState = (state, message) => {
   status.textContent = message;
 };
 
+// The one record a camera id names in a graph, or null when it names none.
+// Two records under one id, or a record that is neither a part nor an arrow,
+// is a broken camera: it fails the drawing, never quietly the overview.
+const cameraRecord = (graph, id) => {
+  const matches = (graph?.records ?? []).filter(record => record.id === id);
+  if (matches.length === 0) return null;
+  if (matches.length > 1 || !["region", "relation"].includes(matches[0].type)) throw new Error("the camera names no single part or arrow");
+  return matches[0];
+};
+// What a camera frames: null the overview, a part alone, an arrow by its two
+// ends; undefined when its record is gone.
+const cameraTarget = (graph, id) => {
+  if (id === null) return null;
+  const record = cameraRecord(graph, id);
+  if (record === null) return undefined;
+  return record.type === "region" ? record.id : [record.from, record.to];
+};
+// The arrow the latest unapplied single-arrow step drew (one add-edge Decision
+// holding exactly one ConnectRegions), while Working holds it as one relation.
+// A view choice only, never stored, sent or judged.
+const latestDraftRelation = () => {
+  const records = session.working?.records ?? [];
+  const item = [...session.draft].reverse().find(entry => entry.step.action === ACTION_ADD_EDGE
+    && entry.step.decision?.operations?.length === 1 && entry.step.decision.operations[0].type === "ConnectRegions");
+  if (item === undefined) return null;
+  const matches = records.filter(record => record.id === item.step.decision.operations[0].relationId);
+  return matches.length === 1 && matches[0].type === "relation" ? matches[0] : null;
+};
+
 const showLists = () => {
   renderDraft(draftList, draftCount, { draft: session.draft, used: draftUsed(session), bundle });
   renderContext(contextList, contextSkipped, recentConversation(session, { architecture: architectureReady() }));
@@ -225,6 +254,16 @@ const showLists = () => {
   for (const part of parts.filter(part => layout?.bounds[part.id] !== undefined)) {
     const option = document.createElement("option");
     option.value = part.id; option.textContent = part.label;
+    cameraPart.append(option);
+  }
+  // At most one arrow view: the arrow the camera now shows while it still
+  // stands, else the latest unapplied single arrow, framed by its two ends.
+  const named = camera === null ? [] : (session.working?.records ?? []).filter(record => record.id === camera);
+  const arrow = named.length === 1 && named[0].type === "relation" ? named[0] : latestDraftRelation();
+  const ends = arrow === null ? [] : [arrow.from, arrow.to].map(id => parts.find(part => part.id === id));
+  if (arrow !== null && ends.every(end => end !== undefined && layout?.bounds[end.id] !== undefined)) {
+    const option = document.createElement("option");
+    option.value = arrow.id; option.textContent = `矢印: ${ends[0].label} → ${ends[1].label}`;
     cameraPart.append(option);
   }
   cameraPart.value = camera ?? "";
@@ -315,18 +354,25 @@ const judge = createJudgment();
 
 // Both panes point their cameras at the frame the working graph needs in the
 // working pane's box, so the frame read from 作業図 holds for 確定図 too.
-const paneFrame = (graph, part = camera) => frameFor({
-  graph,
-  width: workingSurface.clientWidth,
-  height: workingSurface.clientHeight,
-  protocol,
-  part,
-});
+// Without a graph there is nothing to frame. A chosen camera whose record is
+// not in a drawn graph fails the drawing; it never quietly becomes the overview.
+const paneFrame = (graph, id = camera) => {
+  if (graph === null) return null;
+  const part = cameraTarget(graph, id);
+  if (part === undefined) throw new Error("the selected camera names nothing in this graph");
+  return frameFor({
+    graph,
+    width: workingSurface.clientWidth,
+    height: workingSurface.clientHeight,
+    protocol,
+    part,
+  });
+};
 const sameFrame = (left, right) => JSON.stringify(left) === JSON.stringify(right);
 const drawWorking = async (graph, frame) => {
-  // A removed region clears only this local view selection, never graph data.
+  // A removed part or arrow clears only this local view selection, never graph data.
   // Keep the old camera until the candidate Working drawing has succeeded.
-  const nextCamera = graph?.records.some(record => record.type === "region" && record.id === camera) ? camera : null;
+  const nextCamera = camera !== null && cameraTarget(graph, camera) !== undefined ? camera : null;
   const nextFrame = frame === undefined ? paneFrame(graph, nextCamera) : frame;
   if (graph !== null && camera !== null && nextFrame === null) {
     throw new Error("the selected camera part is not placed");
@@ -742,7 +788,10 @@ cameraPart.addEventListener("change", () => withSurface("camera", async () => {
     await drawWorking(session.working);
     await followWorkingFrame();
     showOutOfView();
-    setState("camera", camera === null ? "全体の概要を表示しています" : "選んだ部品を等倍で表示しています。表示外の部品も図には残っています。長いラベルは収まらない場合があります");
+    setState("camera", camera === null ? "全体の概要を表示しています"
+      : Array.isArray(cameraTarget(session.working, camera))
+        ? "選んだ矢印の両端が収まるように表示しています。表示外の部品も図には残っています。長いラベルは収まらない場合があります"
+        : "選んだ部品を等倍で表示しています。表示外の部品も図には残っています。長いラベルは収まらない場合があります");
   } catch { invalidateView(); }
 }));
 window.addEventListener("resize", () => {
