@@ -24,6 +24,8 @@ jobs:
         with:
           extra_nix_config: |
             extra-experimental-features = nix-command flakes
+      - name: Check Atlas Purpose Closure
+        run: nix shell --inputs-from . nixpkgs#nodejs -c node --test packages/atlas/tests/*.test.mjs
       - name: Run flake check
         env:
           EXPECTED_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
