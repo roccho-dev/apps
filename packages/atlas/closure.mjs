@@ -133,8 +133,14 @@ function merge(rows) {
   for (const row of rows) {
     const previous = byId.get(row.id);
     if (!previous) { byId.set(row.id, row); continue; }
-    demand(canonical({ ...previous, sources: [] }) === canonical({ ...row, sources: [] }), `conflicting record ${row.id}`);
-    byId.set(row.id, { ...row, sources: sources([...previous.sources, ...row.sources], row.id) });
+    // Only discovered ancestry/continuation links grow. Empty/subset input is
+    // not retraction; every other semantic field must still match exactly.
+    const relation = row.kind === 'purpose' ? 'parents' : row.kind === 'residual' ? 'next' : null;
+    const omit = { sources: [], ...(relation ? { [relation]: [] } : {}) };
+    demand(canonical({ ...previous, ...omit }) === canonical({ ...row, ...omit }), `conflicting record ${row.id}`);
+    const joined = { ...row, sources: sources([...previous.sources, ...row.sources], row.id) };
+    if (relation) joined[relation] = [...new Set([...previous[relation], ...row[relation]])].sort(compare);
+    byId.set(row.id, joined);
   }
   const nodes = [...byId.values()].sort((a, b) => compare(a.id, b.id));
   // One revision-qualified source locator cannot denote two digests, including

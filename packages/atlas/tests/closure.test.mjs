@@ -291,3 +291,198 @@ test('several highest purposes and a shared ideal are preserved without choosing
   const reduced = parse(reduceClosure(doc(rows))).slice(1);
   assert.deepEqual(new Set(pathsToPurpose(reduced, 'current.before').map(trail => trail.at(-1))), new Set(['purpose.company', extraPurpose.id]));
 });
+
+// R #6023468958: both relations must be added AFTER a successful publication.
+function lateUpstream() {
+  const initial = reduceClosure(purpose, current);
+  const parent = { ...extraPurpose, parents: [] };
+  const child = { ...find(inputRows(), 'purpose.company'), parents: [parent.id], sources: [extraSource] };
+  return { initial, later: doc([parent, child]), parent, child };
+}
+
+function lateContinuation() {
+  const laterIds = new Set(['current.after', 'gap.source', 'fill.source']);
+  const before = inputRows().filter(row => !laterIds.has(row.id));
+  find(before, 'residual.source').next = [];
+  const initial = reduceClosure(doc(before));
+  const additions = inputRows().filter(row => laterIds.has(row.id)).map(row => ({ ...row, sources: [extraSource] }));
+  const residual = { ...find(before, 'residual.source'), next: ['gap.source'], sources: [extraSource] };
+  return { initial, later: doc([...additions, residual]), residual };
+}
+
+test('late upstream: add parent to the SAME purpose id after prior successful reduce', () => {
+  const { initial, later, parent } = lateUpstream();
+  assert.deepEqual(find(parse(initial).slice(1), 'purpose.company').parents, []);
+  const output = reduceClosure(initial, later), nodes = parse(output).slice(1);
+  assert.deepEqual(find(nodes, 'purpose.company').parents, [parent.id]);
+  assert.equal(nodes.filter(node => node.id === 'purpose.company').length, 1);
+  assert.ok(nodes.every(node => pathsToPurpose(nodes, node.id).every(trail => trail.at(-1) === parent.id)));
+  assert.equal(reduceClosure(later, initial), output);
+  assert.equal(reduceClosure(output, initial, later), output);
+});
+
+test('late continuation: assign SAME residual next after publishing an unassigned residual', () => {
+  const { initial, later } = lateContinuation();
+  const before = parse(initial).slice(1);
+  assert.deepEqual(find(before, 'residual.source').next, []);
+  assert.equal(find(before, 'gap.source'), undefined);
+  const output = reduceClosure(initial, later), nodes = parse(output).slice(1);
+  assert.deepEqual(find(nodes, 'residual.source').next, ['gap.source']);
+  assert.equal(nodes.filter(node => node.id === 'residual.source').length, 1);
+  assert.equal(find(nodes, 'receipt.partial').status, 'reduced');
+  assert.ok(pathsToPurpose(nodes, 'gap.source').every(trail => trail.at(-1) === 'purpose.company'));
+  assert.equal(reduceClosure(later, initial), output);
+  assert.equal(reduceClosure(output, initial, later), output);
+});
+
+test('late links: disjoint ancestry and continuation fragments union without replacing existing links', () => {
+  const initial = reduceClosure(purpose, current), originals = parse(initial).slice(1);
+  const parent = { ...extraPurpose, parents: [] };
+  const child = { ...find(originals, 'purpose.reuse'), parents: [parent.id], sources: [extraSource] };
+  const residual = { ...find(originals, 'residual.source'), next: ['current.after'], sources: [extraSource] };
+  const later = doc([parent, child, residual]);
+  const output = reduceClosure(initial, later), nodes = parse(output).slice(1);
+  assert.deepEqual(find(nodes, child.id).parents, ['purpose.company', 'purpose.upstream']);
+  assert.deepEqual(find(nodes, residual.id).next, ['current.after', 'gap.source']);
+  assert.equal(nodes.length, originals.length + 1);
+  for (const original of originals) {
+    const actual = find(nodes, original.id);
+    for (const [key, value] of Object.entries(original)) {
+      if (key !== 'sources' && !(original.kind === 'purpose' && key === 'parents') && !(original.kind === 'residual' && key === 'next')) {
+        assert.deepEqual(actual[key], value, `${original.id}.${key}`);
+      }
+    }
+  }
+  for (const id of [child.id, residual.id]) {
+    assert.deepEqual(new Set(find(nodes, id).sources.map(source => source.sourceRef)),
+      new Set([...find(originals, id).sources.map(source => source.sourceRef), extraSource.sourceRef]));
+  }
+  assert.equal(reduceClosure(output, initial), output); // A stale subset is not deletion.
+  assert.equal(reduceClosure(later, initial), output);
+});
+
+test('late links: all permutations and valid staged joins produce identical bytes', () => {
+  const { initial, later: continuation } = lateContinuation();
+  const { later: ancestry } = lateUpstream();
+  const docs = [initial, ancestry, continuation], before = [...docs];
+  const expected = reduceClosure(...docs);
+  for (const [a, b, c] of [[0, 1, 2], [0, 2, 1], [1, 0, 2], [1, 2, 0], [2, 0, 1], [2, 1, 0]]) {
+    assert.equal(reduceClosure(docs[a], docs[b], docs[c]), expected);
+  }
+  assert.equal(reduceClosure(reduceClosure(initial, ancestry), continuation), expected);
+  assert.equal(reduceClosure(ancestry, reduceClosure(continuation, initial)), expected);
+  assert.equal(reduceClosure(reduceClosure(initial, ancestry), reduceClosure(initial, continuation)), expected);
+  assert.equal(reduceClosure(expected, ...docs), expected);
+  assert.equal(reduceClosure(expected), expected);
+  assert.deepEqual(docs, before);
+});
+
+test('late links: two individually valid ancestry branches cannot hide a cycle at join', () => {
+  const p = { ...extraPurpose, id: 'p', parents: [] }, u = { ...p, id: 'u' };
+  const initial = reduceClosure(doc([p, u]));
+  const left = reduceClosure(initial, doc([{ ...p, parents: ['u'] }]));
+  const right = reduceClosure(initial, doc([{ ...u, parents: ['p'] }]));
+  for (const pair of [[left, right], [right, left]]) {
+    assert.throws(() => reduceClosure(...pair), /purpose hierarchy: cycle/u);
+  }
+});
+
+test('late links: two individually valid continuation branches cannot hide a causal cycle at join', () => {
+  const rows = inputRows();
+  find(rows, 'residual.source').next = [];
+  rows.push({ ...find(rows, 'receipt.partial'), id: 'receipt.source', fill: 'fill.source' });
+  rows.push({ ...find(rows, 'residual.source'), id: 'residual.second', receipt: 'receipt.source', next: [] });
+  const initial = reduceClosure(doc(rows));
+  const left = reduceClosure(initial, doc([{ ...find(rows, 'residual.source'), next: ['gap.source'] }]));
+  const right = reduceClosure(initial, doc([{ ...find(rows, 'residual.second'), next: ['gap.extraction'] }]));
+  assert.throws(() => reduceClosure(left, right), /closure flow: cycle/u);
+  assert.throws(() => reduceClosure(right, left), /closure flow: cycle/u);
+});
+
+for (const [name, change] of [
+  ['purpose label', rows => { rows[0].label += ' changed'; }],
+  ['residual label', rows => { find(rows, 'residual.source').label += ' changed'; }],
+  ['current value', rows => { find(rows, 'current.before').value += ' changed'; }],
+  ['ideal value', rows => { find(rows, 'ideal.source').value += ' changed'; }],
+  ['ideal purposes', rows => { find(rows, 'ideal.source').purposes.push('purpose.company'); }],
+  ['gap current', rows => { find(rows, 'gap.extraction').current = 'current.after'; }],
+  ['gap ideal', rows => { find(rows, 'gap.extraction').ideal = 'ideal.source'; }],
+  ['gap delta', rows => { find(rows, 'gap.extraction').delta += ' changed'; }],
+  ['gap owner', rows => { find(rows, 'gap.extraction').owner += ' changed'; }],
+  ['gap proof', rows => { find(rows, 'gap.extraction').proof += ' changed'; }],
+  ['fill gaps', rows => { find(rows, 'fill.extraction').gaps.push('gap.source'); }],
+  ['fill scope', rows => { find(rows, 'fill.extraction').scope.push('new obligation'); }],
+  ['receipt fill', rows => { find(rows, 'receipt.partial').fill = 'fill.source'; }],
+  ['receipt status', rows => { find(rows, 'receipt.partial').status = 'failed'; }],
+  ['receipt evidence', rows => { find(rows, 'receipt.partial').evidence.push('fixture:additional-proof'); }],
+  ['residual receipt', rows => { find(rows, 'residual.source').receipt = 'receipt.other'; }],
+  ['node kind', rows => { rows[0] = { ...find(rows, 'residual.source'), id: rows[0].id }; }],
+]) {
+  test(`late links: still reject same-ID ${name} mutation in either input order`, () => {
+    const initial = reduceClosure(purpose, current), later = changed(change);
+    assert.throws(() => reduceClosure(initial, later), /conflicting record/u);
+    assert.throws(() => reduceClosure(later, initial), /conflicting record/u);
+  });
+}
+
+for (const [name, setup, change, expected] of [
+  ['missing upstream', lateUpstream, rows => { rows.pop(); }, /missing\/wrong-kind/u],
+  ['wrong-kind upstream', lateUpstream, rows => { rows[0].parents = ['ideal.source']; }, /missing\/wrong-kind/u],
+  ['ancestry cycle', lateUpstream, rows => { rows[0].parents = ['purpose.reuse']; }, /purpose hierarchy: cycle/u],
+  ['duplicate parent', lateUpstream, rows => { rows[0].parents.push(rows[0].parents[0]); }, /duplicate item/u],
+  ['missing next', lateContinuation, rows => { rows[0].next = ['absent']; }, /missing\/wrong-kind/u],
+  ['wrong-kind next', lateContinuation, rows => { rows[0].next = ['purpose.company']; }, /missing\/wrong-kind/u],
+  ['causal cycle', lateContinuation, rows => { rows[0].next = ['gap.extraction']; }, /closure flow: cycle/u],
+  ['duplicate next', lateContinuation, rows => { rows[0].next.push(rows[0].next[0]); }, /duplicate item/u],
+]) {
+  test(`late links: reject ${name} even after a valid reduced snapshot`, () => {
+    const { initial, later } = setup();
+    // Put the repeated node first; errors must not disappear through union.
+    const rows = parse(later).slice(1).sort((a, b) => Number(b.kind === 'residual' || b.id === 'purpose.company') - Number(a.kind === 'residual' || a.id === 'purpose.company'));
+    change(rows);
+    for (const pair of [[initial, doc(rows)], [doc(rows), initial]]) {
+      assert.throws(() => reduceClosure(...pair), expected);
+    }
+  });
+}
+
+test('late links: conflicting source revisions cannot be hidden by relation/provenance union', () => {
+  const { initial, later } = lateUpstream();
+  const rows = parse(later).slice(1);
+  const declared = find(parse(initial).slice(1), 'purpose.company').sources[0];
+  find(rows, 'purpose.company').sources = [{ ...declared, sourceDigest: sha('conflicting revision') }];
+  assert.throws(() => reduceClosure(initial, doc(rows)), /conflicting source revision/u);
+  assert.throws(() => reduceClosure(doc(rows), initial), /conflicting source revision/u);
+});
+
+test('real CLI: published reduced file accepts later links and rejects a late cycle without replacing output', t => {
+  const directory = temporary(t), first = path.join(directory, 'first.jsonl'), later = path.join(directory, 'later.jsonl');
+  const output = path.join(directory, 'second.jsonl');
+  const initialRun = run([`--out=${first}`, ...inputs]);
+  assert.equal(initialRun.status, 0, initialRun.stderr);
+  const original = fs.readFileSync(first), { later: addition } = lateUpstream();
+  fs.writeFileSync(later, addition);
+  const joined = run([`--out=${output}`, first, later]);
+  assert.equal(joined.status, 0, joined.stderr);
+  const bytes = fs.readFileSync(output), receipt = JSON.parse(joined.stdout);
+  assert.deepEqual(find(parse(bytes.toString()).slice(1), 'purpose.company').parents, ['purpose.upstream']);
+  assert.deepEqual(receipt.inputs.map(input => input.sha256), [sha(original), sha(addition)]);
+  assert.equal(receipt.output.sha256, sha(bytes));
+  assert.equal(receipt.output.bytes, bytes.length);
+  const rows = parse(addition).slice(1);
+  find(rows, 'purpose.company').parents = ['purpose.reuse'];
+  fs.writeFileSync(later, doc(rows));
+  const rejected = run([`--out=${output}`, first, later]);
+  assert.equal(rejected.status, 1);
+  assert.equal(rejected.stdout, '');
+  assert.match(rejected.stderr, /purpose hierarchy: cycle/u);
+  assert.deepEqual(fs.readFileSync(output), bytes);
+  assert.deepEqual(fs.readFileSync(first), original);
+  assert.deepEqual(fs.readdirSync(directory).sort(), ['first.jsonl', 'later.jsonl', 'second.jsonl']);
+});
+
+test('late link support does not change the original fixture projection bytes', () => {
+  const bytes = Buffer.from(reduceClosure(purpose, current));
+  assert.equal(bytes.length, 4019);
+  assert.equal(sha(bytes), 'sha256:c4ecedcf30a17f7c3102506f8310c2b7e2e676621ec2792a101378fe347de482');
+});

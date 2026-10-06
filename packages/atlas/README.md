@@ -16,11 +16,12 @@ not privileged source types: upstream purposes and later tributaries may arrive
 in either input or in further inputs. References are checked **after the join**.
 
 `reduceClosure(...documents)` is the only core entry. A complete reduced output
-can be reduced again, including with further complete source projections. Partial
-fragments may be supplied together; a still-incomplete join fails rather than
-inventing missing ancestors. Inputs are projections, **not a history ledger**:
-conflicting versions must be reconciled by their owner before this join. There is
-no timestamp winner, implicit source precedence or business-approval mechanism.
+can be reduced again with later source projections, including new upstream links
+and a previously unassigned Residual's next step. Partial fragments may be supplied
+together; a still-incomplete join fails rather than inventing missing ancestors.
+Inputs are projections, **not a history ledger**. Apart from the two additive
+relation sets below, conflicting versions must be reconciled by their owner before
+this join. No timestamp winner, source precedence or business approval is added.
 
 ## Record contract
 
@@ -31,7 +32,7 @@ for shape/consistency, **not authenticated against an external authority**.
 
 | Kind | Additional required fields | Explicit relation |
 |---|---|---|
-| `purpose` | `parents` | Zero or more upstream purposes; an empty list is a highest purpose |
+| `purpose` | `parents` | Known upstream purposes; an empty joined list is a root of the supplied graph |
 | `ideal` | `purposes`, `value` | Desired condition contributing to one or more purposes |
 | `current` | `value` | Observed/declared current condition, linked through a Gap |
 | `gap` | `current`, `ideal`, `delta`, `owner`, `proof` | Current → Gap → Ideal → Purpose |
@@ -42,9 +43,10 @@ for shape/consistency, **not authenticated against an external authority**.
 All scalar fields are nonempty text, except the fixed header boolean. Reference
 and scope/evidence arrays are unordered sets. `parents` and `next` may be empty;
 other arrays must be nonempty. Unknown fields/kinds/schemas, duplicate JSON keys,
-duplicate set members and missing/wrong-kind references fail closed. Identical
-records are deduplicated and their provenance is unioned. Same id with different
-meaning, or same source locator with different digests, is a conflict.
+duplicate set members and missing/wrong-kind references fail closed. Repeated IDs
+become one record: only the additive relations below and `sources` are unioned.
+Every other semantic field must match. Same source locator with different digests
+is still a conflict, including during a late relation addition.
 
 A Gap's `delta` is **declared by its source**, not inferred from descriptions or
 from work counts. A Current must have a route through a Gap to an Ideal/Purpose.
@@ -56,10 +58,44 @@ Receipt status is `closed`, `reduced` or `failed`. This v1 snapshot carries one
 effective Receipt per Fill version, with potentially several evidence references.
 Retries/history need distinct versioned Fill ids or upstream reconciliation.
 `closed` cannot have linked Residuals; `reduced` must retain at least one. An empty
-Residual `next` means a still-unassigned next step, **not completion**. Recursion
+Residual `next` means no next step is declared in the joined inputs, **not completion**. Recursion
 uses new Current/Gap ids; pointing back into the same causal cycle is rejected.
 Neither a closed Receipt nor the absence of Residuals produces a Purpose verdict.
 Typed reference fields are the relations; a second editable edge table is not added.
+
+## Late relation rule
+
+For the **same ID**, only `purpose.parents` and `residual.next` are additive
+sets of positive relation assertions. Join them by sorted, deduplicated union;
+join provenance by the existing source union. Every other field must agree.
+A later record is still a full typed record, not a patch or a new event type.
+
+`parents=[]` does not assert that no upstream can ever exist. `next=[]` does not
+assert a final unassigned/complete state. Both mean no such relation is declared
+in that input. The consumer reads the single joined record, so replaying an older
+empty set or subset cannot erase a later link or restore an unassigned state.
+Different added links coexist as branches; input order never chooses a winner.
+
+In particular, after a successful reduction:
+
+- A later source can add an upstream Purpose and name it in the existing child's
+  `parents`; the child keeps its ID and its path now reaches that upstream.
+- A later source can supply a new Gap/Current and name it in the existing
+  Residual's `next`; no replacement Residual ID is required.
+
+The final union must still have valid reference kinds, no missing targets and no
+purpose/closure-flow cycles. `label`, `kind`, scalar links and values, and all
+other arrays remain immutable per ID. In particular, `ideal.purposes`, `fill.gaps`,
+`fill.scope` and `receipt.evidence` are **not** silently broadened: that would
+change the meaning of an existing goal/work/result rather than discover a link.
+The existing closed/reduced Receipt checks remain unchanged.
+
+This is an additive join, not a way to retract/replace a link: omission never
+means deletion. Non-additive correction needs an owner-reconciled replacement
+snapshot without rejoining the superseded output, or a separately defined version
+contract. No supersession protocol or authority is inferred here. `sources` keeps
+node-level supporting provenance, not an authenticated per-edge attribution.
+On valid joins, staged reduction, permutations and replay yield the same bytes.
 
 ## Files and use
 
