@@ -971,15 +971,15 @@ test("a locate frame carries no code from the page; the server adds exactly that
     assert.ok(question.instructions.includes(entity.label), `${part}: the question names its part`);
     assert.match(question.instructions, entity.kind === "file" ? /the file /u : /outside the source/u, part);
     for (const file of evidence.bodies) assert.ok(question.instructions.includes(file.path), `${part}: the question names ${file.path}`);
-    // The whole question, word for word: what this part's own text does for a
-    // file, how the shown code uses it for a part outside the source.
+    // The whole question, word for word: whether the part itself is asked about,
+    // not a part that only supports what is asked; for an outside part, as the shown code uses it.
     const lined = [...new Set(evidence.lines.map(line => line.path))];
     const shown = ` state.architecture.evidence.bodies holds ${evidence.bodies.map(file => file.path).join(", ")} whole`
       + (lined.length === 0 ? "." : `; state.architecture.evidence.lines holds single lines of ${lined.join(", ")}, each with its path and line number.`)
       + " Judge only from that text and the utterance." + CONTEXT_NOTE;
     assert.ok(question.instructions.startsWith((entity.kind === "file"
-      ? `Does the original text of the file ${entity.label} implement behaviour, or declare data, that the current utterance asks about or refers to?`
-      : `Does the shown original code use ${entity.label}, which lies outside the source, for behaviour or data that the current utterance asks about or refers to?`)
+      ? `Is the file ${entity.label} itself one of the parts the current utterance asks to see or refers to - its own text being what is asked about - rather than a part that only supports, serves or is used by what is asked about?`
+      : `Is ${entity.label}, which lies outside the source, itself one of the parts the current utterance asks to see or refers to, as the shown original code uses it, rather than something the shown code only names or uses in support of what is asked about?`)
       + shown), part);
     assert.match(question.instructions, /association.*unverified/u, part);
     assert.match(question.instructions, /Do not replace an explicit endpoint or semantic qualification/u, part);
@@ -987,12 +987,12 @@ test("a locate frame carries no code from the page; the server adds exactly that
     assert.match(question.instructions, /does not identify one unique edge, answer none/u, part);
     assert.deepEqual(question.criteria, entity.kind === "file"
       ? {
-        [YES]: "its own text implements that behaviour or declares that data, whether or not the utterance names the file",
-        [NONE]: "its text does not, even if it mentions or imports another part that does",
+        [YES]: "the utterance asks about this file itself, whether or not it names it",
+        [NONE]: "it only supports, serves or is used by what the utterance asks about, or only mentions or imports a part that does",
       }
       : {
-        [YES]: "the shown code uses it for that behaviour or data, whether or not the utterance names it",
-        [NONE]: "the shown code does not use it for that, or only names it",
+        [YES]: "the utterance asks about it itself, as the shown code uses it, whether or not it names it",
+        [NONE]: "the shown code only names it, or uses it only in support of what the utterance asks about",
       }, part);
     const answered = await result.text();
     assert.equal(answered.includes(evidence.bodies[0].text.slice(0, 200)), false, `${part}: no admitted text in the answer`);
