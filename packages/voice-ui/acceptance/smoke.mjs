@@ -521,9 +521,10 @@ try {
   assert.deepEqual(sourceSummary.verdicts, []);
   const sourceProof = sourceSummary.sourceEvidence;
   assert.equal(sourceProof.scopeMatchesReference, true); assert.equal(sourceProof.contextMatches, true);
-  assert.ok(sourceProof.candidates >= 1 && sourceProof.candidates <= 254); assert.equal(sourceProof.edgesTouchFocus, true);
-  assert.equal(sourceProof.reason, "none"); assert.equal(sourceProof.requests, 2);
-  assert.equal(sourceProof.eligible, true); assert.equal(sourceProof.newEdgeDrawn, true);
+  assert.equal(sourceProof.candidates, 1); assert.equal(sourceProof.edgesTouchFocus, true);
+  assert.deepEqual(sourceProof.focus, ["dev-architecture-config-v1-json", "src-config-mjs", "web-app-mjs", "web-data-config-v1-json"]);
+  assert.equal(sourceProof.reason, "no-executable-delta"); assert.equal(sourceProof.requests, 3); assert.equal(sourceProof.resolves, 2);
+  assert.equal(sourceProof.eligible, true); assert.equal(sourceProof.offered, true); assert.equal(sourceProof.newEdgeDrawn, true);
   assert.equal(sourceProof.paint.met, true); assert.equal(sourceProof.paint.inView, true);
   assert.equal(sourceProof.paint.edge.matches.length, 1); assert.equal(sourceProof.paint.viewport.length, 4);
   assert.equal(sourceProof.paint.reverse.complete, false);

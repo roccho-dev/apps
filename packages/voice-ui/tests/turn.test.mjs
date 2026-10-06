@@ -37,6 +37,75 @@ test("local camera uses declared layout without changing records or assuming eve
   assert.deepEqual(records, [{ id: "a" }]);
 });
 
+// A camera on two or more parts: the union of their declared boxes, centred and
+// fitted to the pane at a scale of at most one, never a new layout. The stub
+// never throws (frameFor would swallow it); it records what it was given.
+const fitFixture = bounds => {
+  const records = Object.keys(bounds).map(id => ({ id }));
+  const before = structuredClone(records);
+  const seen = [];
+  const protocol = { GRAPH_PATTERN: "graph/1", layoutBoundsFor: actual => {
+    seen.push(actual);
+    return { rootBounds: [0, 0, 1804, 2462], bounds };
+  } };
+  // Every layout read is of these very records, and they are never changed.
+  const unchanged = () => {
+    assert.ok(seen.every(actual => actual === records), "the declared layout of these very records");
+    assert.deepEqual(records, before);
+  };
+  // A camera on parts reads the declared layout exactly once; checked before its outcome.
+  const readOnce = () => {
+    assert.equal(seen.length, 1, "one layout read");
+    unchanged();
+  };
+  return { graph: { records }, protocol, unchanged, readOnce };
+};
+const holds = (bbox, box) => box[0] >= bbox[0] && box[1] >= bbox[1]
+  && box[0] + box[2] <= bbox[0] + bbox[2] && box[1] + box[3] <= bbox[1] + bbox[3];
+
+test("a camera on two parts whose union fits keeps one layout unit per pixel, centred on the union", () => {
+  const boxes = { a: [100, 200, 140, 64], b: [300, 250, 180, 92] };
+  const { graph, protocol, readOnce } = fitFixture(boxes);
+  const frame = frameFor({ graph, width: 619, height: 541, protocol, part: ["a", "b"] });
+  readOnce();
+  assert.deepEqual(frame, { bbox: [-19.5, 0.5, 619, 541], viewport: [619, 541] });
+  assert.ok(holds(frame.bbox, boxes.a) && holds(frame.bbox, boxes.b));
+});
+
+test("a camera on two parts too far apart for the pane fits their union, keeping the pane's aspect, never enlarging", () => {
+  const boxes = { a: [0, 0, 100, 100], c: [1100, 500, 200, 100] };
+  const { graph, protocol, readOnce } = fitFixture(boxes);
+  const frame = frameFor({ graph, width: 650, height: 450, protocol, part: ["a", "c"] });
+  readOnce();
+  assert.deepEqual(frame, { bbox: [0, -150, 1300, 900], viewport: [650, 450] });
+  assert.ok(holds(frame.bbox, boxes.a) && holds(frame.bbox, boxes.c));
+  assert.ok(650 / frame.bbox[2] <= 1 && 450 / frame.bbox[3] <= 1);
+  assert.equal(650 / frame.bbox[2], 450 / frame.bbox[3], "one scale on both axes");
+});
+
+test("a camera on one part named in a list has no frame; one part is named by its id alone", () => {
+  const { graph, protocol, unchanged } = fitFixture({ a: [100, 200, 140, 64], b: [300, 250, 180, 92] });
+  const frame = frameFor({ graph, width: 619, height: 541, protocol, part: ["a"] });
+  unchanged();
+  assert.equal(frame, null);
+});
+
+test("a camera on parts needs at least two unique parts with real four-number boxes and a pane with a size", () => {
+  const boxes = { a: [0, 0, 100, 100], b: [200, 0, 100, 100], nan: [Number.NaN, 0, 100, 100],
+    inf: [0, 0, Number.POSITIVE_INFINITY, 100], w0: [0, 0, 0, 100], h0: [0, 0, 100, 0],
+    wneg: [0, 0, -1, 100], hneg: [0, 0, 100, -1], short: [0, 0, 100], long: [0, 0, 100, 100, 1] };
+  const { graph, protocol, unchanged } = fitFixture(boxes);
+  for (const [label, part] of [["no part", []], ["a repeated part", ["a", "a"]], ["a missing part", ["a", "missing"]],
+    ["a non-finite box", ["a", "nan"]], ["an infinite box", ["a", "inf"]], ["a zero-width box", ["a", "w0"]],
+    ["a zero-height box", ["a", "h0"]], ["a negative-width box", ["a", "wneg"]], ["a negative-height box", ["a", "hneg"]],
+    ["a box of three numbers", ["a", "short"]], ["a box of five numbers", ["a", "long"]]]) {
+    assert.equal(frameFor({ graph, width: 619, height: 541, protocol, part }), null, label);
+  }
+  assert.equal(frameFor({ graph, width: 0, height: 541, protocol, part: ["a", "b"] }), null, "a pane with no width");
+  assert.equal(frameFor({ graph, width: 619, height: 0, protocol, part: ["a", "b"] }), null, "a pane with no height");
+  unchanged();
+});
+
 test("working notice distinguishes storage evidence from display failure and draft emptiness", () => {
   const notice = {};
   const show = values => { renderWorkingNotice(notice, { working: true, draftLength: 0, displayFailed: false, ...values }); return notice.textContent; };

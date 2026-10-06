@@ -1239,10 +1239,13 @@ const goalScenario = async () => {
   for (const entry of exchanges) entry.reported = true;
 };
 // goal-source on one page: the whole account, the page code in focus, then a
-// Goal whose request is scoped by that remembered focus. In fixture mode the
-// controlled answer takes, in request order, the first offered arrow touching
-// the focus whose ends have no relation in either direction: a trial arrow,
-// never a source fact. In live mode the finite --goal-case names the expected
+// Goal scoped by that remembered focus, which resolves its arrow by an intent
+// request before each change. In fixture mode the app focus is located as four
+// parts; the first resolve holds the first pair of drawn parts, by sorted ID,
+// touching the focus with no relation in either direction, every resolve names
+// it and the Goal request takes its one arrow, so the next resolve finds it
+// drawn and the Goal stops with no executable delta: a trial arrow, never a
+// source fact. In live mode the finite --goal-case names the expected
 // arrow by served manifest entities and no answer is crafted. Whole Goal Undo,
 // clearing the conversation, then the same utterance has no reference left.
 const SOURCE_GOAL = "さっき詳しく見た画面のコードにつながる試案の矢印を1本つないで";
@@ -1263,8 +1266,15 @@ const sourceScenario = async () => {
   const wholeSize = { regions: whole.now.graph.records.filter(record => record.type === "region").length,
     relations: whole.now.graph.records.filter(record => record.type === "relation").length };
   reached.push("app");
-  const app = await say("app", UTTERANCES.app, picksFor(APP));
+  // The controlled fixture locates the app focus as the four files that name
+  // browser storage, so the Goal is scoped by a located multi-part focus; the
+  // utterance and live preparation are unchanged.
+  const SOURCE_FOCUS = ["dev-architecture-config-v1-json", "src-config-mjs", "web-app-mjs", "web-data-config-v1-json"];
+  const app = await say("app", UTTERANCES.app, (name, sent) => sent.kind === contract.ARCHITECTURE_LOCATE_KIND
+    ? (SOURCE_FOCUS.some(id => name === contract.relevantSlot(id)) ? contract.YES : contract.NONE) : picksFor(APP)(name, sent));
   const reference = app.now.context.at(-1)?.reference ?? null;
+  if (FIXTURE) need(SOURCE_FOCUS.every(id => ENTITY_IDS.includes(id)) && JSON.stringify(reference?.focus) === JSON.stringify(SOURCE_FOCUS),
+    "the controlled app focus is located as the four files that name browser storage");
   need(app.now.state === "drafted" && reference?.source.commit === SERVED_COMMIT
     && JSON.stringify(reference.focus) === JSON.stringify(app.sent.at(-1)?.sent.state.architecture.focus),
   "the app focus is drawn and the DOM remembers its actual judged source and focus");
@@ -1274,12 +1284,21 @@ const sourceScenario = async () => {
   const related = (edges, from, to) => edges.some(edge => edge.from === from && edge.to === to || edge.from === to && edge.to === from);
   const focusRegions = (reference?.focus ?? []).map(id => `arch-${id}`);
   const flow = evaluation?.expected.flows[0] ?? null;
-  let chosen = null, asked = 0;
+  let chosen = null;
   if (FIXTURE) await page.route(route, craft((name, sent) => {
-    if (asked++ > 0) return contract.NONE;
-    chosen = sent.state.candidates.find(item => item.action === "add-edge"
-      && (focusRegions.includes(item.from) || focusRegions.includes(item.to)) && !related(sent.state.edges, item.from, item.to)) ?? null;
-    return chosen?.id ?? contract.NONE;
+    if (sent.kind === contract.ARCHITECTURE_INTENT_KIND) {
+      if (chosen === null) {
+        const ids = sent.state.graph.regions.map(region => region.id).sort();
+        search: for (const from of ids) for (const to of ids) {
+          if (from !== to && (focusRegions.includes(from) || focusRegions.includes(to)) && !related(sent.state.graph.edges, from, to)) {
+            chosen = { from, to }; break search;
+          }
+        }
+      }
+      return name === "action" ? (chosen === null ? contract.NONE : contract.ACTION_ADD_EDGE)
+        : name === "source" ? chosen?.from ?? contract.NONE : name === "target" ? chosen?.to ?? contract.NONE : contract.NONE;
+    }
+    return sent.state.candidates.find(item => item.action === "add-edge" && item.from === chosen?.from && item.to === chosen?.to)?.id ?? contract.NONE;
   }), { times: 8 });
   const prior = exchanges.length;
   reached.push("source-goal");
@@ -1290,7 +1309,8 @@ const sourceScenario = async () => {
   const attempt = await page.evaluate(() => JSON.parse(document.body.dataset.goal));
   const sent = exchanges.slice(prior);
   for (const entry of sent) entry.reported = true;
-  const request = sent[0]?.sent.state ?? null;
+  // The Goal request by its kind: a scoped Goal first asks its resolve intent.
+  const request = sent.find(entry => entry.sent.kind === contract.GOAL_REQUEST_KIND)?.sent.state ?? null;
   // The expected arrow: the controlled choice, or the evaluator data resolved
   // against the served manifest and the actual pre-Goal Working.
   const target = FIXTURE ? (chosen === null ? null : { from: chosen.from, to: chosen.to })
@@ -1298,9 +1318,14 @@ const sourceScenario = async () => {
   const endpointOf = (records, id) => records.find(record => record.type === "region" && record.id === id
     && record.parent !== null && record.kind !== "group") ?? null;
   const beforeRelations = before.graph.records.filter(record => record.type === "relation");
+  // Eligible is structural, on the full pre-Goal Working and the focus; offered
+  // is what the Goal request actually carried. A different resolved pair is
+  // not offered: NOT_MET, never success.
   const eligible = target !== null && target.from !== target.to
     && endpointOf(before.graph.records, target.from) !== null && endpointOf(before.graph.records, target.to) !== null
-    && !related(beforeRelations, target.from, target.to) && request !== null
+    && (focusRegions.includes(target.from) || focusRegions.includes(target.to))
+    && !related(beforeRelations, target.from, target.to);
+  const offered = eligible && request !== null
     && request.candidates.some(item => item.action === "add-edge" && item.from === target.from && item.to === target.to);
   const newEdges = after.graph.records.filter(record => record.type === "relation" && !before.graph.records.some(old => old.id === record.id));
   const nonLayout = records => records.filter(record => record.type !== "layout");
@@ -1314,8 +1339,9 @@ const sourceScenario = async () => {
     candidates: request?.candidates.length ?? 0,
     edgesTouchFocus: request !== null && request.candidates.filter(item => item.action === "add-edge")
       .every(item => focusRegions.includes(item.from) || focusRegions.includes(item.to)),
-    target, targetBy: FIXTURE ? "controlled: first offered arrow touching the focus with no relation either way" : "evaluator goal-case",
-    eligible, reason: attempt.reason, requests: attempt.requests, exchanges: sent.map(sanitized),
+    target, targetBy: FIXTURE ? "controlled: first sorted pair touching the focus with no relation either way, named by every resolve" : "evaluator goal-case",
+    eligible, offered, resolves: sent.filter(entry => entry.sent.kind === contract.ARCHITECTURE_INTENT_KIND).length,
+    reason: attempt.reason, requests: attempt.requests, exchanges: sent.map(sanitized),
     newEdges: newEdges.map(({ id, from, to, kind }) => ({ id, from, to, kind })),
     newEdgeDrawn: eligible && newEdges.length === 1 && newEdges[0].from === target.from && newEdges[0].to === target.to
       && JSON.stringify(nonLayout(after.graph.records).filter(record => record.id !== newEdges[0].id))
@@ -1323,8 +1349,11 @@ const sourceScenario = async () => {
     paint: null, understanding: "NOT_PROVEN" };
   need(sourceEvidence.scopeMatchesReference && sourceEvidence.contextMatches, "the Goal carries the remembered source focus and the prior plain conversation");
   need(sourceEvidence.candidates >= 1 && sourceEvidence.candidates <= 254 && sourceEvidence.edgesTouchFocus, "the scoped catalogue is bounded and every arrow touches the focus");
-  need(eligible, "the expected arrow joins two known parts with no relation either way and is offered; otherwise INELIGIBLE");
-  need((FIXTURE ? attempt.reason === "none" && attempt.requests === 2 && sent.length === 2
+  need(eligible, "the expected arrow joins two drawn parts, touches the focus and has no relation either way on the pre-Goal Working; otherwise INELIGIBLE");
+  need(offered, "the Goal request offers the expected arrow; a different resolved pair is NOT_MET");
+  need((FIXTURE ? attempt.reason === "no-executable-delta" && attempt.requests === 3
+      && JSON.stringify(sent.map(entry => entry.sent.kind))
+        === JSON.stringify([contract.ARCHITECTURE_INTENT_KIND, contract.GOAL_REQUEST_KIND, contract.ARCHITECTURE_INTENT_KIND])
     : ["none", "no-executable-delta", "budget-requests", "budget-time"].includes(attempt.reason)) && sourceEvidence.newEdgeDrawn,
   "the Goal draws exactly the one new expected arrow, keeps every old record, and stops mechanically");
   // The actual painted arrow at its named ends, by the existing observer, with
@@ -1342,11 +1371,19 @@ const sourceScenario = async () => {
       return { camera, container: container.id, ...measured, endsVisible: ends.map(record => visible[endpoints.indexOf(record)]) };
     };
     // The overview first, then the existing camera on the from end, then the
-    // to end, each on unchanged records and storage; the first frame that
-    // shows the whole matched arrow is graded, with its own negatives.
+    // to end, then the camera on the new arrow itself, each on unchanged
+    // records and storage; the first frame that shows the whole matched arrow
+    // is graded, with its own negatives. The arrow camera must be offered by
+    // exactly one option; otherwise that frame is recorded unmet and nothing
+    // stands in for it.
     const frames = [await measure("")];
-    for (const camera of [target.from, target.to]) {
+    for (const camera of [target.from, target.to, newEdges[0].id]) {
       if (frames.at(-1).inView) break;
+      if (camera === newEdges[0].id) {
+        const offered = await page.locator("#camera-part option")
+          .evaluateAll((options, id) => options.filter(option => option.value === id).length, camera);
+        if (offered !== 1) { frames.push({ camera, offered, inView: false, met: false, edge: { matches: [] } }); break; }
+      }
       await page.locator("#camera-part").selectOption(camera); await settle();
       const focused = await screen();
       frames.push({ ...(await measure(camera)),

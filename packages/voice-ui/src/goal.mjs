@@ -1,13 +1,31 @@
-import { GOAL_REQUEST_KIND, GOAL_REQUEST_MAX, MIN_CONFIDENCE, NONE, isRequest, readAnswers, slotsFor } from "./contract.mjs";
+import { ACTION_ADD_EDGE, ARCHITECTURE_INTENT_KIND, GOAL_REQUEST_KIND, GOAL_REQUEST_MAX, MIN_CONFIDENCE, NONE, isRequest,
+  readAnswers, slotsFor } from "./contract.mjs";
 import { offersOf } from "./bundle.mjs";
 import { regionIdOf } from "./architecture.mjs";
 import { legalLocalDeltas, OUTCOME_STEP, proveLocalDelta } from "./turn.mjs";
 import { proposeGoal, recentConversation } from "./session.mjs";
 
+// What a scoped Goal request shows: the two ends of its one arrow, every group
+// enclosing them up to the root, and only the relations between those two
+// ends. The whole Working still decides what is legal, proved and adopted.
+const localView = (records, { from, to }) => {
+  const parentOf = new Map(records.filter(record => record.type === "region").map(record => [record.id, record.parent]));
+  const shown = new Set();
+  for (const end of [from, to]) {
+    for (let at = end; at !== null && at !== undefined && !shown.has(at); at = parentOf.get(at)) shown.add(at);
+  }
+  return records.filter(record => (record.type === "region" ? shown.has(record.id)
+    : record.type === "relation" && ((record.from === from && record.to === to) || (record.from === to && record.to === from))));
+};
+
 // One bounded AddRegion/ConnectRegions attempt. Ports own HTTP and the draw/adopt effect;
 // this coordinator owns only actual selected history and mechanical STOP.
 // It has no semantic goal oracle and never writes durable state.
-export async function runGoal({ utterance, bundle, protocol, current, ask, adopt, cancelled, now = () => performance.now() }) {
+// On every iteration a scoped Goal asks the page's own intent request, built
+// by resolveIntent for the latest session, which one arrow to draw; that
+// resolve request counts against the same bound as the Goal request.
+export async function runGoal({ utterance, bundle, protocol, current, ask, adopt, cancelled, resolveIntent = null,
+  now = () => performance.now() }) {
   const first = current();
   const group = first.nextSeq;
   const selected = [];
@@ -22,22 +40,66 @@ export async function runGoal({ utterance, bundle, protocol, current, ask, adopt
   const scope = reference === null ? null
     : Object.freeze({ source: Object.freeze({ ...reference.source }), focus: Object.freeze([...reference.focus]) });
   const regions = scope === null ? null : new Set(scope.focus.map(regionIdOf));
-  for (let count = 0; count < GOAL_REQUEST_MAX; count += 1) {
+  if (scope !== null && typeof resolveIntent !== "function") return stop("invalid-goal-request");
+  // One counted judgment. Nothing is sent once the Goal is cancelled, out of
+  // time, no longer current or at its request bound; a thrown call is unknown,
+  // an unreadable answer a contract failure, and afterwards it must still be current.
+  const judged = async (request, slots) => {
+    if (cancelled()) return { stop: "cancelled" };
+    if (now() - started >= 180000) return { stop: "budget-time" };
+    if (current() !== expected || expected.working === null) return { stop: "stale-goal" };
+    if (trace.length >= GOAL_REQUEST_MAX) return { stop: "budget-requests" };
+    const head = expected.working.head;
+    let answered;
+    try { answered = await ask(request); }
+    catch {
+      trace.push(Object.freeze({ head, answers: null, failure: "judge-unknown" }));
+      return { stop: "judge-unknown" };
+    }
+    const read = answered?.kind === "answered" ? readAnswers(answered.decision?.answers, slots) : null;
+    trace.push(Object.freeze({ head, answers: read, failure: answered?.kind === "failed" ? answered.reason : read === null ? "judge-contract" : null }));
+    if (read === null) return { stop: "judge-failed" };
+    if (cancelled()) return { stop: "cancelled" };
+    if (now() - started >= 180000) return { stop: "budget-time" };
+    if (current() !== expected) return { stop: "stale-goal" };
+    return { read };
+  };
+  while (trace.length < GOAL_REQUEST_MAX) {
     if (cancelled()) return stop("cancelled");
     if (now() - started >= 180000) return stop("budget-time");
     if (current() !== expected || expected.working === null) return stop("stale-goal");
+    let pair = null;
+    if (scope !== null) {
+      let intent;
+      // Building and checking the intent are one step: a resolver that throws,
+      // or a request or turn that is not this Working's own, asks nothing.
+      try {
+        intent = resolveIntent(expected);
+        if (intent?.request?.kind !== ARCHITECTURE_INTENT_KIND || !isRequest(intent.request)
+          || intent.turn?.head !== expected.working.head
+          || JSON.stringify(intent.turn.slots) !== JSON.stringify(slotsFor(intent.request.state))) intent = null;
+      } catch { intent = null; }
+      if (intent === null) return stop("invalid-goal-request");
+      const resolved = await judged(intent.request, intent.turn.slots);
+      if (resolved.stop !== undefined) return stop(resolved.stop);
+      const { action, source, target } = resolved.read;
+      if (action.choice !== ACTION_ADD_EDGE || source.choice === NONE || target.choice === NONE) return stop("none");
+      if (Math.min(action.confidence, source.confidence, target.confidence) < MIN_CONFIDENCE) return stop("not-confident");
+      pair = Object.freeze({ from: source.choice, to: target.choice });
+    }
     const parts = offersOf(bundle).parts;
-    const held = legalLocalDeltas(expected.working, { bundle, protocol, reserved: expected.issuedPartIds, selected, scope: regions });
+    const held = legalLocalDeltas(expected.working, { bundle, protocol, reserved: expected.issuedPartIds, selected, scope: regions, pair });
     if (held.candidates.length === 0) return stop("no-executable-delta");
     if (held.candidates.length > 254) return stop("candidate-overflow");
-    const parents = expected.working.records.filter(record => record.type === "region"
+    const shown = pair === null ? expected.working.records : localView(expected.working.records, pair);
+    const parents = shown.filter(record => record.type === "region"
       && record.kind === "group" && record.parent !== null)
       .map(({ id, label, kind, parent }) => ({ id, label, kind, parent }));
     const request = { kind: GOAL_REQUEST_KIND, state: {
       utterance,
-      graph: expected.working.records.filter(record => record.type === "region")
+      graph: shown.filter(record => record.type === "region")
         .map(({ id, label, parent }) => ({ id, label, parent })),
-      edges: expected.working.records.filter(record => record.type === "relation")
+      edges: shown.filter(record => record.type === "relation")
         .map(({ id, from, to }) => ({ id, from, to })),
       parents, offers: { parts }, selected: [...selected],
       candidates: Object.freeze(held.candidates.map(candidate => Object.freeze(candidate.part !== undefined
@@ -47,25 +109,15 @@ export async function runGoal({ utterance, bundle, protocol, current, ask, adopt
       scope,
     } };
     if (!isRequest(request)) return stop("invalid-goal-request");
-    const head = expected.working.head;
-    let answered;
-    try { answered = await ask(request); }
-    catch {
-      trace.push(Object.freeze({ head, answers: null, failure: "judge-unknown" }));
-      return stop("judge-unknown");
-    }
-    const read = answered?.kind === "answered" ? readAnswers(answered.decision?.answers, slotsFor(request.state)) : null;
-    trace.push(Object.freeze({ head, answers: read, failure: answered?.kind === "failed" ? answered.reason : read === null ? "judge-contract" : null }));
-    if (read === null) return stop("judge-failed");
-    if (cancelled()) return stop("cancelled");
-    if (now() - started >= 180000) return stop("budget-time");
-    if (current() !== expected) return stop("stale-goal");
+    const answer = await judged(request, slotsFor(request.state));
+    if (answer.stop !== undefined) return stop(answer.stop);
+    const { read } = answer;
     if (read.delta.choice === NONE) return stop("none");
     const confidence = read.delta.confidence;
     if (confidence < MIN_CONFIDENCE) return stop("not-confident");
     const candidate = held.candidates.find(item => item.id === read.delta.choice);
     const planned = await proveLocalDelta({ working: expected.working, held, candidateId: read.delta.choice,
-      confidence, bundle, reserved: expected.issuedPartIds, selected, scope: regions, protocol });
+      confidence, bundle, reserved: expected.issuedPartIds, selected, scope: regions, pair, protocol });
     if (planned.outcome !== OUTCOME_STEP) return stop(planned.reason);
     if (cancelled() || current() !== expected) return stop("stale-goal");
     const proposed = await proposeGoal(expected, { step: planned.step, input: { source: "typed", text: utterance }, group, protocol });
