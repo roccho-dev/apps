@@ -5,25 +5,30 @@ import { regionIdOf } from "./architecture.mjs";
 import { legalLocalDeltas, OUTCOME_STEP, proveLocalDelta } from "./turn.mjs";
 import { proposeGoal, recentConversation } from "./session.mjs";
 
-// What a scoped Goal request shows: the two ends of its one arrow, every group
-// enclosing them up to the root, and only the relations between those two
-// ends. The whole Working still decides what is legal, proved and adopted.
-const localView = (records, { from, to }) => {
+// What a scoped Goal request shows: every end of its offered arrows, every
+// group enclosing them up to the root, and only the relations between the
+// named end and those ends - for one resolved arrow, the relations between its
+// two ends. Nothing is cropped. The whole Working still decides what is legal,
+// proved and adopted.
+const localView = (records, pair, candidates) => {
+  const named = pair.from ?? pair.to;
+  const ends = new Set(candidates.flatMap(candidate => [candidate.from, candidate.to]));
   const parentOf = new Map(records.filter(record => record.type === "region").map(record => [record.id, record.parent]));
   const shown = new Set();
-  for (const end of [from, to]) {
+  for (const end of ends) {
     for (let at = end; at !== null && at !== undefined && !shown.has(at); at = parentOf.get(at)) shown.add(at);
   }
   return records.filter(record => (record.type === "region" ? shown.has(record.id)
-    : record.type === "relation" && ((record.from === from && record.to === to) || (record.from === to && record.to === from))));
+    : record.type === "relation" && ends.has(record.from) && ends.has(record.to) && (record.from === named || record.to === named)));
 };
 
 // One bounded AddRegion/ConnectRegions attempt. Ports own HTTP and the draw/adopt effect;
 // this coordinator owns only actual selected history and mechanical STOP.
 // It has no semantic goal oracle and never writes durable state.
 // On every iteration a scoped Goal asks the page's own intent request, built
-// by resolveIntent for the latest session, which one arrow to draw; that
-// resolve request counts against the same bound as the Goal request.
+// by resolveIntent for the latest session, which arrow to draw - both ends, or
+// one end with the other left open over the focus; that resolve request counts
+// against the same bound as the Goal request.
 export async function runGoal({ utterance, bundle, protocol, current, ask, adopt, cancelled, resolveIntent = null,
   now = () => performance.now() }) {
   const first = current();
@@ -83,15 +88,18 @@ export async function runGoal({ utterance, bundle, protocol, current, ask, adopt
       const resolved = await judged(intent.request, intent.turn.slots);
       if (resolved.stop !== undefined) return stop(resolved.stop);
       const { action, source, target } = resolved.read;
-      if (action.choice !== ACTION_ADD_EDGE || source.choice === NONE || target.choice === NONE) return stop("none");
+      if (action.choice !== ACTION_ADD_EDGE || (source.choice === NONE && target.choice === NONE)) return stop("none");
+      // The weakest answer governs, an end answered none included.
       if (Math.min(action.confidence, source.confidence, target.confidence) < MIN_CONFIDENCE) return stop("not-confident");
-      pair = Object.freeze({ from: source.choice, to: target.choice });
+      // An end answered none is open, never an endpoint: it ranges only over the
+      // focus, and the Goal judgment below picks one offered arrow or none.
+      pair = Object.freeze({ from: source.choice === NONE ? null : source.choice, to: target.choice === NONE ? null : target.choice });
     }
     const parts = offersOf(bundle).parts;
     const held = legalLocalDeltas(expected.working, { bundle, protocol, reserved: expected.issuedPartIds, selected, scope: regions, pair });
     if (held.candidates.length === 0) return stop("no-executable-delta");
     if (held.candidates.length > 254) return stop("candidate-overflow");
-    const shown = pair === null ? expected.working.records : localView(expected.working.records, pair);
+    const shown = pair === null ? expected.working.records : localView(expected.working.records, pair, held.candidates);
     const parents = shown.filter(record => record.type === "region"
       && record.kind === "group" && record.parent !== null)
       .map(({ id, label, kind, parent }) => ({ id, label, kind, parent }));
