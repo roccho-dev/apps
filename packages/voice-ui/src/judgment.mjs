@@ -24,7 +24,9 @@ const CONTEXT_NOTE = " context.recent lists earlier utterances as they were reco
   + " the current utterance, the working graph and the focus are the facts, and an earlier effect is history, not the current graph.";
 // A Goal's scope is checked by the server, not taken from the page on trust.
 const SCOPE_NOTE = " state.scope names the parts in focus, which the server matched against the current source;"
-  + " every offered arrow touches one of them. It is not an earlier judgment or authority, and no source text is given.";
+  + " every offered arrow touches one of them. It is not an earlier judgment or authority, and no source text is given."
+  + " state.graph and state.edges may then be only a local view - the ends of the offered arrow, the groups enclosing them and"
+  + " the relations between those two ends - not the whole working graph, and not a completion oracle.";
 const REFERENCE_NOTE = " An architecture conversation entry may carry reference: the server reopened its section from the current source."
   + " The historical association with that utterance is still unverified, not proof of its intent or of a unique edge."
   + " Use the earlier utterance together with that section's entities and candidate relationships to understand an anaphoric qualification."

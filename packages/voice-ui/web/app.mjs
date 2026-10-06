@@ -279,14 +279,15 @@ const setVoice = (phase, message) => {
 // contract. The app never computes a position itself; a part can only be put
 // beside another because the view says where that other one is. A graph the
 // view cannot lay out offers no placement; everything else still works.
-const workingLayout = () => {
-  if (session.working === null) return null;
+const layoutOf = working => {
+  if (working === null) return null;
   try {
-    return protocol.layoutBoundsFor(session.working.records, { pattern: protocol.GRAPH_PATTERN });
+    return protocol.layoutBoundsFor(working.records, { pattern: protocol.GRAPH_PATTERN });
   } catch {
     return null;
   }
 };
+const workingLayout = () => layoutOf(session.working);
 
 // The overview fits the whole graph; a selected local camera and a resize can
 // leave parts outside the pane. They are still in 作業図; the person is told
@@ -372,6 +373,31 @@ const transcribe = async () => {
 const lastApplied = () => (savedHistory?.entries.at(-1)?.facts ?? [])
   .filter(fact => fact.kind === "relation" || fact.kind === "region");
 
+// The judged request for one utterance against a session, shared by Send,
+// Voice and a scoped Goal. When the caller passes architecture - read once,
+// while the source can be cited - it is an architecture intent: the same request, with the snapshot's
+// parts by path or identifier beside it, the conversation with its references,
+// and no code.
+const intentFor = (latest, utterance, { layout, offeredFrame, pending, lastApplied, architecture }) => {
+  const steps = draftForJudgment(latest);
+  const plain = requestFor({
+    working: latest.working,
+    utterance,
+    bundle,
+    layout,
+    offeredFrame,
+    draft: steps,
+    focus: focusFor({ draft: steps, lastApplied }),
+    pending,
+    recent: recentConversation(latest).recent,
+  });
+  if (!architecture) return plain;
+  const bound = withArchitecture(plain, manifest);
+  return { turn: bound.turn, request: { ...bound.request, state: { ...bound.request.state,
+    context: { recent: recentConversation(latest, { architecture: true }).recent },
+  } } };
+};
+
 // Send and Voice take the same path, and neither touches 確定図 or storage:
 // the utterance is judged against 作業図 and every unapplied step, and a
 // usable answer becomes one more step on 作業図, drawn before it is adopted.
@@ -397,27 +423,9 @@ const decide = async (value, source) => {
   const held = spent.held;
   const stillHeld = held !== null && pendingHolds(held.intent, { head: working.head, frame: offeredFrame, offered: placeable });
 
-  const steps = draftForJudgment(session);
-  const plain = requestFor({
-    working,
-    utterance: value,
-    bundle,
-    layout,
-    offeredFrame,
-    draft: steps,
-    focus: focusFor({ draft: steps, lastApplied: lastApplied() }),
-    pending: stillHeld ? pendingForJudgment(held.intent) : null,
-    recent: recentConversation(session).recent,
-  });
-  // On the architecture page, while its source can be cited, the request is
-  // an architecture intent: the same request, with the snapshot's parts by
-  // path or identifier beside it, and no code.
   const architecture = architectureReady();
-  const bound = architecture ? withArchitecture(plain, manifest) : plain;
-  const turn = bound.turn;
-  const request = architecture ? { ...bound.request, state: { ...bound.request.state,
-    context: { recent: recentConversation(session, { architecture: true }).recent },
-  } } : bound.request;
+  const { turn, request } = intentFor(session, value, { layout, offeredFrame,
+    pending: stillHeld ? pendingForJudgment(held.intent) : null, lastApplied: lastApplied(), architecture });
   const answer = await judge(request);
   if (answer.kind === "failed") return answer;
   const answers = answer.decision.answers;
@@ -653,7 +661,15 @@ goalButton.addEventListener("click", () => withSurface("goal", async () => {
   delete document.body.dataset.goal;
   sync();
   try {
-    const result = await runGoal({ utterance: text.value, bundle, protocol,
+    const utterance = text.value;
+    // A scoped Goal asks this page's own intent before each change, built for
+    // the latest session as Send builds it, with no frame or held placement,
+    // and only while the source can be cited.
+    const resolveIntent = architectureReady()
+      ? latest => intentFor(latest, utterance, { layout: layoutOf(latest.working), offeredFrame: null, pending: null,
+        lastApplied: lastApplied(), architecture: true })
+      : undefined;
+    const result = await runGoal({ utterance, bundle, protocol, resolveIntent,
       current: () => session, ask: judge, cancelled: () => goalCancelled || resizePending || blocked,
       adopt: async next => {
         await showWorking(next, "drafted", "goal: Working updated (unconfirmed)");
