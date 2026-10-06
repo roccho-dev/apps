@@ -62,8 +62,17 @@ the page's recent conversation in the bounded plain shape ordinary Send uses (at
 most five earlier utterances of at most 200 characters; effects bounded like
 architecture utterances), with no per-entry reference. `scope` is null, or the
 latest `{source, focus}` the session remembered from a source-reopened architecture
-focus, copied and frozen for the whole Goal. With a scope, only arrows touching a
-focused part are offered (either direction, any other legal end), and the server
+focus, copied and frozen for the whole Goal. With a scope, every iteration first
+asks the page's own architecture intent, built for the latest session as Send
+builds it (no frame or held placement), which one arrow to draw. Its kind, head
+and questions must be the latest Working's own and its add-edge source and
+target confident; otherwise the Goal stops and adopts nothing further, keeping
+any earlier step of its group. The Goal
+request then offers at most that one legal arrow, touching a focused part, and
+shows only a bounded local view: the root, the two ends with their ancestors,
+and every relation between the two ends. Legality, proof and adoption still use
+the whole Working. Resolve and Goal requests share the one bound of eight, and a
+scoped Goal without a resolver asks nothing. The server
 matches the scope against the served source, refusing a mismatched source, an
 unknown part or an arrow outside it (422; 503 without the architecture). No source
 text is sent with a Goal and it claims no understanding of the code. Without a
@@ -121,22 +130,28 @@ are not heldout cases. Sealed fresh Goals come only after production freeze.
 
 `goal-source` composes one page: the whole account, the page code in focus,
 then a Goal scoped by that remembered focus. In fixture mode the controlled
-answer takes, in request order, the first offered arrow touching the focus
-whose ends have no relation in either direction, and the utterance asks for a
+target is the first sorted pair touching the focus whose ends have no relation
+in either direction; every controlled resolve names it and the controlled Goal
+answer picks it when offered. The utterance asks for a
 trial arrow (画面のコードにつながる試案の矢印): a hypothesis on Working, never a
 source fact and never a claim that the code was understood. In live mode the
 existing finite `--goal-case` is required: `regions` empty and one flow whose
 `baselineRegion` ends are served manifest entity IDs, resolved to the actual
 pre-Goal Working; no crafted route or fixture answer is installed. Fixture
 goal-source takes no evaluator data and the order must be normal. An unknown,
-already related or unoffered target is INELIGIBLE, never success; malformed
-input is refused before the browser starts. A Goal request keeps distinct
+already related or out-of-focus target is INELIGIBLE, never success. Structural
+eligibility (two drawn non-group parts, touching the focus, with no relation
+either way on the full pre-Goal Working) and offering (the Goal request
+actually offered it) are graded separately: an eligible target the Goal never
+offered is NOT_MET, not INELIGIBLE. Malformed input is refused before the
+browser starts. A Goal request keeps distinct
 existing relations that share a directed pair (the page code both imports and
 calls the log and the judgment adapter); only edge IDs are unique, and a
 candidate may still never repeat an existing directed pair.
 
 Positive proof needs the remembered source focus and plain conversation on the
-wire, at most 254 offered arrows each touching the focus, exactly one new
+wire, at least one offered arrow (a scoped Goal offers at most the one resolved
+arrow), each touching the focus, exactly one new
 expected arrow with every old non-layout record kept, and the actual painted
 arrow at its named ends by the existing painted observer, with the reverse and
 a disconnected visible part as negatives; the scene relation list is projection
@@ -145,13 +160,25 @@ actual root. PASS needs one actual frame on which the matched stroke start and
 marker tip lie inside the zero-margin iframe viewport and both end shapes
 intersect it, with that frame negatives; geometric connection alone is not a
 viewport result. The overview is tried first, then the existing camera on the
-from end, then on the to end, with records and storage unchanged; label
-visibility is recorded only. In the current fixture the arrow joins
-`artifact-jsonl` to `web-app-mjs`. The overview paints neither end; on the
-`artifact-jsonl` camera (626x434) the stroke runs from (372.8, 263.5) to the
-tip (579.0, 423.6), the `artifact-jsonl` shape is [223, 171, 180, 92] and the
-`web-app-mjs` shape [549, 424, 180, 92] is partly clipped at the frame edge and
-its label lies outside. Whole-Goal Undo, conversation clear with Working and
+from end, then on the to end, then the camera on the new arrow itself,
+offered by exactly one option (the arrow the camera already shows while it
+stands, else the latest unapplied single-arrow add-edge step; any other count
+is NOT_MET with no substitute): a view choice only, never
+saved, sent or judged, fitting the union of the two end boxes into the pane at
+a scale of at most one (never magnified). Records and storage stay unchanged, the
+paint predicate and its negatives are the same on every frame, and label
+visibility is recorded only. Measured at cb3b199 with controlled fixture
+answers and no live provider call: focus `dev-architecture-config-v1-json`,
+`src-config-mjs`, `web-app-mjs`, `web-data-config-v1-json`; target
+`artifact-jsonl` to `dev-architecture-config-v1-json`; intent, Goal, intent:
+three requests, two resolves, one offered candidate, then
+`no-executable-delta`. The overview and both end cameras do not hold the arrow.
+On the arrow camera (626x434) exactly one stroke matches, from (200.0, 51.0) to
+the tip (384.9, 372.6), with end shapes [135.6, 0, 98.9, 50.5] and
+[314.6, 373.6, 175.8, 60.4] both in view; the reverse and the arrow to
+`functions-api-judge-mjs` do not connect. This is controlled mechanics: real
+selection, code understanding and label readability are NOT_PROVEN.
+Whole-Goal Undo, conversation clear with Working and
 Accepted unchanged, and the same utterance overflowing before any provider
 request follow.
 
@@ -237,7 +264,7 @@ The small chain is DataBundle/Working → local executable ADD/Connect catalogue
 
 The same packed boundary adds mandatory fixture-positive and first-Goal protocol STOP controls; pure tests cover wrong-parent retention, closed request rejection, cancellation, stale/unknown effects and partial-group Undo. These controls are not real Jev. Existing natural/camera, contextual-reverse, binding, shape and RED guards remain mandatory.
 
-The historical PR54 registration budget is 100 actual checker or independent UI trials, not 100 GitHub workflow dispatches or a total of 100 Jev calls. This choice-source change does not authorize new actual trials. Count every preparation and Goal application/upstream POST, including ordinary Send preparation fanout; setup-at-most-one and a physical total-call cap are not required. Each Goal allows at most eight requests now with one Choice question per request. The sole-fetch binding proves one upstream POST per application request, not internal model execution counts. Fixture preparation remains exactly one response; live preparation requires all observed responses to be complete valid 200 answers and the actual container-example groups/helpers to match the public bundle before Goal starts. Product elapsed-time STOP is 180 seconds; supervisor and cleanup budgets are separate. Three serial cases use the same admitted head: W Goal plus whole-Goal Undo; P independent Goal success graph through explicit local Apply/readback/reload without Undo; and W fresh contextual-reverse. The last is a new-head measurement, never a rescore of PR51's frozen negative receipt. First UNKNOWN, evidence loss or unknown cleanup stops every remaining case. Known failure stays recorded. Packed controls make no live calls; exact head/data/input/collector/ownership admission precedes actual execution. Formal publication and external Accepted remain NOT_PROVEN.
+The historical PR54 registration budget is 100 actual checker or independent UI trials, not 100 GitHub workflow dispatches or a total of 100 Jev calls. This choice-source change does not authorize new actual trials. Count every preparation and Goal application/upstream POST, including ordinary Send preparation fanout; setup-at-most-one and a physical total-call cap are not required. Each Goal allows at most eight requests now, a scoped Goal's intent resolves included, with one Choice question per Goal request. The sole-fetch binding proves one upstream POST per application request, not internal model execution counts. Fixture preparation remains exactly one response; live preparation requires all observed responses to be complete valid 200 answers and the actual container-example groups/helpers to match the public bundle before Goal starts. Product elapsed-time STOP is 180 seconds; supervisor and cleanup budgets are separate. Three serial cases use the same admitted head: W Goal plus whole-Goal Undo; P independent Goal success graph through explicit local Apply/readback/reload without Undo; and W fresh contextual-reverse. The last is a new-head measurement, never a rescore of PR51's frozen negative receipt. First UNKNOWN, evidence loss or unknown cleanup stops every remaining case. Known failure stays recorded. Packed controls make no live calls; exact head/data/input/collector/ownership admission precedes actual execution. Formal publication and external Accepted remain NOT_PROVEN.
 
 `voice-ui-acceptance-runtime` is a separate pinned Nix closure containing Node, Playwright Core and its matching full Chromium. It executes the artifact-owned script supplied as its first argument, with no package installation, source checkout or app rebuild. The app/site artifact does not include the browser.
 
