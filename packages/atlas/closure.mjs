@@ -85,7 +85,7 @@ function parse(line, at) {
 }
 
 function normalize(row, at) {
-  demand(object(row) && Object.hasOwn(FIELDS, row.kind), `${at}: unknown record kind`);
+  demand(object(row) && typeof row.kind === 'string' && Object.hasOwn(FIELDS, row.kind), `${at}: unknown record kind`);
   keys(row, [...COMMON, ...FIELDS[row.kind]], at);
   id(row.id, `${at}.id`);
   text(row.label, `${at}.label`);
