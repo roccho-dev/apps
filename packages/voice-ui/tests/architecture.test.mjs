@@ -17,14 +17,17 @@ import {
   locatedOf,
   planArchitecture,
   readManifest,
+  regionIdOf,
   routeOf,
   withArchitecture,
 } from "../src/architecture.mjs";
 import { readBundle } from "../src/bundle.mjs";
 import {
+  ACTION_ADD_EDGE,
   ACTION_ARCHITECTURE,
   ARCHITECTURE_INTENT_KIND,
   ARCHITECTURE_LOCATE_KIND,
+  GOAL_REQUEST_KIND,
   NONE,
   REQUEST_KIND,
   WHOLE,
@@ -38,12 +41,13 @@ import {
   relationSlot,
   relevantSlot,
   roleSlot,
+  slotsFor,
 } from "../src/contract.mjs";
 import { COMMIT_COMMITTED, MAP_ID, STATE_SCHEMA } from "../src/log.mjs";
 import { commitDocument } from "../src/document.mjs";
-import { legalLocalDeltas, requestFor } from "../src/turn.mjs";
+import { focusFor, legalLocalDeltas, requestFor } from "../src/turn.mjs";
 import { runGoal } from "../src/goal.mjs";
-import { createSession, proposeArchitecture, startNew } from "../src/session.mjs";
+import { createSession, draftForJudgment, proposeArchitecture, recentConversation, startNew } from "../src/session.mjs";
 
 const store = process.env.SEMANTIC_MAP;
 if (!store) throw new Error("SEMANTIC_MAP must point at the pinned semantic-map store path");
@@ -886,10 +890,12 @@ test("a Goal on this package's drawn snapshot without a focus is offered every p
 });
 
 // The same session as the page: a new map, the whole view, then a focus Jev
-// judged. Its reopened reference scopes the next Goal to arrows touching that
-// part - wrong directions and other ends included - and the arrow it adds is
+// judged. Its reopened reference scopes the next Goal: on each iteration the
+// page's own intent, built for the latest session, names the one arrow, which
+// is then offered alone in a bounded local view. The same core holds that
+// arrow legal either way round before the Goal, and the arrow the Goal adds is
 // saved as the person's, not the source's.
-test("a Goal after a source focus in the same session is scoped to it, asks, and saves its arrow as the person's", async t => {
+test("a Goal after a source focus in the same session resolves its one arrow, asks it, and saves it as the person's", async t => {
   const manifest = ownManifest();
   const bundle = readBundle(JSON.parse(fs.readFileSync(new URL("../web/data/bundle.v1.json", import.meta.url), "utf8")));
   let session = (await startNew(createSession({ accepted: null, stored: null }), { title: "map", protocol })).session;
@@ -902,28 +908,72 @@ test("a Goal after a source focus in the same session is scoped to it, asks, and
   await say(null, {}, "このコードの構成を見せて");
   await say("web-app-mjs", { [roleSlot("web-app-mjs", "persistence")]: YES }, "画面のコードの役割を詳しく見せて");
   const [from, to] = ["arch-web-app-mjs", "arch-ext-localstorage"];
+  const utterance = "さっき詳しく見た画面から localStorage へ矢印をつないで。他は変えない";
+  // Before any Goal, the core the Goal uses holds the arrow legal in both directions.
+  const regions = new Set([regionIdOf("web-app-mjs")]);
+  assert.deepEqual([...regions], [from]);
+  for (const [start, end] of [[from, to], [to, from]]) {
+    const direct = legalLocalDeltas(session.working, { bundle, protocol, reserved: session.issuedPartIds, selected: [], scope: regions,
+      pair: { from: start, to: end } });
+    assert.deepEqual(direct.candidates.map(candidate => [candidate.from, candidate.to]), [[start, end]], `${start} -> ${end} is legal before the Goal`);
+  }
+  // The page's own intent for the latest session, built as its intentFor builds
+  // it: nothing is saved yet, so nothing was last applied; no frame or held placement.
+  let resolved = null;
+  const resolveIntent = latest => {
+    const steps = draftForJudgment(latest);
+    const bound = withArchitecture(requestFor({ working: latest.working, utterance, bundle,
+      layout: protocol.layoutBoundsFor(latest.working.records, { pattern: protocol.GRAPH_PATTERN }), offeredFrame: null,
+      draft: steps, focus: focusFor({ draft: steps, lastApplied: [] }), pending: null, recent: recentConversation(latest).recent }), manifest);
+    resolved = { turn: bound.turn, request: { ...bound.request, state: { ...bound.request.state,
+      context: { recent: recentConversation(latest, { architecture: true }).recent } } } };
+    return resolved;
+  };
   const requests = [];
   const attempts = [];
-  const result = await runGoal({ utterance: "さっき詳しく見た画面から localStorage へ矢印をつないで。他は変えない", bundle, protocol,
+  // An assertion failing inside the judgment port is kept and reported, never
+  // left as a nameless thrown call.
+  const askErrors = [];
+  const result = await runGoal({ utterance, bundle, protocol, resolveIntent,
     current: () => session, cancelled: () => false, adopt: async next => { session = next; },
     ask: async request => {
-      requests.push(request);
-      // A judgment port that tries to rewrite the held scope must not succeed.
-      for (const mutate of [() => request.state.scope.focus.push("src-log-mjs"), () => { request.state.scope.source.commit = "f".repeat(40); }]) {
-        try { mutate(); attempts.push("mutated"); } catch (error) { attempts.push(error?.name === "TypeError" ? "refused" : "other"); }
+      try {
+        requests.push(request);
+        if (request.kind === ARCHITECTURE_INTENT_KIND) {
+          assert.equal(request, resolved.request, "the intent asked is the one just resolved");
+          assert.deepEqual(resolved.turn.slots, slotsFor(request.state));
+          return { kind: "answered", decision: { answers: answerFor(slotsFor(request.state), { action: ACTION_ADD_EDGE, source: from, target: to }) } };
+        }
+        assert.equal(request.kind, GOAL_REQUEST_KIND);
+        // The held scope is present, frozen and exactly the focus before a
+        // judgment port tries to rewrite it, which must not succeed.
+        const { scope } = request.state;
+        assert.ok(scope !== null && typeof scope === "object", "the Goal request carries its held scope");
+        assert.ok(Object.isFrozen(scope) && Object.isFrozen(scope.source) && Object.isFrozen(scope.focus), "frozen through and through");
+        assert.deepEqual(scope, { source: manifest.source, focus: ["web-app-mjs"] });
+        for (const mutate of [() => request.state.scope.focus.push("src-log-mjs"), () => { request.state.scope.source.commit = "f".repeat(40); }]) {
+          try { mutate(); attempts.push("mutated"); } catch (error) { attempts.push(error?.name === "TypeError" ? "refused" : "other"); }
+        }
+        const picked = request.state.candidates.find(candidate => candidate.action === ACTION_ADD_EDGE && candidate.from === from && candidate.to === to);
+        assert.ok(picked, "the resolved arrow is offered");
+        return { kind: "answered", decision: { answers: { delta: choice(picked.id) } } };
+      } catch (error) {
+        askErrors.push(error);
+        throw error;
       }
-      const choice = requests.length === 1
-        ? request.state.candidates.find(candidate => candidate.action === "add-edge" && candidate.from === from && candidate.to === to).id : NONE;
-      return { kind: "answered", decision: { answers: { delta: { type: "choice", choice, confidence: 0.9 } } } };
     } });
-  const edges = requests[0].state.candidates.filter(candidate => candidate.action === "add-edge");
-  assert.deepEqual(requests[0].state.scope, { source: manifest.source, focus: ["web-app-mjs"] });
-  assert.equal(edges.length, 60);
-  assert.equal(edges.every(edge => edge.from === from || edge.to === from), true, "every offered arrow touches the focus");
-  assert.ok(edges.some(edge => edge.from === to && edge.to === from), "the wrong direction stays offered");
-  assert.deepEqual([result.reason, result.requests], ["none", 2]);
-  assert.deepEqual(attempts, ["refused", "refused", "refused", "refused"], "the held scope is frozen through and through");
-  assert.deepEqual(requests[1].state.scope, { source: manifest.source, focus: ["web-app-mjs"] }, "the next request keeps the same scope");
+  assert.deepEqual(askErrors, [], "every request met the fixture's expectations");
+  assert.deepEqual(result.trace.map(entry => entry.failure), [null, null, null]);
+  assert.deepEqual(requests.map(request => request.kind), [ARCHITECTURE_INTENT_KIND, GOAL_REQUEST_KIND, ARCHITECTURE_INTENT_KIND],
+    "resolve, the one Goal request, then a resolve that finds the arrow already drawn");
+  assert.deepEqual([result.reason, result.requests], ["no-executable-delta", 3]);
+  const goals = requests.filter(request => request.kind === GOAL_REQUEST_KIND);
+  assert.equal(goals.length, 1);
+  const [goal] = goals;
+  assert.deepEqual(goal.state.candidates.map(candidate => [candidate.action, candidate.from, candidate.to]), [[ACTION_ADD_EDGE, from, to]],
+    "only the one resolved arrow is offered");
+  assert.deepEqual(goal.state.edges, [], "the bounded view shows only relations between its two ends, and there are none yet");
+  assert.deepEqual(attempts, ["refused", "refused"], "every attempt to rewrite the held scope was refused");
   assert.ok(session.working.records.some(record => record.type === "relation" && record.from === from && record.to === to));
   const values = new Map();
   const saved = await commitDocument({ graph: session.working, draft: session.draft, saved: null, expected: null, key: "document",
@@ -933,5 +983,5 @@ test("a Goal after a source focus in the same session is scoped to it, asks, and
   const claims = saved.stored.trim().split("\n").map(line => JSON.parse(line)).flatMap(line => line.claims ?? []);
   assert.deepEqual(claims.filter(claim => claim.record.type === "relation" && claim.record.id === `voice-${from}-to-${to}`).map(claim => claim.origin),
     ["user-asserted"]);
-  t.diagnostic(`scoped Goal: ${edges.length} Connect candidates touching ${from}`);
+  t.diagnostic(`scoped Goal: ${requests.length} requests, ${goal.state.candidates.length} Connect candidate, ${goal.state.graph.length} regions shown`);
 });
