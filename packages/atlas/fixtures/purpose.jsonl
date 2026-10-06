@@ -1,0 +1,6 @@
+{"authority":false,"schema":"atlas.purpose-closure/1"}
+{"id":"purpose.company","kind":"purpose","label":"例：所有者に依存せず運用・譲渡できる会社","parents":[],"sources":[{"sourceDigest":"sha256:5fa8b664596caef29449c089752daa724be8fb9e2fca1a0f527d3e6c154202f8","sourceRef":"fixture:purpose@1"}]}
+{"id":"purpose.reuse","kind":"purpose","label":"例：小さなUI部品で製品を増やす","parents":["purpose.company"],"sources":[{"sourceDigest":"sha256:5fa8b664596caef29449c089752daa724be8fb9e2fca1a0f527d3e6c154202f8","sourceRef":"fixture:purpose@1"}]}
+{"id":"purpose.operations","kind":"purpose","label":"例：現在地と残件を証拠から引き継げる","parents":["purpose.company"],"sources":[{"sourceDigest":"sha256:5fa8b664596caef29449c089752daa724be8fb9e2fca1a0f527d3e6c154202f8","sourceRef":"fixture:purpose@1"}]}
+{"id":"ideal.extraction","kind":"ideal","label":"UIとapplicationの境界","purposes":["purpose.reuse","purpose.operations"],"sources":[{"sourceDigest":"sha256:5fa8b664596caef29449c089752daa724be8fb9e2fca1a0f527d3e6c154202f8","sourceRef":"fixture:purpose@1"}],"value":"同じUIをappsとexampleから利用できる"}
+{"id":"ideal.source","kind":"ideal","label":"外部入力の接続","purposes":["purpose.operations"],"sources":[{"sourceDigest":"sha256:5fa8b664596caef29449c089752daa724be8fb9e2fca1a0f527d3e6c154202f8","sourceRef":"fixture:purpose@1"}],"value":"出所を辿れる現況と目的が同じ契約で読める"}
