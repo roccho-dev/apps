@@ -4,7 +4,8 @@ import path from "node:path";
 import { pathToFileURL } from "node:url";
 import test from "node:test";
 import { readBundle } from "../src/bundle.mjs";
-import { ACTION_ADD_EDGE, ARCHITECTURE_INTENT_KIND, GOAL_REQUEST_KIND, NONE, isRequest, slotsFor } from "../src/contract.mjs";
+import { ACTION_ADD_EDGE, ACTION_REMOVE_EDGE, ARCHITECTURE_INTENT_KIND, GOAL_REQUEST_KIND, NONE, REQUEST_KIND, isRequest,
+  slotsFor } from "../src/contract.mjs";
 import { regionIdOf, withArchitecture } from "../src/architecture.mjs";
 import { runGoal } from "../src/goal.mjs";
 import { createSession, undo, draftUsed, proposeArchitecture, draftForJudgment, recentConversation } from "../src/session.mjs";
@@ -305,6 +306,197 @@ test("a scoped Goal without an intent resolver asks nothing rather than the whol
     adopt: async () => { throw new Error("unexpected adoption"); }, ask: async sent => { calls += 1; return answer(sent, NONE); } });
   assert.equal(result.reason, "invalid-goal-request");
   assert.equal(calls, 0); assert.equal(result.requests, 0); assert.deepEqual(result.selected, []);
+});
+
+test("an intent-resolved pair offers only that one legal arrow, and no addition", async () => {
+  const { session, id, reference } = await sourced(11);
+  const options = { bundle, protocol, reserved: session.issuedPartIds, selected: [], scope: new Set(reference.focus.map(regionIdOf)) };
+  const held = legalLocalDeltas(session.working, { ...options, pair: { from: id(0), to: id(20) } });
+  assert.deepEqual(held.candidates.map(({ id: key, from, to, part }) => ({ key, from, to, part })),
+    [{ key: "delta-1", from: id(0), to: id(20), part: undefined }]);
+  assert.equal(held.readSet, legalLocalDeltas(session.working, options).readSet, "the same read set as the whole catalogue");
+  for (const [label, pair] of [
+    ["root, an ancestor", { from: "root", to: id(20) }], ["group, an ancestor", { from: id(0), to: "container" }], ["unknown", { from: id(0), to: "arch-missing" }],
+    ["self", { from: id(0), to: id(0) }], ["existing", { from: id(20), to: id(0) }], ["outside the focus", { from: id(30), to: id(40) }],
+  ]) {
+    const none = legalLocalDeltas(session.working, { ...options, pair });
+    assert.deepEqual(none.candidates, [], label); assert.equal(none.readSet, held.readSet, label);
+  }
+  assert.equal(legalLocalDeltas(session.working, { ...options, scope: null, pair: { from: id(30), to: id(40) } }).candidates.length, 1);
+  // A held pair is proved only against the same pair; another pair is stale, never silently replanned.
+  const prove = pair => proveLocalDelta({ working: session.working, held, candidateId: "delta-1", confidence: 1, ...options, pair });
+  assert.equal((await prove({ from: id(0), to: id(20) })).outcome, "step");
+  assert.equal((await prove({ from: id(0), to: id(21) })).reason, "stale-addition");
+});
+
+test("a scoped Goal asks nothing when its resolver throws or builds a request or turn that is not the latest Working's own", async () => {
+  const fixture = await sourced(11);
+  const own = intentFor(fixture.manifest, "connect them");
+  const cyclic = latest => { const built = own(latest); const slots = { ...built.turn.slots }; slots.self = slots;
+    return { turn: { ...built.turn, slots }, request: built.request }; };
+  for (const [label, resolveIntent] of [
+    ["throws", () => { throw new Error("builder failed"); }],
+    ["nothing", () => null],
+    ["a plain kind", latest => { const built = own(latest); return { turn: built.turn, request: { ...built.request, kind: REQUEST_KIND } }; }],
+    ["not a request", latest => { const built = own(latest);
+      return { turn: built.turn, request: { ...built.request, state: { ...built.request.state, utterance: " " } } }; }],
+    ["another head", latest => { const built = own(latest); return { turn: { ...built.turn, head: "another-head" }, request: built.request }; }],
+    ["no turn", latest => ({ request: own(latest).request })],
+    ["other slots", latest => { const built = own(latest); return { turn: { ...built.turn, slots: { action: built.turn.slots.action } }, request: built.request }; }],
+    ["cyclic slots", cyclic],
+  ]) {
+    let calls = 0;
+    const result = await runGoal({ utterance: "connect them", bundle, protocol, current: () => fixture.session, cancelled: () => false,
+      adopt: async () => { throw new Error("unexpected adoption"); }, resolveIntent,
+      ask: async () => { calls += 1; throw new Error("unexpected request"); } });
+    assert.equal(result.reason, "invalid-goal-request", label);
+    assert.equal(result.requests, 0, label); assert.equal(calls, 0, label); assert.deepEqual(result.selected, [], label);
+  }
+});
+
+test("a scoped Goal counts a thrown, failed, unoffered or non-executable resolve and asks no Goal request", async () => {
+  const fixture = await sourced(11); const { id } = fixture;
+  for (const [label, respond, reason] of [
+    ["thrown", () => { throw new Error("not public"); }, "judge-unknown"],
+    ["failed", () => ({ kind: "failed", reason: "judge-contract" }), "judge-failed"],
+    ["malformed", () => ({ kind: "answered" }), "judge-failed"],
+    ["a group is never an offered end", request => intentAnswer(request, ACTION_ADD_EDGE, id(0), "container"), "judge-failed"],
+    ["another action", request => intentAnswer(request, ACTION_REMOVE_EDGE, id(0), id(20)), "none"],
+    ["no end", request => intentAnswer(request, ACTION_ADD_EDGE, id(0), NONE), "none"],
+    ["self", request => intentAnswer(request, ACTION_ADD_EDGE, id(0), id(0)), "no-executable-delta"],
+    ["existing", request => intentAnswer(request, ACTION_ADD_EDGE, id(20), id(0)), "no-executable-delta"],
+  ]) {
+    const asked = [];
+    const result = await runGoal({ utterance: "connect them", bundle, protocol, current: () => fixture.session, cancelled: () => false,
+      adopt: async () => { throw new Error("unexpected adoption"); }, resolveIntent: intentFor(fixture.manifest, "connect them"),
+      ask: async request => { asked.push(request); return respond(request); } });
+    assert.equal(result.reason, reason, label); assert.equal(result.requests, 1, label);
+    assert.deepEqual(asked.map(request => request.kind), [ARCHITECTURE_INTENT_KIND], label);
+    assert.deepEqual(result.selected, [], label);
+  }
+});
+
+test("a scoped Goal sends nothing once cancelled, stale or out of time, before its resolve or between it and the Goal request", async () => {
+  const fixture = await sourced(11); const { id } = fixture;
+  for (const reason of ["cancelled", "stale-goal", "budget-time"]) {
+    let session = fixture.session, cancelled = false, late = false; const asked = [];
+    const result = await runGoal({ utterance: "connect them", bundle, protocol, current: () => session, cancelled: () => cancelled,
+      now: () => (late ? 180000 : 0), adopt: async () => { throw new Error("unexpected adoption"); },
+      resolveIntent: intentFor(fixture.manifest, "connect them"),
+      ask: async request => {
+        asked.push(request);
+        if (reason === "cancelled") cancelled = true;
+        if (reason === "stale-goal") session = { ...session };
+        if (reason === "budget-time") late = true;
+        return intentAnswer(request, ACTION_ADD_EDGE, id(0), id(20));
+      } });
+    assert.equal(result.reason, reason); assert.equal(result.requests, 1);
+    assert.deepEqual(asked.map(request => request.kind), [ARCHITECTURE_INTENT_KIND]); assert.deepEqual(result.selected, []);
+  }
+  // A resolver that changes the Goal's state while building its request: nothing is sent.
+  for (const reason of ["cancelled", "stale-goal", "budget-time"]) {
+    let session = fixture.session, cancelled = false, late = false, calls = 0;
+    const own = intentFor(fixture.manifest, "connect them");
+    const result = await runGoal({ utterance: "connect them", bundle, protocol, current: () => session, cancelled: () => cancelled,
+      now: () => (late ? 180000 : 0), adopt: async () => { throw new Error("unexpected adoption"); },
+      resolveIntent: latest => { const built = own(latest);
+        if (reason === "cancelled") cancelled = true;
+        if (reason === "stale-goal") session = { ...session };
+        if (reason === "budget-time") late = true;
+        return built; },
+      ask: async () => { calls += 1; throw new Error("unexpected request"); } });
+    assert.equal(result.reason, reason, `${reason} while building`); assert.equal(result.requests, 0); assert.equal(calls, 0);
+    assert.deepEqual(result.selected, []);
+  }
+});
+
+test("a Goal answer of none or a weak one after a resolve stops at two counted requests with nothing adopted", async () => {
+  const fixture = await sourced(11); const { id } = fixture;
+  for (const [label, none, confidence, reason] of [["none", true, 1, "none"], ["weak", false, 0.49, "not-confident"]]) {
+    const asked = [];
+    const result = await runGoal({ utterance: "connect them", bundle, protocol, current: () => fixture.session, cancelled: () => false,
+      adopt: async () => { throw new Error("unexpected adoption"); }, resolveIntent: intentFor(fixture.manifest, "connect them"),
+      ask: async request => {
+        asked.push(request);
+        return request.kind === ARCHITECTURE_INTENT_KIND ? intentAnswer(request, ACTION_ADD_EDGE, id(0), id(20))
+          : { kind: "answered", decision: { answers: { delta: { type: "choice", choice: none ? NONE : request.state.candidates[0].id, confidence } } } };
+      } });
+    assert.equal(result.reason, reason, label); assert.equal(result.requests, 2, label);
+    assert.deepEqual(asked.map(request => request.kind), [ARCHITECTURE_INTENT_KIND, GOAL_REQUEST_KIND], label);
+  }
+});
+
+test("resolve and Goal requests share one bound of eight, never a ninth", async () => {
+  const fixture = await sourced(11); const { id } = fixture;
+  let session = fixture.session; const asked = [];
+  const result = await runGoal({ utterance: "connect them", bundle, protocol, current: () => session, cancelled: () => false,
+    adopt: async next => { session = next; }, resolveIntent: intentFor(fixture.manifest, "connect them"),
+    ask: async request => {
+      asked.push(request);
+      if (request.kind !== ARCHITECTURE_INTENT_KIND) {
+        return { kind: "answered", decision: { answers: { delta: { type: "choice", choice: request.state.candidates[0].id, confidence: 1 } } } };
+      }
+      return intentAnswer(request, ACTION_ADD_EDGE, id(0), id(19 + asked.filter(item => item.kind === ARCHITECTURE_INTENT_KIND).length));
+    } });
+  assert.equal(result.reason, "budget-requests"); assert.equal(result.requests, 8); assert.equal(asked.length, 8);
+  assert.deepEqual(asked.map(request => request.kind), [1, 2, 3, 4].flatMap(() => [ARCHITECTURE_INTENT_KIND, GOAL_REQUEST_KIND]));
+  const added = session.working.records.filter(record => record.type === "relation"
+    && !fixture.session.working.records.some(old => old.id === record.id));
+  assert.deepEqual(added.map(({ from, to }) => [from, to]), [20, 21, 22, 23].map(index => [id(0), id(index)]));
+  const reverted = await undo(session, { verifyDecisionLog: protocol.verifyDecisionLog });
+  assert.deepEqual(reverted.working.records, fixture.session.working.records);
+});
+
+// Three drawn parts, two of them joined one way by `count` distinct typed relations:
+// the arrow the other way is legal, and its bounded view carries all of them.
+const crowded = async count => {
+  const parts = ["part-00", "part-01", "part-02"];
+  const source = Object.freeze({ handle: "fixture", commit: "0".repeat(40) });
+  const graph = await protocol.createDecisionLog([
+    { type: "meta", schema: STATE_SCHEMA, root: "root", title: "goal crowded fixture" },
+    { type: "region", id: "root", parent: null, label: "fixture", kind: "boundary", bounds: [0, 0, 900, 400], summary: "" },
+    { type: "region", id: "container", parent: "root", label: "Source", kind: "group", bounds: [0, 0, 700, 200], summary: "" },
+    ...parts.map((key, index) => ({ type: "region", id: regionIdOf(key), parent: "container", label: `src/${key}.mjs`,
+      kind: "step", bounds: [20 + index * 160, 20, 140, 64], summary: "" })),
+    ...Array.from({ length: count }, (_, index) => ({ type: "relation", id: `rel-back-${index}`,
+      from: regionIdOf(parts[1]), to: regionIdOf(parts[0]), kind: `typed-${index}`, label: "" })),
+  ], MAP_ID);
+  const reference = Object.freeze({ source, focus: Object.freeze([parts[0]]) });
+  const base = createSession({ accepted: graph, stored: graph.log });
+  return { id: index => regionIdOf(parts[index]),
+    manifest: Object.freeze({ status: "available", source, entities: Object.freeze(parts.map(key => Object.freeze({ id: key, label: `src/${key}.mjs` }))) }),
+    session: Object.freeze({ ...base, nextSeq: 2, conversation: Object.freeze([Object.freeze({ seq: 1, source: "typed",
+      text: "utterance 1", outcome: "no-change", reference })]) }) };
+};
+
+test("a resolved pair's bounded view is asked at 64 relations and stops after its one resolve at 65, never cropped", async () => {
+  for (const count of [64, 65]) {
+  const fixture = await crowded(count); const { id } = fixture;
+  assert.equal(fixture.session.working.records.filter(record => record.type === "relation"
+    && record.from === id(1) && record.to === id(0)).length, count, "every relation joins the resolved pair");
+  const intentOf = intentFor(fixture.manifest, "connect them");
+  intentHolds(intentOf(fixture.session), id(0), id(1));
+  // Not a fixture artifact: the valid intent carries every relation within its own bound of 128; only the Goal view's 64 can be exceeded.
+  assert.equal(intentOf(fixture.session).request.state.graph.edges.length, count);
+  assert.deepEqual(legalLocalDeltas(fixture.session.working, { bundle, protocol, scope: new Set([id(0)]), pair: { from: id(0), to: id(1) } })
+    .candidates.map(({ from, to }) => [from, to]), [[id(0), id(1)]], "the arrow the other way is legal");
+  const asked = [];
+  const result = await runGoal({ utterance: "connect them", bundle, protocol, current: () => fixture.session, cancelled: () => false,
+    adopt: async () => { throw new Error("unexpected adoption"); }, resolveIntent: intentOf,
+    ask: async request => { asked.push(request); return request.kind === ARCHITECTURE_INTENT_KIND
+      ? intentAnswer(request, ACTION_ADD_EDGE, id(0), id(1))
+      : { kind: "answered", decision: { answers: { delta: { type: "choice", choice: NONE, confidence: 1 } } } }; } });
+  if (count === 64) {
+    assert.equal(result.reason, "none"); assert.equal(result.requests, 2);
+    assert.deepEqual(asked.map(request => request.kind), [ARCHITECTURE_INTENT_KIND, GOAL_REQUEST_KIND]);
+    assert.equal(isRequest(asked[1]), true); assert.equal(asked[1].state.edges.length, 64);
+    assert.deepEqual(asked[1].state.candidates.map(({ from, to }) => [from, to]), [[id(0), id(1)]]);
+  } else {
+    assert.equal(result.reason, "invalid-goal-request"); assert.equal(result.requests, 1);
+    assert.deepEqual(asked.map(request => request.kind), [ARCHITECTURE_INTENT_KIND]);
+  }
+  assert.deepEqual(result.selected, []);
+  }
 });
 
 test("legal wrong parent is retained; independent expected graph rejects it rather than repairing it", async () => {

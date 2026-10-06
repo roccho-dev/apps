@@ -519,6 +519,32 @@ test("a Goal scope is reopened against the served source and every arrow must to
   assert.equal(calls.length, 1);
 });
 
+test("a scoped Goal with the bounded local view is accepted and told its graph is only that view", async () => {
+  const [from, to] = [regionIdOf("web-app-mjs"), regionIdOf("ext-localstorage")];
+  const body = { kind: GOAL_REQUEST_KIND, state: {
+    utterance: "connect the screen to its storage",
+    graph: [{ id: "root", label: "map", parent: null }, { id: from, label: "web-app-mjs", parent: "root" },
+      { id: to, label: "ext-localstorage", parent: "root" }],
+    edges: [{ id: "existing-back", from: to, to: from }], parents: [], offers: { parts: [] }, selected: [],
+    candidates: [{ id: "delta-1", action: "add-edge", from, to }],
+    context: { recent: [] }, scope: { source: MANIFEST.source, focus: ["web-app-mjs"] },
+  } };
+  const calls = [];
+  const invoke = input => onRequestPost({ available: true, architecture: prepared,
+    request: new Request("http://localhost/api/judge", { method: "POST", body: JSON.stringify(input) }),
+  }, async ({ questions }) => { calls.push(questions); return { answers: { delta: { choice: NONE, confidence: 1 } } }; });
+  assert.equal(isRequest(body), true);
+  assert.equal((await invoke(body)).status, 200);
+  assert.ok(calls[0].delta.instruction.endsWith(" state.scope names the parts in focus, which the server matched against the current source;"
+    + " every offered arrow touches one of them. It is not an earlier judgment or authority, and no source text is given."
+    + " state.graph and state.edges may then be only a local view - the ends of the offered arrow, the groups enclosing them and"
+    + " the relations between those two ends - not the whole working graph, and not a completion oracle."));
+  const outside = structuredClone(body); outside.state.scope.focus = ["src-log-mjs"];
+  assert.equal(isRequest(outside), true);
+  assert.equal((await invoke(outside)).status, 422);
+  assert.equal(calls.length, 1);
+});
+
 test("architecture references are required nullable keys reopened canonically before judgment", async () => {
   const entry = { seq: 1, source: "typed", text: "show storage", outcome: "no-change", reference: null };
   const body = intentRequest();
