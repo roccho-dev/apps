@@ -206,29 +206,29 @@ function judgeQuestions(section, slots) {
 // A locate frame's one question, judged from its part's own text - the files
 // it opens whole, and single lines of other files that name it - which the
 // question names by path, since the provider never sees the question's name.
-// For a file: whether its own text does or declares what the utterance is
-// about. For a part outside the source: whether the shown code uses it for
-// that. The utterance need not name the part; the options say where the line
-// falls.
+// For a file: whether the utterance asks about that file itself, not a part
+// that only supports, serves or is used by what it asks about. For a part
+// outside the source: the same, as the shown code uses it. The utterance need
+// not name the part; the options say where the line falls.
 function locateQuestion(entity, evidence, slots) {
   const file = entity.kind === "file";
   const lined = [...new Set(evidence.lines.map(line => line.path))];
   return {
     [relevantSlot(entity.id)]: {
       instruction: (file
-        ? `Does the original text of the file ${entity.label} implement behaviour, or declare data, that the current utterance asks about or refers to?`
-        : `Does the shown original code use ${entity.label}, which lies outside the source, for behaviour or data that the current utterance asks about or refers to?`)
+        ? `Is the file ${entity.label} itself one of the parts the current utterance asks to see or refers to - its own text being what is asked about - rather than a part that only supports, serves or is used by what is asked about?`
+        : `Is ${entity.label}, which lies outside the source, itself one of the parts the current utterance asks to see or refers to, as the shown original code uses it, rather than something the shown code only names or uses in support of what is asked about?`)
         + ` state.architecture.evidence.bodies holds ${evidence.bodies.map(body => body.path).join(", ")} whole`
         + (lined.length === 0 ? "." : `; state.architecture.evidence.lines holds single lines of ${lined.join(", ")}, each with its path and line number.`)
         + " Judge only from that text and the utterance."
         + CONTEXT_NOTE + REFERENCE_NOTE,
       options: criteria(slots[relevantSlot(entity.id)], key => (file
         ? key === YES
-          ? "its own text implements that behaviour or declares that data, whether or not the utterance names the file"
-          : "its text does not, even if it mentions or imports another part that does"
+          ? "the utterance asks about this file itself, whether or not it names it"
+          : "it only supports, serves or is used by what the utterance asks about, or only mentions or imports a part that does"
         : key === YES
-          ? "the shown code uses it for that behaviour or data, whether or not the utterance names it"
-          : "the shown code does not use it for that, or only names it")),
+          ? "the utterance asks about it itself, as the shown code uses it, whether or not it names it"
+          : "the shown code only names it, or uses it only in support of what the utterance asks about")),
     },
   };
 }
