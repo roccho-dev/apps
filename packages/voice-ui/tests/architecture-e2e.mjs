@@ -1358,7 +1358,7 @@ const sourceScenario = async () => {
     paint.met = paint.met && frames.every(frame => frame.recordsUnchanged !== false);
     sourceEvidence.paint = paint;
   }
-  need(sourceEvidence.paint?.met === true, "on one actual frame the painted arrow and both named ends are in view; its reverse and a disconnected part do not connect");
+  need(sourceEvidence.paint?.met === true, "on one actual frame the matched stroke start and marker tip lie in the zero-margin viewport and both associated end shapes intersect it; its reverse and a disconnected part do not connect");
   prerequisite(verdicts.length === 0, "source-goal");
   reached.push("source-undo");
   const beforeUndo = exchanges.length;

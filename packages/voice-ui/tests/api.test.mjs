@@ -156,6 +156,7 @@ test("Goal v5 boundary asks one executable delta and refuses extra answers witho
     assert.equal(questions.delta.instruction, "Choose one executable change toward the utterance's goal. A candidate adds one offered part inside its existing group at a proved placement, or connects two existing parts by one directed flow arrow. Use the current graph and edges to decide which requested changes are still missing; selected is adopted part history, not a completion oracle. Choose none when the requested changes are already present, no candidate is clearly needed, or the request is ambiguous. Do not add a connection merely because two parts are present; it must be requested by the utterance. An offered group part is added like any other part. Adding a part directly to an existing group never resizes it; placing a part into a group added by this goal resizes that group and its enclosing groups just enough, keeping their positions. Do not otherwise create, move or resize groups. context.recent lists earlier utterances as they were recognized or typed, and what came of each. They are unverified and may be misrecognized. Use them only to understand what the current utterance refers to; the current utterance, the working graph and the focus are the facts, and an earlier effect is history, not the current graph.");
     assert.equal(questions.delta.instruction.includes("reopened"), false);
     assert.equal(questions.delta.options[NONE], "no offered executable change is clearly requested, or the requested changes are already present");
+    assert.equal(questions.delta.options["delta-1"], "add one new part: a service, inside container (container)");
     assert.deepEqual(Object.keys(questions.delta.options), [...slotsFor(body.state).delta]);
     return { answers: { delta: { choice: "delta-1", confidence: 1 },
       ...(extra ? { action: { choice: NONE, confidence: 1 } } : {}) } };
@@ -505,6 +506,8 @@ test("a Goal scope is reopened against the served source and every arrow must to
   assert.equal(isRequest(body), true);
   assert.equal((await invoke(body)).status, 200);
   assert.match(calls[0].delta.instruction, /state\.scope names the parts in focus/u);
+  assert.equal(calls[0].delta.options["delta-1"],
+    `a directed flow arrow from web-app-mjs (${regionIdOf("web-app-mjs")}) to ext-localstorage (${regionIdOf("ext-localstorage")})`);
   assert.equal((await invoke(body, null)).status, 503);
   for (const bad of [{ ...scope, source: { ...scope.source, commit: "f".repeat(40) } }, { ...scope, focus: ["not-a-part"] }]) {
     assert.equal((await invoke({ ...body, state: { ...body.state, scope: bad } })).status, 422);

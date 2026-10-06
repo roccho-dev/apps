@@ -49,7 +49,7 @@ export function questionsFor(state, slots, context) {
           if (key === NONE) return "no offered executable change is clearly requested, or the requested changes are already present";
           const candidate = state.candidates.find(item => item.id === key);
           if (candidate.action === ACTION_ADD_EDGE) return `a directed flow arrow from ${labels.get(candidate.from)} (${candidate.from}) to ${labels.get(candidate.to)} (${candidate.to})`;
-          return `${purposes.get(candidate.part)} inside ${parents.get(candidate.parent).label} (${candidate.parent})`;
+          return `add one new part: ${purposes.get(candidate.part)}, inside ${parents.get(candidate.parent).label} (${candidate.parent})`;
         }),
       },
     };
