@@ -946,7 +946,7 @@ test("a smaller-only fit is an executable single choice without claiming model q
   const held = legalAdditions(graph, { bundle: offered, protocol });
   assert.deepEqual(held.candidates.map(({ part, parent }) => ({ part, parent })), [{ part: "api", parent: "container" }]);
   const result = await runGoal({ utterance: "OCIにAPIをひとつ追加して。他は変えない", bundle: offered, protocol, current: () => session,
-    cancelled: () => false, ask: async request => { calls += 1; assert.equal(Object.keys(request.kind === ARCHITECTURE_GOAL_INTENT_KIND ? architectureGoalSlotsFor(request.state) : slotsFor(request.state)).length, 1);
+    cancelled: () => false, ask: async request => { calls += 1; assert.equal(Object.keys(slotsFor(request.state)).length, 1);
       return answer(request, "api"); }, adopt: async next => { session = next; } });
   assert.equal(result.reason, "no-executable-delta"); assert.equal(result.requests, 1); assert.equal(calls, 1);
   assert.deepEqual(result.selected.map(item => [item.key, item.parent]), [["api", "container"]]);

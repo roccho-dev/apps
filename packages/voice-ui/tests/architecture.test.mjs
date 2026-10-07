@@ -26,6 +26,7 @@ import {
   ACTION_ADD_EDGE,
   ACTION_ARCHITECTURE,
   ARCHITECTURE_INTENT_KIND,
+  ARCHITECTURE_GOAL_INTENT_KIND,
   ARCHITECTURE_LOCATE_KIND,
   GOAL_REQUEST_KIND,
   NONE,
@@ -35,6 +36,7 @@ import {
   isJudgeRequest,
   isLocateRequest,
   isRequest,
+  architectureGoalSlotsFor,
   judgeFramesFor,
   judgeSlotsFor,
   locateSlotsFor,
@@ -939,10 +941,12 @@ test("a Goal after a source focus in the same session resolves its one arrow, as
     ask: async request => {
       try {
         requests.push(request);
-        if (request.kind === ARCHITECTURE_INTENT_KIND) {
-          assert.equal(request, resolved.request, "the intent asked is the one just resolved");
-          assert.deepEqual(resolved.turn.slots, slotsFor(request.state));
-          return { kind: "answered", decision: { answers: answerFor(slotsFor(request.state), { action: ACTION_ADD_EDGE, source: from, target: to }) } };
+        if (request.kind === ARCHITECTURE_GOAL_INTENT_KIND) {
+          const original = resolved.request.state;
+          assert.deepEqual(request.state, { utterance: original.utterance,
+            graph: { regions: original.graph.regions, edges: original.graph.edges },
+            context: original.context, architecture: original.architecture });
+          return { kind: "answered", decision: { answers: answerFor(architectureGoalSlotsFor(request.state), { action: ACTION_ADD_EDGE, source: from, target: to }) } };
         }
         assert.equal(request.kind, GOAL_REQUEST_KIND);
         // The held scope is present, frozen and exactly the focus before a
@@ -964,7 +968,7 @@ test("a Goal after a source focus in the same session resolves its one arrow, as
     } });
   assert.deepEqual(askErrors, [], "every request met the fixture's expectations");
   assert.deepEqual(result.trace.map(entry => entry.failure), [null, null, null]);
-  assert.deepEqual(requests.map(request => request.kind), [ARCHITECTURE_INTENT_KIND, GOAL_REQUEST_KIND, ARCHITECTURE_INTENT_KIND],
+  assert.deepEqual(requests.map(request => request.kind), [ARCHITECTURE_GOAL_INTENT_KIND, GOAL_REQUEST_KIND, ARCHITECTURE_GOAL_INTENT_KIND],
     "resolve, the one Goal request, then a resolve that finds the arrow already drawn");
   assert.deepEqual([result.reason, result.requests], ["no-executable-delta", 3]);
   const goals = requests.filter(request => request.kind === GOAL_REQUEST_KIND);
