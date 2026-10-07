@@ -564,6 +564,14 @@ test("architecture references are required nullable keys reopened canonically be
   assert.match(calls[0].questions.edge.instructions, /Do not replace an explicit endpoint or semantic qualification/u);
   assert.match(calls[0].questions.edge.instructions, /Match against all current edges/u);
   assert.match(calls[0].questions.edge.instructions, /does not identify one unique edge, answer none/u);
+  for (const [name, question] of Object.entries(calls[0].questions)) {
+    if (name === "edge") continue;
+    assert.doesNotMatch(question.instructions, /Match against all current edges|does not identify one unique edge, answer none/u,
+      `${name}: resolving a new endpoint or another intent is not selecting an existing edge`);
+    assert.match(question.instructions, /association.*unverified/u, name);
+    assert.match(question.instructions, /section's entities and candidate relationships/u, name);
+    assert.match(question.instructions, /Do not replace an explicit endpoint or semantic qualification/u, name);
+  }
   assert.deepEqual(Object.keys(calls[0].questions.edge.criteria).sort(), [NONE, "edge-one", "edge-two"].sort(),
     "the reference subset cannot prune globally explicit edges");
   for (const altered of [
@@ -1012,8 +1020,8 @@ test("a locate frame carries no code from the page; the server adds exactly that
       + shown), part);
     assert.match(question.instructions, /association.*unverified/u, part);
     assert.match(question.instructions, /Do not replace an explicit endpoint or semantic qualification/u, part);
-    assert.match(question.instructions, /Match against all current edges/u, part);
-    assert.match(question.instructions, /does not identify one unique edge, answer none/u, part);
+    assert.doesNotMatch(question.instructions, /Match against all current edges|does not identify one unique edge, answer none/u,
+      `${part}: locating a part from its text is not selecting an existing edge`);
     assert.deepEqual(question.criteria, entity.kind === "file"
       ? {
         [YES]: "the utterance asks about this file itself, whether or not it names it",

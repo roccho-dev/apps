@@ -30,8 +30,10 @@ const SCOPE_NOTE = " state.scope names the parts in focus, which the server matc
 const REFERENCE_NOTE = " An architecture conversation entry may carry reference: the server reopened its section from the current source."
   + " The historical association with that utterance is still unverified, not proof of its intent or of a unique edge."
   + " Use the earlier utterance together with that section's entities and candidate relationships to understand an anaphoric qualification."
-  + " Do not replace an explicit endpoint or semantic qualification with the latest analysis, camera selection or edit focus."
-  + " Match against all current edges; if the conversational qualification does not identify one unique edge, answer none.";
+  + " Do not replace an explicit endpoint or semantic qualification with the latest analysis, camera selection or edit focus.";
+// A reference can qualify a node, a code part or an existing edge. Only the
+// existing-edge question requires a unique match among current edges.
+const EDGE_REFERENCE_NOTE = " Match against all current edges; if the conversational qualification does not identify one unique edge, answer none.";
 
 // The questions for exactly the slots the request offers. Each option is a
 // key the request carries; the words around it are this Function's own, and
@@ -169,6 +171,7 @@ export function questionsFor(state, slots, context) {
   }
   for (const question of Object.values(questions)) question.instruction += CONTEXT_NOTE
     + (context.kind === ARCHITECTURE_INTENT_KIND ? REFERENCE_NOTE : "");
+  if (context.kind === ARCHITECTURE_INTENT_KIND && questions.edge) questions.edge.instruction += EDGE_REFERENCE_NOTE;
   return questions;
 }
 
