@@ -22,6 +22,10 @@ const ACTION_WORDS = {
 const CONTEXT_NOTE = " context.recent lists earlier utterances as they were recognized or typed, and what came of each."
   + " They are unverified and may be misrecognized. Use them only to understand what the current utterance refers to;"
   + " the current utterance, the working graph and the focus are the facts, and an earlier effect is history, not the current graph.";
+// Goal has its own read set: graph and edges, never an editing focus.
+const GOAL_CONTEXT_NOTE = " context.recent lists earlier utterances as they were recognized or typed, and what came of each."
+  + " They are unverified and may be misrecognized. Use them only to understand what the current utterance refers to;"
+  + " the current utterance, the current Working graph and edges are the facts, and an earlier effect is history, not the current graph.";
 // A Goal's scope is checked by the server, not taken from the page on trust.
 const SCOPE_NOTE = " state.scope names the parts in focus, which the server matched against the current source;"
   + " every offered arrow touches one of them. It is not an earlier judgment or authority, and no source text is given."
@@ -48,7 +52,7 @@ export function questionsFor(state, slots, context) {
     const labels = new Map(state.graph.map(region => [region.id, region.label]));
     return {
       delta: {
-        instruction: "Choose one executable change toward the utterance's goal. A candidate adds one offered part inside its existing group at a proved placement, or connects two existing parts by one directed flow arrow. Use the current graph and edges to decide which requested changes are still missing; selected is adopted part history, not a completion oracle. Choose none when the requested changes are already present, no candidate is clearly needed, or the request is ambiguous. Do not add a connection merely because two parts are present; it must be requested by the utterance. An offered group part is added like any other part. Adding a part directly to an existing group never resizes it; placing a part into a group added by this goal resizes that group and its enclosing groups just enough, keeping their positions. Do not otherwise create, move or resize groups." + CONTEXT_NOTE + (state.scope === null ? "" : SCOPE_NOTE),
+        instruction: "Choose one executable change toward the utterance's goal. A candidate adds one offered part inside its existing group at a proved placement, or connects two existing parts by one directed flow arrow. An explicitly hypothetical requested connection is a Working proposal, not proof of an existing source relationship. Use the current graph and edges to decide which requested changes are still missing; selected is adopted part history, not a completion oracle. Choose none when the requested changes are already present, no candidate is clearly needed, or the request is ambiguous. Do not add a connection merely because two parts are present; it must be requested by the utterance. An offered group part is added like any other part. Adding a part directly to an existing group never resizes it; placing a part into a group added by this goal resizes that group and its enclosing groups just enough, keeping their positions. Do not otherwise create, move or resize groups." + GOAL_CONTEXT_NOTE + (state.scope === null ? "" : SCOPE_NOTE),
         options: criteria(slots.delta, key => {
           if (key === NONE) return "no offered executable change is clearly requested, or the requested changes are already present";
           const candidate = state.candidates.find(item => item.id === key);
