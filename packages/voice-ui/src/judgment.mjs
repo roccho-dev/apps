@@ -192,11 +192,16 @@ export function questionsFor(state, slots, context) {
       instruction: "If the utterance asks how this code is built, does it ask for the code as a whole, "
         + "or which one part of it does it ask to see in more detail? "
         + "state.architecture.entities names each part by its file path or, for what lies outside the source, "
-        + "by the identifier or URL the source uses for it.",
+        + "by the identifier or URL the source uses for it."
+        + " Whole means the source-defined structure-only overview, without judging roles or run-time behavior;"
+        + " choose it only when that is what the utterance asks for."
+        + " Do not use whole as a fallback for an unnamed detail request."
+        + " Choose one part when the current metadata uniquely identifies it, even if the utterance does not name its path."
+        + " If a detail request cannot identify one part from that metadata, choose none so it can be located from source text.",
       options: criteria(slots.focus, key => (key === WHOLE
-        ? "the code as a whole"
+        ? "the source-defined structure-only overview of the code as a whole, without judging roles or run-time behavior"
         : key === NONE
-          ? "neither one part nor the whole is clear, or it asks for neither"
+          ? "no unique part or structure-only whole is clear from the current metadata, or it asks for neither"
           : `the part ${labelOf.get(key)}`)),
     };
   }

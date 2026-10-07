@@ -11,7 +11,7 @@ if (!process.env.JUDGE_PROVIDER_ENTRY || !process.env.VOICE_UI_WORKER) throw new
 const { bindJev, judgeNamedChoices } = await import(process.env.JUDGE_PROVIDER_ENTRY);
 const { default: worker } = await import(process.env.VOICE_UI_WORKER);
 const judgeFor = provider => (request, { signal }) => judgeNamedChoices({ request, provider, signal });
-import { focusedEvidence, intentSectionOf, judgeRequestsOf, judgeSectionOf, locateRequestsOf, readManifest, regionIdOf } from "../src/architecture.mjs";
+import { focusedEvidence, intentSectionOf, judgeRequestsOf, judgeSectionOf, locateRequestsOf, readManifest, regionIdOf, routeOf } from "../src/architecture.mjs";
 import {
   ACTION_ARCHITECTURE,
   ACTION_COMPOSE,
@@ -490,6 +490,45 @@ const ARCHITECTURE_ENV = Object.freeze({ JEV_API_KEY: "test-only-value", ARCHITE
 const MANIFEST = readManifest(prepared.manifest);
 const intentRequest = (architecture = intentSectionOf(MANIFEST)) => ({ ...request({ architecture }), kind: ARCHITECTURE_INTENT_KIND });
 
+test("architecture focus question keeps whole structural and unresolved detail source-located, direct and compiled", async () => {
+  for (const [choice, confidence, route] of [[WHOLE, .5, "whole"], [WHOLE, .49, "locate"],
+    ["src-log-mjs", .9, "part"], [NONE, .9, "locate"]]) {
+    const body = intentRequest();
+    for (const port of ["direct", "compiled"]) {
+      let wire, response;
+      if (port === "direct") {
+        response = await onRequestPost({ available: true, architecture: prepared,
+          request: new Request("http://localhost/api/judge", { method: "POST", body: JSON.stringify(body) }) },
+        async ({ state, questions }) => {
+          wire = { state, questions: Object.fromEntries(Object.entries(questions).map(([key, question]) =>
+            [key, { instructions: question.instruction, criteria: question.options }])) };
+          return { answers: Object.fromEntries(Object.keys(questions).map(key => [key, {
+            choice: key === "action" ? ACTION_ARCHITECTURE : key === "focus" ? choice : NONE,
+            confidence: key === "focus" ? confidence : .9,
+          }])) };
+        });
+      } else {
+        const result = await withProvider(answering(input => {
+          wire = input;
+          return { ...noneTo(input), action: { type: "choice", choice: ACTION_ARCHITECTURE, confidence: .9 },
+            focus: { type: "choice", choice, confidence } };
+        }), () => post(body, ARCHITECTURE_ENV));
+        response = result.result; assert.equal(result.calls.length, 1);
+      }
+      assert.equal(response.status, 200);
+      assert.deepEqual(wire.state, body.state, "wording does not expand the read set");
+      assert.deepEqual(Object.keys(wire.questions.focus.criteria), [...slotsFor(body.state).focus]);
+      assert.match(wire.questions.focus.instructions, /structure-only overview, without judging roles or run-time behavior/u);
+      assert.match(wire.questions.focus.instructions, /Do not use whole as a fallback for an unnamed detail request/u);
+      assert.match(wire.questions.focus.instructions, /current metadata uniquely identifies it, even if the utterance does not name its path/u);
+      assert.match(wire.questions.focus.instructions, /detail request cannot identify one part.*choose none.*located from source text/u);
+      const answers = (await response.json()).answers;
+      assert.deepEqual(answers.focus, { type: "choice", choice, confidence }, "no choice or confidence is rewritten");
+      assert.equal(routeOf({ slots: slotsFor(body.state) }, answers).route, route);
+    }
+  }
+});
+
 const goalWordingRequest = scoped => {
   const parts = MANIFEST.entities.filter(entity => entity.kind === "file").slice(0, 2);
   const [from, to] = parts.map(part => regionIdOf(part.id));
@@ -893,8 +932,8 @@ test("a plain request and an intent carry no code; an intent adds one closed que
   assert.deepEqual(Object.keys(intent.questions).filter(name => !Object.hasOwn(plain.questions, name)), ["focus"]);
   assert.deepEqual(Object.keys(intent.questions.focus.criteria), [...MANIFEST.entities.map(entity => entity.id), WHOLE, NONE]);
   // The whole and none are told apart by what they mean, with no example words.
-  assert.equal(intent.questions.focus.criteria[WHOLE], "the code as a whole");
-  assert.equal(intent.questions.focus.criteria[NONE], "neither one part nor the whole is clear, or it asks for neither");
+  assert.equal(intent.questions.focus.criteria[WHOLE], "the source-defined structure-only overview of the code as a whole, without judging roles or run-time behavior");
+  assert.equal(intent.questions.focus.criteria[NONE], "no unique part or structure-only whole is clear from the current metadata, or it asks for neither");
   assert.ok(Object.keys(intent.questions.action.criteria).includes(ACTION_ARCHITECTURE));
   // Compose and architecture each name the request field they draw on.
   assert.match(intent.questions.action.criteria[ACTION_COMPOSE], /state\.offers\.diagrams/u);
