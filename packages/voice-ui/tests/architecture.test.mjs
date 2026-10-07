@@ -943,6 +943,7 @@ test("a Goal after a source focus in the same session resolves its one arrow, as
         requests.push(request);
         if (request.kind === ARCHITECTURE_GOAL_INTENT_KIND) {
           const original = resolved.request.state;
+          assert.deepEqual(resolved.turn.slots, slotsFor(original), "the original latest intent turn remains validated");
           assert.deepEqual(request.state, { utterance: original.utterance,
             graph: { regions: original.graph.regions, edges: original.graph.edges },
             context: original.context, architecture: original.architecture });
