@@ -155,7 +155,7 @@ test("Goal v5 boundary asks one executable delta and refuses extra answers witho
     calls += 1;
     assert.deepEqual(state, body.state);
     assert.deepEqual(Object.keys(questions), ["delta"]);
-    assert.equal(questions.delta.instruction, "Choose one executable change toward the utterance's goal. A candidate adds one offered part inside its existing group at a proved placement, or connects two existing parts by one directed flow arrow. Use the current graph and edges to decide which requested changes are still missing; selected is adopted part history, not a completion oracle. Choose none when the requested changes are already present, no candidate is clearly needed, or the request is ambiguous. Do not add a connection merely because two parts are present; it must be requested by the utterance. An offered group part is added like any other part. Adding a part directly to an existing group never resizes it; placing a part into a group added by this goal resizes that group and its enclosing groups just enough, keeping their positions. Do not otherwise create, move or resize groups. context.recent lists earlier utterances as they were recognized or typed, and what came of each. They are unverified and may be misrecognized. Use them only to understand what the current utterance refers to; the current utterance, the working graph and the focus are the facts, and an earlier effect is history, not the current graph.");
+    assert.equal(questions.delta.instruction, "Choose one executable change toward the utterance's goal. A candidate adds one offered part inside its existing group at a proved placement, or connects two existing parts by one directed flow arrow. An explicitly hypothetical requested connection is a Working proposal, not proof of an existing source relationship. Use the current graph and edges to decide which requested changes are still missing; selected is adopted part history, not a completion oracle. Choose none when the requested changes are already present, no candidate is clearly needed, or the request is ambiguous. Do not add a connection merely because two parts are present; it must be requested by the utterance. An offered group part is added like any other part. Adding a part directly to an existing group never resizes it; placing a part into a group added by this goal resizes that group and its enclosing groups just enough, keeping their positions. Do not otherwise create, move or resize groups. context.recent lists earlier utterances as they were recognized or typed, and what came of each. They are unverified and may be misrecognized. Use them only to understand what the current utterance refers to; the current utterance, the current Working graph and edges are the facts, and an earlier effect is history, not the current graph.");
     assert.equal(questions.delta.instruction.includes("reopened"), false);
     assert.equal(questions.delta.options[NONE], "no offered executable change is clearly requested, or the requested changes are already present");
     assert.equal(questions.delta.options["delta-1"], "add one new part: a service, inside container (container)");
@@ -489,6 +489,66 @@ const prepared = (() => {
 const ARCHITECTURE_ENV = Object.freeze({ JEV_API_KEY: "test-only-value", ARCHITECTURE: prepared });
 const MANIFEST = readManifest(prepared.manifest);
 const intentRequest = (architecture = intentSectionOf(MANIFEST)) => ({ ...request({ architecture }), kind: ARCHITECTURE_INTENT_KIND });
+
+const goalWordingRequest = scoped => {
+  const parts = MANIFEST.entities.filter(entity => entity.kind === "file").slice(0, 2);
+  const [from, to] = parts.map(part => regionIdOf(part.id));
+  return { kind: GOAL_REQUEST_KIND, state: {
+    utterance: "propose a hypothetical arrow from the first shown part to the second",
+    graph: [{ id: "root", label: "map", parent: null },
+      { id: from, label: "first shown part", parent: "root" }, { id: to, label: "second shown part", parent: "root" }],
+    edges: [], parents: [], offers: { parts: [] }, selected: [],
+    candidates: [{ id: "forward", action: "add-edge", from, to },
+      { id: "reverse", action: "add-edge", from: to, to: from }],
+    context: { recent: [{ seq: 1, source: "typed", text: "show the selected part", outcome: "no-change" }] },
+    scope: scoped ? { source: MANIFEST.source, focus: [parts[0].id] } : null,
+  } };
+};
+
+test("Goal context instruction uses only its provided facts, direct and compiled", async () => {
+  for (const scoped of [false, true]) {
+    const body = goalWordingRequest(scoped);
+    assert.equal(isRequest(body), true);
+    for (const port of ["direct", "compiled"]) {
+      let wire;
+      let response;
+      if (port === "direct") {
+        response = await onRequestPost({ available: true, architecture: prepared,
+          request: new Request("http://localhost/api/judge", { method: "POST", body: JSON.stringify(body) }) },
+        async ({ state, questions }) => {
+          wire = { state, questions: { delta: { instructions: questions.delta.instruction, criteria: questions.delta.options } } };
+          return { answers: { delta: { choice: NONE, confidence: 0.9 } } };
+        });
+      } else {
+        const result = await withProvider(answering(input => { wire = input; return noneTo(input); }),
+          () => post(body, ARCHITECTURE_ENV));
+        response = result.result; assert.equal(result.calls.length, 1);
+      }
+      assert.equal(response.status, 200);
+      assert.deepEqual(wire.state, body.state, "wording does not expand the read set");
+      assert.deepEqual(Object.keys(wire.questions), ["delta"]);
+      assert.doesNotMatch(wire.questions.delta.instructions, /working graph and the focus are the facts|state\.focus/u);
+      assert.match(wire.questions.delta.instructions, /current utterance.*graph.*edges.*facts/u);
+      assert.match(wire.questions.delta.instructions, /unverified.*misrecognized/u);
+      assert.deepEqual(Object.keys(wire.questions.delta.criteria), ["forward", "reverse", NONE]);
+    }
+  }
+});
+
+test("Goal hypothetical proposals distinguish source facts without boosting weak or NONE answers", async () => {
+  for (const scoped of [false, true]) for (const [choice, confidence] of [["forward", 0.3], [NONE, 0.9]]) {
+    const body = goalWordingRequest(scoped);
+    const { result, calls } = await withProvider(answering(() => ({ delta: { type: "choice", choice, confidence } })),
+      () => post(body, ARCHITECTURE_ENV));
+    assert.equal(result.status, 200); assert.equal(calls.length, 1);
+    const instruction = calls[0].questions.delta.instructions;
+    assert.match(instruction, /hypothetical.*Working proposal.*not proof of an existing source relationship/u);
+    assert.match(instruction, /Choose none.*ambiguous/u);
+    assert.doesNotMatch(instruction, /boost.*confidence|higher confidence|always choose/u);
+    assert.deepEqual(Object.keys(calls[0].questions.delta.criteria), ["forward", "reverse", NONE]);
+    assert.deepEqual((await result.json()).answers.delta, { type: "choice", choice, confidence });
+  }
+});
 
 test("scoped intent asks only three questions, retains every node/edge and reopens references canonically", async () => {
   const original = intentRequest();
