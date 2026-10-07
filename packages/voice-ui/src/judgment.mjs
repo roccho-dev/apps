@@ -1,4 +1,4 @@
-import { ACTION_ADD_EDGE, ACTION_ADD_PART, ACTION_ARCHITECTURE, ACTION_COMPOSE, ACTION_PLACE_PART, ACTION_REMOVE_EDGE, ACTION_REVERSE_EDGE, ACTION_UNDO_REQUEST, ARCHITECTURE_INTENT_KIND, ARCHITECTURE_JUDGE_KIND, ARCHITECTURE_LOCATE_KIND, NONE, WHOLE, YES, relationSlot, relevantSlot, roleSlot } from "./contract.mjs";
+import { ACTION_ADD_EDGE, ACTION_ADD_PART, ACTION_ARCHITECTURE, ACTION_COMPOSE, ACTION_PLACE_PART, ACTION_REMOVE_EDGE, ACTION_REVERSE_EDGE, ACTION_UNDO_REQUEST, ARCHITECTURE_GOAL_INTENT_KIND, ARCHITECTURE_INTENT_KIND, ARCHITECTURE_JUDGE_KIND, ARCHITECTURE_LOCATE_KIND, NONE, WHOLE, YES, relationSlot, relevantSlot, roleSlot } from "./contract.mjs";
 
 // A choice question offers its alternatives as a criteria map keyed by the
 // value to be returned.
@@ -60,6 +60,33 @@ export function questionsFor(state, slots, context) {
   }
   if (context.kind === ARCHITECTURE_LOCATE_KIND) return locateQuestion(context.entity, context.evidence, slots);
   if (context.kind === ARCHITECTURE_JUDGE_KIND) return judgeQuestions(context.section, slots);
+  if (context.kind === ARCHITECTURE_GOAL_INTENT_KIND) {
+    const labels = new Map(state.graph.regions.map(region => [region.id, region.label]));
+    const node = key => labels.get(key) === key ? key : `${key} (shown as "${labels.get(key)}")`;
+    const note = " context.recent lists earlier utterances as recognized or typed and their effects."
+      + " They are unverified and may be misrecognized; use them only to understand what the current utterance refers to."
+      + " The current utterance and Working graph are the facts; earlier effects are history, not the current graph."
+      + " The server reopened each non-null reference from the current canonical source."
+      + " Its historical association remains unverified, not proof of intent or a unique edge."
+      + " Use the earlier utterance together with that section's entities and candidate relationships to understand an anaphoric qualification."
+      + " Do not replace an explicit endpoint or semantic qualification with the latest analysis.";
+    return {
+      action: {
+        instruction: "Which change to the Working graph does the utterance request? Identify unsupported changes as their own actions, not as adding an edge." + note,
+        options: criteria(slots.action, action => action === ACTION_COMPOSE
+          ? "the utterance asks for a prepared diagram as a whole, by what it is for, rather than one edit"
+          : ACTION_WORDS[action]),
+      },
+      source: {
+        instruction: "If the utterance asks to add an edge, which current Working node is its start? An earlier utterance and its reopened section may qualify that node; choose none if it does not identify a unique start." + note,
+        options: criteria(slots.source, key => key === NONE ? "no unique current node is identified as the start" : `the edge starts at ${node(key)}`),
+      },
+      target: {
+        instruction: "If the utterance asks to add an edge, which current Working node is its end? An earlier utterance and its reopened section may qualify that node; choose none if it does not identify a unique end." + note,
+        options: criteria(slots.target, key => key === NONE ? "no unique current node is identified as the end" : `the edge ends at ${node(key)}`),
+      },
+    };
+  }
   const defined = context.kind === ARCHITECTURE_INTENT_KIND ? context.relationOf : () => null;
   const labelOf = new Map(state.graph.regions.map(region => [region.id, region.label]));
   const node = key => labelOf.get(key) === key ? key : `${key} (shown as "${labelOf.get(key)}")`;

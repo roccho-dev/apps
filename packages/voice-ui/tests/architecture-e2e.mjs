@@ -327,6 +327,7 @@ const report = value => process.stdout.write(`${JSON.stringify(value)}\n`);
 // section's plan holds no such frame.
 const framesOf = section => contract.judgeFramesFor(section) ?? [];
 const slotsOf = sent => {
+  if (sent.kind === contract.ARCHITECTURE_GOAL_INTENT_KIND) return contract.architectureGoalSlotsFor(sent.state);
   if (sent.kind === contract.ARCHITECTURE_LOCATE_KIND) return contract.locateSlotsFor(sent.state.architecture.focus);
   if (sent.kind !== contract.ARCHITECTURE_JUDGE_KIND) return contract.slotsFor(sent.state);
   const framed = framesOf(sent.state.architecture).find(item => JSON.stringify(item.frame) === JSON.stringify(sent.state.frame));
@@ -1286,7 +1287,7 @@ const sourceScenario = async () => {
   const flow = evaluation?.expected.flows[0] ?? null;
   let chosen = null;
   if (FIXTURE) await page.route(route, craft((name, sent) => {
-    if (sent.kind === contract.ARCHITECTURE_INTENT_KIND) {
+    if (sent.kind === contract.ARCHITECTURE_GOAL_INTENT_KIND) {
       if (chosen === null) {
         const ids = sent.state.graph.regions.map(region => region.id).sort();
         search: for (const from of ids) for (const to of ids) {
@@ -1340,7 +1341,7 @@ const sourceScenario = async () => {
     edgesTouchFocus: request !== null && request.candidates.filter(item => item.action === "add-edge")
       .every(item => focusRegions.includes(item.from) || focusRegions.includes(item.to)),
     target, targetBy: FIXTURE ? "controlled: first sorted pair touching the focus with no relation either way, named by every resolve" : "evaluator goal-case",
-    eligible, offered, resolves: sent.filter(entry => entry.sent.kind === contract.ARCHITECTURE_INTENT_KIND).length,
+    eligible, offered, resolves: sent.filter(entry => entry.sent.kind === contract.ARCHITECTURE_GOAL_INTENT_KIND).length,
     reason: attempt.reason, requests: attempt.requests, exchanges: sent.map(sanitized),
     newEdges: newEdges.map(({ id, from, to, kind }) => ({ id, from, to, kind })),
     newEdgeDrawn: eligible && newEdges.length === 1 && newEdges[0].from === target.from && newEdges[0].to === target.to
@@ -1353,7 +1354,7 @@ const sourceScenario = async () => {
   need(offered, "the Goal request offers the expected arrow; a different resolved pair is NOT_MET");
   need((FIXTURE ? attempt.reason === "no-executable-delta" && attempt.requests === 3
       && JSON.stringify(sent.map(entry => entry.sent.kind))
-        === JSON.stringify([contract.ARCHITECTURE_INTENT_KIND, contract.GOAL_REQUEST_KIND, contract.ARCHITECTURE_INTENT_KIND])
+        === JSON.stringify([contract.ARCHITECTURE_GOAL_INTENT_KIND, contract.GOAL_REQUEST_KIND, contract.ARCHITECTURE_GOAL_INTENT_KIND])
     : ["none", "no-executable-delta", "budget-requests", "budget-time"].includes(attempt.reason)) && sourceEvidence.newEdgeDrawn,
   "the Goal draws exactly the one new expected arrow, keeps every old record, and stops mechanically");
   // The actual painted arrow at its named ends, by the existing observer, with
