@@ -20,6 +20,8 @@ export const GOAL_REQUEST_MAX = 8;
 // the one or two body files its own questions rest on, whose text the server
 // adds.
 export const ARCHITECTURE_INTENT_KIND = "voice-ui.judge.architecture-intent.v2";
+// A scoped Goal resolves only an action and its endpoints, not an editing turn.
+export const ARCHITECTURE_GOAL_INTENT_KIND = "voice-ui.judge.architecture-goal-intent.v1";
 // Intent/locate v2 require an explicit nullable reference on every context
 // entry. Plain v1 keeps its exact original shape; old architecture kinds are
 // not admitted. Judge v1 is unchanged: it carries no conversation.
@@ -293,6 +295,17 @@ const STATE_KEYS = Object.freeze(["utterance", "graph", "draft", "focus", "pendi
 // A plain request, or an architecture intent, each held to its own bounds.
 export function isRequest(value) {
   if (value?.kind === GOAL_REQUEST_KIND) return validGoalRequest(value);
+  if (value?.kind === ARCHITECTURE_GOAL_INTENT_KIND) {
+    if (!exactObject(value, ["kind", "state"])) return false;
+    const { state } = value;
+    return exactObject(state, ["utterance", "graph", "context", "architecture"])
+      && text(state.utterance, TEXT_MAX)
+      && exactObject(state.graph, ["regions", "edges"])
+      && validGraph({ ...state.graph, placeable: [] }, ARCHITECTURE_GRAPH_MAX)
+      && state.graph.regions.length >= 1
+      && validContext(state.context, ARCHITECTURE_CHANGES_MAX, true)
+      && validIntent(state.architecture);
+  }
   if (!exactObject(value, ["kind", "state"]) || !LIMITS.has(value.kind)) return false;
   const { graph, changes, architecture } = LIMITS.get(value.kind);
   const { state } = value;
@@ -450,6 +463,18 @@ export function slotsFor(state) {
   if (hasEdges) slots.edge = [...state.graph.edges.map(edge => edge.id), NONE];
   if (canCompose) slots.diagram = [...state.offers.diagrams.map(offer => offer.key), NONE];
   return Object.freeze(Object.fromEntries(Object.entries(slots).map(([name, keys]) => [name, Object.freeze(keys)])));
+}
+
+// Unsupported editing actions remain recognizable: a scoped Goal stops on
+// them rather than guessing an arrow. Every current node remains an option.
+export function architectureGoalSlotsFor(state) {
+  const endpoints = [...state.graph.regions.map(region => region.id), NONE];
+  return Object.freeze({
+    action: Object.freeze([ACTION_ADD_EDGE, ACTION_ADD_PART, ACTION_PLACE_PART,
+      ACTION_REMOVE_EDGE, ACTION_REVERSE_EDGE, ACTION_COMPOSE, ACTION_ARCHITECTURE, ACTION_UNDO_REQUEST, NONE]),
+    source: Object.freeze([...endpoints]),
+    target: Object.freeze([...endpoints]),
+  });
 }
 
 const readChoice = (answer, offered) => {

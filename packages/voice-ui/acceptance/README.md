@@ -63,9 +63,10 @@ most five earlier utterances of at most 200 characters; effects bounded like
 architecture utterances), with no per-entry reference. `scope` is null, or the
 latest `{source, focus}` the session remembered from a source-reopened architecture
 focus, copied and frozen for the whole Goal. With a scope, every iteration first
-asks the page's own architecture intent, built for the latest session as Send
-builds it (no frame or held placement), which arrow to draw. Its kind, head and
-questions must be the latest Working's own, its action add-edge with at least one
+validates the latest ordinary Send intent's kind, head and questions, then projects
+its whole Working graph, full unverified conversation and canonical source identity
+into a scoped Goal intent with only action, source and target questions. Editing
+draft, focus, pending and offers are not sent by this resolver. Its action must be add-edge with at least one
 named end, and the weakest of action, source and target - an end answered none
 included - at least the floor; otherwise the Goal stops and adopts nothing
 further, keeping any earlier step of its group. With both ends named the Goal

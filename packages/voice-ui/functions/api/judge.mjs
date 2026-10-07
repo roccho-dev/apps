@@ -1,4 +1,4 @@
-import { ACTION_ADD_EDGE, ARCHITECTURE_INTENT_KIND, ARCHITECTURE_LOCATE_KIND, DECISION_KIND, ERRORS, GOAL_REQUEST_KIND, REQUEST_KIND, isJudgeRequest, isLocateRequest, isRequest, judgeFramesFor, judgeSlotsFor, locateSlotsFor, readAnswers, slotsFor } from "../../src/contract.mjs";
+import { ACTION_ADD_EDGE, ARCHITECTURE_GOAL_INTENT_KIND, ARCHITECTURE_INTENT_KIND, ARCHITECTURE_LOCATE_KIND, DECISION_KIND, ERRORS, GOAL_REQUEST_KIND, REQUEST_KIND, architectureGoalSlotsFor, isJudgeRequest, isLocateRequest, isRequest, judgeFramesFor, judgeSlotsFor, locateSlotsFor, readAnswers, slotsFor } from "../../src/contract.mjs";
 import { questionsFor } from "../../src/judgment.mjs";
 import { definedRelation, focusedEvidence, intentSectionOf, judgeSectionOf, readManifest, regionIdOf } from "../../src/architecture.mjs";
 
@@ -67,7 +67,7 @@ export async function onRequestPost({ request, available, architecture }, judge)
     // A locate frame's part opens the section a judge of it would: null for a part
     // the snapshot does not know, or one that opens no text.
     const opened = kind === ARCHITECTURE_LOCATE_KIND ? judgeSectionOf(bound.manifest, state.architecture.focus) : null;
-    const own = kind === ARCHITECTURE_INTENT_KIND ? intentSectionOf(bound.manifest)
+    const own = (kind === ARCHITECTURE_INTENT_KIND || kind === ARCHITECTURE_GOAL_INTENT_KIND) ? intentSectionOf(bound.manifest)
       : kind === ARCHITECTURE_LOCATE_KIND ? opened && { source: bound.manifest.source, focus: opened.focus }
         : judgeSectionOf(bound.manifest, state.architecture.focus);
     if (JSON.stringify(state.architecture) !== JSON.stringify(own)) return json({ error: ERRORS.architectureMismatch }, 422);
@@ -92,8 +92,8 @@ export async function onRequestPost({ request, available, architecture }, judge)
       slots = locateSlotsFor([part]);
       questions = questionsFor(state, slots, { kind, entity: bound.manifest.entities.find(entity => entity.id === part), evidence });
       asked = { utterance: state.utterance, context: asked.context, architecture: { ...state.architecture, evidence } };
-    } else if (kind === ARCHITECTURE_INTENT_KIND) {
-      slots = slotsFor(state);
+    } else if (kind === ARCHITECTURE_INTENT_KIND || kind === ARCHITECTURE_GOAL_INTENT_KIND) {
+      slots = kind === ARCHITECTURE_GOAL_INTENT_KIND ? architectureGoalSlotsFor(state) : slotsFor(state);
       questions = questionsFor(state, slots, { kind, relationOf: edge => definedRelation(bound.manifest, edge) });
     } else {
       // A judge asks one frame of this section's own plan: that frame's

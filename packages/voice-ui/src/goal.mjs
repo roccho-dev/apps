@@ -1,5 +1,5 @@
-import { ACTION_ADD_EDGE, ARCHITECTURE_INTENT_KIND, GOAL_REQUEST_KIND, GOAL_REQUEST_MAX, MIN_CONFIDENCE, NONE, isRequest,
-  readAnswers, slotsFor } from "./contract.mjs";
+import { ACTION_ADD_EDGE, ARCHITECTURE_GOAL_INTENT_KIND, ARCHITECTURE_INTENT_KIND, GOAL_REQUEST_KIND, GOAL_REQUEST_MAX, MIN_CONFIDENCE, NONE, isRequest,
+  architectureGoalSlotsFor, readAnswers, slotsFor } from "./contract.mjs";
 import { offersOf } from "./bundle.mjs";
 import { regionIdOf } from "./architecture.mjs";
 import { legalLocalDeltas, OUTCOME_STEP, proveLocalDelta } from "./turn.mjs";
@@ -25,10 +25,9 @@ const localView = (records, pair, candidates) => {
 // One bounded AddRegion/ConnectRegions attempt. Ports own HTTP and the draw/adopt effect;
 // this coordinator owns only actual selected history and mechanical STOP.
 // It has no semantic goal oracle and never writes durable state.
-// On every iteration a scoped Goal asks the page's own intent request, built
-// by resolveIntent for the latest session, which arrow to draw - both ends, or
-// one end with the other left open over the focus; that resolve request counts
-// against the same bound as the Goal request.
+// On every iteration a scoped Goal validates the page's latest intent, then
+// projects its whole graph, conversation and source identity into three
+// questions: action and endpoints. This resolve counts against the same bound.
 export async function runGoal({ utterance, bundle, protocol, current, ask, adopt, cancelled, resolveIntent = null,
   now = () => performance.now() }) {
   const first = current();
@@ -85,7 +84,12 @@ export async function runGoal({ utterance, bundle, protocol, current, ask, adopt
           || JSON.stringify(intent.turn.slots) !== JSON.stringify(slotsFor(intent.request.state))) intent = null;
       } catch { intent = null; }
       if (intent === null) return stop("invalid-goal-request");
-      const resolved = await judged(intent.request, intent.turn.slots);
+      const { utterance: text, graph, context, architecture } = intent.request.state;
+      const request = { kind: ARCHITECTURE_GOAL_INTENT_KIND, state: {
+        utterance: text, graph: { regions: graph.regions, edges: graph.edges }, context, architecture,
+      } };
+      if (!isRequest(request)) return stop("invalid-goal-request");
+      const resolved = await judged(request, architectureGoalSlotsFor(request.state));
       if (resolved.stop !== undefined) return stop(resolved.stop);
       const { action, source, target } = resolved.read;
       if (action.choice !== ACTION_ADD_EDGE || (source.choice === NONE && target.choice === NONE)) return stop("none");

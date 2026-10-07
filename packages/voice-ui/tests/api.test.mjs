@@ -15,6 +15,7 @@ import { focusedEvidence, intentSectionOf, judgeRequestsOf, judgeSectionOf, loca
 import {
   ACTION_ARCHITECTURE,
   ACTION_COMPOSE,
+  ARCHITECTURE_GOAL_INTENT_KIND,
   ARCHITECTURE_INTENT_KIND,
   DECISION_KIND,
   GOAL_REQUEST_KIND,
@@ -26,6 +27,7 @@ import {
   isJudgeRequest,
   isLocateRequest,
   isRequest,
+  architectureGoalSlotsFor,
   judgeFramesFor,
   judgeSlotsFor,
   locateSlotsFor,
@@ -487,6 +489,79 @@ const prepared = (() => {
 const ARCHITECTURE_ENV = Object.freeze({ JEV_API_KEY: "test-only-value", ARCHITECTURE: prepared });
 const MANIFEST = readManifest(prepared.manifest);
 const intentRequest = (architecture = intentSectionOf(MANIFEST)) => ({ ...request({ architecture }), kind: ARCHITECTURE_INTENT_KIND });
+
+test("scoped intent asks only three questions, retains every node/edge and reopens references canonically", async () => {
+  const original = intentRequest();
+  const reference = { source: MANIFEST.source, focus: ["web-app-mjs"] };
+  original.state.context.recent = [{ seq: 1, source: "typed", text: "show the screen", outcome: "no-change", reference }];
+  original.state.graph.edges = [{ id: "back", from: "node-b", to: "node-a" }];
+  const body = { kind: ARCHITECTURE_GOAL_INTENT_KIND, state: {
+    utterance: original.state.utterance, graph: { regions: original.state.graph.regions, edges: original.state.graph.edges },
+    context: original.state.context, architecture: original.state.architecture,
+  } };
+  const { result, calls } = await withProvider(answering(noneTo), () => post(body, ARCHITECTURE_ENV));
+  assert.equal(result.status, 200); assert.equal(calls.length, 1);
+  const sent = calls[0];
+  assert.deepEqual(Object.keys(sent.state), ["utterance", "graph", "context", "architecture"]);
+  assert.deepEqual(sent.state.graph, body.state.graph);
+  assert.deepEqual(sent.state.architecture, body.state.architecture);
+  assert.deepEqual(sent.state.context.recent[0].reference, judgeSectionOf(MANIFEST, reference.focus));
+  assert.deepEqual(Object.keys(sent.questions), ["action", "source", "target"]);
+  assert.deepEqual(Object.keys(sent.questions.action.criteria), architectureGoalSlotsFor(body.state).action);
+  for (const endpoint of ["source", "target"]) {
+    assert.deepEqual(Object.keys(sent.questions[endpoint].criteria), ["node-a", "node-b", NONE]);
+    assert.match(sent.questions[endpoint].instructions, /unique.*earlier utterance|earlier utterance.*unique/iu);
+  }
+  for (const question of Object.values(sent.questions)) {
+    assert.match(question.instructions, /unverified/u);
+    assert.match(question.instructions, /section's entities and candidate relationships/u);
+    assert.match(question.instructions, /Do not replace an explicit endpoint or semantic qualification/u);
+    assert.doesNotMatch(question.instructions, /camera|edit focus|state\.offers|the focus are the facts/u);
+  }
+  const checked = await result.json();
+  assert.deepEqual(Object.keys(checked.answers), ["action", "source", "target"]);
+
+  for (const mutate of [
+    state => { state.focus = null; },
+    state => { state.graph.placeable = []; },
+    state => { state.graph.regions = []; state.graph.edges = []; },
+    state => { state.graph.edges[0].to = "missing"; },
+    state => { state.architecture.source.commit = "f".repeat(40); },
+    state => { state.context.recent[0].reference.focus = ["missing"]; },
+    state => { state.context.recent[0].reference.source.commit = "f".repeat(40); },
+    state => { delete state.context.recent[0].reference; },
+  ]) {
+    const bad = structuredClone(body); mutate(bad.state);
+    const rejected = await withProvider(answering(noneTo), () => post(bad, ARCHITECTURE_ENV));
+    assert.equal(rejected.result.status, 422); assert.equal(rejected.calls.length, 0);
+  }
+  const wide = structuredClone(body);
+  wide.state.graph.regions = Array.from({ length: 128 }, (_, i) => ({ id: `n-${i}`, label: `n-${i}` }));
+  wide.state.graph.edges = Array.from({ length: 128 }, (_, i) => ({ id: `e-${i}`, from: "n-0", to: "n-1" }));
+  assert.equal(isRequest(wide), true);
+  wide.state.graph.edges.push({ id: "extra", from: "n-0", to: "n-1" });
+  assert.equal(isRequest(wide), false);
+  const single = structuredClone(body); single.state.graph = { regions: [body.state.graph.regions[0]], edges: [] };
+  assert.equal(isRequest(single), true);
+  assert.deepEqual(architectureGoalSlotsFor(single.state).source, ["node-a", NONE]);
+});
+
+test("scoped intent rejects extra answers and unoffered endpoints without adopting an editing contract", async () => {
+  const ordinary = intentRequest();
+  const body = { kind: ARCHITECTURE_GOAL_INTENT_KIND, state: {
+    utterance: ordinary.state.utterance, graph: { regions: ordinary.state.graph.regions, edges: ordinary.state.graph.edges },
+    context: ordinary.state.context, architecture: ordinary.state.architecture,
+  } };
+  for (const alter of [
+    answers => { answers.focus = { choice: NONE, confidence: 1 }; },
+    answers => { answers.source.choice = "missing"; },
+    answers => { delete answers.target; },
+  ]) {
+    const checked = await withProvider(answering(wire => { const answers = noneTo(wire); alter(answers); return answers; }),
+      () => post(body, ARCHITECTURE_ENV));
+    assert.equal(checked.result.status, 502); assert.equal(checked.calls.length, 1);
+  }
+});
 
 test("a Goal scope is reopened against the served source and every arrow must touch its focus", async () => {
   const scope = { source: MANIFEST.source, focus: ["web-app-mjs"] };
