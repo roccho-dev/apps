@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { createHash } from "node:crypto";
 import test from "node:test";
 import fs from "node:fs";
 import os from "node:os";
@@ -32,8 +33,8 @@ test("real dev host/installed CLI and shipped formal host: controlled positive a
     entry.process.kill("SIGTERM");
     await stopped;
   };
-  const startHost = async (formal, options = {}) => {
-    const file = formal ? path.join(dist, "e2e/serve.mjs") : path.join(pkg, "dev/serve.mjs");
+  const startHost = async (formal, options = {}, mode = "--formal", product = dist) => {
+    const file = formal ? path.join(product, "e2e/serve.mjs") : path.join(pkg, "dev/serve.mjs");
     const env = { ...process.env, PORT: "0", HOST: "127.0.0.1", JEV_API_KEY: "ambient-worker-only" };
     for (const name of [
       "VOICE_UI_PROPOSAL_MODULE", "VOICE_UI_PROPOSAL_JEV_URL",
@@ -41,7 +42,7 @@ test("real dev host/installed CLI and shipped formal host: controlled positive a
       "VOICE_UI_MELTYPE_FIXTURE",
     ]) delete env[name];
     Object.assign(env, options);
-    const child = spawn(process.execPath, formal ? [file, "--formal"] : [file], {
+    const child = spawn(process.execPath, formal ? [file, mode] : [file], {
       cwd: root, env, stdio: ["ignore", "pipe", "pipe"],
     });
     const entry = { process: child, url: null };
@@ -215,6 +216,17 @@ test("real dev host/installed CLI and shipped formal host: controlled positive a
     // The source fixture is explicit, not a catalog, Jev output, or B/current.
     const fixturePath = path.join(pkg, "tests/fixtures/proposals.json");
     const fixture = JSON.parse(fs.readFileSync(fixturePath, "utf8"));
+    const sourceBytes = fs.readFileSync(fixturePath);
+    const shippedPath = "e2e/fixtures/proposals.json";
+    const shippedBytes = fs.readFileSync(path.join(dist, shippedPath));
+    const sha256 = value => createHash("sha256").update(value).digest("hex");
+    assert.deepEqual(shippedBytes, sourceBytes, "CI PRODUCT must carry the actual authored fixture bytes");
+    assert.deepEqual(fs.readFileSync(path.join(dist, "e2e/serve.mjs")),
+      fs.readFileSync(path.join(pkg, "dev/serve.mjs")), "same shipped server, not a test surrogate");
+    const manifest = JSON.parse(fs.readFileSync(path.join(dist, "manifest.json"), "utf8"));
+    assert.deepEqual(manifest.files.filter(row => row.path === shippedPath), [{
+      path: shippedPath, bytes: sourceBytes.byteLength, sha256: sha256(sourceBytes),
+    }], "manifest identity must match independent source, not just rehashed PRODUCT");
     assert.equal(fixture.schema, "voice-ui.meltype-fixture/1");
     assert.deepEqual(fixture.scenes.map(scene => scene.id), [
       "partial", "append-delete", "compare-identity", "multiline-native", "none-delay-cancel",
@@ -372,11 +384,7 @@ test("real dev host/installed CLI and shipped formal host: controlled positive a
     }));
     await assert.rejects(startHost(false, { VOICE_UI_MELTYPE_FIXTURE: damaged }),
       /host exited before listen/);
-    // The provided formal PRODUCT has no fixture JSON or dev-only route.
-    // Source-fixture success MUST NOT be promoted to supplied-artifact readiness.
-    assert.equal(fs.existsSync(path.join(dist, "e2e/fixtures/proposals.json")), false,
-      "missing delivery is an explicit boundary, not a synthesized attachment");
-    // This exact PRODUCT source has e2e/serve.mjs but no dev sibling.
+    // Formal remains production-shaped even when an ambient fixture path is set.
     assert.equal(fs.existsSync(path.join(dist, "e2e/proposals.mjs")), false);
     const formal = await startHost(true, {
       VOICE_UI_MELTYPE_FIXTURE: fixturePath,
@@ -386,6 +394,69 @@ test("real dev host/installed CLI and shipped formal host: controlled positive a
     assert.equal((await postFixture(formal, { generation: 1, raw: "か" })).status, 404);
     assert.equal((await post(formal, { query: q("ux") })).status, 404);
     assert.equal((await fetch(formal.url + "/api/judge", { method: "GET" })).status, 405);
+
+    // The exact CI-supplied PRODUCT is a self-contained, separately opted-in
+    // fixture host. A deliberately wrong ambient path/provider setting is inert.
+    const shipped = await startHost(true, {
+      VOICE_UI_MELTYPE_FIXTURE: path.join(root, "nonexistent-operator-file.json"),
+      VOICE_UI_PROPOSAL_MODULE: proposer, VOICE_UI_PROPOSAL_JEV_URL: endpoint,
+      VOICE_UI_PROPOSAL_TEST_KEY: "owned-synthetic-only",
+    }, "--fixture");
+    for (const [index, step] of fixtureSteps.entries()) {
+      const result = await postFixture(shipped, { generation: 200 + index, raw: step.raw });
+      assert.equal(result.status, 200, "shipped fixture failed at raw " + step.raw);
+      assert.deepEqual(await result.json(), {
+        generation: 200 + index, raw: step.raw, proposals: step.proposals,
+      }, "shipped wire must retain original typed identity, text and input generation");
+    }
+    assert.equal((await postFixture(shipped, { generation: 1, raw: "not-in-fixture" })).status, 404);
+    assert.equal((await post(shipped, { query: q("ux") })).status, 404);
+    assert.equal((await fetch(shipped.url + "/api/judge", { method: "GET" })).status, 404);
+    assert.equal((await fetch(shipped.url + "/api/judge", { method: "POST",
+      headers: { "content-type": "application/json" }, body: "{}",
+    })).status, 404);
+    assert.equal((await fetch(shipped.url + "/")).status, 404);
+    assert.equal(seen.length, beforeFixtureProviderCalls,
+      "shipped fixture-only host must not use upstream provider or Worker/credential route");
+    const shippedArrivals = [];
+    const oldShipped = postFixture(shipped, { generation: 300, raw: "st" }).then(async response => {
+      assert.equal(response.status, 200);
+      shippedArrivals.push("old");
+      return response.json();
+    });
+    await new Promise(resolve => setTimeout(resolve, 30));
+    const newShipped = postFixture(shipped, { generation: 301, raw: "sta" }).then(async response => {
+      assert.equal(response.status, 200);
+      shippedArrivals.push("new");
+      return response.json();
+    });
+    const [oldShippedReply, newShippedReply] = await Promise.all([oldShipped, newShipped]);
+    assert.deepEqual(shippedArrivals, ["new", "old"]);
+    assert.deepEqual(oldShippedReply, { generation: 300, raw: "st", proposals: fixtureCase("st").proposals });
+    assert.deepEqual(newShippedReply, { generation: 301, raw: "sta", proposals: fixtureCase("sta").proposals });
+
+    // Fault injection only: disposable copies of the shipped entry and manifest
+    // test startup refusals; they are never positive delivery evidence.
+    const damagedProduct = path.join(root, "damaged-product");
+    const damagedFixture = path.join(damagedProduct, shippedPath);
+    fs.mkdirSync(path.dirname(damagedFixture), { recursive: true });
+    fs.copyFileSync(path.join(dist, "e2e/serve.mjs"), path.join(damagedProduct, "e2e/serve.mjs"));
+    fs.copyFileSync(path.join(dist, "manifest.json"), path.join(damagedProduct, "manifest.json"));
+    await assert.rejects(startHost(true, {}, "--fixture", damagedProduct),
+      /host exited before listen/, "absent bundled fixture must not serve");
+    fs.writeFileSync(damagedFixture, Buffer.concat([sourceBytes, Buffer.from("tamper")]));
+    await assert.rejects(startHost(true, {}, "--fixture", damagedProduct),
+      /host exited before listen/, "modified bytes must fail against the original manifest");
+    const malformed = Buffer.from("{");
+    fs.writeFileSync(damagedFixture, malformed);
+    const refreshed = { ...manifest, files: manifest.files.map(row =>
+      row.path === shippedPath ? { ...row, bytes: malformed.byteLength, sha256: sha256(malformed) } : row),
+    };
+    fs.writeFileSync(path.join(damagedProduct, "manifest.json"), JSON.stringify(refreshed));
+    await assert.rejects(startHost(true, {}, "--fixture", damagedProduct),
+      /host exited before listen/, "a rehashed manifest cannot validate malformed fixture input");
+    await assert.rejects(startHost(true, {}, "--not-a-mode"),
+      /host exited before listen/, "unexpected invocation must be closed");
   } finally {
     for (const server of active.reverse()) await endHost(server);
     upstream.closeAllConnections();
