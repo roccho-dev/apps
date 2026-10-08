@@ -605,10 +605,11 @@ for (const port of ["direct", "compiled"]) test(`scoped intent exposes only cano
     edges: [{ id: "current-connection", from: regionIdOf(first.id), to: regionIdOf(second.id) }],
   };
   const reference = { source: MANIFEST.source, focus: [first.id] };
-  for (const variant of ["present", "absent", "renamed", "duplicate-label", "conflicting-label"]) {
+  for (const variant of ["present", "absent", "renamed-label", "renamed-id", "duplicate-label", "conflicting-label"]) {
     const graph = structuredClone(originalGraph);
     if (variant === "absent") { graph.regions.shift(); graph.edges = []; }
-    if (variant === "renamed") graph.regions[0].label = "different current description";
+    if (variant === "renamed-label") graph.regions[0].label = "different current description";
+    if (variant === "renamed-id") { graph.regions[0].id = "renamed-current-node"; graph.edges[0].from = "renamed-current-node"; }
     if (variant === "duplicate-label") graph.regions[1].label = graph.regions[0].label;
     if (variant === "conflicting-label") [graph.regions[0].label, graph.regions[1].label] = [graph.regions[1].label, graph.regions[0].label];
     const body = { kind: ARCHITECTURE_GOAL_INTENT_KIND, state: {
