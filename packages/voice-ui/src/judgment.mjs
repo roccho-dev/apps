@@ -74,6 +74,7 @@ export function questionsFor(state, slots, context) {
       + " Its historical association remains unverified, not proof of intent or a unique edge."
       + " Use the earlier utterance together with that section's entities and candidate relationships to understand an anaphoric qualification."
       + " Do not replace an explicit endpoint or semantic qualification with the latest analysis.";
+    const endpointNote = " Match semantic qualifications using the current Working nodes' labels and connections, not only literal names; these describe Working, not verified source facts.";
     return {
       action: {
         instruction: "Which change to the Working graph does the utterance request? Identify unsupported changes as their own actions, not as adding an edge." + note,
@@ -82,11 +83,11 @@ export function questionsFor(state, slots, context) {
           : ACTION_WORDS[action]),
       },
       source: {
-        instruction: "If the utterance asks to add an edge, which current Working node is its start? An earlier utterance and its reopened section may qualify that node; choose none if it does not identify a unique start." + note,
+        instruction: "If the utterance asks to add an edge, which current Working node is its start? An earlier utterance and its reopened section may qualify that node; choose none if it does not identify a unique start." + note + endpointNote,
         options: criteria(slots.source, key => key === NONE ? "no unique current node is identified as the start" : `the edge starts at ${node(key)}`),
       },
       target: {
-        instruction: "If the utterance asks to add an edge, which current Working node is its end? An earlier utterance and its reopened section may qualify that node; choose none if it does not identify a unique end." + note,
+        instruction: "If the utterance asks to add an edge, which current Working node is its end? An earlier utterance and its reopened section may qualify that node; choose none if it does not identify a unique end." + note + endpointNote,
         options: criteria(slots.target, key => key === NONE ? "no unique current node is identified as the end" : `the edge ends at ${node(key)}`),
       },
     };

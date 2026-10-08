@@ -589,6 +589,63 @@ test("Goal hypothetical proposals distinguish source facts without boosting weak
   }
 });
 
+const WORKING_ENDPOINT_NOTE = " Match semantic qualifications using the current Working nodes' labels and connections, not only literal names; these describe Working, not verified source facts.";
+for (const port of ["direct", "compiled"]) test(`scoped endpoints clarify only existing Working semantics, ${port}`, async () => {
+  const ordinary = intentRequest();
+  const graph = {
+    regions: [{ id: "sender", label: "handler" }, { id: "receiver", label: "handler" },
+      { id: "role", label: "input role" }, { id: "reader", label: "reader" }],
+    edges: [{ id: "sender-role", from: "sender", to: "role" },
+      { id: "receiver-reader", from: "receiver", to: "reader" }],
+  };
+  const reference = { source: MANIFEST.source, focus: ["src-log-mjs"] };
+  const body = { kind: ARCHITECTURE_GOAL_INTENT_KIND, state: {
+    utterance: "connect the input handler to the reader", graph,
+    context: { recent: [{ seq: 1, source: "typed", text: "show the earlier part",
+      outcome: "no-change", reference }] }, architecture: ordinary.state.architecture,
+  } };
+  assert.equal(isRequest(body), true);
+  let wire;
+  let response;
+  if (port === "direct") {
+    response = await onRequestPost({ available: true, architecture: prepared,
+      request: new Request("http://localhost/api/judge", { method: "POST", body: JSON.stringify(body) }) },
+    async ({ state, questions }) => {
+      wire = { state, questions: Object.fromEntries(Object.entries(questions).map(([key, question]) =>
+        [key, { instructions: question.instruction, criteria: question.options }])) };
+      return { answers: Object.fromEntries(Object.keys(questions).map(key => [key, { choice: NONE, confidence: .3 }])) };
+    });
+  } else {
+    const result = await withProvider(answering(input => {
+      wire = input;
+      return Object.fromEntries(Object.entries(noneTo(input)).map(([key, answer]) => [key, { ...answer, confidence: .3 }]));
+    }), () => post(body, ARCHITECTURE_ENV));
+    response = result.result;
+    assert.equal(result.calls.length, 1);
+  }
+  assert.equal(response.status, 200);
+  assert.deepEqual(wire.state, { ...body.state, context: { recent: [{
+    ...body.state.context.recent[0], reference: judgeSectionOf(MANIFEST, reference.focus),
+  }] } }, "only the existing canonical reference reopening changes incoming state");
+  assert.deepEqual(wire.state.graph, graph, "all current connections and labels are already present");
+  assert.deepEqual(Object.keys(wire.questions), ["action", "source", "target"]);
+  const slots = architectureGoalSlotsFor(body.state);
+  for (const endpoint of ["source", "target"]) {
+    const question = wire.questions[endpoint];
+    assert.ok(question.instructions.endsWith(WORKING_ENDPOINT_NOTE), endpoint + ": existing Working relational semantics must be explicit");
+    assert.match(question.instructions, /choose none if it does not identify a unique/u);
+    assert.match(question.instructions, /association remains unverified, not proof of intent/u);
+    assert.match(question.instructions, /Do not replace an explicit endpoint or semantic qualification/u);
+    assert.doesNotMatch(question.instructions, /always choose|higher confidence|state\.focus|state\.offers/u);
+    assert.deepEqual(Object.keys(question.criteria), slots[endpoint]);
+    assert.equal(question.criteria[NONE], `no unique current node is identified as the ${endpoint === "source" ? "start" : "end"}`);
+  }
+  assert.equal(wire.questions.action.instructions.includes(WORKING_ENDPOINT_NOTE), false);
+  assert.deepEqual(Object.keys(wire.questions.action.criteria), slots.action);
+  assert.deepEqual((await response.json()).answers, Object.fromEntries(Object.keys(slots).map(key =>
+    [key, { type: "choice", choice: NONE, confidence: .3 }])), "wording neither forces a choice nor changes confidence");
+});
+
 test("scoped intent asks only three questions, retains every node/edge and reopens references canonically", async () => {
   const original = intentRequest();
   const reference = { source: MANIFEST.source, focus: ["web-app-mjs"] };
