@@ -94,8 +94,13 @@ export async function onRequestPost({ request, available, architecture }, judge)
       asked = { utterance: state.utterance, context: asked.context, architecture: { ...state.architecture, evidence } };
     } else if (kind === ARCHITECTURE_INTENT_KIND || kind === ARCHITECTURE_GOAL_INTENT_KIND) {
       if (kind === ARCHITECTURE_GOAL_INTENT_KIND) {
+        // Named ends describe current Working, not verified source relations.
+        const labels = new Map(state.graph.regions.map(({ id, label }) => [id, label]));
         // The composer names source regions; this is not a current-node match.
-        asked = { ...asked, architecture: { ...own,
+        asked = { ...asked, graph: { ...asked.graph,
+          edges: asked.graph.edges.map(edge => ({ ...edge,
+            fromLabel: labels.get(edge.from), toLabel: labels.get(edge.to) })),
+        }, architecture: { ...own,
           entities: own.entities.map(entity => ({ ...entity, generatedRegionId: regionIdOf(entity.id) })),
           currentAssociation: "UNKNOWN: generatedRegionId is a nominal source-composer name, not current record provenance or historical intent",
         } };
