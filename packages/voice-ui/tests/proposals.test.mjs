@@ -219,7 +219,25 @@ test("real dev host/installed CLI and shipped formal host: controlled positive a
     assert.deepEqual(fixture.scenes.map(scene => scene.id), [
       "partial", "append-delete", "compare-identity", "multiline-native", "none-delay-cancel",
     ]);
-    assert.equal(fixture.scenes.flatMap(scene => scene.steps).length, 11);
+    const fixtureSteps = fixture.scenes.flatMap(scene => scene.steps);
+    assert.ok(fixtureSteps.length >= 14, "the physical ASCII and Unicode HTTP samples must coexist");
+    assert.equal(new Set(fixtureSteps.map(step => step.raw)).size, fixtureSteps.length);
+    // Meltype currently CommitText's representation, not meaning.body or graph actions.
+    // These are human text-insertion examples; typed meaning is metadata only.
+    for (const step of fixtureSteps) {
+      for (const candidate of step.proposals) {
+        assert.equal(candidate.meaning.text, candidate.representation,
+          "selected text must match the displayed insertion, not an unexecuted action");
+        assert.equal(candidate.evidence.source, "fixture",
+          "the manual candidate reason must not impersonate Jev");
+      }
+    }
+    assert.deepEqual(fixture.scenes[0].steps.slice(0, 3).map(step => step.raw), [
+      "a", "ap", "api",
+    ], "the primary trial uses the raw progression physically observed from Meltype");
+    assert.deepEqual(fixture.scenes[1].steps.map(step => step.raw), [
+      "d", "do", "doc",
+    ], "append/delete primary trial must use ordinary keystroke raw");
     const fixtureCase = raw => fixture.scenes.flatMap(scene => scene.steps).find(step => step.raw === raw);
     const postFixture = (server, body, method = "POST", type = "application/json", signal) =>
       fetch(server.url + "/api/meltype-fixture", {
@@ -239,45 +257,71 @@ test("real dev host/installed CLI and shipped formal host: controlled positive a
       }, "Meltype round-trip must retain source typed payload");
       return response;
     };
-    const partial = await fetchCase(1, "か");
+    const partial = await fetchCase(1, "a");
     assert.deepEqual(partial.proposals.map(p => p.id), [
-      "fixture:partial:draft", "fixture:partial:task",
-    ], "a single incomplete character is eligible");
-    const added = await fetchCase(2, "かく");
-    assert.deepEqual(added.proposals.map(p => p.id), ["fixture:partial:draft"]);
-    const diagram = await fetchCase(3, "図");
-    assert.deepEqual(diagram.proposals.map(p => p.id), ["fixture:diagram:outline"]);
-    const append = await fetchCase(4, "図に");
-    assert.deepEqual(append.proposals.map(p => p.id), [
-      "fixture:diagram:edge", "fixture:diagram:note",
+      "fixture:partial:summary", "fixture:partial:question",
+    ], "a single actually-reachable ASCII letter offers insertable text");
+    assert.equal(partial.proposals[0].representation, "APIの要点をまとめる。");
+    const appended = await fetchCase(2, "ap");
+    assert.deepEqual(appended.proposals.map(p => p.id), [
+      "fixture:partial:summary", "fixture:partial:guide",
     ]);
-    assert.deepEqual((await fetchCase(5, "図に矢")).proposals.map(p => p.id), ["fixture:diagram:edge"]);
-    assert.deepEqual(await fetchCase(6, "図に"), {
-      generation: 6, raw: "図に", proposals: append.proposals,
-    }, "deleting input recreates exactly the same offered choice, not an older generation");
-    const compared = await fetchCase(7, "依頼");
+    const api = await fetchCase(3, "api");
+    assert.deepEqual(api.proposals.map(p => p.id), ["fixture:partial:guide"]);
+    assert.deepEqual(await fetchCase(4, "ap"), {
+      generation: 4, raw: "ap", proposals: appended.proposals,
+    }, "backspacing to an earlier raw must yield a fresh generation");
+    assert.deepEqual((await fetchCase(5, "か")).proposals.map(p => p.id), [
+      "fixture:partial:kana",
+    ], "Unicode raw remains a valid direct-HTTP control, not a physical key assumption");
+
+    const firstDocument = await fetchCase(6, "d");
+    assert.deepEqual(firstDocument.proposals.map(p => p.id), ["fixture:doc:outline"]);
+    const paragraph = await fetchCase(7, "do");
+    assert.deepEqual(paragraph.proposals.map(p => p.id), [
+      "fixture:doc:flow", "fixture:doc:note",
+    ]);
+    assert.deepEqual((await fetchCase(8, "doc")).proposals.map(p => p.id), [
+      "fixture:doc:flow",
+    ]);
+    assert.deepEqual(await fetchCase(9, "do"), {
+      generation: 9, raw: "do", proposals: paragraph.proposals,
+    }, "deleted raw restores the offered *text*, without graph mutations");
+
+    const compared = await fetchCase(10, "r");
     assert.equal(compared.proposals.length, 2);
     assert.equal(compared.proposals[0].representation, compared.proposals[1].representation);
     assert.notEqual(compared.proposals[0].id, compared.proposals[1].id);
     assert.notDeepEqual(compared.proposals[0].meaning, compared.proposals[1].meaning);
-    assert.ok(compared.proposals.every(p => p.evidence.source === "fixture"), "manual reasons are not Jev");
-    const multiline = await fetchCase(8, "議事録");
+    assert.deepEqual(compared.proposals.map(p => p.meaning.kind), ["draft", "quote"]);
+    assert.ok(compared.proposals.every(p => p.evidence.source === "fixture"));
+    assert.deepEqual((await fetchCase(11, "依頼")).proposals.map(p => p.id),
+      compared.proposals.map(p => p.id), "Unicode raw preserves original typed IDs");
+
+    const multiline = await fetchCase(12, "m");
     assert.equal(multiline.proposals[0].representation, "件名：検討 🍣\n- 案A\n- 案B\n");
-    assert.deepEqual(multiline.proposals[0].meaning.lines, [
-      "件名：検討 🍣", "- 案A", "- 案B", "",
-    ]);
-    assert.deepEqual((await fetchCase(9, "候補なし")).proposals, []);
-    assert.deepEqual((await fetchCase(10, "取消")).proposals, []);
+    assert.equal(multiline.proposals[0].meaning.text, multiline.proposals[0].representation);
+    assert.deepEqual((await fetchCase(13, "議事録")).proposals.map(p => p.id),
+      multiline.proposals.map(p => p.id), "Unicode raw retains multiline and original ID");
+    assert.deepEqual((await fetchCase(14, "x")).proposals, []);
+    assert.deepEqual((await fetchCase(15, "c")).proposals, []);
+
+    // Every authored step remains reachable by this route without adjusting
+    // code each time P adds a minimal case during the upgrade loop.
+    for (const [index, step] of fixtureSteps.entries()) {
+      const returned = await fetchCase(100 + index, step.raw);
+      assert.deepEqual(returned.proposals, step.proposals);
+    }
 
     const arrivals = [];
-    const older = postFixture(fixtureHost, { generation: 41, raw: "遅" })
+    const older = postFixture(fixtureHost, { generation: 41, raw: "st" })
       .then(async response => {
         assert.equal(response.status, 200);
         arrivals.push("old");
         return response.json();
       });
     await new Promise(resolve => setTimeout(resolve, 30));
-    const newer = postFixture(fixtureHost, { generation: 42, raw: "遅延後" })
+    const newer = postFixture(fixtureHost, { generation: 42, raw: "sta" })
       .then(async response => {
         assert.equal(response.status, 200);
         arrivals.push("new");
@@ -286,10 +330,10 @@ test("real dev host/installed CLI and shipped formal host: controlled positive a
     const [oldResponse, newResponse] = await Promise.all([older, newer]);
     assert.deepEqual(arrivals, ["new", "old"], "server exposes reverse completion without overriding current UI generation");
     assert.deepEqual(oldResponse, {
-      generation: 41, raw: "遅", proposals: fixtureCase("遅").proposals,
+      generation: 41, raw: "st", proposals: fixtureCase("st").proposals,
     });
     assert.deepEqual(newResponse, {
-      generation: 42, raw: "遅延後", proposals: fixtureCase("遅延後").proposals,
+      generation: 42, raw: "sta", proposals: fixtureCase("sta").proposals,
     });
     for (const [body, status] of [
       [{ raw: "か" }, 400],
