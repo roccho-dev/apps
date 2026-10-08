@@ -945,7 +945,8 @@ test("a Goal after a source focus in the same session resolves its one arrow, as
           const original = resolved.request.state;
           assert.deepEqual(resolved.turn.slots, slotsFor(original), "the original latest intent turn remains validated");
           assert.deepEqual(request.state, { utterance: original.utterance,
-            graph: { regions: original.graph.regions, edges: original.graph.edges },
+            graph: { regions: original.graph.regions, edges: original.graph.edges.map(edge => ({
+              ...edge, kind: session.working.records.find(record => record.type === "relation" && record.id === edge.id).kind })) },
             context: original.context, architecture: original.architecture });
           return { kind: "answered", decision: { answers: answerFor(architectureGoalSlotsFor(request.state), { action: ACTION_ADD_EDGE, source: from, target: to }) } };
         }

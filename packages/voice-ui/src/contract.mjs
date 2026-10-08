@@ -20,8 +20,9 @@ export const GOAL_REQUEST_MAX = 8;
 // the one or two body files its own questions rest on, whose text the server
 // adds.
 export const ARCHITECTURE_INTENT_KIND = "voice-ui.judge.architecture-intent.v2";
-// A scoped Goal resolves only an action and its endpoints, not an editing turn.
-export const ARCHITECTURE_GOAL_INTENT_KIND = "voice-ui.judge.architecture-goal-intent.v1";
+// A scoped Goal resolves only an action and its endpoints. Its v2 graph carries
+// current Working relation kinds, not canonical source or historical authority.
+export const ARCHITECTURE_GOAL_INTENT_KIND = "voice-ui.judge.architecture-goal-intent.v2";
 // Intent/locate v2 require an explicit nullable reference on every context
 // entry. Plain v1 keeps its exact original shape; old architecture kinds are
 // not admitted. Judge v1 is unchanged: it carries no conversation.
@@ -301,7 +302,11 @@ export function isRequest(value) {
     return exactObject(state, ["utterance", "graph", "context", "architecture"])
       && text(state.utterance, TEXT_MAX)
       && exactObject(state.graph, ["regions", "edges"])
-      && validGraph({ ...state.graph, placeable: [] }, ARCHITECTURE_GRAPH_MAX)
+      && Array.isArray(state.graph.edges)
+      && state.graph.edges.every(edge => exactObject(edge, ["id", "from", "to", "kind"])
+        && typeof edge.kind === "string" && KEY_PATTERN.test(edge.kind))
+      && validGraph({ ...state.graph, edges: state.graph.edges.map(({ kind, ...edge }) => edge),
+        placeable: [] }, ARCHITECTURE_GRAPH_MAX)
       && state.graph.regions.length >= 1
       && validContext(state.context, ARCHITECTURE_CHANGES_MAX, true)
       && validIntent(state.architecture);

@@ -85,8 +85,15 @@ export async function runGoal({ utterance, bundle, protocol, current, ask, adopt
       } catch { intent = null; }
       if (intent === null) return stop("invalid-goal-request");
       const { utterance: text, graph, context, architecture } = intent.request.state;
+      const edges = [];
+      for (const edge of graph.edges) {
+        const matches = expected.working.records.filter(record => record.type === "relation" && record.id === edge.id);
+        if (matches.length !== 1 || matches[0].from !== edge.from || matches[0].to !== edge.to) return stop("invalid-goal-request");
+        // Carry only the actual current Working kind, never infer it from an ID.
+        edges.push({ ...edge, kind: matches[0].kind });
+      }
       const request = { kind: ARCHITECTURE_GOAL_INTENT_KIND, state: {
-        utterance: text, graph: { regions: graph.regions, edges: graph.edges }, context, architecture,
+        utterance: text, graph: { regions: graph.regions, edges }, context, architecture,
       } };
       if (!isRequest(request)) return stop("invalid-goal-request");
       const resolved = await judged(request, architectureGoalSlotsFor(request.state));
