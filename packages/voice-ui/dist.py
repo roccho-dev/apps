@@ -336,6 +336,7 @@ def build(args):
     copy_file(app / "tests/architecture-e2e.mjs", out / "e2e/architecture-e2e.mjs")
     copy_file(app / "tests/runtime-acceptance.mjs", out / "e2e/runtime-acceptance.mjs")
     copy_file(app / "dev/serve.mjs", out / "e2e/serve.mjs")
+    copy_file(app / "tests/fixtures/proposals.json", out / "e2e/fixtures/proposals.json")
     copy_file(app / "tests/fixtures/voice-add-edge-en.wav", out / "e2e/fixtures/voice-add-edge-en.wav")
     copy_file(app / "tests/fixtures/voice-add-edge-en.golden.json", out / "e2e/fixtures/voice-add-edge-en.golden.json")
     copy_file(app / "tests/fixtures/voice-reverse-edge-en.wav", out / "e2e/fixtures/voice-reverse-edge-en.wav")
@@ -463,6 +464,7 @@ def verify_dist(root):
         "e2e/architecture-e2e.mjs",
         "e2e/runtime-acceptance.mjs",
         "e2e/serve.mjs",
+        "e2e/fixtures/proposals.json",
         "e2e/fixtures/voice-add-edge-en.wav",
         "e2e/fixtures/voice-add-edge-en.golden.json",
         "e2e/fixtures/voice-reverse-edge-en.wav",
