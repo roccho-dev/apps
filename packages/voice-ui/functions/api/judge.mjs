@@ -93,6 +93,13 @@ export async function onRequestPost({ request, available, architecture }, judge)
       questions = questionsFor(state, slots, { kind, entity: bound.manifest.entities.find(entity => entity.id === part), evidence });
       asked = { utterance: state.utterance, context: asked.context, architecture: { ...state.architecture, evidence } };
     } else if (kind === ARCHITECTURE_INTENT_KIND || kind === ARCHITECTURE_GOAL_INTENT_KIND) {
+      if (kind === ARCHITECTURE_GOAL_INTENT_KIND) {
+        // The composer names source regions; this is not a current-node match.
+        asked = { ...asked, architecture: { ...own,
+          entities: own.entities.map(entity => ({ ...entity, generatedRegionId: regionIdOf(entity.id) })),
+          currentAssociation: "UNKNOWN: generatedRegionId is a nominal source-composer name, not current record provenance or historical intent",
+        } };
+      }
       slots = kind === ARCHITECTURE_GOAL_INTENT_KIND ? architectureGoalSlotsFor(state) : slotsFor(state);
       questions = questionsFor(state, slots, { kind, relationOf: edge => definedRelation(bound.manifest, edge) });
     } else {
