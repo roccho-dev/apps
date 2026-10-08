@@ -75,7 +75,7 @@ const helpers = async () => {
 // and a remembered focus said before six later utterances. With 11 parts in
 // focus the pairs touching it are far over one Goal request's candidates; with
 // one part they fit, but the whole Working's edges are over one request's graph.
-const sourced = async focusCount => {
+const sourced = async (focusCount, relationKinds = ["flow"]) => {
   const part = index => `part-${String(index).padStart(2, "0")}`;
   const id = index => regionIdOf(part(index));
   const parts = Array.from({ length: 42 }, (_, index) => part(index));
@@ -90,7 +90,7 @@ const sourced = async focusCount => {
   }
   const relations = [...pairs.map(([from, to]) => ({ id: `rel-${from}-${to}`, from: id(from), to: id(to) })),
     { id: "rel-back", from: id(20), to: id(0) }, { id: "rel-side", from: id(0), to: id(30) }]
-    .map(relation => ({ type: "relation", ...relation, kind: "flow", label: "" }));
+    .map((relation, index) => ({ type: "relation", ...relation, kind: relationKinds[index % relationKinds.length], label: "" }));
   const graph = await protocol.createDecisionLog([
     { type: "meta", schema: STATE_SCHEMA, root: "root", title: "goal source fixture" },
     { type: "region", id: "root", parent: null, label: "fixture", kind: "boundary", bounds: [0, 0, 4200, 2200], summary: "" },
@@ -166,7 +166,8 @@ const exactPairChain = async focusCount => {
   for (const [at, resolution] of [[0, 0], [2, 1]]) {
     const original = resolved[resolution].built.request.state;
     assert.deepEqual(asked[at].state, { utterance: original.utterance,
-      graph: { regions: original.graph.regions, edges: original.graph.edges },
+      graph: { regions: original.graph.regions, edges: original.graph.edges.map(edge => ({
+        ...edge, kind: resolved[resolution].latest.working.records.find(record => record.type === "relation" && record.id === edge.id).kind })) },
       context: original.context, architecture: original.architecture });
   }
   const goal = asked[1];
@@ -284,9 +285,10 @@ test("scoped resolution projects only its three questions without pruning Workin
     cancelled: () => false, resolveIntent: resolver, adopt: async () => { throw new Error("NONE cannot adopt"); },
     ask: async request => { sent = request; return { kind: "answered", decision: { answers: Object.fromEntries(
       ["action", "source", "target"].map(name => [name, { type: "choice", choice: NONE, confidence: 1 }])) } }; } });
-  assert.equal(sent.kind, "voice-ui.judge.architecture-goal-intent.v1");
+  assert.equal(sent.kind, "voice-ui.judge.architecture-goal-intent.v2");
   assert.deepEqual(Object.keys(sent.state), ["utterance", "graph", "context", "architecture"]);
-  assert.deepEqual(sent.state.graph, { regions: original.state.graph.regions, edges: original.state.graph.edges });
+  assert.deepEqual(sent.state.graph, { regions: original.state.graph.regions, edges: original.state.graph.edges.map(edge => ({
+    ...edge, kind: fixture.session.working.records.find(record => record.type === "relation" && record.id === edge.id).kind })) });
   assert.deepEqual(sent.state.context, original.state.context);
   assert.deepEqual(sent.state.architecture, original.state.architecture);
   assert.equal(isRequest(sent), true);
@@ -970,5 +972,53 @@ test("a smaller-only fit is an executable single choice without claiming model q
     } };
     assert.equal((await planAddition({ working: graph, head: graph.head, partKey: "api", parentId: "container",
       confidence: 1, bundle: offered, protocol: invalidBounds })).reason, "no-room-for-part");
+  }
+});
+
+test("scoped resolution carries exact current Working kinds, not the resolver's untyped graph", async () => {
+  const kinds = ["imports", "calls", "has-role"];
+  const fixture = await sourced(11, kinds), session = fixture.session;
+  const before = JSON.stringify(session.working.records), resolver = intentFor(fixture.manifest, "connect them");
+  const original = resolver(session).request.state;
+  let sent;
+  const result = await runGoal({ utterance: "connect them", bundle, protocol, current: () => session,
+    resolveIntent: resolver, cancelled: () => false, adopt: async () => { throw Error("NONE cannot adopt"); },
+    ask: async request => { sent = request; return openAnswer(request, {}); } });
+  assert.equal(result.reason, "none"); assert.equal(result.requests, 1);
+  assert.equal(sent.kind, "voice-ui.judge.architecture-goal-intent.v2");
+  assert.equal(isRequest(sent), true);
+  assert.deepEqual(sent.state.graph.edges, original.graph.edges.map(edge => ({
+    ...edge, kind: session.working.records.find(record => record.type === "relation" && record.id === edge.id
+      && record.from === edge.from && record.to === edge.to).kind,
+  })));
+  assert.deepEqual([...new Set(sent.state.graph.edges.map(edge => edge.kind))].sort(), [...kinds].sort());
+  assert.equal(JSON.stringify(sent.state.graph.edges.map(({ kind, ...edge }) => edge)), JSON.stringify(original.graph.edges));
+  assert.deepEqual(sent.state.context, original.context); assert.deepEqual(sent.state.architecture, original.architecture);
+  assert.equal(JSON.stringify(session.working.records), before);
+});
+
+test("scoped relation-kind projection refuses absent, duplicate or mismatched current tuples before asking", async () => {
+  const fixture = await sourced(11), original = intentFor(fixture.manifest, "connect them")(fixture.session);
+  for (const variant of ["absent", "duplicate", "missing-kind", "renamed-edge", "reversed-edge"]) {
+    let session = fixture.session, built = structuredClone(original);
+    const edge = built.request.state.graph.edges[0];
+    if (variant === "renamed-edge") edge.id = "unrelated-relation";
+    if (variant === "reversed-edge") [edge.from, edge.to] = [edge.to, edge.from];
+    if (["absent", "duplicate", "missing-kind"].includes(variant)) {
+      const records = fixture.session.working.records.flatMap(record => {
+        if (record.type !== "relation" || record.id !== edge.id) return [record];
+        if (variant === "absent") return [];
+        if (variant === "duplicate") return [record, { ...record }];
+        const { kind, ...withoutKind } = record; return [withoutKind];
+      });
+      session = { ...fixture.session, working: { ...fixture.session.working, records } };
+    }
+    built.turn.slots = slotsFor(built.request.state);
+    let calls = 0;
+    const result = await runGoal({ utterance: "connect them", bundle, protocol, current: () => session,
+      resolveIntent: () => built, cancelled: () => false, adopt: async () => { throw Error("must not adopt"); },
+      ask: async request => { calls += 1; return openAnswer(request, {}); } });
+    assert.equal(result.reason, "invalid-goal-request", variant); assert.equal(calls, 0, variant);
+    assert.equal(result.requests, 0, variant);
   }
 });
