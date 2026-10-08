@@ -12,6 +12,7 @@ const { bindJev, judgeNamedChoices } = await import(process.env.JUDGE_PROVIDER_E
 const { default: worker } = await import(process.env.VOICE_UI_WORKER);
 const judgeFor = provider => (request, { signal }) => judgeNamedChoices({ request, provider, signal });
 import { focusedEvidence, intentSectionOf, judgeRequestsOf, judgeSectionOf, locateRequestsOf, readManifest, regionIdOf, routeOf } from "../src/architecture.mjs";
+import { questionsFor } from "../src/judgment.mjs";
 import {
   ACTION_ARCHITECTURE,
   ACTION_COMPOSE,
@@ -590,6 +591,71 @@ test("Goal hypothetical proposals distinguish source facts without boosting weak
 });
 
 const WORKING_ENDPOINT_NOTE = " Match semantic qualifications using the current Working nodes' labels and connections, not only literal names; these describe Working, not verified source facts.";
+
+const NOMINAL_ASSOCIATION = "UNKNOWN: generatedRegionId is a nominal source-composer name, not current record provenance or historical intent";
+const withoutNominalNames = state => {
+  const { currentAssociation, ...architecture } = state.architecture;
+  return { ...state, architecture: { ...architecture,
+    entities: architecture.entities.map(({ generatedRegionId, ...entity }) => entity) } };
+};
+for (const port of ["direct", "compiled"]) test(`scoped intent exposes only canonical nominal region names, ${port}`, async () => {
+  const [first, second] = MANIFEST.entities.filter(entity => entity.kind === "file").slice(0, 2);
+  const originalGraph = {
+    regions: [{ id: regionIdOf(first.id), label: first.label }, { id: regionIdOf(second.id), label: second.label }],
+    edges: [{ id: "current-connection", from: regionIdOf(first.id), to: regionIdOf(second.id) }],
+  };
+  const reference = { source: MANIFEST.source, focus: [first.id] };
+  for (const variant of ["present", "absent", "renamed-label", "renamed-id", "duplicate-label", "conflicting-label"]) {
+    const graph = structuredClone(originalGraph);
+    if (variant === "absent") { graph.regions.shift(); graph.edges = []; }
+    if (variant === "renamed-label") graph.regions[0].label = "different current description";
+    if (variant === "renamed-id") { graph.regions[0].id = "renamed-current-node"; graph.edges[0].from = "renamed-current-node"; }
+    if (variant === "duplicate-label") graph.regions[1].label = graph.regions[0].label;
+    if (variant === "conflicting-label") [graph.regions[0].label, graph.regions[1].label] = [graph.regions[1].label, graph.regions[0].label];
+    const body = { kind: ARCHITECTURE_GOAL_INTENT_KIND, state: {
+      utterance: "connect the earlier described part to the other current part", graph,
+      context: { recent: [{ seq: 1, source: "typed", text: "show the earlier part",
+        outcome: "no-change", reference }] }, architecture: intentSectionOf(MANIFEST),
+    } };
+    assert.equal(isRequest(body), true, variant);
+    let wire, response;
+    if (port === "direct") {
+      response = await onRequestPost({ available: true, architecture: prepared,
+        request: new Request("http://localhost/api/judge", { method: "POST", body: JSON.stringify(body) }) },
+      async ({ state, questions }) => {
+        wire = { state, questions: Object.fromEntries(Object.entries(questions).map(([key, question]) =>
+          [key, { type: "choice", instructions: question.instruction, criteria: question.options }])) };
+        return { answers: Object.fromEntries(Object.keys(questions).map(key => [key, { choice: NONE, confidence: .3 }])) };
+      });
+    } else {
+      const result = await withProvider(answering(input => {
+        wire = input;
+        return Object.fromEntries(Object.entries(noneTo(input)).map(([key, answer]) => [key, { ...answer, confidence: .3 }]));
+      }), () => post(body, ARCHITECTURE_ENV));
+      response = result.result;
+      assert.equal(result.calls.length, 1, variant);
+    }
+    assert.equal(response.status, 200, variant);
+    assert.equal(wire.state.architecture.currentAssociation, NOMINAL_ASSOCIATION, variant);
+    assert.deepEqual(wire.state.architecture.entities, body.state.architecture.entities.map(entity => ({
+      ...entity, generatedRegionId: regionIdOf(entity.id),
+    })), "names come from the validated canonical composer, not graph labels or caller hints");
+    const restored = withoutNominalNames(wire.state);
+    const reopened = { ...body.state, context: { recent: [{
+      ...body.state.context.recent[0], reference: judgeSectionOf(MANIFEST, reference.focus),
+    }] } };
+    assert.equal(JSON.stringify(restored), JSON.stringify(reopened), "only nominal names and their shared UNKNOWN declaration are added");
+    assert.deepEqual(wire.state.graph, graph, "every current graph node and connection remains untouched");
+    assert.equal(Object.hasOwn(wire.state.architecture, "matchedRegion"), false);
+    assert.equal(Object.hasOwn(wire.state.architecture, "nominalRegionNames"), false, "no second identity catalogue");
+    const slots = architectureGoalSlotsFor(body.state);
+    const originalQuestions = questionsFor(body.state, slots, { kind: body.kind });
+    assert.deepEqual(wire.questions, Object.fromEntries(Object.entries(originalQuestions).map(([key, question]) =>
+      [key, { type: "choice", instructions: question.instruction, criteria: question.options }])), "all action/endpoint instructions and choices are unchanged");
+    assert.deepEqual((await response.json()).answers, Object.fromEntries(Object.keys(slots).map(key =>
+      [key, { type: "choice", choice: NONE, confidence: .3 }])), "nominal names never resolve, force or boost an answer");
+  }
+});
 for (const port of ["direct", "compiled"]) test(`scoped endpoints clarify only existing Working semantics, ${port}`, async () => {
   const ordinary = intentRequest();
   const graph = {
@@ -624,9 +690,9 @@ for (const port of ["direct", "compiled"]) test(`scoped endpoints clarify only e
     assert.equal(result.calls.length, 1);
   }
   assert.equal(response.status, 200);
-  assert.deepEqual(wire.state, { ...body.state, context: { recent: [{
+  assert.deepEqual(withoutNominalNames(wire.state), { ...body.state, context: { recent: [{
     ...body.state.context.recent[0], reference: judgeSectionOf(MANIFEST, reference.focus),
-  }] } }, "only the existing canonical reference reopening changes incoming state");
+  }] } }, "apart from nominal names, only canonical reference reopening changes incoming state");
   assert.deepEqual(wire.state.graph, graph, "all current connections and labels are already present");
   assert.deepEqual(Object.keys(wire.questions), ["action", "source", "target"]);
   const slots = architectureGoalSlotsFor(body.state);
@@ -646,6 +712,40 @@ for (const port of ["direct", "compiled"]) test(`scoped endpoints clarify only e
     [key, { type: "choice", choice: NONE, confidence: .3 }])), "wording neither forces a choice nor changes confidence");
 });
 
+test("nominal names do not change normal intent or local Goal provider state", async () => {
+  for (const body of [request(), intentRequest(), goalWordingRequest(false)]) {
+    const { result, calls } = await withProvider(answering(noneTo), () => post(body, ARCHITECTURE_ENV));
+    assert.equal(result.status, 200); assert.equal(calls.length, 1);
+    assert.equal(JSON.stringify(calls[0].state), JSON.stringify(body.state));
+    assert.equal(Object.hasOwn(calls[0].state.architecture ?? {}, "currentAssociation"), false);
+    const slots = slotsFor(body.state);
+    const originalQuestions = questionsFor(body.state, slots, { kind: body.kind });
+    assert.deepEqual(calls[0].questions, Object.fromEntries(Object.entries(originalQuestions).map(([key, question]) =>
+      [key, { type: "choice", instructions: question.instruction, criteria: question.options }])));
+  }
+});
+
+test("nominal source names cannot be supplied by the caller or bypass stale reference checks", async () => {
+  const ordinary = intentRequest();
+  const body = { kind: ARCHITECTURE_GOAL_INTENT_KIND, state: {
+    utterance: "connect the earlier described part to the other current part",
+    graph: { regions: ordinary.state.graph.regions, edges: ordinary.state.graph.edges },
+    context: { recent: [{ seq: 1, source: "typed", text: "show the earlier part", outcome: "no-change",
+      reference: { source: MANIFEST.source, focus: [MANIFEST.entities[0].id] } }] },
+    architecture: ordinary.state.architecture,
+  } };
+  for (const mutate of [
+    state => { state.architecture.entities[0].generatedRegionId = "caller-selected-node"; },
+    state => { state.architecture.currentAssociation = "verified by caller"; },
+    state => { state.architecture.source.commit = "f".repeat(40); },
+    state => { state.context.recent[0].reference.source.commit = "f".repeat(40); },
+    state => { state.context.recent[0].reference.focus = ["missing"]; },
+  ]) {
+    const bad = structuredClone(body); mutate(bad.state);
+    const { result, calls } = await withProvider(answering(noneTo), () => post(bad, ARCHITECTURE_ENV));
+    assert.equal(result.status, 422); assert.equal(calls.length, 0);
+  }
+});
 test("scoped intent asks only three questions, retains every node/edge and reopens references canonically", async () => {
   const original = intentRequest();
   const reference = { source: MANIFEST.source, focus: ["web-app-mjs"] };
@@ -660,7 +760,7 @@ test("scoped intent asks only three questions, retains every node/edge and reope
   const sent = calls[0];
   assert.deepEqual(Object.keys(sent.state), ["utterance", "graph", "context", "architecture"]);
   assert.deepEqual(sent.state.graph, body.state.graph);
-  assert.deepEqual(sent.state.architecture, body.state.architecture);
+  assert.deepEqual(withoutNominalNames(sent.state).architecture, body.state.architecture);
   assert.deepEqual(sent.state.context.recent[0].reference, judgeSectionOf(MANIFEST, reference.focus));
   assert.deepEqual(Object.keys(sent.questions), ["action", "source", "target"]);
   assert.deepEqual(Object.keys(sent.questions.action.criteria), architectureGoalSlotsFor(body.state).action);
