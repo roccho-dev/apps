@@ -441,7 +441,8 @@ test("real dev host/installed CLI and shipped formal host: controlled positive a
     const damagedFixture = path.join(damagedProduct, shippedPath);
     fs.mkdirSync(path.dirname(damagedFixture), { recursive: true });
     fs.copyFileSync(path.join(dist, "e2e/serve.mjs"), path.join(damagedProduct, "e2e/serve.mjs"));
-    fs.copyFileSync(path.join(dist, "manifest.json"), path.join(damagedProduct, "manifest.json"));
+    fs.writeFileSync(path.join(damagedProduct, "manifest.json"),
+      fs.readFileSync(path.join(dist, "manifest.json")));
     await assert.rejects(startHost(true, {}, "--fixture", damagedProduct),
       /host exited before listen/, "absent bundled fixture must not serve");
     fs.writeFileSync(damagedFixture, Buffer.concat([sourceBytes, Buffer.from("tamper")]));
