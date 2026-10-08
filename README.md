@@ -36,6 +36,12 @@ Malformed input, invalid CLI output and timeout fail closed without exposing
 private provider diagnostics. The configured proposer is *trusted operator
 code*, not a sandbox for user-supplied modules.
 
+An optional `VOICE_UI_PROPOSAL_B` is an opaque operator-provided data locator
+passed through the bounded child environment to the configured proposer.
+It is **independent** of the executable module path and is never inferred,
+opened, mutated or treated as accepted/current by this controlled slice.
+The real B owner, format and effective revision remain unresolved in ADRS #577/#506.
+
 Formal PRODUCT's `e2e/serve.mjs` intentionally does not contain the dev
 `proposals.mjs` dependency. Formal mode never imports it or offers this route;
 the existing Worker `/api/judge` and its capability contract remain unchanged.
