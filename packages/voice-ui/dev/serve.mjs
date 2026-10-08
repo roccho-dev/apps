@@ -225,7 +225,11 @@ const proposalAcquisition = !formalRoot && process.env.VOICE_UI_PROPOSAL_MODULE
       binary: requireStore("VOICE_UI_SEMCMP_BIN"),
       proposer: process.env.VOICE_UI_PROPOSAL_MODULE,
       url: process.env.VOICE_UI_PROPOSAL_JEV_URL,
-      testKey: process.env.VOICE_UI_PROPOSAL_TEST_KEY,
+      controlledEnv: {
+        JEV_API_KEY: process.env.VOICE_UI_PROPOSAL_TEST_KEY,
+        JEV_API_URL: process.env.VOICE_UI_PROPOSAL_JEV_URL,
+        JEV_TIMEOUT_MS: "3000",
+      },
     }) : null;
 
 const port = Number(process.env.PORT ?? 8787);

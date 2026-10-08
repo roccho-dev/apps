@@ -46,9 +46,10 @@ fs.chmodSync(wrapper, 0o700);
 fs.writeFileSync(invalid, "#!/bin/sh\nprintf invalid\n", { mode: 0o700 });
 fs.chmodSync(invalid, 0o700);
 
-const acquire = createAcquisition({
-  binary: wrapper, proposer, url, testKey: "owned-synthetic-key", timeoutMs: 5000,
-});
+const env = {
+  JEV_API_KEY: "owned-synthetic-key", JEV_API_URL: url, JEV_TIMEOUT_MS: "3000",
+};
+const acquire = createAcquisition({ binary: wrapper, proposer, url, controlledEnv: env, timeoutMs: 5000 });
 test.after(() => fs.rmSync(root, { recursive: true, force: true }));
 
 test("real installed CLI: one character, changed query, original opaque typed records and order", async () => {
@@ -74,14 +75,14 @@ test("malformed/duplicate/proposer failure, invalid key/endpoint, bounded child 
   await assert.rejects(acquire({ input: "bad" }), { code: "INVALID_QUERY" });
   await assert.rejects(acquire(q("bad")), { code: "PROPOSAL_FAILED" });
   await assert.rejects(acquire(q("broken")), { code: "PROPOSAL_FAILED" });
-  const malformed = createAcquisition({ binary: invalid, proposer, url, testKey: "synthetic" });
+  const malformed = createAcquisition({ binary: invalid, proposer, url, controlledEnv: env });
   await assert.rejects(malformed(q("x")), { code: "PROPOSAL_FAILED" });
-  assert.throws(() => createAcquisition({ binary, proposer, url, testKey: "" }), {code:"PROPOSAL_CONFIG_INVALID"});
-  assert.throws(() => createAcquisition({ binary, proposer, url:"https://api.typesafe.ai/v1/systemone", testKey:"synthetic" }),{code:"PROPOSAL_CONFIG_INVALID"});
+  assert.throws(() => createAcquisition({ binary, proposer, url, controlledEnv: { ...env, JEV_API_KEY: "" } }), {code:"PROPOSAL_CONFIG_INVALID"});
+  assert.throws(() => createAcquisition({ binary, proposer, url:"https://api.typesafe.ai/v1/systemone", controlledEnv: env }),{code:"PROPOSAL_CONFIG_INVALID"});
   const sleeper = path.join(root, "sleeper");
   fs.writeFileSync(sleeper, "#!" + process.execPath + "\nsetTimeout(()=>{},10000);\n", {mode:0o700});
   fs.chmodSync(sleeper, 0o700);
-  const timed = createAcquisition({ binary:sleeper, proposer, url, testKey:"synthetic", timeoutMs:80 });
+  const timed = createAcquisition({ binary:sleeper, proposer, url, controlledEnv: env, timeoutMs:80 });
   await assert.rejects(timed(q("ux")), { code:"PROPOSAL_TIMEOUT" });
 });
 

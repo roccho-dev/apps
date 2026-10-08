@@ -8,13 +8,15 @@ export class ProposalFailure extends Error {
 const exact = (v, names) => v !== null && typeof v === "object" && !Array.isArray(v)
   && Object.keys(v).length === names.length && names.every(n => Object.hasOwn(v, n));
 
-export function createAcquisition({ binary, proposer, url, testKey, timeoutMs = 5000, spawnImpl = spawn }) {
+export function createAcquisition({ binary, proposer, url, controlledEnv, timeoutMs = 5000, spawnImpl = spawn }) {
   let endpoint;
   try { endpoint = new URL(url); } catch { throw new ProposalFailure("PROPOSAL_CONFIG_INVALID", 503); }
   // First slice: no external JEV endpoint or inherited Worker credential.
   if (typeof binary !== "string" || !path.isAbsolute(binary)
     || typeof proposer !== "string" || !path.isAbsolute(proposer)
-    || typeof testKey !== "string" || !testKey
+    || controlledEnv === null || typeof controlledEnv !== "object" || Array.isArray(controlledEnv)
+    || Object.keys(controlledEnv).length !== 3
+    || !Object.values(controlledEnv).every(x => typeof x === "string" && x.length > 0)
     || endpoint.protocol !== "http:"
     || !["localhost", "127.0.0.1", "[::1]"].includes(endpoint.hostname)
     || !Number.isSafeInteger(timeoutMs) || timeoutMs < 1 || timeoutMs > 15000)
@@ -33,11 +35,10 @@ export function createAcquisition({ binary, proposer, url, testKey, timeoutMs = 
       try {
         child = spawnImpl(binary, ["--propose", proposer], {
           cwd: "/", windowsHide: true, stdio: ["pipe", "pipe", "pipe"],
-          env: {
-            JEV_API_KEY: testKey,
-            JEV_API_URL: endpoint.href,
-            JEV_TIMEOUT_MS: String(Math.min(timeoutMs, 3000)),
-          },
+          // Credential ownership and endpoint policy are at the existing host.
+          // The acquisition adapter receives only that host's explicit three-key
+          // child environment; it never imports ambient process.env.
+          env: { ...controlledEnv },
         });
       } catch { reject(new ProposalFailure("PROPOSAL_UNAVAILABLE", 503)); return; }
       let stdout = "", bytes = 0, oversize = false, timedOut = false, done = false;
