@@ -1034,8 +1034,8 @@ const goalScenario = async () => {
         groupLabels: await Promise.all(added.map(record => labelVisible(record.label))),
         groupPaint: await paintedGoal(nestedGroup, after.graph.records.filter(record => record.type === "region" && record.parent === nestedGroup.id)) };
       // Each expected arrow: the group camera, then the existing camera on its
-      // from end, then its to end; the first frame showing the whole matched
-      // arrow is graded with that same frame negatives.
+      // from end, then its to end, then its actual offered relation camera;
+      // the first whole matched arrow frame is graded with its own negatives.
       const arrow = edge => measureArrow(container, endpoints, edge,
         { reverseExpected: expectedPair(edge.to, edge.from), related: (from, id) => expectedPair(from, id) });
       const edges = [];
@@ -1045,6 +1045,20 @@ const goalScenario = async () => {
           if (frames.at(-1).inView) break;
           await page.locator("#camera-part").selectOption(part); await settle();
           frames.push({ camera: part, ...(await arrow(edge)), recordsUnchanged: unchanged(await screen()) });
+        }
+        if (!frames.at(-1).inView) {
+          const relations = after.graph.records.filter(record => record.type === "relation"
+            && record.from === edge.from && record.to === edge.to && record.kind === edge.kind && record.label === edge.label);
+          const relation = relations.length === 1 ? relations[0] : null;
+          const offered = relation === null ? 0 : await page.locator("#camera-part option")
+            .evaluateAll((options, id) => options.filter(option => option.value === id).length, relation.id);
+          if (relations.length !== 1 || offered !== 1) {
+            frames.push({ camera: relation?.id ?? null, relationMatches: relations.length, offered,
+              inView: false, met: false, edge: { matches: [] } });
+          } else {
+            await page.locator("#camera-part").selectOption(relation.id); await settle();
+            frames.push({ camera: relation.id, ...(await arrow(edge)), recordsUnchanged: unchanged(await screen()) });
+          }
         }
         if (frames.length > 1) { await page.locator("#camera-part").selectOption(nestedGroup.id); await settle(); }
         const frame = frames.at(-1);
