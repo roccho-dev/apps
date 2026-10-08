@@ -1,4 +1,5 @@
 import { createServer } from "node:http";
+import { spawn } from "node:child_process";
 import fs from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -181,6 +182,10 @@ const server = createServer((request, response) => {
     return;
   }
 
+  if (pathname === "/api/proposals" && proposalSettings !== null) {
+    serveProposals(request, response).catch(() => proposalReply(response, 502, { error: "PROPOSAL_FAILED" }));
+    return;
+  }
   if (pathname === "/api/judge") {
     serveJudge(request, response).catch(() => {
       response.writeHead(500, { "content-type": "application/json; charset=utf-8" });
@@ -202,6 +207,96 @@ const server = createServer((request, response) => {
   });
 });
 
+// A formal PRODUCT ships the server but not its dev-only acquisition CLI.
+// It therefore never configures, launches or serves this optional route.
+const proposalSettings = !formalRoot && process.env.VOICE_UI_PROPOSAL_MODULE
+  && process.env.VOICE_UI_PROPOSAL_JEV_URL && process.env.VOICE_UI_PROPOSAL_TEST_KEY
+  ? (() => {
+    let endpoint;
+    try { endpoint = new URL(process.env.VOICE_UI_PROPOSAL_JEV_URL); }
+    catch { throw new Error("invalid proposal endpoint"); }
+    if (endpoint.protocol !== "http:"
+      || !["localhost", "127.0.0.1", "[::1]"].includes(endpoint.hostname)
+      || endpoint.username || endpoint.password
+      || !path.isAbsolute(process.env.VOICE_UI_PROPOSAL_MODULE))
+      throw new Error("proposal acquisition requires a trusted absolute proposer and loopback endpoint");
+    const bin = requireStore("VOICE_UI_SEMCMP_BIN");
+    if (!path.isAbsolute(bin)) throw new Error("installed semcmp entry must be absolute");
+    const vars = {
+      VOICE_UI_SEMCMP_BIN: bin,
+      VOICE_UI_PROPOSAL_MODULE: process.env.VOICE_UI_PROPOSAL_MODULE,
+      JEV_API_KEY: process.env.VOICE_UI_PROPOSAL_TEST_KEY,
+      JEV_API_URL: endpoint.href,
+      JEV_TIMEOUT_MS: "3000",
+      VOICE_UI_PROPOSAL_TIMEOUT_MS: process.env.VOICE_UI_PROPOSAL_TIMEOUT_MS || "5000",
+    };
+    // Optional opaque operator-owned locator. The first slice does not read B.
+    if (process.env.VOICE_UI_PROPOSAL_B) {
+      if (process.env.VOICE_UI_PROPOSAL_B.length > 4096) throw new Error("proposal source locator too long");
+      vars.VOICE_UI_PROPOSAL_B = process.env.VOICE_UI_PROPOSAL_B;
+    }
+    return {
+      entry: fileURLToPath(new URL("./proposals.mjs", import.meta.url)),
+      vars,
+    };
+  })() : null;
+
+function proposalReply(response, status, body) {
+  if (response.writableEnded) return;
+  response.writeHead(status, {
+    "content-type": "application/json; charset=utf-8", "cache-control": "no-store",
+  });
+  response.end(JSON.stringify(body));
+}
+
+async function serveProposals(request, response) {
+  if (request.method !== "POST") return proposalReply(response, 405, { error: "METHOD_NOT_ALLOWED" });
+  if (request.headers["content-type"]?.split(";")[0] !== "application/json")
+    return proposalReply(response, 415, { error: "INVALID_CONTENT_TYPE" });
+  const chunks = [];
+  let size = 0;
+  for await (const chunk of request) {
+    size += chunk.length;
+    if (size > 32768) return proposalReply(response, 413, { error: "INVALID_QUERY" });
+    chunks.push(chunk);
+  }
+  const input = Buffer.concat(chunks);
+  const result = await new Promise(resolve => {
+    let child;
+    try {
+      child = spawn(process.execPath, [proposalSettings.entry], {
+        cwd: "/", stdio: ["pipe", "pipe", "pipe"], windowsHide: true,
+        env: proposalSettings.vars, // not ambient process.env / Worker credential
+      });
+    } catch { resolve(null); return; }
+    const outputChunks = [];
+    let bytes = 0, expired = false, done = false;
+    const finish = value => {
+      if (done) return;
+      done = true;
+      clearTimeout(clock);
+      resolve(value);
+    };
+    const clock = setTimeout(() => { expired = true; child.kill("SIGKILL"); }, 17500);
+    child.stdout.on("data", chunk => {
+      bytes += chunk.length;
+      if (bytes > 131072) child.kill("SIGKILL");
+      else outputChunks.push(chunk);
+    });
+    child.stderr.on("data", () => {});
+    child.stdin.on("error", () => {});
+    child.on("error", () => finish(null));
+    child.on("close", code => finish(!expired && code === 0
+      ? Buffer.concat(outputChunks).toString("utf8") : null));
+    child.stdin.end(input);
+  });
+  let value;
+  try { value = JSON.parse(result); } catch { value = null; }
+  if (!value || ![200, 400, 413, 502, 503, 504].includes(value.status)
+    || !value.body || typeof value.body !== "object" || Array.isArray(value.body))
+    return proposalReply(response, 502, { error: "PROPOSAL_FAILED" });
+  return proposalReply(response, value.status, value.body);
+}
 const port = Number(process.env.PORT ?? 8787);
 // Loopback only, unless HOST is set explicitly. Inside a throwaway container
 // HOST=0.0.0.0 lets the container's published port reach the server; which

@@ -33,6 +33,15 @@
           "working-tree";
       appRevision = revisionOf self;
       uiRevision = revisionOf ui;
+      # Immutable canonical semcmp package definition from roccho-org/ops.
+      # This builds its installed wrapper, never imports a sibling checkout.
+      semcmpSource = builtins.fetchGit {
+        url = "https://github.com/roccho-org/ops.git";
+        rev = "50bd8a674ca6c13d45cb362c6bc1b6e18659f8eb";
+      };
+      semcmpFor = system:
+        let pkgs = import nixpkgs { inherit system; };
+        in pkgs.callPackage (semcmpSource + "/packages/semcmp/default.nix") { };
       # This package's own source, prepared for the architecture page from the
       # exact commit only. A tree with uncommitted changes has no commit, so the
       # preparation records that it is unavailable and why; the architecture
@@ -220,14 +229,16 @@
         system:
         let
           pkgs = import nixpkgs { inherit system; };
+          semcmpPackage = semcmpFor system;
           dev = pkgs.writeShellApplication {
             name = "voice-ui-dev";
-            runtimeInputs = [ pkgs.nodejs ];
+            runtimeInputs = [ pkgs.nodejs semcmpPackage ];
             text = ''
               export VOICE_UI_SEMANTIC_MAP=${ui.packages.${system}.semantic-map}
               export VOICE_UI_HAYAMIMI=${hayamimiFor system}
               export VOICE_UI_WORKER=${self.packages.${system}.voice-ui-dist}/worker/worker.mjs
               export VOICE_UI_ARCHITECTURE=${architectureFor system}
+              export VOICE_UI_SEMCMP_BIN=${semcmpPackage}/bin/semcmp
               exec node ${self}/packages/voice-ui/dev/serve.mjs "$@"
             '';
           };
@@ -297,6 +308,11 @@
                 SEMANTIC_MAP = semanticMap;
                 JUDGE_PROVIDER_ENTRY = "${jevProvider}/batch.mjs";
                 VOICE_UI_WORKER = "${voiceUiDist}/worker/worker.mjs";
+                VOICE_UI_SEMCMP_BIN = "${semcmpFor system}/bin/semcmp";
+                VOICE_UI_DIST = "${voiceUiDist}";
+                VOICE_UI_HAYAMIMI = "${hayamimiWeb}";
+                VOICE_UI_SEMANTIC_MAP = "${semanticMap}";
+                VOICE_UI_ARCHITECTURE = "${architectureFor system}";
               }
               ''
                 cd ${self}
