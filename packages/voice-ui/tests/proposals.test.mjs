@@ -176,6 +176,39 @@ test("real dev host/installed CLI and shipped formal host: controlled positive a
     assert.equal(expired.status, 504);
     assert.deepEqual(await expired.json(), { error: "PROPOSAL_TIMEOUT" });
 
+    // Force a UTF-8 character to straddle two real child stdout writes.
+    // This supplements (never replaces) the installed CLI/Jev path above.
+    const splitProgram = path.join(root, "split-stdout.mjs");
+    const splitBinary = path.join(root, "split-binary");
+    const unicode = "橋🍣";
+    const synthetic = {
+      query: q("ux"),
+      proposals: [{ id: "unicode", meaning: { kind: "text", value: unicode },
+        representation: unicode, evidence: { theme: "intent-fit", noul: 0.9 } }],
+    };
+    const syntheticBody = JSON.stringify(synthetic);
+    fs.writeFileSync(splitProgram, [
+      "const bytes = Buffer.from(" + JSON.stringify(syntheticBody) + ", 'utf8');",
+      "const marker = Buffer.from('🍣', 'utf8');",
+      "const at = bytes.indexOf(marker);",
+      "if (at < 0) throw Error('missing UTF-8 split marker');",
+      "process.stdout.write(bytes.subarray(0, at + 1));",
+      "setTimeout(() => process.stdout.write(bytes.subarray(at + 1)), 75);",
+    ].join("\n"));
+    fs.writeFileSync(splitBinary, "#!/bin/sh\nexec " + JSON.stringify(process.execPath)
+      + " " + JSON.stringify(splitProgram) + ' "$@"\n', { mode: 0o700 });
+    fs.chmodSync(splitBinary, 0o700);
+    const fragmented = await startHost(false, {
+      VOICE_UI_SEMCMP_BIN: splitBinary, VOICE_UI_PROPOSAL_MODULE: proposer,
+      VOICE_UI_PROPOSAL_JEV_URL: endpoint,
+      VOICE_UI_PROPOSAL_TEST_KEY: "owned-synthetic-only",
+      VOICE_UI_PROPOSAL_B: "opaque-source-locator",
+    });
+    const unicodeResponse = await post(fragmented, { query: q("ux") });
+    assert.equal(unicodeResponse.status, 200);
+    assert.deepEqual(await unicodeResponse.json(), {
+      query: q("ux"), proposals: synthetic.proposals,
+    }, "a split inside one emoji must preserve both typed meaning and representation");
     // This exact PRODUCT source has e2e/serve.mjs but no dev sibling.
     assert.equal(fs.existsSync(path.join(dist, "e2e/proposals.mjs")), false);
     const formal = await startHost(true, {

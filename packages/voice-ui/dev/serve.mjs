@@ -269,7 +269,8 @@ async function serveProposals(request, response) {
         env: proposalSettings.vars, // not ambient process.env / Worker credential
       });
     } catch { resolve(null); return; }
-    let stdout = "", bytes = 0, expired = false, done = false;
+    const outputChunks = [];
+    let bytes = 0, expired = false, done = false;
     const finish = value => {
       if (done) return;
       done = true;
@@ -280,12 +281,13 @@ async function serveProposals(request, response) {
     child.stdout.on("data", chunk => {
       bytes += chunk.length;
       if (bytes > 131072) child.kill("SIGKILL");
-      else stdout += chunk.toString("utf8");
+      else outputChunks.push(chunk);
     });
     child.stderr.on("data", () => {});
     child.stdin.on("error", () => {});
     child.on("error", () => finish(null));
-    child.on("close", code => finish(!expired && code === 0 ? stdout : null));
+    child.on("close", code => finish(!expired && code === 0
+      ? Buffer.concat(outputChunks).toString("utf8") : null));
     child.stdin.end(input);
   });
   let value;

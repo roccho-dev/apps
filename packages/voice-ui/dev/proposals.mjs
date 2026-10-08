@@ -47,7 +47,8 @@ function runInstalled(query) {
         env: process.env,
       });
     } catch { resolve({ error: refuse("PROPOSAL_UNAVAILABLE", 503) }); return; }
-    let stdout = "", size = 0, expired = false, exceeded = false, finished = false;
+    const outputChunks = [];
+    let size = 0, expired = false, exceeded = false, finished = false;
     const done = result => {
       if (finished) return;
       finished = true;
@@ -58,7 +59,7 @@ function runInstalled(query) {
     child.stdout.on("data", chunk => {
       size += chunk.length;
       if (size > MAX_OUTPUT) { exceeded = true; child.kill("SIGKILL"); }
-      else stdout += chunk.toString("utf8");
+      else outputChunks.push(chunk);
     });
     child.stderr.on("data", () => {}); // Never surface upstream details.
     child.stdin.on("error", () => {});
@@ -66,7 +67,7 @@ function runInstalled(query) {
     child.on("close", code => {
       if (expired) return done({ error: refuse("PROPOSAL_TIMEOUT", 504) });
       if (exceeded || code !== 0) return done({ error: refuse("PROPOSAL_FAILED") });
-      done({ output: stdout });
+      done({ output: Buffer.concat(outputChunks).toString("utf8") });
     });
     child.stdin.end(stdin);
   });
