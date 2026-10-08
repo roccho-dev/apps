@@ -181,6 +181,21 @@ const server = createServer((request, response) => {
     return;
   }
 
+  if (pathname === "/api/proposals" && proposalAcquisition !== null) {
+    import("./proposals.mjs").then(({ proposalHttp }) => proposalHttp(request, proposalAcquisition))
+      .then(({ status, body }) => {
+        response.writeHead(status, {
+          "content-type": "application/json; charset=utf-8", "cache-control": "no-store",
+        });
+        response.end(JSON.stringify(body));
+      })
+      .catch(() => {
+        response.writeHead(502, { "content-type": "application/json; charset=utf-8", "cache-control": "no-store" });
+        response.end(JSON.stringify({ error: "PROPOSAL_FAILED" }));
+      });
+    return;
+  }
+
   if (pathname === "/api/judge") {
     serveJudge(request, response).catch(() => {
       response.writeHead(500, { "content-type": "application/json; charset=utf-8" });
@@ -201,6 +216,17 @@ const server = createServer((request, response) => {
     response.end("read failed");
   });
 });
+
+// The formal E2E ships this file without dev/proposals.mjs; never import it
+// until dev-only configuration explicitly enables the local acquisition path.
+const proposalAcquisition = !formalRoot && process.env.VOICE_UI_PROPOSAL_MODULE
+  && process.env.VOICE_UI_PROPOSAL_JEV_URL && process.env.VOICE_UI_PROPOSAL_TEST_KEY
+  ? (await import("./proposals.mjs")).createAcquisition({
+      binary: requireStore("VOICE_UI_SEMCMP_BIN"),
+      proposer: process.env.VOICE_UI_PROPOSAL_MODULE,
+      url: process.env.VOICE_UI_PROPOSAL_JEV_URL,
+      testKey: process.env.VOICE_UI_PROPOSAL_TEST_KEY,
+    }) : null;
 
 const port = Number(process.env.PORT ?? 8787);
 // Loopback only, unless HOST is set explicitly. Inside a throwaway container
