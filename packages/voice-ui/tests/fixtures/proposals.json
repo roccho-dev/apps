@@ -1,0 +1,367 @@
+{
+  "schema": "voice-ui.meltype-fixture/1",
+  "provenance": "Hand-authored trial data, not Jev rank or shared B. Meltype CommitText inserts representation verbatim; typed meaning does not execute actions.",
+  "scenes": [
+    {
+      "id": "partial",
+      "context": {
+        "entry": "Meltype raw keystrokes; a→ap→api observed in owned Notepad physical trial",
+        "fact": "The context is explanatory and is not sent by the current Meltype wire."
+      },
+      "expectation": "打鍵raw a→ap→apiで提案が変わり、選択すると表示した本文がそのまま挿入される。",
+      "steps": [
+        {
+          "raw": "a",
+          "expectation": "物理で到達確認済みの初回一文字raw。2候補の本文を比較",
+          "proposals": [
+            {
+              "id": "fixture:partial:summary",
+              "representation": "APIの要点をまとめる。",
+              "meaning": {
+                "kind": "draft",
+                "text": "APIの要点をまとめる。"
+              },
+              "evidence": {
+                "source": "fixture",
+                "note": "手置き文章候補。外部操作なし"
+              }
+            },
+            {
+              "id": "fixture:partial:question",
+              "representation": "APIで確認したい点を書く。",
+              "meaning": {
+                "kind": "draft",
+                "text": "APIで確認したい点を書く。"
+              },
+              "evidence": {
+                "source": "fixture",
+                "note": "文章挿入の別候補"
+              }
+            }
+          ]
+        },
+        {
+          "raw": "ap",
+          "expectation": "次の生打鍵で候補が更新される",
+          "proposals": [
+            {
+              "id": "fixture:partial:summary",
+              "representation": "APIの要点をまとめる。",
+              "meaning": {
+                "kind": "draft",
+                "text": "APIの要点をまとめる。"
+              },
+              "evidence": {
+                "source": "fixture",
+                "note": "同じIDの本文候補"
+              }
+            },
+            {
+              "id": "fixture:partial:guide",
+              "representation": "APIの利用手順を記述する。",
+              "meaning": {
+                "kind": "draft",
+                "text": "APIの利用手順を記述する。"
+              },
+              "evidence": {
+                "source": "fixture",
+                "note": "追記によって登場する本文候補"
+              }
+            }
+          ]
+        },
+        {
+          "raw": "api",
+          "expectation": "続けて打つと1候補へ。意味のある入力が先に挿入されるわけではない",
+          "proposals": [
+            {
+              "id": "fixture:partial:guide",
+              "representation": "APIの利用手順を記述する。",
+              "meaning": {
+                "kind": "draft",
+                "text": "APIの利用手順を記述する。"
+              },
+              "evidence": {
+                "source": "fixture",
+                "note": "そのままCommitTextで貼る本文"
+              }
+            }
+          ]
+        },
+        {
+          "raw": "か",
+          "expectation": "Unicode raw HTTP対照。通常のMeltypeキーボード経路から届くとは主張しない",
+          "proposals": [
+            {
+              "id": "fixture:partial:kana",
+              "representation": "かな入力について記録する。",
+              "meaning": {
+                "kind": "draft",
+                "text": "かな入力について記録する。"
+              },
+              "evidence": {
+                "source": "fixture",
+                "note": "日本語rawでもHTTPの文字が損失しない対照"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "append-delete",
+      "context": {
+        "graph": {
+          "nodes": [
+            "受付",
+            "処理"
+          ],
+          "edges": []
+        },
+        "note": "このgraphは人向け背景のみ。候補選択によるGraph mutationは0。"
+      },
+      "expectation": "d→do→doc、Backspaceでdoに戻す。提案のrawと元IDは更新、実Effectは文章挿入のみ。",
+      "steps": [
+        {
+          "raw": "d",
+          "expectation": "単文字から図について説明する文章",
+          "proposals": [
+            {
+              "id": "fixture:doc:outline",
+              "representation": "図の構成を文章で説明する。",
+              "meaning": {
+                "kind": "draft",
+                "text": "図の構成を文章で説明する。"
+              },
+              "evidence": {
+                "source": "fixture",
+                "note": "図の操作ではなくテキスト下書き"
+              }
+            }
+          ]
+        },
+        {
+          "raw": "do",
+          "expectation": "追記で説明の文面を変更、2候補を提示",
+          "proposals": [
+            {
+              "id": "fixture:doc:flow",
+              "representation": "受付から処理へ進む流れを文章で説明する。",
+              "meaning": {
+                "kind": "draft",
+                "text": "受付から処理へ進む流れを文章で説明する。"
+              },
+              "evidence": {
+                "source": "fixture",
+                "note": "グラフは変えず文だけを挿入"
+              }
+            },
+            {
+              "id": "fixture:doc:note",
+              "representation": "処理の担当についてメモする。",
+              "meaning": {
+                "kind": "draft",
+                "text": "処理の担当についてメモする。"
+              },
+              "evidence": {
+                "source": "fixture",
+                "note": "グラフを変えない別の文章"
+              }
+            }
+          ]
+        },
+        {
+          "raw": "doc",
+          "expectation": "さらに追記で一本に絞り、削除でdoへ戻れば同じ候補集合になる",
+          "proposals": [
+            {
+              "id": "fixture:doc:flow",
+              "representation": "受付から処理へ進む流れを文章で説明する。",
+              "meaning": {
+                "kind": "draft",
+                "text": "受付から処理へ進む流れを文章で説明する。"
+              },
+              "evidence": {
+                "source": "fixture",
+                "note": "候補IDとrepresentationはdoと一致"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "compare-identity",
+      "context": {
+        "surface": "Meaning/Notes",
+        "note": "same representation, two separately typed interpretations; Selected is effect-free."
+      },
+      "expectation": "同じ挿入文でも元IDとtyped meaningを比べて選べる。どちらも同じ文章がCommitTextされる。",
+      "steps": [
+        {
+          "raw": "r",
+          "expectation": "入力一文字の候補比較。意味はdraftとquote、外部書き込み0",
+          "proposals": [
+            {
+              "id": "fixture:compare:draft",
+              "representation": "依頼内容を確認する。",
+              "meaning": {
+                "kind": "draft",
+                "text": "依頼内容を確認する。"
+              },
+              "evidence": {
+                "source": "fixture",
+                "note": "挿入する依頼本文の下書き"
+              }
+            },
+            {
+              "id": "fixture:compare:quote",
+              "representation": "依頼内容を確認する。",
+              "meaning": {
+                "kind": "quote",
+                "text": "依頼内容を確認する。"
+              },
+              "evidence": {
+                "source": "fixture",
+                "note": "同じ文章を引用として扱うtyped labelのみ。副作用0"
+              }
+            }
+          ]
+        },
+        {
+          "raw": "依頼",
+          "expectation": "旧Unicode rawのHTTP-only対照",
+          "proposals": [
+            {
+              "id": "fixture:compare:draft",
+              "representation": "依頼内容を確認する。",
+              "meaning": {
+                "kind": "draft",
+                "text": "依頼内容を確認する。"
+              },
+              "evidence": {
+                "source": "fixture",
+                "note": "Unicode入力のHTTP対照"
+              }
+            },
+            {
+              "id": "fixture:compare:quote",
+              "representation": "依頼内容を確認する。",
+              "meaning": {
+                "kind": "quote",
+                "text": "依頼内容を確認する。"
+              },
+              "evidence": {
+                "source": "fixture",
+                "note": "Unicode入力でも元IDと型を保持"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "multiline-native",
+      "context": {
+        "surface": "caret",
+        "note": "Undo/focus/retarget are not proven by fixture HTTP and require physical Meltype observation."
+      },
+      "expectation": "選択したrepresentationのUnicode・末尾改行ごと一回挿入しnative Undoを別途確認する。",
+      "steps": [
+        {
+          "raw": "m",
+          "expectation": "通常英字1文字から複数行を元caretへ適用する対象",
+          "proposals": [
+            {
+              "id": "fixture:multiline:minutes",
+              "representation": "件名：検討 🍣\n- 案A\n- 案B\n",
+              "meaning": {
+                "kind": "draft",
+                "text": "件名：検討 🍣\n- 案A\n- 案B\n"
+              },
+              "evidence": {
+                "source": "fixture",
+                "note": "文章挿入とUndoをWindowsで測る"
+              }
+            }
+          ]
+        },
+        {
+          "raw": "議事録",
+          "expectation": "日本語raw HTTP-only対照。通常キーの到達性とは混同しない",
+          "proposals": [
+            {
+              "id": "fixture:multiline:minutes",
+              "representation": "件名：検討 🍣\n- 案A\n- 案B\n",
+              "meaning": {
+                "kind": "draft",
+                "text": "件名：検討 🍣\n- 案A\n- 案B\n"
+              },
+              "evidence": {
+                "source": "fixture",
+                "note": "多byte文字と末尾改行の損失なし"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "none-delay-cancel",
+      "context": {
+        "surface": "Input and ProposalSession",
+        "note": "Latest, cancel and stale refusal belong to existing Meltype; HTTP returns generations unchanged."
+      },
+      "expectation": "候補0、旧遅延と新raw、取消で通常編集を壊さない。",
+      "steps": [
+        {
+          "raw": "x",
+          "expectation": "候補なしを正常な空配列として表示しない",
+          "proposals": []
+        },
+        {
+          "raw": "st",
+          "delayMs": 600,
+          "expectation": "old generationを遅らせ、UIが古い候補を拒否することを物理確認",
+          "proposals": [
+            {
+              "id": "fixture:stale:old",
+              "representation": "古い候補は採用しない。",
+              "meaning": {
+                "kind": "draft",
+                "text": "古い候補は採用しない。"
+              },
+              "evidence": {
+                "source": "fixture",
+                "note": "古い世代は適用されるべきでない"
+              }
+            }
+          ]
+        },
+        {
+          "raw": "sta",
+          "expectation": "より新しいrawのHTTP応答が先に戻る",
+          "proposals": [
+            {
+              "id": "fixture:stale:new",
+              "representation": "新しい候補を確認する。",
+              "meaning": {
+                "kind": "draft",
+                "text": "新しい候補を確認する。"
+              },
+              "evidence": {
+                "source": "fixture",
+                "note": "新しい世代でだけ提案可能"
+              }
+            }
+          ]
+        },
+        {
+          "raw": "c",
+          "expectation": "取消時の候補なし。EscによりinputはMeltypeが管理する",
+          "proposals": []
+        }
+      ]
+    }
+  ]
+}

@@ -172,6 +172,99 @@ async function serveJudge(request, response) {
   response.end(body);
 }
 
+// This source-dev opt-in reads only operator-supplied fixture bytes.
+// No implicit file, provider, ranker, source B, or formal PRODUCT capability.
+const fixturePath = !formalRoot ? process.env.VOICE_UI_MELTYPE_FIXTURE : null;
+const fixtureCases = fixturePath ? await (async () => {
+  if (!path.isAbsolute(fixturePath)) throw new Error("fixture path must be absolute");
+  const stat = await fs.stat(fixturePath);
+  if (!stat.isFile() || stat.size > 131072) throw new Error("fixture file invalid");
+  const source = JSON.parse(await fs.readFile(fixturePath, "utf8"));
+  const record = value => value !== null && typeof value === "object" && !Array.isArray(value);
+  const exact = (value, keys) => record(value) && Object.keys(value).length === keys.length
+    && keys.every(key => Object.hasOwn(value, key));
+  if (!exact(source, ["schema", "provenance", "scenes"])
+    || source.schema !== "voice-ui.meltype-fixture/1"
+    || typeof source.provenance !== "string"
+    || !Array.isArray(source.scenes) || source.scenes.length < 1 || source.scenes.length > 20)
+    throw new Error("fixture source invalid");
+  const cases = new Map();
+  const sceneIds = new Set();
+  for (const scene of source.scenes) {
+    if (!exact(scene, ["id", "context", "expectation", "steps"])
+      || typeof scene.id !== "string" || !scene.id || sceneIds.has(scene.id)
+      || !record(scene.context) || typeof scene.expectation !== "string"
+      || !Array.isArray(scene.steps) || scene.steps.length < 1 || scene.steps.length > 12)
+      throw new Error("fixture scene invalid");
+    sceneIds.add(scene.id);
+    for (const step of scene.steps) {
+      if (!record(step) || !Object.hasOwn(step, "raw")
+        || !Object.hasOwn(step, "proposals") || !Object.hasOwn(step, "expectation")
+        || Object.keys(step).some(key => !["raw", "proposals", "expectation", "delayMs"].includes(key))
+        || typeof step.raw !== "string" || !step.raw
+        || Buffer.byteLength(step.raw, "utf8") > 8192 || cases.has(step.raw)
+        || typeof step.expectation !== "string"
+        || !Array.isArray(step.proposals) || step.proposals.length > 32
+        || (Object.hasOwn(step, "delayMs") && (!Number.isSafeInteger(step.delayMs)
+          || step.delayMs < 0 || step.delayMs > 2000)))
+        throw new Error("fixture step invalid");
+      const ids = new Set();
+      for (const proposal of step.proposals) {
+        if (!exact(proposal, ["id", "representation", "meaning", "evidence"])
+          || typeof proposal.id !== "string" || !proposal.id.trim() || ids.has(proposal.id)
+          || typeof proposal.representation !== "string" || !proposal.representation
+          || !Object.hasOwn(proposal, "meaning")
+          || !exact(proposal.evidence, ["source", "note"])
+          || proposal.evidence.source !== "fixture"
+          || typeof proposal.evidence.note !== "string" || !proposal.evidence.note)
+          throw new Error("fixture proposal invalid");
+        ids.add(proposal.id);
+      }
+      if (Buffer.byteLength(JSON.stringify({
+        generation: Number.MAX_SAFE_INTEGER, raw: step.raw, proposals: step.proposals,
+      }), "utf8") > 65536) throw new Error("fixture output too large");
+      cases.set(step.raw, step);
+    }
+  }
+  return cases;
+})() : null;
+
+async function serveMeltypeFixture(request, response) {
+  const reply = (status, body) => {
+    if (response.destroyed || response.writableEnded) return;
+    response.writeHead(status, {
+      "content-type": "application/json; charset=utf-8",
+      "cache-control": "no-store",
+    });
+    response.end(JSON.stringify(body));
+  };
+  if (request.method !== "POST") return reply(405, { error: "METHOD_NOT_ALLOWED" });
+  if (request.headers["content-type"]?.split(";")[0]?.trim().toLowerCase() !== "application/json")
+    return reply(415, { error: "INVALID_CONTENT_TYPE" });
+  let size = 0;
+  const chunks = [];
+  for await (const chunk of request) {
+    size += chunk.length;
+    if (size > 16384) return reply(413, { error: "INVALID_REQUEST" });
+    chunks.push(chunk);
+  }
+  let query;
+  try { query = JSON.parse(Buffer.concat(chunks).toString("utf8")); }
+  catch { return reply(400, { error: "INVALID_REQUEST" }); }
+  if (!query || typeof query !== "object" || Array.isArray(query)
+    || Object.keys(query).length !== 2 || !Object.hasOwn(query, "generation")
+    || !Object.hasOwn(query, "raw") || !Number.isSafeInteger(query.generation)
+    || query.generation < 1 || typeof query.raw !== "string" || !query.raw
+    || Buffer.byteLength(query.raw, "utf8") > 8192)
+    return reply(400, { error: "INVALID_REQUEST" });
+  const step = fixtureCases.get(query.raw);
+  if (!step) return reply(404, { error: "FIXTURE_CASE_NOT_FOUND" });
+  if (step.delayMs) await new Promise(resolve => setTimeout(resolve, step.delayMs));
+  return reply(200, {
+    generation: query.generation, raw: query.raw, proposals: step.proposals,
+  });
+}
+
 const server = createServer((request, response) => {
   const { pathname } = new URL(request.url, "http://localhost");
 
@@ -179,6 +272,17 @@ const server = createServer((request, response) => {
   if (pathname === "/architecture") {
     response.writeHead(308, { location: "/architecture/", "cache-control": "no-store" });
     response.end();
+    return;
+  }
+
+  if (pathname === "/api/meltype-fixture" && fixtureCases !== null) {
+    serveMeltypeFixture(request, response).catch(() => {
+      if (response.destroyed || response.writableEnded) return;
+      response.writeHead(502, {
+        "content-type": "application/json; charset=utf-8", "cache-control": "no-store",
+      });
+      response.end(JSON.stringify({ error: "FIXTURE_FAILED" }));
+    });
     return;
   }
 
