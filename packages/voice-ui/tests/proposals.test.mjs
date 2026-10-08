@@ -38,6 +38,7 @@ test("real dev host/installed CLI and shipped formal host: controlled positive a
     for (const name of [
       "VOICE_UI_PROPOSAL_MODULE", "VOICE_UI_PROPOSAL_JEV_URL",
       "VOICE_UI_PROPOSAL_TEST_KEY", "VOICE_UI_PROPOSAL_B", "VOICE_UI_PROPOSAL_TIMEOUT_MS",
+      "VOICE_UI_MELTYPE_FIXTURE",
     ]) delete env[name];
     Object.assign(env, options);
     const child = spawn(process.execPath, formal ? [file, "--formal"] : [file], {
@@ -209,12 +210,136 @@ test("real dev host/installed CLI and shipped formal host: controlled positive a
     assert.deepEqual(await unicodeResponse.json(), {
       query: q("ux"), proposals: synthetic.proposals,
     }, "a split inside one emoji must preserve both typed meaning and representation");
+    const beforeFixtureProviderCalls = seen.length;
+    // A separate real HTTP route speaks the existing Windows Meltype wire.
+    // The source fixture is explicit, not a catalog, Jev output, or B/current.
+    const fixturePath = path.join(pkg, "tests/fixtures/proposals.json");
+    const fixture = JSON.parse(fs.readFileSync(fixturePath, "utf8"));
+    assert.equal(fixture.schema, "voice-ui.meltype-fixture/1");
+    assert.deepEqual(fixture.scenes.map(scene => scene.id), [
+      "partial", "append-delete", "compare-identity", "multiline-native", "none-delay-cancel",
+    ]);
+    assert.equal(fixture.scenes.flatMap(scene => scene.steps).length, 11);
+    const fixtureCase = raw => fixture.scenes.flatMap(scene => scene.steps).find(step => step.raw === raw);
+    const postFixture = (server, body, method = "POST", type = "application/json", signal) =>
+      fetch(server.url + "/api/meltype-fixture", {
+        method, headers: { "content-type": type }, signal,
+        body: method === "GET" ? undefined : typeof body === "string" ? body : JSON.stringify(body),
+      });
+    assert.equal((await postFixture(disabled, { generation: 1, raw: "か" })).status, 404);
+    assert.equal((await postFixture(enabled, { generation: 1, raw: "か" })).status, 404);
+
+    const fixtureHost = await startHost(false, { VOICE_UI_MELTYPE_FIXTURE: fixturePath });
+    const fetchCase = async (generation, raw) => {
+      const result = await postFixture(fixtureHost, { generation, raw });
+      assert.equal(result.status, 200, "fixture scene must be explicitly declared: " + raw);
+      const response = await result.json();
+      assert.deepEqual(response, {
+        generation, raw, proposals: fixtureCase(raw).proposals,
+      }, "Meltype round-trip must retain source typed payload");
+      return response;
+    };
+    const partial = await fetchCase(1, "か");
+    assert.deepEqual(partial.proposals.map(p => p.id), [
+      "fixture:partial:draft", "fixture:partial:task",
+    ], "a single incomplete character is eligible");
+    const added = await fetchCase(2, "かく");
+    assert.deepEqual(added.proposals.map(p => p.id), ["fixture:partial:draft"]);
+    const diagram = await fetchCase(3, "図");
+    assert.deepEqual(diagram.proposals.map(p => p.id), ["fixture:diagram:outline"]);
+    const append = await fetchCase(4, "図に");
+    assert.deepEqual(append.proposals.map(p => p.id), [
+      "fixture:diagram:edge", "fixture:diagram:note",
+    ]);
+    assert.deepEqual((await fetchCase(5, "図に矢")).proposals.map(p => p.id), ["fixture:diagram:edge"]);
+    assert.deepEqual(await fetchCase(6, "図に"), {
+      generation: 6, raw: "図に", proposals: append.proposals,
+    }, "deleting input recreates exactly the same offered choice, not an older generation");
+    const compared = await fetchCase(7, "依頼");
+    assert.equal(compared.proposals.length, 2);
+    assert.equal(compared.proposals[0].representation, compared.proposals[1].representation);
+    assert.notEqual(compared.proposals[0].id, compared.proposals[1].id);
+    assert.notDeepEqual(compared.proposals[0].meaning, compared.proposals[1].meaning);
+    assert.ok(compared.proposals.every(p => p.evidence.source === "fixture"), "manual reasons are not Jev");
+    const multiline = await fetchCase(8, "議事録");
+    assert.equal(multiline.proposals[0].representation, "件名：検討 🍣\n- 案A\n- 案B\n");
+    assert.deepEqual(multiline.proposals[0].meaning.lines, [
+      "件名：検討 🍣", "- 案A", "- 案B", "",
+    ]);
+    assert.deepEqual((await fetchCase(9, "候補なし")).proposals, []);
+    assert.deepEqual((await fetchCase(10, "取消")).proposals, []);
+
+    const arrivals = [];
+    const older = postFixture(fixtureHost, { generation: 41, raw: "遅" })
+      .then(async response => {
+        assert.equal(response.status, 200);
+        arrivals.push("old");
+        return response.json();
+      });
+    await new Promise(resolve => setTimeout(resolve, 30));
+    const newer = postFixture(fixtureHost, { generation: 42, raw: "遅延後" })
+      .then(async response => {
+        assert.equal(response.status, 200);
+        arrivals.push("new");
+        return response.json();
+      });
+    const [oldResponse, newResponse] = await Promise.all([older, newer]);
+    assert.deepEqual(arrivals, ["new", "old"], "server exposes reverse completion without overriding current UI generation");
+    assert.deepEqual(oldResponse, {
+      generation: 41, raw: "遅", proposals: fixtureCase("遅").proposals,
+    });
+    assert.deepEqual(newResponse, {
+      generation: 42, raw: "遅延後", proposals: fixtureCase("遅延後").proposals,
+    });
+    for (const [body, status] of [
+      [{ raw: "か" }, 400],
+      [{ generation: 0, raw: "か" }, 400],
+      [{ generation: -1, raw: "か" }, 400],
+      [{ generation: 1.5, raw: "か" }, 400],
+      [{ generation: Number.MAX_SAFE_INTEGER + 1, raw: "か" }, 400],
+      [{ generation: "1", raw: "か" }, 400],
+      [{ generation: 1, raw: "" }, 400],
+      [{ generation: 1, raw: "か", extra: true }, 400],
+      ["{", 400],
+      [{ generation: 1, raw: "missing from fixture" }, 404],
+    ]) {
+      const result = await postFixture(fixtureHost, body);
+      assert.equal(result.status, status);
+      assert.ok((await result.json()).error, "rejected case must not impersonate an empty success");
+    }
+    assert.equal((await postFixture(fixtureHost, { generation: 1, raw: "か" }, "GET")).status, 405);
+    assert.equal((await postFixture(fixtureHost, { generation: 1, raw: "か" }, "POST", "text/plain")).status, 415);
+    assert.equal((await postFixture(fixtureHost, "a".repeat(17000))).status, 413);
+    assert.equal((await post(fixtureHost, { query: q("ux") })).status, 404);
+    assert.equal((await fetch(fixtureHost.url + "/api/judge", { method: "GET" })).status, 405);
+    assert.equal(seen.length, beforeFixtureProviderCalls,
+      "fixture route may never invoke controlled Jev/provider");
+    // Invalid operator fixture dies at startup, before any TCP listener.
+    const damaged = path.join(root, "invalid-fixture.json");
+    fs.writeFileSync(damaged, JSON.stringify({
+      ...fixture, scenes: [{
+        ...fixture.scenes[2],
+        steps: [{
+          ...fixture.scenes[2].steps[0],
+          proposals: [fixture.scenes[2].steps[0].proposals[0],
+            fixture.scenes[2].steps[0].proposals[0]],
+        }],
+      }],
+    }));
+    await assert.rejects(startHost(false, { VOICE_UI_MELTYPE_FIXTURE: damaged }),
+      /host exited before listen/);
+    // The provided formal PRODUCT has no fixture JSON or dev-only route.
+    // Source-fixture success MUST NOT be promoted to supplied-artifact readiness.
+    assert.equal(fs.existsSync(path.join(dist, "e2e/fixtures/proposals.json")), false,
+      "missing delivery is an explicit boundary, not a synthesized attachment");
     // This exact PRODUCT source has e2e/serve.mjs but no dev sibling.
     assert.equal(fs.existsSync(path.join(dist, "e2e/proposals.mjs")), false);
     const formal = await startHost(true, {
+      VOICE_UI_MELTYPE_FIXTURE: fixturePath,
       VOICE_UI_PROPOSAL_MODULE: proposer, VOICE_UI_PROPOSAL_JEV_URL: endpoint,
       VOICE_UI_PROPOSAL_TEST_KEY: "owned-synthetic-only",
     });
+    assert.equal((await postFixture(formal, { generation: 1, raw: "か" })).status, 404);
     assert.equal((await post(formal, { query: q("ux") })).status, 404);
     assert.equal((await fetch(formal.url + "/api/judge", { method: "GET" })).status, 405);
   } finally {

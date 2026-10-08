@@ -1,0 +1,286 @@
+{
+  "schema": "voice-ui.meltype-fixture/1",
+  "provenance": "Synthetic hand-authored UX examples. Candidate order and reasons are not Jev judgments, accepted data or a shared source.",
+  "scenes": [
+    {
+      "id": "partial",
+      "context": {
+        "task": "文章の作成",
+        "current": null
+      },
+      "expectation": "1文字から候補。続きを書くと提案集合が変わる。入力はブロックされない。",
+      "steps": [
+        {
+          "raw": "か",
+          "expectation": "途中入力にも2候補",
+          "proposals": [
+            {
+              "id": "fixture:partial:draft",
+              "representation": "書き出しを書く",
+              "meaning": {
+                "kind": "text-draft",
+                "title": "書き出し",
+                "body": "今日は考えたことを書く。"
+              },
+              "evidence": {
+                "source": "fixture",
+                "note": "未完の1文字からの手作業候補"
+              }
+            },
+            {
+              "id": "fixture:partial:task",
+              "representation": "書くタスクを追加",
+              "meaning": {
+                "kind": "add-task",
+                "task": "書き出しを作る"
+              },
+              "evidence": {
+                "source": "fixture",
+                "note": "別の意味の手作業候補"
+              }
+            }
+          ]
+        },
+        {
+          "raw": "かく",
+          "expectation": "入力を延長すると絞られる",
+          "proposals": [
+            {
+              "id": "fixture:partial:draft",
+              "representation": "書き出しを書く",
+              "meaning": {
+                "kind": "text-draft",
+                "title": "書き出し",
+                "body": "今日は考えたことを書く。"
+              },
+              "evidence": {
+                "source": "fixture",
+                "note": "二文字になった仮の条件"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "append-delete",
+      "context": {
+        "graph": {
+          "nodes": [
+            "受付",
+            "処理"
+          ],
+          "edges": []
+        }
+      },
+      "expectation": "追記・削除による切替と過去のrawへ戻ったときの同一候補。",
+      "steps": [
+        {
+          "raw": "図",
+          "expectation": "図についての全体候補",
+          "proposals": [
+            {
+              "id": "fixture:diagram:outline",
+              "representation": "図を作成",
+              "meaning": {
+                "kind": "create-diagram",
+                "title": "処理図"
+              },
+              "evidence": {
+                "source": "fixture",
+                "note": "初期raw"
+              }
+            }
+          ]
+        },
+        {
+          "raw": "図に",
+          "expectation": "続けると線候補へ",
+          "proposals": [
+            {
+              "id": "fixture:diagram:edge",
+              "representation": "受付 → 処理",
+              "meaning": {
+                "kind": "add-edge",
+                "from": "受付",
+                "to": "処理"
+              },
+              "evidence": {
+                "source": "fixture",
+                "note": "選択した関係候補"
+              }
+            },
+            {
+              "id": "fixture:diagram:note",
+              "representation": "処理に注釈",
+              "meaning": {
+                "kind": "annotate-node",
+                "node": "処理",
+                "note": "検討中"
+              },
+              "evidence": {
+                "source": "fixture",
+                "note": "別の操作候補"
+              }
+            }
+          ]
+        },
+        {
+          "raw": "図に矢",
+          "expectation": "さらに追記すると線候補のみ",
+          "proposals": [
+            {
+              "id": "fixture:diagram:edge",
+              "representation": "受付 → 処理",
+              "meaning": {
+                "kind": "add-edge",
+                "from": "受付",
+                "to": "処理"
+              },
+              "evidence": {
+                "source": "fixture",
+                "note": "入力延長後の候補"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "compare-identity",
+      "context": {
+        "task": "依頼の追記",
+        "choices": [
+          "タスク",
+          "関係"
+        ]
+      },
+      "expectation": "同じ表示でも異なる元ID/typed meaningを比較して選べる。",
+      "steps": [
+        {
+          "raw": "依頼",
+          "expectation": "見た目が同じ2候補。選択時には表示で逆引きしない",
+          "proposals": [
+            {
+              "id": "fixture:compare:task",
+              "representation": "依頼を追加",
+              "meaning": {
+                "kind": "add-task",
+                "assignee": "担当A",
+                "title": "依頼"
+              },
+              "evidence": {
+                "source": "fixture",
+                "note": "タスクとして扱う例"
+              }
+            },
+            {
+              "id": "fixture:compare:edge",
+              "representation": "依頼を追加",
+              "meaning": {
+                "kind": "add-edge",
+                "from": "担当A",
+                "to": "担当B",
+                "label": "依頼"
+              },
+              "evidence": {
+                "source": "fixture",
+                "note": "関係として扱う例"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "multiline-native",
+      "context": {
+        "surface": "caret",
+        "note": "本番のGUI反映とUndoは未実測"
+      },
+      "expectation": "Unicode/絵文字/末尾改行を保ち、元caretで編集・native Undoを試す。",
+      "steps": [
+        {
+          "raw": "議事録",
+          "expectation": "複数行を1回適用する選択",
+          "proposals": [
+            {
+              "id": "fixture:multiline:minutes",
+              "representation": "件名：検討 🍣\n- 案A\n- 案B\n",
+              "meaning": {
+                "kind": "insert-text",
+                "lines": [
+                  "件名：検討 🍣",
+                  "- 案A",
+                  "- 案B",
+                  ""
+                ]
+              },
+              "evidence": {
+                "source": "fixture",
+                "note": "Unicodeと複数行、末尾改行を保持"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "none-delay-cancel",
+      "context": {
+        "mode": "scenario",
+        "note": "cancel/stale refusal belongs to Meltype GUI"
+      },
+      "expectation": "候補なし、遅延・逆順・取消でも通常編集を壊さない。",
+      "steps": [
+        {
+          "raw": "候補なし",
+          "expectation": "空候補は通常応答",
+          "proposals": []
+        },
+        {
+          "raw": "遅",
+          "delayMs": 600,
+          "expectation": "後から返る旧generationはMeltypeでstale拒否",
+          "proposals": [
+            {
+              "id": "fixture:stale:old",
+              "representation": "古い候補",
+              "meaning": {
+                "kind": "text-draft",
+                "text": "古い候補"
+              },
+              "evidence": {
+                "source": "fixture",
+                "note": "意図的に遅延する応答"
+              }
+            }
+          ]
+        },
+        {
+          "raw": "遅延後",
+          "expectation": "遅い旧応答より前に新候補が到達する",
+          "proposals": [
+            {
+              "id": "fixture:stale:new",
+              "representation": "新しい候補",
+              "meaning": {
+                "kind": "text-draft",
+                "text": "新しい候補"
+              },
+              "evidence": {
+                "source": "fixture",
+                "note": "新しいrawの候補"
+              }
+            }
+          ]
+        },
+        {
+          "raw": "取消",
+          "expectation": "表示せず取り消す",
+          "proposals": []
+        }
+      ]
+    }
+  ]
+}
