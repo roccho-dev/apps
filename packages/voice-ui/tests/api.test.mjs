@@ -1665,3 +1665,76 @@ for (const port of ["direct", "compiled"]) test(`scoped Working relation kinds a
   const changed = structuredClone(body); changed.state.graph.edges[0].kind = "unrelated-kind";
   assert.equal(isRequest(changed), true);
 });
+
+for (const port of ["direct", "compiled"]) test(`scoped endpoint criteria expose reversible current incident data, ${port}`, async t => {
+  const original = {
+    regions: [{ id: "opaque-a", label: "Copper" }, { id: "opaque-b", label: "Cedar" }, { id: "opaque-c", label: "Birch" }],
+    edges: [{ id: "parallel-one", from: "opaque-a", to: "opaque-c", kind: "imports" },
+      { id: "parallel-two", from: "opaque-a", to: "opaque-c", kind: "calls" },
+      { id: "reverse", from: "opaque-c", to: "opaque-b", kind: "unrelated-kind" }],
+  };
+  for (const variant of ["ordinary", "renamed", "reverse", "duplicate-label", "parallel", "isolated", "maximum"]) {
+    const graph = structuredClone(original);
+    if (variant === "renamed") {
+      graph.regions[0] = { id: "arbitrary-renamed", label: 'Unrelated "quoted"; label' };
+      for (const edge of graph.edges) if (edge.from === "opaque-a") edge.from = "arbitrary-renamed";
+    }
+    if (variant === "reverse") for (const edge of graph.edges) [edge.from, edge.to] = [edge.to, edge.from];
+    if (variant === "duplicate-label") graph.regions[1].label = graph.regions[0].label;
+    if (variant === "parallel") graph.edges.push({ ...graph.edges[0], id: "distinct-same-data" });
+    if (variant === "isolated") graph.edges = [];
+    if (variant === "maximum") {
+      graph.regions = Array.from({ length: 128 }, (_, i) => ({ id: `arbitrary-${i}`, label: "界".repeat(120) }));
+      graph.edges = Array.from({ length: 128 }, (_, i) => ({ id: `connection-${i}`, from: "arbitrary-0", to: "arbitrary-1", kind: "calls" }));
+    }
+    const body = { kind: ARCHITECTURE_GOAL_INTENT_KIND, state: {
+      utterance: "make the described current connection", graph,
+      context: { recent: [] }, architecture: intentSectionOf(MANIFEST),
+    } };
+    assert.equal(isRequest(body), true, variant);
+    let wire, response, count = 0;
+    if (port === "direct") response = await onRequestPost({ available: true, architecture: prepared,
+      request: new Request("http://localhost/api/judge", { method: "POST", body: JSON.stringify(body) }) },
+    async ({ state, questions }) => {
+      count += 1; wire = { state, questions: Object.fromEntries(Object.entries(questions).map(([key, q]) =>
+        [key, { instructions: q.instruction, criteria: q.options }])) };
+      return { answers: Object.fromEntries(Object.keys(questions).map(key => [key, { choice: NONE, confidence: .3 }])) };
+    });
+    else { const result = await withProvider(answering(input => {
+      wire = input;
+      return Object.fromEntries(Object.entries(noneTo(input)).map(([key, answer]) => [key, { ...answer, confidence: .3 }]));
+    }), () => post(body, ARCHITECTURE_ENV)); response = result.result; count = result.calls.length; }
+    assert.equal(response.status, 200); assert.equal(count, 1);
+    assert.deepEqual(withoutNominalNames(withoutWorkingEdgeLabels(wire.state)), body.state, "no new provider-state view or authority");
+    const labels = new Map(graph.regions.map(region => [region.id, region.label]));
+    const slots = architectureGoalSlotsFor(body.state);
+    let oldBytes = 0, newBytes = 0;
+    for (const endpoint of ["source", "target"]) {
+      assert.deepEqual(Object.keys(wire.questions[endpoint].criteria), slots[endpoint]);
+      assert.ok(wire.questions[endpoint].instructions.endsWith(WORKING_ENDPOINT_NOTE));
+      const end = endpoint === "source" ? "start" : "end", verb = endpoint === "source" ? "starts" : "ends";
+      for (const key of slots[endpoint]) {
+        const node = labels.get(key) === key ? key : `${key} (shown as "${labels.get(key)}")`;
+        const old = key === NONE ? `no unique current node is identified as the ${end}` : `the edge ${verb} at ${node}`;
+        const connections = graph.edges.filter(edge => edge.from === key || edge.to === key)
+          .map(edge => (edge.from === key ? "out " : "in ") + edge.kind + " "
+            + JSON.stringify(labels.get(edge.from === key ? edge.to : edge.from)));
+        const expected = key === NONE ? old : old + "; current Working connections: " + connections.join("; ");
+        assert.equal(wire.questions[endpoint].criteria[key], expected, variant + ":" + endpoint + ":" + key);
+        oldBytes += Buffer.byteLength(JSON.stringify(old)); newBytes += Buffer.byteLength(JSON.stringify(expected));
+      }
+    }
+    assert.deepEqual((await response.json()).answers, Object.fromEntries(Object.keys(slots).map(key =>
+      [key, { type: "choice", choice: NONE, confidence: .3 }])), "controlled passthrough only, not Jev resistance to hubs or duplicate labels");
+    if (variant === "maximum" && port === "direct") t.diagnostic(JSON.stringify({ maximumLegalRegions: 128,
+      maximumLegalEdges: 128, labelCodepoints: 120, oldEndpointValueBytes: oldBytes, newEndpointValueBytes: newBytes,
+      growthBytes: newBytes - oldBytes, tokenFit: "NOT_PROVEN" }));
+  }
+});
+
+test("incident endpoint criteria do not enter plain, normal intent or local Goal questions", () => {
+  for (const body of [request(), intentRequest(), goalWordingRequest(false), goalWordingRequest(true)]) {
+    const questions = questionsFor(body.state, slotsFor(body.state), { kind: body.kind, relationOf: () => null });
+    assert.equal(JSON.stringify(questions).includes("; current Working connections:"), false);
+  }
+});
