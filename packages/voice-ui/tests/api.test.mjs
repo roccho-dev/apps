@@ -1636,7 +1636,12 @@ for (const port of ["direct", "compiled"]) test(`scoped Working relation kinds a
   const questions = questionsFor(oldState, architectureGoalSlotsFor(oldState), { kind: ARCHITECTURE_GOAL_INTENT_KIND });
   const observed = port === "direct" ? wire.questions : Object.fromEntries(Object.entries(wire.questions)
     .map(([key, q]) => [key, { instruction: q.instructions, options: q.criteria }]));
-  assert.deepEqual(observed, questions, "kind does not change questions, choices or order");
+  const withoutConnections = value => Object.fromEntries(Object.entries(value).map(([name, question]) =>
+    [name, name === "action" ? question : { ...question, options: Object.fromEntries(
+      Object.entries(question.options).map(([key, description]) => [key, key === NONE ? description
+        : description.split("; current Working connections: ")[0]])) }]));
+  assert.deepEqual(withoutConnections(observed), withoutConnections(questions),
+    "apart from incident data, kind does not change instructions, choices, NONE or order");
   assert.equal(wire.state.architecture.currentAssociation, NOMINAL_ASSOCIATION);
   assert.deepEqual((await response.json()).answers, Object.fromEntries(Object.keys(questions)
     .map(key => [key, { type: "choice", choice: NONE, confidence: .3 }])));
