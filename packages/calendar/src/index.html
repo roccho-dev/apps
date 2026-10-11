@@ -1,0 +1,348 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="color-scheme" content="light dark">
+  <title>家族カレンダー</title>
+  <style>
+    :root {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Hiragino Kaku Gothic ProN", "Noto Sans JP", sans-serif;
+      color-scheme: light dark;
+      --bg: #fff;
+      --fg: #252a31;
+      --subtle: #68727d;
+      --border: #e4e8ec;
+      --surface: #f8fafb;
+      --hover: #edf5ff;
+      --accent: #2675ca;
+      --holiday: #d6534d;
+      --sat: #3674b8;
+    }
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg: #151a20;
+        --fg: #ecf0f4;
+        --subtle: #a0a8b0;
+        --border: #343d47;
+        --surface: #20272f;
+        --hover: #1e3650;
+        --accent: #8bbfff;
+        --holiday: #ff9990;
+        --sat: #91bcff;
+      }
+    }
+    * { box-sizing: border-box; }
+    html { scroll-padding-top: 114px; }
+    body { margin: 0; background: var(--bg); color: var(--fg); }
+    button, textarea, input { font: inherit; }
+    button { cursor: pointer; }
+    .wrap { width: min(100%, 1000px); margin: 0 auto; padding-inline: clamp(8px, 2vw, 18px); }
+    header { position: sticky; top: 0; z-index: 10; background: var(--bg); border-bottom: 1px solid var(--border); }
+    header .toolbar { display: flex; justify-content: space-between; align-items: center; min-height: 48px; gap: 10px; }
+    #month { font-weight: 700; font-size: 17px; font-variant-numeric: tabular-nums; }
+    .month-group { display: flex; align-items: center; gap: 9px; }
+    #unpublished { font-size: 10px; color: var(--holiday); }
+    [hidden] { display: none !important; }
+    .day-preview {
+      position: fixed; z-index: 11; left: 50%; bottom: max(12px, env(safe-area-inset-bottom));
+      transform: translateX(-50%); width: min(94vw, 600px);
+      display: flex; justify-content: space-between; align-items: start; gap: 12px;
+      padding: 12px 14px; background: var(--surface); border: 1px solid var(--border);
+      border-radius: 11px; box-shadow: 0 10px 35px #0003;
+    }
+    .day-preview span { white-space: pre-wrap; font-size: 13px; line-height: 1.6; }
+    .day-preview button { font-size: 20px; border: 0; background: transparent; color: var(--fg); padding: 0 4px; cursor: pointer; }
+    .actions { display: flex; align-items: center; gap: 8px; }
+    .small-button, .today, summary {
+      display: inline-flex; justify-content: center; align-items: center; min-height: 32px;
+      background: transparent; color: var(--fg); border: 1px solid var(--border);
+      border-radius: 8px; padding: 5px 12px; text-decoration: none; font-size: 13px;
+    }
+    .small-button:hover, .today:hover, summary:hover { background: var(--hover); }
+    .today:focus-visible, summary:focus-visible, button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+    .actions details { position: relative; }
+    .actions summary { list-style: none; cursor: pointer; width: 34px; padding: 0; font-size: 20px; }
+    .actions summary::-webkit-details-marker { display: none; }
+    .menu {
+      position: absolute; right: 0; top: 38px; min-width: 180px; padding: 7px;
+      background: var(--bg); border: 1px solid var(--border);
+      border-radius: 10px; box-shadow: 0 10px 32px #0002;
+    }
+    .menu label { display: flex; align-items: center; gap: 8px; padding: 9px 7px; font-size: 13px; white-space: nowrap; cursor: pointer; }
+    .menu .small-button { width: 100%; margin-top: 5px; }
+    .weekdays, .grid { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 3px; }
+    .weekdays { padding-block: 6px 8px; }
+    .weekday { text-align: center; font-size: 12px; color: var(--subtle); }
+    .weekday.sun { color: var(--holiday); }
+    .weekday.sat { color: var(--sat); }
+    .grid { padding-block: 5px 28px; }
+    .day {
+      display: block; min-width: 0; min-height: clamp(62px, 8vw, 94px);
+      background: var(--bg); border: 1px solid var(--border); border-radius: 6px;
+      padding: clamp(4px, .9vw, 10px); text-decoration: none; color: var(--fg);
+      position: relative;
+    }
+    .day:hover, .day:focus-visible { background: var(--hover); }
+    .day:target { outline: 2px solid var(--accent); outline-offset: -2px; background: var(--hover); }
+    .day.today-day { border: 2px solid var(--accent); padding: calc(clamp(4px, .9vw, 10px) - 1px); }
+    .day.outside { opacity: .28; }
+    .date { font-size: 13px; font-weight: 540; font-variant-numeric: tabular-nums; }
+    .day.sun .date, .day.holiday .date { color: var(--holiday); }
+    .day.sat:not(.holiday) .date { color: var(--sat); }
+    .holiday-name { color: var(--holiday); font-size: clamp(9px, 1.5vw, 11px); line-height: 1.35; margin-top: 7px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .dot { display: inline-block; background: var(--accent); width: 7px; height: 7px; border-radius: 50%; margin-top: 8px; }
+    .note { color: var(--subtle); font-size: 12px; text-align: center; padding: 3px 0 30px; }
+    #error { font-size: 12px; padding: 8px 0; color: var(--holiday); }
+    #error:empty { display: none; }
+    dialog {
+      width: min(94vw, 630px); max-height: 86vh; border: 1px solid var(--border); border-radius: 14px;
+      background: var(--bg); color: var(--fg); padding: clamp(15px, 3vw, 24px);
+      box-shadow: 0 20px 90px #0004;
+    }
+    dialog::backdrop { background: #111a26aa; }
+    dialog h2 { font-size: 17px; margin: 0 0 9px; }
+    dialog p { font-size: 12px; color: var(--subtle); line-height: 1.6; }
+    dialog textarea {
+      width: 100%; height: min(42vh, 310px); resize: vertical; padding: 12px;
+      background: var(--surface); color: var(--fg); border: 1px solid var(--border);
+      border-radius: 8px; font: 12px/1.65 ui-monospace, SFMono-Regular, Consolas, monospace;
+    }
+    .editor-actions { display: flex; justify-content: flex-end; align-items: center; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+    .primary { background: var(--accent); color: var(--bg); border-color: var(--accent); }
+    #validation { margin-top: 8px; font-size: 12px; color: var(--holiday); white-space: pre-wrap; }
+    #editor-status { margin-top: 8px; font-size: 12px; color: var(--subtle); }
+    @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+  </style>
+</head>
+<body>
+  <header id="header">
+    <div class="wrap">
+      <div class="toolbar">
+        <div class="month-group"><div id="month" aria-live="off">10月</div><span id="unpublished" hidden>未公開</span></div>
+        <div class="actions">
+          <a id="today-link" class="today" href="#d-2026-10-11">今日</a>
+          <details id="settings">
+            <summary aria-label="設定" title="設定">⋯</summary>
+            <div class="menu">
+              <label><input type="radio" name="week-start" value="1" checked>月曜始まり</label>
+              <label><input type="radio" name="week-start" value="0">日曜始まり</label>
+              <button id="edit-open" class="small-button" type="button">予定データを編集</button>
+            </div>
+          </details>
+        </div>
+      </div>
+      <div id="weekdays" class="weekdays" aria-label="曜日"></div>
+      <div id="error" role="alert"></div>
+    </div>
+  </header>
+  <main class="wrap">
+    <div id="calendar" class="grid" aria-label="2026年10月から12月のカレンダー"></div>
+    <div class="note">● 予定あり　赤文字は祝日・日曜。日付にマウスを乗せると詳細を表示。</div>
+  </main>
+
+  <div id="day-preview" class="day-preview" role="status" hidden>
+    <span id="day-preview-text"></span>
+    <button id="day-preview-close" type="button" aria-label="予定詳細を閉じる">×</button>
+  </div>
+  <dialog id="editor" aria-labelledby="editor-title">
+    <h2 id="editor-title">events.jsonl</h2>
+    <p>1行 = 1予定。例：<code>{"date":"2026-10-25","title":"予定"}</code><br>
+      この画面ではプレビューとファイル書き出しのみ。共有するには書き出したファイルを再公開してください。</p>
+    <textarea id="data-input" spellcheck="false" aria-label="予定データ JSONL"></textarea>
+    <div id="validation" role="alert"></div>
+    <div id="editor-status"></div>
+    <div class="editor-actions">
+      <button id="editor-close" class="small-button" type="button">閉じる</button>
+      <button id="editor-preview" class="small-button" type="button">反映（プレビュー）</button>
+      <button id="editor-export" class="small-button primary" type="button">JSONLを書き出す</button>
+    </div>
+  </dialog>
+
+  <script>
+    (() => {
+      "use strict";
+      const $ = id => document.getElementById(id);
+      const header = $("header"), grid = $("calendar"), month = $("month");
+      const editor = $("editor"), input = $("data-input"), status = $("editor-status");
+      const first = Date.UTC(2026, 9, 1), last = Date.UTC(2026, 11, 31), dayMs = 86400000;
+      const names = ["日", "月", "火", "水", "木", "金", "土"];
+      const todayParts = Object.fromEntries(new Intl.DateTimeFormat("en-US", {
+        year: "numeric", month: "2-digit", day: "2-digit", timeZone: "Asia/Tokyo"
+      }).formatToParts(new Date()).filter(p => p.type !== "literal").map(p => [p.type, p.value]));
+      const today = `${todayParts.year}-${todayParts.month}-${todayParts.day}`;
+      let startDay = 1, rawText = "", records = new Map(), weeks = [], previewOnly = false;
+      $("today-link").href = `#d-${today}`;
+
+      function validDate(value) {
+        if (typeof value !== "string" || !/^\d{4}-\d{2}-\d{2}$/.test(value)) return false;
+        const timestamp = Date.parse(`${value}T00:00:00Z`);
+        return Number.isFinite(timestamp) && new Date(timestamp).toISOString().slice(0, 10) === value;
+      }
+      function parse(text) {
+        const result = new Map();
+        text.split(/\r?\n/).forEach((line, index) => {
+          if (!line.trim()) return;
+          let item;
+          try { item = JSON.parse(line); } catch { throw new Error(`${index + 1}行目: JSON形式が不正です`); }
+          if (!item || !validDate(item.date) || typeof item.title !== "string" || !item.title.trim() ||
+              (item.holiday !== undefined && typeof item.holiday !== "boolean")) {
+            throw new Error(`${index + 1}行目: date・title・holidayを確認してください`);
+          }
+          if (!result.has(item.date)) result.set(item.date, []);
+          result.get(item.date).push(item);
+        });
+        return result;
+      }
+      function getVisibleDate() {
+        const bottom = header.getBoundingClientRect().bottom;
+        const week = weeks.find(el => {
+          const rect = el.getBoundingClientRect();
+          return rect.top + rect.height / 2 > bottom;
+        }) || weeks.at(-1);
+        return week?.dataset.date || "2026-10-01";
+      }
+      function updateMonth() {
+        month.textContent = `${Number(getVisibleDate().slice(5, 7))}月`;
+      }
+      function createCalendar(preserveDate = null) {
+        const focus = preserveDate || getVisibleDate();
+        grid.replaceChildren();
+        weeks = [];
+        const weekdayLabels = $("weekdays");
+        weekdayLabels.replaceChildren();
+        for (let i = 0; i < 7; i++) {
+          const w = (i + startDay) % 7;
+          const label = document.createElement("div");
+          label.className = `weekday${w === 0 ? " sun" : w === 6 ? " sat" : ""}`;
+          label.textContent = names[w];
+          weekdayLabels.append(label);
+        }
+        const shift = (new Date(first).getUTCDay() - startDay + 7) % 7;
+        const tail = (6 - (new Date(last).getUTCDay() - startDay + 7) % 7);
+        let pos = 0;
+        for (let stamp = first - shift * dayMs; stamp <= last + tail * dayMs; stamp += dayMs) {
+          const date = new Date(stamp), key = date.toISOString().slice(0, 10);
+          const weekday = date.getUTCDay(), day = date.getUTCDate(), m = date.getUTCMonth() + 1;
+          const entries = records.get(key) || [];
+          const holidays = entries.filter(x => x.holiday), plans = entries.filter(x => !x.holiday);
+          const cell = document.createElement("a");
+          cell.className = "day" + (stamp < first || stamp > last ? " outside" : "") +
+            (key === today ? " today-day" : "") + (holidays.length ? " holiday" : "") +
+            (weekday === 0 ? " sun" : weekday === 6 ? " sat" : "");
+          cell.id = `d-${key}`;
+          cell.href = `#d-${key}`;
+          cell.dataset.date = key;
+          cell.title = key + (entries.length ? "\n" + entries.map(x => (x.holiday ? "祝日：" : "") + x.title).join("\n") : "");
+          cell.setAttribute("aria-label", cell.title.replaceAll("\n", "、"));
+          const label = document.createElement("span");
+          label.className = "date";
+          label.textContent = day === 1 ? `${m}/${day}` : String(day);
+          cell.append(label);
+          for (const entry of holidays) {
+            const holidayLabel = document.createElement("div");
+            holidayLabel.className = "holiday-name";
+            holidayLabel.textContent = entry.title;
+            cell.append(holidayLabel);
+          }
+          if (plans.length) {
+            const dot = document.createElement("span");
+            dot.className = "dot";
+            cell.append(dot);
+          }
+          grid.append(cell);
+          if (pos % 7 === 3) weeks.push(cell);
+          pos++;
+        }
+        const active = preserveDate ? null : location.hash.match(/^#d-(\d{4}-\d{2}-\d{2})$/)?.[1];
+        requestAnimationFrame(() => {
+          if (active && $("d-" + active)) scrollDate(active, false);
+          else if (focus && focus !== "2026-10-01") scrollDate(focus, false);
+          updateMonth();
+        });
+      }
+      function scrollDate(key, smooth = true) {
+        const target = $("d-" + key);
+        if (target) target.scrollIntoView({ behavior: smooth ? "smooth" : "auto", block: "start" });
+      }
+      function apply(text, preview = false) {
+        const parsed = parse(text);
+        const previous = preview ? getVisibleDate() : null;
+        rawText = text.trim() ? text.trimEnd() + "\n" : "";
+        records = parsed;
+        previewOnly = preview;
+        $("unpublished").hidden = !preview;
+        $("validation").textContent = "";
+        $("error").textContent = "";
+        createCalendar(previous);
+        status.textContent = preview ? "プレビュー中：公開サイトにはまだ反映されていません。" : "";
+      }
+      let pendingScroll = false;
+      window.addEventListener("scroll", () => {
+        if (pendingScroll) return;
+        pendingScroll = true;
+        requestAnimationFrame(() => { pendingScroll = false; updateMonth(); });
+      }, { passive: true });
+      window.addEventListener("hashchange", () => {
+        const key = location.hash.match(/^#d-(\d{4}-\d{2}-\d{2})$/)?.[1];
+        if (key) { scrollDate(key, false); showDay(key); }
+      });
+      function showDay(key) {
+        const items = records.get(key) || [];
+        const preview = $("day-preview");
+        if (!items.length) { preview.hidden = true; return; }
+        $("day-preview-text").textContent = key + "\n" + items.map(x => (x.holiday ? "祝日：" : "") + x.title).join("\n");
+        preview.hidden = false;
+      }
+      grid.addEventListener("click", event => {
+        const cell = event.target.closest("a.day");
+        if (cell) showDay(cell.dataset.date);
+      });
+      $("day-preview-close").addEventListener("click", () => { $("day-preview").hidden = true; });
+      $("today-link").addEventListener("click", event => {
+        if (!$("d-" + today)) { event.preventDefault(); return; }
+        if (location.hash === `#d-${today}`) { event.preventDefault(); scrollDate(today); }
+      });
+      document.querySelectorAll('input[name="week-start"]').forEach(radio => {
+        radio.addEventListener("change", () => {
+          const previous = getVisibleDate();
+          startDay = Number(radio.value);
+          createCalendar(previous);
+          $("settings").open = false;
+        });
+      });
+      $("edit-open").addEventListener("click", () => {
+        input.value = rawText;
+        $("validation").textContent = "";
+        status.textContent = previewOnly ? "プレビュー中：公開サイトにはまだ反映されていません。" : "";
+        $("settings").open = false;
+        editor.showModal();
+      });
+      $("editor-close").addEventListener("click", () => editor.close());
+      function tryApply() {
+        try { apply(input.value, true); return true; }
+        catch (error) { $("validation").textContent = error.message; return false; }
+      }
+      $("editor-preview").addEventListener("click", () => {
+        if (tryApply()) editor.close();
+      });
+      $("editor-export").addEventListener("click", () => {
+        if (!tryApply()) return;
+        const blob = new Blob([rawText], { type: "application/x-ndjson;charset=utf-8" });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.href = url;
+        link.download = "events.jsonl";
+        link.click();
+        setTimeout(() => URL.revokeObjectURL(url), 2000);
+        status.textContent = "events.jsonl を書き出しました。ファイルを差し替えて再公開してください。";
+      });
+      createCalendar();
+      fetch("./events.jsonl", { cache: "no-store" })
+        .then(response => { if (!response.ok) throw new Error(`HTTP ${response.status}`); return response.text(); })
+        .then(text => apply(text))
+        .catch(() => { $("error").textContent = "予定データを読み込めません。events.jsonl を確認してください。"; });
+    })();
+  </script>
+</body>
+</html>
