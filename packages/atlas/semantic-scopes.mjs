@@ -129,7 +129,16 @@ export const normalizeSemanticScopes = input => {
   }
   const uncovered = [...changed].filter(id => !assigned.has(id)).sort();
   const status = uncovered.length ? 'incomplete' : changed.size ? 'declared_partition' : 'declared_equivalent';
+  // A missing responsibility does not invalidate another Scope's valid proof.
+  // Evaluate assigned criteria first and retain the full observation; account
+  // for incomplete responsibility coverage separately at the whole-Purpose gate.
+  const assessed = closure(scopes, pair, input.observation);
+  if (uncovered.length && assessed.purpose_status === 'declared_satisfied') {
+    assessed.purpose_status = 'unknown'; assessed.status = 'unknown';
+    assessed.purpose_status_reason = 'unassigned transformation responsibility not reconciled';
+  }
+  assessed.coverage_status = uncovered.length ? 'incomplete' : 'declared-covered';
+  assessed.responsibility_residual = [...uncovered];
   return { ...base, status, scopes, uncovered, semantic_coverage: copy(coverage),
-    closure: uncovered.length ? { status: 'unknown', scope_status: 'unknown', purpose_status: 'unknown', residual: uncovered, reason: 'uncovered responsibility' }
-      : closure(scopes, pair, input.observation) };
+    closure: assessed };
 };

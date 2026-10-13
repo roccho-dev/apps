@@ -94,6 +94,29 @@ test('multiple justified partitions can cover one semantic transformation', () =
   assert.deepEqual(a.comparison, b.comparison);
 });
 
+test('unassigned recovery preserves a valid delivery checkpoint, observation and whole-Purpose limit', () => {
+  const input = declaration(); input.comparison.parts[1].verdict = 'change';
+  const result = normalize(input);
+  assert.equal(result.status, 'incomplete');
+  assert.deepEqual(result.uncovered, ['recovery']);
+  assert.equal(result.closure.scope_status, 'declared_satisfied');
+  assert.equal(result.closure.purpose_status, 'unmet');
+  assert.equal(result.closure.coverage_status, 'incomplete');
+  assert.deepEqual(result.closure.responsibility_residual, ['recovery']);
+  assert.deepEqual(result.closure.observation, input.observation);
+  assert.deepEqual(result.closure.residual, ['criterion.recovery']);
+  delete input.observation.purpose_evaluation;
+  const missingWhole = normalize(input);
+  assert.equal(missingWhole.closure.scope_status, 'declared_satisfied');
+  assert.equal(missingWhole.closure.purpose_status, 'unknown');
+  input.observation.purpose_evaluation = structuredClone(fixture.frames[1].semantic.observation.purpose_evaluation);
+  input.observation.purpose_evaluation.state = 'satisfied'; input.observation.purpose_evaluation.residual = [];
+  const incompletePositive = normalize(input);
+  assert.equal(incompletePositive.closure.scope_status, 'declared_satisfied');
+  assert.equal(incompletePositive.closure.purpose_status, 'unknown');
+  assert.equal(incompletePositive.closure.observation.purpose_evaluation.state, 'satisfied');
+});
+
 test('Scope-only checkpoint and missing whole-target evaluation preserve Purpose UNKNOWN', () => {
   const input = declaration(); delete input.observation.purpose_evaluation;
   const result = normalize(input);

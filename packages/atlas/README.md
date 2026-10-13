@@ -176,6 +176,12 @@ post-work regression becomes a new residual. A positive Purpose declaration
 with residuals is a conflict. Successful Work, Receipt or CI does not supply
 whole-target evidence.
 
+Valid assigned Scope evidence is evaluated even when another semantic part is
+unassigned. Its checkpoint and full observation remain available; responsibility
+coverage and its residual are separate. Incomplete coverage cannot turn a known
+Scope checkpoint into UNKNOWN, or turn an unreconciled overall obligation into
+Purpose completion.
+
 Bindings are domain assertions. Names, equal IDs across spaces, prefixes, owner
 or Project membership never create a Closure bridge. Wrong revision/source,
 another Purpose, missing or conflicting mappings stay UNKNOWN and unlinked.
