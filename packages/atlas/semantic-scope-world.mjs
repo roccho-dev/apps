@@ -76,7 +76,12 @@ export const semanticScopeWorld = (input, reducedClosure) => {
     const deltaRef = ref(space, 'semantic-delta', meaning.pair.purpose_id + ':delta');
     const entities = [], relations = [];
     const declaredSource = source(observed.source_ref ?? 'source:unavailable');
-    const time = { observedAt: observed.asOf, acquiredAt: null, effectiveAt: null };
+    // Frame.asOf is a capture coordinate. It must not freshen an old state,
+    // a target definition or the original comparison's unknown observation time.
+    const time = { observedAt: null, acquiredAt: null, effectiveAt: null };
+    const suppliedPostAt = observed.semantic.observation?.observed_at;
+    const postTime = { ...time, observedAt: typeof suppliedPostAt === 'string'
+      && Number.isFinite(Date.parse(suppliedPostAt)) ? suppliedPostAt : null };
     const knownMeaning = ['declared_partition', 'declared_equivalent', 'incomplete', 'undecomposed'].includes(meaning.status);
     const entity = (entityRef, label, area, summary, flags = [], ownSource = declaredSource, ownTime = time) => {
       entities.push({ ref: entityRef, label, area, order: entities.length, visible: true, activity: 'none',
@@ -96,9 +101,9 @@ export const semanticScopeWorld = (input, reducedClosure) => {
     edge('target-purpose', targetRef, purposeRef, 'このPurposeの目標', { pair: meaning.pair, closure: meaning.closure, binding }, 'declared-relation', declaredSource, time, knownMeaning);
     if (observed.semantic.observation) {
       const postRef = entity(ref(space, 'purpose-state-observed', meaning.pair.purpose_id + ':observed'), '再観測した現状', 'purpose',
-        `Scope ${meaning.closure.scope_status}; Purpose ${meaning.closure.purpose_status} · ${observed.post_label ?? '観測宣言'}`);
+        `Scope ${meaning.closure.scope_status}; Purpose ${meaning.closure.purpose_status} · ${observed.post_label ?? '観測宣言'}`, [], declaredSource, postTime);
       edge('post-observation', postRef, purposeRef, '目的全体を再評価', { pair: meaning.pair, observation: observed.semantic.observation,
-        closure: meaning.closure, observedBinding: observed.semantic.bindings?.observed ?? null });
+        closure: meaning.closure, observedBinding: observed.semantic.bindings?.observed ?? null }, 'declared-relation', declaredSource, postTime);
     }
     for (const scope of meaning.scopes ?? []) {
       const scopeRef = entity(ref(space, 'semantic-scope', scope.id), scope.label ?? scope.id, 'scopes',
@@ -146,7 +151,7 @@ export const semanticScopeWorld = (input, reducedClosure) => {
       edge('binding:current', currentRef, ref(legacySpace, 'current', binding.current.id), '明示された現状対応', { binding }, 'declared-relation', declaredSource, time, true);
       binding.target.forEach((target, index) => edge('binding:target:' + index, targetRef, ref(legacySpace, 'ideal', target.id), '明示された目標対応', { binding }, 'declared-relation', declaredSource, time, true));
       if (binding.observed) edge('binding:observed', ref(space, 'purpose-state-observed', meaning.pair.purpose_id + ':observed'),
-        ref(legacySpace, 'current', binding.observed.id), '明示された再観測対応', { binding }, 'declared-relation', declaredSource, time, true);
+        ref(legacySpace, 'current', binding.observed.id), '明示された再観測対応', { binding }, 'declared-relation', declaredSource, postTime, true);
     }
     if (new Set(entities.map(value => key(value.ref))).size !== entities.length) throw new Error('scope-world: qualified entity collision');
     return { id: observed.id, rev: observed.rev, asOf: observed.asOf, sourceState: 'supplied fixture/domain declarations; actual truth unverified',

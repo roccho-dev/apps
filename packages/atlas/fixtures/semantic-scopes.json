@@ -183,7 +183,8 @@
                 "fresh": true
               }
             ]
-          }
+          },
+          "observed_at": "2026-01-01T00:00:00Z"
         },
         "history": [
           {
@@ -468,7 +469,8 @@
                 "fresh": true
               }
             ]
-          }
+          },
+          "observed_at": "2026-01-01T00:10:00Z"
         },
         "history": [
           {

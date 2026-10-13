@@ -35,6 +35,26 @@ test('current/target are roles in each observation frame, not invented chronolog
   }
 });
 
+test('later captures never mint or freshen t0/target/comparison observation times', () => {
+  const input = structuredClone(fixture);
+  input.frames[1].asOf = '2026-01-02T20:00:00Z';
+  const world = build(input);
+  for (const frame of world.frames) {
+    for (const kind of ['purpose-state-current', 'purpose-state-target', 'semantic-delta', 'semantic-scope', 'obligation']) {
+      const entity = frame.entities.find(value => value.ref.kind === kind);
+      assert.equal(entity.time.observedAt, null, kind);
+      assert.equal(entity.time.effectiveAt, null, kind);
+    }
+    for (const id of ['current-delta', 'delta-target', 'target-purpose', 'scope:scope.delivery'])
+      assert.equal(frame.relations.find(value => value.ref.id === id).time.observedAt, null);
+  }
+  const post = world.frames[1].entities.find(value => value.ref.kind === 'purpose-state-observed');
+  assert.equal(post.time.observedAt, fixture.frames[1].semantic.observation.observed_at);
+  assert.notEqual(post.time.observedAt, world.frames[1].asOf);
+  delete input.frames[1].semantic.observation.observed_at;
+  assert.equal(build(input).frames[1].entities.find(value => value.ref.kind === 'purpose-state-observed').time.observedAt, null);
+});
+
 test('Scope trace preserves exact pair, semantic basis, responsibility, criteria, evidence and residual/history', () => {
   const world = build(fixture), frame = world.frames[1];
   const context = frame.relations.find(value => value.ref.id === 'scope:scope.delivery').context;

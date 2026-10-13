@@ -199,7 +199,10 @@ a semantic path/bridge, and residual/history display edges are not promoted.
 Current t0 and target t1 coexist as role entities **inside one observation
 frame**. A target is never dated as a later actual observation; its effective
 time remains unavailable. World rev/asOf belongs only to supplied observation
-captures. Post-work observation is a separate entity/evaluation. The included
+captures and never supplies/freshens individual t0/target/comparison timestamps.
+Those unknown times stay null. Only an explicit observation.observed_at supplies
+the post-observation entity's time; missing post time stays null too.
+Post-work observation is a separate entity/evaluation. The included
 fixture has two synthetic captures: the initial Scope closes, while an initially
 equivalent recovery condition regresses and Purpose remains unmet. Fixture dates
 are not actual service-observation timestamps.
