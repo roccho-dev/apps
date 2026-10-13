@@ -136,3 +136,100 @@ an input accepted by SharedAtlasUI: that consumer adaptation is a separate step.
 The existing `nix-check` workflow runs these tests with its locked nixpkgs Node
 before its unchanged flake check. No second workflow, registry, server, framework
 or package-manager dependency is introduced.
+
+## Semantic Scope supplied-data application slice
+
+Refs [ADRS#613](https://github.com/roccho-dev/adrs/issues/613).
+Status: supplied-data candidate implementation, authority=false. This does not
+admit its own meaning, connect a real collector, prove business Purpose
+achievement, or satisfy autonomous Factory [C01-C13](https://github.com/roccho-dev/adrs/issues/616).
+
+The owning domain supplies an exact `current-to-target` meaning comparison and
+a justified responsibility partition. Apps validates this application port and
+projects it with the **existing** Closure reducer and generic SharedAtlasUI.
+It never derives meaning from field equality, words, counts, a label or a hash.
+
+### Explicit side input
+
+`atlas.semantic-scopes/1` is a separate domain-declaration port, not an unknown
+record inserted into `atlas.purpose-closure/1`.
+
+| Input | Required meaning |
+|---|---|
+| comparison | logical Purpose; exact current/target refs; explicit direction; same-pair revision-bound basis; supplied semantic parts and verdicts; reconstruction/coverage basis |
+| partition | selected Scope IDs, responsible parts, role/actor, per-part closure criteria, required evidence IDs, rationale, residual policy |
+| observation | actual declared post-state ref, selected target, independent evaluator, Scope criterion evidence, separate whole-selected-target evaluation |
+| evidence | explicit requirement IDs, revision-qualified witness, same observed/target refs, independent evaluator, known/unknown/conflict and currentness |
+| history | prior obligations retained explicitly; target replacement or an empty current partition never deletes them |
+| bindings | exact pair and explicit Closure purpose/current/ideal/observed records with their original sourceRef/sourceDigest sets |
+
+`normalizeSemanticScopes` returns the exact comparison, responsible
+transformations, bindings, observation and history. UNKNOWN/CONFLICT or a missing
+decomposition has `scopes=null`; only a complete declared-equivalent comparison
+has no active Scope. Unassigned changes stay uncovered. These are conformance
+results, always `semantic_truth=domain-declared-not-verified`.
+
+`scope_status` and `purpose_status` are separate. Scope-only evidence can
+establish a bounded checkpoint while Purpose stays UNKNOWN. Whole-target
+evaluation must include conditions that were initially equivalent: their
+post-work regression becomes a new residual. A positive Purpose declaration
+with residuals is a conflict. Successful Work, Receipt or CI does not supply
+whole-target evidence.
+
+Bindings are domain assertions. Names, equal IDs across spaces, prefixes, owner
+or Project membership never create a Closure bridge. Wrong revision/source,
+another Purpose, missing or conflicting mappings stay UNKNOWN and unlinked.
+Source digests remain declared provenance; this application does not authenticate
+external source truth or grant authority.
+
+### Same input to the existing generic UI
+
+`semantic-scope-world.mjs` adapts the real `reduceClosure` output and the domain
+side input to `ui.atlasWorldInput.v1`. It preserves the seven-kind Closure
+records, typed relations, original source provenance and absent original times.
+Scope-to-delta relation context carries the full pair, responsibility, criteria,
+evidence, residuals and old obligations. There is no new renderer or business
+parser in UI/Host.
+
+Known, source-declared Scope -> delta -> target -> Purpose relations adapt to
+the existing World `path` contract for Direction. Existing typed Closure links
+keep their Purpose-facing direction. Unknown comparison/binding does not invent
+a semantic path/bridge, and residual/history display edges are not promoted.
+
+Current t0 and target t1 coexist as role entities **inside one observation
+frame**. A target is never dated as a later actual observation; its effective
+time remains unavailable. World rev/asOf belongs only to supplied observation
+captures. Post-work observation is a separate entity/evaluation. The included
+fixture has two synthetic captures: the initial Scope closes, while an initially
+equivalent recovery condition regresses and Purpose remains unmet. Fixture dates
+are not actual service-observation timestamps.
+
+~~~sh
+node --test packages/atlas/tests/*.test.mjs
+node packages/atlas/semantic-scope-world.mjs \
+  packages/atlas/fixtures/semantic-scopes.json \
+  packages/atlas/fixtures/purpose.jsonl packages/atlas/fixtures/current.jsonl \
+  > /tmp/atlas.semantic-world.json
+~~~
+
+Pass that **actual app-generated JSON** to the existing UI build entry:
+
+~~~sh
+node scripts/build-live-atlas.mjs --consumer=app \
+  --input=/tmp/atlas.semantic-world.json --out=<fresh-absent-output-directory>
+~~~
+
+The scoped proof consumer is UI exact
+`18022a8d37bb62366309a3bc16788754dc7967de`, with branch merge
+`98621ca0f2b87dd27d2c9c6a5eb935009aeb06c3`; these are not current UI proposals.
+This proof does not change the apps global voice-ui UI pin. The build's actual
+input/module/output receipt, actual public source tree, independent R browser
+verification and P's same User entry are separate evidence. Native artifact-only
+checks may point `ATLAS_CLOSURE_INPUT_ROOT` to captured exact input modules for
+preliminary tests; formal validation uses the actual published package source.
+
+This six-file slice adds no schema to the adopted Closure reducer, workflow,
+server, ledger, runtime collector, credentials, renderer, merge/close/deploy
+authority, or Factory reactivation engine. Actual domain admission/observations,
+real Agent collection and source/SSE integration remain their existing separate
+responsibilities.

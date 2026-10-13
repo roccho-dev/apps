@@ -1,0 +1,578 @@
+{
+  "schema": "atlas.semantic-scope-world/1",
+  "authority": false,
+  "source_mode": "synthetic",
+  "note": "Declared fixture: initial delta closes, originally equivalent recovery regresses. Not real business evidence or Factory E2E.",
+  "frames": [
+    {
+      "id": "before-work",
+      "rev": 1,
+      "asOf": "2026-01-01T00:00:00Z",
+      "source_ref": "fixture:semantic-scope-input@1",
+      "purpose_label": "例：証拠から引き継げる運用",
+      "current_label": "t0：共有UI条件が未達、証拠条件は当初充足",
+      "target_label": "t1：共有UI利用と独立証拠の両条件を満たす",
+      "post_label": "初期観測：delivery未達",
+      "semantic": {
+        "schema": "atlas.semantic-scopes/1",
+        "authority": false,
+        "comparison": {
+          "purpose_id": "purpose.operations",
+          "current_ref": {
+            "space": "synthetic:atlas-purpose-scope",
+            "revision": "current-before@1",
+            "id": "purpose.operations"
+          },
+          "target_ref": {
+            "space": "synthetic:atlas-purpose-scope",
+            "revision": "target@1",
+            "id": "purpose.operations"
+          },
+          "direction": "current-to-target",
+          "availability": "known",
+          "basis": {
+            "current_ref": {
+              "space": "synthetic:atlas-purpose-scope",
+              "revision": "current-before@1",
+              "id": "purpose.operations"
+            },
+            "target_ref": {
+              "space": "synthetic:atlas-purpose-scope",
+              "revision": "target@1",
+              "id": "purpose.operations"
+            },
+            "evidence": [
+              "fixture:domain-semantic-comparison@1"
+            ]
+          },
+          "parts": [
+            {
+              "id": "delivery",
+              "verdict": "change",
+              "basis": [
+                "fixture:meaning/shared-ui-use@1"
+              ],
+              "current_meaning": "共有UI利用の条件は未達",
+              "target_meaning": "共有UIを同じ入口から利用できる"
+            },
+            {
+              "id": "recovery",
+              "verdict": "equivalent",
+              "basis": [
+                "fixture:meaning/evidence-retention@1"
+              ],
+              "current_meaning": "初期時点では目的証拠が揃う",
+              "target_meaning": "独立した目的証拠を保つ"
+            }
+          ],
+          "semantic_coverage": {
+            "assessment": "declared-complete",
+            "basis": [
+              "fixture:independent-reconstruction-argument@1"
+            ]
+          }
+        },
+        "partition": [
+          {
+            "id": "scope.delivery",
+            "label": "共有UIの利用を閉じる責任",
+            "parts": [
+              "delivery"
+            ],
+            "owner_role": "apps/Atlas",
+            "owner_actor": "fixture-W",
+            "criteria": {
+              "delivery": [
+                "criterion.delivery"
+              ]
+            },
+            "required_evidence": [
+              "independent-post-state"
+            ],
+            "residual_policy": "未知・未達・退行は新残差へ返す",
+            "rationale": "初期意味差のdeliveryを一つの責任へ分解"
+          }
+        ],
+        "observation": {
+          "purpose_id": "purpose.operations",
+          "observed_ref": {
+            "space": "synthetic:atlas-purpose-scope",
+            "revision": "current-before@1",
+            "id": "purpose.operations"
+          },
+          "target_ref": {
+            "space": "synthetic:atlas-purpose-scope",
+            "revision": "target@1",
+            "id": "purpose.operations"
+          },
+          "evaluator": "fixture-independent-R",
+          "writer": "fixture-W",
+          "work_done": false,
+          "criteria": [
+            {
+              "id": "criterion.delivery",
+              "state": "unmet",
+              "evidence": [
+                {
+                  "requirements": [
+                    "independent-post-state"
+                  ],
+                  "ref": {
+                    "space": "synthetic:atlas-purpose-scope",
+                    "revision": "evidence@current-before@1",
+                    "id": "scope-check"
+                  },
+                  "observed_ref": {
+                    "space": "synthetic:atlas-purpose-scope",
+                    "revision": "current-before@1",
+                    "id": "purpose.operations"
+                  },
+                  "target_ref": {
+                    "space": "synthetic:atlas-purpose-scope",
+                    "revision": "target@1",
+                    "id": "purpose.operations"
+                  },
+                  "evaluator": "fixture-independent-R",
+                  "state": "known",
+                  "fresh": true
+                }
+              ],
+              "fresh": true
+            }
+          ],
+          "purpose_evaluation": {
+            "coverage": "whole-selected-target",
+            "observed_ref": {
+              "space": "synthetic:atlas-purpose-scope",
+              "revision": "current-before@1",
+              "id": "purpose.operations"
+            },
+            "target_ref": {
+              "space": "synthetic:atlas-purpose-scope",
+              "revision": "target@1",
+              "id": "purpose.operations"
+            },
+            "evaluator": "fixture-independent-R",
+            "fresh": true,
+            "state": "unmet",
+            "residual": [
+              "criterion.delivery"
+            ],
+            "evidence": [
+              {
+                "requirements": [
+                  "whole-target-independent-evaluation"
+                ],
+                "ref": {
+                  "space": "synthetic:atlas-purpose-scope",
+                  "revision": "evidence@current-before@1",
+                  "id": "whole-target-check"
+                },
+                "observed_ref": {
+                  "space": "synthetic:atlas-purpose-scope",
+                  "revision": "current-before@1",
+                  "id": "purpose.operations"
+                },
+                "target_ref": {
+                  "space": "synthetic:atlas-purpose-scope",
+                  "revision": "target@1",
+                  "id": "purpose.operations"
+                },
+                "evaluator": "fixture-independent-R",
+                "state": "known",
+                "fresh": true
+              }
+            ]
+          }
+        },
+        "history": [
+          {
+            "id": "old-source-duty",
+            "label": "旧義務：入力接続を実証する",
+            "target_ref": {
+              "space": "synthetic:atlas-purpose-scope",
+              "revision": "old-target@1",
+              "id": "purpose.operations"
+            },
+            "state": "unmet",
+            "relation": "continues",
+            "authority": "fixture-declaration-not-actual-admission"
+          }
+        ],
+        "bindings": {
+          "pair": {
+            "purpose_id": "purpose.operations",
+            "current_ref": {
+              "space": "synthetic:atlas-purpose-scope",
+              "revision": "current-before@1",
+              "id": "purpose.operations"
+            },
+            "target_ref": {
+              "space": "synthetic:atlas-purpose-scope",
+              "revision": "target@1",
+              "id": "purpose.operations"
+            }
+          },
+          "purpose": {
+            "id": "purpose.operations",
+            "kind": "purpose",
+            "sources": [
+              {
+                "sourceDigest": "sha256:5fa8b664596caef29449c089752daa724be8fb9e2fca1a0f527d3e6c154202f8",
+                "sourceRef": "fixture:purpose@1"
+              }
+            ],
+            "domain_id": "purpose.operations"
+          },
+          "current": {
+            "id": "current.before",
+            "kind": "current",
+            "sources": [
+              {
+                "sourceDigest": "sha256:a8f21e89ee791061fcc298c028d03f29a7034cb51c203aa28541025666b7071f",
+                "sourceRef": "fixture:current@1"
+              }
+            ],
+            "state_ref": {
+              "space": "synthetic:atlas-purpose-scope",
+              "revision": "current-before@1",
+              "id": "purpose.operations"
+            }
+          },
+          "target": [
+            {
+              "id": "ideal.extraction",
+              "kind": "ideal",
+              "sources": [
+                {
+                  "sourceDigest": "sha256:5fa8b664596caef29449c089752daa724be8fb9e2fca1a0f527d3e6c154202f8",
+                  "sourceRef": "fixture:purpose@1"
+                }
+              ],
+              "state_ref": {
+                "space": "synthetic:atlas-purpose-scope",
+                "revision": "target@1",
+                "id": "purpose.operations"
+              }
+            },
+            {
+              "id": "ideal.source",
+              "kind": "ideal",
+              "sources": [
+                {
+                  "sourceDigest": "sha256:5fa8b664596caef29449c089752daa724be8fb9e2fca1a0f527d3e6c154202f8",
+                  "sourceRef": "fixture:purpose@1"
+                }
+              ],
+              "state_ref": {
+                "space": "synthetic:atlas-purpose-scope",
+                "revision": "target@1",
+                "id": "purpose.operations"
+              }
+            }
+          ],
+          "observed": {
+            "id": "current.before",
+            "kind": "current",
+            "sources": [
+              {
+                "sourceDigest": "sha256:a8f21e89ee791061fcc298c028d03f29a7034cb51c203aa28541025666b7071f",
+                "sourceRef": "fixture:current@1"
+              }
+            ],
+            "state_ref": {
+              "space": "synthetic:atlas-purpose-scope",
+              "revision": "current-before@1",
+              "id": "purpose.operations"
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "after-work-reobserved",
+      "rev": 2,
+      "asOf": "2026-01-01T00:10:00Z",
+      "source_ref": "fixture:semantic-scope-input@2",
+      "purpose_label": "例：証拠から引き継げる運用",
+      "current_label": "t0/t1比較は同じ選択版を維持",
+      "target_label": "t1：共有UI利用と独立証拠の両条件を満たす",
+      "post_label": "仕事完了でも recovery が退行し Purpose は未達",
+      "semantic": {
+        "schema": "atlas.semantic-scopes/1",
+        "authority": false,
+        "comparison": {
+          "purpose_id": "purpose.operations",
+          "current_ref": {
+            "space": "synthetic:atlas-purpose-scope",
+            "revision": "current-before@1",
+            "id": "purpose.operations"
+          },
+          "target_ref": {
+            "space": "synthetic:atlas-purpose-scope",
+            "revision": "target@1",
+            "id": "purpose.operations"
+          },
+          "direction": "current-to-target",
+          "availability": "known",
+          "basis": {
+            "current_ref": {
+              "space": "synthetic:atlas-purpose-scope",
+              "revision": "current-before@1",
+              "id": "purpose.operations"
+            },
+            "target_ref": {
+              "space": "synthetic:atlas-purpose-scope",
+              "revision": "target@1",
+              "id": "purpose.operations"
+            },
+            "evidence": [
+              "fixture:domain-semantic-comparison@1"
+            ]
+          },
+          "parts": [
+            {
+              "id": "delivery",
+              "verdict": "change",
+              "basis": [
+                "fixture:meaning/shared-ui-use@1"
+              ],
+              "current_meaning": "共有UI利用の条件は未達",
+              "target_meaning": "共有UIを同じ入口から利用できる"
+            },
+            {
+              "id": "recovery",
+              "verdict": "equivalent",
+              "basis": [
+                "fixture:meaning/evidence-retention@1"
+              ],
+              "current_meaning": "初期時点では目的証拠が揃う",
+              "target_meaning": "独立した目的証拠を保つ"
+            }
+          ],
+          "semantic_coverage": {
+            "assessment": "declared-complete",
+            "basis": [
+              "fixture:independent-reconstruction-argument@1"
+            ]
+          }
+        },
+        "partition": [
+          {
+            "id": "scope.delivery",
+            "label": "共有UIの利用を閉じる責任",
+            "parts": [
+              "delivery"
+            ],
+            "owner_role": "apps/Atlas",
+            "owner_actor": "fixture-W",
+            "criteria": {
+              "delivery": [
+                "criterion.delivery"
+              ]
+            },
+            "required_evidence": [
+              "independent-post-state"
+            ],
+            "residual_policy": "未知・未達・退行は新残差へ返す",
+            "rationale": "初期意味差のdeliveryを一つの責任へ分解"
+          }
+        ],
+        "observation": {
+          "purpose_id": "purpose.operations",
+          "observed_ref": {
+            "space": "synthetic:atlas-purpose-scope",
+            "revision": "post-observation@2",
+            "id": "purpose.operations"
+          },
+          "target_ref": {
+            "space": "synthetic:atlas-purpose-scope",
+            "revision": "target@1",
+            "id": "purpose.operations"
+          },
+          "evaluator": "fixture-independent-R",
+          "writer": "fixture-W",
+          "work_done": true,
+          "criteria": [
+            {
+              "id": "criterion.delivery",
+              "state": "satisfied",
+              "evidence": [
+                {
+                  "requirements": [
+                    "independent-post-state"
+                  ],
+                  "ref": {
+                    "space": "synthetic:atlas-purpose-scope",
+                    "revision": "evidence@post-observation@2",
+                    "id": "scope-check"
+                  },
+                  "observed_ref": {
+                    "space": "synthetic:atlas-purpose-scope",
+                    "revision": "post-observation@2",
+                    "id": "purpose.operations"
+                  },
+                  "target_ref": {
+                    "space": "synthetic:atlas-purpose-scope",
+                    "revision": "target@1",
+                    "id": "purpose.operations"
+                  },
+                  "evaluator": "fixture-independent-R",
+                  "state": "known",
+                  "fresh": true
+                }
+              ],
+              "fresh": true
+            }
+          ],
+          "purpose_evaluation": {
+            "coverage": "whole-selected-target",
+            "observed_ref": {
+              "space": "synthetic:atlas-purpose-scope",
+              "revision": "post-observation@2",
+              "id": "purpose.operations"
+            },
+            "target_ref": {
+              "space": "synthetic:atlas-purpose-scope",
+              "revision": "target@1",
+              "id": "purpose.operations"
+            },
+            "evaluator": "fixture-independent-R",
+            "fresh": true,
+            "state": "unmet",
+            "residual": [
+              "criterion.recovery"
+            ],
+            "evidence": [
+              {
+                "requirements": [
+                  "whole-target-independent-evaluation"
+                ],
+                "ref": {
+                  "space": "synthetic:atlas-purpose-scope",
+                  "revision": "evidence@post-observation@2",
+                  "id": "whole-target-check"
+                },
+                "observed_ref": {
+                  "space": "synthetic:atlas-purpose-scope",
+                  "revision": "post-observation@2",
+                  "id": "purpose.operations"
+                },
+                "target_ref": {
+                  "space": "synthetic:atlas-purpose-scope",
+                  "revision": "target@1",
+                  "id": "purpose.operations"
+                },
+                "evaluator": "fixture-independent-R",
+                "state": "known",
+                "fresh": true
+              }
+            ]
+          }
+        },
+        "history": [
+          {
+            "id": "old-source-duty",
+            "label": "旧義務：入力接続を実証する",
+            "target_ref": {
+              "space": "synthetic:atlas-purpose-scope",
+              "revision": "old-target@1",
+              "id": "purpose.operations"
+            },
+            "state": "unmet",
+            "relation": "continues",
+            "authority": "fixture-declaration-not-actual-admission"
+          }
+        ],
+        "bindings": {
+          "pair": {
+            "purpose_id": "purpose.operations",
+            "current_ref": {
+              "space": "synthetic:atlas-purpose-scope",
+              "revision": "current-before@1",
+              "id": "purpose.operations"
+            },
+            "target_ref": {
+              "space": "synthetic:atlas-purpose-scope",
+              "revision": "target@1",
+              "id": "purpose.operations"
+            }
+          },
+          "purpose": {
+            "id": "purpose.operations",
+            "kind": "purpose",
+            "sources": [
+              {
+                "sourceDigest": "sha256:5fa8b664596caef29449c089752daa724be8fb9e2fca1a0f527d3e6c154202f8",
+                "sourceRef": "fixture:purpose@1"
+              }
+            ],
+            "domain_id": "purpose.operations"
+          },
+          "current": {
+            "id": "current.before",
+            "kind": "current",
+            "sources": [
+              {
+                "sourceDigest": "sha256:a8f21e89ee791061fcc298c028d03f29a7034cb51c203aa28541025666b7071f",
+                "sourceRef": "fixture:current@1"
+              }
+            ],
+            "state_ref": {
+              "space": "synthetic:atlas-purpose-scope",
+              "revision": "current-before@1",
+              "id": "purpose.operations"
+            }
+          },
+          "target": [
+            {
+              "id": "ideal.extraction",
+              "kind": "ideal",
+              "sources": [
+                {
+                  "sourceDigest": "sha256:5fa8b664596caef29449c089752daa724be8fb9e2fca1a0f527d3e6c154202f8",
+                  "sourceRef": "fixture:purpose@1"
+                }
+              ],
+              "state_ref": {
+                "space": "synthetic:atlas-purpose-scope",
+                "revision": "target@1",
+                "id": "purpose.operations"
+              }
+            },
+            {
+              "id": "ideal.source",
+              "kind": "ideal",
+              "sources": [
+                {
+                  "sourceDigest": "sha256:5fa8b664596caef29449c089752daa724be8fb9e2fca1a0f527d3e6c154202f8",
+                  "sourceRef": "fixture:purpose@1"
+                }
+              ],
+              "state_ref": {
+                "space": "synthetic:atlas-purpose-scope",
+                "revision": "target@1",
+                "id": "purpose.operations"
+              }
+            }
+          ],
+          "observed": {
+            "id": "current.after",
+            "kind": "current",
+            "sources": [
+              {
+                "sourceDigest": "sha256:a8f21e89ee791061fcc298c028d03f29a7034cb51c203aa28541025666b7071f",
+                "sourceRef": "fixture:current@1"
+              }
+            ],
+            "state_ref": {
+              "space": "synthetic:atlas-purpose-scope",
+              "revision": "post-observation@2",
+              "id": "purpose.operations"
+            }
+          }
+        }
+      }
+    }
+  ]
+}
