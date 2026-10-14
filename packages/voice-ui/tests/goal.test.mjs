@@ -132,6 +132,26 @@ const same = (left, right) => JSON.stringify(left) === JSON.stringify(right);
 const openAnswer = (request, picks) => ({ kind: "answered", decision: { answers: Object.fromEntries(Object.keys(request.kind === ARCHITECTURE_GOAL_INTENT_KIND ? architectureGoalSlotsFor(request.state) : slotsFor(request.state))
   .map(name => { const [choice, confidence] = picks[name] ?? [NONE, 1]; return [name, { type: "choice", choice, confidence }]; })) } });
 const deltaAnswer = (choice, confidence = 1) => ({ kind: "answered", decision: { answers: { delta: { type: "choice", choice, confidence } } } });
+// A Goal asks what comes next and, for a part, where it goes. A test that picks
+// one held change per step answers both frames through this: the first with the
+// change's part alternative, the bound second with that same change.
+const framed = pick => {
+  let held = null;
+  return async request => {
+    if (request.kind === GOAL_REQUEST_KIND && request.state.placing !== null) {
+      const { choice, confidence } = held ?? { choice: "no-first-frame", confidence: 1 };
+      held = null;
+      return deltaAnswer(choice, confidence);
+    }
+    const value = await pick(request);
+    const delta = value?.decision?.answers?.delta;
+    const added = request.kind === GOAL_REQUEST_KIND
+      ? request.state.candidates.find(item => item.action === "add-part" && item.id === delta?.choice) : undefined;
+    if (added === undefined) return value;
+    held = { choice: added.id, confidence: delta.confidence };
+    return { ...value, decision: { ...value.decision, answers: { ...value.decision.answers, delta: { ...delta, choice: `part:${added.part}` } } } };
+  };
+};
 
 const exactPairChain = async focusCount => {
   const { session: before, id, reference, manifest } = await sourced(focusCount);
@@ -192,15 +212,16 @@ const exactPairChain = async focusCount => {
 test("mixed Goal uses one held ADD/Connect alphabet and strictly restores the whole group", async () => {
   const before = await opened(); let session = before; let calls = 0;
   const result = await runGoal({ utterance: "add two offered parts and connect the first to the second", bundle, protocol,
-    current: () => session, cancelled: () => false, ask: async request => {
+    current: () => session, cancelled: () => false, ask: framed(async request => {
       calls += 1;
       if (calls <= 2) return answer(request, calls === 1 ? "api" : "db");
       const [from, to] = request.state.selected.map(item => item.region);
       const candidate = request.state.candidates.find(item => item.action === "add-edge" && item.from === from && item.to === to);
       assert.equal(isRequest(request), true);
       return { kind: "answered", decision: { answers: { delta: { type: "choice", choice: calls === 3 ? candidate.id : NONE, confidence: 1 } } } };
-    }, adopt: async next => { session = next; } });
-  assert.equal(result.reason, "none"); assert.equal(result.requests, 4);
+    }), adopt: async next => { session = next; } });
+  // Each addition is asked as what, then where; the arrow and the stop once each.
+  assert.equal(result.reason, "none"); assert.equal(result.requests, 6);
   const [from, to] = result.selected.map(item => item.region);
   assert.deepEqual(session.working.records.filter(item => item.type === "relation").map(({ from, to, kind, label }) => ({ from, to, kind, label })),
     [{ from, to, kind: "flow", label: "" }]);
@@ -224,11 +245,11 @@ test("one Goal adopts two real AddRegions and whole-group Undo without claiming 
   const requests = [];
   const choices = [...order, NONE];
   const result = await runGoal({ utterance, bundle, protocol, current: () => session, cancelled: () => false,
-    ask: async request => { requests.push(request); return answer(request, choices.shift()); },
+    ask: framed(async request => { requests.push(request); return answer(request, choices.shift()); }),
     adopt: async next => { session = next; },
   });
   assert.equal(result.reason, "none");
-  assert.equal(result.requests, 3);
+  assert.equal(result.requests, 5);
   assert.equal(Number.isFinite(result.elapsedMs) && result.elapsedMs >= 0, true);
   assert.equal(requests.every(request => request.kind === GOAL_REQUEST_KIND && isRequest(request)), true);
   assert.equal(requests.every(request => request.state.utterance === utterance && request.state.offers.parts.length === 8), true);
@@ -252,6 +273,70 @@ test("one Goal adopts two real AddRegions and whole-group Undo without claiming 
   assert.equal(reverted.stored, before.stored);
   assert.equal(reverted.conversation[0].outcome, "undone");
   }
+});
+
+test("a part is asked what, then where, and the held candidate is adopted at the weaker of both confidences", async () => {
+  for (const [what, where] of [[0.8, 0.6], [0.6, 0.8]]) {
+    const before = await opened(); let session = before; const asked = [];
+    const result = await runGoal({ utterance: "OCIにAPIを置いて", bundle, protocol, current: () => session, cancelled: () => false,
+      adopt: async next => { session = next; },
+      ask: async request => {
+        asked.push(request);
+        if (asked.length === 1) return deltaAnswer("part:api", what);
+        if (asked.length === 2) return deltaAnswer(request.state.candidates.find(item => item.part === "api" && item.parent === "container").id, where);
+        return deltaAnswer(NONE);
+      } });
+    assert.equal(result.reason, "none"); assert.equal(result.requests, 3);
+    assert.equal(asked.every(request => request.kind === GOAL_REQUEST_KIND && isRequest(request)), true);
+    const [first, second] = asked;
+    assert.equal(first.state.placing, null); assert.equal(second.state.placing, "api");
+    assert.deepEqual({ ...second.state, placing: null }, first.state, "the second frame binds the part and changes nothing else");
+    const parts = [...new Set(first.state.candidates.filter(item => item.action === "add-part").map(item => item.part))];
+    assert.deepEqual(slotsFor(first.state).delta, [...parts.map(part => `part:${part}`), NONE]);
+    assert.deepEqual(slotsFor(second.state).delta, [...first.state.candidates.filter(item => item.part === "api").map(item => item.id), NONE]);
+    assert.deepEqual(result.selected.map(item => [item.key, item.parent]), [["api", "container"]]);
+    assert.equal(session.draft.at(-1).step.confidence, Math.min(what, where), "the step keeps the weaker evidence");
+    assert.equal(result.trace.length, 3);
+  }
+});
+
+test("a weak what, or a none or weak where, stops at its own frame and adopts nothing", async () => {
+  for (const [label, what, where, reason, requests] of [
+    ["weak what", 0.49, null, "not-confident", 1],
+    ["none where", 1, [NONE, 1], "none", 2],
+    ["weak where", 1, ["container", 0.49], "not-confident", 2],
+  ]) {
+    const session = await opened(); const asked = [];
+    const result = await runGoal({ utterance: "OCIにAPIを置いて", bundle, protocol, current: () => session, cancelled: () => false,
+      adopt: async () => { throw new Error("unexpected adoption"); },
+      ask: async request => {
+        asked.push(request);
+        if (request.state.placing === null) return deltaAnswer("part:api", what);
+        const [parent, confidence] = where;
+        return deltaAnswer(parent === NONE ? NONE
+          : request.state.candidates.find(item => item.part === "api" && item.parent === parent).id, confidence);
+      } });
+    assert.equal(result.reason, reason, label); assert.equal(result.requests, requests, label);
+    assert.deepEqual(asked.map(request => request.state.placing), [null, "api"].slice(0, requests), label);
+    assert.deepEqual(result.selected, [], label);
+  }
+});
+
+test("an eighth request that picks a part neither asks a ninth nor adopts", async () => {
+  const before = await opened(); let session = before;
+  const result = await runGoal({ utterance: "add parts and connect two of them", bundle, protocol, current: () => session,
+    cancelled: () => false, adopt: async next => { session = next; },
+    ask: framed(async request => {
+      const { selected, edges, candidates } = request.state;
+      if (selected.length < 2) return answer(request, selected.length === 0 ? "api" : "db");
+      if (edges.length === 0) return deltaAnswer(candidates.find(item => item.action === "add-edge").id);
+      return answer(request, selected.length === 2 ? "step" : "decision");
+    }) });
+  // api and db (four), their arrow (five), step (seven), then decision's first frame.
+  assert.equal(result.reason, "budget-requests"); assert.equal(result.requests, 8);
+  assert.deepEqual(result.selected.map(item => item.key), ["api", "db", "step"]);
+  assert.equal(result.trace.at(-1).answers.delta.choice, "part:decision");
+  assert.equal(session.working.records.some(record => record.type === "region" && record.kind === "decision"), false);
 });
 
 test("paired histories with the same Working, utterance and catalogue differ only in the explicit Goal context", async () => {
@@ -792,7 +877,7 @@ test("a resolve shaped like real trial 40's (target in focus, source none) now r
 test("legal wrong parent is retained; independent expected graph rejects it rather than repairing it", async () => {
   const before = await opened(); let session = before; let calls = 0;
   const result = await runGoal({ utterance, bundle, protocol, current: () => session, cancelled: () => false,
-    ask: async request => answer(request, calls++ === 0 ? "api" : NONE, "other"), adopt: async next => { session = next; },
+    ask: framed(async request => answer(request, calls++ === 0 ? "api" : NONE, "other")), adopt: async next => { session = next; },
   });
   assert.equal(result.reason, "none");
   assert.equal(result.selected[0].parent, "other");
@@ -817,16 +902,17 @@ test("cancel, stale response, protocol failure and draw unknown stop without sel
   for (const reason of ["cancelled", "stale-goal", "judge-failed", "adoption-unknown"]) {
     const before = await opened(); let session = before; let cancelled = false;
     const result = await runGoal({ utterance, bundle, protocol, current: () => session, cancelled: () => cancelled,
-      ask: async request => {
+      ask: framed(async request => {
         if (reason === "cancelled") cancelled = true;
         if (reason === "stale-goal") session = { ...session };
         return reason === "judge-failed" ? { kind: "failed", reason: "judge-contract" } : answer(request, "api");
-      },
+      }),
       adopt: async () => { throw new Error("draw failed"); },
     });
     assert.equal(result.reason, reason);
     assert.deepEqual(result.selected, []);
-    assert.equal(result.requests, 1);
+    // A failed draw follows the part's second frame; every other stop is the first.
+    assert.equal(result.requests, reason === "adoption-unknown" ? 2 : 1);
     assert.equal(session.working, before.working);
   }
 });
@@ -835,11 +921,11 @@ test("thrown judgment counts the started call and preserves only previously adop
   for (const successful of [0, 1]) {
     const before = await opened(); let session = before; let calls = 0;
     const result = await runGoal({ utterance, bundle, protocol, current: () => session, cancelled: () => false,
-      ask: async request => { if (calls++ === successful) throw new Error("not public"); return answer(request, "api"); },
+      ask: framed(async request => { if (calls++ === successful) throw new Error("not public"); return answer(request, "api"); }),
       adopt: async next => { session = next; },
     });
     assert.equal(result.reason, "judge-unknown");
-    assert.equal(result.requests, successful + 1);
+    assert.equal(result.requests, 2 * successful + 1);
     assert.equal(result.selected.length, successful);
     assert.equal(result.trace.at(-1).failure, "judge-unknown");
     if (successful) {
@@ -890,7 +976,7 @@ test("early NONE, no room and elapsed budget stop at their actual request count"
     let calls = 0;
     const result = await runGoal({ utterance, bundle, protocol, current: () => session, cancelled: () => false,
       now: () => reason === "budget-time" && calls > 0 ? 180000 : 0,
-      ask: async request => { calls += 1; return answer(request, reason === "none" ? NONE : "api"); },
+      ask: framed(async request => { calls += 1; return answer(request, reason === "none" ? NONE : "api"); }),
       adopt: async () => { throw new Error("unexpected adoption"); },
     });
     assert.equal(result.reason, reason);
@@ -904,8 +990,8 @@ test("early NONE, no room and elapsed budget stop at their actual request count"
   const tampered = { ...before, working: { ...before.working,
     records: before.working.records.map(record => record.kind === "group" ? { ...record, bounds: TINY } : record) } };
   const result = await runGoal({ utterance, bundle, protocol, current: () => tampered, cancelled: () => false, now: () => 0,
-    ask: async request => answer(request, "api"), adopt: async () => { throw new Error("unexpected adoption"); } });
-  assert.equal(result.reason, "provider-rejected"); assert.equal(result.requests, 1); assert.deepEqual(result.selected, []);
+    ask: framed(async request => answer(request, "api")), adopt: async () => { throw new Error("unexpected adoption"); } });
+  assert.equal(result.reason, "provider-rejected"); assert.equal(result.requests, 2); assert.deepEqual(result.selected, []);
   assert.equal(tampered.working.log, before.working.log); assert.equal(tampered.draft.length, before.draft.length);
 });
 
@@ -921,16 +1007,16 @@ test("partial successful Goal keeps one grouped edit when a later cancel, stale 
     const visibleClaims = currentClaims(before.draft.filter(item => item.claims !== undefined), before.working.records);
     assert.equal(visibleClaims.length, 1);
     const result = await runGoal({ utterance, bundle, protocol, current: () => session, cancelled: () => cancelled,
-      ask: async request => {
+      ask: framed(async request => {
         calls += 1;
         if (calls === 1) return answer(request, "api");
         if (reason === "cancelled") cancelled = true;
         if (reason === "stale-goal") session = { ...session };
         const value = answer(request, "db"); if (reason === "not-confident") value.decision.answers.delta.confidence = 0.49;
         return value;
-      }, adopt: async next => { session = next; },
+      }), adopt: async next => { session = next; },
     });
-    assert.equal(result.reason, reason); assert.equal(result.requests, 2);
+    assert.equal(result.reason, reason); assert.equal(result.requests, 3);
     assert.deepEqual(result.selected.map(item => item.key), ["api"]);
     assert.equal(draftUsed(session), draftUsed(before) + 1);
     const reverted = await undo(session, { verifyDecisionLog: protocol.verifyDecisionLog });
@@ -947,13 +1033,14 @@ test("ADD/Connect candidates remain bounded by eight requests, never a ninth", a
     const offered = count === 8 ? bundle : { ...bundle, parts: bundle.parts.filter(part => part.key !== "group") };
     const result = await runGoal({ utterance: "add all offered parts", bundle: offered, protocol,
       current: () => session, cancelled: () => false,
-      ask: async request => { calls += 1; return { kind: "answered", decision: { answers: {
+      ask: framed(async request => { calls += 1; return { kind: "answered", decision: { answers: {
         delta: { type: "choice", choice: request.state.candidates[0].id, confidence: 1 },
-      } } }; },
+      } } }; }),
       adopt: async next => { session = next; },
     });
     assert.equal(result.reason, "budget-requests");
-    assert.equal(result.requests, 8); assert.equal(calls, 8); assert.equal(result.selected.length, count);
+    // Eight requests are four additions of what and where, whatever is offered.
+    assert.equal(result.requests, 8); assert.equal(calls, 4); assert.equal(result.selected.length, 4);
     const reverted = await undo(session, { verifyDecisionLog: protocol.verifyDecisionLog });
     assert.deepEqual(reverted.working.records, before.working.records);
   }
@@ -962,7 +1049,7 @@ test("ADD/Connect candidates remain bounded by eight requests, never a ninth", a
 test("a Goal nests an offered group, grows it for its child, connects into it and Undo restores every old pin", async () => {
   const before = await opened(); let session = before; let group = null; let calls = 0;
   const result = await runGoal({ utterance: "OCIの中にグループを作り、その中にDB、OCIにAPIを置いてAPIからDBへつないで", bundle, protocol,
-    current: () => session, cancelled: () => false, ask: async request => {
+    current: () => session, cancelled: () => false, ask: framed(async request => {
       calls += 1;
       if (calls === 1) return answer(request, "group");
       if (calls === 2) {
@@ -974,8 +1061,9 @@ test("a Goal nests an offered group, grows it for its child, connects into it an
       const db = request.state.selected[1].region, api = request.state.selected[2].region;
       const edge = request.state.candidates.find(item => item.action === "add-edge" && item.from === api && item.to === db);
       return { kind: "answered", decision: { answers: { delta: { type: "choice", choice: calls === 4 ? edge.id : NONE, confidence: 1 } } } };
-    }, adopt: async next => { session = next; } });
-  assert.equal(result.reason, "none"); assert.equal(result.requests, 5);
+    }), adopt: async next => { session = next; } });
+  // Three additions of two frames each, the arrow and the stop: exactly eight.
+  assert.equal(result.reason, "none"); assert.equal(result.requests, 8);
   assert.deepEqual(result.selected.map(item => [item.key, item.parent]), [["group", "container"], ["db", group], ["api", "container"]]);
   const regions = session.working.records.filter(record => record.type === "region");
   assert.equal(regions.find(record => record.id === group).kind, "group");
@@ -1034,9 +1122,9 @@ test("a smaller-only fit is an executable single choice without claiming model q
   const held = legalAdditions(graph, { bundle: offered, protocol });
   assert.deepEqual(held.candidates.map(({ part, parent }) => ({ part, parent })), [{ part: "api", parent: "container" }]);
   const result = await runGoal({ utterance: "OCIにAPIをひとつ追加して。他は変えない", bundle: offered, protocol, current: () => session,
-    cancelled: () => false, ask: async request => { calls += 1; assert.equal(Object.keys(slotsFor(request.state)).length, 1);
-      return answer(request, "api"); }, adopt: async next => { session = next; } });
-  assert.equal(result.reason, "no-executable-delta"); assert.equal(result.requests, 1); assert.equal(calls, 1);
+    cancelled: () => false, ask: framed(async request => { calls += 1; assert.equal(Object.keys(slotsFor(request.state)).length, 1);
+      return answer(request, "api"); }), adopt: async next => { session = next; } });
+  assert.equal(result.reason, "no-executable-delta"); assert.equal(result.requests, 2); assert.equal(calls, 1);
   assert.deepEqual(result.selected.map(item => [item.key, item.parent]), [["api", "container"]]);
   const added = session.working.records.filter(record => record.type === "region" && !graph.records.some(old => old.id === record.id));
   assert.deepEqual(added.map(record => [record.kind, record.parent, record.label.replace(/ [1-9]\d*$/u, "")]), [["step", "container", "API"]]);
