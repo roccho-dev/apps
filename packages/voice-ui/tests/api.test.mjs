@@ -1464,31 +1464,25 @@ test("a locate frame carries no code from the page; the server adds exactly that
     assert.ok(question.instructions.includes(entity.label), `${part}: the question names its part`);
     assert.match(question.instructions, entity.kind === "file" ? /the file /u : /outside the source/u, part);
     for (const file of evidence.bodies) assert.ok(question.instructions.includes(file.path), `${part}: the question names ${file.path}`);
-    // The whole question, word for word: whether the part itself is asked about,
-    // not a part that only supports what is asked; for an outside part, as the shown code uses it.
+    // The whole question, word for word: one positive condition - whether the
+    // current utterance asks to see this part - with no exception or negation clause.
     const lined = [...new Set(evidence.lines.map(line => line.path))];
     const shown = ` state.architecture.evidence.bodies holds ${evidence.bodies.map(file => file.path).join(", ")} whole`
       + (lined.length === 0 ? "." : `; state.architecture.evidence.lines holds single lines of ${lined.join(", ")}, each with its path and line number.`)
       + " Judge only from that text and the utterance." + LOCATE_CONTEXT_NOTE;
-    assert.ok(question.instructions.startsWith((entity.kind === "file"
-      ? `Is the file ${entity.label} itself one of the parts the current utterance asks to see or refers to - its own text being what is asked about - rather than a part that only supports, serves or is used by what is asked about?`
-      : `Is ${entity.label}, which lies outside the source, itself one of the parts the current utterance asks to see or refers to, as the shown original code uses it, rather than something the shown code only names or uses in support of what is asked about?`)
-      + shown), part);
-    assert.match(question.instructions, /association.*unverified/u, part);
+    assert.equal(question.instructions, (entity.kind === "file"
+      ? `Does the current utterance ask to see the content of the file ${entity.label}, directly or by what it refers to?`
+      : `Does the current utterance ask to see ${entity.label}, which lies outside the source, directly or by what it refers to?`)
+      + shown + " An earlier entry's reference is the section the server reopened for it.", part);
+    assert.doesNotMatch(question.instructions, /rather than|Do not replace an explicit endpoint|camera selection or edit focus/u, part);
     assert.equal(question.instructions.includes("the working graph and the focus are the facts"), false, part);
-    assert.match(question.instructions, /Do not replace an explicit endpoint or semantic qualification/u, part);
     assert.doesNotMatch(question.instructions, /Match against all current edges|does not identify one unique edge, answer none/u,
       `${part}: locating a part from its text is not selecting an existing edge`);
-    // The two options cover every part: none also holds for a part the utterance is not about at all.
-    assert.deepEqual(question.criteria, entity.kind === "file"
-      ? {
-        [YES]: "the utterance asks about this file itself, whether or not it names it",
-        [NONE]: "the utterance does not ask about this file itself: it is unrelated to what is asked about, only supports, serves or is used by it, or only mentions or imports a part that does",
-      }
-      : {
-        [YES]: "the utterance asks about it itself, as the shown code uses it, whether or not it names it",
-        [NONE]: "the utterance does not ask about it itself: it is unrelated to what is asked about, or the shown code only names it or uses it only in support of what is asked about",
-      }, part);
+    // The two options are exhaustive and exclusive: the condition holds, or any other case.
+    assert.deepEqual(question.criteria, {
+      [YES]: "the current utterance asks to see it, directly or by what it refers to",
+      [NONE]: "any other case",
+    }, part);
     const answered = await result.text();
     assert.equal(answered.includes(evidence.bodies[0].text.slice(0, 200)), false, `${part}: no admitted text in the answer`);
   }
