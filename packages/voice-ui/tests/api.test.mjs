@@ -1448,12 +1448,15 @@ test("a locate frame carries no code from the page; the server adds exactly that
     const { result, calls } = await withProvider(answering(noneTo), () => post(body, ARCHITECTURE_ENV));
     assert.equal(result.status, 200, part);
     const [call] = calls;
-    // Only the utterance, the conversation, the snapshot, the part and its text:
-    // none of the section's parts, pairs or vocabulary.
+    // Only the utterance, the conversation, the snapshot and the part's text: the
+    // asked part is named by its question, never presented as a focus.
     assert.deepEqual(Object.keys(call.state), ["utterance", "context", "architecture"], part);
-    assert.deepEqual(Object.keys(call.state.architecture), ["source", "focus", "evidence"], part);
+    assert.deepEqual(Object.keys(call.state.architecture), ["source", "evidence"], part);
+    assert.equal(JSON.stringify(call.state).includes('"focus"'), false, `${part}: no focus reaches a locate frame`);
     const { evidence, ...sent } = call.state.architecture;
-    assert.deepEqual({ ...call.state, architecture: sent }, body.state, `${part}: the page's state is forwarded unchanged`);
+    const { focus: _, ...pageArchitecture } = body.state.architecture;
+    assert.deepEqual({ ...call.state, architecture: sent }, { ...body.state, architecture: pageArchitecture },
+      `${part}: the page's state is forwarded unchanged but for the asked part's focus`);
     assert.deepEqual(evidence, JSON.parse(JSON.stringify(focusedEvidence(judgeSectionOf(MANIFEST, [part]), MANIFEST, prepared.evidence.files))),
       `${part}: exactly the text of the section it opens`);
     assert.deepEqual(Object.keys(call.questions), [relevantSlot(part)], part);
