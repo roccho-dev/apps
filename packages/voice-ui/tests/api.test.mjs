@@ -1433,27 +1433,22 @@ test("a section asked in one frame is sent the provider exactly as the section w
   }
 });
 
-test("a locate frame carries no code from the page; the server adds exactly that part's own section text and asks one question naming it", async t => {
+test("a locate frame carries no code from the page; the server adds exactly that part's own section text and asks one question naming it", async () => {
   const frames = locateRequests();
   assert.deepEqual(frames.map(frame => frame.state.architecture.focus), MANIFEST.entities.map(entity => [entity.id]),
     "one frame per part the snapshot knows, in its order");
-  // The server's own part list, the same in every frame: never the page's.
-  const catalogue = JSON.parse(JSON.stringify(intentSectionOf(MANIFEST).entities));
-  assert.deepEqual(catalogue.map(entry => entry.id), MANIFEST.entities.map(entity => entity.id), "every part the snapshot knows");
   for (const body of frames) {
     const [part] = body.state.architecture.focus;
     assert.ok(isLocateRequest(body), part);
     assert.equal(carriesCode(body), false, `${part}: the page sends no line of code`);
-    assert.equal(Object.hasOwn(body.state.architecture, "parts"), false, `${part}: the page sends no part list`);
     const { result, calls } = await withProvider(answering(noneTo), () => post(body, ARCHITECTURE_ENV));
     assert.equal(result.status, 200, part);
     const [call] = calls;
-    // Only the utterance, the conversation, the snapshot, the part, its text and
-    // the server's list of every part beside it: none of the section's pairs or vocabulary.
+    // Only the utterance, the conversation, the snapshot, the part and its text:
+    // none of the section's parts, pairs or vocabulary.
     assert.deepEqual(Object.keys(call.state), ["utterance", "context", "architecture"], part);
-    assert.deepEqual(Object.keys(call.state.architecture), ["source", "focus", "evidence", "parts"], part);
-    const { evidence, parts, ...sent } = call.state.architecture;
-    assert.deepEqual(parts, catalogue, `${part}: the server's own complete part list`);
+    assert.deepEqual(Object.keys(call.state.architecture), ["source", "focus", "evidence"], part);
+    const { evidence, ...sent } = call.state.architecture;
     assert.deepEqual({ ...call.state, architecture: sent }, body.state, `${part}: the page's state is forwarded unchanged`);
     assert.deepEqual(evidence, JSON.parse(JSON.stringify(focusedEvidence(judgeSectionOf(MANIFEST, [part]), MANIFEST, prepared.evidence.files))),
       `${part}: exactly the text of the section it opens`);
@@ -1470,9 +1465,7 @@ test("a locate frame carries no code from the page; the server adds exactly that
     const lined = [...new Set(evidence.lines.map(line => line.path))];
     const shown = ` state.architecture.evidence.bodies holds ${evidence.bodies.map(file => file.path).join(", ")} whole`
       + (lined.length === 0 ? "." : `; state.architecture.evidence.lines holds single lines of ${lined.join(", ")}, each with its path and line number.`)
-      + " Judge only from that text and the utterance."
-      + " state.architecture.parts lists every part of the same source by id and label: the other parts the utterance could mean instead of this one."
-      + CONTEXT_NOTE;
+      + " Judge only from that text and the utterance." + CONTEXT_NOTE;
     assert.ok(question.instructions.startsWith((entity.kind === "file"
       ? `Is the file ${entity.label} itself one of the parts the current utterance asks to see or refers to - its own text being what is asked about - rather than a part that only supports, serves or is used by what is asked about?`
       : `Is ${entity.label}, which lies outside the source, itself one of the parts the current utterance asks to see or refers to, as the shown original code uses it, rather than something the shown code only names or uses in support of what is asked about?`)
@@ -1493,8 +1486,6 @@ test("a locate frame carries no code from the page; the server adds exactly that
     const answered = await result.text();
     assert.equal(answered.includes(evidence.bodies[0].text.slice(0, 200)), false, `${part}: no admitted text in the answer`);
   }
-  t.diagnostic(JSON.stringify({ locateParts: catalogue.length, partsBytesPerFrame: Buffer.byteLength(JSON.stringify(catalogue)),
-    sample: "this package's served snapshot only", otherSnapshots: "NOT_PROVEN" }));
   // A part outside the source is shown the files that name it, whole.
   const { calls: [storage] } = await withProvider(answering(noneTo), () => post(locateRequest("ext-localstorage"), ARCHITECTURE_ENV));
   assert.deepEqual(storage.state.architecture.evidence.bodies.map(file => file.path).sort(),
@@ -1511,9 +1502,6 @@ test("a locate or judge the page shapes otherwise, or the provider answers incom
     { ...locate, state: { ...locate.state, graph: { regions: [], edges: [], placeable: [] } } },
     { ...locate, state: { ...locate.state, architecture: { ...locate.state.architecture, focus: ["web-app-mjs", "src-log-mjs"] } } },
     { ...locate, state: { ...locate.state, architecture: { source: locate.state.architecture.source } } },
-    // The part list is the server's own; the page cannot supply one, not even a true copy.
-    { ...locate, state: { ...locate.state, architecture: { ...locate.state.architecture, parts: intentSectionOf(MANIFEST).entities } } },
-    { ...locate, state: { ...locate.state, architecture: { ...locate.state.architecture, parts: [{ id: "web-app-mjs", label: "the screen" }] } } },
     { ...judgeRequest("src-log-mjs"), state: { ...judgeRequest("src-log-mjs").state, architecture: { ...judgeRequest("src-log-mjs").state.architecture, focus: "src-log-mjs" } } },
     { ...judgeRequest("web-app-mjs"), state: { ...judgeRequest("web-app-mjs").state, architecture: { ...judgeRequest("web-app-mjs").state.architecture, focus: ["web-app-mjs", "src-log-mjs"] } } },
     { ...judgeRequest("web-app-mjs"), state: { ...judgeRequest("web-app-mjs").state, frame: [] } },
