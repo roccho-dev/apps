@@ -130,13 +130,28 @@ for (const key of ["draft", "claims", "stored", "root", "confirmedGraph"])
 assert.equal(exactChildPins([{ id: "a" }, { id: "b" }], [{ regionId: "b" }, { regionId: "a" }]), true);
 assert.equal(exactChildPins([{ id: "a" }, { id: "b" }], [{ regionId: "a" }, { regionId: "a" }]), false);
 // When an arrow's painted end counts as shown on a frame, one rule for every
-// graded arrow (goal-source, nest camera and goal-flow): the end's painted
-// shape meets the zero-margin iframe viewport.
-const endAccepted = (view, end) => Array.isArray(end?.bounds) && end.bounds.every(Number.isFinite)
-  && end.bounds[0] < view[0] + view[2] && end.bounds[0] + end.bounds[2] > view[0]
-  && end.bounds[1] < view[1] + view[3] && end.bounds[1] + end.bounds[3] > view[1];
+// graded arrow (goal-source, nest camera and goal-flow): the end's whole name
+// is shown - its supported glyph-cell box lies wholly inside the zero-margin
+// iframe viewport, the nearest SVG viewport and every native clip around it.
+// This is glyph-cell geometry: ink overhang and anything painted over the
+// name are not proven by it.
+const finiteBox = box => Array.isArray(box) && box.length === 4 && box.every(Number.isFinite) && box[2] > 0 && box[3] > 0;
+const wholly = (outer, inner) => inner[0] >= outer[0] && inner[1] >= outer[1]
+  && inner[0] + inner[2] <= outer[0] + outer[2] && inner[1] + inner[3] <= outer[1] + outer[3];
+const endAccepted = (view, end) => end?.name?.unmet === null && finiteBox(end.name.box) && finiteBox(end.name.svg)
+  && Array.isArray(end.name.clips) && end.name.clips.every(finiteBox)
+  && [view, end.name.svg, ...end.name.clips].every(outer => wholly(outer, end.name.box));
+const VIEW = [0, 0, 626, 434];
+const named = (box, clips = [], extra = {}) => ({ name: { unmet: null, box, clips, svg: VIEW, ...extra } });
+assert.equal(endAccepted(VIEW, named([300, 200, 100, 16], [[290, 190, 120, 40]])), true, "a whole name inside its clip and the frame is shown");
+assert.equal(endAccepted(VIEW, named([300, 200, 100, 16], [[290, 190, 60, 40]])), false, "a name cut by its own clip is not shown");
 // actual91: the jev-boundary end, 19 of its 92 px in view, its name above the pane.
-assert.equal(endAccepted([0, 0, 626, 434], { bounds: [479, -73, 180, 92] }), false, "an end whose name is clipped off the frame is not shown");
+assert.equal(endAccepted(VIEW, { bounds: [479, -73, 180, 92], ...named([500, -35, 120, 16], [[477, -75, 184, 96]]) }), false,
+  "an end whose name is clipped off the frame is not shown");
+assert.equal(endAccepted(VIEW, named([300, 200, 100, 16], [], { unmet: "the text's matrix is not axis-aligned and positive" })), false,
+  "a rotated or otherwise unsupported name is not shown");
+assert.equal(endAccepted(VIEW, named([300, NaN, 100, 16])), false, "a non-finite name box is not shown");
+assert.equal(endAccepted(VIEW, { bounds: [300, 200, 180, 92] }), false, "an end shape without its name is not shown");
 const evaluation = caseFlag === undefined ? null : JSON.parse(caseJson);
 // A meaning case names role endpoints by manifest role key; goal-evaluation v1
 // cases, S5 among them, are read exactly as before.
@@ -419,10 +434,101 @@ const paintedGoal = (container, records, edge = null) => page.evaluate(({ contai
       ? [r.left, r.top, r.width, r.height] : null;
   };
   const uniquePrimitive = geometry => geometry.length === 1 ? geometry[0] : null;
-  const shape = (label, boundary = false) => {
+  // The one rendered node whose whole text is the label, or null.
+  const labelNode = label => {
     const labels = [...doc.querySelectorAll("svg text, svg foreignObject")].filter(node => node.textContent.trim() === label);
-    if (labels.length !== 1) return null;
-    for (let group = labels[0].parentElement; group?.localName === "g"; group = group.parentElement) {
+    return labels.length === 1 ? labels[0] : null;
+  };
+  // The full name an end shows, from that same label node: one plain SVG text
+  // holding the whole name; its glyph-cell box (getBBox) mapped by its own
+  // screen matrix; every native clip of an ancestor, read from the computed
+  // clip-path as this document's own URL and fragment naming exactly one
+  // clipPath of one rect in user space with no transform or nested clip, mapped
+  // by the matrix of the element that references it; and the nearest SVG
+  // viewport. Every matrix must be finite, axis-aligned and positive. Anything
+  // else is unmet. Glyph cells are not ink, and nothing here sees what is
+  // painted over the text.
+  const SVG = "http://www.w3.org/2000/svg";
+  const win = iframe.contentWindow;
+  const documentUrl = doc.URL.lastIndexOf("#") > 0 ? doc.URL.slice(0, doc.URL.lastIndexOf("#")) : doc.URL;
+  const axis = matrix => matrix && [matrix.a, matrix.b, matrix.c, matrix.d, matrix.e, matrix.f].every(Number.isFinite)
+    && matrix.b === 0 && matrix.c === 0 && matrix.a > 0 && matrix.d > 0 ? matrix : null;
+  const mapped = (matrix, [x, y, width, height]) => [matrix.a * x + matrix.e, matrix.d * y + matrix.f, matrix.a * width, matrix.d * height];
+  const fragmentOf = value => {
+    const url = /^url\("(.+)"\)$/u.exec(value ?? "")?.[1] ?? "";
+    const at = url.lastIndexOf("#");
+    return at > 0 && url.slice(0, at) === documentUrl && url.length > at + 1 ? url.slice(at + 1) : null;
+  };
+  // The clip's own declared shape: one rect in user space, no transform or nested clip.
+  const clipGrammar = clip => {
+    const untransformed = node => !node.hasAttribute("transform") && !node.hasAttribute("clip-path");
+    if (clip?.localName !== "clipPath" || clip.namespaceURI !== SVG || ![null, "userSpaceOnUse"].includes(clip.getAttribute("clipPathUnits"))
+      || !untransformed(clip) || clip.children.length !== 1) return null;
+    const rect = clip.children[0];
+    if (rect.localName !== "rect" || rect.namespaceURI !== SVG || !untransformed(rect)) return null;
+    const bounds = ["x", "y", "width", "height"].map(name => Number(rect.getAttribute(name)));
+    return bounds.every(Number.isFinite) && bounds[2] > 0 && bounds[3] > 0 ? bounds : null;
+  };
+  // And, rendered, no clip of its own from style.
+  const clipRectOf = clip => {
+    const bounds = clipGrammar(clip);
+    return bounds !== null && win.getComputedStyle(clip).clipPath === "none"
+      && win.getComputedStyle(clip.children[0]).clipPath === "none" ? bounds : null;
+  };
+  const nameOf = node => {
+    const unmet = reason => ({ unmet: reason, box: null, clips: [], svg: null });
+    if (node === null) return unmet("no unique label with the whole name");
+    if (node.localName !== "text" || node.namespaceURI !== SVG || node.children.length !== 0
+      || [...(node.parentElement?.children ?? [])].filter(child => child.localName === "text").length !== 1) return unmet("not one plain SVG text");
+    const own = axis(node.getScreenCTM());
+    if (own === null) return unmet("the text's matrix is not axis-aligned and positive");
+    let cells;
+    try { cells = node.getBBox(); } catch { return unmet("no glyph-cell box"); }
+    const box = mapped(own, [cells.x, cells.y, cells.width, cells.height]);
+    const owner = node.ownerSVGElement;
+    const viewport = owner?.getBoundingClientRect();
+    const clips = [];
+    for (let at = node; at !== null; at = at.parentElement) {
+      const value = win.getComputedStyle(at).clipPath;
+      if (value === "none") continue;
+      const id = fragmentOf(value);
+      const found = id === null ? [] : [...doc.querySelectorAll("clipPath")].filter(clip => clip.id === id);
+      const rect = found.length === 1 ? clipRectOf(found[0]) : null;
+      const by = at.namespaceURI === SVG && typeof at.getScreenCTM === "function" ? axis(at.getScreenCTM()) : null;
+      if (rect === null || by === null) return unmet(`unsupported clip ${value}`);
+      clips.push(mapped(by, rect));
+    }
+    if (!owner || !viewport) return unmet("no nearest SVG viewport");
+    return { unmet: null, box, clips, svg: [viewport.left, viewport.top, viewport.width, viewport.height] };
+  };
+  // Controlled refusals of the name rules, on control values and detached
+  // elements only; a supported name is proven by actual rendered frames.
+  const detached = (build) => { const clip = doc.createElementNS(SVG, "clipPath"); build(clip); return clip; };
+  const rectIn = (clip, attributes = {}) => {
+    const rect = doc.createElementNS(SVG, "rect");
+    for (const [name, value] of Object.entries({ x: "0", y: "0", width: "10", height: "10", ...attributes })) rect.setAttribute(name, value);
+    clip.appendChild(rect);
+    return rect;
+  };
+  const otherText = doc.createElementNS(SVG, "foreignObject");
+  if (fragmentOf(`url("${documentUrl}#clip")`) !== "clip"
+    || [`url("#clip")`, `url("http://elsewhere.invalid/#clip")`, `url("${documentUrl}#")`, "none", ""].some(value => fragmentOf(value) !== null)
+    || JSON.stringify(clipGrammar(detached(clip => { rectIn(clip, { x: "2", y: "3", width: "40", height: "20" }); }))) !== "[2,3,40,20]"
+    || [null, detached(clip => { rectIn(clip); rectIn(clip); }),
+      detached(clip => { clip.setAttribute("clipPathUnits", "objectBoundingBox"); rectIn(clip); }),
+      detached(clip => { clip.setAttribute("transform", "scale(2)"); rectIn(clip); }),
+      detached(clip => { rectIn(clip, { transform: "rotate(10)" }); }),
+      detached(clip => { rectIn(clip, { width: "NaN" }); }),
+      detached(clip => { clip.appendChild(doc.createElementNS(SVG, "circle")); })].some(clip => clipGrammar(clip) !== null)
+    || clipRectOf(null) !== null
+    || [{ a: 1, b: 0.5, c: 0, d: 1, e: 0, f: 0 }, { a: -1, b: 0, c: 0, d: 1, e: 0, f: 0 },
+      { a: 1, b: 0, c: 0, d: NaN, e: 0, f: 0 }, null].some(matrix => axis(matrix) !== null)
+    || nameOf(null).unmet === null || nameOf(otherText).unmet === null)
+    throw new Error("name-geometry controlled refusal failed");
+  const shape = (label, boundary = false) => {
+    const bound = labelNode(label);
+    if (bound === null) return null;
+    for (let group = bound.parentElement; group?.localName === "g"; group = group.parentElement) {
       const previous = group.previousElementSibling;
       if (previous?.localName === "g" && !previous.querySelector("text, foreignObject")
         && previous.querySelector("rect, path, ellipse, polygon")) {
@@ -446,7 +552,8 @@ const paintedGoal = (container, records, edge = null) => page.evaluate(({ contai
   };
   const frame = box(shape(container.label, true));
   const primitives = records.map(record => shape(record.label, record.kind === "group"));
-  const shapes = records.map((record, i) => ({ id: record.id, rawLabel: record.label, bounds: box(primitives[i]) }));
+  const shapes = records.map((record, i) => ({ id: record.id, rawLabel: record.label, bounds: box(primitives[i]),
+    name: nameOf(labelNode(record.label)) }));
   const inside = bounds => frame !== null && bounds !== null && bounds[0] >= frame[0] && bounds[1] >= frame[1]
     && bounds[0] + bounds[2] <= frame[0] + frame[2] && bounds[1] + bounds[3] <= frame[1] + frame[3];
   const overlap = (a, b) => a !== null && b !== null && a[0] < b[0] + b[2] && b[0] < a[0] + a[2]
@@ -568,9 +675,9 @@ const paintedGoal = (container, records, edge = null) => page.evaluate(({ contai
 }, { container, records, edge });
 // One arrow on the current frame, by the existing painted observer: the
 // matched stroke start and marker tip lie inside the zero-margin iframe
-// viewport and both end shapes intersect it, whatever their labels show; on
-// the same frame its reverse (unless itself expected) and an arrow to another
-// part whose shape is in view must not connect. Frames are never combined.
+// viewport and both ends' whole names are shown (endAccepted); on the same
+// frame its reverse (unless itself expected) and an arrow to another part
+// whose shape is in view must not connect. Frames are never combined.
 const within = (view, point) => Array.isArray(point) && point[0] >= view[0] && point[1] >= view[1]
   && point[0] <= view[0] + view[2] && point[1] <= view[1] + view[3];
 const meets = (view, box) => Array.isArray(box) && box[0] < view[0] + view[2] && box[0] + box[2] > view[0]
@@ -589,7 +696,8 @@ const measureArrow = async (container, endpoints, edge, { reverseExpected = fals
     && painted.shapes.slice(0, 2).every(end => endAccepted(painted.viewport, end));
   const reverse = reverseExpected ? "not-applicable" : (await paintedGoal(container, records, { from: edge.to, to: edge.from })).edge;
   const disconnected = other === null ? null : (await paintedGoal(container, records, { from: edge.from, to: other.id })).edge;
-  return { viewport: painted.viewport, endBounds, other: other?.id ?? null, inView, edge: painted.edge, reverse, disconnected,
+  return { viewport: painted.viewport, endBounds, endNames: painted.shapes.slice(0, 2).map(shape => shape.name),
+    other: other?.id ?? null, inView, edge: painted.edge, reverse, disconnected,
     met: inView && painted.edge.complete && painted.edge.matches.length === 1
       && (reverse === "not-applicable" || !reverse.complete) && disconnected !== null && !disconnected.complete };
 };
@@ -1087,7 +1195,7 @@ const goalScenario = async () => {
         if (frames.length > 1) { await page.locator("#camera-part").selectOption(nestedGroup.id); await settle(); }
         const frame = frames.at(-1);
         edges.push({ from: edge.from, to: edge.to, frame, met: frame.met && frames.every(item => item.recordsUnchanged !== false),
-          frames: frames.map(item => ({ camera: item.camera, viewport: item.viewport, endBounds: item.endBounds, inView: item.inView,
+          frames: frames.map(item => ({ camera: item.camera, viewport: item.viewport, endBounds: item.endBounds, endNames: item.endNames, inView: item.inView,
             matches: item.edge?.matches.map(({ start, tip }) => ({ start, tip })) ?? [] })) });
       }
       camera.edges = edges;
@@ -1451,8 +1559,8 @@ const sourceScenario = async () => {
         recordsUnchanged: JSON.stringify(focused.graph?.records) === JSON.stringify(after.graph.records) && focused.stored === after.stored });
     }
     if (frames.length > 1) { await page.locator("#camera-part").selectOption(""); await settle(); }
-    const paint = { ...frames.at(-1), frames: frames.map(({ camera, viewport, endBounds, endsVisible, inView, edge }) =>
-      ({ camera, viewport, endBounds, endsVisible, inView, matches: edge.matches.map(({ start, tip }) => ({ start, tip })) })) };
+    const paint = { ...frames.at(-1), frames: frames.map(({ camera, viewport, endBounds, endNames, endsVisible, inView, edge }) =>
+      ({ camera, viewport, endBounds, endNames, endsVisible, inView, matches: edge.matches.map(({ start, tip }) => ({ start, tip })) })) };
     paint.met = paint.met && frames.every(frame => frame.recordsUnchanged !== false);
     sourceEvidence.paint = paint;
   }
