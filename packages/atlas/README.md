@@ -191,27 +191,67 @@ external source truth or grant authority.
 ### Same input to the existing generic UI
 
 `semantic-scope-world.mjs` adapts the real `reduceClosure` output and the domain
-side input to `ui.atlasWorldInput.v1`. It preserves the seven-kind Closure
-records, typed relations, original source provenance and absent original times.
-Scope-to-delta relation context carries the full pair, responsibility, criteria,
-evidence, residuals and old obligations. There is no new renderer or business
-parser in UI/Host.
+side input to `ui.atlasWorldInput.v1` with exactly three areas: **Purpose**,
+**Scopes** and **Agents**. There is no new renderer or business parser in UI/Host,
+and no containment is drawn unless the input supplies it.
 
-Known, source-declared Scope -> delta -> target -> Purpose relations adapt to
-the existing World `path` contract for Direction. Existing typed Closure links
-keep their Purpose-facing direction. Unknown comparison/binding does not invent
-a semantic path/bridge, and residual/history display edges are not promoted.
+- **Purpose**: the Purpose, one **Current** and the target role. The Current keeps
+  one identity across frames and shows the frame's selected revision (the
+  supplied observation's `observed_ref`). The original comparison's current, the
+  frame closure and the verbatim reduced seven-kind Closure rows (sources and
+  absent times included) stay readable as history in the target-to-Purpose
+  relation context. They are not drawn as separate Gap/Current/Closure entities.
+- **Scopes**: the Gap is represented only by its responsibility units. A Scope's
+  own status uses only its own criteria. A criterion the criterion-level
+  evaluation satisfied but the whole-Purpose evaluation lists as residual is a
+  visible `conflict` (`evaluation-disagreement`, both declarations kept), never
+  history. A Scope is `active` (unmet, conflict or unknown: current needed
+  change), `completed-history` (declared_satisfied with a bound mapping: a kept
+  checkpoint, not current need) or `unresolved` (satisfied evidence kept readable
+  while the mapping is unknown; its relation says 未確定, not necessity).
+  Changed parts or residual/unknown criteria owned by no Scope are explicit
+  unassigned units; units from a conflicting whole-Purpose evaluation are marked
+  `whole-purpose-conflict` (未割当・矛盾), not plain unmet. An unknown/undecomposed
+  comparison or binding, a conflicting whole-Purpose evaluation, or an unmet
+  Purpose with no unit is an explicit unresolved unit: the current Gap is never
+  empty while the Purpose is not declared satisfied. Each frame's
+  `coverage.unknown` counts only unassigned units, unresolved/unknown/conflict
+  units and Scopes whose own status is unknown or conflict or whose standing is
+  unresolved. A known, owned, unmet Scope is in the current Gap but is a known
+  missing change, not an unknown. Old obligations stay here as history.
+- **Agents**: only declared ids (Scope `owner_actor`, observation `writer` and
+  `evaluator`) with their declared roles, flagged synthetic, declared-only and
+  activity-unobserved. `owner_role` is an attribute of the 担当 relation. With no
+  declaration an explicit missing marker is shown. Unassigned units have no Agent.
 
-Current t0 and target t1 coexist as role entities **inside one observation
-frame**. A target is never dated as a later actual observation; its effective
-time remains unavailable. World rev/asOf belongs only to supplied observation
-captures and never supplies/freshens individual t0/target/comparison timestamps.
-Those unknown times stay null. Only an explicit observation.observed_at supplies
-the post-observation entity's time; missing post time stays null too.
-Post-work observation is a separate entity/evaluation. The included
+Overview captions are presentation only: at most two short lines (for example
+目的/目標/現状, a Scope label and its status, 未割当 and the id tail, an Agent id
+and its declared roles). Every supplied label, id, revision and status stays
+verbatim in the record summary, flags and relation context. Relation ids are
+namespaced by unit kind (`change:scope:`, `change:unassigned:`,
+`change:unresolved:`), so a Scope id equal to another unit id cannot collide.
+The overview orders Purpose, Target, Current; old obligations before the current
+units; owner Agents first. The observation `writer`/`evaluator` role relations
+always cross the Scopes pane, so only those two relations carry `visible:false`
+(their declared contexts are unchanged): the UI reports them as omitted
+relations, and their records stay in the World,
+catalog, search and detail, with the roles on the Agent caption and summary.
+Owner (担当) and Current/Scope/Target/Purpose relations stay drawn.
+
+Scope relation context keeps the full pair, responsibility, criteria, evidence,
+frame closure, standing and old obligations. Known, source-declared Current ->
+unit -> target -> Purpose relations adapt to the existing World `path` contract
+for Direction. Unknown comparison/binding does not invent a semantic path or
+bridge; history and Agent edges are not promoted. An unknown mapping never makes
+the Current fresh or the Purpose achieved, and never erases the evidence.
+
+A target is never dated as a later actual observation; its effective time remains
+unavailable. World rev/asOf belongs only to supplied observation captures and
+never supplies/freshens target/comparison timestamps. Only an explicit bound
+observation.observed_at times the Current; otherwise it stays null. The included
 fixture has two synthetic captures: the initial Scope closes, while an initially
-equivalent recovery condition regresses and Purpose remains unmet. Fixture dates
-are not actual service-observation timestamps.
+equivalent recovery condition regresses as an unassigned unit and Purpose remains
+unmet. Fixture dates are not actual service-observation timestamps.
 
 ~~~sh
 node --test packages/atlas/tests/*.test.mjs
@@ -229,8 +269,8 @@ node scripts/build-live-atlas.mjs --consumer=app \
 ~~~
 
 The scoped proof consumer is UI exact
-`18022a8d37bb62366309a3bc16788754dc7967de`, with branch merge
-`98621ca0f2b87dd27d2c9c6a5eb935009aeb06c3`; these are not current UI proposals.
+`ccd05d09dd4bf73326916bd275984a9b85a414b3` (Draft ui#344 over
+`98621ca0f2b87dd27d2c9c6a5eb935009aeb06c3`); these are not current UI proposals.
 This proof does not change the apps global voice-ui UI pin. The build's actual
 input/module/output receipt, actual public source tree, independent R browser
 verification and P's same User entry are separate evidence. Native artifact-only
