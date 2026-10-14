@@ -1964,9 +1964,11 @@ const runScenario = async () => {
     const file = choices.find(option => option.label === "web/app.mjs");
     assert.ok(file, "the actual source-file camera is offered");
     const long = choices.reduce((best, option) => option.label.length > best.label.length ? option : best, file);
-    const heldPlacement = stage => say(stage, "fixture incomplete placement", name => ({
+    // The uncertain anchor is one the request actually offers, never a part
+    // only the camera lists, such as the roles group.
+    const heldPlacement = stage => say(stage, "fixture incomplete placement", (name, sent) => ({
       action: contract.ACTION_PLACE_PART, move: file.id,
-      anchor: { choice: choices.find(option => option.id !== file.id).id, confidence: 0.39 }, direction: "right",
+      anchor: { choice: slotsOf(sent).anchor?.find(id => id !== file.id && id !== contract.NONE), confidence: 0.39 }, direction: "right",
     })[name] ?? contract.NONE);
     reached.push("camera-pending");
     const heldCamera = await heldPlacement("camera-pending");
