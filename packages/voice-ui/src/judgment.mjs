@@ -80,6 +80,12 @@ export function questionsFor(state, slots, context) {
   if (context.kind === ARCHITECTURE_GOAL_INTENT_KIND) {
     const labels = new Map(state.graph.regions.map(region => [region.id, region.label]));
     const node = key => shownAs(labels, key);
+    // A role node of the served source states that role's purpose, from the
+    // server's own manifest; any other node states none.
+    const served = key => {
+      const purpose = context.rolePurposeOf?.(key) ?? null;
+      return purpose === null ? "" : `, a role node of the served source: ${quoted(purpose)}`;
+    };
     // Descriptive current Working data only, not source provenance or unique intent.
     const connections = key => "; current Working connections: " + state.graph.edges
       .filter(edge => edge.from === key || edge.to === key)
@@ -102,11 +108,11 @@ export function questionsFor(state, slots, context) {
       },
       source: {
         instruction: "If the utterance asks to add an edge, which current Working node is its start? An earlier utterance and its reopened section may qualify that node; choose none if it does not identify a unique start." + note + endpointNote,
-        options: criteria(slots.source, key => key === NONE ? "no unique current node is identified as the start" : `the edge starts at ${node(key)}` + connections(key)),
+        options: criteria(slots.source, key => key === NONE ? "no unique current node is identified as the start" : `the edge starts at ${node(key)}` + served(key) + connections(key)),
       },
       target: {
         instruction: "If the utterance asks to add an edge, which current Working node is its end? An earlier utterance and its reopened section may qualify that node; choose none if it does not identify a unique end." + note + endpointNote,
-        options: criteria(slots.target, key => key === NONE ? "no unique current node is identified as the end" : `the edge ends at ${node(key)}` + connections(key)),
+        options: criteria(slots.target, key => key === NONE ? "no unique current node is identified as the end" : `the edge ends at ${node(key)}` + served(key) + connections(key)),
       },
     };
   }

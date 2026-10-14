@@ -116,7 +116,9 @@ export async function onRequestPost({ request, available, architecture }, judge)
         } };
       }
       slots = kind === ARCHITECTURE_GOAL_INTENT_KIND ? architectureGoalSlotsFor(state) : slotsFor(state);
-      questions = questionsFor(state, slots, { kind, relationOf: edge => definedRelation(bound.manifest, edge) });
+      const purposes = new Map(bound.manifest.roles.map(({ key, purpose }) => [roleIdOf(key), purpose]));
+      questions = questionsFor(state, slots, { kind, relationOf: edge => definedRelation(bound.manifest, edge),
+        rolePurposeOf: id => purposes.get(id) ?? null });
     } else {
       // A judge asks one frame of this section's own plan: that frame's
       // questions, from that frame's text. Which frame is the page's to say
