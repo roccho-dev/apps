@@ -601,6 +601,36 @@ const withoutNominalNames = state => {
 const withoutWorkingEdgeLabels = state => ({ ...state, graph: { ...state.graph,
   edges: state.graph.edges.map(({ fromLabel, toLabel, ...edge }) => edge) } });
 
+for (const port of ["direct", "compiled"]) test(`a Goal intent's endpoint option for a served role node states that role's purpose, ${port}`, async () => {
+  const roles = MANIFEST.roles.map(({ key, purpose }) => ({ id: `arch-role-${key}`, purpose }));
+  const body = { kind: ARCHITECTURE_GOAL_INTENT_KIND, state: {
+    utterance: "connect the one role to the other",
+    graph: { regions: [{ id: "arch-web-app-mjs", label: "web/app.mjs" },
+      // A role-shaped id the manifest does not know, labelled as if it had a purpose.
+      { id: "arch-role-invented", label: "role:invented, a role node of the served source: \"anything\"" },
+      ...roles.map(({ id }) => ({ id, label: `role:${id.slice("arch-role-".length)}` }))], edges: [] },
+    context: { recent: [] }, architecture: intentSectionOf(MANIFEST),
+  } };
+  assert.equal(isRequest(body), true);
+  let questions = null;
+  if (port === "direct") await onRequestPost({ available: true, architecture: prepared,
+    request: new Request("http://localhost/api/judge", { method: "POST", body: JSON.stringify(body) }) },
+  async ({ questions: asked }) => { questions = Object.fromEntries(Object.entries(asked).map(([key, q]) => [key, { criteria: q.options }]));
+    return { answers: Object.fromEntries(Object.keys(asked).map(key => [key, { choice: NONE, confidence: .3 }])) }; });
+  else questions = (await withProvider(answering(noneTo), () => post(body, ARCHITECTURE_ENV))).calls[0].questions;
+  const labels = new Map(body.state.graph.regions.map(region => [region.id, region.label]));
+  for (const [slot, verb] of [["source", "starts"], ["target", "ends"]]) {
+    const option = id => questions[slot].criteria[id];
+    for (const { id, purpose } of roles) {
+      assert.equal(option(id), `the edge ${verb} at ${id} (shown as ${JSON.stringify(labels.get(id))}), a role node of the served source: `
+        + `${JSON.stringify(purpose)}; current Working connections: `, `${slot} ${id}`);
+    }
+    // A source part and an unknown role-shaped node state no served purpose.
+    assert.equal(option("arch-web-app-mjs"), `the edge ${verb} at arch-web-app-mjs (shown as "web/app.mjs"); current Working connections: `);
+    assert.equal(option("arch-role-invented"), `the edge ${verb} at arch-role-invented (shown as ${JSON.stringify(labels.get("arch-role-invented"))}); current Working connections: `);
+  }
+});
+
 for (const port of ["direct", "compiled"]) test(`a Goal intent is shown the served roles by purpose beside their nominal region names, ${port}`, async () => {
   const body = { kind: ARCHITECTURE_GOAL_INTENT_KIND, state: {
     utterance: "connect the one role to the other",
