@@ -80,7 +80,7 @@ export function questionsFor(state, slots, context) {
           const candidate = state.candidates.find(item => item.id === key);
           if (candidate.action === ACTION_ADD_EDGE) return `a directed flow arrow from ${label(labels.get(candidate.from))} (${named(candidate.from)}) to ${label(labels.get(candidate.to))} (${named(candidate.to)})`;
           const part = offered.get(candidate.part);
-          return `add one new part ${label(part.label)} (${named(part.key)}): ${part.purpose}, inside ${label(parents.get(candidate.parent).label)} (${named(candidate.parent)})`;
+          return `inside ${label(parents.get(candidate.parent).label)} (${named(candidate.parent)}): add one new part ${label(part.label)} (${named(part.key)}): ${part.purpose}`;
         }),
       },
     };
