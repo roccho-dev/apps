@@ -971,6 +971,60 @@ test("a Goal scope is reopened against the served source and every arrow must to
   assert.equal(calls.length, 1);
 });
 
+// The served snapshot's own roles; the rule never names any of them.
+const [ROLE_A, ROLE_B] = MANIFEST.roles.map(role => role.key);
+const roleIdOf = key => `arch-role-${key}`;
+const attachment = (part, key) => ({ id: `arch-has-role-${part}-to-${key}`, from: regionIdOf(part), to: roleIdOf(key) });
+
+for (const port of ["direct", "compiled"]) test(`a scoped Goal arrow between roles is accepted only when the request shows their attachment to the focus, ${port}`, async () => {
+  const [part, other] = ["web-app-mjs", "src-log-mjs"];
+  const [from, to] = [roleIdOf(ROLE_A), roleIdOf(ROLE_B)];
+  const body = (edges, ends = [from, to]) => ({ kind: GOAL_REQUEST_KIND, state: {
+    utterance: "connect the one role to the other",
+    graph: [{ id: "root", label: "map", parent: null }, ...[part, other].map(entity => ({ id: regionIdOf(entity), label: entity, parent: "root" })),
+      ...ends.map(end => ({ id: end, label: end, parent: "root" }))],
+    edges, parents: [], offers: { parts: [] }, selected: [],
+    candidates: [{ id: "delta-1", action: "add-edge", from: ends[0], to: ends[1] }],
+    context: { recent: [] }, scope: { source: MANIFEST.source, focus: [part] },
+  } });
+  const send = async input => {
+    assert.equal(isRequest(input), true, "a well-formed request: only the scope decides");
+    if (port === "direct") {
+      let count = 0;
+      const response = await onRequestPost({ available: true, architecture: prepared,
+        request: new Request("http://localhost/api/judge", { method: "POST", body: JSON.stringify(input) }) },
+      async () => { count += 1; return { answers: { delta: { choice: NONE, confidence: 1 } } }; });
+      return { status: response.status, count };
+    }
+    const { result, calls } = await withProvider(answering(noneTo), () => post(input, ARCHITECTURE_ENV));
+    return { status: result.status, count: calls.length };
+  };
+  assert.deepEqual(await send(body([attachment(part, ROLE_A), attachment(part, ROLE_B)])), { status: 200, count: 1 });
+  const unknown = ["arch-role-not-a-manifest-role", "arch-role-another-unknown"];
+  for (const [label, input] of [
+    ["no attachment shown", body([])],
+    ["attached only to a part outside the focus", body([attachment(other, ROLE_A), attachment(other, ROLE_B)])],
+    ["the right ends under other ids", body([{ ...attachment(part, ROLE_A), id: "arch-forged-a" }, { ...attachment(part, ROLE_B), id: "arch-forged-b" }])],
+    ["roles the manifest does not know", body(unknown.map(end => ({ id: `arch-has-role-${part}-to-${end.slice("arch-role-".length)}`,
+      from: regionIdOf(part), to: end })), unknown)],
+  ]) assert.deepEqual(await send(input), { status: 422, count: 0 }, label);
+});
+
+test("the role-relation meaning case is evaluator-only data naming two served manifest roles", () => {
+  const fixture = JSON.parse(fs.readFileSync(path.join(PACKAGE, "tests/fixtures/role-gm-to-persistence-v1.json"), "utf8"));
+  assert.equal(fixture.version, "voice-ui.meaning.role-relation.v1");
+  const { from, to } = fixture.expected.relation;
+  const keys = MANIFEST.roles.map(role => role.key);
+  assert.ok(keys.includes(from.role) && keys.includes(to.role) && from.role !== to.role);
+  // No product file reads, names or carries it.
+  const product = ["src", "functions", "web", "dev", "architecture"].flatMap(dir => fs.readdirSync(path.join(PACKAGE, dir), { recursive: true })
+    .map(name => path.join(PACKAGE, dir, name)).filter(file => fs.statSync(file).isFile() && /\.(mjs|json|html)$/u.test(file)));
+  for (const file of product) {
+    const text = fs.readFileSync(file, "utf8");
+    assert.equal(text.includes(fixture.id) || text.includes(fixture.goal), false, file);
+  }
+});
+
 test("a scoped Goal with the bounded local view is accepted and told its graph is only that view", async () => {
   const [from, to] = [regionIdOf("web-app-mjs"), regionIdOf("ext-localstorage")];
   const body = { kind: GOAL_REQUEST_KIND, state: {

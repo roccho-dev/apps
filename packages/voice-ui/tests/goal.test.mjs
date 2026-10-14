@@ -357,6 +357,89 @@ test("an intent-resolved pair offers only that one legal arrow, and no addition"
   assert.equal((await prove({ from: id(0), to: id(21) })).reason, "stale-addition");
 });
 
+// A remembered one-part focus whose current Working attaches two role nodes to
+// that part by has-role, a third role only to a part outside the focus, and a
+// fourth role node, also attached to the focused part, that the manifest does
+// not know. Names are fixture words, never product data.
+// A role node's id, as the composer names it.
+const roleIdOf = key => `arch-role-${key}`;
+const roled = async () => {
+  const source = Object.freeze({ handle: "fixture", commit: "0".repeat(40) });
+  const [focused, outside] = ["part-a", "part-b"];
+  const manifest = Object.freeze({ status: "available", source,
+    entities: Object.freeze([focused, outside].map(key => Object.freeze({ id: key, label: `src/${key}.mjs` }))),
+    roles: Object.freeze(["alpha", "beta", "gamma"].map(key => Object.freeze({ key, purpose: `${key} work` }))) });
+  const regions = [[regionIdOf(focused), `src/${focused}.mjs`], [regionIdOf(outside), `src/${outside}.mjs`],
+    ...["alpha", "beta", "gamma", "delta"].map(key => [roleIdOf(key), `role:${key}`])]
+    .map(([id, label], index) => ({ type: "region", id, parent: "container", label, kind: "step",
+      bounds: [20 + index * 160, 20, 140, 64], summary: "" }));
+  const hasRole = (part, key) => ({ type: "relation", id: `arch-has-role-${part}-to-${key}`, from: regionIdOf(part), to: roleIdOf(key),
+    kind: "has-role", label: "has-role" });
+  const graph = await protocol.createDecisionLog([
+    { type: "meta", schema: STATE_SCHEMA, root: "root", title: "goal role fixture" },
+    { type: "region", id: "root", parent: null, label: "fixture", kind: "boundary", bounds: [0, 0, 2400, 900], summary: "" },
+    { type: "region", id: "container", parent: "root", label: "Source", kind: "group", bounds: [0, 0, 1200, 300], summary: "" },
+    ...regions,
+    hasRole(focused, "alpha"), hasRole(focused, "beta"), hasRole(outside, "gamma"), hasRole(focused, "delta"),
+  ], MAP_ID);
+  const pinned = await protocol.createDecision(graph.head, [{ type: "PinRegions", items: [
+    { regionId: "container", bounds: [0, 0, 2000, 600] },
+  ] }], graph.records);
+  const prepared = (await protocol.appendDecision(graph.log, pinned.decision)).verified;
+  const reference = Object.freeze({ source, focus: Object.freeze([focused]) });
+  const base = createSession({ accepted: prepared, stored: prepared.log });
+  return { manifest, reference, focused, session: Object.freeze({ ...base, nextSeq: 2,
+    conversation: Object.freeze([Object.freeze({ seq: 1, source: "typed", text: "utterance 1", outcome: "no-change", reference })]) }) };
+};
+// The page's resolver always cites the fixture manifest; `manifest` is what runGoal is given.
+const roleGoal = async (fixture, from, to, manifest = fixture.manifest) => {
+  const utterance = "connect the one role to the other";
+  let session = fixture.session; const asked = [];
+  const result = await runGoal({ utterance, bundle, protocol, manifest, current: () => session, cancelled: () => false,
+    adopt: async next => { session = next; }, resolveIntent: intentFor(fixture.manifest, utterance),
+    ask: async request => { asked.push(request); return request.kind === ARCHITECTURE_GOAL_INTENT_KIND
+      ? intentAnswer(request, ACTION_ADD_EDGE, from, to) : deltaAnswer(request.state.candidates[0].id); } });
+  return { result, asked, session };
+};
+
+test("a remembered focus scopes the role nodes its current has-role relations attach, and a Goal draws one arrow between them", async () => {
+  const fixture = await roled();
+  const [from, to] = [roleIdOf("alpha"), roleIdOf("beta")];
+  const { result, asked, session } = await roleGoal(fixture, from, to);
+  assert.equal(result.reason, "no-executable-delta", "the resolved role pair is drawn, so nothing executable remains");
+  assert.deepEqual(asked.map(request => request.kind), [ARCHITECTURE_GOAL_INTENT_KIND, GOAL_REQUEST_KIND, ARCHITECTURE_GOAL_INTENT_KIND]);
+  const goal = asked[1];
+  assert.equal(isRequest(goal), true);
+  assert.deepEqual(goal.state.candidates, [{ id: "delta-1", action: ACTION_ADD_EDGE, from, to }]);
+  // The request shows each role end's attachment to the focused part, and that part.
+  assert.deepEqual(goal.state.edges, [
+    { id: "arch-has-role-part-a-to-alpha", from: regionIdOf(fixture.focused), to: from },
+    { id: "arch-has-role-part-a-to-beta", from: regionIdOf(fixture.focused), to },
+  ]);
+  assert.deepEqual(goal.state.graph.map(region => region.id).sort(), ["container", regionIdOf(fixture.focused), from, "root", to].sort());
+  assert.deepEqual(goal.state.scope, { source: fixture.reference.source, focus: [fixture.focused] });
+  const added = session.working.records.filter(record => !fixture.session.working.records.some(old => same(old, record)));
+  assert.deepEqual(added.map(({ type, from: start, to: end, kind }) => ({ type, from: start, to: end, kind })),
+    [{ type: "relation", from, to, kind: "flow" }], "one Goal arrow of the Goal's own kind, nothing else");
+  assert.deepEqual(session.working.records.filter(record => fixture.session.working.records.some(old => same(old, record))),
+    fixture.session.working.records, "every old record is kept");
+  const reverted = await undo(session, { verifyDecisionLog: protocol.verifyDecisionLog });
+  assert.deepEqual(reverted.working.records, fixture.session.working.records);
+});
+
+test("a role outside the scope is never offered: no manifest, an unfocused attachment or an unknown role", async () => {
+  const fixture = await roled();
+  for (const [label, run] of [
+    ["without the page's manifest no role widens the scope", () => roleGoal(fixture, roleIdOf("alpha"), roleIdOf("beta"), null)],
+    ["a role attached only to a part outside the focus, to an unknown role", () => roleGoal(fixture, roleIdOf("gamma"), roleIdOf("delta"))],
+  ]) {
+    const { result, asked, session } = await run();
+    assert.equal(result.reason, "no-executable-delta", label);
+    assert.deepEqual(asked.map(request => request.kind), [ARCHITECTURE_GOAL_INTENT_KIND], `${label}: no Goal request is sent`);
+    assert.equal(session, fixture.session, `${label}: nothing is adopted`);
+  }
+});
+
 test("a scoped Goal asks nothing when its resolver throws or builds a request or turn that is not the latest Working's own", async () => {
   const fixture = await sourced(11);
   const own = intentFor(fixture.manifest, "connect them");
