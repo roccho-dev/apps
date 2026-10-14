@@ -129,6 +129,14 @@ for (const key of ["draft", "claims", "stored", "root", "confirmedGraph"])
   assert.equal(sameNoneBaseline(unchanged, { ...unchanged, [key]: ["changed"] }), false);
 assert.equal(exactChildPins([{ id: "a" }, { id: "b" }], [{ regionId: "b" }, { regionId: "a" }]), true);
 assert.equal(exactChildPins([{ id: "a" }, { id: "b" }], [{ regionId: "a" }, { regionId: "a" }]), false);
+// When an arrow's painted end counts as shown on a frame, one rule for every
+// graded arrow (goal-source, nest camera and goal-flow): the end's painted
+// shape meets the zero-margin iframe viewport.
+const endAccepted = (view, end) => Array.isArray(end?.bounds) && end.bounds.every(Number.isFinite)
+  && end.bounds[0] < view[0] + view[2] && end.bounds[0] + end.bounds[2] > view[0]
+  && end.bounds[1] < view[1] + view[3] && end.bounds[1] + end.bounds[3] > view[1];
+// actual91: the jev-boundary end, 19 of its 92 px in view, its name above the pane.
+assert.equal(endAccepted([0, 0, 626, 434], { bounds: [479, -73, 180, 92] }), false, "an end whose name is clipped off the frame is not shown");
 const evaluation = caseFlag === undefined ? null : JSON.parse(caseJson);
 // A meaning case names role endpoints by manifest role key; goal-evaluation v1
 // cases, S5 among them, are read exactly as before.
@@ -578,7 +586,7 @@ const measureArrow = async (container, endpoints, edge, { reverseExpected = fals
   const match = painted.edge.matches.length === 1 ? painted.edge.matches[0] : null;
   const endBounds = painted.shapes.slice(0, 2).map(shape => shape.bounds);
   const inView = match !== null && within(painted.viewport, match.start) && within(painted.viewport, match.tip)
-    && endBounds.every(box => meets(painted.viewport, box));
+    && painted.shapes.slice(0, 2).every(end => endAccepted(painted.viewport, end));
   const reverse = reverseExpected ? "not-applicable" : (await paintedGoal(container, records, { from: edge.to, to: edge.from })).edge;
   const disconnected = other === null ? null : (await paintedGoal(container, records, { from: edge.from, to: other.id })).edge;
   return { viewport: painted.viewport, endBounds, other: other?.id ?? null, inView, edge: painted.edge, reverse, disconnected,
@@ -1111,7 +1119,8 @@ const goalScenario = async () => {
   const groupsMet = NEST
     ? nest.cameraMet && paintedGroups.every(group => group.container.id === nestedGroup?.id ? nest.overview.closed || groupMet(group) : groupMet(group))
     : paintedGroups.every(groupMet);
-  const edgePaintMet = NEST ? nest.cameraMet : edgePaints.every(proof => proof.edge.complete)
+  const edgePaintMet = NEST ? nest.cameraMet : edgePaints.every((proof, index) => proof.edge.complete
+    && [expectedEdges[index].from, expectedEdges[index].to].every(id => endAccepted(proof.viewport, proof.shapes.find(shape => shape.id === id))))
     && edgeCounterPaints.every(proof => (!proof.reverseApplicable || !proof.reverse.edge.complete)
       && (!proof.disconnectedApplicable || !proof.disconnected.edge.complete));
   const paintMet = labelsMet && groupsMet && edgePaintMet;
