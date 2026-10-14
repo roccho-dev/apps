@@ -281,10 +281,10 @@ function locateQuestion(entity, evidence, slots) {
       options: criteria(slots[relevantSlot(entity.id)], key => (file
         ? key === YES
           ? "the utterance asks about this file itself, whether or not it names it"
-          : "it only supports, serves or is used by what the utterance asks about, or only mentions or imports a part that does"
+          : "the utterance does not ask about this file itself: it is unrelated to what is asked about, only supports, serves or is used by it, or only mentions or imports a part that does"
         : key === YES
           ? "the utterance asks about it itself, as the shown code uses it, whether or not it names it"
-          : "the shown code only names it, or uses it only in support of what the utterance asks about")),
+          : "the utterance does not ask about it itself: it is unrelated to what is asked about, or the shown code only names it or uses it only in support of what is asked about")),
     },
   };
 }
