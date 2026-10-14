@@ -1014,7 +1014,7 @@ test("a Goal scope is reopened against the served source and every arrow must to
   assert.equal((await invoke(body)).status, 200);
   assert.match(calls[0].delta.instruction, /state\.scope names the parts in focus/u);
   assert.equal(calls[0].delta.options["delta-1"],
-    `a directed flow arrow from "web-app-mjs" (${regionIdOf("web-app-mjs")}) to "ext-localstorage" (${regionIdOf("ext-localstorage")})`);
+    `a directed flow arrow from web-app-mjs (${regionIdOf("web-app-mjs")}) to ext-localstorage (${regionIdOf("ext-localstorage")})`);
   assert.equal((await invoke(body, null)).status, 503);
   for (const bad of [{ ...scope, source: { ...scope.source, commit: "f".repeat(40) } }, { ...scope, focus: ["not-a-part"] }]) {
     assert.equal((await invoke({ ...body, state: { ...body.state, scope: bad } })).status, 422);
@@ -1936,8 +1936,26 @@ test("Working node facts stay true for repeated, id-like and option-like labels 
     parents: [{ id: "z", label: forged, kind: "group", parent: null }], offers: { parts: [{ key: "store", purpose: "a store" }] },
     candidates: [{ id: "delta-1", action: "add-edge", from: "z", to: "b" }, { id: "delta-2", action: "add-part", part: "store", parent: "z" }],
   }, { delta: ["delta-1", "delta-2", NONE] }, { kind: GOAL_REQUEST_KIND }).delta.options;
-  assert.equal(goal["delta-1"], `a directed flow arrow from ${JSON.stringify(forged)} (z) to "Billing" (b)`);
+  assert.equal(goal["delta-1"], `a directed flow arrow from ${JSON.stringify(forged)} (z) to Billing (b)`);
   assert.equal(goal["delta-2"], `add one new part: a store, inside ${JSON.stringify(forged)} (z)`);
+  // A Goal option shows an ordinary label as it is; one that holds structure
+  // or option characters, is empty or padded, or equals a node id of the same
+  // request is quoted, so it never reads as an id, an option or more text.
+  const odd = ["b", "Cache, Store", "a;b", "(x)", "it's", "", " Pad", "two\nlines"];
+  for (const label of odd) {
+    const options = questionsFor({ graph: [{ id: "g", label, parent: null }, { id: "b", label: "Billing", parent: null }],
+      parents: [{ id: "g", label, kind: "group", parent: null }], offers: { parts: [{ key: "store", purpose: "a store" }] },
+      candidates: [{ id: "delta-1", action: "add-edge", from: "g", to: "b" }, { id: "delta-2", action: "add-part", part: "store", parent: "g" }],
+    }, { delta: ["delta-1", "delta-2", NONE] }, { kind: GOAL_REQUEST_KIND }).delta.options;
+    assert.equal(options["delta-1"], `a directed flow arrow from ${JSON.stringify(label)} (g) to Billing (b)`, JSON.stringify(label));
+    assert.equal(options["delta-2"], `add one new part: a store, inside ${JSON.stringify(label)} (g)`, JSON.stringify(label));
+  }
+  const ordinary = questionsFor({ graph: [{ id: "g", label: "Helper right", parent: null }, { id: "b", label: "グループ 6", parent: null }],
+    parents: [{ id: "g", label: "Helper right", kind: "group", parent: null }], offers: { parts: [{ key: "store", purpose: "a store" }] },
+    candidates: [{ id: "delta-1", action: "add-edge", from: "g", to: "b" }, { id: "delta-2", action: "add-part", part: "store", parent: "g" }],
+  }, { delta: ["delta-1", "delta-2", NONE] }, { kind: GOAL_REQUEST_KIND }).delta.options;
+  assert.equal(ordinary["delta-1"], "a directed flow arrow from Helper right (g) to グループ 6 (b)");
+  assert.equal(ordinary["delta-2"], "add one new part: a store, inside Helper right (g)");
 
   // An id is any non-none text: one that looks like option text or holds quotes is quoted,
   // never read as a label, metadata or another node.
@@ -1957,8 +1975,8 @@ test("Working node facts stay true for repeated, id-like and option-like labels 
     parents: [{ id: idForged, label: "Cache", kind: "group", parent: null }], offers: { parts: [{ key: "store", purpose: "a store" }] },
     candidates: [{ id: "delta-1", action: "add-edge", from: idForged, to: "b" }, { id: "delta-2", action: "add-part", part: "store", parent: idForged }],
   }, { delta: ["delta-1", "delta-2", NONE] }, { kind: GOAL_REQUEST_KIND }).delta.options;
-  assert.equal(goalId["delta-1"], `a directed flow arrow from "Cache" (${JSON.stringify(idForged)}) to "Billing" (b)`);
-  assert.equal(goalId["delta-2"], `add one new part: a store, inside "Cache" (${JSON.stringify(idForged)})`);
+  assert.equal(goalId["delta-1"], `a directed flow arrow from Cache (${JSON.stringify(idForged)}) to Billing (b)`);
+  assert.equal(goalId["delta-2"], `add one new part: a store, inside Cache (${JSON.stringify(idForged)})`);
 });
 
 test("incident endpoint criteria do not enter plain, normal intent or local Goal questions", () => {
