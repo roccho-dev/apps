@@ -1035,18 +1035,24 @@ for (const port of ["direct", "compiled"]) test(`a scoped Goal arrow between rol
   ]) assert.deepEqual(await send(input), { status: 422, count: 0 }, label);
 });
 
-test("the role-relation meaning case is evaluator-only data naming two served manifest roles", () => {
-  const fixture = JSON.parse(fs.readFileSync(path.join(PACKAGE, "tests/fixtures/role-gm-to-persistence-v1.json"), "utf8"));
-  assert.equal(fixture.version, "voice-ui.meaning.role-relation.v1");
-  const { from, to } = fixture.expected.relation;
+test("every role-relation meaning case is evaluator-only data naming two served manifest roles", () => {
+  const fixtures = path.join(PACKAGE, "tests/fixtures");
+  const cases = fs.readdirSync(fixtures).filter(name => name.endsWith(".json")).sort()
+    .map(name => [name, JSON.parse(fs.readFileSync(path.join(fixtures, name), "utf8"))])
+    .filter(([, value]) => value?.version === "voice-ui.meaning.role-relation.v1");
+  assert.deepEqual(cases.map(([name]) => name), ["role-gm-to-persistence-v1.json", "role-gm-to-persistence-v2.json"],
+    "every role-relation case file is checked");
   const keys = MANIFEST.roles.map(role => role.key);
-  assert.ok(keys.includes(from.role) && keys.includes(to.role) && from.role !== to.role);
-  // No product file reads, names or carries it.
   const product = ["src", "functions", "web", "dev", "architecture"].flatMap(dir => fs.readdirSync(path.join(PACKAGE, dir), { recursive: true })
     .map(name => path.join(PACKAGE, dir, name)).filter(file => fs.statSync(file).isFile() && /\.(mjs|json|html)$/u.test(file)));
-  for (const file of product) {
-    const text = fs.readFileSync(file, "utf8");
-    assert.equal(text.includes(fixture.id) || text.includes(fixture.goal), false, file);
+  for (const [name, fixture] of cases) {
+    const { from, to } = fixture.expected.relation;
+    assert.ok(keys.includes(from.role) && keys.includes(to.role) && from.role !== to.role, name);
+    // No product file reads, names or carries it.
+    for (const file of product) {
+      const text = fs.readFileSync(file, "utf8");
+      assert.equal(text.includes(fixture.id) || text.includes(fixture.goal), false, `${name}: ${file}`);
+    }
   }
 });
 
