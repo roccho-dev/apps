@@ -1087,6 +1087,10 @@ test("the original storage pairs still open all four files, while positive JSON 
 const CONTEXT_NOTE = " context.recent lists earlier utterances as they were recognized or typed, and what came of each."
   + " They are unverified and may be misrecognized. Use them only to understand what the current utterance refers to;"
   + " the current utterance, the working graph and the focus are the facts, and an earlier effect is history, not the current graph.";
+// A locate frame has no working graph, and its focus is the asked part: its note names neither as a fact.
+const LOCATE_CONTEXT_NOTE = " context.recent lists earlier utterances as they were recognized or typed, and what came of each."
+  + " They are unverified and may be misrecognized. Use them only to understand what the current utterance refers to;"
+  + " the current utterance and the shown text are the facts; any earlier outcome is history, not evidence this part is asked about.";
 
 // Whether any line of any admitted file - longer than a bare brace or keyword -
 // appears in what was sent.
@@ -1465,12 +1469,13 @@ test("a locate frame carries no code from the page; the server adds exactly that
     const lined = [...new Set(evidence.lines.map(line => line.path))];
     const shown = ` state.architecture.evidence.bodies holds ${evidence.bodies.map(file => file.path).join(", ")} whole`
       + (lined.length === 0 ? "." : `; state.architecture.evidence.lines holds single lines of ${lined.join(", ")}, each with its path and line number.`)
-      + " Judge only from that text and the utterance." + CONTEXT_NOTE;
+      + " Judge only from that text and the utterance." + LOCATE_CONTEXT_NOTE;
     assert.ok(question.instructions.startsWith((entity.kind === "file"
       ? `Is the file ${entity.label} itself one of the parts the current utterance asks to see or refers to - its own text being what is asked about - rather than a part that only supports, serves or is used by what is asked about?`
       : `Is ${entity.label}, which lies outside the source, itself one of the parts the current utterance asks to see or refers to, as the shown original code uses it, rather than something the shown code only names or uses in support of what is asked about?`)
       + shown), part);
     assert.match(question.instructions, /association.*unverified/u, part);
+    assert.equal(question.instructions.includes("the working graph and the focus are the facts"), false, part);
     assert.match(question.instructions, /Do not replace an explicit endpoint or semantic qualification/u, part);
     assert.doesNotMatch(question.instructions, /Match against all current edges|does not identify one unique edge, answer none/u,
       `${part}: locating a part from its text is not selecting an existing edge`);
@@ -1520,7 +1525,11 @@ test("a locate frame reads earlier words, outcomes and references but no earlier
   // The intent, the Goal intent and the Goal keep the earlier effect as the page sent it.
   const intent = withEarlier(intentRequest(), { ...drawn, reference: null });
   assert.ok(isRequest(intent));
-  assert.deepEqual((await sent(intent)).state.context.recent, [{ ...drawn, reference: null }]);
+  const intended = await sent(intent);
+  assert.deepEqual(intended.state.context.recent, [{ ...drawn, reference: null }]);
+  // The intent keeps its own note: it does read a working graph and a focus.
+  assert.ok(Object.values(intended.questions).every(question =>
+    question.instructions.includes("the current utterance, the working graph and the focus are the facts")));
   const goalIntent = withEarlier({ kind: ARCHITECTURE_GOAL_INTENT_KIND, state: {
     utterance: "connect the screen to its storage", context: { recent: [] }, architecture: intentSectionOf(MANIFEST),
     graph: { regions: [{ id: "arch-web-app-mjs", label: "web/app.mjs" }, { id: "arch-artifact-jsonl", label: "artifact.jsonl" }], edges: [] },
