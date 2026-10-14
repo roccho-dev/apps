@@ -19,9 +19,13 @@ const ACTION_WORDS = {
 // Every question is told what the recent conversation is and is not: it may
 // explain what a word in the utterance refers to, but it is unverified, and
 // the utterance, the working graph and the focus decide.
-const CONTEXT_NOTE = " context.recent lists earlier utterances as they were recognized or typed, and what came of each."
-  + " They are unverified and may be misrecognized. Use them only to understand what the current utterance refers to;"
+const RECENT_NOTE = " context.recent lists earlier utterances as they were recognized or typed, and what came of each."
+  + " They are unverified and may be misrecognized. Use them only to understand what the current utterance refers to;";
+const CONTEXT_NOTE = RECENT_NOTE
   + " the current utterance, the working graph and the focus are the facts, and an earlier effect is history, not the current graph.";
+// A locate frame reads no working graph, and its focus is the asked part itself.
+const LOCATE_CONTEXT_NOTE = RECENT_NOTE
+  + " the current utterance and the shown text are the facts; any earlier outcome is history, not evidence this part is asked about.";
 // Goal has its own read set: graph and edges, never an editing focus.
 const GOAL_CONTEXT_NOTE = " context.recent lists earlier utterances as they were recognized or typed, and what came of each."
   + " They are unverified and may be misrecognized. Use them only to understand what the current utterance refers to;"
@@ -277,7 +281,7 @@ function locateQuestion(entity, evidence, slots) {
         + ` state.architecture.evidence.bodies holds ${evidence.bodies.map(body => body.path).join(", ")} whole`
         + (lined.length === 0 ? "." : `; state.architecture.evidence.lines holds single lines of ${lined.join(", ")}, each with its path and line number.`)
         + " Judge only from that text and the utterance."
-        + CONTEXT_NOTE + REFERENCE_NOTE,
+        + LOCATE_CONTEXT_NOTE + REFERENCE_NOTE,
       options: criteria(slots[relevantSlot(entity.id)], key => (file
         ? key === YES
           ? "the utterance asks about this file itself, whether or not it names it"
