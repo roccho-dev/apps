@@ -40,9 +40,13 @@ const REFERENCE_NOTE = " An architecture conversation entry may carry reference:
 const EDGE_REFERENCE_NOTE = " Match against all current edges; if the conversational qualification does not identify one unique edge, answer none.";
 // A Working node is named by its unique id. Its label is only display text:
 // labels may repeat, equal another node's id or look like option text, so it
-// is always quoted and never names a node on its own.
+// is always quoted and never names a node on its own. An id is shown as it is
+// only when it is one plain token; any other id is quoted too, so neither can
+// be read as option text, a label or another node.
+const PLAIN_ID = /^[A-Za-z0-9][A-Za-z0-9._:-]*$/u;
 const quoted = label => JSON.stringify(label);
-const shownAs = (labels, key) => labels.get(key) === key ? key : `${key} (shown as ${quoted(labels.get(key))})`;
+const named = key => PLAIN_ID.test(key) ? key : quoted(key);
+const shownAs = (labels, key) => labels.get(key) === key ? named(key) : `${named(key)} (shown as ${quoted(labels.get(key))})`;
 
 // The questions for exactly the slots the request offers. Each option is a
 // key the request carries; the words around it are this Function's own, and
@@ -61,8 +65,8 @@ export function questionsFor(state, slots, context) {
         options: criteria(slots.delta, key => {
           if (key === NONE) return "no offered executable change is clearly requested, or the requested changes are already present";
           const candidate = state.candidates.find(item => item.id === key);
-          if (candidate.action === ACTION_ADD_EDGE) return `a directed flow arrow from ${quoted(labels.get(candidate.from))} (${candidate.from}) to ${quoted(labels.get(candidate.to))} (${candidate.to})`;
-          return `add one new part: ${purposes.get(candidate.part)}, inside ${quoted(parents.get(candidate.parent).label)} (${candidate.parent})`;
+          if (candidate.action === ACTION_ADD_EDGE) return `a directed flow arrow from ${quoted(labels.get(candidate.from))} (${named(candidate.from)}) to ${quoted(labels.get(candidate.to))} (${named(candidate.to)})`;
+          return `add one new part: ${purposes.get(candidate.part)}, inside ${quoted(parents.get(candidate.parent).label)} (${named(candidate.parent)})`;
         }),
       },
     };
