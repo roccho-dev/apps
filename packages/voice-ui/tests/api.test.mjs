@@ -1496,6 +1496,58 @@ test("a locate frame carries no code from the page; the server adds exactly that
   }
 });
 
+test("a locate frame reads earlier words, outcomes and references but no earlier graph effect; other kinds keep theirs", async () => {
+  const effect = { changes: [{ change: "added", kind: "region", id: "arch-artifact-jsonl", label: "artifact.jsonl" }] };
+  const drawn = { seq: 1, source: "typed", text: "このアプリの構成を図にして", outcome: "step", effect };
+  const { effect: _, ...said } = drawn;
+  const withEarlier = (body, entry) => ({ ...body, state: { ...body.state, context: { recent: [entry] } } });
+  const sent = async body => {
+    const { result, calls } = await withProvider(answering(noneTo), () => post(body, ARCHITECTURE_ENV));
+    assert.equal(result.status, 200, body.kind);
+    assert.equal(calls.length, 1, body.kind);
+    return calls[0];
+  };
+
+  // Locate: the earlier entry without its effect; every other byte as for the same frame with no history.
+  const bare = locateRequest("artifact-jsonl");
+  const locate = withEarlier(bare, { ...drawn, reference: null });
+  assert.ok(isLocateRequest(locate));
+  const located = await sent(locate);
+  assert.deepEqual(located.state.context.recent, [{ ...said, reference: null }]);
+  assert.equal(JSON.stringify(located).includes('"effect"'), false, "no earlier effect reaches a locate frame");
+  assert.deepEqual({ ...located, state: { ...located.state, context: bare.state.context } }, await sent(bare));
+
+  // The intent, the Goal intent and the Goal keep the earlier effect as the page sent it.
+  const intent = withEarlier(intentRequest(), { ...drawn, reference: null });
+  assert.ok(isRequest(intent));
+  assert.deepEqual((await sent(intent)).state.context.recent, [{ ...drawn, reference: null }]);
+  const goalIntent = withEarlier({ kind: ARCHITECTURE_GOAL_INTENT_KIND, state: {
+    utterance: "connect the screen to its storage", context: { recent: [] }, architecture: intentSectionOf(MANIFEST),
+    graph: { regions: [{ id: "arch-web-app-mjs", label: "web/app.mjs" }, { id: "arch-artifact-jsonl", label: "artifact.jsonl" }], edges: [] },
+  } }, { ...drawn, reference: null });
+  assert.ok(isRequest(goalIntent));
+  assert.deepEqual((await sent(goalIntent)).state.context.recent, [{ ...drawn, reference: null }]);
+  const goal = withEarlier({ kind: GOAL_REQUEST_KIND, state: {
+    utterance: "add the offered service inside the existing container",
+    graph: [{ id: "root", label: "world", parent: null }, { id: "container", label: "container", parent: "root" }],
+    edges: [], parents: [{ id: "container", label: "container", kind: "group", parent: "root" }],
+    offers: { parts: [{ key: "service", purpose: "a service" }] }, selected: [],
+    candidates: [{ id: "delta-1", action: "add-part", part: "service", parent: "container" }],
+    context: { recent: [] }, scope: null,
+  } }, drawn);
+  assert.ok(isRequest(goal));
+  assert.deepEqual((await sent(goal)).state.context.recent, [drawn]);
+  // A judge frame carries no history at all, as before.
+  assert.equal(Object.hasOwn((await sent(judgeRequest("web-app-mjs"))).state, "context"), false);
+
+  // The page cannot bring an effect back into a locate frame by another key or outcome.
+  for (const entry of [{ ...said, outcome: "no-change", effect, reference: null }, { ...drawn, reference: null, graph: effect }]) {
+    const { result, calls } = await withProvider(answering(noneTo), () => post(withEarlier(bare, entry), ARCHITECTURE_ENV));
+    assert.equal(result.status, 422);
+    assert.equal(calls.length, 0);
+  }
+});
+
 test("a locate or judge the page shapes otherwise, or the provider answers incompletely, is refused", async () => {
   const locate = locateRequest();
   const shaped = [
