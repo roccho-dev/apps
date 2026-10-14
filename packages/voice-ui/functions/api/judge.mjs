@@ -91,7 +91,11 @@ export async function onRequestPost({ request, available, architecture }, judge)
       const evidence = focusedEvidence(opened, bound.manifest, bound.files);
       slots = locateSlotsFor([part]);
       questions = questionsFor(state, slots, { kind, entity: bound.manifest.entities.find(entity => entity.id === part), evidence });
-      asked = { utterance: state.utterance, context: asked.context, architecture: { ...state.architecture, evidence } };
+      // A locate reads earlier entries only to resolve what the utterance refers
+      // to: their words, outcome and reopened reference. An earlier graph effect
+      // would read as relevance, so it stays with the intent, which keeps it.
+      const recent = asked.context.recent.map(({ effect: _, ...entry }) => entry);
+      asked = { utterance: state.utterance, context: { recent }, architecture: { ...state.architecture, evidence } };
     } else if (kind === ARCHITECTURE_INTENT_KIND || kind === ARCHITECTURE_GOAL_INTENT_KIND) {
       if (kind === ARCHITECTURE_GOAL_INTENT_KIND) {
         // Named ends describe current Working, not verified source relations.
