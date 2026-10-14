@@ -397,9 +397,31 @@ const roleIdOf = key => `${ROLE_PREFIX}${key}`;
 const roleNode = key => entry({ type: "region", id: roleIdOf(key), label: `role:${key}` }, ORIGIN_SCOPE, [{ vocabulary: "roles", key }]);
 
 // A role Jev confirmed for an admitted file, judged from that file's whole text.
+const hasRoleIdOf = (entityId, key) => `${REGION_PREFIX}${HAS_ROLE_KIND}-${entityId}-to-${key}`;
 const roleEdge = (entity, key) => entry(
-  { type: "relation", id: `${REGION_PREFIX}${HAS_ROLE_KIND}-${entity.id}-to-${key}`, from: regionIdOf(entity.id), to: roleIdOf(key), kind: HAS_ROLE_KIND, label: HAS_ROLE_KIND },
+  { type: "relation", id: hasRoleIdOf(entity.id, key), from: regionIdOf(entity.id), to: roleIdOf(key), kind: HAS_ROLE_KIND, label: HAS_ROLE_KIND },
   ORIGIN_MODEL, [{ path: entity.path }]);
+
+// What a remembered source focus scopes, one rule for generation, the server
+// and the evaluator: its parts, and the role nodes that current Working
+// has-role relations attach to those parts. A role must be one of this
+// manifest's roles and its relation exactly the one drawn for that part and
+// role; nothing else widens the scope. An attachment is model-judged Working
+// data, not a verified source fact. `attachments` holds, per added role, the
+// first relation that admitted it.
+export function scopeOf(manifest, focus, relations) {
+  const regions = new Set(focus.map(regionIdOf));
+  const attaching = new Map(focus.flatMap(part => manifest.roles.map(role =>
+    [hasRoleIdOf(part, role.key), Object.freeze({ from: regionIdOf(part), to: roleIdOf(role.key) })])));
+  const attachments = [];
+  for (const relation of relations) {
+    const role = attaching.get(relation.id);
+    if (role === undefined || relation.from !== role.from || relation.to !== role.to || regions.has(role.to)) continue;
+    regions.add(role.to);
+    attachments.push(relation);
+  }
+  return Object.freeze({ regions, attachments: Object.freeze(attachments) });
+}
 
 // Every record this snapshot could ever draw: what the source grounds, every
 // role node, every relation any pair could be given and every role any file

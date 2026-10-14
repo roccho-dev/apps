@@ -1,26 +1,33 @@
 import { ACTION_ADD_EDGE, ARCHITECTURE_GOAL_INTENT_KIND, ARCHITECTURE_INTENT_KIND, GOAL_REQUEST_KIND, GOAL_REQUEST_MAX, MIN_CONFIDENCE, NONE, isRequest,
   architectureGoalSlotsFor, readAnswers, slotsFor } from "./contract.mjs";
 import { offersOf } from "./bundle.mjs";
-import { regionIdOf } from "./architecture.mjs";
+import { scopeOf } from "./architecture.mjs";
 import { legalLocalDeltas, OUTCOME_STEP, proveLocalDelta } from "./turn.mjs";
 import { proposeGoal, recentConversation } from "./session.mjs";
 
 // What a scoped Goal request shows: every end of its offered arrows, every
 // group enclosing them up to the root, and only the relations between the
 // named end and those ends - for one resolved arrow, the relations between its
-// two ends. Nothing is cropped. The whole Working still decides what is legal,
-// proved and adopted.
-const localView = (records, pair, candidates) => {
+// two ends - plus, for an end that is a role node of the scope, the one
+// relation that attaches it to a focused part and that part, so the server can
+// check the scope. Nothing is cropped. The whole Working still decides what is
+// legal, proved and adopted.
+const localView = (records, pair, candidates, attachments) => {
   const named = pair.from ?? pair.to;
   const ends = new Set(candidates.flatMap(candidate => [candidate.from, candidate.to]));
+  const attaching = new Set(attachments.filter(relation => ends.has(relation.to)).map(relation => relation.id));
   const parentOf = new Map(records.filter(record => record.type === "region").map(record => [record.id, record.parent]));
   const shown = new Set();
-  for (const end of ends) {
+  const starts = [...ends, ...attachments.filter(relation => attaching.has(relation.id)).map(relation => relation.from)];
+  for (const end of starts) {
     for (let at = end; at !== null && at !== undefined && !shown.has(at); at = parentOf.get(at)) shown.add(at);
   }
   return records.filter(record => (record.type === "region" ? shown.has(record.id)
-    : record.type === "relation" && ends.has(record.from) && ends.has(record.to) && (record.from === named || record.to === named)));
+    : record.type === "relation" && (attaching.has(record.id)
+      || ends.has(record.from) && ends.has(record.to) && (record.from === named || record.to === named))));
 };
+// Without the page's manifest no role can widen a scope.
+const NO_ROLES = Object.freeze({ roles: Object.freeze([]) });
 
 // One bounded AddRegion/ConnectRegions attempt. Ports own HTTP and the draw/adopt effect;
 // this coordinator owns only actual selected history and mechanical STOP.
@@ -28,7 +35,7 @@ const localView = (records, pair, candidates) => {
 // On every iteration a scoped Goal validates the page's latest intent, then
 // projects its whole graph, conversation and source identity into three
 // questions: action and endpoints. This resolve counts against the same bound.
-export async function runGoal({ utterance, bundle, protocol, current, ask, adopt, cancelled, resolveIntent = null,
+export async function runGoal({ utterance, bundle, protocol, current, ask, adopt, cancelled, resolveIntent = null, manifest = null,
   now = () => performance.now() }) {
   const first = current();
   const group = first.nextSeq;
@@ -43,7 +50,6 @@ export async function runGoal({ utterance, bundle, protocol, current, ask, adopt
   const reference = [...first.conversation].reverse().find(entry => entry.reference)?.reference ?? null;
   const scope = reference === null ? null
     : Object.freeze({ source: Object.freeze({ ...reference.source }), focus: Object.freeze([...reference.focus]) });
-  const regions = scope === null ? null : new Set(scope.focus.map(regionIdOf));
   if (scope !== null && typeof resolveIntent !== "function") return stop("invalid-goal-request");
   // One counted judgment. Nothing is sent once the Goal is cancelled, out of
   // time, no longer current or at its request bound; a thrown call is unknown,
@@ -72,6 +78,10 @@ export async function runGoal({ utterance, bundle, protocol, current, ask, adopt
     if (cancelled()) return stop("cancelled");
     if (now() - started >= 180000) return stop("budget-time");
     if (current() !== expected || expected.working === null) return stop("stale-goal");
+    // The scope of the latest Working: its focused parts and the role nodes attached to them.
+    const scoped = scope === null ? null
+      : scopeOf(manifest ?? NO_ROLES, scope.focus, expected.working.records.filter(record => record.type === "relation"));
+    const regions = scoped === null ? null : scoped.regions;
     let pair = null;
     if (scope !== null) {
       let intent;
@@ -110,7 +120,7 @@ export async function runGoal({ utterance, bundle, protocol, current, ask, adopt
     const held = legalLocalDeltas(expected.working, { bundle, protocol, reserved: expected.issuedPartIds, selected, scope: regions, pair });
     if (held.candidates.length === 0) return stop("no-executable-delta");
     if (held.candidates.length > 254) return stop("candidate-overflow");
-    const shown = pair === null ? expected.working.records : localView(expected.working.records, pair, held.candidates);
+    const shown = pair === null ? expected.working.records : localView(expected.working.records, pair, held.candidates, scoped.attachments);
     const parents = shown.filter(record => record.type === "region"
       && record.kind === "group" && record.parent !== null)
       .map(({ id, label, kind, parent }) => ({ id, label, kind, parent }));

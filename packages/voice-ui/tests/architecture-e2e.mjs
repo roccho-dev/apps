@@ -130,14 +130,26 @@ for (const key of ["draft", "claims", "stored", "root", "confirmedGraph"])
 assert.equal(exactChildPins([{ id: "a" }, { id: "b" }], [{ regionId: "b" }, { regionId: "a" }]), true);
 assert.equal(exactChildPins([{ id: "a" }, { id: "b" }], [{ regionId: "a" }, { regionId: "a" }]), false);
 const evaluation = caseFlag === undefined ? null : JSON.parse(caseJson);
+// A meaning case names role endpoints by manifest role key; goal-evaluation v1
+// cases, S5 among them, are read exactly as before.
+const ROLE_RELATION = "voice-ui.meaning.role-relation.v1";
+const ROLE_CASE = evaluation?.version === ROLE_RELATION;
 if (caseFlag !== undefined) {
   assert.ok(exactKeys(evaluation, ["version", "id", "goal", "order", "expected"])
-    && evaluation.version === "voice-ui.goal-evaluation.v1" && typeof evaluation.id === "string" && evaluation.id.length > 0
+    && typeof evaluation.id === "string" && evaluation.id.length > 0
     && typeof evaluation.goal === "string" && evaluation.goal.trim().length > 0
     && ["normal", "reverse"].includes(evaluation.order)
-    && exactKeys(evaluation.expected, ["kind", "regions", "flows"])
-    && ["change", "none"].includes(evaluation.expected.kind)
-    && Array.isArray(evaluation.expected.regions) && Array.isArray(evaluation.expected.flows), "closed finite evaluator input");
+    && (ROLE_CASE
+      ? exactKeys(evaluation.expected, ["kind", "relation"]) && evaluation.expected.kind === "change"
+        && exactKeys(evaluation.expected.relation, ["from", "to", "kind", "origin"])
+        && ["from", "to"].every(end => exactKeys(evaluation.expected.relation[end], ["role"])
+          && typeof evaluation.expected.relation[end].role === "string")
+        && typeof evaluation.expected.relation.kind === "string" && typeof evaluation.expected.relation.origin === "string"
+      : evaluation.version === "voice-ui.goal-evaluation.v1"
+        && exactKeys(evaluation.expected, ["kind", "regions", "flows"])
+        && ["change", "none"].includes(evaluation.expected.kind)
+        && Array.isArray(evaluation.expected.regions) && Array.isArray(evaluation.expected.flows)), "closed finite evaluator input");
+  assert.ok(!ROLE_CASE || scenario === "goal-source", "a role-relation case is a goal-source case");
 }
 // In the natural fixture a part is never named: the intent answers none, and
 // the part is located - so the locate frames and their judge are what the
@@ -189,7 +201,7 @@ const MOST = 1 + ENTITY_IDS.length + FILE_IDS.length + new Set(MANIFEST.candidat
 
 const publicBundle = GOAL ? await (await fetch(new URL(config.data.bundle, url))).json() : null;
 const seed = publicBundle?.diagrams.find(diagram => diagram.key === "container-example");
-const expectedCase = evaluation?.expected ?? { kind: "change", regions: NEST ? [
+const expectedCase = (ROLE_CASE ? null : evaluation?.expected) ?? { kind: "change", regions: NEST ? [
   { partKey: "group", parentLabel: "OCI" }, { partKey: "db", parent: { addedPart: "group" } }, { partKey: "api", parentLabel: "OCI" },
 ] : [
   { partKey: "api", parentLabel: "OCI" }, { partKey: "db", parentLabel: "OCI" },
@@ -199,13 +211,17 @@ const expectedCase = evaluation?.expected ?? { kind: "change", regions: NEST ? [
 const parentShape = region => exactKeys(region, ["partKey", "parentLabel"]) ? "seed"
   : exactKeys(region, ["partKey", "parent"]) && exactKeys(region.parent, ["addedPart"]) ? "added" : null;
 const NESTED = expectedCase.regions.some(region => parentShape(region) === "added");
-// goal-source names one expected arrow by two served manifest entities; live
-// goal-source runs only on such evaluator data.
+// goal-source names one expected arrow by two served manifest entities (v1) or
+// two served manifest role keys (role relation); live goal-source runs only on
+// such evaluator data.
+const ROLE_KEYS = (MANIFEST.roles ?? []).map(role => role.key);
 if (SOURCE) {
   assert.ok(FIXTURE || evaluation !== null, "live goal-source requires a finite --goal-case input");
   assert.ok(!FIXTURE || evaluation === null, "the controlled goal-source takes no evaluator data");
   assert.ok(evaluation === null || evaluation.order === "normal", "goal-source has no reversed presentation");
-  if (evaluation !== null) assert.ok(evaluation.expected.kind === "change" && evaluation.expected.regions.length === 0
+  if (ROLE_CASE) assert.ok(["from", "to"].every(end => ROLE_KEYS.includes(evaluation.expected.relation[end].role))
+    && evaluation.expected.relation.from.role !== evaluation.expected.relation.to.role, "one expected arrow between served manifest roles");
+  else if (evaluation !== null) assert.ok(evaluation.expected.kind === "change" && evaluation.expected.regions.length === 0
     && evaluation.expected.flows.length === 1 && exactKeys(evaluation.expected.flows[0], ["from", "to"])
     && ["from", "to"].every(end => exactKeys(evaluation.expected.flows[0][end], ["baselineRegion"])
       && ENTITY_IDS.includes(evaluation.expected.flows[0][end].baselineRegion))
@@ -1298,7 +1314,20 @@ const sourceScenario = async () => {
   const route = new URL("/api/judge", url).href;
   const related = (edges, from, to) => edges.some(edge => edge.from === from && edge.to === to || edge.from === to && edge.to === from);
   const focusRegions = (reference?.focus ?? []).map(id => `arch-${id}`);
-  const flow = evaluation?.expected.flows[0] ?? null;
+  // The scope by the product's own served rule (the one generation and the
+  // server use): the focused parts and the role nodes current Working has-role
+  // relations attach to them. Role ends are resolved from manifest role keys.
+  const relation = ROLE_CASE ? evaluation.expected.relation : null;
+  const scoped = await page.evaluate(async ({ sourceUrl, focus, relations, roles }) => {
+    const { readManifest, scopeOf } = await import("/app/src/architecture.mjs");
+    const manifest = readManifest(await (await fetch(sourceUrl)).json());
+    // A role node's id, as the composer names it (the same form hasRole reads).
+    return { regions: [...scopeOf(manifest, focus, relations).regions], roleIds: roles.map(key => `arch-role-${key}`) };
+  }, { sourceUrl: new URL(config.data.source, url).href, focus: reference?.focus ?? [],
+    relations: before.graph.records.filter(record => record.type === "relation").map(({ id, from, to }) => ({ id, from, to })),
+    roles: relation === null ? [] : [relation.from.role, relation.to.role] });
+  const scopeRegions = new Set(scoped.regions);
+  const flow = ROLE_CASE ? null : evaluation?.expected.flows[0] ?? null;
   let chosen = null;
   if (FIXTURE) await page.route(route, craft((name, sent) => {
     if (sent.kind === contract.ARCHITECTURE_GOAL_INTENT_KIND) {
@@ -1329,16 +1358,19 @@ const sourceScenario = async () => {
   // The expected arrow: the controlled choice, or the evaluator data resolved
   // against the served manifest and the actual pre-Goal Working.
   const target = FIXTURE ? (chosen === null ? null : { from: chosen.from, to: chosen.to })
-    : flow === null ? null : { from: "arch-" + flow.from.baselineRegion, to: "arch-" + flow.to.baselineRegion };
+    : ROLE_CASE ? { from: scoped.roleIds[0], to: scoped.roleIds[1] }
+      : flow === null ? null : { from: "arch-" + flow.from.baselineRegion, to: "arch-" + flow.to.baselineRegion };
   const endpointOf = (records, id) => records.find(record => record.type === "region" && record.id === id
     && record.parent !== null && record.kind !== "group") ?? null;
   const beforeRelations = before.graph.records.filter(record => record.type === "relation");
-  // Eligible is structural, on the full pre-Goal Working and the focus; offered
-  // is what the Goal request actually carried. A different resolved pair is
-  // not offered: NOT_MET, never success.
+  // Eligible is structural, on the full pre-Goal Working and the scope: an
+  // arrow touching it, or for a role relation both role ends in it; offered is
+  // what the Goal request actually carried. A different resolved pair is not
+  // offered: NOT_MET, never success.
   const eligible = target !== null && target.from !== target.to
     && endpointOf(before.graph.records, target.from) !== null && endpointOf(before.graph.records, target.to) !== null
-    && (focusRegions.includes(target.from) || focusRegions.includes(target.to))
+    && (ROLE_CASE ? scopeRegions.has(target.from) && scopeRegions.has(target.to)
+      : scopeRegions.has(target.from) || scopeRegions.has(target.to))
     && !related(beforeRelations, target.from, target.to);
   const offered = eligible && request !== null
     && request.candidates.some(item => item.action === "add-edge" && item.from === target.from && item.to === target.to);
@@ -1353,12 +1385,17 @@ const sourceScenario = async () => {
       === JSON.stringify(before.context.map(({ reference: _, ...entry }) => entry)),
     candidates: request?.candidates.length ?? 0,
     edgesTouchFocus: request !== null && request.candidates.filter(item => item.action === "add-edge")
-      .every(item => focusRegions.includes(item.from) || focusRegions.includes(item.to)),
+      .every(item => scopeRegions.has(item.from) || scopeRegions.has(item.to)),
+    scope: [...scopeRegions].sort(),
     target, targetBy: FIXTURE ? "controlled: first sorted pair touching the focus with no relation either way, named by every resolve" : "evaluator goal-case",
     eligible, offered, resolves: sent.filter(entry => entry.sent.kind === contract.ARCHITECTURE_GOAL_INTENT_KIND).length,
     reason: attempt.reason, requests: attempt.requests, exchanges: sent.map(sanitized),
     newEdges: newEdges.map(({ id, from, to, kind }) => ({ id, from, to, kind })),
     newEdgeDrawn: eligible && newEdges.length === 1 && newEdges[0].from === target.from && newEdges[0].to === target.to
+      // A role relation is the Goal's own kind and, before local Apply, carries
+      // no source or model claim: Apply can only make it user-asserted.
+      && (relation === null || newEdges[0].kind === relation.kind
+        && relation.origin === "user-asserted" && claimOf(after, `relation ${newEdges[0].id}`) === null)
       && JSON.stringify(nonLayout(after.graph.records).filter(record => record.id !== newEdges[0].id))
         === JSON.stringify(nonLayout(before.graph.records)),
     paint: null, understanding: "NOT_PROVEN" };

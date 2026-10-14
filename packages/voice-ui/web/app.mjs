@@ -715,7 +715,7 @@ goalButton.addEventListener("click", () => withSurface("goal", async () => {
       ? latest => intentFor(latest, utterance, { layout: layoutOf(latest.working), offeredFrame: null, pending: null,
         lastApplied: lastApplied(), architecture: true })
       : undefined;
-    const result = await runGoal({ utterance, bundle, protocol, resolveIntent,
+    const result = await runGoal({ utterance, bundle, protocol, resolveIntent, manifest: architectureReady() ? manifest : null,
       current: () => session, ask: judge, cancelled: () => goalCancelled || resizePending || blocked,
       adopt: async next => {
         await showWorking(next, "drafted", "goal: Working updated (unconfirmed)");
