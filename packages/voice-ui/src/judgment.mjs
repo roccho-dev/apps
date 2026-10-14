@@ -38,6 +38,11 @@ const REFERENCE_NOTE = " An architecture conversation entry may carry reference:
 // A reference can qualify a node, a code part or an existing edge. Only the
 // existing-edge question requires a unique match among current edges.
 const EDGE_REFERENCE_NOTE = " Match against all current edges; if the conversational qualification does not identify one unique edge, answer none.";
+// A Working node is named by its unique id. Its label is only display text:
+// labels may repeat, equal another node's id or look like option text, so it
+// is always quoted and never names a node on its own.
+const quoted = label => JSON.stringify(label);
+const shownAs = (labels, key) => labels.get(key) === key ? key : `${key} (shown as ${quoted(labels.get(key))})`;
 
 // The questions for exactly the slots the request offers. Each option is a
 // key the request carries; the words around it are this Function's own, and
@@ -56,8 +61,8 @@ export function questionsFor(state, slots, context) {
         options: criteria(slots.delta, key => {
           if (key === NONE) return "no offered executable change is clearly requested, or the requested changes are already present";
           const candidate = state.candidates.find(item => item.id === key);
-          if (candidate.action === ACTION_ADD_EDGE) return `a directed flow arrow from ${labels.get(candidate.from)} (${candidate.from}) to ${labels.get(candidate.to)} (${candidate.to})`;
-          return `add one new part: ${purposes.get(candidate.part)}, inside ${parents.get(candidate.parent).label} (${candidate.parent})`;
+          if (candidate.action === ACTION_ADD_EDGE) return `a directed flow arrow from ${quoted(labels.get(candidate.from))} (${candidate.from}) to ${quoted(labels.get(candidate.to))} (${candidate.to})`;
+          return `add one new part: ${purposes.get(candidate.part)}, inside ${quoted(parents.get(candidate.parent).label)} (${candidate.parent})`;
         }),
       },
     };
@@ -66,12 +71,12 @@ export function questionsFor(state, slots, context) {
   if (context.kind === ARCHITECTURE_JUDGE_KIND) return judgeQuestions(context.section, slots);
   if (context.kind === ARCHITECTURE_GOAL_INTENT_KIND) {
     const labels = new Map(state.graph.regions.map(region => [region.id, region.label]));
-    const node = key => labels.get(key) === key ? key : `${key} (shown as "${labels.get(key)}")`;
+    const node = key => shownAs(labels, key);
     // Descriptive current Working data only, not source provenance or unique intent.
     const connections = key => "; current Working connections: " + state.graph.edges
       .filter(edge => edge.from === key || edge.to === key)
       .map(edge => (edge.from === key ? "out " : "in ") + edge.kind + " "
-        + JSON.stringify(labels.get(edge.from === key ? edge.to : edge.from))).join("; ");
+        + node(edge.from === key ? edge.to : edge.from)).join("; ");
     const note = " context.recent lists earlier utterances as recognized or typed and their effects."
       + " They are unverified and may be misrecognized; use them only to understand what the current utterance refers to."
       + " The current utterance and Working graph are the facts; earlier effects are history, not the current graph."
@@ -99,7 +104,7 @@ export function questionsFor(state, slots, context) {
   }
   const defined = context.kind === ARCHITECTURE_INTENT_KIND ? context.relationOf : () => null;
   const labelOf = new Map(state.graph.regions.map(region => [region.id, region.label]));
-  const node = key => labelOf.get(key) === key ? key : `${key} (shown as "${labelOf.get(key)}")`;
+  const node = key => shownAs(labelOf, key);
   const definedAs = edge => {
     const relation = defined(edge);
     return relation === null ? "" : `, which this snapshot defines as ${relation.kind}${relation.purpose === null ? "" : `: ${relation.purpose}`}`;
