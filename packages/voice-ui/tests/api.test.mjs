@@ -1474,14 +1474,15 @@ test("a locate frame carries no code from the page; the server adds exactly that
     assert.match(question.instructions, /Do not replace an explicit endpoint or semantic qualification/u, part);
     assert.doesNotMatch(question.instructions, /Match against all current edges|does not identify one unique edge, answer none/u,
       `${part}: locating a part from its text is not selecting an existing edge`);
+    // The two options cover every part: none also holds for a part the utterance is not about at all.
     assert.deepEqual(question.criteria, entity.kind === "file"
       ? {
         [YES]: "the utterance asks about this file itself, whether or not it names it",
-        [NONE]: "it only supports, serves or is used by what the utterance asks about, or only mentions or imports a part that does",
+        [NONE]: "the utterance does not ask about this file itself: it is unrelated to what is asked about, only supports, serves or is used by it, or only mentions or imports a part that does",
       }
       : {
         [YES]: "the utterance asks about it itself, as the shown code uses it, whether or not it names it",
-        [NONE]: "the shown code only names it, or uses it only in support of what the utterance asks about",
+        [NONE]: "the utterance does not ask about it itself: it is unrelated to what is asked about, or the shown code only names it or uses it only in support of what is asked about",
       }, part);
     const answered = await result.text();
     assert.equal(answered.includes(evidence.bodies[0].text.slice(0, 200)), false, `${part}: no admitted text in the answer`);
