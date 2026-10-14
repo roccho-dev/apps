@@ -61,6 +61,9 @@ const PLATFORM_CONSTRUCTORS = [
   "TypeError",
   "URL",
 ];
+// The pinned renderer's scene projector, which it offers only as a class: one test file builds it, nothing else.
+const TEST_LIBRARY_CONSTRUCTOR = "SemanticProjector";
+const TEST_LIBRARY_CONSTRUCTOR_FILE = "tests/architecture.test.mjs";
 // class-free-patterns: end
 
 const here = path.dirname(fileURLToPath(import.meta.url));
@@ -139,6 +142,10 @@ test("every rule still catches what it exists to catch", () => {
     [PY_TYPE, "kind = type(value)"],
   ];
   for (const [rule, sample] of pythonCatches) assert.ok(rule.test(sample), `${rule} must catch ${JSON.stringify(sample)}`);
+  // The test-library constructor is caught as a new call like any other, and is no platform constructor.
+  assert.deepEqual([...`const projector = new ${TEST_LIBRARY_CONSTRUCTOR}(domain);`.matchAll(NEW_CALL)].map(([, name]) => name),
+    [TEST_LIBRARY_CONSTRUCTOR]);
+  assert.equal(PLATFORM_CONSTRUCTORS.includes(TEST_LIBRARY_CONSTRUCTOR), false);
   assert.equal(PY_TYPE.test("the content type of a response"), false, "prose without a call is not a match");
   assert.equal(PY_CLASS.test("a class of failure"), false, "prose without a declaration is not a match");
 });
@@ -146,9 +153,15 @@ test("every rule still catches what it exists to catch", () => {
 test("new calls only the reviewed platform constructors, and every one of them is used", () => {
   const used = new Set();
   const unknown = [];
+  let library = 0;
   for (const file of javascript) {
     scanned(file).forEach((line, index) => {
       for (const [, name] of line.matchAll(NEW_CALL)) {
+        // The one test-library constructor, in its one test file only.
+        if (name === TEST_LIBRARY_CONSTRUCTOR && file === TEST_LIBRARY_CONSTRUCTOR_FILE) {
+          library += 1;
+          continue;
+        }
         used.add(name);
         if (!PLATFORM_CONSTRUCTORS.includes(name)) unknown.push(`${file}:${index + 1} ${name}`);
       }
@@ -157,6 +170,8 @@ test("new calls only the reviewed platform constructors, and every one of them i
   assert.deepEqual(unknown, [], "a constructor outside the reviewed platform list");
   assert.deepEqual(PLATFORM_CONSTRUCTORS.filter(name => !used.has(name)), [], "an allowlist entry nothing uses");
   assert.deepEqual(PLATFORM_CONSTRUCTORS, [...PLATFORM_CONSTRUCTORS].sort());
+  assert.ok(library >= 1, "the test-library constructor is used where it is allowed");
+  assert.equal(production.includes(TEST_LIBRARY_CONSTRUCTOR_FILE), false, "and that file is no production code");
 });
 
 test("the one exception is a single marked pair in the browser E2E, and holds only its own target", () => {

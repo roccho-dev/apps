@@ -411,10 +411,7 @@ const projection = await Promise.all(["layout/state.js", "domain/semantic-map.js
 
 test("on the page's arrow camera every role-to-role arrow shows both ends' names (the served snapshot, actual85's roles)", async () => {
   const [{ splitStateRecords }, { createSemanticMap }, { SemanticProjector }, { defaultViewForPattern }, { displayedRegionLabel }, { DEFAULT_THEME }] = projection;
-  const servedRoot = process.env.VOICE_UI_ARCHITECTURE;
-  assert.ok(servedRoot, "VOICE_UI_ARCHITECTURE must point at this snapshot's prepared source");
-  const manifest = readManifest(JSON.parse(fs.readFileSync(path.join(servedRoot, "manifest.json"), "utf8")));
-  assert.equal(manifest.status, "available", manifest.reason);
+  const manifest = ownManifest();
   // The whole view, then the roles Jev confirmed per file in actual85.
   let working = await appendAll(await mapGraph(), await plan(await mapGraph(), manifest));
   const confirmed = {
@@ -439,12 +436,10 @@ test("on the page's arrow camera every role-to-role arrow shows both ends' names
     const scene = new SemanticProjector(createSemanticMap(splitStateRecords(graph.records).semanticRecords), null, defaultViewForPattern("graph/1"))
       .project({ scale: 626 / width, viewport: { x, y, width, height } });
     const shown = [from, to].map(id => displayedRegionLabel(scene.representations.find(item => item.regionId === id), scene.scale, DEFAULT_THEME, false));
-    if (shown[0] !== regionOf(from).label || shown[1] !== regionOf(to).label
-      || regionOf(from).parent !== "arch-roles" || regionOf(to).parent !== "arch-roles") {
-      unreadable.push({ from, to, scale: Number(scene.scale.toFixed(3)), shown });
-    }
+    if (shown[0] !== regionOf(from).label || shown[1] !== regionOf(to).label) unreadable.push({ from, to, scale: Number(scene.scale.toFixed(3)), shown });
   }
   assert.deepEqual(unreadable, [], `${roleIds.length * (roleIds.length - 1) - unreadable.length}/${roleIds.length * (roleIds.length - 1)} arrows readable`);
+  assert.deepEqual(roleIds.filter(id => regionOf(id).parent !== "arch-roles"), [], "every role's node is in the roles group");
 });
 
 test("a view larger than the provider takes in one Decision is split at the limit passed in, never refused or cut short", async () => {
@@ -647,7 +642,7 @@ test("every located part is judged together, the judge bound to exactly what was
   });
   assert.equal(planned.outcome, "step");
   assert.deepEqual(claimsOf(planned).map(claim => claim.record.id).sort(),
-    ["arch-has-role-a-mjs-to-persistence", "arch-role-persistence", "arch-stores-in-b-mjs-to-ext-store"]);
+    ["arch-has-role-a-mjs-to-persistence", "arch-role-persistence", "arch-roles", "arch-stores-in-b-mjs-to-ext-store"]);
   assert.ok(planned.steps.every(item => item.step.confidence === 0.6), "the weaker of the action and the weakest located part");
 
   // Bound exactly: a judge of fewer parts than were located is a caller error.
@@ -779,7 +774,7 @@ test("a judge is every frame answered, exactly as sent and in order, or nothing;
     answers: answerFor(turn.slots, { action: ACTION_ARCHITECTURE, focus: NONE }),
   });
   assert.deepEqual(claimsOf(planned).map(claim => claim.record.id).sort(),
-    ["arch-calls-a-mjs-to-b-mjs", "arch-has-role-a-mjs-to-persistence", "arch-role-persistence", "arch-stores-in-b-mjs-to-ext-store"]);
+    ["arch-calls-a-mjs-to-b-mjs", "arch-has-role-a-mjs-to-persistence", "arch-role-persistence", "arch-roles", "arch-stores-in-b-mjs-to-ext-store"]);
 
   const reworded = judgeFramesOf(manifest, focus, picks, "something else");
   const answer = frames[1].answers;
@@ -965,8 +960,10 @@ test("a Goal on this package's drawn snapshot without a focus is offered every p
     judge: { [roleSlot("web-app-mjs", "persistence")]: YES } }));
   const regions = working.records.filter(record => record.type === "region");
   const held = legalLocalDeltas(working, { bundle, protocol });
-  assert.equal(regions.some(record => record.kind === "group" && record.parent !== null), false, "the drawn snapshot has no group to add into");
-  assert.equal(held.candidates.some(candidate => candidate.part !== undefined), false);
+  // The roles group is the drawing's one group: an ordinary part may be added
+  // into it like into any group, as the person's, never as a role.
+  assert.deepEqual(regions.filter(record => record.kind === "group" && record.parent !== null).map(record => record.id), ["arch-roles"]);
+  assert.ok(held.candidates.filter(candidate => candidate.part !== undefined).every(candidate => candidate.parent === "arch-roles"));
   assert.ok(held.candidates.some(candidate => candidate.from === "arch-web-app-mjs" && candidate.to === "arch-ext-localstorage"),
     "the asked-for pair is legal but undrawn");
   assert.ok(held.candidates.length > 254);
@@ -976,7 +973,8 @@ test("a Goal on this package's drawn snapshot without a focus is offered every p
     current: () => session, cancelled: () => false, ask: async () => { asked += 1; throw new Error("never asked"); },
     adopt: async next => { session = next; } });
   assert.deepEqual([result.reason, result.requests, asked], ["candidate-overflow", 0, 0]);
-  t.diagnostic(`source-grounded Goal: ${regions.length} regions, ${regions.length - 1} endpoints, ${held.candidates.length} Connect candidates, 0 Add`);
+  const adds = held.candidates.filter(candidate => candidate.part !== undefined).length;
+  t.diagnostic(`source-grounded Goal: ${regions.length} regions, ${held.candidates.length - adds} Connect candidates, ${adds} Add into the roles group`);
 });
 
 // The same session as the page: a new map, the whole view, then a focus Jev
