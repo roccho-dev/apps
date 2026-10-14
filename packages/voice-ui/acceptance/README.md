@@ -4,8 +4,9 @@
 
 The existing architecture checker accepts an optional `--goal-case <JSON>` after
 the existing URL for either Goal scenario. The exact input keys are `version`,
-`id`, `goal`, `order`, and `expected`; version is `voice-ui.goal-evaluation.v1`,
-order is `normal` or `reverse`. Expected has exactly `kind` (`change` or `none`),
+`id`, `goal`, `order`, and `expected`; version is `voice-ui.goal-evaluation.v1`
+(here) or the goal-source-only `voice-ui.meaning.role-relation.v1` (see
+`goal-source` below), order is `normal` or `reverse`. A v1 expected has exactly `kind` (`change` or `none`),
 `regions` (`partKey` with exactly one of `parentLabel` or `parent: {addedPart}`, see
 below) and `flows` (`from`, `to`). Each endpoint is
 either `{ "addedPart": "api" }` or `{ "baselineRegion": "existing-helper" }`.
@@ -71,20 +72,27 @@ named end, and the weakest of action, source and target - an end answered none
 included - at least the floor; otherwise the Goal stops and adopts nothing
 further, keeping any earlier step of its group. With both ends named the Goal
 request offers at most that one legal arrow. With one end named, the end answered
-none is open: it ranges only over the focused parts, never the named end itself
+none is open: it ranges only over the scope, never the named end itself
 or an existing directed pair, and the Goal judgment picks one of those arrows or
-none; the intent's none is never taken as an endpoint. Every offered arrow
-touches a focused part. The request shows only a bounded local view: the root,
-every offered end with its ancestors, and every relation between the named end
-and an offered end (not those between two focused parts), never cropped; a view
+none; the intent's none is never taken as an endpoint. The scope is the focused
+parts plus each served-manifest role node that a current Working has-role
+relation attaches to a focused part, by one shared rule (`scopeOf`) for page,
+server and checker. Every offered arrow touches the scope. The request shows only
+a bounded local view: the root, every offered end with its ancestors, every
+relation between the named end and an offered end (not those between two focused
+parts), and for a role-node end the has-role relation attaching it with that
+focused part, never cropped; a view
 over 64 regions or relations stops as `invalid-goal-request` before the Goal
 request. After an adoption the next iteration resolves again, and a separate Goal
 judgment decides whether anything remains. The open end is controlled mechanics
-with fixture answers; real selection is NOT_PROVEN, and real trial 40 (source
-answered none, no Goal request) is the recorded real negative. Legality, proof and adoption still use
+with fixture answers, and real trial 40 (source answered none, no Goal request)
+is the recorded real negative. One informed real role-relation case passed
+semantic and paint grades at eddff34 (actual72, R review 5517597064); general
+real selection remains NOT_PROVEN. Legality, proof and adoption still use
 the whole Working. Resolve and Goal requests share the one bound of eight, and a
 scoped Goal without a resolver asks nothing. The server
-matches the scope against the served source, refusing a mismatched source, an
+matches the scope against the served source, recomputing its roles from the
+has-role relations the request shows, refusing a mismatched source, an
 unknown part or an arrow outside it (422; 503 without the architecture). No source
 text is sent with a Goal and it claims no understanding of the code. Without a
 scope the whole catalogue stays, so a Goal on a drawn source snapshot still stops
@@ -148,10 +156,18 @@ trial arrow (画面のコードにつながる試案の矢印): a hypothesis on 
 source fact and never a claim that the code was understood. In live mode the
 existing finite `--goal-case` is required: `regions` empty and one flow whose
 `baselineRegion` ends are served manifest entity IDs, resolved to the actual
-pre-Goal Working; no crafted route or fixture answer is installed. Fixture
-goal-source takes no evaluator data and the order must be normal. An unknown,
-already related or out-of-focus target is INELIGIBLE, never success. Structural
-eligibility (two drawn non-group parts, touching the focus, with no relation
+pre-Goal Working; no crafted route or fixture answer is installed. Live mode
+alternatively takes a `voice-ui.meaning.role-relation.v1` case: expected is
+exactly `kind: change` and one `relation` with `from: {role}`, `to: {role}`,
+`kind` and `origin`, naming two distinct served manifest role keys resolved to
+their role nodes. Origin boundary: the requested new relation has the expected
+kind and no claim before local Apply, and is `user-asserted` only after it; the
+has-role attachments are `model-inferred` Working claims; none of these is
+`source-declared`. Fixture goal-source takes no evaluator data, so it cannot
+show live has-role eligibility, and the order must be normal. An unknown,
+already related or out-of-scope target is INELIGIBLE, never success. Structural
+eligibility (two drawn non-group parts, touching the scope - for a role relation
+both ends in it - with no relation
 either way on the full pre-Goal Working) and offering (the Goal request
 actually offered it) are graded separately: an eligible target the Goal never
 offered is NOT_MET, not INELIGIBLE. Malformed input is refused before the
@@ -162,8 +178,8 @@ candidate may still never repeat an existing directed pair.
 
 Positive proof needs the remembered source focus and plain conversation on the
 wire, at least one offered arrow (a scoped Goal offers the one resolved arrow,
-or with one end named at most one per remaining focused part), each touching the
-focus, exactly one new
+or with one end named at most one per remaining scope part), each touching the
+scope, exactly one new
 expected arrow with every old non-layout record kept, and the actual painted
 arrow at its named ends by the existing painted observer, with the reverse and
 a disconnected visible part as negatives; the scene relation list is projection
