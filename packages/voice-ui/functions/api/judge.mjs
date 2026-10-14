@@ -91,7 +91,11 @@ export async function onRequestPost({ request, available, architecture }, judge)
       const evidence = focusedEvidence(opened, bound.manifest, bound.files);
       slots = locateSlotsFor([part]);
       questions = questionsFor(state, slots, { kind, entity: bound.manifest.entities.find(entity => entity.id === part), evidence });
-      asked = { utterance: state.utterance, context: asked.context, architecture: { ...state.architecture, evidence } };
+      // Every frame sees the same parts this server's snapshot knows, so one
+      // part is judged beside the others the utterance could mean. Never the
+      // page's: the page's architecture equals the server's own above.
+      const parts = intentSectionOf(bound.manifest).entities;
+      asked = { utterance: state.utterance, context: asked.context, architecture: { ...state.architecture, evidence, parts } };
     } else if (kind === ARCHITECTURE_INTENT_KIND || kind === ARCHITECTURE_GOAL_INTENT_KIND) {
       if (kind === ARCHITECTURE_GOAL_INTENT_KIND) {
         // Named ends describe current Working, not verified source relations.

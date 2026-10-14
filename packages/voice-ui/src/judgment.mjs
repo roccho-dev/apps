@@ -277,6 +277,7 @@ function locateQuestion(entity, evidence, slots) {
         + ` state.architecture.evidence.bodies holds ${evidence.bodies.map(body => body.path).join(", ")} whole`
         + (lined.length === 0 ? "." : `; state.architecture.evidence.lines holds single lines of ${lined.join(", ")}, each with its path and line number.`)
         + " Judge only from that text and the utterance."
+        + " state.architecture.parts lists every part of the same source by id and label: the other parts the utterance could mean instead of this one."
         + CONTEXT_NOTE + REFERENCE_NOTE,
       options: criteria(slots[relevantSlot(entity.id)], key => (file
         ? key === YES
