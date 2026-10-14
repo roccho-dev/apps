@@ -266,29 +266,23 @@ function judgeQuestions(section, slots) {
 // A locate frame's one question, judged from its part's own text - the files
 // it opens whole, and single lines of other files that name it - which the
 // question names by path, since the provider never sees the question's name.
-// For a file: whether the utterance asks about that file itself, not a part
-// that only supports, serves or is used by what it asks about. For a part
-// outside the source: the same, as the shown code uses it. The utterance need
-// not name the part; the options say where the line falls.
+// One positive condition: whether the current utterance asks to see this part,
+// directly or by what it refers to; the other option is any other case.
 function locateQuestion(entity, evidence, slots) {
   const file = entity.kind === "file";
   const lined = [...new Set(evidence.lines.map(line => line.path))];
   return {
     [relevantSlot(entity.id)]: {
       instruction: (file
-        ? `Is the file ${entity.label} itself one of the parts the current utterance asks to see or refers to - its own text being what is asked about - rather than a part that only supports, serves or is used by what is asked about?`
-        : `Is ${entity.label}, which lies outside the source, itself one of the parts the current utterance asks to see or refers to, as the shown original code uses it, rather than something the shown code only names or uses in support of what is asked about?`)
+        ? `Does the current utterance ask to see the content of the file ${entity.label}, directly or by what it refers to?`
+        : `Does the current utterance ask to see ${entity.label}, which lies outside the source, directly or by what it refers to?`)
         + ` state.architecture.evidence.bodies holds ${evidence.bodies.map(body => body.path).join(", ")} whole`
         + (lined.length === 0 ? "." : `; state.architecture.evidence.lines holds single lines of ${lined.join(", ")}, each with its path and line number.`)
         + " Judge only from that text and the utterance."
-        + LOCATE_CONTEXT_NOTE + REFERENCE_NOTE,
-      options: criteria(slots[relevantSlot(entity.id)], key => (file
-        ? key === YES
-          ? "the utterance asks about this file itself, whether or not it names it"
-          : "the utterance does not ask about this file itself: it is unrelated to what is asked about, only supports, serves or is used by it, or only mentions or imports a part that does"
-        : key === YES
-          ? "the utterance asks about it itself, as the shown code uses it, whether or not it names it"
-          : "the utterance does not ask about it itself: it is unrelated to what is asked about, or the shown code only names it or uses it only in support of what is asked about")),
+        + LOCATE_CONTEXT_NOTE + " An earlier entry's reference is the section the server reopened for it.",
+      options: criteria(slots[relevantSlot(entity.id)], key => key === YES
+        ? "the current utterance asks to see it, directly or by what it refers to"
+        : "any other case"),
     },
   };
 }
