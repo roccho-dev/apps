@@ -594,12 +594,37 @@ const WORKING_ENDPOINT_NOTE = " Match semantic qualifications using the current 
 
 const NOMINAL_ASSOCIATION = "UNKNOWN: generatedRegionId is a nominal source-composer name, not current record provenance or historical intent";
 const withoutNominalNames = state => {
-  const { currentAssociation, ...architecture } = state.architecture;
+  const { currentAssociation, roles, ...architecture } = state.architecture;
   return { ...state, architecture: { ...architecture,
     entities: architecture.entities.map(({ generatedRegionId, ...entity }) => entity) } };
 };
 const withoutWorkingEdgeLabels = state => ({ ...state, graph: { ...state.graph,
   edges: state.graph.edges.map(({ fromLabel, toLabel, ...edge }) => edge) } });
+
+for (const port of ["direct", "compiled"]) test(`a Goal intent is shown the served roles by purpose beside their nominal region names, ${port}`, async () => {
+  const body = { kind: ARCHITECTURE_GOAL_INTENT_KIND, state: {
+    utterance: "connect the one role to the other",
+    graph: { regions: [{ id: "arch-web-app-mjs", label: "web/app.mjs" }], edges: [] },
+    context: { recent: [] }, architecture: intentSectionOf(MANIFEST),
+  } };
+  assert.equal(isRequest(body), true);
+  let wire = null;
+  if (port === "direct") await onRequestPost({ available: true, architecture: prepared,
+    request: new Request("http://localhost/api/judge", { method: "POST", body: JSON.stringify(body) }) },
+  async ({ state }) => { wire = state; return { answers: Object.fromEntries(Object.keys(architectureGoalSlotsFor(body.state))
+    .map(key => [key, { choice: NONE, confidence: .3 }])) }; });
+  else wire = (await withProvider(answering(noneTo), () => post(body, ARCHITECTURE_ENV))).calls[0].state;
+  // The server's own manifest roles, in its order, after the entities; nothing from the page.
+  assert.deepEqual(Object.keys(wire.architecture), ["source", "entities", "roles", "currentAssociation"]);
+  assert.deepEqual(wire.architecture.roles, MANIFEST.roles.map(({ key, purpose }) =>
+    ({ key, purpose, generatedRegionId: `arch-role-${key}` })));
+  assert.match(wire.architecture.currentAssociation, /nominal source-composer name/u);
+  // The page cannot supply roles of its own.
+  const supplied = { ...body, state: { ...body.state, architecture: { ...body.state.architecture,
+    roles: [{ key: "invented", purpose: "anything", generatedRegionId: "arch-role-invented" }] } } };
+  const { result, calls } = await withProvider(answering(noneTo), () => post(supplied, ARCHITECTURE_ENV));
+  assert.equal(result.status, 422); assert.equal(calls.length, 0);
+});
 
 for (const port of ["direct", "compiled"]) test(`working edge endpoint label data is a reversible current view, ${port}`, async () => {
   const original = {
