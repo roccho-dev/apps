@@ -393,7 +393,7 @@ const inferredRecord = (candidate, kind) => entry(
   ORIGIN_MODEL, [{ candidate: candidate.id }]);
 
 // A role's node: the scope's term, drawn once it is first assigned.
-const roleIdOf = key => `${ROLE_PREFIX}${key}`;
+export const roleIdOf = key => `${ROLE_PREFIX}${key}`;
 const roleNode = key => entry({ type: "region", id: roleIdOf(key), label: `role:${key}` }, ORIGIN_SCOPE, [{ vocabulary: "roles", key }]);
 
 // A role Jev confirmed for an admitted file, judged from that file's whole text.

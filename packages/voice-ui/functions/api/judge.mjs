@@ -1,6 +1,6 @@
 import { ACTION_ADD_EDGE, ARCHITECTURE_GOAL_INTENT_KIND, ARCHITECTURE_INTENT_KIND, ARCHITECTURE_LOCATE_KIND, DECISION_KIND, ERRORS, GOAL_REQUEST_KIND, REQUEST_KIND, architectureGoalSlotsFor, isJudgeRequest, isLocateRequest, isRequest, judgeFramesFor, judgeSlotsFor, locateSlotsFor, readAnswers, slotsFor } from "../../src/contract.mjs";
 import { questionsFor } from "../../src/judgment.mjs";
-import { definedRelation, focusedEvidence, intentSectionOf, judgeSectionOf, readManifest, regionIdOf, scopeOf } from "../../src/architecture.mjs";
+import { definedRelation, focusedEvidence, intentSectionOf, judgeSectionOf, readManifest, regionIdOf, roleIdOf, scopeOf } from "../../src/architecture.mjs";
 
 const json = (body, status = 200) => new Response(JSON.stringify(body), {
   status, headers: { "content-type": "application/json; charset=utf-8", "cache-control": "no-store" },
@@ -110,6 +110,8 @@ export async function onRequestPost({ request, available, architecture }, judge)
             fromLabel: labels.get(edge.from), toLabel: labels.get(edge.to) })),
         }, architecture: { ...own,
           entities: own.entities.map(entity => ({ ...entity, generatedRegionId: regionIdOf(entity.id) })),
+          // The served roles by purpose, named as the composer names their nodes.
+          roles: bound.manifest.roles.map(({ key, purpose }) => ({ key, purpose, generatedRegionId: roleIdOf(key) })),
           currentAssociation: "UNKNOWN: generatedRegionId is a nominal source-composer name, not current record provenance or historical intent",
         } };
       }
