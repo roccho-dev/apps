@@ -201,9 +201,8 @@ expected arrow with every old non-layout record kept, and the actual painted
 arrow at its named ends by the existing painted observer, with the reverse and
 a disconnected visible part as negatives; the scene relation list is projection
 only, not paint proof. The container is the shared actual parent, else the
-actual root. PASS needs one actual frame on which the matched stroke start and
-marker tip lie inside the zero-margin iframe viewport and both end shapes
-intersect it, with that frame negatives; geometric connection alone is not a
+actual root. PASS needs one actual frame that meets the shared arrow rule
+below, with that frame negatives; geometric connection alone is not a
 viewport result. The overview is tried first, then the existing camera on the
 from end, then on the to end, then the camera on the new arrow itself,
 offered by exactly one option (the arrow the camera already shows while it
@@ -269,13 +268,14 @@ input distinction, not a confidence or quality change.
 ## One-frame arrow measurement across a group boundary
 
 goal-source, goal-nest and goal-flow measure every expected arrow with one shared rule on one
-actual frame: the matched stroke start and marker tip lie inside the zero-margin
-iframe viewport; each end's whole name is shown, meaning the one plain SVG text
-bound to its shape, as a glyph-cell box under finite axis-aligned positive
-matrices, lies wholly inside that viewport, the nearest SVG viewport and every
-native clip around it (any other text, clip or matrix is unmet; ink overhang and
-anything painted over the name are not proven), which replaces every statement
-here that end shapes merely intersect the viewport; and on
+actual frame: the one matched stroke's start and marker tip lie inside the
+finite zero-margin iframe viewport, both end shapes meet it, and each end's
+whole name is shown - the one visible, filled, plain SVG text bound to its
+shape, as a glyph-cell box under finite axis-aligned positive matrices, lies
+wholly inside that viewport, the nearest SVG viewport, every native clip-path
+rectangle and every overflow-clipping HTML ancestor's padding box (any other
+text, clip, overflow or matrix is unmet; ink overhang and anything painted over
+the name are not proven); and on
 the same frame the reverse arrow (unless itself expected) and an arrow to another
 part whose shape is in view do not connect. A nested Goal tries the group camera,
 then the existing camera on the arrow from end, then its to end; frames are never
