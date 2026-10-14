@@ -181,6 +181,18 @@ existing relations that share a directed pair (the page code both imports and
 calls the log and the judgment adapter); only edge IDs are unique, and a
 candidate may still never repeat an existing directed pair.
 
+Role nodes are drawn inside one roles group: a scope-declared region labelled
+`roles` (kind group) whose claim cites every role of the served vocabulary. It
+comes in the same Decision as, and before, the first role node it holds (one
+operation per Decision only under a limit of one), is never drawn empty or
+twice, and holds every role node, so a role-to-role arrow and both its ends'
+names fit one arrow-camera frame; distant file-to-file arrows are not claimed
+by this. Like any group it may take an ordinary part, which stays the person's
+(user-asserted), never a role, a source fact or a wider scope. A role node
+outside the group is refused for the same snapshot; the group's own parent is
+not checked. A document saved with ungrouped role nodes from another source
+restores unchanged, as not checkable.
+
 Positive proof needs the remembered source focus and plain conversation on the
 wire, at least one offered arrow (a scoped Goal offers the one resolved arrow,
 or with one end named at most one per remaining scope part), each touching the
