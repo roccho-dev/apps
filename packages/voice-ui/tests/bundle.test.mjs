@@ -30,7 +30,8 @@ test("a bundle that cannot be read offers nothing, and blocks nothing else", () 
   for (const value of [null, [], "text", { ...shipped(), schema: "other/1" }, { ...shipped(), version: "" }]) {
     assert.deepEqual(readBundle(value), { version: null, parts: null, diagrams: null });
   }
-  assert.deepEqual(offersOf(readBundle(null)), { parts: [], diagrams: [] });
+  assert.deepEqual(offersOf(readBundle(null), { named: false }), { parts: [], diagrams: [] });
+  assert.deepEqual(offersOf(readBundle(null), { named: true }), { parts: [], diagrams: [] });
 });
 
 test("a broken section disables only its own capability", () => {
@@ -59,11 +60,28 @@ test("a broken section disables only its own capability", () => {
 
 test("Jev is offered keys and purposes only - never labels, lanes, steps or links", () => {
   const bundle = readBundle(shipped());
-  const offers = offersOf(bundle);
+  const offers = offersOf(bundle, { named: false });
   assert.deepEqual(offers.parts, bundle.parts.map(({ key, purpose }) => ({ key, purpose })));
   assert.deepEqual(offers.diagrams, bundle.diagrams.map(({ key, purpose }) => ({ key, purpose })));
   const sent = JSON.stringify(offers);
   for (const label of [...bundle.parts.map(part => part.label), ...bundle.diagrams.flatMap(diagram => [diagram.label, ...diagram.lanes.map(lane => lane.label)])]) {
     assert.equal(sent.includes(label), false, label);
   }
+});
+
+test("a Goal's parts also carry their displayed name, as data; diagrams stay keys and purposes", () => {
+  const bundle = readBundle(shipped());
+  const offers = offersOf(bundle, { named: true });
+  assert.deepEqual(offers.parts, bundle.parts.map(({ key, purpose, label }) => ({ key, purpose, label })));
+  assert.deepEqual(offers.diagrams, bundle.diagrams.map(({ key, purpose }) => ({ key, purpose })));
+  const sent = JSON.stringify(offers.diagrams);
+  for (const label of bundle.diagrams.flatMap(diagram => [diagram.label, ...diagram.lanes.map(lane => lane.label)])) {
+    assert.equal(sent.includes(label), false, label);
+  }
+  // A name is display data, not identity: two parts may share one, kept apart by their keys.
+  const value = shipped();
+  const shared = readBundle({ ...value, parts: [value.parts[0], { ...value.parts[1], label: value.parts[0].label }] });
+  assert.deepEqual(offersOf(shared, { named: true }).parts.map(part => part.key), [value.parts[0].key, value.parts[1].key]);
+  // Which projection is meant is always said.
+  assert.throws(() => offersOf(bundle));
 });

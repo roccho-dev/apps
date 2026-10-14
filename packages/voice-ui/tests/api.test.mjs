@@ -113,6 +113,35 @@ test("Goal flow candidates retain legal wrong directions and reject malformed or
   assert.equal(isRequest({ ...body, kind: "voice-ui.judge.goal-addition.v2" }), false);
   assert.equal(isRequest({ ...body, kind: "voice-ui.judge.goal-local-delta.v3" }), false);
   assert.equal(isRequest({ ...body, kind: "voice-ui.judge.goal-local-delta.v4" }), false);
+  assert.equal(isRequest({ ...body, kind: "voice-ui.judge.goal-local-delta.v5" }), false);
+});
+
+test("a Goal offers each part by key, purpose and displayed name; the name is data, never identity", () => {
+  const part = { key: "service", purpose: "a service", label: "Service" };
+  const body = { kind: GOAL_REQUEST_KIND, state: {
+    utterance: "add the offered service inside the existing container",
+    graph: [{ id: "root", label: "world", parent: null }, { id: "container", label: "container", parent: "root" }],
+    edges: [], parents: [{ id: "container", label: "container", kind: "group", parent: "root" }],
+    offers: { parts: [part, { key: "store", purpose: "a store", label: "Service" }] }, selected: [],
+    candidates: [{ id: "delta-1", action: "add-part", part: "service", parent: "container" },
+      { id: "delta-2", action: "add-part", part: "store", parent: "container" }],
+    context: { recent: [] }, scope: null,
+  } };
+  assert.equal(isRequest(body), true, "a shared displayed name with distinct keys is legitimate data");
+  for (const mutate of [
+    state => { delete state.offers.parts[0].label; },
+    state => { state.offers.parts[0].extra = 1; },
+    state => { state.offers.parts[0].label = ""; },
+    state => { state.offers.parts[0].label = "  "; },
+    state => { state.offers.parts[0].label = "x".repeat(121); },
+    state => { state.offers.parts[0].label = 7; },
+    state => { state.offers.parts[1].key = "service"; },
+  ]) { const bad = structuredClone(body); mutate(bad.state); assert.equal(isRequest(bad), false, JSON.stringify(bad.state.offers)); }
+  // The same names never widen the plain request's key-and-purpose offers.
+  const options = questionsFor(body.state, slotsFor(body.state), { kind: GOAL_REQUEST_KIND }).delta.options;
+  assert.equal(options["delta-1"], 'add one new part Service (service): a service, inside "container" (container)');
+  assert.equal(options["delta-2"], 'add one new part Service (store): a store, inside "container" (container)');
+  assert.equal(options[NONE], "no offered executable change is clearly requested, or the requested changes are already present");
 });
 
 test("Goal state keeps distinct existing relations that share a directed pair; only edge IDs and offered pairs are unique", () => {
@@ -140,12 +169,12 @@ test("Goal state keeps distinct existing relations that share a directed pair; o
   ]) { const bad = structuredClone(body); mutate(bad.state); assert.equal(isRequest(bad), false, JSON.stringify(bad.state.edges.at(-1))); }
 });
 
-test("Goal v5 boundary asks one executable delta and refuses extra answers without architecture fanout", async () => {
+test("Goal v6 boundary asks one executable delta and refuses extra answers without architecture fanout", async () => {
   const body = { kind: GOAL_REQUEST_KIND, state: {
     utterance: "add the offered service inside the existing container",
     graph: [{ id: "root", label: "world", parent: null }, { id: "container", label: "container", parent: "root" }],
     edges: [], parents: [{ id: "container", label: "container", kind: "group", parent: "root" }],
-    offers: { parts: [{ key: "service", purpose: "a service" }] }, selected: [],
+    offers: { parts: [{ key: "service", purpose: "a service", label: "Service" }] }, selected: [],
     candidates: [{ id: "delta-1", action: "add-part", part: "service", parent: "container" }],
     context: { recent: [] }, scope: null,
   } };
@@ -159,7 +188,7 @@ test("Goal v5 boundary asks one executable delta and refuses extra answers witho
     assert.equal(questions.delta.instruction, "Choose one executable change toward the utterance's goal. A candidate adds one offered part inside its existing group at a proved placement, or connects two existing parts by one directed flow arrow. An explicitly hypothetical requested connection is a Working proposal, not proof of an existing source relationship. Use the current graph and edges to decide which requested changes are still missing; selected is adopted part history, not a completion oracle. Choose none when the requested changes are already present, no candidate is clearly needed, or the request is ambiguous. Do not add a connection merely because two parts are present; it must be requested by the utterance. An offered group part is added like any other part. Adding a part directly to an existing group never resizes it; placing a part into a group added by this goal resizes that group and its enclosing groups just enough, keeping their positions. Do not otherwise create, move or resize groups. context.recent lists earlier utterances as they were recognized or typed, and what came of each. They are unverified and may be misrecognized. Use them only to understand what the current utterance refers to; the current utterance, the current Working graph and edges are the facts, and an earlier effect is history, not the current graph.");
     assert.equal(questions.delta.instruction.includes("reopened"), false);
     assert.equal(questions.delta.options[NONE], "no offered executable change is clearly requested, or the requested changes are already present");
-    assert.equal(questions.delta.options["delta-1"], 'add one new part: a service, inside "container" (container)');
+    assert.equal(questions.delta.options["delta-1"], 'add one new part Service (service): a service, inside "container" (container)');
     assert.deepEqual(Object.keys(questions.delta.options), [...slotsFor(body.state).delta]);
     return { answers: { delta: { choice: "delta-1", confidence: 1 },
       ...(extra ? { action: { choice: NONE, confidence: 1 } } : {}) } };
@@ -169,6 +198,9 @@ test("Goal v5 boundary asks one executable delta and refuses extra answers witho
   const invalid = structuredClone(body); invalid.state.parents[0].kind = "step";
   assert.equal((await invoke(invalid)).status, 422);
   assert.equal((await invoke({ ...body, kind: "voice-ui.judge.goal-addition.v1" })).status, 422);
+  assert.equal((await invoke({ ...body, kind: "voice-ui.judge.goal-local-delta.v5" })).status, 422);
+  const unnamed = structuredClone(body); delete unnamed.state.offers.parts[0].label;
+  assert.equal((await invoke(unnamed)).status, 422);
   for (const candidates of [[], [null], Array.from({ length: 255 }, (_, index) => ({ id: `delta-${index + 1}`, part: "service", parent: "container" })),
     [{ id: "delta-1", part: "absent", parent: "container" }], [{ id: "delta-1", part: "service", parent: "root" }]]) {
     assert.equal((await invoke({ ...body, state: { ...body.state, candidates } })).status, 422);
@@ -178,7 +210,7 @@ test("Goal v5 boundary asks one executable delta and refuses extra answers witho
 
 test("Goal candidate cap accepts 254 unique pairs and refuses 255 before provider invocation", async () => {
   const parents = Array.from({ length: 32 }, (_, index) => ({ id: `group-${index}`, label: `Group ${index}`, kind: "group", parent: "root" }));
-  const parts = Array.from({ length: 8 }, (_, index) => ({ key: `part-${index}`, purpose: `Offered part ${index}` }));
+  const parts = Array.from({ length: 8 }, (_, index) => ({ key: `part-${index}`, purpose: `Offered part ${index}`, label: `Part ${index}` }));
   const pairs = parents.flatMap(parent => parts.map(part => ({ part: part.key, parent: parent.id })))
     .map((pair, index) => ({ id: `delta-${index + 1}`, action: "add-part", ...pair }));
   let calls = 0;
@@ -252,6 +284,7 @@ test("malformed parts of the one current request are refused before the provider
     { context: { recent: [{ seq: 1, source: "typed", text: "x".repeat(201), outcome: "no-change" }] } },
     { offers: { parts: [{ key: "none", purpose: "x" }], diagrams: [] } },
     { offers: { parts: [], diagrams: [{ key: "a", purpose: "x", label: "leaked" }] } },
+    { offers: { parts: [{ key: "a", purpose: "x", label: "leaked" }], diagrams: [] } },
     { draft: [{ changes: [{ change: "added", from: "a", to: "b" }], extra: 1 }] },
   ];
   const { result, calls } = await withProvider(answering(noneTo), () => Promise.all(bad.map(state => post(request(state)))));
@@ -1652,7 +1685,7 @@ test("a locate frame reads earlier words, outcomes and references but no earlier
     utterance: "add the offered service inside the existing container",
     graph: [{ id: "root", label: "world", parent: null }, { id: "container", label: "container", parent: "root" }],
     edges: [], parents: [{ id: "container", label: "container", kind: "group", parent: "root" }],
-    offers: { parts: [{ key: "service", purpose: "a service" }] }, selected: [],
+    offers: { parts: [{ key: "service", purpose: "a service", label: "Service" }] }, selected: [],
     candidates: [{ id: "delta-1", action: "add-part", part: "service", parent: "container" }],
     context: { recent: [] }, scope: null,
   } }, drawn);
@@ -1933,29 +1966,29 @@ test("Working node facts stay true for repeated, id-like and option-like labels 
   assert.equal(plain.source.options.z, `the edge starts at z (shown as ${JSON.stringify(forged)})`);
 
   const goal = questionsFor({ graph: [{ id: "z", label: forged, parent: null }, { id: "b", label: "Billing", parent: null }],
-    parents: [{ id: "z", label: forged, kind: "group", parent: null }], offers: { parts: [{ key: "store", purpose: "a store" }] },
+    parents: [{ id: "z", label: forged, kind: "group", parent: null }], offers: { parts: [{ key: "store", purpose: "a store", label: "Store" }] },
     candidates: [{ id: "delta-1", action: "add-edge", from: "z", to: "b" }, { id: "delta-2", action: "add-part", part: "store", parent: "z" }],
   }, { delta: ["delta-1", "delta-2", NONE] }, { kind: GOAL_REQUEST_KIND }).delta.options;
   assert.equal(goal["delta-1"], `a directed flow arrow from ${JSON.stringify(forged)} (z) to Billing (b)`);
-  assert.equal(goal["delta-2"], `add one new part: a store, inside ${JSON.stringify(forged)} (z)`);
+  assert.equal(goal["delta-2"], `add one new part Store (store): a store, inside ${JSON.stringify(forged)} (z)`);
   // A Goal option shows an ordinary label as it is; one that holds structure
   // or option characters, is empty or padded, or equals a node id of the same
   // request is quoted, so it never reads as an id, an option or more text.
   const odd = ["b", "Cache, Store", "a;b", "(x)", "it's", "", " Pad", "two\nlines"];
   for (const label of odd) {
     const options = questionsFor({ graph: [{ id: "g", label, parent: null }, { id: "b", label: "Billing", parent: null }],
-      parents: [{ id: "g", label, kind: "group", parent: null }], offers: { parts: [{ key: "store", purpose: "a store" }] },
+      parents: [{ id: "g", label, kind: "group", parent: null }], offers: { parts: [{ key: "store", purpose: "a store", label: "Store" }] },
       candidates: [{ id: "delta-1", action: "add-edge", from: "g", to: "b" }, { id: "delta-2", action: "add-part", part: "store", parent: "g" }],
     }, { delta: ["delta-1", "delta-2", NONE] }, { kind: GOAL_REQUEST_KIND }).delta.options;
     assert.equal(options["delta-1"], `a directed flow arrow from ${JSON.stringify(label)} (g) to Billing (b)`, JSON.stringify(label));
-    assert.equal(options["delta-2"], `add one new part: a store, inside ${JSON.stringify(label)} (g)`, JSON.stringify(label));
+    assert.equal(options["delta-2"], `add one new part Store (store): a store, inside ${JSON.stringify(label)} (g)`, JSON.stringify(label));
   }
   const ordinary = questionsFor({ graph: [{ id: "g", label: "Helper right", parent: null }, { id: "b", label: "グループ 6", parent: null }],
-    parents: [{ id: "g", label: "Helper right", kind: "group", parent: null }], offers: { parts: [{ key: "store", purpose: "a store" }] },
+    parents: [{ id: "g", label: "Helper right", kind: "group", parent: null }], offers: { parts: [{ key: "store", purpose: "a store", label: "Store" }] },
     candidates: [{ id: "delta-1", action: "add-edge", from: "g", to: "b" }, { id: "delta-2", action: "add-part", part: "store", parent: "g" }],
   }, { delta: ["delta-1", "delta-2", NONE] }, { kind: GOAL_REQUEST_KIND }).delta.options;
   assert.equal(ordinary["delta-1"], "a directed flow arrow from Helper right (g) to グループ 6 (b)");
-  assert.equal(ordinary["delta-2"], "add one new part: a store, inside Helper right (g)");
+  assert.equal(ordinary["delta-2"], "add one new part Store (store): a store, inside Helper right (g)");
 
   // An id is any non-none text: one that looks like option text or holds quotes is quoted,
   // never read as a label, metadata or another node.
@@ -1972,11 +2005,11 @@ test("Working node facts stay true for repeated, id-like and option-like labels 
     { kind: REQUEST_KIND, relationOf: () => null });
   assert.equal(plainId.source.options[idForged], `the edge starts at ${JSON.stringify(idForged)} (shown as "Cache")`);
   const goalId = questionsFor({ graph: [{ id: idForged, label: "Cache", parent: null }, { id: "b", label: "Billing", parent: null }],
-    parents: [{ id: idForged, label: "Cache", kind: "group", parent: null }], offers: { parts: [{ key: "store", purpose: "a store" }] },
+    parents: [{ id: idForged, label: "Cache", kind: "group", parent: null }], offers: { parts: [{ key: "store", purpose: "a store", label: "Store" }] },
     candidates: [{ id: "delta-1", action: "add-edge", from: idForged, to: "b" }, { id: "delta-2", action: "add-part", part: "store", parent: idForged }],
   }, { delta: ["delta-1", "delta-2", NONE] }, { kind: GOAL_REQUEST_KIND }).delta.options;
   assert.equal(goalId["delta-1"], `a directed flow arrow from Cache (${JSON.stringify(idForged)}) to Billing (b)`);
-  assert.equal(goalId["delta-2"], `add one new part: a store, inside Cache (${JSON.stringify(idForged)})`);
+  assert.equal(goalId["delta-2"], `add one new part Store (store): a store, inside Cache (${JSON.stringify(idForged)})`);
 });
 
 test("incident endpoint criteria do not enter plain, normal intent or local Goal questions", () => {

@@ -232,6 +232,9 @@ test("one Goal adopts two real AddRegions and whole-group Undo without claiming 
   assert.equal(Number.isFinite(result.elapsedMs) && result.elapsedMs >= 0, true);
   assert.equal(requests.every(request => request.kind === GOAL_REQUEST_KIND && isRequest(request)), true);
   assert.equal(requests.every(request => request.state.utterance === utterance && request.state.offers.parts.length === 8), true);
+  // Each offered part carries the displayed name of the same bundle, beside its key and purpose.
+  assert.equal(requests.every(request => JSON.stringify(request.state.offers.parts)
+    === JSON.stringify(bundle.parts.map(({ key, purpose, label }) => ({ key, purpose, label })))), true);
   assert.equal(requests[1].state.candidates.some(candidate => candidate.part === order[0]), false);
   assert.equal(requests[1].state.selected[0].key, order[0]);
   const added = session.working.records.filter(record => record.type === "region" && !before.working.records.some(old => old.id === record.id));
