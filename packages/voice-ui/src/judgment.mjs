@@ -44,13 +44,18 @@ const REFERENCE_NOTE = " An architecture conversation entry may carry reference:
 const EDGE_REFERENCE_NOTE = " Match against all current edges; if the conversational qualification does not identify one unique edge, answer none.";
 // A Working node is named by its unique id. Its label is only display text:
 // labels may repeat, equal another node's id or look like option text, so it
-// is always quoted and never names a node on its own. An id is shown as it is
-// only when it is one plain token; any other id is quoted too, so neither can
-// be read as option text, a label or another node.
+// never names a node on its own and is quoted after "shown as". An id is shown
+// as it is only when it is one plain token; any other id is quoted too, so
+// neither can be read as option text, a label or another node. In a Goal
+// option a label is likewise shown as it is unless it could be misread: it
+// holds structure or option characters, is empty or padded, or equals a node
+// id of the same request.
 const PLAIN_ID = /^[A-Za-z0-9][A-Za-z0-9._:-]*$/u;
+const MISREADABLE = /^$|^\s|\s$|["'()[\]{};,\\]|[\p{Cc}\p{Zl}\p{Zp}]/u;
 const quoted = label => JSON.stringify(label);
 const named = key => PLAIN_ID.test(key) ? key : quoted(key);
 const shownAs = (labels, key) => labels.get(key) === key ? named(key) : `${named(key)} (shown as ${quoted(labels.get(key))})`;
+const labelled = (ids, label) => MISREADABLE.test(label) || ids.has(label) ? quoted(label) : label;
 
 // The questions for exactly the slots the request offers. Each option is a
 // key the request carries; the words around it are this Function's own, and
@@ -63,14 +68,16 @@ export function questionsFor(state, slots, context) {
     const purposes = new Map(state.offers.parts.map(part => [part.key, part.purpose]));
     const parents = new Map(state.parents.map(parent => [parent.id, parent]));
     const labels = new Map(state.graph.map(region => [region.id, region.label]));
+    const ids = new Set([...labels.keys(), ...parents.keys()]);
+    const label = text => labelled(ids, text);
     return {
       delta: {
         instruction: "Choose one executable change toward the utterance's goal. A candidate adds one offered part inside its existing group at a proved placement, or connects two existing parts by one directed flow arrow. An explicitly hypothetical requested connection is a Working proposal, not proof of an existing source relationship. Use the current graph and edges to decide which requested changes are still missing; selected is adopted part history, not a completion oracle. Choose none when the requested changes are already present, no candidate is clearly needed, or the request is ambiguous. Do not add a connection merely because two parts are present; it must be requested by the utterance. An offered group part is added like any other part. Adding a part directly to an existing group never resizes it; placing a part into a group added by this goal resizes that group and its enclosing groups just enough, keeping their positions. Do not otherwise create, move or resize groups." + GOAL_CONTEXT_NOTE + (state.scope === null ? "" : SCOPE_NOTE),
         options: criteria(slots.delta, key => {
           if (key === NONE) return "no offered executable change is clearly requested, or the requested changes are already present";
           const candidate = state.candidates.find(item => item.id === key);
-          if (candidate.action === ACTION_ADD_EDGE) return `a directed flow arrow from ${quoted(labels.get(candidate.from))} (${named(candidate.from)}) to ${quoted(labels.get(candidate.to))} (${named(candidate.to)})`;
-          return `add one new part: ${purposes.get(candidate.part)}, inside ${quoted(parents.get(candidate.parent).label)} (${named(candidate.parent)})`;
+          if (candidate.action === ACTION_ADD_EDGE) return `a directed flow arrow from ${label(labels.get(candidate.from))} (${named(candidate.from)}) to ${label(labels.get(candidate.to))} (${named(candidate.to)})`;
+          return `add one new part: ${purposes.get(candidate.part)}, inside ${label(parents.get(candidate.parent).label)} (${named(candidate.parent)})`;
         }),
       },
     };
