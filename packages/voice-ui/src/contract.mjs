@@ -7,7 +7,7 @@
 
 export const REQUEST_KIND = "voice-ui.judge.request.v1";
 export const DECISION_KIND = "voice-ui.judge.decision.v1";
-export const GOAL_REQUEST_KIND = "voice-ui.judge.goal-local-delta.v5";
+export const GOAL_REQUEST_KIND = "voice-ui.judge.goal-local-delta.v6";
 export const GOAL_REQUEST_MAX = 8;
 // The architecture page's requests, each its own closed kind. The intent is
 // the plain request with the prepared snapshot's parts beside it, by path or
@@ -201,12 +201,14 @@ const validPending = (pending, placeable) => pending === null || (
   && (pending.move === null || pending.anchor === null || pending.move !== pending.anchor)
 );
 
-const validOffer = list =>
+// An offer is a unique key and its purpose; a Goal's part (`named`) also has
+// its bounded displayed name, which may repeat and never identifies it.
+const validOffer = (list, { named }) =>
   Array.isArray(list)
   && list.length <= OFFER_MAX
-  && list.every(offer => exactObject(offer, ["key", "purpose"])
+  && list.every(offer => exactObject(offer, named ? ["key", "purpose", "label"] : ["key", "purpose"])
     && typeof offer.key === "string" && KEY_PATTERN.test(offer.key) && offer.key !== NONE
-    && text(offer.purpose, PURPOSE_MAX))
+    && text(offer.purpose, PURPOSE_MAX) && (!named || text(offer.label, LABEL_MAX)))
   && unique(list.map(offer => offer.key));
 
 const COMMIT = /^[0-9a-f]{40}$/u;
@@ -242,7 +244,7 @@ const validGoalRequest = value => {
       && ids.includes(parent.parent) && state.graph.some(region => region.id === parent.id
         && region.label === parent.label && region.parent === parent.parent))
     || !unique(state.parents.map(parent => parent.id))) return false;
-  if (!exactObject(state.offers, ["parts"]) || !validOffer(state.offers.parts)) return false;
+  if (!exactObject(state.offers, ["parts"]) || !validOffer(state.offers.parts, { named: true })) return false;
   const endpoints = ids.filter(value => parentOf.get(value) !== null && !state.parents.some(parent => parent.id === value));
   // Existing relations are kept whole: distinct typed relations (an import and
   // a call) may share a directed pair. Only their IDs are unique; a candidate
@@ -325,8 +327,8 @@ export function isRequest(value) {
     && validPending(state.pending, state.graph.placeable)
     && validContext(state.context, changes, architecture)
     && exactObject(state.offers, ["parts", "diagrams"])
-    && validOffer(state.offers.parts)
-    && validOffer(state.offers.diagrams);
+    && validOffer(state.offers.parts, { named: false })
+    && validOffer(state.offers.diagrams, { named: false });
 }
 
 // An architecture locate frame: the utterance and the recent conversation
@@ -368,7 +370,8 @@ export function isJudgeRequest(value) {
       && ids.includes(candidate.from) && ids.includes(candidate.to) && candidate.from !== candidate.to
       && Array.isArray(candidate.reasons) && candidate.reasons.length > 0 && candidate.reasons.every(reason => text(reason, LABEL_MAX)))
     && unique(candidates.map(candidate => candidate.id))
-    && validOffer(section.roles) && section.roles.length > 0 && validOffer(section.relations) && section.relations.length > 0;
+    && validOffer(section.roles, { named: false }) && section.roles.length > 0
+    && validOffer(section.relations, { named: false }) && section.relations.length > 0;
 }
 
 // A locate frame's question by name, one for its part; and its options:

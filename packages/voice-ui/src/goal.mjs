@@ -116,7 +116,7 @@ export async function runGoal({ utterance, bundle, protocol, current, ask, adopt
       // focus, and the Goal judgment below picks one offered arrow or none.
       pair = Object.freeze({ from: source.choice === NONE ? null : source.choice, to: target.choice === NONE ? null : target.choice });
     }
-    const parts = offersOf(bundle).parts;
+    const parts = offersOf(bundle, { named: true }).parts;
     const held = legalLocalDeltas(expected.working, { bundle, protocol, reserved: expected.issuedPartIds, selected, scope: regions, pair });
     if (held.candidates.length === 0) return stop("no-executable-delta");
     if (held.candidates.length > 254) return stop("candidate-overflow");

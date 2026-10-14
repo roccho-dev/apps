@@ -96,8 +96,13 @@ has-role relations the request shows, refusing a mismatched source, an
 unknown part or an arrow outside it (422; 503 without the architecture). No source
 text is sent with a Goal and it claims no understanding of the code. Without a
 scope the whole catalogue stays, so a Goal on a drawn source snapshot still stops
-at `candidate-overflow`. Goal v5 rejects older Goal kinds; ordinary Send v1 is
-unchanged. (Goal v4 was the same without `scope`.)
+at `candidate-overflow`. Goal v6 offers each part by exactly its key, purpose
+and displayed name from the same caller bundle, and an add-part option states
+all three. The name is bounded display data, never identity: parts may share
+one, while a missing, extra or invalid name or a repeated key is refused before
+the provider. Goal v6 rejects older Goal kinds; ordinary Send v1 and the
+architecture kinds still offer keys and purposes only. (Goal v5 was the same
+without names; Goal v4 also without `scope`.)
 
 The public bundle offers one generic group part (kind group) within the eight
 offer cap; a seed diagram step is never a group. A group joins the catalogue as

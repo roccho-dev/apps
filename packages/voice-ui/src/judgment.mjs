@@ -65,7 +65,9 @@ const labelled = (ids, label) => MISREADABLE.test(label) || ids.has(label) ? quo
 // which has no snapshot, describes every edge by its two ends only.
 export function questionsFor(state, slots, context) {
   if (state.candidates !== undefined) {
-    const purposes = new Map(state.offers.parts.map(part => [part.key, part.purpose]));
+    // An offered part is named by its displayed name and its key; the name is
+    // display data and may repeat, the key and the candidate id decide.
+    const offered = new Map(state.offers.parts.map(part => [part.key, part]));
     const parents = new Map(state.parents.map(parent => [parent.id, parent]));
     const labels = new Map(state.graph.map(region => [region.id, region.label]));
     const ids = new Set([...labels.keys(), ...parents.keys()]);
@@ -77,7 +79,8 @@ export function questionsFor(state, slots, context) {
           if (key === NONE) return "no offered executable change is clearly requested, or the requested changes are already present";
           const candidate = state.candidates.find(item => item.id === key);
           if (candidate.action === ACTION_ADD_EDGE) return `a directed flow arrow from ${label(labels.get(candidate.from))} (${named(candidate.from)}) to ${label(labels.get(candidate.to))} (${named(candidate.to)})`;
-          return `add one new part: ${purposes.get(candidate.part)}, inside ${label(parents.get(candidate.parent).label)} (${named(candidate.parent)})`;
+          const part = offered.get(candidate.part);
+          return `add one new part ${label(part.label)} (${named(part.key)}): ${part.purpose}, inside ${label(parents.get(candidate.parent).label)} (${named(candidate.parent)})`;
         }),
       },
     };
