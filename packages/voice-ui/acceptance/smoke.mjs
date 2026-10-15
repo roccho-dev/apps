@@ -485,8 +485,9 @@ try {
       assert.equal(proof.internalModelExecutions, "UNKNOWN"); assert.equal(proof.providerCost, "UNKNOWN");
       assert.equal(proof.baselineMet, !flow); assert.equal(proof.addedValue, "NOT_PROVEN");
       assert.deepEqual(proof.selected.map(item => item.key), ["api", "db"]);
+      // Each addition is asked twice from the same history, what then where.
       assert.deepEqual(proof.requestHistories.map(history => history.map(item => item.key)), flow
-        ? [[], ["api"], ["api", "db"], ["api", "db"]] : [[], ["api"], ["api", "db"]]);
+        ? [[], [], ["api"], ["api"], ["api", "db"], ["api", "db"]] : [[], [], ["api"], ["api"], ["api", "db"]]);
       assert.equal(proof.newEdges.length, flow ? 1 : 0);
       if (flow) {
         assert.equal(proof.painted.edge.complete, true);
