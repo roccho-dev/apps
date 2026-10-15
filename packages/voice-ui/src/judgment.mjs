@@ -88,7 +88,7 @@ export function questionsFor(state, slots, context) {
             : "the utterance requests none of these existing groups for this part, or does not identify a unique one";
           if (placing !== null) {
             const candidate = state.candidates.find(item => item.action === ACTION_ADD_PART && item.id === key);
-            return `the utterance requests ${label(placing.label)} (${named(placing.key)}) inside ${label(parents.get(candidate.parent).label)} (${named(candidate.parent)})`;
+            return `add one new part ${label(placing.label)} (${named(placing.key)}) directly inside ${label(parents.get(candidate.parent).label)} (${named(candidate.parent)})`;
           }
           const arrow = state.candidates.find(item => item.action === ACTION_ADD_EDGE && item.id === key);
           if (arrow !== undefined) return `a directed flow arrow from ${label(labels.get(arrow.from))} (${named(arrow.from)}) to ${label(labels.get(arrow.to))} (${named(arrow.to)})`;
