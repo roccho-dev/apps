@@ -34,7 +34,7 @@ const GOAL_CONTEXT_NOTE = " context.recent lists earlier utterances as they were
 // a part, whose group a second frame asks, or an arrow between existing parts.
 const GOAL_WHAT = "Choose the next executable change toward the utterance's goal. An option either adds one offered part, whose group is chosen by a separate following question, or connects two existing parts by one directed flow arrow. An explicitly hypothetical requested connection is a Working proposal, not proof of an existing source relationship. Use the current graph and edges to decide which requested changes are still missing; selected is adopted part history, not a completion oracle. An arrow is offered only when both of its ends exist, so a requested part that is still missing comes before its arrows. Choose none when the requested changes are already present, no option is clearly needed, or the request is ambiguous. Do not add a connection merely because two parts are present; it must be requested by the utterance. An offered group part is added like any other part.";
 // The second frame, bound to the part the first chose, asks only where it goes.
-const GOAL_WHERE = "Choose the existing group the utterance requests it to be inside; each option is one proved placement inside one group. Choose none when no offered group is requested for it, or the request is ambiguous. Adding a part directly to an existing group never resizes it; placing a part into a group added by this goal resizes that group and its enclosing groups just enough, keeping their positions. Do not otherwise create, move or resize groups.";
+const GOAL_WHERE = "Which existing group does the utterance request this part to be inside? A group already added by this goal is also an existing group here. Choose none when the utterance requests no offered group for it, or does not identify a unique one.";
 // A Goal's scope is checked by the server, not taken from the page on trust.
 const SCOPE_NOTE = " state.scope names the parts in focus, which the server matched against the current source;"
   + " every offered arrow touches one of them. It is not an earlier judgment or authority, and no source text is given."
@@ -85,10 +85,10 @@ export function questionsFor(state, slots, context) {
           + GOAL_CONTEXT_NOTE + (state.scope === null ? "" : SCOPE_NOTE),
         options: criteria(slots.delta, key => {
           if (key === NONE) return placing === null ? "no offered executable change is clearly requested, or the requested changes are already present"
-            : "no offered group is requested for this part, or the request is ambiguous";
+            : "the utterance requests no offered group for this part, or does not identify a unique one";
           if (placing !== null) {
             const candidate = state.candidates.find(item => item.action === ACTION_ADD_PART && item.id === key);
-            return `inside ${label(parents.get(candidate.parent).label)} (${named(candidate.parent)}): add one new part ${partOf(placing)}`;
+            return `the utterance requests ${label(placing.label)} (${named(placing.key)}) inside ${label(parents.get(candidate.parent).label)} (${named(candidate.parent)})`;
           }
           const arrow = state.candidates.find(item => item.action === ACTION_ADD_EDGE && item.id === key);
           if (arrow !== undefined) return `a directed flow arrow from ${label(labels.get(arrow.from))} (${named(arrow.from)}) to ${label(labels.get(arrow.to))} (${named(arrow.to)})`;
