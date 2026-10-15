@@ -217,7 +217,8 @@ const COMMIT = /^[0-9a-f]{40}$/u;
 // placing null it asks what comes next: each part that has a held addition
 // once, by its part alternative in first-occurrence order, then each arrow by
 // id. Bound to one such part, it asks only where that part goes: its held
-// additions, by id. Only the slot differs between the two.
+// additions, by id. A bound request's candidates may be narrowed to that
+// part's held additions; its slot is the same either way.
 export const partOption = key => `part:${key}`;
 const goalOptions = state => (state.placing === null
   ? [...new Set(state.candidates.filter(candidate => candidate.action === ACTION_ADD_PART).map(candidate => partOption(candidate.part))),

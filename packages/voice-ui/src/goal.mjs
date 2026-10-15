@@ -138,9 +138,11 @@ export async function runGoal({ utterance, bundle, protocol, current, ask, adopt
       scope,
     };
     // One counted judgment per frame over the same held candidates: what comes
-    // next, then - only for a part - where it goes, bound to that part.
+    // next over all of them, then - only for a part - where it goes, shown only
+    // that part's held additions in their order; adoption proves the whole held set.
     const frame = async bound => {
-      const request = { kind: GOAL_REQUEST_KIND, state: { ...state, placing: bound } };
+      const request = { kind: GOAL_REQUEST_KIND, state: bound === null ? { ...state, placing: null }
+        : { ...state, placing: bound, candidates: Object.freeze(state.candidates.filter(item => item.part === bound)) } };
       if (!isRequest(request)) return { stop: "invalid-goal-request" };
       const answer = await judged(request, slotsFor(request.state));
       if (answer.stop !== undefined) return answer;

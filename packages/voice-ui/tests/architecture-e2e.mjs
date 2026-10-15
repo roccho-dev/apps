@@ -110,7 +110,7 @@ const lexicalChoice = (state, parts) => {
   }
   return "none";
 };
-// The one mechanical adapter from a choice over the full candidate set to a v7
+// The one mechanical adapter from a choice over the request's candidates to a v7
 // Goal frame's answer: a first frame answers an addition by its part
 // alternative, an arrow or none as itself; a frame bound to a part answers that
 // part's addition by its id. It reads the request only, holds nothing between
