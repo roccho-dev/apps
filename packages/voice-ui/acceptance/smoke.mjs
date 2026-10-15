@@ -468,8 +468,9 @@ try {
     if (mode === "fixture") {
       assert.deepEqual(summary.reached, ["open", "prepare", "goal", "goal-undo"]);
       assert.deepEqual(summary.notRun, []);
-      assert.equal(summary.actions.undo, 1); assert.equal(summary.requests, flow ? 5 : 4);
-      assert.equal(proof.requests, flow ? 4 : 3); assert.deepEqual(proof.questionCounts, Array(flow ? 4 : 3).fill(1)); assert.equal(proof.reason, "none");
+      // Two additions of two frames (what, where) each, the arrow and the stop.
+      assert.equal(summary.actions.undo, 1); assert.equal(summary.requests, flow ? 7 : 6);
+      assert.equal(proof.requests, flow ? 6 : 5); assert.deepEqual(proof.questionCounts, Array(flow ? 6 : 5).fill(1)); assert.equal(proof.reason, "none");
       assert.equal(proof.goalMet, true); assert.equal(proof.undoRestored, true);
       assert.deepEqual(proof.labelsVisible, [true, true]); assert.equal(proof.timeBudgetMet, true);
       assert.equal(proof.painted.complete, true); assert.equal(proof.painted.contained, true);

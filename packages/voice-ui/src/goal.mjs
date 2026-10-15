@@ -1,5 +1,5 @@
 import { ACTION_ADD_EDGE, ARCHITECTURE_GOAL_INTENT_KIND, ARCHITECTURE_INTENT_KIND, GOAL_REQUEST_KIND, GOAL_REQUEST_MAX, MIN_CONFIDENCE, NONE, isRequest,
-  architectureGoalSlotsFor, readAnswers, slotsFor } from "./contract.mjs";
+  architectureGoalSlotsFor, partOption, readAnswers, slotsFor } from "./contract.mjs";
 import { offersOf } from "./bundle.mjs";
 import { scopeOf } from "./architecture.mjs";
 import { legalLocalDeltas, OUTCOME_STEP, proveLocalDelta } from "./turn.mjs";
@@ -124,7 +124,7 @@ export async function runGoal({ utterance, bundle, protocol, current, ask, adopt
     const parents = shown.filter(record => record.type === "region"
       && record.kind === "group" && record.parent !== null)
       .map(({ id, label, kind, parent }) => ({ id, label, kind, parent }));
-    const request = { kind: GOAL_REQUEST_KIND, state: {
+    const state = {
       utterance,
       graph: shown.filter(record => record.type === "region")
         .map(({ id, label, parent }) => ({ id, label, parent })),
@@ -136,16 +136,32 @@ export async function runGoal({ utterance, bundle, protocol, current, ask, adopt
         : { id: candidate.id, action: "add-edge", from: candidate.from, to: candidate.to }))),
       context: { recent: recentConversation(expected).recent },
       scope,
-    } };
-    if (!isRequest(request)) return stop("invalid-goal-request");
-    const answer = await judged(request, slotsFor(request.state));
-    if (answer.stop !== undefined) return stop(answer.stop);
-    const { read } = answer;
-    if (read.delta.choice === NONE) return stop("none");
-    const confidence = read.delta.confidence;
-    if (confidence < MIN_CONFIDENCE) return stop("not-confident");
-    const candidate = held.candidates.find(item => item.id === read.delta.choice);
-    const planned = await proveLocalDelta({ working: expected.working, held, candidateId: read.delta.choice,
+    };
+    // One counted judgment per frame over the same held candidates: what comes
+    // next, then - only for a part - where it goes, bound to that part.
+    const frame = async bound => {
+      const request = { kind: GOAL_REQUEST_KIND, state: { ...state, placing: bound } };
+      if (!isRequest(request)) return { stop: "invalid-goal-request" };
+      const answer = await judged(request, slotsFor(request.state));
+      if (answer.stop !== undefined) return answer;
+      const { choice, confidence } = answer.read.delta;
+      if (choice === NONE) return { stop: "none" };
+      return confidence < MIN_CONFIDENCE ? { stop: "not-confident" } : { choice, confidence };
+    };
+    const what = await frame(null);
+    if (what.stop !== undefined) return stop(what.stop);
+    let { choice, confidence } = what;
+    // A part alternative names no candidate: the bound frame names the held one,
+    // and the weaker of the two answers is the step's confidence.
+    const placing = held.candidates.find(item => item.part !== undefined && partOption(item.part) === choice)?.part;
+    if (placing !== undefined) {
+      const where = await frame(placing);
+      if (where.stop !== undefined) return stop(where.stop);
+      ({ choice } = where);
+      confidence = Math.min(confidence, where.confidence);
+    }
+    const candidate = held.candidates.find(item => item.id === choice);
+    const planned = await proveLocalDelta({ working: expected.working, held, candidateId: choice,
       confidence, bundle, reserved: expected.issuedPartIds, selected, scope: regions, pair, protocol });
     if (planned.outcome !== OUTCOME_STEP) return stop(planned.reason);
     if (cancelled() || current() !== expected) return stop("stale-goal");

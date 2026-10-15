@@ -110,6 +110,15 @@ const lexicalChoice = (state, parts) => {
   }
   return "none";
 };
+// The one mechanical adapter from a choice over the full candidate set to a v7
+// Goal frame's answer: a first frame answers an addition by its part
+// alternative, an arrow or none as itself; a frame bound to a part answers that
+// part's addition by its id. It reads the request only, holds nothing between
+// frames and never changes what was chosen; the CPU replay runs this same source.
+const phaseAnswer = (state, choice, partOption) => {
+  const candidate = state.candidates.find(item => item.id === choice);
+  return state.placing === null && candidate?.action === "add-part" ? partOption(candidate.part) : choice;
+};
 // A finite evaluator input, never a product request or fixture-answer source.
 const exactKeys = (value, keys) => value !== null && typeof value === "object" && !Array.isArray(value)
   && JSON.stringify(Object.keys(value).sort()) === JSON.stringify([...keys].sort());
@@ -1034,14 +1043,15 @@ const goalScenario = async () => {
   const crafted = [];
   if (FIXTURE) await page.route(route, craft((name, sent) => {
     if (mode === "fixture-none") return contract.NONE;
+    const answer = choice => phaseAnswer(sent.state, choice, contract.partOption);
     // A controlled seen regression answered by the same public lexical selector.
-    if (mode === "fixture-baseline") { crafted.push(lexicalChoice(sent.state, publicBundle.parts)); return crafted.at(-1); }
+    if (mode === "fixture-baseline") { crafted.push(answer(lexicalChoice(sent.state, publicBundle.parts))); return crafted.at(-1); }
     // A controlled weak first answer: an offered choice below the confidence floor.
-    if (mode === "fixture-weak") return { choice: sent.state.candidates[0].id, confidence: 0.3 };
+    if (mode === "fixture-weak") return { choice: answer(sent.state.candidates[0].id), confidence: 0.3 };
     const group = sent.state.selected.find(item => item.key === "group")?.region;
     const next = (NEST ? [["group", container.id], ["db", group], ["api", container.id]] : [["api", container.id], ["db", container.id]])
       .find(([key]) => !sent.state.selected.some(item => item.key === key));
-    if (next !== undefined) return sent.state.candidates.find(candidate => candidate.part === next[0] && candidate.parent === next[1])?.id ?? contract.NONE;
+    if (next !== undefined) return answer(sent.state.candidates.find(candidate => candidate.part === next[0] && candidate.parent === next[1])?.id ?? contract.NONE);
     const from = sent.state.selected.find(item => item.key === "api")?.region;
     const to = sent.state.selected.find(item => item.key === "db")?.region;
     return FLOW ? sent.state.candidates.find(candidate => candidate.action === "add-edge" && candidate.from === from && candidate.to === to)?.id ?? contract.NONE : contract.NONE;
@@ -1299,12 +1309,13 @@ const goalScenario = async () => {
   // preparation requests and answers; each rebuilt preparation request, the
   // resulting log/head/records and the first Goal request must equal what was
   // actually observed. It never sees the oracle.
-  const replay = await page.evaluate(async ({ log, title, preparation, utterance, bundleUrl, sourceUrl, selectorSource }) => {
+  const replay = await page.evaluate(async ({ log, title, preparation, utterance, bundleUrl, sourceUrl, selectorSource, adapterSource }) => {
     const modules = ["/app/src/goal.mjs", "/app/src/bundle.mjs", "/ui/semantic-map/protocol/index.js",
       "/app/src/session.mjs", "/app/src/turn.mjs", "/app/src/architecture.mjs"];
     const loaded = new Set(performance.getEntriesByType("resource").map(entry => new URL(entry.name).pathname));
-    const [{ runGoal }, { readBundle }, protocol, { createSession, startNew, propose, draftForJudgment, recentConversation },
-      { requestFor, focusFor }, { readManifest, withArchitecture }] = await Promise.all(modules.map(path => import(path)));
+    const [[{ runGoal }, { readBundle }, protocol, { createSession, startNew, propose, draftForJudgment, recentConversation },
+      { requestFor, focusFor }, { readManifest, withArchitecture }], { partOption }] = await Promise.all([
+      Promise.all(modules.map(path => import(path))), import("/app/src/contract.mjs")]);
     const bundle = readBundle(await (await fetch(bundleUrl)).json());
     const manifest = readManifest(await (await fetch(sourceUrl)).json());
     let session = (await startNew(createSession({ accepted: null, stored: null }), { title, protocol })).session;
@@ -1326,7 +1337,8 @@ const goalScenario = async () => {
     const provenance = { issuedPartIds: [...session.issuedPartIds], nextSeq: session.nextSeq,
       conversation: session.conversation.length, draft: session.draft.length };
     const lexical = (0, eval)("(" + selectorSource + ")");
-    const select = state => lexical(state, bundle.parts);
+    const adapter = (0, eval)("(" + adapterSource + ")");
+    const select = state => adapter(state, lexical(state, bundle.parts), partOption);
     let first = null;
     const choices = [];
     const result = await runGoal({ utterance, bundle, protocol, current: () => session, cancelled: () => false,
@@ -1339,12 +1351,14 @@ const goalScenario = async () => {
     return { head: working.head, startRecords: working.records, first, choices, reason: result.reason, requests: result.requests,
       sameLog: working.log === log, preparedEqual, provenance,
       records: session.working.records, modulesLoadedByPage: modules.every(path => loaded.has(path)) };
-  }, { log: beforeLog, title: GOAL_TITLE, utterance: goalText, selectorSource: lexicalChoice.toString(),
+  }, { log: beforeLog, title: GOAL_TITLE, utterance: goalText, selectorSource: lexicalChoice.toString(), adapterSource: phaseAnswer.toString(),
     preparation: exchanges.slice(0, prepared).map(entry => ({ sent: entry.sent, answers: entry.body?.answers })),
     bundleUrl: new URL(config.data.bundle, url).href, sourceUrl: new URL(config.data.source, url).href });
   const fairNone = replay.choices[0] === contract.NONE && JSON.stringify(replay.records) === JSON.stringify(before.graph.records);
   const fair = grade(replay.records, () => fairNone);
   goalEvidence.fairBaseline = { selector: "PR60 deterministic lexical, NFKC lowercase longest mention", reason: replay.reason,
+    // The replay and every fixture answer run these exact two sources.
+    sources: { selector: digest(lexicalChoice.toString()), adapter: digest(phaseAnswer.toString()) },
     requests: replay.requests, choices: replay.choices, grade: fair.semanticMet ? "PASS" : "NOT_MET", actual: fair.actual,
     newEdges: fair.newEdges.map(({ from, to, kind }) => ({ from, to, kind })),
     // Observed: log, head, records, each preparation request and the first Goal

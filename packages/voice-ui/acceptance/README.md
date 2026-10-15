@@ -53,7 +53,16 @@ baseline. Internal model execution/time/cost are UNKNOWN.
 Goal requests choose one request-local executable change: AddRegion/new-child
 PinRegions at a proved placement, or the existing directed flow ConnectRegions
 between two nonroot, nongroup parts, or NONE. Typed part vocabulary is public
-data, not an operator registry. The local join excludes self and existing same
+data, not an operator registry. Goal v7 asks each change in up to two frames over
+the same held candidates, each a counted request within the bound of eight. With
+`placing` null a request asks what comes next: each part that has a held addition
+once, as `part:<key>` in first-occurrence order, then each arrow by id, then none.
+For a part, a second request with `placing` set to that key asks only where it
+goes: that part's held additions by id, then none. The adopted step is the held
+candidate the second frame names, at the weaker of the two confidences; none or a
+weak answer in either frame adopts nothing. A missing, unknown or unheld `placing`
+and an arrow id equal to a derived part alternative are refused before the
+provider. The local join excludes self and existing same
 direction edges, but keeps legal wrong directions and endpoints. It never filters
 by the Goal's expected answer. Latest-state proof binds all records, pins, bundle,
 reserved IDs and actual adopted history; adoption uses the original held effect,
@@ -96,13 +105,14 @@ has-role relations the request shows, refusing a mismatched source, an
 unknown part or an arrow outside it (422; 503 without the architecture). No source
 text is sent with a Goal and it claims no understanding of the code. Without a
 scope the whole catalogue stays, so a Goal on a drawn source snapshot still stops
-at `candidate-overflow`. Goal v6 offers each part by exactly its key, purpose
-and displayed name from the same caller bundle, and an add-part option states
+at `candidate-overflow`. Goal v7 offers each part by exactly its key, purpose
+and displayed name from the same caller bundle, and each part option states
 all three. The name is bounded display data, never identity: parts may share
 one, while a missing, extra or invalid name or a repeated key is refused before
-the provider. Goal v6 rejects older Goal kinds; ordinary Send v1 and the
-architecture kinds still offer keys and purposes only. (Goal v5 was the same
-without names; Goal v4 also without `scope`.)
+the provider. Goal v7 rejects older Goal kinds; ordinary Send v1 and the
+architecture kinds still offer keys and purposes only. (Goal v6 asked one
+combined part-and-group question per change; Goal v5 was v6 without names;
+Goal v4 also without `scope`.)
 
 The public bundle offers one generic group part (kind group) within the eight
 offer cap; a seed diagram step is never a group. A group joins the catalogue as

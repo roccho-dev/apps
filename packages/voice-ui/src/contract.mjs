@@ -7,7 +7,7 @@
 
 export const REQUEST_KIND = "voice-ui.judge.request.v1";
 export const DECISION_KIND = "voice-ui.judge.decision.v1";
-export const GOAL_REQUEST_KIND = "voice-ui.judge.goal-local-delta.v6";
+export const GOAL_REQUEST_KIND = "voice-ui.judge.goal-local-delta.v7";
 export const GOAL_REQUEST_MAX = 8;
 // The architecture page's requests, each its own closed kind. The intent is
 // the plain request with the prepared snapshot's parts beside it, by path or
@@ -213,10 +213,21 @@ const validOffer = (list, { named }) =>
 
 const COMMIT = /^[0-9a-f]{40}$/u;
 // One executable candidate choice; ordinary v1 requests keep their exact shape.
+// A Goal step is asked in up to two frames over the same held candidates. With
+// placing null it asks what comes next: each part that has a held addition
+// once, by its part alternative in first-occurrence order, then each arrow by
+// id. Bound to one such part, it asks only where that part goes: its held
+// additions, by id. Only the slot differs between the two.
+export const partOption = key => `part:${key}`;
+const goalOptions = state => (state.placing === null
+  ? [...new Set(state.candidates.filter(candidate => candidate.action === ACTION_ADD_PART).map(candidate => partOption(candidate.part))),
+    ...state.candidates.filter(candidate => candidate.action === ACTION_ADD_EDGE).map(candidate => candidate.id)]
+  : state.candidates.filter(candidate => candidate.action === ACTION_ADD_PART && candidate.part === state.placing).map(candidate => candidate.id));
+
 const validGoalRequest = value => {
   if (!exactObject(value, ["kind", "state"])) return false;
   const state = value.state;
-  if (!exactObject(state, ["utterance", "graph", "edges", "parents", "offers", "selected", "candidates", "context", "scope"])) return false;
+  if (!exactObject(state, ["utterance", "graph", "edges", "parents", "offers", "selected", "candidates", "context", "scope", "placing"])) return false;
   // The page's recent conversation, required and plain: no section reference,
   // since only the architecture path reopens one from source. An earlier
   // architecture utterance may have carried a whole snapshot's changes.
@@ -265,6 +276,10 @@ const validGoalRequest = value => {
     || !unique(state.candidates.map(candidate => candidate.id))
     || !unique(state.candidates.map(candidate => JSON.stringify(candidate.action === ACTION_ADD_PART
       ? [candidate.action, candidate.part, candidate.parent] : [candidate.action, candidate.from, candidate.to])))) return false;
+  // A bound part is one this request holds an addition for, and a slot never
+  // repeats a key: an arrow whose id is a derived part alternative is refused.
+  if (state.placing !== null && !state.candidates.some(candidate => candidate.action === ACTION_ADD_PART && candidate.part === state.placing)) return false;
+  if (!unique(goalOptions(state))) return false;
   return Array.isArray(state.selected) && state.selected.length <= OFFER_MAX
     && state.selected.every(item => exactObject(item, ["key", "region", "parent"])
       && KEY_PATTERN.test(item.key ?? "") && item.key !== NONE && ids.includes(item.region)
@@ -438,7 +453,7 @@ export function judgeFramesFor(section) {
 // the request alone. An action is offered only when the graph can carry it
 // out, and a slot exists only when an action that needs it is offered.
 export function slotsFor(state) {
-  if (state.candidates !== undefined) return Object.freeze({ delta: Object.freeze([...state.candidates.map(candidate => candidate.id), NONE]) });
+  if (state.candidates !== undefined) return Object.freeze({ delta: Object.freeze([...goalOptions(state), NONE]) });
   const nodes = state.graph.regions.map(region => region.id);
   const canEdge = nodes.length >= 2;
   const canPart = state.offers.parts.length > 0;

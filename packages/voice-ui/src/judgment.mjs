@@ -1,4 +1,4 @@
-import { ACTION_ADD_EDGE, ACTION_ADD_PART, ACTION_ARCHITECTURE, ACTION_COMPOSE, ACTION_PLACE_PART, ACTION_REMOVE_EDGE, ACTION_REVERSE_EDGE, ACTION_UNDO_REQUEST, ARCHITECTURE_GOAL_INTENT_KIND, ARCHITECTURE_INTENT_KIND, ARCHITECTURE_JUDGE_KIND, ARCHITECTURE_LOCATE_KIND, NONE, WHOLE, YES, relationSlot, relevantSlot, roleSlot } from "./contract.mjs";
+import { ACTION_ADD_EDGE, ACTION_ADD_PART, ACTION_ARCHITECTURE, ACTION_COMPOSE, ACTION_PLACE_PART, ACTION_REMOVE_EDGE, ACTION_REVERSE_EDGE, ACTION_UNDO_REQUEST, ARCHITECTURE_GOAL_INTENT_KIND, ARCHITECTURE_INTENT_KIND, ARCHITECTURE_JUDGE_KIND, ARCHITECTURE_LOCATE_KIND, NONE, WHOLE, YES, partOption, relationSlot, relevantSlot, roleSlot } from "./contract.mjs";
 
 // A choice question offers its alternatives as a criteria map keyed by the
 // value to be returned.
@@ -30,6 +30,11 @@ const LOCATE_CONTEXT_NOTE = RECENT_NOTE
 const GOAL_CONTEXT_NOTE = " context.recent lists earlier utterances as they were recognized or typed, and what came of each."
   + " They are unverified and may be misrecognized. Use them only to understand what the current utterance refers to;"
   + " the current utterance, the current Working graph and edges are the facts, and an earlier effect is history, not the current graph.";
+// A Goal step is asked in up to two frames. The first asks what comes next:
+// a part, whose group a second frame asks, or an arrow between existing parts.
+const GOAL_WHAT = "Choose the next executable change toward the utterance's goal. An option either adds one offered part, whose group is chosen by a separate following question, or connects two existing parts by one directed flow arrow. An explicitly hypothetical requested connection is a Working proposal, not proof of an existing source relationship. Use the current graph and edges to decide which requested changes are still missing; selected is adopted part history, not a completion oracle. An arrow is offered only when both of its ends exist, so a requested part that is still missing comes before its arrows. Choose none when the requested changes are already present, no option is clearly needed, or the request is ambiguous. Do not add a connection merely because two parts are present; it must be requested by the utterance. An offered group part is added like any other part.";
+// The second frame, bound to the part the first chose, asks only where it goes.
+const GOAL_WHERE = "Choose the existing group the utterance requests it to be inside; each option is one proved placement inside one group. Choose none when no offered group is requested for it, or the request is ambiguous. Adding a part directly to an existing group never resizes it; placing a part into a group added by this goal resizes that group and its enclosing groups just enough, keeping their positions. Do not otherwise create, move or resize groups.";
 // A Goal's scope is checked by the server, not taken from the page on trust.
 const SCOPE_NOTE = " state.scope names the parts in focus, which the server matched against the current source;"
   + " every offered arrow touches one of them. It is not an earlier judgment or authority, and no source text is given."
@@ -72,15 +77,23 @@ export function questionsFor(state, slots, context) {
     const labels = new Map(state.graph.map(region => [region.id, region.label]));
     const ids = new Set([...labels.keys(), ...parents.keys()]);
     const label = text => labelled(ids, text);
+    const partOf = part => `${label(part.label)} (${named(part.key)}): ${part.purpose}`;
+    const placing = state.placing === null ? null : offered.get(state.placing);
     return {
       delta: {
-        instruction: "Choose one executable change toward the utterance's goal. A candidate adds one offered part inside its existing group at a proved placement, or connects two existing parts by one directed flow arrow. An explicitly hypothetical requested connection is a Working proposal, not proof of an existing source relationship. Use the current graph and edges to decide which requested changes are still missing; selected is adopted part history, not a completion oracle. Arrows are offered only when both endpoints exist; when a requested endpoint or the group requested for it is missing, first choose the offered addition that puts that part, or that missing group, inside the group requested for it, even if the arrow's other end lies in another group, never the same part inside another group or an arrow between different endpoints as a substitute. Choose none when the requested changes are already present, no candidate is clearly needed, or the request is ambiguous. Do not add a connection merely because two parts are present; it must be requested by the utterance. An offered group part is added like any other part. Adding a part directly to an existing group never resizes it; placing a part into a group added by this goal resizes that group and its enclosing groups just enough, keeping their positions. Do not otherwise create, move or resize groups." + GOAL_CONTEXT_NOTE + (state.scope === null ? "" : SCOPE_NOTE),
+        instruction: (placing === null ? GOAL_WHAT : `The next change adds the offered part ${partOf(placing)}. ${GOAL_WHERE}`)
+          + GOAL_CONTEXT_NOTE + (state.scope === null ? "" : SCOPE_NOTE),
         options: criteria(slots.delta, key => {
-          if (key === NONE) return "no offered executable change is clearly requested, or the requested changes are already present";
-          const candidate = state.candidates.find(item => item.id === key);
-          if (candidate.action === ACTION_ADD_EDGE) return `a directed flow arrow from ${label(labels.get(candidate.from))} (${named(candidate.from)}) to ${label(labels.get(candidate.to))} (${named(candidate.to)})`;
-          const part = offered.get(candidate.part);
-          return `inside ${label(parents.get(candidate.parent).label)} (${named(candidate.parent)}): add one new part ${label(part.label)} (${named(part.key)}): ${part.purpose}`;
+          if (key === NONE) return placing === null ? "no offered executable change is clearly requested, or the requested changes are already present"
+            : "no offered group is requested for this part, or the request is ambiguous";
+          if (placing !== null) {
+            const candidate = state.candidates.find(item => item.action === ACTION_ADD_PART && item.id === key);
+            return `inside ${label(parents.get(candidate.parent).label)} (${named(candidate.parent)}): add one new part ${partOf(placing)}`;
+          }
+          const arrow = state.candidates.find(item => item.action === ACTION_ADD_EDGE && item.id === key);
+          if (arrow !== undefined) return `a directed flow arrow from ${label(labels.get(arrow.from))} (${named(arrow.from)}) to ${label(labels.get(arrow.to))} (${named(arrow.to)})`;
+          const { part } = state.candidates.find(item => item.action === ACTION_ADD_PART && partOption(item.part) === key);
+          return `add one new part ${partOf(offered.get(part))}`;
         }),
       },
     };
