@@ -154,7 +154,7 @@ test("a Goal offers each part by key, purpose and displayed name; the name is da
   const where = questionsFor(placing, slotsFor(placing), { kind: GOAL_REQUEST_KIND }).delta.options;
   assert.deepEqual(Object.keys(where), ["delta-2", NONE]);
   assert.equal(where["delta-2"], 'the utterance requests Service (store) inside "container" (container)');
-  assert.equal(where[NONE], "the utterance requests no offered group for this part, or does not identify a unique one");
+  assert.equal(where[NONE], "the utterance requests none of these existing groups for this part, or does not identify a unique one");
 });
 
 test("Goal state keeps distinct existing relations that share a directed pair; only edge IDs and offered pairs are unique", () => {
@@ -207,7 +207,7 @@ test("Goal v7 boundary asks one question per frame, what then where, and refuses
   assert.deepEqual(what.state, body.state); assert.deepEqual(where.state, placed.state);
   const context = " context.recent lists earlier utterances as they were recognized or typed, and what came of each. They are unverified and may be misrecognized. Use them only to understand what the current utterance refers to; the current utterance, the current Working graph and edges are the facts, and an earlier effect is history, not the current graph.";
   assert.equal(what.questions.delta.instruction, "Choose the next executable change toward the utterance's goal. An option either adds one offered part, whose group is chosen by a separate following question, or connects two existing parts by one directed flow arrow. An explicitly hypothetical requested connection is a Working proposal, not proof of an existing source relationship. Use the current graph and edges to decide which requested changes are still missing; selected is adopted part history, not a completion oracle. An arrow is offered only when both of its ends exist, so a requested part that is still missing comes before its arrows. Choose none when the requested changes are already present, no option is clearly needed, or the request is ambiguous. Do not add a connection merely because two parts are present; it must be requested by the utterance. An offered group part is added like any other part, and a part is placed only into an existing group, including one this goal already added, so a requested group that is still missing comes before the parts requested inside it." + context);
-  assert.equal(where.questions.delta.instruction, "The next change adds the offered part Service (service): a service. Which existing group does the utterance request this part to be added inside? A group already added by this goal is also an existing group here. Choose none when the utterance requests no offered group for it, or does not identify a unique one." + context);
+  assert.equal(where.questions.delta.instruction, "The next change adds the offered part Service (service): a service. Which existing group does the utterance request this part to be added inside? A group already added by this goal is also an existing group here. Choose none when the utterance requests none of these existing groups for it, or does not identify a unique one." + context);
   for (const { questions } of [what, where]) {
     assert.deepEqual(Object.keys(questions), ["delta"]);
     assert.equal(questions.delta.instruction.includes("reopened"), false);
@@ -215,7 +215,7 @@ test("Goal v7 boundary asks one question per frame, what then where, and refuses
   assert.deepEqual(what.questions.delta.options, { "part:service": "add one new part Service (service): a service",
     [NONE]: "no offered executable change is clearly requested, or the requested changes are already present" });
   assert.deepEqual(where.questions.delta.options, { "delta-1": 'the utterance requests Service (service) inside "container" (container)',
-    [NONE]: "the utterance requests no offered group for this part, or does not identify a unique one" });
+    [NONE]: "the utterance requests none of these existing groups for this part, or does not identify a unique one" });
   for (const [input, frame] of [[body, what], [placed, where]]) assert.deepEqual(Object.keys(frame.questions.delta.options), [...slotsFor(input.state).delta]);
   // Refused before the provider: a malformed or old request, a missing, unknown
   // or unheld placing, an extra field, and an arrow whose id is also a derived
