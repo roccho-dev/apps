@@ -1077,7 +1077,7 @@ test("a Goal scope is reopened against the served source and every arrow must to
     edges: [], parents: [], offers: { parts: [] }, selected: [],
     candidates: [{ id: "delta-1", action: "add-edge", from: regionIdOf("web-app-mjs"), to: regionIdOf("ext-localstorage") },
       { id: "delta-2", action: "add-edge", from: regionIdOf("src-log-mjs"), to: regionIdOf("web-app-mjs") }],
-    context: { recent: [] }, scope,
+    context: { recent: [] }, scope, placing: null,
   } };
   const calls = [];
   const invoke = (input, architecture = prepared) => onRequestPost({ available: true, architecture,
@@ -1113,7 +1113,7 @@ for (const port of ["direct", "compiled"]) test(`a scoped Goal arrow between rol
       ...ends.map(end => ({ id: end, label: end, parent: "root" }))],
     edges, parents: [], offers: { parts: [] }, selected: [],
     candidates: [{ id: "delta-1", action: "add-edge", from: ends[0], to: ends[1] }],
-    context: { recent: [] }, scope: { source: MANIFEST.source, focus: [part] },
+    context: { recent: [] }, scope: { source: MANIFEST.source, focus: [part] }, placing: null,
   } });
   const send = async input => {
     assert.equal(isRequest(input), true, "a well-formed request: only the scope decides");
@@ -1727,7 +1727,7 @@ test("a locate frame reads earlier words, outcomes and references but no earlier
     edges: [], parents: [{ id: "container", label: "container", kind: "group", parent: "root" }],
     offers: { parts: [{ key: "service", purpose: "a service", label: "Service" }] }, selected: [],
     candidates: [{ id: "delta-1", action: "add-part", part: "service", parent: "container" }],
-    context: { recent: [] }, scope: null,
+    context: { recent: [] }, scope: null, placing: null,
   } }, drawn);
   assert.ok(isRequest(goal));
   assert.deepEqual((await sent(goal)).state.context.recent, [drawn]);
