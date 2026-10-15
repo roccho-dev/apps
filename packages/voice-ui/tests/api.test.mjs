@@ -153,7 +153,7 @@ test("a Goal offers each part by key, purpose and displayed name; the name is da
   assert.equal(isRequest({ ...body, state: placing }), true);
   const where = questionsFor(placing, slotsFor(placing), { kind: GOAL_REQUEST_KIND }).delta.options;
   assert.deepEqual(Object.keys(where), ["delta-2", NONE]);
-  assert.equal(where["delta-2"], 'the utterance requests Service (store) inside "container" (container)');
+  assert.equal(where["delta-2"], 'add one new part Service (store) directly inside "container" (container)');
   assert.equal(where[NONE], "the utterance requests none of these existing groups for this part, or does not identify a unique one");
 });
 
@@ -214,7 +214,7 @@ test("Goal v7 boundary asks one question per frame, what then where, and refuses
   }
   assert.deepEqual(what.questions.delta.options, { "part:service": "add one new part Service (service): a service",
     [NONE]: "no offered executable change is clearly requested, or the requested changes are already present" });
-  assert.deepEqual(where.questions.delta.options, { "delta-1": 'the utterance requests Service (service) inside "container" (container)',
+  assert.deepEqual(where.questions.delta.options, { "delta-1": 'add one new part Service (service) directly inside "container" (container)',
     [NONE]: "the utterance requests none of these existing groups for this part, or does not identify a unique one" });
   for (const [input, frame] of [[body, what], [placed, where]]) assert.deepEqual(Object.keys(frame.questions.delta.options), [...slotsFor(input.state).delta]);
   // Refused before the provider: a malformed or old request, a missing, unknown
@@ -2019,7 +2019,7 @@ test("Working node facts stay true for repeated, id-like and option-like labels 
     [{ id: "delta-1", action: "add-edge", from: "z", to: "b" }, { id: "delta-2", action: "add-part", part: "store", parent: "z" }]);
   assert.equal(goal["delta-1"], `a directed flow arrow from ${JSON.stringify(forged)} (z) to Billing (b)`);
   assert.equal(goal["part:store"], "add one new part Store (store): a store");
-  assert.equal(goalWhere["delta-2"], `the utterance requests Store (store) inside ${JSON.stringify(forged)} (z)`);
+  assert.equal(goalWhere["delta-2"], `add one new part Store (store) directly inside ${JSON.stringify(forged)} (z)`);
   // A Goal option shows an ordinary label as it is; one that holds structure
   // or option characters, is empty or padded, or equals a node id of the same
   // request is quoted, so it never reads as an id, an option or more text.
@@ -2029,13 +2029,13 @@ test("Working node facts stay true for repeated, id-like and option-like labels 
       [{ id: "g", label, kind: "group", parent: null }],
       [{ id: "delta-1", action: "add-edge", from: "g", to: "b" }, { id: "delta-2", action: "add-part", part: "store", parent: "g" }]);
     assert.equal(options["delta-1"], `a directed flow arrow from ${JSON.stringify(label)} (g) to Billing (b)`, JSON.stringify(label));
-    assert.equal(where["delta-2"], `the utterance requests Store (store) inside ${JSON.stringify(label)} (g)`, JSON.stringify(label));
+    assert.equal(where["delta-2"], `add one new part Store (store) directly inside ${JSON.stringify(label)} (g)`, JSON.stringify(label));
   }
   const [ordinary, ordinaryWhere] = frames([{ id: "g", label: "Helper right", parent: null }, { id: "b", label: "グループ 6", parent: null }],
     [{ id: "g", label: "Helper right", kind: "group", parent: null }],
     [{ id: "delta-1", action: "add-edge", from: "g", to: "b" }, { id: "delta-2", action: "add-part", part: "store", parent: "g" }]);
   assert.equal(ordinary["delta-1"], "a directed flow arrow from Helper right (g) to グループ 6 (b)");
-  assert.equal(ordinaryWhere["delta-2"], "the utterance requests Store (store) inside Helper right (g)");
+  assert.equal(ordinaryWhere["delta-2"], "add one new part Store (store) directly inside Helper right (g)");
 
   // An id is any non-none text: one that looks like option text or holds quotes is quoted,
   // never read as a label, metadata or another node.
@@ -2055,7 +2055,7 @@ test("Working node facts stay true for repeated, id-like and option-like labels 
     [{ id: idForged, label: "Cache", kind: "group", parent: null }],
     [{ id: "delta-1", action: "add-edge", from: idForged, to: "b" }, { id: "delta-2", action: "add-part", part: "store", parent: idForged }]);
   assert.equal(goalId["delta-1"], `a directed flow arrow from Cache (${JSON.stringify(idForged)}) to Billing (b)`);
-  assert.equal(goalIdWhere["delta-2"], `the utterance requests Store (store) inside Cache (${JSON.stringify(idForged)})`);
+  assert.equal(goalIdWhere["delta-2"], `add one new part Store (store) directly inside Cache (${JSON.stringify(idForged)})`);
 });
 
 test("incident endpoint criteria do not enter plain, normal intent or local Goal questions", () => {
