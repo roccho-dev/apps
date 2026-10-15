@@ -290,7 +290,9 @@ test("a part is asked what, then where, and the held candidate is adopted at the
     assert.equal(asked.every(request => request.kind === GOAL_REQUEST_KIND && isRequest(request)), true);
     const [first, second] = asked;
     assert.equal(first.state.placing, null); assert.equal(second.state.placing, "api");
-    assert.deepEqual({ ...second.state, placing: null }, first.state, "the second frame binds the part and changes nothing else");
+    assert.deepEqual(second.state.candidates, first.state.candidates.filter(item => item.part === "api"), "the bound frame shows only that part's held additions, in order");
+    assert.equal(first.state.candidates.some(item => item.part !== "api"), true, "the first frame also holds other changes");
+    assert.deepEqual({ ...second.state, placing: null, candidates: first.state.candidates }, first.state, "nothing else differs");
     const parts = [...new Set(first.state.candidates.filter(item => item.action === "add-part").map(item => item.part))];
     assert.deepEqual(slotsFor(first.state).delta, [...parts.map(part => `part:${part}`), NONE]);
     assert.deepEqual(slotsFor(second.state).delta, [...first.state.candidates.filter(item => item.part === "api").map(item => item.id), NONE]);
