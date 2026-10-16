@@ -111,8 +111,9 @@ ambiguous/no-change controls. Oracles never enter prompts or candidate generatio
 Both arms run the same gate and legal loop. On missing, A still runs the original
 unaugmented catalogue; it is not forced to stop by the comparison harness.
 
-EFFECT requires gate correctness at least9/10 with all four missing gates correct;
-no TypeLLM call on sufficient/control cases; zero control mutation; B sufficient
+EFFECT requires accepted gate correctness at least9/10 in each arm, with all four
+missing gates correct in each arm; no TypeLLM call on sufficient/control cases;
+zero control mutation in both arms; B sufficient
 exact graph success at least3/4 and no worse than A; B missing exact success at
 least3/4 with at least two more successes than A, and minimal missing-candidate
 completion in at least3/4 missing cases. Exact graph means labels, kinds,
