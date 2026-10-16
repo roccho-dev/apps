@@ -39,8 +39,9 @@ const gapView = frame => ({ coverage: frame.coverage, entities: frame.entities,
 // Fixed World hash of the committed synthetic fixture (CLI world.json bytes). Inputs are
 // unchanged; it moved from c3d26682… when captions became full text and the Current -> unit
 // relations became visible:false behind one drawn gap:current-target relation; then from ac64eef7…
-// when the UNKNOWN evaluation unit named its source (全体評価/比較・分解/対応付け) and open conditions.
-const WORLD_SHA256 = 'sha256:e8b707fd0d15443e2162a19fe41b4d1239c5f2dbf7b1d2c561120c2d96287deb';
+// when the UNKNOWN evaluation unit named its source (全体評価/比較・分解/対応付け) and open conditions;
+// then from e8b707fd… when observed sessions became session-observed (activity stays unobserved).
+const WORLD_SHA256 = 'sha256:f926979875d8b7ff74bc9450680c18fd085a3b0d6277514297b33f318da9f77b';
 
 test('parser fails closed on schema, shape, duplicate keys, order and graph errors', () => {
   const list = base();
@@ -231,7 +232,7 @@ test('Agent heading and flags come from the declared source mode and session obs
   const result = derive();
   assert.equal(result.world.presentation.areas[2].label, 'Agent：宣言された担当（合成・一部観測）');
   const agent = entity(last(result), 'agent', 'atlas.W');
-  assert.deepEqual(agent.flags, ['synthetic', 'declared', 'activity-observed']);
+  assert.deepEqual(agent.flags, ['synthetic', 'declared', 'session-observed']);
   assert.equal(agent.time.observedAt, T5.replace('.000', ''));
   assert.match(agent.summary, /実行中.*host:g6i3-own/u);
   assert.deepEqual(entity(last(result), 'agent', 'atlas.D:derive').flags, ['synthetic', 'declared-only', 'activity-unobserved']);

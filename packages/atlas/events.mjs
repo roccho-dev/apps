@@ -109,7 +109,8 @@ const observation = (event, at) => {
 const PLAN_REF = /^[A-Za-z0-9._/-]+#\d+$/u;
 // A plan is identified by its declared id, else by its source locator (one plan per Issue/PR).
 const planId = event => event.plan ?? event.source.ref;
-const opaque = event => event.nodes === 'UNKNOWN' && event.edges === 'UNKNOWN';
+// D's own marker for a declared plan whose graph its source does not carry: nodes and edges null.
+const opaque = event => event.nodes === null && event.edges === null;
 const reaches = (deps, from, to) => { // from ->* to through dep edges
   const seen = new Set([from]), queue = [from];
   while (queue.length) {
@@ -130,7 +131,7 @@ const planSet = (event, at) => {
   demand(time(event.source.updatedAt, `${at}.source.updatedAt`) <= Date.parse(event.recordedAt), `${at}: source updatedAt is after recordedAt (future fact)`);
   // A declared plan whose graph its source does not carry: kept as UNKNOWN content, never as no plan.
   if (opaque(event)) return;
-  demand(Array.isArray(event.nodes) && event.nodes.length > 0 && Array.isArray(event.edges), `${at}: nodes[] and edges[] (or both UNKNOWN) required`);
+  demand(Array.isArray(event.nodes) && event.nodes.length > 0 && Array.isArray(event.edges), `${at}: nodes[] and edges[] (or both null: content unknown) required`);
   for (const [index, node] of event.nodes.entries()) {
     const where = `${at}.nodes[${index}]`;
     keys(node, ['id', 'label', 'norm', 'exit', 'contributesTo'], ['predicateRefs', 'due'], where);

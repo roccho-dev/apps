@@ -334,7 +334,7 @@ cycles and references outside the named Purpose version fail closed.
   satisfied→unmet transitions give an iteration number (`instance` `id#n`); `overdue`
   only with `due`. No plan at t is `status: unknown, plans: null`, never empty.
   Optional: `plan.set.plan` is the plan identity (default `source.ref`, so one
-  Issue may carry several plans); `nodes`/`edges` may both be `UNKNOWN` with
+  Issue may carry several plans); `nodes`/`edges` may both be `null` (content unknown) with
   `unknown[]` reasons; `requires[].plans` declares the plans serving a condition,
   shown as the plan's `serves`.
 - Agents: the World heading and flags come from the declared `source_mode`
@@ -362,9 +362,17 @@ A G `plan.set` enters D only when the Purpose author declares it: a condition's
 `requires[].plans` lists the G plan ids that serve it (the latest purpose.set at
 or before the plan names its `purposeRef`). G cells are copied, never parsed, and
 D's own parser checks the converted plan; a plan D rejects or nobody declares is
-held in `g-plans.jsonl` as `{reason, plan}`. Its graph may be `UNKNOWN`: D keeps
+held in `g-plans.jsonl` as `{reason, plan}`. G's `UNKNOWN` graph becomes D's `null` marker in `fromG` only: D keeps
 it as a declared plan with `nodes: null` and the reasons, never as "no plan".
 Without `--control` there is no Norm and every condition is unassigned.
+
+`withPlans` is the one place that knows the ui plan contract (shared with ui):
+`frames[i].plans` is absent when no purpose.set at that frame declares a plan
+(計画未宣言), `[]` when declared but none is recorded by then, else
+`[{ref, plan, version, label, serves, nodes:[{id,label}]|null, edges:[{from,to,kind}]|null,
+unknown, source:{repo, commentId, updatedAt, sha256}}]`. `nodes:null` means content
+UNKNOWN, not empty. Plans are not facts: never used for Gap/Current/coverage/state,
+and never attached to a frame whose `asOf` precedes their `recordedAt`.
 
 ~~~sh
 node packages/atlas/collect/collect.mjs <snapshots> --out /tmp/g-events.jsonl

@@ -1,6 +1,7 @@
 // K: G events + a purpose.set file → D → World. Joins only; judging stays in D.
 // fromG is the one place that knows G's event shape; D's parser checks every converted plan.
 import { execFileSync } from 'node:child_process';
+import { createHash } from 'node:crypto';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -20,7 +21,7 @@ const toPlan = (g, purpose) => ({ kind: 'plan.set', recordedAt: g.recordedAt, pl
   purposeRef: { purposeId: purpose.purpose.id, version: purpose.version },
   source: { ref: g.source.repo, commentId: g.source.commentId === null ? null : String(g.source.commentId), updatedAt: g.source.updatedAt, digest: g.source.sha256 },
   version: String(g.version),
-  ...(g.nodes === 'UNKNOWN' || g.edges === 'UNKNOWN' ? { nodes: 'UNKNOWN', edges: 'UNKNOWN', unknown: g.unknown ?? [] } : {
+  ...(g.nodes === 'UNKNOWN' || g.edges === 'UNKNOWN' ? { nodes: null, edges: null, unknown: g.unknown ?? [] } : {
     nodes: g.nodes.map(node => ({ id: node.id, label: node.label, norm: node.owner, exit: node.exit, contributesTo: [node.requires],
       ...(purpose.requires.some(value => value.id === node.predicate) ? { predicateRefs: [node.predicate] } : {}) })),
     edges: g.edges.map(edge => ({ from: edge.from, to: edge.to, kind: edge.kind, ...(edge.condition && edge.condition !== 'UNKNOWN' ? { condition: edge.condition } : {}) })) }) });
@@ -49,6 +50,26 @@ export const fromG = (event, purposes = []) => {
     ? [{ ...observed, target: { kind: 'session', id: event.target.slice(0, -SESSION.length) } }] : [];
   return { events: [observed, ...session] };
 };
+
+/**
+ * The one place that knows the ui plan contract: D's plan projection → World frames[i].plans.
+ * absent: no purpose.set at that frame declares a plan (計画未宣言); []: declared, none recorded yet.
+ * Plans are not facts: only attached for display, never recorded after the frame's asOf.
+ */
+const number = value => /^\d+$/u.test(value) ? Number(value) : value; // G numbers that D keeps as tokens
+export const withPlans = (world, projection, purposes) => ({ ...world, frames: world.frames.map(frame => {
+  const asOf = Date.parse(frame.asOf);
+  const purpose = purposes.filter(value => Date.parse(value.recordedAt) <= asOf).at(-1);
+  if (!purpose?.requires.some(condition => condition.plans?.length)) return frame;
+  const plans = (projection.frames.find(value => value.asOf === frame.asOf)?.plans ?? [])
+    .filter(plan => Date.parse(plan.recordedAt) <= asOf)
+    .map(plan => ({ ref: plan.ref, plan: plan.plan, version: number(plan.version),
+      label: `${plan.plan} v${plan.version} · ${plan.ref}${plan.source.commentId ? ' comment ' + plan.source.commentId : ''}`,
+      serves: [...plan.serves], nodes: plan.nodes && plan.nodes.map(node => ({ id: node.id, label: node.label })),
+      edges: plan.edges && plan.edges.map(edge => ({ from: edge.from, to: edge.to, kind: edge.kind })), unknown: [...(plan.unknown ?? [])],
+      source: { repo: plan.source.ref, commentId: plan.source.commentId && number(plan.source.commentId), updatedAt: plan.source.updatedAt, sha256: plan.source.digest } }));
+  return { ...frame, plans };
+}) });
 
 /** D log text: header, purpose.set lines and adapted G events in recordedAt order (stable). */
 export const joinLog = (purposeText, gTexts, sourceMode = 'supplied') => {
@@ -79,7 +100,15 @@ if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.me
     const derive = fileURLToPath(new URL('./derive.mjs', import.meta.url));
     const receipt = JSON.parse(execFileSync(process.execPath, [derive, '--out-dir=' + out('.'), out('events.jsonl'),
       values.control ? fs.realpathSync(values.control) : out('control.jsonl')], { encoding: 'utf8' }));
-    console.log(JSON.stringify({ ...receipt, schema: 'atlas.live-build/1', held_plans: { path: out('g-plans.jsonl'), count: held.length } }));
+    // Attach the plan contract at the edge; derive's World is otherwise unchanged.
+    const world = Buffer.from(JSON.stringify(withPlans(JSON.parse(read(out('world.json'))), JSON.parse(read(out('plan-projection.json'))),
+      rows(read(values.purpose))), null, 2) + '\n');
+    const temporary = out(`.world.json.${process.pid}.tmp`);
+    fs.writeFileSync(temporary, world, { flag: 'wx' });
+    fs.renameSync(temporary, out('world.json'));
+    const outputs = receipt.outputs.map(value => value.path === out('world.json')
+      ? { ...value, bytes: world.length, sha256: 'sha256:' + createHash('sha256').update(world).digest('hex') } : value);
+    console.log(JSON.stringify({ ...receipt, schema: 'atlas.live-build/1', outputs, held_plans: { path: out('g-plans.jsonl'), count: held.length } }));
   } catch (error) {
     console.error(error.message.startsWith('atlas-') ? error.message : 'atlas-live: ' + error.message);
     process.exitCode = 1;
