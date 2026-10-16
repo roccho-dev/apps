@@ -67,7 +67,12 @@ const identity = { schema: "voice-ui.poc.paired/1", created: new Date().toISOStr
   evidence_scope: "exact semantic records and actual Worker HTTP; normal browser rendering/lifecycle is a separate evidence record",
 };
 fs.mkdirSync(settings["--out"], { mode: 0o700 });
-fs.writeFileSync(path.join(settings["--out"], "identity.json"), JSON.stringify(identity, null, 2) + "\n", { flag: "wx", mode: 0o600 });
+const writeJson = (name, value) => {
+  const fd = fs.openSync(path.join(settings["--out"], name), "wx", 0o600);
+  try { fs.writeSync(fd, JSON.stringify(value, null, 2) + "\n"); fs.fsyncSync(fd); }
+  finally { fs.closeSync(fd); }
+};
+writeJson("identity.json", identity);
 const journal = fs.openSync(path.join(settings["--out"], "events.jsonl"), "wx", 0o600);
 const record = item => { fs.writeSync(journal, JSON.stringify({ at: new Date().toISOString(), ...item }) + "\n"); fs.fsyncSync(journal); };
 const summary = [];
@@ -125,16 +130,22 @@ try {
         elapsedMs: performance.now() - started, result, calls, initial_head: graph.head,
         initial_log_sha256: hash(graph.log), initial_records: graph.records, final_head: session.working.head,
         final_records: session.working.records, final_log: session.working.log };
-      fs.writeFileSync(path.join(settings["--out"], id + "-" + arm + ".json"), JSON.stringify(output, null, 2) + "\n", { flag: "wx", mode: 0o600 });
+      writeJson(id + "-" + arm + ".json", output);
       const row = { id, arm, valid_execution: !failed, reason: result.reason, httpCalls: calls.length, elapsedMs: output.elapsedMs };
       summary.push(row); record({ kind: "arm-end", ...row });
       if (failed) { invalid = true; break; }
     }
     if (invalid) break;
   }
+} catch {
+  invalid = true;
+  record({ kind: "runner-failed", error: "fixture_protocol_or_evidence_unknown" });
 } finally {
+  if (summary.length !== order.length * 2) invalid = true;
   fs.closeSync(journal);
-  fs.writeFileSync(path.join(settings["--out"], "execution.json"), JSON.stringify({ status: invalid ? "INVALID" : "RECORDED", summary }, null, 2) + "\n", { flag: "wx", mode: 0o600 });
+  writeJson("execution.json", { status: invalid ? "INVALID" : "RECORDED", summary });
+  const directory = fs.openSync(settings["--out"], "r");
+  try { fs.fsyncSync(directory); } finally { fs.closeSync(directory); }
 }
 console.log(JSON.stringify({ status: invalid ? "INVALID" : "RECORDED", out: settings["--out"], arms: summary.length }));
 process.exitCode = invalid ? 1 : 0;

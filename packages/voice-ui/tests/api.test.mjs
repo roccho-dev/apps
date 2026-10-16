@@ -299,12 +299,12 @@ test("compiled Worker binds both released provider operations, validates invento
     new Request("http://localhost/api/parts/" + mode, { method: "POST", body: JSON.stringify(body) }), env);
   const missing = [{ label: "Named service", kind: "step", occurrence: 1 }];
   const { calls } = await withProvider(async (body, init) => {
-    assert.equal(init.redirect, "error");
     if (body.questions.coverage) {
       assert.equal(init.headers.authorization, "Bearer jev-test-only");
       return Response.json({ model: "jev-test", answers: { coverage: { type: "choice", choice: "missing", confidence: 0.9,
         probabilities: Object.fromEntries(Object.keys(body.questions.coverage.criteria).map(key => [key, key === "missing" ? 0.9 : 0.025])) } } });
     }
+    assert.equal(init.redirect, "error");
     assert.equal(init.headers.authorization, "Bearer typed-test-only");
     assert.equal(body.model, "typellm-latest"); assert.equal(body.questions.missing.thinking, false);
     assert.deepEqual(Object.keys(body.questions.missing.items.properties), ["label", "kind", "occurrence"]);
