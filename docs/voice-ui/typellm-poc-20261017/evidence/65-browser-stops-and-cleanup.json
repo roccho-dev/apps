@@ -1,0 +1,94 @@
+{
+  "schema": "voice-ui.poc.independent-ui-stop-and-cleanup/1",
+  "reviewer": "R /root/poc_reviewer",
+  "apps": "65b5fb9c48d5ba4773b49dd108313e2acd706d68",
+  "phase": "poc-main-3",
+  "browser_evidence_sha256": "229d98ba90349b563f5498c3a075f9b98a35118e6982571d456e6a125b5f5e1b",
+  "browser_baseline_svg_sha256": "0bf3a0fc1e9b97668f74d9dfb75e3e1ac4411e78b243aaa732060f226976ddfc",
+  "known_input_results": [
+    {
+      "utterance": "OCIの中に「整形」という名前の工程を1つ追加してください。他は変更しないでください。",
+      "raw_closed_http_response": {
+        "choice": "missing",
+        "confidence": 0.44
+      },
+      "status": 200,
+      "reason": "inventory-not-confident",
+      "requests": 1,
+      "completions": 0,
+      "adoptions": 0,
+      "recorded_unchanged_svg": true,
+      "recorded_final_svg_sha256": "0bf3a0fc1e9b97668f74d9dfb75e3e1ac4411e78b243aaa732060f226976ddfc"
+    },
+    {
+      "utterance": "OCIの中に工程「整形」を1個追加してください。",
+      "raw_closed_http_response": {
+        "choice": "missing",
+        "confidence": 0.49
+      },
+      "status": 200,
+      "reason": "inventory-not-confident",
+      "requests": 1,
+      "completions": 0,
+      "adoptions": 0,
+      "recorded_unchanged_svg": true,
+      "recorded_final_svg_sha256": "0bf3a0fc1e9b97668f74d9dfb75e3e1ac4411e78b243aaa732060f226976ddfc"
+    }
+  ],
+  "performance_scope": "Both known UI inputs classified missing but were unaccepted at confidence0.44/0.49 below unchanged0.5. Valid gate performance stops, not transport INVALID and not drawing/lifecycle success. No heldout output was seen. Separate intent/coverage is a causal hypothesis for the first prefreeze quality correction; improved known examples alone cannot establish EFFECT.",
+  "cleanup": {
+    "at": "2026-10-16T15:24:06.397Z",
+    "phase_pid": 99783,
+    "actual_pid": null,
+    "group_members_including_zombies": [],
+    "charged": {
+      "jev": 5,
+      "typellm": 3
+    },
+    "pending": [],
+    "phase_events": [
+      {
+        "kind": "phase-reserve",
+        "id": "poc-main-3",
+        "allowances": {
+          "jev": 197,
+          "typellm": 18
+        },
+        "prior_charged": {
+          "jev": 3,
+          "typellm": 3
+        },
+        "config_sha256": "d9d2bc37250ff1fc75d3f84803c90a35d76895c18d2c029d84c71c52823940bc",
+        "program": "/nix/store/bg0bygqiid25xnivxv9cdgjlx3sp939j-voice-ui-typed-dev/bin/voice-ui-typed-dev",
+        "heads": {
+          "apps": "65b5fb9c48d5ba4773b49dd108313e2acd706d68",
+          "ops": "cab432ef717cbde9ebd0197ae006c0efe75269bf",
+          "windows": "6aef693c0946903d8b87c2348039de1420acd61b",
+          "envs": "063e685b8b21a97fc8658879da93fa858552bcd6"
+        },
+        "at": "2026-10-16T15:14:10.853Z"
+      },
+      {
+        "kind": "phase-reconcile",
+        "id": "poc-main-3",
+        "sent": {
+          "jev": 2,
+          "typellm": 0
+        },
+        "stopped_group_empty": true,
+        "pid": 99783,
+        "start_ticks": "7149546",
+        "stderr_sha256": "8b3dc49f9ef6cbf2d6e07e90fc8aeb85ad58329b3bbc04453aee5103478b0487",
+        "stdout_sha256": "52519a565ba4e7ac61988554aa6e616dd66728d4719d5b8310b858134cb7da59",
+        "at": "2026-10-16T15:23:22.444Z"
+      }
+    ],
+    "journal_sha256": "6728fb2b8a6b9ca7bed17d8eb43ca88ae45099a9c3f774966d6dd9cac17ae961",
+    "stderr_sha256": "8b3dc49f9ef6cbf2d6e07e90fc8aeb85ad58329b3bbc04453aee5103478b0487",
+    "send_lines": [
+      "provider-send:jev:1",
+      "provider-send:jev:2"
+    ]
+  },
+  "main_and_confirmation_inputs": "still sealed/unexposed"
+}

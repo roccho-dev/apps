@@ -1,0 +1,53 @@
+{
+  "schema": "voice-ui.poc.ui-factor-audit/1",
+  "reviewer": "R /root/poc_reviewer",
+  "stdout_sha256": "cf334349298fc3417d1e1a5fc122be755520ef81c0df808f0fe4a0cc69a7ef7d",
+  "rows": [
+    {
+      "action": "ordinary-ui-e4a2-missing",
+      "head": "sha256:e4a939d01cdbccc25f9b34ad1f8e279f395790a2380a4e9728c738ddff325809",
+      "factors": {
+        "intent": {
+          "choice": "change",
+          "confidence": 0.97
+        },
+        "labels": {
+          "choice": "available",
+          "confidence": 0.38
+        },
+        "capacity": {
+          "choice": "within",
+          "confidence": 0.98
+        }
+      },
+      "recomputed": {
+        "choice": "sufficient",
+        "confidence": 0.38
+      },
+      "all_match": true
+    },
+    {
+      "action": "ordinary-ui-e4a2-sufficient",
+      "head": "sha256:e4a939d01cdbccc25f9b34ad1f8e279f395790a2380a4e9728c738ddff325809",
+      "factors": {
+        "intent": {
+          "choice": "change",
+          "confidence": 0.8
+        },
+        "labels": {
+          "choice": "available",
+          "confidence": 0.86
+        },
+        "capacity": {
+          "choice": "within",
+          "confidence": 0.98
+        }
+      },
+      "recomputed": {
+        "choice": "sufficient",
+        "confidence": 0.8
+      },
+      "all_match": true
+    }
+  ]
+}

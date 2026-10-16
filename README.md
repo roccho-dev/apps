@@ -191,3 +191,20 @@ TypeLLM envelope is21 total calls. For example, after3 actual calls to each
 provider, reserve at most197 Jev and18 TypeLLM calls for that phase. No automatic
 retry is enabled.
 Forward an unused Windows loopback port to own's18845 to open the local app.
+
+### Measured PoC outcome
+
+The [2026-10-17 evidence report](docs/voice-ui/typellm-poc-20261017/README.md)
+retains every main round, ordinary UI failure and the sealed confirmation.
+The final main accepted every gate and preserved all sufficient/control cases,
+but missing exact graphs improved only from0/4 to2/4 and minimal completion
+was2/4, below the agreed3/4 requirements. A known new-name ordinary Goal also
+stopped at low confidence. These are partial paired gains, not a completed
+EFFECT claim or proof of NO_EFFECT; the fresh missing tasks were0/2 in both
+arms and did not reproduce the main gains. Source/completed-byte review and published
+artifacts must be read separately from performance acceptance. The report also
+contains the pinned envs local-launch procedure and portable raw evidence.
+In a separate posthoc diagnosis, manually supplying the required parts in an
+eight-slot library made both failed structures exact with accepted sufficient
+gates. That supports assembly with those supplied parts; it is not a TypeLLM
+completion result or a substitute for the failed main/fresh criteria.

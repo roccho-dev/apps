@@ -1,0 +1,33 @@
+{
+  "independent_pure_preflight": {
+    "schema": "voice-ui.poc.inventory-ready-preflight/1",
+    "source": "e4a2af1efe9278996391f0374d4546a51aa98736",
+    "fixture_sha256": "2091b8180120d27a62098a94c98c536a3f5feed5b4a609353482abdc9b9b8b30",
+    "driver_sha256": "19c3ca58958cefb19b10b9df6a6db565c1c592111ea7e59b6ce6cb096103dc79",
+    "canonical_bundle_sha256": "8fd1b4f37f6a113653dbaeda5e040ba5bed6d7b007ab9269d307f8642d339189",
+    "case_order": [
+      "H06",
+      "H08"
+    ],
+    "completion": false,
+    "maximum_jev_total": 18,
+    "maximum_typellm_total": 0,
+    "same_initial_heads": [
+      {
+        "id": "H06",
+        "head": "sha256:3f44e0d52678bc7ddeac8b19804ffaadfe6a493ce65ba8ca98f345ddd2ff75a2",
+        "log_sha256": "32f7c43ed78ccead4936c39d30e00fd36340a388192bb9e0c9b0265801848079"
+      },
+      {
+        "id": "H08",
+        "head": "sha256:3f44e0d52678bc7ddeac8b19804ffaadfe6a493ce65ba8ca98f345ddd2ff75a2",
+        "log_sha256": "32f7c43ed78ccead4936c39d30e00fd36340a388192bb9e0c9b0265801848079"
+      }
+    ],
+    "provider_calls": 0,
+    "scope": "Posthoc oracle-assisted inventory-ready diagnosis only; not Type completion, main/fresh quality scores or generalization evidence."
+  },
+  "saved_preflight_sha256": "07572206924f3d64bc78ee6cda5183c169c424e5133d287cda05720b530cdd30",
+  "config_sha256": "1903a73f26d269d4ba10f4aff15ee5c5ffffdfeb49347bc3f71aff5548f3230c",
+  "provider_calls": 0
+}

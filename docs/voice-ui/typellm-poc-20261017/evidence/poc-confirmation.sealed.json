@@ -1,0 +1,17 @@
+{
+  "schema":"voice-ui.typellm-poc.confirmation/1",
+  "reviewer":"/root/poc_reviewer",
+  "prepared_before_any_main_case_provider_output":true,
+  "status":"sealed-unexposed-conditional-use-after-tuning",
+  "fixture_contract_source":"poc-holdout.sealed.json",
+  "scope":"the same existing named group, at most3 new regions and1 directed edge; exact labels and canonical kinds",
+  "comparison":{"case_order":["C03","C01","C04","C02"],"arm_order":"alternate BA then AB by case_order index","A":"completion:false, same gate plus unaugmented legal loop even on missing","B":"completion:true, same source and initial log bytes, missing-only enrichment then same legal loop","automatic_retries":0},
+  "use":"only if source/prompts were tuned after viewing the main10-case outputs; this does not add a required live round when the first frozen comparison already demonstrates EFFECT",
+  "criteria":{"all_four_gates_correct":true,"typellm_on_sufficient_or_control":0,"control_semantic_mutations":0,"B_sufficient_graph_pass":1,"B_sufficient_not_below_A":true,"B_missing_graph_pass":2,"B_missing_gain_over_A_at_least":1,"B_missing_candidates_minimal":2,"publish_main_and_confirmation_results_without_replacing_failures":true,"prior_known_case_regressions_must_be_resolved_or_explicitly_retained_in_verdict":true},
+  "cases":[
+    {"id":"C01","fixture":"empty","utterance":"OCIの中に開始と終了を1つずつ追加して、開始から終了へ1本だけ矢印を引いて。","expected_gate":"sufficient","expected_missing":[],"expected_added_regions":[{"label":"開始","kind":"start","parent":"fixture:container"},{"label":"終了","kind":"end","parent":"fixture:container"}],"expected_added_edges":[{"from":"added:開始","to":"added:終了","kind":"flow","label":""}]},
+    {"id":"C02","fixture":"empty","utterance":"OCIの中に「受渡班」と「監査班」という2つのグループを、入れ子にせず同じ階層へ置いて。","expected_gate":"missing","expected_missing":[{"label":"受渡班","kind":"group","occurrence":1},{"label":"監査班","kind":"group","occurrence":1}],"expected_added_regions":[{"label":"受渡班","kind":"group","parent":"fixture:container"},{"label":"監査班","kind":"group","parent":"fixture:container"}],"expected_added_edges":[]},
+    {"id":"C03","fixture":"empty","utterance":"OCIの中に「中継室」というグループ。その中に「受付」という工程と「受付控」というデータをひとつずつ置き、受付から受付控へ矢印を1本追加して。","expected_gate":"missing","expected_missing":[{"label":"中継室","kind":"group","occurrence":1},{"label":"受付","kind":"step","occurrence":1},{"label":"受付控","kind":"data","occurrence":1}],"expected_added_regions":[{"label":"中継室","kind":"group","parent":"fixture:container"},{"label":"受付","kind":"step","parent":"added:中継室"},{"label":"受付控","kind":"data","parent":"added:中継室"}],"expected_added_edges":[{"from":"added:受付","to":"added:受付控","kind":"flow","label":""}]},
+    {"id":"C04","fixture":"pair","utterance":"全部そのままで、部品も線も増やさないで。","expected_gate":"no-change","expected_missing":[],"expected_added_regions":[],"expected_added_edges":[]}
+  ]
+}

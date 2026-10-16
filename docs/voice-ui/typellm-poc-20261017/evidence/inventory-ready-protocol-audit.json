@@ -1,0 +1,31 @@
+{
+  "schema": "voice-ui.poc.independent-protocol/1",
+  "reviewer": "R /root/poc_reviewer",
+  "observed_at": "2026-10-16T17:23:10.284Z",
+  "source_apps": "e4a2af1efe9278996391f0374d4546a51aa98736",
+  "protocol": {
+    "path": "/nix/store/d4224mjsd54yllqxa9g75sgncsbxbhm0-semantic-map/packages/semantic-map/protocol/index.js",
+    "sha256": "1689dcf63e1ed19cdea7be22e3f90a09f434841f980b9ca8b9018a987c9c38f8"
+  },
+  "both_final_logs_and_initial_prefixes_verified": true,
+  "rows": [
+    {
+      "name": "H06-READY.json",
+      "output_sha256": "a15f30f6e13540c6d0d9137f053116945b0135a40b291ecedd688f19c0c7c15e",
+      "final_head": "sha256:cf18a7923f6efef755771534115eff5fe32284b0f553855224850ae1a337334d",
+      "final_decisions": 5,
+      "initial_head": "sha256:3f44e0d52678bc7ddeac8b19804ffaadfe6a493ce65ba8ca98f345ddd2ff75a2",
+      "initial_decisions": 2,
+      "valid": true
+    },
+    {
+      "name": "H08-READY.json",
+      "output_sha256": "a3a4d2e1c8a2df3788b5b72ad0b6607fe3861d2a90f452fe9f2359cfb6dfe4d3",
+      "final_head": "sha256:2d11a322784e03f73cc34d36046c50e196c9fb141b283c3b8e6dc03d64567900",
+      "final_decisions": 6,
+      "initial_head": "sha256:3f44e0d52678bc7ddeac8b19804ffaadfe6a493ce65ba8ca98f345ddd2ff75a2",
+      "initial_decisions": 2,
+      "valid": true
+    }
+  ]
+}

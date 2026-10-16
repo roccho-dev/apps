@@ -1,0 +1,98 @@
+{
+  "context": "{\"utterance\":\"OCIにDBを3つ追加して。表示名は3つともDBで、矢印はいらない。\",\"regions\":[{\"id\":\"root\",\"label\":\"fixture\",\"kind\":\"boundary\",\"parent\":null},{\"id\":\"container\",\"label\":\"OCI\",\"kind\":\"group\",\"parent\":\"root\"},{\"id\":\"other\",\"label\":\"Other\",\"kind\":\"group\",\"parent\":\"root\"}],\"edges\":[],\"parts\":[{\"label\":\"工程\",\"kind\":\"step\",\"capacity\":1,\"purposes\":[\"an ordinary step, task or box\"]},{\"label\":\"判断\",\"kind\":\"decision\",\"capacity\":1,\"purposes\":[\"a decision, choice or branch\"]},{\"label\":\"データ\",\"kind\":\"data\",\"capacity\":1,\"purposes\":[\"data, a document, an input or an output\"]},{\"label\":\"開始\",\"kind\":\"start\",\"capacity\":1,\"purposes\":[\"a start or beginning\"]},{\"label\":\"終了\",\"kind\":\"end\",\"capacity\":1,\"purposes\":[\"an end, finish or result\"]},{\"label\":\"API\",\"kind\":\"step\",\"capacity\":1,\"purposes\":[\"an application programming interface service that receives requests\"]},{\"label\":\"DB\",\"kind\":\"data\",\"capacity\":1,\"purposes\":[\"a database that persists application data\"]},{\"label\":\"グループ\",\"kind\":\"group\",\"capacity\":1,\"purposes\":[\"a group, boundary or container that holds other parts\"]}],\"limits\":{\"new_regions\":3,\"new_flow_edges\":1}}",
+  "questions": {
+    "instances": {
+      "type": "array",
+      "minItems": 0,
+      "maxItems": 3,
+      "instructions": "List ONLY the missing NEW executable part instances required by the utterance. Reuse the current graph and the library first: each existing library key can add one instance with its exact label and kind. Do not return those reusable instances. Return extra instances only for unavailable requested names/kinds or multiplicity beyond that capacity. Preserve each requested display name exactly. Do not return edges, parents, operators, existing nodes or invented extras. For identical label/kind missing instances, occurrence is consecutive 1,2,3 within this returned list; it is not a graph ID. Use the existing supported kinds. Return an empty list if no safe missing part is identifiable.",
+      "items": {
+        "type": "object",
+        "properties": {
+          "label": {
+            "type": "string",
+            "instructions": "Exact requested display name, no ID or sequence suffix."
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "step",
+              "decision",
+              "data",
+              "start",
+              "end",
+              "group"
+            ],
+            "instructions": "The existing shape kind appropriate to that requested part."
+          },
+          "occurrence": {
+            "type": "integer",
+            "instructions": "1 for the first missing instance of this label/kind, then 2 or 3."
+          }
+        }
+      }
+    },
+    "quantities": {
+      "type": "array",
+      "minItems": 0,
+      "maxItems": 3,
+      "instructions": "Return one row per DISTINCT missing label/kind, with its missing quantity. Never repeat a label/kind row. For each requested NEW label/kind, missing quantity = requested new count minus its available capacity in parts, with a minimum of zero. Omit zero quantities. Existing graph facts satisfy existing references, not requests for additional new instances. A single requested unavailable part needs exactly one row with quantity 1; multiple identical missing instances use one row with their quantity. The sum of missing quantities must be at most three. Preserve requested display names exactly and use only supported kinds. Do not return edges, parents, operators, existing nodes or invented extras. Return an empty list if no safe missing part is identifiable.",
+      "items": {
+        "type": "object",
+        "properties": {
+          "label": {
+            "type": "string",
+            "instructions": "Exact requested display name, no ID or sequence suffix."
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "step",
+              "decision",
+              "data",
+              "start",
+              "end",
+              "group"
+            ],
+            "instructions": "The existing shape kind appropriate to that requested part."
+          },
+          "quantity": {
+            "type": "integer",
+            "instructions": "Number of missing instances of this distinct label/kind, from 1 to 3, after subtracting the inventory capacity. Do not emit another row for these instances."
+          }
+        }
+      }
+    },
+    "forced_quantities": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 3,
+      "instructions": "Return one row per DISTINCT missing label/kind, with its missing quantity. Never repeat a label/kind row. For each requested NEW label/kind, missing quantity = requested new count minus its available capacity in parts, with a minimum of zero. Omit zero quantities. Existing graph facts satisfy existing references, not requests for additional new instances. A single requested unavailable part needs exactly one row with quantity 1; multiple identical missing instances use one row with their quantity. The sum of missing quantities must be at most three. Preserve requested display names exactly and use only supported kinds. Do not return edges, parents, operators, existing nodes or invented extras. Return an empty list if no safe missing part is identifiable.",
+      "items": {
+        "type": "object",
+        "properties": {
+          "label": {
+            "type": "string",
+            "instructions": "Exact requested display name, no ID or sequence suffix."
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "step",
+              "decision",
+              "data",
+              "start",
+              "end",
+              "group"
+            ],
+            "instructions": "The existing shape kind appropriate to that requested part."
+          },
+          "quantity": {
+            "type": "integer",
+            "instructions": "Number of missing instances of this distinct label/kind, from 1 to 3, after subtracting the inventory capacity. Do not emit another row for these instances."
+          }
+        }
+      }
+    }
+  }
+}

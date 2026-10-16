@@ -1,0 +1,21 @@
+{
+  "phase_id": "poc-main-6",
+  "pid": 102693,
+  "state": "R",
+  "pgid": 102693,
+  "start_ticks": "7751187",
+  "program": "/nix/store/bg0bygqiid25xnivxv9cdgjlx3sp939j-voice-ui-typed-dev/bin/voice-ui-typed-dev",
+  "heads": {
+    "apps": "e4a2af1efe9278996391f0374d4546a51aa98736",
+    "ops": "cab432ef717cbde9ebd0197ae006c0efe75269bf",
+    "windows": "6aef693c0946903d8b87c2348039de1420acd61b",
+    "envs": "063e685b8b21a97fc8658879da93fa858552bcd6"
+  },
+  "allowances": {
+    "jev": 95,
+    "typellm": 10
+  },
+  "stdout": "/work/repos/voice-ui-typellm-20261016/poc-main-6.stdout.log",
+  "stderr": "/work/repos/voice-ui-typellm-20261016/poc-main-6.stderr.log",
+  "config_sha256": "f5cc8b5c8aaf40daf8513ad75c9ecbe1b9d3b1fe364d7e6b5037f300b15c4312"
+}
