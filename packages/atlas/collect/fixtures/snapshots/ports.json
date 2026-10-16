@@ -1,0 +1,8 @@
+{
+  "type": "ports",
+  "sha256": "sha256:8888888888888888888888888888888888888888888888888888888888888888",
+  "probes": [
+    { "target": "dev.ui", "host": "127.0.0.1", "port": 5173, "observedAt": "2026-10-16T03:00:25Z", "responded": true },
+    { "target": "dev.api", "host": "127.0.0.1", "port": 8787, "observedAt": "2026-10-16T03:00:25Z", "responded": false }
+  ]
+}

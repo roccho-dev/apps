@@ -1,0 +1,197 @@
+{
+  "type": "pr",
+  "owner": "roccho-dev",
+  "repo": "apps",
+  "number": 92,
+  "fetchedAt": "2026-10-16T20:33:31Z",
+  "responses": {
+    "issue": {
+      "command": "gh api repos/roccho-dev/apps/issues/92",
+      "sha256": "sha256:b410867f40af893e6b8dd44c3ccd0d0b60559762dfba76b4e0a53b9eded8c380",
+      "data": {
+        "url": "https://api.github.com/repos/roccho-dev/apps/issues/92",
+        "repository_url": "https://api.github.com/repos/roccho-dev/apps",
+        "labels_url": "https://api.github.com/repos/roccho-dev/apps/issues/92/labels{/name}",
+        "comments_url": "https://api.github.com/repos/roccho-dev/apps/issues/92/comments",
+        "events_url": "https://api.github.com/repos/roccho-dev/apps/issues/92/events",
+        "html_url": "https://github.com/roccho-dev/apps/pull/92",
+        "id": 5823843069,
+        "node_id": "PR_kwDOUfm6488AAAABIFsBuw",
+        "number": 92,
+        "title": "Atlas: Purpose意味差の責任Scopeを既存Worldへ投影",
+        "user": {
+          "login": "roccho-dev",
+          "id": 40359643,
+          "node_id": "MDQ6VXNlcjQwMzU5NjQz",
+          "avatar_url": "https://avatars.githubusercontent.com/u/40359643?v=4",
+          "gravatar_id": "",
+          "url": "https://api.github.com/users/roccho-dev",
+          "html_url": "https://github.com/roccho-dev",
+          "followers_url": "https://api.github.com/users/roccho-dev/followers",
+          "following_url": "https://api.github.com/users/roccho-dev/following{/other_user}",
+          "gists_url": "https://api.github.com/users/roccho-dev/gists{/gist_id}",
+          "starred_url": "https://api.github.com/users/roccho-dev/starred{/owner}{/repo}",
+          "subscriptions_url": "https://api.github.com/users/roccho-dev/subscriptions",
+          "organizations_url": "https://api.github.com/users/roccho-dev/orgs",
+          "repos_url": "https://api.github.com/users/roccho-dev/repos",
+          "events_url": "https://api.github.com/users/roccho-dev/events{/privacy}",
+          "received_events_url": "https://api.github.com/users/roccho-dev/received_events",
+          "type": "User",
+          "user_view_type": "public",
+          "site_admin": false
+        },
+        "labels": [],
+        "state": "closed",
+        "locked": false,
+        "assignees": [],
+        "milestone": null,
+        "comments": 0,
+        "created_at": "2026-10-13T03:11:56Z",
+        "updated_at": "2026-10-16T06:39:59Z",
+        "closed_at": "2026-10-16T06:39:59Z",
+        "assignee": null,
+        "author_association": "OWNER",
+        "active_lock_reason": null,
+        "draft": false,
+        "pull_request": {
+          "url": "https://api.github.com/repos/roccho-dev/apps/pulls/92",
+          "html_url": "https://github.com/roccho-dev/apps/pull/92",
+          "diff_url": "https://github.com/roccho-dev/apps/pull/92.diff",
+          "patch_url": "https://github.com/roccho-dev/apps/pull/92.patch",
+          "merged_at": "2026-10-16T06:39:59Z"
+        },
+        "body": "Purposeの意味差として宣言された責任Scopeを、既存のAtlasWorldへ **Purpose / Scopes / Agents の三つの領域**で投影します。現状更新後の残差は同じ画面で読めます。\n\nGoal: Purposeから必要な意味差（Scope）と担当を三つの領域で辿り、現状更新後の残差を同じ画面で読める。\n\nRefs #68 (existing Closure reducer; PR #69). Related: roccho-dev/adrs#613 (requirement), roccho-dev/ui#344 (consumer; Draft).\n\n## Scope\n\nDraft, open, unmerged. Published head `b1fec7a61a0f7728f6262c70afc591f5661f8dd3`, tree `d7f7c6d282557a39cf7a0dc5e67e7c5b0d0dc3ca`, one normal commit on `88403ce`. The tree equals the reviewed native commit `1386b9e`, authored by the same OCI Opus W.\n\nOn top of the preserved `88403ce` baseline (the declared semantic-scope contract and its port), exactly three `packages/atlas` paths change: `semantic-scope-world.mjs`, `tests/semantic-scope-world.test.mjs` and `README.md`. The UI consumer is unchanged at `ccd05d0`.\n\nThe World has exactly three areas:\n\n- **Purpose:** the Purpose, the target role, and one **Current** per frame. The Current keeps one identity and shows that frame's revision. The original comparison, the frame closure and the verbatim seven-kind Closure rows stay readable as history in the target→Purpose relation.\n- **Scopes:** the Gap is shown only through responsibility units.\n  - Current needed change: `active` Scopes, explicit **unassigned** units (unowned parts or residuals), and explicit unknown/conflict units.\n  - Not current need: `completed-history` Scopes (satisfied, mapping bound), kept as checkpoints, and old obligations kept as history.\n  - `unresolved` Scopes keep their satisfied evidence readable while the mapping is unknown. They are neither current need nor history.\n  - A Scope's status comes only from its own criteria. A disagreement with the whole-Purpose evaluation shows as `conflict`, with both declarations kept.\n  - The current Gap is never empty unless the Purpose is declared satisfied.\n  - `coverage.unknown` counts only unassigned and unknown/conflict units and Scopes whose own status is unknown/conflict or whose standing is unresolved. A known, owned, unmet Scope is in the Gap but is not unknown.\n- **Agents:** only the declared ids (Scope `owner_actor`, observation `writer`/`evaluator`) with their declared roles, labelled synthetic, declared-only and activity-unobserved. Unassigned units have no Agent. A missing declaration is shown explicitly.\n\nOverview captions are two short lines. Every full label, id, revision and status stays in the record. The two observation writer/evaluator relations would cross the Scopes pane, so they alone carry `visible:false`; their contexts are unchanged. The UI reports them as \"Omitted relations 2\", and they can be found through search and opened in the Record. Owner and Current→Scope→Target→Purpose relations stay drawn.\n\nWith the bundled synthetic fixture: in Before, `scope.delivery` is active/unmet. In After, it is a completed checkpoint, the regressed `criterion.recovery` is an unassigned unit, and the Purpose stays unmet.\n\n## Non-scope\n\n- No change to `semantic-scopes.mjs` (the contract), `closure.mjs`, `reduce.mjs`, the fixtures, the old Closure/semantic contract tests, workflows, the global voice-ui UI pin, or any UI repository source or test.\n- No admission of the semantic contract. No domain truth or business Purpose achievement. The supplied meaning stays candidate / declared-not-verified.\n- No real Agent collection or activity. No Hot/Cold/SSE or Factory work.\n- No merge, Issue close or deploy.\n\n## Verification\n\nIndependent R replay of tree `d7f7c6d` (OCI, Node 24.18, declared Playwright 1.60 / Chromium 1223):\n\n- `node --test packages/atlas/tests/*.test.mjs`: **148/148**, 0 fail. The tests pin the three areas, Current revisions, Scope standings, the current Gap, the exact `coverage.unknown` value and units for 12 cases, declared-only Agents, the two omitted relations' exact contexts, and Direction.\n- World from the unchanged fixtures: sha256 `3369271a…`. HTML from the unchanged UI `ccd05d0` builder: sha256 `6bff9621…`.\n- Unchanged UI search proof: **15/15**.\n- Chromium at 1280×720 and 1500×1000, in Before, in After and after reload: 0 overlapping or blank captions, exactly 2 omitted relations (each found by search and shown in the Record), and 0 browser errors.\n\nPublic source (read back by R from P's connector snapshot): head `b1fec7a` has single parent `88403ce` and tree `d7f7c6d`. Its 3 changed blobs (`b926d416`, `275050e7`, `8259d588`; mode 100644) equal those of the accepted native commit.\n\nCI on `b1fec7a` (P connector snapshot, 2026-10-14T13:52:26Z; read back by R): [nix-check / flake-check](https://github.com/roccho-dev/apps/actions/runs/38572579351/job/115881332878) is the only check run on the head. It completed with **success**, and all 8 steps passed, including step 4 \"Check Atlas Purpose Closure\" and step 5 \"Run flake check\". The run reports one annotation whose text is not in the snapshot.\n\nP final Japanese screen (actual Windows browser, 1280×720, same HTML `6bff9621…`; read back by R): **PASS**.\n- Three areas and one Current, which reads `current-before@1` in Before and `post-observation@2` in After.\n- Japanese glyph ink sits inside the nodes, with no blank or colliding captions. The 2 px line-box overrun is whitespace, not clipped glyphs.\n- Search for `criterion.recovery` gives 0 results in Before and 5 in After.\n- The Record of `scope:scope.delivery` shows owner, criteria, evidence and residual.\n- A zero-result query keeps the selection.\n- Both omitted relations (\"Omitted relations 2\") are recoverable through search and the Record.\n- The unassigned unit's Direction reaches the Purpose.\n- Reload keeps the selection, and the browser error log is empty.\n\n## Merge condition\n\n- R completes the final series readback of this published body.\n- Explicit human approval.\n\nDo not merge automatically. Merging requires explicit human approval; this Draft grants none.\n",
+        "closed_by": {
+          "login": "roccho-dev",
+          "id": 40359643,
+          "node_id": "MDQ6VXNlcjQwMzU5NjQz",
+          "avatar_url": "https://avatars.githubusercontent.com/u/40359643?v=4",
+          "gravatar_id": "",
+          "url": "https://api.github.com/users/roccho-dev",
+          "html_url": "https://github.com/roccho-dev",
+          "followers_url": "https://api.github.com/users/roccho-dev/followers",
+          "following_url": "https://api.github.com/users/roccho-dev/following{/other_user}",
+          "gists_url": "https://api.github.com/users/roccho-dev/gists{/gist_id}",
+          "starred_url": "https://api.github.com/users/roccho-dev/starred{/owner}{/repo}",
+          "subscriptions_url": "https://api.github.com/users/roccho-dev/subscriptions",
+          "organizations_url": "https://api.github.com/users/roccho-dev/orgs",
+          "repos_url": "https://api.github.com/users/roccho-dev/repos",
+          "events_url": "https://api.github.com/users/roccho-dev/events{/privacy}",
+          "received_events_url": "https://api.github.com/users/roccho-dev/received_events",
+          "type": "User",
+          "user_view_type": "public",
+          "site_admin": false
+        },
+        "reactions": {
+          "url": "https://api.github.com/repos/roccho-dev/apps/issues/92/reactions",
+          "total_count": 0,
+          "+1": 0,
+          "-1": 0,
+          "laugh": 0,
+          "hooray": 0,
+          "confused": 0,
+          "heart": 0,
+          "rocket": 0,
+          "eyes": 0
+        },
+        "timeline_url": "https://api.github.com/repos/roccho-dev/apps/issues/92/timeline",
+        "performed_via_github_app": {
+          "id": 1144995,
+          "client_id": "Iv23liVemv8A9if9v0F2",
+          "slug": "chatgpt-codex-connector",
+          "node_id": "A_kwHOAOQ6Gs4AEXij",
+          "owner": {
+            "login": "openai",
+            "id": 14957082,
+            "node_id": "MDEyOk9yZ2FuaXphdGlvbjE0OTU3MDgy",
+            "avatar_url": "https://avatars.githubusercontent.com/u/14957082?v=4",
+            "gravatar_id": "",
+            "url": "https://api.github.com/users/openai",
+            "html_url": "https://github.com/openai",
+            "followers_url": "https://api.github.com/users/openai/followers",
+            "following_url": "https://api.github.com/users/openai/following{/other_user}",
+            "gists_url": "https://api.github.com/users/openai/gists{/gist_id}",
+            "starred_url": "https://api.github.com/users/openai/starred{/owner}{/repo}",
+            "subscriptions_url": "https://api.github.com/users/openai/subscriptions",
+            "organizations_url": "https://api.github.com/users/openai/orgs",
+            "repos_url": "https://api.github.com/users/openai/repos",
+            "events_url": "https://api.github.com/users/openai/events{/privacy}",
+            "received_events_url": "https://api.github.com/users/openai/received_events",
+            "type": "Organization",
+            "user_view_type": "public",
+            "site_admin": false
+          },
+          "name": "ChatGPT Codex Connector",
+          "description": "Bring ChatGPT and Codex to your GitHub repositories.",
+          "external_url": "https://www.chatgpt.com",
+          "html_url": "https://github.com/apps/chatgpt-codex-connector",
+          "created_at": "2025-02-14T01:37:05Z",
+          "updated_at": "2026-09-23T18:52:59Z",
+          "permissions": {
+            "actions": "write",
+            "checks": "read",
+            "contents": "write",
+            "emails": "read",
+            "issues": "write",
+            "metadata": "read",
+            "pull_requests": "write",
+            "statuses": "read",
+            "workflows": "write"
+          },
+          "events": [
+            "check_run",
+            "check_suite",
+            "commit_comment",
+            "issues",
+            "issue_comment",
+            "pull_request",
+            "pull_request_review",
+            "pull_request_review_comment",
+            "pull_request_review_thread",
+            "repository",
+            "status",
+            "sub_issues"
+          ]
+        },
+        "state_reason": null
+      }
+    },
+    "comments": {
+      "command": "gh api --paginate --slurp repos/roccho-dev/apps/issues/92/comments?per_page=100",
+      "sha256": "sha256:a930ec39e7339fde7af6a7f1009d621c595aab52ec9324dde1e8387212ae64aa",
+      "data": [
+        []
+      ]
+    },
+    "pr": {
+      "command": "gh api graphql -f query=query($owner:String!,$name:String!,$number:Int!){repository(owner:$owner,name:$name){pullRequest(number:$number){\nnumber state merged mergedAt headRefOid updatedAt commits(last:1){nodes{commit{oid statusCheckRollup{state}}}}}}} -F owner=roccho-dev -F name=apps -F number=92",
+      "sha256": "sha256:fa72eed83a915401c6b4198d426d864bddd808ebacf6d9cf2a0aa32280df8099",
+      "data": {
+        "data": {
+          "repository": {
+            "pullRequest": {
+              "number": 92,
+              "state": "MERGED",
+              "merged": true,
+              "mergedAt": "2026-10-16T06:39:59Z",
+              "headRefOid": "b1fec7a61a0f7728f6262c70afc591f5661f8dd3",
+              "updatedAt": "2026-10-16T06:39:59Z",
+              "commits": {
+                "nodes": [
+                  {
+                    "commit": {
+                      "oid": "b1fec7a61a0f7728f6262c70afc591f5661f8dd3",
+                      "statusCheckRollup": {
+                        "state": "SUCCESS"
+                      }
+                    }
+                  }
+                ]
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
