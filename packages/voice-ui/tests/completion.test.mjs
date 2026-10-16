@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import fs from "node:fs";
 import test from "node:test";
-import { isInventory, inventoryQuestion, readMissing, runInventoryGoal, typedMissingRequest } from "../src/completion.mjs";
+import { isInventory, inventoryQuestion, readTypedMissing, runInventoryGoal, typedMissingRequest } from "../src/completion.mjs";
 import { readBundle } from "../src/bundle.mjs";
 import { onParts } from "../functions/api/parts.mjs";
 const bundle = readBundle(JSON.parse(fs.readFileSync(new URL("../web/data/bundle.v1.json", import.meta.url))));
@@ -18,7 +18,10 @@ const call = (mode, input = inventory, ports = {}, available = true) => onParts(
 test("inventory gate explicitly compares labels, kinds and one-instance capacities, not next-step NONE", () => {
   assert.equal(isInventory(inventory), true);
   const question = inventoryQuestion(inventory.state);
-  assert.equal(question.state, inventory.state);
+  assert.equal(question.state.utterance, inventory.state.utterance);
+  assert.deepEqual(question.state.regions, inventory.state.regions);
+  assert.deepEqual(question.state.edges, inventory.state.edges);
+  assert.equal(question.state.parts.find(p => p.label === "API").capacity, 1);
   assert.deepEqual(Object.keys(question.questions), ["intent", "coverage"]);
   assert.deepEqual(Object.keys(question.questions.intent.options), ["change", "ambiguous", "no-change", "unsupported"]);
   assert.deepEqual(Object.keys(question.questions.coverage.options), ["sufficient", "missing"]);
@@ -28,19 +31,52 @@ test("inventory gate explicitly compares labels, kinds and one-instance capaciti
   }
 });
 
+test("provider inventory counts executable keys, retains existing graph facts and does not infer requested quantities", () => {
+  const state = structuredClone(inventory.state);
+  state.parts.push({ ...state.parts[0], key: "another-step" });
+  const before = JSON.stringify(state), context = inventoryQuestion(state).state;
+  assert.equal(context.parts.find(p => p.label === state.parts[0].label).capacity, 2);
+  assert.deepEqual(context.regions, state.regions); assert.deepEqual(context.edges, state.edges);
+  assert.equal(context.utterance, state.utterance); assert.equal(JSON.stringify(state), before);
+  assert.deepEqual(Object.keys(context).sort(), ["edges", "limits", "parts", "regions", "utterance"]);
+});
+
 test("completion asks only for missing instances, with fixed existing kinds and no graph/operator fields", () => {
   const typed = typedMissingRequest(inventory.state);
-  assert.equal(typed.context, JSON.stringify(inventory.state));
+  assert.deepEqual(JSON.parse(typed.context), inventoryQuestion(inventory.state).state);
   assert.deepEqual(Object.keys(typed.questions), ["missing"]);
   assert.equal(typed.questions.missing.maxItems, 3);
-  assert.deepEqual(Object.keys(typed.questions.missing.items.properties), ["label", "kind", "occurrence"]);
-  assert.deepEqual(readMissing([{ label: "Build", kind: "step", occurrence: 1 }, { label: "Build", kind: "step", occurrence: 2 }]),
-    [{ label: "Build", kind: "step", occurrence: 1 }, { label: "Build", kind: "step", occurrence: 2 }]);
+  assert.deepEqual(Object.keys(typed.questions.missing.items.properties), ["label", "kind", "quantity"]);
+});
+
+test("invalid completed instance contracts stop before the legal loop or adoption", async () => {
   for (const value of [null, [{ label: "Build", kind: "step", occurrence: 2 }],
     [{ label: "Build", kind: "step", occurrence: 1, parent: "parent" }],
     [{ label: "Build", kind: "operation", occurrence: 1 }],
     [{ label: " ", kind: "step", occurrence: 1 }],
-    Array(4).fill({ label: "Build", kind: "step", occurrence: 1 })]) assert.equal(readMissing(value), null);
+    Array(4).fill({ label: "Build", kind: "step", occurrence: 1 })]) {
+    const result = await runInventoryGoal({ utterance: inventory.state.utterance, bundle, current: () => initial, cancelled: () => false,
+      check: async () => ({ choice: "missing", confidence: 1 }), complete: async () => ({ missing: value }),
+      ask: async () => { assert.fail("invalid instances reached the legal loop"); },
+      adopt: async () => { assert.fail("invalid instances were adopted"); } });
+    assert.equal(result.reason, "completion-contract");
+  }
+});
+
+test("distinct typed quantities expand exactly; duplicate pairs, extra fields and oversized totals fail closed", () => {
+  assert.deepEqual(readTypedMissing([]), []);
+  assert.deepEqual(readTypedMissing([{ label: "Box", kind: "step", quantity: 2 }, { label: "Store", kind: "data", quantity: 1 }]), [
+    { label: "Box", kind: "step", occurrence: 1 }, { label: "Box", kind: "step", occurrence: 2 },
+    { label: "Store", kind: "data", occurrence: 1 },
+  ]);
+  for (const value of [null, [{ label: "Box", kind: "step", quantity: 0 }],
+    [{ label: "Box", kind: "step", quantity: 1.5 }], [{ label: "Box", kind: "step", quantity: 4 }],
+    [{ label: "Box", kind: "step", quantity: 1, parent: "parent" }], [{ label: "Box", kind: "operator", quantity: 1 }],
+    [{ label: " ", kind: "step", quantity: 1 }],
+    [{ label: "Box", kind: "step", quantity: 1 }, { label: "Box", kind: "step", quantity: 2 }],
+    [{ label: "Box", kind: "step", quantity: 2 }, { label: "Store", kind: "data", quantity: 2 }]]) {
+    assert.equal(readTypedMissing(value), null);
+  }
 });
 
 test("API closures validate before invoking bound operations and never reflect raw failures", async () => {
@@ -48,7 +84,7 @@ test("API closures validate before invoking bound operations and never reflect r
   const ports = { judge: async request => { calls++; assert.ok(request.questions.coverage); return { answers: {
     intent: { choice: "change", confidence: 1 }, coverage: { choice: "missing", confidence: 1 },
   } }; },
-    generate: async request => { calls++; assert.ok(request.questions.missing); return { result: { missing: [{ label: "Build", kind: "step", occurrence: 1 }] } }; } };
+    generate: async request => { calls++; assert.ok(request.questions.missing); return { result: { missing: [{ label: "Build", kind: "step", quantity: 1 }] } }; } };
   assert.deepEqual(await (await call("check", inventory, ports)).json(), { choice: "missing", confidence: 1 });
   assert.deepEqual(await (await call("complete", inventory, ports)).json(), { missing: [{ label: "Build", kind: "step", occurrence: 1 }] });
   assert.equal(calls, 2);

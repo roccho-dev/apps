@@ -312,8 +312,8 @@ test("compiled Worker binds both released provider operations, validates invento
     assert.equal(init.redirect, "error");
     assert.equal(init.headers.authorization, "Bearer typed-test-only");
     assert.equal(body.model, "typellm-latest"); assert.equal(Object.hasOwn(body.questions.missing, "thinking"), false);
-    assert.deepEqual(Object.keys(body.questions.missing.items.properties), ["label", "kind", "occurrence"]);
-    return Response.json({ status: "completed", result: { missing } });
+    assert.deepEqual(Object.keys(body.questions.missing.items.properties), ["label", "kind", "quantity"]);
+    return Response.json({ status: "completed", result: { missing: [{ label: missing[0].label, kind: missing[0].kind, quantity: 1 }] } });
   }, async () => {
     for (const mode of ["check", "complete"]) {
       assert.equal((await invoke(mode, input, {})).status, 503);

@@ -1,4 +1,4 @@
-import { COVERAGE, inventoryQuestion, isInventory, readMissing, typedMissingRequest } from "../../src/completion.mjs";
+import { COVERAGE, inventoryQuestion, isInventory, readTypedMissing, typedMissingRequest } from "../../src/completion.mjs";
 const json = (body, status = 200) => Response.json(body, { status, headers: { "cache-control": "no-store" } });
 const inventoryChoices = ["sufficient", "missing"];
 const intentChoices = ["change", ...COVERAGE.filter(choice => !inventoryChoices.includes(choice))];
@@ -29,7 +29,7 @@ export async function onParts({ request, mode, available }, { judge, generate })
         : { choice: intent.choice, confidence: intent.confidence });
     }
     const value = await generate(typedMissingRequest(input.state), { signal: request.signal });
-    const missing = readMissing(value?.result?.missing);
+    const missing = readTypedMissing(value?.result?.missing);
     if (missing === null) return json({ error: "parts_contract" }, 502);
     return json({ missing });
   } catch (error) {

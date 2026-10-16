@@ -83,13 +83,18 @@ no-change / unsupported) and inventory (sufficient / missing). Both answers
 must be valid. A change uses the weaker confidence; other intents use their
 own choice/confidence. The existing0.5 floor and five-choice app API remain.
 The gate does not interpret NONE/low confidence as missing candidates. TypeLLM
-runs at most once, on a confident missing verdict, and returns at most three
-`{label,kind,occurrence}` instances. Occurrences for identical label/kind pairs
-are consecutive from1; the app allocates keys and graph IDs. Display labels are
+runs at most once, on a confident missing verdict, and returns distinct
+`{label,kind,quantity}` rows with a total of at most three missing instances.
+The app rejects duplicate pairs and invalid quantities, then expands them into
+`{label,kind,occurrence}` instances with consecutive ordinals from1. The app
+allocates keys and graph IDs. Display labels are
 exact part labels, with no ID suffix. No generated operator, parent, edge, raw
 graph or persistent dictionary is accepted. The persistent bundle retains its
 eight-part cap; a validated Goal-local catalogue can contain those eight plus
 three extra instances. Undo/Apply persist only the existing DecisionLog effects.
+The provider context separates existing graph facts from new-part capacities,
+aggregated from executable library keys. The app does not parse the utterance
+to infer requested names or quantities.
 
 ### Agreed evidence process
 

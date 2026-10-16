@@ -36,11 +36,27 @@ function inventoryOf({ utterance, bundle, working }) {
   return isInventory(value) ? value : null;
 }
 
+// A key is one executable instance, not an unlimited reusable type. Expose that
+// capacity as data; requested names/counts still belong to the provider judgment.
+function inventoryContext(state) {
+  const parts = new Map();
+  for (const part of state.parts) {
+    const key = JSON.stringify([part.label, part.kind]);
+    if (!parts.has(key)) parts.set(key, { label: part.label, kind: part.kind, capacity: 0, purposes: [] });
+    const item = parts.get(key);
+    item.capacity++;
+    if (!item.purposes.includes(part.purpose)) item.purposes.push(part.purpose);
+  }
+  return { utterance: state.utterance, regions: state.regions, edges: state.edges, parts: [...parts.values()],
+    limits: { new_regions: 3, new_flow_edges: 1 } };
+}
+
 export function inventoryQuestion(state) {
-  return { state, questions: { intent: {
+  return { state: inventoryContext(state), questions: { intent: {
     instruction: "Classify whether the utterance requests a clear supported graph change, independently of library availability. "
       + "Existing regions/edges satisfy their corresponding requested facts. An explicit addition still requests a change when other parts must stay unchanged. "
-      + "The small supported task adds at most three regions and one directed flow edge inside existing named groups, including a group added earlier in the same goal. "
+      + "Adding one, two or three regions is supported, including repeated instances of the same part. At most one directed flow edge may also be added. "
+      + "Additions are inside existing named groups, including a group added earlier in the same goal. "
       + "No root additions, removal, movement, new operators or unspecified endpoints. Missing library candidates do not make a clear supported request ambiguous or unsupported.",
     options: {
       change: "A clear supported graph change is requested and at least one requested fact is not yet satisfied. Ignore whether its candidate parts are in the library.",
@@ -49,10 +65,10 @@ export function inventoryQuestion(state) {
       unsupported: "The clear request requires operations or size outside the stated small supported task.",
     },
   }, coverage: {
-    instruction: "For a clear supported change, assess ONLY the executable candidate inventory, not confidence in choosing a next step. "
-      + "Each library part key can add exactly ONE new instance per Goal, "
-      + "with exactly its displayed label and kind. It cannot rename itself; a generic shape/purpose does not provide an arbitrary requested name. "
-      + "Count requested new instances and compare labels/kinds/capacity, allowing clear synonyms only when the displayed name was not explicitly specified. "
+    instruction: "Compare the requested NEW instances with the finite inventory in state.parts. Each row states a label, kind and integer capacity for this Goal. "
+      + "For each required label/kind, compare its requested count with that capacity; absent rows have capacity zero. Capacity is not unlimited reuse of a type. "
+      + "A part cannot rename itself: a generic shape/purpose does not supply an explicitly requested different display name. "
+      + "Allow clear synonyms only when the displayed name was not explicitly specified. Existing graph facts satisfy existing references, not requests for additional new instances. "
       + "Connecting existing nodes needs no new candidate parts. This inventory answer is used only when intent is change.",
     options: {
       sufficient: "EVERY required new instance is available in the library with the required label/kind and capacity, or only existing nodes need connecting.",
@@ -62,23 +78,39 @@ export function inventoryQuestion(state) {
 }
 
 export function typedMissingRequest(state) {
-  return { context: JSON.stringify(state), questions: { missing: {
+  return { context: JSON.stringify(inventoryContext(state)), questions: { missing: {
     type: "array", minItems: 0, maxItems: 3,
-    instructions: "List ONLY the missing NEW executable part instances required by the utterance. "
-      + "Reuse the current graph and the library first: each existing library key can add one instance with its exact label and kind. "
-      + "Do not return those reusable instances. Return extra instances only for unavailable requested names/kinds or multiplicity beyond that capacity. "
-      + "Preserve each requested display name exactly. Do not return edges, parents, operators, existing nodes or invented extras. "
-      + "For identical label/kind missing instances, occurrence is consecutive 1,2,3 within this returned list; it is not a graph ID. "
-      + "Use the existing supported kinds. Return an empty list if no safe missing part is identifiable.",
+    instructions: "Return one row per DISTINCT missing label/kind, with its missing quantity. Never repeat a label/kind row. "
+      + "For each requested NEW label/kind, missing quantity = requested new count minus its available capacity in parts, with a minimum of zero. "
+      + "Omit zero quantities. Existing graph facts satisfy existing references, not requests for additional new instances. "
+      + "A single requested unavailable part needs exactly one row with quantity 1; multiple identical missing instances use one row with their quantity. "
+      + "The sum of missing quantities must be at most three. Preserve requested display names exactly and use only supported kinds. "
+      + "Do not return edges, parents, operators, existing nodes or invented extras. Return an empty list if no safe missing part is identifiable.",
     items: { type: "object", properties: {
       label: { type: "string", instructions: "Exact requested display name, no ID or sequence suffix." },
       kind: { type: "string", enum: [...PART_KINDS], instructions: "The existing shape kind appropriate to that requested part." },
-      occurrence: { type: "integer", instructions: "1 for the first missing instance of this label/kind, then 2 or 3." },
+      quantity: { type: "integer", instructions: "Number of missing instances of this distinct label/kind, from 1 to 3, after subtracting the inventory capacity. Do not emit another row for these instances." },
     } },
   } } };
 }
 
-export function readMissing(value) {
+// TypeLLM supplies quantities; the app owns occurrence ordinals and local IDs.
+// Duplicate rows or an oversized sum are refused, never silently deduplicated.
+export function readTypedMissing(value) {
+  if (!Array.isArray(value) || value.length > 3) return null;
+  const seen = new Set(), missing = [];
+  for (const x of value) {
+    if (!exact(x, ["label", "kind", "quantity"]) || !text(x.label, LABEL_MAX) || !PART_KINDS.includes(x.kind)
+        || !Number.isInteger(x.quantity) || x.quantity < 1 || x.quantity > 3 || missing.length + x.quantity > 3) return null;
+    const key = JSON.stringify([x.label, x.kind]);
+    if (seen.has(key)) return null;
+    seen.add(key);
+    for (let occurrence = 1; occurrence <= x.quantity; occurrence++) missing.push({ label: x.label, kind: x.kind, occurrence });
+  }
+  return readMissing(missing);
+}
+
+function readMissing(value) {
   if (!Array.isArray(value) || value.length > 3) return null;
   const seen = new Map();
   for (const x of value) {
