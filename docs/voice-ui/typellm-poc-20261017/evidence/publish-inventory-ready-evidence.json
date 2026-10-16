@@ -1,0 +1,75 @@
+{
+  "schema": "voice-ui.poc.reviewer-publication-supplement/1",
+  "reviewer": "R /root/poc_reviewer",
+  "observed_at": "2026-10-16T17:24:53.412Z",
+  "measurement_source": "e4a2af1efe9278996391f0374d4546a51aa98736",
+  "previous_manifest_sha256": "6ce4462b1ccef8fd3e1d136210f36e4cff3d5fb70b6f4957d0b25803f7826f8d",
+  "scope": "Separate posthoc oracle-assisted inventory-ready diagnostic only; no change to prior frozen evidence or main/fresh/full EFFECT verdict.",
+  "files": [
+    {
+      "name": "inventory-ready-fixtures.json",
+      "bytes": 7664,
+      "sha256": "2091b8180120d27a62098a94c98c536a3f5feed5b4a609353482abdc9b9b8b30"
+    },
+    {
+      "name": "inventory-ready-diagnostic.mjs",
+      "bytes": 8994,
+      "sha256": "19c3ca58958cefb19b10b9df6a6db565c1c592111ea7e59b6ce6cb096103dc79"
+    },
+    {
+      "name": "inventory-ready-fixture-review.json",
+      "bytes": 1702,
+      "sha256": "0bbc87a7b0d7d93a761137ac7e99734918e4f8085d44416d480990e6e6ff6e80"
+    },
+    {
+      "name": "inventory-ready-preflight-review.json",
+      "bytes": 1421,
+      "sha256": "b2c84360eda11ec62898e8acc187b9b80e79de69c8061aca3f1ad1139b3df611"
+    },
+    {
+      "name": "inventory-ready-diagnostic-agreement.md",
+      "bytes": 3774,
+      "sha256": "3018f332f28deb77add79c04b20c7d6de36639575fe3cef8be6fc8ebdf3f9e5d"
+    },
+    {
+      "name": "score-inventory-ready-e4a2.mjs",
+      "bytes": 8394,
+      "sha256": "5eb8e53ae4bebc5b7e862caf9dc9dc32711442d0443106ce4fc33d51041ba0bb"
+    },
+    {
+      "name": "inventory-ready-runtime-preflight.json",
+      "bytes": 6948,
+      "sha256": "0b3fa65d8a8ebc53135f0ee17bd0a1a5063f3207dfecd9cb7ee9db4dfc31a14e"
+    },
+    {
+      "name": "inventory-ready-acquisition-and-cleanup.json",
+      "bytes": 3314,
+      "sha256": "ac1aa9af07a03f8432ba88bc2b11f9130603efdb75a3d102139d85ee7592ad35"
+    },
+    {
+      "name": "inventory-ready-phase8.stdout.log",
+      "bytes": 890,
+      "sha256": "3225aa2ddac37cc523a36d80d7d1369eeba5bfedf93d0f1775819e511f9f8383"
+    },
+    {
+      "name": "inventory-ready-factor-audit.json",
+      "bytes": 1437,
+      "sha256": "dce5a59abc3484b93fd6c10df3784ca4563e948b15e794047330291514d66b70"
+    },
+    {
+      "name": "inventory-ready-protocol-audit.json",
+      "bytes": 1297,
+      "sha256": "44a80191b302abe2a4b35dea127b6c16a9476b2c916e72dde07db2bd99d23cc8"
+    },
+    {
+      "name": "inventory-ready-adjudication.json",
+      "bytes": 2303,
+      "sha256": "902c404cd7a987f155abe274151a6a85ea3c3157181ea1ee074dc488366ddc77"
+    },
+    {
+      "name": "inventory-ready-adjudication.md",
+      "bytes": 3734,
+      "sha256": "8c99a2b931c3af9af1c494c6a59b9c01e1faaf7e6a15683ad433faaebfa9566b"
+    }
+  ]
+}

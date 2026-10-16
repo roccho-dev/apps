@@ -464,6 +464,7 @@ try {
     assert.equal(summary.actions.reload, 0); assert.equal(summary.actions.discard, 0);
     const proof = summary.goalEvidence;
     assert.equal(proof.setupRequests, 1); assert.equal(proof.noSave, true);
+    assert.equal(proof.inventory, undefined); assert.deepEqual(proof.inventoryRequests, []);
     assert.equal(proof.providerIdentity, "UNKNOWN"); assert.equal(proof.acceptedIntegration, "NOT_PROVEN");
     if (mode === "fixture") {
       assert.deepEqual(summary.reached, ["open", "prepare", "goal", "goal-undo"]);

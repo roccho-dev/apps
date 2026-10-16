@@ -1,0 +1,214 @@
+{
+  "schema": "voice-ui.poc.input-projection/1",
+  "sealed_inputs_sha256": "f92f733785ef8796eeed83c4880aa6481a32b4a8c2904a5292f5daaab6519fa2",
+  "fixture_contract": {
+    "map_id": "voice-graph",
+    "base_records": [
+      {
+        "type": "meta",
+        "schema": "semantic-map-state/1",
+        "root": "root",
+        "title": "sealed small PoC"
+      },
+      {
+        "type": "region",
+        "id": "root",
+        "parent": null,
+        "label": "fixture",
+        "kind": "boundary",
+        "bounds": [
+          0,
+          0,
+          900,
+          400
+        ],
+        "summary": ""
+      },
+      {
+        "type": "region",
+        "id": "container",
+        "parent": "root",
+        "label": "OCI",
+        "kind": "group",
+        "bounds": [
+          0,
+          0,
+          700,
+          200
+        ],
+        "summary": ""
+      },
+      {
+        "type": "region",
+        "id": "other",
+        "parent": "root",
+        "label": "Other",
+        "kind": "group",
+        "bounds": [
+          0,
+          230,
+          700,
+          160
+        ],
+        "summary": ""
+      }
+    ],
+    "base_pins": [
+      {
+        "regionId": "container",
+        "bounds": [
+          0,
+          0,
+          2000,
+          500
+        ]
+      },
+      {
+        "regionId": "other",
+        "bounds": [
+          0,
+          600,
+          2000,
+          500
+        ]
+      }
+    ],
+    "fixtures": {
+      "empty": {
+        "extra_records": [],
+        "extra_pins": []
+      },
+      "api": {
+        "extra_records": [
+          {
+            "type": "region",
+            "id": "initial-api",
+            "parent": "container",
+            "label": "API",
+            "kind": "step",
+            "bounds": [
+              20,
+              20,
+              140,
+              64
+            ],
+            "summary": ""
+          }
+        ],
+        "extra_pins": [
+          {
+            "regionId": "initial-api",
+            "bounds": [
+              12,
+              36,
+              140,
+              64
+            ]
+          }
+        ]
+      },
+      "pair": {
+        "extra_records": [
+          {
+            "type": "region",
+            "id": "initial-api",
+            "parent": "container",
+            "label": "API",
+            "kind": "step",
+            "bounds": [
+              20,
+              20,
+              140,
+              64
+            ],
+            "summary": ""
+          },
+          {
+            "type": "region",
+            "id": "initial-db",
+            "parent": "container",
+            "label": "DB",
+            "kind": "data",
+            "bounds": [
+              200,
+              20,
+              140,
+              64
+            ],
+            "summary": ""
+          }
+        ],
+        "extra_pins": [
+          {
+            "regionId": "initial-api",
+            "bounds": [
+              12,
+              36,
+              140,
+              64
+            ]
+          },
+          {
+            "regionId": "initial-db",
+            "bounds": [
+              200,
+              36,
+              140,
+              64
+            ]
+          }
+        ]
+      }
+    },
+    "recent_conversation": [],
+    "scope": null
+  },
+  "cases": [
+    {
+      "id": "C03",
+      "fixture": "empty",
+      "utterance": "OCIの中に「中継室」というグループ。その中に「受付」という工程と「受付控」というデータをひとつずつ置き、受付から受付控へ矢印を1本追加して。"
+    },
+    {
+      "id": "C01",
+      "fixture": "empty",
+      "utterance": "OCIの中に開始と終了を1つずつ追加して、開始から終了へ1本だけ矢印を引いて。"
+    },
+    {
+      "id": "C04",
+      "fixture": "pair",
+      "utterance": "全部そのままで、部品も線も増やさないで。"
+    },
+    {
+      "id": "C02",
+      "fixture": "empty",
+      "utterance": "OCIの中に「受渡班」と「監査班」という2つのグループを、入れ子にせず同じ階層へ置いて。"
+    }
+  ],
+  "comparison": {
+    "case_order": [
+      "C03",
+      "C01",
+      "C04",
+      "C02"
+    ],
+    "arm_order": [
+      [
+        "B",
+        "A"
+      ],
+      [
+        "A",
+        "B"
+      ],
+      [
+        "B",
+        "A"
+      ],
+      [
+        "A",
+        "B"
+      ]
+    ]
+  }
+}

@@ -1,0 +1,196 @@
+{
+  "schema": "voice-ui.poc.independent-factors/1",
+  "reviewer": "R /root/poc_reviewer",
+  "observed_at": "2026-10-16T17:09:03.791Z",
+  "source_stdout_sha256": "33bb7ceae5ab394e4d85b3d166630b2ad1c813309f41551c0b5330b643ae90fd",
+  "total_factor_records": 8,
+  "preceding_ui_records": 0,
+  "paired_records": 8,
+  "all_recomputed_responses_match": true,
+  "rows": [
+    {
+      "id": "C03",
+      "arm": "B",
+      "head": "sha256:3f44e0d52678bc7ddeac8b19804ffaadfe6a493ce65ba8ca98f345ddd2ff75a2",
+      "factors": {
+        "intent": {
+          "choice": "change",
+          "confidence": 0.97
+        },
+        "labels": {
+          "choice": "missing",
+          "confidence": 0.54
+        },
+        "capacity": {
+          "choice": "within",
+          "confidence": 0.96
+        }
+      },
+      "recomputed": {
+        "choice": "missing",
+        "confidence": 0.54
+      }
+    },
+    {
+      "id": "C03",
+      "arm": "A",
+      "head": "sha256:3f44e0d52678bc7ddeac8b19804ffaadfe6a493ce65ba8ca98f345ddd2ff75a2",
+      "factors": {
+        "intent": {
+          "choice": "change",
+          "confidence": 0.96
+        },
+        "labels": {
+          "choice": "missing",
+          "confidence": 0.7
+        },
+        "capacity": {
+          "choice": "within",
+          "confidence": 0.98
+        }
+      },
+      "recomputed": {
+        "choice": "missing",
+        "confidence": 0.7
+      }
+    },
+    {
+      "id": "C01",
+      "arm": "A",
+      "head": "sha256:3f44e0d52678bc7ddeac8b19804ffaadfe6a493ce65ba8ca98f345ddd2ff75a2",
+      "factors": {
+        "intent": {
+          "choice": "change",
+          "confidence": 0.81
+        },
+        "labels": {
+          "choice": "available",
+          "confidence": 0.98
+        },
+        "capacity": {
+          "choice": "within",
+          "confidence": 0.98
+        }
+      },
+      "recomputed": {
+        "choice": "sufficient",
+        "confidence": 0.81
+      }
+    },
+    {
+      "id": "C01",
+      "arm": "B",
+      "head": "sha256:3f44e0d52678bc7ddeac8b19804ffaadfe6a493ce65ba8ca98f345ddd2ff75a2",
+      "factors": {
+        "intent": {
+          "choice": "change",
+          "confidence": 0.89
+        },
+        "labels": {
+          "choice": "available",
+          "confidence": 0.98
+        },
+        "capacity": {
+          "choice": "within",
+          "confidence": 0.98
+        }
+      },
+      "recomputed": {
+        "choice": "sufficient",
+        "confidence": 0.89
+      }
+    },
+    {
+      "id": "C04",
+      "arm": "B",
+      "head": "sha256:6969f47d7531db6ae8959481e6ee24676c9b37da9a61b2cdf2c97d4a2af6684a",
+      "factors": {
+        "intent": {
+          "choice": "no-change",
+          "confidence": 0.95
+        },
+        "labels": {
+          "choice": "available",
+          "confidence": 0.94
+        },
+        "capacity": {
+          "choice": "within",
+          "confidence": 1
+        }
+      },
+      "recomputed": {
+        "choice": "no-change",
+        "confidence": 0.95
+      }
+    },
+    {
+      "id": "C04",
+      "arm": "A",
+      "head": "sha256:6969f47d7531db6ae8959481e6ee24676c9b37da9a61b2cdf2c97d4a2af6684a",
+      "factors": {
+        "intent": {
+          "choice": "no-change",
+          "confidence": 0.95
+        },
+        "labels": {
+          "choice": "available",
+          "confidence": 0.96
+        },
+        "capacity": {
+          "choice": "within",
+          "confidence": 1
+        }
+      },
+      "recomputed": {
+        "choice": "no-change",
+        "confidence": 0.95
+      }
+    },
+    {
+      "id": "C02",
+      "arm": "A",
+      "head": "sha256:3f44e0d52678bc7ddeac8b19804ffaadfe6a493ce65ba8ca98f345ddd2ff75a2",
+      "factors": {
+        "intent": {
+          "choice": "change",
+          "confidence": 0.72
+        },
+        "labels": {
+          "choice": "missing",
+          "confidence": 0.4
+        },
+        "capacity": {
+          "choice": "within",
+          "confidence": 0.86
+        }
+      },
+      "recomputed": {
+        "choice": "missing",
+        "confidence": 0.4
+      }
+    },
+    {
+      "id": "C02",
+      "arm": "B",
+      "head": "sha256:3f44e0d52678bc7ddeac8b19804ffaadfe6a493ce65ba8ca98f345ddd2ff75a2",
+      "factors": {
+        "intent": {
+          "choice": "change",
+          "confidence": 0.64
+        },
+        "labels": {
+          "choice": "missing",
+          "confidence": 0.38
+        },
+        "capacity": {
+          "choice": "within",
+          "confidence": 0.84
+        }
+      },
+      "recomputed": {
+        "choice": "missing",
+        "confidence": 0.38
+      }
+    }
+  ]
+}

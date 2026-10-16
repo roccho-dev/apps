@@ -1,0 +1,100 @@
+{
+  "schema": "voice-ui.poc.independent-exploratory-diagnostic/1",
+  "reviewer": "R /root/poc_reviewer",
+  "observed_at": "2026-10-16T16:39:07.887Z",
+  "actual_request_sha256": "6f606e71b2c9efe1aad265df47f2e820adb93449c0e98301236d1c0372be473e",
+  "common_context_sha256": "c51d1f175c1004c43d8a8ce25093e3716d55047177bc222db7efb26ed4fc96a2",
+  "actual_question_order": [
+    {
+      "name": "instances",
+      "fields": [
+        "label",
+        "kind",
+        "occurrence"
+      ],
+      "minItems": 0,
+      "maxItems": 3
+    },
+    {
+      "name": "quantities",
+      "fields": [
+        "label",
+        "kind",
+        "quantity"
+      ],
+      "minItems": 0,
+      "maxItems": 3
+    },
+    {
+      "name": "forced_quantities",
+      "fields": [
+        "label",
+        "kind",
+        "quantity"
+      ],
+      "minItems": 1,
+      "maxItems": 3
+    }
+  ],
+  "immutable_launcher_independent_derivation": {
+    "ref": "git+https://github.com/roccho-dev/windows?rev=6aef693c0946903d8b87c2348039de1420acd61b",
+    "path": "/nix/store/ch53hrkkd04r51gvqsp53mnhmxg3wp09-ops-typellm/bin/ops-typellm",
+    "sha256": "871beffad82ab58b0593c1e069ecb692b9613dd501f51bcbedcdd44da31fca53"
+  },
+  "outcome": [
+    {
+      "id": "typellm-representation-diagnostic-3",
+      "exit": 0,
+      "pid": 102192,
+      "closed_answer": {
+        "result": {
+          "instances": [
+            {
+              "label": "DB",
+              "kind": "data",
+              "occurrence": 1
+            },
+            {
+              "label": "DB",
+              "kind": "data",
+              "occurrence": 2
+            },
+            {
+              "label": "DB",
+              "kind": "data",
+              "occurrence": 3
+            }
+          ],
+          "quantities": [],
+          "forced_quantities": [
+            {
+              "label": "DB",
+              "kind": "data",
+              "quantity": 2
+            }
+          ]
+        },
+        "usage": {
+          "input_tokens": 1171,
+          "thinking_tokens": 0
+        },
+        "elapsed": 0.9466
+      }
+    }
+  ],
+  "process_absent": true,
+  "budget": {
+    "charged": {
+      "jev": 149,
+      "typellm": 13
+    },
+    "confirmed": {
+      "jev": 149,
+      "typellm": 12
+    },
+    "difference": "one conservative Type charge retained for the earlier pre-transport build failure",
+    "pending": [],
+    "journal_sha256": "84bbc53d1bc47da8f871235f3a890ba5c665efcce1c31d2cfa6927a4c6e18fb1"
+  },
+  "interpretation": "Exploratory one POST with three schemas over one shared b2 capacity context. The original-schema question is not a reproduction of d0 context. minItems1 forces the initial row and produced quantity2 in this one batch; it is not an isolated context effect, performance score, adoption, or proof of generalization. Fresh remains closed."
+}

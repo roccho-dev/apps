@@ -1,0 +1,258 @@
+{
+  "schema": "voice-ui.poc.diagnostic-process-agreement/1",
+  "reviewer": "R /root/poc_reviewer",
+  "apps": "b2be591086a597e43cef5d1a8a2474d7345e58fa",
+  "phase": "poc-main-5",
+  "known_ui": {
+    "sha256": "5d2c15296a6fed1b7fe68df2bec31f305307f536ea2f4701e0ddc4152e5832a1",
+    "schema": "voice-ui.poc.browser/1",
+    "phase": "poc-main-5",
+    "baseline": {
+      "state": "camera",
+      "working_equals_confirmed": true,
+      "svg_sha256": "9803ea6e6172e5d44fe57788a4f8e1f1066595e61667dc2470eebd0d5267aa54",
+      "history": "confirmed2,draft0; prior API draft absent on normal reload; original seven regions remain"
+    },
+    "actions": [
+      {
+        "action": "browser-phase5-missing",
+        "goal": {
+          "reason": "inventory-not-confident",
+          "requests": 1,
+          "elapsedMs": 349.67000000178814,
+          "selected": [],
+          "trace": [],
+          "inventory": {
+            "checks": 1,
+            "completions": 0,
+            "coverage": {
+              "choice": "sufficient",
+              "confidence": 0.08
+            },
+            "missing": []
+          }
+        },
+        "svg_sha256": "9803ea6e6172e5d44fe57788a4f8e1f1066595e61667dc2470eebd0d5267aa54"
+      },
+      {
+        "action": "browser-phase5-sufficient",
+        "goal": {
+          "reason": "none",
+          "requests": 4,
+          "elapsedMs": 2466.625,
+          "selected": [
+            {
+              "key": "api",
+              "region": "part-8",
+              "parent": "part-2"
+            }
+          ],
+          "trace": [
+            {
+              "head": "sha256:10782141bda18c7075448e2cf8be123b8763c35a61338606ab1bf2333d58ce0a",
+              "answers": {
+                "delta": {
+                  "type": "choice",
+                  "choice": "part:api",
+                  "confidence": 0.97
+                }
+              },
+              "failure": null
+            },
+            {
+              "head": "sha256:10782141bda18c7075448e2cf8be123b8763c35a61338606ab1bf2333d58ce0a",
+              "answers": {
+                "delta": {
+                  "type": "choice",
+                  "choice": "delta-9",
+                  "confidence": 1
+                }
+              },
+              "failure": null
+            },
+            {
+              "head": "sha256:b8271e21cf5b6c614361e112211f7177c3b72d5b16d3b0bc14802798313232b2",
+              "answers": {
+                "delta": {
+                  "type": "choice",
+                  "choice": "none",
+                  "confidence": 0.98
+                }
+              },
+              "failure": null
+            }
+          ],
+          "inventory": {
+            "checks": 1,
+            "completions": 0,
+            "coverage": {
+              "choice": "sufficient",
+              "confidence": 0.94
+            },
+            "missing": []
+          }
+        },
+        "svg_sha256": "b4f9dea9aab20744329f366662d4d4f78fcdbaa4f876e8567d079af0176dc452"
+      },
+      {
+        "action": "apply",
+        "working_svg_sha256": "b4f9dea9aab20744329f366662d4d4f78fcdbaa4f876e8567d079af0176dc452",
+        "confirmed_svg_sha256": "b4f9dea9aab20744329f366662d4d4f78fcdbaa4f876e8567d079af0176dc452",
+        "state": "applied"
+      },
+      {
+        "action": "reload-then-same-OCI-camera",
+        "working_svg_sha256": "b4f9dea9aab20744329f366662d4d4f78fcdbaa4f876e8567d079af0176dc452",
+        "confirmed_svg_sha256": "b4f9dea9aab20744329f366662d4d4f78fcdbaa4f876e8567d079af0176dc452",
+        "state": "camera"
+      }
+    ],
+    "counters": {
+      "phase": {
+        "jev": 5,
+        "typellm": 0
+      },
+      "whole": {
+        "jev": 91,
+        "typellm": 8
+      },
+      "source": "physical run-manager status"
+    },
+    "network": {
+      "browser-phase5-missing-network.json": {
+        "sha256": "cc2b20b974420853ece43c789066966eb78bdec2d72c8fffd1d11328a6eba328",
+        "keys": [
+          "cursor",
+          "truncated",
+          "records"
+        ],
+        "truncated": false,
+        "records": [
+          {
+            "id": "8524.7911",
+            "url": "http://127.0.0.1:18843/api/parts/check",
+            "status": 200,
+            "response": {
+              "choice": "sufficient",
+              "confidence": 0.08
+            },
+            "utterance": "OCIの中に「洗浄」という名前の工程を1つ追加してください。他は変更しないでください。",
+            "head": "sha256:10782141bda18c7075448e2cf8be123b8763c35a61338606ab1bf2333d58ce0a"
+          }
+        ]
+      },
+      "browser-phase5-sufficient-network.json": {
+        "sha256": "60e062711bc500c58ac276388174fb6c12b54506d44a9149146d1ca11d52a965",
+        "keys": [
+          "cursor",
+          "truncated",
+          "records"
+        ],
+        "truncated": false,
+        "records": [
+          {
+            "id": "8524.7912",
+            "url": "http://127.0.0.1:18843/api/parts/check",
+            "status": 200,
+            "response": {
+              "choice": "sufficient",
+              "confidence": 0.94
+            },
+            "utterance": "OCIの中に「API」という名前の工程を1つ追加してください。他は変更しないでください。",
+            "head": "sha256:10782141bda18c7075448e2cf8be123b8763c35a61338606ab1bf2333d58ce0a"
+          },
+          {
+            "id": "8524.7913",
+            "url": "http://127.0.0.1:18843/api/judge",
+            "status": 200,
+            "response": {
+              "kind": "voice-ui.judge.decision.v1",
+              "answers": {
+                "delta": {
+                  "type": "choice",
+                  "choice": "part:api",
+                  "confidence": 0.97
+                }
+              }
+            },
+            "utterance": "OCIの中に「API」という名前の工程を1つ追加してください。他は変更しないでください。"
+          },
+          {
+            "id": "8524.7914",
+            "url": "http://127.0.0.1:18843/api/judge",
+            "status": 200,
+            "response": {
+              "kind": "voice-ui.judge.decision.v1",
+              "answers": {
+                "delta": {
+                  "type": "choice",
+                  "choice": "delta-9",
+                  "confidence": 1
+                }
+              }
+            },
+            "utterance": "OCIの中に「API」という名前の工程を1つ追加してください。他は変更しないでください。",
+            "chosen": {
+              "id": "delta-9",
+              "action": "add-part",
+              "part": "api",
+              "parent": "part-2"
+            }
+          },
+          {
+            "id": "8524.8136",
+            "url": "http://127.0.0.1:18843/api/judge",
+            "status": 200,
+            "response": {
+              "kind": "voice-ui.judge.decision.v1",
+              "answers": {
+                "delta": {
+                  "type": "choice",
+                  "choice": "none",
+                  "confidence": 0.98
+                }
+              }
+            },
+            "utterance": "OCIの中に「API」という名前の工程を1つ追加してください。他は変更しないでください。"
+          }
+        ]
+      }
+    }
+  },
+  "actual_send_and_process_observation": {
+    "at": "2026-10-16T16:23:25.292Z",
+    "phase_counts": {
+      "jev": 5,
+      "typellm": 0
+    },
+    "whole_counts": {
+      "jev": 91,
+      "typellm": 8
+    },
+    "stderr_sha256": "461bc5e9fd903ef6402e5039e1af60afe6e1f7dd75a32bc1ca9eb63f117442b7",
+    "send_lines": [
+      "provider-send:jev:1",
+      "provider-send:jev:2",
+      "provider-send:jev:3",
+      "provider-send:jev:4",
+      "provider-send:jev:5"
+    ],
+    "pid": 101417,
+    "pgid": 101417,
+    "start_ticks": "7530557",
+    "cmdline": [
+      "node",
+      "/nix/store/6z6k7in8isz43vk2yqa1jkmrrxsl6cbw-source/packages/voice-ui/dev/serve.mjs"
+    ]
+  },
+  "decision": "ALLOW_ONE_DIAGNOSTIC_REMEASUREMENT_OF_EXPOSED_MAIN_ONLY",
+  "process_branch": "source/runtime -> known UI valid quality stop -> existing exposed main diagnostic -> R cause judgment; no closure/fresh admission from this branch",
+  "conditions": [
+    "Same b2 source and main input bytes83f6c7ec8c5bf904afdcafbe2f88a272897606288088e665b71e26f1eea84c1c",
+    "Record all20 arms and complete closed HTTP pairs; no retries or oracle injection",
+    "Keep failed known missing wash input as quality failure; do not search names until a UI success",
+    "Stop/reconcile phase after diagnostic and retain at least56 Jev budget for fresh confirmation",
+    "New-quantity missing UI remains unpassed; no EFFECT closure or fresh exposure from diagnostic alone",
+    "Original metric thresholds and separately sealed fresh oracles unchanged"
+  ]
+}

@@ -1,0 +1,216 @@
+{
+  "schema": "voice-ui.poc.oracle-inventory-fixture/1",
+  "scope": "Posthoc oracle-assisted inventory-ready diagnosis only; not Type completion, main/fresh quality scores or generalization evidence.",
+  "source": "e4a2af1efe9278996391f0374d4546a51aa98736",
+  "main_projection_sha256": "83f6c7ec8c5bf904afdcafbe2f88a272897606288088e665b71e26f1eea84c1c",
+  "case_order": [
+    "H06",
+    "H08"
+  ],
+  "completion": false,
+  "maximum_jev_per_case": 9,
+  "maximum_jev_total": 18,
+  "maximum_typellm_total": 0,
+  "cases": [
+    {
+      "id": "H06",
+      "fixture": "empty",
+      "utterance": "OCIの中に「読込班」「点検班」「保管班」という3つのグループを、同じ階層に1つずつ追加して。",
+      "initial_log": "{\"operations\":[{\"mapId\":\"voice-graph\",\"records\":[{\"root\":\"root\",\"schema\":\"semantic-map-state/1\",\"title\":\"sealed small PoC\",\"type\":\"meta\"},{\"bounds\":[0,0,900,400],\"id\":\"root\",\"kind\":\"boundary\",\"label\":\"fixture\",\"parent\":null,\"summary\":\"\",\"type\":\"region\"},{\"bounds\":[0,0,700,200],\"id\":\"container\",\"kind\":\"group\",\"label\":\"OCI\",\"parent\":\"root\",\"summary\":\"\",\"type\":\"region\"},{\"bounds\":[0,230,700,160],\"id\":\"other\",\"kind\":\"group\",\"label\":\"Other\",\"parent\":\"root\",\"summary\":\"\",\"type\":\"region\"}],\"type\":\"CreateMap\"}],\"parent\":null,\"schema\":\"semantic-map-decision/2\",\"stateHash\":\"sha256:721939a9428f00adec7d4771ae910ab118bb80cd0bb2f36e7790f7e761599204\"}\n{\"operations\":[{\"items\":[{\"bounds\":[0,0,2000,500],\"regionId\":\"container\"},{\"bounds\":[0,600,2000,500],\"regionId\":\"other\"}],\"type\":\"PinRegions\"}],\"parent\":\"sha256:e411c26b1ae696e494de68f591334b0ebbd9928edb8da647d681d5278575d42b\",\"schema\":\"semantic-map-decision/2\",\"stateHash\":\"sha256:08e53be00691c0b7ba556e34955fe1695e1b0a7d1a15eb82c05b0d87e7b385ed\"}\n",
+      "initial_head": "sha256:3f44e0d52678bc7ddeac8b19804ffaadfe6a493ce65ba8ca98f345ddd2ff75a2",
+      "initial_log_sha256": "32f7c43ed78ccead4936c39d30e00fd36340a388192bb9e0c9b0265801848079",
+      "initial_records": [
+        {
+          "type": "meta",
+          "schema": "semantic-map-state/1",
+          "root": "root",
+          "title": "sealed small PoC"
+        },
+        {
+          "type": "region",
+          "id": "root",
+          "parent": null,
+          "label": "fixture",
+          "kind": "boundary",
+          "bounds": [
+            0,
+            0,
+            900,
+            400
+          ],
+          "summary": ""
+        },
+        {
+          "type": "region",
+          "id": "container",
+          "parent": "root",
+          "label": "OCI",
+          "kind": "group",
+          "bounds": [
+            0,
+            0,
+            700,
+            200
+          ],
+          "summary": ""
+        },
+        {
+          "type": "region",
+          "id": "other",
+          "parent": "root",
+          "label": "Other",
+          "kind": "group",
+          "bounds": [
+            0,
+            230,
+            700,
+            160
+          ],
+          "summary": ""
+        },
+        {
+          "type": "layout",
+          "regionId": "container",
+          "pin": "hard",
+          "bounds": [
+            0,
+            0,
+            2000,
+            500
+          ]
+        },
+        {
+          "type": "layout",
+          "regionId": "other",
+          "pin": "hard",
+          "bounds": [
+            0,
+            600,
+            2000,
+            500
+          ]
+        }
+      ],
+      "slot_replacements": [
+        {
+          "key": "step",
+          "label": "読込班",
+          "kind": "group",
+          "purpose": "one group part named 読込班"
+        },
+        {
+          "key": "data",
+          "label": "点検班",
+          "kind": "group",
+          "purpose": "one group part named 点検班"
+        },
+        {
+          "key": "group",
+          "label": "保管班",
+          "kind": "group",
+          "purpose": "one group part named 保管班"
+        }
+      ]
+    },
+    {
+      "id": "H08",
+      "fixture": "empty",
+      "utterance": "OCIに「検品室」というグループを作り、その中に「寸法測定」という工程と「測定票」というデータを置いて。寸法測定から測定票へ矢印を1本つないで。",
+      "initial_log": "{\"operations\":[{\"mapId\":\"voice-graph\",\"records\":[{\"root\":\"root\",\"schema\":\"semantic-map-state/1\",\"title\":\"sealed small PoC\",\"type\":\"meta\"},{\"bounds\":[0,0,900,400],\"id\":\"root\",\"kind\":\"boundary\",\"label\":\"fixture\",\"parent\":null,\"summary\":\"\",\"type\":\"region\"},{\"bounds\":[0,0,700,200],\"id\":\"container\",\"kind\":\"group\",\"label\":\"OCI\",\"parent\":\"root\",\"summary\":\"\",\"type\":\"region\"},{\"bounds\":[0,230,700,160],\"id\":\"other\",\"kind\":\"group\",\"label\":\"Other\",\"parent\":\"root\",\"summary\":\"\",\"type\":\"region\"}],\"type\":\"CreateMap\"}],\"parent\":null,\"schema\":\"semantic-map-decision/2\",\"stateHash\":\"sha256:721939a9428f00adec7d4771ae910ab118bb80cd0bb2f36e7790f7e761599204\"}\n{\"operations\":[{\"items\":[{\"bounds\":[0,0,2000,500],\"regionId\":\"container\"},{\"bounds\":[0,600,2000,500],\"regionId\":\"other\"}],\"type\":\"PinRegions\"}],\"parent\":\"sha256:e411c26b1ae696e494de68f591334b0ebbd9928edb8da647d681d5278575d42b\",\"schema\":\"semantic-map-decision/2\",\"stateHash\":\"sha256:08e53be00691c0b7ba556e34955fe1695e1b0a7d1a15eb82c05b0d87e7b385ed\"}\n",
+      "initial_head": "sha256:3f44e0d52678bc7ddeac8b19804ffaadfe6a493ce65ba8ca98f345ddd2ff75a2",
+      "initial_log_sha256": "32f7c43ed78ccead4936c39d30e00fd36340a388192bb9e0c9b0265801848079",
+      "initial_records": [
+        {
+          "type": "meta",
+          "schema": "semantic-map-state/1",
+          "root": "root",
+          "title": "sealed small PoC"
+        },
+        {
+          "type": "region",
+          "id": "root",
+          "parent": null,
+          "label": "fixture",
+          "kind": "boundary",
+          "bounds": [
+            0,
+            0,
+            900,
+            400
+          ],
+          "summary": ""
+        },
+        {
+          "type": "region",
+          "id": "container",
+          "parent": "root",
+          "label": "OCI",
+          "kind": "group",
+          "bounds": [
+            0,
+            0,
+            700,
+            200
+          ],
+          "summary": ""
+        },
+        {
+          "type": "region",
+          "id": "other",
+          "parent": "root",
+          "label": "Other",
+          "kind": "group",
+          "bounds": [
+            0,
+            230,
+            700,
+            160
+          ],
+          "summary": ""
+        },
+        {
+          "type": "layout",
+          "regionId": "container",
+          "pin": "hard",
+          "bounds": [
+            0,
+            0,
+            2000,
+            500
+          ]
+        },
+        {
+          "type": "layout",
+          "regionId": "other",
+          "pin": "hard",
+          "bounds": [
+            0,
+            600,
+            2000,
+            500
+          ]
+        }
+      ],
+      "slot_replacements": [
+        {
+          "key": "group",
+          "label": "検品室",
+          "kind": "group",
+          "purpose": "one group part named 検品室"
+        },
+        {
+          "key": "step",
+          "label": "寸法測定",
+          "kind": "step",
+          "purpose": "one step part named 寸法測定"
+        },
+        {
+          "key": "data",
+          "label": "測定票",
+          "kind": "data",
+          "purpose": "one data part named 測定票"
+        }
+      ]
+    }
+  ]
+}

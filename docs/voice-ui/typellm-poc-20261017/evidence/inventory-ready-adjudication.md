@@ -1,0 +1,18 @@
+# Independent oracle-assisted inventory-ready adjudication
+
+R /root/poc_reviewer: **VALID_ORACLE_ASSISTED_DIAGNOSTIC; both fixed cases pass the two diagnostic conditions**. This is a disclosed posthoc diagnosis on exposed main cases, excluded from main/fresh/TypeLLM/full EFFECT scores and from generalization claims. The previous overall verdict remains EFFECT_NOT_DEMONSTRATED.
+
+| Fixed case | Actual gate | Exact original semantic graph | Calls |
+| --- | --- | --- | --- |
+| H06, three named peer groups | sufficient0.91, accepted | yes; 読込班/点検班/保管班 under OCI | 8 Jev,0 Type |
+| H08, new nested group/step/data/flow | sufficient0.88, accepted | yes; 検品室 containing 寸法測定/測定票, correct directed edge | 9 Jev,0 Type |
+
+The same immutable e4 production coordinator, completed Worker and actual Jev provider path were used. The original utterance and exact original initial graph/log bytes were retained. Only the declared three slots of the eight-part library changed to their oracle-provided label/kind and the bounded purpose `one {kind} part named {label}`; the other five slots remained unchanged. R verified that no parent, edge, operation or solution hint entered those purposes. The real gate was retained and completion:false prevented TypeLLM calls. Each case ran exactly once, in fixed H06/H08 order. No source, prompt, threshold or original paired harness changed.
+
+Both final graphs preserve existing semantic fields and exactly match the original sealed main label/kind/count/parent/directed-edge oracle with no extra semantic records. The actual pinned protocol independently verified both final DecisionLogs and their exact initial prefixes. All5 raw files (168,666 bytes), all17 complete HTTP request/closed-response pairs, event ordering, source/runtime/driver/fixture/library identities, limits and both raw-factor gate recomputations passed independent audit. These are protocol-valid structures; this extra diagnosis does not add a browser rendering or arbitrary-aesthetic acceptance claim.
+
+The result shows that these two previously failing structures can be assembled when a human supplies the correct eight-slot stock. It does not prove TypeLLM produced those parts, nor that candidate completeness alone is the unique cause of the earlier failure. The prepared eight-slot library differs from a completed eleven-candidate overlay in candidate count, keys and purpose strings. The oracle and cases were already known, and there is only one trial per case. The original TypeLLM omissions, weak novel-label judgments, failed final fallback UI and failed fresh criteria remain.
+
+Phase8 used17 Jev/0 TypeLLM and was stopped/reconciled. At17:22:47Z R independently observed PID103655 and every PGID103655 member absent, including zombies. Cumulative charged292 Jev/18 TypeLLM and confirmed actual292/17 retain the one earlier conservative no-transport Type charge. No pending reservation remains. The remaining budget is not a reason to add further attempts.
+
+Frozen fixture SHA2562091b8180120d27a62098a94c98c536a3f5feed5b4a609353482abdc9b9b8b30, driver19c3ca58958cefb19b10b9df6a6db565c1c592111ea7e59b6ce6cb096103dc79, pre-output independent scorer5eb8e53ae4bebc5b7e862caf9dc9dc32711442d0443106ce4fc33d51041ba0bb. Machine score SHA256902c404cd7a987f155abe274151a6a85ea3c3157181ea1ee074dc488366ddc77; factor auditdce5a59abc3484b93fd6c10df3784ca4563e948b15e794047330291514d66b70. Pre-output agreement, independent fixture/preflight/runtime review, acquisition/cleanup, protocol/factor audits, exact driver/fixture and stopped stdout are retained unchanged with this report. Mechanism/evidence publication can close separately from the unachieved overall drawing-quality objective.

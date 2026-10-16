@@ -1,0 +1,149 @@
+{
+  "schema": "voice-ui.typellm-poc.holdout/1",
+  "reviewer": "/root/poc_reviewer",
+  "prepared_before_any_case_provider_output": true,
+  "policy_commit": "a6284e58ed99243447e135828d983fc07d2d363e",
+  "source_baseline": "c884edf6e9e7204e47dae5dbdd22ed3034b2ab14",
+  "status": "sealed-unexposed",
+  "scope": {
+    "starting_surface": "an existing named non-root group with room",
+    "max_added_regions": 3,
+    "max_added_directed_edges": 1,
+    "labels": "exact displayed part.label; app IDs remain distinct",
+    "kinds": ["step", "decision", "data", "start", "end", "group"],
+    "goal_questions_max": 8,
+    "sufficiency_questions_max": 1,
+    "typellm_requests_max_per_goal": 1,
+    "missing_candidates_only": true,
+    "model_may_set_parents_or_edges": false,
+    "model_may_set_instance_ids_or_operators": false,
+    "not_claimed": ["root or empty-map additions", "arbitrary graph scale", "general source ingestion", "voice microphone performance"]
+  },
+  "fixture_contract": {
+    "map_id": "voice-graph",
+    "state_schema": "semantic-map-state/1",
+    "base_records": [
+      {"type":"meta","schema":"semantic-map-state/1","root":"root","title":"sealed small PoC"},
+      {"type":"region","id":"root","parent":null,"label":"fixture","kind":"boundary","bounds":[0,0,900,400],"summary":""},
+      {"type":"region","id":"container","parent":"root","label":"OCI","kind":"group","bounds":[0,0,700,200],"summary":""},
+      {"type":"region","id":"other","parent":"root","label":"Other","kind":"group","bounds":[0,230,700,160],"summary":""}
+    ],
+    "base_pins": [
+      {"regionId":"container","bounds":[0,0,2000,500]},
+      {"regionId":"other","bounds":[0,600,2000,500]}
+    ],
+    "fixtures": {
+      "empty": {"extra_records":[],"extra_pins":[]},
+      "api": {
+        "extra_records":[{"type":"region","id":"initial-api","parent":"container","label":"API","kind":"step","bounds":[20,20,140,64],"summary":""}],
+        "extra_pins":[{"regionId":"initial-api","bounds":[12,36,140,64]}]
+      },
+      "pair": {
+        "extra_records":[
+          {"type":"region","id":"initial-api","parent":"container","label":"API","kind":"step","bounds":[20,20,140,64],"summary":""},
+          {"type":"region","id":"initial-db","parent":"container","label":"DB","kind":"data","bounds":[200,20,140,64],"summary":""}
+        ],
+        "extra_pins":[
+          {"regionId":"initial-api","bounds":[12,36,140,64]},
+          {"regionId":"initial-db","bounds":[200,36,140,64]}
+        ]
+      }
+    },
+    "recent_conversation": [],
+    "scope": null,
+    "bundle": "the unchanged baseline web/data/bundle.v1.json (8 canonical parts)",
+    "construction": "protocol.createDecisionLog(base_records plus extra_records); protocol.createDecision with PinRegions(base_pins plus extra_pins); appendDecision; createSession accepted+stored"
+  },
+  "comparison": {
+    "A": "same source, same exact display labels and same sufficiency gate; missing still runs unaugmented legal loop; TypeLLM disabled",
+    "B": "same source and gate; missing runs TypeLLM once and validated goal-local enrichment, then the same legal loop",
+    "fresh_session_per_case_per_arm": true,
+    "same_input_and_initial_records_per_arm": true,
+    "no_case_specific_prompt_or_key_logic": true,
+    "automatic_retries": 0,
+    "case_order": ["H01","H05","H09","H02","H06","H10","H03","H07","H04","H08"],
+    "arm_order": "alternate AB then BA by case_order index",
+    "golden_data_never_sent_to_provider": true,
+    "publish_all_attempts_and_failures": true
+  },
+  "scoring": {
+    "graph_pass": "exact multiset of added region(label,kind,parent) and added directed edges, with zero extra additions or deletions or label/kind/parent changes to existing regions; layout pin changes separately validated by protocol and real browser",
+    "semantic_references": "fixture:<id> refers to a preserved fixture region; added:<label> refers to its unique new region; duplicates are matched as a multiset",
+    "completion_minimality": "TypeLLM provides exactly the missing capacity, not a full graph or a replacement library; duplicate label/kind missing occurrences are consecutive from1",
+    "effect": {
+      "gate_exact_at_least": 9,
+      "gate_total": 10,
+      "all_missing_gates_correct": true,
+      "typellm_calls_on_sufficient_or_control": 0,
+      "control_semantic_mutations": 0,
+      "B_sufficient_graph_pass_at_least": 3,
+      "sufficient_graph_total": 4,
+      "B_sufficient_graph_pass_not_below_A": true,
+      "B_missing_graph_pass_at_least": 3,
+      "missing_graph_total": 4,
+      "B_missing_graph_pass_gain_over_A_at_least": 2,
+      "B_missing_completion_minimal_at_least": 3,
+      "all_tests_and_cross_repo_artifact_identity_verified": true,
+      "current_browser_input_draw_undo_apply_reload_verified": true
+    },
+    "interpretation": "EFFECT is restricted to this predefined small PoC; no statistical or arbitrary-complexity generalization",
+    "invalid_evidence": "source mismatch, uncounted sends, retries, provider/transport unavailability, altered golden oracle, missing final Working records, or broken fixture reachability",
+    "no_effect": "valid paired results repeatedly show no improvement or unacceptable regressions, with failure cause independently identified; budget exhaustion alone means EFFECT_NOT_DEMONSTRATED"
+  },
+  "cases": [
+    {
+      "id":"H01","fixture":"empty","utterance":"OCIの中にAPIをひとつ追加して。ほかは変えないで。",
+      "expected_gate":"sufficient","expected_missing":[],
+      "expected_added_regions":[{"label":"API","kind":"step","parent":"fixture:container"}],"expected_added_edges":[]
+    },
+    {
+      "id":"H02","fixture":"empty","utterance":"OCIに判断の部品を1個だけ置いて。",
+      "expected_gate":"sufficient","expected_missing":[],
+      "expected_added_regions":[{"label":"判断","kind":"decision","parent":"fixture:container"}],"expected_added_edges":[]
+    },
+    {
+      "id":"H03","fixture":"api","utterance":"OCIの中にDBをひとつ新しく作り、既存のAPIからそのDBへ矢印を1本つないで。",
+      "expected_gate":"sufficient","expected_missing":[],
+      "expected_added_regions":[{"label":"DB","kind":"data","parent":"fixture:container"}],
+      "expected_added_edges":[{"from":"fixture:initial-api","to":"added:DB","kind":"flow","label":""}]
+    },
+    {
+      "id":"H04","fixture":"pair","utterance":"今あるDBから今あるAPIへ矢印を1本だけ追加して。新しい部品は不要。",
+      "expected_gate":"sufficient","expected_missing":[],"expected_added_regions":[],
+      "expected_added_edges":[{"from":"fixture:initial-db","to":"fixture:initial-api","kind":"flow","label":""}]
+    },
+    {
+      "id":"H05","fixture":"empty","utterance":"OCIの中に「整形受付」という名前の工程をひとつだけ作って。",
+      "expected_gate":"missing",
+      "expected_missing":[{"label":"整形受付","kind":"step","occurrence":1}],
+      "expected_added_regions":[{"label":"整形受付","kind":"step","parent":"fixture:container"}],"expected_added_edges":[]
+    },
+    {
+      "id":"H06","fixture":"empty","utterance":"OCIの中に「読込班」「点検班」「保管班」という3つのグループを、同じ階層に1つずつ追加して。",
+      "expected_gate":"missing",
+      "expected_missing":[{"label":"読込班","kind":"group","occurrence":1},{"label":"点検班","kind":"group","occurrence":1},{"label":"保管班","kind":"group","occurrence":1}],
+      "expected_added_regions":[{"label":"読込班","kind":"group","parent":"fixture:container"},{"label":"点検班","kind":"group","parent":"fixture:container"},{"label":"保管班","kind":"group","parent":"fixture:container"}],"expected_added_edges":[]
+    },
+    {
+      "id":"H07","fixture":"empty","utterance":"OCIにDBを3つ追加して。表示名は3つともDBで、矢印はいらない。",
+      "expected_gate":"missing",
+      "expected_missing":[{"label":"DB","kind":"data","occurrence":1},{"label":"DB","kind":"data","occurrence":2}],
+      "expected_added_regions":[{"label":"DB","kind":"data","parent":"fixture:container"},{"label":"DB","kind":"data","parent":"fixture:container"},{"label":"DB","kind":"data","parent":"fixture:container"}],"expected_added_edges":[]
+    },
+    {
+      "id":"H08","fixture":"empty","utterance":"OCIに「検品室」というグループを作り、その中に「寸法測定」という工程と「測定票」というデータを置いて。寸法測定から測定票へ矢印を1本つないで。",
+      "expected_gate":"missing",
+      "expected_missing":[{"label":"検品室","kind":"group","occurrence":1},{"label":"寸法測定","kind":"step","occurrence":1},{"label":"測定票","kind":"data","occurrence":1}],
+      "expected_added_regions":[{"label":"検品室","kind":"group","parent":"fixture:container"},{"label":"寸法測定","kind":"step","parent":"added:検品室"},{"label":"測定票","kind":"data","parent":"added:検品室"}],
+      "expected_added_edges":[{"from":"added:寸法測定","to":"added:測定票","kind":"flow","label":""}]
+    },
+    {
+      "id":"H09","fixture":"empty","utterance":"OCIにあれを追加して。",
+      "expected_gate":"ambiguous","expected_missing":[],"expected_added_regions":[],"expected_added_edges":[]
+    },
+    {
+      "id":"H10","fixture":"pair","utterance":"追加も接続もしないで。今の図をそのままにしておいて。",
+      "expected_gate":"no-change","expected_missing":[],"expected_added_regions":[],"expected_added_edges":[]
+    }
+  ]
+}

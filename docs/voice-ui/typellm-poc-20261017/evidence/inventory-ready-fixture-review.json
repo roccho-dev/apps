@@ -1,0 +1,30 @@
+{
+  "schema": "voice-ui.poc.independent-inventory-ready-fixture-review/1",
+  "reviewer": "R /root/poc_reviewer",
+  "observed_at": "2026-10-16T17:18:13.995Z",
+  "source": "e4a2af1efe9278996391f0374d4546a51aa98736",
+  "fixture_sha256": "2091b8180120d27a62098a94c98c536a3f5feed5b4a609353482abdc9b9b8b30",
+  "driver_sha256": "19c3ca58958cefb19b10b9df6a6db565c1c592111ea7e59b6ce6cb096103dc79",
+  "scope": "Posthoc oracle-assisted two-case stage isolation; no TypeLLM/main/fresh/full EFFECT score or generalization claim.",
+  "source_driver_review": "Same immutable production runInventoryGoal/protocol/Worker paths; actual inventory gate; completion false and no Type HTTP route; one sequential attempt per case; per-case9/total18 caps; fsync request/response and exact semantic/final log evidence; existing product and paired harness unchanged.",
+  "rows": [
+    {
+      "id": "H06",
+      "original_initial_and_utterance_match": true,
+      "exact_complete_missing_label_kind_multiset": true,
+      "original_five_slots_byte_serialization_match": true,
+      "library_sha256": "8a246650c482217cd42a2269a66a5461b58423b0587728b13591a3a2e607cc2a",
+      "expected_gate": "sufficient",
+      "expected_graph": "original sealed main exact graph, no new fields/extra semantics"
+    },
+    {
+      "id": "H08",
+      "original_initial_and_utterance_match": true,
+      "exact_complete_missing_label_kind_multiset": true,
+      "original_five_slots_byte_serialization_match": true,
+      "library_sha256": "16e9f33864c74ef6309c3e89af9387ae790a9145543ab40e02f659861f984d0e",
+      "expected_gate": "sufficient",
+      "expected_graph": "original sealed main exact graph, no new fields/extra semantics"
+    }
+  ]
+}

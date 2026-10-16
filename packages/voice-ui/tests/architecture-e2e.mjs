@@ -310,13 +310,17 @@ page.on("pageerror", error => errors.push(String(error)));
 // text, and how long until then. A body is read once, and every read is
 // awaited before anything is reported. Each is marked once a turn reports it.
 const exchanges = [];
+const inventoryExchanges = [];
 page.on("request", request => {
-  if (new URL(request.url()).pathname !== "/api/judge") return;
-  exchanges.push({
+  const route = new URL(request.url()).pathname;
+  const target = route === "/api/judge" ? exchanges : ["/api/parts/check", "/api/parts/complete"].includes(route) ? inventoryExchanges : null;
+  if (target === null) return;
+  target.push({
+    route,
     request, sent: JSON.parse(request.postData()), at: Date.now(), status: null, error: null, ms: null, body: null, read: null, reported: false,
   });
 });
-const exchangeOf = request => exchanges.find(entry => entry.request === request);
+const exchangeOf = request => [...exchanges, ...inventoryExchanges].find(entry => entry.request === request);
 page.on("response", response => {
   const entry = exchangeOf(response.request());
   if (entry === undefined) return;
@@ -335,7 +339,7 @@ page.on("requestfailed", request => {
   entry.error = "transport-failed";
   entry.ms = Date.now() - entry.at;
 });
-const drain = () => Promise.all(exchanges.map(entry => entry.read));
+const drain = () => Promise.all([...exchanges, ...inventoryExchanges].map(entry => entry.read));
 
 // What of an exchange may be printed: its kind, a locate frame's part, a
 // judge's focus, body file ids and the frame of them it asks, how it ended,
@@ -1040,6 +1044,7 @@ const goalScenario = async () => {
     return [step.ref, matches[0].id];
   }));
   const prepared = exchanges.length;
+  const inventoryBefore = inventoryExchanges.length;
   const crafted = [];
   if (FIXTURE) await page.route(route, craft((name, sent) => {
     if (mode === "fixture-none") return contract.NONE;
@@ -1072,6 +1077,7 @@ const goalScenario = async () => {
   const after = await screen(); last = after;
   const attempt = await page.evaluate(() => JSON.parse(document.body.dataset.goal));
   const sent = exchanges.slice(prepared);
+  const inventorySent = inventoryExchanges.slice(inventoryBefore);
   // One independent oracle for an actual after-state of this Goal: the drawn
   // product graph, or the replayed baseline graph. noneMet grades a NONE oracle.
   const grade = (records, noneMet) => {
@@ -1275,6 +1281,8 @@ const goalScenario = async () => {
   });
   const baselineElapsedMs = performance.now() - baselineStart;
   goalEvidence = { reason: attempt.reason, goalMet: semanticMet, requests: sent.length, setupRequests: prepared,
+    inventory: attempt.inventory, inventoryRequests: inventorySent.map(entry => ({ route: entry.route, status: entry.status,
+      ms: entry.ms, response: entry.body, error: entry.error })),
     evaluation: { id: evaluation?.id ?? scenario, version: "voice-ui.goal-evaluation.v1", inputHash: digest(evaluation ?? { goal: goalText, expected: expectedCase, order: "normal" }),
       source: SERVED_COMMIT, order: evaluation?.order ?? "normal", orderInterventions, expected, expectedEdges,
     firstNone, baselinePreserved, grownPins: grown.map(record => record.regionId), semanticGrade: "NOT_PROVEN", paintGrade: "NOT_PROVEN" },
@@ -1293,7 +1301,9 @@ const goalScenario = async () => {
     providerIdentity: "UNKNOWN", acceptedIntegration: "NOT_PROVEN" };
   need(sent.length >= 1 && sent.length <= 8 && sent.every(entry => entry.sent.kind === contract.GOAL_REQUEST_KIND
     && entry.sent.state.utterance === goalText && contract.isRequest(entry.sent)), "bounded requests carry the one Goal and closed public state");
-  need(attempt.requests === sent.length, "logical request accounting matches actual application requests");
+  need(attempt.requests === sent.length + (attempt.inventory?.checks ?? 0), "logical Jev accounting includes the actual inventory check and finite-loop requests");
+  need(inventorySent.length === 0 && attempt.inventory === undefined,
+    "the architecture page retains its existing Goal path without ordinary-graph inventory or completion calls");
   need(after.stored === before.stored && after.root === before.root, "Goal never saves");
   if (STOP_FIXTURE) {
     assert.equal(sent.length, 1); assert.equal(sent[0].status, 502);
@@ -1392,7 +1402,7 @@ const goalScenario = async () => {
   need(goalEvidence.timeBudgetMet && attempt.elapsedMs >= 0, "the independently graded Goal time envelope is met");
   need(baselinePreserved, "Goal preserves every baseline record, but a grown ancestor pin under a nested oracle");
   goalEvidence.evaluation.semanticGrade = semanticMet && goalEvidence.noSave && goalEvidence.timeBudgetMet
-    && Number.isFinite(attempt.elapsedMs) && attempt.elapsedMs >= 0 && attempt.requests === sent.length
+    && Number.isFinite(attempt.elapsedMs) && attempt.elapsedMs >= 0 && attempt.requests === sent.length + (attempt.inventory?.checks ?? 0)
     && sent.length >= 1 && sent.length <= 8 && sent.every(entry => entry.status === 200
       && entry.error === null && contract.isRequest(entry.sent) && entry.sent.state.utterance === goalText
       && contract.readAnswers(entry.body?.answers, slotsOf(entry.sent)) !== null)

@@ -1,0 +1,191 @@
+{
+  "schema": "voice-ui.poc.acquisition-cleanup/1",
+  "reviewer": "R /root/poc_reviewer",
+  "observed_at": "2026-10-16T17:08:34.784Z",
+  "pid": 103224,
+  "start_ticks": "7802310",
+  "all_process_group_members_including_zombies": [],
+  "pid_absent": true,
+  "ledger": {
+    "sha256": "c833feec94684435d00991750a3fa09264f8ade0afdb48e0f60af1a3decdf418",
+    "charged": {
+      "jev": 275,
+      "typellm": 18
+    },
+    "pending": [],
+    "phase_events": [
+      {
+        "kind": "phase-reserve",
+        "id": "poc-fresh-7",
+        "allowances": {
+          "jev": 56,
+          "typellm": 4
+        },
+        "prior_charged": {
+          "jev": 239,
+          "typellm": 17
+        },
+        "config_sha256": "2f0c182426876ce74a5c9304c675a9801e4cb0daf6a3427adea3ec9f0755c11b",
+        "program": "/nix/store/bg0bygqiid25xnivxv9cdgjlx3sp939j-voice-ui-typed-dev/bin/voice-ui-typed-dev",
+        "heads": {
+          "apps": "e4a2af1efe9278996391f0374d4546a51aa98736",
+          "ops": "cab432ef717cbde9ebd0197ae006c0efe75269bf",
+          "windows": "6aef693c0946903d8b87c2348039de1420acd61b",
+          "envs": "063e685b8b21a97fc8658879da93fa858552bcd6"
+        },
+        "at": "2026-10-16T17:02:58.493Z"
+      },
+      {
+        "kind": "phase-reconcile",
+        "id": "poc-fresh-7",
+        "sent": {
+          "jev": 36,
+          "typellm": 1
+        },
+        "stopped_group_empty": true,
+        "pid": 103224,
+        "start_ticks": "7802310",
+        "stderr_sha256": "1b3e4676a55778563ea3582599fd53a2df68d431bab8b9be47e3a98ee0032bbd",
+        "stdout_sha256": "33bb7ceae5ab394e4d85b3d166630b2ad1c813309f41551c0b5330b643ae90fd",
+        "at": "2026-10-16T17:07:51.209Z"
+      }
+    ]
+  },
+  "phase_actual_sends": {
+    "jev": 36,
+    "typellm": 1
+  },
+  "confirmed_total_sends": {
+    "jev": 275,
+    "typellm": 17
+  },
+  "retained_conservative_no_transport_type_charge": 1,
+  "stderr_sha256": "1b3e4676a55778563ea3582599fd53a2df68d431bab8b9be47e3a98ee0032bbd",
+  "stdout_sha256": "33bb7ceae5ab394e4d85b3d166630b2ad1c813309f41551c0b5330b643ae90fd",
+  "factor_count": 8,
+  "directory": "/work/repos/voice-ui-typellm-20261016/paired-confirmation-e4a2",
+  "files": [
+    {
+      "name": "C01-A.json",
+      "bytes": 43392,
+      "sha256": "b9b56daf1ce29ad9b8a0575ebbc13c0d9abcd5724a4ff908192be9b37b3f7c0c"
+    },
+    {
+      "name": "C01-B.json",
+      "bytes": 43383,
+      "sha256": "4079b0f6fa350d3c35a7da542f6a25e934c4ecb75fd0972e61e6379224a2086f"
+    },
+    {
+      "name": "C02-A.json",
+      "bytes": 6979,
+      "sha256": "0f1500f7e1a62f76bc0456a99f7fe626ac5c204bb5d831ba4992a5eac7b394d2"
+    },
+    {
+      "name": "C02-B.json",
+      "bytes": 6991,
+      "sha256": "3a16af89a026a1b81134bdf0072377b766582065cee0b4d18ea8b97697d8fa0b"
+    },
+    {
+      "name": "C03-A.json",
+      "bytes": 62781,
+      "sha256": "0d78bc8aa75ca24281f63c6370064e818d06575816f32acb2e10abee10a93fb5"
+    },
+    {
+      "name": "C03-B.json",
+      "bytes": 69628,
+      "sha256": "e09bbf666dacd2cf213c407add55d12a347f2c5c63a2714c20ca5a62ad8b9993"
+    },
+    {
+      "name": "C04-A.json",
+      "bytes": 9176,
+      "sha256": "139c098942083a5234e110a921f880c2ac72f1b4ac448fa963ec0ed7f36dcd6e"
+    },
+    {
+      "name": "C04-B.json",
+      "bytes": 9178,
+      "sha256": "d5c509166133d833f4692479686bbf1caa4b30377c9c5b9315359795331e2b14"
+    },
+    {
+      "name": "events.jsonl",
+      "bytes": 100844,
+      "sha256": "86ef6d319a0f2604dba21617aafbd56ef9abd1ba1cd263fe5b857955f5b6ffc7"
+    },
+    {
+      "name": "execution.json",
+      "bytes": 1417,
+      "sha256": "3b53bb71f049c97c5721b5ae31819abf254aeacf6737ba78f88f10a755f00d38"
+    },
+    {
+      "name": "identity.json",
+      "bytes": 2735,
+      "sha256": "c2965a9af6a829287085cd179c739774d9b7cd159d3d11b4e7eecaf18a01068c"
+    }
+  ],
+  "total_bytes": 356504,
+  "execution_summary": [
+    {
+      "id": "C03",
+      "arm": "B",
+      "valid_execution": true,
+      "reason": "none",
+      "httpCalls": 10,
+      "elapsedMs": 3317.7058
+    },
+    {
+      "id": "C03",
+      "arm": "A",
+      "valid_execution": true,
+      "reason": "none",
+      "httpCalls": 9,
+      "elapsedMs": 1796.0254000000004
+    },
+    {
+      "id": "C01",
+      "arm": "A",
+      "valid_execution": true,
+      "reason": "none",
+      "httpCalls": 7,
+      "elapsedMs": 1436.0514999999996
+    },
+    {
+      "id": "C01",
+      "arm": "B",
+      "valid_execution": true,
+      "reason": "none",
+      "httpCalls": 7,
+      "elapsedMs": 1454.4978
+    },
+    {
+      "id": "C04",
+      "arm": "B",
+      "valid_execution": true,
+      "reason": "inventory-no-change",
+      "httpCalls": 1,
+      "elapsedMs": 198.92209999999977
+    },
+    {
+      "id": "C04",
+      "arm": "A",
+      "valid_execution": true,
+      "reason": "inventory-no-change",
+      "httpCalls": 1,
+      "elapsedMs": 198.32580000000053
+    },
+    {
+      "id": "C02",
+      "arm": "A",
+      "valid_execution": true,
+      "reason": "inventory-not-confident",
+      "httpCalls": 1,
+      "elapsedMs": 210.45770000000084
+    },
+    {
+      "id": "C02",
+      "arm": "B",
+      "valid_execution": true,
+      "reason": "inventory-not-confident",
+      "httpCalls": 1,
+      "elapsedMs": 206.79559999999947
+    }
+  ]
+}

@@ -1,4 +1,5 @@
 import { createJudgment } from "/adapters/judgment.mjs";
+import { createCompletion } from "/adapters/completion.mjs";
 import { createTranscription } from "/adapters/transcription.mjs";
 import {
   executeArtifactPackage as renderSemanticMap,
@@ -11,6 +12,7 @@ import { MAX_DECISION_OPERATIONS } from "/ui/semantic-map/domain/operation.js";
 import { ACTION_ADD_EDGE, ACTION_ARCHITECTURE, judgeFramesFor, judgeSlotsFor, locateSlotsFor, readAnswers } from "/app/src/contract.mjs";
 import { readBundle } from "/app/src/bundle.mjs";
 import { runGoal } from "/app/src/goal.mjs";
+import { runInventoryGoal } from "/app/src/completion.mjs";
 import { FORMAT_ARCHITECTURE, readConfig } from "/app/src/config.mjs";
 import {
   judgeRequestsOf,
@@ -351,6 +353,7 @@ const showOutOfView = () => {
 
 const failure = (reason, detail = null) => Object.freeze({ kind: "failed", reason, detail });
 const judge = createJudgment();
+const completion = createCompletion();
 
 // Both panes point their cameras at the frame the working graph needs in the
 // working pane's box, so the frame read from 作業図 holds for 確定図 too.
@@ -715,7 +718,9 @@ goalButton.addEventListener("click", () => withSurface("goal", async () => {
       ? latest => intentFor(latest, utterance, { layout: layoutOf(latest.working), offeredFrame: null, pending: null,
         lastApplied: lastApplied(), architecture: true })
       : undefined;
-    const result = await runGoal({ utterance, bundle, protocol, resolveIntent, manifest: architectureReady() ? manifest : null,
+    const goal = resolveIntent === undefined ? runInventoryGoal : runGoal;
+    const result = await goal({ utterance, bundle, protocol, resolveIntent, manifest: architectureReady() ? manifest : null,
+      check: completion.check, complete: completion.complete,
       current: () => session, ask: judge, cancelled: () => goalCancelled || resizePending || blocked,
       adopt: async next => {
         await showWorking(next, "drafted", "goal: Working updated (unconfirmed)");

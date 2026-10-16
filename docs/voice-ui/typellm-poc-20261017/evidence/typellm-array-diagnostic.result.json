@@ -1,0 +1,11 @@
+{
+  "kind": "outcome",
+  "provider": "typellm",
+  "id": "typellm-representation-diagnostic-2",
+  "exit": 1,
+  "signal": null,
+  "pid": 101899,
+  "stdout": "",
+  "stderr": "fatal: unable to access 'https://github.com/roccho-dev/ops/': SSL certificate OpenSSL verify result: unable to get local issuer certificate (20)\nwarning: could not read HEAD ref from repo at 'https://github.com/roccho-dev/ops', using 'master'\nfatal: unable to access 'https://github.com/roccho-dev/ops/': SSL certificate OpenSSL verify result: unable to get local issuer certificate (20)\nerror:\n       … while fetching the input 'git+https://github.com/roccho-dev/ops?rev=cab432ef717cbde9ebd0197ae006c0efe75269bf'\n\n       error: Failed to fetch git repository 'https://github.com/roccho-dev/ops'\nops-typellm: RED: cannot build the ops jev package\n",
+  "launchError": null
+}

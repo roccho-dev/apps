@@ -1,0 +1,128 @@
+{
+  "schema": "voice-ui.poc.ui-diagnostic-agreement/1",
+  "reviewer": "R /root/poc_reviewer",
+  "observed_at": "2026-10-16T16:59:41.692Z",
+  "source": "e4a2af1efe9278996391f0374d4546a51aa98736",
+  "identity_sha256": "c091ccbfe21093d5a25f5d181da7bf4ced3cac7fef0300d2e285546b2ae4c7de",
+  "source_files": [
+    {
+      "name": "ordinary-ui-e4a2-missing-network.json",
+      "bytes": 3151,
+      "sha256": "b9950bd2e5f50388df833ba90e5a96838a82b03ca8ef11d0504f6f4654edc32c"
+    },
+    {
+      "name": "ordinary-ui-e4a2-preparation-network.json",
+      "bytes": 3308,
+      "sha256": "f899e8f0aac4dbeba7fb206e1582e72e897ae3f8042ef482b4ef8122b0da41d1"
+    },
+    {
+      "name": "ordinary-ui-e4a2-restored-final.jpg",
+      "bytes": 80591,
+      "sha256": "ca032a7eda02aba368e7ce80cf4243babd57587fc8844da3d8c9d8a79dc05b19"
+    },
+    {
+      "name": "ordinary-ui-e4a2-restored.jpg",
+      "bytes": 85713,
+      "sha256": "9c03d387160b6c54347e7917466aab735bd828bac96381121158210122edea88"
+    },
+    {
+      "name": "ordinary-ui-e4a2-sufficient-network.json",
+      "bytes": 25953,
+      "sha256": "6a3088c078ddf9c354a2e873a8a9f274547cc166286e600453a8c8786de931a2"
+    },
+    {
+      "name": "ordinary-ui-e4a2.json",
+      "bytes": 100561,
+      "sha256": "4f2d2d6d1b46d5a7de914a7c013b0ad3e21552494afaf8dc3b6ed36241a2cb0d"
+    }
+  ],
+  "preparation": {
+    "normal_new_origin": "http://localhost:18843/",
+    "no_saved_graph": "no saved graph",
+    "real_provider_sends": 1
+  },
+  "missing": {
+    "valid_quality_failure": true,
+    "reason": "inventory-not-confident",
+    "response": {
+      "choice": "sufficient",
+      "confidence": 0.38
+    },
+    "factors": {
+      "intent": {
+        "choice": "change",
+        "confidence": 0.97
+      },
+      "labels": {
+        "choice": "available",
+        "confidence": 0.38
+      },
+      "capacity": {
+        "choice": "within",
+        "confidence": 0.98
+      }
+    },
+    "type_sends": 0,
+    "adoption": 0,
+    "unchanged_svg_sha256": "ef4fd14566afbaa563bc654daf1342d48a0c5775ef93427b934d07055871a89c"
+  },
+  "sufficient": {
+    "response": {
+      "choice": "sufficient",
+      "confidence": 0.8
+    },
+    "factors": {
+      "intent": {
+        "choice": "change",
+        "confidence": 0.8
+      },
+      "labels": {
+        "choice": "available",
+        "confidence": 0.86
+      },
+      "capacity": {
+        "choice": "within",
+        "confidence": 0.98
+      }
+    },
+    "real_provider_sends": 4,
+    "type_sends": 0,
+    "selected": [
+      {
+        "key": "api",
+        "region": "part-6",
+        "parent": "part-2"
+      }
+    ],
+    "drawn_applied_restored_raw_svg_sha256": "2f593d6869884f127d9a214e440acf3208316417a6f044359516512f914a7a18"
+  },
+  "lifecycle": {
+    "missingUndo": "not exercised: missing never drew",
+    "appliedWorkingEqualsConfirmed": true,
+    "drawnEqualsApplied": true,
+    "restoredSameWorking": true,
+    "restoredSameConfirmed": true,
+    "sha256": "2f593d6869884f127d9a214e440acf3208316417a6f044359516512f914a7a18",
+    "cameraAfterReload": "OCI selected again using ordinary control",
+    "initialCameraWasIgnoredWhileRestoring": true
+  },
+  "known_ui_phase_calls": {
+    "jev": 6,
+    "typellm": 0
+  },
+  "agreement": {
+    "main": "One unchanged public-input 20-arm diagnostic remeasurement is admitted; no successful-word search or third post-main correction.",
+    "effect_closure_admissible": false,
+    "fresh": "Remains sealed until independent final-main scoring and further explicit process agreement.",
+    "invalid": "Transport/contract/proof/source/incomplete execution cannot count as NO_EFFECT."
+  },
+  "initial_reload_capture_difference": {
+    "kept_in_aggregate": true,
+    "prior_min_size": [
+      551,
+      431
+    ],
+    "prior_svg_sha256": "957ec8e2234bab6164326f51a7b0d1a68b299ff99e95f51d247320c1c414888d",
+    "explanation": "Camera selection while restoring had not applied; after ordinary whole-view then OCI reselection the raw SVG equals the applied view."
+  }
+}

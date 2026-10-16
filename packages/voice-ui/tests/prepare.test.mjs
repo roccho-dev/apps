@@ -119,7 +119,7 @@ test("this package prepares deterministically: every file classified, text only 
   assert.deepEqual(manifest.facts.find(fact => fact.id === "architecture-key"),
     { id: "architecture-key", entity: "dev-architecture-config-v1-json", path: "dev/architecture-config.v1.json", pointer: "/persistence/key", value: "voice-ui.architecture-document.v1" });
   assert.deepEqual(manifest.facts.find(fact => fact.id === "required-capabilities"),
-    { id: "required-capabilities", entity: "artifact-jsonl", path: "artifact.jsonl", row: 1, pointer: "/requiredCapabilities", value: ["jev-api"] });
+    { id: "required-capabilities", entity: "artifact-jsonl", path: "artifact.jsonl", row: 1, pointer: "/requiredCapabilities", value: ["jev-api", "typellm-api"] });
   assert.deepEqual(manifest.facts.find(fact => fact.id === "normal-mechanism")?.value, "localStorage");
 });
 

@@ -1,0 +1,58 @@
+{
+  "schema": "voice-ui.poc.independent-factors/1",
+  "reviewer": "R /root/poc_reviewer",
+  "observed_at": "2026-10-16T17:23:10.150Z",
+  "source_stdout_sha256": "3225aa2ddac37cc523a36d80d7d1369eeba5bfedf93d0f1775819e511f9f8383",
+  "total_factor_records": 2,
+  "preceding_ui_records": 0,
+  "paired_records": 2,
+  "all_recomputed_responses_match": true,
+  "rows": [
+    {
+      "id": "H06",
+      "arm": "READY",
+      "head": "sha256:3f44e0d52678bc7ddeac8b19804ffaadfe6a493ce65ba8ca98f345ddd2ff75a2",
+      "factors": {
+        "intent": {
+          "choice": "change",
+          "confidence": 0.91
+        },
+        "labels": {
+          "choice": "available",
+          "confidence": 0.96
+        },
+        "capacity": {
+          "choice": "within",
+          "confidence": 0.96
+        }
+      },
+      "recomputed": {
+        "choice": "sufficient",
+        "confidence": 0.91
+      }
+    },
+    {
+      "id": "H08",
+      "arm": "READY",
+      "head": "sha256:3f44e0d52678bc7ddeac8b19804ffaadfe6a493ce65ba8ca98f345ddd2ff75a2",
+      "factors": {
+        "intent": {
+          "choice": "change",
+          "confidence": 0.88
+        },
+        "labels": {
+          "choice": "available",
+          "confidence": 0.96
+        },
+        "capacity": {
+          "choice": "within",
+          "confidence": 0.98
+        }
+      },
+      "recomputed": {
+        "choice": "sufficient",
+        "confidence": 0.88
+      }
+    }
+  ]
+}
