@@ -282,3 +282,55 @@ server, ledger, runtime collector, credentials, renderer, merge/close/deploy
 authority, or Factory reactivation engine. Actual domain admission/observations,
 real Agent collection and source/SSE integration remain their existing separate
 responsibilities.
+
+## Event-sourced derivation (D)
+
+`events.jsonl + control.jsonl → deriveAtlas → closure.jsonl, semantic-scope-world.json, world.json, plan-projection.json`
+
+The only inputs are an `atlas.events/1` log of three event kinds and an
+`atlas.control-norms/1` Norm stand-in (ADRS `control.jsonl` R/W and binding).
+Gap, Scope state and responsibility are **derived**; nothing is hand-written.
+The existing contracts become outputs: per frame t the derivation emits the
+`atlas.purpose-closure/1` rows and the `atlas.semantic-scope-world/1` frame, and
+the unchanged `reduceClosure` + `semanticScopeWorld` build the World.
+
+| Event | Required fields |
+|---|---|
+| `purpose.set` | `purpose{id,label}`, `version`, `label`, `requires[]{id,label,predicate{target{kind:state,id},op:equals\|oneOf,value},maxAge (ISO 8601),norm}`, `source{ref,digest}` |
+| `plan.set` | `purposeRef{purposeId,version}`, `source{ref:repo#n,commentId\|null,updatedAt,digest}`, `version`, `nodes[]{id:repo#n:id,label,norm,exit,contributesTo[],predicateRefs?,due?}`, `edges[]{from,to,kind:dep\|loop\|branch,condition?}` |
+| `observation` | `target{kind:state\|owner\|session,id}`, `value`, `source`, `observedAt` |
+
+Every event has `recordedAt`; the log is append-ordered. `observedAt` and the
+plan body's `updatedAt` must not be later than `recordedAt` (future facts are
+rejected). Unknown fields/kinds, duplicate keys, unqualified plan node ids, dep
+cycles and references outside the named Purpose version fail closed.
+
+- Frames: each distinct `recordedAt` from the first `purpose.set`; now is the
+  maximum `recordedAt`. A frame sees only events at or before t, and its Closure
+  is reduced from that prefix only (no later rows leak into a past frame).
+- Condition: `satisfied`/`unmet` only for the latest observation of the exact
+  declared state target, within `maxAge` of t and comparable with the predicate;
+  otherwise `unknown` (no observation, stale, unmatchable). Ids, prefixes and
+  labels are never matched; reachability never satisfies anything.
+- Responsibility: the referenced Norm must exist and bind this Purpose/condition
+  and have exactly one W; an explicit `owner` observation must agree. Otherwise
+  `unassigned` or `conflict` (shown as 未割当・矛盾). Criterion ids are the
+  condition ids, so an unowned residual is one unassigned unit per condition.
+- History: a superseded version's obligations are frozen with the values derived
+  at its archive instant. Plans never enter the Gap, Current or coverage.
+- Plans (`atlas.plan-projection/1`): the latest plan per `repo#n` at t;
+  `premise-version-mismatch` when it names an older Purpose version. Node state
+  comes from `predicateRefs` (condition ids) only, else `unknown`; `blockedBy`
+  lists unsatisfied predicate ids and unfinished dep predecessors; a loop target's
+  satisfied→unmet transitions give an iteration number (`instance` `id#n`); `overdue`
+  only with `due`. No plan at t is `status: unknown, plans: null`, never empty.
+- Agents: the World heading and flags come from the declared `source_mode`
+  (`synthetic`/`supplied`) and `session` observations, not a fixed caption.
+
+~~~sh
+node packages/atlas/derive.mjs --out-dir=/tmp/atlas-d \
+  packages/atlas/fixtures/events/events.jsonl packages/atlas/fixtures/events/control.jsonl
+~~~
+
+`fixtures/events/` is synthetic (P's HQ mock events in this contract plus two
+plans). Its World hash is fixed in `tests/events.test.mjs`.

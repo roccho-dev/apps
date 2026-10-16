@@ -101,6 +101,9 @@ export const semanticScopeWorld = (input, reducedClosure) => {
     || !Array.isArray(input.frames) || input.frames.length === 0) throw new Error('scope-world: explicit observation frames required');
   const records = readReduced(reducedClosure);
   const historicalIds = new Map();
+  // Agent provenance comes from the declared input mode and explicit session observations only.
+  const synthetic = input.source_mode === 'synthetic';
+  let agentsSeen = { declared: 0, observed: 0 };
   const frames = input.frames.map(observed => {
     if (typeof observed.id !== 'string' || !Number.isSafeInteger(observed.rev) || observed.rev < 0
       || !Number.isFinite(Date.parse(observed.asOf))) throw new Error('scope-world: observation identity/revision/time required');
@@ -189,7 +192,9 @@ export const semanticScopeWorld = (input, reducedClosure) => {
       else if (standing === 'unresolved') edge('change:scope:' + scope.id, currentRef, scopeRef, '未確定',
         { scope_id: scope.id, standing, necessity: 'unresolved', current_revision: currentRevision });
     }
-    const unassigned = (meaning.uncovered ?? []).map(id => [id, 'uncovered-part']);
+    // A derived responsibility conflict (frame.responsibility) keeps its part unassigned but says so.
+    const responsibility = object(observed.responsibility) ? observed.responsibility : {};
+    const unassigned = (meaning.uncovered ?? []).map(id => [id, responsibility[id]?.state === 'conflict' ? 'owner-conflict' : 'uncovered-part']);
     // An unowned residual comes from the whole-Purpose evaluation; when that
     // evaluation conflicts, its units say so instead of plain unmet.
     const residualWhy = closure.purpose_status === 'conflict' ? 'whole-purpose-conflict' : 'unmet';
@@ -199,7 +204,8 @@ export const semanticScopeWorld = (input, reducedClosure) => {
       currentGap += 1; uncertain += 1;
       const unitRef = entity(ref(space, 'unassigned-change', id), caption(why.includes('conflict') ? '未割当・矛盾' : '未割当', fit(id, true)), 'scopes',
         '未割当: ' + id + ' · 担当未割当（' + why + '）。完了には昇格しません。次の観測・責任・根拠を確認します。', ['unassigned', 'owner-unassigned', 'source=' + why]);
-      const context = { id, source: why, comparison: meaning.comparison, closure, binding };
+      const context = { id, source: why, ...(object(responsibility[id]) ? { responsibility: responsibility[id] } : {}),
+        comparison: meaning.comparison, closure, binding };
       edge('change:unassigned:' + id, currentRef, unitRef, '変化', context, knownMeaning);
       edge('residual:unassigned:' + id, unitRef, targetRef, '未達', context, knownMeaning);
     }
@@ -234,11 +240,17 @@ export const semanticScopeWorld = (input, reducedClosure) => {
       declare(meaning.observation.writer, { role: 'writer' });
       declare(meaning.observation.evaluator, { role: 'evaluator' });
     }
+    const activity = object(observed.agent_activity) ? observed.agent_activity : {};
+    const mode = synthetic ? 'synthetic' : 'supplied';
     for (const [id, roles] of actors) {
+      const seen = object(activity[id]) && typeof activity[id].source === 'string' ? activity[id] : null;
+      const seenAt = typeof seen?.observedAt === 'string' && Number.isFinite(Date.parse(seen.observedAt)) ? seen.observedAt : null;
       const agentRef = entity(ref(space, 'agent', id), caption(id, [...new Set(roles.map(value => roleCaption[value.role]))].join('・')), 'agents',
-        id + ' · 宣言のみ（synthetic）: ' + roles.map(value => value.role).join(', ') + ' · 実活動・セッションは未観測', ['synthetic', 'declared-only', 'activity-unobserved']);
+        id + (seen ? ' · 宣言（' + mode + '）: ' : ' · 宣言のみ（' + mode + '）: ') + roles.map(value => value.role).join(', ')
+          + (seen ? ' · 活動観測: ' + JSON.stringify(seen.value) + '（' + seen.source + ' @' + (seenAt ?? 'unknown') + '）' : ' · 実活動・セッションは未観測'),
+        seen ? [mode, 'declared', 'activity-observed'] : [mode, 'declared-only', 'activity-unobserved'], declaredSource, { ...time, observedAt: seenAt });
       for (const role of roles) {
-        const declared = { declared_id: id, ...role, synthetic: true, activity: 'unobserved' };
+        const declared = { declared_id: id, ...role, synthetic, activity: seen ? 'observed' : 'unobserved' };
         if (role.role === 'owner_actor') edge('owner:' + role.scope, agentRef, ref(space, 'semantic-scope', role.scope), '担当', declared);
         // The writer/evaluator role relations always cross the Scopes pane, so their
         // overview line is not drawn (visible:false). The records stay in the World,
@@ -247,6 +259,7 @@ export const semanticScopeWorld = (input, reducedClosure) => {
           { ...declared, observed_ref: meaning.observation.observed_ref }, false, false);
       }
     }
+    agentsSeen = { declared: actors.size, observed: [...actors.keys()].filter(id => object(activity[id])).length };
     if (actors.size === 0) entity(ref(space, 'agent-declaration', 'missing'), caption('担当', '宣言なし'), 'agents',
       '担当の宣言なし · 供給データに担当者の宣言がありません。実Agentも未観測です。', ['missing']);
 
@@ -263,7 +276,8 @@ export const semanticScopeWorld = (input, reducedClosure) => {
   const purpose = ref(space, 'purpose', final.purpose_id);
   return { kind: 'ui.atlasWorldInput.v1', authority: false,
     presentation: { areas: [{ id: 'purpose', label: 'Purpose：現状と目標', order: 0 },
-      { id: 'scopes', label: 'Scope：必要な意味差の責任単位', order: 1 }, { id: 'agents', label: 'Agent：宣言された担当（合成・未観測）', order: 2 }],
+      { id: 'scopes', label: 'Scope：必要な意味差の責任単位', order: 1 }, { id: 'agents', label: 'Agent：宣言された担当（' + (synthetic ? '合成' : '供給') + '・'
+        + (agentsSeen.observed === 0 ? '未観測' : agentsSeen.observed === agentsSeen.declared ? '観測あり' : '一部観測') + '）', order: 2 }],
     purposeAreaId: 'purpose', directionTargets: [purpose], defaultSelection: purpose },
     frames, comparisons: [], note: 'Supplied-data three-pane projection. Each frame shows one selected Current revision; the original comparison, Closure records, evidence and old obligations stay readable as history. Agents are declared ids only (synthetic, activity unobserved). No admission, actual Purpose achievement or autonomous Factory claim.' };
 };
