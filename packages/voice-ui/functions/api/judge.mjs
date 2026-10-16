@@ -1,6 +1,6 @@
 import { ACTION_ADD_EDGE, ARCHITECTURE_GOAL_INTENT_KIND, ARCHITECTURE_INTENT_KIND, ARCHITECTURE_LOCATE_KIND, DECISION_KIND, ERRORS, GOAL_REQUEST_KIND, REQUEST_KIND, architectureGoalSlotsFor, isJudgeRequest, isLocateRequest, isRequest, judgeFramesFor, judgeSlotsFor, locateSlotsFor, readAnswers, slotsFor } from "../../src/contract.mjs";
 import { questionsFor } from "../../src/judgment.mjs";
-import { definedRelation, focusedEvidence, intentSectionOf, judgeSectionOf, readManifest, regionIdOf } from "../../src/architecture.mjs";
+import { definedRelation, focusedEvidence, intentSectionOf, judgeSectionOf, readManifest, regionIdOf, roleIdOf, scopeOf } from "../../src/architecture.mjs";
 
 const json = (body, status = 200) => new Response(JSON.stringify(body), {
   status, headers: { "content-type": "application/json; charset=utf-8", "cache-control": "no-store" },
@@ -48,11 +48,13 @@ export async function onRequestPost({ request, available, architecture }, judge)
   let questions;
   if (kind === REQUEST_KIND || kind === GOAL_REQUEST_KIND) {
     // A Goal's scope is reopened against this exact source, and every arrow it
-    // offers must touch the scope's parts; the page's word is not enough.
+    // offers must touch the scope: its parts, or a role of this manifest that a
+    // relation shown in the request attaches to one of them by the same rule
+    // the page uses. The page's word is not enough.
     if (kind === GOAL_REQUEST_KIND && state.scope !== null) {
       const bound = boundArchitecture(architecture);
       if (bound === null) return json({ error: ERRORS.architectureUnavailable }, 503);
-      const regions = new Set(state.scope.focus.map(regionIdOf));
+      const { regions } = scopeOf(bound.manifest, state.scope.focus, state.edges);
       if (JSON.stringify(state.scope.source) !== JSON.stringify(bound.manifest.source)
         || judgeSectionOf(bound.manifest, state.scope.focus) === null
         || !state.candidates.every(candidate => candidate.action !== ACTION_ADD_EDGE || regions.has(candidate.from) || regions.has(candidate.to))) {
@@ -91,7 +93,13 @@ export async function onRequestPost({ request, available, architecture }, judge)
       const evidence = focusedEvidence(opened, bound.manifest, bound.files);
       slots = locateSlotsFor([part]);
       questions = questionsFor(state, slots, { kind, entity: bound.manifest.entities.find(entity => entity.id === part), evidence });
-      asked = { utterance: state.utterance, context: asked.context, architecture: { ...state.architecture, evidence } };
+      // A locate reads earlier entries only to resolve what the utterance refers
+      // to: their words, outcome and reopened reference. An earlier graph effect
+      // would read as relevance, so it stays with the intent, which keeps it.
+      const recent = asked.context.recent.map(({ effect: _, ...entry }) => entry);
+      // The asked part is named by its question; it is not what the user is
+      // looking at, so it is never presented as a focus.
+      asked = { utterance: state.utterance, context: { recent }, architecture: { source: state.architecture.source, evidence } };
     } else if (kind === ARCHITECTURE_INTENT_KIND || kind === ARCHITECTURE_GOAL_INTENT_KIND) {
       if (kind === ARCHITECTURE_GOAL_INTENT_KIND) {
         // Named ends describe current Working, not verified source relations.
@@ -102,11 +110,15 @@ export async function onRequestPost({ request, available, architecture }, judge)
             fromLabel: labels.get(edge.from), toLabel: labels.get(edge.to) })),
         }, architecture: { ...own,
           entities: own.entities.map(entity => ({ ...entity, generatedRegionId: regionIdOf(entity.id) })),
+          // The served roles by purpose, named as the composer names their nodes.
+          roles: bound.manifest.roles.map(({ key, purpose }) => ({ key, purpose, generatedRegionId: roleIdOf(key) })),
           currentAssociation: "UNKNOWN: generatedRegionId is a nominal source-composer name, not current record provenance or historical intent",
         } };
       }
       slots = kind === ARCHITECTURE_GOAL_INTENT_KIND ? architectureGoalSlotsFor(state) : slotsFor(state);
-      questions = questionsFor(state, slots, { kind, relationOf: edge => definedRelation(bound.manifest, edge) });
+      const purposes = new Map(bound.manifest.roles.map(({ key, purpose }) => [roleIdOf(key), purpose]));
+      questions = questionsFor(state, slots, { kind, relationOf: edge => definedRelation(bound.manifest, edge),
+        rolePurposeOf: id => purposes.get(id) ?? null });
     } else {
       // A judge asks one frame of this section's own plan: that frame's
       // questions, from that frame's text. Which frame is the page's to say

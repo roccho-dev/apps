@@ -74,8 +74,11 @@ export function readBundle(value) {
 }
 
 // What Jev is told about each usable section: keys and purposes, never
-// labels, lanes, steps or links.
-export function offersOf(bundle) {
-  const offer = entries => Object.freeze((entries ?? []).map(({ key: entryKey, purpose }) => Object.freeze({ key: entryKey, purpose })));
-  return Object.freeze({ parts: offer(bundle.parts), diagrams: offer(bundle.diagrams) });
+// lanes, steps or links. A Goal (`named`) also gives each part its displayed
+// name, the word a person sees and says - display data, never identity; the
+// caller always says which it means.
+export function offersOf(bundle, { named }) {
+  const offer = (entries, withLabel) => Object.freeze((entries ?? []).map(({ key: entryKey, purpose, label }) =>
+    Object.freeze(withLabel ? { key: entryKey, purpose, label } : { key: entryKey, purpose })));
+  return Object.freeze({ parts: offer(bundle.parts, named), diagrams: offer(bundle.diagrams, false) });
 }

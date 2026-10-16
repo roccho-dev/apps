@@ -110,6 +110,15 @@ const lexicalChoice = (state, parts) => {
   }
   return "none";
 };
+// The one mechanical adapter from a choice over the request's candidates to a v7
+// Goal frame's answer: a first frame answers an addition by its part
+// alternative, an arrow or none as itself; a frame bound to a part answers that
+// part's addition by its id. It reads the request only, holds nothing between
+// frames and never changes what was chosen; the CPU replay runs this same source.
+const phaseAnswer = (state, choice, partOption) => {
+  const candidate = state.candidates.find(item => item.id === choice);
+  return state.placing === null && candidate?.action === "add-part" ? partOption(candidate.part) : choice;
+};
 // A finite evaluator input, never a product request or fixture-answer source.
 const exactKeys = (value, keys) => value !== null && typeof value === "object" && !Array.isArray(value)
   && JSON.stringify(Object.keys(value).sort()) === JSON.stringify([...keys].sort());
@@ -129,15 +138,51 @@ for (const key of ["draft", "claims", "stored", "root", "confirmedGraph"])
   assert.equal(sameNoneBaseline(unchanged, { ...unchanged, [key]: ["changed"] }), false);
 assert.equal(exactChildPins([{ id: "a" }, { id: "b" }], [{ regionId: "b" }, { regionId: "a" }]), true);
 assert.equal(exactChildPins([{ id: "a" }, { id: "b" }], [{ regionId: "a" }, { regionId: "a" }]), false);
+// When an arrow's painted end counts as shown on a frame, one rule for every
+// graded arrow (goal-source, nest camera and goal-flow): the end's whole name
+// is shown - its supported glyph-cell box lies wholly inside the zero-margin
+// iframe viewport, the nearest SVG viewport and every native clip around it.
+// This is glyph-cell geometry: ink overhang and anything painted over the
+// name are not proven by it.
+const finiteBox = box => Array.isArray(box) && box.length === 4 && box.every(Number.isFinite) && box[2] > 0 && box[3] > 0;
+const wholly = (outer, inner) => inner[0] >= outer[0] && inner[1] >= outer[1]
+  && inner[0] + inner[2] <= outer[0] + outer[2] && inner[1] + inner[3] <= outer[1] + outer[3];
+const endAccepted = (view, end) => finiteBox(view) && end?.name?.unmet === null && finiteBox(end.name.box) && finiteBox(end.name.svg)
+  && Array.isArray(end.name.clips) && end.name.clips.every(finiteBox)
+  && [view, end.name.svg, ...end.name.clips].every(outer => wholly(outer, end.name.box));
+const VIEW = [0, 0, 626, 434];
+const named = (box, clips = [], extra = {}) => ({ name: { unmet: null, box, clips, svg: VIEW, ...extra } });
+assert.equal(endAccepted(VIEW, named([300, 200, 100, 16], [[290, 190, 120, 40]])), true, "a whole name inside its clip and the frame is shown");
+assert.equal(endAccepted(VIEW, named([300, 200, 100, 16], [[290, 190, 60, 40]])), false, "a name cut by its own clip is not shown");
+// actual91: the jev-boundary end, 19 of its 92 px in view, its name above the pane.
+assert.equal(endAccepted(VIEW, { bounds: [479, -73, 180, 92], ...named([500, -35, 120, 16], [[477, -75, 184, 96]]) }), false,
+  "an end whose name is clipped off the frame is not shown");
+assert.equal(endAccepted(VIEW, named([300, 200, 100, 16], [], { unmet: "the text's matrix is not axis-aligned and positive" })), false,
+  "a rotated or otherwise unsupported name is not shown");
+assert.equal(endAccepted(VIEW, named([300, NaN, 100, 16])), false, "a non-finite name box is not shown");
+assert.equal(endAccepted(VIEW, { bounds: [300, 200, 180, 92] }), false, "an end shape without its name is not shown");
+assert.equal(endAccepted([0, 0, Infinity, 434], named([300, 200, 100, 16], [[290, 190, 120, 40]])), false, "no name is shown in a non-finite frame");
 const evaluation = caseFlag === undefined ? null : JSON.parse(caseJson);
+// A meaning case names role endpoints by manifest role key; goal-evaluation v1
+// cases, S5 among them, are read exactly as before.
+const ROLE_RELATION = "voice-ui.meaning.role-relation.v1";
+const ROLE_CASE = evaluation?.version === ROLE_RELATION;
 if (caseFlag !== undefined) {
   assert.ok(exactKeys(evaluation, ["version", "id", "goal", "order", "expected"])
-    && evaluation.version === "voice-ui.goal-evaluation.v1" && typeof evaluation.id === "string" && evaluation.id.length > 0
+    && typeof evaluation.id === "string" && evaluation.id.length > 0
     && typeof evaluation.goal === "string" && evaluation.goal.trim().length > 0
     && ["normal", "reverse"].includes(evaluation.order)
-    && exactKeys(evaluation.expected, ["kind", "regions", "flows"])
-    && ["change", "none"].includes(evaluation.expected.kind)
-    && Array.isArray(evaluation.expected.regions) && Array.isArray(evaluation.expected.flows), "closed finite evaluator input");
+    && (ROLE_CASE
+      ? exactKeys(evaluation.expected, ["kind", "relation"]) && evaluation.expected.kind === "change"
+        && exactKeys(evaluation.expected.relation, ["from", "to", "kind", "origin"])
+        && ["from", "to"].every(end => exactKeys(evaluation.expected.relation[end], ["role"])
+          && typeof evaluation.expected.relation[end].role === "string")
+        && typeof evaluation.expected.relation.kind === "string" && typeof evaluation.expected.relation.origin === "string"
+      : evaluation.version === "voice-ui.goal-evaluation.v1"
+        && exactKeys(evaluation.expected, ["kind", "regions", "flows"])
+        && ["change", "none"].includes(evaluation.expected.kind)
+        && Array.isArray(evaluation.expected.regions) && Array.isArray(evaluation.expected.flows)), "closed finite evaluator input");
+  assert.ok(!ROLE_CASE || scenario === "goal-source", "a role-relation case is a goal-source case");
 }
 // In the natural fixture a part is never named: the intent answers none, and
 // the part is located - so the locate frames and their judge are what the
@@ -189,7 +234,7 @@ const MOST = 1 + ENTITY_IDS.length + FILE_IDS.length + new Set(MANIFEST.candidat
 
 const publicBundle = GOAL ? await (await fetch(new URL(config.data.bundle, url))).json() : null;
 const seed = publicBundle?.diagrams.find(diagram => diagram.key === "container-example");
-const expectedCase = evaluation?.expected ?? { kind: "change", regions: NEST ? [
+const expectedCase = (ROLE_CASE ? null : evaluation?.expected) ?? { kind: "change", regions: NEST ? [
   { partKey: "group", parentLabel: "OCI" }, { partKey: "db", parent: { addedPart: "group" } }, { partKey: "api", parentLabel: "OCI" },
 ] : [
   { partKey: "api", parentLabel: "OCI" }, { partKey: "db", parentLabel: "OCI" },
@@ -199,13 +244,17 @@ const expectedCase = evaluation?.expected ?? { kind: "change", regions: NEST ? [
 const parentShape = region => exactKeys(region, ["partKey", "parentLabel"]) ? "seed"
   : exactKeys(region, ["partKey", "parent"]) && exactKeys(region.parent, ["addedPart"]) ? "added" : null;
 const NESTED = expectedCase.regions.some(region => parentShape(region) === "added");
-// goal-source names one expected arrow by two served manifest entities; live
-// goal-source runs only on such evaluator data.
+// goal-source names one expected arrow by two served manifest entities (v1) or
+// two served manifest role keys (role relation); live goal-source runs only on
+// such evaluator data.
+const ROLE_KEYS = (MANIFEST.roles ?? []).map(role => role.key);
 if (SOURCE) {
   assert.ok(FIXTURE || evaluation !== null, "live goal-source requires a finite --goal-case input");
   assert.ok(!FIXTURE || evaluation === null, "the controlled goal-source takes no evaluator data");
   assert.ok(evaluation === null || evaluation.order === "normal", "goal-source has no reversed presentation");
-  if (evaluation !== null) assert.ok(evaluation.expected.kind === "change" && evaluation.expected.regions.length === 0
+  if (ROLE_CASE) assert.ok(["from", "to"].every(end => ROLE_KEYS.includes(evaluation.expected.relation[end].role))
+    && evaluation.expected.relation.from.role !== evaluation.expected.relation.to.role, "one expected arrow between served manifest roles");
+  else if (evaluation !== null) assert.ok(evaluation.expected.kind === "change" && evaluation.expected.regions.length === 0
     && evaluation.expected.flows.length === 1 && exactKeys(evaluation.expected.flows[0], ["from", "to"])
     && ["from", "to"].every(end => exactKeys(evaluation.expected.flows[0][end], ["baselineRegion"])
       && ENTITY_IDS.includes(evaluation.expected.flows[0][end].baselineRegion))
@@ -395,10 +444,117 @@ const paintedGoal = (container, records, edge = null) => page.evaluate(({ contai
       ? [r.left, r.top, r.width, r.height] : null;
   };
   const uniquePrimitive = geometry => geometry.length === 1 ? geometry[0] : null;
-  const shape = (label, boundary = false) => {
+  // The one rendered node whose whole text is the label, or null.
+  const labelNode = label => {
     const labels = [...doc.querySelectorAll("svg text, svg foreignObject")].filter(node => node.textContent.trim() === label);
-    if (labels.length !== 1) return null;
-    for (let group = labels[0].parentElement; group?.localName === "g"; group = group.parentElement) {
+    return labels.length === 1 ? labels[0] : null;
+  };
+  // The full name an end shows, from that same label node: one plain, visible,
+  // filled SVG text holding the whole name; its glyph-cell box (getBBox) mapped
+  // by its own screen matrix; every native clip of an ancestor, read from the
+  // computed clip-path as this document's own URL and fragment naming exactly
+  // one clipPath of one rect in user space with no transform or nested clip,
+  // mapped by the matrix of the element that references it; the padding box of
+  // every HTML ancestor whose overflow clips; and the nearest SVG viewport.
+  // Every matrix must be finite, axis-aligned and positive. Anything else is
+  // unmet. Glyph cells are not ink, and nothing here sees what is painted over
+  // the text.
+  const SVG = "http://www.w3.org/2000/svg";
+  const win = iframe.contentWindow;
+  const documentUrl = doc.URL.lastIndexOf("#") > 0 ? doc.URL.slice(0, doc.URL.lastIndexOf("#")) : doc.URL;
+  const axis = matrix => matrix && [matrix.a, matrix.b, matrix.c, matrix.d, matrix.e, matrix.f].every(Number.isFinite)
+    && matrix.b === 0 && matrix.c === 0 && matrix.a > 0 && matrix.d > 0 ? matrix : null;
+  const mapped = (matrix, [x, y, width, height]) => [matrix.a * x + matrix.e, matrix.d * y + matrix.f, matrix.a * width, matrix.d * height];
+  const fragmentOf = value => {
+    const url = /^url\("(.+)"\)$/u.exec(value ?? "")?.[1] ?? "";
+    const at = url.lastIndexOf("#");
+    return at > 0 && url.slice(0, at) === documentUrl && url.length > at + 1 ? url.slice(at + 1) : null;
+  };
+  // The clip's own declared shape: one rect in user space, no transform or nested clip.
+  const clipGrammar = clip => {
+    const untransformed = node => !node.hasAttribute("transform") && !node.hasAttribute("clip-path");
+    if (clip?.localName !== "clipPath" || clip.namespaceURI !== SVG || ![null, "userSpaceOnUse"].includes(clip.getAttribute("clipPathUnits"))
+      || !untransformed(clip) || clip.children.length !== 1) return null;
+    const rect = clip.children[0];
+    if (rect.localName !== "rect" || rect.namespaceURI !== SVG || !untransformed(rect)) return null;
+    const bounds = ["x", "y", "width", "height"].map(name => Number(rect.getAttribute(name)));
+    return bounds.every(Number.isFinite) && bounds[2] > 0 && bounds[3] > 0 ? bounds : null;
+  };
+  // And, rendered, no clip or transform of its own from style.
+  const clipRectOf = clip => {
+    const bounds = clipGrammar(clip);
+    return bounds !== null && [clip, clip.children[0]].every(node => {
+      const style = win.getComputedStyle(node);
+      return style.clipPath === "none" && style.transform === "none";
+    }) ? bounds : null;
+  };
+  const nameOf = node => {
+    const unmet = reason => ({ unmet: reason, box: null, clips: [], svg: null });
+    if (node === null) return unmet("no unique label with the whole name");
+    const painted = win.getComputedStyle(node);
+    if (!visible(node) || painted.fill === "none" || !(Number(painted.fillOpacity) > 0)) return unmet("the name is not painted visibly");
+    if (node.localName !== "text" || node.namespaceURI !== SVG || node.children.length !== 0
+      || [...(node.parentElement?.children ?? [])].filter(child => child.localName === "text").length !== 1) return unmet("not one plain SVG text");
+    const own = axis(node.getScreenCTM());
+    if (own === null) return unmet("the text's matrix is not axis-aligned and positive");
+    let cells;
+    try { cells = node.getBBox(); } catch { return unmet("no glyph-cell box"); }
+    const box = mapped(own, [cells.x, cells.y, cells.width, cells.height]);
+    const owner = node.ownerSVGElement;
+    const viewport = owner?.getBoundingClientRect();
+    const clips = [];
+    for (let at = node; at !== null; at = at.parentElement) {
+      const style = win.getComputedStyle(at);
+      if (at.namespaceURI === "http://www.w3.org/1999/xhtml" && (style.overflowX !== "visible" || style.overflowY !== "visible")) {
+        const r = at.getBoundingClientRect();
+        const padding = [r.left + at.clientLeft, r.top + at.clientTop, at.clientWidth, at.clientHeight];
+        if (!padding.every(Number.isFinite)) return unmet(`unsupported overflow of ${at.localName}`);
+        clips.push(padding);
+      }
+      const value = style.clipPath;
+      if (value === "none") continue;
+      const id = fragmentOf(value);
+      const found = id === null ? [] : [...doc.querySelectorAll("clipPath")].filter(clip => clip.id === id);
+      const rect = found.length === 1 ? clipRectOf(found[0]) : null;
+      const by = at.namespaceURI === SVG && typeof at.getScreenCTM === "function" ? axis(at.getScreenCTM()) : null;
+      if (rect === null || by === null) return unmet(`unsupported clip ${value}`);
+      clips.push(mapped(by, rect));
+    }
+    if (!owner || !viewport) return unmet("no nearest SVG viewport");
+    return { unmet: null, box, clips, svg: [viewport.left, viewport.top, viewport.width, viewport.height] };
+  };
+  // Controlled refusals of the name rules, on control values and detached
+  // elements only; a supported name is proven by actual rendered frames.
+  const detached = (build) => { const clip = doc.createElementNS(SVG, "clipPath"); build(clip); return clip; };
+  const rectIn = (clip, attributes = {}) => {
+    const rect = doc.createElementNS(SVG, "rect");
+    for (const [name, value] of Object.entries({ x: "0", y: "0", width: "10", height: "10", ...attributes })) rect.setAttribute(name, value);
+    clip.appendChild(rect);
+    return rect;
+  };
+  const otherText = doc.createElementNS(SVG, "foreignObject");
+  const hiddenName = doc.createElementNS(SVG, "g");
+  const hiddenText = doc.createElementNS(SVG, "text");
+  hiddenName.style.display = "none";
+  hiddenName.appendChild(hiddenText); // Detached controlled tree, not the actual graph.
+  if (fragmentOf(`url("${documentUrl}#clip")`) !== "clip"
+    || [`url("#clip")`, `url("http://elsewhere.invalid/#clip")`, `url("${documentUrl}#")`, "none", ""].some(value => fragmentOf(value) !== null)
+    || JSON.stringify(clipGrammar(detached(clip => { rectIn(clip, { x: "2", y: "3", width: "40", height: "20" }); }))) !== "[2,3,40,20]"
+    || [null, detached(clip => { rectIn(clip); rectIn(clip); }),
+      detached(clip => { clip.setAttribute("clipPathUnits", "objectBoundingBox"); rectIn(clip); }),
+      detached(clip => { clip.setAttribute("transform", "scale(2)"); rectIn(clip); }),
+      detached(clip => { rectIn(clip, { transform: "rotate(10)" }); }),
+      detached(clip => { rectIn(clip, { width: "NaN" }); }),
+      detached(clip => { clip.appendChild(doc.createElementNS(SVG, "circle")); })].some(clip => clipGrammar(clip) !== null)
+    || clipRectOf(null) !== null
+    || [{ a: 1, b: 0.5, c: 0, d: 1, e: 0, f: 0 }, { a: -1, b: 0, c: 0, d: 1, e: 0, f: 0 },
+      { a: 1, b: 0, c: 0, d: NaN, e: 0, f: 0 }, null].some(matrix => axis(matrix) !== null)
+    || nameOf(null).unmet === null || nameOf(otherText).unmet === null || nameOf(hiddenText).unmet === null)
+    throw new Error("name-geometry controlled refusal failed");
+  const shape = (label, boundary = false) => {
+    const bound = labelNode(label);
+    if (bound === null) return null;
+    for (let group = bound.parentElement; group?.localName === "g"; group = group.parentElement) {
       const previous = group.previousElementSibling;
       if (previous?.localName === "g" && !previous.querySelector("text, foreignObject")
         && previous.querySelector("rect, path, ellipse, polygon")) {
@@ -422,7 +578,8 @@ const paintedGoal = (container, records, edge = null) => page.evaluate(({ contai
   };
   const frame = box(shape(container.label, true));
   const primitives = records.map(record => shape(record.label, record.kind === "group"));
-  const shapes = records.map((record, i) => ({ id: record.id, rawLabel: record.label, bounds: box(primitives[i]) }));
+  const shapes = records.map((record, i) => ({ id: record.id, rawLabel: record.label, bounds: box(primitives[i]),
+    name: nameOf(labelNode(record.label)) }));
   const inside = bounds => frame !== null && bounds !== null && bounds[0] >= frame[0] && bounds[1] >= frame[1]
     && bounds[0] + bounds[2] <= frame[0] + frame[2] && bounds[1] + bounds[3] <= frame[1] + frame[3];
   const overlap = (a, b) => a !== null && b !== null && a[0] < b[0] + b[2] && b[0] < a[0] + a[2]
@@ -544,9 +701,10 @@ const paintedGoal = (container, records, edge = null) => page.evaluate(({ contai
 }, { container, records, edge });
 // One arrow on the current frame, by the existing painted observer: the
 // matched stroke start and marker tip lie inside the zero-margin iframe
-// viewport and both end shapes intersect it, whatever their labels show; on
-// the same frame its reverse (unless itself expected) and an arrow to another
-// part whose shape is in view must not connect. Frames are never combined.
+// viewport, both end shapes meet it and both ends' whole names are shown
+// (endAccepted); on the same frame its reverse (unless itself expected) and an
+// arrow to another part whose shape is in view must not connect. Frames are
+// never combined.
 const within = (view, point) => Array.isArray(point) && point[0] >= view[0] && point[1] >= view[1]
   && point[0] <= view[0] + view[2] && point[1] <= view[1] + view[3];
 const meets = (view, box) => Array.isArray(box) && box[0] < view[0] + view[2] && box[0] + box[2] > view[0]
@@ -562,10 +720,12 @@ const measureArrow = async (container, endpoints, edge, { reverseExpected = fals
   const match = painted.edge.matches.length === 1 ? painted.edge.matches[0] : null;
   const endBounds = painted.shapes.slice(0, 2).map(shape => shape.bounds);
   const inView = match !== null && within(painted.viewport, match.start) && within(painted.viewport, match.tip)
-    && endBounds.every(box => meets(painted.viewport, box));
+    && endBounds.every(box => meets(painted.viewport, box))
+    && painted.shapes.slice(0, 2).every(end => endAccepted(painted.viewport, end));
   const reverse = reverseExpected ? "not-applicable" : (await paintedGoal(container, records, { from: edge.to, to: edge.from })).edge;
   const disconnected = other === null ? null : (await paintedGoal(container, records, { from: edge.from, to: other.id })).edge;
-  return { viewport: painted.viewport, endBounds, other: other?.id ?? null, inView, edge: painted.edge, reverse, disconnected,
+  return { viewport: painted.viewport, endBounds, endNames: painted.shapes.slice(0, 2).map(shape => shape.name),
+    other: other?.id ?? null, inView, edge: painted.edge, reverse, disconnected,
     met: inView && painted.edge.complete && painted.edge.matches.length === 1
       && (reverse === "not-applicable" || !reverse.complete) && disconnected !== null && !disconnected.complete };
 };
@@ -883,14 +1043,15 @@ const goalScenario = async () => {
   const crafted = [];
   if (FIXTURE) await page.route(route, craft((name, sent) => {
     if (mode === "fixture-none") return contract.NONE;
+    const answer = choice => phaseAnswer(sent.state, choice, contract.partOption);
     // A controlled seen regression answered by the same public lexical selector.
-    if (mode === "fixture-baseline") { crafted.push(lexicalChoice(sent.state, publicBundle.parts)); return crafted.at(-1); }
+    if (mode === "fixture-baseline") { crafted.push(answer(lexicalChoice(sent.state, publicBundle.parts))); return crafted.at(-1); }
     // A controlled weak first answer: an offered choice below the confidence floor.
-    if (mode === "fixture-weak") return { choice: sent.state.candidates[0].id, confidence: 0.3 };
+    if (mode === "fixture-weak") return { choice: answer(sent.state.candidates[0].id), confidence: 0.3 };
     const group = sent.state.selected.find(item => item.key === "group")?.region;
     const next = (NEST ? [["group", container.id], ["db", group], ["api", container.id]] : [["api", container.id], ["db", container.id]])
       .find(([key]) => !sent.state.selected.some(item => item.key === key));
-    if (next !== undefined) return sent.state.candidates.find(candidate => candidate.part === next[0] && candidate.parent === next[1])?.id ?? contract.NONE;
+    if (next !== undefined) return answer(sent.state.candidates.find(candidate => candidate.part === next[0] && candidate.parent === next[1])?.id ?? contract.NONE);
     const from = sent.state.selected.find(item => item.key === "api")?.region;
     const to = sent.state.selected.find(item => item.key === "db")?.region;
     return FLOW ? sent.state.candidates.find(candidate => candidate.action === "add-edge" && candidate.from === from && candidate.to === to)?.id ?? contract.NONE : contract.NONE;
@@ -1063,7 +1224,7 @@ const goalScenario = async () => {
         if (frames.length > 1) { await page.locator("#camera-part").selectOption(nestedGroup.id); await settle(); }
         const frame = frames.at(-1);
         edges.push({ from: edge.from, to: edge.to, frame, met: frame.met && frames.every(item => item.recordsUnchanged !== false),
-          frames: frames.map(item => ({ camera: item.camera, viewport: item.viewport, endBounds: item.endBounds, inView: item.inView,
+          frames: frames.map(item => ({ camera: item.camera, viewport: item.viewport, endBounds: item.endBounds, endNames: item.endNames, inView: item.inView,
             matches: item.edge?.matches.map(({ start, tip }) => ({ start, tip })) ?? [] })) });
       }
       camera.edges = edges;
@@ -1095,7 +1256,9 @@ const goalScenario = async () => {
   const groupsMet = NEST
     ? nest.cameraMet && paintedGroups.every(group => group.container.id === nestedGroup?.id ? nest.overview.closed || groupMet(group) : groupMet(group))
     : paintedGroups.every(groupMet);
-  const edgePaintMet = NEST ? nest.cameraMet : edgePaints.every(proof => proof.edge.complete)
+  const edgePaintMet = NEST ? nest.cameraMet : edgePaints.every((proof, index) => proof.edge.complete && proof.edge.matches.length === 1
+    && within(proof.viewport, proof.edge.matches[0].start) && within(proof.viewport, proof.edge.matches[0].tip)
+    && [expectedEdges[index].from, expectedEdges[index].to].every(id => endAccepted(proof.viewport, proof.shapes.find(shape => shape.id === id))))
     && edgeCounterPaints.every(proof => (!proof.reverseApplicable || !proof.reverse.edge.complete)
       && (!proof.disconnectedApplicable || !proof.disconnected.edge.complete));
   const paintMet = labelsMet && groupsMet && edgePaintMet;
@@ -1146,12 +1309,13 @@ const goalScenario = async () => {
   // preparation requests and answers; each rebuilt preparation request, the
   // resulting log/head/records and the first Goal request must equal what was
   // actually observed. It never sees the oracle.
-  const replay = await page.evaluate(async ({ log, title, preparation, utterance, bundleUrl, sourceUrl, selectorSource }) => {
+  const replay = await page.evaluate(async ({ log, title, preparation, utterance, bundleUrl, sourceUrl, selectorSource, adapterSource }) => {
     const modules = ["/app/src/goal.mjs", "/app/src/bundle.mjs", "/ui/semantic-map/protocol/index.js",
       "/app/src/session.mjs", "/app/src/turn.mjs", "/app/src/architecture.mjs"];
     const loaded = new Set(performance.getEntriesByType("resource").map(entry => new URL(entry.name).pathname));
-    const [{ runGoal }, { readBundle }, protocol, { createSession, startNew, propose, draftForJudgment, recentConversation },
-      { requestFor, focusFor }, { readManifest, withArchitecture }] = await Promise.all(modules.map(path => import(path)));
+    const [[{ runGoal }, { readBundle }, protocol, { createSession, startNew, propose, draftForJudgment, recentConversation },
+      { requestFor, focusFor }, { readManifest, withArchitecture }], { partOption }] = await Promise.all([
+      Promise.all(modules.map(path => import(path))), import("/app/src/contract.mjs")]);
     const bundle = readBundle(await (await fetch(bundleUrl)).json());
     const manifest = readManifest(await (await fetch(sourceUrl)).json());
     let session = (await startNew(createSession({ accepted: null, stored: null }), { title, protocol })).session;
@@ -1173,7 +1337,8 @@ const goalScenario = async () => {
     const provenance = { issuedPartIds: [...session.issuedPartIds], nextSeq: session.nextSeq,
       conversation: session.conversation.length, draft: session.draft.length };
     const lexical = (0, eval)("(" + selectorSource + ")");
-    const select = state => lexical(state, bundle.parts);
+    const adapter = (0, eval)("(" + adapterSource + ")");
+    const select = state => adapter(state, lexical(state, bundle.parts), partOption);
     let first = null;
     const choices = [];
     const result = await runGoal({ utterance, bundle, protocol, current: () => session, cancelled: () => false,
@@ -1186,12 +1351,14 @@ const goalScenario = async () => {
     return { head: working.head, startRecords: working.records, first, choices, reason: result.reason, requests: result.requests,
       sameLog: working.log === log, preparedEqual, provenance,
       records: session.working.records, modulesLoadedByPage: modules.every(path => loaded.has(path)) };
-  }, { log: beforeLog, title: GOAL_TITLE, utterance: goalText, selectorSource: lexicalChoice.toString(),
+  }, { log: beforeLog, title: GOAL_TITLE, utterance: goalText, selectorSource: lexicalChoice.toString(), adapterSource: phaseAnswer.toString(),
     preparation: exchanges.slice(0, prepared).map(entry => ({ sent: entry.sent, answers: entry.body?.answers })),
     bundleUrl: new URL(config.data.bundle, url).href, sourceUrl: new URL(config.data.source, url).href });
   const fairNone = replay.choices[0] === contract.NONE && JSON.stringify(replay.records) === JSON.stringify(before.graph.records);
   const fair = grade(replay.records, () => fairNone);
   goalEvidence.fairBaseline = { selector: "PR60 deterministic lexical, NFKC lowercase longest mention", reason: replay.reason,
+    // The replay and every fixture answer run these exact two sources.
+    sources: { selector: digest(lexicalChoice.toString()), adapter: digest(phaseAnswer.toString()) },
     requests: replay.requests, choices: replay.choices, grade: fair.semanticMet ? "PASS" : "NOT_MET", actual: fair.actual,
     newEdges: fair.newEdges.map(({ from, to, kind }) => ({ from, to, kind })),
     // Observed: log, head, records, each preparation request and the first Goal
@@ -1298,7 +1465,20 @@ const sourceScenario = async () => {
   const route = new URL("/api/judge", url).href;
   const related = (edges, from, to) => edges.some(edge => edge.from === from && edge.to === to || edge.from === to && edge.to === from);
   const focusRegions = (reference?.focus ?? []).map(id => `arch-${id}`);
-  const flow = evaluation?.expected.flows[0] ?? null;
+  // The scope by the product's own served rule (the one generation and the
+  // server use): the focused parts and the role nodes current Working has-role
+  // relations attach to them. Role ends are resolved from manifest role keys.
+  const relation = ROLE_CASE ? evaluation.expected.relation : null;
+  const scoped = await page.evaluate(async ({ sourceUrl, focus, relations, roles }) => {
+    const { readManifest, scopeOf } = await import("/app/src/architecture.mjs");
+    const manifest = readManifest(await (await fetch(sourceUrl)).json());
+    // A role node's id, as the composer names it (the same form hasRole reads).
+    return { regions: [...scopeOf(manifest, focus, relations).regions], roleIds: roles.map(key => `arch-role-${key}`) };
+  }, { sourceUrl: new URL(config.data.source, url).href, focus: reference?.focus ?? [],
+    relations: before.graph.records.filter(record => record.type === "relation").map(({ id, from, to }) => ({ id, from, to })),
+    roles: relation === null ? [] : [relation.from.role, relation.to.role] });
+  const scopeRegions = new Set(scoped.regions);
+  const flow = ROLE_CASE ? null : evaluation?.expected.flows[0] ?? null;
   let chosen = null;
   if (FIXTURE) await page.route(route, craft((name, sent) => {
     if (sent.kind === contract.ARCHITECTURE_GOAL_INTENT_KIND) {
@@ -1329,16 +1509,19 @@ const sourceScenario = async () => {
   // The expected arrow: the controlled choice, or the evaluator data resolved
   // against the served manifest and the actual pre-Goal Working.
   const target = FIXTURE ? (chosen === null ? null : { from: chosen.from, to: chosen.to })
-    : flow === null ? null : { from: "arch-" + flow.from.baselineRegion, to: "arch-" + flow.to.baselineRegion };
+    : ROLE_CASE ? { from: scoped.roleIds[0], to: scoped.roleIds[1] }
+      : flow === null ? null : { from: "arch-" + flow.from.baselineRegion, to: "arch-" + flow.to.baselineRegion };
   const endpointOf = (records, id) => records.find(record => record.type === "region" && record.id === id
     && record.parent !== null && record.kind !== "group") ?? null;
   const beforeRelations = before.graph.records.filter(record => record.type === "relation");
-  // Eligible is structural, on the full pre-Goal Working and the focus; offered
-  // is what the Goal request actually carried. A different resolved pair is
-  // not offered: NOT_MET, never success.
+  // Eligible is structural, on the full pre-Goal Working and the scope: an
+  // arrow touching it, or for a role relation both role ends in it; offered is
+  // what the Goal request actually carried. A different resolved pair is not
+  // offered: NOT_MET, never success.
   const eligible = target !== null && target.from !== target.to
     && endpointOf(before.graph.records, target.from) !== null && endpointOf(before.graph.records, target.to) !== null
-    && (focusRegions.includes(target.from) || focusRegions.includes(target.to))
+    && (ROLE_CASE ? scopeRegions.has(target.from) && scopeRegions.has(target.to)
+      : scopeRegions.has(target.from) || scopeRegions.has(target.to))
     && !related(beforeRelations, target.from, target.to);
   const offered = eligible && request !== null
     && request.candidates.some(item => item.action === "add-edge" && item.from === target.from && item.to === target.to);
@@ -1353,12 +1536,17 @@ const sourceScenario = async () => {
       === JSON.stringify(before.context.map(({ reference: _, ...entry }) => entry)),
     candidates: request?.candidates.length ?? 0,
     edgesTouchFocus: request !== null && request.candidates.filter(item => item.action === "add-edge")
-      .every(item => focusRegions.includes(item.from) || focusRegions.includes(item.to)),
+      .every(item => scopeRegions.has(item.from) || scopeRegions.has(item.to)),
+    scope: [...scopeRegions].sort(),
     target, targetBy: FIXTURE ? "controlled: first sorted pair touching the focus with no relation either way, named by every resolve" : "evaluator goal-case",
     eligible, offered, resolves: sent.filter(entry => entry.sent.kind === contract.ARCHITECTURE_GOAL_INTENT_KIND).length,
     reason: attempt.reason, requests: attempt.requests, exchanges: sent.map(sanitized),
     newEdges: newEdges.map(({ id, from, to, kind }) => ({ id, from, to, kind })),
     newEdgeDrawn: eligible && newEdges.length === 1 && newEdges[0].from === target.from && newEdges[0].to === target.to
+      // A role relation is the Goal's own kind and, before local Apply, carries
+      // no source or model claim: Apply can only make it user-asserted.
+      && (relation === null || newEdges[0].kind === relation.kind
+        && relation.origin === "user-asserted" && claimOf(after, `relation ${newEdges[0].id}`) === null)
       && JSON.stringify(nonLayout(after.graph.records).filter(record => record.id !== newEdges[0].id))
         === JSON.stringify(nonLayout(before.graph.records)),
     paint: null, understanding: "NOT_PROVEN" };
@@ -1405,8 +1593,8 @@ const sourceScenario = async () => {
         recordsUnchanged: JSON.stringify(focused.graph?.records) === JSON.stringify(after.graph.records) && focused.stored === after.stored });
     }
     if (frames.length > 1) { await page.locator("#camera-part").selectOption(""); await settle(); }
-    const paint = { ...frames.at(-1), frames: frames.map(({ camera, viewport, endBounds, endsVisible, inView, edge }) =>
-      ({ camera, viewport, endBounds, endsVisible, inView, matches: edge.matches.map(({ start, tip }) => ({ start, tip })) })) };
+    const paint = { ...frames.at(-1), frames: frames.map(({ camera, viewport, endBounds, endNames, endsVisible, inView, edge }) =>
+      ({ camera, viewport, endBounds, endNames, endsVisible, inView, matches: edge.matches.map(({ start, tip }) => ({ start, tip })) })) };
     paint.met = paint.met && frames.every(frame => frame.recordsUnchanged !== false);
     sourceEvidence.paint = paint;
   }
@@ -1810,9 +1998,11 @@ const runScenario = async () => {
     const file = choices.find(option => option.label === "web/app.mjs");
     assert.ok(file, "the actual source-file camera is offered");
     const long = choices.reduce((best, option) => option.label.length > best.label.length ? option : best, file);
-    const heldPlacement = stage => say(stage, "fixture incomplete placement", name => ({
+    // The uncertain anchor is one the request actually offers, never a part
+    // only the camera lists, such as the roles group.
+    const heldPlacement = stage => say(stage, "fixture incomplete placement", (name, sent) => ({
       action: contract.ACTION_PLACE_PART, move: file.id,
-      anchor: { choice: choices.find(option => option.id !== file.id).id, confidence: 0.39 }, direction: "right",
+      anchor: { choice: slotsOf(sent).anchor?.find(id => id !== file.id && id !== contract.NONE), confidence: 0.39 }, direction: "right",
     })[name] ?? contract.NONE);
     reached.push("camera-pending");
     const heldCamera = await heldPlacement("camera-pending");

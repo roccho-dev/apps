@@ -1,0 +1,15 @@
+{
+  "version": "voice-ui.meaning.role-relation.v1",
+  "id": "role-gm-to-persistence-v1",
+  "goal": "さっき詳しく見た中で、図を書き換える役割から保存する役割へ、試案の矢印を1本つないで",
+  "order": "normal",
+  "expected": {
+    "kind": "change",
+    "relation": {
+      "from": { "role": "graph-mutation" },
+      "to": { "role": "persistence" },
+      "kind": "flow",
+      "origin": "user-asserted"
+    }
+  }
+}

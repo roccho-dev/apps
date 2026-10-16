@@ -58,6 +58,7 @@ const HAS_ROLE_KIND = "has-role";
 // Edge kinds this module draws itself, which no chosen relation may shadow.
 const RESERVED_KINDS = Object.freeze([IMPORT_KIND, DECLARES_KIND, HAS_ROLE_KIND]);
 const NODE_KIND = "node";
+const GROUP_KIND = "group";
 const REGION_PREFIX = "arch-";
 const FACT_PREFIX = "arch-fact-";
 const ROLE_PREFIX = "arch-role-";
@@ -392,22 +393,54 @@ const inferredRecord = (candidate, kind) => entry(
   { type: "relation", id: relationIdOf(kind, candidate.from, candidate.to), from: regionIdOf(candidate.from), to: regionIdOf(candidate.to), kind, label: kind },
   ORIGIN_MODEL, [{ candidate: candidate.id }]);
 
-// A role's node: the scope's term, drawn once it is first assigned.
-const roleIdOf = key => `${ROLE_PREFIX}${key}`;
-const roleNode = key => entry({ type: "region", id: roleIdOf(key), label: `role:${key}` }, ORIGIN_SCOPE, [{ vocabulary: "roles", key }]);
+// The scope's roles drawn together: one group named for the vocabulary,
+// citing every role it may hold, so that an arrow between two roles and both
+// their names fit one frame. Like the roles, it is the scope's term, never a
+// fact of the code; where it sits is the drawing's, and is not checked.
+const ROLES_ID = `${REGION_PREFIX}roles`;
+const rolesGroup = manifest => entry({ type: "region", id: ROLES_ID, label: "roles", kind: GROUP_KIND }, ORIGIN_SCOPE,
+  manifest.roles.map(role => ({ vocabulary: "roles", key: role.key })));
+
+// A role's node: the scope's term, drawn in the roles group once it is first assigned.
+export const roleIdOf = key => `${ROLE_PREFIX}${key}`;
+const roleNode = key => entry({ type: "region", id: roleIdOf(key), parent: ROLES_ID, label: `role:${key}` }, ORIGIN_SCOPE,
+  [{ vocabulary: "roles", key }]);
 
 // A role Jev confirmed for an admitted file, judged from that file's whole text.
+const hasRoleIdOf = (entityId, key) => `${REGION_PREFIX}${HAS_ROLE_KIND}-${entityId}-to-${key}`;
 const roleEdge = (entity, key) => entry(
-  { type: "relation", id: `${REGION_PREFIX}${HAS_ROLE_KIND}-${entity.id}-to-${key}`, from: regionIdOf(entity.id), to: roleIdOf(key), kind: HAS_ROLE_KIND, label: HAS_ROLE_KIND },
+  { type: "relation", id: hasRoleIdOf(entity.id, key), from: regionIdOf(entity.id), to: roleIdOf(key), kind: HAS_ROLE_KIND, label: HAS_ROLE_KIND },
   ORIGIN_MODEL, [{ path: entity.path }]);
 
-// Every record this snapshot could ever draw: what the source grounds, every
-// role node, every relation any pair could be given and every role any file
-// could be given. No two of them may share an id.
+// What a remembered source focus scopes, one rule for generation, the server
+// and the evaluator: its parts, and the role nodes that current Working
+// has-role relations attach to those parts. A role must be one of this
+// manifest's roles and its relation exactly the one drawn for that part and
+// role; nothing else widens the scope. An attachment is model-judged Working
+// data, not a verified source fact. `attachments` holds, per added role, the
+// first relation that admitted it.
+export function scopeOf(manifest, focus, relations) {
+  const regions = new Set(focus.map(regionIdOf));
+  const attaching = new Map(focus.flatMap(part => manifest.roles.map(role =>
+    [hasRoleIdOf(part, role.key), Object.freeze({ from: regionIdOf(part), to: roleIdOf(role.key) })])));
+  const attachments = [];
+  for (const relation of relations) {
+    const role = attaching.get(relation.id);
+    if (role === undefined || relation.from !== role.from || relation.to !== role.to || regions.has(role.to)) continue;
+    regions.add(role.to);
+    attachments.push(relation);
+  }
+  return Object.freeze({ regions, attachments: Object.freeze(attachments) });
+}
+
+// Every record this snapshot could ever draw: what the source grounds, the
+// roles group and every role node, every relation any pair could be given and
+// every role any file could be given. No two of them may share an id.
 const everyRecordOf = manifest => {
   const files = manifest.entities.filter(entity => entity.kind === "file");
   return [
     ...sourceRecords(manifest).values(),
+    rolesGroup(manifest),
     ...manifest.roles.map(role => roleNode(role.key)),
     ...manifest.candidates.filter(candidate => relationEligible(manifest, candidate))
       .flatMap(candidate => manifest.relations.map(relation => inferredRecord(candidate, relation.key))),
@@ -438,14 +471,15 @@ const equal = (left, right) => left === right || (
 // the claim and the record as its Decision left it, answering why the claim
 // is not what this snapshot grounds, or null. A source-declared, unknown or
 // scope-declared claim must be exactly the snapshot's own claim for that
-// record - a role's node only for a role of the closed vocabulary - and the
-// record exactly as the snapshot draws it: label, ends and kind. A relation
+// record - a role's node only for a role of the closed vocabulary, the roles
+// group only citing all of it - and the record exactly as the snapshot draws
+// it: label, ends and kind, and a role's node in the roles group. A relation
 // Jev chose must be a relation of the closed vocabulary between the two ends
 // of the one candidate pair it cites. A role Jev confirmed must be the
 // has-role edge from the admitted file whose path it cites to the node of a
 // role of the closed vocabulary.
 export function claimCheckFor(manifest) {
-  const known = new Map([...sourceRecords(manifest).values(), ...manifest.roles.map(role => roleNode(role.key))]
+  const known = new Map([...sourceRecords(manifest).values(), rolesGroup(manifest), ...manifest.roles.map(role => roleNode(role.key))]
     .map(value => [`${value.record.type} ${value.record.id}`, value]));
   const candidates = new Map(manifest.candidates.filter(candidate => relationEligible(manifest, candidate)).map(candidate => [candidate.id, candidate]));
   const relations = manifest.relations.map(relation => relation.key);
@@ -552,23 +586,50 @@ export async function planArchitecture({ working, turn, answers, judged = null, 
   if (fresh.length === 0) return noChange("architecture-nothing-new");
 
   // The provider operation and the change it shows, for each fresh record;
-  // new regions sit on a grid below what is already drawn.
+  // new regions sit on a grid below what is already drawn. A role's node sits
+  // in the roles group, at its role's slot of the vocabulary. A group not yet
+  // drawn comes with the first role node, ahead of every other region, so the
+  // two share a Decision whenever the provider takes more than one operation.
   const boxes = records.filter(record => record?.type === "region").map(record => record.bounds);
   const top = Math.max(...boxes.map(box => box[1] + box[3])) + PART_GAP;
-  const regions = fresh.filter(value => value.record.type === "region").map(({ record, claim }, index) => ({
+  const roleIds = manifest.roles.map(role => roleIdOf(role.key));
+  const roles = fresh.filter(value => roleIds.includes(value.record.id));
+  const others = fresh.filter(value => value.record.type === "region" && !roleIds.includes(value.record.id));
+  const columns = Math.min(COLUMNS, roleIds.length);
+  const drawnGroup = records.find(record => record?.type === "region" && record.id === ROLES_ID);
+  const group = roles.length === 0 || drawnGroup !== undefined ? [] : [{ ...rolesGroup(manifest), bounds: [
+    root.bounds[0] + PART_GAP,
+    top + Math.ceil(others.length / COLUMNS) * (PART_HEIGHT + PART_GAP),
+    PART_GAP + columns * (PART_WIDTH + PART_GAP),
+    PART_GAP + Math.ceil(roleIds.length / columns) * (PART_HEIGHT + PART_GAP),
+  ] }];
+  const groupBox = drawnGroup?.bounds ?? group[0]?.bounds;
+  const slotOf = id => [
+    groupBox[0] + PART_GAP + (roleIds.indexOf(id) % columns) * (PART_WIDTH + PART_GAP),
+    groupBox[1] + PART_GAP + Math.floor(roleIds.indexOf(id) / columns) * (PART_HEIGHT + PART_GAP),
+    PART_WIDTH,
+    PART_HEIGHT,
+  ];
+  const placed = [
+    ...group,
+    ...roles.map(value => ({ ...value, bounds: slotOf(value.record.id) })),
+    ...others.map((value, index) => ({ ...value, bounds: [
+      root.bounds[0] + PART_GAP + (index % COLUMNS) * (PART_WIDTH + PART_GAP),
+      top + Math.floor(index / COLUMNS) * (PART_HEIGHT + PART_GAP),
+      PART_WIDTH,
+      PART_HEIGHT,
+    ] })),
+  ];
+  // A record names its parent and kind only where they are not the drawing's root and a plain node.
+  const regions = placed.map(({ record, claim, bounds }) => ({
     operation: {
       type: "AddRegion",
       regionId: record.id,
-      parentId: root.id,
+      parentId: record.parent ?? root.id,
       label: record.label,
-      kind: NODE_KIND,
+      kind: record.kind ?? NODE_KIND,
       summary: "",
-      bounds: [
-        root.bounds[0] + PART_GAP + (index % COLUMNS) * (PART_WIDTH + PART_GAP),
-        top + Math.floor(index / COLUMNS) * (PART_HEIGHT + PART_GAP),
-        PART_WIDTH,
-        PART_HEIGHT,
-      ],
+      bounds,
     },
     change: { change: "added", kind: "region", id: record.id, label: record.label },
     claim,

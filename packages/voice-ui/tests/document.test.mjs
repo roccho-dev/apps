@@ -178,8 +178,9 @@ test("a role's node and its edge in different Decisions are still one utterance:
     judged: { section, answers: answering(judgeSlotsFor(section), { [roleSlot("b-mjs", "persistence")]: YES }) },
     manifest: MANIFEST, protocol, operationsMax: 1,
   });
+  // One operation per Decision: the group's before its node's, the node's before the edge's.
   assert.deepEqual(planned.steps.map(item => item.claims.map(claim => claim.record.id)),
-    [["arch-role-persistence"], ["arch-has-role-b-mjs-to-persistence"]], "the node's Decision comes before the edge's");
+    [["arch-roles"], ["arch-role-persistence"], ["arch-has-role-b-mjs-to-persistence"]], "the node's Decision comes before the edge's");
   const roled = (await proposeArchitecture(viewed, { planned, input: { source: "typed", text: "show b" }, protocol })).session;
   assert.equal(draftUsed(roled), draftUsed(viewed) + 1, "one utterance");
   const { turn: repeatedTurn } = withArchitecture(requestFor({
@@ -212,7 +213,7 @@ test("a role's node and its edge in different Decisions are still one utterance:
   assert.equal(restored.graph.head, roled.working.head, "the whole utterance is saved in the one write");
   const claims = currentClaims(restored.provenance, restored.graph.records);
   assert.deepEqual(claims.filter(entry => /role/u.test(entry.record.id)).map(entry => [entry.record.id, entry.claims.map(claim => claim.origin)]),
-    [["arch-role-persistence", ["scope-declared"]], ["arch-has-role-b-mjs-to-persistence", ["model-inferred"]]]);
+    [["arch-roles", ["scope-declared"]], ["arch-role-persistence", ["scope-declared"]], ["arch-has-role-b-mjs-to-persistence", ["model-inferred"]]]);
 });
 
 test("the same id with another meaning is the person's: a rename or a reconnection resets what was claimed, a move does not", async () => {
@@ -306,7 +307,7 @@ const refusedAs = async (bytes, pattern, label) => {
 };
 
 test("every source claim is bound to what its own Decision did and to what the cited snapshot grounds", async () => {
-  const { graph, draft, whole } = await drafted();
+  const { created, graph, draft, whole } = await drafted();
   const good = (await commitWith(storage(), graph, draft, null, null)).stored;
   const lines = good.split("\n").slice(0, -1);
   // The provenance of Decision `index`, changed and written back canonically.
@@ -375,6 +376,26 @@ test("every source claim is bound to what its own Decision did and to what the c
   await nativeForgery([hasRole("arch-has-role-a-mjs-to-b-mjs", "arch-a-mjs", "arch-b-mjs")],
     [edgeClaim("arch-has-role-a-mjs-to-b-mjs", "a.mjs")], /not a closed role of an admitted file/u, "a role edge to something that is no role");
 
+  // The roles group and the parent of a role's node, forged. The group's own
+  // parent is not grounded by the snapshot and is not checked here.
+  const allRoles = [{ vocabulary: "roles", key: "persistence" }, { vocabulary: "roles", key: "config" }];
+  const groupClaim = (id, basis = allRoles) => ({ record: { type: "region", id }, origin: "scope-declared", basis });
+  await refusedAs(forge(focusedIndex, retarget("arch-roles", claim => ({ ...claim, basis: [{ vocabulary: "roles", key: "persistence" }] }))),
+    /arch-roles: not a claim this snapshot grounds/u, "a roles group citing only some of the vocabulary");
+  await nativeForgery([{ type: "AddRegion", regionId: "arch-roles-2", parentId: "root", label: "roles", kind: "group", summary: "", bounds: [20, 900, 400, 200] }],
+    [groupClaim("arch-roles-2")], /arch-roles-2: not a claim this snapshot grounds/u, "a second roles group under another id");
+  await nativeForgery([{ ...roleRegion("arch-role-config", "role:config"), parentId: "root" }],
+    [{ record: { type: "region", id: "arch-role-config" }, origin: "scope-declared", basis: [{ vocabulary: "roles", key: "config" }] }],
+    /arch-role-config: not drawn as this snapshot says/u, "a role's node outside the roles group");
+  const viewed = await appendAll(created, whole);
+  const ungrouped = [{ step: { decision: created.decisions[0] } }, ...whole.steps];
+  const { decision: asNode } = await protocol.createDecision(viewed.head,
+    [{ type: "AddRegion", regionId: "arch-roles", parentId: "root", label: "roles", kind: "node", summary: "", bounds: [20, 900, 400, 200] }], viewed.records);
+  const nodeGroup = await commitWith(storage(), (await protocol.appendDecision(viewed.log, asNode)).verified,
+    [...ungrouped, { step: { decision: asNode }, claims: [groupClaim("arch-roles")] }], null, null);
+  assert.equal(nodeGroup.status, "rejected", "the roles group drawn as a node");
+  assert.match(nodeGroup.reason, /arch-roles: not drawn as this snapshot says/u);
+
   // Decisions drawn from someone else's account of the same snapshot: they
   // pass that account, and the real snapshot refuses them.
   const lie = async (manifest, picks, pattern, label) => {
@@ -410,6 +431,40 @@ test("without the cited snapshot the saved graph is still restored, as not check
     assert.notEqual(restored.evidence, EVIDENCE_CURRENT);
     assert.equal(restored.stored, first.stored);
   }
+});
+
+test("a document saved with role nodes outside a roles group restores unchanged from another source, and is refused for this one", async () => {
+  // The whole view, then a role's node drawn directly under the root with its
+  // edge, claimed as before the roles group: written as a document by hand.
+  const created = await newMap();
+  const whole = await planOn(created, MANIFEST);
+  const viewed = await appendAll(created, whole);
+  const base = await commitWith(storage(), viewed, [{ step: { decision: created.decisions[0] } }, ...whole.steps], null, null);
+  assert.equal(base.status, COMMIT_COMMITTED, base.reason);
+  const { decision } = await protocol.createDecision(viewed.head, [
+    { type: "AddRegion", regionId: "arch-role-persistence", parentId: "root", label: "role:persistence", kind: "node", summary: "", bounds: [20, 900, 140, 64] },
+    { type: "ConnectRegions", relationId: "arch-has-role-b-mjs-to-persistence", from: "arch-b-mjs", to: "arch-role-persistence", kind: "has-role", label: "has-role" },
+  ], viewed.records);
+  const flat = (await protocol.appendDecision(viewed.log, decision)).verified;
+  const provenance = canonical({ decision: flat.ids.at(-1), claims: [
+    { record: { type: "region", id: "arch-role-persistence" }, origin: "scope-declared", basis: [{ vocabulary: "roles", key: "persistence" }] },
+    { record: { type: "relation", id: "arch-has-role-b-mjs-to-persistence" }, origin: "model-inferred", basis: [{ path: "b.mjs" }] },
+  ] });
+  const savedAt = commit => [canonical({ schema: "voice-ui.architecture-document/1", source: { handle: "fixture", commit } }),
+    ...base.stored.split("\n").slice(1, -1), flat.log.split("\n").at(-2), provenance].join("\n") + "\n";
+
+  const origin = storage();
+  const earlier = savedAt("e".repeat(40));
+  origin.values.set(KEY, earlier);
+  const restored = await restoreDocument({ key: KEY, read: origin.read, verifyDecisionLog, manifest: MANIFEST });
+  assert.equal(restored.status, "restored", restored.reason);
+  assert.notEqual(restored.evidence, EVIDENCE_CURRENT, "not checkable here, so nothing grounded may be added to it");
+  assert.equal(restored.stored, earlier);
+  assert.equal(origin.values.get(KEY), earlier, "nothing is migrated, rewritten or dropped");
+  assert.equal(restored.graph.records.find(record => record.id === "arch-role-persistence").parent, "root");
+
+  await refusedAs(savedAt(COMMIT), /arch-role-persistence: not drawn as this snapshot says/u,
+    "the same layout citing this snapshot is not what it draws");
 });
 
 test("an excluded JSON-subject relation is refused on Apply and reload; its roles and facts remain grounded", async () => {

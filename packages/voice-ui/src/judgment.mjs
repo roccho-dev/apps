@@ -1,4 +1,4 @@
-import { ACTION_ADD_EDGE, ACTION_ADD_PART, ACTION_ARCHITECTURE, ACTION_COMPOSE, ACTION_PLACE_PART, ACTION_REMOVE_EDGE, ACTION_REVERSE_EDGE, ACTION_UNDO_REQUEST, ARCHITECTURE_GOAL_INTENT_KIND, ARCHITECTURE_INTENT_KIND, ARCHITECTURE_JUDGE_KIND, ARCHITECTURE_LOCATE_KIND, NONE, WHOLE, YES, relationSlot, relevantSlot, roleSlot } from "./contract.mjs";
+import { ACTION_ADD_EDGE, ACTION_ADD_PART, ACTION_ARCHITECTURE, ACTION_COMPOSE, ACTION_PLACE_PART, ACTION_REMOVE_EDGE, ACTION_REVERSE_EDGE, ACTION_UNDO_REQUEST, ARCHITECTURE_GOAL_INTENT_KIND, ARCHITECTURE_INTENT_KIND, ARCHITECTURE_JUDGE_KIND, ARCHITECTURE_LOCATE_KIND, NONE, WHOLE, YES, partOption, relationSlot, relevantSlot, roleSlot } from "./contract.mjs";
 
 // A choice question offers its alternatives as a criteria map keyed by the
 // value to be returned.
@@ -19,13 +19,22 @@ const ACTION_WORDS = {
 // Every question is told what the recent conversation is and is not: it may
 // explain what a word in the utterance refers to, but it is unverified, and
 // the utterance, the working graph and the focus decide.
-const CONTEXT_NOTE = " context.recent lists earlier utterances as they were recognized or typed, and what came of each."
-  + " They are unverified and may be misrecognized. Use them only to understand what the current utterance refers to;"
+const RECENT_NOTE = " context.recent lists earlier utterances as they were recognized or typed, and what came of each."
+  + " They are unverified and may be misrecognized. Use them only to understand what the current utterance refers to;";
+const CONTEXT_NOTE = RECENT_NOTE
   + " the current utterance, the working graph and the focus are the facts, and an earlier effect is history, not the current graph.";
+// A locate frame reads no working graph, and its focus is the asked part itself.
+const LOCATE_CONTEXT_NOTE = RECENT_NOTE
+  + " the current utterance and the shown text are the facts; any earlier outcome is history, not evidence this part is asked about.";
 // Goal has its own read set: graph and edges, never an editing focus.
 const GOAL_CONTEXT_NOTE = " context.recent lists earlier utterances as they were recognized or typed, and what came of each."
   + " They are unverified and may be misrecognized. Use them only to understand what the current utterance refers to;"
   + " the current utterance, the current Working graph and edges are the facts, and an earlier effect is history, not the current graph.";
+// A Goal step is asked in up to two frames. The first asks what comes next:
+// a part, whose group a second frame asks, or an arrow between existing parts.
+const GOAL_WHAT = "Choose the next executable change toward the utterance's goal. An option either adds one offered part, whose group is chosen by a separate following question, or connects two existing parts by one directed flow arrow. An explicitly hypothetical requested connection is a Working proposal, not proof of an existing source relationship. Use the current graph and edges to decide which requested changes are still missing; selected is adopted part history, not a completion oracle. An arrow is offered only when both of its ends exist, so a requested part that is still missing comes before its arrows. Choose none when the requested changes are already present, no option is clearly needed, or the request is ambiguous. Do not add a connection merely because two parts are present; it must be requested by the utterance. An offered group part is added like any other part, and a part is placed only into an existing group, including one this goal already added, so a requested group that is still missing comes before the parts requested inside it.";
+// The second frame, bound to the part the first chose, asks only where it goes.
+const GOAL_WHERE = "Which existing group does the utterance request this part to be added inside? A group already added by this goal is also an existing group here. Arrows may connect parts in different groups, so a part's group does not follow from the groups of the parts it is connected to. Choose none when the utterance requests none of these existing groups for it, or does not identify a unique one.";
 // A Goal's scope is checked by the server, not taken from the page on trust.
 const SCOPE_NOTE = " state.scope names the parts in focus, which the server matched against the current source;"
   + " every offered arrow touches one of them. It is not an earlier judgment or authority, and no source text is given."
@@ -38,6 +47,20 @@ const REFERENCE_NOTE = " An architecture conversation entry may carry reference:
 // A reference can qualify a node, a code part or an existing edge. Only the
 // existing-edge question requires a unique match among current edges.
 const EDGE_REFERENCE_NOTE = " Match against all current edges; if the conversational qualification does not identify one unique edge, answer none.";
+// A Working node is named by its unique id. Its label is only display text:
+// labels may repeat, equal another node's id or look like option text, so it
+// never names a node on its own and is quoted after "shown as". An id is shown
+// as it is only when it is one plain token; any other id is quoted too, so
+// neither can be read as option text, a label or another node. In a Goal
+// option a label is likewise shown as it is unless it could be misread: it
+// holds structure or option characters, is empty or padded, or equals a node
+// id of the same request.
+const PLAIN_ID = /^[A-Za-z0-9][A-Za-z0-9._:-]*$/u;
+const MISREADABLE = /^$|^\s|\s$|["'()[\]{};,\\]|[\p{Cc}\p{Zl}\p{Zp}]/u;
+const quoted = label => JSON.stringify(label);
+const named = key => PLAIN_ID.test(key) ? key : quoted(key);
+const shownAs = (labels, key) => labels.get(key) === key ? named(key) : `${named(key)} (shown as ${quoted(labels.get(key))})`;
+const labelled = (ids, label) => MISREADABLE.test(label) || ids.has(label) ? quoted(label) : label;
 
 // The questions for exactly the slots the request offers. Each option is a
 // key the request carries; the words around it are this Function's own, and
@@ -47,17 +70,30 @@ const EDGE_REFERENCE_NOTE = " Match against all current edges; if the conversati
 // which has no snapshot, describes every edge by its two ends only.
 export function questionsFor(state, slots, context) {
   if (state.candidates !== undefined) {
-    const purposes = new Map(state.offers.parts.map(part => [part.key, part.purpose]));
+    // An offered part is named by its displayed name and its key; the name is
+    // display data and may repeat, the key and the candidate id decide.
+    const offered = new Map(state.offers.parts.map(part => [part.key, part]));
     const parents = new Map(state.parents.map(parent => [parent.id, parent]));
     const labels = new Map(state.graph.map(region => [region.id, region.label]));
+    const ids = new Set([...labels.keys(), ...parents.keys()]);
+    const label = text => labelled(ids, text);
+    const partOf = part => `${label(part.label)} (${named(part.key)}): ${part.purpose}`;
+    const placing = state.placing === null ? null : offered.get(state.placing);
     return {
       delta: {
-        instruction: "Choose one executable change toward the utterance's goal. A candidate adds one offered part inside its existing group at a proved placement, or connects two existing parts by one directed flow arrow. An explicitly hypothetical requested connection is a Working proposal, not proof of an existing source relationship. Use the current graph and edges to decide which requested changes are still missing; selected is adopted part history, not a completion oracle. Choose none when the requested changes are already present, no candidate is clearly needed, or the request is ambiguous. Do not add a connection merely because two parts are present; it must be requested by the utterance. An offered group part is added like any other part. Adding a part directly to an existing group never resizes it; placing a part into a group added by this goal resizes that group and its enclosing groups just enough, keeping their positions. Do not otherwise create, move or resize groups." + GOAL_CONTEXT_NOTE + (state.scope === null ? "" : SCOPE_NOTE),
+        instruction: (placing === null ? GOAL_WHAT : `The next change adds the offered part ${partOf(placing)}. ${GOAL_WHERE}`)
+          + GOAL_CONTEXT_NOTE + (state.scope === null ? "" : SCOPE_NOTE),
         options: criteria(slots.delta, key => {
-          if (key === NONE) return "no offered executable change is clearly requested, or the requested changes are already present";
-          const candidate = state.candidates.find(item => item.id === key);
-          if (candidate.action === ACTION_ADD_EDGE) return `a directed flow arrow from ${labels.get(candidate.from)} (${candidate.from}) to ${labels.get(candidate.to)} (${candidate.to})`;
-          return `add one new part: ${purposes.get(candidate.part)}, inside ${parents.get(candidate.parent).label} (${candidate.parent})`;
+          if (key === NONE) return placing === null ? "no offered executable change is clearly requested, or the requested changes are already present"
+            : "the utterance requests none of these existing groups for this part, or does not identify a unique one";
+          if (placing !== null) {
+            const candidate = state.candidates.find(item => item.action === ACTION_ADD_PART && item.id === key);
+            return `add one new part ${label(placing.label)} (${named(placing.key)}) directly inside ${label(parents.get(candidate.parent).label)} (${named(candidate.parent)})`;
+          }
+          const arrow = state.candidates.find(item => item.action === ACTION_ADD_EDGE && item.id === key);
+          if (arrow !== undefined) return `a directed flow arrow from ${label(labels.get(arrow.from))} (${named(arrow.from)}) to ${label(labels.get(arrow.to))} (${named(arrow.to)})`;
+          const { part } = state.candidates.find(item => item.action === ACTION_ADD_PART && partOption(item.part) === key);
+          return `add one new part ${partOf(offered.get(part))}`;
         }),
       },
     };
@@ -66,12 +102,18 @@ export function questionsFor(state, slots, context) {
   if (context.kind === ARCHITECTURE_JUDGE_KIND) return judgeQuestions(context.section, slots);
   if (context.kind === ARCHITECTURE_GOAL_INTENT_KIND) {
     const labels = new Map(state.graph.regions.map(region => [region.id, region.label]));
-    const node = key => labels.get(key) === key ? key : `${key} (shown as "${labels.get(key)}")`;
+    const node = key => shownAs(labels, key);
+    // A role node of the served source states that role's purpose, from the
+    // server's own manifest; any other node states none.
+    const served = key => {
+      const purpose = context.rolePurposeOf?.(key) ?? null;
+      return purpose === null ? "" : `, a role node of the served source: ${quoted(purpose)}`;
+    };
     // Descriptive current Working data only, not source provenance or unique intent.
     const connections = key => "; current Working connections: " + state.graph.edges
       .filter(edge => edge.from === key || edge.to === key)
       .map(edge => (edge.from === key ? "out " : "in ") + edge.kind + " "
-        + JSON.stringify(labels.get(edge.from === key ? edge.to : edge.from))).join("; ");
+        + node(edge.from === key ? edge.to : edge.from)).join("; ");
     const note = " context.recent lists earlier utterances as recognized or typed and their effects."
       + " They are unverified and may be misrecognized; use them only to understand what the current utterance refers to."
       + " The current utterance and Working graph are the facts; earlier effects are history, not the current graph."
@@ -89,17 +131,17 @@ export function questionsFor(state, slots, context) {
       },
       source: {
         instruction: "If the utterance asks to add an edge, which current Working node is its start? An earlier utterance and its reopened section may qualify that node; choose none if it does not identify a unique start." + note + endpointNote,
-        options: criteria(slots.source, key => key === NONE ? "no unique current node is identified as the start" : `the edge starts at ${node(key)}` + connections(key)),
+        options: criteria(slots.source, key => key === NONE ? "no unique current node is identified as the start" : `the edge starts at ${node(key)}` + served(key) + connections(key)),
       },
       target: {
         instruction: "If the utterance asks to add an edge, which current Working node is its end? An earlier utterance and its reopened section may qualify that node; choose none if it does not identify a unique end." + note + endpointNote,
-        options: criteria(slots.target, key => key === NONE ? "no unique current node is identified as the end" : `the edge ends at ${node(key)}` + connections(key)),
+        options: criteria(slots.target, key => key === NONE ? "no unique current node is identified as the end" : `the edge ends at ${node(key)}` + served(key) + connections(key)),
       },
     };
   }
   const defined = context.kind === ARCHITECTURE_INTENT_KIND ? context.relationOf : () => null;
   const labelOf = new Map(state.graph.regions.map(region => [region.id, region.label]));
-  const node = key => labelOf.get(key) === key ? key : `${key} (shown as "${labelOf.get(key)}")`;
+  const node = key => shownAs(labelOf, key);
   const definedAs = edge => {
     const relation = defined(edge);
     return relation === null ? "" : `, which this snapshot defines as ${relation.kind}${relation.purpose === null ? "" : `: ${relation.purpose}`}`;
@@ -253,29 +295,23 @@ function judgeQuestions(section, slots) {
 // A locate frame's one question, judged from its part's own text - the files
 // it opens whole, and single lines of other files that name it - which the
 // question names by path, since the provider never sees the question's name.
-// For a file: whether the utterance asks about that file itself, not a part
-// that only supports, serves or is used by what it asks about. For a part
-// outside the source: the same, as the shown code uses it. The utterance need
-// not name the part; the options say where the line falls.
+// One positive condition: whether the current utterance asks to see this part,
+// directly or by what it refers to; the other option is any other case.
 function locateQuestion(entity, evidence, slots) {
   const file = entity.kind === "file";
   const lined = [...new Set(evidence.lines.map(line => line.path))];
   return {
     [relevantSlot(entity.id)]: {
       instruction: (file
-        ? `Is the file ${entity.label} itself one of the parts the current utterance asks to see or refers to - its own text being what is asked about - rather than a part that only supports, serves or is used by what is asked about?`
-        : `Is ${entity.label}, which lies outside the source, itself one of the parts the current utterance asks to see or refers to, as the shown original code uses it, rather than something the shown code only names or uses in support of what is asked about?`)
+        ? `Does the current utterance ask to see the content of the file ${entity.label}, directly or by what it refers to?`
+        : `Does the current utterance ask to see ${entity.label}, which lies outside the source, directly or by what it refers to?`)
         + ` state.architecture.evidence.bodies holds ${evidence.bodies.map(body => body.path).join(", ")} whole`
         + (lined.length === 0 ? "." : `; state.architecture.evidence.lines holds single lines of ${lined.join(", ")}, each with its path and line number.`)
         + " Judge only from that text and the utterance."
-        + CONTEXT_NOTE + REFERENCE_NOTE,
-      options: criteria(slots[relevantSlot(entity.id)], key => (file
-        ? key === YES
-          ? "the utterance asks about this file itself, whether or not it names it"
-          : "it only supports, serves or is used by what the utterance asks about, or only mentions or imports a part that does"
-        : key === YES
-          ? "the utterance asks about it itself, as the shown code uses it, whether or not it names it"
-          : "the shown code only names it, or uses it only in support of what the utterance asks about")),
+        + LOCATE_CONTEXT_NOTE + " An earlier entry's reference is the section the server reopened for it.",
+      options: criteria(slots[relevantSlot(entity.id)], key => key === YES
+        ? "the current utterance asks to see it, directly or by what it refers to"
+        : "any other case"),
     },
   };
 }

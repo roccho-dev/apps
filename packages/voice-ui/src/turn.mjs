@@ -235,7 +235,7 @@ export function pendingHolds(pending, { head, frame, offered }) {
 export function requestFor({ working, utterance, bundle, layout, offeredFrame, draft, focus, pending, recent }) {
   requireGraph(working);
   const placeable = layout === null ? [] : [...placeableIds(layout, working.records, offeredFrame)];
-  const offers = offersOf(bundle);
+  const offers = offersOf(bundle, { named: false });
   const state = Object.freeze({
     utterance,
     graph: Object.freeze({ regions: speakableRegions(working.records), edges: speakableEdges(working.records), placeable }),

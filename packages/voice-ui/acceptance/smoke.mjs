@@ -468,8 +468,9 @@ try {
     if (mode === "fixture") {
       assert.deepEqual(summary.reached, ["open", "prepare", "goal", "goal-undo"]);
       assert.deepEqual(summary.notRun, []);
-      assert.equal(summary.actions.undo, 1); assert.equal(summary.requests, flow ? 5 : 4);
-      assert.equal(proof.requests, flow ? 4 : 3); assert.deepEqual(proof.questionCounts, Array(flow ? 4 : 3).fill(1)); assert.equal(proof.reason, "none");
+      // Two additions of two frames (what, where) each, the arrow and the stop.
+      assert.equal(summary.actions.undo, 1); assert.equal(summary.requests, flow ? 7 : 6);
+      assert.equal(proof.requests, flow ? 6 : 5); assert.deepEqual(proof.questionCounts, Array(flow ? 6 : 5).fill(1)); assert.equal(proof.reason, "none");
       assert.equal(proof.goalMet, true); assert.equal(proof.undoRestored, true);
       assert.deepEqual(proof.labelsVisible, [true, true]); assert.equal(proof.timeBudgetMet, true);
       assert.equal(proof.painted.complete, true); assert.equal(proof.painted.contained, true);
@@ -484,8 +485,9 @@ try {
       assert.equal(proof.internalModelExecutions, "UNKNOWN"); assert.equal(proof.providerCost, "UNKNOWN");
       assert.equal(proof.baselineMet, !flow); assert.equal(proof.addedValue, "NOT_PROVEN");
       assert.deepEqual(proof.selected.map(item => item.key), ["api", "db"]);
+      // Each addition is asked twice from the same history, what then where.
       assert.deepEqual(proof.requestHistories.map(history => history.map(item => item.key)), flow
-        ? [[], ["api"], ["api", "db"], ["api", "db"]] : [[], ["api"], ["api", "db"]]);
+        ? [[], [], ["api"], ["api"], ["api", "db"], ["api", "db"]] : [[], [], ["api"], ["api"], ["api", "db"]]);
       assert.equal(proof.newEdges.length, flow ? 1 : 0);
       if (flow) {
         assert.equal(proof.painted.edge.complete, true);

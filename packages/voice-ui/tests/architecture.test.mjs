@@ -49,6 +49,7 @@ import { COMMIT_COMMITTED, MAP_ID, STATE_SCHEMA } from "../src/log.mjs";
 import { commitDocument } from "../src/document.mjs";
 import { focusFor, legalLocalDeltas, requestFor } from "../src/turn.mjs";
 import { runGoal } from "../src/goal.mjs";
+import { frameFor } from "../src/render.mjs";
 import { createSession, draftForJudgment, proposeArchitecture, recentConversation, startNew } from "../src/session.mjs";
 
 const store = process.env.SEMANTIC_MAP;
@@ -316,18 +317,25 @@ test("a focus adds the relations and the several roles Jev confirmed from that s
   });
   assert.equal(planned.outcome, "step");
   assert.deepEqual(changesOf(planned), [
+    { change: "added", kind: "region", id: "arch-roles", label: "roles" },
     { change: "added", kind: "region", id: "arch-role-persistence", label: "role:persistence" },
     { change: "added", from: "arch-b-mjs", to: "arch-ext-store" },
     { change: "added", from: "arch-b-mjs", to: "arch-role-persistence" },
-  ], "the role's node first, then the confident relation and the role's edge; nothing unsure");
+  ], "the roles group and the role's node first, then the confident relation and the role's edge; nothing unsure");
   assert.deepEqual(claimsOf(planned), [
+    { record: { type: "region", id: "arch-roles" }, origin: "scope-declared",
+      basis: [{ vocabulary: "roles", key: "persistence" }, { vocabulary: "roles", key: "config" }] },
     { record: { type: "region", id: "arch-role-persistence" }, origin: "scope-declared", basis: [{ vocabulary: "roles", key: "persistence" }] },
     { record: { type: "relation", id: "arch-stores-in-b-mjs-to-ext-store" }, origin: "model-inferred", basis: [{ candidate: "c-b-mjs--ext-store" }] },
     { record: { type: "relation", id: "arch-has-role-b-mjs-to-persistence" }, origin: "model-inferred", basis: [{ path: "b.mjs" }] },
-  ], "the node is the scope's term; the edge is Jev's, judged from the file's own text");
-  const drawn = (await appendAll(working, planned)).records.find(record => record.id === "arch-has-role-b-mjs-to-persistence");
+  ], "the group and the node are the scope's terms - the group cites every role it holds; the edge is Jev's, judged from the file's own text");
+  const drawnGraph = await appendAll(working, planned);
+  const drawn = drawnGraph.records.find(record => record.id === "arch-has-role-b-mjs-to-persistence");
   assert.deepEqual(drawn, { type: "relation", id: "arch-has-role-b-mjs-to-persistence", from: "arch-b-mjs", to: "arch-role-persistence", kind: "has-role", label: "has-role" },
     "a native provider relation");
+  const regionOf = id => drawnGraph.records.find(record => record.type === "region" && record.id === id);
+  assert.deepEqual([regionOf("arch-roles").parent, regionOf("arch-roles").label, regionOf("arch-roles").kind], ["root", "roles", "group"]);
+  assert.equal(regionOf("arch-role-persistence").parent, "arch-roles", "a role's node sits in the roles group");
 
   const both = await plan(working, manifest, {
     focus: "b-mjs",
@@ -352,11 +360,86 @@ test("a role judged later is drawn even when every relation of the section is al
   const roled = await plan(related, manifest, { focus: "b-mjs", judge: { [roleSlot("b-mjs", "persistence")]: YES, [relationSlot("c-b-mjs--ext-store")]: "stores-in" } });
   assert.equal(roled.outcome, "step", "the role alone is a change of the graph");
   assert.deepEqual(changesOf(roled).map(change => change.id ?? `${change.from}->${change.to}`),
-    ["arch-role-persistence", "arch-b-mjs->arch-role-persistence"]);
+    ["arch-roles", "arch-role-persistence", "arch-b-mjs->arch-role-persistence"]);
   // A second file given a role whose node is drawn adds only its edge.
   const withRole = await appendAll(related, roled);
   const second = await plan(withRole, manifest, { focus: "a-mjs", judge: { [roleSlot("a-mjs", "persistence")]: YES } });
   assert.deepEqual(changesOf(second), [{ change: "added", from: "arch-a-mjs", to: "arch-role-persistence" }]);
+});
+
+test("the roles group comes in the same Decision as, and before, the first role node it holds; never empty, never twice", async () => {
+  // 31 files: drawn after them, the group would be the last operation of the first Decision.
+  const many = Array.from({ length: 31 }, (_, index) => `part-${String(index).padStart(2, "0")}`);
+  const manifest = readManifest({
+    ...structuredClone(MANIFEST),
+    files: many.map(id => ({ path: `${id}.mjs`, blob: "1".repeat(40), class: "admitted", entity: `${id}-mjs`, jsonSyntax: false })),
+    entities: many.map(id => ({ id: `${id}-mjs`, label: `${id}.mjs`, kind: "file", path: `${id}.mjs` })),
+    imports: [], candidates: [], facts: [],
+  });
+  const planned = await plan(await mapGraph(), manifest, { focus: "part-05-mjs", judge: { [roleSlot("part-05-mjs", "config")]: YES } });
+  assert.equal(planned.outcome, "step", planned.detail);
+  assert.ok(planned.steps.length > 1, "the plan is split at the provider's limit");
+  const ids = planned.steps.map(item => item.claims.map(claim => claim.record.id));
+  const first = ids.findIndex(step => step.includes("arch-role-config"));
+  assert.ok(first >= 0 && ids[first].indexOf("arch-roles") >= 0 && ids[first].indexOf("arch-roles") < ids[first].indexOf("arch-role-config"),
+    `the group and its first role share one Decision, the group first: ${JSON.stringify(ids)}`);
+  assert.equal(ids.flat().filter(id => id === "arch-roles").length, 1);
+  const drawn = await appendAll(await mapGraph(), planned);
+  const boxOf = id => drawn.records.find(record => record.type === "region" && record.id === id).bounds;
+  const inside = (inner, outer) => inner[0] >= outer[0] && inner[1] >= outer[1]
+    && inner[0] + inner[2] <= outer[0] + outer[2] && inner[1] + inner[3] <= outer[1] + outer[3];
+  assert.ok(inside(boxOf("arch-role-config"), boxOf("arch-roles")), "a role's declared box lies in the group's");
+
+  // A later role joins the drawn group: no second group, the same parent, inside its box.
+  const later = await plan(drawn, manifest, { focus: "part-06-mjs", judge: { [roleSlot("part-06-mjs", "persistence")]: YES } });
+  assert.deepEqual(changesOf(later).map(change => change.id ?? `${change.from}->${change.to}`),
+    ["arch-role-persistence", "arch-part-06-mjs->arch-role-persistence"]);
+  const both = await appendAll(drawn, later);
+  const persistence = both.records.find(record => record.id === "arch-role-persistence");
+  assert.equal(persistence.parent, "arch-roles");
+  assert.ok(inside(persistence.bounds, boxOf("arch-roles")));
+
+  // A view with no role draws no group.
+  const whole = await plan(await mapGraph(), manifest);
+  assert.equal(claimsOf(whole).some(claim => claim.record.id === "arch-roles"), false, "no empty group");
+});
+
+// The pinned renderer's own projector and label rule, as the page draws.
+const projection = await Promise.all(["layout/state.js", "domain/semantic-map.js", "projection/projector.js",
+  "pattern/view-types/registry.js", "renderer-maxgraph/labels.js", "renderer-maxgraph/theme.js"]
+  .map(file => import(pathToFileURL(path.join(store, "packages/semantic-map", file)).href)));
+
+test("on the page's arrow camera every role-to-role arrow shows both ends' names (the served snapshot, actual85's roles)", async () => {
+  const [{ splitStateRecords }, { createSemanticMap }, { SemanticProjector }, { defaultViewForPattern }, { displayedRegionLabel }, { DEFAULT_THEME }] = projection;
+  const manifest = ownManifest();
+  // The whole view, then the roles Jev confirmed per file in actual85.
+  let working = await appendAll(await mapGraph(), await plan(await mapGraph(), manifest));
+  const confirmed = {
+    "functions-pages-worker-mjs": ["auth", "jev-boundary"], "src-architecture-mjs": ["graph-mutation", "jev-boundary", "persistence"],
+    "src-bundle-mjs": ["config"], "src-config-mjs": ["config"], "src-contract-mjs": ["jev-boundary"], "src-document-mjs": ["persistence"],
+    "src-goal-mjs": ["jev-boundary"], "src-log-mjs": ["jev-boundary", "persistence"], "src-render-mjs": ["graph-mutation"],
+    "src-session-mjs": ["graph-mutation", "jev-boundary", "persistence"], "src-turn-mjs": ["graph-mutation", "jev-boundary"],
+    "web-adapters-judgment-mjs": ["jev-boundary"], "web-app-mjs": ["graph-mutation", "jev-boundary", "persistence", "voice-input"],
+  };
+  for (const [file, roles] of Object.entries(confirmed)) {
+    const planned = await plan(working, manifest, { focus: file, judge: Object.fromEntries(roles.map(role => [roleSlot(file, role), YES])) });
+    if (planned.outcome === "step") working = await appendAll(working, planned);
+  }
+  const roleIds = manifest.roles.map(role => `arch-role-${role.key}`);
+  const regionOf = id => working.records.find(record => record.type === "region" && record.id === id);
+  assert.ok(roleIds.every(id => regionOf(id) !== undefined), "every role is drawn");
+  const unreadable = [];
+  for (const from of roleIds) for (const to of roleIds) {
+    if (from === to) continue;
+    const graph = { records: [...working.records, { type: "relation", id: `arrow-${from}-${to}`, from, to, kind: "flow", label: "" }] };
+    const [x, y, width, height] = frameFor({ graph, width: 626, height: 434, protocol, part: [from, to] }).bbox;
+    const scene = new SemanticProjector(createSemanticMap(splitStateRecords(graph.records).semanticRecords), null, defaultViewForPattern("graph/1"))
+      .project({ scale: 626 / width, viewport: { x, y, width, height } });
+    const shown = [from, to].map(id => displayedRegionLabel(scene.representations.find(item => item.regionId === id), scene.scale, DEFAULT_THEME, false));
+    if (shown[0] !== regionOf(from).label || shown[1] !== regionOf(to).label) unreadable.push({ from, to, scale: Number(scene.scale.toFixed(3)), shown });
+  }
+  assert.deepEqual(unreadable, [], `${roleIds.length * (roleIds.length - 1) - unreadable.length}/${roleIds.length * (roleIds.length - 1)} arrows readable`);
+  assert.deepEqual(roleIds.filter(id => regionOf(id).parent !== "arch-roles"), [], "every role's node is in the roles group");
 });
 
 test("a view larger than the provider takes in one Decision is split at the limit passed in, never refused or cut short", async () => {
@@ -559,7 +642,7 @@ test("every located part is judged together, the judge bound to exactly what was
   });
   assert.equal(planned.outcome, "step");
   assert.deepEqual(claimsOf(planned).map(claim => claim.record.id).sort(),
-    ["arch-has-role-a-mjs-to-persistence", "arch-role-persistence", "arch-stores-in-b-mjs-to-ext-store"]);
+    ["arch-has-role-a-mjs-to-persistence", "arch-role-persistence", "arch-roles", "arch-stores-in-b-mjs-to-ext-store"]);
   assert.ok(planned.steps.every(item => item.step.confidence === 0.6), "the weaker of the action and the weakest located part");
 
   // Bound exactly: a judge of fewer parts than were located is a caller error.
@@ -691,7 +774,7 @@ test("a judge is every frame answered, exactly as sent and in order, or nothing;
     answers: answerFor(turn.slots, { action: ACTION_ARCHITECTURE, focus: NONE }),
   });
   assert.deepEqual(claimsOf(planned).map(claim => claim.record.id).sort(),
-    ["arch-calls-a-mjs-to-b-mjs", "arch-has-role-a-mjs-to-persistence", "arch-role-persistence", "arch-stores-in-b-mjs-to-ext-store"]);
+    ["arch-calls-a-mjs-to-b-mjs", "arch-has-role-a-mjs-to-persistence", "arch-role-persistence", "arch-roles", "arch-stores-in-b-mjs-to-ext-store"]);
 
   const reworded = judgeFramesOf(manifest, focus, picks, "something else");
   const answer = frames[1].answers;
@@ -877,8 +960,10 @@ test("a Goal on this package's drawn snapshot without a focus is offered every p
     judge: { [roleSlot("web-app-mjs", "persistence")]: YES } }));
   const regions = working.records.filter(record => record.type === "region");
   const held = legalLocalDeltas(working, { bundle, protocol });
-  assert.equal(regions.some(record => record.kind === "group" && record.parent !== null), false, "the drawn snapshot has no group to add into");
-  assert.equal(held.candidates.some(candidate => candidate.part !== undefined), false);
+  // The roles group is the drawing's one group: an ordinary part may be added
+  // into it like into any group, as the person's, never as a role.
+  assert.deepEqual(regions.filter(record => record.kind === "group" && record.parent !== null).map(record => record.id), ["arch-roles"]);
+  assert.ok(held.candidates.filter(candidate => candidate.part !== undefined).every(candidate => candidate.parent === "arch-roles"));
   assert.ok(held.candidates.some(candidate => candidate.from === "arch-web-app-mjs" && candidate.to === "arch-ext-localstorage"),
     "the asked-for pair is legal but undrawn");
   assert.ok(held.candidates.length > 254);
@@ -888,7 +973,8 @@ test("a Goal on this package's drawn snapshot without a focus is offered every p
     current: () => session, cancelled: () => false, ask: async () => { asked += 1; throw new Error("never asked"); },
     adopt: async next => { session = next; } });
   assert.deepEqual([result.reason, result.requests, asked], ["candidate-overflow", 0, 0]);
-  t.diagnostic(`source-grounded Goal: ${regions.length} regions, ${regions.length - 1} endpoints, ${held.candidates.length} Connect candidates, 0 Add`);
+  const adds = held.candidates.filter(candidate => candidate.part !== undefined).length;
+  t.diagnostic(`source-grounded Goal: ${regions.length} regions, ${held.candidates.length - adds} Connect candidates, ${adds} Add into the roles group`);
 });
 
 // The same session as the page: a new map, the whole view, then a focus Jev
