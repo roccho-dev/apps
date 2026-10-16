@@ -224,19 +224,28 @@ and no containment is drawn unless the input supplies it.
   activity-unobserved. `owner_role` is an attribute of the 担当 relation. With no
   declaration an explicit missing marker is shown. Unassigned units have no Agent.
 
-Overview captions are presentation only: at most two short lines (for example
-目的/目標/現状, a Scope label and its status, 未割当 and the id tail, an Agent id
-and its declared roles). Every supplied label, id, revision and status stays
-verbatim in the record summary, flags and relation context. Relation ids are
+Overview captions are presentation only: exactly two logical lines, a role/kind
+line and the **full** supplied text (for example 目的 and the Purpose label, 現状
+and the full revision, a Scope label and its status, 未割当 and the full id, an
+Agent id and its declared roles). The adapter never shortens them: no ellipsis,
+no id-tail elision. The generic UI wraps long lines. Every supplied label, id,
+revision and status also stays verbatim in the record summary, flags and context. Relation ids are
 namespaced by unit kind (`change:scope:`, `change:unassigned:`,
 `change:unresolved:`), so a Scope id equal to another unit id cannot collide.
 The overview orders Purpose, Target, Current; old obligations before the current
-units; owner Agents first. The observation `writer`/`evaluator` role relations
-always cross the Scopes pane, so only those two relations carry `visible:false`
-(their declared contexts are unchanged): the UI reports them as omitted
-relations, and their records stay in the World,
-catalog, search and detail, with the roles on the Agent caption and summary.
-Owner (担当) and Current/Scope/Target/Purpose relations stay drawn.
+units; Scopes grouped by declared owner (stable, first appearance) and owner
+Agents first in that same order, so 担当 relations do not cross. Two relation
+families carry `visible:false` with unchanged declared contexts: the observation
+`writer`/`evaluator` role relations (they always cross the Scopes pane) and the
+Current -> unit `change:*` relations (every unit would otherwise fan to both
+Current and Target in the Purpose column). The latter keep `path` for Direction;
+one drawn `gap:current-target` relation (変化 N 件) lists them in
+`context.change_relations`. The UI reports all of them as omitted relations;
+their records stay in the World, catalog, search and detail. Owner (担当),
+Current -> Target, Scope/unit -> Target -> Purpose and history relations stay drawn.
+`tests/crossings.mjs` counts overview crossings (columns by area order, rows by
+order, drawn relations only; same counts as ui `tests/fixtures/atlas-crossings.mjs`
+on P's mock: 10 before). Every fixture frame now has 0.
 
 Scope relation context keeps the full pair, responsibility, criteria, evidence,
 frame closure, standing and old obligations. Known, source-declared Current ->

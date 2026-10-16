@@ -9,6 +9,9 @@ import { fileURLToPath } from 'node:url';
 import { deriveAtlas, closureDocument } from '../events.mjs';
 import { reduceClosure } from '../closure.mjs';
 import { semanticScopeWorld } from '../semantic-scope-world.mjs';
+import { frameCrossings as crossingPairs, worldCrossings } from './crossings.mjs';
+
+const frameCrossings = (world, frame) => crossingPairs(world, frame).length;
 
 const read = name => readFileSync(new URL('../fixtures/events/' + name, import.meta.url), 'utf8');
 const EVENTS = read('events.jsonl'), CONTROL = read('control.jsonl');
@@ -33,8 +36,10 @@ const withoutPlans = list => list.filter(event => event.kind !== 'plan.set');
 const gapView = frame => ({ coverage: frame.coverage, entities: frame.entities,
   relations: frame.relations.map(value => value.context?.closureRecords ? { ...value, context: { ...value.context, closureRecords: null } } : value) });
 
-// Fixed World hash of the committed synthetic fixture (CLI world.json bytes).
-const WORLD_SHA256 = 'sha256:c3d26682f96fce5307d4314d692388ebe3b92ccd2dda07eda604ec4ec5eed403';
+// Fixed World hash of the committed synthetic fixture (CLI world.json bytes). Inputs are
+// unchanged; it moved from c3d26682… when captions became full text and the Current -> unit
+// relations became visible:false behind one drawn gap:current-target relation.
+const WORLD_SHA256 = 'sha256:ac64eef7e45ea508bc2babd918751bcc79041a019a26d0a81373e9a51acc36b9';
 
 test('parser fails closed on schema, shape, duplicate keys, order and graph errors', () => {
   const list = base();
@@ -232,6 +237,23 @@ test('Agent heading and flags come from the declared source mode and session obs
   const supplied = deriveAtlas(jsonl(base().filter(event => event.target?.kind !== 'session')).replace('"synthetic"', '"supplied"'), CONTROL);
   assert.equal(supplied.world.presentation.areas[2].label, 'Agent：宣言された担当（供給・未観測）');
   assert.ok(ofKind(last(supplied), 'agent').every(value => value.flags[0] === 'supplied'));
+});
+
+test('overview crossings: 0 in every frame; the omitted Current -> unit relations are what would cross', () => {
+  const result = derive();
+  assert.deepEqual(worldCrossings(result.world).map(value => value.crossings), result.world.frames.map(() => 0));
+  // Interleaved owners (A, B, A) are grouped by owner, so owner relations stay uncrossed.
+  const control = rows(CONTROL).map(row => row.id === 'norm.atlas' ? { ...row, binding: { ...row.binding, conditions: ['atlas'] } }
+    : row.id === 'norm.refactor' ? { ...row, binding: { ...row.binding, conditions: ['refactor', 'input'] } } : row);
+  const list = base(); v2(list).requires.find(value => value.id === 'input').norm = 'norm.refactor';
+  const interleaved = derive(list, control);
+  assert.deepEqual(ofKind(last(interleaved), 'semantic-scope').map(value => value.ref.id), ['scope.nixos', 'scope.refactor', 'scope.input', 'scope.atlas', 'scope.envs']);
+  assert.equal(frameCrossings(interleaved.world, last(interleaved)), 0);
+  // Drawing every Current -> unit relation again restores the fan that crossed (the previous contract).
+  const redrawn = structuredClone(result.world);
+  for (const frame of redrawn.frames) for (const value of frame.relations) if (value.ref.id.startsWith('change:')) delete value.visible;
+  assert.ok(frameCrossings(redrawn, redrawn.frames.at(-1)) > 0);
+  for (const frame of result.world.frames) assert.ok(frame.entities.every(value => !value.label.includes('…')), frame.id);
 });
 
 test('committed synthetic fixture World hash is fixed; CLI writes the same bytes', () => {

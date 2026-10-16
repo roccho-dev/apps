@@ -78,22 +78,11 @@ const scopeStanding = (status, bound) => status !== 'declared_satisfied' ? 'acti
 const standingLabel = { active: '現在必要', 'completed-history': '完了済み（履歴）', unresolved: '未確定（証拠は保持）' };
 const statusCaption = { unmet: '必要', conflict: '矛盾', unknown: '未確認', declared_satisfied: '完了・履歴' };
 const roleCaption = { owner_actor: '担当', writer: '作業', evaluator: '評価' };
-// Overview captions are presentation only (at most two short lines, each within
-// seven full-width units). Every supplied label, id and revision stays verbatim
-// in the record summary, flags and relation context.
-const widthUnits = text => [...String(text)].reduce((sum, character) =>
-  sum + (/\s/u.test(character) ? 0.34 : character.codePointAt(0) > 0xff ? 1 : 0.59), 0);
-const fit = (text, keepTail = false, budget = 7) => {
-  const characters = [...String(text ?? '')];
-  if (widthUnits(characters.join('')) <= budget) return characters.join('');
-  const kept = [];
-  for (const character of keepTail ? [...characters].reverse() : characters) {
-    if (widthUnits(kept.join('') + character) > budget - 1) break;
-    kept.push(character);
-  }
-  return keepTail ? '…' + kept.reverse().join('') : kept.join('') + '…';
-};
-const caption = (first, second) => fit(first) + '\n' + fit(second);
+// Overview captions are presentation only: exactly two logical lines, a role/kind
+// line and the full supplied text. Nothing is shortened here (no ellipsis, no
+// id-tail elision); the generic UI wraps. The record summary, flags and relation
+// context still carry every supplied label, id and revision verbatim.
+const caption = (first, second) => String(first) + '\n' + String(second);
 
 /** The second argument is the real reduceClosure output, not a substitute join. */
 export const semanticScopeWorld = (input, reducedClosure) => {
@@ -154,7 +143,7 @@ export const semanticScopeWorld = (input, reducedClosure) => {
     // revision; current_label describes the original comparison's current.
     const originalNote = same(currentRevision, meaning.pair.current_ref) ? ''
       : ' · 元の比較の現状: ' + (meaning.pair.current_ref?.revision ?? 'unknown') + ' ' + (observed.current_label ?? '');
-    entity(currentRef, caption('現状', fit(revision, true)), 'purpose',
+    entity(currentRef, caption('現状', revision), 'purpose',
       '現状 ' + revision + ' · ' + currentStanding + ' · '
         + (meaning.observation ? observed.post_label ?? '観測宣言' : observed.current_label ?? '現在の意味状態') + originalNote,
       ['role=current', 'standing=' + currentStanding, 'revision=' + revision], declaredSource, currentStanding === 'observed-bound' ? postTime : time);
@@ -176,7 +165,17 @@ export const semanticScopeWorld = (input, reducedClosure) => {
       const dutyRef = entity(ref(space, 'obligation', duty.id), caption(duty.label ?? duty.id, '旧義務・履歴'), 'scopes', JSON.stringify(duty), ['history-preserved']);
       edge('history:' + duty.id, dutyRef, purposeRef, '旧義務', { obligation: duty, currentPair: meaning.pair });
     }
-    for (const scope of meaning.scopes ?? []) {
+    // Scopes are grouped by their declared owner (stable, first appearance) so owner
+    // relations to the Agents column, which uses the same order, never cross.
+    const ownerRank = new Map();
+    for (const scope of meaning.scopes ?? []) if (!ownerRank.has(scope.owner_actor)) ownerRank.set(scope.owner_actor, ownerRank.size);
+    const scopes = [...(meaning.scopes ?? [])].sort((a, b) => ownerRank.get(a.owner_actor) - ownerRank.get(b.owner_actor));
+    // Current -> unit relations keep their declared context and path, but are not
+    // drawn (visible:false): every unit would otherwise fan to both Current and
+    // Target in the Purpose column. One drawn Current -> Target relation lists them.
+    const changes = [];
+    const change = (id, to, label, context, path = false) => { changes.push(id); edge(id, currentRef, to, label, context, path, false); };
+    for (const scope of scopes) {
       const { status, disagreement } = ownScopeStatus(scope, closure);
       const standing = scopeStanding(status, bound);
       if (standing === 'active') currentGap += 1;
@@ -187,9 +186,9 @@ export const semanticScopeWorld = (input, reducedClosure) => {
         ['standing=' + standing, 'scope_status=' + status, ...(disagreement ? ['evaluation-disagreement'] : [])]);
       edge('scope:' + scope.id, scopeRef, targetRef, '引受', { scope, standing, scope_status: status,
         ...(disagreement ? { disagreement } : {}), comparison: meaning.comparison, closure, history: meaning.history, binding }, knownMeaning);
-      if (standing === 'active') edge('change:scope:' + scope.id, currentRef, scopeRef, '変化',
+      if (standing === 'active') change('change:scope:' + scope.id, scopeRef, '変化',
         { scope_id: scope.id, standing, necessity: 'current', current_revision: currentRevision }, knownMeaning);
-      else if (standing === 'unresolved') edge('change:scope:' + scope.id, currentRef, scopeRef, '未確定',
+      else if (standing === 'unresolved') change('change:scope:' + scope.id, scopeRef, '未確定',
         { scope_id: scope.id, standing, necessity: 'unresolved', current_revision: currentRevision });
     }
     // A derived responsibility conflict (frame.responsibility) keeps its part unassigned but says so.
@@ -202,18 +201,18 @@ export const semanticScopeWorld = (input, reducedClosure) => {
       for (const id of list ?? []) if (!owned.has(id) && !unassigned.some(([known]) => known === id)) unassigned.push([id, why]);
     for (const [id, why] of unassigned) {
       currentGap += 1; uncertain += 1;
-      const unitRef = entity(ref(space, 'unassigned-change', id), caption(why.includes('conflict') ? '未割当・矛盾' : '未割当', fit(id, true)), 'scopes',
+      const unitRef = entity(ref(space, 'unassigned-change', id), caption(why.includes('conflict') ? '未割当・矛盾' : '未割当', id), 'scopes',
         '未割当: ' + id + ' · 担当未割当（' + why + '）。完了には昇格しません。次の観測・責任・根拠を確認します。', ['unassigned', 'owner-unassigned', 'source=' + why]);
       const context = { id, source: why, ...(object(responsibility[id]) ? { responsibility: responsibility[id] } : {}),
         comparison: meaning.comparison, closure, binding };
-      edge('change:unassigned:' + id, currentRef, unitRef, '変化', context, knownMeaning);
+      change('change:unassigned:' + id, unitRef, '変化', context, knownMeaning);
       edge('residual:unassigned:' + id, unitRef, targetRef, '未達', context, knownMeaning);
     }
     // Uncertain or conflicting whole-Purpose evaluation is never an empty current Gap.
     const unresolvedUnit = (id, first, second, summary, flag, context) => {
       currentGap += 1; uncertain += 1;
       const unitRef = entity(ref(space, 'unresolved-change', id), caption(first, second), 'scopes', summary, [flag]);
-      edge('change:unresolved:' + id, currentRef, unitRef, first, context);
+      change('change:unresolved:' + id, unitRef, first, context);
       edge('residual:unresolved:' + id, unitRef, targetRef, first, context);
     };
     const evaluationContext = { comparison_status: meaning.status, reason: meaning.reason ?? closure.reason ?? null,
@@ -227,6 +226,9 @@ export const semanticScopeWorld = (input, reducedClosure) => {
     else if (closure.purpose_status === 'unmet' && currentGap === 0)
       unresolvedUnit('purpose-evaluation-unmet', '全体評価', '未達', '全体評価は未達ですが責任単位へ対応付いていません · 完了には昇格しません。',
         'unexplained', evaluationContext);
+    if (changes.length) edge('gap:current-target', currentRef, targetRef, '変化 ' + changes.length + ' 件',
+      { change_relations: [...changes], current_revision: currentRevision, purpose_standing: purposeStanding,
+        drawing: 'aggregate of the visible:false Current -> unit relations; each keeps its own context and path' });
 
     // Agents area: only explicitly declared identities with their declared roles.
     const actors = new Map();
@@ -235,7 +237,7 @@ export const semanticScopeWorld = (input, reducedClosure) => {
       if (!actors.has(id)) actors.set(id, []);
       actors.get(id).push(role);
     };
-    for (const scope of meaning.scopes ?? []) declare(scope.owner_actor, { role: 'owner_actor', scope: scope.id, owner_role: scope.owner_role });
+    for (const scope of scopes) declare(scope.owner_actor, { role: 'owner_actor', scope: scope.id, owner_role: scope.owner_role });
     if (meaning.observation) {
       declare(meaning.observation.writer, { role: 'writer' });
       declare(meaning.observation.evaluator, { role: 'evaluator' });
