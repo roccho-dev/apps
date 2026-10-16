@@ -256,10 +256,11 @@ export const semanticScopeWorld = (input, reducedClosure) => {
       const seenAt = typeof seen?.observedAt === 'string' && Number.isFinite(Date.parse(seen.observedAt)) ? seen.observedAt : null;
       const agentRef = entity(ref(space, 'agent', id), caption(id, [...new Set(roles.map(value => roleCaption[value.role]))].join('・')), 'agents',
         id + (seen ? ' · 宣言（' + mode + '）: ' : ' · 宣言のみ（' + mode + '）: ') + roles.map(value => value.role).join(', ')
-          + (seen ? ' · 活動観測: ' + JSON.stringify(seen.value) + '（' + seen.source + ' @' + (seenAt ?? 'unknown') + '）' : ' · 実活動・セッションは未観測'),
-        seen ? [mode, 'declared', 'activity-observed'] : [mode, 'declared-only', 'activity-unobserved'], declaredSource, { ...time, observedAt: seenAt });
+          + (seen ? ' · session 観測: ' + JSON.stringify(seen.value) + '（' + seen.source + ' @' + (seenAt ?? 'unknown') + '）' : ' · 実活動・セッションは未観測'),
+        seen ? [mode, 'declared', 'session-observed'] : [mode, 'declared-only', 'activity-unobserved'], declaredSource, { ...time, observedAt: seenAt });
       for (const role of roles) {
-        const declared = { declared_id: id, ...role, synthetic, activity: seen ? 'observed' : 'unobserved' };
+        // A session observation (even transcript-only) is not activity: activity stays unobserved.
+        const declared = { declared_id: id, ...role, synthetic, activity: 'unobserved', ...(seen ? { session_observed: seen.value } : {}) };
         if (role.role === 'owner_actor') edge('owner:' + role.scope, agentRef, ref(space, 'semantic-scope', role.scope), '担当', declared);
         // The writer/evaluator role relations always cross the Scopes pane, so their
         // overview line is not drawn (visible:false). The records stay in the World,
