@@ -76,8 +76,10 @@ writeJson("identity.json", identity);
 const journal = fs.openSync(path.join(settings["--out"], "events.jsonl"), "wx", 0o600);
 const record = item => { fs.writeSync(journal, JSON.stringify({ at: new Date().toISOString(), ...item }) + "\n"); fs.fsyncSync(journal); };
 const summary = [];
-const invalidReasons = new Set(["invalid-inventory", "inventory-contract", "inventory-unknown", "completion-contract", "completion-unknown",
-  "judge-failed", "judge-unknown", "invalid-goal-request", "invalid-goal-deadline", "adoption-unknown", "stale-goal"]);
+// Only documented semantic/budget stops are performance evidence. Any proof,
+// append, contract, stale, impossible cancellation or unknown reason is INVALID.
+const validReasons = new Set(["inventory-not-confident", "inventory-ambiguous", "inventory-no-change", "inventory-unsupported", "completion-empty",
+  "none", "not-confident", "no-executable-delta", "candidate-overflow", "budget-requests", "budget-time"]);
 let invalid = false;
 try {
   for (const [index, id] of order.entries()) {
@@ -125,7 +127,7 @@ try {
           }, adopt: async next => { session = next; },
         });
       } catch { failed = true; result = { reason: "evaluation_operation_unknown" }; }
-      if (invalidReasons.has(result.reason)) failed = true;
+      if (!validReasons.has(result.reason)) failed = true;
       const output = { id, arm, fixture: fixtureName, utterance, valid_execution: !failed,
         elapsedMs: performance.now() - started, result, calls, initial_head: graph.head,
         initial_log_sha256: hash(graph.log), initial_records: graph.records, final_head: session.working.head,
