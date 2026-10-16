@@ -217,9 +217,16 @@ export const semanticScopeWorld = (input, reducedClosure) => {
     };
     const evaluationContext = { comparison_status: meaning.status, reason: meaning.reason ?? closure.reason ?? null,
       binding_reason: binding.reason ?? null, purpose_status: closure.purpose_status, closure, comparison: meaning.comparison, binding };
-    if (meaning.scopes === null || closure.purpose_status === 'unknown' || !bound)
-      unresolvedUnit('unknown-evaluation', '未確認', '保持', '未確認・未分解を保持 · 完了には昇格しません。'
-        + (meaning.reason ?? closure.reason ?? binding.reason ?? ''), 'unknown', evaluationContext);
+    // The caption names which declaration is unknown: the comparison/partition, the Closure
+    // mapping, or the whole-Purpose evaluation (then listing the criteria it could not settle).
+    if (meaning.scopes === null || closure.purpose_status === 'unknown' || !bound) {
+      const cause = meaning.scopes === null ? '比較・分解' : !bound ? '対応付け' : '全体評価';
+      const pending = [...(closure.unknown ?? []), ...(closure.conflicts ?? []), ...(meaning.uncovered ?? [])];
+      const reason = meaning.reason ?? closure.reason ?? binding.reason ?? closure.purpose_status_reason
+        ?? (pending.length ? '未確定の条件: ' + [...new Set(pending)].join(', ') : '全体評価の宣言が未確認');
+      unresolvedUnit('unknown-evaluation', cause, '未確認', cause + 'が未確認 · ' + reason + ' · 完了には昇格しません。',
+        'unknown', evaluationContext);
+    }
     else if (closure.purpose_status === 'conflict')
       unresolvedUnit('purpose-evaluation-conflict', '全体評価', '矛盾', '全体評価の矛盾を保持（purpose_status=conflict）· 完了には昇格しません。',
         'conflict', evaluationContext);

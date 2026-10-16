@@ -186,14 +186,14 @@ test('session rule: declared session id in command lines / session files only', 
   const commands = [`claude --resume ${sid}`], files = [`/p/${sid}.jsonl`];
   assert.equal(sessionState(sid, commands, []), SESSION.RUNNING);
   assert.equal(sessionState(sid, commands, null), SESSION.RUNNING);
-  assert.equal(sessionState(sid, [], files), SESSION.WAITING);
-  assert.equal(sessionState(sid, [], []), SESSION.NOT_STARTED);
+  assert.equal(sessionState(sid, [], files), SESSION.TRANSCRIPT_ONLY);
+  assert.equal(sessionState(sid, [], []), SESSION.NOT_FOUND);
   assert.equal(sessionState(sid, null, files), UNKNOWN, 'process list not captured');
   assert.equal(sessionState(sid, [], null), UNKNOWN, 'session files not captured');
   assert.equal(sessionState('', commands, files), UNKNOWN, 'no declared id');
   assert.deepEqual(collect(records('sessions.json'), RECORDED).map(e => [e.target, e.value]), [
-    ['atlas.R:session', 'running'], ['atlas.W:session', 'waiting'],
-    ['atlas.W2:session', 'not-started'], // a process named "atlas.W2-…" is not evidence
+    ['atlas.R:session', 'running'], ['atlas.W:session', 'transcript-only'],
+    ['atlas.W2:session', 'not-found'], // a process named "atlas.W2-…" is not evidence
   ]);
 });
 
@@ -210,9 +210,9 @@ test('session rule on a /proc listing (host without ps): real cmdline row is run
   ];
   const [record] = normalize({ type: 'sessions', host: 'localhost', observedAt: '2026-10-16T20:33:31Z', sha256: 'sha256:proc', declared, processes, sessionFiles: '' });
   assert.deepEqual(sessionObservations(record, RECORDED).map(e => [e.target, e.value]),
-    [['atlas.W3:session', 'running'], ['atlas.R:session', 'not-started']]);
+    [['atlas.W3:session', 'running'], ['atlas.R:session', 'not-found']]);
   // "-n atlas.W3" in the same row is not what matched: without the id, the name alone is no evidence.
-  assert.equal(sessionState('ffffffff-0000-4000-8000-000000000000', record.commands, record.files), SESSION.NOT_STARTED);
+  assert.equal(sessionState('ffffffff-0000-4000-8000-000000000000', record.commands, record.files), SESSION.NOT_FOUND);
 });
 
 // ---- whole set ---------------------------------------------------------------------------

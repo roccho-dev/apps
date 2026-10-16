@@ -90,7 +90,9 @@ const purposeSet = (event, at) => {
   demand(Array.isArray(event.requires) && event.requires.length > 0, `${at}: requires must be nonempty`);
   event.requires.forEach((value, index) => {
     const where = `${at}.requires[${index}]`;
-    keys(value, ['id', 'label', 'predicate', 'maxAge', 'norm'], [], where);
+    keys(value, ['id', 'label', 'predicate', 'maxAge', 'norm'], ['plans'], where);
+    // plans: the plan identities the Purpose author declares for this condition (never inferred).
+    if ('plans' in value) ids(value.plans, `${where}.plans`);
     demand(token(value.id) && text(value.label) && token(value.norm), `${where}: id/label/norm required`);
     predicate(value.predicate, `${where}.predicate`);
     duration(value.maxAge, `${where}.maxAge`);
@@ -105,6 +107,9 @@ const observation = (event, at) => {
   demand(time(event.observedAt, `${at}.observedAt`) <= Date.parse(event.recordedAt), `${at}: observedAt is after recordedAt (future fact)`);
 };
 const PLAN_REF = /^[A-Za-z0-9._/-]+#\d+$/u;
+// A plan is identified by its declared id, else by its source locator (one plan per Issue/PR).
+const planId = event => event.plan ?? event.source.ref;
+const opaque = event => event.nodes === 'UNKNOWN' && event.edges === 'UNKNOWN';
 const reaches = (deps, from, to) => { // from ->* to through dep edges
   const seen = new Set([from]), queue = [from];
   while (queue.length) {
@@ -114,14 +119,18 @@ const reaches = (deps, from, to) => { // from ->* to through dep edges
   return seen.has(to);
 };
 const planSet = (event, at) => {
-  keys(event, ['kind', 'recordedAt', 'purposeRef', 'source', 'version', 'nodes', 'edges'], [], at);
+  keys(event, ['kind', 'recordedAt', 'purposeRef', 'source', 'version', 'nodes', 'edges'], ['plan', 'unknown'], at);
+  if ('plan' in event) demand(token(event.plan), `${at}: plan id must be a token`);
+  if ('unknown' in event) demand(Array.isArray(event.unknown) && event.unknown.every(text), `${at}: unknown must list reasons`);
   keys(event.purposeRef, ['purposeId', 'version'], [], `${at}.purposeRef`);
   demand(token(event.purposeRef.purposeId) && token(event.purposeRef.version) && token(event.version), `${at}: purposeRef/version required`);
   keys(event.source, ['ref', 'commentId', 'updatedAt', 'digest'], [], `${at}.source`);
   demand(PLAN_REF.test(event.source.ref) && (event.source.commentId === null || token(event.source.commentId)) && sha(event.source.digest),
     `${at}: source repo#number, commentId|null and sha256 digest required`);
   demand(time(event.source.updatedAt, `${at}.source.updatedAt`) <= Date.parse(event.recordedAt), `${at}: source updatedAt is after recordedAt (future fact)`);
-  demand(Array.isArray(event.nodes) && event.nodes.length > 0 && Array.isArray(event.edges), `${at}: nodes[] and edges[] required`);
+  // A declared plan whose graph its source does not carry: kept as UNKNOWN content, never as no plan.
+  if (opaque(event)) return;
+  demand(Array.isArray(event.nodes) && event.nodes.length > 0 && Array.isArray(event.edges), `${at}: nodes[] and edges[] (or both UNKNOWN) required`);
   for (const [index, node] of event.nodes.entries()) {
     const where = `${at}.nodes[${index}]`;
     keys(node, ['id', 'label', 'norm', 'exit', 'contributesTo'], ['predicateRefs', 'due'], where);
@@ -171,16 +180,18 @@ export const parseEvents = input => {
       const purpose = versions.get(event.purposeRef.version);
       demand(purposeId && event.purposeRef.purposeId === purposeId.id && purpose, `${at}: purposeRef names no purpose.set recorded before it`);
       const required = new Set(purpose.requires.map(value => value.id));
-      for (const node of event.nodes) demand([...node.contributesTo, ...(node.predicateRefs ?? [])].every(id => required.has(id)),
+      for (const node of opaque(event) ? [] : event.nodes) demand([...node.contributesTo, ...(node.predicateRefs ?? [])].every(id => required.has(id)),
         `${at}: ${node.id} references a condition outside ${event.purposeRef.version}`);
-      const previous = plans.get(event.source.ref) ?? [];
+      const previous = plans.get(planId(event)) ?? [];
       const prior = previous.at(-1);
       demand(!prior || Date.parse(event.source.updatedAt) >= Date.parse(prior.source.updatedAt), `${at}: plan body updatedAt goes backwards`);
-      demand(previous.every(value => value.version !== event.version || canonical(value) === canonical({ ...event, recordedAt: value.recordedAt })),
+      // A body's updatedAt also moves with new comments; the same version must keep the same content.
+      const content = value => canonical({ ...value, recordedAt: null, source: { ...value.source, updatedAt: null } });
+      demand(previous.every(value => value.version !== event.version || content(value) === content(event)),
         `${at}: plan version ${event.version} redefined`);
       demand(!prior || prior.source.updatedAt !== event.source.updatedAt || prior.source.digest === event.source.digest,
         `${at}: same plan body time with another digest`);
-      plans.set(event.source.ref, [...previous, event]);
+      plans.set(planId(event), [...previous, event]);
     }
     return event;
   });
@@ -262,13 +273,17 @@ const nodeState = (node, purpose, events, t) => {
 const planAt = (log, plan, purposes, current, norms, times, t) => {
   const events = visible(log, t);
   const premise = purposes.get(plan.purposeRef.version);
+  const head = { ref: plan.source.ref, plan: planId(plan), version: plan.version, recordedAt: plan.recordedAt, source: { ...plan.source },
+    purposeRef: { ...plan.purposeRef }, premise: plan.purposeRef.version === current.version ? 'current' : 'premise-version-mismatch',
+    serves: premise.requires.filter(value => value.plans?.includes(planId(plan))).map(value => value.id) };
+  if (opaque(plan)) return { ...head, nodes: null, edges: null, loops: [], unknown: [...(plan.unknown ?? ['content-unknown'])] };
   const states = new Map(plan.nodes.map(node => [node.id, nodeState(node, premise, events, t)]));
   // Re-entry count: known satisfied -> unmet transitions of a loop target over earlier frames of the same plan ref.
   const transitions = id => {
     let count = 0, last = null;
     for (const s of times.filter(value => value <= t)) {
-      const version = log.filter(event => event.kind === 'plan.set' && event.source.ref === plan.source.ref && Date.parse(event.recordedAt) <= s).at(-1);
-      const node = version?.nodes.find(value => value.id === id);
+      const version = log.filter(event => event.kind === 'plan.set' && planId(event) === planId(plan) && Date.parse(event.recordedAt) <= s).at(-1);
+      const node = opaque(version ?? {}) ? undefined : version?.nodes.find(value => value.id === id);
       if (!node) continue;
       const { state } = nodeState(node, purposes.get(version.purposeRef.version), visible(log, s), s);
       if (state === 'unmet' && last === 'satisfied') count += 1;
@@ -296,9 +311,7 @@ const planAt = (log, plan, purposes, current, norms, times, t) => {
       regressions: looped.has(node.id) ? 0 : transitions(node.id),
       due: node.due ?? null, overdue: 'due' in node ? own.state !== 'satisfied' && t > Date.parse(node.due) : null };
   });
-  return { ref: plan.source.ref, version: plan.version, recordedAt: plan.recordedAt, source: { ...plan.source },
-    purposeRef: { ...plan.purposeRef }, premise: plan.purposeRef.version === current.version ? 'current' : 'premise-version-mismatch',
-    nodes, edges: plan.edges.map(edge => ({ ...edge })), loops };
+  return { ...head, nodes, edges: plan.edges.map(edge => ({ ...edge })), loops };
 };
 
 /** Fold the log into one derived state per frame t (each distinct recordedAt from the first purpose.set). */
@@ -323,8 +336,8 @@ export const deriveFrames = ({ header, events: log }, norms) => {
           frozen: true, relation: 'superseded', authority: 'derived-from-events' };
       });
     });
-    const refs = [...new Set(events.filter(event => event.kind === 'plan.set').map(event => event.source.ref))].sort();
-    const plans = refs.map(ref => planAt(log, events.filter(event => event.kind === 'plan.set' && event.source.ref === ref).at(-1),
+    const refs = [...new Set(events.filter(event => event.kind === 'plan.set').map(planId))].sort();
+    const plans = refs.map(ref => planAt(log, events.filter(event => event.kind === 'plan.set' && planId(event) === ref).at(-1),
       purposes, current, norms, times, t));
     const sessions = Object.fromEntries([...new Set(events.filter(event => event.kind === 'observation' && event.target.kind === 'session')
       .map(event => event.target.id))].sort().map(id => { const { observation: seen } = latest(events, 'session', id);

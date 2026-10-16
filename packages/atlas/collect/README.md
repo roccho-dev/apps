@@ -56,7 +56,7 @@ stored as null, which the transform turns into `UNKNOWN`. Snapshots from before 
 | `<repo>#<n>:pr.merged` | `"true"` / `"false"` |
 | `<repo>#<n>:pr.head` | head SHA |
 | `<repo>#<n>:ci.rollup` | GitHub's `statusCheckRollup.state` of the head commit; null or other commit → `UNKNOWN` |
-| `<target>:session` | `running` / `waiting` / `not-started` / `UNKNOWN` |
+| `<target>:session` | `running` / `transcript-only` / `not-found` / `UNKNOWN` |
 | `<target>:port` | `responding` / `no-response` / `UNKNOWN` |
 | `<repo>#<n>:plan.source` | only when the Issue/comments fetch failed: `UNKNOWN` (not "no plan") |
 
@@ -67,8 +67,8 @@ stored as null, which the transform turns into `UNKNOWN`. Snapshots from before 
 Only the declared `sessionId` per target and the two captured lists are evidence:
 
 1. a process command line contains the session id → `running`
-2. else a session file path contains the session id → `waiting`
-3. else, both lists captured → `not-started`
+2. else a session file path contains the session id → `transcript-only` (a past transcript exists; not activity)
+3. else, both lists captured → `not-found`
 4. a list needed for the step above was not captured, or no id declared → `UNKNOWN`
 
 Target names, process names and file names are never matched against the target.
