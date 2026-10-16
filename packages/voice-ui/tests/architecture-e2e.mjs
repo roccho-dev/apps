@@ -1045,11 +1045,6 @@ const goalScenario = async () => {
   }));
   const prepared = exchanges.length;
   const inventoryBefore = inventoryExchanges.length;
-  const inventoryRoute = new URL("/api/parts/check", url).href;
-  // These historical controls isolate the finite legal loop. Their new gate
-  // answer is explicitly crafted and recorded, never evidence of live coverage.
-  if (FIXTURE) await page.route(inventoryRoute, intercepted => intercepted.fulfill({ status: 200,
-    contentType: "application/json", body: JSON.stringify({ choice: "sufficient", confidence: 1 }) }), { times: 1 });
   const crafted = [];
   if (FIXTURE) await page.route(route, craft((name, sent) => {
     if (mode === "fixture-none") return contract.NONE;
@@ -1079,7 +1074,6 @@ const goalScenario = async () => {
     && document.body.dataset.state !== "pending", null, { timeout: 180000 });
   await drain();
   if (FIXTURE || evaluation?.order === "reverse") await page.unroute(route);
-  if (FIXTURE) await page.unroute(inventoryRoute);
   const after = await screen(); last = after;
   const attempt = await page.evaluate(() => JSON.parse(document.body.dataset.goal));
   const sent = exchanges.slice(prepared);
@@ -1308,10 +1302,8 @@ const goalScenario = async () => {
   need(sent.length >= 1 && sent.length <= 8 && sent.every(entry => entry.sent.kind === contract.GOAL_REQUEST_KIND
     && entry.sent.state.utterance === goalText && contract.isRequest(entry.sent)), "bounded requests carry the one Goal and closed public state");
   need(attempt.requests === sent.length + (attempt.inventory?.checks ?? 0), "logical Jev accounting includes the actual inventory check and finite-loop requests");
-  if (FIXTURE) need(inventorySent.length === 1 && inventorySent[0].route === "/api/parts/check" && inventorySent[0].status === 200
-    && attempt.inventory?.checks === 1 && attempt.inventory?.completions === 0
-    && attempt.inventory?.coverage?.choice === "sufficient" && attempt.inventory?.coverage?.confidence === 1,
-  "the finite-loop fixture records its one crafted inventory gate and makes no completion request");
+  need(inventorySent.length === 0 && attempt.inventory === undefined,
+    "the architecture page retains its existing Goal path without ordinary-graph inventory or completion calls");
   need(after.stored === before.stored && after.root === before.root, "Goal never saves");
   if (STOP_FIXTURE) {
     assert.equal(sent.length, 1); assert.equal(sent[0].status, 502);
