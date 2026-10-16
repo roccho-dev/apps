@@ -299,11 +299,11 @@ test("compiled Worker binds both released provider operations, validates invento
     new Request("http://localhost/api/parts/" + mode, { method: "POST", body: JSON.stringify(body) }), env);
   const missing = [{ label: "Named service", kind: "step", occurrence: 1 }];
   const { calls } = await withProvider(async (body, init) => {
-    if (body.questions.coverage) {
+    if (body.questions.labels) {
       assert.equal(init.headers.authorization, "Bearer jev-test-only");
-      assert.deepEqual(Object.keys(body.questions), ["intent", "coverage"]);
+      assert.deepEqual(Object.keys(body.questions), ["intent", "labels", "capacity"]);
       return Response.json({ model: "jev-test", answers: Object.fromEntries(Object.entries(body.questions).map(([name, question]) => {
-        const choice = name === "intent" ? "change" : "missing", confidence = name === "intent" ? 0.95 : 0.9;
+        const choice = name === "intent" ? "change" : name === "labels" ? "missing" : "within", confidence = name === "intent" ? 0.95 : 0.9;
         return [name, { type: "choice", choice, confidence,
           probabilities: Object.fromEntries(Object.keys(question.criteria).map(key => [key,
             key === choice ? confidence : (1 - confidence) / (Object.keys(question.criteria).length - 1)])) }];
@@ -312,6 +312,7 @@ test("compiled Worker binds both released provider operations, validates invento
     assert.equal(init.redirect, "error");
     assert.equal(init.headers.authorization, "Bearer typed-test-only");
     assert.equal(body.model, "typellm-latest"); assert.equal(Object.hasOwn(body.questions.missing, "thinking"), false);
+    assert.equal(body.questions.missing.minItems, 1);
     assert.deepEqual(Object.keys(body.questions.missing.items.properties), ["label", "kind", "quantity"]);
     return Response.json({ status: "completed", result: { missing: [{ label: missing[0].label, kind: missing[0].kind, quantity: 1 }] } });
   }, async () => {

@@ -22,9 +22,12 @@ test("inventory gate explicitly compares labels, kinds and one-instance capaciti
   assert.deepEqual(question.state.regions, inventory.state.regions);
   assert.deepEqual(question.state.edges, inventory.state.edges);
   assert.equal(question.state.parts.find(p => p.label === "API").capacity, 1);
-  assert.deepEqual(Object.keys(question.questions), ["intent", "coverage"]);
+  assert.deepEqual(Object.keys(question.questions), ["intent", "labels", "capacity"]);
   assert.deepEqual(Object.keys(question.questions.intent.options), ["change", "ambiguous", "no-change", "unsupported"]);
-  assert.deepEqual(Object.keys(question.questions.coverage.options), ["sufficient", "missing"]);
+  assert.deepEqual(Object.keys(question.questions.labels.options), ["available", "missing"]);
+  assert.deepEqual(Object.keys(question.questions.capacity.options), ["within", "exceeded"]);
+  for (const { label, kind } of inventory.state.parts)
+    assert.ok(question.questions.labels.options.available.includes(JSON.stringify({ label, kind })));
   for (const mutate of [x => { x.state.parts.push(x.state.parts[0]); }, x => { x.state.regions[0].kind = "code"; },
     x => { x.state.regions[1].parent = "unknown"; }, x => { x.state.extra = true; }]) {
     const x = structuredClone(inventory); mutate(x); assert.equal(isInventory(x), false);
@@ -46,6 +49,7 @@ test("completion asks only for missing instances, with fixed existing kinds and 
   assert.deepEqual(JSON.parse(typed.context), inventoryQuestion(inventory.state).state);
   assert.deepEqual(Object.keys(typed.questions), ["missing"]);
   assert.equal(typed.questions.missing.maxItems, 3);
+  assert.equal(typed.questions.missing.minItems, 1);
   assert.deepEqual(Object.keys(typed.questions.missing.items.properties), ["label", "kind", "quantity"]);
 });
 
@@ -81,8 +85,8 @@ test("distinct typed quantities expand exactly; duplicate pairs, extra fields an
 
 test("API closures validate before invoking bound operations and never reflect raw failures", async () => {
   let calls = 0;
-  const ports = { judge: async request => { calls++; assert.ok(request.questions.coverage); return { answers: {
-    intent: { choice: "change", confidence: 1 }, coverage: { choice: "missing", confidence: 1 },
+  const ports = { judge: async request => { calls++; assert.ok(request.questions.labels); assert.ok(request.questions.capacity); return { answers: {
+    intent: { choice: "change", confidence: 1 }, labels: { choice: "missing", confidence: 1 }, capacity: { choice: "within", confidence: 1 },
   } }; },
     generate: async request => { calls++; assert.ok(request.questions.missing); return { result: { missing: [{ label: "Build", kind: "step", quantity: 1 }] } }; } };
   assert.deepEqual(await (await call("check", inventory, ports)).json(), { choice: "missing", confidence: 1 });
@@ -95,37 +99,61 @@ test("API closures validate before invoking bound operations and never reflect r
   assert.equal(failed.status, 502); assert.deepEqual(await failed.json(), { error: "parts_provider_error" });
 });
 
-test("one batch separates intent from inventory and retains the weaker change confidence", async () => {
-  for (const [intent, coverage, expected] of [
-    [{ choice: "change", confidence: 0.8 }, { choice: "missing", confidence: 0.7 }, { choice: "missing", confidence: 0.7 }],
-    [{ choice: "change", confidence: 0.4 }, { choice: "missing", confidence: 0.9 }, { choice: "missing", confidence: 0.4 }],
-    [{ choice: "change", confidence: 0.9 }, { choice: "sufficient", confidence: 0.49 }, { choice: "sufficient", confidence: 0.49 }],
+test("missing uses only positive witnesses bounded by intent; sufficient needs every factor", async () => {
+  for (const [intent, labels, capacity, expected] of [
+    [{ choice: "change", confidence: 0.8 }, { choice: "missing", confidence: 0.7 }, { choice: "within", confidence: 1 }, { choice: "missing", confidence: 0.7 }],
+    [{ choice: "change", confidence: 0.9 }, { choice: "missing", confidence: 0.4 }, { choice: "within", confidence: 1 }, { choice: "missing", confidence: 0.4 }],
+    [{ choice: "change", confidence: 0.9 }, { choice: "available", confidence: 1 }, { choice: "exceeded", confidence: 0.49 }, { choice: "missing", confidence: 0.49 }],
+    [{ choice: "change", confidence: 1 }, { choice: "missing", confidence: 0.4 }, { choice: "exceeded", confidence: 0.9 }, { choice: "missing", confidence: 0.9 }],
+    [{ choice: "change", confidence: 0.4 }, { choice: "missing", confidence: 0.9 }, { choice: "exceeded", confidence: 1 }, { choice: "missing", confidence: 0.4 }],
+    [{ choice: "change", confidence: 0.8 }, { choice: "available", confidence: 0.9 }, { choice: "within", confidence: 0.7 }, { choice: "sufficient", confidence: 0.7 }],
+    [{ choice: "change", confidence: 1 }, { choice: "available", confidence: 0.49 }, { choice: "within", confidence: 1 }, { choice: "sufficient", confidence: 0.49 }],
+    [{ choice: "change", confidence: 1 }, { choice: "available", confidence: 1 }, { choice: "within", confidence: 0.49 }, { choice: "sufficient", confidence: 0.49 }],
   ]) {
     let calls = 0;
-    const response = await call("check", inventory, { judge: async () => { calls++; return { answers: { intent, coverage } }; } });
+    const response = await call("check", inventory, { judge: async () => { calls++; return { answers: { intent, labels, capacity } }; } });
     assert.equal(calls, 1); assert.deepEqual(await response.json(), expected);
   }
   for (const choice of ["ambiguous", "no-change", "unsupported"]) {
     let calls = 0, generated = 0, adopted = 0;
     const result = await runInventoryGoal({ utterance: inventory.state.utterance, bundle, current: () => initial, cancelled: () => false,
       check: async () => (await call("check", inventory, { judge: async () => { calls++; return { answers: {
-        intent: { choice, confidence: 0.8 }, coverage: { choice: "missing", confidence: 1 },
+        intent: { choice, confidence: 0.8 }, labels: { choice: "missing", confidence: 1 }, capacity: { choice: "exceeded", confidence: 1 },
       } }; } })).json(), complete: async () => { generated++; }, adopt: async () => { adopted++; } });
     assert.equal(result.reason, "inventory-" + choice); assert.equal(calls, 1);
     assert.equal(generated, 0); assert.equal(adopted, 0);
   }
 });
 
-test("both factor answers are required and validated even for a non-change intent", async () => {
-  const valid = { intent: { choice: "no-change", confidence: 1 }, coverage: { choice: "sufficient", confidence: 1 } };
-  for (const change of [x => { delete x.intent; }, x => { delete x.coverage; },
-    x => { x.intent.choice = "missing"; }, x => { x.coverage.choice = "ambiguous"; },
-    x => { x.intent.confidence = NaN; }, x => { x.coverage.confidence = Infinity; },
-    x => { x.intent.confidence = -0.1; }, x => { x.coverage.confidence = 1.1; }]) {
+test("every factor is required and validated even for a non-change intent", async () => {
+  const valid = { intent: { choice: "no-change", confidence: 1 }, labels: { choice: "available", confidence: 1 }, capacity: { choice: "within", confidence: 1 } };
+  for (const change of [x => { delete x.intent; }, x => { delete x.labels; }, x => { delete x.capacity; },
+    x => { x.intent.choice = "missing"; }, x => { x.labels.choice = "ambiguous"; }, x => { x.capacity.choice = "sufficient"; },
+    x => { x.intent.confidence = NaN; }, x => { x.labels.confidence = Infinity; }, x => { x.capacity.confidence = "1"; },
+    x => { x.intent.confidence = -0.1; }, x => { x.labels.confidence = 1.1; }, x => { x.capacity.confidence = -1; }]) {
     const answers = structuredClone(valid); change(answers);
     const response = await call("check", inventory, { judge: async () => ({ answers }) });
     assert.equal(response.status, 502); assert.deepEqual(await response.json(), { error: "parts_contract" });
   }
+});
+
+test("factor evidence logs only finite choices/confidences and a canonical head", async () => {
+  const saved = console.info, lines = [];
+  console.info = line => { lines.push(JSON.parse(line)); };
+  try {
+    const ports = { judge: async () => ({ answers: {
+      intent: { choice: "change", confidence: 1, extra: "private-canary" },
+      labels: { choice: "missing", confidence: 0.9 }, capacity: { choice: "within", confidence: 1 },
+    } }) };
+    const canonical = structuredClone(inventory); canonical.state.head = "sha256:" + "a".repeat(64);
+    await call("check", canonical, ports); await call("check", inventory, ports);
+    assert.equal(lines[0].head, canonical.state.head); assert.equal(lines[1].head, null);
+    assert.deepEqual(Object.keys(lines[0]).sort(), ["factors", "head", "kind"]);
+    assert.deepEqual(Object.keys(lines[0].factors), ["intent", "labels", "capacity"]);
+    assert.deepEqual(Object.keys(lines[0].factors.intent), ["choice", "confidence"]);
+    assert.ok(!JSON.stringify(lines).includes("private-canary"));
+    assert.ok(!JSON.stringify(lines).includes(inventory.state.utterance));
+  } finally { console.info = saved; }
 });
 
 test("ambiguous/no-change/unsupported/weak gates never synthesize or mutate", async () => {

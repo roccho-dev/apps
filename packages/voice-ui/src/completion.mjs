@@ -52,40 +52,49 @@ function inventoryContext(state) {
 }
 
 export function inventoryQuestion(state) {
-  return { state: inventoryContext(state), questions: { intent: {
+  const context = inventoryContext(state);
+  const labels = JSON.stringify(context.parts.map(({ label, kind }) => ({ label, kind })));
+  return { state: context, questions: { intent: {
     instruction: "Classify whether the utterance requests a clear supported graph change, independently of library availability. "
       + "Existing regions/edges satisfy their corresponding requested facts. An explicit addition still requests a change when other parts must stay unchanged. "
       + "Adding one, two or three regions is supported, including repeated instances of the same part. At most one directed flow edge may also be added. "
       + "Additions are inside existing named groups, including a group added earlier in the same goal. "
       + "No root additions, removal, movement, new operators or unspecified endpoints. Missing library candidates do not make a clear supported request ambiguous or unsupported.",
     options: {
-      change: "A clear supported graph change is requested and at least one requested fact is not yet satisfied. Ignore whether its candidate parts are in the library.",
+      change: "A clear request adds one to three regions or one directed flow edge and at least one requested fact is not yet satisfied. New display names are allowed. Ignore whether the candidate parts are in the library.",
       ambiguous: "The requested change, count, group or endpoint cannot be uniquely understood. Do not invent missing instructions.",
       "no-change": "No graph change is requested, or every requested fact already exists in the current graph.",
       unsupported: "The clear request requires operations or size outside the stated small supported task.",
     },
-  }, coverage: {
-    instruction: "Compare the requested NEW instances with the finite inventory in state.parts. Each row states a label, kind and integer capacity for this Goal. "
-      + "For each required label/kind, compare its requested count with that capacity; absent rows have capacity zero. Capacity is not unlimited reuse of a type. "
-      + "A part cannot rename itself: a generic shape/purpose does not supply an explicitly requested different display name. "
-      + "Allow clear synonyms only when the displayed name was not explicitly specified. Existing graph facts satisfy existing references, not requests for additional new instances. "
-      + "Connecting existing nodes needs no new candidate parts. This inventory answer is used only when intent is change.",
+  }, labels: {
+    instruction: "Compare ONLY the displayed names and kinds of requested NEW parts with the finite inventory below. Ignore quantity in this question. "
+      + "An explicitly requested display name, including a quoted name, must match an inventory label exactly. A generic shape or purpose cannot rename itself. "
+      + "Allow clear synonyms only when no display name was specified. Existing nodes satisfy existing references, not requests for additional new instances. "
+      + "Connecting existing nodes needs no new parts.",
     options: {
-      sufficient: "EVERY required new instance is available in the library with the required label/kind and capacity, or only existing nodes need connecting.",
-      missing: "At least one required NEW part instance lacks its requested displayed label/kind or exceeds the one-instance capacity of the matching library keys. A new name or repeated instance needs completion.",
+      available: "Every required NEW displayed label/kind matches a row in this inventory, or no new parts are needed: " + labels,
+      missing: "At least one required NEW displayed label/kind is absent from this exact inventory: " + labels,
+    },
+  }, capacity: {
+    instruction: "For requested NEW parts whose label/kind already matches an inventory row, compare their requested instance count with that row's integer capacity in state.parts. "
+      + "A capacity is a finite number of new instances, not unlimited reuse of a type. Existing nodes do not provide additional new instances. "
+      + "Ignore unavailable label/kind pairs here: the labels question handles those. Connecting existing nodes needs no new parts.",
+    options: {
+      within: "Every requested NEW count for a matching inventory label/kind is at most its capacity, or there are no matching new parts to count.",
+      exceeded: "At least one requested NEW count for a matching inventory label/kind exceeds its integer capacity.",
     },
   } } };
 }
 
 export function typedMissingRequest(state) {
   return { context: JSON.stringify(inventoryContext(state)), questions: { missing: {
-    type: "array", minItems: 0, maxItems: 3,
+    type: "array", minItems: 1, maxItems: 3,
     instructions: "Return one row per DISTINCT missing label/kind, with its missing quantity. Never repeat a label/kind row. "
       + "For each requested NEW label/kind, missing quantity = requested new count minus its available capacity in parts, with a minimum of zero. "
       + "Omit zero quantities. Existing graph facts satisfy existing references, not requests for additional new instances. "
       + "A single requested unavailable part needs exactly one row with quantity 1; multiple identical missing instances use one row with their quantity. "
       + "The sum of missing quantities must be at most three. Preserve requested display names exactly and use only supported kinds. "
-      + "Do not return edges, parents, operators, existing nodes or invented extras. Return an empty list if no safe missing part is identifiable.",
+      + "Do not return edges, parents, operators, existing nodes or invented extras.",
     items: { type: "object", properties: {
       label: { type: "string", instructions: "Exact requested display name, no ID or sequence suffix." },
       kind: { type: "string", enum: [...PART_KINDS], instructions: "The existing shape kind appropriate to that requested part." },

@@ -78,13 +78,17 @@ flowchart TD
 One gate call precedes the existing maximum-eight-call Goal loop. It uses one
 absolute 180-second dispatch deadline; an already-started bounded provider call
 can finish after that deadline, but no later call or adoption is started.
-That single Jev POST batches two questions: intent (change / ambiguous /
-no-change / unsupported) and inventory (sufficient / missing). Both answers
-must be valid. A change uses the weaker confidence; other intents use their
-own choice/confidence. The existing0.5 floor and five-choice app API remain.
+That single Jev POST batches intent (change / ambiguous / no-change /
+unsupported), displayed-label availability and finite-capacity questions.
+All answers must be valid. Missing requires an actual positive label/capacity
+witness; when both are positive, the stronger witness is used. Its confidence
+is bounded by intent confidence. Sufficient uses the weakest of all three;
+other intents use their own choice/confidence. The existing0.5 floor and
+five-choice app API remain. Only finite factor choices/confidences and a
+canonical graph head are logged, without utterances or raw provider objects.
 The gate does not interpret NONE/low confidence as missing candidates. TypeLLM
-runs at most once, on a confident missing verdict, and returns distinct
-`{label,kind,quantity}` rows with a total of at most three missing instances.
+runs at most once, on a confident missing verdict, and requires at least one
+distinct `{label,kind,quantity}` row with a total of at most three missing instances.
 The app rejects duplicate pairs and invalid quantities, then expands them into
 `{label,kind,occurrence}` instances with consecutive ordinals from1. The app
 allocates keys and graph IDs. Display labels are

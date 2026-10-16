@@ -2,6 +2,7 @@ import { COVERAGE, inventoryQuestion, isInventory, readTypedMissing, typedMissin
 const json = (body, status = 200) => Response.json(body, { status, headers: { "cache-control": "no-store" } });
 const inventoryChoices = ["sufficient", "missing"];
 const intentChoices = ["change", ...COVERAGE.filter(choice => !inventoryChoices.includes(choice))];
+const labelChoices = ["available", "missing"], capacityChoices = ["within", "exceeded"];
 const validAnswer = (answer, choices) => answer && choices.includes(answer.choice)
   && typeof answer.confidence === "number" && Number.isFinite(answer.confidence)
   && answer.confidence >= 0 && answer.confidence <= 1;
@@ -21,9 +22,21 @@ export async function onParts({ request, mode, available }, { judge, generate })
   try {
     if (mode === "check") {
       const value = await judge(inventoryQuestion(input.state), { signal: request.signal });
-      const intent = value?.answers?.intent, coverage = value?.answers?.coverage;
-      if (!validAnswer(intent, intentChoices) || !validAnswer(coverage, inventoryChoices))
+      const intent = value?.answers?.intent, labels = value?.answers?.labels, capacity = value?.answers?.capacity;
+      if (!validAnswer(intent, intentChoices) || !validAnswer(labels, labelChoices) || !validAnswer(capacity, capacityChoices))
         return json({ error: "parts_contract" }, 502);
+      // Keep finite factor evidence, never arbitrary head text or raw provider objects.
+      console.info(JSON.stringify({ kind: "voice-ui.parts.factors.v1",
+        head: /^sha256:[a-f0-9]{64}$/.test(input.state.head) ? input.state.head : null,
+        factors: Object.fromEntries(Object.entries({ intent, labels, capacity }).map(([name, answer]) =>
+          [name, { choice: answer.choice, confidence: answer.confidence }])) }));
+      // Either positive fact proves something is missing. A confident negative
+      // cannot lift a weak positive; sufficient needs both negative facts.
+      const witnesses = [labels.choice === "missing" ? labels.confidence : null,
+        capacity.choice === "exceeded" ? capacity.confidence : null].filter(confidence => confidence !== null);
+      const coverage = witnesses.length
+        ? { choice: "missing", confidence: Math.max(...witnesses) }
+        : { choice: "sufficient", confidence: Math.min(labels.confidence, capacity.confidence) };
       return json(intent.choice === "change"
         ? { choice: coverage.choice, confidence: Math.min(intent.confidence, coverage.confidence) }
         : { choice: intent.choice, confidence: intent.confidence });
