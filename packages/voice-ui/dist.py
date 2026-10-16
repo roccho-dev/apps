@@ -318,7 +318,7 @@ def build(args):
     worker.parent.mkdir(parents=True, exist_ok=True)
     subprocess.run([
         "esbuild", "functions/pages-worker.mjs", "--bundle", "--format=esm",
-        "--platform=browser", "--target=es2022", "--log-level=warning",
+        "--platform=browser", "--target=es2022", "--log-level=warning", "--minify-whitespace",
         f"--alias:voice-ui-judge-provider={(judge / 'batch.mjs').resolve()}",
         f"--outfile={worker.resolve()}",
     ], cwd=app, check=True)

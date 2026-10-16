@@ -131,6 +131,19 @@ requires every gate correct, both missing graphs exact and both completions
 minimal, with at least one gain over A, sufficient non-regression and zero control mutation. No extra live round
 is required if the first frozen main round already demonstrates EFFECT.
 
+Before live freeze, Worker emission must pass the raw-byte relocation check.
+After measurement, a report-only change in `docs/` and this README may close
+the evidence without repeating provider calls only after the same R audits its
+allowlisted diff, full CI, normal merge/tree, release readback and the complete
+ordinary execution closure. Worker, browser HTML/code/config/bundle, dev and
+packaged server, provider/renderer dependencies, harness/inputs/order and auth
+runtime settings must retain their measured bytes/meaning. Permitted differences
+are individually listed commit/provenance identities, the architecture source
+commit and corresponding digests, and launcher store paths whose targets retain
+those same bytes. Any execution difference needs a new freeze and appropriate
+retest. The report keeps the original measurement time, source tuple and budget
+history; it does not claim a new live measurement of the later formal release.
+
 ### Local execution through envs
 
 `TYPELLM_API_KEY` is authored in envs, alongside the existing Jev ciphertext, for
@@ -145,7 +158,7 @@ nix build --impure --no-link --print-out-paths --expr '
   in (import (s.outPath + "/oci/dev/nix.nix") { pkgs = p; }).jev.typedLaunch'
 /nix/store/<built-launcher>/bin/voice-ui-typed-dev \
   --envs-sha <CURRENT_ENVS_SHA> --apps-sha <EXACT_APPS_SHA> \
-  --port 18845 --jev-limit 199 --typellm-limit 20
+  --port 18845 --jev-limit <RESERVED_JEV_CALLS> --typellm-limit <RESERVED_TYPELLM_CALLS>
 ```
 
 This explicitly selected source-dev tool checks both current ciphertexts, fields
@@ -159,6 +172,9 @@ The run owner reserves allowances in the run journal before launch, keeps the
 whole-run caps at Jev300 and TypeLLM300 including failed/timed-out/uncertain sends,
 and reconciles unused allowances only after the process has stopped and its send
 log is checked. Restarting must not reset the whole-run counts. The first paired
-phase is capped at200 total Jev calls including the1-call connectivity smoke,
-leaving at least100 for corrections/confirmation. No automatic retry is enabled.
+phase is capped at200 total Jev calls including all prior connectivity/diagnostic
+and browser calls, leaving at least100 for corrections/confirmation. The initial
+TypeLLM envelope is21 total calls. For example, after3 actual calls to each
+provider, reserve at most197 Jev and18 TypeLLM calls for that phase. No automatic
+retry is enabled.
 Forward an unused Windows loopback port to own's18845 to open the local app.

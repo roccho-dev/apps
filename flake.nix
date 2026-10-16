@@ -86,22 +86,22 @@
       };
       # Completed reviewed provider bytes; no ops source checkout/build input.
       jevRelease = {
-        base = "https://github.com/roccho-org/ops/releases/download/jev-provider-7360759038d380f91d035e28157db495cbd961c5";
-        locator = "https://github.com/roccho-org/ops/releases/download/jev-provider-7360759038d380f91d035e28157db495cbd961c5/jev-provider.zip";
-        sha256 = "786efe3987594b08a6dc20fc991c81d0f31f5bd0d7f47e60712c5e75fcf92b42";
-        proof_sha256 = "ddbd5246a96d2a4aaad41de5c9902cf45bd78b0c2d31abcf76b94be5ee1e6697";
-        provenance_sha256 = "77b44236a810533fb11df97cdac4c8cdbcf70795e5bd9ee54de7982f63cf6095";
-        entry_sha256 = "695fafd8ff498c511cc89d9adb8474d34b443dcc576d4083950de7c45e9d7a6b";
-        manifest_sha256 = "83c178010dc1397461ad379e809ff2250847487d65253142173d1f3b9a0692f7";
+        base = "https://github.com/roccho-org/ops/releases/download/jev-provider-cab432ef717cbde9ebd0197ae006c0efe75269bf";
+        locator = "https://github.com/roccho-org/ops/releases/download/jev-provider-cab432ef717cbde9ebd0197ae006c0efe75269bf/jev-provider.zip";
+        sha256 = "ea242b5ce5424ee6e367155198b059831b4494d1a0f4c8eeb404d9c12d469512";
+        proof_sha256 = "41dbd597a7cd40cbb5995ed7cefdbafc047b56fa1ea9d339081aa20589b95e17";
+        provenance_sha256 = "21a44ca37e45a8678133d26532c69c02420c3b445fa6887356e188ba2a988cbf";
+        entry_sha256 = "ad4ac08ae8c42f3bf0e9d0aeedb0a2e9192c776585a3251b2ff1e18358cfe2e7";
+        manifest_sha256 = "df95aa16e508e5c2563856fc99bd58aaf70fc120633f01c1a102f8598e48b253";
         contract = "named-choices-and-typed/1";
         proof = {
-          pr_number = 560;
+          pr_number = 561;
           base = "proposals";
-          reviewed_head = "35449d457156f023de3cee8ad02f2a807f515f03";
-          r_exact_head_verdict_ref = "https://github.com/roccho-org/ops/pull/560#pullrequestreview-5548503854";
-          merge_sha = "7360759038d380f91d035e28157db495cbd961c5";
-          reviewed_tree = "b2b111541f96a3a0b167191763f384ed397fc913";
-          merge_tree = "b2b111541f96a3a0b167191763f384ed397fc913";
+          reviewed_head = "f1b9e7b80f098f503c37d3c94104175989d2effd";
+          r_exact_head_verdict_ref = "https://github.com/roccho-org/ops/pull/561#pullrequestreview-5549493238";
+          merge_sha = "cab432ef717cbde9ebd0197ae006c0efe75269bf";
+          reviewed_tree = "b8c6d3acab38daf58165e8a9d8c399158d0fe2c8";
+          merge_tree = "b8c6d3acab38daf58165e8a9d8c399158d0fe2c8";
         };
       };
       jevArtifact = builtins.toJSON (
@@ -436,11 +436,11 @@
               }
               ''
                 diff -qr ${reproA} ${reproB}
-                # Input storepath comments can change bundled Worker bytes;
-                # only core/corpus byte equality and the same actual API
-                # semantics are claimed for local supplied-byte relocation.
+                # Whitespace-only emission omits input storepath banners:
+                # relocation must preserve the actual Worker bytes too.
                 diff -qr ${reproA}/site ${relocated}/site
                 diff -qr ${reproA}/e2e ${relocated}/e2e
+                cmp ${reproA}/worker/worker.mjs ${relocated}/worker/worker.mjs
                 export JUDGE_PROVIDER_ENTRY=${jevRelocated}/batch.mjs
                 export VOICE_UI_WORKER=${relocated}/worker/worker.mjs
                 node --test ${self}/packages/voice-ui/tests/api.test.mjs
