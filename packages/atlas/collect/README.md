@@ -5,15 +5,16 @@ G collects; it does not judge. Output is JSONL of two event kinds, `observation`
 literally carry is the string `UNKNOWN`; nothing is inferred and nothing is typed by hand.
 
 ```
-fetch.mjs (gh api / ssh / tcp, read-only)  →  snapshots/*.json  →  collect.mjs (pure)  →  events.jsonl
+fetch.mjs (gh api / ssh / tcp, read-only)  →  snapshots/*.json  →  adapter.mjs  →  collect.mjs (pure)  →  events.jsonl
 ```
 
 | File | Role |
 |---|---|
-| `fetch.mjs` | Acquisition only. Runs `gh api` (existing login), the existing `ssh`, TCP probes; writes snapshots. |
-| `collect.mjs` | `collect(snapshots, recordedAt)` → events. CLI reads a snapshot dir. No network. |
-| `plan.mjs` | Marker sections → `plan.set` (mermaid flowchart + exit table). |
-| `observe.mjs` | PR / CI / session / port → `observation`. |
+| `fetch.mjs` | Acquisition only. Runs `gh api` (existing login), the existing `ssh`, TCP probes; stores the raw responses / stdout. |
+| `adapter.mjs` | The only place that knows data formats: gh JSON paths, `--slurp` pages, process/file listing lines. Snapshot → normalized record (`thread`, `pr`, `sessions`, `ports`); missing → null. |
+| `collect.mjs` | `collect(records, recordedAt)` → events. CLI reads a snapshot dir through the adapter. No network. |
+| `plan.mjs` | Marker sections in text → `plan.set` (mermaid flowchart + exit table). |
+| `observe.mjs` | Normalized PR / session / port values → `observation`. |
 
 ## Run on G6I3 (P)
 
@@ -40,7 +41,9 @@ node packages/atlas/collect/collect.mjs .artifacts/g-snapshots --out .artifacts/
   ```
 - ports: a TCP connect to each declared `host:port` (2 s timeout)
 
-A failed call is stored with `data: null`; the transform turns it into `UNKNOWN`.
+gh responses are stored as returned (`data`) and session listings as raw stdout; a failed call is
+stored as null, which the transform turns into `UNKNOWN`. Snapshots from before the adapter
+(sessions stored as parsed arrays) read as `UNKNOWN`; rerun `fetch.mjs`.
 `--recorded-at <ISO>` pins `recordedAt` (default: now).
 
 ## observation
@@ -78,7 +81,7 @@ the highest `N` is current. Two different texts with the same highest `N` → no
 `UNKNOWN`, `unknown:['conflicting-version']` (no winner).
 
 ```
-{kind:'plan.set', plan:'resources#25:atlas-plan', version, recordedAt,
+{kind:'plan.set', plan:'resources#25:windows-retirement-migration-20261016', version, recordedAt,
  source:{repo:'resources#25', commentId|null, updatedAt, sha256},   // sha256 of the extracted section text
  nodes:[{id:'resources#25:E', label, shape, groups, exit, predicate, owner, requires}] | 'UNKNOWN',
  edges:[{from, to, kind, condition, style}] | 'UNKNOWN',
@@ -98,13 +101,13 @@ the highest `N` is current. Two different texts with the same highest `N` → no
   every node's exit/predicate/owner/requires `UNKNOWN`; earlier versions are not merged in.
 - `updated_at > recordedAt` is rejected (throws). No marker → no `plan.set` (e.g. adrs#628, apps#92).
 
-For an Issue/PR body, `source.updatedAt` is the REST `updated_at` of the whole Issue/PR, which also
-moves when a comment is added; GitHub exposes no separate body-edit time here.
+Known limitation: for a body, `source.updatedAt` is the whole Issue/PR `updated_at`, which also moves when a comment is added.
 
 ## Fixtures
 
 `fixtures/snapshots/issue-roccho-dev-resources-25.json` and the two `pr-*.json` are real `gh api`
 responses (fetched 2026-10-16T20:33:31Z with P's logged-in gh, recorded and replayed with the same
-arguments as `fetch.mjs`). `sessions.json` and `ports.json` stay synthetic. To refresh, copy a new
-`.artifacts/g-snapshots/*` over them and rerun `node --test packages/atlas/collect/tests/*.test.mjs`;
-a failing assertion means the real resources#25 differs from the agreed v1/v2 shape.
+arguments as `fetch.mjs`). `sessions.json` and `ports.json` stay synthetic. Tests assert what the spec
+gives for that real data (current v3 → all `UNKNOWN`; v1's 2-column table → exits `UNKNOWN`; v1/v2
+flowcharts parsed). Rules the real data does not exercise (5-column exit table, flowchart syntax,
+same-version conflict) are tested on minimal inputs named `synthetic minimal input`.

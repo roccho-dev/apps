@@ -9,13 +9,7 @@
     { "target": "atlas.W", "sessionId": "aaaaaaaa-0000-4000-8000-000000000002" },
     { "target": "atlas.W2", "sessionId": "aaaaaaaa-0000-4000-8000-000000000003" }
   ],
-  "processes": [
-    { "pid": 101, "command": "claude --resume aaaaaaaa-0000-4000-8000-000000000001 -p" },
-    { "pid": 102, "command": "node atlas.W2-dev-server.js" }
-  ],
-  "sessionFiles": [
-    "/home/dev/.claude/projects/-work-repos-apps-git/aaaaaaaa-0000-4000-8000-000000000001.jsonl",
-    "/home/dev/.claude/projects/-work-repos-apps-git/aaaaaaaa-0000-4000-8000-000000000002.jsonl"
-  ],
+  "processes": "101 claude --resume aaaaaaaa-0000-4000-8000-000000000001 -p\n102 node atlas.W2-dev-server.js\n",
+  "sessionFiles": "/home/dev/.claude/projects/-work-repos-apps-git/aaaaaaaa-0000-4000-8000-000000000001.jsonl\n/home/dev/.claude/projects/-work-repos-apps-git/aaaaaaaa-0000-4000-8000-000000000002.jsonl\n",
   "errors": []
 }

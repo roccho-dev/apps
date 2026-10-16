@@ -52,12 +52,9 @@ function probe({ target, host, port, timeoutMs = 2000 }) {
 function sessions({ ssh, declared, processCommand = 'ps -eo pid=,args=', filesCommand = 'find ~/.claude/projects -name "*.jsonl"' }) {
   const ps = run('ssh', [ssh, processCommand]);
   const files = run('ssh', [ssh, filesCommand]);
-  const observedAt = now();
-  const processes = ps.ok ? ps.stdout.split('\n').map(line => line.trim()).filter(Boolean)
-    .map(line => { const [, pid, command] = /^(\d+)\s+(.*)$/u.exec(line) ?? [, null, line]; return { pid: pid && Number(pid), command }; }) : null;
-  const sessionFiles = files.ok ? files.stdout.split('\n').map(line => line.trim()).filter(Boolean) : null;
-  return { type: 'sessions', host: ssh, observedAt, sha256: sha256(`${ps.stdout ?? ''}\0${files.stdout ?? ''}`),
-    declared, processes, sessionFiles, errors: [ps.error, files.error].filter(Boolean) };
+  // Raw stdout only; adapter.mjs reads the lines. null = not captured.
+  return { type: 'sessions', host: ssh, observedAt: now(), sha256: sha256(`${ps.stdout ?? ''}\0${files.stdout ?? ''}`),
+    declared, processes: ps.ok ? ps.stdout : null, sessionFiles: files.ok ? files.stdout : null, errors: [ps.error, files.error].filter(Boolean) };
 }
 
 const [configPath, outDir] = process.argv.slice(2);

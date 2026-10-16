@@ -1,57 +1,35 @@
 #!/usr/bin/env node
-// G transform: snapshot files (written by fetch.mjs) → observation / plan.set JSONL.
-// collect() is pure; the CLI only reads the snapshot directory and writes JSONL. No network.
+// G transform: normalized records → observation / plan.set JSONL.
+// collect() is pure and format-free; the CLI reads the snapshot directory through adapter.mjs. No network.
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { UNKNOWN, planEvents } from './plan.mjs';
-import { prObservations, sessionObservations, portObservations } from './observe.mjs';
+import { normalize } from './adapter.mjs';
+import { planEvents } from './plan.mjs';
+import { observation, prObservations, sessionObservations, portObservations } from './observe.mjs';
 
 const compare = (a, b) => a < b ? -1 : a > b ? 1 : 0;
-// `gh api --paginate --slurp` yields one array per page.
-const flat = data => Array.isArray(data) && data.every(Array.isArray) ? data.flat() : data;
 
-function documents(snapshot) {
-  const issue = snapshot.responses?.issue?.data, comments = flat(snapshot.responses?.comments?.data);
-  if (!issue || !Array.isArray(comments)) return null;
-  const base = { repo: snapshot.repo, number: snapshot.number };
-  return [
-    { ...base, commentId: null, updatedAt: issue.updated_at, text: issue.body ?? '' },
-    ...comments.map(comment => ({ ...base, commentId: comment.id, updatedAt: comment.updated_at, text: comment.body ?? '' })),
-  ];
-}
-
-export function collect(snapshots, recordedAt) {
-  const events = [];
-  for (const snapshot of snapshots) {
-    switch (snapshot.type) {
-      case 'issue':
-      case 'pr': {
-        if (snapshot.type === 'pr') {
-          const response = snapshot.responses?.pr ?? {};
-          events.push(...prObservations({ repo: snapshot.repo, number: snapshot.number, fetchedAt: snapshot.fetchedAt,
-            sha256: response.sha256 ?? UNKNOWN, pr: response.data?.data?.repository?.pullRequest ?? null }, recordedAt));
-        }
-        const docs = documents(snapshot);
-        if (docs) events.push(...planEvents(docs, recordedAt));
-        else events.push({ kind: 'observation', target: `${snapshot.repo}#${snapshot.number}:plan.source`, value: UNKNOWN,
-          source: { ref: `gh api issues ${snapshot.repo}#${snapshot.number}`, sha256: snapshot.responses?.issue?.sha256 ?? UNKNOWN },
-          observedAt: snapshot.fetchedAt, recordedAt });
-        break;
-      }
-      case 'sessions': events.push(...sessionObservations(snapshot, recordedAt)); break;
-      case 'ports': events.push(...portObservations(snapshot, recordedAt)); break;
-      default: throw new Error(`atlas-collect: unknown snapshot type ${JSON.stringify(snapshot.type)}`);
+export function collect(records, recordedAt) {
+  return records.flatMap(record => {
+    switch (record.kind) {
+      case 'thread': return record.documents
+        ? planEvents(record.documents.map(doc => ({ repo: record.repo, number: record.number, ...doc })), recordedAt)
+        // The thread could not be read: UNKNOWN, not "no plan".
+        : [observation(`${record.repo}#${record.number}:plan.source`, null, record.source, record.fetchedAt, recordedAt)];
+      case 'pr': return prObservations(record, recordedAt);
+      case 'sessions': return sessionObservations(record, recordedAt);
+      case 'ports': return portObservations(record, recordedAt);
+      default: throw new Error(`atlas-collect: unknown record kind ${JSON.stringify(record.kind)}`);
     }
-  }
-  return events;
+  });
 }
 
 export const toJsonl = events => events.map(event => JSON.stringify(event)).join('\n') + (events.length ? '\n' : '');
 
-export function readSnapshots(dir) {
+export function readRecords(dir) {
   return fs.readdirSync(dir).filter(name => name.endsWith('.json')).sort(compare)
-    .map(name => JSON.parse(fs.readFileSync(path.join(dir, name), 'utf8')));
+    .flatMap(name => normalize(JSON.parse(fs.readFileSync(path.join(dir, name), 'utf8'))));
 }
 
 if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
@@ -59,7 +37,7 @@ if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.me
   if (!dir) { console.error('usage: collect.mjs <snapshot-dir> [--recorded-at ISO] [--out events.jsonl]'); process.exit(2); }
   const flag = name => { const i = rest.indexOf(name); return i >= 0 ? rest[i + 1] : undefined; };
   const recordedAt = flag('--recorded-at') ?? new Date().toISOString();
-  const output = toJsonl(collect(readSnapshots(dir), recordedAt));
+  const output = toJsonl(collect(readRecords(dir), recordedAt));
   const out = flag('--out');
   if (out) fs.writeFileSync(out, output); else process.stdout.write(output);
 }
