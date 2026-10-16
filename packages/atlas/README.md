@@ -343,3 +343,18 @@ node packages/atlas/derive.mjs --out-dir=/tmp/atlas-d \
 
 `fixtures/events/` is synthetic (P's HQ mock events in this contract plus two
 plans). Its World hash is fixed in `tests/events.test.mjs`.
+
+## Live join (K): G → D → World
+
+`live.mjs` only joins. `fromG` is the one place that knows G's event shape:
+a G observation target stays an opaque D state id (`apps#92:pr.state`), its
+`{ref, sha256}` source becomes D's source text, and G's literal `UNKNOWN` becomes a
+non-scalar value that D judges `unknown`. G `plan.set` carries no `purposeRef`,
+so it is held verbatim in `g-plans.jsonl` for the next stage (D's plan field stays
+UNKNOWN). Without `--control` there is no Norm and every condition is unassigned.
+
+~~~sh
+node packages/atlas/collect/collect.mjs <snapshots> --out /tmp/g-events.jsonl
+node packages/atlas/live.mjs --out-dir=/tmp/atlas-k --purpose=<purpose.set.jsonl> \
+  [--control=<control.jsonl>] /tmp/g-events.jsonl   # → events.jsonl, world.json, plan-projection.json, g-plans.jsonl
+~~~
