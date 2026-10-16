@@ -206,7 +206,7 @@ test("Goal v7 boundary asks one question per frame, what then where, and refuses
   const [what, where] = asked;
   assert.deepEqual(what.state, body.state); assert.deepEqual(where.state, placed.state);
   const context = " context.recent lists earlier utterances as they were recognized or typed, and what came of each. They are unverified and may be misrecognized. Use them only to understand what the current utterance refers to; the current utterance, the current Working graph and edges are the facts, and an earlier effect is history, not the current graph.";
-  assert.equal(what.questions.delta.instruction, "Choose the next executable change toward the utterance's goal. An option either adds one offered part, whose group is chosen by a separate following question, or connects two existing parts by one directed flow arrow. An explicitly hypothetical requested connection is a Working proposal, not proof of an existing source relationship. Use the current graph and edges to decide which requested changes are still missing; selected is adopted part history, not a completion oracle. An arrow is offered only when both of its ends exist, so a requested part that is still missing comes before its arrows. Choose none when the requested changes are already present, no option is clearly needed, or the request is ambiguous. Do not add a connection merely because two parts are present; it must be requested by the utterance. An offered group part is added like any other part, and a part is placed only into an existing group, including one this goal already added, so a requested group that is still missing comes before the parts requested inside it." + context);
+  assert.equal(what.questions.delta.instruction, "Choose the next executable change toward the utterance's goal. An option either adds one offered part, whose group is chosen by a separate following question, or connects two existing parts by one directed flow arrow. An explicitly hypothetical requested connection is a Working proposal, not proof of an existing source relationship. Use the current graph and edges to decide which requested changes are still missing; selected is adopted part history, not a completion oracle. An arrow is offered only when both of its ends exist, so a requested part that is still missing comes before its arrows. Choose none when the requested changes are already present, no option is clearly needed, or the request is ambiguous. Do not add a connection merely because two parts are present; it must be requested by the utterance. An offered group part is added like any other part, and a part is placed only into an existing group, including one this goal already added, so a requested group that is still missing comes before the parts requested inside it. Explicitly requested display names must match the added part's displayed name; do not substitute a generic name merely because its purpose or kind matches. Count already present matching instances in the requested parent before adding another; distinct candidate keys with the same label permit repeated instances, and each key is usable once." + context);
   assert.equal(where.questions.delta.instruction, "The next change adds the offered part Service (service): a service. Which existing group does the utterance request this part to be added inside? A group already added by this goal is also an existing group here. Arrows may connect parts in different groups, so a part's group does not follow from the groups of the parts it is connected to. Choose none when the utterance requests none of these existing groups for it, or does not identify a unique one." + context);
   for (const { questions } of [what, where]) {
     assert.deepEqual(Object.keys(questions), ["delta"]);
@@ -290,6 +290,40 @@ const noneTo = body => Object.fromEntries(Object.entries(body.questions).map(([n
   name,
   { type: "choice", choice: NONE, confidence: 0.9, probabilities: Object.fromEntries(Object.keys(question.criteria).map(key => [key, 0.1])) },
 ]));
+
+test("compiled Worker binds both released provider operations, validates inventory and closes upstream contracts", async () => {
+  const input = { kind: "voice-ui.goal.inventory.v1", state: { utterance: "add the named service inside Container", head: "fixture-head",
+    regions: [{ id: "root", label: "World", kind: "boundary", parent: null }, { id: "container", label: "Container", kind: "group", parent: "root" }],
+    edges: [], parts: [{ key: "service", purpose: "one service", label: "Service", kind: "step" }] } };
+  const invoke = (mode, body = input, env = { JEV_API_KEY: "jev-test-only", TYPELLM_API_KEY: "typed-test-only" }) => worker.fetch(
+    new Request("http://localhost/api/parts/" + mode, { method: "POST", body: JSON.stringify(body) }), env);
+  const missing = [{ label: "Named service", kind: "step", occurrence: 1 }];
+  const { calls } = await withProvider(async (body, init) => {
+    assert.equal(init.redirect, "error");
+    if (body.questions.coverage) {
+      assert.equal(init.headers.authorization, "Bearer jev-test-only");
+      return Response.json({ model: "jev-test", answers: { coverage: { type: "choice", choice: "missing", confidence: 0.9,
+        probabilities: Object.fromEntries(Object.keys(body.questions.coverage.criteria).map(key => [key, key === "missing" ? 0.9 : 0.025])) } } });
+    }
+    assert.equal(init.headers.authorization, "Bearer typed-test-only");
+    assert.equal(body.model, "typellm-latest"); assert.equal(body.questions.missing.thinking, false);
+    assert.deepEqual(Object.keys(body.questions.missing.items.properties), ["label", "kind", "occurrence"]);
+    return Response.json({ status: "completed", result: { missing } });
+  }, async () => {
+    for (const mode of ["check", "complete"]) {
+      assert.equal((await invoke(mode, input, {})).status, 503);
+      assert.equal((await invoke(mode, { ...input, extra: true })).status, 422);
+    }
+    assert.deepEqual(await (await invoke("check")).json(), { choice: "missing", confidence: 0.9 });
+    assert.deepEqual(await (await invoke("complete")).json(), { missing });
+  });
+  assert.equal(calls.length, 2);
+  const invalid = await withProvider(async () => Response.json({ result: { missing: [{ ...missing[0], parent: "container" }] } }), async () => {
+    const response = await invoke("complete"); assert.equal(response.status, 502);
+    assert.deepEqual(await response.json(), { error: "parts_contract" });
+  });
+  assert.equal(invalid.calls.length, 1);
+});
 
 test("every legacy or unknown request kind is 422 and never reaches the provider", async () => {
   const legacy = [
