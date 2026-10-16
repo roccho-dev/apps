@@ -333,6 +333,10 @@ cycles and references outside the named Purpose version fail closed.
   lists unsatisfied predicate ids and unfinished dep predecessors; a loop target's
   satisfied→unmet transitions give an iteration number (`instance` `id#n`); `overdue`
   only with `due`. No plan at t is `status: unknown, plans: null`, never empty.
+  Optional: `plan.set.plan` is the plan identity (default `source.ref`, so one
+  Issue may carry several plans); `nodes`/`edges` may both be `UNKNOWN` with
+  `unknown[]` reasons; `requires[].plans` declares the plans serving a condition,
+  shown as the plan's `serves`.
 - Agents: the World heading and flags come from the declared `source_mode`
   (`synthetic`/`supplied`) and `session` observations, not a fixed caption.
 
@@ -349,9 +353,18 @@ plans). Its World hash is fixed in `tests/events.test.mjs`.
 `live.mjs` only joins. `fromG` is the one place that knows G's event shape:
 a G observation target stays an opaque D state id (`apps#92:pr.state`), its
 `{ref, sha256}` source becomes D's source text, and G's literal `UNKNOWN` becomes a
-non-scalar value that D judges `unknown`. G `plan.set` carries no `purposeRef`,
-so it is held verbatim in `g-plans.jsonl` for the next stage (D's plan field stays
-UNKNOWN). Without `--control` there is no Norm and every condition is unassigned.
+non-scalar value that D judges `unknown`. G's documented `<target>:session` is
+also passed as D's `session` observation of `<target>`, which the World shows as
+that Agent's observed activity value only when a Norm W id is exactly `<target>`.
+The value is shown as observed: `transcript-only` is a past transcript, not activity.
+
+A G `plan.set` enters D only when the Purpose author declares it: a condition's
+`requires[].plans` lists the G plan ids that serve it (the latest purpose.set at
+or before the plan names its `purposeRef`). G cells are copied, never parsed, and
+D's own parser checks the converted plan; a plan D rejects or nobody declares is
+held in `g-plans.jsonl` as `{reason, plan}`. Its graph may be `UNKNOWN`: D keeps
+it as a declared plan with `nodes: null` and the reasons, never as "no plan".
+Without `--control` there is no Norm and every condition is unassigned.
 
 ~~~sh
 node packages/atlas/collect/collect.mjs <snapshots> --out /tmp/g-events.jsonl

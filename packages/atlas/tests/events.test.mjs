@@ -38,8 +38,9 @@ const gapView = frame => ({ coverage: frame.coverage, entities: frame.entities,
 
 // Fixed World hash of the committed synthetic fixture (CLI world.json bytes). Inputs are
 // unchanged; it moved from c3d26682… when captions became full text and the Current -> unit
-// relations became visible:false behind one drawn gap:current-target relation.
-const WORLD_SHA256 = 'sha256:ac64eef7e45ea508bc2babd918751bcc79041a019a26d0a81373e9a51acc36b9';
+// relations became visible:false behind one drawn gap:current-target relation; then from ac64eef7…
+// when the UNKNOWN evaluation unit named its source (全体評価/比較・分解/対応付け) and open conditions.
+const WORLD_SHA256 = 'sha256:e8b707fd0d15443e2162a19fe41b4d1239c5f2dbf7b1d2c561120c2d96287deb';
 
 test('parser fails closed on schema, shape, duplicate keys, order and graph errors', () => {
   const list = base();

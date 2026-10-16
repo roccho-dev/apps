@@ -2,7 +2,9 @@
 // A value that the record does not carry (null) is UNKNOWN; nothing is inferred from names.
 import { UNKNOWN, timestamp } from './plan.mjs';
 
-export const SESSION = Object.freeze({ RUNNING: 'running', WAITING: 'waiting', NOT_STARTED: 'not-started' });
+// Values name what was seen, not an activity verdict: only a live process is 'running'; a transcript
+// file alone means the session existed before (apps#95 comment 6224493129), not that it is working.
+export const SESSION = Object.freeze({ RUNNING: 'running', TRANSCRIPT_ONLY: 'transcript-only', NOT_FOUND: 'not-found' });
 
 const known = value => value === null || value === undefined || (typeof value === 'string' && value.trim() === '') ? UNKNOWN : value;
 
@@ -21,16 +23,16 @@ export function prObservations({ repo, number, fetchedAt, source, pr }, recorded
 
 // Session rule (declared inputs only):
 //   a captured command line contains the session id                    → running
-//   else a captured session file path contains the session id          → waiting
-//   else, with both lists captured                                      → not-started
+//   else a captured session file path contains the session id          → transcript-only
+//   else, with both lists captured                                      → not-found
 //   any list needed for the decision was not captured (null)           → UNKNOWN
 export function sessionState(sessionId, commands, files) {
   if (typeof sessionId !== 'string' || sessionId.trim() === '') return UNKNOWN;
   if (!Array.isArray(commands)) return UNKNOWN;
   if (commands.some(command => command.includes(sessionId))) return SESSION.RUNNING;
   if (!Array.isArray(files)) return UNKNOWN;
-  if (files.some(file => file.includes(sessionId))) return SESSION.WAITING;
-  return SESSION.NOT_STARTED;
+  if (files.some(file => file.includes(sessionId))) return SESSION.TRANSCRIPT_ONLY;
+  return SESSION.NOT_FOUND;
 }
 
 export function sessionObservations({ observedAt, source, declared, commands, files }, recordedAt) {
