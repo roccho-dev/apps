@@ -1,0 +1,5 @@
+{"schema":"atlas.control-norms/1","authority":false}
+{"kind":"norm","id":"norm.nixos","R":[],"W":["nixos.W"],"binding":{"purposeId":"purpose.hq","conditions":["g6i3-fork","nixos-console","nixos"]}}
+{"kind":"norm","id":"norm.refactor","R":[],"W":["refactor.W"],"binding":{"purposeId":"purpose.hq","conditions":["refactor"]}}
+{"kind":"norm","id":"norm.atlas","R":["atlas.R"],"W":["atlas.W"],"binding":{"purposeId":"purpose.hq","conditions":["atlas","input"]}}
+{"kind":"norm","id":"norm.envs","R":[],"W":["envs.W"],"binding":{"purposeId":"purpose.hq","conditions":["envs"]}}

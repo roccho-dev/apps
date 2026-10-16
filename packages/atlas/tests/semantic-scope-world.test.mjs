@@ -37,8 +37,6 @@ const twoScopes = () => {
   semantic.observation.criteria.push({ ...structuredClone(semantic.observation.criteria[0]), id: 'criterion.recovery', state: 'unmet' });
   return input;
 };
-// Presentation width, same unit rule as the generic renderer's estimate.
-const widthUnits = text => [...text].reduce((sum, character) => sum + (/\s/u.test(character) ? 0.34 : character.codePointAt(0) > 0xff ? 1 : 0.59), 0);
 
 test('same actual reducer output and semantic input produce deterministic authority=false World', () => {
   const saved = structuredClone(fixture), a = build(fixture), b = build(fixture);
@@ -79,13 +77,19 @@ test('one Current per frame: same identity, frame-selected revision, original co
   }
 });
 
-test('overview captions are short and non-empty; every supplied label, id and revision stays in the record', () => {
+test('overview captions are two full lines, never shortened; every supplied label, id and revision stays in the record', () => {
   for (const [index, frame] of build(fixture).frames.entries()) {
     const supplied = fixture.frames[index];
     for (const value of frame.entities) {
       const lines = value.label.split('\n');
-      assert.ok(lines.length <= 2 && lines.every(line => line.trim() && widthUnits(line) <= 7), value.label);
+      assert.ok(lines.length === 2 && lines.every(line => line.trim()) && !value.label.includes('…'), value.label);
     }
+    // The second line is the full supplied text (the UI wraps; no ellipsis or id-tail elision).
+    assert.equal(ofKind(frame, 'purpose')[0].label, '目的\n' + supplied.purpose_label);
+    assert.equal(current(frame).label, '現状\n' + supplied.semantic.observation.observed_ref.revision);
+    assert.equal(scope(frame).label.split('\n')[0], supplied.semantic.partition[0].label);
+    for (const unit of ofKind(frame, 'unassigned-change')) assert.equal(unit.label.split('\n')[1], unit.ref.id);
+    for (const agent of ofKind(frame, 'agent')) assert.equal(agent.label.split('\n')[0], agent.ref.id);
     // Overview order: Target next to Purpose; old obligations before the current
     // units; the owner Agent before the evaluator.
     const ordered = area => frame.entities.filter(value => value.area === area).sort((a, b) => a.order - b.order).map(value => value.ref.kind + ':' + value.ref.id);
@@ -299,9 +303,15 @@ test('Agents are only declared ids with declared roles, synthetic and activity-u
     assert.equal(frame.entities.filter(value => value.ref.id === 'apps/Atlas').length, 0, 'owner_role is an attribute, not an Agent');
     assert.equal(relation(frame, 'owner:scope.delivery').context.owner_role, 'apps/Atlas');
     assert.deepEqual(relation(frame, 'observation-evaluator:fixture-independent-R').to, current(frame).ref);
-    // Only the two writer/evaluator role relations are not drawn; their records stay complete.
+    // Not drawn: the Current -> unit relations (summarised by one drawn Current -> Target
+    // relation) and the two writer/evaluator role relations; their records stay complete.
     const notDrawn = frame.relations.filter(value => value.visible === false).map(value => value.ref.id);
-    assert.deepEqual(notDrawn, ['observation-writer:fixture-W', 'observation-evaluator:fixture-independent-R']);
+    const changes = frame.id === 'before-work' ? ['change:scope:scope.delivery'] : ['change:unassigned:criterion.recovery'];
+    assert.deepEqual(notDrawn, [...changes, 'observation-writer:fixture-W', 'observation-evaluator:fixture-independent-R']);
+    const gap = relation(frame, 'gap:current-target');
+    assert.deepEqual([gap.from, gap.to, gap.label, gap.path, gap.context.change_relations], [current(frame).ref,
+      ofKind(frame, 'purpose-state-target')[0].ref, '変化 1 件', false, changes]);
+    for (const id of changes) assert.equal(relation(frame, id).path, true, 'Direction keeps the omitted relation');
     // visible:false is the only representation change: each declared context is exactly the role declaration.
     const observation = fixture.frames.find(value => value.id === frame.id).semantic.observation;
     assert.deepEqual(relation(frame, 'observation-writer:fixture-W').context,
@@ -309,7 +319,7 @@ test('Agents are only declared ids with declared roles, synthetic and activity-u
     assert.deepEqual(relation(frame, 'observation-evaluator:fixture-independent-R').context,
       { declared_id: 'fixture-independent-R', role: 'evaluator', synthetic: true, activity: 'unobserved', observed_ref: observation.observed_ref });
     assert.ok(frame.relations.filter(value => !notDrawn.includes(value.ref.id)).every(value => !('visible' in value)),
-      'owner, Current/Scope/Target/Purpose and history relations stay drawn');
+      'owner, Current -> Target, Scope/Target/Purpose and history relations stay drawn');
     assert.match(agents[0].label, /\n担当・作業$/u);
     assert.match(agents[1].label, /\n評価$/u);
   }

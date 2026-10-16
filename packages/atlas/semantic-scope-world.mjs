@@ -78,22 +78,11 @@ const scopeStanding = (status, bound) => status !== 'declared_satisfied' ? 'acti
 const standingLabel = { active: '現在必要', 'completed-history': '完了済み（履歴）', unresolved: '未確定（証拠は保持）' };
 const statusCaption = { unmet: '必要', conflict: '矛盾', unknown: '未確認', declared_satisfied: '完了・履歴' };
 const roleCaption = { owner_actor: '担当', writer: '作業', evaluator: '評価' };
-// Overview captions are presentation only (at most two short lines, each within
-// seven full-width units). Every supplied label, id and revision stays verbatim
-// in the record summary, flags and relation context.
-const widthUnits = text => [...String(text)].reduce((sum, character) =>
-  sum + (/\s/u.test(character) ? 0.34 : character.codePointAt(0) > 0xff ? 1 : 0.59), 0);
-const fit = (text, keepTail = false, budget = 7) => {
-  const characters = [...String(text ?? '')];
-  if (widthUnits(characters.join('')) <= budget) return characters.join('');
-  const kept = [];
-  for (const character of keepTail ? [...characters].reverse() : characters) {
-    if (widthUnits(kept.join('') + character) > budget - 1) break;
-    kept.push(character);
-  }
-  return keepTail ? '…' + kept.reverse().join('') : kept.join('') + '…';
-};
-const caption = (first, second) => fit(first) + '\n' + fit(second);
+// Overview captions are presentation only: exactly two logical lines, a role/kind
+// line and the full supplied text. Nothing is shortened here (no ellipsis, no
+// id-tail elision); the generic UI wraps. The record summary, flags and relation
+// context still carry every supplied label, id and revision verbatim.
+const caption = (first, second) => String(first) + '\n' + String(second);
 
 /** The second argument is the real reduceClosure output, not a substitute join. */
 export const semanticScopeWorld = (input, reducedClosure) => {
@@ -101,6 +90,9 @@ export const semanticScopeWorld = (input, reducedClosure) => {
     || !Array.isArray(input.frames) || input.frames.length === 0) throw new Error('scope-world: explicit observation frames required');
   const records = readReduced(reducedClosure);
   const historicalIds = new Map();
+  // Agent provenance comes from the declared input mode and explicit session observations only.
+  const synthetic = input.source_mode === 'synthetic';
+  let agentsSeen = { declared: 0, observed: 0 };
   const frames = input.frames.map(observed => {
     if (typeof observed.id !== 'string' || !Number.isSafeInteger(observed.rev) || observed.rev < 0
       || !Number.isFinite(Date.parse(observed.asOf))) throw new Error('scope-world: observation identity/revision/time required');
@@ -151,7 +143,7 @@ export const semanticScopeWorld = (input, reducedClosure) => {
     // revision; current_label describes the original comparison's current.
     const originalNote = same(currentRevision, meaning.pair.current_ref) ? ''
       : ' · 元の比較の現状: ' + (meaning.pair.current_ref?.revision ?? 'unknown') + ' ' + (observed.current_label ?? '');
-    entity(currentRef, caption('現状', fit(revision, true)), 'purpose',
+    entity(currentRef, caption('現状', revision), 'purpose',
       '現状 ' + revision + ' · ' + currentStanding + ' · '
         + (meaning.observation ? observed.post_label ?? '観測宣言' : observed.current_label ?? '現在の意味状態') + originalNote,
       ['role=current', 'standing=' + currentStanding, 'revision=' + revision], declaredSource, currentStanding === 'observed-bound' ? postTime : time);
@@ -173,7 +165,17 @@ export const semanticScopeWorld = (input, reducedClosure) => {
       const dutyRef = entity(ref(space, 'obligation', duty.id), caption(duty.label ?? duty.id, '旧義務・履歴'), 'scopes', JSON.stringify(duty), ['history-preserved']);
       edge('history:' + duty.id, dutyRef, purposeRef, '旧義務', { obligation: duty, currentPair: meaning.pair });
     }
-    for (const scope of meaning.scopes ?? []) {
+    // Scopes are grouped by their declared owner (stable, first appearance) so owner
+    // relations to the Agents column, which uses the same order, never cross.
+    const ownerRank = new Map();
+    for (const scope of meaning.scopes ?? []) if (!ownerRank.has(scope.owner_actor)) ownerRank.set(scope.owner_actor, ownerRank.size);
+    const scopes = [...(meaning.scopes ?? [])].sort((a, b) => ownerRank.get(a.owner_actor) - ownerRank.get(b.owner_actor));
+    // Current -> unit relations keep their declared context and path, but are not
+    // drawn (visible:false): every unit would otherwise fan to both Current and
+    // Target in the Purpose column. One drawn Current -> Target relation lists them.
+    const changes = [];
+    const change = (id, to, label, context, path = false) => { changes.push(id); edge(id, currentRef, to, label, context, path, false); };
+    for (const scope of scopes) {
       const { status, disagreement } = ownScopeStatus(scope, closure);
       const standing = scopeStanding(status, bound);
       if (standing === 'active') currentGap += 1;
@@ -184,12 +186,14 @@ export const semanticScopeWorld = (input, reducedClosure) => {
         ['standing=' + standing, 'scope_status=' + status, ...(disagreement ? ['evaluation-disagreement'] : [])]);
       edge('scope:' + scope.id, scopeRef, targetRef, '引受', { scope, standing, scope_status: status,
         ...(disagreement ? { disagreement } : {}), comparison: meaning.comparison, closure, history: meaning.history, binding }, knownMeaning);
-      if (standing === 'active') edge('change:scope:' + scope.id, currentRef, scopeRef, '変化',
+      if (standing === 'active') change('change:scope:' + scope.id, scopeRef, '変化',
         { scope_id: scope.id, standing, necessity: 'current', current_revision: currentRevision }, knownMeaning);
-      else if (standing === 'unresolved') edge('change:scope:' + scope.id, currentRef, scopeRef, '未確定',
+      else if (standing === 'unresolved') change('change:scope:' + scope.id, scopeRef, '未確定',
         { scope_id: scope.id, standing, necessity: 'unresolved', current_revision: currentRevision });
     }
-    const unassigned = (meaning.uncovered ?? []).map(id => [id, 'uncovered-part']);
+    // A derived responsibility conflict (frame.responsibility) keeps its part unassigned but says so.
+    const responsibility = object(observed.responsibility) ? observed.responsibility : {};
+    const unassigned = (meaning.uncovered ?? []).map(id => [id, responsibility[id]?.state === 'conflict' ? 'owner-conflict' : 'uncovered-part']);
     // An unowned residual comes from the whole-Purpose evaluation; when that
     // evaluation conflicts, its units say so instead of plain unmet.
     const residualWhy = closure.purpose_status === 'conflict' ? 'whole-purpose-conflict' : 'unmet';
@@ -197,17 +201,18 @@ export const semanticScopeWorld = (input, reducedClosure) => {
       for (const id of list ?? []) if (!owned.has(id) && !unassigned.some(([known]) => known === id)) unassigned.push([id, why]);
     for (const [id, why] of unassigned) {
       currentGap += 1; uncertain += 1;
-      const unitRef = entity(ref(space, 'unassigned-change', id), caption(why.includes('conflict') ? '未割当・矛盾' : '未割当', fit(id, true)), 'scopes',
+      const unitRef = entity(ref(space, 'unassigned-change', id), caption(why.includes('conflict') ? '未割当・矛盾' : '未割当', id), 'scopes',
         '未割当: ' + id + ' · 担当未割当（' + why + '）。完了には昇格しません。次の観測・責任・根拠を確認します。', ['unassigned', 'owner-unassigned', 'source=' + why]);
-      const context = { id, source: why, comparison: meaning.comparison, closure, binding };
-      edge('change:unassigned:' + id, currentRef, unitRef, '変化', context, knownMeaning);
+      const context = { id, source: why, ...(object(responsibility[id]) ? { responsibility: responsibility[id] } : {}),
+        comparison: meaning.comparison, closure, binding };
+      change('change:unassigned:' + id, unitRef, '変化', context, knownMeaning);
       edge('residual:unassigned:' + id, unitRef, targetRef, '未達', context, knownMeaning);
     }
     // Uncertain or conflicting whole-Purpose evaluation is never an empty current Gap.
     const unresolvedUnit = (id, first, second, summary, flag, context) => {
       currentGap += 1; uncertain += 1;
       const unitRef = entity(ref(space, 'unresolved-change', id), caption(first, second), 'scopes', summary, [flag]);
-      edge('change:unresolved:' + id, currentRef, unitRef, first, context);
+      change('change:unresolved:' + id, unitRef, first, context);
       edge('residual:unresolved:' + id, unitRef, targetRef, first, context);
     };
     const evaluationContext = { comparison_status: meaning.status, reason: meaning.reason ?? closure.reason ?? null,
@@ -221,6 +226,9 @@ export const semanticScopeWorld = (input, reducedClosure) => {
     else if (closure.purpose_status === 'unmet' && currentGap === 0)
       unresolvedUnit('purpose-evaluation-unmet', '全体評価', '未達', '全体評価は未達ですが責任単位へ対応付いていません · 完了には昇格しません。',
         'unexplained', evaluationContext);
+    if (changes.length) edge('gap:current-target', currentRef, targetRef, '変化 ' + changes.length + ' 件',
+      { change_relations: [...changes], current_revision: currentRevision, purpose_standing: purposeStanding,
+        drawing: 'aggregate of the visible:false Current -> unit relations; each keeps its own context and path' });
 
     // Agents area: only explicitly declared identities with their declared roles.
     const actors = new Map();
@@ -229,16 +237,22 @@ export const semanticScopeWorld = (input, reducedClosure) => {
       if (!actors.has(id)) actors.set(id, []);
       actors.get(id).push(role);
     };
-    for (const scope of meaning.scopes ?? []) declare(scope.owner_actor, { role: 'owner_actor', scope: scope.id, owner_role: scope.owner_role });
+    for (const scope of scopes) declare(scope.owner_actor, { role: 'owner_actor', scope: scope.id, owner_role: scope.owner_role });
     if (meaning.observation) {
       declare(meaning.observation.writer, { role: 'writer' });
       declare(meaning.observation.evaluator, { role: 'evaluator' });
     }
+    const activity = object(observed.agent_activity) ? observed.agent_activity : {};
+    const mode = synthetic ? 'synthetic' : 'supplied';
     for (const [id, roles] of actors) {
+      const seen = object(activity[id]) && typeof activity[id].source === 'string' ? activity[id] : null;
+      const seenAt = typeof seen?.observedAt === 'string' && Number.isFinite(Date.parse(seen.observedAt)) ? seen.observedAt : null;
       const agentRef = entity(ref(space, 'agent', id), caption(id, [...new Set(roles.map(value => roleCaption[value.role]))].join('・')), 'agents',
-        id + ' · 宣言のみ（synthetic）: ' + roles.map(value => value.role).join(', ') + ' · 実活動・セッションは未観測', ['synthetic', 'declared-only', 'activity-unobserved']);
+        id + (seen ? ' · 宣言（' + mode + '）: ' : ' · 宣言のみ（' + mode + '）: ') + roles.map(value => value.role).join(', ')
+          + (seen ? ' · 活動観測: ' + JSON.stringify(seen.value) + '（' + seen.source + ' @' + (seenAt ?? 'unknown') + '）' : ' · 実活動・セッションは未観測'),
+        seen ? [mode, 'declared', 'activity-observed'] : [mode, 'declared-only', 'activity-unobserved'], declaredSource, { ...time, observedAt: seenAt });
       for (const role of roles) {
-        const declared = { declared_id: id, ...role, synthetic: true, activity: 'unobserved' };
+        const declared = { declared_id: id, ...role, synthetic, activity: seen ? 'observed' : 'unobserved' };
         if (role.role === 'owner_actor') edge('owner:' + role.scope, agentRef, ref(space, 'semantic-scope', role.scope), '担当', declared);
         // The writer/evaluator role relations always cross the Scopes pane, so their
         // overview line is not drawn (visible:false). The records stay in the World,
@@ -247,6 +261,7 @@ export const semanticScopeWorld = (input, reducedClosure) => {
           { ...declared, observed_ref: meaning.observation.observed_ref }, false, false);
       }
     }
+    agentsSeen = { declared: actors.size, observed: [...actors.keys()].filter(id => object(activity[id])).length };
     if (actors.size === 0) entity(ref(space, 'agent-declaration', 'missing'), caption('担当', '宣言なし'), 'agents',
       '担当の宣言なし · 供給データに担当者の宣言がありません。実Agentも未観測です。', ['missing']);
 
@@ -263,7 +278,8 @@ export const semanticScopeWorld = (input, reducedClosure) => {
   const purpose = ref(space, 'purpose', final.purpose_id);
   return { kind: 'ui.atlasWorldInput.v1', authority: false,
     presentation: { areas: [{ id: 'purpose', label: 'Purpose：現状と目標', order: 0 },
-      { id: 'scopes', label: 'Scope：必要な意味差の責任単位', order: 1 }, { id: 'agents', label: 'Agent：宣言された担当（合成・未観測）', order: 2 }],
+      { id: 'scopes', label: 'Scope：必要な意味差の責任単位', order: 1 }, { id: 'agents', label: 'Agent：宣言された担当（' + (synthetic ? '合成' : '供給') + '・'
+        + (agentsSeen.observed === 0 ? '未観測' : agentsSeen.observed === agentsSeen.declared ? '観測あり' : '一部観測') + '）', order: 2 }],
     purposeAreaId: 'purpose', directionTargets: [purpose], defaultSelection: purpose },
     frames, comparisons: [], note: 'Supplied-data three-pane projection. Each frame shows one selected Current revision; the original comparison, Closure records, evidence and old obligations stay readable as history. Agents are declared ids only (synthetic, activity unobserved). No admission, actual Purpose achievement or autonomous Factory claim.' };
 };

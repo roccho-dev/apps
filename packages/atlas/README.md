@@ -224,19 +224,28 @@ and no containment is drawn unless the input supplies it.
   activity-unobserved. `owner_role` is an attribute of the 担当 relation. With no
   declaration an explicit missing marker is shown. Unassigned units have no Agent.
 
-Overview captions are presentation only: at most two short lines (for example
-目的/目標/現状, a Scope label and its status, 未割当 and the id tail, an Agent id
-and its declared roles). Every supplied label, id, revision and status stays
-verbatim in the record summary, flags and relation context. Relation ids are
+Overview captions are presentation only: exactly two logical lines, a role/kind
+line and the **full** supplied text (for example 目的 and the Purpose label, 現状
+and the full revision, a Scope label and its status, 未割当 and the full id, an
+Agent id and its declared roles). The adapter never shortens them: no ellipsis,
+no id-tail elision. The generic UI wraps long lines. Every supplied label, id,
+revision and status also stays verbatim in the record summary, flags and context. Relation ids are
 namespaced by unit kind (`change:scope:`, `change:unassigned:`,
 `change:unresolved:`), so a Scope id equal to another unit id cannot collide.
 The overview orders Purpose, Target, Current; old obligations before the current
-units; owner Agents first. The observation `writer`/`evaluator` role relations
-always cross the Scopes pane, so only those two relations carry `visible:false`
-(their declared contexts are unchanged): the UI reports them as omitted
-relations, and their records stay in the World,
-catalog, search and detail, with the roles on the Agent caption and summary.
-Owner (担当) and Current/Scope/Target/Purpose relations stay drawn.
+units; Scopes grouped by declared owner (stable, first appearance) and owner
+Agents first in that same order, so 担当 relations do not cross. Two relation
+families carry `visible:false` with unchanged declared contexts: the observation
+`writer`/`evaluator` role relations (they always cross the Scopes pane) and the
+Current -> unit `change:*` relations (every unit would otherwise fan to both
+Current and Target in the Purpose column). The latter keep `path` for Direction;
+one drawn `gap:current-target` relation (変化 N 件) lists them in
+`context.change_relations`. The UI reports all of them as omitted relations;
+their records stay in the World, catalog, search and detail. Owner (担当),
+Current -> Target, Scope/unit -> Target -> Purpose and history relations stay drawn.
+`tests/crossings.mjs` counts overview crossings (columns by area order, rows by
+order, drawn relations only; same counts as ui `tests/fixtures/atlas-crossings.mjs`
+on P's mock: 10 before). Every fixture frame now has 0.
 
 Scope relation context keeps the full pair, responsibility, criteria, evidence,
 frame closure, standing and old obligations. Known, source-declared Current ->
@@ -282,3 +291,55 @@ server, ledger, runtime collector, credentials, renderer, merge/close/deploy
 authority, or Factory reactivation engine. Actual domain admission/observations,
 real Agent collection and source/SSE integration remain their existing separate
 responsibilities.
+
+## Event-sourced derivation (D)
+
+`events.jsonl + control.jsonl → deriveAtlas → closure.jsonl, semantic-scope-world.json, world.json, plan-projection.json`
+
+The only inputs are an `atlas.events/1` log of three event kinds and an
+`atlas.control-norms/1` Norm stand-in (ADRS `control.jsonl` R/W and binding).
+Gap, Scope state and responsibility are **derived**; nothing is hand-written.
+The existing contracts become outputs: per frame t the derivation emits the
+`atlas.purpose-closure/1` rows and the `atlas.semantic-scope-world/1` frame, and
+the unchanged `reduceClosure` + `semanticScopeWorld` build the World.
+
+| Event | Required fields |
+|---|---|
+| `purpose.set` | `purpose{id,label}`, `version`, `label`, `requires[]{id,label,predicate{target{kind:state,id},op:equals\|oneOf,value},maxAge (ISO 8601),norm}`, `source{ref,digest}` |
+| `plan.set` | `purposeRef{purposeId,version}`, `source{ref:repo#n,commentId\|null,updatedAt,digest}`, `version`, `nodes[]{id:repo#n:id,label,norm,exit,contributesTo[],predicateRefs?,due?}`, `edges[]{from,to,kind:dep\|loop\|branch,condition?}` |
+| `observation` | `target{kind:state\|owner\|session,id}`, `value`, `source`, `observedAt` |
+
+Every event has `recordedAt`; the log is append-ordered. `observedAt` and the
+plan body's `updatedAt` must not be later than `recordedAt` (future facts are
+rejected). Unknown fields/kinds, duplicate keys, unqualified plan node ids, dep
+cycles and references outside the named Purpose version fail closed.
+
+- Frames: each distinct `recordedAt` from the first `purpose.set`; now is the
+  maximum `recordedAt`. A frame sees only events at or before t, and its Closure
+  is reduced from that prefix only (no later rows leak into a past frame).
+- Condition: `satisfied`/`unmet` only for the latest observation of the exact
+  declared state target, within `maxAge` of t and comparable with the predicate;
+  otherwise `unknown` (no observation, stale, unmatchable). Ids, prefixes and
+  labels are never matched; reachability never satisfies anything.
+- Responsibility: the referenced Norm must exist and bind this Purpose/condition
+  and have exactly one W; an explicit `owner` observation must agree. Otherwise
+  `unassigned` or `conflict` (shown as 未割当・矛盾). Criterion ids are the
+  condition ids, so an unowned residual is one unassigned unit per condition.
+- History: a superseded version's obligations are frozen with the values derived
+  at its archive instant. Plans never enter the Gap, Current or coverage.
+- Plans (`atlas.plan-projection/1`): the latest plan per `repo#n` at t;
+  `premise-version-mismatch` when it names an older Purpose version. Node state
+  comes from `predicateRefs` (condition ids) only, else `unknown`; `blockedBy`
+  lists unsatisfied predicate ids and unfinished dep predecessors; a loop target's
+  satisfied→unmet transitions give an iteration number (`instance` `id#n`); `overdue`
+  only with `due`. No plan at t is `status: unknown, plans: null`, never empty.
+- Agents: the World heading and flags come from the declared `source_mode`
+  (`synthetic`/`supplied`) and `session` observations, not a fixed caption.
+
+~~~sh
+node packages/atlas/derive.mjs --out-dir=/tmp/atlas-d \
+  packages/atlas/fixtures/events/events.jsonl packages/atlas/fixtures/events/control.jsonl
+~~~
+
+`fixtures/events/` is synthetic (P's HQ mock events in this contract plus two
+plans). Its World hash is fixed in `tests/events.test.mjs`.
