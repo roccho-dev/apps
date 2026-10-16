@@ -9,13 +9,11 @@ import { collect, readSnapshots } from '../collect.mjs';
 
 const root = fileURLToPath(new URL('../', import.meta.url));
 const snapshotDir = path.join(root, 'fixtures/snapshots');
-const RECORDED = '2026-10-16T03:01:00Z';
+const RECORDED = '2026-10-16T20:40:00Z'; // after the real fetch (fetchedAt 2026-10-16T20:33:31Z)
 const snapshots = () => readSnapshots(snapshotDir);
 const byName = (repo, number) => snapshots().find(s => s.repo === repo && s.number === number);
 const r25 = () => byName('resources', 25);
 const body = s => ({ repo: s.repo, number: s.number, commentId: null, updatedAt: s.responses.issue.data.updated_at, text: s.responses.issue.data.body });
-const comment = (s, c) => ({ repo: s.repo, number: s.number, commentId: c.id, updatedAt: c.updated_at, text: c.body });
-const comments = s => s.responses.comments.data.flat();
 const node = (event, id) => event.nodes.find(n => n.id === `resources#25:${id}`);
 const edge = (event, from, to) => event.edges.filter(e => e.from === `resources#25:${from}` && e.to === `resources#25:${to}`);
 const fields = ['exit', 'predicate', 'owner', 'requires'];
@@ -140,12 +138,12 @@ test('PR observations: state, merged, head SHA, GitHub rollup; missing rollup is
 });
 
 test('time order: observedAt / updated_at after recordedAt is rejected', () => {
-  assert.throws(() => collect([byName('apps', 92)], '2026-10-16T03:00:09Z'), /observedAt .* is after recordedAt/u);
-  assert.throws(() => collect([r25()], '2026-10-15T11:59:59Z'), /updated_at .* is after recordedAt/u);
+  assert.throws(() => collect([byName('apps', 92)], '2026-10-16T20:33:30Z'), /observedAt .* is after recordedAt/u);
+  assert.throws(() => collect([r25()], '2026-10-16T20:02:15Z'), /updated_at .* is after recordedAt/u);
   assert.throws(() => portObservations({ sha256: 'x', probes: [{ target: 't', host: 'h', port: 1, observedAt: '2026-10-17T00:00:00Z', responded: true }] }, RECORDED), /after recordedAt/u);
   assert.throws(() => collect([r25()], 'yesterday'), /ISO-8601/u);
   // Equality is allowed.
-  assert.doesNotThrow(() => collect([byName('apps', 92)], '2026-10-16T03:00:10Z'));
+  assert.doesNotThrow(() => collect([byName('apps', 92)], '2026-10-16T20:33:31Z'));
 });
 
 test('session rule: declared session id in process list / session files only', () => {
@@ -165,10 +163,29 @@ test('session rule: declared session id in process list / session files only', (
   ]);
 });
 
+test('session rule on a /proc listing (host without ps): real cmdline row is running', () => {
+  // Rows as the README /proc processCommand prints them ("<pid> <cmdline, NUL→space>"), split like fetch.mjs.
+  // Real row from this host for atlas.W3; the long --allowedTools list is elided (no secrets in it).
+  const listing = [
+    '1 /init',
+    '105923 /nix/store/ias8xacs1h3jy7xgwi2awvim61k2ji6c-glibc-2.42-67/lib/ld-linux-x86-64.so.2 --library-path /nix/store/ias8xacs1h3jy7xgwi2awvim61k2ji6c-glibc-2.42-67/lib /nix/store/hbdx45v14b8p05cwvpwljp8wqq6rk4hz-claude -p --resume 2732b627-eeec-42ab-b12e-9969389dbdc7 -n atlas.W3 --model claude-opus-5-5 --output-format text --allowedTools [elided]',
+  ];
+  const processes = listing.map(line => { const [, pid, command] = /^(\d+)\s+(.*)$/u.exec(line); return { pid: Number(pid), command }; });
+  const declared = [
+    { target: 'atlas.W3', sessionId: '2732b627-eeec-42ab-b12e-9969389dbdc7' },
+    { target: 'atlas.R', sessionId: 'c63c8384-6d0b-42c1-9e27-2a37a26f2334' },
+  ];
+  const snapshot = { host: 'localhost', observedAt: '2026-10-16T20:33:31Z', sha256: 'sha256:proc', declared, processes, sessionFiles: [] };
+  assert.deepEqual(sessionObservations(snapshot, RECORDED).map(e => [e.target, e.value]),
+    [['atlas.W3:session', 'running'], ['atlas.R:session', 'not-started']]);
+  // "-n atlas.W3" in the same row is not what matched: without the id, the name alone is no evidence.
+  assert.equal(sessionState('ffffffff-0000-4000-8000-000000000000', processes, []), SESSION.NOT_STARTED);
+});
+
 test('same version declared twice with different text: no winner, plan UNKNOWN', () => {
-  const s = r25(), [first] = comments(s);
-  const twin = { ...comment(s, first), commentId: 9, text: first.body.replace('差分のみ', '別文') };
-  const [event] = planEvents([body(s), comment(s, first), twin], RECORDED);
+  const s = r25(), v1 = body(s);
+  const twin = { ...v1, commentId: 9, text: `${v1.text}\n別文\n` };
+  const [event] = planEvents([v1, twin], RECORDED);
   assert.equal(event.nodes, UNKNOWN);
   assert.deepEqual(event.unknown, ['conflicting-version']);
   assert.equal(event.source.length, 2);

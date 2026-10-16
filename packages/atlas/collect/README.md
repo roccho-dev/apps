@@ -33,6 +33,11 @@ node packages/atlas/collect/collect.mjs .artifacts/g-snapshots --out .artifacts/
 - PRs only: `gh api graphql` → `state merged mergedAt headRefOid commits(last:1){oid statusCheckRollup{state}}`
 - sessions: `ssh g6i3-own 'ps -eo pid=,args='` and `ssh g6i3-own 'find ~/.claude/projects -name "*.jsonl"'`
   (override with `sessions.processCommand` / `sessions.filesCommand` in the config)
+- a host without `ps` (e.g. g6i3-own): read `/proc` instead; the output keeps the `<pid> <command line>` form
+
+  ```json
+  "processCommand": "for p in /proc/[0-9]*; do c=$(tr '\\0' ' ' < $p/cmdline 2>/dev/null); [ -n \"$c\" ] && printf '%s %s\\n' \"${p#/proc/}\" \"$c\"; done"
+  ```
 - ports: a TCP connect to each declared `host:port` (2 s timeout)
 
 A failed call is stored with `data: null`; the transform turns it into `UNKNOWN`.
@@ -93,9 +98,13 @@ the highest `N` is current. Two different texts with the same highest `N` → no
   every node's exit/predicate/owner/requires `UNKNOWN`; earlier versions are not merged in.
 - `updated_at > recordedAt` is rejected (throws). No marker → no `plan.set` (e.g. adrs#628, apps#92).
 
-## Replace fixtures
+For an Issue/PR body, `source.updatedAt` is the REST `updated_at` of the whole Issue/PR, which also
+moves when a comment is added; GitHub exposes no separate body-edit time here.
 
-`fixtures/snapshots/` is synthetic (shaped like `gh api` output) because the authoring host had no
-gh login. After a G6I3 run, copy `.artifacts/g-snapshots/issue-roccho-dev-resources-25.json` and the
-two `pr-*.json` over the fixtures and rerun `node --test packages/atlas/collect/tests/*.test.mjs`;
-a failing assertion then means the real resources#25 differs from the agreed v1/v2 shape.
+## Fixtures
+
+`fixtures/snapshots/issue-roccho-dev-resources-25.json` and the two `pr-*.json` are real `gh api`
+responses (fetched 2026-10-16T20:33:31Z with P's logged-in gh, recorded and replayed with the same
+arguments as `fetch.mjs`). `sessions.json` and `ports.json` stay synthetic. To refresh, copy a new
+`.artifacts/g-snapshots/*` over them and rerun `node --test packages/atlas/collect/tests/*.test.mjs`;
+a failing assertion means the real resources#25 differs from the agreed v1/v2 shape.

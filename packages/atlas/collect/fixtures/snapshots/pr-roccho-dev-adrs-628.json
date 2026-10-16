@@ -3,27 +3,193 @@
   "owner": "roccho-dev",
   "repo": "adrs",
   "number": 628,
-  "fetchedAt": "2026-10-16T03:00:15Z",
-  "fixture": "synthetic: no checks configured (statusCheckRollup null); replace with the G6I3 snapshot (README: Replace fixtures)",
+  "fetchedAt": "2026-10-16T20:33:31Z",
   "responses": {
     "issue": {
       "command": "gh api repos/roccho-dev/adrs/issues/628",
-      "sha256": "sha256:4444444444444444444444444444444444444444444444444444444444444444",
-      "data": { "number": 628, "updated_at": "2026-10-15T01:00:00Z", "body": "ADR update without a plan marker.\n\n<!-- not-a-marker -->\n" }
+      "sha256": "sha256:aed04ea652d8983f1411fd8d2bf6d57c29661c51cf4fdedf4368489b267bca12",
+      "data": {
+        "url": "https://api.github.com/repos/roccho-dev/adrs/issues/628",
+        "repository_url": "https://api.github.com/repos/roccho-dev/adrs",
+        "labels_url": "https://api.github.com/repos/roccho-dev/adrs/issues/628/labels{/name}",
+        "comments_url": "https://api.github.com/repos/roccho-dev/adrs/issues/628/comments",
+        "events_url": "https://api.github.com/repos/roccho-dev/adrs/issues/628/events",
+        "html_url": "https://github.com/roccho-dev/adrs/pull/628",
+        "id": 5823705766,
+        "node_id": "PR_kwDOQQcB9s8AAAABIFlJbw",
+        "number": 628,
+        "title": "Atlas: 同じOpus R/Wの3ペイン実装・検証ループと終了記録",
+        "user": {
+          "login": "roccho-dev",
+          "id": 40359643,
+          "node_id": "MDQ6VXNlcjQwMzU5NjQz",
+          "avatar_url": "https://avatars.githubusercontent.com/u/40359643?v=4",
+          "gravatar_id": "",
+          "url": "https://api.github.com/users/roccho-dev",
+          "html_url": "https://github.com/roccho-dev",
+          "followers_url": "https://api.github.com/users/roccho-dev/followers",
+          "following_url": "https://api.github.com/users/roccho-dev/following{/other_user}",
+          "gists_url": "https://api.github.com/users/roccho-dev/gists{/gist_id}",
+          "starred_url": "https://api.github.com/users/roccho-dev/starred{/owner}{/repo}",
+          "subscriptions_url": "https://api.github.com/users/roccho-dev/subscriptions",
+          "organizations_url": "https://api.github.com/users/roccho-dev/orgs",
+          "repos_url": "https://api.github.com/users/roccho-dev/repos",
+          "events_url": "https://api.github.com/users/roccho-dev/events{/privacy}",
+          "received_events_url": "https://api.github.com/users/roccho-dev/received_events",
+          "type": "User",
+          "user_view_type": "public",
+          "site_admin": false
+        },
+        "labels": [],
+        "state": "closed",
+        "locked": false,
+        "assignees": [],
+        "milestone": null,
+        "comments": 0,
+        "created_at": "2026-10-13T02:56:04Z",
+        "updated_at": "2026-10-16T07:37:36Z",
+        "closed_at": "2026-10-16T07:37:36Z",
+        "assignee": null,
+        "author_association": "OWNER",
+        "active_lock_reason": null,
+        "draft": false,
+        "pull_request": {
+          "url": "https://api.github.com/repos/roccho-dev/adrs/pulls/628",
+          "html_url": "https://github.com/roccho-dev/adrs/pull/628",
+          "diff_url": "https://github.com/roccho-dev/adrs/pull/628.diff",
+          "patch_url": "https://github.com/roccho-dev/adrs/pull/628.patch",
+          "merged_at": "2026-10-16T07:37:36Z"
+        },
+        "body": "Refs #613\n\nGoal: Purposeから必要な意味差（Scope）と担当を三つの領域で辿り、現状更新後の残差を同じ画面で読める。\n\n## Scope\n同じOCI Opus R/Wによる3者主張・反証・相互読戻しと、供給済みdataから3ペインの実画面へ至る限定ループの完了を記録します。Apps PR92はPurpose / Scopes / Agents、単一Currentの版更新、現在必要なScopeと完了履歴、明示した未割当・未知・矛盾を表示します。\n\n公開ソース `fa660f339be62429c54047137d2922815cc8e56b`、native `96a534d3c6afbcbdc464ce4e61a04603a112e7f7`、全tree `d23671e51c4fa23faf08af0fcff333f3defe3628`。実行GOは44e6c9a/v2、製品完了記録はv3です。v4で並行proposals 56f5fb7を通常の2親commitとして統合し、互いに変更したidが重ならないことを確認しました。取り込んだ正本ファイルはcanonicalのbyte-identical、製品コードは変更しません。\n\n## Non-scope\n事業Purpose達成、意味採択、実Agent収集、Factory、組織全体の完了、raw Record表示の操作性再設計、UIコード・workflow・global pin変更、merge・close・deploy。\n\n## Verification\n- Apps公開head `b1fec7a61a0f7728f6262c70afc591f5661f8dd3`、tree `d7f7c6d282557a39cf7a0dc5e67e7c5b0d0dc3ca` は実W原稿1386b9eと全tree/3変更blobが一致。R独立ローカル148/148・検索15/15、2画面サイズの実ブラウザー検証、Pの日本語実画面・検索修正・Before/After・省略2関係回復・reloadが合格。\n- [公開CI](https://github.com/roccho-dev/apps/actions/runs/38572579351/job/115881332878)は同headでsuccess、Check Atlas Purpose Closureを含む全8工程success。Pの既存authenticated connectorが取得しRが全文読戻し。Rは独立ネットワーク取得・公開bytes再計算を主張しません。\n- Rのterminal-product1はこの限定製品範囲をCOMPLETE/residual0。Wのterminal-ack1は全文読戻し・同意・idleを確認。P/R/Wは同じ小さく美しいゴールを独立に断言。\n- v3では直前44eからjob318だけをinactive/ENDEDにし他317行をbyte-identicalで保持。v4の組織記録統合後はNorm321行。canonical309行を全てbyte-identicalで保持し、旧独立系列の315行もそのまま保持（他3行はcanonicalの独立変更を採用）。同id競合0、全グラフ・root/parent/循環/到達性・正本SQLをSQLite :memory:で検証。終了後の選択はroot/R/Wの3行、今回jobはinactive/ENDEDのまま。別native host R/W向けexecution追記はこのpair/GOを変更しません。\n- 承認なしrm -rfの実行履歴と影響UNKNOWNを保持。製品は保存したcommitからRが独立再生成し一致。自動承認拒否後はRをReadのみ・W説明更新をRead/Editのみへ絞り、モデル・session・認証・アクセスを代替しません。\n- ADRSソースCIは実行済みと主張せず、上記全グラフ/SQL/差分/公開blobの実測を根拠とします。UI consumer ccd05d0は変更なく、先行146/146・check:base等の証拠を継承します。\n\n同じR/Wはsource-close1でこの公開終了ソースに同意し、final-peer2で互いの全文を読み戻して重要な齟齬なしと確認しました。Pも両全文を受領済みです。限定source/product範囲の残件0、今回job inactive/ENDED、両者IDLEで認識一致しています。\n\n## Merge condition\n同じR/Wがこの公開終了ソースと正本・製品terminal・残る別範囲・以後idle/有限lease終了を全文読戻し、認識一致すること。この限定範囲の残件0を実事業達成や組織全体の完了とは扱いません。\n\nDo not merge automatically. explicit human approvalなしのmergeは行いません。Draftのまま保持します。\n",
+        "closed_by": {
+          "login": "roccho-dev",
+          "id": 40359643,
+          "node_id": "MDQ6VXNlcjQwMzU5NjQz",
+          "avatar_url": "https://avatars.githubusercontent.com/u/40359643?v=4",
+          "gravatar_id": "",
+          "url": "https://api.github.com/users/roccho-dev",
+          "html_url": "https://github.com/roccho-dev",
+          "followers_url": "https://api.github.com/users/roccho-dev/followers",
+          "following_url": "https://api.github.com/users/roccho-dev/following{/other_user}",
+          "gists_url": "https://api.github.com/users/roccho-dev/gists{/gist_id}",
+          "starred_url": "https://api.github.com/users/roccho-dev/starred{/owner}{/repo}",
+          "subscriptions_url": "https://api.github.com/users/roccho-dev/subscriptions",
+          "organizations_url": "https://api.github.com/users/roccho-dev/orgs",
+          "repos_url": "https://api.github.com/users/roccho-dev/repos",
+          "events_url": "https://api.github.com/users/roccho-dev/events{/privacy}",
+          "received_events_url": "https://api.github.com/users/roccho-dev/received_events",
+          "type": "User",
+          "user_view_type": "public",
+          "site_admin": false
+        },
+        "reactions": {
+          "url": "https://api.github.com/repos/roccho-dev/adrs/issues/628/reactions",
+          "total_count": 0,
+          "+1": 0,
+          "-1": 0,
+          "laugh": 0,
+          "hooray": 0,
+          "confused": 0,
+          "heart": 0,
+          "rocket": 0,
+          "eyes": 0
+        },
+        "timeline_url": "https://api.github.com/repos/roccho-dev/adrs/issues/628/timeline",
+        "performed_via_github_app": {
+          "id": 1144995,
+          "client_id": "Iv23liVemv8A9if9v0F2",
+          "slug": "chatgpt-codex-connector",
+          "node_id": "A_kwHOAOQ6Gs4AEXij",
+          "owner": {
+            "login": "openai",
+            "id": 14957082,
+            "node_id": "MDEyOk9yZ2FuaXphdGlvbjE0OTU3MDgy",
+            "avatar_url": "https://avatars.githubusercontent.com/u/14957082?v=4",
+            "gravatar_id": "",
+            "url": "https://api.github.com/users/openai",
+            "html_url": "https://github.com/openai",
+            "followers_url": "https://api.github.com/users/openai/followers",
+            "following_url": "https://api.github.com/users/openai/following{/other_user}",
+            "gists_url": "https://api.github.com/users/openai/gists{/gist_id}",
+            "starred_url": "https://api.github.com/users/openai/starred{/owner}{/repo}",
+            "subscriptions_url": "https://api.github.com/users/openai/subscriptions",
+            "organizations_url": "https://api.github.com/users/openai/orgs",
+            "repos_url": "https://api.github.com/users/openai/repos",
+            "events_url": "https://api.github.com/users/openai/events{/privacy}",
+            "received_events_url": "https://api.github.com/users/openai/received_events",
+            "type": "Organization",
+            "user_view_type": "public",
+            "site_admin": false
+          },
+          "name": "ChatGPT Codex Connector",
+          "description": "Bring ChatGPT and Codex to your GitHub repositories.",
+          "external_url": "https://www.chatgpt.com",
+          "html_url": "https://github.com/apps/chatgpt-codex-connector",
+          "created_at": "2025-02-14T01:37:05Z",
+          "updated_at": "2026-09-23T18:52:59Z",
+          "permissions": {
+            "actions": "write",
+            "checks": "read",
+            "contents": "write",
+            "emails": "read",
+            "issues": "write",
+            "metadata": "read",
+            "pull_requests": "write",
+            "statuses": "read",
+            "workflows": "write"
+          },
+          "events": [
+            "check_run",
+            "check_suite",
+            "commit_comment",
+            "issues",
+            "issue_comment",
+            "pull_request",
+            "pull_request_review",
+            "pull_request_review_comment",
+            "pull_request_review_thread",
+            "repository",
+            "status",
+            "sub_issues"
+          ]
+        },
+        "state_reason": null
+      }
     },
     "comments": {
       "command": "gh api --paginate --slurp repos/roccho-dev/adrs/issues/628/comments?per_page=100",
-      "sha256": "sha256:5555555555555555555555555555555555555555555555555555555555555555",
-      "data": [[]]
+      "sha256": "sha256:a930ec39e7339fde7af6a7f1009d621c595aab52ec9324dde1e8387212ae64aa",
+      "data": [
+        []
+      ]
     },
     "pr": {
-      "command": "gh api graphql (pullRequest roccho-dev/adrs#628)",
-      "sha256": "sha256:6666666666666666666666666666666666666666666666666666666666666666",
-      "data": { "data": { "repository": { "pullRequest": {
-        "number": 628, "state": "OPEN", "merged": false, "mergedAt": null,
-        "headRefOid": "0123456789abcdef0123456789abcdef01234567", "updatedAt": "2026-10-15T01:00:00Z",
-        "commits": { "nodes": [ { "commit": { "oid": "0123456789abcdef0123456789abcdef01234567", "statusCheckRollup": null } } ] }
-      } } } }
+      "command": "gh api graphql -f query=query($owner:String!,$name:String!,$number:Int!){repository(owner:$owner,name:$name){pullRequest(number:$number){\nnumber state merged mergedAt headRefOid updatedAt commits(last:1){nodes{commit{oid statusCheckRollup{state}}}}}}} -F owner=roccho-dev -F name=adrs -F number=628",
+      "sha256": "sha256:d4627f9583887732b539c5c5142b8deed8af4e33a2eb06486aa7dadaa461dac8",
+      "data": {
+        "data": {
+          "repository": {
+            "pullRequest": {
+              "number": 628,
+              "state": "MERGED",
+              "merged": true,
+              "mergedAt": "2026-10-16T07:37:36Z",
+              "headRefOid": "36e182bba7d504caa37eb59248a4e4268063fce0",
+              "updatedAt": "2026-10-16T07:37:36Z",
+              "commits": {
+                "nodes": [
+                  {
+                    "commit": {
+                      "oid": "36e182bba7d504caa37eb59248a4e4268063fce0",
+                      "statusCheckRollup": null
+                    }
+                  }
+                ]
+              }
+            }
+          }
+        }
+      }
     }
   }
 }
