@@ -1,0 +1,29 @@
+{
+  "type": "pr",
+  "owner": "roccho-dev",
+  "repo": "apps",
+  "number": 92,
+  "fetchedAt": "2026-10-16T03:00:10Z",
+  "fixture": "synthetic: head SHA is the merged parent 8fe13e8^2; replace with the G6I3 snapshot (README: Replace fixtures)",
+  "responses": {
+    "issue": {
+      "command": "gh api repos/roccho-dev/apps/issues/92",
+      "sha256": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+      "data": { "number": 92, "updated_at": "2026-10-14T08:00:00Z", "body": "Refs #68\n\nAtlas: project declared Purpose semantic Scopes into existing World.\n\n```mermaid\nflowchart TD\n  X --> Y\n```\n" }
+    },
+    "comments": {
+      "command": "gh api --paginate --slurp repos/roccho-dev/apps/issues/92/comments?per_page=100",
+      "sha256": "sha256:2222222222222222222222222222222222222222222222222222222222222222",
+      "data": [[ { "id": 4001, "updated_at": "2026-10-14T08:30:00Z", "body": "LGTM" } ]]
+    },
+    "pr": {
+      "command": "gh api graphql (pullRequest roccho-dev/apps#92)",
+      "sha256": "sha256:3333333333333333333333333333333333333333333333333333333333333333",
+      "data": { "data": { "repository": { "pullRequest": {
+        "number": 92, "state": "MERGED", "merged": true, "mergedAt": "2026-10-14T09:00:00Z",
+        "headRefOid": "b1fec7a61a0f7728f6262c70afc591f5661f8dd3", "updatedAt": "2026-10-14T09:00:00Z",
+        "commits": { "nodes": [ { "commit": { "oid": "b1fec7a61a0f7728f6262c70afc591f5661f8dd3", "statusCheckRollup": { "state": "SUCCESS" } } } ] }
+      } } } }
+    }
+  }
+}

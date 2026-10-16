@@ -1,0 +1,29 @@
+{
+  "type": "pr",
+  "owner": "roccho-dev",
+  "repo": "adrs",
+  "number": 628,
+  "fetchedAt": "2026-10-16T03:00:15Z",
+  "fixture": "synthetic: no checks configured (statusCheckRollup null); replace with the G6I3 snapshot (README: Replace fixtures)",
+  "responses": {
+    "issue": {
+      "command": "gh api repos/roccho-dev/adrs/issues/628",
+      "sha256": "sha256:4444444444444444444444444444444444444444444444444444444444444444",
+      "data": { "number": 628, "updated_at": "2026-10-15T01:00:00Z", "body": "ADR update without a plan marker.\n\n<!-- not-a-marker -->\n" }
+    },
+    "comments": {
+      "command": "gh api --paginate --slurp repos/roccho-dev/adrs/issues/628/comments?per_page=100",
+      "sha256": "sha256:5555555555555555555555555555555555555555555555555555555555555555",
+      "data": [[]]
+    },
+    "pr": {
+      "command": "gh api graphql (pullRequest roccho-dev/adrs#628)",
+      "sha256": "sha256:6666666666666666666666666666666666666666666666666666666666666666",
+      "data": { "data": { "repository": { "pullRequest": {
+        "number": 628, "state": "OPEN", "merged": false, "mergedAt": null,
+        "headRefOid": "0123456789abcdef0123456789abcdef01234567", "updatedAt": "2026-10-15T01:00:00Z",
+        "commits": { "nodes": [ { "commit": { "oid": "0123456789abcdef0123456789abcdef01234567", "statusCheckRollup": null } } ] }
+      } } } }
+    }
+  }
+}

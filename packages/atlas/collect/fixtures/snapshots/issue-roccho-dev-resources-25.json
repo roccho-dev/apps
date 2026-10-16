@@ -1,0 +1,36 @@
+{
+  "type": "issue",
+  "owner": "roccho-dev",
+  "repo": "resources",
+  "number": 25,
+  "fetchedAt": "2026-10-16T03:00:05Z",
+  "fixture": "synthetic: shaped like `gh api` output; replace with the G6I3 snapshot of resources#25 (README: Replace fixtures)",
+  "responses": {
+    "issue": {
+      "command": "gh api repos/roccho-dev/resources/issues/25",
+      "sha256": "sha256:6a1f6b0c2c4e1d1b8f0f9b7c2d5f9a0e3c1b7d2e4f6a8b0c2d4e6f8a0b2c4d6e",
+      "data": {
+        "number": 25,
+        "title": "atlas plan",
+        "updated_at": "2026-10-15T09:00:00Z",
+        "body": "Plan.\n\n<!-- atlas-plan-v1 -->\n## plan v1\n\n```mermaid\nflowchart TD\n  A[\"目的の宣言\"] --> B(現状の収集)\n  subgraph S1 [実装]\n    C[V: ui] \n    D[D: 導出]\n  end\n  B -->|dep| S1\n  C & D --> E{出口を満たす?}\n  E -->|no| E\n  E -->|yes| F[観測]\n  F -.-> G{検証 PASS?}\n  G -->|loop: no / UNKNOWN| L[差し戻し]\n  G -->|yes| H((完了報告))\n  L --> B\n  %% comment ignored\n```\n\n| ノード | 出口条件 | 観測述語 | 担当根拠 | 寄与 requires |\n|---|---|---|---|---|\n| A | 目的が宣言済み | plan.set exists | P | |\n| B | 収集が出力 | observation count > 0 | atlas.W3 | A |\n| C | V 実装 merged | pr.merged = true | atlas.W | B |\n| D | D 実装 merged | pr.merged = true | atlas.W2 | B |\n| `E` | C と D の出口 | ci.rollup = SUCCESS | atlas.R | C, D |\n| G | 検証 PASS | R の報告 | atlas.R | F |\n"
+      }
+    },
+    "comments": {
+      "command": "gh api --paginate --slurp repos/roccho-dev/resources/issues/25/comments?per_page=100",
+      "sha256": "sha256:0b2c4d6e8f0a2b4c6d8e0f2a4b6c8d0e2f4a6b8c0d2e4f6a8b0c2d4e6f8a0b2c",
+      "data": [[
+        {
+          "id": 3001,
+          "updated_at": "2026-10-15T12:00:00Z",
+          "body": "<!-- atlas-plan-v2 -->\n## plan v2 (差分のみ)\n\nE の出口を変更。表は v1 から変更なしの部分を省略。\n\n```mermaid\nflowchart TD\n  A[\"目的の宣言\"] --> B(現状の収集)\n  subgraph S1 [実装]\n    C[V: ui]\n    D[D: 導出]\n  end\n  B -->|dep| S1\n  C & D --> E{出口を満たす?}\n  E -->|no| E\n  E -->|yes| F[観測]\n  F -.-> G{検証 PASS?}\n  G -->|no / UNKNOWN| L[差し戻し]\n  G -->|yes| H((完了報告))\n  L --> B\n```\n"
+        },
+        {
+          "id": 3002,
+          "updated_at": "2026-10-15T13:00:00Z",
+          "body": "unmarked discussion; not a plan section.\n\n| ノード | 出口条件 | 観測述語 | 担当根拠 | 寄与 requires |\n|---|---|---|---|---|\n| E | ignored | ignored | ignored | ignored |\n"
+        }
+      ]]
+    }
+  }
+}

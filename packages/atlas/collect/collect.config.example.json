@@ -1,0 +1,16 @@
+{
+  "issues": ["roccho-dev/resources#25"],
+  "pulls": ["roccho-dev/adrs#628", "roccho-dev/apps#92"],
+  "ports": [
+    { "target": "dev.ui", "host": "127.0.0.1", "port": 5173 }
+  ],
+  "sessions": {
+    "ssh": "g6i3-own",
+    "declared": [
+      { "target": "atlas.R", "sessionId": "<R session id>" },
+      { "target": "atlas.W", "sessionId": "<W session id>" },
+      { "target": "atlas.W2", "sessionId": "<W2 session id>" },
+      { "target": "atlas.W3", "sessionId": "<W3 session id>" }
+    ]
+  }
+}
