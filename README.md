@@ -78,6 +78,10 @@ flowchart TD
 One gate call precedes the existing maximum-eight-call Goal loop. It uses one
 absolute 180-second dispatch deadline; an already-started bounded provider call
 can finish after that deadline, but no later call or adoption is started.
+That single Jev POST batches two questions: intent (change / ambiguous /
+no-change / unsupported) and inventory (sufficient / missing). Both answers
+must be valid. A change uses the weaker confidence; other intents use their
+own choice/confidence. The existing0.5 floor and five-choice app API remain.
 The gate does not interpret NONE/low confidence as missing candidates. TypeLLM
 runs at most once, on a confident missing verdict, and returns at most three
 `{label,kind,occurrence}` instances. Occurrences for identical label/kind pairs

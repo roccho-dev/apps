@@ -1,5 +1,10 @@
 import { COVERAGE, inventoryQuestion, isInventory, readMissing, typedMissingRequest } from "../../src/completion.mjs";
 const json = (body, status = 200) => Response.json(body, { status, headers: { "cache-control": "no-store" } });
+const inventoryChoices = ["sufficient", "missing"];
+const intentChoices = ["change", ...COVERAGE.filter(choice => !inventoryChoices.includes(choice))];
+const validAnswer = (answer, choices) => answer && choices.includes(answer.choice)
+  && typeof answer.confidence === "number" && Number.isFinite(answer.confidence)
+  && answer.confidence >= 0 && answer.confidence <= 1;
 const failures = {
   auth_missing: [503, "parts_unavailable"], provider_timeout: [504, "parts_timeout"],
   provider_http_error: [502, "parts_provider_error"], provider_unavailable: [502, "parts_provider_error"],
@@ -16,11 +21,12 @@ export async function onParts({ request, mode, available }, { judge, generate })
   try {
     if (mode === "check") {
       const value = await judge(inventoryQuestion(input.state), { signal: request.signal });
-      const answer = value?.answers?.coverage;
-      if (!answer || !COVERAGE.includes(answer.choice) || typeof answer.confidence !== "number"
-          || !Number.isFinite(answer.confidence) || answer.confidence < 0 || answer.confidence > 1)
+      const intent = value?.answers?.intent, coverage = value?.answers?.coverage;
+      if (!validAnswer(intent, intentChoices) || !validAnswer(coverage, inventoryChoices))
         return json({ error: "parts_contract" }, 502);
-      return json({ choice: answer.choice, confidence: answer.confidence });
+      return json(intent.choice === "change"
+        ? { choice: coverage.choice, confidence: Math.min(intent.confidence, coverage.confidence) }
+        : { choice: intent.choice, confidence: intent.confidence });
     }
     const value = await generate(typedMissingRequest(input.state), { signal: request.signal });
     const missing = readMissing(value?.result?.missing);

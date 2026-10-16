@@ -301,8 +301,13 @@ test("compiled Worker binds both released provider operations, validates invento
   const { calls } = await withProvider(async (body, init) => {
     if (body.questions.coverage) {
       assert.equal(init.headers.authorization, "Bearer jev-test-only");
-      return Response.json({ model: "jev-test", answers: { coverage: { type: "choice", choice: "missing", confidence: 0.9,
-        probabilities: Object.fromEntries(Object.keys(body.questions.coverage.criteria).map(key => [key, key === "missing" ? 0.9 : 0.025])) } } });
+      assert.deepEqual(Object.keys(body.questions), ["intent", "coverage"]);
+      return Response.json({ model: "jev-test", answers: Object.fromEntries(Object.entries(body.questions).map(([name, question]) => {
+        const choice = name === "intent" ? "change" : "missing", confidence = name === "intent" ? 0.95 : 0.9;
+        return [name, { type: "choice", choice, confidence,
+          probabilities: Object.fromEntries(Object.keys(question.criteria).map(key => [key,
+            key === choice ? confidence : (1 - confidence) / (Object.keys(question.criteria).length - 1)])) }];
+      })) });
     }
     assert.equal(init.redirect, "error");
     assert.equal(init.headers.authorization, "Bearer typed-test-only");

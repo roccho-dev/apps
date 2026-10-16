@@ -37,19 +37,26 @@ function inventoryOf({ utterance, bundle, working }) {
 }
 
 export function inventoryQuestion(state) {
-  return { state, questions: { coverage: {
-    instruction: "Assess the executable candidate inventory for the current utterance, not confidence in choosing a next step. "
-      + "Existing regions/edges already satisfy their corresponding requested facts. Each library part key can add exactly ONE new instance per Goal, "
-      + "with exactly its displayed label and kind. It cannot rename itself; a generic shape/purpose does not provide an arbitrary requested name. "
-      + "Count requested new instances and compare labels/kinds/capacity, allowing clear synonyms only when the displayed name was not explicitly specified. "
+  return { state, questions: { intent: {
+    instruction: "Classify whether the utterance requests a clear supported graph change, independently of library availability. "
+      + "Existing regions/edges satisfy their corresponding requested facts. An explicit addition still requests a change when other parts must stay unchanged. "
       + "The small supported task adds at most three regions and one directed flow edge inside existing named groups, including a group added earlier in the same goal. "
-      + "No root additions, removal, movement, new operators or unspecified endpoints. Distinguish missing candidates from ambiguity and from an already satisfied goal.",
+      + "No root additions, removal, movement, new operators or unspecified endpoints. Missing library candidates do not make a clear supported request ambiguous or unsupported.",
     options: {
-      sufficient: "The requested change is clear, supported, not already satisfied, and EVERY required new instance is available in the library with the required label/kind and capacity. Existing nodes can be connected without adding candidates.",
-      missing: "The supported change is clear, but at least one required NEW part instance lacks its requested displayed label/kind or exceeds the one-instance capacity of the matching library keys. A new name or repeated instance needs completion.",
+      change: "A clear supported graph change is requested and at least one requested fact is not yet satisfied. Ignore whether its candidate parts are in the library.",
       ambiguous: "The requested change, count, group or endpoint cannot be uniquely understood. Do not invent missing instructions.",
       "no-change": "No graph change is requested, or every requested fact already exists in the current graph.",
       unsupported: "The clear request requires operations or size outside the stated small supported task.",
+    },
+  }, coverage: {
+    instruction: "For a clear supported change, assess ONLY the executable candidate inventory, not confidence in choosing a next step. "
+      + "Each library part key can add exactly ONE new instance per Goal, "
+      + "with exactly its displayed label and kind. It cannot rename itself; a generic shape/purpose does not provide an arbitrary requested name. "
+      + "Count requested new instances and compare labels/kinds/capacity, allowing clear synonyms only when the displayed name was not explicitly specified. "
+      + "Connecting existing nodes needs no new candidate parts. This inventory answer is used only when intent is change.",
+    options: {
+      sufficient: "EVERY required new instance is available in the library with the required label/kind and capacity, or only existing nodes need connecting.",
+      missing: "At least one required NEW part instance lacks its requested displayed label/kind or exceeds the one-instance capacity of the matching library keys. A new name or repeated instance needs completion.",
     },
   } } };
 }
