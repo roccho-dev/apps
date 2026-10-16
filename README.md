@@ -49,3 +49,114 @@ The tests are controlled/synthetic only. They do **not** demonstrate real
 B/current source, Jev quality, Direct/Voice sharing, UI selection/Working,
 physical host acceptance, authoritative Accepted state or edits retirement.
 Any real provider/host binding must be separately authorized at ReadyLive.
+
+## Voice-ui: candidate sufficiency and TypeLLM PoC
+
+This PoC tests whether the executable parts are present, and fills missing
+candidates before asking Jev to select legal changes. The reusable provider
+transport/typed-answer core is in ops. Apps pins completed, reviewed Worker
+release bytes and owns the meaning of parts, quantity, placement and graph edits.
+
+The tested target starts inside an existing named group and adds at most three
+regions and one directed flow edge. Empty-map/root construction, new operators,
+arbitrary complex graphs and source architecture synthesis are outside this PoC.
+Ordinary Send and source-scoped Goal keep their existing paths.
+
+```mermaid
+flowchart TD
+  I[Utterance + current Working + library] --> C[Jev: sufficient / missing / ambiguous / no-change / unsupported]
+  C -->|sufficient| L[Existing finite legal-choice loop]
+  C -->|missing| T[TypeLLM: only missing label/kind/occurrence candidates]
+  T --> V[Validate; allocate Goal-local keys; retain all library choices]
+  V --> L
+  C -->|ambiguous / no-change / unsupported / weak| S[Stop without generation or graph change]
+  L --> P[Prove against latest Working; draw; adopt]
+  P --> L
+  P --> U[Existing Undo / Apply / browser persistence]
+```
+
+One gate call precedes the existing maximum-eight-call Goal loop. It uses one
+absolute 180-second dispatch deadline; an already-started bounded provider call
+can finish after that deadline, but no later call or adoption is started.
+The gate does not interpret NONE/low confidence as missing candidates. TypeLLM
+runs at most once, on a confident missing verdict, and returns at most three
+`{label,kind,occurrence}` instances. Occurrences for identical label/kind pairs
+are consecutive from1; the app allocates keys and graph IDs. Display labels are
+exact part labels, with no ID suffix. No generated operator, parent, edge, raw
+graph or persistent dictionary is accepted. The persistent bundle retains its
+eight-part cap; a validated Goal-local catalogue can contain those eight plus
+three extra instances. Undo/Apply persist only the existing DecisionLog effects.
+
+### Agreed evidence process
+
+```mermaid
+flowchart TD
+  O[Ops source + bundled-byte tests] --> R[Independent exact-head source review]
+  R --> B[Normal merge; publish and read back reviewed provider bytes]
+  B --> A[Apps pin + bounded envs handoff + tests]
+  A --> F[Freeze source/artifact set and paired harness]
+  F --> UI[Normal browser: draw / Undo / Apply / reload]
+  UI --> E[Sealed fresh cases: same source and input, A without completion / B with completion]
+  E --> J[Independent R: semantic graph, gate, calls, latency, effect]
+  J -->|thresholds met| DONE[EFFECT within stated PoC scope]
+  J -->|identified repeatable loss or no improvement| NO[Clear NO_EFFECT within stated scope]
+  J -->|cause-led correction, at most two| A
+  J -->|infrastructure / contract error| X[INVALID evidence; fix or record external resume boundary]
+```
+
+The first holdout was sealed by the independent reviewer before any case-level
+provider output: SHA256 `22e47667ba3d6eaf1061c058b7f3e8fe07824dd3885b24264603a2be0b1f2c32`.
+Its10 cases contain four sufficient tasks, four missing-candidate tasks and two
+ambiguous/no-change controls. Oracles never enter prompts or candidate generation.
+Both arms run the same gate and legal loop. On missing, A still runs the original
+unaugmented catalogue; it is not forced to stop by the comparison harness.
+
+EFFECT requires gate correctness at least9/10 with all four missing gates correct;
+no TypeLLM call on sufficient/control cases; zero control mutation; B sufficient
+exact graph success at least3/4 and no worse than A; B missing exact success at
+least3/4 with at least two more successes than A. Exact graph means labels, kinds,
+counts, parents and edge direction, with no extra semantic records. After tuning
+on exposed failures, a fresh confirmation is required. Infrastructure failures,
+partial graphs, a call-cap stop or merely passing source tests do not prove
+NO_EFFECT or EFFECT. Final evidence and the independent verdict remain required.
+Gate correctness requires the coordinator to accept the expected choice at its
+existing minimum confidence; a matching raw choice stopped as undecided is not
+a successful classification. Raw choice, confidence and stop reason are retained.
+The fresh four-case confirmation was also sealed before any main-case output:
+SHA256 `f92f733785ef8796eeed83c4880aa6481a32b4a8c2904a5292f5daaab6519fa2`.
+It has two missing, one sufficient and one control case. After a correction it
+requires every gate correct, both missing graphs exact with at least one gain
+over A, sufficient non-regression and zero control mutation. No extra live round
+is required if the first frozen main round already demonstrates EFFECT.
+
+### Local execution through envs
+
+`TYPELLM_API_KEY` is authored in envs, alongside the existing Jev ciphertext, for
+the existing own target identity. No API key or private age identity is copied
+into this checkout. On own, from a normal directory outside the Nix store, build
+the exact Windows source's `jev.typedLaunch` with its pinned Nixpkgs:
+
+```sh
+nix build --impure --no-link --print-out-paths --expr '
+  let s = builtins.getFlake "git+https://github.com/roccho-dev/windows?rev=<WINDOWS_SHA>";
+      p = import s.inputs.nixpkgs { system = "x86_64-linux"; };
+  in (import (s.outPath + "/oci/dev/nix.nix") { pkgs = p; }).jev.typedLaunch'
+/nix/store/<built-launcher>/bin/voice-ui-typed-dev \
+  --envs-sha <CURRENT_ENVS_SHA> --apps-sha <EXACT_APPS_SHA> \
+  --port 18845 --jev-limit 199 --typellm-limit 20
+```
+
+This explicitly selected source-dev tool checks both current ciphertexts, fields
+and the same single target recipient, builds the exact apps program before
+decrypting, and hands the two keys to one child through descriptors3/4. Only
+stdio remains open. It is not added to a global profile. The fixed preload
+permits only the two provider POST endpoints, refuses redirects, and journals
+each send synchronously before fetch. It has independent process allowances.
+
+The run owner reserves allowances in the run journal before launch, keeps the
+whole-run caps at Jev300 and TypeLLM300 including failed/timed-out/uncertain sends,
+and reconciles unused allowances only after the process has stopped and its send
+log is checked. Restarting must not reset the whole-run counts. The first paired
+phase is capped at200 total Jev calls including the1-call connectivity smoke,
+leaving at least100 for corrections/confirmation. No automatic retry is enabled.
+Forward an unused Windows loopback port to own's18845 to open the local app.

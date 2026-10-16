@@ -36,15 +36,18 @@ const NO_ROLES = Object.freeze({ roles: Object.freeze([]) });
 // projects its whole graph, conversation and source identity into three
 // questions: action and endpoints. This resolve counts against the same bound.
 export async function runGoal({ utterance, bundle, protocol, current, ask, adopt, cancelled, resolveIntent = null, manifest = null,
-  now = () => performance.now() }) {
+  now = () => performance.now(), deadlineAt = null }) {
   const first = current();
   const group = first.nextSeq;
   const selected = [];
   const trace = [];
   const started = now();
+  const deadline = deadlineAt === null ? started + 180000 : deadlineAt;
   const stop = reason => Object.freeze({ reason, requests: trace.length, elapsedMs: Math.max(0, now() - started),
     selected: Object.freeze([...selected]), trace: Object.freeze([...trace]) });
   let expected = first;
+  if (typeof deadline !== "number" || !Number.isFinite(deadline)) return stop("invalid-goal-deadline");
+  if (now() >= deadline) return stop("budget-time");
   // The latest source focus the session remembered, held for the whole Goal so
   // later utterances cannot push it out of the recent conversation.
   const reference = [...first.conversation].reverse().find(entry => entry.reference)?.reference ?? null;
@@ -56,7 +59,7 @@ export async function runGoal({ utterance, bundle, protocol, current, ask, adopt
   // an unreadable answer a contract failure, and afterwards it must still be current.
   const judged = async (request, slots) => {
     if (cancelled()) return { stop: "cancelled" };
-    if (now() - started >= 180000) return { stop: "budget-time" };
+    if (now() >= deadline) return { stop: "budget-time" };
     if (current() !== expected || expected.working === null) return { stop: "stale-goal" };
     if (trace.length >= GOAL_REQUEST_MAX) return { stop: "budget-requests" };
     const head = expected.working.head;
@@ -70,13 +73,13 @@ export async function runGoal({ utterance, bundle, protocol, current, ask, adopt
     trace.push(Object.freeze({ head, answers: read, failure: answered?.kind === "failed" ? answered.reason : read === null ? "judge-contract" : null }));
     if (read === null) return { stop: "judge-failed" };
     if (cancelled()) return { stop: "cancelled" };
-    if (now() - started >= 180000) return { stop: "budget-time" };
+    if (now() >= deadline) return { stop: "budget-time" };
     if (current() !== expected) return { stop: "stale-goal" };
     return { read };
   };
   while (trace.length < GOAL_REQUEST_MAX) {
     if (cancelled()) return stop("cancelled");
-    if (now() - started >= 180000) return stop("budget-time");
+    if (now() >= deadline) return stop("budget-time");
     if (current() !== expected || expected.working === null) return stop("stale-goal");
     // The scope of the latest Working: its focused parts and the role nodes attached to them.
     const scoped = scope === null ? null
@@ -167,9 +170,11 @@ export async function runGoal({ utterance, bundle, protocol, current, ask, adopt
       confidence, bundle, reserved: expected.issuedPartIds, selected, scope: regions, pair, protocol });
     if (planned.outcome !== OUTCOME_STEP) return stop(planned.reason);
     if (cancelled() || current() !== expected) return stop("stale-goal");
+    if (now() >= deadline) return stop("budget-time");
     const proposed = await proposeGoal(expected, { step: planned.step, input: { source: "typed", text: utterance }, group, protocol });
     if (proposed.result.outcome !== OUTCOME_STEP) return stop(proposed.result.reason);
     if (cancelled() || current() !== expected) return stop("stale-goal");
+    if (now() >= deadline) return stop("budget-time");
     try { await adopt(proposed.session); }
     catch { return stop("adoption-unknown"); }
     if (current() !== proposed.session) return stop("adoption-unknown");

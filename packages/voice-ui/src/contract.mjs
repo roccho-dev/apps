@@ -69,6 +69,8 @@ export const CONTEXT_TEXT_MAX = 200;
 
 export const LABEL_MAX = 120;
 export const OFFER_MAX = 8;
+// Persistent library admission stays at eight; one Goal can hold three additional instance candidates.
+export const GOAL_OFFER_MAX = OFFER_MAX + 3;
 export const PURPOSE_MAX = 300;
 export const KEY_PATTERN = /^[a-z][a-z0-9-]{0,63}$/u;
 
@@ -203,9 +205,9 @@ const validPending = (pending, placeable) => pending === null || (
 
 // An offer is a unique key and its purpose; a Goal's part (`named`) also has
 // its bounded displayed name, which may repeat and never identifies it.
-const validOffer = (list, { named }) =>
+const validOffer = (list, { named, max = OFFER_MAX }) =>
   Array.isArray(list)
-  && list.length <= OFFER_MAX
+  && list.length <= max
   && list.every(offer => exactObject(offer, named ? ["key", "purpose", "label"] : ["key", "purpose"])
     && typeof offer.key === "string" && KEY_PATTERN.test(offer.key) && offer.key !== NONE
     && text(offer.purpose, PURPOSE_MAX) && (!named || text(offer.label, LABEL_MAX)))
@@ -256,7 +258,7 @@ const validGoalRequest = value => {
       && ids.includes(parent.parent) && state.graph.some(region => region.id === parent.id
         && region.label === parent.label && region.parent === parent.parent))
     || !unique(state.parents.map(parent => parent.id))) return false;
-  if (!exactObject(state.offers, ["parts"]) || !validOffer(state.offers.parts, { named: true })) return false;
+  if (!exactObject(state.offers, ["parts"]) || !validOffer(state.offers.parts, { named: true, max: GOAL_OFFER_MAX })) return false;
   const endpoints = ids.filter(value => parentOf.get(value) !== null && !state.parents.some(parent => parent.id === value));
   // Existing relations are kept whole: distinct typed relations (an import and
   // a call) may share a directed pair. Only their IDs are unique; a candidate
@@ -281,7 +283,7 @@ const validGoalRequest = value => {
   // repeats a key: an arrow whose id is a derived part alternative is refused.
   if (state.placing !== null && !state.candidates.some(candidate => candidate.action === ACTION_ADD_PART && candidate.part === state.placing)) return false;
   if (!unique(goalOptions(state))) return false;
-  return Array.isArray(state.selected) && state.selected.length <= OFFER_MAX
+  return Array.isArray(state.selected) && state.selected.length <= GOAL_OFFER_MAX
     && state.selected.every(item => exactObject(item, ["key", "region", "parent"])
       && KEY_PATTERN.test(item.key ?? "") && item.key !== NONE && ids.includes(item.region)
       && ids.includes(item.parent) && state.graph.some(region => region.id === item.region && region.parent === item.parent))

@@ -123,7 +123,7 @@ def admit_judge(archive, proof_path, provenance_path, expected, out):
                   and proof.get("reviewed_tree") == proof.get("merge_tree") and proof.get("merged_at"), "identity_mismatch")
     judge_require(all(isinstance(provenance.get(k), dict) for k in ("proof", "artifact", "inputDigests")), "identity_mismatch")
     judge_require(provenance.get("schema") == "jev-provider-provenance/1"
-                  and provenance.get("source") == {"repository": "roccho-dev/ops", "commit": proof["merge_sha"], "tree": proof["merge_tree"]}
+                  and provenance.get("source") == {"repository": "roccho-org/ops", "commit": proof["merge_sha"], "tree": proof["merge_tree"]}
                   and provenance.get("mergedProof") == proof
                   and provenance.get("proof", {}).get("sha256") == expected["proof_sha256"]
                   and provenance.get("locator") == expected["locator"]
@@ -138,14 +138,14 @@ def admit_judge(archive, proof_path, provenance_path, expected, out):
     except (zipfile.BadZipFile, UnicodeDecodeError):
         raise SystemExit("judge_admission:manifest_mismatch") from None
     manifest = judge_json(manifest_bytes, "manifest_mismatch")
-    judge_require(manifest.get("schema") == "jev-provider/1" and manifest.get("contract") == expected["contract"] == "named-choices/2", "unsupported_contract")
+    judge_require(manifest.get("schema") == "jev-provider/1" and manifest.get("contract") == expected["contract"] == "named-choices-and-typed/1", "unsupported_contract")
     module_sha = hashlib.sha256(module).hexdigest()
-    judge_require(manifest.get("entry") == "batch.mjs" and manifest.get("exports") == ["JudgeProviderError", "bindJev", "judgeNamedChoices"]
+    judge_require(manifest.get("entry") == "batch.mjs" and manifest.get("exports") == ["JudgeProviderError", "TypedProviderError", "bindJev", "bindTypeLLM", "generateTyped", "judgeNamedChoices"]
                   and manifest.get("importClosure") == []
                   and manifest.get("files") == [{"path": "batch.mjs", "bytes": len(module), "sha256": module_sha}]
                   and provenance.get("manifestSha256") == hashlib.sha256(manifest_bytes).hexdigest()
                   and provenance.get("artifact", {}).get("bytes") == archive.stat().st_size
-                  and set(provenance["inputDigests"]) == {"flake.lock", "packages/jev/src/core.mjs", "packages/jev/src/batch.mjs", "packages/jev/default.nix", "tools/jev-provider-artifact.py"}
+                  and set(provenance["inputDigests"]) == {"flake.lock", "packages/jev/src/core.mjs", "packages/jev/src/batch.mjs", "packages/jev/src/typellm.mjs", "packages/jev/default.nix", "tools/jev-provider-artifact.py"}
                   and all(isinstance(v, str) and re.fullmatch(r"[0-9a-f]{64}", v) for v in provenance["inputDigests"].values())
                   and provenance.get("entrySha256") == module_sha
                   and module_sha == expected["entry_sha256"]
@@ -163,7 +163,7 @@ def admit_judge(archive, proof_path, provenance_path, expected, out):
     # Controlled import, not a provider invocation. No key is passed, no app
     # state/commit exists here; fetch during module initialization is rejected.
     probe = r'''let calls=0;globalThis.fetch=()=>{calls++;throw new Error("forbidden")};
-    try{const m=await import(process.argv[1]);if(calls!==0||typeof m.bindJev!=="function"||typeof m.judgeNamedChoices!=="function"||typeof m.JudgeProviderError!=="function")process.exit(1)}catch{process.exit(1)}'''
+    try{const m=await import(process.argv[1]);if(calls!==0||["bindJev","judgeNamedChoices","JudgeProviderError","bindTypeLLM","generateTyped","TypedProviderError"].some(k=>typeof m[k]!=="function"))process.exit(1)}catch{process.exit(1)}'''
     try:
         imported = subprocess.run(["node", "--input-type=module", "-e", probe, entry.resolve().as_uri()], capture_output=True, timeout=10)
     except subprocess.TimeoutExpired:
@@ -373,7 +373,7 @@ def build(args):
             "assets": {"directory": "site", "binding": "ASSETS"},
             "compatibility_date": "2026-09-01",
             "compatibility_flags": [],
-            "secrets": [{"name": "JEV_API_KEY", "capability": "jev-api"}],
+            "secrets": [{"name": "JEV_API_KEY", "capability": "jev-api"}, {"name": "TYPELLM_API_KEY", "capability": "typellm-api"}],
         },
     }
     write_manifest(out, manifest)
@@ -440,6 +440,8 @@ def verify_dist(root):
         "architecture/evidence.json",
         "site/app/src/contract.mjs",
         "site/app/src/bundle.mjs",
+        "site/app/src/completion.mjs",
+        "site/app/src/goal.mjs",
         "site/app/src/config.mjs",
         "site/app/src/log.mjs",
         "site/app/src/session.mjs",
@@ -447,6 +449,7 @@ def verify_dist(root):
         "site/app/src/render.mjs",
         "site/app/src/judgment.mjs",
         "site/adapters/judgment.mjs",
+        "site/adapters/completion.mjs",
         "site/adapters/transcription.mjs",
         "site/app/src/architecture.mjs",
         "site/app/src/document.mjs",
@@ -494,7 +497,7 @@ def verify_dist(root):
         "assets": {"directory": "site", "binding": "ASSETS"},
         "compatibility_date": "2026-09-01",
         "compatibility_flags": [],
-        "secrets": [{"name": "JEV_API_KEY", "capability": "jev-api"}],
+        "secrets": [{"name": "JEV_API_KEY", "capability": "jev-api"}, {"name": "TYPELLM_API_KEY", "capability": "typellm-api"}],
     }
     if manifest.get("runtime") != expected_runtime:
         raise SystemExit("declared Worker runtime mismatch")
@@ -514,7 +517,7 @@ def verify_dist(root):
         data = path.read_bytes()
         # The exact public source manifest declares identifiers, never source text or key values.
         # Its paired source identity and evidence blobs were checked above; other site files retain the ban.
-        if b"JEV_API_KEY" in data and path != site / "architecture/data/source.v1.json":
+        if any(name in data for name in (b"JEV_API_KEY", b"TYPELLM_API_KEY")) and path != site / "architecture/data/source.v1.json":
             raise SystemExit(f"Jev secret identifier leaked into public site: {path.relative_to(root)}")
 
     for path in (p for p in root.rglob("*") if p.is_file()):
@@ -555,7 +558,7 @@ def verify_dist(root):
     if auth != {
         "artifact": "voice-ui",
         "kind": "artifact.auth.v1",
-        "requiredCapabilities": ["jev-api"],
+        "requiredCapabilities": ["jev-api", "typellm-api"],
     }:
         raise SystemExit("auth contract mismatch")
 

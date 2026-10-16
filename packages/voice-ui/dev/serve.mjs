@@ -144,6 +144,7 @@ async function serveChunkManifest(response, file) {
 // asset binding fails loudly if routing ever sends one there.
 const workerEnv = fixtureOnly ? null : {
   JEV_API_KEY: process.env.JEV_API_KEY,
+  TYPELLM_API_KEY: process.env.TYPELLM_API_KEY,
   ARCHITECTURE: architecture,
   ASSETS: {
     fetch: async request => {
@@ -311,7 +312,7 @@ const server = createServer((request, response) => {
     serveProposals(request, response).catch(() => proposalReply(response, 502, { error: "PROPOSAL_FAILED" }));
     return;
   }
-  if (pathname === "/api/judge") {
+  if (["/api/judge", "/api/parts/check", "/api/parts/complete"].includes(pathname)) {
     serveJudge(request, response).catch(() => {
       response.writeHead(500, { "content-type": "application/json; charset=utf-8" });
       response.end(JSON.stringify({ error: "dev_server_error" }));
