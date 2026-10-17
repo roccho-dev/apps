@@ -1,0 +1,444 @@
+{
+  "schema": "voice-ui.component-axes-raw-audit/1",
+  "axis": "F",
+  "status": "PASS",
+  "issues": [],
+  "complete": true,
+  "all_valid_execution": false,
+  "phase_kind": "fresh",
+  "parent_inputs_sha256": null,
+  "runtime_scope": "LIVE_BINDING_REQUIRED",
+  "admissible_for_semantic_claim": false,
+  "consumed": 16,
+  "planned": 16,
+  "external_provider_attempts": {
+    "jev": 0,
+    "typellm": null
+  },
+  "external_provider_attempt_bounds": {
+    "jev": {
+      "min": 0,
+      "max": 0
+    },
+    "typellm": {
+      "min": 7,
+      "max": 8
+    }
+  },
+  "factor_rows": 0,
+  "factor_alignment": "UNIQUE",
+  "proofs": [
+    {
+      "id": "F01",
+      "method": "literal",
+      "status": "PASS",
+      "initial_head": "sha256:0b3522df5b691691d41d9b4587377781fc7048c991a4e47357e5583eb09288c6",
+      "final_head": "sha256:0b3522df5b691691d41d9b4587377781fc7048c991a4e47357e5583eb09288c6"
+    },
+    {
+      "id": "F01",
+      "method": "typed",
+      "status": "PASS",
+      "initial_head": "sha256:0b3522df5b691691d41d9b4587377781fc7048c991a4e47357e5583eb09288c6",
+      "final_head": "sha256:0b3522df5b691691d41d9b4587377781fc7048c991a4e47357e5583eb09288c6"
+    },
+    {
+      "id": "F02",
+      "method": "typed",
+      "status": "PASS",
+      "initial_head": "sha256:0b3522df5b691691d41d9b4587377781fc7048c991a4e47357e5583eb09288c6",
+      "final_head": "sha256:0b3522df5b691691d41d9b4587377781fc7048c991a4e47357e5583eb09288c6"
+    },
+    {
+      "id": "F02",
+      "method": "literal",
+      "status": "PASS",
+      "initial_head": "sha256:0b3522df5b691691d41d9b4587377781fc7048c991a4e47357e5583eb09288c6",
+      "final_head": "sha256:0b3522df5b691691d41d9b4587377781fc7048c991a4e47357e5583eb09288c6"
+    },
+    {
+      "id": "F03",
+      "method": "literal",
+      "status": "PASS",
+      "initial_head": "sha256:0b3522df5b691691d41d9b4587377781fc7048c991a4e47357e5583eb09288c6",
+      "final_head": "sha256:0b3522df5b691691d41d9b4587377781fc7048c991a4e47357e5583eb09288c6"
+    },
+    {
+      "id": "F03",
+      "method": "typed",
+      "status": "PASS",
+      "initial_head": "sha256:0b3522df5b691691d41d9b4587377781fc7048c991a4e47357e5583eb09288c6",
+      "final_head": "sha256:0b3522df5b691691d41d9b4587377781fc7048c991a4e47357e5583eb09288c6"
+    },
+    {
+      "id": "F04",
+      "method": "typed",
+      "status": "PASS",
+      "initial_head": "sha256:0b3522df5b691691d41d9b4587377781fc7048c991a4e47357e5583eb09288c6",
+      "final_head": "sha256:0b3522df5b691691d41d9b4587377781fc7048c991a4e47357e5583eb09288c6"
+    },
+    {
+      "id": "F04",
+      "method": "literal",
+      "status": "PASS",
+      "initial_head": "sha256:0b3522df5b691691d41d9b4587377781fc7048c991a4e47357e5583eb09288c6",
+      "final_head": "sha256:0b3522df5b691691d41d9b4587377781fc7048c991a4e47357e5583eb09288c6"
+    },
+    {
+      "id": "F05",
+      "method": "literal",
+      "status": "PASS",
+      "initial_head": "sha256:0b3522df5b691691d41d9b4587377781fc7048c991a4e47357e5583eb09288c6",
+      "final_head": "sha256:0b3522df5b691691d41d9b4587377781fc7048c991a4e47357e5583eb09288c6"
+    },
+    {
+      "id": "F05",
+      "method": "typed",
+      "status": "PASS",
+      "initial_head": "sha256:0b3522df5b691691d41d9b4587377781fc7048c991a4e47357e5583eb09288c6",
+      "final_head": "sha256:0b3522df5b691691d41d9b4587377781fc7048c991a4e47357e5583eb09288c6"
+    },
+    {
+      "id": "F06",
+      "method": "typed",
+      "status": "PASS",
+      "initial_head": "sha256:0b3522df5b691691d41d9b4587377781fc7048c991a4e47357e5583eb09288c6",
+      "final_head": "sha256:0b3522df5b691691d41d9b4587377781fc7048c991a4e47357e5583eb09288c6"
+    },
+    {
+      "id": "F06",
+      "method": "literal",
+      "status": "PASS",
+      "initial_head": "sha256:0b3522df5b691691d41d9b4587377781fc7048c991a4e47357e5583eb09288c6",
+      "final_head": "sha256:0b3522df5b691691d41d9b4587377781fc7048c991a4e47357e5583eb09288c6"
+    },
+    {
+      "id": "F07",
+      "method": "literal",
+      "status": "PASS",
+      "initial_head": "sha256:0b3522df5b691691d41d9b4587377781fc7048c991a4e47357e5583eb09288c6",
+      "final_head": "sha256:0b3522df5b691691d41d9b4587377781fc7048c991a4e47357e5583eb09288c6"
+    },
+    {
+      "id": "F07",
+      "method": "typed",
+      "status": "PASS",
+      "initial_head": "sha256:0b3522df5b691691d41d9b4587377781fc7048c991a4e47357e5583eb09288c6",
+      "final_head": "sha256:0b3522df5b691691d41d9b4587377781fc7048c991a4e47357e5583eb09288c6"
+    },
+    {
+      "id": "F08",
+      "method": "typed",
+      "status": "PASS",
+      "initial_head": "sha256:b4f52e5183b8e5730e59a7524a9b260f7cb7a4246695c8a69c4d320bec1312c1",
+      "final_head": "sha256:b4f52e5183b8e5730e59a7524a9b260f7cb7a4246695c8a69c4d320bec1312c1"
+    },
+    {
+      "id": "F08",
+      "method": "literal",
+      "status": "PASS",
+      "initial_head": "sha256:b4f52e5183b8e5730e59a7524a9b260f7cb7a4246695c8a69c4d320bec1312c1",
+      "final_head": "sha256:b4f52e5183b8e5730e59a7524a9b260f7cb7a4246695c8a69c4d320bec1312c1"
+    }
+  ],
+  "rows": [
+    {
+      "id": "F01",
+      "method": "literal",
+      "grade": {
+        "contract_valid": true,
+        "exact": true,
+        "minimal": true,
+        "expected_instances": 1,
+        "actual_instances": 1,
+        "matched_instances": 1,
+        "omitted_instances": 0,
+        "extra_instances": 0,
+        "precision": 1,
+        "recall": 1
+      }
+    },
+    {
+      "id": "F01",
+      "method": "typed",
+      "grade": {
+        "contract_valid": true,
+        "exact": true,
+        "minimal": true,
+        "expected_instances": 1,
+        "actual_instances": 1,
+        "matched_instances": 1,
+        "omitted_instances": 0,
+        "extra_instances": 0,
+        "precision": 1,
+        "recall": 1
+      }
+    },
+    {
+      "id": "F02",
+      "method": "typed",
+      "grade": {
+        "contract_valid": true,
+        "exact": true,
+        "minimal": true,
+        "expected_instances": 2,
+        "actual_instances": 2,
+        "matched_instances": 2,
+        "omitted_instances": 0,
+        "extra_instances": 0,
+        "precision": 1,
+        "recall": 1
+      }
+    },
+    {
+      "id": "F02",
+      "method": "literal",
+      "grade": {
+        "contract_valid": true,
+        "exact": true,
+        "minimal": true,
+        "expected_instances": 2,
+        "actual_instances": 2,
+        "matched_instances": 2,
+        "omitted_instances": 0,
+        "extra_instances": 0,
+        "precision": 1,
+        "recall": 1
+      }
+    },
+    {
+      "id": "F03",
+      "method": "literal",
+      "grade": {
+        "contract_valid": true,
+        "exact": true,
+        "minimal": true,
+        "expected_instances": 3,
+        "actual_instances": 3,
+        "matched_instances": 3,
+        "omitted_instances": 0,
+        "extra_instances": 0,
+        "precision": 1,
+        "recall": 1
+      }
+    },
+    {
+      "id": "F03",
+      "method": "typed",
+      "grade": {
+        "contract_valid": true,
+        "exact": false,
+        "minimal": false,
+        "expected_instances": 3,
+        "actual_instances": 2,
+        "matched_instances": 1,
+        "omitted_instances": 2,
+        "extra_instances": 1,
+        "precision": 0.5,
+        "recall": 0.3333333333333333
+      }
+    },
+    {
+      "id": "F04",
+      "method": "typed",
+      "grade": {
+        "contract_valid": true,
+        "exact": false,
+        "minimal": false,
+        "expected_instances": 3,
+        "actual_instances": 2,
+        "matched_instances": 2,
+        "omitted_instances": 1,
+        "extra_instances": 0,
+        "precision": 1,
+        "recall": 0.6666666666666666
+      }
+    },
+    {
+      "id": "F04",
+      "method": "literal",
+      "grade": {
+        "contract_valid": true,
+        "exact": false,
+        "minimal": false,
+        "expected_instances": 3,
+        "actual_instances": 0,
+        "matched_instances": 0,
+        "omitted_instances": 3,
+        "extra_instances": 0,
+        "precision": 0,
+        "recall": 0
+      }
+    },
+    {
+      "id": "F05",
+      "method": "literal",
+      "grade": {
+        "contract_valid": true,
+        "exact": false,
+        "minimal": false,
+        "expected_instances": 2,
+        "actual_instances": 0,
+        "matched_instances": 0,
+        "omitted_instances": 2,
+        "extra_instances": 0,
+        "precision": 0,
+        "recall": 0
+      }
+    },
+    {
+      "id": "F05",
+      "method": "typed",
+      "grade": {
+        "contract_valid": true,
+        "exact": true,
+        "minimal": true,
+        "expected_instances": 2,
+        "actual_instances": 2,
+        "matched_instances": 2,
+        "omitted_instances": 0,
+        "extra_instances": 0,
+        "precision": 1,
+        "recall": 1
+      }
+    },
+    {
+      "id": "F06",
+      "method": "typed",
+      "grade": {
+        "contract_valid": true,
+        "exact": true,
+        "minimal": true,
+        "expected_instances": 1,
+        "actual_instances": 1,
+        "matched_instances": 1,
+        "omitted_instances": 0,
+        "extra_instances": 0,
+        "precision": 1,
+        "recall": 1
+      }
+    },
+    {
+      "id": "F06",
+      "method": "literal",
+      "grade": {
+        "contract_valid": true,
+        "exact": false,
+        "minimal": false,
+        "expected_instances": 1,
+        "actual_instances": 0,
+        "matched_instances": 0,
+        "omitted_instances": 1,
+        "extra_instances": 0,
+        "precision": 0,
+        "recall": 0
+      }
+    },
+    {
+      "id": "F07",
+      "method": "literal",
+      "grade": {
+        "contract_valid": true,
+        "exact": false,
+        "minimal": false,
+        "expected_instances": 2,
+        "actual_instances": 0,
+        "matched_instances": 0,
+        "omitted_instances": 2,
+        "extra_instances": 0,
+        "precision": 0,
+        "recall": 0
+      }
+    },
+    {
+      "id": "F07",
+      "method": "typed",
+      "grade": {
+        "contract_valid": true,
+        "exact": false,
+        "minimal": false,
+        "expected_instances": 2,
+        "actual_instances": 0,
+        "matched_instances": 0,
+        "omitted_instances": 2,
+        "extra_instances": 0,
+        "precision": 0,
+        "recall": 0
+      }
+    },
+    {
+      "id": "F08",
+      "method": "typed",
+      "grade": {
+        "contract_valid": false,
+        "exact": false,
+        "minimal": false,
+        "expected_instances": 2,
+        "actual_instances": null,
+        "matched_instances": 0,
+        "omitted_instances": 2,
+        "extra_instances": null,
+        "precision": null,
+        "recall": 0
+      }
+    },
+    {
+      "id": "F08",
+      "method": "literal",
+      "grade": {
+        "contract_valid": true,
+        "exact": false,
+        "minimal": false,
+        "expected_instances": 2,
+        "actual_instances": 1,
+        "matched_instances": 1,
+        "omitted_instances": 1,
+        "extra_instances": 0,
+        "precision": 1,
+        "recall": 0.5
+      }
+    }
+  ],
+  "semantic": {
+    "complete": true,
+    "per_method": {
+      "literal": {
+        "total": 8,
+        "exact_minimal": 3,
+        "contract_valid": true,
+        "semantic_criteria": "UNMET"
+      },
+      "typed": {
+        "total": 8,
+        "exact_minimal": 4,
+        "contract_valid": false,
+        "semantic_criteria": "UNMET"
+      }
+    }
+  },
+  "replay": null,
+  "raw_sha256": {
+    "events.jsonl": "4dd28f3b050497f90051b73dcd86a1104ca45f1fa1da1721d29086e2b58ef54c",
+    "execution.json": "b1060486f4b786631b8cb08d0e25141fa228735e94e28047b0a9b8c761be3206",
+    "F01-B.json": "d0337144a387200f1ab98f8cc4f8d994b5bcafaf9ac7cd95126050045fa77c93",
+    "F01-C.json": "d37f03a7bdcc51fdab11a2558074876534b16555fb50b4e041d2c5c3e096c10f",
+    "F02-B.json": "ab13fff194b9a88275feff8818ab76089448afb65fc215fc994acefd14528dab",
+    "F02-C.json": "303f4483ea842c26d2328ea38ac9f5ad14344a6cbe088f865812f10ea1decd63",
+    "F03-B.json": "7fb52c3dfb6141b0791b9c1e43cc24757cc81931d2a146347e9231ab46581f00",
+    "F03-C.json": "279e8b01c092dbbc0d7d98588ebfe7c84c5f3000f6f0eaa273c8054728298142",
+    "F04-B.json": "c97e955374c21fd5ba93a42200b68e6bb133f7a6b1cd3cd7c8060a39fec5a685",
+    "F04-C.json": "ebec4988a45ca2d2d42dcec109ab96c3a2f169d6098394a6894bb6324da96e90",
+    "F05-B.json": "b929f9d98848d29229703c5bbb2a47721829ad83d8c9cea6d6f897d2c3605d04",
+    "F05-C.json": "1bb713083b3dec56ca407a53df454cfbeed33a3183ea6cbf628f995c4d4563cd",
+    "F06-B.json": "e7d98612cddf6876037cfca3017731cc27e7b9e77b8e174af0cc82aa0e5b929e",
+    "F06-C.json": "5b9041847b18a8cf30326c91acb25459c24ef888e596615ff904364b9656e2da",
+    "F07-B.json": "1d61f84d400adada23a86adc4c7ebfa5dd55a688c88a4cc3b934092590b7876d",
+    "F07-C.json": "2b3d5d684ed68b905412116e51636400474dce9254ab2a665c75ee9992a12d41",
+    "F08-B.json": "77c84b56a65f091fbadd20bb72c6c6cb18c139323b31e05d1cba3ab63c6135b3",
+    "F08-C.json": "ff3e49115845f7529843043cdc1406deafc3d3df467398277ca30247ebc2f4b7",
+    "identity.json": "e5373465aa6a1a3afc484f35bb407b246b3a126467f52d3ed868e3c3bae6b6d9"
+  },
+  "scope": "raw-axis locality only; source/producer/provider/independent physical PID and any required paint gates remain separate",
+  "CI_LIVE_EXECUTION": "UNPROVEN",
+  "currency": "COST_NOT_MEASURED"
+}

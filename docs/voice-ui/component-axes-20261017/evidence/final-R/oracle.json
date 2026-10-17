@@ -1,0 +1,895 @@
+{
+  "schema": "voice-ui.component-axes-oracle/1",
+  "axis": "R",
+  "reviewer": "/root/poc_reviewer",
+  "created_at": "2026-10-17T12:22:56.255Z",
+  "visibility": "SEALED",
+  "source_baseline": "4617b65ed42dc116329224612fa2e906daea46d8",
+  "fixture_contract": {
+    "map_id": "voice-graph",
+    "base_records": [
+      {
+        "type": "meta",
+        "schema": "semantic-map-state/1",
+        "root": "root",
+        "title": "independent component axes"
+      },
+      {
+        "type": "region",
+        "id": "root",
+        "parent": null,
+        "label": "fixture",
+        "kind": "boundary",
+        "bounds": [
+          0,
+          0,
+          900,
+          400
+        ],
+        "summary": ""
+      },
+      {
+        "type": "region",
+        "id": "container",
+        "parent": "root",
+        "label": "OCI",
+        "kind": "group",
+        "bounds": [
+          0,
+          0,
+          700,
+          200
+        ],
+        "summary": ""
+      },
+      {
+        "type": "region",
+        "id": "other",
+        "parent": "root",
+        "label": "Other",
+        "kind": "group",
+        "bounds": [
+          0,
+          230,
+          700,
+          160
+        ],
+        "summary": ""
+      }
+    ],
+    "base_pins": [
+      {
+        "regionId": "container",
+        "bounds": [
+          0,
+          0,
+          2000,
+          500
+        ]
+      },
+      {
+        "regionId": "other",
+        "bounds": [
+          0,
+          600,
+          2000,
+          500
+        ]
+      }
+    ],
+    "fixtures": {
+      "empty": {
+        "extra_records": [],
+        "extra_pins": []
+      },
+      "api": {
+        "extra_records": [
+          {
+            "type": "region",
+            "id": "initial-api",
+            "parent": "container",
+            "label": "API",
+            "kind": "step",
+            "bounds": [
+              20,
+              20,
+              140,
+              64
+            ],
+            "summary": ""
+          }
+        ],
+        "extra_pins": [
+          {
+            "regionId": "initial-api",
+            "bounds": [
+              12,
+              36,
+              140,
+              64
+            ]
+          }
+        ]
+      },
+      "pair": {
+        "extra_records": [
+          {
+            "type": "region",
+            "id": "initial-api",
+            "parent": "container",
+            "label": "API",
+            "kind": "step",
+            "bounds": [
+              20,
+              20,
+              140,
+              64
+            ],
+            "summary": ""
+          },
+          {
+            "type": "region",
+            "id": "initial-db",
+            "parent": "container",
+            "label": "DB",
+            "kind": "data",
+            "bounds": [
+              200,
+              20,
+              140,
+              64
+            ],
+            "summary": ""
+          }
+        ],
+        "extra_pins": [
+          {
+            "regionId": "initial-api",
+            "bounds": [
+              12,
+              36,
+              140,
+              64
+            ]
+          },
+          {
+            "regionId": "initial-db",
+            "bounds": [
+              200,
+              36,
+              140,
+              64
+            ]
+          }
+        ]
+      }
+    },
+    "recent_conversation": [],
+    "scope": null
+  },
+  "stock_parts_sha256": "909ac366f22c33006c8b6878ab436d548811eb5d41c2bad4813f3837d540f48d",
+  "stock_parts": [
+    {
+      "key": "step",
+      "purpose": "an ordinary step, task or box",
+      "label": "工程",
+      "kind": "step"
+    },
+    {
+      "key": "decision",
+      "purpose": "a decision, choice or branch",
+      "label": "判断",
+      "kind": "decision"
+    },
+    {
+      "key": "data",
+      "purpose": "data, a document, an input or an output",
+      "label": "データ",
+      "kind": "data"
+    },
+    {
+      "key": "start",
+      "purpose": "a start or beginning",
+      "label": "開始",
+      "kind": "start"
+    },
+    {
+      "key": "end",
+      "purpose": "an end, finish or result",
+      "label": "終了",
+      "kind": "end"
+    },
+    {
+      "key": "api",
+      "purpose": "an application programming interface service that receives requests",
+      "label": "API",
+      "kind": "step"
+    },
+    {
+      "key": "db",
+      "purpose": "a database that persists application data",
+      "label": "DB",
+      "kind": "data"
+    },
+    {
+      "key": "group",
+      "purpose": "a group, boundary or container that holds other parts",
+      "label": "グループ",
+      "kind": "group"
+    }
+  ],
+  "cases": [
+    {
+      "id": "R01",
+      "fixture": "empty",
+      "utterance": "OCIの中に工程「仮登録」を1個追加し、その他はそのままにしてください。",
+      "expected_intent": "change",
+      "expected_gate": "sufficient",
+      "required": [
+        {
+          "label": "仮登録",
+          "kind": "step",
+          "quantity": 1
+        }
+      ],
+      "expected_missing": [],
+      "expected_added_regions": [
+        {
+          "label": "仮登録",
+          "kind": "step",
+          "parent": "fixture:container"
+        }
+      ],
+      "expected_added_edges": [],
+      "parts": [
+        {
+          "key": "ready-1-1",
+          "purpose": "one step part named 仮登録",
+          "label": "仮登録",
+          "kind": "step"
+        },
+        {
+          "key": "step",
+          "purpose": "an ordinary step, task or box",
+          "label": "工程",
+          "kind": "step"
+        },
+        {
+          "key": "decision",
+          "purpose": "a decision, choice or branch",
+          "label": "判断",
+          "kind": "decision"
+        },
+        {
+          "key": "data",
+          "purpose": "data, a document, an input or an output",
+          "label": "データ",
+          "kind": "data"
+        },
+        {
+          "key": "start",
+          "purpose": "a start or beginning",
+          "label": "開始",
+          "kind": "start"
+        },
+        {
+          "key": "end",
+          "purpose": "an end, finish or result",
+          "label": "終了",
+          "kind": "end"
+        },
+        {
+          "key": "api",
+          "purpose": "an application programming interface service that receives requests",
+          "label": "API",
+          "kind": "step"
+        },
+        {
+          "key": "db",
+          "purpose": "a database that persists application data",
+          "label": "DB",
+          "kind": "data"
+        }
+      ]
+    },
+    {
+      "id": "R02",
+      "fixture": "empty",
+      "utterance": "OCIに「容量確認」という名前の判断部品を1個置いてください。",
+      "expected_intent": "change",
+      "expected_gate": "sufficient",
+      "required": [
+        {
+          "label": "容量確認",
+          "kind": "decision",
+          "quantity": 1
+        }
+      ],
+      "expected_missing": [],
+      "expected_added_regions": [
+        {
+          "label": "容量確認",
+          "kind": "decision",
+          "parent": "fixture:container"
+        }
+      ],
+      "expected_added_edges": [],
+      "parts": [
+        {
+          "key": "ready-1-1",
+          "purpose": "one decision part named 容量確認",
+          "label": "容量確認",
+          "kind": "decision"
+        },
+        {
+          "key": "step",
+          "purpose": "an ordinary step, task or box",
+          "label": "工程",
+          "kind": "step"
+        },
+        {
+          "key": "decision",
+          "purpose": "a decision, choice or branch",
+          "label": "判断",
+          "kind": "decision"
+        },
+        {
+          "key": "data",
+          "purpose": "data, a document, an input or an output",
+          "label": "データ",
+          "kind": "data"
+        },
+        {
+          "key": "start",
+          "purpose": "a start or beginning",
+          "label": "開始",
+          "kind": "start"
+        },
+        {
+          "key": "end",
+          "purpose": "an end, finish or result",
+          "label": "終了",
+          "kind": "end"
+        },
+        {
+          "key": "api",
+          "purpose": "an application programming interface service that receives requests",
+          "label": "API",
+          "kind": "step"
+        },
+        {
+          "key": "db",
+          "purpose": "a database that persists application data",
+          "label": "DB",
+          "kind": "data"
+        }
+      ]
+    },
+    {
+      "id": "R03",
+      "fixture": "empty",
+      "utterance": "OCIにAPIを3個追加してください。3個ともAPIという同じ表示名にして、矢印は付けません。",
+      "expected_intent": "change",
+      "expected_gate": "sufficient",
+      "required": [
+        {
+          "label": "API",
+          "kind": "step",
+          "quantity": 3
+        }
+      ],
+      "expected_missing": [],
+      "expected_added_regions": [
+        {
+          "label": "API",
+          "kind": "step",
+          "parent": "fixture:container"
+        },
+        {
+          "label": "API",
+          "kind": "step",
+          "parent": "fixture:container"
+        },
+        {
+          "label": "API",
+          "kind": "step",
+          "parent": "fixture:container"
+        }
+      ],
+      "expected_added_edges": [],
+      "parts": [
+        {
+          "key": "ready-1-1",
+          "purpose": "one step part named API",
+          "label": "API",
+          "kind": "step"
+        },
+        {
+          "key": "ready-1-2",
+          "purpose": "one step part named API",
+          "label": "API",
+          "kind": "step"
+        },
+        {
+          "key": "ready-1-3",
+          "purpose": "one step part named API",
+          "label": "API",
+          "kind": "step"
+        },
+        {
+          "key": "step",
+          "purpose": "an ordinary step, task or box",
+          "label": "工程",
+          "kind": "step"
+        },
+        {
+          "key": "decision",
+          "purpose": "a decision, choice or branch",
+          "label": "判断",
+          "kind": "decision"
+        },
+        {
+          "key": "data",
+          "purpose": "data, a document, an input or an output",
+          "label": "データ",
+          "kind": "data"
+        },
+        {
+          "key": "start",
+          "purpose": "a start or beginning",
+          "label": "開始",
+          "kind": "start"
+        },
+        {
+          "key": "end",
+          "purpose": "an end, finish or result",
+          "label": "終了",
+          "kind": "end"
+        }
+      ]
+    },
+    {
+      "id": "R04",
+      "fixture": "empty",
+      "utterance": "OCIの中へ「展開室」「集約室」「保全室」という3つのグループを1つずつ、同じ階層に追加してください。",
+      "expected_intent": "change",
+      "expected_gate": "sufficient",
+      "required": [
+        {
+          "label": "展開室",
+          "kind": "group",
+          "quantity": 1
+        },
+        {
+          "label": "集約室",
+          "kind": "group",
+          "quantity": 1
+        },
+        {
+          "label": "保全室",
+          "kind": "group",
+          "quantity": 1
+        }
+      ],
+      "expected_missing": [],
+      "expected_added_regions": [
+        {
+          "label": "展開室",
+          "kind": "group",
+          "parent": "fixture:container"
+        },
+        {
+          "label": "集約室",
+          "kind": "group",
+          "parent": "fixture:container"
+        },
+        {
+          "label": "保全室",
+          "kind": "group",
+          "parent": "fixture:container"
+        }
+      ],
+      "expected_added_edges": [],
+      "parts": [
+        {
+          "key": "ready-1-1",
+          "purpose": "one group part named 展開室",
+          "label": "展開室",
+          "kind": "group"
+        },
+        {
+          "key": "ready-2-1",
+          "purpose": "one group part named 集約室",
+          "label": "集約室",
+          "kind": "group"
+        },
+        {
+          "key": "ready-3-1",
+          "purpose": "one group part named 保全室",
+          "label": "保全室",
+          "kind": "group"
+        },
+        {
+          "key": "step",
+          "purpose": "an ordinary step, task or box",
+          "label": "工程",
+          "kind": "step"
+        },
+        {
+          "key": "decision",
+          "purpose": "a decision, choice or branch",
+          "label": "判断",
+          "kind": "decision"
+        },
+        {
+          "key": "data",
+          "purpose": "data, a document, an input or an output",
+          "label": "データ",
+          "kind": "data"
+        },
+        {
+          "key": "start",
+          "purpose": "a start or beginning",
+          "label": "開始",
+          "kind": "start"
+        },
+        {
+          "key": "end",
+          "purpose": "an end, finish or result",
+          "label": "終了",
+          "kind": "end"
+        }
+      ]
+    },
+    {
+      "id": "R05",
+      "fixture": "empty",
+      "utterance": "OCIに「発送室」というグループを作り、その中へ工程「荷札生成」とデータ「荷札」を1つずつ置いてください。荷札生成から荷札へ矢印を1本つないでください。",
+      "expected_intent": "change",
+      "expected_gate": "sufficient",
+      "required": [
+        {
+          "label": "発送室",
+          "kind": "group",
+          "quantity": 1
+        },
+        {
+          "label": "荷札生成",
+          "kind": "step",
+          "quantity": 1
+        },
+        {
+          "label": "荷札",
+          "kind": "data",
+          "quantity": 1
+        }
+      ],
+      "expected_missing": [],
+      "expected_added_regions": [
+        {
+          "label": "発送室",
+          "kind": "group",
+          "parent": "fixture:container"
+        },
+        {
+          "label": "荷札生成",
+          "kind": "step",
+          "parent": "added:発送室"
+        },
+        {
+          "label": "荷札",
+          "kind": "data",
+          "parent": "added:発送室"
+        }
+      ],
+      "expected_added_edges": [
+        {
+          "from": "added:荷札生成",
+          "to": "added:荷札",
+          "kind": "flow",
+          "label": ""
+        }
+      ],
+      "parts": [
+        {
+          "key": "ready-1-1",
+          "purpose": "one group part named 発送室",
+          "label": "発送室",
+          "kind": "group"
+        },
+        {
+          "key": "ready-2-1",
+          "purpose": "one step part named 荷札生成",
+          "label": "荷札生成",
+          "kind": "step"
+        },
+        {
+          "key": "ready-3-1",
+          "purpose": "one data part named 荷札",
+          "label": "荷札",
+          "kind": "data"
+        },
+        {
+          "key": "step",
+          "purpose": "an ordinary step, task or box",
+          "label": "工程",
+          "kind": "step"
+        },
+        {
+          "key": "decision",
+          "purpose": "a decision, choice or branch",
+          "label": "判断",
+          "kind": "decision"
+        },
+        {
+          "key": "data",
+          "purpose": "data, a document, an input or an output",
+          "label": "データ",
+          "kind": "data"
+        },
+        {
+          "key": "start",
+          "purpose": "a start or beginning",
+          "label": "開始",
+          "kind": "start"
+        },
+        {
+          "key": "end",
+          "purpose": "an end, finish or result",
+          "label": "終了",
+          "kind": "end"
+        }
+      ]
+    },
+    {
+      "id": "R06",
+      "fixture": "empty",
+      "utterance": "OCIに工程「抽出」を1個、Otherにデータ「抽出表」を1個追加し、抽出から抽出表へ矢印を1本つないでください。",
+      "expected_intent": "change",
+      "expected_gate": "sufficient",
+      "required": [
+        {
+          "label": "抽出",
+          "kind": "step",
+          "quantity": 1
+        },
+        {
+          "label": "抽出表",
+          "kind": "data",
+          "quantity": 1
+        }
+      ],
+      "expected_missing": [],
+      "expected_added_regions": [
+        {
+          "label": "抽出",
+          "kind": "step",
+          "parent": "fixture:container"
+        },
+        {
+          "label": "抽出表",
+          "kind": "data",
+          "parent": "fixture:other"
+        }
+      ],
+      "expected_added_edges": [
+        {
+          "from": "added:抽出",
+          "to": "added:抽出表",
+          "kind": "flow",
+          "label": ""
+        }
+      ],
+      "parts": [
+        {
+          "key": "ready-1-1",
+          "purpose": "one step part named 抽出",
+          "label": "抽出",
+          "kind": "step"
+        },
+        {
+          "key": "ready-2-1",
+          "purpose": "one data part named 抽出表",
+          "label": "抽出表",
+          "kind": "data"
+        },
+        {
+          "key": "step",
+          "purpose": "an ordinary step, task or box",
+          "label": "工程",
+          "kind": "step"
+        },
+        {
+          "key": "decision",
+          "purpose": "a decision, choice or branch",
+          "label": "判断",
+          "kind": "decision"
+        },
+        {
+          "key": "data",
+          "purpose": "data, a document, an input or an output",
+          "label": "データ",
+          "kind": "data"
+        },
+        {
+          "key": "start",
+          "purpose": "a start or beginning",
+          "label": "開始",
+          "kind": "start"
+        },
+        {
+          "key": "end",
+          "purpose": "an end, finish or result",
+          "label": "終了",
+          "kind": "end"
+        },
+        {
+          "key": "api",
+          "purpose": "an application programming interface service that receives requests",
+          "label": "API",
+          "kind": "step"
+        }
+      ]
+    },
+    {
+      "id": "R07",
+      "fixture": "pair",
+      "utterance": "既にあるAPIから既にあるDBへ向かう矢印を1本だけ追加してください。両方ともOCIの中の部品を使い、部品の追加はしないでください。",
+      "expected_intent": "change",
+      "expected_gate": "sufficient",
+      "required": [],
+      "expected_missing": [],
+      "expected_added_regions": [],
+      "expected_added_edges": [
+        {
+          "from": "fixture:initial-api",
+          "to": "fixture:initial-db",
+          "kind": "flow",
+          "label": ""
+        }
+      ],
+      "parts": [
+        {
+          "key": "step",
+          "purpose": "an ordinary step, task or box",
+          "label": "工程",
+          "kind": "step"
+        },
+        {
+          "key": "decision",
+          "purpose": "a decision, choice or branch",
+          "label": "判断",
+          "kind": "decision"
+        },
+        {
+          "key": "data",
+          "purpose": "data, a document, an input or an output",
+          "label": "データ",
+          "kind": "data"
+        },
+        {
+          "key": "start",
+          "purpose": "a start or beginning",
+          "label": "開始",
+          "kind": "start"
+        },
+        {
+          "key": "end",
+          "purpose": "an end, finish or result",
+          "label": "終了",
+          "kind": "end"
+        },
+        {
+          "key": "api",
+          "purpose": "an application programming interface service that receives requests",
+          "label": "API",
+          "kind": "step"
+        },
+        {
+          "key": "db",
+          "purpose": "a database that persists application data",
+          "label": "DB",
+          "kind": "data"
+        },
+        {
+          "key": "group",
+          "purpose": "a group, boundary or container that holds other parts",
+          "label": "グループ",
+          "kind": "group"
+        }
+      ]
+    },
+    {
+      "id": "R08",
+      "fixture": "empty",
+      "utterance": "OCI内に開始という開始部品と終了という終了部品を1つずつ置き、開始から終了へ矢印を1本引いてください。",
+      "expected_intent": "change",
+      "expected_gate": "sufficient",
+      "required": [
+        {
+          "label": "開始",
+          "kind": "start",
+          "quantity": 1
+        },
+        {
+          "label": "終了",
+          "kind": "end",
+          "quantity": 1
+        }
+      ],
+      "expected_missing": [],
+      "expected_added_regions": [
+        {
+          "label": "開始",
+          "kind": "start",
+          "parent": "fixture:container"
+        },
+        {
+          "label": "終了",
+          "kind": "end",
+          "parent": "fixture:container"
+        }
+      ],
+      "expected_added_edges": [
+        {
+          "from": "added:開始",
+          "to": "added:終了",
+          "kind": "flow",
+          "label": ""
+        }
+      ],
+      "parts": [
+        {
+          "key": "ready-1-1",
+          "purpose": "one start part named 開始",
+          "label": "開始",
+          "kind": "start"
+        },
+        {
+          "key": "ready-2-1",
+          "purpose": "one end part named 終了",
+          "label": "終了",
+          "kind": "end"
+        },
+        {
+          "key": "step",
+          "purpose": "an ordinary step, task or box",
+          "label": "工程",
+          "kind": "step"
+        },
+        {
+          "key": "decision",
+          "purpose": "a decision, choice or branch",
+          "label": "判断",
+          "kind": "decision"
+        },
+        {
+          "key": "data",
+          "purpose": "data, a document, an input or an output",
+          "label": "データ",
+          "kind": "data"
+        },
+        {
+          "key": "api",
+          "purpose": "an application programming interface service that receives requests",
+          "label": "API",
+          "kind": "step"
+        },
+        {
+          "key": "db",
+          "purpose": "a database that persists application data",
+          "label": "DB",
+          "kind": "data"
+        },
+        {
+          "key": "group",
+          "purpose": "a group, boundary or container that holds other parts",
+          "label": "グループ",
+          "kind": "group"
+        }
+      ]
+    }
+  ],
+  "complete_factor_oracle": "For clear change cases, complete iff observed extracted required multiset equals this oracle.required exactly. Controls are N/A. This pure expected predicate is fixed before provider outputs, not a post-output oracle change.",
+  "score_scope": "Oracle inventory supplied; gate/completion bypassed; graph/paint assessed independently"
+}

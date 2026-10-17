@@ -1,0 +1,19 @@
+{
+  "phase_id": "axes-final-R-20261017",
+  "axis": "R",
+  "stage": "fresh",
+  "input_sha256": "962caad26f6a6dd59982be202c8decb5bbdbdcfb0f292dc8552bb191ba8dd3c3",
+  "case_count": 8,
+  "program": "/nix/store/bg0bygqiid25xnivxv9cdgjlx3sp939j-voice-ui-typed-dev/bin/voice-ui-typed-dev",
+  "heads": {
+    "apps": "286eb7d0bc0bdef160bda900547314aa5be3a752",
+    "envs": "063e685b8b21a97fc8658879da93fa858552bcd6",
+    "ops": "cab432ef717cbde9ebd0197ae006c0efe75269bf",
+    "windows": "6aef693c0946903d8b87c2348039de1420acd61b",
+    "ui": "756d47e891191c3344eb2d29b000203be8331abc"
+  },
+  "allowances": {
+    "jev": 64,
+    "typellm": 0
+  }
+}

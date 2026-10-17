@@ -1,0 +1,1624 @@
+{
+  "schema": "voice-ui.component-axes-ci/1",
+  "integrity": "PASS",
+  "cumulative": {
+    "jev": 600,
+    "typellm": 32
+  },
+  "reports": [
+    {
+      "id": "public-G",
+      "phase_kind": "public",
+      "axis": "G",
+      "classification": "PUBLIC_REGRESSION_ONLY",
+      "binding": {
+        "status": "PASS",
+        "issues": [],
+        "scope": "fixed exact-byte producer/source testimony joins, not live observation",
+        "CI_LIVE_EXECUTION": "UNPROVEN"
+      },
+      "raw": {
+        "schema": "voice-ui.component-axes-raw-audit/1",
+        "axis": "G",
+        "status": "PASS",
+        "issues": [],
+        "complete": true,
+        "all_valid_execution": true,
+        "phase_kind": "public",
+        "parent_inputs_sha256": null,
+        "runtime_scope": "LIVE_BINDING_REQUIRED",
+        "admissible_for_semantic_claim": true,
+        "consumed": 4,
+        "planned": 4,
+        "external_provider_attempts": {
+          "jev": 4,
+          "typellm": 0
+        },
+        "external_provider_attempt_bounds": {
+          "jev": {
+            "min": 4,
+            "max": 4
+          },
+          "typellm": {
+            "min": 0,
+            "max": 0
+          }
+        },
+        "factor_rows": 8,
+        "factor_alignment": "UNIQUE",
+        "proofs": [
+          {
+            "id": "H01",
+            "method": "literal",
+            "status": "PASS",
+            "initial_head": "sha256:0b3522df5b691691d41d9b4587377781fc7048c991a4e47357e5583eb09288c6",
+            "final_head": "sha256:0b3522df5b691691d41d9b4587377781fc7048c991a4e47357e5583eb09288c6"
+          },
+          {
+            "id": "H05",
+            "method": "literal",
+            "status": "PASS",
+            "initial_head": "sha256:0b3522df5b691691d41d9b4587377781fc7048c991a4e47357e5583eb09288c6",
+            "final_head": "sha256:0b3522df5b691691d41d9b4587377781fc7048c991a4e47357e5583eb09288c6"
+          },
+          {
+            "id": "N09",
+            "method": "literal",
+            "status": "PASS",
+            "initial_head": "sha256:0b3522df5b691691d41d9b4587377781fc7048c991a4e47357e5583eb09288c6",
+            "final_head": "sha256:0b3522df5b691691d41d9b4587377781fc7048c991a4e47357e5583eb09288c6"
+          },
+          {
+            "id": "H10",
+            "method": "literal",
+            "status": "PASS",
+            "initial_head": "sha256:b4f52e5183b8e5730e59a7524a9b260f7cb7a4246695c8a69c4d320bec1312c1",
+            "final_head": "sha256:b4f52e5183b8e5730e59a7524a9b260f7cb7a4246695c8a69c4d320bec1312c1"
+          }
+        ],
+        "rows": [
+          {
+            "id": "H01",
+            "method": "literal",
+            "expected_intent": "change",
+            "expected_gate": "sufficient",
+            "grade": {
+              "scope": "semantic axes only; actual source/protocol/HTTP/journal/paint admissibility required separately",
+              "contract_valid": true,
+              "intent_raw_correct": true,
+              "intent_accepted_correct": true,
+              "extraction_exact": true,
+              "completeness_expected": "complete",
+              "completeness_raw_correct": true,
+              "completeness_accepted_correct": true,
+              "difference_mechanism_correct": true,
+              "availability_raw_correct": true,
+              "availability_accepted_correct": true,
+              "normalized_raw_correct": true,
+              "normalized_accepted_correct": true,
+              "unknown": false
+            }
+          },
+          {
+            "id": "H05",
+            "method": "literal",
+            "expected_intent": "change",
+            "expected_gate": "missing",
+            "grade": {
+              "scope": "semantic axes only; actual source/protocol/HTTP/journal/paint admissibility required separately",
+              "contract_valid": true,
+              "intent_raw_correct": true,
+              "intent_accepted_correct": true,
+              "extraction_exact": true,
+              "completeness_expected": "complete",
+              "completeness_raw_correct": true,
+              "completeness_accepted_correct": true,
+              "difference_mechanism_correct": true,
+              "availability_raw_correct": true,
+              "availability_accepted_correct": true,
+              "normalized_raw_correct": true,
+              "normalized_accepted_correct": true,
+              "unknown": false
+            }
+          },
+          {
+            "id": "N09",
+            "method": "literal",
+            "expected_intent": "ambiguous",
+            "expected_gate": "ambiguous",
+            "grade": {
+              "scope": "semantic axes only; actual source/protocol/HTTP/journal/paint admissibility required separately",
+              "contract_valid": true,
+              "intent_raw_correct": true,
+              "intent_accepted_correct": true,
+              "extraction_exact": null,
+              "completeness_expected": null,
+              "completeness_raw_correct": null,
+              "completeness_accepted_correct": null,
+              "difference_mechanism_correct": true,
+              "availability_raw_correct": null,
+              "availability_accepted_correct": null,
+              "normalized_raw_correct": true,
+              "normalized_accepted_correct": true,
+              "unknown": false
+            }
+          },
+          {
+            "id": "H10",
+            "method": "literal",
+            "expected_intent": "no-change",
+            "expected_gate": "no-change",
+            "grade": {
+              "scope": "semantic axes only; actual source/protocol/HTTP/journal/paint admissibility required separately",
+              "contract_valid": true,
+              "intent_raw_correct": true,
+              "intent_accepted_correct": true,
+              "extraction_exact": null,
+              "completeness_expected": null,
+              "completeness_raw_correct": null,
+              "completeness_accepted_correct": null,
+              "difference_mechanism_correct": true,
+              "availability_raw_correct": null,
+              "availability_accepted_correct": null,
+              "normalized_raw_correct": true,
+              "normalized_accepted_correct": true,
+              "unknown": false
+            }
+          }
+        ],
+        "semantic": {
+          "total": 4,
+          "intent": {
+            "correct": 4,
+            "total": 4
+          },
+          "availability": {
+            "correct": 2,
+            "total": 2
+          },
+          "normalized": {
+            "correct": 4,
+            "total": 4
+          },
+          "completeness": {
+            "correct": 2,
+            "total": 2
+          },
+          "unknown": 0,
+          "semantic_criteria": "UNMET"
+        },
+        "replay": null,
+        "raw_sha256": {
+          "H01-B.json": "d1d0e0bfd7d588824f72b213fb8c3443a680952c4e52c4c4d01b81697dce40f5",
+          "H05-B.json": "7ba5e6bf908c3e904c90383bf323462d527f9885dd30a2483bbe08a7b1576b44",
+          "H10-B.json": "ea0476cf6da107d51917146620edb966b06edc688ee630221eba1f3532d374d6",
+          "N09-B.json": "2e3f3119a1e244e5b2aaaa169f36cebe46084e043fdfabf5fd50b18b312aa58c",
+          "events.jsonl": "77b5271ae26ca143c18f44a7ad47a6e8db0f50d2afa40b2c03677d248e807347",
+          "execution.json": "5e192b4c84e5c9027d392346dd84bbb03faa4928f445a99e33de5acdabf7d399",
+          "identity.json": "4464240dcca06ae9de8b344d4f6b9c45ad74237b3f1a5a95da13b0ed1036ecd0"
+        },
+        "scope": "raw-axis locality only; source/producer/provider/independent physical PID and any required paint gates remain separate",
+        "CI_LIVE_EXECUTION": "UNPROVEN",
+        "currency": "COST_NOT_MEASURED"
+      },
+      "phase": {
+        "status": "PASS",
+        "issues": [],
+        "phase": "axes-public-G-20261017",
+        "sent": {
+          "jev": 4,
+          "typellm": 0
+        },
+        "prior_charged": {
+          "jev": 564,
+          "typellm": 29
+        },
+        "charged_at_cutoff": {
+          "jev": 568,
+          "typellm": 29
+        },
+        "journal_sha256": "5138f3a2511e173a2b009ab0b6821b5fa9953a66209b0babce937257fa22926e",
+        "config_sha256": "b527320b9727efc95c6fcce0de78121ef34e2e5a5de3c3ef8a47250459c0ed08",
+        "stop_scope": "recorded reconciliation only; independent live PID observation remains an explicit audit reference",
+        "expected_external_bounds": {
+          "jev": {
+            "min": 4,
+            "max": 4
+          },
+          "typellm": {
+            "min": 0,
+            "max": 0
+          }
+        },
+        "cycle_start": {
+          "jev": 564,
+          "typellm": 29
+        },
+        "cycle_limit": {
+          "jev": 290,
+          "typellm": 11
+        },
+        "cycle_remaining": {
+          "jev": 286,
+          "typellm": 11
+        }
+      },
+      "ciReplay": null,
+      "ciRaw": null
+    },
+    {
+      "id": "public-R",
+      "phase_kind": "public",
+      "axis": "R",
+      "classification": "PUBLIC_REGRESSION_ONLY",
+      "binding": {
+        "status": "PASS",
+        "issues": [],
+        "scope": "fixed exact-byte producer/source testimony joins, not live observation",
+        "CI_LIVE_EXECUTION": "UNPROVEN"
+      },
+      "raw": {
+        "schema": "voice-ui.component-axes-raw-audit/1",
+        "axis": "R",
+        "status": "PASS",
+        "issues": [],
+        "complete": true,
+        "all_valid_execution": true,
+        "phase_kind": "public",
+        "parent_inputs_sha256": null,
+        "runtime_scope": "LIVE_BINDING_REQUIRED",
+        "admissible_for_semantic_claim": true,
+        "consumed": 2,
+        "planned": 2,
+        "external_provider_attempts": {
+          "jev": 15,
+          "typellm": 0
+        },
+        "external_provider_attempt_bounds": {
+          "jev": {
+            "min": 15,
+            "max": 15
+          },
+          "typellm": {
+            "min": 0,
+            "max": 0
+          }
+        },
+        "factor_rows": 0,
+        "factor_alignment": "UNIQUE",
+        "proofs": [
+          {
+            "id": "H06",
+            "method": "ready",
+            "status": "PASS",
+            "initial_head": "sha256:0b3522df5b691691d41d9b4587377781fc7048c991a4e47357e5583eb09288c6",
+            "final_head": "sha256:3c682ac9435d67082045a0c82e932dbf828abb83bde3d30ab763289d17c2dd93"
+          },
+          {
+            "id": "H08",
+            "method": "ready",
+            "status": "PASS",
+            "initial_head": "sha256:0b3522df5b691691d41d9b4587377781fc7048c991a4e47357e5583eb09288c6",
+            "final_head": "sha256:c6e1662f7866d2d8ab1926a1ac45efeee80b82915b1c89740249a4b0569c559f"
+          }
+        ],
+        "rows": [
+          {
+            "id": "H06",
+            "method": "ready",
+            "grade": {
+              "oracle_inventory_sufficient": true,
+              "graph": {
+                "graph_exact": true,
+                "unique_record_keys": true,
+                "existing_semantics_preserved": true,
+                "semantic_unchanged": false,
+                "clean_new_regions": true,
+                "clean_new_edges": true,
+                "no_other_new_semantics": true,
+                "actual_added_regions": [
+                  {
+                    "label": "読込班",
+                    "kind": "group",
+                    "parent": "fixture:container"
+                  },
+                  {
+                    "label": "点検班",
+                    "kind": "group",
+                    "parent": "fixture:container"
+                  },
+                  {
+                    "label": "保管班",
+                    "kind": "group",
+                    "parent": "fixture:container"
+                  }
+                ],
+                "actual_added_edges": []
+              },
+              "scope": "representation conditional on supplied inventory; paint and actual Goal-path admissibility separate"
+            },
+            "paint_status": "PASS",
+            "cell_wall_elapsedMs": 1853.8738,
+            "goal_elapsedMs": 1849.1767
+          },
+          {
+            "id": "H08",
+            "method": "ready",
+            "grade": {
+              "oracle_inventory_sufficient": true,
+              "graph": {
+                "graph_exact": true,
+                "unique_record_keys": true,
+                "existing_semantics_preserved": true,
+                "semantic_unchanged": false,
+                "clean_new_regions": true,
+                "clean_new_edges": true,
+                "no_other_new_semantics": true,
+                "actual_added_regions": [
+                  {
+                    "label": "検品室",
+                    "kind": "group",
+                    "parent": "fixture:container"
+                  },
+                  {
+                    "label": "寸法測定",
+                    "kind": "step",
+                    "parent": "added:検品室"
+                  },
+                  {
+                    "label": "測定票",
+                    "kind": "data",
+                    "parent": "added:検品室"
+                  }
+                ],
+                "actual_added_edges": [
+                  {
+                    "from": "added:寸法測定",
+                    "to": "added:測定票",
+                    "kind": "flow",
+                    "label": ""
+                  }
+                ]
+              },
+              "scope": "representation conditional on supplied inventory; paint and actual Goal-path admissibility separate"
+            },
+            "paint_status": "PASS",
+            "cell_wall_elapsedMs": 1724.4848,
+            "goal_elapsedMs": 1721.7540999999999
+          }
+        ],
+        "semantic": {
+          "complete": true,
+          "total": 2,
+          "inventory_sufficient": 2,
+          "graph_exact": 2,
+          "paint_pass": 2,
+          "representation_criteria": "UNMET",
+          "scope": "finite representation with oracle inventory; raw paint/Goal binding is separately required"
+        },
+        "replay": {
+          "status": "PASS",
+          "issues": [],
+          "consumed": 2,
+          "frames": 11,
+          "assessed_frames": 9,
+          "recorded_paint_status": "PASS",
+          "replay_sha256": "3634376080cde49b8915348e7a73534dbc571eae617fab3de6c947bb2d54e8c8",
+          "model_quality_scope": "NONE",
+          "CI_LIVE_EXECUTION": "UNPROVEN"
+        },
+        "raw_sha256": {
+          "H06-A.json": "4733e8a5870495cd0bbcdb87a71fcd3b013c33531e746c83236a311bfe3adfe1",
+          "H08-A.json": "d95eaa6d28bc454639fcc0df35774e71a2d5255c83e2e7e4cbe59fc49f0e8c23",
+          "events.jsonl": "eeed48bd5d02db735439e9e803d0c01d34101f4c99682f7b97394489e4b60dc7",
+          "execution.json": "7c8f86a23bd7bd11c01b1d3c65a2303c3c7c9bbc928bd1086e8a2807610614ed",
+          "identity.json": "2522b2d6cd79d7db6cf399798d3039b2545eadf522e494f3ca149acc66843f2e"
+        },
+        "scope": "raw-axis locality only; source/producer/provider/independent physical PID and any required paint gates remain separate",
+        "CI_LIVE_EXECUTION": "UNPROVEN",
+        "currency": "COST_NOT_MEASURED"
+      },
+      "phase": {
+        "status": "PASS",
+        "issues": [],
+        "phase": "axes-public-R-20261017",
+        "sent": {
+          "jev": 15,
+          "typellm": 0
+        },
+        "prior_charged": {
+          "jev": 568,
+          "typellm": 29
+        },
+        "charged_at_cutoff": {
+          "jev": 583,
+          "typellm": 29
+        },
+        "journal_sha256": "4c61fe177f5f56f8458a0325de9e1b421a59de9b28bfcd2233668afe959b1938",
+        "config_sha256": "7ceac3c0ece2491ebf159debfba409a5a3327714f013a9fa0c05450ac40f639f",
+        "stop_scope": "recorded reconciliation only; independent live PID observation remains an explicit audit reference",
+        "expected_external_bounds": {
+          "jev": {
+            "min": 15,
+            "max": 15
+          },
+          "typellm": {
+            "min": 0,
+            "max": 0
+          }
+        },
+        "cycle_start": {
+          "jev": 564,
+          "typellm": 29
+        },
+        "cycle_limit": {
+          "jev": 290,
+          "typellm": 11
+        },
+        "cycle_remaining": {
+          "jev": 271,
+          "typellm": 11
+        }
+      },
+      "ciReplay": {
+        "status": "PASS",
+        "issues": [],
+        "consumed": 2,
+        "frames": 11,
+        "assessed_frames": 9,
+        "recorded_paint_status": "PASS",
+        "replay_sha256": "57b68dd5ce5686232bc8e7b7dde307d04d7e8951a8855b05481f9b3f3676893e",
+        "model_quality_scope": "NONE",
+        "CI_LIVE_EXECUTION": "UNPROVEN"
+      },
+      "ciRaw": {
+        "schema": "voice-ui.component-axes-raw-audit/1",
+        "axis": "R",
+        "status": "PASS",
+        "issues": [],
+        "complete": true,
+        "all_valid_execution": true,
+        "phase_kind": "public",
+        "parent_inputs_sha256": null,
+        "runtime_scope": "LIVE_BINDING_REQUIRED",
+        "admissible_for_semantic_claim": true,
+        "consumed": 2,
+        "planned": 2,
+        "external_provider_attempts": {
+          "jev": 15,
+          "typellm": 0
+        },
+        "external_provider_attempt_bounds": {
+          "jev": {
+            "min": 15,
+            "max": 15
+          },
+          "typellm": {
+            "min": 0,
+            "max": 0
+          }
+        },
+        "factor_rows": 0,
+        "factor_alignment": "UNIQUE",
+        "proofs": [
+          {
+            "id": "H06",
+            "method": "ready",
+            "status": "PASS",
+            "initial_head": "sha256:0b3522df5b691691d41d9b4587377781fc7048c991a4e47357e5583eb09288c6",
+            "final_head": "sha256:3c682ac9435d67082045a0c82e932dbf828abb83bde3d30ab763289d17c2dd93"
+          },
+          {
+            "id": "H08",
+            "method": "ready",
+            "status": "PASS",
+            "initial_head": "sha256:0b3522df5b691691d41d9b4587377781fc7048c991a4e47357e5583eb09288c6",
+            "final_head": "sha256:c6e1662f7866d2d8ab1926a1ac45efeee80b82915b1c89740249a4b0569c559f"
+          }
+        ],
+        "rows": [
+          {
+            "id": "H06",
+            "method": "ready",
+            "grade": {
+              "oracle_inventory_sufficient": true,
+              "graph": {
+                "graph_exact": true,
+                "unique_record_keys": true,
+                "existing_semantics_preserved": true,
+                "semantic_unchanged": false,
+                "clean_new_regions": true,
+                "clean_new_edges": true,
+                "no_other_new_semantics": true,
+                "actual_added_regions": [
+                  {
+                    "label": "読込班",
+                    "kind": "group",
+                    "parent": "fixture:container"
+                  },
+                  {
+                    "label": "点検班",
+                    "kind": "group",
+                    "parent": "fixture:container"
+                  },
+                  {
+                    "label": "保管班",
+                    "kind": "group",
+                    "parent": "fixture:container"
+                  }
+                ],
+                "actual_added_edges": []
+              },
+              "scope": "representation conditional on supplied inventory; paint and actual Goal-path admissibility separate"
+            },
+            "paint_status": "PASS",
+            "cell_wall_elapsedMs": 1853.8738,
+            "goal_elapsedMs": 1849.1767
+          },
+          {
+            "id": "H08",
+            "method": "ready",
+            "grade": {
+              "oracle_inventory_sufficient": true,
+              "graph": {
+                "graph_exact": true,
+                "unique_record_keys": true,
+                "existing_semantics_preserved": true,
+                "semantic_unchanged": false,
+                "clean_new_regions": true,
+                "clean_new_edges": true,
+                "no_other_new_semantics": true,
+                "actual_added_regions": [
+                  {
+                    "label": "検品室",
+                    "kind": "group",
+                    "parent": "fixture:container"
+                  },
+                  {
+                    "label": "寸法測定",
+                    "kind": "step",
+                    "parent": "added:検品室"
+                  },
+                  {
+                    "label": "測定票",
+                    "kind": "data",
+                    "parent": "added:検品室"
+                  }
+                ],
+                "actual_added_edges": [
+                  {
+                    "from": "added:寸法測定",
+                    "to": "added:測定票",
+                    "kind": "flow",
+                    "label": ""
+                  }
+                ]
+              },
+              "scope": "representation conditional on supplied inventory; paint and actual Goal-path admissibility separate"
+            },
+            "paint_status": "PASS",
+            "cell_wall_elapsedMs": 1724.4848,
+            "goal_elapsedMs": 1721.7540999999999
+          }
+        ],
+        "semantic": {
+          "complete": true,
+          "total": 2,
+          "inventory_sufficient": 2,
+          "graph_exact": 2,
+          "paint_pass": 2,
+          "representation_criteria": "UNMET",
+          "scope": "finite representation with oracle inventory; raw paint/Goal binding is separately required"
+        },
+        "replay": {
+          "status": "PASS",
+          "issues": [],
+          "consumed": 2,
+          "frames": 11,
+          "assessed_frames": 9,
+          "recorded_paint_status": "PASS",
+          "replay_sha256": "57b68dd5ce5686232bc8e7b7dde307d04d7e8951a8855b05481f9b3f3676893e",
+          "model_quality_scope": "NONE",
+          "CI_LIVE_EXECUTION": "UNPROVEN"
+        },
+        "raw_sha256": {
+          "H06-A.json": "4733e8a5870495cd0bbcdb87a71fcd3b013c33531e746c83236a311bfe3adfe1",
+          "H08-A.json": "d95eaa6d28bc454639fcc0df35774e71a2d5255c83e2e7e4cbe59fc49f0e8c23",
+          "events.jsonl": "eeed48bd5d02db735439e9e803d0c01d34101f4c99682f7b97394489e4b60dc7",
+          "execution.json": "7c8f86a23bd7bd11c01b1d3c65a2303c3c7c9bbc928bd1086e8a2807610614ed",
+          "identity.json": "2522b2d6cd79d7db6cf399798d3039b2545eadf522e494f3ca149acc66843f2e"
+        },
+        "scope": "raw-axis locality only; source/producer/provider/independent physical PID and any required paint gates remain separate",
+        "CI_LIVE_EXECUTION": "UNPROVEN",
+        "currency": "COST_NOT_MEASURED"
+      }
+    },
+    {
+      "id": "public-F",
+      "phase_kind": "public",
+      "axis": "F",
+      "classification": "PUBLIC_REGRESSION_ONLY",
+      "binding": {
+        "status": "PASS",
+        "issues": [],
+        "scope": "fixed exact-byte producer/source testimony joins, not live observation",
+        "CI_LIVE_EXECUTION": "UNPROVEN"
+      },
+      "raw": {
+        "schema": "voice-ui.component-axes-raw-audit/1",
+        "axis": "F",
+        "status": "PASS",
+        "issues": [],
+        "complete": true,
+        "all_valid_execution": false,
+        "phase_kind": "public",
+        "parent_inputs_sha256": null,
+        "runtime_scope": "LIVE_BINDING_REQUIRED",
+        "admissible_for_semantic_claim": false,
+        "consumed": 6,
+        "planned": 6,
+        "external_provider_attempts": {
+          "jev": 0,
+          "typellm": null
+        },
+        "external_provider_attempt_bounds": {
+          "jev": {
+            "min": 0,
+            "max": 0
+          },
+          "typellm": {
+            "min": 2,
+            "max": 3
+          }
+        },
+        "factor_rows": 0,
+        "factor_alignment": "UNIQUE",
+        "proofs": [
+          {
+            "id": "H05",
+            "method": "literal",
+            "status": "PASS",
+            "initial_head": "sha256:0b3522df5b691691d41d9b4587377781fc7048c991a4e47357e5583eb09288c6",
+            "final_head": "sha256:0b3522df5b691691d41d9b4587377781fc7048c991a4e47357e5583eb09288c6"
+          },
+          {
+            "id": "H05",
+            "method": "typed",
+            "status": "PASS",
+            "initial_head": "sha256:0b3522df5b691691d41d9b4587377781fc7048c991a4e47357e5583eb09288c6",
+            "final_head": "sha256:0b3522df5b691691d41d9b4587377781fc7048c991a4e47357e5583eb09288c6"
+          },
+          {
+            "id": "H07",
+            "method": "typed",
+            "status": "PASS",
+            "initial_head": "sha256:0b3522df5b691691d41d9b4587377781fc7048c991a4e47357e5583eb09288c6",
+            "final_head": "sha256:0b3522df5b691691d41d9b4587377781fc7048c991a4e47357e5583eb09288c6"
+          },
+          {
+            "id": "H07",
+            "method": "literal",
+            "status": "PASS",
+            "initial_head": "sha256:0b3522df5b691691d41d9b4587377781fc7048c991a4e47357e5583eb09288c6",
+            "final_head": "sha256:0b3522df5b691691d41d9b4587377781fc7048c991a4e47357e5583eb09288c6"
+          },
+          {
+            "id": "H08",
+            "method": "literal",
+            "status": "PASS",
+            "initial_head": "sha256:0b3522df5b691691d41d9b4587377781fc7048c991a4e47357e5583eb09288c6",
+            "final_head": "sha256:0b3522df5b691691d41d9b4587377781fc7048c991a4e47357e5583eb09288c6"
+          },
+          {
+            "id": "H08",
+            "method": "typed",
+            "status": "PASS",
+            "initial_head": "sha256:0b3522df5b691691d41d9b4587377781fc7048c991a4e47357e5583eb09288c6",
+            "final_head": "sha256:0b3522df5b691691d41d9b4587377781fc7048c991a4e47357e5583eb09288c6"
+          }
+        ],
+        "rows": [
+          {
+            "id": "H05",
+            "method": "literal",
+            "grade": {
+              "contract_valid": true,
+              "exact": true,
+              "minimal": true,
+              "expected_instances": 1,
+              "actual_instances": 1,
+              "matched_instances": 1,
+              "omitted_instances": 0,
+              "extra_instances": 0,
+              "precision": 1,
+              "recall": 1
+            }
+          },
+          {
+            "id": "H05",
+            "method": "typed",
+            "grade": {
+              "contract_valid": false,
+              "exact": false,
+              "minimal": false,
+              "expected_instances": 1,
+              "actual_instances": null,
+              "matched_instances": 0,
+              "omitted_instances": 1,
+              "extra_instances": null,
+              "precision": null,
+              "recall": 0
+            }
+          },
+          {
+            "id": "H07",
+            "method": "typed",
+            "grade": {
+              "contract_valid": true,
+              "exact": true,
+              "minimal": true,
+              "expected_instances": 2,
+              "actual_instances": 2,
+              "matched_instances": 2,
+              "omitted_instances": 0,
+              "extra_instances": 0,
+              "precision": 1,
+              "recall": 1
+            }
+          },
+          {
+            "id": "H07",
+            "method": "literal",
+            "grade": {
+              "contract_valid": true,
+              "exact": true,
+              "minimal": true,
+              "expected_instances": 2,
+              "actual_instances": 2,
+              "matched_instances": 2,
+              "omitted_instances": 0,
+              "extra_instances": 0,
+              "precision": 1,
+              "recall": 1
+            }
+          },
+          {
+            "id": "H08",
+            "method": "literal",
+            "grade": {
+              "contract_valid": true,
+              "exact": true,
+              "minimal": true,
+              "expected_instances": 3,
+              "actual_instances": 3,
+              "matched_instances": 3,
+              "omitted_instances": 0,
+              "extra_instances": 0,
+              "precision": 1,
+              "recall": 1
+            }
+          },
+          {
+            "id": "H08",
+            "method": "typed",
+            "grade": {
+              "contract_valid": true,
+              "exact": false,
+              "minimal": false,
+              "expected_instances": 3,
+              "actual_instances": 2,
+              "matched_instances": 2,
+              "omitted_instances": 1,
+              "extra_instances": 0,
+              "precision": 1,
+              "recall": 0.6666666666666666
+            }
+          }
+        ],
+        "semantic": {
+          "complete": true,
+          "per_method": {
+            "literal": {
+              "total": 3,
+              "exact_minimal": 3,
+              "contract_valid": true,
+              "semantic_criteria": "UNMET"
+            },
+            "typed": {
+              "total": 3,
+              "exact_minimal": 1,
+              "contract_valid": false,
+              "semantic_criteria": "UNMET"
+            }
+          }
+        },
+        "replay": null,
+        "raw_sha256": {
+          "H05-B.json": "7d40d98772d8d055f5d041f515d76ca209af60a3e33f1a6c240ddad1d7594451",
+          "H05-C.json": "a52cad1774f40447cb712258be3726e5a93438e30df2747ecdca37ea6dd5f972",
+          "H07-B.json": "3c1147d8f7b959aa76378e62c5ae8f582b13b6d945946e461cd9a5034669d864",
+          "H07-C.json": "7fbb3b10c1348bf9efe0729d1a4225c61794e99096b0acf903472ccc99f286c3",
+          "H08-B.json": "2dc11212e817e2467c060a6046e35582462acb07b508d788090c7a399257ebaa",
+          "H08-C.json": "04be926d6f476f8fbd4b85e2a25944c0b5ce18d506a724a43445f18b2ecb53b1",
+          "events.jsonl": "624da78651ab949f3750d6a9c2d35cc016f9323833fddceca19dfe7e61df7939",
+          "execution.json": "10b345c8827f14e99f7e59051d58eb3d052c1484d6f24c6b2190b00305647b6b",
+          "identity.json": "a0f06e7628153cc98419cc9f79fbc1e8c727a851ecf7911a65bfdd2ba56e9105"
+        },
+        "scope": "raw-axis locality only; source/producer/provider/independent physical PID and any required paint gates remain separate",
+        "CI_LIVE_EXECUTION": "UNPROVEN",
+        "currency": "COST_NOT_MEASURED"
+      },
+      "phase": {
+        "status": "PASS",
+        "issues": [],
+        "phase": "axes-public-F-20261017",
+        "sent": {
+          "jev": 0,
+          "typellm": 3
+        },
+        "prior_charged": {
+          "jev": 583,
+          "typellm": 29
+        },
+        "charged_at_cutoff": {
+          "jev": 583,
+          "typellm": 32
+        },
+        "journal_sha256": "f05be9ce92d676ca16b75b84f1201a8f04eb36dc518bda4821c9192cef3e13ad",
+        "config_sha256": "a1c4a2ccc5953c132b77af0e90da9a2ad35af369ed56bfd655a8ffee05f0951d",
+        "stop_scope": "recorded reconciliation only; independent live PID observation remains an explicit audit reference",
+        "expected_external_bounds": {
+          "jev": {
+            "min": 0,
+            "max": 0
+          },
+          "typellm": {
+            "min": 2,
+            "max": 3
+          }
+        },
+        "cycle_start": {
+          "jev": 564,
+          "typellm": 29
+        },
+        "cycle_limit": {
+          "jev": 290,
+          "typellm": 11
+        },
+        "cycle_remaining": {
+          "jev": 271,
+          "typellm": 8
+        }
+      },
+      "ciReplay": null,
+      "ciRaw": null
+    },
+    {
+      "id": "public-E",
+      "phase_kind": "public",
+      "axis": "E",
+      "classification": "PUBLIC_REGRESSION_ONLY",
+      "binding": {
+        "status": "PASS",
+        "issues": [],
+        "scope": "fixed exact-byte producer/source testimony joins, not live observation",
+        "CI_LIVE_EXECUTION": "UNPROVEN"
+      },
+      "raw": {
+        "schema": "voice-ui.component-axes-raw-audit/1",
+        "axis": "E",
+        "status": "PASS",
+        "issues": [],
+        "complete": true,
+        "all_valid_execution": true,
+        "phase_kind": "public",
+        "parent_inputs_sha256": null,
+        "runtime_scope": "LIVE_BINDING_REQUIRED",
+        "admissible_for_semantic_claim": true,
+        "consumed": 4,
+        "planned": 4,
+        "external_provider_attempts": {
+          "jev": 17,
+          "typellm": 0
+        },
+        "external_provider_attempt_bounds": {
+          "jev": {
+            "min": 17,
+            "max": 17
+          },
+          "typellm": {
+            "min": 0,
+            "max": 0
+          }
+        },
+        "factor_rows": 8,
+        "factor_alignment": "UNIQUE",
+        "proofs": [
+          {
+            "id": "H01",
+            "method": "literal",
+            "status": "PASS",
+            "initial_head": "sha256:0b3522df5b691691d41d9b4587377781fc7048c991a4e47357e5583eb09288c6",
+            "final_head": "sha256:1804ff10579683c309cada7596f55260ee68d5741b1d750c1f990fd282b637b0"
+          },
+          {
+            "id": "H05",
+            "method": "literal",
+            "status": "PASS",
+            "initial_head": "sha256:0b3522df5b691691d41d9b4587377781fc7048c991a4e47357e5583eb09288c6",
+            "final_head": "sha256:84f694be688b802df4e1ec50863ae8495e8f9a9c7905b36eeb1c752b1a583fa9"
+          },
+          {
+            "id": "H07",
+            "method": "literal",
+            "status": "PASS",
+            "initial_head": "sha256:0b3522df5b691691d41d9b4587377781fc7048c991a4e47357e5583eb09288c6",
+            "final_head": "sha256:3242f229d6ae1d74aa45fe59dbd62ea8941a1328cedb8b272ff56e2a32855c16"
+          },
+          {
+            "id": "N09",
+            "method": "literal",
+            "status": "PASS",
+            "initial_head": "sha256:0b3522df5b691691d41d9b4587377781fc7048c991a4e47357e5583eb09288c6",
+            "final_head": "sha256:0b3522df5b691691d41d9b4587377781fc7048c991a4e47357e5583eb09288c6"
+          }
+        ],
+        "rows": [
+          {
+            "id": "H01",
+            "method": "literal",
+            "grade": {
+              "expected_gate": "sufficient",
+              "decision_contract_valid": true,
+              "gate_correct": true,
+              "graph_exact": true,
+              "graph": {
+                "graph_exact": true,
+                "unique_record_keys": true,
+                "existing_semantics_preserved": true,
+                "semantic_unchanged": false,
+                "clean_new_regions": true,
+                "clean_new_edges": true,
+                "no_other_new_semantics": true,
+                "actual_added_regions": [
+                  {
+                    "label": "API",
+                    "kind": "step",
+                    "parent": "fixture:container"
+                  }
+                ],
+                "actual_added_edges": []
+              },
+              "missing_exact_minimal": true,
+              "supply": {
+                "contract_valid": true,
+                "exact": true,
+                "minimal": true,
+                "expected_instances": 0,
+                "actual_instances": 0,
+                "matched_instances": 0,
+                "omitted_instances": 0,
+                "extra_instances": 0,
+                "precision": 1,
+                "recall": 1
+              },
+              "control_correct": null,
+              "raw_unchanged": false,
+              "generation_free": true,
+              "type_free": true,
+              "no_false_adoption": true,
+              "ordinary_non_regression": true,
+              "deadline": true,
+              "scope": "ordinary literal semantic observation only; source/proof/HTTP/provider/paint/persistence binding remains mandatory"
+            },
+            "paint_status": "PASS",
+            "persisted_raw_equal": true,
+            "cell_wall_elapsedMs": 15227.985100000002,
+            "goal_elapsedMs": 1905.205000013113,
+            "goal_deadline_status": "PASS"
+          },
+          {
+            "id": "H05",
+            "method": "literal",
+            "grade": {
+              "expected_gate": "missing",
+              "decision_contract_valid": true,
+              "gate_correct": true,
+              "graph_exact": true,
+              "graph": {
+                "graph_exact": true,
+                "unique_record_keys": true,
+                "existing_semantics_preserved": true,
+                "semantic_unchanged": false,
+                "clean_new_regions": true,
+                "clean_new_edges": true,
+                "no_other_new_semantics": true,
+                "actual_added_regions": [
+                  {
+                    "label": "整形受付",
+                    "kind": "step",
+                    "parent": "fixture:container"
+                  }
+                ],
+                "actual_added_edges": []
+              },
+              "missing_exact_minimal": true,
+              "supply": {
+                "contract_valid": true,
+                "exact": true,
+                "minimal": true,
+                "expected_instances": 1,
+                "actual_instances": 1,
+                "matched_instances": 1,
+                "omitted_instances": 0,
+                "extra_instances": 0,
+                "precision": 1,
+                "recall": 1
+              },
+              "control_correct": null,
+              "raw_unchanged": false,
+              "generation_free": false,
+              "type_free": true,
+              "no_false_adoption": true,
+              "ordinary_non_regression": true,
+              "deadline": true,
+              "scope": "ordinary literal semantic observation only; source/proof/HTTP/provider/paint/persistence binding remains mandatory"
+            },
+            "paint_status": "PASS",
+            "persisted_raw_equal": true,
+            "cell_wall_elapsedMs": 11492.295900000005,
+            "goal_elapsedMs": 1741.449999988079,
+            "goal_deadline_status": "PASS"
+          },
+          {
+            "id": "H07",
+            "method": "literal",
+            "grade": {
+              "expected_gate": "missing",
+              "decision_contract_valid": true,
+              "gate_correct": true,
+              "graph_exact": true,
+              "graph": {
+                "graph_exact": true,
+                "unique_record_keys": true,
+                "existing_semantics_preserved": true,
+                "semantic_unchanged": false,
+                "clean_new_regions": true,
+                "clean_new_edges": true,
+                "no_other_new_semantics": true,
+                "actual_added_regions": [
+                  {
+                    "label": "DB",
+                    "kind": "data",
+                    "parent": "fixture:container"
+                  },
+                  {
+                    "label": "DB",
+                    "kind": "data",
+                    "parent": "fixture:container"
+                  },
+                  {
+                    "label": "DB",
+                    "kind": "data",
+                    "parent": "fixture:container"
+                  }
+                ],
+                "actual_added_edges": []
+              },
+              "missing_exact_minimal": true,
+              "supply": {
+                "contract_valid": true,
+                "exact": true,
+                "minimal": true,
+                "expected_instances": 2,
+                "actual_instances": 2,
+                "matched_instances": 2,
+                "omitted_instances": 0,
+                "extra_instances": 0,
+                "precision": 1,
+                "recall": 1
+              },
+              "control_correct": null,
+              "raw_unchanged": false,
+              "generation_free": false,
+              "type_free": true,
+              "no_false_adoption": true,
+              "ordinary_non_regression": true,
+              "deadline": true,
+              "scope": "ordinary literal semantic observation only; source/proof/HTTP/provider/paint/persistence binding remains mandatory"
+            },
+            "paint_status": "PASS",
+            "persisted_raw_equal": true,
+            "cell_wall_elapsedMs": 14170.825600000004,
+            "goal_elapsedMs": 4250.869999974966,
+            "goal_deadline_status": "PASS"
+          },
+          {
+            "id": "N09",
+            "method": "literal",
+            "grade": {
+              "expected_gate": "ambiguous",
+              "decision_contract_valid": true,
+              "gate_correct": true,
+              "graph_exact": true,
+              "graph": {
+                "graph_exact": true,
+                "unique_record_keys": true,
+                "existing_semantics_preserved": true,
+                "semantic_unchanged": true,
+                "clean_new_regions": true,
+                "clean_new_edges": true,
+                "no_other_new_semantics": true,
+                "actual_added_regions": [],
+                "actual_added_edges": []
+              },
+              "missing_exact_minimal": true,
+              "supply": {
+                "contract_valid": true,
+                "exact": true,
+                "minimal": true,
+                "expected_instances": 0,
+                "actual_instances": 0,
+                "matched_instances": 0,
+                "omitted_instances": 0,
+                "extra_instances": 0,
+                "precision": 1,
+                "recall": 1
+              },
+              "control_correct": true,
+              "raw_unchanged": true,
+              "generation_free": true,
+              "type_free": true,
+              "no_false_adoption": true,
+              "ordinary_non_regression": true,
+              "deadline": true,
+              "scope": "ordinary literal semantic observation only; source/proof/HTTP/provider/paint/persistence binding remains mandatory"
+            },
+            "paint_status": "PASS",
+            "persisted_raw_equal": true,
+            "cell_wall_elapsedMs": 10371.5403,
+            "goal_elapsedMs": 299.52500000596046,
+            "goal_deadline_status": "PASS"
+          }
+        ],
+        "semantic": {
+          "complete": true,
+          "gate_correct": 4,
+          "sufficient": {
+            "exact": 1,
+            "total": 1
+          },
+          "missing": {
+            "exact_minimal": 2,
+            "total": 2
+          },
+          "controls": {
+            "correct_unchanged": 1,
+            "total": 1
+          },
+          "ordinary_criteria": "UNMET",
+          "Undo_scope": "separate completed-artifact keyless mechanics, not another live Goal on these inputs"
+        },
+        "replay": {
+          "status": "PASS",
+          "issues": [],
+          "consumed": 4,
+          "frames": 12,
+          "assessed_frames": 8,
+          "recorded_paint_status": "PASS",
+          "replay_sha256": "5104863b395ccf5525ca2d60bb9bf0a496c37510768b598fa5214a432545176b",
+          "model_quality_scope": "NONE",
+          "CI_LIVE_EXECUTION": "UNPROVEN"
+        },
+        "raw_sha256": {
+          "H01-B.json": "1914cde1b32346b0591553ba0bafbebec646f0687d2c1e72188c9028f8d0e137",
+          "H05-B.json": "88ccde1f1f81726b21057815d07752457faf1e45cbd716caca16cc1945dfc5aa",
+          "H07-B.json": "28757884cfa157e93ff4b0b7145d8708064f53b5c6dd1b1fe8d8e3538dba269f",
+          "N09-B.json": "34a201fa6babbe49c63f7caf41519d2d569ea1a1757ba461264294b71f417167",
+          "events.jsonl": "5f7f8b32ab3e49cc4bbf58b3b9da1599035a358fabdb7412884d98ba734765c2",
+          "execution.json": "8dc4c693ce241e595d895d0a1828de5e209f9e5a44582a94dcd1154f06dc654c",
+          "identity.json": "7f1a141b3de00c5ef663f3538461b7be7c19cd7dd4619dba373d3169e4ec6269"
+        },
+        "scope": "raw-axis locality only; source/producer/provider/independent physical PID and any required paint gates remain separate",
+        "CI_LIVE_EXECUTION": "UNPROVEN",
+        "currency": "COST_NOT_MEASURED"
+      },
+      "phase": {
+        "status": "PASS",
+        "issues": [],
+        "phase": "axes-public-E-20261017",
+        "sent": {
+          "jev": 17,
+          "typellm": 0
+        },
+        "prior_charged": {
+          "jev": 583,
+          "typellm": 32
+        },
+        "charged_at_cutoff": {
+          "jev": 600,
+          "typellm": 32
+        },
+        "journal_sha256": "deac916d0577e2e6f0f8765cc3109a0538ec3e0a5d042e6b6570c9da9b310766",
+        "config_sha256": "d6a59f640cbd3620293107614863c22ee0e5257ea43980bc6a1d906d33b62c08",
+        "stop_scope": "recorded reconciliation only; independent live PID observation remains an explicit audit reference",
+        "expected_external_bounds": {
+          "jev": {
+            "min": 17,
+            "max": 17
+          },
+          "typellm": {
+            "min": 0,
+            "max": 0
+          }
+        },
+        "cycle_start": {
+          "jev": 564,
+          "typellm": 29
+        },
+        "cycle_limit": {
+          "jev": 290,
+          "typellm": 11
+        },
+        "cycle_remaining": {
+          "jev": 254,
+          "typellm": 8
+        }
+      },
+      "ciReplay": {
+        "status": "PASS",
+        "issues": [],
+        "consumed": 4,
+        "frames": 12,
+        "assessed_frames": 8,
+        "recorded_paint_status": "PASS",
+        "replay_sha256": "7e475774c86231ad83c9ee2b4146dcf901e09569113ae496f31bb8df8fab0cf3",
+        "model_quality_scope": "NONE",
+        "CI_LIVE_EXECUTION": "UNPROVEN"
+      },
+      "ciRaw": {
+        "schema": "voice-ui.component-axes-raw-audit/1",
+        "axis": "E",
+        "status": "PASS",
+        "issues": [],
+        "complete": true,
+        "all_valid_execution": true,
+        "phase_kind": "public",
+        "parent_inputs_sha256": null,
+        "runtime_scope": "LIVE_BINDING_REQUIRED",
+        "admissible_for_semantic_claim": true,
+        "consumed": 4,
+        "planned": 4,
+        "external_provider_attempts": {
+          "jev": 17,
+          "typellm": 0
+        },
+        "external_provider_attempt_bounds": {
+          "jev": {
+            "min": 17,
+            "max": 17
+          },
+          "typellm": {
+            "min": 0,
+            "max": 0
+          }
+        },
+        "factor_rows": 8,
+        "factor_alignment": "UNIQUE",
+        "proofs": [
+          {
+            "id": "H01",
+            "method": "literal",
+            "status": "PASS",
+            "initial_head": "sha256:0b3522df5b691691d41d9b4587377781fc7048c991a4e47357e5583eb09288c6",
+            "final_head": "sha256:1804ff10579683c309cada7596f55260ee68d5741b1d750c1f990fd282b637b0"
+          },
+          {
+            "id": "H05",
+            "method": "literal",
+            "status": "PASS",
+            "initial_head": "sha256:0b3522df5b691691d41d9b4587377781fc7048c991a4e47357e5583eb09288c6",
+            "final_head": "sha256:84f694be688b802df4e1ec50863ae8495e8f9a9c7905b36eeb1c752b1a583fa9"
+          },
+          {
+            "id": "H07",
+            "method": "literal",
+            "status": "PASS",
+            "initial_head": "sha256:0b3522df5b691691d41d9b4587377781fc7048c991a4e47357e5583eb09288c6",
+            "final_head": "sha256:3242f229d6ae1d74aa45fe59dbd62ea8941a1328cedb8b272ff56e2a32855c16"
+          },
+          {
+            "id": "N09",
+            "method": "literal",
+            "status": "PASS",
+            "initial_head": "sha256:0b3522df5b691691d41d9b4587377781fc7048c991a4e47357e5583eb09288c6",
+            "final_head": "sha256:0b3522df5b691691d41d9b4587377781fc7048c991a4e47357e5583eb09288c6"
+          }
+        ],
+        "rows": [
+          {
+            "id": "H01",
+            "method": "literal",
+            "grade": {
+              "expected_gate": "sufficient",
+              "decision_contract_valid": true,
+              "gate_correct": true,
+              "graph_exact": true,
+              "graph": {
+                "graph_exact": true,
+                "unique_record_keys": true,
+                "existing_semantics_preserved": true,
+                "semantic_unchanged": false,
+                "clean_new_regions": true,
+                "clean_new_edges": true,
+                "no_other_new_semantics": true,
+                "actual_added_regions": [
+                  {
+                    "label": "API",
+                    "kind": "step",
+                    "parent": "fixture:container"
+                  }
+                ],
+                "actual_added_edges": []
+              },
+              "missing_exact_minimal": true,
+              "supply": {
+                "contract_valid": true,
+                "exact": true,
+                "minimal": true,
+                "expected_instances": 0,
+                "actual_instances": 0,
+                "matched_instances": 0,
+                "omitted_instances": 0,
+                "extra_instances": 0,
+                "precision": 1,
+                "recall": 1
+              },
+              "control_correct": null,
+              "raw_unchanged": false,
+              "generation_free": true,
+              "type_free": true,
+              "no_false_adoption": true,
+              "ordinary_non_regression": true,
+              "deadline": true,
+              "scope": "ordinary literal semantic observation only; source/proof/HTTP/provider/paint/persistence binding remains mandatory"
+            },
+            "paint_status": "PASS",
+            "persisted_raw_equal": true,
+            "cell_wall_elapsedMs": 15227.985100000002,
+            "goal_elapsedMs": 1905.205000013113,
+            "goal_deadline_status": "PASS"
+          },
+          {
+            "id": "H05",
+            "method": "literal",
+            "grade": {
+              "expected_gate": "missing",
+              "decision_contract_valid": true,
+              "gate_correct": true,
+              "graph_exact": true,
+              "graph": {
+                "graph_exact": true,
+                "unique_record_keys": true,
+                "existing_semantics_preserved": true,
+                "semantic_unchanged": false,
+                "clean_new_regions": true,
+                "clean_new_edges": true,
+                "no_other_new_semantics": true,
+                "actual_added_regions": [
+                  {
+                    "label": "整形受付",
+                    "kind": "step",
+                    "parent": "fixture:container"
+                  }
+                ],
+                "actual_added_edges": []
+              },
+              "missing_exact_minimal": true,
+              "supply": {
+                "contract_valid": true,
+                "exact": true,
+                "minimal": true,
+                "expected_instances": 1,
+                "actual_instances": 1,
+                "matched_instances": 1,
+                "omitted_instances": 0,
+                "extra_instances": 0,
+                "precision": 1,
+                "recall": 1
+              },
+              "control_correct": null,
+              "raw_unchanged": false,
+              "generation_free": false,
+              "type_free": true,
+              "no_false_adoption": true,
+              "ordinary_non_regression": true,
+              "deadline": true,
+              "scope": "ordinary literal semantic observation only; source/proof/HTTP/provider/paint/persistence binding remains mandatory"
+            },
+            "paint_status": "PASS",
+            "persisted_raw_equal": true,
+            "cell_wall_elapsedMs": 11492.295900000005,
+            "goal_elapsedMs": 1741.449999988079,
+            "goal_deadline_status": "PASS"
+          },
+          {
+            "id": "H07",
+            "method": "literal",
+            "grade": {
+              "expected_gate": "missing",
+              "decision_contract_valid": true,
+              "gate_correct": true,
+              "graph_exact": true,
+              "graph": {
+                "graph_exact": true,
+                "unique_record_keys": true,
+                "existing_semantics_preserved": true,
+                "semantic_unchanged": false,
+                "clean_new_regions": true,
+                "clean_new_edges": true,
+                "no_other_new_semantics": true,
+                "actual_added_regions": [
+                  {
+                    "label": "DB",
+                    "kind": "data",
+                    "parent": "fixture:container"
+                  },
+                  {
+                    "label": "DB",
+                    "kind": "data",
+                    "parent": "fixture:container"
+                  },
+                  {
+                    "label": "DB",
+                    "kind": "data",
+                    "parent": "fixture:container"
+                  }
+                ],
+                "actual_added_edges": []
+              },
+              "missing_exact_minimal": true,
+              "supply": {
+                "contract_valid": true,
+                "exact": true,
+                "minimal": true,
+                "expected_instances": 2,
+                "actual_instances": 2,
+                "matched_instances": 2,
+                "omitted_instances": 0,
+                "extra_instances": 0,
+                "precision": 1,
+                "recall": 1
+              },
+              "control_correct": null,
+              "raw_unchanged": false,
+              "generation_free": false,
+              "type_free": true,
+              "no_false_adoption": true,
+              "ordinary_non_regression": true,
+              "deadline": true,
+              "scope": "ordinary literal semantic observation only; source/proof/HTTP/provider/paint/persistence binding remains mandatory"
+            },
+            "paint_status": "PASS",
+            "persisted_raw_equal": true,
+            "cell_wall_elapsedMs": 14170.825600000004,
+            "goal_elapsedMs": 4250.869999974966,
+            "goal_deadline_status": "PASS"
+          },
+          {
+            "id": "N09",
+            "method": "literal",
+            "grade": {
+              "expected_gate": "ambiguous",
+              "decision_contract_valid": true,
+              "gate_correct": true,
+              "graph_exact": true,
+              "graph": {
+                "graph_exact": true,
+                "unique_record_keys": true,
+                "existing_semantics_preserved": true,
+                "semantic_unchanged": true,
+                "clean_new_regions": true,
+                "clean_new_edges": true,
+                "no_other_new_semantics": true,
+                "actual_added_regions": [],
+                "actual_added_edges": []
+              },
+              "missing_exact_minimal": true,
+              "supply": {
+                "contract_valid": true,
+                "exact": true,
+                "minimal": true,
+                "expected_instances": 0,
+                "actual_instances": 0,
+                "matched_instances": 0,
+                "omitted_instances": 0,
+                "extra_instances": 0,
+                "precision": 1,
+                "recall": 1
+              },
+              "control_correct": true,
+              "raw_unchanged": true,
+              "generation_free": true,
+              "type_free": true,
+              "no_false_adoption": true,
+              "ordinary_non_regression": true,
+              "deadline": true,
+              "scope": "ordinary literal semantic observation only; source/proof/HTTP/provider/paint/persistence binding remains mandatory"
+            },
+            "paint_status": "PASS",
+            "persisted_raw_equal": true,
+            "cell_wall_elapsedMs": 10371.5403,
+            "goal_elapsedMs": 299.52500000596046,
+            "goal_deadline_status": "PASS"
+          }
+        ],
+        "semantic": {
+          "complete": true,
+          "gate_correct": 4,
+          "sufficient": {
+            "exact": 1,
+            "total": 1
+          },
+          "missing": {
+            "exact_minimal": 2,
+            "total": 2
+          },
+          "controls": {
+            "correct_unchanged": 1,
+            "total": 1
+          },
+          "ordinary_criteria": "UNMET",
+          "Undo_scope": "separate completed-artifact keyless mechanics, not another live Goal on these inputs"
+        },
+        "replay": {
+          "status": "PASS",
+          "issues": [],
+          "consumed": 4,
+          "frames": 12,
+          "assessed_frames": 8,
+          "recorded_paint_status": "PASS",
+          "replay_sha256": "7e475774c86231ad83c9ee2b4146dcf901e09569113ae496f31bb8df8fab0cf3",
+          "model_quality_scope": "NONE",
+          "CI_LIVE_EXECUTION": "UNPROVEN"
+        },
+        "raw_sha256": {
+          "H01-B.json": "1914cde1b32346b0591553ba0bafbebec646f0687d2c1e72188c9028f8d0e137",
+          "H05-B.json": "88ccde1f1f81726b21057815d07752457faf1e45cbd716caca16cc1945dfc5aa",
+          "H07-B.json": "28757884cfa157e93ff4b0b7145d8708064f53b5c6dd1b1fe8d8e3538dba269f",
+          "N09-B.json": "34a201fa6babbe49c63f7caf41519d2d569ea1a1757ba461264294b71f417167",
+          "events.jsonl": "5f7f8b32ab3e49cc4bbf58b3b9da1599035a358fabdb7412884d98ba734765c2",
+          "execution.json": "8dc4c693ce241e595d895d0a1828de5e209f9e5a44582a94dcd1154f06dc654c",
+          "identity.json": "7f1a141b3de00c5ef663f3538461b7be7c19cd7dd4619dba373d3169e4ec6269"
+        },
+        "scope": "raw-axis locality only; source/producer/provider/independent physical PID and any required paint gates remain separate",
+        "CI_LIVE_EXECUTION": "UNPROVEN",
+        "currency": "COST_NOT_MEASURED"
+      }
+    }
+  ],
+  "quality": [
+    {
+      "id": "public-G",
+      "axis": "G",
+      "classification": "PUBLIC_REGRESSION_ONLY"
+    },
+    {
+      "id": "public-R",
+      "axis": "R",
+      "classification": "PUBLIC_REGRESSION_ONLY"
+    },
+    {
+      "id": "public-F",
+      "axis": "F",
+      "classification": "PUBLIC_REGRESSION_ONLY"
+    },
+    {
+      "id": "public-E",
+      "axis": "E",
+      "classification": "PUBLIC_REGRESSION_ONLY"
+    }
+  ],
+  "CI_LIVE_EXECUTION": "UNPROVEN",
+  "currency": "COST_NOT_MEASURED"
+}

@@ -1,0 +1,79 @@
+{
+  "schema": "voice-ui.component-axes-reserve-audit/1",
+  "source_pool_sha256": "b64985019e2248c4fde62e330f319846c96ab5014db4e96a7d8f0d50d5f86076",
+  "projection_sha256": "354862aef8e9c7ad85bce6e77877fa5dbe98f4a7b3fddaa73ea2de8b6704c38b",
+  "oracle_sha256": "23c4b72efd4f1247df1493abe7a453b222d5db4980bc7488e4d83e5d3e339533",
+  "bundle_sha256": "8fd1b4f37f6a113653dbaeda5e040ba5bed6d7b007ab9269d307f8642d339189",
+  "case_order": [
+    "R01",
+    "R05",
+    "R09",
+    "R02",
+    "R06",
+    "R10",
+    "R03",
+    "R07",
+    "R04",
+    "R08"
+  ],
+  "strata": {
+    "sufficient": 4,
+    "missing": 4,
+    "ambiguous": 1,
+    "no-change": 1
+  },
+  "original_case_object_sha256": [
+    {
+      "id": "R01",
+      "sha256": "9bd841b1808de441df6bb4bdf65a4e3f03865f96b6d7f41e4c607cadd3b0952c"
+    },
+    {
+      "id": "R05",
+      "sha256": "29ec5a0603c4119890f1eb358a64484ac3cb93dca26e9bbbdb3c9b1da8081be5"
+    },
+    {
+      "id": "R09",
+      "sha256": "00bf183faf276af8419af0a8a11d80a107b8275c4f7ed2b09be0a37c6175718f"
+    },
+    {
+      "id": "R02",
+      "sha256": "8627c795194d97fe62eea6efc812f12ee053c8bbb31dc465cf335542364bfd84"
+    },
+    {
+      "id": "R06",
+      "sha256": "158131c03f78c867f7e0199d7fd47bec71948dc3436ab44cfc248ab225030d34"
+    },
+    {
+      "id": "R10",
+      "sha256": "391277a8e65c1b42b25852b093978f2c5467ee2f835d3f47c4fbdf4ae58f9882"
+    },
+    {
+      "id": "R03",
+      "sha256": "e7ad2c85a27683e16145e4937ccfd7f102934629f23c6fb3641f5c93362d9cfa"
+    },
+    {
+      "id": "R07",
+      "sha256": "ca43b9cd677222580e5d6a5d66bc177330b94653ab93e1950cf891687a87bbfa"
+    },
+    {
+      "id": "R04",
+      "sha256": "aecde3dbd1fb9589167fed16fcf96500bc69374eef429fa737d5b9811dbd100b"
+    },
+    {
+      "id": "R08",
+      "sha256": "287c2b29586547fb6ba99884a778d9e2f7d7c89a5d85191a66aa4513c2719edb"
+    }
+  ],
+  "status": "PASS",
+  "issues": [],
+  "scope": "raw original seal, case/target/order/fixture preservation and mechanical required derivation only; no model-quality verdict",
+  "independent_mutation_tests": {
+    "groups": 5,
+    "passed": 5,
+    "failed": 0,
+    "fixture": "actual consumed reserve with edited but consistently rehashed semantic counterexamples",
+    "node": "v24.19.0"
+  },
+  "module_sha256": "ff279fdade72a8899c90e951e4ad62305f70c8580ded76d05e68b65c1398822b",
+  "test_sha256": "54aa304ee763b8408b0c823c5b4f3fdbe01c01c93ebe3a768da1caaea68c2bdb"
+}

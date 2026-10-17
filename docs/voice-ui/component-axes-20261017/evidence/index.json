@@ -1,8 +1,8 @@
 {
   "schema": "voice-ui.component-axes-evidence-index/1",
   "expected_cumulative": {
-    "jev": 600,
-    "typellm": 32
+    "jev": 689,
+    "typellm": 40
   },
   "phases": [
     {
@@ -94,6 +94,99 @@
         "pr103-286e-r8-review.md": "shared/pr103-286e-r8-review.md",
         "axes-public-E-zero-send-audit.json": "public-E/axes-public-E-zero-send-audit.json",
         "axes-public-E-stop-audit.json": "public-E/axes-public-E-stop-audit.json"
+      },
+      "expected_execution_status": "RECORDED"
+    },
+    {
+      "id": "final-G",
+      "axis": "G",
+      "apps_sha": "286eb7d0bc0bdef160bda900547314aa5be3a752",
+      "phase_kind": "final",
+      "raw_dir": "final-G/raw",
+      "producer": "final-G/axes-final-G-286e.producer.json",
+      "runtime": "final-G/runtime-build.json",
+      "input": "final-G/input.json",
+      "oracle": "final-G/oracle.json",
+      "config": "final-G/axes-final-G-20261017.config.json",
+      "process": "final-G/axes-final-G-20261017.process.json",
+      "stdout": "final-G/axes-final-G-20261017.stdout.log",
+      "stderr": "final-G/axes-final-G-20261017.stderr.log",
+      "journal": "final-G/journal.jsonl",
+      "recorded_replay": null,
+      "audits": {
+        "pr103-efd6-r9-review.md": "shared/pr103-efd6-r9-review.md",
+        "axes-final-G-zero-send-audit.json": "final-G/axes-final-G-zero-send-audit.json",
+        "axes-final-G-stop-audit.json": "final-G/axes-final-G-stop-audit.json"
+      },
+      "expected_execution_status": "RECORDED"
+    },
+    {
+      "id": "final-R",
+      "axis": "R",
+      "apps_sha": "286eb7d0bc0bdef160bda900547314aa5be3a752",
+      "phase_kind": "final",
+      "raw_dir": "final-R/raw",
+      "producer": "final-R/axes-final-R-286e.producer.json",
+      "runtime": "final-R/runtime-build.json",
+      "input": "final-R/input.json",
+      "oracle": "final-R/oracle.json",
+      "config": "final-R/axes-final-R-20261017.config.json",
+      "process": "final-R/axes-final-R-20261017.process.json",
+      "stdout": "final-R/axes-final-R-20261017.stdout.log",
+      "stderr": "final-R/axes-final-R-20261017.stderr.log",
+      "journal": "final-R/journal.jsonl",
+      "recorded_replay": "final-R/replay.json",
+      "audits": {
+        "pr103-efd6-r9-review.md": "shared/pr103-efd6-r9-review.md",
+        "axes-final-R-zero-send-audit.json": "final-R/axes-final-R-zero-send-audit.json",
+        "axes-final-R-stop-audit.json": "final-R/axes-final-R-stop-audit.json"
+      },
+      "expected_execution_status": "RECORDED"
+    },
+    {
+      "id": "final-F",
+      "axis": "F",
+      "apps_sha": "286eb7d0bc0bdef160bda900547314aa5be3a752",
+      "phase_kind": "final",
+      "raw_dir": "final-F/raw",
+      "producer": "final-F/axes-final-F-286e.producer.json",
+      "runtime": "final-F/runtime-build.json",
+      "input": "final-F/input.json",
+      "oracle": "final-F/oracle.json",
+      "config": "final-F/axes-final-F-20261017.config.json",
+      "process": "final-F/axes-final-F-20261017.process.json",
+      "stdout": "final-F/axes-final-F-20261017.stdout.log",
+      "stderr": "final-F/axes-final-F-20261017.stderr.log",
+      "journal": "final-F/journal.jsonl",
+      "recorded_replay": null,
+      "audits": {
+        "pr103-efd6-r9-review.md": "shared/pr103-efd6-r9-review.md",
+        "axes-final-F-zero-send-audit.json": "final-F/axes-final-F-zero-send-audit.json",
+        "axes-final-F-stop-audit.json": "final-F/axes-final-F-stop-audit.json"
+      },
+      "expected_execution_status": "INVALID"
+    },
+    {
+      "id": "final-E",
+      "axis": "E",
+      "apps_sha": "286eb7d0bc0bdef160bda900547314aa5be3a752",
+      "phase_kind": "final",
+      "raw_dir": "final-E/raw",
+      "producer": "final-E/axes-final-E-286e.producer.json",
+      "runtime": "final-E/runtime-build.json",
+      "input": "final-E/component-axes-E10.inputs.public.json",
+      "oracle": "final-E/component-axes-E10.oracle.public.json",
+      "source_pool": "final-E/component-axes-E10-source-pool.public.json",
+      "config": "final-E/axes-final-E-20261017.config.json",
+      "process": "final-E/axes-final-E-20261017.process.json",
+      "stdout": "final-E/axes-final-E-20261017.stdout.log",
+      "stderr": "final-E/axes-final-E-20261017.stderr.log",
+      "journal": "final-E/journal.jsonl",
+      "recorded_replay": "final-E/replay.json",
+      "audits": {
+        "pr103-efd6-r9-review.md": "shared/pr103-efd6-r9-review.md",
+        "axes-final-E-zero-send-audit.json": "final-E/axes-final-E-zero-send-audit.json",
+        "axes-final-E-stop-audit.json": "final-E/axes-final-E-stop-audit.json"
       },
       "expected_execution_status": "RECORDED"
     }

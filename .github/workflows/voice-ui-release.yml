@@ -86,7 +86,10 @@ jobs:
           POC_PROTOCOL_ENTRY="$reopened/voice-ui-dist/site/ui/semantic-map/protocol/index.js" \
           POC_SOURCE_ROOT="$PWD/packages/voice-ui" \
           POC_AXIS_FIXTURES="$PWD/docs/voice-ui/component-axes-20261017/preregistered" \
+          POC_RESERVE_FIXTURES="$PWD/docs/voice-ui/component-axes-20261017/evidence/final-E" \
+          POC_RESERVE_BUNDLE="$reopened/voice-ui-dist/site/data/bundle.v1.json" \
             "$runtime/bin/voice-ui-acceptance-node" --test packages/voice-ui/tests/component-axis-audit.test.mjs \
+              packages/voice-ui/tests/component-axis-reserve-audit.test.mjs \
             | tee "$PWD/dist/component-axes-mechanics/audit-tests.log"
       - name: Preserve completed-ZIP browser evidence
         if: always()

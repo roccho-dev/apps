@@ -1,0 +1,138 @@
+{
+  "schema": "voice-ui.reviewer.pre-freeze/1",
+  "status": "PASS",
+  "measured_apps": "286eb7d0bc0bdef160bda900547314aa5be3a752",
+  "candidate_apps": "efd6f7b7904910ed99e6fcf5d7bf6f32f49f4899",
+  "candidate_tree": "bbe9c6d6be78068b66291e188bc0c6831777f3aa",
+  "matched_evidence_files": 78,
+  "ordinary_source_sha256": {
+    "src/completion.mjs": "48380fb1504dfe97b1f8450c9b33aee7665d13d5c4ee462a991591e573385541",
+    "src/literal-inventory.mjs": "82a2bdb9866c1331b4c685f28862bd54e7e974c4af3652b4f72dfdbb41f7df60",
+    "src/goal.mjs": "cd9101d6a222e31773c9523adeca3f7f9aa32990e30b39e06a7b872771422f3e",
+    "src/contract.mjs": "f2c95212493f59fd80ef17270c2b5de0d51d795b26ac8a0e6dfa0fdb9dec30fe",
+    "src/turn.mjs": "c5fc3489a5bd0861f0455bd9843f47e76030bb03a4fe55745cf00c29c79b7008",
+    "src/session.mjs": "d6fcb97e581afb789ed6ecb339c06c378ef94283084df8ad3042ebe42c48cfe8",
+    "functions/api/parts.mjs": "13ca5322730f049eb2e77319cc0fbeb58f649d91c4bc56fe9d36214a90960669",
+    "functions/pages-worker.mjs": "8f3bc7ea572cf3e21b16728721dcb381425786180433df34892e2a42cfc94656",
+    "web/app.mjs": "3a9ac4eba0770949a219b35c97cd346d4a7912026fae2b2f21710251b86bbf2a",
+    "web/adapters/completion.mjs": "a940d92086302dd7f733aa45542c26ea0d925fed460111f4fbb15c802e601e82",
+    "tests/component-axes-eval.mjs": "3c0e70952e107c8e443497808a15a5feb85c914e80774d1294a846caa8598f14",
+    "tests/component-axis-score.mjs": "b5b6547e81f8213ba20126ab6404d4807b06d836f91507651a502bc9c6ebef6b",
+    "tests/evaluation-http.mjs": "a2b4055f9209544019f07f5bb299afac38452049c6b642a4da2cdb9534a49f47",
+    "tests/painted-goal.mjs": "c5ba117d1dea66d20c80b7f92b8184296ff79d4231da56f5a89836af4beb018b"
+  },
+  "frozen_independent_audits": "byte-identical",
+  "cumulative": {
+    "jev": 600,
+    "typellm": 32
+  },
+  "reports": [
+    {
+      "axis": "G",
+      "status": "PASS",
+      "classification": "PUBLIC_REGRESSION_ONLY",
+      "complete": true,
+      "all_valid_execution": true,
+      "admissible_for_semantic_claim": true,
+      "semantic": {
+        "total": 4,
+        "intent": {
+          "correct": 4,
+          "total": 4
+        },
+        "availability": {
+          "correct": 2,
+          "total": 2
+        },
+        "normalized": {
+          "correct": 4,
+          "total": 4
+        },
+        "completeness": {
+          "correct": 2,
+          "total": 2
+        },
+        "unknown": 0,
+        "semantic_criteria": "UNMET"
+      },
+      "producer_sha256": "0f9613439322fb626d29a2c4f2b8e2690f00879593ac49d3c58dc9db2835beec"
+    },
+    {
+      "axis": "R",
+      "status": "PASS",
+      "classification": "PUBLIC_REGRESSION_ONLY",
+      "complete": true,
+      "all_valid_execution": true,
+      "admissible_for_semantic_claim": true,
+      "semantic": {
+        "complete": true,
+        "total": 2,
+        "inventory_sufficient": 2,
+        "graph_exact": 2,
+        "paint_pass": 2,
+        "representation_criteria": "UNMET",
+        "scope": "finite representation with oracle inventory; raw paint/Goal binding is separately required"
+      },
+      "producer_sha256": "d77dc67331b57eada726082a18fe8ffd79d4d908dac1bb3bbc74df6bb4a77b4a"
+    },
+    {
+      "axis": "F",
+      "status": "PASS",
+      "classification": "PUBLIC_REGRESSION_ONLY",
+      "complete": true,
+      "all_valid_execution": false,
+      "admissible_for_semantic_claim": false,
+      "semantic": {
+        "complete": true,
+        "per_method": {
+          "literal": {
+            "total": 3,
+            "exact_minimal": 3,
+            "contract_valid": true,
+            "semantic_criteria": "UNMET"
+          },
+          "typed": {
+            "total": 3,
+            "exact_minimal": 1,
+            "contract_valid": false,
+            "semantic_criteria": "UNMET"
+          }
+        }
+      },
+      "producer_sha256": "a7902e86e9e5d778cc9f46a5b8163b0b5ddc36636558403b7c6e83464c6d7ac5"
+    },
+    {
+      "axis": "E",
+      "status": "PASS",
+      "classification": "PUBLIC_REGRESSION_ONLY",
+      "complete": true,
+      "all_valid_execution": true,
+      "admissible_for_semantic_claim": true,
+      "semantic": {
+        "complete": true,
+        "gate_correct": 4,
+        "sufficient": {
+          "exact": 1,
+          "total": 1
+        },
+        "missing": {
+          "exact_minimal": 2,
+          "total": 2
+        },
+        "controls": {
+          "correct_unchanged": 1,
+          "total": 1
+        },
+        "ordinary_criteria": "UNMET",
+        "Undo_scope": "separate completed-artifact keyless mechanics, not another live Goal on these inputs"
+      },
+      "producer_sha256": "1b5987b860464003689bd15fb7d9c1cd6d2695ed14ef2620b2d942cd4c8221cb"
+    }
+  ],
+  "classification_tests": {
+    "passed": 7,
+    "log": "apps-axes-efd6-classification-tests.log",
+    "sha256": "e393185ddc5eee63d4f0c7e063cda33d583529513fb41354e1d0dffa7327ee60"
+  },
+  "scope": "committed public copy/protocol/semantic/provider/producer integrity and source bridge only; fresh unopened; completed candidate artifact/CI checks pending"
+}

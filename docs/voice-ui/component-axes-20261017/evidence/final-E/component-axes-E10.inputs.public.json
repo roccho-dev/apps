@@ -1,0 +1,219 @@
+{
+  "schema": "voice-ui.component-axes-input/1",
+  "axis": "E",
+  "oracle_sha256": "23c4b72efd4f1247df1493abe7a453b222d5db4980bc7488e4d83e5d3e339533",
+  "fixture_contract": {
+    "map_id": "voice-graph",
+    "base_records": [
+      {
+        "type": "meta",
+        "schema": "semantic-map-state/1",
+        "root": "root",
+        "title": "sealed small PoC"
+      },
+      {
+        "type": "region",
+        "id": "root",
+        "parent": null,
+        "label": "fixture",
+        "kind": "boundary",
+        "bounds": [
+          0,
+          0,
+          900,
+          400
+        ],
+        "summary": ""
+      },
+      {
+        "type": "region",
+        "id": "container",
+        "parent": "root",
+        "label": "OCI",
+        "kind": "group",
+        "bounds": [
+          0,
+          0,
+          700,
+          200
+        ],
+        "summary": ""
+      },
+      {
+        "type": "region",
+        "id": "other",
+        "parent": "root",
+        "label": "Other",
+        "kind": "group",
+        "bounds": [
+          0,
+          230,
+          700,
+          160
+        ],
+        "summary": ""
+      }
+    ],
+    "base_pins": [
+      {
+        "regionId": "container",
+        "bounds": [
+          0,
+          0,
+          2000,
+          500
+        ]
+      },
+      {
+        "regionId": "other",
+        "bounds": [
+          0,
+          600,
+          2000,
+          500
+        ]
+      }
+    ],
+    "fixtures": {
+      "empty": {
+        "extra_records": [],
+        "extra_pins": []
+      },
+      "api": {
+        "extra_records": [
+          {
+            "type": "region",
+            "id": "initial-api",
+            "parent": "container",
+            "label": "API",
+            "kind": "step",
+            "bounds": [
+              20,
+              20,
+              140,
+              64
+            ],
+            "summary": ""
+          }
+        ],
+        "extra_pins": [
+          {
+            "regionId": "initial-api",
+            "bounds": [
+              12,
+              36,
+              140,
+              64
+            ]
+          }
+        ]
+      },
+      "pair": {
+        "extra_records": [
+          {
+            "type": "region",
+            "id": "initial-api",
+            "parent": "container",
+            "label": "API",
+            "kind": "step",
+            "bounds": [
+              20,
+              20,
+              140,
+              64
+            ],
+            "summary": ""
+          },
+          {
+            "type": "region",
+            "id": "initial-db",
+            "parent": "container",
+            "label": "DB",
+            "kind": "data",
+            "bounds": [
+              200,
+              20,
+              140,
+              64
+            ],
+            "summary": ""
+          }
+        ],
+        "extra_pins": [
+          {
+            "regionId": "initial-api",
+            "bounds": [
+              12,
+              36,
+              140,
+              64
+            ]
+          },
+          {
+            "regionId": "initial-db",
+            "bounds": [
+              200,
+              36,
+              140,
+              64
+            ]
+          }
+        ]
+      }
+    },
+    "recent_conversation": [],
+    "scope": null
+  },
+  "cases": [
+    {
+      "id": "R01",
+      "fixture": "empty",
+      "utterance": "Otherへデータと判断を一つずつ追加してください。接続はいりません。"
+    },
+    {
+      "id": "R05",
+      "fixture": "empty",
+      "utterance": "Otherの中に「搬出票」という名前のデータを1つ追加してください。"
+    },
+    {
+      "id": "R09",
+      "fixture": "empty",
+      "utterance": "どこかのグループの中にAPIを一つ追加して。どのグループに入れるかは未指定です。"
+    },
+    {
+      "id": "R02",
+      "fixture": "pair",
+      "utterance": "OCIにあるDBから、OCIにあるAPIへ矢印を1本つないでください。新しいノードは不要です。"
+    },
+    {
+      "id": "R06",
+      "fixture": "empty",
+      "utterance": "OCIに判断ノードを2つ追加してください。両方とも表示名は判断です。"
+    },
+    {
+      "id": "R10",
+      "fixture": "pair",
+      "utterance": "図の編集は今はしません。現在のノードも矢印もそのまま保持してください。"
+    },
+    {
+      "id": "R03",
+      "fixture": "empty",
+      "utterance": "Otherの中に「API」という表示名の工程を1つだけ追加してください。"
+    },
+    {
+      "id": "R07",
+      "fixture": "empty",
+      "utterance": "Otherへ「受付」という工程、「審査」という判断、「結果帳」というデータを1つずつ追加してください。"
+    },
+    {
+      "id": "R04",
+      "fixture": "empty",
+      "utterance": "OCIに「グループ」というグループを作り、その中に「データ」というデータと「終了」という終了ノードを各1つ置いてください。"
+    },
+    {
+      "id": "R08",
+      "fixture": "empty",
+      "utterance": "Otherの中に「照会室」というグループを作り、その中へ「依頼受理」という工程を1つ置いてください。「応答記録」というデータはOtherの直下に1つ追加し、依頼受理から応答記録へ矢印を1本つないでください。"
+    }
+  ]
+}

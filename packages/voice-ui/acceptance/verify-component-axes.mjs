@@ -9,6 +9,7 @@ import { auditAxisRaw, auditAxisProducerBinding, auditAxisProviderPhase, auditRe
 import { assessPaintedGoal as assessGoal, assessPaintedEdge as assessEdge } from "../tests/painted-goal.mjs";
 import { joinJournalSnapshots } from "../tests/candidate-closure.mjs";
 import { classifyComponentAxis } from "../tests/component-axis-classification.mjs";
+import { auditReserveProjection } from "../tests/component-axis-reserve-audit.mjs";
 assertNoSecretInputs();
 const [indexFile, outputDirectory] = process.argv.slice(2);
 assert.ok(indexFile && outputDirectory && process.argv.length === 4);
@@ -62,6 +63,13 @@ for (const row of index.phases) {
   const protocolEntry = path.join(built.artifact, "site/ui/semantic-map/protocol/index.js");
   const protocolEntryBytes = fs.readFileSync(protocolEntry), protocol = await import(pathToFileURL(protocolEntry));
   const bundleBytes = fs.readFileSync(path.join(built.artifact, "site/data/bundle.v1.json"));
+  let reserveProjection = null;
+  if (row.axis === "E" && row.phase_kind === "final") {
+    assert.equal(typeof row.source_pool, "string", "final E requires its original consumed reserve seal");
+    reserveProjection = auditReserveProjection({ poolBytes: read(row.source_pool), projectionBytes: read(row.input),
+      oracleBytes: read(row.oracle), bundleBytes });
+    assert.equal(reserveProjection.status, "PASS", JSON.stringify(reserveProjection.issues));
+  }
   const stdoutBytes = read(row.stdout), stderrBytes = read(row.stderr), journalBytes = read(row.journal);
   const configBytes = read(row.config), processBytes = read(row.process), replayBytes = row.recorded_replay ? read(row.recorded_replay) : null;
   const sourceFiles = Object.fromEntries(Object.keys(producer.source_sha256).map(name => {
@@ -98,7 +106,7 @@ for (const row of index.phases) {
     assert.deepEqual(ciRaw.semantic, raw.semantic, "CI independently restores and grades the same recorded outputs");
   }
   const classification = classifyComponentAxis({ phaseKind: row.phase_kind, axis: row.axis, binding, raw, phase, ciReplay, ciRaw });
-  const report = { id: row.id, phase_kind: row.phase_kind, axis: row.axis, classification, binding, raw, phase, ciReplay, ciRaw };
+  const report = { id: row.id, phase_kind: row.phase_kind, axis: row.axis, classification, binding, raw, phase, ciReplay, ciRaw, reserveProjection };
   write(path.join(directory, "audit.json"), report); reports.push(report);
 }
 const cumulative = joinJournalSnapshots(snapshots); assert.deepEqual(cumulative, index.expected_cumulative);

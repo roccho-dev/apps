@@ -321,6 +321,7 @@
                 POC_PROTOCOL_ENTRY = "${voiceUiDist}/site/ui/semantic-map/protocol/index.js";
                 POC_SOURCE_ROOT = "${self}/packages/voice-ui";
                 POC_AXIS_FIXTURES = "${self}/docs/voice-ui/component-axes-20261017/preregistered";
+                POC_RESERVE_FIXTURES = "${self}/docs/voice-ui/component-axes-20261017/evidence/final-E";
                 VOICE_UI_HAYAMIMI = "${hayamimiWeb}";
                 VOICE_UI_SEMANTIC_MAP = "${semanticMap}";
                 VOICE_UI_ARCHITECTURE = "${architectureFor system}";

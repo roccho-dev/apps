@@ -1,0 +1,46 @@
+{
+  "schema": "voice-ui.reviewer.github-review-readback/1",
+  "status": "PASS",
+  "review_id": 5558028175,
+  "url": "https://github.com/roccho-dev/apps/pull/103#pullrequestreview-5558028175",
+  "head": "efd6f7b7904910ed99e6fcf5d7bf6f32f49f4899",
+  "tree": "bbe9c6d6be78068b66291e188bc0c6831777f3aa",
+  "state": "COMMENTED",
+  "author": "roccho-dev",
+  "body_sha256": "e4b3b9421747d0d1ecd1d3140c3877f4507c3da253b0ee6f83818974b430e980",
+  "pr_body_sha256": "390b5ab6be084e24fef436b2cb96749b1d49f18c895c621e844f918583f89f25",
+  "apps": {
+    "state": "open",
+    "draft": true,
+    "merged": false
+  },
+  "ui": {
+    "head": "756d47e891191c3344eb2d29b000203be8331abc",
+    "state": "open",
+    "draft": false,
+    "merged": false
+  },
+  "runs": [
+    {
+      "id": 39037120704,
+      "head": "efd6f7b7904910ed99e6fcf5d7bf6f32f49f4899",
+      "conclusion": "success"
+    },
+    {
+      "id": 39037120713,
+      "head": "efd6f7b7904910ed99e6fcf5d7bf6f32f49f4899",
+      "conclusion": "success"
+    },
+    {
+      "id": 39037120702,
+      "head": "efd6f7b7904910ed99e6fcf5d7bf6f32f49f4899",
+      "conclusion": "success"
+    },
+    {
+      "id": 39037120714,
+      "head": "efd6f7b7904910ed99e6fcf5d7bf6f32f49f4899",
+      "conclusion": "success"
+    }
+  ],
+  "scope": "source/CI and bounded fresh process only; no quality or merge approval"
+}
