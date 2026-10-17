@@ -11,15 +11,18 @@ export default {
       if (request.method !== "POST") return Response.json({ error: "method_not_allowed" }, { status: 405, headers: { Allow: "POST" } });
       const mode = pathname.split("/").at(-1);
       const methods = url.searchParams.getAll("method");
+      const generations = url.searchParams.getAll("generation");
+      const generation = generations.length === 0 ? "dependent" : generations.length === 1 ? generations[0] : "invalid";
       const method = methods.length === 0 ? mode === "complete" ? "literal" : "adaptive-v2"
         : methods.length === 1 ? methods[0] : "invalid";
-      if ([...url.searchParams.keys()].some(key => key !== "method")
-          || ["requirements", "verify"].includes(mode) && methods.length)
+      if ([...url.searchParams.keys()].some(key => key !== (mode === "requirements" ? "generation" : "method"))
+          || mode === "verify" && methods.length
+          || mode === "requirements" && !["independent", "dependent"].includes(generation))
         return Response.json({ error: "parts_invalid_method" }, { status: 422 });
       const choice = bindJev({ apiKey: env?.JEV_API_KEY });
       const typed = bindTypeLLM({ apiKey: env?.TYPELLM_API_KEY });
       if (["literal-v2", "adaptive-v2"].includes(method))
-        return onRequirements({ request, mode, method, available: mode === "requirements" ? typed.available : choice.available }, {
+        return onRequirements({ request, mode, method, generation, available: mode === "requirements" ? typed.available : choice.available }, {
           judge: (request, { signal }) => judgeNamedChoices({ request, provider: choice, signal }),
           generate: (request, { signal }) => generateTyped({ request, provider: typed, signal }),
         });

@@ -299,7 +299,8 @@ export function requiredDifference(required, parts) {
     ({ label: row.label, kind: row.kind, occurrence: i + 1 })));
 }
 
-export function requiredRequest(context) {
+export function requiredRequest(context, { generation = "dependent" } = {}) {
+  if (!["independent", "dependent"].includes(generation)) throw new Error("invalid requirements generation");
   const extraction = { utterance: context.utterance,
     existing_regions: context.regions.map(({ label, kind }) => ({ label, kind })),
     part_definitions: context.parts.map(({ label, kind, purposes }) => ({ label, kind, purposes })) };
@@ -308,7 +309,7 @@ export function requiredRequest(context) {
     + "existing_regionsは既存参照、part_definitionsは名称と種類の定義であり、追加用の個数ではない。"
     + "既存の個数を差し引かない。この質問が答えるのは、その一覧の第" + n + "組だけ。"
     + "第" + n + "組がなければ未使用とする。別の順位の組を繰り返して埋めない。";
-  return { context: JSON.stringify(extraction), questions: Object.fromEntries([1, 2, 3].map(n => ["required" + n, {
+  const request = { context: JSON.stringify(extraction), questions: Object.fromEntries([1, 2, 3].map(n => ["required" + n, {
     type: "object",
     instructions: "最大3組、総個数も最大3個の新規追加要求を読み取る。ID・親・矢印・操作は答えない。" + subject(n),
     properties: {
@@ -324,6 +325,13 @@ export function requiredRequest(context) {
         + "同じ表示名と種類の反復は合算し、在庫や既存の図から差し引かない。未使用なら0。" },
     },
   }])) };
+  if (generation === "dependent") for (const [index, name] of Object.keys(request.questions).entries()) {
+    const question = request.questions[name];
+    question.properties.label.depends_on = ["kind"];
+    question.properties.quantity.depends_on = ["kind", "label"];
+    if (index) question.depends_on = Object.keys(request.questions).slice(0, index);
+  }
+  return request;
 }
 
 // This question receives no expected answer, oracle, parent or edge proposal.

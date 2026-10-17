@@ -86,22 +86,22 @@
       };
       # Completed reviewed provider bytes; no ops source checkout/build input.
       jevRelease = {
-        base = "https://github.com/roccho-org/ops/releases/download/jev-provider-cab432ef717cbde9ebd0197ae006c0efe75269bf";
-        locator = "https://github.com/roccho-org/ops/releases/download/jev-provider-cab432ef717cbde9ebd0197ae006c0efe75269bf/jev-provider.zip";
-        sha256 = "ea242b5ce5424ee6e367155198b059831b4494d1a0f4c8eeb404d9c12d469512";
-        proof_sha256 = "41dbd597a7cd40cbb5995ed7cefdbafc047b56fa1ea9d339081aa20589b95e17";
-        provenance_sha256 = "21a44ca37e45a8678133d26532c69c02420c3b445fa6887356e188ba2a988cbf";
-        entry_sha256 = "ad4ac08ae8c42f3bf0e9d0aeedb0a2e9192c776585a3251b2ff1e18358cfe2e7";
-        manifest_sha256 = "df95aa16e508e5c2563856fc99bd58aaf70fc120633f01c1a102f8598e48b253";
+        base = "https://github.com/roccho-org/ops/releases/download/jev-provider-b4f611cac9e13fbef178469796cbc3b6d4a76b23";
+        locator = "https://github.com/roccho-org/ops/releases/download/jev-provider-b4f611cac9e13fbef178469796cbc3b6d4a76b23/jev-provider.zip";
+        sha256 = "073d9df7a2eeb479a3641c6b86768bf3af14ec1b7e976ed5672649148d5e2435";
+        proof_sha256 = "459b753541fdf53cf0acb9cb13167c17218e078e3782933e589afaf57a8c6846";
+        provenance_sha256 = "b602225c44cc67c4f6a96fe41914c5159140718a4c81f0826cf46d9cce9223b8";
+        entry_sha256 = "3f754c8b1ee4a8b34b50d00fd17e37295d853e1b607903b6d355b5e06997669c";
+        manifest_sha256 = "c8fdf65da826690b487ab093d20c73a445a11dbc736ae4f58e23af7c57330318";
         contract = "named-choices-and-typed/1";
         proof = {
-          pr_number = 561;
+          pr_number = 565;
           base = "proposals";
-          reviewed_head = "f1b9e7b80f098f503c37d3c94104175989d2effd";
-          r_exact_head_verdict_ref = "https://github.com/roccho-org/ops/pull/561#pullrequestreview-5549493238";
-          merge_sha = "cab432ef717cbde9ebd0197ae006c0efe75269bf";
-          reviewed_tree = "b8c6d3acab38daf58165e8a9d8c399158d0fe2c8";
-          merge_tree = "b8c6d3acab38daf58165e8a9d8c399158d0fe2c8";
+          reviewed_head = "f7e80875b1331c113cb38251d85838edf0330d5b";
+          r_exact_head_verdict_ref = "https://github.com/roccho-org/ops/pull/565#pullrequestreview-5558945175";
+          merge_sha = "b4f611cac9e13fbef178469796cbc3b6d4a76b23";
+          reviewed_tree = "dcb90215ac4e2f010b1bb39da5f71462cc94bf56";
+          merge_tree = "dcb90215ac4e2f010b1bb39da5f71462cc94bf56";
         };
       };
       jevArtifact = builtins.toJSON (
@@ -323,6 +323,8 @@
                 POC_AXIS_FIXTURES = "${self}/docs/voice-ui/component-axes-20261017/preregistered";
                 POC_RESERVE_FIXTURES = "${self}/docs/voice-ui/component-axes-20261017/evidence/final-E";
                 POC_REQUIREMENTS_FIXTURES = "${self}/docs/voice-ui/requirements-cycle-20261017/preregistered";
+                POC_DEPENDENCY_PREREG_ROOT = "${self}/docs/voice-ui/dependency-cycle-20261018/preregistered";
+                POC_DEPENDENCY_PARENT_ROOT = "${self}/docs/voice-ui/requirements-cycle-20261017/preregistered";
                 VOICE_UI_HAYAMIMI = "${hayamimiWeb}";
                 VOICE_UI_SEMANTIC_MAP = "${semanticMap}";
                 VOICE_UI_ARCHITECTURE = "${architectureFor system}";

@@ -104,9 +104,11 @@ const exact = (x, keys) => x !== null && typeof x === "object" && !Array.isArray
 const failure = code => Object.assign(new Error("parts operation stopped"), { code });
 
 // One shared deadline covers every stage of the request, including fallback.
-export async function onRequirements({ request, mode, method, available }, { judge, generate }) {
+export async function onRequirements({ request, mode, method, available, generation = "dependent" }, { judge, generate }) {
   if (!["check", "requirements", "verify"].includes(mode)
-      || !["literal-v2", "adaptive-v2"].includes(method)) return json({ error: "parts_invalid_method" }, 422);
+      || !["literal-v2", "adaptive-v2"].includes(method)
+      || !["independent", "dependent"].includes(generation)
+      || mode !== "requirements" && generation !== "dependent") return json({ error: "parts_invalid_method" }, 422);
   if (!available) return json({ error: "parts_unavailable" }, 503);
   let input;
   try { input = await request.json(); } catch { return json({ error: "parts_invalid_json" }, 400); }
@@ -130,14 +132,14 @@ export async function onRequirements({ request, mode, method, available }, { jud
     finally { signal.removeEventListener("abort", stop); }
   };
   const full = async () => {
-    const value = await send(generate, requiredRequest(inventoryQuestion(inventory.state).state));
+    const value = await send(generate, requiredRequest(inventoryQuestion(inventory.state).state, { generation }));
     const required = readRequiredSlots(value?.result);
     if (required === null) {
-      stage("TYPE_REQUIRED", { valid: false });
+      stage("TYPE_REQUIRED", { valid: false, generation });
       throw failure("provider_contract_error");
     }
     const proposal = { slots: structuredClone(value.result), required };
-    stage("TYPE_REQUIRED", { valid: true, proposal });
+    stage("TYPE_REQUIRED", { valid: true, generation, proposal });
     return proposal;
   };
   const verify = async required => {
