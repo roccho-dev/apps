@@ -312,7 +312,7 @@ const server = createServer((request, response) => {
     serveProposals(request, response).catch(() => proposalReply(response, 502, { error: "PROPOSAL_FAILED" }));
     return;
   }
-  if (["/api/judge", "/api/parts/check", "/api/parts/complete"].includes(pathname)) {
+  if (["/api/judge", "/api/parts/check", "/api/parts/complete", "/api/parts/requirements", "/api/parts/verify"].includes(pathname)) {
     serveJudge(request, response).catch(() => {
       response.writeHead(500, { "content-type": "application/json; charset=utf-8" });
       response.end(JSON.stringify({ error: "dev_server_error" }));

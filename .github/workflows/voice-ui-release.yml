@@ -8,6 +8,7 @@ on:
       - "packages/voice-ui/**"
       - "docs/voice-ui/candidate-ci-20261017/**"
       - "docs/voice-ui/component-axes-20261017/**"
+      - "docs/voice-ui/requirements-cycle-20261017/**"
       - "flake.nix"
       - "flake.lock"
   workflow_dispatch:
@@ -83,6 +84,8 @@ jobs:
             "$reopened/voice-ui-dist" "$PWD/dist/candidate-browser-evidence"
           "$runtime/bin/voice-ui-acceptance-node" packages/voice-ui/acceptance/component-axes-smoke.mjs \
             "$reopened/voice-ui-dist" "$PWD/dist/component-axes-mechanics"
+          "$runtime/bin/voice-ui-acceptance-node" packages/voice-ui/acceptance/requirements-cycle-smoke.mjs \
+            "$reopened/voice-ui-dist" "$PWD/dist/requirements-cycle-mechanics"
           POC_PROTOCOL_ENTRY="$reopened/voice-ui-dist/site/ui/semantic-map/protocol/index.js" \
           POC_SOURCE_ROOT="$PWD/packages/voice-ui" \
           POC_AXIS_FIXTURES="$PWD/docs/voice-ui/component-axes-20261017/preregistered" \
@@ -99,6 +102,7 @@ jobs:
           path: |
             dist/candidate-browser-evidence/
             dist/component-axes-mechanics/
+            dist/requirements-cycle-mechanics/
           if-no-files-found: ignore
       - name: Verify stopped live evidence with exact recorded artifacts
         run: |

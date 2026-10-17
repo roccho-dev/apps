@@ -4,7 +4,7 @@ export const createCompletion = ({ fetchImpl = globalThis.fetch } = {}) => {
     const controller = new AbortController();
     let timer;
     const deadline = new Promise((_, reject) => {
-      timer = setTimeout(() => { controller.abort(); reject(new Error("parts-timeout")); }, mode === "check" ? 15000 : 40000);
+      timer = setTimeout(() => { controller.abort(); reject(new Error("parts-timeout")); }, 40000);
     });
     const call = (async () => {
       const response = await fetchImpl("/api/parts/" + mode, { method: "POST", headers: { "content-type": "application/json" },

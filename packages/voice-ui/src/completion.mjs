@@ -1,5 +1,6 @@
 import { GOAL_OFFER_MAX, KEY_PATTERN, LABEL_MAX, MIN_CONFIDENCE, OFFER_MAX, PART_KINDS, PURPOSE_MAX } from "./contract.mjs";
 import { runGoal } from "./goal.mjs";
+import { readRequirementInspection } from "./requirements.mjs";
 
 const INVENTORY_KIND = "voice-ui.goal.inventory.v1";
 export const COVERAGE = Object.freeze(["sufficient", "missing", "ambiguous", "no-change", "unsupported"]);
@@ -205,7 +206,7 @@ function withMissing(bundle, missing) {
 export async function runInventoryGoal({ check, complete, completion = true, now = () => performance.now(), ...options }) {
   const first = options.current(), started = now();
   const request = inventoryOf({ utterance: options.utterance, bundle: options.bundle, working: first.working });
-  const inventory = { checks: 0, completions: 0, coverage: null, missing: [] };
+  const inventory = { checks: 0, completions: 0, preparations: 0, coverage: null, missing: [] };
   const stop = reason => Object.freeze({ reason, requests: inventory.checks, elapsedMs: Math.max(0, now() - started),
     selected: [], trace: [], inventory: Object.freeze({ ...inventory }) });
   const interrupted = () => options.cancelled() ? "cancelled" : options.current() !== first ? "stale-goal"
@@ -216,12 +217,16 @@ export async function runInventoryGoal({ check, complete, completion = true, now
   let coverage;
   inventory.checks++;
   try { coverage = await check(request); } catch { return stop("inventory-unknown"); }
+  const receipt = exact(coverage, ["choice", "confidence", "inspection"])
+    ? readRequirementInspection(coverage.inspection, request.state, readLiteralInspection) : null;
   const inspected = exact(coverage, ["choice", "confidence", "inspection"])
-    && readLiteralInspection(coverage.inspection, options.utterance) !== null;
+    && (receipt !== null || readLiteralInspection(coverage.inspection, options.utterance) !== null);
   if (!(exact(coverage, ["choice", "confidence"]) || inspected)
       || !(COVERAGE.includes(coverage.choice) || inspected && coverage.choice === "unknown" && coverage.confidence === null)
       || coverage.choice !== "unknown" && (typeof coverage.confidence !== "number" || !Number.isFinite(coverage.confidence)
         || coverage.confidence < 0 || coverage.confidence > 1))
+    return stop("inventory-contract");
+  if (receipt !== null && (coverage.choice !== receipt.decision.choice || coverage.confidence !== receipt.decision.confidence))
     return stop("inventory-contract");
   inventory.coverage = Object.freeze({ ...coverage });
   reason = interrupted();
@@ -231,9 +236,12 @@ export async function runInventoryGoal({ check, complete, completion = true, now
   if (!["sufficient", "missing"].includes(coverage.choice)) return stop("inventory-" + coverage.choice);
   let bundle = options.bundle;
   if (coverage.choice === "missing" && completion) {
-    inventory.completions++;
     let result;
-    try { result = await complete(request); } catch { return stop("completion-unknown"); }
+    if (receipt !== null) result = { missing: receipt.missing };
+    else {
+      inventory.completions++;
+      try { result = await complete(request); } catch { return stop("completion-unknown"); }
+    }
     reason = interrupted();
     if (reason !== null) return stop(reason);
     const missing = readMissing(result?.missing);
@@ -242,6 +250,7 @@ export async function runInventoryGoal({ check, complete, completion = true, now
     if (!missing.length) return stop("completion-empty");
     bundle = withMissing(bundle, missing);
     if (bundle === null) return stop("completion-contract");
+    inventory.preparations++;
   }
   const result = await runGoal({ ...options, bundle, now, deadlineAt: started + 180000 });
   return Object.freeze({ ...result, requests: result.requests + inventory.checks,
