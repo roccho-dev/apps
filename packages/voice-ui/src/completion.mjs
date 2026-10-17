@@ -313,7 +313,7 @@ export function requiredRequest(context) {
         + "表示名の指定がない種類はpartsの対応する標準labelを使う。未使用なら空文字。" },
       kind: { type: "string", enum: [...PART_KINDS, "none"], instructions: subject(n) + "第" + n + "組の種類だけを答える。"
         + "Supported meanings: step=task/action/process/box; decision=branch/condition/diamond; data=stored information/document; "
-        + "start=begin; end=finish; group=container/boundary. partsのlabel/kind/purposeも参照する。"
+        + "start=begin; end=finish; group=container/boundary. partsのlabel/kind/purposesも参照する。"
         + "名称の意味より原文で明示された種類を優先する。未使用ならnone。" },
       quantity: { type: "string", enum: ["0", "1", "2", "3"], instructions: subject(n) + "第" + n + "組について、"
         + "今回新たに追加する総個数だけを答える（1・2・3）。組の順位や全組の合計数とは異なる。"
