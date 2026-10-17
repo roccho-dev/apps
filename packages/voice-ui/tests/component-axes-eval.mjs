@@ -30,13 +30,13 @@ assert.ok(["G", "R", "F", "E"].includes(axis) && /^[a-f0-9]{64}$/u.test(input.or
 assert.ok(Array.isArray(input.cases) && input.cases.length >= 1 && input.cases.length <= 10);
 assert.equal(new Set(input.cases.map(item => item.id)).size, input.cases.length);
 assert.equal(fixtures.scope, null); assert.deepEqual(fixtures.recent_conversation, []);
-const bundleBytes = fs.readFileSync(path.join(root, "web/data/bundle.v1.json")), bundle = readBundle(JSON.parse(bundleBytes));
+const bundleBytes = fs.readFileSync(path.join(root, "web/data/bundle.v1.json")), bundleValue = JSON.parse(bundleBytes), bundle = readBundle(bundleValue);
 assert.equal(bundle.parts.length, 8);
 for (const item of input.cases) {
   assert.match(item.id, /^[A-Za-z0-9][A-Za-z0-9_-]{0,63}$/u);
   assert.deepEqual(Object.keys(item).sort(), (axis === "R" ? ["id", "fixture", "utterance", "parts"] : ["id", "fixture", "utterance"]).sort());
   assert.ok(fixtures.fixtures[item.fixture] && typeof item.utterance === "string" && item.utterance.trim().length && item.utterance.length <= 8000);
-  if (axis === "R") { assert.equal(item.parts.length, 8); readBundle({ ...bundle, parts: item.parts }); }
+  if (axis === "R") { assert.equal(item.parts.length, 8); assert.deepEqual(readBundle({ ...bundleValue, parts: item.parts }).parts, item.parts); }
 }
 const sourceBytes = fs.readFileSync(settings["--identities"]), source = JSON.parse(sourceBytes);
 assert.equal(source.schema, "voice-ui.poc.runtime/1"); assert.equal(source.origin, settings["--origin"]);
@@ -89,7 +89,7 @@ try {
       try {
         if (axis === "G" || axis === "F") result = await post(axis === "G" ? "/api/parts/check"
           : "/api/parts/complete" + (method === "typed" ? "?method=typed" : ""), inventory(item, graph));
-        else if (axis === "R") result = await runGoal({ utterance: item.utterance, bundle: readBundle({ ...bundle, parts: item.parts }), protocol,
+        else if (axis === "R") result = await runGoal({ utterance: item.utterance, bundle: readBundle({ ...bundleValue, parts: item.parts }), protocol,
           current: () => session, cancelled: () => false, adopt: async next => { session = next; }, ask: async request => {
             const decision = await post("/api/judge", request); assert.equal(decision.kind, DECISION_KIND); return { kind: "answered", decision };
           } });

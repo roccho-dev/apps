@@ -6,12 +6,14 @@ import { PART_KINDS, LABEL_MAX } from "./contract.mjs";
 import { inventoryQuestion, readTypedMissing } from "./completion.mjs";
 
 const escaped = value => value.replace(/[.*+?^${}()|[\]\\]/gu, "\\$&");
+const countPattern = "[0-9]+|ひと|ふた|みっ|一|二|三";
+const countOf = value => ({ ひと: 1, ふた: 2, みっ: 3, 一: 1, 二: 2, 三: 3 })[value] ?? Number(value);
 export function literalInventory(state) {
   const kinds = new Map(PART_KINDS.map(kind => [kind, kind]));
   for (const part of state.parts) kinds.set(part.label, part.kind);
   const prefix = [...kinds.keys()].sort((a, b) => b.length - a.length).map(escaped).join("|");
   const quote = '(?:「[^「」\\r\\n]+」|"[^"\\r\\n]+")';
-  const pattern = new RegExp(`(?<![A-Za-z0-9_])(${prefix})\\s*(?:「([^「」\\r\\n]+)」|"([^"\\r\\n]+)")\\s*(?:(?:[×x]\\s*|を\\s*)([0-9]+)(?:個|つ)?)?`, "gu");
+  const pattern = new RegExp(`(?<![A-Za-z0-9_])(${prefix})\\s*(?:「([^「」\\r\\n]+)」|"([^"\\r\\n]+)")\\s*(?:(?:[×x]\\s*|を\\s*)(${countPattern})(?:個|つ)?)?`, "gu");
   const rows = new Map(), spans = [], seen = new Set(), claimed = [];
   let invalid = false;
   const add = (label, kind, quantity, start, end, counted) => {
@@ -36,15 +38,15 @@ export function literalInventory(state) {
     if (match[4] === undefined ? /^[×x]/u.test(tail)
       || tail.startsWith("を") && !/^(?:追加|作|置)/u.test(tail.slice(1).trimStart())
       : /^(?:[0-9A-Za-z_+\-]|\.[0-9])/u.test(rest)) { invalid = true; continue; }
-    add(label, kinds.get(match[1]), match[4] === undefined ? 1 : Number(match[4]), start, start + label.length, match[4] !== undefined);
+    add(label, kinds.get(match[1]), match[4] === undefined ? 1 : countOf(match[4]), start, start + label.length, match[4] !== undefined);
   }
-  const after = new RegExp(`((?:${quote}\\s*(?:[、,と]\\s*)?)+)という(?:名前の|([0-9]+)(?:つ|個)の)?(${prefix})(?![A-Za-z0-9_])`, "gu");
+  const after = new RegExp(`((?:${quote}\\s*(?:[、,と]\\s*)?)+)という(?:名前の|(${countPattern})(?:つ|個)の)?(${prefix})(?![A-Za-z0-9_])`, "gu");
   for (const match of state.utterance.matchAll(after)) {
     claimed.push([match.index, match.index + match[0].length]);
     const names = [...match[1].matchAll(/「([^「」\r\n]+)」|"([^"\r\n]+)"/gu)];
-    const count = match[2] === undefined ? null : Number(match[2]);
-    const suffix = /^\s*を\s*([0-9]+)(?:個|つ)(だけ|ずつ)?/u.exec(state.utterance.slice(match.index + match[0].length));
-    const following = suffix === null ? null : Number(suffix[1]);
+    const count = match[2] === undefined ? null : countOf(match[2]);
+    const suffix = new RegExp(`^\\s*を\\s*(${countPattern})(?:個|つ)(だけ|ずつ)?`, "u").exec(state.utterance.slice(match.index + match[0].length));
+    const following = suffix === null ? null : countOf(suffix[1]);
     if (names.length > 1 && count !== null && count !== names.length) { invalid = true; continue; }
     if (names.length > 1 && following !== null && suffix[2] !== "ずつ" && following !== names.length
       || names.length === 1 && count !== null && following !== null && count !== following) { invalid = true; continue; }
@@ -56,9 +58,9 @@ export function literalInventory(state) {
     }
   }
   const stock = [...new Set(state.parts.map(p => p.label))].sort((a, b) => b.length - a.length).map(escaped).join("|");
-  if (stock) for (const match of state.utterance.matchAll(new RegExp(`(?<![A-Za-z0-9_])(${stock})\\s*を\\s*([0-9]+)(?:個|つ)(?:だけ|ずつ)?\\s*(?:追加|作|置)`, "gu")))
+  if (stock) for (const match of state.utterance.matchAll(new RegExp(`(?<![A-Za-z0-9_])(${stock})\\s*を\\s*(${countPattern})(?:個|つ)(?:だけ|ずつ)?\\s*(?:追加|作|置)`, "gu")))
     if (!claimed.some(([start, end]) => start <= match.index && match.index < end))
-      add(match[1], kinds.get(match[1]), Number(match[2]), match.index, match.index + match[1].length, true);
+      add(match[1], kinds.get(match[1]), countOf(match[2]), match.index, match.index + match[1].length, true);
   if (stock) for (const match of state.utterance.matchAll(new RegExp(`(?<![A-Za-z0-9_])(${stock})\\s*(?:を\\s*)?(?:追加|作成|配置)`, "gu")))
     if (!claimed.some(([start, end]) => start <= match.index && match.index < end))
       add(match[1], kinds.get(match[1]), 1, match.index, match.index + match[1].length, true);

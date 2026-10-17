@@ -25,6 +25,18 @@ const check = async (value, response) => {
   });
   assert.equal(calls, 1); assert.equal(result.status, 200); return result.json();
 };
+
+test("finite numeric and Japanese counters preserve quantities and original spans", () => {
+  for (const [counter, quantity] of [["1", 1], ["ひと", 1], ["一", 1], ["ふた", 2], ["二", 2], ["みっ", 3], ["三", 3]]) {
+    const request = input("DBを" + counter + "つ追加して。ほかは変えないで。");
+    const value = literalInventory(request.state);
+    assert.equal(value.valid, true);
+    assert.deepEqual(value.required, [{ label: "DB", kind: "data", quantity }]);
+    assert.equal(value.missing.length, quantity - 1);
+    assert.ok(value.spans.every(s => request.state.utterance.slice(s.start, s.end) === s.label));
+  }
+  assert.equal(literalInventory(input("DBを4つ追加して").state).valid, false);
+});
 test("literal capacity counts keys rather than existing nodes and preserves original names/counts", () => {
   const value = literalInventory(input("DBを3個追加").state);
   assert.deepEqual(value.required, [{ label: "DB", kind: "data", quantity: 3 }]);

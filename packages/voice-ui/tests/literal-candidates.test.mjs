@@ -18,7 +18,7 @@ test("literal preparation preserves original spans, kinds and finite missing qua
 test("literal baseline has no semantic fallback, never truncates oversized quantities or creates four rows", () => {
   for (const input of ['build a clever name for me', 'step「A」×10', 'step「A」×0',
     'step「A」×-1', 'step「A」×2.5', 'step「A」×two', 'step「A」を-1個',
-    'step「A」×2e2', 'step「Example」を二つ追加', 'step「Example」を２個追加', 'misDBを3つ追加',
+    'step「A」×2e2', 'step「Example」を２個追加', 'misDBを3つ追加',
     'weekend「A」', '「A」というendless',
     'step「A」 step「B」 data「C」 group「D」', 'step「A」×3 data「B」']) {
     const result = literalCandidates(state(input));
@@ -27,6 +27,7 @@ test("literal baseline has no semantic fallback, never truncates oversized quant
   }
   assert.deepEqual(literalCandidates(state('Box「Box」')).missing, []);
   assert.equal(literalCandidates(state('step「A」 step「A」')).missing.length, 2);
+  assert.equal(literalCandidates(state('step「Example」を二つ追加')).missing.length, 2);
 });
 test("the same generic grammar handles suffix kinds, lists and explicit stock counts", () => {
   assert.deepEqual(literalCandidates(state('「受付」という名前のstepを作る')).missing,
