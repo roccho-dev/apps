@@ -1,6 +1,6 @@
 import { COVERAGE, inventoryQuestion, isInventory, readLiteralInspection, readTypedMissing, typedMissingRequest,
   acceptedRequirements, readRequired, readRequiredSlots, readRequirementFactors, readRequirementInspection,
-  requirementDecision, requiredDifference, requiredQuestion, requiredRequest, requiresInterpretation } from "../../src/completion.mjs";
+  requirementDecision, requirementProposalPolicy, requiredDifference, requiredQuestion, requiredRequest, requiresInterpretation } from "../../src/completion.mjs";
 import { LABEL_MAX, PART_KINDS } from "../../src/contract.mjs";
 import { literalInventory, literalQuestion } from "../../src/literal-inventory.mjs";
 const json = (body, status = 200) => Response.json(body, { status, headers: { "cache-control": "no-store" } });
@@ -106,7 +106,7 @@ const failure = code => Object.assign(new Error("parts operation stopped"), { co
 // One shared deadline covers every stage of the request, including fallback.
 export async function onRequirements({ request, mode, method, available, generation = "dependent" }, { judge, generate }) {
   if (!["check", "requirements", "verify"].includes(mode)
-      || !["literal-v2", "adaptive-v2"].includes(method)
+      || !["literal-v2", "adaptive-v2", "adaptive-v3"].includes(method)
       || !["independent", "dependent"].includes(generation)
       || mode !== "requirements" && generation !== "dependent") return json({ error: "parts_invalid_method" }, 422);
   if (!available) return json({ error: "parts_unavailable" }, 503);
@@ -121,7 +121,9 @@ export async function onRequirements({ request, mode, method, available, generat
   request.signal.addEventListener("abort", cancel, { once: true });
   if (request.signal.aborted) cancel();
   const timer = setTimeout(cancel, 40000), signal = controller.signal;
-  const stage = (name, values) => console.info(JSON.stringify({ kind: "voice-ui.parts.stage.v2", request_id, stage: name, ...values }));
+  const frontier = mode === "check" && method === "adaptive-v3";
+  const stage = (name, values) => console.info(JSON.stringify({ kind: frontier ? "voice-ui.parts.stage.v3" : "voice-ui.parts.stage.v2",
+    request_id, stage: name, ...values }));
   const send = async (call, body) => {
     if (signal.aborted) throw failure("provider_timeout");
     let stop;
@@ -167,11 +169,14 @@ export async function onRequirements({ request, mode, method, available, generat
     const initial = { decision: requirementDecision(factors, ready, literal.missing), factors,
       literal: { recognized: literal.recognized, required: literal.required, spans: literal.spans },
       observation: { valid: observed.valid, status: observed.status } };
-    stage("G0", { valid: true, initial });
-    const proposal = method === "adaptive-v2" && requiresInterpretation(factors) ? await full() : null;
+    const proposal_policy = frontier ? requirementProposalPolicy(factors) : null;
+    stage("G0", { valid: true, initial, ...(frontier ? { proposal_policy } : {}) });
+    const eligible = frontier ? proposal_policy.eligible : method === "adaptive-v2" && requiresInterpretation(factors);
+    const proposal = eligible ? await full() : null;
     const verification = proposal === null ? null : await verify(proposal.required);
     const required = proposal?.required ?? literal.required, missing = requiredDifference(required, inventory.state.parts);
-    const inspection = { schema: "voice-ui.parts.inspection/2", request_id, mode: method, initial, proposal, verification, required, missing };
+    const inspection = { schema: frontier ? "voice-ui.parts.inspection/3" : "voice-ui.parts.inspection/2", request_id,
+      mode: method, initial, proposal, verification, required, missing, ...(frontier ? { proposal_policy } : {}) };
     const checked = readRequirementInspection(inspection, inventory.state, readLiteralInspection);
     if (checked === null) throw failure("provider_contract_error");
     stage("STOCK_DIFF", { required, missing, decision: checked.decision });

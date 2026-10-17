@@ -328,6 +328,9 @@
                 POC_INTENT_PREREG_ROOT = "${self}/docs/voice-ui/intent-cycle-20261018/preregistered";
                 POC_INTENT_PARENT_ROOT = "${self}/docs/voice-ui/dependency-cycle-20261018/preregistered";
                 POC_INTENT_OLD_JOURNAL = "${self}/docs/voice-ui/dependency-cycle-20261018/evidence/public-E/dependency-public-E-20261018.journal.jsonl";
+                POC_FRONTIER_PREREG_ROOT = "${self}/docs/voice-ui/frontier-cycle-20261018/preregistered";
+                POC_FRONTIER_PARENT_ROOT = "${self}/docs/voice-ui/intent-cycle-20261018/preregistered";
+                POC_FRONTIER_OLD_JOURNAL = "${self}/docs/voice-ui/intent-cycle-20261018/evidence/public-G0/intent-public-G0-20261018.journal.jsonl";
                 VOICE_UI_HAYAMIMI = "${hayamimiWeb}";
                 VOICE_UI_SEMANTIC_MAP = "${semanticMap}";
                 VOICE_UI_ARCHITECTURE = "${architectureFor system}";

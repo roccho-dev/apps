@@ -1,6 +1,6 @@
-# 低確信の入口から候補を補う：実装前登録
+# 低確信の入口から候補を補う：実装・CI受入前
 
-部品が揃っている場合の表現性能と、揃っていない場合に補う性能を分けて評価する。今回の仮説は、抽出不足を十分な確信で認めながら意図の確信度が低い場合、TypeLLMの案を一度だけ作り、独立検証へ渡すと改善するかである。現在は**未実装・未測定・効果未証明**。
+部品が揃っている場合の表現性能と、揃っていない場合に補う性能を分けて評価する。今回の仮説は、抽出不足を十分な確信で認めながら意図の確信度が低い場合、TypeLLMの案を一度だけ作り、独立検証へ渡すと改善するかである。現在は**実装済み・未測定・効果未証明**。完成配布物のCIと独立受入を経てから実送する。
 
 前回は[報告664c8a8](https://github.com/roccho-dev/apps/tree/664c8a8d4598471327a8b330afd416b3f9eb86e0/docs/voice-ui/intent-cycle-20261018)・[独立R18](https://github.com/roccho-dev/apps/pull/103#pullrequestreview-5559763705)で閉包した。G0の正解8/10は未達のまま維持し、分類の正誤を新しい候補適格性の判定へ置き換えない。従来R8/8は同一Goal/core6・実UI238/renderer231による有限・条件付きの表現性能で、今回の補完効果ではない。
 
@@ -9,6 +9,8 @@
 最大3種類・総数3個のNEW部品を扱う既存POCを使う。Typeは名前・kind・NEW数量の案、独立Vは原文との対応、アプリは在庫差分、既存Goalは合法な構造・接続・ID・操作を担当する。Ops#565の正式providerをAppsが使う。質問・文脈・parser・閾値・Goal・rendererは変更しない。
 
 新方式は明示的なadaptive-v3/inspection3/stage3とし、元のG0判定・factorを保持して候補生成の理由を別に記録する。案の生成は図を変える権限ではない。強いambiguous、no-change、unsupported、complete、弱いcompleteness、不正なfactor/通信失敗は停止する。有限parserの空・無効な抽出自体は原文の曖昧さと区別する。旧literal-v2/adaptive-v2とinspection2は残す。
+
+製品差分はcompletion・parts API・Pages entryの3ファイル。新driverは従来callerの固定経路を再利用し、独立score/auditを含む25sourceを記録する。新しい必須CIは未測定indexも検算し、完成ZIPで弱い入口からの実C経路・拒否/低確信/不正V・版の混在拒否・閾値grid・共有deadlineと、親WorkerとのG0/F/V原送信bytes一致を確認する。これらはkeylessな疑似試験で、実モデル性能には数えない。
 
 ## 合意した工程
 

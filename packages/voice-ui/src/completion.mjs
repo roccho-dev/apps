@@ -366,6 +366,14 @@ export const acceptedRequirements = factors => factors.intent.choice === "change
 export const requiresInterpretation = factors => factors.intent.choice === "change" && factors.intent.confidence >= MIN_CONFIDENCE
   && factors.completeness.choice === "incomplete" && factors.completeness.confidence >= MIN_CONFIDENCE;
 
+export function requirementProposalPolicy(factors) {
+  const confident = requiresInterpretation(factors);
+  const uncertain = ["change", "ambiguous"].includes(factors.intent.choice) && factors.intent.confidence < MIN_CONFIDENCE
+    && factors.completeness.choice === "incomplete" && factors.completeness.confidence >= MIN_CONFIDENCE;
+  return { id: "uncertainty-frontier-v1", eligible: confident || uncertain,
+    reason: confident ? "confident-change-incomplete" : uncertain ? "uncertain-intent-incomplete" : null };
+}
+
 export function requirementDecision(factors, ready, missing) {
   const choice = factors.intent.choice !== "change" ? factors.intent.choice
     : ready && factors.completeness.choice === "complete" && factors.completeness.confidence >= MIN_CONFIDENCE
@@ -376,9 +384,12 @@ export function requirementDecision(factors, ready, missing) {
 
 // The browser independently checks the receipt before deterministic preparation.
 export function readRequirementInspection(value, state, literalReader) {
-  if (!requiredExact(value, ["schema", "request_id", "mode", "initial", "proposal", "verification", "required", "missing"])
-      || value.schema !== "voice-ui.parts.inspection/2" || typeof value.request_id !== "string" || !/^[a-f0-9-]{36}$/u.test(value.request_id)
-      || !["literal-v2", "adaptive-v2"].includes(value.mode) || readRequired(value.required) === null) return null;
+  const frontier = value?.schema === "voice-ui.parts.inspection/3" && value.mode === "adaptive-v3";
+  if (!requiredExact(value, ["schema", "request_id", "mode", "initial", "proposal", "verification", "required", "missing",
+        ...(frontier ? ["proposal_policy"] : [])])
+      || !frontier && (value.schema !== "voice-ui.parts.inspection/2" || !["literal-v2", "adaptive-v2"].includes(value.mode))
+      || typeof value.request_id !== "string" || !/^[a-f0-9-]{36}$/u.test(value.request_id)
+      || readRequired(value.required) === null) return null;
   if (!same(value.missing, requiredDifference(value.required, state.parts))) return null;
   const initial = value.initial;
   if (!requiredExact(initial, ["decision", "factors", "literal", "observation"])
@@ -396,12 +407,15 @@ export function readRequirementInspection(value, state, literalReader) {
     && state.utterance.includes(r.label)).map(r => r.label));
   const ready = initial.observation.valid && (initial.observation.status === "transcribed" || literal.required.length === 0 && references.size >= 2);
   if (!same(initial.decision, requirementDecision(initial.factors, ready, literalMissing))) return null;
+  const policy = requirementProposalPolicy(initial.factors);
+  if (frontier && !same(value.proposal_policy, policy)) return null;
+  const adaptive = frontier || value.mode === "adaptive-v2", eligible = frontier ? policy.eligible : requiresInterpretation(initial.factors);
   let decision = initial.decision;
   if (value.proposal === null) {
     if (value.verification !== null || !same(value.required, literal.required)
-        || value.mode === "adaptive-v2" && requiresInterpretation(initial.factors)) return null;
+        || adaptive && eligible) return null;
   } else {
-    if (value.mode !== "adaptive-v2" || !requiresInterpretation(initial.factors)
+    if (!adaptive || !eligible
         || !requiredExact(value.proposal, ["slots", "required"]) || readRequiredSlots(value.proposal.slots) === null
         || !same(readRequiredSlots(value.proposal.slots), value.proposal.required)
         || !same(value.required, value.proposal.required) || !requiredExact(value.verification, names)

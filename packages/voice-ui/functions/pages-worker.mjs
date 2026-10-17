@@ -13,7 +13,7 @@ export default {
       const methods = url.searchParams.getAll("method");
       const generations = url.searchParams.getAll("generation");
       const generation = generations.length === 0 ? "dependent" : generations.length === 1 ? generations[0] : "invalid";
-      const method = methods.length === 0 ? mode === "complete" ? "literal" : "adaptive-v2"
+      const method = methods.length === 0 ? mode === "complete" ? "literal" : "adaptive-v3"
         : methods.length === 1 ? methods[0] : "invalid";
       if ([...url.searchParams.keys()].some(key => key !== (mode === "requirements" ? "generation" : "method"))
           || mode === "verify" && methods.length
@@ -21,7 +21,7 @@ export default {
         return Response.json({ error: "parts_invalid_method" }, { status: 422 });
       const choice = bindJev({ apiKey: env?.JEV_API_KEY });
       const typed = bindTypeLLM({ apiKey: env?.TYPELLM_API_KEY });
-      if (["literal-v2", "adaptive-v2"].includes(method))
+      if (["literal-v2", "adaptive-v2", "adaptive-v3"].includes(method))
         return onRequirements({ request, mode, method, generation, available: mode === "requirements" ? typed.available : choice.available }, {
           judge: (request, { signal }) => judgeNamedChoices({ request, provider: choice, signal }),
           generate: (request, { signal }) => generateTyped({ request, provider: typed, signal }),

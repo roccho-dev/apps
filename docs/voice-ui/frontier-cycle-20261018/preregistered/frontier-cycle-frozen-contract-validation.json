@@ -1,0 +1,61 @@
+{
+  "schema": "voice-ui.review.frontier-frozen-contract-validation/1",
+  "status": "PASS",
+  "checked_at": "2026-10-17T20:08:24.345Z",
+  "commitment_sha256": "e95bfeeb45edf03e6fd43c0fbc7ca839f3584878092e6e5d18cf181a25af9eae",
+  "scorer_sha256": "64fe98b9929ca13dcf57e41857da5eed656bb2d5457eab0aa9a78aad023ecf81",
+  "auditor_sha256": "f903cd8813c33387ec69f2adc0d0f20e1fedfd5dd59cd07d02fa7ce84f37f89e",
+  "panels": [
+    {
+      "axis": "G0",
+      "visibility": "public",
+      "cases": 10,
+      "cells": 10,
+      "input_sha256": "560b9126d385c9cfa1a48431fc6c78355b9f811e92b7a2f9736684a2c7f91c0f",
+      "oracle_sha256": "1ecb1b93dd057aa2d30c026e59625504fd545422e7929627a7e7f9fed2165007",
+      "validation": "PASS"
+    },
+    {
+      "axis": "E",
+      "visibility": "public",
+      "cases": 2,
+      "cells": 4,
+      "input_sha256": "27f0f8cc6f8a2f0bcd8bf7b92a75b93706c979f4fcb3ad002674ba8317a9db1a",
+      "oracle_sha256": "017eb6365b04a62e83d5747b91c604d41d639495c9541635331d2f334bc70a28",
+      "validation": "PASS"
+    },
+    {
+      "axis": "V",
+      "visibility": "sealed",
+      "cases": 10,
+      "cells": 10,
+      "input_sha256": "61afe307f57600439d0b70a63a4efcf5a36d3166dd74dfca4655cf466a2f8dd8",
+      "oracle_sha256": "61de89a893767d873af19ea26da11901acaa6b04005aef87cf7b9e83864a7a5e",
+      "validation": "PASS"
+    },
+    {
+      "axis": "F",
+      "visibility": "sealed",
+      "cases": 8,
+      "cells": 8,
+      "input_sha256": "78159163bebb25c87c6dd17ceff7c4eb746d34bf4bdd3c9d387bc5cb206c824a",
+      "oracle_sha256": "c36e4f748a6c82a9d3255b39f7e6bc087d1d15282bed892c9c69731e538a5caf",
+      "validation": "PASS"
+    },
+    {
+      "axis": "E",
+      "visibility": "sealed",
+      "cases": 10,
+      "cells": 20,
+      "input_sha256": "74d5eb6b1504ffd5ab223daa4b6682a1952f7db113f6bfb438fc2fe5d3cc67f7",
+      "oracle_sha256": "c6ee6fca910a2fd91581886cd24aad9d0cb5e7a53b50d33dc27ebad88d45bf13",
+      "validation": "PASS"
+    }
+  ],
+  "all_closed_input_and_order_bindings": true,
+  "all_full_required_difference_and_E_target_contracts": true,
+  "frozen_VF_ideal_response_contracts": true,
+  "private_payloads_disclosed": false,
+  "provider_calls": 0,
+  "scope": "metadata only; frozen payloads checked privately against final independent contract, not model-quality evidence"
+}
