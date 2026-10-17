@@ -1,0 +1,37 @@
+{
+  "type": "issue-state",
+  "owner": "roccho-dev",
+  "repo": "ops",
+  "number": 479,
+  "fetchedAt": "2026-10-17T09:00:00Z",
+  "fixture": "synthetic; a merged PR as `gh api repos/<owner>/<repo>/issues/<n>` returns it (subset): state closed, no state_reason, pull_request key",
+  "responses": {
+    "issue": {
+      "command": "gh api repos/roccho-dev/ops/issues/479",
+      "sha256": "sha256:6060606060606060606060606060606060606060606060606060606060606060",
+      "data": {
+        "id": 2000000479,
+        "node_id": "PR_kwDOfixture479",
+        "number": 479,
+        "title": "fixture",
+        "user": { "login": "roccho-dev", "id": 40359643, "type": "User" },
+        "state": "closed",
+        "locked": false,
+        "comments": 2,
+        "created_at": "2026-10-10T00:00:00Z",
+        "updated_at": "2026-10-17T08:00:00Z",
+        "closed_at": "2026-10-17T08:00:00Z",
+        "draft": false,
+        "pull_request": {
+          "url": "https://api.github.com/repos/roccho-dev/ops/pulls/479",
+          "html_url": "https://github.com/roccho-dev/ops/pull/479",
+          "diff_url": "https://github.com/roccho-dev/ops/pull/479.diff",
+          "patch_url": "https://github.com/roccho-dev/ops/pull/479.patch",
+          "merged_at": "2026-10-17T08:00:00Z"
+        },
+        "body": "fixture body",
+        "state_reason": null
+      }
+    }
+  }
+}

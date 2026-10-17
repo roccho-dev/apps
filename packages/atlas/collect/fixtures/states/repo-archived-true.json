@@ -1,0 +1,28 @@
+{
+  "type": "repo",
+  "owner": "roccho-dev",
+  "repo": "windows",
+  "fetchedAt": "2026-10-17T09:00:00Z",
+  "fixture": "synthetic; fields as `gh api repos/<owner>/<repo>` returns them (subset)",
+  "responses": {
+    "repo": {
+      "command": "gh api repos/roccho-dev/windows",
+      "sha256": "sha256:1010101010101010101010101010101010101010101010101010101010101010",
+      "data": {
+        "id": 1000000001,
+        "node_id": "R_kgDOfixture1",
+        "name": "windows",
+        "full_name": "roccho-dev/windows",
+        "private": false,
+        "owner": { "login": "roccho-dev", "id": 40359643, "type": "User" },
+        "html_url": "https://github.com/roccho-dev/windows",
+        "default_branch": "proposals",
+        "archived": true,
+        "disabled": false,
+        "visibility": "public",
+        "pushed_at": "2026-10-17T08:00:00Z",
+        "updated_at": "2026-10-17T08:30:00Z"
+      }
+    }
+  }
+}

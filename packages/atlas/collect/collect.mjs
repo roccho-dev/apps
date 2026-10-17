@@ -23,6 +23,7 @@ export function collect(records, recordedAt) {
       case 'sessions': return sessionObservations(record, recordedAt);
       case 'ports': return portObservations(record, recordedAt);
       case 'declaration': return declarationEvents(record, recordedAt);
+      case 'fact': return [observation(record.target, record.value, record.source, record.observedAt, recordedAt)];
       default: throw new Error(`atlas-collect: unknown record kind ${JSON.stringify(record.kind)}`);
     }
   });

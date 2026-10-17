@@ -37,6 +37,34 @@ function ports({ sha256, probes }) {
     ({ target, observedAt, responded, source: { ref: `tcp ${host}:${port}`, sha256 } })) };
 }
 
+// Repo / Issue state → one fact each. Only a boolean `archived` and a string `state` are values.
+// Issue state keeps GitHub's state_reason in the same value ("closed/completed"), so a reason-less
+// close never reads as completed and an open issue's null reason never becomes UNKNOWN.
+const fact = (target, value, { fetchedAt, responses }, response) =>
+  ({ kind: 'fact', target, value, observedAt: fetchedAt, source: { ref: responses?.[response]?.command ?? null, sha256: responses?.[response]?.sha256 ?? null } });
+
+function repoState(snapshot) {
+  const archived = snapshot.responses?.repo?.data?.archived;
+  return fact(`${snapshot.repo}:archived`, typeof archived === 'boolean' ? String(archived) : null, snapshot, 'repo');
+}
+
+// The issues API also answers for PRs (a `pull_request` key). Its state there drops merged and
+// "is a PR", so a merged PR would read as a reason-less "closed": UNKNOWN, with the reason in the
+// source (the only free text D keeps). PRs are read through `pulls` (pr.state / pr.merged).
+const PR_REASON = 'UNKNOWN: pull request; read pr.state / pr.merged via pulls';
+
+function issueState(snapshot) {
+  const data = snapshot.responses?.issue?.data ?? {};
+  const target = `${snapshot.repo}#${snapshot.number}:issue.state`;
+  if (Object.hasOwn(data, 'pull_request')) {
+    const record = fact(target, null, snapshot, 'issue');
+    return { ...record, source: { ...record.source, ref: `${record.source.ref} — ${PR_REASON}` } };
+  }
+  const { state, state_reason: reason } = data;
+  const value = typeof state !== 'string' ? null : typeof reason === 'string' ? `${state}/${reason}` : state;
+  return fact(target, value, snapshot, 'issue');
+}
+
 // P's declaration file: its text as read (null when unreadable) and the sha256 of those bytes.
 function declaration({ path, fetchedAt, sha256, text }) {
   return { kind: 'declaration', path, fetchedAt, sha256: sha256 ?? null, text: typeof text === 'string' ? text : null };
@@ -48,6 +76,8 @@ export function normalize(snapshot) {
     case 'pr': return [pullRequest(snapshot), thread(snapshot)];
     case 'sessions': return [sessions(snapshot)];
     case 'ports': return [ports(snapshot)];
+    case 'repo': return [repoState(snapshot)];
+    case 'issue-state': return [issueState(snapshot)];
     case 'declaration': return [declaration(snapshot)];
     default: throw new Error(`atlas-collect: unknown snapshot type ${JSON.stringify(snapshot.type)}`);
   }

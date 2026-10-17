@@ -1,0 +1,15 @@
+{
+  "type": "repo",
+  "owner": "roccho-dev",
+  "repo": "windows",
+  "fetchedAt": "2026-10-17T09:00:00Z",
+  "fixture": "synthetic; a failed call as fetch.mjs stores it",
+  "responses": {
+    "repo": {
+      "command": "gh api repos/roccho-dev/windows",
+      "sha256": null,
+      "data": null,
+      "error": "gh: Not Found (HTTP 404)"
+    }
+  }
+}

@@ -11,11 +11,11 @@ fetch.mjs (gh api / ssh / tcp, read-only)  →  snapshots/*.json  →  adapter.m
 | File | Role |
 |---|---|
 | `fetch.mjs` | Acquisition only. Runs `gh api` (existing login), the existing `ssh`, TCP probes; stores the raw responses / stdout. |
-| `adapter.mjs` | The only place that knows data formats: gh JSON paths, `--slurp` pages, process/file listing lines. Snapshot → normalized record (`thread`, `pr`, `sessions`, `ports`); missing → null. |
+| `adapter.mjs` | The only place that knows data formats: gh JSON paths, `--slurp` pages, process/file listing lines. Snapshot → normalized record (`thread`, `pr`, `sessions`, `ports`, `fact`); missing → null. |
 | `collect.mjs` | `collect(records, recordedAt)` → events. CLI reads a snapshot dir through the adapter. No network. |
 | `plan.mjs` | Marker sections in text → `plan.set` (mermaid flowchart + exit table). |
 | `journal.mjs` | ```` ```jsonl ```` in marker sections and declaration files → journal decisions (actor = author). |
-| `observe.mjs` | Normalized PR / session / port values → `observation`. |
+| `observe.mjs` | Normalized PR / session / port values and facts (`{target, value}`) → `observation`. |
 
 ## Run on G6I3 (P)
 
@@ -33,6 +33,8 @@ node packages/atlas/collect/collect.mjs .artifacts/g-snapshots --out .artifacts/
 - `gh api repos/<owner>/<repo>/issues/<n>` — body and `updated_at` (Issues and PRs)
 - `gh api --paginate --slurp repos/<owner>/<repo>/issues/<n>/comments?per_page=100`
 - PRs only: `gh api graphql` → `state merged mergedAt headRefOid commits(last:1){oid statusCheckRollup{state}}`
+- `repos: [owner/repo]`: `gh api repos/<owner>/<repo>` — `archived`
+- `issueStates: [owner/repo#n]`: `gh api repos/<owner>/<repo>/issues/<n>` — `state`, `state_reason`
 - sessions: `ssh g6i3-own 'ps -eo pid=,args='` and `ssh g6i3-own 'find ~/.claude/projects -name "*.jsonl"'`
   (override with `sessions.processCommand` / `sessions.filesCommand` in the config)
 - a host without `ps` (e.g. g6i3-own): read `/proc` instead; the output keeps the `<pid> <command line>` form
@@ -60,8 +62,15 @@ stored as null, which the transform turns into `UNKNOWN`. Snapshots from before 
 | `<target>:session` | `running` / `transcript-only` / `not-found` / `UNKNOWN` |
 | `<target>:port` | `responding` / `no-response` / `UNKNOWN` |
 | `<repo>#<n>:plan.source` | only when the Issue/comments fetch failed: `UNKNOWN` (not "no plan") |
+| `<repo>:archived` | `"true"` / `"false"`; a non-boolean or missing field, or a failed call → `UNKNOWN` |
+| `<repo>#<n>:issue.state` | `state`, plus `/<state_reason>` when GitHub gives one: `open`, `closed`, `closed/completed`, `closed/not_planned`, `open/reopened`; no string `state` → `UNKNOWN`; a PR (`pull_request` key) → `UNKNOWN`, reason in `source.ref` (list PRs in `pulls`: `pr.state`, `pr.merged`) |
 
 `observedAt` is the snapshot's fetch time. `observedAt > recordedAt` is rejected (throws).
+
+G emits fact targets only (`windows:archived`, `ops#479:issue.state`). It never writes a meaning target
+such as `input:semcmp-adopted`; which fact satisfies a condition is P's declared predicate. Keeping
+`state_reason` inside the `issue.state` value lets one `equals "closed/completed"` predicate exclude
+a reason-less or `not_planned` close, and keeps an open issue's null reason from becoming `UNKNOWN`.
 
 ### Session rule
 
@@ -123,3 +132,5 @@ arguments as `fetch.mjs`). `sessions.json` and `ports.json` stay synthetic. Test
 gives for that real data (current v3 → all `UNKNOWN`; v1's 2-column table → exits `UNKNOWN`; v1/v2
 flowcharts parsed). Rules the real data does not exercise (5-column exit table, flowchart syntax,
 same-version conflict) are tested on minimal inputs named `synthetic minimal input`.
+`fixtures/states/` (repo `archived` true / false / failed call; issue open / closed completed /
+closed not_planned) is synthetic, with the field names and types of the real gh responses.
