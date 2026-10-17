@@ -1,0 +1,2649 @@
+{
+  "id": "N08",
+  "arm": "B",
+  "fixture": "empty",
+  "utterance": "OCIの中に「照合区」というグループを1つ作り、その中に「照合」という工程と「照合票」というデータを1つずつ追加してください。照合から照合票へ矢印を1本引いてください。",
+  "valid_execution": true,
+  "elapsedMs": 1931.911300000007,
+  "result": {
+    "reason": "none",
+    "requests": 9,
+    "elapsedMs": 1930.042499999996,
+    "selected": [
+      {
+        "key": "goal-extra-1",
+        "region": "part-1",
+        "parent": "container"
+      },
+      {
+        "key": "goal-extra-2",
+        "region": "part-2",
+        "parent": "part-1"
+      },
+      {
+        "key": "goal-extra-3",
+        "region": "part-3",
+        "parent": "part-1"
+      }
+    ],
+    "trace": [
+      {
+        "head": "sha256:3f44e0d52678bc7ddeac8b19804ffaadfe6a493ce65ba8ca98f345ddd2ff75a2",
+        "answers": {
+          "delta": {
+            "type": "choice",
+            "choice": "part:goal-extra-1",
+            "confidence": 0.88
+          }
+        },
+        "failure": null
+      },
+      {
+        "head": "sha256:3f44e0d52678bc7ddeac8b19804ffaadfe6a493ce65ba8ca98f345ddd2ff75a2",
+        "answers": {
+          "delta": {
+            "type": "choice",
+            "choice": "delta-6",
+            "confidence": 1
+          }
+        },
+        "failure": null
+      },
+      {
+        "head": "sha256:9a2401dfa968a932d853550e61284f732c2ed43cf676efea5688be1486a0dc3d",
+        "answers": {
+          "delta": {
+            "type": "choice",
+            "choice": "part:goal-extra-2",
+            "confidence": 0.98
+          }
+        },
+        "failure": null
+      },
+      {
+        "head": "sha256:9a2401dfa968a932d853550e61284f732c2ed43cf676efea5688be1486a0dc3d",
+        "answers": {
+          "delta": {
+            "type": "choice",
+            "choice": "delta-26",
+            "confidence": 1
+          }
+        },
+        "failure": null
+      },
+      {
+        "head": "sha256:707e7dc6cc88565632360217367e669eea54c67797713ff8690722313abdcf66",
+        "answers": {
+          "delta": {
+            "type": "choice",
+            "choice": "part:goal-extra-3",
+            "confidence": 0.99
+          }
+        },
+        "failure": null
+      },
+      {
+        "head": "sha256:707e7dc6cc88565632360217367e669eea54c67797713ff8690722313abdcf66",
+        "answers": {
+          "delta": {
+            "type": "choice",
+            "choice": "delta-24",
+            "confidence": 1
+          }
+        },
+        "failure": null
+      },
+      {
+        "head": "sha256:95dd975b65f402ce20e39b09531f86854e98ada1a697d7571bce08e2f3cd8556",
+        "answers": {
+          "delta": {
+            "type": "choice",
+            "choice": "delta-25",
+            "confidence": 0.99
+          }
+        },
+        "failure": null
+      },
+      {
+        "head": "sha256:a8d8755e1837e499e5959976b6fe9e12f5fde766f9b1434131f3a68db4c9bc6c",
+        "answers": {
+          "delta": {
+            "type": "choice",
+            "choice": "none",
+            "confidence": 1
+          }
+        },
+        "failure": null
+      }
+    ],
+    "inventory": {
+      "checks": 1,
+      "completions": 1,
+      "coverage": {
+        "choice": "missing",
+        "confidence": 0.94
+      },
+      "missing": [
+        {
+          "label": "照合区",
+          "kind": "group",
+          "occurrence": 1
+        },
+        {
+          "label": "照合",
+          "kind": "step",
+          "occurrence": 1
+        },
+        {
+          "label": "照合票",
+          "kind": "data",
+          "occurrence": 1
+        }
+      ]
+    }
+  },
+  "calls": [
+    {
+      "id": "N08",
+      "arm": "B",
+      "n": 1,
+      "route": "/api/parts/check",
+      "request": {
+        "kind": "voice-ui.goal.inventory.v1",
+        "state": {
+          "utterance": "OCIの中に「照合区」というグループを1つ作り、その中に「照合」という工程と「照合票」というデータを1つずつ追加してください。照合から照合票へ矢印を1本引いてください。",
+          "head": "sha256:3f44e0d52678bc7ddeac8b19804ffaadfe6a493ce65ba8ca98f345ddd2ff75a2",
+          "regions": [
+            {
+              "id": "root",
+              "label": "fixture",
+              "kind": "boundary",
+              "parent": null
+            },
+            {
+              "id": "container",
+              "label": "OCI",
+              "kind": "group",
+              "parent": "root"
+            },
+            {
+              "id": "other",
+              "label": "Other",
+              "kind": "group",
+              "parent": "root"
+            }
+          ],
+          "edges": [],
+          "parts": [
+            {
+              "key": "step",
+              "purpose": "an ordinary step, task or box",
+              "label": "工程",
+              "kind": "step"
+            },
+            {
+              "key": "decision",
+              "purpose": "a decision, choice or branch",
+              "label": "判断",
+              "kind": "decision"
+            },
+            {
+              "key": "data",
+              "purpose": "data, a document, an input or an output",
+              "label": "データ",
+              "kind": "data"
+            },
+            {
+              "key": "start",
+              "purpose": "a start or beginning",
+              "label": "開始",
+              "kind": "start"
+            },
+            {
+              "key": "end",
+              "purpose": "an end, finish or result",
+              "label": "終了",
+              "kind": "end"
+            },
+            {
+              "key": "api",
+              "purpose": "an application programming interface service that receives requests",
+              "label": "API",
+              "kind": "step"
+            },
+            {
+              "key": "db",
+              "purpose": "a database that persists application data",
+              "label": "DB",
+              "kind": "data"
+            },
+            {
+              "key": "group",
+              "purpose": "a group, boundary or container that holds other parts",
+              "label": "グループ",
+              "kind": "group"
+            }
+          ]
+        }
+      },
+      "status": 200,
+      "response": {
+        "choice": "missing",
+        "confidence": 0.94
+      },
+      "elapsedMs": 169.6926999999996
+    },
+    {
+      "id": "N08",
+      "arm": "B",
+      "n": 2,
+      "route": "/api/judge",
+      "request": {
+        "kind": "voice-ui.judge.goal-local-delta.v7",
+        "state": {
+          "utterance": "OCIの中に「照合区」というグループを1つ作り、その中に「照合」という工程と「照合票」というデータを1つずつ追加してください。照合から照合票へ矢印を1本引いてください。",
+          "graph": [
+            {
+              "id": "root",
+              "label": "fixture",
+              "parent": null
+            },
+            {
+              "id": "container",
+              "label": "OCI",
+              "parent": "root"
+            },
+            {
+              "id": "other",
+              "label": "Other",
+              "parent": "root"
+            }
+          ],
+          "edges": [],
+          "parents": [
+            {
+              "id": "container",
+              "label": "OCI",
+              "kind": "group",
+              "parent": "root"
+            },
+            {
+              "id": "other",
+              "label": "Other",
+              "kind": "group",
+              "parent": "root"
+            }
+          ],
+          "offers": {
+            "parts": [
+              {
+                "key": "step",
+                "purpose": "an ordinary step, task or box",
+                "label": "工程"
+              },
+              {
+                "key": "decision",
+                "purpose": "a decision, choice or branch",
+                "label": "判断"
+              },
+              {
+                "key": "data",
+                "purpose": "data, a document, an input or an output",
+                "label": "データ"
+              },
+              {
+                "key": "start",
+                "purpose": "a start or beginning",
+                "label": "開始"
+              },
+              {
+                "key": "end",
+                "purpose": "an end, finish or result",
+                "label": "終了"
+              },
+              {
+                "key": "api",
+                "purpose": "an application programming interface service that receives requests",
+                "label": "API"
+              },
+              {
+                "key": "db",
+                "purpose": "a database that persists application data",
+                "label": "DB"
+              },
+              {
+                "key": "group",
+                "purpose": "a group, boundary or container that holds other parts",
+                "label": "グループ"
+              },
+              {
+                "key": "goal-extra-1",
+                "purpose": "one requested part named 照合区, kind group, missing instance 1",
+                "label": "照合区"
+              },
+              {
+                "key": "goal-extra-2",
+                "purpose": "one requested part named 照合, kind step, missing instance 1",
+                "label": "照合"
+              },
+              {
+                "key": "goal-extra-3",
+                "purpose": "one requested part named 照合票, kind data, missing instance 1",
+                "label": "照合票"
+              }
+            ]
+          },
+          "selected": [],
+          "candidates": [
+            {
+              "id": "delta-1",
+              "action": "add-part",
+              "part": "api",
+              "parent": "container"
+            },
+            {
+              "id": "delta-2",
+              "action": "add-part",
+              "part": "data",
+              "parent": "container"
+            },
+            {
+              "id": "delta-3",
+              "action": "add-part",
+              "part": "db",
+              "parent": "container"
+            },
+            {
+              "id": "delta-4",
+              "action": "add-part",
+              "part": "decision",
+              "parent": "container"
+            },
+            {
+              "id": "delta-5",
+              "action": "add-part",
+              "part": "end",
+              "parent": "container"
+            },
+            {
+              "id": "delta-6",
+              "action": "add-part",
+              "part": "goal-extra-1",
+              "parent": "container"
+            },
+            {
+              "id": "delta-7",
+              "action": "add-part",
+              "part": "goal-extra-2",
+              "parent": "container"
+            },
+            {
+              "id": "delta-8",
+              "action": "add-part",
+              "part": "goal-extra-3",
+              "parent": "container"
+            },
+            {
+              "id": "delta-9",
+              "action": "add-part",
+              "part": "group",
+              "parent": "container"
+            },
+            {
+              "id": "delta-10",
+              "action": "add-part",
+              "part": "start",
+              "parent": "container"
+            },
+            {
+              "id": "delta-11",
+              "action": "add-part",
+              "part": "step",
+              "parent": "container"
+            },
+            {
+              "id": "delta-12",
+              "action": "add-part",
+              "part": "api",
+              "parent": "other"
+            },
+            {
+              "id": "delta-13",
+              "action": "add-part",
+              "part": "data",
+              "parent": "other"
+            },
+            {
+              "id": "delta-14",
+              "action": "add-part",
+              "part": "db",
+              "parent": "other"
+            },
+            {
+              "id": "delta-15",
+              "action": "add-part",
+              "part": "decision",
+              "parent": "other"
+            },
+            {
+              "id": "delta-16",
+              "action": "add-part",
+              "part": "end",
+              "parent": "other"
+            },
+            {
+              "id": "delta-17",
+              "action": "add-part",
+              "part": "goal-extra-1",
+              "parent": "other"
+            },
+            {
+              "id": "delta-18",
+              "action": "add-part",
+              "part": "goal-extra-2",
+              "parent": "other"
+            },
+            {
+              "id": "delta-19",
+              "action": "add-part",
+              "part": "goal-extra-3",
+              "parent": "other"
+            },
+            {
+              "id": "delta-20",
+              "action": "add-part",
+              "part": "group",
+              "parent": "other"
+            },
+            {
+              "id": "delta-21",
+              "action": "add-part",
+              "part": "start",
+              "parent": "other"
+            },
+            {
+              "id": "delta-22",
+              "action": "add-part",
+              "part": "step",
+              "parent": "other"
+            }
+          ],
+          "context": {
+            "recent": []
+          },
+          "scope": null,
+          "placing": null
+        }
+      },
+      "status": 200,
+      "response": {
+        "kind": "voice-ui.judge.decision.v1",
+        "answers": {
+          "delta": {
+            "type": "choice",
+            "choice": "part:goal-extra-1",
+            "confidence": 0.88
+          }
+        }
+      },
+      "elapsedMs": 181.8286999999982
+    },
+    {
+      "id": "N08",
+      "arm": "B",
+      "n": 3,
+      "route": "/api/judge",
+      "request": {
+        "kind": "voice-ui.judge.goal-local-delta.v7",
+        "state": {
+          "utterance": "OCIの中に「照合区」というグループを1つ作り、その中に「照合」という工程と「照合票」というデータを1つずつ追加してください。照合から照合票へ矢印を1本引いてください。",
+          "graph": [
+            {
+              "id": "root",
+              "label": "fixture",
+              "parent": null
+            },
+            {
+              "id": "container",
+              "label": "OCI",
+              "parent": "root"
+            },
+            {
+              "id": "other",
+              "label": "Other",
+              "parent": "root"
+            }
+          ],
+          "edges": [],
+          "parents": [
+            {
+              "id": "container",
+              "label": "OCI",
+              "kind": "group",
+              "parent": "root"
+            },
+            {
+              "id": "other",
+              "label": "Other",
+              "kind": "group",
+              "parent": "root"
+            }
+          ],
+          "offers": {
+            "parts": [
+              {
+                "key": "step",
+                "purpose": "an ordinary step, task or box",
+                "label": "工程"
+              },
+              {
+                "key": "decision",
+                "purpose": "a decision, choice or branch",
+                "label": "判断"
+              },
+              {
+                "key": "data",
+                "purpose": "data, a document, an input or an output",
+                "label": "データ"
+              },
+              {
+                "key": "start",
+                "purpose": "a start or beginning",
+                "label": "開始"
+              },
+              {
+                "key": "end",
+                "purpose": "an end, finish or result",
+                "label": "終了"
+              },
+              {
+                "key": "api",
+                "purpose": "an application programming interface service that receives requests",
+                "label": "API"
+              },
+              {
+                "key": "db",
+                "purpose": "a database that persists application data",
+                "label": "DB"
+              },
+              {
+                "key": "group",
+                "purpose": "a group, boundary or container that holds other parts",
+                "label": "グループ"
+              },
+              {
+                "key": "goal-extra-1",
+                "purpose": "one requested part named 照合区, kind group, missing instance 1",
+                "label": "照合区"
+              },
+              {
+                "key": "goal-extra-2",
+                "purpose": "one requested part named 照合, kind step, missing instance 1",
+                "label": "照合"
+              },
+              {
+                "key": "goal-extra-3",
+                "purpose": "one requested part named 照合票, kind data, missing instance 1",
+                "label": "照合票"
+              }
+            ]
+          },
+          "selected": [],
+          "candidates": [
+            {
+              "id": "delta-6",
+              "action": "add-part",
+              "part": "goal-extra-1",
+              "parent": "container"
+            },
+            {
+              "id": "delta-17",
+              "action": "add-part",
+              "part": "goal-extra-1",
+              "parent": "other"
+            }
+          ],
+          "context": {
+            "recent": []
+          },
+          "scope": null,
+          "placing": "goal-extra-1"
+        }
+      },
+      "status": 200,
+      "response": {
+        "kind": "voice-ui.judge.decision.v1",
+        "answers": {
+          "delta": {
+            "type": "choice",
+            "choice": "delta-6",
+            "confidence": 1
+          }
+        }
+      },
+      "elapsedMs": 184.98739999999816
+    },
+    {
+      "id": "N08",
+      "arm": "B",
+      "n": 4,
+      "route": "/api/judge",
+      "request": {
+        "kind": "voice-ui.judge.goal-local-delta.v7",
+        "state": {
+          "utterance": "OCIの中に「照合区」というグループを1つ作り、その中に「照合」という工程と「照合票」というデータを1つずつ追加してください。照合から照合票へ矢印を1本引いてください。",
+          "graph": [
+            {
+              "id": "root",
+              "label": "fixture",
+              "parent": null
+            },
+            {
+              "id": "container",
+              "label": "OCI",
+              "parent": "root"
+            },
+            {
+              "id": "other",
+              "label": "Other",
+              "parent": "root"
+            },
+            {
+              "id": "part-1",
+              "label": "照合区",
+              "parent": "container"
+            }
+          ],
+          "edges": [],
+          "parents": [
+            {
+              "id": "container",
+              "label": "OCI",
+              "kind": "group",
+              "parent": "root"
+            },
+            {
+              "id": "other",
+              "label": "Other",
+              "kind": "group",
+              "parent": "root"
+            },
+            {
+              "id": "part-1",
+              "label": "照合区",
+              "kind": "group",
+              "parent": "container"
+            }
+          ],
+          "offers": {
+            "parts": [
+              {
+                "key": "step",
+                "purpose": "an ordinary step, task or box",
+                "label": "工程"
+              },
+              {
+                "key": "decision",
+                "purpose": "a decision, choice or branch",
+                "label": "判断"
+              },
+              {
+                "key": "data",
+                "purpose": "data, a document, an input or an output",
+                "label": "データ"
+              },
+              {
+                "key": "start",
+                "purpose": "a start or beginning",
+                "label": "開始"
+              },
+              {
+                "key": "end",
+                "purpose": "an end, finish or result",
+                "label": "終了"
+              },
+              {
+                "key": "api",
+                "purpose": "an application programming interface service that receives requests",
+                "label": "API"
+              },
+              {
+                "key": "db",
+                "purpose": "a database that persists application data",
+                "label": "DB"
+              },
+              {
+                "key": "group",
+                "purpose": "a group, boundary or container that holds other parts",
+                "label": "グループ"
+              },
+              {
+                "key": "goal-extra-1",
+                "purpose": "one requested part named 照合区, kind group, missing instance 1",
+                "label": "照合区"
+              },
+              {
+                "key": "goal-extra-2",
+                "purpose": "one requested part named 照合, kind step, missing instance 1",
+                "label": "照合"
+              },
+              {
+                "key": "goal-extra-3",
+                "purpose": "one requested part named 照合票, kind data, missing instance 1",
+                "label": "照合票"
+              }
+            ]
+          },
+          "selected": [
+            {
+              "key": "goal-extra-1",
+              "region": "part-1",
+              "parent": "container"
+            }
+          ],
+          "candidates": [
+            {
+              "id": "delta-1",
+              "action": "add-part",
+              "part": "api",
+              "parent": "container"
+            },
+            {
+              "id": "delta-2",
+              "action": "add-part",
+              "part": "data",
+              "parent": "container"
+            },
+            {
+              "id": "delta-3",
+              "action": "add-part",
+              "part": "db",
+              "parent": "container"
+            },
+            {
+              "id": "delta-4",
+              "action": "add-part",
+              "part": "decision",
+              "parent": "container"
+            },
+            {
+              "id": "delta-5",
+              "action": "add-part",
+              "part": "end",
+              "parent": "container"
+            },
+            {
+              "id": "delta-6",
+              "action": "add-part",
+              "part": "goal-extra-2",
+              "parent": "container"
+            },
+            {
+              "id": "delta-7",
+              "action": "add-part",
+              "part": "goal-extra-3",
+              "parent": "container"
+            },
+            {
+              "id": "delta-8",
+              "action": "add-part",
+              "part": "group",
+              "parent": "container"
+            },
+            {
+              "id": "delta-9",
+              "action": "add-part",
+              "part": "start",
+              "parent": "container"
+            },
+            {
+              "id": "delta-10",
+              "action": "add-part",
+              "part": "step",
+              "parent": "container"
+            },
+            {
+              "id": "delta-11",
+              "action": "add-part",
+              "part": "api",
+              "parent": "other"
+            },
+            {
+              "id": "delta-12",
+              "action": "add-part",
+              "part": "data",
+              "parent": "other"
+            },
+            {
+              "id": "delta-13",
+              "action": "add-part",
+              "part": "db",
+              "parent": "other"
+            },
+            {
+              "id": "delta-14",
+              "action": "add-part",
+              "part": "decision",
+              "parent": "other"
+            },
+            {
+              "id": "delta-15",
+              "action": "add-part",
+              "part": "end",
+              "parent": "other"
+            },
+            {
+              "id": "delta-16",
+              "action": "add-part",
+              "part": "goal-extra-2",
+              "parent": "other"
+            },
+            {
+              "id": "delta-17",
+              "action": "add-part",
+              "part": "goal-extra-3",
+              "parent": "other"
+            },
+            {
+              "id": "delta-18",
+              "action": "add-part",
+              "part": "group",
+              "parent": "other"
+            },
+            {
+              "id": "delta-19",
+              "action": "add-part",
+              "part": "start",
+              "parent": "other"
+            },
+            {
+              "id": "delta-20",
+              "action": "add-part",
+              "part": "step",
+              "parent": "other"
+            },
+            {
+              "id": "delta-21",
+              "action": "add-part",
+              "part": "api",
+              "parent": "part-1"
+            },
+            {
+              "id": "delta-22",
+              "action": "add-part",
+              "part": "data",
+              "parent": "part-1"
+            },
+            {
+              "id": "delta-23",
+              "action": "add-part",
+              "part": "db",
+              "parent": "part-1"
+            },
+            {
+              "id": "delta-24",
+              "action": "add-part",
+              "part": "decision",
+              "parent": "part-1"
+            },
+            {
+              "id": "delta-25",
+              "action": "add-part",
+              "part": "end",
+              "parent": "part-1"
+            },
+            {
+              "id": "delta-26",
+              "action": "add-part",
+              "part": "goal-extra-2",
+              "parent": "part-1"
+            },
+            {
+              "id": "delta-27",
+              "action": "add-part",
+              "part": "goal-extra-3",
+              "parent": "part-1"
+            },
+            {
+              "id": "delta-28",
+              "action": "add-part",
+              "part": "group",
+              "parent": "part-1"
+            },
+            {
+              "id": "delta-29",
+              "action": "add-part",
+              "part": "start",
+              "parent": "part-1"
+            },
+            {
+              "id": "delta-30",
+              "action": "add-part",
+              "part": "step",
+              "parent": "part-1"
+            }
+          ],
+          "context": {
+            "recent": [
+              {
+                "seq": 1,
+                "source": "typed",
+                "text": "OCIの中に「照合区」というグループを1つ作り、その中に「照合」という工程と「照合票」というデータを1つずつ追加してください。照合から照合票へ矢印を1本引いてください。",
+                "outcome": "step",
+                "effect": {
+                  "changes": [
+                    {
+                      "change": "added",
+                      "kind": "region",
+                      "id": "part-1",
+                      "label": "照合区"
+                    }
+                  ]
+                }
+              }
+            ]
+          },
+          "scope": null,
+          "placing": null
+        }
+      },
+      "status": 200,
+      "response": {
+        "kind": "voice-ui.judge.decision.v1",
+        "answers": {
+          "delta": {
+            "type": "choice",
+            "choice": "part:goal-extra-2",
+            "confidence": 0.98
+          }
+        }
+      },
+      "elapsedMs": 200.2583999999988
+    },
+    {
+      "id": "N08",
+      "arm": "B",
+      "n": 5,
+      "route": "/api/judge",
+      "request": {
+        "kind": "voice-ui.judge.goal-local-delta.v7",
+        "state": {
+          "utterance": "OCIの中に「照合区」というグループを1つ作り、その中に「照合」という工程と「照合票」というデータを1つずつ追加してください。照合から照合票へ矢印を1本引いてください。",
+          "graph": [
+            {
+              "id": "root",
+              "label": "fixture",
+              "parent": null
+            },
+            {
+              "id": "container",
+              "label": "OCI",
+              "parent": "root"
+            },
+            {
+              "id": "other",
+              "label": "Other",
+              "parent": "root"
+            },
+            {
+              "id": "part-1",
+              "label": "照合区",
+              "parent": "container"
+            }
+          ],
+          "edges": [],
+          "parents": [
+            {
+              "id": "container",
+              "label": "OCI",
+              "kind": "group",
+              "parent": "root"
+            },
+            {
+              "id": "other",
+              "label": "Other",
+              "kind": "group",
+              "parent": "root"
+            },
+            {
+              "id": "part-1",
+              "label": "照合区",
+              "kind": "group",
+              "parent": "container"
+            }
+          ],
+          "offers": {
+            "parts": [
+              {
+                "key": "step",
+                "purpose": "an ordinary step, task or box",
+                "label": "工程"
+              },
+              {
+                "key": "decision",
+                "purpose": "a decision, choice or branch",
+                "label": "判断"
+              },
+              {
+                "key": "data",
+                "purpose": "data, a document, an input or an output",
+                "label": "データ"
+              },
+              {
+                "key": "start",
+                "purpose": "a start or beginning",
+                "label": "開始"
+              },
+              {
+                "key": "end",
+                "purpose": "an end, finish or result",
+                "label": "終了"
+              },
+              {
+                "key": "api",
+                "purpose": "an application programming interface service that receives requests",
+                "label": "API"
+              },
+              {
+                "key": "db",
+                "purpose": "a database that persists application data",
+                "label": "DB"
+              },
+              {
+                "key": "group",
+                "purpose": "a group, boundary or container that holds other parts",
+                "label": "グループ"
+              },
+              {
+                "key": "goal-extra-1",
+                "purpose": "one requested part named 照合区, kind group, missing instance 1",
+                "label": "照合区"
+              },
+              {
+                "key": "goal-extra-2",
+                "purpose": "one requested part named 照合, kind step, missing instance 1",
+                "label": "照合"
+              },
+              {
+                "key": "goal-extra-3",
+                "purpose": "one requested part named 照合票, kind data, missing instance 1",
+                "label": "照合票"
+              }
+            ]
+          },
+          "selected": [
+            {
+              "key": "goal-extra-1",
+              "region": "part-1",
+              "parent": "container"
+            }
+          ],
+          "candidates": [
+            {
+              "id": "delta-6",
+              "action": "add-part",
+              "part": "goal-extra-2",
+              "parent": "container"
+            },
+            {
+              "id": "delta-16",
+              "action": "add-part",
+              "part": "goal-extra-2",
+              "parent": "other"
+            },
+            {
+              "id": "delta-26",
+              "action": "add-part",
+              "part": "goal-extra-2",
+              "parent": "part-1"
+            }
+          ],
+          "context": {
+            "recent": [
+              {
+                "seq": 1,
+                "source": "typed",
+                "text": "OCIの中に「照合区」というグループを1つ作り、その中に「照合」という工程と「照合票」というデータを1つずつ追加してください。照合から照合票へ矢印を1本引いてください。",
+                "outcome": "step",
+                "effect": {
+                  "changes": [
+                    {
+                      "change": "added",
+                      "kind": "region",
+                      "id": "part-1",
+                      "label": "照合区"
+                    }
+                  ]
+                }
+              }
+            ]
+          },
+          "scope": null,
+          "placing": "goal-extra-2"
+        }
+      },
+      "status": 200,
+      "response": {
+        "kind": "voice-ui.judge.decision.v1",
+        "answers": {
+          "delta": {
+            "type": "choice",
+            "choice": "delta-26",
+            "confidence": 1
+          }
+        }
+      },
+      "elapsedMs": 213.10520000000542
+    },
+    {
+      "id": "N08",
+      "arm": "B",
+      "n": 6,
+      "route": "/api/judge",
+      "request": {
+        "kind": "voice-ui.judge.goal-local-delta.v7",
+        "state": {
+          "utterance": "OCIの中に「照合区」というグループを1つ作り、その中に「照合」という工程と「照合票」というデータを1つずつ追加してください。照合から照合票へ矢印を1本引いてください。",
+          "graph": [
+            {
+              "id": "root",
+              "label": "fixture",
+              "parent": null
+            },
+            {
+              "id": "container",
+              "label": "OCI",
+              "parent": "root"
+            },
+            {
+              "id": "other",
+              "label": "Other",
+              "parent": "root"
+            },
+            {
+              "id": "part-1",
+              "label": "照合区",
+              "parent": "container"
+            },
+            {
+              "id": "part-2",
+              "label": "照合",
+              "parent": "part-1"
+            }
+          ],
+          "edges": [],
+          "parents": [
+            {
+              "id": "container",
+              "label": "OCI",
+              "kind": "group",
+              "parent": "root"
+            },
+            {
+              "id": "other",
+              "label": "Other",
+              "kind": "group",
+              "parent": "root"
+            },
+            {
+              "id": "part-1",
+              "label": "照合区",
+              "kind": "group",
+              "parent": "container"
+            }
+          ],
+          "offers": {
+            "parts": [
+              {
+                "key": "step",
+                "purpose": "an ordinary step, task or box",
+                "label": "工程"
+              },
+              {
+                "key": "decision",
+                "purpose": "a decision, choice or branch",
+                "label": "判断"
+              },
+              {
+                "key": "data",
+                "purpose": "data, a document, an input or an output",
+                "label": "データ"
+              },
+              {
+                "key": "start",
+                "purpose": "a start or beginning",
+                "label": "開始"
+              },
+              {
+                "key": "end",
+                "purpose": "an end, finish or result",
+                "label": "終了"
+              },
+              {
+                "key": "api",
+                "purpose": "an application programming interface service that receives requests",
+                "label": "API"
+              },
+              {
+                "key": "db",
+                "purpose": "a database that persists application data",
+                "label": "DB"
+              },
+              {
+                "key": "group",
+                "purpose": "a group, boundary or container that holds other parts",
+                "label": "グループ"
+              },
+              {
+                "key": "goal-extra-1",
+                "purpose": "one requested part named 照合区, kind group, missing instance 1",
+                "label": "照合区"
+              },
+              {
+                "key": "goal-extra-2",
+                "purpose": "one requested part named 照合, kind step, missing instance 1",
+                "label": "照合"
+              },
+              {
+                "key": "goal-extra-3",
+                "purpose": "one requested part named 照合票, kind data, missing instance 1",
+                "label": "照合票"
+              }
+            ]
+          },
+          "selected": [
+            {
+              "key": "goal-extra-1",
+              "region": "part-1",
+              "parent": "container"
+            },
+            {
+              "key": "goal-extra-2",
+              "region": "part-2",
+              "parent": "part-1"
+            }
+          ],
+          "candidates": [
+            {
+              "id": "delta-1",
+              "action": "add-part",
+              "part": "api",
+              "parent": "container"
+            },
+            {
+              "id": "delta-2",
+              "action": "add-part",
+              "part": "data",
+              "parent": "container"
+            },
+            {
+              "id": "delta-3",
+              "action": "add-part",
+              "part": "db",
+              "parent": "container"
+            },
+            {
+              "id": "delta-4",
+              "action": "add-part",
+              "part": "decision",
+              "parent": "container"
+            },
+            {
+              "id": "delta-5",
+              "action": "add-part",
+              "part": "end",
+              "parent": "container"
+            },
+            {
+              "id": "delta-6",
+              "action": "add-part",
+              "part": "goal-extra-3",
+              "parent": "container"
+            },
+            {
+              "id": "delta-7",
+              "action": "add-part",
+              "part": "group",
+              "parent": "container"
+            },
+            {
+              "id": "delta-8",
+              "action": "add-part",
+              "part": "start",
+              "parent": "container"
+            },
+            {
+              "id": "delta-9",
+              "action": "add-part",
+              "part": "step",
+              "parent": "container"
+            },
+            {
+              "id": "delta-10",
+              "action": "add-part",
+              "part": "api",
+              "parent": "other"
+            },
+            {
+              "id": "delta-11",
+              "action": "add-part",
+              "part": "data",
+              "parent": "other"
+            },
+            {
+              "id": "delta-12",
+              "action": "add-part",
+              "part": "db",
+              "parent": "other"
+            },
+            {
+              "id": "delta-13",
+              "action": "add-part",
+              "part": "decision",
+              "parent": "other"
+            },
+            {
+              "id": "delta-14",
+              "action": "add-part",
+              "part": "end",
+              "parent": "other"
+            },
+            {
+              "id": "delta-15",
+              "action": "add-part",
+              "part": "goal-extra-3",
+              "parent": "other"
+            },
+            {
+              "id": "delta-16",
+              "action": "add-part",
+              "part": "group",
+              "parent": "other"
+            },
+            {
+              "id": "delta-17",
+              "action": "add-part",
+              "part": "start",
+              "parent": "other"
+            },
+            {
+              "id": "delta-18",
+              "action": "add-part",
+              "part": "step",
+              "parent": "other"
+            },
+            {
+              "id": "delta-19",
+              "action": "add-part",
+              "part": "api",
+              "parent": "part-1"
+            },
+            {
+              "id": "delta-20",
+              "action": "add-part",
+              "part": "data",
+              "parent": "part-1"
+            },
+            {
+              "id": "delta-21",
+              "action": "add-part",
+              "part": "db",
+              "parent": "part-1"
+            },
+            {
+              "id": "delta-22",
+              "action": "add-part",
+              "part": "decision",
+              "parent": "part-1"
+            },
+            {
+              "id": "delta-23",
+              "action": "add-part",
+              "part": "end",
+              "parent": "part-1"
+            },
+            {
+              "id": "delta-24",
+              "action": "add-part",
+              "part": "goal-extra-3",
+              "parent": "part-1"
+            },
+            {
+              "id": "delta-25",
+              "action": "add-part",
+              "part": "group",
+              "parent": "part-1"
+            },
+            {
+              "id": "delta-26",
+              "action": "add-part",
+              "part": "start",
+              "parent": "part-1"
+            },
+            {
+              "id": "delta-27",
+              "action": "add-part",
+              "part": "step",
+              "parent": "part-1"
+            }
+          ],
+          "context": {
+            "recent": [
+              {
+                "seq": 1,
+                "source": "typed",
+                "text": "OCIの中に「照合区」というグループを1つ作り、その中に「照合」という工程と「照合票」というデータを1つずつ追加してください。照合から照合票へ矢印を1本引いてください。",
+                "outcome": "step",
+                "effect": {
+                  "changes": [
+                    {
+                      "change": "added",
+                      "kind": "region",
+                      "id": "part-1",
+                      "label": "照合区"
+                    },
+                    {
+                      "change": "added",
+                      "kind": "region",
+                      "id": "part-2",
+                      "label": "照合"
+                    }
+                  ]
+                }
+              }
+            ]
+          },
+          "scope": null,
+          "placing": null
+        }
+      },
+      "status": 200,
+      "response": {
+        "kind": "voice-ui.judge.decision.v1",
+        "answers": {
+          "delta": {
+            "type": "choice",
+            "choice": "part:goal-extra-3",
+            "confidence": 0.99
+          }
+        }
+      },
+      "elapsedMs": 166.71530000000348
+    },
+    {
+      "id": "N08",
+      "arm": "B",
+      "n": 7,
+      "route": "/api/judge",
+      "request": {
+        "kind": "voice-ui.judge.goal-local-delta.v7",
+        "state": {
+          "utterance": "OCIの中に「照合区」というグループを1つ作り、その中に「照合」という工程と「照合票」というデータを1つずつ追加してください。照合から照合票へ矢印を1本引いてください。",
+          "graph": [
+            {
+              "id": "root",
+              "label": "fixture",
+              "parent": null
+            },
+            {
+              "id": "container",
+              "label": "OCI",
+              "parent": "root"
+            },
+            {
+              "id": "other",
+              "label": "Other",
+              "parent": "root"
+            },
+            {
+              "id": "part-1",
+              "label": "照合区",
+              "parent": "container"
+            },
+            {
+              "id": "part-2",
+              "label": "照合",
+              "parent": "part-1"
+            }
+          ],
+          "edges": [],
+          "parents": [
+            {
+              "id": "container",
+              "label": "OCI",
+              "kind": "group",
+              "parent": "root"
+            },
+            {
+              "id": "other",
+              "label": "Other",
+              "kind": "group",
+              "parent": "root"
+            },
+            {
+              "id": "part-1",
+              "label": "照合区",
+              "kind": "group",
+              "parent": "container"
+            }
+          ],
+          "offers": {
+            "parts": [
+              {
+                "key": "step",
+                "purpose": "an ordinary step, task or box",
+                "label": "工程"
+              },
+              {
+                "key": "decision",
+                "purpose": "a decision, choice or branch",
+                "label": "判断"
+              },
+              {
+                "key": "data",
+                "purpose": "data, a document, an input or an output",
+                "label": "データ"
+              },
+              {
+                "key": "start",
+                "purpose": "a start or beginning",
+                "label": "開始"
+              },
+              {
+                "key": "end",
+                "purpose": "an end, finish or result",
+                "label": "終了"
+              },
+              {
+                "key": "api",
+                "purpose": "an application programming interface service that receives requests",
+                "label": "API"
+              },
+              {
+                "key": "db",
+                "purpose": "a database that persists application data",
+                "label": "DB"
+              },
+              {
+                "key": "group",
+                "purpose": "a group, boundary or container that holds other parts",
+                "label": "グループ"
+              },
+              {
+                "key": "goal-extra-1",
+                "purpose": "one requested part named 照合区, kind group, missing instance 1",
+                "label": "照合区"
+              },
+              {
+                "key": "goal-extra-2",
+                "purpose": "one requested part named 照合, kind step, missing instance 1",
+                "label": "照合"
+              },
+              {
+                "key": "goal-extra-3",
+                "purpose": "one requested part named 照合票, kind data, missing instance 1",
+                "label": "照合票"
+              }
+            ]
+          },
+          "selected": [
+            {
+              "key": "goal-extra-1",
+              "region": "part-1",
+              "parent": "container"
+            },
+            {
+              "key": "goal-extra-2",
+              "region": "part-2",
+              "parent": "part-1"
+            }
+          ],
+          "candidates": [
+            {
+              "id": "delta-6",
+              "action": "add-part",
+              "part": "goal-extra-3",
+              "parent": "container"
+            },
+            {
+              "id": "delta-15",
+              "action": "add-part",
+              "part": "goal-extra-3",
+              "parent": "other"
+            },
+            {
+              "id": "delta-24",
+              "action": "add-part",
+              "part": "goal-extra-3",
+              "parent": "part-1"
+            }
+          ],
+          "context": {
+            "recent": [
+              {
+                "seq": 1,
+                "source": "typed",
+                "text": "OCIの中に「照合区」というグループを1つ作り、その中に「照合」という工程と「照合票」というデータを1つずつ追加してください。照合から照合票へ矢印を1本引いてください。",
+                "outcome": "step",
+                "effect": {
+                  "changes": [
+                    {
+                      "change": "added",
+                      "kind": "region",
+                      "id": "part-1",
+                      "label": "照合区"
+                    },
+                    {
+                      "change": "added",
+                      "kind": "region",
+                      "id": "part-2",
+                      "label": "照合"
+                    }
+                  ]
+                }
+              }
+            ]
+          },
+          "scope": null,
+          "placing": "goal-extra-3"
+        }
+      },
+      "status": 200,
+      "response": {
+        "kind": "voice-ui.judge.decision.v1",
+        "answers": {
+          "delta": {
+            "type": "choice",
+            "choice": "delta-24",
+            "confidence": 1
+          }
+        }
+      },
+      "elapsedMs": 189.19630000000325
+    },
+    {
+      "id": "N08",
+      "arm": "B",
+      "n": 8,
+      "route": "/api/judge",
+      "request": {
+        "kind": "voice-ui.judge.goal-local-delta.v7",
+        "state": {
+          "utterance": "OCIの中に「照合区」というグループを1つ作り、その中に「照合」という工程と「照合票」というデータを1つずつ追加してください。照合から照合票へ矢印を1本引いてください。",
+          "graph": [
+            {
+              "id": "root",
+              "label": "fixture",
+              "parent": null
+            },
+            {
+              "id": "container",
+              "label": "OCI",
+              "parent": "root"
+            },
+            {
+              "id": "other",
+              "label": "Other",
+              "parent": "root"
+            },
+            {
+              "id": "part-1",
+              "label": "照合区",
+              "parent": "container"
+            },
+            {
+              "id": "part-2",
+              "label": "照合",
+              "parent": "part-1"
+            },
+            {
+              "id": "part-3",
+              "label": "照合票",
+              "parent": "part-1"
+            }
+          ],
+          "edges": [],
+          "parents": [
+            {
+              "id": "container",
+              "label": "OCI",
+              "kind": "group",
+              "parent": "root"
+            },
+            {
+              "id": "other",
+              "label": "Other",
+              "kind": "group",
+              "parent": "root"
+            },
+            {
+              "id": "part-1",
+              "label": "照合区",
+              "kind": "group",
+              "parent": "container"
+            }
+          ],
+          "offers": {
+            "parts": [
+              {
+                "key": "step",
+                "purpose": "an ordinary step, task or box",
+                "label": "工程"
+              },
+              {
+                "key": "decision",
+                "purpose": "a decision, choice or branch",
+                "label": "判断"
+              },
+              {
+                "key": "data",
+                "purpose": "data, a document, an input or an output",
+                "label": "データ"
+              },
+              {
+                "key": "start",
+                "purpose": "a start or beginning",
+                "label": "開始"
+              },
+              {
+                "key": "end",
+                "purpose": "an end, finish or result",
+                "label": "終了"
+              },
+              {
+                "key": "api",
+                "purpose": "an application programming interface service that receives requests",
+                "label": "API"
+              },
+              {
+                "key": "db",
+                "purpose": "a database that persists application data",
+                "label": "DB"
+              },
+              {
+                "key": "group",
+                "purpose": "a group, boundary or container that holds other parts",
+                "label": "グループ"
+              },
+              {
+                "key": "goal-extra-1",
+                "purpose": "one requested part named 照合区, kind group, missing instance 1",
+                "label": "照合区"
+              },
+              {
+                "key": "goal-extra-2",
+                "purpose": "one requested part named 照合, kind step, missing instance 1",
+                "label": "照合"
+              },
+              {
+                "key": "goal-extra-3",
+                "purpose": "one requested part named 照合票, kind data, missing instance 1",
+                "label": "照合票"
+              }
+            ]
+          },
+          "selected": [
+            {
+              "key": "goal-extra-1",
+              "region": "part-1",
+              "parent": "container"
+            },
+            {
+              "key": "goal-extra-2",
+              "region": "part-2",
+              "parent": "part-1"
+            },
+            {
+              "key": "goal-extra-3",
+              "region": "part-3",
+              "parent": "part-1"
+            }
+          ],
+          "candidates": [
+            {
+              "id": "delta-1",
+              "action": "add-part",
+              "part": "api",
+              "parent": "container"
+            },
+            {
+              "id": "delta-2",
+              "action": "add-part",
+              "part": "data",
+              "parent": "container"
+            },
+            {
+              "id": "delta-3",
+              "action": "add-part",
+              "part": "db",
+              "parent": "container"
+            },
+            {
+              "id": "delta-4",
+              "action": "add-part",
+              "part": "decision",
+              "parent": "container"
+            },
+            {
+              "id": "delta-5",
+              "action": "add-part",
+              "part": "end",
+              "parent": "container"
+            },
+            {
+              "id": "delta-6",
+              "action": "add-part",
+              "part": "group",
+              "parent": "container"
+            },
+            {
+              "id": "delta-7",
+              "action": "add-part",
+              "part": "start",
+              "parent": "container"
+            },
+            {
+              "id": "delta-8",
+              "action": "add-part",
+              "part": "step",
+              "parent": "container"
+            },
+            {
+              "id": "delta-9",
+              "action": "add-part",
+              "part": "api",
+              "parent": "other"
+            },
+            {
+              "id": "delta-10",
+              "action": "add-part",
+              "part": "data",
+              "parent": "other"
+            },
+            {
+              "id": "delta-11",
+              "action": "add-part",
+              "part": "db",
+              "parent": "other"
+            },
+            {
+              "id": "delta-12",
+              "action": "add-part",
+              "part": "decision",
+              "parent": "other"
+            },
+            {
+              "id": "delta-13",
+              "action": "add-part",
+              "part": "end",
+              "parent": "other"
+            },
+            {
+              "id": "delta-14",
+              "action": "add-part",
+              "part": "group",
+              "parent": "other"
+            },
+            {
+              "id": "delta-15",
+              "action": "add-part",
+              "part": "start",
+              "parent": "other"
+            },
+            {
+              "id": "delta-16",
+              "action": "add-part",
+              "part": "step",
+              "parent": "other"
+            },
+            {
+              "id": "delta-17",
+              "action": "add-part",
+              "part": "api",
+              "parent": "part-1"
+            },
+            {
+              "id": "delta-18",
+              "action": "add-part",
+              "part": "data",
+              "parent": "part-1"
+            },
+            {
+              "id": "delta-19",
+              "action": "add-part",
+              "part": "db",
+              "parent": "part-1"
+            },
+            {
+              "id": "delta-20",
+              "action": "add-part",
+              "part": "decision",
+              "parent": "part-1"
+            },
+            {
+              "id": "delta-21",
+              "action": "add-part",
+              "part": "end",
+              "parent": "part-1"
+            },
+            {
+              "id": "delta-22",
+              "action": "add-part",
+              "part": "group",
+              "parent": "part-1"
+            },
+            {
+              "id": "delta-23",
+              "action": "add-part",
+              "part": "start",
+              "parent": "part-1"
+            },
+            {
+              "id": "delta-24",
+              "action": "add-part",
+              "part": "step",
+              "parent": "part-1"
+            },
+            {
+              "id": "delta-25",
+              "action": "add-edge",
+              "from": "part-2",
+              "to": "part-3"
+            },
+            {
+              "id": "delta-26",
+              "action": "add-edge",
+              "from": "part-3",
+              "to": "part-2"
+            }
+          ],
+          "context": {
+            "recent": [
+              {
+                "seq": 1,
+                "source": "typed",
+                "text": "OCIの中に「照合区」というグループを1つ作り、その中に「照合」という工程と「照合票」というデータを1つずつ追加してください。照合から照合票へ矢印を1本引いてください。",
+                "outcome": "step",
+                "effect": {
+                  "changes": [
+                    {
+                      "change": "added",
+                      "kind": "region",
+                      "id": "part-1",
+                      "label": "照合区"
+                    },
+                    {
+                      "change": "added",
+                      "kind": "region",
+                      "id": "part-2",
+                      "label": "照合"
+                    },
+                    {
+                      "change": "added",
+                      "kind": "region",
+                      "id": "part-3",
+                      "label": "照合票"
+                    }
+                  ]
+                }
+              }
+            ]
+          },
+          "scope": null,
+          "placing": null
+        }
+      },
+      "status": 200,
+      "response": {
+        "kind": "voice-ui.judge.decision.v1",
+        "answers": {
+          "delta": {
+            "type": "choice",
+            "choice": "delta-25",
+            "confidence": 0.99
+          }
+        }
+      },
+      "elapsedMs": 189.4239000000016
+    },
+    {
+      "id": "N08",
+      "arm": "B",
+      "n": 9,
+      "route": "/api/judge",
+      "request": {
+        "kind": "voice-ui.judge.goal-local-delta.v7",
+        "state": {
+          "utterance": "OCIの中に「照合区」というグループを1つ作り、その中に「照合」という工程と「照合票」というデータを1つずつ追加してください。照合から照合票へ矢印を1本引いてください。",
+          "graph": [
+            {
+              "id": "root",
+              "label": "fixture",
+              "parent": null
+            },
+            {
+              "id": "container",
+              "label": "OCI",
+              "parent": "root"
+            },
+            {
+              "id": "other",
+              "label": "Other",
+              "parent": "root"
+            },
+            {
+              "id": "part-1",
+              "label": "照合区",
+              "parent": "container"
+            },
+            {
+              "id": "part-2",
+              "label": "照合",
+              "parent": "part-1"
+            },
+            {
+              "id": "part-3",
+              "label": "照合票",
+              "parent": "part-1"
+            }
+          ],
+          "edges": [
+            {
+              "id": "voice-part-2-to-part-3",
+              "from": "part-2",
+              "to": "part-3"
+            }
+          ],
+          "parents": [
+            {
+              "id": "container",
+              "label": "OCI",
+              "kind": "group",
+              "parent": "root"
+            },
+            {
+              "id": "other",
+              "label": "Other",
+              "kind": "group",
+              "parent": "root"
+            },
+            {
+              "id": "part-1",
+              "label": "照合区",
+              "kind": "group",
+              "parent": "container"
+            }
+          ],
+          "offers": {
+            "parts": [
+              {
+                "key": "step",
+                "purpose": "an ordinary step, task or box",
+                "label": "工程"
+              },
+              {
+                "key": "decision",
+                "purpose": "a decision, choice or branch",
+                "label": "判断"
+              },
+              {
+                "key": "data",
+                "purpose": "data, a document, an input or an output",
+                "label": "データ"
+              },
+              {
+                "key": "start",
+                "purpose": "a start or beginning",
+                "label": "開始"
+              },
+              {
+                "key": "end",
+                "purpose": "an end, finish or result",
+                "label": "終了"
+              },
+              {
+                "key": "api",
+                "purpose": "an application programming interface service that receives requests",
+                "label": "API"
+              },
+              {
+                "key": "db",
+                "purpose": "a database that persists application data",
+                "label": "DB"
+              },
+              {
+                "key": "group",
+                "purpose": "a group, boundary or container that holds other parts",
+                "label": "グループ"
+              },
+              {
+                "key": "goal-extra-1",
+                "purpose": "one requested part named 照合区, kind group, missing instance 1",
+                "label": "照合区"
+              },
+              {
+                "key": "goal-extra-2",
+                "purpose": "one requested part named 照合, kind step, missing instance 1",
+                "label": "照合"
+              },
+              {
+                "key": "goal-extra-3",
+                "purpose": "one requested part named 照合票, kind data, missing instance 1",
+                "label": "照合票"
+              }
+            ]
+          },
+          "selected": [
+            {
+              "key": "goal-extra-1",
+              "region": "part-1",
+              "parent": "container"
+            },
+            {
+              "key": "goal-extra-2",
+              "region": "part-2",
+              "parent": "part-1"
+            },
+            {
+              "key": "goal-extra-3",
+              "region": "part-3",
+              "parent": "part-1"
+            }
+          ],
+          "candidates": [
+            {
+              "id": "delta-1",
+              "action": "add-part",
+              "part": "api",
+              "parent": "container"
+            },
+            {
+              "id": "delta-2",
+              "action": "add-part",
+              "part": "data",
+              "parent": "container"
+            },
+            {
+              "id": "delta-3",
+              "action": "add-part",
+              "part": "db",
+              "parent": "container"
+            },
+            {
+              "id": "delta-4",
+              "action": "add-part",
+              "part": "decision",
+              "parent": "container"
+            },
+            {
+              "id": "delta-5",
+              "action": "add-part",
+              "part": "end",
+              "parent": "container"
+            },
+            {
+              "id": "delta-6",
+              "action": "add-part",
+              "part": "group",
+              "parent": "container"
+            },
+            {
+              "id": "delta-7",
+              "action": "add-part",
+              "part": "start",
+              "parent": "container"
+            },
+            {
+              "id": "delta-8",
+              "action": "add-part",
+              "part": "step",
+              "parent": "container"
+            },
+            {
+              "id": "delta-9",
+              "action": "add-part",
+              "part": "api",
+              "parent": "other"
+            },
+            {
+              "id": "delta-10",
+              "action": "add-part",
+              "part": "data",
+              "parent": "other"
+            },
+            {
+              "id": "delta-11",
+              "action": "add-part",
+              "part": "db",
+              "parent": "other"
+            },
+            {
+              "id": "delta-12",
+              "action": "add-part",
+              "part": "decision",
+              "parent": "other"
+            },
+            {
+              "id": "delta-13",
+              "action": "add-part",
+              "part": "end",
+              "parent": "other"
+            },
+            {
+              "id": "delta-14",
+              "action": "add-part",
+              "part": "group",
+              "parent": "other"
+            },
+            {
+              "id": "delta-15",
+              "action": "add-part",
+              "part": "start",
+              "parent": "other"
+            },
+            {
+              "id": "delta-16",
+              "action": "add-part",
+              "part": "step",
+              "parent": "other"
+            },
+            {
+              "id": "delta-17",
+              "action": "add-part",
+              "part": "api",
+              "parent": "part-1"
+            },
+            {
+              "id": "delta-18",
+              "action": "add-part",
+              "part": "data",
+              "parent": "part-1"
+            },
+            {
+              "id": "delta-19",
+              "action": "add-part",
+              "part": "db",
+              "parent": "part-1"
+            },
+            {
+              "id": "delta-20",
+              "action": "add-part",
+              "part": "decision",
+              "parent": "part-1"
+            },
+            {
+              "id": "delta-21",
+              "action": "add-part",
+              "part": "end",
+              "parent": "part-1"
+            },
+            {
+              "id": "delta-22",
+              "action": "add-part",
+              "part": "group",
+              "parent": "part-1"
+            },
+            {
+              "id": "delta-23",
+              "action": "add-part",
+              "part": "start",
+              "parent": "part-1"
+            },
+            {
+              "id": "delta-24",
+              "action": "add-part",
+              "part": "step",
+              "parent": "part-1"
+            },
+            {
+              "id": "delta-25",
+              "action": "add-edge",
+              "from": "part-3",
+              "to": "part-2"
+            }
+          ],
+          "context": {
+            "recent": [
+              {
+                "seq": 1,
+                "source": "typed",
+                "text": "OCIの中に「照合区」というグループを1つ作り、その中に「照合」という工程と「照合票」というデータを1つずつ追加してください。照合から照合票へ矢印を1本引いてください。",
+                "outcome": "step",
+                "effect": {
+                  "changes": [
+                    {
+                      "change": "added",
+                      "kind": "region",
+                      "id": "part-1",
+                      "label": "照合区"
+                    },
+                    {
+                      "change": "added",
+                      "kind": "region",
+                      "id": "part-2",
+                      "label": "照合"
+                    },
+                    {
+                      "change": "added",
+                      "kind": "region",
+                      "id": "part-3",
+                      "label": "照合票"
+                    },
+                    {
+                      "change": "added",
+                      "from": "part-2",
+                      "to": "part-3"
+                    }
+                  ]
+                }
+              }
+            ]
+          },
+          "scope": null,
+          "placing": null
+        }
+      },
+      "status": 200,
+      "response": {
+        "kind": "voice-ui.judge.decision.v1",
+        "answers": {
+          "delta": {
+            "type": "choice",
+            "choice": "none",
+            "confidence": 1
+          }
+        }
+      },
+      "elapsedMs": 201.51670000000013
+    }
+  ],
+  "preparation": [
+    {
+      "missing": [
+        {
+          "label": "照合区",
+          "kind": "group",
+          "occurrence": 1
+        },
+        {
+          "label": "照合",
+          "kind": "step",
+          "occurrence": 1
+        },
+        {
+          "label": "照合票",
+          "kind": "data",
+          "occurrence": 1
+        }
+      ],
+      "extraction": {
+        "status": "transcribed",
+        "spans": [
+          {
+            "start": 7,
+            "end": 10,
+            "source": "照合区",
+            "label": "照合区",
+            "kind": "group",
+            "quantity": 1
+          },
+          {
+            "start": 29,
+            "end": 31,
+            "source": "照合",
+            "label": "照合",
+            "kind": "step",
+            "quantity": 1
+          },
+          {
+            "start": 39,
+            "end": 42,
+            "source": "照合票",
+            "label": "照合票",
+            "kind": "data",
+            "quantity": 1
+          },
+          {
+            "start": 14,
+            "end": 18,
+            "source": "グループ",
+            "label": "グループ",
+            "kind": "group",
+            "quantity": 1
+          }
+        ]
+      }
+    }
+  ],
+  "initial_head": "sha256:3f44e0d52678bc7ddeac8b19804ffaadfe6a493ce65ba8ca98f345ddd2ff75a2",
+  "initial_log_sha256": "32f7c43ed78ccead4936c39d30e00fd36340a388192bb9e0c9b0265801848079",
+  "initial_records": [
+    {
+      "type": "meta",
+      "schema": "semantic-map-state/1",
+      "root": "root",
+      "title": "sealed small PoC"
+    },
+    {
+      "type": "region",
+      "id": "root",
+      "parent": null,
+      "label": "fixture",
+      "kind": "boundary",
+      "bounds": [
+        0,
+        0,
+        900,
+        400
+      ],
+      "summary": ""
+    },
+    {
+      "type": "region",
+      "id": "container",
+      "parent": "root",
+      "label": "OCI",
+      "kind": "group",
+      "bounds": [
+        0,
+        0,
+        700,
+        200
+      ],
+      "summary": ""
+    },
+    {
+      "type": "region",
+      "id": "other",
+      "parent": "root",
+      "label": "Other",
+      "kind": "group",
+      "bounds": [
+        0,
+        230,
+        700,
+        160
+      ],
+      "summary": ""
+    },
+    {
+      "type": "layout",
+      "regionId": "container",
+      "pin": "hard",
+      "bounds": [
+        0,
+        0,
+        2000,
+        500
+      ]
+    },
+    {
+      "type": "layout",
+      "regionId": "other",
+      "pin": "hard",
+      "bounds": [
+        0,
+        600,
+        2000,
+        500
+      ]
+    }
+  ],
+  "final_head": "sha256:a8d8755e1837e499e5959976b6fe9e12f5fde766f9b1434131f3a68db4c9bc6c",
+  "final_records": [
+    {
+      "type": "meta",
+      "schema": "semantic-map-state/1",
+      "root": "root",
+      "title": "sealed small PoC"
+    },
+    {
+      "type": "region",
+      "id": "root",
+      "parent": null,
+      "label": "fixture",
+      "kind": "boundary",
+      "bounds": [
+        0,
+        0,
+        900,
+        400
+      ],
+      "summary": ""
+    },
+    {
+      "type": "region",
+      "id": "container",
+      "parent": "root",
+      "label": "OCI",
+      "kind": "group",
+      "bounds": [
+        0,
+        0,
+        700,
+        200
+      ],
+      "summary": ""
+    },
+    {
+      "type": "region",
+      "id": "other",
+      "parent": "root",
+      "label": "Other",
+      "kind": "group",
+      "bounds": [
+        0,
+        230,
+        700,
+        160
+      ],
+      "summary": ""
+    },
+    {
+      "type": "region",
+      "id": "part-1",
+      "parent": "container",
+      "label": "照合区",
+      "kind": "group",
+      "bounds": [
+        20,
+        20,
+        140,
+        64
+      ],
+      "summary": ""
+    },
+    {
+      "type": "region",
+      "id": "part-2",
+      "parent": "part-1",
+      "label": "照合",
+      "kind": "step",
+      "bounds": [
+        20,
+        20,
+        140,
+        64
+      ],
+      "summary": ""
+    },
+    {
+      "type": "region",
+      "id": "part-3",
+      "parent": "part-1",
+      "label": "照合票",
+      "kind": "data",
+      "bounds": [
+        20,
+        20,
+        140,
+        64
+      ],
+      "summary": ""
+    },
+    {
+      "type": "relation",
+      "id": "voice-part-2-to-part-3",
+      "from": "part-2",
+      "to": "part-3",
+      "kind": "flow",
+      "label": ""
+    },
+    {
+      "type": "layout",
+      "regionId": "container",
+      "pin": "hard",
+      "bounds": [
+        0,
+        0,
+        2000,
+        500
+      ]
+    },
+    {
+      "type": "layout",
+      "regionId": "other",
+      "pin": "hard",
+      "bounds": [
+        0,
+        600,
+        2000,
+        500
+      ]
+    },
+    {
+      "type": "layout",
+      "regionId": "part-1",
+      "pin": "hard",
+      "bounds": [
+        12,
+        36,
+        204,
+        256
+      ]
+    },
+    {
+      "type": "layout",
+      "regionId": "part-2",
+      "pin": "hard",
+      "bounds": [
+        24,
+        72,
+        180,
+        92
+      ]
+    },
+    {
+      "type": "layout",
+      "regionId": "part-3",
+      "pin": "hard",
+      "bounds": [
+        24,
+        188,
+        180,
+        92
+      ]
+    }
+  ],
+  "final_log": "{\"operations\":[{\"mapId\":\"voice-graph\",\"records\":[{\"root\":\"root\",\"schema\":\"semantic-map-state/1\",\"title\":\"sealed small PoC\",\"type\":\"meta\"},{\"bounds\":[0,0,900,400],\"id\":\"root\",\"kind\":\"boundary\",\"label\":\"fixture\",\"parent\":null,\"summary\":\"\",\"type\":\"region\"},{\"bounds\":[0,0,700,200],\"id\":\"container\",\"kind\":\"group\",\"label\":\"OCI\",\"parent\":\"root\",\"summary\":\"\",\"type\":\"region\"},{\"bounds\":[0,230,700,160],\"id\":\"other\",\"kind\":\"group\",\"label\":\"Other\",\"parent\":\"root\",\"summary\":\"\",\"type\":\"region\"}],\"type\":\"CreateMap\"}],\"parent\":null,\"schema\":\"semantic-map-decision/2\",\"stateHash\":\"sha256:721939a9428f00adec7d4771ae910ab118bb80cd0bb2f36e7790f7e761599204\"}\n{\"operations\":[{\"items\":[{\"bounds\":[0,0,2000,500],\"regionId\":\"container\"},{\"bounds\":[0,600,2000,500],\"regionId\":\"other\"}],\"type\":\"PinRegions\"}],\"parent\":\"sha256:e411c26b1ae696e494de68f591334b0ebbd9928edb8da647d681d5278575d42b\",\"schema\":\"semantic-map-decision/2\",\"stateHash\":\"sha256:08e53be00691c0b7ba556e34955fe1695e1b0a7d1a15eb82c05b0d87e7b385ed\"}\n{\"operations\":[{\"bounds\":[20,20,140,64],\"kind\":\"group\",\"label\":\"照合区\",\"parentId\":\"container\",\"regionId\":\"part-1\",\"summary\":\"\",\"type\":\"AddRegion\"},{\"items\":[{\"bounds\":[12,36,180,92],\"regionId\":\"part-1\"}],\"type\":\"PinRegions\"}],\"parent\":\"sha256:3f44e0d52678bc7ddeac8b19804ffaadfe6a493ce65ba8ca98f345ddd2ff75a2\",\"schema\":\"semantic-map-decision/2\",\"stateHash\":\"sha256:33224b96478c8ce782f933bbfd2a30865671bb23b609fdbef4ad3c13254ced7d\"}\n{\"operations\":[{\"bounds\":[20,20,140,64],\"kind\":\"step\",\"label\":\"照合\",\"parentId\":\"part-1\",\"regionId\":\"part-2\",\"summary\":\"\",\"type\":\"AddRegion\"},{\"items\":[{\"bounds\":[24,72,180,92],\"regionId\":\"part-2\"},{\"bounds\":[12,36,204,140],\"regionId\":\"part-1\"}],\"type\":\"PinRegions\"}],\"parent\":\"sha256:9a2401dfa968a932d853550e61284f732c2ed43cf676efea5688be1486a0dc3d\",\"schema\":\"semantic-map-decision/2\",\"stateHash\":\"sha256:b1b7c77f44da7b05a92e5113c25c467f93ee121b65c50b499a53398e1ea4b003\"}\n{\"operations\":[{\"bounds\":[20,20,140,64],\"kind\":\"data\",\"label\":\"照合票\",\"parentId\":\"part-1\",\"regionId\":\"part-3\",\"summary\":\"\",\"type\":\"AddRegion\"},{\"items\":[{\"bounds\":[24,188,180,92],\"regionId\":\"part-3\"},{\"bounds\":[12,36,204,256],\"regionId\":\"part-1\"}],\"type\":\"PinRegions\"}],\"parent\":\"sha256:707e7dc6cc88565632360217367e669eea54c67797713ff8690722313abdcf66\",\"schema\":\"semantic-map-decision/2\",\"stateHash\":\"sha256:28e692422016513bdbe1ba94a21860e9cf92fe2f386822a3f4d5cb8abb2a76a1\"}\n{\"operations\":[{\"from\":\"part-2\",\"kind\":\"flow\",\"label\":\"\",\"relationId\":\"voice-part-2-to-part-3\",\"to\":\"part-3\",\"type\":\"ConnectRegions\"}],\"parent\":\"sha256:95dd975b65f402ce20e39b09531f86854e98ada1a697d7571bce08e2f3cd8556\",\"schema\":\"semantic-map-decision/2\",\"stateHash\":\"sha256:f59612280caac4d1a54ac3df6310693f0df4fb69ae57f8220bf41241345581af\"}\n"
+}

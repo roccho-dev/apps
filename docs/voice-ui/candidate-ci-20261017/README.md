@@ -77,3 +77,27 @@ release CI は生成した完成 ZIP を展開して member 同一性を確認�
 `evidence/index.json` は停止済みphaseの原記録・journal prefix・source/zero-send/stopの独立確認・固定producerを参照する。release CIは記録された各SHAの完成物を作り、ZIP検証、全rawの再採点、物理送信と一つのjournalの精算、全armの実Chromium再描画、34改変反例を検算する。固定期待値を実行時に生成しない。原記録のINVALID、部分記録、意味/描画未達は検算成功後も保持する。
 
 UIは人手merge条件を残す候補756d47eをpinする。この候補compositionの測定を、将来のcanonical pinへ無条件に移さない。移せるのはUI merge treeがレビュー済treeに一致し、通常実行入力と配布runtime bytesがraw同一であり、差分が事前列挙したrevision/provenance metadataのみの場合に限る。その場合も新compositionの完成物browserとfull CIを再確認する。不一致なら新compositionの性能は未証明とする。
+
+## 未見10件の最終反証
+
+実装・完成物・採点器・CI原証拠の [R6固定](https://github.com/roccho-dev/apps/pull/103#pullrequestreview-5557391686) 後、50b17036d1c73d18fd92db95d6ff84350e1566d5 の一つの版で30セルを一度だけ実行した。sealを照合した入力のみ先に解放し、oracleは停止・精算・Rの実PID/PGID不在確認後に解放した。rootとRの独立再計算は一致し、全30セルのprotocol/proof/HTTP/因子/同じ初期bytesが整合した。元のpoolと未使用reserveは非公開のまま保持する。
+
+| 未見の意味評価 | A 既存のみ | B 有限転記 | C TypeLLM |
+| --- | ---: | ---: | ---: |
+| 受理された正しい充足判定 | 8/10 | 9/10 | 8/10 |
+| 部品が十分な場合の完全一致 | 4/4 | 4/4 | 4/4 |
+| 不足時の図の完全一致 | 0/4 | 4/4 | 1/4 |
+| 不足候補の最小完全一致 | 0/4 | 4/4 | 1/4 |
+| controlのraw不変 | 2/2 | 2/2 | 2/2 |
+| 十分/controlの生成・誤採用なし | 成立 | 成立 | 成立 |
+| Jev / TypeLLM POST | 44 / 0 | 55 / 0 | 52 / 3 |
+
+Cの不足4件では、正しくgateを受理できた対だけの改善はA比+1、B比−2で、各比較の1件はgate不受理により因果差分から除外した。Cの採用閾値（A比+2以上・B比+1以上）も、不足4/4・充足判定10/10も満たさない。primary Bも判定9/10のため最終基準は **UNMET**。Bを製品採用したとは報告しない。
+
+失敗箇所は小さい図でも再現した。N05は全armがraw missingを選んだが、A/Cのconfidenceがfloor未満で補完前に停止した。N09は全armが曖昧指示をsufficientと誤判定し、後段で変更を採用せず図は保った。CはN06の同名API三個を正確に補えた一方、N07の三群名では第三名を既存「グループ」に置換し、N08の入れ子＋一本の辺では名前付きstep「照合」を候補から落として既存「工程」を使った。後者二件はBで正確に組めており、描画量や複雑さだけでは説明できない。
+
+**効果あり**は、有限文法内で不足候補を用意すると既存の合法選択・接続機構が名前・個数・親子・辺を組めるという観測（B不足4/4、A0/4）。**未達**は、充足判定10/10、TypeLLMの不足補完品質とBを超える固有效果、通常UIとしての期待品質。**未証明**は任意自由文への一般化、未使用pool、CI起点の実API実行、未実行Dを含む四方式優位、通貨費用、人手の最終受入である。有限Bの効果をCの達成へ置換しない。
+
+この未見実行は151 Jev／3 Type、全工程の累計計上564／29（確認実564／28、既往のType保守計上1回を保持）。上限は各1,000、保留予約・所有provider processなし。原因修正二回と未見一回を終え、追加修正・再試行・reserve解放は行わない。完成物の再描画と停止済み証拠のCI検算は意味評価から分離し、最終exact-headの実行結果は [PRのchecks](https://github.com/roccho-dev/apps/pull/103/checks) と `voice-ui-closed-evidence-*` artifactを参照する。
+
+未見の全30出力を同じ50b1完成物の通常restoreへ読み戻した描画検査はPASS、failures0。名前が誤った出力も物理描画は成立し、意味の未達を取り消さない。既定camera/font/viewportと全group/nested/edge条件を使い、失敗後の見た目調整はしていない。完成物の機構試験にあるUndo/Apply/reload・反例検査と、実出力の再描画も別の証拠として保持する。

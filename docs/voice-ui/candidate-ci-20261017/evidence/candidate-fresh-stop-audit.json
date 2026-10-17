@@ -1,0 +1,33 @@
+{
+  "observed_at": "2026-10-17T10:33:16.007138+00:00",
+  "phase": "candidate-fresh-20261017",
+  "current": null,
+  "group_members_including_z": [],
+  "sent": {
+    "jev": 151,
+    "typellm": 3
+  },
+  "charged": {
+    "jev": 564,
+    "typellm": 29
+  },
+  "pending": [],
+  "reconciliation": {
+    "kind": "phase-reconcile",
+    "id": "candidate-fresh-20261017",
+    "sent": {
+      "jev": 151,
+      "typellm": 3
+    },
+    "stopped_group_empty": true,
+    "pid": 270500,
+    "start_ticks": "14088123",
+    "stderr_sha256": "2cea7b12c7a497c053ec0119c3671b9da825d7f5e26f75861df3c74ec93e39bb",
+    "stdout_sha256": "f7e93f1a0d52dc26d47773966ef9650d9dc25af0158cb697f7f39e5d1ab09cf3",
+    "at": "2026-10-17T10:32:24.811Z"
+  },
+  "ledger_sha256": "e3a9da15420ea451a6d7b0472e830bc084f7c77cd2146cd5a9454d63be834d9a",
+  "stdout_sha256": "f7e93f1a0d52dc26d47773966ef9650d9dc25af0158cb697f7f39e5d1ab09cf3",
+  "stderr_sha256": "2cea7b12c7a497c053ec0119c3671b9da825d7f5e26f75861df3c74ec93e39bb",
+  "matches": true
+}

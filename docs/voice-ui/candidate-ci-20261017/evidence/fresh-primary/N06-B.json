@@ -1,0 +1,1995 @@
+{
+  "id": "N06",
+  "arm": "B",
+  "fixture": "empty",
+  "utterance": "OCIにAPIを3個追加してください。三つの表示名はすべてAPIにして、線は追加しないでください。",
+  "valid_execution": true,
+  "elapsedMs": 1773.2640999999985,
+  "result": {
+    "reason": "none",
+    "requests": 8,
+    "elapsedMs": 1769.3734999999997,
+    "selected": [
+      {
+        "key": "goal-extra-1",
+        "region": "part-1",
+        "parent": "container"
+      },
+      {
+        "key": "goal-extra-2",
+        "region": "part-2",
+        "parent": "container"
+      },
+      {
+        "key": "api",
+        "region": "part-3",
+        "parent": "container"
+      }
+    ],
+    "trace": [
+      {
+        "head": "sha256:3f44e0d52678bc7ddeac8b19804ffaadfe6a493ce65ba8ca98f345ddd2ff75a2",
+        "answers": {
+          "delta": {
+            "type": "choice",
+            "choice": "part:goal-extra-1",
+            "confidence": 0.58
+          }
+        },
+        "failure": null
+      },
+      {
+        "head": "sha256:3f44e0d52678bc7ddeac8b19804ffaadfe6a493ce65ba8ca98f345ddd2ff75a2",
+        "answers": {
+          "delta": {
+            "type": "choice",
+            "choice": "delta-6",
+            "confidence": 1
+          }
+        },
+        "failure": null
+      },
+      {
+        "head": "sha256:76bda113a3b68078d3da2edbf9504e02449e6f0604cad6f3c96744321684f6e9",
+        "answers": {
+          "delta": {
+            "type": "choice",
+            "choice": "part:goal-extra-2",
+            "confidence": 0.72
+          }
+        },
+        "failure": null
+      },
+      {
+        "head": "sha256:76bda113a3b68078d3da2edbf9504e02449e6f0604cad6f3c96744321684f6e9",
+        "answers": {
+          "delta": {
+            "type": "choice",
+            "choice": "delta-6",
+            "confidence": 0.98
+          }
+        },
+        "failure": null
+      },
+      {
+        "head": "sha256:802059b4fb364cebba8f0daf76ef0d672152a088c4d0b1c7bd7035d5da0d3945",
+        "answers": {
+          "delta": {
+            "type": "choice",
+            "choice": "part:api",
+            "confidence": 0.96
+          }
+        },
+        "failure": null
+      },
+      {
+        "head": "sha256:802059b4fb364cebba8f0daf76ef0d672152a088c4d0b1c7bd7035d5da0d3945",
+        "answers": {
+          "delta": {
+            "type": "choice",
+            "choice": "delta-1",
+            "confidence": 0.98
+          }
+        },
+        "failure": null
+      },
+      {
+        "head": "sha256:547c8d0f72a61b958987f3cd730103188e478d926f625134a8788b5ea2ec52b6",
+        "answers": {
+          "delta": {
+            "type": "choice",
+            "choice": "none",
+            "confidence": 0.99
+          }
+        },
+        "failure": null
+      }
+    ],
+    "inventory": {
+      "checks": 1,
+      "completions": 1,
+      "coverage": {
+        "choice": "missing",
+        "confidence": 0.86
+      },
+      "missing": [
+        {
+          "label": "API",
+          "kind": "step",
+          "occurrence": 1
+        },
+        {
+          "label": "API",
+          "kind": "step",
+          "occurrence": 2
+        }
+      ]
+    }
+  },
+  "calls": [
+    {
+      "id": "N06",
+      "arm": "B",
+      "n": 1,
+      "route": "/api/parts/check",
+      "request": {
+        "kind": "voice-ui.goal.inventory.v1",
+        "state": {
+          "utterance": "OCIにAPIを3個追加してください。三つの表示名はすべてAPIにして、線は追加しないでください。",
+          "head": "sha256:3f44e0d52678bc7ddeac8b19804ffaadfe6a493ce65ba8ca98f345ddd2ff75a2",
+          "regions": [
+            {
+              "id": "root",
+              "label": "fixture",
+              "kind": "boundary",
+              "parent": null
+            },
+            {
+              "id": "container",
+              "label": "OCI",
+              "kind": "group",
+              "parent": "root"
+            },
+            {
+              "id": "other",
+              "label": "Other",
+              "kind": "group",
+              "parent": "root"
+            }
+          ],
+          "edges": [],
+          "parts": [
+            {
+              "key": "step",
+              "purpose": "an ordinary step, task or box",
+              "label": "工程",
+              "kind": "step"
+            },
+            {
+              "key": "decision",
+              "purpose": "a decision, choice or branch",
+              "label": "判断",
+              "kind": "decision"
+            },
+            {
+              "key": "data",
+              "purpose": "data, a document, an input or an output",
+              "label": "データ",
+              "kind": "data"
+            },
+            {
+              "key": "start",
+              "purpose": "a start or beginning",
+              "label": "開始",
+              "kind": "start"
+            },
+            {
+              "key": "end",
+              "purpose": "an end, finish or result",
+              "label": "終了",
+              "kind": "end"
+            },
+            {
+              "key": "api",
+              "purpose": "an application programming interface service that receives requests",
+              "label": "API",
+              "kind": "step"
+            },
+            {
+              "key": "db",
+              "purpose": "a database that persists application data",
+              "label": "DB",
+              "kind": "data"
+            },
+            {
+              "key": "group",
+              "purpose": "a group, boundary or container that holds other parts",
+              "label": "グループ",
+              "kind": "group"
+            }
+          ]
+        }
+      },
+      "status": 200,
+      "response": {
+        "choice": "missing",
+        "confidence": 0.86
+      },
+      "elapsedMs": 191.04600000000028
+    },
+    {
+      "id": "N06",
+      "arm": "B",
+      "n": 2,
+      "route": "/api/judge",
+      "request": {
+        "kind": "voice-ui.judge.goal-local-delta.v7",
+        "state": {
+          "utterance": "OCIにAPIを3個追加してください。三つの表示名はすべてAPIにして、線は追加しないでください。",
+          "graph": [
+            {
+              "id": "root",
+              "label": "fixture",
+              "parent": null
+            },
+            {
+              "id": "container",
+              "label": "OCI",
+              "parent": "root"
+            },
+            {
+              "id": "other",
+              "label": "Other",
+              "parent": "root"
+            }
+          ],
+          "edges": [],
+          "parents": [
+            {
+              "id": "container",
+              "label": "OCI",
+              "kind": "group",
+              "parent": "root"
+            },
+            {
+              "id": "other",
+              "label": "Other",
+              "kind": "group",
+              "parent": "root"
+            }
+          ],
+          "offers": {
+            "parts": [
+              {
+                "key": "step",
+                "purpose": "an ordinary step, task or box",
+                "label": "工程"
+              },
+              {
+                "key": "decision",
+                "purpose": "a decision, choice or branch",
+                "label": "判断"
+              },
+              {
+                "key": "data",
+                "purpose": "data, a document, an input or an output",
+                "label": "データ"
+              },
+              {
+                "key": "start",
+                "purpose": "a start or beginning",
+                "label": "開始"
+              },
+              {
+                "key": "end",
+                "purpose": "an end, finish or result",
+                "label": "終了"
+              },
+              {
+                "key": "api",
+                "purpose": "an application programming interface service that receives requests",
+                "label": "API"
+              },
+              {
+                "key": "db",
+                "purpose": "a database that persists application data",
+                "label": "DB"
+              },
+              {
+                "key": "group",
+                "purpose": "a group, boundary or container that holds other parts",
+                "label": "グループ"
+              },
+              {
+                "key": "goal-extra-1",
+                "purpose": "one requested part named API, kind step, missing instance 1",
+                "label": "API"
+              },
+              {
+                "key": "goal-extra-2",
+                "purpose": "one requested part named API, kind step, missing instance 2",
+                "label": "API"
+              }
+            ]
+          },
+          "selected": [],
+          "candidates": [
+            {
+              "id": "delta-1",
+              "action": "add-part",
+              "part": "api",
+              "parent": "container"
+            },
+            {
+              "id": "delta-2",
+              "action": "add-part",
+              "part": "data",
+              "parent": "container"
+            },
+            {
+              "id": "delta-3",
+              "action": "add-part",
+              "part": "db",
+              "parent": "container"
+            },
+            {
+              "id": "delta-4",
+              "action": "add-part",
+              "part": "decision",
+              "parent": "container"
+            },
+            {
+              "id": "delta-5",
+              "action": "add-part",
+              "part": "end",
+              "parent": "container"
+            },
+            {
+              "id": "delta-6",
+              "action": "add-part",
+              "part": "goal-extra-1",
+              "parent": "container"
+            },
+            {
+              "id": "delta-7",
+              "action": "add-part",
+              "part": "goal-extra-2",
+              "parent": "container"
+            },
+            {
+              "id": "delta-8",
+              "action": "add-part",
+              "part": "group",
+              "parent": "container"
+            },
+            {
+              "id": "delta-9",
+              "action": "add-part",
+              "part": "start",
+              "parent": "container"
+            },
+            {
+              "id": "delta-10",
+              "action": "add-part",
+              "part": "step",
+              "parent": "container"
+            },
+            {
+              "id": "delta-11",
+              "action": "add-part",
+              "part": "api",
+              "parent": "other"
+            },
+            {
+              "id": "delta-12",
+              "action": "add-part",
+              "part": "data",
+              "parent": "other"
+            },
+            {
+              "id": "delta-13",
+              "action": "add-part",
+              "part": "db",
+              "parent": "other"
+            },
+            {
+              "id": "delta-14",
+              "action": "add-part",
+              "part": "decision",
+              "parent": "other"
+            },
+            {
+              "id": "delta-15",
+              "action": "add-part",
+              "part": "end",
+              "parent": "other"
+            },
+            {
+              "id": "delta-16",
+              "action": "add-part",
+              "part": "goal-extra-1",
+              "parent": "other"
+            },
+            {
+              "id": "delta-17",
+              "action": "add-part",
+              "part": "goal-extra-2",
+              "parent": "other"
+            },
+            {
+              "id": "delta-18",
+              "action": "add-part",
+              "part": "group",
+              "parent": "other"
+            },
+            {
+              "id": "delta-19",
+              "action": "add-part",
+              "part": "start",
+              "parent": "other"
+            },
+            {
+              "id": "delta-20",
+              "action": "add-part",
+              "part": "step",
+              "parent": "other"
+            }
+          ],
+          "context": {
+            "recent": []
+          },
+          "scope": null,
+          "placing": null
+        }
+      },
+      "status": 200,
+      "response": {
+        "kind": "voice-ui.judge.decision.v1",
+        "answers": {
+          "delta": {
+            "type": "choice",
+            "choice": "part:goal-extra-1",
+            "confidence": 0.58
+          }
+        }
+      },
+      "elapsedMs": 207.23220000000038
+    },
+    {
+      "id": "N06",
+      "arm": "B",
+      "n": 3,
+      "route": "/api/judge",
+      "request": {
+        "kind": "voice-ui.judge.goal-local-delta.v7",
+        "state": {
+          "utterance": "OCIにAPIを3個追加してください。三つの表示名はすべてAPIにして、線は追加しないでください。",
+          "graph": [
+            {
+              "id": "root",
+              "label": "fixture",
+              "parent": null
+            },
+            {
+              "id": "container",
+              "label": "OCI",
+              "parent": "root"
+            },
+            {
+              "id": "other",
+              "label": "Other",
+              "parent": "root"
+            }
+          ],
+          "edges": [],
+          "parents": [
+            {
+              "id": "container",
+              "label": "OCI",
+              "kind": "group",
+              "parent": "root"
+            },
+            {
+              "id": "other",
+              "label": "Other",
+              "kind": "group",
+              "parent": "root"
+            }
+          ],
+          "offers": {
+            "parts": [
+              {
+                "key": "step",
+                "purpose": "an ordinary step, task or box",
+                "label": "工程"
+              },
+              {
+                "key": "decision",
+                "purpose": "a decision, choice or branch",
+                "label": "判断"
+              },
+              {
+                "key": "data",
+                "purpose": "data, a document, an input or an output",
+                "label": "データ"
+              },
+              {
+                "key": "start",
+                "purpose": "a start or beginning",
+                "label": "開始"
+              },
+              {
+                "key": "end",
+                "purpose": "an end, finish or result",
+                "label": "終了"
+              },
+              {
+                "key": "api",
+                "purpose": "an application programming interface service that receives requests",
+                "label": "API"
+              },
+              {
+                "key": "db",
+                "purpose": "a database that persists application data",
+                "label": "DB"
+              },
+              {
+                "key": "group",
+                "purpose": "a group, boundary or container that holds other parts",
+                "label": "グループ"
+              },
+              {
+                "key": "goal-extra-1",
+                "purpose": "one requested part named API, kind step, missing instance 1",
+                "label": "API"
+              },
+              {
+                "key": "goal-extra-2",
+                "purpose": "one requested part named API, kind step, missing instance 2",
+                "label": "API"
+              }
+            ]
+          },
+          "selected": [],
+          "candidates": [
+            {
+              "id": "delta-6",
+              "action": "add-part",
+              "part": "goal-extra-1",
+              "parent": "container"
+            },
+            {
+              "id": "delta-16",
+              "action": "add-part",
+              "part": "goal-extra-1",
+              "parent": "other"
+            }
+          ],
+          "context": {
+            "recent": []
+          },
+          "scope": null,
+          "placing": "goal-extra-1"
+        }
+      },
+      "status": 200,
+      "response": {
+        "kind": "voice-ui.judge.decision.v1",
+        "answers": {
+          "delta": {
+            "type": "choice",
+            "choice": "delta-6",
+            "confidence": 1
+          }
+        }
+      },
+      "elapsedMs": 172.78779999999824
+    },
+    {
+      "id": "N06",
+      "arm": "B",
+      "n": 4,
+      "route": "/api/judge",
+      "request": {
+        "kind": "voice-ui.judge.goal-local-delta.v7",
+        "state": {
+          "utterance": "OCIにAPIを3個追加してください。三つの表示名はすべてAPIにして、線は追加しないでください。",
+          "graph": [
+            {
+              "id": "root",
+              "label": "fixture",
+              "parent": null
+            },
+            {
+              "id": "container",
+              "label": "OCI",
+              "parent": "root"
+            },
+            {
+              "id": "other",
+              "label": "Other",
+              "parent": "root"
+            },
+            {
+              "id": "part-1",
+              "label": "API",
+              "parent": "container"
+            }
+          ],
+          "edges": [],
+          "parents": [
+            {
+              "id": "container",
+              "label": "OCI",
+              "kind": "group",
+              "parent": "root"
+            },
+            {
+              "id": "other",
+              "label": "Other",
+              "kind": "group",
+              "parent": "root"
+            }
+          ],
+          "offers": {
+            "parts": [
+              {
+                "key": "step",
+                "purpose": "an ordinary step, task or box",
+                "label": "工程"
+              },
+              {
+                "key": "decision",
+                "purpose": "a decision, choice or branch",
+                "label": "判断"
+              },
+              {
+                "key": "data",
+                "purpose": "data, a document, an input or an output",
+                "label": "データ"
+              },
+              {
+                "key": "start",
+                "purpose": "a start or beginning",
+                "label": "開始"
+              },
+              {
+                "key": "end",
+                "purpose": "an end, finish or result",
+                "label": "終了"
+              },
+              {
+                "key": "api",
+                "purpose": "an application programming interface service that receives requests",
+                "label": "API"
+              },
+              {
+                "key": "db",
+                "purpose": "a database that persists application data",
+                "label": "DB"
+              },
+              {
+                "key": "group",
+                "purpose": "a group, boundary or container that holds other parts",
+                "label": "グループ"
+              },
+              {
+                "key": "goal-extra-1",
+                "purpose": "one requested part named API, kind step, missing instance 1",
+                "label": "API"
+              },
+              {
+                "key": "goal-extra-2",
+                "purpose": "one requested part named API, kind step, missing instance 2",
+                "label": "API"
+              }
+            ]
+          },
+          "selected": [
+            {
+              "key": "goal-extra-1",
+              "region": "part-1",
+              "parent": "container"
+            }
+          ],
+          "candidates": [
+            {
+              "id": "delta-1",
+              "action": "add-part",
+              "part": "api",
+              "parent": "container"
+            },
+            {
+              "id": "delta-2",
+              "action": "add-part",
+              "part": "data",
+              "parent": "container"
+            },
+            {
+              "id": "delta-3",
+              "action": "add-part",
+              "part": "db",
+              "parent": "container"
+            },
+            {
+              "id": "delta-4",
+              "action": "add-part",
+              "part": "decision",
+              "parent": "container"
+            },
+            {
+              "id": "delta-5",
+              "action": "add-part",
+              "part": "end",
+              "parent": "container"
+            },
+            {
+              "id": "delta-6",
+              "action": "add-part",
+              "part": "goal-extra-2",
+              "parent": "container"
+            },
+            {
+              "id": "delta-7",
+              "action": "add-part",
+              "part": "group",
+              "parent": "container"
+            },
+            {
+              "id": "delta-8",
+              "action": "add-part",
+              "part": "start",
+              "parent": "container"
+            },
+            {
+              "id": "delta-9",
+              "action": "add-part",
+              "part": "step",
+              "parent": "container"
+            },
+            {
+              "id": "delta-10",
+              "action": "add-part",
+              "part": "api",
+              "parent": "other"
+            },
+            {
+              "id": "delta-11",
+              "action": "add-part",
+              "part": "data",
+              "parent": "other"
+            },
+            {
+              "id": "delta-12",
+              "action": "add-part",
+              "part": "db",
+              "parent": "other"
+            },
+            {
+              "id": "delta-13",
+              "action": "add-part",
+              "part": "decision",
+              "parent": "other"
+            },
+            {
+              "id": "delta-14",
+              "action": "add-part",
+              "part": "end",
+              "parent": "other"
+            },
+            {
+              "id": "delta-15",
+              "action": "add-part",
+              "part": "goal-extra-2",
+              "parent": "other"
+            },
+            {
+              "id": "delta-16",
+              "action": "add-part",
+              "part": "group",
+              "parent": "other"
+            },
+            {
+              "id": "delta-17",
+              "action": "add-part",
+              "part": "start",
+              "parent": "other"
+            },
+            {
+              "id": "delta-18",
+              "action": "add-part",
+              "part": "step",
+              "parent": "other"
+            }
+          ],
+          "context": {
+            "recent": [
+              {
+                "seq": 1,
+                "source": "typed",
+                "text": "OCIにAPIを3個追加してください。三つの表示名はすべてAPIにして、線は追加しないでください。",
+                "outcome": "step",
+                "effect": {
+                  "changes": [
+                    {
+                      "change": "added",
+                      "kind": "region",
+                      "id": "part-1",
+                      "label": "API"
+                    }
+                  ]
+                }
+              }
+            ]
+          },
+          "scope": null,
+          "placing": null
+        }
+      },
+      "status": 200,
+      "response": {
+        "kind": "voice-ui.judge.decision.v1",
+        "answers": {
+          "delta": {
+            "type": "choice",
+            "choice": "part:goal-extra-2",
+            "confidence": 0.72
+          }
+        }
+      },
+      "elapsedMs": 181.6732000000011
+    },
+    {
+      "id": "N06",
+      "arm": "B",
+      "n": 5,
+      "route": "/api/judge",
+      "request": {
+        "kind": "voice-ui.judge.goal-local-delta.v7",
+        "state": {
+          "utterance": "OCIにAPIを3個追加してください。三つの表示名はすべてAPIにして、線は追加しないでください。",
+          "graph": [
+            {
+              "id": "root",
+              "label": "fixture",
+              "parent": null
+            },
+            {
+              "id": "container",
+              "label": "OCI",
+              "parent": "root"
+            },
+            {
+              "id": "other",
+              "label": "Other",
+              "parent": "root"
+            },
+            {
+              "id": "part-1",
+              "label": "API",
+              "parent": "container"
+            }
+          ],
+          "edges": [],
+          "parents": [
+            {
+              "id": "container",
+              "label": "OCI",
+              "kind": "group",
+              "parent": "root"
+            },
+            {
+              "id": "other",
+              "label": "Other",
+              "kind": "group",
+              "parent": "root"
+            }
+          ],
+          "offers": {
+            "parts": [
+              {
+                "key": "step",
+                "purpose": "an ordinary step, task or box",
+                "label": "工程"
+              },
+              {
+                "key": "decision",
+                "purpose": "a decision, choice or branch",
+                "label": "判断"
+              },
+              {
+                "key": "data",
+                "purpose": "data, a document, an input or an output",
+                "label": "データ"
+              },
+              {
+                "key": "start",
+                "purpose": "a start or beginning",
+                "label": "開始"
+              },
+              {
+                "key": "end",
+                "purpose": "an end, finish or result",
+                "label": "終了"
+              },
+              {
+                "key": "api",
+                "purpose": "an application programming interface service that receives requests",
+                "label": "API"
+              },
+              {
+                "key": "db",
+                "purpose": "a database that persists application data",
+                "label": "DB"
+              },
+              {
+                "key": "group",
+                "purpose": "a group, boundary or container that holds other parts",
+                "label": "グループ"
+              },
+              {
+                "key": "goal-extra-1",
+                "purpose": "one requested part named API, kind step, missing instance 1",
+                "label": "API"
+              },
+              {
+                "key": "goal-extra-2",
+                "purpose": "one requested part named API, kind step, missing instance 2",
+                "label": "API"
+              }
+            ]
+          },
+          "selected": [
+            {
+              "key": "goal-extra-1",
+              "region": "part-1",
+              "parent": "container"
+            }
+          ],
+          "candidates": [
+            {
+              "id": "delta-6",
+              "action": "add-part",
+              "part": "goal-extra-2",
+              "parent": "container"
+            },
+            {
+              "id": "delta-15",
+              "action": "add-part",
+              "part": "goal-extra-2",
+              "parent": "other"
+            }
+          ],
+          "context": {
+            "recent": [
+              {
+                "seq": 1,
+                "source": "typed",
+                "text": "OCIにAPIを3個追加してください。三つの表示名はすべてAPIにして、線は追加しないでください。",
+                "outcome": "step",
+                "effect": {
+                  "changes": [
+                    {
+                      "change": "added",
+                      "kind": "region",
+                      "id": "part-1",
+                      "label": "API"
+                    }
+                  ]
+                }
+              }
+            ]
+          },
+          "scope": null,
+          "placing": "goal-extra-2"
+        }
+      },
+      "status": 200,
+      "response": {
+        "kind": "voice-ui.judge.decision.v1",
+        "answers": {
+          "delta": {
+            "type": "choice",
+            "choice": "delta-6",
+            "confidence": 0.98
+          }
+        }
+      },
+      "elapsedMs": 181.76749999999993
+    },
+    {
+      "id": "N06",
+      "arm": "B",
+      "n": 6,
+      "route": "/api/judge",
+      "request": {
+        "kind": "voice-ui.judge.goal-local-delta.v7",
+        "state": {
+          "utterance": "OCIにAPIを3個追加してください。三つの表示名はすべてAPIにして、線は追加しないでください。",
+          "graph": [
+            {
+              "id": "root",
+              "label": "fixture",
+              "parent": null
+            },
+            {
+              "id": "container",
+              "label": "OCI",
+              "parent": "root"
+            },
+            {
+              "id": "other",
+              "label": "Other",
+              "parent": "root"
+            },
+            {
+              "id": "part-1",
+              "label": "API",
+              "parent": "container"
+            },
+            {
+              "id": "part-2",
+              "label": "API",
+              "parent": "container"
+            }
+          ],
+          "edges": [],
+          "parents": [
+            {
+              "id": "container",
+              "label": "OCI",
+              "kind": "group",
+              "parent": "root"
+            },
+            {
+              "id": "other",
+              "label": "Other",
+              "kind": "group",
+              "parent": "root"
+            }
+          ],
+          "offers": {
+            "parts": [
+              {
+                "key": "step",
+                "purpose": "an ordinary step, task or box",
+                "label": "工程"
+              },
+              {
+                "key": "decision",
+                "purpose": "a decision, choice or branch",
+                "label": "判断"
+              },
+              {
+                "key": "data",
+                "purpose": "data, a document, an input or an output",
+                "label": "データ"
+              },
+              {
+                "key": "start",
+                "purpose": "a start or beginning",
+                "label": "開始"
+              },
+              {
+                "key": "end",
+                "purpose": "an end, finish or result",
+                "label": "終了"
+              },
+              {
+                "key": "api",
+                "purpose": "an application programming interface service that receives requests",
+                "label": "API"
+              },
+              {
+                "key": "db",
+                "purpose": "a database that persists application data",
+                "label": "DB"
+              },
+              {
+                "key": "group",
+                "purpose": "a group, boundary or container that holds other parts",
+                "label": "グループ"
+              },
+              {
+                "key": "goal-extra-1",
+                "purpose": "one requested part named API, kind step, missing instance 1",
+                "label": "API"
+              },
+              {
+                "key": "goal-extra-2",
+                "purpose": "one requested part named API, kind step, missing instance 2",
+                "label": "API"
+              }
+            ]
+          },
+          "selected": [
+            {
+              "key": "goal-extra-1",
+              "region": "part-1",
+              "parent": "container"
+            },
+            {
+              "key": "goal-extra-2",
+              "region": "part-2",
+              "parent": "container"
+            }
+          ],
+          "candidates": [
+            {
+              "id": "delta-1",
+              "action": "add-part",
+              "part": "api",
+              "parent": "container"
+            },
+            {
+              "id": "delta-2",
+              "action": "add-part",
+              "part": "data",
+              "parent": "container"
+            },
+            {
+              "id": "delta-3",
+              "action": "add-part",
+              "part": "db",
+              "parent": "container"
+            },
+            {
+              "id": "delta-4",
+              "action": "add-part",
+              "part": "decision",
+              "parent": "container"
+            },
+            {
+              "id": "delta-5",
+              "action": "add-part",
+              "part": "end",
+              "parent": "container"
+            },
+            {
+              "id": "delta-6",
+              "action": "add-part",
+              "part": "group",
+              "parent": "container"
+            },
+            {
+              "id": "delta-7",
+              "action": "add-part",
+              "part": "start",
+              "parent": "container"
+            },
+            {
+              "id": "delta-8",
+              "action": "add-part",
+              "part": "step",
+              "parent": "container"
+            },
+            {
+              "id": "delta-9",
+              "action": "add-part",
+              "part": "api",
+              "parent": "other"
+            },
+            {
+              "id": "delta-10",
+              "action": "add-part",
+              "part": "data",
+              "parent": "other"
+            },
+            {
+              "id": "delta-11",
+              "action": "add-part",
+              "part": "db",
+              "parent": "other"
+            },
+            {
+              "id": "delta-12",
+              "action": "add-part",
+              "part": "decision",
+              "parent": "other"
+            },
+            {
+              "id": "delta-13",
+              "action": "add-part",
+              "part": "end",
+              "parent": "other"
+            },
+            {
+              "id": "delta-14",
+              "action": "add-part",
+              "part": "group",
+              "parent": "other"
+            },
+            {
+              "id": "delta-15",
+              "action": "add-part",
+              "part": "start",
+              "parent": "other"
+            },
+            {
+              "id": "delta-16",
+              "action": "add-part",
+              "part": "step",
+              "parent": "other"
+            },
+            {
+              "id": "delta-17",
+              "action": "add-edge",
+              "from": "part-1",
+              "to": "part-2"
+            },
+            {
+              "id": "delta-18",
+              "action": "add-edge",
+              "from": "part-2",
+              "to": "part-1"
+            }
+          ],
+          "context": {
+            "recent": [
+              {
+                "seq": 1,
+                "source": "typed",
+                "text": "OCIにAPIを3個追加してください。三つの表示名はすべてAPIにして、線は追加しないでください。",
+                "outcome": "step",
+                "effect": {
+                  "changes": [
+                    {
+                      "change": "added",
+                      "kind": "region",
+                      "id": "part-1",
+                      "label": "API"
+                    },
+                    {
+                      "change": "added",
+                      "kind": "region",
+                      "id": "part-2",
+                      "label": "API"
+                    }
+                  ]
+                }
+              }
+            ]
+          },
+          "scope": null,
+          "placing": null
+        }
+      },
+      "status": 200,
+      "response": {
+        "kind": "voice-ui.judge.decision.v1",
+        "answers": {
+          "delta": {
+            "type": "choice",
+            "choice": "part:api",
+            "confidence": 0.96
+          }
+        }
+      },
+      "elapsedMs": 184.09199999999873
+    },
+    {
+      "id": "N06",
+      "arm": "B",
+      "n": 7,
+      "route": "/api/judge",
+      "request": {
+        "kind": "voice-ui.judge.goal-local-delta.v7",
+        "state": {
+          "utterance": "OCIにAPIを3個追加してください。三つの表示名はすべてAPIにして、線は追加しないでください。",
+          "graph": [
+            {
+              "id": "root",
+              "label": "fixture",
+              "parent": null
+            },
+            {
+              "id": "container",
+              "label": "OCI",
+              "parent": "root"
+            },
+            {
+              "id": "other",
+              "label": "Other",
+              "parent": "root"
+            },
+            {
+              "id": "part-1",
+              "label": "API",
+              "parent": "container"
+            },
+            {
+              "id": "part-2",
+              "label": "API",
+              "parent": "container"
+            }
+          ],
+          "edges": [],
+          "parents": [
+            {
+              "id": "container",
+              "label": "OCI",
+              "kind": "group",
+              "parent": "root"
+            },
+            {
+              "id": "other",
+              "label": "Other",
+              "kind": "group",
+              "parent": "root"
+            }
+          ],
+          "offers": {
+            "parts": [
+              {
+                "key": "step",
+                "purpose": "an ordinary step, task or box",
+                "label": "工程"
+              },
+              {
+                "key": "decision",
+                "purpose": "a decision, choice or branch",
+                "label": "判断"
+              },
+              {
+                "key": "data",
+                "purpose": "data, a document, an input or an output",
+                "label": "データ"
+              },
+              {
+                "key": "start",
+                "purpose": "a start or beginning",
+                "label": "開始"
+              },
+              {
+                "key": "end",
+                "purpose": "an end, finish or result",
+                "label": "終了"
+              },
+              {
+                "key": "api",
+                "purpose": "an application programming interface service that receives requests",
+                "label": "API"
+              },
+              {
+                "key": "db",
+                "purpose": "a database that persists application data",
+                "label": "DB"
+              },
+              {
+                "key": "group",
+                "purpose": "a group, boundary or container that holds other parts",
+                "label": "グループ"
+              },
+              {
+                "key": "goal-extra-1",
+                "purpose": "one requested part named API, kind step, missing instance 1",
+                "label": "API"
+              },
+              {
+                "key": "goal-extra-2",
+                "purpose": "one requested part named API, kind step, missing instance 2",
+                "label": "API"
+              }
+            ]
+          },
+          "selected": [
+            {
+              "key": "goal-extra-1",
+              "region": "part-1",
+              "parent": "container"
+            },
+            {
+              "key": "goal-extra-2",
+              "region": "part-2",
+              "parent": "container"
+            }
+          ],
+          "candidates": [
+            {
+              "id": "delta-1",
+              "action": "add-part",
+              "part": "api",
+              "parent": "container"
+            },
+            {
+              "id": "delta-9",
+              "action": "add-part",
+              "part": "api",
+              "parent": "other"
+            }
+          ],
+          "context": {
+            "recent": [
+              {
+                "seq": 1,
+                "source": "typed",
+                "text": "OCIにAPIを3個追加してください。三つの表示名はすべてAPIにして、線は追加しないでください。",
+                "outcome": "step",
+                "effect": {
+                  "changes": [
+                    {
+                      "change": "added",
+                      "kind": "region",
+                      "id": "part-1",
+                      "label": "API"
+                    },
+                    {
+                      "change": "added",
+                      "kind": "region",
+                      "id": "part-2",
+                      "label": "API"
+                    }
+                  ]
+                }
+              }
+            ]
+          },
+          "scope": null,
+          "placing": "api"
+        }
+      },
+      "status": 200,
+      "response": {
+        "kind": "voice-ui.judge.decision.v1",
+        "answers": {
+          "delta": {
+            "type": "choice",
+            "choice": "delta-1",
+            "confidence": 0.98
+          }
+        }
+      },
+      "elapsedMs": 190.09250000000065
+    },
+    {
+      "id": "N06",
+      "arm": "B",
+      "n": 8,
+      "route": "/api/judge",
+      "request": {
+        "kind": "voice-ui.judge.goal-local-delta.v7",
+        "state": {
+          "utterance": "OCIにAPIを3個追加してください。三つの表示名はすべてAPIにして、線は追加しないでください。",
+          "graph": [
+            {
+              "id": "root",
+              "label": "fixture",
+              "parent": null
+            },
+            {
+              "id": "container",
+              "label": "OCI",
+              "parent": "root"
+            },
+            {
+              "id": "other",
+              "label": "Other",
+              "parent": "root"
+            },
+            {
+              "id": "part-1",
+              "label": "API",
+              "parent": "container"
+            },
+            {
+              "id": "part-2",
+              "label": "API",
+              "parent": "container"
+            },
+            {
+              "id": "part-3",
+              "label": "API",
+              "parent": "container"
+            }
+          ],
+          "edges": [],
+          "parents": [
+            {
+              "id": "container",
+              "label": "OCI",
+              "kind": "group",
+              "parent": "root"
+            },
+            {
+              "id": "other",
+              "label": "Other",
+              "kind": "group",
+              "parent": "root"
+            }
+          ],
+          "offers": {
+            "parts": [
+              {
+                "key": "step",
+                "purpose": "an ordinary step, task or box",
+                "label": "工程"
+              },
+              {
+                "key": "decision",
+                "purpose": "a decision, choice or branch",
+                "label": "判断"
+              },
+              {
+                "key": "data",
+                "purpose": "data, a document, an input or an output",
+                "label": "データ"
+              },
+              {
+                "key": "start",
+                "purpose": "a start or beginning",
+                "label": "開始"
+              },
+              {
+                "key": "end",
+                "purpose": "an end, finish or result",
+                "label": "終了"
+              },
+              {
+                "key": "api",
+                "purpose": "an application programming interface service that receives requests",
+                "label": "API"
+              },
+              {
+                "key": "db",
+                "purpose": "a database that persists application data",
+                "label": "DB"
+              },
+              {
+                "key": "group",
+                "purpose": "a group, boundary or container that holds other parts",
+                "label": "グループ"
+              },
+              {
+                "key": "goal-extra-1",
+                "purpose": "one requested part named API, kind step, missing instance 1",
+                "label": "API"
+              },
+              {
+                "key": "goal-extra-2",
+                "purpose": "one requested part named API, kind step, missing instance 2",
+                "label": "API"
+              }
+            ]
+          },
+          "selected": [
+            {
+              "key": "goal-extra-1",
+              "region": "part-1",
+              "parent": "container"
+            },
+            {
+              "key": "goal-extra-2",
+              "region": "part-2",
+              "parent": "container"
+            },
+            {
+              "key": "api",
+              "region": "part-3",
+              "parent": "container"
+            }
+          ],
+          "candidates": [
+            {
+              "id": "delta-1",
+              "action": "add-part",
+              "part": "data",
+              "parent": "container"
+            },
+            {
+              "id": "delta-2",
+              "action": "add-part",
+              "part": "db",
+              "parent": "container"
+            },
+            {
+              "id": "delta-3",
+              "action": "add-part",
+              "part": "decision",
+              "parent": "container"
+            },
+            {
+              "id": "delta-4",
+              "action": "add-part",
+              "part": "end",
+              "parent": "container"
+            },
+            {
+              "id": "delta-5",
+              "action": "add-part",
+              "part": "group",
+              "parent": "container"
+            },
+            {
+              "id": "delta-6",
+              "action": "add-part",
+              "part": "start",
+              "parent": "container"
+            },
+            {
+              "id": "delta-7",
+              "action": "add-part",
+              "part": "step",
+              "parent": "container"
+            },
+            {
+              "id": "delta-8",
+              "action": "add-part",
+              "part": "data",
+              "parent": "other"
+            },
+            {
+              "id": "delta-9",
+              "action": "add-part",
+              "part": "db",
+              "parent": "other"
+            },
+            {
+              "id": "delta-10",
+              "action": "add-part",
+              "part": "decision",
+              "parent": "other"
+            },
+            {
+              "id": "delta-11",
+              "action": "add-part",
+              "part": "end",
+              "parent": "other"
+            },
+            {
+              "id": "delta-12",
+              "action": "add-part",
+              "part": "group",
+              "parent": "other"
+            },
+            {
+              "id": "delta-13",
+              "action": "add-part",
+              "part": "start",
+              "parent": "other"
+            },
+            {
+              "id": "delta-14",
+              "action": "add-part",
+              "part": "step",
+              "parent": "other"
+            },
+            {
+              "id": "delta-15",
+              "action": "add-edge",
+              "from": "part-1",
+              "to": "part-2"
+            },
+            {
+              "id": "delta-16",
+              "action": "add-edge",
+              "from": "part-1",
+              "to": "part-3"
+            },
+            {
+              "id": "delta-17",
+              "action": "add-edge",
+              "from": "part-2",
+              "to": "part-1"
+            },
+            {
+              "id": "delta-18",
+              "action": "add-edge",
+              "from": "part-2",
+              "to": "part-3"
+            },
+            {
+              "id": "delta-19",
+              "action": "add-edge",
+              "from": "part-3",
+              "to": "part-1"
+            },
+            {
+              "id": "delta-20",
+              "action": "add-edge",
+              "from": "part-3",
+              "to": "part-2"
+            }
+          ],
+          "context": {
+            "recent": [
+              {
+                "seq": 1,
+                "source": "typed",
+                "text": "OCIにAPIを3個追加してください。三つの表示名はすべてAPIにして、線は追加しないでください。",
+                "outcome": "step",
+                "effect": {
+                  "changes": [
+                    {
+                      "change": "added",
+                      "kind": "region",
+                      "id": "part-1",
+                      "label": "API"
+                    },
+                    {
+                      "change": "added",
+                      "kind": "region",
+                      "id": "part-2",
+                      "label": "API"
+                    },
+                    {
+                      "change": "added",
+                      "kind": "region",
+                      "id": "part-3",
+                      "label": "API"
+                    }
+                  ]
+                }
+              }
+            ]
+          },
+          "scope": null,
+          "placing": null
+        }
+      },
+      "status": 200,
+      "response": {
+        "kind": "voice-ui.judge.decision.v1",
+        "answers": {
+          "delta": {
+            "type": "choice",
+            "choice": "none",
+            "confidence": 0.99
+          }
+        }
+      },
+      "elapsedMs": 202.6115000000009
+    }
+  ],
+  "preparation": [
+    {
+      "missing": [
+        {
+          "label": "API",
+          "kind": "step",
+          "occurrence": 1
+        },
+        {
+          "label": "API",
+          "kind": "step",
+          "occurrence": 2
+        }
+      ],
+      "extraction": {
+        "status": "transcribed",
+        "spans": [
+          {
+            "start": 4,
+            "end": 7,
+            "source": "API",
+            "label": "API",
+            "kind": "step",
+            "quantity": 3
+          }
+        ]
+      }
+    }
+  ],
+  "initial_head": "sha256:3f44e0d52678bc7ddeac8b19804ffaadfe6a493ce65ba8ca98f345ddd2ff75a2",
+  "initial_log_sha256": "32f7c43ed78ccead4936c39d30e00fd36340a388192bb9e0c9b0265801848079",
+  "initial_records": [
+    {
+      "type": "meta",
+      "schema": "semantic-map-state/1",
+      "root": "root",
+      "title": "sealed small PoC"
+    },
+    {
+      "type": "region",
+      "id": "root",
+      "parent": null,
+      "label": "fixture",
+      "kind": "boundary",
+      "bounds": [
+        0,
+        0,
+        900,
+        400
+      ],
+      "summary": ""
+    },
+    {
+      "type": "region",
+      "id": "container",
+      "parent": "root",
+      "label": "OCI",
+      "kind": "group",
+      "bounds": [
+        0,
+        0,
+        700,
+        200
+      ],
+      "summary": ""
+    },
+    {
+      "type": "region",
+      "id": "other",
+      "parent": "root",
+      "label": "Other",
+      "kind": "group",
+      "bounds": [
+        0,
+        230,
+        700,
+        160
+      ],
+      "summary": ""
+    },
+    {
+      "type": "layout",
+      "regionId": "container",
+      "pin": "hard",
+      "bounds": [
+        0,
+        0,
+        2000,
+        500
+      ]
+    },
+    {
+      "type": "layout",
+      "regionId": "other",
+      "pin": "hard",
+      "bounds": [
+        0,
+        600,
+        2000,
+        500
+      ]
+    }
+  ],
+  "final_head": "sha256:547c8d0f72a61b958987f3cd730103188e478d926f625134a8788b5ea2ec52b6",
+  "final_records": [
+    {
+      "type": "meta",
+      "schema": "semantic-map-state/1",
+      "root": "root",
+      "title": "sealed small PoC"
+    },
+    {
+      "type": "region",
+      "id": "root",
+      "parent": null,
+      "label": "fixture",
+      "kind": "boundary",
+      "bounds": [
+        0,
+        0,
+        900,
+        400
+      ],
+      "summary": ""
+    },
+    {
+      "type": "region",
+      "id": "container",
+      "parent": "root",
+      "label": "OCI",
+      "kind": "group",
+      "bounds": [
+        0,
+        0,
+        700,
+        200
+      ],
+      "summary": ""
+    },
+    {
+      "type": "region",
+      "id": "other",
+      "parent": "root",
+      "label": "Other",
+      "kind": "group",
+      "bounds": [
+        0,
+        230,
+        700,
+        160
+      ],
+      "summary": ""
+    },
+    {
+      "type": "region",
+      "id": "part-1",
+      "parent": "container",
+      "label": "API",
+      "kind": "step",
+      "bounds": [
+        20,
+        20,
+        140,
+        64
+      ],
+      "summary": ""
+    },
+    {
+      "type": "region",
+      "id": "part-2",
+      "parent": "container",
+      "label": "API",
+      "kind": "step",
+      "bounds": [
+        180,
+        20,
+        140,
+        64
+      ],
+      "summary": ""
+    },
+    {
+      "type": "region",
+      "id": "part-3",
+      "parent": "container",
+      "label": "API",
+      "kind": "step",
+      "bounds": [
+        340,
+        20,
+        140,
+        64
+      ],
+      "summary": ""
+    },
+    {
+      "type": "layout",
+      "regionId": "container",
+      "pin": "hard",
+      "bounds": [
+        0,
+        0,
+        2000,
+        500
+      ]
+    },
+    {
+      "type": "layout",
+      "regionId": "other",
+      "pin": "hard",
+      "bounds": [
+        0,
+        600,
+        2000,
+        500
+      ]
+    },
+    {
+      "type": "layout",
+      "regionId": "part-1",
+      "pin": "hard",
+      "bounds": [
+        12,
+        36,
+        180,
+        92
+      ]
+    },
+    {
+      "type": "layout",
+      "regionId": "part-2",
+      "pin": "hard",
+      "bounds": [
+        216,
+        36,
+        180,
+        92
+      ]
+    },
+    {
+      "type": "layout",
+      "regionId": "part-3",
+      "pin": "hard",
+      "bounds": [
+        420,
+        36,
+        180,
+        92
+      ]
+    }
+  ],
+  "final_log": "{\"operations\":[{\"mapId\":\"voice-graph\",\"records\":[{\"root\":\"root\",\"schema\":\"semantic-map-state/1\",\"title\":\"sealed small PoC\",\"type\":\"meta\"},{\"bounds\":[0,0,900,400],\"id\":\"root\",\"kind\":\"boundary\",\"label\":\"fixture\",\"parent\":null,\"summary\":\"\",\"type\":\"region\"},{\"bounds\":[0,0,700,200],\"id\":\"container\",\"kind\":\"group\",\"label\":\"OCI\",\"parent\":\"root\",\"summary\":\"\",\"type\":\"region\"},{\"bounds\":[0,230,700,160],\"id\":\"other\",\"kind\":\"group\",\"label\":\"Other\",\"parent\":\"root\",\"summary\":\"\",\"type\":\"region\"}],\"type\":\"CreateMap\"}],\"parent\":null,\"schema\":\"semantic-map-decision/2\",\"stateHash\":\"sha256:721939a9428f00adec7d4771ae910ab118bb80cd0bb2f36e7790f7e761599204\"}\n{\"operations\":[{\"items\":[{\"bounds\":[0,0,2000,500],\"regionId\":\"container\"},{\"bounds\":[0,600,2000,500],\"regionId\":\"other\"}],\"type\":\"PinRegions\"}],\"parent\":\"sha256:e411c26b1ae696e494de68f591334b0ebbd9928edb8da647d681d5278575d42b\",\"schema\":\"semantic-map-decision/2\",\"stateHash\":\"sha256:08e53be00691c0b7ba556e34955fe1695e1b0a7d1a15eb82c05b0d87e7b385ed\"}\n{\"operations\":[{\"bounds\":[20,20,140,64],\"kind\":\"step\",\"label\":\"API\",\"parentId\":\"container\",\"regionId\":\"part-1\",\"summary\":\"\",\"type\":\"AddRegion\"},{\"items\":[{\"bounds\":[12,36,180,92],\"regionId\":\"part-1\"}],\"type\":\"PinRegions\"}],\"parent\":\"sha256:3f44e0d52678bc7ddeac8b19804ffaadfe6a493ce65ba8ca98f345ddd2ff75a2\",\"schema\":\"semantic-map-decision/2\",\"stateHash\":\"sha256:5540b4eff4c5f09e3e4386d0920b1c9d0fd37abd0cf51231814c880e0cb37094\"}\n{\"operations\":[{\"bounds\":[180,20,140,64],\"kind\":\"step\",\"label\":\"API\",\"parentId\":\"container\",\"regionId\":\"part-2\",\"summary\":\"\",\"type\":\"AddRegion\"},{\"items\":[{\"bounds\":[216,36,180,92],\"regionId\":\"part-2\"}],\"type\":\"PinRegions\"}],\"parent\":\"sha256:76bda113a3b68078d3da2edbf9504e02449e6f0604cad6f3c96744321684f6e9\",\"schema\":\"semantic-map-decision/2\",\"stateHash\":\"sha256:eba7cebef63d75dd8df86b5d9ad84664afc4b5fa3487a6c598212925badcae11\"}\n{\"operations\":[{\"bounds\":[340,20,140,64],\"kind\":\"step\",\"label\":\"API\",\"parentId\":\"container\",\"regionId\":\"part-3\",\"summary\":\"\",\"type\":\"AddRegion\"},{\"items\":[{\"bounds\":[420,36,180,92],\"regionId\":\"part-3\"}],\"type\":\"PinRegions\"}],\"parent\":\"sha256:802059b4fb364cebba8f0daf76ef0d672152a088c4d0b1c7bd7035d5da0d3945\",\"schema\":\"semantic-map-decision/2\",\"stateHash\":\"sha256:b79a4ec7d1d0775b1ed56ad39271ceec67533db22876e77e5c653e69482b520b\"}\n"
+}

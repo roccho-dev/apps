@@ -1,0 +1,245 @@
+{
+  "status": "RECORDED",
+  "summary": [
+    {
+      "id": "N01",
+      "arm": "A",
+      "valid_execution": true,
+      "reason": "none",
+      "httpCalls": 7,
+      "elapsedMs": 1788.6243000000002
+    },
+    {
+      "id": "N01",
+      "arm": "B",
+      "valid_execution": true,
+      "reason": "none",
+      "httpCalls": 7,
+      "elapsedMs": 1548.948
+    },
+    {
+      "id": "N01",
+      "arm": "C",
+      "valid_execution": true,
+      "reason": "none",
+      "httpCalls": 7,
+      "elapsedMs": 1515.5973
+    },
+    {
+      "id": "N05",
+      "arm": "B",
+      "valid_execution": true,
+      "reason": "none",
+      "httpCalls": 4,
+      "elapsedMs": 761.2586999999994
+    },
+    {
+      "id": "N05",
+      "arm": "C",
+      "valid_execution": true,
+      "reason": "inventory-not-confident",
+      "httpCalls": 1,
+      "elapsedMs": 182.0015000000003
+    },
+    {
+      "id": "N05",
+      "arm": "A",
+      "valid_execution": true,
+      "reason": "inventory-not-confident",
+      "httpCalls": 1,
+      "elapsedMs": 182.38980000000083
+    },
+    {
+      "id": "N09",
+      "arm": "C",
+      "valid_execution": true,
+      "reason": "none",
+      "httpCalls": 2,
+      "elapsedMs": 380.7559999999994
+    },
+    {
+      "id": "N09",
+      "arm": "A",
+      "valid_execution": true,
+      "reason": "not-confident",
+      "httpCalls": 2,
+      "elapsedMs": 438.7982000000002
+    },
+    {
+      "id": "N09",
+      "arm": "B",
+      "valid_execution": true,
+      "reason": "not-confident",
+      "httpCalls": 2,
+      "elapsedMs": 441.90580000000045
+    },
+    {
+      "id": "N02",
+      "arm": "A",
+      "valid_execution": true,
+      "reason": "none",
+      "httpCalls": 7,
+      "elapsedMs": 1453.7631000000001
+    },
+    {
+      "id": "N02",
+      "arm": "B",
+      "valid_execution": true,
+      "reason": "none",
+      "httpCalls": 7,
+      "elapsedMs": 1713.8127999999997
+    },
+    {
+      "id": "N02",
+      "arm": "C",
+      "valid_execution": true,
+      "reason": "none",
+      "httpCalls": 7,
+      "elapsedMs": 1837.3301999999985
+    },
+    {
+      "id": "N06",
+      "arm": "B",
+      "valid_execution": true,
+      "reason": "none",
+      "httpCalls": 8,
+      "elapsedMs": 1773.2640999999985
+    },
+    {
+      "id": "N06",
+      "arm": "C",
+      "valid_execution": true,
+      "reason": "none",
+      "httpCalls": 9,
+      "elapsedMs": 3351.1281000000017
+    },
+    {
+      "id": "N06",
+      "arm": "A",
+      "valid_execution": true,
+      "reason": "none",
+      "httpCalls": 4,
+      "elapsedMs": 866.5452000000005
+    },
+    {
+      "id": "N10",
+      "arm": "C",
+      "valid_execution": true,
+      "reason": "inventory-no-change",
+      "httpCalls": 1,
+      "elapsedMs": 202.51900000000023
+    },
+    {
+      "id": "N10",
+      "arm": "A",
+      "valid_execution": true,
+      "reason": "inventory-no-change",
+      "httpCalls": 1,
+      "elapsedMs": 184.15620000000126
+    },
+    {
+      "id": "N10",
+      "arm": "B",
+      "valid_execution": true,
+      "reason": "inventory-no-change",
+      "httpCalls": 1,
+      "elapsedMs": 173.15070000000196
+    },
+    {
+      "id": "N03",
+      "arm": "A",
+      "valid_execution": true,
+      "reason": "none",
+      "httpCalls": 3,
+      "elapsedMs": 706.505000000001
+    },
+    {
+      "id": "N03",
+      "arm": "B",
+      "valid_execution": true,
+      "reason": "none",
+      "httpCalls": 3,
+      "elapsedMs": 634.2263999999996
+    },
+    {
+      "id": "N03",
+      "arm": "C",
+      "valid_execution": true,
+      "reason": "none",
+      "httpCalls": 3,
+      "elapsedMs": 614.2153000000035
+    },
+    {
+      "id": "N07",
+      "arm": "B",
+      "valid_execution": true,
+      "reason": "none",
+      "httpCalls": 8,
+      "elapsedMs": 1615.9294999999984
+    },
+    {
+      "id": "N07",
+      "arm": "C",
+      "valid_execution": true,
+      "reason": "none",
+      "httpCalls": 9,
+      "elapsedMs": 3266.955900000001
+    },
+    {
+      "id": "N07",
+      "arm": "A",
+      "valid_execution": true,
+      "reason": "none",
+      "httpCalls": 4,
+      "elapsedMs": 812.362000000001
+    },
+    {
+      "id": "N04",
+      "arm": "C",
+      "valid_execution": true,
+      "reason": "none",
+      "httpCalls": 6,
+      "elapsedMs": 1263.4537999999993
+    },
+    {
+      "id": "N04",
+      "arm": "A",
+      "valid_execution": true,
+      "reason": "none",
+      "httpCalls": 6,
+      "elapsedMs": 1165.8823999999986
+    },
+    {
+      "id": "N04",
+      "arm": "B",
+      "valid_execution": true,
+      "reason": "none",
+      "httpCalls": 6,
+      "elapsedMs": 1227.2734000000019
+    },
+    {
+      "id": "N08",
+      "arm": "A",
+      "valid_execution": true,
+      "reason": "none",
+      "httpCalls": 9,
+      "elapsedMs": 1988.868699999999
+    },
+    {
+      "id": "N08",
+      "arm": "B",
+      "valid_execution": true,
+      "reason": "none",
+      "httpCalls": 9,
+      "elapsedMs": 1931.911300000007
+    },
+    {
+      "id": "N08",
+      "arm": "C",
+      "valid_execution": true,
+      "reason": "none",
+      "httpCalls": 10,
+      "elapsedMs": 2639.1280000000042
+    }
+  ]
+}

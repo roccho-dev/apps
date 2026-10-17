@@ -1,0 +1,55 @@
+{
+  "schema": "voice-ui.poc.input-only-release/1",
+  "released_at": "2026-10-17T10:30:04.938Z",
+  "head": "50b17036d1c73d18fd92db95d6ff84350e1566d5",
+  "tree": "ce4e272ff8fa614d78624f48c32637819ed777ca",
+  "source_review": "https://github.com/roccho-dev/apps/pull/103#pullrequestreview-5557391686",
+  "sealed_pool": {
+    "file": "fresh-pool-v2.sealed.json",
+    "sha256": "b64985019e2248c4fde62e330f319846c96ab5014db4e96a7d8f0d50d5f86076"
+  },
+  "input": {
+    "file": "fresh-primary.inputs.json",
+    "bytes": 6138,
+    "sha256": "6dbd7ce5ededd2c9a3e7bc4aeb9c1a43087f14286133fed279283e4422054a1a"
+  },
+  "private_oracle": {
+    "file": "fresh-primary.oracle.sealed.json",
+    "bytes": 11915,
+    "sha256": "f12d3ce51a3ddd55b85fb04fea19b801b83e49b2af3d5fc0e5766be09328698b",
+    "release_condition": "only after stopped process and independent receipt audit; never send to provider"
+  },
+  "case_order": [
+    "N01",
+    "N05",
+    "N09",
+    "N02",
+    "N06",
+    "N10",
+    "N03",
+    "N07",
+    "N04",
+    "N08"
+  ],
+  "planned_arms": 30,
+  "selected_primary": "B",
+  "selected_primary_scope": "comparison/recommendation only; ordinary UI=C",
+  "ceiling": {
+    "jev": 270,
+    "typellm": 10
+  },
+  "remaining_before_run": {
+    "charged": {
+      "jev": 413,
+      "typellm": 26
+    },
+    "confirmed": {
+      "jev": 413,
+      "typellm": 25
+    }
+  },
+  "reserve_pool": "STILL_SEALED_NOT_AUTHORITY",
+  "provider_execution": "FORBIDDEN_UNTIL_ACTUAL_ZERO_SEND_BIND",
+  "fresh_reuse": false,
+  "third_cause_batch": false
+}

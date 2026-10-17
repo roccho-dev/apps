@@ -1,8 +1,8 @@
 {
   "schema": "voice-ui.closed-evidence-index/1",
   "expected_cumulative": {
-    "jev": 413,
-    "typellm": 26
+    "jev": 564,
+    "typellm": 29
   },
   "panels": [
     {
@@ -102,6 +102,31 @@
         "stop-observation": "candidate-public-remainder-stop-audit.json"
       },
       "recorded_replay": "public-remainder-replay/receipt.json",
+      "expected_execution_status": "RECORDED",
+      "mutation_fixture": false
+    },
+    {
+      "id": "fresh-primary-50b1",
+      "phase_kind": "fresh",
+      "apps_sha": "50b17036d1c73d18fd92db95d6ff84350e1566d5",
+      "raw_dir": "fresh-primary",
+      "parent_input": "../preregistered/fresh-primary.inputs.json",
+      "oracle": "../preregistered/fresh-primary.oracle.json",
+      "selected_input": null,
+      "selected_method": "B",
+      "runtime": "closed-audits/runtime-candidate-50b1.json",
+      "config": "closed-audits/candidate-fresh-20261017.config.json",
+      "process": "closed-audits/candidate-fresh-20261017.process.json",
+      "stdout": "closed-audits/candidate-fresh-20261017.stdout.log",
+      "stderr": "closed-audits/candidate-fresh-20261017.stderr.log",
+      "journal": "closed-audits/candidate-fresh-20261017.journal.jsonl",
+      "producer": "fresh-primary-50b1.producer.json",
+      "audits": {
+        "source-review": "pr103-50b1-r6-review.md",
+        "zero-send": "candidate-fresh-zero-send-audit.json",
+        "stop-observation": "candidate-fresh-stop-audit.json"
+      },
+      "recorded_replay": "fresh-primary-replay/receipt.json",
       "expected_execution_status": "RECORDED",
       "mutation_fixture": false
     }

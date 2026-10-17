@@ -1,0 +1,1570 @@
+{
+  "id": "N02",
+  "arm": "B",
+  "fixture": "empty",
+  "utterance": "OCIの中に開始と終了を一つずつ置き、開始から終了につなげてください。",
+  "valid_execution": true,
+  "elapsedMs": 1713.8127999999997,
+  "result": {
+    "reason": "none",
+    "requests": 7,
+    "elapsedMs": 1711.7195999999985,
+    "selected": [
+      {
+        "key": "start",
+        "region": "part-1",
+        "parent": "container"
+      },
+      {
+        "key": "end",
+        "region": "part-2",
+        "parent": "container"
+      }
+    ],
+    "trace": [
+      {
+        "head": "sha256:3f44e0d52678bc7ddeac8b19804ffaadfe6a493ce65ba8ca98f345ddd2ff75a2",
+        "answers": {
+          "delta": {
+            "type": "choice",
+            "choice": "part:start",
+            "confidence": 0.99
+          }
+        },
+        "failure": null
+      },
+      {
+        "head": "sha256:3f44e0d52678bc7ddeac8b19804ffaadfe6a493ce65ba8ca98f345ddd2ff75a2",
+        "answers": {
+          "delta": {
+            "type": "choice",
+            "choice": "delta-7",
+            "confidence": 0.98
+          }
+        },
+        "failure": null
+      },
+      {
+        "head": "sha256:60046a2e06b720efd90ec6e1096040e6df56daa3208919e1626bbebde6606666",
+        "answers": {
+          "delta": {
+            "type": "choice",
+            "choice": "part:end",
+            "confidence": 1
+          }
+        },
+        "failure": null
+      },
+      {
+        "head": "sha256:60046a2e06b720efd90ec6e1096040e6df56daa3208919e1626bbebde6606666",
+        "answers": {
+          "delta": {
+            "type": "choice",
+            "choice": "delta-5",
+            "confidence": 1
+          }
+        },
+        "failure": null
+      },
+      {
+        "head": "sha256:a072a9d5d12803173203b930e2ba40ad6276f623e01b304ba6f32d840e859afa",
+        "answers": {
+          "delta": {
+            "type": "choice",
+            "choice": "delta-13",
+            "confidence": 1
+          }
+        },
+        "failure": null
+      },
+      {
+        "head": "sha256:d3dd274273443779fd6fa54bba9d5321f015ce47ace2b3787d93158241aa179a",
+        "answers": {
+          "delta": {
+            "type": "choice",
+            "choice": "none",
+            "confidence": 1
+          }
+        },
+        "failure": null
+      }
+    ],
+    "inventory": {
+      "checks": 1,
+      "completions": 0,
+      "coverage": {
+        "choice": "sufficient",
+        "confidence": 0.69
+      },
+      "missing": []
+    }
+  },
+  "calls": [
+    {
+      "id": "N02",
+      "arm": "B",
+      "n": 1,
+      "route": "/api/parts/check",
+      "request": {
+        "kind": "voice-ui.goal.inventory.v1",
+        "state": {
+          "utterance": "OCIの中に開始と終了を一つずつ置き、開始から終了につなげてください。",
+          "head": "sha256:3f44e0d52678bc7ddeac8b19804ffaadfe6a493ce65ba8ca98f345ddd2ff75a2",
+          "regions": [
+            {
+              "id": "root",
+              "label": "fixture",
+              "kind": "boundary",
+              "parent": null
+            },
+            {
+              "id": "container",
+              "label": "OCI",
+              "kind": "group",
+              "parent": "root"
+            },
+            {
+              "id": "other",
+              "label": "Other",
+              "kind": "group",
+              "parent": "root"
+            }
+          ],
+          "edges": [],
+          "parts": [
+            {
+              "key": "step",
+              "purpose": "an ordinary step, task or box",
+              "label": "工程",
+              "kind": "step"
+            },
+            {
+              "key": "decision",
+              "purpose": "a decision, choice or branch",
+              "label": "判断",
+              "kind": "decision"
+            },
+            {
+              "key": "data",
+              "purpose": "data, a document, an input or an output",
+              "label": "データ",
+              "kind": "data"
+            },
+            {
+              "key": "start",
+              "purpose": "a start or beginning",
+              "label": "開始",
+              "kind": "start"
+            },
+            {
+              "key": "end",
+              "purpose": "an end, finish or result",
+              "label": "終了",
+              "kind": "end"
+            },
+            {
+              "key": "api",
+              "purpose": "an application programming interface service that receives requests",
+              "label": "API",
+              "kind": "step"
+            },
+            {
+              "key": "db",
+              "purpose": "a database that persists application data",
+              "label": "DB",
+              "kind": "data"
+            },
+            {
+              "key": "group",
+              "purpose": "a group, boundary or container that holds other parts",
+              "label": "グループ",
+              "kind": "group"
+            }
+          ]
+        }
+      },
+      "status": 200,
+      "response": {
+        "choice": "sufficient",
+        "confidence": 0.69
+      },
+      "elapsedMs": 168.89279999999962
+    },
+    {
+      "id": "N02",
+      "arm": "B",
+      "n": 2,
+      "route": "/api/judge",
+      "request": {
+        "kind": "voice-ui.judge.goal-local-delta.v7",
+        "state": {
+          "utterance": "OCIの中に開始と終了を一つずつ置き、開始から終了につなげてください。",
+          "graph": [
+            {
+              "id": "root",
+              "label": "fixture",
+              "parent": null
+            },
+            {
+              "id": "container",
+              "label": "OCI",
+              "parent": "root"
+            },
+            {
+              "id": "other",
+              "label": "Other",
+              "parent": "root"
+            }
+          ],
+          "edges": [],
+          "parents": [
+            {
+              "id": "container",
+              "label": "OCI",
+              "kind": "group",
+              "parent": "root"
+            },
+            {
+              "id": "other",
+              "label": "Other",
+              "kind": "group",
+              "parent": "root"
+            }
+          ],
+          "offers": {
+            "parts": [
+              {
+                "key": "step",
+                "purpose": "an ordinary step, task or box",
+                "label": "工程"
+              },
+              {
+                "key": "decision",
+                "purpose": "a decision, choice or branch",
+                "label": "判断"
+              },
+              {
+                "key": "data",
+                "purpose": "data, a document, an input or an output",
+                "label": "データ"
+              },
+              {
+                "key": "start",
+                "purpose": "a start or beginning",
+                "label": "開始"
+              },
+              {
+                "key": "end",
+                "purpose": "an end, finish or result",
+                "label": "終了"
+              },
+              {
+                "key": "api",
+                "purpose": "an application programming interface service that receives requests",
+                "label": "API"
+              },
+              {
+                "key": "db",
+                "purpose": "a database that persists application data",
+                "label": "DB"
+              },
+              {
+                "key": "group",
+                "purpose": "a group, boundary or container that holds other parts",
+                "label": "グループ"
+              }
+            ]
+          },
+          "selected": [],
+          "candidates": [
+            {
+              "id": "delta-1",
+              "action": "add-part",
+              "part": "api",
+              "parent": "container"
+            },
+            {
+              "id": "delta-2",
+              "action": "add-part",
+              "part": "data",
+              "parent": "container"
+            },
+            {
+              "id": "delta-3",
+              "action": "add-part",
+              "part": "db",
+              "parent": "container"
+            },
+            {
+              "id": "delta-4",
+              "action": "add-part",
+              "part": "decision",
+              "parent": "container"
+            },
+            {
+              "id": "delta-5",
+              "action": "add-part",
+              "part": "end",
+              "parent": "container"
+            },
+            {
+              "id": "delta-6",
+              "action": "add-part",
+              "part": "group",
+              "parent": "container"
+            },
+            {
+              "id": "delta-7",
+              "action": "add-part",
+              "part": "start",
+              "parent": "container"
+            },
+            {
+              "id": "delta-8",
+              "action": "add-part",
+              "part": "step",
+              "parent": "container"
+            },
+            {
+              "id": "delta-9",
+              "action": "add-part",
+              "part": "api",
+              "parent": "other"
+            },
+            {
+              "id": "delta-10",
+              "action": "add-part",
+              "part": "data",
+              "parent": "other"
+            },
+            {
+              "id": "delta-11",
+              "action": "add-part",
+              "part": "db",
+              "parent": "other"
+            },
+            {
+              "id": "delta-12",
+              "action": "add-part",
+              "part": "decision",
+              "parent": "other"
+            },
+            {
+              "id": "delta-13",
+              "action": "add-part",
+              "part": "end",
+              "parent": "other"
+            },
+            {
+              "id": "delta-14",
+              "action": "add-part",
+              "part": "group",
+              "parent": "other"
+            },
+            {
+              "id": "delta-15",
+              "action": "add-part",
+              "part": "start",
+              "parent": "other"
+            },
+            {
+              "id": "delta-16",
+              "action": "add-part",
+              "part": "step",
+              "parent": "other"
+            }
+          ],
+          "context": {
+            "recent": []
+          },
+          "scope": null,
+          "placing": null
+        }
+      },
+      "status": 200,
+      "response": {
+        "kind": "voice-ui.judge.decision.v1",
+        "answers": {
+          "delta": {
+            "type": "choice",
+            "choice": "part:start",
+            "confidence": 0.99
+          }
+        }
+      },
+      "elapsedMs": 171.86509999999907
+    },
+    {
+      "id": "N02",
+      "arm": "B",
+      "n": 3,
+      "route": "/api/judge",
+      "request": {
+        "kind": "voice-ui.judge.goal-local-delta.v7",
+        "state": {
+          "utterance": "OCIの中に開始と終了を一つずつ置き、開始から終了につなげてください。",
+          "graph": [
+            {
+              "id": "root",
+              "label": "fixture",
+              "parent": null
+            },
+            {
+              "id": "container",
+              "label": "OCI",
+              "parent": "root"
+            },
+            {
+              "id": "other",
+              "label": "Other",
+              "parent": "root"
+            }
+          ],
+          "edges": [],
+          "parents": [
+            {
+              "id": "container",
+              "label": "OCI",
+              "kind": "group",
+              "parent": "root"
+            },
+            {
+              "id": "other",
+              "label": "Other",
+              "kind": "group",
+              "parent": "root"
+            }
+          ],
+          "offers": {
+            "parts": [
+              {
+                "key": "step",
+                "purpose": "an ordinary step, task or box",
+                "label": "工程"
+              },
+              {
+                "key": "decision",
+                "purpose": "a decision, choice or branch",
+                "label": "判断"
+              },
+              {
+                "key": "data",
+                "purpose": "data, a document, an input or an output",
+                "label": "データ"
+              },
+              {
+                "key": "start",
+                "purpose": "a start or beginning",
+                "label": "開始"
+              },
+              {
+                "key": "end",
+                "purpose": "an end, finish or result",
+                "label": "終了"
+              },
+              {
+                "key": "api",
+                "purpose": "an application programming interface service that receives requests",
+                "label": "API"
+              },
+              {
+                "key": "db",
+                "purpose": "a database that persists application data",
+                "label": "DB"
+              },
+              {
+                "key": "group",
+                "purpose": "a group, boundary or container that holds other parts",
+                "label": "グループ"
+              }
+            ]
+          },
+          "selected": [],
+          "candidates": [
+            {
+              "id": "delta-7",
+              "action": "add-part",
+              "part": "start",
+              "parent": "container"
+            },
+            {
+              "id": "delta-15",
+              "action": "add-part",
+              "part": "start",
+              "parent": "other"
+            }
+          ],
+          "context": {
+            "recent": []
+          },
+          "scope": null,
+          "placing": "start"
+        }
+      },
+      "status": 200,
+      "response": {
+        "kind": "voice-ui.judge.decision.v1",
+        "answers": {
+          "delta": {
+            "type": "choice",
+            "choice": "delta-7",
+            "confidence": 0.98
+          }
+        }
+      },
+      "elapsedMs": 176.16660000000047
+    },
+    {
+      "id": "N02",
+      "arm": "B",
+      "n": 4,
+      "route": "/api/judge",
+      "request": {
+        "kind": "voice-ui.judge.goal-local-delta.v7",
+        "state": {
+          "utterance": "OCIの中に開始と終了を一つずつ置き、開始から終了につなげてください。",
+          "graph": [
+            {
+              "id": "root",
+              "label": "fixture",
+              "parent": null
+            },
+            {
+              "id": "container",
+              "label": "OCI",
+              "parent": "root"
+            },
+            {
+              "id": "other",
+              "label": "Other",
+              "parent": "root"
+            },
+            {
+              "id": "part-1",
+              "label": "開始",
+              "parent": "container"
+            }
+          ],
+          "edges": [],
+          "parents": [
+            {
+              "id": "container",
+              "label": "OCI",
+              "kind": "group",
+              "parent": "root"
+            },
+            {
+              "id": "other",
+              "label": "Other",
+              "kind": "group",
+              "parent": "root"
+            }
+          ],
+          "offers": {
+            "parts": [
+              {
+                "key": "step",
+                "purpose": "an ordinary step, task or box",
+                "label": "工程"
+              },
+              {
+                "key": "decision",
+                "purpose": "a decision, choice or branch",
+                "label": "判断"
+              },
+              {
+                "key": "data",
+                "purpose": "data, a document, an input or an output",
+                "label": "データ"
+              },
+              {
+                "key": "start",
+                "purpose": "a start or beginning",
+                "label": "開始"
+              },
+              {
+                "key": "end",
+                "purpose": "an end, finish or result",
+                "label": "終了"
+              },
+              {
+                "key": "api",
+                "purpose": "an application programming interface service that receives requests",
+                "label": "API"
+              },
+              {
+                "key": "db",
+                "purpose": "a database that persists application data",
+                "label": "DB"
+              },
+              {
+                "key": "group",
+                "purpose": "a group, boundary or container that holds other parts",
+                "label": "グループ"
+              }
+            ]
+          },
+          "selected": [
+            {
+              "key": "start",
+              "region": "part-1",
+              "parent": "container"
+            }
+          ],
+          "candidates": [
+            {
+              "id": "delta-1",
+              "action": "add-part",
+              "part": "api",
+              "parent": "container"
+            },
+            {
+              "id": "delta-2",
+              "action": "add-part",
+              "part": "data",
+              "parent": "container"
+            },
+            {
+              "id": "delta-3",
+              "action": "add-part",
+              "part": "db",
+              "parent": "container"
+            },
+            {
+              "id": "delta-4",
+              "action": "add-part",
+              "part": "decision",
+              "parent": "container"
+            },
+            {
+              "id": "delta-5",
+              "action": "add-part",
+              "part": "end",
+              "parent": "container"
+            },
+            {
+              "id": "delta-6",
+              "action": "add-part",
+              "part": "group",
+              "parent": "container"
+            },
+            {
+              "id": "delta-7",
+              "action": "add-part",
+              "part": "step",
+              "parent": "container"
+            },
+            {
+              "id": "delta-8",
+              "action": "add-part",
+              "part": "api",
+              "parent": "other"
+            },
+            {
+              "id": "delta-9",
+              "action": "add-part",
+              "part": "data",
+              "parent": "other"
+            },
+            {
+              "id": "delta-10",
+              "action": "add-part",
+              "part": "db",
+              "parent": "other"
+            },
+            {
+              "id": "delta-11",
+              "action": "add-part",
+              "part": "decision",
+              "parent": "other"
+            },
+            {
+              "id": "delta-12",
+              "action": "add-part",
+              "part": "end",
+              "parent": "other"
+            },
+            {
+              "id": "delta-13",
+              "action": "add-part",
+              "part": "group",
+              "parent": "other"
+            },
+            {
+              "id": "delta-14",
+              "action": "add-part",
+              "part": "step",
+              "parent": "other"
+            }
+          ],
+          "context": {
+            "recent": [
+              {
+                "seq": 1,
+                "source": "typed",
+                "text": "OCIの中に開始と終了を一つずつ置き、開始から終了につなげてください。",
+                "outcome": "step",
+                "effect": {
+                  "changes": [
+                    {
+                      "change": "added",
+                      "kind": "region",
+                      "id": "part-1",
+                      "label": "開始"
+                    }
+                  ]
+                }
+              }
+            ]
+          },
+          "scope": null,
+          "placing": null
+        }
+      },
+      "status": 200,
+      "response": {
+        "kind": "voice-ui.judge.decision.v1",
+        "answers": {
+          "delta": {
+            "type": "choice",
+            "choice": "part:end",
+            "confidence": 1
+          }
+        }
+      },
+      "elapsedMs": 185.89580000000024
+    },
+    {
+      "id": "N02",
+      "arm": "B",
+      "n": 5,
+      "route": "/api/judge",
+      "request": {
+        "kind": "voice-ui.judge.goal-local-delta.v7",
+        "state": {
+          "utterance": "OCIの中に開始と終了を一つずつ置き、開始から終了につなげてください。",
+          "graph": [
+            {
+              "id": "root",
+              "label": "fixture",
+              "parent": null
+            },
+            {
+              "id": "container",
+              "label": "OCI",
+              "parent": "root"
+            },
+            {
+              "id": "other",
+              "label": "Other",
+              "parent": "root"
+            },
+            {
+              "id": "part-1",
+              "label": "開始",
+              "parent": "container"
+            }
+          ],
+          "edges": [],
+          "parents": [
+            {
+              "id": "container",
+              "label": "OCI",
+              "kind": "group",
+              "parent": "root"
+            },
+            {
+              "id": "other",
+              "label": "Other",
+              "kind": "group",
+              "parent": "root"
+            }
+          ],
+          "offers": {
+            "parts": [
+              {
+                "key": "step",
+                "purpose": "an ordinary step, task or box",
+                "label": "工程"
+              },
+              {
+                "key": "decision",
+                "purpose": "a decision, choice or branch",
+                "label": "判断"
+              },
+              {
+                "key": "data",
+                "purpose": "data, a document, an input or an output",
+                "label": "データ"
+              },
+              {
+                "key": "start",
+                "purpose": "a start or beginning",
+                "label": "開始"
+              },
+              {
+                "key": "end",
+                "purpose": "an end, finish or result",
+                "label": "終了"
+              },
+              {
+                "key": "api",
+                "purpose": "an application programming interface service that receives requests",
+                "label": "API"
+              },
+              {
+                "key": "db",
+                "purpose": "a database that persists application data",
+                "label": "DB"
+              },
+              {
+                "key": "group",
+                "purpose": "a group, boundary or container that holds other parts",
+                "label": "グループ"
+              }
+            ]
+          },
+          "selected": [
+            {
+              "key": "start",
+              "region": "part-1",
+              "parent": "container"
+            }
+          ],
+          "candidates": [
+            {
+              "id": "delta-5",
+              "action": "add-part",
+              "part": "end",
+              "parent": "container"
+            },
+            {
+              "id": "delta-12",
+              "action": "add-part",
+              "part": "end",
+              "parent": "other"
+            }
+          ],
+          "context": {
+            "recent": [
+              {
+                "seq": 1,
+                "source": "typed",
+                "text": "OCIの中に開始と終了を一つずつ置き、開始から終了につなげてください。",
+                "outcome": "step",
+                "effect": {
+                  "changes": [
+                    {
+                      "change": "added",
+                      "kind": "region",
+                      "id": "part-1",
+                      "label": "開始"
+                    }
+                  ]
+                }
+              }
+            ]
+          },
+          "scope": null,
+          "placing": "end"
+        }
+      },
+      "status": 200,
+      "response": {
+        "kind": "voice-ui.judge.decision.v1",
+        "answers": {
+          "delta": {
+            "type": "choice",
+            "choice": "delta-5",
+            "confidence": 1
+          }
+        }
+      },
+      "elapsedMs": 159.52820000000065
+    },
+    {
+      "id": "N02",
+      "arm": "B",
+      "n": 6,
+      "route": "/api/judge",
+      "request": {
+        "kind": "voice-ui.judge.goal-local-delta.v7",
+        "state": {
+          "utterance": "OCIの中に開始と終了を一つずつ置き、開始から終了につなげてください。",
+          "graph": [
+            {
+              "id": "root",
+              "label": "fixture",
+              "parent": null
+            },
+            {
+              "id": "container",
+              "label": "OCI",
+              "parent": "root"
+            },
+            {
+              "id": "other",
+              "label": "Other",
+              "parent": "root"
+            },
+            {
+              "id": "part-1",
+              "label": "開始",
+              "parent": "container"
+            },
+            {
+              "id": "part-2",
+              "label": "終了",
+              "parent": "container"
+            }
+          ],
+          "edges": [],
+          "parents": [
+            {
+              "id": "container",
+              "label": "OCI",
+              "kind": "group",
+              "parent": "root"
+            },
+            {
+              "id": "other",
+              "label": "Other",
+              "kind": "group",
+              "parent": "root"
+            }
+          ],
+          "offers": {
+            "parts": [
+              {
+                "key": "step",
+                "purpose": "an ordinary step, task or box",
+                "label": "工程"
+              },
+              {
+                "key": "decision",
+                "purpose": "a decision, choice or branch",
+                "label": "判断"
+              },
+              {
+                "key": "data",
+                "purpose": "data, a document, an input or an output",
+                "label": "データ"
+              },
+              {
+                "key": "start",
+                "purpose": "a start or beginning",
+                "label": "開始"
+              },
+              {
+                "key": "end",
+                "purpose": "an end, finish or result",
+                "label": "終了"
+              },
+              {
+                "key": "api",
+                "purpose": "an application programming interface service that receives requests",
+                "label": "API"
+              },
+              {
+                "key": "db",
+                "purpose": "a database that persists application data",
+                "label": "DB"
+              },
+              {
+                "key": "group",
+                "purpose": "a group, boundary or container that holds other parts",
+                "label": "グループ"
+              }
+            ]
+          },
+          "selected": [
+            {
+              "key": "start",
+              "region": "part-1",
+              "parent": "container"
+            },
+            {
+              "key": "end",
+              "region": "part-2",
+              "parent": "container"
+            }
+          ],
+          "candidates": [
+            {
+              "id": "delta-1",
+              "action": "add-part",
+              "part": "api",
+              "parent": "container"
+            },
+            {
+              "id": "delta-2",
+              "action": "add-part",
+              "part": "data",
+              "parent": "container"
+            },
+            {
+              "id": "delta-3",
+              "action": "add-part",
+              "part": "db",
+              "parent": "container"
+            },
+            {
+              "id": "delta-4",
+              "action": "add-part",
+              "part": "decision",
+              "parent": "container"
+            },
+            {
+              "id": "delta-5",
+              "action": "add-part",
+              "part": "group",
+              "parent": "container"
+            },
+            {
+              "id": "delta-6",
+              "action": "add-part",
+              "part": "step",
+              "parent": "container"
+            },
+            {
+              "id": "delta-7",
+              "action": "add-part",
+              "part": "api",
+              "parent": "other"
+            },
+            {
+              "id": "delta-8",
+              "action": "add-part",
+              "part": "data",
+              "parent": "other"
+            },
+            {
+              "id": "delta-9",
+              "action": "add-part",
+              "part": "db",
+              "parent": "other"
+            },
+            {
+              "id": "delta-10",
+              "action": "add-part",
+              "part": "decision",
+              "parent": "other"
+            },
+            {
+              "id": "delta-11",
+              "action": "add-part",
+              "part": "group",
+              "parent": "other"
+            },
+            {
+              "id": "delta-12",
+              "action": "add-part",
+              "part": "step",
+              "parent": "other"
+            },
+            {
+              "id": "delta-13",
+              "action": "add-edge",
+              "from": "part-1",
+              "to": "part-2"
+            },
+            {
+              "id": "delta-14",
+              "action": "add-edge",
+              "from": "part-2",
+              "to": "part-1"
+            }
+          ],
+          "context": {
+            "recent": [
+              {
+                "seq": 1,
+                "source": "typed",
+                "text": "OCIの中に開始と終了を一つずつ置き、開始から終了につなげてください。",
+                "outcome": "step",
+                "effect": {
+                  "changes": [
+                    {
+                      "change": "added",
+                      "kind": "region",
+                      "id": "part-1",
+                      "label": "開始"
+                    },
+                    {
+                      "change": "added",
+                      "kind": "region",
+                      "id": "part-2",
+                      "label": "終了"
+                    }
+                  ]
+                }
+              }
+            ]
+          },
+          "scope": null,
+          "placing": null
+        }
+      },
+      "status": 200,
+      "response": {
+        "kind": "voice-ui.judge.decision.v1",
+        "answers": {
+          "delta": {
+            "type": "choice",
+            "choice": "delta-13",
+            "confidence": 1
+          }
+        }
+      },
+      "elapsedMs": 443.76850000000013
+    },
+    {
+      "id": "N02",
+      "arm": "B",
+      "n": 7,
+      "route": "/api/judge",
+      "request": {
+        "kind": "voice-ui.judge.goal-local-delta.v7",
+        "state": {
+          "utterance": "OCIの中に開始と終了を一つずつ置き、開始から終了につなげてください。",
+          "graph": [
+            {
+              "id": "root",
+              "label": "fixture",
+              "parent": null
+            },
+            {
+              "id": "container",
+              "label": "OCI",
+              "parent": "root"
+            },
+            {
+              "id": "other",
+              "label": "Other",
+              "parent": "root"
+            },
+            {
+              "id": "part-1",
+              "label": "開始",
+              "parent": "container"
+            },
+            {
+              "id": "part-2",
+              "label": "終了",
+              "parent": "container"
+            }
+          ],
+          "edges": [
+            {
+              "id": "voice-part-1-to-part-2",
+              "from": "part-1",
+              "to": "part-2"
+            }
+          ],
+          "parents": [
+            {
+              "id": "container",
+              "label": "OCI",
+              "kind": "group",
+              "parent": "root"
+            },
+            {
+              "id": "other",
+              "label": "Other",
+              "kind": "group",
+              "parent": "root"
+            }
+          ],
+          "offers": {
+            "parts": [
+              {
+                "key": "step",
+                "purpose": "an ordinary step, task or box",
+                "label": "工程"
+              },
+              {
+                "key": "decision",
+                "purpose": "a decision, choice or branch",
+                "label": "判断"
+              },
+              {
+                "key": "data",
+                "purpose": "data, a document, an input or an output",
+                "label": "データ"
+              },
+              {
+                "key": "start",
+                "purpose": "a start or beginning",
+                "label": "開始"
+              },
+              {
+                "key": "end",
+                "purpose": "an end, finish or result",
+                "label": "終了"
+              },
+              {
+                "key": "api",
+                "purpose": "an application programming interface service that receives requests",
+                "label": "API"
+              },
+              {
+                "key": "db",
+                "purpose": "a database that persists application data",
+                "label": "DB"
+              },
+              {
+                "key": "group",
+                "purpose": "a group, boundary or container that holds other parts",
+                "label": "グループ"
+              }
+            ]
+          },
+          "selected": [
+            {
+              "key": "start",
+              "region": "part-1",
+              "parent": "container"
+            },
+            {
+              "key": "end",
+              "region": "part-2",
+              "parent": "container"
+            }
+          ],
+          "candidates": [
+            {
+              "id": "delta-1",
+              "action": "add-part",
+              "part": "api",
+              "parent": "container"
+            },
+            {
+              "id": "delta-2",
+              "action": "add-part",
+              "part": "data",
+              "parent": "container"
+            },
+            {
+              "id": "delta-3",
+              "action": "add-part",
+              "part": "db",
+              "parent": "container"
+            },
+            {
+              "id": "delta-4",
+              "action": "add-part",
+              "part": "decision",
+              "parent": "container"
+            },
+            {
+              "id": "delta-5",
+              "action": "add-part",
+              "part": "group",
+              "parent": "container"
+            },
+            {
+              "id": "delta-6",
+              "action": "add-part",
+              "part": "step",
+              "parent": "container"
+            },
+            {
+              "id": "delta-7",
+              "action": "add-part",
+              "part": "api",
+              "parent": "other"
+            },
+            {
+              "id": "delta-8",
+              "action": "add-part",
+              "part": "data",
+              "parent": "other"
+            },
+            {
+              "id": "delta-9",
+              "action": "add-part",
+              "part": "db",
+              "parent": "other"
+            },
+            {
+              "id": "delta-10",
+              "action": "add-part",
+              "part": "decision",
+              "parent": "other"
+            },
+            {
+              "id": "delta-11",
+              "action": "add-part",
+              "part": "group",
+              "parent": "other"
+            },
+            {
+              "id": "delta-12",
+              "action": "add-part",
+              "part": "step",
+              "parent": "other"
+            },
+            {
+              "id": "delta-13",
+              "action": "add-edge",
+              "from": "part-2",
+              "to": "part-1"
+            }
+          ],
+          "context": {
+            "recent": [
+              {
+                "seq": 1,
+                "source": "typed",
+                "text": "OCIの中に開始と終了を一つずつ置き、開始から終了につなげてください。",
+                "outcome": "step",
+                "effect": {
+                  "changes": [
+                    {
+                      "change": "added",
+                      "kind": "region",
+                      "id": "part-1",
+                      "label": "開始"
+                    },
+                    {
+                      "change": "added",
+                      "kind": "region",
+                      "id": "part-2",
+                      "label": "終了"
+                    },
+                    {
+                      "change": "added",
+                      "from": "part-1",
+                      "to": "part-2"
+                    }
+                  ]
+                }
+              }
+            ]
+          },
+          "scope": null,
+          "placing": null
+        }
+      },
+      "status": 200,
+      "response": {
+        "kind": "voice-ui.judge.decision.v1",
+        "answers": {
+          "delta": {
+            "type": "choice",
+            "choice": "none",
+            "confidence": 1
+          }
+        }
+      },
+      "elapsedMs": 184.59679999999935
+    }
+  ],
+  "preparation": [],
+  "initial_head": "sha256:3f44e0d52678bc7ddeac8b19804ffaadfe6a493ce65ba8ca98f345ddd2ff75a2",
+  "initial_log_sha256": "32f7c43ed78ccead4936c39d30e00fd36340a388192bb9e0c9b0265801848079",
+  "initial_records": [
+    {
+      "type": "meta",
+      "schema": "semantic-map-state/1",
+      "root": "root",
+      "title": "sealed small PoC"
+    },
+    {
+      "type": "region",
+      "id": "root",
+      "parent": null,
+      "label": "fixture",
+      "kind": "boundary",
+      "bounds": [
+        0,
+        0,
+        900,
+        400
+      ],
+      "summary": ""
+    },
+    {
+      "type": "region",
+      "id": "container",
+      "parent": "root",
+      "label": "OCI",
+      "kind": "group",
+      "bounds": [
+        0,
+        0,
+        700,
+        200
+      ],
+      "summary": ""
+    },
+    {
+      "type": "region",
+      "id": "other",
+      "parent": "root",
+      "label": "Other",
+      "kind": "group",
+      "bounds": [
+        0,
+        230,
+        700,
+        160
+      ],
+      "summary": ""
+    },
+    {
+      "type": "layout",
+      "regionId": "container",
+      "pin": "hard",
+      "bounds": [
+        0,
+        0,
+        2000,
+        500
+      ]
+    },
+    {
+      "type": "layout",
+      "regionId": "other",
+      "pin": "hard",
+      "bounds": [
+        0,
+        600,
+        2000,
+        500
+      ]
+    }
+  ],
+  "final_head": "sha256:d3dd274273443779fd6fa54bba9d5321f015ce47ace2b3787d93158241aa179a",
+  "final_records": [
+    {
+      "type": "meta",
+      "schema": "semantic-map-state/1",
+      "root": "root",
+      "title": "sealed small PoC"
+    },
+    {
+      "type": "region",
+      "id": "root",
+      "parent": null,
+      "label": "fixture",
+      "kind": "boundary",
+      "bounds": [
+        0,
+        0,
+        900,
+        400
+      ],
+      "summary": ""
+    },
+    {
+      "type": "region",
+      "id": "container",
+      "parent": "root",
+      "label": "OCI",
+      "kind": "group",
+      "bounds": [
+        0,
+        0,
+        700,
+        200
+      ],
+      "summary": ""
+    },
+    {
+      "type": "region",
+      "id": "other",
+      "parent": "root",
+      "label": "Other",
+      "kind": "group",
+      "bounds": [
+        0,
+        230,
+        700,
+        160
+      ],
+      "summary": ""
+    },
+    {
+      "type": "region",
+      "id": "part-1",
+      "parent": "container",
+      "label": "開始",
+      "kind": "start",
+      "bounds": [
+        20,
+        20,
+        140,
+        64
+      ],
+      "summary": ""
+    },
+    {
+      "type": "region",
+      "id": "part-2",
+      "parent": "container",
+      "label": "終了",
+      "kind": "end",
+      "bounds": [
+        180,
+        20,
+        140,
+        64
+      ],
+      "summary": ""
+    },
+    {
+      "type": "relation",
+      "id": "voice-part-1-to-part-2",
+      "from": "part-1",
+      "to": "part-2",
+      "kind": "flow",
+      "label": ""
+    },
+    {
+      "type": "layout",
+      "regionId": "container",
+      "pin": "hard",
+      "bounds": [
+        0,
+        0,
+        2000,
+        500
+      ]
+    },
+    {
+      "type": "layout",
+      "regionId": "other",
+      "pin": "hard",
+      "bounds": [
+        0,
+        600,
+        2000,
+        500
+      ]
+    },
+    {
+      "type": "layout",
+      "regionId": "part-1",
+      "pin": "hard",
+      "bounds": [
+        12,
+        36,
+        180,
+        92
+      ]
+    },
+    {
+      "type": "layout",
+      "regionId": "part-2",
+      "pin": "hard",
+      "bounds": [
+        216,
+        36,
+        180,
+        92
+      ]
+    }
+  ],
+  "final_log": "{\"operations\":[{\"mapId\":\"voice-graph\",\"records\":[{\"root\":\"root\",\"schema\":\"semantic-map-state/1\",\"title\":\"sealed small PoC\",\"type\":\"meta\"},{\"bounds\":[0,0,900,400],\"id\":\"root\",\"kind\":\"boundary\",\"label\":\"fixture\",\"parent\":null,\"summary\":\"\",\"type\":\"region\"},{\"bounds\":[0,0,700,200],\"id\":\"container\",\"kind\":\"group\",\"label\":\"OCI\",\"parent\":\"root\",\"summary\":\"\",\"type\":\"region\"},{\"bounds\":[0,230,700,160],\"id\":\"other\",\"kind\":\"group\",\"label\":\"Other\",\"parent\":\"root\",\"summary\":\"\",\"type\":\"region\"}],\"type\":\"CreateMap\"}],\"parent\":null,\"schema\":\"semantic-map-decision/2\",\"stateHash\":\"sha256:721939a9428f00adec7d4771ae910ab118bb80cd0bb2f36e7790f7e761599204\"}\n{\"operations\":[{\"items\":[{\"bounds\":[0,0,2000,500],\"regionId\":\"container\"},{\"bounds\":[0,600,2000,500],\"regionId\":\"other\"}],\"type\":\"PinRegions\"}],\"parent\":\"sha256:e411c26b1ae696e494de68f591334b0ebbd9928edb8da647d681d5278575d42b\",\"schema\":\"semantic-map-decision/2\",\"stateHash\":\"sha256:08e53be00691c0b7ba556e34955fe1695e1b0a7d1a15eb82c05b0d87e7b385ed\"}\n{\"operations\":[{\"bounds\":[20,20,140,64],\"kind\":\"start\",\"label\":\"開始\",\"parentId\":\"container\",\"regionId\":\"part-1\",\"summary\":\"\",\"type\":\"AddRegion\"},{\"items\":[{\"bounds\":[12,36,180,92],\"regionId\":\"part-1\"}],\"type\":\"PinRegions\"}],\"parent\":\"sha256:3f44e0d52678bc7ddeac8b19804ffaadfe6a493ce65ba8ca98f345ddd2ff75a2\",\"schema\":\"semantic-map-decision/2\",\"stateHash\":\"sha256:02908c13664826b24daa53a3d808be30aaa4ed347c40b84a355e41364e48d213\"}\n{\"operations\":[{\"bounds\":[180,20,140,64],\"kind\":\"end\",\"label\":\"終了\",\"parentId\":\"container\",\"regionId\":\"part-2\",\"summary\":\"\",\"type\":\"AddRegion\"},{\"items\":[{\"bounds\":[216,36,180,92],\"regionId\":\"part-2\"}],\"type\":\"PinRegions\"}],\"parent\":\"sha256:60046a2e06b720efd90ec6e1096040e6df56daa3208919e1626bbebde6606666\",\"schema\":\"semantic-map-decision/2\",\"stateHash\":\"sha256:a2a462ec10fafc2b140f38d534bfaccaed276346ddd446ca71f083b9d4b2611f\"}\n{\"operations\":[{\"from\":\"part-1\",\"kind\":\"flow\",\"label\":\"\",\"relationId\":\"voice-part-1-to-part-2\",\"to\":\"part-2\",\"type\":\"ConnectRegions\"}],\"parent\":\"sha256:a072a9d5d12803173203b930e2ba40ad6276f623e01b304ba6f32d840e859afa\",\"schema\":\"semantic-map-decision/2\",\"stateHash\":\"sha256:f42d4e0a17cc91d4a0bb535dbc9a86027b1494d9516a325e2aa19d63af3deabe\"}\n"
+}
