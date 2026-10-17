@@ -1,0 +1,234 @@
+{
+  "schema": "voice-ui.reviewer.component-axes-final-summary/1",
+  "status": "RECORDED_AND_INDEPENDENTLY_AUDITED",
+  "measurement_source": "286eb7d0bc0bdef160bda900547314aa5be3a752",
+  "report_admission": "efd6f7b7904910ed99e6fcf5d7bf6f32f49f4899",
+  "source_review": "https://github.com/roccho-dev/apps/pull/103#pullrequestreview-5558028175",
+  "source_scorer_sha256": "b5b6547e81f8213ba20126ab6404d4807b06d836f91507651a502bc9c6ebef6b",
+  "source_auditor_sha256": "3716e7c3aa9ca2333c016d6e81bfb7fde49b6a4896455b2b6e534bffaceb24e9",
+  "reports": [
+    {
+      "axis": "G",
+      "integrity": "PASS",
+      "producer": "PASS",
+      "provider": "PASS",
+      "complete": true,
+      "valid_execution": true,
+      "admissible_for_semantic_claim": true,
+      "semantic": {
+        "total": 10,
+        "intent": {
+          "correct": 9,
+          "total": 10
+        },
+        "availability": {
+          "correct": 7,
+          "total": 8
+        },
+        "normalized": {
+          "correct": 8,
+          "total": 10
+        },
+        "completeness": {
+          "correct": 8,
+          "total": 8
+        },
+        "unknown": 1,
+        "semantic_criteria": "UNMET"
+      },
+      "recorded_replay": null,
+      "raw_audit_sha256": "4969e8445230c3975c3a8e580af1af70167beccd7d096132175bd6ae72cff4e1",
+      "producer_sha256": "68cb5a9de58031ae5400b59779c65bffa83c1daa213a6de55cf2c4d3cc7c807d",
+      "stop_audit_sha256": "32704da86238bf0c8e8dccb6f377026149d9eaa22d338633e12b04ff729e4668",
+      "scope": "ordinary frozen path at specified finite scope"
+    },
+    {
+      "axis": "R",
+      "integrity": "PASS",
+      "producer": "PASS",
+      "provider": "PASS",
+      "complete": true,
+      "valid_execution": true,
+      "admissible_for_semantic_claim": true,
+      "semantic": {
+        "complete": true,
+        "total": 8,
+        "inventory_sufficient": 8,
+        "graph_exact": 8,
+        "paint_pass": 8,
+        "representation_criteria": "PASS",
+        "scope": "finite representation with oracle inventory; raw paint/Goal binding is separately required"
+      },
+      "recorded_replay": {
+        "status": "PASS",
+        "issues": [],
+        "consumed": 8,
+        "frames": 32,
+        "assessed_frames": 24,
+        "recorded_paint_status": "PASS",
+        "replay_sha256": "027ef0abc1ffad860f6cf28a785e9313e1dc8eb82fc00daa74b204d1be544951",
+        "model_quality_scope": "NONE",
+        "CI_LIVE_EXECUTION": "UNPROVEN"
+      },
+      "raw_audit_sha256": "743dcc99f80c4517f331ddfec94c266bf3d2c145220f0a51bdd9835b270674ec",
+      "producer_sha256": "ce8fcd524d6b965071a7cb4f5984c4cf3249be55e0f20f606f3b880a2e4645f6",
+      "stop_audit_sha256": "852e96c7b225d35ca72832f7b88a18b009bb169ea6e69cd4b129c36e3858de81",
+      "scope": "conditional representation with exactly8 oracle parts, no supplied parent/edge answers"
+    },
+    {
+      "axis": "F",
+      "integrity": "PASS",
+      "producer": "PASS",
+      "provider": "PASS",
+      "complete": true,
+      "valid_execution": false,
+      "admissible_for_semantic_claim": false,
+      "semantic": {
+        "complete": true,
+        "per_method": {
+          "literal": {
+            "total": 8,
+            "exact_minimal": 3,
+            "contract_valid": true,
+            "semantic_criteria": "UNMET"
+          },
+          "typed": {
+            "total": 8,
+            "exact_minimal": 4,
+            "contract_valid": false,
+            "semantic_criteria": "UNMET"
+          }
+        }
+      },
+      "recorded_replay": null,
+      "raw_audit_sha256": "d1e876294c5ebf75b45b55b8623ff4fe7b7de0cb1373aec40e06a96cc426211e",
+      "producer_sha256": "3cc680e03602095e3b9e7295a03e3b0901d8aa032573cecdc2c22aacc7bbb5aa",
+      "stop_audit_sha256": "254bc3482f6f95d1fddfeb8cc9f350702f7fc3c7efecd5189dfd63faede8bf49",
+      "scope": "direct candidate supply, no gate or Goal"
+    },
+    {
+      "axis": "E",
+      "integrity": "PASS",
+      "producer": "PASS",
+      "provider": "PASS",
+      "complete": true,
+      "valid_execution": true,
+      "admissible_for_semantic_claim": true,
+      "semantic": {
+        "complete": true,
+        "gate_correct": 7,
+        "sufficient": {
+          "exact": 2,
+          "total": 4
+        },
+        "missing": {
+          "exact_minimal": 3,
+          "total": 4
+        },
+        "controls": {
+          "correct_unchanged": 2,
+          "total": 2
+        },
+        "ordinary_criteria": "UNMET",
+        "Undo_scope": "separate completed-artifact keyless mechanics, not another live Goal on these inputs"
+      },
+      "recorded_replay": {
+        "status": "PASS",
+        "issues": [],
+        "consumed": 10,
+        "frames": 34,
+        "assessed_frames": 24,
+        "recorded_paint_status": "PASS",
+        "replay_sha256": "26f58204f1fbeb7fa8c07b9c0b3dd8338830771cb998a6db64c653c62960b657",
+        "model_quality_scope": "NONE",
+        "CI_LIVE_EXECUTION": "UNPROVEN"
+      },
+      "raw_audit_sha256": "19150d37d1d7bab5ea920766e8b4338d4009579d630d523a69061a8f4d454202",
+      "producer_sha256": "c351811473ed4887b14cca62ad261b1c05ce4c6d6ea3207da31c3994098b513b",
+      "stop_audit_sha256": "a48d60b9b17e3233b6d46f4a0265a9d2cfd083b7b328fae96355a408f68e1606",
+      "scope": "ordinary frozen path at specified finite scope"
+    }
+  ],
+  "final_provider_sends": {
+    "jev": 89,
+    "typellm": 8
+  },
+  "public_and_final_cycle_sends": {
+    "jev": 125,
+    "typellm": 11
+  },
+  "cumulative_charged": {
+    "jev": 689,
+    "typellm": 40
+  },
+  "cumulative_confirmed_sends": {
+    "jev": 689,
+    "typellm": 39
+  },
+  "pending_reservation": null,
+  "all_four_owned_provider_groups_empty_including_zombies": true,
+  "remaining_global_cap": {
+    "jev": 311,
+    "typellm": 960
+  },
+  "all_current_pools_consumed": true,
+  "source_change_during_fresh": false,
+  "provider_retry": false,
+  "overall_quality": "UNMET",
+  "whole_F_comparison": "UNPROVEN",
+  "source_and_stopped_integrity": "PASS",
+  "final_report_CI": "PENDING",
+  "expected_classification_if_CI_replay_join_matches": {
+    "G": "UNMET",
+    "R": "FINITE_CRITERIA_PASS",
+    "F": "UNPROVEN",
+    "E": "UNMET"
+  },
+  "valid_F_pairs": {
+    "both_exact": [
+      "F01",
+      "F02"
+    ],
+    "B_only_exact": [
+      "F03"
+    ],
+    "C_only_exact": [
+      "F05",
+      "F06"
+    ],
+    "both_known_incomplete": [
+      "F04",
+      "F07"
+    ],
+    "invalid_typed_and_partial_B": [
+      "F08"
+    ]
+  },
+  "ordinary_E": {
+    "accepted_correct_gate_then_exact_graph": "7/7 conditional observation",
+    "clear_scope": "2/4 sufficient exact;3/4 missing exact/minimal;2/2 controls",
+    "paint_and_persistence_and_deadline": "10/10",
+    "false_adoptions": 0,
+    "unnecessary_preparations": 0,
+    "typellm_sends": 0,
+    "failed_cases": [
+      "R01",
+      "R03",
+      "R06"
+    ],
+    "failed_cases_mechanism": "incomplete literal extraction correctly rejected before adoption"
+  },
+  "representation_scope": {
+    "max_added_regions": 3,
+    "max_added_edges": 1,
+    "inventory_parts_per_case": 8,
+    "graphs": 8,
+    "graph_exact": 8,
+    "paint_pass": 8,
+    "arbitrary_complexity": "NOT_MEASURED"
+  },
+  "CI_LIVE_EXECUTION": "UNPROVEN",
+  "currency": "COST_NOT_MEASURED",
+  "UI_human_approval": "PENDING",
+  "next_cycle": "requires a separate fixed hypothesis/budget/new unseen seal; all current inputs regression-only"
+}

@@ -74,6 +74,84 @@
     "fixture": "actual consumed reserve with edited but consistently rehashed semantic counterexamples",
     "node": "v24.19.0"
   },
-  "module_sha256": "ff279fdade72a8899c90e951e4ad62305f70c8580ded76d05e68b65c1398822b",
-  "test_sha256": "54aa304ee763b8408b0c823c5b4f3fdbe01c01c93ebe3a768da1caaea68c2bdb"
+  "module_sha256": "3696fc017b0a3268ee532b327ba03418a79d21c9b5f3c414705541b79b219c2a",
+  "test_sha256": "54aa304ee763b8408b0c823c5b4f3fdbe01c01c93ebe3a768da1caaea68c2bdb",
+  "compatibility": {
+    "original_module_sha256": "ff279fdade72a8899c90e951e4ad62305f70c8580ded76d05e68b65c1398822b",
+    "changed_expression_only": true,
+    "original_validation_preserved": "component-axis-reserve-audit-validation.ff279.json",
+    "cases": [
+      {
+        "id": "consumed-original-reserve",
+        "status": "PASS",
+        "issues": [],
+        "identical": true
+      },
+      {
+        "id": "malformed-poolBytes",
+        "status": "FAIL",
+        "issues": [
+          "original reserve pool raw bytes"
+        ],
+        "identical": true
+      },
+      {
+        "id": "malformed-projectionBytes",
+        "status": "FAIL",
+        "issues": [
+          "invalid JSON"
+        ],
+        "identical": true
+      },
+      {
+        "id": "malformed-oracleBytes",
+        "status": "FAIL",
+        "issues": [
+          "invalid JSON"
+        ],
+        "identical": true
+      },
+      {
+        "id": "malformed-bundleBytes",
+        "status": "FAIL",
+        "issues": [
+          "invalid JSON"
+        ],
+        "identical": true
+      },
+      {
+        "id": "changed-original-target",
+        "status": "FAIL",
+        "issues": [
+          "unchanged original oracle fields and order"
+        ],
+        "identical": true
+      },
+      {
+        "id": "changed-mechanical-required",
+        "status": "FAIL",
+        "issues": [
+          "required must be the original target multiset"
+        ],
+        "identical": true
+      },
+      {
+        "id": "changed-mechanical-intent",
+        "status": "FAIL",
+        "issues": [
+          "mechanical expected intent"
+        ],
+        "identical": true
+      },
+      {
+        "id": "reordered-original-cases",
+        "status": "FAIL",
+        "issues": [
+          "unchanged original oracle fields and order"
+        ],
+        "identical": true
+      }
+    ],
+    "scope": "same-realm JSON.parse SyntaxError and own Error paths of this fixed public auditor; no equivalence claim for arbitrary thrown objects or altered globals"
+  }
 }

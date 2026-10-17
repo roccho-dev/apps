@@ -55,7 +55,7 @@ export function auditReserveProjection({ poolBytes, projectionBytes, oracleBytes
     }
     need(same(strata, { sufficient: 4, missing: 4, ambiguous: 1, 'no-change': 1 }), 'original 4/4/2 denominator');
     Object.assign(result, { case_order: order, strata, original_case_object_sha256: originalHashes });
-  } catch (error) { issues.push(error instanceof SyntaxError ? 'invalid JSON' : error.message); }
+  } catch (error) { issues.push(error?.name === 'SyntaxError' ? 'invalid JSON' : error.message); }
   return { ...result, status: issues.length ? 'FAIL' : 'PASS', issues,
     scope: 'raw original seal, case/target/order/fixture preservation and mechanical required derivation only; no model-quality verdict' };
 }
