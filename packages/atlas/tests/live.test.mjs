@@ -58,7 +58,7 @@ test('end to end: G fixture snapshots → G events → live.mjs → D → World'
     'reviewer-running': ['satisfied', 'observed'],
     'worker-running': ['unmet', 'observed'], // transcript-only means a past transcript exists, not activity
     'ui-serving': ['unknown', 'stale'],
-    lookalike: ['unknown', 'no-observation'], // 'apps#92' is not 'apps#92:pr.state'
+    lookalike: ['unknown', 'no-observation'], // 'roccho-dev/apps#92' is not 'roccho-dev/apps#92:pr.state'
   });
   // Only the declared Norm assigns; the rest stays unassigned rather than guessed from names.
   assert.deepEqual(now.conditions.filter(value => value.responsibility.state === 'assigned').map(value => [value.id, value.responsibility.actor]),
@@ -78,17 +78,17 @@ test('end to end: G fixture snapshots → G events → live.mjs → D → World'
   const [plan, ...others] = plans.frames.at(-1).plans;
   assert.equal(others.length, 0);
   assert.deepEqual([plan.plan, plan.ref, plan.version, plan.serves, plan.nodes, plan.unknown, plan.premise],
-    ['resources#25:windows-retirement-migration-20261016', 'resources#25', '3', ['merged'], null, ['flowchart-absent', 'exit-table-absent'], 'current']);
-  const gPlan = rows(readFileSync(gEvents, 'utf8')).find(event => event.plan === 'resources#25:windows-migration-preparation-scope-20261017');
+    ['roccho-dev/resources#25:windows-retirement-migration-20261016', 'roccho-dev/resources#25', '3', ['merged'], null, ['flowchart-absent', 'exit-table-absent'], 'current']);
+  const gPlan = rows(readFileSync(gEvents, 'utf8')).find(event => event.plan === 'roccho-dev/resources#25:windows-migration-preparation-scope-20261017');
   assert.deepEqual(rows(readFileSync(path.join(dir, 'g-plans.jsonl'), 'utf8')),
     [{ reason: 'no ideal state declares this plan in requires[].plans', plan: gPlan }]);
   assert.equal(receipt.held_plans.count, 1);
   // World plan contract (ui reads only this): [] = declared but none recorded at t, nodes:null = content UNKNOWN.
   assert.deepEqual(world.frames[0].plans, []);
-  assert.deepEqual(world.frames.at(-1).plans, [{ ref: 'resources#25', plan: 'resources#25:windows-retirement-migration-20261016', version: 3,
-    label: 'resources#25:windows-retirement-migration-20261016 v3 · resources#25 comment 6208252115', serves: ['merged'], nodes: null, edges: null,
+  assert.deepEqual(world.frames.at(-1).plans, [{ ref: 'roccho-dev/resources#25', plan: 'roccho-dev/resources#25:windows-retirement-migration-20261016', version: 3,
+    label: 'roccho-dev/resources#25:windows-retirement-migration-20261016 v3 · roccho-dev/resources#25 comment 6208252115', serves: ['merged'], nodes: null, edges: null,
     unknown: ['flowchart-absent', 'exit-table-absent'],
-    source: { repo: 'resources#25', commentId: 6208252115, updatedAt: gPlans(gEvents)[1].source.updatedAt, sha256: gPlans(gEvents)[1].source.sha256 } }]);
+    source: { repo: 'roccho-dev/resources#25', commentId: 6208252115, updatedAt: gPlans(gEvents)[1].source.updatedAt, sha256: gPlans(gEvents)[1].source.sha256 } }]);
   // Plans, gap, phase, journal and matched_until are edge contracts: without them the World is exactly D's.
   const bare = deriveAtlas(readFileSync(path.join(dir, 'events.jsonl'), 'utf8'), readFileSync(file('../fixtures/live/control.jsonl'), 'utf8')).world;
   assert.deepEqual({ ...world, frames: world.frames.map(({ plans, gap, phase, journal, matched_until, ...frame }) => frame) }, bare);
@@ -114,9 +114,9 @@ test('fromG keeps targets opaque, passes <target>:session as Agent activity, and
   assert.equal(fromG({ ...event, target: ':session' }).events.length, 1);
   // A declared plan that D's parser rejects is held with D's reason, never forced in.
   const purposes = rows(readFileSync(file('../fixtures/live/purpose.jsonl'), 'utf8'));
-  const bad = { kind: 'plan.set', plan: 'resources#25:windows-retirement-migration-20261016', version: 1, recordedAt: '2026-10-16T20:40:00Z',
-    source: { repo: 'resources#25', commentId: null, updatedAt: '2026-10-16T20:00:00Z', sha256: 'sha256:' + '1'.repeat(64) },
-    nodes: [{ id: 'resources#25:A', label: 'A', shape: 'rect', groups: [], owner: 'UNKNOWN', exit: 'UNKNOWN', predicate: 'UNKNOWN', requires: 'UNKNOWN' }],
+  const bad = { kind: 'plan.set', plan: 'roccho-dev/resources#25:windows-retirement-migration-20261016', version: 1, recordedAt: '2026-10-16T20:40:00Z',
+    source: { repo: 'roccho-dev/resources#25', commentId: null, updatedAt: '2026-10-16T20:00:00Z', sha256: 'sha256:' + '1'.repeat(64) },
+    nodes: [{ id: 'roccho-dev/resources#25:A', label: 'A', shape: 'rect', groups: [], owner: 'UNKNOWN', exit: 'UNKNOWN', predicate: 'UNKNOWN', requires: 'UNKNOWN' }],
     edges: [], exits: 'UNKNOWN', unknown: [] };
   assert.match(fromG(bad, purposes).held.reason, /outside v1/u);
   assert.throws(() => fromG({ ...event, extra: 1 }), /unsupported G event/u);

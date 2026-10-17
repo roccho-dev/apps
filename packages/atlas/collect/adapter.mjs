@@ -70,14 +70,24 @@ function declaration({ path, fetchedAt, sha256, text }) {
   return { kind: 'declaration', path, fetchedAt, sha256: sha256 ?? null, text: typeof text === 'string' ? text : null };
 }
 
+// GitHub ids carry the owner: records get `repo: 'owner/repo'`, so every target, plan id and journal
+// ref built from it is `owner/repo#n…` / `owner/repo:…` (a fork and its upstream never share a name).
+// A snapshot without a plain owner and repo name is refused rather than collapsed into a shared id.
+function qualified(snapshot) {
+  const plain = value => typeof value === 'string' && /^[A-Za-z0-9._-]+$/u.test(value);
+  if (!plain(snapshot.owner) || !plain(snapshot.repo))
+    throw new Error(`atlas-collect: ${snapshot.type} snapshot needs a plain owner and repo, got ${JSON.stringify([snapshot.owner, snapshot.repo])}`);
+  return { ...snapshot, repo: `${snapshot.owner}/${snapshot.repo}` };
+}
+
 export function normalize(snapshot) {
   switch (snapshot.type) {
-    case 'issue': return [thread(snapshot)];
-    case 'pr': return [pullRequest(snapshot), thread(snapshot)];
+    case 'issue': return [thread(qualified(snapshot))];
+    case 'pr': return [pullRequest(qualified(snapshot)), thread(qualified(snapshot))];
     case 'sessions': return [sessions(snapshot)];
     case 'ports': return [ports(snapshot)];
-    case 'repo': return [repoState(snapshot)];
-    case 'issue-state': return [issueState(snapshot)];
+    case 'repo': return [repoState(qualified(snapshot))];
+    case 'issue-state': return [issueState(qualified(snapshot))];
     case 'declaration': return [declaration(snapshot)];
     default: throw new Error(`atlas-collect: unknown snapshot type ${JSON.stringify(snapshot.type)}`);
   }
