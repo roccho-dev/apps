@@ -153,7 +153,7 @@ export function observePaintedGoal({ container, records, edge = null, identity =
           if (!["rect", "path", "ellipse", "polygon"].includes(node.localName)) return false;
           const style = iframe.contentWindow.getComputedStyle(node);
           if (boundary) return node.localName === "rect" && style.stroke !== "none"
-            && style.strokeDasharray !== "none" && Number(style.strokeOpacity) > 0 && Number(style.opacity) > 0;
+            && paintedColor(style.stroke) && style.strokeDasharray !== "none" && Number(style.strokeOpacity) > 0 && Number(style.opacity) > 0;
           if (!identity && node.getAttribute("pointer-events") !== "all") return false;
           return Number(style.opacity) > 0 && ((paintedColor(style.fill) && Number(style.fillOpacity) > 0)
             || (paintedColor(style.stroke) && Number(style.strokeOpacity) > 0));

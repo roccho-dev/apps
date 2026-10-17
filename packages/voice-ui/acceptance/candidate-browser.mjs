@@ -214,7 +214,7 @@ try {
     }
     if (controlArgs) {
       // Actual painted-DOM mutations, each restored before the next observation.
-      const mutations = ["wrong-label", "hidden-label", "transparent-label", "duplicate-label", "clipped-label", "title-overlap", "title-outside", "sibling-overlap"];
+      const mutations = ["wrong-label", "hidden-label", "transparent-label", "transparent-boundary", "child-shape-outside", "duplicate-label", "clipped-label", "title-overlap", "title-outside", "sibling-overlap"];
       for (const mutation of mutations) {
         const saved = await page.evaluate(({ args, mutation }) => {
           const doc = document.querySelector("#working-surface iframe").contentDocument;
@@ -222,10 +222,14 @@ try {
             .find(n => n.dataset.semanticRegionId === id && n.dataset.semanticRole === role);
           const text = find(args.records[0].id, "text"), shape = find(args.records[0].id, "shape");
           const other = find(mutation.startsWith("title-") ? args.container.id : args.records[1].id, "text");
-          const saved = { content: text.innerHTML, style: text.getAttribute("style"), otherStyle: other.getAttribute("style") };
+          const boundary = find(args.container.id, "shape").querySelector("path,rect,ellipse");
+          const saved = { content: text.innerHTML, style: text.getAttribute("style"), otherStyle: other.getAttribute("style"),
+            shapeStyle: shape.getAttribute("style"), boundaryStyle: boundary.getAttribute("style") };
           if (mutation === "wrong-label") text.querySelector("text").textContent = "wrong";
           if (mutation === "hidden-label") text.style.display = "none";
           if (mutation === "transparent-label") text.querySelector("text").style.fill = "rgba(0,0,0,0)";
+          if (mutation === "transparent-boundary") boundary.style.stroke = "rgba(0,0,0,0)";
+          if (mutation === "child-shape-outside") shape.style.transform = "translate(10000px,0px)";
           if (mutation === "title-outside") other.style.transform = "translate(10000px,0px)";
           if (mutation === "duplicate-label") text.append(text.querySelector("text").cloneNode(true));
           if (mutation === "clipped-label") text.querySelector("text").setAttribute("x", "100000");
@@ -242,8 +246,10 @@ try {
           const doc = document.querySelector("#working-surface iframe").contentDocument;
           const find = id => [...doc.querySelectorAll('[data-semantic-role="text"]')].find(n => n.dataset.semanticRegionId === id);
           const text = find(args.records[0].id), other = find(mutation.startsWith("title-") ? args.container.id : args.records[1].id);
+          const shape = [...doc.querySelectorAll('[data-semantic-role="shape"]')].find(n => n.dataset.semanticRegionId === args.records[0].id);
+          const boundary = [...doc.querySelectorAll('[data-semantic-role="shape"]')].find(n => n.dataset.semanticRegionId === args.container.id).querySelector("path,rect,ellipse");
           text.innerHTML = saved.content;
-          for (const [node, style] of [[text, saved.style], [other, saved.otherStyle]])
+          for (const [node, style] of [[text, saved.style], [other, saved.otherStyle], [shape, saved.shapeStyle], [boundary, saved.boundaryStyle]])
             if (style === null) node.removeAttribute("style"); else node.setAttribute("style", style);
         }, { args: controlArgs, mutation, saved });
       }

@@ -95,7 +95,7 @@ try {
 const receipt = { schema: "voice-ui.closed-live-log-browser/1", artifact_sources: manifest.sources,
   artifact_manifest_sha256: hash(manifestBytes), scope: "KEYLESS_CLOSED_LIVE_EVIDENCE_REPLAY",
   ci_live_execution: "UNPROVEN", viewport: [1280, 720], deviceScaleFactor: 1,
-  status: failures.length ? "UNMET" : "PASS", failures, rows };
+  status: failures.some(row => row.assessment.status === "UNPROVEN") ? "UNPROVEN" : failures.length ? "UNMET" : "PASS", failures, rows };
 fs.mkdirSync(out, { recursive: true });
 fs.writeFileSync(path.join(out, "receipt.json"), JSON.stringify(receipt, null, 2) + "\n");
 process.stdout.write(JSON.stringify({ schema: receipt.schema, status: receipt.status, rows: rows.length, failures: failures.length }) + "\n");
