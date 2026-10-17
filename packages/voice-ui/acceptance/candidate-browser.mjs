@@ -6,7 +6,8 @@ import { createRequire } from "node:module";
 import path from "node:path";
 import { pathToFileURL } from "node:url";
 import { assertNoSecretInputs, loadAcceptanceArtifact } from "../tests/runtime-acceptance.mjs";
-import { observePaintedGoal, assessPaintedGoal } from "../tests/painted-goal.mjs";
+import { observePaintedGoal, assessPaintedGoal, assessPaintedEdge } from "../tests/painted-goal.mjs";
+import { gradeGraph } from "../tests/semantic-score.mjs";
 
 // Keyless completed-artifact mechanics only. Every upstream response below is
 // synthetic, including the TypeLLM result; no model quality is asserted here.
@@ -150,9 +151,36 @@ try {
     }, key);
     await page.goto(origin); await settle();
     const before = await snapshot(); assert.equal(before.log, accepted.log);
+    const oracle = {
+      expected_added_regions: fixture.nodes.flatMap(node => Array.from({ length: node.quantity }, () => ({
+        label: node.label, kind: node.kind, parent: node.parent === "OCI" ? "fixture:container" : "added:" + node.parent }))),
+      expected_added_edges: fixture.flow ? [{ from: "added:" + fixture.flow[0], to: "added:" + fixture.flow[1], kind: "flow", label: "" }] : [],
+    };
+    const paintRestored = async (stage, state) => {
+      const regions = state.records.filter(record => record.type === "region");
+      const groups = regions.filter(record => record.kind === "group");
+      for (const parent of groups) {
+        await page.locator("#camera-part").selectOption(parent.id); await settle();
+        const observation = await page.evaluate(observePaintedGoal,
+          { container: parent, records: regions.filter(record => record.parent === parent.id), identity: true });
+        const assessment = assessPaintedGoal(observation);
+        frames.push({ fixture: fixture.id, stage, camera: parent.id === "container" ? "named-group" : "nested-group", observation, assessment });
+        if (assessment.status !== "PASS") failures.push({ fixture: fixture.id, stage, parent: parent.id, assessment });
+      }
+      for (const edge of state.records.filter(record => record.type === "relation")) {
+        await page.locator("#camera-part").selectOption(edge.id); await settle();
+        const observation = await page.evaluate(observePaintedGoal, { container: regions.find(record => record.id === "container"),
+          records: [edge.from, edge.to].map(id => regions.find(record => record.id === id)), edge, identity: true });
+        const assessment = assessPaintedEdge(observation);
+        frames.push({ fixture: fixture.id, stage, camera: "relation", observation, assessment });
+        if (assessment.status !== "PASS") failures.push({ fixture: fixture.id, stage, camera: "relation", assessment });
+      }
+      assert.deepEqual((await snapshot()).records, state.records, "restored camera preserves exact records");
+    };
     const draw = async () => { await page.locator("#text").fill(fixture.text); await page.locator("#goal").click(); await settle(); return snapshot(); };
     const after = await draw();
     assert.equal(after.goal.reason, "none", JSON.stringify(after.goal));
+    assert.equal(gradeGraph(before.records, after.records, oracle).graph_exact, true);
     const regions = after.records.filter(record => record.type === "region"), added = regions.filter(record => !records.some(old => old.id === record.id));
     for (const expected of fixture.nodes) {
       const parent = regions.find(record => record.label === expected.parent);
@@ -181,17 +209,19 @@ try {
     }
     if (controlArgs) {
       // Actual painted-DOM mutations, each restored before the next observation.
-      const mutations = ["wrong-label", "hidden-label", "duplicate-label", "clipped-label", "title-overlap", "sibling-overlap"];
+      const mutations = ["wrong-label", "hidden-label", "transparent-label", "duplicate-label", "clipped-label", "title-overlap", "title-outside", "sibling-overlap"];
       for (const mutation of mutations) {
         const saved = await page.evaluate(({ args, mutation }) => {
           const doc = document.querySelector("#working-surface iframe").contentDocument;
           const find = (id, role) => [...doc.querySelectorAll("[data-semantic-region-id]")]
             .find(n => n.dataset.semanticRegionId === id && n.dataset.semanticRole === role);
           const text = find(args.records[0].id, "text"), shape = find(args.records[0].id, "shape");
-          const other = find(mutation === "title-overlap" ? args.container.id : args.records[1].id, "text");
+          const other = find(mutation.startsWith("title-") ? args.container.id : args.records[1].id, "text");
           const saved = { content: text.innerHTML, style: text.getAttribute("style"), otherStyle: other.getAttribute("style") };
           if (mutation === "wrong-label") text.querySelector("text").textContent = "wrong";
           if (mutation === "hidden-label") text.style.display = "none";
+          if (mutation === "transparent-label") text.querySelector("text").style.fill = "rgba(0,0,0,0)";
+          if (mutation === "title-outside") other.style.transform = "translate(10000px,0px)";
           if (mutation === "duplicate-label") text.append(text.querySelector("text").cloneNode(true));
           if (mutation === "clipped-label") text.querySelector("text").setAttribute("x", "100000");
           if (mutation === "title-overlap" || mutation === "sibling-overlap") {
@@ -206,7 +236,7 @@ try {
         await page.evaluate(({ args, mutation, saved }) => {
           const doc = document.querySelector("#working-surface iframe").contentDocument;
           const find = id => [...doc.querySelectorAll('[data-semantic-role="text"]')].find(n => n.dataset.semanticRegionId === id);
-          const text = find(args.records[0].id), other = find(mutation === "title-overlap" ? args.container.id : args.records[1].id);
+          const text = find(args.records[0].id), other = find(mutation.startsWith("title-") ? args.container.id : args.records[1].id);
           text.innerHTML = saved.content;
           for (const [node, style] of [[text, saved.style], [other, saved.otherStyle]])
             if (style === null) node.removeAttribute("style"); else node.setAttribute("style", style);
@@ -218,10 +248,9 @@ try {
       const edge = edges[0]; await page.locator("#camera-part").selectOption(edge.id); await settle();
       const args = { container: regions.find(r => r.id === "container"), records: added.filter(r => r.kind !== "group"), edge, identity: true };
       const observed = await page.evaluate(observePaintedGoal, args);
-      const endsVisible = observed.shapes.every(s => s.name?.unmet === null && s.name.box && s.name.box[0] >= 0 && s.name.box[1] >= 0
-        && s.name.box[0] + s.name.box[2] <= observed.viewport[2] && s.name.box[1] + s.name.box[3] <= observed.viewport[3]);
-      frames.push({ fixture: fixture.id, camera: "relation", observation: observed, endsVisible });
-      assert.ok(observed.edge.complete && endsVisible, "whole directed arrow and endpoint names in fixed relation frame");
+      const assessment = assessPaintedEdge(observed);
+      frames.push({ fixture: fixture.id, camera: "relation", observation: observed, assessment });
+      assert.equal(assessment.status, "PASS", "whole directed arrow and endpoint names in fixed relation frame");
       const reverse = await page.evaluate(observePaintedGoal, { ...args, edge: { ...edge, from: edge.to, to: edge.from } });
       assert.equal(reverse.edge.complete, false); controls.push({ fixture: fixture.id, mutation: "reverse-edge", detected: true });
       const missingId = await page.evaluate(observePaintedGoal, { ...args, edge: { from: edge.from, to: edge.to } });
@@ -252,10 +281,15 @@ try {
     }
     await page.locator("#undo").click(); await settle();
     const undone = await snapshot(); assert.equal(undone.log, before.log); assert.equal(undone.stored, before.stored);
-    const redone = await draw(); await page.locator("#apply").click(); await settle();
+    assert.deepEqual(undone.records, before.records); await paintRestored("undo", undone);
+    const redone = await draw(); assert.equal(redone.goal.reason, "none");
+    assert.equal(gradeGraph(before.records, redone.records, oracle).graph_exact, true, "second Goal must succeed exactly");
+    await paintRestored("redo", redone);
+    await page.locator("#apply").click(); await settle();
     const applied = await snapshot(); assert.equal(applied.stored, redone.log);
     await page.reload(); await settle(); const reloaded = await snapshot();
     assert.equal(reloaded.log, applied.stored);
+    assert.deepEqual(reloaded.records, redone.records); await paintRestored("reload", reloaded);
     const sameLog = (a, b) => typeof a === "string" && a === b;
     assert.equal(sameLog(after.log, before.log), false, "failed Undo cannot pass");
     assert.equal(sameLog(before.log, applied.stored), false, "stale reload cannot pass");

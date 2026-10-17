@@ -796,7 +796,9 @@ cameraPart.addEventListener("change", () => withSurface("camera", async () => {
     setState("camera", camera === null ? "全体の概要を表示しています"
       : Array.isArray(cameraTarget(session.working, camera))
         ? "選んだ矢印の両端が収まるように表示しています。表示外の部品も図には残っています。長いラベルは収まらない場合があります"
-        : "選んだ部品を等倍で表示しています。表示外の部品も図には残っています。長いラベルは収まらない場合があります");
+        : cameraRecord(session.working, camera)?.kind === "group"
+          ? "選んだグループ全体を表示しています。長いラベルは収まらない場合があります"
+          : "選んだ部品を等倍で表示しています。表示外の部品も図には残っています。長いラベルは収まらない場合があります");
   } catch { invalidateView(); }
 }));
 window.addEventListener("resize", () => {

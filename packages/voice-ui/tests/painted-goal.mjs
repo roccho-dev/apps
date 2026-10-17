@@ -42,6 +42,16 @@ export function observePaintedGoal({ container, records, edge = null, identity =
   // the text.
   const SVG = "http://www.w3.org/2000/svg";
   const win = iframe.contentWindow;
+  // Chromium's computed rgb/rgba grammar only. Unknown paint grammar is not
+  // evidence of visible paint, including transparent RGB with fillOpacity 1.
+  const paintedColor = value => {
+    const match = /^rgba?\(([^)]+)\)$/u.exec(value ?? "");
+    if (!match) return false;
+    const channels = match[1].split(/[\s,/]+/u).filter(Boolean).map(Number);
+    return [3, 4].includes(channels.length) && channels.every(Number.isFinite)
+      && channels.slice(0, 3).every(channel => channel >= 0 && channel <= 255)
+      && (channels.length === 3 || channels[3] > 0 && channels[3] <= 1);
+  };
   const documentUrl = doc.URL.lastIndexOf("#") > 0 ? doc.URL.slice(0, doc.URL.lastIndexOf("#")) : doc.URL;
   const axis = matrix => matrix && [matrix.a, matrix.b, matrix.c, matrix.d, matrix.e, matrix.f].every(Number.isFinite)
     && matrix.b === 0 && matrix.c === 0 && matrix.a > 0 && matrix.d > 0 ? matrix : null;
@@ -73,7 +83,7 @@ export function observePaintedGoal({ container, records, edge = null, identity =
     const unmet = reason => ({ unmet: reason, box: null, clips: [], svg: null });
     if (node === null) return unmet("no unique label with the whole name");
     const painted = win.getComputedStyle(node);
-    if (!visible(node) || painted.fill === "none" || !(Number(painted.fillOpacity) > 0)) return unmet("the name is not painted visibly");
+    if (!visible(node) || !paintedColor(painted.fill) || !(Number(painted.fillOpacity) > 0)) return unmet("the name is not painted visibly");
     if (node.localName !== "text" || node.namespaceURI !== SVG || node.children.length !== 0
       || [...(node.parentElement?.children ?? [])].filter(child => child.localName === "text").length !== 1) return unmet("not one plain SVG text");
     const own = axis(node.getScreenCTM());
@@ -145,8 +155,8 @@ export function observePaintedGoal({ container, records, edge = null, identity =
           if (boundary) return node.localName === "rect" && style.stroke !== "none"
             && style.strokeDasharray !== "none" && Number(style.strokeOpacity) > 0 && Number(style.opacity) > 0;
           if (!identity && node.getAttribute("pointer-events") !== "all") return false;
-          return Number(style.opacity) > 0 && ((style.fill !== "none" && Number(style.fillOpacity) > 0)
-            || (style.stroke !== "none" && Number(style.strokeOpacity) > 0));
+          return Number(style.opacity) > 0 && ((paintedColor(style.fill) && Number(style.fillOpacity) > 0)
+            || (paintedColor(style.stroke) && Number(style.strokeOpacity) > 0));
         });
         const primitive = uniquePrimitive(geometry);
         return primitive !== null && primitive.namespaceURI === "http://www.w3.org/2000/svg"
@@ -233,11 +243,11 @@ export function observePaintedGoal({ container, records, edge = null, identity =
     });
     const lines = paths.filter(node => {
       const s = iframe.contentWindow.getComputedStyle(node);
-      return s.fill === "none" && s.stroke !== "none" && Number(s.opacity) > 0 && Number(s.strokeOpacity) > 0;
+      return s.fill === "none" && paintedColor(s.stroke) && Number(s.opacity) > 0 && Number(s.strokeOpacity) > 0;
     });
     const markers = paths.filter(node => {
       const s = iframe.contentWindow.getComputedStyle(node);
-      return s.fill !== "none" && s.stroke !== "none" && Number(s.opacity) > 0 && Number(s.fillOpacity) > 0
+      return paintedColor(s.fill) && paintedColor(s.stroke) && Number(s.opacity) > 0 && Number(s.fillOpacity) > 0
         && /z\s*$/iu.test(node.getAttribute("d") ?? "");
     });
     if (lines.length !== 1 || markers.length !== 1) {
@@ -307,6 +317,7 @@ export function assessPaintedGoal(observation) {
   if (!observation.contained) problems.push("shape outside parent");
   if (!observation.nonoverlap) problems.push("sibling shapes overlap");
   name(observation.title, "parent-title");
+  if (!inside(observation.title?.box, observation.container?.bounds)) problems.push("parent title outside own shape box");
   for (const item of observation.shapes) {
     name(item.name, item.id);
     if (!inside(item.name?.box, item.bounds)) problems.push(item.id + ": label outside own shape box");
@@ -316,6 +327,29 @@ export function assessPaintedGoal(observation) {
       problems.push(item.id + ": sibling labels overlap");
   }
   if (observation.edge !== null && !observation.edge.complete) problems.push("directed painted edge incomplete");
+  return { status: unknown.length ? "UNPROVEN" : problems.length ? "UNMET" : "PASS", problems, unknown };
+}
+
+// A relation camera may cross nested groups. Check its actual endpoints on
+// this frame without pretending they are siblings or requiring a parent title.
+export function assessPaintedEdge(observation) {
+  const problems = [], unknown = [];
+  const valid = b => Array.isArray(b) && b.length === 4 && b.every(Number.isFinite) && b[2] > 0 && b[3] > 0;
+  const inside = (b, a) => valid(a) && valid(b) && b[0] >= a[0] && b[1] >= a[1]
+    && b[0] + b[2] <= a[0] + a[2] && b[1] + b[3] <= a[1] + a[3];
+  if (observation.identity !== true || observation.shapes.length !== 2) unknown.push("two identity-bound endpoints required");
+  for (const shape of observation.shapes) {
+    const name = shape.name;
+    if (name?.unmet) unknown.push(shape.id + ": " + name.unmet);
+    else if (!Array.isArray(name?.clips) || ![observation.viewport, name.svg, shape.bounds, ...name.clips]
+      .every(outer => inside(name.box, outer))) problems.push(shape.id + ": whole endpoint name clipped or outside its shape");
+  }
+  if (!observation.edge?.complete) problems.push("directed painted edge incomplete");
+  const match = observation.edge?.matches?.length === 1 ? observation.edge.matches[0] : null;
+  const pointInView = p => Array.isArray(p) && p.length === 2 && p.every(Number.isFinite) && valid(observation.viewport)
+    && p[0] >= observation.viewport[0] && p[1] >= observation.viewport[1]
+    && p[0] <= observation.viewport[0] + observation.viewport[2] && p[1] <= observation.viewport[1] + observation.viewport[3];
+  if (!match || !pointInView(match.start) || !pointInView(match.tip)) problems.push("arrow terminals outside frame");
   return { status: unknown.length ? "UNPROVEN" : problems.length ? "UNMET" : "PASS", problems, unknown };
 }
 

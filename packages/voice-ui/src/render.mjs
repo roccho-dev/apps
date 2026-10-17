@@ -105,6 +105,16 @@ export function frameFor({ graph, width, height, protocol, part = null }) {
     }
     const selected = bounds[part];
     if (selected === undefined) return null;
+    if (graph.records.some(record => record.type === "region" && record.id === part && record.kind === "group")) {
+      if (!Array.isArray(selected) || selected.length !== 4 || !selected.every(Number.isFinite)
+        || !(selected[2] > 0 && selected[3] > 0) || !Number.isFinite(width) || !Number.isFinite(height)) return null;
+      const [x, y, w, h] = selected;
+      // A group camera includes its whole boundary, with screen space for its
+      // stroke and fixed-size title. It never enlarges small groups beyond 1:1.
+      const scale = Math.min(1, width / (w + 32), height / (h + 32));
+      const bbox = [x + w / 2 - width / (2 * scale), y + h / 2 - height / (2 * scale), width / scale, height / scale];
+      return scale > 0 && bbox.every(Number.isFinite) ? { bbox, viewport: [width, height] } : null;
+    }
     // One layout unit per pixel: a readable local camera around this part,
     // not a new layout, filtered graph or conversational reference.
     const [x, y, w, h] = selected;
