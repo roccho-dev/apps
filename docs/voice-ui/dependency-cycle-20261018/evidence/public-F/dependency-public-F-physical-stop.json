@@ -1,0 +1,59 @@
+{
+  "schema": "voice-ui.independent-stop-audit/1",
+  "observed_at": "2026-10-17T18:05:31.122224+00:00",
+  "status": "PASS",
+  "phase": "dependency-public-F-20261018",
+  "axis": "F",
+  "pid": 329873,
+  "start_ticks": "16800830",
+  "pid_absent": true,
+  "pgid_all_members_including_zombies": [],
+  "sent": {
+    "jev": 0,
+    "typellm": 12
+  },
+  "charged": {
+    "jev": 701,
+    "typellm": 70
+  },
+  "pending": null,
+  "reconciliation": {
+    "kind": "phase-reconcile",
+    "id": "dependency-public-F-20261018",
+    "sent": {
+      "jev": 0,
+      "typellm": 12
+    },
+    "stopped_group_empty": true,
+    "pid": 329873,
+    "start_ticks": "16800830",
+    "stderr_sha256": "64f4f1e1502759f679a8df562b197aa3be836d1e92cb6a691d485330536a40f5",
+    "stdout_sha256": "eea53aa8f75c9cd62044b1a087745d980d8c541d8b47a3e66aa28a64989f4faf",
+    "at": "2026-10-17T18:04:31.124Z"
+  },
+  "config_sha256": "0935612603793dc44e6aaab882c48bb85402c829971cd852c6af8226a3d18ad9",
+  "identity_sha256": "51d543988b72af706f0e3fb612256ebffd87c674f2ba362fde57a18abb426132",
+  "process_sha256": "f5cf1ad507b1a2e8ba77accb9f28a4ad34cfa3a13490bc496c992b81d5934446",
+  "runtime_sha256": "8c7d63f43c4837cc9d4bafdf1f98075c6f76f73b04b8b40e815e55204e1ca1ba",
+  "journal_sha256": "fc878ebdc618e834a3d7ace41ff0b8d970068a9cccbab8b10be8dbba9ea42d02",
+  "stdout_sha256": "eea53aa8f75c9cd62044b1a087745d980d8c541d8b47a3e66aa28a64989f4faf",
+  "stderr_sha256": "64f4f1e1502759f679a8df562b197aa3be836d1e92cb6a691d485330536a40f5",
+  "raw_sha256": {
+    "PF04-D.json": "67b50bbe024b5838e05c87e30c45a6283c52e8c207fdf11dea0bcba0918e717e",
+    "PF06-I.json": "9eb8a0854bc682adbf625b13f65600df7e51e00ba7296d175fcb324a3573ece0",
+    "PF02-I.json": "51bcbb9c49c1fbe63830eb12952fdfd9106741af06e70a9b8fb97355713e187b",
+    "PF04-I.json": "96da6ce05371dce3e8c94b6722444c4bfedef3c3ba68adc59829e4bdb155b199",
+    "PF01-D.json": "143ad442efd6b467d650e1a40014f414007ccef1d0112806b161f0eccb9a797b",
+    "PF01-I.json": "e4ee4b8df2f2d6dd7f401db0f86950ec3cd72b4ca137b5347fc4d8498d419753",
+    "PF05-D.json": "a905e3f49e0fe3aa4c55d45e61be31b11c18aa5e9574f4a6b004eeac33fe49b0",
+    "PF05-I.json": "c7b8a3fd99f7876428958d5e45d45e30bf77bfc3736d8585b7d42d4518fa877f",
+    "PF06-D.json": "7396c2ebfefa424d2a743886f673f79a6eeaa92e89f4af0c6f9849cc7317cbe1",
+    "execution.json": "fc6a664ba3e4ebb7e54ed4c637ab2653df2f82dbccf07c9ec403ab4cb644cc0c",
+    "PF02-D.json": "40b8f0e2a54a5f6e5e831449ae9109ecfcb2a3f4bb0a325faeb976344ee5159a",
+    "PF03-D.json": "481cb881a9e5a0219b8d0a80f5ef1ded1cd1546d1667abc81c689f9dd8eb80f9",
+    "identity.json": "9c34fa69950adb6ac5f83167cd0af78338e9a98896b3138873a0f442de393aec",
+    "PF03-I.json": "bad3ce8a3fd5035f008cdbac7f576d3921d912c62c8cb95e3b00f30f5bf6e51c",
+    "events.jsonl": "0d0c72dfc0e43f2a7fa35ec20dd67405de3d849aab1c70feed28eebfd899f0bb"
+  },
+  "scope": "Actual stopped group including zombies, original synchronous send logs, immutable files and reconciliation cutoff; no provider request by reviewer."
+}

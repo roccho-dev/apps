@@ -1,0 +1,117 @@
+{
+  "schema": "voice-ui.dependency-cycle-phase/1",
+  "axis": "F",
+  "status": "INVALID",
+  "summary": [
+    {
+      "axis": "F",
+      "id": "PF01",
+      "arm": "I",
+      "method": "full-required",
+      "generation_policy": "independent",
+      "valid_execution": false,
+      "calls": 1
+    },
+    {
+      "axis": "F",
+      "id": "PF01",
+      "arm": "D",
+      "method": "full-required",
+      "generation_policy": "dependent",
+      "valid_execution": true,
+      "calls": 1
+    },
+    {
+      "axis": "F",
+      "id": "PF02",
+      "arm": "D",
+      "method": "full-required",
+      "generation_policy": "dependent",
+      "valid_execution": true,
+      "calls": 1
+    },
+    {
+      "axis": "F",
+      "id": "PF02",
+      "arm": "I",
+      "method": "full-required",
+      "generation_policy": "independent",
+      "valid_execution": true,
+      "calls": 1
+    },
+    {
+      "axis": "F",
+      "id": "PF03",
+      "arm": "I",
+      "method": "full-required",
+      "generation_policy": "independent",
+      "valid_execution": true,
+      "calls": 1
+    },
+    {
+      "axis": "F",
+      "id": "PF03",
+      "arm": "D",
+      "method": "full-required",
+      "generation_policy": "dependent",
+      "valid_execution": true,
+      "calls": 1
+    },
+    {
+      "axis": "F",
+      "id": "PF04",
+      "arm": "D",
+      "method": "full-required",
+      "generation_policy": "dependent",
+      "valid_execution": true,
+      "calls": 1
+    },
+    {
+      "axis": "F",
+      "id": "PF04",
+      "arm": "I",
+      "method": "full-required",
+      "generation_policy": "independent",
+      "valid_execution": false,
+      "calls": 1
+    },
+    {
+      "axis": "F",
+      "id": "PF05",
+      "arm": "I",
+      "method": "full-required",
+      "generation_policy": "independent",
+      "valid_execution": false,
+      "calls": 1
+    },
+    {
+      "axis": "F",
+      "id": "PF05",
+      "arm": "D",
+      "method": "full-required",
+      "generation_policy": "dependent",
+      "valid_execution": true,
+      "calls": 1
+    },
+    {
+      "axis": "F",
+      "id": "PF06",
+      "arm": "D",
+      "method": "full-required",
+      "generation_policy": "dependent",
+      "valid_execution": true,
+      "calls": 1
+    },
+    {
+      "axis": "F",
+      "id": "PF06",
+      "arm": "I",
+      "method": "full-required",
+      "generation_policy": "independent",
+      "valid_execution": false,
+      "calls": 1
+    }
+  ],
+  "invalid_cells": 4,
+  "expected_cells": 12
+}

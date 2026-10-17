@@ -1,6 +1,8 @@
 # 部品候補の項目間依存を測る別の反復
 
-実装前登録。前回は[全30件をCIと独立Rで閉包](../requirements-cycle-20261017/closure.md)し、Vの公開回帰6/6、F2/6・形式不正4件、製品Eの効果未証明で停止した。前回の2修正・失敗・未見6ファイルの封印を変えず、この反復を別登録する。現時点の累計は課金上701Jev/58TypeLLM、確認済み実送701/57。追加の実API送信は0。
+この反復は[全22実行を保存して停止](closure.md)した。依存付きFは公開5/6正確、Vは6/6正解、製品Eは1/2達成。公開Eの進行基準に届かず、未見問題は未解放で、一般的な補完効果は未証明。現在の累計は課金上715Jev/71TypeLLM、確認済み実送715/70である。
+
+以下は実装前登録と構成の説明。前回は[全30件をCIと独立Rで閉包](../requirements-cycle-20261017/closure.md)し、Vの公開回帰6/6、F2/6・形式不正4件、製品Eの効果未証明で停止した。登録時点の累計は課金上701/58、確認済み701/57だった。前回の2修正・失敗・未見6ファイルの封印を維持する。
 
 同じ独立Rが[評価仕様](preregistered/dependency-cycle-protocol.md)・[commitment](preregistered/dependency-cycle-commitment.json)（SHA256 `8d00c900e13b755a3cf467643e17e6a961581ad6e40ee105896fdce78038edff`）を実装前に固定した。[公開ファイルのhash一覧](preregistered/dependency-cycle-freeze.json)だけをコピーし、新しい未見V10/F8/E10と旧未使用6ファイルはR側で封印を維持する。[検算記録](preregistered/dependency-cycle-seal-validation.json)はPASSで、公開E2と新しい未見M4のliteral抽出不足も実APIなしで確認済み。
 
@@ -10,7 +12,7 @@
 
 [公開bytes読戻し](supply/root-readback.json)と[既存Apps受入器の正例1・拒否例8](supply/apps-admission.json)はPASS。[独立読戻し](supply/ops565-b4f6-public-supply-audit.json)でも正式供給を確認済み。
 
-製品側の最小実装8249765を正式providerと組み合わせた[完成Workerの比較](prebuild/dependency-8249-compiled-equivalence.json)は疑似応答でPASS。旧独立wireと新Iが一致し、Dは依存指定だけが異なり、通常defaultはD、不正query7件は送信0だった。[独立32テスト](supply/dependency-cycle-independent-module-validation.json)もPASS。これらはSYNTHETIC_MECHANICS_ONLYであり、新しい実API品質・E効果は未証明。統合後の完成ZIP/full CI・独立source admission・実PID送信0確認が残る。
+製品側の最小実装8249765を正式providerと組み合わせた[完成Workerの比較](prebuild/dependency-8249-compiled-equivalence.json)は疑似応答でPASS。旧独立wireと新Iが一致し、Dは依存指定だけが異なり、通常defaultはD、不正query7件は送信0だった。[独立32テスト](supply/dependency-cycle-independent-module-validation.json)もPASS。これらはSYNTHETIC_MECHANICS_ONLY。[測定headの実CI・独立source admission](https://github.com/roccho-dev/apps/pull/103#pullrequestreview-5559238178)と各実PID送信0確認後に、一度だけ公開F/V/Eを実行した。実APIの結果と限界は[closure](closure.md)に分けて記載した。
 
 | 性能 | 与えるもの | 判断すること |
 | --- | --- | --- |

@@ -1,0 +1,42 @@
+{
+  "status": "PASS",
+  "issues": [],
+  "phase": "dependency-public-V-20261018",
+  "sent": {
+    "jev": 6,
+    "typellm": 0
+  },
+  "prior_charged": {
+    "jev": 701,
+    "typellm": 70
+  },
+  "charged_at_cutoff": {
+    "jev": 707,
+    "typellm": 70
+  },
+  "journal_sha256": "79c8faa2a4e8c9bb3bdd57e01e168e88169cd1f32cc1320b9d94fda2fc4457f1",
+  "config_sha256": "40977d74956838f450be90dcfb1eb958adc54e4542e3f1ab9e863f89b0e07242",
+  "stop_scope": "recorded reconciliation only; independent live PID observation remains an explicit audit reference",
+  "expected_external_bounds": {
+    "jev": {
+      "min": 6,
+      "max": 6
+    },
+    "typellm": {
+      "min": 0,
+      "max": 0
+    }
+  },
+  "cycle_start": {
+    "jev": 701,
+    "typellm": 58
+  },
+  "cycle_limit": {
+    "jev": 250,
+    "typellm": 40
+  },
+  "cycle_remaining": {
+    "jev": 244,
+    "typellm": 28
+  }
+}

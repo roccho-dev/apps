@@ -3,6 +3,85 @@
   "commitment": "../preregistered/dependency-cycle-commitment.json",
   "freeze": "../preregistered/dependency-cycle-freeze.json",
   "baseline_journal": "../../requirements-cycle-20261017/evidence/correction2-V/requirements-correction2-V-20261018.journal.jsonl",
-  "expected_cumulative": { "jev": 701, "typellm": 58 },
-  "phases": []
+  "expected_cumulative": {
+    "jev": 715,
+    "typellm": 71
+  },
+  "phases": [
+    {
+      "id": "public-F",
+      "axis": "F",
+      "apps_sha": "ae816ec23a5e4c397c8a4893e127fb24134afda8",
+      "phase_kind": "public",
+      "raw_dir": "public-F/raw",
+      "producer": "public-F/dependency-public-F.producer.json",
+      "runtime": "public-F/runtime-build.json",
+      "input": "../preregistered/dependency-cycle-public-F6.inputs.json",
+      "oracle": "../preregistered/dependency-cycle-public-F6.oracle.json",
+      "parent_input": "../../requirements-cycle-20261017/preregistered/requirements-cycle-public-F6.inputs.json",
+      "parent_oracle": "../../requirements-cycle-20261017/preregistered/requirements-cycle-public-F6.oracle.json",
+      "config": "public-F/dependency-public-F-20261018.config.json",
+      "process": "public-F/dependency-public-F-20261018.process.json",
+      "stdout": "public-F/dependency-public-F-20261018.stdout.log",
+      "stderr": "public-F/dependency-public-F-20261018.stderr.log",
+      "journal": "public-F/dependency-public-F-20261018.journal.jsonl",
+      "recorded_replay": null,
+      "audits": {
+        "pr103-ae81-r15-review.md": "public-F/pr103-ae81-r15-review.md",
+        "dependency-public-F-zero-send-audit.json": "public-F/dependency-public-F-zero-send-audit.json",
+        "dependency-public-F-stop-audit.json": "public-F/dependency-public-F-stop-audit.json"
+      },
+      "expected_execution_status": "INVALID"
+    },
+    {
+      "id": "public-V",
+      "axis": "V",
+      "apps_sha": "ae816ec23a5e4c397c8a4893e127fb24134afda8",
+      "phase_kind": "public",
+      "raw_dir": "public-V/raw",
+      "producer": "public-V/dependency-public-V.producer.json",
+      "runtime": "public-V/runtime-build.json",
+      "input": "../preregistered/dependency-cycle-public-V6.inputs.json",
+      "oracle": "../preregistered/dependency-cycle-public-V6.oracle.json",
+      "parent_input": "../../requirements-cycle-20261017/preregistered/requirements-cycle-public-V6.inputs.json",
+      "parent_oracle": "../../requirements-cycle-20261017/preregistered/requirements-cycle-public-V6.oracle.json",
+      "config": "public-V/dependency-public-V-20261018.config.json",
+      "process": "public-V/dependency-public-V-20261018.process.json",
+      "stdout": "public-V/dependency-public-V-20261018.stdout.log",
+      "stderr": "public-V/dependency-public-V-20261018.stderr.log",
+      "journal": "public-V/dependency-public-V-20261018.journal.jsonl",
+      "recorded_replay": null,
+      "audits": {
+        "pr103-ae81-r15-review.md": "public-V/pr103-ae81-r15-review.md",
+        "dependency-public-V-zero-send-audit.json": "public-V/dependency-public-V-zero-send-audit.json",
+        "dependency-public-V-stop-audit.json": "public-V/dependency-public-V-stop-audit.json"
+      },
+      "expected_execution_status": "RECORDED"
+    },
+    {
+      "id": "public-E",
+      "axis": "E",
+      "apps_sha": "ae816ec23a5e4c397c8a4893e127fb24134afda8",
+      "phase_kind": "public",
+      "raw_dir": "public-E/raw",
+      "producer": "public-E/dependency-public-E.producer.json",
+      "runtime": "public-E/runtime-build.json",
+      "input": "../preregistered/dependency-cycle-public-E2.inputs.json",
+      "oracle": "../preregistered/dependency-cycle-public-E2.oracle.json",
+      "parent_input": "../../requirements-cycle-20261017/preregistered/requirements-cycle-public-E2.v2.inputs.json",
+      "parent_oracle": "../../requirements-cycle-20261017/preregistered/requirements-cycle-public-E2.v2.oracle.json",
+      "config": "public-E/dependency-public-E-20261018.config.json",
+      "process": "public-E/dependency-public-E-20261018.process.json",
+      "stdout": "public-E/dependency-public-E-20261018.stdout.log",
+      "stderr": "public-E/dependency-public-E-20261018.stderr.log",
+      "journal": "public-E/dependency-public-E-20261018.journal.jsonl",
+      "recorded_replay": "public-E/dependency-public-E-replay.json",
+      "audits": {
+        "pr103-ae81-r15-review.md": "public-E/pr103-ae81-r15-review.md",
+        "dependency-public-E-zero-send-audit.json": "public-E/dependency-public-E-zero-send-audit.json",
+        "dependency-public-E-stop-audit.json": "public-E/dependency-public-E-stop-audit.json"
+      },
+      "expected_execution_status": "RECORDED"
+    }
+  ]
 }

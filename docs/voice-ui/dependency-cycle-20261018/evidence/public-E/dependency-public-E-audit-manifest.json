@@ -1,0 +1,52 @@
+{
+  "schema": "voice-ui.review.dependency-phase-manifest/1",
+  "status": "PASS",
+  "phase": "dependency-public-E-20261018",
+  "files": [
+    {
+      "name": "dependency-public-E-zero-send-audit.json",
+      "bytes": 1503,
+      "sha256": "6e56550a284af56ee1489409cbc8d3ede5f47af2112d8b234d3fcda24b0e75f1"
+    },
+    {
+      "name": "dependency-public-E-physical-stop.json",
+      "bytes": 2283,
+      "sha256": "c7e1f04cadc963deed57ec4cb0a1b4170f32ed419dcf30a7fc745638e66a76b0"
+    },
+    {
+      "name": "dependency-public-E-stop-audit.json",
+      "bytes": 2403,
+      "sha256": "d9fa24e8d40a815233751eb77d2099f2d25cfe79e26d323cfb12b6f5fda0a504"
+    },
+    {
+      "name": "dependency-public-E-raw-audit.json",
+      "bytes": 11681,
+      "sha256": "8906e8e56ec494138c5bbce1d4d33d1d8fe6f0fc6b734bb3d2826527a75f6c95"
+    },
+    {
+      "name": "dependency-public-E-provider-audit.json",
+      "bytes": 867,
+      "sha256": "8da69751334ea5703eb2ae5161ddd86dea62f698160607585bb3ff354c993172"
+    },
+    {
+      "name": "dependency-public-E-producer-audit.json",
+      "bytes": 192,
+      "sha256": "f73ea3e239b785871a6bd995e3bbc954feedb4c2a27b11c55adc1c7bf905134f"
+    },
+    {
+      "name": "dependency-public-E.producer.json",
+      "bytes": 5258,
+      "sha256": "25e7c9465bf8c16e16486589a67902875af27767bfb9dd68f5d91b69b56c4ecd"
+    },
+    {
+      "name": "dependency-public-E-process-audit.json",
+      "bytes": 532,
+      "sha256": "d4c4f4e22df7047058de67d75e98852a09a8e4af7db6b7e86cdb35c80f404169"
+    },
+    {
+      "name": "dependency-public-E-replay.json",
+      "bytes": 18371,
+      "sha256": "88cd62e79abfdb7ffe0c65d5117aac9cdcd13149fac7881f4800a7fc600cdf18"
+    }
+  ]
+}

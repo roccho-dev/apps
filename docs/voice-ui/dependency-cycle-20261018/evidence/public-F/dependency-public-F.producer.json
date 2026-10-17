@@ -1,0 +1,129 @@
+{
+  "schema": "voice-ui.dependency-cycle-producer/1",
+  "axis": "F",
+  "phase_id": "dependency-public-F-20261018",
+  "heads": {
+    "apps": "ae816ec23a5e4c397c8a4893e127fb24134afda8",
+    "envs": "063e685b8b21a97fc8658879da93fa858552bcd6",
+    "ops": "b4f611cac9e13fbef178469796cbc3b6d4a76b23",
+    "windows": "6aef693c0946903d8b87c2348039de1420acd61b",
+    "ui": "756d47e891191c3344eb2d29b000203be8331abc"
+  },
+  "arm_order": [
+    {
+      "id": "PF01",
+      "arm": "I"
+    },
+    {
+      "id": "PF01",
+      "arm": "D"
+    },
+    {
+      "id": "PF02",
+      "arm": "D"
+    },
+    {
+      "id": "PF02",
+      "arm": "I"
+    },
+    {
+      "id": "PF03",
+      "arm": "I"
+    },
+    {
+      "id": "PF03",
+      "arm": "D"
+    },
+    {
+      "id": "PF04",
+      "arm": "D"
+    },
+    {
+      "id": "PF04",
+      "arm": "I"
+    },
+    {
+      "id": "PF05",
+      "arm": "I"
+    },
+    {
+      "id": "PF05",
+      "arm": "D"
+    },
+    {
+      "id": "PF06",
+      "arm": "D"
+    },
+    {
+      "id": "PF06",
+      "arm": "I"
+    }
+  ],
+  "generation_policies": {
+    "I": "independent",
+    "D": "dependent",
+    "V": null,
+    "B": null,
+    "C": "dependent"
+  },
+  "inputs_sha256": "e39739925e6fac55819c1d33d896d66ed3c6ffb36a82448b0036d80c4d1c06e0",
+  "parent_inputs_sha256": "fecbe1eb3945cdb9e450742e26ba5fbb56bc1f3d852b1deebf292d09d922b6ec",
+  "bundle_sha256": "8fd1b4f37f6a113653dbaeda5e040ba5bed6d7b007ab9269d307f8642d339189",
+  "source_sha256": {
+    "src/completion.mjs": "11d6c098c703f257f96395a4a1c15ce4d39ed95fbd3aa0b103e23cbea94d5c5a",
+    "src/literal-inventory.mjs": "82a2bdb9866c1331b4c685f28862bd54e7e974c4af3652b4f72dfdbb41f7df60",
+    "src/goal.mjs": "cd9101d6a222e31773c9523adeca3f7f9aa32990e30b39e06a7b872771422f3e",
+    "src/contract.mjs": "f2c95212493f59fd80ef17270c2b5de0d51d795b26ac8a0e6dfa0fdb9dec30fe",
+    "src/turn.mjs": "c5fc3489a5bd0861f0455bd9843f47e76030bb03a4fe55745cf00c29c79b7008",
+    "src/session.mjs": "d6fcb97e581afb789ed6ecb339c06c378ef94283084df8ad3042ebe42c48cfe8",
+    "functions/api/parts.mjs": "cdc97390f69e7a7883f158710b346b8487486988f5882f77660c14ce761e3635",
+    "functions/pages-worker.mjs": "9aa2afda61f0fffdab87a15ececb59b35307f07cfd9f59099501c29aac1486c9",
+    "web/app.mjs": "3a9ac4eba0770949a219b35c97cd346d4a7912026fae2b2f21710251b86bbf2a",
+    "web/adapters/completion.mjs": "537bc46e93efe58fbdf466dd2493989ad5695209def769ec9da3ba68926edb5a",
+    "dev/serve.mjs": "d044ea7f8ccbd7fd71fbe1447dcce0f30bfa831d471da3eef2e3377380532298",
+    "tests/dependency-cycle-eval.mjs": "b92308340b7a54020c30ae1c1daa3b482b60263d080b3f2e2393909f6cfcd7c3",
+    "tests/requirements-cycle-score.mjs": "3d779cf422e8cc0facc6f5ff566c3e77b36a61486f9586f120b0c1a722cd5a46",
+    "tests/requirements-cycle-audit.mjs": "692bdbaef8dbe28fe30fcdfe178202ebbdf3a4728bf0fe1c7310f72bf789c6eb",
+    "tests/dependency-cycle-score.mjs": "2f7f40afec31d1f7cded08951529a30d741f6ebfb8abf446900a7f6eb567ef91",
+    "tests/dependency-cycle-audit.mjs": "47dce6207c8b48dae6447d87ee1294d8495f28a31d2b474d5dc0c9b95998d66e",
+    "tests/semantic-score.mjs": "3230791bd2b06ccbb73008723ab3709981ce6e2d65fc2fdbdec8cadf9d1cfec3",
+    "tests/requirements-cycle-http.mjs": "b3c1d052e2f7138532e0d7cac6ac7b3c7287b7af32b857990c1e6d14bb325386",
+    "tests/painted-goal.mjs": "c5ba117d1dea66d20c80b7f92b8184296ff79d4231da56f5a89836af4beb018b"
+  },
+  "raw_sha256": {
+    "events.jsonl": "0d0c72dfc0e43f2a7fa35ec20dd67405de3d849aab1c70feed28eebfd899f0bb",
+    "execution.json": "fc6a664ba3e4ebb7e54ed4c637ab2653df2f82dbccf07c9ec403ab4cb644cc0c",
+    "identity.json": "9c34fa69950adb6ac5f83167cd0af78338e9a98896b3138873a0f442de393aec",
+    "PF01-D.json": "143ad442efd6b467d650e1a40014f414007ccef1d0112806b161f0eccb9a797b",
+    "PF01-I.json": "e4ee4b8df2f2d6dd7f401db0f86950ec3cd72b4ca137b5347fc4d8498d419753",
+    "PF02-D.json": "40b8f0e2a54a5f6e5e831449ae9109ecfcb2a3f4bb0a325faeb976344ee5159a",
+    "PF02-I.json": "51bcbb9c49c1fbe63830eb12952fdfd9106741af06e70a9b8fb97355713e187b",
+    "PF03-D.json": "481cb881a9e5a0219b8d0a80f5ef1ded1cd1546d1667abc81c689f9dd8eb80f9",
+    "PF03-I.json": "bad3ce8a3fd5035f008cdbac7f576d3921d912c62c8cb95e3b00f30f5bf6e51c",
+    "PF04-D.json": "67b50bbe024b5838e05c87e30c45a6283c52e8c207fdf11dea0bcba0918e717e",
+    "PF04-I.json": "96da6ce05371dce3e8c94b6722444c4bfedef3c3ba68adc59829e4bdb155b199",
+    "PF05-D.json": "a905e3f49e0fe3aa4c55d45e61be31b11c18aa5e9574f4a6b004eeac33fe49b0",
+    "PF05-I.json": "c7b8a3fd99f7876428958d5e45d45e30bf77bfc3736d8585b7d42d4518fa877f",
+    "PF06-D.json": "7396c2ebfefa424d2a743886f673f79a6eeaa92e89f4af0c6f9849cc7317cbe1",
+    "PF06-I.json": "9eb8a0854bc682adbf625b13f65600df7e51e00ba7296d175fcb324a3573ece0"
+  },
+  "independent_audit_sha256": {
+    "pr103-ae81-r15-review.md": "c9ebc0ba78e52f2fea01d067a9aa888683ff9a97af810f4a89ae5ddfbb394491",
+    "dependency-public-F-zero-send-audit.json": "e144bbd39a0888ec11ce9247aa7a5d84a23dc111f9b30e1008a1a930ba0cf426",
+    "dependency-public-F-stop-audit.json": "be2d494233c149c321ca6ceca22ec965a7c2afde4c628dabf5770125e0f0f6a3"
+  },
+  "raw_identity_sha256": "9c34fa69950adb6ac5f83167cd0af78338e9a98896b3138873a0f442de393aec",
+  "runtime_audit_sha256": "8c7d63f43c4837cc9d4bafdf1f98075c6f76f73b04b8b40e815e55204e1ca1ba",
+  "config_sha256": "0935612603793dc44e6aaab882c48bb85402c829971cd852c6af8226a3d18ad9",
+  "process_sha256": "f5cf1ad507b1a2e8ba77accb9f28a4ad34cfa3a13490bc496c992b81d5934446",
+  "artifact_manifest_sha256": "49e8f835ead45917ddc101c2cd49364b51bafd499ea7645eb660a8b457c06803",
+  "worker_sha256": "f54e9a95562ca33332b2ad67903907d16c6a6d1f6764d2b135cf22e9ba669c66",
+  "provider_sha256": "3f754c8b1ee4a8b34b50d00fd17e37295d853e1b607903b6d355b5e06997669c",
+  "protocol_sha256": "1689dcf63e1ed19cdea7be22e3f90a09f434841f980b9ca8b9018a987c9c38f8",
+  "stdout_sha256": "eea53aa8f75c9cd62044b1a087745d980d8c541d8b47a3e66aa28a64989f4faf",
+  "stderr_sha256": "64f4f1e1502759f679a8df562b197aa3be836d1e92cb6a691d485330536a40f5",
+  "journal_sha256": "fc878ebdc618e834a3d7ace41ff0b8d970068a9cccbab8b10be8dbba9ea42d02",
+  "replay_sha256": null,
+  "source_review_url": "https://github.com/roccho-dev/apps/pull/103#pullrequestreview-5559238178",
+  "scope": "Fixed independent R source/process/stopped-byte expectations; CI verifies these and never regenerates them from recorded receipts."
+}

@@ -1,0 +1,22 @@
+{
+  "phase_id": "dependency-public-E-20261018",
+  "pid": 330456,
+  "state": "R",
+  "pgid": 330456,
+  "start_ticks": "16837431",
+  "program": "/nix/store/bg0bygqiid25xnivxv9cdgjlx3sp939j-voice-ui-typed-dev/bin/voice-ui-typed-dev",
+  "heads": {
+    "apps": "ae816ec23a5e4c397c8a4893e127fb24134afda8",
+    "envs": "063e685b8b21a97fc8658879da93fa858552bcd6",
+    "ops": "b4f611cac9e13fbef178469796cbc3b6d4a76b23",
+    "windows": "6aef693c0946903d8b87c2348039de1420acd61b",
+    "ui": "756d47e891191c3344eb2d29b000203be8331abc"
+  },
+  "allowances": {
+    "jev": 38,
+    "typellm": 2
+  },
+  "stdout": "/work/repos/voice-ui-typellm-20261016/dependency-public-E-20261018.stdout.log",
+  "stderr": "/work/repos/voice-ui-typellm-20261016/dependency-public-E-20261018.stderr.log",
+  "config_sha256": "e66b860ce97ef573ef4d0dbb014556cff88f03a51aed89e6c1db83e16bb811a8"
+}

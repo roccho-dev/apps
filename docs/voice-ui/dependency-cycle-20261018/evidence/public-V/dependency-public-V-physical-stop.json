@@ -1,0 +1,53 @@
+{
+  "schema": "voice-ui.independent-stop-audit/1",
+  "observed_at": "2026-10-17T18:08:10.946910+00:00",
+  "status": "PASS",
+  "phase": "dependency-public-V-20261018",
+  "axis": "V",
+  "pid": 330205,
+  "start_ticks": "16827734",
+  "pid_absent": true,
+  "pgid_all_members_including_zombies": [],
+  "sent": {
+    "jev": 6,
+    "typellm": 0
+  },
+  "charged": {
+    "jev": 707,
+    "typellm": 70
+  },
+  "pending": null,
+  "reconciliation": {
+    "kind": "phase-reconcile",
+    "id": "dependency-public-V-20261018",
+    "sent": {
+      "jev": 6,
+      "typellm": 0
+    },
+    "stopped_group_empty": true,
+    "pid": 330205,
+    "start_ticks": "16827734",
+    "stderr_sha256": "67b3052462f47f904dd44d3589c271d8c3c5cc6da0e1308752dc110134c5ec3a",
+    "stdout_sha256": "bd1ee9eeb2eb221e7dd54bbc7459146f92d1ee3fe7385cb0148644d7d9363eb4",
+    "at": "2026-10-17T18:07:47.516Z"
+  },
+  "config_sha256": "40977d74956838f450be90dcfb1eb958adc54e4542e3f1ab9e863f89b0e07242",
+  "identity_sha256": "5e4a982bd81af3764a6b9dc8ede791c743cb625c8667fb43366b1a6f5164d325",
+  "process_sha256": "b5f87bed6aee765611a193877a17172f0d927c5e001d22addab9e166b7ecbeb4",
+  "runtime_sha256": "8c7d63f43c4837cc9d4bafdf1f98075c6f76f73b04b8b40e815e55204e1ca1ba",
+  "journal_sha256": "79c8faa2a4e8c9bb3bdd57e01e168e88169cd1f32cc1320b9d94fda2fc4457f1",
+  "stdout_sha256": "bd1ee9eeb2eb221e7dd54bbc7459146f92d1ee3fe7385cb0148644d7d9363eb4",
+  "stderr_sha256": "67b3052462f47f904dd44d3589c271d8c3c5cc6da0e1308752dc110134c5ec3a",
+  "raw_sha256": {
+    "PV02-V.json": "bd604777ac128da975540676a373d7f61cdf58fd13194e7df8fb9bb1deaf5895",
+    "PV05-V.json": "13a56b86a758d1b95585e59864c16eb181ae5370a175980f4436921e5eb9b36a",
+    "execution.json": "11f770f88c5f442b207a4e01c29e88b6ca836e6f52b736bf4fbba8ead10d7e69",
+    "PV03-V.json": "519bf67d08749599bb4a8c89b2d6893126cb1cb7d09167b6a4445301fa4ea1d4",
+    "PV01-V.json": "8527f8f7eed977bc9bdd9318f400f73ed740df01fe89f6faec2f362785091e48",
+    "identity.json": "53cdd74e67090b32a62991510bb006ed8f31306cba8ad5665bfc6e26d8ace77e",
+    "PV06-V.json": "8e2a01c9b6038566cbabb214da59ad7636ecc74fbe86389b0ae27da8e49d526c",
+    "events.jsonl": "e489ba934884bdcbf8b41c629dbb4c18981026fda7daaa40e9bb454e3f094d70",
+    "PV04-V.json": "b51309f89a2e3ff3766e695ae939a320ee4c80805707e9acc10325d787cfd977"
+  },
+  "scope": "Actual stopped group including zombies, original synchronous send logs, immutable files and reconciliation cutoff; no provider request by reviewer."
+}
