@@ -30,9 +30,12 @@ export function literalCandidates(state) {
   };
   for (const match of state.utterance.matchAll(pattern)) {
     const label = match[2] ?? match[3], start = match.index + match[0].indexOf(label);
+    const rest = state.utterance.slice(match.index + match[0].length);
+    if (match[4] === undefined ? /^(?:[×x]|を\s*[-+.0-9])/u.test(rest)
+      : /^(?:[0-9A-Za-z_+\-]|\.[0-9])/u.test(rest)) { invalid = true; continue; }
     add(label, kinds.get(match[1]), match[4] === undefined ? 1 : Number(match[4]), start, start + label.length, match[4] !== undefined);
   }
-  const after = new RegExp(`((?:${quote}\\s*(?:[、,と]\\s*)?)+)という(?:名前の|([0-9]+)(?:つ|個)の)?(${prefix})`, "gu");
+  const after = new RegExp(`((?:${quote}\\s*(?:[、,と]\\s*)?)+)という(?:名前の|([0-9]+)(?:つ|個)の)?(${prefix})(?![A-Za-z0-9_])`, "gu");
   for (const match of state.utterance.matchAll(after)) {
     const names = [...match[1].matchAll(/「([^「」\r\n]+)」|"([^"\r\n]+)"/gu)];
     const count = match[2] === undefined ? null : Number(match[2]);
