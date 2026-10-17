@@ -1,7 +1,7 @@
 // Finalize once so the append-only receipt and the arm's call record agree.
 export async function evaluationPost({ url, event, record, fetchFn = globalThis.fetch, now = () => performance.now() }) {
   const started = now(), controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), event.route === "/api/parts/complete" ? 40000 : 15000);
+  const timer = setTimeout(() => controller.abort(), new URL(url).pathname === "/api/parts/complete" ? 40000 : 15000);
   try {
     const response = await fetchFn(url, { method: "POST", redirect: "error",
       headers: { "content-type": "application/json" }, body: JSON.stringify(event.request), signal: controller.signal });

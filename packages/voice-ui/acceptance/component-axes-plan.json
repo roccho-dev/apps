@@ -1,0 +1,28 @@
+{
+  "schema": "voice-ui.component-axes-plan/1",
+  "issue": "https://github.com/roccho-dev/apps/issues/94",
+  "previous_cycle": { "head": "4617b65ed42dc116329224612fa2e906daea46d8", "closed": true },
+  "prior_charged": { "jev": 564, "typellm": 29 },
+  "whole_run_cap": { "jev": 1000, "typellm": 1000 },
+  "cycle_cap": { "jev": 290, "typellm": 11 },
+  "reservations": {
+    "public": { "e2e": 4, "representation": 2, "gate": 4, "jev": 56, "direct_typed_supply": 3 },
+    "correction": { "batches": 2, "jev_per_batch": 27 },
+    "final": { "e2e": 10, "representation": 8, "gate": 10, "supply": 8, "jev": 164, "direct_typed_supply": 8 },
+    "setup": { "jev": 16 }
+  },
+  "scope": { "new_regions": 3, "new_flow_edges": 1, "legal_judgments": 8, "deadline_ms": 180000 },
+  "axes": {
+    "G": { "cases": 10, "intent_correct": 10, "availability_correct": 8, "normalized_gate_correct": 10, "completeness": "raw and accepted separate columns", "controls_availability": "N/A" },
+    "R": { "cases": 8, "graph_exact": 8, "paint_pass": 8, "inventory": "oracle complete inventory in isolated harness only", "gate_and_completion": "bypassed" },
+    "F": { "cases": 8, "methods": ["literal", "typed"], "exact_minimal": 8, "input": "stock inventory and original utterance only", "gate": "bypassed", "clear_paraphrases_minimum": 2 },
+    "E": { "cases": 10, "normal_ui_method": "literal", "gate_correct": 10, "sufficient_exact": 4, "missing_exact_minimal": 4, "unchanged_correct_controls": 2, "unnecessary_generation": 0, "requires": ["actual completed Worker", "paint", "undo", "apply", "reload"] }
+  },
+  "admissibility": ["independent sealed disjoint inputs", "source artifact and harness frozen before input release", "oracle release after phase stop and independent reconciliation", "raw HTTP protocol proof and provider ledger join", "ordinary UI verified separately from isolated axes", "failed and unrecognized supported cases remain in denominator"],
+  "seals": { "E": "previous unexposed reserve10 with unchanged inputs and oracle", "G_R_F": "new independent disjoint pools", "exposed_cases": "regression only" },
+  "literal_method": { "recognized_and_complete_are_distinct": true, "completeness": "independent Jev choice in the same POST; never a parsing theorem", "confidence": "minimum of intent and completeness; unknown has null confidence", "coverage": "exact label kind quantity multiset minus one-use inventory capacity", "does_not_supply": ["parents", "edges", "operators", "identities"], "outside_grammar": "stop; still a failure when a clear request lies within the agreed semantic scope" },
+  "typed_method": "direct supply comparison only; not a product fallback or substitute for literal product results",
+  "ci_live_execution": "UNPROVEN until actual approved CI-origin provider evidence",
+  "ui_merge": "explicit human approval pending",
+  "currency": "COST_NOT_MEASURED"
+}

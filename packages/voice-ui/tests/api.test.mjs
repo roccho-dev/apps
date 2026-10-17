@@ -296,7 +296,7 @@ test("compiled Worker binds both released provider operations, validates invento
     regions: [{ id: "root", label: "World", kind: "boundary", parent: null }, { id: "container", label: "Container", kind: "group", parent: "root" }],
     edges: [], parts: [{ key: "service", purpose: "one service", label: "Service", kind: "step" }] } };
   const invoke = (mode, body = input, env = { JEV_API_KEY: "jev-test-only", TYPELLM_API_KEY: "typed-test-only" }) => worker.fetch(
-    new Request("http://localhost/api/parts/" + mode, { method: "POST", body: JSON.stringify(body) }), env);
+    new Request("http://localhost/api/parts/" + mode + "?method=typed", { method: "POST", body: JSON.stringify(body) }), env);
   const missing = [{ label: "Named service", kind: "step", occurrence: 1 }];
   const { calls } = await withProvider(async (body, init) => {
     if (body.questions.labels) {
@@ -336,6 +336,24 @@ test("compiled Worker binds both released provider operations, validates invento
     assert.deepEqual(await response.json(), { error: "parts_contract" });
   });
   assert.equal(invalid.calls.length, 1);
+});
+
+test("ordinary completed Worker defaults to literal without a Type key; unknown or duplicate methods cannot dispatch", async () => {
+  const input = { kind: "voice-ui.goal.inventory.v1", state: { utterance: "ContainerにDBを3個追加", head: "fixture-head",
+    regions: [{ id: "root", label: "World", kind: "boundary", parent: null },
+      { id: "container", label: "Container", kind: "group", parent: "root" }], edges: [],
+    parts: [{ key: "db", purpose: "one database", label: "DB", kind: "data" }] } };
+  const invoke = suffix => worker.fetch(new Request("http://localhost/api/parts/complete" + suffix,
+    { method: "POST", body: JSON.stringify(input) }), {});
+  const { calls } = await withProvider(async () => { throw Error("literal completion must not call a provider"); }, async () => {
+    const value = await (await invoke("")).json();
+    assert.deepEqual(value.missing, [{ label: "DB", kind: "data", occurrence: 1 }, { label: "DB", kind: "data", occurrence: 2 }]);
+    assert.equal(value.extraction.source, "literal");
+    for (const suffix of ["?method=unknown", "?method=literal&method=typed", "?method="])
+      assert.equal((await invoke(suffix)).status, 422);
+    assert.equal((await invoke("?method=typed")).status, 503);
+  });
+  assert.equal(calls.length, 0);
 });
 
 test("every legacy or unknown request kind is 422 and never reaches the provider", async () => {

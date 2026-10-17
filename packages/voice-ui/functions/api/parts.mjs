@@ -1,5 +1,6 @@
 import { COVERAGE, inventoryQuestion, isInventory, readTypedMissing, typedMissingRequest } from "../../src/completion.mjs";
 import { LABEL_MAX, PART_KINDS } from "../../src/contract.mjs";
+import { literalInventory, literalQuestion } from "../../src/literal-inventory.mjs";
 const json = (body, status = 200) => Response.json(body, { status, headers: { "cache-control": "no-store" } });
 const inventoryChoices = ["sufficient", "missing"];
 const intentChoices = ["change", ...COVERAGE.filter(choice => !inventoryChoices.includes(choice))];
@@ -15,14 +16,18 @@ const failures = {
 };
 
 // Bound operations and availability only; the request composition owns credentials and transport.
-export async function onParts({ request, mode, available }, { judge, generate }) {
+export async function onParts({ request, mode, available, method = "typed" }, { judge, generate }) {
+  if (!["literal", "typed"].includes(method)) return json({ error: "parts_invalid_method" }, 422);
   if (available !== true) return json({ error: "parts_unavailable" }, 503);
   let input;
   try { input = await request.json(); } catch { return json({ error: "parts_invalid_json" }, 400); }
   if (!isInventory(input) || !["check", "complete"].includes(mode)) return json({ error: "parts_invalid_request" }, 422);
   try {
+    const literal = method === "literal" ? literalInventory(input.state) : null;
+    if (mode === "complete" && literal !== null) return json({ missing: literal.missing,
+      extraction: { source: "literal", recognized: literal.recognized, required: literal.required, spans: literal.spans } });
     if (mode === "check") {
-      const value = await judge(inventoryQuestion(input.state), { signal: request.signal });
+      const value = await judge(literal === null ? inventoryQuestion(input.state) : literalQuestion(input.state, literal), { signal: request.signal });
       const intent = value?.answers?.intent, labels = value?.answers?.labels, capacity = value?.answers?.capacity;
       if (!validAnswer(intent, intentChoices) || !validAnswer(labels, labelChoices) || !validAnswer(capacity, capacityChoices))
         return json({ error: "parts_contract" }, 502);
@@ -31,6 +36,25 @@ export async function onParts({ request, mode, available }, { judge, generate })
         head: /^sha256:[a-f0-9]{64}$/.test(input.state.head) ? input.state.head : null,
         factors: Object.fromEntries(Object.entries({ intent, labels, capacity }).map(([name, answer]) =>
           [name, { choice: answer.choice, confidence: answer.confidence }])) }));
+      if (literal !== null) {
+        const completeness = value?.answers?.completeness;
+        if (!validAnswer(completeness, ["complete", "incomplete"])) return json({ error: "parts_contract" }, 502);
+        const referenced = input.state.regions.filter(region => region.kind !== "group" && region.kind !== "boundary"
+          && input.state.utterance.includes(region.label));
+        const ready = literal.valid && (literal.status === "transcribed"
+          || literal.required.length === 0 && new Set(referenced.map(region => region.label)).size >= 2);
+        const inspection = { source: "literal+jev", recognized: literal.recognized, required: literal.required,
+          spans: literal.spans, completeness: { choice: completeness.choice, confidence: completeness.confidence } };
+        const choice = intent.choice !== "change" ? intent.choice
+          : ready && completeness.choice === "complete" && completeness.confidence >= 0.5
+            ? literal.missing.length ? "missing" : "sufficient" : "unknown";
+        const confidence = choice === "unknown" ? null : intent.choice !== "change" ? intent.confidence
+          : Math.min(intent.confidence, completeness.confidence);
+        console.info(JSON.stringify({ kind: "voice-ui.parts.literal.v1", head: /^sha256:[a-f0-9]{64}$/.test(input.state.head) ? input.state.head : null,
+          recognized: literal.recognized, required_count: literal.required.reduce((n, item) => n + item.quantity, 0),
+          completeness: inspection.completeness, choice, confidence }));
+        return json({ choice, confidence, inspection });
+      }
       // Either positive fact proves something is missing. A confident negative
       // cannot lift a weak positive; sufficient needs both negative facts.
       const witnesses = [labels.choice === "missing" ? labels.confidence : null,

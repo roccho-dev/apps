@@ -44,7 +44,7 @@ let fixture = null, input = null;
 const api = [], upstream = [], frames = [], controls = [], lifecycle = [];
 const syntheticAnswer = wire => {
   if (wire.questions.intent) return { intent: "change", labels: fixture.id === "equal-label-quantity" || fixture.existing ? "available" : "missing",
-    capacity: fixture.id === "equal-label-quantity" ? "exceeded" : "within" };
+    capacity: fixture.id === "equal-label-quantity" ? "exceeded" : "within", completeness: "complete" };
   const state = input.state;
   const next = fixture.nodes.find(node => {
     const parent = state.graph.find(region => region.label === node.parent);
@@ -112,7 +112,7 @@ const server = http.createServer(async (req, res) => {
       try {
         const response = await worker.fetch(new Request("http://localhost" + pathname,
           { method: req.method, headers: { "content-type": "application/json" }, body: bytes }),
-          { JEV_API_KEY: "fixture-jev-only", TYPELLM_API_KEY: "fixture-type-only",
+          { JEV_API_KEY: "fixture-jev-only",
             ASSETS: { fetch: () => { throw new Error("unexpected Worker asset"); } } });
         const body = await response.text();
         api.push({ fixture: fixture.id, route: pathname, status: response.status, body: JSON.parse(body) });
@@ -350,6 +350,7 @@ try {
   await browser.close(); await new Promise(resolve => server.close(resolve)); globalThis.fetch = originalFetch;
 }
 fs.mkdirSync(output, { recursive: true });
+assert.ok(upstream.every(call => call.provider === "jev"), "ordinary literal UI requires no TypeLLM key or POST");
 const receipt = { schema: "voice-ui.candidate-browser/1", sources: manifest.sources, manifest_sha256: hash(manifestBytes),
   scope: "KEYLESS_FIXTURE_MECHANICS", live_provider: "NOT_RUN", live_microphone: "NOT_RUN",
   viewport: [1280, 720], deviceScaleFactor: 1, api, synthetic_upstream: upstream, frames, controls, lifecycle,

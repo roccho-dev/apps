@@ -188,12 +188,23 @@ export async function runInventoryGoal({ check, complete, completion = true, now
   let coverage;
   inventory.checks++;
   try { coverage = await check(request); } catch { return stop("inventory-unknown"); }
-  if (!exact(coverage, ["choice", "confidence"]) || !COVERAGE.includes(coverage.choice)
-      || typeof coverage.confidence !== "number" || !Number.isFinite(coverage.confidence) || coverage.confidence < 0 || coverage.confidence > 1)
+  const inspected = exact(coverage, ["choice", "confidence", "inspection"])
+    && exact(coverage.inspection, ["source", "recognized", "required", "spans", "completeness"])
+    && coverage.inspection.source === "literal+jev" && typeof coverage.inspection.recognized === "boolean"
+    && Array.isArray(coverage.inspection.required) && Array.isArray(coverage.inspection.spans)
+    && exact(coverage.inspection.completeness, ["choice", "confidence"])
+    && ["complete", "incomplete"].includes(coverage.inspection.completeness.choice)
+    && Number.isFinite(coverage.inspection.completeness.confidence)
+    && coverage.inspection.completeness.confidence >= 0 && coverage.inspection.completeness.confidence <= 1;
+  if (!(exact(coverage, ["choice", "confidence"]) || inspected)
+      || !(COVERAGE.includes(coverage.choice) || inspected && coverage.choice === "unknown" && coverage.confidence === null)
+      || coverage.choice !== "unknown" && (typeof coverage.confidence !== "number" || !Number.isFinite(coverage.confidence)
+        || coverage.confidence < 0 || coverage.confidence > 1))
     return stop("inventory-contract");
   inventory.coverage = Object.freeze({ ...coverage });
   reason = interrupted();
   if (reason !== null) return stop(reason);
+  if (coverage.choice === "unknown") return stop("inventory-unresolved");
   if (coverage.confidence < MIN_CONFIDENCE) return stop("inventory-not-confident");
   if (!["sufficient", "missing"].includes(coverage.choice)) return stop("inventory-" + coverage.choice);
   let bundle = options.bundle;
