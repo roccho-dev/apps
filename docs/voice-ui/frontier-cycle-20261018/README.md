@@ -12,6 +12,8 @@
 
 製品差分はcompletion・parts API・Pages entryの3ファイル。新driverは従来callerの固定経路を再利用し、独立score/auditを含む25sourceを記録する。新しい必須CIは未測定indexも検算し、完成ZIPで弱い入口からの実C経路・拒否/低確信/不正V・版の混在拒否・閾値grid・共有deadlineと、親WorkerとのG0/F/V原送信bytes一致を確認する。これらはkeylessな疑似試験で、実モデル性能には数えない。
 
+実送前source0e6add5の[Nix39065864834](https://github.com/roccho-dev/apps/actions/runs/39065864834)は、既定経路のcompiled API testが旧adaptive-v2を期待して失敗した。既定v3/inspection3と導出policyを確認する期待へ更新し、充足時のType-key-free・追加候補0・総呼出4の確認を維持する。製品25source・質問・封印・採点基準は同じで、実送0のまま、新headの全CI・完成物受入を要求する。この失敗runを削除・成功へ読み替えない。
+
 ## 合意した工程
 
 rootが製品・driver・CIと実呼出を担当し、同じ独立subagent1名が新しい未見パネル・oracle・採点・監査・固定producerを担当する。未見データは工程の解放条件までrootへ渡さない。適用ADRSはa6284e58ed99243447e135828d983fc07d2d363e。

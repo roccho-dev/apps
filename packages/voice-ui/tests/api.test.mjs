@@ -338,7 +338,7 @@ test("compiled Worker binds both released provider operations, validates invento
   assert.equal(invalid.calls.length, 1);
 });
 
-test("normal compiled check uses adaptive requirements and complete B works without a Type key", async () => {
+test("normal compiled check uses v3 and complete baseline works without a Type key", async () => {
   const input = { kind: "voice-ui.goal.inventory.v1", state: { utterance: "Containerへ新しい工程を1つ、その表示名はNovel",
     head: "fixture-head", regions: [{ id: "root", parent: null, label: "World", kind: "boundary" },
       { id: "container", parent: "root", label: "Container", kind: "group" }], edges: [],
@@ -360,12 +360,17 @@ test("normal compiled check uses adaptive requirements and complete B works with
   }, async () => {
     const response = await invoke(input, { JEV_API_KEY: "jev-test-only", TYPELLM_API_KEY: "typed-test-only" });
     const body = await response.json(); assert.equal(response.status, 200); assert.equal(body.choice, "missing");
-    assert.equal(body.inspection.mode, "adaptive-v2"); assert.equal(body.inspection.initial.decision.choice, "unknown");
+    assert.equal(body.inspection.mode, "adaptive-v3"); assert.equal(body.inspection.schema, "voice-ui.parts.inspection/3");
+    assert.deepEqual(body.inspection.proposal_policy,
+      { id: "uncertainty-frontier-v1", eligible: true, reason: "confident-change-incomplete" });
+    assert.equal(body.inspection.initial.decision.choice, "unknown");
     assert.equal(body.inspection.verification.completeness.choice, "complete");
     const sufficient = structuredClone(input); sufficient.state.utterance = "ContainerにServiceを1個追加";
     const complete = await invoke(sufficient, { JEV_API_KEY: "jev-test-only" });
     const value = await complete.json(); assert.equal(complete.status, 200); assert.equal(value.choice, "sufficient");
     assert.equal(value.inspection.proposal, null); assert.deepEqual(value.inspection.missing, []);
+    assert.equal(value.inspection.schema, "voice-ui.parts.inspection/3");
+    assert.deepEqual(value.inspection.proposal_policy, { id: "uncertainty-frontier-v1", eligible: false, reason: null });
   });
   assert.equal(calls.length, 4);
 });
