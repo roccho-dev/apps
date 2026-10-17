@@ -84,7 +84,9 @@ const predicate = (value, at) => {
 // Journal decisions (adrs#647 contract 3): who decided what, when, from which source.
 const VERDICTS = ['achieved', 'not-yet', 'ideal-insufficient'];
 const decision = (event, required, optional, at) => {
-  keys(event, ['kind', 'recordedAt', 'source', ...required], ['actor', ...optional], at);
+  keys(event, ['kind', 'recordedAt', 'source', ...required], ['actor', 'declaredAt', ...optional], at);
+  // declaredAt (v10): the decision's own time when it entered the ledger later (recordedAt is then the ledgerAt).
+  if ('declaredAt' in event) demand(time(event.declaredAt, `${at}.declaredAt`) <= Date.parse(event.recordedAt), `${at}: declaredAt is after recordedAt`);
   keys(event.source, ['ref', 'digest'], ['commentId'], `${at}.source`);
   demand(token(event.source.ref) && sha(event.source.digest) && ((event.source.commentId ?? null) === null || token(event.source.commentId)),
     `${at}: source ref, sha256 digest (and commentId) required`);

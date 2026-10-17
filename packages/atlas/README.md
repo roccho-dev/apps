@@ -375,6 +375,72 @@ held in `g-plans.jsonl` as `{reason, plan}`. G's `UNKNOWN` graph becomes D's `nu
 it as a declared plan with `nodes: null` and the reasons, never as "no plan".
 Without `--control` there is no Norm and every condition is unassigned.
 
+## Ledger (L1, apps#110): world events are appended, the World is derived
+
+World events (decisions and observations, adrs#647 v9/v10) happen whether or not anything is drawn; their
+source of truth is an append-only ledger (`atlas.ledger/1`, one header line then rows
+`{seq, ledgerAt, recordedAt, actor, source, sha256, event}`, `event` = the G event as collected, `actor` =
+its author or `atlas.G` for an observation). Each row has two times, like a book's entry date and event
+date (v10): `ledgerAt`, when the row entered the ledger (`--ledger-at`, default now; monotonic, the only
+time order checked), and the event's own time (`recordedAt` of a declaration, `observedAt` of an
+observation), which may be in the past and is kept as is. `ledger.mjs` appends one collection; it never
+rewrites a row:
+
+- An **observation** is appended when its value or source changed, or as a **refresh** when half of the
+  shortest `maxAge` declared on its target (any ideal state in the ledger) has passed since the last
+  recorded observation of it. With collection at least every `maxAge/2`, the latest row is never stale
+  while collection runs, and goes stale within `maxAge` once it stops. A target no condition watches is
+  appended only when it changes. A refresh is no change of value.
+- A **declaration** (purpose.set, ideal.drafting, ideal.set, plan.set, purpose.evaluated, purpose.ended) is
+  appended only when its content changed for the same identity (a plan body's `updatedAt` alone is no
+  change), whatever its own date: one dated before the ledger's last row is appended, not held.
+- **Held, never appended** (to `<ledger>.held.jsonl` with a reason): damaged lines (invalid JSON, unknown
+  kinds, G's own held lines, an event dated after its `ledgerAt`), exact duplicates of a row, and a
+  collection whose `ledgerAt` goes back before the ledger's last row. A damaged ledger (seq, sha256 or
+  `ledgerAt` order broken) is refused as a whole and nothing is appended.
+
+`live.mjs --ledger=<ledger.jsonl>` derives the World from every row. Frames are cut by `ledgerAt` (what
+was known then): a late, past-dated event shows from the frame where it entered and never rewrites an
+earlier frame; a declaration's own time stays readable as `declaredAt` in the journal, an observation's
+as `observedAt`. The same ledger always gives the same World.
+
+### HQ refresh (P, `hq-refresh.ps1`): append → derive → publish
+
+The ledger lives at `/tmp/p-hq/ledger.jsonl` on g6i3-own for now (GitHub in L2). P's declaration file is
+read by G (list it under `declarations` in the collect config), so declarations enter the ledger too; do
+not pass `--purpose` any more.
+
+~~~sh
+node packages/atlas/collect/fetch.mjs <collect.json> <snapshot-dir>                      # read the world
+node packages/atlas/collect/collect.mjs <snapshot-dir> --out <g-events.jsonl>              # G events (this collection)
+node packages/atlas/ledger.mjs --ledger=/tmp/p-hq/ledger.jsonl <g-events.jsonl>           # 1. append (exit 1: stop)
+node packages/atlas/live.mjs --out-dir=<out> --ledger=/tmp/p-hq/ledger.jsonl --control=<control.jsonl>  # 2. derive
+# 3. publish: copy <out>/world.json to the HQ input (e.g. /tmp/p-hq/in/world.json) by write-then-rename
+~~~
+
+If step 1 or 2 fails, do not publish: the previous `world.json` stays. The ledger only grows; to start
+over, move it aside (never edit rows).
+
+### A last line cut short (manual repair, never automatic)
+
+An append that is interrupted (power, kill, full disk) can leave the ledger's last line incomplete. Then
+`ledger.mjs` refuses the ledger: it stops with exit 1 and appends nothing more, and `live.mjs --ledger`
+fails, so nothing is published and the previous `world.json` stays. Nothing repairs it automatically.
+To repair by hand:
+
+1. Stop the HQ refresh loop.
+2. Confirm the damage: `node packages/atlas/ledger.mjs --ledger=/tmp/p-hq/ledger.jsonl --check` (exit 1 and
+   the reason; `--check` only reads).
+3. Keep the damaged file: `cp /tmp/p-hq/ledger.jsonl /tmp/p-hq/ledger.broken-<UTC time>.jsonl`.
+4. Look at the end: `tail -c 400 /tmp/p-hq/ledger.jsonl`. Remove only an incomplete **last** line (no
+   trailing newline, not valid JSON): `head -n -1 /tmp/p-hq/ledger.jsonl > /tmp/p-hq/ledger.fixed.jsonl`
+   when the file ends without a newline, or truncate to the last `\n` otherwise. Never edit any other row.
+5. Check the result: `node packages/atlas/ledger.mjs --ledger=/tmp/p-hq/ledger.fixed.jsonl --check` must
+   print `PASS`; if the damage is not the last line only, stop and report it (do not rewrite rows).
+6. Move it into place (`mv /tmp/p-hq/ledger.fixed.jsonl /tmp/p-hq/ledger.jsonl`) and restart the refresh:
+   the next collection appends again what the lost row said (observations are re-observed, declarations
+   re-read), dated by that collection's `ledgerAt`.
+
 ## World edge contracts (`contract.mjs`)
 
 The model and contracts are adrs#647 (v3 is the newest section). `contract.mjs` is the

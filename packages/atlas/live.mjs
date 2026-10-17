@@ -6,6 +6,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { parseArgs } from 'node:util';
 import { parseEvents } from './events.mjs';
+import { ledgerEvents } from './ledger.mjs';
 
 const fail = message => { throw new Error('atlas-live: ' + message); };
 const exact = (event, keys) => Object.keys(event).length === keys.length && keys.every(key => key in event);
@@ -81,14 +82,16 @@ export const joinLog = (purposeText, gTexts, sourceMode = 'supplied') => {
 if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
   try {
     const { values, positionals } = parseArgs({ allowPositionals: true,
-      options: { 'out-dir': { type: 'string' }, purpose: { type: 'string' }, control: { type: 'string' } } });
-    if (!values['out-dir'] || positionals.length === 0)
-      fail('usage: node live.mjs --out-dir=<dir> [--purpose=<D-form purpose.jsonl>] [--control=<control.jsonl>] <g-events.jsonl>...');
+      options: { 'out-dir': { type: 'string' }, purpose: { type: 'string' }, control: { type: 'string' }, ledger: { type: 'string' } } });
+    if (!values['out-dir'] || (positionals.length === 0 && !values.ledger))
+      fail('usage: node live.mjs --out-dir=<dir> [--ledger=<ledger.jsonl>] [--purpose=<D-form purpose.jsonl>] [--control=<control.jsonl>] [<g-events.jsonl>...]');
     const read = file => fs.readFileSync(file, 'utf8');
-    const { log, held } = joinLog(values.purpose ? read(values.purpose) : '', positionals.map(read));
+    // L1: with --ledger the World is derived from every ledger row (the same ledger, the same World).
+    const gTexts = [...(values.ledger ? [ledgerEvents(read(values.ledger))] : []), ...positionals.map(read)];
+    const { log, held } = joinLog(values.purpose ? read(values.purpose) : '', gTexts);
     fs.mkdirSync(values['out-dir'], { recursive: true });
     const out = name => path.join(fs.realpathSync(values['out-dir']), name);
-    const inputs = [values.purpose, values.control, ...positionals].filter(Boolean).map(file => fs.realpathSync(file));
+    const inputs = [values.purpose, values.control, values.ledger, ...positionals].filter(Boolean).map(file => fs.realpathSync(file));
     if (['events.jsonl', 'control.jsonl', 'g-plans.jsonl', 'g-journal-held.jsonl'].some(name => inputs.includes(out(name)))) fail('output must not replace an input');
     fs.writeFileSync(out('events.jsonl'), log);
     // No control given: no Norm, so every condition is derived unassigned (never guessed).
