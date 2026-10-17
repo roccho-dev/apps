@@ -137,6 +137,22 @@ jobs:
             dist/component-axes-closed-evidence/*/audit.json
             dist/component-axes-closed-evidence/*/ci-replay/receipt.json
           if-no-files-found: ignore
+      - name: Verify requirements cycle with exact stopped artifacts
+        run: |
+          set -euo pipefail
+          runtime="$(nix build --no-link --print-out-paths .#voice-ui-acceptance-runtime)"
+          "$runtime/bin/voice-ui-acceptance-node" packages/voice-ui/acceptance/verify-requirements-cycle.mjs \
+            "$PWD/docs/voice-ui/requirements-cycle-20261017/evidence/index.json" "$PWD/dist/requirements-cycle-closed-evidence"
+      - name: Preserve requirements cycle verification
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: voice-ui-requirements-cycle-${{ github.event.pull_request.head.sha || github.sha }}
+          path: |
+            dist/requirements-cycle-closed-evidence/receipt.json
+            dist/requirements-cycle-closed-evidence/*/audit.json
+            dist/requirements-cycle-closed-evidence/*/ci-replay/receipt.json
+          if-no-files-found: ignore
       - name: Export the acceptance runtime closure
         run: |
           set -euo pipefail

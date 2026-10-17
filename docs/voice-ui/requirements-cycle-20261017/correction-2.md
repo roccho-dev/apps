@@ -1,0 +1,12 @@
+# Public-only correction 2
+
+This is the last registered source-cause correction batch. No E or fresh input has been consumed. Batch1 at exact0861f5c42cbd5f5412c465fff33ff036361591e8 is stopped, independently reconciled and retained: F exact/minimal2/6 with three invalid responses, and V correct3/6 with zero accepted correct proposals, three rejected incorrect proposals and false acceptance0. All18 new-cycle public executions remain in the evidence index. Charged cumulative695J/52T (confirmed695/51); no reservation remains.
+
+Two source observations motivate the candidate; neither establishes the cause of an unrecorded invalid scalar value.
+
+- Full NEW extraction previously received inventory capacities, graph edges and stock limits even though the app alone subtracts stock. Type now receives the original utterance, existing reference labels/kinds and part definitions without capacities. Its nine scalar fields, three ordinal slots, bounded types and total counts remain the same.
+- V's blanket instruction to reject an unspecified name conflicted with the product's permitted interpretation of a generic part as a uniquely determined canonical standard label. Its completeness question now directly includes the original utterance, actual proposed requirements and actual part definitions. Explicit names/kinds/counts take precedence; an unresolved ambiguity still fails. Stock availability/capacity and parent/edge assignment are explicitly separate from completeness of the NEW requirements list. The other three actual Jev factors and original G0 stay independently attributable.
+
+The same root and independent R agreed this correction before implementation. No expected answer, oracle, case lookup, threshold adjustment, retry, graph authority or stock subtraction is added to either model. The .5 acceptance floor, one conditional Type call, one independent V call, closed receipts, supported operations and scorer/criteria remain fixed. F6 and V6 will each run once on the same newly admitted exact head, within batch2's25J/7T cap. The initial public E2 allocation can run only if both full public gates pass on that head. Otherwise E/fresh stay unused and the result is UNMET/effect UNPROVEN.
+
+The candidate's required CI also verifies all three already stopped phases against their exact rebuilt/reopened artifacts, independent fixed producers and ordered journal cutoffs. Passing that integrity check cannot promote F2/6 or V3/6 into a quality success.

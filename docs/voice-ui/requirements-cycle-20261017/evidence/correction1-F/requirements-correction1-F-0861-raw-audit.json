@@ -1,0 +1,233 @@
+{
+  "schema": "voice-ui.requirements-cycle-raw-audit/1",
+  "axis": "F",
+  "status": "PASS",
+  "issues": [],
+  "complete": true,
+  "all_valid_execution": false,
+  "consumed": 6,
+  "planned": 6,
+  "rows": [
+    {
+      "id": "PF01",
+      "method": "full-required",
+      "arm": "F",
+      "valid_execution": false,
+      "grade": {
+        "contract_valid": false,
+        "exact": false,
+        "minimal": false,
+        "expected_instances": 3,
+        "actual_instances": null,
+        "matched_instances": 0,
+        "omitted_instances": 3,
+        "extra_instances": null,
+        "stock_difference": null,
+        "true_sufficient": false,
+        "scope": "full NEW requirements, never model-computed missing counts"
+      },
+      "cell_wall_elapsedMs": 1430.1042
+    },
+    {
+      "id": "PF02",
+      "method": "full-required",
+      "arm": "F",
+      "valid_execution": true,
+      "grade": {
+        "contract_valid": true,
+        "exact": true,
+        "minimal": true,
+        "expected_instances": 1,
+        "actual_instances": 1,
+        "matched_instances": 1,
+        "omitted_instances": 0,
+        "extra_instances": 0,
+        "stock_difference": [
+          {
+            "label": "可否照合",
+            "kind": "decision",
+            "occurrence": 1
+          }
+        ],
+        "true_sufficient": false,
+        "scope": "full NEW requirements, never model-computed missing counts"
+      },
+      "cell_wall_elapsedMs": 1214.0445000000002
+    },
+    {
+      "id": "PF03",
+      "method": "full-required",
+      "arm": "F",
+      "valid_execution": true,
+      "grade": {
+        "contract_valid": true,
+        "exact": true,
+        "minimal": true,
+        "expected_instances": 1,
+        "actual_instances": 1,
+        "matched_instances": 1,
+        "omitted_instances": 0,
+        "extra_instances": 0,
+        "stock_difference": [],
+        "true_sufficient": true,
+        "scope": "full NEW requirements, never model-computed missing counts"
+      },
+      "cell_wall_elapsedMs": 1174.7910000000002
+    },
+    {
+      "id": "PF04",
+      "method": "full-required",
+      "arm": "F",
+      "valid_execution": true,
+      "grade": {
+        "contract_valid": true,
+        "exact": false,
+        "minimal": false,
+        "expected_instances": 2,
+        "actual_instances": 2,
+        "matched_instances": 1,
+        "omitted_instances": 1,
+        "extra_instances": 1,
+        "stock_difference": [
+          {
+            "label": "判断",
+            "kind": "data",
+            "occurrence": 1
+          }
+        ],
+        "true_sufficient": true,
+        "scope": "full NEW requirements, never model-computed missing counts"
+      },
+      "cell_wall_elapsedMs": 1175.3517000000002
+    },
+    {
+      "id": "PF05",
+      "method": "full-required",
+      "arm": "F",
+      "valid_execution": false,
+      "grade": {
+        "contract_valid": false,
+        "exact": false,
+        "minimal": false,
+        "expected_instances": 3,
+        "actual_instances": null,
+        "matched_instances": 0,
+        "omitted_instances": 3,
+        "extra_instances": null,
+        "stock_difference": null,
+        "true_sufficient": false,
+        "scope": "full NEW requirements, never model-computed missing counts"
+      },
+      "cell_wall_elapsedMs": 785.9160000000002
+    },
+    {
+      "id": "PF06",
+      "method": "full-required",
+      "arm": "F",
+      "valid_execution": false,
+      "grade": {
+        "contract_valid": false,
+        "exact": false,
+        "minimal": false,
+        "expected_instances": 3,
+        "actual_instances": null,
+        "matched_instances": 0,
+        "omitted_instances": 3,
+        "extra_instances": null,
+        "stock_difference": null,
+        "true_sufficient": false,
+        "scope": "full NEW requirements, never model-computed missing counts"
+      },
+      "cell_wall_elapsedMs": 760.5766999999996
+    }
+  ],
+  "semantic": {
+    "complete": true,
+    "total": 6,
+    "exact_minimal": 2,
+    "true_sufficient": {
+      "total": 2,
+      "zero_missing": 1
+    },
+    "requirements_criteria": "UNMET"
+  },
+  "phase_kind": "correction",
+  "inputs_sha256": "fecbe1eb3945cdb9e450742e26ba5fbb56bc1f3d852b1deebf292d09d922b6ec",
+  "parent_inputs_sha256": "fecbe1eb3945cdb9e450742e26ba5fbb56bc1f3d852b1deebf292d09d922b6ec",
+  "admissible_for_semantic_claim": false,
+  "external_provider_attempts": {
+    "jev": 0,
+    "typellm": 6
+  },
+  "external_provider_attempt_bounds": {
+    "jev": {
+      "min": 0,
+      "max": 0
+    },
+    "typellm": {
+      "min": 6,
+      "max": 6
+    }
+  },
+  "stage_rows": 6,
+  "stage_alignment": "UNIQUE",
+  "proofs": [
+    {
+      "id": "PF01",
+      "method": "full-required",
+      "status": "PASS",
+      "initial_head": "sha256:0b3522df5b691691d41d9b4587377781fc7048c991a4e47357e5583eb09288c6",
+      "final_head": "sha256:0b3522df5b691691d41d9b4587377781fc7048c991a4e47357e5583eb09288c6"
+    },
+    {
+      "id": "PF02",
+      "method": "full-required",
+      "status": "PASS",
+      "initial_head": "sha256:0b3522df5b691691d41d9b4587377781fc7048c991a4e47357e5583eb09288c6",
+      "final_head": "sha256:0b3522df5b691691d41d9b4587377781fc7048c991a4e47357e5583eb09288c6"
+    },
+    {
+      "id": "PF03",
+      "method": "full-required",
+      "status": "PASS",
+      "initial_head": "sha256:0b3522df5b691691d41d9b4587377781fc7048c991a4e47357e5583eb09288c6",
+      "final_head": "sha256:0b3522df5b691691d41d9b4587377781fc7048c991a4e47357e5583eb09288c6"
+    },
+    {
+      "id": "PF04",
+      "method": "full-required",
+      "status": "PASS",
+      "initial_head": "sha256:0b3522df5b691691d41d9b4587377781fc7048c991a4e47357e5583eb09288c6",
+      "final_head": "sha256:0b3522df5b691691d41d9b4587377781fc7048c991a4e47357e5583eb09288c6"
+    },
+    {
+      "id": "PF05",
+      "method": "full-required",
+      "status": "PASS",
+      "initial_head": "sha256:0b3522df5b691691d41d9b4587377781fc7048c991a4e47357e5583eb09288c6",
+      "final_head": "sha256:0b3522df5b691691d41d9b4587377781fc7048c991a4e47357e5583eb09288c6"
+    },
+    {
+      "id": "PF06",
+      "method": "full-required",
+      "status": "PASS",
+      "initial_head": "sha256:b4f52e5183b8e5730e59a7524a9b260f7cb7a4246695c8a69c4d320bec1312c1",
+      "final_head": "sha256:b4f52e5183b8e5730e59a7524a9b260f7cb7a4246695c8a69c4d320bec1312c1"
+    }
+  ],
+  "replay": null,
+  "raw_sha256": {
+    "events.jsonl": "b16bab12782e8b4a8a9173319184cdd53a77a62e8670e5216b7c2a9cd8373376",
+    "execution.json": "01758bfebefaf3ba1a33f2644243eecb5aa94542e61dee5cc258ce7ad04fd4ef",
+    "identity.json": "217e22fca1943d23465efb752d55855dbcd1f45d1a8293d52c4890927358f316",
+    "PF01-F.json": "ee566839b7ac982eb66a4ab9cad621fc288fae666da819d8a416328ba53b1a4d",
+    "PF02-F.json": "f8277b768462f044f0326f80b049b18d6fb27357d38925b1900be4aba1c4f2f9",
+    "PF03-F.json": "13a76b4439fe26b336b957512e84dee8dd1cca20a55dc064de9fef699004a875",
+    "PF04-F.json": "6a79d3664a8dab690ef3e14886e899813feae9e3d0c592e8e6e689053b53eec3",
+    "PF05-F.json": "820b593c712285dd34a3b10afaada02d4e377877245810c83dd0997ce75981af",
+    "PF06-F.json": "3e579e9abf41a6a8e5dca517b45a94e2363f3dd61b93b93b39d1a76a5f0cd9b8"
+  },
+  "scope": "raw locality only; exact producer/source/provider/physical PID and required paint admission remain separate",
+  "CI_LIVE_EXECUTION": "UNPROVEN",
+  "currency": "COST_NOT_MEASURED"
+}

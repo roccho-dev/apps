@@ -1,6 +1,6 @@
 # 必要部品の判定・補完と描画を分ける反復
 
-状態: 事前登録済み、実API評価前。前回の実測結果は [component axes](../component-axes-20261017/README.md) に固定している。
+状態: 初回F6と修正1のF6/V6は未達。最後の修正2を独立確認中で、Eと未見例は未消費。前回の実測結果は [component axes](../component-axes-20261017/README.md) に固定している。
 
 実API実行前の独立テストで公開E2の期待追加図の記載漏れを検出し、[訂正addendum](preregistered/requirements-cycle-public-E2-correction.json)で訂正した。原commitmentと原E2の2ファイルを残し、測定は明示的にE2.v2を使う。未見6ファイルのhashと意味・在庫差分・参照の[独立再確認](preregistered/requirements-cycle-meaning-validation.json)は不変PASS。
 
@@ -14,6 +14,12 @@
 初回JevのG0は全段階で保持する。changeとincompleteの両方が既存の0.5基準を満たす時だけ、TypeLLMへ一度問い合わせる。TypeLLMは最大3個の新規部品全量を提案し、独立Jevが全量を再判定する。親・矢印・操作・IDは提案できない。受理後、アプリが一度だけ使える在庫を差し引き、不足候補だけを準備する。既存Workingのノードは追加用在庫に数えない。
 
 必要部品が全部揃う自然文をTypeLLMが解釈した場合は、候補追加0と解釈費用を別に記録する。Bが正しく転記したのにG0が不完全と誤判定した費用も別に残す。TypeLLMを呼べたことや描画が表示されたことだけでは効果ありとしない。
+
+初回の公開F6は exact3be7dba2b30b75a286c7139e2aaf5038faf695aa の実配布物で一回ずつ実行した。正確2/6、構造上有効3/6、形式不正3/6。PF05は既知の種類誤り、PF01/PF04/PF06は502 parts_contractで止まり、取得しなかった内部値や具体的原因は不明のまま残す。独立したraw/provider/固定producerの検証はPASSで、製品品質の基準は未達。停止・精算後の累計は689Jev/46TypeLLM（実送689/45、予約なし）。[停止証拠](evidence/index.json)には成功・失敗の全6件を含める。
+
+[修正1](correction-1.md)のexact0861f5c42cbd5f5412c465fff33ff036361591e8で公開F6/V6を全件測り直した。Fは再び正確2/6・形式不正3/6、Vは正しい案の受理0/3・誤りの拒否3/3で判定3/6。両機構の未達を独立して確認し、全停止・送信照合後の累計は695Jev/52TypeLLM（実送695/51、予約なし）。
+
+[修正2](correction-2.md)では全NEW要求の抽出へ在庫容量を渡さず、Vのgeneric標準名の扱いと在庫不足との区別を明確にする。元のG0・4因子・閉じた型・0.5閾値・在庫差分・評価基準は固定する。Eと未見入力は、同じheadの公開F6/V6/E2をすべて通るまで解放しない。
 
 プロセスと予算は [protocol](protocol.md)、独立封印は [commitment](preregistered/requirements-cycle-commitment.json)、封印時の元文書は [agreed plan](preregistered/agreed-plan.md)。次サイクル上限300Jev/40TypeLLM、開始時の課金上の累計689/40。過去の保守的な未送信Type1回分も差し引かない。
 

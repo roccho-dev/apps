@@ -1,0 +1,51 @@
+{
+  "schema": "voice-ui.requirements-cycle-phase/1",
+  "axis": "F",
+  "status": "INVALID",
+  "summary": [
+    {
+      "axis": "F",
+      "id": "PF01",
+      "method": "full-required",
+      "valid_execution": false,
+      "calls": 1
+    },
+    {
+      "axis": "F",
+      "id": "PF02",
+      "method": "full-required",
+      "valid_execution": true,
+      "calls": 1
+    },
+    {
+      "axis": "F",
+      "id": "PF03",
+      "method": "full-required",
+      "valid_execution": true,
+      "calls": 1
+    },
+    {
+      "axis": "F",
+      "id": "PF04",
+      "method": "full-required",
+      "valid_execution": false,
+      "calls": 1
+    },
+    {
+      "axis": "F",
+      "id": "PF05",
+      "method": "full-required",
+      "valid_execution": true,
+      "calls": 1
+    },
+    {
+      "axis": "F",
+      "id": "PF06",
+      "method": "full-required",
+      "valid_execution": false,
+      "calls": 1
+    }
+  ],
+  "invalid_cells": 3,
+  "expected_cells": 6
+}

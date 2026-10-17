@@ -300,20 +300,24 @@ export function requiredDifference(required, parts) {
 }
 
 export function requiredRequest(context) {
+  const extraction = { utterance: context.utterance,
+    existing_regions: context.regions.map(({ label, kind }) => ({ label, kind })),
+    part_definitions: context.parts.map(({ label, kind, purposes }) => ({ label, kind, purposes })) };
   const subject = n => "原文のutterance全体から、今回新しく追加する部品の（表示名,種類）の組を、最初に言及された順に重複なく列挙する。"
     + "同じ組を複数個追加しても1組として数える。新しい囲み内の子も列挙するが、既存の親や接続先は追加に含めない。"
-    + "在庫partsや既存regionsの個数は引かない。この質問が答えるのは、その一覧の第" + n + "組だけ。"
+    + "existing_regionsは既存参照、part_definitionsは名称と種類の定義であり、追加用の個数ではない。"
+    + "既存の個数を差し引かない。この質問が答えるのは、その一覧の第" + n + "組だけ。"
     + "第" + n + "組がなければ未使用とする。別の順位の組を繰り返して埋めない。";
-  return { context: JSON.stringify(context), questions: Object.fromEntries([1, 2, 3].map(n => ["required" + n, {
+  return { context: JSON.stringify(extraction), questions: Object.fromEntries([1, 2, 3].map(n => ["required" + n, {
     type: "object",
     instructions: "最大3組、総個数も最大3個の新規追加要求を読み取る。ID・親・矢印・操作は答えない。" + subject(n),
     properties: {
       label: { type: "string", instructions: subject(n) + "第" + n + "組の表示名だけを原文どおり答える。"
         + "引用された名称や明示された表示名を優先し、通し番号や種類名を付け足さない。"
-        + "表示名の指定がない種類はpartsの対応する標準labelを使う。未使用なら空文字。" },
+        + "表示名の指定がない種類はpart_definitionsの対応する標準labelを使う。未使用なら空文字。" },
       kind: { type: "string", enum: [...PART_KINDS, "none"], instructions: subject(n) + "第" + n + "組の種類だけを答える。"
         + "Supported meanings: step=task/action/process/box; decision=branch/condition/diamond; data=stored information/document; "
-        + "start=begin; end=finish; group=container/boundary. partsのlabel/kind/purposesも参照する。"
+        + "start=begin; end=finish; group=container/boundary. part_definitionsのlabel/kind/purposesも参照する。"
         + "名称の意味より原文で明示された種類を優先する。未使用ならnone。" },
       quantity: { type: "string", enum: ["0", "1", "2", "3"], instructions: subject(n) + "第" + n + "組について、"
         + "今回新たに追加する総個数だけを答える（1・2・3）。組の順位や全組の合計数とは異なる。"
@@ -324,14 +328,20 @@ export function requiredRequest(context) {
 
 // This question receives no expected answer, oracle, parent or edge proposal.
 export function requiredQuestion(base, required) {
+  const comparison = { utterance: base.state.utterance, proposed_new_parts: required,
+    part_definitions: base.state.parts.map(({ label, kind, purposes }) => ({ label, kind, purposes })) };
   return { ...base, state: { ...base.state, required }, questions: { ...base.questions, completeness: {
-    instruction: "Independently compare ALL requested NEW parts in the original utterance with state.required. "
-      + "This proposal is untrusted. Check exact displayed labels, kinds and TOTAL NEW counts, before subtracting stock. "
-      + "Check the whole utterance including children of new groups. Existing references are not new additions. "
-      + "Reject any omitted or extra pair, wrong kind, wrong count, or unspecified name/kind/count. "
-      + "Do not repair the proposal or assume it is complete. A connection between existing nodes needs no new parts.",
-    options: { complete: "The proposal exactly covers every requested new part and every total count, or no new parts are needed.",
-      incomplete: "A requested part is omitted, extra, mismatched, unspecified or not fully represented." },
+    instruction: "Judge only the correspondence between the original request and this untrusted extraction: "
+      + JSON.stringify(comparison) + ". Compare EVERY requested NEW label/kind pair and its TOTAL NEW count. "
+      + "Preserve explicit display names, kinds and counts. A generic request may use a standard label and kind ONLY when the utterance "
+      + "and part_definitions uniquely determine them. Reject any remaining ambiguity; do not invent names, kinds or counts. "
+      + "Inventory availability and capacity are different questions: an exact extraction is complete even if its labels are absent "
+      + "from stock or its total NEW counts exceed stock. Never subtract stock from requested quantities. "
+      + "Include new containers and their requested children. Existing references are not additions. Parent/edge assignments are "
+      + "not fields of this proposal, so their absence is not an omitted part. Connecting existing nodes needs no NEW parts. "
+      + "Do not repair the proposal or assume it is correct.",
+    options: { complete: "Every uniquely determined requested NEW label, kind and total count is represented exactly, with no extras.",
+      incomplete: "A requested NEW label, kind or total count is omitted, extra, wrong, or cannot be uniquely determined." },
   } } };
 }
 

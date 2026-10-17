@@ -1,0 +1,52 @@
+{
+  "observed_at": "2026-10-17T15:53:11.890948+00:00",
+  "phase": "requirements-correction1-V-20261018",
+  "current": null,
+  "group_members_including_z": [],
+  "sent": {
+    "jev": 6,
+    "typellm": 0
+  },
+  "charged": {
+    "jev": 695,
+    "typellm": 52
+  },
+  "pending": [],
+  "reconciliation": {
+    "kind": "phase-reconcile",
+    "id": "requirements-correction1-V-20261018",
+    "sent": {
+      "jev": 6,
+      "typellm": 0
+    },
+    "stopped_group_empty": true,
+    "pid": 322721,
+    "start_ticks": "16014619",
+    "stderr_sha256": "815ed5a27a5aa202edcd8f824671ba075b7b70f616bc8f6f477b8e36672bfe6e",
+    "stdout_sha256": "a793667ca59b658d5c5978435a72f783582856b8506ad1aa37f40d23ba8cf0a0",
+    "at": "2026-10-17T15:52:14.778Z"
+  },
+  "ledger_sha256": "f98e0906029106a1f5ce6a9be416a8c6383ff25340d938135592cbc74063c07d",
+  "stdout_sha256": "a793667ca59b658d5c5978435a72f783582856b8506ad1aa37f40d23ba8cf0a0",
+  "stderr_sha256": "815ed5a27a5aa202edcd8f824671ba075b7b70f616bc8f6f477b8e36672bfe6e",
+  "matches": true,
+  "schema": "voice-ui.independent-stop-audit/1",
+  "status": "PASS",
+  "config_sha256": "7685e0cf74c0e6d66c6ff8fe4a5a9570bd5a4923a7c62a4a6b8db89d22098aef",
+  "process_sha256": "9eb716264f3f4089c583f49390df79624a8de4c037e6a0089c32e46d70fb1bce",
+  "runtime_identity_sha256": "8b486e9307e103d697d433b72d767fadcaa9c5c17055881e0ddcc0237df6e141",
+  "runtime_sha256": "4eb28824c14d3e7b4180e95c3d886769c91928c80598f9b084ecdeeb9cf2f763",
+  "journal_sha256": "f98e0906029106a1f5ce6a9be416a8c6383ff25340d938135592cbc74063c07d",
+  "raw_sha256": {
+    "events.jsonl": "8235331dfec45174189af7c52dcab7b3f3f97d440ee2d5b7f07c6e91ae026415",
+    "execution.json": "2eb04e65a1716db97e5f768324df4fb86025a3fa7255d1ffd58c05865659feca",
+    "identity.json": "6cf0f6aa9ee7e522be37b1675b2c79c0597917370c2d4d3b13ec1c2638085432",
+    "PV01-V.json": "11c25e8c8142aada79dc2ef0cc020755321a857911bf1a0acee6ec74424621ad",
+    "PV02-V.json": "fc9ee5707010b8e64d0ee740b3b5a7e100ba86021e6c1422c6fc94f75bb59d0f",
+    "PV03-V.json": "59ac4282c97ddb19181b8dd664921b13ea81b1be3fc672309be1cbb93bfb7404",
+    "PV04-V.json": "fe63f4e6ab43ddb3867958bc4df180d98ae148755728ee54da5961f9d234795f",
+    "PV05-V.json": "c5351b4b07cddd8348734d0e97a6cc19021d09c86fb608c9eaa3b0a8e857b99a",
+    "PV06-V.json": "cf0e44aa20bf59caaf2fe3566f19862549d7a2b605807b4bddaa4f6a6ac9232c"
+  },
+  "scope": "independently observed empty full process group including zombies, frozen logs/raw/source and reconciled actual sends"
+}

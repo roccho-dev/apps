@@ -1,0 +1,73 @@
+{
+  "schema": "voice-ui.requirements-cycle-correction-review/1",
+  "status": "PUBLIC_REGRESSION_REVIEW_COMPLETE",
+  "batch": 1,
+  "apps": "0861f5c42cbd5f5412c465fff33ff036361591e8",
+  "source_review": "https://github.com/roccho-dev/apps/pull/103#pullrequestreview-5558581475",
+  "F": {
+    "integrity": "PASS",
+    "all_valid_execution": false,
+    "total": 6,
+    "exact_minimal": 2,
+    "valid": 3,
+    "invalid": 3,
+    "known_mismatch": "PF04 requested 判断 decision, supplied data; unavailable invalid slots are not reconstructed",
+    "initial_3be7_exact_minimal": 2,
+    "comparison": "No observed count improvement on public regression; not a general or statistical no-effect claim",
+    "semantic_criteria": "UNMET",
+    "whole_semantic_claim": "UNPROVEN"
+  },
+  "V": {
+    "integrity": "PASS",
+    "all_valid_execution": true,
+    "total": 6,
+    "correct": 3,
+    "positive_acceptance": {
+      "correct": 0,
+      "total": 3
+    },
+    "negative_rejection": {
+      "correct": 3,
+      "total": 3
+    },
+    "false_acceptance": 0,
+    "semantic_criteria": "UNMET"
+  },
+  "budget": {
+    "batch_sent": {
+      "jev": 6,
+      "typellm": 6
+    },
+    "batch_cap": {
+      "jev": 25,
+      "typellm": 7
+    },
+    "charged": {
+      "jev": 695,
+      "typellm": 52
+    },
+    "confirmed": {
+      "jev": 695,
+      "typellm": 51
+    },
+    "no_outstanding_reservation": true,
+    "exact_journal_prefix": true
+  },
+  "E": "NOT_RUN_PUBLIC_GATE_FAILED",
+  "fresh": "SEALED_NOT_RELEASED",
+  "next": "One final cause-led source correction may revise only full-NEW context and verifier wording under unchanged meaning/wire/threshold/criteria; exact CI and R admission required",
+  "evidence_sha256": {
+    "requirements-correction1-F-stop-audit.json": "c3887c22bf58420df59a9a17df9ec361d9adc633ff34146aed734afeaa0495bb",
+    "requirements-correction1-F-0861-raw-audit.json": "d65fef20b10a6c5eda6b142974fa93ecc4587535abf9609e1425ad149be8e072",
+    "requirements-correction1-F-0861-provider-audit.json": "990a55869f0c260971891efc9ac4472c7d9b98d20152cca4db52dda55551f8bf",
+    "requirements-correction1-F-0861-producer-audit.json": "f73ea3e239b785871a6bd995e3bbc954feedb4c2a27b11c55adc1c7bf905134f",
+    "requirements-correction1-F-0861.producer.json": "ed46c27907fdc9505be587e801d809cf3b45d51c3f38b337ece9f46e93adb331",
+    "requirements-correction1-V-stop-audit.json": "f202e91b5f4372c751e43052d5465b8a024f5655c61f0dae53fe89ef611b2920",
+    "requirements-correction1-V-0861-raw-audit.json": "e2758ab49ba22dc35948801789b02662f3f8503756cf4601b1d906a2034235cd",
+    "requirements-correction1-V-0861-provider-audit.json": "059639c9cb3453d9832b54aaf33a78d16dcf38b9b18bbc50862e85da12850aae",
+    "requirements-correction1-V-0861-producer-audit.json": "f73ea3e239b785871a6bd995e3bbc954feedb4c2a27b11c55adc1c7bf905134f",
+    "requirements-correction1-V-0861.producer.json": "c4429a26b90c58386cfce12f9df485ba918b6e5302aebd2980214e338712c95c"
+  },
+  "CI_LIVE_EXECUTION": "UNPROVEN",
+  "currency": "COST_NOT_MEASURED"
+}

@@ -1,0 +1,11 @@
+voice-ui dev: listening on 127.0.0.1:18845
+voice-ui dev: semanticMap=/nix/store/vqjhvwxcbwv7vg09n4d3sy54lw879s9f-semantic-map
+voice-ui dev: hayamimi=/nix/store/b7l6pgxk94ipi8sxg8z72kx8f6ki36xj-hayamimi-web
+voice-ui dev: architecture=/nix/store/j2xxag86slp884mvqg7xw6qrmghzs361-voice-ui-architecture-source
+voice-ui dev: JEV_API_KEY bound
+{"kind":"voice-ui.parts.stage.v2","request_id":"e551749a-3bd1-4601-b6c8-311bfd40ff3f","stage":"TYPE_REQUIRED","valid":false}
+{"kind":"voice-ui.parts.stage.v2","request_id":"f4ae8d72-a0fe-465a-97df-c6eb3212eb10","stage":"TYPE_REQUIRED","valid":true,"proposal":{"slots":{"required1":{"label":"可否照合","kind":"decision","quantity":"1"},"required2":{"label":"判断","kind":"none","quantity":"1"},"required3":{"label":"判断","kind":"none","quantity":"1"}},"required":[{"label":"可否照合","kind":"decision","quantity":1}]}}
+{"kind":"voice-ui.parts.stage.v2","request_id":"cde75a44-4d4f-424a-9fb0-24382add2b70","stage":"TYPE_REQUIRED","valid":true,"proposal":{"slots":{"required1":{"label":"API","kind":"step","quantity":"1"},"required2":{"label":"","kind":"none","quantity":"1"},"required3":{"label":"API","kind":"none","quantity":"1"}},"required":[{"label":"API","kind":"step","quantity":1}]}}
+{"kind":"voice-ui.parts.stage.v2","request_id":"4e2ec3fe-ec5a-4451-a27f-7e0cb25d2e07","stage":"TYPE_REQUIRED","valid":false}
+{"kind":"voice-ui.parts.stage.v2","request_id":"970d27f0-c09e-4a26-a626-ae9165693d5e","stage":"TYPE_REQUIRED","valid":true,"proposal":{"slots":{"required1":{"label":"閲覧室","kind":"group","quantity":"1"},"required2":{"label":"索引生成","kind":"data","quantity":"1"},"required3":{"label":"索引票","kind":"data","quantity":"1"}},"required":[{"label":"閲覧室","kind":"group","quantity":1},{"label":"索引生成","kind":"data","quantity":1},{"label":"索引票","kind":"data","quantity":1}]}}
+{"kind":"voice-ui.parts.stage.v2","request_id":"d2f0890e-8311-4e9b-8816-9683e10f0e6b","stage":"TYPE_REQUIRED","valid":false}

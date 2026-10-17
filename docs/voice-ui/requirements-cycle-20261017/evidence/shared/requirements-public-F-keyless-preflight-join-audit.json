@@ -1,0 +1,29 @@
+{
+  "schema": "voice-ui.requirements-cycle-preflight-join-audit/1",
+  "status": "PASS",
+  "scope": "own-keyless-wrapper execution receipt consistency; not a GitHub CI receipt and not a performance admission",
+  "receipt_sha256": "9e75de9d9ad59ec661d3cacbf7a96868ad1b47d1e04f6a103c2683b09c629de6",
+  "root_audit_sha256": "0454d4eaaae3fca7fda252e3cafd4b42391614221c022395c8be2d757faa6b3d",
+  "independent_raw_audit_sha256": "99b415876c344bb6ff8ca35ea0e184374562b6c4ea2a73a7d87c639b7639db6e",
+  "same_all_raw_values": true,
+  "semantic": {
+    "complete": true,
+    "total": 6,
+    "exact_minimal": 2,
+    "true_sufficient": {
+      "total": 2,
+      "zero_missing": 1
+    },
+    "requirements_criteria": "UNMET"
+  },
+  "retained_invalid": 3,
+  "charged": {
+    "jev": 689,
+    "typellm": 46
+  },
+  "classification": {
+    "quality": "PUBLIC_REGRESSION_ONLY",
+    "effect": "PUBLIC_REGRESSION_ONLY"
+  },
+  "CI_LIVE_EXECUTION": "UNPROVEN"
+}

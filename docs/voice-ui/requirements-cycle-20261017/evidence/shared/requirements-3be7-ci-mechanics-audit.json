@@ -1,0 +1,177 @@
+{
+  "schema": "voice-ui.requirements-cycle-completed-zip-ci-audit/1",
+  "status": "PASS",
+  "scope": "SYNTHETIC_MECHANICS_ONLY_NOT_LIVE_ADMISSION",
+  "head": "3be7dba2b30b75a286c7139e2aaf5038faf695aa",
+  "workflow_run": 39044301470,
+  "artifact_id": 12105695428,
+  "artifact_zip_sha256": "bce59aeb0c8df6eca868bfeb7a4e4b19c00dae49f6815fb980ad5a1676a60810",
+  "manifest_sha256": "1bb60d398d7cfd4d895bdbe18c4b852d7252021ffa1bbdfe17c8eaedcd155aee",
+  "stages": 10,
+  "cells": 16,
+  "retained_invalid": 5,
+  "recomputed_paint_frames": 24,
+  "rows": [
+    {
+      "stage": "V",
+      "id": "SYN-V",
+      "arm": "V",
+      "valid_execution": true,
+      "calls": 1,
+      "graph_changed": false,
+      "reason": null,
+      "raw_sha256": "ee0365a4a655fcf7bbe3fc083de55d0bf0dd91ef9d6acd85764299dd0286e336"
+    },
+    {
+      "stage": "F",
+      "id": "SYN-F",
+      "arm": "F",
+      "valid_execution": true,
+      "calls": 1,
+      "graph_changed": false,
+      "reason": null,
+      "raw_sha256": "d842b054c843a56a9e4f5182ee8539a5b520f8c8e276ac9f32a5d3760b94f966"
+    },
+    {
+      "stage": "E",
+      "id": "SYN-E",
+      "arm": "B",
+      "valid_execution": true,
+      "calls": 1,
+      "graph_changed": false,
+      "reason": "inventory-unresolved",
+      "raw_sha256": "7fb525943e20da766bf9c734451282ff1b35ebf98210b62e9368f14557ebca20"
+    },
+    {
+      "stage": "E",
+      "id": "SYN-E",
+      "arm": "C",
+      "valid_execution": true,
+      "calls": 4,
+      "graph_changed": true,
+      "reason": "none",
+      "raw_sha256": "7d3a8b91e25f213d7a7bd2193aab2963aa0d1c2e915133e6dbf341cc4540a00e"
+    },
+    {
+      "stage": "E-complete",
+      "id": "SYN-E-complete",
+      "arm": "B",
+      "valid_execution": true,
+      "calls": 4,
+      "graph_changed": true,
+      "reason": "none",
+      "raw_sha256": "87455a3bf0441cabd3857fff042b74a19ee61d0d44bc7c06f7418c352aae03a6"
+    },
+    {
+      "stage": "E-complete",
+      "id": "SYN-E-complete",
+      "arm": "C",
+      "valid_execution": true,
+      "calls": 4,
+      "graph_changed": true,
+      "reason": "none",
+      "raw_sha256": "41f6325cc14b9981b46aa77832be04072244df7d6dc2a5f9599977042a175c7d"
+    },
+    {
+      "stage": "E-control",
+      "id": "SYN-E-control",
+      "arm": "B",
+      "valid_execution": true,
+      "calls": 1,
+      "graph_changed": false,
+      "reason": "inventory-ambiguous",
+      "raw_sha256": "2dac101f15f25a6c8e77a2a569d819e81579291d9bdbab77e72355f1057e4793"
+    },
+    {
+      "stage": "E-control",
+      "id": "SYN-E-control",
+      "arm": "C",
+      "valid_execution": true,
+      "calls": 1,
+      "graph_changed": false,
+      "reason": "inventory-ambiguous",
+      "raw_sha256": "62f6d4904d6e13fa30d11de7f13d31ba57d1ad028c70db70725a450212ea2dc2"
+    },
+    {
+      "stage": "E-reject",
+      "id": "SYN-E-reject",
+      "arm": "B",
+      "valid_execution": true,
+      "calls": 1,
+      "graph_changed": false,
+      "reason": "inventory-unresolved",
+      "raw_sha256": "7c6a8a6f9e230ef84b7a034adac58e6cb9e403744ebf2b2f14595fe051ea8357"
+    },
+    {
+      "stage": "E-reject",
+      "id": "SYN-E-reject",
+      "arm": "C",
+      "valid_execution": true,
+      "calls": 1,
+      "graph_changed": false,
+      "reason": "inventory-unresolved",
+      "raw_sha256": "45e880efcd4b3eb2d8e6f92633bf1be8e1c93168962aeeaae898d956924965c3"
+    },
+    {
+      "stage": "E-contract",
+      "id": "SYN-E-contract",
+      "arm": "B",
+      "valid_execution": true,
+      "calls": 1,
+      "graph_changed": false,
+      "reason": "inventory-unresolved",
+      "raw_sha256": "58d373ed31741396d7e695e31cbf3fdf24947da5c9b80c9523bc38283ef0b175"
+    },
+    {
+      "stage": "E-contract",
+      "id": "SYN-E-contract",
+      "arm": "C",
+      "valid_execution": false,
+      "calls": 1,
+      "graph_changed": false,
+      "reason": "inventory-unknown",
+      "raw_sha256": "7a7f49b11e22f5fd8c547856f4e651d5be94568bb62744fdc44d4729aa9175fd"
+    },
+    {
+      "stage": "V-unknown",
+      "id": "SYN-V-unknown",
+      "arm": "V",
+      "valid_execution": false,
+      "calls": 1,
+      "graph_changed": false,
+      "reason": "evaluation-operation-unknown",
+      "raw_sha256": "6c58c5dec4c107aebdd47f09ad703f0d9ee7d1f32210a84239573c3bd533ba64"
+    },
+    {
+      "stage": "F-unknown",
+      "id": "SYN-F-unknown",
+      "arm": "F",
+      "valid_execution": false,
+      "calls": 1,
+      "graph_changed": false,
+      "reason": "evaluation-operation-unknown",
+      "raw_sha256": "d9ca1e6ea2bf65a63496237e4e3b1fee8a4de223686a838471b86c6d09234370"
+    },
+    {
+      "stage": "E-unknown",
+      "id": "SYN-E-unknown",
+      "arm": "B",
+      "valid_execution": false,
+      "calls": 1,
+      "graph_changed": false,
+      "reason": "inventory-unknown",
+      "raw_sha256": "ef055ed31dabf21bf0da43d8bb231d2f4be02fd5b2d0aa26fce82ce5e1b796f6"
+    },
+    {
+      "stage": "E-unknown",
+      "id": "SYN-E-unknown",
+      "arm": "C",
+      "valid_execution": false,
+      "calls": 1,
+      "graph_changed": false,
+      "reason": "inventory-unknown",
+      "raw_sha256": "bf62c00eedbe43e2b0c6cbdb11bb74cbde8b2a91e12903b66b53a5e76a218a3a"
+    }
+  ],
+  "CI_LIVE_EXECUTION": "UNPROVEN"
+}

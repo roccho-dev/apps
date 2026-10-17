@@ -1,0 +1,84 @@
+{
+  "schema": "voice-ui.requirements-cycle-evidence-index/1",
+  "expected_cumulative": {
+    "jev": 695,
+    "typellm": 52
+  },
+  "commitment": "../preregistered/requirements-cycle-commitment.json",
+  "addendum": "../preregistered/requirements-cycle-public-E2-correction.json",
+  "phases": [
+    {
+      "id": "public-F",
+      "axis": "F",
+      "apps_sha": "3be7dba2b30b75a286c7139e2aaf5038faf695aa",
+      "phase_kind": "public",
+      "raw_dir": "public-F/raw",
+      "producer": "public-F/requirements-public-F-3be7.producer.json",
+      "runtime": "public-F/runtime-build.json",
+      "input": "../preregistered/requirements-cycle-public-F6.inputs.json",
+      "oracle": "../preregistered/requirements-cycle-public-F6.oracle.json",
+      "config": "public-F/requirements-public-F-20261018.config.json",
+      "process": "public-F/requirements-public-F-20261018.process.json",
+      "stdout": "public-F/requirements-public-F-20261018.stdout.log",
+      "stderr": "public-F/requirements-public-F-20261018.stderr.log",
+      "journal": "public-F/requirements-public-F-20261018.journal.jsonl",
+      "recorded_replay": null,
+      "audits": {
+        "pr103-3be7-r11-review.md": "shared/pr103-3be7-r11-review.md",
+        "requirements-public-F-zero-send-audit.json": "public-F/requirements-public-F-zero-send-audit.json",
+        "requirements-public-F-stop-audit.json": "public-F/requirements-public-F-stop-audit.json"
+      },
+      "expected_execution_status": "INVALID"
+    },
+    {
+      "id": "correction1-F",
+      "axis": "F",
+      "apps_sha": "0861f5c42cbd5f5412c465fff33ff036361591e8",
+      "phase_kind": "correction",
+      "correction_batch": 1,
+      "raw_dir": "correction1-F/raw",
+      "producer": "correction1-F/requirements-correction1-F-0861.producer.json",
+      "runtime": "correction1-F/runtime-build.json",
+      "input": "../preregistered/requirements-cycle-public-F6.inputs.json",
+      "oracle": "../preregistered/requirements-cycle-public-F6.oracle.json",
+      "parent_input": "../preregistered/requirements-cycle-public-F6.inputs.json",
+      "config": "correction1-F/requirements-correction1-F-20261018.config.json",
+      "process": "correction1-F/requirements-correction1-F-20261018.process.json",
+      "stdout": "correction1-F/requirements-correction1-F-20261018.stdout.log",
+      "stderr": "correction1-F/requirements-correction1-F-20261018.stderr.log",
+      "journal": "correction1-F/requirements-correction1-F-20261018.journal.jsonl",
+      "recorded_replay": null,
+      "audits": {
+        "pr103-0861-r12-review.md": "shared/pr103-0861-r12-review.md",
+        "requirements-correction1-F-zero-send-audit.json": "correction1-F/requirements-correction1-F-zero-send-audit.json",
+        "requirements-correction1-F-stop-audit.json": "correction1-F/requirements-correction1-F-stop-audit.json"
+      },
+      "expected_execution_status": "INVALID"
+    },
+    {
+      "id": "correction1-V",
+      "axis": "V",
+      "apps_sha": "0861f5c42cbd5f5412c465fff33ff036361591e8",
+      "phase_kind": "correction",
+      "correction_batch": 1,
+      "raw_dir": "correction1-V/raw",
+      "producer": "correction1-V/requirements-correction1-V-0861.producer.json",
+      "runtime": "correction1-V/runtime-build.json",
+      "input": "../preregistered/requirements-cycle-public-V6.inputs.json",
+      "oracle": "../preregistered/requirements-cycle-public-V6.oracle.json",
+      "parent_input": "../preregistered/requirements-cycle-public-V6.inputs.json",
+      "config": "correction1-V/requirements-correction1-V-20261018.config.json",
+      "process": "correction1-V/requirements-correction1-V-20261018.process.json",
+      "stdout": "correction1-V/requirements-correction1-V-20261018.stdout.log",
+      "stderr": "correction1-V/requirements-correction1-V-20261018.stderr.log",
+      "journal": "correction1-V/requirements-correction1-V-20261018.journal.jsonl",
+      "recorded_replay": null,
+      "audits": {
+        "pr103-0861-r12-review.md": "shared/pr103-0861-r12-review.md",
+        "requirements-correction1-V-zero-send-audit.json": "correction1-V/requirements-correction1-V-zero-send-audit.json",
+        "requirements-correction1-V-stop-audit.json": "correction1-V/requirements-correction1-V-stop-audit.json"
+      },
+      "expected_execution_status": "RECORDED"
+    }
+  ]
+}
