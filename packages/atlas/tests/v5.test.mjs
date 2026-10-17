@@ -15,7 +15,8 @@ test('right after a Purpose change, a match made only of older observations is c
   // f0: X is satisfied by an observation made at the ideal.set itself: not before it.
   assert.equal(f0.gap.summary.before_ideal, 0);
   // f1: P2 is matched at once, but only by the observation from P1's time.
-  assert.deepEqual(f1.gap.summary, { open: 0, by_cause: {}, conditions: 1, satisfied: 1, before_ideal: 1 });
+  // X rests on P1's observation; W is observed at the ideal.set itself, so it is not counted.
+  assert.deepEqual(f1.gap.summary, { open: 0, by_cause: {}, conditions: 2, satisfied: 2, before_ideal: 1 });
   assert.equal(f2.gap.summary.before_ideal, 0, 'only satisfied conditions are counted');
   assert.equal(f3.phase, 'approximating');
 });
@@ -36,4 +37,18 @@ test('the Agent heading follows session observations of declared owners, even wh
   assert.deepEqual(agent(world.frames[1]).flags, ['synthetic', 'declared', 'session-observed']);
   assert.match(agent(world.frames[1]).label, /^w\.x\n担当$/u);
   assert.equal(agent(world.frames[0]), undefined, 'P1 declares no owner for X');
+});
+
+test('one owner of several satisfied conditions: one Agent, no per-condition relation, unique refs (K6b)', () => {
+  const f1 = world.frames[1], key = value => JSON.stringify(value.ref);
+  assert.deepEqual(f1.entities.filter(value => value.ref.kind === 'agent' && value.ref.id === 'w.x').length, 1);
+  // A declared owner of a satisfied condition is no observation role: no relation from w.x at all.
+  assert.deepEqual(f1.relations.filter(value => value.from.kind === 'agent' && value.from.id === 'w.x').map(value => value.ref.id), []);
+  for (const fixture of ['v5', 'journal', 'gap', 'events']) {
+    const at = name => readFileSync(new URL(`../fixtures/${fixture}/${name}`, import.meta.url), 'utf8');
+    for (const frame of contractWorld(deriveAtlas(at('events.jsonl'), at('control.jsonl'))).frames) {
+      for (const list of [frame.entities, frame.relations])
+        assert.equal(new Set(list.map(key)).size, list.length, `${fixture} ${frame.id}: duplicate qualified ref`);
+    }
+  }
 });

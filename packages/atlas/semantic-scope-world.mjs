@@ -272,8 +272,10 @@ export const semanticScopeWorld = (input, reducedClosure) => {
         // The writer/evaluator role relations always cross the Scopes pane, so their
         // overview line is not drawn (visible:false). The records stay in the World,
         // catalog, search and detail; the roles stay in the Agent caption and summary.
-        else edge('observation-' + role.role + ':' + id, agentRef, currentRef, roleCaption[role.role],
+        else if (role.role === 'writer' || role.role === 'evaluator') edge('observation-' + role.role + ':' + id, agentRef, currentRef, roleCaption[role.role],
           { ...declared, observed_ref: meaning.observation.observed_ref }, false, false);
+        // 'responsible' (owner of a condition that is no Scope now) draws nothing: there is no Scope to
+        // own and it is no observation role. It stays in the Agent caption, summary and heading only.
       }
     }
     agentsSeen = { declared: actors.size, observed: [...actors.keys()].filter(id => object(activity[id])).length };
