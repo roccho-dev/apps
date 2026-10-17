@@ -43,7 +43,7 @@ const env = { JEV_API_KEY: "fixture-jev-only", TYPELLM_API_KEY: "fixture-type-on
   ASSETS: { fetch: () => assert.fail("unexpected asset") } };
 const savedFetch = globalThis.fetch, savedInfo = console.info;
 const upstream = [], stageRows = [], api = [], errors = [], summaries = [], wireEquality = [], receiptFaults = [];
-let failure = false, mode = "G0", currentRequest = null, boundary = null, activeAbort = null;
+let failure = false, mode = "G0", currentRequest = null, boundary = null, activeAbort = null, boundaryStarted = null;
 console.info = line => stageRows.push(JSON.parse(line));
 const namedReply = (wire, factors) => Response.json({ model: "synthetic-frontier-fixture",
   answers: Object.fromEntries(Object.entries(wire.questions).map(([name, question]) => {
@@ -67,7 +67,14 @@ globalThis.fetch = async (url, init) => {
   upstream.push({ mode, provider, route: String(url), method: init.method,
     content_type: init.headers["content-type"], body_utf8: init.body, wire });
   if (mode === "boundary") {
-    if (boundary.deadline) return new Promise(() => {});
+    const call = upstream.at(-1), started = boundaryStarted;
+    call.start_elapsed_ms = performance.now() - started;
+    init.signal.addEventListener("abort", () => { call.abort_elapsed_ms = performance.now() - started; }, { once: true });
+    if (boundary.deadline === "provider-G0" || boundary.deadline === "shared" && provider === "typellm")
+      return new Promise(() => {});
+    // G0 finishes before Jev's 10s cap. The Type 35s cap would end at 42s,
+    // so the unchanged app-wide 40s deadline must cancel it first.
+    if (boundary.deadline === "shared") await new Promise(resolve => setTimeout(resolve, 7000));
     const verifying = provider === "jev" && Object.hasOwn(wire.state, "required");
     const point = provider === "typellm" ? "Type" : verifying ? "V" : "G0";
     if (boundary.fail === point + "-http") return Response.json({}, { status: 503 });
@@ -163,6 +170,7 @@ const direct = async (settings = {}) => {
   mode = "boundary";
   boundary = { initial: factors("ambiguous", .49, "incomplete"), ...settings };
   const before = upstream.length, stageBefore = stageRows.length, started = performance.now();
+  boundaryStarted = started;
   const known = settings.known_sufficient ? publicInput.cases.find(item => item.id === "PG03") : null;
   const records = [...publicInput.fixture_contract.base_records, ...publicInput.fixture_contract.fixtures[known?.fixture ?? "empty"].extra_records];
   currentRequest = { kind: "voice-ui.goal.inventory.v1", state: { utterance: known?.utterance ?? 'OCIに「FixtureNode」という工程を追加して。',
@@ -176,8 +184,11 @@ const direct = async (settings = {}) => {
     const value = await response.json(), calls = upstream.slice(before), stages = stageRows.slice(stageBefore);
     const row = { settings, status: response.status, response: value, elapsedMs: performance.now() - started,
       synthetic_upstream_calls: calls, stages, request: currentRequest };
-    boundaryRows.push(row); return row;
-  } finally { currentRequest = null; boundary = null; activeAbort = null; }
+    boundaryRows.push(row);
+    fs.writeFileSync(path.join(out, "boundary-" + String(boundaryRows.length).padStart(2, "0") + ".json"),
+      JSON.stringify(row, null, 2) + "\n", { flag: "wx" });
+    return row;
+  } finally { currentRequest = null; boundary = null; activeAbort = null; boundaryStarted = null; }
 };
 try {
   for (const stage of ["G0", "G0-unknown"]) {
@@ -314,6 +325,7 @@ try {
         assert.notEqual(pair[0].response.inspection.request_id, pair[1].response.inspection.request_id);
         wireEquality.push({ axis, id: item.id, inputs_sha256: hash(sourceBytes), wire_sha256: hash(JSON.stringify(pair[0].wire)),
           request_body_sha256: hash(pair[0].wire.body_utf8), response_nonces: pair.map(p => p.response.inspection.request_id),
+          original_captures: pair.map((p, i) => ({ apps_sha: manifests[1 - i].value.sources.apps, ...p })),
           response_comparison: "both original G0 HTTP contracts independently graded; no response equality or normalization claim",
           status: "UPSTREAM_BYTES_EQUAL" });
         continue;
@@ -334,6 +346,7 @@ try {
       assert.deepEqual(semantics[1], semantics[0], "only declared response nonce differs");
       wireEquality.push({ axis, id: item.id, inputs_sha256: hash(sourceBytes),
         wire_sha256: hash(JSON.stringify(pair[0].wire)), request_body_sha256: hash(pair[0].wire.body_utf8),
+        original_captures: pair.map((p, i) => ({ apps_sha: manifests[1 - i].value.sources.apps, ...p })),
         response_nonces: pair.map(p => p.response.request_id), response_semantics_sha256: hash(JSON.stringify(semantics[0])),
         response_nonce_scope: "only top-level per-call request_id omitted from response semantic comparison",
         status: "UPSTREAM_BYTES_EQUAL" });
@@ -380,11 +393,24 @@ try {
     assert.equal(row.synthetic_upstream_calls.filter(r => r.provider === "typellm").length, settings.abort_after === "Type" ? 1 : 0);
     assert.equal(row.synthetic_upstream_calls.filter(r => r.provider === "jev").length, settings.already_aborted ? 0 : 1);
   }
-  const timeout = await direct({ deadline: true });
+  const providerTimeout = await direct({ deadline: "provider-G0" });
+  assert.equal(providerTimeout.status, 504); assert.deepEqual(providerTimeout.response, { error: "parts_timeout" });
+  assert.ok(providerTimeout.elapsedMs >= 9000 && providerTimeout.elapsedMs < 15000);
+  assert.deepEqual(providerTimeout.synthetic_upstream_calls.map(r => r.provider), ["jev"]);
+  assert.ok(providerTimeout.synthetic_upstream_calls[0].abort_elapsed_ms >= 9000);
+  assert.deepEqual(providerTimeout.stages, []);
+  const timeout = await direct({ deadline: "shared" });
   assert.equal(timeout.status, 504); assert.ok(timeout.elapsedMs >= 39000 && timeout.elapsedMs < 45000);
-  assert.equal(timeout.synthetic_upstream_calls.length, 1); assert.equal(timeout.synthetic_upstream_calls[0].provider, "jev");
+  assert.deepEqual(timeout.response, { error: "parts_timeout" });
+  assert.deepEqual(timeout.synthetic_upstream_calls.map(r => r.provider), ["jev", "typellm"]);
+  assert.ok(timeout.synthetic_upstream_calls[1].start_elapsed_ms >= 6900
+    && timeout.synthetic_upstream_calls[1].start_elapsed_ms < 10000);
+  assert.ok(timeout.synthetic_upstream_calls[1].abort_elapsed_ms >= 39000
+    && timeout.synthetic_upstream_calls[1].abort_elapsed_ms < 45000);
+  assert.deepEqual(timeout.stages.map(r => r.stage), ["G0"]);
   summaries.push({ stage: "default-v3-boundary-grid", cells: gridCells, failed_contracts: 6, aborts: 3,
-    actual_shared_deadline_ms: timeout.elapsedMs, single_Type_and_V_maximum: "PASS", external_provider_sends: 0, status: "PASS" });
+    actual_Jev_provider_deadline_ms: providerTimeout.elapsedMs, actual_shared_deadline_ms: timeout.elapsedMs,
+    single_Type_and_V_maximum: "PASS", external_provider_sends: 0, status: "PASS" });
   assert.deepEqual(errors, []);
 } finally {
   globalThis.fetch = savedFetch; console.info = savedInfo;

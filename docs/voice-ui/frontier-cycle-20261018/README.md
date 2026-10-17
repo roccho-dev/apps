@@ -14,6 +14,8 @@
 
 実送前source0e6add5の[Nix39065864834](https://github.com/roccho-dev/apps/actions/runs/39065864834)は、既定経路のcompiled API testが旧adaptive-v2を期待して失敗した。既定v3/inspection3と導出policyを確認する期待へ更新し、充足時のType-key-free・追加候補0・総呼出4の確認を維持する。製品25source・質問・封印・採点基準は同じで、実送0のまま、新headの全CI・完成物受入を要求する。この失敗runを削除・成功へ読み替えない。
 
+[release39065864849](https://github.com/roccho-dev/apps/actions/runs/39065864849)と修正head c762の[release39066114821](https://github.com/roccho-dev/apps/actions/runs/39066114821)は、最初のJevを停止させる疑似fixtureに共有40秒を期待して失敗した。正式providerのJev上限は10秒、Typeは35秒、アプリ全体は40秒であり、完成c762 Workerの鍵なし観測はJev1送・504・10097.8ms・stage0だった。製品の期限を変更せず、Jev単体10秒と、有効G0を7秒後に返してからTypeを停止させる共有40秒を別々に確認する。後者はType自身の42秒より先の停止とG0のみ・Vなしを要求する。失敗runと修正理由を保存し、全CIを新headで取り直す。G0/F/V比較は両Workerの元送信・元応答も保持し、主張する同一bytesを独立に検算できるようにする。実APIの評価・予算消費はない。
+
 ## 合意した工程
 
 rootが製品・driver・CIと実呼出を担当し、同じ独立subagent1名が新しい未見パネル・oracle・採点・監査・固定producerを担当する。未見データは工程の解放条件までrootへ渡さない。適用ADRSはa6284e58ed99243447e135828d983fc07d2d363e。
