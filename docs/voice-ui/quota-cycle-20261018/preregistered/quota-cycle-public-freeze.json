@@ -1,0 +1,62 @@
+{
+  "schema": "voice-ui.quota-cycle-public-freeze/1",
+  "status": "SEALED_NOT_ADMITTED",
+  "created_at": "2026-10-17T22:09:55.949Z",
+  "commitment_sha256": "ad334bf87e80a91841fc8ae106d2eb37192f9fb7a7827ffefa59a3198f18c213",
+  "copy_allowlist": [
+    {
+      "name": "quota-cycle-protocol.md",
+      "bytes": 12116,
+      "sha256": "b380818d1667db63f01e4d0e08eb90ff614f96ee86e634de8837d78042d9d2ae"
+    },
+    {
+      "name": "quota-cycle-policy-contract.json",
+      "bytes": 1681,
+      "sha256": "346a908d46f9c5205cb00ab9d35377a7ce674526e5a05b7adb8f0ea3d1f31d34"
+    },
+    {
+      "name": "quota-cycle-public-R-1.inputs.json",
+      "bytes": 5154,
+      "sha256": "0f87064474277d14bbd8ee3906940ef2f35d07e646c048b3d4fda50fba8d417d"
+    },
+    {
+      "name": "quota-cycle-public-R-1.oracle.json",
+      "bytes": 7030,
+      "sha256": "0a1e80a9a375df00d48e75923370f75ff7e010670ce973c33d4ffa29a882ba31"
+    },
+    {
+      "name": "quota-cycle-public-E-1.inputs.json",
+      "bytes": 3618,
+      "sha256": "ba45c323da0387a8ca2bef4633f3fbbcb621bfb1f8dd50ce92257cf5307feb1c"
+    },
+    {
+      "name": "quota-cycle-public-E-1.oracle.json",
+      "bytes": 5766,
+      "sha256": "c9c9bd90be21ad76cafef3b897be4aee55d5873c68d4fd49e199f09c65ea62e5"
+    },
+    {
+      "name": "quota-cycle-public-literal-preflight.json",
+      "bytes": 892,
+      "sha256": "481b9ce97c600be1784cc98e63acae2456263aa78c42c2b32236fc08eaf429e7"
+    },
+    {
+      "name": "quota-cycle-seal-validation.json",
+      "bytes": 5698,
+      "sha256": "c58c6b1f4034d2b8ae9e7d00bc35b7c6fc7046cb51cf61c327e5b8c7875cf2f7"
+    },
+    {
+      "name": "quota-cycle-commitment.json",
+      "bytes": 6067,
+      "sha256": "ad334bf87e80a91841fc8ae106d2eb37192f9fb7a7827ffefa59a3198f18c213"
+    }
+  ],
+  "never_copy": [
+    "quota-cycle-seal.private.mjs",
+    "quota-cycle-seal-validation.private.json",
+    "quota-cycle-sealed-*.inputs.json",
+    "quota-cycle-sealed-*.oracle.json",
+    "any private authoring or validator",
+    "all older unused sealed payloads"
+  ],
+  "scope": "AUTHORING_AND_PUBLIC_METADATA_ONLY_NO_LIVE_OR_IMPLEMENTATION_ADMISSION"
+}

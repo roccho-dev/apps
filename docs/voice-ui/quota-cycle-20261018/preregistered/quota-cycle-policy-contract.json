@@ -1,0 +1,47 @@
+{
+  "schema": "voice-ui.quota-cycle-policy-contract/1",
+  "product": "quotaGoalBundle(bundle,required) stable exact label/kind quota, min availability, no new candidates, invalid null; invoked only accepted full-required receipt after materialization",
+  "R": {
+    "arms": {
+      "O": {
+        "method": "ready-open",
+        "generation_policy": null,
+        "goal_parts_policy": "open"
+      },
+      "Q": {
+        "method": "ready-quota",
+        "generation_policy": null,
+        "goal_parts_policy": "quota"
+      }
+    },
+    "full_supply": 8,
+    "interpretation_provider_calls": 0,
+    "open_wrong_additions_are_outcomes_not_admission_exclusions": true,
+    "representation_only": true
+  },
+  "E": {
+    "arms": {
+      "B": {
+        "method": "literal-v2",
+        "generation_policy": null,
+        "goal_parts_policy": "quota"
+      },
+      "C": {
+        "method": "adaptive-v3",
+        "generation_policy": "dependent",
+        "goal_parts_policy": "quota"
+      }
+    },
+    "inspection_schemas": {
+      "B": "voice-ui.parts.inspection/2",
+      "C": "voice-ui.parts.inspection/3"
+    },
+    "threshold": 0.5,
+    "frontier_policy": "uncertainty-frontier-v1",
+    "all_initial_questions_and_FV_wire_unchanged": true
+  },
+  "stable_order": "original input candidate order; no relabel/rekey/reorder/parent/edge generation",
+  "empty_required": "no new part offers; existing records and legal edge candidates retained",
+  "raw_execution_proof": "actual offers/candidates/selected plus source/protocol, not policy label alone",
+  "exhausted_stop": "existing no-executable-delta or other legitimate bounded Goal stop retained; no synthetic NONE or extra call"
+}
