@@ -1,0 +1,55 @@
+{
+  "schema": "voice-ui.intent-cycle-freeze/1",
+  "status": "SEALED_NOT_ADMITTED",
+  "created_at": "2026-10-17T18:43:04.829Z",
+  "commitment_sha256": "45ae964571c6d3632944f5ea29f5584729bfcc46565ccc100e2a899d7a2c2033",
+  "copy_allowlist": [
+    {
+      "name": "intent-cycle-protocol.md",
+      "bytes": 13467,
+      "sha256": "a45ef5bc9f4e8e006787fe0934e3d25bd5ca8b0528ba5a3a9c16b8d51d18f428"
+    },
+    {
+      "name": "intent-cycle-public-G0-10.inputs.json",
+      "bytes": 5482,
+      "sha256": "bb2e090c218ef9be4db85416a87b60bf85a9d2d10a3156c4994bc1e6fd4bc4ba"
+    },
+    {
+      "name": "intent-cycle-public-G0-10.oracle.json",
+      "bytes": 12734,
+      "sha256": "a5f08d8d2ed57b802870c76f4a86b9481400325d9c6342e8a0d66f58b5fb8653"
+    },
+    {
+      "name": "intent-cycle-public-E-2.inputs.json",
+      "bytes": 3824,
+      "sha256": "6ed1692b94371faef36475e08a221926b96cbc783f15f5d230ebb118a28b0afa"
+    },
+    {
+      "name": "intent-cycle-public-E-2.oracle.json",
+      "bytes": 6753,
+      "sha256": "9f5418a40cef083ff4119b0553c5f58a35451dbbec6147ea53db0e5b97d79ee5"
+    },
+    {
+      "name": "intent-cycle-public-literal-preflight.json",
+      "bytes": 4932,
+      "sha256": "15429acdb503ed9d40c444a5f434c2fc48c8d6d3fd506c78cd56f491a5a7eece"
+    },
+    {
+      "name": "intent-cycle-seal-validation.json",
+      "bytes": 3986,
+      "sha256": "fd63c0b4b0ab986a56398aaf5d41aed163ffb580c538780e40d0ce490f94be33"
+    },
+    {
+      "name": "intent-cycle-commitment.json",
+      "bytes": 8469,
+      "sha256": "45ae964571c6d3632944f5ea29f5584729bfcc46565ccc100e2a899d7a2c2033"
+    }
+  ],
+  "never_copy": [
+    "intent-cycle-seal.private.mjs",
+    "intent-cycle-seal-validation.private.json",
+    "intent-cycle-sealed-*.inputs.json",
+    "intent-cycle-sealed-*.oracle.json"
+  ],
+  "scope": "Public preregistration metadata only; no provider execution or source admission"
+}

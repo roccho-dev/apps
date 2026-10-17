@@ -1,0 +1,22 @@
+{
+  "schema": "voice-ui.intent-cycle-G0-oracle-contract/1",
+  "status": "PRELIVE_CLARIFICATION_NOT_MEASURED",
+  "public_input_sha256": "bb2e090c218ef9be4db85416a87b60bf85a9d2d10a3156c4994bc1e6fd4bc4ba",
+  "public_oracle_sha256": "a5f08d8d2ed57b802870c76f4a86b9481400325d9c6342e8a0d66f58b5fb8653",
+  "meaning": "G0 grades original-request intent, confidence, registered completeness/eligibility conditions and unchanged isolated state. It never performs or grades graph adoption.",
+  "inherited_E_fields": "PG01/PG02 retain immutable parent expected_added_regions/edges as E semantic/provenance references only. These are NEVER G0 targets or action authority. Other public G0 cases may leave those fields empty.",
+  "partial_required_controls": "Known or partial required tuples on intrinsically ambiguous controls are semantic context only. They do not authorize G0 adoption and are not delegated to E whole-target/control admission.",
+  "mandatory_unchanged": "Every G0 cell must preserve complete log, head and records and use Type0, including when an illegal mutation would match an inherited E target.",
+  "normalized_decision": "Recompute from actual four closed factors, observation, literal spans/required, actual initial graph references and one-use stock difference. Matching altered initial/HTTP decisions are rejected against unchanged factor evidence.",
+  "criteria": "All10 valid/correct intent>=.5; PG01/02 incomplete>=.5 and actually eligible; complete literal-S and negative/control actual eligibility false. Other raw factor quality remains separately visible.",
+  "independent_score_sha256": "4ddea05b7e021490fb62153d41252b47bb8e7e83bf880c963715fcccbea62c18",
+  "independent_test_sha256": "27250ad7b36ba402c431e165b1cbf86e6c971c45d2930fdb5384fc5f4e902346",
+  "tests": {
+    "groups": 8,
+    "passed": 8,
+    "failed": 0,
+    "scope": "pure semantic/normalization/schedule tests; no live/raw/source admission"
+  },
+  "no_provider_calls": true,
+  "no_publication_or_product_edit_before_clarification": true
+}

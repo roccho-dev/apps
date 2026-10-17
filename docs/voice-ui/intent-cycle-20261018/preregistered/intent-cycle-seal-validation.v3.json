@@ -1,0 +1,134 @@
+{
+  "schema": "voice-ui.intent-cycle-seal-validation/1",
+  "status": "PASS",
+  "created_at": "2026-10-17T18:43:04.829Z",
+  "no_provider_calls": true,
+  "private_validation_sha256": "a4e5cb7eb366710e74d83a45adec516609a362698fa5e290288f6662eed2dee1",
+  "literal_source_sha256": "82a2bdb9866c1331b4c685f28862bd54e7e974c4af3652b4f72dfdbb41f7df60",
+  "canonical_bundle_sha256": "8fd1b4f37f6a113653dbaeda5e040ba5bed6d7b007ab9269d307f8642d339189",
+  "fixture_proof": {
+    "empty": {
+      "head": "sha256:0b3522df5b691691d41d9b4587377781fc7048c991a4e47357e5583eb09288c6",
+      "log_sha256": "8d1eca97d9c29efcb938bf7ba32ba18f306db8b4ce1a35570cd454d53fdee314",
+      "records": 6
+    },
+    "api": {
+      "head": "sha256:8b2f0a4e98841720c0df78f2dcc2c3d36d0b9af62d9cef1e81649c4b25dce492",
+      "log_sha256": "03d128b23c56efa014b54676c02c0cdc1a95130a5f414211ad64487033b29445",
+      "records": 8
+    },
+    "pair": {
+      "head": "sha256:b4f52e5183b8e5730e59a7524a9b260f7cb7a4246695c8a69c4d320bec1312c1",
+      "log_sha256": "8acb35234593a568df45ad03fb5aaa70f2ed13d21c03513fc66c9304ec56e5f3",
+      "records": 10
+    }
+  },
+  "old_sealed_unchanged": [
+    {
+      "path": "requirements-cycle-sealed-V10.inputs.json",
+      "sha256": "be1b471949ed9201b2278214db832068ad6d6393a739ad29494b4d302404f12e"
+    },
+    {
+      "path": "requirements-cycle-sealed-V10.oracle.json",
+      "sha256": "54749c5fd8e0c9f5fc18715b9a675b2fc7c698de349fd0f3241606539f2b8bcd"
+    },
+    {
+      "path": "requirements-cycle-sealed-F8.inputs.json",
+      "sha256": "0b58871d1d8ca77e4ab2bc56e2fb3f91d886315c172abff677a5eb3550386ce4"
+    },
+    {
+      "path": "requirements-cycle-sealed-F8.oracle.json",
+      "sha256": "bf4e8d38f758051e237c721545f545be89f716b71d963121aa8dbbc170f4fb42"
+    },
+    {
+      "path": "requirements-cycle-sealed-E10.inputs.json",
+      "sha256": "cfc492e1b37e3ee2ae8590bea8e1f82d7f0d5ea7dcf645ba09c2fa0e47cedcc5"
+    },
+    {
+      "path": "requirements-cycle-sealed-E10.oracle.json",
+      "sha256": "3cdd7c41ac61e1c646ffb4bbcf1f1e32eab306fb716710896dcec438ca9f3c67"
+    },
+    {
+      "path": "dependency-cycle-sealed-V10.inputs.json",
+      "sha256": "36f63ecc1b2d0b6193f9e24eb68142fefa6441c5d65e06ab3601a57fed6d3c25"
+    },
+    {
+      "path": "dependency-cycle-sealed-V10.oracle.json",
+      "sha256": "aa909885f5b8a0b578035b2b97a3549efd0b3f40acaa4c40c4863a1f364844e6"
+    },
+    {
+      "path": "dependency-cycle-sealed-F8.inputs.json",
+      "sha256": "5249b0deb5df7c4b0c7ab82f91d39cc1c174af326daef772a1ae3a444f3e0b9d"
+    },
+    {
+      "path": "dependency-cycle-sealed-F8.oracle.json",
+      "sha256": "914fda47d411cae810fa2ea872b1174c4d3479ef55615370d8ca80e41f62c731"
+    },
+    {
+      "path": "dependency-cycle-sealed-E10.inputs.json",
+      "sha256": "9e5293a52d56d3377b9c7f226fd87baeac7f86bfb5b852525b19f571151cef77"
+    },
+    {
+      "path": "dependency-cycle-sealed-E10.oracle.json",
+      "sha256": "239a82a2e740a8f5ae45b1943c728d431ab0c8fd7cf027961d74eb65eb64c62b"
+    }
+  ],
+  "counts": {
+    "public": {
+      "G0": 10,
+      "positive": 5,
+      "negative_control": 5,
+      "E_pairs": 2
+    },
+    "fresh": {
+      "V": 10,
+      "V_positive": 5,
+      "V_negative": 5,
+      "F": 8,
+      "F_true_sufficient": 2,
+      "E_pairs": 10,
+      "E_sufficient": 4,
+      "E_missing": 4,
+      "E_controls": 2,
+      "E_missing_literal_deficit": 4,
+      "E_missing_stock_known": 2,
+      "E_missing_new_names": 2,
+      "E_sufficient_literal_complete": 2
+    }
+  },
+  "checks": [
+    "expected NEW tuples authored before actual parser inspection",
+    "one-use stock difference independently calculated",
+    "E target multiplicity/parents/edge endpoints agree",
+    "V positive5/negative5 structurally legal",
+    "actual protocol fixture prefixes verified",
+    "all fresh M are actual literal deficits",
+    "cross-panel fresh utterances distinct and absent from prior oracles",
+    "all 12 old unused files raw unchanged",
+    "no provider/model output used",
+    "all controls satisfy frozen unresolved required/unchanged-target contract",
+    "frozen V/F semantic and E target self-consistency checks pass all cells",
+    "G0 own oracle fields/positive5 negative-control5/eligibility conditions valid",
+    "G0 always unchanged even if inherited E semantic target would be met",
+    "G0 does not delegate oracle shape to E target admission",
+    "matching altered initial/HTTP normalized decision rejected against factors"
+  ],
+  "supersedes_sha256": "b975d6581ddb67825104ec9fd3af34111d98abcf42fa6033632cfbc037328629",
+  "prelive_addendum": {
+    "path": "intent-cycle-prelive-control-addendum.json",
+    "bytes": 1953,
+    "sha256": "de16f0d1900da11fbb179546aff26df8b9ab6cea05ff68318d6856e7a5cbc3cb"
+  },
+  "oracle_admission_private_sha256": "6f76eee5641709f441de0be90d8333f7d8d7d665fdd6fb5df2c66e7de947a2ac",
+  "all_public_E_and_fresh_VFE_frozen_oracle_checks": "PASS",
+  "all_VFE_pure_semantic_checks": "PASS",
+  "original_control_error_rejected": true,
+  "G0_contract": {
+    "path": "intent-cycle-G0-oracle-contract.json",
+    "bytes": 2025,
+    "sha256": "2c6dffe4e3ece44fabf89a5cfcc902f0d4c133482a715518aa856e7fb9e9669d"
+  },
+  "G0_own_oracle_checks": "PASS",
+  "G0_pure_groups": 8,
+  "G0_pure_groups_passed": 8
+}

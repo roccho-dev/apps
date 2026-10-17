@@ -1,0 +1,11 @@
+{
+  "schema": "voice-ui.intent-cycle-evidence-index/1",
+  "commitment": "../preregistered/intent-cycle-commitment.v3.json",
+  "freeze": "../preregistered/intent-cycle-freeze.v3.json",
+  "baseline_journal": "../../dependency-cycle-20261018/evidence/public-E/dependency-public-E-20261018.journal.jsonl",
+  "expected_cumulative": {
+    "jev": 715,
+    "typellm": 71
+  },
+  "phases": []
+}

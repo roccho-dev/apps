@@ -1,0 +1,207 @@
+{
+  "schema": "voice-ui.intent-cycle-public-literal-preflight/1",
+  "status": "PASS",
+  "no_provider_calls": true,
+  "literal_source_sha256": "82a2bdb9866c1331b4c685f28862bd54e7e974c4af3652b4f72dfdbb41f7df60",
+  "canonical_bundle_sha256": "8fd1b4f37f6a113653dbaeda5e040ba5bed6d7b007ab9269d307f8642d339189",
+  "G0": [
+    {
+      "id": "PG01",
+      "valid": true,
+      "recognized": false,
+      "status": "unsupported-syntax",
+      "required": [],
+      "spans": [],
+      "expected_required_exact": false,
+      "literal_deficit": true
+    },
+    {
+      "id": "PG02",
+      "valid": true,
+      "recognized": false,
+      "status": "unsupported-syntax",
+      "required": [],
+      "spans": [],
+      "expected_required_exact": false,
+      "literal_deficit": true
+    },
+    {
+      "id": "PG03",
+      "valid": true,
+      "recognized": true,
+      "status": "transcribed",
+      "required": [
+        {
+          "label": "API",
+          "kind": "step",
+          "quantity": 1
+        }
+      ],
+      "spans": [
+        {
+          "start": 6,
+          "end": 9,
+          "source": "API",
+          "label": "API",
+          "kind": "step",
+          "quantity": 1
+        }
+      ],
+      "expected_required_exact": true,
+      "literal_deficit": false
+    },
+    {
+      "id": "PG04",
+      "valid": true,
+      "recognized": true,
+      "status": "transcribed",
+      "required": [
+        {
+          "label": "出庫照合",
+          "kind": "step",
+          "quantity": 1
+        }
+      ],
+      "spans": [
+        {
+          "start": 9,
+          "end": 13,
+          "source": "出庫照合",
+          "label": "出庫照合",
+          "kind": "step",
+          "quantity": 1
+        }
+      ],
+      "expected_required_exact": true,
+      "literal_deficit": false
+    },
+    {
+      "id": "PG05",
+      "valid": true,
+      "recognized": false,
+      "status": "unsupported-syntax",
+      "required": [],
+      "spans": [],
+      "expected_required_exact": true,
+      "literal_deficit": false
+    },
+    {
+      "id": "PG06",
+      "valid": true,
+      "recognized": false,
+      "status": "unsupported-syntax",
+      "required": [],
+      "spans": [],
+      "expected_required_exact": true,
+      "literal_deficit": false
+    },
+    {
+      "id": "PG07",
+      "valid": true,
+      "recognized": false,
+      "status": "unsupported-syntax",
+      "required": [],
+      "spans": [],
+      "expected_required_exact": false,
+      "literal_deficit": true
+    },
+    {
+      "id": "PG08",
+      "valid": true,
+      "recognized": true,
+      "status": "transcribed",
+      "required": [
+        {
+          "label": "API",
+          "kind": "step",
+          "quantity": 1
+        }
+      ],
+      "spans": [
+        {
+          "start": 4,
+          "end": 7,
+          "source": "API",
+          "label": "API",
+          "kind": "step",
+          "quantity": 1
+        }
+      ],
+      "expected_required_exact": true,
+      "literal_deficit": false
+    },
+    {
+      "id": "PG09",
+      "valid": true,
+      "recognized": false,
+      "status": "unsupported-syntax",
+      "required": [],
+      "spans": [],
+      "expected_required_exact": true,
+      "literal_deficit": false
+    },
+    {
+      "id": "PG10",
+      "valid": true,
+      "recognized": false,
+      "status": "unsupported-syntax",
+      "required": [],
+      "spans": [],
+      "expected_required_exact": true,
+      "literal_deficit": false
+    }
+  ],
+  "E": [
+    {
+      "id": "PE01",
+      "valid": true,
+      "recognized": false,
+      "status": "unsupported-syntax",
+      "required": [],
+      "spans": [],
+      "expected_required_exact": false,
+      "literal_deficit": true
+    },
+    {
+      "id": "PE02",
+      "valid": true,
+      "recognized": false,
+      "status": "unsupported-syntax",
+      "required": [],
+      "spans": [],
+      "expected_required_exact": false,
+      "literal_deficit": true
+    }
+  ],
+  "immutable_PE01_PE02": [
+    {
+      "id": "PG01",
+      "parent_case": "PE01",
+      "input_sha256": "e359929b095783603949044e74a2b4720f7697aeb9466858279f69440f5b5d84",
+      "oracle_sha256": "b642512e31115a4e2ef7c85d316d3f095f8e12fff8b1feadfa762ce7b08b04e6",
+      "equal_fields": [
+        "fixture",
+        "utterance",
+        "required",
+        "expected_intent",
+        "expected_gate",
+        "expected_missing"
+      ]
+    },
+    {
+      "id": "PG02",
+      "parent_case": "PE02",
+      "input_sha256": "e359929b095783603949044e74a2b4720f7697aeb9466858279f69440f5b5d84",
+      "oracle_sha256": "b642512e31115a4e2ef7c85d316d3f095f8e12fff8b1feadfa762ce7b08b04e6",
+      "equal_fields": [
+        "fixture",
+        "utterance",
+        "required",
+        "expected_intent",
+        "expected_gate",
+        "expected_missing"
+      ]
+    }
+  ],
+  "scope": "actual deterministic parser evidence only; expected meanings fixed independently, no model intent/completeness or task success claimed"
+}

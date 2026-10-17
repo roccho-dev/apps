@@ -1,0 +1,519 @@
+{
+  "schema": "voice-ui.review.dependency-ci-closure/1",
+  "status": "PASS",
+  "observed_at": "2026-10-17T18:35:35.731Z",
+  "report_head": "ffc2337387289be5d4987be4e2eef95e684db132",
+  "measured_head": "ae816ec23a5e4c397c8a4893e127fb24134afda8",
+  "receipt_sha256": "ef2f2819cea80c06a718099e2cc2bb159b0232037402f13c8897295fea1e0212",
+  "checks": [
+    {
+      "id": 39057417636,
+      "url": "https://github.com/roccho-dev/apps/actions/runs/39057417636",
+      "head": "ffc2337387289be5d4987be4e2eef95e684db132",
+      "conclusion": "success"
+    },
+    {
+      "id": 39057417726,
+      "url": "https://github.com/roccho-dev/apps/actions/runs/39057417726",
+      "head": "ffc2337387289be5d4987be4e2eef95e684db132",
+      "conclusion": "success"
+    },
+    {
+      "id": 39057417737,
+      "url": "https://github.com/roccho-dev/apps/actions/runs/39057417737",
+      "head": "ffc2337387289be5d4987be4e2eef95e684db132",
+      "conclusion": "success"
+    },
+    {
+      "id": 39057417634,
+      "url": "https://github.com/roccho-dev/apps/actions/runs/39057417634",
+      "head": "ffc2337387289be5d4987be4e2eef95e684db132",
+      "conclusion": "success"
+    }
+  ],
+  "actual_artifact": 12110655885,
+  "cumulative": {
+    "jev": 715,
+    "typellm": 71
+  },
+  "reports": [
+    {
+      "axis": "F",
+      "raw": "PASS",
+      "provider": "PASS",
+      "binding": "PASS",
+      "consumed": 12,
+      "invalid": 4,
+      "semantic": {
+        "complete": true,
+        "total": 6,
+        "by_arm": {
+          "I": {
+            "complete": true,
+            "total": 6,
+            "exact_minimal": 2,
+            "true_sufficient": {
+              "total": 2,
+              "zero_missing": 1
+            },
+            "requirements_criteria": "UNMET",
+            "valid": 2,
+            "invalid": 4,
+            "exact_valid": 2,
+            "denominator": 6
+          },
+          "D": {
+            "complete": true,
+            "total": 6,
+            "exact_minimal": 5,
+            "true_sufficient": {
+              "total": 2,
+              "zero_missing": 1
+            },
+            "requirements_criteria": "PASS",
+            "valid": 6,
+            "invalid": 0,
+            "exact_valid": 5,
+            "denominator": 6
+          }
+        },
+        "pairs": [
+          {
+            "id": "PF01",
+            "independent_valid": false,
+            "dependent_valid": true,
+            "admissible_semantic_pair": false,
+            "validity_gain": true,
+            "semantic_gain": false,
+            "semantic_regression": false,
+            "excluded_from_semantic_only": true
+          },
+          {
+            "id": "PF02",
+            "independent_valid": true,
+            "dependent_valid": true,
+            "admissible_semantic_pair": true,
+            "validity_gain": false,
+            "semantic_gain": false,
+            "semantic_regression": false,
+            "excluded_from_semantic_only": false
+          },
+          {
+            "id": "PF03",
+            "independent_valid": true,
+            "dependent_valid": true,
+            "admissible_semantic_pair": true,
+            "validity_gain": false,
+            "semantic_gain": false,
+            "semantic_regression": false,
+            "excluded_from_semantic_only": false
+          },
+          {
+            "id": "PF04",
+            "independent_valid": false,
+            "dependent_valid": true,
+            "admissible_semantic_pair": false,
+            "validity_gain": true,
+            "semantic_gain": false,
+            "semantic_regression": false,
+            "excluded_from_semantic_only": true
+          },
+          {
+            "id": "PF05",
+            "independent_valid": false,
+            "dependent_valid": true,
+            "admissible_semantic_pair": false,
+            "validity_gain": true,
+            "semantic_gain": false,
+            "semantic_regression": false,
+            "excluded_from_semantic_only": true
+          },
+          {
+            "id": "PF06",
+            "independent_valid": false,
+            "dependent_valid": true,
+            "admissible_semantic_pair": false,
+            "validity_gain": true,
+            "semantic_gain": false,
+            "semantic_regression": false,
+            "excluded_from_semantic_only": true
+          }
+        ],
+        "candidate_requirements_criteria": "PASS",
+        "requirements_criteria": "PASS",
+        "admissible_semantic_pairs": 2,
+        "validity_gains": 4,
+        "semantic_gains": 0,
+        "semantic_regressions": 0,
+        "scope": "fixed full per-arm denominators; validity changes never promoted into admissible semantic wins"
+      },
+      "ci_repaint": null,
+      "semantic_equal": true,
+      "full_report_recomputed_equal": true
+    },
+    {
+      "axis": "V",
+      "raw": "PASS",
+      "provider": "PASS",
+      "binding": "PASS",
+      "consumed": 6,
+      "invalid": 0,
+      "semantic": {
+        "complete": true,
+        "total": 6,
+        "correct": 6,
+        "false_acceptance": 0,
+        "verification_criteria": "PASS"
+      },
+      "ci_repaint": null,
+      "semantic_equal": true,
+      "full_report_recomputed_equal": true
+    },
+    {
+      "axis": "E",
+      "raw": "PASS",
+      "provider": "PASS",
+      "binding": "PASS",
+      "consumed": 4,
+      "invalid": 0,
+      "semantic": {
+        "complete": true,
+        "total_pairs": 2,
+        "baseline": {
+          "sufficient": {
+            "correct": 0,
+            "total": 0
+          },
+          "missing": {
+            "correct": 0,
+            "total": 2
+          },
+          "ambiguous": {
+            "correct": 0,
+            "total": 0
+          },
+          "no-change": {
+            "correct": 0,
+            "total": 0
+          }
+        },
+        "enabled": {
+          "sufficient": {
+            "correct": 0,
+            "total": 0
+          },
+          "missing": {
+            "correct": 1,
+            "total": 2
+          },
+          "ambiguous": {
+            "correct": 0,
+            "total": 0
+          },
+          "no-change": {
+            "correct": 0,
+            "total": 0
+          }
+        },
+        "pairs": [
+          {
+            "id": "PE01",
+            "eligible": false,
+            "baseline_success": false,
+            "enabled_success": false,
+            "missing_gain": false,
+            "regression": false,
+            "excluded_from_causal_only": true
+          },
+          {
+            "id": "PE02",
+            "eligible": true,
+            "baseline_success": false,
+            "enabled_success": true,
+            "missing_gain": true,
+            "regression": false,
+            "excluded_from_causal_only": false
+          }
+        ],
+        "eligible_pairs": 1,
+        "missing_gains": 1,
+        "regressions": 0,
+        "no_false_adoption": true,
+        "all_arm_guards": true,
+        "interpretation_type_calls": 0,
+        "enabled_criteria": "UNMET",
+        "effect_criteria": "UNMET",
+        "scope": "all fixed E cases stay in each performance denominator; only measured G0 eligibility controls causal comparison",
+        "no_effect_criteria_pending_integrity": "UNPROVEN",
+        "no_effect_scope": "all four registered missing pairs actually eligible, zero gains, full evidence admission required separately"
+      },
+      "ci_repaint": {
+        "status": "PASS",
+        "issues": [],
+        "consumed": 4,
+        "frames": 12,
+        "assessed_frames": 8,
+        "recorded_paint_status": "PASS",
+        "replay_sha256": "567317537673e42c404c1be720eb7dd2585d8746e091ab941f0ea9d08f98fff2",
+        "model_quality_scope": "NONE",
+        "CI_LIVE_EXECUTION": "UNPROVEN"
+      },
+      "semantic_equal": true,
+      "full_report_recomputed_equal": true
+    }
+  ],
+  "processGraph": {
+    "schema": "voice-ui.dependency-cycle-process/1",
+    "status": "PASS",
+    "issues": [],
+    "state": "PUBLIC_REGRESSION_ONLY",
+    "baseline": {
+      "jev": 701,
+      "typellm": 58
+    },
+    "indexed_phases": 3,
+    "source_head": "ae816ec23a5e4c397c8a4893e127fb24134afda8",
+    "correction_batches": 0,
+    "reserved": {
+      "jev": 44,
+      "typellm": 14
+    },
+    "charged_at_cutoff": {
+      "jev": 715,
+      "typellm": 71
+    },
+    "releases": [],
+    "scope": "integrity/process graph only; candidate performance/CI-origin live proof remain separate"
+  },
+  "prior_required_receipts": [
+    {
+      "id": 12110371670,
+      "name": "requirements-cycle",
+      "digest": "215ecf2725d748b07c282a66fa7043aad5db8db26f5ccc87c67b22d01763f3b2",
+      "cumulative": {
+        "jev": 701,
+        "typellm": 58
+      },
+      "files": 6,
+      "receipt": "dependency-ffc2-ci-requirements-cycle\\receipt.json",
+      "receipt_sha256": "1f33d0e447cb8901fd943f446864fb4b920a377514151836112ba1c9a576ddbf",
+      "schema": "voice-ui.requirements-cycle-ci/1",
+      "integrity": "PASS",
+      "quality": [
+        {
+          "id": "public-F",
+          "axis": "F",
+          "classification": {
+            "quality": "PUBLIC_REGRESSION_ONLY",
+            "effect": "PUBLIC_REGRESSION_ONLY"
+          }
+        },
+        {
+          "id": "correction1-F",
+          "axis": "F",
+          "classification": {
+            "quality": "PUBLIC_REGRESSION_ONLY",
+            "effect": "PUBLIC_REGRESSION_ONLY"
+          }
+        },
+        {
+          "id": "correction1-V",
+          "axis": "V",
+          "classification": {
+            "quality": "PUBLIC_REGRESSION_ONLY",
+            "effect": "PUBLIC_REGRESSION_ONLY"
+          }
+        },
+        {
+          "id": "correction2-F",
+          "axis": "F",
+          "classification": {
+            "quality": "PUBLIC_REGRESSION_ONLY",
+            "effect": "PUBLIC_REGRESSION_ONLY"
+          }
+        },
+        {
+          "id": "correction2-V",
+          "axis": "V",
+          "classification": {
+            "quality": "PUBLIC_REGRESSION_ONLY",
+            "effect": "PUBLIC_REGRESSION_ONLY"
+          }
+        }
+      ],
+      "reports": [
+        {
+          "id": "public-F",
+          "axis": "F",
+          "classification": {
+            "quality": "PUBLIC_REGRESSION_ONLY",
+            "effect": "PUBLIC_REGRESSION_ONLY"
+          }
+        },
+        {
+          "id": "correction1-F",
+          "axis": "F",
+          "classification": {
+            "quality": "PUBLIC_REGRESSION_ONLY",
+            "effect": "PUBLIC_REGRESSION_ONLY"
+          }
+        },
+        {
+          "id": "correction1-V",
+          "axis": "V",
+          "classification": {
+            "quality": "PUBLIC_REGRESSION_ONLY",
+            "effect": "PUBLIC_REGRESSION_ONLY"
+          }
+        },
+        {
+          "id": "correction2-F",
+          "axis": "F",
+          "classification": {
+            "quality": "PUBLIC_REGRESSION_ONLY",
+            "effect": "PUBLIC_REGRESSION_ONLY"
+          }
+        },
+        {
+          "id": "correction2-V",
+          "axis": "V",
+          "classification": {
+            "quality": "PUBLIC_REGRESSION_ONLY",
+            "effect": "PUBLIC_REGRESSION_ONLY"
+          }
+        }
+      ]
+    },
+    {
+      "id": 12110860798,
+      "name": "component-axes",
+      "digest": "8c9b162878fbbded077c68e99d7127f661d6329f2e4a58c3409c357397697701",
+      "cumulative": {
+        "jev": 689,
+        "typellm": 40
+      },
+      "files": 13,
+      "receipt": "dependency-ffc2-ci-component-axes\\receipt.json",
+      "receipt_sha256": "3e0bc618c5fdda1613b6720e05178e2ee35648e20ab0237de304f9faf5b30dfc",
+      "schema": "voice-ui.component-axes-ci/1",
+      "integrity": "PASS",
+      "quality": [
+        {
+          "id": "public-G",
+          "axis": "G",
+          "classification": "PUBLIC_REGRESSION_ONLY"
+        },
+        {
+          "id": "public-R",
+          "axis": "R",
+          "classification": "PUBLIC_REGRESSION_ONLY"
+        },
+        {
+          "id": "public-F",
+          "axis": "F",
+          "classification": "PUBLIC_REGRESSION_ONLY"
+        },
+        {
+          "id": "public-E",
+          "axis": "E",
+          "classification": "PUBLIC_REGRESSION_ONLY"
+        },
+        {
+          "id": "final-G",
+          "axis": "G",
+          "classification": "UNMET"
+        },
+        {
+          "id": "final-R",
+          "axis": "R",
+          "classification": "FINITE_CRITERIA_PASS"
+        },
+        {
+          "id": "final-F",
+          "axis": "F",
+          "classification": "UNPROVEN"
+        },
+        {
+          "id": "final-E",
+          "axis": "E",
+          "classification": "UNMET"
+        }
+      ],
+      "reports": [
+        {
+          "id": "public-G",
+          "axis": "G",
+          "classification": "PUBLIC_REGRESSION_ONLY"
+        },
+        {
+          "id": "public-R",
+          "axis": "R",
+          "classification": "PUBLIC_REGRESSION_ONLY"
+        },
+        {
+          "id": "public-F",
+          "axis": "F",
+          "classification": "PUBLIC_REGRESSION_ONLY"
+        },
+        {
+          "id": "public-E",
+          "axis": "E",
+          "classification": "PUBLIC_REGRESSION_ONLY"
+        },
+        {
+          "id": "final-G",
+          "axis": "G",
+          "classification": "UNMET"
+        },
+        {
+          "id": "final-R",
+          "axis": "R",
+          "classification": "FINITE_CRITERIA_PASS"
+        },
+        {
+          "id": "final-F",
+          "axis": "F",
+          "classification": "UNPROVEN"
+        },
+        {
+          "id": "final-E",
+          "axis": "E",
+          "classification": "UNMET"
+        }
+      ]
+    },
+    {
+      "id": 12110233253,
+      "name": "closed-evidence",
+      "digest": "91b9d98f00ba5bf56208e0aa083b9ed5a1cec4746ede55009c16b48ca69a72bb",
+      "cumulative": {
+        "jev": 564,
+        "typellm": 29
+      },
+      "files": 12,
+      "receipt": "dependency-ffc2-ci-closed-evidence\\receipt.json",
+      "receipt_sha256": "88c565fa0046af2c420138a58edc7653c48745e9358b2458628bb6f0073c9de8",
+      "schema": "voice-ui.closed-evidence-ci/1",
+      "integrity": "PASS",
+      "reports": [
+        {
+          "id": "public-initial-f2e9"
+        },
+        {
+          "id": "correction-one-f2fa"
+        },
+        {
+          "id": "correction-two-2c8b"
+        },
+        {
+          "id": "public-remainder-2c8b"
+        },
+        {
+          "id": "fresh-primary-50b1"
+        }
+      ]
+    }
+  ],
+  "real_provider_calls_by_reviewer": 0,
+  "scope": "Independent exact stopped bytes, frozen semantic/protocol/provider/producer/process recomputation and actual CI repaint; public regression only. Product quality, blind effect, CI-origin live and human merge acceptance remain unproven."
+}

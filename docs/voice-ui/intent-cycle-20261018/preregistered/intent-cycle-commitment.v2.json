@@ -1,0 +1,280 @@
+{
+  "schema": "voice-ui.intent-cycle-commitment/1",
+  "created_at": "2026-10-17T18:43:04.829Z",
+  "previous_cycle": {
+    "measured_apps": "ae816ec23a5e4c397c8a4893e127fb24134afda8",
+    "report_apps": "ffc2337387289be5d4987be4e2eef95e684db132",
+    "review": "https://github.com/roccho-dev/apps/pull/103#pullrequestreview-5559399188",
+    "journal_sha256": "9b5582798122208f1d36968e4646de46573f414739a239f0ea1195a692a5b6ba",
+    "commitment_sha256": "8d00c900e13b755a3cf467643e17e6a961581ad6e40ee105896fdce78038edff"
+  },
+  "charged_prior": {
+    "jev": 715,
+    "typellm": 71
+  },
+  "confirmed_prior": {
+    "jev": 715,
+    "typellm": 70
+  },
+  "cycle_cap": {
+    "jev": 248,
+    "typellm": 20
+  },
+  "allocated": {
+    "jev": 248,
+    "typellm": 20
+  },
+  "global_cap": {
+    "jev": 1000,
+    "typellm": 1000
+  },
+  "worst_cap_cumulative": {
+    "jev": 963,
+    "typellm": 91
+  },
+  "stages": [
+    {
+      "id": "public-G0",
+      "axis": "G0",
+      "cases": 10,
+      "cells": 10,
+      "jev": 10,
+      "typellm": 0
+    },
+    {
+      "id": "public-E",
+      "axis": "E",
+      "cases": 2,
+      "cells": 4,
+      "jev": 38,
+      "typellm": 2
+    },
+    {
+      "id": "final-V",
+      "axis": "V",
+      "cases": 10,
+      "cells": 10,
+      "jev": 10,
+      "typellm": 0
+    },
+    {
+      "id": "final-F",
+      "axis": "F",
+      "cases": 8,
+      "cells": 8,
+      "jev": 0,
+      "typellm": 8
+    },
+    {
+      "id": "final-E",
+      "axis": "E",
+      "cases": 10,
+      "cells": 20,
+      "jev": 190,
+      "typellm": 10
+    }
+  ],
+  "corrections_max": 0,
+  "retries_max": 0,
+  "setup_sends": 0,
+  "public_gate": {
+    "G0_all_valid_correct_intent": 10,
+    "minimum_intent_confidence": 0.5,
+    "PE01_PE02_change_and_incomplete_minimum": 0.5,
+    "PE01_PE02_interpretation_eligible": true,
+    "complete_S_and_negative_type_eligible": false,
+    "closed_normalization_and_stock_diff": true,
+    "unchanged_G0_log": true,
+    "E_actual_eligible_missing_gains": 2,
+    "E_all_enabled_quality": true,
+    "all_same_source": true
+  },
+  "fresh_release": "After both same-head public gates, V10 then F8 then E10 each once by complete retained evidence, unchanged source, physical stop and accounting integrity, not by perfect V/F quality. Retain all criteria/denominators; missing/corrupt proof or unexplained sends block progression. Future input/oracle remains sealed.",
+  "final_gate": {
+    "V_all_valid_correct": 10,
+    "V_false_accept": 0,
+    "F_all_valid_exact_minimal": 8,
+    "F_true_sufficient": 2,
+    "E_pairs": 10,
+    "E_sufficient": 4,
+    "E_missing": 4,
+    "E_controls": 2,
+    "E_all_candidate_quality": true,
+    "E_missing_gains_minimum": 2,
+    "E_regressions": 0,
+    "E_all_guards": true
+  },
+  "no_effect_gate": "Complete admitted E, all four M actually valid/eligible in both arms with matching literal evidence, all source/paint/guards and zero gains. Otherwise UNPROVEN; one gain partial below target.",
+  "source_delta": "G0 literalQuestion intent appendix only; actual completed F/V upstream byte equality required; old-head public F/V observations not relabeled; no full I/D repeat",
+  "public_immutable_refs": [
+    {
+      "id": "PG01",
+      "parent_case": "PE01",
+      "input_sha256": "e359929b095783603949044e74a2b4720f7697aeb9466858279f69440f5b5d84",
+      "oracle_sha256": "b642512e31115a4e2ef7c85d316d3f095f8e12fff8b1feadfa762ce7b08b04e6",
+      "equal_fields": [
+        "fixture",
+        "utterance",
+        "required",
+        "expected_intent",
+        "expected_gate",
+        "expected_missing"
+      ]
+    },
+    {
+      "id": "PG02",
+      "parent_case": "PE02",
+      "input_sha256": "e359929b095783603949044e74a2b4720f7697aeb9466858279f69440f5b5d84",
+      "oracle_sha256": "b642512e31115a4e2ef7c85d316d3f095f8e12fff8b1feadfa762ce7b08b04e6",
+      "equal_fields": [
+        "fixture",
+        "utterance",
+        "required",
+        "expected_intent",
+        "expected_gate",
+        "expected_missing"
+      ]
+    }
+  ],
+  "carried_old_head_observations": [
+    {
+      "name": "dependency-public-F.producer.json",
+      "sha256": "0953cab7790633e8168cf5414f2538d098da936f5cccb02d0e592720e0c55d2c"
+    },
+    {
+      "name": "dependency-public-V.producer.json",
+      "sha256": "923eb6c3c5a432c06bbd8d99191a2b261f920e209e408be020822aa46c59496f"
+    },
+    {
+      "name": "dependency-public-F-raw-audit.json",
+      "sha256": "867af8b5ddb4d6b2dc71b7b7c03428d1d2b962b453f65c0d963e67a52468cd82"
+    },
+    {
+      "name": "dependency-public-V-raw-audit.json",
+      "sha256": "b4a2e5d0acf4c6d104b66aae90a7feaf91efa313cedcd9010c9345c755b1fa6d"
+    },
+    {
+      "name": "dependency-cycle-public-closure.json",
+      "sha256": "47b15d1db724107eaba67f23321853c6fd9ddb7237bc8592cb21360503544c62"
+    }
+  ],
+  "files": [
+    {
+      "axis": "G0",
+      "visibility": "public",
+      "cases": 10,
+      "cells": 10,
+      "input": {
+        "path": "intent-cycle-public-G0-10.inputs.json",
+        "bytes": 5482,
+        "sha256": "bb2e090c218ef9be4db85416a87b60bf85a9d2d10a3156c4994bc1e6fd4bc4ba"
+      },
+      "oracle": {
+        "path": "intent-cycle-public-G0-10.oracle.json",
+        "bytes": 12734,
+        "sha256": "a5f08d8d2ed57b802870c76f4a86b9481400325d9c6342e8a0d66f58b5fb8653"
+      },
+      "parent_inputs_sha256": null,
+      "parent_oracle_sha256": null
+    },
+    {
+      "axis": "E",
+      "visibility": "public",
+      "cases": 2,
+      "cells": 4,
+      "input": {
+        "path": "intent-cycle-public-E-2.inputs.json",
+        "bytes": 3824,
+        "sha256": "6ed1692b94371faef36475e08a221926b96cbc783f15f5d230ebb118a28b0afa"
+      },
+      "oracle": {
+        "path": "intent-cycle-public-E-2.oracle.json",
+        "bytes": 6753,
+        "sha256": "9f5418a40cef083ff4119b0553c5f58a35451dbbec6147ea53db0e5b97d79ee5"
+      },
+      "parent_inputs_sha256": "e359929b095783603949044e74a2b4720f7697aeb9466858279f69440f5b5d84",
+      "parent_oracle_sha256": "b642512e31115a4e2ef7c85d316d3f095f8e12fff8b1feadfa762ce7b08b04e6"
+    },
+    {
+      "axis": "V",
+      "visibility": "sealed",
+      "cases": 10,
+      "cells": 10,
+      "input": {
+        "path": "intent-cycle-sealed-V-10.inputs.json",
+        "bytes": 7351,
+        "sha256": "81600ac51565a65379a8708165b3d2e4a4165d6b3ebd2787b2203bc784f5c23a"
+      },
+      "oracle": {
+        "path": "intent-cycle-sealed-V-10.oracle.json",
+        "bytes": 14026,
+        "sha256": "6e7ab3601840f3635741da0db14b5c21f2e192f97df0e05db7a64e12b3608859"
+      },
+      "parent_inputs_sha256": null,
+      "parent_oracle_sha256": null
+    },
+    {
+      "axis": "F",
+      "visibility": "sealed",
+      "cases": 8,
+      "cells": 8,
+      "input": {
+        "path": "intent-cycle-sealed-F-8.inputs.json",
+        "bytes": 5408,
+        "sha256": "26a757ce49cc857c4efcd035611e62796bc6d7e271c2addf93f2a24247353dd4"
+      },
+      "oracle": {
+        "path": "intent-cycle-sealed-F-8.oracle.json",
+        "bytes": 11533,
+        "sha256": "ac5e00eccf914c8c9f4fa699526f039786b0f7a6756c3150248399340b4cafb8"
+      },
+      "parent_inputs_sha256": null,
+      "parent_oracle_sha256": null
+    },
+    {
+      "axis": "E",
+      "visibility": "sealed",
+      "cases": 10,
+      "cells": 20,
+      "input": {
+        "path": "intent-cycle-sealed-E-10.v2.inputs.json",
+        "bytes": 6039,
+        "sha256": "128aabf814162b512fd205d65c0069fe8b5e4b441bce24704fea269b0b4e3c4b"
+      },
+      "oracle": {
+        "path": "intent-cycle-sealed-E-10.v2.oracle.json",
+        "bytes": 14481,
+        "sha256": "2fc19095df7c84fda0bf32630bd236ae0fa03fb2b6fbf25d85eef1d709c488a9"
+      },
+      "parent_inputs_sha256": null,
+      "parent_oracle_sha256": null
+    }
+  ],
+  "protocol": {
+    "path": "intent-cycle-protocol.md",
+    "bytes": 13467,
+    "sha256": "a45ef5bc9f4e8e006787fe0934e3d25bd5ca8b0528ba5a3a9c16b8d51d18f428"
+  },
+  "public_preflight": {
+    "path": "intent-cycle-public-literal-preflight.json",
+    "bytes": 4932,
+    "sha256": "15429acdb503ed9d40c444a5f434c2fc48c8d6d3fd506c78cd56f491a5a7eece"
+  },
+  "validation": {
+    "path": "intent-cycle-seal-validation.v2.json",
+    "bytes": 4675,
+    "sha256": "b975d6581ddb67825104ec9fd3af34111d98abcf42fa6033632cfbc037328629"
+  },
+  "exposure": "Only public G0/E input/oracle, protocol/commitment/public preflight/public validation/freeze now. New private V/F/E inputs at scheduled integrity gates, oracle after own stopped accounting. Every older unused pool remains sealed.",
+  "no_provider_calls": true,
+  "supersedes": {
+    "path": "intent-cycle-commitment.json",
+    "sha256": "45ae964571c6d3632944f5ea29f5584729bfcc46565ccc100e2a899d7a2c2033",
+    "reason": "Explicit pre-live unresolved-control oracle contract correction only"
+  },
+  "prelive_addendum": {
+    "path": "intent-cycle-prelive-control-addendum.json",
+    "bytes": 1953,
+    "sha256": "de16f0d1900da11fbb179546aff26df8b9ab6cea05ff68318d6856e7a5cbc3cb"
+  }
+}

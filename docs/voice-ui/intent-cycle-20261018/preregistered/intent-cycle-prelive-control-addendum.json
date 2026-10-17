@@ -1,0 +1,36 @@
+{
+  "schema": "voice-ui.intent-cycle-prelive-control-addendum/1",
+  "status": "PRELIVE_CORRECTION_NOT_MEASURED",
+  "reason": "One intrinsically ambiguous E control had a nonempty required multiset but an unchanged target. Frozen E oracle admission requires its unresolved action multiset to be null or empty. required is corrected to null; original target, fixture, utterance, missing, ordering, schedule and criteria are unchanged.",
+  "original_commitment_sha256": "45ae964571c6d3632944f5ea29f5584729bfcc46565ccc100e2a899d7a2c2033",
+  "original_freeze_sha256": "580e73eeef695f18f7e590beb4e3f167bb2078569037e323bc29a4f7d1fcd30b",
+  "original_E": {
+    "input": {
+      "path": "intent-cycle-sealed-E-10.inputs.json",
+      "bytes": 6039,
+      "sha256": "dbb3c0f301701d095265c158fdd5710b9fad5eb8bac66948a3f4175092dbc38d"
+    },
+    "oracle": {
+      "path": "intent-cycle-sealed-E-10.oracle.json",
+      "bytes": 14582,
+      "sha256": "bd7d19191743e7b04543c2d1980863c1a86a920cac574016eb40023bf3132fa9"
+    }
+  },
+  "corrected_E": {
+    "input": {
+      "path": "intent-cycle-sealed-E-10.v2.inputs.json",
+      "bytes": 6039,
+      "sha256": "128aabf814162b512fd205d65c0069fe8b5e4b441bce24704fea269b0b4e3c4b"
+    },
+    "oracle": {
+      "path": "intent-cycle-sealed-E-10.v2.oracle.json",
+      "bytes": 14481,
+      "sha256": "2fc19095df7c84fda0bf32630bd236ae0fa03fb2b6fbf25d85eef1d709c488a9"
+    }
+  },
+  "input_delta": "oracle_sha256 only",
+  "oracle_delta": "one unresolved control required field only",
+  "preserved": "All original public and private files remain byte-identical. No fresh payload is publicly exposed. No product edit, model/provider output, measurement, correction batch or paid call preceded this change.",
+  "pure_validation": "All public-E and fresh V/F/E oracle structural/stock/target admission checks; frozen V/F per-cell meanings and E graph target checks; original error negative retained.",
+  "no_provider_calls": true
+}
