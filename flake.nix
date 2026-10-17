@@ -1,7 +1,7 @@
 {
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/f9948418dc8628ac02b6d6337e191ade9429d59d";
-    ui.url = "github:roccho-dev/ui/8a295d78ad6a6930608b1ad388c896ea49039102";
+    ui.url = "github:roccho-dev/ui/9dfc108456c98cd60cdfe3fc09fe5dd5f001f849";
   };
 
   outputs =
@@ -295,6 +295,10 @@
         in
         {
           voice-ui-acceptance-boundary = (acceptanceFor system).check;
+          voice-ui-candidate-browser = pkgs.runCommand "voice-ui-candidate-browser-check" { } ''
+            ${(acceptanceFor system).runtime}/bin/voice-ui-acceptance-node \
+              ${self}/packages/voice-ui/acceptance/candidate-browser.mjs ${voiceUiDist} "$out"
+          '';
           voice-ui-worker =
             pkgs.runCommand "voice-ui-worker-check" { nativeBuildInputs = [ pkgs.nodejs ]; }
               ''

@@ -1,5 +1,8 @@
 { pkgs, artifact }:
 let
+  fontConfig = pkgs.makeFontsConf {
+    fontDirectories = [ pkgs.dejavu_fonts.minimal pkgs.noto-fonts-cjk-sans ];
+  };
   modules = pkgs.linkFarm "voice-ui-acceptance-modules" [
     { name = "playwright-core"; path = pkgs.playwright-driver; }
   ];
@@ -11,6 +14,7 @@ let
       export PLAYWRIGHT_BROWSERS_PATH=${pkgs.playwright-driver.browsers-chromium}
       export PLAYWRIGHT_SKIP_VALIDATE_HOST_REQUIREMENTS=true
       export PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1
+      export FONTCONFIG_FILE=${fontConfig}
       exec ${pkgs.tini}/bin/tini -s -- ${pkgs.nodejs}/bin/node "$@"
     '';
   };

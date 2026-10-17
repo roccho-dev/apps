@@ -89,7 +89,7 @@ export function inventoryQuestion(state) {
 export function typedMissingRequest(state) {
   const question = index => ({
     type: "object",
-    instructions: `Return the ${index}th DISTINCT missing label/kind in utterance order, after earlier distinct pairs. `
+    instructions: `Return DISTINCT missing label/kind number ${index} in utterance order, after earlier distinct pairs. `
       + "Check the WHOLE utterance, including parts inside a requested new group. Do not stop at the first named group. "
       + "For each requested NEW label/kind, missing quantity = requested new count minus its available capacity in parts, with a minimum of zero. "
       + "Skip pairs with zero missing quantity. Existing graph facts satisfy existing references, not requests for additional new instances. "

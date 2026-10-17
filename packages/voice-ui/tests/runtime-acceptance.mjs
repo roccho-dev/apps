@@ -17,6 +17,7 @@ const envName = (...parts) => parts.join("");
 export const FORBIDDEN_RUNTIME_INPUTS = Object.freeze([
   "JEV_API_KEY",
   "SOURCE_JEV_API_KEY",
+  "TYPELLM_API_KEY",
   envName("CLOUDFLARE", "_API_TOKEN"),
   envName("CLOUDFLARE", "_ACCOUNT_ID"),
   "SOPS_AGE_KEY",

@@ -61,17 +61,17 @@
         "nixpkgs": "nixpkgs_2"
       },
       "locked": {
-        "lastModified": 1791123834,
-        "narHash": "sha256-oJ+pFnYpjY0aLT4maRNydcF0qowKSYccMAzkWUpdm9I=",
+        "lastModified": 1792226027,
+        "narHash": "sha256-SJpmeno3Ll2kHX38Tj1hlKBZL+09B4+kaTG+67Pn3es=",
         "owner": "roccho-dev",
         "repo": "ui",
-        "rev": "8a295d78ad6a6930608b1ad388c896ea49039102",
+        "rev": "9dfc108456c98cd60cdfe3fc09fe5dd5f001f849",
         "type": "github"
       },
       "original": {
         "owner": "roccho-dev",
         "repo": "ui",
-        "rev": "8a295d78ad6a6930608b1ad388c896ea49039102",
+        "rev": "9dfc108456c98cd60cdfe3fc09fe5dd5f001f849",
         "type": "github"
       }
     }

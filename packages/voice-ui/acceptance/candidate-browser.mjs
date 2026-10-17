@@ -1,0 +1,263 @@
+import assert from "node:assert/strict";
+import { createHash } from "node:crypto";
+import fs from "node:fs";
+import http from "node:http";
+import { createRequire } from "node:module";
+import path from "node:path";
+import { pathToFileURL } from "node:url";
+import { assertNoSecretInputs, loadAcceptanceArtifact } from "../tests/runtime-acceptance.mjs";
+import { observePaintedGoal, assessPaintedGoal } from "../tests/painted-goal.mjs";
+
+// Keyless completed-artifact mechanics only. Every upstream response below is
+// synthetic, including the TypeLLM result; no model quality is asserted here.
+assertNoSecretInputs();
+const [root, output] = process.argv.slice(2);
+assert.ok(path.isAbsolute(root) && path.isAbsolute(output));
+const hash = bytes => createHash("sha256").update(bytes).digest("hex");
+const manifestBytes = fs.readFileSync(path.join(root, "manifest.json"));
+const manifest = JSON.parse(manifestBytes);
+loadAcceptanceArtifact({ artifactRoot: root, expectedAppsSha: manifest.sources.apps,
+  expectedManifestSha256: hash(manifestBytes) });
+for (const row of manifest.files) {
+  const file = path.resolve(root, row.path);
+  assert.ok(file.startsWith(root + path.sep));
+  const bytes = fs.readFileSync(file);
+  assert.equal(bytes.length, row.bytes); assert.equal(hash(bytes), row.sha256);
+}
+const { default: worker } = await import(pathToFileURL(path.join(root, "worker/worker.mjs")));
+const protocol = await import(pathToFileURL(path.join(root, "site/ui/semantic-map/protocol/index.js")));
+const { chromium } = createRequire(import.meta.url)("playwright-core");
+const site = path.join(root, "site"), key = "voice-ui.decision-log.v1";
+const fixtures = [
+  { id: "equal-label-quantity", text: "OCIにDBを3個追加",
+    nodes: [{ label: "DB", kind: "data", quantity: 3, parent: "OCI" }], flow: null },
+  { id: "nested-new-names", text: "OCIに「配布領域」というグループ、その中に「配布記録」というデータ、OCIに「構築」という工程を追加して、構築から配布記録へ矢印",
+    nodes: [{ label: "配布領域", kind: "group", quantity: 1, parent: "OCI" },
+      { label: "配布記録", kind: "data", quantity: 1, parent: "配布領域" },
+      { label: "構築", kind: "step", quantity: 1, parent: "OCI" }],
+    flow: ["構築", "配布記録"] },
+];
+let fixture = null, input = null;
+const api = [], upstream = [], frames = [], controls = [], lifecycle = [];
+const syntheticAnswer = wire => {
+  if (wire.questions.intent) return { intent: "change", labels: fixture.id === "equal-label-quantity" ? "available" : "missing",
+    capacity: fixture.id === "equal-label-quantity" ? "exceeded" : "within" };
+  const state = input.state;
+  const next = fixture.nodes.find(node => {
+    const parent = state.graph.find(region => region.label === node.parent);
+    return state.graph.filter(region => region.label === node.label && region.parent === parent?.id).length < node.quantity;
+  });
+  let choice = "none";
+  if (next) {
+    const offered = state.offers.parts.find(part => part.label === next.label
+      && !state.selected.some(item => item.key === part.key));
+    assert.ok(offered, "the app really offered the required instance");
+    if (state.placing === null) choice = "part:" + offered.key;
+    else {
+      const parent = state.graph.find(region => region.label === next.parent);
+      choice = state.candidates.find(candidate => candidate.part === offered.key && candidate.parent === parent?.id)?.id;
+    }
+  } else if (fixture.flow) {
+    const [from, to] = fixture.flow.map(label => state.graph.find(region => region.label === label)?.id);
+    if (!state.edges.some(edge => edge.from === from && edge.to === to))
+      choice = state.candidates.find(candidate => candidate.from === from && candidate.to === to)?.id;
+  }
+  assert.ok(choice && Object.hasOwn(wire.questions.delta.criteria, choice), "only actual legal options are answered");
+  return { delta: choice };
+};
+const originalFetch = globalThis.fetch;
+globalThis.fetch = async (url, init) => {
+  assert.ok(input !== null && fixture !== null, "no unbound upstream request");
+  const wire = JSON.parse(init.body);
+  const auth = init.headers.authorization;
+  const provider = auth === "Bearer fixture-type-only" ? "typellm" : auth === "Bearer fixture-jev-only" ? "jev" : null;
+  assert.ok(provider, "only the synthetic credentials are permitted");
+  upstream.push({ fixture: fixture.id, provider, route: new URL(url).origin, questions: Object.keys(wire.questions) });
+  if (provider === "typellm") {
+    const missing = fixture.id === "equal-label-quantity" ? [{ label: "DB", kind: "data", quantity: 2 }]
+      : fixture.nodes.map(({ label, kind, quantity }) => ({ label, kind, quantity }));
+    return Response.json({ status: "completed", result: Object.fromEntries([1, 2, 3].map((n, index) =>
+      ["missing" + n, missing[index] ?? { label: "", kind: "none", quantity: 0 }])) });
+  }
+  const picks = syntheticAnswer(wire);
+  return Response.json({ model: "synthetic-browser-fixture", answers: Object.fromEntries(Object.entries(wire.questions).map(([name, q]) => {
+    const choice = picks[name], choices = Object.keys(q.criteria);
+    assert.ok(choices.includes(choice));
+    return [name, { type: "choice", choice, confidence: .9,
+      probabilities: Object.fromEntries(choices.map(option => [option, option === choice ? .9 : .1 / (choices.length - 1)])) }];
+  })) });
+};
+const types = { ".html": "text/html", ".js": "text/javascript", ".mjs": "text/javascript", ".json": "application/json",
+  ".css": "text/css", ".wasm": "application/wasm", ".md": "text/plain" };
+const isolation = { "cross-origin-opener-policy": "same-origin", "cross-origin-embedder-policy": "require-corp",
+  "cross-origin-resource-policy": "same-origin", "cache-control": "no-store" };
+const serverErrors = [];
+const server = http.createServer(async (req, res) => {
+  try {
+    const pathname = new URL(req.url, "http://127.0.0.1").pathname;
+    if (pathname.startsWith("/api/")) {
+      assert.equal(input, null, "browser API calls are sequential");
+      const chunks = []; for await (const chunk of req) chunks.push(chunk);
+      const bytes = Buffer.concat(chunks);
+      input = JSON.parse(bytes);
+      try {
+        const response = await worker.fetch(new Request("http://localhost" + pathname,
+          { method: req.method, headers: { "content-type": "application/json" }, body: bytes }),
+          { JEV_API_KEY: "fixture-jev-only", TYPELLM_API_KEY: "fixture-type-only",
+            ASSETS: { fetch: () => { throw new Error("unexpected Worker asset"); } } });
+        const body = await response.text();
+        api.push({ fixture: fixture.id, route: pathname, status: response.status, body: JSON.parse(body) });
+        res.writeHead(response.status, { "content-type": "application/json", ...isolation }); res.end(body);
+      } finally { input = null; }
+      return;
+    }
+    if (pathname === "/hayamimi/sherpa/data.parts.json") { res.writeHead(204, isolation); res.end(); return; }
+    const file = path.resolve(site, pathname === "/" ? "index.html" : decodeURIComponent(pathname.slice(1)));
+    assert.ok(file.startsWith(site + path.sep));
+    if (!fs.existsSync(file) || !fs.statSync(file).isFile()) { res.writeHead(404); res.end(); return; }
+    res.writeHead(200, { "content-type": types[path.extname(file)] ?? "application/octet-stream", ...isolation });
+    res.end(fs.readFileSync(file));
+  } catch (error) {
+    serverErrors.push(String(error)); res.writeHead(500, { "content-type": "application/json" }); res.end("{}");
+  }
+});
+await new Promise(resolve => server.listen(0, "127.0.0.1", resolve));
+const origin = "http://127.0.0.1:" + server.address().port;
+const browser = await chromium.launch({ headless: true, channel: "chromium" });
+const failures = [];
+try {
+  for (const selected of fixtures) {
+    fixture = selected;
+    const records = [{ type: "meta", schema: "semantic-map-state/1", root: "root", title: "candidate browser fixture" },
+      { type: "region", id: "root", label: "World", parent: null, kind: "boundary", bounds: [0, 0, 1000, 700], summary: "" },
+      { type: "region", id: "container", label: "OCI", parent: "root", kind: "group", bounds: [0, 0, 900, 500], summary: "" }];
+    const initial = await protocol.createDecisionLog(records, "voice-graph");
+    const pin = await protocol.createDecision(initial.head,
+      [{ type: "PinRegions", items: [{ regionId: "container", bounds: [0, 0, 900, 500] }] }], initial.records);
+    const accepted = (await protocol.appendDecision(initial.log, pin.decision)).verified;
+    const context = await browser.newContext({ viewport: { width: 1280, height: 720 }, deviceScaleFactor: 1 });
+    const page = await context.newPage(), errors = [];
+    page.on("pageerror", error => errors.push(String(error)));
+    // No request may leave the completed site, even if the page changes.
+    await page.route("**/*", route => new URL(route.request().url()).origin === origin ? route.continue() : route.abort());
+    await page.addInitScript(([storageKey, log]) => { if (!localStorage.getItem(storageKey)) localStorage.setItem(storageKey, log); }, [key, accepted.log]);
+    const settle = () => page.waitForFunction(() => document.body.dataset.state && document.body.dataset.state !== "pending"
+      && document.querySelector("#goal-cancel").hidden, null, { timeout: 180000 });
+    const snapshot = () => page.evaluate(storageKey => {
+      const view = document.querySelector("#working-surface iframe[data-package=semantic-map]")?.contentWindow?.semanticMapRuntime;
+      return { state: document.body.dataset.state, log: view?.log ?? null, records: view?.records ?? null,
+        stored: localStorage.getItem(storageKey), goal: document.body.dataset.goal ? JSON.parse(document.body.dataset.goal) : null };
+    }, key);
+    await page.goto(origin); await settle();
+    const before = await snapshot(); assert.equal(before.log, accepted.log);
+    const draw = async () => { await page.locator("#text").fill(fixture.text); await page.locator("#goal").click(); await settle(); return snapshot(); };
+    const after = await draw();
+    assert.equal(after.goal.reason, "none", JSON.stringify(after.goal));
+    const regions = after.records.filter(record => record.type === "region"), added = regions.filter(record => !records.some(old => old.id === record.id));
+    for (const expected of fixture.nodes) {
+      const parent = regions.find(record => record.label === expected.parent);
+      assert.equal(added.filter(record => record.label === expected.label && record.kind === expected.kind && record.parent === parent?.id).length, expected.quantity);
+    }
+    assert.equal(added.length, 3);
+    const edges = after.records.filter(record => record.type === "relation");
+    assert.equal(edges.length, fixture.flow ? 1 : 0);
+    if (fixture.flow) assert.deepEqual(edges.map(edge => [regions.find(r => r.id === edge.from)?.label, regions.find(r => r.id === edge.to)?.label]), [fixture.flow]);
+    const cameraFrames = [{ name: "overview", id: "" }, { name: "named-group", id: "container" },
+      ...added.filter(r => r.kind === "group").map(r => ({ name: "nested-group", id: r.id }))];
+    let controlArgs = null;
+    for (const camera of cameraFrames) {
+      await page.locator("#camera-part").selectOption(camera.id); await settle();
+      if (camera.id === "") {
+        frames.push({ fixture: fixture.id, camera: camera.name, role: "predeclared overview; no automatic pass from hidden descendants",
+          recordsUnchanged: JSON.stringify((await snapshot()).records) === JSON.stringify(after.records) }); continue;
+      }
+      const parent = regions.find(r => r.id === camera.id), children = regions.filter(r => r.parent === camera.id);
+      const args = { container: parent, records: children, identity: true };
+      const observation = await page.evaluate(observePaintedGoal, args), assessment = assessPaintedGoal(observation);
+      frames.push({ fixture: fixture.id, camera: camera.name, observation, assessment });
+      if (assessment.status !== "PASS") failures.push({ fixture: fixture.id, camera: camera.name, assessment });
+      assert.deepEqual((await snapshot()).records, after.records, "camera preserves records");
+      if (fixture.id === "equal-label-quantity") controlArgs = args;
+    }
+    if (controlArgs) {
+      // Actual painted-DOM mutations, each restored before the next observation.
+      const mutations = ["wrong-label", "hidden-label", "duplicate-label", "clipped-label", "title-overlap", "sibling-overlap"];
+      for (const mutation of mutations) {
+        const saved = await page.evaluate(({ args, mutation }) => {
+          const doc = document.querySelector("#working-surface iframe").contentDocument;
+          const find = (id, role) => [...doc.querySelectorAll("[data-semantic-region-id]")]
+            .find(n => n.dataset.semanticRegionId === id && n.dataset.semanticRole === role);
+          const text = find(args.records[0].id, "text"), shape = find(args.records[0].id, "shape");
+          const other = find(mutation === "title-overlap" ? args.container.id : args.records[1].id, "text");
+          const saved = { content: text.innerHTML, style: text.getAttribute("style"), otherStyle: other.getAttribute("style") };
+          if (mutation === "wrong-label") text.querySelector("text").textContent = "wrong";
+          if (mutation === "hidden-label") text.style.display = "none";
+          if (mutation === "duplicate-label") text.append(text.querySelector("text").cloneNode(true));
+          if (mutation === "clipped-label") text.querySelector("text").setAttribute("x", "100000");
+          if (mutation === "title-overlap" || mutation === "sibling-overlap") {
+            const a = text.getBoundingClientRect(), b = other.getBoundingClientRect();
+            other.style.transform = "translate(" + (a.x - b.x) + "px," + (a.y - b.y) + "px)";
+          }
+          return saved;
+        }, { args: controlArgs, mutation });
+        const assessment = assessPaintedGoal(await page.evaluate(observePaintedGoal, controlArgs));
+        controls.push({ fixture: fixture.id, mutation, assessment });
+        assert.notEqual(assessment.status, "PASS", mutation + " must be detected");
+        await page.evaluate(({ args, mutation, saved }) => {
+          const doc = document.querySelector("#working-surface iframe").contentDocument;
+          const find = id => [...doc.querySelectorAll('[data-semantic-role="text"]')].find(n => n.dataset.semanticRegionId === id);
+          const text = find(args.records[0].id), other = find(mutation === "title-overlap" ? args.container.id : args.records[1].id);
+          text.innerHTML = saved.content;
+          for (const [node, style] of [[text, saved.style], [other, saved.otherStyle]])
+            if (style === null) node.removeAttribute("style"); else node.setAttribute("style", style);
+        }, { args: controlArgs, mutation, saved });
+      }
+    }
+    if (fixture.flow) {
+      // Fixed relation camera; actual edge ID, direction and unrelated endpoint negatives.
+      const edge = edges[0]; await page.locator("#camera-part").selectOption(edge.id); await settle();
+      const args = { container: regions.find(r => r.id === "container"), records: added.filter(r => r.kind !== "group"), edge, identity: true };
+      const observed = await page.evaluate(observePaintedGoal, args);
+      const endsVisible = observed.shapes.every(s => s.name?.unmet === null && s.name.box && s.name.box[0] >= 0 && s.name.box[1] >= 0
+        && s.name.box[0] + s.name.box[2] <= observed.viewport[2] && s.name.box[1] + s.name.box[3] <= observed.viewport[3]);
+      frames.push({ fixture: fixture.id, camera: "relation", observation: observed, endsVisible });
+      assert.ok(observed.edge.complete && endsVisible, "whole directed arrow and endpoint names in fixed relation frame");
+      const reverse = await page.evaluate(observePaintedGoal, { ...args, edge: { ...edge, from: edge.to, to: edge.from } });
+      assert.equal(reverse.edge.complete, false); controls.push({ fixture: fixture.id, mutation: "reverse-edge", detected: true });
+      const saved = await page.evaluate(id => {
+        const doc = document.querySelector("#working-surface iframe").contentDocument;
+        const shape = [...doc.querySelectorAll('[data-semantic-role="shape"][data-semantic-relation-ids]')]
+          .find(n => JSON.parse(n.dataset.semanticRelationIds).includes(id));
+        const before = shape.getAttribute("transform"); shape.setAttribute("transform", "translate(5000,5000)"); return before;
+      }, edge.id);
+      assert.equal((await page.evaluate(observePaintedGoal, args)).edge.complete, false);
+      controls.push({ fixture: fixture.id, mutation: "moved-edge", detected: true });
+      await page.evaluate(({ id, saved }) => { const doc = document.querySelector("#working-surface iframe").contentDocument;
+        const shape = [...doc.querySelectorAll('[data-semantic-role="shape"][data-semantic-relation-ids]')].find(n => JSON.parse(n.dataset.semanticRelationIds).includes(id));
+        if (saved === null) shape.removeAttribute("transform"); else shape.setAttribute("transform", saved); }, { id: edge.id, saved });
+    }
+    await page.locator("#undo").click(); await settle();
+    const undone = await snapshot(); assert.equal(undone.log, before.log); assert.equal(undone.stored, before.stored);
+    const redone = await draw(); await page.locator("#apply").click(); await settle();
+    const applied = await snapshot(); assert.equal(applied.stored, redone.log);
+    await page.reload(); await settle(); const reloaded = await snapshot();
+    assert.equal(reloaded.log, applied.stored);
+    const sameLog = (a, b) => typeof a === "string" && a === b;
+    assert.equal(sameLog(after.log, before.log), false, "failed Undo cannot pass");
+    assert.equal(sameLog(before.log, applied.stored), false, "stale reload cannot pass");
+    lifecycle.push({ fixture: fixture.id, undo: "PASS", apply: "PASS", reload: "PASS", failedUndoControl: "RED", staleReloadControl: "RED" });
+    assert.deepEqual(errors, []); await context.close();
+  }
+  assert.deepEqual(serverErrors, []);
+} finally {
+  await browser.close(); await new Promise(resolve => server.close(resolve)); globalThis.fetch = originalFetch;
+}
+fs.mkdirSync(output, { recursive: true });
+const receipt = { schema: "voice-ui.candidate-browser/1", sources: manifest.sources, manifest_sha256: hash(manifestBytes),
+  scope: "KEYLESS_FIXTURE_MECHANICS", live_provider: "NOT_RUN", live_microphone: "NOT_RUN",
+  viewport: [1280, 720], deviceScaleFactor: 1, api, synthetic_upstream: upstream, frames, controls, lifecycle,
+  status: failures.length ? "RED" : "PASS", failures };
+fs.writeFileSync(path.join(output, "receipt.json"), JSON.stringify(receipt, null, 2) + "\n");
+assert.deepEqual(failures, [], "painted frame requirements");
+process.stdout.write(JSON.stringify({ kind: receipt.schema, status: receipt.status, frames: frames.length, controls: controls.length, live_provider: receipt.live_provider }) + "\n");
+
