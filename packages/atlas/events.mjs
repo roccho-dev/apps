@@ -144,7 +144,8 @@ const DECISIONS = {
 const observation = (event, at) => {
   keys(event, ['kind', 'recordedAt', 'target', 'value', 'source', 'observedAt'], [], at);
   stateTarget(event.target, `${at}.target`);
-  demand(event.value !== undefined && event.value !== null, `${at}: observed value required`);
+  // null is D's marker for an observation that obtained no value (never compared with a predicate).
+  demand(event.value !== undefined, `${at}: observed value (or null: no value obtained) required`);
   demand(text(event.source), `${at}: observation source required`);
   demand(time(event.observedAt, `${at}.observedAt`) <= Date.parse(event.recordedAt), `${at}: observedAt is after recordedAt (future fact)`);
 };
@@ -308,6 +309,7 @@ const judge = (condition, events, t) => {
   const base = { id: condition.id, predicate: condition.predicate, maxAge: condition.maxAge };
   if (!seen) return { ...base, state: 'unknown', reason: 'no-observation', observation: null };
   const used = { value: seen.value, source: seen.source, observedAt: seen.observedAt, recordedAt: seen.recordedAt };
+  if (seen.value === null) return { ...base, state: 'unknown', reason: 'no-value', observation: used };
   if (t - Date.parse(seen.observedAt) > duration(condition.maxAge, condition.id)) return { ...base, state: 'unknown', reason: 'stale', observation: used };
   if (conflict) return { ...base, state: 'conflict', reason: 'conflicting-observations', observation: used,
     conflicting: conflict.map(event => ({ value: event.value, source: event.source })) };

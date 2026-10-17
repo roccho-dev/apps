@@ -46,7 +46,7 @@ test('end to end: G fixture snapshots → G events → live.mjs → D → World'
   const states = Object.fromEntries(now.conditions.map(value => [value.id, [value.judgment.state, value.judgment.reason]]));
   assert.deepEqual(states, {
     merged: ['satisfied', 'observed'],
-    'adrs-ci': ['unknown', 'unmatchable'], // G's literal UNKNOWN is never a value to compare
+    'adrs-ci': ['unknown', 'no-value'], // G's literal UNKNOWN is no value obtained (D null), never compared
     'reviewer-running': ['satisfied', 'observed'],
     'worker-running': ['unmet', 'observed'], // transcript-only means a past transcript exists, not activity
     'ui-serving': ['unknown', 'stale'],
@@ -100,7 +100,7 @@ test('fromG keeps targets opaque, passes <target>:session as Agent activity, and
   const event = { kind: 'observation', target: 'x#1:pr.state', value: 'OPEN', source: { ref: 'gh', sha256: 'sha256:' + '0'.repeat(64) },
     observedAt: '2026-10-16T00:00:00Z', recordedAt: '2026-10-16T00:00:00Z' };
   assert.deepEqual(fromG(event).events.map(value => value.target), [{ kind: 'state', id: 'x#1:pr.state' }]);
-  assert.deepEqual(fromG({ ...event, value: 'UNKNOWN' }).events[0].value, { G: 'UNKNOWN' });
+  assert.equal(fromG({ ...event, value: 'UNKNOWN' }).events[0].value, null);
   assert.deepEqual(fromG({ ...event, target: 'atlas.W:session', value: 'transcript-only' }).events.map(value => [value.target, value.value]),
     [[{ kind: 'state', id: 'atlas.W:session' }, 'transcript-only'], [{ kind: 'session', id: 'atlas.W' }, 'transcript-only']]);
   assert.equal(fromG({ ...event, target: ':session' }).events.length, 1);

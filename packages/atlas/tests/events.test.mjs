@@ -45,8 +45,9 @@ const gapView = frame => ({ coverage: frame.coverage, entities: frame.entities,
 // then from f9269798… for K4: the CLI World carries frames[i].gap, satisfied conditions are no Scope,
 // the explained whole-unknown unit is dropped, 目標 → 理想状態, 変化 n 件 → 差 n 件; then from 5720fe5c… for K5:
 // gap v2/v3 (purpose_rev pair, exclusive causes, summary counts, labels), phase, journal, matched_until,
-// and the purpose node/closure row per (id, rev).
-const WORLD_SHA256 = 'sha256:73e0af8e45b6e7d0c1d595ff8bd591704260b376d5eddcafa462d82a436ea1ae';
+// and the purpose node/closure row per (id, rev); then from 73e0af8e… for K6 (adrs#647 v5): summary.before_ideal,
+// and declared owners of satisfied conditions stay Agents (session-observed heading).
+const WORLD_SHA256 = 'sha256:beb82897f969fab631cb67830690514cdd49a12cd7c7f74700281870661d4e5f';
 
 test('parser fails closed on schema, shape, duplicate keys, order and graph errors', () => {
   const list = base();

@@ -21,7 +21,7 @@ test('gap by cause, frame by frame, against the previous frame by id only', () =
   assert.deepEqual(frames.map(frame => [frame.gap.basis.purpose_id, frame.gap.basis.ideal_version]),
     [['purpose.p1', 'v1'], ['purpose.p1', 'v2'], ['purpose.p1', 'v2'], ['purpose.p1', 'v2'], ['purpose.p2', 'v3'], ['purpose.p2', 'v3']]);
   // t0: current = ideal. No open difference.
-  assert.deepEqual([open(frames[0]), closed(frames[0]), frames[0].gap.summary], [{}, [], { open: 0, by_cause: {}, conditions: 2, satisfied: 2 }]);
+  assert.deepEqual([open(frames[0]), closed(frames[0]), frames[0].gap.summary], [{}, [], { open: 0, by_cause: {}, conditions: 2, satisfied: 2, before_ideal: 0 }]);
   assert.deepEqual([frames[0].phase, frames[0].matched_until], ['matched', '2026-10-17T02:00:00.000Z']);
   // A legacy purpose.set is the Purpose plus its ideal state: rev is the version that first declared the label.
   assert.deepEqual(frames.map(frame => frame.gap.basis.purpose_rev), ['v1', 'v1', 'v1', 'v1', 'v3', 'v3']);
@@ -33,7 +33,7 @@ test('gap by cause, frame by frame, against the previous frame by id only', () =
   // t2: C observed → closed; A regresses; B continues.
   assert.deepEqual(open(frames[2]), { A: ['unmet', 'current-regressed', t(2), 'scope.A'], B: ['unmet', 'carried', t(1), 'scope.B'] });
   assert.deepEqual(closed(frames[2]), [['C', 'current-satisfied', t(2)]]);
-  // t3: A's observation is not usable (G UNKNOWN); B's observation is outside its PT2H window. Both stay open since earlier.
+  // t3: A obtained no value (G UNKNOWN, D null); B's observation is outside its PT2H window. Both stay open since earlier.
   assert.deepEqual(open(frames[3]), { A: ['unknown', 'current-unobserved', t(2), 'scope.A'], B: ['unknown', 'current-stale', t(1), 'scope.B'] });
   // t4: the Purpose changes: everything open closes by purpose-changed; E opens without an owner.
   assert.deepEqual(open(frames[4]), { E: ['unknown', 'purpose-changed', t(4), null] });
@@ -41,7 +41,7 @@ test('gap by cause, frame by frame, against the previous frame by id only', () =
   // t5: still no observation of E: current-unobserved applies, so it is not carried (carried only when nothing else applies).
   assert.deepEqual(open(frames[5]), { E: ['unknown', 'current-unobserved', t(4), null] });
   assert.deepEqual(frames.map(frame => frame.gap.summary.open), [0, 2, 2, 2, 1, 1]);
-  assert.deepEqual(frames[3].gap.summary, { open: 2, by_cause: { 'current-unobserved': 1, 'current-stale': 1 }, conditions: 3, satisfied: 1 });
+  assert.deepEqual(frames[3].gap.summary, { open: 2, by_cause: { 'current-unobserved': 1, 'current-stale': 1 }, conditions: 3, satisfied: 1, before_ideal: 0 });
   assert.deepEqual(frames.map(frame => frame.phase), ['matched', 'approximating', 'approximating', 'approximating', 'approximating', 'approximating']);
 });
 

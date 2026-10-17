@@ -1,0 +1,2 @@
+{"schema":"atlas.control-norms/1","authority":false}
+{"kind":"norm","id":"norm.x","R":[],"W":["w.x"],"binding":{"purposeId":"purpose.v5","conditions":["X","Y"]}}

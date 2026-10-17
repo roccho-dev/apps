@@ -30,8 +30,8 @@ const toPlan = (g, purpose) => ({ kind: 'plan.set', recordedAt: g.recordedAt, pl
 
 /**
  * One G event → { events } for D, or { held: {reason, plan|journal} } kept verbatim.
- * Observation targets stay opaque D state ids; G's literal UNKNOWN becomes a non-scalar
- * value, which D judges unknown. G's documented `<target>:session` is also passed as the
+ * Observation targets stay opaque D state ids; G's literal UNKNOWN becomes D's null (no value
+ * obtained), which D judges unknown. G's documented `<target>:session` is also passed as the
  * Agent activity of <target> (the value as observed; transcript-only is not activity).
  * Journal decisions keep G's actor; their source sha256 becomes D's digest. `decisions` are
  * the already accepted D decisions, where a plan's declaring ideal state is looked up.
@@ -55,7 +55,7 @@ export const fromG = (event, decisions = []) => {
     || typeof event.target !== 'string' || typeof event.source?.ref !== 'string' || typeof event.source?.sha256 !== 'string')
     fail('unsupported G event ' + JSON.stringify(event).slice(0, 120));
   const observed = { kind: 'observation', recordedAt: event.recordedAt, target: { kind: 'state', id: event.target },
-    value: event.value === 'UNKNOWN' ? { G: 'UNKNOWN' } : event.value, source: `${event.source.ref} ${event.source.sha256}`, observedAt: event.observedAt };
+    value: event.value === 'UNKNOWN' ? null : event.value, source: `${event.source.ref} ${event.source.sha256}`, observedAt: event.observedAt };
   const session = event.target.endsWith(SESSION) && event.target.length > SESSION.length
     ? [{ ...observed, target: { kind: 'session', id: event.target.slice(0, -SESSION.length) } }] : [];
   return { events: [observed, ...session] };

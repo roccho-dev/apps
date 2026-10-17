@@ -77,7 +77,7 @@ const ownScopeStatus = (scope, closure) => {
 const scopeStanding = (status, bound) => status !== 'declared_satisfied' ? 'active' : bound ? 'completed-history' : 'unresolved';
 const standingLabel = { active: '現在必要', 'completed-history': '完了済み（履歴）', unresolved: '未確定（証拠は保持）' };
 const statusCaption = { unmet: '必要', conflict: '矛盾', unknown: '未確認', declared_satisfied: '完了・履歴' };
-const roleCaption = { owner_actor: '担当', writer: '作業', evaluator: '評価' };
+const roleCaption = { owner_actor: '担当', responsible: '担当', writer: '作業', evaluator: '評価' };
 // Overview captions are presentation only: exactly two logical lines, a role/kind
 // line and the full supplied text. Nothing is shortened here (no ellipsis, no
 // id-tail elision); the generic UI wraps. The record summary, flags and relation
@@ -248,6 +248,10 @@ export const semanticScopeWorld = (input, reducedClosure) => {
       actors.get(id).push(role);
     };
     for (const scope of scopes) declare(scope.owner_actor, { role: 'owner_actor', scope: scope.id, owner_role: scope.owner_role });
+    // Declared owners of conditions that are no Scope now (satisfied) stay Agents: their sessions are still observed.
+    const scoped = new Set(scopes.flatMap(scope => scope.parts));
+    for (const [condition, value] of Object.entries(responsibility).sort(([a], [b]) => a < b ? -1 : a > b ? 1 : 0))
+      if (value?.state === 'assigned' && !scoped.has(condition)) declare(value.actor, { role: 'responsible', condition });
     if (meaning.observation) {
       declare(meaning.observation.writer, { role: 'writer' });
       declare(meaning.observation.evaluator, { role: 'evaluator' });

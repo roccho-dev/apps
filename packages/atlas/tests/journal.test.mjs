@@ -21,14 +21,14 @@ test('one cycle by phase: Purpose change → defining → approximating → matc
   const [f0, f1, f2, f3, f4, f5, f6, f7, f8] = world.frames;
   assert.deepEqual(open(f0), [['Z', 'unknown', 'initial', '00:00']]);
   // No ideal state to compare with: UNKNOWN (null), not an empty Gap. The previous Purpose's difference closes.
-  assert.deepEqual([f1.gap.parts, f1.gap.summary, closed(f1)], [null, { open: null, by_cause: {}, conditions: null, satisfied: null }, [['Z', 'purpose-changed']]]);
+  assert.deepEqual([f1.gap.parts, f1.gap.summary, closed(f1)], [null, { open: null, by_cause: {}, conditions: null, satisfied: null, before_ideal: null }, [['Z', 'purpose-changed']]]);
   assert.deepEqual([f2.gap.parts, closed(f2)], [null, []]);
   // Causes compare with the latest frame that has a gap (f0, another Purpose), not with the null frames.
   assert.deepEqual([f3.gap.basis.prev_frame, open(f3)], [t('00:00'), [['A', 'unknown', 'purpose-changed', '03:00'], ['B', 'unmet', 'purpose-changed', '03:00']]]);
   assert.deepEqual(f3.gap.parts.map(part => part.observed_before_ideal ?? false), [false, true], 'B was observed at 02:30, before ideal.set');
   assert.deepEqual([open(f4), closed(f4)], [[['B', 'unmet', 'carried', '03:00']], [['A', 'current-satisfied']]]);
   // Matched: no open difference; only keeping the observations fresh remains. 06:00 is exactly A's PT2H: still fresh (≦).
-  assert.deepEqual([open(f5), closed(f5), f5.gap.summary], [[], [['B', 'current-satisfied']], { open: 0, by_cause: {}, conditions: 2, satisfied: 2 }]);
+  assert.deepEqual([open(f5), closed(f5), f5.gap.summary], [[], [['B', 'current-satisfied']], { open: 0, by_cause: {}, conditions: 2, satisfied: 2, before_ideal: 0 }]);
   assert.deepEqual([f5.matched_until, f6.matched_until, open(f6)], ['2026-10-17T06:00:00.000Z', '2026-10-17T06:00:00.000Z', []]);
   assert.deepEqual([open(f7), f7.matched_until], [[['A', 'unknown', 'current-stale', '06:30']], null]);
   assert.deepEqual([f8.gap.parts, closed(f8), f8.gap.basis.ideal_version], [null, [['A', 'purpose-ended']], null]);
