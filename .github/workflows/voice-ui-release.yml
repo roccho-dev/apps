@@ -114,6 +114,22 @@ jobs:
             dist/candidate-closed-evidence/*/ci-replay/receipt.json
             dist/candidate-closed-evidence/*/mutation-test.txt
           if-no-files-found: ignore
+      - name: Verify component axes with exact stopped artifacts
+        run: |
+          set -euo pipefail
+          runtime="$(nix build --no-link --print-out-paths .#voice-ui-acceptance-runtime)"
+          "$runtime/bin/voice-ui-acceptance-node" packages/voice-ui/acceptance/verify-component-axes.mjs \
+            "$PWD/docs/voice-ui/component-axes-20261017/evidence/index.json" "$PWD/dist/component-axes-closed-evidence"
+      - name: Preserve component axes verification
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: voice-ui-component-axes-${{ github.event.pull_request.head.sha || github.sha }}
+          path: |
+            dist/component-axes-closed-evidence/receipt.json
+            dist/component-axes-closed-evidence/*/audit.json
+            dist/component-axes-closed-evidence/*/ci-replay/receipt.json
+          if-no-files-found: ignore
       - name: Export the acceptance runtime closure
         run: |
           set -euo pipefail

@@ -1,0 +1,22 @@
+{
+  "schema": "voice-ui.independent-review-readback/1",
+  "observed_at": "2026-10-17T13:14:33.132Z",
+  "head": "286eb7d0bc0bdef160bda900547314aa5be3a752",
+  "tree": "d960243798785c323e7cd5874bbf3cac1b538508",
+  "base": "42aa9a473d287607ba58967ef2992c052edc7943",
+  "review_id": 5557904969,
+  "url": "https://github.com/roccho-dev/apps/pull/103#pullrequestreview-5557904969",
+  "author": "roccho-dev",
+  "state": "COMMENTED",
+  "body_sha256": "3b6a44d57593d14883960fea0722233b9b60a8e00e52569a2efe1d0adf420ac4",
+  "body_exact": true,
+  "source_admission_only": true,
+  "provider_attempts_new_cycle": {
+    "jev": 0,
+    "typellm": 0
+  },
+  "prior_charged": {
+    "jev": 564,
+    "typellm": 29
+  }
+}

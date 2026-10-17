@@ -1,0 +1,75 @@
+{
+  "schema": "voice-ui.component-axes-execution/1",
+  "axis": "G",
+  "source": {
+    "schema": "voice-ui.poc.runtime/1",
+    "origin": "http://127.0.0.1:18845",
+    "heads": {
+      "apps": "286eb7d0bc0bdef160bda900547314aa5be3a752",
+      "envs": "063e685b8b21a97fc8658879da93fa858552bcd6",
+      "ops": "cab432ef717cbde9ebd0197ae006c0efe75269bf",
+      "windows": "6aef693c0946903d8b87c2348039de1420acd61b",
+      "ui": "756d47e891191c3344eb2d29b000203be8331abc"
+    },
+    "sealed_inputs_sha256": "7548be54a1bf255e7a6b4d3400e41ac01da2cd0a87a94a377a0a78945e54e58b",
+    "worker_entry": {
+      "path": "/nix/store/j9zacbvizpvrxg8g3xbxrqfl07j4l0iz-voice-ui-dist/worker/worker.mjs",
+      "sha256": "15b9ed190f5f9915780b28b2403e4fffc13bd5be397cfaac6f6f8f5d3efa33a2"
+    },
+    "provider_entry": {
+      "path": "/nix/store/q3ci6iw05vz5xxjagy3kifb4sqdx0jiw-jev-provider-admitted/batch.mjs",
+      "sha256": "ad4ac08ae8c42f3bf0e9d0aeedb0a2e9192c776585a3251b2ff1e18358cfe2e7"
+    },
+    "semantic_map": {
+      "root": "/nix/store/vqjhvwxcbwv7vg09n4d3sy54lw879s9f-semantic-map",
+      "protocol_sha256": "1689dcf63e1ed19cdea7be22e3f90a09f434841f980b9ca8b9018a987c9c38f8"
+    },
+    "launcher": {
+      "program": "/nix/store/bg0bygqiid25xnivxv9cdgjlx3sp939j-voice-ui-typed-dev/bin/voice-ui-typed-dev",
+      "dev_program": "/nix/store/lkvlswa2pssv0y6ml9sk9x9m11mqilil-voice-ui-dev/bin/voice-ui-dev",
+      "pid": 308086,
+      "start_ticks": "15074155",
+      "phase_id": "axes-public-G-20261017",
+      "allowances": {
+        "jev": 4,
+        "typellm": 0
+      }
+    },
+    "artifact": {
+      "root": "/nix/store/j9zacbvizpvrxg8g3xbxrqfl07j4l0iz-voice-ui-dist",
+      "manifest_sha256": "30481d0d132f875ce35b7c48a859bfa414a9d882009c58c7d6d74a9cf6aa1b38"
+    },
+    "audit_sha256": "07dc365b12981ea26071d8ecbe3ec8422883cb865aa0b314fa76f0e4b6ed8dde",
+    "preflight_counters": {
+      "jev": 0,
+      "typellm": 0
+    }
+  },
+  "inputs_sha256": "36fdeb1254bd57e725f4bf695a0234c98c95c64d849132a489de657ebb714ceb",
+  "bundle_sha256": "8fd1b4f37f6a113653dbaeda5e040ba5bed6d7b007ab9269d307f8642d339189",
+  "source_sha256": {
+    "src/completion.mjs": "48380fb1504dfe97b1f8450c9b33aee7665d13d5c4ee462a991591e573385541",
+    "src/literal-inventory.mjs": "82a2bdb9866c1331b4c685f28862bd54e7e974c4af3652b4f72dfdbb41f7df60",
+    "src/goal.mjs": "cd9101d6a222e31773c9523adeca3f7f9aa32990e30b39e06a7b872771422f3e",
+    "src/contract.mjs": "f2c95212493f59fd80ef17270c2b5de0d51d795b26ac8a0e6dfa0fdb9dec30fe",
+    "src/turn.mjs": "c5fc3489a5bd0861f0455bd9843f47e76030bb03a4fe55745cf00c29c79b7008",
+    "src/session.mjs": "d6fcb97e581afb789ed6ecb339c06c378ef94283084df8ad3042ebe42c48cfe8",
+    "functions/api/parts.mjs": "13ca5322730f049eb2e77319cc0fbeb58f649d91c4bc56fe9d36214a90960669",
+    "functions/pages-worker.mjs": "8f3bc7ea572cf3e21b16728721dcb381425786180433df34892e2a42cfc94656",
+    "web/app.mjs": "3a9ac4eba0770949a219b35c97cd346d4a7912026fae2b2f21710251b86bbf2a",
+    "web/adapters/completion.mjs": "a940d92086302dd7f733aa45542c26ea0d925fed460111f4fbb15c802e601e82",
+    "tests/component-axes-eval.mjs": "3c0e70952e107c8e443497808a15a5feb85c914e80774d1294a846caa8598f14",
+    "tests/component-axis-score.mjs": "b5b6547e81f8213ba20126ab6404d4807b06d836f91507651a502bc9c6ebef6b",
+    "tests/evaluation-http.mjs": "a2b4055f9209544019f07f5bb299afac38452049c6b642a4da2cdb9534a49f47",
+    "tests/painted-goal.mjs": "c5ba117d1dea66d20c80b7f92b8184296ff79d4231da56f5a89836af4beb018b"
+  },
+  "case_order": [
+    "H01",
+    "H05",
+    "N09",
+    "H10"
+  ],
+  "methods": "literal",
+  "oracle_policy": "hash for commitment only; no oracle is read or forwarded",
+  "replay_suffix": "compatibility only; scoring dispatches by axis"
+}

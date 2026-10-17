@@ -1,0 +1,161 @@
+{
+  "schema": "voice-ui.component-axes-raw-audit/1",
+  "axis": "R",
+  "status": "PASS",
+  "issues": [],
+  "complete": true,
+  "all_valid_execution": true,
+  "phase_kind": "public",
+  "parent_inputs_sha256": null,
+  "runtime_scope": "LIVE_BINDING_REQUIRED",
+  "admissible_for_semantic_claim": true,
+  "consumed": 2,
+  "planned": 2,
+  "external_provider_attempts": {
+    "jev": 15,
+    "typellm": 0
+  },
+  "external_provider_attempt_bounds": {
+    "jev": {
+      "min": 15,
+      "max": 15
+    },
+    "typellm": {
+      "min": 0,
+      "max": 0
+    }
+  },
+  "factor_rows": 0,
+  "factor_alignment": "UNIQUE",
+  "proofs": [
+    {
+      "id": "H06",
+      "method": "ready",
+      "status": "PASS",
+      "initial_head": "sha256:0b3522df5b691691d41d9b4587377781fc7048c991a4e47357e5583eb09288c6",
+      "final_head": "sha256:3c682ac9435d67082045a0c82e932dbf828abb83bde3d30ab763289d17c2dd93"
+    },
+    {
+      "id": "H08",
+      "method": "ready",
+      "status": "PASS",
+      "initial_head": "sha256:0b3522df5b691691d41d9b4587377781fc7048c991a4e47357e5583eb09288c6",
+      "final_head": "sha256:c6e1662f7866d2d8ab1926a1ac45efeee80b82915b1c89740249a4b0569c559f"
+    }
+  ],
+  "rows": [
+    {
+      "id": "H06",
+      "method": "ready",
+      "grade": {
+        "oracle_inventory_sufficient": true,
+        "graph": {
+          "graph_exact": true,
+          "unique_record_keys": true,
+          "existing_semantics_preserved": true,
+          "semantic_unchanged": false,
+          "clean_new_regions": true,
+          "clean_new_edges": true,
+          "no_other_new_semantics": true,
+          "actual_added_regions": [
+            {
+              "label": "読込班",
+              "kind": "group",
+              "parent": "fixture:container"
+            },
+            {
+              "label": "点検班",
+              "kind": "group",
+              "parent": "fixture:container"
+            },
+            {
+              "label": "保管班",
+              "kind": "group",
+              "parent": "fixture:container"
+            }
+          ],
+          "actual_added_edges": []
+        },
+        "scope": "representation conditional on supplied inventory; paint and actual Goal-path admissibility separate"
+      },
+      "paint_status": "PASS",
+      "cell_wall_elapsedMs": 1853.8738,
+      "goal_elapsedMs": 1849.1767
+    },
+    {
+      "id": "H08",
+      "method": "ready",
+      "grade": {
+        "oracle_inventory_sufficient": true,
+        "graph": {
+          "graph_exact": true,
+          "unique_record_keys": true,
+          "existing_semantics_preserved": true,
+          "semantic_unchanged": false,
+          "clean_new_regions": true,
+          "clean_new_edges": true,
+          "no_other_new_semantics": true,
+          "actual_added_regions": [
+            {
+              "label": "検品室",
+              "kind": "group",
+              "parent": "fixture:container"
+            },
+            {
+              "label": "寸法測定",
+              "kind": "step",
+              "parent": "added:検品室"
+            },
+            {
+              "label": "測定票",
+              "kind": "data",
+              "parent": "added:検品室"
+            }
+          ],
+          "actual_added_edges": [
+            {
+              "from": "added:寸法測定",
+              "to": "added:測定票",
+              "kind": "flow",
+              "label": ""
+            }
+          ]
+        },
+        "scope": "representation conditional on supplied inventory; paint and actual Goal-path admissibility separate"
+      },
+      "paint_status": "PASS",
+      "cell_wall_elapsedMs": 1724.4848,
+      "goal_elapsedMs": 1721.7540999999999
+    }
+  ],
+  "semantic": {
+    "complete": true,
+    "total": 2,
+    "inventory_sufficient": 2,
+    "graph_exact": 2,
+    "paint_pass": 2,
+    "representation_criteria": "UNMET",
+    "scope": "finite representation with oracle inventory; raw paint/Goal binding is separately required"
+  },
+  "replay": {
+    "status": "PASS",
+    "issues": [],
+    "consumed": 2,
+    "frames": 11,
+    "assessed_frames": 9,
+    "recorded_paint_status": "PASS",
+    "replay_sha256": "3634376080cde49b8915348e7a73534dbc571eae617fab3de6c947bb2d54e8c8",
+    "model_quality_scope": "NONE",
+    "CI_LIVE_EXECUTION": "UNPROVEN"
+  },
+  "raw_sha256": {
+    "events.jsonl": "eeed48bd5d02db735439e9e803d0c01d34101f4c99682f7b97394489e4b60dc7",
+    "execution.json": "7c8f86a23bd7bd11c01b1d3c65a2303c3c7c9bbc928bd1086e8a2807610614ed",
+    "H06-A.json": "4733e8a5870495cd0bbcdb87a71fcd3b013c33531e746c83236a311bfe3adfe1",
+    "H08-A.json": "d95eaa6d28bc454639fcc0df35774e71a2d5255c83e2e7e4cbe59fc49f0e8c23",
+    "identity.json": "2522b2d6cd79d7db6cf399798d3039b2545eadf522e494f3ca149acc66843f2e"
+  },
+  "scope": "raw-axis locality only; source/producer/provider/independent physical PID and any required paint gates remain separate",
+  "CI_LIVE_EXECUTION": "UNPROVEN",
+  "currency": "COST_NOT_MEASURED"
+}

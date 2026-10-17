@@ -1,0 +1,57 @@
+{
+  "schema": "voice-ui.component-axes-producer/1",
+  "axis": "R",
+  "phase_id": "axes-public-R-20261017",
+  "heads": {
+    "apps": "286eb7d0bc0bdef160bda900547314aa5be3a752",
+    "envs": "063e685b8b21a97fc8658879da93fa858552bcd6",
+    "ops": "cab432ef717cbde9ebd0197ae006c0efe75269bf",
+    "windows": "6aef693c0946903d8b87c2348039de1420acd61b",
+    "ui": "756d47e891191c3344eb2d29b000203be8331abc"
+  },
+  "inputs_sha256": "86face1aa0d9f30b54ade0ab48de2bd0beefb11a902b1610632f554d4abe643e",
+  "parent_inputs_sha256": null,
+  "bundle_sha256": "8fd1b4f37f6a113653dbaeda5e040ba5bed6d7b007ab9269d307f8642d339189",
+  "source_sha256": {
+    "src/completion.mjs": "48380fb1504dfe97b1f8450c9b33aee7665d13d5c4ee462a991591e573385541",
+    "src/literal-inventory.mjs": "82a2bdb9866c1331b4c685f28862bd54e7e974c4af3652b4f72dfdbb41f7df60",
+    "src/goal.mjs": "cd9101d6a222e31773c9523adeca3f7f9aa32990e30b39e06a7b872771422f3e",
+    "src/contract.mjs": "f2c95212493f59fd80ef17270c2b5de0d51d795b26ac8a0e6dfa0fdb9dec30fe",
+    "src/turn.mjs": "c5fc3489a5bd0861f0455bd9843f47e76030bb03a4fe55745cf00c29c79b7008",
+    "src/session.mjs": "d6fcb97e581afb789ed6ecb339c06c378ef94283084df8ad3042ebe42c48cfe8",
+    "functions/api/parts.mjs": "13ca5322730f049eb2e77319cc0fbeb58f649d91c4bc56fe9d36214a90960669",
+    "functions/pages-worker.mjs": "8f3bc7ea572cf3e21b16728721dcb381425786180433df34892e2a42cfc94656",
+    "web/app.mjs": "3a9ac4eba0770949a219b35c97cd346d4a7912026fae2b2f21710251b86bbf2a",
+    "web/adapters/completion.mjs": "a940d92086302dd7f733aa45542c26ea0d925fed460111f4fbb15c802e601e82",
+    "tests/component-axes-eval.mjs": "3c0e70952e107c8e443497808a15a5feb85c914e80774d1294a846caa8598f14",
+    "tests/component-axis-score.mjs": "b5b6547e81f8213ba20126ab6404d4807b06d836f91507651a502bc9c6ebef6b",
+    "tests/evaluation-http.mjs": "a2b4055f9209544019f07f5bb299afac38452049c6b642a4da2cdb9534a49f47",
+    "tests/painted-goal.mjs": "c5ba117d1dea66d20c80b7f92b8184296ff79d4231da56f5a89836af4beb018b"
+  },
+  "raw_sha256": {
+    "H08-A.json": "d95eaa6d28bc454639fcc0df35774e71a2d5255c83e2e7e4cbe59fc49f0e8c23",
+    "execution.json": "7c8f86a23bd7bd11c01b1d3c65a2303c3c7c9bbc928bd1086e8a2807610614ed",
+    "identity.json": "2522b2d6cd79d7db6cf399798d3039b2545eadf522e494f3ca149acc66843f2e",
+    "H06-A.json": "4733e8a5870495cd0bbcdb87a71fcd3b013c33531e746c83236a311bfe3adfe1",
+    "events.jsonl": "eeed48bd5d02db735439e9e803d0c01d34101f4c99682f7b97394489e4b60dc7"
+  },
+  "independent_audit_sha256": {
+    "pr103-286e-r8-review.md": "3b6a44d57593d14883960fea0722233b9b60a8e00e52569a2efe1d0adf420ac4",
+    "axes-public-R-zero-send-audit.json": "27ae50c7f86b5b8bb67af3124ab2f4914a1dfcd75d487c728e22e03b0c5ce5d1",
+    "axes-public-R-stop-audit.json": "597d19c25a39444fdc7606a3dcc8c45c7a6020986d4350370fef3038477ee25f"
+  },
+  "raw_identity_sha256": "2522b2d6cd79d7db6cf399798d3039b2545eadf522e494f3ca149acc66843f2e",
+  "runtime_audit_sha256": "07dc365b12981ea26071d8ecbe3ec8422883cb865aa0b314fa76f0e4b6ed8dde",
+  "config_sha256": "7ceac3c0ece2491ebf159debfba409a5a3327714f013a9fa0c05450ac40f639f",
+  "process_sha256": "a6276578abf2824f863c8cd1e4cbac5508951735298cf3c00f8cfb236190598e",
+  "artifact_manifest_sha256": "30481d0d132f875ce35b7c48a859bfa414a9d882009c58c7d6d74a9cf6aa1b38",
+  "worker_sha256": "15b9ed190f5f9915780b28b2403e4fffc13bd5be397cfaac6f6f8f5d3efa33a2",
+  "provider_sha256": "ad4ac08ae8c42f3bf0e9d0aeedb0a2e9192c776585a3251b2ff1e18358cfe2e7",
+  "protocol_sha256": "1689dcf63e1ed19cdea7be22e3f90a09f434841f980b9ca8b9018a987c9c38f8",
+  "stdout_sha256": "8b9d1e7015d4a8e30d689c8a554a2707c1c7dc7dd96974770c305e4866f46db6",
+  "stderr_sha256": "fa1a5583448bee9d868e92caa9328467bfa3dd8c7274f41c5f3e63218947befe",
+  "journal_sha256": "4c61fe177f5f56f8458a0325de9e1b421a59de9b28bfcd2233668afe959b1938",
+  "replay_sha256": "3634376080cde49b8915348e7a73534dbc571eae617fab3de6c947bb2d54e8c8",
+  "source_review_url": "https://github.com/roccho-dev/apps/pull/103#pullrequestreview-5557904969",
+  "scope": "fixed independent source/physical-process/stopped-byte expectations; never generate from raw during CI"
+}

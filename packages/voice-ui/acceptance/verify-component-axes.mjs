@@ -8,6 +8,7 @@ import { assertNoSecretInputs } from "../tests/runtime-acceptance.mjs";
 import { auditAxisRaw, auditAxisProducerBinding, auditAxisProviderPhase, auditReplayJoin } from "../tests/component-axis-audit.mjs";
 import { assessPaintedGoal as assessGoal, assessPaintedEdge as assessEdge } from "../tests/painted-goal.mjs";
 import { joinJournalSnapshots } from "../tests/candidate-closure.mjs";
+import { classifyComponentAxis } from "../tests/component-axis-classification.mjs";
 assertNoSecretInputs();
 const [indexFile, outputDirectory] = process.argv.slice(2);
 assert.ok(indexFile && outputDirectory && process.argv.length === 4);
@@ -96,12 +97,14 @@ for (const row of index.phases) {
     assert.equal(ciRaw.status, "PASS", JSON.stringify(ciRaw.issues));
     assert.deepEqual(ciRaw.semantic, raw.semantic, "CI independently restores and grades the same recorded outputs");
   }
-  const report = { id: row.id, phase_kind: row.phase_kind, axis: row.axis, binding, raw, phase, ciReplay, ciRaw };
+  const classification = classifyComponentAxis({ phaseKind: row.phase_kind, axis: row.axis, binding, raw, phase, ciReplay, ciRaw });
+  const report = { id: row.id, phase_kind: row.phase_kind, axis: row.axis, classification, binding, raw, phase, ciReplay, ciRaw };
   write(path.join(directory, "audit.json"), report); reports.push(report);
 }
 const cumulative = joinJournalSnapshots(snapshots); assert.deepEqual(cumulative, index.expected_cumulative);
 assert.ok(cumulative.jev <= 1000 && cumulative.typellm <= 1000);
 write(path.join(out, "receipt.json"), { schema: "voice-ui.component-axes-ci/1", integrity: "PASS", cumulative, reports,
-  quality: "see separate axis semantic results; integrity PASS never promotes quality", CI_LIVE_EXECUTION: "UNPROVEN", currency: "COST_NOT_MEASURED" });
+  quality: reports.map(row => ({ id: row.id, axis: row.axis, classification: row.classification })),
+  CI_LIVE_EXECUTION: "UNPROVEN", currency: "COST_NOT_MEASURED" });
 console.log(JSON.stringify({ integrity: "PASS", phases: reports.length, cumulative,
-  results: reports.map(row => ({ id: row.id, axis: row.axis, semantic: row.raw.semantic })) }));
+  results: reports.map(row => ({ id: row.id, axis: row.axis, classification: row.classification, semantic: row.raw.semantic })) }));
