@@ -35,6 +35,9 @@ test("selected cells reject changed parent inputs and duplicate/unknown arms bef
       [x => { x.cases[0].utterance += " changed"; }, "evaluation_selected_parent_binding"],
       [x => { x.comparison.arm_order = ["C", "C"]; }, "evaluation_arm_order"],
       [x => { x.comparison.arm_order = ["D"]; }, "evaluation_arm_order"],
+      [x => { x.comparison.arm_order = ["C", "X"]; }, "evaluation_arm_order"],
+      [x => { x.comparison.arm_order = [["C"], ["A"]]; }, "evaluation_arm_order"],
+      [x => { x.comparison.arm_order = { [x.cases[0].id]: ["C"], extra: ["A"] }; }, "evaluation_arm_order"],
     ]) {
       const value = { schema: "voice-ui.poc.selected-cells/1", phase_kind: "correction",
         parent_inputs_sha256: createHash("sha256").update(parentBytes).digest("hex"),

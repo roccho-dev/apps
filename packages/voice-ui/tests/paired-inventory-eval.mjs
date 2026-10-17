@@ -42,9 +42,15 @@ if (selectedCells) {
       || !cases.every(item => JSON.stringify(item) === JSON.stringify(parent.cases.find(p => p.id === item.id))))
     throw new Error("evaluation_selected_parent_binding");
 }
+const rawArmOrder = inputs.comparison.arm_order;
+const flatArms = Array.isArray(rawArmOrder) && rawArmOrder.every(x => typeof x === "string" && x.length === 1);
+if (Array.isArray(rawArmOrder) ? !flatArms && rawArmOrder.length !== order.length
+    : rawArmOrder === null || typeof rawArmOrder !== "object" || Object.keys(rawArmOrder).length !== order.length
+      || !order.every(id => Object.hasOwn(rawArmOrder, id)))
+  throw new Error("evaluation_arm_order");
 const armOrder = (id, index) => {
-  const raw = inputs.comparison.arm_order;
-  const selected = Array.isArray(raw) && raw.every(x => methods.includes(x)) ? raw
+  const raw = rawArmOrder;
+  const selected = flatArms ? raw
     : Array.isArray(raw) ? raw[index] : raw?.[id];
   const arms = typeof selected === "string" ? [...selected] : selected;
   if (!Array.isArray(arms) || !(selectedCells ? arms.length >= 1 && arms.length <= methods.length : arms.length === methods.length)
