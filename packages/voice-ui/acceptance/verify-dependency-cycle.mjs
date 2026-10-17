@@ -12,6 +12,7 @@ import { assessPaintedGoal as assessGoal, assessPaintedEdge as assessEdge } from
 import { joinJournalSnapshots } from "../tests/candidate-closure.mjs";
 import { classifyRequirementAxis } from "../tests/requirements-cycle-classification.mjs";
 assertNoSecretInputs();
+async function main() {
 const [indexFile, outputDirectory] = process.argv.slice(2);
 assert.ok(indexFile && outputDirectory && process.argv.length === 4);
 const repository = path.resolve(fileURLToPath(new URL("../../../", import.meta.url))), base = path.dirname(path.resolve(indexFile));
@@ -55,7 +56,7 @@ if (index.phases.length === 0) {
     quality: "UNPROVEN", effect: "UNPROVEN", cumulative: index.expected_cumulative, reports: [], processGraph,
     CI_LIVE_EXECUTION: "UNPROVEN", currency: "COST_NOT_MEASURED" });
   console.log(JSON.stringify({ integrity: "PASS", state: "NOT_MEASURED", quality: "UNPROVEN", effect: "UNPROVEN" }));
-  process.exit(0);
+  return;
 }
 const completeFinal = (raw, axis) => raw?.status === "PASS" && raw.axis === axis && raw.phase_kind === "fresh"
   && raw.planned === ({ V: 10, F: 8, E: 20 })[axis] && raw.consumed === raw.planned
@@ -165,5 +166,7 @@ write(path.join(out, "receipt.json"), { schema: "voice-ui.dependency-cycle-ci/1"
   CI_LIVE_EXECUTION: "UNPROVEN", currency: "COST_NOT_MEASURED" });
 console.log(JSON.stringify({ integrity: "PASS", phases: reports.length, cumulative,
   results: reports.map(row => ({ id: row.id, axis: row.axis, classification: row.classification, semantic: row.raw.semantic })) }));
+}
+await main();
 
 
