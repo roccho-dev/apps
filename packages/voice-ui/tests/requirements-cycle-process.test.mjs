@@ -67,3 +67,37 @@ test("a stopped public-only trial remains recordable without claiming fresh admi
   x.journalBytes = Buffer.from(x.journalBytes.toString().split("\n").slice(0, 7).join("\n") + "\n");
   const r = auditRequirementsProcess(x); assert.equal(r.status, "PASS"); assert.deepEqual(r.releases, []);
 });
+
+const journalFor = records => Buffer.from([{ kind: "phase-reconcile", id: "axes-final-E-20261017" },
+  ...records.flatMap(r => [{ kind: "phase-reserve", id: r.config.phase_id, prior_charged: { jev: 689, typellm: 40 } },
+    { kind: "phase-reconcile", id: r.config.phase_id }])].map(JSON.stringify).join("\n") + "\n");
+const correction = (record, batch, head, suffix) => {
+  const r = structuredClone(record);
+  r.index.phase_kind = "correction"; r.index.correction_batch = batch; r.index.apps_sha = head;
+  r.config.stage = "correction"; r.config.correction_batch = batch; r.config.heads.apps = head;
+  r.config.phase_id = "correction-" + suffix;
+  return r;
+};
+test("corrections before initial E can qualify only with full F/V and E on that same head", () => {
+  const x = fixture(), head = "b".repeat(40);
+  const repairs = x.records.slice(0, 2).map((r, i) => correction(r, 1, head, String(i)));
+  for (const r of x.records.slice(2)) { r.index.apps_sha = head; r.config.heads.apps = head; }
+  x.records.splice(2, 0, ...repairs); x.journalBytes = journalFor(x.records);
+  assert.equal(auditRequirementsProcess(x).status, "PASS");
+});
+test("raw input binding cannot be omitted or substituted after registration", () => {
+  for (const edit of [x => { delete x.records[0].report.raw.inputs_sha256; },
+    x => { x.records[0].report.raw.inputs_sha256 = "f".repeat(64); }]) {
+    const x = fixture(); edit(x); assert.equal(auditRequirementsProcess(x).status, "FAIL");
+  }
+});
+test("one correction batch cannot mix heads or return after a later batch", () => {
+  const seed = fixture();
+  for (const rows of [[correction(seed.records[0], 1, "b".repeat(40), "a"), correction(seed.records[1], 1, "c".repeat(40), "b")],
+    [correction(seed.records[0], 1, "b".repeat(40), "a"), correction(seed.records[1], 2, "c".repeat(40), "b"),
+      correction(seed.records[1], 1, "b".repeat(40), "c")]]) {
+    const x = fixture(); x.records = rows; x.journalBytes = journalFor(rows);
+    const result = auditRequirementsProcess(x); assert.equal(result.status, "FAIL");
+    assert.ok(result.issues.some(i => i === "one source per correction batch" || i === "correction order"));
+  }
+});

@@ -24,7 +24,8 @@ export function auditRequirementsProcess({ records, journalBytes, commitmentByte
   if (!same(reserves.map(e => e.id), phaseIds) || new Set(phaseIds).size !== phaseIds.length
       || tail.some(e => !["phase-reserve", "phase-reconcile"].includes(e.kind))) issues.push("complete ordered cycle inventory");
   if (!same(reserves[0]?.prior_charged, baseline)) issues.push("unchanged cumulative baseline");
-  const budgets = new Map(), correctionIds = new Set(), seenPublic = [], releases = [];
+  const budgets = new Map(), correctionIds = new Set(), correctionHeads = new Map(), seenPublic = [], releases = [];
+  let latestCorrection = 0;
   for (const r of records) {
     const { index, config, input, report } = r, kind = index.phase_kind, axis = index.axis;
     if (!["public", "correction", "final"].includes(kind) || !["V", "F", "E"].includes(axis)
@@ -36,6 +37,9 @@ export function auditRequirementsProcess({ records, journalBytes, commitmentByte
     const n = input.cases.length, batch = config.correction_batch ?? null;
     if (kind === "correction") {
       if (![1, 2].includes(batch) || index.correction_batch !== batch || n !== (axis === "E" ? 1 : 6)) issues.push("bounded correction shape");
+      if (batch < latestCorrection || !correctionHeads.has(batch) && batch !== latestCorrection + 1) issues.push("correction order");
+      if (correctionHeads.has(batch) && correctionHeads.get(batch) !== index.apps_sha) issues.push("one source per correction batch");
+      correctionHeads.set(batch, index.apps_sha); latestCorrection = Math.max(latestCorrection, batch);
       correctionIds.add(batch);
     } else if (batch !== null || index.correction_batch !== undefined) issues.push("unexpected correction allocation");
     if (kind === "public" && n !== counts[axis] || kind === "final" && n !== ({ V: 10, F: 8, E: 10 })[axis])
@@ -64,7 +68,7 @@ export function auditRequirementsProcess({ records, journalBytes, commitmentByte
       : kind === "final" ? commitment.files.find(f => f.visibility === "sealed" && f.axis === axis) : null;
     if (expected) {
       const want = kind === "public" && axis === "E" ? addendum.corrected.input_sha256 : expected.input_sha256;
-      if (report.raw.inputs_sha256 !== undefined && report.raw.inputs_sha256 !== want) issues.push("fixed input seal");
+      if (report.raw.inputs_sha256 !== want) issues.push("fixed input seal");
       if (config.input_sha256 !== want) issues.push("registered config input");
     }
   }

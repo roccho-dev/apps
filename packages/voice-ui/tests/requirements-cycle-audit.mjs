@@ -376,7 +376,8 @@ export async function auditRequirementRaw({ projectionBytes, oracleBytes, rawFil
   const semantic = summarizeRequirementAxis(input.axis, graded, oracles, { phaseKind });
   return { schema: 'voice-ui.requirements-cycle-raw-audit/1', axis: input.axis, status: issues.length ? 'FAIL' : 'PASS', issues,
     complete, all_valid_execution: allValid, consumed: rows.length, planned: planned.length, rows: graded, semantic,
-    phase_kind: phaseKind, parent_inputs_sha256: parentProjectionBytes === null ? null : sha256(parentProjectionBytes),
+    phase_kind: phaseKind, inputs_sha256: sha256(projectionBytes),
+    parent_inputs_sha256: parentProjectionBytes === null ? null : sha256(parentProjectionBytes),
     admissible_for_semantic_claim: issues.length === 0 && allValid && identity.source?.scope !== 'SYNTHETIC_KEYLESS_ONLY_NOT_ADMISSIBLE_AS_LIVE',
     external_provider_attempts: Object.fromEntries(providers.map(p => [p, external[p].min === external[p].max ? external[p].min : null])),
     external_provider_attempt_bounds: external, stage_rows: log.rows.length, stage_alignment: !partition.ways ? 'FAIL'
@@ -435,7 +436,8 @@ export function auditRequirementProducerBinding({ identityBytes, runtimeAuditByt
   else for (const [name, digest] of Object.entries(producer.raw_sha256)) if (sha256(rawFiles[name]) !== digest) issues.push('fixed raw digest ' + name);
   if (!Buffer.from(rawFiles['identity.json']).equals(Buffer.from(identityBytes)) || identity.schema !== 'voice-ui.requirements-cycle-execution/1'
       || identity.axis !== producer.axis || !same(source.heads, producer.heads) || !same(config.heads, source.heads)
-      || identity.inputs_sha256 !== producer.inputs_sha256 || identity.bundle_sha256 !== producer.bundle_sha256
+      || identity.inputs_sha256 !== producer.inputs_sha256 || producer.inputs_sha256 !== config.input_sha256
+      || identity.bundle_sha256 !== producer.bundle_sha256
       || sha256(bundleBytes) !== producer.bundle_sha256 || producer.phase_id !== config.phase_id || config.phase_id !== source.launcher.phase_id
       || config.heads.apps !== runtime.apps_sha || runtime.apps_sha !== source.heads.apps || manifest.sources.apps !== runtime.apps_sha
       || manifest.sources.ui !== source.heads.ui || source.audit_sha256 !== sha256(runtimeAuditBytes)

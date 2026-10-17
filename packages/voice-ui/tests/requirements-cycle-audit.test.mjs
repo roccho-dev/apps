@@ -359,9 +359,9 @@ test('pre-live E oracle omission remains rejected even with a self-consistent re
   assert.equal(await refuse(a), true);
 });
 
-function stoppedFixture() {
+function stoppedFixture(input_sha256 = 'f'.repeat(64)) {
   const heads = Object.fromEntries(['apps', 'ops', 'envs', 'windows', 'ui'].map((n, i) => [n, String(i + 1).repeat(40)]));
-  const config = { phase_id: 'test-requirements-F', stage: 'public', heads, program: '/nix/store/test-launcher/bin/dev',
+  const config = { phase_id: 'test-requirements-F', stage: 'public', heads, input_sha256, program: '/nix/store/test-launcher/bin/dev',
     allowances: { jev: 0, typellm: 6 } }, configBytes = enc(config);
   const process = { phase_id: config.phase_id, heads, program: config.program, allowances: config.allowances,
     pid: 1234, pgid: 1234, start_ticks: 5678, config_sha256: sha256(configBytes) };
@@ -405,7 +405,7 @@ test('budget caps, false empty-group claims, duplicate reservation, send sequenc
 });
 
 async function producerFixture() {
-  const a = await synthetic('F'), bytes = stoppedFixture(), config = json(bytes.configBytes), process = json(bytes.processBytes);
+  const a = await synthetic('F'), bytes = stoppedFixture(sha256(a.projectionBytes)), config = json(bytes.configBytes), process = json(bytes.processBytes);
   const workerBytes = Buffer.from('completed worker bytes\n'), providerBytes = Buffer.from('admitted provider bytes\n'), protocolEntryBytes = Buffer.from('immutable protocol entry\n');
   const artifactManifestBytes = enc({ sources: { apps: config.heads.apps, ui: config.heads.ui, 'jev-provider': { entry_sha256: sha256(providerBytes) } } });
   const runtime = { apps_sha: config.heads.apps, worker: { path: '/nix/store/worker/worker.mjs', sha256: sha256(workerBytes) },
@@ -453,6 +453,16 @@ test('coordinated synthetic marker and runtime changes cannot be laundered into 
   assert.equal(auditRequirementProducerBinding(args, producer).status, 'FAIL');
   delete identity.source.scope; delete identity.source.provider_entry.scope;
   identity.source.launcher.start_ticks++; args.identityBytes = enc(identity); args.rawFiles['identity.json'] = args.identityBytes;
+  producer.raw_identity_sha256 = sha256(args.identityBytes); producer.raw_sha256['identity.json'] = sha256(args.identityBytes);
+  assert.equal(auditRequirementProducerBinding(args, producer).status, 'FAIL');
+});
+
+test('producer and raw input commitment must also match the actual reserved config input', async () => {
+  const a = await synthetic('F'), raw = await auditRequirementRaw(a);
+  assert.equal(raw.inputs_sha256, sha256(a.projectionBytes));
+  const { args, producer } = await producerFixture(), id = json(args.identityBytes);
+  id.inputs_sha256 = '8'.repeat(64); producer.inputs_sha256 = id.inputs_sha256;
+  args.identityBytes = enc(id); args.rawFiles['identity.json'] = args.identityBytes;
   producer.raw_identity_sha256 = sha256(args.identityBytes); producer.raw_sha256['identity.json'] = sha256(args.identityBytes);
   assert.equal(auditRequirementProducerBinding(args, producer).status, 'FAIL');
 });
