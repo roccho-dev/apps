@@ -9,6 +9,7 @@ import { runInventoryGoal } from "../src/completion.mjs";
 import { createSession } from "../src/session.mjs";
 import { DECISION_KIND } from "../src/contract.mjs";
 import { literalCandidates } from "./literal-candidates.mjs";
+import { evaluationPost } from "./evaluation-http.mjs";
 
 const args = process.argv.slice(2), settings = {};
 for (let i = 0; i < args.length; i += 2) {
@@ -46,7 +47,7 @@ const root = fileURLToPath(new URL("../", import.meta.url));
 const bundleBytes = fs.readFileSync(path.join(root, "web/data/bundle.v1.json"));
 const bundle = readBundle(JSON.parse(bundleBytes));
 if (bundle.parts?.length !== 8) throw new Error("evaluation_library");
-const sourceFiles = ["src/completion.mjs", "src/goal.mjs", "src/turn.mjs", "src/contract.mjs", "src/judgment.mjs", "tests/paired-inventory-eval.mjs", "tests/literal-candidates.mjs"];
+const sourceFiles = ["src/completion.mjs", "src/goal.mjs", "src/turn.mjs", "src/contract.mjs", "src/judgment.mjs", "tests/paired-inventory-eval.mjs", "tests/literal-candidates.mjs", "tests/evaluation-http.mjs"];
 const sourceIdentity = JSON.parse(fs.readFileSync(settings["--identities"]));
 const storePath = value => typeof value === "string" && /^\/nix\/store\/[a-z0-9]{32}-[^\s]+$/.test(value);
 const digest = value => typeof value === "string" && /^[a-f0-9]{64}$/.test(value);
@@ -102,24 +103,15 @@ try {
       const calls = [], started = performance.now();
       const preparation = [];
       const post = async (route, request) => {
-        const n = calls.length + 1, callStarted = performance.now();
+        const n = calls.length + 1;
         const event = { id, arm, n, route, request };
         calls.push(event); record({ kind: "http-start", ...event });
-        const controller = new AbortController();
-        const timer = setTimeout(() => controller.abort(), route === "/api/parts/complete" ? 40000 : 15000);
         try {
-          const response = await fetch(settings["--origin"] + route, { method: "POST", redirect: "error",
-            headers: { "content-type": "application/json" }, body: JSON.stringify(request), signal: controller.signal });
-          if (!response.ok) throw new Error("evaluation_http");
-          const value = await response.json();
-          Object.assign(event, { status: response.status, response: value, elapsedMs: performance.now() - callStarted });
-          record({ kind: "http-end", id, arm, n, status: event.status, response: value, elapsedMs: event.elapsedMs });
-          return value;
+          return await evaluationPost({ url: settings["--origin"] + route, event, record });
         } catch {
-          failed = true; Object.assign(event, { error: "http_or_contract_unknown", elapsedMs: performance.now() - callStarted });
-          record({ kind: "http-end", id, arm, n, error: event.error, elapsedMs: event.elapsedMs });
+          failed = true;
           throw new Error("evaluation_http");
-        } finally { clearTimeout(timer); }
+        }
       };
       record({ kind: "arm-start", id, arm, head: graph.head, initial_log_sha256: hash(graph.log) });
       let result;

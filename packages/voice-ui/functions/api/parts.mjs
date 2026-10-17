@@ -1,4 +1,5 @@
 import { COVERAGE, inventoryQuestion, isInventory, readTypedMissing, typedMissingRequest } from "../../src/completion.mjs";
+import { LABEL_MAX, PART_KINDS } from "../../src/contract.mjs";
 const json = (body, status = 200) => Response.json(body, { status, headers: { "cache-control": "no-store" } });
 const inventoryChoices = ["sufficient", "missing"];
 const intentChoices = ["change", ...COVERAGE.filter(choice => !inventoryChoices.includes(choice))];
@@ -43,9 +44,29 @@ export async function onParts({ request, mode, available }, { judge, generate })
     }
     const value = await generate(typedMissingRequest(input.state), { signal: request.signal });
     const missing = readTypedMissing(value?.result);
-    if (missing === null) return json({ error: "parts_contract" }, 502);
+    if (missing === null) {
+      const result = value?.result, object = x => x !== null && typeof x === "object" && !Array.isArray(x);
+      // Fixed structural facts only. Never log names, context or arbitrary provider output.
+      console.info(JSON.stringify({ kind: "voice-ui.parts.contract.v1", stage: "local-result",
+        rootExact: object(result) && Object.keys(result).length === 3
+          && ["missing1", "missing2", "missing3"].every(key => Object.hasOwn(result, key)),
+        slots: ["missing1", "missing2", "missing3"].map(key => {
+          const row = result?.[key];
+          return { exact: object(row) && Object.keys(row).length === 3
+              && ["label", "kind", "quantity"].every(field => Object.hasOwn(row, field)),
+            label: typeof row?.label !== "string" ? "not-string" : row.label === "" ? "empty"
+              : row.label.trim().length === 0 ? "blank" : row.label.length > LABEL_MAX ? "too-long" : "nonempty",
+            kind: row?.kind === "none" ? "none" : PART_KINDS.includes(row?.kind) ? row.kind : "invalid",
+            quantity: Number.isInteger(row?.quantity) && row.quantity >= 0 && row.quantity <= 3 ? row.quantity : "invalid" };
+        }), duplicatePair: object(result) && ["missing1", "missing2", "missing3"].some((key, i, keys) =>
+          PART_KINDS.includes(result[key]?.kind) && keys.slice(0, i).some(prior =>
+            result[prior]?.kind === result[key].kind && result[prior]?.label === result[key].label)) }));
+      return json({ error: "parts_contract" }, 502);
+    }
     return json({ missing });
   } catch (error) {
+    if (mode === "complete") console.info(JSON.stringify({ kind: "voice-ui.parts.contract.v1", stage: "provider",
+      code: Object.hasOwn(failures, error?.code) ? error.code : "unknown" }));
     const [status, code] = Object.hasOwn(failures, error?.code) ? failures[error.code] : [502, "parts_provider_error"];
     return json({ error: code }, status);
   }

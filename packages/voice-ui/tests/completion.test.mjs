@@ -109,6 +109,32 @@ test("API closures validate before invoking bound operations and never reflect r
   assert.equal(failed.status, 502); assert.deepEqual(await failed.json(), { error: "parts_provider_error" });
 });
 
+test("completion failure diagnostics expose only finite structural facts", async () => {
+  const logs = [], original = console.info;
+  console.info = value => logs.push(JSON.parse(value));
+  try {
+    const response = await call("complete", inventory, { generate: async () => ({ result: slots([
+      { label: "private-label-canary", kind: "none", quantity: 0 },
+    ]) }) });
+    assert.equal(response.status, 502);
+    assert.deepEqual(logs[0], { kind: "voice-ui.parts.contract.v1", stage: "local-result", rootExact: true,
+      slots: [{ exact: true, label: "nonempty", kind: "none", quantity: 0 },
+        { exact: true, label: "empty", kind: "none", quantity: 0 },
+        { exact: true, label: "empty", kind: "none", quantity: 0 }], duplicatePair: false });
+    for (const code of ["provider_contract_error", "private-code-canary"]) {
+      const failed = await call("complete", inventory, { generate: async () => {
+        throw Object.assign(Error("private-message-canary"), { code, result: "private-result-canary" });
+      } });
+      assert.equal(failed.status, 502);
+    }
+    assert.deepEqual(logs.slice(1), [
+      { kind: "voice-ui.parts.contract.v1", stage: "provider", code: "provider_contract_error" },
+      { kind: "voice-ui.parts.contract.v1", stage: "provider", code: "unknown" },
+    ]);
+    assert.equal(JSON.stringify(logs).includes("private-"), false);
+  } finally { console.info = original; }
+});
+
 test("missing uses only positive witnesses bounded by intent; sufficient needs every factor", async () => {
   for (const [intent, labels, capacity, expected] of [
     [{ choice: "change", confidence: 0.8 }, { choice: "missing", confidence: 0.7 }, { choice: "within", confidence: 1 }, { choice: "missing", confidence: 0.7 }],
