@@ -38,5 +38,7 @@ flowchart LR
 
 opsの公開provider artifactをappsが利用する。今回の要件の意味・在庫差分・Goalへの受け渡しはappsが所有する。envsのsecret authoringと正規ローカル起動は [既存の起動文書](../typellm-poc-20261017/README.md#ローカル実行と-envs) を参照。APIキーをチャット・コード・ブラウザへ渡さず、既存のenvs復号経路でJEV_API_KEYとTYPELLM_API_KEYをプロセスへ注入する。新しい実行にも必ず残予算予約を先行させる。
 
+今回の機構を起動する場合は、旧起動例のAPPS_REFと--apps-shaを今回の評価headへ合わせる。PRのhead、実行runtime、配布manifestが同じrevisionを指すことを確認する。envsとlauncherの固定revision・復号経路は同じで、キーの再入力や別のsecretコピーは不要。
+
 CI起点での実API実行は別の性質で、現時点では未証明。CIは停止済みの実出力・送信記録・正確な配布物と、再描画を検証する。UI PRのmergeは既存の明示的人間承認条件に従う。
 
