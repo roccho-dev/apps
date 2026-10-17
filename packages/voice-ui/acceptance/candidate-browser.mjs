@@ -74,7 +74,10 @@ globalThis.fetch = async (url, init) => {
   const provider = auth === "Bearer fixture-type-only" ? "typellm" : auth === "Bearer fixture-jev-only" ? "jev" : null;
   assert.ok(provider, "only the synthetic credentials are permitted");
   assert.equal(String(url), provider === "jev" ? "https://api.typesafe.ai/v1/systemone" : "https://api.typellm.ai/v1/generate");
-  assert.equal(init.method, "POST"); assert.equal(init.redirect, "error");
+  assert.equal(init.method, "POST");
+  // The released Jev transport omits redirect (Fetch default); TypeLLM
+  // explicitly refuses redirects. Bind the actual two contracts separately.
+  assert.equal(init.redirect, provider === "typellm" ? "error" : undefined);
   upstream.push({ fixture: fixture.id, provider, route: new URL(url).origin, questions: Object.keys(wire.questions) });
   if (provider === "typellm") {
     const missing = fixture.id === "equal-label-quantity" ? [{ label: "DB", kind: "data", quantity: 2 }]
