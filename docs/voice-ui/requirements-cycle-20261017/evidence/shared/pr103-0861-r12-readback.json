@@ -1,0 +1,65 @@
+{
+  "schema": "voice-ui.exact-head-review-readback/1",
+  "status": "PASS",
+  "observed_at": "2026-10-17T15:48:52.663Z",
+  "review": {
+    "id": 5558581475,
+    "url": "https://github.com/roccho-dev/apps/pull/103#pullrequestreview-5558581475",
+    "commit_id": "0861f5c42cbd5f5412c465fff33ff036361591e8",
+    "state": "COMMENTED",
+    "author": "roccho-dev",
+    "body": "ROUND_12_GREEN\n\nIndependent R12: source, completed artifact and CI admission for correction batch 1 at exact head `0861f5c42cbd5f5412c465fff33ff036361591e8`, tree `d7e0c2280322ea9e5a9426e46c5c7603b093811a`.\n\nThe product delta from measured 3be7 is limited to full-required instructions: the same distinct-pair ordinal in each scalar, NEW quantity independent of ordinal/stock, explicit kind before label inference, bounded unused slots, and at most three pairs/three total NEW instances. The schema/context/enum outside instructions, decoder, G0, verifier, stock difference, threshold, Goal, runner and independent criteria remain unchanged. The SDK already inherits object instructions; this is a prompt hypothesis, not evidence that inheritance was missing.\n\nI independently matched all 17 measurement sources to Git and the immutable source, verified all 293 manifest members and the official dist verifier, and matched the dev program to its actual source/Worker. The six representation core files and all 231 semantic-map files (238 files across site/ui) are byte-identical to the admitted 286e representation reference. The ops provider entry remains `ad4ac08ae8c42f3bf0e9d0aeedb0a2e9192c776585a3251b2ff1e18358cfe2e7`; protocol remains `1689dcf63e1ed19cdea7be22e3f90a09f434841f980b9ca8b9018a987c9c38f8`.\n\nAll four exact-head workflows succeeded: [Nix](https://github.com/roccho-dev/apps/actions/runs/39045910863), [release build/reopened ZIP and historical evidence](https://github.com/roccho-dev/apps/actions/runs/39045910952), [artifact](https://github.com/roccho-dev/apps/actions/runs/39045910859), [authentication](https://github.com/roccho-dev/apps/actions/runs/39045910882). I downloaded actual completed-ZIP browser artifact `12105334468`, verified its GitHub digest, joined its manifest/Worker/source identities, and independently recomputed protocol/HTTP terminals and 24 painted frames/Apply/reload across 10 stages/16 cells. All five synthetic invalid cells remain invalid. That proves synthetic mechanics, not live quality.\n\nIndependent evidence: `requirements-0861-correction-source-audit.json` SHA256 `125a4527999342fc0d5938b8cdc1ea7d5a02b0731b124d4b6916c909b7b41217`; `requirements-0861-runtime-artifact-audit.json` SHA256 `734c24531a5cf2ee813e48906a70d2eb67dbadc8f95684f264a7b8fd5e05e5e1`; `requirements-0861-ci-mechanics-audit.json` SHA256 `c7943f3232c3c8771225c5aee46adc610266be47fdcaaa0f77b5ef8780aacf66`. Manifest SHA256 `5d7eba45d5942c67ad0200b60e2f2d597f6171ffa7d422ed5707984b82d91f3f`; Worker SHA256 `bcb1b1b5c3c9f9193c0f3aa6a6dde85de3f00e4bec67afbbc88e08137405b3f6`.\n\nMeasured public F6 at 3be7 stays exact/minimal 2/6, valid 3/6 and invalid 3/6. The known kind error and unavailable rejected scalar values remain recorded. Charged totals are 689 Jev/46 TypeLLM (confirmed 689/45); no correction call has occurred and no reservation remains. Correction batch 1 uses one source and the registered maximum 25 Jev/7 TypeLLM, with F6 and V6 remeasured; no response retries or successful-cell promotion across heads. Both public E pairs must subsequently pass enabled/effect criteria on this same source before any sealed V/F/E input is released. At most two cause corrections remain the fixed process limit.\n\nAdmission permits the registered public correction measurements only after a separate actual PID/start/preload/cap/zero-send binding. It does not approve product quality, effect, general diagrams, human acceptance, merge or publication. CI-origin live execution remains UNPROVEN; currency remains COST_NOT_MEASURED. Apps is draft/open/unmerged, and UI 756d remains open/unmerged with explicit human merge approval pending.",
+    "body_matches_saved": true
+  },
+  "pr": {
+    "head": "0861f5c42cbd5f5412c465fff33ff036361591e8",
+    "tree": "d7e0c2280322ea9e5a9426e46c5c7603b093811a",
+    "state": "open",
+    "draft": true,
+    "body": "Linked issue: [Refs #94](https://github.com/roccho-dev/apps/issues/94).\n\nSeparate two capabilities: render correctly when the required parts are supplied, and obtain the required parts when stock is insufficient. Adaptive-v2 preserves the actual initial Jev G0 decision, conditionally asks TypeLLM for all NEW label/kind/total requirements, independently verifies that proposal with Jev, and deterministically subtracts one-use stock. The existing Goal owns parents, edges and legal proof. Complete accepted B and controls use Type0; an approved receipt prepares candidates once without a second provider call.\n\nThe bounded V/F/E comparison was registered and independently sealed before implementation at [dea5482](https://github.com/roccho-dev/apps/tree/dea5482/docs/voice-ui/requirements-cycle-20261017). A retained pre-live addendum corrects public E target fields; fresh seals remain unchanged. The same persistent independent reviewer controls input release and stopped-evidence producers. Additional caps300J/40T start at charged689/40; cumulative caps remain1000 each. No fresh input has been released.\n\nPublic F6 at exact3be7dba2b30b75a286c7139e2aaf5038faf695aa failed its gate: exact/minimal2/6, structurally valid3/6, invalid3/6. PF05 has a known kind error; PF01/PF04/PF06 returned502 parts_contract and their rejected scalar values were not retained. All six executions and failures are preserved. Independent raw/provider/producer audits pass integrity; that does not establish product quality or effect. Physical stop and reconciliation confirm6Type/0Jev, cumulative charged689/46 (confirmed689/45; one older conservative unsent Type charge retained), no reservation. V/E have not run in this cycle.\n\nCurrent correction1 candidate 0861f5c42cbd5f5412c465fff33ff036361591e8 changes only the full-required prompt: clarify distinct-pair ordinal, total NEW count, unused slots and requested kind in each independently answered scalar. [Cause and bounded process](https://github.com/roccho-dev/apps/blob/0861f5c42cbd5f5412c465fff33ff036361591e8/docs/voice-ui/requirements-cycle-20261017/correction-1.md) distinguish hypothesis from observed failure. Closed contracts, thresholds, stock subtraction, routes and criteria are unchanged. Product/legacy/static40 local groups pass. All four exact0861 checks passed: [full Nix39045910863](https://github.com/roccho-dev/apps/actions/runs/39045910863), [completed-ZIP and historical closure39045910952](https://github.com/roccho-dev/apps/actions/runs/39045910952), artifact39045910859 and auth39045910882. Independent audits confirm the actual17 sources,293 artifact entries and completed-ZIP mechanics10 stages/16 cells/24 paint frames, including5 synthetic invalids. Final source/artifact/runtime admission awaits the same reviewer after this green freeze; no correction call has run.\n\nThe admitted3be7 source passed all four exact-head checks: [full Nix39044301478](https://github.com/roccho-dev/apps/actions/runs/39044301478), [completed-ZIP and historical closure39044301470](https://github.com/roccho-dev/apps/actions/runs/39044301470), artifact39044301447 and auth39044301442. [Independent R11](https://github.com/roccho-dev/apps/pull/103#pullrequestreview-5558481797) verified17 actual sources,293 manifest entries, ops provider, conditional representation identity and the actual completed-ZIP synthetic mechanics10 stages/16 cells/24 painted frames. This admission applies to3be7 only and is not an effect claim. The prior prebuild's source-architecture paint failure remains in the retained evidence; module consolidation preserved12 direct and12 compiled wire captures without relaxing paint criteria.\n\nHistorical [four-axis evidence07c5343](https://github.com/roccho-dev/apps/tree/07c534397b88538f5b1104365999108150054cb0/docs/voice-ui/component-axes-20261017) and [R10](https://github.com/roccho-dev/apps/pull/103#pullrequestreview-5558234414) remain frozen. At measurement286e: supplied-inventory R8 has inventory/graph/paint8/8 conditional PASS; G8/10 and E7/10 gates are UNMET; F B3/8 versus C4/8 includes an invalid Type cell, so whole-comparison superiority is UNPROVEN. C-only two local cases support a hypothesis, not general superiority. Those consumed inputs are regression-only.\n\nOps completed corecab432ef717cbde9ebd0197ae006c0efe75269bf remains consumed as an artifact. [UI#362](https://github.com/roccho-dev/ui/pull/362) stays at756d47e891191c3344eb2d29b000203be8331abc with explicit human merge approval pending. Apps remains draft/open/unmerged. CI_LIVE_EXECUTION=UNPROVEN; currency=COST_NOT_MEASURED; product adoption and four-way superiority are not claimed. Required final CI will rebuild/reopen each measured artifact, verify the complete ordered stopped phases including failures, independently regrade and repaint E, and keep quality/effect separate from integrity.\n",
+    "body_sha256": "25627c6cbbd8fa12979946414bd2445a26108aa80d00cb2186d823b657870f17"
+  },
+  "workflows": [
+    {
+      "id": 39045910859,
+      "name": "voice-ui artifact",
+      "head": "0861f5c42cbd5f5412c465fff33ff036361591e8",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/roccho-dev/apps/actions/runs/39045910859"
+    },
+    {
+      "id": 39045910882,
+      "name": "artifact-auth",
+      "head": "0861f5c42cbd5f5412c465fff33ff036361591e8",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/roccho-dev/apps/actions/runs/39045910882"
+    },
+    {
+      "id": 39045910863,
+      "name": "nix-check",
+      "head": "0861f5c42cbd5f5412c465fff33ff036361591e8",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/roccho-dev/apps/actions/runs/39045910863"
+    },
+    {
+      "id": 39045910952,
+      "name": "voice-ui release",
+      "head": "0861f5c42cbd5f5412c465fff33ff036361591e8",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/roccho-dev/apps/actions/runs/39045910952"
+    }
+  ],
+  "ui": {
+    "head": "756d47e891191c3344eb2d29b000203be8331abc",
+    "state": "open",
+    "draft": false,
+    "merged": false
+  },
+  "review_file_sha256": "f30184031747a01c63b48d3b6344b5c5e1bd5dabe90a9ce1b7c85f3396e4528b",
+  "quality_admission": "NOT_GRANTED",
+  "provider_phase_admission": "REQUIRES_ACTUAL_ZERO_SEND_BINDING"
+}

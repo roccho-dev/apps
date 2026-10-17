@@ -1,0 +1,44 @@
+{
+  "schema": "voice-ui.poc.runtime/1",
+  "origin": "http://127.0.0.1:18845",
+  "heads": {
+    "apps": "f2fa07baeb54dd795c17d03178c5f2a508be6733",
+    "envs": "063e685b8b21a97fc8658879da93fa858552bcd6",
+    "ops": "cab432ef717cbde9ebd0197ae006c0efe75269bf",
+    "windows": "6aef693c0946903d8b87c2348039de1420acd61b",
+    "ui": "756d47e891191c3344eb2d29b000203be8331abc"
+  },
+  "sealed_inputs_sha256": "b64985019e2248c4fde62e330f319846c96ab5014db4e96a7d8f0d50d5f86076",
+  "worker_entry": {
+    "path": "/nix/store/2jaxivw2r1j96i2wc2r6gw145ka3s08g-voice-ui-dist/worker/worker.mjs",
+    "sha256": "c732bea8acef6869b0b675cc7c68359932f8370a513156e67d2d15174c0b42c4"
+  },
+  "provider_entry": {
+    "path": "/nix/store/js4b23pkhv5pz5sy1gdbb3mjs8xa9zg4-jev-provider-admitted/batch.mjs",
+    "sha256": "ad4ac08ae8c42f3bf0e9d0aeedb0a2e9192c776585a3251b2ff1e18358cfe2e7"
+  },
+  "semantic_map": {
+    "root": "/nix/store/vqjhvwxcbwv7vg09n4d3sy54lw879s9f-semantic-map",
+    "protocol_sha256": "1689dcf63e1ed19cdea7be22e3f90a09f434841f980b9ca8b9018a987c9c38f8"
+  },
+  "launcher": {
+    "program": "/nix/store/bg0bygqiid25xnivxv9cdgjlx3sp939j-voice-ui-typed-dev/bin/voice-ui-typed-dev",
+    "dev_program": "/nix/store/23mkw4nc18cimiappygri89jbzk1p2iq-voice-ui-dev/bin/voice-ui-dev",
+    "pid": 252935,
+    "start_ticks": "13829959",
+    "phase_id": "candidate-correction-1-20261017",
+    "allowances": {
+      "jev": 36,
+      "typellm": 1
+    }
+  },
+  "artifact": {
+    "root": "/nix/store/2jaxivw2r1j96i2wc2r6gw145ka3s08g-voice-ui-dist",
+    "manifest_sha256": "f129c08b04fbfc2647b6d438480970be84625be2921387e03bb9351d515f1cce"
+  },
+  "audit_sha256": "4dce1d2bea35e7353ae7b7787d8cda0e6822edfb32b8b23c303b31be1e80c890",
+  "preflight_counters": {
+    "jev": 0,
+    "typellm": 0
+  }
+}

@@ -1,0 +1,79 @@
+{
+  "schema": "voice-ui.component-axes-phase/1",
+  "axis": "E",
+  "status": "RECORDED",
+  "summary": [
+    {
+      "axis": "E",
+      "id": "R01",
+      "method": "literal",
+      "valid_execution": true,
+      "calls": 1
+    },
+    {
+      "axis": "E",
+      "id": "R05",
+      "method": "literal",
+      "valid_execution": true,
+      "calls": 5
+    },
+    {
+      "axis": "E",
+      "id": "R09",
+      "method": "literal",
+      "valid_execution": true,
+      "calls": 1
+    },
+    {
+      "axis": "E",
+      "id": "R02",
+      "method": "literal",
+      "valid_execution": true,
+      "calls": 3
+    },
+    {
+      "axis": "E",
+      "id": "R06",
+      "method": "literal",
+      "valid_execution": true,
+      "calls": 1
+    },
+    {
+      "axis": "E",
+      "id": "R10",
+      "method": "literal",
+      "valid_execution": true,
+      "calls": 1
+    },
+    {
+      "axis": "E",
+      "id": "R03",
+      "method": "literal",
+      "valid_execution": true,
+      "calls": 1
+    },
+    {
+      "axis": "E",
+      "id": "R07",
+      "method": "literal",
+      "valid_execution": true,
+      "calls": 9
+    },
+    {
+      "axis": "E",
+      "id": "R04",
+      "method": "literal",
+      "valid_execution": true,
+      "calls": 8
+    },
+    {
+      "axis": "E",
+      "id": "R08",
+      "method": "literal",
+      "valid_execution": true,
+      "calls": 10
+    }
+  ],
+  "invalid_cells": 0,
+  "expected_cells": 10
+}

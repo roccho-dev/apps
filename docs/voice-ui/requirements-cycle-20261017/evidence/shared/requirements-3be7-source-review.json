@@ -1,0 +1,383 @@
+{
+  "schema": "voice-ui.requirements-cycle-source-review/1",
+  "head": "3be7dba2b30b75a286c7139e2aaf5038faf695aa",
+  "tree": "e0722063d53ae529e96768e7ca108307dc55875d",
+  "compared_from": "07c534397b88538f5b1104365999108150054cb0",
+  "files": [
+    {
+      "path": ".github/workflows/voice-ui-release.yml",
+      "bytes": 13863,
+      "sha256": "3c5d2d8854f025dd0f35db1ca054f5090d3bc713da0ac63c156ec699762fd6b7",
+      "current_working_equal": true
+    },
+    {
+      "path": "README.md",
+      "bytes": 16161,
+      "sha256": "c6f6f8139493134d0c682b0a1bf4b8b2eff7187718e992b49d8413168d8ee94d",
+      "current_working_equal": true
+    },
+    {
+      "path": "docs/voice-ui/requirements-cycle-20261017/README.md",
+      "bytes": 4656,
+      "sha256": "ce31dd51ccdd34e521a5114ef87ae89b547f4183016a6271ab6ce2b09c9b64e5",
+      "current_working_equal": true
+    },
+    {
+      "path": "docs/voice-ui/requirements-cycle-20261017/prebuild/README.md",
+      "bytes": 2017,
+      "sha256": "9e44900ddac26c868039692e0f510b572d7a46f77a4414eb38fdbd94e8ba72d6",
+      "current_working_equal": true
+    },
+    {
+      "path": "docs/voice-ui/requirements-cycle-20261017/prebuild/requirements-compiled-0df7-wire.json",
+      "bytes": 157145,
+      "sha256": "215ead5017d5f5b14c7fc24d0304b899652e117834b965caa703b400be1635f2",
+      "current_working_equal": true
+    },
+    {
+      "path": "docs/voice-ui/requirements-cycle-20261017/prebuild/requirements-compiled-4d00-wire.json",
+      "bytes": 157145,
+      "sha256": "215ead5017d5f5b14c7fc24d0304b899652e117834b965caa703b400be1635f2",
+      "current_working_equal": true
+    },
+    {
+      "path": "docs/voice-ui/requirements-cycle-20261017/prebuild/requirements-compiled-equivalence.json",
+      "bytes": 565,
+      "sha256": "2f3d990fc1e0a0ff3da38cfc4a655dc1e5a667bc21ed2f37b53dcaf28baaf1ea",
+      "current_working_equal": true
+    },
+    {
+      "path": "docs/voice-ui/requirements-cycle-20261017/prebuild/requirements-postmerge-wire.json",
+      "bytes": 153941,
+      "sha256": "3ad378ae7ce2ed900c242ca979ca047be03db702bdc55dad192cbbbbdf2b8393",
+      "current_working_equal": true
+    },
+    {
+      "path": "docs/voice-ui/requirements-cycle-20261017/prebuild/requirements-prebuild-0df7-keyless-receipt.json",
+      "bytes": 6238,
+      "sha256": "f78907cfaa7053afe15dfa710db8991030f419596360912793c82edf03972588",
+      "current_working_equal": true
+    },
+    {
+      "path": "docs/voice-ui/requirements-cycle-20261017/prebuild/requirements-prebuild-0df7-representation.json",
+      "bytes": 1527,
+      "sha256": "e2c4bd9a281b74a77f30547db90e2e0cd3c18e5136800491f76d4ff2be7a1b26",
+      "current_working_equal": true
+    },
+    {
+      "path": "docs/voice-ui/requirements-cycle-20261017/prebuild/requirements-premerge-wire.json",
+      "bytes": 153941,
+      "sha256": "3ad378ae7ce2ed900c242ca979ca047be03db702bdc55dad192cbbbbdf2b8393",
+      "current_working_equal": true
+    },
+    {
+      "path": "docs/voice-ui/requirements-cycle-20261017/preregistered/agreed-plan.md",
+      "bytes": 10778,
+      "sha256": "a63b0ef28a286833fc0648f4264cf7c6fbc231ebd5bb2c6bcc64d4a5f037ca1c",
+      "current_working_equal": true
+    },
+    {
+      "path": "docs/voice-ui/requirements-cycle-20261017/preregistered/requirements-cycle-commitment.json",
+      "bytes": 4643,
+      "sha256": "f002a267be0096beb988f5cb83e175d7724ce0213a9495755301c19fb2e3eaef",
+      "current_working_equal": true
+    },
+    {
+      "path": "docs/voice-ui/requirements-cycle-20261017/preregistered/requirements-cycle-independent-module-validation.json",
+      "bytes": 2702,
+      "sha256": "c6ce70ad95cb22001d825337c3d0de1dfbe649786e9e9177902ba2bdfe70287e",
+      "current_working_equal": true
+    },
+    {
+      "path": "docs/voice-ui/requirements-cycle-20261017/preregistered/requirements-cycle-meaning-validation.json",
+      "bytes": 2014,
+      "sha256": "3fe5f879172cad3a25dfe2dcae6fb23e297c90f5b100f3bfff2efe3005917ee3",
+      "current_working_equal": true
+    },
+    {
+      "path": "docs/voice-ui/requirements-cycle-20261017/preregistered/requirements-cycle-public-E2-correction.json",
+      "bytes": 2059,
+      "sha256": "a01560642c4fd3c3aa8a70a9389ed53bf04635a31cfa432f098c095876406ed6",
+      "current_working_equal": true
+    },
+    {
+      "path": "docs/voice-ui/requirements-cycle-20261017/preregistered/requirements-cycle-public-E2.inputs.json",
+      "bytes": 3636,
+      "sha256": "001d897ab4fdffacaac762ac5431dae964d9e56a37a7ce9d9d87f59514d39b81",
+      "current_working_equal": true
+    },
+    {
+      "path": "docs/voice-ui/requirements-cycle-20261017/preregistered/requirements-cycle-public-E2.oracle.json",
+      "bytes": 6088,
+      "sha256": "9ba42437f534d6fc881816c868b10aa0107c32aacdae65f864267e451c6af847",
+      "current_working_equal": true
+    },
+    {
+      "path": "docs/voice-ui/requirements-cycle-20261017/preregistered/requirements-cycle-public-E2.v2.inputs.json",
+      "bytes": 3636,
+      "sha256": "dddd6843284c39e7aa1862cd2b9debd0548a6b503d892c18d68863205387380c",
+      "current_working_equal": true
+    },
+    {
+      "path": "docs/voice-ui/requirements-cycle-20261017/preregistered/requirements-cycle-public-E2.v2.oracle.json",
+      "bytes": 6565,
+      "sha256": "723bc974b22fc45da2f19b6c8580f7280e7497d474d5a9f33d35d3f1ce385dea",
+      "current_working_equal": true
+    },
+    {
+      "path": "docs/voice-ui/requirements-cycle-20261017/preregistered/requirements-cycle-public-F6.inputs.json",
+      "bytes": 4526,
+      "sha256": "fecbe1eb3945cdb9e450742e26ba5fbb56bc1f3d852b1deebf292d09d922b6ec",
+      "current_working_equal": true
+    },
+    {
+      "path": "docs/voice-ui/requirements-cycle-20261017/preregistered/requirements-cycle-public-F6.oracle.json",
+      "bytes": 9762,
+      "sha256": "d01e7cdd4ef0fabd0b0befeab1e39026a235c88f02046e8eee58d56840aaa36e",
+      "current_working_equal": true
+    },
+    {
+      "path": "docs/voice-ui/requirements-cycle-20261017/preregistered/requirements-cycle-public-V6.inputs.json",
+      "bytes": 5236,
+      "sha256": "633a1b3cc8c47a6fcb4d548d127bdb05b2696bc99ffbfae0467211236e36ce97",
+      "current_working_equal": true
+    },
+    {
+      "path": "docs/voice-ui/requirements-cycle-20261017/preregistered/requirements-cycle-public-V6.oracle.json",
+      "bytes": 10418,
+      "sha256": "884dde0deb27b76d7f269eee989ffeedc1759493402b77a4cf4d9efb0d4344e5",
+      "current_working_equal": true
+    },
+    {
+      "path": "docs/voice-ui/requirements-cycle-20261017/previous-cycle/apps-axes-07c-completed-zip-ci-audit.json",
+      "bytes": 3732,
+      "sha256": "cb103508de6f3bd07e89792d6929bb7560469ccbc3ed75da2e9c0f7b52cd24d1",
+      "current_working_equal": true
+    },
+    {
+      "path": "docs/voice-ui/requirements-cycle-20261017/previous-cycle/apps-axes-07c-github-closed-receipt-audit.json",
+      "bytes": 6259,
+      "sha256": "0567c7dd860fba80564970570e8a4bcb3100f08710522dc67a0e8db8839ff812",
+      "current_working_equal": true
+    },
+    {
+      "path": "docs/voice-ui/requirements-cycle-20261017/previous-cycle/apps-axes-07c-runtime-bridge-audit.json",
+      "bytes": 4445,
+      "sha256": "c302bd69be2c84fab65c37a58052eea8e135068487e4e793983ba24197788789",
+      "current_working_equal": true
+    },
+    {
+      "path": "docs/voice-ui/requirements-cycle-20261017/previous-cycle/apps-axes-07c-source-audit.json",
+      "bytes": 10409,
+      "sha256": "9c805be12517c3bb2c2ad4aa190923c07947212e4a88dd3ed41e3fedee2564cf",
+      "current_working_equal": true
+    },
+    {
+      "path": "docs/voice-ui/requirements-cycle-20261017/previous-cycle/pr103-07c-r10-readback.json",
+      "bytes": 7048,
+      "sha256": "1001424e53df42c6f88047f7cc1f5c8ae89f12999cda9244b65d17e8376f11fa",
+      "current_working_equal": true
+    },
+    {
+      "path": "docs/voice-ui/requirements-cycle-20261017/previous-cycle/pr103-07c-r10-review.md",
+      "bytes": 5045,
+      "sha256": "c1a62a1abfb90044908d8b8286feb90820138927169e67c51100986f9ecd8253",
+      "current_working_equal": true
+    },
+    {
+      "path": "docs/voice-ui/requirements-cycle-20261017/protocol.md",
+      "bytes": 11617,
+      "sha256": "fc7430687e32c5a009b1359af71971c0d527b1fd55d16fc79f3e024564c43e6a",
+      "current_working_equal": true
+    },
+    {
+      "path": "flake.nix",
+      "bytes": 21912,
+      "sha256": "d6f224e183a626c5b1c4cc26f12a032bc441e09b5bdba59b1ee66638b1174de8",
+      "current_working_equal": true
+    },
+    {
+      "path": "packages/voice-ui/acceptance/requirements-cycle-smoke.mjs",
+      "bytes": 11727,
+      "sha256": "50e40351705cabe514a8fc06e49e31442c450db1a53156c77a6b41c3dc315771",
+      "current_working_equal": true
+    },
+    {
+      "path": "packages/voice-ui/acceptance/verify-requirements-cycle.mjs",
+      "bytes": 11504,
+      "sha256": "65a7ce37e386ff5a2a23f2dd4e171f53788fd753e2e717763fc0fc56e3d3422a",
+      "current_working_equal": true
+    },
+    {
+      "path": "packages/voice-ui/dev/serve.mjs",
+      "bytes": 20526,
+      "sha256": "d044ea7f8ccbd7fd71fbe1447dcce0f30bfa831d471da3eef2e3377380532298",
+      "current_working_equal": true
+    },
+    {
+      "path": "packages/voice-ui/functions/api/parts.mjs",
+      "bytes": 13538,
+      "sha256": "e30d15b8a6723f3b76597b9b6f694c5f3b057606bbd604919b2465708ebd8d39",
+      "current_working_equal": true
+    },
+    {
+      "path": "packages/voice-ui/functions/pages-worker.mjs",
+      "bytes": 2709,
+      "sha256": "9bc5a8fb1109482c682a6f0e45def5476837e0345a3b58e5b18561fdd14d6bd9",
+      "current_working_equal": true
+    },
+    {
+      "path": "packages/voice-ui/src/completion.mjs",
+      "bytes": 26130,
+      "sha256": "c328c66011af56d94959d2a2da6241e8559cb8b3808fc0b7fc15def3cb81764e",
+      "current_working_equal": true
+    },
+    {
+      "path": "packages/voice-ui/tests/api.test.mjs",
+      "bytes": 154317,
+      "sha256": "442d50d143c27d639da3c110b8c15c03fe10df56c1fbe5f679285842ff2e0d56",
+      "current_working_equal": true
+    },
+    {
+      "path": "packages/voice-ui/tests/requirements-cycle-audit.mjs",
+      "bytes": 56082,
+      "sha256": "692bdbaef8dbe28fe30fcdfe178202ebbdf3a4728bf0fe1c7310f72bf789c6eb",
+      "current_working_equal": true
+    },
+    {
+      "path": "packages/voice-ui/tests/requirements-cycle-audit.test.mjs",
+      "bytes": 38665,
+      "sha256": "e818556470dedf9fa2689290f19759ce8ad92bbffa57507d6e7507e7d56a3c8f",
+      "current_working_equal": true
+    },
+    {
+      "path": "packages/voice-ui/tests/requirements-cycle-classification.mjs",
+      "bytes": 2694,
+      "sha256": "226e46a15f41547076e824a79d1b32ff46778591e1f2fc6584b6b1ea1d025175",
+      "current_working_equal": true
+    },
+    {
+      "path": "packages/voice-ui/tests/requirements-cycle-classification.test.mjs",
+      "bytes": 3341,
+      "sha256": "7743f82d7f762247be2d435d3a5086b45008ffd95198f0a69e53dfe0aaef545e",
+      "current_working_equal": true
+    },
+    {
+      "path": "packages/voice-ui/tests/requirements-cycle-eval.mjs",
+      "bytes": 14850,
+      "sha256": "1c0f3d9773d65d21d7aa5ebc76324b50b0255f1aa0235a393ee4fd5816364d71",
+      "current_working_equal": true
+    },
+    {
+      "path": "packages/voice-ui/tests/requirements-cycle-http.mjs",
+      "bytes": 1163,
+      "sha256": "b3c1d052e2f7138532e0d7cac6ac7b3c7287b7af32b857990c1e6d14bb325386",
+      "current_working_equal": true
+    },
+    {
+      "path": "packages/voice-ui/tests/requirements-cycle-process.mjs",
+      "bytes": 6473,
+      "sha256": "8e560fb616230a5b23a4dd8c916afa7880066cfccc8ea841e13c737f9bbad933",
+      "current_working_equal": true
+    },
+    {
+      "path": "packages/voice-ui/tests/requirements-cycle-process.test.mjs",
+      "bytes": 7043,
+      "sha256": "1e2f2a4c1dc22bbe96f13246a01ae5f2a1f17164bcf87690db83bf035a726e1b",
+      "current_working_equal": true
+    },
+    {
+      "path": "packages/voice-ui/tests/requirements-cycle-score.mjs",
+      "bytes": 21347,
+      "sha256": "3d779cf422e8cc0facc6f5ff566c3e77b36a61486f9586f120b0c1a722cd5a46",
+      "current_working_equal": true
+    },
+    {
+      "path": "packages/voice-ui/tests/requirements-cycle-score.test.mjs",
+      "bytes": 14279,
+      "sha256": "b4a56d5160e83e8056ed3a229126e9591581564e227bd305b6d71df3e7e93d5a",
+      "current_working_equal": true
+    },
+    {
+      "path": "packages/voice-ui/tests/requirements.test.mjs",
+      "bytes": 10454,
+      "sha256": "9bfabfa5cbc4efd93bd58c45f2ccba4f4aa33212d132ad84fb9b63db1a4e39ed",
+      "current_working_equal": true
+    },
+    {
+      "path": "packages/voice-ui/web/adapters/completion.mjs",
+      "bytes": 970,
+      "sha256": "537bc46e93efe58fbdf466dd2493989ad5695209def769ec9da3ba68926edb5a",
+      "current_working_equal": true
+    }
+  ],
+  "source_sha256": {
+    "src/completion.mjs": "c328c66011af56d94959d2a2da6241e8559cb8b3808fc0b7fc15def3cb81764e",
+    "src/literal-inventory.mjs": "82a2bdb9866c1331b4c685f28862bd54e7e974c4af3652b4f72dfdbb41f7df60",
+    "src/goal.mjs": "cd9101d6a222e31773c9523adeca3f7f9aa32990e30b39e06a7b872771422f3e",
+    "src/contract.mjs": "f2c95212493f59fd80ef17270c2b5de0d51d795b26ac8a0e6dfa0fdb9dec30fe",
+    "src/turn.mjs": "c5fc3489a5bd0861f0455bd9843f47e76030bb03a4fe55745cf00c29c79b7008",
+    "src/session.mjs": "d6fcb97e581afb789ed6ecb339c06c378ef94283084df8ad3042ebe42c48cfe8",
+    "functions/api/parts.mjs": "e30d15b8a6723f3b76597b9b6f694c5f3b057606bbd604919b2465708ebd8d39",
+    "functions/pages-worker.mjs": "9bc5a8fb1109482c682a6f0e45def5476837e0345a3b58e5b18561fdd14d6bd9",
+    "web/app.mjs": "3a9ac4eba0770949a219b35c97cd346d4a7912026fae2b2f21710251b86bbf2a",
+    "web/adapters/completion.mjs": "537bc46e93efe58fbdf466dd2493989ad5695209def769ec9da3ba68926edb5a",
+    "dev/serve.mjs": "d044ea7f8ccbd7fd71fbe1447dcce0f30bfa831d471da3eef2e3377380532298",
+    "tests/requirements-cycle-eval.mjs": "1c0f3d9773d65d21d7aa5ebc76324b50b0255f1aa0235a393ee4fd5816364d71",
+    "tests/requirements-cycle-score.mjs": "3d779cf422e8cc0facc6f5ff566c3e77b36a61486f9586f120b0c1a722cd5a46",
+    "tests/requirements-cycle-audit.mjs": "692bdbaef8dbe28fe30fcdfe178202ebbdf3a4728bf0fe1c7310f72bf789c6eb",
+    "tests/semantic-score.mjs": "3230791bd2b06ccbb73008723ab3709981ce6e2d65fc2fdbdec8cadf9d1cfec3",
+    "tests/requirements-cycle-http.mjs": "b3c1d052e2f7138532e0d7cac6ac7b3c7287b7af32b857990c1e6d14bb325386",
+    "tests/painted-goal.mjs": "c5ba117d1dea66d20c80b7f92b8184296ff79d4231da56f5a89836af4beb018b"
+  },
+  "conditional_representation_core": [
+    {
+      "path": "src/goal.mjs",
+      "reference_sha256": "cd9101d6a222e31773c9523adeca3f7f9aa32990e30b39e06a7b872771422f3e",
+      "current_sha256": "cd9101d6a222e31773c9523adeca3f7f9aa32990e30b39e06a7b872771422f3e",
+      "equal": true
+    },
+    {
+      "path": "src/turn.mjs",
+      "reference_sha256": "c5fc3489a5bd0861f0455bd9843f47e76030bb03a4fe55745cf00c29c79b7008",
+      "current_sha256": "c5fc3489a5bd0861f0455bd9843f47e76030bb03a4fe55745cf00c29c79b7008",
+      "equal": true
+    },
+    {
+      "path": "src/contract.mjs",
+      "reference_sha256": "f2c95212493f59fd80ef17270c2b5de0d51d795b26ac8a0e6dfa0fdb9dec30fe",
+      "current_sha256": "f2c95212493f59fd80ef17270c2b5de0d51d795b26ac8a0e6dfa0fdb9dec30fe",
+      "equal": true
+    },
+    {
+      "path": "src/session.mjs",
+      "reference_sha256": "d6fcb97e581afb789ed6ecb339c06c378ef94283084df8ad3042ebe42c48cfe8",
+      "current_sha256": "d6fcb97e581afb789ed6ecb339c06c378ef94283084df8ad3042ebe42c48cfe8",
+      "equal": true
+    },
+    {
+      "path": "src/log.mjs",
+      "reference_sha256": "6710ff09959dafee852755dd75c512c4714c0c650e02c2c7dd0d5ba0c332e987",
+      "current_sha256": "6710ff09959dafee852755dd75c512c4714c0c650e02c2c7dd0d5ba0c332e987",
+      "equal": true
+    },
+    {
+      "path": "web/app.mjs",
+      "reference_sha256": "3a9ac4eba0770949a219b35c97cd346d4a7912026fae2b2f21710251b86bbf2a",
+      "current_sha256": "3a9ac4eba0770949a219b35c97cd346d4a7912026fae2b2f21710251b86bbf2a",
+      "equal": true
+    }
+  ],
+  "wire_captures": {
+    "cases": 12,
+    "before_sha256": "3ad378ae7ce2ed900c242ca979ca047be03db702bdc55dad192cbbbbdf2b8393",
+    "after_sha256": "3ad378ae7ce2ed900c242ca979ca047be03db702bdc55dad192cbbbbdf2b8393",
+    "byte_equal": true
+  },
+  "reviewed": {
+    "product": "G0 and disabled/enabled share initial evidence; full NEW slots; independent V; one-use stock; one deterministic preparation; no IDs/parents/edges generated; shared40s abort; no automatic retry",
+    "process": "registered count/hash, same-head public gate, original oracle addendum retained, bounded ordered correction groups",
+    "classification": "finite quality distinct from effect; invalid/incomplete/unknown remains unproven; CI-origin live unproven"
+  },
+  "admission": "PENDING_EXACT_FULL_CI_COMPLETED_ARTIFACT_RUNTIME"
+}

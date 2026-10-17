@@ -1,0 +1,22 @@
+{
+  "phase_id": "requirements-correction2-V-20261018",
+  "pid": 324288,
+  "state": "R",
+  "pgid": 324288,
+  "start_ticks": "16176096",
+  "program": "/nix/store/bg0bygqiid25xnivxv9cdgjlx3sp939j-voice-ui-typed-dev/bin/voice-ui-typed-dev",
+  "heads": {
+    "apps": "31e8fabaeb679c8bb02db8029f36de410d012adb",
+    "envs": "063e685b8b21a97fc8658879da93fa858552bcd6",
+    "ops": "cab432ef717cbde9ebd0197ae006c0efe75269bf",
+    "windows": "6aef693c0946903d8b87c2348039de1420acd61b",
+    "ui": "756d47e891191c3344eb2d29b000203be8331abc"
+  },
+  "allowances": {
+    "jev": 6,
+    "typellm": 0
+  },
+  "stdout": "/work/repos/voice-ui-typellm-20261016/requirements-correction2-V-20261018.stdout.log",
+  "stderr": "/work/repos/voice-ui-typellm-20261016/requirements-correction2-V-20261018.stderr.log",
+  "config_sha256": "9ae93793de6d4aaf03ac5d5d3cbe78134714d5934e94aa3dfdb0c512930650be"
+}

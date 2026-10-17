@@ -1,0 +1,377 @@
+{
+  "id": "H10",
+  "arm": "A",
+  "fixture": "pair",
+  "utterance": "追加も接続もしないで。今の図をそのままにしておいて。",
+  "valid_execution": true,
+  "elapsedMs": 185.0018,
+  "result": {
+    "reason": "inventory-no-change",
+    "requests": 1,
+    "elapsedMs": 182.72740000000158,
+    "selected": [],
+    "trace": [],
+    "inventory": {
+      "checks": 1,
+      "completions": 0,
+      "coverage": {
+        "choice": "no-change",
+        "confidence": 0.99
+      },
+      "missing": []
+    }
+  },
+  "calls": [
+    {
+      "id": "H10",
+      "arm": "A",
+      "n": 1,
+      "route": "/api/parts/check",
+      "request": {
+        "kind": "voice-ui.goal.inventory.v1",
+        "state": {
+          "utterance": "追加も接続もしないで。今の図をそのままにしておいて。",
+          "head": "sha256:6969f47d7531db6ae8959481e6ee24676c9b37da9a61b2cdf2c97d4a2af6684a",
+          "regions": [
+            {
+              "id": "root",
+              "label": "fixture",
+              "kind": "boundary",
+              "parent": null
+            },
+            {
+              "id": "container",
+              "label": "OCI",
+              "kind": "group",
+              "parent": "root"
+            },
+            {
+              "id": "other",
+              "label": "Other",
+              "kind": "group",
+              "parent": "root"
+            },
+            {
+              "id": "initial-api",
+              "label": "API",
+              "kind": "step",
+              "parent": "container"
+            },
+            {
+              "id": "initial-db",
+              "label": "DB",
+              "kind": "data",
+              "parent": "container"
+            }
+          ],
+          "edges": [],
+          "parts": [
+            {
+              "key": "step",
+              "purpose": "an ordinary step, task or box",
+              "label": "工程",
+              "kind": "step"
+            },
+            {
+              "key": "decision",
+              "purpose": "a decision, choice or branch",
+              "label": "判断",
+              "kind": "decision"
+            },
+            {
+              "key": "data",
+              "purpose": "data, a document, an input or an output",
+              "label": "データ",
+              "kind": "data"
+            },
+            {
+              "key": "start",
+              "purpose": "a start or beginning",
+              "label": "開始",
+              "kind": "start"
+            },
+            {
+              "key": "end",
+              "purpose": "an end, finish or result",
+              "label": "終了",
+              "kind": "end"
+            },
+            {
+              "key": "api",
+              "purpose": "an application programming interface service that receives requests",
+              "label": "API",
+              "kind": "step"
+            },
+            {
+              "key": "db",
+              "purpose": "a database that persists application data",
+              "label": "DB",
+              "kind": "data"
+            },
+            {
+              "key": "group",
+              "purpose": "a group, boundary or container that holds other parts",
+              "label": "グループ",
+              "kind": "group"
+            }
+          ]
+        }
+      },
+      "status": 200,
+      "response": {
+        "choice": "no-change",
+        "confidence": 0.99
+      },
+      "elapsedMs": 176.85330000000067
+    }
+  ],
+  "preparation": [],
+  "initial_head": "sha256:6969f47d7531db6ae8959481e6ee24676c9b37da9a61b2cdf2c97d4a2af6684a",
+  "initial_log_sha256": "b36330f159836a6ae872a0da817391214208f919e76fc4fb69331248cecc618c",
+  "initial_records": [
+    {
+      "type": "meta",
+      "schema": "semantic-map-state/1",
+      "root": "root",
+      "title": "sealed small PoC"
+    },
+    {
+      "type": "region",
+      "id": "root",
+      "parent": null,
+      "label": "fixture",
+      "kind": "boundary",
+      "bounds": [
+        0,
+        0,
+        900,
+        400
+      ],
+      "summary": ""
+    },
+    {
+      "type": "region",
+      "id": "container",
+      "parent": "root",
+      "label": "OCI",
+      "kind": "group",
+      "bounds": [
+        0,
+        0,
+        700,
+        200
+      ],
+      "summary": ""
+    },
+    {
+      "type": "region",
+      "id": "other",
+      "parent": "root",
+      "label": "Other",
+      "kind": "group",
+      "bounds": [
+        0,
+        230,
+        700,
+        160
+      ],
+      "summary": ""
+    },
+    {
+      "type": "region",
+      "id": "initial-api",
+      "parent": "container",
+      "label": "API",
+      "kind": "step",
+      "bounds": [
+        20,
+        20,
+        140,
+        64
+      ],
+      "summary": ""
+    },
+    {
+      "type": "region",
+      "id": "initial-db",
+      "parent": "container",
+      "label": "DB",
+      "kind": "data",
+      "bounds": [
+        200,
+        20,
+        140,
+        64
+      ],
+      "summary": ""
+    },
+    {
+      "type": "layout",
+      "regionId": "container",
+      "pin": "hard",
+      "bounds": [
+        0,
+        0,
+        2000,
+        500
+      ]
+    },
+    {
+      "type": "layout",
+      "regionId": "initial-api",
+      "pin": "hard",
+      "bounds": [
+        12,
+        36,
+        140,
+        64
+      ]
+    },
+    {
+      "type": "layout",
+      "regionId": "initial-db",
+      "pin": "hard",
+      "bounds": [
+        200,
+        36,
+        140,
+        64
+      ]
+    },
+    {
+      "type": "layout",
+      "regionId": "other",
+      "pin": "hard",
+      "bounds": [
+        0,
+        600,
+        2000,
+        500
+      ]
+    }
+  ],
+  "final_head": "sha256:6969f47d7531db6ae8959481e6ee24676c9b37da9a61b2cdf2c97d4a2af6684a",
+  "final_records": [
+    {
+      "type": "meta",
+      "schema": "semantic-map-state/1",
+      "root": "root",
+      "title": "sealed small PoC"
+    },
+    {
+      "type": "region",
+      "id": "root",
+      "parent": null,
+      "label": "fixture",
+      "kind": "boundary",
+      "bounds": [
+        0,
+        0,
+        900,
+        400
+      ],
+      "summary": ""
+    },
+    {
+      "type": "region",
+      "id": "container",
+      "parent": "root",
+      "label": "OCI",
+      "kind": "group",
+      "bounds": [
+        0,
+        0,
+        700,
+        200
+      ],
+      "summary": ""
+    },
+    {
+      "type": "region",
+      "id": "other",
+      "parent": "root",
+      "label": "Other",
+      "kind": "group",
+      "bounds": [
+        0,
+        230,
+        700,
+        160
+      ],
+      "summary": ""
+    },
+    {
+      "type": "region",
+      "id": "initial-api",
+      "parent": "container",
+      "label": "API",
+      "kind": "step",
+      "bounds": [
+        20,
+        20,
+        140,
+        64
+      ],
+      "summary": ""
+    },
+    {
+      "type": "region",
+      "id": "initial-db",
+      "parent": "container",
+      "label": "DB",
+      "kind": "data",
+      "bounds": [
+        200,
+        20,
+        140,
+        64
+      ],
+      "summary": ""
+    },
+    {
+      "type": "layout",
+      "regionId": "container",
+      "pin": "hard",
+      "bounds": [
+        0,
+        0,
+        2000,
+        500
+      ]
+    },
+    {
+      "type": "layout",
+      "regionId": "initial-api",
+      "pin": "hard",
+      "bounds": [
+        12,
+        36,
+        140,
+        64
+      ]
+    },
+    {
+      "type": "layout",
+      "regionId": "initial-db",
+      "pin": "hard",
+      "bounds": [
+        200,
+        36,
+        140,
+        64
+      ]
+    },
+    {
+      "type": "layout",
+      "regionId": "other",
+      "pin": "hard",
+      "bounds": [
+        0,
+        600,
+        2000,
+        500
+      ]
+    }
+  ],
+  "final_log": "{\"operations\":[{\"mapId\":\"voice-graph\",\"records\":[{\"root\":\"root\",\"schema\":\"semantic-map-state/1\",\"title\":\"sealed small PoC\",\"type\":\"meta\"},{\"bounds\":[0,0,900,400],\"id\":\"root\",\"kind\":\"boundary\",\"label\":\"fixture\",\"parent\":null,\"summary\":\"\",\"type\":\"region\"},{\"bounds\":[0,0,700,200],\"id\":\"container\",\"kind\":\"group\",\"label\":\"OCI\",\"parent\":\"root\",\"summary\":\"\",\"type\":\"region\"},{\"bounds\":[0,230,700,160],\"id\":\"other\",\"kind\":\"group\",\"label\":\"Other\",\"parent\":\"root\",\"summary\":\"\",\"type\":\"region\"},{\"bounds\":[20,20,140,64],\"id\":\"initial-api\",\"kind\":\"step\",\"label\":\"API\",\"parent\":\"container\",\"summary\":\"\",\"type\":\"region\"},{\"bounds\":[200,20,140,64],\"id\":\"initial-db\",\"kind\":\"data\",\"label\":\"DB\",\"parent\":\"container\",\"summary\":\"\",\"type\":\"region\"}],\"type\":\"CreateMap\"}],\"parent\":null,\"schema\":\"semantic-map-decision/2\",\"stateHash\":\"sha256:eb12a82f1dab727c2750fc29dc53302c6dee0870fb1dcac26b8f8f4350eb9621\"}\n{\"operations\":[{\"items\":[{\"bounds\":[0,0,2000,500],\"regionId\":\"container\"},{\"bounds\":[0,600,2000,500],\"regionId\":\"other\"},{\"bounds\":[12,36,140,64],\"regionId\":\"initial-api\"},{\"bounds\":[200,36,140,64],\"regionId\":\"initial-db\"}],\"type\":\"PinRegions\"}],\"parent\":\"sha256:bda39ae15ff3448677a5629ec247825efb22d32e9bca336c2cd0b0f67f407f34\",\"schema\":\"semantic-map-decision/2\",\"stateHash\":\"sha256:9ea533b50f866fe1014ef4e02a124397ba1cc49af235dfceba357710f5cb6da9\"}\n"
+}

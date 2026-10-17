@@ -1,0 +1,135 @@
+{
+  "schema": "voice-ui.independent-committed-evidence-audit/1",
+  "observed_at": "2026-10-17T10:22:47.453Z",
+  "head": "50b17036d1c73d18fd92db95d6ff84350e1566d5",
+  "tree": "ce4e272ff8fa614d78624f48c32637819ed777ca",
+  "status": "PASS",
+  "reports": [
+    {
+      "id": "public-initial-f2e9",
+      "apps_sha": "f2e9a4cfb8dd2740b674b0597d06022c1f4a9549",
+      "binding": "PASS",
+      "raw": "PASS",
+      "phase": "PASS",
+      "replay": {
+        "status": "PASS",
+        "issues": [],
+        "consumed": 5,
+        "frames": 15,
+        "assessed_frames": 10,
+        "recorded_paint_status": "PASS",
+        "replay_sha256": "d07ab7e99a7aee02e0aac2a3ce6ff5e599f8ad4675d29a5100394311f8bd67ab",
+        "model_quality_scope": "NONE",
+        "CI_LIVE_EXECUTION": "UNPROVEN"
+      },
+      "recorded_execution": "INVALID",
+      "consumed": 5,
+      "planned": 24,
+      "model_comparison_admissible": false
+    },
+    {
+      "id": "correction-one-f2fa",
+      "apps_sha": "f2fa07baeb54dd795c17d03178c5f2a508be6733",
+      "binding": "PASS",
+      "raw": "PASS",
+      "phase": "PASS",
+      "replay": {
+        "status": "PASS",
+        "issues": [],
+        "consumed": 4,
+        "frames": 12,
+        "assessed_frames": 8,
+        "recorded_paint_status": "PASS",
+        "replay_sha256": "c741db8c4a98d4b281f4d7bdeac7c0e2b3714cf204856163b29eef56be8cadb4",
+        "model_quality_scope": "NONE",
+        "CI_LIVE_EXECUTION": "UNPROVEN"
+      },
+      "recorded_execution": "INVALID",
+      "consumed": 4,
+      "planned": 4,
+      "model_comparison_admissible": false
+    },
+    {
+      "id": "correction-two-2c8b",
+      "apps_sha": "2c8b25ed30c33580a5902a07907e3aeaed430c25",
+      "binding": "PASS",
+      "raw": "PASS",
+      "phase": "PASS",
+      "replay": {
+        "status": "PASS",
+        "issues": [],
+        "consumed": 4,
+        "frames": 12,
+        "assessed_frames": 8,
+        "recorded_paint_status": "PASS",
+        "replay_sha256": "4b436114d48d8adf05e6d6f5e524c9c038662bc7b7c7832e198f59f2788fb02c",
+        "model_quality_scope": "NONE",
+        "CI_LIVE_EXECUTION": "UNPROVEN"
+      },
+      "recorded_execution": "RECORDED",
+      "consumed": 4,
+      "planned": 4,
+      "model_comparison_admissible": false
+    },
+    {
+      "id": "public-remainder-2c8b",
+      "apps_sha": "2c8b25ed30c33580a5902a07907e3aeaed430c25",
+      "binding": "PASS",
+      "raw": "PASS",
+      "phase": "PASS",
+      "replay": {
+        "status": "PASS",
+        "issues": [],
+        "consumed": 17,
+        "frames": 64,
+        "assessed_frames": 47,
+        "recorded_paint_status": "PASS",
+        "replay_sha256": "685e25cd339b2d1e33bf51154b488805fb3e4422e01d67d0b1c3be4f78a1608f",
+        "model_quality_scope": "NONE",
+        "CI_LIVE_EXECUTION": "UNPROVEN"
+      },
+      "recorded_execution": "RECORDED",
+      "consumed": 17,
+      "planned": 17,
+      "model_comparison_admissible": false
+    }
+  ],
+  "diagnostics": [
+    {
+      "id": "candidate-type-diagnostic-1",
+      "status": "PASS",
+      "sent": {
+        "jev": 0,
+        "typellm": 1
+      },
+      "scope": "DIAGNOSTIC_ONLY"
+    },
+    {
+      "id": "candidate-type-diagnostic-2",
+      "status": "PASS",
+      "sent": {
+        "jev": 0,
+        "typellm": 0
+      },
+      "scope": "DIAGNOSTIC_ONLY"
+    },
+    {
+      "id": "candidate-type-diagnostic-3",
+      "status": "PASS",
+      "sent": {
+        "jev": 0,
+        "typellm": 1
+      },
+      "scope": "DIAGNOSTIC_ONLY"
+    }
+  ],
+  "cumulative": {
+    "jev": 413,
+    "typellm": 26
+  },
+  "index_sha256": "10f545f34f5e912065ba7cf17681fcdcb8e27670c7b0d5ac0f45bba3b45ee49b",
+  "scope": "all committed indexed raw/source/producer/protocol/factor/recorded-replay/phase joins against independent fixed expectations; GitHub exact-build replay still pending",
+  "CI_LIVE_EXECUTION": "UNPROVEN",
+  "four_way_comparison": "INCOMPLETE_D_BLOCKED_COST",
+  "currency": "COST_NOT_MEASURED"
+}

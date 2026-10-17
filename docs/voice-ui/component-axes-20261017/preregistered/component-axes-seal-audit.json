@@ -1,0 +1,82 @@
+{
+  "schema": "voice-ui.component-axes-independent-seal-audit/1",
+  "observed_at": "2026-10-17T12:27:27.240Z",
+  "status": "PASS",
+  "panels": [
+    {
+      "axis": "G",
+      "visibility": "SEALED",
+      "cases": 10,
+      "planned_cells": 10,
+      "zero_missing_clear_cases": 4,
+      "input_sha256": "6e22b12904e3a0b706bd02dc1de796645025044ae661604eb830549f3a5fea37",
+      "oracle_sha256": "93a94087d097b13736b73cbdb68ca82205b0424d65d980ff3d46f05c5d6fec03",
+      "status": "PASS"
+    },
+    {
+      "axis": "R",
+      "visibility": "SEALED",
+      "cases": 8,
+      "planned_cells": 8,
+      "zero_missing_clear_cases": 0,
+      "input_sha256": "962caad26f6a6dd59982be202c8decb5bbdbdcfb0f292dc8552bb191ba8dd3c3",
+      "oracle_sha256": "a23a3de5e284a79960cd3e7f84bb34478ece7638bb557140e2474110a0df4562",
+      "status": "PASS"
+    },
+    {
+      "axis": "F",
+      "visibility": "SEALED",
+      "cases": 8,
+      "planned_cells": 16,
+      "zero_missing_clear_cases": 0,
+      "input_sha256": "c71ec9adf80e44fc55f17e43045161cf4776d6cf3a9b79452b24312d1fbe96b6",
+      "oracle_sha256": "b366b57a96fe54d1b5818022079b299d1cb25a0310ac2bc6e01619546349e426",
+      "status": "PASS"
+    },
+    {
+      "axis": "G",
+      "visibility": "PUBLIC_REGRESSION",
+      "cases": 4,
+      "planned_cells": 4,
+      "zero_missing_clear_cases": 1,
+      "input_sha256": "36fdeb1254bd57e725f4bf695a0234c98c95c64d849132a489de657ebb714ceb",
+      "oracle_sha256": "e7a7b4aee3ed4bbdab8cbf3338937f900a8b31b65ad5ded71ca823a9c3c2e44f",
+      "status": "PASS"
+    },
+    {
+      "axis": "R",
+      "visibility": "PUBLIC_REGRESSION",
+      "cases": 2,
+      "planned_cells": 2,
+      "zero_missing_clear_cases": 0,
+      "input_sha256": "86face1aa0d9f30b54ade0ab48de2bd0beefb11a902b1610632f554d4abe643e",
+      "oracle_sha256": "d77d4fab24babba59c9ca2f9f032595b62afe3d988d4278d7b0d904f63ff2325",
+      "status": "PASS"
+    },
+    {
+      "axis": "F",
+      "visibility": "PUBLIC_REGRESSION",
+      "cases": 3,
+      "planned_cells": 6,
+      "zero_missing_clear_cases": 0,
+      "input_sha256": "1dd6895cff2951cf29d638bdaf382eb6633d3ade99b13c722b6cc0d46f3bf85f",
+      "oracle_sha256": "1c402800f1c5e0e9b5459690f2ce58953267629a6d4585cc61e1731fc3e56711",
+      "status": "PASS"
+    },
+    {
+      "axis": "E",
+      "visibility": "PUBLIC_REGRESSION",
+      "cases": 4,
+      "planned_cells": 4,
+      "zero_missing_clear_cases": 1,
+      "input_sha256": "b20ebeddb0bfaed1b2fcf5bd9bdd3e2fc765c324478caa071460ef9469cf220e",
+      "oracle_sha256": "f2a4265a75e15b051610eb1ae8796a9cdb0e26c4d96331f12150d709e4acd854",
+      "status": "PASS"
+    }
+  ],
+  "unseen_cases": 26,
+  "unseen_utterance_overlap": 0,
+  "old_reserve_read_or_released": false,
+  "provider_calls": 0,
+  "scope": "input/oracle hashes, identities, finite counts, exact8 ready inventory, independent multiset oracle and schedule; actual protocol/runtime/provider path checks remain pending"
+}

@@ -1,0 +1,37 @@
+{
+  "status": "INVALID",
+  "summary": [
+    {
+      "id": "H01",
+      "arm": "C",
+      "valid_execution": true,
+      "reason": "none",
+      "httpCalls": 4,
+      "elapsedMs": 1079.4079
+    },
+    {
+      "id": "H09",
+      "arm": "C",
+      "valid_execution": true,
+      "reason": "inventory-ambiguous",
+      "httpCalls": 1,
+      "elapsedMs": 191.1960999999999
+    },
+    {
+      "id": "H10",
+      "arm": "C",
+      "valid_execution": true,
+      "reason": "inventory-no-change",
+      "httpCalls": 1,
+      "elapsedMs": 184.75950000000012
+    },
+    {
+      "id": "H05",
+      "arm": "C",
+      "valid_execution": false,
+      "reason": "completion-unknown",
+      "httpCalls": 2,
+      "elapsedMs": 949.7973999999999
+    }
+  ]
+}

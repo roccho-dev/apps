@@ -1,0 +1,21 @@
+{
+  "schema": "voice-ui.independent-ci-browser-readback/1",
+  "observed_at": "2026-10-17T10:25:22.241Z",
+  "head": "50b17036d1c73d18fd92db95d6ff84350e1566d5",
+  "runId": "39024420927",
+  "artifact": {
+    "id": 12097703394,
+    "digest": "sha256:d0c39221669604c89a5873bb07c2b7e30d149dc127e7f417993c2641ac83060d",
+    "archive_sha256": "d0c39221669604c89a5873bb07c2b7e30d149dc127e7f417993c2641ac83060d"
+  },
+  "receipt_sha256": "3c0778c92d518f8e7cf8e8f8951e570016d401d2846e62caf986a5add4547653",
+  "manifest_sha256": "39c0f1d572f67a28efe1f1be0eb0b7a74ef0c819334fa83012477b67c60c6408",
+  "status": "PASS",
+  "frames": 24,
+  "independently_recomputed_frames": 21,
+  "actual_mutation_controls": 26,
+  "lifecycles": 3,
+  "scope": "completed ZIP, finite keyless synthetic mechanics; glyph cells and own shape AABBs, not arbitrary occlusion or ink pixels",
+  "CI_LIVE_EXECUTION": "UNPROVEN",
+  "currency": "COST_NOT_MEASURED"
+}

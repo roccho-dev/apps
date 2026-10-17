@@ -1,0 +1,19 @@
+{
+  "phase_id": "candidate-type-diagnostic-1",
+  "pid": 233952,
+  "state": "R",
+  "pgid": 233952,
+  "start_ticks": "13654560",
+  "program": "/nix/store/bg0bygqiid25xnivxv9cdgjlx3sp939j-voice-ui-typed-dev/bin/voice-ui-typed-dev",
+  "heads": {
+    "apps": "f2e9a4cfb8dd2740b674b0597d06022c1f4a9549",
+    "envs": "063e685b8b21a97fc8658879da93fa858552bcd6"
+  },
+  "allowances": {
+    "jev": 0,
+    "typellm": 1
+  },
+  "stdout": "/work/repos/voice-ui-typellm-20261016/candidate-type-diagnostic-1.stdout.log",
+  "stderr": "/work/repos/voice-ui-typellm-20261016/candidate-type-diagnostic-1.stderr.log",
+  "config_sha256": "296ddc6b6e10d48434a240afaf6e58c54f850634c5d88cce219442413bc0e835"
+}

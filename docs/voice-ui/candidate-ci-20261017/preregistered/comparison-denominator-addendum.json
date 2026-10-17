@@ -1,0 +1,44 @@
+{
+  "schema": "voice-ui.poc.denominator-agreement/1",
+  "recorded_at": "2026-10-17T08:45:38Z",
+  "before_new_provider_calls": true,
+  "pool_sha256": "b64985019e2248c4fde62e330f319846c96ab5014db4e96a7d8f0d50d5f86076",
+  "unchanged": [
+    "fresh inputs/oracles",
+    "comparison-contract-v2 bytes",
+    "confidence floor 0.5",
+    "selected-method 10/4/4/2 and minimality thresholds"
+  ],
+  "selected_method": {
+    "accepted_gate": "10/10",
+    "sufficient_exact": "4/4 and not below A",
+    "missing_exact": "4/4",
+    "missing_minimal": "4/4",
+    "controls_raw_unchanged": "2/2"
+  },
+  "all_compared_arms_non_regression": [
+    "no generated missing candidates or TypeLLM request on sufficient/control cases",
+    "no false adoption on sufficient/control cases; a missing-case baseline substitution is a wrong task result, not a global guard failure"
+  ],
+  "per_arm_reporting": [
+    "raw and accepted gate denominators",
+    "sufficient/missing exact denominators",
+    "missing minimality",
+    "control raw equality",
+    "provider counts and elapsed time"
+  ],
+  "causal_gain": {
+    "C_over_B_min": 1,
+    "C_over_A_min": 2,
+    "pairs": "only missing cases whose gates are accepted and correct in BOTH members of the compared pair",
+    "baseline_gate_misses": "reported separately; cannot count as TypeLLM causal wins",
+    "metric": "paired signed exact-graph wins minus losses"
+  },
+  "not_required": "No global all-arm gate10/10 requirement; the selected method requires10/10.",
+  "excluded_claims": [
+    "four-way completion while D cost is unapproved/uncompared",
+    "CI-origin live execution without a proved approved route",
+    "currency cost without verified usage/prices",
+    "general statistical superiority from finite cases"
+  ]
+}

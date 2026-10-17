@@ -1,0 +1,11 @@
+{
+  "recorded_at": "2026-10-17T13:52:06.710Z",
+  "phase": "axes-final-R-20261017",
+  "pid": 312045,
+  "start_ticks": "15291612",
+  "status": "NOT_READY",
+  "condition": "first independent preflight reached argv assertion before final Node program",
+  "tool_exit": 1,
+  "provider_requests_by_reviewer": 0,
+  "action": "retain same process; require a later exact argv/readiness/counter bind before GO"
+}

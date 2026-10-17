@@ -1,0 +1,19 @@
+{
+  "phase_id": "candidate-public-20261017",
+  "pid": 233467,
+  "state": "R",
+  "pgid": 233467,
+  "start_ticks": "13622035",
+  "program": "/nix/store/bg0bygqiid25xnivxv9cdgjlx3sp939j-voice-ui-typed-dev/bin/voice-ui-typed-dev",
+  "heads": {
+    "apps": "f2e9a4cfb8dd2740b674b0597d06022c1f4a9549",
+    "envs": "063e685b8b21a97fc8658879da93fa858552bcd6"
+  },
+  "allowances": {
+    "jev": 216,
+    "typellm": 8
+  },
+  "stdout": "/work/repos/voice-ui-typellm-20261016/candidate-public-20261017.stdout.log",
+  "stderr": "/work/repos/voice-ui-typellm-20261016/candidate-public-20261017.stderr.log",
+  "config_sha256": "bf79d987e55ed88ea9a06103ab7cf3bd60cb8103eab3b28b39ae9e9ff2b72c12"
+}

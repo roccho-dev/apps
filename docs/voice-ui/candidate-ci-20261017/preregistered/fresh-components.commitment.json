@@ -1,0 +1,127 @@
+{
+  "schema": "voice-ui.poc.component-commitment/1",
+  "reviewer": "/root/poc_reviewer",
+  "prepared_at": "2026-10-17T08:38:08.600Z",
+  "before_any_new_provider_outputs": true,
+  "pool_sha256": "b64985019e2248c4fde62e330f319846c96ab5014db4e96a7d8f0d50d5f86076",
+  "encoding": "UTF-8 JSON.stringify(value,null,2) followed by one LF; original object key order retained",
+  "fixture_contract_sha256": "a284243e6e3299aebc154f17fadd473264495e9e095869ee97f05b305eddaad0",
+  "criteria_sha256": "ee92651d0dbe132ea6827431d89181d514738fcd67d724f22089709487d377a0",
+  "scope_sha256": "172548b20a66b8f5b274a82be10d2483fcc6f1e197e93e6e3619ff3324e11a51",
+  "cases": {
+    "N01": {
+      "sha256": "fd81a6541b9ef66a80adfc743d3b676d65d853a08764f36a071b021305b6473a",
+      "bytes": 567
+    },
+    "N02": {
+      "sha256": "604b51606c4386ac68eee20556694f677ddaa27aaaf224c806e9ed65a9bf4815",
+      "bytes": 586
+    },
+    "N03": {
+      "sha256": "110fd6a8f32e00944486bcf229da226bd28ee0633ca2bc1b9b8f3b1807727f38",
+      "bytes": 434
+    },
+    "N04": {
+      "sha256": "08762cadac8fbf730f866338963a19e8420955347b9ba236abebd19281dc2167",
+      "bytes": 525
+    },
+    "N05": {
+      "sha256": "b26524c866c90582571608a6c02a6e3dc2ff3dfefcee41598e610aae6cc00f6f",
+      "bytes": 507
+    },
+    "N06": {
+      "sha256": "3ebe48cdbdb07108db0ff4a814a24379e9c89cb4b07d3c424259fd01d6613afa",
+      "bytes": 745
+    },
+    "N07": {
+      "sha256": "90df25326796ff94d009d8efb3f0f9363d611f88a4301711673cdc32218be1f6",
+      "bytes": 884
+    },
+    "N08": {
+      "sha256": "e558827d72da9336e1d2aae4a3d0895983c8bceb42a0f3e3485b50f32eab22ac",
+      "bytes": 1081
+    },
+    "N09": {
+      "sha256": "9542426f9ce074cbb1603fcc17297dbdcf4c7dbe3e8f470c285eb165cdfb13ef",
+      "bytes": 278
+    },
+    "N10": {
+      "sha256": "255e82a571a781671820f13c8626190fa99c81e125d03580f70775e91e848323",
+      "bytes": 297
+    },
+    "R01": {
+      "sha256": "570aa464777a4b3e95c37ecd50dcc0828394e924535b508cfffaeeb4f0173303",
+      "bytes": 468
+    },
+    "R02": {
+      "sha256": "fc16f774ec6efb98cec1514672d38f6f0b50e617b2bf15c531fa898a00d9dd3d",
+      "bytes": 422
+    },
+    "R03": {
+      "sha256": "93f932771ea5727e8de2eba7eb0a55cb52c61ea4c8363889a521e15cfe86acea",
+      "bytes": 361
+    },
+    "R04": {
+      "sha256": "69c82e993aead0810226bc38ea33c16bf2617fbda8c18b03938d618df0d7eaf4",
+      "bytes": 656
+    },
+    "R05": {
+      "sha256": "70173cd4dbf1209d0526f658e426f1b8ae4e8e75cbf55d12b4c833e2510f066e",
+      "bytes": 451
+    },
+    "R06": {
+      "sha256": "5224eb8765353fba50a587a37bfdc75759f175317828fe4a4edb01743ae5409b",
+      "bytes": 561
+    },
+    "R07": {
+      "sha256": "5e78a7c830fbde77783d6b5c50be44eb56208640490e78cfcf578dbf95939cff",
+      "bytes": 858
+    },
+    "R08": {
+      "sha256": "351f988421b970a70e505dac2f9be65903bcd0aabe15197996b250ebeca9bbbf",
+      "bytes": 1145
+    },
+    "R09": {
+      "sha256": "851ba0d80ae28971e80bcb964b57359317eb492c644742a6afcca50a29b0f378",
+      "bytes": 293
+    },
+    "R10": {
+      "sha256": "c139eab4d5ee6d89d7549a9252644aec730c055b9b8e321cd283c0b21e31b561",
+      "bytes": 283
+    }
+  },
+  "batches": {
+    "primary": {
+      "case_ids": [
+        "N01",
+        "N05",
+        "N09",
+        "N02",
+        "N06",
+        "N10",
+        "N03",
+        "N07",
+        "N04",
+        "N08"
+      ],
+      "comparison_sha256": "c50554a29436d654f357d65020e1d1648d9ca792731dc6dd0c9510f61ea7bcd1"
+    },
+    "reserve_unopened": {
+      "case_ids": [
+        "R01",
+        "R05",
+        "R09",
+        "R02",
+        "R06",
+        "R10",
+        "R03",
+        "R07",
+        "R04",
+        "R08"
+      ],
+      "comparison_sha256": "26a96ad72417a8e7a0ed5b1e51b9f9079dff8cfbb90b287e789887afcec8ac9e"
+    }
+  },
+  "purpose": "Verify only consumed oracle components in public CI without exposing any unused pool case. This adds commitments only; it changes no pool byte/input/oracle/criterion.",
+  "unseen_reuse": "After input exposure a case is public regression; never claim it unseen again."
+}

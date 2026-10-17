@@ -1,0 +1,19 @@
+{
+  "phase_id": "candidate-fresh-20261017",
+  "pid": 270500,
+  "state": "R",
+  "pgid": 270500,
+  "start_ticks": "14088123",
+  "program": "/nix/store/bg0bygqiid25xnivxv9cdgjlx3sp939j-voice-ui-typed-dev/bin/voice-ui-typed-dev",
+  "heads": {
+    "apps": "50b17036d1c73d18fd92db95d6ff84350e1566d5",
+    "envs": "063e685b8b21a97fc8658879da93fa858552bcd6"
+  },
+  "allowances": {
+    "jev": 270,
+    "typellm": 10
+  },
+  "stdout": "/work/repos/voice-ui-typellm-20261016/candidate-fresh-20261017.stdout.log",
+  "stderr": "/work/repos/voice-ui-typellm-20261016/candidate-fresh-20261017.stderr.log",
+  "config_sha256": "968a8566ae88afbf694287ab235caffbfeb55ee21f22e6e637f65ff8a53d1ce5"
+}

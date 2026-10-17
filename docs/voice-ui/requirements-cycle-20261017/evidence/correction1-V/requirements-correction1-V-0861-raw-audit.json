@@ -1,0 +1,200 @@
+{
+  "schema": "voice-ui.requirements-cycle-raw-audit/1",
+  "axis": "V",
+  "status": "PASS",
+  "issues": [],
+  "complete": true,
+  "all_valid_execution": true,
+  "consumed": 6,
+  "planned": 6,
+  "rows": [
+    {
+      "id": "PV01",
+      "method": "verify",
+      "arm": "V",
+      "valid_execution": true,
+      "grade": {
+        "contract_valid": true,
+        "correct": false,
+        "expected_accept": true,
+        "actual_accept": false,
+        "false_acceptance": false,
+        "intent_raw_correct": true,
+        "proposal_exact": true,
+        "scope": "operational accept/reject quality; raw factor correctness is separately visible"
+      },
+      "cell_wall_elapsedMs": 403.0666
+    },
+    {
+      "id": "PV02",
+      "method": "verify",
+      "arm": "V",
+      "valid_execution": true,
+      "grade": {
+        "contract_valid": true,
+        "correct": true,
+        "expected_accept": false,
+        "actual_accept": false,
+        "false_acceptance": false,
+        "intent_raw_correct": true,
+        "proposal_exact": false,
+        "scope": "operational accept/reject quality; raw factor correctness is separately visible"
+      },
+      "cell_wall_elapsedMs": 196.2663
+    },
+    {
+      "id": "PV03",
+      "method": "verify",
+      "arm": "V",
+      "valid_execution": true,
+      "grade": {
+        "contract_valid": true,
+        "correct": false,
+        "expected_accept": true,
+        "actual_accept": false,
+        "false_acceptance": false,
+        "intent_raw_correct": true,
+        "proposal_exact": true,
+        "scope": "operational accept/reject quality; raw factor correctness is separately visible"
+      },
+      "cell_wall_elapsedMs": 201.49879999999996
+    },
+    {
+      "id": "PV04",
+      "method": "verify",
+      "arm": "V",
+      "valid_execution": true,
+      "grade": {
+        "contract_valid": true,
+        "correct": true,
+        "expected_accept": false,
+        "actual_accept": false,
+        "false_acceptance": false,
+        "intent_raw_correct": true,
+        "proposal_exact": false,
+        "scope": "operational accept/reject quality; raw factor correctness is separately visible"
+      },
+      "cell_wall_elapsedMs": 231.3742000000001
+    },
+    {
+      "id": "PV05",
+      "method": "verify",
+      "arm": "V",
+      "valid_execution": true,
+      "grade": {
+        "contract_valid": true,
+        "correct": false,
+        "expected_accept": true,
+        "actual_accept": false,
+        "false_acceptance": false,
+        "intent_raw_correct": true,
+        "proposal_exact": true,
+        "scope": "operational accept/reject quality; raw factor correctness is separately visible"
+      },
+      "cell_wall_elapsedMs": 191.32830000000013
+    },
+    {
+      "id": "PV06",
+      "method": "verify",
+      "arm": "V",
+      "valid_execution": true,
+      "grade": {
+        "contract_valid": true,
+        "correct": true,
+        "expected_accept": false,
+        "actual_accept": false,
+        "false_acceptance": false,
+        "intent_raw_correct": true,
+        "proposal_exact": false,
+        "scope": "operational accept/reject quality; raw factor correctness is separately visible"
+      },
+      "cell_wall_elapsedMs": 194.70780000000013
+    }
+  ],
+  "semantic": {
+    "complete": true,
+    "total": 6,
+    "correct": 3,
+    "false_acceptance": 0,
+    "verification_criteria": "UNMET"
+  },
+  "phase_kind": "correction",
+  "inputs_sha256": "633a1b3cc8c47a6fcb4d548d127bdb05b2696bc99ffbfae0467211236e36ce97",
+  "parent_inputs_sha256": "633a1b3cc8c47a6fcb4d548d127bdb05b2696bc99ffbfae0467211236e36ce97",
+  "admissible_for_semantic_claim": true,
+  "external_provider_attempts": {
+    "jev": 6,
+    "typellm": 0
+  },
+  "external_provider_attempt_bounds": {
+    "jev": {
+      "min": 6,
+      "max": 6
+    },
+    "typellm": {
+      "min": 0,
+      "max": 0
+    }
+  },
+  "stage_rows": 6,
+  "stage_alignment": "UNIQUE",
+  "proofs": [
+    {
+      "id": "PV01",
+      "method": "verify",
+      "status": "PASS",
+      "initial_head": "sha256:0b3522df5b691691d41d9b4587377781fc7048c991a4e47357e5583eb09288c6",
+      "final_head": "sha256:0b3522df5b691691d41d9b4587377781fc7048c991a4e47357e5583eb09288c6"
+    },
+    {
+      "id": "PV02",
+      "method": "verify",
+      "status": "PASS",
+      "initial_head": "sha256:0b3522df5b691691d41d9b4587377781fc7048c991a4e47357e5583eb09288c6",
+      "final_head": "sha256:0b3522df5b691691d41d9b4587377781fc7048c991a4e47357e5583eb09288c6"
+    },
+    {
+      "id": "PV03",
+      "method": "verify",
+      "status": "PASS",
+      "initial_head": "sha256:0b3522df5b691691d41d9b4587377781fc7048c991a4e47357e5583eb09288c6",
+      "final_head": "sha256:0b3522df5b691691d41d9b4587377781fc7048c991a4e47357e5583eb09288c6"
+    },
+    {
+      "id": "PV04",
+      "method": "verify",
+      "status": "PASS",
+      "initial_head": "sha256:0b3522df5b691691d41d9b4587377781fc7048c991a4e47357e5583eb09288c6",
+      "final_head": "sha256:0b3522df5b691691d41d9b4587377781fc7048c991a4e47357e5583eb09288c6"
+    },
+    {
+      "id": "PV05",
+      "method": "verify",
+      "status": "PASS",
+      "initial_head": "sha256:0b3522df5b691691d41d9b4587377781fc7048c991a4e47357e5583eb09288c6",
+      "final_head": "sha256:0b3522df5b691691d41d9b4587377781fc7048c991a4e47357e5583eb09288c6"
+    },
+    {
+      "id": "PV06",
+      "method": "verify",
+      "status": "PASS",
+      "initial_head": "sha256:0b3522df5b691691d41d9b4587377781fc7048c991a4e47357e5583eb09288c6",
+      "final_head": "sha256:0b3522df5b691691d41d9b4587377781fc7048c991a4e47357e5583eb09288c6"
+    }
+  ],
+  "replay": null,
+  "raw_sha256": {
+    "events.jsonl": "8235331dfec45174189af7c52dcab7b3f3f97d440ee2d5b7f07c6e91ae026415",
+    "execution.json": "2eb04e65a1716db97e5f768324df4fb86025a3fa7255d1ffd58c05865659feca",
+    "identity.json": "6cf0f6aa9ee7e522be37b1675b2c79c0597917370c2d4d3b13ec1c2638085432",
+    "PV01-V.json": "11c25e8c8142aada79dc2ef0cc020755321a857911bf1a0acee6ec74424621ad",
+    "PV02-V.json": "fc9ee5707010b8e64d0ee740b3b5a7e100ba86021e6c1422c6fc94f75bb59d0f",
+    "PV03-V.json": "59ac4282c97ddb19181b8dd664921b13ea81b1be3fc672309be1cbb93bfb7404",
+    "PV04-V.json": "fe63f4e6ab43ddb3867958bc4df180d98ae148755728ee54da5961f9d234795f",
+    "PV05-V.json": "c5351b4b07cddd8348734d0e97a6cc19021d09c86fb608c9eaa3b0a8e857b99a",
+    "PV06-V.json": "cf0e44aa20bf59caaf2fe3566f19862549d7a2b605807b4bddaa4f6a6ac9232c"
+  },
+  "scope": "raw locality only; exact producer/source/provider/physical PID and required paint admission remain separate",
+  "CI_LIVE_EXECUTION": "UNPROVEN",
+  "currency": "COST_NOT_MEASURED"
+}

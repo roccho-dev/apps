@@ -6,6 +6,9 @@ on:
       - ".github/workflows/voice-ui-release.yml"
       - ".github/voice-ui-release/**"
       - "packages/voice-ui/**"
+      - "docs/voice-ui/candidate-ci-20261017/**"
+      - "docs/voice-ui/component-axes-20261017/**"
+      - "docs/voice-ui/requirements-cycle-20261017/**"
       - "flake.nix"
       - "flake.lock"
   workflow_dispatch:
@@ -76,6 +79,80 @@ jobs:
           unzip -q dist/release/voice-ui-dist.zip -d "$reopened"
           test "$(ls -A "$reopened")" = voice-ui-dist
           diff -r dist/voice-ui-dist "$reopened/voice-ui-dist"
+          runtime="$(nix build --no-link --print-out-paths .#voice-ui-acceptance-runtime)"
+          "$runtime/bin/voice-ui-acceptance-node" packages/voice-ui/acceptance/candidate-browser.mjs \
+            "$reopened/voice-ui-dist" "$PWD/dist/candidate-browser-evidence"
+          "$runtime/bin/voice-ui-acceptance-node" packages/voice-ui/acceptance/component-axes-smoke.mjs \
+            "$reopened/voice-ui-dist" "$PWD/dist/component-axes-mechanics"
+          "$runtime/bin/voice-ui-acceptance-node" packages/voice-ui/acceptance/requirements-cycle-smoke.mjs \
+            "$reopened/voice-ui-dist" "$PWD/dist/requirements-cycle-mechanics"
+          POC_PROTOCOL_ENTRY="$reopened/voice-ui-dist/site/ui/semantic-map/protocol/index.js" \
+          POC_SOURCE_ROOT="$PWD/packages/voice-ui" \
+          POC_AXIS_FIXTURES="$PWD/docs/voice-ui/component-axes-20261017/preregistered" \
+          POC_RESERVE_FIXTURES="$PWD/docs/voice-ui/component-axes-20261017/evidence/final-E" \
+          POC_RESERVE_BUNDLE="$reopened/voice-ui-dist/site/data/bundle.v1.json" \
+            "$runtime/bin/voice-ui-acceptance-node" --test packages/voice-ui/tests/component-axis-audit.test.mjs \
+              packages/voice-ui/tests/component-axis-reserve-audit.test.mjs \
+            | tee "$PWD/dist/component-axes-mechanics/audit-tests.log"
+      - name: Preserve completed-ZIP browser evidence
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: voice-ui-candidate-browser-${{ github.event.pull_request.head.sha || github.sha }}
+          path: |
+            dist/candidate-browser-evidence/
+            dist/component-axes-mechanics/
+            dist/requirements-cycle-mechanics/
+          if-no-files-found: ignore
+      - name: Verify stopped live evidence with exact recorded artifacts
+        run: |
+          set -euo pipefail
+          runtime="$(nix build --no-link --print-out-paths .#voice-ui-acceptance-runtime)"
+          "$runtime/bin/voice-ui-acceptance-node" packages/voice-ui/acceptance/verify-candidate-evidence.mjs \
+            "$PWD/docs/voice-ui/candidate-ci-20261017/evidence/index.json" "$PWD/dist/candidate-closed-evidence"
+      - name: Preserve stopped-evidence verification
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: voice-ui-closed-evidence-${{ github.event.pull_request.head.sha || github.sha }}
+          path: |
+            dist/candidate-closed-evidence/receipt.json
+            dist/candidate-closed-evidence/*/audit.json
+            dist/candidate-closed-evidence/*/ci-replay/receipt.json
+            dist/candidate-closed-evidence/*/mutation-test.txt
+          if-no-files-found: ignore
+      - name: Verify component axes with exact stopped artifacts
+        run: |
+          set -euo pipefail
+          runtime="$(nix build --no-link --print-out-paths .#voice-ui-acceptance-runtime)"
+          "$runtime/bin/voice-ui-acceptance-node" packages/voice-ui/acceptance/verify-component-axes.mjs \
+            "$PWD/docs/voice-ui/component-axes-20261017/evidence/index.json" "$PWD/dist/component-axes-closed-evidence"
+      - name: Preserve component axes verification
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: voice-ui-component-axes-${{ github.event.pull_request.head.sha || github.sha }}
+          path: |
+            dist/component-axes-closed-evidence/receipt.json
+            dist/component-axes-closed-evidence/*/audit.json
+            dist/component-axes-closed-evidence/*/ci-replay/receipt.json
+          if-no-files-found: ignore
+      - name: Verify requirements cycle with exact stopped artifacts
+        run: |
+          set -euo pipefail
+          runtime="$(nix build --no-link --print-out-paths .#voice-ui-acceptance-runtime)"
+          "$runtime/bin/voice-ui-acceptance-node" packages/voice-ui/acceptance/verify-requirements-cycle.mjs \
+            "$PWD/docs/voice-ui/requirements-cycle-20261017/evidence/index.json" "$PWD/dist/requirements-cycle-closed-evidence"
+      - name: Preserve requirements cycle verification
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: voice-ui-requirements-cycle-${{ github.event.pull_request.head.sha || github.sha }}
+          path: |
+            dist/requirements-cycle-closed-evidence/receipt.json
+            dist/requirements-cycle-closed-evidence/*/audit.json
+            dist/requirements-cycle-closed-evidence/*/ci-replay/receipt.json
+          if-no-files-found: ignore
       - name: Export the acceptance runtime closure
         run: |
           set -euo pipefail

@@ -1,0 +1,54 @@
+{
+  "schema": "voice-ui.independent-public-selection-recommendation/1",
+  "observed_at": "2026-10-17T10:14:21.848Z",
+  "status": "RECOMMEND_B_BEFORE_UNSEEN",
+  "recommended_primary": "B",
+  "rationale": "Smallest adequate public diagnostic method; C has no observed advantage over B and retains H06/H08 candidate omissions. The public evidence spans source revisions and is not a complete same-source comparison.",
+  "evidence": [
+    {
+      "phase": "public-initial-f2e9",
+      "classification": "INVALID_PARTIAL",
+      "known_B_missing_exact": [
+        "H05"
+      ],
+      "source": "f2e9a4cfb8dd2740b674b0597d06022c1f4a9549"
+    },
+    {
+      "phase": "correction-two-2c8b",
+      "classification": "VALID_PARTIAL_CORRECTION",
+      "known_C_missing_exact": [
+        "H05"
+      ],
+      "source": "2c8b25ed30c33580a5902a07907e3aeaed430c25"
+    },
+    {
+      "phase": "public-remainder-2c8b",
+      "classification": "VALID_PARTIAL_PUBLIC_REMAINDER",
+      "known_A_missing_exact": [],
+      "known_B_missing_exact": [
+        "H06",
+        "H07",
+        "H08"
+      ],
+      "known_C_missing_exact": [
+        "H07"
+      ],
+      "C_quality_failures": [
+        "H06",
+        "H08"
+      ],
+      "source": "2c8b25ed30c33580a5902a07907e3aeaed430c25"
+    }
+  ],
+  "restrictions": [
+    "Do not pool these phases into an admissible same-source complete panel.",
+    "Fix primary method in final source/docs before input-only unseen release.",
+    "Run all ABC cells once at one admitted final source; report all denominators and C accepted-gate paired gains.",
+    "B remains a comparison-only helper; ordinary product UI uses C. A finite B pass cannot imply the TypeLLM product path meets expected quality.",
+    "No third cause-led correction or unseen reuse."
+  ],
+  "fresh_inputs_exposed": false,
+  "CI_LIVE_EXECUTION": "UNPROVEN",
+  "four_way_comparison": "INCOMPLETE_D_BLOCKED_COST",
+  "currency": "COST_NOT_MEASURED"
+}

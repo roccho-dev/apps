@@ -1,0 +1,216 @@
+{
+  "schema": "voice-ui.requirements-cycle-independent-final-review/1",
+  "status": "BOUNDED_CYCLE_STOPPED_PUBLIC_F_GATE_FAILED",
+  "baseline_charged": {
+    "jev": 689,
+    "typellm": 40
+  },
+  "sent_this_cycle": {
+    "jev": 12,
+    "typellm": 18
+  },
+  "charged": {
+    "jev": 701,
+    "typellm": 58
+  },
+  "confirmed": {
+    "jev": 701,
+    "typellm": 57
+  },
+  "all_five_phases_integrity": "PASS",
+  "all_five_physical_stops_and_empty_reservations": "PASS",
+  "all_journal_cutoffs_exact_byte_prefix": "PASS",
+  "public_rows": [
+    {
+      "id": "public-F",
+      "all_valid_execution": false,
+      "complete": true,
+      "semantic": {
+        "complete": true,
+        "total": 6,
+        "exact_minimal": 2,
+        "true_sufficient": {
+          "total": 2,
+          "zero_missing": 1
+        },
+        "requirements_criteria": "UNMET"
+      },
+      "sent": {
+        "jev": 0,
+        "typellm": 6
+      },
+      "charged_at_cutoff": {
+        "jev": 689,
+        "typellm": 46
+      },
+      "raw_audit_sha256": "99b415876c344bb6ff8ca35ea0e184374562b6c4ea2a73a7d87c639b7639db6e",
+      "producer_sha256": "40cc4975b8738d1036ac430596f8f172ce2aa51f24d95b01ee93aea889006380",
+      "stop_audit_sha256": "c9c6112bb7c25c3408dd76755eb1055e0c4da9755d12733d039737fe901feec1"
+    },
+    {
+      "id": "correction1-F",
+      "all_valid_execution": false,
+      "complete": true,
+      "semantic": {
+        "complete": true,
+        "total": 6,
+        "exact_minimal": 2,
+        "true_sufficient": {
+          "total": 2,
+          "zero_missing": 1
+        },
+        "requirements_criteria": "UNMET"
+      },
+      "sent": {
+        "jev": 0,
+        "typellm": 6
+      },
+      "charged_at_cutoff": {
+        "jev": 689,
+        "typellm": 52
+      },
+      "raw_audit_sha256": "d65fef20b10a6c5eda6b142974fa93ecc4587535abf9609e1425ad149be8e072",
+      "producer_sha256": "ed46c27907fdc9505be587e801d809cf3b45d51c3f38b337ece9f46e93adb331",
+      "stop_audit_sha256": "c3887c22bf58420df59a9a17df9ec361d9adc633ff34146aed734afeaa0495bb"
+    },
+    {
+      "id": "correction1-V",
+      "all_valid_execution": true,
+      "complete": true,
+      "semantic": {
+        "complete": true,
+        "total": 6,
+        "correct": 3,
+        "false_acceptance": 0,
+        "verification_criteria": "UNMET"
+      },
+      "sent": {
+        "jev": 6,
+        "typellm": 0
+      },
+      "charged_at_cutoff": {
+        "jev": 695,
+        "typellm": 52
+      },
+      "raw_audit_sha256": "e2758ab49ba22dc35948801789b02662f3f8503756cf4601b1d906a2034235cd",
+      "producer_sha256": "c4429a26b90c58386cfce12f9df485ba918b6e5302aebd2980214e338712c95c",
+      "stop_audit_sha256": "f202e91b5f4372c751e43052d5465b8a024f5655c61f0dae53fe89ef611b2920"
+    },
+    {
+      "id": "correction2-F",
+      "all_valid_execution": false,
+      "complete": true,
+      "semantic": {
+        "complete": true,
+        "total": 6,
+        "exact_minimal": 2,
+        "true_sufficient": {
+          "total": 2,
+          "zero_missing": 1
+        },
+        "requirements_criteria": "UNMET"
+      },
+      "sent": {
+        "jev": 0,
+        "typellm": 6
+      },
+      "charged_at_cutoff": {
+        "jev": 695,
+        "typellm": 58
+      },
+      "raw_audit_sha256": "20c93015e55bf67bda4c532bd7ae2d229b004b531f299f3746206e5f002fff32",
+      "producer_sha256": "d098967ccd6fcd8972caab6912b0b7ae1088e30c7deb9333174d870535655b05",
+      "stop_audit_sha256": "b125f9ce8431063a9a184a033400abe200f1e6a0e39606af75b3dfb5aa71997c"
+    },
+    {
+      "id": "correction2-V",
+      "all_valid_execution": true,
+      "complete": true,
+      "semantic": {
+        "complete": true,
+        "total": 6,
+        "correct": 6,
+        "false_acceptance": 0,
+        "verification_criteria": "PASS"
+      },
+      "sent": {
+        "jev": 6,
+        "typellm": 0
+      },
+      "charged_at_cutoff": {
+        "jev": 701,
+        "typellm": 58
+      },
+      "raw_audit_sha256": "8da7c0d76dc594f1bea8ae8ae9c36d8a172be72f7194256ca7504e34d0ab6b57",
+      "producer_sha256": "34605412bbdfb24717e5ae7f2a5b3b6250901be9d218fcc2120877960a66c3a2",
+      "stop_audit_sha256": "e04b3370515f4066f2d6ff79723a8d4279700429e89f65522c326dd7ce71a9f9"
+    }
+  ],
+  "V": {
+    "comparison": "exposed public regression only, different source; not unseen generalization or whole-product causal effect",
+    "previous_correct": 3,
+    "final_correct": 6,
+    "final_positive_acceptance": "3/3",
+    "final_negative_rejection": "3/3",
+    "final_false_acceptance": 0,
+    "threshold_unchanged": 0.5
+  },
+  "F": {
+    "exact_minimal_history": [
+      2,
+      2,
+      2
+    ],
+    "valid_history": [
+      3,
+      3,
+      2
+    ],
+    "invalid_history": [
+      3,
+      3,
+      4
+    ],
+    "unavailable_invalid_scalar_values": "NOT_RECONSTRUCTED",
+    "necessary_public_gate": "FAILED",
+    "whole_quality": "UNPROVEN_WITH_KNOWN_UNMET"
+  },
+  "E": {
+    "executed": 0,
+    "causal_effect": "UNPROVEN_NOT_MEASURED"
+  },
+  "unseen": {
+    "released": 0,
+    "executed": 0,
+    "unchanged_commitments": [
+      {
+        "axis": "V",
+        "input_sha256": "be1b471949ed9201b2278214db832068ad6d6393a739ad29494b4d302404f12e",
+        "oracle_sha256": "54749c5fd8e0c9f5fc18715b9a675b2fc7c698de349fd0f3241606539f2b8bcd",
+        "unchanged": true
+      },
+      {
+        "axis": "F",
+        "input_sha256": "0b58871d1d8ca77e4ab2bc56e2fb3f91d886315c172abff677a5eb3550386ce4",
+        "oracle_sha256": "bf4e8d38f758051e237c721545f545be89f716b71d963121aa8dbbc170f4fb42",
+        "unchanged": true
+      },
+      {
+        "axis": "E",
+        "input_sha256": "cfc492e1b37e3ee2ae8590bea8e1f82d7f0d5ea7dcf645ba09c2fa0e47cedcc5",
+        "oracle_sha256": "3cdd7c41ac61e1c646ffb4bbcf1f1e32eab306fb716710896dcec438ca9f3c67",
+        "unchanged": true
+      }
+    ]
+  },
+  "representation": {
+    "scope": "prior supplied-inventory R8 finite conditional evidence only; six core files and actual renderer bytes preserved",
+    "current_new_live_R_trial": false
+  },
+  "overall_user_goal": "NOT_ACHIEVED",
+  "general_typellm_no_effect": "NOT_ESTABLISHED",
+  "process": "both registered source corrections exhausted; no third correction, E/fresh or automatic leftover reallocation",
+  "CI_LIVE_EXECUTION": "UNPROVEN",
+  "currency": "COST_NOT_MEASURED",
+  "closure": "pending final report-only exact CI and independent artifact/source readback"
+}

@@ -1,0 +1,10 @@
+[
+  {
+    "stream": "stdout",
+    "line": "{\"kind\":\"voice-ui.parts.contract.v1\",\"stage\":\"local-result\",\"rootExact\":true,\"slots\":[{\"exact\":true,\"label\":\"nonempty\",\"kind\":\"step\",\"quantity\":0},{\"exact\":true,\"label\":\"empty\",\"kind\":\"none\",\"quantity\":0},{\"exact\":true,\"label\":\"nonempty\",\"kind\":\"step\",\"quantity\":0}],\"duplicatePair\":true}"
+  },
+  {
+    "stream": "stderr",
+    "line": "provider-send:typellm:1"
+  }
+]

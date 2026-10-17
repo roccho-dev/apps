@@ -1,0 +1,19 @@
+{
+  "phase_id": "candidate-correction-1-20261017",
+  "pid": 252935,
+  "state": "R",
+  "pgid": 252935,
+  "start_ticks": "13829959",
+  "program": "/nix/store/bg0bygqiid25xnivxv9cdgjlx3sp939j-voice-ui-typed-dev/bin/voice-ui-typed-dev",
+  "heads": {
+    "apps": "f2fa07baeb54dd795c17d03178c5f2a508be6733",
+    "envs": "063e685b8b21a97fc8658879da93fa858552bcd6"
+  },
+  "allowances": {
+    "jev": 36,
+    "typellm": 1
+  },
+  "stdout": "/work/repos/voice-ui-typellm-20261016/candidate-correction-1-20261017.stdout.log",
+  "stderr": "/work/repos/voice-ui-typellm-20261016/candidate-correction-1-20261017.stderr.log",
+  "config_sha256": "3b445ecc8949313b4342d518746951464e8c1e20361df65431d567143de8b284"
+}

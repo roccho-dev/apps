@@ -63,6 +63,20 @@ const fitFixture = bounds => {
 const holds = (bbox, box) => box[0] >= bbox[0] && box[1] >= bbox[1]
   && box[0] + box[2] <= bbox[0] + bbox[2] && box[1] + box[3] <= bbox[1] + bbox[3];
 
+test("a named group camera fits its origin and every child without shrinking for unused boundary space", () => {
+  for (const width of [900, 2000]) {
+    const boxes = { g: [0, 0, width, 500], a: [12, 36, 180, 92], b: [216, 36, 180, 92], c: [420, 36, 180, 92] };
+    const { graph, protocol } = fitFixture(boxes);
+    for (const record of graph.records) { record.type = "region"; record.parent = record.id === "g" ? "root" : "g"; }
+    graph.records[0].kind = "group";
+    const before = structuredClone(graph.records);
+    const frame = frameFor({ graph, width: 626, height: 429, protocol, part: "g" });
+    for (const box of [[0, 0, 240, 60], boxes.a, boxes.b, boxes.c]) assert.ok(holds(frame.bbox, box));
+    assert.ok(frame.bbox[2] >= 626 && frame.bbox[3] >= 429 && frame.bbox[2] < 650);
+    assert.deepEqual(graph.records, before);
+  }
+});
+
 test("a camera on two parts whose union fits keeps one layout unit per pixel, centred on the union", () => {
   const boxes = { a: [100, 200, 140, 64], b: [300, 250, 180, 92] };
   const { graph, protocol, readOnce } = fitFixture(boxes);

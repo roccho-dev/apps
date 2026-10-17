@@ -1,0 +1,28 @@
+ROUND_10_GREEN
+
+Independent source, artifact and evidence closure for exact head `07c534397b88538f5b1104365999108150054cb0`, tree `8a2ed434b48f4862b42d3d0ec046410b46d04a60`. Overall product quality remains **UNMET**. This is a COMMENT review of the completed four-axis process; human acceptance, merging and CI-origin live execution remain outstanding.
+
+The measured source is `286eb7d0bc0bdef160bda900547314aa5be3a752`, admitted before the once-only unseen runs by [R9](https://github.com/roccho-dev/apps/pull/103#pullrequestreview-5558028175). I independently verified:
+
+- The 14 measured product/harness/scorer sources and frozen semantic/audit criteria are byte-identical. All eight committed phase snapshots, including 185 raw/input/oracle/producer/process/log/journal/audit files, match the independently stopped originals. Protocol, every semantic score, provider accounting and fixed producer bindings were recalculated.
+- The completed candidate has 294 files: 291 match the measured artifact byte-for-byte. The only differences are `architecture/evidence.json` revision, `site/architecture/data/source.v1.json` revision and explicitly excluded verifier/test inventory, and corresponding `manifest.json` provenance/file enumeration. All ordinary source, Worker, provider, protocol and UI bytes match. The dev program changes only its Worker, architecture and source references; actual referenced ordinary bytes match. The official distribution verifier passes.
+- The reserve auditor's exception-discrimination style correction changes one expression only. Actual valid data, four malformed-JSON inputs and four consistently rehashed semantic mutations produce identical old/new outputs; its five mutation groups pass. The original module and validation remain preserved. This establishes equivalence for this auditor's JSON.parse/own-Error paths.
+- Actual [completed-ZIP CI evidence](https://github.com/roccho-dev/apps/actions/runs/39040174411/artifacts/12103891647) was downloaded and matched to GitHub's digest. I recalculated the protocol/events and painted assessments: ten normal/503 cells, 21 assessed browser frames, 26 negative controls, three Undo/Apply/reload mechanics fixtures and 18 audit groups pass. Its synthetic-only scope remains explicit.
+- Actual [eight-phase CI evidence](https://github.com/roccho-dev/apps/actions/runs/39040174411/artifacts/12103812950) also matches GitHub's digest. All reported raw/provider/producer results equal my original audits. I recalculated all scores, four independent CI replay joins and the original `b6498501…` reserve-to-E projection, including unchanged case order, golden fields, fixture and one-use stock subtraction. Invalid Type observations remain invalid and in the denominator.
+
+All four exact-head workflows passed: [full Nix](https://github.com/roccho-dev/apps/actions/runs/39040174405), [completed ZIP and evidence closure](https://github.com/roccho-dev/apps/actions/runs/39040174411), [artifact](https://github.com/roccho-dev/apps/actions/runs/39040174484), [auth](https://github.com/roccho-dev/apps/actions/runs/39040174464).
+
+The independently reproduced final classifications are:
+
+| Axis | Observation | Classification |
+| --- | --- | --- |
+| G, initial judgment | Normalized accepted gate 8/10; two unsuccessful cases retained | UNMET |
+| R, all needed parts supplied | Exact graph 8/8 and actual painted target 8/8 | FINITE_CRITERIA_PASS, conditional on supplied inventory and this finite scope |
+| F, direct missing-parts supply | B exact/minimal 3/8; Type C 4/8; one invalid C contract retained | Whole comparison UNPROVEN; known omissions/extras UNMET |
+| E, ordinary default B | Gate/target 7/10; sufficient exact 2/4, missing exact/minimal 3/4, controls 2/2 | UNMET |
+
+E's ten actual produced graphs pass paint/persistence/deadline checks, including the three unchanged graphs where incomplete requirements caused a stop. These mechanics do not turn those stops into target successes. Accepted-correct E cases achieve graph 7/7. The public four phases remain PUBLIC_REGRESSION_ONLY. C-only successes in two F examples justify a separately registered proposal hypothesis; they do not establish ordinary-UI improvement or general superiority.
+
+The stopped ledger is charged Jev **689**, TypeLLM **40**; confirmed sends are **689/39**, retaining one historical conservative unsent Type charge. No reservation remains. Current-cycle calls are finished, all consumed pools are regression-only, and the separately bounded next cycle has not run. Currency is COST_NOT_MEASURED and CI_LIVE_EXECUTION is UNPROVEN. Apps remains draft/open/unmerged; UI#362 remains at provisional `756d47e…`, open/unmerged with explicit human merge approval pending.
+
+Independent readback hashes: source/evidence audit `9c805be12517c3bb2c2ad4aa190923c07947212e4a88dd3ed41e3fedee2564cf`; ordinary runtime bridge `c302bd69be2c84fab65c37a58052eea8e135068487e4e793983ba24197788789`; actual CI eight-phase recomputation `0567c7dd860fba80564970570e8a4bcb3100f08710522dc67a0e8db8839ff812`.

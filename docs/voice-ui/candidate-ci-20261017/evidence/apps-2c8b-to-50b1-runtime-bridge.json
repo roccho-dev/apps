@@ -1,0 +1,44 @@
+{
+  "observed_at": "2026-10-17T10:21:27.555Z",
+  "from": "2c8b25ed30c33580a5902a07907e3aeaed430c25",
+  "to": "50b17036d1c73d18fd92db95d6ff84350e1566d5",
+  "total_members": 292,
+  "changes": [
+    {
+      "path": "architecture/evidence.json",
+      "before": {
+        "bytes": 358172,
+        "path": "architecture/evidence.json",
+        "sha256": "50e00d32960e14a8753e74488f47ae7db7f9557b2af6857fc636ce43651eeecd"
+      },
+      "after": {
+        "bytes": 358172,
+        "path": "architecture/evidence.json",
+        "sha256": "bb87981c71e908b07f55f01f47cb13bff4fdfd0772fa40324fd8203926ed4b5a"
+      }
+    },
+    {
+      "path": "site/architecture/data/source.v1.json",
+      "before": {
+        "bytes": 32899,
+        "path": "site/architecture/data/source.v1.json",
+        "sha256": "39f14ce1a9f4e01805473f6ecaa94918f7de2be35dc9ce657eb955dad2c3e05e"
+      },
+      "after": {
+        "bytes": 33653,
+        "path": "site/architecture/data/source.v1.json",
+        "sha256": "5b9d8a5ad23c1572e6e94fadaa4a56f179d2731657140b5b2670ee677ac85777"
+      }
+    }
+  ],
+  "missing": [],
+  "bad": [],
+  "manifest": {
+    "before": "7b05ca9282211c6e21c071e3d30d599c1146f1a2c66aa3eae9a492349a8809f0",
+    "after": "39c0f1d572f67a28efe1f1be0eb0b7a74ef0c819334fa83012477b67c60c6408"
+  },
+  "worker_raw_identical": true,
+  "provider_raw_identical": true,
+  "protocol_raw_identical": true,
+  "production_source_changes": []
+}

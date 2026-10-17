@@ -1,0 +1,142 @@
+{
+  "status": "VALID_SEMANTIC_FAILURES",
+  "rows": [
+    {
+      "id": "G02",
+      "utterance": "判断という表示名の判断部品を1個だけOCIに追加してください。",
+      "result": {
+        "choice": "unknown",
+        "confidence": null,
+        "inspection": {
+          "source": "literal+jev",
+          "recognized": false,
+          "required": [],
+          "missing": [],
+          "spans": [],
+          "completeness": {
+            "choice": "incomplete",
+            "confidence": 0.96
+          }
+        }
+      },
+      "calls": [
+        {
+          "route": "/api/parts/check",
+          "status": 200,
+          "response": {
+            "choice": "unknown",
+            "confidence": null,
+            "inspection": {
+              "source": "literal+jev",
+              "recognized": false,
+              "required": [],
+              "missing": [],
+              "spans": [],
+              "completeness": {
+                "choice": "incomplete",
+                "confidence": 0.96
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "G03",
+      "utterance": "OCIに「開始」という開始部品と「終了」という終了部品を各1個追加し、ほかは変更しないでください。",
+      "result": {
+        "choice": "sufficient",
+        "confidence": 0.28,
+        "inspection": {
+          "source": "literal+jev",
+          "recognized": true,
+          "required": [
+            {
+              "label": "開始",
+              "kind": "start",
+              "quantity": 1
+            },
+            {
+              "label": "終了",
+              "kind": "end",
+              "quantity": 1
+            }
+          ],
+          "missing": [],
+          "spans": [
+            {
+              "start": 5,
+              "end": 7,
+              "source": "開始",
+              "label": "開始",
+              "kind": "start",
+              "quantity": 1
+            },
+            {
+              "start": 17,
+              "end": 19,
+              "source": "終了",
+              "label": "終了",
+              "kind": "end",
+              "quantity": 1
+            }
+          ],
+          "completeness": {
+            "choice": "complete",
+            "confidence": 0.88
+          }
+        }
+      },
+      "calls": [
+        {
+          "route": "/api/parts/check",
+          "status": 200,
+          "response": {
+            "choice": "sufficient",
+            "confidence": 0.28,
+            "inspection": {
+              "source": "literal+jev",
+              "recognized": true,
+              "required": [
+                {
+                  "label": "開始",
+                  "kind": "start",
+                  "quantity": 1
+                },
+                {
+                  "label": "終了",
+                  "kind": "end",
+                  "quantity": 1
+                }
+              ],
+              "missing": [],
+              "spans": [
+                {
+                  "start": 5,
+                  "end": 7,
+                  "source": "開始",
+                  "label": "開始",
+                  "kind": "start",
+                  "quantity": 1
+                },
+                {
+                  "start": 17,
+                  "end": 19,
+                  "source": "終了",
+                  "label": "終了",
+                  "kind": "end",
+                  "quantity": 1
+                }
+              ],
+              "completeness": {
+                "choice": "complete",
+                "confidence": 0.88
+              }
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "scope": "no source/criteria change; unknown grammar and weak confidence remain denominator failures"
+}

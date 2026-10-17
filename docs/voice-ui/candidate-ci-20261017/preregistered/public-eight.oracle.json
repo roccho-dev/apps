@@ -1,0 +1,419 @@
+{
+  "schema": "voice-ui.poc.public-regression-oracle/2",
+  "reviewer": "/root/poc_reviewer",
+  "source_baseline": "42aa9a473d287607ba58967ef2992c052edc7943",
+  "training_source_sha256": "22e47667ba3d6eaf1061c058b7f3e8fe07824dd3885b24264603a2be0b1f2c32",
+  "fixture_contract": {
+    "map_id": "voice-graph",
+    "base_records": [
+      {
+        "type": "meta",
+        "schema": "semantic-map-state/1",
+        "root": "root",
+        "title": "sealed small PoC"
+      },
+      {
+        "type": "region",
+        "id": "root",
+        "parent": null,
+        "label": "fixture",
+        "kind": "boundary",
+        "bounds": [
+          0,
+          0,
+          900,
+          400
+        ],
+        "summary": ""
+      },
+      {
+        "type": "region",
+        "id": "container",
+        "parent": "root",
+        "label": "OCI",
+        "kind": "group",
+        "bounds": [
+          0,
+          0,
+          700,
+          200
+        ],
+        "summary": ""
+      },
+      {
+        "type": "region",
+        "id": "other",
+        "parent": "root",
+        "label": "Other",
+        "kind": "group",
+        "bounds": [
+          0,
+          230,
+          700,
+          160
+        ],
+        "summary": ""
+      }
+    ],
+    "base_pins": [
+      {
+        "regionId": "container",
+        "bounds": [
+          0,
+          0,
+          2000,
+          500
+        ]
+      },
+      {
+        "regionId": "other",
+        "bounds": [
+          0,
+          600,
+          2000,
+          500
+        ]
+      }
+    ],
+    "fixtures": {
+      "empty": {
+        "extra_records": [],
+        "extra_pins": []
+      },
+      "api": {
+        "extra_records": [
+          {
+            "type": "region",
+            "id": "initial-api",
+            "parent": "container",
+            "label": "API",
+            "kind": "step",
+            "bounds": [
+              20,
+              20,
+              140,
+              64
+            ],
+            "summary": ""
+          }
+        ],
+        "extra_pins": [
+          {
+            "regionId": "initial-api",
+            "bounds": [
+              12,
+              36,
+              140,
+              64
+            ]
+          }
+        ]
+      },
+      "pair": {
+        "extra_records": [
+          {
+            "type": "region",
+            "id": "initial-api",
+            "parent": "container",
+            "label": "API",
+            "kind": "step",
+            "bounds": [
+              20,
+              20,
+              140,
+              64
+            ],
+            "summary": ""
+          },
+          {
+            "type": "region",
+            "id": "initial-db",
+            "parent": "container",
+            "label": "DB",
+            "kind": "data",
+            "bounds": [
+              200,
+              20,
+              140,
+              64
+            ],
+            "summary": ""
+          }
+        ],
+        "extra_pins": [
+          {
+            "regionId": "initial-api",
+            "bounds": [
+              12,
+              36,
+              140,
+              64
+            ]
+          },
+          {
+            "regionId": "initial-db",
+            "bounds": [
+              200,
+              36,
+              140,
+              64
+            ]
+          }
+        ]
+      }
+    },
+    "recent_conversation": [],
+    "scope": null
+  },
+  "cases": [
+    {
+      "id": "H01",
+      "fixture": "empty",
+      "utterance": "OCIの中にAPIをひとつ追加して。ほかは変えないで。",
+      "expected_gate": "sufficient",
+      "expected_missing": [],
+      "expected_added_regions": [
+        {
+          "label": "API",
+          "kind": "step",
+          "parent": "fixture:container"
+        }
+      ],
+      "expected_added_edges": []
+    },
+    {
+      "id": "H05",
+      "fixture": "empty",
+      "utterance": "OCIの中に「整形受付」という名前の工程をひとつだけ作って。",
+      "expected_gate": "missing",
+      "expected_missing": [
+        {
+          "label": "整形受付",
+          "kind": "step",
+          "occurrence": 1
+        }
+      ],
+      "expected_added_regions": [
+        {
+          "label": "整形受付",
+          "kind": "step",
+          "parent": "fixture:container"
+        }
+      ],
+      "expected_added_edges": []
+    },
+    {
+      "id": "H09",
+      "fixture": "empty",
+      "utterance": "OCIにあれを追加して。",
+      "expected_gate": "ambiguous",
+      "expected_missing": [],
+      "expected_added_regions": [],
+      "expected_added_edges": []
+    },
+    {
+      "id": "H02",
+      "fixture": "empty",
+      "utterance": "OCIに判断の部品を1個だけ置いて。",
+      "expected_gate": "sufficient",
+      "expected_missing": [],
+      "expected_added_regions": [
+        {
+          "label": "判断",
+          "kind": "decision",
+          "parent": "fixture:container"
+        }
+      ],
+      "expected_added_edges": []
+    },
+    {
+      "id": "H06",
+      "fixture": "empty",
+      "utterance": "OCIの中に「読込班」「点検班」「保管班」という3つのグループを、同じ階層に1つずつ追加して。",
+      "expected_gate": "missing",
+      "expected_missing": [
+        {
+          "label": "読込班",
+          "kind": "group",
+          "occurrence": 1
+        },
+        {
+          "label": "点検班",
+          "kind": "group",
+          "occurrence": 1
+        },
+        {
+          "label": "保管班",
+          "kind": "group",
+          "occurrence": 1
+        }
+      ],
+      "expected_added_regions": [
+        {
+          "label": "読込班",
+          "kind": "group",
+          "parent": "fixture:container"
+        },
+        {
+          "label": "点検班",
+          "kind": "group",
+          "parent": "fixture:container"
+        },
+        {
+          "label": "保管班",
+          "kind": "group",
+          "parent": "fixture:container"
+        }
+      ],
+      "expected_added_edges": []
+    },
+    {
+      "id": "H10",
+      "fixture": "pair",
+      "utterance": "追加も接続もしないで。今の図をそのままにしておいて。",
+      "expected_gate": "no-change",
+      "expected_missing": [],
+      "expected_added_regions": [],
+      "expected_added_edges": []
+    },
+    {
+      "id": "H07",
+      "fixture": "empty",
+      "utterance": "OCIにDBを3つ追加して。表示名は3つともDBで、矢印はいらない。",
+      "expected_gate": "missing",
+      "expected_missing": [
+        {
+          "label": "DB",
+          "kind": "data",
+          "occurrence": 1
+        },
+        {
+          "label": "DB",
+          "kind": "data",
+          "occurrence": 2
+        }
+      ],
+      "expected_added_regions": [
+        {
+          "label": "DB",
+          "kind": "data",
+          "parent": "fixture:container"
+        },
+        {
+          "label": "DB",
+          "kind": "data",
+          "parent": "fixture:container"
+        },
+        {
+          "label": "DB",
+          "kind": "data",
+          "parent": "fixture:container"
+        }
+      ],
+      "expected_added_edges": []
+    },
+    {
+      "id": "H08",
+      "fixture": "empty",
+      "utterance": "OCIに「検品室」というグループを作り、その中に「寸法測定」という工程と「測定票」というデータを置いて。寸法測定から測定票へ矢印を1本つないで。",
+      "expected_gate": "missing",
+      "expected_missing": [
+        {
+          "label": "検品室",
+          "kind": "group",
+          "occurrence": 1
+        },
+        {
+          "label": "寸法測定",
+          "kind": "step",
+          "occurrence": 1
+        },
+        {
+          "label": "測定票",
+          "kind": "data",
+          "occurrence": 1
+        }
+      ],
+      "expected_added_regions": [
+        {
+          "label": "検品室",
+          "kind": "group",
+          "parent": "fixture:container"
+        },
+        {
+          "label": "寸法測定",
+          "kind": "step",
+          "parent": "added:検品室"
+        },
+        {
+          "label": "測定票",
+          "kind": "data",
+          "parent": "added:検品室"
+        }
+      ],
+      "expected_added_edges": [
+        {
+          "from": "added:寸法測定",
+          "to": "added:測定票",
+          "kind": "flow",
+          "label": ""
+        }
+      ]
+    }
+  ],
+  "comparison": {
+    "case_order": [
+      "H01",
+      "H05",
+      "H09",
+      "H02",
+      "H06",
+      "H10",
+      "H07",
+      "H08"
+    ],
+    "arm_order": [
+      [
+        "A",
+        "B",
+        "C"
+      ],
+      [
+        "B",
+        "C",
+        "A"
+      ],
+      [
+        "C",
+        "A",
+        "B"
+      ],
+      [
+        "A",
+        "B",
+        "C"
+      ],
+      [
+        "B",
+        "C",
+        "A"
+      ],
+      [
+        "C",
+        "A",
+        "B"
+      ],
+      [
+        "A",
+        "B",
+        "C"
+      ],
+      [
+        "B",
+        "C",
+        "A"
+      ]
+    ]
+  },
+  "not_unseen": true
+}

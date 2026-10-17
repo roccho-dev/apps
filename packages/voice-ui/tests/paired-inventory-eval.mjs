@@ -8,6 +8,8 @@ import { readBundle } from "../src/bundle.mjs";
 import { runInventoryGoal } from "../src/completion.mjs";
 import { createSession } from "../src/session.mjs";
 import { DECISION_KIND } from "../src/contract.mjs";
+import { literalCandidates } from "./literal-candidates.mjs";
+import { evaluationPost } from "./evaluation-http.mjs";
 
 const args = process.argv.slice(2), settings = {};
 for (let i = 0; i < args.length; i += 2) {
@@ -19,29 +21,50 @@ for (let i = 0; i < args.length; i += 2) {
 if (Object.keys(settings).length !== 5 || !/^http:\/\/127[.]0[.]0[.]1:[1-9][0-9]{3,4}$/.test(settings["--origin"]))
   throw new Error("evaluation_arguments");
 const hash = bytes => createHash("sha256").update(bytes).digest("hex");
+const root = fileURLToPath(new URL("../", import.meta.url));
 const bytes = fs.readFileSync(settings["--inputs"]), inputs = JSON.parse(bytes);
+if (!["voice-ui.poc.input-projection/1", "voice-ui.poc.input-projection/2", "voice-ui.poc.selected-cells/1"].includes(inputs?.schema))
+  throw new Error("evaluation_input_schema");
 const fixtures = inputs.fixture_contract, cases = inputs.cases, order = inputs.comparison?.case_order;
-if (!fixtures || !Array.isArray(cases) || ![4, 10].includes(cases.length) || !Array.isArray(order) || order.length !== cases.length
+const selectedCells = inputs.schema === "voice-ui.poc.selected-cells/1";
+const threeMethods = inputs.schema !== "voice-ui.poc.input-projection/1";
+const methods = threeMethods ? ["A", "B", "C"] : ["A", "B"];
+if (!fixtures || !Array.isArray(cases) || !(selectedCells ? cases.length >= 1 && cases.length <= 10 : [4, 8, 10].includes(cases.length)) || !Array.isArray(order) || order.length !== cases.length
     || new Set(order).size !== cases.length || !order.every(id => /^[A-Za-z0-9][A-Za-z0-9_-]{0,63}$/.test(id)
       && cases.filter(item => item.id === id).length === 1)
     || fixtures.scope !== null || !Array.isArray(fixtures.recent_conversation) || fixtures.recent_conversation.length)
   throw new Error("evaluation_input_shape");
+if (selectedCells) {
+  const parentBytes = fs.readFileSync(path.join(root, "../../docs/voice-ui/candidate-ci-20261017/preregistered/public-eight.inputs.json"));
+  const parent = JSON.parse(parentBytes);
+  if (!["correction", "public-remainder"].includes(inputs.phase_kind) || inputs.parent_inputs_sha256 !== hash(parentBytes)
+      || JSON.stringify(fixtures) !== JSON.stringify(parent.fixture_contract)
+      || !cases.every(item => JSON.stringify(item) === JSON.stringify(parent.cases.find(p => p.id === item.id))))
+    throw new Error("evaluation_selected_parent_binding");
+}
+const rawArmOrder = inputs.comparison.arm_order;
+const flatArms = Array.isArray(rawArmOrder) && rawArmOrder.every(x => typeof x === "string" && x.length === 1);
+if (Array.isArray(rawArmOrder) ? !flatArms && rawArmOrder.length !== order.length
+    : rawArmOrder === null || typeof rawArmOrder !== "object" || Object.keys(rawArmOrder).length !== order.length
+      || !order.every(id => Object.hasOwn(rawArmOrder, id)))
+  throw new Error("evaluation_arm_order");
 const armOrder = (id, index) => {
-  const raw = inputs.comparison.arm_order;
-  const selected = Array.isArray(raw) && raw.length === 2 && raw.every(x => ["A", "B"].includes(x)) ? raw
+  const raw = rawArmOrder;
+  const selected = flatArms ? raw
     : Array.isArray(raw) ? raw[index] : raw?.[id];
   const arms = typeof selected === "string" ? [...selected] : selected;
-  if (!Array.isArray(arms) || arms.length !== 2 || new Set(arms).size !== 2 || !arms.every(x => ["A", "B"].includes(x)))
+  if (!Array.isArray(arms) || !(selectedCells ? arms.length >= 1 && arms.length <= methods.length : arms.length === methods.length)
+      || new Set(arms).size !== arms.length || !arms.every(x => methods.includes(x)))
     throw new Error("evaluation_arm_order");
   return arms;
 };
 for (const [index, id] of order.entries()) armOrder(id, index);
+const plannedArms = order.reduce((n, id, index) => n + armOrder(id, index).length, 0);
 const protocol = await import(pathToFileURL(path.join(settings["--semantic-map"], "packages/semantic-map/protocol/index.js")));
-const root = fileURLToPath(new URL("../", import.meta.url));
 const bundleBytes = fs.readFileSync(path.join(root, "web/data/bundle.v1.json"));
 const bundle = readBundle(JSON.parse(bundleBytes));
 if (bundle.parts?.length !== 8) throw new Error("evaluation_library");
-const sourceFiles = ["src/completion.mjs", "src/goal.mjs", "src/turn.mjs", "src/contract.mjs", "src/judgment.mjs", "tests/paired-inventory-eval.mjs"];
+const sourceFiles = ["src/completion.mjs", "src/goal.mjs", "src/turn.mjs", "src/contract.mjs", "src/judgment.mjs", "tests/paired-inventory-eval.mjs", "tests/literal-candidates.mjs", "tests/evaluation-http.mjs"];
 const sourceIdentity = JSON.parse(fs.readFileSync(settings["--identities"]));
 const storePath = value => typeof value === "string" && /^\/nix\/store\/[a-z0-9]{32}-[^\s]+$/.test(value);
 const digest = value => typeof value === "string" && /^[a-f0-9]{64}$/.test(value);
@@ -60,7 +83,9 @@ if (sourceIdentity.schema !== "voice-ui.poc.runtime/1" || sourceIdentity.origin 
     || !["jev", "typellm"].every(provider => Number.isInteger(sourceIdentity.launcher?.allowances?.[provider])
       && sourceIdentity.launcher.allowances[provider] >= 0 && sourceIdentity.launcher.allowances[provider] <= 300))
   throw new Error("evaluation_source_identity");
-const identity = { schema: "voice-ui.poc.paired/1", created: new Date().toISOString(), inputs_sha256: hash(bytes),
+const identity = { schema: selectedCells ? "voice-ui.poc.selected-cell-execution/1" : threeMethods ? "voice-ui.poc.candidate-panel/1" : "voice-ui.poc.paired/1", created: new Date().toISOString(), inputs_sha256: hash(bytes),
+  ...(selectedCells ? { phase_kind: inputs.phase_kind, parent_inputs_sha256: inputs.parent_inputs_sha256,
+    selected_cells: order.flatMap((id, index) => armOrder(id, index).map(arm => ({ id, arm }))), planned_arms: plannedArms } : {}),
   source: sourceIdentity, bundle_sha256: hash(bundleBytes),
   source_sha256: Object.fromEntries(sourceFiles.map(file => [file, hash(fs.readFileSync(path.join(root, file)))])),
   origin: settings["--origin"], semantic_map: settings["--semantic-map"],
@@ -95,31 +120,29 @@ try {
       // Both arms start with the SAME exact graph/log bytes, not independently timestamped reconstructions.
       let session = createSession({ accepted: graph, stored: graph.log }), failed = false;
       const calls = [], started = performance.now();
+      const preparation = [];
       const post = async (route, request) => {
-        const n = calls.length + 1, callStarted = performance.now();
+        const n = calls.length + 1;
         const event = { id, arm, n, route, request };
         calls.push(event); record({ kind: "http-start", ...event });
-        const controller = new AbortController();
-        const timer = setTimeout(() => controller.abort(), route === "/api/parts/complete" ? 40000 : 15000);
         try {
-          const response = await fetch(settings["--origin"] + route, { method: "POST", redirect: "error",
-            headers: { "content-type": "application/json" }, body: JSON.stringify(request), signal: controller.signal });
-          if (!response.ok) throw new Error("evaluation_http");
-          const value = await response.json();
-          Object.assign(event, { status: response.status, response: value, elapsedMs: performance.now() - callStarted });
-          record({ kind: "http-end", id, arm, n, status: event.status, response: value, elapsedMs: event.elapsedMs });
-          return value;
+          return await evaluationPost({ url: settings["--origin"] + route, event, record });
         } catch {
-          failed = true; Object.assign(event, { error: "http_or_contract_unknown", elapsedMs: performance.now() - callStarted });
-          record({ kind: "http-end", id, arm, n, error: event.error, elapsedMs: event.elapsedMs });
+          failed = true;
           throw new Error("evaluation_http");
-        } finally { clearTimeout(timer); }
+        }
       };
       record({ kind: "arm-start", id, arm, head: graph.head, initial_log_sha256: hash(graph.log) });
       let result;
       try {
-        result = await runInventoryGoal({ utterance, bundle, protocol, completion: arm === "B", current: () => session,
-          cancelled: () => false, check: request => post("/api/parts/check", request), complete: request => post("/api/parts/complete", request),
+        result = await runInventoryGoal({ utterance, bundle, protocol, completion: arm !== "A", current: () => session,
+          cancelled: () => false, check: request => post("/api/parts/check", request),
+          complete: request => {
+            if (!threeMethods || arm === "C") return post("/api/parts/complete", request);
+            const value = literalCandidates(request.state);
+            preparation.push(value); record({ kind: "literal-preparation", id, arm, value });
+            return value;
+          },
           ask: async request => {
             const decision = await post("/api/judge", request);
             if (decision?.kind !== DECISION_KIND) { failed = true; throw new Error("evaluation_decision"); }
@@ -129,7 +152,7 @@ try {
       } catch { failed = true; result = { reason: "evaluation_operation_unknown" }; }
       if (!validReasons.has(result.reason)) failed = true;
       const output = { id, arm, fixture: fixtureName, utterance, valid_execution: !failed,
-        elapsedMs: performance.now() - started, result, calls, initial_head: graph.head,
+        elapsedMs: performance.now() - started, result, calls, preparation, initial_head: graph.head,
         initial_log_sha256: hash(graph.log), initial_records: graph.records, final_head: session.working.head,
         final_records: session.working.records, final_log: session.working.log };
       writeJson(id + "-" + arm + ".json", output);
@@ -143,7 +166,7 @@ try {
   invalid = true;
   record({ kind: "runner-failed", error: "fixture_protocol_or_evidence_unknown" });
 } finally {
-  if (summary.length !== order.length * 2) invalid = true;
+  if (summary.length !== plannedArms) invalid = true;
   fs.closeSync(journal);
   writeJson("execution.json", { status: invalid ? "INVALID" : "RECORDED", summary });
   const directory = fs.openSync(settings["--out"], "r");

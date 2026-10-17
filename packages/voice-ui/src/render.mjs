@@ -105,6 +105,26 @@ export function frameFor({ graph, width, height, protocol, part = null }) {
     }
     const selected = bounds[part];
     if (selected === undefined) return null;
+    if (graph.records.some(record => record.type === "region" && record.id === part && record.kind === "group")) {
+      if (!Array.isArray(selected) || selected.length !== 4 || !selected.every(Number.isFinite)
+        || !(selected[2] > 0 && selected[3] > 0) || !Number.isFinite(width) || !Number.isFinite(height)) return null;
+      const [x, y, w, h] = selected;
+      const children = graph.records.filter(record => record.type === "region" && record.parent === part)
+        .map(record => bounds[record.id]);
+      if (!children.every(box => Array.isArray(box) && box.length === 4 && box.every(Number.isFinite) && box[2] > 0 && box[3] > 0)) return null;
+      // Show the title area and EVERY direct child's actual layout. Empty
+      // space in a wide boundary must not shrink fixed-screen fonts over the
+      // children. The boundary can extend beyond this view; no layout changes.
+      // This finite title allowance is not a guarantee for arbitrary long names.
+      const left = Math.min(x, ...children.map(box => box[0])), top = Math.min(y, ...children.map(box => box[1]));
+      // An empty group is a collapsed node with a centred label in the
+      // provider's projection, so fit its declared box rather than a header.
+      const right = Math.max(x + (children.length ? Math.min(w, 240) : w), ...children.map(box => box[0] + box[2]));
+      const bottom = Math.max(y + (children.length ? Math.min(h, 60) : h), ...children.map(box => box[1] + box[3]));
+      const scale = Math.min(1, width / (right - left + 32), height / (bottom - top + 32));
+      const bbox = [(left + right) / 2 - width / (2 * scale), (top + bottom) / 2 - height / (2 * scale), width / scale, height / scale];
+      return scale > 0 && bbox.every(Number.isFinite) ? { bbox, viewport: [width, height] } : null;
+    }
     // One layout unit per pixel: a readable local camera around this part,
     // not a new layout, filtered graph or conversational reference.
     const [x, y, w, h] = selected;

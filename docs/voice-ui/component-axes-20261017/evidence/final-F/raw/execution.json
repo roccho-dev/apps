@@ -1,0 +1,121 @@
+{
+  "schema": "voice-ui.component-axes-phase/1",
+  "axis": "F",
+  "status": "INVALID",
+  "summary": [
+    {
+      "axis": "F",
+      "id": "F01",
+      "method": "literal",
+      "valid_execution": true,
+      "calls": 1
+    },
+    {
+      "axis": "F",
+      "id": "F01",
+      "method": "typed",
+      "valid_execution": true,
+      "calls": 1
+    },
+    {
+      "axis": "F",
+      "id": "F02",
+      "method": "typed",
+      "valid_execution": true,
+      "calls": 1
+    },
+    {
+      "axis": "F",
+      "id": "F02",
+      "method": "literal",
+      "valid_execution": true,
+      "calls": 1
+    },
+    {
+      "axis": "F",
+      "id": "F03",
+      "method": "literal",
+      "valid_execution": true,
+      "calls": 1
+    },
+    {
+      "axis": "F",
+      "id": "F03",
+      "method": "typed",
+      "valid_execution": true,
+      "calls": 1
+    },
+    {
+      "axis": "F",
+      "id": "F04",
+      "method": "typed",
+      "valid_execution": true,
+      "calls": 1
+    },
+    {
+      "axis": "F",
+      "id": "F04",
+      "method": "literal",
+      "valid_execution": true,
+      "calls": 1
+    },
+    {
+      "axis": "F",
+      "id": "F05",
+      "method": "literal",
+      "valid_execution": true,
+      "calls": 1
+    },
+    {
+      "axis": "F",
+      "id": "F05",
+      "method": "typed",
+      "valid_execution": true,
+      "calls": 1
+    },
+    {
+      "axis": "F",
+      "id": "F06",
+      "method": "typed",
+      "valid_execution": true,
+      "calls": 1
+    },
+    {
+      "axis": "F",
+      "id": "F06",
+      "method": "literal",
+      "valid_execution": true,
+      "calls": 1
+    },
+    {
+      "axis": "F",
+      "id": "F07",
+      "method": "literal",
+      "valid_execution": true,
+      "calls": 1
+    },
+    {
+      "axis": "F",
+      "id": "F07",
+      "method": "typed",
+      "valid_execution": true,
+      "calls": 1
+    },
+    {
+      "axis": "F",
+      "id": "F08",
+      "method": "typed",
+      "valid_execution": false,
+      "calls": 1
+    },
+    {
+      "axis": "F",
+      "id": "F08",
+      "method": "literal",
+      "valid_execution": true,
+      "calls": 1
+    }
+  ],
+  "invalid_cells": 1,
+  "expected_cells": 16
+}

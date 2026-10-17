@@ -1,0 +1,184 @@
+{
+  "schema": "voice-ui.component-axes-raw-audit/1",
+  "axis": "G",
+  "status": "PASS",
+  "issues": [],
+  "complete": true,
+  "all_valid_execution": true,
+  "phase_kind": "public",
+  "parent_inputs_sha256": null,
+  "runtime_scope": "LIVE_BINDING_REQUIRED",
+  "admissible_for_semantic_claim": true,
+  "consumed": 4,
+  "planned": 4,
+  "external_provider_attempts": {
+    "jev": 4,
+    "typellm": 0
+  },
+  "external_provider_attempt_bounds": {
+    "jev": {
+      "min": 4,
+      "max": 4
+    },
+    "typellm": {
+      "min": 0,
+      "max": 0
+    }
+  },
+  "factor_rows": 8,
+  "factor_alignment": "UNIQUE",
+  "proofs": [
+    {
+      "id": "H01",
+      "method": "literal",
+      "status": "PASS",
+      "initial_head": "sha256:0b3522df5b691691d41d9b4587377781fc7048c991a4e47357e5583eb09288c6",
+      "final_head": "sha256:0b3522df5b691691d41d9b4587377781fc7048c991a4e47357e5583eb09288c6"
+    },
+    {
+      "id": "H05",
+      "method": "literal",
+      "status": "PASS",
+      "initial_head": "sha256:0b3522df5b691691d41d9b4587377781fc7048c991a4e47357e5583eb09288c6",
+      "final_head": "sha256:0b3522df5b691691d41d9b4587377781fc7048c991a4e47357e5583eb09288c6"
+    },
+    {
+      "id": "N09",
+      "method": "literal",
+      "status": "PASS",
+      "initial_head": "sha256:0b3522df5b691691d41d9b4587377781fc7048c991a4e47357e5583eb09288c6",
+      "final_head": "sha256:0b3522df5b691691d41d9b4587377781fc7048c991a4e47357e5583eb09288c6"
+    },
+    {
+      "id": "H10",
+      "method": "literal",
+      "status": "PASS",
+      "initial_head": "sha256:b4f52e5183b8e5730e59a7524a9b260f7cb7a4246695c8a69c4d320bec1312c1",
+      "final_head": "sha256:b4f52e5183b8e5730e59a7524a9b260f7cb7a4246695c8a69c4d320bec1312c1"
+    }
+  ],
+  "rows": [
+    {
+      "id": "H01",
+      "method": "literal",
+      "expected_intent": "change",
+      "expected_gate": "sufficient",
+      "grade": {
+        "scope": "semantic axes only; actual source/protocol/HTTP/journal/paint admissibility required separately",
+        "contract_valid": true,
+        "intent_raw_correct": true,
+        "intent_accepted_correct": true,
+        "extraction_exact": true,
+        "completeness_expected": "complete",
+        "completeness_raw_correct": true,
+        "completeness_accepted_correct": true,
+        "difference_mechanism_correct": true,
+        "availability_raw_correct": true,
+        "availability_accepted_correct": true,
+        "normalized_raw_correct": true,
+        "normalized_accepted_correct": true,
+        "unknown": false
+      }
+    },
+    {
+      "id": "H05",
+      "method": "literal",
+      "expected_intent": "change",
+      "expected_gate": "missing",
+      "grade": {
+        "scope": "semantic axes only; actual source/protocol/HTTP/journal/paint admissibility required separately",
+        "contract_valid": true,
+        "intent_raw_correct": true,
+        "intent_accepted_correct": true,
+        "extraction_exact": true,
+        "completeness_expected": "complete",
+        "completeness_raw_correct": true,
+        "completeness_accepted_correct": true,
+        "difference_mechanism_correct": true,
+        "availability_raw_correct": true,
+        "availability_accepted_correct": true,
+        "normalized_raw_correct": true,
+        "normalized_accepted_correct": true,
+        "unknown": false
+      }
+    },
+    {
+      "id": "N09",
+      "method": "literal",
+      "expected_intent": "ambiguous",
+      "expected_gate": "ambiguous",
+      "grade": {
+        "scope": "semantic axes only; actual source/protocol/HTTP/journal/paint admissibility required separately",
+        "contract_valid": true,
+        "intent_raw_correct": true,
+        "intent_accepted_correct": true,
+        "extraction_exact": null,
+        "completeness_expected": null,
+        "completeness_raw_correct": null,
+        "completeness_accepted_correct": null,
+        "difference_mechanism_correct": true,
+        "availability_raw_correct": null,
+        "availability_accepted_correct": null,
+        "normalized_raw_correct": true,
+        "normalized_accepted_correct": true,
+        "unknown": false
+      }
+    },
+    {
+      "id": "H10",
+      "method": "literal",
+      "expected_intent": "no-change",
+      "expected_gate": "no-change",
+      "grade": {
+        "scope": "semantic axes only; actual source/protocol/HTTP/journal/paint admissibility required separately",
+        "contract_valid": true,
+        "intent_raw_correct": true,
+        "intent_accepted_correct": true,
+        "extraction_exact": null,
+        "completeness_expected": null,
+        "completeness_raw_correct": null,
+        "completeness_accepted_correct": null,
+        "difference_mechanism_correct": true,
+        "availability_raw_correct": null,
+        "availability_accepted_correct": null,
+        "normalized_raw_correct": true,
+        "normalized_accepted_correct": true,
+        "unknown": false
+      }
+    }
+  ],
+  "semantic": {
+    "total": 4,
+    "intent": {
+      "correct": 4,
+      "total": 4
+    },
+    "availability": {
+      "correct": 2,
+      "total": 2
+    },
+    "normalized": {
+      "correct": 4,
+      "total": 4
+    },
+    "completeness": {
+      "correct": 2,
+      "total": 2
+    },
+    "unknown": 0,
+    "semantic_criteria": "UNMET"
+  },
+  "replay": null,
+  "raw_sha256": {
+    "events.jsonl": "77b5271ae26ca143c18f44a7ad47a6e8db0f50d2afa40b2c03677d248e807347",
+    "execution.json": "5e192b4c84e5c9027d392346dd84bbb03faa4928f445a99e33de5acdabf7d399",
+    "H01-B.json": "d1d0e0bfd7d588824f72b213fb8c3443a680952c4e52c4c4d01b81697dce40f5",
+    "H05-B.json": "7ba5e6bf908c3e904c90383bf323462d527f9885dd30a2483bbe08a7b1576b44",
+    "H10-B.json": "ea0476cf6da107d51917146620edb966b06edc688ee630221eba1f3532d374d6",
+    "identity.json": "4464240dcca06ae9de8b344d4f6b9c45ad74237b3f1a5a95da13b0ed1036ecd0",
+    "N09-B.json": "2e3f3119a1e244e5b2aaaa169f36cebe46084e043fdfabf5fd50b18b312aa58c"
+  },
+  "scope": "raw-axis locality only; source/producer/provider/independent physical PID and any required paint gates remain separate",
+  "CI_LIVE_EXECUTION": "UNPROVEN",
+  "currency": "COST_NOT_MEASURED"
+}

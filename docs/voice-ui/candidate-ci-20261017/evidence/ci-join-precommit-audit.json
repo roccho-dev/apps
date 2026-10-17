@@ -1,0 +1,43 @@
+{
+  "schema": "voice-ui.independent-ci-join-source-audit/1",
+  "observed_at": "2026-10-17T10:13:11.206Z",
+  "status": "SOURCE_TESTS_PASS_PENDING_COMMITTED_CI",
+  "scope": "read-only precommit audit; not part of R5 source freeze or an assertion that CI ran",
+  "files_sha256": {
+    "packages/voice-ui/acceptance/verify-candidate-evidence.mjs": "0d4364a50bed2546c2b0f7797d9f19dc04b50f238fb1f73ca20048d13e01d646",
+    "packages/voice-ui/tests/receipt-admissibility.mjs": "4109a411b1ebc32088f8f871c580a1e540db1d1c500d8e482d4956fa7451e9ab",
+    "packages/voice-ui/tests/receipt-admissibility-mutations.mjs": "33376427d70eaa52d0c7fd95d9039ae7fc562969403818a7a605490490f4befd",
+    "packages/voice-ui/tests/candidate-closure.mjs": "de78719e07eb6bd424984bbee42cdebf22a6e098a3826db13aafe124c5845484",
+    "packages/voice-ui/tests/candidate-closure.test.mjs": "28de80f536761ccf18f8efa9bcf75ab51daac684ad59d6efe98cc6c927c2170e",
+    ".github/workflows/voice-ui-release.yml": "f09992dff7752aa83115b802925b8743f4c6863d13c1e81cedcbde87935b0098",
+    "docs/voice-ui/candidate-ci-20261017/evidence/index.json": "f81c03a9f2626223fcde26475decb62dec66dba4c466a26bd2ee57ea68be773e"
+  },
+  "tests": {
+    "root_portability_copy": {
+      "tests": 6,
+      "negative_variants": 34,
+      "status": "PASS",
+      "source": "independent native Git f2e9 bytes",
+      "log_sha256": "73522b97260c4c51eea028860863824a522c6232116cc7d482d690fed92958b8"
+    },
+    "classification_and_journal": {
+      "tests": 2,
+      "status": "PASS"
+    }
+  },
+  "findings": {
+    "paint_requires_semantic_and_recorded_and_ci_pass": true,
+    "journals_require_unique_phase_and_exact_history_prefix_and_own_reconcile_cutoff": true,
+    "diagnostic_fixed_R_stop_audit_binding": true,
+    "producer_expectations_are_not_regenerated_at_verification": true,
+    "partial_and_invalid_panels_remain_nonadmissible": true
+  },
+  "pending": [
+    "commit current integration and all closed evidence",
+    "run full exact-head keyless CI and reopen artifact receipts",
+    "admit final same-source runtime before unseen projection"
+  ],
+  "CI_LIVE_EXECUTION": "UNPROVEN",
+  "four_way_comparison": "INCOMPLETE_D_BLOCKED_COST",
+  "currency": "COST_NOT_MEASURED"
+}

@@ -1,7 +1,7 @@
 {
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/f9948418dc8628ac02b6d6337e191ade9429d59d";
-    ui.url = "github:roccho-dev/ui/8a295d78ad6a6930608b1ad388c896ea49039102";
+    ui.url = "github:roccho-dev/ui/756d47e891191c3344eb2d29b000203be8331abc";
   };
 
   outputs =
@@ -295,6 +295,14 @@
         in
         {
           voice-ui-acceptance-boundary = (acceptanceFor system).check;
+          voice-ui-candidate-browser = pkgs.runCommand "voice-ui-candidate-browser-check" { } ''
+            export HOME="$TMPDIR/candidate-browser-home"
+            mkdir -p "$HOME"
+            ${(acceptanceFor system).runtime}/bin/voice-ui-acceptance-node \
+              ${self}/packages/voice-ui/acceptance/candidate-browser.mjs ${voiceUiDist} "$out"
+            ${(acceptanceFor system).runtime}/bin/voice-ui-acceptance-node \
+              ${self}/packages/voice-ui/acceptance/component-axes-smoke.mjs ${voiceUiDist} "$out/component-axes-mechanics"
+          '';
           voice-ui-worker =
             pkgs.runCommand "voice-ui-worker-check" { nativeBuildInputs = [ pkgs.nodejs ]; }
               ''
@@ -310,6 +318,11 @@
                 VOICE_UI_WORKER = "${voiceUiDist}/worker/worker.mjs";
                 VOICE_UI_SEMCMP_BIN = "${semcmpFor system}/bin/semcmp";
                 VOICE_UI_DIST = "${voiceUiDist}";
+                POC_PROTOCOL_ENTRY = "${voiceUiDist}/site/ui/semantic-map/protocol/index.js";
+                POC_SOURCE_ROOT = "${self}/packages/voice-ui";
+                POC_AXIS_FIXTURES = "${self}/docs/voice-ui/component-axes-20261017/preregistered";
+                POC_RESERVE_FIXTURES = "${self}/docs/voice-ui/component-axes-20261017/evidence/final-E";
+                POC_REQUIREMENTS_FIXTURES = "${self}/docs/voice-ui/requirements-cycle-20261017/preregistered";
                 VOICE_UI_HAYAMIMI = "${hayamimiWeb}";
                 VOICE_UI_SEMANTIC_MAP = "${semanticMap}";
                 VOICE_UI_ARCHITECTURE = "${architectureFor system}";

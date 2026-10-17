@@ -1,0 +1,500 @@
+{
+  "schema": "voice-ui.component-axes-oracle/1",
+  "axis": "G",
+  "reviewer": "/root/poc_reviewer",
+  "created_at": "2026-10-17T12:22:56.251Z",
+  "visibility": "SEALED",
+  "source_baseline": "4617b65ed42dc116329224612fa2e906daea46d8",
+  "fixture_contract": {
+    "map_id": "voice-graph",
+    "base_records": [
+      {
+        "type": "meta",
+        "schema": "semantic-map-state/1",
+        "root": "root",
+        "title": "independent component axes"
+      },
+      {
+        "type": "region",
+        "id": "root",
+        "parent": null,
+        "label": "fixture",
+        "kind": "boundary",
+        "bounds": [
+          0,
+          0,
+          900,
+          400
+        ],
+        "summary": ""
+      },
+      {
+        "type": "region",
+        "id": "container",
+        "parent": "root",
+        "label": "OCI",
+        "kind": "group",
+        "bounds": [
+          0,
+          0,
+          700,
+          200
+        ],
+        "summary": ""
+      },
+      {
+        "type": "region",
+        "id": "other",
+        "parent": "root",
+        "label": "Other",
+        "kind": "group",
+        "bounds": [
+          0,
+          230,
+          700,
+          160
+        ],
+        "summary": ""
+      }
+    ],
+    "base_pins": [
+      {
+        "regionId": "container",
+        "bounds": [
+          0,
+          0,
+          2000,
+          500
+        ]
+      },
+      {
+        "regionId": "other",
+        "bounds": [
+          0,
+          600,
+          2000,
+          500
+        ]
+      }
+    ],
+    "fixtures": {
+      "empty": {
+        "extra_records": [],
+        "extra_pins": []
+      },
+      "api": {
+        "extra_records": [
+          {
+            "type": "region",
+            "id": "initial-api",
+            "parent": "container",
+            "label": "API",
+            "kind": "step",
+            "bounds": [
+              20,
+              20,
+              140,
+              64
+            ],
+            "summary": ""
+          }
+        ],
+        "extra_pins": [
+          {
+            "regionId": "initial-api",
+            "bounds": [
+              12,
+              36,
+              140,
+              64
+            ]
+          }
+        ]
+      },
+      "pair": {
+        "extra_records": [
+          {
+            "type": "region",
+            "id": "initial-api",
+            "parent": "container",
+            "label": "API",
+            "kind": "step",
+            "bounds": [
+              20,
+              20,
+              140,
+              64
+            ],
+            "summary": ""
+          },
+          {
+            "type": "region",
+            "id": "initial-db",
+            "parent": "container",
+            "label": "DB",
+            "kind": "data",
+            "bounds": [
+              200,
+              20,
+              140,
+              64
+            ],
+            "summary": ""
+          }
+        ],
+        "extra_pins": [
+          {
+            "regionId": "initial-api",
+            "bounds": [
+              12,
+              36,
+              140,
+              64
+            ]
+          },
+          {
+            "regionId": "initial-db",
+            "bounds": [
+              200,
+              36,
+              140,
+              64
+            ]
+          }
+        ]
+      }
+    },
+    "recent_conversation": [],
+    "scope": null
+  },
+  "stock_parts_sha256": "909ac366f22c33006c8b6878ab436d548811eb5d41c2bad4813f3837d540f48d",
+  "stock_parts": [
+    {
+      "key": "step",
+      "purpose": "an ordinary step, task or box",
+      "label": "工程",
+      "kind": "step"
+    },
+    {
+      "key": "decision",
+      "purpose": "a decision, choice or branch",
+      "label": "判断",
+      "kind": "decision"
+    },
+    {
+      "key": "data",
+      "purpose": "data, a document, an input or an output",
+      "label": "データ",
+      "kind": "data"
+    },
+    {
+      "key": "start",
+      "purpose": "a start or beginning",
+      "label": "開始",
+      "kind": "start"
+    },
+    {
+      "key": "end",
+      "purpose": "an end, finish or result",
+      "label": "終了",
+      "kind": "end"
+    },
+    {
+      "key": "api",
+      "purpose": "an application programming interface service that receives requests",
+      "label": "API",
+      "kind": "step"
+    },
+    {
+      "key": "db",
+      "purpose": "a database that persists application data",
+      "label": "DB",
+      "kind": "data"
+    },
+    {
+      "key": "group",
+      "purpose": "a group, boundary or container that holds other parts",
+      "label": "グループ",
+      "kind": "group"
+    }
+  ],
+  "cases": [
+    {
+      "id": "G01",
+      "fixture": "api",
+      "utterance": "OCIの中に工程「API」を1個追加してください。既にあるAPIは残してください。",
+      "expected_intent": "change",
+      "expected_gate": "sufficient",
+      "required": [
+        {
+          "label": "API",
+          "kind": "step",
+          "quantity": 1
+        }
+      ],
+      "expected_missing": [],
+      "expected_added_regions": [
+        {
+          "label": "API",
+          "kind": "step",
+          "parent": "fixture:container"
+        }
+      ],
+      "expected_added_edges": []
+    },
+    {
+      "id": "G02",
+      "fixture": "empty",
+      "utterance": "判断という表示名の判断部品を1個だけOCIに追加してください。",
+      "expected_intent": "change",
+      "expected_gate": "sufficient",
+      "required": [
+        {
+          "label": "判断",
+          "kind": "decision",
+          "quantity": 1
+        }
+      ],
+      "expected_missing": [],
+      "expected_added_regions": [
+        {
+          "label": "判断",
+          "kind": "decision",
+          "parent": "fixture:container"
+        }
+      ],
+      "expected_added_edges": []
+    },
+    {
+      "id": "G03",
+      "fixture": "empty",
+      "utterance": "OCIに「開始」という開始部品と「終了」という終了部品を各1個追加し、ほかは変更しないでください。",
+      "expected_intent": "change",
+      "expected_gate": "sufficient",
+      "required": [
+        {
+          "label": "開始",
+          "kind": "start",
+          "quantity": 1
+        },
+        {
+          "label": "終了",
+          "kind": "end",
+          "quantity": 1
+        }
+      ],
+      "expected_missing": [],
+      "expected_added_regions": [
+        {
+          "label": "開始",
+          "kind": "start",
+          "parent": "fixture:container"
+        },
+        {
+          "label": "終了",
+          "kind": "end",
+          "parent": "fixture:container"
+        }
+      ],
+      "expected_added_edges": []
+    },
+    {
+      "id": "G04",
+      "fixture": "pair",
+      "utterance": "OCI内にあるAPIから、同じOCI内のDBへ矢印を1本つないでください。新しい部品は追加しません。",
+      "expected_intent": "change",
+      "expected_gate": "sufficient",
+      "required": [],
+      "expected_missing": [],
+      "expected_added_regions": [],
+      "expected_added_edges": [
+        {
+          "from": "fixture:initial-api",
+          "to": "fixture:initial-db",
+          "kind": "flow",
+          "label": ""
+        }
+      ]
+    },
+    {
+      "id": "G05",
+      "fixture": "empty",
+      "utterance": "OCIに工程「照度整合」を1個作ってください。",
+      "expected_intent": "change",
+      "expected_gate": "missing",
+      "required": [
+        {
+          "label": "照度整合",
+          "kind": "step",
+          "quantity": 1
+        }
+      ],
+      "expected_missing": [
+        {
+          "label": "照度整合",
+          "kind": "step",
+          "occurrence": 1
+        }
+      ],
+      "expected_added_regions": [
+        {
+          "label": "照度整合",
+          "kind": "step",
+          "parent": "fixture:container"
+        }
+      ],
+      "expected_added_edges": []
+    },
+    {
+      "id": "G06",
+      "fixture": "empty",
+      "utterance": "OCIにDBを3個追加してください。追加する3個はすべて同じ表示名DBのデータ部品です。",
+      "expected_intent": "change",
+      "expected_gate": "missing",
+      "required": [
+        {
+          "label": "DB",
+          "kind": "data",
+          "quantity": 3
+        }
+      ],
+      "expected_missing": [
+        {
+          "label": "DB",
+          "kind": "data",
+          "occurrence": 1
+        },
+        {
+          "label": "DB",
+          "kind": "data",
+          "occurrence": 2
+        }
+      ],
+      "expected_added_regions": [
+        {
+          "label": "DB",
+          "kind": "data",
+          "parent": "fixture:container"
+        },
+        {
+          "label": "DB",
+          "kind": "data",
+          "parent": "fixture:container"
+        },
+        {
+          "label": "DB",
+          "kind": "data",
+          "parent": "fixture:container"
+        }
+      ],
+      "expected_added_edges": []
+    },
+    {
+      "id": "G07",
+      "fixture": "empty",
+      "utterance": "OCIに「仮審査室」というグループを1つ作り、その内側に「審査記録」というデータを1つ置いてください。",
+      "expected_intent": "change",
+      "expected_gate": "missing",
+      "required": [
+        {
+          "label": "仮審査室",
+          "kind": "group",
+          "quantity": 1
+        },
+        {
+          "label": "審査記録",
+          "kind": "data",
+          "quantity": 1
+        }
+      ],
+      "expected_missing": [
+        {
+          "label": "仮審査室",
+          "kind": "group",
+          "occurrence": 1
+        },
+        {
+          "label": "審査記録",
+          "kind": "data",
+          "occurrence": 1
+        }
+      ],
+      "expected_added_regions": [
+        {
+          "label": "仮審査室",
+          "kind": "group",
+          "parent": "fixture:container"
+        },
+        {
+          "label": "審査記録",
+          "kind": "data",
+          "parent": "added:仮審査室"
+        }
+      ],
+      "expected_added_edges": []
+    },
+    {
+      "id": "G08",
+      "fixture": "empty",
+      "utterance": "OCIに工程「照合作業」を2個追加してください。両方とも表示名は照合作業です。",
+      "expected_intent": "change",
+      "expected_gate": "missing",
+      "required": [
+        {
+          "label": "照合作業",
+          "kind": "step",
+          "quantity": 2
+        }
+      ],
+      "expected_missing": [
+        {
+          "label": "照合作業",
+          "kind": "step",
+          "occurrence": 1
+        },
+        {
+          "label": "照合作業",
+          "kind": "step",
+          "occurrence": 2
+        }
+      ],
+      "expected_added_regions": [
+        {
+          "label": "照合作業",
+          "kind": "step",
+          "parent": "fixture:container"
+        },
+        {
+          "label": "照合作業",
+          "kind": "step",
+          "parent": "fixture:container"
+        }
+      ],
+      "expected_added_edges": []
+    },
+    {
+      "id": "G09",
+      "fixture": "empty",
+      "utterance": "OCIに工程「通知準備」を1個追加して、それとは別に何かも追加してください。後半の名前と部品の種類はまだ未定です。",
+      "expected_intent": "ambiguous",
+      "expected_gate": "ambiguous",
+      "required": null,
+      "expected_missing": [],
+      "expected_added_regions": [],
+      "expected_added_edges": []
+    },
+    {
+      "id": "G10",
+      "fixture": "pair",
+      "utterance": "APIとDBは今あるままにしてください。今回は部品の追加も矢印の追加もせず、図を変更しません。",
+      "expected_intent": "no-change",
+      "expected_gate": "no-change",
+      "required": null,
+      "expected_missing": [],
+      "expected_added_regions": [],
+      "expected_added_edges": []
+    }
+  ],
+  "complete_factor_oracle": "For clear change cases, complete iff observed extracted required multiset equals this oracle.required exactly. Controls are N/A. This pure expected predicate is fixed before provider outputs, not a post-output oracle change.",
+  "score_scope": "Intent, normalized gate and inventory sufficiency with separate denominators"
+}

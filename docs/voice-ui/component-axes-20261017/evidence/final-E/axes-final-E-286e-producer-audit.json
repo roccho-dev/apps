@@ -1,0 +1,6 @@
+{
+  "status": "PASS",
+  "issues": [],
+  "scope": "fixed exact-byte producer/source testimony joins, not live observation",
+  "CI_LIVE_EXECUTION": "UNPROVEN"
+}

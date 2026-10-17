@@ -1,0 +1,5 @@
+voice-ui dev: listening on 127.0.0.1:18845
+voice-ui dev: semanticMap=/nix/store/vqjhvwxcbwv7vg09n4d3sy54lw879s9f-semantic-map
+voice-ui dev: hayamimi=/nix/store/b7l6pgxk94ipi8sxg8z72kx8f6ki36xj-hayamimi-web
+voice-ui dev: architecture=/nix/store/99pisj8hpq93pvy2arghhdcqmjvm5k5h-voice-ui-architecture-source
+voice-ui dev: JEV_API_KEY bound

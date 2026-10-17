@@ -1,0 +1,149 @@
+{
+  "schema": "voice-ui.independent-ci-closed-readback/1",
+  "observed_at": "2026-10-17T10:27:18.099Z",
+  "head": "50b17036d1c73d18fd92db95d6ff84350e1566d5",
+  "runId": "39024420927",
+  "artifact": {
+    "id": 12097783559,
+    "archive_sha256": "d13efab33d8fa969afbe8f62aa7c9dcf6a0331408b3b300197cd044dc6487398",
+    "digest": "sha256:d13efab33d8fa969afbe8f62aa7c9dcf6a0331408b3b300197cd044dc6487398"
+  },
+  "receipt_sha256": "7600913da63af074e9e17436459e52c6d79908ea4f6421b7c312d87dbf6bbe97",
+  "status": "PASS",
+  "results": [
+    {
+      "id": "public-initial-f2e9",
+      "execution": "INVALID",
+      "consumed": 5,
+      "raw_and_factor_recomputation": "PASS",
+      "phase": "PASS",
+      "binding": "PASS",
+      "recorded_replay": {
+        "status": "PASS",
+        "issues": [],
+        "consumed": 5,
+        "frames": 15,
+        "assessed_frames": 10,
+        "recorded_paint_status": "PASS",
+        "replay_sha256": "d07ab7e99a7aee02e0aac2a3ce6ff5e599f8ad4675d29a5100394311f8bd67ab",
+        "model_quality_scope": "NONE",
+        "CI_LIVE_EXECUTION": "UNPROVEN"
+      },
+      "CI_replay": {
+        "status": "PASS",
+        "issues": [],
+        "consumed": 5,
+        "frames": 15,
+        "assessed_frames": 10,
+        "recorded_paint_status": "PASS",
+        "replay_sha256": "72d3140bd41483294e5596d10bb0b5d199311570095d09f31e7b192be5934e19",
+        "model_quality_scope": "NONE",
+        "CI_LIVE_EXECUTION": "UNPROVEN"
+      },
+      "performance_classification": "UNPROVEN"
+    },
+    {
+      "id": "correction-one-f2fa",
+      "execution": "INVALID",
+      "consumed": 4,
+      "raw_and_factor_recomputation": "PASS",
+      "phase": "PASS",
+      "binding": "PASS",
+      "recorded_replay": {
+        "status": "PASS",
+        "issues": [],
+        "consumed": 4,
+        "frames": 12,
+        "assessed_frames": 8,
+        "recorded_paint_status": "PASS",
+        "replay_sha256": "c741db8c4a98d4b281f4d7bdeac7c0e2b3714cf204856163b29eef56be8cadb4",
+        "model_quality_scope": "NONE",
+        "CI_LIVE_EXECUTION": "UNPROVEN"
+      },
+      "CI_replay": {
+        "status": "PASS",
+        "issues": [],
+        "consumed": 4,
+        "frames": 12,
+        "assessed_frames": 8,
+        "recorded_paint_status": "PASS",
+        "replay_sha256": "5ae8eaefe60c2b55c5b6617d3976048129ca2fd8006068132ef2548f4158e7f5",
+        "model_quality_scope": "NONE",
+        "CI_LIVE_EXECUTION": "UNPROVEN"
+      },
+      "performance_classification": "UNPROVEN"
+    },
+    {
+      "id": "correction-two-2c8b",
+      "execution": "RECORDED",
+      "consumed": 4,
+      "raw_and_factor_recomputation": "PASS",
+      "phase": "PASS",
+      "binding": "PASS",
+      "recorded_replay": {
+        "status": "PASS",
+        "issues": [],
+        "consumed": 4,
+        "frames": 12,
+        "assessed_frames": 8,
+        "recorded_paint_status": "PASS",
+        "replay_sha256": "4b436114d48d8adf05e6d6f5e524c9c038662bc7b7c7832e198f59f2788fb02c",
+        "model_quality_scope": "NONE",
+        "CI_LIVE_EXECUTION": "UNPROVEN"
+      },
+      "CI_replay": {
+        "status": "PASS",
+        "issues": [],
+        "consumed": 4,
+        "frames": 12,
+        "assessed_frames": 8,
+        "recorded_paint_status": "PASS",
+        "replay_sha256": "930d29e29523a6dca92541ae1dfce4bfa5a526c7ee7776629dfef899a53d7995",
+        "model_quality_scope": "NONE",
+        "CI_LIVE_EXECUTION": "UNPROVEN"
+      },
+      "performance_classification": "UNPROVEN"
+    },
+    {
+      "id": "public-remainder-2c8b",
+      "execution": "RECORDED",
+      "consumed": 17,
+      "raw_and_factor_recomputation": "PASS",
+      "phase": "PASS",
+      "binding": "PASS",
+      "recorded_replay": {
+        "status": "PASS",
+        "issues": [],
+        "consumed": 17,
+        "frames": 64,
+        "assessed_frames": 47,
+        "recorded_paint_status": "PASS",
+        "replay_sha256": "685e25cd339b2d1e33bf51154b488805fb3e4422e01d67d0b1c3be4f78a1608f",
+        "model_quality_scope": "NONE",
+        "CI_LIVE_EXECUTION": "UNPROVEN"
+      },
+      "CI_replay": {
+        "status": "PASS",
+        "issues": [],
+        "consumed": 17,
+        "frames": 64,
+        "assessed_frames": 47,
+        "recorded_paint_status": "PASS",
+        "replay_sha256": "e64ac843db8b4d47cf9a0ff412d807dd92de46c3523d432f95133db59287b3da",
+        "model_quality_scope": "NONE",
+        "CI_LIVE_EXECUTION": "UNPROVEN"
+      },
+      "performance_classification": "UNPROVEN"
+    }
+  ],
+  "mutation_tests": 6,
+  "mutation_negative_variants": 34,
+  "cumulative": {
+    "jev": 413,
+    "typellm": 26
+  },
+  "scope": "independent readback/recomputation of CI rebuilt exact-source artifacts and all closed replay receipts; hosted CI never calls real providers",
+  "CI_LIVE_EXECUTION": "UNPROVEN",
+  "four_way_comparison": "INCOMPLETE_D_BLOCKED_COST",
+  "currency": "COST_NOT_MEASURED"
+}

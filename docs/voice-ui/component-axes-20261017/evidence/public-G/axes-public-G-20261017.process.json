@@ -1,0 +1,22 @@
+{
+  "phase_id": "axes-public-G-20261017",
+  "pid": 308086,
+  "state": "R",
+  "pgid": 308086,
+  "start_ticks": "15074155",
+  "program": "/nix/store/bg0bygqiid25xnivxv9cdgjlx3sp939j-voice-ui-typed-dev/bin/voice-ui-typed-dev",
+  "heads": {
+    "apps": "286eb7d0bc0bdef160bda900547314aa5be3a752",
+    "envs": "063e685b8b21a97fc8658879da93fa858552bcd6",
+    "ops": "cab432ef717cbde9ebd0197ae006c0efe75269bf",
+    "windows": "6aef693c0946903d8b87c2348039de1420acd61b",
+    "ui": "756d47e891191c3344eb2d29b000203be8331abc"
+  },
+  "allowances": {
+    "jev": 4,
+    "typellm": 0
+  },
+  "stdout": "/work/repos/voice-ui-typellm-20261016/axes-public-G-20261017.stdout.log",
+  "stderr": "/work/repos/voice-ui-typellm-20261016/axes-public-G-20261017.stderr.log",
+  "config_sha256": "b527320b9727efc95c6fcce0de78121ef34e2e5a5de3c3ef8a47250459c0ed08"
+}

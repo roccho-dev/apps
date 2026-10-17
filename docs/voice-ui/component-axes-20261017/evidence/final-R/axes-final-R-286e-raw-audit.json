@@ -1,0 +1,412 @@
+{
+  "schema": "voice-ui.component-axes-raw-audit/1",
+  "axis": "R",
+  "status": "PASS",
+  "issues": [],
+  "complete": true,
+  "all_valid_execution": true,
+  "phase_kind": "fresh",
+  "parent_inputs_sha256": null,
+  "runtime_scope": "LIVE_BINDING_REQUIRED",
+  "admissible_for_semantic_claim": true,
+  "consumed": 8,
+  "planned": 8,
+  "external_provider_attempts": {
+    "jev": 42,
+    "typellm": 0
+  },
+  "external_provider_attempt_bounds": {
+    "jev": {
+      "min": 42,
+      "max": 42
+    },
+    "typellm": {
+      "min": 0,
+      "max": 0
+    }
+  },
+  "factor_rows": 0,
+  "factor_alignment": "UNIQUE",
+  "proofs": [
+    {
+      "id": "R01",
+      "method": "ready",
+      "status": "PASS",
+      "initial_head": "sha256:0b3522df5b691691d41d9b4587377781fc7048c991a4e47357e5583eb09288c6",
+      "final_head": "sha256:ed241d31ffc550e308f6a5bf2b28439eea21a68c518d306fe212653ae20ccd20"
+    },
+    {
+      "id": "R02",
+      "method": "ready",
+      "status": "PASS",
+      "initial_head": "sha256:0b3522df5b691691d41d9b4587377781fc7048c991a4e47357e5583eb09288c6",
+      "final_head": "sha256:a43eff210f615651e96bd24fd35a6f5f35a74442e193ec036123367d4282cde6"
+    },
+    {
+      "id": "R03",
+      "method": "ready",
+      "status": "PASS",
+      "initial_head": "sha256:0b3522df5b691691d41d9b4587377781fc7048c991a4e47357e5583eb09288c6",
+      "final_head": "sha256:058bd23f0dba48989aa36d20062e4cacf7ac07329c082e37c06744a14950d0af"
+    },
+    {
+      "id": "R04",
+      "method": "ready",
+      "status": "PASS",
+      "initial_head": "sha256:0b3522df5b691691d41d9b4587377781fc7048c991a4e47357e5583eb09288c6",
+      "final_head": "sha256:339123ecd919922cba6dadf3547d071c5e3468059e4c9c6cbb12b3fc329dff76"
+    },
+    {
+      "id": "R05",
+      "method": "ready",
+      "status": "PASS",
+      "initial_head": "sha256:0b3522df5b691691d41d9b4587377781fc7048c991a4e47357e5583eb09288c6",
+      "final_head": "sha256:44b221d62ae81c3d195c7ad9218753d048dfb0af09b945b2871611c9e74b2730"
+    },
+    {
+      "id": "R06",
+      "method": "ready",
+      "status": "PASS",
+      "initial_head": "sha256:0b3522df5b691691d41d9b4587377781fc7048c991a4e47357e5583eb09288c6",
+      "final_head": "sha256:bf37e7b58237314b5bfe52200def099d0a108485a2fd3803c3a51c50423e871a"
+    },
+    {
+      "id": "R07",
+      "method": "ready",
+      "status": "PASS",
+      "initial_head": "sha256:b4f52e5183b8e5730e59a7524a9b260f7cb7a4246695c8a69c4d320bec1312c1",
+      "final_head": "sha256:2506fce6135edd5a940ba7472ddb9d23ab7e7f04438ec04ab59537370f4f6a81"
+    },
+    {
+      "id": "R08",
+      "method": "ready",
+      "status": "PASS",
+      "initial_head": "sha256:0b3522df5b691691d41d9b4587377781fc7048c991a4e47357e5583eb09288c6",
+      "final_head": "sha256:4c88a12a70c27311e5e7da6277f6fa39d1c7f5eeccaff77e5898c1115ef3a292"
+    }
+  ],
+  "rows": [
+    {
+      "id": "R01",
+      "method": "ready",
+      "grade": {
+        "oracle_inventory_sufficient": true,
+        "graph": {
+          "graph_exact": true,
+          "unique_record_keys": true,
+          "existing_semantics_preserved": true,
+          "semantic_unchanged": false,
+          "clean_new_regions": true,
+          "clean_new_edges": true,
+          "no_other_new_semantics": true,
+          "actual_added_regions": [
+            {
+              "label": "仮登録",
+              "kind": "step",
+              "parent": "fixture:container"
+            }
+          ],
+          "actual_added_edges": []
+        },
+        "scope": "representation conditional on supplied inventory; paint and actual Goal-path admissibility separate"
+      },
+      "paint_status": "PASS",
+      "cell_wall_elapsedMs": 1054.6934999999999,
+      "goal_elapsedMs": 1045.0565
+    },
+    {
+      "id": "R02",
+      "method": "ready",
+      "grade": {
+        "oracle_inventory_sufficient": true,
+        "graph": {
+          "graph_exact": true,
+          "unique_record_keys": true,
+          "existing_semantics_preserved": true,
+          "semantic_unchanged": false,
+          "clean_new_regions": true,
+          "clean_new_edges": true,
+          "no_other_new_semantics": true,
+          "actual_added_regions": [
+            {
+              "label": "容量確認",
+              "kind": "decision",
+              "parent": "fixture:container"
+            }
+          ],
+          "actual_added_edges": []
+        },
+        "scope": "representation conditional on supplied inventory; paint and actual Goal-path admissibility separate"
+      },
+      "paint_status": "PASS",
+      "cell_wall_elapsedMs": 791.0360999999998,
+      "goal_elapsedMs": 788.2158
+    },
+    {
+      "id": "R03",
+      "method": "ready",
+      "grade": {
+        "oracle_inventory_sufficient": true,
+        "graph": {
+          "graph_exact": true,
+          "unique_record_keys": true,
+          "existing_semantics_preserved": true,
+          "semantic_unchanged": false,
+          "clean_new_regions": true,
+          "clean_new_edges": true,
+          "no_other_new_semantics": true,
+          "actual_added_regions": [
+            {
+              "label": "API",
+              "kind": "step",
+              "parent": "fixture:container"
+            },
+            {
+              "label": "API",
+              "kind": "step",
+              "parent": "fixture:container"
+            },
+            {
+              "label": "API",
+              "kind": "step",
+              "parent": "fixture:container"
+            }
+          ],
+          "actual_added_edges": []
+        },
+        "scope": "representation conditional on supplied inventory; paint and actual Goal-path admissibility separate"
+      },
+      "paint_status": "PASS",
+      "cell_wall_elapsedMs": 1573.6334000000002,
+      "goal_elapsedMs": 1570.2304999999997
+    },
+    {
+      "id": "R04",
+      "method": "ready",
+      "grade": {
+        "oracle_inventory_sufficient": true,
+        "graph": {
+          "graph_exact": true,
+          "unique_record_keys": true,
+          "existing_semantics_preserved": true,
+          "semantic_unchanged": false,
+          "clean_new_regions": true,
+          "clean_new_edges": true,
+          "no_other_new_semantics": true,
+          "actual_added_regions": [
+            {
+              "label": "展開室",
+              "kind": "group",
+              "parent": "fixture:container"
+            },
+            {
+              "label": "集約室",
+              "kind": "group",
+              "parent": "fixture:container"
+            },
+            {
+              "label": "保全室",
+              "kind": "group",
+              "parent": "fixture:container"
+            }
+          ],
+          "actual_added_edges": []
+        },
+        "scope": "representation conditional on supplied inventory; paint and actual Goal-path admissibility separate"
+      },
+      "paint_status": "PASS",
+      "cell_wall_elapsedMs": 1697.7438000000002,
+      "goal_elapsedMs": 1694.1902
+    },
+    {
+      "id": "R05",
+      "method": "ready",
+      "grade": {
+        "oracle_inventory_sufficient": true,
+        "graph": {
+          "graph_exact": true,
+          "unique_record_keys": true,
+          "existing_semantics_preserved": true,
+          "semantic_unchanged": false,
+          "clean_new_regions": true,
+          "clean_new_edges": true,
+          "no_other_new_semantics": true,
+          "actual_added_regions": [
+            {
+              "label": "発送室",
+              "kind": "group",
+              "parent": "fixture:container"
+            },
+            {
+              "label": "荷札生成",
+              "kind": "step",
+              "parent": "added:発送室"
+            },
+            {
+              "label": "荷札",
+              "kind": "data",
+              "parent": "added:発送室"
+            }
+          ],
+          "actual_added_edges": [
+            {
+              "from": "added:荷札生成",
+              "to": "added:荷札",
+              "kind": "flow",
+              "label": ""
+            }
+          ]
+        },
+        "scope": "representation conditional on supplied inventory; paint and actual Goal-path admissibility separate"
+      },
+      "paint_status": "PASS",
+      "cell_wall_elapsedMs": 1658.2064,
+      "goal_elapsedMs": 1655.4895000000006
+    },
+    {
+      "id": "R06",
+      "method": "ready",
+      "grade": {
+        "oracle_inventory_sufficient": true,
+        "graph": {
+          "graph_exact": true,
+          "unique_record_keys": true,
+          "existing_semantics_preserved": true,
+          "semantic_unchanged": false,
+          "clean_new_regions": true,
+          "clean_new_edges": true,
+          "no_other_new_semantics": true,
+          "actual_added_regions": [
+            {
+              "label": "抽出",
+              "kind": "step",
+              "parent": "fixture:container"
+            },
+            {
+              "label": "抽出表",
+              "kind": "data",
+              "parent": "fixture:other"
+            }
+          ],
+          "actual_added_edges": [
+            {
+              "from": "added:抽出",
+              "to": "added:抽出表",
+              "kind": "flow",
+              "label": ""
+            }
+          ]
+        },
+        "scope": "representation conditional on supplied inventory; paint and actual Goal-path admissibility separate"
+      },
+      "paint_status": "PASS",
+      "cell_wall_elapsedMs": 1319.9144000000006,
+      "goal_elapsedMs": 1296.2499000000007
+    },
+    {
+      "id": "R07",
+      "method": "ready",
+      "grade": {
+        "oracle_inventory_sufficient": true,
+        "graph": {
+          "graph_exact": true,
+          "unique_record_keys": true,
+          "existing_semantics_preserved": true,
+          "semantic_unchanged": false,
+          "clean_new_regions": true,
+          "clean_new_edges": true,
+          "no_other_new_semantics": true,
+          "actual_added_regions": [],
+          "actual_added_edges": [
+            {
+              "from": "fixture:initial-api",
+              "to": "fixture:initial-db",
+              "kind": "flow",
+              "label": ""
+            }
+          ]
+        },
+        "scope": "representation conditional on supplied inventory; paint and actual Goal-path admissibility separate"
+      },
+      "paint_status": "PASS",
+      "cell_wall_elapsedMs": 485.5626000000011,
+      "goal_elapsedMs": 459.65929999999935
+    },
+    {
+      "id": "R08",
+      "method": "ready",
+      "grade": {
+        "oracle_inventory_sufficient": true,
+        "graph": {
+          "graph_exact": true,
+          "unique_record_keys": true,
+          "existing_semantics_preserved": true,
+          "semantic_unchanged": false,
+          "clean_new_regions": true,
+          "clean_new_edges": true,
+          "no_other_new_semantics": true,
+          "actual_added_regions": [
+            {
+              "label": "開始",
+              "kind": "start",
+              "parent": "fixture:container"
+            },
+            {
+              "label": "終了",
+              "kind": "end",
+              "parent": "fixture:container"
+            }
+          ],
+          "actual_added_edges": [
+            {
+              "from": "added:開始",
+              "to": "added:終了",
+              "kind": "flow",
+              "label": ""
+            }
+          ]
+        },
+        "scope": "representation conditional on supplied inventory; paint and actual Goal-path admissibility separate"
+      },
+      "paint_status": "PASS",
+      "cell_wall_elapsedMs": 1730.0708000000013,
+      "goal_elapsedMs": 1726.8320000000003
+    }
+  ],
+  "semantic": {
+    "complete": true,
+    "total": 8,
+    "inventory_sufficient": 8,
+    "graph_exact": 8,
+    "paint_pass": 8,
+    "representation_criteria": "PASS",
+    "scope": "finite representation with oracle inventory; raw paint/Goal binding is separately required"
+  },
+  "replay": {
+    "status": "PASS",
+    "issues": [],
+    "consumed": 8,
+    "frames": 32,
+    "assessed_frames": 24,
+    "recorded_paint_status": "PASS",
+    "replay_sha256": "027ef0abc1ffad860f6cf28a785e9313e1dc8eb82fc00daa74b204d1be544951",
+    "model_quality_scope": "NONE",
+    "CI_LIVE_EXECUTION": "UNPROVEN"
+  },
+  "raw_sha256": {
+    "events.jsonl": "cbf72aafa06f87ba1064fd8797e785a7d7fb5378f729319004bff6d585a7bc46",
+    "execution.json": "1b6f3ae573712610b781b58e29984862d1a853ad93f6db2143ee5ee993905bcf",
+    "identity.json": "0095b54208ae14ee1f96233cc317a484cea851a586f1d8f27eb8a4f69d60a04a",
+    "R01-A.json": "c66b6fd32c05b5a73bfd3370db3a31361346fca5b79d2483627a41729eb19239",
+    "R02-A.json": "0c8f915e72cd360abb9ed154602da972f2d41c0c7f237ed9437acbd7cf7a39d5",
+    "R03-A.json": "051d483a183e01245a9bcdab9caecb079278fa63609bedb91c46bbe779893030",
+    "R04-A.json": "ba78d87eea834823cc677a735ab149867c266783ffd8ffa3a97d99c4811f8a9a",
+    "R05-A.json": "8a8d07e2f71ea396bdef0f2753a669399014dbb2928589cb806317c920926ad9",
+    "R06-A.json": "84f4870b58081f176bb73e33900ab0d2a0cc0d5f0afd2df4232ce8f35384bd28",
+    "R07-A.json": "92f9d5989d8a6cd8c3cde191edd49005e126c4363ddc6886bf27af2bd3139b92",
+    "R08-A.json": "45c4b79f0ecafa36848490789344f5f8523eac9437c110a5aaadcddc61e25e8a"
+  },
+  "scope": "raw-axis locality only; source/producer/provider/independent physical PID and any required paint gates remain separate",
+  "CI_LIVE_EXECUTION": "UNPROVEN",
+  "currency": "COST_NOT_MEASURED"
+}

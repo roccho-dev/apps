@@ -1,0 +1,590 @@
+{
+  "schema": "voice-ui.poc.closed-evidence-join/1",
+  "observed_at": "2026-10-17T09:59:58.159Z",
+  "checker_sha256": "4109a411b1ebc32088f8f871c580a1e540db1d1c500d8e482d4956fa7451e9ab",
+  "producer_manifest_sha256": "41d219c2b3930d3b6d2b50529542544fb59ed218fa5f25a1225114a85e21b63c",
+  "integrity": "PASS",
+  "classification": "INVALID_PARTIAL_CORRECTION",
+  "model_comparison_admissible": false,
+  "raw": {
+    "schema": "voice-ui.poc.raw-receipt-audit/1",
+    "status": "PASS",
+    "issues": [],
+    "phase_kind": "correction",
+    "consumed": 4,
+    "planned": 4,
+    "complete_same_source_panel": false,
+    "model_comparison_admissible": false,
+    "recorded_execution_status": "INVALID",
+    "missing_responses": [],
+    "http_attempts": {
+      "jev": 7,
+      "typellm": 1
+    },
+    "factor_count": 4,
+    "proofs": [
+      {
+        "id": "H01",
+        "arm": "C",
+        "status": "PASS",
+        "final_head": "sha256:76bda113a3b68078d3da2edbf9504e02449e6f0604cad6f3c96744321684f6e9",
+        "initial_log_sha256": "32f7c43ed78ccead4936c39d30e00fd36340a388192bb9e0c9b0265801848079",
+        "final_log_sha256": "cedafc5b19046721f324e21179b46b176e24cdb2e392c5364e3c0829c48ec6c4"
+      },
+      {
+        "id": "H09",
+        "arm": "C",
+        "status": "PASS",
+        "final_head": "sha256:3f44e0d52678bc7ddeac8b19804ffaadfe6a493ce65ba8ca98f345ddd2ff75a2",
+        "initial_log_sha256": "32f7c43ed78ccead4936c39d30e00fd36340a388192bb9e0c9b0265801848079",
+        "final_log_sha256": "32f7c43ed78ccead4936c39d30e00fd36340a388192bb9e0c9b0265801848079"
+      },
+      {
+        "id": "H10",
+        "arm": "C",
+        "status": "PASS",
+        "final_head": "sha256:6969f47d7531db6ae8959481e6ee24676c9b37da9a61b2cdf2c97d4a2af6684a",
+        "initial_log_sha256": "b36330f159836a6ae872a0da817391214208f919e76fc4fb69331248cecc618c",
+        "final_log_sha256": "b36330f159836a6ae872a0da817391214208f919e76fc4fb69331248cecc618c"
+      },
+      {
+        "id": "H05",
+        "arm": "C",
+        "status": "PASS",
+        "final_head": "sha256:3f44e0d52678bc7ddeac8b19804ffaadfe6a493ce65ba8ca98f345ddd2ff75a2",
+        "initial_log_sha256": "32f7c43ed78ccead4936c39d30e00fd36340a388192bb9e0c9b0265801848079",
+        "final_log_sha256": "32f7c43ed78ccead4936c39d30e00fd36340a388192bb9e0c9b0265801848079"
+      }
+    ],
+    "rows": [
+      {
+        "id": "H01",
+        "arm": "C",
+        "expected_gate": "sufficient",
+        "score_input_valid": true,
+        "issues": [],
+        "gate": {
+          "contract_valid": true,
+          "raw_choice_correct": true,
+          "accepted_gate_correct": true
+        },
+        "graph_exact": true,
+        "graph": {
+          "graph_exact": true,
+          "unique_record_keys": true,
+          "existing_semantics_preserved": true,
+          "semantic_unchanged": false,
+          "clean_new_regions": true,
+          "clean_new_edges": true,
+          "no_other_new_semantics": true,
+          "actual_added_regions": [
+            {
+              "label": "API",
+              "kind": "step",
+              "parent": "fixture:container"
+            }
+          ],
+          "actual_added_edges": []
+        },
+        "missing_minimal": true,
+        "raw_unchanged": false,
+        "no_false_adoption": true,
+        "generation_free": true,
+        "all_arm_guard": true,
+        "deadline": true,
+        "jev_http": 4,
+        "typellm_http": 0,
+        "elapsedMs": 1079.4079,
+        "scope": "sufficient"
+      },
+      {
+        "id": "H09",
+        "arm": "C",
+        "expected_gate": "ambiguous",
+        "score_input_valid": true,
+        "issues": [],
+        "gate": {
+          "contract_valid": true,
+          "raw_choice_correct": true,
+          "accepted_gate_correct": true
+        },
+        "graph_exact": true,
+        "graph": {
+          "graph_exact": true,
+          "unique_record_keys": true,
+          "existing_semantics_preserved": true,
+          "semantic_unchanged": true,
+          "clean_new_regions": true,
+          "clean_new_edges": true,
+          "no_other_new_semantics": true,
+          "actual_added_regions": [],
+          "actual_added_edges": []
+        },
+        "missing_minimal": true,
+        "raw_unchanged": true,
+        "no_false_adoption": true,
+        "generation_free": true,
+        "all_arm_guard": true,
+        "deadline": true,
+        "jev_http": 1,
+        "typellm_http": 0,
+        "elapsedMs": 191.1960999999999,
+        "scope": "control"
+      },
+      {
+        "id": "H10",
+        "arm": "C",
+        "expected_gate": "no-change",
+        "score_input_valid": true,
+        "issues": [],
+        "gate": {
+          "contract_valid": true,
+          "raw_choice_correct": true,
+          "accepted_gate_correct": true
+        },
+        "graph_exact": true,
+        "graph": {
+          "graph_exact": true,
+          "unique_record_keys": true,
+          "existing_semantics_preserved": true,
+          "semantic_unchanged": true,
+          "clean_new_regions": true,
+          "clean_new_edges": true,
+          "no_other_new_semantics": true,
+          "actual_added_regions": [],
+          "actual_added_edges": []
+        },
+        "missing_minimal": true,
+        "raw_unchanged": true,
+        "no_false_adoption": true,
+        "generation_free": true,
+        "all_arm_guard": true,
+        "deadline": true,
+        "jev_http": 1,
+        "typellm_http": 0,
+        "elapsedMs": 184.75950000000012,
+        "scope": "control"
+      },
+      {
+        "id": "H05",
+        "arm": "C",
+        "expected_gate": "missing",
+        "score_input_valid": false,
+        "issues": [
+          "execution/stop reason",
+          "closed sequential HTTP",
+          "candidate receipt equality"
+        ],
+        "gate": {
+          "contract_valid": true,
+          "raw_choice_correct": true,
+          "accepted_gate_correct": true
+        },
+        "graph_exact": false,
+        "graph": {
+          "graph_exact": false,
+          "unique_record_keys": true,
+          "existing_semantics_preserved": true,
+          "semantic_unchanged": true,
+          "clean_new_regions": true,
+          "clean_new_edges": true,
+          "no_other_new_semantics": true,
+          "actual_added_regions": [],
+          "actual_added_edges": []
+        },
+        "missing_minimal": false,
+        "raw_unchanged": true,
+        "no_false_adoption": true,
+        "generation_free": false,
+        "all_arm_guard": true,
+        "deadline": true,
+        "jev_http": 1,
+        "typellm_http": 1,
+        "elapsedMs": 949.7973999999999,
+        "scope": "missing"
+      }
+    ],
+    "panels": {
+      "A": {
+        "schema": "voice-ui.poc.semantic-panel-score/1",
+        "selected": "A",
+        "complete": false,
+        "score_inputs_valid": false,
+        "final_shape": false,
+        "per_arm": {
+          "A": {
+            "gate": {
+              "accepted": 0,
+              "total": 0
+            },
+            "sufficient": {
+              "exact": 0,
+              "total": 0
+            },
+            "missing": {
+              "exact": 0,
+              "minimal": 0,
+              "total": 0
+            },
+            "controls": {
+              "raw_unchanged": 0,
+              "total": 0
+            },
+            "non_regression_guards": true,
+            "deadlines": true,
+            "jev_http": 0,
+            "typellm_http": 0
+          },
+          "B": {
+            "gate": {
+              "accepted": 0,
+              "total": 0
+            },
+            "sufficient": {
+              "exact": 0,
+              "total": 0
+            },
+            "missing": {
+              "exact": 0,
+              "minimal": 0,
+              "total": 0
+            },
+            "controls": {
+              "raw_unchanged": 0,
+              "total": 0
+            },
+            "non_regression_guards": true,
+            "deadlines": true,
+            "jev_http": 0,
+            "typellm_http": 0
+          },
+          "C": {
+            "gate": {
+              "accepted": 4,
+              "total": 4
+            },
+            "sufficient": {
+              "exact": 1,
+              "total": 1
+            },
+            "missing": {
+              "exact": 0,
+              "minimal": 0,
+              "total": 1
+            },
+            "controls": {
+              "raw_unchanged": 2,
+              "total": 2
+            },
+            "non_regression_guards": true,
+            "deadlines": true,
+            "jev_http": 7,
+            "typellm_http": 1
+          }
+        },
+        "paired_accepted_gate_gains": {
+          "over_A": {
+            "baseline": "A",
+            "eligible": 0,
+            "wins": 0,
+            "losses": 0,
+            "signed_gain": 0,
+            "excluded_gate_pairs": 4
+          },
+          "over_B": {
+            "baseline": "B",
+            "eligible": 0,
+            "wins": 0,
+            "losses": 0,
+            "signed_gain": 0,
+            "excluded_gate_pairs": 4
+          }
+        },
+        "all_arm_non_regression": true,
+        "selected_finite_semantic_criteria": "UNMET",
+        "mandatory_separate_admissibility": [
+          "consumed-input commitment and raw arm order/equal initial bytes",
+          "actual protocol/log/proof verification",
+          "actual runtime/source/artifact binding",
+          "provider journal/process closure and all count deltas",
+          "raw factor recomputation",
+          "completed-artifact browser/paint/lifecycle and mutation controls"
+        ],
+        "four_way_comparison": "INCOMPLETE_D_BLOCKED_COST",
+        "CI_LIVE_EXECUTION": "UNPROVEN",
+        "currency": "COST_NOT_MEASURED"
+      },
+      "B": {
+        "schema": "voice-ui.poc.semantic-panel-score/1",
+        "selected": "B",
+        "complete": false,
+        "score_inputs_valid": false,
+        "final_shape": false,
+        "per_arm": {
+          "A": {
+            "gate": {
+              "accepted": 0,
+              "total": 0
+            },
+            "sufficient": {
+              "exact": 0,
+              "total": 0
+            },
+            "missing": {
+              "exact": 0,
+              "minimal": 0,
+              "total": 0
+            },
+            "controls": {
+              "raw_unchanged": 0,
+              "total": 0
+            },
+            "non_regression_guards": true,
+            "deadlines": true,
+            "jev_http": 0,
+            "typellm_http": 0
+          },
+          "B": {
+            "gate": {
+              "accepted": 0,
+              "total": 0
+            },
+            "sufficient": {
+              "exact": 0,
+              "total": 0
+            },
+            "missing": {
+              "exact": 0,
+              "minimal": 0,
+              "total": 0
+            },
+            "controls": {
+              "raw_unchanged": 0,
+              "total": 0
+            },
+            "non_regression_guards": true,
+            "deadlines": true,
+            "jev_http": 0,
+            "typellm_http": 0
+          },
+          "C": {
+            "gate": {
+              "accepted": 4,
+              "total": 4
+            },
+            "sufficient": {
+              "exact": 1,
+              "total": 1
+            },
+            "missing": {
+              "exact": 0,
+              "minimal": 0,
+              "total": 1
+            },
+            "controls": {
+              "raw_unchanged": 2,
+              "total": 2
+            },
+            "non_regression_guards": true,
+            "deadlines": true,
+            "jev_http": 7,
+            "typellm_http": 1
+          }
+        },
+        "paired_accepted_gate_gains": {
+          "over_A": {
+            "baseline": "A",
+            "eligible": 0,
+            "wins": 0,
+            "losses": 0,
+            "signed_gain": 0,
+            "excluded_gate_pairs": 4
+          },
+          "over_B": {
+            "baseline": "B",
+            "eligible": 0,
+            "wins": 0,
+            "losses": 0,
+            "signed_gain": 0,
+            "excluded_gate_pairs": 4
+          }
+        },
+        "all_arm_non_regression": true,
+        "selected_finite_semantic_criteria": "UNMET",
+        "mandatory_separate_admissibility": [
+          "consumed-input commitment and raw arm order/equal initial bytes",
+          "actual protocol/log/proof verification",
+          "actual runtime/source/artifact binding",
+          "provider journal/process closure and all count deltas",
+          "raw factor recomputation",
+          "completed-artifact browser/paint/lifecycle and mutation controls"
+        ],
+        "four_way_comparison": "INCOMPLETE_D_BLOCKED_COST",
+        "CI_LIVE_EXECUTION": "UNPROVEN",
+        "currency": "COST_NOT_MEASURED"
+      },
+      "C": {
+        "schema": "voice-ui.poc.semantic-panel-score/1",
+        "selected": "C",
+        "complete": false,
+        "score_inputs_valid": false,
+        "final_shape": false,
+        "per_arm": {
+          "A": {
+            "gate": {
+              "accepted": 0,
+              "total": 0
+            },
+            "sufficient": {
+              "exact": 0,
+              "total": 0
+            },
+            "missing": {
+              "exact": 0,
+              "minimal": 0,
+              "total": 0
+            },
+            "controls": {
+              "raw_unchanged": 0,
+              "total": 0
+            },
+            "non_regression_guards": true,
+            "deadlines": true,
+            "jev_http": 0,
+            "typellm_http": 0
+          },
+          "B": {
+            "gate": {
+              "accepted": 0,
+              "total": 0
+            },
+            "sufficient": {
+              "exact": 0,
+              "total": 0
+            },
+            "missing": {
+              "exact": 0,
+              "minimal": 0,
+              "total": 0
+            },
+            "controls": {
+              "raw_unchanged": 0,
+              "total": 0
+            },
+            "non_regression_guards": true,
+            "deadlines": true,
+            "jev_http": 0,
+            "typellm_http": 0
+          },
+          "C": {
+            "gate": {
+              "accepted": 4,
+              "total": 4
+            },
+            "sufficient": {
+              "exact": 1,
+              "total": 1
+            },
+            "missing": {
+              "exact": 0,
+              "minimal": 0,
+              "total": 1
+            },
+            "controls": {
+              "raw_unchanged": 2,
+              "total": 2
+            },
+            "non_regression_guards": true,
+            "deadlines": true,
+            "jev_http": 7,
+            "typellm_http": 1
+          }
+        },
+        "paired_accepted_gate_gains": {
+          "over_A": {
+            "baseline": "A",
+            "eligible": 0,
+            "wins": 0,
+            "losses": 0,
+            "signed_gain": 0,
+            "excluded_gate_pairs": 4
+          },
+          "over_B": {
+            "baseline": "B",
+            "eligible": 0,
+            "wins": 0,
+            "losses": 0,
+            "signed_gain": 0,
+            "excluded_gate_pairs": 4
+          }
+        },
+        "all_arm_non_regression": true,
+        "selected_finite_semantic_criteria": "UNMET",
+        "mandatory_separate_admissibility": [
+          "consumed-input commitment and raw arm order/equal initial bytes",
+          "actual protocol/log/proof verification",
+          "actual runtime/source/artifact binding",
+          "provider journal/process closure and all count deltas",
+          "raw factor recomputation",
+          "completed-artifact browser/paint/lifecycle and mutation controls"
+        ],
+        "four_way_comparison": "INCOMPLETE_D_BLOCKED_COST",
+        "CI_LIVE_EXECUTION": "UNPROVEN",
+        "currency": "COST_NOT_MEASURED"
+      }
+    },
+    "raw_sha256": {
+      "H01-C.json": "ef36c98f155712137eef2cde32031d2e5438c4e984fbf236ee733d1f61b642ee",
+      "H05-C.json": "1f1afe925b89eb9802771feb6e79c0ed302f26e5da37e18289dec81f5d5cd497",
+      "H09-C.json": "ac9afd53e999205ab4fdf856bf6bd44765a4e6b3cefac0c51a9fddb9147990e3",
+      "H10-C.json": "9eacb874a207f6dde09762f414b7b3e4648332e456d5f99a4def26270c1a8fe2",
+      "events.jsonl": "659a67f46a2754b961d47c49f883011ef4a25e80331e30e4314c22b4d04d8b4d",
+      "execution.json": "988f142ea078c2ae7f6cf938a52d9b7d56eb61f83b6855bc1485e0af3f9aac4d",
+      "identity.json": "78222d36a440335d288b3d1045d1f4ab9874a2c4cb18315e1e2ccb639e102aee"
+    },
+    "CI_LIVE_EXECUTION": "UNPROVEN",
+    "four_way_comparison": "INCOMPLETE_D_BLOCKED_COST",
+    "currency": "COST_NOT_MEASURED"
+  },
+  "phase": {
+    "status": "PASS",
+    "issues": [],
+    "phase": "candidate-correction-1-20261017",
+    "sent": {
+      "jev": 7,
+      "typellm": 1
+    },
+    "prior_charged": {
+      "jev": 309,
+      "typellm": 21
+    },
+    "charged_at_cutoff": {
+      "jev": 316,
+      "typellm": 22
+    },
+    "journal_sha256": "370fa6c4493b73822b6f52044cf1993808e8bdaea5b9b09ec0a4f6e58baaabaa",
+    "config_sha256": "3b445ecc8949313b4342d518746951464e8c1e20361df65431d567143de8b284",
+    "stop_scope": "recorded reconciliation only; independent live PID observation remains an explicit audit reference"
+  },
+  "binding": {
+    "status": "PASS",
+    "issues": [],
+    "producer_schema": "voice-ui.poc.producer-expectation/1",
+    "provenance_scope": "exact byte/metadata joins to separately reviewed expectations and audit references",
+    "CI_LIVE_EXECUTION": "UNPROVEN"
+  },
+  "replay": {
+    "status": "PASS",
+    "issues": [],
+    "consumed": 4,
+    "frames": 12,
+    "assessed_frames": 8,
+    "recorded_paint_status": "PASS",
+    "replay_sha256": "c741db8c4a98d4b281f4d7bdeac7c0e2b3714cf204856163b29eef56be8cadb4",
+    "model_quality_scope": "NONE",
+    "CI_LIVE_EXECUTION": "UNPROVEN"
+  },
+  "CI_LIVE_EXECUTION": "UNPROVEN",
+  "four_way_comparison": "INCOMPLETE_D_BLOCKED_COST",
+  "currency": "COST_NOT_MEASURED"
+}

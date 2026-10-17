@@ -1,0 +1,19 @@
+{
+  "scope": "SYNTHETIC_COMPILED_WIRE_ONLY",
+  "provider_calls": 0,
+  "status": "PASS",
+  "captures": [
+    {
+      "head": "0df7",
+      "cases": 12,
+      "sha256": "215ead5017d5f5b14c7fc24d0304b899652e117834b965caa703b400be1635f2",
+      "worker_sha256": "6a47cd55e2ea9f610785cae47008aacf082c48f048149735694f0bc9888c5608"
+    },
+    {
+      "head": "4d00",
+      "cases": 12,
+      "sha256": "215ead5017d5f5b14c7fc24d0304b899652e117834b965caa703b400be1635f2",
+      "worker_sha256": "f4a81e80045765149224e8561821ba54a724327bb9bce176441f2488d40d2ef2"
+    }
+  ]
+}

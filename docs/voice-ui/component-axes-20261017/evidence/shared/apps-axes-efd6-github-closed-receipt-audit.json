@@ -1,0 +1,116 @@
+{
+  "schema": "voice-ui.independent-closed-ci-readback/1",
+  "status": "PASS",
+  "receipt": "efd6-component-axes-ci/receipt.json",
+  "receipt_sha256": "71f6c213a899e12838b0eabf7575b8b729c48760e3acc395a4608de8a74421c5",
+  "cumulative": {
+    "jev": 600,
+    "typellm": 32
+  },
+  "reports": [
+    {
+      "axis": "G",
+      "classification": "PUBLIC_REGRESSION_ONLY",
+      "integrity": "PASS",
+      "all_valid_execution": true,
+      "admissible_for_semantic_claim": true,
+      "semantic": {
+        "total": 4,
+        "intent": {
+          "correct": 4,
+          "total": 4
+        },
+        "availability": {
+          "correct": 2,
+          "total": 2
+        },
+        "normalized": {
+          "correct": 4,
+          "total": 4
+        },
+        "completeness": {
+          "correct": 2,
+          "total": 2
+        },
+        "unknown": 0,
+        "semantic_criteria": "UNMET"
+      },
+      "ci_replay": null
+    },
+    {
+      "axis": "R",
+      "classification": "PUBLIC_REGRESSION_ONLY",
+      "integrity": "PASS",
+      "all_valid_execution": true,
+      "admissible_for_semantic_claim": true,
+      "semantic": {
+        "complete": true,
+        "total": 2,
+        "inventory_sufficient": 2,
+        "graph_exact": 2,
+        "paint_pass": 2,
+        "representation_criteria": "UNMET",
+        "scope": "finite representation with oracle inventory; raw paint/Goal binding is separately required"
+      },
+      "ci_replay": {
+        "status": "PASS",
+        "paint": "PASS"
+      }
+    },
+    {
+      "axis": "F",
+      "classification": "PUBLIC_REGRESSION_ONLY",
+      "integrity": "PASS",
+      "all_valid_execution": false,
+      "admissible_for_semantic_claim": false,
+      "semantic": {
+        "complete": true,
+        "per_method": {
+          "literal": {
+            "total": 3,
+            "exact_minimal": 3,
+            "contract_valid": true,
+            "semantic_criteria": "UNMET"
+          },
+          "typed": {
+            "total": 3,
+            "exact_minimal": 1,
+            "contract_valid": false,
+            "semantic_criteria": "UNMET"
+          }
+        }
+      },
+      "ci_replay": null
+    },
+    {
+      "axis": "E",
+      "classification": "PUBLIC_REGRESSION_ONLY",
+      "integrity": "PASS",
+      "all_valid_execution": true,
+      "admissible_for_semantic_claim": true,
+      "semantic": {
+        "complete": true,
+        "gate_correct": 4,
+        "sufficient": {
+          "exact": 1,
+          "total": 1
+        },
+        "missing": {
+          "exact_minimal": 2,
+          "total": 2
+        },
+        "controls": {
+          "correct_unchanged": 1,
+          "total": 1
+        },
+        "ordinary_criteria": "UNMET",
+        "Undo_scope": "separate completed-artifact keyless mechanics, not another live Goal on these inputs"
+      },
+      "ci_replay": {
+        "status": "PASS",
+        "paint": "PASS"
+      }
+    }
+  ],
+  "scope": "all reported producer/raw/provider observations equal independent original audits; R/E replay and per-cell scores independently recalculated; public regression only"
+}

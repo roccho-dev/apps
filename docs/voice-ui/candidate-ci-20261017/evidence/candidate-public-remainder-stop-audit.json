@@ -1,0 +1,33 @@
+{
+  "observed_at": "2026-10-17T10:11:05.684638+00:00",
+  "phase": "candidate-public-remainder-20261017",
+  "current": null,
+  "group_members_including_z": [],
+  "sent": {
+    "jev": 87,
+    "typellm": 3
+  },
+  "charged": {
+    "jev": 413,
+    "typellm": 26
+  },
+  "pending": [],
+  "reconciliation": {
+    "kind": "phase-reconcile",
+    "id": "candidate-public-remainder-20261017",
+    "sent": {
+      "jev": 87,
+      "typellm": 3
+    },
+    "stopped_group_empty": true,
+    "pid": 261711,
+    "start_ticks": "13955189",
+    "stderr_sha256": "9e9858cb35821757ea2f0ab772ed814c6850bbaa834c36613514abc0302eabd3",
+    "stdout_sha256": "87ab389bbb22513217c1c81849852eaa6ff6b0cc635fcb0c09bc725168599662",
+    "at": "2026-10-17T10:09:56.060Z"
+  },
+  "ledger_sha256": "cdd1cde79c7917dc987aa9730f617f5d34ba76d5bcd49d8784c3bea429503228",
+  "stdout_sha256": "87ab389bbb22513217c1c81849852eaa6ff6b0cc635fcb0c09bc725168599662",
+  "stderr_sha256": "9e9858cb35821757ea2f0ab772ed814c6850bbaa834c36613514abc0302eabd3",
+  "matches": true
+}

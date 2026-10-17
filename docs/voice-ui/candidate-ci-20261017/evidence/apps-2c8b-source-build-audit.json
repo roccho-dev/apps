@@ -1,0 +1,79 @@
+{
+  "observed_at": "2026-10-17T09:56:59.163Z",
+  "head": "2c8b25ed30c33580a5902a07907e3aeaed430c25",
+  "runtime_audit_sha256": "825b6c352684047fe807a267c48294ae9e7be9fae8af57b3b6c90a84addb843c",
+  "runtime": {
+    "schema": "voice-ui.candidate.runtime-build/1",
+    "apps_sha": "2c8b25ed30c33580a5902a07907e3aeaed430c25",
+    "source_path": "/nix/store/ck5nvk2ywaa74wirfrm9rk73424ggrqx-source",
+    "dev_program": {
+      "path": "/nix/store/dq2iglcs0w004awiq6664bqx7v9x23ir-voice-ui-dev/bin/voice-ui-dev",
+      "sha256": "0a56ba4bb0b71698a7b47322b59f892ed69ae9f774516a2871ba818447248535"
+    },
+    "dev_derivation": "/nix/store/d1n610c5lm58pjll85lnjy8qrry4xwa5-voice-ui-dev.drv",
+    "artifact_root": "/nix/store/vah9d7barcgkwsymdhx88fk20ibab5x9-voice-ui-dist",
+    "manifest": {
+      "path": "/nix/store/vah9d7barcgkwsymdhx88fk20ibab5x9-voice-ui-dist/manifest.json",
+      "sha256": "7b05ca9282211c6e21c071e3d30d599c1146f1a2c66aa3eae9a492349a8809f0"
+    },
+    "manifest_sources": {
+      "apps": "2c8b25ed30c33580a5902a07907e3aeaed430c25",
+      "architecture": {
+        "evidence_sha256": "50e00d32960e14a8753e74488f47ae7db7f9557b2af6857fc636ce43651eeecd",
+        "manifest_sha256": "39f14ce1a9f4e01805473f6ecaa94918f7de2be35dc9ce657eb955dad2c3e05e",
+        "source": {
+          "commit": "2c8b25ed30c33580a5902a07907e3aeaed430c25",
+          "handle": "apps-voice-ui"
+        },
+        "status": "available"
+      },
+      "hayamimi-web": {
+        "locator": "https://github.com/roccho-dev/ops/releases/download/hayamimi-web-1665d5195a0dd70c2e0253c20351e5305db35f3f/hayamimi-web.zip",
+        "proof_sha256": "a0bb1478a5ffe9440f46682ca143382cd000d0d1d6f736723baad96541be4e27",
+        "sha256": "c12b51e2ea396a64131b917439ffbda1aa1cd70a9fd7f9567ea05030897c672a"
+      },
+      "jev-provider": {
+        "contract": "named-choices-and-typed/1",
+        "entry_sha256": "ad4ac08ae8c42f3bf0e9d0aeedb0a2e9192c776585a3251b2ff1e18358cfe2e7",
+        "locator": "https://github.com/roccho-org/ops/releases/download/jev-provider-cab432ef717cbde9ebd0197ae006c0efe75269bf/jev-provider.zip",
+        "manifest_sha256": "df95aa16e508e5c2563856fc99bd58aaf70fc120633f01c1a102f8598e48b253",
+        "proof_sha256": "41dbd597a7cd40cbb5995ed7cefdbafc047b56fa1ea9d339081aa20589b95e17",
+        "provenance_sha256": "21a44ca37e45a8678133d26532c69c02420c3b445fa6887356e188ba2a988cbf",
+        "sha256": "ea242b5ce5424ee6e367155198b059831b4494d1a0f4c8eeb404d9c12d469512"
+      },
+      "system": "x86_64-linux",
+      "ui": "756d47e891191c3344eb2d29b000203be8331abc"
+    },
+    "worker": {
+      "path": "/nix/store/vah9d7barcgkwsymdhx88fk20ibab5x9-voice-ui-dist/worker/worker.mjs",
+      "sha256": "fe10fd17d049f7cd87a892dc3d6d7cd2bc0faa0b3811379ac53c4bf6328c4b90"
+    },
+    "provider": {
+      "path": "/nix/store/js4b23pkhv5pz5sy1gdbb3mjs8xa9zg4-jev-provider-admitted/batch.mjs",
+      "sha256": "ad4ac08ae8c42f3bf0e9d0aeedb0a2e9192c776585a3251b2ff1e18358cfe2e7"
+    },
+    "semantic_map": {
+      "root": "/nix/store/vqjhvwxcbwv7vg09n4d3sy54lw879s9f-semantic-map",
+      "protocol": {
+        "path": "/nix/store/vqjhvwxcbwv7vg09n4d3sy54lw879s9f-semantic-map/packages/semantic-map/protocol/index.js",
+        "sha256": "1689dcf63e1ed19cdea7be22e3f90a09f434841f980b9ca8b9018a987c9c38f8"
+      }
+    },
+    "acceptance_runtime": "/nix/store/mqmmbzqpvl5j15vk0vmn9v6537lc5any-voice-ui-acceptance-node"
+  },
+  "source_files": 81,
+  "source_mismatches": [],
+  "artifact_members": 292,
+  "artifact_bytes": 91269603,
+  "artifact_mismatches": [],
+  "artifact_hashes": {
+    "worker": "fe10fd17d049f7cd87a892dc3d6d7cd2bc0faa0b3811379ac53c4bf6328c4b90",
+    "provider": "ad4ac08ae8c42f3bf0e9d0aeedb0a2e9192c776585a3251b2ff1e18358cfe2e7",
+    "protocol": "1689dcf63e1ed19cdea7be22e3f90a09f434841f980b9ca8b9018a987c9c38f8",
+    "dev": "0a56ba4bb0b71698a7b47322b59f892ed69ae9f774516a2871ba818447248535",
+    "manifest": "7b05ca9282211c6e21c071e3d30d599c1146f1a2c66aa3eae9a492349a8809f0"
+  },
+  "parent_input_sha256": "7f32e930d869dfb2261176afe89e542cb87ea8fb8ef40d66c0f55c86a7ed03f7",
+  "correction_input_sha256": "bcb83b856d2fd4da78a20e9dea5a152aea2c97324cf1a2963366380e22f67306",
+  "matches": true
+}
