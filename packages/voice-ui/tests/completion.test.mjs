@@ -226,6 +226,33 @@ test("stale/cancelled/invalid answers stop before completion; unknown detail is 
   assert.equal(cancelled.requests, 0); assert.equal(generated, 0);
 });
 
+test("every literal gate rejects malformed extraction before dispatch", async () => {
+  const utterance = 'Add FixtureNode inside Container';
+  const valid = { source: "literal+jev", recognized: true,
+    required: [{ label: "FixtureNode", kind: "step", quantity: 1 }],
+    missing: [{ label: "FixtureNode", kind: "step", occurrence: 1 }],
+    spans: [{ start: 4, end: 15, source: "FixtureNode", label: "FixtureNode", kind: "step", quantity: 1 }],
+    completeness: { choice: "complete", confidence: .9 } };
+  const mutations = [
+    x => { x.required[0].kind = "operator"; }, x => { x.required[0].quantity = -2; },
+    x => { x.required.push({ ...x.required[0] }); }, x => { x.spans[0].start = 999; },
+    x => { x.spans[0].source = "invented"; }, x => { x.spans[0].extra = true; },
+    x => { x.spans[0].quantity = 4; }, x => { x.recognized = false; },
+    x => { x.completeness.confidence = null; },
+  ];
+  for (const choice of ["sufficient", "missing", "unknown", "ambiguous", "no-change", "unsupported"])
+    for (const mutate of mutations) {
+      const inspection = structuredClone(valid); mutate(inspection);
+      const result = await runInventoryGoal({ utterance, bundle, current: () => initial, cancelled: () => false,
+        check: async () => ({ choice, confidence: choice === "unknown" ? null : .9, inspection }),
+        complete: async () => { assert.fail("invalid metadata must not dispatch completion"); },
+        ask: async () => { assert.fail("invalid metadata must not dispatch Goal"); },
+        adopt: async () => { assert.fail("invalid metadata must not adopt"); } });
+      assert.equal(result.reason, "inventory-contract", choice);
+      assert.equal(result.inventory.coverage, null);
+    }
+});
+
 test("completion and the legal loop share one absolute dispatch deadline", async () => {
   let clock = 0, armed = false, asked = 0;
   const now = () => { const value = clock; if (armed) clock = 180001; return value; };

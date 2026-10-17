@@ -172,7 +172,8 @@ try {
 } finally {
   if (browser) await browser.close(); fs.fsyncSync(journal); fs.closeSync(journal);
   write("execution.json", { schema: "voice-ui.component-axes-phase/1", axis,
-    status: summary.length === input.cases.length * (axis === "F" ? 2 : 1) ? "RECORDED" : "INVALID", summary,
+    status: summary.length === input.cases.length * (axis === "F" ? 2 : 1) && summary.every(cell => cell.valid_execution)
+      ? "RECORDED" : "INVALID", summary,
     invalid_cells: summary.filter(cell => !cell.valid_execution).length, expected_cells: input.cases.length * (axis === "F" ? 2 : 1) });
 }
 console.log(JSON.stringify({ axis, cells: summary.length, invalid: summary.filter(cell => !cell.valid_execution).length }));

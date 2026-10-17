@@ -300,6 +300,8 @@
             mkdir -p "$HOME"
             ${(acceptanceFor system).runtime}/bin/voice-ui-acceptance-node \
               ${self}/packages/voice-ui/acceptance/candidate-browser.mjs ${voiceUiDist} "$out"
+            ${(acceptanceFor system).runtime}/bin/voice-ui-acceptance-node \
+              ${self}/packages/voice-ui/acceptance/component-axes-smoke.mjs ${voiceUiDist} "$out/component-axes-mechanics"
           '';
           voice-ui-worker =
             pkgs.runCommand "voice-ui-worker-check" { nativeBuildInputs = [ pkgs.nodejs ]; }

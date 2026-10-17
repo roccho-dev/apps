@@ -1,4 +1,4 @@
-import { COVERAGE, inventoryQuestion, isInventory, readTypedMissing, typedMissingRequest } from "../../src/completion.mjs";
+import { COVERAGE, inventoryQuestion, isInventory, readLiteralInspection, readTypedMissing, typedMissingRequest } from "../../src/completion.mjs";
 import { LABEL_MAX, PART_KINDS } from "../../src/contract.mjs";
 import { literalInventory, literalQuestion } from "../../src/literal-inventory.mjs";
 const json = (body, status = 200) => Response.json(body, { status, headers: { "cache-control": "no-store" } });
@@ -45,6 +45,7 @@ export async function onParts({ request, mode, available, method = "typed" }, { 
           || literal.required.length === 0 && new Set(referenced.map(region => region.label)).size >= 2);
         const inspection = { source: "literal+jev", recognized: literal.recognized, required: literal.required,
           missing: literal.missing, spans: literal.spans, completeness: { choice: completeness.choice, confidence: completeness.confidence } };
+        if (readLiteralInspection(inspection, input.state.utterance) === null) return json({ error: "parts_contract" }, 502);
         const choice = intent.choice !== "change" ? intent.choice
           : ready && completeness.choice === "complete" && completeness.confidence >= 0.5
             ? literal.missing.length ? "missing" : "sufficient" : "unknown";

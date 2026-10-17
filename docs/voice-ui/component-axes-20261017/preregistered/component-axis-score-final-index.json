@@ -1,0 +1,37 @@
+{
+  "prepared_at": "2026-10-17T12:29:32.329Z",
+  "files": [
+    {
+      "name": "component-axes-input.schema.json",
+      "bytes": 4075,
+      "sha256": "1f4fc2d08b750a1720f3fe5df16bfd2b4f6cbd060e410407f9aa98086fb2aba4"
+    },
+    {
+      "name": "component-axes-raw-contract.json",
+      "bytes": 4086,
+      "sha256": "4592c3559e7170f6d89ddecc77ea4f5fd0dfc7074cec048416e1b73f96b0779c"
+    },
+    {
+      "name": "component-axis-score.mjs",
+      "bytes": 16305,
+      "sha256": "b5b6547e81f8213ba20126ab6404d4807b06d836f91507651a502bc9c6ebef6b"
+    },
+    {
+      "name": "component-axis-score.test.mjs",
+      "bytes": 10205,
+      "sha256": "67330b1ca5e02766dda2c0710378def122b4a0c4250bb7a60fcec698840c0ae7"
+    },
+    {
+      "name": "component-axis-score-tests.log",
+      "bytes": 1045,
+      "sha256": "060fee0cdd7e56550222fdbefa6cb3ae6977588272a4b6a1bc7412fa6b626191"
+    }
+  ],
+  "tests": {
+    "total": 9,
+    "pass": 9,
+    "fail": 0,
+    "scope": "independent semantic/input/scorer classification mutations; runtime adapters and actual protocol/CI admission remain pending"
+  },
+  "supersedes": "component-axis-score-index.json (7-test preparatory snapshot, not candidate freeze)"
+}

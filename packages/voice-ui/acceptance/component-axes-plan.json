@@ -16,7 +16,7 @@
     "G": { "cases": 10, "intent_correct": 10, "availability_correct": 8, "normalized_gate_correct": 10, "completeness": "raw and accepted separate columns", "controls_availability": "N/A" },
     "R": { "cases": 8, "graph_exact": 8, "paint_pass": 8, "inventory": "oracle complete inventory in isolated harness only", "gate_and_completion": "bypassed" },
     "F": { "cases": 8, "methods": ["literal", "typed"], "exact_minimal": 8, "input": "stock inventory and original utterance only", "gate": "bypassed", "clear_paraphrases_minimum": 2 },
-    "E": { "cases": 10, "normal_ui_method": "literal", "gate_correct": 10, "sufficient_exact": 4, "missing_exact_minimal": 4, "unchanged_correct_controls": 2, "unnecessary_generation": 0, "requires": ["actual completed Worker", "paint", "undo", "apply", "reload"] }
+    "E": { "cases": 10, "normal_ui_method": "literal", "gate_correct": 10, "sufficient_exact": 4, "missing_exact_minimal": 4, "unchanged_correct_controls": 2, "unnecessary_generation": 0, "requires": ["actual completed Worker", "paint", "one Goal then Apply full target", "reload raw equality"], "undo": "separate same-completed-artifact keyless mechanics" }
   },
   "admissibility": ["independent sealed disjoint inputs", "source artifact and harness frozen before input release", "oracle release after phase stop and independent reconciliation", "raw HTTP protocol proof and provider ledger join", "ordinary UI verified separately from isolated axes", "failed and unrecognized supported cases remain in denominator"],
   "seals": { "E": "previous unexposed reserve10 with unchanged inputs and oracle", "G_R_F": "new independent disjoint pools", "exposed_cases": "regression only" },

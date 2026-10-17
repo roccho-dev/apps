@@ -157,6 +157,27 @@ function readMissing(value) {
   return Object.freeze(value.map(x => Object.freeze({ ...x })));
 }
 
+// Literal evidence crosses the same closed boundary for every gate outcome.
+export function readLiteralInspection(value, utterance) {
+  if (!exact(value, ["source", "recognized", "required", "missing", "spans", "completeness"])
+      || value.source !== "literal+jev" || typeof value.recognized !== "boolean"
+      || readTypedRows(value.required) === null || readMissing(value.missing) === null
+      || !Array.isArray(value.spans) || value.spans.length > 3
+      || value.recognized !== (value.spans.length > 0)
+      || !value.spans.every(s => exact(s, ["start", "end", "source", "label", "kind", "quantity"])
+        && Number.isSafeInteger(s.start) && Number.isSafeInteger(s.end)
+        && s.start >= 0 && s.start < s.end && s.end <= utterance.length
+        && s.source === utterance.slice(s.start, s.end) && s.source === s.label
+        && readTypedRows([{ label: s.label, kind: s.kind, quantity: s.quantity }]) !== null)
+      || value.spans.reduce((n, s) => n + s.quantity, 0) > 3
+      || !unique(value.spans.map(s => JSON.stringify([s.start, s.end, s.label])))
+      || !exact(value.completeness, ["choice", "confidence"])
+      || !["complete", "incomplete"].includes(value.completeness.choice)
+      || typeof value.completeness.confidence !== "number" || !Number.isFinite(value.completeness.confidence)
+      || value.completeness.confidence < 0 || value.completeness.confidence > 1) return null;
+  return structuredClone(value);
+}
+
 function withMissing(bundle, missing) {
   const valid = readMissing(missing);
   if (valid === null || !Array.isArray(bundle.parts) || bundle.parts.length > OFFER_MAX || !bundle.parts.every(part)) return null;
@@ -189,13 +210,7 @@ export async function runInventoryGoal({ check, complete, completion = true, now
   inventory.checks++;
   try { coverage = await check(request); } catch { return stop("inventory-unknown"); }
   const inspected = exact(coverage, ["choice", "confidence", "inspection"])
-    && exact(coverage.inspection, ["source", "recognized", "required", "missing", "spans", "completeness"])
-    && coverage.inspection.source === "literal+jev" && typeof coverage.inspection.recognized === "boolean"
-    && Array.isArray(coverage.inspection.required) && Array.isArray(coverage.inspection.spans) && readMissing(coverage.inspection.missing) !== null
-    && exact(coverage.inspection.completeness, ["choice", "confidence"])
-    && ["complete", "incomplete"].includes(coverage.inspection.completeness.choice)
-    && Number.isFinite(coverage.inspection.completeness.confidence)
-    && coverage.inspection.completeness.confidence >= 0 && coverage.inspection.completeness.confidence <= 1;
+    && readLiteralInspection(coverage.inspection, options.utterance) !== null;
   if (!(exact(coverage, ["choice", "confidence"]) || inspected)
       || !(COVERAGE.includes(coverage.choice) || inspected && coverage.choice === "unknown" && coverage.confidence === null)
       || coverage.choice !== "unknown" && (typeof coverage.confidence !== "number" || !Number.isFinite(coverage.confidence)

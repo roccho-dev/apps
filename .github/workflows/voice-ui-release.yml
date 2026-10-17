@@ -7,6 +7,7 @@ on:
       - ".github/voice-ui-release/**"
       - "packages/voice-ui/**"
       - "docs/voice-ui/candidate-ci-20261017/**"
+      - "docs/voice-ui/component-axes-20261017/**"
       - "flake.nix"
       - "flake.lock"
   workflow_dispatch:
@@ -80,12 +81,16 @@ jobs:
           runtime="$(nix build --no-link --print-out-paths .#voice-ui-acceptance-runtime)"
           "$runtime/bin/voice-ui-acceptance-node" packages/voice-ui/acceptance/candidate-browser.mjs \
             "$reopened/voice-ui-dist" "$PWD/dist/candidate-browser-evidence"
+          "$runtime/bin/voice-ui-acceptance-node" packages/voice-ui/acceptance/component-axes-smoke.mjs \
+            "$reopened/voice-ui-dist" "$PWD/dist/component-axes-mechanics"
       - name: Preserve completed-ZIP browser evidence
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
           name: voice-ui-candidate-browser-${{ github.event.pull_request.head.sha || github.sha }}
-          path: dist/candidate-browser-evidence/
+          path: |
+            dist/candidate-browser-evidence/
+            dist/component-axes-mechanics/
           if-no-files-found: ignore
       - name: Verify stopped live evidence with exact recorded artifacts
         run: |

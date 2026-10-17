@@ -1,0 +1,124 @@
+{
+  "schema": "voice-ui.component-axes-raw-contract/1",
+  "cell_schema": "voice-ui.component-axes-cell/1",
+  "common_fields": [
+    "axis",
+    "id",
+    "method",
+    "initial_log",
+    "initial_head",
+    "initial_records",
+    "parts",
+    "calls",
+    "events",
+    "result",
+    "final_log",
+    "final_head",
+    "final_records",
+    "elapsedMs"
+  ],
+  "identity": "exact input bytes, case order, actual apps/source/runtime/artifact/Worker/provider/protocol/bundle hashes bound at phase level",
+  "axis_method": {
+    "G": [
+      "literal"
+    ],
+    "R": [
+      "ready"
+    ],
+    "F": [
+      "literal",
+      "typed"
+    ],
+    "E": [
+      "literal"
+    ]
+  },
+  "replay_compatibility_only": {
+    "ready": "A",
+    "literal": "B",
+    "typed": "C",
+    "warning": "arm is transport compatibility only; all new semantic/accounting dispatch uses axis+method"
+  },
+  "schedule": "case array order; F even zero-based case literal then typed, odd typed then literal; all other axes one method",
+  "parts": "actual effective initial candidate library, exactly8. R equals the supplied per-case parts; G/F/E equals admitted stock. Completion candidates recorded separately in result/calls.",
+  "calls": "closed localhost HTTP requests, responses including non200 and parse/transport failure, monotonic n, matching begin/end exactly once, timing. URL query method retained. External provider counts come from the fixed preload and journal, not localhost call counts.",
+  "external_provider_limits": {
+    "G": {
+      "jev": 1,
+      "typellm": 0
+    },
+    "R": {
+      "jev": 8,
+      "typellm": 0
+    },
+    "F_literal": {
+      "jev": 0,
+      "typellm": 0
+    },
+    "F_typed": {
+      "jev": 0,
+      "typellm": 1
+    },
+    "E": {
+      "jev": 9,
+      "typellm": 0
+    }
+  },
+  "result": "unmodified actual API response (G/F), actual production runGoal result (R), actual UI data-goal result (E). Any scoring projection must bind back to these and actual factor logs.",
+  "G": {
+    "no_adoption": true,
+    "initial_final_logs": "raw identical",
+    "factor_observation": [
+      "intent",
+      "completeness",
+      "legacy labels/capacity retained separately"
+    ],
+    "unknown_decision": {
+      "choice": "unknown",
+      "confidence": null
+    },
+    "known_decision_confidence": "min actual intent/completeness for literal change coverage; ordinary intent confidence for intent controls; never fabricated1"
+  },
+  "R": {
+    "no_inventory_or_completion_HTTP": true,
+    "no_expected_parent_edge_or_graph_in_provider_context": true,
+    "graph_oracle_inventory_conditional": true
+  },
+  "F": {
+    "no_gate_or_judge_HTTP": true,
+    "no_adoption": true,
+    "initial_final_logs": "raw identical",
+    "typed_context": "original utterance/initial graph/stock only; no literal candidates, gate outputs or oracle parts"
+  },
+  "E": {
+    "one_live_Goal_only": true,
+    "target_scored": "immediately after Goal before persistence operations",
+    "lifecycle": "ordinary Apply then reload; compare original complete target raw log/head/records and actual painted frame",
+    "Undo": "separate completed-ZIP keyless mechanics, same UI/session source; not each live unseen case",
+    "no_redo": true,
+    "no_hidden_restore": true
+  },
+  "scoring": "semantic scoring never promotes invalid source/protocol/journal/HTTP/paint admissibility to PASS; all fixed cases remain denominators",
+  "provider_payload_excludes": [
+    "oracle_sha256",
+    "oracle files",
+    "expected required/missing/graph/parents/edges",
+    "other axis inventories or outputs"
+  ],
+  "budget": {
+    "new_cycle": {
+      "jev": 290,
+      "typellm": 11
+    },
+    "charged_prior": {
+      "jev": 564,
+      "typellm": 29
+    }
+  },
+  "lifecycle_correction": {
+    "superseded": "R suggestion that Undo removes only last decision",
+    "source": "https://github.com/roccho-dev/apps/blob/4617b65ed42dc116329224612fa2e906daea46d8/packages/voice-ui/src/session.mjs#L234",
+    "actual": "unitsOf(draft).at(-1) removes the whole shared Goal group; no Redo"
+  },
+  "not_provider_authorization": true
+}

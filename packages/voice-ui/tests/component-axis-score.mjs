@@ -141,12 +141,15 @@ export function gradeReady(initial, final, oracle, parts) {
 export function summarizeGate(rows) {
   const clear = rows.filter(r => r.expected_intent === 'change');
   const sum = (rs, prop) => rs.filter(r => r.grade[prop] === true).length;
+  const shape = rows.length === 10 && new Set(rows.map(r => r.id)).size === 10 && clear.length === 8
+    && rows.filter(r => r.expected_gate === 'sufficient').length === 4
+    && rows.filter(r => r.expected_gate === 'missing').length === 4;
   return { total: rows.length, intent: { correct: sum(rows, 'intent_accepted_correct'), total: rows.length },
     availability: { correct: sum(clear, 'availability_accepted_correct'), total: clear.length },
     normalized: { correct: sum(rows, 'normalized_accepted_correct'), total: rows.length },
     completeness: { correct: sum(clear, 'completeness_accepted_correct'), total: clear.length },
     unknown: rows.filter(r => r.grade.unknown).length,
-    semantic_criteria: rows.length === 10 && clear.length === 8 && rows.every(r => r.grade.contract_valid)
+    semantic_criteria: shape && rows.every(r => r.grade.contract_valid)
       && sum(rows, 'intent_accepted_correct') === 10 && sum(clear, 'availability_accepted_correct') === 8
       && sum(rows, 'normalized_accepted_correct') === 10 ? 'PASS' : 'UNMET' };
 }
@@ -165,14 +168,24 @@ export function gradeOrdinary(observation, oracle) {
   const supply = gradeSupply(missing, oracle.expected_missing);
   const preparationValid = Number.isSafeInteger(preparations) && preparations >= 0 && preparations <= 1;
   const typeFree = typellm_sends === 0;
+  const subset = (got, wanted) => {
+    const remaining = wanted.map(x => JSON.stringify(canonical(x)));
+    return got.every(x => { const at = remaining.indexOf(JSON.stringify(canonical(x)));
+      if (at < 0) return false; remaining.splice(at, 1); return true; });
+  };
+  const noFalseAdoption = graph.existing_semantics_preserved && graph.no_other_new_semantics
+    && graph.clean_new_regions && graph.clean_new_edges
+    && subset(graph.actual_added_regions, oracle.expected_added_regions)
+    && subset(graph.actual_added_edges, oracle.expected_added_edges);
   const generationFree = preparationValid && preparations === 0 && Array.isArray(missing)
     && missing.length === 0 && typeFree;
   return { expected_gate: oracle.expected_gate, decision_contract_valid: validDecision,
     gate_correct: validDecision && decision.choice === oracle.expected_gate && decision.choice !== 'unknown' && accepted(decision),
     graph_exact: graph.graph_exact, graph, missing_exact_minimal: supply.exact && supply.minimal, supply,
     control_correct: control ? validDecision && decision.choice === oracle.expected_gate && accepted(decision) && rawUnchanged : null,
-    raw_unchanged: rawUnchanged, generation_free: generationFree, type_free: typeFree,
-    ordinary_non_regression: preparationValid && typeFree && (control || oracle.expected_gate === 'sufficient' ? generationFree : true),
+    raw_unchanged: rawUnchanged, generation_free: generationFree, type_free: typeFree, no_false_adoption: noFalseAdoption,
+    ordinary_non_regression: preparationValid && typeFree
+      && (control || oracle.expected_gate === 'sufficient' ? generationFree && noFalseAdoption && (!control || rawUnchanged) : true),
     deadline: typeof elapsedMs === 'number' && Number.isFinite(elapsedMs) && elapsedMs >= 0 && elapsedMs <= 180000,
     scope: 'ordinary literal semantic observation only; source/proof/HTTP/provider/paint/persistence binding remains mandatory' };
 }
