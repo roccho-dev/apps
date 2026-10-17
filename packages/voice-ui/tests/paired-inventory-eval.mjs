@@ -21,29 +21,40 @@ for (let i = 0; i < args.length; i += 2) {
 if (Object.keys(settings).length !== 5 || !/^http:\/\/127[.]0[.]0[.]1:[1-9][0-9]{3,4}$/.test(settings["--origin"]))
   throw new Error("evaluation_arguments");
 const hash = bytes => createHash("sha256").update(bytes).digest("hex");
+const root = fileURLToPath(new URL("../", import.meta.url));
 const bytes = fs.readFileSync(settings["--inputs"]), inputs = JSON.parse(bytes);
-if (!["voice-ui.poc.input-projection/1", "voice-ui.poc.input-projection/2"].includes(inputs?.schema))
+if (!["voice-ui.poc.input-projection/1", "voice-ui.poc.input-projection/2", "voice-ui.poc.selected-cells/1"].includes(inputs?.schema))
   throw new Error("evaluation_input_schema");
 const fixtures = inputs.fixture_contract, cases = inputs.cases, order = inputs.comparison?.case_order;
-const threeMethods = inputs.schema === "voice-ui.poc.input-projection/2";
+const selectedCells = inputs.schema === "voice-ui.poc.selected-cells/1";
+const threeMethods = inputs.schema !== "voice-ui.poc.input-projection/1";
 const methods = threeMethods ? ["A", "B", "C"] : ["A", "B"];
-if (!fixtures || !Array.isArray(cases) || ![4, 8, 10].includes(cases.length) || !Array.isArray(order) || order.length !== cases.length
+if (!fixtures || !Array.isArray(cases) || !(selectedCells ? cases.length >= 1 && cases.length <= 10 : [4, 8, 10].includes(cases.length)) || !Array.isArray(order) || order.length !== cases.length
     || new Set(order).size !== cases.length || !order.every(id => /^[A-Za-z0-9][A-Za-z0-9_-]{0,63}$/.test(id)
       && cases.filter(item => item.id === id).length === 1)
     || fixtures.scope !== null || !Array.isArray(fixtures.recent_conversation) || fixtures.recent_conversation.length)
   throw new Error("evaluation_input_shape");
+if (selectedCells) {
+  const parentBytes = fs.readFileSync(path.join(root, "../../docs/voice-ui/candidate-ci-20261017/preregistered/public-eight.inputs.json"));
+  const parent = JSON.parse(parentBytes);
+  if (!["correction", "public-remainder"].includes(inputs.phase_kind) || inputs.parent_inputs_sha256 !== hash(parentBytes)
+      || JSON.stringify(fixtures) !== JSON.stringify(parent.fixture_contract)
+      || !cases.every(item => JSON.stringify(item) === JSON.stringify(parent.cases.find(p => p.id === item.id))))
+    throw new Error("evaluation_selected_parent_binding");
+}
 const armOrder = (id, index) => {
   const raw = inputs.comparison.arm_order;
-  const selected = Array.isArray(raw) && raw.length === methods.length && raw.every(x => methods.includes(x)) ? raw
+  const selected = Array.isArray(raw) && raw.every(x => methods.includes(x)) ? raw
     : Array.isArray(raw) ? raw[index] : raw?.[id];
   const arms = typeof selected === "string" ? [...selected] : selected;
-  if (!Array.isArray(arms) || arms.length !== methods.length || new Set(arms).size !== methods.length || !arms.every(x => methods.includes(x)))
+  if (!Array.isArray(arms) || !(selectedCells ? arms.length >= 1 && arms.length <= methods.length : arms.length === methods.length)
+      || new Set(arms).size !== arms.length || !arms.every(x => methods.includes(x)))
     throw new Error("evaluation_arm_order");
   return arms;
 };
 for (const [index, id] of order.entries()) armOrder(id, index);
+const plannedArms = order.reduce((n, id, index) => n + armOrder(id, index).length, 0);
 const protocol = await import(pathToFileURL(path.join(settings["--semantic-map"], "packages/semantic-map/protocol/index.js")));
-const root = fileURLToPath(new URL("../", import.meta.url));
 const bundleBytes = fs.readFileSync(path.join(root, "web/data/bundle.v1.json"));
 const bundle = readBundle(JSON.parse(bundleBytes));
 if (bundle.parts?.length !== 8) throw new Error("evaluation_library");
@@ -66,7 +77,9 @@ if (sourceIdentity.schema !== "voice-ui.poc.runtime/1" || sourceIdentity.origin 
     || !["jev", "typellm"].every(provider => Number.isInteger(sourceIdentity.launcher?.allowances?.[provider])
       && sourceIdentity.launcher.allowances[provider] >= 0 && sourceIdentity.launcher.allowances[provider] <= 300))
   throw new Error("evaluation_source_identity");
-const identity = { schema: threeMethods ? "voice-ui.poc.candidate-panel/1" : "voice-ui.poc.paired/1", created: new Date().toISOString(), inputs_sha256: hash(bytes),
+const identity = { schema: selectedCells ? "voice-ui.poc.selected-cell-execution/1" : threeMethods ? "voice-ui.poc.candidate-panel/1" : "voice-ui.poc.paired/1", created: new Date().toISOString(), inputs_sha256: hash(bytes),
+  ...(selectedCells ? { phase_kind: inputs.phase_kind, parent_inputs_sha256: inputs.parent_inputs_sha256,
+    selected_cells: order.flatMap((id, index) => armOrder(id, index).map(arm => ({ id, arm }))), planned_arms: plannedArms } : {}),
   source: sourceIdentity, bundle_sha256: hash(bundleBytes),
   source_sha256: Object.fromEntries(sourceFiles.map(file => [file, hash(fs.readFileSync(path.join(root, file)))])),
   origin: settings["--origin"], semantic_map: settings["--semantic-map"],
@@ -147,7 +160,7 @@ try {
   invalid = true;
   record({ kind: "runner-failed", error: "fixture_protocol_or_evidence_unknown" });
 } finally {
-  if (summary.length !== order.length * methods.length) invalid = true;
+  if (summary.length !== plannedArms) invalid = true;
   fs.closeSync(journal);
   writeJson("execution.json", { status: invalid ? "INVALID" : "RECORDED", summary });
   const directory = fs.openSync(settings["--out"], "r");

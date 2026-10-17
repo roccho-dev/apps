@@ -57,7 +57,7 @@ export async function onParts({ request, mode, available }, { judge, generate })
             label: typeof row?.label !== "string" ? "not-string" : row.label === "" ? "empty"
               : row.label.trim().length === 0 ? "blank" : row.label.length > LABEL_MAX ? "too-long" : "nonempty",
             kind: row?.kind === "none" ? "none" : PART_KINDS.includes(row?.kind) ? row.kind : "invalid",
-            quantity: Number.isInteger(row?.quantity) && row.quantity >= 0 && row.quantity <= 3 ? row.quantity : "invalid" };
+            quantity: ["0", "1", "2", "3"].includes(row?.quantity) ? Number(row.quantity) : "invalid" };
         }), duplicatePair: object(result) && ["missing1", "missing2", "missing3"].some((key, i, keys) =>
           PART_KINDS.includes(result[key]?.kind) && keys.slice(0, i).some(prior =>
             result[prior]?.kind === result[key].kind && result[prior]?.label === result[key].label)) }));

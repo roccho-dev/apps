@@ -14,6 +14,7 @@ export async function evaluationPost({ url, event, record, fetchFn = globalThis.
     throw new Error("evaluation_http");
   } finally {
     clearTimeout(timer);
+    event.status ??= null;
     event.elapsedMs = now() - started;
     const { id, arm, n, status = null, response, error, elapsedMs } = event;
     record({ kind: "http-end", id, arm, n, status,

@@ -19,7 +19,9 @@ test("HTTP receipts retain failed status/body and finalize matching call fields 
     else await assert.rejects(execute, /evaluation_http/u);
     assert.equal(records.length, 1);
     const { request, route, ...fields } = event;
-    assert.deepEqual(records[0], { kind: "http-end", ...fields, status });
+    assert.equal(Object.hasOwn(event, "status"), true);
+    assert.equal(event.status, status);
+    assert.deepEqual(records[0], { kind: "http-end", ...fields });
     assert.equal(event.elapsedMs, 1);
     assert.equal(Object.hasOwn(event, "response"), mode === "json");
     assert.equal(event.error, status === 200 ? undefined : "http_or_contract_unknown");

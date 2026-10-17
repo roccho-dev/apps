@@ -85,7 +85,8 @@ globalThis.fetch = async (url, init) => {
     const missing = fixture.id === "equal-label-quantity" ? [{ label: "DB", kind: "data", quantity: 2 }]
       : fixture.nodes.map(({ label, kind, quantity }) => ({ label, kind, quantity }));
     return Response.json({ status: "completed", result: Object.fromEntries([1, 2, 3].map((n, index) =>
-      ["missing" + n, missing[index] ?? { label: "", kind: "none", quantity: 0 }])) });
+      ["missing" + n, missing[index] ? { ...missing[index], quantity: String(missing[index].quantity) }
+        : { label: "", kind: "none", quantity: "0" }])) });
   }
   const picks = syntheticAnswer(wire);
   return Response.json({ model: "synthetic-browser-fixture", answers: Object.fromEntries(Object.entries(wire.questions).map(([name, q]) => {

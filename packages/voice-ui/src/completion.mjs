@@ -89,7 +89,8 @@ export function inventoryQuestion(state) {
 export function typedMissingRequest(state) {
   const question = index => ({
     type: "object",
-    instructions: `Return DISTINCT missing label/kind number ${index} in utterance order, after earlier distinct pairs. `
+    instructions: `Independently find the ${index === 1 ? "FIRST" : index === 2 ? "SECOND" : "THIRD"} DISTINCT missing label/kind pair in utterance order. `
+      + "Count distinct requested missing pairs in the input itself; do not depend on another slot's generated answer. "
       + "Check the WHOLE utterance, including parts inside a requested new group. Do not stop at the first named group. "
       + "For each requested NEW label/kind, missing quantity = requested new count minus its available capacity in parts, with a minimum of zero. "
       + "Skip pairs with zero missing quantity. Existing graph facts satisfy existing references, not requests for additional new instances. "
@@ -100,7 +101,7 @@ export function typedMissingRequest(state) {
     properties: {
       label: { type: "string", instructions: "Exact requested display name, no ID or sequence suffix; empty string only when kind is none." },
       kind: { type: "string", enum: [...PART_KINDS, "none"], instructions: "The supported kind for this distinct requested pair, or none if there is no pair at this ordinal." },
-      quantity: { type: "integer", instructions: "Missing instance count 1 to 3 for this distinct pair; exactly 0 when kind is none." },
+      quantity: { type: "string", enum: ["0", "1", "2", "3"], instructions: "Select the missing instance count for this distinct pair: 1, 2 or 3. Select 0 only when kind is none." },
     },
   });
   // Ask every bounded ordinal explicitly rather than relying on array stopping
@@ -118,12 +119,13 @@ export function readTypedMissing(value) {
   for (const key of ["missing1", "missing2", "missing3"]) {
     const row = value[key];
     if (!exact(row, ["label", "kind", "quantity"])) return null;
+    if (!["0", "1", "2", "3"].includes(row.quantity)) return null;
     if (row.kind === "none") {
-      if (row.label !== "" || row.quantity !== 0) return null;
+      if (row.label !== "" || row.quantity !== "0") return null;
       ended = true;
     } else {
       if (ended) return null;
-      rows.push(row);
+      rows.push({ ...row, quantity: Number(row.quantity) });
     }
   }
   return readTypedRows(rows);

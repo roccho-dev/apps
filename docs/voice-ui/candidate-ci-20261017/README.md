@@ -53,3 +53,13 @@ flowchart TD
 実呼出し前の機構試験で、大きな親境界の空白まで縮小すると固定 screen font の見出しと子 shape が重なること、内部 label clip が glyph 上端を切ることが判明した。UI は boundary title のみ tight clip を外し、普通の cell/lane は保持する。apps は populated group の原点・固定 title allowance・全 direct child の実 layout box を固定32 marginで収める。空 group は中央 label を持つ collapsed node なので full box を収める。常に scale≤1、意味・pin は変えない。未使用の親境界全体の viewport 内表示は保証しない。実 title/全 child shape/whole glyph の条件は引き続き厳格に検証し、長い名前は未達になり得る。
 
 release CI は生成した完成 ZIP を展開して member 同一性を確認し、その展開先から Worker/site を実行して機構 receipt を保存する。通常の Nix check も同じ keyless browser gate を実行する。実 provider 比較後は、消費した全 arm の停止済み log を normal restore で完成物へ読み戻す。replay の証拠検算成功と、描画の PASS／UNMET／UNPROVEN は別である。overview は復元・意味不変の確認に限り、閉じた子の可視性を推定しない。
+
+## 公開比較からの原因修正
+
+最初の公開比較は f2e9a4c で 5/24 arm に達した時点の HTTP 不明応答で停止し、INVALID とした。17 Jev／1 Type。成功した部分だけで全体の性能を合格にしない。元の失敗応答には status/body が保存されておらず、後続診断で復元したとは扱わない。
+
+同じ公開 payload を使った別診断は各一回で停止・精算した。f2 の一回は 502 parts_contract。診断専用 cfd86a2 の一回は型の形自体は正しい一方、active slot の個数0・重複 pair によるローカル検証拒否と判明した。間の bootstrap 失敗は送信0回。これまでの累計計上309 Jev／21 Type（Typeに既往の保守計上1回を含む）。この結果は有限個数・ordinal 表現の修正仮説を支え、元の失敗理由や修正効果を証明しない。
+
+修正一回目では open integer を既存 provider が扱える文字列の有限選択肢 0/1/2/3 に替え、その四文字列だけを従来の数値検証へ渡す。各 slot は他の生成結果に依存せず、入力内の第一・第二・第三の不足 pair を探す。未使用 slot の empty/none/0、重複、穴、総数の拒否は維持する。修正を理由に全 ABC を再実行しない。H01-C／H09-C／H10-C の十分・control 回帰後、失敗した H05-C だけを測る。最大36 Jev／1 Type、既定の修正60枠内。
+
+このような選択 cell の入力は公開親入力の SHA と fixture/utterance の完全一致を検証し、選択順を別 schema の receipt に残す。修正と未試行公開 cell の継続は部分記録であり、異なる source の結果を合算して同一 source の完全 panel と呼ばない。未見評価は最終固定 source で ABC 全体を一度だけ実行する。

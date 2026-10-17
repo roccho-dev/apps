@@ -15,7 +15,7 @@ const call = (mode, input = inventory, ports = {}, available = true) => onParts(
   request: new Request("https://fixture.invalid/api/parts/" + mode, { method: "POST", body: JSON.stringify(input) }),
 }, ports);
 const slots = rows => Object.fromEntries([1, 2, 3].map((n, i) => ["missing" + n,
-  rows[i] ?? { label: "", kind: "none", quantity: 0 }]));
+  rows[i] ? { ...rows[i], quantity: String(rows[i].quantity) } : { label: "", kind: "none", quantity: "0" }]));
 
 test("inventory gate explicitly compares labels, kinds and one-instance capacities, not next-step NONE", () => {
   assert.equal(isInventory(inventory), true);
@@ -54,6 +54,8 @@ test("completion asks only for missing instances, with fixed existing kinds and 
     assert.equal(question.type, "object");
     assert.deepEqual(Object.keys(question.properties), ["label", "kind", "quantity"]);
     assert.ok(question.properties.kind.enum.includes("none"));
+    assert.deepEqual(question.properties.quantity, { type: "string", enum: ["0", "1", "2", "3"],
+      instructions: "Select the missing instance count for this distinct pair: 1, 2 or 3. Select 0 only when kind is none." });
   }
 });
 
@@ -88,7 +90,8 @@ test("distinct typed quantities expand exactly; duplicate pairs, extra fields an
   for (const value of [[], { ...slots([]), extra: true },
     slots([{ label: "unused", kind: "none", quantity: 0 }]),
     slots([{ label: "", kind: "none", quantity: 1 }]),
-    slots([{ label: "", kind: "none", quantity: 0 }, { label: "Box", kind: "step", quantity: 1 }])])
+    slots([{ label: "", kind: "none", quantity: 0 }, { label: "Box", kind: "step", quantity: 1 }]),
+    { ...slots([]), missing1: { label: "Box", kind: "step", quantity: 1 } }])
     assert.equal(readTypedMissing(value), null);
 });
 
