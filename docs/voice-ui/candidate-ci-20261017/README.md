@@ -49,3 +49,7 @@ flowchart TD
 既存の GitHub-hosted CI から own 専用 identity へ到達する正規 route は確認できていない。秘密鍵を移送せず、own 実行を CI-origin と呼ばない。このままでは `CI_LIVE_EXECUTION=UNPROVEN` であり、四方式の全条件を CI のみで閉包したとは主張しない。
 
 描画は実配布 ZIP を検証して real Chromium 1280×720、DPR1、固定 runtime/font と overview→named-group camera の順で観測する。意味データ一致・SVG存在・スクリーンショット取得だけでは合格にしない。同名 instance の対応、label全体とclip/viewport、shape containment、見出し/兄弟の重なり、実際の描画辺の端点/方向、Undo/Apply/reload、および壊した反例を検査する。未知のSVG grammarや対応付けは未証明。失敗後の camera 調整、人手目視による合格補完、任意の図の美しさへの一般化はしない。
+
+実呼出し前の機構試験で、大きな親境界の空白まで縮小すると固定 screen font の見出しと子 shape が重なること、内部 label clip が glyph 上端を切ることが判明した。UI は boundary title のみ tight clip を外し、普通の cell/lane は保持する。apps は populated group の原点・固定 title allowance・全 direct child の実 layout box を固定32 marginで収める。空 group は中央 label を持つ collapsed node なので full box を収める。常に scale≤1、意味・pin は変えない。未使用の親境界全体の viewport 内表示は保証しない。実 title/全 child shape/whole glyph の条件は引き続き厳格に検証し、長い名前は未達になり得る。
+
+release CI は生成した完成 ZIP を展開して member 同一性を確認し、その展開先から Worker/site を実行して機構 receipt を保存する。通常の Nix check も同じ keyless browser gate を実行する。実 provider 比較後は、消費した全 arm の停止済み log を normal restore で完成物へ読み戻す。replay の証拠検算成功と、描画の PASS／UNMET／UNPROVEN は別である。overview は復元・意味不変の確認に限り、閉じた子の可視性を推定しない。

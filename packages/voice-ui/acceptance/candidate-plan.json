@@ -26,6 +26,8 @@
   "browser": {
     "viewport": [1280, 720], "device_scale_factor": 1,
     "camera_order": ["overview", "named-group"],
+    "named_group_frame": "title area and every direct child declared box, fixed32 margin, scale at most1; empty group fits its full collapsed box; unused populated boundary may extend outside viewport",
+    "replay": "all consumed A/B/C logs through normal restore and fixed group/nested/relation frames; preserve UNMET and UNPROVEN separately",
     "requirements": ["identity-bound-instances", "whole-label", "supported-clips", "viewport-containment", "shape-containment", "sibling-and-title-nonoverlap", "painted-directed-endpoints", "undo", "apply", "reload", "negative-controls"]
   },
   "report_axes": ["semantic_effect", "browser_mechanics", "closed_receipt_verification", "ci_live_execution", "four_way_comparison", "currency_cost"],
