@@ -407,6 +407,8 @@ try {
     && timeout.synthetic_upstream_calls[1].start_elapsed_ms < 10000);
   assert.ok(timeout.synthetic_upstream_calls[1].abort_elapsed_ms >= 39000
     && timeout.synthetic_upstream_calls[1].abort_elapsed_ms < 45000);
+  assert.ok(timeout.synthetic_upstream_calls[1].abort_elapsed_ms - timeout.synthetic_upstream_calls[1].start_elapsed_ms < 34000,
+    "shared deadline must cancel Type before its own 35s cap");
   assert.deepEqual(timeout.stages.map(r => r.stage), ["G0"]);
   summaries.push({ stage: "default-v3-boundary-grid", cells: gridCells, failed_contracts: 6, aborts: 3,
     actual_Jev_provider_deadline_ms: providerTimeout.elapsedMs, actual_shared_deadline_ms: timeout.elapsedMs,
