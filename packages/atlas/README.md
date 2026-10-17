@@ -481,7 +481,9 @@ fact) is not listed again.
 **`frames[i].gap`** = `{basis:{purpose_id, purpose_rev, purpose_label, ideal_version, prev_frame},
 parts:[{condition, label, state, cause{ideal, current}, since, scope|null, refs[], observed_before_ideal?}] | null,
 closed:[{condition, at, by}], summary:{open, by_cause, conditions, satisfied, before_ideal}}`.
-`before_ideal` (v5) counts satisfied conditions whose observation is older than the ideal.set:
+`before_ideal` (v5) counts satisfied conditions whose observation is older than the ideal.set (event times:
+`observedAt` against the ideal state's own time, `declaredAt` when it entered the ledger later, else its
+`recordedAt`; never its `ledgerAt`, which only cuts frames):
 a match right after a Purpose change made only of earlier observations is shown, not hidden. With no ideal
 state to compare (purpose-changed, defining, ended) `parts` and the counts are null
 (UNKNOWN, never []), while `closed` still lists what closes. The cause (v6) compares with the
@@ -498,7 +500,7 @@ and `carried`. `since` continues only while the difference stays open
 without a break and unrevised; under a new rev of the same Purpose, what the new ideal
 declares again continues. `closed.by`: `current-satisfied`, `ideal-removed`,
 `purpose-changed`, `purpose-ended` (proposed with `ended`). `observed_before_ideal` marks a
-judgment on an observation older than the ideal.set (display only). `refs` are the
+judgment on an observation older than the ideal.set, by the same event-time rule (display only). `refs` are the
 `repo#n` of recorded plans the condition declares; plans never enter the gap otherwise.
 Each frame uses only itself and earlier frames; its Closure context holds only its own rows, so the
 World grows linearly with frames and observations. `fixtures/journal/` (9 frames) runs one

@@ -120,6 +120,24 @@ test('held only: damaged rows, exact duplicates, ledgerAt going backwards; decla
   assert.throws(() => readLedger(text.replace('"seq":4,"ledgerAt":"2026-10-18T02:00:00Z"', '"seq":4,"ledgerAt":"2026-10-18T00:00:00Z"')), /ledgerAt goes backwards/u);
 });
 
+// L1c (P's HQ false positive): "observed before the ideal state was set" compares event times, the
+// observation's observedAt with the ideal state's own time (declaredAt), never the ledgerAt of the ideal.
+test('before-ideal marks compare observedAt with the declaration time, not with ledgerAt', () => {
+  const two = { ...ideal('PT24H', '2026-10-17T22:54:31Z'), requires: [ideal('PT24H').requires[0],
+    { id: 'B', label: 'B', predicate: { target: { kind: 'state', id: 'y' }, op: 'equals', value: 'ok' }, maxAge: 'PT24H', norm: 'n' }] };
+  const purpose = { kind: 'purpose.set', recordedAt: '2026-10-17T22:54:31Z', purpose: { id: 'p', label: 'P' }, rev: 'r1', actor: 'P',
+    source: { ref: 'hq:p', sha256: 'sha256:' + '0'.repeat(64) } };
+  const world = observedAt => {
+    // One collection: fetched just before it is appended; the declaration was written earlier (22:54).
+    const seen = [{ ...obs(observedAt, 'ok'), recordedAt: '2026-10-17T23:17:41.900Z' }, { ...obs(observedAt, 'no'), target: 'y', recordedAt: '2026-10-17T23:17:41.900Z' }];
+    const { rows: ledgerRows } = appendEvents([], jsonl([purpose, two, ...seen]), '2026-10-17T23:17:42.036Z');
+    const frame = contractWorld(deriveAtlas(joinLog('', [ledgerEvents(ledgerText(ledgerRows))]).log, NO_NORMS)).frames.at(-1);
+    return [frame.gap.summary.before_ideal, frame.gap.parts.map(part => [part.condition, part.observed_before_ideal ?? false])];
+  };
+  assert.deepEqual(world('2026-10-17T23:17:41.695Z'), [0, [['B', false]]], 'observed after the declaration: no mark');
+  assert.deepEqual(world('2026-10-17T22:50:00Z'), [1, [['B', true]]], 'observed before the declaration: marked');
+});
+
 // README "A last line cut short": the CLI stops and appends nothing; removing only that line repairs it.
 test('a ledger whose last line was cut short is refused (nothing appended) until the line is removed by hand', () => {
   const dir = mkdtempSync(path.join(tmpdir(), 'atlas-ledger-cut-')), ledger = path.join(dir, 'ledger.jsonl'), events = path.join(dir, 'g.jsonl');
