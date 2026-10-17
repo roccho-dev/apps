@@ -37,11 +37,13 @@ const fixtures = [
       { label: "配布記録", kind: "data", quantity: 1, parent: "配布領域" },
       { label: "構築", kind: "step", quantity: 1, parent: "OCI" }],
     flow: ["構築", "配布記録"] },
+  { id: "existing-directed-connection", text: "OCIのSourceからTargetへ矢印を追加。Unrelatedは変更しない",
+    nodes: [], flow: ["Source", "Target"], existing: true },
 ];
 let fixture = null, input = null;
 const api = [], upstream = [], frames = [], controls = [], lifecycle = [];
 const syntheticAnswer = wire => {
-  if (wire.questions.intent) return { intent: "change", labels: fixture.id === "equal-label-quantity" ? "available" : "missing",
+  if (wire.questions.intent) return { intent: "change", labels: fixture.id === "equal-label-quantity" || fixture.existing ? "available" : "missing",
     capacity: fixture.id === "equal-label-quantity" ? "exceeded" : "within" };
   const state = input.state;
   const next = fixture.nodes.find(node => {
@@ -136,10 +138,13 @@ try {
     fixture = selected;
     const records = [{ type: "meta", schema: "semantic-map-state/1", root: "root", title: "candidate browser fixture" },
       { type: "region", id: "root", label: "World", parent: null, kind: "boundary", bounds: [0, 0, 1000, 700], summary: "" },
-      { type: "region", id: "container", label: "OCI", parent: "root", kind: "group", bounds: [0, 0, 2000, 500], summary: "" }];
+      { type: "region", id: "container", label: "OCI", parent: "root", kind: "group", bounds: [0, 0, 2000, 500], summary: "" },
+      ...(fixture.existing ? ["Source", "Target", "Unrelated"].map((label, index) => ({ type: "region", id: label.toLowerCase(),
+        label, kind: index === 1 ? "data" : "step", parent: "container", summary: "", bounds: [[12, 72, 180, 92], [420, 72, 180, 92], [216, 230, 180, 92]][index] })) : [])];
     const initial = await protocol.createDecisionLog(records, "voice-graph");
     const pin = await protocol.createDecision(initial.head,
-      [{ type: "PinRegions", items: [{ regionId: "container", bounds: [0, 0, 2000, 500] }] }], initial.records);
+      [{ type: "PinRegions", items: [{ regionId: "container", bounds: [0, 0, 2000, 500] },
+        ...records.filter(record => record.parent === "container").map(record => ({ regionId: record.id, bounds: record.bounds }))] }], initial.records);
     const accepted = (await protocol.appendDecision(initial.log, pin.decision)).verified;
     const context = await browser.newContext({ viewport: { width: 1280, height: 720 }, deviceScaleFactor: 1 });
     const page = await context.newPage(), errors = [];
@@ -159,7 +164,8 @@ try {
     const oracle = {
       expected_added_regions: fixture.nodes.flatMap(node => Array.from({ length: node.quantity }, () => ({
         label: node.label, kind: node.kind, parent: node.parent === "OCI" ? "fixture:container" : "added:" + node.parent }))),
-      expected_added_edges: fixture.flow ? [{ from: "added:" + fixture.flow[0], to: "added:" + fixture.flow[1], kind: "flow", label: "" }] : [],
+      expected_added_edges: fixture.flow ? [{ from: fixture.existing ? "fixture:source" : "added:" + fixture.flow[0],
+        to: fixture.existing ? "fixture:target" : "added:" + fixture.flow[1], kind: "flow", label: "" }] : [],
     };
     const paintRestored = async (stage, state) => {
       const regions = state.records.filter(record => record.type === "region");
@@ -191,7 +197,7 @@ try {
       const parent = regions.find(record => record.label === expected.parent);
       assert.equal(added.filter(record => record.label === expected.label && record.kind === expected.kind && record.parent === parent?.id).length, expected.quantity);
     }
-    assert.equal(added.length, 3);
+    assert.equal(added.length, fixture.nodes.reduce((n, node) => n + node.quantity, 0));
     const edges = after.records.filter(record => record.type === "relation");
     assert.equal(edges.length, fixture.flow ? 1 : 0);
     if (fixture.flow) assert.deepEqual(edges.map(edge => [regions.find(r => r.id === edge.from)?.label, regions.find(r => r.id === edge.to)?.label]), [fixture.flow]);
@@ -258,13 +264,23 @@ try {
     if (fixture.flow) {
       // Fixed relation camera; actual edge ID, direction and unrelated endpoint negatives.
       const edge = edges[0]; await page.locator("#camera-part").selectOption(edge.id); await settle();
-      const args = { container: regions.find(r => r.id === "container"), records: added.filter(r => r.kind !== "group"), edge, identity: true };
+      const args = { container: regions.find(r => r.id === "container"), records: [edge.from, edge.to].map(id => regions.find(r => r.id === id)), edge, identity: true };
       const observed = await page.evaluate(observePaintedGoal, args);
       const assessment = assessPaintedEdge(observed);
       frames.push({ fixture: fixture.id, camera: "relation", observation: observed, assessment });
       assert.equal(assessment.status, "PASS", "whole directed arrow and endpoint names in fixed relation frame");
       const reverse = await page.evaluate(observePaintedGoal, { ...args, edge: { ...edge, from: edge.to, to: edge.from } });
       assert.equal(reverse.edge.complete, false); controls.push({ fixture: fixture.id, mutation: "reverse-edge", detected: true });
+      if (fixture.existing) {
+        const other = regions.find(record => record.id === "unrelated");
+        const records = [...args.records, other];
+        const all = await page.evaluate(observePaintedGoal, { ...args, records, edge: null });
+        const bounds = all.shapes[2].bounds;
+        assert.ok(bounds && bounds[0] >= 0 && bounds[1] >= 0 && bounds[0] + bounds[2] <= all.viewport[2]
+          && bounds[1] + bounds[3] <= all.viewport[3], "unrelated negative endpoint is actually painted in this frame");
+        assert.equal((await page.evaluate(observePaintedGoal, { ...args, records, edge: { ...edge, to: other.id } })).edge.complete, false);
+        controls.push({ fixture: fixture.id, mutation: "disconnected-visible-endpoint", detected: true });
+      }
       const missingId = await page.evaluate(observePaintedGoal, { ...args, edge: { from: edge.from, to: edge.to } });
       assert.equal(missingId.edge.complete, false); controls.push({ fixture: fixture.id, mutation: "missing-edge-id", detected: true });
       for (const mutation of ["clipped-edge", "filtered-edge", "masked-edge"]) {

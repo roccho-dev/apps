@@ -301,7 +301,7 @@ export function observePaintedGoal({ container, records, edge = null, identity =
     title: nameOf(labelNode(container)),
     identity,
     viewport: [0, 0, iframe.clientWidth, iframe.clientHeight],
-    container: { id: container.id, kind: "painted-dashed-group-boundary", bounds: frame }, shapes,
+    container: { id: container.id, kind: identity ? "painted-group-shape" : "painted-dashed-group-boundary", bounds: frame }, shapes,
     edge: edge === null ? null : { from: edge.from, to: edge.to,
       association: "pinned-classic-marker-tip-and-stroke-in-one-cell-group", observed: observedEdges, matches: arrows,
       unsupported: [...new Set(unsupportedEdgePaint)],
