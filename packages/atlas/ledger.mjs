@@ -1,6 +1,8 @@
 // L1: the append-only ledger of world events (adrs#647 v9). G's events for one collection are appended;
 // existing rows are never rewritten. A projection (World) is derived from the whole ledger by live.mjs.
-//   node packages/atlas/ledger.mjs --ledger=<ledger.jsonl> [--held=<held.jsonl>] <g-events.jsonl>...
+//   node packages/atlas/ledger.mjs --ledger=<ledger.jsonl> [--ledger-at=<ISO>] [--held=<held.jsonl>] <g-events.jsonl>...
+// Two times per row (v10, like a book's entry date and the event date): ledgerAt = when the row entered the
+// ledger (monotonic; the only time order checked), and the event's own time (recordedAt / observedAt), kept as is.
 import { createHash } from 'node:crypto';
 import fs from 'node:fs';
 import path from 'node:path';
@@ -31,8 +33,8 @@ export const readLedger = text => {
     const row = JSON.parse(line);
     if (row.seq !== index + 1) fail(`row ${index + 1}: seq must be ${index + 1}`);
     if (row.sha256 !== sha256(row.event) || row.recordedAt !== row.event?.recordedAt) fail(`row ${row.seq}: sha256/recordedAt does not match its event`);
-    if (!(time(row.recordedAt) >= last)) fail(`row ${row.seq}: recordedAt goes backwards`);
-    last = time(row.recordedAt);
+    if (!(time(row.ledgerAt) >= last)) fail(`row ${row.seq}: ledgerAt goes backwards`);
+    last = time(row.ledgerAt);
     return row;
   });
 };
@@ -54,8 +56,11 @@ const windowOf = (rows, target) => {
  * half of the shortest maxAge declared on its target has passed since the last recorded observation
  * (a refresh: the latest row then never looks stale while collection runs, and goes stale when it stops).
  */
-export const appendEvents = (rows, eventsText) => {
+export const appendEvents = (rows, eventsText, ledgerAt) => {
   const accepted = [...rows], appended = [], skipped = [], held = [];
+  if (!Number.isFinite(time(ledgerAt))) fail('ledgerAt (the time the rows enter the ledger) must be an ISO time');
+  // ledgerAt going backwards would rewrite what the ledger knew at an earlier time: the whole collection is held.
+  const backwards = accepted.length > 0 && time(ledgerAt) < time(accepted.at(-1).ledgerAt);
   const candidates = lines(eventsText).map((line, index) => {
     try { return { index, event: JSON.parse(line) }; } catch { held.push({ reason: 'invalid-json', line }); return null; }
   }).filter(Boolean);
@@ -67,6 +72,9 @@ export const appendEvents = (rows, eventsText) => {
     if (event.kind === 'journal.held') { hold('held-by-G: ' + event.reason); continue; }
     if (event.kind !== 'observation' && !DECISIONS.includes(event.kind)) { hold('unknown-kind'); continue; }
     if (!Number.isFinite(time(event.recordedAt)) || !object(event.source)) { hold('recordedAt-or-source-invalid'); continue; }
+    if (backwards) { hold('ledgerAt-backwards'); continue; }
+    // An event dated after the time it entered the ledger is a broken row (a future fact), not a late one.
+    if (time(event.recordedAt) > time(ledgerAt) || time(event.observedAt ?? event.recordedAt) > time(ledgerAt)) { hold('dated-after-ledgerAt'); continue; }
     const digest = sha256(event);
     // A declaration is re-read on every collection: the same content again is no change, not an anomaly.
     if (event.kind !== 'observation') {
@@ -80,35 +88,47 @@ export const appendEvents = (rows, eventsText) => {
       const same = before && canonical(before.value) === canonical(event.value) && before.source?.ref === event.source.ref;
       if (same && !(window !== null && time(event.observedAt) - time(before.observedAt) >= window / 2)) { skipped.push({ reason: 'unchanged', event }); continue; }
     }
-    // Existing rows are never rewritten: a record dated before the ledger's last row is held, not inserted.
-    if (accepted.length && time(event.recordedAt) < time(accepted.at(-1).recordedAt)) { hold('recordedAt-backwards'); continue; }
-    const row = { seq: accepted.length + 1, recordedAt: event.recordedAt, actor: event.actor ?? COLLECTOR, source: event.source, sha256: digest, event };
+    // A past-dated event (e.g. a declaration recorded at 00:45, read at 01:00) is appended: rows are never
+    // rewritten, and its own time stays in the event (v10: holding it would hide it for ever).
+    const row = { seq: accepted.length + 1, ledgerAt, recordedAt: event.recordedAt, actor: event.actor ?? COLLECTOR, source: event.source, sha256: digest, event };
     accepted.push(row); appended.push(row);
   }
   return { rows: accepted, appended, skipped, held };
 };
 
 export const ledgerText = rows => [HEADER, ...rows].map(value => JSON.stringify(value)).join('\n') + '\n';
-/** The ledger's events as G JSONL, in ledger order: the input of live.mjs. */
-export const ledgerEvents = text => readLedger(text).map(row => JSON.stringify(row.event)).join('\n') + '\n';
+/**
+ * The ledger's events as G JSONL, in ledger order: the input of live.mjs. Frames are cut by ledgerAt (what was
+ * known then), so each event is dated by its ledgerAt; a decision's own time is kept as declaredAt, an
+ * observation's in observedAt. A late, past-dated event never rewrites an earlier frame.
+ */
+export const ledgerEvents = text => readLedger(text).map(({ ledgerAt, event }) => JSON.stringify(event.kind === 'observation' || event.recordedAt === ledgerAt
+  ? { ...event, recordedAt: ledgerAt } : { ...event, recordedAt: ledgerAt, declaredAt: event.recordedAt })).join('\n') + '\n';
 
 if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
   try {
-    const { values, positionals } = parseArgs({ allowPositionals: true, options: { ledger: { type: 'string' }, held: { type: 'string' } } });
-    if (!values.ledger || positionals.length === 0) fail('usage: node ledger.mjs --ledger=<ledger.jsonl> [--held=<held.jsonl>] <g-events.jsonl>...');
-    const before = fs.existsSync(values.ledger) ? fs.readFileSync(values.ledger, 'utf8') : '';
-    let result = { rows: readLedger(before), appended: [], skipped: [], held: [] };
-    for (const file of positionals) {
-      const next = appendEvents(result.rows, fs.readFileSync(file, 'utf8'));
-      result = { rows: next.rows, appended: [...result.appended, ...next.appended], skipped: [...result.skipped, ...next.skipped], held: [...result.held, ...next.held] };
+    const { values, positionals } = parseArgs({ allowPositionals: true, options: { ledger: { type: 'string' }, held: { type: 'string' }, 'ledger-at': { type: 'string' }, check: { type: 'boolean' } } });
+    if (!values.ledger || (positionals.length === 0 && !values.check)) fail('usage: node ledger.mjs --ledger=<ledger.jsonl> [--ledger-at=<ISO>] [--held=<held.jsonl>] <g-events.jsonl>... | --check');
+    // --check: read only; exit 1 if the ledger is damaged (e.g. a last line cut short).
+    if (values.check) {
+      const checked = readLedger(fs.readFileSync(values.ledger, 'utf8'));
+      console.log(JSON.stringify({ schema: 'atlas.ledger-check/1', status: 'PASS', rows: checked.length, lastLedgerAt: checked.at(-1)?.ledgerAt ?? null }));
+    } else {
+      const ledgerAt = values['ledger-at'] ?? new Date().toISOString(); // the clock is read here, at the edge only
+      const before = fs.existsSync(values.ledger) ? fs.readFileSync(values.ledger, 'utf8') : '';
+      let result = { rows: readLedger(before), appended: [], skipped: [], held: [] };
+      for (const file of positionals) {
+        const next = appendEvents(result.rows, fs.readFileSync(file, 'utf8'), ledgerAt);
+        result = { rows: next.rows, appended: [...result.appended, ...next.appended], skipped: [...result.skipped, ...next.skipped], held: [...result.held, ...next.held] };
+      }
+      // Append only: the new text starts with the old bytes (a fresh ledger starts with its header).
+      const addition = before ? result.appended.map(row => JSON.stringify(row) + '\n').join('') : ledgerText(result.rows);
+      if (addition) fs.appendFileSync(values.ledger, addition);
+      const heldPath = values.held ?? values.ledger.replace(/\.jsonl$/u, '') + '.held.jsonl';
+      if (result.held.length) fs.appendFileSync(heldPath, result.held.map(value => JSON.stringify({ ...value, at: ledgerAt }) + '\n').join(''));
+      console.log(JSON.stringify({ schema: 'atlas.ledger-append/1', status: 'PASS', ledger: path.resolve(values.ledger), ledgerAt, rows: result.rows.length,
+        appended: result.appended.length, skipped: result.skipped.length, held: result.held.length, heldPath: result.held.length ? path.resolve(heldPath) : null }));
     }
-    // Append only: the new text starts with the old bytes (a fresh ledger starts with its header).
-    const addition = before ? result.appended.map(row => JSON.stringify(row) + '\n').join('') : ledgerText(result.rows);
-    if (addition) fs.appendFileSync(values.ledger, addition);
-    const heldPath = values.held ?? values.ledger.replace(/\.jsonl$/u, '') + '.held.jsonl';
-    if (result.held.length) fs.appendFileSync(heldPath, result.held.map(value => JSON.stringify({ ...value, at: new Date().toISOString() }) + '\n').join(''));
-    console.log(JSON.stringify({ schema: 'atlas.ledger-append/1', status: 'PASS', ledger: path.resolve(values.ledger), rows: result.rows.length,
-      appended: result.appended.length, skipped: result.skipped.length, held: result.held.length, heldPath: result.held.length ? path.resolve(heldPath) : null }));
   } catch (error) {
     console.error(error.message.startsWith('atlas-') ? error.message : 'atlas-ledger: ' + error.message);
     process.exitCode = 1;

@@ -95,7 +95,7 @@ export const journalOf = (frame, after = -Infinity) => frame.journal.filter(even
       past: !(event.purpose_id === frame.purpose.purpose.id && event.purpose_rev === frame.purpose.rev && event.ideal_version === frame.ideal?.version) }),
     'purpose.ended': () => ({ purpose_id: event.purpose_id }),
   }[event.kind]();
-  return { kind: event.kind, recordedAt: event.recordedAt, actor: event.actor ?? null, source, ...detail };
+  return { kind: event.kind, recordedAt: event.recordedAt, ...(event.declaredAt ? { declaredAt: event.declaredAt } : {}), actor: event.actor ?? null, source, ...detail };
 });
 
 /**
