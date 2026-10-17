@@ -525,6 +525,9 @@ const semanticFrame = (derived, frame, index) => {
     purpose_label: frame.purpose.purpose.label, current_label: `観測照合 ${known}/${p.requires.length} 件 @${frame.asOf}`,
     target_label: `理想状態 ${p.version}：${p.label ?? '条件'}（条件 ${p.requires.length} 件）`, post_label: `導出 ${frame.asOf}`, semantic,
     responsibility: Object.fromEntries(frame.conditions.map(value => [value.id, value.responsibility])),
+    // Closed differences (v7 history frame): conditions of this ideal state the current state meets now.
+    closed: frame.conditions.filter(value => value.judgment.state === 'satisfied').map(value => ({ id: value.id, label: value.label,
+      observedAt: value.judgment.observation.observedAt, source: value.judgment.observation.source, owner: value.responsibility.actor ?? null })),
     agent_activity: frame.sessions };
 };
 // No ideal state to compare with (purpose-changed, defining, ended): the comparison is UNKNOWN, never empty.

@@ -67,7 +67,7 @@ test('the World shows the Purpose label on the Purpose node and requires labels 
   assert.deepEqual(f3.gap.parts.map(part => [part.condition, part.label]), [['A', 'A：配布が応答する'], ['B', 'B：CI が成功']]);
   assert.deepEqual(f3.entities.filter(value => value.ref.kind === 'semantic-scope').map(value => value.label.split('\n')[0]), ['A：配布が応答する', 'B：CI が成功']);
   // No ideal state: the World keeps one explicit UNKNOWN unit (not an empty Scopes area).
-  assert.deepEqual(world.frames[1].entities.filter(value => value.area === 'scopes' && value.ref.kind !== 'obligation').map(value => value.ref.kind), ['unresolved-change']);
+  assert.deepEqual(world.frames[1].entities.filter(value => value.area === 'scopes' && !['obligation', 'scope-group'].includes(value.ref.kind)).map(value => value.ref.kind), ['unresolved-change']);
 });
 
 test('journal parsing fails closed; a label change of the same Purpose id is a new rev, not a rejection', () => {

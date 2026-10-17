@@ -437,6 +437,15 @@ Each frame uses only itself and earlier frames; its Closure context holds only i
 World grows linearly with frames and observations. `fixtures/journal/` (9 frames) runs one
 cycle with an evaluation and an end.
 
+**Scopes nesting (v7).** The Scopes area is nested with the existing containment shape
+(`containment: 'from-contains-to'` from a `scope-group` entity to each member), decided only by
+declarations: one frame per declared owner (`owner:<Norm W id>`, caption 担当 / id) holding that
+owner's Scopes; `owner:none` (担当なし) holding unassigned and unresolved units; and `history`
+(閉じた差（履歴）) holding the frozen old obligations, completed-history Scopes and the conditions the
+current state meets now (`closed-change`, supplied by D as `frame.closed`, drawn without lines).
+Each unit is in exactly one frame and empty frames are not emitted; every other entity and relation
+is unchanged (crossings count drawn lines only, not containment).
+
 `plansOf`: `frames[i].plans` is absent when the frame's ideal state declares no plan
 (計画未宣言), `[]` when declared but none is recorded by then, else
 `[{ref, plan, version, label, serves, nodes:[{id,label}]|null, edges:[{from,to,kind}]|null,

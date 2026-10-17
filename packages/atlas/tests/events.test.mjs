@@ -50,8 +50,10 @@ const gapView = frame => ({ coverage: frame.coverage, entities: frame.entities,
 // K6b: those 'responsible' owners draw no observation-responsible relation (it was duplicated per condition);
 // then from 99dc83ac… for K6c: frames[i].journal also lists the observations recorded so far (contract 3);
 // then from c5f25e0c… for K7 (v6): two-sided causes, journal as the per-frame delta, and each frame's Closure
-// context holding only its own rows (the World grows linearly with frames).
-const WORLD_SHA256 = 'sha256:270aceaa4d6e479f5ecbb3f0fb52c7b137ca16efc5b16f2ed5b24d65eaa579e9';
+// context holding only its own rows (the World grows linearly with frames); then from 270aceaa… for K8 (v7):
+// declared Scopes frames (owner / 担当なし / 閉じた差（履歴）) with containment, and the conditions met now as
+// closed-change units in the history frame (no lines).
+const WORLD_SHA256 = 'sha256:4f1d171d66807be3fd0e4d1d95dfe0873772ff4f05f63973f3441821da45e7b7';
 
 test('parser fails closed on schema, shape, duplicate keys, order and graph errors', () => {
   const list = base();
