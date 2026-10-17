@@ -4,12 +4,12 @@
 const pages = data => Array.isArray(data) && data.every(Array.isArray) ? data.flat() : data; // --paginate --slurp
 const lines = text => typeof text === 'string' ? text.split(/\r?\n/u).map(line => line.trim()).filter(Boolean) : null;
 
-// Thread (Issue or PR): REST issue + issue comments → [{commentId, updatedAt, text}], body first.
+// Thread (Issue or PR): REST issue + issue comments → [{commentId, updatedAt, author, text}], body first.
 function thread({ repo, number, fetchedAt, responses }) {
   const issue = responses?.issue?.data, comments = pages(responses?.comments?.data);
   const documents = issue && Array.isArray(comments) ? [
-    { commentId: null, updatedAt: issue.updated_at, text: issue.body ?? '' },
-    ...comments.map(comment => ({ commentId: comment.id, updatedAt: comment.updated_at, text: comment.body ?? '' })),
+    { commentId: null, updatedAt: issue.updated_at, author: issue.user?.login ?? null, text: issue.body ?? '' },
+    ...comments.map(comment => ({ commentId: comment.id, updatedAt: comment.updated_at, author: comment.user?.login ?? null, text: comment.body ?? '' })),
   ] : null;
   return { kind: 'thread', repo, number, fetchedAt, documents,
     source: { ref: `gh api issues ${repo}#${number}`, sha256: responses?.issue?.sha256 ?? null } };
@@ -37,12 +37,18 @@ function ports({ sha256, probes }) {
     ({ target, observedAt, responded, source: { ref: `tcp ${host}:${port}`, sha256 } })) };
 }
 
+// P's declaration file: its text as read (null when unreadable) and the sha256 of those bytes.
+function declaration({ path, fetchedAt, sha256, text }) {
+  return { kind: 'declaration', path, fetchedAt, sha256: sha256 ?? null, text: typeof text === 'string' ? text : null };
+}
+
 export function normalize(snapshot) {
   switch (snapshot.type) {
     case 'issue': return [thread(snapshot)];
     case 'pr': return [pullRequest(snapshot), thread(snapshot)];
     case 'sessions': return [sessions(snapshot)];
     case 'ports': return [ports(snapshot)];
+    case 'declaration': return [declaration(snapshot)];
     default: throw new Error(`atlas-collect: unknown snapshot type ${JSON.stringify(snapshot.type)}`);
   }
 }

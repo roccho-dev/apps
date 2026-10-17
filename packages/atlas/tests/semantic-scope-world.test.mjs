@@ -310,7 +310,7 @@ test('Agents are only declared ids with declared roles, synthetic and activity-u
     assert.deepEqual(notDrawn, [...changes, 'observation-writer:fixture-W', 'observation-evaluator:fixture-independent-R']);
     const gap = relation(frame, 'gap:current-target');
     assert.deepEqual([gap.from, gap.to, gap.label, gap.path, gap.context.change_relations], [current(frame).ref,
-      ofKind(frame, 'purpose-state-target')[0].ref, '変化 1 件', false, changes]);
+      ofKind(frame, 'purpose-state-target')[0].ref, '差 1 件', false, changes]);
     for (const id of changes) assert.equal(relation(frame, id).path, true, 'Direction keeps the omitted relation');
     // visible:false is the only representation change: each declared context is exactly the role declaration.
     const observation = fixture.frames.find(value => value.id === frame.id).semantic.observation;

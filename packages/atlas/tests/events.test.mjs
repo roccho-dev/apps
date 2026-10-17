@@ -7,6 +7,7 @@ import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { deriveAtlas, closureDocument } from '../events.mjs';
+import { contractWorld } from '../contract.mjs';
 import { reduceClosure } from '../closure.mjs';
 import { semanticScopeWorld } from '../semantic-scope-world.mjs';
 import { frameCrossings as crossingPairs, worldCrossings } from './crossings.mjs';
@@ -40,8 +41,12 @@ const gapView = frame => ({ coverage: frame.coverage, entities: frame.entities,
 // unchanged; it moved from c3d26682… when captions became full text and the Current -> unit
 // relations became visible:false behind one drawn gap:current-target relation; then from ac64eef7…
 // when the UNKNOWN evaluation unit named its source (全体評価/比較・分解/対応付け) and open conditions;
-// then from e8b707fd… when observed sessions became session-observed (activity stays unobserved).
-const WORLD_SHA256 = 'sha256:f926979875d8b7ff74bc9450680c18fd085a3b0d6277514297b33f318da9f77b';
+// then from e8b707fd… when observed sessions became session-observed (activity stays unobserved);
+// then from f9269798… for K4: the CLI World carries frames[i].gap, satisfied conditions are no Scope,
+// the explained whole-unknown unit is dropped, 目標 → 理想状態, 変化 n 件 → 差 n 件; then from 5720fe5c… for K5:
+// gap v2/v3 (purpose_rev pair, exclusive causes, summary counts, labels), phase, journal, matched_until,
+// and the purpose node/closure row per (id, rev).
+const WORLD_SHA256 = 'sha256:73e0af8e45b6e7d0c1d595ff8bd591704260b376d5eddcafa462d82a436ea1ae';
 
 test('parser fails closed on schema, shape, duplicate keys, order and graph errors', () => {
   const list = base();
@@ -84,7 +89,10 @@ test('one frame per recordedAt t up to now; every frame passes the existing adap
 
 test('changing only the Purpose: Scopes and responsibility follow; observed record is unchanged', () => {
   const list = base(), purpose = v2(list);
-  purpose.requires = [...purpose.requires.filter(value => value.id !== 'voice-perf'), structuredClone(list[1].requires[0])];
+  // Re-declare g6i3-fork with a value its observation does not meet: an open condition, so a Scope.
+  const fork = structuredClone(list[1].requires[0]);
+  fork.predicate.value = 'release v2 attested';
+  purpose.requires = [...purpose.requires.filter(value => value.id !== 'voice-perf'), fork];
   const before = derive(), after = derive(list);
   const scopes = frame => ofKind(frame, 'semantic-scope').map(value => value.ref.id);
   assert.ok(scopes(last(after)).includes('scope.g6i3-fork') && !scopes(last(before)).includes('scope.g6i3-fork'));
@@ -101,10 +109,13 @@ test('changing only an observation changes the Gap, not Scopes or owners', () =>
   const list = base().map(event => event.target?.id === 'windows.repo' ? { ...event, value: 'windows archived' } : event);
   const before = last(derive()), after = last(derive(list));
   assert.equal(scopeStatus(before, 'refactor'), 'scope_status=unmet');
-  assert.equal(scopeStatus(after, 'refactor'), 'scope_status=declared_satisfied');
-  assert.ok(entity(after, 'semantic-scope', 'scope.refactor').flags.includes('standing=completed-history'));
-  assert.deepEqual(ofKind(after, 'semantic-scope').map(value => value.ref.id), ofKind(before, 'semantic-scope').map(value => value.ref.id));
-  assert.equal(relationOwner(after, 'scope.refactor'), relationOwner(before, 'scope.refactor'));
+  // A satisfied condition is no Scope: it leaves the Scopes and is closed in the gap history.
+  assert.equal(entity(after, 'semantic-scope', 'scope.refactor'), undefined);
+  assert.deepEqual(ofKind(after, 'semantic-scope').map(value => value.ref.id), ofKind(before, 'semantic-scope').map(value => value.ref.id).filter(id => id !== 'scope.refactor'));
+  for (const id of ['scope.atlas', 'scope.input', 'scope.envs']) assert.equal(relationOwner(after, id), relationOwner(before, id));
+  const gap = contractWorld(derive(list)).frames.at(-1).gap;
+  assert.deepEqual(gap.closed, [{ condition: 'refactor', at: last(derive(list)).id, by: 'current-satisfied' }]);
+  assert.ok(!gap.parts.some(part => part.condition === 'refactor'));
 });
 
 test('no observation is UNKNOWN; an observation older than maxAge is UNKNOWN', () => {
@@ -205,8 +216,8 @@ test('premise version mismatch is detected; natural-language-only nodes are UNKN
 });
 
 test('future plan nodes never enter the Current, the Gap or coverage', () => {
-  const world = JSON.stringify(derive().world);
-  for (const id of ['apps#95:', 'apps#93:', 'K：イベント']) assert.ok(!world.includes(id), id);
+  const world = JSON.stringify(derive().world), gaps = JSON.stringify(contractWorld(derive()).frames.map(frame => frame.gap));
+  for (const id of ['apps#95', 'apps#93', 'K：イベント']) assert.ok(!world.includes(id + ':') && !gaps.includes(id), id);
 });
 
 test('unassigned units merge only for the same meaning', () => {
@@ -249,7 +260,7 @@ test('overview crossings: 0 in every frame; the omitted Current -> unit relation
     : row.id === 'norm.refactor' ? { ...row, binding: { ...row.binding, conditions: ['refactor', 'input'] } } : row);
   const list = base(); v2(list).requires.find(value => value.id === 'input').norm = 'norm.refactor';
   const interleaved = derive(list, control);
-  assert.deepEqual(ofKind(last(interleaved), 'semantic-scope').map(value => value.ref.id), ['scope.nixos', 'scope.refactor', 'scope.input', 'scope.atlas', 'scope.envs']);
+  assert.deepEqual(ofKind(last(interleaved), 'semantic-scope').map(value => value.ref.id), ['scope.refactor', 'scope.input', 'scope.atlas', 'scope.envs']); // nixos is satisfied: no Scope
   assert.equal(frameCrossings(interleaved.world, last(interleaved)), 0);
   // Drawing every Current -> unit relation again restores the fan that crossed (the previous contract).
   const redrawn = structuredClone(result.world);
@@ -259,7 +270,7 @@ test('overview crossings: 0 in every frame; the omitted Current -> unit relation
 });
 
 test('committed synthetic fixture World hash is fixed; CLI writes the same bytes', () => {
-  const world = JSON.stringify(derive().world, null, 2) + '\n';
+  const world = JSON.stringify(contractWorld(derive()), null, 2) + '\n';
   assert.equal('sha256:' + createHash('sha256').update(world).digest('hex'), WORLD_SHA256);
   const out = mkdtempSync(path.join(tmpdir(), 'atlas-derive-'));
   const cli = fileURLToPath(new URL('../derive.mjs', import.meta.url));

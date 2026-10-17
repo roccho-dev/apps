@@ -131,10 +131,10 @@ export const semanticScopeWorld = (input, reducedClosure) => {
     // Purpose area: one Purpose, one Current (this frame's selected revision), one Target role.
     const purposeLabel = observed.purpose_label ?? 'Purpose';
     entity(purposeRef, caption('目的', purposeLabel), 'purpose',
-      purposeLabel + ' · 供給された目的。実達成の証明ではありません。 Purpose ' + purposeStanding, ['domain-declared', 'purpose_standing=' + purposeStanding]);
+      purposeLabel + ' · 供給された目的。達成は人が評価します（観測では判定しません）。理想状態との照合: ' + purposeStanding, ['domain-declared', 'purpose_standing=' + purposeStanding]);
     // Target sits next to Purpose so their relation never crosses the Current.
-    const targetLabel = observed.target_label ?? '目標 t1';
-    entity(targetRef, caption('目標', targetLabel), 'purpose', targetLabel + ' · 目的達成状態（役割）。後の観測ではありません。',
+    const targetLabel = observed.target_label ?? '理想状態 t1';
+    entity(targetRef, caption('理想状態', targetLabel), 'purpose', targetLabel + ' · 理想状態（目的を達成した状態を保つ、観測できる近似。宣言で決まる）。後の観測ではありません。',
       ['role=target', 'effective-time-unavailable']);
     const currentRevision = meaning.observation?.observed_ref ?? meaning.pair.current_ref;
     const revision = currentRevision?.revision ?? 'unknown';
@@ -147,7 +147,7 @@ export const semanticScopeWorld = (input, reducedClosure) => {
       '現状 ' + revision + ' · ' + currentStanding + ' · '
         + (meaning.observation ? observed.post_label ?? '観測宣言' : observed.current_label ?? '現在の意味状態') + originalNote,
       ['role=current', 'standing=' + currentStanding, 'revision=' + revision], declaredSource, currentStanding === 'observed-bound' ? postTime : time);
-    edge('target-purpose', targetRef, purposeRef, '目標', {
+    edge('target-purpose', targetRef, purposeRef, '理想状態', {
       pair: meaning.pair, original_current_ref: meaning.pair.current_ref, current_revision: currentRevision,
       current_standing: currentStanding, purpose_standing: purposeStanding,
       comparison_status: { status: meaning.status, reason: meaning.reason ?? null,
@@ -219,7 +219,10 @@ export const semanticScopeWorld = (input, reducedClosure) => {
       binding_reason: binding.reason ?? null, purpose_status: closure.purpose_status, closure, comparison: meaning.comparison, binding };
     // The caption names which declaration is unknown: the comparison/partition, the Closure
     // mapping, or the whole-Purpose evaluation (then listing the criteria it could not settle).
-    if (meaning.scopes === null || closure.purpose_status === 'unknown' || !bound) {
+    // A declared-unknown whole evaluation that the uncertain units above already explain is the same
+    // difference counted twice: it gets no unit of its own (its declaration stays in every context).
+    const explained = bound && meaning.scopes !== null && meaning.observation?.purpose_evaluation?.state === 'unknown' && uncertain > 0;
+    if (meaning.scopes === null || !bound || (closure.purpose_status === 'unknown' && !explained)) {
       const cause = meaning.scopes === null ? '比較・分解' : !bound ? '対応付け' : '全体評価';
       const pending = [...(closure.unknown ?? []), ...(closure.conflicts ?? []), ...(meaning.uncovered ?? [])];
       const reason = meaning.reason ?? closure.reason ?? binding.reason ?? closure.purpose_status_reason
@@ -233,7 +236,7 @@ export const semanticScopeWorld = (input, reducedClosure) => {
     else if (closure.purpose_status === 'unmet' && currentGap === 0)
       unresolvedUnit('purpose-evaluation-unmet', '全体評価', '未達', '全体評価は未達ですが責任単位へ対応付いていません · 完了には昇格しません。',
         'unexplained', evaluationContext);
-    if (changes.length) edge('gap:current-target', currentRef, targetRef, '変化 ' + changes.length + ' 件',
+    if (changes.length) edge('gap:current-target', currentRef, targetRef, '差 ' + changes.length + ' 件',
       { change_relations: [...changes], current_revision: currentRevision, purpose_standing: purposeStanding,
         drawing: 'aggregate of the visible:false Current -> unit relations; each keeps its own context and path' });
 
@@ -285,7 +288,7 @@ export const semanticScopeWorld = (input, reducedClosure) => {
   const space = final.current_ref?.space ?? 'semantic-input-unresolved';
   const purpose = ref(space, 'purpose', final.purpose_id);
   return { kind: 'ui.atlasWorldInput.v1', authority: false,
-    presentation: { areas: [{ id: 'purpose', label: 'Purpose：現状と目標', order: 0 },
+    presentation: { areas: [{ id: 'purpose', label: 'Purpose：現状と理想状態', order: 0 },
       { id: 'scopes', label: 'Scope：必要な意味差の責任単位', order: 1 }, { id: 'agents', label: 'Agent：宣言された担当（' + (synthetic ? '合成' : '供給') + '・'
         + (agentsSeen.observed === 0 ? '未観測' : agentsSeen.observed === agentsSeen.declared ? '観測あり' : '一部観測') + '）', order: 2 }],
     purposeAreaId: 'purpose', directionTargets: [purpose], defaultSelection: purpose },

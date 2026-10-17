@@ -1,2 +1,2 @@
 {"schema":"atlas.control-norms/1","authority":false}
-{"kind":"norm","id":"norm.merge","R":[],"W":["atlas.W"],"binding":{"purposeId":"purpose.live-fixture","conditions":["merged"]}}
+{"kind":"norm","id":"norm.merge","R":[],"W":["atlas.W"],"binding":{"purposeId":"purpose.live-fixture","conditions":["merged","worker-running"]}}
