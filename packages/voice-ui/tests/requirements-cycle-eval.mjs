@@ -48,7 +48,7 @@ assert.equal(hash(fs.readFileSync(path.join(settings["--artifact"], "worker/work
 const protocol = await import(pathToFileURL(path.join(settings["--semantic-map"], "packages/semantic-map/protocol/index.js")));
 const sourceNames = ["src/completion.mjs", "src/literal-inventory.mjs", "src/goal.mjs", "src/contract.mjs", "src/turn.mjs", "src/session.mjs",
   "functions/api/parts.mjs", "functions/pages-worker.mjs", "web/app.mjs", "web/adapters/completion.mjs",
-  "src/requirements.mjs", "functions/api/requirements.mjs", "dev/serve.mjs",
+  "dev/serve.mjs",
   "tests/requirements-cycle-eval.mjs", "tests/requirements-cycle-score.mjs", "tests/requirements-cycle-audit.mjs",
   "tests/semantic-score.mjs", "tests/requirements-cycle-http.mjs", "tests/painted-goal.mjs"];
 fs.mkdirSync(settings["--out"], { mode: 0o700 });

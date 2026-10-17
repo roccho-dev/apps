@@ -1,0 +1,41 @@
+{
+  "scope": "PROVIDER_FREE_PREBUILD_ONLY_NOT_MEASUREMENT_ADMISSION",
+  "apps_sha": "0df7f9f57c81416c499efeaabba3df03404a427e",
+  "reference": "286eb7d0bc0bdef160bda900547314aa5be3a752",
+  "core": [
+    {
+      "name": "src/goal.mjs",
+      "old": "cd9101d6a222e31773c9523adeca3f7f9aa32990e30b39e06a7b872771422f3e",
+      "now": "cd9101d6a222e31773c9523adeca3f7f9aa32990e30b39e06a7b872771422f3e"
+    },
+    {
+      "name": "src/turn.mjs",
+      "old": "c5fc3489a5bd0861f0455bd9843f47e76030bb03a4fe55745cf00c29c79b7008",
+      "now": "c5fc3489a5bd0861f0455bd9843f47e76030bb03a4fe55745cf00c29c79b7008"
+    },
+    {
+      "name": "src/contract.mjs",
+      "old": "f2c95212493f59fd80ef17270c2b5de0d51d795b26ac8a0e6dfa0fdb9dec30fe",
+      "now": "f2c95212493f59fd80ef17270c2b5de0d51d795b26ac8a0e6dfa0fdb9dec30fe"
+    },
+    {
+      "name": "src/session.mjs",
+      "old": "d6fcb97e581afb789ed6ecb339c06c378ef94283084df8ad3042ebe42c48cfe8",
+      "now": "d6fcb97e581afb789ed6ecb339c06c378ef94283084df8ad3042ebe42c48cfe8"
+    },
+    {
+      "name": "src/log.mjs",
+      "old": "6710ff09959dafee852755dd75c512c4714c0c650e02c2c7dd0d5ba0c332e987",
+      "now": "6710ff09959dafee852755dd75c512c4714c0c650e02c2c7dd0d5ba0c332e987"
+    },
+    {
+      "name": "web/app.mjs",
+      "old": "3a9ac4eba0770949a219b35c97cd346d4a7912026fae2b2f21710251b86bbf2a",
+      "now": "3a9ac4eba0770949a219b35c97cd346d4a7912026fae2b2f21710251b86bbf2a"
+    }
+  ],
+  "renderer_files": 231,
+  "renderer_equal": true,
+  "status": "PASS",
+  "provider_calls": 0
+}

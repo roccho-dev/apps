@@ -5,7 +5,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { validateRequirementInput, requirementsSchedule, stockDifference, decodeRequiredSlots, validFactors,
   verifierDecision, gradeFullRequired, gradeVerification, readRequirementInspection, gradeRequirementGoal,
-  summarizeRequirementAxis } from './requirements-cycle-score.mjs';
+  summarizeRequirementAxis, validLiteral } from './requirements-cycle-score.mjs';
 
 // Public regression/synthetic fixtures only. This file never opens a sealed pool.
 const dir = process.env.POC_REQUIREMENTS_FIXTURES ?? path.dirname(fileURLToPath(import.meta.url));
@@ -54,6 +54,18 @@ const grade = (o, oracle) => gradeRequirementGoal(o, oracle, parts);
 const rowsFor = () => oracles.E.cases.flatMap(o => [false, true].map(enabled => ({ id: o.id,
   method: enabled ? 'adaptive-v2' : 'literal-v2', valid_execution: true, grade: grade(observation(o, enabled), o),
   paint_status: 'PASS', persisted_raw_equal: true })));
+
+test('duplicate source spans and path-like case IDs are refused; projected shortage is not an actual candidate', () => {
+  const utterance = 'APIを2つ', span = { start: 0, end: 3, source: 'API', label: 'API', kind: 'step', quantity: 1 };
+  assert.equal(validLiteral({ recognized: true, required: [{ label: 'API', kind: 'step', quantity: 2 }], spans: [span, span] }, utterance), false);
+  const bad = structuredClone(inputs.E); bad.cases[0].id = '../escape'; assert.throws(() => validateRequirementInput(bad));
+  const oracle = { ...oracles.E.cases[0], syntax_stratum: 'natural-alternate', expected_gate: 'sufficient' };
+  const o = observation(oracle, true); o.inspection.verification = factors('incomplete');
+  o.decision = { choice: 'unknown', confidence: null }; o.preparations = 0; o.materialized_missing = [];
+  o.final_records = o.initial_records; o.final_log = o.initial_log; o.final_head = o.initial_head;
+  const g = grade(o, oracle); assert.equal(g.gate_correct, false); assert.equal(g.full_required_exact, true);
+  assert.equal(o.inspection.missing.length > 0, true); assert.equal(g.true_sufficient_zero_candidates, true);
+});
 
 test('strict new inputs and deterministic arm order reject legacy/ignored scheduling and oracle fields', () => {
   for (const input of Object.values(inputs)) assert.equal(validateRequirementInput(input), true);

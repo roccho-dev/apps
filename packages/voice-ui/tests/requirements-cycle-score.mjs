@@ -46,7 +46,8 @@ export function validateRequirementInput(input) {
       || new Set(input.cases.map(c => c?.id)).size !== input.cases.length) throw Error('case inventory');
   for (const c of input.cases) {
     if (!exactKeys(c, input.axis === 'V' ? ['id', 'fixture', 'utterance', 'required'] : ['id', 'fixture', 'utterance'])
-        || !text(c.id, 64) || !Object.hasOwn(f.fixtures, c.fixture) || !text(c.utterance, 8000)
+        || typeof c.id !== 'string' || !/^[A-Za-z0-9][A-Za-z0-9_-]{0,63}$/u.test(c.id)
+        || !Object.hasOwn(f.fixtures, c.fixture) || !text(c.utterance, 8000)
         || input.axis === 'V' && !validRequirements(c.required)) throw Error('case contract');
     const chosen = f.fixtures[c.fixture];
     if (!exactKeys(chosen, ['extra_records', 'extra_pins']) || !Array.isArray(chosen.extra_records)
@@ -92,12 +93,14 @@ export function validDecision(d) {
 export function validLiteral(literal, utterance) {
   if (!exactKeys(literal, ['recognized', 'required', 'spans']) || typeof literal.recognized !== 'boolean'
       || !validRequirements(literal.required) || !Array.isArray(literal.spans) || literal.spans.length > 3) return false;
-  const totals = new Map();
+  const totals = new Map(), intervals = new Set();
   for (const s of literal.spans) {
     if (!exactKeys(s, ['start', 'end', 'source', 'label', 'kind', 'quantity']) || !Number.isSafeInteger(s.start)
         || !Number.isSafeInteger(s.end) || s.start < 0 || s.end <= s.start || s.end > utterance.length
         || utterance.slice(s.start, s.end) !== s.source || s.source !== s.label || !validRequirements([{ label: s.label, kind: s.kind, quantity: s.quantity }])) return false;
-    totals.set(pair(s), (totals.get(pair(s)) ?? 0) + s.quantity);
+    const interval = JSON.stringify([s.start, s.end, s.label]);
+    if (intervals.has(interval)) return false;
+    intervals.add(interval); totals.set(pair(s), (totals.get(pair(s)) ?? 0) + s.quantity);
   }
   return literal.recognized === (literal.spans.length > 0)
     && sameValue([...totals].sort(), literal.required.map(r => [pair(r), r.quantity]).sort());
@@ -183,7 +186,10 @@ export function gradeRequirementGoal(o, oracle, parts) {
   const weakIntent = !f || f.intent.choice !== 'change' || !accepted(f.intent);
   const typePolicy = typeCountValid && (!inspection || inspection.value.mode === 'literal-v2' || completeB || weakIntent ? o.typellm_sends === 0 : true);
   const knownCost = oracle.syntax_stratum === 'B-known' ? o.typellm_sends === 0 : true;
-  const zeroCandidates = Array.isArray(o.inspection?.missing) && o.inspection.missing.length === 0 && materializationValid && o.preparations === 0;
+  // A rejected proposal's projected shortage is not a materialized candidate.
+  // The raw auditor binds this actual list to the coordinator and offered stock.
+  const materialized = o.materialized_missing ?? (o.preparations === 1 ? o.inspection?.missing : []);
+  const zeroCandidates = Array.isArray(materialized) && materialized.length === 0 && materializationValid && o.preparations === 0;
   const finalAuthorized = decisionValid && ['sufficient', 'missing'].includes(o.decision.choice) && o.decision.confidence >= 0.5
     && (inspection?.value.proposal === null || inspection?.verification?.accepted === true);
   const stoppedWithoutAdoption = finalAuthorized || unchanged && o.preparations === 0;

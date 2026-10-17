@@ -1,6 +1,5 @@
 import { onRequestPost } from "./api/judge.mjs";
-import { onParts } from "./api/parts.mjs";
-import { onRequirements } from "./api/requirements.mjs";
+import { onParts, onRequirements } from "./api/parts.mjs";
 import { bindJev, bindTypeLLM, generateTyped, judgeNamedChoices } from "voice-ui-judge-provider";
 
 // App-owned Pages Advanced Mode entry. It is bundled during artifact creation,

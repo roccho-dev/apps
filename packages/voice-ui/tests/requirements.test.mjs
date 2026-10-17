@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { onRequirements } from "../functions/api/requirements.mjs";
-import { readRequirementInspection, readRequiredSlots, requiredDifference } from "../src/requirements.mjs";
+import { onRequirements } from "../functions/api/parts.mjs";
+import { readRequirementInspection, readRequiredSlots, requiredDifference } from "../src/completion.mjs";
 import { readLiteralInspection, runInventoryGoal } from "../src/completion.mjs";
 import { readBundle } from "../src/bundle.mjs";
 import { createSession } from "../src/session.mjs";
