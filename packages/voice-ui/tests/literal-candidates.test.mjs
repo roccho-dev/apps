@@ -25,3 +25,11 @@ test("literal baseline has no semantic fallback, never truncates oversized quant
   assert.deepEqual(literalCandidates(state('Box「Box」')).missing, []);
   assert.equal(literalCandidates(state('step「A」 step「A」')).missing.length, 2);
 });
+test("the same generic grammar handles suffix kinds, lists and explicit stock counts", () => {
+  assert.deepEqual(literalCandidates(state('「受付」という名前のstepを作る')).missing,
+    [{ label: "受付", kind: "step", occurrence: 1 }]);
+  assert.deepEqual(literalCandidates(state('「甲」「乙」「丙」という3つのgroupを追加')).missing.map(x => x.label), ["甲", "乙", "丙"]);
+  assert.equal(literalCandidates(state('DBを3つ追加して')).missing.length, 2);
+  assert.deepEqual(literalCandidates(state('「甲」「乙」という3つのgroup')).missing, []);
+  assert.equal(literalCandidates(state('misstep「A」')).extraction.status, "unsupported-syntax");
+});

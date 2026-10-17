@@ -22,7 +22,7 @@ if (Object.keys(settings).length !== 5 || !/^http:\/\/127[.]0[.]0[.]1:[1-9][0-9]
 const hash = bytes => createHash("sha256").update(bytes).digest("hex");
 const bytes = fs.readFileSync(settings["--inputs"]), inputs = JSON.parse(bytes);
 const fixtures = inputs.fixture_contract, cases = inputs.cases, order = inputs.comparison?.case_order;
-const threeMethods = inputs.schema === "voice-ui.candidate-comparison/1";
+const threeMethods = inputs.schema === "voice-ui.poc.input-projection/2";
 const methods = threeMethods ? ["A", "B", "C"] : ["A", "B"];
 if (!fixtures || !Array.isArray(cases) || ![4, 8, 10].includes(cases.length) || !Array.isArray(order) || order.length !== cases.length
     || new Set(order).size !== cases.length || !order.every(id => /^[A-Za-z0-9][A-Za-z0-9_-]{0,63}$/.test(id)
