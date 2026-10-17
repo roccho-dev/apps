@@ -1,0 +1,8 @@
+{
+  "schema": "voice-ui.dependency-cycle-evidence-index/1",
+  "commitment": "../preregistered/dependency-cycle-commitment.json",
+  "freeze": "../preregistered/dependency-cycle-freeze.json",
+  "baseline_journal": "../../requirements-cycle-20261017/evidence/correction2-V/requirements-correction2-V-20261018.journal.jsonl",
+  "expected_cumulative": { "jev": 701, "typellm": 58 },
+  "phases": []
+}

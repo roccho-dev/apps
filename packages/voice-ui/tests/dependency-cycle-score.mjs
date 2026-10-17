@@ -11,6 +11,11 @@ export const DEPENDENCY_PUBLIC_PARENTS = Object.freeze({
   V: Object.freeze({ input: '633a1b3cc8c47a6fcb4d548d127bdb05b2696bc99ffbfae0467211236e36ce97', oracle: '884dde0deb27b76d7f269eee989ffeedc1759493402b77a4cf4d9efb0d4344e5' }),
   E: Object.freeze({ input: 'dddd6843284c39e7aa1862cd2b9debd0548a6b503d892c18d68863205387380c', oracle: '723bc974b22fc45da2f19b6c8580f7280e7497d474d5a9f33d35d3f1ce385dea' }),
 });
+export const DEPENDENCY_SEALED_COMMITMENTS = Object.freeze({
+  V: Object.freeze({ input: '36f63ecc1b2d0b6193f9e24eb68142fefa6441c5d65e06ab3601a57fed6d3c25', oracle: 'aa909885f5b8a0b578035b2b97a3549efd0b3f40acaa4c40c4863a1f364844e6' }),
+  F: Object.freeze({ input: '5249b0deb5df7c4b0c7ab82f91d39cc1c174af326daef772a1ae3a444f3e0b9d', oracle: '914fda47d411cae810fa2ea872b1174c4d3479ef55615370d8ca80e41f62c731' }),
+  E: Object.freeze({ input: '9e5293a52d56d3377b9c7f226fd87baeac7f86bfb5b852525b19f571151cef77', oracle: '239a82a2e740a8f5ae45b1943c728d431ab0c8fd7cf027961d74eb65eb64c62b' }),
+});
 const hash = b => createHash('sha256').update(b).digest('hex');
 const parse = bytes => JSON.parse(Buffer.from(bytes).toString('utf8'));
 export function validateDependencyInput(input, { phaseKind = null, parentProjectionBytes = null } = {}) {

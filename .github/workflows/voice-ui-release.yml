@@ -9,6 +9,7 @@ on:
       - "docs/voice-ui/candidate-ci-20261017/**"
       - "docs/voice-ui/component-axes-20261017/**"
       - "docs/voice-ui/requirements-cycle-20261017/**"
+      - "docs/voice-ui/dependency-cycle-20261018/**"
       - "flake.nix"
       - "flake.lock"
   workflow_dispatch:
@@ -86,6 +87,8 @@ jobs:
             "$reopened/voice-ui-dist" "$PWD/dist/component-axes-mechanics"
           "$runtime/bin/voice-ui-acceptance-node" packages/voice-ui/acceptance/requirements-cycle-smoke.mjs \
             "$reopened/voice-ui-dist" "$PWD/dist/requirements-cycle-mechanics"
+          "$runtime/bin/voice-ui-acceptance-node" packages/voice-ui/acceptance/dependency-cycle-smoke.mjs \
+            "$reopened/voice-ui-dist" "$PWD/dist/dependency-cycle-mechanics"
           POC_PROTOCOL_ENTRY="$reopened/voice-ui-dist/site/ui/semantic-map/protocol/index.js" \
           POC_SOURCE_ROOT="$PWD/packages/voice-ui" \
           POC_AXIS_FIXTURES="$PWD/docs/voice-ui/component-axes-20261017/preregistered" \
@@ -103,6 +106,7 @@ jobs:
             dist/candidate-browser-evidence/
             dist/component-axes-mechanics/
             dist/requirements-cycle-mechanics/
+            dist/dependency-cycle-mechanics/
           if-no-files-found: ignore
       - name: Verify stopped live evidence with exact recorded artifacts
         run: |
@@ -152,6 +156,22 @@ jobs:
             dist/requirements-cycle-closed-evidence/receipt.json
             dist/requirements-cycle-closed-evidence/*/audit.json
             dist/requirements-cycle-closed-evidence/*/ci-replay/receipt.json
+          if-no-files-found: ignore
+      - name: Verify dependency cycle with exact stopped artifacts
+        run: |
+          set -euo pipefail
+          runtime="$(nix build --no-link --print-out-paths .#voice-ui-acceptance-runtime)"
+          "$runtime/bin/voice-ui-acceptance-node" packages/voice-ui/acceptance/verify-dependency-cycle.mjs \
+            "$PWD/docs/voice-ui/dependency-cycle-20261018/evidence/index.json" "$PWD/dist/dependency-cycle-closed-evidence"
+      - name: Preserve dependency cycle verification
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: voice-ui-dependency-cycle-${{ github.event.pull_request.head.sha || github.sha }}
+          path: |
+            dist/dependency-cycle-closed-evidence/receipt.json
+            dist/dependency-cycle-closed-evidence/*/audit.json
+            dist/dependency-cycle-closed-evidence/*/ci-replay/receipt.json
           if-no-files-found: ignore
       - name: Export the acceptance runtime closure
         run: |

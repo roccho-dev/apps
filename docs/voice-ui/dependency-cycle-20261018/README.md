@@ -8,7 +8,9 @@
 
 [Ops#565](https://github.com/roccho-org/ops/pull/565)はgenericな依存関係の検証を3ファイルで追加した。source/full CI/完成ESMと[独立R1](https://github.com/roccho-org/ops/pull/565#pullrequestreview-5558945175)を確認し、レビュー済みtreeと同じ内容をb4f611cac9e13fbef178469796cbc3b6d4a76b23へmerge済み。[canonical CI](https://github.com/roccho-org/ops/actions/runs/39052107450)・[正式publisher](https://github.com/roccho-org/ops/actions/runs/39052924181)が通過し、[公開4assets](https://github.com/roccho-org/ops/releases/tag/jev-provider-b4f611cac9e13fbef178469796cbc3b6d4a76b23)を匿名で取得してsource/proof/provenance/entry検証まで確認した。Apps完成配布物への組込みと、新しい候補性能は未実証。
 
-[公開bytes読戻し](supply/root-readback.json)と[既存Apps受入器の正例1・拒否例8](supply/apps-admission.json)はPASS。Appsの依存pin更新・完成Workerへの組込み・新しい実API性能はこの後に確認する。
+[公開bytes読戻し](supply/root-readback.json)と[既存Apps受入器の正例1・拒否例8](supply/apps-admission.json)はPASS。[独立読戻し](supply/ops565-b4f6-public-supply-audit.json)でも正式供給を確認済み。
+
+製品側の最小実装8249765を正式providerと組み合わせた[完成Workerの比較](prebuild/dependency-8249-compiled-equivalence.json)は疑似応答でPASS。旧独立wireと新Iが一致し、Dは依存指定だけが異なり、通常defaultはD、不正query7件は送信0だった。[独立32テスト](supply/dependency-cycle-independent-module-validation.json)もPASS。これらはSYNTHETIC_MECHANICS_ONLYであり、新しい実API品質・E効果は未証明。統合後の完成ZIP/full CI・独立source admission・実PID送信0確認が残る。
 
 | 性能 | 与えるもの | 判断すること |
 | --- | --- | --- |
