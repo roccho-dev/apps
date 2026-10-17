@@ -1,8 +1,8 @@
 {
   "schema": "voice-ui.requirements-cycle-evidence-index/1",
   "expected_cumulative": {
-    "jev": 695,
-    "typellm": 52
+    "jev": 701,
+    "typellm": 58
   },
   "commitment": "../preregistered/requirements-cycle-commitment.json",
   "addendum": "../preregistered/requirements-cycle-public-E2-correction.json",
@@ -77,6 +77,56 @@
         "pr103-0861-r12-review.md": "shared/pr103-0861-r12-review.md",
         "requirements-correction1-V-zero-send-audit.json": "correction1-V/requirements-correction1-V-zero-send-audit.json",
         "requirements-correction1-V-stop-audit.json": "correction1-V/requirements-correction1-V-stop-audit.json"
+      },
+      "expected_execution_status": "RECORDED"
+    },
+    {
+      "id": "correction2-F",
+      "axis": "F",
+      "apps_sha": "31e8fabaeb679c8bb02db8029f36de410d012adb",
+      "phase_kind": "correction",
+      "correction_batch": 2,
+      "raw_dir": "correction2-F/raw",
+      "producer": "correction2-F/requirements-correction2-F-31e8.producer.json",
+      "runtime": "correction2-F/runtime-build.json",
+      "input": "../preregistered/requirements-cycle-public-F6.inputs.json",
+      "oracle": "../preregistered/requirements-cycle-public-F6.oracle.json",
+      "parent_input": "../preregistered/requirements-cycle-public-F6.inputs.json",
+      "config": "correction2-F/requirements-correction2-F-20261018.config.json",
+      "process": "correction2-F/requirements-correction2-F-20261018.process.json",
+      "stdout": "correction2-F/requirements-correction2-F-20261018.stdout.log",
+      "stderr": "correction2-F/requirements-correction2-F-20261018.stderr.log",
+      "journal": "correction2-F/requirements-correction2-F-20261018.journal.jsonl",
+      "recorded_replay": null,
+      "audits": {
+        "pr103-31e8-r13-review.md": "shared/pr103-31e8-r13-review.md",
+        "requirements-correction2-F-zero-send-audit.json": "correction2-F/requirements-correction2-F-zero-send-audit.json",
+        "requirements-correction2-F-stop-audit.json": "correction2-F/requirements-correction2-F-stop-audit.json"
+      },
+      "expected_execution_status": "INVALID"
+    },
+    {
+      "id": "correction2-V",
+      "axis": "V",
+      "apps_sha": "31e8fabaeb679c8bb02db8029f36de410d012adb",
+      "phase_kind": "correction",
+      "correction_batch": 2,
+      "raw_dir": "correction2-V/raw",
+      "producer": "correction2-V/requirements-correction2-V-31e8.producer.json",
+      "runtime": "correction2-V/runtime-build.json",
+      "input": "../preregistered/requirements-cycle-public-V6.inputs.json",
+      "oracle": "../preregistered/requirements-cycle-public-V6.oracle.json",
+      "parent_input": "../preregistered/requirements-cycle-public-V6.inputs.json",
+      "config": "correction2-V/requirements-correction2-V-20261018.config.json",
+      "process": "correction2-V/requirements-correction2-V-20261018.process.json",
+      "stdout": "correction2-V/requirements-correction2-V-20261018.stdout.log",
+      "stderr": "correction2-V/requirements-correction2-V-20261018.stderr.log",
+      "journal": "correction2-V/requirements-correction2-V-20261018.journal.jsonl",
+      "recorded_replay": null,
+      "audits": {
+        "pr103-31e8-r13-review.md": "shared/pr103-31e8-r13-review.md",
+        "requirements-correction2-V-zero-send-audit.json": "correction2-V/requirements-correction2-V-zero-send-audit.json",
+        "requirements-correction2-V-stop-audit.json": "correction2-V/requirements-correction2-V-stop-audit.json"
       },
       "expected_execution_status": "RECORDED"
     }

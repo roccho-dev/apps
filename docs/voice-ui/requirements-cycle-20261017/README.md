@@ -1,6 +1,6 @@
 # 必要部品の判定・補完と描画を分ける反復
 
-状態: 初回F6と修正1のF6/V6は未達。最後の修正2を独立確認中で、Eと未見例は未消費。前回の実測結果は [component axes](../component-axes-20261017/README.md) に固定している。
+状態: 合意した最大2修正を実測して停止。最後の修正2はV6が6/6へ改善した一方、F6は2/6・形式不正4件で未達。Eと未見例は未消費で、補完による製品改善は未証明。[今回の結論と限界](closure.md)と全30件を保存する。前回の実測結果は [component axes](../component-axes-20261017/README.md) に固定している。
 
 実API実行前の独立テストで公開E2の期待追加図の記載漏れを検出し、[訂正addendum](preregistered/requirements-cycle-public-E2-correction.json)で訂正した。原commitmentと原E2の2ファイルを残し、測定は明示的にE2.v2を使う。未見6ファイルのhashと意味・在庫差分・参照の[独立再確認](preregistered/requirements-cycle-meaning-validation.json)は不変PASS。
 
@@ -21,7 +21,9 @@
 
 [修正2](correction-2.md)では全NEW要求の抽出へ在庫容量を渡さず、Vのgeneric標準名の扱いと在庫不足との区別を明確にする。元のG0・4因子・閉じた型・0.5閾値・在庫差分・評価基準は固定する。Eと未見入力は、同じheadの公開F6/V6/E2をすべて通るまで解放しない。
 
-プロセスと予算は [protocol](protocol.md)、独立封印は [commitment](preregistered/requirements-cycle-commitment.json)、封印時の元文書は [agreed plan](preregistered/agreed-plan.md)。次サイクル上限300Jev/40TypeLLM、開始時の課金上の累計689/40。過去の保守的な未送信Type1回分も差し引かない。
+修正2のexact31e8fabaeb679c8bb02db8029f36de410d012adbでF6/V6を各一度実行した。FはPF02/PF03のみ正確、PF01/PF04/PF05/PF06は502 parts_contractで内部値は未取得。Vは正しい案3/3を受理、誤った案3/3を拒否し、誤受理0。Vの公開例に限った改善と、未達のF、未実行の製品E比較を分ける。累計701Jev/58TypeLLM（実送701/57）、今回12Jev/18TypeLLM。全phaseは停止・精算済みで予約なし。F gate未達によりE/freshと第三修正へ進まず、残予算を追加試行へ自動転用しない。
+
+プロセスと予算は [protocol](protocol.md)、独立封印は [commitment](preregistered/requirements-cycle-commitment.json)、封印時の元文書は [agreed plan](preregistered/agreed-plan.md)。今回のサイクル上限300Jev/40TypeLLM、開始時の課金上の累計689/40。過去の保守的な未送信Type1回分も差し引かない。
 
 ```mermaid
 flowchart LR

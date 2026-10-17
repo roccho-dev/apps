@@ -1,0 +1,12 @@
+{
+  "phase": "requirements-correction2-V-20261018",
+  "schema": "voice-ui.zero-send-readiness-observation/1",
+  "readiness_get": "ECONNREFUSED",
+  "checks_completed_before_get": "PID/start/argv/source/runtime/config/identity/caps/preload/key-presence metadata/journal",
+  "pid": 324288,
+  "action": "same PID re-observation; no relaunch or provider request",
+  "observed_at": "2026-10-17T16:19:37.0103307+00:00",
+  "status": "NOT_READY",
+  "admission": "NOT_GRANTED",
+  "start_ticks": "16176096"
+}
