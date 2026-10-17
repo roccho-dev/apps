@@ -8,6 +8,8 @@ const purposeKey = frame => JSON.stringify([frame.purpose.purpose.id, frame.purp
 const state = condition => condition.judgment.state === 'unmet' ? 'unmet' : 'unknown';
 const ideal = condition => [condition.predicate, condition.maxAge];
 const iso = ms => new Date(ms).toISOString();
+// The ideal state's own time (v10): when it was declared, not when it entered the ledger (ledgerAt only cuts frames).
+const idealAt = ideal => Date.parse(ideal.declaredAt ?? ideal.recordedAt);
 const DURATION = /^P(?:(\d+)D)?(?:T(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?)?$/u;
 const ms = value => { const [d, h, m, s] = DURATION.exec(value).slice(1).map(part => Number(part ?? 0)); return (((d * 24 + h) * 60 + m) * 60 + s) * 1000; };
 
@@ -46,7 +48,7 @@ export const gapOf = (frame, last = null, previous = null) => {
       // A difference declared again (same Purpose id, same condition, unrevised) continues from its opening frame.
       since: old && !revised && since.has(value.id) ? since.get(value.id) : frameId(frame),
       scope: value.responsibility.state === 'assigned' ? `scope.${value.id}` : null, refs: refs(value),
-      ...(observedAt && Date.parse(observedAt) < Date.parse(frame.ideal.recordedAt) ? { observed_before_ideal: true } : {}) };
+      ...(observedAt && Date.parse(observedAt) < idealAt(frame.ideal) ? { observed_before_ideal: true } : {}) };
   });
   // Close what the previous frame had open and this frame no longer has open.
   // Under a new Purpose rev only what the new ideal declares again continues; the rest closes.
@@ -63,7 +65,7 @@ export const gapOf = (frame, last = null, previous = null) => {
     ideal_version: frame.ideal?.version ?? null, prev_frame: last ? frameId(last.frame) : null },
   parts, closed, summary: parts ? { open: parts.length, by_cause: byCause, conditions: frame.conditions.length, satisfied: frame.conditions.filter(value => !open(value)).length,
     // Satisfied only on an observation older than this ideal.set: a match to show, not to hide (v5).
-    before_ideal: frame.conditions.filter(value => !open(value) && value.judgment.observation && Date.parse(value.judgment.observation.observedAt) < Date.parse(frame.ideal.recordedAt)).length }
+    before_ideal: frame.conditions.filter(value => !open(value) && value.judgment.observation && Date.parse(value.judgment.observation.observedAt) < idealAt(frame.ideal)).length }
     : { open: null, by_cause: {}, conditions: null, satisfied: null, before_ideal: null } };
 };
 
