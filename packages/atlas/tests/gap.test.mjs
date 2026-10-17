@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { deriveAtlas } from '../events.mjs';
 import { contractWorld, gapOf } from '../contract.mjs';
+const causeText = cause => [cause.ideal, cause.current].filter(Boolean).join('+') || 'carried'; // v6: both sides, carried when neither
 
 const read = name => readFileSync(new URL('../fixtures/gap/' + name, import.meta.url), 'utf8');
 const EVENTS = read('events.jsonl'), CONTROL = read('control.jsonl');
@@ -11,7 +12,7 @@ const jsonl = list => list.map(value => JSON.stringify(value)).join('\n') + '\n'
 const build = (events = EVENTS) => contractWorld(deriveAtlas(events, CONTROL));
 const t = hour => `t@2026-10-17T0${hour}:00:00.000Z`;
 // condition → [state, causes, since, scope]
-const open = frame => Object.fromEntries(frame.gap.parts.map(part => [part.condition, [part.state, part.cause.join('+'), part.since, part.scope]]));
+const open = frame => Object.fromEntries(frame.gap.parts.map(part => [part.condition, [part.state, causeText(part.cause), part.since, part.scope]]));
 const closed = frame => frame.gap.closed.map(value => [value.condition, value.by, value.at]);
 
 test('gap by cause, frame by frame, against the previous frame by id only', () => {
@@ -26,8 +27,8 @@ test('gap by cause, frame by frame, against the previous frame by id only', () =
   // A legacy purpose.set is the Purpose plus its ideal state: rev is the version that first declared the label.
   assert.deepEqual(frames.map(frame => frame.gap.basis.purpose_rev), ['v1', 'v1', 'v1', 'v1', 'v3', 'v3']);
   // t1: only the ideal moves (B revised, C added); the current is unchanged, so no current-* cause.
-  assert.deepEqual(open(frames[1]), { B: ['unmet', 'ideal-revised', t(1), 'scope.B'], C: ['unknown', 'ideal-added', t(1), 'scope.C'] });
-  assert.ok(frames[1].gap.parts.every(part => part.cause.every(cause => !cause.startsWith('current-'))));
+  assert.deepEqual(open(frames[1]), { B: ['unmet', 'ideal-revised', t(1), 'scope.B'], C: ['unknown', 'ideal-added+current-unobserved', t(1), 'scope.C'] });
+  assert.ok(frames[1].gap.parts.every(part => part.cause.ideal), 'the ideal side explains every part of t1');
   // B is judged on an observation made before ideal v2 was set: a display mark, not a cause.
   assert.deepEqual(frames[1].gap.parts.map(part => [part.condition, part.observed_before_ideal ?? false]), [['B', true], ['C', false]]);
   // t2: C observed → closed; A regresses; B continues.
@@ -36,7 +37,7 @@ test('gap by cause, frame by frame, against the previous frame by id only', () =
   // t3: A obtained no value (G UNKNOWN, D null); B's observation is outside its PT2H window. Both stay open since earlier.
   assert.deepEqual(open(frames[3]), { A: ['unknown', 'current-unobserved', t(2), 'scope.A'], B: ['unknown', 'current-stale', t(1), 'scope.B'] });
   // t4: the Purpose changes: everything open closes by purpose-changed; E opens without an owner.
-  assert.deepEqual(open(frames[4]), { E: ['unknown', 'purpose-changed', t(4), null] });
+  assert.deepEqual(open(frames[4]), { E: ['unknown', 'purpose-changed+current-unobserved', t(4), null] });
   assert.deepEqual(closed(frames[4]), [['A', 'purpose-changed', t(4)], ['B', 'purpose-changed', t(4)]]);
   // t5: still no observation of E: current-unobserved applies, so it is not carried (carried only when nothing else applies).
   assert.deepEqual(open(frames[5]), { E: ['unknown', 'current-unobserved', t(4), null] });
@@ -82,7 +83,7 @@ test('cause exclusivity and transitions by id comparison only', () => {
     purpose: { purpose: { id: 'p', label }, rev }, ideal: { version, recordedAt: '2026-10-17T00:00:00.000Z' }, conditions, plans: [] });
   const step = frames => frames.reduce((acc, value) => { const gap = gapOf(value, acc.last, acc.previous); const next = { frame: value, gap };
     return { last: gap.parts ? next : acc.last, previous: next, gaps: [...acc.gaps, gap] }; }, { last: null, previous: null, gaps: [] }).gaps;
-  const causes = gap => gap.parts.map(part => [part.condition, ...part.cause]);
+  const causes = gap => gap.parts.map(part => [part.condition, causeText(part.cause)]);
   const [g0, g1] = step([frame(0, [condition('X', 'unmet'), condition('Y', 'unmet')]), frame(1, [condition('Y', 'unmet')], 'v2')]);
   assert.deepEqual(causes(g0), [['X', 'initial'], ['Y', 'initial']]);
   assert.deepEqual(g1.closed, [{ condition: 'X', at: 't@2026-10-17T01:00:00.000Z', by: 'ideal-removed' }]);
@@ -91,11 +92,11 @@ test('cause exclusivity and transitions by id comparison only', () => {
   const g = step([frame(0, [condition('A', 'unknown', 'no-observation'), condition('B', 'unmet'), condition('C', 'satisfied')]),
     frame(1, [condition('A', 'unmet'), condition('B', 'conflict', 'conflicting-observations'), condition('C', 'unknown', 'stale')])]);
   assert.deepEqual(causes(g[1]), [['A', 'current-confirmed-unmet'], ['B', 'current-conflict'], ['C', 'current-stale']]);
-  assert.ok(g[1].parts.every(part => part.cause.length === 1));
+  assert.ok(g[1].parts.every(part => part.cause.ideal === null), 'at most one cause per side');
   // A label/norm change is no revision; a changed maxAge is. A new label of the same Purpose id is a new rev: purpose-changed.
   const h = step([frame(0, [condition('Y', 'unmet')]), frame(1, [condition('Y', 'unmet', 'observed', { label: 'renamed', norm: 'n2' })], 'v2'),
     frame(2, [condition('Y', 'unmet', 'observed', { maxAge: 'PT2H' })], 'v3'), frame(3, [condition('Y', 'unmet', 'observed', { maxAge: 'PT2H' })], 'v4', 'r2', 'P renamed')]);
-  assert.deepEqual(h.map(gap => gap.parts[0].cause[0]), ['initial', 'carried', 'ideal-revised', 'purpose-changed']);
+  assert.deepEqual(h.map(gap => causeText(gap.parts[0].cause)), ['initial', 'carried', 'ideal-revised', 'purpose-changed']);
   assert.deepEqual(h.map(gap => gap.parts[0].since.slice(13, 18)), ['00:00', '00:00', '02:00', '02:00'], 'declared again under the new rev: continues');
   assert.deepEqual(h[3].closed, []);
 });

@@ -159,11 +159,22 @@ export const semanticScopeWorld = (input, reducedClosure) => {
     // conflicting or undeclared; a known, owned, unmet Scope is a known missing change.
     const owned = new Set((meaning.scopes ?? []).flatMap(scope => Object.values(scope.criteria).flat()));
     let currentGap = 0, uncertain = 0;
+    // v7: each Scopes unit goes into exactly one declared frame: its owner (Norm), 担当なし, or 閉じた差（履歴）.
+    const groups = new Map();
+    const place = (member, group) => { if (!groups.has(group)) groups.set(group, []); groups.get(group).push(member); };
     // Old obligations first: their history relations then do not cross the current units.
     for (const duty of meaning.history) {
       if (!object(duty) || typeof duty.id !== 'string') throw new Error('scope-world: historical obligation identity required');
       const dutyRef = entity(ref(space, 'obligation', duty.id), caption(duty.label ?? duty.id, '旧義務・履歴'), 'scopes', JSON.stringify(duty), ['history-preserved']);
+      place(dutyRef, 'history');
       edge('history:' + duty.id, dutyRef, purposeRef, '旧義務', { obligation: duty, currentPair: meaning.pair });
+    }
+    // Supplied closed differences (frame.closed): met now, so no Scope; kept readable in the history frame, no line.
+    for (const done of Array.isArray(observed.closed) ? observed.closed : []) {
+      if (!object(done) || typeof done.id !== 'string') throw new Error('scope-world: closed difference identity required');
+      place(entity(ref(space, 'closed-change', done.id), caption(done.label ?? done.id, '満たした・履歴'), 'scopes',
+        (done.label ?? done.id) + ' · 現在状態が満たしている（' + (done.observedAt ?? 'unknown') + ' · ' + (done.source ?? 'source unknown') + '）· 担当 '
+          + (done.owner ?? 'なし'), ['closed', 'history']), 'history');
     }
     // Scopes are grouped by their declared owner (stable, first appearance) so owner
     // relations to the Agents column, which uses the same order, never cross.
@@ -184,6 +195,7 @@ export const semanticScopeWorld = (input, reducedClosure) => {
         caption(scope.label ?? scope.id, standing === 'unresolved' ? '未確定' : statusCaption[status]), 'scopes',
         `${scope.label ?? scope.id} · ${scope.owner_role} / ${scope.owner_actor} · ${status} · ${standingLabel[standing]}`,
         ['standing=' + standing, 'scope_status=' + status, ...(disagreement ? ['evaluation-disagreement'] : [])]);
+      place(scopeRef, standing === 'completed-history' ? 'history' : 'owner:' + scope.owner_actor);
       edge('scope:' + scope.id, scopeRef, targetRef, '引受', { scope, standing, scope_status: status,
         ...(disagreement ? { disagreement } : {}), comparison: meaning.comparison, closure, history: meaning.history, binding }, knownMeaning);
       if (standing === 'active') change('change:scope:' + scope.id, scopeRef, '変化',
@@ -203,6 +215,7 @@ export const semanticScopeWorld = (input, reducedClosure) => {
       currentGap += 1; uncertain += 1;
       const unitRef = entity(ref(space, 'unassigned-change', id), caption(why.includes('conflict') ? '未割当・矛盾' : '未割当', id), 'scopes',
         '未割当: ' + id + ' · 担当未割当（' + why + '）。完了には昇格しません。次の観測・責任・根拠を確認します。', ['unassigned', 'owner-unassigned', 'source=' + why]);
+      place(unitRef, 'owner:none');
       const context = { id, source: why, ...(object(responsibility[id]) ? { responsibility: responsibility[id] } : {}),
         comparison: meaning.comparison, closure, binding };
       change('change:unassigned:' + id, unitRef, '変化', context, knownMeaning);
@@ -212,6 +225,7 @@ export const semanticScopeWorld = (input, reducedClosure) => {
     const unresolvedUnit = (id, first, second, summary, flag, context) => {
       currentGap += 1; uncertain += 1;
       const unitRef = entity(ref(space, 'unresolved-change', id), caption(first, second), 'scopes', summary, [flag]);
+      place(unitRef, 'owner:none');
       change('change:unresolved:' + id, unitRef, first, context);
       edge('residual:unresolved:' + id, unitRef, targetRef, first, context);
     };
@@ -236,6 +250,18 @@ export const semanticScopeWorld = (input, reducedClosure) => {
     else if (closure.purpose_status === 'unmet' && currentGap === 0)
       unresolvedUnit('purpose-evaluation-unmet', '全体評価', '未達', '全体評価は未達ですが責任単位へ対応付いていません · 完了には昇格しません。',
         'unexplained', evaluationContext);
+    // The frames themselves: owners in Scope order, then 担当なし, then the history frame. Containment is
+    // a relation from the frame to each member (ui's existing containment shape); nothing else is moved.
+    const order = key => key === 'history' ? 2 : key === 'owner:none' ? 1 : 0;
+    for (const [group, members] of [...groups].sort(([a], [b]) => order(a) - order(b))) {
+      const actor = group.startsWith('owner:') && group !== 'owner:none' ? group.slice(6) : null;
+      const groupRef = entity(ref(space, 'scope-group', group), actor ? caption('担当', actor) : group === 'owner:none' ? caption('担当なし', '未割当・未確定')
+        : caption('閉じた差', '履歴'), 'scopes', (actor ? '担当 ' + actor + '（Norm 宣言）' : group === 'owner:none' ? '担当の宣言が無い差' : '閉じた差・旧義務（履歴）')
+        + ' · ' + members.length + ' 件', ['group', 'group=' + group]);
+      for (const member of members) relations.push({ ref: ref(space, 'declared-relation', 'contains:' + group + ':' + member.kind + ':' + member.id),
+        from: groupRef, to: member, kind: 'declared-relation', label: '含む', context: { group, declared_by: actor ? 'owner_actor' : group === 'history' ? 'history' : 'no-owner' },
+        source: declaredSource, time: { ...time }, flags: ['authority=false'], containment: 'from-contains-to', path: false });
+    }
     if (changes.length) edge('gap:current-target', currentRef, targetRef, '差 ' + changes.length + ' 件',
       { change_relations: [...changes], current_revision: currentRevision, purpose_standing: purposeStanding,
         drawing: 'aggregate of the visible:false Current -> unit relations; each keeps its own context and path' });

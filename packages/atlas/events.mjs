@@ -437,7 +437,8 @@ export const deriveFrames = ({ header, events: log }, norms) => {
     const used = conditions.map(value => value.judgment.observation?.observedAt).filter(Boolean).map(Date.parse);
     return { t, asOf: new Date(t).toISOString(), purpose, stage, ideal, conditions, history, plans, sessions,
       // The journal (adrs#647 contract 3): decisions and observations in time order, each fact once.
-      journal: events.filter(event => !event.projection),
+      // An exactly repeated record (the same line recorded twice) is one fact: listed once, judged the same.
+      journal: [...new Map(events.filter(event => !event.projection).map(event => [canonical(event), event])).values()],
       gapDigest: digest(gapInputs.map(canonical).join('\n')), observedAt: used.length ? new Date(Math.max(...used)).toISOString() : null };
   });
   return { header, now: new Date(times.at(-1)).toISOString(), frames };
@@ -446,8 +447,10 @@ export const deriveFrames = ({ header, events: log }, norms) => {
 // ---- Projection to the existing contracts. ----
 const purposeRow = frame => `${frame.purpose.purpose.id}@${frame.purpose.rev}`;
 const sourceRef = source => source.commentId ? `${source.ref}:comment-${source.commentId}` : source.ref;
-const closureRows = (derived, upto) => {
-  const frames = derived.frames.slice(0, upto + 1), rows = [], seen = new Set();
+// Rows of frames from..upto. A World frame uses only its own rows (from = upto): never later rows, and the
+// World stays linear in the number of frames (v6); closure.jsonl keeps every frame (from = 0).
+const closureRows = (derived, upto, from = 0) => {
+  const frames = derived.frames.slice(from, upto + 1), rows = [], seen = new Set();
   for (const frame of frames) {
     const row = purposeRow(frame), p = frame.ideal, frameSource = [{ sourceRef: `atlas-events:frame@${frame.asOf}`, sourceDigest: frame.gapDigest }];
     if (!seen.has('purpose:' + row)) {
@@ -469,8 +472,8 @@ const closureRows = (derived, upto) => {
   }
   return rows;
 };
-export const closureDocument = (derived, upto = derived.frames.length - 1) =>
-  [{ schema: 'atlas.purpose-closure/1', authority: false }, ...closureRows(derived, upto)].map(canonical).join('\n') + '\n';
+export const closureDocument = (derived, upto = derived.frames.length - 1, from = 0) =>
+  [{ schema: 'atlas.purpose-closure/1', authority: false }, ...closureRows(derived, upto, from)].map(canonical).join('\n') + '\n';
 
 const EVALUATOR = 'atlas.D:derive', WRITER = 'atlas.events';
 const semanticFrame = (derived, frame, index) => {
@@ -513,7 +516,7 @@ const semanticFrame = (derived, frame, index) => {
     history: frame.history.map(value => ({ ...value, target_ref: ref(`target@${value.purpose_version}`, value.purpose_id) })),
     bindings: null,
   };
-  const closure = closureRows(derived, index), find = id => closure.find(row => row.id === id);
+  const closure = closureRows(derived, index, index), find = id => closure.find(row => row.id === id);
   const bound = (row, extra) => ({ id: row.id, kind: row.kind, sources: row.sources, ...extra });
   semantic.bindings = { pair: { purpose_id: pid, current_ref: currentRef, target_ref: targetRef },
     purpose: bound(find(purposeRow(frame)), { domain_id: pid }), current: bound(find(`current@${frame.asOf}`), { state_ref: currentRef }),
@@ -523,6 +526,9 @@ const semanticFrame = (derived, frame, index) => {
     purpose_label: frame.purpose.purpose.label, current_label: `観測照合 ${known}/${p.requires.length} 件 @${frame.asOf}`,
     target_label: `理想状態 ${p.version}：${p.label ?? '条件'}（条件 ${p.requires.length} 件）`, post_label: `導出 ${frame.asOf}`, semantic,
     responsibility: Object.fromEntries(frame.conditions.map(value => [value.id, value.responsibility])),
+    // Closed differences (v7 history frame): conditions of this ideal state the current state meets now.
+    closed: frame.conditions.filter(value => value.judgment.state === 'satisfied').map(value => ({ id: value.id, label: value.label,
+      observedAt: value.judgment.observation.observedAt, source: value.judgment.observation.source, owner: value.responsibility.actor ?? null })),
     agent_activity: frame.sessions };
 };
 // No ideal state to compare with (purpose-changed, defining, ended): the comparison is UNKNOWN, never empty.
@@ -555,7 +561,7 @@ export const planProjection = derived => ({ schema: PLAN_PROJECTION_SCHEMA, auth
 export const deriveAtlas = (eventsText, controlText) => {
   const derived = deriveFrames(parseEvents(eventsText), parseControl(controlText));
   const input = semanticInput(derived);
-  const built = input.frames.map((frame, index) => semanticScopeWorld({ ...input, frames: [frame] }, reduceClosure(closureDocument(derived, index))));
+  const built = input.frames.map((frame, index) => semanticScopeWorld({ ...input, frames: [frame] }, reduceClosure(closureDocument(derived, index, index))));
   const world = { ...built.at(-1), frames: built.map(value => value.frames[0]) };
   return { derived, closure: closureDocument(derived), input, world, plans: planProjection(derived) };
 };

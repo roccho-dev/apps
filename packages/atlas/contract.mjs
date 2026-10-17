@@ -11,9 +11,12 @@ const iso = ms => new Date(ms).toISOString();
 const DURATION = /^P(?:(\d+)D)?(?:T(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?)?$/u;
 const ms = value => { const [d, h, m, s] = DURATION.exec(value).slice(1).map(part => Number(part ?? 0)); return (((d * 24 + h) * 60 + m) * 60 + s) * 1000; };
 
-// The current side of an open condition under an unchanged ideal: exclusive, carried only when nothing else applies.
+// The current side (v6): why the current state does not meet the condition now, at most one, never hidden
+// by an ideal-side cause. An unmet condition only has one when it changed against the same, unrevised
+// condition before (regressed / confirmed); an unknown one always says why it is unknown.
 const currentCause = (before, now) => {
-  if (now.state === 'unmet') return before.state === 'satisfied' ? 'current-regressed' : before.state === 'unmet' ? 'carried' : 'current-confirmed-unmet';
+  if (now.state === 'unmet') return !before ? null : before.state === 'satisfied' ? 'current-regressed'
+    : before.state === 'unmet' ? null : 'current-confirmed-unmet';
   if (now.state === 'conflict') return 'current-conflict';
   // Arrived but not comparable with the predicate (unmatchable) is not the same as nothing arrived.
   return now.reason === 'stale' ? 'current-stale' : now.reason === 'unmatchable' ? 'current-unmatchable' : 'current-unobserved';
@@ -33,10 +36,13 @@ export const gapOf = (frame, last = null, previous = null) => {
   const refs = condition => [...new Set(frame.plans.filter(plan => condition.plans?.includes(plan.plan)).map(plan => plan.ref))].sort();
   const parts = frame.ideal && frame.conditions.filter(open).map(value => {
     const old = before.get(value.id), revised = old && !same(ideal(old), ideal(value));
-    const cause = !last ? 'initial' : !sameKey ? 'purpose-changed' : !old ? 'ideal-added' : revised ? 'ideal-revised'
-      : currentCause(old.judgment, value.judgment);
+    // The ideal side (v6): at most one; 'initial' when there is no earlier frame with a gap to compare.
+    const sides = { ideal: !last ? 'initial' : !sameKey ? 'purpose-changed' : !old ? 'ideal-added' : revised ? 'ideal-revised' : null,
+      current: currentCause(old && !revised && sameKey ? old.judgment : null, value.judgment) };
+    // Neither side has a reason: the same open difference continues. It is named (ui refuses a cause with no side).
+    const cause = sides.ideal || sides.current ? sides : { ideal: null, current: 'carried' };
     const observedAt = value.judgment.observation?.observedAt;
-    return { condition: value.id, label: value.label, state: state(value), cause: [cause],
+    return { condition: value.id, label: value.label, state: state(value), cause,
       // A difference declared again (same Purpose id, same condition, unrevised) continues from its opening frame.
       since: old && !revised && since.has(value.id) ? since.get(value.id) : frameId(frame),
       scope: value.responsibility.state === 'assigned' ? `scope.${value.id}` : null, refs: refs(value),
@@ -51,7 +57,8 @@ export const gapOf = (frame, last = null, previous = null) => {
     by: frame.stage === 'ended' ? 'purpose-ended' : !frame.ideal || !sameId(previous) || purposeKey(previous.frame) !== purposeKey(frame) && !ids.has(part.condition)
       ? 'purpose-changed' : ids.has(part.condition) ? 'current-satisfied' : 'ideal-removed' }));
   const byCause = {};
-  for (const part of parts ?? []) for (const cause of part.cause) byCause[cause] = (byCause[cause] ?? 0) + 1;
+  // Both sides are counted (carried included).
+  for (const part of parts ?? []) for (const cause of [part.cause.ideal, part.cause.current].filter(Boolean)) byCause[cause] = (byCause[cause] ?? 0) + 1;
   return { basis: { purpose_id: frame.purpose.purpose.id, purpose_rev: frame.purpose.rev, purpose_label: frame.purpose.purpose.label,
     ideal_version: frame.ideal?.version ?? null, prev_frame: last ? frameId(last.frame) : null },
   parts, closed, summary: parts ? { open: parts.length, by_cause: byCause, conditions: frame.conditions.length, satisfied: frame.conditions.filter(value => !open(value)).length,
@@ -68,12 +75,14 @@ export const matchedUntil = (frame, phase) => phase !== 'matched' ? null
   : iso(Math.min(...frame.conditions.map(value => Date.parse(value.judgment.observation.observedAt) + ms(value.maxAge))));
 
 /**
- * journal: everything recorded up to the frame, in time order (contract 3 puts observations in the same
- * book): decisions with their declared ids, and observations with observedAt and target. Not thinned.
+ * journal (v6): what was newly recorded in this frame, i.e. after the previous frame's t and up to this one,
+ * in time order (contract 3 puts observations in the same book): decisions with their declared ids and
+ * observations with observedAt and target. Not thinned; the ui accumulates the frames. An evaluation's
+ * `past` is as of its own frame; later frames compare its purpose_rev/ideal_version with gap.basis.
  */
-export const journalOf = frame => frame.journal.map(event => {
+export const journalOf = (frame, after = -Infinity) => frame.journal.filter(event => Date.parse(event.recordedAt) > after).map(event => {
   if (event.kind === 'observation') return { kind: event.kind, recordedAt: event.recordedAt, observedAt: event.observedAt, actor: null,
-    source: { ref: event.source, commentId: null, sha256: null }, target: { ...event.target } };
+    source: { ref: event.source, commentId: null, sha256: null }, target: { ...event.target }, value: event.value };
   const source = { ref: event.source.ref, commentId: event.source.commentId == null ? null : number(event.source.commentId), sha256: event.source.digest };
   const detail = {
     'purpose.set': () => ({ purpose_id: event.purpose.id, purpose_label: event.purpose.label, purpose_rev: event.rev }),
@@ -110,9 +119,10 @@ export const contractWorld = result => {
   let last = null, previous = null;
   return { ...result.world, frames: result.world.frames.map((frame, index) => {
     const derived = result.derived.frames[index], gap = gapOf(derived, last, previous), phase = phaseOf(derived, gap);
+    const journal = journalOf(derived, previous ? previous.frame.t : -Infinity);
     previous = { frame: derived, gap };
     if (gap.parts) last = previous;
     const plans = plansOf(derived, result.plans);
-    return { ...frame, ...(plans ? { plans } : {}), gap, phase, journal: journalOf(derived), matched_until: matchedUntil(derived, phase) };
+    return { ...frame, ...(plans ? { plans } : {}), gap, phase, journal, matched_until: matchedUntil(derived, phase) };
   }) };
 };

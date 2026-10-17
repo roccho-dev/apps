@@ -403,36 +403,49 @@ purpose.set), `defining` (drafting only), `approximating` (ideal.set and ≥1 op
 `matched` (ideal.set and no open part: every condition satisfied within its window), and
 `ended` once `purpose.ended` is recorded (not in the v3 list: proposed). **`matched_until`**:
 when matched, the earliest `observedAt + maxAge` (fresh while `t − observedAt ≦ maxAge`);
-else null. **`frames[i].journal`**: everything recorded up to the frame, in time order and not
-thinned (contract 3 puts observations in the same book): decisions
+else null. **`frames[i].journal`** (v6): only what was newly recorded in that frame (after the previous
+frame's t), in time order and not thinned; ui accumulates the frames (contract 3 puts observations in
+the same book): decisions
 `{kind, recordedAt, actor, source{ref, commentId, sha256}, …ids}` (an evaluation has `frame` and
 `past`, true once the Purpose rev or the ideal version moved) and observations
-`{kind:'observation', recordedAt, observedAt, actor:null, source{ref}, target}`. Each fact appears
-once: an observation marked `projection: true` (fromG's session view of a G `<target>:session`
+`{kind:'observation', recordedAt, observedAt, actor:null, source{ref}, target, value}`. Each fact appears
+once: an exactly repeated record is one row (rows differing in value or source stay); an observation marked `projection: true` (fromG's session view of a G `<target>:session`
 fact) is not listed again.
 
 **`frames[i].gap`** = `{basis:{purpose_id, purpose_rev, purpose_label, ideal_version, prev_frame},
-parts:[{condition, label, state, cause[1], since, scope|null, refs[], observed_before_ideal?}] | null,
+parts:[{condition, label, state, cause{ideal, current}, since, scope|null, refs[], observed_before_ideal?}] | null,
 closed:[{condition, at, by}], summary:{open, by_cause, conditions, satisfied, before_ideal}}`.
 `before_ideal` (v5) counts satisfied conditions whose observation is older than the ideal.set:
 a match right after a Purpose change made only of earlier observations is shown, not hidden. With no ideal
 state to compare (purpose-changed, defining, ended) `parts` and the counts are null
-(UNKNOWN, never []), while `closed` still lists what closes. The cause compares with the
-latest frame that has a gap (`prev_frame`), by id only, one exclusive cause: `initial`,
-`purpose-changed` ((id, rev) pair differs), `ideal-added`, `ideal-revised` (predicate or
-maxAge; labels/norms are not revisions), then the current side: `current-regressed`
-(satisfied → unmet), `current-confirmed-unmet` (unknown → unmet), `current-conflict`,
-`current-stale`, `current-unmatchable` (a value arrived but cannot be compared with the
-predicate), `current-unobserved` (nothing arrived, or D's `null`: no value obtained, e.g. G's
-UNKNOWN), and `carried` only when
-none applies (unmet → unmet). `since` continues only while the difference stays open
+(UNKNOWN, never []), while `closed` still lists what closes. The cause (v6) compares with the
+latest frame that has a gap (`prev_frame`), by id only, and has two sides, at most one each, so one
+never hides the other. `ideal`: `initial` (no earlier frame with a gap), `purpose-changed` ((id, rev)
+pair differs), `ideal-added`, `ideal-revised` (predicate or maxAge; labels/norms are not revisions),
+or null. `current`: for an unknown condition always why — `current-stale`, `current-unmatchable`
+(a value arrived but cannot be compared), `current-conflict`, `current-unobserved` (nothing arrived,
+or D's `null`); for an unmet one only a change against the same, unrevised condition —
+`current-regressed` (satisfied → unmet) or `current-confirmed-unmet` (unknown → unmet) — else null.
+With no reason on either side the cause is `{ideal:null, current:'carried'}` (the same open difference
+continues; ui refuses a cause that names no side). `summary.by_cause` counts both sides
+and `carried`. `since` continues only while the difference stays open
 without a break and unrevised; under a new rev of the same Purpose, what the new ideal
 declares again continues. `closed.by`: `current-satisfied`, `ideal-removed`,
 `purpose-changed`, `purpose-ended` (proposed with `ended`). `observed_before_ideal` marks a
 judgment on an observation older than the ideal.set (display only). `refs` are the
 `repo#n` of recorded plans the condition declares; plans never enter the gap otherwise.
-Each frame uses only itself and earlier frames. `fixtures/journal/` (9 frames) runs one
+Each frame uses only itself and earlier frames; its Closure context holds only its own rows, so the
+World grows linearly with frames and observations. `fixtures/journal/` (9 frames) runs one
 cycle with an evaluation and an end.
+
+**Scopes nesting (v7).** The Scopes area is nested with the existing containment shape
+(`containment: 'from-contains-to'` from a `scope-group` entity to each member), decided only by
+declarations: one frame per declared owner (`owner:<Norm W id>`, caption 担当 / id) holding that
+owner's Scopes; `owner:none` (担当なし) holding unassigned and unresolved units; and `history`
+(閉じた差（履歴）) holding the frozen old obligations, completed-history Scopes and the conditions the
+current state meets now (`closed-change`, supplied by D as `frame.closed`, drawn without lines).
+Each unit is in exactly one frame and empty frames are not emitted; every other entity and relation
+is unchanged (crossings count drawn lines only, not containment).
 
 `plansOf`: `frames[i].plans` is absent when the frame's ideal state declares no plan
 (計画未宣言), `[]` when declared but none is recorded by then, else

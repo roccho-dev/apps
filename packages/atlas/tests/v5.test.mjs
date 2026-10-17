@@ -3,11 +3,12 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { deriveAtlas } from '../events.mjs';
 import { contractWorld } from '../contract.mjs';
+const causeText = cause => [cause.ideal, cause.current].filter(Boolean).join('+') || 'carried'; // v6: both sides, carried when neither
 
 // adrs#647 contract v5: before_ideal, current-unmatchable, and the Agent heading from session observations.
 const read = name => readFileSync(new URL('../fixtures/v5/' + name, import.meta.url), 'utf8');
 const world = contractWorld(deriveAtlas(read('events.jsonl'), read('control.jsonl')));
-const causes = frame => Object.fromEntries((frame.gap.parts ?? []).map(part => [part.condition, part.cause.join('+')]));
+const causes = frame => Object.fromEntries((frame.gap.parts ?? []).map(part => [part.condition, causeText(part.cause)]));
 
 test('right after a Purpose change, a match made only of older observations is counted in before_ideal', () => {
   const [f0, f1, f2, f3] = world.frames;
@@ -23,7 +24,7 @@ test('right after a Purpose change, a match made only of older observations is c
 
 test('an observation that arrived but cannot be compared is current-unmatchable, not current-unobserved', () => {
   const [, , f2, f3] = world.frames;
-  assert.deepEqual(causes(f2), { X: 'current-unmatchable', Y: 'ideal-added' });
+  assert.deepEqual(causes(f2), { X: 'current-unmatchable', Y: 'ideal-added+current-unobserved' });
   // f3: X obtained no value (null) and Y has never been observed: both are current-unobserved.
   assert.deepEqual(causes(f3), { X: 'current-unobserved', Y: 'current-unobserved' });
   assert.deepEqual(f3.gap.summary.by_cause, { 'current-unobserved': 2 });
