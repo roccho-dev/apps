@@ -7,7 +7,8 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { createHash } from 'node:crypto';
 import { deriveAtlas, deriveFrames, parseEvents, parseControl } from '../events.mjs';
-import { fromG, withPlans } from '../live.mjs';
+import { fromG } from '../live.mjs';
+import { withPlans } from '../contract.mjs';
 
 const file = relative => fileURLToPath(new URL(relative, import.meta.url));
 const run = (script, args) => execFileSync(process.execPath, [file(script), ...args], { encoding: 'utf8' });
@@ -53,8 +54,10 @@ test('end to end: G fixture snapshots → G events → live.mjs → D → World'
   });
   // Only the declared Norm assigns; the rest stays unassigned rather than guessed from names.
   assert.deepEqual(now.conditions.filter(value => value.responsibility.state === 'assigned').map(value => [value.id, value.responsibility.actor]),
-    [['merged', 'atlas.W']]);
-  assert.equal(world.frames.at(-1).entities.filter(value => value.ref.kind === 'unassigned-change').length, 5);
+    [['merged', 'atlas.W'], ['worker-running', 'atlas.W']]);
+  // Open, unowned conditions are Scopes without an owner; the satisfied reviewer-running is no Scope.
+  assert.deepEqual(world.frames.at(-1).entities.filter(value => value.ref.kind === 'unassigned-change').map(value => value.ref.id),
+    ['adrs-ci', 'lookalike', 'ui-serving']);
   // Agent activity: G <target>:session reaches the Agent with exactly the same declared id, value as observed.
   const agent = world.frames.at(-1).entities.find(value => value.ref.kind === 'agent' && value.ref.id === 'atlas.W');
   assert.deepEqual(agent.flags, ['supplied', 'declared', 'session-observed']);
@@ -78,17 +81,19 @@ test('end to end: G fixture snapshots → G events → live.mjs → D → World'
     label: 'resources#25:windows-retirement-migration-20261016 v3 · resources#25 comment 6208252115', serves: ['merged'], nodes: null, edges: null,
     unknown: ['flowchart-absent', 'exit-table-absent'],
     source: { repo: 'resources#25', commentId: 6208252115, updatedAt: gPlans(gEvents)[1].source.updatedAt, sha256: gPlans(gEvents)[1].source.sha256 } }]);
-  // Plans are not facts: without them the World is exactly D's.
+  // Plans and the gap decomposition are edge contracts: without them the World is exactly D's.
   const bare = deriveAtlas(readFileSync(path.join(dir, 'events.jsonl'), 'utf8'), readFileSync(file('../fixtures/live/control.jsonl'), 'utf8')).world;
-  assert.deepEqual({ ...world, frames: world.frames.map(({ plans, ...frame }) => frame) }, bare);
+  assert.deepEqual({ ...world, frames: world.frames.map(({ plans, gap, ...frame }) => frame) }, bare);
   const sha = 'sha256:' + createHash('sha256').update(readFileSync(path.join(dir, 'world.json'))).digest('hex');
   assert.equal(receipt.outputs.find(value => path.basename(value.path) === 'world.json').sha256, sha);
-  // The whole-Purpose UNKNOWN unit names its source and the conditions that keep it open.
-  // (Before any observation every condition is unknown, so the whole evaluation is unknown.)
-  assert.equal(world.frames.at(-1).entities.filter(value => value.ref.kind === 'unresolved-change').length, 0, 'known unmet: no UNKNOWN unit');
-  const unit = world.frames[0].entities.find(value => value.ref.kind === 'unresolved-change');
-  assert.equal(unit.label, '全体評価\n未確認');
-  assert.match(unit.summary, /adrs-ci/u);
+  // Gap by cause: the first frame opens everything; the observation frame closes or explains each.
+  const gap = frame => Object.fromEntries(frame.gap.parts.map(part => [part.condition, [part.state, ...part.cause, part.scope]]));
+  assert.ok(Object.values(gap(world.frames[0])).every(([, cause]) => cause === 'initial'));
+  assert.deepEqual(gap(world.frames.at(-1)), { 'adrs-ci': ['unknown', 'current-unobserved', null], 'worker-running': ['unmet', 'carried', 'scope.worker-running'],
+    'ui-serving': ['unknown', 'current-stale', null], lookalike: ['unknown', 'carried', null] });
+  assert.deepEqual(world.frames.at(-1).gap.closed.map(value => [value.condition, value.by]), [['merged', 'current-satisfied'], ['reviewer-running', 'current-satisfied']]);
+  // The declared-unknown whole evaluation is explained by those Scopes: no extra 全体評価 unit.
+  assert.ok(world.frames.every(frame => frame.entities.every(value => value.ref.kind !== 'unresolved-change')));
 });
 
 test('fromG keeps targets opaque, passes <target>:session as Agent activity, and fails closed', () => {

@@ -214,7 +214,10 @@ and no containment is drawn unless the input supplies it.
   `whole-purpose-conflict` (未割当・矛盾), not plain unmet. An unknown/undecomposed
   comparison or binding, a conflicting whole-Purpose evaluation, or an unmet
   Purpose with no unit is an explicit unresolved unit: the current Gap is never
-  empty while the Purpose is not declared satisfied. Each frame's
+  empty while the Purpose is not declared satisfied. A whole evaluation that is
+  *declared* unknown while uncertain units already exist gets no unit of its own:
+  those units are the same open difference (D-derived frames always hit this).
+  D marks a satisfied condition `equivalent`, so it is no Scope. Each frame's
   `coverage.unknown` counts only unassigned units, unresolved/unknown/conflict
   units and Scopes whose own status is unknown or conflict or whose standing is
   unresolved. A known, owned, unmet Scope is in the current Gap but is a known
@@ -239,7 +242,7 @@ families carry `visible:false` with unchanged declared contexts: the observation
 `writer`/`evaluator` role relations (they always cross the Scopes pane) and the
 Current -> unit `change:*` relations (every unit would otherwise fan to both
 Current and Target in the Purpose column). The latter keep `path` for Direction;
-one drawn `gap:current-target` relation (変化 N 件) lists them in
+one drawn `gap:current-target` relation (差 N 件: one per open unit) lists them in
 `context.change_relations`. The UI reports all of them as omitted relations;
 their records stay in the World, catalog, search and detail. Owner (担当),
 Current -> Target, Scope/unit -> Target -> Purpose and history relations stay drawn.
@@ -327,6 +330,9 @@ cycles and references outside the named Purpose version fail closed.
   condition ids, so an unowned residual is one unassigned unit per condition.
 - History: a superseded version's obligations are frozen with the values derived
   at its archive instant. Plans never enter the Gap, Current or coverage.
+- Purpose: a log may change its Purpose (a purpose.set with another `purpose.id`);
+  one id keeps one label. Ideal versions stay unique across the log.
+  `fixtures/gap/` (6 frames) exercises every gap cause.
 - Plans (`atlas.plan-projection/1`): the latest plan per `repo#n` at t;
   `premise-version-mismatch` when it names an older Purpose version. Node state
   comes from `predicateRefs` (condition ids) only, else `unknown`; `blockedBy`
@@ -366,8 +372,36 @@ held in `g-plans.jsonl` as `{reason, plan}`. G's `UNKNOWN` graph becomes D's `nu
 it as a declared plan with `nodes: null` and the reasons, never as "no plan".
 Without `--control` there is no Norm and every condition is unassigned.
 
-`withPlans` is the one place that knows the ui plan contract (shared with ui):
-`frames[i].plans` is absent when no purpose.set at that frame declares a plan
+## World edge contracts (`contract.mjs`)
+
+`contract.mjs` is the only module that knows the two ui contracts (shared with
+ui); `derive.mjs` writes `contractWorld(result)`, so `live.mjs` and the fixture
+CLI emit the same shape. Without `plans`/`gap` each frame is exactly D's World.
+
+**Words.** The 理想状態 (ideal state) is the declared, versioned, freshness-bound,
+observable approximation of the Purpose achieved; the Purpose itself is judged by
+people, never by observation. The 現在状態 is the observation at t. A **Scope** is
+one open (unmet or unknown) condition and its owner; a satisfied condition is no
+Scope (`equivalent` part) and appears only as gap history. An open condition
+without an owner stays a Scope without owner (未割当).
+
+**`frames[i].gap`** = `{basis:{purpose_id, purpose_rev, ideal_version, prev_frame},
+parts:[{condition, state, cause[], since, scope|null, refs[]}], closed:[{condition, at, by}],
+summary:{open, by_cause}}`. `gapOf` compares a frame with the previous one by id
+only, first match wins: `initial` (no previous frame), `purpose-changed`
+(purpose id differs), `ideal-added` (id not in the previous ideal), `ideal-revised`
+(same id, predicate or maxAge differs; labels/norms are not revisions),
+`current-regressed` (previous satisfied, now unmet), `carried` (open before with the
+same state and reason), `current-unobserved` (no usable observation: none, D
+`unmatchable` such as G's UNKNOWN, or D `conflicting-observations`), `current-stale`.
+An unknown → unmet change under the same ideal is `carried` (the difference continues,
+now observed). `since` keeps the opening frame while the same ideal condition stays
+open; a revision reopens it. `closed.by`: `current-satisfied`, `ideal-removed`,
+`purpose-changed`. `refs` are the `repo#n` sources of plans the condition declares in
+`requires[].plans` and that are recorded by t; plans never enter the gap otherwise.
+Each frame's gap depends only on that frame and the ones before it.
+
+`withPlans`: `frames[i].plans` is absent when no purpose.set at that frame declares a plan
 (計画未宣言), `[]` when declared but none is recorded by then, else
 `[{ref, plan, version, label, serves, nodes:[{id,label}]|null, edges:[{from,to,kind}]|null,
 unknown, source:{repo, commentId, updatedAt, sha256}}]`. `nodes:null` means content
