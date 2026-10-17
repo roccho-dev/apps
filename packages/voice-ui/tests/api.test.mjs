@@ -316,10 +316,11 @@ test("compiled Worker binds both released provider operations, validates invento
     for (const question of Object.values(body.questions)) {
       assert.equal(Object.hasOwn(question, "thinking"), false);
       assert.deepEqual(Object.keys(question.properties), ["label", "kind", "quantity"]);
+      assert.deepEqual(question.properties.quantity.enum, ["0", "1", "2", "3"]);
     }
     return Response.json({ status: "completed", result: {
-      missing1: { label: missing[0].label, kind: missing[0].kind, quantity: 1 },
-      missing2: { label: "", kind: "none", quantity: 0 }, missing3: { label: "", kind: "none", quantity: 0 },
+      missing1: { label: missing[0].label, kind: missing[0].kind, quantity: "1" },
+      missing2: { label: "", kind: "none", quantity: "0" }, missing3: { label: "", kind: "none", quantity: "0" },
     } });
   }, async () => {
     for (const mode of ["check", "complete"]) {
