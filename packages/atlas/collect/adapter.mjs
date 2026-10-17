@@ -37,6 +37,23 @@ function ports({ sha256, probes }) {
     ({ target, observedAt, responded, source: { ref: `tcp ${host}:${port}`, sha256 } })) };
 }
 
+// Repo / Issue state → one fact each. Only a boolean `archived` and a string `state` are values.
+// Issue state keeps GitHub's state_reason in the same value ("closed/completed"), so a reason-less
+// close never reads as completed and an open issue's null reason never becomes UNKNOWN.
+const fact = (target, value, { fetchedAt, responses }, response) =>
+  ({ kind: 'fact', target, value, observedAt: fetchedAt, source: { ref: responses?.[response]?.command ?? null, sha256: responses?.[response]?.sha256 ?? null } });
+
+function repoState(snapshot) {
+  const archived = snapshot.responses?.repo?.data?.archived;
+  return fact(`${snapshot.repo}:archived`, typeof archived === 'boolean' ? String(archived) : null, snapshot, 'repo');
+}
+
+function issueState(snapshot) {
+  const { state, state_reason: reason } = snapshot.responses?.issue?.data ?? {};
+  const value = typeof state !== 'string' ? null : typeof reason === 'string' ? `${state}/${reason}` : state;
+  return fact(`${snapshot.repo}#${snapshot.number}:issue.state`, value, snapshot, 'issue');
+}
+
 // P's declaration file: its text as read (null when unreadable) and the sha256 of those bytes.
 function declaration({ path, fetchedAt, sha256, text }) {
   return { kind: 'declaration', path, fetchedAt, sha256: sha256 ?? null, text: typeof text === 'string' ? text : null };
@@ -48,6 +65,8 @@ export function normalize(snapshot) {
     case 'pr': return [pullRequest(snapshot), thread(snapshot)];
     case 'sessions': return [sessions(snapshot)];
     case 'ports': return [ports(snapshot)];
+    case 'repo': return [repoState(snapshot)];
+    case 'issue-state': return [issueState(snapshot)];
     case 'declaration': return [declaration(snapshot)];
     default: throw new Error(`atlas-collect: unknown snapshot type ${JSON.stringify(snapshot.type)}`);
   }

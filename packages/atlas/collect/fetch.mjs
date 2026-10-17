@@ -39,6 +39,22 @@ function fetchThread(ref, type) {
   return { type, owner, repo, number: Number(number), fetchedAt: now(), responses };
 }
 
+// State facts: one read-only REST call each (`repos: [owner/repo]`, `issueStates: [owner/repo#n]`).
+function fetchRepo(ref) {
+  const m = /^([^/\s#]+)\/([^/\s#]+)$/u.exec(ref);
+  if (!m) throw new Error(`fetch: expected owner/repo, got ${ref}`);
+  const [, owner, repo] = m;
+  return { type: 'repo', owner, repo, fetchedAt: now(), responses: { repo: gh([`repos/${owner}/${repo}`]) } };
+}
+
+function fetchIssueState(ref) {
+  const m = /^([^/\s]+)\/([^#\s]+)#(\d+)$/u.exec(ref);
+  if (!m) throw new Error(`fetch: expected owner/repo#number, got ${ref}`);
+  const [, owner, repo, number] = m;
+  return { type: 'issue-state', owner, repo, number: Number(number), fetchedAt: now(),
+    responses: { issue: gh([`repos/${owner}/${repo}/issues/${number}`]) } };
+}
+
 function probe({ target, host, port, timeoutMs = 2000 }) {
   return new Promise(resolve => {
     const socket = net.connect({ host, port });
@@ -68,6 +84,8 @@ const slug = snapshot => `${snapshot.type}-${snapshot.owner}-${snapshot.repo}-${
 
 for (const ref of config.issues ?? []) { const s = fetchThread(ref, 'issue'); write(slug(s), s); }
 for (const ref of config.pulls ?? []) { const s = fetchThread(ref, 'pr'); write(slug(s), s); }
+for (const ref of config.repos ?? []) { const s = fetchRepo(ref); write(`repo-${s.owner}-${s.repo}.json`, s); }
+for (const ref of config.issueStates ?? []) { const s = fetchIssueState(ref); write(slug(s), s); }
 if (config.ports?.length) {
   const probes = await Promise.all(config.ports.map(probe));
   write('ports.json', { type: 'ports', sha256: sha256(JSON.stringify(probes)), probes });
