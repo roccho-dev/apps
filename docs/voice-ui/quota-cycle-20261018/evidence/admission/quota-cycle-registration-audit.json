@@ -1,0 +1,250 @@
+{
+  "schema": "voice-ui.review.quota-registration/1",
+  "status": "PASS",
+  "checked_at": "2026-10-17T22:17:17.140Z",
+  "actor": "roccho-dev",
+  "authenticated": true,
+  "head": "0a53641bf75f28d5019785284a91b07374007614",
+  "parent": "0aa3c4b90519a1c18c217753698806507ccff3c0",
+  "tree": "1e22ac2bd68b76db93e24098424e3b795319a37b",
+  "added_docs": [
+    {
+      "path": "docs/voice-ui/quota-cycle-20261018/README.md",
+      "git_blob": "711182495aca5aae40746eec29edb2cdc0ac59ac",
+      "sha256": "b3f3bea8dad36f8820afe9dccce9e8378dc8fd0f335205f4f214b6397f8f164a",
+      "bytes": 5396,
+      "authenticated_blob_equal_native_and_R": true
+    },
+    {
+      "path": "docs/voice-ui/quota-cycle-20261018/evidence/index.json",
+      "git_blob": "5795987ee635846dc52623c6fde3a877178130ab",
+      "sha256": "103df378ffa1ed9c09419bac37475682d49096f03761712cd138eb2705722b15",
+      "bytes": 377,
+      "authenticated_blob_equal_native_and_R": true
+    },
+    {
+      "path": "docs/voice-ui/quota-cycle-20261018/preregistered/quota-cycle-commitment.json",
+      "git_blob": "5def32b83d94a9c8feee10346cd36bf49e2bfb97",
+      "sha256": "ad334bf87e80a91841fc8ae106d2eb37192f9fb7a7827ffefa59a3198f18c213",
+      "bytes": 6067,
+      "authenticated_blob_equal_native_and_R": true
+    },
+    {
+      "path": "docs/voice-ui/quota-cycle-20261018/preregistered/quota-cycle-policy-contract.json",
+      "git_blob": "29cdb188deaa940894b55ad86ba75c74443a4f13",
+      "sha256": "346a908d46f9c5205cb00ab9d35377a7ce674526e5a05b7adb8f0ea3d1f31d34",
+      "bytes": 1681,
+      "authenticated_blob_equal_native_and_R": true
+    },
+    {
+      "path": "docs/voice-ui/quota-cycle-20261018/preregistered/quota-cycle-protocol.md",
+      "git_blob": "814468fb5f7fbe00cfd3775b183959840f31f178",
+      "sha256": "b380818d1667db63f01e4d0e08eb90ff614f96ee86e634de8837d78042d9d2ae",
+      "bytes": 12116,
+      "authenticated_blob_equal_native_and_R": true
+    },
+    {
+      "path": "docs/voice-ui/quota-cycle-20261018/preregistered/quota-cycle-public-E-1.inputs.json",
+      "git_blob": "6ffb47c994bac50d05417ea8b7619e1191069d3e",
+      "sha256": "ba45c323da0387a8ca2bef4633f3fbbcb621bfb1f8dd50ce92257cf5307feb1c",
+      "bytes": 3618,
+      "authenticated_blob_equal_native_and_R": true
+    },
+    {
+      "path": "docs/voice-ui/quota-cycle-20261018/preregistered/quota-cycle-public-E-1.oracle.json",
+      "git_blob": "626fd9575045c03009fc427d11dff4e95bfc3025",
+      "sha256": "c9c9bd90be21ad76cafef3b897be4aee55d5873c68d4fd49e199f09c65ea62e5",
+      "bytes": 5766,
+      "authenticated_blob_equal_native_and_R": true
+    },
+    {
+      "path": "docs/voice-ui/quota-cycle-20261018/preregistered/quota-cycle-public-R-1.inputs.json",
+      "git_blob": "52ea5f7de32267a0c9116284dc814caece3c999f",
+      "sha256": "0f87064474277d14bbd8ee3906940ef2f35d07e646c048b3d4fda50fba8d417d",
+      "bytes": 5154,
+      "authenticated_blob_equal_native_and_R": true
+    },
+    {
+      "path": "docs/voice-ui/quota-cycle-20261018/preregistered/quota-cycle-public-R-1.oracle.json",
+      "git_blob": "2580ae7a777d25ee5a0c92497adcd99f8cc123c0",
+      "sha256": "0a1e80a9a375df00d48e75923370f75ff7e010670ce973c33d4ffa29a882ba31",
+      "bytes": 7030,
+      "authenticated_blob_equal_native_and_R": true
+    },
+    {
+      "path": "docs/voice-ui/quota-cycle-20261018/preregistered/quota-cycle-public-freeze.json",
+      "git_blob": "0088724cf62c8fa5509e104befd75f8a1f1c20e5",
+      "sha256": "bf584cec91f6b7e592181e3c0ddfc6ce289505c8b7819133fc254c7e356cafb9",
+      "bytes": 2110,
+      "authenticated_blob_equal_native_and_R": true
+    },
+    {
+      "path": "docs/voice-ui/quota-cycle-20261018/preregistered/quota-cycle-public-literal-preflight.json",
+      "git_blob": "361ab808c282f2a7b159d7977705ae073b432a11",
+      "sha256": "481b9ce97c600be1784cc98e63acae2456263aa78c42c2b32236fc08eaf429e7",
+      "bytes": 892,
+      "authenticated_blob_equal_native_and_R": true
+    },
+    {
+      "path": "docs/voice-ui/quota-cycle-20261018/preregistered/quota-cycle-seal-validation.json",
+      "git_blob": "3895c3ee62e2284539b935b6b358c3d1820e74a8",
+      "sha256": "c58c6b1f4034d2b8ae9e7d00bc35b7c6fc7046cb51cf61c327e5b8c7875cf2f7",
+      "bytes": 5698,
+      "authenticated_blob_equal_native_and_R": true
+    }
+  ],
+  "public_payload_files": 10,
+  "private_payloads_in_published_path_allowlist": false,
+  "source25_unchanged": [
+    {
+      "name": "src/completion.mjs",
+      "sha256": "f2cb1b4652a248f39e5a37efa5a13e5c0aaf068544a322827dfc4e8972381562",
+      "bytes": 29191
+    },
+    {
+      "name": "src/literal-inventory.mjs",
+      "sha256": "ecdeb980fb826f800dfeb186e042b5a4edf85b32ecc8a97516eb55e81a9c37f9",
+      "bytes": 8062
+    },
+    {
+      "name": "src/goal.mjs",
+      "sha256": "cd9101d6a222e31773c9523adeca3f7f9aa32990e30b39e06a7b872771422f3e",
+      "bytes": 12911
+    },
+    {
+      "name": "src/contract.mjs",
+      "sha256": "f2c95212493f59fd80ef17270c2b5de0d51d795b26ac8a0e6dfa0fdb9dec30fe",
+      "bytes": 30991
+    },
+    {
+      "name": "src/turn.mjs",
+      "sha256": "c5fc3489a5bd0861f0455bd9843f47e76030bb03a4fe55745cf00c29c79b7008",
+      "bytes": 53204
+    },
+    {
+      "name": "src/session.mjs",
+      "sha256": "d6fcb97e581afb789ed6ecb339c06c378ef94283084df8ad3042ebe42c48cfe8",
+      "bytes": 13314
+    },
+    {
+      "name": "functions/api/parts.mjs",
+      "sha256": "ce18dbfb6ed5330c04fba1e3264a6e84cd4fb4f45b03775c06decdedb9b4521e",
+      "bytes": 14161
+    },
+    {
+      "name": "functions/pages-worker.mjs",
+      "sha256": "afc3b785091d992fddd47f15ec17a4b05d78d7bd7564223c35e065ee737fd690",
+      "bytes": 3032
+    },
+    {
+      "name": "web/app.mjs",
+      "sha256": "3a9ac4eba0770949a219b35c97cd346d4a7912026fae2b2f21710251b86bbf2a",
+      "bytes": 43782
+    },
+    {
+      "name": "web/adapters/completion.mjs",
+      "sha256": "537bc46e93efe58fbdf466dd2493989ad5695209def769ec9da3ba68926edb5a",
+      "bytes": 970
+    },
+    {
+      "name": "dev/serve.mjs",
+      "sha256": "d044ea7f8ccbd7fd71fbe1447dcce0f30bfa831d471da3eef2e3377380532298",
+      "bytes": 20526
+    },
+    {
+      "name": "tests/dependency-cycle-eval.mjs",
+      "sha256": "b92308340b7a54020c30ae1c1daa3b482b60263d080b3f2e2393909f6cfcd7c3",
+      "bytes": 14959
+    },
+    {
+      "name": "tests/requirements-cycle-score.mjs",
+      "sha256": "3d779cf422e8cc0facc6f5ff566c3e77b36a61486f9586f120b0c1a722cd5a46",
+      "bytes": 21347
+    },
+    {
+      "name": "tests/requirements-cycle-audit.mjs",
+      "sha256": "692bdbaef8dbe28fe30fcdfe178202ebbdf3a4728bf0fe1c7310f72bf789c6eb",
+      "bytes": 56082
+    },
+    {
+      "name": "tests/dependency-cycle-score.mjs",
+      "sha256": "2f7f40afec31d1f7cded08951529a30d741f6ebfb8abf446900a7f6eb567ef91",
+      "bytes": 8386
+    },
+    {
+      "name": "tests/dependency-cycle-audit.mjs",
+      "sha256": "47dce6207c8b48dae6447d87ee1294d8495f28a31d2b474d5dc0c9b95998d66e",
+      "bytes": 64775
+    },
+    {
+      "name": "tests/semantic-score.mjs",
+      "sha256": "3230791bd2b06ccbb73008723ab3709981ce6e2d65fc2fdbdec8cadf9d1cfec3",
+      "bytes": 3826
+    },
+    {
+      "name": "tests/requirements-cycle-http.mjs",
+      "sha256": "b3c1d052e2f7138532e0d7cac6ac7b3c7287b7af32b857990c1e6d14bb325386",
+      "bytes": 1163
+    },
+    {
+      "name": "tests/painted-goal.mjs",
+      "sha256": "c5ba117d1dea66d20c80b7f92b8184296ff79d4231da56f5a89836af4beb018b",
+      "bytes": 24668
+    },
+    {
+      "name": "tests/intent-cycle-eval.mjs",
+      "sha256": "0dd9649d87f4b2f0d0e446b44f5dcd7bb09582e75eca8ca7113b8d0d4d741357",
+      "bytes": 15130
+    },
+    {
+      "name": "tests/intent-cycle-score.mjs",
+      "sha256": "e6652eef8ee1b18c1b3c479b649033105c1ae27f360b0b9d4a16f898edc664cb",
+      "bytes": 10328
+    },
+    {
+      "name": "tests/intent-cycle-audit.mjs",
+      "sha256": "151715f5c09a64a1187ad2557e13b3172801e8e8fa8ee492b31a5a7823222617",
+      "bytes": 66452
+    },
+    {
+      "name": "tests/frontier-cycle-eval.mjs",
+      "sha256": "3031b7f539752badd452b868c577daa6437647547233f81f78c1b0eea5db29f9",
+      "bytes": 15255
+    },
+    {
+      "name": "tests/frontier-cycle-score.mjs",
+      "sha256": "64fe98b9929ca13dcf57e41857da5eed656bb2d5457eab0aa9a78aad023ecf81",
+      "bytes": 22140
+    },
+    {
+      "name": "tests/frontier-cycle-audit.mjs",
+      "sha256": "f903cd8813c33387ec69f2adc0d0f20e1fedfd5dd59cd07d02fa7ce84f37f89e",
+      "bytes": 67476
+    }
+  ],
+  "freeze_sha256": "bf584cec91f6b7e592181e3c0ddfc6ce289505c8b7819133fc254c7e356cafb9",
+  "commitment_sha256": "ad334bf87e80a91841fc8ae106d2eb37192f9fb7a7827ffefa59a3198f18c213",
+  "index": {
+    "schema": "voice-ui.quota-cycle-evidence-index/1",
+    "commitment": "../preregistered/quota-cycle-commitment.json",
+    "freeze": "../preregistered/quota-cycle-public-freeze.json",
+    "baseline_journal": "../../frontier-cycle-20261018/evidence/final-E/frontier-final-E-20261018.journal.jsonl",
+    "expected_cumulative": {
+      "jev": 808,
+      "typellm": 85
+    },
+    "phases": []
+  },
+  "readme_semantics": "public R does not force open failure; native conditional R and normal E separate; exact O/Q repaint without aliases; unchanged prior results; public/fresh gates and finite NO_EFFECT/budgets aligned",
+  "pr": {
+    "head": "0a53641bf75f28d5019785284a91b07374007614",
+    "base": "42aa9a473d287607ba58967ef2992c052edc7943",
+    "state": "open",
+    "draft": true,
+    "merged": false,
+    "body_sha256": "ccfcfd2234b17570291cf8b62b86efd9c0a358c98b988ac8267388cdf55096d3"
+  },
+  "adrs": "a6284e58ed99243447e135828d983fc07d2d363e",
+  "scope": "DOCS_ONLY_PREREGISTRATION_READBACK; PRODUCT_AUTHORING_MAY_START; NO_LIVE_RUNTIME_OR_PROVIDER_PERMISSION",
+  "reviewer_real_provider_calls": 0
+}

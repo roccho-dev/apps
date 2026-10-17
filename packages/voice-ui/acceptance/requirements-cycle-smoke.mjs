@@ -139,7 +139,7 @@ try {
         assert.equal(row.result.inventory.completions, 0);
         assert.equal(row.result.inventory.preparations, changed ? 1 : 0);
         if (stage !== "E-contract" || row.arm !== "C") assert.equal(row.result.reason,
-          changed ? "none" : stage === "E-control" ? "inventory-ambiguous" : "inventory-unresolved");
+          changed ? "no-executable-delta" : stage === "E-control" ? "inventory-ambiguous" : "inventory-unresolved");
       }
     }
     const actual = upstream.slice(before);

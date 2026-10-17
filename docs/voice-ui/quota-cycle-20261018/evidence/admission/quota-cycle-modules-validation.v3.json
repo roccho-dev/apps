@@ -1,0 +1,92 @@
+{
+  "schema": "voice-ui.review.quota-modules-validation/1",
+  "status": "PASS",
+  "checked_at": "2026-10-17T22:32:41.772Z",
+  "scope": "PUBLIC_AND_SYNTHETIC_KEYLESS_MUTATION_TESTS_ONLY_NOT_LIVE_ADMISSION",
+  "tests": {
+    "score_groups": 14,
+    "audit_groups": 14,
+    "passed": 28,
+    "failed": 0,
+    "skipped": 0
+  },
+  "source_root": "C:/Users/resta/Codex/repos/apps.git/.worktrees/typellm-ci-20261017/packages/voice-ui",
+  "protocol_sha256": "1689dcf63e1ed19cdea7be22e3f90a09f434841f980b9ca8b9018a987c9c38f8",
+  "modules": [
+    {
+      "name": "quota-cycle-score.mjs",
+      "bytes": 16745,
+      "sha256": "4abf6593fc8ab870319611ded3d9e50e2cebe37ff25edef72329cffabede5881"
+    },
+    {
+      "name": "quota-cycle-score.test.mjs",
+      "bytes": 15765,
+      "sha256": "c56bca08527cbaf3855d99205aa8f30925b43da615e898729a7033041d02124d"
+    },
+    {
+      "name": "quota-cycle-audit.mjs",
+      "bytes": 59893,
+      "sha256": "32d7620e2087fd45dcdb3bf68589fe4478199774150602e07af5c7b92ca6596f"
+    },
+    {
+      "name": "quota-cycle-audit.test.mjs",
+      "bytes": 32811,
+      "sha256": "bd37e0cbddbbd4a3ff410bf67acadbe21a9614537c1bc6c93431d86adf01d27d"
+    }
+  ],
+  "historical_frozen_semantics": [
+    {
+      "name": "requirements-cycle-score.mjs",
+      "bytes": 21347,
+      "sha256": "3d779cf422e8cc0facc6f5ff566c3e77b36a61486f9586f120b0c1a722cd5a46",
+      "equal_published_2cc": true
+    },
+    {
+      "name": "requirements-cycle-audit.mjs",
+      "bytes": 56082,
+      "sha256": "692bdbaef8dbe28fe30fcdfe178202ebbdf3a4728bf0fe1c7310f72bf789c6eb",
+      "equal_published_2cc": true
+    },
+    {
+      "name": "dependency-cycle-score.mjs",
+      "bytes": 8386,
+      "sha256": "2f7f40afec31d1f7cded08951529a30d741f6ebfb8abf446900a7f6eb567ef91",
+      "equal_published_2cc": true
+    },
+    {
+      "name": "dependency-cycle-audit.mjs",
+      "bytes": 64775,
+      "sha256": "47dce6207c8b48dae6447d87ee1294d8495f28a31d2b474d5dc0c9b95998d66e",
+      "equal_published_2cc": true
+    },
+    {
+      "name": "intent-cycle-score.mjs",
+      "bytes": 10328,
+      "sha256": "e6652eef8ee1b18c1b3c479b649033105c1ae27f360b0b9d4a16f898edc664cb",
+      "equal_published_2cc": true
+    },
+    {
+      "name": "intent-cycle-audit.mjs",
+      "bytes": 66452,
+      "sha256": "151715f5c09a64a1187ad2557e13b3172801e8e8fa8ee492b31a5a7823222617",
+      "equal_published_2cc": true
+    },
+    {
+      "name": "frontier-cycle-score.mjs",
+      "bytes": 22140,
+      "sha256": "64fe98b9929ca13dcf57e41857da5eed656bb2d5457eab0aa9a78aad023ecf81",
+      "equal_published_2cc": true
+    },
+    {
+      "name": "frontier-cycle-audit.mjs",
+      "bytes": 67476,
+      "sha256": "f903cd8813c33387ec69f2adc0d0f20e1fedfd5dd59cd07d02fa7ce84f37f89e",
+      "equal_published_2cc": true
+    }
+  ],
+  "active_freeze_sha256": "ba374d29ff1d4a19d36fb705058b60baa5cbf8e12af81cb2ef2a6ac3342431e0",
+  "paid_calls": 0,
+  "private_inputs_read_by_tests": false,
+  "prelive_implementation_correction": "E causal pair admission now requires both arms paint/persistence/deadline and whole effect requires every arm painted/persisted/in-deadline, matching existing preregistered criteria. A failed baseline evidence check is not a supplementation outcome. C whole quality remains separately graded.",
+  "previous_validation_sha256": "fae32ab1f8d121e74817ae11e962a31aca139002a519717bb00add3db70697eb"
+}

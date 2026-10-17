@@ -200,6 +200,23 @@ function withMissing(bundle, missing) {
   return parts.length <= GOAL_OFFER_MAX && parts.every(part) ? Object.freeze({ ...bundle, parts }) : null;
 }
 
+// A verified full NEW requirement limits executable instances, in inventory order.
+// Short stock stays short; this filter neither invents parts nor interprets structure.
+export function quotaGoalBundle(bundle, required) {
+  const rows = readRequired(required);
+  if (rows === null || bundle === null || typeof bundle !== "object" || Array.isArray(bundle)
+      || !Array.isArray(bundle.parts) || bundle.parts.length > GOAL_OFFER_MAX
+      || !bundle.parts.every(part) || !unique(bundle.parts.map(p => p.key))) return null;
+  const remaining = new Map(rows.map(row => [JSON.stringify([row.label, row.kind]), row.quantity]));
+  const parts = bundle.parts.filter(p => {
+    const key = JSON.stringify([p.label, p.kind]), count = remaining.get(key) ?? 0;
+    if (count === 0) return false;
+    remaining.set(key, count - 1);
+    return true;
+  }).map(p => Object.freeze({ ...p }));
+  return Object.freeze({ ...bundle, parts: Object.freeze(parts) });
+}
+
 // The optional completion contributes candidates only. The existing Goal owns every legal change and its proof.
 // Baseline still executes the unaugmented Goal after a missing verdict: the comparison cannot force its failure.
 export async function runInventoryGoal({ check, complete, completion = true, now = () => performance.now(), ...options }) {
@@ -250,6 +267,10 @@ export async function runInventoryGoal({ check, complete, completion = true, now
     bundle = withMissing(bundle, missing);
     if (bundle === null) return stop("completion-contract");
     inventory.preparations++;
+  }
+  if (receipt !== null) {
+    bundle = quotaGoalBundle(bundle, receipt.required);
+    if (bundle === null) return stop("completion-contract");
   }
   const result = await runGoal({ ...options, bundle, now, deadlineAt: started + 180000 });
   return Object.freeze({ ...result, requests: result.requests + inventory.checks,

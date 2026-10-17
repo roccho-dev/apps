@@ -55,6 +55,14 @@
             --commit '${if self ? rev then self.rev else ""}' \
             --out "$out"
         '';
+      # Frozen open-stock synthetic audit fixtures retain their original product semantics.
+      historicalQuotaAuditSource =
+        let source = builtins.fetchGit {
+          url = "https://github.com/roccho-dev/apps.git";
+          rev = "2cc4890b765a5534e92855f83f9232ae85bb373b";
+          allRefs = true;
+        };
+        in assert source.rev == "2cc4890b765a5534e92855f83f9232ae85bb373b"; source;
       acceptanceFor =
         system:
         import ./packages/voice-ui/acceptance {
@@ -330,6 +338,8 @@
                 POC_INTENT_OLD_JOURNAL = "${self}/docs/voice-ui/dependency-cycle-20261018/evidence/public-E/dependency-public-E-20261018.journal.jsonl";
                 POC_FRONTIER_PREREG_ROOT = "${self}/docs/voice-ui/frontier-cycle-20261018/preregistered";
                 POC_FRONTIER_PARENT_ROOT = "${self}/docs/voice-ui/intent-cycle-20261018/preregistered";
+                POC_QUOTA_PREREG_ROOT = "${self}/docs/voice-ui/quota-cycle-20261018/preregistered";
+                POC_QUOTA_OLD_JOURNAL = "${self}/docs/voice-ui/frontier-cycle-20261018/evidence/final-E/frontier-final-E-20261018.journal.jsonl";
                 POC_FRONTIER_OLD_JOURNAL = "${self}/docs/voice-ui/intent-cycle-20261018/evidence/public-G0/intent-public-G0-20261018.journal.jsonl";
                 VOICE_UI_HAYAMIMI = "${hayamimiWeb}";
                 VOICE_UI_SEMANTIC_MAP = "${semanticMap}";
@@ -339,7 +349,19 @@
                 cd ${self}
                 # A pattern that matches no test fails here, so an empty scope can never pass.
                 shopt -s failglob
-                node --test packages/voice-ui/tests/*.test.mjs
+                historical_tests=()
+                current_tests=()
+                for test_file in packages/voice-ui/tests/*.test.mjs; do
+                  case "$test_file" in
+                    packages/voice-ui/tests/requirements-cycle-audit.test.mjs|packages/voice-ui/tests/dependency-cycle-audit.test.mjs|packages/voice-ui/tests/intent-cycle-audit.test.mjs|packages/voice-ui/tests/frontier-cycle-audit.test.mjs)
+                      historical_tests+=("$test_file") ;;
+                    *) current_tests+=("$test_file") ;;
+                  esac
+                done
+                test "''${#historical_tests[@]}" -eq 4
+                echo "Historical synthetic audit source: apps 2cc4890b765a5534e92855f83f9232ae85bb373b ${historicalQuotaAuditSource}"
+                POC_SOURCE_ROOT="${historicalQuotaAuditSource}/packages/voice-ui" node --test "''${historical_tests[@]}"
+                node --test "''${current_tests[@]}"
                 touch "$out"
               '';
 

@@ -127,7 +127,7 @@ try {
       if (axis === "G") assert.equal(row.result.choice, "missing");
       if (axis === "F") assert.deepEqual(row.result.missing, [{ label: name, kind: "step", occurrence: 1 }]);
       if (axis === "R" || axis === "E") {
-        assert.equal(row.result.reason, "none");
+        assert.equal(row.result.reason, axis === "E" ? "no-executable-delta" : "none");
         assert.equal(row.final_records.filter(r => r.type === "region" && r.label === name).length, 1);
         if (axis === "E") {
           assert.equal(row.lifecycle.persistence, "PASS");

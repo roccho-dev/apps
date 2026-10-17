@@ -42,7 +42,7 @@ const origin = "http://127.0.0.1:" + server.address().port;
 const { chromium } = createRequire(import.meta.url)("playwright-core");
 const browser = await chromium.launch({ channel: "chromium", headless: true });
 try {
-  const names = fs.readdirSync(panel).filter(name => /^[A-Za-z0-9][A-Za-z0-9_-]*-[ABC][.]json$/.test(name)).sort();
+  const names = fs.readdirSync(panel).filter(name => /^[A-Za-z0-9][A-Za-z0-9_-]*-[ABCOQ][.]json$/.test(name)).sort();
   assert.ok(names.length > 0, "no empty panel can pass");
   for (const name of names) {
     const bytes = fs.readFileSync(path.join(panel, name)), raw = JSON.parse(bytes);

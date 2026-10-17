@@ -185,7 +185,7 @@ try {
     assert.equal(raw.valid_execution, true); assert.equal(raw.lifecycle.persistence, "PASS");
     assert.equal(raw.final_records.filter(r => r.type === "region" && r.label === "FixtureNode").length, arm === "C" ? 1 : 0);
     assert.ok(raw.frames.filter(f => f.assessment).every(f => f.assessment.status === "PASS"));
-    assert.equal(raw.result.reason, arm === "C" ? "none" : "inventory-unresolved");
+    assert.equal(raw.result.reason, arm === "C" ? "no-executable-delta" : "inventory-unresolved");
     assert.equal(raw.result.inventory.completions, 0); assert.equal(raw.result.inventory.preparations, arm === "C" ? 1 : 0);
     const check = raw.calls.find(c => c.route === "/api/parts/check"); assert.ok(check);
     assert.equal(check.upstream_route, "/api/parts/check?method=" + raw.method);
