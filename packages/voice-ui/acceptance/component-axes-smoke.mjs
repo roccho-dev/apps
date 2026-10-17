@@ -25,7 +25,7 @@ const contract = read(path.join(pub, "component-axes-public-G4.inputs.public.jso
 const stock = read(path.join(artifact, "site/data/bundle.v1.json")).parts;
 const name = "FixtureNode", utterance = 'OCIに「FixtureNode」という工程を追加して。';
 const api = [], upstream = [], errors = [];
-let input = null;
+let input = null, failure = false;
 const savedFetch = globalThis.fetch;
 globalThis.fetch = async (url, init) => {
   assert.ok(input);
@@ -66,11 +66,12 @@ const server = http.createServer(async (req, res) => {
       const chunks = []; for await (const chunk of req) chunks.push(chunk);
       const body = Buffer.concat(chunks); input = JSON.parse(body);
       try {
-        const response = await worker.fetch(new Request("http://localhost" + req.url,
+        const response = failure ? Response.json({ error: "synthetic_unavailable" }, { status: 503 }) : await worker.fetch(new Request("http://localhost" + req.url,
           { method: req.method, headers: { "content-type": "application/json" }, body }),
           { JEV_API_KEY: "fixture-jev-only", TYPELLM_API_KEY: "fixture-type-only", ASSETS: { fetch: () => assert.fail("unexpected asset") } });
         const text = await response.text();
-        api.push({ route: req.url, status: response.status }); res.writeHead(response.status, { ...headers, "content-type": "application/json" }); res.end(text);
+        api.push({ route: req.url, status: response.status, synthetic_failure: failure });
+        res.writeHead(response.status, { ...headers, "content-type": "application/json" }); res.end(text);
       } finally { input = null; }
       return;
     }
@@ -94,11 +95,12 @@ fs.writeFileSync(identityFile, JSON.stringify({ schema: "voice-ui.poc.runtime/1"
   artifact: { root: artifact, manifest_sha256: hash(manifestBytes) } }));
 const summaries = [];
 try {
-  for (const axis of ["G", "R", "F", "E"]) {
-    const cell = { id: "SYN-" + axis, fixture: "empty", utterance };
+  for (const stage of ["G", "R", "F", "E", "G-unknown", "R-unknown", "F-unknown", "E-unknown"]) {
+    const axis = stage[0]; failure = stage.endsWith("-unknown");
+    const cell = { id: "SYN-" + stage, fixture: "empty", utterance };
     if (axis === "R") cell.parts = stock.map((p, i) => i ? p : { ...p, label: name, kind: "step", purpose: "synthetic fixture" });
     const inputs = { schema: "voice-ui.component-axes-input/1", axis, oracle_sha256: "0".repeat(64), fixture_contract: contract, cases: [cell] };
-    const inputFile = path.join(out, axis + ".inputs.json"), raw = path.join(out, axis);
+    const inputFile = path.join(out, stage + ".inputs.json"), raw = path.join(out, stage);
     fs.writeFileSync(inputFile, JSON.stringify(inputs));
     const before = upstream.length;
     const child = spawn(process.execPath, [path.join(base, "packages/voice-ui/tests/component-axes-eval.mjs"),
@@ -107,10 +109,21 @@ try {
     let stdout = "", stderr = ""; child.stdout.on("data", b => { stdout += b; }); child.stderr.on("data", b => { stderr += b; });
     const code = await new Promise((resolve, reject) => { child.on("error", reject); child.on("close", resolve); });
     assert.equal(code, 0, stderr + stdout);
-    const execution = read(path.join(raw, "execution.json")); assert.equal(execution.status, "RECORDED", JSON.stringify(execution));
-    assert.equal(execution.invalid_cells, 0);
+    const execution = read(path.join(raw, "execution.json"));
+    assert.equal(execution.status, failure ? "INVALID" : "RECORDED", JSON.stringify(execution));
+    assert.equal(execution.invalid_cells, failure ? execution.summary.length : 0);
     for (const file of fs.readdirSync(raw).filter(n => /-[ABC][.]json$/u.test(n))) {
-      const row = read(path.join(raw, file)); assert.equal(row.valid_execution, true);
+      const row = read(path.join(raw, file)); assert.equal(row.valid_execution, !failure);
+      if (failure) {
+        assert.equal(row.calls.length, 1); assert.equal(row.calls[0].status, 503);
+        assert.ok(row.calls[0].error);
+        assert.equal(row.final_log, row.initial_log);
+        const events = fs.readFileSync(path.join(raw, "events.jsonl"), "utf8").trim().split("\n").map(JSON.parse)
+          .filter(e => e.id === row.id && e.arm === row.arm);
+        assert.equal(events.filter(e => e.kind === "http-start").length, 1);
+        assert.equal(events.filter(e => e.kind === "http-end").length, 1);
+        continue;
+      }
       if (axis === "G") assert.equal(row.result.choice, "missing");
       if (axis === "F") assert.deepEqual(row.result.missing, [{ label: name, kind: "step", occurrence: 1 }]);
       if (axis === "R" || axis === "E") {
@@ -124,12 +137,14 @@ try {
       }
     }
     const actual = upstream.slice(before);
-    assert.equal(actual.filter(x => x.provider === "typellm").length, axis === "F" ? 1 : 0);
-    summaries.push({ axis, cells: execution.summary.length, synthetic_calls: actual.length, status: "PASS" });
+    assert.equal(actual.filter(x => x.provider === "typellm").length, axis === "F" && !failure ? 1 : 0);
+    if (failure) assert.equal(actual.length, 0);
+    summaries.push({ axis, stage, cells: execution.summary.length, synthetic_calls: actual.length,
+      execution_status: execution.status, status: "PASS" });
   }
   assert.deepEqual(errors, []);
   assert.ok(api.some(row => row.route === "/api/parts/complete?method=typed"));
-  assert.ok(api.every(row => row.status === 200));
+  assert.ok(api.every(row => row.status === (row.synthetic_failure ? 503 : 200)));
 } finally { globalThis.fetch = savedFetch; await new Promise(resolve => server.close(resolve)); }
 fs.writeFileSync(path.join(out, "receipt.json"), JSON.stringify({ schema: "voice-ui.component-axes-keyless/1",
   scope: "SYNTHETIC_MECHANICS_ONLY", external_provider_sends: { jev: 0, typellm: 0 }, status: "PASS",

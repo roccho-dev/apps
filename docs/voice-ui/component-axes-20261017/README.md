@@ -9,7 +9,7 @@ apps#94の次cycle。前cycleの原記録・二修正・一回の未見評価は
 | G 意味確定・充足判定 | stock在庫＋原文、通常API | intent10/10、明確な8件のavailability8/8、正規化gate10/10。controlのavailabilityはN/A |
 | R 表現 | 独立harnessへ必要部品を全供給し、gate/補完を通さず実runGoal/legal/proofで実行 | 図8/8完全一致かつ実描画8/8 |
 | F 補完 | stock在庫＋原文だけをB/Cへ直接渡す | 不足8件のlabel/kind/countがexactかつminimal各8/8。最低2件は別の自然な言い方 |
-| E 製品総合 | 既定Bを接続した通常UIと完成Worker | gate10/10、十分4/4、不足4/4、control2/2、不要生成0、実描画・Undo/Apply/reload |
+| E 製品総合 | 既定Bを接続した通常UIと完成Worker | gate10/10、十分4/4、不足4/4、control2/2、不要生成0、実描画・Goal一回のApply/reload。Undoは別keyless試験 |
 
 Rへ供給する正解部品をG/F/Eへ渡さない。各軸は別入力で、採点oracleはそのphaseの停止・独立精算後に解放する。低確信・候補ゼロ・grammar不認識を分母から落とさない。意味上明確で小PoCの範囲にある要求は、未対応構文でも不成功として残す。条件付き成績は補足にとどめる。
 

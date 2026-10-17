@@ -318,6 +318,9 @@
                 VOICE_UI_WORKER = "${voiceUiDist}/worker/worker.mjs";
                 VOICE_UI_SEMCMP_BIN = "${semcmpFor system}/bin/semcmp";
                 VOICE_UI_DIST = "${voiceUiDist}";
+                POC_PROTOCOL_ENTRY = "${voiceUiDist}/site/ui/semantic-map/protocol/index.js";
+                POC_SOURCE_ROOT = "${self}/packages/voice-ui";
+                POC_AXIS_FIXTURES = "${self}/docs/voice-ui/component-axes-20261017/preregistered";
                 VOICE_UI_HAYAMIMI = "${hayamimiWeb}";
                 VOICE_UI_SEMANTIC_MAP = "${semanticMap}";
                 VOICE_UI_ARCHITECTURE = "${architectureFor system}";

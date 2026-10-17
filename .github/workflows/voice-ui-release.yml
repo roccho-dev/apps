@@ -83,6 +83,11 @@ jobs:
             "$reopened/voice-ui-dist" "$PWD/dist/candidate-browser-evidence"
           "$runtime/bin/voice-ui-acceptance-node" packages/voice-ui/acceptance/component-axes-smoke.mjs \
             "$reopened/voice-ui-dist" "$PWD/dist/component-axes-mechanics"
+          POC_PROTOCOL_ENTRY="$reopened/voice-ui-dist/site/ui/semantic-map/protocol/index.js" \
+          POC_SOURCE_ROOT="$PWD/packages/voice-ui" \
+          POC_AXIS_FIXTURES="$PWD/docs/voice-ui/component-axes-20261017/preregistered" \
+            "$runtime/bin/voice-ui-acceptance-node" --test packages/voice-ui/tests/component-axis-audit.test.mjs \
+            | tee "$PWD/dist/component-axes-mechanics/audit-tests.log"
       - name: Preserve completed-ZIP browser evidence
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4

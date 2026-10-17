@@ -1,0 +1,41 @@
+{
+  "schema": "voice-ui.component-axes-audit-freeze/1",
+  "created_at": "2026-10-17T13:00:21.722Z",
+  "status": "PASS",
+  "test_groups": 13,
+  "provider_attempts": {
+    "jev": 0,
+    "typellm": 0
+  },
+  "files": {
+    "component-axis-audit.mjs": {
+      "bytes": 42840,
+      "sha256": "3716e7c3aa9ca2333c016d6e81bfb7fde49b6a4896455b2b6e534bffaceb24e9"
+    },
+    "component-axis-audit.test.mjs": {
+      "bytes": 29251,
+      "sha256": "4b565670eded270df2bfcd7f203e233b6a8ea3d0f67b8ef9abbdbbb5ba260eae"
+    },
+    "component-axis-audit-integration.md": {
+      "bytes": 5266,
+      "sha256": "761eb564f9dd053121c41f0357fb979d1752441ac2c9c61445d3243cd9bc3853"
+    },
+    "component-axis-audit-tests.log": {
+      "bytes": 1537,
+      "sha256": "3bca8ed812817dad07d3dca2be345641a6829f623593d1957e4e47e2e7802b91"
+    },
+    "component-axis-score.mjs": {
+      "bytes": 16305,
+      "sha256": "b5b6547e81f8213ba20126ab6404d4807b06d836f91507651a502bc9c6ebef6b"
+    },
+    "semantic-score.mjs": {
+      "bytes": 3826,
+      "sha256": "3230791bd2b06ccbb73008723ab3709981ce6e2d65fc2fdbdec8cadf9d1cfec3"
+    },
+    "receipt-admissibility.mjs": {
+      "bytes": 26963,
+      "sha256": "4109a411b1ebc32088f8f871c580a1e540db1d1c500d8e482d4956fa7451e9ab"
+    }
+  },
+  "scope": "Synthetic mechanics and mutation admission only; source/runtime/physical PID/live measurements not admitted by this test result"
+}
