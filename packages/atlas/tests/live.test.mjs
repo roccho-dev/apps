@@ -38,6 +38,13 @@ test('end to end: G fixture snapshots → G events → live.mjs → D → World'
   assert.equal(receipt.status, 'PASS');
   const world = JSON.parse(readFileSync(path.join(dir, 'world.json'), 'utf8'));
   assert.equal(world.kind, 'ui.atlasWorldInput.v1');
+  // K6c: the journal carries G's observations (contract 3), each G fact once — the session view
+  // fromG adds for the Agent is a projection, not a second observation.
+  const gObservations = rows(readFileSync(gEvents, 'utf8')).filter(event => event.kind === 'observation');
+  const journalObservations = world.frames.at(-1).journal.filter(entry => entry.kind === 'observation');
+  assert.ok(gObservations.length > 0);
+  assert.equal(journalObservations.length, gObservations.length);
+  assert.deepEqual(journalObservations.map(entry => entry.target.id).sort(), gObservations.map(event => event.target).sort());
   assert.deepEqual(world.frames.map(frame => frame.asOf), ['2026-10-16T03:00:00.000Z', '2026-10-16T20:40:00.000Z']);
   // States come from D on exact G targets only.
   const derived = deriveFrames(parseEvents(readFileSync(path.join(dir, 'events.jsonl'), 'utf8')),
@@ -46,7 +53,7 @@ test('end to end: G fixture snapshots → G events → live.mjs → D → World'
   const states = Object.fromEntries(now.conditions.map(value => [value.id, [value.judgment.state, value.judgment.reason]]));
   assert.deepEqual(states, {
     merged: ['satisfied', 'observed'],
-    'adrs-ci': ['unknown', 'unmatchable'], // G's literal UNKNOWN is never a value to compare
+    'adrs-ci': ['unknown', 'no-value'], // G's literal UNKNOWN is no value obtained (D null), never compared
     'reviewer-running': ['satisfied', 'observed'],
     'worker-running': ['unmet', 'observed'], // transcript-only means a past transcript exists, not activity
     'ui-serving': ['unknown', 'stale'],
@@ -100,7 +107,7 @@ test('fromG keeps targets opaque, passes <target>:session as Agent activity, and
   const event = { kind: 'observation', target: 'x#1:pr.state', value: 'OPEN', source: { ref: 'gh', sha256: 'sha256:' + '0'.repeat(64) },
     observedAt: '2026-10-16T00:00:00Z', recordedAt: '2026-10-16T00:00:00Z' };
   assert.deepEqual(fromG(event).events.map(value => value.target), [{ kind: 'state', id: 'x#1:pr.state' }]);
-  assert.deepEqual(fromG({ ...event, value: 'UNKNOWN' }).events[0].value, { G: 'UNKNOWN' });
+  assert.equal(fromG({ ...event, value: 'UNKNOWN' }).events[0].value, null);
   assert.deepEqual(fromG({ ...event, target: 'atlas.W:session', value: 'transcript-only' }).events.map(value => [value.target, value.value]),
     [[{ kind: 'state', id: 'atlas.W:session' }, 'transcript-only'], [{ kind: 'session', id: 'atlas.W' }, 'transcript-only']]);
   assert.equal(fromG({ ...event, target: ':session' }).events.length, 1);

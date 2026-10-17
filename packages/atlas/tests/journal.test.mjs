@@ -21,14 +21,14 @@ test('one cycle by phase: Purpose change → defining → approximating → matc
   const [f0, f1, f2, f3, f4, f5, f6, f7, f8] = world.frames;
   assert.deepEqual(open(f0), [['Z', 'unknown', 'initial', '00:00']]);
   // No ideal state to compare with: UNKNOWN (null), not an empty Gap. The previous Purpose's difference closes.
-  assert.deepEqual([f1.gap.parts, f1.gap.summary, closed(f1)], [null, { open: null, by_cause: {}, conditions: null, satisfied: null }, [['Z', 'purpose-changed']]]);
+  assert.deepEqual([f1.gap.parts, f1.gap.summary, closed(f1)], [null, { open: null, by_cause: {}, conditions: null, satisfied: null, before_ideal: null }, [['Z', 'purpose-changed']]]);
   assert.deepEqual([f2.gap.parts, closed(f2)], [null, []]);
   // Causes compare with the latest frame that has a gap (f0, another Purpose), not with the null frames.
   assert.deepEqual([f3.gap.basis.prev_frame, open(f3)], [t('00:00'), [['A', 'unknown', 'purpose-changed', '03:00'], ['B', 'unmet', 'purpose-changed', '03:00']]]);
   assert.deepEqual(f3.gap.parts.map(part => part.observed_before_ideal ?? false), [false, true], 'B was observed at 02:30, before ideal.set');
   assert.deepEqual([open(f4), closed(f4)], [[['B', 'unmet', 'carried', '03:00']], [['A', 'current-satisfied']]]);
   // Matched: no open difference; only keeping the observations fresh remains. 06:00 is exactly A's PT2H: still fresh (≦).
-  assert.deepEqual([open(f5), closed(f5), f5.gap.summary], [[], [['B', 'current-satisfied']], { open: 0, by_cause: {}, conditions: 2, satisfied: 2 }]);
+  assert.deepEqual([open(f5), closed(f5), f5.gap.summary], [[], [['B', 'current-satisfied']], { open: 0, by_cause: {}, conditions: 2, satisfied: 2, before_ideal: 0 }]);
   assert.deepEqual([f5.matched_until, f6.matched_until, open(f6)], ['2026-10-17T06:00:00.000Z', '2026-10-17T06:00:00.000Z', []]);
   assert.deepEqual([open(f7), f7.matched_until], [[['A', 'unknown', 'current-stale', '06:30']], null]);
   assert.deepEqual([f8.gap.parts, closed(f8), f8.gap.basis.ideal_version], [null, [['A', 'purpose-ended']], null]);
@@ -36,9 +36,17 @@ test('one cycle by phase: Purpose change → defining → approximating → matc
   assert.deepEqual(world.frames.map(frame => frame.gap.basis.purpose_label), ['P0：旧い目的', ...Array(8).fill('P：配布を委ねる')]);
 });
 
-test('journal: decisions up to each frame with kind, recordedAt, source and actor; evaluation becomes past when things move', () => {
-  assert.deepEqual(world.frames.map(frame => frame.journal.length), [2, 3, 4, 5, 5, 5, 6, 6, 7]);
-  const last = world.frames.at(-1).journal;
+test('journal: decisions and observations up to each frame in time order; evaluation becomes past when things move', () => {
+  const decisions = frame => frame.journal.filter(entry => entry.kind !== 'observation');
+  const observations = frame => frame.journal.filter(entry => entry.kind === 'observation');
+  assert.deepEqual(world.frames.map(frame => decisions(frame).length), [2, 3, 4, 5, 5, 5, 6, 6, 7]);
+  // Contract 3: observations are facts in the same book, in time order, not thinned.
+  assert.deepEqual(world.frames.map(frame => observations(frame).length), [0, 0, 0, 1, 2, 3, 3, 4, 4]);
+  const recorded = world.frames.at(-1).journal.map(entry => Date.parse(entry.recordedAt));
+  assert.deepEqual(recorded, [...recorded].sort((a, b) => a - b));
+  assert.deepEqual(observations(world.frames[3])[0], { kind: 'observation', recordedAt: '2026-10-17T03:00:00Z', observedAt: '2026-10-17T02:30:00Z',
+    actor: null, source: { ref: 'synthetic:svc.b', commentId: null, sha256: null }, target: { kind: 'state', id: 'svc.b' } });
+  const last = decisions(world.frames.at(-1));
   assert.deepEqual(last.map(entry => [entry.kind, entry.actor]), [['purpose.set', 'P'], ['ideal.set', 'P'], ['purpose.set', 'P'], ['ideal.drafting', 'P'],
     ['ideal.set', 'P'], ['purpose.evaluated', 'User'], ['purpose.ended', 'P']]);
   assert.ok(last.every(entry => entry.source.ref === 'hq:fixtures/journal' && /^sha256:/u.test(entry.source.sha256) && entry.recordedAt));
@@ -46,8 +54,6 @@ test('journal: decisions up to each frame with kind, recordedAt, source and acto
   assert.deepEqual({ ...evaluation(world.frames[6]), source: null }, { kind: 'purpose.evaluated', recordedAt: '2026-10-17T06:00:00Z', actor: 'User', source: null,
     purpose_id: 'purpose.k5', purpose_rev: 'r1', ideal_version: 'v1', verdict: 'achieved', note: '人による評価', frame: t('06:00'), past: false });
   assert.equal(evaluation(world.frames[8]).past, true, 'after purpose.ended the evaluation is a past one');
-  // Observations are facts, not decisions: they are not journal points.
-  assert.ok(world.frames.every(frame => frame.journal.every(entry => entry.kind !== 'observation')));
 });
 
 test('the World shows the Purpose label on the Purpose node and requires labels on Scopes; ids stay in detail', () => {

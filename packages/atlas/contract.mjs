@@ -15,7 +15,8 @@ const ms = value => { const [d, h, m, s] = DURATION.exec(value).slice(1).map(par
 const currentCause = (before, now) => {
   if (now.state === 'unmet') return before.state === 'satisfied' ? 'current-regressed' : before.state === 'unmet' ? 'carried' : 'current-confirmed-unmet';
   if (now.state === 'conflict') return 'current-conflict';
-  return now.reason === 'stale' ? 'current-stale' : 'current-unobserved'; // no-observation, or no usable value (unmatchable)
+  // Arrived but not comparable with the predicate (unmatchable) is not the same as nothing arrived.
+  return now.reason === 'stale' ? 'current-stale' : now.reason === 'unmatchable' ? 'current-unmatchable' : 'current-unobserved';
 };
 
 /**
@@ -53,8 +54,10 @@ export const gapOf = (frame, last = null, previous = null) => {
   for (const part of parts ?? []) for (const cause of part.cause) byCause[cause] = (byCause[cause] ?? 0) + 1;
   return { basis: { purpose_id: frame.purpose.purpose.id, purpose_rev: frame.purpose.rev, purpose_label: frame.purpose.purpose.label,
     ideal_version: frame.ideal?.version ?? null, prev_frame: last ? frameId(last.frame) : null },
-  parts, closed, summary: parts ? { open: parts.length, by_cause: byCause, conditions: frame.conditions.length, satisfied: frame.conditions.filter(value => !open(value)).length }
-    : { open: null, by_cause: {}, conditions: null, satisfied: null } };
+  parts, closed, summary: parts ? { open: parts.length, by_cause: byCause, conditions: frame.conditions.length, satisfied: frame.conditions.filter(value => !open(value)).length,
+    // Satisfied only on an observation older than this ideal.set: a match to show, not to hide (v5).
+    before_ideal: frame.conditions.filter(value => !open(value) && value.judgment.observation && Date.parse(value.judgment.observation.observedAt) < Date.parse(frame.ideal.recordedAt)).length }
+    : { open: null, by_cause: {}, conditions: null, satisfied: null, before_ideal: null } };
 };
 
 /** phase: purpose-changed / defining / approximating / matched (and ended once purpose.ended is recorded). */
@@ -64,8 +67,13 @@ export const phaseOf = (frame, gap) => frame.stage === 'ideal' ? (gap.parts.leng
 export const matchedUntil = (frame, phase) => phase !== 'matched' ? null
   : iso(Math.min(...frame.conditions.map(value => Date.parse(value.judgment.observation.observedAt) + ms(value.maxAge))));
 
-/** journal: the decisions recorded up to the frame (kind, recordedAt, source, actor) with their declared ids. */
-export const journalOf = frame => frame.decisions.map(event => {
+/**
+ * journal: everything recorded up to the frame, in time order (contract 3 puts observations in the same
+ * book): decisions with their declared ids, and observations with observedAt and target. Not thinned.
+ */
+export const journalOf = frame => frame.journal.map(event => {
+  if (event.kind === 'observation') return { kind: event.kind, recordedAt: event.recordedAt, observedAt: event.observedAt, actor: null,
+    source: { ref: event.source, commentId: null, sha256: null }, target: { ...event.target } };
   const source = { ref: event.source.ref, commentId: event.source.commentId == null ? null : number(event.source.commentId), sha256: event.source.digest };
   const detail = {
     'purpose.set': () => ({ purpose_id: event.purpose.id, purpose_label: event.purpose.label, purpose_rev: event.rev }),
