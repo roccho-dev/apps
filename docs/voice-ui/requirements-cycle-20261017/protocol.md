@@ -77,3 +77,5 @@ Before source implementation R freezes separate public and unseen V/F/E meaning/
 ## Same-head public admission
 Both public E pairs must demonstrate gains on the actual final candidate head. A semantic source change after public E cannot carry a successful pair forward. Each correction allows at most one E pair; if both pairs need remeasurement, stop UNMET/effect UNPROVEN without consuming fresh E or reallocating leftover budget.
 
+Before any new V/F/E input release, public F6, V6 and full E2 (enabled and effect criteria) must all pass on the exact measurement head. The same R agreed this ordering before live0. CI checks the complete ordered phase reservations after the previous closed E cutoff, fixed689/40 baseline, retained original and corrected public E2, at most two correction groups and their25J/7T allocations. A failed public-only trial remains recordable without any fresh-release claim.
+

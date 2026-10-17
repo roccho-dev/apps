@@ -10,6 +10,7 @@ import { auditRequirementRaw, auditRequirementProducerBinding, auditRequirementP
 import { assessPaintedGoal as assessGoal, assessPaintedEdge as assessEdge } from "../tests/painted-goal.mjs";
 import { joinJournalSnapshots } from "../tests/candidate-closure.mjs";
 import { classifyRequirementAxis } from "../tests/requirements-cycle-classification.mjs";
+import { auditRequirementsProcess } from "../tests/requirements-cycle-process.mjs";
 assertNoSecretInputs();
 const [indexFile, outputDirectory] = process.argv.slice(2);
 assert.ok(indexFile && outputDirectory && process.argv.length === 4);
@@ -63,7 +64,7 @@ for (const sha of new Set(index.phases.map(row => row.apps_sha))) {
   representation.push({ apps_sha: sha, reference: representationReference, core_files: core.length, renderer_files: actual.length,
     status: "SAME_REPRESENTATION_BYTES_ONLY", scope: "conditional prior R8 evidence; current ordinary Goal paint is independently required" });
 }
-const reports = [], snapshots = [];
+const reports = [], snapshots = [], processRecords = [];
 for (const row of index.phases) {
   assert.match(row.id, /^[A-Za-z0-9][A-Za-z0-9_-]{0,63}$/u);
   assert.ok(["V", "F", "E"].includes(row.axis));
@@ -116,10 +117,18 @@ for (const row of index.phases) {
   const classification = classifyRequirementAxis({ phaseKind: row.phase_kind, axis: row.axis, binding, raw, phase, ciReplay, ciRaw });
   const report = { id: row.id, phase_kind: row.phase_kind, axis: row.axis, classification, binding, raw, phase, ciReplay, ciRaw };
   write(path.join(directory, "audit.json"), report); reports.push(report);
+  processRecords.push({ index: row, config: decode(configBytes), input: decode(read(row.input)), report });
 }
 const cumulative = joinJournalSnapshots(snapshots); assert.deepEqual(cumulative, index.expected_cumulative);
 assert.ok(cumulative.jev <= 989 && cumulative.typellm <= 80);
-write(path.join(out, "receipt.json"), { schema: "voice-ui.requirements-cycle-ci/1", integrity: "PASS", cumulative, reports, representation,
+const commitmentBytes = read(index.commitment), addendumBytes = read(index.addendum), addendum = decode(addendumBytes);
+const publicNames = [...new Set(["original", "corrected"].flatMap(v => ["input", "oracle"].map(r => addendum[v][r])))];
+const publicFiles = Object.fromEntries(publicNames.map(name => [name,
+  read(path.relative(base, path.join(path.dirname(within(index.commitment)), name)))]));
+const journalBytes = snapshots.reduce((a, b) => a.bytes.length > b.bytes.length ? a : b).bytes;
+const processGraph = auditRequirementsProcess({ records: processRecords, journalBytes, commitmentBytes, addendumBytes, publicFiles });
+assert.equal(processGraph.status, "PASS", JSON.stringify(processGraph.issues));
+write(path.join(out, "receipt.json"), { schema: "voice-ui.requirements-cycle-ci/1", integrity: "PASS", cumulative, reports, representation, processGraph,
   quality: reports.map(row => ({ id: row.id, axis: row.axis, classification: row.classification })),
   CI_LIVE_EXECUTION: "UNPROVEN", currency: "COST_NOT_MEASURED" });
 console.log(JSON.stringify({ integrity: "PASS", phases: reports.length, cumulative,
