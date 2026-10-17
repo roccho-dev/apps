@@ -306,7 +306,7 @@ export function requiredRequest(context) {
     + "第" + n + "組がなければ未使用とする。別の順位の組を繰り返して埋めない。";
   return { context: JSON.stringify(context), questions: Object.fromEntries([1, 2, 3].map(n => ["required" + n, {
     type: "object",
-    instructions: "最大3組、合計3個の新規追加要求を読み取る。ID・親・矢印・操作は答えない。" + subject(n),
+    instructions: "最大3組、総個数も最大3個の新規追加要求を読み取る。ID・親・矢印・操作は答えない。" + subject(n),
     properties: {
       label: { type: "string", instructions: subject(n) + "第" + n + "組の表示名だけを原文どおり答える。"
         + "引用された名称や明示された表示名を優先し、通し番号や種類名を付け足さない。"
