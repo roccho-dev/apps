@@ -1,0 +1,12 @@
+{
+  "schema": "voice-ui.frontier-cycle-prepublication-addendum/1",
+  "created_at": "2026-10-17T19:57:25.073Z",
+  "status": "UNMEASURED_CLARIFICATION_ONLY",
+  "parent_commitment_sha256": "7a79dc144c801c97d284e604437e938b8fd8ae672b358fae0ab5d179bcb410ae",
+  "parent_protocol_sha256": "6d5b805eed22ba808bb6bda39cf02423af2963a10aadc79917c0e9eddc2cec37",
+  "reason": "Make invalid provider/factor/HTTP contract distinct from a finite parser observation before public registration",
+  "rule": "Invalid/no fallback refers to missing, malformed, invalid-factor or HTTP/contract evidence. literalInventory observation.valid:false alone is not a provider/factor error and is not a new eligibility veto. Eligibility is derived only from valid G0 factors; legacy parser handling remains unchanged. A single proposal may replace an invalid/empty/partial finite transcription, but V must independently authorize it. Invalid factors, failed G0 HTTP/contract, Type/V failure and no-change/unsupported/confident ambiguity remain stopped.",
+  "changed_semantic_payloads": 0,
+  "changed_budget": 0,
+  "provider_calls": 0
+}

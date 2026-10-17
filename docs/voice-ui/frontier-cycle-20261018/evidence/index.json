@@ -1,0 +1,11 @@
+{
+  "schema": "voice-ui.frontier-cycle-evidence-index/1",
+  "commitment": "../preregistered/frontier-cycle-commitment.v2.json",
+  "freeze": "../preregistered/frontier-cycle-public-freeze.v2.json",
+  "baseline_journal": "../../intent-cycle-20261018/evidence/public-G0/intent-public-G0-20261018.journal.jsonl",
+  "expected_cumulative": {
+    "jev": 725,
+    "typellm": 71
+  },
+  "phases": []
+}

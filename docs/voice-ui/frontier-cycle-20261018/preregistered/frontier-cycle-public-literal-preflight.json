@@ -1,0 +1,191 @@
+{
+  "schema": "voice-ui.frontier-cycle-public-literal-preflight/1",
+  "status": "PASS",
+  "literal_source_sha256": "ecdeb980fb826f800dfeb186e042b5a4edf85b32ecc8a97516eb55e81a9c37f9",
+  "canonical_bundle_sha256": "8fd1b4f37f6a113653dbaeda5e040ba5bed6d7b007ab9269d307f8642d339189",
+  "G0": [
+    {
+      "id": "PG01",
+      "valid": true,
+      "recognized": false,
+      "status": "unsupported-syntax",
+      "required": [],
+      "spans": [],
+      "expected_required_exact": false,
+      "literal_deficit": true
+    },
+    {
+      "id": "PG02",
+      "valid": true,
+      "recognized": false,
+      "status": "unsupported-syntax",
+      "required": [],
+      "spans": [],
+      "expected_required_exact": false,
+      "literal_deficit": true
+    },
+    {
+      "id": "PG03",
+      "valid": true,
+      "recognized": true,
+      "status": "transcribed",
+      "required": [
+        {
+          "label": "API",
+          "kind": "step",
+          "quantity": 1
+        }
+      ],
+      "spans": [
+        {
+          "start": 6,
+          "end": 9,
+          "source": "API",
+          "label": "API",
+          "kind": "step",
+          "quantity": 1
+        }
+      ],
+      "expected_required_exact": true,
+      "literal_deficit": false
+    },
+    {
+      "id": "PG04",
+      "valid": true,
+      "recognized": true,
+      "status": "transcribed",
+      "required": [
+        {
+          "label": "出庫照合",
+          "kind": "step",
+          "quantity": 1
+        }
+      ],
+      "spans": [
+        {
+          "start": 9,
+          "end": 13,
+          "source": "出庫照合",
+          "label": "出庫照合",
+          "kind": "step",
+          "quantity": 1
+        }
+      ],
+      "expected_required_exact": true,
+      "literal_deficit": false
+    },
+    {
+      "id": "PG05",
+      "valid": true,
+      "recognized": false,
+      "status": "unsupported-syntax",
+      "required": [],
+      "spans": [],
+      "expected_required_exact": true,
+      "literal_deficit": false
+    },
+    {
+      "id": "PG06",
+      "valid": true,
+      "recognized": false,
+      "status": "unsupported-syntax",
+      "required": [],
+      "spans": [],
+      "expected_required_exact": true,
+      "literal_deficit": false
+    },
+    {
+      "id": "PG07",
+      "valid": true,
+      "recognized": false,
+      "status": "unsupported-syntax",
+      "required": [],
+      "spans": [],
+      "expected_required_exact": false,
+      "literal_deficit": true
+    },
+    {
+      "id": "PG08",
+      "valid": true,
+      "recognized": true,
+      "status": "transcribed",
+      "required": [
+        {
+          "label": "API",
+          "kind": "step",
+          "quantity": 1
+        }
+      ],
+      "spans": [
+        {
+          "start": 4,
+          "end": 7,
+          "source": "API",
+          "label": "API",
+          "kind": "step",
+          "quantity": 1
+        }
+      ],
+      "expected_required_exact": true,
+      "literal_deficit": false
+    },
+    {
+      "id": "PG09",
+      "valid": true,
+      "recognized": false,
+      "status": "unsupported-syntax",
+      "required": [],
+      "spans": [],
+      "expected_required_exact": true,
+      "literal_deficit": false
+    },
+    {
+      "id": "PG10",
+      "valid": true,
+      "recognized": false,
+      "status": "unsupported-syntax",
+      "required": [],
+      "spans": [],
+      "expected_required_exact": true,
+      "literal_deficit": false
+    }
+  ],
+  "E": [
+    {
+      "id": "PE01",
+      "valid": true,
+      "recognized": false,
+      "status": "unsupported-syntax",
+      "required": [],
+      "spans": [],
+      "expected_required_exact": false,
+      "literal_deficit": true
+    },
+    {
+      "id": "PE02",
+      "valid": true,
+      "recognized": false,
+      "status": "unsupported-syntax",
+      "required": [],
+      "spans": [],
+      "expected_required_exact": false,
+      "literal_deficit": true
+    }
+  ],
+  "parents": {
+    "G0": {
+      "input": "intent-cycle-public-G0-10.inputs.json",
+      "oracle": "intent-cycle-public-G0-10.oracle.json",
+      "input_sha256": "bb2e090c218ef9be4db85416a87b60bf85a9d2d10a3156c4994bc1e6fd4bc4ba",
+      "oracle_sha256": "a5f08d8d2ed57b802870c76f4a86b9481400325d9c6342e8a0d66f58b5fb8653"
+    },
+    "E": {
+      "input": "intent-cycle-public-E-2.inputs.json",
+      "oracle": "intent-cycle-public-E-2.oracle.json",
+      "input_sha256": "6ed1692b94371faef36475e08a221926b96cbc783f15f5d230ebb118a28b0afa",
+      "oracle_sha256": "9f5418a40cef083ff4119b0553c5f58a35451dbbec6147ea53db0e5b97d79ee5"
+    }
+  },
+  "scope": "deterministic regression/stratum proof only, no intent/V/Type/model success",
+  "provider_calls": 0
+}
