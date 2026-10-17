@@ -1,0 +1,180 @@
+{
+  "schema": "voice-ui.axis-split.cycle-agreement/2",
+  "prepared_at": "2026-10-17T12:16:59.305Z",
+  "state": "R_PROPOSED_ROOT_BUDGET_ADOPTED_PENDING_ROOT_FINAL_ACK",
+  "prior_cycle": "CLOSED_NOT_REOPENED",
+  "reviewer": "/root/poc_reviewer",
+  "root_sole_writer_and_provider_caller": true,
+  "policy": "a6284e58ed99243447e135828d983fc07d2d363e",
+  "base": {
+    "apps": "4617b65ed42dc116329224612fa2e906daea46d8",
+    "ui": "756d47e891191c3344eb2d29b000203be8331abc",
+    "human_ui_merge_approval": "PENDING"
+  },
+  "charged_start": {
+    "jev": 564,
+    "typellm": 29
+  },
+  "confirmed_start": {
+    "jev": 564,
+    "typellm": 28
+  },
+  "cumulative_caps": {
+    "jev": 1000,
+    "typellm": 1000
+  },
+  "new_budget": {
+    "public": {
+      "jev": 56,
+      "typellm": 3
+    },
+    "cause_corrections": {
+      "max_batches": 2,
+      "jev_per_batch": 27,
+      "typellm": 0
+    },
+    "fresh": {
+      "jev": 164,
+      "typellm": 8
+    },
+    "setup_lifecycle": {
+      "jev": 16,
+      "typellm": 0
+    },
+    "total": {
+      "jev": 290,
+      "typellm": 11
+    },
+    "maximum_cumulative": {
+      "jev": 854,
+      "typellm": 40
+    },
+    "unallocated_jev": 146
+  },
+  "metrics": {
+    "G": {
+      "cases": 10,
+      "categories": {
+        "sufficient": 4,
+        "missing": 4,
+        "controls": 2
+      },
+      "intent_denominator": 10,
+      "availability_denominator": 8,
+      "availability_controls": "NOT_APPLICABLE",
+      "accepted_gate_denominator": 10,
+      "pass": {
+        "intent": 10,
+        "availability": 8,
+        "accepted_gate": 10
+      },
+      "input": "original utterance + initial graph + initial stock; no oracle requirement list"
+    },
+    "R": {
+      "cases": 8,
+      "oracle_inventory_supplied": true,
+      "bypass": [
+        "inventory",
+        "completion"
+      ],
+      "actual_path": "production runGoal/legal/proof + completed-artifact render",
+      "expected_graph_or_parent_edge_to_provider": false,
+      "pass": {
+        "graph_exact": 8,
+        "paint": 8
+      }
+    },
+    "F": {
+      "cases": 8,
+      "categories": {
+        "missing": 8
+      },
+      "methods": [
+        "literal",
+        "typed"
+      ],
+      "gate_bypassed": true,
+      "drawing": false,
+      "strict_missing_multiset": [
+        "label",
+        "kind",
+        "count"
+      ],
+      "pass_each": {
+        "exact": 8,
+        "minimal": 8
+      },
+      "at_least_two_natural_noncanonical_wordings": true,
+      "clear_in_scope_grammar_refusal": "FAIL_COMPLETENESS_NOT_UNSUPPORTED_RECLASSIFICATION"
+    },
+    "E": {
+      "cases": 10,
+      "categories": {
+        "sufficient": 4,
+        "missing": 4,
+        "controls": 2
+      },
+      "primary_method": "ordinary UI literal",
+      "pass": {
+        "accepted_gate": 10,
+        "sufficient_exact": 4,
+        "missing_exact_minimal": 4,
+        "controls_correct_intent_raw_unchanged": 2
+      },
+      "guards": [
+        "sufficient/control no preparation or Type or false adoption",
+        "actual proof and paint",
+        "deadline",
+        "Undo/Apply/reload"
+      ]
+    }
+  },
+  "unknown_grammar": {
+    "runtime": "UNKNOWN_STOP",
+    "score": "clear in-scope request remains in G/F/E denominator and is not reclassified unsupported"
+  },
+  "method_boundary": {
+    "default": "literal",
+    "typed": "explicit fixed URL query enum",
+    "unknown_method": "REJECT",
+    "request_body": "unchanged exact inventory shape",
+    "literal_requires": [
+      "recognized",
+      "complete",
+      "required multiset",
+      "source spans"
+    ],
+    "partial_match": "not full understanding",
+    "deterministic_coverage_receipt": "source literal; no fabricated provider confidence"
+  },
+  "old_reserve": {
+    "seal_sha256": "b64985019e2248c4fde62e330f319846c96ab5014db4e96a7d8f0d50d5f86076",
+    "pool_bytes": 23561,
+    "primary_cases": "PUBLIC_REGRESSION_ONLY",
+    "reserve_cases": 10,
+    "inputs_released": false,
+    "proposed_use": "E only, unchanged original oracle and one-use schedule; otherwise stay sealed"
+  },
+  "new_seals": {
+    "G": 10,
+    "R": 8,
+    "F": 8,
+    "disjoint": true,
+    "not_created_yet": true
+  },
+  "admissibility": [
+    "exact source/artifact/scorer freeze before new unseen inputs",
+    "actual PID/preload/zero-send bind before provider calls",
+    "same cumulative journal, per-phase reservation before launch",
+    "one pass, no automatic retry",
+    "stop and all-PGID including zombies absent before oracle release",
+    "all fixed cells remain in denominator; execution INVALID prevents success rather than being dropped"
+  ],
+  "other_boundaries": {
+    "CI_LIVE_EXECUTION": "UNPROVEN_PENDING_APPROVED_ROUTE_AND_ACTUAL_CI_RUN",
+    "D": "BLOCKED_COST",
+    "currency": "COST_NOT_MEASURED",
+    "site_or_ui_canonical_pin_transfer": "only prior exact raw-byte/metadata bridge plus new composition CI/browser"
+  },
+  "supersedes_proposal_budget": "axis-split-cycle-proposal.md b390f501c7a9e0b74e4d04bcce523f9edc43d7d3e1a3313fac8552f9a6d5a91f"
+}

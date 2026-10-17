@@ -1,0 +1,119 @@
+{
+  "schema": "voice-ui.component-axes-pool-commitment/1",
+  "prepared_at": "2026-10-17T12:22:56.290Z",
+  "reviewer": "/root/poc_reviewer",
+  "old_cycle": "closed; all released H/N cases regression only",
+  "new_sealed": [
+    {
+      "axis": "G",
+      "cases": 10,
+      "oracle": {
+        "file": "component-axes-G10.oracle.sealed.json",
+        "bytes": 12184,
+        "sha256": "93a94087d097b13736b73cbdb68ca82205b0424d65d980ff3d46f05c5d6fec03"
+      },
+      "input": {
+        "file": "component-axes-G10.inputs.sealed.json",
+        "bytes": 5243,
+        "sha256": "6e22b12904e3a0b706bd02dc1de796645025044ae661604eb830549f3a5fea37"
+      }
+    },
+    {
+      "axis": "R",
+      "cases": 8,
+      "oracle": {
+        "file": "component-axes-R8.oracle.sealed.json",
+        "bytes": 22516,
+        "sha256": "a23a3de5e284a79960cd3e7f84bb34478ece7638bb557140e2474110a0df4562"
+      },
+      "input": {
+        "file": "component-axes-R8.inputs.sealed.json",
+        "bytes": 15516,
+        "sha256": "962caad26f6a6dd59982be202c8decb5bbdbdcfb0f292dc8552bb191ba8dd3c3"
+      }
+    },
+    {
+      "axis": "F",
+      "cases": 8,
+      "oracle": {
+        "file": "component-axes-F8.oracle.sealed.json",
+        "bytes": 11219,
+        "sha256": "b366b57a96fe54d1b5818022079b299d1cb25a0310ac2bc6e01619546349e426"
+      },
+      "input": {
+        "file": "component-axes-F8.inputs.sealed.json",
+        "bytes": 4886,
+        "sha256": "c71ec9adf80e44fc55f17e43045161cf4776d6cf3a9b79452b24312d1fbe96b6"
+      }
+    }
+  ],
+  "new_sealed_inputs_released": false,
+  "old_reserve": {
+    "seal_sha256": "b64985019e2248c4fde62e330f319846c96ab5014db4e96a7d8f0d50d5f86076",
+    "status": "UNOPENED_E_ONLY_UNCHANGED_ORACLE"
+  },
+  "public": [
+    {
+      "axis": "G",
+      "cases": 4,
+      "oracle": {
+        "file": "component-axes-public-G4.oracle.public.json",
+        "bytes": 6961,
+        "sha256": "e7a7b4aee3ed4bbdab8cbf3338937f900a8b31b65ad5ded71ca823a9c3c2e44f"
+      },
+      "input": {
+        "file": "component-axes-public-G4.inputs.public.json",
+        "bytes": 3922,
+        "sha256": "36fdeb1254bd57e725f4bf695a0234c98c95c64d849132a489de657ebb714ceb"
+      }
+    },
+    {
+      "axis": "R",
+      "cases": 2,
+      "oracle": {
+        "file": "component-axes-public-R2.oracle.public.json",
+        "bytes": 9957,
+        "sha256": "d77d4fab24babba59c9ca2f9f032595b62afe3d988d4278d7b0d904f63ff2325"
+      },
+      "input": {
+        "file": "component-axes-public-R2.inputs.public.json",
+        "bytes": 6360,
+        "sha256": "86face1aa0d9f30b54ade0ab48de2bd0beefb11a902b1610632f554d4abe643e"
+      }
+    },
+    {
+      "axis": "F",
+      "cases": 3,
+      "oracle": {
+        "file": "component-axes-public-F3.oracle.public.json",
+        "bytes": 8276,
+        "sha256": "1c402800f1c5e0e9b5459690f2ce58953267629a6d4585cc61e1731fc3e56711"
+      },
+      "input": {
+        "file": "component-axes-public-F3.inputs.public.json",
+        "bytes": 3889,
+        "sha256": "1dd6895cff2951cf29d638bdaf382eb6633d3ade99b13c722b6cc0d46f3bf85f"
+      }
+    },
+    {
+      "axis": "E",
+      "cases": 4,
+      "oracle": {
+        "file": "component-axes-public-E4.oracle.public.json",
+        "bytes": 7607,
+        "sha256": "f2a4265a75e15b051610eb1ae8796a9cdb0e26c4d96331f12150d709e4acd854"
+      },
+      "input": {
+        "file": "component-axes-public-E4.inputs.public.json",
+        "bytes": 3929,
+        "sha256": "b20ebeddb0bfaed1b2fcf5bd9bdd3e2fc765c324478caa071460ef9469cf220e"
+      }
+    }
+  ],
+  "contract": "axis-split-contract-v2.json",
+  "cycle_cap": {
+    "jev": 290,
+    "typellm": 11
+  },
+  "no_provider_calls": true
+}

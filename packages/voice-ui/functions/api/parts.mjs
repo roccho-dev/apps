@@ -44,7 +44,7 @@ export async function onParts({ request, mode, available, method = "typed" }, { 
         const ready = literal.valid && (literal.status === "transcribed"
           || literal.required.length === 0 && new Set(referenced.map(region => region.label)).size >= 2);
         const inspection = { source: "literal+jev", recognized: literal.recognized, required: literal.required,
-          spans: literal.spans, completeness: { choice: completeness.choice, confidence: completeness.confidence } };
+          missing: literal.missing, spans: literal.spans, completeness: { choice: completeness.choice, confidence: completeness.confidence } };
         const choice = intent.choice !== "change" ? intent.choice
           : ready && completeness.choice === "complete" && completeness.confidence >= 0.5
             ? literal.missing.length ? "missing" : "sufficient" : "unknown";

@@ -12,7 +12,7 @@ export function literalInventory(state) {
   const prefix = [...kinds.keys()].sort((a, b) => b.length - a.length).map(escaped).join("|");
   const quote = '(?:「[^「」\\r\\n]+」|"[^"\\r\\n]+")';
   const pattern = new RegExp(`(?<![A-Za-z0-9_])(${prefix})\\s*(?:「([^「」\\r\\n]+)」|"([^"\\r\\n]+)")\\s*(?:(?:[×x]\\s*|を\\s*)([0-9]+)(?:個|つ)?)?`, "gu");
-  const rows = new Map(), spans = [], seen = new Set();
+  const rows = new Map(), spans = [], seen = new Set(), claimed = [];
   let invalid = false;
   const add = (label, kind, quantity, start, end, counted) => {
     if (!label.trim() || label.length > LABEL_MAX || !Number.isSafeInteger(quantity) || quantity < 1 || quantity > 3)
@@ -29,6 +29,7 @@ export function literalInventory(state) {
     spans.push({ start, end, source: state.utterance.slice(start, end), label, kind, quantity });
   };
   for (const match of state.utterance.matchAll(pattern)) {
+    claimed.push([match.index, match.index + match[0].length]);
     const label = match[2] ?? match[3], start = match.index + match[0].indexOf(label);
     const rest = state.utterance.slice(match.index + match[0].length);
     const tail = rest.trimStart();
@@ -39,20 +40,28 @@ export function literalInventory(state) {
   }
   const after = new RegExp(`((?:${quote}\\s*(?:[、,と]\\s*)?)+)という(?:名前の|([0-9]+)(?:つ|個)の)?(${prefix})(?![A-Za-z0-9_])`, "gu");
   for (const match of state.utterance.matchAll(after)) {
+    claimed.push([match.index, match.index + match[0].length]);
     const names = [...match[1].matchAll(/「([^「」\r\n]+)」|"([^"\r\n]+)"/gu)];
     const count = match[2] === undefined ? null : Number(match[2]);
+    const suffix = /^\s*を\s*([0-9]+)(?:個|つ)(だけ|ずつ)?/u.exec(state.utterance.slice(match.index + match[0].length));
+    const following = suffix === null ? null : Number(suffix[1]);
     if (names.length > 1 && count !== null && count !== names.length) { invalid = true; continue; }
+    if (names.length > 1 && following !== null && suffix[2] !== "ずつ" && following !== names.length
+      || names.length === 1 && count !== null && following !== null && count !== following) { invalid = true; continue; }
     for (const name of names) {
       const label = name[1] ?? name[2], start = match.index + name.index + 1;
-      add(label, kinds.get(match[3]), names.length === 1 && count !== null ? count : 1,
-        start, start + label.length, count !== null);
+      add(label, kinds.get(match[3]), following !== null && suffix[2] === "ずつ" ? following
+        : names.length === 1 ? following ?? count ?? 1 : 1,
+        start, start + label.length, count !== null || following !== null);
     }
   }
   const stock = [...new Set(state.parts.map(p => p.label))].sort((a, b) => b.length - a.length).map(escaped).join("|");
   if (stock) for (const match of state.utterance.matchAll(new RegExp(`(?<![A-Za-z0-9_])(${stock})\\s*を\\s*([0-9]+)(?:個|つ)(?:だけ|ずつ)?\\s*(?:追加|作|置)`, "gu")))
-    add(match[1], kinds.get(match[1]), Number(match[2]), match.index, match.index + match[1].length, true);
+    if (!claimed.some(([start, end]) => start <= match.index && match.index < end))
+      add(match[1], kinds.get(match[1]), Number(match[2]), match.index, match.index + match[1].length, true);
   if (stock) for (const match of state.utterance.matchAll(new RegExp(`(?<![A-Za-z0-9_])(${stock})\\s*(?:を\\s*)?(?:追加|作成|配置)`, "gu")))
-    add(match[1], kinds.get(match[1]), 1, match.index, match.index + match[1].length, true);
+    if (!claimed.some(([start, end]) => start <= match.index && match.index < end))
+      add(match[1], kinds.get(match[1]), 1, match.index, match.index + match[1].length, true);
   if (invalid) return { valid: false, recognized: spans.length > 0, required: [], missing: [], spans, status: "unsupported-syntax" };
   const missingRows = [...rows.values()].flatMap(row => {
     const capacity = state.parts.filter(p => p.label === row.label && p.kind === row.kind).length;
@@ -65,12 +74,6 @@ export function literalInventory(state) {
   return { valid: missing !== null && [...rows.values()].reduce((n, row) => n + row.quantity, 0) <= 3,
     recognized: spans.length > 0, required: [...rows.values()], missing: missing ?? [], spans,
     status: missing === null || !spans.length ? "unsupported-syntax" : "transcribed" };
-}
-
-// Compatibility surface for the closed comparison. One extractor owns both forms.
-export function literalCandidates(state) {
-  const value = literalInventory(state);
-  return { missing: value.missing, extraction: { status: value.status, spans: value.spans } };
 }
 
 // Recognition is literal evidence. Completeness remains an explicit Jev choice,

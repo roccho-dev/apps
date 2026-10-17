@@ -37,6 +37,15 @@ test("Jev intent and completeness, independently of legacy labels/capacity, boun
   assert.equal(value.inspection.completeness.confidence, .9);
   assert.equal((await check(input("DBを1個だけ追加"), answer("complete", .6))).confidence, .6);
 });
+test("a named shape followed by an addition is one requested part, not a second stock-kind request", () => {
+  const state = input("Containerに「出荷域」というグループ、その中に「照合票」というデータ、Containerに「組立」という工程を追加して").state;
+  state.parts.push({ key: "step", label: "工程", purpose: "one step", kind: "step" },
+    { key: "group", label: "グループ", purpose: "one group", kind: "group" },
+    { key: "data", label: "データ", purpose: "one document", kind: "data" });
+  assert.deepEqual(literalInventory(state).required.map(row => row.label), ["出荷域", "照合票", "組立"]);
+  assert.deepEqual(literalInventory(input("「明細」というdataを3個追加").state).required,
+    [{ label: "明細", kind: "data", quantity: 3 }]);
+});
 test("partial recognition, incomplete or low-confidence assessment cannot authorize execution", async () => {
   const value = input("data「A」を追加し、別の何かも追加");
   for (const response of [answer("incomplete"), answer("complete", .49)]) {

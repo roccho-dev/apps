@@ -189,9 +189,9 @@ export async function runInventoryGoal({ check, complete, completion = true, now
   inventory.checks++;
   try { coverage = await check(request); } catch { return stop("inventory-unknown"); }
   const inspected = exact(coverage, ["choice", "confidence", "inspection"])
-    && exact(coverage.inspection, ["source", "recognized", "required", "spans", "completeness"])
+    && exact(coverage.inspection, ["source", "recognized", "required", "missing", "spans", "completeness"])
     && coverage.inspection.source === "literal+jev" && typeof coverage.inspection.recognized === "boolean"
-    && Array.isArray(coverage.inspection.required) && Array.isArray(coverage.inspection.spans)
+    && Array.isArray(coverage.inspection.required) && Array.isArray(coverage.inspection.spans) && readMissing(coverage.inspection.missing) !== null
     && exact(coverage.inspection.completeness, ["choice", "confidence"])
     && ["complete", "incomplete"].includes(coverage.inspection.completeness.choice)
     && Number.isFinite(coverage.inspection.completeness.confidence)
