@@ -122,6 +122,21 @@ test("unapproved Type fields stay out of response and stage logs; already cancel
   } finally { console.info = saved; }
 });
 
+test("cancellation between stages prevents any next provider send", async () => {
+  for (const at of ["G0", "TYPE_REQUIRED"]) {
+    const controller = new AbortController(), signals = [];
+    let j = 0, t = 0;
+    const response = await invoke(inventory(), async (_, options) => {
+      signals.push(options.signal); j++; if (at === "G0") controller.abort();
+      return { answers: factors() };
+    }, async (_, options) => {
+      signals.push(options.signal); t++; controller.abort(); return { result: slots() };
+    }, "adaptive-v2", "check", controller.signal);
+    assert.equal(response.status, 504); assert.equal(j, 1); assert.equal(t, at === "G0" ? 0 : 1);
+    assert.ok(signals.every(signal => signal === signals[0] && signal.aborted));
+  }
+});
+
 test("v2 preparation uses its verified receipt exactly once with zero HTTP complete callbacks", async () => {
   const protocol = await import(pathToFileURL(process.env.POC_PROTOCOL_ENTRY ?? path.resolve(
     path.dirname(fileURLToPath(import.meta.url)), "../../../../../../ui.git/.worktrees/voice-ui-render-identity-20261017/packages/semantic-map/protocol/index.js")));
