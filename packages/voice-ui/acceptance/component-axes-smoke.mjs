@@ -16,6 +16,9 @@ const hash = b => createHash("sha256").update(b).digest("hex"), read = p => JSON
 const manifestBytes = fs.readFileSync(path.join(artifact, "manifest.json")), manifest = JSON.parse(manifestBytes);
 loadAcceptanceArtifact({ artifactRoot: artifact, expectedAppsSha: manifest.sources.apps, expectedManifestSha256: hash(manifestBytes) });
 const workerPath = path.join(artifact, "worker/worker.mjs"), protocolPath = path.join(artifact, "site/ui/semantic-map/protocol/index.js");
+const semanticRoot = path.join(out, "semantic-map-root");
+fs.mkdirSync(path.join(semanticRoot, "packages"), { recursive: true });
+fs.symlinkSync(path.join(artifact, "site/ui/semantic-map"), path.join(semanticRoot, "packages/semantic-map"), "dir");
 const { default: worker } = await import(pathToFileURL(workerPath));
 const pub = path.join(base, "docs/voice-ui/component-axes-20261017/preregistered");
 const contract = read(path.join(pub, "component-axes-public-G4.inputs.public.json")).fixture_contract;
@@ -85,7 +88,7 @@ fs.writeFileSync(identityFile, JSON.stringify({ schema: "voice-ui.poc.runtime/1"
   scope: "SYNTHETIC_KEYLESS_ONLY_NOT_ADMISSIBLE_AS_LIVE", heads: { apps: manifest.sources.apps, ui: manifest.sources.ui,
     ops: "cab432ef717cbde9ebd0197ae006c0efe75269bf", envs: "063e685b8b21a97fc8658879da93fa858552bcd6",
     windows: "6aef693c0946903d8b87c2348039de1420acd61b" },
-  semantic_map: { root: path.join(artifact, "site/ui"), protocol_sha256: hash(fs.readFileSync(protocolPath)) },
+  semantic_map: { root: semanticRoot, protocol_sha256: hash(fs.readFileSync(protocolPath)) },
   worker_entry: { path: workerPath, sha256: hash(fs.readFileSync(workerPath)) },
   provider_entry: { path: workerPath, sha256: hash(fs.readFileSync(workerPath)), scope: "bundled provider with synthetic fetch only" },
   artifact: { root: artifact, manifest_sha256: hash(manifestBytes) } }));
@@ -99,7 +102,7 @@ try {
     fs.writeFileSync(inputFile, JSON.stringify(inputs));
     const before = upstream.length;
     const child = spawn(process.execPath, [path.join(base, "packages/voice-ui/tests/component-axes-eval.mjs"),
-      "--inputs", inputFile, "--origin", origin, "--semantic-map", path.join(artifact, "site/ui"),
+      "--inputs", inputFile, "--origin", origin, "--semantic-map", semanticRoot,
       "--identities", identityFile, "--out", raw, "--artifact", artifact], { stdio: ["ignore", "pipe", "pipe"] });
     let stdout = "", stderr = ""; child.stdout.on("data", b => { stdout += b; }); child.stderr.on("data", b => { stderr += b; });
     const code = await new Promise((resolve, reject) => { child.on("error", reject); child.on("close", resolve); });
