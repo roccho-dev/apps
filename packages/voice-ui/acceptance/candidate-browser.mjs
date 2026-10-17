@@ -73,6 +73,8 @@ globalThis.fetch = async (url, init) => {
   const auth = init.headers.authorization;
   const provider = auth === "Bearer fixture-type-only" ? "typellm" : auth === "Bearer fixture-jev-only" ? "jev" : null;
   assert.ok(provider, "only the synthetic credentials are permitted");
+  assert.equal(String(url), provider === "jev" ? "https://api.typesafe.ai/v1/systemone" : "https://api.typellm.ai/v1/generate");
+  assert.equal(init.method, "POST"); assert.equal(init.redirect, "error");
   upstream.push({ fixture: fixture.id, provider, route: new URL(url).origin, questions: Object.keys(wire.questions) });
   if (provider === "typellm") {
     const missing = fixture.id === "equal-label-quantity" ? [{ label: "DB", kind: "data", quantity: 2 }]

@@ -258,12 +258,11 @@ const showLists = () => {
     option.value = part.id; option.textContent = part.label;
     cameraPart.append(option);
   }
-  // At most one arrow view: the arrow the camera now shows while it still
-  // stands, else the latest unapplied single arrow, framed by its two ends.
-  const named = camera === null ? [] : (session.working?.records ?? []).filter(record => record.id === camera);
-  const arrow = named.length === 1 && named[0].type === "relation" ? named[0] : latestDraftRelation();
-  const ends = arrow === null ? [] : [arrow.from, arrow.to].map(id => parts.find(part => part.id === id));
-  if (arrow !== null && ends.every(end => end !== undefined && layout?.bounds[end.id] !== undefined)) {
+  // Saved arrows remain camera targets after Apply/reload, using the same
+  // actual endpoint boxes as draft arrows. Camera selection never edits them.
+  for (const arrow of (session.working?.records ?? []).filter(record => record.type === "relation")) {
+    const ends = [arrow.from, arrow.to].map(id => parts.find(part => part.id === id));
+    if (!ends.every(end => end !== undefined && layout?.bounds[end.id] !== undefined)) continue;
     const option = document.createElement("option");
     option.value = arrow.id; option.textContent = `矢印: ${ends[0].label} → ${ends[1].label}`;
     cameraPart.append(option);
@@ -797,7 +796,7 @@ cameraPart.addEventListener("change", () => withSurface("camera", async () => {
       : Array.isArray(cameraTarget(session.working, camera))
         ? "選んだ矢印の両端が収まるように表示しています。表示外の部品も図には残っています。長いラベルは収まらない場合があります"
         : cameraRecord(session.working, camera)?.kind === "group"
-          ? "選んだグループ全体を表示しています。長いラベルは収まらない場合があります"
+          ? "選んだ範囲全体を表示しています。長いラベルは収まらない場合があります"
           : "選んだ部品を等倍で表示しています。表示外の部品も図には残っています。長いラベルは収まらない場合があります");
   } catch { invalidateView(); }
 }));
