@@ -1,0 +1,146 @@
+{
+  "schema": "voice-ui.review.quota-prepared-operators/1",
+  "status": "PASS",
+  "checked_at": "2026-10-17T22:46:47.349Z",
+  "prepared_manifest_sha256": "5c6b2258ea8bd5f5be1cd087d96ecf8b0b1a84b907e16fc707058a23196d5324",
+  "source_head": "59ded276405a5dc9caa85ad570b1827ff4bd0c7a",
+  "runtime_metadata_sha256": "aea2d4a780256fca602e07546d37e3e74844a5e1a1e885d5d02092eae9ae2fb6",
+  "exact_public_files": [
+    {
+      "name": "quota-public-R-20261018.config.json",
+      "bytes": 639,
+      "sha256": "9d24f00aee606e74d0ec40d4baa4761baf11726e999f1c7802649665e5295fe7"
+    },
+    {
+      "name": "quota-public-R-20261018.operator.mjs",
+      "bytes": 3735,
+      "sha256": "074a9cd46dff17d44d5c0d185ce0a8656299dc98f26e052a639dd78627bd9a36"
+    },
+    {
+      "name": "quota-public-R-20261018.root-zero.mjs",
+      "bytes": 3729,
+      "sha256": "6c52c67c47bcbeb1f859e220ab1050f07f7cba00d30126066ca7e2acc8ccd301"
+    },
+    {
+      "name": "quota-public-E-20261018.config.json",
+      "bytes": 639,
+      "sha256": "6413ffe89252375b8ffe9f2e52217a2b5990fbcec70d5063d7be94160cfc6771"
+    },
+    {
+      "name": "quota-public-E-20261018.operator.mjs",
+      "bytes": 3735,
+      "sha256": "18b58d822232c8e3f21068328702d5d7b8e0484f3ec01abca4bd18b04347d418"
+    },
+    {
+      "name": "quota-public-E-20261018.root-zero.mjs",
+      "bytes": 3729,
+      "sha256": "91adb0e471933982283886ed5dc8531bae6559a5aa283dc708d36277204495f5"
+    },
+    {
+      "name": "quota-final-R-20261018.config.json",
+      "bytes": 637,
+      "sha256": "b72b6db819fbc08fc83f0010bd473e9c4d338637e189339d3d2f2033922721d9"
+    },
+    {
+      "name": "quota-final-R-20261018.operator.mjs",
+      "bytes": 3734,
+      "sha256": "c59ed36e2448a4f32c3c9986e1b870b4e6ed932faaea1f18347507b5a9fa0512"
+    },
+    {
+      "name": "quota-final-R-20261018.root-zero.mjs",
+      "bytes": 3728,
+      "sha256": "0140f6f47b20dcbf4160b9421d2c972cdc8f09c5deae6bfc9fc6ee2c0522e658"
+    },
+    {
+      "name": "quota-final-E-20261018.config.json",
+      "bytes": 638,
+      "sha256": "5d7de9c614a6d3f0defcfc010970f98c50d1b5830c2c406e4f3490c6580e65ee"
+    },
+    {
+      "name": "quota-final-E-20261018.operator.mjs",
+      "bytes": 3734,
+      "sha256": "feafa286a8f71da9ff060fedb9759c02539f7ef64695888208308b783ba3f22f"
+    },
+    {
+      "name": "quota-final-E-20261018.root-zero.mjs",
+      "bytes": 3729,
+      "sha256": "9ceb90a39624138949c2e8d0a250f63c327fd4eec13d2960c989914074f84e02"
+    }
+  ],
+  "stages": [
+    {
+      "stage": "public-R",
+      "cases": 1,
+      "cells": 2,
+      "input_sha256": "35e6e31053ab8ea187899258e79623e74bc837ba482a73e043ef1ed99c296179",
+      "input_payload_read": false,
+      "config_sha256": "9d24f00aee606e74d0ec40d4baa4761baf11726e999f1c7802649665e5295fe7",
+      "operator_sha256": "074a9cd46dff17d44d5c0d185ce0a8656299dc98f26e052a639dd78627bd9a36",
+      "root_zero_sha256": "6c52c67c47bcbeb1f859e220ab1050f07f7cba00d30126066ca7e2acc8ccd301",
+      "allowances": {
+        "jev": 16,
+        "typellm": 0
+      },
+      "outer_timeout_ms": 5000000,
+      "source_deadlines_changed": false
+    },
+    {
+      "stage": "public-E",
+      "cases": 1,
+      "cells": 2,
+      "input_sha256": "e3c4c653c8225dfb668c18bf022345e1e3ef7a8665d821f3da72219d6c98a1a7",
+      "input_payload_read": false,
+      "config_sha256": "6413ffe89252375b8ffe9f2e52217a2b5990fbcec70d5063d7be94160cfc6771",
+      "operator_sha256": "18b58d822232c8e3f21068328702d5d7b8e0484f3ec01abca4bd18b04347d418",
+      "root_zero_sha256": "91adb0e471933982283886ed5dc8531bae6559a5aa283dc708d36277204495f5",
+      "allowances": {
+        "jev": 19,
+        "typellm": 1
+      },
+      "outer_timeout_ms": 5000000,
+      "source_deadlines_changed": false
+    },
+    {
+      "stage": "final-R",
+      "cases": 2,
+      "cells": 4,
+      "input_sha256": "4ab4662aa00925d7e1bf480efadbc840f4421e6e6cfd16ae53d972387ce005d7",
+      "input_payload_read": false,
+      "config_sha256": "b72b6db819fbc08fc83f0010bd473e9c4d338637e189339d3d2f2033922721d9",
+      "operator_sha256": "c59ed36e2448a4f32c3c9986e1b870b4e6ed932faaea1f18347507b5a9fa0512",
+      "root_zero_sha256": "0140f6f47b20dcbf4160b9421d2c972cdc8f09c5deae6bfc9fc6ee2c0522e658",
+      "allowances": {
+        "jev": 32,
+        "typellm": 0
+      },
+      "outer_timeout_ms": 5000000,
+      "source_deadlines_changed": false
+    },
+    {
+      "stage": "final-E",
+      "cases": 6,
+      "cells": 12,
+      "input_sha256": "926d7007508e0f4b67fe2fb564e1d299d82219ca9e1b95f96e3b26c3d6c9ae40",
+      "input_payload_read": false,
+      "config_sha256": "5d7de9c614a6d3f0defcfc010970f98c50d1b5830c2c406e4f3490c6580e65ee",
+      "operator_sha256": "feafa286a8f71da9ff060fedb9759c02539f7ef64695888208308b783ba3f22f",
+      "root_zero_sha256": "9ceb90a39624138949c2e8d0a250f63c327fd4eec13d2960c989914074f84e02",
+      "allowances": {
+        "jev": 114,
+        "typellm": 6
+      },
+      "outer_timeout_ms": 5000000,
+      "source_deadlines_changed": false
+    }
+  ],
+  "scope": "STATIC_PREPARATION_REVIEW_ONLY_NOT_LAUNCH_OR_PROVIDER_GO; exact full CI/frozen body admission, preceding stage gates, stagewise private input release and independent actual-PID zero-send GO all remain mandatory",
+  "phase_runtime_limits": {
+    "check_ms": 40000,
+    "http_ms": 45000,
+    "goal_ms": 180000,
+    "outer_ms": 5000000
+  },
+  "physical_scope": "root-zero is GET-only preparatory testimony; independent live argv/preload/counters/caps/key-presence/bookkeeping checks remain separately required",
+  "provider_calls": 0,
+  "future_private_payload_reads": false
+}

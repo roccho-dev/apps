@@ -1,0 +1,15 @@
+ROUND_21_GREEN — 実測前 source・完成物・CI 入場確認（COMMENTED）
+
+対象は Apps head `59ded276405a5dc9caa85ad570b1827ff4bd0c7a`、tree `109c01064cde33ececa497e7daa160b763298b14` です。同じ独立 R として認証付きの公開 source、実 Nix 完成物、実 CI artifact、固定 Apps/UI 本文、停止済み台帳を確認しました。新 quota 比較は未測定であり、品質・効果・製品採用の承認ではありません。
+
+製品差分は completion.mjs の21行です。受理済み full-NEW 要求表に対し、materialization 後の在庫から完全一致する label/kind の必要個数だけを元の順序で残す helper と呼出しに限ります。既存部品を複製・凍結して渡し、親・辺・名前・新部品は生成しません。Goal/core6・UI238/renderer231・G0/F/V 質問と文脈・閾値・旧8 semantic modulesは不変です。評価対象28 sourceには caller/scorer/auditorも含みます。59ded の追加は静的検査31行だけで、b9c候補と28 source・291通常runtime bytesが一致しました。未使用exportの例外は quota caller の厳密な named import と実際の helper→runGoal 使用1件だけで、否定例と静的14群を独立確認しました。b9c のNix失敗は保持します。
+
+改訂登録7761be0は元登録を上書きせず、保存用 map_id と対応 oracle hashだけを別名訂正した pre-live correctionです。全 active公開18ファイルの同一性と新processを検算しました。実 Nixの公式293件検証、全source28、Worker/provider/protocol・dev実体の束縛がPASSです。b9c→59ded bridgeの差は2 metadataのsource commit、excluded static.testの正確なGit blob1件、manifest6項目、launcher3参照に限定しました。
+
+[release](https://github.com/roccho-dev/apps/actions/runs/39076041775)・[Nix](https://github.com/roccho-dev/apps/actions/runs/39076041759)・[artifact](https://github.com/roccho-dev/apps/actions/runs/39076041791)・[auth](https://github.com/roccho-dev/apps/actions/runs/39076041753)は全てexact headでSUCCESS、publishはskipです。実browser artifact12117775032（ZIP `601d439ce493fa0e32faeab92f281f76b35a2518e7c1a96369cde6d145916937`）の新quota receipt `7bd404a0cdfdf9245a9d621ec06d115bd5cb3da650a45bccc0ea02c349b70ec2` を独立再検算しました。12セル・4 INVALID保持・26 named-ID描画・30 protocol prefixes・source28・G0/F/V原UTF8 wire3組、R native Apply/restoreと別の完成UI保存復元、O/Q replay、E通常UIがPASSです。旧frontierも40セル・14 INVALID・40 named paint・22原wire組・60境界行を再検算し、provider約10秒と共有約40秒、Type固有cap前のabortを確認しました。全てsyntheticで、実モデル性能に数えずlive admission=falseを保持します。
+
+必須7閉包の実artifactも認証取得しました。旧6系統の45 JSON/audit/replayは前回受入原bytesと完全一致し、唯一の旧Nodeログ例外は同じ6PASS/0FAILの個別6所要時間と総時間だけです。新quota artifact12117910657（ZIP `d5b1f01d74526f9f6d368555fb5fe86c1dc934e6cd4ad1c17a67286e31b336cb`、receipt `5fba49e7d43c2d226a4b8a90c7f9450dcaa6ccf048f1d91556fe7c3ff14e2233`）は exact公開 index/commitment/freeze/旧台帳から独立再計算して一致しました。NOT_MEASURED、quality/effect UNPROVEN、累計808/85を保持します。旧未達・INVALID・frontier効果未証明を新機構の成功へ置き換えません。
+
+Rは同じ正解完全在庫とfull-NEW要求だけを供給する条件付き表現比較です。Oの不要追加は評価すべき失敗として残し、入場条件から除外しません。親/辺の正解はGoalへ渡さず、RgainをType効果に数えません。Eは両arm quotaの通常UI比較で、全体品質と実適格な不足2組の因果改善を分離します。全armの描画・保存・期限が必要で、不適格・欠測・INVALIDをNO_EFFECTへ昇格しません。公開R/E両gate後に新封印入力だけを段階解放し、対応oracleは停止・精算後だけ開封します。fresh軸の品質未達だけでは次軸を止めず、全記録・source・protocol・会計の証拠を維持します。
+
+最終独立再観測で全38所有PGIDがZを含め不在、予約0、cutoff `ce6896e0b1eb7c3c749b659b36e3ed4467dc133042ace81dd990b9f2e10c28d4` と累計charged808Jev/85Type（確認済み808/84）は不変でした。新上限181J/7T・最悪989/92、未割当11Jの自動使用なし、setup/retry/correction0です。Appsはdraft/open/unmerged、UI362は756dのopen/non-draft/unmergedで人間merge条件を維持します。このGreenは一度のmanager起動とGET preflightまでの技術入場です。provider POST前には実PID/start/argv/preload/strict caps/source/input/送信ゼロの独立束縛と別の一回GOが必須です。

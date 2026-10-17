@@ -1,0 +1,96 @@
+{
+  "status": "PASS",
+  "phase": "quota-final-R-20261018",
+  "at": "2026-10-17T23:20:04.930Z",
+  "journal_sha256": "b36eea50e92ce2a75d87f04beb2cd7850aa9bee64f29a5f4c4f2dd798a2763be",
+  "charged": {
+    "jev": 827,
+    "typellm": 86
+  },
+  "outstanding": 0,
+  "owned_pgids": 41,
+  "remaining_members": [],
+  "orchestration": {
+    "phase": "quota-final-R-20261018",
+    "began": "2026-10-17T23:18:47.571Z",
+    "finished": "2026-10-17T23:19:42.023Z",
+    "execution": {
+      "exit": 0,
+      "error": null
+    },
+    "stop": {
+      "status": "STOPPED_RECONCILED",
+      "result": {
+        "phase": "quota-final-R-20261018",
+        "action": "stop",
+        "current": {
+          "pid": 370666,
+          "state": "S",
+          "pgid": 370666,
+          "start_ticks": "18689524"
+        },
+        "sent": {
+          "jev": 9,
+          "typellm": 0
+        },
+        "whole_run_sent": {
+          "jev": 827,
+          "typellm": 86
+        },
+        "reserved_until_confirmed_stop": null
+      }
+    },
+    "raw": "/work/repos/voice-ui-typellm-20261016/quota-final-R-20261018.raw",
+    "driver_stdout": "/work/repos/voice-ui-typellm-20261016/quota-final-R-20261018.driver.stdout.log",
+    "driver_stderr": "/work/repos/voice-ui-typellm-20261016/quota-final-R-20261018.driver.stderr.log"
+  },
+  "execution": {
+    "schema": "voice-ui.quota-cycle-phase/1",
+    "axis": "R",
+    "status": "RECORDED",
+    "summary": [
+      {
+        "axis": "R",
+        "id": "QR01",
+        "arm": "O",
+        "method": "ready-open",
+        "generation_policy": null,
+        "goal_parts_policy": "open",
+        "valid_execution": true,
+        "calls": 3
+      },
+      {
+        "axis": "R",
+        "id": "QR01",
+        "arm": "Q",
+        "method": "ready-quota",
+        "generation_policy": null,
+        "goal_parts_policy": "quota",
+        "valid_execution": true,
+        "calls": 2
+      },
+      {
+        "axis": "R",
+        "id": "QR02",
+        "arm": "Q",
+        "method": "ready-quota",
+        "generation_policy": null,
+        "goal_parts_policy": "quota",
+        "valid_execution": true,
+        "calls": 2
+      },
+      {
+        "axis": "R",
+        "id": "QR02",
+        "arm": "O",
+        "method": "ready-open",
+        "generation_policy": null,
+        "goal_parts_policy": "open",
+        "valid_execution": true,
+        "calls": 2
+      }
+    ],
+    "invalid_cells": 0,
+    "expected_cells": 4
+  }
+}

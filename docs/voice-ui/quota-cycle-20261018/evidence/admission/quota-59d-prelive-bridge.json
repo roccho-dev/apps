@@ -1,0 +1,88 @@
+{
+  "schema": "voice-ui.review.quota-prelive-static-bridge/1",
+  "status": "PASS",
+  "from_head": "b9c68edb2517783e46ec9dc09bd69bcb89bfc146",
+  "to_head": "59ded276405a5dc9caa85ad570b1827ff4bd0c7a",
+  "ordinary_equal": 291,
+  "manifest_files": 293,
+  "metadata": [
+    {
+      "path": "architecture/evidence.json",
+      "differences": [
+        {
+          "pointer": "/source/commit",
+          "old": "b9c68edb2517783e46ec9dc09bd69bcb89bfc146",
+          "new": "59ded276405a5dc9caa85ad570b1827ff4bd0c7a"
+        }
+      ]
+    },
+    {
+      "path": "site/architecture/data/source.v1.json",
+      "differences": [
+        {
+          "pointer": "/source/commit",
+          "old": "b9c68edb2517783e46ec9dc09bd69bcb89bfc146",
+          "new": "59ded276405a5dc9caa85ad570b1827ff4bd0c7a"
+        },
+        {
+          "pointer": "/files/130/blob",
+          "old": "d369bcf4137bec5dffeb1e962bb4b74c1706b724",
+          "new": "f1abeb22cd52ae2af99aee4e54ec2e6632369e60"
+        }
+      ]
+    }
+  ],
+  "manifest_differences": [
+    {
+      "pointer": "/files/1/sha256",
+      "old": "1ede13570766234e0e544530ee492d6396a76d8a241223a1288050ba23bbef22",
+      "new": "5009624ad975c5353fdaa7d697888b8cc7f92e119a9b137eef85bd3002bd0b03"
+    },
+    {
+      "pointer": "/files/31/sha256",
+      "old": "f2fe235ac822a867a1a4614b83a92cf729ccf5fc0e303452bac59befa6c8f05d",
+      "new": "4db03fce9bc76d89292658d74818052d3fe3e13cc7a67ac3c2015a696d3cda1e"
+    },
+    {
+      "pointer": "/sources/apps",
+      "old": "b9c68edb2517783e46ec9dc09bd69bcb89bfc146",
+      "new": "59ded276405a5dc9caa85ad570b1827ff4bd0c7a"
+    },
+    {
+      "pointer": "/sources/architecture/evidence_sha256",
+      "old": "1ede13570766234e0e544530ee492d6396a76d8a241223a1288050ba23bbef22",
+      "new": "5009624ad975c5353fdaa7d697888b8cc7f92e119a9b137eef85bd3002bd0b03"
+    },
+    {
+      "pointer": "/sources/architecture/manifest_sha256",
+      "old": "f2fe235ac822a867a1a4614b83a92cf729ccf5fc0e303452bac59befa6c8f05d",
+      "new": "4db03fce9bc76d89292658d74818052d3fe3e13cc7a67ac3c2015a696d3cda1e"
+    },
+    {
+      "pointer": "/sources/architecture/source/commit",
+      "old": "b9c68edb2517783e46ec9dc09bd69bcb89bfc146",
+      "new": "59ded276405a5dc9caa85ad570b1827ff4bd0c7a"
+    }
+  ],
+  "dev_program_substitutions": [
+    {
+      "old": "/nix/store/8lq3hwfs5c24j4hpxpq6a5s2vpszda98-source",
+      "new": "/nix/store/xa00hp6m6jxr8kmfn8xqp7a0nrlvljn4-source"
+    },
+    {
+      "old": "/nix/store/w8zqwzvnhw1xwf960g9nf8c5jpifkrka-voice-ui-dist",
+      "new": "/nix/store/a4kzf7yr1dzaf6fl25cxiif062l18j22-voice-ui-dist"
+    },
+    {
+      "old": "/nix/store/wnapag7dzfz5yqij0qrdz5kfb6c2cdsg-voice-ui-architecture-source",
+      "new": "/nix/store/ppryxhhkzz415zfglnv2jzfbvwrq9pz9-voice-ui-architecture-source"
+    }
+  ],
+  "worker_sha256": "8a1fef6c917240b951bae91132d353d334fd050f880ca7f4666b57f0178ef3fc",
+  "provider_sha256": "3f754c8b1ee4a8b34b50d00fd17e37295d853e1b607903b6d355b5e06997669c",
+  "scope": "SAME_PRODUCT28_AND_ORDINARY_ARTIFACT_BYTES; NAMED_STATIC_TEST_METADATA_DELTA_ONLY; NEW_EXACT_HEAD_CI_REMAINS_REQUIRED",
+  "real_provider_calls": 0,
+  "checked_at": "2026-10-17T22:44:18.257Z",
+  "source28_audit_sha256": "0e3805239d8a4639e569032d08f9b099fd3d912f6f2b76af5edfd2e309ebdaf0",
+  "runtime_audit_sha256": "9bf20ed61361a02cb9578a88a47da49d27ab7879093516d1df15ab4320974de9"
+}

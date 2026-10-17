@@ -1,0 +1,391 @@
+{
+  "schema": "voice-ui.review.quota-ci-mechanics/1",
+  "status": "PASS",
+  "checked_at": "2026-10-17T22:53:40.170Z",
+  "head": "59ded276405a5dc9caa85ad570b1827ff4bd0c7a",
+  "run_id": 39076041775,
+  "artifact_id": 12117775032,
+  "archive_sha256": "601d439ce493fa0e32faeab92f281f76b35a2518e7c1a96369cde6d145916937",
+  "receipt_sha256": "7bd404a0cdfdf9245a9d621ec06d115bd5cb3da650a45bccc0ea02c349b70ec2",
+  "manifest_sha256": "76efba68bb3935bbe28185c3f79f2521709698456156967fa7cbb3c544bbe311",
+  "source28_verified": true,
+  "cells": 12,
+  "retained_invalid": 4,
+  "independently_assessed_named_frames": 26,
+  "verified_protocol_prefixes": 30,
+  "stages": [
+    {
+      "stage": "R",
+      "cells": 2,
+      "invalid_retained": 0,
+      "actual_paint_restore_replay": "PASS",
+      "raw_audit": {
+        "status": "PASS",
+        "synthetic_admissibility": false,
+        "semantic": {
+          "complete": true,
+          "total_pairs": 1,
+          "valid_cells": 2,
+          "open_correct": 0,
+          "quota_correct": 1,
+          "assembly_gains": 1,
+          "extra_adoptions_fixed": 1,
+          "regressions": 0,
+          "admitted_pairs": 1,
+          "pairs": [
+            {
+              "id": "PR01",
+              "eligible": true,
+              "matching_complete_supply": true,
+              "open_success": false,
+              "quota_success": true,
+              "open_false_adoption": true,
+              "assembly_gain": true,
+              "extra_adoption_fixed": true,
+              "regression": false,
+              "excluded_from_causal_only": false
+            }
+          ],
+          "quality_criteria": "PASS",
+          "public_gate": "PASS",
+          "effect_criteria": "UNMET",
+          "no_effect_criteria_pending_integrity": "UNPROVEN",
+          "scope": "finite conditional expression; open wrong additions remain outcomes; no Type or ordinary interpretation inference"
+        }
+      }
+    },
+    {
+      "stage": "E",
+      "cells": 2,
+      "invalid_retained": 0,
+      "actual_paint_restore_replay": "PASS",
+      "raw_audit": {
+        "status": "PASS",
+        "synthetic_admissibility": false,
+        "semantic": {
+          "complete": true,
+          "total_pairs": 1,
+          "valid_cells": 2,
+          "baseline": {
+            "sufficient": {
+              "correct": 0,
+              "total": 0
+            },
+            "missing": {
+              "correct": 0,
+              "total": 1
+            },
+            "ambiguous": {
+              "correct": 0,
+              "total": 0
+            },
+            "no-change": {
+              "correct": 0,
+              "total": 0
+            }
+          },
+          "candidate": {
+            "sufficient": {
+              "correct": 0,
+              "total": 0
+            },
+            "missing": {
+              "correct": 1,
+              "total": 1
+            },
+            "ambiguous": {
+              "correct": 0,
+              "total": 0
+            },
+            "no-change": {
+              "correct": 0,
+              "total": 0
+            }
+          },
+          "baseline_success": 0,
+          "candidate_success": 1,
+          "missing_gains": 1,
+          "regressions": 0,
+          "admissible_missing_pairs": 1,
+          "all_arm_guards": true,
+          "no_false_adoption": true,
+          "all_missing_admitted": true,
+          "pairs": [
+            {
+              "id": "PE01",
+              "eligible": true,
+              "baseline_success": false,
+              "candidate_success": true,
+              "missing_gain": true,
+              "regression": false,
+              "excluded_from_causal_only": false
+            }
+          ],
+          "quality_criteria": "PASS",
+          "public_gate": "PASS",
+          "effect_criteria": "PASS",
+          "no_effect_criteria_pending_integrity": "UNPROVEN",
+          "scope": "all six ordinary pairs retained; both paths quota; supplementation effect separate from R assembly effect and prior frontier taxonomy"
+        }
+      }
+    },
+    {
+      "stage": "R-unknown",
+      "cells": 2,
+      "invalid_retained": 2,
+      "actual_paint_restore_replay": "PASS",
+      "raw_audit": {
+        "status": "PASS",
+        "synthetic_admissibility": false,
+        "semantic": {
+          "complete": true,
+          "total_pairs": 1,
+          "valid_cells": 0,
+          "open_correct": 0,
+          "quota_correct": 0,
+          "assembly_gains": 0,
+          "extra_adoptions_fixed": 0,
+          "regressions": 0,
+          "admitted_pairs": 0,
+          "pairs": [
+            {
+              "id": "PR01",
+              "eligible": false,
+              "matching_complete_supply": false,
+              "open_success": false,
+              "quota_success": false,
+              "open_false_adoption": null,
+              "assembly_gain": false,
+              "extra_adoption_fixed": false,
+              "regression": false,
+              "excluded_from_causal_only": true
+            }
+          ],
+          "quality_criteria": "UNMET",
+          "public_gate": "UNMET",
+          "effect_criteria": "UNMET",
+          "no_effect_criteria_pending_integrity": "UNPROVEN",
+          "scope": "finite conditional expression; open wrong additions remain outcomes; no Type or ordinary interpretation inference"
+        }
+      }
+    },
+    {
+      "stage": "E-unknown",
+      "cells": 2,
+      "invalid_retained": 2,
+      "actual_paint_restore_replay": "PASS",
+      "raw_audit": {
+        "status": "PASS",
+        "synthetic_admissibility": false,
+        "semantic": {
+          "complete": true,
+          "total_pairs": 1,
+          "valid_cells": 0,
+          "baseline": {
+            "sufficient": {
+              "correct": 0,
+              "total": 0
+            },
+            "missing": {
+              "correct": 0,
+              "total": 1
+            },
+            "ambiguous": {
+              "correct": 0,
+              "total": 0
+            },
+            "no-change": {
+              "correct": 0,
+              "total": 0
+            }
+          },
+          "candidate": {
+            "sufficient": {
+              "correct": 0,
+              "total": 0
+            },
+            "missing": {
+              "correct": 0,
+              "total": 1
+            },
+            "ambiguous": {
+              "correct": 0,
+              "total": 0
+            },
+            "no-change": {
+              "correct": 0,
+              "total": 0
+            }
+          },
+          "baseline_success": 0,
+          "candidate_success": 0,
+          "missing_gains": 0,
+          "regressions": 0,
+          "admissible_missing_pairs": 0,
+          "all_arm_guards": true,
+          "no_false_adoption": true,
+          "all_missing_admitted": false,
+          "pairs": [
+            {
+              "id": "PE01",
+              "eligible": false,
+              "baseline_success": false,
+              "candidate_success": false,
+              "missing_gain": false,
+              "regression": false,
+              "excluded_from_causal_only": true
+            }
+          ],
+          "quality_criteria": "UNMET",
+          "public_gate": "UNMET",
+          "effect_criteria": "UNMET",
+          "no_effect_criteria_pending_integrity": "UNPROVEN",
+          "scope": "all six ordinary pairs retained; both paths quota; supplementation effect separate from R assembly effect and prior frontier taxonomy"
+        }
+      }
+    },
+    {
+      "stage": "R-edge",
+      "cells": 2,
+      "invalid_retained": 0,
+      "actual_paint_restore_replay": "PASS",
+      "raw_audit": "SYNTHETIC_ALTERED_INPUT_CORRECTLY_REFUSED_BY_LIVE_COMMITMENT_GATE"
+    },
+    {
+      "stage": "R-empty",
+      "cells": 2,
+      "invalid_retained": 0,
+      "actual_paint_restore_replay": "PASS",
+      "raw_audit": "SYNTHETIC_ALTERED_INPUT_CORRECTLY_REFUSED_BY_LIVE_COMMITMENT_GATE"
+    }
+  ],
+  "rows": [
+    {
+      "stage": "R",
+      "id": "PR01",
+      "arm": "O",
+      "valid_execution": true,
+      "calls": 5,
+      "raw_sha256": "c205e862bdbe05d712c3d9a59e4346c6ff6a610628a335083d13df0ebed26eaa",
+      "goal_elapsedMs": 128.41410100000007
+    },
+    {
+      "stage": "R",
+      "id": "PR01",
+      "arm": "Q",
+      "valid_execution": true,
+      "calls": 2,
+      "raw_sha256": "8382f3525ccb0fe37193c7b884addf4abc47fb9d748864f8f5cfff8789633744",
+      "goal_elapsedMs": 11.742175999999745
+    },
+    {
+      "stage": "E",
+      "id": "PE01",
+      "arm": "B",
+      "valid_execution": true,
+      "calls": 1,
+      "raw_sha256": "2821575cd8d617e101bae1cf3312aaaa6ae9aee88a7437f2c5485951e9c054f1",
+      "goal_elapsedMs": 20.535000000032596
+    },
+    {
+      "stage": "E",
+      "id": "PE01",
+      "arm": "C",
+      "valid_execution": true,
+      "calls": 3,
+      "raw_sha256": "d484aeb0d077ec4ebf9c460869aa21d700eafa488e9452b59e3ebedd2e2c0b58",
+      "goal_elapsedMs": 339.429999999993
+    },
+    {
+      "stage": "R-unknown",
+      "id": "PR01",
+      "arm": "O",
+      "valid_execution": false,
+      "calls": 1,
+      "raw_sha256": "b8a38f077a0acd0f6a0d24e57d93a992ea28ebec5ba791af28f16ca57f79327f",
+      "goal_elapsedMs": 36.20604400000002
+    },
+    {
+      "stage": "R-unknown",
+      "id": "PR01",
+      "arm": "Q",
+      "valid_execution": false,
+      "calls": 1,
+      "raw_sha256": "27461b1ad2efe45986dfcf41d5f3dbe5c8300756bc22fa81b9782816fc043864",
+      "goal_elapsedMs": 4.040025999999671
+    },
+    {
+      "stage": "E-unknown",
+      "id": "PE01",
+      "arm": "B",
+      "valid_execution": false,
+      "calls": 1,
+      "raw_sha256": "cdcef054124e7f6e1cfbd848aee918a0167f351304d9bae1ffe2e48f3ba7b850",
+      "goal_elapsedMs": 16.479999999981374
+    },
+    {
+      "stage": "E-unknown",
+      "id": "PE01",
+      "arm": "C",
+      "valid_execution": false,
+      "calls": 1,
+      "raw_sha256": "a3f1bf3bdbcfa70d9f7e6b968c8ea25d9638b602c4b1b3e12bdc1a13b86a6b6c",
+      "goal_elapsedMs": 13.544999999983702
+    },
+    {
+      "stage": "R-edge",
+      "id": "PR01",
+      "arm": "O",
+      "valid_execution": true,
+      "calls": 2,
+      "raw_sha256": "91e46d1e9834f99fd9cbe91c3b56dec1b163adb44e173ce3602ad08739899095",
+      "goal_elapsedMs": 56.58000299999998
+    },
+    {
+      "stage": "R-edge",
+      "id": "PR01",
+      "arm": "Q",
+      "valid_execution": true,
+      "calls": 2,
+      "raw_sha256": "9e2aa4d7437aaa78acb7f78ddb1ccc70b2eaf3a4c6d17716f638cbc74401d17d",
+      "goal_elapsedMs": 10.989520000000084
+    },
+    {
+      "stage": "R-empty",
+      "id": "PR01",
+      "arm": "O",
+      "valid_execution": true,
+      "calls": 1,
+      "raw_sha256": "89297d0c995b2b14763392035882d1f34eb9060a413d5e3033a4c38d9c98bf76",
+      "goal_elapsedMs": 38.19561999999996
+    },
+    {
+      "stage": "R-empty",
+      "id": "PR01",
+      "arm": "Q",
+      "valid_execution": true,
+      "calls": 0,
+      "raw_sha256": "e0fc6fe6717e6c9b2ca02caac3651e5104b381b1c52da0ddd3cdbb7daaf4b195",
+      "goal_elapsedMs": 0.107321000000411
+    }
+  ],
+  "original_utf8_wire_pairs": [
+    {
+      "axis": "G0",
+      "request_body_sha256": "77691fa5a53c1030ea9aa4fafcceaabe6c9427a22e4abad585878d6cc2ceaf69",
+      "status": "RAW_UTF8_AND_PARSED_UPSTREAM_EQUAL; CLOSED_RESPONSE_EQUAL_EXCEPT_VALIDATED_DECLARED_UUID"
+    },
+    {
+      "axis": "F",
+      "request_body_sha256": "82311f513add8dba76b9c75bc44194fb423923db32d094b285f026bbd176c656",
+      "status": "RAW_UTF8_AND_PARSED_UPSTREAM_EQUAL; CLOSED_RESPONSE_EQUAL_EXCEPT_VALIDATED_DECLARED_UUID"
+    },
+    {
+      "axis": "V",
+      "request_body_sha256": "524dc31a5b65ac9dc5f2c95b90856df60df1ad38aef34e7b225e5a23efee4c1c",
+      "status": "RAW_UTF8_AND_PARSED_UPSTREAM_EQUAL; CLOSED_RESPONSE_EQUAL_EXCEPT_VALIDATED_DECLARED_UUID"
+    }
+  ],
+  "scope": "ACTUAL_COMPLETED_ZIP_SYNTHETIC_MECHANICS_ONLY_NOT_MODEL_PERFORMANCE_OR_LAUNCH_GO",
+  "reviewer_real_provider_calls": 0
+}

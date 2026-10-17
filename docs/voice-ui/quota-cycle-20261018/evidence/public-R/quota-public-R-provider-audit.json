@@ -1,0 +1,42 @@
+{
+  "status": "PASS",
+  "issues": [],
+  "phase": "quota-public-R-20261018",
+  "sent": {
+    "jev": 5,
+    "typellm": 0
+  },
+  "prior_charged": {
+    "jev": 808,
+    "typellm": 85
+  },
+  "charged_at_cutoff": {
+    "jev": 813,
+    "typellm": 85
+  },
+  "journal_sha256": "6142efa4b4e9c7e6ce7febfa89d01b6b2ccb5808fa436d9c56254760f81d3e23",
+  "config_sha256": "9d24f00aee606e74d0ec40d4baa4761baf11726e999f1c7802649665e5295fe7",
+  "stop_scope": "recorded reconciliation only; independent live PID observation remains an explicit audit reference",
+  "expected_external_bounds": {
+    "jev": {
+      "min": 5,
+      "max": 5
+    },
+    "typellm": {
+      "min": 0,
+      "max": 0
+    }
+  },
+  "cycle_start": {
+    "jev": 808,
+    "typellm": 85
+  },
+  "cycle_limit": {
+    "jev": 181,
+    "typellm": 7
+  },
+  "cycle_remaining": {
+    "jev": 176,
+    "typellm": 7
+  }
+}

@@ -1,0 +1,224 @@
+{
+  "schema": "voice-ui.quota-cycle-input/1",
+  "axis": "E",
+  "oracle_sha256": "87bc601021241e65ee78e5e8c4a30d316d0e8e9c7fcbbfe3ac2f6b4b7a2b87b3",
+  "parent_inputs_sha256": null,
+  "fixture_contract": {
+    "map_id": "voice-graph",
+    "base_records": [
+      {
+        "type": "meta",
+        "schema": "semantic-map-state/1",
+        "root": "root",
+        "title": "independent quota expression"
+      },
+      {
+        "type": "region",
+        "id": "root",
+        "parent": null,
+        "label": "fixture",
+        "kind": "boundary",
+        "bounds": [
+          0,
+          0,
+          900,
+          400
+        ],
+        "summary": ""
+      },
+      {
+        "type": "region",
+        "id": "container",
+        "parent": "root",
+        "label": "作業区",
+        "kind": "group",
+        "bounds": [
+          0,
+          0,
+          700,
+          200
+        ],
+        "summary": ""
+      },
+      {
+        "type": "region",
+        "id": "other",
+        "parent": "root",
+        "label": "保留区",
+        "kind": "group",
+        "bounds": [
+          0,
+          230,
+          700,
+          160
+        ],
+        "summary": ""
+      }
+    ],
+    "base_pins": [
+      {
+        "regionId": "container",
+        "bounds": [
+          0,
+          0,
+          2000,
+          500
+        ]
+      },
+      {
+        "regionId": "other",
+        "bounds": [
+          0,
+          600,
+          2000,
+          500
+        ]
+      }
+    ],
+    "fixtures": {
+      "empty": {
+        "extra_records": [],
+        "extra_pins": []
+      },
+      "api": {
+        "extra_records": [
+          {
+            "type": "region",
+            "id": "initial-api",
+            "parent": "container",
+            "label": "API",
+            "kind": "step",
+            "bounds": [
+              20,
+              20,
+              140,
+              64
+            ],
+            "summary": ""
+          }
+        ],
+        "extra_pins": [
+          {
+            "regionId": "initial-api",
+            "bounds": [
+              12,
+              36,
+              140,
+              64
+            ]
+          }
+        ]
+      },
+      "pair": {
+        "extra_records": [
+          {
+            "type": "region",
+            "id": "initial-api",
+            "parent": "container",
+            "label": "API",
+            "kind": "step",
+            "bounds": [
+              20,
+              20,
+              140,
+              64
+            ],
+            "summary": ""
+          },
+          {
+            "type": "region",
+            "id": "initial-db",
+            "parent": "container",
+            "label": "DB",
+            "kind": "data",
+            "bounds": [
+              200,
+              20,
+              140,
+              64
+            ],
+            "summary": ""
+          }
+        ],
+        "extra_pins": [
+          {
+            "regionId": "initial-api",
+            "bounds": [
+              12,
+              36,
+              140,
+              64
+            ]
+          },
+          {
+            "regionId": "initial-db",
+            "bounds": [
+              200,
+              36,
+              140,
+              64
+            ]
+          }
+        ]
+      }
+    },
+    "recent_conversation": [],
+    "scope": null
+  },
+  "cases": [
+    {
+      "id": "QE01",
+      "fixture": "empty",
+      "utterance": "作業区の中にAPIを1個追加してください。ほかの図形と線はそのままでお願いします。",
+      "arms": [
+        "B",
+        "C"
+      ]
+    },
+    {
+      "id": "QE02",
+      "fixture": "pair",
+      "utterance": "既存のAPIから既存のDBへ、作業区の中で接続を一本追加してください。新しい部品を作る必要はありません。",
+      "arms": [
+        "C",
+        "B"
+      ]
+    },
+    {
+      "id": "QE03",
+      "fixture": "empty",
+      "utterance": "作業区に新しく一つの判断ノードを置いて、その表示を出荷可否にしてください。ほかには何も追加しないでください。",
+      "arms": [
+        "B",
+        "C"
+      ]
+    },
+    {
+      "id": "QE04",
+      "fixture": "empty",
+      "utterance": "保留区へ新しい工程を二つ設け、どちらの表示もAPIにしてください。二つとも独立した部品として置き、線は付けないでください。",
+      "arms": [
+        "C",
+        "B"
+      ]
+    },
+    {
+      "id": "QE05",
+      "fixture": "empty",
+      "utterance": "作業区へ何か部品を一つ増やしたいのですが、名称も種類もまだ決まっていません。",
+      "arms": [
+        "B",
+        "C"
+      ]
+    },
+    {
+      "id": "QE06",
+      "fixture": "pair",
+      "utterance": "現在のAPIとDBがある図をこのまま確認するだけです。部品も接続も変更せずに表示を保ってください。",
+      "arms": [
+        "C",
+        "B"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,49 @@
+{
+  "schema": "voice-ui.quota-cycle-phase/1",
+  "axis": "R",
+  "status": "RECORDED",
+  "summary": [
+    {
+      "axis": "R",
+      "id": "QR01",
+      "arm": "O",
+      "method": "ready-open",
+      "generation_policy": null,
+      "goal_parts_policy": "open",
+      "valid_execution": true,
+      "calls": 3
+    },
+    {
+      "axis": "R",
+      "id": "QR01",
+      "arm": "Q",
+      "method": "ready-quota",
+      "generation_policy": null,
+      "goal_parts_policy": "quota",
+      "valid_execution": true,
+      "calls": 2
+    },
+    {
+      "axis": "R",
+      "id": "QR02",
+      "arm": "Q",
+      "method": "ready-quota",
+      "generation_policy": null,
+      "goal_parts_policy": "quota",
+      "valid_execution": true,
+      "calls": 2
+    },
+    {
+      "axis": "R",
+      "id": "QR02",
+      "arm": "O",
+      "method": "ready-open",
+      "generation_policy": null,
+      "goal_parts_policy": "open",
+      "valid_execution": true,
+      "calls": 2
+    }
+  ],
+  "invalid_cells": 0,
+  "expected_cells": 4
+}

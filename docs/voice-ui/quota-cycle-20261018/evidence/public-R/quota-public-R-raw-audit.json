@@ -1,0 +1,254 @@
+{
+  "schema": "voice-ui.quota-cycle-raw-audit/1",
+  "axis": "R",
+  "status": "PASS",
+  "issues": [],
+  "complete": true,
+  "all_valid_execution": true,
+  "consumed": 2,
+  "planned": 2,
+  "rows": [
+    {
+      "id": "PR01",
+      "method": "ready-open",
+      "arm": "O",
+      "generation_policy": null,
+      "goal_parts_policy": "open",
+      "valid_execution": true,
+      "grade": {
+        "contract_valid": true,
+        "graph_exact": true,
+        "graph": {
+          "graph_exact": true,
+          "unique_record_keys": true,
+          "existing_semantics_preserved": true,
+          "semantic_unchanged": false,
+          "clean_new_regions": true,
+          "clean_new_edges": true,
+          "no_other_new_semantics": true,
+          "actual_added_regions": [
+            {
+              "label": "計量合否",
+              "kind": "decision",
+              "parent": "fixture:container"
+            }
+          ],
+          "actual_added_edges": []
+        },
+        "no_false_adoption": true,
+        "existing_semantics_preserved": true,
+        "supplied_inventory_complete": true,
+        "goal_parts_policy": "open",
+        "quota_offers_exact": true,
+        "selected_one_use": true,
+        "initial_log_sha256": "0bdbd15714a1cae6ae10a2a5ddd2265cb2895d57e847aa74cbfee864274c8612",
+        "supply_sha256": "e6aecbf8987e053962d0d965b20bee9db906de59b6f7fac5caae2e2587496707",
+        "required_sha256": "794d878e76a36653a38cbadc028b34573ac9b3a526be254395082fa8d9e1bb14",
+        "deadline": true,
+        "scope": "conditional native expression only; open extra/wrong graph is an outcome, never filtered from pair admission"
+      },
+      "paint_status": "PASS",
+      "persisted_raw_equal": true,
+      "cell_wall_elapsedMs": 14022.230300000001,
+      "goal_elapsedMs": 1043.7889999999998,
+      "goal_deadline_status": "PASS"
+    },
+    {
+      "id": "PR01",
+      "method": "ready-quota",
+      "arm": "Q",
+      "generation_policy": null,
+      "goal_parts_policy": "quota",
+      "valid_execution": true,
+      "grade": {
+        "contract_valid": true,
+        "graph_exact": true,
+        "graph": {
+          "graph_exact": true,
+          "unique_record_keys": true,
+          "existing_semantics_preserved": true,
+          "semantic_unchanged": false,
+          "clean_new_regions": true,
+          "clean_new_edges": true,
+          "no_other_new_semantics": true,
+          "actual_added_regions": [
+            {
+              "label": "計量合否",
+              "kind": "decision",
+              "parent": "fixture:container"
+            }
+          ],
+          "actual_added_edges": []
+        },
+        "no_false_adoption": true,
+        "existing_semantics_preserved": true,
+        "supplied_inventory_complete": true,
+        "goal_parts_policy": "quota",
+        "quota_offers_exact": true,
+        "selected_one_use": true,
+        "initial_log_sha256": "0bdbd15714a1cae6ae10a2a5ddd2265cb2895d57e847aa74cbfee864274c8612",
+        "supply_sha256": "e6aecbf8987e053962d0d965b20bee9db906de59b6f7fac5caae2e2587496707",
+        "required_sha256": "794d878e76a36653a38cbadc028b34573ac9b3a526be254395082fa8d9e1bb14",
+        "deadline": true,
+        "scope": "conditional native expression only; open extra/wrong graph is an outcome, never filtered from pair admission"
+      },
+      "paint_status": "PASS",
+      "persisted_raw_equal": true,
+      "cell_wall_elapsedMs": 12691.9011,
+      "goal_elapsedMs": 716.5226999999977,
+      "goal_deadline_status": "PASS"
+    }
+  ],
+  "semantic": {
+    "complete": true,
+    "total_pairs": 1,
+    "valid_cells": 2,
+    "open_correct": 1,
+    "quota_correct": 1,
+    "assembly_gains": 0,
+    "extra_adoptions_fixed": 0,
+    "regressions": 0,
+    "admitted_pairs": 1,
+    "pairs": [
+      {
+        "id": "PR01",
+        "eligible": true,
+        "matching_complete_supply": true,
+        "open_success": true,
+        "quota_success": true,
+        "open_false_adoption": false,
+        "assembly_gain": false,
+        "extra_adoption_fixed": false,
+        "regression": false,
+        "excluded_from_causal_only": false
+      }
+    ],
+    "quality_criteria": "PASS",
+    "public_gate": "PASS",
+    "effect_criteria": "UNMET",
+    "no_effect_criteria_pending_integrity": "UNPROVEN",
+    "scope": "finite conditional expression; open wrong additions remain outcomes; no Type or ordinary interpretation inference"
+  },
+  "phase_kind": "public",
+  "inputs_sha256": "35e6e31053ab8ea187899258e79623e74bc837ba482a73e043ef1ed99c296179",
+  "parent_inputs_sha256": null,
+  "parent_oracle_sha256": null,
+  "admissible_for_semantic_claim": true,
+  "external_provider_attempts": {
+    "jev": 5,
+    "typellm": 0
+  },
+  "external_provider_attempt_bounds": {
+    "jev": {
+      "min": 5,
+      "max": 5
+    },
+    "typellm": {
+      "min": 0,
+      "max": 0
+    }
+  },
+  "stage_rows": 0,
+  "stage_alignment": "UNIQUE",
+  "proofs": [
+    {
+      "id": "PR01",
+      "method": "ready-open",
+      "arm": "O",
+      "generation_policy": null,
+      "goal_parts_policy": "open",
+      "status": "PASS",
+      "initial_head": "sha256:f14b93ac1b4a8ca4af467132ccd7f5d0a524fed90de6dbf3d54d77ea8f534596",
+      "final_head": "sha256:3ce52a49ac9419674db87c8138b50f73bd1b6e59b98713fc64b383d88fbde9db",
+      "effective_parts": [
+        {
+          "key": "step",
+          "purpose": "an ordinary step, task or box",
+          "label": "工程",
+          "kind": "step"
+        },
+        {
+          "key": "decision",
+          "purpose": "a decision, choice or branch",
+          "label": "判断",
+          "kind": "decision"
+        },
+        {
+          "key": "data",
+          "purpose": "data, a document, an input or an output",
+          "label": "データ",
+          "kind": "data"
+        },
+        {
+          "key": "start",
+          "purpose": "a start or beginning",
+          "label": "開始",
+          "kind": "start"
+        },
+        {
+          "key": "end",
+          "purpose": "an end, finish or result",
+          "label": "終了",
+          "kind": "end"
+        },
+        {
+          "key": "api",
+          "purpose": "an application programming interface service that receives requests",
+          "label": "API",
+          "kind": "step"
+        },
+        {
+          "key": "db",
+          "purpose": "a database that persists application data",
+          "label": "DB",
+          "kind": "data"
+        },
+        {
+          "key": "ready-public",
+          "purpose": "one separately offered decision component with the exact displayed label 計量合否",
+          "label": "計量合否",
+          "kind": "decision"
+        }
+      ]
+    },
+    {
+      "id": "PR01",
+      "method": "ready-quota",
+      "arm": "Q",
+      "generation_policy": null,
+      "goal_parts_policy": "quota",
+      "status": "PASS",
+      "initial_head": "sha256:f14b93ac1b4a8ca4af467132ccd7f5d0a524fed90de6dbf3d54d77ea8f534596",
+      "final_head": "sha256:3ce52a49ac9419674db87c8138b50f73bd1b6e59b98713fc64b383d88fbde9db",
+      "effective_parts": [
+        {
+          "key": "ready-public",
+          "purpose": "one separately offered decision component with the exact displayed label 計量合否",
+          "label": "計量合否",
+          "kind": "decision"
+        }
+      ]
+    }
+  ],
+  "replay": {
+    "status": "PASS",
+    "issues": [],
+    "consumed": 2,
+    "frames": 6,
+    "assessed_frames": 4,
+    "recorded_paint_status": "PASS",
+    "replay_sha256": "09392c40e2d96a21507d23397deba5bf68cf1260efb46588aed378c9f3f991fd",
+    "model_quality_scope": "NONE",
+    "CI_LIVE_EXECUTION": "UNPROVEN"
+  },
+  "raw_sha256": {
+    "events.jsonl": "00c5e5b8afe76f7637a23cdd81b498fbaa270ca990404374a3e8aee242bd622d",
+    "execution.json": "91c87010746fea0eb140b9b42b577136ea926d30d7bc17f79f5f0dd5adfab5dd",
+    "identity.json": "3ce7b2711a8f8b2ebe468e349176267ee9332891eeea9648f1c49dde4f4ef4c0",
+    "PR01-O.json": "26b0f53ada5f4f27c437cb77050c90920b7aa050b32069e93c4222440eeb1a06",
+    "PR01-Q.json": "1df4d82dc5d373d51a355ce2268ee37b99f0cf6b7299ff441749ab802fd653bb"
+  },
+  "scope": "independent quota offers/protocol/native-or-browser persistence/paint join; fixed producer and actual physical stop remain separately required",
+  "CI_LIVE_EXECUTION": "UNPROVEN",
+  "currency": "COST_NOT_MEASURED"
+}

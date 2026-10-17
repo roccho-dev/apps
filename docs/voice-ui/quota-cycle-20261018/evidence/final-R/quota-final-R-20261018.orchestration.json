@@ -1,0 +1,34 @@
+{
+  "phase": "quota-final-R-20261018",
+  "began": "2026-10-17T23:18:47.571Z",
+  "finished": "2026-10-17T23:19:42.023Z",
+  "execution": {
+    "exit": 0,
+    "error": null
+  },
+  "stop": {
+    "status": "STOPPED_RECONCILED",
+    "result": {
+      "phase": "quota-final-R-20261018",
+      "action": "stop",
+      "current": {
+        "pid": 370666,
+        "state": "S",
+        "pgid": 370666,
+        "start_ticks": "18689524"
+      },
+      "sent": {
+        "jev": 9,
+        "typellm": 0
+      },
+      "whole_run_sent": {
+        "jev": 827,
+        "typellm": 86
+      },
+      "reserved_until_confirmed_stop": null
+    }
+  },
+  "raw": "/work/repos/voice-ui-typellm-20261016/quota-final-R-20261018.raw",
+  "driver_stdout": "/work/repos/voice-ui-typellm-20261016/quota-final-R-20261018.driver.stdout.log",
+  "driver_stderr": "/work/repos/voice-ui-typellm-20261016/quota-final-R-20261018.driver.stderr.log"
+}

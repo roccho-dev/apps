@@ -1,0 +1,19 @@
+{
+  "schema": "voice-ui.review.quota-recorded-aggregate-public-copy/1",
+  "status": "PASS",
+  "apps_sha": "59ded276405a5dc9caa85ad570b1827ff4bd0c7a",
+  "copy_allowlist": [
+    {
+      "name": "quota-cycle-recorded-aggregate.json",
+      "bytes": 16008,
+      "sha256": "8f59480a0107b9145457fa2b27c8d4411190b595e6cb6b43d90a3cd0d4a8dece"
+    },
+    {
+      "name": "quota-cycle-recorded-aggregate.md",
+      "bytes": 2567,
+      "sha256": "557791065766599eac60c4cd95dc8c63d0e8ff76e2bcb3e3c9c6f03f3ec0ef1d"
+    }
+  ],
+  "scope": "PUBLIC_RECORDED_EVIDENCE_SUMMARY_ONLY; NO_PRIVATE_AUTHORING_OR_OTHER_SEALED_PAYLOADS",
+  "reviewer_real_provider_calls": 0
+}

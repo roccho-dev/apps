@@ -1,0 +1,2226 @@
+{
+  "schema": "voice-ui.quota-cycle-cell/1",
+  "axis": "R",
+  "id": "QR02",
+  "method": "ready-open",
+  "arm": "O",
+  "generation_policy": null,
+  "goal_parts_policy": "open",
+  "supplied_required": [],
+  "replay_suffix_scope": "compatibility only",
+  "fixture": "pair",
+  "utterance": "作業区に今あるAPIから今あるDBへ向かう矢印を一本だけ足してください。既存の二部品は使いますが、新しい部品は一つも増やしません。",
+  "parts": [
+    {
+      "key": "step",
+      "purpose": "an ordinary step, task or box",
+      "label": "工程",
+      "kind": "step"
+    },
+    {
+      "key": "decision",
+      "purpose": "a decision, choice or branch",
+      "label": "判断",
+      "kind": "decision"
+    },
+    {
+      "key": "data",
+      "purpose": "data, a document, an input or an output",
+      "label": "データ",
+      "kind": "data"
+    },
+    {
+      "key": "start",
+      "purpose": "a start or beginning",
+      "label": "開始",
+      "kind": "start"
+    },
+    {
+      "key": "end",
+      "purpose": "an end, finish or result",
+      "label": "終了",
+      "kind": "end"
+    },
+    {
+      "key": "api",
+      "purpose": "an application programming interface service that receives requests",
+      "label": "API",
+      "kind": "step"
+    },
+    {
+      "key": "db",
+      "purpose": "a database that persists application data",
+      "label": "DB",
+      "kind": "data"
+    },
+    {
+      "key": "group",
+      "purpose": "a group, boundary or container that holds other parts",
+      "label": "グループ",
+      "kind": "group"
+    }
+  ],
+  "valid_execution": true,
+  "elapsedMs": 14915.091699999997,
+  "result": {
+    "reason": "none",
+    "requests": 2,
+    "elapsedMs": 500.0054999999993,
+    "selected": [],
+    "trace": [
+      {
+        "head": "sha256:369bf0534a4b8ee8fd18ef4c4cb054655ae099a2ba81dc7a64266f5dadce53bb",
+        "answers": {
+          "delta": {
+            "type": "choice",
+            "choice": "delta-17",
+            "confidence": 1
+          }
+        },
+        "failure": null
+      },
+      {
+        "head": "sha256:655928e1a034cbbe5fd0f38814aef3b48636bf77a4fa377dbd43d96d4bbf219e",
+        "answers": {
+          "delta": {
+            "type": "choice",
+            "choice": "none",
+            "confidence": 0.98
+          }
+        },
+        "failure": null
+      }
+    ]
+  },
+  "calls": [
+    {
+      "id": "QR02",
+      "arm": "O",
+      "n": 1,
+      "route": "/api/judge",
+      "request": {
+        "kind": "voice-ui.judge.goal-local-delta.v7",
+        "state": {
+          "utterance": "作業区に今あるAPIから今あるDBへ向かう矢印を一本だけ足してください。既存の二部品は使いますが、新しい部品は一つも増やしません。",
+          "graph": [
+            {
+              "id": "root",
+              "label": "fixture",
+              "parent": null
+            },
+            {
+              "id": "container",
+              "label": "作業区",
+              "parent": "root"
+            },
+            {
+              "id": "other",
+              "label": "保留区",
+              "parent": "root"
+            },
+            {
+              "id": "initial-api",
+              "label": "API",
+              "parent": "container"
+            },
+            {
+              "id": "initial-db",
+              "label": "DB",
+              "parent": "container"
+            }
+          ],
+          "edges": [],
+          "parents": [
+            {
+              "id": "container",
+              "label": "作業区",
+              "kind": "group",
+              "parent": "root"
+            },
+            {
+              "id": "other",
+              "label": "保留区",
+              "kind": "group",
+              "parent": "root"
+            }
+          ],
+          "offers": {
+            "parts": [
+              {
+                "key": "step",
+                "purpose": "an ordinary step, task or box",
+                "label": "工程"
+              },
+              {
+                "key": "decision",
+                "purpose": "a decision, choice or branch",
+                "label": "判断"
+              },
+              {
+                "key": "data",
+                "purpose": "data, a document, an input or an output",
+                "label": "データ"
+              },
+              {
+                "key": "start",
+                "purpose": "a start or beginning",
+                "label": "開始"
+              },
+              {
+                "key": "end",
+                "purpose": "an end, finish or result",
+                "label": "終了"
+              },
+              {
+                "key": "api",
+                "purpose": "an application programming interface service that receives requests",
+                "label": "API"
+              },
+              {
+                "key": "db",
+                "purpose": "a database that persists application data",
+                "label": "DB"
+              },
+              {
+                "key": "group",
+                "purpose": "a group, boundary or container that holds other parts",
+                "label": "グループ"
+              }
+            ]
+          },
+          "selected": [],
+          "candidates": [
+            {
+              "id": "delta-1",
+              "action": "add-part",
+              "part": "api",
+              "parent": "container"
+            },
+            {
+              "id": "delta-2",
+              "action": "add-part",
+              "part": "data",
+              "parent": "container"
+            },
+            {
+              "id": "delta-3",
+              "action": "add-part",
+              "part": "db",
+              "parent": "container"
+            },
+            {
+              "id": "delta-4",
+              "action": "add-part",
+              "part": "decision",
+              "parent": "container"
+            },
+            {
+              "id": "delta-5",
+              "action": "add-part",
+              "part": "end",
+              "parent": "container"
+            },
+            {
+              "id": "delta-6",
+              "action": "add-part",
+              "part": "group",
+              "parent": "container"
+            },
+            {
+              "id": "delta-7",
+              "action": "add-part",
+              "part": "start",
+              "parent": "container"
+            },
+            {
+              "id": "delta-8",
+              "action": "add-part",
+              "part": "step",
+              "parent": "container"
+            },
+            {
+              "id": "delta-9",
+              "action": "add-part",
+              "part": "api",
+              "parent": "other"
+            },
+            {
+              "id": "delta-10",
+              "action": "add-part",
+              "part": "data",
+              "parent": "other"
+            },
+            {
+              "id": "delta-11",
+              "action": "add-part",
+              "part": "db",
+              "parent": "other"
+            },
+            {
+              "id": "delta-12",
+              "action": "add-part",
+              "part": "decision",
+              "parent": "other"
+            },
+            {
+              "id": "delta-13",
+              "action": "add-part",
+              "part": "end",
+              "parent": "other"
+            },
+            {
+              "id": "delta-14",
+              "action": "add-part",
+              "part": "group",
+              "parent": "other"
+            },
+            {
+              "id": "delta-15",
+              "action": "add-part",
+              "part": "start",
+              "parent": "other"
+            },
+            {
+              "id": "delta-16",
+              "action": "add-part",
+              "part": "step",
+              "parent": "other"
+            },
+            {
+              "id": "delta-17",
+              "action": "add-edge",
+              "from": "initial-api",
+              "to": "initial-db"
+            },
+            {
+              "id": "delta-18",
+              "action": "add-edge",
+              "from": "initial-db",
+              "to": "initial-api"
+            }
+          ],
+          "context": {
+            "recent": []
+          },
+          "scope": null,
+          "placing": null
+        }
+      },
+      "status": 200,
+      "response": {
+        "kind": "voice-ui.judge.decision.v1",
+        "answers": {
+          "delta": {
+            "type": "choice",
+            "choice": "delta-17",
+            "confidence": 1
+          }
+        }
+      },
+      "elapsedMs": 239.01840000000084
+    },
+    {
+      "id": "QR02",
+      "arm": "O",
+      "n": 2,
+      "route": "/api/judge",
+      "request": {
+        "kind": "voice-ui.judge.goal-local-delta.v7",
+        "state": {
+          "utterance": "作業区に今あるAPIから今あるDBへ向かう矢印を一本だけ足してください。既存の二部品は使いますが、新しい部品は一つも増やしません。",
+          "graph": [
+            {
+              "id": "root",
+              "label": "fixture",
+              "parent": null
+            },
+            {
+              "id": "container",
+              "label": "作業区",
+              "parent": "root"
+            },
+            {
+              "id": "other",
+              "label": "保留区",
+              "parent": "root"
+            },
+            {
+              "id": "initial-api",
+              "label": "API",
+              "parent": "container"
+            },
+            {
+              "id": "initial-db",
+              "label": "DB",
+              "parent": "container"
+            }
+          ],
+          "edges": [
+            {
+              "id": "voice-initial-api-to-initial-db",
+              "from": "initial-api",
+              "to": "initial-db"
+            }
+          ],
+          "parents": [
+            {
+              "id": "container",
+              "label": "作業区",
+              "kind": "group",
+              "parent": "root"
+            },
+            {
+              "id": "other",
+              "label": "保留区",
+              "kind": "group",
+              "parent": "root"
+            }
+          ],
+          "offers": {
+            "parts": [
+              {
+                "key": "step",
+                "purpose": "an ordinary step, task or box",
+                "label": "工程"
+              },
+              {
+                "key": "decision",
+                "purpose": "a decision, choice or branch",
+                "label": "判断"
+              },
+              {
+                "key": "data",
+                "purpose": "data, a document, an input or an output",
+                "label": "データ"
+              },
+              {
+                "key": "start",
+                "purpose": "a start or beginning",
+                "label": "開始"
+              },
+              {
+                "key": "end",
+                "purpose": "an end, finish or result",
+                "label": "終了"
+              },
+              {
+                "key": "api",
+                "purpose": "an application programming interface service that receives requests",
+                "label": "API"
+              },
+              {
+                "key": "db",
+                "purpose": "a database that persists application data",
+                "label": "DB"
+              },
+              {
+                "key": "group",
+                "purpose": "a group, boundary or container that holds other parts",
+                "label": "グループ"
+              }
+            ]
+          },
+          "selected": [],
+          "candidates": [
+            {
+              "id": "delta-1",
+              "action": "add-part",
+              "part": "api",
+              "parent": "container"
+            },
+            {
+              "id": "delta-2",
+              "action": "add-part",
+              "part": "data",
+              "parent": "container"
+            },
+            {
+              "id": "delta-3",
+              "action": "add-part",
+              "part": "db",
+              "parent": "container"
+            },
+            {
+              "id": "delta-4",
+              "action": "add-part",
+              "part": "decision",
+              "parent": "container"
+            },
+            {
+              "id": "delta-5",
+              "action": "add-part",
+              "part": "end",
+              "parent": "container"
+            },
+            {
+              "id": "delta-6",
+              "action": "add-part",
+              "part": "group",
+              "parent": "container"
+            },
+            {
+              "id": "delta-7",
+              "action": "add-part",
+              "part": "start",
+              "parent": "container"
+            },
+            {
+              "id": "delta-8",
+              "action": "add-part",
+              "part": "step",
+              "parent": "container"
+            },
+            {
+              "id": "delta-9",
+              "action": "add-part",
+              "part": "api",
+              "parent": "other"
+            },
+            {
+              "id": "delta-10",
+              "action": "add-part",
+              "part": "data",
+              "parent": "other"
+            },
+            {
+              "id": "delta-11",
+              "action": "add-part",
+              "part": "db",
+              "parent": "other"
+            },
+            {
+              "id": "delta-12",
+              "action": "add-part",
+              "part": "decision",
+              "parent": "other"
+            },
+            {
+              "id": "delta-13",
+              "action": "add-part",
+              "part": "end",
+              "parent": "other"
+            },
+            {
+              "id": "delta-14",
+              "action": "add-part",
+              "part": "group",
+              "parent": "other"
+            },
+            {
+              "id": "delta-15",
+              "action": "add-part",
+              "part": "start",
+              "parent": "other"
+            },
+            {
+              "id": "delta-16",
+              "action": "add-part",
+              "part": "step",
+              "parent": "other"
+            },
+            {
+              "id": "delta-17",
+              "action": "add-edge",
+              "from": "initial-db",
+              "to": "initial-api"
+            }
+          ],
+          "context": {
+            "recent": [
+              {
+                "seq": 1,
+                "source": "typed",
+                "text": "作業区に今あるAPIから今あるDBへ向かう矢印を一本だけ足してください。既存の二部品は使いますが、新しい部品は一つも増やしません。",
+                "outcome": "step",
+                "effect": {
+                  "changes": [
+                    {
+                      "change": "added",
+                      "from": "initial-api",
+                      "to": "initial-db"
+                    }
+                  ]
+                }
+              }
+            ]
+          },
+          "scope": null,
+          "placing": null
+        }
+      },
+      "status": 200,
+      "response": {
+        "kind": "voice-ui.judge.decision.v1",
+        "answers": {
+          "delta": {
+            "type": "choice",
+            "choice": "none",
+            "confidence": 0.98
+          }
+        }
+      },
+      "elapsedMs": 197.29799999999523
+    }
+  ],
+  "initial_head": "sha256:369bf0534a4b8ee8fd18ef4c4cb054655ae099a2ba81dc7a64266f5dadce53bb",
+  "initial_log": "{\"operations\":[{\"mapId\":\"voice-graph\",\"records\":[{\"root\":\"root\",\"schema\":\"semantic-map-state/1\",\"title\":\"independent quota expression\",\"type\":\"meta\"},{\"bounds\":[0,0,900,400],\"id\":\"root\",\"kind\":\"boundary\",\"label\":\"fixture\",\"parent\":null,\"summary\":\"\",\"type\":\"region\"},{\"bounds\":[0,0,700,200],\"id\":\"container\",\"kind\":\"group\",\"label\":\"作業区\",\"parent\":\"root\",\"summary\":\"\",\"type\":\"region\"},{\"bounds\":[0,230,700,160],\"id\":\"other\",\"kind\":\"group\",\"label\":\"保留区\",\"parent\":\"root\",\"summary\":\"\",\"type\":\"region\"},{\"bounds\":[20,20,140,64],\"id\":\"initial-api\",\"kind\":\"step\",\"label\":\"API\",\"parent\":\"container\",\"summary\":\"\",\"type\":\"region\"},{\"bounds\":[200,20,140,64],\"id\":\"initial-db\",\"kind\":\"data\",\"label\":\"DB\",\"parent\":\"container\",\"summary\":\"\",\"type\":\"region\"}],\"type\":\"CreateMap\"}],\"parent\":null,\"schema\":\"semantic-map-decision/2\",\"stateHash\":\"sha256:1c8ea44afd39fdeceb740d7da12621d31b5e15fc32b951e3772e6521a18815fe\"}\n{\"operations\":[{\"items\":[{\"bounds\":[0,0,2000,500],\"regionId\":\"container\"},{\"bounds\":[0,600,2000,500],\"regionId\":\"other\"},{\"bounds\":[12,36,140,64],\"regionId\":\"initial-api\"},{\"bounds\":[200,36,140,64],\"regionId\":\"initial-db\"}],\"type\":\"PinRegions\"}],\"parent\":\"sha256:3ce9fcf1976bbe9ac1e193f7a5f69c785e24056f987f6f72d279912a98d0ddbe\",\"schema\":\"semantic-map-decision/2\",\"stateHash\":\"sha256:95d6dfe57856323e9ea40869ebf1134d98974cf509fd5a3ce0e568c46d4670d6\"}\n",
+  "initial_log_sha256": "a167cfcf6b38d3e183c60ee3702cba2e712efa6e56a73e4dff2b21a986b20b57",
+  "initial_records": [
+    {
+      "type": "meta",
+      "schema": "semantic-map-state/1",
+      "root": "root",
+      "title": "independent quota expression"
+    },
+    {
+      "type": "region",
+      "id": "root",
+      "parent": null,
+      "label": "fixture",
+      "kind": "boundary",
+      "bounds": [
+        0,
+        0,
+        900,
+        400
+      ],
+      "summary": ""
+    },
+    {
+      "type": "region",
+      "id": "container",
+      "parent": "root",
+      "label": "作業区",
+      "kind": "group",
+      "bounds": [
+        0,
+        0,
+        700,
+        200
+      ],
+      "summary": ""
+    },
+    {
+      "type": "region",
+      "id": "other",
+      "parent": "root",
+      "label": "保留区",
+      "kind": "group",
+      "bounds": [
+        0,
+        230,
+        700,
+        160
+      ],
+      "summary": ""
+    },
+    {
+      "type": "region",
+      "id": "initial-api",
+      "parent": "container",
+      "label": "API",
+      "kind": "step",
+      "bounds": [
+        20,
+        20,
+        140,
+        64
+      ],
+      "summary": ""
+    },
+    {
+      "type": "region",
+      "id": "initial-db",
+      "parent": "container",
+      "label": "DB",
+      "kind": "data",
+      "bounds": [
+        200,
+        20,
+        140,
+        64
+      ],
+      "summary": ""
+    },
+    {
+      "type": "layout",
+      "regionId": "container",
+      "pin": "hard",
+      "bounds": [
+        0,
+        0,
+        2000,
+        500
+      ]
+    },
+    {
+      "type": "layout",
+      "regionId": "initial-api",
+      "pin": "hard",
+      "bounds": [
+        12,
+        36,
+        140,
+        64
+      ]
+    },
+    {
+      "type": "layout",
+      "regionId": "initial-db",
+      "pin": "hard",
+      "bounds": [
+        200,
+        36,
+        140,
+        64
+      ]
+    },
+    {
+      "type": "layout",
+      "regionId": "other",
+      "pin": "hard",
+      "bounds": [
+        0,
+        600,
+        2000,
+        500
+      ]
+    }
+  ],
+  "final_head": "sha256:655928e1a034cbbe5fd0f38814aef3b48636bf77a4fa377dbd43d96d4bbf219e",
+  "final_log": "{\"operations\":[{\"mapId\":\"voice-graph\",\"records\":[{\"root\":\"root\",\"schema\":\"semantic-map-state/1\",\"title\":\"independent quota expression\",\"type\":\"meta\"},{\"bounds\":[0,0,900,400],\"id\":\"root\",\"kind\":\"boundary\",\"label\":\"fixture\",\"parent\":null,\"summary\":\"\",\"type\":\"region\"},{\"bounds\":[0,0,700,200],\"id\":\"container\",\"kind\":\"group\",\"label\":\"作業区\",\"parent\":\"root\",\"summary\":\"\",\"type\":\"region\"},{\"bounds\":[0,230,700,160],\"id\":\"other\",\"kind\":\"group\",\"label\":\"保留区\",\"parent\":\"root\",\"summary\":\"\",\"type\":\"region\"},{\"bounds\":[20,20,140,64],\"id\":\"initial-api\",\"kind\":\"step\",\"label\":\"API\",\"parent\":\"container\",\"summary\":\"\",\"type\":\"region\"},{\"bounds\":[200,20,140,64],\"id\":\"initial-db\",\"kind\":\"data\",\"label\":\"DB\",\"parent\":\"container\",\"summary\":\"\",\"type\":\"region\"}],\"type\":\"CreateMap\"}],\"parent\":null,\"schema\":\"semantic-map-decision/2\",\"stateHash\":\"sha256:1c8ea44afd39fdeceb740d7da12621d31b5e15fc32b951e3772e6521a18815fe\"}\n{\"operations\":[{\"items\":[{\"bounds\":[0,0,2000,500],\"regionId\":\"container\"},{\"bounds\":[0,600,2000,500],\"regionId\":\"other\"},{\"bounds\":[12,36,140,64],\"regionId\":\"initial-api\"},{\"bounds\":[200,36,140,64],\"regionId\":\"initial-db\"}],\"type\":\"PinRegions\"}],\"parent\":\"sha256:3ce9fcf1976bbe9ac1e193f7a5f69c785e24056f987f6f72d279912a98d0ddbe\",\"schema\":\"semantic-map-decision/2\",\"stateHash\":\"sha256:95d6dfe57856323e9ea40869ebf1134d98974cf509fd5a3ce0e568c46d4670d6\"}\n{\"operations\":[{\"from\":\"initial-api\",\"kind\":\"flow\",\"label\":\"\",\"relationId\":\"voice-initial-api-to-initial-db\",\"to\":\"initial-db\",\"type\":\"ConnectRegions\"}],\"parent\":\"sha256:369bf0534a4b8ee8fd18ef4c4cb054655ae099a2ba81dc7a64266f5dadce53bb\",\"schema\":\"semantic-map-decision/2\",\"stateHash\":\"sha256:f51474e5666ecdd59936cd69611c09059350fc2b2da8efeb7b82215eb6e23fa6\"}\n",
+  "final_records": [
+    {
+      "type": "meta",
+      "schema": "semantic-map-state/1",
+      "root": "root",
+      "title": "independent quota expression"
+    },
+    {
+      "type": "region",
+      "id": "root",
+      "parent": null,
+      "label": "fixture",
+      "kind": "boundary",
+      "bounds": [
+        0,
+        0,
+        900,
+        400
+      ],
+      "summary": ""
+    },
+    {
+      "type": "region",
+      "id": "container",
+      "parent": "root",
+      "label": "作業区",
+      "kind": "group",
+      "bounds": [
+        0,
+        0,
+        700,
+        200
+      ],
+      "summary": ""
+    },
+    {
+      "type": "region",
+      "id": "other",
+      "parent": "root",
+      "label": "保留区",
+      "kind": "group",
+      "bounds": [
+        0,
+        230,
+        700,
+        160
+      ],
+      "summary": ""
+    },
+    {
+      "type": "region",
+      "id": "initial-api",
+      "parent": "container",
+      "label": "API",
+      "kind": "step",
+      "bounds": [
+        20,
+        20,
+        140,
+        64
+      ],
+      "summary": ""
+    },
+    {
+      "type": "region",
+      "id": "initial-db",
+      "parent": "container",
+      "label": "DB",
+      "kind": "data",
+      "bounds": [
+        200,
+        20,
+        140,
+        64
+      ],
+      "summary": ""
+    },
+    {
+      "type": "relation",
+      "id": "voice-initial-api-to-initial-db",
+      "from": "initial-api",
+      "to": "initial-db",
+      "kind": "flow",
+      "label": ""
+    },
+    {
+      "type": "layout",
+      "regionId": "container",
+      "pin": "hard",
+      "bounds": [
+        0,
+        0,
+        2000,
+        500
+      ]
+    },
+    {
+      "type": "layout",
+      "regionId": "initial-api",
+      "pin": "hard",
+      "bounds": [
+        12,
+        36,
+        140,
+        64
+      ]
+    },
+    {
+      "type": "layout",
+      "regionId": "initial-db",
+      "pin": "hard",
+      "bounds": [
+        200,
+        36,
+        140,
+        64
+      ]
+    },
+    {
+      "type": "layout",
+      "regionId": "other",
+      "pin": "hard",
+      "bounds": [
+        0,
+        600,
+        2000,
+        500
+      ]
+    }
+  ],
+  "frames": [
+    {
+      "camera": "overview",
+      "scope": "restore equality only; hidden children do not imply paint"
+    },
+    {
+      "camera": "container",
+      "observation": {
+        "association": "render-owned-semantic-id",
+        "title": {
+          "unmet": null,
+          "box": [
+            155,
+            172.5,
+            39,
+            19
+          ],
+          "clips": [
+            [
+              0,
+              0,
+              626,
+              429
+            ],
+            [
+              0,
+              0,
+              626,
+              429
+            ],
+            [
+              0,
+              0,
+              626,
+              429
+            ]
+          ],
+          "svg": [
+            0,
+            0,
+            2176,
+            1292
+          ]
+        },
+        "identity": true,
+        "viewport": [
+          0,
+          0,
+          626,
+          429
+        ],
+        "container": {
+          "id": "container",
+          "kind": "painted-group-shape",
+          "bounds": [
+            143.5,
+            165,
+            2000,
+            500
+          ]
+        },
+        "shapes": [
+          {
+            "id": "initial-api",
+            "rawLabel": "API",
+            "bounds": [
+              155,
+              200.5,
+              140,
+              64
+            ],
+            "name": {
+              "unmet": null,
+              "box": [
+                213.5,
+                223,
+                22,
+                19
+              ],
+              "clips": [
+                [
+                  155,
+                  201,
+                  140,
+                  64
+                ],
+                [
+                  0,
+                  0,
+                  626,
+                  429
+                ],
+                [
+                  0,
+                  0,
+                  626,
+                  429
+                ],
+                [
+                  0,
+                  0,
+                  626,
+                  429
+                ]
+              ],
+              "svg": [
+                0,
+                0,
+                2176,
+                1292
+              ]
+            }
+          },
+          {
+            "id": "initial-db",
+            "rawLabel": "DB",
+            "bounds": [
+              343,
+              200.5,
+              140,
+              64
+            ],
+            "name": {
+              "unmet": null,
+              "box": [
+                404,
+                223,
+                18,
+                19
+              ],
+              "clips": [
+                [
+                  355,
+                  201,
+                  116,
+                  64
+                ],
+                [
+                  0,
+                  0,
+                  626,
+                  429
+                ],
+                [
+                  0,
+                  0,
+                  626,
+                  429
+                ],
+                [
+                  0,
+                  0,
+                  626,
+                  429
+                ]
+              ],
+              "svg": [
+                0,
+                0,
+                2176,
+                1292
+              ]
+            }
+          }
+        ],
+        "edge": null,
+        "contained": true,
+        "nonoverlap": true,
+        "complete": true
+      },
+      "assessment": {
+        "status": "PASS",
+        "problems": [],
+        "unknown": []
+      }
+    },
+    {
+      "camera": "other",
+      "observation": {
+        "association": "render-owned-semantic-id",
+        "title": {
+          "unmet": null,
+          "box": [
+            296.5,
+            206.86000061035156,
+            33,
+            16
+          ],
+          "clips": [
+            [
+              4,
+              136,
+              619,
+              157
+            ],
+            [
+              0,
+              0,
+              626,
+              429
+            ],
+            [
+              0,
+              0,
+              626,
+              429
+            ],
+            [
+              0,
+              0,
+              626,
+              429
+            ]
+          ],
+          "svg": [
+            0,
+            0,
+            638,
+            429
+          ]
+        },
+        "identity": true,
+        "viewport": [
+          0,
+          0,
+          626,
+          429
+        ],
+        "container": {
+          "id": "other",
+          "kind": "painted-group-shape",
+          "bounds": [
+            5.429999828338623,
+            137.97999572753906,
+            616.1400146484375,
+            154.0399932861328
+          ]
+        },
+        "shapes": [],
+        "edge": null,
+        "contained": true,
+        "nonoverlap": true,
+        "complete": true
+      },
+      "assessment": {
+        "status": "PASS",
+        "problems": [],
+        "unknown": []
+      }
+    },
+    {
+      "camera": "voice-initial-api-to-initial-db",
+      "observation": {
+        "association": "render-owned-semantic-id",
+        "title": {
+          "unmet": null,
+          "box": [
+            149,
+            154.5,
+            39,
+            19
+          ],
+          "clips": [
+            [
+              0,
+              0,
+              626,
+              429
+            ],
+            [
+              0,
+              0,
+              626,
+              429
+            ],
+            [
+              0,
+              0,
+              626,
+              429
+            ]
+          ],
+          "svg": [
+            0,
+            0,
+            2170,
+            1274
+          ]
+        },
+        "identity": true,
+        "viewport": [
+          0,
+          0,
+          626,
+          429
+        ],
+        "container": {
+          "id": "container",
+          "kind": "painted-group-shape",
+          "bounds": [
+            137.5,
+            147,
+            2000,
+            500
+          ]
+        },
+        "shapes": [
+          {
+            "id": "initial-api",
+            "rawLabel": "API",
+            "bounds": [
+              149,
+              182.5,
+              140,
+              64
+            ],
+            "name": {
+              "unmet": null,
+              "box": [
+                207.5,
+                205,
+                22,
+                19
+              ],
+              "clips": [
+                [
+                  149,
+                  183,
+                  140,
+                  64
+                ],
+                [
+                  0,
+                  0,
+                  626,
+                  429
+                ],
+                [
+                  0,
+                  0,
+                  626,
+                  429
+                ],
+                [
+                  0,
+                  0,
+                  626,
+                  429
+                ]
+              ],
+              "svg": [
+                0,
+                0,
+                2170,
+                1274
+              ]
+            }
+          },
+          {
+            "id": "initial-db",
+            "rawLabel": "DB",
+            "bounds": [
+              337,
+              182.5,
+              140,
+              64
+            ],
+            "name": {
+              "unmet": null,
+              "box": [
+                398,
+                205,
+                18,
+                19
+              ],
+              "clips": [
+                [
+                  349,
+                  183,
+                  116,
+                  64
+                ],
+                [
+                  0,
+                  0,
+                  626,
+                  429
+                ],
+                [
+                  0,
+                  0,
+                  626,
+                  429
+                ],
+                [
+                  0,
+                  0,
+                  626,
+                  429
+                ]
+              ],
+              "svg": [
+                0,
+                0,
+                2170,
+                1274
+              ]
+            }
+          }
+        ],
+        "edge": {
+          "from": "initial-api",
+          "to": "initial-db",
+          "association": "pinned-classic-marker-tip-and-stroke-in-one-cell-group",
+          "observed": [
+            {
+              "start": [
+                289.5,
+                215
+              ],
+              "end": [
+                341.67999267578125,
+                215
+              ],
+              "tip": [
+                347.19000244140625,
+                215
+              ],
+              "stroke": 1.35,
+              "padding": 2.5093000000000005,
+              "lineLength": 52.17999267578125,
+              "markerLength": 24.668292999267578,
+              "fromOutline": {
+                "tag": "rect",
+                "ctm": [
+                  1,
+                  0,
+                  0,
+                  1,
+                  0,
+                  0
+                ],
+                "samples": 1128,
+                "distanceUpper": 0.5109145892836559
+              },
+              "toOutline": {
+                "tag": "path",
+                "ctm": [
+                  1,
+                  0,
+                  0,
+                  1,
+                  0,
+                  0
+                ],
+                "samples": 1050,
+                "distanceUpper": 0.790929967015846
+              },
+              "fromConnected": true,
+              "toConnected": true,
+              "directed": true
+            }
+          ],
+          "matches": [
+            {
+              "start": [
+                289.5,
+                215
+              ],
+              "end": [
+                341.67999267578125,
+                215
+              ],
+              "tip": [
+                347.19000244140625,
+                215
+              ],
+              "stroke": 1.35,
+              "padding": 2.5093000000000005,
+              "lineLength": 52.17999267578125,
+              "markerLength": 24.668292999267578
+            }
+          ],
+          "unsupported": [],
+          "complete": true
+        },
+        "contained": true,
+        "nonoverlap": true,
+        "complete": true
+      },
+      "assessment": {
+        "status": "PASS",
+        "problems": [],
+        "unknown": []
+      }
+    }
+  ],
+  "lifecycle": {
+    "target": {
+      "log": "{\"operations\":[{\"mapId\":\"voice-graph\",\"records\":[{\"root\":\"root\",\"schema\":\"semantic-map-state/1\",\"title\":\"independent quota expression\",\"type\":\"meta\"},{\"bounds\":[0,0,900,400],\"id\":\"root\",\"kind\":\"boundary\",\"label\":\"fixture\",\"parent\":null,\"summary\":\"\",\"type\":\"region\"},{\"bounds\":[0,0,700,200],\"id\":\"container\",\"kind\":\"group\",\"label\":\"作業区\",\"parent\":\"root\",\"summary\":\"\",\"type\":\"region\"},{\"bounds\":[0,230,700,160],\"id\":\"other\",\"kind\":\"group\",\"label\":\"保留区\",\"parent\":\"root\",\"summary\":\"\",\"type\":\"region\"},{\"bounds\":[20,20,140,64],\"id\":\"initial-api\",\"kind\":\"step\",\"label\":\"API\",\"parent\":\"container\",\"summary\":\"\",\"type\":\"region\"},{\"bounds\":[200,20,140,64],\"id\":\"initial-db\",\"kind\":\"data\",\"label\":\"DB\",\"parent\":\"container\",\"summary\":\"\",\"type\":\"region\"}],\"type\":\"CreateMap\"}],\"parent\":null,\"schema\":\"semantic-map-decision/2\",\"stateHash\":\"sha256:1c8ea44afd39fdeceb740d7da12621d31b5e15fc32b951e3772e6521a18815fe\"}\n{\"operations\":[{\"items\":[{\"bounds\":[0,0,2000,500],\"regionId\":\"container\"},{\"bounds\":[0,600,2000,500],\"regionId\":\"other\"},{\"bounds\":[12,36,140,64],\"regionId\":\"initial-api\"},{\"bounds\":[200,36,140,64],\"regionId\":\"initial-db\"}],\"type\":\"PinRegions\"}],\"parent\":\"sha256:3ce9fcf1976bbe9ac1e193f7a5f69c785e24056f987f6f72d279912a98d0ddbe\",\"schema\":\"semantic-map-decision/2\",\"stateHash\":\"sha256:95d6dfe57856323e9ea40869ebf1134d98974cf509fd5a3ce0e568c46d4670d6\"}\n{\"operations\":[{\"from\":\"initial-api\",\"kind\":\"flow\",\"label\":\"\",\"relationId\":\"voice-initial-api-to-initial-db\",\"to\":\"initial-db\",\"type\":\"ConnectRegions\"}],\"parent\":\"sha256:369bf0534a4b8ee8fd18ef4c4cb054655ae099a2ba81dc7a64266f5dadce53bb\",\"schema\":\"semantic-map-decision/2\",\"stateHash\":\"sha256:f51474e5666ecdd59936cd69611c09059350fc2b2da8efeb7b82215eb6e23fa6\"}\n",
+      "records": [
+        {
+          "type": "meta",
+          "schema": "semantic-map-state/1",
+          "root": "root",
+          "title": "independent quota expression"
+        },
+        {
+          "type": "region",
+          "id": "root",
+          "parent": null,
+          "label": "fixture",
+          "kind": "boundary",
+          "bounds": [
+            0,
+            0,
+            900,
+            400
+          ],
+          "summary": ""
+        },
+        {
+          "type": "region",
+          "id": "container",
+          "parent": "root",
+          "label": "作業区",
+          "kind": "group",
+          "bounds": [
+            0,
+            0,
+            700,
+            200
+          ],
+          "summary": ""
+        },
+        {
+          "type": "region",
+          "id": "other",
+          "parent": "root",
+          "label": "保留区",
+          "kind": "group",
+          "bounds": [
+            0,
+            230,
+            700,
+            160
+          ],
+          "summary": ""
+        },
+        {
+          "type": "region",
+          "id": "initial-api",
+          "parent": "container",
+          "label": "API",
+          "kind": "step",
+          "bounds": [
+            20,
+            20,
+            140,
+            64
+          ],
+          "summary": ""
+        },
+        {
+          "type": "region",
+          "id": "initial-db",
+          "parent": "container",
+          "label": "DB",
+          "kind": "data",
+          "bounds": [
+            200,
+            20,
+            140,
+            64
+          ],
+          "summary": ""
+        },
+        {
+          "type": "relation",
+          "id": "voice-initial-api-to-initial-db",
+          "from": "initial-api",
+          "to": "initial-db",
+          "kind": "flow",
+          "label": ""
+        },
+        {
+          "type": "layout",
+          "regionId": "container",
+          "pin": "hard",
+          "bounds": [
+            0,
+            0,
+            2000,
+            500
+          ]
+        },
+        {
+          "type": "layout",
+          "regionId": "initial-api",
+          "pin": "hard",
+          "bounds": [
+            12,
+            36,
+            140,
+            64
+          ]
+        },
+        {
+          "type": "layout",
+          "regionId": "initial-db",
+          "pin": "hard",
+          "bounds": [
+            200,
+            36,
+            140,
+            64
+          ]
+        },
+        {
+          "type": "layout",
+          "regionId": "other",
+          "pin": "hard",
+          "bounds": [
+            0,
+            600,
+            2000,
+            500
+          ]
+        }
+      ],
+      "stored": "{\"operations\":[{\"mapId\":\"voice-graph\",\"records\":[{\"root\":\"root\",\"schema\":\"semantic-map-state/1\",\"title\":\"independent quota expression\",\"type\":\"meta\"},{\"bounds\":[0,0,900,400],\"id\":\"root\",\"kind\":\"boundary\",\"label\":\"fixture\",\"parent\":null,\"summary\":\"\",\"type\":\"region\"},{\"bounds\":[0,0,700,200],\"id\":\"container\",\"kind\":\"group\",\"label\":\"作業区\",\"parent\":\"root\",\"summary\":\"\",\"type\":\"region\"},{\"bounds\":[0,230,700,160],\"id\":\"other\",\"kind\":\"group\",\"label\":\"保留区\",\"parent\":\"root\",\"summary\":\"\",\"type\":\"region\"},{\"bounds\":[20,20,140,64],\"id\":\"initial-api\",\"kind\":\"step\",\"label\":\"API\",\"parent\":\"container\",\"summary\":\"\",\"type\":\"region\"},{\"bounds\":[200,20,140,64],\"id\":\"initial-db\",\"kind\":\"data\",\"label\":\"DB\",\"parent\":\"container\",\"summary\":\"\",\"type\":\"region\"}],\"type\":\"CreateMap\"}],\"parent\":null,\"schema\":\"semantic-map-decision/2\",\"stateHash\":\"sha256:1c8ea44afd39fdeceb740d7da12621d31b5e15fc32b951e3772e6521a18815fe\"}\n{\"operations\":[{\"items\":[{\"bounds\":[0,0,2000,500],\"regionId\":\"container\"},{\"bounds\":[0,600,2000,500],\"regionId\":\"other\"},{\"bounds\":[12,36,140,64],\"regionId\":\"initial-api\"},{\"bounds\":[200,36,140,64],\"regionId\":\"initial-db\"}],\"type\":\"PinRegions\"}],\"parent\":\"sha256:3ce9fcf1976bbe9ac1e193f7a5f69c785e24056f987f6f72d279912a98d0ddbe\",\"schema\":\"semantic-map-decision/2\",\"stateHash\":\"sha256:95d6dfe57856323e9ea40869ebf1134d98974cf509fd5a3ce0e568c46d4670d6\"}\n",
+      "goal": {
+        "reason": "none",
+        "requests": 2,
+        "elapsedMs": 500.0054999999993,
+        "selected": [],
+        "trace": [
+          {
+            "head": "sha256:369bf0534a4b8ee8fd18ef4c4cb054655ae099a2ba81dc7a64266f5dadce53bb",
+            "answers": {
+              "delta": {
+                "type": "choice",
+                "choice": "delta-17",
+                "confidence": 1
+              }
+            },
+            "failure": null
+          },
+          {
+            "head": "sha256:655928e1a034cbbe5fd0f38814aef3b48636bf77a4fa377dbd43d96d4bbf219e",
+            "answers": {
+              "delta": {
+                "type": "choice",
+                "choice": "none",
+                "confidence": 0.98
+              }
+            },
+            "failure": null
+          }
+        ]
+      }
+    },
+    "applied": {
+      "log": "{\"operations\":[{\"mapId\":\"voice-graph\",\"records\":[{\"root\":\"root\",\"schema\":\"semantic-map-state/1\",\"title\":\"independent quota expression\",\"type\":\"meta\"},{\"bounds\":[0,0,900,400],\"id\":\"root\",\"kind\":\"boundary\",\"label\":\"fixture\",\"parent\":null,\"summary\":\"\",\"type\":\"region\"},{\"bounds\":[0,0,700,200],\"id\":\"container\",\"kind\":\"group\",\"label\":\"作業区\",\"parent\":\"root\",\"summary\":\"\",\"type\":\"region\"},{\"bounds\":[0,230,700,160],\"id\":\"other\",\"kind\":\"group\",\"label\":\"保留区\",\"parent\":\"root\",\"summary\":\"\",\"type\":\"region\"},{\"bounds\":[20,20,140,64],\"id\":\"initial-api\",\"kind\":\"step\",\"label\":\"API\",\"parent\":\"container\",\"summary\":\"\",\"type\":\"region\"},{\"bounds\":[200,20,140,64],\"id\":\"initial-db\",\"kind\":\"data\",\"label\":\"DB\",\"parent\":\"container\",\"summary\":\"\",\"type\":\"region\"}],\"type\":\"CreateMap\"}],\"parent\":null,\"schema\":\"semantic-map-decision/2\",\"stateHash\":\"sha256:1c8ea44afd39fdeceb740d7da12621d31b5e15fc32b951e3772e6521a18815fe\"}\n{\"operations\":[{\"items\":[{\"bounds\":[0,0,2000,500],\"regionId\":\"container\"},{\"bounds\":[0,600,2000,500],\"regionId\":\"other\"},{\"bounds\":[12,36,140,64],\"regionId\":\"initial-api\"},{\"bounds\":[200,36,140,64],\"regionId\":\"initial-db\"}],\"type\":\"PinRegions\"}],\"parent\":\"sha256:3ce9fcf1976bbe9ac1e193f7a5f69c785e24056f987f6f72d279912a98d0ddbe\",\"schema\":\"semantic-map-decision/2\",\"stateHash\":\"sha256:95d6dfe57856323e9ea40869ebf1134d98974cf509fd5a3ce0e568c46d4670d6\"}\n{\"operations\":[{\"from\":\"initial-api\",\"kind\":\"flow\",\"label\":\"\",\"relationId\":\"voice-initial-api-to-initial-db\",\"to\":\"initial-db\",\"type\":\"ConnectRegions\"}],\"parent\":\"sha256:369bf0534a4b8ee8fd18ef4c4cb054655ae099a2ba81dc7a64266f5dadce53bb\",\"schema\":\"semantic-map-decision/2\",\"stateHash\":\"sha256:f51474e5666ecdd59936cd69611c09059350fc2b2da8efeb7b82215eb6e23fa6\"}\n",
+      "records": [
+        {
+          "type": "meta",
+          "schema": "semantic-map-state/1",
+          "root": "root",
+          "title": "independent quota expression"
+        },
+        {
+          "type": "region",
+          "id": "root",
+          "parent": null,
+          "label": "fixture",
+          "kind": "boundary",
+          "bounds": [
+            0,
+            0,
+            900,
+            400
+          ],
+          "summary": ""
+        },
+        {
+          "type": "region",
+          "id": "container",
+          "parent": "root",
+          "label": "作業区",
+          "kind": "group",
+          "bounds": [
+            0,
+            0,
+            700,
+            200
+          ],
+          "summary": ""
+        },
+        {
+          "type": "region",
+          "id": "other",
+          "parent": "root",
+          "label": "保留区",
+          "kind": "group",
+          "bounds": [
+            0,
+            230,
+            700,
+            160
+          ],
+          "summary": ""
+        },
+        {
+          "type": "region",
+          "id": "initial-api",
+          "parent": "container",
+          "label": "API",
+          "kind": "step",
+          "bounds": [
+            20,
+            20,
+            140,
+            64
+          ],
+          "summary": ""
+        },
+        {
+          "type": "region",
+          "id": "initial-db",
+          "parent": "container",
+          "label": "DB",
+          "kind": "data",
+          "bounds": [
+            200,
+            20,
+            140,
+            64
+          ],
+          "summary": ""
+        },
+        {
+          "type": "relation",
+          "id": "voice-initial-api-to-initial-db",
+          "from": "initial-api",
+          "to": "initial-db",
+          "kind": "flow",
+          "label": ""
+        },
+        {
+          "type": "layout",
+          "regionId": "container",
+          "pin": "hard",
+          "bounds": [
+            0,
+            0,
+            2000,
+            500
+          ]
+        },
+        {
+          "type": "layout",
+          "regionId": "initial-api",
+          "pin": "hard",
+          "bounds": [
+            12,
+            36,
+            140,
+            64
+          ]
+        },
+        {
+          "type": "layout",
+          "regionId": "initial-db",
+          "pin": "hard",
+          "bounds": [
+            200,
+            36,
+            140,
+            64
+          ]
+        },
+        {
+          "type": "layout",
+          "regionId": "other",
+          "pin": "hard",
+          "bounds": [
+            0,
+            600,
+            2000,
+            500
+          ]
+        }
+      ],
+      "stored": "{\"operations\":[{\"mapId\":\"voice-graph\",\"records\":[{\"root\":\"root\",\"schema\":\"semantic-map-state/1\",\"title\":\"independent quota expression\",\"type\":\"meta\"},{\"bounds\":[0,0,900,400],\"id\":\"root\",\"kind\":\"boundary\",\"label\":\"fixture\",\"parent\":null,\"summary\":\"\",\"type\":\"region\"},{\"bounds\":[0,0,700,200],\"id\":\"container\",\"kind\":\"group\",\"label\":\"作業区\",\"parent\":\"root\",\"summary\":\"\",\"type\":\"region\"},{\"bounds\":[0,230,700,160],\"id\":\"other\",\"kind\":\"group\",\"label\":\"保留区\",\"parent\":\"root\",\"summary\":\"\",\"type\":\"region\"},{\"bounds\":[20,20,140,64],\"id\":\"initial-api\",\"kind\":\"step\",\"label\":\"API\",\"parent\":\"container\",\"summary\":\"\",\"type\":\"region\"},{\"bounds\":[200,20,140,64],\"id\":\"initial-db\",\"kind\":\"data\",\"label\":\"DB\",\"parent\":\"container\",\"summary\":\"\",\"type\":\"region\"}],\"type\":\"CreateMap\"}],\"parent\":null,\"schema\":\"semantic-map-decision/2\",\"stateHash\":\"sha256:1c8ea44afd39fdeceb740d7da12621d31b5e15fc32b951e3772e6521a18815fe\"}\n{\"operations\":[{\"items\":[{\"bounds\":[0,0,2000,500],\"regionId\":\"container\"},{\"bounds\":[0,600,2000,500],\"regionId\":\"other\"},{\"bounds\":[12,36,140,64],\"regionId\":\"initial-api\"},{\"bounds\":[200,36,140,64],\"regionId\":\"initial-db\"}],\"type\":\"PinRegions\"}],\"parent\":\"sha256:3ce9fcf1976bbe9ac1e193f7a5f69c785e24056f987f6f72d279912a98d0ddbe\",\"schema\":\"semantic-map-decision/2\",\"stateHash\":\"sha256:95d6dfe57856323e9ea40869ebf1134d98974cf509fd5a3ce0e568c46d4670d6\"}\n{\"operations\":[{\"from\":\"initial-api\",\"kind\":\"flow\",\"label\":\"\",\"relationId\":\"voice-initial-api-to-initial-db\",\"to\":\"initial-db\",\"type\":\"ConnectRegions\"}],\"parent\":\"sha256:369bf0534a4b8ee8fd18ef4c4cb054655ae099a2ba81dc7a64266f5dadce53bb\",\"schema\":\"semantic-map-decision/2\",\"stateHash\":\"sha256:f51474e5666ecdd59936cd69611c09059350fc2b2da8efeb7b82215eb6e23fa6\"}\n",
+      "goal": {
+        "reason": "none",
+        "requests": 2,
+        "elapsedMs": 500.0054999999993,
+        "selected": [],
+        "trace": [
+          {
+            "head": "sha256:369bf0534a4b8ee8fd18ef4c4cb054655ae099a2ba81dc7a64266f5dadce53bb",
+            "answers": {
+              "delta": {
+                "type": "choice",
+                "choice": "delta-17",
+                "confidence": 1
+              }
+            },
+            "failure": null
+          },
+          {
+            "head": "sha256:655928e1a034cbbe5fd0f38814aef3b48636bf77a4fa377dbd43d96d4bbf219e",
+            "answers": {
+              "delta": {
+                "type": "choice",
+                "choice": "none",
+                "confidence": 0.98
+              }
+            },
+            "failure": null
+          }
+        ]
+      }
+    },
+    "reloaded": {
+      "log": "{\"operations\":[{\"mapId\":\"voice-graph\",\"records\":[{\"root\":\"root\",\"schema\":\"semantic-map-state/1\",\"title\":\"independent quota expression\",\"type\":\"meta\"},{\"bounds\":[0,0,900,400],\"id\":\"root\",\"kind\":\"boundary\",\"label\":\"fixture\",\"parent\":null,\"summary\":\"\",\"type\":\"region\"},{\"bounds\":[0,0,700,200],\"id\":\"container\",\"kind\":\"group\",\"label\":\"作業区\",\"parent\":\"root\",\"summary\":\"\",\"type\":\"region\"},{\"bounds\":[0,230,700,160],\"id\":\"other\",\"kind\":\"group\",\"label\":\"保留区\",\"parent\":\"root\",\"summary\":\"\",\"type\":\"region\"},{\"bounds\":[20,20,140,64],\"id\":\"initial-api\",\"kind\":\"step\",\"label\":\"API\",\"parent\":\"container\",\"summary\":\"\",\"type\":\"region\"},{\"bounds\":[200,20,140,64],\"id\":\"initial-db\",\"kind\":\"data\",\"label\":\"DB\",\"parent\":\"container\",\"summary\":\"\",\"type\":\"region\"}],\"type\":\"CreateMap\"}],\"parent\":null,\"schema\":\"semantic-map-decision/2\",\"stateHash\":\"sha256:1c8ea44afd39fdeceb740d7da12621d31b5e15fc32b951e3772e6521a18815fe\"}\n{\"operations\":[{\"items\":[{\"bounds\":[0,0,2000,500],\"regionId\":\"container\"},{\"bounds\":[0,600,2000,500],\"regionId\":\"other\"},{\"bounds\":[12,36,140,64],\"regionId\":\"initial-api\"},{\"bounds\":[200,36,140,64],\"regionId\":\"initial-db\"}],\"type\":\"PinRegions\"}],\"parent\":\"sha256:3ce9fcf1976bbe9ac1e193f7a5f69c785e24056f987f6f72d279912a98d0ddbe\",\"schema\":\"semantic-map-decision/2\",\"stateHash\":\"sha256:95d6dfe57856323e9ea40869ebf1134d98974cf509fd5a3ce0e568c46d4670d6\"}\n{\"operations\":[{\"from\":\"initial-api\",\"kind\":\"flow\",\"label\":\"\",\"relationId\":\"voice-initial-api-to-initial-db\",\"to\":\"initial-db\",\"type\":\"ConnectRegions\"}],\"parent\":\"sha256:369bf0534a4b8ee8fd18ef4c4cb054655ae099a2ba81dc7a64266f5dadce53bb\",\"schema\":\"semantic-map-decision/2\",\"stateHash\":\"sha256:f51474e5666ecdd59936cd69611c09059350fc2b2da8efeb7b82215eb6e23fa6\"}\n",
+      "records": [
+        {
+          "type": "meta",
+          "schema": "semantic-map-state/1",
+          "root": "root",
+          "title": "independent quota expression"
+        },
+        {
+          "type": "region",
+          "id": "root",
+          "parent": null,
+          "label": "fixture",
+          "kind": "boundary",
+          "bounds": [
+            0,
+            0,
+            900,
+            400
+          ],
+          "summary": ""
+        },
+        {
+          "type": "region",
+          "id": "container",
+          "parent": "root",
+          "label": "作業区",
+          "kind": "group",
+          "bounds": [
+            0,
+            0,
+            700,
+            200
+          ],
+          "summary": ""
+        },
+        {
+          "type": "region",
+          "id": "other",
+          "parent": "root",
+          "label": "保留区",
+          "kind": "group",
+          "bounds": [
+            0,
+            230,
+            700,
+            160
+          ],
+          "summary": ""
+        },
+        {
+          "type": "region",
+          "id": "initial-api",
+          "parent": "container",
+          "label": "API",
+          "kind": "step",
+          "bounds": [
+            20,
+            20,
+            140,
+            64
+          ],
+          "summary": ""
+        },
+        {
+          "type": "region",
+          "id": "initial-db",
+          "parent": "container",
+          "label": "DB",
+          "kind": "data",
+          "bounds": [
+            200,
+            20,
+            140,
+            64
+          ],
+          "summary": ""
+        },
+        {
+          "type": "relation",
+          "id": "voice-initial-api-to-initial-db",
+          "from": "initial-api",
+          "to": "initial-db",
+          "kind": "flow",
+          "label": ""
+        },
+        {
+          "type": "layout",
+          "regionId": "container",
+          "pin": "hard",
+          "bounds": [
+            0,
+            0,
+            2000,
+            500
+          ]
+        },
+        {
+          "type": "layout",
+          "regionId": "initial-api",
+          "pin": "hard",
+          "bounds": [
+            12,
+            36,
+            140,
+            64
+          ]
+        },
+        {
+          "type": "layout",
+          "regionId": "initial-db",
+          "pin": "hard",
+          "bounds": [
+            200,
+            36,
+            140,
+            64
+          ]
+        },
+        {
+          "type": "layout",
+          "regionId": "other",
+          "pin": "hard",
+          "bounds": [
+            0,
+            600,
+            2000,
+            500
+          ]
+        }
+      ],
+      "stored": "{\"operations\":[{\"mapId\":\"voice-graph\",\"records\":[{\"root\":\"root\",\"schema\":\"semantic-map-state/1\",\"title\":\"independent quota expression\",\"type\":\"meta\"},{\"bounds\":[0,0,900,400],\"id\":\"root\",\"kind\":\"boundary\",\"label\":\"fixture\",\"parent\":null,\"summary\":\"\",\"type\":\"region\"},{\"bounds\":[0,0,700,200],\"id\":\"container\",\"kind\":\"group\",\"label\":\"作業区\",\"parent\":\"root\",\"summary\":\"\",\"type\":\"region\"},{\"bounds\":[0,230,700,160],\"id\":\"other\",\"kind\":\"group\",\"label\":\"保留区\",\"parent\":\"root\",\"summary\":\"\",\"type\":\"region\"},{\"bounds\":[20,20,140,64],\"id\":\"initial-api\",\"kind\":\"step\",\"label\":\"API\",\"parent\":\"container\",\"summary\":\"\",\"type\":\"region\"},{\"bounds\":[200,20,140,64],\"id\":\"initial-db\",\"kind\":\"data\",\"label\":\"DB\",\"parent\":\"container\",\"summary\":\"\",\"type\":\"region\"}],\"type\":\"CreateMap\"}],\"parent\":null,\"schema\":\"semantic-map-decision/2\",\"stateHash\":\"sha256:1c8ea44afd39fdeceb740d7da12621d31b5e15fc32b951e3772e6521a18815fe\"}\n{\"operations\":[{\"items\":[{\"bounds\":[0,0,2000,500],\"regionId\":\"container\"},{\"bounds\":[0,600,2000,500],\"regionId\":\"other\"},{\"bounds\":[12,36,140,64],\"regionId\":\"initial-api\"},{\"bounds\":[200,36,140,64],\"regionId\":\"initial-db\"}],\"type\":\"PinRegions\"}],\"parent\":\"sha256:3ce9fcf1976bbe9ac1e193f7a5f69c785e24056f987f6f72d279912a98d0ddbe\",\"schema\":\"semantic-map-decision/2\",\"stateHash\":\"sha256:95d6dfe57856323e9ea40869ebf1134d98974cf509fd5a3ce0e568c46d4670d6\"}\n{\"operations\":[{\"from\":\"initial-api\",\"kind\":\"flow\",\"label\":\"\",\"relationId\":\"voice-initial-api-to-initial-db\",\"to\":\"initial-db\",\"type\":\"ConnectRegions\"}],\"parent\":\"sha256:369bf0534a4b8ee8fd18ef4c4cb054655ae099a2ba81dc7a64266f5dadce53bb\",\"schema\":\"semantic-map-decision/2\",\"stateHash\":\"sha256:f51474e5666ecdd59936cd69611c09059350fc2b2da8efeb7b82215eb6e23fa6\"}\n",
+      "goal": {
+        "reason": "none",
+        "requests": 2,
+        "elapsedMs": 500.0054999999993,
+        "selected": [],
+        "trace": [
+          {
+            "head": "sha256:369bf0534a4b8ee8fd18ef4c4cb054655ae099a2ba81dc7a64266f5dadce53bb",
+            "answers": {
+              "delta": {
+                "type": "choice",
+                "choice": "delta-17",
+                "confidence": 1
+              }
+            },
+            "failure": null
+          },
+          {
+            "head": "sha256:655928e1a034cbbe5fd0f38814aef3b48636bf77a4fa377dbd43d96d4bbf219e",
+            "answers": {
+              "delta": {
+                "type": "choice",
+                "choice": "none",
+                "confidence": 0.98
+              }
+            },
+            "failure": null
+          }
+        ]
+      }
+    },
+    "apply_enabled": true,
+    "persistence": "PASS",
+    "scope": "NATIVE_SESSION_APPLY_RESTORE_NOT_BROWSER_GOAL",
+    "browser_restore": {
+      "target": {
+        "log": "{\"operations\":[{\"mapId\":\"voice-graph\",\"records\":[{\"root\":\"root\",\"schema\":\"semantic-map-state/1\",\"title\":\"independent quota expression\",\"type\":\"meta\"},{\"bounds\":[0,0,900,400],\"id\":\"root\",\"kind\":\"boundary\",\"label\":\"fixture\",\"parent\":null,\"summary\":\"\",\"type\":\"region\"},{\"bounds\":[0,0,700,200],\"id\":\"container\",\"kind\":\"group\",\"label\":\"作業区\",\"parent\":\"root\",\"summary\":\"\",\"type\":\"region\"},{\"bounds\":[0,230,700,160],\"id\":\"other\",\"kind\":\"group\",\"label\":\"保留区\",\"parent\":\"root\",\"summary\":\"\",\"type\":\"region\"},{\"bounds\":[20,20,140,64],\"id\":\"initial-api\",\"kind\":\"step\",\"label\":\"API\",\"parent\":\"container\",\"summary\":\"\",\"type\":\"region\"},{\"bounds\":[200,20,140,64],\"id\":\"initial-db\",\"kind\":\"data\",\"label\":\"DB\",\"parent\":\"container\",\"summary\":\"\",\"type\":\"region\"}],\"type\":\"CreateMap\"}],\"parent\":null,\"schema\":\"semantic-map-decision/2\",\"stateHash\":\"sha256:1c8ea44afd39fdeceb740d7da12621d31b5e15fc32b951e3772e6521a18815fe\"}\n{\"operations\":[{\"items\":[{\"bounds\":[0,0,2000,500],\"regionId\":\"container\"},{\"bounds\":[0,600,2000,500],\"regionId\":\"other\"},{\"bounds\":[12,36,140,64],\"regionId\":\"initial-api\"},{\"bounds\":[200,36,140,64],\"regionId\":\"initial-db\"}],\"type\":\"PinRegions\"}],\"parent\":\"sha256:3ce9fcf1976bbe9ac1e193f7a5f69c785e24056f987f6f72d279912a98d0ddbe\",\"schema\":\"semantic-map-decision/2\",\"stateHash\":\"sha256:95d6dfe57856323e9ea40869ebf1134d98974cf509fd5a3ce0e568c46d4670d6\"}\n{\"operations\":[{\"from\":\"initial-api\",\"kind\":\"flow\",\"label\":\"\",\"relationId\":\"voice-initial-api-to-initial-db\",\"to\":\"initial-db\",\"type\":\"ConnectRegions\"}],\"parent\":\"sha256:369bf0534a4b8ee8fd18ef4c4cb054655ae099a2ba81dc7a64266f5dadce53bb\",\"schema\":\"semantic-map-decision/2\",\"stateHash\":\"sha256:f51474e5666ecdd59936cd69611c09059350fc2b2da8efeb7b82215eb6e23fa6\"}\n",
+        "records": [
+          {
+            "type": "meta",
+            "schema": "semantic-map-state/1",
+            "root": "root",
+            "title": "independent quota expression"
+          },
+          {
+            "type": "region",
+            "id": "root",
+            "parent": null,
+            "label": "fixture",
+            "kind": "boundary",
+            "bounds": [
+              0,
+              0,
+              900,
+              400
+            ],
+            "summary": ""
+          },
+          {
+            "type": "region",
+            "id": "container",
+            "parent": "root",
+            "label": "作業区",
+            "kind": "group",
+            "bounds": [
+              0,
+              0,
+              700,
+              200
+            ],
+            "summary": ""
+          },
+          {
+            "type": "region",
+            "id": "other",
+            "parent": "root",
+            "label": "保留区",
+            "kind": "group",
+            "bounds": [
+              0,
+              230,
+              700,
+              160
+            ],
+            "summary": ""
+          },
+          {
+            "type": "region",
+            "id": "initial-api",
+            "parent": "container",
+            "label": "API",
+            "kind": "step",
+            "bounds": [
+              20,
+              20,
+              140,
+              64
+            ],
+            "summary": ""
+          },
+          {
+            "type": "region",
+            "id": "initial-db",
+            "parent": "container",
+            "label": "DB",
+            "kind": "data",
+            "bounds": [
+              200,
+              20,
+              140,
+              64
+            ],
+            "summary": ""
+          },
+          {
+            "type": "relation",
+            "id": "voice-initial-api-to-initial-db",
+            "from": "initial-api",
+            "to": "initial-db",
+            "kind": "flow",
+            "label": ""
+          },
+          {
+            "type": "layout",
+            "regionId": "container",
+            "pin": "hard",
+            "bounds": [
+              0,
+              0,
+              2000,
+              500
+            ]
+          },
+          {
+            "type": "layout",
+            "regionId": "initial-api",
+            "pin": "hard",
+            "bounds": [
+              12,
+              36,
+              140,
+              64
+            ]
+          },
+          {
+            "type": "layout",
+            "regionId": "initial-db",
+            "pin": "hard",
+            "bounds": [
+              200,
+              36,
+              140,
+              64
+            ]
+          },
+          {
+            "type": "layout",
+            "regionId": "other",
+            "pin": "hard",
+            "bounds": [
+              0,
+              600,
+              2000,
+              500
+            ]
+          }
+        ],
+        "stored": "{\"operations\":[{\"mapId\":\"voice-graph\",\"records\":[{\"root\":\"root\",\"schema\":\"semantic-map-state/1\",\"title\":\"independent quota expression\",\"type\":\"meta\"},{\"bounds\":[0,0,900,400],\"id\":\"root\",\"kind\":\"boundary\",\"label\":\"fixture\",\"parent\":null,\"summary\":\"\",\"type\":\"region\"},{\"bounds\":[0,0,700,200],\"id\":\"container\",\"kind\":\"group\",\"label\":\"作業区\",\"parent\":\"root\",\"summary\":\"\",\"type\":\"region\"},{\"bounds\":[0,230,700,160],\"id\":\"other\",\"kind\":\"group\",\"label\":\"保留区\",\"parent\":\"root\",\"summary\":\"\",\"type\":\"region\"},{\"bounds\":[20,20,140,64],\"id\":\"initial-api\",\"kind\":\"step\",\"label\":\"API\",\"parent\":\"container\",\"summary\":\"\",\"type\":\"region\"},{\"bounds\":[200,20,140,64],\"id\":\"initial-db\",\"kind\":\"data\",\"label\":\"DB\",\"parent\":\"container\",\"summary\":\"\",\"type\":\"region\"}],\"type\":\"CreateMap\"}],\"parent\":null,\"schema\":\"semantic-map-decision/2\",\"stateHash\":\"sha256:1c8ea44afd39fdeceb740d7da12621d31b5e15fc32b951e3772e6521a18815fe\"}\n{\"operations\":[{\"items\":[{\"bounds\":[0,0,2000,500],\"regionId\":\"container\"},{\"bounds\":[0,600,2000,500],\"regionId\":\"other\"},{\"bounds\":[12,36,140,64],\"regionId\":\"initial-api\"},{\"bounds\":[200,36,140,64],\"regionId\":\"initial-db\"}],\"type\":\"PinRegions\"}],\"parent\":\"sha256:3ce9fcf1976bbe9ac1e193f7a5f69c785e24056f987f6f72d279912a98d0ddbe\",\"schema\":\"semantic-map-decision/2\",\"stateHash\":\"sha256:95d6dfe57856323e9ea40869ebf1134d98974cf509fd5a3ce0e568c46d4670d6\"}\n{\"operations\":[{\"from\":\"initial-api\",\"kind\":\"flow\",\"label\":\"\",\"relationId\":\"voice-initial-api-to-initial-db\",\"to\":\"initial-db\",\"type\":\"ConnectRegions\"}],\"parent\":\"sha256:369bf0534a4b8ee8fd18ef4c4cb054655ae099a2ba81dc7a64266f5dadce53bb\",\"schema\":\"semantic-map-decision/2\",\"stateHash\":\"sha256:f51474e5666ecdd59936cd69611c09059350fc2b2da8efeb7b82215eb6e23fa6\"}\n",
+        "goal": null
+      },
+      "applied": {
+        "log": "{\"operations\":[{\"mapId\":\"voice-graph\",\"records\":[{\"root\":\"root\",\"schema\":\"semantic-map-state/1\",\"title\":\"independent quota expression\",\"type\":\"meta\"},{\"bounds\":[0,0,900,400],\"id\":\"root\",\"kind\":\"boundary\",\"label\":\"fixture\",\"parent\":null,\"summary\":\"\",\"type\":\"region\"},{\"bounds\":[0,0,700,200],\"id\":\"container\",\"kind\":\"group\",\"label\":\"作業区\",\"parent\":\"root\",\"summary\":\"\",\"type\":\"region\"},{\"bounds\":[0,230,700,160],\"id\":\"other\",\"kind\":\"group\",\"label\":\"保留区\",\"parent\":\"root\",\"summary\":\"\",\"type\":\"region\"},{\"bounds\":[20,20,140,64],\"id\":\"initial-api\",\"kind\":\"step\",\"label\":\"API\",\"parent\":\"container\",\"summary\":\"\",\"type\":\"region\"},{\"bounds\":[200,20,140,64],\"id\":\"initial-db\",\"kind\":\"data\",\"label\":\"DB\",\"parent\":\"container\",\"summary\":\"\",\"type\":\"region\"}],\"type\":\"CreateMap\"}],\"parent\":null,\"schema\":\"semantic-map-decision/2\",\"stateHash\":\"sha256:1c8ea44afd39fdeceb740d7da12621d31b5e15fc32b951e3772e6521a18815fe\"}\n{\"operations\":[{\"items\":[{\"bounds\":[0,0,2000,500],\"regionId\":\"container\"},{\"bounds\":[0,600,2000,500],\"regionId\":\"other\"},{\"bounds\":[12,36,140,64],\"regionId\":\"initial-api\"},{\"bounds\":[200,36,140,64],\"regionId\":\"initial-db\"}],\"type\":\"PinRegions\"}],\"parent\":\"sha256:3ce9fcf1976bbe9ac1e193f7a5f69c785e24056f987f6f72d279912a98d0ddbe\",\"schema\":\"semantic-map-decision/2\",\"stateHash\":\"sha256:95d6dfe57856323e9ea40869ebf1134d98974cf509fd5a3ce0e568c46d4670d6\"}\n{\"operations\":[{\"from\":\"initial-api\",\"kind\":\"flow\",\"label\":\"\",\"relationId\":\"voice-initial-api-to-initial-db\",\"to\":\"initial-db\",\"type\":\"ConnectRegions\"}],\"parent\":\"sha256:369bf0534a4b8ee8fd18ef4c4cb054655ae099a2ba81dc7a64266f5dadce53bb\",\"schema\":\"semantic-map-decision/2\",\"stateHash\":\"sha256:f51474e5666ecdd59936cd69611c09059350fc2b2da8efeb7b82215eb6e23fa6\"}\n",
+        "records": [
+          {
+            "type": "meta",
+            "schema": "semantic-map-state/1",
+            "root": "root",
+            "title": "independent quota expression"
+          },
+          {
+            "type": "region",
+            "id": "root",
+            "parent": null,
+            "label": "fixture",
+            "kind": "boundary",
+            "bounds": [
+              0,
+              0,
+              900,
+              400
+            ],
+            "summary": ""
+          },
+          {
+            "type": "region",
+            "id": "container",
+            "parent": "root",
+            "label": "作業区",
+            "kind": "group",
+            "bounds": [
+              0,
+              0,
+              700,
+              200
+            ],
+            "summary": ""
+          },
+          {
+            "type": "region",
+            "id": "other",
+            "parent": "root",
+            "label": "保留区",
+            "kind": "group",
+            "bounds": [
+              0,
+              230,
+              700,
+              160
+            ],
+            "summary": ""
+          },
+          {
+            "type": "region",
+            "id": "initial-api",
+            "parent": "container",
+            "label": "API",
+            "kind": "step",
+            "bounds": [
+              20,
+              20,
+              140,
+              64
+            ],
+            "summary": ""
+          },
+          {
+            "type": "region",
+            "id": "initial-db",
+            "parent": "container",
+            "label": "DB",
+            "kind": "data",
+            "bounds": [
+              200,
+              20,
+              140,
+              64
+            ],
+            "summary": ""
+          },
+          {
+            "type": "relation",
+            "id": "voice-initial-api-to-initial-db",
+            "from": "initial-api",
+            "to": "initial-db",
+            "kind": "flow",
+            "label": ""
+          },
+          {
+            "type": "layout",
+            "regionId": "container",
+            "pin": "hard",
+            "bounds": [
+              0,
+              0,
+              2000,
+              500
+            ]
+          },
+          {
+            "type": "layout",
+            "regionId": "initial-api",
+            "pin": "hard",
+            "bounds": [
+              12,
+              36,
+              140,
+              64
+            ]
+          },
+          {
+            "type": "layout",
+            "regionId": "initial-db",
+            "pin": "hard",
+            "bounds": [
+              200,
+              36,
+              140,
+              64
+            ]
+          },
+          {
+            "type": "layout",
+            "regionId": "other",
+            "pin": "hard",
+            "bounds": [
+              0,
+              600,
+              2000,
+              500
+            ]
+          }
+        ],
+        "stored": "{\"operations\":[{\"mapId\":\"voice-graph\",\"records\":[{\"root\":\"root\",\"schema\":\"semantic-map-state/1\",\"title\":\"independent quota expression\",\"type\":\"meta\"},{\"bounds\":[0,0,900,400],\"id\":\"root\",\"kind\":\"boundary\",\"label\":\"fixture\",\"parent\":null,\"summary\":\"\",\"type\":\"region\"},{\"bounds\":[0,0,700,200],\"id\":\"container\",\"kind\":\"group\",\"label\":\"作業区\",\"parent\":\"root\",\"summary\":\"\",\"type\":\"region\"},{\"bounds\":[0,230,700,160],\"id\":\"other\",\"kind\":\"group\",\"label\":\"保留区\",\"parent\":\"root\",\"summary\":\"\",\"type\":\"region\"},{\"bounds\":[20,20,140,64],\"id\":\"initial-api\",\"kind\":\"step\",\"label\":\"API\",\"parent\":\"container\",\"summary\":\"\",\"type\":\"region\"},{\"bounds\":[200,20,140,64],\"id\":\"initial-db\",\"kind\":\"data\",\"label\":\"DB\",\"parent\":\"container\",\"summary\":\"\",\"type\":\"region\"}],\"type\":\"CreateMap\"}],\"parent\":null,\"schema\":\"semantic-map-decision/2\",\"stateHash\":\"sha256:1c8ea44afd39fdeceb740d7da12621d31b5e15fc32b951e3772e6521a18815fe\"}\n{\"operations\":[{\"items\":[{\"bounds\":[0,0,2000,500],\"regionId\":\"container\"},{\"bounds\":[0,600,2000,500],\"regionId\":\"other\"},{\"bounds\":[12,36,140,64],\"regionId\":\"initial-api\"},{\"bounds\":[200,36,140,64],\"regionId\":\"initial-db\"}],\"type\":\"PinRegions\"}],\"parent\":\"sha256:3ce9fcf1976bbe9ac1e193f7a5f69c785e24056f987f6f72d279912a98d0ddbe\",\"schema\":\"semantic-map-decision/2\",\"stateHash\":\"sha256:95d6dfe57856323e9ea40869ebf1134d98974cf509fd5a3ce0e568c46d4670d6\"}\n{\"operations\":[{\"from\":\"initial-api\",\"kind\":\"flow\",\"label\":\"\",\"relationId\":\"voice-initial-api-to-initial-db\",\"to\":\"initial-db\",\"type\":\"ConnectRegions\"}],\"parent\":\"sha256:369bf0534a4b8ee8fd18ef4c4cb054655ae099a2ba81dc7a64266f5dadce53bb\",\"schema\":\"semantic-map-decision/2\",\"stateHash\":\"sha256:f51474e5666ecdd59936cd69611c09059350fc2b2da8efeb7b82215eb6e23fa6\"}\n",
+        "goal": null
+      },
+      "reloaded": {
+        "log": "{\"operations\":[{\"mapId\":\"voice-graph\",\"records\":[{\"root\":\"root\",\"schema\":\"semantic-map-state/1\",\"title\":\"independent quota expression\",\"type\":\"meta\"},{\"bounds\":[0,0,900,400],\"id\":\"root\",\"kind\":\"boundary\",\"label\":\"fixture\",\"parent\":null,\"summary\":\"\",\"type\":\"region\"},{\"bounds\":[0,0,700,200],\"id\":\"container\",\"kind\":\"group\",\"label\":\"作業区\",\"parent\":\"root\",\"summary\":\"\",\"type\":\"region\"},{\"bounds\":[0,230,700,160],\"id\":\"other\",\"kind\":\"group\",\"label\":\"保留区\",\"parent\":\"root\",\"summary\":\"\",\"type\":\"region\"},{\"bounds\":[20,20,140,64],\"id\":\"initial-api\",\"kind\":\"step\",\"label\":\"API\",\"parent\":\"container\",\"summary\":\"\",\"type\":\"region\"},{\"bounds\":[200,20,140,64],\"id\":\"initial-db\",\"kind\":\"data\",\"label\":\"DB\",\"parent\":\"container\",\"summary\":\"\",\"type\":\"region\"}],\"type\":\"CreateMap\"}],\"parent\":null,\"schema\":\"semantic-map-decision/2\",\"stateHash\":\"sha256:1c8ea44afd39fdeceb740d7da12621d31b5e15fc32b951e3772e6521a18815fe\"}\n{\"operations\":[{\"items\":[{\"bounds\":[0,0,2000,500],\"regionId\":\"container\"},{\"bounds\":[0,600,2000,500],\"regionId\":\"other\"},{\"bounds\":[12,36,140,64],\"regionId\":\"initial-api\"},{\"bounds\":[200,36,140,64],\"regionId\":\"initial-db\"}],\"type\":\"PinRegions\"}],\"parent\":\"sha256:3ce9fcf1976bbe9ac1e193f7a5f69c785e24056f987f6f72d279912a98d0ddbe\",\"schema\":\"semantic-map-decision/2\",\"stateHash\":\"sha256:95d6dfe57856323e9ea40869ebf1134d98974cf509fd5a3ce0e568c46d4670d6\"}\n{\"operations\":[{\"from\":\"initial-api\",\"kind\":\"flow\",\"label\":\"\",\"relationId\":\"voice-initial-api-to-initial-db\",\"to\":\"initial-db\",\"type\":\"ConnectRegions\"}],\"parent\":\"sha256:369bf0534a4b8ee8fd18ef4c4cb054655ae099a2ba81dc7a64266f5dadce53bb\",\"schema\":\"semantic-map-decision/2\",\"stateHash\":\"sha256:f51474e5666ecdd59936cd69611c09059350fc2b2da8efeb7b82215eb6e23fa6\"}\n",
+        "records": [
+          {
+            "type": "meta",
+            "schema": "semantic-map-state/1",
+            "root": "root",
+            "title": "independent quota expression"
+          },
+          {
+            "type": "region",
+            "id": "root",
+            "parent": null,
+            "label": "fixture",
+            "kind": "boundary",
+            "bounds": [
+              0,
+              0,
+              900,
+              400
+            ],
+            "summary": ""
+          },
+          {
+            "type": "region",
+            "id": "container",
+            "parent": "root",
+            "label": "作業区",
+            "kind": "group",
+            "bounds": [
+              0,
+              0,
+              700,
+              200
+            ],
+            "summary": ""
+          },
+          {
+            "type": "region",
+            "id": "other",
+            "parent": "root",
+            "label": "保留区",
+            "kind": "group",
+            "bounds": [
+              0,
+              230,
+              700,
+              160
+            ],
+            "summary": ""
+          },
+          {
+            "type": "region",
+            "id": "initial-api",
+            "parent": "container",
+            "label": "API",
+            "kind": "step",
+            "bounds": [
+              20,
+              20,
+              140,
+              64
+            ],
+            "summary": ""
+          },
+          {
+            "type": "region",
+            "id": "initial-db",
+            "parent": "container",
+            "label": "DB",
+            "kind": "data",
+            "bounds": [
+              200,
+              20,
+              140,
+              64
+            ],
+            "summary": ""
+          },
+          {
+            "type": "relation",
+            "id": "voice-initial-api-to-initial-db",
+            "from": "initial-api",
+            "to": "initial-db",
+            "kind": "flow",
+            "label": ""
+          },
+          {
+            "type": "layout",
+            "regionId": "container",
+            "pin": "hard",
+            "bounds": [
+              0,
+              0,
+              2000,
+              500
+            ]
+          },
+          {
+            "type": "layout",
+            "regionId": "initial-api",
+            "pin": "hard",
+            "bounds": [
+              12,
+              36,
+              140,
+              64
+            ]
+          },
+          {
+            "type": "layout",
+            "regionId": "initial-db",
+            "pin": "hard",
+            "bounds": [
+              200,
+              36,
+              140,
+              64
+            ]
+          },
+          {
+            "type": "layout",
+            "regionId": "other",
+            "pin": "hard",
+            "bounds": [
+              0,
+              600,
+              2000,
+              500
+            ]
+          }
+        ],
+        "stored": "{\"operations\":[{\"mapId\":\"voice-graph\",\"records\":[{\"root\":\"root\",\"schema\":\"semantic-map-state/1\",\"title\":\"independent quota expression\",\"type\":\"meta\"},{\"bounds\":[0,0,900,400],\"id\":\"root\",\"kind\":\"boundary\",\"label\":\"fixture\",\"parent\":null,\"summary\":\"\",\"type\":\"region\"},{\"bounds\":[0,0,700,200],\"id\":\"container\",\"kind\":\"group\",\"label\":\"作業区\",\"parent\":\"root\",\"summary\":\"\",\"type\":\"region\"},{\"bounds\":[0,230,700,160],\"id\":\"other\",\"kind\":\"group\",\"label\":\"保留区\",\"parent\":\"root\",\"summary\":\"\",\"type\":\"region\"},{\"bounds\":[20,20,140,64],\"id\":\"initial-api\",\"kind\":\"step\",\"label\":\"API\",\"parent\":\"container\",\"summary\":\"\",\"type\":\"region\"},{\"bounds\":[200,20,140,64],\"id\":\"initial-db\",\"kind\":\"data\",\"label\":\"DB\",\"parent\":\"container\",\"summary\":\"\",\"type\":\"region\"}],\"type\":\"CreateMap\"}],\"parent\":null,\"schema\":\"semantic-map-decision/2\",\"stateHash\":\"sha256:1c8ea44afd39fdeceb740d7da12621d31b5e15fc32b951e3772e6521a18815fe\"}\n{\"operations\":[{\"items\":[{\"bounds\":[0,0,2000,500],\"regionId\":\"container\"},{\"bounds\":[0,600,2000,500],\"regionId\":\"other\"},{\"bounds\":[12,36,140,64],\"regionId\":\"initial-api\"},{\"bounds\":[200,36,140,64],\"regionId\":\"initial-db\"}],\"type\":\"PinRegions\"}],\"parent\":\"sha256:3ce9fcf1976bbe9ac1e193f7a5f69c785e24056f987f6f72d279912a98d0ddbe\",\"schema\":\"semantic-map-decision/2\",\"stateHash\":\"sha256:95d6dfe57856323e9ea40869ebf1134d98974cf509fd5a3ce0e568c46d4670d6\"}\n{\"operations\":[{\"from\":\"initial-api\",\"kind\":\"flow\",\"label\":\"\",\"relationId\":\"voice-initial-api-to-initial-db\",\"to\":\"initial-db\",\"type\":\"ConnectRegions\"}],\"parent\":\"sha256:369bf0534a4b8ee8fd18ef4c4cb054655ae099a2ba81dc7a64266f5dadce53bb\",\"schema\":\"semantic-map-decision/2\",\"stateHash\":\"sha256:f51474e5666ecdd59936cd69611c09059350fc2b2da8efeb7b82215eb6e23fa6\"}\n",
+        "goal": null
+      },
+      "apply_enabled": false,
+      "persistence": "PASS",
+      "scope": "KEYLESS_COMPLETED_UI_RESTORE_NOT_BROWSER_GOAL"
+    }
+  }
+}

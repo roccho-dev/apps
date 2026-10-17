@@ -1,0 +1,22 @@
+{
+  "phase_id": "quota-final-E-20261018",
+  "pid": 376131,
+  "state": "R",
+  "pgid": 376131,
+  "start_ticks": "18725492",
+  "program": "/nix/store/bg0bygqiid25xnivxv9cdgjlx3sp939j-voice-ui-typed-dev/bin/voice-ui-typed-dev",
+  "heads": {
+    "apps": "59ded276405a5dc9caa85ad570b1827ff4bd0c7a",
+    "envs": "063e685b8b21a97fc8658879da93fa858552bcd6",
+    "ops": "b4f611cac9e13fbef178469796cbc3b6d4a76b23",
+    "windows": "6aef693c0946903d8b87c2348039de1420acd61b",
+    "ui": "756d47e891191c3344eb2d29b000203be8331abc"
+  },
+  "allowances": {
+    "jev": 114,
+    "typellm": 6
+  },
+  "stdout": "/work/repos/voice-ui-typellm-20261016/quota-final-E-20261018.stdout.log",
+  "stderr": "/work/repos/voice-ui-typellm-20261016/quota-final-E-20261018.stderr.log",
+  "config_sha256": "5d7de9c614a6d3f0defcfc010970f98c50d1b5830c2c406e4f3490c6580e65ee"
+}

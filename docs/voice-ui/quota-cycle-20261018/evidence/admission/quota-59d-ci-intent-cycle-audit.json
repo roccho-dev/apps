@@ -1,0 +1,41 @@
+{
+  "schema": "voice-ui.review.quota-ci-closure/1",
+  "status": "PASS",
+  "head": "59ded276405a5dc9caa85ad570b1827ff4bd0c7a",
+  "run": 39076041775,
+  "checked_at": "2026-10-17T22:58:23.277Z",
+  "kind": "intent-cycle",
+  "artifact": {
+    "id": 12117083732,
+    "name": "voice-ui-intent-cycle-59ded276405a5dc9caa85ad570b1827ff4bd0c7a",
+    "bytes": 6713,
+    "sha256": "625905c910914c90734b88603a454ac06903b559de6e5dea218908e3710f3d64"
+  },
+  "receipt_sha256": "83613a8a36d748f4b37fe8a9ca1ec0661de9093fb33ecdf6c6bec804381b5ef0",
+  "cumulative": {
+    "jev": 725,
+    "typellm": 71
+  },
+  "reports": 1,
+  "baseline": {
+    "head": "0aa3c4b90519a1c18c217753698806507ccff3c0",
+    "audit_sha256": "663e4e32bff74af9d68fee60cd3491d0b5de946101c699c843ddd32e9748a92a",
+    "zip_sha256": "299df1d2bfc4db90a69eea44f79c52c7b160d1031f6840da2436a58fdef354b6"
+  },
+  "exact_json_files": 2,
+  "members": [
+    {
+      "name": "intent-public-G0/audit.json",
+      "sha256": "e0793377ee7f94a1bb0421e33436f865e301613e41e77eee10ff7f9ab42bbf89",
+      "match": "EXACT_RAW_BYTES"
+    },
+    {
+      "name": "receipt.json",
+      "sha256": "83613a8a36d748f4b37fe8a9ca1ec0661de9093fb33ecdf6c6bec804381b5ef0",
+      "match": "EXACT_RAW_BYTES"
+    }
+  ],
+  "receipt_reused_only_after_all_members_matched": true,
+  "scope": "ACTUAL_CI_CLOSED_EVIDENCE_OR_NOT_MEASURED_ONLY_NOT_LIVE_PERFORMANCE_OR_LAUNCH_GO",
+  "reviewer_real_provider_calls": 0
+}

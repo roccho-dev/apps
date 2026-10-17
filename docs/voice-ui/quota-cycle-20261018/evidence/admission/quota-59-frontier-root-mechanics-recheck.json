@@ -1,0 +1,18 @@
+{
+  "status": "PASS",
+  "scope": "ROOT_ACTUAL_CI_ARTIFACT_RECHECK_SYNTHETIC_ONLY",
+  "head": "59ded276405a5dc9caa85ad570b1827ff4bd0c7a",
+  "artifact_id": 12117775032,
+  "zip_sha256": "601d439ce493fa0e32faeab92f281f76b35a2518e7c1a96369cde6d145916937",
+  "receipt_sha256": "200c13cb4a2910770bdff5fe9f25172c6b63b8319f4bb537ac79d1decfe5481d",
+  "cells": 40,
+  "invalid_retained": 14,
+  "semantic_named_camera_frames": 40,
+  "source_inputs": 25,
+  "original_wire_pairs": 22,
+  "immediate_boundary_rows": 60,
+  "provider_cap_ms": 10004.281985999987,
+  "shared_deadline_ms": 40012.80505400001,
+  "type_active_ms": 33001.605194,
+  "external_provider_sends": 0
+}

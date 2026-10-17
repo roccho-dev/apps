@@ -1,0 +1,19 @@
+{
+  "status": "PASS",
+  "scope": "ROOT_ZERO_SEND_PREFLIGHT_ONLY_NOT_INDEPENDENT_GO",
+  "at": "2026-10-17T23:06:04.570Z",
+  "phase": "quota-public-R-20261018",
+  "pid": 363994,
+  "start_ticks": "18611793",
+  "pgid": 363994,
+  "uid": 1000,
+  "config_sha256": "9d24f00aee606e74d0ec40d4baa4761baf11726e999f1c7802649665e5295fe7",
+  "process_sha256": "dc43c384616f8227fd601a65690df0d6b257b66be5054cfde8c0714766727339",
+  "runtime_sha256": "aea2d4a780256fca602e07546d37e3e74844a5e1a1e885d5d02092eae9ae2fb6",
+  "identity_sha256": "48d892baa4761b0d49a788dd3c319fbe1a814cdb9e97a30320213de342ea0fb8",
+  "provider_sends": {
+    "jev": 0,
+    "typellm": 0
+  },
+  "served_index_equals_completed_artifact": true
+}

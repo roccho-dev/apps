@@ -1,0 +1,1573 @@
+{
+  "schema": "voice-ui.quota-cycle-cell/1",
+  "axis": "E",
+  "id": "PE01",
+  "method": "adaptive-v3",
+  "arm": "C",
+  "generation_policy": "dependent",
+  "goal_parts_policy": "quota",
+  "supplied_required": null,
+  "replay_suffix_scope": "compatibility only",
+  "fixture": "empty",
+  "utterance": "作業区へ判断用の菱形を一つ新しく置き、その表示名を棚卸承認にしてください。他の部品や接続は増やさないでください。",
+  "parts": [
+    {
+      "key": "step",
+      "purpose": "an ordinary step, task or box",
+      "label": "工程",
+      "kind": "step"
+    },
+    {
+      "key": "decision",
+      "purpose": "a decision, choice or branch",
+      "label": "判断",
+      "kind": "decision"
+    },
+    {
+      "key": "data",
+      "purpose": "data, a document, an input or an output",
+      "label": "データ",
+      "kind": "data"
+    },
+    {
+      "key": "start",
+      "purpose": "a start or beginning",
+      "label": "開始",
+      "kind": "start"
+    },
+    {
+      "key": "end",
+      "purpose": "an end, finish or result",
+      "label": "終了",
+      "kind": "end"
+    },
+    {
+      "key": "api",
+      "purpose": "an application programming interface service that receives requests",
+      "label": "API",
+      "kind": "step"
+    },
+    {
+      "key": "db",
+      "purpose": "a database that persists application data",
+      "label": "DB",
+      "kind": "data"
+    },
+    {
+      "key": "group",
+      "purpose": "a group, boundary or container that holds other parts",
+      "label": "グループ",
+      "kind": "group"
+    }
+  ],
+  "valid_execution": true,
+  "elapsedMs": 14466.122899999998,
+  "result": {
+    "reason": "no-executable-delta",
+    "requests": 3,
+    "elapsedMs": 3537.360000014305,
+    "selected": [
+      {
+        "key": "goal-extra-1",
+        "region": "part-1",
+        "parent": "container"
+      }
+    ],
+    "trace": [
+      {
+        "head": "sha256:f14b93ac1b4a8ca4af467132ccd7f5d0a524fed90de6dbf3d54d77ea8f534596",
+        "answers": {
+          "delta": {
+            "type": "choice",
+            "choice": "part:goal-extra-1",
+            "confidence": 0.98
+          }
+        },
+        "failure": null
+      },
+      {
+        "head": "sha256:f14b93ac1b4a8ca4af467132ccd7f5d0a524fed90de6dbf3d54d77ea8f534596",
+        "answers": {
+          "delta": {
+            "type": "choice",
+            "choice": "delta-1",
+            "confidence": 1
+          }
+        },
+        "failure": null
+      }
+    ],
+    "inventory": {
+      "checks": 1,
+      "completions": 0,
+      "preparations": 1,
+      "coverage": {
+        "choice": "missing",
+        "confidence": 0.96,
+        "inspection": {
+          "schema": "voice-ui.parts.inspection/3",
+          "request_id": "48f13624-82e4-4b85-b16c-81f1d73a763f",
+          "mode": "adaptive-v3",
+          "initial": {
+            "decision": {
+              "choice": "unknown",
+              "confidence": null
+            },
+            "factors": {
+              "intent": {
+                "choice": "change",
+                "confidence": 0.89
+              },
+              "labels": {
+                "choice": "missing",
+                "confidence": 0.68
+              },
+              "capacity": {
+                "choice": "within",
+                "confidence": 0.96
+              },
+              "completeness": {
+                "choice": "incomplete",
+                "confidence": 0.96
+              }
+            },
+            "literal": {
+              "recognized": false,
+              "required": [],
+              "spans": []
+            },
+            "observation": {
+              "valid": true,
+              "status": "unsupported-syntax"
+            }
+          },
+          "proposal": {
+            "slots": {
+              "required1": {
+                "label": "棚卸承認",
+                "kind": "decision",
+                "quantity": "1"
+              },
+              "required2": {
+                "label": "",
+                "kind": "none",
+                "quantity": "0"
+              },
+              "required3": {
+                "label": "",
+                "kind": "none",
+                "quantity": "0"
+              }
+            },
+            "required": [
+              {
+                "label": "棚卸承認",
+                "kind": "decision",
+                "quantity": 1
+              }
+            ]
+          },
+          "verification": {
+            "intent": {
+              "choice": "change",
+              "confidence": 0.96
+            },
+            "labels": {
+              "choice": "missing",
+              "confidence": 0.82
+            },
+            "capacity": {
+              "choice": "within",
+              "confidence": 0.96
+            },
+            "completeness": {
+              "choice": "complete",
+              "confidence": 0.96
+            }
+          },
+          "required": [
+            {
+              "label": "棚卸承認",
+              "kind": "decision",
+              "quantity": 1
+            }
+          ],
+          "missing": [
+            {
+              "label": "棚卸承認",
+              "kind": "decision",
+              "occurrence": 1
+            }
+          ],
+          "proposal_policy": {
+            "id": "uncertainty-frontier-v1",
+            "eligible": true,
+            "reason": "confident-change-incomplete"
+          }
+        }
+      },
+      "missing": [
+        {
+          "label": "棚卸承認",
+          "kind": "decision",
+          "occurrence": 1
+        }
+      ]
+    }
+  },
+  "calls": [
+    {
+      "id": "PE01",
+      "arm": "C",
+      "n": 1,
+      "route": "/api/parts/check",
+      "upstream_route": "/api/parts/check?method=adaptive-v3",
+      "request": {
+        "kind": "voice-ui.goal.inventory.v1",
+        "state": {
+          "utterance": "作業区へ判断用の菱形を一つ新しく置き、その表示名を棚卸承認にしてください。他の部品や接続は増やさないでください。",
+          "head": "sha256:f14b93ac1b4a8ca4af467132ccd7f5d0a524fed90de6dbf3d54d77ea8f534596",
+          "regions": [
+            {
+              "id": "root",
+              "label": "fixture",
+              "kind": "boundary",
+              "parent": null
+            },
+            {
+              "id": "container",
+              "label": "作業区",
+              "kind": "group",
+              "parent": "root"
+            },
+            {
+              "id": "other",
+              "label": "保留区",
+              "kind": "group",
+              "parent": "root"
+            }
+          ],
+          "edges": [],
+          "parts": [
+            {
+              "key": "step",
+              "purpose": "an ordinary step, task or box",
+              "label": "工程",
+              "kind": "step"
+            },
+            {
+              "key": "decision",
+              "purpose": "a decision, choice or branch",
+              "label": "判断",
+              "kind": "decision"
+            },
+            {
+              "key": "data",
+              "purpose": "data, a document, an input or an output",
+              "label": "データ",
+              "kind": "data"
+            },
+            {
+              "key": "start",
+              "purpose": "a start or beginning",
+              "label": "開始",
+              "kind": "start"
+            },
+            {
+              "key": "end",
+              "purpose": "an end, finish or result",
+              "label": "終了",
+              "kind": "end"
+            },
+            {
+              "key": "api",
+              "purpose": "an application programming interface service that receives requests",
+              "label": "API",
+              "kind": "step"
+            },
+            {
+              "key": "db",
+              "purpose": "a database that persists application data",
+              "label": "DB",
+              "kind": "data"
+            },
+            {
+              "key": "group",
+              "purpose": "a group, boundary or container that holds other parts",
+              "label": "グループ",
+              "kind": "group"
+            }
+          ]
+        }
+      },
+      "status": 200,
+      "response": {
+        "choice": "missing",
+        "confidence": 0.96,
+        "inspection": {
+          "schema": "voice-ui.parts.inspection/3",
+          "request_id": "48f13624-82e4-4b85-b16c-81f1d73a763f",
+          "mode": "adaptive-v3",
+          "initial": {
+            "decision": {
+              "choice": "unknown",
+              "confidence": null
+            },
+            "factors": {
+              "intent": {
+                "choice": "change",
+                "confidence": 0.89
+              },
+              "labels": {
+                "choice": "missing",
+                "confidence": 0.68
+              },
+              "capacity": {
+                "choice": "within",
+                "confidence": 0.96
+              },
+              "completeness": {
+                "choice": "incomplete",
+                "confidence": 0.96
+              }
+            },
+            "literal": {
+              "recognized": false,
+              "required": [],
+              "spans": []
+            },
+            "observation": {
+              "valid": true,
+              "status": "unsupported-syntax"
+            }
+          },
+          "proposal": {
+            "slots": {
+              "required1": {
+                "label": "棚卸承認",
+                "kind": "decision",
+                "quantity": "1"
+              },
+              "required2": {
+                "label": "",
+                "kind": "none",
+                "quantity": "0"
+              },
+              "required3": {
+                "label": "",
+                "kind": "none",
+                "quantity": "0"
+              }
+            },
+            "required": [
+              {
+                "label": "棚卸承認",
+                "kind": "decision",
+                "quantity": 1
+              }
+            ]
+          },
+          "verification": {
+            "intent": {
+              "choice": "change",
+              "confidence": 0.96
+            },
+            "labels": {
+              "choice": "missing",
+              "confidence": 0.82
+            },
+            "capacity": {
+              "choice": "within",
+              "confidence": 0.96
+            },
+            "completeness": {
+              "choice": "complete",
+              "confidence": 0.96
+            }
+          },
+          "required": [
+            {
+              "label": "棚卸承認",
+              "kind": "decision",
+              "quantity": 1
+            }
+          ],
+          "missing": [
+            {
+              "label": "棚卸承認",
+              "kind": "decision",
+              "occurrence": 1
+            }
+          ],
+          "proposal_policy": {
+            "id": "uncertainty-frontier-v1",
+            "eligible": true,
+            "reason": "confident-change-incomplete"
+          }
+        }
+      },
+      "elapsedMs": 2399.201499999999
+    },
+    {
+      "id": "PE01",
+      "arm": "C",
+      "n": 2,
+      "route": "/api/judge",
+      "upstream_route": "/api/judge",
+      "request": {
+        "kind": "voice-ui.judge.goal-local-delta.v7",
+        "state": {
+          "utterance": "作業区へ判断用の菱形を一つ新しく置き、その表示名を棚卸承認にしてください。他の部品や接続は増やさないでください。",
+          "graph": [
+            {
+              "id": "root",
+              "label": "fixture",
+              "parent": null
+            },
+            {
+              "id": "container",
+              "label": "作業区",
+              "parent": "root"
+            },
+            {
+              "id": "other",
+              "label": "保留区",
+              "parent": "root"
+            }
+          ],
+          "edges": [],
+          "parents": [
+            {
+              "id": "container",
+              "label": "作業区",
+              "kind": "group",
+              "parent": "root"
+            },
+            {
+              "id": "other",
+              "label": "保留区",
+              "kind": "group",
+              "parent": "root"
+            }
+          ],
+          "offers": {
+            "parts": [
+              {
+                "key": "goal-extra-1",
+                "purpose": "one requested part named 棚卸承認, kind decision, missing instance 1",
+                "label": "棚卸承認"
+              }
+            ]
+          },
+          "selected": [],
+          "candidates": [
+            {
+              "id": "delta-1",
+              "action": "add-part",
+              "part": "goal-extra-1",
+              "parent": "container"
+            },
+            {
+              "id": "delta-2",
+              "action": "add-part",
+              "part": "goal-extra-1",
+              "parent": "other"
+            }
+          ],
+          "context": {
+            "recent": []
+          },
+          "scope": null,
+          "placing": null
+        }
+      },
+      "status": 200,
+      "response": {
+        "kind": "voice-ui.judge.decision.v1",
+        "answers": {
+          "delta": {
+            "type": "choice",
+            "choice": "part:goal-extra-1",
+            "confidence": 0.98
+          }
+        }
+      },
+      "elapsedMs": 204.3149999999987
+    },
+    {
+      "id": "PE01",
+      "arm": "C",
+      "n": 3,
+      "route": "/api/judge",
+      "upstream_route": "/api/judge",
+      "request": {
+        "kind": "voice-ui.judge.goal-local-delta.v7",
+        "state": {
+          "utterance": "作業区へ判断用の菱形を一つ新しく置き、その表示名を棚卸承認にしてください。他の部品や接続は増やさないでください。",
+          "graph": [
+            {
+              "id": "root",
+              "label": "fixture",
+              "parent": null
+            },
+            {
+              "id": "container",
+              "label": "作業区",
+              "parent": "root"
+            },
+            {
+              "id": "other",
+              "label": "保留区",
+              "parent": "root"
+            }
+          ],
+          "edges": [],
+          "parents": [
+            {
+              "id": "container",
+              "label": "作業区",
+              "kind": "group",
+              "parent": "root"
+            },
+            {
+              "id": "other",
+              "label": "保留区",
+              "kind": "group",
+              "parent": "root"
+            }
+          ],
+          "offers": {
+            "parts": [
+              {
+                "key": "goal-extra-1",
+                "purpose": "one requested part named 棚卸承認, kind decision, missing instance 1",
+                "label": "棚卸承認"
+              }
+            ]
+          },
+          "selected": [],
+          "candidates": [
+            {
+              "id": "delta-1",
+              "action": "add-part",
+              "part": "goal-extra-1",
+              "parent": "container"
+            },
+            {
+              "id": "delta-2",
+              "action": "add-part",
+              "part": "goal-extra-1",
+              "parent": "other"
+            }
+          ],
+          "context": {
+            "recent": []
+          },
+          "scope": null,
+          "placing": "goal-extra-1"
+        }
+      },
+      "status": 200,
+      "response": {
+        "kind": "voice-ui.judge.decision.v1",
+        "answers": {
+          "delta": {
+            "type": "choice",
+            "choice": "delta-1",
+            "confidence": 1
+          }
+        }
+      },
+      "elapsedMs": 177.94800000000032
+    }
+  ],
+  "initial_head": "sha256:f14b93ac1b4a8ca4af467132ccd7f5d0a524fed90de6dbf3d54d77ea8f534596",
+  "initial_log": "{\"operations\":[{\"mapId\":\"voice-graph\",\"records\":[{\"root\":\"root\",\"schema\":\"semantic-map-state/1\",\"title\":\"independent quota expression\",\"type\":\"meta\"},{\"bounds\":[0,0,900,400],\"id\":\"root\",\"kind\":\"boundary\",\"label\":\"fixture\",\"parent\":null,\"summary\":\"\",\"type\":\"region\"},{\"bounds\":[0,0,700,200],\"id\":\"container\",\"kind\":\"group\",\"label\":\"作業区\",\"parent\":\"root\",\"summary\":\"\",\"type\":\"region\"},{\"bounds\":[0,230,700,160],\"id\":\"other\",\"kind\":\"group\",\"label\":\"保留区\",\"parent\":\"root\",\"summary\":\"\",\"type\":\"region\"}],\"type\":\"CreateMap\"}],\"parent\":null,\"schema\":\"semantic-map-decision/2\",\"stateHash\":\"sha256:96c3705673d6d8136e773cc07c7bafb7a4f01aa295b371db90b7ee17e105e394\"}\n{\"operations\":[{\"items\":[{\"bounds\":[0,0,2000,500],\"regionId\":\"container\"},{\"bounds\":[0,600,2000,500],\"regionId\":\"other\"}],\"type\":\"PinRegions\"}],\"parent\":\"sha256:3410767558526fb820a662555caea8ca38c109eeef4076e469078d42c65bc705\",\"schema\":\"semantic-map-decision/2\",\"stateHash\":\"sha256:225152e1e2ed109725fc07dde5ab76668cb90081264ed5e13fd270c251ef87f4\"}\n",
+  "initial_log_sha256": "0bdbd15714a1cae6ae10a2a5ddd2265cb2895d57e847aa74cbfee864274c8612",
+  "initial_records": [
+    {
+      "type": "meta",
+      "schema": "semantic-map-state/1",
+      "root": "root",
+      "title": "independent quota expression"
+    },
+    {
+      "type": "region",
+      "id": "root",
+      "parent": null,
+      "label": "fixture",
+      "kind": "boundary",
+      "bounds": [
+        0,
+        0,
+        900,
+        400
+      ],
+      "summary": ""
+    },
+    {
+      "type": "region",
+      "id": "container",
+      "parent": "root",
+      "label": "作業区",
+      "kind": "group",
+      "bounds": [
+        0,
+        0,
+        700,
+        200
+      ],
+      "summary": ""
+    },
+    {
+      "type": "region",
+      "id": "other",
+      "parent": "root",
+      "label": "保留区",
+      "kind": "group",
+      "bounds": [
+        0,
+        230,
+        700,
+        160
+      ],
+      "summary": ""
+    },
+    {
+      "type": "layout",
+      "regionId": "container",
+      "pin": "hard",
+      "bounds": [
+        0,
+        0,
+        2000,
+        500
+      ]
+    },
+    {
+      "type": "layout",
+      "regionId": "other",
+      "pin": "hard",
+      "bounds": [
+        0,
+        600,
+        2000,
+        500
+      ]
+    }
+  ],
+  "final_head": "sha256:6e56e14bb2d54b233a25908b6b37533326f1f8a0d4ee8d72b2e8592951af7cd7",
+  "final_log": "{\"operations\":[{\"mapId\":\"voice-graph\",\"records\":[{\"root\":\"root\",\"schema\":\"semantic-map-state/1\",\"title\":\"independent quota expression\",\"type\":\"meta\"},{\"bounds\":[0,0,900,400],\"id\":\"root\",\"kind\":\"boundary\",\"label\":\"fixture\",\"parent\":null,\"summary\":\"\",\"type\":\"region\"},{\"bounds\":[0,0,700,200],\"id\":\"container\",\"kind\":\"group\",\"label\":\"作業区\",\"parent\":\"root\",\"summary\":\"\",\"type\":\"region\"},{\"bounds\":[0,230,700,160],\"id\":\"other\",\"kind\":\"group\",\"label\":\"保留区\",\"parent\":\"root\",\"summary\":\"\",\"type\":\"region\"}],\"type\":\"CreateMap\"}],\"parent\":null,\"schema\":\"semantic-map-decision/2\",\"stateHash\":\"sha256:96c3705673d6d8136e773cc07c7bafb7a4f01aa295b371db90b7ee17e105e394\"}\n{\"operations\":[{\"items\":[{\"bounds\":[0,0,2000,500],\"regionId\":\"container\"},{\"bounds\":[0,600,2000,500],\"regionId\":\"other\"}],\"type\":\"PinRegions\"}],\"parent\":\"sha256:3410767558526fb820a662555caea8ca38c109eeef4076e469078d42c65bc705\",\"schema\":\"semantic-map-decision/2\",\"stateHash\":\"sha256:225152e1e2ed109725fc07dde5ab76668cb90081264ed5e13fd270c251ef87f4\"}\n{\"operations\":[{\"bounds\":[20,20,140,64],\"kind\":\"decision\",\"label\":\"棚卸承認\",\"parentId\":\"container\",\"regionId\":\"part-1\",\"summary\":\"\",\"type\":\"AddRegion\"},{\"items\":[{\"bounds\":[12,36,180,92],\"regionId\":\"part-1\"}],\"type\":\"PinRegions\"}],\"parent\":\"sha256:f14b93ac1b4a8ca4af467132ccd7f5d0a524fed90de6dbf3d54d77ea8f534596\",\"schema\":\"semantic-map-decision/2\",\"stateHash\":\"sha256:f7b931f45b9f29c9d949205a6b0c75ba43d56e2812e9766f393059abb1eb1093\"}\n",
+  "final_records": [
+    {
+      "type": "meta",
+      "schema": "semantic-map-state/1",
+      "root": "root",
+      "title": "independent quota expression"
+    },
+    {
+      "type": "region",
+      "id": "root",
+      "parent": null,
+      "label": "fixture",
+      "kind": "boundary",
+      "bounds": [
+        0,
+        0,
+        900,
+        400
+      ],
+      "summary": ""
+    },
+    {
+      "type": "region",
+      "id": "container",
+      "parent": "root",
+      "label": "作業区",
+      "kind": "group",
+      "bounds": [
+        0,
+        0,
+        700,
+        200
+      ],
+      "summary": ""
+    },
+    {
+      "type": "region",
+      "id": "other",
+      "parent": "root",
+      "label": "保留区",
+      "kind": "group",
+      "bounds": [
+        0,
+        230,
+        700,
+        160
+      ],
+      "summary": ""
+    },
+    {
+      "type": "region",
+      "id": "part-1",
+      "parent": "container",
+      "label": "棚卸承認",
+      "kind": "decision",
+      "bounds": [
+        20,
+        20,
+        140,
+        64
+      ],
+      "summary": ""
+    },
+    {
+      "type": "layout",
+      "regionId": "container",
+      "pin": "hard",
+      "bounds": [
+        0,
+        0,
+        2000,
+        500
+      ]
+    },
+    {
+      "type": "layout",
+      "regionId": "other",
+      "pin": "hard",
+      "bounds": [
+        0,
+        600,
+        2000,
+        500
+      ]
+    },
+    {
+      "type": "layout",
+      "regionId": "part-1",
+      "pin": "hard",
+      "bounds": [
+        12,
+        36,
+        180,
+        92
+      ]
+    }
+  ],
+  "frames": [
+    {
+      "camera": "overview",
+      "scope": "restore equality only; hidden children do not imply paint"
+    },
+    {
+      "camera": "container",
+      "observation": {
+        "association": "render-owned-semantic-id",
+        "title": {
+          "unmet": null,
+          "box": [
+            205,
+            158.5,
+            39,
+            19
+          ],
+          "clips": [
+            [
+              0,
+              0,
+              626,
+              429
+            ],
+            [
+              0,
+              0,
+              626,
+              429
+            ],
+            [
+              0,
+              0,
+              626,
+              429
+            ]
+          ],
+          "svg": [
+            0,
+            0,
+            2226,
+            1278
+          ]
+        },
+        "identity": true,
+        "viewport": [
+          0,
+          0,
+          626,
+          429
+        ],
+        "container": {
+          "id": "container",
+          "kind": "painted-group-shape",
+          "bounds": [
+            193.5,
+            151,
+            2000,
+            500
+          ]
+        },
+        "shapes": [
+          {
+            "id": "part-1",
+            "rawLabel": "棚卸承認",
+            "bounds": [
+              205,
+              186.5,
+              180,
+              92
+            ],
+            "name": {
+              "unmet": null,
+              "box": [
+                269,
+                223,
+                52,
+                19
+              ],
+              "clips": [
+                [
+                  217,
+                  187,
+                  156,
+                  92
+                ],
+                [
+                  0,
+                  0,
+                  626,
+                  429
+                ],
+                [
+                  0,
+                  0,
+                  626,
+                  429
+                ],
+                [
+                  0,
+                  0,
+                  626,
+                  429
+                ]
+              ],
+              "svg": [
+                0,
+                0,
+                2226,
+                1278
+              ]
+            }
+          }
+        ],
+        "edge": null,
+        "contained": true,
+        "nonoverlap": true,
+        "complete": true
+      },
+      "assessment": {
+        "status": "PASS",
+        "problems": [],
+        "unknown": []
+      }
+    },
+    {
+      "camera": "other",
+      "observation": {
+        "association": "render-owned-semantic-id",
+        "title": {
+          "unmet": null,
+          "box": [
+            296.5,
+            206.86000061035156,
+            33,
+            16
+          ],
+          "clips": [
+            [
+              4,
+              136,
+              619,
+              157
+            ],
+            [
+              0,
+              0,
+              626,
+              429
+            ],
+            [
+              0,
+              0,
+              626,
+              429
+            ],
+            [
+              0,
+              0,
+              626,
+              429
+            ]
+          ],
+          "svg": [
+            0,
+            0,
+            638,
+            429
+          ]
+        },
+        "identity": true,
+        "viewport": [
+          0,
+          0,
+          626,
+          429
+        ],
+        "container": {
+          "id": "other",
+          "kind": "painted-group-shape",
+          "bounds": [
+            5.429999828338623,
+            137.97999572753906,
+            616.1400146484375,
+            154.0399932861328
+          ]
+        },
+        "shapes": [],
+        "edge": null,
+        "contained": true,
+        "nonoverlap": true,
+        "complete": true
+      },
+      "assessment": {
+        "status": "PASS",
+        "problems": [],
+        "unknown": []
+      }
+    }
+  ],
+  "lifecycle": {
+    "target": {
+      "log": "{\"operations\":[{\"mapId\":\"voice-graph\",\"records\":[{\"root\":\"root\",\"schema\":\"semantic-map-state/1\",\"title\":\"independent quota expression\",\"type\":\"meta\"},{\"bounds\":[0,0,900,400],\"id\":\"root\",\"kind\":\"boundary\",\"label\":\"fixture\",\"parent\":null,\"summary\":\"\",\"type\":\"region\"},{\"bounds\":[0,0,700,200],\"id\":\"container\",\"kind\":\"group\",\"label\":\"作業区\",\"parent\":\"root\",\"summary\":\"\",\"type\":\"region\"},{\"bounds\":[0,230,700,160],\"id\":\"other\",\"kind\":\"group\",\"label\":\"保留区\",\"parent\":\"root\",\"summary\":\"\",\"type\":\"region\"}],\"type\":\"CreateMap\"}],\"parent\":null,\"schema\":\"semantic-map-decision/2\",\"stateHash\":\"sha256:96c3705673d6d8136e773cc07c7bafb7a4f01aa295b371db90b7ee17e105e394\"}\n{\"operations\":[{\"items\":[{\"bounds\":[0,0,2000,500],\"regionId\":\"container\"},{\"bounds\":[0,600,2000,500],\"regionId\":\"other\"}],\"type\":\"PinRegions\"}],\"parent\":\"sha256:3410767558526fb820a662555caea8ca38c109eeef4076e469078d42c65bc705\",\"schema\":\"semantic-map-decision/2\",\"stateHash\":\"sha256:225152e1e2ed109725fc07dde5ab76668cb90081264ed5e13fd270c251ef87f4\"}\n{\"operations\":[{\"bounds\":[20,20,140,64],\"kind\":\"decision\",\"label\":\"棚卸承認\",\"parentId\":\"container\",\"regionId\":\"part-1\",\"summary\":\"\",\"type\":\"AddRegion\"},{\"items\":[{\"bounds\":[12,36,180,92],\"regionId\":\"part-1\"}],\"type\":\"PinRegions\"}],\"parent\":\"sha256:f14b93ac1b4a8ca4af467132ccd7f5d0a524fed90de6dbf3d54d77ea8f534596\",\"schema\":\"semantic-map-decision/2\",\"stateHash\":\"sha256:f7b931f45b9f29c9d949205a6b0c75ba43d56e2812e9766f393059abb1eb1093\"}\n",
+      "records": [
+        {
+          "type": "meta",
+          "schema": "semantic-map-state/1",
+          "root": "root",
+          "title": "independent quota expression"
+        },
+        {
+          "type": "region",
+          "id": "root",
+          "parent": null,
+          "label": "fixture",
+          "kind": "boundary",
+          "bounds": [
+            0,
+            0,
+            900,
+            400
+          ],
+          "summary": ""
+        },
+        {
+          "type": "region",
+          "id": "container",
+          "parent": "root",
+          "label": "作業区",
+          "kind": "group",
+          "bounds": [
+            0,
+            0,
+            700,
+            200
+          ],
+          "summary": ""
+        },
+        {
+          "type": "region",
+          "id": "other",
+          "parent": "root",
+          "label": "保留区",
+          "kind": "group",
+          "bounds": [
+            0,
+            230,
+            700,
+            160
+          ],
+          "summary": ""
+        },
+        {
+          "type": "region",
+          "id": "part-1",
+          "parent": "container",
+          "label": "棚卸承認",
+          "kind": "decision",
+          "bounds": [
+            20,
+            20,
+            140,
+            64
+          ],
+          "summary": ""
+        },
+        {
+          "type": "layout",
+          "regionId": "container",
+          "pin": "hard",
+          "bounds": [
+            0,
+            0,
+            2000,
+            500
+          ]
+        },
+        {
+          "type": "layout",
+          "regionId": "other",
+          "pin": "hard",
+          "bounds": [
+            0,
+            600,
+            2000,
+            500
+          ]
+        },
+        {
+          "type": "layout",
+          "regionId": "part-1",
+          "pin": "hard",
+          "bounds": [
+            12,
+            36,
+            180,
+            92
+          ]
+        }
+      ],
+      "stored": "{\"operations\":[{\"mapId\":\"voice-graph\",\"records\":[{\"root\":\"root\",\"schema\":\"semantic-map-state/1\",\"title\":\"independent quota expression\",\"type\":\"meta\"},{\"bounds\":[0,0,900,400],\"id\":\"root\",\"kind\":\"boundary\",\"label\":\"fixture\",\"parent\":null,\"summary\":\"\",\"type\":\"region\"},{\"bounds\":[0,0,700,200],\"id\":\"container\",\"kind\":\"group\",\"label\":\"作業区\",\"parent\":\"root\",\"summary\":\"\",\"type\":\"region\"},{\"bounds\":[0,230,700,160],\"id\":\"other\",\"kind\":\"group\",\"label\":\"保留区\",\"parent\":\"root\",\"summary\":\"\",\"type\":\"region\"}],\"type\":\"CreateMap\"}],\"parent\":null,\"schema\":\"semantic-map-decision/2\",\"stateHash\":\"sha256:96c3705673d6d8136e773cc07c7bafb7a4f01aa295b371db90b7ee17e105e394\"}\n{\"operations\":[{\"items\":[{\"bounds\":[0,0,2000,500],\"regionId\":\"container\"},{\"bounds\":[0,600,2000,500],\"regionId\":\"other\"}],\"type\":\"PinRegions\"}],\"parent\":\"sha256:3410767558526fb820a662555caea8ca38c109eeef4076e469078d42c65bc705\",\"schema\":\"semantic-map-decision/2\",\"stateHash\":\"sha256:225152e1e2ed109725fc07dde5ab76668cb90081264ed5e13fd270c251ef87f4\"}\n",
+      "goal": {
+        "reason": "no-executable-delta",
+        "requests": 3,
+        "elapsedMs": 3537.360000014305,
+        "selected": [
+          {
+            "key": "goal-extra-1",
+            "region": "part-1",
+            "parent": "container"
+          }
+        ],
+        "trace": [
+          {
+            "head": "sha256:f14b93ac1b4a8ca4af467132ccd7f5d0a524fed90de6dbf3d54d77ea8f534596",
+            "answers": {
+              "delta": {
+                "type": "choice",
+                "choice": "part:goal-extra-1",
+                "confidence": 0.98
+              }
+            },
+            "failure": null
+          },
+          {
+            "head": "sha256:f14b93ac1b4a8ca4af467132ccd7f5d0a524fed90de6dbf3d54d77ea8f534596",
+            "answers": {
+              "delta": {
+                "type": "choice",
+                "choice": "delta-1",
+                "confidence": 1
+              }
+            },
+            "failure": null
+          }
+        ],
+        "inventory": {
+          "checks": 1,
+          "completions": 0,
+          "preparations": 1,
+          "coverage": {
+            "choice": "missing",
+            "confidence": 0.96,
+            "inspection": {
+              "schema": "voice-ui.parts.inspection/3",
+              "request_id": "48f13624-82e4-4b85-b16c-81f1d73a763f",
+              "mode": "adaptive-v3",
+              "initial": {
+                "decision": {
+                  "choice": "unknown",
+                  "confidence": null
+                },
+                "factors": {
+                  "intent": {
+                    "choice": "change",
+                    "confidence": 0.89
+                  },
+                  "labels": {
+                    "choice": "missing",
+                    "confidence": 0.68
+                  },
+                  "capacity": {
+                    "choice": "within",
+                    "confidence": 0.96
+                  },
+                  "completeness": {
+                    "choice": "incomplete",
+                    "confidence": 0.96
+                  }
+                },
+                "literal": {
+                  "recognized": false,
+                  "required": [],
+                  "spans": []
+                },
+                "observation": {
+                  "valid": true,
+                  "status": "unsupported-syntax"
+                }
+              },
+              "proposal": {
+                "slots": {
+                  "required1": {
+                    "label": "棚卸承認",
+                    "kind": "decision",
+                    "quantity": "1"
+                  },
+                  "required2": {
+                    "label": "",
+                    "kind": "none",
+                    "quantity": "0"
+                  },
+                  "required3": {
+                    "label": "",
+                    "kind": "none",
+                    "quantity": "0"
+                  }
+                },
+                "required": [
+                  {
+                    "label": "棚卸承認",
+                    "kind": "decision",
+                    "quantity": 1
+                  }
+                ]
+              },
+              "verification": {
+                "intent": {
+                  "choice": "change",
+                  "confidence": 0.96
+                },
+                "labels": {
+                  "choice": "missing",
+                  "confidence": 0.82
+                },
+                "capacity": {
+                  "choice": "within",
+                  "confidence": 0.96
+                },
+                "completeness": {
+                  "choice": "complete",
+                  "confidence": 0.96
+                }
+              },
+              "required": [
+                {
+                  "label": "棚卸承認",
+                  "kind": "decision",
+                  "quantity": 1
+                }
+              ],
+              "missing": [
+                {
+                  "label": "棚卸承認",
+                  "kind": "decision",
+                  "occurrence": 1
+                }
+              ],
+              "proposal_policy": {
+                "id": "uncertainty-frontier-v1",
+                "eligible": true,
+                "reason": "confident-change-incomplete"
+              }
+            }
+          },
+          "missing": [
+            {
+              "label": "棚卸承認",
+              "kind": "decision",
+              "occurrence": 1
+            }
+          ]
+        }
+      }
+    },
+    "applied": {
+      "log": "{\"operations\":[{\"mapId\":\"voice-graph\",\"records\":[{\"root\":\"root\",\"schema\":\"semantic-map-state/1\",\"title\":\"independent quota expression\",\"type\":\"meta\"},{\"bounds\":[0,0,900,400],\"id\":\"root\",\"kind\":\"boundary\",\"label\":\"fixture\",\"parent\":null,\"summary\":\"\",\"type\":\"region\"},{\"bounds\":[0,0,700,200],\"id\":\"container\",\"kind\":\"group\",\"label\":\"作業区\",\"parent\":\"root\",\"summary\":\"\",\"type\":\"region\"},{\"bounds\":[0,230,700,160],\"id\":\"other\",\"kind\":\"group\",\"label\":\"保留区\",\"parent\":\"root\",\"summary\":\"\",\"type\":\"region\"}],\"type\":\"CreateMap\"}],\"parent\":null,\"schema\":\"semantic-map-decision/2\",\"stateHash\":\"sha256:96c3705673d6d8136e773cc07c7bafb7a4f01aa295b371db90b7ee17e105e394\"}\n{\"operations\":[{\"items\":[{\"bounds\":[0,0,2000,500],\"regionId\":\"container\"},{\"bounds\":[0,600,2000,500],\"regionId\":\"other\"}],\"type\":\"PinRegions\"}],\"parent\":\"sha256:3410767558526fb820a662555caea8ca38c109eeef4076e469078d42c65bc705\",\"schema\":\"semantic-map-decision/2\",\"stateHash\":\"sha256:225152e1e2ed109725fc07dde5ab76668cb90081264ed5e13fd270c251ef87f4\"}\n{\"operations\":[{\"bounds\":[20,20,140,64],\"kind\":\"decision\",\"label\":\"棚卸承認\",\"parentId\":\"container\",\"regionId\":\"part-1\",\"summary\":\"\",\"type\":\"AddRegion\"},{\"items\":[{\"bounds\":[12,36,180,92],\"regionId\":\"part-1\"}],\"type\":\"PinRegions\"}],\"parent\":\"sha256:f14b93ac1b4a8ca4af467132ccd7f5d0a524fed90de6dbf3d54d77ea8f534596\",\"schema\":\"semantic-map-decision/2\",\"stateHash\":\"sha256:f7b931f45b9f29c9d949205a6b0c75ba43d56e2812e9766f393059abb1eb1093\"}\n",
+      "records": [
+        {
+          "type": "meta",
+          "schema": "semantic-map-state/1",
+          "root": "root",
+          "title": "independent quota expression"
+        },
+        {
+          "type": "region",
+          "id": "root",
+          "parent": null,
+          "label": "fixture",
+          "kind": "boundary",
+          "bounds": [
+            0,
+            0,
+            900,
+            400
+          ],
+          "summary": ""
+        },
+        {
+          "type": "region",
+          "id": "container",
+          "parent": "root",
+          "label": "作業区",
+          "kind": "group",
+          "bounds": [
+            0,
+            0,
+            700,
+            200
+          ],
+          "summary": ""
+        },
+        {
+          "type": "region",
+          "id": "other",
+          "parent": "root",
+          "label": "保留区",
+          "kind": "group",
+          "bounds": [
+            0,
+            230,
+            700,
+            160
+          ],
+          "summary": ""
+        },
+        {
+          "type": "region",
+          "id": "part-1",
+          "parent": "container",
+          "label": "棚卸承認",
+          "kind": "decision",
+          "bounds": [
+            20,
+            20,
+            140,
+            64
+          ],
+          "summary": ""
+        },
+        {
+          "type": "layout",
+          "regionId": "container",
+          "pin": "hard",
+          "bounds": [
+            0,
+            0,
+            2000,
+            500
+          ]
+        },
+        {
+          "type": "layout",
+          "regionId": "other",
+          "pin": "hard",
+          "bounds": [
+            0,
+            600,
+            2000,
+            500
+          ]
+        },
+        {
+          "type": "layout",
+          "regionId": "part-1",
+          "pin": "hard",
+          "bounds": [
+            12,
+            36,
+            180,
+            92
+          ]
+        }
+      ],
+      "stored": "{\"operations\":[{\"mapId\":\"voice-graph\",\"records\":[{\"root\":\"root\",\"schema\":\"semantic-map-state/1\",\"title\":\"independent quota expression\",\"type\":\"meta\"},{\"bounds\":[0,0,900,400],\"id\":\"root\",\"kind\":\"boundary\",\"label\":\"fixture\",\"parent\":null,\"summary\":\"\",\"type\":\"region\"},{\"bounds\":[0,0,700,200],\"id\":\"container\",\"kind\":\"group\",\"label\":\"作業区\",\"parent\":\"root\",\"summary\":\"\",\"type\":\"region\"},{\"bounds\":[0,230,700,160],\"id\":\"other\",\"kind\":\"group\",\"label\":\"保留区\",\"parent\":\"root\",\"summary\":\"\",\"type\":\"region\"}],\"type\":\"CreateMap\"}],\"parent\":null,\"schema\":\"semantic-map-decision/2\",\"stateHash\":\"sha256:96c3705673d6d8136e773cc07c7bafb7a4f01aa295b371db90b7ee17e105e394\"}\n{\"operations\":[{\"items\":[{\"bounds\":[0,0,2000,500],\"regionId\":\"container\"},{\"bounds\":[0,600,2000,500],\"regionId\":\"other\"}],\"type\":\"PinRegions\"}],\"parent\":\"sha256:3410767558526fb820a662555caea8ca38c109eeef4076e469078d42c65bc705\",\"schema\":\"semantic-map-decision/2\",\"stateHash\":\"sha256:225152e1e2ed109725fc07dde5ab76668cb90081264ed5e13fd270c251ef87f4\"}\n{\"operations\":[{\"bounds\":[20,20,140,64],\"kind\":\"decision\",\"label\":\"棚卸承認\",\"parentId\":\"container\",\"regionId\":\"part-1\",\"summary\":\"\",\"type\":\"AddRegion\"},{\"items\":[{\"bounds\":[12,36,180,92],\"regionId\":\"part-1\"}],\"type\":\"PinRegions\"}],\"parent\":\"sha256:f14b93ac1b4a8ca4af467132ccd7f5d0a524fed90de6dbf3d54d77ea8f534596\",\"schema\":\"semantic-map-decision/2\",\"stateHash\":\"sha256:f7b931f45b9f29c9d949205a6b0c75ba43d56e2812e9766f393059abb1eb1093\"}\n",
+      "goal": {
+        "reason": "no-executable-delta",
+        "requests": 3,
+        "elapsedMs": 3537.360000014305,
+        "selected": [
+          {
+            "key": "goal-extra-1",
+            "region": "part-1",
+            "parent": "container"
+          }
+        ],
+        "trace": [
+          {
+            "head": "sha256:f14b93ac1b4a8ca4af467132ccd7f5d0a524fed90de6dbf3d54d77ea8f534596",
+            "answers": {
+              "delta": {
+                "type": "choice",
+                "choice": "part:goal-extra-1",
+                "confidence": 0.98
+              }
+            },
+            "failure": null
+          },
+          {
+            "head": "sha256:f14b93ac1b4a8ca4af467132ccd7f5d0a524fed90de6dbf3d54d77ea8f534596",
+            "answers": {
+              "delta": {
+                "type": "choice",
+                "choice": "delta-1",
+                "confidence": 1
+              }
+            },
+            "failure": null
+          }
+        ],
+        "inventory": {
+          "checks": 1,
+          "completions": 0,
+          "preparations": 1,
+          "coverage": {
+            "choice": "missing",
+            "confidence": 0.96,
+            "inspection": {
+              "schema": "voice-ui.parts.inspection/3",
+              "request_id": "48f13624-82e4-4b85-b16c-81f1d73a763f",
+              "mode": "adaptive-v3",
+              "initial": {
+                "decision": {
+                  "choice": "unknown",
+                  "confidence": null
+                },
+                "factors": {
+                  "intent": {
+                    "choice": "change",
+                    "confidence": 0.89
+                  },
+                  "labels": {
+                    "choice": "missing",
+                    "confidence": 0.68
+                  },
+                  "capacity": {
+                    "choice": "within",
+                    "confidence": 0.96
+                  },
+                  "completeness": {
+                    "choice": "incomplete",
+                    "confidence": 0.96
+                  }
+                },
+                "literal": {
+                  "recognized": false,
+                  "required": [],
+                  "spans": []
+                },
+                "observation": {
+                  "valid": true,
+                  "status": "unsupported-syntax"
+                }
+              },
+              "proposal": {
+                "slots": {
+                  "required1": {
+                    "label": "棚卸承認",
+                    "kind": "decision",
+                    "quantity": "1"
+                  },
+                  "required2": {
+                    "label": "",
+                    "kind": "none",
+                    "quantity": "0"
+                  },
+                  "required3": {
+                    "label": "",
+                    "kind": "none",
+                    "quantity": "0"
+                  }
+                },
+                "required": [
+                  {
+                    "label": "棚卸承認",
+                    "kind": "decision",
+                    "quantity": 1
+                  }
+                ]
+              },
+              "verification": {
+                "intent": {
+                  "choice": "change",
+                  "confidence": 0.96
+                },
+                "labels": {
+                  "choice": "missing",
+                  "confidence": 0.82
+                },
+                "capacity": {
+                  "choice": "within",
+                  "confidence": 0.96
+                },
+                "completeness": {
+                  "choice": "complete",
+                  "confidence": 0.96
+                }
+              },
+              "required": [
+                {
+                  "label": "棚卸承認",
+                  "kind": "decision",
+                  "quantity": 1
+                }
+              ],
+              "missing": [
+                {
+                  "label": "棚卸承認",
+                  "kind": "decision",
+                  "occurrence": 1
+                }
+              ],
+              "proposal_policy": {
+                "id": "uncertainty-frontier-v1",
+                "eligible": true,
+                "reason": "confident-change-incomplete"
+              }
+            }
+          },
+          "missing": [
+            {
+              "label": "棚卸承認",
+              "kind": "decision",
+              "occurrence": 1
+            }
+          ]
+        }
+      }
+    },
+    "reloaded": {
+      "log": "{\"operations\":[{\"mapId\":\"voice-graph\",\"records\":[{\"root\":\"root\",\"schema\":\"semantic-map-state/1\",\"title\":\"independent quota expression\",\"type\":\"meta\"},{\"bounds\":[0,0,900,400],\"id\":\"root\",\"kind\":\"boundary\",\"label\":\"fixture\",\"parent\":null,\"summary\":\"\",\"type\":\"region\"},{\"bounds\":[0,0,700,200],\"id\":\"container\",\"kind\":\"group\",\"label\":\"作業区\",\"parent\":\"root\",\"summary\":\"\",\"type\":\"region\"},{\"bounds\":[0,230,700,160],\"id\":\"other\",\"kind\":\"group\",\"label\":\"保留区\",\"parent\":\"root\",\"summary\":\"\",\"type\":\"region\"}],\"type\":\"CreateMap\"}],\"parent\":null,\"schema\":\"semantic-map-decision/2\",\"stateHash\":\"sha256:96c3705673d6d8136e773cc07c7bafb7a4f01aa295b371db90b7ee17e105e394\"}\n{\"operations\":[{\"items\":[{\"bounds\":[0,0,2000,500],\"regionId\":\"container\"},{\"bounds\":[0,600,2000,500],\"regionId\":\"other\"}],\"type\":\"PinRegions\"}],\"parent\":\"sha256:3410767558526fb820a662555caea8ca38c109eeef4076e469078d42c65bc705\",\"schema\":\"semantic-map-decision/2\",\"stateHash\":\"sha256:225152e1e2ed109725fc07dde5ab76668cb90081264ed5e13fd270c251ef87f4\"}\n{\"operations\":[{\"bounds\":[20,20,140,64],\"kind\":\"decision\",\"label\":\"棚卸承認\",\"parentId\":\"container\",\"regionId\":\"part-1\",\"summary\":\"\",\"type\":\"AddRegion\"},{\"items\":[{\"bounds\":[12,36,180,92],\"regionId\":\"part-1\"}],\"type\":\"PinRegions\"}],\"parent\":\"sha256:f14b93ac1b4a8ca4af467132ccd7f5d0a524fed90de6dbf3d54d77ea8f534596\",\"schema\":\"semantic-map-decision/2\",\"stateHash\":\"sha256:f7b931f45b9f29c9d949205a6b0c75ba43d56e2812e9766f393059abb1eb1093\"}\n",
+      "records": [
+        {
+          "type": "meta",
+          "schema": "semantic-map-state/1",
+          "root": "root",
+          "title": "independent quota expression"
+        },
+        {
+          "type": "region",
+          "id": "root",
+          "parent": null,
+          "label": "fixture",
+          "kind": "boundary",
+          "bounds": [
+            0,
+            0,
+            900,
+            400
+          ],
+          "summary": ""
+        },
+        {
+          "type": "region",
+          "id": "container",
+          "parent": "root",
+          "label": "作業区",
+          "kind": "group",
+          "bounds": [
+            0,
+            0,
+            700,
+            200
+          ],
+          "summary": ""
+        },
+        {
+          "type": "region",
+          "id": "other",
+          "parent": "root",
+          "label": "保留区",
+          "kind": "group",
+          "bounds": [
+            0,
+            230,
+            700,
+            160
+          ],
+          "summary": ""
+        },
+        {
+          "type": "region",
+          "id": "part-1",
+          "parent": "container",
+          "label": "棚卸承認",
+          "kind": "decision",
+          "bounds": [
+            20,
+            20,
+            140,
+            64
+          ],
+          "summary": ""
+        },
+        {
+          "type": "layout",
+          "regionId": "container",
+          "pin": "hard",
+          "bounds": [
+            0,
+            0,
+            2000,
+            500
+          ]
+        },
+        {
+          "type": "layout",
+          "regionId": "other",
+          "pin": "hard",
+          "bounds": [
+            0,
+            600,
+            2000,
+            500
+          ]
+        },
+        {
+          "type": "layout",
+          "regionId": "part-1",
+          "pin": "hard",
+          "bounds": [
+            12,
+            36,
+            180,
+            92
+          ]
+        }
+      ],
+      "stored": "{\"operations\":[{\"mapId\":\"voice-graph\",\"records\":[{\"root\":\"root\",\"schema\":\"semantic-map-state/1\",\"title\":\"independent quota expression\",\"type\":\"meta\"},{\"bounds\":[0,0,900,400],\"id\":\"root\",\"kind\":\"boundary\",\"label\":\"fixture\",\"parent\":null,\"summary\":\"\",\"type\":\"region\"},{\"bounds\":[0,0,700,200],\"id\":\"container\",\"kind\":\"group\",\"label\":\"作業区\",\"parent\":\"root\",\"summary\":\"\",\"type\":\"region\"},{\"bounds\":[0,230,700,160],\"id\":\"other\",\"kind\":\"group\",\"label\":\"保留区\",\"parent\":\"root\",\"summary\":\"\",\"type\":\"region\"}],\"type\":\"CreateMap\"}],\"parent\":null,\"schema\":\"semantic-map-decision/2\",\"stateHash\":\"sha256:96c3705673d6d8136e773cc07c7bafb7a4f01aa295b371db90b7ee17e105e394\"}\n{\"operations\":[{\"items\":[{\"bounds\":[0,0,2000,500],\"regionId\":\"container\"},{\"bounds\":[0,600,2000,500],\"regionId\":\"other\"}],\"type\":\"PinRegions\"}],\"parent\":\"sha256:3410767558526fb820a662555caea8ca38c109eeef4076e469078d42c65bc705\",\"schema\":\"semantic-map-decision/2\",\"stateHash\":\"sha256:225152e1e2ed109725fc07dde5ab76668cb90081264ed5e13fd270c251ef87f4\"}\n{\"operations\":[{\"bounds\":[20,20,140,64],\"kind\":\"decision\",\"label\":\"棚卸承認\",\"parentId\":\"container\",\"regionId\":\"part-1\",\"summary\":\"\",\"type\":\"AddRegion\"},{\"items\":[{\"bounds\":[12,36,180,92],\"regionId\":\"part-1\"}],\"type\":\"PinRegions\"}],\"parent\":\"sha256:f14b93ac1b4a8ca4af467132ccd7f5d0a524fed90de6dbf3d54d77ea8f534596\",\"schema\":\"semantic-map-decision/2\",\"stateHash\":\"sha256:f7b931f45b9f29c9d949205a6b0c75ba43d56e2812e9766f393059abb1eb1093\"}\n",
+      "goal": null
+    },
+    "apply_enabled": true,
+    "persistence": "PASS",
+    "undo": "separate completed-artifact keyless mechanics; no second live Goal"
+  }
+}

@@ -1,0 +1,76 @@
+{
+  "status": "PASS",
+  "phase": "quota-public-R-20261018",
+  "at": "2026-10-17T23:08:15.975Z",
+  "journal_sha256": "6142efa4b4e9c7e6ce7febfa89d01b6b2ccb5808fa436d9c56254760f81d3e23",
+  "charged": {
+    "jev": 813,
+    "typellm": 85
+  },
+  "outstanding": 0,
+  "owned_pgids": 39,
+  "remaining_members": [],
+  "orchestration": {
+    "phase": "quota-public-R-20261018",
+    "began": "2026-10-17T23:07:23.366Z",
+    "finished": "2026-10-17T23:07:53.372Z",
+    "execution": {
+      "exit": 0,
+      "error": null
+    },
+    "stop": {
+      "status": "STOPPED_RECONCILED",
+      "result": {
+        "phase": "quota-public-R-20261018",
+        "action": "stop",
+        "current": {
+          "pid": 363994,
+          "state": "S",
+          "pgid": 363994,
+          "start_ticks": "18611793"
+        },
+        "sent": {
+          "jev": 5,
+          "typellm": 0
+        },
+        "whole_run_sent": {
+          "jev": 813,
+          "typellm": 85
+        },
+        "reserved_until_confirmed_stop": null
+      }
+    },
+    "raw": "/work/repos/voice-ui-typellm-20261016/quota-public-R-20261018.raw",
+    "driver_stdout": "/work/repos/voice-ui-typellm-20261016/quota-public-R-20261018.driver.stdout.log",
+    "driver_stderr": "/work/repos/voice-ui-typellm-20261016/quota-public-R-20261018.driver.stderr.log"
+  },
+  "execution": {
+    "schema": "voice-ui.quota-cycle-phase/1",
+    "axis": "R",
+    "status": "RECORDED",
+    "summary": [
+      {
+        "axis": "R",
+        "id": "PR01",
+        "arm": "O",
+        "method": "ready-open",
+        "generation_policy": null,
+        "goal_parts_policy": "open",
+        "valid_execution": true,
+        "calls": 3
+      },
+      {
+        "axis": "R",
+        "id": "PR01",
+        "arm": "Q",
+        "method": "ready-quota",
+        "generation_policy": null,
+        "goal_parts_policy": "quota",
+        "valid_execution": true,
+        "calls": 2
+      }
+    ],
+    "invalid_cells": 0,
+    "expected_cells": 2
+  }
+}

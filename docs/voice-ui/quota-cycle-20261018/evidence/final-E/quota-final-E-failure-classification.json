@@ -1,0 +1,297 @@
+{
+  "schema": "voice-ui.review.quota-E-failure-classification/1",
+  "status": "PASS",
+  "phase": "quota-final-E-20261018",
+  "apps_sha": "59ded276405a5dc9caa85ad570b1827ff4bd0c7a",
+  "oracle_sha256": "87bc601021241e65ee78e5e8c4a30d316d0e8e9c7fcbbfe3ac2f6b4b7a2b87b3",
+  "independent_raw_audit_sha256": "ec6797c6c0e73bfd3d5cf37d65e3a1291ffe0be1e80330890452ce48c888155d",
+  "missing_cases": [
+    {
+      "id": "QE03",
+      "raw_sha256": "7f699f68725678fe1bf97e8b151957921edcda8c4e4cc03ef2f43da6694831d7",
+      "expected_full_required": [
+        {
+          "label": "出荷可否",
+          "kind": "decision",
+          "quantity": 1
+        }
+      ],
+      "actual_proposal_slots": {
+        "required1": {
+          "label": "判断",
+          "kind": "decision",
+          "quantity": "1"
+        },
+        "required2": {
+          "label": "",
+          "kind": "none",
+          "quantity": "0"
+        },
+        "required3": {
+          "label": "",
+          "kind": "none",
+          "quantity": "0"
+        }
+      },
+      "actual_full_required": [
+        {
+          "label": "判断",
+          "kind": "decision",
+          "quantity": 1
+        }
+      ],
+      "initial_factors": {
+        "intent": {
+          "choice": "change",
+          "confidence": 0.72
+        },
+        "labels": {
+          "choice": "available",
+          "confidence": 0.14
+        },
+        "capacity": {
+          "choice": "within",
+          "confidence": 0.98
+        },
+        "completeness": {
+          "choice": "incomplete",
+          "confidence": 0.94
+        }
+      },
+      "actual_proposal_policy": {
+        "id": "uncertainty-frontier-v1",
+        "eligible": true,
+        "reason": "confident-change-incomplete"
+      },
+      "verification_factors": {
+        "intent": {
+          "choice": "change",
+          "confidence": 0.88
+        },
+        "labels": {
+          "choice": "available",
+          "confidence": 0.72
+        },
+        "capacity": {
+          "choice": "within",
+          "confidence": 0.98
+        },
+        "completeness": {
+          "choice": "complete",
+          "confidence": 0.02
+        }
+      },
+      "verification_decision": {
+        "accepted": false,
+        "confidence": 0.02
+      },
+      "source_failure_location": "FULL_REQUIRED_PROPOSAL_DISPLAY_LABEL_WRONG; INDEPENDENT_VERIFIER_REFUSED; BEFORE_MATERIALIZATION_AND_GOAL",
+      "result_reason": "inventory-unresolved",
+      "preparations": 0,
+      "Goal_judge_calls": 0,
+      "graph_unchanged": true,
+      "no_false_adoption": true,
+      "causal_pair_admitted": true
+    },
+    {
+      "id": "QE04",
+      "raw_sha256": "e0a883f15ea9ccb61c4193372e4f14c32b2d049a3e66cba2d99cee618d1f2e32",
+      "expected_full_required": [
+        {
+          "label": "API",
+          "kind": "step",
+          "quantity": 2
+        }
+      ],
+      "actual_proposal_slots": {
+        "required1": {
+          "label": "工程",
+          "kind": "step",
+          "quantity": "2"
+        },
+        "required2": {
+          "label": "",
+          "kind": "none",
+          "quantity": "0"
+        },
+        "required3": {
+          "label": "",
+          "kind": "none",
+          "quantity": "0"
+        }
+      },
+      "actual_full_required": [
+        {
+          "label": "工程",
+          "kind": "step",
+          "quantity": 2
+        }
+      ],
+      "initial_factors": {
+        "intent": {
+          "choice": "change",
+          "confidence": 0.44
+        },
+        "labels": {
+          "choice": "available",
+          "confidence": 0.9
+        },
+        "capacity": {
+          "choice": "exceeded",
+          "confidence": 0.42
+        },
+        "completeness": {
+          "choice": "incomplete",
+          "confidence": 0.98
+        }
+      },
+      "actual_proposal_policy": {
+        "id": "uncertainty-frontier-v1",
+        "eligible": true,
+        "reason": "uncertain-intent-incomplete"
+      },
+      "verification_factors": {
+        "intent": {
+          "choice": "change",
+          "confidence": 0.88
+        },
+        "labels": {
+          "choice": "available",
+          "confidence": 0.98
+        },
+        "capacity": {
+          "choice": "exceeded",
+          "confidence": 0.66
+        },
+        "completeness": {
+          "choice": "complete",
+          "confidence": 0.08
+        }
+      },
+      "verification_decision": {
+        "accepted": false,
+        "confidence": 0.08
+      },
+      "source_failure_location": "FULL_REQUIRED_PROPOSAL_DISPLAY_LABEL_WRONG; INDEPENDENT_VERIFIER_REFUSED; BEFORE_MATERIALIZATION_AND_GOAL",
+      "result_reason": "inventory-unresolved",
+      "preparations": 0,
+      "Goal_judge_calls": 0,
+      "graph_unchanged": true,
+      "no_false_adoption": true,
+      "causal_pair_admitted": true
+    }
+  ],
+  "sufficient_difference": {
+    "id": "QE01",
+    "scope": "TRUE_SUFFICIENT_G0_OUTCOME_DIFFERENCE_WITH_ZERO_TYPE; EXCLUDED_FROM_MISSING_GAIN",
+    "B": {
+      "raw_sha256": "6f3eef357918a498afd76cb68bece8ebaedfdfe52f4665d5582b858944d92697",
+      "initial": {
+        "decision": {
+          "choice": "sufficient",
+          "confidence": 0.47
+        },
+        "factors": {
+          "intent": {
+            "choice": "change",
+            "confidence": 0.47
+          },
+          "labels": {
+            "choice": "available",
+            "confidence": 1
+          },
+          "capacity": {
+            "choice": "within",
+            "confidence": 0.98
+          },
+          "completeness": {
+            "choice": "complete",
+            "confidence": 0.88
+          }
+        },
+        "literal": {
+          "recognized": true,
+          "required": [
+            {
+              "label": "API",
+              "kind": "step",
+              "quantity": 1
+            }
+          ],
+          "spans": [
+            {
+              "start": 6,
+              "end": 9,
+              "source": "API",
+              "label": "API",
+              "kind": "step",
+              "quantity": 1
+            }
+          ]
+        },
+        "observation": {
+          "valid": true,
+          "status": "transcribed"
+        }
+      },
+      "reason": "inventory-not-confident",
+      "graph_exact": false
+    },
+    "C": {
+      "raw_sha256": "3eb1b6d9791206f15ec2a6486346023194ce5991336b5b59f9d6fd868ffc57a0",
+      "initial": {
+        "decision": {
+          "choice": "sufficient",
+          "confidence": 0.59
+        },
+        "factors": {
+          "intent": {
+            "choice": "change",
+            "confidence": 0.59
+          },
+          "labels": {
+            "choice": "available",
+            "confidence": 1
+          },
+          "capacity": {
+            "choice": "within",
+            "confidence": 1
+          },
+          "completeness": {
+            "choice": "complete",
+            "confidence": 0.9
+          }
+        },
+        "literal": {
+          "recognized": true,
+          "required": [
+            {
+              "label": "API",
+              "kind": "step",
+              "quantity": 1
+            }
+          ],
+          "spans": [
+            {
+              "start": 6,
+              "end": 9,
+              "source": "API",
+              "label": "API",
+              "kind": "step",
+              "quantity": 1
+            }
+          ]
+        },
+        "observation": {
+          "valid": true,
+          "status": "transcribed"
+        }
+      },
+      "reason": "no-executable-delta",
+      "graph_exact": true
+    }
+  },
+  "causal_scope": "All two registered missing pairs admitted, neither improved. Generic labels were returned instead of explicit display names. Verifier prevented adoption, so quota/Goal/renderer were not reached for those C cases. No new F panel, Type-wide null effect, or general safety claim is inferred.",
+  "actual_CI_closure_pending": true,
+  "reviewer_real_provider_calls": 0
+}

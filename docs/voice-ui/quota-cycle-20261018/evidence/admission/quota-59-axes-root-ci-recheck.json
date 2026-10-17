@@ -1,0 +1,58 @@
+{
+  "status": "PASS",
+  "scope": "ACTUAL_QUOTA_CI_HISTORICAL_CLOSURE_EQUALS_CLOSED_0aa",
+  "report_head": "59ded276405a5dc9caa85ad570b1827ff4bd0c7a",
+  "release_run": 39076041775,
+  "kind": "axes",
+  "files": 13,
+  "receipt_sha256": "3e0bc618c5fdda1613b6720e05178e2ee35648e20ab0237de304f9faf5b30dfc",
+  "all_json_bytes_exact": true,
+  "log_duration_exceptions": [],
+  "cumulative": {
+    "jev": 689,
+    "typellm": 40
+  },
+  "quality": [
+    {
+      "id": "public-G",
+      "axis": "G",
+      "classification": "PUBLIC_REGRESSION_ONLY"
+    },
+    {
+      "id": "public-R",
+      "axis": "R",
+      "classification": "PUBLIC_REGRESSION_ONLY"
+    },
+    {
+      "id": "public-F",
+      "axis": "F",
+      "classification": "PUBLIC_REGRESSION_ONLY"
+    },
+    {
+      "id": "public-E",
+      "axis": "E",
+      "classification": "PUBLIC_REGRESSION_ONLY"
+    },
+    {
+      "id": "final-G",
+      "axis": "G",
+      "classification": "UNMET"
+    },
+    {
+      "id": "final-R",
+      "axis": "R",
+      "classification": "FINITE_CRITERIA_PASS"
+    },
+    {
+      "id": "final-F",
+      "axis": "F",
+      "classification": "UNPROVEN"
+    },
+    {
+      "id": "final-E",
+      "axis": "E",
+      "classification": "UNMET"
+    }
+  ],
+  "external_provider_sends_added": 0
+}

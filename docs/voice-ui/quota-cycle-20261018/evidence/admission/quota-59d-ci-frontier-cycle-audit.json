@@ -1,0 +1,71 @@
+{
+  "schema": "voice-ui.review.quota-ci-closure/1",
+  "status": "PASS",
+  "head": "59ded276405a5dc9caa85ad570b1827ff4bd0c7a",
+  "run": 39076041775,
+  "checked_at": "2026-10-17T23:00:20.398Z",
+  "kind": "frontier-cycle",
+  "artifact": {
+    "id": 12117701316,
+    "name": "voice-ui-frontier-cycle-59ded276405a5dc9caa85ad570b1827ff4bd0c7a",
+    "bytes": 49512,
+    "sha256": "3675e0517d240c9e5340f514e9f8b955f8e6e7fa6a4a9798301b4ad47e43ea6d"
+  },
+  "receipt_sha256": "c85240f2287ec3903c7bacf660d636790ebaa2f3e0553d93ca214562a9131e8c",
+  "cumulative": {
+    "jev": 808,
+    "typellm": 85
+  },
+  "reports": 5,
+  "baseline": {
+    "head": "0aa3c4b90519a1c18c217753698806507ccff3c0",
+    "audit_sha256": "663e4e32bff74af9d68fee60cd3491d0b5de946101c699c843ddd32e9748a92a",
+    "zip_sha256": "c990a464c31d964e2c5832515acc0d0ebbbeeb940df12fe53231b4a1adaa7e7e"
+  },
+  "exact_json_files": 8,
+  "members": [
+    {
+      "name": "frontier-final-E/ci-replay/receipt.json",
+      "sha256": "2c8e784dac3c5c667d968e685f72cb92a737d555743c1e66a014ebb1fb49c757",
+      "match": "EXACT_RAW_BYTES"
+    },
+    {
+      "name": "frontier-final-F/audit.json",
+      "sha256": "616a6e20cc299b8af3a30577826ae0b05ad27d5c0e95f489d63302b393ee8271",
+      "match": "EXACT_RAW_BYTES"
+    },
+    {
+      "name": "frontier-final-E/audit.json",
+      "sha256": "8005176ddaa8f0ad633406b35dea0dc8928fbef79c692f315f95605105c41d17",
+      "match": "EXACT_RAW_BYTES"
+    },
+    {
+      "name": "frontier-final-V/audit.json",
+      "sha256": "074ef106b4b9b69405594bc0cd8931c69bdcae435b9cefab3e3d37afe09ac442",
+      "match": "EXACT_RAW_BYTES"
+    },
+    {
+      "name": "frontier-public-E/audit.json",
+      "sha256": "01ad845f450263d9de5d518720765f7f55b64e1b071c43606dc6086a14366a26",
+      "match": "EXACT_RAW_BYTES"
+    },
+    {
+      "name": "frontier-public-E/ci-replay/receipt.json",
+      "sha256": "cc67e805c8526bcb949e3861b7193a3b7c8002670e75f29d0fcddd4f16f8612e",
+      "match": "EXACT_RAW_BYTES"
+    },
+    {
+      "name": "frontier-public-G0/audit.json",
+      "sha256": "72a127a1f5dfd2258fd56aec8a9a9f91c4ab3c9c5f9aebef99ce9d4a60291aef",
+      "match": "EXACT_RAW_BYTES"
+    },
+    {
+      "name": "receipt.json",
+      "sha256": "c85240f2287ec3903c7bacf660d636790ebaa2f3e0553d93ca214562a9131e8c",
+      "match": "EXACT_RAW_BYTES"
+    }
+  ],
+  "receipt_reused_only_after_all_members_matched": true,
+  "scope": "ACTUAL_CI_CLOSED_EVIDENCE_OR_NOT_MEASURED_ONLY_NOT_LIVE_PERFORMANCE_OR_LAUNCH_GO",
+  "reviewer_real_provider_calls": 0
+}

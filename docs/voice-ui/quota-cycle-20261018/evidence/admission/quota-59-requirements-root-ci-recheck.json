@@ -1,0 +1,58 @@
+{
+  "status": "PASS",
+  "scope": "ACTUAL_QUOTA_CI_HISTORICAL_CLOSURE_EQUALS_CLOSED_0aa",
+  "report_head": "59ded276405a5dc9caa85ad570b1827ff4bd0c7a",
+  "release_run": 39076041775,
+  "kind": "requirements",
+  "files": 6,
+  "receipt_sha256": "1f33d0e447cb8901fd943f446864fb4b920a377514151836112ba1c9a576ddbf",
+  "all_json_bytes_exact": true,
+  "log_duration_exceptions": [],
+  "cumulative": {
+    "jev": 701,
+    "typellm": 58
+  },
+  "quality": [
+    {
+      "id": "public-F",
+      "axis": "F",
+      "classification": {
+        "quality": "PUBLIC_REGRESSION_ONLY",
+        "effect": "PUBLIC_REGRESSION_ONLY"
+      }
+    },
+    {
+      "id": "correction1-F",
+      "axis": "F",
+      "classification": {
+        "quality": "PUBLIC_REGRESSION_ONLY",
+        "effect": "PUBLIC_REGRESSION_ONLY"
+      }
+    },
+    {
+      "id": "correction1-V",
+      "axis": "V",
+      "classification": {
+        "quality": "PUBLIC_REGRESSION_ONLY",
+        "effect": "PUBLIC_REGRESSION_ONLY"
+      }
+    },
+    {
+      "id": "correction2-F",
+      "axis": "F",
+      "classification": {
+        "quality": "PUBLIC_REGRESSION_ONLY",
+        "effect": "PUBLIC_REGRESSION_ONLY"
+      }
+    },
+    {
+      "id": "correction2-V",
+      "axis": "V",
+      "classification": {
+        "quality": "PUBLIC_REGRESSION_ONLY",
+        "effect": "PUBLIC_REGRESSION_ONLY"
+      }
+    }
+  ],
+  "external_provider_sends_added": 0
+}

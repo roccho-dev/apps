@@ -1,0 +1,42 @@
+{
+  "status": "PASS",
+  "scope": "ACTUAL_QUOTA_CI_HISTORICAL_CLOSURE_EQUALS_CLOSED_0aa",
+  "report_head": "59ded276405a5dc9caa85ad570b1827ff4bd0c7a",
+  "release_run": 39076041775,
+  "kind": "dependency",
+  "files": 5,
+  "receipt_sha256": "ef2f2819cea80c06a718099e2cc2bb159b0232037402f13c8897295fea1e0212",
+  "all_json_bytes_exact": true,
+  "log_duration_exceptions": [],
+  "cumulative": {
+    "jev": 715,
+    "typellm": 71
+  },
+  "quality": [
+    {
+      "id": "public-F",
+      "axis": "F",
+      "classification": {
+        "quality": "PUBLIC_REGRESSION_ONLY",
+        "effect": "PUBLIC_REGRESSION_ONLY"
+      }
+    },
+    {
+      "id": "public-V",
+      "axis": "V",
+      "classification": {
+        "quality": "PUBLIC_REGRESSION_ONLY",
+        "effect": "PUBLIC_REGRESSION_ONLY"
+      }
+    },
+    {
+      "id": "public-E",
+      "axis": "E",
+      "classification": {
+        "quality": "PUBLIC_REGRESSION_ONLY",
+        "effect": "PUBLIC_REGRESSION_ONLY"
+      }
+    }
+  ],
+  "external_provider_sends_added": 0
+}

@@ -1,0 +1,431 @@
+{
+  "schema": "voice-ui.quota-cycle-raw-audit/1",
+  "axis": "R",
+  "status": "PASS",
+  "issues": [],
+  "complete": true,
+  "all_valid_execution": true,
+  "consumed": 4,
+  "planned": 4,
+  "rows": [
+    {
+      "id": "QR01",
+      "method": "ready-open",
+      "arm": "O",
+      "generation_policy": null,
+      "goal_parts_policy": "open",
+      "valid_execution": true,
+      "grade": {
+        "contract_valid": true,
+        "graph_exact": true,
+        "graph": {
+          "graph_exact": true,
+          "unique_record_keys": true,
+          "existing_semantics_preserved": true,
+          "semantic_unchanged": false,
+          "clean_new_regions": true,
+          "clean_new_edges": true,
+          "no_other_new_semantics": true,
+          "actual_added_regions": [
+            {
+              "label": "返送照会",
+              "kind": "step",
+              "parent": "fixture:other"
+            }
+          ],
+          "actual_added_edges": []
+        },
+        "no_false_adoption": true,
+        "existing_semantics_preserved": true,
+        "supplied_inventory_complete": true,
+        "goal_parts_policy": "open",
+        "quota_offers_exact": true,
+        "selected_one_use": true,
+        "initial_log_sha256": "0bdbd15714a1cae6ae10a2a5ddd2265cb2895d57e847aa74cbfee864274c8612",
+        "supply_sha256": "75378d604736aac18422075f890929b52e70f8369d0163bcd5c4d58f5bd2c779",
+        "required_sha256": "67d3623b3a6231c3abb08adef96da3acf1215e702a7498792620741da36139a3",
+        "deadline": true,
+        "scope": "conditional native expression only; open extra/wrong graph is an outcome, never filtered from pair admission"
+      },
+      "paint_status": "PASS",
+      "persisted_raw_equal": true,
+      "cell_wall_elapsedMs": 12122.396,
+      "goal_elapsedMs": 951.7311000000001,
+      "goal_deadline_status": "PASS"
+    },
+    {
+      "id": "QR01",
+      "method": "ready-quota",
+      "arm": "Q",
+      "generation_policy": null,
+      "goal_parts_policy": "quota",
+      "valid_execution": true,
+      "grade": {
+        "contract_valid": true,
+        "graph_exact": true,
+        "graph": {
+          "graph_exact": true,
+          "unique_record_keys": true,
+          "existing_semantics_preserved": true,
+          "semantic_unchanged": false,
+          "clean_new_regions": true,
+          "clean_new_edges": true,
+          "no_other_new_semantics": true,
+          "actual_added_regions": [
+            {
+              "label": "返送照会",
+              "kind": "step",
+              "parent": "fixture:other"
+            }
+          ],
+          "actual_added_edges": []
+        },
+        "no_false_adoption": true,
+        "existing_semantics_preserved": true,
+        "supplied_inventory_complete": true,
+        "goal_parts_policy": "quota",
+        "quota_offers_exact": true,
+        "selected_one_use": true,
+        "initial_log_sha256": "0bdbd15714a1cae6ae10a2a5ddd2265cb2895d57e847aa74cbfee864274c8612",
+        "supply_sha256": "75378d604736aac18422075f890929b52e70f8369d0163bcd5c4d58f5bd2c779",
+        "required_sha256": "67d3623b3a6231c3abb08adef96da3acf1215e702a7498792620741da36139a3",
+        "deadline": true,
+        "scope": "conditional native expression only; open extra/wrong graph is an outcome, never filtered from pair admission"
+      },
+      "paint_status": "PASS",
+      "persisted_raw_equal": true,
+      "cell_wall_elapsedMs": 10512.865199999998,
+      "goal_elapsedMs": 526.2273000000005,
+      "goal_deadline_status": "PASS"
+    },
+    {
+      "id": "QR02",
+      "method": "ready-quota",
+      "arm": "Q",
+      "generation_policy": null,
+      "goal_parts_policy": "quota",
+      "valid_execution": true,
+      "grade": {
+        "contract_valid": true,
+        "graph_exact": true,
+        "graph": {
+          "graph_exact": true,
+          "unique_record_keys": true,
+          "existing_semantics_preserved": true,
+          "semantic_unchanged": false,
+          "clean_new_regions": true,
+          "clean_new_edges": true,
+          "no_other_new_semantics": true,
+          "actual_added_regions": [],
+          "actual_added_edges": [
+            {
+              "from": "fixture:initial-api",
+              "to": "fixture:initial-db",
+              "kind": "flow",
+              "label": ""
+            }
+          ]
+        },
+        "no_false_adoption": true,
+        "existing_semantics_preserved": true,
+        "supplied_inventory_complete": true,
+        "goal_parts_policy": "quota",
+        "quota_offers_exact": true,
+        "selected_one_use": true,
+        "initial_log_sha256": "a167cfcf6b38d3e183c60ee3702cba2e712efa6e56a73e4dff2b21a986b20b57",
+        "supply_sha256": "909ac366f22c33006c8b6878ab436d548811eb5d41c2bad4813f3837d540f48d",
+        "required_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "deadline": true,
+        "scope": "conditional native expression only; open extra/wrong graph is an outcome, never filtered from pair admission"
+      },
+      "paint_status": "PASS",
+      "persisted_raw_equal": true,
+      "cell_wall_elapsedMs": 15402.8619,
+      "goal_elapsedMs": 463.83770000000004,
+      "goal_deadline_status": "PASS"
+    },
+    {
+      "id": "QR02",
+      "method": "ready-open",
+      "arm": "O",
+      "generation_policy": null,
+      "goal_parts_policy": "open",
+      "valid_execution": true,
+      "grade": {
+        "contract_valid": true,
+        "graph_exact": true,
+        "graph": {
+          "graph_exact": true,
+          "unique_record_keys": true,
+          "existing_semantics_preserved": true,
+          "semantic_unchanged": false,
+          "clean_new_regions": true,
+          "clean_new_edges": true,
+          "no_other_new_semantics": true,
+          "actual_added_regions": [],
+          "actual_added_edges": [
+            {
+              "from": "fixture:initial-api",
+              "to": "fixture:initial-db",
+              "kind": "flow",
+              "label": ""
+            }
+          ]
+        },
+        "no_false_adoption": true,
+        "existing_semantics_preserved": true,
+        "supplied_inventory_complete": true,
+        "goal_parts_policy": "open",
+        "quota_offers_exact": true,
+        "selected_one_use": true,
+        "initial_log_sha256": "a167cfcf6b38d3e183c60ee3702cba2e712efa6e56a73e4dff2b21a986b20b57",
+        "supply_sha256": "909ac366f22c33006c8b6878ab436d548811eb5d41c2bad4813f3837d540f48d",
+        "required_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "deadline": true,
+        "scope": "conditional native expression only; open extra/wrong graph is an outcome, never filtered from pair admission"
+      },
+      "paint_status": "PASS",
+      "persisted_raw_equal": true,
+      "cell_wall_elapsedMs": 14915.091699999997,
+      "goal_elapsedMs": 500.0054999999993,
+      "goal_deadline_status": "PASS"
+    }
+  ],
+  "semantic": {
+    "complete": true,
+    "total_pairs": 2,
+    "valid_cells": 4,
+    "open_correct": 2,
+    "quota_correct": 2,
+    "assembly_gains": 0,
+    "extra_adoptions_fixed": 0,
+    "regressions": 0,
+    "admitted_pairs": 2,
+    "pairs": [
+      {
+        "id": "QR01",
+        "eligible": true,
+        "matching_complete_supply": true,
+        "open_success": true,
+        "quota_success": true,
+        "open_false_adoption": false,
+        "assembly_gain": false,
+        "extra_adoption_fixed": false,
+        "regression": false,
+        "excluded_from_causal_only": false
+      },
+      {
+        "id": "QR02",
+        "eligible": true,
+        "matching_complete_supply": true,
+        "open_success": true,
+        "quota_success": true,
+        "open_false_adoption": false,
+        "assembly_gain": false,
+        "extra_adoption_fixed": false,
+        "regression": false,
+        "excluded_from_causal_only": false
+      }
+    ],
+    "quality_criteria": "PASS",
+    "public_gate": null,
+    "effect_criteria": "UNMET",
+    "no_effect_criteria_pending_integrity": "PASS",
+    "scope": "finite conditional expression; open wrong additions remain outcomes; no Type or ordinary interpretation inference"
+  },
+  "phase_kind": "fresh",
+  "inputs_sha256": "4ab4662aa00925d7e1bf480efadbc840f4421e6e6cfd16ae53d972387ce005d7",
+  "parent_inputs_sha256": null,
+  "parent_oracle_sha256": null,
+  "admissible_for_semantic_claim": true,
+  "external_provider_attempts": {
+    "jev": 9,
+    "typellm": 0
+  },
+  "external_provider_attempt_bounds": {
+    "jev": {
+      "min": 9,
+      "max": 9
+    },
+    "typellm": {
+      "min": 0,
+      "max": 0
+    }
+  },
+  "stage_rows": 0,
+  "stage_alignment": "UNIQUE",
+  "proofs": [
+    {
+      "id": "QR01",
+      "method": "ready-open",
+      "arm": "O",
+      "generation_policy": null,
+      "goal_parts_policy": "open",
+      "status": "PASS",
+      "initial_head": "sha256:f14b93ac1b4a8ca4af467132ccd7f5d0a524fed90de6dbf3d54d77ea8f534596",
+      "final_head": "sha256:6368d45d8f8807886ff9cbd5506abdfc43bb7231802db245ef00d5180d5e0dd5",
+      "effective_parts": [
+        {
+          "key": "step",
+          "purpose": "an ordinary step, task or box",
+          "label": "工程",
+          "kind": "step"
+        },
+        {
+          "key": "decision",
+          "purpose": "a decision, choice or branch",
+          "label": "判断",
+          "kind": "decision"
+        },
+        {
+          "key": "data",
+          "purpose": "data, a document, an input or an output",
+          "label": "データ",
+          "kind": "data"
+        },
+        {
+          "key": "start",
+          "purpose": "a start or beginning",
+          "label": "開始",
+          "kind": "start"
+        },
+        {
+          "key": "end",
+          "purpose": "an end, finish or result",
+          "label": "終了",
+          "kind": "end"
+        },
+        {
+          "key": "api",
+          "purpose": "an application programming interface service that receives requests",
+          "label": "API",
+          "kind": "step"
+        },
+        {
+          "key": "db",
+          "purpose": "a database that persists application data",
+          "label": "DB",
+          "kind": "data"
+        },
+        {
+          "key": "ready-expression",
+          "purpose": "one separately offered step component with the exact displayed label 返送照会",
+          "label": "返送照会",
+          "kind": "step"
+        }
+      ]
+    },
+    {
+      "id": "QR01",
+      "method": "ready-quota",
+      "arm": "Q",
+      "generation_policy": null,
+      "goal_parts_policy": "quota",
+      "status": "PASS",
+      "initial_head": "sha256:f14b93ac1b4a8ca4af467132ccd7f5d0a524fed90de6dbf3d54d77ea8f534596",
+      "final_head": "sha256:6368d45d8f8807886ff9cbd5506abdfc43bb7231802db245ef00d5180d5e0dd5",
+      "effective_parts": [
+        {
+          "key": "ready-expression",
+          "purpose": "one separately offered step component with the exact displayed label 返送照会",
+          "label": "返送照会",
+          "kind": "step"
+        }
+      ]
+    },
+    {
+      "id": "QR02",
+      "method": "ready-quota",
+      "arm": "Q",
+      "generation_policy": null,
+      "goal_parts_policy": "quota",
+      "status": "PASS",
+      "initial_head": "sha256:369bf0534a4b8ee8fd18ef4c4cb054655ae099a2ba81dc7a64266f5dadce53bb",
+      "final_head": "sha256:655928e1a034cbbe5fd0f38814aef3b48636bf77a4fa377dbd43d96d4bbf219e",
+      "effective_parts": []
+    },
+    {
+      "id": "QR02",
+      "method": "ready-open",
+      "arm": "O",
+      "generation_policy": null,
+      "goal_parts_policy": "open",
+      "status": "PASS",
+      "initial_head": "sha256:369bf0534a4b8ee8fd18ef4c4cb054655ae099a2ba81dc7a64266f5dadce53bb",
+      "final_head": "sha256:655928e1a034cbbe5fd0f38814aef3b48636bf77a4fa377dbd43d96d4bbf219e",
+      "effective_parts": [
+        {
+          "key": "step",
+          "purpose": "an ordinary step, task or box",
+          "label": "工程",
+          "kind": "step"
+        },
+        {
+          "key": "decision",
+          "purpose": "a decision, choice or branch",
+          "label": "判断",
+          "kind": "decision"
+        },
+        {
+          "key": "data",
+          "purpose": "data, a document, an input or an output",
+          "label": "データ",
+          "kind": "data"
+        },
+        {
+          "key": "start",
+          "purpose": "a start or beginning",
+          "label": "開始",
+          "kind": "start"
+        },
+        {
+          "key": "end",
+          "purpose": "an end, finish or result",
+          "label": "終了",
+          "kind": "end"
+        },
+        {
+          "key": "api",
+          "purpose": "an application programming interface service that receives requests",
+          "label": "API",
+          "kind": "step"
+        },
+        {
+          "key": "db",
+          "purpose": "a database that persists application data",
+          "label": "DB",
+          "kind": "data"
+        },
+        {
+          "key": "group",
+          "purpose": "a group, boundary or container that holds other parts",
+          "label": "グループ",
+          "kind": "group"
+        }
+      ]
+    }
+  ],
+  "replay": {
+    "status": "PASS",
+    "issues": [],
+    "consumed": 4,
+    "frames": 14,
+    "assessed_frames": 10,
+    "recorded_paint_status": "PASS",
+    "replay_sha256": "6ad29d39a1d9b2878287f1cfbcfaff63689bd01294898fa412ad48752274f3bc",
+    "model_quality_scope": "NONE",
+    "CI_LIVE_EXECUTION": "UNPROVEN"
+  },
+  "raw_sha256": {
+    "events.jsonl": "a7e9f004650c4141de938d5aac69446edc7f265dc6ae259f535409e17405117b",
+    "execution.json": "b8317b8379543816e11808f275537eadc9dff02bbc3098662ecfbf4531f5eb67",
+    "identity.json": "021ef758b7f2e618ddf19e50fde7dcb954023f11984904dd00386da79241f476",
+    "QR01-O.json": "fd6bb71a38ac3ced8ba2c725c0eb565ac85b16c2909148eb120a4a6f3924a10f",
+    "QR01-Q.json": "f7b41169d7e649dd3e74c11c59f0ea301f997733ca1aa41ddb1b956d37fcb465",
+    "QR02-O.json": "05208b5bfb7d40b3ff1d26a6803be7a22480619c9d2f5c1e6538f0a9806baf9c",
+    "QR02-Q.json": "2d0233451e94949b7fd68c99cb03d55ce9c044b329f8c45388b4bc80048828a8"
+  },
+  "scope": "independent quota offers/protocol/native-or-browser persistence/paint join; fixed producer and actual physical stop remain separately required",
+  "CI_LIVE_EXECUTION": "UNPROVEN",
+  "currency": "COST_NOT_MEASURED"
+}

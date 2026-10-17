@@ -1,0 +1,17 @@
+{
+  "status": "PASS",
+  "head": "59ded276405a5dc9caa85ad570b1827ff4bd0c7a",
+  "tree": "109c01064cde33ececa497e7daa160b763298b14",
+  "review": {
+    "id": 5560532224,
+    "url": "https://github.com/roccho-dev/apps/pull/103#pullrequestreview-5560532224",
+    "commit_id": "59ded276405a5dc9caa85ad570b1827ff4bd0c7a",
+    "state": "COMMENTED",
+    "body_sha256": "fba61d645dd712913ba86842a0cf6f029e040062291f6732265837603898c2fa",
+    "local_body_sha256": "263b729a268881bf0ee8373accb1d5ffe18de0ffcc626203fb072a82c1bb18c8",
+    "final_lf_omitted": true
+  },
+  "pr_body_sha256": "2642f494e4e2cd52e94c5c557b0b76b0d186f0ef611126851f46c2bf53b6636c",
+  "ui_body_sha256": "35d772a90678a85afb86c9873bd6b07280356fda37862e1627e84e766b4560cb",
+  "scope": "SOURCE_RUNTIME_CI_PREREVIEW_ALLOWS_ONE_PUBLIC_R_START_AND_GET_ONLY_ZERO_SEND_PREFLIGHT; NO_PROVIDER_POST_ADMISSION"
+}

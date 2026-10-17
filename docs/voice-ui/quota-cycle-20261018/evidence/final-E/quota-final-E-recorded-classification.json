@@ -1,0 +1,22 @@
+{
+  "schema": "voice-ui.review.quota-recorded-classification/1",
+  "status": "PASS",
+  "axis": "E",
+  "phase": "quota-final-E-20261018",
+  "source_head": "59ded276405a5dc9caa85ad570b1827ff4bd0c7a",
+  "recorded_criteria": {
+    "quality": "UNMET",
+    "effect": "UNMET",
+    "no_effect_pending_integrity": "PASS"
+  },
+  "current_without_actual_report_ci": {
+    "quality": "UNPROVEN",
+    "effect": "UNPROVEN"
+  },
+  "expected_only_if_actual_ci_matches_all_recorded_semantics_and_paint": {
+    "quality": "UNMET",
+    "effect": "NO_EFFECT_IN_REGISTERED_MISSING_PAIRS"
+  },
+  "scope": "ALL_SIX_ORDINARY_PAIRS_RETAINED_C4_B3; BOTH_REGISTERED_MISSING_PAIRS_ADMITTED_GAIN0; NOT_TYPE_GENERAL_INEFFECTIVENESS; ACTUAL_REPORT_CI_CLOSURE_PENDING",
+  "reviewer_real_provider_calls": 0
+}

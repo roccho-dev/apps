@@ -1,0 +1,429 @@
+{
+  "schema": "voice-ui.review.quota-source/1",
+  "status": "PASS",
+  "checked_at": "2026-10-17T22:38:26.950Z",
+  "actor": "roccho-dev",
+  "authenticated": true,
+  "head": "b9c68edb2517783e46ec9dc09bd69bcb89bfc146",
+  "parent": "7761be0af16a0d60c3b7ac5fe56348b7a8a4df11",
+  "tree": "64e27627a08c5a50d9652a6086952012e9716c68",
+  "changed": [
+    {
+      "path": ".github/workflows/voice-ui-release.yml",
+      "status": "modified",
+      "bytes": 20150,
+      "sha256": "2f9be110fd6410ffadc2336dcb5a7bb2e8f39ac157c843a7f8fbd83946da5322",
+      "git_blob": "2cf6bf42dc527aa9c4ff19d62aee4ff3b1c22b23",
+      "additions": 21,
+      "deletions": 0
+    },
+    {
+      "path": "docs/voice-ui/quota-cycle-20261018/evidence/admission/quota-cycle-modules-validation.v2.json",
+      "status": "added",
+      "bytes": 2936,
+      "sha256": "fae32ab1f8d121e74817ae11e962a31aca139002a519717bb00add3db70697eb",
+      "git_blob": "47f24f5d791cc5edd39bc99f77d14c75aadb5878",
+      "additions": 90,
+      "deletions": 0
+    },
+    {
+      "path": "docs/voice-ui/quota-cycle-20261018/evidence/admission/quota-cycle-modules-validation.v3.json",
+      "status": "added",
+      "bytes": 3371,
+      "sha256": "939d8db0a9bf9963e64647472bf53252a46ca00fa9a8c43f5ff38290e1231738",
+      "git_blob": "b830cd28751b0748db5c91da2ccc334698e20cd3",
+      "additions": 92,
+      "deletions": 0
+    },
+    {
+      "path": "docs/voice-ui/quota-cycle-20261018/evidence/admission/quota-cycle-public-modules.v2.json",
+      "status": "added",
+      "bytes": 2046,
+      "sha256": "3a8a233155c9c43dc919670a2e0b1f46f287ae0600f664ab4c87b8c1062d93c5",
+      "git_blob": "927b3b780e01b1738e80787d2904e415f81c5c27",
+      "additions": 65,
+      "deletions": 0
+    },
+    {
+      "path": "docs/voice-ui/quota-cycle-20261018/evidence/admission/quota-cycle-public-modules.v3.json",
+      "status": "added",
+      "bytes": 2536,
+      "sha256": "748963e4cb51a61119132ba501a00f157382082938ed642b7e63102c5e2fcc42",
+      "git_blob": "b59cb84a37120b43838dd07acfdbb9652ba8b205",
+      "additions": 70,
+      "deletions": 0
+    },
+    {
+      "path": "docs/voice-ui/quota-cycle-20261018/evidence/admission/quota-cycle-registration-audit.json",
+      "status": "added",
+      "bytes": 9678,
+      "sha256": "e35e8321f991fe9b70cfe742bc8175267d1cea4440201b89bfb27f846ae4ae1a",
+      "git_blob": "9cb9c02cee5c1313ff9801b074a81260647a93f5",
+      "additions": 250,
+      "deletions": 0
+    },
+    {
+      "path": "docs/voice-ui/quota-cycle-20261018/evidence/admission/quota-cycle-registration-v2-audit.json",
+      "status": "added",
+      "bytes": 10546,
+      "sha256": "1786ea8666ef7ceb4c3cdbc6c737db7c8b8400bf3d4acf059f9ce80af3c7e5a0",
+      "git_blob": "d4f1c887635dc33c24c94044fcee2b9f6f4375aa",
+      "additions": 275,
+      "deletions": 0
+    },
+    {
+      "path": "flake.nix",
+      "status": "modified",
+      "bytes": 24385,
+      "sha256": "a881bda3c71c6552e8dd2143e776fd78dac26086b0aff29cd29ea29a77add1cd",
+      "git_blob": "4b037183789b58d4a085019003879bbf5c5bac85",
+      "additions": 23,
+      "deletions": 1
+    },
+    {
+      "path": "packages/voice-ui/acceptance/component-axes-smoke.mjs",
+      "status": "modified",
+      "bytes": 10869,
+      "sha256": "eb5dd6d30c67af6068cfecbf09a5a9a114caed0b767653a8f65cc99f8ad6a26d",
+      "git_blob": "fdb9af3d1e6aa6e06ac408c07e2dba6a8119beab",
+      "additions": 1,
+      "deletions": 1
+    },
+    {
+      "path": "packages/voice-ui/acceptance/dependency-cycle-smoke.mjs",
+      "status": "modified",
+      "bytes": 15111,
+      "sha256": "09aa412549316b1f32081b894a01df2754009d433acc04373df09738df84ecdd",
+      "git_blob": "8ef491d109759ce2c028345552214d9449f8b4d9",
+      "additions": 1,
+      "deletions": 1
+    },
+    {
+      "path": "packages/voice-ui/acceptance/intent-cycle-smoke.mjs",
+      "status": "modified",
+      "bytes": 18795,
+      "sha256": "45283abb7f2e7fb2cc32c914af0b61e0a5595aaf3d0400d0c0fbdab3f29fb4d9",
+      "git_blob": "30449ededd0b4fc5ffdd02ea45f4ba5b7ee0cfb4",
+      "additions": 1,
+      "deletions": 1
+    },
+    {
+      "path": "packages/voice-ui/acceptance/quota-cycle-smoke.mjs",
+      "status": "added",
+      "bytes": 17149,
+      "sha256": "6d75ae4b35b0bb820d1bacd41378d43f844330467fa5cc8bff9df07a6f12135e",
+      "git_blob": "889359298bf1b35353bc5bd42becd50311e35aea",
+      "additions": 214,
+      "deletions": 0
+    },
+    {
+      "path": "packages/voice-ui/acceptance/replay-candidates.mjs",
+      "status": "modified",
+      "bytes": 7757,
+      "sha256": "e7dc03f6da9821ce16bad2de42ebb8d3cdb4ebd62bc8bbf4146cd0188c1c1f5a",
+      "git_blob": "8bc9091e679ad84a57a7296e2ca631fcbeeecd3a",
+      "additions": 1,
+      "deletions": 1
+    },
+    {
+      "path": "packages/voice-ui/acceptance/requirements-cycle-smoke.mjs",
+      "status": "modified",
+      "bytes": 11742,
+      "sha256": "47a98d33617a9b0774e18e63e1448a2d78353e701996a2954c5fc28c6f4d75f9",
+      "git_blob": "d109dbf7a6177d9c8115957cfea487085e17123f",
+      "additions": 1,
+      "deletions": 1
+    },
+    {
+      "path": "packages/voice-ui/acceptance/verify-quota-cycle.mjs",
+      "status": "added",
+      "bytes": 12568,
+      "sha256": "aca0b86610a72d9275cde55e71459f43b69195fe97abe7e9d0b7249bb943dbc3",
+      "git_blob": "a92526d6066f48b04455f356d0041d048d0a1595",
+      "additions": 157,
+      "deletions": 0
+    },
+    {
+      "path": "packages/voice-ui/src/completion.mjs",
+      "status": "modified",
+      "bytes": 30289,
+      "sha256": "a096d2a93d5547857ad8e04fa66fcc3176c7db41393e84fbb727c68d4c08e1e9",
+      "git_blob": "94a65f60aee2d8525b7de7d12ceeb57163545230",
+      "additions": 21,
+      "deletions": 0
+    },
+    {
+      "path": "packages/voice-ui/tests/quota-cycle-audit.mjs",
+      "status": "added",
+      "bytes": 59893,
+      "sha256": "32d7620e2087fd45dcdb3bf68589fe4478199774150602e07af5c7b92ca6596f",
+      "git_blob": "cf31a5cca1692eb3397a669b1926740bcbb8926e",
+      "additions": 668,
+      "deletions": 0
+    },
+    {
+      "path": "packages/voice-ui/tests/quota-cycle-audit.test.mjs",
+      "status": "added",
+      "bytes": 32811,
+      "sha256": "bd37e0cbddbbd4a3ff410bf67acadbe21a9614537c1bc6c93431d86adf01d27d",
+      "git_blob": "719d63784d4ecd14e0b84e239ba5731f29b426e9",
+      "additions": 223,
+      "deletions": 0
+    },
+    {
+      "path": "packages/voice-ui/tests/quota-cycle-eval.mjs",
+      "status": "added",
+      "bytes": 16947,
+      "sha256": "c71d6aedd4eb7d3b314cacfffd94aaed30c8f8b70e37a3126fe9ebc15cb92aea",
+      "git_blob": "be7b47a7c6a8f5b63632ea2dffc39c6e704d5d71",
+      "additions": 202,
+      "deletions": 0
+    },
+    {
+      "path": "packages/voice-ui/tests/quota-cycle-score.mjs",
+      "status": "added",
+      "bytes": 16745,
+      "sha256": "4abf6593fc8ab870319611ded3d9e50e2cebe37ff25edef72329cffabede5881",
+      "git_blob": "d2921cae6154e8915edcc252006f6fe0c12680cf",
+      "additions": 133,
+      "deletions": 0
+    },
+    {
+      "path": "packages/voice-ui/tests/quota-cycle-score.test.mjs",
+      "status": "added",
+      "bytes": 15765,
+      "sha256": "c56bca08527cbaf3855d99205aa8f30925b43da615e898729a7033041d02124d",
+      "git_blob": "26a3a04959357410a8b992eb9cabe47f7734c4b8",
+      "additions": 101,
+      "deletions": 0
+    },
+    {
+      "path": "packages/voice-ui/tests/quota-goal.test.mjs",
+      "status": "added",
+      "bytes": 3181,
+      "sha256": "2800dbdee15fc5d7a84cb287483dc1760e61988635eb08735d50168a2b6dba32",
+      "git_blob": "e1d737c462d87d97d0fd74e039dbd039b658b665",
+      "additions": 51,
+      "deletions": 0
+    }
+  ],
+  "source_inputs": [
+    {
+      "name": "src/completion.mjs",
+      "bytes": 30289,
+      "sha256": "a096d2a93d5547857ad8e04fa66fcc3176c7db41393e84fbb727c68d4c08e1e9",
+      "git_blob": "94a65f60aee2d8525b7de7d12ceeb57163545230"
+    },
+    {
+      "name": "src/literal-inventory.mjs",
+      "bytes": 8062,
+      "sha256": "ecdeb980fb826f800dfeb186e042b5a4edf85b32ecc8a97516eb55e81a9c37f9",
+      "git_blob": "3a9b05db0a19b34c0d1fc2c4ece4f3a1272d12ae"
+    },
+    {
+      "name": "src/goal.mjs",
+      "bytes": 12911,
+      "sha256": "cd9101d6a222e31773c9523adeca3f7f9aa32990e30b39e06a7b872771422f3e",
+      "git_blob": "0f17269f933a988d8b387b38f59c640896069d07"
+    },
+    {
+      "name": "src/contract.mjs",
+      "bytes": 30991,
+      "sha256": "f2c95212493f59fd80ef17270c2b5de0d51d795b26ac8a0e6dfa0fdb9dec30fe",
+      "git_blob": "648dc5962223215c5c3e8ff49117a685baf71303"
+    },
+    {
+      "name": "src/turn.mjs",
+      "bytes": 53204,
+      "sha256": "c5fc3489a5bd0861f0455bd9843f47e76030bb03a4fe55745cf00c29c79b7008",
+      "git_blob": "1b4810552951afb38df86ed67c315bdb86aec518"
+    },
+    {
+      "name": "src/session.mjs",
+      "bytes": 13314,
+      "sha256": "d6fcb97e581afb789ed6ecb339c06c378ef94283084df8ad3042ebe42c48cfe8",
+      "git_blob": "b904448067fefdffc91e726e128fb30bdd96aff7"
+    },
+    {
+      "name": "functions/api/parts.mjs",
+      "bytes": 14161,
+      "sha256": "ce18dbfb6ed5330c04fba1e3264a6e84cd4fb4f45b03775c06decdedb9b4521e",
+      "git_blob": "a62f4d55998b3ce0f8876e6b172a42c1bbc8b1b5"
+    },
+    {
+      "name": "functions/pages-worker.mjs",
+      "bytes": 3032,
+      "sha256": "afc3b785091d992fddd47f15ec17a4b05d78d7bd7564223c35e065ee737fd690",
+      "git_blob": "a78ec2cd37c04fbe1887446bf3325033d2a4d7d4"
+    },
+    {
+      "name": "web/app.mjs",
+      "bytes": 43782,
+      "sha256": "3a9ac4eba0770949a219b35c97cd346d4a7912026fae2b2f21710251b86bbf2a",
+      "git_blob": "b5f75ea7834f5036fe5adcf264faf230ef079234"
+    },
+    {
+      "name": "web/adapters/completion.mjs",
+      "bytes": 970,
+      "sha256": "537bc46e93efe58fbdf466dd2493989ad5695209def769ec9da3ba68926edb5a",
+      "git_blob": "3deb685dbe29c07cc813efe9e8d9da972f5f49be"
+    },
+    {
+      "name": "dev/serve.mjs",
+      "bytes": 20526,
+      "sha256": "d044ea7f8ccbd7fd71fbe1447dcce0f30bfa831d471da3eef2e3377380532298",
+      "git_blob": "90fa8c650631cf22524767f2d7b417b30624490e"
+    },
+    {
+      "name": "tests/dependency-cycle-eval.mjs",
+      "bytes": 14959,
+      "sha256": "b92308340b7a54020c30ae1c1daa3b482b60263d080b3f2e2393909f6cfcd7c3",
+      "git_blob": "9dc6bfea75e3d7ee540b6f4acfbc370ca75533d8"
+    },
+    {
+      "name": "tests/requirements-cycle-score.mjs",
+      "bytes": 21347,
+      "sha256": "3d779cf422e8cc0facc6f5ff566c3e77b36a61486f9586f120b0c1a722cd5a46",
+      "git_blob": "c7cac05cee096cfd8e3990f16817eda0f00bf4e4"
+    },
+    {
+      "name": "tests/requirements-cycle-audit.mjs",
+      "bytes": 56082,
+      "sha256": "692bdbaef8dbe28fe30fcdfe178202ebbdf3a4728bf0fe1c7310f72bf789c6eb",
+      "git_blob": "45b83d4868601b079b0c745d84dca121fc6e05ba"
+    },
+    {
+      "name": "tests/dependency-cycle-score.mjs",
+      "bytes": 8386,
+      "sha256": "2f7f40afec31d1f7cded08951529a30d741f6ebfb8abf446900a7f6eb567ef91",
+      "git_blob": "e5d19ab8009b1750e6bbcc4ca8885577ad46a8f7"
+    },
+    {
+      "name": "tests/dependency-cycle-audit.mjs",
+      "bytes": 64775,
+      "sha256": "47dce6207c8b48dae6447d87ee1294d8495f28a31d2b474d5dc0c9b95998d66e",
+      "git_blob": "c137ec081a6c35f21e577e84e18e379d77084256"
+    },
+    {
+      "name": "tests/semantic-score.mjs",
+      "bytes": 3826,
+      "sha256": "3230791bd2b06ccbb73008723ab3709981ce6e2d65fc2fdbdec8cadf9d1cfec3",
+      "git_blob": "cb7624e0126912da3b36402a4138899a2f3d0953"
+    },
+    {
+      "name": "tests/requirements-cycle-http.mjs",
+      "bytes": 1163,
+      "sha256": "b3c1d052e2f7138532e0d7cac6ac7b3c7287b7af32b857990c1e6d14bb325386",
+      "git_blob": "957c5c267de807219c4c0b90b3f1347e01178fb5"
+    },
+    {
+      "name": "tests/painted-goal.mjs",
+      "bytes": 24668,
+      "sha256": "c5ba117d1dea66d20c80b7f92b8184296ff79d4231da56f5a89836af4beb018b",
+      "git_blob": "ce441f3b605facc0dc299ee45ec5658d3fae0161"
+    },
+    {
+      "name": "tests/intent-cycle-eval.mjs",
+      "bytes": 15130,
+      "sha256": "0dd9649d87f4b2f0d0e446b44f5dcd7bb09582e75eca8ca7113b8d0d4d741357",
+      "git_blob": "41f7879da491da830a71c26326951a7d958fa99b"
+    },
+    {
+      "name": "tests/intent-cycle-score.mjs",
+      "bytes": 10328,
+      "sha256": "e6652eef8ee1b18c1b3c479b649033105c1ae27f360b0b9d4a16f898edc664cb",
+      "git_blob": "56bcba5f8eaec1f1407fe375fd466aea5eb67770"
+    },
+    {
+      "name": "tests/intent-cycle-audit.mjs",
+      "bytes": 66452,
+      "sha256": "151715f5c09a64a1187ad2557e13b3172801e8e8fa8ee492b31a5a7823222617",
+      "git_blob": "ccf174e28f4e0c2b2b3e1fb2a6f01ec341696a4a"
+    },
+    {
+      "name": "tests/frontier-cycle-eval.mjs",
+      "bytes": 15255,
+      "sha256": "3031b7f539752badd452b868c577daa6437647547233f81f78c1b0eea5db29f9",
+      "git_blob": "6e2c62a81725c7229ca620a08d14d548b8d797e8"
+    },
+    {
+      "name": "tests/frontier-cycle-score.mjs",
+      "bytes": 22140,
+      "sha256": "64fe98b9929ca13dcf57e41857da5eed656bb2d5457eab0aa9a78aad023ecf81",
+      "git_blob": "361651436a6f8d16b3da15d02559c4beffbdc2a9"
+    },
+    {
+      "name": "tests/frontier-cycle-audit.mjs",
+      "bytes": 67476,
+      "sha256": "f903cd8813c33387ec69f2adc0d0f20e1fedfd5dd59cd07d02fa7ce84f37f89e",
+      "git_blob": "1bcb9de3e8524db2e6efa04d64f1e99c4989bac2"
+    },
+    {
+      "name": "tests/quota-cycle-eval.mjs",
+      "bytes": 16947,
+      "sha256": "c71d6aedd4eb7d3b314cacfffd94aaed30c8f8b70e37a3126fe9ebc15cb92aea",
+      "git_blob": "be7b47a7c6a8f5b63632ea2dffc39c6e704d5d71"
+    },
+    {
+      "name": "tests/quota-cycle-score.mjs",
+      "bytes": 16745,
+      "sha256": "4abf6593fc8ab870319611ded3d9e50e2cebe37ff25edef72329cffabede5881",
+      "git_blob": "d2921cae6154e8915edcc252006f6fe0c12680cf"
+    },
+    {
+      "name": "tests/quota-cycle-audit.mjs",
+      "bytes": 59893,
+      "sha256": "32d7620e2087fd45dcdb3bf68589fe4478199774150602e07af5c7b92ca6596f",
+      "git_blob": "cf31a5cca1692eb3397a669b1926740bcbb8926e"
+    }
+  ],
+  "old24_unchanged": [
+    "src/literal-inventory.mjs",
+    "src/goal.mjs",
+    "src/contract.mjs",
+    "src/turn.mjs",
+    "src/session.mjs",
+    "functions/api/parts.mjs",
+    "functions/pages-worker.mjs",
+    "web/app.mjs",
+    "web/adapters/completion.mjs",
+    "dev/serve.mjs",
+    "tests/dependency-cycle-eval.mjs",
+    "tests/requirements-cycle-score.mjs",
+    "tests/requirements-cycle-audit.mjs",
+    "tests/dependency-cycle-score.mjs",
+    "tests/dependency-cycle-audit.mjs",
+    "tests/semantic-score.mjs",
+    "tests/requirements-cycle-http.mjs",
+    "tests/painted-goal.mjs",
+    "tests/intent-cycle-eval.mjs",
+    "tests/intent-cycle-score.mjs",
+    "tests/intent-cycle-audit.mjs",
+    "tests/frontier-cycle-eval.mjs",
+    "tests/frontier-cycle-score.mjs",
+    "tests/frontier-cycle-audit.mjs"
+  ],
+  "core6_unchanged": [
+    "src/goal.mjs",
+    "src/turn.mjs",
+    "src/contract.mjs",
+    "src/session.mjs",
+    "src/log.mjs",
+    "web/app.mjs"
+  ],
+  "product": {
+    "files": 1,
+    "added_lines": 21,
+    "helper_only": "stable exact label/kind count mask after accepted receipt materialization",
+    "product_offer_ceiling": 19,
+    "registered_measurement_ceiling": 11,
+    "questions_and_wire_source_unchanged": true
+  },
+  "public_modules_sha256": "748963e4cb51a61119132ba501a00f157382082938ed642b7e63102c5e2fcc42",
+  "registered_public18_exact": true,
+  "replay_change": "filename alphabet only ABC -> ABCOQ; actual O/Q identities retained",
+  "historical_suites": "four named old raw-audit suites use exact 2cc; all current suites current source; original live closures remain recorded-SHA rebuilds",
+  "ci_scope": "PENDING_ACTUAL_EXACT_HEAD_ARTIFACTS_AND_FULL_CI; SOURCE_ONLY_NOT_LIVE_ADMISSION",
+  "adrs": "a6284e58ed99243447e135828d983fc07d2d363e",
+  "reviewer_real_provider_calls": 0
+}

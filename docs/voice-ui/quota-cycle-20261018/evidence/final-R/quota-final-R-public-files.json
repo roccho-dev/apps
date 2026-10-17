@@ -1,0 +1,72 @@
+{
+  "schema": "voice-ui.review.quota-phase-public-copy/1",
+  "status": "PASS",
+  "phase": "quota-final-R-20261018",
+  "axis": "R",
+  "apps_sha": "59ded276405a5dc9caa85ad570b1827ff4bd0c7a",
+  "copy_allowlist": [
+    {
+      "name": "quota-final-R-zero-send-audit.json",
+      "bytes": 6687,
+      "sha256": "c7171260fa3269279e83ffe909ac0cac9c29defb4cf903dfd394cf33e84ed175"
+    },
+    {
+      "name": "quota-final-R-physical-stop.json",
+      "bytes": 8519,
+      "sha256": "2db72b9db15b0a55b8527df25123d0ab193071d1a98a3ba8d325f45a1abc8975"
+    },
+    {
+      "name": "quota-final-R-stop-audit.json",
+      "bytes": 11482,
+      "sha256": "e20c57d0bc1d0eef189f788afeabb0e0f17fd49f5cdfdd75e6af0884a375ddfb"
+    },
+    {
+      "name": "quota-final-R-raw-audit.json",
+      "bytes": 14272,
+      "sha256": "2132ad30bbc1305a7a3a77aa1ebc1dd10e1860f6e1022b5911fb56e22d25fe7d"
+    },
+    {
+      "name": "quota-final-R-provider-audit.json",
+      "bytes": 859,
+      "sha256": "c3776f0df003b89721b5c2272ad4cd2b583a58e8ff0e554005d6fa53f79e5ac8"
+    },
+    {
+      "name": "quota-final-R-replay.json",
+      "bytes": 36850,
+      "sha256": "6ad29d39a1d9b2878287f1cfbcfaff63689bd01294898fa412ad48752274f3bc"
+    },
+    {
+      "name": "quota-final-R-replay-audit.json",
+      "bytes": 287,
+      "sha256": "6029fd2da2ce8241a721cac7ceecebbe67240a489d13e89c4edb00ac7bdfcf49"
+    },
+    {
+      "name": "quota-final-R.producer.json",
+      "bytes": 6214,
+      "sha256": "e6ff9f256fa3963e71c4d4fdd9c0c57f68332ea74ff161b8559a089f78bc6554"
+    },
+    {
+      "name": "quota-final-R-producer-audit.json",
+      "bytes": 192,
+      "sha256": "f73ea3e239b785871a6bd995e3bbc954feedb4c2a27b11c55adc1c7bf905134f"
+    },
+    {
+      "name": "quota-final-R-process-audit.json",
+      "bytes": 788,
+      "sha256": "3e6800b728959c6c2429b8fb8a425b284c0f9cf0bf3fcfe90d37d9b4250a91ea"
+    },
+    {
+      "name": "quota-final-R-summary.json",
+      "bytes": 9235,
+      "sha256": "7e1e3aa2b31915a934624bc04bfe7746489252fbc4138fd1f03bbf224f60b845"
+    },
+    {
+      "name": "quota-final-R-recorded-classification.json",
+      "bytes": 797,
+      "sha256": "aadc5e1a84b6c468f107ef34229af04dce922ede2b89643a135c77fc150797df"
+    }
+  ],
+  "scope": "CONDITIONAL_EXPRESSION_ONLY; BOTH_TWO_PAIRS_ADMITTED_O2_Q2_CORRECT_GAIN0; NOT_TYPE_EFFECT_OR_UNCONDITIONAL_GENERALIZATION; ACTUAL_REPORT_CI_CLOSURE_PENDING",
+  "next_scope": "FRESH_E_INPUT_ONLY_RELEASE_SEPARATELY; NO_FRESH_E_ORACLE_OR_PROVIDER_GO",
+  "reviewer_real_provider_calls": 0
+}

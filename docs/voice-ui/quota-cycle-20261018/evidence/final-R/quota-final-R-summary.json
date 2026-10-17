@@ -1,0 +1,276 @@
+{
+  "schema": "voice-ui.review.quota-public-phase/1",
+  "status": "PASS",
+  "phase": "quota-final-R-20261018",
+  "axis": "R",
+  "apps_sha": "59ded276405a5dc9caa85ad570b1827ff4bd0c7a",
+  "planned": 4,
+  "consumed": 4,
+  "all_valid_execution": true,
+  "admissible_for_semantic_claim": true,
+  "semantic": {
+    "complete": true,
+    "total_pairs": 2,
+    "valid_cells": 4,
+    "open_correct": 2,
+    "quota_correct": 2,
+    "assembly_gains": 0,
+    "extra_adoptions_fixed": 0,
+    "regressions": 0,
+    "admitted_pairs": 2,
+    "pairs": [
+      {
+        "id": "QR01",
+        "eligible": true,
+        "matching_complete_supply": true,
+        "open_success": true,
+        "quota_success": true,
+        "open_false_adoption": false,
+        "assembly_gain": false,
+        "extra_adoption_fixed": false,
+        "regression": false,
+        "excluded_from_causal_only": false
+      },
+      {
+        "id": "QR02",
+        "eligible": true,
+        "matching_complete_supply": true,
+        "open_success": true,
+        "quota_success": true,
+        "open_false_adoption": false,
+        "assembly_gain": false,
+        "extra_adoption_fixed": false,
+        "regression": false,
+        "excluded_from_causal_only": false
+      }
+    ],
+    "quality_criteria": "PASS",
+    "public_gate": null,
+    "effect_criteria": "UNMET",
+    "no_effect_criteria_pending_integrity": "PASS",
+    "scope": "finite conditional expression; open wrong additions remain outcomes; no Type or ordinary interpretation inference"
+  },
+  "rows": [
+    {
+      "id": "QR01",
+      "arm": "O",
+      "grade": {
+        "contract_valid": true,
+        "graph_exact": true,
+        "graph": {
+          "graph_exact": true,
+          "unique_record_keys": true,
+          "existing_semantics_preserved": true,
+          "semantic_unchanged": false,
+          "clean_new_regions": true,
+          "clean_new_edges": true,
+          "no_other_new_semantics": true,
+          "actual_added_regions": [
+            {
+              "label": "返送照会",
+              "kind": "step",
+              "parent": "fixture:other"
+            }
+          ],
+          "actual_added_edges": []
+        },
+        "no_false_adoption": true,
+        "existing_semantics_preserved": true,
+        "supplied_inventory_complete": true,
+        "goal_parts_policy": "open",
+        "quota_offers_exact": true,
+        "selected_one_use": true,
+        "initial_log_sha256": "0bdbd15714a1cae6ae10a2a5ddd2265cb2895d57e847aa74cbfee864274c8612",
+        "supply_sha256": "75378d604736aac18422075f890929b52e70f8369d0163bcd5c4d58f5bd2c779",
+        "required_sha256": "67d3623b3a6231c3abb08adef96da3acf1215e702a7498792620741da36139a3",
+        "deadline": true,
+        "scope": "conditional native expression only; open extra/wrong graph is an outcome, never filtered from pair admission"
+      },
+      "paint_status": "PASS",
+      "goal_elapsedMs": 951.7311000000001,
+      "goal_deadline_status": "PASS",
+      "persisted_raw_equal": true
+    },
+    {
+      "id": "QR01",
+      "arm": "Q",
+      "grade": {
+        "contract_valid": true,
+        "graph_exact": true,
+        "graph": {
+          "graph_exact": true,
+          "unique_record_keys": true,
+          "existing_semantics_preserved": true,
+          "semantic_unchanged": false,
+          "clean_new_regions": true,
+          "clean_new_edges": true,
+          "no_other_new_semantics": true,
+          "actual_added_regions": [
+            {
+              "label": "返送照会",
+              "kind": "step",
+              "parent": "fixture:other"
+            }
+          ],
+          "actual_added_edges": []
+        },
+        "no_false_adoption": true,
+        "existing_semantics_preserved": true,
+        "supplied_inventory_complete": true,
+        "goal_parts_policy": "quota",
+        "quota_offers_exact": true,
+        "selected_one_use": true,
+        "initial_log_sha256": "0bdbd15714a1cae6ae10a2a5ddd2265cb2895d57e847aa74cbfee864274c8612",
+        "supply_sha256": "75378d604736aac18422075f890929b52e70f8369d0163bcd5c4d58f5bd2c779",
+        "required_sha256": "67d3623b3a6231c3abb08adef96da3acf1215e702a7498792620741da36139a3",
+        "deadline": true,
+        "scope": "conditional native expression only; open extra/wrong graph is an outcome, never filtered from pair admission"
+      },
+      "paint_status": "PASS",
+      "goal_elapsedMs": 526.2273000000005,
+      "goal_deadline_status": "PASS",
+      "persisted_raw_equal": true
+    },
+    {
+      "id": "QR02",
+      "arm": "Q",
+      "grade": {
+        "contract_valid": true,
+        "graph_exact": true,
+        "graph": {
+          "graph_exact": true,
+          "unique_record_keys": true,
+          "existing_semantics_preserved": true,
+          "semantic_unchanged": false,
+          "clean_new_regions": true,
+          "clean_new_edges": true,
+          "no_other_new_semantics": true,
+          "actual_added_regions": [],
+          "actual_added_edges": [
+            {
+              "from": "fixture:initial-api",
+              "to": "fixture:initial-db",
+              "kind": "flow",
+              "label": ""
+            }
+          ]
+        },
+        "no_false_adoption": true,
+        "existing_semantics_preserved": true,
+        "supplied_inventory_complete": true,
+        "goal_parts_policy": "quota",
+        "quota_offers_exact": true,
+        "selected_one_use": true,
+        "initial_log_sha256": "a167cfcf6b38d3e183c60ee3702cba2e712efa6e56a73e4dff2b21a986b20b57",
+        "supply_sha256": "909ac366f22c33006c8b6878ab436d548811eb5d41c2bad4813f3837d540f48d",
+        "required_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "deadline": true,
+        "scope": "conditional native expression only; open extra/wrong graph is an outcome, never filtered from pair admission"
+      },
+      "paint_status": "PASS",
+      "goal_elapsedMs": 463.83770000000004,
+      "goal_deadline_status": "PASS",
+      "persisted_raw_equal": true
+    },
+    {
+      "id": "QR02",
+      "arm": "O",
+      "grade": {
+        "contract_valid": true,
+        "graph_exact": true,
+        "graph": {
+          "graph_exact": true,
+          "unique_record_keys": true,
+          "existing_semantics_preserved": true,
+          "semantic_unchanged": false,
+          "clean_new_regions": true,
+          "clean_new_edges": true,
+          "no_other_new_semantics": true,
+          "actual_added_regions": [],
+          "actual_added_edges": [
+            {
+              "from": "fixture:initial-api",
+              "to": "fixture:initial-db",
+              "kind": "flow",
+              "label": ""
+            }
+          ]
+        },
+        "no_false_adoption": true,
+        "existing_semantics_preserved": true,
+        "supplied_inventory_complete": true,
+        "goal_parts_policy": "open",
+        "quota_offers_exact": true,
+        "selected_one_use": true,
+        "initial_log_sha256": "a167cfcf6b38d3e183c60ee3702cba2e712efa6e56a73e4dff2b21a986b20b57",
+        "supply_sha256": "909ac366f22c33006c8b6878ab436d548811eb5d41c2bad4813f3837d540f48d",
+        "required_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "deadline": true,
+        "scope": "conditional native expression only; open extra/wrong graph is an outcome, never filtered from pair admission"
+      },
+      "paint_status": "PASS",
+      "goal_elapsedMs": 500.0054999999993,
+      "goal_deadline_status": "PASS",
+      "persisted_raw_equal": true
+    }
+  ],
+  "recorded_replay": {
+    "status": "PASS",
+    "issues": [],
+    "consumed": 4,
+    "frames": 14,
+    "assessed_frames": 10,
+    "recorded_paint_status": "PASS",
+    "replay_sha256": "6ad29d39a1d9b2878287f1cfbcfaff63689bd01294898fa412ad48752274f3bc",
+    "model_quality_scope": "NONE",
+    "CI_LIVE_EXECUTION": "UNPROVEN"
+  },
+  "provider": {
+    "sent": {
+      "jev": 9,
+      "typellm": 0
+    },
+    "charged_at_cutoff": {
+      "jev": 827,
+      "typellm": 86
+    }
+  },
+  "process": {
+    "schema": "voice-ui.quota-cycle-process/1",
+    "status": "PASS",
+    "issues": [],
+    "state": "FINAL_RECORDED",
+    "baseline": {
+      "jev": 808,
+      "typellm": 85
+    },
+    "indexed_phases": 3,
+    "source_head": "59ded276405a5dc9caa85ad570b1827ff4bd0c7a",
+    "correction_batches": 0,
+    "reserved": {
+      "jev": 67,
+      "typellm": 1
+    },
+    "charged_at_cutoff": {
+      "jev": 827,
+      "typellm": 86
+    },
+    "releases": [
+      {
+        "phase": "quota-final-R-20261018",
+        "apps_sha": "59ded276405a5dc9caa85ad570b1827ff4bd0c7a",
+        "admitted": true,
+        "prior_fresh_quality_required": false
+      }
+    ],
+    "scope": "integrity/process only; conditional expression and ordinary supplementation are separate; retained fresh quality failures do not block complete stopped-evidence progression"
+  },
+  "binding": {
+    "status": "PASS",
+    "issues": [],
+    "scope": "fixed exact-byte producer/source testimony joins; physical observation remains independently referenced",
+    "CI_LIVE_EXECUTION": "UNPROVEN"
+  },
+  "scope": "FRESH_CONDITIONAL_EXPRESSION_ONLY; NOT_TYPE_EFFECT; RECORDED_CRITERIA_AND_REPLAY_ONLY_PENDING_ACTUAL_CI_REPORT_CLOSURE",
+  "reviewer_real_provider_calls": 0
+}

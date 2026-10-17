@@ -1,0 +1,39 @@
+{
+  "status": "PASS",
+  "scope": "ROOT_PUBLISHED_STATIC_TEST_ONLY_RUNTIME_BRIDGE_NO_PROVIDER_EXECUTION",
+  "predecessor": "b9c68edb2517783e46ec9dc09bd69bcb89bfc146",
+  "candidate": "59ded276405a5dc9caa85ad570b1827ff4bd0c7a",
+  "source28": 28,
+  "ordinary_members": 291,
+  "total_members": 293,
+  "core_files": 6,
+  "ui_files": 238,
+  "renderer_files": 231,
+  "changed_metadata": [
+    {
+      "path": "architecture/evidence.json",
+      "json_fields": [
+        "/source/commit"
+      ]
+    },
+    {
+      "path": "site/architecture/data/source.v1.json",
+      "json_fields": [
+        "/source/commit",
+        "/files/130/blob"
+      ]
+    }
+  ],
+  "manifest_changed_json_fields": [
+    "/files/1/sha256",
+    "/files/31/sha256",
+    "/sources/apps",
+    "/sources/architecture/evidence_sha256",
+    "/sources/architecture/manifest_sha256",
+    "/sources/architecture/source/commit"
+  ],
+  "launcher_reference_changes": 3,
+  "worker_sha256": "8a1fef6c917240b951bae91132d353d334fd050f880ca7f4666b57f0178ef3fc",
+  "provider_sha256": "3f754c8b1ee4a8b34b50d00fd17e37295d853e1b607903b6d355b5e06997669c",
+  "provider_sends_added": 0
+}

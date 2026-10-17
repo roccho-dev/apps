@@ -1,0 +1,77 @@
+{
+  "status": "PASS",
+  "scope": "ROOT_ACTUAL_CI_FIVE_PHASE_FROZEN_AUDITS_CLASSIFICATION_AND_REPLAY_REGRADE",
+  "head": "59ded276405a5dc9caa85ad570b1827ff4bd0c7a",
+  "measurement": "2cc4890b765a5534e92855f83f9232ae85bb373b",
+  "release_run": 39076041775,
+  "artifact_id": 12117701316,
+  "artifact_zip_sha256": "3675e0517d240c9e5340f514e9f8b955f8e6e7fa6a4a9798301b4ad47e43ea6d",
+  "receipt_sha256": "c85240f2287ec3903c7bacf660d636790ebaa2f3e0553d93ca214562a9131e8c",
+  "phases": 5,
+  "planned_cells": 52,
+  "valid_cells": 51,
+  "invalid_cells": 1,
+  "protocol_prefix_proofs": 52,
+  "actual_CI_repaint_rows": 24,
+  "classifications": [
+    {
+      "id": "frontier-public-G0",
+      "axis": "G0",
+      "classification": {
+        "quality": "PUBLIC_REGRESSION_ONLY",
+        "effect": "NOT_EVALUATED",
+        "frontier_effect": "NOT_EVALUATED",
+        "public_gate": "PASS"
+      }
+    },
+    {
+      "id": "frontier-public-E",
+      "axis": "E",
+      "classification": {
+        "quality": "PUBLIC_REGRESSION_ONLY",
+        "effect": "PUBLIC_REGRESSION_ONLY",
+        "frontier_effect": "PUBLIC_REGRESSION_ONLY",
+        "public_gate": "PASS"
+      }
+    },
+    {
+      "id": "frontier-final-V",
+      "axis": "V",
+      "classification": {
+        "quality": "UNMET",
+        "effect": "NOT_EVALUATED",
+        "frontier_effect": "NOT_EVALUATED"
+      }
+    },
+    {
+      "id": "frontier-final-F",
+      "axis": "F",
+      "classification": {
+        "quality": "UNPROVEN",
+        "effect": "NOT_EVALUATED",
+        "frontier_effect": "NOT_EVALUATED"
+      }
+    },
+    {
+      "id": "frontier-final-E",
+      "axis": "E",
+      "classification": {
+        "quality": "UNMET",
+        "effect": "UNMET",
+        "frontier_effect": "UNPROVEN"
+      }
+    }
+  ],
+  "cumulative": {
+    "jev": 808,
+    "typellm": 85
+  },
+  "process": "PASS",
+  "only_preflight_differences": [
+    "/reports/1/ciReplay/replay_sha256",
+    "/reports/1/ciRaw/replay/replay_sha256",
+    "/reports/4/ciReplay/replay_sha256",
+    "/reports/4/ciRaw/replay/replay_sha256"
+  ],
+  "external_provider_sends_added": 0
+}
