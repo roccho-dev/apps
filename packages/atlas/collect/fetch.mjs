@@ -73,4 +73,10 @@ if (config.ports?.length) {
   write('ports.json', { type: 'ports', sha256: sha256(JSON.stringify(probes)), probes });
 }
 if (config.sessions) write('sessions.json', sessions(config.sessions));
+// P's declaration files: read as bytes; the sha256 identifies exactly what was read.
+(config.declarations ?? []).forEach((file, index) => {
+  let text = null;
+  try { text = fs.readFileSync(file, 'utf8'); } catch {}
+  write(`declaration-${index}.json`, { type: 'declaration', path: file, fetchedAt: now(), sha256: text === null ? null : sha256(text), text });
+});
 console.error(`fetch: snapshots written to ${outDir}`);

@@ -43,8 +43,10 @@ const gapView = frame => ({ coverage: frame.coverage, entities: frame.entities,
 // when the UNKNOWN evaluation unit named its source (全体評価/比較・分解/対応付け) and open conditions;
 // then from e8b707fd… when observed sessions became session-observed (activity stays unobserved);
 // then from f9269798… for K4: the CLI World carries frames[i].gap, satisfied conditions are no Scope,
-// the explained whole-unknown unit is dropped, 目標 → 理想状態, 変化 n 件 → 差 n 件.
-const WORLD_SHA256 = 'sha256:5720fe5cd3687f60b4d290faa5714c725200e9e80ef7e135c194b4d8f42c6264';
+// the explained whole-unknown unit is dropped, 目標 → 理想状態, 変化 n 件 → 差 n 件; then from 5720fe5c… for K5:
+// gap v2/v3 (purpose_rev pair, exclusive causes, summary counts, labels), phase, journal, matched_until,
+// and the purpose node/closure row per (id, rev).
+const WORLD_SHA256 = 'sha256:73e0af8e45b6e7d0c1d595ff8bd591704260b376d5eddcafa462d82a436ea1ae';
 
 test('parser fails closed on schema, shape, duplicate keys, order and graph errors', () => {
   const list = base();

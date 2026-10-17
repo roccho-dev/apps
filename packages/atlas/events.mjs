@@ -1,5 +1,5 @@
-// Event-sourced Atlas derivation. Only three declared event kinds go in; Gap,
-// Scope state and responsibility are derived per frame t. No clock, filesystem,
+// Event-sourced Atlas derivation. Only journal decisions (adrs#647), plan.set and observations
+// go in; Gap, Scope state and responsibility are derived per frame t. No clock, filesystem,
 // network, name/prefix inference or decision authority is introduced here.
 import { createHash } from 'node:crypto';
 import { reduceClosure } from './closure.mjs';
@@ -81,14 +81,19 @@ const predicate = (value, at) => {
   return value;
 };
 
-const purposeSet = (event, at) => {
-  keys(event, ['kind', 'recordedAt', 'purpose', 'version', 'label', 'requires', 'source'], [], at);
-  keys(event.purpose, ['id', 'label'], [], `${at}.purpose`);
-  demand(token(event.purpose.id) && text(event.purpose.label) && token(event.version) && text(event.label), `${at}: purpose identity/version/label required`);
-  keys(event.source, ['ref', 'digest'], [], `${at}.source`);
-  demand(token(event.source.ref) && sha(event.source.digest), `${at}: source ref and sha256 digest required`);
-  demand(Array.isArray(event.requires) && event.requires.length > 0, `${at}: requires must be nonempty`);
-  event.requires.forEach((value, index) => {
+// Journal decisions (adrs#647 contract 3): who decided what, when, from which source.
+const VERDICTS = ['achieved', 'not-yet', 'ideal-insufficient'];
+const decision = (event, required, optional, at) => {
+  keys(event, ['kind', 'recordedAt', 'source', ...required], ['actor', ...optional], at);
+  keys(event.source, ['ref', 'digest'], ['commentId'], `${at}.source`);
+  demand(token(event.source.ref) && sha(event.source.digest) && ((event.source.commentId ?? null) === null || token(event.source.commentId)),
+    `${at}: source ref, sha256 digest (and commentId) required`);
+  if ('actor' in event) demand(text(event.actor), `${at}: actor must be text`);
+};
+const requiresList = (requires, at) => {
+  // At least one condition: an ideal state without conditions would read as matched while meeting nothing.
+  demand(Array.isArray(requires) && requires.length > 0, `${at}: requires must be nonempty`);
+  requires.forEach((value, index) => {
     const where = `${at}.requires[${index}]`;
     keys(value, ['id', 'label', 'predicate', 'maxAge', 'norm'], ['plans'], where);
     // plans: the plan identities the Purpose author declares for this condition (never inferred).
@@ -97,7 +102,44 @@ const purposeSet = (event, at) => {
     predicate(value.predicate, `${where}.predicate`);
     duration(value.maxAge, `${where}.maxAge`);
   });
-  ids(event.requires.map(value => value.id), `${at}.requires ids`);
+  ids(requires.map(value => value.id), `${at}.requires ids`);
+};
+const purpose = (value, at) => {
+  keys(value, ['id', 'label'], [], at);
+  demand(token(value.id) && text(value.label), `${at}: purpose id/label required`);
+};
+const DECISIONS = {
+  // Legacy form: one declaration carries the Purpose and its ideal state (normalized below).
+  'purpose.set': (event, at) => {
+    if ('requires' in event) {
+      decision(event, ['purpose', 'version', 'label', 'requires'], [], at);
+      demand(token(event.version) && text(event.label), `${at}: version/label required`);
+      requiresList(event.requires, at);
+    } else {
+      decision(event, ['purpose', 'rev'], [], at);
+      demand(token(event.rev), `${at}: rev must be a token`);
+    }
+    purpose(event.purpose, `${at}.purpose`);
+  },
+  'ideal.drafting': (event, at) => {
+    decision(event, ['purpose_id', 'version'], [], at);
+    demand(token(event.purpose_id) && token(event.version), `${at}: purpose_id/version required`);
+  },
+  'ideal.set': (event, at) => {
+    decision(event, ['purpose_id', 'purpose_rev', 'version', 'requires'], ['label'], at);
+    demand(token(event.purpose_id) && token(event.purpose_rev) && token(event.version) && (event.label === undefined || text(event.label)),
+      `${at}: purpose_id/purpose_rev/version required`);
+    requiresList(event.requires, at);
+  },
+  'purpose.evaluated': (event, at) => {
+    decision(event, ['purpose_id', 'purpose_rev', 'ideal_version', 'verdict'], ['note'], at);
+    demand(token(event.purpose_id) && token(event.purpose_rev) && token(event.ideal_version) && VERDICTS.includes(event.verdict),
+      `${at}: purpose_id/purpose_rev/ideal_version and verdict ${VERDICTS.join('|')} required`);
+  },
+  'purpose.ended': (event, at) => {
+    decision(event, ['purpose_id'], ['note'], at);
+    demand(token(event.purpose_id), `${at}: purpose_id required`);
+  },
 };
 const observation = (event, at) => {
   keys(event, ['kind', 'recordedAt', 'target', 'value', 'source', 'observedAt'], [], at);
@@ -120,7 +162,8 @@ const reaches = (deps, from, to) => { // from ->* to through dep edges
   return seen.has(to);
 };
 const planSet = (event, at) => {
-  keys(event, ['kind', 'recordedAt', 'purposeRef', 'source', 'version', 'nodes', 'edges'], ['plan', 'unknown'], at);
+  keys(event, ['kind', 'recordedAt', 'purposeRef', 'source', 'version', 'nodes', 'edges'], ['plan', 'unknown', 'actor'], at);
+  if ('actor' in event) demand(text(event.actor), `${at}: actor must be text`);
   if ('plan' in event) demand(token(event.plan), `${at}: plan id must be a token`);
   if ('unknown' in event) demand(Array.isArray(event.unknown) && event.unknown.every(text), `${at}: unknown must list reasons`);
   keys(event.purposeRef, ['purposeId', 'version'], [], `${at}.purposeRef`);
@@ -156,48 +199,79 @@ const planSet = (event, at) => {
   demand(event.edges.filter(edge => edge.kind === 'loop').every(edge => reaches(deps, edge.to, edge.from)), `${at}: loop must return to a dep-ancestor`);
 };
 
-/** Parse the event log. Any invalid, unordered or future event fails closed. */
+/**
+ * Parse the event log. Any invalid, unordered or future event fails closed. A legacy purpose.set
+ * that carries requires is normalized into purpose.set (only when the Purpose or its label
+ * changes; rev = the version that first declared that label) followed by ideal.set.
+ */
 export const parseEvents = input => {
   const [first, ...rest] = lines(input, 'events');
   keys(first.value, ['schema', 'authority', 'source_mode'], [], `${first.at} header`);
   demand(first.value.schema === EVENTS_SCHEMA && first.value.authority === false && ['synthetic', 'supplied'].includes(first.value.source_mode),
     'unsupported events schema/authority/source_mode');
-  let last = -Infinity;
-  const versions = new Map(), plans = new Map(), identities = new Map();
-  const events = rest.map(({ value: event, at }) => {
-    demand(object(event) && ['purpose.set', 'plan.set', 'observation'].includes(event.kind), `${at}: unknown event kind`);
+  let last = -Infinity, active = null, ended = false;
+  const versions = new Map(), plans = new Map(), revs = new Map(); // revs: purpose id → Map(rev → label)
+  const label = (id, rev) => revs.get(id)?.get(rev);
+  const setPurpose = (event, at) => {
+    const known = revs.get(event.purpose.id) ?? new Map();
+    demand(!known.has(event.rev) || known.get(event.rev) === event.purpose.label, `${at}: Purpose ${event.purpose.id} rev ${event.rev} redefined`);
+    demand(ended || !active || active.purpose.id !== event.purpose.id || active.rev !== event.rev, `${at}: Purpose ${event.purpose.id} rev ${event.rev} is already active`);
+    known.set(event.rev, event.purpose.label); revs.set(event.purpose.id, known);
+    active = event; ended = false;
+    return event;
+  };
+  const current = (id, at) => demand(active && !ended && active.purpose.id === id, `${at}: ${id} is not the active Purpose`);
+  const events = rest.flatMap(({ value: event, at }) => {
+    demand(object(event) && (event.kind in DECISIONS || ['plan.set', 'observation'].includes(event.kind)), `${at}: unknown event kind`);
     const recorded = time(event.recordedAt, `${at}.recordedAt`);
     demand(recorded >= last, `${at}: recordedAt goes backwards (log must be append-ordered)`);
     last = recorded;
-    if (event.kind === 'purpose.set') {
-      purposeSet(event, at);
-      // The Purpose may change over the log; one Purpose id keeps one label (no silent redefinition).
-      if (!identities.has(event.purpose.id)) identities.set(event.purpose.id, canonical(event.purpose));
-      demand(identities.get(event.purpose.id) === canonical(event.purpose), `${at}: Purpose ${event.purpose.id} redefined`);
-      demand(!versions.has(event.version), `${at}: purpose version ${event.version} already set`);
-      versions.set(event.version, event);
-    } else if (event.kind === 'observation') observation(event, at);
-    else {
-      planSet(event, at);
-      const purpose = versions.get(event.purposeRef.version);
-      demand(purpose && event.purposeRef.purposeId === purpose.purpose.id, `${at}: purposeRef names no purpose.set recorded before it`);
-      const required = new Set(purpose.requires.map(value => value.id));
-      for (const node of opaque(event) ? [] : event.nodes) demand([...node.contributesTo, ...(node.predicateRefs ?? [])].every(id => required.has(id)),
-        `${at}: ${node.id} references a condition outside ${event.purposeRef.version}`);
-      const previous = plans.get(planId(event)) ?? [];
-      const prior = previous.at(-1);
-      demand(!prior || Date.parse(event.source.updatedAt) >= Date.parse(prior.source.updatedAt), `${at}: plan body updatedAt goes backwards`);
-      // A body's updatedAt also moves with new comments; the same version must keep the same content.
-      const content = value => canonical({ ...value, recordedAt: null, source: { ...value.source, updatedAt: null } });
-      demand(previous.every(value => value.version !== event.version || content(value) === content(event)),
-        `${at}: plan version ${event.version} redefined`);
-      demand(!prior || prior.source.updatedAt !== event.source.updatedAt || prior.source.digest === event.source.digest,
-        `${at}: same plan body time with another digest`);
-      plans.set(planId(event), [...previous, event]);
+    if (event.kind in DECISIONS) DECISIONS[event.kind](event, at);
+    switch (event.kind) {
+      case 'purpose.set': {
+        if (!('requires' in event)) return [setPurpose(event, at)];
+        const { requires, version, label: idealLabel, purpose: declared, ...common } = event;
+        const rev = [...(revs.get(declared.id) ?? new Map())].find(([, value]) => value === declared.label)?.[0] ?? version;
+        const head = !ended && active?.purpose.id === declared.id && active.rev === rev ? [] : [setPurpose({ ...common, purpose: declared, rev }, at)];
+        return [...head, ideal({ ...common, kind: 'ideal.set', purpose_id: declared.id, purpose_rev: rev, version, label: idealLabel, requires }, at)];
+      }
+      case 'ideal.drafting': current(event.purpose_id, at); return [event];
+      case 'ideal.set': return [ideal(event, at)];
+      case 'purpose.evaluated':
+        demand(label(event.purpose_id, event.purpose_rev) !== undefined && versions.get(event.ideal_version)?.purpose_id === event.purpose_id,
+          `${at}: evaluated Purpose rev or ideal version not declared before`);
+        return [event];
+      case 'purpose.ended': current(event.purpose_id, at); ended = true; return [event];
+      case 'observation': observation(event, at); return [event];
+      default: plan(event, at); return [event];
     }
-    return event;
   });
-  demand(versions.size > 0, 'no purpose.set event');
+  function ideal(event, at) {
+    current(event.purpose_id, at);
+    demand(active.rev === event.purpose_rev, `${at}: ideal.set names purpose_rev ${event.purpose_rev}, active is ${active.rev}`);
+    demand(!versions.has(event.version), `${at}: ideal version ${event.version} already set`);
+    versions.set(event.version, event);
+    return event;
+  }
+  function plan(event, at) {
+    planSet(event, at);
+    const purpose = versions.get(event.purposeRef.version);
+    demand(purpose && event.purposeRef.purposeId === purpose.purpose_id, `${at}: purposeRef names no ideal.set recorded before it`);
+    const required = new Set(purpose.requires.map(value => value.id));
+    for (const node of opaque(event) ? [] : event.nodes) demand([...node.contributesTo, ...(node.predicateRefs ?? [])].every(id => required.has(id)),
+      `${at}: ${node.id} references a condition outside ${event.purposeRef.version}`);
+    const previous = plans.get(planId(event)) ?? [];
+    const prior = previous.at(-1);
+    demand(!prior || Date.parse(event.source.updatedAt) >= Date.parse(prior.source.updatedAt), `${at}: plan body updatedAt goes backwards`);
+    // A body's updatedAt also moves with new comments; the same version must keep the same content.
+    const content = value => canonical({ ...value, recordedAt: null, source: { ...value.source, updatedAt: null } });
+    demand(previous.every(value => value.version !== event.version || content(value) === content(event)),
+      `${at}: plan version ${event.version} redefined`);
+    demand(!prior || prior.source.updatedAt !== event.source.updatedAt || prior.source.digest === event.source.digest,
+      `${at}: same plan body time with another digest`);
+    plans.set(planId(event), [...previous, event]);
+  }
+  demand(events.some(event => event.kind === 'purpose.set'), 'no purpose.set event');
   return { header: first.value, events };
 };
 
@@ -272,11 +346,11 @@ const nodeState = (node, purpose, events, t) => {
   return { state, reason: 'predicate-refs', predicates: predicates.map(value => ({ id: value.id, state: value.state, reason: value.reason })) };
 };
 
-const planAt = (log, plan, purposes, current, norms, times, t) => {
+const planAt = (log, plan, ideals, current, norms, times, t) => {
   const events = visible(log, t);
-  const premise = purposes.get(plan.purposeRef.version);
+  const premise = ideals.get(plan.purposeRef.version);
   const head = { ref: plan.source.ref, plan: planId(plan), version: plan.version, recordedAt: plan.recordedAt, source: { ...plan.source },
-    purposeRef: { ...plan.purposeRef }, premise: plan.purposeRef.version === current.version ? 'current' : 'premise-version-mismatch',
+    purposeRef: { ...plan.purposeRef }, premise: plan.purposeRef.version === current?.version ? 'current' : 'premise-version-mismatch',
     serves: premise.requires.filter(value => value.plans?.includes(planId(plan))).map(value => value.id) };
   if (opaque(plan)) return { ...head, nodes: null, edges: null, loops: [], unknown: [...(plan.unknown ?? ['content-unknown'])] };
   const states = new Map(plan.nodes.map(node => [node.id, nodeState(node, premise, events, t)]));
@@ -287,7 +361,7 @@ const planAt = (log, plan, purposes, current, norms, times, t) => {
       const version = log.filter(event => event.kind === 'plan.set' && planId(event) === planId(plan) && Date.parse(event.recordedAt) <= s).at(-1);
       const node = opaque(version ?? {}) ? undefined : version?.nodes.find(value => value.id === id);
       if (!node) continue;
-      const { state } = nodeState(node, purposes.get(version.purposeRef.version), visible(log, s), s);
+      const { state } = nodeState(node, ideals.get(version.purposeRef.version), visible(log, s), s);
       if (state === 'unmet' && last === 'satisfied') count += 1;
       if (state !== 'unknown') last = state;
     }
@@ -316,57 +390,72 @@ const planAt = (log, plan, purposes, current, norms, times, t) => {
   return { ...head, nodes, edges: plan.edges.map(edge => ({ ...edge })), loops };
 };
 
-/** Fold the log into one derived state per frame t (each distinct recordedAt from the first purpose.set). */
+/**
+ * Fold the log into one derived state per frame t (each distinct recordedAt from the first purpose.set).
+ * stage: purpose-changed (no ideal.drafting/ideal.set since the active purpose.set), defining (drafting
+ * only), ideal (an ideal.set of the active Purpose rev), ended (purpose.ended since the purpose.set).
+ */
 export const deriveFrames = ({ header, events: log }, norms) => {
   const times = [...new Set(log.map(event => Date.parse(event.recordedAt)))].sort((a, b) => a - b);
-  const purposes = new Map(log.filter(event => event.kind === 'purpose.set').map(event => [event.version, event]));
+  const ideals = new Map(log.filter(event => event.kind === 'ideal.set').map(event => [event.version, event]));
   const first = Date.parse(log.find(event => event.kind === 'purpose.set').recordedAt);
+  // An ideal.set is superseded by the next purpose.set, ideal.set or purpose.ended in the log.
+  const archive = ideal => log.slice(log.indexOf(ideal) + 1).find(event => ['purpose.set', 'ideal.set', 'purpose.ended'].includes(event.kind));
   const frames = times.filter(t => t >= first).map(t => {
     const events = visible(log, t);
-    const sets = events.filter(event => event.kind === 'purpose.set');
-    const current = sets.at(-1);
-    const conditions = current.requires.map(value => ({ ...value, judgment: judge(value, events, t),
-      responsibility: owner(value, current.purpose.id, norms, events) }));
+    const start = events.findLastIndex(event => event.kind === 'purpose.set');
+    const purpose = events[start], since = events.slice(start + 1);
+    const set = since.filter(event => event.kind === 'ideal.set').at(-1) ?? null;
+    const stage = since.some(event => event.kind === 'purpose.ended') ? 'ended' : set ? 'ideal'
+      : since.some(event => event.kind === 'ideal.drafting') ? 'defining' : 'purpose-changed';
+    const ideal = stage === 'ideal' ? set : null;
+    const conditions = (ideal?.requires ?? []).map(value => ({ ...value, judgment: judge(value, events, t),
+      responsibility: owner(value, ideal.purpose_id, norms, events) }));
     // Superseded obligations are frozen at their archive instant, never re-derived later.
-    const history = sets.slice(0, -1).flatMap((old, index) => {
-      const archivedAt = Date.parse(sets[index + 1].recordedAt), then = visible(log, archivedAt);
+    const history = events.filter(event => event.kind === 'ideal.set' && event !== ideal).flatMap(old => {
+      const archivedAt = Date.parse(archive(old).recordedAt), then = visible(log, archivedAt);
       return old.requires.map(value => {
         const judged = judge(value, then, archivedAt);
-        return { id: `${old.version}:${value.id}`, label: `旧義務 ${old.version}：${value.label}`, purpose_id: old.purpose.id, purpose_version: old.version,
+        return { id: `${old.version}:${value.id}`, label: `旧義務 ${old.version}：${value.label}`, purpose_id: old.purpose_id, purpose_version: old.version,
           condition_id: value.id, state: judged.state, reason: judged.reason, observation: judged.observation,
-          responsibility: owner(value, old.purpose.id, norms, then), archivedAt: new Date(archivedAt).toISOString(),
+          responsibility: owner(value, old.purpose_id, norms, then), archivedAt: new Date(archivedAt).toISOString(),
           frozen: true, relation: 'superseded', authority: 'derived-from-events' };
       });
     });
     const refs = [...new Set(events.filter(event => event.kind === 'plan.set').map(planId))].sort();
     const plans = refs.map(ref => planAt(log, events.filter(event => event.kind === 'plan.set' && planId(event) === ref).at(-1),
-      purposes, current, norms, times, t));
+      ideals, ideal, norms, times, t));
     const sessions = Object.fromEntries([...new Set(events.filter(event => event.kind === 'observation' && event.target.kind === 'session')
       .map(event => event.target.id))].sort().map(id => { const { observation: seen } = latest(events, 'session', id);
       return [id, { value: seen.value, source: seen.source, observedAt: seen.observedAt }]; }));
     // Gap inputs exclude plan.set: revising a plan cannot change the derived Gap or its provenance.
     const gapInputs = events.filter(event => event.kind !== 'plan.set');
     const used = conditions.map(value => value.judgment.observation?.observedAt).filter(Boolean).map(Date.parse);
-    return { t, asOf: new Date(t).toISOString(), purpose: current, conditions, history, plans, sessions,
+    return { t, asOf: new Date(t).toISOString(), purpose, stage, ideal, conditions, history, plans, sessions,
+      decisions: events.filter(event => event.kind !== 'observation'),
       gapDigest: digest(gapInputs.map(canonical).join('\n')), observedAt: used.length ? new Date(Math.max(...used)).toISOString() : null };
   });
   return { header, now: new Date(times.at(-1)).toISOString(), frames };
 };
 
 // ---- Projection to the existing contracts. ----
+const purposeRow = frame => `${frame.purpose.purpose.id}@${frame.purpose.rev}`;
+const sourceRef = source => source.commentId ? `${source.ref}:comment-${source.commentId}` : source.ref;
 const closureRows = (derived, upto) => {
   const frames = derived.frames.slice(0, upto + 1), rows = [], seen = new Set();
   for (const frame of frames) {
-    const p = frame.purpose, pid = p.purpose.id, frameSource = [{ sourceRef: `atlas-events:frame@${frame.asOf}`, sourceDigest: frame.gapDigest }];
-    if (!seen.has('purpose:' + pid)) {
-      seen.add('purpose:' + pid);
-      rows.push({ kind: 'purpose', id: pid, label: p.purpose.label, parents: [],
-        sources: [{ sourceRef: `atlas-events:purpose/${pid}`, sourceDigest: digest(canonical(p.purpose)) }] });
+    const row = purposeRow(frame), p = frame.ideal, frameSource = [{ sourceRef: `atlas-events:frame@${frame.asOf}`, sourceDigest: frame.gapDigest }];
+    if (!seen.has('purpose:' + row)) {
+      seen.add('purpose:' + row);
+      rows.push({ kind: 'purpose', id: row, label: frame.purpose.purpose.label, parents: [],
+        sources: [{ sourceRef: `atlas-events:purpose/${row}`, sourceDigest: digest(canonical({ ...frame.purpose.purpose, rev: frame.purpose.rev })) }] });
     }
+    if (!p) continue;
     if (!seen.has('ideal:' + p.version)) {
       seen.add('ideal:' + p.version);
-      rows.push({ kind: 'ideal', id: `ideal.${p.version}`, label: p.label, purposes: [pid], value: p.requires.map(value => value.label).join(' / '),
-        sources: [{ sourceRef: p.source.ref, sourceDigest: p.source.digest }] });
+      rows.push({ kind: 'ideal', id: `ideal.${p.version}`, label: p.label ?? `理想状態 ${p.version}`, purposes: [row], value: p.requires.map(value => value.label).join(' / '),
+        // Qualified by the version: one declaration source may carry several ideal versions.
+        sources: [{ sourceRef: `${sourceRef(p.source)}@${p.version}`, sourceDigest: p.source.digest }] });
     }
     const states = frame.conditions.map(value => `${value.id}=${value.judgment.state}`).join(', ');
     rows.push({ kind: 'current', id: `current@${frame.asOf}`, label: `現状 ${frame.asOf}`, value: states, sources: frameSource });
@@ -380,8 +469,9 @@ export const closureDocument = (derived, upto = derived.frames.length - 1) =>
 
 const EVALUATOR = 'atlas.D:derive', WRITER = 'atlas.events';
 const semanticFrame = (derived, frame, index) => {
-  const p = frame.purpose, pid = p.purpose.id, space = `atlas-events:${pid}`;
+  const p = frame.ideal, pid = frame.purpose.purpose.id, space = `atlas-events:${pid}`;
   const ref = (revision, id = pid) => ({ space, revision, id });
+  if (!p) return undefinedIdeal(frame, index, pid, ref);
   const currentRef = ref(`obs@${frame.asOf}`), targetRef = ref(`target@${p.version}`);
   // A Scope is one open condition with its owner: a satisfied condition is no difference (equivalent), not a Scope.
   const open = value => value.judgment.state !== 'satisfied';
@@ -421,14 +511,27 @@ const semanticFrame = (derived, frame, index) => {
   const closure = closureRows(derived, index), find = id => closure.find(row => row.id === id);
   const bound = (row, extra) => ({ id: row.id, kind: row.kind, sources: row.sources, ...extra });
   semantic.bindings = { pair: { purpose_id: pid, current_ref: currentRef, target_ref: targetRef },
-    purpose: bound(find(pid), { domain_id: pid }), current: bound(find(`current@${frame.asOf}`), { state_ref: currentRef }),
+    purpose: bound(find(purposeRow(frame)), { domain_id: pid }), current: bound(find(`current@${frame.asOf}`), { state_ref: currentRef }),
     target: [bound(find(`ideal.${p.version}`), { state_ref: targetRef })], observed: bound(find(`current@${frame.asOf}`), { state_ref: currentRef }) };
   const known = frame.conditions.filter(value => value.judgment.observation).length;
   return { id: `t@${frame.asOf}`, rev: index + 1, asOf: frame.asOf, source_ref: `atlas-events:frame@${frame.asOf}`,
-    purpose_label: p.label, current_label: `観測照合 ${known}/${p.requires.length} 件 @${frame.asOf}`,
-    target_label: `理想状態 ${p.version}：条件 ${p.requires.length} 件`, post_label: `導出 ${frame.asOf}`, semantic,
+    purpose_label: frame.purpose.purpose.label, current_label: `観測照合 ${known}/${p.requires.length} 件 @${frame.asOf}`,
+    target_label: `理想状態 ${p.version}：${p.label ?? '条件'}（条件 ${p.requires.length} 件）`, post_label: `導出 ${frame.asOf}`, semantic,
     responsibility: Object.fromEntries(frame.conditions.map(value => [value.id, value.responsibility])),
     agent_activity: frame.sessions };
+};
+// No ideal state to compare with (purpose-changed, defining, ended): the comparison is UNKNOWN, never empty.
+const STAGE = { 'purpose-changed': '目的変更・理想状態の定義待ち', defining: '理想状態を定義中', ended: '目的は終了' };
+const undefinedIdeal = (frame, index, pid, ref) => {
+  const currentRef = ref(`obs@${frame.asOf}`), targetRef = ref(`ideal@${frame.stage}`);
+  return { id: `t@${frame.asOf}`, rev: index + 1, asOf: frame.asOf, source_ref: `atlas-events:frame@${frame.asOf}`,
+    purpose_label: frame.purpose.purpose.label, current_label: `観測 @${frame.asOf}`, target_label: `理想状態：未確定（${STAGE[frame.stage]}）`,
+    post_label: `導出 ${frame.asOf}`, responsibility: {}, agent_activity: frame.sessions,
+    semantic: { schema: 'atlas.semantic-scopes/1', authority: false,
+      comparison: { purpose_id: pid, current_ref: currentRef, target_ref: targetRef, direction: 'current-to-target', availability: 'unknown',
+        basis: { current_ref: currentRef, target_ref: targetRef, evidence: [`atlas-events:stage@${frame.stage}`] } },
+      partition: null, observation: null, bindings: null,
+      history: frame.history.map(value => ({ ...value, target_ref: ref(`target@${value.purpose_version}`, value.purpose_id) })) } };
 };
 export const semanticInput = derived => ({ schema: 'atlas.semantic-scope-world/1', authority: false, source_mode: derived.header.source_mode,
   note: 'Derived from atlas.events/1 (purpose.set, plan.set, observation) and control Norms only; no hand-written Gap/Scope/owner.',
@@ -436,7 +539,7 @@ export const semanticInput = derived => ({ schema: 'atlas.semantic-scope-world/1
 
 export const planProjection = derived => ({ schema: PLAN_PROJECTION_SCHEMA, authority: false, purpose_id: derived.frames.at(-1).purpose.purpose.id, now: derived.now,
   note: 'Plans are future intentions observed in Issue/PR bodies. They never enter the Gap, Current or coverage.',
-  frames: derived.frames.map(frame => ({ id: `t@${frame.asOf}`, asOf: frame.asOf, purpose_id: frame.purpose.purpose.id, purpose_version: frame.purpose.version,
+  frames: derived.frames.map(frame => ({ id: `t@${frame.asOf}`, asOf: frame.asOf, purpose_id: frame.purpose.purpose.id, purpose_version: frame.ideal?.version ?? null,
     ...(frame.plans.length ? { status: 'known', plans: frame.plans }
       : { status: 'unknown', reason: 'no plan.set recorded at or before t', plans: null }) })) });
 

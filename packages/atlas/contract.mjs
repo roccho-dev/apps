@@ -1,77 +1,110 @@
-// The World write edge: the only module that knows the ui contracts frames[i].plans and
-// frames[i].gap (shared by apps and ui). D's derived frames go in; nothing here judges.
-import { createHash } from 'node:crypto';
-
+// The World write edge: the only module that knows the ui contracts (adrs#647 v3) frames[i].plans,
+// gap, phase, journal and matched_until. D's derived frames go in; nothing here judges.
 const same = (a, b) => JSON.stringify(a) === JSON.stringify(b);
 const open = condition => condition.judgment.state !== 'satisfied';
 const frameId = frame => `t@${frame.asOf}`;
 const number = value => /^\d+$/u.test(value) ? Number(value) : value; // G numbers that D keeps as tokens
-// D judgment reason → the current-side cause of an open condition (no observation usable / stale).
-const CURRENT = { 'no-observation': 'current-unobserved', unmatchable: 'current-unobserved',
-  'conflicting-observations': 'current-unobserved', stale: 'current-stale' };
+const purposeKey = frame => JSON.stringify([frame.purpose.purpose.id, frame.purpose.rev]); // compared as the pair
 const state = condition => condition.judgment.state === 'unmet' ? 'unmet' : 'unknown';
 const ideal = condition => [condition.predicate, condition.maxAge];
+const iso = ms => new Date(ms).toISOString();
+const DURATION = /^P(?:(\d+)D)?(?:T(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?)?$/u;
+const ms = value => { const [d, h, m, s] = DURATION.exec(value).slice(1).map(part => Number(part ?? 0)); return (((d * 24 + h) * 60 + m) * 60 + s) * 1000; };
+
+// The current side of an open condition under an unchanged ideal: exclusive, carried only when nothing else applies.
+const currentCause = (before, now) => {
+  if (now.state === 'unmet') return before.state === 'satisfied' ? 'current-regressed' : before.state === 'unmet' ? 'carried' : 'current-confirmed-unmet';
+  if (now.state === 'conflict') return 'current-conflict';
+  return now.reason === 'stale' ? 'current-stale' : 'current-unobserved'; // no-observation, or no usable value (unmatchable)
+};
 
 /**
- * Decompose the difference of one derived frame against the previous one, by id only.
- * Precedence: initial, purpose-changed, ideal-added, ideal-revised; then the current side
- * (regressed / unobserved / stale); carried when the open difference continues unchanged.
+ * One frame's difference. `last` is the latest earlier frame with a gap (the comparison partner for
+ * causes); `previous` is the frame just before (its open parts are what this frame can close).
+ * No ideal state to compare with (purpose-changed, defining, ended): parts are null (UNKNOWN), not [].
  */
-export const gapOf = (frame, prev, gapOfPrev = null) => {
-  const purpose = frame.purpose.purpose.id, samePurpose = prev && prev.purpose.purpose.id === purpose;
-  const before = new Map((samePurpose ? prev.conditions : []).map(value => [value.id, value]));
-  const openBefore = new Set((prev?.conditions ?? []).filter(open).map(value => value.id));
-  const sinceBefore = new Map((gapOfPrev?.parts ?? []).map(part => [part.condition, part.since]));
+export const gapOf = (frame, last = null, previous = null) => {
+  const sameId = other => other && other.frame.purpose.purpose.id === frame.purpose.purpose.id;
+  const sameKey = last && purposeKey(last.frame) === purposeKey(frame);
+  const before = new Map((sameId(last) ? last.frame.conditions : []).map(value => [value.id, value]));
+  // Only a difference open without a break (open in the previous frame) keeps its opening frame.
+  const since = new Map((sameId(previous) ? previous.gap.parts ?? [] : []).map(part => [part.condition, part.since]));
   const refs = condition => [...new Set(frame.plans.filter(plan => condition.plans?.includes(plan.plan)).map(plan => plan.ref))].sort();
-  const parts = frame.conditions.filter(open).map(value => {
+  const parts = frame.ideal && frame.conditions.filter(open).map(value => {
     const old = before.get(value.id), revised = old && !same(ideal(old), ideal(value));
-    const cause = !prev ? 'initial' : !samePurpose ? 'purpose-changed' : !old ? 'ideal-added' : revised ? 'ideal-revised'
-      : old.judgment.state === 'satisfied' && value.judgment.state === 'unmet' ? 'current-regressed'
-      : openBefore.has(value.id) && old.judgment.state === value.judgment.state && old.judgment.reason === value.judgment.reason ? 'carried'
-      : value.judgment.state === 'unknown' || value.judgment.state === 'conflict' ? CURRENT[value.judgment.reason]
-      : 'carried'; // unknown → unmet under the same ideal: the open difference continues, now observed
-    // The difference keeps its opening frame while it stays open under the same ideal condition.
-    const since = old && !revised && openBefore.has(value.id) ? sinceBefore.get(value.id) ?? frameId(prev) : frameId(frame);
-    return { condition: value.id, state: state(value), cause: [cause], since,
-      scope: value.responsibility.state === 'assigned' ? `scope.${value.id}` : null, refs: refs(value) };
+    const cause = !last ? 'initial' : !sameKey ? 'purpose-changed' : !old ? 'ideal-added' : revised ? 'ideal-revised'
+      : currentCause(old.judgment, value.judgment);
+    const observedAt = value.judgment.observation?.observedAt;
+    return { condition: value.id, label: value.label, state: state(value), cause: [cause],
+      // A difference declared again (same Purpose id, same condition, unrevised) continues from its opening frame.
+      since: old && !revised && since.has(value.id) ? since.get(value.id) : frameId(frame),
+      scope: value.responsibility.state === 'assigned' ? `scope.${value.id}` : null, refs: refs(value),
+      ...(observedAt && Date.parse(observedAt) < Date.parse(frame.ideal.recordedAt) ? { observed_before_ideal: true } : {}) };
   });
-  const now = new Map(frame.conditions.map(value => [value.id, value]));
-  const closed = [...openBefore].filter(id => !parts.some(part => part.condition === id)).map(id => ({ condition: id, at: frameId(frame),
-    by: !samePurpose ? 'purpose-changed' : now.has(id) ? 'current-satisfied' : 'ideal-removed' }));
+  // Close what the previous frame had open and this frame no longer has open.
+  // Under a new Purpose rev only what the new ideal declares again continues; the rest closes.
+  const continued = sameId(previous) && parts ? new Set(parts.map(part => part.condition)) : new Set();
+  const ids = new Set(frame.conditions.map(value => value.id));
+  const closed = (previous?.gap.parts ?? []).filter(part => !continued.has(part.condition)).map(part => ({
+    condition: part.condition, at: frameId(frame),
+    by: frame.stage === 'ended' ? 'purpose-ended' : !frame.ideal || !sameId(previous) || purposeKey(previous.frame) !== purposeKey(frame) && !ids.has(part.condition)
+      ? 'purpose-changed' : ids.has(part.condition) ? 'current-satisfied' : 'ideal-removed' }));
   const byCause = {};
-  for (const part of parts) for (const cause of part.cause) byCause[cause] = (byCause[cause] ?? 0) + 1;
-  return { basis: { purpose_id: purpose, purpose_rev: 'sha256:' + createHash('sha256').update(JSON.stringify(frame.purpose.purpose)).digest('hex'),
-    ideal_version: frame.purpose.version, prev_frame: prev ? frameId(prev) : null },
-  parts, closed, summary: { open: parts.length, by_cause: byCause } };
+  for (const part of parts ?? []) for (const cause of part.cause) byCause[cause] = (byCause[cause] ?? 0) + 1;
+  return { basis: { purpose_id: frame.purpose.purpose.id, purpose_rev: frame.purpose.rev, purpose_label: frame.purpose.purpose.label,
+    ideal_version: frame.ideal?.version ?? null, prev_frame: last ? frameId(last.frame) : null },
+  parts, closed, summary: parts ? { open: parts.length, by_cause: byCause, conditions: frame.conditions.length, satisfied: frame.conditions.filter(value => !open(value)).length }
+    : { open: null, by_cause: {}, conditions: null, satisfied: null } };
 };
 
-/** frames[i].gap for every World frame, each computed once from its own and the previous derived frame. */
-export const withGap = (world, derived) => {
-  let previous = null;
-  const gaps = derived.frames.map((frame, index) => (previous = gapOf(frame, derived.frames[index - 1] ?? null, previous)));
-  return { ...world, frames: world.frames.map((frame, index) => ({ ...frame, gap: gaps[index] })) };
-};
+/** phase: purpose-changed / defining / approximating / matched (and ended once purpose.ended is recorded). */
+export const phaseOf = (frame, gap) => frame.stage === 'ideal' ? (gap.parts.length ? 'approximating' : 'matched') : frame.stage;
+
+/** matched: the earliest observedAt + maxAge, after which the match is no longer known to hold. */
+export const matchedUntil = (frame, phase) => phase !== 'matched' ? null
+  : iso(Math.min(...frame.conditions.map(value => Date.parse(value.judgment.observation.observedAt) + ms(value.maxAge))));
+
+/** journal: the decisions recorded up to the frame (kind, recordedAt, source, actor) with their declared ids. */
+export const journalOf = frame => frame.decisions.map(event => {
+  const source = { ref: event.source.ref, commentId: event.source.commentId == null ? null : number(event.source.commentId), sha256: event.source.digest };
+  const detail = {
+    'purpose.set': () => ({ purpose_id: event.purpose.id, purpose_label: event.purpose.label, purpose_rev: event.rev }),
+    'ideal.drafting': () => ({ purpose_id: event.purpose_id, ideal_version: event.version }),
+    'ideal.set': () => ({ purpose_id: event.purpose_id, purpose_rev: event.purpose_rev, ideal_version: event.version }),
+    'plan.set': () => ({ plan: event.plan ?? event.source.ref, version: number(event.version) }),
+    // A later move of the Purpose rev or the ideal version turns the evaluation into a past one.
+    'purpose.evaluated': () => ({ purpose_id: event.purpose_id, purpose_rev: event.purpose_rev, ideal_version: event.ideal_version,
+      verdict: event.verdict, ...(event.note ? { note: event.note } : {}), frame: frameId({ asOf: iso(Date.parse(event.recordedAt)) }),
+      past: !(event.purpose_id === frame.purpose.purpose.id && event.purpose_rev === frame.purpose.rev && event.ideal_version === frame.ideal?.version) }),
+    'purpose.ended': () => ({ purpose_id: event.purpose_id }),
+  }[event.kind]();
+  return { kind: event.kind, recordedAt: event.recordedAt, actor: event.actor ?? null, source, ...detail };
+});
 
 /**
- * frames[i].plans: absent when no purpose.set at that frame declares a plan (計画未宣言); [] when
- * declared but none recorded yet. Plans are not facts: display only, never past the frame asOf.
+ * frames[i].plans: absent when the frame's ideal state declares no plan (計画未宣言); [] when declared but
+ * none recorded yet. Plans are not facts: display only, never past the frame asOf.
  */
-export const withPlans = (world, projection, purposes) => ({ ...world, frames: world.frames.map(frame => {
+export const plansOf = (frame, projection) => {
+  if (!frame.ideal?.requires.some(condition => condition.plans?.length)) return undefined;
   const asOf = Date.parse(frame.asOf);
-  const purpose = purposes.filter(value => Date.parse(value.recordedAt) <= asOf).at(-1);
-  if (!purpose?.requires.some(condition => condition.plans?.length)) return frame;
-  const plans = (projection.frames.find(value => value.asOf === frame.asOf)?.plans ?? [])
+  return (projection.frames.find(value => value.asOf === frame.asOf)?.plans ?? [])
     .filter(plan => Date.parse(plan.recordedAt) <= asOf)
     .map(plan => ({ ref: plan.ref, plan: plan.plan, version: number(plan.version),
       label: `${plan.plan} v${plan.version} · ${plan.ref}${plan.source.commentId ? ' comment ' + plan.source.commentId : ''}`,
       serves: [...plan.serves], nodes: plan.nodes && plan.nodes.map(node => ({ id: node.id, label: node.label })),
       edges: plan.edges && plan.edges.map(edge => ({ from: edge.from, to: edge.to, kind: edge.kind })), unknown: [...(plan.unknown ?? [])],
       source: { repo: plan.source.ref, commentId: plan.source.commentId && number(plan.source.commentId), updatedAt: plan.source.updatedAt, sha256: plan.source.digest } }));
-  return { ...frame, plans };
-}) });
+};
 
-/** The World as ui reads it: D's World plus the two edge contracts. */
+/** The World as ui reads it: D's World plus the edge contracts. Each frame uses only itself and earlier frames. */
 export const contractWorld = result => {
-  const purposes = [...new Set(result.derived.frames.map(frame => frame.purpose))];
-  return withGap(withPlans(result.world, result.plans, purposes), result.derived);
+  let last = null, previous = null;
+  return { ...result.world, frames: result.world.frames.map((frame, index) => {
+    const derived = result.derived.frames[index], gap = gapOf(derived, last, previous), phase = phaseOf(derived, gap);
+    previous = { frame: derived, gap };
+    if (gap.parts) last = previous;
+    const plans = plansOf(derived, result.plans);
+    return { ...frame, ...(plans ? { plans } : {}), gap, phase, journal: journalOf(derived), matched_until: matchedUntil(derived, phase) };
+  }) };
 };

@@ -14,6 +14,7 @@ fetch.mjs (gh api / ssh / tcp, read-only)  →  snapshots/*.json  →  adapter.m
 | `adapter.mjs` | The only place that knows data formats: gh JSON paths, `--slurp` pages, process/file listing lines. Snapshot → normalized record (`thread`, `pr`, `sessions`, `ports`); missing → null. |
 | `collect.mjs` | `collect(records, recordedAt)` → events. CLI reads a snapshot dir through the adapter. No network. |
 | `plan.mjs` | Marker sections in text → `plan.set` (mermaid flowchart + exit table). |
+| `journal.mjs` | ```` ```jsonl ```` in marker sections and declaration files → journal decisions (actor = author). |
 | `observe.mjs` | Normalized PR / session / port values → `observation`. |
 
 ## Run on G6I3 (P)
@@ -102,6 +103,17 @@ the highest `N` is current. Two different texts with the same highest `N` → no
 - `updated_at > recordedAt` is rejected (throws). No marker → no `plan.set` (e.g. adrs#628, apps#92).
 
 Known limitation: for a body, `source.updatedAt` is the whole Issue/PR `updated_at`, which also moves when a comment is added.
+
+## journal
+
+Decisions (adrs#647 contract 3) are read, never typed in by G: ````jsonl` blocks inside marker
+sections of Issue/PR texts, and P's declaration files (`declarations: [path]` in the config;
+`fetch.mjs` stores the text and its sha256). Kinds: `purpose.set`, `ideal.drafting`,
+`ideal.set`, `purpose.evaluated`, `purpose.ended`. The actor is the gh author of that text
+(P for a declaration file); a line naming another actor, without an author, with a
+`recordedAt` after its text, of another kind or not JSON becomes `journal.held` with the
+reason. The source is `{ref: repo#n | hq:path, commentId, sha256 of the text}`. A plan.set
+also carries its text's author as `actor` when the snapshot has it.
 
 ## Fixtures
 

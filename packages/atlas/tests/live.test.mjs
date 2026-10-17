@@ -8,7 +8,7 @@ import { fileURLToPath } from 'node:url';
 import { createHash } from 'node:crypto';
 import { deriveAtlas, deriveFrames, parseEvents, parseControl } from '../events.mjs';
 import { fromG } from '../live.mjs';
-import { withPlans } from '../contract.mjs';
+import { plansOf } from '../contract.mjs';
 
 const file = relative => fileURLToPath(new URL(relative, import.meta.url));
 const run = (script, args) => execFileSync(process.execPath, [file(script), ...args], { encoding: 'utf8' });
@@ -18,15 +18,15 @@ const gPlans = file => rows(readFileSync(file, 'utf8')).filter(event => event.ki
 test('World plans: absent without a declaration, never a plan recorded after the frame asOf', () => {
   const plan = { ref: 'r#1', plan: 'r#1:p', version: '2', recordedAt: '2026-10-16T02:00:00.000Z', serves: ['c'], nodes: [{ id: 'r#1:a', label: 'A', norm: 'n' }],
     edges: [], source: { ref: 'r#1', commentId: null, updatedAt: '2026-10-16T01:00:00Z', digest: 'sha256:' + '2'.repeat(64) } };
-  const world = { kind: 'ui.atlasWorldInput.v1', frames: [{ id: 'a', asOf: '2026-10-16T01:00:00.000Z' }, { id: 'b', asOf: '2026-10-16T02:00:00.000Z' }] };
-  const declared = [{ recordedAt: '2026-10-16T00:00:00Z', requires: [{ id: 'c', plans: ['r#1:p'] }] }];
+  const declared = { requires: [{ id: 'c', plans: ['r#1:p'] }] };
+  const frames = ['2026-10-16T01:00:00.000Z', '2026-10-16T02:00:00.000Z'].map(asOf => ({ asOf, ideal: declared }));
   // Even if a projection carried it, a plan recorded after asOf is not attached to that frame.
-  const projection = { frames: world.frames.map(frame => ({ asOf: frame.asOf, plans: [plan] })) };
-  const [early, late] = withPlans(world, projection, declared).frames;
-  assert.deepEqual(early.plans, []);
-  assert.deepEqual(late.plans.map(value => [value.plan, value.version, value.nodes, value.edges, value.unknown]), [['r#1:p', 2, [{ id: 'r#1:a', label: 'A' }], [], []]]);
-  const undeclared = withPlans(world, projection, [{ recordedAt: '2026-10-16T00:00:00Z', requires: [{ id: 'c' }] }]);
-  assert.ok(undeclared.frames.every(frame => !('plans' in frame)), 'absent = 計画未宣言');
+  const projection = { frames: frames.map(frame => ({ asOf: frame.asOf, plans: [plan] })) };
+  const [early, late] = frames.map(frame => plansOf(frame, projection));
+  assert.deepEqual(early, []);
+  assert.deepEqual(late.map(value => [value.plan, value.version, value.nodes, value.edges, value.unknown]), [['r#1:p', 2, [{ id: 'r#1:a', label: 'A' }], [], []]]);
+  assert.equal(plansOf({ ...frames[1], ideal: { requires: [{ id: 'c' }] } }, projection), undefined, 'absent = 計画未宣言');
+  assert.equal(plansOf({ ...frames[1], ideal: null }, projection), undefined, 'no ideal state: no plan declaration');
 });
 
 test('end to end: G fixture snapshots → G events → live.mjs → D → World', () => {
@@ -73,7 +73,7 @@ test('end to end: G fixture snapshots → G events → live.mjs → D → World'
     ['resources#25:windows-retirement-migration-20261016', 'resources#25', '3', ['merged'], null, ['flowchart-absent', 'exit-table-absent'], 'current']);
   const gPlan = rows(readFileSync(gEvents, 'utf8')).find(event => event.plan === 'resources#25:windows-migration-preparation-scope-20261017');
   assert.deepEqual(rows(readFileSync(path.join(dir, 'g-plans.jsonl'), 'utf8')),
-    [{ reason: 'no purpose.set declares this plan in requires[].plans', plan: gPlan }]);
+    [{ reason: 'no ideal state declares this plan in requires[].plans', plan: gPlan }]);
   assert.equal(receipt.held_plans.count, 1);
   // World plan contract (ui reads only this): [] = declared but none recorded at t, nodes:null = content UNKNOWN.
   assert.deepEqual(world.frames[0].plans, []);
@@ -81,16 +81,16 @@ test('end to end: G fixture snapshots → G events → live.mjs → D → World'
     label: 'resources#25:windows-retirement-migration-20261016 v3 · resources#25 comment 6208252115', serves: ['merged'], nodes: null, edges: null,
     unknown: ['flowchart-absent', 'exit-table-absent'],
     source: { repo: 'resources#25', commentId: 6208252115, updatedAt: gPlans(gEvents)[1].source.updatedAt, sha256: gPlans(gEvents)[1].source.sha256 } }]);
-  // Plans and the gap decomposition are edge contracts: without them the World is exactly D's.
+  // Plans, gap, phase, journal and matched_until are edge contracts: without them the World is exactly D's.
   const bare = deriveAtlas(readFileSync(path.join(dir, 'events.jsonl'), 'utf8'), readFileSync(file('../fixtures/live/control.jsonl'), 'utf8')).world;
-  assert.deepEqual({ ...world, frames: world.frames.map(({ plans, gap, ...frame }) => frame) }, bare);
+  assert.deepEqual({ ...world, frames: world.frames.map(({ plans, gap, phase, journal, matched_until, ...frame }) => frame) }, bare);
   const sha = 'sha256:' + createHash('sha256').update(readFileSync(path.join(dir, 'world.json'))).digest('hex');
   assert.equal(receipt.outputs.find(value => path.basename(value.path) === 'world.json').sha256, sha);
   // Gap by cause: the first frame opens everything; the observation frame closes or explains each.
   const gap = frame => Object.fromEntries(frame.gap.parts.map(part => [part.condition, [part.state, ...part.cause, part.scope]]));
   assert.ok(Object.values(gap(world.frames[0])).every(([, cause]) => cause === 'initial'));
-  assert.deepEqual(gap(world.frames.at(-1)), { 'adrs-ci': ['unknown', 'current-unobserved', null], 'worker-running': ['unmet', 'carried', 'scope.worker-running'],
-    'ui-serving': ['unknown', 'current-stale', null], lookalike: ['unknown', 'carried', null] });
+  assert.deepEqual(gap(world.frames.at(-1)), { 'adrs-ci': ['unknown', 'current-unobserved', null], 'worker-running': ['unmet', 'current-confirmed-unmet', 'scope.worker-running'],
+    'ui-serving': ['unknown', 'current-stale', null], lookalike: ['unknown', 'current-unobserved', null] });
   assert.deepEqual(world.frames.at(-1).gap.closed.map(value => [value.condition, value.by]), [['merged', 'current-satisfied'], ['reviewer-running', 'current-satisfied']]);
   // The declared-unknown whole evaluation is explained by those Scopes: no extra 全体評価 unit.
   assert.ok(world.frames.every(frame => frame.entities.every(value => value.ref.kind !== 'unresolved-change')));
