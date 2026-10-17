@@ -4,8 +4,31 @@
   "freeze": "../preregistered/intent-cycle-freeze.v3.json",
   "baseline_journal": "../../dependency-cycle-20261018/evidence/public-E/dependency-public-E-20261018.journal.jsonl",
   "expected_cumulative": {
-    "jev": 715,
+    "jev": 725,
     "typellm": 71
   },
-  "phases": []
+  "phases": [
+    {
+      "id": "intent-public-G0",
+      "axis": "G0",
+      "phase_kind": "public",
+      "apps_sha": "81f9f4df488e7f4fd94c63dbc15fe46ab0fb3a25",
+      "input": "../preregistered/intent-cycle-public-G0-10.inputs.json",
+      "oracle": "../preregistered/intent-cycle-public-G0-10.oracle.json",
+      "raw_dir": "public-G0/raw",
+      "producer": "public-G0/intent-public-G0.producer.json",
+      "runtime": "public-G0/runtime-build.json",
+      "stdout": "public-G0/intent-public-G0-20261018.stdout.log",
+      "stderr": "public-G0/intent-public-G0-20261018.stderr.log",
+      "journal": "public-G0/intent-public-G0-20261018.journal.jsonl",
+      "config": "public-G0/intent-public-G0-20261018.config.json",
+      "process": "public-G0/intent-public-G0-20261018.process.json",
+      "audits": {
+        "pr103-81f9-r17-review.md": "public-G0/pr103-81f9-r17-review.md",
+        "intent-public-G0-zero-send-audit.json": "public-G0/intent-public-G0-zero-send-audit.json",
+        "intent-public-G0-stop-audit.json": "public-G0/intent-public-G0-stop-audit.json"
+      },
+      "expected_execution_status": "RECORDED"
+    }
+  ]
 }

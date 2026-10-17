@@ -1,0 +1,34 @@
+{
+  "schema": "voice-ui.review.intent-prepost/1",
+  "status": "PASS",
+  "checked_at": "2026-10-17T19:19:46.780Z",
+  "actor": "roccho-dev",
+  "pr": {
+    "number": 103,
+    "head": "81f9f4df488e7f4fd94c63dbc15fe46ab0fb3a25",
+    "tree": "c8e055a1089e072d12e7a4aa0c024d957f899c6f",
+    "base": "42aa9a473d287607ba58967ef2992c052edc7943",
+    "state": "open",
+    "draft": true,
+    "merged": false,
+    "body_sha256": "c4549d84a0df5fc5089ce1e18db70744afb2bd68f41a531d2454b78668ed3efb"
+  },
+  "ui": {
+    "number": 362,
+    "head": "756d47e891191c3344eb2d29b000203be8331abc",
+    "state": "open",
+    "draft": false,
+    "merged": false,
+    "body_sha256": "0e90205419597222a537e9acc6b1452ec679b3c467dbd37cab6a938b4bc281a7"
+  },
+  "independent_audits": {
+    "intent-81f9-source-audit.json": "e09275a3ff92aa502740fd34f9878f02ae490348228984e6ddeac6a9a2502f75",
+    "intent-81f9-runtime-audit.json": "4c61ade48e69e02a62c54c59929d2a29ba8a902ced8f53864debad3928ed880b",
+    "intent-81f9-ci-mechanics-audit.json": "2ff2414dc44f898ebd05b36280206fbc915a2879a1dcc2d526c1391d5ff91ca6",
+    "intent-81f9-ci-audit.json": "b55176049905ca119da766ba76042737e3896621983141aef187c6cd8ec7312a",
+    "intent-81f9-terminal-audit.json": "1c2bbb2d73e35fa2d2335ea0bd25cd0e9a5d90c79b16d1a14a5d6a34b9d9a2dd"
+  },
+  "review_file_sha256": "87dac266c3abe0de457c511a6d78127d5c2ef8ad46c44404a59a5498af49e8da",
+  "review_body_sha256": "50c52b56b14ca096eb9a8be0fae5f4346d9d30fde8cd93add49173e6ec8df2dd",
+  "scope": "COMMENT_TECHNICAL_ADMISSION_ONLY_MANAGER_PREFLIGHT_NO_PAID_GO"
+}

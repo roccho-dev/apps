@@ -1,0 +1,26 @@
+{
+  "schema": "voice-ui.review.intent-source-readback/1",
+  "status": "PASS",
+  "read_at": "2026-10-17T19:20:25.728Z",
+  "review": {
+    "id": 5559628912,
+    "url": "https://github.com/roccho-dev/apps/pull/103#pullrequestreview-5559628912",
+    "actor": "roccho-dev",
+    "state": "COMMENTED",
+    "commit": "81f9f4df488e7f4fd94c63dbc15fe46ab0fb3a25",
+    "submitted_at": "2026-10-17T19:19:58Z",
+    "body_sha256": "50c52b56b14ca096eb9a8be0fae5f4346d9d30fde8cd93add49173e6ec8df2dd",
+    "exact_text_equal": true,
+    "latest_nondismissed_review": true
+  },
+  "pr": {
+    "number": 103,
+    "head": "81f9f4df488e7f4fd94c63dbc15fe46ab0fb3a25",
+    "base": "42aa9a473d287607ba58967ef2992c052edc7943",
+    "state": "open",
+    "draft": true,
+    "merged": false,
+    "body_sha256": "c4549d84a0df5fc5089ce1e18db70744afb2bd68f41a531d2454b78668ed3efb"
+  },
+  "scope": "TECHNICAL_MANAGER_LAUNCH_PREFLIGHT_ONLY_NO_PAID_POST_GO; QUALITY_EFFECT_UNPROVEN"
+}

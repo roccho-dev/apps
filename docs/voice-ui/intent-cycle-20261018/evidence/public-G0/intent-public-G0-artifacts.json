@@ -1,0 +1,58 @@
+{
+  "schema": "voice-ui.review.intent-public-phase-artifacts/1",
+  "scope": "COPY_ONLY_THESE_PUBLIC_R_FILES_NO_PRIVATE_PAYLOADS",
+  "phase": "intent-public-G0-20261018",
+  "files": [
+    {
+      "name": "intent-public-G0-zero-send-audit.json",
+      "bytes": 1804,
+      "sha256": "2e6ba39456f98382b884b7a1825c2aa734109093effa7c575a61ea5771a04200"
+    },
+    {
+      "name": "intent-public-G0-physical-stop.json",
+      "bytes": 2812,
+      "sha256": "63ce52c5eee8971b98f2fa67444a8a0d65c46667cc59d49c711aec3b3c80ab54"
+    },
+    {
+      "name": "intent-public-G0-stop-audit.json",
+      "bytes": 2932,
+      "sha256": "a64ca08348c18fc4442fc76a9969b817c70c7b11e4f10bc276b85726dfdef2ad"
+    },
+    {
+      "name": "intent-public-G0-raw-audit.json",
+      "bytes": 16576,
+      "sha256": "af3ff5602433c2ba43459a46ee2cfe68e33f229b39a44bb24901c8136e53c3ff"
+    },
+    {
+      "name": "intent-public-G0-provider-audit.json",
+      "bytes": 867,
+      "sha256": "b2dc28aa3c204fa93253ccc525c9830bb7793a9baa7524171a00253365bb5ac3"
+    },
+    {
+      "name": "intent-public-G0-producer-audit.json",
+      "bytes": 192,
+      "sha256": "f73ea3e239b785871a6bd995e3bbc954feedb4c2a27b11c55adc1c7bf905134f"
+    },
+    {
+      "name": "intent-public-G0-process-audit.json",
+      "bytes": 578,
+      "sha256": "1d798ecf51830412723bfb5ea2240ab05765226c93df9a748639678831c10d4f"
+    },
+    {
+      "name": "intent-public-G0.producer.json",
+      "bytes": 6267,
+      "sha256": "e38fb71d3f900864d8ea8d05108dce04c7adafd6e42ffbd85a2e532a4bc88717"
+    },
+    {
+      "name": "intent-cycle-public-closure.json",
+      "bytes": 4056,
+      "sha256": "6ead0b82993c3bc74ef531c06aafdf9664f94928ed9eeddfb2d8beafd09fb6fa"
+    },
+    {
+      "name": "intent-cycle-public-closure.md",
+      "bytes": 2788,
+      "sha256": "43ec8cf573aa0094e9d9c17f875e3a17e07d4ad9b4a612f0d7230df23372abc9"
+    }
+  ],
+  "related_R17_allowlist": "pr103-81f9-r17-artifacts.json"
+}

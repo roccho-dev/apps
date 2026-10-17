@@ -1,0 +1,22 @@
+{
+  "phase_id": "intent-public-G0-20261018",
+  "pid": 334177,
+  "state": "R",
+  "pgid": 334177,
+  "start_ticks": "17270422",
+  "program": "/nix/store/bg0bygqiid25xnivxv9cdgjlx3sp939j-voice-ui-typed-dev/bin/voice-ui-typed-dev",
+  "heads": {
+    "apps": "81f9f4df488e7f4fd94c63dbc15fe46ab0fb3a25",
+    "envs": "063e685b8b21a97fc8658879da93fa858552bcd6",
+    "ops": "b4f611cac9e13fbef178469796cbc3b6d4a76b23",
+    "windows": "6aef693c0946903d8b87c2348039de1420acd61b",
+    "ui": "756d47e891191c3344eb2d29b000203be8331abc"
+  },
+  "allowances": {
+    "jev": 10,
+    "typellm": 0
+  },
+  "stdout": "/work/repos/voice-ui-typellm-20261016/intent-public-G0-20261018.stdout.log",
+  "stderr": "/work/repos/voice-ui-typellm-20261016/intent-public-G0-20261018.stderr.log",
+  "config_sha256": "13c6ce20290f5ec3d551c3dfb3f5af0de0cf23c5d244f9246fcd729b928ca680"
+}

@@ -1,0 +1,2208 @@
+{
+  "schema": "voice-ui.review.intent-ci-mechanics/1",
+  "status": "PASS",
+  "head": "81f9f4df488e7f4fd94c63dbc15fe46ab0fb3a25",
+  "run": 39060725009,
+  "artifact": {
+    "id": 12111800666,
+    "name": "voice-ui-candidate-browser-81f9f4df488e7f4fd94c63dbc15fe46ab0fb3a25",
+    "bytes": 2802132,
+    "sha256": "52389324db257bcf376c0809054110837bc6c91f80ef4f045b47cfa6c94682a7"
+  },
+  "receipt_sha256": "9e22f47fb0f0e132fe5a1e70ced546192ec3a99ca0f8973b383bd87765a0aea4",
+  "receipt": {
+    "schema": "voice-ui.intent-cycle-keyless/1",
+    "status": "PASS",
+    "scope": "SYNTHETIC_MECHANICS_ONLY",
+    "external_provider_sends": {
+      "jev": 0,
+      "typellm": 0
+    },
+    "artifact_sources": {
+      "apps": "81f9f4df488e7f4fd94c63dbc15fe46ab0fb3a25",
+      "architecture": {
+        "evidence_sha256": "7643aabdc3907c9cb61b740fe9eb45094cc2def66d43454166d2940c8e231e72",
+        "manifest_sha256": "564391cfc207c4b8adb1431668b820661709c7a7fc56e05c9b7cfb897956c6d8",
+        "source": {
+          "commit": "81f9f4df488e7f4fd94c63dbc15fe46ab0fb3a25",
+          "handle": "apps-voice-ui"
+        },
+        "status": "available"
+      },
+      "hayamimi-web": {
+        "locator": "https://github.com/roccho-dev/ops/releases/download/hayamimi-web-1665d5195a0dd70c2e0253c20351e5305db35f3f/hayamimi-web.zip",
+        "proof_sha256": "a0bb1478a5ffe9440f46682ca143382cd000d0d1d6f736723baad96541be4e27",
+        "sha256": "c12b51e2ea396a64131b917439ffbda1aa1cd70a9fd7f9567ea05030897c672a"
+      },
+      "jev-provider": {
+        "contract": "named-choices-and-typed/1",
+        "entry_sha256": "3f754c8b1ee4a8b34b50d00fd17e37295d853e1b607903b6d355b5e06997669c",
+        "locator": "https://github.com/roccho-org/ops/releases/download/jev-provider-b4f611cac9e13fbef178469796cbc3b6d4a76b23/jev-provider.zip",
+        "manifest_sha256": "c8fdf65da826690b487ab093d20c73a445a11dbc736ae4f58e23af7c57330318",
+        "proof_sha256": "459b753541fdf53cf0acb9cb13167c17218e078e3782933e589afaf57a8c6846",
+        "provenance_sha256": "b602225c44cc67c4f6a96fe41914c5159140718a4c81f0826cf46d9cce9223b8",
+        "sha256": "073d9df7a2eeb479a3641c6b86768bf3af14ec1b7e976ed5672649148d5e2435"
+      },
+      "system": "x86_64-linux",
+      "ui": "756d47e891191c3344eb2d29b000203be8331abc"
+    },
+    "artifact_manifest_sha256": "4bb6fe23b4b1cb07af3711ed2987f0a11c0ae6bd8b401cde7bc1a371f9f1ea29",
+    "carried_observation_head": "ae816ec23a5e4c397c8a4893e127fb24134afda8",
+    "baseline_manifest_sha256": "49e8f835ead45917ddc101c2cd49364b51bafd499ea7645eb660a8b457c06803",
+    "source_inventory": 22,
+    "summaries": [
+      {
+        "stage": "G0",
+        "cells": 10,
+        "invalid_retained": 0,
+        "status": "PASS"
+      },
+      {
+        "stage": "G0-unknown",
+        "cells": 10,
+        "invalid_retained": 10,
+        "status": "PASS"
+      },
+      {
+        "stage": "E",
+        "cells": 4,
+        "invalid_retained": 0,
+        "paint_apply_reload": "PASS",
+        "status": "PASS"
+      }
+    ],
+    "api": [
+      {
+        "route": "/api/parts/check?method=literal-v2",
+        "status": 200,
+        "synthetic_failure": false
+      },
+      {
+        "route": "/api/parts/check?method=literal-v2",
+        "status": 200,
+        "synthetic_failure": false
+      },
+      {
+        "route": "/api/parts/check?method=literal-v2",
+        "status": 200,
+        "synthetic_failure": false
+      },
+      {
+        "route": "/api/parts/check?method=literal-v2",
+        "status": 200,
+        "synthetic_failure": false
+      },
+      {
+        "route": "/api/parts/check?method=literal-v2",
+        "status": 200,
+        "synthetic_failure": false
+      },
+      {
+        "route": "/api/parts/check?method=literal-v2",
+        "status": 200,
+        "synthetic_failure": false
+      },
+      {
+        "route": "/api/parts/check?method=literal-v2",
+        "status": 200,
+        "synthetic_failure": false
+      },
+      {
+        "route": "/api/parts/check?method=literal-v2",
+        "status": 200,
+        "synthetic_failure": false
+      },
+      {
+        "route": "/api/parts/check?method=literal-v2",
+        "status": 200,
+        "synthetic_failure": false
+      },
+      {
+        "route": "/api/parts/check?method=literal-v2",
+        "status": 200,
+        "synthetic_failure": false
+      },
+      {
+        "route": "/api/parts/check?method=literal-v2",
+        "status": 503,
+        "synthetic_failure": true
+      },
+      {
+        "route": "/api/parts/check?method=literal-v2",
+        "status": 503,
+        "synthetic_failure": true
+      },
+      {
+        "route": "/api/parts/check?method=literal-v2",
+        "status": 503,
+        "synthetic_failure": true
+      },
+      {
+        "route": "/api/parts/check?method=literal-v2",
+        "status": 503,
+        "synthetic_failure": true
+      },
+      {
+        "route": "/api/parts/check?method=literal-v2",
+        "status": 503,
+        "synthetic_failure": true
+      },
+      {
+        "route": "/api/parts/check?method=literal-v2",
+        "status": 503,
+        "synthetic_failure": true
+      },
+      {
+        "route": "/api/parts/check?method=literal-v2",
+        "status": 503,
+        "synthetic_failure": true
+      },
+      {
+        "route": "/api/parts/check?method=literal-v2",
+        "status": 503,
+        "synthetic_failure": true
+      },
+      {
+        "route": "/api/parts/check?method=literal-v2",
+        "status": 503,
+        "synthetic_failure": true
+      },
+      {
+        "route": "/api/parts/check?method=literal-v2",
+        "status": 503,
+        "synthetic_failure": true
+      },
+      {
+        "route": "/api/parts/check?method=literal-v2",
+        "status": 200,
+        "synthetic_failure": false
+      },
+      {
+        "route": "/api/parts/check?method=adaptive-v2",
+        "status": 200,
+        "synthetic_failure": false
+      },
+      {
+        "route": "/api/judge",
+        "status": 200,
+        "synthetic_failure": false
+      },
+      {
+        "route": "/api/judge",
+        "status": 200,
+        "synthetic_failure": false
+      },
+      {
+        "route": "/api/judge",
+        "status": 200,
+        "synthetic_failure": false
+      },
+      {
+        "route": "/api/parts/check?method=adaptive-v2",
+        "status": 200,
+        "synthetic_failure": false
+      },
+      {
+        "route": "/api/judge",
+        "status": 200,
+        "synthetic_failure": false
+      },
+      {
+        "route": "/api/judge",
+        "status": 200,
+        "synthetic_failure": false
+      },
+      {
+        "route": "/api/judge",
+        "status": 200,
+        "synthetic_failure": false
+      },
+      {
+        "route": "/api/parts/check?method=literal-v2",
+        "status": 200,
+        "synthetic_failure": false
+      }
+    ],
+    "wireEquality": [
+      {
+        "axis": "F",
+        "id": "PF01",
+        "inputs_sha256": "e39739925e6fac55819c1d33d896d66ed3c6ffb36a82448b0036d80c4d1c06e0",
+        "wire_sha256": "0a774f241c60f7e27990ae70290d28df88c738f4104f51fe172700bd63d28de5",
+        "request_body_sha256": "0fb53bb844fa58c4fe83db36ecf6d6b004fdda5c5cfa8e20b4db2e96b61996a6",
+        "response_nonces": [
+          "0233183d-99a8-40b1-b12a-bf7e9adf8e3a",
+          "95706b88-e06a-4fba-8830-5863381121fe"
+        ],
+        "response_semantics_sha256": "8a6a6761ef36bd6c3fd1a87834b1ffc193145bfe253e31770d597c5ccdf2c87f",
+        "response_nonce_scope": "only top-level per-call request_id omitted from response semantic comparison",
+        "status": "UPSTREAM_BYTES_EQUAL"
+      },
+      {
+        "axis": "F",
+        "id": "PF02",
+        "inputs_sha256": "e39739925e6fac55819c1d33d896d66ed3c6ffb36a82448b0036d80c4d1c06e0",
+        "wire_sha256": "a40e415ae05d592b4dd1f49ebf96d78e96249012d25fe952cd12fc2f6f0cbcd3",
+        "request_body_sha256": "071a37fe7e8b81594596b894d014c55bcb4d44dd6cbf3ca41cf1bf10948bae6b",
+        "response_nonces": [
+          "f62d2837-6eb8-44af-9381-25e768603028",
+          "9e5c5e4f-1734-4a18-9cca-0986f8acde5c"
+        ],
+        "response_semantics_sha256": "8a6a6761ef36bd6c3fd1a87834b1ffc193145bfe253e31770d597c5ccdf2c87f",
+        "response_nonce_scope": "only top-level per-call request_id omitted from response semantic comparison",
+        "status": "UPSTREAM_BYTES_EQUAL"
+      },
+      {
+        "axis": "F",
+        "id": "PF03",
+        "inputs_sha256": "e39739925e6fac55819c1d33d896d66ed3c6ffb36a82448b0036d80c4d1c06e0",
+        "wire_sha256": "8cc06bd1616554bc6ffc263d8f92bebc89c130990a685cdf6ab1d8b50027afa1",
+        "request_body_sha256": "9d97bfce1424fdfcea07ce40a4fbaeba8c7d90a8033cd498c2ad55061f0d47e8",
+        "response_nonces": [
+          "03637f77-3d82-413c-9451-c5ee6e1aecb7",
+          "36f648fe-272c-4abd-8680-1180c6f79d09"
+        ],
+        "response_semantics_sha256": "8a6a6761ef36bd6c3fd1a87834b1ffc193145bfe253e31770d597c5ccdf2c87f",
+        "response_nonce_scope": "only top-level per-call request_id omitted from response semantic comparison",
+        "status": "UPSTREAM_BYTES_EQUAL"
+      },
+      {
+        "axis": "F",
+        "id": "PF04",
+        "inputs_sha256": "e39739925e6fac55819c1d33d896d66ed3c6ffb36a82448b0036d80c4d1c06e0",
+        "wire_sha256": "9f5c758c15446a853310b47e3c31b4c9db2f12923c521484d90a6289fdb7ced9",
+        "request_body_sha256": "f4ece38d034d0d5a5e9d931fc4df3da573811e27f1d5ccddc8e3a730b0218dcc",
+        "response_nonces": [
+          "dd1d3bc8-7e51-4455-bbc0-7d2854fe913d",
+          "81d58074-b338-4387-ab9b-24aba58f54e5"
+        ],
+        "response_semantics_sha256": "8a6a6761ef36bd6c3fd1a87834b1ffc193145bfe253e31770d597c5ccdf2c87f",
+        "response_nonce_scope": "only top-level per-call request_id omitted from response semantic comparison",
+        "status": "UPSTREAM_BYTES_EQUAL"
+      },
+      {
+        "axis": "F",
+        "id": "PF05",
+        "inputs_sha256": "e39739925e6fac55819c1d33d896d66ed3c6ffb36a82448b0036d80c4d1c06e0",
+        "wire_sha256": "f3a4b3431834b87f754a0a8d69a41971d8c5e6020aeb262bac54ac9e0138b98f",
+        "request_body_sha256": "3ddd63673fc33d2acb3730811bd77fd3440f23f13dfbbc20fc4c4091bbb70915",
+        "response_nonces": [
+          "ada6327b-70e0-40a7-afb5-e2c848ac8d1f",
+          "0532fcf6-0f85-46f2-98db-93f3e999ab7c"
+        ],
+        "response_semantics_sha256": "8a6a6761ef36bd6c3fd1a87834b1ffc193145bfe253e31770d597c5ccdf2c87f",
+        "response_nonce_scope": "only top-level per-call request_id omitted from response semantic comparison",
+        "status": "UPSTREAM_BYTES_EQUAL"
+      },
+      {
+        "axis": "F",
+        "id": "PF06",
+        "inputs_sha256": "e39739925e6fac55819c1d33d896d66ed3c6ffb36a82448b0036d80c4d1c06e0",
+        "wire_sha256": "f3c139f8936402a716a513dd9546704d9ced063b6dc14ad8d1ccd72d1878ab1c",
+        "request_body_sha256": "ee332ac25bb79b976fe1a4014e699c970871a02ef8032b9e2dd01b11858c5f8a",
+        "response_nonces": [
+          "d494decc-17e9-47a5-8856-41ea87a99170",
+          "068b243f-82cc-4edb-857a-4581c15d4b23"
+        ],
+        "response_semantics_sha256": "8a6a6761ef36bd6c3fd1a87834b1ffc193145bfe253e31770d597c5ccdf2c87f",
+        "response_nonce_scope": "only top-level per-call request_id omitted from response semantic comparison",
+        "status": "UPSTREAM_BYTES_EQUAL"
+      },
+      {
+        "axis": "V",
+        "id": "PV01",
+        "inputs_sha256": "4227c45e45e0bf7840a842c57617123d1adfa0f9fda1812e144915fce7f95475",
+        "wire_sha256": "29a853beae872669ce18933e55e25dcaa34529bfa08d44e57d5d292b4a4126b8",
+        "request_body_sha256": "55a71295d050d503ffe00d71c141724cc53234be5708e3b997b25c29f5f0cf92",
+        "response_nonces": [
+          "59c54e91-5ec2-41cb-abf2-1ba29ddf9a7c",
+          "76b3c0dc-02bc-49cf-ba19-80b3a38a58a1"
+        ],
+        "response_semantics_sha256": "8f966c41a6b9193d61f2be8b5dbdefa56dafbff1146ea04e27e6af0ba465186c",
+        "response_nonce_scope": "only top-level per-call request_id omitted from response semantic comparison",
+        "status": "UPSTREAM_BYTES_EQUAL"
+      },
+      {
+        "axis": "V",
+        "id": "PV02",
+        "inputs_sha256": "4227c45e45e0bf7840a842c57617123d1adfa0f9fda1812e144915fce7f95475",
+        "wire_sha256": "438d52c64bff0541f91a389777857bc3096b6059f93f3983685486cf6ec9eba2",
+        "request_body_sha256": "47c3876972c392862be8c941111d65a8bac714988a545da73c667d6ed4fa19cb",
+        "response_nonces": [
+          "f39efc6b-d8bd-4e59-9669-4094d6135d7e",
+          "306f603b-9764-4620-b2d0-e5c49fd0dbf3"
+        ],
+        "response_semantics_sha256": "1825f6e199e706b866dd71c1864cef9dbed6293939e01f8f42e22d81d9df1b94",
+        "response_nonce_scope": "only top-level per-call request_id omitted from response semantic comparison",
+        "status": "UPSTREAM_BYTES_EQUAL"
+      },
+      {
+        "axis": "V",
+        "id": "PV03",
+        "inputs_sha256": "4227c45e45e0bf7840a842c57617123d1adfa0f9fda1812e144915fce7f95475",
+        "wire_sha256": "f0e23f85af966cabc2c483dc099fef970eaf9cc1d808afcf847dd33f55231e44",
+        "request_body_sha256": "7334263e713fa5cc8bb1f7d63163de0f117911f1516a93d6aa02184a4c2c9e0d",
+        "response_nonces": [
+          "0e9259aa-7ca8-40e2-95c1-6336a3cab51c",
+          "bbff60d3-a03d-4418-a707-b640dd0f07f9"
+        ],
+        "response_semantics_sha256": "1efb2aaa10b5570a54e3671bae887c6f24e1b4f696dff2a3f2124e5d16b5b70a",
+        "response_nonce_scope": "only top-level per-call request_id omitted from response semantic comparison",
+        "status": "UPSTREAM_BYTES_EQUAL"
+      },
+      {
+        "axis": "V",
+        "id": "PV04",
+        "inputs_sha256": "4227c45e45e0bf7840a842c57617123d1adfa0f9fda1812e144915fce7f95475",
+        "wire_sha256": "11208834450fa26794fa4f1aaf8f2376e98e6828b86e744517f76aba42a37322",
+        "request_body_sha256": "d5b8022c81ae021e8be6f5b36ac7602edf771cf8fe60d44220aa42d498e2d318",
+        "response_nonces": [
+          "576d9f41-62d0-453f-8578-c9947407e140",
+          "a46644c5-54cb-420a-a17f-26f479f58ed5"
+        ],
+        "response_semantics_sha256": "f9b27047422d2e0ae1142afab5427606425e923e4692dd37077b59de05fcae41",
+        "response_nonce_scope": "only top-level per-call request_id omitted from response semantic comparison",
+        "status": "UPSTREAM_BYTES_EQUAL"
+      },
+      {
+        "axis": "V",
+        "id": "PV05",
+        "inputs_sha256": "4227c45e45e0bf7840a842c57617123d1adfa0f9fda1812e144915fce7f95475",
+        "wire_sha256": "57a91ee2d16b599e99cd21960b6b554096039e02e1a8bbf98d4ead3bc1fda819",
+        "request_body_sha256": "73db5149a051f894e65aa6a3e1790ace41aa6a81045e39490964cc2b25cb42cc",
+        "response_nonces": [
+          "7d688577-fbb8-47ab-97c7-6fd33e6c9d73",
+          "b847f6c2-315d-498e-b492-000b08386ddf"
+        ],
+        "response_semantics_sha256": "29fd30ae8e60d0af3ce603e1fa9350e19019b0e5cad09bb42f306dfe29072508",
+        "response_nonce_scope": "only top-level per-call request_id omitted from response semantic comparison",
+        "status": "UPSTREAM_BYTES_EQUAL"
+      },
+      {
+        "axis": "V",
+        "id": "PV06",
+        "inputs_sha256": "4227c45e45e0bf7840a842c57617123d1adfa0f9fda1812e144915fce7f95475",
+        "wire_sha256": "f32f4ab44029ef8c6d2b72dba470fb018f9e3a9dae12b7b3febc30d39ab03e9f",
+        "request_body_sha256": "7b0f17d08d34830f530f4218e4aa75a6cfdea74ba466c66c7c324526cb240eb5",
+        "response_nonces": [
+          "26f46aab-9020-4a5d-b1ed-00b0511d6aae",
+          "732ec7cb-4381-4139-a8a7-fc7267967d10"
+        ],
+        "response_semantics_sha256": "167621faf20fe26ac9f52018234c68ed25b7a5b6ff324b3236fc992f0cba9da3",
+        "response_nonce_scope": "only top-level per-call request_id omitted from response semantic comparison",
+        "status": "UPSTREAM_BYTES_EQUAL"
+      }
+    ],
+    "wire_equality_scope": "completed Worker under identical public input and synthetic provider; no new real F/V measurement",
+    "stageRows": [
+      {
+        "kind": "voice-ui.parts.stage.v2",
+        "request_id": "30f97e6b-5a43-46f4-b39c-62c9cdaa2fbe",
+        "stage": "G0",
+        "valid": true,
+        "initial": {
+          "decision": {
+            "choice": "unknown",
+            "confidence": null
+          },
+          "factors": {
+            "intent": {
+              "choice": "change",
+              "confidence": 0.9
+            },
+            "labels": {
+              "choice": "missing",
+              "confidence": 0.9
+            },
+            "capacity": {
+              "choice": "within",
+              "confidence": 0.9
+            },
+            "completeness": {
+              "choice": "incomplete",
+              "confidence": 0.9
+            }
+          },
+          "literal": {
+            "recognized": false,
+            "required": [],
+            "spans": []
+          },
+          "observation": {
+            "valid": true,
+            "status": "unsupported-syntax"
+          }
+        }
+      },
+      {
+        "kind": "voice-ui.parts.stage.v2",
+        "request_id": "30f97e6b-5a43-46f4-b39c-62c9cdaa2fbe",
+        "stage": "STOCK_DIFF",
+        "required": [],
+        "missing": [],
+        "decision": {
+          "choice": "unknown",
+          "confidence": null
+        }
+      },
+      {
+        "kind": "voice-ui.parts.stage.v2",
+        "request_id": "7381174a-1eac-4a67-8f4f-8191388c9c00",
+        "stage": "G0",
+        "valid": true,
+        "initial": {
+          "decision": {
+            "choice": "unknown",
+            "confidence": null
+          },
+          "factors": {
+            "intent": {
+              "choice": "change",
+              "confidence": 0.9
+            },
+            "labels": {
+              "choice": "missing",
+              "confidence": 0.9
+            },
+            "capacity": {
+              "choice": "within",
+              "confidence": 0.9
+            },
+            "completeness": {
+              "choice": "incomplete",
+              "confidence": 0.9
+            }
+          },
+          "literal": {
+            "recognized": false,
+            "required": [],
+            "spans": []
+          },
+          "observation": {
+            "valid": true,
+            "status": "unsupported-syntax"
+          }
+        }
+      },
+      {
+        "kind": "voice-ui.parts.stage.v2",
+        "request_id": "7381174a-1eac-4a67-8f4f-8191388c9c00",
+        "stage": "STOCK_DIFF",
+        "required": [],
+        "missing": [],
+        "decision": {
+          "choice": "unknown",
+          "confidence": null
+        }
+      },
+      {
+        "kind": "voice-ui.parts.stage.v2",
+        "request_id": "a4d2e03d-2060-4cfd-bd82-681e69fdaa27",
+        "stage": "G0",
+        "valid": true,
+        "initial": {
+          "decision": {
+            "choice": "sufficient",
+            "confidence": 0.9
+          },
+          "factors": {
+            "intent": {
+              "choice": "change",
+              "confidence": 0.9
+            },
+            "labels": {
+              "choice": "missing",
+              "confidence": 0.9
+            },
+            "capacity": {
+              "choice": "within",
+              "confidence": 0.9
+            },
+            "completeness": {
+              "choice": "complete",
+              "confidence": 0.9
+            }
+          },
+          "literal": {
+            "recognized": true,
+            "required": [
+              {
+                "label": "API",
+                "kind": "step",
+                "quantity": 1
+              }
+            ],
+            "spans": [
+              {
+                "start": 6,
+                "end": 9,
+                "source": "API",
+                "label": "API",
+                "kind": "step",
+                "quantity": 1
+              }
+            ]
+          },
+          "observation": {
+            "valid": true,
+            "status": "transcribed"
+          }
+        }
+      },
+      {
+        "kind": "voice-ui.parts.stage.v2",
+        "request_id": "a4d2e03d-2060-4cfd-bd82-681e69fdaa27",
+        "stage": "STOCK_DIFF",
+        "required": [
+          {
+            "label": "API",
+            "kind": "step",
+            "quantity": 1
+          }
+        ],
+        "missing": [],
+        "decision": {
+          "choice": "sufficient",
+          "confidence": 0.9
+        }
+      },
+      {
+        "kind": "voice-ui.parts.stage.v2",
+        "request_id": "a00f4fa8-82f4-4dd9-b8be-841441fb907f",
+        "stage": "G0",
+        "valid": true,
+        "initial": {
+          "decision": {
+            "choice": "missing",
+            "confidence": 0.9
+          },
+          "factors": {
+            "intent": {
+              "choice": "change",
+              "confidence": 0.9
+            },
+            "labels": {
+              "choice": "missing",
+              "confidence": 0.9
+            },
+            "capacity": {
+              "choice": "within",
+              "confidence": 0.9
+            },
+            "completeness": {
+              "choice": "complete",
+              "confidence": 0.9
+            }
+          },
+          "literal": {
+            "recognized": true,
+            "required": [
+              {
+                "label": "出庫照合",
+                "kind": "step",
+                "quantity": 1
+              }
+            ],
+            "spans": [
+              {
+                "start": 9,
+                "end": 13,
+                "source": "出庫照合",
+                "label": "出庫照合",
+                "kind": "step",
+                "quantity": 1
+              }
+            ]
+          },
+          "observation": {
+            "valid": true,
+            "status": "transcribed"
+          }
+        }
+      },
+      {
+        "kind": "voice-ui.parts.stage.v2",
+        "request_id": "a00f4fa8-82f4-4dd9-b8be-841441fb907f",
+        "stage": "STOCK_DIFF",
+        "required": [
+          {
+            "label": "出庫照合",
+            "kind": "step",
+            "quantity": 1
+          }
+        ],
+        "missing": [
+          {
+            "label": "出庫照合",
+            "kind": "step",
+            "occurrence": 1
+          }
+        ],
+        "decision": {
+          "choice": "missing",
+          "confidence": 0.9
+        }
+      },
+      {
+        "kind": "voice-ui.parts.stage.v2",
+        "request_id": "d2539c42-af69-41e6-ad92-2aece629ef74",
+        "stage": "G0",
+        "valid": true,
+        "initial": {
+          "decision": {
+            "choice": "sufficient",
+            "confidence": 0.9
+          },
+          "factors": {
+            "intent": {
+              "choice": "change",
+              "confidence": 0.9
+            },
+            "labels": {
+              "choice": "missing",
+              "confidence": 0.9
+            },
+            "capacity": {
+              "choice": "within",
+              "confidence": 0.9
+            },
+            "completeness": {
+              "choice": "complete",
+              "confidence": 0.9
+            }
+          },
+          "literal": {
+            "recognized": false,
+            "required": [],
+            "spans": []
+          },
+          "observation": {
+            "valid": true,
+            "status": "unsupported-syntax"
+          }
+        }
+      },
+      {
+        "kind": "voice-ui.parts.stage.v2",
+        "request_id": "d2539c42-af69-41e6-ad92-2aece629ef74",
+        "stage": "STOCK_DIFF",
+        "required": [],
+        "missing": [],
+        "decision": {
+          "choice": "sufficient",
+          "confidence": 0.9
+        }
+      },
+      {
+        "kind": "voice-ui.parts.stage.v2",
+        "request_id": "182d310b-8f7c-491f-8be5-d9f1d8af2265",
+        "stage": "G0",
+        "valid": true,
+        "initial": {
+          "decision": {
+            "choice": "ambiguous",
+            "confidence": 0.9
+          },
+          "factors": {
+            "intent": {
+              "choice": "ambiguous",
+              "confidence": 0.9
+            },
+            "labels": {
+              "choice": "missing",
+              "confidence": 0.9
+            },
+            "capacity": {
+              "choice": "within",
+              "confidence": 0.9
+            },
+            "completeness": {
+              "choice": "complete",
+              "confidence": 0.9
+            }
+          },
+          "literal": {
+            "recognized": false,
+            "required": [],
+            "spans": []
+          },
+          "observation": {
+            "valid": true,
+            "status": "unsupported-syntax"
+          }
+        }
+      },
+      {
+        "kind": "voice-ui.parts.stage.v2",
+        "request_id": "182d310b-8f7c-491f-8be5-d9f1d8af2265",
+        "stage": "STOCK_DIFF",
+        "required": [],
+        "missing": [],
+        "decision": {
+          "choice": "ambiguous",
+          "confidence": 0.9
+        }
+      },
+      {
+        "kind": "voice-ui.parts.stage.v2",
+        "request_id": "808e53c7-0c7e-46a5-88b7-950ce143a4ee",
+        "stage": "G0",
+        "valid": true,
+        "initial": {
+          "decision": {
+            "choice": "ambiguous",
+            "confidence": 0.9
+          },
+          "factors": {
+            "intent": {
+              "choice": "ambiguous",
+              "confidence": 0.9
+            },
+            "labels": {
+              "choice": "missing",
+              "confidence": 0.9
+            },
+            "capacity": {
+              "choice": "within",
+              "confidence": 0.9
+            },
+            "completeness": {
+              "choice": "complete",
+              "confidence": 0.9
+            }
+          },
+          "literal": {
+            "recognized": false,
+            "required": [],
+            "spans": []
+          },
+          "observation": {
+            "valid": true,
+            "status": "unsupported-syntax"
+          }
+        }
+      },
+      {
+        "kind": "voice-ui.parts.stage.v2",
+        "request_id": "808e53c7-0c7e-46a5-88b7-950ce143a4ee",
+        "stage": "STOCK_DIFF",
+        "required": [],
+        "missing": [],
+        "decision": {
+          "choice": "ambiguous",
+          "confidence": 0.9
+        }
+      },
+      {
+        "kind": "voice-ui.parts.stage.v2",
+        "request_id": "2f9f0d5c-11a2-4051-9e36-06ea52cbf853",
+        "stage": "G0",
+        "valid": true,
+        "initial": {
+          "decision": {
+            "choice": "ambiguous",
+            "confidence": 0.9
+          },
+          "factors": {
+            "intent": {
+              "choice": "ambiguous",
+              "confidence": 0.9
+            },
+            "labels": {
+              "choice": "missing",
+              "confidence": 0.9
+            },
+            "capacity": {
+              "choice": "within",
+              "confidence": 0.9
+            },
+            "completeness": {
+              "choice": "complete",
+              "confidence": 0.9
+            }
+          },
+          "literal": {
+            "recognized": true,
+            "required": [
+              {
+                "label": "API",
+                "kind": "step",
+                "quantity": 1
+              }
+            ],
+            "spans": [
+              {
+                "start": 4,
+                "end": 7,
+                "source": "API",
+                "label": "API",
+                "kind": "step",
+                "quantity": 1
+              }
+            ]
+          },
+          "observation": {
+            "valid": true,
+            "status": "transcribed"
+          }
+        }
+      },
+      {
+        "kind": "voice-ui.parts.stage.v2",
+        "request_id": "2f9f0d5c-11a2-4051-9e36-06ea52cbf853",
+        "stage": "STOCK_DIFF",
+        "required": [
+          {
+            "label": "API",
+            "kind": "step",
+            "quantity": 1
+          }
+        ],
+        "missing": [],
+        "decision": {
+          "choice": "ambiguous",
+          "confidence": 0.9
+        }
+      },
+      {
+        "kind": "voice-ui.parts.stage.v2",
+        "request_id": "bdcad4a7-4e36-46ac-8da8-800b5e99cb8c",
+        "stage": "G0",
+        "valid": true,
+        "initial": {
+          "decision": {
+            "choice": "no-change",
+            "confidence": 0.9
+          },
+          "factors": {
+            "intent": {
+              "choice": "no-change",
+              "confidence": 0.9
+            },
+            "labels": {
+              "choice": "missing",
+              "confidence": 0.9
+            },
+            "capacity": {
+              "choice": "within",
+              "confidence": 0.9
+            },
+            "completeness": {
+              "choice": "complete",
+              "confidence": 0.9
+            }
+          },
+          "literal": {
+            "recognized": false,
+            "required": [],
+            "spans": []
+          },
+          "observation": {
+            "valid": true,
+            "status": "unsupported-syntax"
+          }
+        }
+      },
+      {
+        "kind": "voice-ui.parts.stage.v2",
+        "request_id": "bdcad4a7-4e36-46ac-8da8-800b5e99cb8c",
+        "stage": "STOCK_DIFF",
+        "required": [],
+        "missing": [],
+        "decision": {
+          "choice": "no-change",
+          "confidence": 0.9
+        }
+      },
+      {
+        "kind": "voice-ui.parts.stage.v2",
+        "request_id": "2f93174a-2a72-45c5-ba58-be7ae7e98ecc",
+        "stage": "G0",
+        "valid": true,
+        "initial": {
+          "decision": {
+            "choice": "unsupported",
+            "confidence": 0.9
+          },
+          "factors": {
+            "intent": {
+              "choice": "unsupported",
+              "confidence": 0.9
+            },
+            "labels": {
+              "choice": "missing",
+              "confidence": 0.9
+            },
+            "capacity": {
+              "choice": "within",
+              "confidence": 0.9
+            },
+            "completeness": {
+              "choice": "complete",
+              "confidence": 0.9
+            }
+          },
+          "literal": {
+            "recognized": false,
+            "required": [],
+            "spans": []
+          },
+          "observation": {
+            "valid": true,
+            "status": "unsupported-syntax"
+          }
+        }
+      },
+      {
+        "kind": "voice-ui.parts.stage.v2",
+        "request_id": "2f93174a-2a72-45c5-ba58-be7ae7e98ecc",
+        "stage": "STOCK_DIFF",
+        "required": [],
+        "missing": [],
+        "decision": {
+          "choice": "unsupported",
+          "confidence": 0.9
+        }
+      },
+      {
+        "kind": "voice-ui.parts.stage.v2",
+        "request_id": "4380f13c-f0a6-481c-ab53-1fd504db5a60",
+        "stage": "G0",
+        "valid": true,
+        "initial": {
+          "decision": {
+            "choice": "unknown",
+            "confidence": null
+          },
+          "factors": {
+            "intent": {
+              "choice": "change",
+              "confidence": 0.9
+            },
+            "labels": {
+              "choice": "missing",
+              "confidence": 0.9
+            },
+            "capacity": {
+              "choice": "within",
+              "confidence": 0.9
+            },
+            "completeness": {
+              "choice": "incomplete",
+              "confidence": 0.9
+            }
+          },
+          "literal": {
+            "recognized": true,
+            "required": [
+              {
+                "label": "FixtureNode",
+                "kind": "step",
+                "quantity": 1
+              }
+            ],
+            "spans": [
+              {
+                "start": 5,
+                "end": 16,
+                "source": "FixtureNode",
+                "label": "FixtureNode",
+                "kind": "step",
+                "quantity": 1
+              }
+            ]
+          },
+          "observation": {
+            "valid": true,
+            "status": "transcribed"
+          }
+        }
+      },
+      {
+        "kind": "voice-ui.parts.stage.v2",
+        "request_id": "4380f13c-f0a6-481c-ab53-1fd504db5a60",
+        "stage": "STOCK_DIFF",
+        "required": [
+          {
+            "label": "FixtureNode",
+            "kind": "step",
+            "quantity": 1
+          }
+        ],
+        "missing": [
+          {
+            "label": "FixtureNode",
+            "kind": "step",
+            "occurrence": 1
+          }
+        ],
+        "decision": {
+          "choice": "unknown",
+          "confidence": null
+        }
+      },
+      {
+        "kind": "voice-ui.parts.stage.v2",
+        "request_id": "c7cef181-a7ae-4fdb-be28-341da9350223",
+        "stage": "G0",
+        "valid": true,
+        "initial": {
+          "decision": {
+            "choice": "unknown",
+            "confidence": null
+          },
+          "factors": {
+            "intent": {
+              "choice": "change",
+              "confidence": 0.9
+            },
+            "labels": {
+              "choice": "missing",
+              "confidence": 0.9
+            },
+            "capacity": {
+              "choice": "within",
+              "confidence": 0.9
+            },
+            "completeness": {
+              "choice": "incomplete",
+              "confidence": 0.9
+            }
+          },
+          "literal": {
+            "recognized": true,
+            "required": [
+              {
+                "label": "FixtureNode",
+                "kind": "step",
+                "quantity": 1
+              }
+            ],
+            "spans": [
+              {
+                "start": 5,
+                "end": 16,
+                "source": "FixtureNode",
+                "label": "FixtureNode",
+                "kind": "step",
+                "quantity": 1
+              }
+            ]
+          },
+          "observation": {
+            "valid": true,
+            "status": "transcribed"
+          }
+        }
+      },
+      {
+        "kind": "voice-ui.parts.stage.v2",
+        "request_id": "c7cef181-a7ae-4fdb-be28-341da9350223",
+        "stage": "TYPE_REQUIRED",
+        "valid": true,
+        "generation": "dependent",
+        "proposal": {
+          "slots": {
+            "required1": {
+              "label": "FixtureNode",
+              "kind": "step",
+              "quantity": "1"
+            },
+            "required2": {
+              "label": "",
+              "kind": "none",
+              "quantity": "0"
+            },
+            "required3": {
+              "label": "",
+              "kind": "none",
+              "quantity": "0"
+            }
+          },
+          "required": [
+            {
+              "label": "FixtureNode",
+              "kind": "step",
+              "quantity": 1
+            }
+          ]
+        }
+      },
+      {
+        "kind": "voice-ui.parts.stage.v2",
+        "request_id": "c7cef181-a7ae-4fdb-be28-341da9350223",
+        "stage": "VERIFY_REQUIRED",
+        "valid": true,
+        "required": [
+          {
+            "label": "FixtureNode",
+            "kind": "step",
+            "quantity": 1
+          }
+        ],
+        "factors": {
+          "intent": {
+            "choice": "change",
+            "confidence": 0.9
+          },
+          "labels": {
+            "choice": "missing",
+            "confidence": 0.9
+          },
+          "capacity": {
+            "choice": "within",
+            "confidence": 0.9
+          },
+          "completeness": {
+            "choice": "complete",
+            "confidence": 0.9
+          }
+        }
+      },
+      {
+        "kind": "voice-ui.parts.stage.v2",
+        "request_id": "c7cef181-a7ae-4fdb-be28-341da9350223",
+        "stage": "STOCK_DIFF",
+        "required": [
+          {
+            "label": "FixtureNode",
+            "kind": "step",
+            "quantity": 1
+          }
+        ],
+        "missing": [
+          {
+            "label": "FixtureNode",
+            "kind": "step",
+            "occurrence": 1
+          }
+        ],
+        "decision": {
+          "choice": "missing",
+          "confidence": 0.9
+        }
+      },
+      {
+        "kind": "voice-ui.parts.stage.v2",
+        "request_id": "90d8e486-2885-4cc0-b059-98dc29c40012",
+        "stage": "G0",
+        "valid": true,
+        "initial": {
+          "decision": {
+            "choice": "unknown",
+            "confidence": null
+          },
+          "factors": {
+            "intent": {
+              "choice": "change",
+              "confidence": 0.9
+            },
+            "labels": {
+              "choice": "missing",
+              "confidence": 0.9
+            },
+            "capacity": {
+              "choice": "within",
+              "confidence": 0.9
+            },
+            "completeness": {
+              "choice": "incomplete",
+              "confidence": 0.9
+            }
+          },
+          "literal": {
+            "recognized": true,
+            "required": [
+              {
+                "label": "FixtureNode",
+                "kind": "step",
+                "quantity": 1
+              }
+            ],
+            "spans": [
+              {
+                "start": 5,
+                "end": 16,
+                "source": "FixtureNode",
+                "label": "FixtureNode",
+                "kind": "step",
+                "quantity": 1
+              }
+            ]
+          },
+          "observation": {
+            "valid": true,
+            "status": "transcribed"
+          }
+        }
+      },
+      {
+        "kind": "voice-ui.parts.stage.v2",
+        "request_id": "90d8e486-2885-4cc0-b059-98dc29c40012",
+        "stage": "TYPE_REQUIRED",
+        "valid": true,
+        "generation": "dependent",
+        "proposal": {
+          "slots": {
+            "required1": {
+              "label": "FixtureNode",
+              "kind": "step",
+              "quantity": "1"
+            },
+            "required2": {
+              "label": "",
+              "kind": "none",
+              "quantity": "0"
+            },
+            "required3": {
+              "label": "",
+              "kind": "none",
+              "quantity": "0"
+            }
+          },
+          "required": [
+            {
+              "label": "FixtureNode",
+              "kind": "step",
+              "quantity": 1
+            }
+          ]
+        }
+      },
+      {
+        "kind": "voice-ui.parts.stage.v2",
+        "request_id": "90d8e486-2885-4cc0-b059-98dc29c40012",
+        "stage": "VERIFY_REQUIRED",
+        "valid": true,
+        "required": [
+          {
+            "label": "FixtureNode",
+            "kind": "step",
+            "quantity": 1
+          }
+        ],
+        "factors": {
+          "intent": {
+            "choice": "change",
+            "confidence": 0.9
+          },
+          "labels": {
+            "choice": "missing",
+            "confidence": 0.9
+          },
+          "capacity": {
+            "choice": "within",
+            "confidence": 0.9
+          },
+          "completeness": {
+            "choice": "complete",
+            "confidence": 0.9
+          }
+        }
+      },
+      {
+        "kind": "voice-ui.parts.stage.v2",
+        "request_id": "90d8e486-2885-4cc0-b059-98dc29c40012",
+        "stage": "STOCK_DIFF",
+        "required": [
+          {
+            "label": "FixtureNode",
+            "kind": "step",
+            "quantity": 1
+          }
+        ],
+        "missing": [
+          {
+            "label": "FixtureNode",
+            "kind": "step",
+            "occurrence": 1
+          }
+        ],
+        "decision": {
+          "choice": "missing",
+          "confidence": 0.9
+        }
+      },
+      {
+        "kind": "voice-ui.parts.stage.v2",
+        "request_id": "f0985012-6da8-48f4-993e-6b9bbbe1a4ad",
+        "stage": "G0",
+        "valid": true,
+        "initial": {
+          "decision": {
+            "choice": "unknown",
+            "confidence": null
+          },
+          "factors": {
+            "intent": {
+              "choice": "change",
+              "confidence": 0.9
+            },
+            "labels": {
+              "choice": "missing",
+              "confidence": 0.9
+            },
+            "capacity": {
+              "choice": "within",
+              "confidence": 0.9
+            },
+            "completeness": {
+              "choice": "incomplete",
+              "confidence": 0.9
+            }
+          },
+          "literal": {
+            "recognized": true,
+            "required": [
+              {
+                "label": "FixtureNode",
+                "kind": "step",
+                "quantity": 1
+              }
+            ],
+            "spans": [
+              {
+                "start": 5,
+                "end": 16,
+                "source": "FixtureNode",
+                "label": "FixtureNode",
+                "kind": "step",
+                "quantity": 1
+              }
+            ]
+          },
+          "observation": {
+            "valid": true,
+            "status": "transcribed"
+          }
+        }
+      },
+      {
+        "kind": "voice-ui.parts.stage.v2",
+        "request_id": "f0985012-6da8-48f4-993e-6b9bbbe1a4ad",
+        "stage": "STOCK_DIFF",
+        "required": [
+          {
+            "label": "FixtureNode",
+            "kind": "step",
+            "quantity": 1
+          }
+        ],
+        "missing": [
+          {
+            "label": "FixtureNode",
+            "kind": "step",
+            "occurrence": 1
+          }
+        ],
+        "decision": {
+          "choice": "unknown",
+          "confidence": null
+        }
+      },
+      {
+        "kind": "voice-ui.parts.stage.v2",
+        "request_id": "0233183d-99a8-40b1-b12a-bf7e9adf8e3a",
+        "stage": "TYPE_REQUIRED",
+        "valid": true,
+        "generation": "dependent",
+        "proposal": {
+          "slots": {
+            "required1": {
+              "label": "FixtureNode",
+              "kind": "step",
+              "quantity": "1"
+            },
+            "required2": {
+              "label": "",
+              "kind": "none",
+              "quantity": "0"
+            },
+            "required3": {
+              "label": "",
+              "kind": "none",
+              "quantity": "0"
+            }
+          },
+          "required": [
+            {
+              "label": "FixtureNode",
+              "kind": "step",
+              "quantity": 1
+            }
+          ]
+        }
+      },
+      {
+        "kind": "voice-ui.parts.stage.v2",
+        "request_id": "95706b88-e06a-4fba-8830-5863381121fe",
+        "stage": "TYPE_REQUIRED",
+        "valid": true,
+        "generation": "dependent",
+        "proposal": {
+          "slots": {
+            "required1": {
+              "label": "FixtureNode",
+              "kind": "step",
+              "quantity": "1"
+            },
+            "required2": {
+              "label": "",
+              "kind": "none",
+              "quantity": "0"
+            },
+            "required3": {
+              "label": "",
+              "kind": "none",
+              "quantity": "0"
+            }
+          },
+          "required": [
+            {
+              "label": "FixtureNode",
+              "kind": "step",
+              "quantity": 1
+            }
+          ]
+        }
+      },
+      {
+        "kind": "voice-ui.parts.stage.v2",
+        "request_id": "f62d2837-6eb8-44af-9381-25e768603028",
+        "stage": "TYPE_REQUIRED",
+        "valid": true,
+        "generation": "dependent",
+        "proposal": {
+          "slots": {
+            "required1": {
+              "label": "FixtureNode",
+              "kind": "step",
+              "quantity": "1"
+            },
+            "required2": {
+              "label": "",
+              "kind": "none",
+              "quantity": "0"
+            },
+            "required3": {
+              "label": "",
+              "kind": "none",
+              "quantity": "0"
+            }
+          },
+          "required": [
+            {
+              "label": "FixtureNode",
+              "kind": "step",
+              "quantity": 1
+            }
+          ]
+        }
+      },
+      {
+        "kind": "voice-ui.parts.stage.v2",
+        "request_id": "9e5c5e4f-1734-4a18-9cca-0986f8acde5c",
+        "stage": "TYPE_REQUIRED",
+        "valid": true,
+        "generation": "dependent",
+        "proposal": {
+          "slots": {
+            "required1": {
+              "label": "FixtureNode",
+              "kind": "step",
+              "quantity": "1"
+            },
+            "required2": {
+              "label": "",
+              "kind": "none",
+              "quantity": "0"
+            },
+            "required3": {
+              "label": "",
+              "kind": "none",
+              "quantity": "0"
+            }
+          },
+          "required": [
+            {
+              "label": "FixtureNode",
+              "kind": "step",
+              "quantity": 1
+            }
+          ]
+        }
+      },
+      {
+        "kind": "voice-ui.parts.stage.v2",
+        "request_id": "03637f77-3d82-413c-9451-c5ee6e1aecb7",
+        "stage": "TYPE_REQUIRED",
+        "valid": true,
+        "generation": "dependent",
+        "proposal": {
+          "slots": {
+            "required1": {
+              "label": "FixtureNode",
+              "kind": "step",
+              "quantity": "1"
+            },
+            "required2": {
+              "label": "",
+              "kind": "none",
+              "quantity": "0"
+            },
+            "required3": {
+              "label": "",
+              "kind": "none",
+              "quantity": "0"
+            }
+          },
+          "required": [
+            {
+              "label": "FixtureNode",
+              "kind": "step",
+              "quantity": 1
+            }
+          ]
+        }
+      },
+      {
+        "kind": "voice-ui.parts.stage.v2",
+        "request_id": "36f648fe-272c-4abd-8680-1180c6f79d09",
+        "stage": "TYPE_REQUIRED",
+        "valid": true,
+        "generation": "dependent",
+        "proposal": {
+          "slots": {
+            "required1": {
+              "label": "FixtureNode",
+              "kind": "step",
+              "quantity": "1"
+            },
+            "required2": {
+              "label": "",
+              "kind": "none",
+              "quantity": "0"
+            },
+            "required3": {
+              "label": "",
+              "kind": "none",
+              "quantity": "0"
+            }
+          },
+          "required": [
+            {
+              "label": "FixtureNode",
+              "kind": "step",
+              "quantity": 1
+            }
+          ]
+        }
+      },
+      {
+        "kind": "voice-ui.parts.stage.v2",
+        "request_id": "dd1d3bc8-7e51-4455-bbc0-7d2854fe913d",
+        "stage": "TYPE_REQUIRED",
+        "valid": true,
+        "generation": "dependent",
+        "proposal": {
+          "slots": {
+            "required1": {
+              "label": "FixtureNode",
+              "kind": "step",
+              "quantity": "1"
+            },
+            "required2": {
+              "label": "",
+              "kind": "none",
+              "quantity": "0"
+            },
+            "required3": {
+              "label": "",
+              "kind": "none",
+              "quantity": "0"
+            }
+          },
+          "required": [
+            {
+              "label": "FixtureNode",
+              "kind": "step",
+              "quantity": 1
+            }
+          ]
+        }
+      },
+      {
+        "kind": "voice-ui.parts.stage.v2",
+        "request_id": "81d58074-b338-4387-ab9b-24aba58f54e5",
+        "stage": "TYPE_REQUIRED",
+        "valid": true,
+        "generation": "dependent",
+        "proposal": {
+          "slots": {
+            "required1": {
+              "label": "FixtureNode",
+              "kind": "step",
+              "quantity": "1"
+            },
+            "required2": {
+              "label": "",
+              "kind": "none",
+              "quantity": "0"
+            },
+            "required3": {
+              "label": "",
+              "kind": "none",
+              "quantity": "0"
+            }
+          },
+          "required": [
+            {
+              "label": "FixtureNode",
+              "kind": "step",
+              "quantity": 1
+            }
+          ]
+        }
+      },
+      {
+        "kind": "voice-ui.parts.stage.v2",
+        "request_id": "ada6327b-70e0-40a7-afb5-e2c848ac8d1f",
+        "stage": "TYPE_REQUIRED",
+        "valid": true,
+        "generation": "dependent",
+        "proposal": {
+          "slots": {
+            "required1": {
+              "label": "FixtureNode",
+              "kind": "step",
+              "quantity": "1"
+            },
+            "required2": {
+              "label": "",
+              "kind": "none",
+              "quantity": "0"
+            },
+            "required3": {
+              "label": "",
+              "kind": "none",
+              "quantity": "0"
+            }
+          },
+          "required": [
+            {
+              "label": "FixtureNode",
+              "kind": "step",
+              "quantity": 1
+            }
+          ]
+        }
+      },
+      {
+        "kind": "voice-ui.parts.stage.v2",
+        "request_id": "0532fcf6-0f85-46f2-98db-93f3e999ab7c",
+        "stage": "TYPE_REQUIRED",
+        "valid": true,
+        "generation": "dependent",
+        "proposal": {
+          "slots": {
+            "required1": {
+              "label": "FixtureNode",
+              "kind": "step",
+              "quantity": "1"
+            },
+            "required2": {
+              "label": "",
+              "kind": "none",
+              "quantity": "0"
+            },
+            "required3": {
+              "label": "",
+              "kind": "none",
+              "quantity": "0"
+            }
+          },
+          "required": [
+            {
+              "label": "FixtureNode",
+              "kind": "step",
+              "quantity": 1
+            }
+          ]
+        }
+      },
+      {
+        "kind": "voice-ui.parts.stage.v2",
+        "request_id": "d494decc-17e9-47a5-8856-41ea87a99170",
+        "stage": "TYPE_REQUIRED",
+        "valid": true,
+        "generation": "dependent",
+        "proposal": {
+          "slots": {
+            "required1": {
+              "label": "FixtureNode",
+              "kind": "step",
+              "quantity": "1"
+            },
+            "required2": {
+              "label": "",
+              "kind": "none",
+              "quantity": "0"
+            },
+            "required3": {
+              "label": "",
+              "kind": "none",
+              "quantity": "0"
+            }
+          },
+          "required": [
+            {
+              "label": "FixtureNode",
+              "kind": "step",
+              "quantity": 1
+            }
+          ]
+        }
+      },
+      {
+        "kind": "voice-ui.parts.stage.v2",
+        "request_id": "068b243f-82cc-4edb-857a-4581c15d4b23",
+        "stage": "TYPE_REQUIRED",
+        "valid": true,
+        "generation": "dependent",
+        "proposal": {
+          "slots": {
+            "required1": {
+              "label": "FixtureNode",
+              "kind": "step",
+              "quantity": "1"
+            },
+            "required2": {
+              "label": "",
+              "kind": "none",
+              "quantity": "0"
+            },
+            "required3": {
+              "label": "",
+              "kind": "none",
+              "quantity": "0"
+            }
+          },
+          "required": [
+            {
+              "label": "FixtureNode",
+              "kind": "step",
+              "quantity": 1
+            }
+          ]
+        }
+      },
+      {
+        "kind": "voice-ui.parts.stage.v2",
+        "request_id": "59c54e91-5ec2-41cb-abf2-1ba29ddf9a7c",
+        "stage": "VERIFY_REQUIRED",
+        "valid": true,
+        "required": [
+          {
+            "label": "API",
+            "kind": "step",
+            "quantity": 3
+          }
+        ],
+        "factors": {
+          "intent": {
+            "choice": "change",
+            "confidence": 0.9
+          },
+          "labels": {
+            "choice": "missing",
+            "confidence": 0.9
+          },
+          "capacity": {
+            "choice": "within",
+            "confidence": 0.9
+          },
+          "completeness": {
+            "choice": "complete",
+            "confidence": 0.9
+          }
+        }
+      },
+      {
+        "kind": "voice-ui.parts.stage.v2",
+        "request_id": "76b3c0dc-02bc-49cf-ba19-80b3a38a58a1",
+        "stage": "VERIFY_REQUIRED",
+        "valid": true,
+        "required": [
+          {
+            "label": "API",
+            "kind": "step",
+            "quantity": 3
+          }
+        ],
+        "factors": {
+          "intent": {
+            "choice": "change",
+            "confidence": 0.9
+          },
+          "labels": {
+            "choice": "missing",
+            "confidence": 0.9
+          },
+          "capacity": {
+            "choice": "within",
+            "confidence": 0.9
+          },
+          "completeness": {
+            "choice": "complete",
+            "confidence": 0.9
+          }
+        }
+      },
+      {
+        "kind": "voice-ui.parts.stage.v2",
+        "request_id": "f39efc6b-d8bd-4e59-9669-4094d6135d7e",
+        "stage": "VERIFY_REQUIRED",
+        "valid": true,
+        "required": [
+          {
+            "label": "API",
+            "kind": "step",
+            "quantity": 2
+          }
+        ],
+        "factors": {
+          "intent": {
+            "choice": "change",
+            "confidence": 0.9
+          },
+          "labels": {
+            "choice": "missing",
+            "confidence": 0.9
+          },
+          "capacity": {
+            "choice": "within",
+            "confidence": 0.9
+          },
+          "completeness": {
+            "choice": "complete",
+            "confidence": 0.9
+          }
+        }
+      },
+      {
+        "kind": "voice-ui.parts.stage.v2",
+        "request_id": "306f603b-9764-4620-b2d0-e5c49fd0dbf3",
+        "stage": "VERIFY_REQUIRED",
+        "valid": true,
+        "required": [
+          {
+            "label": "API",
+            "kind": "step",
+            "quantity": 2
+          }
+        ],
+        "factors": {
+          "intent": {
+            "choice": "change",
+            "confidence": 0.9
+          },
+          "labels": {
+            "choice": "missing",
+            "confidence": 0.9
+          },
+          "capacity": {
+            "choice": "within",
+            "confidence": 0.9
+          },
+          "completeness": {
+            "choice": "complete",
+            "confidence": 0.9
+          }
+        }
+      },
+      {
+        "kind": "voice-ui.parts.stage.v2",
+        "request_id": "0e9259aa-7ca8-40e2-95c1-6336a3cab51c",
+        "stage": "VERIFY_REQUIRED",
+        "valid": true,
+        "required": [
+          {
+            "label": "可否照合",
+            "kind": "decision",
+            "quantity": 1
+          }
+        ],
+        "factors": {
+          "intent": {
+            "choice": "change",
+            "confidence": 0.9
+          },
+          "labels": {
+            "choice": "missing",
+            "confidence": 0.9
+          },
+          "capacity": {
+            "choice": "within",
+            "confidence": 0.9
+          },
+          "completeness": {
+            "choice": "complete",
+            "confidence": 0.9
+          }
+        }
+      },
+      {
+        "kind": "voice-ui.parts.stage.v2",
+        "request_id": "bbff60d3-a03d-4418-a707-b640dd0f07f9",
+        "stage": "VERIFY_REQUIRED",
+        "valid": true,
+        "required": [
+          {
+            "label": "可否照合",
+            "kind": "decision",
+            "quantity": 1
+          }
+        ],
+        "factors": {
+          "intent": {
+            "choice": "change",
+            "confidence": 0.9
+          },
+          "labels": {
+            "choice": "missing",
+            "confidence": 0.9
+          },
+          "capacity": {
+            "choice": "within",
+            "confidence": 0.9
+          },
+          "completeness": {
+            "choice": "complete",
+            "confidence": 0.9
+          }
+        }
+      },
+      {
+        "kind": "voice-ui.parts.stage.v2",
+        "request_id": "576d9f41-62d0-453f-8578-c9947407e140",
+        "stage": "VERIFY_REQUIRED",
+        "valid": true,
+        "required": [
+          {
+            "label": "可否照合",
+            "kind": "step",
+            "quantity": 1
+          }
+        ],
+        "factors": {
+          "intent": {
+            "choice": "change",
+            "confidence": 0.9
+          },
+          "labels": {
+            "choice": "missing",
+            "confidence": 0.9
+          },
+          "capacity": {
+            "choice": "within",
+            "confidence": 0.9
+          },
+          "completeness": {
+            "choice": "complete",
+            "confidence": 0.9
+          }
+        }
+      },
+      {
+        "kind": "voice-ui.parts.stage.v2",
+        "request_id": "a46644c5-54cb-420a-a17f-26f479f58ed5",
+        "stage": "VERIFY_REQUIRED",
+        "valid": true,
+        "required": [
+          {
+            "label": "可否照合",
+            "kind": "step",
+            "quantity": 1
+          }
+        ],
+        "factors": {
+          "intent": {
+            "choice": "change",
+            "confidence": 0.9
+          },
+          "labels": {
+            "choice": "missing",
+            "confidence": 0.9
+          },
+          "capacity": {
+            "choice": "within",
+            "confidence": 0.9
+          },
+          "completeness": {
+            "choice": "complete",
+            "confidence": 0.9
+          }
+        }
+      },
+      {
+        "kind": "voice-ui.parts.stage.v2",
+        "request_id": "7d688577-fbb8-47ab-97c7-6fd33e6c9d73",
+        "stage": "VERIFY_REQUIRED",
+        "valid": true,
+        "required": [
+          {
+            "label": "データ",
+            "kind": "data",
+            "quantity": 1
+          },
+          {
+            "label": "判断",
+            "kind": "decision",
+            "quantity": 1
+          }
+        ],
+        "factors": {
+          "intent": {
+            "choice": "change",
+            "confidence": 0.9
+          },
+          "labels": {
+            "choice": "missing",
+            "confidence": 0.9
+          },
+          "capacity": {
+            "choice": "within",
+            "confidence": 0.9
+          },
+          "completeness": {
+            "choice": "complete",
+            "confidence": 0.9
+          }
+        }
+      },
+      {
+        "kind": "voice-ui.parts.stage.v2",
+        "request_id": "b847f6c2-315d-498e-b492-000b08386ddf",
+        "stage": "VERIFY_REQUIRED",
+        "valid": true,
+        "required": [
+          {
+            "label": "データ",
+            "kind": "data",
+            "quantity": 1
+          },
+          {
+            "label": "判断",
+            "kind": "decision",
+            "quantity": 1
+          }
+        ],
+        "factors": {
+          "intent": {
+            "choice": "change",
+            "confidence": 0.9
+          },
+          "labels": {
+            "choice": "missing",
+            "confidence": 0.9
+          },
+          "capacity": {
+            "choice": "within",
+            "confidence": 0.9
+          },
+          "completeness": {
+            "choice": "complete",
+            "confidence": 0.9
+          }
+        }
+      },
+      {
+        "kind": "voice-ui.parts.stage.v2",
+        "request_id": "26f46aab-9020-4a5d-b1ed-00b0511d6aae",
+        "stage": "VERIFY_REQUIRED",
+        "valid": true,
+        "required": [
+          {
+            "label": "判断",
+            "kind": "decision",
+            "quantity": 1
+          }
+        ],
+        "factors": {
+          "intent": {
+            "choice": "change",
+            "confidence": 0.9
+          },
+          "labels": {
+            "choice": "missing",
+            "confidence": 0.9
+          },
+          "capacity": {
+            "choice": "within",
+            "confidence": 0.9
+          },
+          "completeness": {
+            "choice": "complete",
+            "confidence": 0.9
+          }
+        }
+      },
+      {
+        "kind": "voice-ui.parts.stage.v2",
+        "request_id": "732ec7cb-4381-4139-a8a7-fc7267967d10",
+        "stage": "VERIFY_REQUIRED",
+        "valid": true,
+        "required": [
+          {
+            "label": "判断",
+            "kind": "decision",
+            "quantity": 1
+          }
+        ],
+        "factors": {
+          "intent": {
+            "choice": "change",
+            "confidence": 0.9
+          },
+          "labels": {
+            "choice": "missing",
+            "confidence": 0.9
+          },
+          "capacity": {
+            "choice": "within",
+            "confidence": 0.9
+          },
+          "completeness": {
+            "choice": "complete",
+            "confidence": 0.9
+          }
+        }
+      }
+    ]
+  },
+  "independent_raw_checks": [
+    {
+      "stage": "G0",
+      "raw_cells": 10,
+      "execution": "RECORDED",
+      "invalid_cells": 0,
+      "independently_assessed_frames": 0
+    },
+    {
+      "stage": "G0-unknown",
+      "raw_cells": 10,
+      "execution": "INVALID",
+      "invalid_cells": 10,
+      "independently_assessed_frames": 0
+    },
+    {
+      "stage": "E",
+      "raw_cells": 4,
+      "execution": "RECORDED",
+      "invalid_cells": 0,
+      "independently_assessed_frames": 8
+    }
+  ],
+  "scope": "ACTUAL_COMPLETED_ZIP_SYNTHETIC_MECHANICS_ONLY_NOT_MODEL_PERFORMANCE_OR_LIVE_GO",
+  "reviewer_real_provider_calls": 0
+}

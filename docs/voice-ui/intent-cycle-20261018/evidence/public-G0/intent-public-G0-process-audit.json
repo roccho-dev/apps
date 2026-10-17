@@ -1,0 +1,23 @@
+{
+  "schema": "voice-ui.intent-cycle-process/1",
+  "status": "PASS",
+  "issues": [],
+  "state": "PUBLIC_REGRESSION_ONLY",
+  "baseline": {
+    "jev": 715,
+    "typellm": 71
+  },
+  "indexed_phases": 1,
+  "source_head": "81f9f4df488e7f4fd94c63dbc15fe46ab0fb3a25",
+  "correction_batches": 0,
+  "reserved": {
+    "jev": 10,
+    "typellm": 0
+  },
+  "charged_at_cutoff": {
+    "jev": 725,
+    "typellm": 71
+  },
+  "releases": [],
+  "scope": "integrity/process only; V/F/E quality axes remain separate; blind progression by complete stopped evidence, not perfect prior fresh quality"
+}

@@ -1,53 +1,40 @@
-# 原文の明確さと有限抽出を分ける反復
+# 入口G0の文言修正：公開8/10で停止
 
-実装前の別登録。前回は[全22実行をCIと独立R16で閉包](../dependency-cycle-20261018/closure.md)し、公開の依存付きFは正確5/6、Vは正解6/6、製品Eは達成1/2で停止した。前回の公開E未達・失敗・未見解放0を維持する。累計は予算計数715Jev/71TypeLLM、確認済み実送715/70。今回の追加実API送信は0。
+原文の明確さと有限抽出の不足を分ける修正を測定した。公開G0は全10件有効・正解8/10で、登録した全問通過gateに届かなかった。**入口判定は未達、補完・製品効果は未証明**。公開E・未見V/F/Eへは進まず、全原記録を残してこの登録を閉包する。
 
-新仮説は、入口G0が「原文の依頼が明確か」と「有限の抽出器が全量を読めたか」を分ければ、明確な依頼を誤って保留する例を減らせる、というもの。変更対象は `literalQuestion` のintent追記だけとする。部品を特定しない数量だけの依頼、未指定の追加部品・親・端点、変更なし、未対応操作の保留条件を維持する。質問・文脈・依存指定を含むType生成、独立V、parser、在庫計算、.5閾値、Typeを呼ぶ条件、Goal・描画は固定する。モデルがこの指示に従うかは未実証である。
+測定headは `81f9f4df488e7f4fd94c63dbc15fe46ab0fb3a25`。Jev10回・TypeLLM0回を実送し、累計の予算計数725/71、確認済み実送725/70。過去の未送信Type1回分も保守的に計上している。全10件の図・head・logは不変、所有PID/PGIDはzombieも含め消滅、残予約0。修正・再試行・setup・未見解放はいずれも0。
 
-小さなPOCの範囲は、最大3種類・総数3個の新規部品と既存の図操作。正しい部品が揃ってから描く性能と、説明から必要部品を揃える性能を別に測る。Typeは全NEW部品案だけを出し、在庫差分はアプリ、構造・接続・ID・操作は既存Goalが所有する。
-
-## 固定した評価と進行
-
-同じ独立Rが[protocol](preregistered/intent-cycle-protocol.md)と[canonical commitment v3](preregistered/intent-cycle-commitment.v3.json)を固定した。commitment SHA256は `aa5495197f05f82d6447218ac7c036626105b3f839c4b1c0544c67e08e9c1a2f`、[公開allowlist v3](preregistered/intent-cycle-freeze.v3.json)は `a8e7cd00871379bdec48bf35f2a4a4cb0f9b6eef826c43d0bcabac8d3789e528`。公開G0/E2の入力・正解は登録時に公開する。新しい未見V10/F8/E10はR側で封印し、各入力は予定した段階、各正解はその段階の実停止・送信照合後にだけ解放する。旧未使用poolは使わない。
-
-| 評価 | 問い | 固定基準 |
+| 軸 | 今回の結果 | 解釈 |
 | --- | --- | --- |
-| 公開G0 10問 | 原文の意図と実際の補完適格性を正しく分けられるか | 正5/負5の意図全10正解、confidence>=.5、保留・Type条件・正規化・在庫差分・図の不変性を検査 |
-| 公開E 2組 | 同じ説明で補完ありの実際の完成が改善するか | 両組が比較適格で改善、候補全量・図・実paint・保存・期限・guardを達成 |
-| 未見V 10問 | 部品案の正否を検証できるか | 正案5・誤案5、全件有効・正解、誤受理0 |
-| 未見F 8問 | 必要な部品全量を揃えられるか | 全件有効・過不足なし。充足2問の在庫差分0 |
-| 未見E 10組 | 製品の充足・不足・対照を満たすか | 充足4・不足4・対照2、候補側全10達成、比較適格な不足改善2件以上、退行0、全guard |
+| 入口G0 | 正4/5・負/対照4/5、全10有効・正解8/10 | 公開回帰のgate未達 |
+| 部品が揃った後の表現 | 従来R8/8と同一core6・実UI238/renderer231 bytes | 既存の有限・条件付き証拠。新しい製品Eの成功ではない |
+| 全量生成F・独立検証V | 新たな実測0 | 前回ae816ecの正確F5/6・V6/6を別headの観測として維持 |
+| 不足補完と製品E | 実測0 | 効果・NO_EFFECTともUNPROVEN |
 
-公開G0と公開Eを同じheadで通過した後、未見V→F→Eを一度ずつ測る。未見V/Fの成績未達も分母に残し、証拠・source・実停止・送信会計が閉じれば次の独立した性能軸へ進む。証拠欠損・source変更・不明な送信・残予約があれば進行しない。E成功をV/F成功へ読み替えない。
+## 未達と背景
+
+| ケース | 登録した期待 | 実際 |
+| --- | --- | --- |
+| PG01 | 明確なAPI3個追加をchangeと判断し補完へ進められる | ambiguous .39 / incomplete .96。補完適格false |
+| PG10 | 未対応操作をunsupportedと分類 | no-change .75。Type0・図は不変 |
+
+実際に補完適格だったのはPG02だけ。G0の直接literal経路ではTypeを呼ばず図も変えないため、この観測だけから補完の成功・失敗を採点しない。[独立集計](evidence/public-G0/intent-cycle-public-closure.md)、[全rawと固定producerのindex](evidence/index.json)、[閉包の説明](closure.md)を参照。
+
+## 固定した工程と証拠
+
+[実装前登録0bea781](https://github.com/roccho-dev/apps/tree/0bea78112600b876527f6df8aaeb8ba3d7224764/docs/voice-ui/intent-cycle-20261018)を同じ独立Rが認証読戻しした。規範は[protocol](preregistered/intent-cycle-protocol.md)、[commitment v3](preregistered/intent-cycle-commitment.v3.json)、[freeze v3](preregistered/intent-cycle-freeze.v3.json)。測定前の対照oracle形式修正とG0不変条件の明確化は元版とaddendumを保存している。未見6原本はhashを再確認し、非公開のまま維持する。
+
+製品差分はliteralQuestionのintent追記1箇所だけ。従来18sourceは同じで、Type質問・文脈・依存、独立V、parser、在庫差分、.5閾値、Type適格条件、Goal・rendererを変えていない。最大3種類・総数3個と既存図操作の小さなPOCで、TypeはNEW部品全量の案、アプリは不足差分、既存Goalは構造・接続・ID・操作を担当する。
+
+[R17](https://github.com/roccho-dev/apps/pull/103#pullrequestreview-5559628912)は実source22・正式Ops provider・全293配布memberと、測定前の4 CI成功を独立受入した。完成ZIPの疑似G0正常10/失敗10、新E4のpaint/Apply/reload、公開F/Vの完成Worker間送信原bytes12組の一致はSYNTHETIC_MECHANICS_ONLYである。その後に実PID/start/argv/preload・上限10/0・送信0を独立確認し、一度実行・finally停止・即時journal固定・独立採点を行った。
 
 ```mermaid
 flowchart TD
-  A[事前登録・実装・完成物CI・独立受入] --> B[公開G0 10問]
-  B -->|全問gate通過| C[公開E 2組]
-  B -->|未達| Z[原記録を保全しCIと独立Rで閉包]
-  C -->|両組gate通過| D[未見V10 → F8 → E10組を各一度]
-  C -->|未達| Z
-  D -->|成績を分離・各段の証拠と会計を検査| Z
+  A[事前登録・実装・完成物CI・独立受入] --> B[公開G0 10問:8/10 未達]
+  B --> Z[全raw・固定producer・停止/会計をCI閉包]
+  Z --> N[別登録で次仮説を合意]
 ```
 
-表現R8/8は同一core・実rendererのbytesと有限条件が一致する範囲だけで参照する。旧公開F/Vの実測headはae816ecのままとし、完成Workerで送信内容の一致を証明しても新headの測定へ付け替えない。公開F/Vの実API再試験は割り当てず、新しい未見F/Vを一度ずつ測る。
+必須CIは[停止済み1phase](evidence/index.json)のsource/raw/provider/producer/processを再検算し、公開8/10・未達・効果未証明を保持する。測定後のsource・基準・rawは変更しない。CI起点の実API、金額費用、未見一般化、四方式全比較、製品採用は未証明。次の仮説の実装・実送は、この登録のCIと独立閉包後の別登録で扱う。
 
-## 測定前の修正履歴
-
-公開前・製品変更前・API送信前に、未見Eの曖昧な対照1件で、未解決の必要部品欄と「図を変えない」期待値の形式が矛盾することを独立検査で発見した。[明示addendum](preregistered/intent-cycle-prelive-control-addendum.json)でその欄だけをnullへ修正し、元input/oracle・commitment・freezeはすべて保持する。入力側の差分はoracle hashだけで、依頼文・開始図・期待図・順序・数量・基準は変えていない。未見の依頼文・正解本体は公開しない。
-
-[G0契約の明確化](preregistered/intent-cycle-G0-oracle-contract.json)では、最初の2問に継承したE targetは来歴の参照だけで、G0の変更権限ではないと明記した。G0は常に全log/head/recordsを維持し、Type0とする。[検査v3](preregistered/intent-cycle-seal-validation.v3.json)は全30のV/F/E oracle admission、元の不整合を拒否する負例、G0独自の正規化・不正変更拒否を確認している。記載した8群のpure検査はその時点のcheckpointであり、最終source admissionではない。実装・独立監査器の最終22sourceと完成物は別途固定する。
-
-## 予算と閉包
-
-新上限は248Jev/20TypeLLM、setup・修正・再試行0。最悪の累計963/91で、各1000上限内に収める。公開G0 10/0、公開E 38/2、未見V 10/0、未見F 0/8、未見E 190/10を段階ごとに予約・実PID送信0確認・一度実行・finally停止・照合する。最後の旧journalは `9b5582798122208f1d36968e4646de46573f414739a239f0ea1195a692a5b6ba`。
-
-[空のCI index](evidence/index.json)はNOT_MEASUREDで、品質・効果はUNPROVEN。既存の必須閉包を残し、新しい22source・stage/policy・固定producer・全予約・実配布物・記録済みEのCI再描画を追加する。NO_EFFECTは不足4組が全て実際に比較適格で改善0の場合などの固定条件を満たす時だけ。未適格・無効・証拠不足はUNPROVEN、改善1件は部分的とする。
-
-Ops#565の正式core、[envs正規経路とローカル起動](../typellm-poc-20261017/README.md#ローカル実行と-envs)を維持する。キーの再入力・コピーは不要。Appsはdraft/open/unmerged、UI#362の明示的人間merge承認条件を維持する。CI起点実API、金額費用、四方式全比較、未見一般化と製品採用は未証明である。
-
-## 実装準備の状態
-
-登録commit `0bea78112600b876527f6df8aaeb8ba3d7224764` は、[独立読戻し](implementation/intent-cycle-registration-audit.json)で26 docsのみ・公開17ファイルの同一性・未見非公開・追加送信0を確認した。この受入後にintent追記1箇所だけを変更した。[独立module v2](implementation/intent-cycle-independent-modules.v2.json)の29群と既存literal5群、空indexのNOT_MEASURED閉包を確認済み。module元版も保持し、v2はtest末尾の改行1byteだけを除いたもので採点の意味は同じである。これらはpure/keylessの整合検査であり、モデル性能の改善を示すものではない。
-
-完成ZIPを開いた新G0 callerの正常10件・HTTP503の失敗10件保持、新E callerの疑似2組4実行の描画・Apply・再読込、および前回headの完成Workerと同じ公開F/V入力でupstream JSON原bytesが等しいことを、新しい必須CIで検査する。F/VのHTTP応答にある各呼出固有request_idは両方を記録して妥当性検査し、その欄だけを除いた応答意味も比較する。upstream送信bytesには正規化を加えない。全22source・独立受入・実PID送信0確認まで実API測定へ進まない。現在は追加実送0であり、公開G0・Eのgate、未見品質・製品効果はいずれも未証明である。
+登録枠248Jev/20TypeLLMのうち使用は10/0、現在のcutoffは `efc4a61b73333efc3058c5f6d1fc90f3eaadf929160e1ad69d781a1619b5c517`。各1000上限を維持する。Ops#565の正式coreと[envs正規経路・ローカル起動](../typellm-poc-20261017/README.md#ローカル実行と-envs)を再利用し、キーのコピー・再入力は不要。Appsはdraft/open/unmerged、UI#362の明示的人間merge承認条件を維持する。

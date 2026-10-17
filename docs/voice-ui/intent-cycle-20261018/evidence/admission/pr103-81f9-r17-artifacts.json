@@ -1,0 +1,47 @@
+{
+  "schema": "voice-ui.review.intent-public-artifacts/1",
+  "scope": "PUBLIC_R17_EVIDENCE_ALLOWLIST_ONLY_NO_PRIVATE_FILES",
+  "review_url": "https://github.com/roccho-dev/apps/pull/103#pullrequestreview-5559628912",
+  "files": [
+    {
+      "name": "pr103-81f9-r17-review.md",
+      "bytes": 5534,
+      "sha256": "87dac266c3abe0de457c511a6d78127d5c2ef8ad46c44404a59a5498af49e8da"
+    },
+    {
+      "name": "pr103-81f9-r17-prepost.json",
+      "bytes": 1547,
+      "sha256": "e06cd9a393cea692d9ebf3debb5bd6ce4bdd03576bd1e5c61d79b6b608ebd849"
+    },
+    {
+      "name": "pr103-81f9-r17-readback.json",
+      "bytes": 947,
+      "sha256": "5ff45bdb79bd40ea34557fa0cfbac55550ab89d149a6cb36ed041d9bcdb9d114"
+    },
+    {
+      "name": "intent-81f9-source-audit.json",
+      "bytes": 7746,
+      "sha256": "e09275a3ff92aa502740fd34f9878f02ae490348228984e6ddeac6a9a2502f75"
+    },
+    {
+      "name": "intent-81f9-runtime-audit.json",
+      "bytes": 8662,
+      "sha256": "4c61ade48e69e02a62c54c59929d2a29ba8a902ced8f53864debad3928ed880b"
+    },
+    {
+      "name": "intent-81f9-ci-mechanics-audit.json",
+      "bytes": 61165,
+      "sha256": "2ff2414dc44f898ebd05b36280206fbc915a2879a1dcc2d526c1391d5ff91ca6"
+    },
+    {
+      "name": "intent-81f9-ci-audit.json",
+      "bytes": 606424,
+      "sha256": "b55176049905ca119da766ba76042737e3896621983141aef187c6cd8ec7312a"
+    },
+    {
+      "name": "intent-81f9-terminal-audit.json",
+      "bytes": 1413,
+      "sha256": "1c2bbb2d73e35fa2d2335ea0bd25cd0e9a5d90c79b16d1a14a5d6a34b9d9a2dd"
+    }
+  ]
+}

@@ -1,0 +1,223 @@
+{
+  "schema": "voice-ui.review.intent-source/1",
+  "status": "PASS",
+  "head": "81f9f4df488e7f4fd94c63dbc15fe46ab0fb3a25",
+  "tree": "c8e055a1089e072d12e7a4aa0c024d957f899c6f",
+  "registration_parent": "0bea78112600b876527f6df8aaeb8ba3d7224764",
+  "measurement_reference": "ae816ec23a5e4c397c8a4893e127fb24134afda8",
+  "source_count": 22,
+  "old_source_count": 19,
+  "unchanged_old_sources": 18,
+  "product_difference": "Only the preregistered intent appendix replaces one literal string; all other old source bytes equal.",
+  "sources": [
+    {
+      "name": "src/completion.mjs",
+      "sha256": "11d6c098c703f257f96395a4a1c15ce4d39ed95fbd3aa0b103e23cbea94d5c5a",
+      "bytes": 28328,
+      "old_source": true,
+      "byte_equal_to_old": true
+    },
+    {
+      "name": "src/literal-inventory.mjs",
+      "sha256": "ecdeb980fb826f800dfeb186e042b5a4edf85b32ecc8a97516eb55e81a9c37f9",
+      "bytes": 8062,
+      "old_source": true,
+      "byte_equal_to_old": false
+    },
+    {
+      "name": "src/goal.mjs",
+      "sha256": "cd9101d6a222e31773c9523adeca3f7f9aa32990e30b39e06a7b872771422f3e",
+      "bytes": 12911,
+      "old_source": true,
+      "byte_equal_to_old": true
+    },
+    {
+      "name": "src/contract.mjs",
+      "sha256": "f2c95212493f59fd80ef17270c2b5de0d51d795b26ac8a0e6dfa0fdb9dec30fe",
+      "bytes": 30991,
+      "old_source": true,
+      "byte_equal_to_old": true
+    },
+    {
+      "name": "src/turn.mjs",
+      "sha256": "c5fc3489a5bd0861f0455bd9843f47e76030bb03a4fe55745cf00c29c79b7008",
+      "bytes": 53204,
+      "old_source": true,
+      "byte_equal_to_old": true
+    },
+    {
+      "name": "src/session.mjs",
+      "sha256": "d6fcb97e581afb789ed6ecb339c06c378ef94283084df8ad3042ebe42c48cfe8",
+      "bytes": 13314,
+      "old_source": true,
+      "byte_equal_to_old": true
+    },
+    {
+      "name": "functions/api/parts.mjs",
+      "sha256": "cdc97390f69e7a7883f158710b346b8487486988f5882f77660c14ce761e3635",
+      "bytes": 13727,
+      "old_source": true,
+      "byte_equal_to_old": true
+    },
+    {
+      "name": "functions/pages-worker.mjs",
+      "sha256": "9aa2afda61f0fffdab87a15ececb59b35307f07cfd9f59099501c29aac1486c9",
+      "bytes": 3017,
+      "old_source": true,
+      "byte_equal_to_old": true
+    },
+    {
+      "name": "web/app.mjs",
+      "sha256": "3a9ac4eba0770949a219b35c97cd346d4a7912026fae2b2f21710251b86bbf2a",
+      "bytes": 43782,
+      "old_source": true,
+      "byte_equal_to_old": true
+    },
+    {
+      "name": "web/adapters/completion.mjs",
+      "sha256": "537bc46e93efe58fbdf466dd2493989ad5695209def769ec9da3ba68926edb5a",
+      "bytes": 970,
+      "old_source": true,
+      "byte_equal_to_old": true
+    },
+    {
+      "name": "dev/serve.mjs",
+      "sha256": "d044ea7f8ccbd7fd71fbe1447dcce0f30bfa831d471da3eef2e3377380532298",
+      "bytes": 20526,
+      "old_source": true,
+      "byte_equal_to_old": true
+    },
+    {
+      "name": "tests/dependency-cycle-eval.mjs",
+      "sha256": "b92308340b7a54020c30ae1c1daa3b482b60263d080b3f2e2393909f6cfcd7c3",
+      "bytes": 14959,
+      "old_source": true,
+      "byte_equal_to_old": true
+    },
+    {
+      "name": "tests/requirements-cycle-score.mjs",
+      "sha256": "3d779cf422e8cc0facc6f5ff566c3e77b36a61486f9586f120b0c1a722cd5a46",
+      "bytes": 21347,
+      "old_source": true,
+      "byte_equal_to_old": true
+    },
+    {
+      "name": "tests/requirements-cycle-audit.mjs",
+      "sha256": "692bdbaef8dbe28fe30fcdfe178202ebbdf3a4728bf0fe1c7310f72bf789c6eb",
+      "bytes": 56082,
+      "old_source": true,
+      "byte_equal_to_old": true
+    },
+    {
+      "name": "tests/dependency-cycle-score.mjs",
+      "sha256": "2f7f40afec31d1f7cded08951529a30d741f6ebfb8abf446900a7f6eb567ef91",
+      "bytes": 8386,
+      "old_source": true,
+      "byte_equal_to_old": true
+    },
+    {
+      "name": "tests/dependency-cycle-audit.mjs",
+      "sha256": "47dce6207c8b48dae6447d87ee1294d8495f28a31d2b474d5dc0c9b95998d66e",
+      "bytes": 64775,
+      "old_source": true,
+      "byte_equal_to_old": true
+    },
+    {
+      "name": "tests/semantic-score.mjs",
+      "sha256": "3230791bd2b06ccbb73008723ab3709981ce6e2d65fc2fdbdec8cadf9d1cfec3",
+      "bytes": 3826,
+      "old_source": true,
+      "byte_equal_to_old": true
+    },
+    {
+      "name": "tests/requirements-cycle-http.mjs",
+      "sha256": "b3c1d052e2f7138532e0d7cac6ac7b3c7287b7af32b857990c1e6d14bb325386",
+      "bytes": 1163,
+      "old_source": true,
+      "byte_equal_to_old": true
+    },
+    {
+      "name": "tests/painted-goal.mjs",
+      "sha256": "c5ba117d1dea66d20c80b7f92b8184296ff79d4231da56f5a89836af4beb018b",
+      "bytes": 24668,
+      "old_source": true,
+      "byte_equal_to_old": true
+    },
+    {
+      "name": "tests/intent-cycle-eval.mjs",
+      "sha256": "0dd9649d87f4b2f0d0e446b44f5dcd7bb09582e75eca8ca7113b8d0d4d741357",
+      "bytes": 15130,
+      "old_source": false,
+      "byte_equal_to_old": null
+    },
+    {
+      "name": "tests/intent-cycle-score.mjs",
+      "sha256": "e6652eef8ee1b18c1b3c479b649033105c1ae27f360b0b9d4a16f898edc664cb",
+      "bytes": 10328,
+      "old_source": false,
+      "byte_equal_to_old": null
+    },
+    {
+      "name": "tests/intent-cycle-audit.mjs",
+      "sha256": "151715f5c09a64a1187ad2557e13b3172801e8e8fa8ee492b31a5a7823222617",
+      "bytes": 66452,
+      "old_source": false,
+      "byte_equal_to_old": null
+    }
+  ],
+  "independent_modules": [
+    {
+      "name": "intent-cycle-score.mjs",
+      "bytes": 10328,
+      "sha256": "e6652eef8ee1b18c1b3c479b649033105c1ae27f360b0b9d4a16f898edc664cb"
+    },
+    {
+      "name": "intent-cycle-score.test.mjs",
+      "bytes": 7931,
+      "sha256": "0f0fc8b187b01b62df753cfab8f07d359d2448eea463d0562ccb8a3c9cb12fa4"
+    },
+    {
+      "name": "intent-cycle-audit.mjs",
+      "bytes": 66452,
+      "sha256": "151715f5c09a64a1187ad2557e13b3172801e8e8fa8ee492b31a5a7823222617"
+    },
+    {
+      "name": "intent-cycle-audit.test.mjs",
+      "bytes": 45168,
+      "sha256": "fda7510ac2785b62c1171e348b61bc866072396d2d225d77be66fde5567509be"
+    }
+  ],
+  "changed_files": [
+    ".github/workflows/voice-ui-release.yml",
+    "docs/voice-ui/intent-cycle-20261018/README.md",
+    "docs/voice-ui/intent-cycle-20261018/implementation/intent-cycle-independent-modules.json",
+    "docs/voice-ui/intent-cycle-20261018/implementation/intent-cycle-independent-modules.v2.json",
+    "docs/voice-ui/intent-cycle-20261018/implementation/intent-cycle-registration-audit.json",
+    "flake.nix",
+    "packages/voice-ui/acceptance/intent-cycle-smoke.mjs",
+    "packages/voice-ui/acceptance/verify-intent-cycle.mjs",
+    "packages/voice-ui/src/literal-inventory.mjs",
+    "packages/voice-ui/tests/intent-cycle-audit.mjs",
+    "packages/voice-ui/tests/intent-cycle-audit.test.mjs",
+    "packages/voice-ui/tests/intent-cycle-eval.mjs",
+    "packages/voice-ui/tests/intent-cycle-score.mjs",
+    "packages/voice-ui/tests/intent-cycle-score.test.mjs"
+  ],
+  "tests": {
+    "pure_score": 9,
+    "pure_audit": 20,
+    "literal": 5,
+    "static": 13,
+    "total": 47,
+    "fail": 0,
+    "skip": 0
+  },
+  "scope": "SOURCE_AND_KEYLESS_ADMISSION_ONLY_NO_LIVE_GO",
+  "reviewer_real_provider_calls": 0,
+  "notes": [
+    "New caller retains E browser operation and single Goal semantics; explicit G0 route and new schema/policy/source inventory.",
+    "Completed-artifact smoke tests G0 normal10/503-retained10 and new E caller4 cells; synthetic-only.",
+    "F/V upstream JSON UTF8 body is compared without normalization. Only independently valid top-level per-call response UUID is omitted for response semantic equality; both UUIDs retained.",
+    "All four previous required closure steps retained; new closure required unconditionally; empty index is NOT_MEASURED with quality/effect UNPROVEN."
+  ]
+}
