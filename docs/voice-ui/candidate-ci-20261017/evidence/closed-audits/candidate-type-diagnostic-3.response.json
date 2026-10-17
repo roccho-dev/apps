@@ -1,0 +1,12 @@
+{
+  "schema": "voice-ui.type-diagnostic/1",
+  "phase": "candidate-type-diagnostic-3",
+  "request_sha256": "510263b94e197a3bc2cc5ce677875927d3fe2f38fd1b8af7087aeb941b4090ed",
+  "started": "2026-10-17T09:29:50.970Z",
+  "status": 502,
+  "body": {
+    "error": "parts_contract"
+  },
+  "elapsedMs": 2075.6709,
+  "scope": "NEW_ATTEMPT_DIAGNOSTIC_ONLY"
+}

@@ -6,6 +6,7 @@ on:
       - ".github/workflows/voice-ui-release.yml"
       - ".github/voice-ui-release/**"
       - "packages/voice-ui/**"
+      - "docs/voice-ui/candidate-ci-20261017/**"
       - "flake.nix"
       - "flake.lock"
   workflow_dispatch:
@@ -85,6 +86,23 @@ jobs:
         with:
           name: voice-ui-candidate-browser-${{ github.event.pull_request.head.sha || github.sha }}
           path: dist/candidate-browser-evidence/
+          if-no-files-found: ignore
+      - name: Verify stopped live evidence with exact recorded artifacts
+        run: |
+          set -euo pipefail
+          runtime="$(nix build --no-link --print-out-paths .#voice-ui-acceptance-runtime)"
+          "$runtime/bin/voice-ui-acceptance-node" packages/voice-ui/acceptance/verify-candidate-evidence.mjs \
+            "$PWD/docs/voice-ui/candidate-ci-20261017/evidence/index.json" "$PWD/dist/candidate-closed-evidence"
+      - name: Preserve stopped-evidence verification
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: voice-ui-closed-evidence-${{ github.event.pull_request.head.sha || github.sha }}
+          path: |
+            dist/candidate-closed-evidence/receipt.json
+            dist/candidate-closed-evidence/*/audit.json
+            dist/candidate-closed-evidence/*/ci-replay/receipt.json
+            dist/candidate-closed-evidence/*/mutation-test.txt
           if-no-files-found: ignore
       - name: Export the acceptance runtime closure
         run: |

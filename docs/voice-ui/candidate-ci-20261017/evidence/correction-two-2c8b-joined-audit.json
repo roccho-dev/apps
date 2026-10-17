@@ -1,0 +1,588 @@
+{
+  "schema": "voice-ui.independent-correction-audit/1",
+  "observed_at": "2026-10-17T10:08:04.577Z",
+  "classification": "VALID_PARTIAL_CORRECTION",
+  "raw": {
+    "schema": "voice-ui.poc.raw-receipt-audit/1",
+    "status": "PASS",
+    "issues": [],
+    "phase_kind": "correction",
+    "consumed": 4,
+    "planned": 4,
+    "complete_same_source_panel": false,
+    "model_comparison_admissible": false,
+    "recorded_execution_status": "RECORDED",
+    "missing_responses": [],
+    "http_attempts": {
+      "jev": 10,
+      "typellm": 1
+    },
+    "factor_count": 4,
+    "proofs": [
+      {
+        "id": "H01",
+        "arm": "C",
+        "status": "PASS",
+        "final_head": "sha256:76bda113a3b68078d3da2edbf9504e02449e6f0604cad6f3c96744321684f6e9",
+        "initial_log_sha256": "32f7c43ed78ccead4936c39d30e00fd36340a388192bb9e0c9b0265801848079",
+        "final_log_sha256": "cedafc5b19046721f324e21179b46b176e24cdb2e392c5364e3c0829c48ec6c4"
+      },
+      {
+        "id": "H09",
+        "arm": "C",
+        "status": "PASS",
+        "final_head": "sha256:3f44e0d52678bc7ddeac8b19804ffaadfe6a493ce65ba8ca98f345ddd2ff75a2",
+        "initial_log_sha256": "32f7c43ed78ccead4936c39d30e00fd36340a388192bb9e0c9b0265801848079",
+        "final_log_sha256": "32f7c43ed78ccead4936c39d30e00fd36340a388192bb9e0c9b0265801848079"
+      },
+      {
+        "id": "H10",
+        "arm": "C",
+        "status": "PASS",
+        "final_head": "sha256:6969f47d7531db6ae8959481e6ee24676c9b37da9a61b2cdf2c97d4a2af6684a",
+        "initial_log_sha256": "b36330f159836a6ae872a0da817391214208f919e76fc4fb69331248cecc618c",
+        "final_log_sha256": "b36330f159836a6ae872a0da817391214208f919e76fc4fb69331248cecc618c"
+      },
+      {
+        "id": "H05",
+        "arm": "C",
+        "status": "PASS",
+        "final_head": "sha256:738c0b27dcf5db7e9633904a1f990419aead3505f4eaa8090f02cf74975a1cd6",
+        "initial_log_sha256": "32f7c43ed78ccead4936c39d30e00fd36340a388192bb9e0c9b0265801848079",
+        "final_log_sha256": "0b78fec92c0cff055eede713a66ec978685e8f4a0b3663bc2eb4fba6738cb357"
+      }
+    ],
+    "rows": [
+      {
+        "id": "H01",
+        "arm": "C",
+        "expected_gate": "sufficient",
+        "score_input_valid": true,
+        "issues": [],
+        "gate": {
+          "contract_valid": true,
+          "raw_choice_correct": true,
+          "accepted_gate_correct": true
+        },
+        "graph_exact": true,
+        "graph": {
+          "graph_exact": true,
+          "unique_record_keys": true,
+          "existing_semantics_preserved": true,
+          "semantic_unchanged": false,
+          "clean_new_regions": true,
+          "clean_new_edges": true,
+          "no_other_new_semantics": true,
+          "actual_added_regions": [
+            {
+              "label": "API",
+              "kind": "step",
+              "parent": "fixture:container"
+            }
+          ],
+          "actual_added_edges": []
+        },
+        "missing_minimal": true,
+        "raw_unchanged": false,
+        "no_false_adoption": true,
+        "generation_free": true,
+        "all_arm_guard": true,
+        "deadline": true,
+        "jev_http": 4,
+        "typellm_http": 0,
+        "elapsedMs": 979.4803999999999,
+        "scope": "sufficient"
+      },
+      {
+        "id": "H09",
+        "arm": "C",
+        "expected_gate": "ambiguous",
+        "score_input_valid": true,
+        "issues": [],
+        "gate": {
+          "contract_valid": true,
+          "raw_choice_correct": true,
+          "accepted_gate_correct": true
+        },
+        "graph_exact": true,
+        "graph": {
+          "graph_exact": true,
+          "unique_record_keys": true,
+          "existing_semantics_preserved": true,
+          "semantic_unchanged": true,
+          "clean_new_regions": true,
+          "clean_new_edges": true,
+          "no_other_new_semantics": true,
+          "actual_added_regions": [],
+          "actual_added_edges": []
+        },
+        "missing_minimal": true,
+        "raw_unchanged": true,
+        "no_false_adoption": true,
+        "generation_free": true,
+        "all_arm_guard": true,
+        "deadline": true,
+        "jev_http": 1,
+        "typellm_http": 0,
+        "elapsedMs": 166.41609999999991,
+        "scope": "control"
+      },
+      {
+        "id": "H10",
+        "arm": "C",
+        "expected_gate": "no-change",
+        "score_input_valid": true,
+        "issues": [],
+        "gate": {
+          "contract_valid": true,
+          "raw_choice_correct": true,
+          "accepted_gate_correct": true
+        },
+        "graph_exact": true,
+        "graph": {
+          "graph_exact": true,
+          "unique_record_keys": true,
+          "existing_semantics_preserved": true,
+          "semantic_unchanged": true,
+          "clean_new_regions": true,
+          "clean_new_edges": true,
+          "no_other_new_semantics": true,
+          "actual_added_regions": [],
+          "actual_added_edges": []
+        },
+        "missing_minimal": true,
+        "raw_unchanged": true,
+        "no_false_adoption": true,
+        "generation_free": true,
+        "all_arm_guard": true,
+        "deadline": true,
+        "jev_http": 1,
+        "typellm_http": 0,
+        "elapsedMs": 173.85120000000006,
+        "scope": "control"
+      },
+      {
+        "id": "H05",
+        "arm": "C",
+        "expected_gate": "missing",
+        "score_input_valid": true,
+        "issues": [],
+        "gate": {
+          "contract_valid": true,
+          "raw_choice_correct": true,
+          "accepted_gate_correct": true
+        },
+        "graph_exact": true,
+        "graph": {
+          "graph_exact": true,
+          "unique_record_keys": true,
+          "existing_semantics_preserved": true,
+          "semantic_unchanged": false,
+          "clean_new_regions": true,
+          "clean_new_edges": true,
+          "no_other_new_semantics": true,
+          "actual_added_regions": [
+            {
+              "label": "整形受付",
+              "kind": "step",
+              "parent": "fixture:container"
+            }
+          ],
+          "actual_added_edges": []
+        },
+        "missing_minimal": true,
+        "raw_unchanged": false,
+        "no_false_adoption": true,
+        "generation_free": false,
+        "all_arm_guard": true,
+        "deadline": true,
+        "jev_http": 4,
+        "typellm_http": 1,
+        "elapsedMs": 1646.2994999999999,
+        "scope": "missing"
+      }
+    ],
+    "panels": {
+      "A": {
+        "schema": "voice-ui.poc.semantic-panel-score/1",
+        "selected": "A",
+        "complete": false,
+        "score_inputs_valid": false,
+        "final_shape": false,
+        "per_arm": {
+          "A": {
+            "gate": {
+              "accepted": 0,
+              "total": 0
+            },
+            "sufficient": {
+              "exact": 0,
+              "total": 0
+            },
+            "missing": {
+              "exact": 0,
+              "minimal": 0,
+              "total": 0
+            },
+            "controls": {
+              "raw_unchanged": 0,
+              "total": 0
+            },
+            "non_regression_guards": true,
+            "deadlines": true,
+            "jev_http": 0,
+            "typellm_http": 0
+          },
+          "B": {
+            "gate": {
+              "accepted": 0,
+              "total": 0
+            },
+            "sufficient": {
+              "exact": 0,
+              "total": 0
+            },
+            "missing": {
+              "exact": 0,
+              "minimal": 0,
+              "total": 0
+            },
+            "controls": {
+              "raw_unchanged": 0,
+              "total": 0
+            },
+            "non_regression_guards": true,
+            "deadlines": true,
+            "jev_http": 0,
+            "typellm_http": 0
+          },
+          "C": {
+            "gate": {
+              "accepted": 4,
+              "total": 4
+            },
+            "sufficient": {
+              "exact": 1,
+              "total": 1
+            },
+            "missing": {
+              "exact": 1,
+              "minimal": 1,
+              "total": 1
+            },
+            "controls": {
+              "raw_unchanged": 2,
+              "total": 2
+            },
+            "non_regression_guards": true,
+            "deadlines": true,
+            "jev_http": 10,
+            "typellm_http": 1
+          }
+        },
+        "paired_accepted_gate_gains": {
+          "over_A": {
+            "baseline": "A",
+            "eligible": 0,
+            "wins": 0,
+            "losses": 0,
+            "signed_gain": 0,
+            "excluded_gate_pairs": 4
+          },
+          "over_B": {
+            "baseline": "B",
+            "eligible": 0,
+            "wins": 0,
+            "losses": 0,
+            "signed_gain": 0,
+            "excluded_gate_pairs": 4
+          }
+        },
+        "all_arm_non_regression": true,
+        "selected_finite_semantic_criteria": "UNMET",
+        "mandatory_separate_admissibility": [
+          "consumed-input commitment and raw arm order/equal initial bytes",
+          "actual protocol/log/proof verification",
+          "actual runtime/source/artifact binding",
+          "provider journal/process closure and all count deltas",
+          "raw factor recomputation",
+          "completed-artifact browser/paint/lifecycle and mutation controls"
+        ],
+        "four_way_comparison": "INCOMPLETE_D_BLOCKED_COST",
+        "CI_LIVE_EXECUTION": "UNPROVEN",
+        "currency": "COST_NOT_MEASURED"
+      },
+      "B": {
+        "schema": "voice-ui.poc.semantic-panel-score/1",
+        "selected": "B",
+        "complete": false,
+        "score_inputs_valid": false,
+        "final_shape": false,
+        "per_arm": {
+          "A": {
+            "gate": {
+              "accepted": 0,
+              "total": 0
+            },
+            "sufficient": {
+              "exact": 0,
+              "total": 0
+            },
+            "missing": {
+              "exact": 0,
+              "minimal": 0,
+              "total": 0
+            },
+            "controls": {
+              "raw_unchanged": 0,
+              "total": 0
+            },
+            "non_regression_guards": true,
+            "deadlines": true,
+            "jev_http": 0,
+            "typellm_http": 0
+          },
+          "B": {
+            "gate": {
+              "accepted": 0,
+              "total": 0
+            },
+            "sufficient": {
+              "exact": 0,
+              "total": 0
+            },
+            "missing": {
+              "exact": 0,
+              "minimal": 0,
+              "total": 0
+            },
+            "controls": {
+              "raw_unchanged": 0,
+              "total": 0
+            },
+            "non_regression_guards": true,
+            "deadlines": true,
+            "jev_http": 0,
+            "typellm_http": 0
+          },
+          "C": {
+            "gate": {
+              "accepted": 4,
+              "total": 4
+            },
+            "sufficient": {
+              "exact": 1,
+              "total": 1
+            },
+            "missing": {
+              "exact": 1,
+              "minimal": 1,
+              "total": 1
+            },
+            "controls": {
+              "raw_unchanged": 2,
+              "total": 2
+            },
+            "non_regression_guards": true,
+            "deadlines": true,
+            "jev_http": 10,
+            "typellm_http": 1
+          }
+        },
+        "paired_accepted_gate_gains": {
+          "over_A": {
+            "baseline": "A",
+            "eligible": 0,
+            "wins": 0,
+            "losses": 0,
+            "signed_gain": 0,
+            "excluded_gate_pairs": 4
+          },
+          "over_B": {
+            "baseline": "B",
+            "eligible": 0,
+            "wins": 0,
+            "losses": 0,
+            "signed_gain": 0,
+            "excluded_gate_pairs": 4
+          }
+        },
+        "all_arm_non_regression": true,
+        "selected_finite_semantic_criteria": "UNMET",
+        "mandatory_separate_admissibility": [
+          "consumed-input commitment and raw arm order/equal initial bytes",
+          "actual protocol/log/proof verification",
+          "actual runtime/source/artifact binding",
+          "provider journal/process closure and all count deltas",
+          "raw factor recomputation",
+          "completed-artifact browser/paint/lifecycle and mutation controls"
+        ],
+        "four_way_comparison": "INCOMPLETE_D_BLOCKED_COST",
+        "CI_LIVE_EXECUTION": "UNPROVEN",
+        "currency": "COST_NOT_MEASURED"
+      },
+      "C": {
+        "schema": "voice-ui.poc.semantic-panel-score/1",
+        "selected": "C",
+        "complete": false,
+        "score_inputs_valid": false,
+        "final_shape": false,
+        "per_arm": {
+          "A": {
+            "gate": {
+              "accepted": 0,
+              "total": 0
+            },
+            "sufficient": {
+              "exact": 0,
+              "total": 0
+            },
+            "missing": {
+              "exact": 0,
+              "minimal": 0,
+              "total": 0
+            },
+            "controls": {
+              "raw_unchanged": 0,
+              "total": 0
+            },
+            "non_regression_guards": true,
+            "deadlines": true,
+            "jev_http": 0,
+            "typellm_http": 0
+          },
+          "B": {
+            "gate": {
+              "accepted": 0,
+              "total": 0
+            },
+            "sufficient": {
+              "exact": 0,
+              "total": 0
+            },
+            "missing": {
+              "exact": 0,
+              "minimal": 0,
+              "total": 0
+            },
+            "controls": {
+              "raw_unchanged": 0,
+              "total": 0
+            },
+            "non_regression_guards": true,
+            "deadlines": true,
+            "jev_http": 0,
+            "typellm_http": 0
+          },
+          "C": {
+            "gate": {
+              "accepted": 4,
+              "total": 4
+            },
+            "sufficient": {
+              "exact": 1,
+              "total": 1
+            },
+            "missing": {
+              "exact": 1,
+              "minimal": 1,
+              "total": 1
+            },
+            "controls": {
+              "raw_unchanged": 2,
+              "total": 2
+            },
+            "non_regression_guards": true,
+            "deadlines": true,
+            "jev_http": 10,
+            "typellm_http": 1
+          }
+        },
+        "paired_accepted_gate_gains": {
+          "over_A": {
+            "baseline": "A",
+            "eligible": 0,
+            "wins": 0,
+            "losses": 0,
+            "signed_gain": 0,
+            "excluded_gate_pairs": 4
+          },
+          "over_B": {
+            "baseline": "B",
+            "eligible": 0,
+            "wins": 0,
+            "losses": 0,
+            "signed_gain": 0,
+            "excluded_gate_pairs": 4
+          }
+        },
+        "all_arm_non_regression": true,
+        "selected_finite_semantic_criteria": "UNMET",
+        "mandatory_separate_admissibility": [
+          "consumed-input commitment and raw arm order/equal initial bytes",
+          "actual protocol/log/proof verification",
+          "actual runtime/source/artifact binding",
+          "provider journal/process closure and all count deltas",
+          "raw factor recomputation",
+          "completed-artifact browser/paint/lifecycle and mutation controls"
+        ],
+        "four_way_comparison": "INCOMPLETE_D_BLOCKED_COST",
+        "CI_LIVE_EXECUTION": "UNPROVEN",
+        "currency": "COST_NOT_MEASURED"
+      }
+    },
+    "raw_sha256": {
+      "events.jsonl": "48d1d376a238775d83b023b9296823be0e6b2fb5491bf0ec3efb3ae2e2a7e1f2",
+      "execution.json": "6407da3ec365ce36fab48ba400941c0c51188af2e5028969030cc8499ed4ddca",
+      "H01-C.json": "0142826464086099c5ff945e28709182d632852b31e1887d547d14fa43ff6999",
+      "H05-C.json": "376253330ec281927dda9d0d6ebff03e0f43a97c17289803b36edb450020daf1",
+      "H09-C.json": "232dffabb2029e2320844506eef6e981bfab190e735e693d9d6bef4c0d95c041",
+      "H10-C.json": "046f84691e5ff5f05a3079ccab2b87fba02244aa5a5bf5d9332e72fc44b40556",
+      "identity.json": "9e49c1b2c36875518c555607db70d7260c0c0ca5ed807b88d91d25bd1f87eabd"
+    },
+    "CI_LIVE_EXECUTION": "UNPROVEN",
+    "four_way_comparison": "INCOMPLETE_D_BLOCKED_COST",
+    "currency": "COST_NOT_MEASURED"
+  },
+  "phase": {
+    "status": "PASS",
+    "issues": [],
+    "phase": "candidate-correction-2-20261017",
+    "sent": {
+      "jev": 10,
+      "typellm": 1
+    },
+    "prior_charged": {
+      "jev": 316,
+      "typellm": 22
+    },
+    "charged_at_cutoff": {
+      "jev": 326,
+      "typellm": 23
+    },
+    "journal_sha256": "79277d7512b2e166df534fe17a001daf9d7e482981ea70e71dc5117c53f40239",
+    "config_sha256": "8f4c5dc6e8ed43f521e4f6274e4505c3650c269a1dea97ca0f37b028dfbd4bfb",
+    "stop_scope": "recorded reconciliation only; independent live PID observation remains an explicit audit reference"
+  },
+  "CI_LIVE_EXECUTION": "UNPROVEN",
+  "four_way_comparison": "INCOMPLETE_D_BLOCKED_COST",
+  "currency": "COST_NOT_MEASURED",
+  "binding": {
+    "status": "PASS",
+    "issues": [],
+    "producer_schema": "voice-ui.poc.producer-expectation/1",
+    "provenance_scope": "exact byte/metadata joins to separately reviewed expectations and audit references",
+    "CI_LIVE_EXECUTION": "UNPROVEN"
+  },
+  "replay": {
+    "status": "PASS",
+    "issues": [],
+    "consumed": 4,
+    "frames": 12,
+    "assessed_frames": 8,
+    "recorded_paint_status": "PASS",
+    "replay_sha256": "4b436114d48d8adf05e6d6f5e524c9c038662bc7b7c7832e198f59f2788fb02c",
+    "model_quality_scope": "NONE",
+    "CI_LIVE_EXECUTION": "UNPROVEN"
+  }
+}

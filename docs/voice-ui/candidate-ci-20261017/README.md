@@ -23,7 +23,7 @@ flowchart TD
 
 - A は八つの既存候補のみ。不足判定後も通常の合法選択を実行し、強制失敗させない。
 - B は kind + 引用名、引用名の列 + 「という」+ kind、既存名 + 十進個数 + 追加という有限の文法を保守的に転記する。kind は既存の有限 kind と DataBundle の label から取得する。例ごとの名称辞書、自由文の解釈・命名・親子/辺の生成はない。未対応の言い方は意味上の STOP として採点し、モデルへ迂回しない。原文 span を保存する。
-- C は一回の TypeLLM POST で最大三つの異なる不足 pair と個数を準備する。旧配列の最初の一種類で終わる失敗に対し、三つの ordinal を明示した固定 slot を検証する。未使用 slot、重複、穴、総個数超過は厳格に検証する。改善はまだ実測していない。
+- C は一回の TypeLLM POST で最大三つの異なる不足 pair と個数を準備する。旧配列の最初の一種類で終わる失敗に対し、三つの ordinal を明示した固定 slot を検証する。active slot の重複、穴、総個数超過は厳格に検証し、kind none は bounded padding として候補を作らない。
 - D の通常 Sys2 は費用未承認で実行しない。A/B/C の暫定比較から四方式比較完了や TypeLLM 固有の優位を推定しない。
 
 全 arm が同じ初期 log bytes、八部品、gate、0.5 floor、合法選択、証明、180秒期限を使う。追加は既存名前付き group 内の三 region・一本の flow まで。名前、kind、個数、parent、辺方向、余分な要素の不在と既存の意味保持を採点する。ASR 後の文字列が対象で、マイク精度は対象外。
@@ -67,3 +67,13 @@ release CI は生成した完成 ZIP を展開して member 同一性を確認�
 修正一回目は三 guard を正しく処理したが、H05-C は active の個数が1へ直った一方、unused kind-none slot に nonempty label/count1 が残り、502で停止した。4 cell の元記録は INVALID のまま保持する。7 Jev／1 Type、累計316／22、全停止・精算済み。これは個数表現の改善仮説を支えるが、補完性能の合格ではない。
 
 最後の原因修正では、R と実行前に tagged slot の契約を明示して合意した。kind none は候補を作らず、その label/count は padding とする。全 slot の exact fields、bounded string label、四つの quantity string enum は維持し、active の名前・kind・個数1〜3・総数・重複・穴は従来どおり拒否する。不要な filler 値を実候補へ変換せず、過去の失敗を再採点しない。採点 oracle、最小性、効果判定の閾値も変えない。同じ公開四 cell の C だけを二回目として一度検証し、以後の原因修正 batch は追加しない。
+
+二回目の上限は36 Jev／4 Type（期待する補完は1回）。誤って十分/controlから生成した場合も、後続 cell の予算を先に使い切らず、違反をそのまま観測するための ceiling であり、再試行の許可ではない。その後の公開継続は、過去の全試行・回帰確認を含めて未試行の17 cell のみ、元の相対順序で153 Jev／4 Typeを予約する。既定の公開216／8、修正二枠、保護した未見270の範囲内で、guard・判定閾値を維持する。
+
+二回目は四 cell を有効に記録し、H05-C の新名一部品と十分/control三件が一致した。10 Jev／1 Type、累計326／23。続く未試行17 cell も有効に記録し、gate は17/17、十分/controlの不変・生成禁止も成立した。87 Jev／3 Type、累計413／26で停止・精算した。C はH07のDB不足2個を補えたが、H06では異なる三群名を第一名の重複と既存名で置換し、H08では名前付きstepを候補から取りこぼした。Bはその二件を含む継続内の不足三件が完全一致した。いずれも元のrawと独立Rの固定producerを保存し、版をまたいだ完全panelには合算しない。
+
+未見入力の解放前に primary selected method を **B（比較・推奨方式）** と固定する。公開診断では最小の十分な方式であり、最終固定sourceでABC全30 cellを一回測る。通常UIの補完経路はCのままで、Bは比較driverの有限抽出である。Bの有限合格をTypeLLM固有の効果や通常UIの品質達成へ置換しない。製品方式Bを採用したとは報告せず、そのための製品経路変更・検証はこの測定に含めない。原因修正二枠は消費済みで、未見の結果から第三修正や未見再利用を行わない。
+
+`evidence/index.json` は停止済みphaseの原記録・journal prefix・source/zero-send/stopの独立確認・固定producerを参照する。release CIは記録された各SHAの完成物を作り、ZIP検証、全rawの再採点、物理送信と一つのjournalの精算、全armの実Chromium再描画、34改変反例を検算する。固定期待値を実行時に生成しない。原記録のINVALID、部分記録、意味/描画未達は検算成功後も保持する。
+
+UIは人手merge条件を残す候補756d47eをpinする。この候補compositionの測定を、将来のcanonical pinへ無条件に移さない。移せるのはUI merge treeがレビュー済treeに一致し、通常実行入力と配布runtime bytesがraw同一であり、差分が事前列挙したrevision/provenance metadataのみの場合に限る。その場合も新compositionの完成物browserとfull CIを再確認する。不一致なら新compositionの性能は未証明とする。

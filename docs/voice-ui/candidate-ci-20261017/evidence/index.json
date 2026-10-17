@@ -1,0 +1,169 @@
+{
+  "schema": "voice-ui.closed-evidence-index/1",
+  "expected_cumulative": {
+    "jev": 413,
+    "typellm": 26
+  },
+  "panels": [
+    {
+      "id": "public-initial-f2e9",
+      "phase_kind": "public",
+      "apps_sha": "f2e9a4cfb8dd2740b674b0597d06022c1f4a9549",
+      "raw_dir": "public-initial-invalid",
+      "parent_input": "../preregistered/public-eight.inputs.json",
+      "oracle": "../preregistered/public-eight.oracle.json",
+      "selected_input": null,
+      "selected_method": "C",
+      "runtime": "closed-audits/runtime-candidate-f2e9.json",
+      "config": "closed-audits/candidate-public-f2e9.config.json",
+      "process": "closed-audits/candidate-public-20261017.process.json",
+      "stdout": "closed-audits/candidate-public-20261017.stdout.log",
+      "stderr": "closed-audits/candidate-public-20261017.stderr.log",
+      "journal": "closed-audits/candidate-public-20261017.journal.jsonl",
+      "producer": "public-invalid-f2.producer.json",
+      "audits": {
+        "source-review": "pr103-f2e9-r3-review.md",
+        "zero-send": "candidate-public-f2e9-zero-send-audit.json",
+        "stop-observation": "candidate-public-f2e9-stop-audit.json"
+      },
+      "recorded_replay": "public-initial-invalid-replay/receipt.json",
+      "expected_execution_status": "INVALID",
+      "mutation_fixture": true
+    },
+    {
+      "id": "correction-one-f2fa",
+      "phase_kind": "correction",
+      "apps_sha": "f2fa07baeb54dd795c17d03178c5f2a508be6733",
+      "raw_dir": "correction-one",
+      "parent_input": "../preregistered/public-eight.inputs.json",
+      "oracle": "../preregistered/public-eight.oracle.json",
+      "selected_input": "../preregistered/correction-one.inputs.json",
+      "selected_method": "C",
+      "runtime": "closed-audits/runtime-candidate-f2fa.json",
+      "config": "closed-audits/candidate-correction-1-20261017.config.json",
+      "process": "closed-audits/candidate-correction-1-20261017.process.json",
+      "stdout": "closed-audits/candidate-correction-1-20261017.stdout.log",
+      "stderr": "closed-audits/candidate-correction-1-20261017.stderr.log",
+      "journal": "closed-audits/candidate-correction-1-20261017.journal.jsonl",
+      "producer": "correction-one-f2fa.producer.json",
+      "audits": {
+        "source-review": "pr103-f2fa-r4-review.md",
+        "zero-send": "candidate-correction-1-zero-send-audit.json",
+        "stop-observation": "candidate-correction-1-stop-audit.json"
+      },
+      "recorded_replay": "correction-one-replay/receipt.json",
+      "expected_execution_status": "INVALID",
+      "mutation_fixture": false
+    },
+    {
+      "id": "correction-two-2c8b",
+      "phase_kind": "correction",
+      "apps_sha": "2c8b25ed30c33580a5902a07907e3aeaed430c25",
+      "raw_dir": "correction-two",
+      "parent_input": "../preregistered/public-eight.inputs.json",
+      "oracle": "../preregistered/public-eight.oracle.json",
+      "selected_input": "../preregistered/correction-one.inputs.json",
+      "selected_method": "C",
+      "runtime": "closed-audits/runtime-candidate-2c8b.json",
+      "config": "closed-audits/candidate-correction-2-20261017.config.json",
+      "process": "closed-audits/candidate-correction-2-20261017.process.json",
+      "stdout": "closed-audits/candidate-correction-2-20261017.stdout.log",
+      "stderr": "closed-audits/candidate-correction-2-20261017.stderr.log",
+      "journal": "closed-audits/candidate-correction-2-20261017.journal.jsonl",
+      "producer": "correction-two-2c8b.producer.json",
+      "audits": {
+        "source-review": "pr103-2c8b-r5-review.md",
+        "zero-send": "candidate-correction-2-zero-send-audit.json",
+        "stop-observation": "candidate-correction-2-stop-audit.json"
+      },
+      "recorded_replay": "correction-two-replay/receipt.json",
+      "expected_execution_status": "RECORDED",
+      "mutation_fixture": false
+    },
+    {
+      "id": "public-remainder-2c8b",
+      "phase_kind": "public-remainder",
+      "apps_sha": "2c8b25ed30c33580a5902a07907e3aeaed430c25",
+      "raw_dir": "public-remainder",
+      "parent_input": "../preregistered/public-eight.inputs.json",
+      "oracle": "../preregistered/public-eight.oracle.json",
+      "selected_input": "../preregistered/public-remainder.inputs.json",
+      "selected_method": "C",
+      "runtime": "closed-audits/runtime-candidate-2c8b.json",
+      "config": "closed-audits/candidate-public-remainder-20261017.config.json",
+      "process": "closed-audits/candidate-public-remainder-20261017.process.json",
+      "stdout": "closed-audits/candidate-public-remainder-20261017.stdout.log",
+      "stderr": "closed-audits/candidate-public-remainder-20261017.stderr.log",
+      "journal": "closed-audits/candidate-public-remainder-20261017.journal.jsonl",
+      "producer": "public-remainder-2c8b.producer.json",
+      "audits": {
+        "source-review": "pr103-2c8b-r5-review.md",
+        "zero-send": "candidate-public-remainder-zero-send-audit.json",
+        "stop-observation": "candidate-public-remainder-stop-audit.json"
+      },
+      "recorded_replay": "public-remainder-replay/receipt.json",
+      "expected_execution_status": "RECORDED",
+      "mutation_fixture": false
+    }
+  ],
+  "diagnostics": [
+    {
+      "id": "candidate-type-diagnostic-1",
+      "apps_sha": "f2e9a4cfb8dd2740b674b0597d06022c1f4a9549",
+      "config": "closed-audits/candidate-type-diagnostic-1.config.json",
+      "process": "closed-audits/candidate-type-diagnostic-1.process.json",
+      "stdout": "closed-audits/candidate-type-diagnostic-1.stdout.log",
+      "stderr": "closed-audits/candidate-type-diagnostic-1.stderr.log",
+      "journal": "closed-audits/candidate-type-diagnostic-1.journal.jsonl",
+      "expected_sends": {
+        "jev": 0,
+        "typellm": 1
+      },
+      "request": "closed-audits/candidate-type-diagnostic-1.request.json",
+      "response": "closed-audits/candidate-type-diagnostic-1.response.json",
+      "expected_status": 502,
+      "expected_body": {
+        "error": "parts_contract"
+      },
+      "stop_audit": "candidate-type-diagnostic-1-stop-audit.json",
+      "stop_audit_sha256": "b7dd5745581b4b7db61a1e28eb3a8b539349c71b6e54e5600011bbf6c8e9ee22"
+    },
+    {
+      "id": "candidate-type-diagnostic-2",
+      "apps_sha": "cfd86a2776f5493867eca0629bae532c9a30480c",
+      "config": "closed-audits/candidate-type-diagnostic-2.config.json",
+      "process": "closed-audits/candidate-type-diagnostic-2.process.json",
+      "stdout": "closed-audits/candidate-type-diagnostic-2.stdout.log",
+      "stderr": "closed-audits/candidate-type-diagnostic-2.stderr.log",
+      "journal": "closed-audits/candidate-type-diagnostic-2.journal.jsonl",
+      "expected_sends": {
+        "jev": 0,
+        "typellm": 0
+      },
+      "scope": "BOOTSTRAP_FAILURE_ZERO_PROVIDER_CALLS",
+      "stop_audit": "candidate-type-diagnostic-2-unbound-audit.json",
+      "stop_audit_sha256": "d00f658bc13aa024f0cd82c8c539fb7d1052847d127c83c491bdc1973c59b033"
+    },
+    {
+      "id": "candidate-type-diagnostic-3",
+      "apps_sha": "cfd86a2776f5493867eca0629bae532c9a30480c",
+      "config": "closed-audits/candidate-type-diagnostic-3.config.json",
+      "process": "closed-audits/candidate-type-diagnostic-3.process.json",
+      "stdout": "closed-audits/candidate-type-diagnostic-3.stdout.log",
+      "stderr": "closed-audits/candidate-type-diagnostic-3.stderr.log",
+      "journal": "closed-audits/candidate-type-diagnostic-3.journal.jsonl",
+      "expected_sends": {
+        "jev": 0,
+        "typellm": 1
+      },
+      "request": "closed-audits/candidate-type-diagnostic-1.request.json",
+      "response": "closed-audits/candidate-type-diagnostic-3.response.json",
+      "expected_status": 502,
+      "expected_body": {
+        "error": "parts_contract"
+      },
+      "stop_audit": "candidate-type-diagnostic-3-stop-audit.json",
+      "stop_audit_sha256": "83fbc354c5d5d913551979797a0ce0b27f3b18d769eb30771b09379ec33867f9"
+    }
+  ]
+}

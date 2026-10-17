@@ -1,0 +1,50 @@
+{
+  "observed_at": "2026-10-17T09:24:56.569Z",
+  "phase": "candidate-type-diagnostic-1",
+  "config_sha256": "296ddc6b6e10d48434a240afaf6e58c54f850634c5d88cce219442413bc0e835",
+  "request_sha256": "510263b94e197a3bc2cc5ce677875927d3fe2f38fd1b8af7087aeb941b4090ed",
+  "response_sha256": "117521322b19adda04bd0af126f01c5b18a10f584933dc2afdcfd1fdca9155ab",
+  "response": {
+    "schema": "voice-ui.type-diagnostic/1",
+    "phase": "candidate-type-diagnostic-1",
+    "request_sha256": "510263b94e197a3bc2cc5ce677875927d3fe2f38fd1b8af7087aeb941b4090ed",
+    "started": "2026-10-17T09:22:03.101Z",
+    "status": 502,
+    "body": {
+      "error": "parts_contract"
+    },
+    "elapsedMs": 880.4841,
+    "scope": "NEW_ATTEMPT_DIAGNOSTIC_ONLY"
+  },
+  "pid": 233952,
+  "start_ticks": "13654560",
+  "current": null,
+  "group_members_including_z": [],
+  "ledger_sha256": "5947a1211e6ae2562eeecfc8fb62676ebbb8daf11cd34db4fea02cb06b4b4c82",
+  "charged": {
+    "jev": 309,
+    "typellm": 20
+  },
+  "pending": [],
+  "sent": {
+    "jev": 0,
+    "typellm": 1
+  },
+  "stderr_sha256": "e11c4c1b84fe6c00855bca26b9fb5c2dd8e8426d0304ddf1c0bf27426d0114a0",
+  "stdout_sha256": "417880c97b26752783c90d290697c7b8299b9e5d72d896bbcf90c0f7eb4e39f7",
+  "reconciliation": {
+    "kind": "phase-reconcile",
+    "id": "candidate-type-diagnostic-1",
+    "sent": {
+      "jev": 0,
+      "typellm": 1
+    },
+    "stopped_group_empty": true,
+    "pid": 233952,
+    "start_ticks": "13654560",
+    "stderr_sha256": "e11c4c1b84fe6c00855bca26b9fb5c2dd8e8426d0304ddf1c0bf27426d0114a0",
+    "stdout_sha256": "417880c97b26752783c90d290697c7b8299b9e5d72d896bbcf90c0f7eb4e39f7",
+    "at": "2026-10-17T09:22:04.198Z"
+  },
+  "matches": true
+}

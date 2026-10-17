@@ -1,0 +1,255 @@
+{
+  "observed_at": "2026-10-17T09:17:04.592Z",
+  "phase": "candidate-public-20261017",
+  "pid": 233467,
+  "start_ticks": "13622035",
+  "group_members_including_z": [],
+  "ledger_sha256": "af5dd50071d53c3de5a55b9000325b5601a6a0316cadb67803287fb6bbc89e0f",
+  "charged": {
+    "jev": 309,
+    "typellm": 19
+  },
+  "pending": [],
+  "reconciliation": {
+    "id": "candidate-public-20261017",
+    "sent": {
+      "jev": 17,
+      "typellm": 1
+    },
+    "stopped_group_empty": true,
+    "pid": 233467,
+    "start_ticks": "13622035",
+    "stderr_sha256": "e6ac6394a5b583710b772b502dee57fecc1bb64714fcb29d9dea555a4c6c2d06",
+    "stdout_sha256": "8ff35495b9dd97696a2c7753c0173fbf90b2a84096e0a5ea792c2b37878e9ec2"
+  },
+  "sent": {
+    "jev": 17,
+    "typellm": 1
+  },
+  "stderr_sha256": "e6ac6394a5b583710b772b502dee57fecc1bb64714fcb29d9dea555a4c6c2d06",
+  "stdout_sha256": "8ff35495b9dd97696a2c7753c0173fbf90b2a84096e0a5ea792c2b37878e9ec2",
+  "execution": {
+    "status": "INVALID",
+    "summary": [
+      {
+        "id": "H01",
+        "arm": "A",
+        "valid_execution": true,
+        "reason": "none",
+        "httpCalls": 4,
+        "elapsedMs": 1078.3055
+      },
+      {
+        "id": "H01",
+        "arm": "B",
+        "valid_execution": true,
+        "reason": "none",
+        "httpCalls": 4,
+        "elapsedMs": 748.8551000000002
+      },
+      {
+        "id": "H01",
+        "arm": "C",
+        "valid_execution": true,
+        "reason": "none",
+        "httpCalls": 4,
+        "elapsedMs": 842.7121
+      },
+      {
+        "id": "H05",
+        "arm": "B",
+        "valid_execution": true,
+        "reason": "none",
+        "httpCalls": 4,
+        "elapsedMs": 827.5160000000001
+      },
+      {
+        "id": "H05",
+        "arm": "C",
+        "valid_execution": false,
+        "reason": "completion-unknown",
+        "httpCalls": 2,
+        "elapsedMs": 1005.7926999999995
+      }
+    ]
+  },
+  "file_count": 8,
+  "files": [
+    "H01-A.json",
+    "H01-B.json",
+    "H01-C.json",
+    "H05-B.json",
+    "H05-C.json",
+    "events.jsonl",
+    "execution.json",
+    "identity.json"
+  ],
+  "arms": [
+    {
+      "id": "H01",
+      "arm": "A",
+      "valid_execution": true,
+      "reason": "none",
+      "calls": [
+        {
+          "n": 1,
+          "route": "/api/parts/check",
+          "status": 200,
+          "error": null,
+          "has_response": true
+        },
+        {
+          "n": 2,
+          "route": "/api/judge",
+          "status": 200,
+          "error": null,
+          "has_response": true
+        },
+        {
+          "n": 3,
+          "route": "/api/judge",
+          "status": 200,
+          "error": null,
+          "has_response": true
+        },
+        {
+          "n": 4,
+          "route": "/api/judge",
+          "status": 200,
+          "error": null,
+          "has_response": true
+        }
+      ]
+    },
+    {
+      "id": "H01",
+      "arm": "B",
+      "valid_execution": true,
+      "reason": "none",
+      "calls": [
+        {
+          "n": 1,
+          "route": "/api/parts/check",
+          "status": 200,
+          "error": null,
+          "has_response": true
+        },
+        {
+          "n": 2,
+          "route": "/api/judge",
+          "status": 200,
+          "error": null,
+          "has_response": true
+        },
+        {
+          "n": 3,
+          "route": "/api/judge",
+          "status": 200,
+          "error": null,
+          "has_response": true
+        },
+        {
+          "n": 4,
+          "route": "/api/judge",
+          "status": 200,
+          "error": null,
+          "has_response": true
+        }
+      ]
+    },
+    {
+      "id": "H01",
+      "arm": "C",
+      "valid_execution": true,
+      "reason": "none",
+      "calls": [
+        {
+          "n": 1,
+          "route": "/api/parts/check",
+          "status": 200,
+          "error": null,
+          "has_response": true
+        },
+        {
+          "n": 2,
+          "route": "/api/judge",
+          "status": 200,
+          "error": null,
+          "has_response": true
+        },
+        {
+          "n": 3,
+          "route": "/api/judge",
+          "status": 200,
+          "error": null,
+          "has_response": true
+        },
+        {
+          "n": 4,
+          "route": "/api/judge",
+          "status": 200,
+          "error": null,
+          "has_response": true
+        }
+      ]
+    },
+    {
+      "id": "H05",
+      "arm": "B",
+      "valid_execution": true,
+      "reason": "none",
+      "calls": [
+        {
+          "n": 1,
+          "route": "/api/parts/check",
+          "status": 200,
+          "error": null,
+          "has_response": true
+        },
+        {
+          "n": 2,
+          "route": "/api/judge",
+          "status": 200,
+          "error": null,
+          "has_response": true
+        },
+        {
+          "n": 3,
+          "route": "/api/judge",
+          "status": 200,
+          "error": null,
+          "has_response": true
+        },
+        {
+          "n": 4,
+          "route": "/api/judge",
+          "status": 200,
+          "error": null,
+          "has_response": true
+        }
+      ]
+    },
+    {
+      "id": "H05",
+      "arm": "C",
+      "valid_execution": false,
+      "reason": "completion-unknown",
+      "calls": [
+        {
+          "n": 1,
+          "route": "/api/parts/check",
+          "status": 200,
+          "error": null,
+          "has_response": true
+        },
+        {
+          "n": 2,
+          "route": "/api/parts/complete",
+          "status": null,
+          "error": "http_or_contract_unknown",
+          "has_response": false
+        }
+      ]
+    }
+  ]
+}

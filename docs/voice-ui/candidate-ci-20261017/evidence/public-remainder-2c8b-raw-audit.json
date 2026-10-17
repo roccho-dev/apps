@@ -1,0 +1,1286 @@
+{
+  "schema": "voice-ui.independent-public-remainder-audit/1",
+  "observed_at": "2026-10-17T10:11:18.915Z",
+  "classification": "VALID_PARTIAL_PUBLIC_REMAINDER",
+  "raw": {
+    "schema": "voice-ui.poc.raw-receipt-audit/1",
+    "status": "PASS",
+    "issues": [],
+    "phase_kind": "public-remainder",
+    "consumed": 17,
+    "planned": 17,
+    "complete_same_source_panel": false,
+    "model_comparison_admissible": false,
+    "recorded_execution_status": "RECORDED",
+    "missing_responses": [],
+    "http_attempts": {
+      "jev": 87,
+      "typellm": 3
+    },
+    "factor_count": 17,
+    "proofs": [
+      {
+        "id": "H05",
+        "arm": "A",
+        "status": "PASS",
+        "final_head": "sha256:427f100733808a9c6ee67b174e418a715b88230c7d735dfaa38f692c0484590c",
+        "initial_log_sha256": "32f7c43ed78ccead4936c39d30e00fd36340a388192bb9e0c9b0265801848079",
+        "final_log_sha256": "42d81b8a173cf87fcac8c68be6e41c69f9288150ba285849f1c3f8cb2bf1a7f1"
+      },
+      {
+        "id": "H09",
+        "arm": "A",
+        "status": "PASS",
+        "final_head": "sha256:3f44e0d52678bc7ddeac8b19804ffaadfe6a493ce65ba8ca98f345ddd2ff75a2",
+        "initial_log_sha256": "32f7c43ed78ccead4936c39d30e00fd36340a388192bb9e0c9b0265801848079",
+        "final_log_sha256": "32f7c43ed78ccead4936c39d30e00fd36340a388192bb9e0c9b0265801848079"
+      },
+      {
+        "id": "H09",
+        "arm": "B",
+        "status": "PASS",
+        "final_head": "sha256:3f44e0d52678bc7ddeac8b19804ffaadfe6a493ce65ba8ca98f345ddd2ff75a2",
+        "initial_log_sha256": "32f7c43ed78ccead4936c39d30e00fd36340a388192bb9e0c9b0265801848079",
+        "final_log_sha256": "32f7c43ed78ccead4936c39d30e00fd36340a388192bb9e0c9b0265801848079"
+      },
+      {
+        "id": "H02",
+        "arm": "A",
+        "status": "PASS",
+        "final_head": "sha256:5a2c7a5f59a2cd10f33f25ca349d1545f2cbca05a48364c2fdd3ec0a0692048c",
+        "initial_log_sha256": "32f7c43ed78ccead4936c39d30e00fd36340a388192bb9e0c9b0265801848079",
+        "final_log_sha256": "6d35afebfd64c72b29de59a430be9332786491a065409c19496f2746a74e7fc4"
+      },
+      {
+        "id": "H02",
+        "arm": "B",
+        "status": "PASS",
+        "final_head": "sha256:5a2c7a5f59a2cd10f33f25ca349d1545f2cbca05a48364c2fdd3ec0a0692048c",
+        "initial_log_sha256": "32f7c43ed78ccead4936c39d30e00fd36340a388192bb9e0c9b0265801848079",
+        "final_log_sha256": "6d35afebfd64c72b29de59a430be9332786491a065409c19496f2746a74e7fc4"
+      },
+      {
+        "id": "H02",
+        "arm": "C",
+        "status": "PASS",
+        "final_head": "sha256:5a2c7a5f59a2cd10f33f25ca349d1545f2cbca05a48364c2fdd3ec0a0692048c",
+        "initial_log_sha256": "32f7c43ed78ccead4936c39d30e00fd36340a388192bb9e0c9b0265801848079",
+        "final_log_sha256": "6d35afebfd64c72b29de59a430be9332786491a065409c19496f2746a74e7fc4"
+      },
+      {
+        "id": "H06",
+        "arm": "B",
+        "status": "PASS",
+        "final_head": "sha256:cf18a7923f6efef755771534115eff5fe32284b0f553855224850ae1a337334d",
+        "initial_log_sha256": "32f7c43ed78ccead4936c39d30e00fd36340a388192bb9e0c9b0265801848079",
+        "final_log_sha256": "0377528c169c64ba368f45ccaa022bb932a66713c4e6d109b1b05e0b74c1bcb5"
+      },
+      {
+        "id": "H06",
+        "arm": "C",
+        "status": "PASS",
+        "final_head": "sha256:b09ca0fc2c8f20398ca9c6666c4bc6b2022cbe9c215b9d011b7c8bb91f5cf19c",
+        "initial_log_sha256": "32f7c43ed78ccead4936c39d30e00fd36340a388192bb9e0c9b0265801848079",
+        "final_log_sha256": "6c4cbe07c6e9d75ccbe3c7a0ac711d4ecdb66a27b085e40b04b3241036bdd313"
+      },
+      {
+        "id": "H06",
+        "arm": "A",
+        "status": "PASS",
+        "final_head": "sha256:fd897fc7929a8e081bcd08a1f5453f186df088c640371c1b339220869d97b61f",
+        "initial_log_sha256": "32f7c43ed78ccead4936c39d30e00fd36340a388192bb9e0c9b0265801848079",
+        "final_log_sha256": "e209031f0359679fcd4c8fc2ac24fdd6858adc3902169bed1a60a4318f821f2d"
+      },
+      {
+        "id": "H10",
+        "arm": "A",
+        "status": "PASS",
+        "final_head": "sha256:6969f47d7531db6ae8959481e6ee24676c9b37da9a61b2cdf2c97d4a2af6684a",
+        "initial_log_sha256": "b36330f159836a6ae872a0da817391214208f919e76fc4fb69331248cecc618c",
+        "final_log_sha256": "b36330f159836a6ae872a0da817391214208f919e76fc4fb69331248cecc618c"
+      },
+      {
+        "id": "H10",
+        "arm": "B",
+        "status": "PASS",
+        "final_head": "sha256:6969f47d7531db6ae8959481e6ee24676c9b37da9a61b2cdf2c97d4a2af6684a",
+        "initial_log_sha256": "b36330f159836a6ae872a0da817391214208f919e76fc4fb69331248cecc618c",
+        "final_log_sha256": "b36330f159836a6ae872a0da817391214208f919e76fc4fb69331248cecc618c"
+      },
+      {
+        "id": "H07",
+        "arm": "A",
+        "status": "PASS",
+        "final_head": "sha256:ebae942ce31052785ae4c2d197c45935ce24ab5a4116fa4e0429f272bff643ee",
+        "initial_log_sha256": "32f7c43ed78ccead4936c39d30e00fd36340a388192bb9e0c9b0265801848079",
+        "final_log_sha256": "a83e32115763beb9396c198d3e9bb718e27944f9cb30007eca3ebf2f94e12288"
+      },
+      {
+        "id": "H07",
+        "arm": "B",
+        "status": "PASS",
+        "final_head": "sha256:eac91a1cac103ebe7e053f14da16176279389607a6414a6820ea93ae54f54820",
+        "initial_log_sha256": "32f7c43ed78ccead4936c39d30e00fd36340a388192bb9e0c9b0265801848079",
+        "final_log_sha256": "ffc411fd19e5e4330ece0f31c4720078789e83586b74e0b233e342947dbfa26c"
+      },
+      {
+        "id": "H07",
+        "arm": "C",
+        "status": "PASS",
+        "final_head": "sha256:eac91a1cac103ebe7e053f14da16176279389607a6414a6820ea93ae54f54820",
+        "initial_log_sha256": "32f7c43ed78ccead4936c39d30e00fd36340a388192bb9e0c9b0265801848079",
+        "final_log_sha256": "ffc411fd19e5e4330ece0f31c4720078789e83586b74e0b233e342947dbfa26c"
+      },
+      {
+        "id": "H08",
+        "arm": "B",
+        "status": "PASS",
+        "final_head": "sha256:2d11a322784e03f73cc34d36046c50e196c9fb141b283c3b8e6dc03d64567900",
+        "initial_log_sha256": "32f7c43ed78ccead4936c39d30e00fd36340a388192bb9e0c9b0265801848079",
+        "final_log_sha256": "ebd716f4d01df6b8ccfa089c024b90614fe681aa31e83149d7fdc1cf37f7310d"
+      },
+      {
+        "id": "H08",
+        "arm": "C",
+        "status": "PASS",
+        "final_head": "sha256:23373f91597a164b404068701d76487b079a35e9f2b21f3feacb55c68132b296",
+        "initial_log_sha256": "32f7c43ed78ccead4936c39d30e00fd36340a388192bb9e0c9b0265801848079",
+        "final_log_sha256": "3214db27fafb1120831624d7e863743f0318f03f2987a1e17b708e30f1723be8"
+      },
+      {
+        "id": "H08",
+        "arm": "A",
+        "status": "PASS",
+        "final_head": "sha256:8baa8779715ea5dac2a793aa9b887db1420fbb5df5c9474a7803d2c17d20a61e",
+        "initial_log_sha256": "32f7c43ed78ccead4936c39d30e00fd36340a388192bb9e0c9b0265801848079",
+        "final_log_sha256": "01c9abaa40be289f78d78561781a59d4f0c44c28e2041a199c7ec667ed49d80c"
+      }
+    ],
+    "rows": [
+      {
+        "id": "H05",
+        "arm": "A",
+        "expected_gate": "missing",
+        "score_input_valid": true,
+        "issues": [],
+        "gate": {
+          "contract_valid": true,
+          "raw_choice_correct": true,
+          "accepted_gate_correct": true
+        },
+        "graph_exact": false,
+        "graph": {
+          "graph_exact": false,
+          "unique_record_keys": true,
+          "existing_semantics_preserved": true,
+          "semantic_unchanged": false,
+          "clean_new_regions": true,
+          "clean_new_edges": true,
+          "no_other_new_semantics": true,
+          "actual_added_regions": [
+            {
+              "label": "工程",
+              "kind": "step",
+              "parent": "fixture:container"
+            }
+          ],
+          "actual_added_edges": []
+        },
+        "missing_minimal": false,
+        "raw_unchanged": false,
+        "no_false_adoption": false,
+        "generation_free": true,
+        "all_arm_guard": true,
+        "deadline": true,
+        "jev_http": 4,
+        "typellm_http": 0,
+        "elapsedMs": 1022.1122000000001,
+        "scope": "missing"
+      },
+      {
+        "id": "H09",
+        "arm": "A",
+        "expected_gate": "ambiguous",
+        "score_input_valid": true,
+        "issues": [],
+        "gate": {
+          "contract_valid": true,
+          "raw_choice_correct": true,
+          "accepted_gate_correct": true
+        },
+        "graph_exact": true,
+        "graph": {
+          "graph_exact": true,
+          "unique_record_keys": true,
+          "existing_semantics_preserved": true,
+          "semantic_unchanged": true,
+          "clean_new_regions": true,
+          "clean_new_edges": true,
+          "no_other_new_semantics": true,
+          "actual_added_regions": [],
+          "actual_added_edges": []
+        },
+        "missing_minimal": true,
+        "raw_unchanged": true,
+        "no_false_adoption": true,
+        "generation_free": true,
+        "all_arm_guard": true,
+        "deadline": true,
+        "jev_http": 1,
+        "typellm_http": 0,
+        "elapsedMs": 372.79410000000007,
+        "scope": "control"
+      },
+      {
+        "id": "H09",
+        "arm": "B",
+        "expected_gate": "ambiguous",
+        "score_input_valid": true,
+        "issues": [],
+        "gate": {
+          "contract_valid": true,
+          "raw_choice_correct": true,
+          "accepted_gate_correct": true
+        },
+        "graph_exact": true,
+        "graph": {
+          "graph_exact": true,
+          "unique_record_keys": true,
+          "existing_semantics_preserved": true,
+          "semantic_unchanged": true,
+          "clean_new_regions": true,
+          "clean_new_edges": true,
+          "no_other_new_semantics": true,
+          "actual_added_regions": [],
+          "actual_added_edges": []
+        },
+        "missing_minimal": true,
+        "raw_unchanged": true,
+        "no_false_adoption": true,
+        "generation_free": true,
+        "all_arm_guard": true,
+        "deadline": true,
+        "jev_http": 1,
+        "typellm_http": 0,
+        "elapsedMs": 185.2532000000001,
+        "scope": "control"
+      },
+      {
+        "id": "H02",
+        "arm": "A",
+        "expected_gate": "sufficient",
+        "score_input_valid": true,
+        "issues": [],
+        "gate": {
+          "contract_valid": true,
+          "raw_choice_correct": true,
+          "accepted_gate_correct": true
+        },
+        "graph_exact": true,
+        "graph": {
+          "graph_exact": true,
+          "unique_record_keys": true,
+          "existing_semantics_preserved": true,
+          "semantic_unchanged": false,
+          "clean_new_regions": true,
+          "clean_new_edges": true,
+          "no_other_new_semantics": true,
+          "actual_added_regions": [
+            {
+              "label": "判断",
+              "kind": "decision",
+              "parent": "fixture:container"
+            }
+          ],
+          "actual_added_edges": []
+        },
+        "missing_minimal": true,
+        "raw_unchanged": false,
+        "no_false_adoption": true,
+        "generation_free": true,
+        "all_arm_guard": true,
+        "deadline": true,
+        "jev_http": 4,
+        "typellm_http": 0,
+        "elapsedMs": 772.4352999999999,
+        "scope": "sufficient"
+      },
+      {
+        "id": "H02",
+        "arm": "B",
+        "expected_gate": "sufficient",
+        "score_input_valid": true,
+        "issues": [],
+        "gate": {
+          "contract_valid": true,
+          "raw_choice_correct": true,
+          "accepted_gate_correct": true
+        },
+        "graph_exact": true,
+        "graph": {
+          "graph_exact": true,
+          "unique_record_keys": true,
+          "existing_semantics_preserved": true,
+          "semantic_unchanged": false,
+          "clean_new_regions": true,
+          "clean_new_edges": true,
+          "no_other_new_semantics": true,
+          "actual_added_regions": [
+            {
+              "label": "判断",
+              "kind": "decision",
+              "parent": "fixture:container"
+            }
+          ],
+          "actual_added_edges": []
+        },
+        "missing_minimal": true,
+        "raw_unchanged": false,
+        "no_false_adoption": true,
+        "generation_free": true,
+        "all_arm_guard": true,
+        "deadline": true,
+        "jev_http": 4,
+        "typellm_http": 0,
+        "elapsedMs": 838.8331000000003,
+        "scope": "sufficient"
+      },
+      {
+        "id": "H02",
+        "arm": "C",
+        "expected_gate": "sufficient",
+        "score_input_valid": true,
+        "issues": [],
+        "gate": {
+          "contract_valid": true,
+          "raw_choice_correct": true,
+          "accepted_gate_correct": true
+        },
+        "graph_exact": true,
+        "graph": {
+          "graph_exact": true,
+          "unique_record_keys": true,
+          "existing_semantics_preserved": true,
+          "semantic_unchanged": false,
+          "clean_new_regions": true,
+          "clean_new_edges": true,
+          "no_other_new_semantics": true,
+          "actual_added_regions": [
+            {
+              "label": "判断",
+              "kind": "decision",
+              "parent": "fixture:container"
+            }
+          ],
+          "actual_added_edges": []
+        },
+        "missing_minimal": true,
+        "raw_unchanged": false,
+        "no_false_adoption": true,
+        "generation_free": true,
+        "all_arm_guard": true,
+        "deadline": true,
+        "jev_http": 4,
+        "typellm_http": 0,
+        "elapsedMs": 757.4748,
+        "scope": "sufficient"
+      },
+      {
+        "id": "H06",
+        "arm": "B",
+        "expected_gate": "missing",
+        "score_input_valid": true,
+        "issues": [],
+        "gate": {
+          "contract_valid": true,
+          "raw_choice_correct": true,
+          "accepted_gate_correct": true
+        },
+        "graph_exact": true,
+        "graph": {
+          "graph_exact": true,
+          "unique_record_keys": true,
+          "existing_semantics_preserved": true,
+          "semantic_unchanged": false,
+          "clean_new_regions": true,
+          "clean_new_edges": true,
+          "no_other_new_semantics": true,
+          "actual_added_regions": [
+            {
+              "label": "読込班",
+              "kind": "group",
+              "parent": "fixture:container"
+            },
+            {
+              "label": "点検班",
+              "kind": "group",
+              "parent": "fixture:container"
+            },
+            {
+              "label": "保管班",
+              "kind": "group",
+              "parent": "fixture:container"
+            }
+          ],
+          "actual_added_edges": []
+        },
+        "missing_minimal": true,
+        "raw_unchanged": false,
+        "no_false_adoption": true,
+        "generation_free": false,
+        "all_arm_guard": true,
+        "deadline": true,
+        "jev_http": 8,
+        "typellm_http": 0,
+        "elapsedMs": 1679.5472,
+        "scope": "missing"
+      },
+      {
+        "id": "H06",
+        "arm": "C",
+        "expected_gate": "missing",
+        "score_input_valid": true,
+        "issues": [],
+        "gate": {
+          "contract_valid": true,
+          "raw_choice_correct": true,
+          "accepted_gate_correct": true
+        },
+        "graph_exact": false,
+        "graph": {
+          "graph_exact": false,
+          "unique_record_keys": true,
+          "existing_semantics_preserved": true,
+          "semantic_unchanged": false,
+          "clean_new_regions": true,
+          "clean_new_edges": true,
+          "no_other_new_semantics": true,
+          "actual_added_regions": [
+            {
+              "label": "読込班",
+              "kind": "group",
+              "parent": "fixture:container"
+            },
+            {
+              "label": "グループ",
+              "kind": "group",
+              "parent": "fixture:container"
+            },
+            {
+              "label": "読込班",
+              "kind": "group",
+              "parent": "fixture:container"
+            }
+          ],
+          "actual_added_edges": []
+        },
+        "missing_minimal": false,
+        "raw_unchanged": false,
+        "no_false_adoption": false,
+        "generation_free": false,
+        "all_arm_guard": true,
+        "deadline": true,
+        "jev_http": 8,
+        "typellm_http": 1,
+        "elapsedMs": 2868.7334,
+        "scope": "missing"
+      },
+      {
+        "id": "H06",
+        "arm": "A",
+        "expected_gate": "missing",
+        "score_input_valid": true,
+        "issues": [],
+        "gate": {
+          "contract_valid": true,
+          "raw_choice_correct": true,
+          "accepted_gate_correct": true
+        },
+        "graph_exact": false,
+        "graph": {
+          "graph_exact": false,
+          "unique_record_keys": true,
+          "existing_semantics_preserved": true,
+          "semantic_unchanged": false,
+          "clean_new_regions": true,
+          "clean_new_edges": true,
+          "no_other_new_semantics": true,
+          "actual_added_regions": [
+            {
+              "label": "グループ",
+              "kind": "group",
+              "parent": "fixture:container"
+            }
+          ],
+          "actual_added_edges": []
+        },
+        "missing_minimal": false,
+        "raw_unchanged": false,
+        "no_false_adoption": false,
+        "generation_free": true,
+        "all_arm_guard": true,
+        "deadline": true,
+        "jev_http": 4,
+        "typellm_http": 0,
+        "elapsedMs": 731.4382999999998,
+        "scope": "missing"
+      },
+      {
+        "id": "H10",
+        "arm": "A",
+        "expected_gate": "no-change",
+        "score_input_valid": true,
+        "issues": [],
+        "gate": {
+          "contract_valid": true,
+          "raw_choice_correct": true,
+          "accepted_gate_correct": true
+        },
+        "graph_exact": true,
+        "graph": {
+          "graph_exact": true,
+          "unique_record_keys": true,
+          "existing_semantics_preserved": true,
+          "semantic_unchanged": true,
+          "clean_new_regions": true,
+          "clean_new_edges": true,
+          "no_other_new_semantics": true,
+          "actual_added_regions": [],
+          "actual_added_edges": []
+        },
+        "missing_minimal": true,
+        "raw_unchanged": true,
+        "no_false_adoption": true,
+        "generation_free": true,
+        "all_arm_guard": true,
+        "deadline": true,
+        "jev_http": 1,
+        "typellm_http": 0,
+        "elapsedMs": 185.0018,
+        "scope": "control"
+      },
+      {
+        "id": "H10",
+        "arm": "B",
+        "expected_gate": "no-change",
+        "score_input_valid": true,
+        "issues": [],
+        "gate": {
+          "contract_valid": true,
+          "raw_choice_correct": true,
+          "accepted_gate_correct": true
+        },
+        "graph_exact": true,
+        "graph": {
+          "graph_exact": true,
+          "unique_record_keys": true,
+          "existing_semantics_preserved": true,
+          "semantic_unchanged": true,
+          "clean_new_regions": true,
+          "clean_new_edges": true,
+          "no_other_new_semantics": true,
+          "actual_added_regions": [],
+          "actual_added_edges": []
+        },
+        "missing_minimal": true,
+        "raw_unchanged": true,
+        "no_false_adoption": true,
+        "generation_free": true,
+        "all_arm_guard": true,
+        "deadline": true,
+        "jev_http": 1,
+        "typellm_http": 0,
+        "elapsedMs": 207.04150000000118,
+        "scope": "control"
+      },
+      {
+        "id": "H07",
+        "arm": "A",
+        "expected_gate": "missing",
+        "score_input_valid": true,
+        "issues": [],
+        "gate": {
+          "contract_valid": true,
+          "raw_choice_correct": true,
+          "accepted_gate_correct": true
+        },
+        "graph_exact": false,
+        "graph": {
+          "graph_exact": false,
+          "unique_record_keys": true,
+          "existing_semantics_preserved": true,
+          "semantic_unchanged": false,
+          "clean_new_regions": true,
+          "clean_new_edges": true,
+          "no_other_new_semantics": true,
+          "actual_added_regions": [
+            {
+              "label": "DB",
+              "kind": "data",
+              "parent": "fixture:container"
+            }
+          ],
+          "actual_added_edges": []
+        },
+        "missing_minimal": false,
+        "raw_unchanged": false,
+        "no_false_adoption": true,
+        "generation_free": true,
+        "all_arm_guard": true,
+        "deadline": true,
+        "jev_http": 4,
+        "typellm_http": 0,
+        "elapsedMs": 749.3521000000001,
+        "scope": "missing"
+      },
+      {
+        "id": "H07",
+        "arm": "B",
+        "expected_gate": "missing",
+        "score_input_valid": true,
+        "issues": [],
+        "gate": {
+          "contract_valid": true,
+          "raw_choice_correct": true,
+          "accepted_gate_correct": true
+        },
+        "graph_exact": true,
+        "graph": {
+          "graph_exact": true,
+          "unique_record_keys": true,
+          "existing_semantics_preserved": true,
+          "semantic_unchanged": false,
+          "clean_new_regions": true,
+          "clean_new_edges": true,
+          "no_other_new_semantics": true,
+          "actual_added_regions": [
+            {
+              "label": "DB",
+              "kind": "data",
+              "parent": "fixture:container"
+            },
+            {
+              "label": "DB",
+              "kind": "data",
+              "parent": "fixture:container"
+            },
+            {
+              "label": "DB",
+              "kind": "data",
+              "parent": "fixture:container"
+            }
+          ],
+          "actual_added_edges": []
+        },
+        "missing_minimal": true,
+        "raw_unchanged": false,
+        "no_false_adoption": true,
+        "generation_free": false,
+        "all_arm_guard": true,
+        "deadline": true,
+        "jev_http": 8,
+        "typellm_http": 0,
+        "elapsedMs": 1678.0291000000016,
+        "scope": "missing"
+      },
+      {
+        "id": "H07",
+        "arm": "C",
+        "expected_gate": "missing",
+        "score_input_valid": true,
+        "issues": [],
+        "gate": {
+          "contract_valid": true,
+          "raw_choice_correct": true,
+          "accepted_gate_correct": true
+        },
+        "graph_exact": true,
+        "graph": {
+          "graph_exact": true,
+          "unique_record_keys": true,
+          "existing_semantics_preserved": true,
+          "semantic_unchanged": false,
+          "clean_new_regions": true,
+          "clean_new_edges": true,
+          "no_other_new_semantics": true,
+          "actual_added_regions": [
+            {
+              "label": "DB",
+              "kind": "data",
+              "parent": "fixture:container"
+            },
+            {
+              "label": "DB",
+              "kind": "data",
+              "parent": "fixture:container"
+            },
+            {
+              "label": "DB",
+              "kind": "data",
+              "parent": "fixture:container"
+            }
+          ],
+          "actual_added_edges": []
+        },
+        "missing_minimal": true,
+        "raw_unchanged": false,
+        "no_false_adoption": true,
+        "generation_free": false,
+        "all_arm_guard": true,
+        "deadline": true,
+        "jev_http": 8,
+        "typellm_http": 1,
+        "elapsedMs": 2925.2944000000007,
+        "scope": "missing"
+      },
+      {
+        "id": "H08",
+        "arm": "B",
+        "expected_gate": "missing",
+        "score_input_valid": true,
+        "issues": [],
+        "gate": {
+          "contract_valid": true,
+          "raw_choice_correct": true,
+          "accepted_gate_correct": true
+        },
+        "graph_exact": true,
+        "graph": {
+          "graph_exact": true,
+          "unique_record_keys": true,
+          "existing_semantics_preserved": true,
+          "semantic_unchanged": false,
+          "clean_new_regions": true,
+          "clean_new_edges": true,
+          "no_other_new_semantics": true,
+          "actual_added_regions": [
+            {
+              "label": "検品室",
+              "kind": "group",
+              "parent": "fixture:container"
+            },
+            {
+              "label": "寸法測定",
+              "kind": "step",
+              "parent": "added:検品室"
+            },
+            {
+              "label": "測定票",
+              "kind": "data",
+              "parent": "added:検品室"
+            }
+          ],
+          "actual_added_edges": [
+            {
+              "from": "added:寸法測定",
+              "to": "added:測定票",
+              "kind": "flow",
+              "label": ""
+            }
+          ]
+        },
+        "missing_minimal": true,
+        "raw_unchanged": false,
+        "no_false_adoption": true,
+        "generation_free": false,
+        "all_arm_guard": true,
+        "deadline": true,
+        "jev_http": 9,
+        "typellm_http": 0,
+        "elapsedMs": 1840.1450000000004,
+        "scope": "missing"
+      },
+      {
+        "id": "H08",
+        "arm": "C",
+        "expected_gate": "missing",
+        "score_input_valid": true,
+        "issues": [],
+        "gate": {
+          "contract_valid": true,
+          "raw_choice_correct": true,
+          "accepted_gate_correct": true
+        },
+        "graph_exact": false,
+        "graph": {
+          "graph_exact": false,
+          "unique_record_keys": true,
+          "existing_semantics_preserved": true,
+          "semantic_unchanged": false,
+          "clean_new_regions": true,
+          "clean_new_edges": true,
+          "no_other_new_semantics": true,
+          "actual_added_regions": [
+            {
+              "label": "検品室",
+              "kind": "group",
+              "parent": "fixture:container"
+            },
+            {
+              "label": "工程",
+              "kind": "step",
+              "parent": "added:検品室"
+            },
+            {
+              "label": "測定票",
+              "kind": "data",
+              "parent": "added:検品室"
+            }
+          ],
+          "actual_added_edges": [
+            {
+              "from": "added:工程",
+              "to": "added:測定票",
+              "kind": "flow",
+              "label": ""
+            }
+          ]
+        },
+        "missing_minimal": false,
+        "raw_unchanged": false,
+        "no_false_adoption": false,
+        "generation_free": false,
+        "all_arm_guard": true,
+        "deadline": true,
+        "jev_http": 9,
+        "typellm_http": 1,
+        "elapsedMs": 2596.1180999999997,
+        "scope": "missing"
+      },
+      {
+        "id": "H08",
+        "arm": "A",
+        "expected_gate": "missing",
+        "score_input_valid": true,
+        "issues": [],
+        "gate": {
+          "contract_valid": true,
+          "raw_choice_correct": true,
+          "accepted_gate_correct": true
+        },
+        "graph_exact": false,
+        "graph": {
+          "graph_exact": false,
+          "unique_record_keys": true,
+          "existing_semantics_preserved": true,
+          "semantic_unchanged": false,
+          "clean_new_regions": true,
+          "clean_new_edges": true,
+          "no_other_new_semantics": true,
+          "actual_added_regions": [
+            {
+              "label": "グループ",
+              "kind": "group",
+              "parent": "fixture:container"
+            },
+            {
+              "label": "工程",
+              "kind": "step",
+              "parent": "added:グループ"
+            },
+            {
+              "label": "データ",
+              "kind": "data",
+              "parent": "added:グループ"
+            }
+          ],
+          "actual_added_edges": [
+            {
+              "from": "added:工程",
+              "to": "added:データ",
+              "kind": "flow",
+              "label": ""
+            }
+          ]
+        },
+        "missing_minimal": false,
+        "raw_unchanged": false,
+        "no_false_adoption": false,
+        "generation_free": true,
+        "all_arm_guard": true,
+        "deadline": true,
+        "jev_http": 9,
+        "typellm_http": 0,
+        "elapsedMs": 1758.0282000000007,
+        "scope": "missing"
+      }
+    ],
+    "panels": {
+      "A": {
+        "schema": "voice-ui.poc.semantic-panel-score/1",
+        "selected": "A",
+        "complete": false,
+        "score_inputs_valid": false,
+        "final_shape": false,
+        "per_arm": {
+          "A": {
+            "gate": {
+              "accepted": 7,
+              "total": 7
+            },
+            "sufficient": {
+              "exact": 1,
+              "total": 1
+            },
+            "missing": {
+              "exact": 0,
+              "minimal": 0,
+              "total": 4
+            },
+            "controls": {
+              "raw_unchanged": 2,
+              "total": 2
+            },
+            "non_regression_guards": true,
+            "deadlines": true,
+            "jev_http": 27,
+            "typellm_http": 0
+          },
+          "B": {
+            "gate": {
+              "accepted": 6,
+              "total": 6
+            },
+            "sufficient": {
+              "exact": 1,
+              "total": 1
+            },
+            "missing": {
+              "exact": 3,
+              "minimal": 3,
+              "total": 3
+            },
+            "controls": {
+              "raw_unchanged": 2,
+              "total": 2
+            },
+            "non_regression_guards": true,
+            "deadlines": true,
+            "jev_http": 31,
+            "typellm_http": 0
+          },
+          "C": {
+            "gate": {
+              "accepted": 4,
+              "total": 4
+            },
+            "sufficient": {
+              "exact": 1,
+              "total": 1
+            },
+            "missing": {
+              "exact": 1,
+              "minimal": 1,
+              "total": 3
+            },
+            "controls": {
+              "raw_unchanged": 0,
+              "total": 0
+            },
+            "non_regression_guards": true,
+            "deadlines": true,
+            "jev_http": 29,
+            "typellm_http": 3
+          }
+        },
+        "paired_accepted_gate_gains": {
+          "over_A": {
+            "baseline": "A",
+            "eligible": 3,
+            "wins": 1,
+            "losses": 0,
+            "signed_gain": 1,
+            "excluded_gate_pairs": 1
+          },
+          "over_B": {
+            "baseline": "B",
+            "eligible": 3,
+            "wins": 0,
+            "losses": 2,
+            "signed_gain": -2,
+            "excluded_gate_pairs": 1
+          }
+        },
+        "all_arm_non_regression": true,
+        "selected_finite_semantic_criteria": "UNMET",
+        "mandatory_separate_admissibility": [
+          "consumed-input commitment and raw arm order/equal initial bytes",
+          "actual protocol/log/proof verification",
+          "actual runtime/source/artifact binding",
+          "provider journal/process closure and all count deltas",
+          "raw factor recomputation",
+          "completed-artifact browser/paint/lifecycle and mutation controls"
+        ],
+        "four_way_comparison": "INCOMPLETE_D_BLOCKED_COST",
+        "CI_LIVE_EXECUTION": "UNPROVEN",
+        "currency": "COST_NOT_MEASURED"
+      },
+      "B": {
+        "schema": "voice-ui.poc.semantic-panel-score/1",
+        "selected": "B",
+        "complete": false,
+        "score_inputs_valid": false,
+        "final_shape": false,
+        "per_arm": {
+          "A": {
+            "gate": {
+              "accepted": 7,
+              "total": 7
+            },
+            "sufficient": {
+              "exact": 1,
+              "total": 1
+            },
+            "missing": {
+              "exact": 0,
+              "minimal": 0,
+              "total": 4
+            },
+            "controls": {
+              "raw_unchanged": 2,
+              "total": 2
+            },
+            "non_regression_guards": true,
+            "deadlines": true,
+            "jev_http": 27,
+            "typellm_http": 0
+          },
+          "B": {
+            "gate": {
+              "accepted": 6,
+              "total": 6
+            },
+            "sufficient": {
+              "exact": 1,
+              "total": 1
+            },
+            "missing": {
+              "exact": 3,
+              "minimal": 3,
+              "total": 3
+            },
+            "controls": {
+              "raw_unchanged": 2,
+              "total": 2
+            },
+            "non_regression_guards": true,
+            "deadlines": true,
+            "jev_http": 31,
+            "typellm_http": 0
+          },
+          "C": {
+            "gate": {
+              "accepted": 4,
+              "total": 4
+            },
+            "sufficient": {
+              "exact": 1,
+              "total": 1
+            },
+            "missing": {
+              "exact": 1,
+              "minimal": 1,
+              "total": 3
+            },
+            "controls": {
+              "raw_unchanged": 0,
+              "total": 0
+            },
+            "non_regression_guards": true,
+            "deadlines": true,
+            "jev_http": 29,
+            "typellm_http": 3
+          }
+        },
+        "paired_accepted_gate_gains": {
+          "over_A": {
+            "baseline": "A",
+            "eligible": 3,
+            "wins": 1,
+            "losses": 0,
+            "signed_gain": 1,
+            "excluded_gate_pairs": 1
+          },
+          "over_B": {
+            "baseline": "B",
+            "eligible": 3,
+            "wins": 0,
+            "losses": 2,
+            "signed_gain": -2,
+            "excluded_gate_pairs": 1
+          }
+        },
+        "all_arm_non_regression": true,
+        "selected_finite_semantic_criteria": "UNMET",
+        "mandatory_separate_admissibility": [
+          "consumed-input commitment and raw arm order/equal initial bytes",
+          "actual protocol/log/proof verification",
+          "actual runtime/source/artifact binding",
+          "provider journal/process closure and all count deltas",
+          "raw factor recomputation",
+          "completed-artifact browser/paint/lifecycle and mutation controls"
+        ],
+        "four_way_comparison": "INCOMPLETE_D_BLOCKED_COST",
+        "CI_LIVE_EXECUTION": "UNPROVEN",
+        "currency": "COST_NOT_MEASURED"
+      },
+      "C": {
+        "schema": "voice-ui.poc.semantic-panel-score/1",
+        "selected": "C",
+        "complete": false,
+        "score_inputs_valid": false,
+        "final_shape": false,
+        "per_arm": {
+          "A": {
+            "gate": {
+              "accepted": 7,
+              "total": 7
+            },
+            "sufficient": {
+              "exact": 1,
+              "total": 1
+            },
+            "missing": {
+              "exact": 0,
+              "minimal": 0,
+              "total": 4
+            },
+            "controls": {
+              "raw_unchanged": 2,
+              "total": 2
+            },
+            "non_regression_guards": true,
+            "deadlines": true,
+            "jev_http": 27,
+            "typellm_http": 0
+          },
+          "B": {
+            "gate": {
+              "accepted": 6,
+              "total": 6
+            },
+            "sufficient": {
+              "exact": 1,
+              "total": 1
+            },
+            "missing": {
+              "exact": 3,
+              "minimal": 3,
+              "total": 3
+            },
+            "controls": {
+              "raw_unchanged": 2,
+              "total": 2
+            },
+            "non_regression_guards": true,
+            "deadlines": true,
+            "jev_http": 31,
+            "typellm_http": 0
+          },
+          "C": {
+            "gate": {
+              "accepted": 4,
+              "total": 4
+            },
+            "sufficient": {
+              "exact": 1,
+              "total": 1
+            },
+            "missing": {
+              "exact": 1,
+              "minimal": 1,
+              "total": 3
+            },
+            "controls": {
+              "raw_unchanged": 0,
+              "total": 0
+            },
+            "non_regression_guards": true,
+            "deadlines": true,
+            "jev_http": 29,
+            "typellm_http": 3
+          }
+        },
+        "paired_accepted_gate_gains": {
+          "over_A": {
+            "baseline": "A",
+            "eligible": 3,
+            "wins": 1,
+            "losses": 0,
+            "signed_gain": 1,
+            "excluded_gate_pairs": 1
+          },
+          "over_B": {
+            "baseline": "B",
+            "eligible": 3,
+            "wins": 0,
+            "losses": 2,
+            "signed_gain": -2,
+            "excluded_gate_pairs": 1
+          }
+        },
+        "all_arm_non_regression": true,
+        "selected_finite_semantic_criteria": "UNMET",
+        "mandatory_separate_admissibility": [
+          "consumed-input commitment and raw arm order/equal initial bytes",
+          "actual protocol/log/proof verification",
+          "actual runtime/source/artifact binding",
+          "provider journal/process closure and all count deltas",
+          "raw factor recomputation",
+          "completed-artifact browser/paint/lifecycle and mutation controls"
+        ],
+        "four_way_comparison": "INCOMPLETE_D_BLOCKED_COST",
+        "CI_LIVE_EXECUTION": "UNPROVEN",
+        "currency": "COST_NOT_MEASURED"
+      }
+    },
+    "raw_sha256": {
+      "events.jsonl": "5d47cb868a0f8cff592e8280dc3d43baf3066a209f9444168e7fb4df3c359d8c",
+      "execution.json": "4c8199bbd826a4a5df6a31a7c06fa653b12426de443c4b5465a63d0e2815d089",
+      "H02-A.json": "b45c0607d2d3d7ab27b338c476cc11b88f7a63d7a7d6b47354d2bc035578da8c",
+      "H02-B.json": "5d4c7bc77ed385540a6bfe19f88200b49bf7a03186591732338734a86e379b54",
+      "H02-C.json": "a37508d226073c63ae2544a465701e4301e7d86e9f9f055085a739e6c20ed989",
+      "H05-A.json": "16d84c55fed56cfa91d532e4194f2d864c2ea0781249c62be811d2d3e7181117",
+      "H06-A.json": "2394681ef971a7cfb87f23c4d5b6f7472852e9127a4f5c7a896a8fb0f6fe3ca1",
+      "H06-B.json": "2e27011963a775f584a53deb065ded42f3f735311b232733f76216939bed6956",
+      "H06-C.json": "5ff7cecb0130ebb58bf43c27a5e753a40b07f18d110cd511db84ec5f9824b449",
+      "H07-A.json": "ff1a9c80e2dc2f53e306c8dc40d2d5a6e1555fb1e024771ac490608a8b444fc7",
+      "H07-B.json": "2df768a665cd2e0b6602865f3eefd1751ce46ea7f26fb0482f5afde68e07750d",
+      "H07-C.json": "085187b1c59f0ce97980498017467aff38547cdbdafea8072f73a542aa7da8d2",
+      "H08-A.json": "14ef7184ca90d93040e751608e6dd2eab98a5bfef53000fb4cf9b6298b7ff5f1",
+      "H08-B.json": "0cb6657182616fa4b0c17971ea45cd2c4929d7c65bfd514b9ff793f21f4528e2",
+      "H08-C.json": "bd614a16e74358fb68291aa8f7e0c706e0e8f3224369dd72df69fd6dc5662085",
+      "H09-A.json": "ab0065d02b191605a3c1371e8f415df2a15cc91e1a493b44cfd0eff4d6e5bad3",
+      "H09-B.json": "35bc8b3417b973cfb86b30dc39d83885f09c1c3bf3b89363d212499dfd5313b8",
+      "H10-A.json": "ff9c3a6dfe7bb1b104993f54312019621487cfe173a7253535f6412de7ce1676",
+      "H10-B.json": "138370836d2b8a4d6b6861761143caf031abd4f55545d5eb398e52a183e10488",
+      "identity.json": "76a196c97282aee878b89655a0f50ed1c67e733c08c37fa27a6e87454767e2e8"
+    },
+    "CI_LIVE_EXECUTION": "UNPROVEN",
+    "four_way_comparison": "INCOMPLETE_D_BLOCKED_COST",
+    "currency": "COST_NOT_MEASURED"
+  },
+  "phase": {
+    "status": "PASS",
+    "issues": [],
+    "phase": "candidate-public-remainder-20261017",
+    "sent": {
+      "jev": 87,
+      "typellm": 3
+    },
+    "prior_charged": {
+      "jev": 326,
+      "typellm": 23
+    },
+    "charged_at_cutoff": {
+      "jev": 413,
+      "typellm": 26
+    },
+    "journal_sha256": "cdd1cde79c7917dc987aa9730f617f5d34ba76d5bcd49d8784c3bea429503228",
+    "config_sha256": "ff067667487068d751c57d71696d1033b7dcd5ccdc6326fb33c8197ef03ebed5",
+    "stop_scope": "recorded reconciliation only; independent live PID observation remains an explicit audit reference"
+  },
+  "CI_LIVE_EXECUTION": "UNPROVEN",
+  "four_way_comparison": "INCOMPLETE_D_BLOCKED_COST",
+  "currency": "COST_NOT_MEASURED"
+}

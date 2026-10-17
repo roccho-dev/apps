@@ -1,0 +1,45 @@
+{
+  "status": "INVALID",
+  "summary": [
+    {
+      "id": "H01",
+      "arm": "A",
+      "valid_execution": true,
+      "reason": "none",
+      "httpCalls": 4,
+      "elapsedMs": 1078.3055
+    },
+    {
+      "id": "H01",
+      "arm": "B",
+      "valid_execution": true,
+      "reason": "none",
+      "httpCalls": 4,
+      "elapsedMs": 748.8551000000002
+    },
+    {
+      "id": "H01",
+      "arm": "C",
+      "valid_execution": true,
+      "reason": "none",
+      "httpCalls": 4,
+      "elapsedMs": 842.7121
+    },
+    {
+      "id": "H05",
+      "arm": "B",
+      "valid_execution": true,
+      "reason": "none",
+      "httpCalls": 4,
+      "elapsedMs": 827.5160000000001
+    },
+    {
+      "id": "H05",
+      "arm": "C",
+      "valid_execution": false,
+      "reason": "completion-unknown",
+      "httpCalls": 2,
+      "elapsedMs": 1005.7926999999995
+    }
+  ]
+}

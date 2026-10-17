@@ -1,0 +1,11 @@
+{
+  "observed_at": "2026-10-17T10:02:05.728Z",
+  "id": 5557314982,
+  "url": "https://github.com/roccho-dev/apps/pull/103#pullrequestreview-5557314982",
+  "head": "2c8b25ed30c33580a5902a07907e3aeaed430c25",
+  "current_pr_head": "2c8b25ed30c33580a5902a07907e3aeaed430c25",
+  "state": "COMMENTED",
+  "principal": "roccho-dev",
+  "body_sha256": "d96da32bfb0289b2d1a83666862317ae6804f484a61edc4a37dbfb193297a27a",
+  "exact_body_match": true
+}

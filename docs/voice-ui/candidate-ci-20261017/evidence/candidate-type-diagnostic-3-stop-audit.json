@@ -1,0 +1,76 @@
+{
+  "observed_at": "2026-10-17T09:30:59.090Z",
+  "phase": "candidate-type-diagnostic-3",
+  "current": null,
+  "group_members_including_z": [],
+  "config_sha256": "a270e677f1f260825a16f501aa7fe68727c07e5ab4f23b672144db2441b05183",
+  "payload_sha256": "510263b94e197a3bc2cc5ce677875927d3fe2f38fd1b8af7087aeb941b4090ed",
+  "response_sha256": "ca11f70a07e610269f00f316915ef2a1d776ccdd8eaf47951f74c6c0b4fe1f95",
+  "response": {
+    "schema": "voice-ui.type-diagnostic/1",
+    "phase": "candidate-type-diagnostic-3",
+    "request_sha256": "510263b94e197a3bc2cc5ce677875927d3fe2f38fd1b8af7087aeb941b4090ed",
+    "started": "2026-10-17T09:29:50.970Z",
+    "status": 502,
+    "body": {
+      "error": "parts_contract"
+    },
+    "elapsedMs": 2075.6709,
+    "scope": "NEW_ATTEMPT_DIAGNOSTIC_ONLY"
+  },
+  "diagnostics": [
+    {
+      "kind": "voice-ui.parts.contract.v1",
+      "stage": "local-result",
+      "rootExact": true,
+      "slots": [
+        {
+          "exact": true,
+          "label": "nonempty",
+          "kind": "step",
+          "quantity": 0
+        },
+        {
+          "exact": true,
+          "label": "empty",
+          "kind": "none",
+          "quantity": 0
+        },
+        {
+          "exact": true,
+          "label": "nonempty",
+          "kind": "step",
+          "quantity": 0
+        }
+      ],
+      "duplicatePair": true
+    }
+  ],
+  "sent": {
+    "jev": 0,
+    "typellm": 1
+  },
+  "charged": {
+    "jev": 309,
+    "typellm": 21
+  },
+  "pending": [],
+  "ledger_sha256": "90d50a2db49440b82ea41a42d2ba461a17769a7d4565cf4c4a79b0dae4c570e6",
+  "stderr_sha256": "4d127bb9d89e6810c3af14e83311469e84ceb0ba0c9c4b9907dab1627d879043",
+  "stdout_sha256": "3b1ecf09292459a4e2720fb2895afda77b9a08fec1ecbfe80a9fcba93df69cf6",
+  "reconciliation": {
+    "kind": "phase-reconcile",
+    "id": "candidate-type-diagnostic-3",
+    "sent": {
+      "jev": 0,
+      "typellm": 1
+    },
+    "stopped_group_empty": true,
+    "pid": 242236,
+    "start_ticks": "13717798",
+    "stderr_sha256": "4d127bb9d89e6810c3af14e83311469e84ceb0ba0c9c4b9907dab1627d879043",
+    "stdout_sha256": "3b1ecf09292459a4e2720fb2895afda77b9a08fec1ecbfe80a9fcba93df69cf6",
+    "at": "2026-10-17T09:29:53.142Z"
+  },
+  "matches": true
+}

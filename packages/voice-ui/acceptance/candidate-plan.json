@@ -3,6 +3,7 @@
   "issue": "https://github.com/roccho-dev/apps/issues/94",
   "amendment": "https://github.com/roccho-dev/apps/issues/94#issuecomment-6231599715",
   "methods": ["A", "B", "C"],
+  "fresh_primary": { "method": "B", "scope": "comparison and recommendation only; ordinary product completion remains C", "fixed_before_input_release": true },
   "uncompared": { "D": "BLOCKED_COST" },
   "prior_charged": { "jev": 292, "typellm": 18 },
   "whole_run_cap": { "jev": 1000, "typellm": 1000 },

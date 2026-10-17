@@ -1,0 +1,141 @@
+{
+  "status": "RECORDED",
+  "summary": [
+    {
+      "id": "H05",
+      "arm": "A",
+      "valid_execution": true,
+      "reason": "none",
+      "httpCalls": 4,
+      "elapsedMs": 1022.1122000000001
+    },
+    {
+      "id": "H09",
+      "arm": "A",
+      "valid_execution": true,
+      "reason": "inventory-ambiguous",
+      "httpCalls": 1,
+      "elapsedMs": 372.79410000000007
+    },
+    {
+      "id": "H09",
+      "arm": "B",
+      "valid_execution": true,
+      "reason": "inventory-ambiguous",
+      "httpCalls": 1,
+      "elapsedMs": 185.2532000000001
+    },
+    {
+      "id": "H02",
+      "arm": "A",
+      "valid_execution": true,
+      "reason": "none",
+      "httpCalls": 4,
+      "elapsedMs": 772.4352999999999
+    },
+    {
+      "id": "H02",
+      "arm": "B",
+      "valid_execution": true,
+      "reason": "none",
+      "httpCalls": 4,
+      "elapsedMs": 838.8331000000003
+    },
+    {
+      "id": "H02",
+      "arm": "C",
+      "valid_execution": true,
+      "reason": "none",
+      "httpCalls": 4,
+      "elapsedMs": 757.4748
+    },
+    {
+      "id": "H06",
+      "arm": "B",
+      "valid_execution": true,
+      "reason": "none",
+      "httpCalls": 8,
+      "elapsedMs": 1679.5472
+    },
+    {
+      "id": "H06",
+      "arm": "C",
+      "valid_execution": true,
+      "reason": "none",
+      "httpCalls": 9,
+      "elapsedMs": 2868.7334
+    },
+    {
+      "id": "H06",
+      "arm": "A",
+      "valid_execution": true,
+      "reason": "none",
+      "httpCalls": 4,
+      "elapsedMs": 731.4382999999998
+    },
+    {
+      "id": "H10",
+      "arm": "A",
+      "valid_execution": true,
+      "reason": "inventory-no-change",
+      "httpCalls": 1,
+      "elapsedMs": 185.0018
+    },
+    {
+      "id": "H10",
+      "arm": "B",
+      "valid_execution": true,
+      "reason": "inventory-no-change",
+      "httpCalls": 1,
+      "elapsedMs": 207.04150000000118
+    },
+    {
+      "id": "H07",
+      "arm": "A",
+      "valid_execution": true,
+      "reason": "none",
+      "httpCalls": 4,
+      "elapsedMs": 749.3521000000001
+    },
+    {
+      "id": "H07",
+      "arm": "B",
+      "valid_execution": true,
+      "reason": "none",
+      "httpCalls": 8,
+      "elapsedMs": 1678.0291000000016
+    },
+    {
+      "id": "H07",
+      "arm": "C",
+      "valid_execution": true,
+      "reason": "none",
+      "httpCalls": 9,
+      "elapsedMs": 2925.2944000000007
+    },
+    {
+      "id": "H08",
+      "arm": "B",
+      "valid_execution": true,
+      "reason": "none",
+      "httpCalls": 9,
+      "elapsedMs": 1840.1450000000004
+    },
+    {
+      "id": "H08",
+      "arm": "C",
+      "valid_execution": true,
+      "reason": "none",
+      "httpCalls": 10,
+      "elapsedMs": 2596.1180999999997
+    },
+    {
+      "id": "H08",
+      "arm": "A",
+      "valid_execution": true,
+      "reason": "none",
+      "httpCalls": 9,
+      "elapsedMs": 1758.0282000000007
+    }
+  ]
+}
