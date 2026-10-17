@@ -3,6 +3,7 @@ import fs from "node:fs";
 import test from "node:test";
 import { isInventory, inventoryQuestion, readTypedMissing, runInventoryGoal, typedMissingRequest } from "../src/completion.mjs";
 import { readBundle } from "../src/bundle.mjs";
+import { LABEL_MAX } from "../src/contract.mjs";
 import { onParts } from "../functions/api/parts.mjs";
 const bundle = readBundle(JSON.parse(fs.readFileSync(new URL("../web/data/bundle.v1.json", import.meta.url))));
 const initial = { working: { head: "fixture-head", records: [
@@ -55,7 +56,7 @@ test("completion asks only for missing instances, with fixed existing kinds and 
     assert.deepEqual(Object.keys(question.properties), ["label", "kind", "quantity"]);
     assert.ok(question.properties.kind.enum.includes("none"));
     assert.deepEqual(question.properties.quantity, { type: "string", enum: ["0", "1", "2", "3"],
-      instructions: "Select the missing instance count for this distinct pair: 1, 2 or 3. Select 0 only when kind is none." });
+      instructions: "Select the missing instance count for this active distinct pair: 1, 2 or 3. For an unused kind-none slot this field is padding; prefer 0." });
   }
 });
 
@@ -88,11 +89,19 @@ test("distinct typed quantities expand exactly; duplicate pairs, extra fields an
     assert.equal(readTypedMissing(value === null ? null : slots(value)), null);
   }
   for (const value of [[], { ...slots([]), extra: true },
-    slots([{ label: "unused", kind: "none", quantity: 0 }]),
-    slots([{ label: "", kind: "none", quantity: 1 }]),
     slots([{ label: "", kind: "none", quantity: 0 }, { label: "Box", kind: "step", quantity: 1 }]),
+    slots([{ label: "x".repeat(LABEL_MAX + 1), kind: "none", quantity: 0 }]),
+    { ...slots([]), missing1: { label: 1, kind: "none", quantity: "0" } },
+    { ...slots([]), missing1: { label: "", kind: "none", quantity: "4" } },
     { ...slots([]), missing1: { label: "Box", kind: "step", quantity: 1 } }])
     assert.equal(readTypedMissing(value), null);
+});
+
+test("kind-none slots have no candidate meaning; bounded filler never changes active quantities", () => {
+  assert.deepEqual(readTypedMissing(slots([{ label: "padding", kind: "none", quantity: 3 }])), []);
+  assert.deepEqual(readTypedMissing(slots([{ label: "Box", kind: "step", quantity: 1 },
+    { label: "Box", kind: "none", quantity: 3 }, { label: "Box", kind: "none", quantity: 1 }])),
+  [{ label: "Box", kind: "step", occurrence: 1 }]);
 });
 
 test("API closures validate before invoking bound operations and never reflect raw failures", async () => {
@@ -117,11 +126,11 @@ test("completion failure diagnostics expose only finite structural facts", async
   console.info = value => logs.push(JSON.parse(value));
   try {
     const response = await call("complete", inventory, { generate: async () => ({ result: slots([
-      { label: "private-label-canary", kind: "none", quantity: 0 },
+      { label: "private-label-canary", kind: "step", quantity: 0 },
     ]) }) });
     assert.equal(response.status, 502);
     assert.deepEqual(logs[0], { kind: "voice-ui.parts.contract.v1", stage: "local-result", rootExact: true,
-      slots: [{ exact: true, label: "nonempty", kind: "none", quantity: 0 },
+      slots: [{ exact: true, label: "nonempty", kind: "step", quantity: 0 },
         { exact: true, label: "empty", kind: "none", quantity: 0 },
         { exact: true, label: "empty", kind: "none", quantity: 0 }], duplicatePair: false });
     for (const code of ["provider_contract_error", "private-code-canary"]) {

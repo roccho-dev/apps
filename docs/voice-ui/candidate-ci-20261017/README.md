@@ -63,3 +63,7 @@ release CI は生成した完成 ZIP を展開して member 同一性を確認�
 修正一回目では open integer を既存 provider が扱える文字列の有限選択肢 0/1/2/3 に替え、その四文字列だけを従来の数値検証へ渡す。各 slot は他の生成結果に依存せず、入力内の第一・第二・第三の不足 pair を探す。未使用 slot の empty/none/0、重複、穴、総数の拒否は維持する。修正を理由に全 ABC を再実行しない。H01-C／H09-C／H10-C の十分・control 回帰後、失敗した H05-C だけを測る。最大36 Jev／1 Type、既定の修正60枠内。
 
 このような選択 cell の入力は公開親入力の SHA と fixture/utterance の完全一致を検証し、選択順を別 schema の receipt に残す。修正と未試行公開 cell の継続は部分記録であり、異なる source の結果を合算して同一 source の完全 panel と呼ばない。未見評価は最終固定 source で ABC 全体を一度だけ実行する。
+
+修正一回目は三 guard を正しく処理したが、H05-C は active の個数が1へ直った一方、unused kind-none slot に nonempty label/count1 が残り、502で停止した。4 cell の元記録は INVALID のまま保持する。7 Jev／1 Type、累計316／22、全停止・精算済み。これは個数表現の改善仮説を支えるが、補完性能の合格ではない。
+
+最後の原因修正では、R と実行前に tagged slot の契約を明示して合意した。kind none は候補を作らず、その label/count は padding とする。全 slot の exact fields、bounded string label、四つの quantity string enum は維持し、active の名前・kind・個数1〜3・総数・重複・穴は従来どおり拒否する。不要な filler 値を実候補へ変換せず、過去の失敗を再採点しない。採点 oracle、最小性、効果判定の閾値も変えない。同じ公開四 cell の C だけを二回目として一度検証し、以後の原因修正 batch は追加しない。

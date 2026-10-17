@@ -96,12 +96,12 @@ export function typedMissingRequest(state) {
       + "Skip pairs with zero missing quantity. Existing graph facts satisfy existing references, not requests for additional new instances. "
       + "A single requested unavailable part needs exactly one row with quantity 1; multiple identical missing instances use one row with their quantity. "
       + "The sum of missing quantities must be at most three. Preserve requested display names exactly and use only supported kinds. "
-      + "If this ordinal has no missing pair, return kind none, label an empty string and quantity 0. "
+      + "If this ordinal has no missing pair, kind none marks the slot unused. Its label and quantity are bounded padding with no candidate meaning; prefer an empty label and quantity 0. "
       + "Do not return edges, parents, operators, existing nodes or invented extras.",
     properties: {
-      label: { type: "string", instructions: "Exact requested display name, no ID or sequence suffix; empty string only when kind is none." },
+      label: { type: "string", instructions: "Exact requested display name for an active pair, no ID or sequence suffix. Unused kind-none slots may use an empty padding string." },
       kind: { type: "string", enum: [...PART_KINDS, "none"], instructions: "The supported kind for this distinct requested pair, or none if there is no pair at this ordinal." },
-      quantity: { type: "string", enum: ["0", "1", "2", "3"], instructions: "Select the missing instance count for this distinct pair: 1, 2 or 3. Select 0 only when kind is none." },
+      quantity: { type: "string", enum: ["0", "1", "2", "3"], instructions: "Select the missing instance count for this active distinct pair: 1, 2 or 3. For an unused kind-none slot this field is padding; prefer 0." },
     },
   });
   // Ask every bounded ordinal explicitly rather than relying on array stopping
@@ -118,10 +118,9 @@ export function readTypedMissing(value) {
   let ended = false;
   for (const key of ["missing1", "missing2", "missing3"]) {
     const row = value[key];
-    if (!exact(row, ["label", "kind", "quantity"])) return null;
+    if (!exact(row, ["label", "kind", "quantity"]) || typeof row.label !== "string" || row.label.length > LABEL_MAX) return null;
     if (!["0", "1", "2", "3"].includes(row.quantity)) return null;
     if (row.kind === "none") {
-      if (row.label !== "" || row.quantity !== "0") return null;
       ended = true;
     } else {
       if (ended) return null;
