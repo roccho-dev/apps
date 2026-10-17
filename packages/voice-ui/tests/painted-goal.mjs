@@ -6,7 +6,8 @@ export function observePaintedGoal({ container, records, edge = null, identity =
     if (!node) return false;
     for (let parent = node; parent !== null; parent = parent.parentElement) {
       const style = iframe.contentWindow.getComputedStyle(parent);
-      if (style.display === "none" || style.visibility === "hidden" || Number(style.opacity) === 0) return false;
+      if (style.display === "none" || style.visibility === "hidden" || Number(style.opacity) === 0
+        || style.filter !== "none" || style.maskImage !== "none") return false;
     }
     return true;
   };
@@ -151,8 +152,10 @@ export function observePaintedGoal({ container, records, edge = null, identity =
         && previous.querySelector("rect, path, ellipse, polygon")) {
         const geometry = [...previous.children].filter(node => {
           if (!["rect", "path", "ellipse", "polygon"].includes(node.localName)) return false;
+          for (let at = node; at !== null; at = at.parentElement)
+            if (iframe.contentWindow.getComputedStyle(at).clipPath !== "none") return false;
           const style = iframe.contentWindow.getComputedStyle(node);
-          if (boundary) return node.localName === "rect" && style.stroke !== "none"
+          if (boundary && !identity) return node.localName === "rect" && style.stroke !== "none"
             && paintedColor(style.stroke) && style.strokeDasharray !== "none" && Number(style.strokeOpacity) > 0 && Number(style.opacity) > 0;
           if (!identity && node.getAttribute("pointer-events") !== "all") return false;
           return Number(style.opacity) > 0 && ((paintedColor(style.fill) && Number(style.fillOpacity) > 0)
@@ -228,6 +231,7 @@ export function observePaintedGoal({ container, records, edge = null, identity =
     throw new Error("actual-outline controlled refusal failed");
   const arrows = [];
   const observedEdges = [];
+  const unsupportedEdgePaint = [];
   if (edge !== null) for (const group of doc.querySelectorAll("svg g")) {
     if (identity) {
       if (typeof edge.id !== "string" || edge.id.length === 0) continue;
@@ -236,7 +240,14 @@ export function observePaintedGoal({ container, records, edge = null, identity =
       if (!Array.isArray(ids) || !ids.includes(edge.id) || group.getAttribute("data-semantic-role") !== "shape") continue;
     }
     const paths = [...group.children].filter(node => {
-      if (node.localName !== "path" || !visible(node)) return false;
+      if (node.localName !== "path") return false;
+      for (let at = node; at !== null; at = at.parentElement) {
+        const style = iframe.contentWindow.getComputedStyle(at);
+        if (style.clipPath !== "none" || style.filter !== "none" || style.maskImage !== "none") {
+          unsupportedEdgePaint.push("unsupported edge clip, filter or mask"); return false;
+        }
+      }
+      if (!visible(node)) return false;
       const r = node.getBoundingClientRect(), s = iframe.contentWindow.getComputedStyle(node);
       return [r.left, r.top, r.width, r.height].every(Number.isFinite) && (r.width > 0 || r.height > 0)
         && s.display !== "none" && s.visibility !== "hidden";
@@ -293,6 +304,7 @@ export function observePaintedGoal({ container, records, edge = null, identity =
     container: { id: container.id, kind: "painted-dashed-group-boundary", bounds: frame }, shapes,
     edge: edge === null ? null : { from: edge.from, to: edge.to,
       association: "pinned-classic-marker-tip-and-stroke-in-one-cell-group", observed: observedEdges, matches: arrows,
+      unsupported: [...new Set(unsupportedEdgePaint)],
       complete: arrows.length === 1 },
     contained: shapes.every(item => inside(item.bounds)),
     nonoverlap: shapes.every((item, i) => shapes.every((other, j) => i === j || !overlap(item.bounds, other.bounds))),
@@ -328,6 +340,7 @@ export function assessPaintedGoal(observation) {
       problems.push(item.id + ": sibling labels overlap");
   }
   if (observation.edge !== null && !observation.edge.complete) problems.push("directed painted edge incomplete");
+  if (observation.edge?.unsupported?.length) unknown.push(...observation.edge.unsupported);
   return { status: unknown.length ? "UNPROVEN" : problems.length ? "UNMET" : "PASS", problems, unknown };
 }
 
@@ -346,6 +359,7 @@ export function assessPaintedEdge(observation) {
       .every(outer => inside(name.box, outer))) problems.push(shape.id + ": whole endpoint name clipped or outside its shape");
   }
   if (!observation.edge?.complete) problems.push("directed painted edge incomplete");
+  if (observation.edge?.unsupported?.length) unknown.push(...observation.edge.unsupported);
   const match = observation.edge?.matches?.length === 1 ? observation.edge.matches[0] : null;
   const pointInView = p => Array.isArray(p) && p.length === 2 && p.every(Number.isFinite) && valid(observation.viewport)
     && p[0] >= observation.viewport[0] && p[1] >= observation.viewport[1]

@@ -117,8 +117,10 @@ export function frameFor({ graph, width, height, protocol, part = null }) {
       // children. The boundary can extend beyond this view; no layout changes.
       // This finite title allowance is not a guarantee for arbitrary long names.
       const left = Math.min(x, ...children.map(box => box[0])), top = Math.min(y, ...children.map(box => box[1]));
-      const right = Math.max(x + Math.min(w, 240), ...children.map(box => box[0] + box[2]));
-      const bottom = Math.max(y + Math.min(h, 60), ...children.map(box => box[1] + box[3]));
+      // An empty group is a collapsed node with a centred label in the
+      // provider's projection, so fit its declared box rather than a header.
+      const right = Math.max(x + (children.length ? Math.min(w, 240) : w), ...children.map(box => box[0] + box[2]));
+      const bottom = Math.max(y + (children.length ? Math.min(h, 60) : h), ...children.map(box => box[1] + box[3]));
       const scale = Math.min(1, width / (right - left + 32), height / (bottom - top + 32));
       const bbox = [(left + right) / 2 - width / (2 * scale), (top + bottom) / 2 - height / (2 * scale), width / scale, height / scale];
       return scale > 0 && bbox.every(Number.isFinite) ? { bbox, viewport: [width, height] } : null;

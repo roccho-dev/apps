@@ -214,7 +214,7 @@ try {
     }
     if (controlArgs) {
       // Actual painted-DOM mutations, each restored before the next observation.
-      const mutations = ["wrong-label", "hidden-label", "transparent-label", "transparent-boundary", "child-shape-outside", "duplicate-label", "clipped-label", "title-overlap", "title-outside", "sibling-overlap"];
+      const mutations = ["wrong-label", "hidden-label", "transparent-label", "transparent-boundary", "child-shape-outside", "clipped-shape", "duplicate-label", "clipped-label", "title-overlap", "title-outside", "sibling-overlap"];
       for (const mutation of mutations) {
         const saved = await page.evaluate(({ args, mutation }) => {
           const doc = document.querySelector("#working-surface iframe").contentDocument;
@@ -230,6 +230,7 @@ try {
           if (mutation === "transparent-label") text.querySelector("text").style.fill = "rgba(0,0,0,0)";
           if (mutation === "transparent-boundary") boundary.style.stroke = "rgba(0,0,0,0)";
           if (mutation === "child-shape-outside") shape.style.transform = "translate(10000px,0px)";
+          if (mutation === "clipped-shape") shape.style.clipPath = "inset(100%)";
           if (mutation === "title-outside") other.style.transform = "translate(10000px,0px)";
           if (mutation === "duplicate-label") text.append(text.querySelector("text").cloneNode(true));
           if (mutation === "clipped-label") text.querySelector("text").setAttribute("x", "100000");
@@ -266,6 +267,26 @@ try {
       assert.equal(reverse.edge.complete, false); controls.push({ fixture: fixture.id, mutation: "reverse-edge", detected: true });
       const missingId = await page.evaluate(observePaintedGoal, { ...args, edge: { from: edge.from, to: edge.to } });
       assert.equal(missingId.edge.complete, false); controls.push({ fixture: fixture.id, mutation: "missing-edge-id", detected: true });
+      for (const mutation of ["clipped-edge", "filtered-edge", "masked-edge"]) {
+        const savedStyle = await page.evaluate(({ id, mutation }) => {
+          const doc = document.querySelector("#working-surface iframe").contentDocument;
+          const shape = [...doc.querySelectorAll('[data-semantic-role="shape"][data-semantic-relation-ids]')]
+            .find(n => JSON.parse(n.dataset.semanticRelationIds).includes(id));
+          const saved = shape.getAttribute("style");
+          if (mutation === "clipped-edge") shape.style.clipPath = "inset(100%)";
+          if (mutation === "filtered-edge") shape.style.filter = "opacity(0)";
+          if (mutation === "masked-edge") shape.style.maskImage = "linear-gradient(transparent,transparent)";
+          return saved;
+        }, { id: edge.id, mutation });
+        const assessment = assessPaintedEdge(await page.evaluate(observePaintedGoal, args));
+        assert.notEqual(assessment.status, "PASS"); controls.push({ fixture: fixture.id, mutation, assessment });
+        await page.evaluate(({ id, savedStyle }) => {
+          const doc = document.querySelector("#working-surface iframe").contentDocument;
+          const shape = [...doc.querySelectorAll('[data-semantic-role="shape"][data-semantic-relation-ids]')]
+            .find(n => JSON.parse(n.dataset.semanticRelationIds).includes(id));
+          if (savedStyle === null) shape.removeAttribute("style"); else shape.setAttribute("style", savedStyle);
+        }, { id: edge.id, savedStyle });
+      }
       await page.evaluate(id => {
         const doc = document.querySelector("#working-surface iframe").contentDocument;
         const shape = [...doc.querySelectorAll('[data-semantic-role="shape"][data-semantic-relation-ids]')]
