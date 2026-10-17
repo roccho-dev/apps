@@ -9,6 +9,7 @@ import { createHash } from 'node:crypto';
 import { deriveAtlas, deriveFrames, parseEvents, parseControl } from '../events.mjs';
 import { fromG } from '../live.mjs';
 import { plansOf } from '../contract.mjs';
+const causeText = cause => [cause.ideal, cause.current].filter(Boolean).join('+') || 'carried'; // v6: both sides, carried when neither
 
 const file = relative => fileURLToPath(new URL(relative, import.meta.url));
 const run = (script, args) => execFileSync(process.execPath, [file(script), ...args], { encoding: 'utf8' });
@@ -94,8 +95,8 @@ test('end to end: G fixture snapshots → G events → live.mjs → D → World'
   const sha = 'sha256:' + createHash('sha256').update(readFileSync(path.join(dir, 'world.json'))).digest('hex');
   assert.equal(receipt.outputs.find(value => path.basename(value.path) === 'world.json').sha256, sha);
   // Gap by cause: the first frame opens everything; the observation frame closes or explains each.
-  const gap = frame => Object.fromEntries(frame.gap.parts.map(part => [part.condition, [part.state, ...part.cause, part.scope]]));
-  assert.ok(Object.values(gap(world.frames[0])).every(([, cause]) => cause === 'initial'));
+  const gap = frame => Object.fromEntries(frame.gap.parts.map(part => [part.condition, [part.state, causeText(part.cause), part.scope]]));
+  assert.ok(Object.values(gap(world.frames[0])).every(([, cause]) => cause.startsWith('initial')));
   assert.deepEqual(gap(world.frames.at(-1)), { 'adrs-ci': ['unknown', 'current-unobserved', null], 'worker-running': ['unmet', 'current-confirmed-unmet', 'scope.worker-running'],
     'ui-serving': ['unknown', 'current-stale', null], lookalike: ['unknown', 'current-unobserved', null] });
   assert.deepEqual(world.frames.at(-1).gap.closed.map(value => [value.condition, value.by]), [['merged', 'current-satisfied'], ['reviewer-running', 'current-satisfied']]);

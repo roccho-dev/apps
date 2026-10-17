@@ -446,8 +446,10 @@ export const deriveFrames = ({ header, events: log }, norms) => {
 // ---- Projection to the existing contracts. ----
 const purposeRow = frame => `${frame.purpose.purpose.id}@${frame.purpose.rev}`;
 const sourceRef = source => source.commentId ? `${source.ref}:comment-${source.commentId}` : source.ref;
-const closureRows = (derived, upto) => {
-  const frames = derived.frames.slice(0, upto + 1), rows = [], seen = new Set();
+// Rows of frames from..upto. A World frame uses only its own rows (from = upto): never later rows, and the
+// World stays linear in the number of frames (v6); closure.jsonl keeps every frame (from = 0).
+const closureRows = (derived, upto, from = 0) => {
+  const frames = derived.frames.slice(from, upto + 1), rows = [], seen = new Set();
   for (const frame of frames) {
     const row = purposeRow(frame), p = frame.ideal, frameSource = [{ sourceRef: `atlas-events:frame@${frame.asOf}`, sourceDigest: frame.gapDigest }];
     if (!seen.has('purpose:' + row)) {
@@ -469,8 +471,8 @@ const closureRows = (derived, upto) => {
   }
   return rows;
 };
-export const closureDocument = (derived, upto = derived.frames.length - 1) =>
-  [{ schema: 'atlas.purpose-closure/1', authority: false }, ...closureRows(derived, upto)].map(canonical).join('\n') + '\n';
+export const closureDocument = (derived, upto = derived.frames.length - 1, from = 0) =>
+  [{ schema: 'atlas.purpose-closure/1', authority: false }, ...closureRows(derived, upto, from)].map(canonical).join('\n') + '\n';
 
 const EVALUATOR = 'atlas.D:derive', WRITER = 'atlas.events';
 const semanticFrame = (derived, frame, index) => {
@@ -513,7 +515,7 @@ const semanticFrame = (derived, frame, index) => {
     history: frame.history.map(value => ({ ...value, target_ref: ref(`target@${value.purpose_version}`, value.purpose_id) })),
     bindings: null,
   };
-  const closure = closureRows(derived, index), find = id => closure.find(row => row.id === id);
+  const closure = closureRows(derived, index, index), find = id => closure.find(row => row.id === id);
   const bound = (row, extra) => ({ id: row.id, kind: row.kind, sources: row.sources, ...extra });
   semantic.bindings = { pair: { purpose_id: pid, current_ref: currentRef, target_ref: targetRef },
     purpose: bound(find(purposeRow(frame)), { domain_id: pid }), current: bound(find(`current@${frame.asOf}`), { state_ref: currentRef }),
@@ -555,7 +557,7 @@ export const planProjection = derived => ({ schema: PLAN_PROJECTION_SCHEMA, auth
 export const deriveAtlas = (eventsText, controlText) => {
   const derived = deriveFrames(parseEvents(eventsText), parseControl(controlText));
   const input = semanticInput(derived);
-  const built = input.frames.map((frame, index) => semanticScopeWorld({ ...input, frames: [frame] }, reduceClosure(closureDocument(derived, index))));
+  const built = input.frames.map((frame, index) => semanticScopeWorld({ ...input, frames: [frame] }, reduceClosure(closureDocument(derived, index, index))));
   const world = { ...built.at(-1), frames: built.map(value => value.frames[0]) };
   return { derived, closure: closureDocument(derived), input, world, plans: planProjection(derived) };
 };
