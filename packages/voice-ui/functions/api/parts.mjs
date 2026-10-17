@@ -42,7 +42,7 @@ export async function onParts({ request, mode, available }, { judge, generate })
         : { choice: intent.choice, confidence: intent.confidence });
     }
     const value = await generate(typedMissingRequest(input.state), { signal: request.signal });
-    const missing = readTypedMissing(value?.result?.missing);
+    const missing = readTypedMissing(value?.result);
     if (missing === null) return json({ error: "parts_contract" }, 502);
     return json({ missing });
   } catch (error) {

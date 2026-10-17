@@ -87,25 +87,49 @@ export function inventoryQuestion(state) {
 }
 
 export function typedMissingRequest(state) {
-  return { context: JSON.stringify(inventoryContext(state)), questions: { missing: {
-    type: "array", minItems: 1, maxItems: 3,
-    instructions: "Return one row per DISTINCT missing label/kind, with its missing quantity. Never repeat a label/kind row. "
+  const question = index => ({
+    type: "object",
+    instructions: `Return the ${index}th DISTINCT missing label/kind in utterance order, after earlier distinct pairs. `
+      + "Check the WHOLE utterance, including parts inside a requested new group. Do not stop at the first named group. "
       + "For each requested NEW label/kind, missing quantity = requested new count minus its available capacity in parts, with a minimum of zero. "
-      + "Omit zero quantities. Existing graph facts satisfy existing references, not requests for additional new instances. "
+      + "Skip pairs with zero missing quantity. Existing graph facts satisfy existing references, not requests for additional new instances. "
       + "A single requested unavailable part needs exactly one row with quantity 1; multiple identical missing instances use one row with their quantity. "
       + "The sum of missing quantities must be at most three. Preserve requested display names exactly and use only supported kinds. "
+      + "If this ordinal has no missing pair, return kind none, label an empty string and quantity 0. "
       + "Do not return edges, parents, operators, existing nodes or invented extras.",
-    items: { type: "object", properties: {
-      label: { type: "string", instructions: "Exact requested display name, no ID or sequence suffix." },
-      kind: { type: "string", enum: [...PART_KINDS], instructions: "The existing shape kind appropriate to that requested part." },
-      quantity: { type: "integer", instructions: "Number of missing instances of this distinct label/kind, from 1 to 3, after subtracting the inventory capacity. Do not emit another row for these instances." },
-    } },
-  } } };
+    properties: {
+      label: { type: "string", instructions: "Exact requested display name, no ID or sequence suffix; empty string only when kind is none." },
+      kind: { type: "string", enum: [...PART_KINDS, "none"], instructions: "The supported kind for this distinct requested pair, or none if there is no pair at this ordinal." },
+      quantity: { type: "integer", instructions: "Missing instance count 1 to 3 for this distinct pair; exactly 0 when kind is none." },
+    },
+  });
+  // Ask every bounded ordinal explicitly rather than relying on array stopping
+  // to enumerate all pairs. This is one provider request, not three retries.
+  return { context: JSON.stringify(inventoryContext(state)), questions: Object.fromEntries(
+    [1, 2, 3].map(index => [`missing${index}`, question(index)])) };
 }
 
 // TypeLLM supplies quantities; the app owns occurrence ordinals and local IDs.
 // Duplicate rows or an oversized sum are refused, never silently deduplicated.
 export function readTypedMissing(value) {
+  if (!exact(value, ["missing1", "missing2", "missing3"])) return null;
+  const rows = [];
+  let ended = false;
+  for (const key of ["missing1", "missing2", "missing3"]) {
+    const row = value[key];
+    if (!exact(row, ["label", "kind", "quantity"])) return null;
+    if (row.kind === "none") {
+      if (row.label !== "" || row.quantity !== 0) return null;
+      ended = true;
+    } else {
+      if (ended) return null;
+      rows.push(row);
+    }
+  }
+  return readTypedRows(rows);
+}
+
+function readTypedRows(value) {
   if (!Array.isArray(value) || value.length > 3) return null;
   const seen = new Set(), missing = [];
   for (const x of value) {
