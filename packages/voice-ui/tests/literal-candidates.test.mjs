@@ -18,7 +18,8 @@ test("literal preparation preserves original spans, kinds and finite missing qua
 test("literal baseline has no semantic fallback, never truncates oversized quantities or creates four rows", () => {
   for (const input of ['build a clever name for me', 'step「A」×10', 'step「A」×0',
     'step「A」×-1', 'step「A」×2.5', 'step「A」×two', 'step「A」を-1個',
-    'step「A」×2e2', 'weekend「A」', '「A」というendless',
+    'step「A」×2e2', 'step「Example」を二つ追加', 'step「Example」を２個追加', 'misDBを3つ追加',
+    'weekend「A」', '「A」というendless',
     'step「A」 step「B」 data「C」 group「D」', 'step「A」×3 data「B」']) {
     const result = literalCandidates(state(input));
     assert.deepEqual(result.missing, []);

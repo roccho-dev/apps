@@ -31,7 +31,9 @@ export function literalCandidates(state) {
   for (const match of state.utterance.matchAll(pattern)) {
     const label = match[2] ?? match[3], start = match.index + match[0].indexOf(label);
     const rest = state.utterance.slice(match.index + match[0].length);
-    if (match[4] === undefined ? /^(?:[×x]|を\s*[-+.0-9])/u.test(rest)
+    const tail = rest.trimStart();
+    if (match[4] === undefined ? /^[×x]/u.test(tail)
+      || tail.startsWith("を") && !/^(?:追加|作|置)/u.test(tail.slice(1).trimStart())
       : /^(?:[0-9A-Za-z_+\-]|\.[0-9])/u.test(rest)) { invalid = true; continue; }
     add(label, kinds.get(match[1]), match[4] === undefined ? 1 : Number(match[4]), start, start + label.length, match[4] !== undefined);
   }
@@ -47,7 +49,7 @@ export function literalCandidates(state) {
     }
   }
   const stock = [...new Set(state.parts.map(p => p.label))].sort((a, b) => b.length - a.length).map(escaped).join("|");
-  if (stock) for (const match of state.utterance.matchAll(new RegExp(`(${stock})\\s*を\\s*([0-9]+)(?:個|つ)\\s*(?:追加|作|置)`, "gu")))
+  if (stock) for (const match of state.utterance.matchAll(new RegExp(`(?<![A-Za-z0-9_])(${stock})\\s*を\\s*([0-9]+)(?:個|つ)\\s*(?:追加|作|置)`, "gu")))
     add(match[1], kinds.get(match[1]), Number(match[2]), match.index, match.index + match[1].length, true);
   if (invalid) return { missing: [], extraction: { status: "unsupported-syntax", spans } };
   const missingRows = [...rows.values()].flatMap(row => {

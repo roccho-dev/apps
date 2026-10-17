@@ -21,6 +21,8 @@ if (Object.keys(settings).length !== 5 || !/^http:\/\/127[.]0[.]0[.]1:[1-9][0-9]
   throw new Error("evaluation_arguments");
 const hash = bytes => createHash("sha256").update(bytes).digest("hex");
 const bytes = fs.readFileSync(settings["--inputs"]), inputs = JSON.parse(bytes);
+if (!["voice-ui.poc.input-projection/1", "voice-ui.poc.input-projection/2"].includes(inputs?.schema))
+  throw new Error("evaluation_input_schema");
 const fixtures = inputs.fixture_contract, cases = inputs.cases, order = inputs.comparison?.case_order;
 const threeMethods = inputs.schema === "voice-ui.poc.input-projection/2";
 const methods = threeMethods ? ["A", "B", "C"] : ["A", "B"];
