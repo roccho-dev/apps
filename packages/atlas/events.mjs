@@ -142,7 +142,9 @@ const DECISIONS = {
   },
 };
 const observation = (event, at) => {
-  keys(event, ['kind', 'recordedAt', 'target', 'value', 'source', 'observedAt'], [], at);
+  keys(event, ['kind', 'recordedAt', 'target', 'value', 'source', 'observedAt'], ['projection'], at);
+  // projection: this is another view of an observation already in the log (not a second fact).
+  if ('projection' in event) demand(event.projection === true, `${at}: projection must be true when present`);
   stateTarget(event.target, `${at}.target`);
   // null is D's marker for an observation that obtained no value (never compared with a predicate).
   demand(event.value !== undefined, `${at}: observed value (or null: no value obtained) required`);
@@ -434,7 +436,8 @@ export const deriveFrames = ({ header, events: log }, norms) => {
     const gapInputs = events.filter(event => event.kind !== 'plan.set');
     const used = conditions.map(value => value.judgment.observation?.observedAt).filter(Boolean).map(Date.parse);
     return { t, asOf: new Date(t).toISOString(), purpose, stage, ideal, conditions, history, plans, sessions,
-      decisions: events.filter(event => event.kind !== 'observation'),
+      // The journal (adrs#647 contract 3): decisions and observations in time order, each fact once.
+      journal: events.filter(event => !event.projection),
       gapDigest: digest(gapInputs.map(canonical).join('\n')), observedAt: used.length ? new Date(Math.max(...used)).toISOString() : null };
   });
   return { header, now: new Date(times.at(-1)).toISOString(), frames };

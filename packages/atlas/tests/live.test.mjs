@@ -38,6 +38,13 @@ test('end to end: G fixture snapshots → G events → live.mjs → D → World'
   assert.equal(receipt.status, 'PASS');
   const world = JSON.parse(readFileSync(path.join(dir, 'world.json'), 'utf8'));
   assert.equal(world.kind, 'ui.atlasWorldInput.v1');
+  // K6c: the journal carries G's observations (contract 3), each G fact once — the session view
+  // fromG adds for the Agent is a projection, not a second observation.
+  const gObservations = rows(readFileSync(gEvents, 'utf8')).filter(event => event.kind === 'observation');
+  const journalObservations = world.frames.at(-1).journal.filter(entry => entry.kind === 'observation');
+  assert.ok(gObservations.length > 0);
+  assert.equal(journalObservations.length, gObservations.length);
+  assert.deepEqual(journalObservations.map(entry => entry.target.id).sort(), gObservations.map(event => event.target).sort());
   assert.deepEqual(world.frames.map(frame => frame.asOf), ['2026-10-16T03:00:00.000Z', '2026-10-16T20:40:00.000Z']);
   // States come from D on exact G targets only.
   const derived = deriveFrames(parseEvents(readFileSync(path.join(dir, 'events.jsonl'), 'utf8')),

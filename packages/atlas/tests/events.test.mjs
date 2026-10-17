@@ -47,8 +47,9 @@ const gapView = frame => ({ coverage: frame.coverage, entities: frame.entities,
 // gap v2/v3 (purpose_rev pair, exclusive causes, summary counts, labels), phase, journal, matched_until,
 // and the purpose node/closure row per (id, rev); then from 73e0af8e… for K6 (adrs#647 v5): summary.before_ideal,
 // and declared owners of satisfied conditions stay Agents (session-observed heading); then from beb82897… for
-// K6b: those 'responsible' owners draw no observation-responsible relation (it was duplicated per condition).
-const WORLD_SHA256 = 'sha256:99dc83ac2b98dea07e2962ea6c989266b11ae03511f0c796e9e7910e9d87c36f';
+// K6b: those 'responsible' owners draw no observation-responsible relation (it was duplicated per condition);
+// then from 99dc83ac… for K6c: frames[i].journal also lists the observations recorded so far (contract 3).
+const WORLD_SHA256 = 'sha256:c5f25e0cd2ecfc9165399cab3b5196a0c826b2f82936b734456a61b48ad6d538';
 
 test('parser fails closed on schema, shape, duplicate keys, order and graph errors', () => {
   const list = base();

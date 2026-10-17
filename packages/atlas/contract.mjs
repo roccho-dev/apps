@@ -67,8 +67,13 @@ export const phaseOf = (frame, gap) => frame.stage === 'ideal' ? (gap.parts.leng
 export const matchedUntil = (frame, phase) => phase !== 'matched' ? null
   : iso(Math.min(...frame.conditions.map(value => Date.parse(value.judgment.observation.observedAt) + ms(value.maxAge))));
 
-/** journal: the decisions recorded up to the frame (kind, recordedAt, source, actor) with their declared ids. */
-export const journalOf = frame => frame.decisions.map(event => {
+/**
+ * journal: everything recorded up to the frame, in time order (contract 3 puts observations in the same
+ * book): decisions with their declared ids, and observations with observedAt and target. Not thinned.
+ */
+export const journalOf = frame => frame.journal.map(event => {
+  if (event.kind === 'observation') return { kind: event.kind, recordedAt: event.recordedAt, observedAt: event.observedAt, actor: null,
+    source: { ref: event.source, commentId: null, sha256: null }, target: { ...event.target } };
   const source = { ref: event.source.ref, commentId: event.source.commentId == null ? null : number(event.source.commentId), sha256: event.source.digest };
   const detail = {
     'purpose.set': () => ({ purpose_id: event.purpose.id, purpose_label: event.purpose.label, purpose_rev: event.rev }),

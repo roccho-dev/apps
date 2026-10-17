@@ -57,7 +57,7 @@ export const fromG = (event, decisions = []) => {
   const observed = { kind: 'observation', recordedAt: event.recordedAt, target: { kind: 'state', id: event.target },
     value: event.value === 'UNKNOWN' ? null : event.value, source: `${event.source.ref} ${event.source.sha256}`, observedAt: event.observedAt };
   const session = event.target.endsWith(SESSION) && event.target.length > SESSION.length
-    ? [{ ...observed, target: { kind: 'session', id: event.target.slice(0, -SESSION.length) } }] : [];
+    ? [{ ...observed, target: { kind: 'session', id: event.target.slice(0, -SESSION.length) }, projection: true }] : [];
   return { events: [observed, ...session] };
 };
 
