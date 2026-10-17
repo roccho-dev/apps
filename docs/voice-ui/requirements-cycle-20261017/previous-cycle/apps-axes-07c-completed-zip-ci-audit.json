@@ -1,0 +1,168 @@
+{
+  "schema": "voice-ui.independent-completed-zip-ci-audit/1",
+  "status": "PASS",
+  "head": "07c534397b88538f5b1104365999108150054cb0",
+  "run_id": 39040174411,
+  "artifact_id": 12103891647,
+  "artifact_zip_sha256": "175c0764ea89d6e0c362b34ded6e7bd2e78aa9ab161a0e10b977452a2bdac77a",
+  "manifest_sha256": "0a5d71abb4ba7f626bea9096aca5112d85eca1db27ba3eca74cff256b4d426d8",
+  "axis_stages": [
+    {
+      "axis": "G",
+      "stage": "G",
+      "cells": 1,
+      "synthetic_calls": 1,
+      "execution_status": "RECORDED",
+      "status": "PASS"
+    },
+    {
+      "axis": "R",
+      "stage": "R",
+      "cells": 1,
+      "synthetic_calls": 3,
+      "execution_status": "RECORDED",
+      "status": "PASS"
+    },
+    {
+      "axis": "F",
+      "stage": "F",
+      "cells": 2,
+      "synthetic_calls": 1,
+      "execution_status": "RECORDED",
+      "status": "PASS"
+    },
+    {
+      "axis": "E",
+      "stage": "E",
+      "cells": 1,
+      "synthetic_calls": 4,
+      "execution_status": "RECORDED",
+      "status": "PASS"
+    },
+    {
+      "axis": "G",
+      "stage": "G-unknown",
+      "cells": 1,
+      "synthetic_calls": 0,
+      "execution_status": "INVALID",
+      "status": "PASS"
+    },
+    {
+      "axis": "R",
+      "stage": "R-unknown",
+      "cells": 1,
+      "synthetic_calls": 0,
+      "execution_status": "INVALID",
+      "status": "PASS"
+    },
+    {
+      "axis": "F",
+      "stage": "F-unknown",
+      "cells": 2,
+      "synthetic_calls": 0,
+      "execution_status": "INVALID",
+      "status": "PASS"
+    },
+    {
+      "axis": "E",
+      "stage": "E-unknown",
+      "cells": 1,
+      "synthetic_calls": 0,
+      "execution_status": "INVALID",
+      "status": "PASS"
+    }
+  ],
+  "cells": [
+    {
+      "axis": "G",
+      "id": "SYN-G",
+      "method": "literal",
+      "status": "RECORDED",
+      "protocol": "PASS",
+      "calls": 1
+    },
+    {
+      "axis": "R",
+      "id": "SYN-R",
+      "method": "ready",
+      "status": "RECORDED",
+      "protocol": "PASS",
+      "calls": 3
+    },
+    {
+      "axis": "F",
+      "id": "SYN-F",
+      "method": "literal",
+      "status": "RECORDED",
+      "protocol": "PASS",
+      "calls": 1
+    },
+    {
+      "axis": "F",
+      "id": "SYN-F",
+      "method": "typed",
+      "status": "RECORDED",
+      "protocol": "PASS",
+      "calls": 1
+    },
+    {
+      "axis": "E",
+      "id": "SYN-E",
+      "method": "literal",
+      "status": "RECORDED",
+      "protocol": "PASS",
+      "calls": 5
+    },
+    {
+      "axis": "G",
+      "id": "SYN-G-unknown",
+      "method": "literal",
+      "status": "INVALID",
+      "protocol": "PASS",
+      "calls": 1
+    },
+    {
+      "axis": "R",
+      "id": "SYN-R-unknown",
+      "method": "ready",
+      "status": "INVALID",
+      "protocol": "PASS",
+      "calls": 1
+    },
+    {
+      "axis": "F",
+      "id": "SYN-F-unknown",
+      "method": "literal",
+      "status": "INVALID",
+      "protocol": "PASS",
+      "calls": 1
+    },
+    {
+      "axis": "F",
+      "id": "SYN-F-unknown",
+      "method": "typed",
+      "status": "INVALID",
+      "protocol": "PASS",
+      "calls": 1
+    },
+    {
+      "axis": "E",
+      "id": "SYN-E-unknown",
+      "method": "literal",
+      "status": "INVALID",
+      "protocol": "PASS",
+      "calls": 1
+    }
+  ],
+  "browser_frames": 24,
+  "assessed_browser_frames": 21,
+  "negative_controls": 26,
+  "lifecycles": 3,
+  "independent_audit_test_groups": 18,
+  "protocol_recalculation": "archived entry byte-matches reviewed pinned UI closure; adjacent data-pin omitted from receipt archive",
+  "real_provider_attempts": {
+    "jev": 0,
+    "typellm": 0
+  },
+  "scope": "completed-ZIP synthetic mechanics only; actual assessments/protocol/events recalculated; no live provider quality admission"
+}

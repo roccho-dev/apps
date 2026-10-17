@@ -1,0 +1,319 @@
+{
+  "schema": "voice-ui.reviewer.stopped-source-audit/1",
+  "status": "PASS",
+  "measured_apps": "286eb7d0bc0bdef160bda900547314aa5be3a752",
+  "candidate_apps": "07c534397b88538f5b1104365999108150054cb0",
+  "candidate_tree": "8a2ed434b48f4862b42d3d0ec046410b46d04a60",
+  "matched_evidence_files": 185,
+  "ordinary_source_sha256": {
+    "src/completion.mjs": "48380fb1504dfe97b1f8450c9b33aee7665d13d5c4ee462a991591e573385541",
+    "src/literal-inventory.mjs": "82a2bdb9866c1331b4c685f28862bd54e7e974c4af3652b4f72dfdbb41f7df60",
+    "src/goal.mjs": "cd9101d6a222e31773c9523adeca3f7f9aa32990e30b39e06a7b872771422f3e",
+    "src/contract.mjs": "f2c95212493f59fd80ef17270c2b5de0d51d795b26ac8a0e6dfa0fdb9dec30fe",
+    "src/turn.mjs": "c5fc3489a5bd0861f0455bd9843f47e76030bb03a4fe55745cf00c29c79b7008",
+    "src/session.mjs": "d6fcb97e581afb789ed6ecb339c06c378ef94283084df8ad3042ebe42c48cfe8",
+    "functions/api/parts.mjs": "13ca5322730f049eb2e77319cc0fbeb58f649d91c4bc56fe9d36214a90960669",
+    "functions/pages-worker.mjs": "8f3bc7ea572cf3e21b16728721dcb381425786180433df34892e2a42cfc94656",
+    "web/app.mjs": "3a9ac4eba0770949a219b35c97cd346d4a7912026fae2b2f21710251b86bbf2a",
+    "web/adapters/completion.mjs": "a940d92086302dd7f733aa45542c26ea0d925fed460111f4fbb15c802e601e82",
+    "tests/component-axes-eval.mjs": "3c0e70952e107c8e443497808a15a5feb85c914e80774d1294a846caa8598f14",
+    "tests/component-axis-score.mjs": "b5b6547e81f8213ba20126ab6404d4807b06d836f91507651a502bc9c6ebef6b",
+    "tests/evaluation-http.mjs": "a2b4055f9209544019f07f5bb299afac38452049c6b642a4da2cdb9534a49f47",
+    "tests/painted-goal.mjs": "c5ba117d1dea66d20c80b7f92b8184296ff79d4231da56f5a89836af4beb018b"
+  },
+  "frozen_independent_audits": "byte-identical",
+  "cumulative": {
+    "jev": 689,
+    "typellm": 40
+  },
+  "reports": [
+    {
+      "id": "public-G",
+      "axis": "G",
+      "status": "PASS",
+      "phase_kind": "public",
+      "complete": true,
+      "all_valid_execution": true,
+      "admissible_for_semantic_claim": true,
+      "semantic": {
+        "total": 4,
+        "intent": {
+          "correct": 4,
+          "total": 4
+        },
+        "availability": {
+          "correct": 2,
+          "total": 2
+        },
+        "normalized": {
+          "correct": 4,
+          "total": 4
+        },
+        "completeness": {
+          "correct": 2,
+          "total": 2
+        },
+        "unknown": 0,
+        "semantic_criteria": "UNMET"
+      },
+      "producer_sha256": "0f9613439322fb626d29a2c4f2b8e2690f00879593ac49d3c58dc9db2835beec",
+      "reserveProjection": null
+    },
+    {
+      "id": "public-R",
+      "axis": "R",
+      "status": "PASS",
+      "phase_kind": "public",
+      "complete": true,
+      "all_valid_execution": true,
+      "admissible_for_semantic_claim": true,
+      "semantic": {
+        "complete": true,
+        "total": 2,
+        "inventory_sufficient": 2,
+        "graph_exact": 2,
+        "paint_pass": 2,
+        "representation_criteria": "UNMET",
+        "scope": "finite representation with oracle inventory; raw paint/Goal binding is separately required"
+      },
+      "producer_sha256": "d77dc67331b57eada726082a18fe8ffd79d4d908dac1bb3bbc74df6bb4a77b4a",
+      "reserveProjection": null
+    },
+    {
+      "id": "public-F",
+      "axis": "F",
+      "status": "PASS",
+      "phase_kind": "public",
+      "complete": true,
+      "all_valid_execution": false,
+      "admissible_for_semantic_claim": false,
+      "semantic": {
+        "complete": true,
+        "per_method": {
+          "literal": {
+            "total": 3,
+            "exact_minimal": 3,
+            "contract_valid": true,
+            "semantic_criteria": "UNMET"
+          },
+          "typed": {
+            "total": 3,
+            "exact_minimal": 1,
+            "contract_valid": false,
+            "semantic_criteria": "UNMET"
+          }
+        }
+      },
+      "producer_sha256": "a7902e86e9e5d778cc9f46a5b8163b0b5ddc36636558403b7c6e83464c6d7ac5",
+      "reserveProjection": null
+    },
+    {
+      "id": "public-E",
+      "axis": "E",
+      "status": "PASS",
+      "phase_kind": "public",
+      "complete": true,
+      "all_valid_execution": true,
+      "admissible_for_semantic_claim": true,
+      "semantic": {
+        "complete": true,
+        "gate_correct": 4,
+        "sufficient": {
+          "exact": 1,
+          "total": 1
+        },
+        "missing": {
+          "exact_minimal": 2,
+          "total": 2
+        },
+        "controls": {
+          "correct_unchanged": 1,
+          "total": 1
+        },
+        "ordinary_criteria": "UNMET",
+        "Undo_scope": "separate completed-artifact keyless mechanics, not another live Goal on these inputs"
+      },
+      "producer_sha256": "1b5987b860464003689bd15fb7d9c1cd6d2695ed14ef2620b2d942cd4c8221cb",
+      "reserveProjection": null
+    },
+    {
+      "id": "final-G",
+      "axis": "G",
+      "status": "PASS",
+      "phase_kind": "final",
+      "complete": true,
+      "all_valid_execution": true,
+      "admissible_for_semantic_claim": true,
+      "semantic": {
+        "total": 10,
+        "intent": {
+          "correct": 9,
+          "total": 10
+        },
+        "availability": {
+          "correct": 7,
+          "total": 8
+        },
+        "normalized": {
+          "correct": 8,
+          "total": 10
+        },
+        "completeness": {
+          "correct": 8,
+          "total": 8
+        },
+        "unknown": 1,
+        "semantic_criteria": "UNMET"
+      },
+      "producer_sha256": "68cb5a9de58031ae5400b59779c65bffa83c1daa213a6de55cf2c4d3cc7c807d",
+      "reserveProjection": null
+    },
+    {
+      "id": "final-R",
+      "axis": "R",
+      "status": "PASS",
+      "phase_kind": "final",
+      "complete": true,
+      "all_valid_execution": true,
+      "admissible_for_semantic_claim": true,
+      "semantic": {
+        "complete": true,
+        "total": 8,
+        "inventory_sufficient": 8,
+        "graph_exact": 8,
+        "paint_pass": 8,
+        "representation_criteria": "PASS",
+        "scope": "finite representation with oracle inventory; raw paint/Goal binding is separately required"
+      },
+      "producer_sha256": "ce8fcd524d6b965071a7cb4f5984c4cf3249be55e0f20f606f3b880a2e4645f6",
+      "reserveProjection": null
+    },
+    {
+      "id": "final-F",
+      "axis": "F",
+      "status": "PASS",
+      "phase_kind": "final",
+      "complete": true,
+      "all_valid_execution": false,
+      "admissible_for_semantic_claim": false,
+      "semantic": {
+        "complete": true,
+        "per_method": {
+          "literal": {
+            "total": 8,
+            "exact_minimal": 3,
+            "contract_valid": true,
+            "semantic_criteria": "UNMET"
+          },
+          "typed": {
+            "total": 8,
+            "exact_minimal": 4,
+            "contract_valid": false,
+            "semantic_criteria": "UNMET"
+          }
+        }
+      },
+      "producer_sha256": "3cc680e03602095e3b9e7295a03e3b0901d8aa032573cecdc2c22aacc7bbb5aa",
+      "reserveProjection": null
+    },
+    {
+      "id": "final-E",
+      "axis": "E",
+      "status": "PASS",
+      "phase_kind": "final",
+      "complete": true,
+      "all_valid_execution": true,
+      "admissible_for_semantic_claim": true,
+      "semantic": {
+        "complete": true,
+        "gate_correct": 7,
+        "sufficient": {
+          "exact": 2,
+          "total": 4
+        },
+        "missing": {
+          "exact_minimal": 3,
+          "total": 4
+        },
+        "controls": {
+          "correct_unchanged": 2,
+          "total": 2
+        },
+        "ordinary_criteria": "UNMET",
+        "Undo_scope": "separate completed-artifact keyless mechanics, not another live Goal on these inputs"
+      },
+      "producer_sha256": "c351811473ed4887b14cca62ad261b1c05ce4c6d6ea3207da31c3994098b513b",
+      "reserveProjection": {
+        "schema": "voice-ui.component-axes-reserve-audit/1",
+        "source_pool_sha256": "b64985019e2248c4fde62e330f319846c96ab5014db4e96a7d8f0d50d5f86076",
+        "projection_sha256": "354862aef8e9c7ad85bce6e77877fa5dbe98f4a7b3fddaa73ea2de8b6704c38b",
+        "oracle_sha256": "23c4b72efd4f1247df1493abe7a453b222d5db4980bc7488e4d83e5d3e339533",
+        "bundle_sha256": "8fd1b4f37f6a113653dbaeda5e040ba5bed6d7b007ab9269d307f8642d339189",
+        "case_order": [
+          "R01",
+          "R05",
+          "R09",
+          "R02",
+          "R06",
+          "R10",
+          "R03",
+          "R07",
+          "R04",
+          "R08"
+        ],
+        "strata": {
+          "sufficient": 4,
+          "missing": 4,
+          "ambiguous": 1,
+          "no-change": 1
+        },
+        "original_case_object_sha256": [
+          {
+            "id": "R01",
+            "sha256": "9bd841b1808de441df6bb4bdf65a4e3f03865f96b6d7f41e4c607cadd3b0952c"
+          },
+          {
+            "id": "R05",
+            "sha256": "29ec5a0603c4119890f1eb358a64484ac3cb93dca26e9bbbdb3c9b1da8081be5"
+          },
+          {
+            "id": "R09",
+            "sha256": "00bf183faf276af8419af0a8a11d80a107b8275c4f7ed2b09be0a37c6175718f"
+          },
+          {
+            "id": "R02",
+            "sha256": "8627c795194d97fe62eea6efc812f12ee053c8bbb31dc465cf335542364bfd84"
+          },
+          {
+            "id": "R06",
+            "sha256": "158131c03f78c867f7e0199d7fd47bec71948dc3436ab44cfc248ab225030d34"
+          },
+          {
+            "id": "R10",
+            "sha256": "391277a8e65c1b42b25852b093978f2c5467ee2f835d3f47c4fbdf4ae58f9882"
+          },
+          {
+            "id": "R03",
+            "sha256": "e7ad2c85a27683e16145e4937ccfd7f102934629f23c6fb3641f5c93362d9cfa"
+          },
+          {
+            "id": "R07",
+            "sha256": "ca43b9cd677222580e5d6a5d66bc177330b94653ab93e1950cf891687a87bbfa"
+          },
+          {
+            "id": "R04",
+            "sha256": "aecde3dbd1fb9589167fed16fcf96500bc69374eef429fa737d5b9811dbd100b"
+          },
+          {
+            "id": "R08",
+            "sha256": "287c2b29586547fb6ba99884a778d9e2f7d7c89a5d85191a66aa4513c2719edb"
+          }
+        ],
+        "status": "PASS",
+        "issues": [],
+        "scope": "raw original seal, case/target/order/fixture preservation and mechanical required derivation only; no model-quality verdict"
+      }
+    }
+  ],
+  "scope": "all eight committed stopped snapshots, protocol/semantic/provider/producer integrity and source14 bridge; actual final candidate artifact/CI checked separately"
+}
