@@ -1,0 +1,229 @@
+{
+  "schema": "voice-ui.dependency-cycle-commitment/1",
+  "created_at": "2026-10-17T17:19:13.277Z",
+  "previous_cycle": {
+    "measured_apps": "31e8fabaeb679c8bb02db8029f36de410d012adb",
+    "report_apps": "1f51623a1c3cc64614b5940eaff60fa4b6837cea",
+    "review": "https://github.com/roccho-dev/apps/pull/103#pullrequestreview-5558819199",
+    "old_commitment_sha256": "f002a267be0096beb988f5cb83e175d7724ce0213a9495755301c19fb2e3eaef"
+  },
+  "charged_prior": {
+    "jev": 701,
+    "typellm": 58
+  },
+  "cycle_cap": {
+    "jev": 250,
+    "typellm": 40
+  },
+  "allocated": {
+    "jev": 248,
+    "typellm": 32
+  },
+  "global_cap": {
+    "jev": 1000,
+    "typellm": 1000
+  },
+  "worst_cap_cumulative": {
+    "jev": 951,
+    "typellm": 98
+  },
+  "stages": [
+    {
+      "id": "public-F",
+      "cases": 6,
+      "cells": 12,
+      "jev": 0,
+      "typellm": 12
+    },
+    {
+      "id": "public-V",
+      "cases": 6,
+      "cells": 6,
+      "jev": 6,
+      "typellm": 0
+    },
+    {
+      "id": "public-E",
+      "cases": 2,
+      "cells": 4,
+      "jev": 38,
+      "typellm": 2
+    },
+    {
+      "id": "final-V",
+      "cases": 10,
+      "cells": 10,
+      "jev": 10,
+      "typellm": 0
+    },
+    {
+      "id": "final-F",
+      "cases": 8,
+      "cells": 8,
+      "jev": 0,
+      "typellm": 8
+    },
+    {
+      "id": "final-E",
+      "cases": 10,
+      "cells": 20,
+      "jev": 190,
+      "typellm": 10
+    },
+    {
+      "id": "setup",
+      "jev": 4,
+      "typellm": 0,
+      "use": "only named, preregistered normal UI fixture preparation; no generic spare/retry/diagnostic"
+    }
+  ],
+  "corrections_max": 0,
+  "retries_max": 0,
+  "source_or_criteria_change_after_first_public_call": "stops this registration; no prior passed cell carries across source",
+  "files": [
+    {
+      "axis": "F",
+      "visibility": "public",
+      "cases": 6,
+      "cells": 12,
+      "input": {
+        "path": "dependency-cycle-public-F6.inputs.json",
+        "bytes": 4918,
+        "sha256": "e39739925e6fac55819c1d33d896d66ed3c6ffb36a82448b0036d80c4d1c06e0"
+      },
+      "oracle": {
+        "path": "dependency-cycle-public-F6.oracle.json",
+        "bytes": 10154,
+        "sha256": "7d143ea45de7f112d087719ff11edec017a3e946611187efc160d2b5d45459e8"
+      },
+      "parent_inputs_sha256": "fecbe1eb3945cdb9e450742e26ba5fbb56bc1f3d852b1deebf292d09d922b6ec",
+      "parent_oracle_sha256": "d01e7cdd4ef0fabd0b0befeab1e39026a235c88f02046e8eee58d56840aaa36e"
+    },
+    {
+      "axis": "V",
+      "visibility": "public",
+      "cases": 6,
+      "cells": 6,
+      "input": {
+        "path": "dependency-cycle-public-V6.inputs.json",
+        "bytes": 5550,
+        "sha256": "4227c45e45e0bf7840a842c57617123d1adfa0f9fda1812e144915fce7f95475"
+      },
+      "oracle": {
+        "path": "dependency-cycle-public-V6.oracle.json",
+        "bytes": 10732,
+        "sha256": "5aed103fced3dc74b5127deb86f347d95f87d3515f96966a658c2606db598d2a"
+      },
+      "parent_inputs_sha256": "633a1b3cc8c47a6fcb4d548d127bdb05b2696bc99ffbfae0467211236e36ce97",
+      "parent_oracle_sha256": "884dde0deb27b76d7f269eee989ffeedc1759493402b77a4cf4d9efb0d4344e5"
+    },
+    {
+      "axis": "E",
+      "visibility": "public",
+      "cases": 2,
+      "cells": 4,
+      "input": {
+        "path": "dependency-cycle-public-E2.inputs.json",
+        "bytes": 3828,
+        "sha256": "e359929b095783603949044e74a2b4720f7697aeb9466858279f69440f5b5d84"
+      },
+      "oracle": {
+        "path": "dependency-cycle-public-E2.oracle.json",
+        "bytes": 6757,
+        "sha256": "b642512e31115a4e2ef7c85d316d3f095f8e12fff8b1feadfa762ce7b08b04e6"
+      },
+      "parent_inputs_sha256": "dddd6843284c39e7aa1862cd2b9debd0548a6b503d892c18d68863205387380c",
+      "parent_oracle_sha256": "723bc974b22fc45da2f19b6c8580f7280e7497d474d5a9f33d35d3f1ce385dea"
+    },
+    {
+      "axis": "V",
+      "visibility": "sealed",
+      "cases": 10,
+      "cells": 10,
+      "input": {
+        "path": "dependency-cycle-sealed-V10.inputs.json",
+        "bytes": 7250,
+        "sha256": "36f63ecc1b2d0b6193f9e24eb68142fefa6441c5d65e06ab3601a57fed6d3c25"
+      },
+      "oracle": {
+        "path": "dependency-cycle-sealed-V10.oracle.json",
+        "bytes": 14055,
+        "sha256": "aa909885f5b8a0b578035b2b97a3549efd0b3f40acaa4c40c4863a1f364844e6"
+      },
+      "parent_inputs_sha256": null,
+      "parent_oracle_sha256": null
+    },
+    {
+      "axis": "F",
+      "visibility": "sealed",
+      "cases": 8,
+      "cells": 8,
+      "input": {
+        "path": "dependency-cycle-sealed-F8.inputs.json",
+        "bytes": 5614,
+        "sha256": "5249b0deb5df7c4b0c7ab82f91d39cc1c174af326daef772a1ae3a444f3e0b9d"
+      },
+      "oracle": {
+        "path": "dependency-cycle-sealed-F8.oracle.json",
+        "bytes": 11821,
+        "sha256": "914fda47d411cae810fa2ea872b1174c4d3479ef55615370d8ca80e41f62c731"
+      },
+      "parent_inputs_sha256": null,
+      "parent_oracle_sha256": null
+    },
+    {
+      "axis": "E",
+      "visibility": "sealed",
+      "cases": 10,
+      "cells": 20,
+      "input": {
+        "path": "dependency-cycle-sealed-E10.inputs.json",
+        "bytes": 6041,
+        "sha256": "9e5293a52d56d3377b9c7f226fd87baeac7f86bfb5b852525b19f571151cef77"
+      },
+      "oracle": {
+        "path": "dependency-cycle-sealed-E10.oracle.json",
+        "bytes": 14993,
+        "sha256": "239a82a2e740a8f5ae45b1943c728d431ab0c8fd7cf027961d74eb65eb64c62b"
+      },
+      "parent_inputs_sha256": null,
+      "parent_oracle_sha256": null
+    }
+  ],
+  "public_literal_preflight": {
+    "path": "dependency-cycle-public-literal-preflight.json",
+    "bytes": 2970,
+    "sha256": "f49da56d4f3948d8258ef8f57ee9eb1696351cbcb4644d5a72989e2a916ace43"
+  },
+  "validation": {
+    "path": "dependency-cycle-seal-validation.json",
+    "bytes": 2784,
+    "sha256": "3b5a916692c146bffb247790234ed8763f73bffdebd6ca538e91fde674ae97e3"
+  },
+  "exposure": "Only public input/oracle files, this commitment, protocol and public validation are released now. Fresh inputs after full public same-head gate; each fresh oracle only after own phase physical stop and reconciliation. Old six files stay sealed.",
+  "public_gate": {
+    "dependent_F_all_valid": 6,
+    "dependent_F_exact_minimum": 4,
+    "V_correct": 6,
+    "E_eligible_missing_gains": 2,
+    "E_candidate_complete_quality": true,
+    "all_same_source": true
+  },
+  "final_gate": {
+    "V_correct": 10,
+    "V_false_accept": 0,
+    "F_exact_minimal": 8,
+    "F_true_sufficient": 2,
+    "E_pairs": 10,
+    "E_sufficient": 4,
+    "E_missing": 4,
+    "E_controls": 2,
+    "E_all_candidate_quality": true,
+    "E_causal_missing_gain_minimum": 2,
+    "E_regressions": 0,
+    "E_all_guards": true
+  },
+  "no_effect_gate": "Only a complete admitted registered E panel with all four preregistered M pairs valid, actually G0-eligible in both arms with equal literal proposals, all guards/source/paint joins and zero causal gains may support NO_EFFECT_IN_REGISTERED_MISSING_CASES. Invalid or missing eligibility stays UNPROVEN; 1 gain is a partial effect below target, not NO_EFFECT.",
+  "causal_scope": "F I/D compares dependency metadata only; invalid baseline cannot count as an admissible semantic causal win. E compares dependent-Type interpretation with literal-only interpretation; both arms retain deterministic preparation of recognized shortages.",
+  "no_provider_calls": true
+}

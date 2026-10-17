@@ -1,0 +1,224 @@
+{
+  "schema": "voice-ui.dependency-cycle-input/1",
+  "axis": "F",
+  "oracle_sha256": "7d143ea45de7f112d087719ff11edec017a3e946611187efc160d2b5d45459e8",
+  "parent_inputs_sha256": "fecbe1eb3945cdb9e450742e26ba5fbb56bc1f3d852b1deebf292d09d922b6ec",
+  "fixture_contract": {
+    "map_id": "voice-graph",
+    "base_records": [
+      {
+        "type": "meta",
+        "schema": "semantic-map-state/1",
+        "root": "root",
+        "title": "independent component axes"
+      },
+      {
+        "type": "region",
+        "id": "root",
+        "parent": null,
+        "label": "fixture",
+        "kind": "boundary",
+        "bounds": [
+          0,
+          0,
+          900,
+          400
+        ],
+        "summary": ""
+      },
+      {
+        "type": "region",
+        "id": "container",
+        "parent": "root",
+        "label": "OCI",
+        "kind": "group",
+        "bounds": [
+          0,
+          0,
+          700,
+          200
+        ],
+        "summary": ""
+      },
+      {
+        "type": "region",
+        "id": "other",
+        "parent": "root",
+        "label": "Other",
+        "kind": "group",
+        "bounds": [
+          0,
+          230,
+          700,
+          160
+        ],
+        "summary": ""
+      }
+    ],
+    "base_pins": [
+      {
+        "regionId": "container",
+        "bounds": [
+          0,
+          0,
+          2000,
+          500
+        ]
+      },
+      {
+        "regionId": "other",
+        "bounds": [
+          0,
+          600,
+          2000,
+          500
+        ]
+      }
+    ],
+    "fixtures": {
+      "empty": {
+        "extra_records": [],
+        "extra_pins": []
+      },
+      "api": {
+        "extra_records": [
+          {
+            "type": "region",
+            "id": "initial-api",
+            "parent": "container",
+            "label": "API",
+            "kind": "step",
+            "bounds": [
+              20,
+              20,
+              140,
+              64
+            ],
+            "summary": ""
+          }
+        ],
+        "extra_pins": [
+          {
+            "regionId": "initial-api",
+            "bounds": [
+              12,
+              36,
+              140,
+              64
+            ]
+          }
+        ]
+      },
+      "pair": {
+        "extra_records": [
+          {
+            "type": "region",
+            "id": "initial-api",
+            "parent": "container",
+            "label": "API",
+            "kind": "step",
+            "bounds": [
+              20,
+              20,
+              140,
+              64
+            ],
+            "summary": ""
+          },
+          {
+            "type": "region",
+            "id": "initial-db",
+            "parent": "container",
+            "label": "DB",
+            "kind": "data",
+            "bounds": [
+              200,
+              20,
+              140,
+              64
+            ],
+            "summary": ""
+          }
+        ],
+        "extra_pins": [
+          {
+            "regionId": "initial-api",
+            "bounds": [
+              12,
+              36,
+              140,
+              64
+            ]
+          },
+          {
+            "regionId": "initial-db",
+            "bounds": [
+              200,
+              36,
+              140,
+              64
+            ]
+          }
+        ]
+      }
+    },
+    "recent_conversation": [],
+    "scope": null
+  },
+  "cases": [
+    {
+      "id": "PF01",
+      "fixture": "empty",
+      "utterance": "OCIにAPIを3個新しく追加してください。表示名も種類も3個とも同じAPIの工程です。",
+      "arms": [
+        "I",
+        "D"
+      ]
+    },
+    {
+      "id": "PF02",
+      "fixture": "empty",
+      "utterance": "OCIには可否照合という名前の判断用の菱形を一つ置いてほしい。",
+      "arms": [
+        "D",
+        "I"
+      ]
+    },
+    {
+      "id": "PF03",
+      "fixture": "empty",
+      "utterance": "Otherの中に「API」という表示名の工程を1つだけ追加してください。",
+      "arms": [
+        "I",
+        "D"
+      ]
+    },
+    {
+      "id": "PF04",
+      "fixture": "empty",
+      "utterance": "Otherへデータと判断を一つずつ追加してください。接続はいりません。",
+      "arms": [
+        "D",
+        "I"
+      ]
+    },
+    {
+      "id": "PF05",
+      "fixture": "empty",
+      "utterance": "OCIに「閲覧室」というグループを1個作って、その中へ工程「索引生成」とデータ「索引票」を各1個置いてください。索引生成から索引票へ矢印を1本付けてください。",
+      "arms": [
+        "I",
+        "D"
+      ]
+    },
+    {
+      "id": "PF06",
+      "fixture": "pair",
+      "utterance": "今あるDBは残して、DBを2個と「格納前処理」という工程を1個、OCIに追加してください。追加する部品は合計3個です。",
+      "arms": [
+        "D",
+        "I"
+      ]
+    }
+  ]
+}

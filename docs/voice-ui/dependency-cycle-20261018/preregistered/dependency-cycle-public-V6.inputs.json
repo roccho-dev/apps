@@ -1,0 +1,265 @@
+{
+  "schema": "voice-ui.dependency-cycle-input/1",
+  "axis": "V",
+  "oracle_sha256": "5aed103fced3dc74b5127deb86f347d95f87d3515f96966a658c2606db598d2a",
+  "parent_inputs_sha256": "633a1b3cc8c47a6fcb4d548d127bdb05b2696bc99ffbfae0467211236e36ce97",
+  "fixture_contract": {
+    "map_id": "voice-graph",
+    "base_records": [
+      {
+        "type": "meta",
+        "schema": "semantic-map-state/1",
+        "root": "root",
+        "title": "independent component axes"
+      },
+      {
+        "type": "region",
+        "id": "root",
+        "parent": null,
+        "label": "fixture",
+        "kind": "boundary",
+        "bounds": [
+          0,
+          0,
+          900,
+          400
+        ],
+        "summary": ""
+      },
+      {
+        "type": "region",
+        "id": "container",
+        "parent": "root",
+        "label": "OCI",
+        "kind": "group",
+        "bounds": [
+          0,
+          0,
+          700,
+          200
+        ],
+        "summary": ""
+      },
+      {
+        "type": "region",
+        "id": "other",
+        "parent": "root",
+        "label": "Other",
+        "kind": "group",
+        "bounds": [
+          0,
+          230,
+          700,
+          160
+        ],
+        "summary": ""
+      }
+    ],
+    "base_pins": [
+      {
+        "regionId": "container",
+        "bounds": [
+          0,
+          0,
+          2000,
+          500
+        ]
+      },
+      {
+        "regionId": "other",
+        "bounds": [
+          0,
+          600,
+          2000,
+          500
+        ]
+      }
+    ],
+    "fixtures": {
+      "empty": {
+        "extra_records": [],
+        "extra_pins": []
+      },
+      "api": {
+        "extra_records": [
+          {
+            "type": "region",
+            "id": "initial-api",
+            "parent": "container",
+            "label": "API",
+            "kind": "step",
+            "bounds": [
+              20,
+              20,
+              140,
+              64
+            ],
+            "summary": ""
+          }
+        ],
+        "extra_pins": [
+          {
+            "regionId": "initial-api",
+            "bounds": [
+              12,
+              36,
+              140,
+              64
+            ]
+          }
+        ]
+      },
+      "pair": {
+        "extra_records": [
+          {
+            "type": "region",
+            "id": "initial-api",
+            "parent": "container",
+            "label": "API",
+            "kind": "step",
+            "bounds": [
+              20,
+              20,
+              140,
+              64
+            ],
+            "summary": ""
+          },
+          {
+            "type": "region",
+            "id": "initial-db",
+            "parent": "container",
+            "label": "DB",
+            "kind": "data",
+            "bounds": [
+              200,
+              20,
+              140,
+              64
+            ],
+            "summary": ""
+          }
+        ],
+        "extra_pins": [
+          {
+            "regionId": "initial-api",
+            "bounds": [
+              12,
+              36,
+              140,
+              64
+            ]
+          },
+          {
+            "regionId": "initial-db",
+            "bounds": [
+              200,
+              36,
+              140,
+              64
+            ]
+          }
+        ]
+      }
+    },
+    "recent_conversation": [],
+    "scope": null
+  },
+  "cases": [
+    {
+      "id": "PV01",
+      "fixture": "empty",
+      "utterance": "OCIにAPIを3個新しく追加してください。表示名も種類も3個とも同じAPIの工程です。",
+      "required": [
+        {
+          "label": "API",
+          "kind": "step",
+          "quantity": 3
+        }
+      ],
+      "arms": [
+        "V"
+      ]
+    },
+    {
+      "id": "PV02",
+      "fixture": "empty",
+      "utterance": "OCIにAPIを3個新しく追加してください。表示名も種類も3個とも同じAPIの工程です。",
+      "required": [
+        {
+          "label": "API",
+          "kind": "step",
+          "quantity": 2
+        }
+      ],
+      "arms": [
+        "V"
+      ]
+    },
+    {
+      "id": "PV03",
+      "fixture": "empty",
+      "utterance": "OCIには可否照合という名前の判断用の菱形を一つ置いてほしい。",
+      "required": [
+        {
+          "label": "可否照合",
+          "kind": "decision",
+          "quantity": 1
+        }
+      ],
+      "arms": [
+        "V"
+      ]
+    },
+    {
+      "id": "PV04",
+      "fixture": "empty",
+      "utterance": "OCIには可否照合という名前の判断用の菱形を一つ置いてほしい。",
+      "required": [
+        {
+          "label": "可否照合",
+          "kind": "step",
+          "quantity": 1
+        }
+      ],
+      "arms": [
+        "V"
+      ]
+    },
+    {
+      "id": "PV05",
+      "fixture": "empty",
+      "utterance": "Otherへデータと判断を一つずつ追加してください。接続はいりません。",
+      "required": [
+        {
+          "label": "データ",
+          "kind": "data",
+          "quantity": 1
+        },
+        {
+          "label": "判断",
+          "kind": "decision",
+          "quantity": 1
+        }
+      ],
+      "arms": [
+        "V"
+      ]
+    },
+    {
+      "id": "PV06",
+      "fixture": "empty",
+      "utterance": "Otherへデータと判断を一つずつ追加してください。接続はいりません。",
+      "required": [
+        {
+          "label": "判断",
+          "kind": "decision",
+          "quantity": 1
+        }
+      ],
+      "arms": [
+        "V"
+      ]
+    }
+  ]
+}

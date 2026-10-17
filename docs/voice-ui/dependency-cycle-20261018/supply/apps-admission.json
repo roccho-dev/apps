@@ -1,0 +1,28 @@
+{
+  "schema": "typellm.dependency-formal-admission/1",
+  "apps_admitter_sha": "1f51623a1c3cc64614b5940eaff60fa4b6837cea",
+  "expected": {
+    "locator": "https://github.com/roccho-org/ops/releases/download/jev-provider-b4f611cac9e13fbef178469796cbc3b6d4a76b23/jev-provider.zip",
+    "sha256": "073d9df7a2eeb479a3641c6b86768bf3af14ec1b7e976ed5672649148d5e2435",
+    "proof_sha256": "459b753541fdf53cf0acb9cb13167c17218e078e3782933e589afaf57a8c6846",
+    "provenance_sha256": "b602225c44cc67c4f6a96fe41914c5159140718a4c81f0826cf46d9cce9223b8",
+    "entry_sha256": "3f754c8b1ee4a8b34b50d00fd17e37295d853e1b607903b6d355b5e06997669c",
+    "manifest_sha256": "c8fdf65da826690b487ab093d20c73a445a11dbc736ae4f58e23af7c57330318",
+    "contract": "named-choices-and-typed/1",
+    "proof": {
+      "base": "proposals",
+      "merge_sha": "b4f611cac9e13fbef178469796cbc3b6d4a76b23",
+      "merge_tree": "dcb90215ac4e2f010b1bb39da5f71462cc94bf56",
+      "pr_number": 565,
+      "r_exact_head_verdict_ref": "https://github.com/roccho-org/ops/pull/565#pullrequestreview-5558945175",
+      "reviewed_head": "f7e80875b1331c113cb38251d85838edf0330d5b",
+      "reviewed_tree": "dcb90215ac4e2f010b1bb39da5f71462cc94bf56"
+    }
+  },
+  "result": "judge admission: actual supplied positive 1; typed refusal controls 8; credential injection/provider invocation/app commit 0\n",
+  "status": "PASS",
+  "real_provider_sends": {
+    "jev": 0,
+    "typellm": 0
+  }
+}

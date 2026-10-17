@@ -1,0 +1,80 @@
+{
+  "schema": "voice-ui.dependency-cycle-seal-validation/1",
+  "status": "PASS",
+  "no_provider_calls": true,
+  "literal_source_sha256": "82a2bdb9866c1331b4c685f28862bd54e7e974c4af3652b4f72dfdbb41f7df60",
+  "private_validation_sha256": "286de974eed5ab2f1bdceca9892a552345304b0ce83a0f7c0e74159b99d1de23",
+  "old_unconsumed_unchanged": [
+    {
+      "path": "requirements-cycle-sealed-V10.inputs.json",
+      "sha256": "be1b471949ed9201b2278214db832068ad6d6393a739ad29494b4d302404f12e"
+    },
+    {
+      "path": "requirements-cycle-sealed-V10.oracle.json",
+      "sha256": "54749c5fd8e0c9f5fc18715b9a675b2fc7c698de349fd0f3241606539f2b8bcd"
+    },
+    {
+      "path": "requirements-cycle-sealed-F8.inputs.json",
+      "sha256": "0b58871d1d8ca77e4ab2bc56e2fb3f91d886315c172abff677a5eb3550386ce4"
+    },
+    {
+      "path": "requirements-cycle-sealed-F8.oracle.json",
+      "sha256": "bf4e8d38f758051e237c721545f545be89f716b71d963121aa8dbbc170f4fb42"
+    },
+    {
+      "path": "requirements-cycle-sealed-E10.inputs.json",
+      "sha256": "cfc492e1b37e3ee2ae8590bea8e1f82d7f0d5ea7dcf645ba09c2fa0e47cedcc5"
+    },
+    {
+      "path": "requirements-cycle-sealed-E10.oracle.json",
+      "sha256": "3cdd7c41ac61e1c646ffb4bbcf1f1e32eab306fb716710896dcec438ca9f3c67"
+    }
+  ],
+  "fixture_proof": {
+    "empty": {
+      "head": "sha256:0b3522df5b691691d41d9b4587377781fc7048c991a4e47357e5583eb09288c6",
+      "log_sha256": "8d1eca97d9c29efcb938bf7ba32ba18f306db8b4ce1a35570cd454d53fdee314",
+      "records": 6
+    },
+    "api": {
+      "head": "sha256:8b2f0a4e98841720c0df78f2dcc2c3d36d0b9af62d9cef1e81649c4b25dce492",
+      "log_sha256": "03d128b23c56efa014b54676c02c0cdc1a95130a5f414211ad64487033b29445",
+      "records": 8
+    },
+    "pair": {
+      "head": "sha256:b4f52e5183b8e5730e59a7524a9b260f7cb7a4246695c8a69c4d320bec1312c1",
+      "log_sha256": "8acb35234593a568df45ad03fb5aaa70f2ed13d21c03513fc66c9304ec56e5f3",
+      "records": 10
+    }
+  },
+  "counts": {
+    "public": {
+      "F_cases": 6,
+      "F_cells": 12,
+      "V": 6,
+      "E_pairs": 2
+    },
+    "fresh": {
+      "V": 10,
+      "F": 8,
+      "F_true_sufficient": 2,
+      "E_pairs": 10,
+      "E_sufficient": 4,
+      "E_missing": 4,
+      "E_controls": 2,
+      "E_missing_literal_deficits": 4,
+      "E_missing_stock_known": 2,
+      "E_missing_new_names": 2,
+      "E_sufficient_literal_known": 2
+    }
+  },
+  "checks": [
+    "independent expected meanings fixed before actual parser inspection",
+    "total NEW/target/stock difference consistent",
+    "all fresh missing cases are actual literal deficits",
+    "stock-known differs from literal-complete",
+    "old sealed payload bytes unchanged",
+    "new projection schedules frozen; no oracle read by root",
+    "no observed provider-generated output used"
+  ]
+}
