@@ -63,7 +63,7 @@ stored as null, which the transform turns into `UNKNOWN`. Snapshots from before 
 | `<target>:port` | `responding` / `no-response` / `UNKNOWN` |
 | `<repo>#<n>:plan.source` | only when the Issue/comments fetch failed: `UNKNOWN` (not "no plan") |
 | `<repo>:archived` | `"true"` / `"false"`; a non-boolean or missing field, or a failed call → `UNKNOWN` |
-| `<repo>#<n>:issue.state` | `state`, plus `/<state_reason>` when GitHub gives one: `open`, `closed`, `closed/completed`, `closed/not_planned`, `open/reopened`; no string `state` → `UNKNOWN` |
+| `<repo>#<n>:issue.state` | `state`, plus `/<state_reason>` when GitHub gives one: `open`, `closed`, `closed/completed`, `closed/not_planned`, `open/reopened`; no string `state` → `UNKNOWN`; a PR (`pull_request` key) → `UNKNOWN`, reason in `source.ref` (list PRs in `pulls`: `pr.state`, `pr.merged`) |
 
 `observedAt` is the snapshot's fetch time. `observedAt > recordedAt` is rejected (throws).
 

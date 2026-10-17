@@ -52,6 +52,18 @@ test('issue state: no false "completed" — missing reason, missing state, faile
   assert.equal(only(observe(failed)).value, UNKNOWN);
 });
 
+test('issue state: a PR in the issues API is UNKNOWN with the reason, never "closed"', () => {
+  const merged = only(observe(snapshot('issue-is-merged-pr')));
+  assert.deepEqual([merged.target, merged.value], ['ops#479:issue.state', UNKNOWN]);
+  assert.match(merged.source.ref, /^gh api repos\/roccho-dev\/ops\/issues\/479 .*pull request.*pr\.state.*pr\.merged/u, 'reason kept in the source D reads');
+  // Whatever the PR's state or reason fields say (open, closed, with a reason), the key alone decides.
+  for (const [state, reason] of [['open', null], ['closed', 'completed']]) {
+    const s = snapshot('issue-is-merged-pr');
+    Object.assign(s.responses.issue.data, { state, state_reason: reason });
+    assert.equal(only(observe(s)).value, UNKNOWN, `${state}/${reason}`);
+  }
+});
+
 test('facts only: no meaning target is ever emitted; time order still enforced', () => {
   const events = ['repo-archived-true', 'issue-closed-completed', 'repo-fetch-failed'].flatMap(name => observe(snapshot(name)));
   assert.deepEqual(events.map(e => e.target), ['windows:archived', 'ops#479:issue.state', 'windows:archived']);
