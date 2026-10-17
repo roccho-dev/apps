@@ -224,6 +224,20 @@ try {
       assert.ok(observed.edge.complete && endsVisible, "whole directed arrow and endpoint names in fixed relation frame");
       const reverse = await page.evaluate(observePaintedGoal, { ...args, edge: { ...edge, from: edge.to, to: edge.from } });
       assert.equal(reverse.edge.complete, false); controls.push({ fixture: fixture.id, mutation: "reverse-edge", detected: true });
+      const missingId = await page.evaluate(observePaintedGoal, { ...args, edge: { from: edge.from, to: edge.to } });
+      assert.equal(missingId.edge.complete, false); controls.push({ fixture: fixture.id, mutation: "missing-edge-id", detected: true });
+      await page.evaluate(id => {
+        const doc = document.querySelector("#working-surface iframe").contentDocument;
+        const shape = [...doc.querySelectorAll('[data-semantic-role="shape"][data-semantic-relation-ids]')]
+          .find(n => JSON.parse(n.dataset.semanticRelationIds).includes(id)); shape.style.opacity = "0";
+      }, edge.id);
+      assert.equal((await page.evaluate(observePaintedGoal, args)).edge.complete, false);
+      controls.push({ fixture: fixture.id, mutation: "hidden-edge-ancestor", detected: true });
+      await page.evaluate(id => {
+        const doc = document.querySelector("#working-surface iframe").contentDocument;
+        const shape = [...doc.querySelectorAll('[data-semantic-role="shape"][data-semantic-relation-ids]')]
+          .find(n => JSON.parse(n.dataset.semanticRelationIds).includes(id)); shape.style.removeProperty("opacity");
+      }, edge.id);
       const saved = await page.evaluate(id => {
         const doc = document.querySelector("#working-surface iframe").contentDocument;
         const shape = [...doc.querySelectorAll('[data-semantic-role="shape"][data-semantic-relation-ids]')]

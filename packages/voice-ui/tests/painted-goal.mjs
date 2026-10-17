@@ -219,13 +219,14 @@ export function observePaintedGoal({ container, records, edge = null, identity =
   const arrows = [];
   const observedEdges = [];
   if (edge !== null) for (const group of doc.querySelectorAll("svg g")) {
-    if (identity && edge.id !== undefined) {
+    if (identity) {
+      if (typeof edge.id !== "string" || edge.id.length === 0) continue;
       let ids;
       try { ids = JSON.parse(group.getAttribute("data-semantic-relation-ids")); } catch { continue; }
       if (!Array.isArray(ids) || !ids.includes(edge.id) || group.getAttribute("data-semantic-role") !== "shape") continue;
     }
     const paths = [...group.children].filter(node => {
-      if (node.localName !== "path") return false;
+      if (node.localName !== "path" || !visible(node)) return false;
       const r = node.getBoundingClientRect(), s = iframe.contentWindow.getComputedStyle(node);
       return [r.left, r.top, r.width, r.height].every(Number.isFinite) && (r.width > 0 || r.height > 0)
         && s.display !== "none" && s.visibility !== "hidden";

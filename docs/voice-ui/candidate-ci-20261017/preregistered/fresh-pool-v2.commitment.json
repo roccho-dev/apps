@@ -1,0 +1,39 @@
+{
+  "schema": "voice-ui.poc.pool-commitment/2",
+  "reviewer": "/root/poc_reviewer",
+  "prepared_at": "2026-10-17T08:20:04.245Z",
+  "current_seal": {
+    "name": "fresh-pool-v2.sealed.json",
+    "bytes": 23561,
+    "sha256": "b64985019e2248c4fde62e330f319846c96ab5014db4e96a7d8f0d50d5f86076"
+  },
+  "primary_cases": 10,
+  "primary_categories": {
+    "sufficient": 4,
+    "missing": 4,
+    "controls": 2
+  },
+  "reserve_cases": 10,
+  "reserve_status": "UNOPENED_NOT_BUDGET_AUTHORITY",
+  "no_inputs_or_oracles_released": true,
+  "comparison_contract": {
+    "name": "comparison-contract-v2.json",
+    "bytes": 4716,
+    "sha256": "aaf7a98f97cf773ddf279bfb6f68aaac4e797092b4fa3bfc92dc5fe1cdb8555b"
+  },
+  "public_input": {
+    "name": "public-eight.inputs.json",
+    "bytes": 5234,
+    "sha256": "7f32e930d869dfb2261176afe89e542cb87ea8fb8ef40d66c0f55c86a7ed03f7"
+  },
+  "public_oracle": {
+    "name": "public-eight.oracle.json",
+    "bytes": 9015,
+    "sha256": "6b0026f4c57411eb36783da197be3b7c815c7cf726f58a78dcfe64019e9c32e6"
+  },
+  "preflight_supersedes": {
+    "file": "fresh-pool.sealed.json",
+    "sha256": "a0a41ab3b71f6f08f84652bb2d0c769087d2725001ac719dfb6c61f176cc833a",
+    "reason": "Before input release or new provider calls, remove inherited historical two-arm scoring labels/thresholds that conflict with the new ABC criteria. Case inputs and graph oracles are byte-equivalent as JSON data."
+  }
+}

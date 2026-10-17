@@ -296,6 +296,8 @@
         {
           voice-ui-acceptance-boundary = (acceptanceFor system).check;
           voice-ui-candidate-browser = pkgs.runCommand "voice-ui-candidate-browser-check" { } ''
+            export HOME="$TMPDIR/candidate-browser-home"
+            mkdir -p "$HOME"
             ${(acceptanceFor system).runtime}/bin/voice-ui-acceptance-node \
               ${self}/packages/voice-ui/acceptance/candidate-browser.mjs ${voiceUiDist} "$out"
           '';
