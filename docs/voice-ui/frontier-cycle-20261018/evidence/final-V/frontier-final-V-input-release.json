@@ -1,0 +1,43 @@
+{
+  "schema": "voice-ui.independent-input-release/1",
+  "axis": "V",
+  "phase": "frontier-final-V-20261018",
+  "apps_sha": "2cc4890b765a5534e92855f83f9232ae85bb373b",
+  "status": "PASS",
+  "input": {
+    "name": "frontier-cycle-final-V-10.inputs.json",
+    "bytes": 7472,
+    "sha256": "61afe307f57600439d0b70a63a4efcf5a36d3166dd74dfca4655cf466a2f8dd8"
+  },
+  "case_count": 10,
+  "cells": 10,
+  "parent_inputs_sha256": null,
+  "oracle_sha256": "61de89a893767d873af19ea26da11901acaa6b04005aef87cf7b9e83864a7a5e",
+  "oracle_released": false,
+  "following_F_E_released": false,
+  "public_gates": {
+    "G0": {
+      "summary_sha256": "ed8c7a63b0ece08350158082b1f24276bb999c7d49a8a3132c0e60d0564da228",
+      "policy_criteria": "PASS",
+      "taxonomy_criteria": "UNMET"
+    },
+    "E": {
+      "summary_sha256": "535afc2bd55bc7569ccaf8088015be344a5c09244841435ebd8495274b9cd192",
+      "enabled_criteria": "PASS",
+      "effect_criteria": "PASS",
+      "gains": 2,
+      "frontier_gains": 1
+    }
+  },
+  "prior_charged": {
+    "jev": 751,
+    "typellm": 73
+  },
+  "allowance": {
+    "jev": 10,
+    "typellm": 0
+  },
+  "previous_cutoff_sha256": "3ffa1097ae71026c3a51536c4b657d7aad615650bb46c8f2bd83c0785ccf44fd",
+  "commitment_sha256": "e95bfeeb45edf03e6fd43c0fbc7ca839f3584878092e6e5d18cf181a25af9eae",
+  "scope": "Only the current V input projection is released. Exact sealed bytes, independent oracle remains private until own physical stop/accounting. This is not provider POST admission."
+}

@@ -1,0 +1,19 @@
+{
+  "status": "PASS",
+  "scope": "ROOT_ZERO_SEND_PREFLIGHT_ONLY_NOT_INDEPENDENT_GO",
+  "at": "2026-10-17T20:56:49.023Z",
+  "phase": "frontier-public-G0-20261018",
+  "pid": 345186,
+  "start_ticks": "17843257",
+  "pgid": 345186,
+  "uid": 1000,
+  "config_sha256": "c33ef73b51faa61327a0254296f65dae59192a4b70329b2572a25e1ebbbbbe74",
+  "process_sha256": "8e737b81bd12d507cf5ad8fdf63008a2fafb0bf993b8dc28c233face49497626",
+  "runtime_sha256": "ec0e6e8f0719393496f2956f6f25c97a83c733467fc93771db51d8dce35d7d5f",
+  "identity_sha256": "cc0dc54b3f74b0b7502a2257aa3456d0cdea0da0fbba6dfdae91c475e8a30d58",
+  "provider_sends": {
+    "jev": 0,
+    "typellm": 0
+  },
+  "served_index_equals_completed_artifact": true
+}

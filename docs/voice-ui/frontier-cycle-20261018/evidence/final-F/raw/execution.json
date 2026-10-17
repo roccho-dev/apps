@@ -1,0 +1,81 @@
+{
+  "schema": "voice-ui.frontier-cycle-phase/1",
+  "axis": "F",
+  "status": "INVALID",
+  "summary": [
+    {
+      "axis": "F",
+      "id": "FF01",
+      "arm": "D",
+      "method": "full-required",
+      "generation_policy": "dependent",
+      "valid_execution": true,
+      "calls": 1
+    },
+    {
+      "axis": "F",
+      "id": "FF02",
+      "arm": "D",
+      "method": "full-required",
+      "generation_policy": "dependent",
+      "valid_execution": true,
+      "calls": 1
+    },
+    {
+      "axis": "F",
+      "id": "FF03",
+      "arm": "D",
+      "method": "full-required",
+      "generation_policy": "dependent",
+      "valid_execution": true,
+      "calls": 1
+    },
+    {
+      "axis": "F",
+      "id": "FF04",
+      "arm": "D",
+      "method": "full-required",
+      "generation_policy": "dependent",
+      "valid_execution": true,
+      "calls": 1
+    },
+    {
+      "axis": "F",
+      "id": "FF05",
+      "arm": "D",
+      "method": "full-required",
+      "generation_policy": "dependent",
+      "valid_execution": false,
+      "calls": 1
+    },
+    {
+      "axis": "F",
+      "id": "FF06",
+      "arm": "D",
+      "method": "full-required",
+      "generation_policy": "dependent",
+      "valid_execution": true,
+      "calls": 1
+    },
+    {
+      "axis": "F",
+      "id": "FF07",
+      "arm": "D",
+      "method": "full-required",
+      "generation_policy": "dependent",
+      "valid_execution": true,
+      "calls": 1
+    },
+    {
+      "axis": "F",
+      "id": "FF08",
+      "arm": "D",
+      "method": "full-required",
+      "generation_policy": "dependent",
+      "valid_execution": true,
+      "calls": 1
+    }
+  ],
+  "invalid_cells": 1,
+  "expected_cells": 8
+}

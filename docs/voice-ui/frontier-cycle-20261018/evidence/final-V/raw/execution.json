@@ -1,0 +1,99 @@
+{
+  "schema": "voice-ui.frontier-cycle-phase/1",
+  "axis": "V",
+  "status": "RECORDED",
+  "summary": [
+    {
+      "axis": "V",
+      "id": "FV01",
+      "arm": "V",
+      "method": "verify",
+      "generation_policy": null,
+      "valid_execution": true,
+      "calls": 1
+    },
+    {
+      "axis": "V",
+      "id": "FV02",
+      "arm": "V",
+      "method": "verify",
+      "generation_policy": null,
+      "valid_execution": true,
+      "calls": 1
+    },
+    {
+      "axis": "V",
+      "id": "FV03",
+      "arm": "V",
+      "method": "verify",
+      "generation_policy": null,
+      "valid_execution": true,
+      "calls": 1
+    },
+    {
+      "axis": "V",
+      "id": "FV04",
+      "arm": "V",
+      "method": "verify",
+      "generation_policy": null,
+      "valid_execution": true,
+      "calls": 1
+    },
+    {
+      "axis": "V",
+      "id": "FV05",
+      "arm": "V",
+      "method": "verify",
+      "generation_policy": null,
+      "valid_execution": true,
+      "calls": 1
+    },
+    {
+      "axis": "V",
+      "id": "FV06",
+      "arm": "V",
+      "method": "verify",
+      "generation_policy": null,
+      "valid_execution": true,
+      "calls": 1
+    },
+    {
+      "axis": "V",
+      "id": "FV07",
+      "arm": "V",
+      "method": "verify",
+      "generation_policy": null,
+      "valid_execution": true,
+      "calls": 1
+    },
+    {
+      "axis": "V",
+      "id": "FV08",
+      "arm": "V",
+      "method": "verify",
+      "generation_policy": null,
+      "valid_execution": true,
+      "calls": 1
+    },
+    {
+      "axis": "V",
+      "id": "FV09",
+      "arm": "V",
+      "method": "verify",
+      "generation_policy": null,
+      "valid_execution": true,
+      "calls": 1
+    },
+    {
+      "axis": "V",
+      "id": "FV10",
+      "arm": "V",
+      "method": "verify",
+      "generation_policy": null,
+      "valid_execution": true,
+      "calls": 1
+    }
+  ],
+  "invalid_cells": 0,
+  "expected_cells": 10
+}

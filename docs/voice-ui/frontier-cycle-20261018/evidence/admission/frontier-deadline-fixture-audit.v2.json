@@ -1,0 +1,91 @@
+{
+  "schema": "voice-ui.review.frontier-deadline-fixture/1",
+  "status": "CONFIRMED_PRE_LIVE_FIXTURE_FIRST_PROVIDER_CAP",
+  "head": "c762f1630790bef6097e0c12a71493fad05c89f3",
+  "failed_run": {
+    "id": 39065864849,
+    "head": "0e6add575c5f420638641539f3b52189ddf58962",
+    "conclusion": "failure",
+    "url": "https://github.com/roccho-dev/apps/actions/runs/39065864849",
+    "log_file": "frontier-0e6a-release-failure.log",
+    "log_sha256": "92b18dde82612f7c8f175db913496dd366d44f0cc39342e3b5f4eb939dd912eb",
+    "assertion": "timeout.elapsedMs >=39000 && <45000",
+    "status504_assertion_before_failure": true,
+    "actual_elapsedMs": null,
+    "actual_elapsed_note": "The original CI failure did not print this value; no measured duration is invented."
+  },
+  "authenticated_sources": [
+    {
+      "repo": "roccho-dev/apps",
+      "commit": "c762f1630790bef6097e0c12a71493fad05c89f3",
+      "path": "packages/voice-ui/acceptance/frontier-cycle-smoke.mjs",
+      "blob": "61e5e31e659c76c52382d0ae5c5d7ba4525938b5",
+      "sha256": "d473ca030dc2284e0de89f363913cf3cb7832636e758410628b508e2c2d9f4ca"
+    },
+    {
+      "repo": "roccho-dev/apps",
+      "commit": "c762f1630790bef6097e0c12a71493fad05c89f3",
+      "path": "packages/voice-ui/functions/api/parts.mjs",
+      "blob": "a62f4d55998b3ce0f8876e6b172a42c1bbc8b1b5",
+      "sha256": "ce18dbfb6ed5330c04fba1e3264a6e84cd4fb4f45b03775c06decdedb9b4521e"
+    },
+    {
+      "repo": "roccho-org/ops",
+      "commit": "b4f611cac9e13fbef178469796cbc3b6d4a76b23",
+      "path": "packages/jev/src/batch.mjs",
+      "blob": "905f7ddbedb515a6fcc751c441fa584ed91c345c",
+      "sha256": "7d91da95755de85fc02558d057e3bd4e0e593b8b8e0363f7fa578c9daba643d9"
+    },
+    {
+      "repo": "roccho-org/ops",
+      "commit": "b4f611cac9e13fbef178469796cbc3b6d4a76b23",
+      "path": "packages/jev/src/typellm.mjs",
+      "blob": "d32e959dc97c160d0a84940f960347107ab9aefd",
+      "sha256": "3ba5630f4936440abf13512f4abd5a8452ea3131e6407b18b5f93f20742f3ba7"
+    }
+  ],
+  "deadline_chain": {
+    "first_Jev_ms": 10000,
+    "Type_default_ms": 35000,
+    "shared_operation_ms": 40000
+  },
+  "analysis": {
+    "scope": "source-derived timer ordering, not a newly measured product failure",
+    "original_fixture": "Never-settling synthetic fetch applied to FIRST G0 call; 10s Jev deadline should win before shared40s.",
+    "proposed_fixture": "Return valid G0 after real7s delay, then never settle Type. Type own35s cap starts near7s/end42s; shared40s must win. Preserve39–45s assertion and assert ordered attempts[Jev,Type], only G0 stage/no V or materialization. Separately retain first-provider504 near10s.",
+    "required_evidence": [
+      "status504 and parts_timeout",
+      "actual ordered upstream attempts Jev then Type only",
+      "actual call/abort elapsed timing",
+      "no V, STOCK_DIFF or preparation",
+      "all real provider sends0"
+    ],
+    "actual_observation_scope": "R independently read and bound root keyless completed-Worker diagnostic; R did not claim its own execution or any real provider call."
+  },
+  "measured_source_or_contract_or_threshold_changes": 0,
+  "reviewer_real_provider_calls": 0,
+  "scope": "PRE_LIVE_FIXTURE_DIAGNOSIS_AND_NARROW_TEST_REPAIR_AGREEMENT_NOT_R19_OR_LIVE_GO",
+  "prior_audit_sha256": "a2a7124dacbce6a912486326954b1ee47d3d8f61ed8db51da61b4a8d3207fb84",
+  "root_completed_worker_observation": {
+    "file": "frontier-c762-deadline-diagnostic.root.json",
+    "sha256": "fa5a9a91ca9540dca843bb466660e294327f057a57b56638a357ae07e635cb6c",
+    "schema": "voice-ui.frontier-deadline-diagnostic/1",
+    "apps_sha": "c762f1630790bef6097e0c12a71493fad05c89f3",
+    "worker_sha256": "8a1fef6c917240b951bae91132d353d334fd050f880ca7f4666b57f0178ef3fc",
+    "status": 504,
+    "response": {
+      "error": "parts_timeout"
+    },
+    "elapsed_ms": 10097.8004,
+    "calls": [
+      {
+        "url": "https://api.typesafe.ai/v1/systemone",
+        "body_sha256": "15187703a9ac5c8f976be2a05a9a1114a0841c1ba239df3e54a9288cf6619f7a",
+        "signal_aborted_at_start": false,
+        "abort_elapsed_ms": 10092.5847
+      }
+    ],
+    "stages": [],
+    "external_provider_sends": 0
+  }
+}

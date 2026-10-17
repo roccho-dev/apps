@@ -1,0 +1,132 @@
+{
+  "schema": "voice-ui.frontier-public-G0-summary/1",
+  "status": "VALID_PUBLIC_REGRESSION",
+  "head": "2cc4890b765a5534e92855f83f9232ae85bb373b",
+  "axis": "G0",
+  "phase_kind": "public",
+  "planned": 10,
+  "consumed": 10,
+  "valid": 10,
+  "policy_gate": "PASS",
+  "policy_correct": 10,
+  "taxonomy_criteria": "UNMET",
+  "taxonomy_correct": 8,
+  "actual_old_eligible": [
+    "PG02"
+  ],
+  "actual_new_eligible": [
+    "PG01",
+    "PG02"
+  ],
+  "actual_frontier_eligible": [
+    "PG01"
+  ],
+  "taxonomy_failures": [
+    {
+      "id": "PG01",
+      "expected_intent": "change",
+      "actual_intent": {
+        "choice": "ambiguous",
+        "confidence": 0.35
+      },
+      "completeness": {
+        "choice": "incomplete",
+        "confidence": 0.96
+      },
+      "policy": {
+        "id": "uncertainty-frontier-v1",
+        "eligible": true,
+        "reason": "uncertain-intent-incomplete"
+      }
+    },
+    {
+      "id": "PG10",
+      "expected_intent": "unsupported",
+      "actual_intent": {
+        "choice": "no-change",
+        "confidence": 0.69
+      },
+      "completeness": {
+        "choice": "complete",
+        "confidence": 1
+      },
+      "policy": {
+        "id": "uncertainty-frontier-v1",
+        "eligible": false,
+        "reason": null
+      }
+    }
+  ],
+  "all_graphs_logs_heads_unchanged": true,
+  "all_type_zero": true,
+  "sent": {
+    "jev": 10,
+    "typellm": 0
+  },
+  "charged": {
+    "jev": 735,
+    "typellm": 71
+  },
+  "confirmed": {
+    "jev": 735,
+    "typellm": 70
+  },
+  "pending": null,
+  "all34_owned_groups_absent": true,
+  "journal_sha256": "563395241f142785515edd7be38c0bc79f8ecb175a2caf8668824384190d3ee1",
+  "integrity": {
+    "source_runtime_binding": "PASS",
+    "raw_protocol_events_normalization": "PASS",
+    "provider_accounting": "PASS",
+    "ordered_process": "PASS"
+  },
+  "next_step": "PublicE preparation may proceed on the same admitted head within38J2T; actual launch/preload0send audit and separate one-shot GO remain necessary before its POSTs.",
+  "effect": "UNPROVEN",
+  "frontier_effect": "UNPROVEN",
+  "NO_EFFECT": "UNPROVEN",
+  "fresh_released": 0,
+  "scope": "Directliteral2 G0 policy-derived public regression only; taxonomy8/10 remains UNMET; no actual C interpretation/adoption/Type causal gain is claimed.",
+  "evidence": [
+    {
+      "name": "frontier-public-G0-zero-send-audit.json",
+      "bytes": 6017,
+      "sha256": "6c9c13a4e55e049b9406b4133c74174ad96f91a51043a2fb1267de56fbd036ae"
+    },
+    {
+      "name": "frontier-public-G0-physical-stop.json",
+      "bytes": 7999,
+      "sha256": "2e7d006be8415cb9f04d765fd498401ec5e47eee59c27faf6c02d49d1ef40e19"
+    },
+    {
+      "name": "frontier-public-G0-stop-audit.json",
+      "bytes": 8127,
+      "sha256": "e8a2450350eacf3d0470687d1b09e8998a1749ab89f317943d984dec554b7d5c"
+    },
+    {
+      "name": "frontier-public-G0-raw-audit.json",
+      "bytes": 21230,
+      "sha256": "296c0a06563dfb6245a5097b0d0a80148ad0283912aba734554139976dbe9d5f"
+    },
+    {
+      "name": "frontier-public-G0-provider-audit.json",
+      "bytes": 869,
+      "sha256": "f2016f28e55c6e7a6f2dd99635669254637710c03202049df09b2955e80e3d57"
+    },
+    {
+      "name": "frontier-public-G0-producer-audit.json",
+      "bytes": 192,
+      "sha256": "f73ea3e239b785871a6bd995e3bbc954feedb4c2a27b11c55adc1c7bf905134f"
+    },
+    {
+      "name": "frontier-public-G0-process-audit.json",
+      "bytes": 580,
+      "sha256": "e48e34b25dc8c757841464ae146349d604728e727279fc31a14a0e63e5f950ea"
+    },
+    {
+      "name": "frontier-public-G0.producer.json",
+      "bytes": 6653,
+      "sha256": "e36688d7ac8153c8c009f52902a5ead111e6510d76c0d608e2edc03c0ad1b1b1"
+    }
+  ],
+  "reviewer_real_provider_calls": 0
+}

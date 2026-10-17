@@ -1,0 +1,260 @@
+{
+  "schema": "voice-ui.frontier-cycle-input/1",
+  "axis": "E",
+  "oracle_sha256": "c6ee6fca910a2fd91581886cd24aad9d0cb5e7a53b50d33dc27ebad88d45bf13",
+  "parent_inputs_sha256": null,
+  "fixture_contract": {
+    "map_id": "voice-graph",
+    "base_records": [
+      {
+        "type": "meta",
+        "schema": "semantic-map-state/1",
+        "root": "root",
+        "title": "independent component axes"
+      },
+      {
+        "type": "region",
+        "id": "root",
+        "parent": null,
+        "label": "fixture",
+        "kind": "boundary",
+        "bounds": [
+          0,
+          0,
+          900,
+          400
+        ],
+        "summary": ""
+      },
+      {
+        "type": "region",
+        "id": "container",
+        "parent": "root",
+        "label": "OCI",
+        "kind": "group",
+        "bounds": [
+          0,
+          0,
+          700,
+          200
+        ],
+        "summary": ""
+      },
+      {
+        "type": "region",
+        "id": "other",
+        "parent": "root",
+        "label": "Other",
+        "kind": "group",
+        "bounds": [
+          0,
+          230,
+          700,
+          160
+        ],
+        "summary": ""
+      }
+    ],
+    "base_pins": [
+      {
+        "regionId": "container",
+        "bounds": [
+          0,
+          0,
+          2000,
+          500
+        ]
+      },
+      {
+        "regionId": "other",
+        "bounds": [
+          0,
+          600,
+          2000,
+          500
+        ]
+      }
+    ],
+    "fixtures": {
+      "empty": {
+        "extra_records": [],
+        "extra_pins": []
+      },
+      "api": {
+        "extra_records": [
+          {
+            "type": "region",
+            "id": "initial-api",
+            "parent": "container",
+            "label": "API",
+            "kind": "step",
+            "bounds": [
+              20,
+              20,
+              140,
+              64
+            ],
+            "summary": ""
+          }
+        ],
+        "extra_pins": [
+          {
+            "regionId": "initial-api",
+            "bounds": [
+              12,
+              36,
+              140,
+              64
+            ]
+          }
+        ]
+      },
+      "pair": {
+        "extra_records": [
+          {
+            "type": "region",
+            "id": "initial-api",
+            "parent": "container",
+            "label": "API",
+            "kind": "step",
+            "bounds": [
+              20,
+              20,
+              140,
+              64
+            ],
+            "summary": ""
+          },
+          {
+            "type": "region",
+            "id": "initial-db",
+            "parent": "container",
+            "label": "DB",
+            "kind": "data",
+            "bounds": [
+              200,
+              20,
+              140,
+              64
+            ],
+            "summary": ""
+          }
+        ],
+        "extra_pins": [
+          {
+            "regionId": "initial-api",
+            "bounds": [
+              12,
+              36,
+              140,
+              64
+            ]
+          },
+          {
+            "regionId": "initial-db",
+            "bounds": [
+              200,
+              36,
+              140,
+              64
+            ]
+          }
+        ]
+      }
+    },
+    "recent_conversation": [],
+    "scope": null
+  },
+  "cases": [
+    {
+      "id": "FE01",
+      "fixture": "empty",
+      "utterance": "OCIに「API」という名前の工程を1個追加してください。ほかの部品は触らないでください。",
+      "arms": [
+        "B",
+        "C"
+      ]
+    },
+    {
+      "id": "FE02",
+      "fixture": "empty",
+      "utterance": "Otherの中へDBを1個追加してください。ほかはそのままにしてください。",
+      "arms": [
+        "C",
+        "B"
+      ]
+    },
+    {
+      "id": "FE03",
+      "fixture": "empty",
+      "utterance": "OCIへ新しく置きたいのはデータと判断の二部品です。一つずつとし、表示もそれぞれデータ、判断にして、線は付けないでください。",
+      "arms": [
+        "B",
+        "C"
+      ]
+    },
+    {
+      "id": "FE04",
+      "fixture": "pair",
+      "utterance": "OCIで既存APIから既存DBへ接続を一本付けます。今ある二部品を結ぶだけにして、部品は追加しないでください。",
+      "arms": [
+        "C",
+        "B"
+      ]
+    },
+    {
+      "id": "FE05",
+      "fixture": "empty",
+      "utterance": "OCIへ設ける新しい工程は三つです。いずれにもAPIと表示し、三つはそれぞれ別の部品にしてください。",
+      "arms": [
+        "B",
+        "C"
+      ]
+    },
+    {
+      "id": "FE06",
+      "fixture": "empty",
+      "utterance": "Otherへ新しく二つの保存用の箱を置きます。両方ともDBと表示するデータにして、既存のものはそのまま残してください。",
+      "arms": [
+        "C",
+        "B"
+      ]
+    },
+    {
+      "id": "FE07",
+      "fixture": "empty",
+      "utterance": "OCIには「稟議可否」と書く判断用の菱形を一つ新しく置いてほしいです。他の部品は動かさないでください。",
+      "arms": [
+        "B",
+        "C"
+      ]
+    },
+    {
+      "id": "FE08",
+      "fixture": "empty",
+      "utterance": "Otherの中に「分類保管区」を新しいグループとして設け、その内側へ「分類処理」という工程と「分類控え」というデータを一つずつ作ってください。分類処理から分類控えへ矢印も一本付けてください。",
+      "arms": [
+        "C",
+        "B"
+      ]
+    },
+    {
+      "id": "FE09",
+      "fixture": "empty",
+      "utterance": "APIを一つ置きたいですが、OCIの中かOtherの中かをまだ選べません。どちらに入れるかは決まっていません。",
+      "arms": [
+        "B",
+        "C"
+      ]
+    },
+    {
+      "id": "FE10",
+      "fixture": "pair",
+      "utterance": "APIとDBがある今の図を確認しました。部品も線もこの状態を保ち、今回は何も変更しないでください。",
+      "arms": [
+        "C",
+        "B"
+      ]
+    }
+  ]
+}

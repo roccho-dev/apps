@@ -1,0 +1,22 @@
+{
+  "phase_id": "frontier-public-E-20261018",
+  "pid": 345714,
+  "state": "R",
+  "pgid": 345714,
+  "start_ticks": "17885135",
+  "program": "/nix/store/bg0bygqiid25xnivxv9cdgjlx3sp939j-voice-ui-typed-dev/bin/voice-ui-typed-dev",
+  "heads": {
+    "apps": "2cc4890b765a5534e92855f83f9232ae85bb373b",
+    "envs": "063e685b8b21a97fc8658879da93fa858552bcd6",
+    "ops": "b4f611cac9e13fbef178469796cbc3b6d4a76b23",
+    "windows": "6aef693c0946903d8b87c2348039de1420acd61b",
+    "ui": "756d47e891191c3344eb2d29b000203be8331abc"
+  },
+  "allowances": {
+    "jev": 38,
+    "typellm": 2
+  },
+  "stdout": "/work/repos/voice-ui-typellm-20261016/frontier-public-E-20261018.stdout.log",
+  "stderr": "/work/repos/voice-ui-typellm-20261016/frontier-public-E-20261018.stderr.log",
+  "config_sha256": "ca57becb2c927dee57dafc78cafcd7d1350b5841fabf3d4461ce2c76a82b325c"
+}

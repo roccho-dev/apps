@@ -1,0 +1,23 @@
+{
+  "schema": "voice-ui.frontier-cycle-process/1",
+  "status": "PASS",
+  "issues": [],
+  "state": "PUBLIC_REGRESSION_ONLY",
+  "baseline": {
+    "jev": 725,
+    "typellm": 71
+  },
+  "indexed_phases": 1,
+  "source_head": "2cc4890b765a5534e92855f83f9232ae85bb373b",
+  "correction_batches": 0,
+  "reserved": {
+    "jev": 10,
+    "typellm": 0
+  },
+  "charged_at_cutoff": {
+    "jev": 735,
+    "typellm": 71
+  },
+  "releases": [],
+  "scope": "integrity/process only; V/F/E quality axes remain separate; blind progression by complete stopped evidence, not perfect prior fresh quality"
+}

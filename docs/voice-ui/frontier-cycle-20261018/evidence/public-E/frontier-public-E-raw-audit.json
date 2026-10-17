@@ -1,0 +1,425 @@
+{
+  "schema": "voice-ui.frontier-cycle-raw-audit/1",
+  "axis": "E",
+  "status": "PASS",
+  "issues": [],
+  "complete": true,
+  "all_valid_execution": true,
+  "consumed": 4,
+  "planned": 4,
+  "rows": [
+    {
+      "id": "PE01",
+      "method": "literal-v2",
+      "arm": "B",
+      "generation_policy": null,
+      "valid_execution": true,
+      "grade": {
+        "contract_valid": true,
+        "expected_gate": "missing",
+        "gate_correct": false,
+        "full_required_exact": false,
+        "missing_exact_minimal": false,
+        "graph_exact": false,
+        "graph": {
+          "graph_exact": false,
+          "unique_record_keys": true,
+          "existing_semantics_preserved": true,
+          "semantic_unchanged": true,
+          "clean_new_regions": true,
+          "clean_new_edges": true,
+          "no_other_new_semantics": true,
+          "actual_added_regions": [],
+          "actual_added_edges": []
+        },
+        "no_false_adoption": true,
+        "raw_unchanged": true,
+        "non_regression_guards": true,
+        "type_policy_guard": true,
+        "known_syntax_type_free": true,
+        "stop_authorization_guard": true,
+        "true_sufficient_zero_candidates": null,
+        "interpretation_type_calls": 0,
+        "eligible": true,
+        "old_eligible": false,
+        "frontier_eligible": true,
+        "proposal_policy": {
+          "id": "uncertainty-frontier-v1",
+          "eligible": true,
+          "reason": "uncertain-intent-incomplete"
+        },
+        "proposal_policy_implemented": false,
+        "proposal_present": false,
+        "verification_accepted": false,
+        "initial_literal": {
+          "recognized": false,
+          "required": [],
+          "spans": []
+        },
+        "deadline": true,
+        "scope": "new /3 policy validation with unchanged graph/target/authorization/finite quality meanings; no historical receipt translation"
+      },
+      "paint_status": "PASS",
+      "persisted_raw_equal": true,
+      "cell_wall_elapsedMs": 9803.837899999999,
+      "goal_elapsedMs": 408.7800000011921,
+      "goal_deadline_status": "PASS"
+    },
+    {
+      "id": "PE01",
+      "method": "adaptive-v3",
+      "arm": "C",
+      "generation_policy": "dependent",
+      "valid_execution": true,
+      "grade": {
+        "contract_valid": true,
+        "expected_gate": "missing",
+        "gate_correct": true,
+        "full_required_exact": true,
+        "missing_exact_minimal": true,
+        "graph_exact": true,
+        "graph": {
+          "graph_exact": true,
+          "unique_record_keys": true,
+          "existing_semantics_preserved": true,
+          "semantic_unchanged": false,
+          "clean_new_regions": true,
+          "clean_new_edges": true,
+          "no_other_new_semantics": true,
+          "actual_added_regions": [
+            {
+              "label": "API",
+              "kind": "step",
+              "parent": "fixture:container"
+            },
+            {
+              "label": "API",
+              "kind": "step",
+              "parent": "fixture:container"
+            },
+            {
+              "label": "API",
+              "kind": "step",
+              "parent": "fixture:container"
+            }
+          ],
+          "actual_added_edges": []
+        },
+        "no_false_adoption": true,
+        "raw_unchanged": false,
+        "non_regression_guards": true,
+        "type_policy_guard": true,
+        "known_syntax_type_free": true,
+        "stop_authorization_guard": true,
+        "true_sufficient_zero_candidates": null,
+        "interpretation_type_calls": 0,
+        "eligible": true,
+        "old_eligible": false,
+        "frontier_eligible": true,
+        "proposal_policy": {
+          "id": "uncertainty-frontier-v1",
+          "eligible": true,
+          "reason": "uncertain-intent-incomplete"
+        },
+        "proposal_policy_implemented": true,
+        "proposal_present": true,
+        "verification_accepted": true,
+        "initial_literal": {
+          "recognized": false,
+          "required": [],
+          "spans": []
+        },
+        "deadline": true,
+        "scope": "new /3 policy validation with unchanged graph/target/authorization/finite quality meanings; no historical receipt translation"
+      },
+      "paint_status": "PASS",
+      "persisted_raw_equal": true,
+      "cell_wall_elapsedMs": 17306.8637,
+      "goal_elapsedMs": 6789.640000015497,
+      "goal_deadline_status": "PASS"
+    },
+    {
+      "id": "PE02",
+      "method": "adaptive-v3",
+      "arm": "C",
+      "generation_policy": "dependent",
+      "valid_execution": true,
+      "grade": {
+        "contract_valid": true,
+        "expected_gate": "missing",
+        "gate_correct": true,
+        "full_required_exact": true,
+        "missing_exact_minimal": true,
+        "graph_exact": true,
+        "graph": {
+          "graph_exact": true,
+          "unique_record_keys": true,
+          "existing_semantics_preserved": true,
+          "semantic_unchanged": false,
+          "clean_new_regions": true,
+          "clean_new_edges": true,
+          "no_other_new_semantics": true,
+          "actual_added_regions": [
+            {
+              "label": "可否照合",
+              "kind": "decision",
+              "parent": "fixture:container"
+            }
+          ],
+          "actual_added_edges": []
+        },
+        "no_false_adoption": true,
+        "raw_unchanged": false,
+        "non_regression_guards": true,
+        "type_policy_guard": true,
+        "known_syntax_type_free": true,
+        "stop_authorization_guard": true,
+        "true_sufficient_zero_candidates": null,
+        "interpretation_type_calls": 0,
+        "eligible": true,
+        "old_eligible": true,
+        "frontier_eligible": false,
+        "proposal_policy": {
+          "id": "uncertainty-frontier-v1",
+          "eligible": true,
+          "reason": "confident-change-incomplete"
+        },
+        "proposal_policy_implemented": true,
+        "proposal_present": true,
+        "verification_accepted": true,
+        "initial_literal": {
+          "recognized": false,
+          "required": [],
+          "spans": []
+        },
+        "deadline": true,
+        "scope": "new /3 policy validation with unchanged graph/target/authorization/finite quality meanings; no historical receipt translation"
+      },
+      "paint_status": "PASS",
+      "persisted_raw_equal": true,
+      "cell_wall_elapsedMs": 14182.599899999997,
+      "goal_elapsedMs": 4142.569999992847,
+      "goal_deadline_status": "PASS"
+    },
+    {
+      "id": "PE02",
+      "method": "literal-v2",
+      "arm": "B",
+      "generation_policy": null,
+      "valid_execution": true,
+      "grade": {
+        "contract_valid": true,
+        "expected_gate": "missing",
+        "gate_correct": false,
+        "full_required_exact": false,
+        "missing_exact_minimal": false,
+        "graph_exact": false,
+        "graph": {
+          "graph_exact": false,
+          "unique_record_keys": true,
+          "existing_semantics_preserved": true,
+          "semantic_unchanged": true,
+          "clean_new_regions": true,
+          "clean_new_edges": true,
+          "no_other_new_semantics": true,
+          "actual_added_regions": [],
+          "actual_added_edges": []
+        },
+        "no_false_adoption": true,
+        "raw_unchanged": true,
+        "non_regression_guards": true,
+        "type_policy_guard": true,
+        "known_syntax_type_free": true,
+        "stop_authorization_guard": true,
+        "true_sufficient_zero_candidates": null,
+        "interpretation_type_calls": 0,
+        "eligible": true,
+        "old_eligible": true,
+        "frontier_eligible": false,
+        "proposal_policy": {
+          "id": "uncertainty-frontier-v1",
+          "eligible": true,
+          "reason": "confident-change-incomplete"
+        },
+        "proposal_policy_implemented": false,
+        "proposal_present": false,
+        "verification_accepted": false,
+        "initial_literal": {
+          "recognized": false,
+          "required": [],
+          "spans": []
+        },
+        "deadline": true,
+        "scope": "new /3 policy validation with unchanged graph/target/authorization/finite quality meanings; no historical receipt translation"
+      },
+      "paint_status": "PASS",
+      "persisted_raw_equal": true,
+      "cell_wall_elapsedMs": 9691.942299999995,
+      "goal_elapsedMs": 283.5100000202656,
+      "goal_deadline_status": "PASS"
+    }
+  ],
+  "semantic": {
+    "complete": true,
+    "total": 2,
+    "total_pairs": 2,
+    "baseline": {
+      "sufficient": {
+        "correct": 0,
+        "total": 0
+      },
+      "missing": {
+        "correct": 0,
+        "total": 2
+      },
+      "ambiguous": {
+        "correct": 0,
+        "total": 0
+      },
+      "no-change": {
+        "correct": 0,
+        "total": 0
+      }
+    },
+    "enabled": {
+      "sufficient": {
+        "correct": 0,
+        "total": 0
+      },
+      "missing": {
+        "correct": 2,
+        "total": 2
+      },
+      "ambiguous": {
+        "correct": 0,
+        "total": 0
+      },
+      "no-change": {
+        "correct": 0,
+        "total": 0
+      }
+    },
+    "enabled_success": 2,
+    "baseline_success": 0,
+    "missing_gains": 2,
+    "frontier_missing_gains": 1,
+    "regressions": 0,
+    "eligible_pairs": 2,
+    "admissible_missing_pairs": 2,
+    "all_arm_guards": true,
+    "no_false_adoption": true,
+    "interpretation_type_calls": 0,
+    "pairs": [
+      {
+        "id": "PE01",
+        "eligible": true,
+        "baseline_success": false,
+        "enabled_success": true,
+        "missing_gain": true,
+        "frontier_gain": true,
+        "both_arms_frontier": true,
+        "regression": false,
+        "excluded_from_causal_only": false
+      },
+      {
+        "id": "PE02",
+        "eligible": true,
+        "baseline_success": false,
+        "enabled_success": true,
+        "missing_gain": true,
+        "frontier_gain": false,
+        "both_arms_frontier": false,
+        "regression": false,
+        "excluded_from_causal_only": false
+      }
+    ],
+    "enabled_criteria": "PASS",
+    "effect_criteria": "PASS",
+    "frontier_effect_criteria_pending_integrity": "PASS",
+    "no_effect_criteria_pending_integrity": "UNPROVEN",
+    "frontier_no_effect_criteria_pending_integrity": "UNPROVEN",
+    "scope": "fixed whole E denominator; generic Type-path effect and newly added frontier-specific effect are separate; integrity/paint/source admission mandatory"
+  },
+  "phase_kind": "public",
+  "inputs_sha256": "27f0f8cc6f8a2f0bcd8bf7b92a75b93706c979f4fcb3ad002674ba8317a9db1a",
+  "parent_inputs_sha256": "6ed1692b94371faef36475e08a221926b96cbc783f15f5d230ebb118a28b0afa",
+  "parent_oracle_sha256": "9f5418a40cef083ff4119b0553c5f58a35451dbbec6147ea53db0e5b97d79ee5",
+  "admissible_for_semantic_claim": true,
+  "external_provider_attempts": {
+    "jev": 16,
+    "typellm": 2
+  },
+  "external_provider_attempt_bounds": {
+    "jev": {
+      "min": 16,
+      "max": 16
+    },
+    "typellm": {
+      "min": 2,
+      "max": 2
+    }
+  },
+  "stage_rows": 12,
+  "stage_alignment": "UNIQUE",
+  "proofs": [
+    {
+      "id": "PE01",
+      "method": "literal-v2",
+      "arm": "B",
+      "generation_policy": null,
+      "status": "PASS",
+      "initial_head": "sha256:0b3522df5b691691d41d9b4587377781fc7048c991a4e47357e5583eb09288c6",
+      "final_head": "sha256:0b3522df5b691691d41d9b4587377781fc7048c991a4e47357e5583eb09288c6"
+    },
+    {
+      "id": "PE01",
+      "method": "adaptive-v3",
+      "arm": "C",
+      "generation_policy": "dependent",
+      "status": "PASS",
+      "initial_head": "sha256:0b3522df5b691691d41d9b4587377781fc7048c991a4e47357e5583eb09288c6",
+      "final_head": "sha256:058bd23f0dba48989aa36d20062e4cacf7ac07329c082e37c06744a14950d0af"
+    },
+    {
+      "id": "PE02",
+      "method": "adaptive-v3",
+      "arm": "C",
+      "generation_policy": "dependent",
+      "status": "PASS",
+      "initial_head": "sha256:0b3522df5b691691d41d9b4587377781fc7048c991a4e47357e5583eb09288c6",
+      "final_head": "sha256:f3ff3712dbf9668da93e22a9bee532808c45f659226516421b7454c153a3677d"
+    },
+    {
+      "id": "PE02",
+      "method": "literal-v2",
+      "arm": "B",
+      "generation_policy": null,
+      "status": "PASS",
+      "initial_head": "sha256:0b3522df5b691691d41d9b4587377781fc7048c991a4e47357e5583eb09288c6",
+      "final_head": "sha256:0b3522df5b691691d41d9b4587377781fc7048c991a4e47357e5583eb09288c6"
+    }
+  ],
+  "replay": {
+    "status": "PASS",
+    "issues": [],
+    "consumed": 4,
+    "frames": 12,
+    "assessed_frames": 8,
+    "recorded_paint_status": "PASS",
+    "replay_sha256": "e39dc3b351f89c5769a7904143380532e61cd1c0e0122e46431274a81426f88f",
+    "model_quality_scope": "NONE",
+    "CI_LIVE_EXECUTION": "UNPROVEN"
+  },
+  "raw_sha256": {
+    "events.jsonl": "8cd3adcff1a8bc6ef35b10bce7eaee0662a16671c568d33d95f5c6059c7dc204",
+    "execution.json": "b017b5773bb80b55543233f5a2f1d9c4b0669861b4891862353922dd4a8dc881",
+    "identity.json": "cb6a1b9af811a006e77b731fe38fa4e81977487cb450eaf776fef1833ca6f29f",
+    "PE01-B.json": "f2ae852650724840f21ea35d6eef2870df68b4969b1f4d2df7029bdf1165ca42",
+    "PE01-C.json": "2918ffb18a6f12441ac91d3e1af6728762f2cf60223f28826bc2ee2d70d6e129",
+    "PE02-B.json": "37f2c74424155f37562a5aa660e814b3737101043901e543a001b204422d2b9b",
+    "PE02-C.json": "c1f45f9c921c2306acd40f8cad587ee38b7872682177db276a00173612ef7cb4"
+  },
+  "scope": "raw locality only; exact producer/source/provider/physical PID and required paint admission remain separate",
+  "CI_LIVE_EXECUTION": "UNPROVEN",
+  "currency": "COST_NOT_MEASURED"
+}

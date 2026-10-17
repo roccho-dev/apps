@@ -1,0 +1,34 @@
+{
+  "phase": "frontier-final-F-20261018",
+  "began": "2026-10-17T21:18:07.332Z",
+  "finished": "2026-10-17T21:18:23.880Z",
+  "execution": {
+    "exit": 0,
+    "error": null
+  },
+  "stop": {
+    "status": "STOPPED_RECONCILED",
+    "result": {
+      "phase": "frontier-final-F-20261018",
+      "action": "stop",
+      "current": {
+        "pid": 347100,
+        "state": "S",
+        "pgid": 347100,
+        "start_ticks": "17966903"
+      },
+      "sent": {
+        "jev": 0,
+        "typellm": 8
+      },
+      "whole_run_sent": {
+        "jev": 761,
+        "typellm": 81
+      },
+      "reserved_until_confirmed_stop": null
+    }
+  },
+  "raw": "/work/repos/voice-ui-typellm-20261016/frontier-final-F-20261018.raw",
+  "driver_stdout": "/work/repos/voice-ui-typellm-20261016/frontier-final-F-20261018.driver.stdout.log",
+  "driver_stderr": "/work/repos/voice-ui-typellm-20261016/frontier-final-F-20261018.driver.stderr.log"
+}

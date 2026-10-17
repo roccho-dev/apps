@@ -1,0 +1,189 @@
+{
+  "schema": "voice-ui.frontier-cycle-phase/1",
+  "axis": "E",
+  "status": "RECORDED",
+  "summary": [
+    {
+      "axis": "E",
+      "id": "FE01",
+      "arm": "B",
+      "method": "literal-v2",
+      "generation_policy": null,
+      "valid_execution": true,
+      "calls": 4
+    },
+    {
+      "axis": "E",
+      "id": "FE01",
+      "arm": "C",
+      "method": "adaptive-v3",
+      "generation_policy": "dependent",
+      "valid_execution": true,
+      "calls": 1
+    },
+    {
+      "axis": "E",
+      "id": "FE02",
+      "arm": "C",
+      "method": "adaptive-v3",
+      "generation_policy": "dependent",
+      "valid_execution": true,
+      "calls": 4
+    },
+    {
+      "axis": "E",
+      "id": "FE02",
+      "arm": "B",
+      "method": "literal-v2",
+      "generation_policy": null,
+      "valid_execution": true,
+      "calls": 4
+    },
+    {
+      "axis": "E",
+      "id": "FE03",
+      "arm": "B",
+      "method": "literal-v2",
+      "generation_policy": null,
+      "valid_execution": true,
+      "calls": 1
+    },
+    {
+      "axis": "E",
+      "id": "FE03",
+      "arm": "C",
+      "method": "adaptive-v3",
+      "generation_policy": "dependent",
+      "valid_execution": true,
+      "calls": 1
+    },
+    {
+      "axis": "E",
+      "id": "FE04",
+      "arm": "C",
+      "method": "adaptive-v3",
+      "generation_policy": "dependent",
+      "valid_execution": true,
+      "calls": 3
+    },
+    {
+      "axis": "E",
+      "id": "FE04",
+      "arm": "B",
+      "method": "literal-v2",
+      "generation_policy": null,
+      "valid_execution": true,
+      "calls": 3
+    },
+    {
+      "axis": "E",
+      "id": "FE05",
+      "arm": "B",
+      "method": "literal-v2",
+      "generation_policy": null,
+      "valid_execution": true,
+      "calls": 1
+    },
+    {
+      "axis": "E",
+      "id": "FE05",
+      "arm": "C",
+      "method": "adaptive-v3",
+      "generation_policy": "dependent",
+      "valid_execution": true,
+      "calls": 1
+    },
+    {
+      "axis": "E",
+      "id": "FE06",
+      "arm": "C",
+      "method": "adaptive-v3",
+      "generation_policy": "dependent",
+      "valid_execution": true,
+      "calls": 6
+    },
+    {
+      "axis": "E",
+      "id": "FE06",
+      "arm": "B",
+      "method": "literal-v2",
+      "generation_policy": null,
+      "valid_execution": true,
+      "calls": 1
+    },
+    {
+      "axis": "E",
+      "id": "FE07",
+      "arm": "B",
+      "method": "literal-v2",
+      "generation_policy": null,
+      "valid_execution": true,
+      "calls": 1
+    },
+    {
+      "axis": "E",
+      "id": "FE07",
+      "arm": "C",
+      "method": "adaptive-v3",
+      "generation_policy": "dependent",
+      "valid_execution": true,
+      "calls": 6
+    },
+    {
+      "axis": "E",
+      "id": "FE08",
+      "arm": "C",
+      "method": "adaptive-v3",
+      "generation_policy": "dependent",
+      "valid_execution": true,
+      "calls": 1
+    },
+    {
+      "axis": "E",
+      "id": "FE08",
+      "arm": "B",
+      "method": "literal-v2",
+      "generation_policy": null,
+      "valid_execution": true,
+      "calls": 1
+    },
+    {
+      "axis": "E",
+      "id": "FE09",
+      "arm": "B",
+      "method": "literal-v2",
+      "generation_policy": null,
+      "valid_execution": true,
+      "calls": 1
+    },
+    {
+      "axis": "E",
+      "id": "FE09",
+      "arm": "C",
+      "method": "adaptive-v3",
+      "generation_policy": "dependent",
+      "valid_execution": true,
+      "calls": 1
+    },
+    {
+      "axis": "E",
+      "id": "FE10",
+      "arm": "C",
+      "method": "adaptive-v3",
+      "generation_policy": "dependent",
+      "valid_execution": true,
+      "calls": 1
+    },
+    {
+      "axis": "E",
+      "id": "FE10",
+      "arm": "B",
+      "method": "literal-v2",
+      "generation_policy": null,
+      "valid_execution": true,
+      "calls": 1
+    }
+  ],
+  "invalid_cells": 0,
+  "expected_cells": 20
+}

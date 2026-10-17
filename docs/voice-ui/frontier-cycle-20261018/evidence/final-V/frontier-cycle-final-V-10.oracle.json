@@ -1,0 +1,577 @@
+{
+  "schema": "voice-ui.frontier-cycle-oracle/1",
+  "axis": "V",
+  "visibility": "sealed",
+  "created_at": "2026-10-17T19:56:43.117Z",
+  "reviewer": "same persistent independent R",
+  "fixture_contract": {
+    "map_id": "voice-graph",
+    "base_records": [
+      {
+        "type": "meta",
+        "schema": "semantic-map-state/1",
+        "root": "root",
+        "title": "independent component axes"
+      },
+      {
+        "type": "region",
+        "id": "root",
+        "parent": null,
+        "label": "fixture",
+        "kind": "boundary",
+        "bounds": [
+          0,
+          0,
+          900,
+          400
+        ],
+        "summary": ""
+      },
+      {
+        "type": "region",
+        "id": "container",
+        "parent": "root",
+        "label": "OCI",
+        "kind": "group",
+        "bounds": [
+          0,
+          0,
+          700,
+          200
+        ],
+        "summary": ""
+      },
+      {
+        "type": "region",
+        "id": "other",
+        "parent": "root",
+        "label": "Other",
+        "kind": "group",
+        "bounds": [
+          0,
+          230,
+          700,
+          160
+        ],
+        "summary": ""
+      }
+    ],
+    "base_pins": [
+      {
+        "regionId": "container",
+        "bounds": [
+          0,
+          0,
+          2000,
+          500
+        ]
+      },
+      {
+        "regionId": "other",
+        "bounds": [
+          0,
+          600,
+          2000,
+          500
+        ]
+      }
+    ],
+    "fixtures": {
+      "empty": {
+        "extra_records": [],
+        "extra_pins": []
+      },
+      "api": {
+        "extra_records": [
+          {
+            "type": "region",
+            "id": "initial-api",
+            "parent": "container",
+            "label": "API",
+            "kind": "step",
+            "bounds": [
+              20,
+              20,
+              140,
+              64
+            ],
+            "summary": ""
+          }
+        ],
+        "extra_pins": [
+          {
+            "regionId": "initial-api",
+            "bounds": [
+              12,
+              36,
+              140,
+              64
+            ]
+          }
+        ]
+      },
+      "pair": {
+        "extra_records": [
+          {
+            "type": "region",
+            "id": "initial-api",
+            "parent": "container",
+            "label": "API",
+            "kind": "step",
+            "bounds": [
+              20,
+              20,
+              140,
+              64
+            ],
+            "summary": ""
+          },
+          {
+            "type": "region",
+            "id": "initial-db",
+            "parent": "container",
+            "label": "DB",
+            "kind": "data",
+            "bounds": [
+              200,
+              20,
+              140,
+              64
+            ],
+            "summary": ""
+          }
+        ],
+        "extra_pins": [
+          {
+            "regionId": "initial-api",
+            "bounds": [
+              12,
+              36,
+              140,
+              64
+            ]
+          },
+          {
+            "regionId": "initial-db",
+            "bounds": [
+              200,
+              36,
+              140,
+              64
+            ]
+          }
+        ]
+      }
+    },
+    "recent_conversation": [],
+    "scope": null
+  },
+  "stock_parts": [
+    {
+      "key": "step",
+      "purpose": "an ordinary step, task or box",
+      "label": "工程",
+      "kind": "step"
+    },
+    {
+      "key": "decision",
+      "purpose": "a decision, choice or branch",
+      "label": "判断",
+      "kind": "decision"
+    },
+    {
+      "key": "data",
+      "purpose": "data, a document, an input or an output",
+      "label": "データ",
+      "kind": "data"
+    },
+    {
+      "key": "start",
+      "purpose": "a start or beginning",
+      "label": "開始",
+      "kind": "start"
+    },
+    {
+      "key": "end",
+      "purpose": "an end, finish or result",
+      "label": "終了",
+      "kind": "end"
+    },
+    {
+      "key": "api",
+      "purpose": "an application programming interface service that receives requests",
+      "label": "API",
+      "kind": "step"
+    },
+    {
+      "key": "db",
+      "purpose": "a database that persists application data",
+      "label": "DB",
+      "kind": "data"
+    },
+    {
+      "key": "group",
+      "purpose": "a group, boundary or container that holds other parts",
+      "label": "グループ",
+      "kind": "group"
+    }
+  ],
+  "stock_parts_sha256": "909ac366f22c33006c8b6878ab436d548811eb5d41c2bad4813f3837d540f48d",
+  "parent_oracle_sha256": null,
+  "scope": "new frontier registration; inherited G0 E targets are provenance only; no older hidden pool reuse",
+  "cases": [
+    {
+      "id": "FV01",
+      "fixture": "empty",
+      "utterance": "OCIに二つの工程を新規配置し、両方ともAPIという表示にしてください。同じ部品を二回作る依頼です。",
+      "expected_intent": "change",
+      "expected_gate": "missing",
+      "required": [
+        {
+          "label": "API",
+          "kind": "step",
+          "quantity": 2
+        }
+      ],
+      "expected_missing": [
+        {
+          "label": "API",
+          "kind": "step",
+          "occurrence": 1
+        }
+      ],
+      "expected_added_regions": [],
+      "expected_added_edges": [],
+      "scope": "new independent frontier case; every older unused pool is unchanged and unavailable",
+      "proposed_required": [
+        {
+          "label": "API",
+          "kind": "step",
+          "quantity": 2
+        }
+      ],
+      "expected_accept": true,
+      "arms": [
+        "V"
+      ]
+    },
+    {
+      "id": "FV02",
+      "fixture": "empty",
+      "utterance": "OCIに二つの工程を新規配置し、両方ともAPIという表示にしてください。同じ部品を二回作る依頼です。",
+      "expected_intent": "change",
+      "expected_gate": "missing",
+      "required": [
+        {
+          "label": "API",
+          "kind": "step",
+          "quantity": 2
+        }
+      ],
+      "expected_missing": [
+        {
+          "label": "API",
+          "kind": "step",
+          "occurrence": 1
+        }
+      ],
+      "expected_added_regions": [],
+      "expected_added_edges": [],
+      "scope": "new independent frontier case; every older unused pool is unchanged and unavailable",
+      "proposed_required": [
+        {
+          "label": "API",
+          "kind": "step",
+          "quantity": 1
+        }
+      ],
+      "expected_accept": false,
+      "arms": [
+        "V"
+      ]
+    },
+    {
+      "id": "FV03",
+      "fixture": "empty",
+      "utterance": "Otherへ新設する菱形の判断部品を通過可否という表示名にしてください。一個だけ必要です。",
+      "expected_intent": "change",
+      "expected_gate": "missing",
+      "required": [
+        {
+          "label": "通過可否",
+          "kind": "decision",
+          "quantity": 1
+        }
+      ],
+      "expected_missing": [
+        {
+          "label": "通過可否",
+          "kind": "decision",
+          "occurrence": 1
+        }
+      ],
+      "expected_added_regions": [],
+      "expected_added_edges": [],
+      "scope": "new independent frontier case; every older unused pool is unchanged and unavailable",
+      "proposed_required": [
+        {
+          "label": "通過可否",
+          "kind": "decision",
+          "quantity": 1
+        }
+      ],
+      "expected_accept": true,
+      "arms": [
+        "V"
+      ]
+    },
+    {
+      "id": "FV04",
+      "fixture": "empty",
+      "utterance": "Otherへ新設する菱形の判断部品を通過可否という表示名にしてください。一個だけ必要です。",
+      "expected_intent": "change",
+      "expected_gate": "missing",
+      "required": [
+        {
+          "label": "通過可否",
+          "kind": "decision",
+          "quantity": 1
+        }
+      ],
+      "expected_missing": [
+        {
+          "label": "通過可否",
+          "kind": "decision",
+          "occurrence": 1
+        }
+      ],
+      "expected_added_regions": [],
+      "expected_added_edges": [],
+      "scope": "new independent frontier case; every older unused pool is unchanged and unavailable",
+      "proposed_required": [
+        {
+          "label": "通過可否",
+          "kind": "data",
+          "quantity": 1
+        }
+      ],
+      "expected_accept": false,
+      "arms": [
+        "V"
+      ]
+    },
+    {
+      "id": "FV05",
+      "fixture": "empty",
+      "utterance": "OCIに新しくデータと開始を一つずつ置きます。表示名はそれぞれデータと開始のままにしてください。",
+      "expected_intent": "change",
+      "expected_gate": "sufficient",
+      "required": [
+        {
+          "label": "データ",
+          "kind": "data",
+          "quantity": 1
+        },
+        {
+          "label": "開始",
+          "kind": "start",
+          "quantity": 1
+        }
+      ],
+      "expected_missing": [],
+      "expected_added_regions": [],
+      "expected_added_edges": [],
+      "scope": "new independent frontier case; every older unused pool is unchanged and unavailable",
+      "proposed_required": [
+        {
+          "label": "データ",
+          "kind": "data",
+          "quantity": 1
+        },
+        {
+          "label": "開始",
+          "kind": "start",
+          "quantity": 1
+        }
+      ],
+      "expected_accept": true,
+      "arms": [
+        "V"
+      ]
+    },
+    {
+      "id": "FV06",
+      "fixture": "empty",
+      "utterance": "OCIに新しくデータと開始を一つずつ置きます。表示名はそれぞれデータと開始のままにしてください。",
+      "expected_intent": "change",
+      "expected_gate": "sufficient",
+      "required": [
+        {
+          "label": "データ",
+          "kind": "data",
+          "quantity": 1
+        },
+        {
+          "label": "開始",
+          "kind": "start",
+          "quantity": 1
+        }
+      ],
+      "expected_missing": [],
+      "expected_added_regions": [],
+      "expected_added_edges": [],
+      "scope": "new independent frontier case; every older unused pool is unchanged and unavailable",
+      "proposed_required": [
+        {
+          "label": "データ",
+          "kind": "data",
+          "quantity": 1
+        }
+      ],
+      "expected_accept": false,
+      "arms": [
+        "V"
+      ]
+    },
+    {
+      "id": "FV07",
+      "fixture": "empty",
+      "utterance": "Otherに一つの保存管理区というグループを作り、その中へ保存一覧というデータを一つ新設します。新しい部品はこの二つです。",
+      "expected_intent": "change",
+      "expected_gate": "missing",
+      "required": [
+        {
+          "label": "保存管理区",
+          "kind": "group",
+          "quantity": 1
+        },
+        {
+          "label": "保存一覧",
+          "kind": "data",
+          "quantity": 1
+        }
+      ],
+      "expected_missing": [
+        {
+          "label": "保存管理区",
+          "kind": "group",
+          "occurrence": 1
+        },
+        {
+          "label": "保存一覧",
+          "kind": "data",
+          "occurrence": 1
+        }
+      ],
+      "expected_added_regions": [],
+      "expected_added_edges": [],
+      "scope": "new independent frontier case; every older unused pool is unchanged and unavailable",
+      "proposed_required": [
+        {
+          "label": "保存管理区",
+          "kind": "group",
+          "quantity": 1
+        },
+        {
+          "label": "保存一覧",
+          "kind": "data",
+          "quantity": 1
+        }
+      ],
+      "expected_accept": true,
+      "arms": [
+        "V"
+      ]
+    },
+    {
+      "id": "FV08",
+      "fixture": "empty",
+      "utterance": "Otherに一つの保存管理区というグループを作り、その中へ保存一覧というデータを一つ新設します。新しい部品はこの二つです。",
+      "expected_intent": "change",
+      "expected_gate": "missing",
+      "required": [
+        {
+          "label": "保存管理区",
+          "kind": "group",
+          "quantity": 1
+        },
+        {
+          "label": "保存一覧",
+          "kind": "data",
+          "quantity": 1
+        }
+      ],
+      "expected_missing": [
+        {
+          "label": "保存管理区",
+          "kind": "group",
+          "occurrence": 1
+        },
+        {
+          "label": "保存一覧",
+          "kind": "data",
+          "occurrence": 1
+        }
+      ],
+      "expected_added_regions": [],
+      "expected_added_edges": [],
+      "scope": "new independent frontier case; every older unused pool is unchanged and unavailable",
+      "proposed_required": [
+        {
+          "label": "保存管理区",
+          "kind": "group",
+          "quantity": 1
+        },
+        {
+          "label": "保存明細",
+          "kind": "data",
+          "quantity": 1
+        }
+      ],
+      "expected_accept": false,
+      "arms": [
+        "V"
+      ]
+    },
+    {
+      "id": "FV09",
+      "fixture": "pair",
+      "utterance": "OCIの今あるAPIから今あるDBへ向かう接続を一本追加してください。既存の二部品だけを結び、新たな部品は作りません。",
+      "expected_intent": "change",
+      "expected_gate": "sufficient",
+      "required": [],
+      "expected_missing": [],
+      "expected_added_regions": [],
+      "expected_added_edges": [],
+      "scope": "new independent frontier case; every older unused pool is unchanged and unavailable",
+      "proposed_required": [],
+      "expected_accept": true,
+      "arms": [
+        "V"
+      ]
+    },
+    {
+      "id": "FV10",
+      "fixture": "pair",
+      "utterance": "OCIの今あるAPIから今あるDBへ向かう接続を一本追加してください。既存の二部品だけを結び、新たな部品は作りません。",
+      "expected_intent": "change",
+      "expected_gate": "sufficient",
+      "required": [],
+      "expected_missing": [],
+      "expected_added_regions": [],
+      "expected_added_edges": [],
+      "scope": "new independent frontier case; every older unused pool is unchanged and unavailable",
+      "proposed_required": [
+        {
+          "label": "DB",
+          "kind": "data",
+          "quantity": 1
+        }
+      ],
+      "expected_accept": false,
+      "arms": [
+        "V"
+      ]
+    }
+  ]
+}

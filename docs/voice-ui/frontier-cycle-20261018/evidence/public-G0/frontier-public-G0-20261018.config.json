@@ -1,0 +1,20 @@
+{
+  "phase_id": "frontier-public-G0-20261018",
+  "axis": "G0",
+  "stage": "public",
+  "input_sha256": "560b9126d385c9cfa1a48431fc6c78355b9f811e92b7a2f9736684a2c7f91c0f",
+  "case_count": 10,
+  "program": "/nix/store/bg0bygqiid25xnivxv9cdgjlx3sp939j-voice-ui-typed-dev/bin/voice-ui-typed-dev",
+  "heads": {
+    "apps": "2cc4890b765a5534e92855f83f9232ae85bb373b",
+    "envs": "063e685b8b21a97fc8658879da93fa858552bcd6",
+    "ops": "b4f611cac9e13fbef178469796cbc3b6d4a76b23",
+    "windows": "6aef693c0946903d8b87c2348039de1420acd61b",
+    "ui": "756d47e891191c3344eb2d29b000203be8331abc"
+  },
+  "allowances": {
+    "jev": 10,
+    "typellm": 0
+  }
+}
+

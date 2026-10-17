@@ -1,0 +1,234 @@
+{
+  "schema": "voice-ui.frontier-cycle-input/1",
+  "axis": "F",
+  "oracle_sha256": "c36e4f748a6c82a9d3255b39f7e6bc087d1d15282bed892c9c69731e538a5caf",
+  "parent_inputs_sha256": null,
+  "fixture_contract": {
+    "map_id": "voice-graph",
+    "base_records": [
+      {
+        "type": "meta",
+        "schema": "semantic-map-state/1",
+        "root": "root",
+        "title": "independent component axes"
+      },
+      {
+        "type": "region",
+        "id": "root",
+        "parent": null,
+        "label": "fixture",
+        "kind": "boundary",
+        "bounds": [
+          0,
+          0,
+          900,
+          400
+        ],
+        "summary": ""
+      },
+      {
+        "type": "region",
+        "id": "container",
+        "parent": "root",
+        "label": "OCI",
+        "kind": "group",
+        "bounds": [
+          0,
+          0,
+          700,
+          200
+        ],
+        "summary": ""
+      },
+      {
+        "type": "region",
+        "id": "other",
+        "parent": "root",
+        "label": "Other",
+        "kind": "group",
+        "bounds": [
+          0,
+          230,
+          700,
+          160
+        ],
+        "summary": ""
+      }
+    ],
+    "base_pins": [
+      {
+        "regionId": "container",
+        "bounds": [
+          0,
+          0,
+          2000,
+          500
+        ]
+      },
+      {
+        "regionId": "other",
+        "bounds": [
+          0,
+          600,
+          2000,
+          500
+        ]
+      }
+    ],
+    "fixtures": {
+      "empty": {
+        "extra_records": [],
+        "extra_pins": []
+      },
+      "api": {
+        "extra_records": [
+          {
+            "type": "region",
+            "id": "initial-api",
+            "parent": "container",
+            "label": "API",
+            "kind": "step",
+            "bounds": [
+              20,
+              20,
+              140,
+              64
+            ],
+            "summary": ""
+          }
+        ],
+        "extra_pins": [
+          {
+            "regionId": "initial-api",
+            "bounds": [
+              12,
+              36,
+              140,
+              64
+            ]
+          }
+        ]
+      },
+      "pair": {
+        "extra_records": [
+          {
+            "type": "region",
+            "id": "initial-api",
+            "parent": "container",
+            "label": "API",
+            "kind": "step",
+            "bounds": [
+              20,
+              20,
+              140,
+              64
+            ],
+            "summary": ""
+          },
+          {
+            "type": "region",
+            "id": "initial-db",
+            "parent": "container",
+            "label": "DB",
+            "kind": "data",
+            "bounds": [
+              200,
+              20,
+              140,
+              64
+            ],
+            "summary": ""
+          }
+        ],
+        "extra_pins": [
+          {
+            "regionId": "initial-api",
+            "bounds": [
+              12,
+              36,
+              140,
+              64
+            ]
+          },
+          {
+            "regionId": "initial-db",
+            "bounds": [
+              200,
+              36,
+              140,
+              64
+            ]
+          }
+        ]
+      }
+    },
+    "recent_conversation": [],
+    "scope": null
+  },
+  "cases": [
+    {
+      "id": "FF01",
+      "fixture": "api",
+      "utterance": "OCIにあるAPIは既存のまま使います。新規部品はDBと表示するデータの箱を一個だけ追加し、APIからそのDBへ線を向けてください。",
+      "arms": [
+        "D"
+      ]
+    },
+    {
+      "id": "FF02",
+      "fixture": "pair",
+      "utterance": "OCIにもう置いてあるDBとAPIを使います。DBからAPIへの接続を一本足すだけで、新たな部品は増やしません。",
+      "arms": [
+        "D"
+      ]
+    },
+    {
+      "id": "FF03",
+      "fixture": "empty",
+      "utterance": "OCIの中に、集荷点検という表示名を付けた工程を一つ新しく設けてください。",
+      "arms": [
+        "D"
+      ]
+    },
+    {
+      "id": "FF04",
+      "fixture": "empty",
+      "utterance": "Otherに新しく三つの工程を配置します。どの工程にもAPIと表示し、三つは別々の部品にしてください。",
+      "arms": [
+        "D"
+      ]
+    },
+    {
+      "id": "FF05",
+      "fixture": "api",
+      "utterance": "既存APIは変更しません。DBというデータを二つと、在庫適否という判断を一つ、OCIへ新設してください。",
+      "arms": [
+        "D"
+      ]
+    },
+    {
+      "id": "FF06",
+      "fixture": "empty",
+      "utterance": "Otherへ仕分保管区というグループを一つ新設します。その内側に収蔵控えというデータを一つ配置し、両方とも新しい部品にしてください。",
+      "arms": [
+        "D"
+      ]
+    },
+    {
+      "id": "FF07",
+      "fixture": "empty",
+      "utterance": "OCIに新しく二つだけ部品を置きます。同じ受付証跡という表示名を使い、片方は工程、片方はデータにしてください。",
+      "arms": [
+        "D"
+      ]
+    },
+    {
+      "id": "FF08",
+      "fixture": "empty",
+      "utterance": "Otherに新設したいのは、経路適否という判断一つ、経路照会という工程一つ、経路控えというデータ一つです。この三つだけを作ってください。",
+      "arms": [
+        "D"
+      ]
+    }
+  ]
+}

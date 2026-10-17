@@ -1,0 +1,36 @@
+{
+  "schema": "voice-ui.independent-input-release/1",
+  "axis": "F",
+  "phase": "frontier-final-F-20261018",
+  "apps_sha": "2cc4890b765a5534e92855f83f9232ae85bb373b",
+  "status": "PASS",
+  "input": {
+    "name": "frontier-cycle-final-F-8.inputs.json",
+    "bytes": 5481,
+    "sha256": "78159163bebb25c87c6dd17ceff7c4eb746d34bf4bdd3c9d387bc5cb206c824a"
+  },
+  "case_count": 8,
+  "cells": 8,
+  "parent_inputs_sha256": null,
+  "oracle_sha256": "c36e4f748a6c82a9d3255b39f7e6bc087d1d15282bed892c9c69731e538a5caf",
+  "oracle_released": false,
+  "following_E_released": false,
+  "previous_evidence": {
+    "V_integrity": "PASS",
+    "V_quality": "UNMET",
+    "V_correct": 9,
+    "V_total": 10,
+    "summary_sha256": "79baeee8dc45c6040ad0e1269d022856de8db35a8f2a87d14566d8fbeb1d55e2"
+  },
+  "prior_charged": {
+    "jev": 761,
+    "typellm": 73
+  },
+  "allowance": {
+    "jev": 0,
+    "typellm": 8
+  },
+  "previous_cutoff_sha256": "a286f93692adf22279ad609ba80a1786325c3078811d0d17f25fa3502638d894",
+  "commitment_sha256": "e95bfeeb45edf03e6fd43c0fbc7ca839f3584878092e6e5d18cf181a25af9eae",
+  "scope": "Only current F input projection. Exact sealed bytes; F oracle and future E stay private. Fresh progression uses stopped integrity, not V quality. No provider POST admission."
+}

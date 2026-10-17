@@ -1,0 +1,125 @@
+{
+  "schema": "voice-ui.frontier-cycle-producer/1",
+  "axis": "G0",
+  "phase_id": "frontier-public-G0-20261018",
+  "heads": {
+    "apps": "2cc4890b765a5534e92855f83f9232ae85bb373b",
+    "envs": "063e685b8b21a97fc8658879da93fa858552bcd6",
+    "ops": "b4f611cac9e13fbef178469796cbc3b6d4a76b23",
+    "windows": "6aef693c0946903d8b87c2348039de1420acd61b",
+    "ui": "756d47e891191c3344eb2d29b000203be8331abc"
+  },
+  "arm_order": [
+    {
+      "id": "PG01",
+      "arm": "G0"
+    },
+    {
+      "id": "PG02",
+      "arm": "G0"
+    },
+    {
+      "id": "PG03",
+      "arm": "G0"
+    },
+    {
+      "id": "PG04",
+      "arm": "G0"
+    },
+    {
+      "id": "PG05",
+      "arm": "G0"
+    },
+    {
+      "id": "PG06",
+      "arm": "G0"
+    },
+    {
+      "id": "PG07",
+      "arm": "G0"
+    },
+    {
+      "id": "PG08",
+      "arm": "G0"
+    },
+    {
+      "id": "PG09",
+      "arm": "G0"
+    },
+    {
+      "id": "PG10",
+      "arm": "G0"
+    }
+  ],
+  "generation_policies": {
+    "G0": null,
+    "D": "dependent",
+    "V": null,
+    "B": null,
+    "C": "dependent"
+  },
+  "inputs_sha256": "560b9126d385c9cfa1a48431fc6c78355b9f811e92b7a2f9736684a2c7f91c0f",
+  "parent_inputs_sha256": "bb2e090c218ef9be4db85416a87b60bf85a9d2d10a3156c4994bc1e6fd4bc4ba",
+  "bundle_sha256": "8fd1b4f37f6a113653dbaeda5e040ba5bed6d7b007ab9269d307f8642d339189",
+  "source_sha256": {
+    "src/completion.mjs": "f2cb1b4652a248f39e5a37efa5a13e5c0aaf068544a322827dfc4e8972381562",
+    "src/literal-inventory.mjs": "ecdeb980fb826f800dfeb186e042b5a4edf85b32ecc8a97516eb55e81a9c37f9",
+    "src/goal.mjs": "cd9101d6a222e31773c9523adeca3f7f9aa32990e30b39e06a7b872771422f3e",
+    "src/contract.mjs": "f2c95212493f59fd80ef17270c2b5de0d51d795b26ac8a0e6dfa0fdb9dec30fe",
+    "src/turn.mjs": "c5fc3489a5bd0861f0455bd9843f47e76030bb03a4fe55745cf00c29c79b7008",
+    "src/session.mjs": "d6fcb97e581afb789ed6ecb339c06c378ef94283084df8ad3042ebe42c48cfe8",
+    "functions/api/parts.mjs": "ce18dbfb6ed5330c04fba1e3264a6e84cd4fb4f45b03775c06decdedb9b4521e",
+    "functions/pages-worker.mjs": "afc3b785091d992fddd47f15ec17a4b05d78d7bd7564223c35e065ee737fd690",
+    "web/app.mjs": "3a9ac4eba0770949a219b35c97cd346d4a7912026fae2b2f21710251b86bbf2a",
+    "web/adapters/completion.mjs": "537bc46e93efe58fbdf466dd2493989ad5695209def769ec9da3ba68926edb5a",
+    "dev/serve.mjs": "d044ea7f8ccbd7fd71fbe1447dcce0f30bfa831d471da3eef2e3377380532298",
+    "tests/dependency-cycle-eval.mjs": "b92308340b7a54020c30ae1c1daa3b482b60263d080b3f2e2393909f6cfcd7c3",
+    "tests/requirements-cycle-score.mjs": "3d779cf422e8cc0facc6f5ff566c3e77b36a61486f9586f120b0c1a722cd5a46",
+    "tests/requirements-cycle-audit.mjs": "692bdbaef8dbe28fe30fcdfe178202ebbdf3a4728bf0fe1c7310f72bf789c6eb",
+    "tests/dependency-cycle-score.mjs": "2f7f40afec31d1f7cded08951529a30d741f6ebfb8abf446900a7f6eb567ef91",
+    "tests/dependency-cycle-audit.mjs": "47dce6207c8b48dae6447d87ee1294d8495f28a31d2b474d5dc0c9b95998d66e",
+    "tests/semantic-score.mjs": "3230791bd2b06ccbb73008723ab3709981ce6e2d65fc2fdbdec8cadf9d1cfec3",
+    "tests/requirements-cycle-http.mjs": "b3c1d052e2f7138532e0d7cac6ac7b3c7287b7af32b857990c1e6d14bb325386",
+    "tests/painted-goal.mjs": "c5ba117d1dea66d20c80b7f92b8184296ff79d4231da56f5a89836af4beb018b",
+    "tests/intent-cycle-eval.mjs": "0dd9649d87f4b2f0d0e446b44f5dcd7bb09582e75eca8ca7113b8d0d4d741357",
+    "tests/intent-cycle-score.mjs": "e6652eef8ee1b18c1b3c479b649033105c1ae27f360b0b9d4a16f898edc664cb",
+    "tests/intent-cycle-audit.mjs": "151715f5c09a64a1187ad2557e13b3172801e8e8fa8ee492b31a5a7823222617",
+    "tests/frontier-cycle-eval.mjs": "3031b7f539752badd452b868c577daa6437647547233f81f78c1b0eea5db29f9",
+    "tests/frontier-cycle-score.mjs": "64fe98b9929ca13dcf57e41857da5eed656bb2d5457eab0aa9a78aad023ecf81",
+    "tests/frontier-cycle-audit.mjs": "f903cd8813c33387ec69f2adc0d0f20e1fedfd5dd59cd07d02fa7ce84f37f89e"
+  },
+  "raw_sha256": {
+    "events.jsonl": "5244e393ef1fc5a02465ce0ee2606c58e30128605fad414f59c2e1685d8c9b6b",
+    "execution.json": "e541c44cd6d2ced4ca3c2fcd982beaf08e2a0e6a40c29d1aa5a61b47be9391dc",
+    "identity.json": "690ddc0cc018fa11f52671c40ec10239536aba7ec0ffd3e578ce4c50b0b8988b",
+    "PG01-G0.json": "a03e5ef3990da5291a09e5a68737e88705ae55c04ccacadf1cb32fddd3ca389d",
+    "PG02-G0.json": "d4129dd9145a7050a1f3df8a5f155d9e706a68a1798c754f7b62594aa8d6627c",
+    "PG03-G0.json": "743d4c5b5f3c53264f3099f15af1bc837d64e9454be0a4f6759fac8c8e4d3899",
+    "PG04-G0.json": "c8a4d64d20c23d6b325d68f335f75669fc33f3491e619a9e494e18eb85b0d57f",
+    "PG05-G0.json": "08d87cccb78abf894ddacb7733b313d387b384c6fb878fa43ec64494360848ab",
+    "PG06-G0.json": "7759b11c7e0bb7820f91a7da20016483e9b93d6ff457a7f4928b95b6129a14e3",
+    "PG07-G0.json": "67f5a921ef6fff39e270f9cf6b1c1b1489fb95081d5db6c2ccf105585dddb51f",
+    "PG08-G0.json": "d485de5730738c7ccecac47ed7d53deb0c03802a3b4fdd313b23f97d9c8dc90b",
+    "PG09-G0.json": "aea1154c4f73efef8b03f0964eab1e4506e2a7987bcfe27d73c47823ba679fdb",
+    "PG10-G0.json": "0f1e7a23c2f31232b5786a5ea44c0b8ec54215c4cffcb53bc039b573a86b0057"
+  },
+  "independent_audit_sha256": {
+    "pr103-2cc-r19-review.md": "68a4e56ab68484364f3c09ec9ec40ab77d8390d9023b3dee38097be428865699",
+    "frontier-public-G0-zero-send-audit.json": "6c9c13a4e55e049b9406b4133c74174ad96f91a51043a2fb1267de56fbd036ae",
+    "frontier-public-G0-stop-audit.json": "e8a2450350eacf3d0470687d1b09e8998a1749ab89f317943d984dec554b7d5c"
+  },
+  "raw_identity_sha256": "690ddc0cc018fa11f52671c40ec10239536aba7ec0ffd3e578ce4c50b0b8988b",
+  "runtime_audit_sha256": "ec0e6e8f0719393496f2956f6f25c97a83c733467fc93771db51d8dce35d7d5f",
+  "config_sha256": "c33ef73b51faa61327a0254296f65dae59192a4b70329b2572a25e1ebbbbbe74",
+  "process_sha256": "8e737b81bd12d507cf5ad8fdf63008a2fafb0bf993b8dc28c233face49497626",
+  "artifact_manifest_sha256": "b242c9889f4db71ebbaf3c0b0ebf320ef2604c108225a9cd67a96a7aff900758",
+  "worker_sha256": "8a1fef6c917240b951bae91132d353d334fd050f880ca7f4666b57f0178ef3fc",
+  "provider_sha256": "3f754c8b1ee4a8b34b50d00fd17e37295d853e1b607903b6d355b5e06997669c",
+  "protocol_sha256": "1689dcf63e1ed19cdea7be22e3f90a09f434841f980b9ca8b9018a987c9c38f8",
+  "stdout_sha256": "e88e1faf90a3325c4c5f4e0122de8befb70010cde07b03b29cf7a8787b8baf17",
+  "stderr_sha256": "4316e475b28e8e572443086c71ea7a3abe162d7ea824505916c93f7d629e6e76",
+  "journal_sha256": "563395241f142785515edd7be38c0bc79f8ecb175a2caf8668824384190d3ee1",
+  "replay_sha256": null,
+  "source_review_url": "https://github.com/roccho-dev/apps/pull/103#pullrequestreview-5560045214",
+  "scope": "Fixed independent R source/process/stopped-byte expectations; CI verifies these and never regenerates them from recorded receipts."
+}

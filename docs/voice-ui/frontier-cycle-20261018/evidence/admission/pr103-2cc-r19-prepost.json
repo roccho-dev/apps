@@ -1,0 +1,69 @@
+{
+  "schema": "voice-ui.review.frontier-admission-prepost/1",
+  "status": "PASS",
+  "checked_at": "2026-10-17T20:53:02.831Z",
+  "head": "2cc4890b765a5534e92855f83f9232ae85bb373b",
+  "tree": "c8603cd63b91c4598ea491252d59ff7bc52a7d4b",
+  "base": "42aa9a473d287607ba58967ef2992c052edc7943",
+  "pr": {
+    "number": 103,
+    "state": "open",
+    "draft": true,
+    "merged": false,
+    "body_sha256": "1d66c128a59cfc1fe87a2ce9e5322d0c3859f158b62ddba594d83b431224fd56",
+    "body_file": "pr103-2cc-r19-frozen-pr-body.md"
+  },
+  "ui": {
+    "number": 362,
+    "head": "756d47e891191c3344eb2d29b000203be8331abc",
+    "state": "open",
+    "draft": false,
+    "merged": false,
+    "body_sha256": "61c0ffadb268e9502dde901bf8583a30c5ac335e0ec2d7be352e13d73da30950",
+    "explicit_human_merge_condition_still_pending": true
+  },
+  "adrs": {
+    "head": "a6284e58ed99243447e135828d983fc07d2d363e",
+    "authenticated": true
+  },
+  "proofs": [
+    {
+      "name": "frontier-2cc-source-audit.json",
+      "sha256": "4a6199e922f57b3cae24e486d72f52b78c0de399fff792aa2397ab4f5cd7046e",
+      "bytes": 21993
+    },
+    {
+      "name": "frontier-2cc-runtime-audit.json",
+      "sha256": "7051200a431a81baf35d695ff790fa4067ec205db5c39c256dde35b74100da32",
+      "bytes": 12677
+    },
+    {
+      "name": "frontier-2cc-ci-mechanics-audit.v2.json",
+      "sha256": "6e76462e521ee6162a5dba4552148a192743849a1c94a3348e6057d3256bcab2",
+      "bytes": 48091
+    },
+    {
+      "name": "frontier-2cc-ci-closure-audit.json",
+      "sha256": "4d27236ac86029b6e10f5b9ec02c3ff71a384e4986031f5006639fda0f91a4dd",
+      "bytes": 13445
+    },
+    {
+      "name": "frontier-2cc-historical-artifact-audit.json",
+      "sha256": "d6677322c456af3bb51a7e3cf66947cd41390e5d612a118dcca3c87d25dc62c0",
+      "bytes": 16407
+    },
+    {
+      "name": "frontier-2cc-prelaunch-terminal-audit.json",
+      "sha256": "bbeee417163ce645298227bf10d4fcc0e1b96a1e5bb9e8c73bee58ca09deca89",
+      "bytes": 9088
+    },
+    {
+      "name": "frontier-prepared-G0-operator-audit.json",
+      "sha256": "df35c9789f58d3dc621bb519cce89f5fe9594061575029399fa105316fac1c5a",
+      "bytes": 2320
+    }
+  ],
+  "terminal_observed_at": "2026-10-17T20:52:22.414455+00:00",
+  "scope": "EXACT_SOURCE_RUNTIME_ACTUAL_CI_PRELAUNCH_ADMISSION_ONLY_NO_PROVIDER_POST_GO",
+  "reviewer_real_provider_calls": 0
+}

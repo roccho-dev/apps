@@ -1,0 +1,2088 @@
+{
+  "schema": "voice-ui.frontier-cycle-cell/1",
+  "axis": "E",
+  "id": "FE04",
+  "method": "literal-v2",
+  "arm": "B",
+  "generation_policy": null,
+  "replay_suffix_scope": "compatibility only",
+  "fixture": "pair",
+  "utterance": "OCIで既存APIから既存DBへ接続を一本付けます。今ある二部品を結ぶだけにして、部品は追加しないでください。",
+  "parts": [
+    {
+      "key": "step",
+      "purpose": "an ordinary step, task or box",
+      "label": "工程",
+      "kind": "step"
+    },
+    {
+      "key": "decision",
+      "purpose": "a decision, choice or branch",
+      "label": "判断",
+      "kind": "decision"
+    },
+    {
+      "key": "data",
+      "purpose": "data, a document, an input or an output",
+      "label": "データ",
+      "kind": "data"
+    },
+    {
+      "key": "start",
+      "purpose": "a start or beginning",
+      "label": "開始",
+      "kind": "start"
+    },
+    {
+      "key": "end",
+      "purpose": "an end, finish or result",
+      "label": "終了",
+      "kind": "end"
+    },
+    {
+      "key": "api",
+      "purpose": "an application programming interface service that receives requests",
+      "label": "API",
+      "kind": "step"
+    },
+    {
+      "key": "db",
+      "purpose": "a database that persists application data",
+      "label": "DB",
+      "kind": "data"
+    },
+    {
+      "key": "group",
+      "purpose": "a group, boundary or container that holds other parts",
+      "label": "グループ",
+      "kind": "group"
+    }
+  ],
+  "valid_execution": true,
+  "elapsedMs": 15335.544600000008,
+  "result": {
+    "reason": "none",
+    "requests": 3,
+    "elapsedMs": 1496.8799999952316,
+    "selected": [],
+    "trace": [
+      {
+        "head": "sha256:b4f52e5183b8e5730e59a7524a9b260f7cb7a4246695c8a69c4d320bec1312c1",
+        "answers": {
+          "delta": {
+            "type": "choice",
+            "choice": "delta-17",
+            "confidence": 0.97
+          }
+        },
+        "failure": null
+      },
+      {
+        "head": "sha256:2506fce6135edd5a940ba7472ddb9d23ab7e7f04438ec04ab59537370f4f6a81",
+        "answers": {
+          "delta": {
+            "type": "choice",
+            "choice": "none",
+            "confidence": 1
+          }
+        },
+        "failure": null
+      }
+    ],
+    "inventory": {
+      "checks": 1,
+      "completions": 0,
+      "preparations": 0,
+      "coverage": {
+        "choice": "sufficient",
+        "confidence": 0.89,
+        "inspection": {
+          "schema": "voice-ui.parts.inspection/2",
+          "request_id": "68b787ea-cb35-41d2-b81f-50b401314ed3",
+          "mode": "literal-v2",
+          "initial": {
+            "decision": {
+              "choice": "sufficient",
+              "confidence": 0.89
+            },
+            "factors": {
+              "intent": {
+                "choice": "change",
+                "confidence": 0.89
+              },
+              "labels": {
+                "choice": "available",
+                "confidence": 0.98
+              },
+              "capacity": {
+                "choice": "within",
+                "confidence": 1
+              },
+              "completeness": {
+                "choice": "complete",
+                "confidence": 0.96
+              }
+            },
+            "literal": {
+              "recognized": false,
+              "required": [],
+              "spans": []
+            },
+            "observation": {
+              "valid": true,
+              "status": "unsupported-syntax"
+            }
+          },
+          "proposal": null,
+          "verification": null,
+          "required": [],
+          "missing": []
+        }
+      },
+      "missing": []
+    }
+  },
+  "calls": [
+    {
+      "id": "FE04",
+      "arm": "B",
+      "n": 1,
+      "route": "/api/parts/check",
+      "upstream_route": "/api/parts/check?method=literal-v2",
+      "request": {
+        "kind": "voice-ui.goal.inventory.v1",
+        "state": {
+          "utterance": "OCIで既存APIから既存DBへ接続を一本付けます。今ある二部品を結ぶだけにして、部品は追加しないでください。",
+          "head": "sha256:b4f52e5183b8e5730e59a7524a9b260f7cb7a4246695c8a69c4d320bec1312c1",
+          "regions": [
+            {
+              "id": "root",
+              "label": "fixture",
+              "kind": "boundary",
+              "parent": null
+            },
+            {
+              "id": "container",
+              "label": "OCI",
+              "kind": "group",
+              "parent": "root"
+            },
+            {
+              "id": "other",
+              "label": "Other",
+              "kind": "group",
+              "parent": "root"
+            },
+            {
+              "id": "initial-api",
+              "label": "API",
+              "kind": "step",
+              "parent": "container"
+            },
+            {
+              "id": "initial-db",
+              "label": "DB",
+              "kind": "data",
+              "parent": "container"
+            }
+          ],
+          "edges": [],
+          "parts": [
+            {
+              "key": "step",
+              "purpose": "an ordinary step, task or box",
+              "label": "工程",
+              "kind": "step"
+            },
+            {
+              "key": "decision",
+              "purpose": "a decision, choice or branch",
+              "label": "判断",
+              "kind": "decision"
+            },
+            {
+              "key": "data",
+              "purpose": "data, a document, an input or an output",
+              "label": "データ",
+              "kind": "data"
+            },
+            {
+              "key": "start",
+              "purpose": "a start or beginning",
+              "label": "開始",
+              "kind": "start"
+            },
+            {
+              "key": "end",
+              "purpose": "an end, finish or result",
+              "label": "終了",
+              "kind": "end"
+            },
+            {
+              "key": "api",
+              "purpose": "an application programming interface service that receives requests",
+              "label": "API",
+              "kind": "step"
+            },
+            {
+              "key": "db",
+              "purpose": "a database that persists application data",
+              "label": "DB",
+              "kind": "data"
+            },
+            {
+              "key": "group",
+              "purpose": "a group, boundary or container that holds other parts",
+              "label": "グループ",
+              "kind": "group"
+            }
+          ]
+        }
+      },
+      "status": 200,
+      "response": {
+        "choice": "sufficient",
+        "confidence": 0.89,
+        "inspection": {
+          "schema": "voice-ui.parts.inspection/2",
+          "request_id": "68b787ea-cb35-41d2-b81f-50b401314ed3",
+          "mode": "literal-v2",
+          "initial": {
+            "decision": {
+              "choice": "sufficient",
+              "confidence": 0.89
+            },
+            "factors": {
+              "intent": {
+                "choice": "change",
+                "confidence": 0.89
+              },
+              "labels": {
+                "choice": "available",
+                "confidence": 0.98
+              },
+              "capacity": {
+                "choice": "within",
+                "confidence": 1
+              },
+              "completeness": {
+                "choice": "complete",
+                "confidence": 0.96
+              }
+            },
+            "literal": {
+              "recognized": false,
+              "required": [],
+              "spans": []
+            },
+            "observation": {
+              "valid": true,
+              "status": "unsupported-syntax"
+            }
+          },
+          "proposal": null,
+          "verification": null,
+          "required": [],
+          "missing": []
+        }
+      },
+      "elapsedMs": 286.7262999999948
+    },
+    {
+      "id": "FE04",
+      "arm": "B",
+      "n": 2,
+      "route": "/api/judge",
+      "upstream_route": "/api/judge",
+      "request": {
+        "kind": "voice-ui.judge.goal-local-delta.v7",
+        "state": {
+          "utterance": "OCIで既存APIから既存DBへ接続を一本付けます。今ある二部品を結ぶだけにして、部品は追加しないでください。",
+          "graph": [
+            {
+              "id": "root",
+              "label": "fixture",
+              "parent": null
+            },
+            {
+              "id": "container",
+              "label": "OCI",
+              "parent": "root"
+            },
+            {
+              "id": "other",
+              "label": "Other",
+              "parent": "root"
+            },
+            {
+              "id": "initial-api",
+              "label": "API",
+              "parent": "container"
+            },
+            {
+              "id": "initial-db",
+              "label": "DB",
+              "parent": "container"
+            }
+          ],
+          "edges": [],
+          "parents": [
+            {
+              "id": "container",
+              "label": "OCI",
+              "kind": "group",
+              "parent": "root"
+            },
+            {
+              "id": "other",
+              "label": "Other",
+              "kind": "group",
+              "parent": "root"
+            }
+          ],
+          "offers": {
+            "parts": [
+              {
+                "key": "step",
+                "purpose": "an ordinary step, task or box",
+                "label": "工程"
+              },
+              {
+                "key": "decision",
+                "purpose": "a decision, choice or branch",
+                "label": "判断"
+              },
+              {
+                "key": "data",
+                "purpose": "data, a document, an input or an output",
+                "label": "データ"
+              },
+              {
+                "key": "start",
+                "purpose": "a start or beginning",
+                "label": "開始"
+              },
+              {
+                "key": "end",
+                "purpose": "an end, finish or result",
+                "label": "終了"
+              },
+              {
+                "key": "api",
+                "purpose": "an application programming interface service that receives requests",
+                "label": "API"
+              },
+              {
+                "key": "db",
+                "purpose": "a database that persists application data",
+                "label": "DB"
+              },
+              {
+                "key": "group",
+                "purpose": "a group, boundary or container that holds other parts",
+                "label": "グループ"
+              }
+            ]
+          },
+          "selected": [],
+          "candidates": [
+            {
+              "id": "delta-1",
+              "action": "add-part",
+              "part": "api",
+              "parent": "container"
+            },
+            {
+              "id": "delta-2",
+              "action": "add-part",
+              "part": "data",
+              "parent": "container"
+            },
+            {
+              "id": "delta-3",
+              "action": "add-part",
+              "part": "db",
+              "parent": "container"
+            },
+            {
+              "id": "delta-4",
+              "action": "add-part",
+              "part": "decision",
+              "parent": "container"
+            },
+            {
+              "id": "delta-5",
+              "action": "add-part",
+              "part": "end",
+              "parent": "container"
+            },
+            {
+              "id": "delta-6",
+              "action": "add-part",
+              "part": "group",
+              "parent": "container"
+            },
+            {
+              "id": "delta-7",
+              "action": "add-part",
+              "part": "start",
+              "parent": "container"
+            },
+            {
+              "id": "delta-8",
+              "action": "add-part",
+              "part": "step",
+              "parent": "container"
+            },
+            {
+              "id": "delta-9",
+              "action": "add-part",
+              "part": "api",
+              "parent": "other"
+            },
+            {
+              "id": "delta-10",
+              "action": "add-part",
+              "part": "data",
+              "parent": "other"
+            },
+            {
+              "id": "delta-11",
+              "action": "add-part",
+              "part": "db",
+              "parent": "other"
+            },
+            {
+              "id": "delta-12",
+              "action": "add-part",
+              "part": "decision",
+              "parent": "other"
+            },
+            {
+              "id": "delta-13",
+              "action": "add-part",
+              "part": "end",
+              "parent": "other"
+            },
+            {
+              "id": "delta-14",
+              "action": "add-part",
+              "part": "group",
+              "parent": "other"
+            },
+            {
+              "id": "delta-15",
+              "action": "add-part",
+              "part": "start",
+              "parent": "other"
+            },
+            {
+              "id": "delta-16",
+              "action": "add-part",
+              "part": "step",
+              "parent": "other"
+            },
+            {
+              "id": "delta-17",
+              "action": "add-edge",
+              "from": "initial-api",
+              "to": "initial-db"
+            },
+            {
+              "id": "delta-18",
+              "action": "add-edge",
+              "from": "initial-db",
+              "to": "initial-api"
+            }
+          ],
+          "context": {
+            "recent": []
+          },
+          "scope": null,
+          "placing": null
+        }
+      },
+      "status": 200,
+      "response": {
+        "kind": "voice-ui.judge.decision.v1",
+        "answers": {
+          "delta": {
+            "type": "choice",
+            "choice": "delta-17",
+            "confidence": 0.97
+          }
+        }
+      },
+      "elapsedMs": 177.80160000000615
+    },
+    {
+      "id": "FE04",
+      "arm": "B",
+      "n": 3,
+      "route": "/api/judge",
+      "upstream_route": "/api/judge",
+      "request": {
+        "kind": "voice-ui.judge.goal-local-delta.v7",
+        "state": {
+          "utterance": "OCIで既存APIから既存DBへ接続を一本付けます。今ある二部品を結ぶだけにして、部品は追加しないでください。",
+          "graph": [
+            {
+              "id": "root",
+              "label": "fixture",
+              "parent": null
+            },
+            {
+              "id": "container",
+              "label": "OCI",
+              "parent": "root"
+            },
+            {
+              "id": "other",
+              "label": "Other",
+              "parent": "root"
+            },
+            {
+              "id": "initial-api",
+              "label": "API",
+              "parent": "container"
+            },
+            {
+              "id": "initial-db",
+              "label": "DB",
+              "parent": "container"
+            }
+          ],
+          "edges": [
+            {
+              "id": "voice-initial-api-to-initial-db",
+              "from": "initial-api",
+              "to": "initial-db"
+            }
+          ],
+          "parents": [
+            {
+              "id": "container",
+              "label": "OCI",
+              "kind": "group",
+              "parent": "root"
+            },
+            {
+              "id": "other",
+              "label": "Other",
+              "kind": "group",
+              "parent": "root"
+            }
+          ],
+          "offers": {
+            "parts": [
+              {
+                "key": "step",
+                "purpose": "an ordinary step, task or box",
+                "label": "工程"
+              },
+              {
+                "key": "decision",
+                "purpose": "a decision, choice or branch",
+                "label": "判断"
+              },
+              {
+                "key": "data",
+                "purpose": "data, a document, an input or an output",
+                "label": "データ"
+              },
+              {
+                "key": "start",
+                "purpose": "a start or beginning",
+                "label": "開始"
+              },
+              {
+                "key": "end",
+                "purpose": "an end, finish or result",
+                "label": "終了"
+              },
+              {
+                "key": "api",
+                "purpose": "an application programming interface service that receives requests",
+                "label": "API"
+              },
+              {
+                "key": "db",
+                "purpose": "a database that persists application data",
+                "label": "DB"
+              },
+              {
+                "key": "group",
+                "purpose": "a group, boundary or container that holds other parts",
+                "label": "グループ"
+              }
+            ]
+          },
+          "selected": [],
+          "candidates": [
+            {
+              "id": "delta-1",
+              "action": "add-part",
+              "part": "api",
+              "parent": "container"
+            },
+            {
+              "id": "delta-2",
+              "action": "add-part",
+              "part": "data",
+              "parent": "container"
+            },
+            {
+              "id": "delta-3",
+              "action": "add-part",
+              "part": "db",
+              "parent": "container"
+            },
+            {
+              "id": "delta-4",
+              "action": "add-part",
+              "part": "decision",
+              "parent": "container"
+            },
+            {
+              "id": "delta-5",
+              "action": "add-part",
+              "part": "end",
+              "parent": "container"
+            },
+            {
+              "id": "delta-6",
+              "action": "add-part",
+              "part": "group",
+              "parent": "container"
+            },
+            {
+              "id": "delta-7",
+              "action": "add-part",
+              "part": "start",
+              "parent": "container"
+            },
+            {
+              "id": "delta-8",
+              "action": "add-part",
+              "part": "step",
+              "parent": "container"
+            },
+            {
+              "id": "delta-9",
+              "action": "add-part",
+              "part": "api",
+              "parent": "other"
+            },
+            {
+              "id": "delta-10",
+              "action": "add-part",
+              "part": "data",
+              "parent": "other"
+            },
+            {
+              "id": "delta-11",
+              "action": "add-part",
+              "part": "db",
+              "parent": "other"
+            },
+            {
+              "id": "delta-12",
+              "action": "add-part",
+              "part": "decision",
+              "parent": "other"
+            },
+            {
+              "id": "delta-13",
+              "action": "add-part",
+              "part": "end",
+              "parent": "other"
+            },
+            {
+              "id": "delta-14",
+              "action": "add-part",
+              "part": "group",
+              "parent": "other"
+            },
+            {
+              "id": "delta-15",
+              "action": "add-part",
+              "part": "start",
+              "parent": "other"
+            },
+            {
+              "id": "delta-16",
+              "action": "add-part",
+              "part": "step",
+              "parent": "other"
+            },
+            {
+              "id": "delta-17",
+              "action": "add-edge",
+              "from": "initial-db",
+              "to": "initial-api"
+            }
+          ],
+          "context": {
+            "recent": [
+              {
+                "seq": 1,
+                "source": "typed",
+                "text": "OCIで既存APIから既存DBへ接続を一本付けます。今ある二部品を結ぶだけにして、部品は追加しないでください。",
+                "outcome": "step",
+                "effect": {
+                  "changes": [
+                    {
+                      "change": "added",
+                      "from": "initial-api",
+                      "to": "initial-db"
+                    }
+                  ]
+                }
+              }
+            ]
+          },
+          "scope": null,
+          "placing": null
+        }
+      },
+      "status": 200,
+      "response": {
+        "kind": "voice-ui.judge.decision.v1",
+        "answers": {
+          "delta": {
+            "type": "choice",
+            "choice": "none",
+            "confidence": 1
+          }
+        }
+      },
+      "elapsedMs": 207.1591000000044
+    }
+  ],
+  "initial_head": "sha256:b4f52e5183b8e5730e59a7524a9b260f7cb7a4246695c8a69c4d320bec1312c1",
+  "initial_log": "{\"operations\":[{\"mapId\":\"voice-graph\",\"records\":[{\"root\":\"root\",\"schema\":\"semantic-map-state/1\",\"title\":\"independent component axes\",\"type\":\"meta\"},{\"bounds\":[0,0,900,400],\"id\":\"root\",\"kind\":\"boundary\",\"label\":\"fixture\",\"parent\":null,\"summary\":\"\",\"type\":\"region\"},{\"bounds\":[0,0,700,200],\"id\":\"container\",\"kind\":\"group\",\"label\":\"OCI\",\"parent\":\"root\",\"summary\":\"\",\"type\":\"region\"},{\"bounds\":[0,230,700,160],\"id\":\"other\",\"kind\":\"group\",\"label\":\"Other\",\"parent\":\"root\",\"summary\":\"\",\"type\":\"region\"},{\"bounds\":[20,20,140,64],\"id\":\"initial-api\",\"kind\":\"step\",\"label\":\"API\",\"parent\":\"container\",\"summary\":\"\",\"type\":\"region\"},{\"bounds\":[200,20,140,64],\"id\":\"initial-db\",\"kind\":\"data\",\"label\":\"DB\",\"parent\":\"container\",\"summary\":\"\",\"type\":\"region\"}],\"type\":\"CreateMap\"}],\"parent\":null,\"schema\":\"semantic-map-decision/2\",\"stateHash\":\"sha256:7ed605fb45c669734c466077e2c3fe36a4fb28cdfe62e3bd7b610fda2272038c\"}\n{\"operations\":[{\"items\":[{\"bounds\":[0,0,2000,500],\"regionId\":\"container\"},{\"bounds\":[0,600,2000,500],\"regionId\":\"other\"},{\"bounds\":[12,36,140,64],\"regionId\":\"initial-api\"},{\"bounds\":[200,36,140,64],\"regionId\":\"initial-db\"}],\"type\":\"PinRegions\"}],\"parent\":\"sha256:5402fd0225ed9b34170120d0ce298a0023bbb2f5eccf2e279ce9316e5a63f38f\",\"schema\":\"semantic-map-decision/2\",\"stateHash\":\"sha256:a92697badf11529426e49d17d36d7c0cafd2b994291a4b3caf14037496317eab\"}\n",
+  "initial_log_sha256": "8acb35234593a568df45ad03fb5aaa70f2ed13d21c03513fc66c9304ec56e5f3",
+  "initial_records": [
+    {
+      "type": "meta",
+      "schema": "semantic-map-state/1",
+      "root": "root",
+      "title": "independent component axes"
+    },
+    {
+      "type": "region",
+      "id": "root",
+      "parent": null,
+      "label": "fixture",
+      "kind": "boundary",
+      "bounds": [
+        0,
+        0,
+        900,
+        400
+      ],
+      "summary": ""
+    },
+    {
+      "type": "region",
+      "id": "container",
+      "parent": "root",
+      "label": "OCI",
+      "kind": "group",
+      "bounds": [
+        0,
+        0,
+        700,
+        200
+      ],
+      "summary": ""
+    },
+    {
+      "type": "region",
+      "id": "other",
+      "parent": "root",
+      "label": "Other",
+      "kind": "group",
+      "bounds": [
+        0,
+        230,
+        700,
+        160
+      ],
+      "summary": ""
+    },
+    {
+      "type": "region",
+      "id": "initial-api",
+      "parent": "container",
+      "label": "API",
+      "kind": "step",
+      "bounds": [
+        20,
+        20,
+        140,
+        64
+      ],
+      "summary": ""
+    },
+    {
+      "type": "region",
+      "id": "initial-db",
+      "parent": "container",
+      "label": "DB",
+      "kind": "data",
+      "bounds": [
+        200,
+        20,
+        140,
+        64
+      ],
+      "summary": ""
+    },
+    {
+      "type": "layout",
+      "regionId": "container",
+      "pin": "hard",
+      "bounds": [
+        0,
+        0,
+        2000,
+        500
+      ]
+    },
+    {
+      "type": "layout",
+      "regionId": "initial-api",
+      "pin": "hard",
+      "bounds": [
+        12,
+        36,
+        140,
+        64
+      ]
+    },
+    {
+      "type": "layout",
+      "regionId": "initial-db",
+      "pin": "hard",
+      "bounds": [
+        200,
+        36,
+        140,
+        64
+      ]
+    },
+    {
+      "type": "layout",
+      "regionId": "other",
+      "pin": "hard",
+      "bounds": [
+        0,
+        600,
+        2000,
+        500
+      ]
+    }
+  ],
+  "final_head": "sha256:2506fce6135edd5a940ba7472ddb9d23ab7e7f04438ec04ab59537370f4f6a81",
+  "final_log": "{\"operations\":[{\"mapId\":\"voice-graph\",\"records\":[{\"root\":\"root\",\"schema\":\"semantic-map-state/1\",\"title\":\"independent component axes\",\"type\":\"meta\"},{\"bounds\":[0,0,900,400],\"id\":\"root\",\"kind\":\"boundary\",\"label\":\"fixture\",\"parent\":null,\"summary\":\"\",\"type\":\"region\"},{\"bounds\":[0,0,700,200],\"id\":\"container\",\"kind\":\"group\",\"label\":\"OCI\",\"parent\":\"root\",\"summary\":\"\",\"type\":\"region\"},{\"bounds\":[0,230,700,160],\"id\":\"other\",\"kind\":\"group\",\"label\":\"Other\",\"parent\":\"root\",\"summary\":\"\",\"type\":\"region\"},{\"bounds\":[20,20,140,64],\"id\":\"initial-api\",\"kind\":\"step\",\"label\":\"API\",\"parent\":\"container\",\"summary\":\"\",\"type\":\"region\"},{\"bounds\":[200,20,140,64],\"id\":\"initial-db\",\"kind\":\"data\",\"label\":\"DB\",\"parent\":\"container\",\"summary\":\"\",\"type\":\"region\"}],\"type\":\"CreateMap\"}],\"parent\":null,\"schema\":\"semantic-map-decision/2\",\"stateHash\":\"sha256:7ed605fb45c669734c466077e2c3fe36a4fb28cdfe62e3bd7b610fda2272038c\"}\n{\"operations\":[{\"items\":[{\"bounds\":[0,0,2000,500],\"regionId\":\"container\"},{\"bounds\":[0,600,2000,500],\"regionId\":\"other\"},{\"bounds\":[12,36,140,64],\"regionId\":\"initial-api\"},{\"bounds\":[200,36,140,64],\"regionId\":\"initial-db\"}],\"type\":\"PinRegions\"}],\"parent\":\"sha256:5402fd0225ed9b34170120d0ce298a0023bbb2f5eccf2e279ce9316e5a63f38f\",\"schema\":\"semantic-map-decision/2\",\"stateHash\":\"sha256:a92697badf11529426e49d17d36d7c0cafd2b994291a4b3caf14037496317eab\"}\n{\"operations\":[{\"from\":\"initial-api\",\"kind\":\"flow\",\"label\":\"\",\"relationId\":\"voice-initial-api-to-initial-db\",\"to\":\"initial-db\",\"type\":\"ConnectRegions\"}],\"parent\":\"sha256:b4f52e5183b8e5730e59a7524a9b260f7cb7a4246695c8a69c4d320bec1312c1\",\"schema\":\"semantic-map-decision/2\",\"stateHash\":\"sha256:2e02da4296f9b3300cd5bceb8d10260bc17ee39600e1533f078f8e077040fae9\"}\n",
+  "final_records": [
+    {
+      "type": "meta",
+      "schema": "semantic-map-state/1",
+      "root": "root",
+      "title": "independent component axes"
+    },
+    {
+      "type": "region",
+      "id": "root",
+      "parent": null,
+      "label": "fixture",
+      "kind": "boundary",
+      "bounds": [
+        0,
+        0,
+        900,
+        400
+      ],
+      "summary": ""
+    },
+    {
+      "type": "region",
+      "id": "container",
+      "parent": "root",
+      "label": "OCI",
+      "kind": "group",
+      "bounds": [
+        0,
+        0,
+        700,
+        200
+      ],
+      "summary": ""
+    },
+    {
+      "type": "region",
+      "id": "other",
+      "parent": "root",
+      "label": "Other",
+      "kind": "group",
+      "bounds": [
+        0,
+        230,
+        700,
+        160
+      ],
+      "summary": ""
+    },
+    {
+      "type": "region",
+      "id": "initial-api",
+      "parent": "container",
+      "label": "API",
+      "kind": "step",
+      "bounds": [
+        20,
+        20,
+        140,
+        64
+      ],
+      "summary": ""
+    },
+    {
+      "type": "region",
+      "id": "initial-db",
+      "parent": "container",
+      "label": "DB",
+      "kind": "data",
+      "bounds": [
+        200,
+        20,
+        140,
+        64
+      ],
+      "summary": ""
+    },
+    {
+      "type": "relation",
+      "id": "voice-initial-api-to-initial-db",
+      "from": "initial-api",
+      "to": "initial-db",
+      "kind": "flow",
+      "label": ""
+    },
+    {
+      "type": "layout",
+      "regionId": "container",
+      "pin": "hard",
+      "bounds": [
+        0,
+        0,
+        2000,
+        500
+      ]
+    },
+    {
+      "type": "layout",
+      "regionId": "initial-api",
+      "pin": "hard",
+      "bounds": [
+        12,
+        36,
+        140,
+        64
+      ]
+    },
+    {
+      "type": "layout",
+      "regionId": "initial-db",
+      "pin": "hard",
+      "bounds": [
+        200,
+        36,
+        140,
+        64
+      ]
+    },
+    {
+      "type": "layout",
+      "regionId": "other",
+      "pin": "hard",
+      "bounds": [
+        0,
+        600,
+        2000,
+        500
+      ]
+    }
+  ],
+  "frames": [
+    {
+      "camera": "overview",
+      "scope": "restore equality only; hidden children do not imply paint"
+    },
+    {
+      "camera": "container",
+      "observation": {
+        "association": "render-owned-semantic-id",
+        "title": {
+          "unmet": null,
+          "box": [
+            155,
+            172.5,
+            23,
+            19
+          ],
+          "clips": [
+            [
+              0,
+              0,
+              626,
+              429
+            ],
+            [
+              0,
+              0,
+              626,
+              429
+            ],
+            [
+              0,
+              0,
+              626,
+              429
+            ]
+          ],
+          "svg": [
+            0,
+            0,
+            2176,
+            1292
+          ]
+        },
+        "identity": true,
+        "viewport": [
+          0,
+          0,
+          626,
+          429
+        ],
+        "container": {
+          "id": "container",
+          "kind": "painted-group-shape",
+          "bounds": [
+            143.5,
+            165,
+            2000,
+            500
+          ]
+        },
+        "shapes": [
+          {
+            "id": "initial-api",
+            "rawLabel": "API",
+            "bounds": [
+              155,
+              200.5,
+              140,
+              64
+            ],
+            "name": {
+              "unmet": null,
+              "box": [
+                213.5,
+                223,
+                22,
+                19
+              ],
+              "clips": [
+                [
+                  155,
+                  201,
+                  140,
+                  64
+                ],
+                [
+                  0,
+                  0,
+                  626,
+                  429
+                ],
+                [
+                  0,
+                  0,
+                  626,
+                  429
+                ],
+                [
+                  0,
+                  0,
+                  626,
+                  429
+                ]
+              ],
+              "svg": [
+                0,
+                0,
+                2176,
+                1292
+              ]
+            }
+          },
+          {
+            "id": "initial-db",
+            "rawLabel": "DB",
+            "bounds": [
+              343,
+              200.5,
+              140,
+              64
+            ],
+            "name": {
+              "unmet": null,
+              "box": [
+                404,
+                223,
+                18,
+                19
+              ],
+              "clips": [
+                [
+                  355,
+                  201,
+                  116,
+                  64
+                ],
+                [
+                  0,
+                  0,
+                  626,
+                  429
+                ],
+                [
+                  0,
+                  0,
+                  626,
+                  429
+                ],
+                [
+                  0,
+                  0,
+                  626,
+                  429
+                ]
+              ],
+              "svg": [
+                0,
+                0,
+                2176,
+                1292
+              ]
+            }
+          }
+        ],
+        "edge": null,
+        "contained": true,
+        "nonoverlap": true,
+        "complete": true
+      },
+      "assessment": {
+        "status": "PASS",
+        "problems": [],
+        "unknown": []
+      }
+    },
+    {
+      "camera": "other",
+      "observation": {
+        "association": "render-owned-semantic-id",
+        "title": {
+          "unmet": null,
+          "box": [
+            296.5,
+            206.86000061035156,
+            33,
+            16
+          ],
+          "clips": [
+            [
+              4,
+              136,
+              619,
+              157
+            ],
+            [
+              0,
+              0,
+              626,
+              429
+            ],
+            [
+              0,
+              0,
+              626,
+              429
+            ],
+            [
+              0,
+              0,
+              626,
+              429
+            ]
+          ],
+          "svg": [
+            0,
+            0,
+            638,
+            429
+          ]
+        },
+        "identity": true,
+        "viewport": [
+          0,
+          0,
+          626,
+          429
+        ],
+        "container": {
+          "id": "other",
+          "kind": "painted-group-shape",
+          "bounds": [
+            5.429999828338623,
+            137.97999572753906,
+            616.1400146484375,
+            154.0399932861328
+          ]
+        },
+        "shapes": [],
+        "edge": null,
+        "contained": true,
+        "nonoverlap": true,
+        "complete": true
+      },
+      "assessment": {
+        "status": "PASS",
+        "problems": [],
+        "unknown": []
+      }
+    },
+    {
+      "camera": "voice-initial-api-to-initial-db",
+      "observation": {
+        "association": "render-owned-semantic-id",
+        "title": {
+          "unmet": null,
+          "box": [
+            149,
+            154.5,
+            23,
+            19
+          ],
+          "clips": [
+            [
+              0,
+              0,
+              626,
+              429
+            ],
+            [
+              0,
+              0,
+              626,
+              429
+            ],
+            [
+              0,
+              0,
+              626,
+              429
+            ]
+          ],
+          "svg": [
+            0,
+            0,
+            2170,
+            1274
+          ]
+        },
+        "identity": true,
+        "viewport": [
+          0,
+          0,
+          626,
+          429
+        ],
+        "container": {
+          "id": "container",
+          "kind": "painted-group-shape",
+          "bounds": [
+            137.5,
+            147,
+            2000,
+            500
+          ]
+        },
+        "shapes": [
+          {
+            "id": "initial-api",
+            "rawLabel": "API",
+            "bounds": [
+              149,
+              182.5,
+              140,
+              64
+            ],
+            "name": {
+              "unmet": null,
+              "box": [
+                207.5,
+                205,
+                22,
+                19
+              ],
+              "clips": [
+                [
+                  149,
+                  183,
+                  140,
+                  64
+                ],
+                [
+                  0,
+                  0,
+                  626,
+                  429
+                ],
+                [
+                  0,
+                  0,
+                  626,
+                  429
+                ],
+                [
+                  0,
+                  0,
+                  626,
+                  429
+                ]
+              ],
+              "svg": [
+                0,
+                0,
+                2170,
+                1274
+              ]
+            }
+          },
+          {
+            "id": "initial-db",
+            "rawLabel": "DB",
+            "bounds": [
+              337,
+              182.5,
+              140,
+              64
+            ],
+            "name": {
+              "unmet": null,
+              "box": [
+                398,
+                205,
+                18,
+                19
+              ],
+              "clips": [
+                [
+                  349,
+                  183,
+                  116,
+                  64
+                ],
+                [
+                  0,
+                  0,
+                  626,
+                  429
+                ],
+                [
+                  0,
+                  0,
+                  626,
+                  429
+                ],
+                [
+                  0,
+                  0,
+                  626,
+                  429
+                ]
+              ],
+              "svg": [
+                0,
+                0,
+                2170,
+                1274
+              ]
+            }
+          }
+        ],
+        "edge": {
+          "from": "initial-api",
+          "to": "initial-db",
+          "association": "pinned-classic-marker-tip-and-stroke-in-one-cell-group",
+          "observed": [
+            {
+              "start": [
+                289.5,
+                215
+              ],
+              "end": [
+                341.67999267578125,
+                215
+              ],
+              "tip": [
+                347.19000244140625,
+                215
+              ],
+              "stroke": 1.35,
+              "padding": 2.5093000000000005,
+              "lineLength": 52.17999267578125,
+              "markerLength": 24.668292999267578,
+              "fromOutline": {
+                "tag": "rect",
+                "ctm": [
+                  1,
+                  0,
+                  0,
+                  1,
+                  0,
+                  0
+                ],
+                "samples": 1128,
+                "distanceUpper": 0.5109145892836559
+              },
+              "toOutline": {
+                "tag": "path",
+                "ctm": [
+                  1,
+                  0,
+                  0,
+                  1,
+                  0,
+                  0
+                ],
+                "samples": 1050,
+                "distanceUpper": 0.790929967015846
+              },
+              "fromConnected": true,
+              "toConnected": true,
+              "directed": true
+            }
+          ],
+          "matches": [
+            {
+              "start": [
+                289.5,
+                215
+              ],
+              "end": [
+                341.67999267578125,
+                215
+              ],
+              "tip": [
+                347.19000244140625,
+                215
+              ],
+              "stroke": 1.35,
+              "padding": 2.5093000000000005,
+              "lineLength": 52.17999267578125,
+              "markerLength": 24.668292999267578
+            }
+          ],
+          "unsupported": [],
+          "complete": true
+        },
+        "contained": true,
+        "nonoverlap": true,
+        "complete": true
+      },
+      "assessment": {
+        "status": "PASS",
+        "problems": [],
+        "unknown": []
+      }
+    }
+  ],
+  "lifecycle": {
+    "target": {
+      "log": "{\"operations\":[{\"mapId\":\"voice-graph\",\"records\":[{\"root\":\"root\",\"schema\":\"semantic-map-state/1\",\"title\":\"independent component axes\",\"type\":\"meta\"},{\"bounds\":[0,0,900,400],\"id\":\"root\",\"kind\":\"boundary\",\"label\":\"fixture\",\"parent\":null,\"summary\":\"\",\"type\":\"region\"},{\"bounds\":[0,0,700,200],\"id\":\"container\",\"kind\":\"group\",\"label\":\"OCI\",\"parent\":\"root\",\"summary\":\"\",\"type\":\"region\"},{\"bounds\":[0,230,700,160],\"id\":\"other\",\"kind\":\"group\",\"label\":\"Other\",\"parent\":\"root\",\"summary\":\"\",\"type\":\"region\"},{\"bounds\":[20,20,140,64],\"id\":\"initial-api\",\"kind\":\"step\",\"label\":\"API\",\"parent\":\"container\",\"summary\":\"\",\"type\":\"region\"},{\"bounds\":[200,20,140,64],\"id\":\"initial-db\",\"kind\":\"data\",\"label\":\"DB\",\"parent\":\"container\",\"summary\":\"\",\"type\":\"region\"}],\"type\":\"CreateMap\"}],\"parent\":null,\"schema\":\"semantic-map-decision/2\",\"stateHash\":\"sha256:7ed605fb45c669734c466077e2c3fe36a4fb28cdfe62e3bd7b610fda2272038c\"}\n{\"operations\":[{\"items\":[{\"bounds\":[0,0,2000,500],\"regionId\":\"container\"},{\"bounds\":[0,600,2000,500],\"regionId\":\"other\"},{\"bounds\":[12,36,140,64],\"regionId\":\"initial-api\"},{\"bounds\":[200,36,140,64],\"regionId\":\"initial-db\"}],\"type\":\"PinRegions\"}],\"parent\":\"sha256:5402fd0225ed9b34170120d0ce298a0023bbb2f5eccf2e279ce9316e5a63f38f\",\"schema\":\"semantic-map-decision/2\",\"stateHash\":\"sha256:a92697badf11529426e49d17d36d7c0cafd2b994291a4b3caf14037496317eab\"}\n{\"operations\":[{\"from\":\"initial-api\",\"kind\":\"flow\",\"label\":\"\",\"relationId\":\"voice-initial-api-to-initial-db\",\"to\":\"initial-db\",\"type\":\"ConnectRegions\"}],\"parent\":\"sha256:b4f52e5183b8e5730e59a7524a9b260f7cb7a4246695c8a69c4d320bec1312c1\",\"schema\":\"semantic-map-decision/2\",\"stateHash\":\"sha256:2e02da4296f9b3300cd5bceb8d10260bc17ee39600e1533f078f8e077040fae9\"}\n",
+      "records": [
+        {
+          "type": "meta",
+          "schema": "semantic-map-state/1",
+          "root": "root",
+          "title": "independent component axes"
+        },
+        {
+          "type": "region",
+          "id": "root",
+          "parent": null,
+          "label": "fixture",
+          "kind": "boundary",
+          "bounds": [
+            0,
+            0,
+            900,
+            400
+          ],
+          "summary": ""
+        },
+        {
+          "type": "region",
+          "id": "container",
+          "parent": "root",
+          "label": "OCI",
+          "kind": "group",
+          "bounds": [
+            0,
+            0,
+            700,
+            200
+          ],
+          "summary": ""
+        },
+        {
+          "type": "region",
+          "id": "other",
+          "parent": "root",
+          "label": "Other",
+          "kind": "group",
+          "bounds": [
+            0,
+            230,
+            700,
+            160
+          ],
+          "summary": ""
+        },
+        {
+          "type": "region",
+          "id": "initial-api",
+          "parent": "container",
+          "label": "API",
+          "kind": "step",
+          "bounds": [
+            20,
+            20,
+            140,
+            64
+          ],
+          "summary": ""
+        },
+        {
+          "type": "region",
+          "id": "initial-db",
+          "parent": "container",
+          "label": "DB",
+          "kind": "data",
+          "bounds": [
+            200,
+            20,
+            140,
+            64
+          ],
+          "summary": ""
+        },
+        {
+          "type": "relation",
+          "id": "voice-initial-api-to-initial-db",
+          "from": "initial-api",
+          "to": "initial-db",
+          "kind": "flow",
+          "label": ""
+        },
+        {
+          "type": "layout",
+          "regionId": "container",
+          "pin": "hard",
+          "bounds": [
+            0,
+            0,
+            2000,
+            500
+          ]
+        },
+        {
+          "type": "layout",
+          "regionId": "initial-api",
+          "pin": "hard",
+          "bounds": [
+            12,
+            36,
+            140,
+            64
+          ]
+        },
+        {
+          "type": "layout",
+          "regionId": "initial-db",
+          "pin": "hard",
+          "bounds": [
+            200,
+            36,
+            140,
+            64
+          ]
+        },
+        {
+          "type": "layout",
+          "regionId": "other",
+          "pin": "hard",
+          "bounds": [
+            0,
+            600,
+            2000,
+            500
+          ]
+        }
+      ],
+      "stored": "{\"operations\":[{\"mapId\":\"voice-graph\",\"records\":[{\"root\":\"root\",\"schema\":\"semantic-map-state/1\",\"title\":\"independent component axes\",\"type\":\"meta\"},{\"bounds\":[0,0,900,400],\"id\":\"root\",\"kind\":\"boundary\",\"label\":\"fixture\",\"parent\":null,\"summary\":\"\",\"type\":\"region\"},{\"bounds\":[0,0,700,200],\"id\":\"container\",\"kind\":\"group\",\"label\":\"OCI\",\"parent\":\"root\",\"summary\":\"\",\"type\":\"region\"},{\"bounds\":[0,230,700,160],\"id\":\"other\",\"kind\":\"group\",\"label\":\"Other\",\"parent\":\"root\",\"summary\":\"\",\"type\":\"region\"},{\"bounds\":[20,20,140,64],\"id\":\"initial-api\",\"kind\":\"step\",\"label\":\"API\",\"parent\":\"container\",\"summary\":\"\",\"type\":\"region\"},{\"bounds\":[200,20,140,64],\"id\":\"initial-db\",\"kind\":\"data\",\"label\":\"DB\",\"parent\":\"container\",\"summary\":\"\",\"type\":\"region\"}],\"type\":\"CreateMap\"}],\"parent\":null,\"schema\":\"semantic-map-decision/2\",\"stateHash\":\"sha256:7ed605fb45c669734c466077e2c3fe36a4fb28cdfe62e3bd7b610fda2272038c\"}\n{\"operations\":[{\"items\":[{\"bounds\":[0,0,2000,500],\"regionId\":\"container\"},{\"bounds\":[0,600,2000,500],\"regionId\":\"other\"},{\"bounds\":[12,36,140,64],\"regionId\":\"initial-api\"},{\"bounds\":[200,36,140,64],\"regionId\":\"initial-db\"}],\"type\":\"PinRegions\"}],\"parent\":\"sha256:5402fd0225ed9b34170120d0ce298a0023bbb2f5eccf2e279ce9316e5a63f38f\",\"schema\":\"semantic-map-decision/2\",\"stateHash\":\"sha256:a92697badf11529426e49d17d36d7c0cafd2b994291a4b3caf14037496317eab\"}\n",
+      "goal": {
+        "reason": "none",
+        "requests": 3,
+        "elapsedMs": 1496.8799999952316,
+        "selected": [],
+        "trace": [
+          {
+            "head": "sha256:b4f52e5183b8e5730e59a7524a9b260f7cb7a4246695c8a69c4d320bec1312c1",
+            "answers": {
+              "delta": {
+                "type": "choice",
+                "choice": "delta-17",
+                "confidence": 0.97
+              }
+            },
+            "failure": null
+          },
+          {
+            "head": "sha256:2506fce6135edd5a940ba7472ddb9d23ab7e7f04438ec04ab59537370f4f6a81",
+            "answers": {
+              "delta": {
+                "type": "choice",
+                "choice": "none",
+                "confidence": 1
+              }
+            },
+            "failure": null
+          }
+        ],
+        "inventory": {
+          "checks": 1,
+          "completions": 0,
+          "preparations": 0,
+          "coverage": {
+            "choice": "sufficient",
+            "confidence": 0.89,
+            "inspection": {
+              "schema": "voice-ui.parts.inspection/2",
+              "request_id": "68b787ea-cb35-41d2-b81f-50b401314ed3",
+              "mode": "literal-v2",
+              "initial": {
+                "decision": {
+                  "choice": "sufficient",
+                  "confidence": 0.89
+                },
+                "factors": {
+                  "intent": {
+                    "choice": "change",
+                    "confidence": 0.89
+                  },
+                  "labels": {
+                    "choice": "available",
+                    "confidence": 0.98
+                  },
+                  "capacity": {
+                    "choice": "within",
+                    "confidence": 1
+                  },
+                  "completeness": {
+                    "choice": "complete",
+                    "confidence": 0.96
+                  }
+                },
+                "literal": {
+                  "recognized": false,
+                  "required": [],
+                  "spans": []
+                },
+                "observation": {
+                  "valid": true,
+                  "status": "unsupported-syntax"
+                }
+              },
+              "proposal": null,
+              "verification": null,
+              "required": [],
+              "missing": []
+            }
+          },
+          "missing": []
+        }
+      }
+    },
+    "applied": {
+      "log": "{\"operations\":[{\"mapId\":\"voice-graph\",\"records\":[{\"root\":\"root\",\"schema\":\"semantic-map-state/1\",\"title\":\"independent component axes\",\"type\":\"meta\"},{\"bounds\":[0,0,900,400],\"id\":\"root\",\"kind\":\"boundary\",\"label\":\"fixture\",\"parent\":null,\"summary\":\"\",\"type\":\"region\"},{\"bounds\":[0,0,700,200],\"id\":\"container\",\"kind\":\"group\",\"label\":\"OCI\",\"parent\":\"root\",\"summary\":\"\",\"type\":\"region\"},{\"bounds\":[0,230,700,160],\"id\":\"other\",\"kind\":\"group\",\"label\":\"Other\",\"parent\":\"root\",\"summary\":\"\",\"type\":\"region\"},{\"bounds\":[20,20,140,64],\"id\":\"initial-api\",\"kind\":\"step\",\"label\":\"API\",\"parent\":\"container\",\"summary\":\"\",\"type\":\"region\"},{\"bounds\":[200,20,140,64],\"id\":\"initial-db\",\"kind\":\"data\",\"label\":\"DB\",\"parent\":\"container\",\"summary\":\"\",\"type\":\"region\"}],\"type\":\"CreateMap\"}],\"parent\":null,\"schema\":\"semantic-map-decision/2\",\"stateHash\":\"sha256:7ed605fb45c669734c466077e2c3fe36a4fb28cdfe62e3bd7b610fda2272038c\"}\n{\"operations\":[{\"items\":[{\"bounds\":[0,0,2000,500],\"regionId\":\"container\"},{\"bounds\":[0,600,2000,500],\"regionId\":\"other\"},{\"bounds\":[12,36,140,64],\"regionId\":\"initial-api\"},{\"bounds\":[200,36,140,64],\"regionId\":\"initial-db\"}],\"type\":\"PinRegions\"}],\"parent\":\"sha256:5402fd0225ed9b34170120d0ce298a0023bbb2f5eccf2e279ce9316e5a63f38f\",\"schema\":\"semantic-map-decision/2\",\"stateHash\":\"sha256:a92697badf11529426e49d17d36d7c0cafd2b994291a4b3caf14037496317eab\"}\n{\"operations\":[{\"from\":\"initial-api\",\"kind\":\"flow\",\"label\":\"\",\"relationId\":\"voice-initial-api-to-initial-db\",\"to\":\"initial-db\",\"type\":\"ConnectRegions\"}],\"parent\":\"sha256:b4f52e5183b8e5730e59a7524a9b260f7cb7a4246695c8a69c4d320bec1312c1\",\"schema\":\"semantic-map-decision/2\",\"stateHash\":\"sha256:2e02da4296f9b3300cd5bceb8d10260bc17ee39600e1533f078f8e077040fae9\"}\n",
+      "records": [
+        {
+          "type": "meta",
+          "schema": "semantic-map-state/1",
+          "root": "root",
+          "title": "independent component axes"
+        },
+        {
+          "type": "region",
+          "id": "root",
+          "parent": null,
+          "label": "fixture",
+          "kind": "boundary",
+          "bounds": [
+            0,
+            0,
+            900,
+            400
+          ],
+          "summary": ""
+        },
+        {
+          "type": "region",
+          "id": "container",
+          "parent": "root",
+          "label": "OCI",
+          "kind": "group",
+          "bounds": [
+            0,
+            0,
+            700,
+            200
+          ],
+          "summary": ""
+        },
+        {
+          "type": "region",
+          "id": "other",
+          "parent": "root",
+          "label": "Other",
+          "kind": "group",
+          "bounds": [
+            0,
+            230,
+            700,
+            160
+          ],
+          "summary": ""
+        },
+        {
+          "type": "region",
+          "id": "initial-api",
+          "parent": "container",
+          "label": "API",
+          "kind": "step",
+          "bounds": [
+            20,
+            20,
+            140,
+            64
+          ],
+          "summary": ""
+        },
+        {
+          "type": "region",
+          "id": "initial-db",
+          "parent": "container",
+          "label": "DB",
+          "kind": "data",
+          "bounds": [
+            200,
+            20,
+            140,
+            64
+          ],
+          "summary": ""
+        },
+        {
+          "type": "relation",
+          "id": "voice-initial-api-to-initial-db",
+          "from": "initial-api",
+          "to": "initial-db",
+          "kind": "flow",
+          "label": ""
+        },
+        {
+          "type": "layout",
+          "regionId": "container",
+          "pin": "hard",
+          "bounds": [
+            0,
+            0,
+            2000,
+            500
+          ]
+        },
+        {
+          "type": "layout",
+          "regionId": "initial-api",
+          "pin": "hard",
+          "bounds": [
+            12,
+            36,
+            140,
+            64
+          ]
+        },
+        {
+          "type": "layout",
+          "regionId": "initial-db",
+          "pin": "hard",
+          "bounds": [
+            200,
+            36,
+            140,
+            64
+          ]
+        },
+        {
+          "type": "layout",
+          "regionId": "other",
+          "pin": "hard",
+          "bounds": [
+            0,
+            600,
+            2000,
+            500
+          ]
+        }
+      ],
+      "stored": "{\"operations\":[{\"mapId\":\"voice-graph\",\"records\":[{\"root\":\"root\",\"schema\":\"semantic-map-state/1\",\"title\":\"independent component axes\",\"type\":\"meta\"},{\"bounds\":[0,0,900,400],\"id\":\"root\",\"kind\":\"boundary\",\"label\":\"fixture\",\"parent\":null,\"summary\":\"\",\"type\":\"region\"},{\"bounds\":[0,0,700,200],\"id\":\"container\",\"kind\":\"group\",\"label\":\"OCI\",\"parent\":\"root\",\"summary\":\"\",\"type\":\"region\"},{\"bounds\":[0,230,700,160],\"id\":\"other\",\"kind\":\"group\",\"label\":\"Other\",\"parent\":\"root\",\"summary\":\"\",\"type\":\"region\"},{\"bounds\":[20,20,140,64],\"id\":\"initial-api\",\"kind\":\"step\",\"label\":\"API\",\"parent\":\"container\",\"summary\":\"\",\"type\":\"region\"},{\"bounds\":[200,20,140,64],\"id\":\"initial-db\",\"kind\":\"data\",\"label\":\"DB\",\"parent\":\"container\",\"summary\":\"\",\"type\":\"region\"}],\"type\":\"CreateMap\"}],\"parent\":null,\"schema\":\"semantic-map-decision/2\",\"stateHash\":\"sha256:7ed605fb45c669734c466077e2c3fe36a4fb28cdfe62e3bd7b610fda2272038c\"}\n{\"operations\":[{\"items\":[{\"bounds\":[0,0,2000,500],\"regionId\":\"container\"},{\"bounds\":[0,600,2000,500],\"regionId\":\"other\"},{\"bounds\":[12,36,140,64],\"regionId\":\"initial-api\"},{\"bounds\":[200,36,140,64],\"regionId\":\"initial-db\"}],\"type\":\"PinRegions\"}],\"parent\":\"sha256:5402fd0225ed9b34170120d0ce298a0023bbb2f5eccf2e279ce9316e5a63f38f\",\"schema\":\"semantic-map-decision/2\",\"stateHash\":\"sha256:a92697badf11529426e49d17d36d7c0cafd2b994291a4b3caf14037496317eab\"}\n{\"operations\":[{\"from\":\"initial-api\",\"kind\":\"flow\",\"label\":\"\",\"relationId\":\"voice-initial-api-to-initial-db\",\"to\":\"initial-db\",\"type\":\"ConnectRegions\"}],\"parent\":\"sha256:b4f52e5183b8e5730e59a7524a9b260f7cb7a4246695c8a69c4d320bec1312c1\",\"schema\":\"semantic-map-decision/2\",\"stateHash\":\"sha256:2e02da4296f9b3300cd5bceb8d10260bc17ee39600e1533f078f8e077040fae9\"}\n",
+      "goal": {
+        "reason": "none",
+        "requests": 3,
+        "elapsedMs": 1496.8799999952316,
+        "selected": [],
+        "trace": [
+          {
+            "head": "sha256:b4f52e5183b8e5730e59a7524a9b260f7cb7a4246695c8a69c4d320bec1312c1",
+            "answers": {
+              "delta": {
+                "type": "choice",
+                "choice": "delta-17",
+                "confidence": 0.97
+              }
+            },
+            "failure": null
+          },
+          {
+            "head": "sha256:2506fce6135edd5a940ba7472ddb9d23ab7e7f04438ec04ab59537370f4f6a81",
+            "answers": {
+              "delta": {
+                "type": "choice",
+                "choice": "none",
+                "confidence": 1
+              }
+            },
+            "failure": null
+          }
+        ],
+        "inventory": {
+          "checks": 1,
+          "completions": 0,
+          "preparations": 0,
+          "coverage": {
+            "choice": "sufficient",
+            "confidence": 0.89,
+            "inspection": {
+              "schema": "voice-ui.parts.inspection/2",
+              "request_id": "68b787ea-cb35-41d2-b81f-50b401314ed3",
+              "mode": "literal-v2",
+              "initial": {
+                "decision": {
+                  "choice": "sufficient",
+                  "confidence": 0.89
+                },
+                "factors": {
+                  "intent": {
+                    "choice": "change",
+                    "confidence": 0.89
+                  },
+                  "labels": {
+                    "choice": "available",
+                    "confidence": 0.98
+                  },
+                  "capacity": {
+                    "choice": "within",
+                    "confidence": 1
+                  },
+                  "completeness": {
+                    "choice": "complete",
+                    "confidence": 0.96
+                  }
+                },
+                "literal": {
+                  "recognized": false,
+                  "required": [],
+                  "spans": []
+                },
+                "observation": {
+                  "valid": true,
+                  "status": "unsupported-syntax"
+                }
+              },
+              "proposal": null,
+              "verification": null,
+              "required": [],
+              "missing": []
+            }
+          },
+          "missing": []
+        }
+      }
+    },
+    "reloaded": {
+      "log": "{\"operations\":[{\"mapId\":\"voice-graph\",\"records\":[{\"root\":\"root\",\"schema\":\"semantic-map-state/1\",\"title\":\"independent component axes\",\"type\":\"meta\"},{\"bounds\":[0,0,900,400],\"id\":\"root\",\"kind\":\"boundary\",\"label\":\"fixture\",\"parent\":null,\"summary\":\"\",\"type\":\"region\"},{\"bounds\":[0,0,700,200],\"id\":\"container\",\"kind\":\"group\",\"label\":\"OCI\",\"parent\":\"root\",\"summary\":\"\",\"type\":\"region\"},{\"bounds\":[0,230,700,160],\"id\":\"other\",\"kind\":\"group\",\"label\":\"Other\",\"parent\":\"root\",\"summary\":\"\",\"type\":\"region\"},{\"bounds\":[20,20,140,64],\"id\":\"initial-api\",\"kind\":\"step\",\"label\":\"API\",\"parent\":\"container\",\"summary\":\"\",\"type\":\"region\"},{\"bounds\":[200,20,140,64],\"id\":\"initial-db\",\"kind\":\"data\",\"label\":\"DB\",\"parent\":\"container\",\"summary\":\"\",\"type\":\"region\"}],\"type\":\"CreateMap\"}],\"parent\":null,\"schema\":\"semantic-map-decision/2\",\"stateHash\":\"sha256:7ed605fb45c669734c466077e2c3fe36a4fb28cdfe62e3bd7b610fda2272038c\"}\n{\"operations\":[{\"items\":[{\"bounds\":[0,0,2000,500],\"regionId\":\"container\"},{\"bounds\":[0,600,2000,500],\"regionId\":\"other\"},{\"bounds\":[12,36,140,64],\"regionId\":\"initial-api\"},{\"bounds\":[200,36,140,64],\"regionId\":\"initial-db\"}],\"type\":\"PinRegions\"}],\"parent\":\"sha256:5402fd0225ed9b34170120d0ce298a0023bbb2f5eccf2e279ce9316e5a63f38f\",\"schema\":\"semantic-map-decision/2\",\"stateHash\":\"sha256:a92697badf11529426e49d17d36d7c0cafd2b994291a4b3caf14037496317eab\"}\n{\"operations\":[{\"from\":\"initial-api\",\"kind\":\"flow\",\"label\":\"\",\"relationId\":\"voice-initial-api-to-initial-db\",\"to\":\"initial-db\",\"type\":\"ConnectRegions\"}],\"parent\":\"sha256:b4f52e5183b8e5730e59a7524a9b260f7cb7a4246695c8a69c4d320bec1312c1\",\"schema\":\"semantic-map-decision/2\",\"stateHash\":\"sha256:2e02da4296f9b3300cd5bceb8d10260bc17ee39600e1533f078f8e077040fae9\"}\n",
+      "records": [
+        {
+          "type": "meta",
+          "schema": "semantic-map-state/1",
+          "root": "root",
+          "title": "independent component axes"
+        },
+        {
+          "type": "region",
+          "id": "root",
+          "parent": null,
+          "label": "fixture",
+          "kind": "boundary",
+          "bounds": [
+            0,
+            0,
+            900,
+            400
+          ],
+          "summary": ""
+        },
+        {
+          "type": "region",
+          "id": "container",
+          "parent": "root",
+          "label": "OCI",
+          "kind": "group",
+          "bounds": [
+            0,
+            0,
+            700,
+            200
+          ],
+          "summary": ""
+        },
+        {
+          "type": "region",
+          "id": "other",
+          "parent": "root",
+          "label": "Other",
+          "kind": "group",
+          "bounds": [
+            0,
+            230,
+            700,
+            160
+          ],
+          "summary": ""
+        },
+        {
+          "type": "region",
+          "id": "initial-api",
+          "parent": "container",
+          "label": "API",
+          "kind": "step",
+          "bounds": [
+            20,
+            20,
+            140,
+            64
+          ],
+          "summary": ""
+        },
+        {
+          "type": "region",
+          "id": "initial-db",
+          "parent": "container",
+          "label": "DB",
+          "kind": "data",
+          "bounds": [
+            200,
+            20,
+            140,
+            64
+          ],
+          "summary": ""
+        },
+        {
+          "type": "relation",
+          "id": "voice-initial-api-to-initial-db",
+          "from": "initial-api",
+          "to": "initial-db",
+          "kind": "flow",
+          "label": ""
+        },
+        {
+          "type": "layout",
+          "regionId": "container",
+          "pin": "hard",
+          "bounds": [
+            0,
+            0,
+            2000,
+            500
+          ]
+        },
+        {
+          "type": "layout",
+          "regionId": "initial-api",
+          "pin": "hard",
+          "bounds": [
+            12,
+            36,
+            140,
+            64
+          ]
+        },
+        {
+          "type": "layout",
+          "regionId": "initial-db",
+          "pin": "hard",
+          "bounds": [
+            200,
+            36,
+            140,
+            64
+          ]
+        },
+        {
+          "type": "layout",
+          "regionId": "other",
+          "pin": "hard",
+          "bounds": [
+            0,
+            600,
+            2000,
+            500
+          ]
+        }
+      ],
+      "stored": "{\"operations\":[{\"mapId\":\"voice-graph\",\"records\":[{\"root\":\"root\",\"schema\":\"semantic-map-state/1\",\"title\":\"independent component axes\",\"type\":\"meta\"},{\"bounds\":[0,0,900,400],\"id\":\"root\",\"kind\":\"boundary\",\"label\":\"fixture\",\"parent\":null,\"summary\":\"\",\"type\":\"region\"},{\"bounds\":[0,0,700,200],\"id\":\"container\",\"kind\":\"group\",\"label\":\"OCI\",\"parent\":\"root\",\"summary\":\"\",\"type\":\"region\"},{\"bounds\":[0,230,700,160],\"id\":\"other\",\"kind\":\"group\",\"label\":\"Other\",\"parent\":\"root\",\"summary\":\"\",\"type\":\"region\"},{\"bounds\":[20,20,140,64],\"id\":\"initial-api\",\"kind\":\"step\",\"label\":\"API\",\"parent\":\"container\",\"summary\":\"\",\"type\":\"region\"},{\"bounds\":[200,20,140,64],\"id\":\"initial-db\",\"kind\":\"data\",\"label\":\"DB\",\"parent\":\"container\",\"summary\":\"\",\"type\":\"region\"}],\"type\":\"CreateMap\"}],\"parent\":null,\"schema\":\"semantic-map-decision/2\",\"stateHash\":\"sha256:7ed605fb45c669734c466077e2c3fe36a4fb28cdfe62e3bd7b610fda2272038c\"}\n{\"operations\":[{\"items\":[{\"bounds\":[0,0,2000,500],\"regionId\":\"container\"},{\"bounds\":[0,600,2000,500],\"regionId\":\"other\"},{\"bounds\":[12,36,140,64],\"regionId\":\"initial-api\"},{\"bounds\":[200,36,140,64],\"regionId\":\"initial-db\"}],\"type\":\"PinRegions\"}],\"parent\":\"sha256:5402fd0225ed9b34170120d0ce298a0023bbb2f5eccf2e279ce9316e5a63f38f\",\"schema\":\"semantic-map-decision/2\",\"stateHash\":\"sha256:a92697badf11529426e49d17d36d7c0cafd2b994291a4b3caf14037496317eab\"}\n{\"operations\":[{\"from\":\"initial-api\",\"kind\":\"flow\",\"label\":\"\",\"relationId\":\"voice-initial-api-to-initial-db\",\"to\":\"initial-db\",\"type\":\"ConnectRegions\"}],\"parent\":\"sha256:b4f52e5183b8e5730e59a7524a9b260f7cb7a4246695c8a69c4d320bec1312c1\",\"schema\":\"semantic-map-decision/2\",\"stateHash\":\"sha256:2e02da4296f9b3300cd5bceb8d10260bc17ee39600e1533f078f8e077040fae9\"}\n",
+      "goal": null
+    },
+    "apply_enabled": true,
+    "persistence": "PASS",
+    "undo": "separate completed-artifact keyless mechanics; no second live Goal"
+  }
+}

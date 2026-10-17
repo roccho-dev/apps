@@ -1,0 +1,2658 @@
+{
+  "schema": "voice-ui.frontier-cycle-cell/1",
+  "axis": "E",
+  "id": "FE07",
+  "method": "adaptive-v3",
+  "arm": "C",
+  "generation_policy": "dependent",
+  "replay_suffix_scope": "compatibility only",
+  "fixture": "empty",
+  "utterance": "OCIには「稟議可否」と書く判断用の菱形を一つ新しく置いてほしいです。他の部品は動かさないでください。",
+  "parts": [
+    {
+      "key": "step",
+      "purpose": "an ordinary step, task or box",
+      "label": "工程",
+      "kind": "step"
+    },
+    {
+      "key": "decision",
+      "purpose": "a decision, choice or branch",
+      "label": "判断",
+      "kind": "decision"
+    },
+    {
+      "key": "data",
+      "purpose": "data, a document, an input or an output",
+      "label": "データ",
+      "kind": "data"
+    },
+    {
+      "key": "start",
+      "purpose": "a start or beginning",
+      "label": "開始",
+      "kind": "start"
+    },
+    {
+      "key": "end",
+      "purpose": "an end, finish or result",
+      "label": "終了",
+      "kind": "end"
+    },
+    {
+      "key": "api",
+      "purpose": "an application programming interface service that receives requests",
+      "label": "API",
+      "kind": "step"
+    },
+    {
+      "key": "db",
+      "purpose": "a database that persists application data",
+      "label": "DB",
+      "kind": "data"
+    },
+    {
+      "key": "group",
+      "purpose": "a group, boundary or container that holds other parts",
+      "label": "グループ",
+      "kind": "group"
+    }
+  ],
+  "valid_execution": true,
+  "elapsedMs": 15411.936699999991,
+  "result": {
+    "reason": "none",
+    "requests": 6,
+    "elapsedMs": 5800.515000015497,
+    "selected": [
+      {
+        "key": "goal-extra-1",
+        "region": "part-1",
+        "parent": "container"
+      },
+      {
+        "key": "decision",
+        "region": "part-2",
+        "parent": "container"
+      }
+    ],
+    "trace": [
+      {
+        "head": "sha256:0b3522df5b691691d41d9b4587377781fc7048c991a4e47357e5583eb09288c6",
+        "answers": {
+          "delta": {
+            "type": "choice",
+            "choice": "part:goal-extra-1",
+            "confidence": 0.98
+          }
+        },
+        "failure": null
+      },
+      {
+        "head": "sha256:0b3522df5b691691d41d9b4587377781fc7048c991a4e47357e5583eb09288c6",
+        "answers": {
+          "delta": {
+            "type": "choice",
+            "choice": "delta-6",
+            "confidence": 1
+          }
+        },
+        "failure": null
+      },
+      {
+        "head": "sha256:992e48cea2f5e3f6891faef27cfdc98903384a77d4f581a39f10434999c93516",
+        "answers": {
+          "delta": {
+            "type": "choice",
+            "choice": "part:decision",
+            "confidence": 0.52
+          }
+        },
+        "failure": null
+      },
+      {
+        "head": "sha256:992e48cea2f5e3f6891faef27cfdc98903384a77d4f581a39f10434999c93516",
+        "answers": {
+          "delta": {
+            "type": "choice",
+            "choice": "delta-4",
+            "confidence": 0.98
+          }
+        },
+        "failure": null
+      },
+      {
+        "head": "sha256:6af9d94b74e89e78c4259b1967e09891a8102064fb3cf8e7143758a51af81368",
+        "answers": {
+          "delta": {
+            "type": "choice",
+            "choice": "none",
+            "confidence": 0.97
+          }
+        },
+        "failure": null
+      }
+    ],
+    "inventory": {
+      "checks": 1,
+      "completions": 0,
+      "preparations": 1,
+      "coverage": {
+        "choice": "missing",
+        "confidence": 0.98,
+        "inspection": {
+          "schema": "voice-ui.parts.inspection/3",
+          "request_id": "5046611e-0463-40dc-abe7-7ed8ffa410f1",
+          "mode": "adaptive-v3",
+          "initial": {
+            "decision": {
+              "choice": "unknown",
+              "confidence": null
+            },
+            "factors": {
+              "intent": {
+                "choice": "change",
+                "confidence": 0.88
+              },
+              "labels": {
+                "choice": "missing",
+                "confidence": 0.9
+              },
+              "capacity": {
+                "choice": "within",
+                "confidence": 0.9
+              },
+              "completeness": {
+                "choice": "incomplete",
+                "confidence": 0.96
+              }
+            },
+            "literal": {
+              "recognized": false,
+              "required": [],
+              "spans": []
+            },
+            "observation": {
+              "valid": true,
+              "status": "unsupported-syntax"
+            }
+          },
+          "proposal": {
+            "slots": {
+              "required1": {
+                "label": "稟議可否",
+                "kind": "decision",
+                "quantity": "1"
+              },
+              "required2": {
+                "label": "",
+                "kind": "none",
+                "quantity": "0"
+              },
+              "required3": {
+                "label": "",
+                "kind": "none",
+                "quantity": "0"
+              }
+            },
+            "required": [
+              {
+                "label": "稟議可否",
+                "kind": "decision",
+                "quantity": 1
+              }
+            ]
+          },
+          "verification": {
+            "intent": {
+              "choice": "change",
+              "confidence": 0.99
+            },
+            "labels": {
+              "choice": "missing",
+              "confidence": 0.96
+            },
+            "capacity": {
+              "choice": "within",
+              "confidence": 0.86
+            },
+            "completeness": {
+              "choice": "complete",
+              "confidence": 0.98
+            }
+          },
+          "required": [
+            {
+              "label": "稟議可否",
+              "kind": "decision",
+              "quantity": 1
+            }
+          ],
+          "missing": [
+            {
+              "label": "稟議可否",
+              "kind": "decision",
+              "occurrence": 1
+            }
+          ],
+          "proposal_policy": {
+            "id": "uncertainty-frontier-v1",
+            "eligible": true,
+            "reason": "confident-change-incomplete"
+          }
+        }
+      },
+      "missing": [
+        {
+          "label": "稟議可否",
+          "kind": "decision",
+          "occurrence": 1
+        }
+      ]
+    }
+  },
+  "calls": [
+    {
+      "id": "FE07",
+      "arm": "C",
+      "n": 1,
+      "route": "/api/parts/check",
+      "upstream_route": "/api/parts/check?method=adaptive-v3",
+      "request": {
+        "kind": "voice-ui.goal.inventory.v1",
+        "state": {
+          "utterance": "OCIには「稟議可否」と書く判断用の菱形を一つ新しく置いてほしいです。他の部品は動かさないでください。",
+          "head": "sha256:0b3522df5b691691d41d9b4587377781fc7048c991a4e47357e5583eb09288c6",
+          "regions": [
+            {
+              "id": "root",
+              "label": "fixture",
+              "kind": "boundary",
+              "parent": null
+            },
+            {
+              "id": "container",
+              "label": "OCI",
+              "kind": "group",
+              "parent": "root"
+            },
+            {
+              "id": "other",
+              "label": "Other",
+              "kind": "group",
+              "parent": "root"
+            }
+          ],
+          "edges": [],
+          "parts": [
+            {
+              "key": "step",
+              "purpose": "an ordinary step, task or box",
+              "label": "工程",
+              "kind": "step"
+            },
+            {
+              "key": "decision",
+              "purpose": "a decision, choice or branch",
+              "label": "判断",
+              "kind": "decision"
+            },
+            {
+              "key": "data",
+              "purpose": "data, a document, an input or an output",
+              "label": "データ",
+              "kind": "data"
+            },
+            {
+              "key": "start",
+              "purpose": "a start or beginning",
+              "label": "開始",
+              "kind": "start"
+            },
+            {
+              "key": "end",
+              "purpose": "an end, finish or result",
+              "label": "終了",
+              "kind": "end"
+            },
+            {
+              "key": "api",
+              "purpose": "an application programming interface service that receives requests",
+              "label": "API",
+              "kind": "step"
+            },
+            {
+              "key": "db",
+              "purpose": "a database that persists application data",
+              "label": "DB",
+              "kind": "data"
+            },
+            {
+              "key": "group",
+              "purpose": "a group, boundary or container that holds other parts",
+              "label": "グループ",
+              "kind": "group"
+            }
+          ]
+        }
+      },
+      "status": 200,
+      "response": {
+        "choice": "missing",
+        "confidence": 0.98,
+        "inspection": {
+          "schema": "voice-ui.parts.inspection/3",
+          "request_id": "5046611e-0463-40dc-abe7-7ed8ffa410f1",
+          "mode": "adaptive-v3",
+          "initial": {
+            "decision": {
+              "choice": "unknown",
+              "confidence": null
+            },
+            "factors": {
+              "intent": {
+                "choice": "change",
+                "confidence": 0.88
+              },
+              "labels": {
+                "choice": "missing",
+                "confidence": 0.9
+              },
+              "capacity": {
+                "choice": "within",
+                "confidence": 0.9
+              },
+              "completeness": {
+                "choice": "incomplete",
+                "confidence": 0.96
+              }
+            },
+            "literal": {
+              "recognized": false,
+              "required": [],
+              "spans": []
+            },
+            "observation": {
+              "valid": true,
+              "status": "unsupported-syntax"
+            }
+          },
+          "proposal": {
+            "slots": {
+              "required1": {
+                "label": "稟議可否",
+                "kind": "decision",
+                "quantity": "1"
+              },
+              "required2": {
+                "label": "",
+                "kind": "none",
+                "quantity": "0"
+              },
+              "required3": {
+                "label": "",
+                "kind": "none",
+                "quantity": "0"
+              }
+            },
+            "required": [
+              {
+                "label": "稟議可否",
+                "kind": "decision",
+                "quantity": 1
+              }
+            ]
+          },
+          "verification": {
+            "intent": {
+              "choice": "change",
+              "confidence": 0.99
+            },
+            "labels": {
+              "choice": "missing",
+              "confidence": 0.96
+            },
+            "capacity": {
+              "choice": "within",
+              "confidence": 0.86
+            },
+            "completeness": {
+              "choice": "complete",
+              "confidence": 0.98
+            }
+          },
+          "required": [
+            {
+              "label": "稟議可否",
+              "kind": "decision",
+              "quantity": 1
+            }
+          ],
+          "missing": [
+            {
+              "label": "稟議可否",
+              "kind": "decision",
+              "occurrence": 1
+            }
+          ],
+          "proposal_policy": {
+            "id": "uncertainty-frontier-v1",
+            "eligible": true,
+            "reason": "confident-change-incomplete"
+          }
+        }
+      },
+      "elapsedMs": 3227.0652999999875
+    },
+    {
+      "id": "FE07",
+      "arm": "C",
+      "n": 2,
+      "route": "/api/judge",
+      "upstream_route": "/api/judge",
+      "request": {
+        "kind": "voice-ui.judge.goal-local-delta.v7",
+        "state": {
+          "utterance": "OCIには「稟議可否」と書く判断用の菱形を一つ新しく置いてほしいです。他の部品は動かさないでください。",
+          "graph": [
+            {
+              "id": "root",
+              "label": "fixture",
+              "parent": null
+            },
+            {
+              "id": "container",
+              "label": "OCI",
+              "parent": "root"
+            },
+            {
+              "id": "other",
+              "label": "Other",
+              "parent": "root"
+            }
+          ],
+          "edges": [],
+          "parents": [
+            {
+              "id": "container",
+              "label": "OCI",
+              "kind": "group",
+              "parent": "root"
+            },
+            {
+              "id": "other",
+              "label": "Other",
+              "kind": "group",
+              "parent": "root"
+            }
+          ],
+          "offers": {
+            "parts": [
+              {
+                "key": "step",
+                "purpose": "an ordinary step, task or box",
+                "label": "工程"
+              },
+              {
+                "key": "decision",
+                "purpose": "a decision, choice or branch",
+                "label": "判断"
+              },
+              {
+                "key": "data",
+                "purpose": "data, a document, an input or an output",
+                "label": "データ"
+              },
+              {
+                "key": "start",
+                "purpose": "a start or beginning",
+                "label": "開始"
+              },
+              {
+                "key": "end",
+                "purpose": "an end, finish or result",
+                "label": "終了"
+              },
+              {
+                "key": "api",
+                "purpose": "an application programming interface service that receives requests",
+                "label": "API"
+              },
+              {
+                "key": "db",
+                "purpose": "a database that persists application data",
+                "label": "DB"
+              },
+              {
+                "key": "group",
+                "purpose": "a group, boundary or container that holds other parts",
+                "label": "グループ"
+              },
+              {
+                "key": "goal-extra-1",
+                "purpose": "one requested part named 稟議可否, kind decision, missing instance 1",
+                "label": "稟議可否"
+              }
+            ]
+          },
+          "selected": [],
+          "candidates": [
+            {
+              "id": "delta-1",
+              "action": "add-part",
+              "part": "api",
+              "parent": "container"
+            },
+            {
+              "id": "delta-2",
+              "action": "add-part",
+              "part": "data",
+              "parent": "container"
+            },
+            {
+              "id": "delta-3",
+              "action": "add-part",
+              "part": "db",
+              "parent": "container"
+            },
+            {
+              "id": "delta-4",
+              "action": "add-part",
+              "part": "decision",
+              "parent": "container"
+            },
+            {
+              "id": "delta-5",
+              "action": "add-part",
+              "part": "end",
+              "parent": "container"
+            },
+            {
+              "id": "delta-6",
+              "action": "add-part",
+              "part": "goal-extra-1",
+              "parent": "container"
+            },
+            {
+              "id": "delta-7",
+              "action": "add-part",
+              "part": "group",
+              "parent": "container"
+            },
+            {
+              "id": "delta-8",
+              "action": "add-part",
+              "part": "start",
+              "parent": "container"
+            },
+            {
+              "id": "delta-9",
+              "action": "add-part",
+              "part": "step",
+              "parent": "container"
+            },
+            {
+              "id": "delta-10",
+              "action": "add-part",
+              "part": "api",
+              "parent": "other"
+            },
+            {
+              "id": "delta-11",
+              "action": "add-part",
+              "part": "data",
+              "parent": "other"
+            },
+            {
+              "id": "delta-12",
+              "action": "add-part",
+              "part": "db",
+              "parent": "other"
+            },
+            {
+              "id": "delta-13",
+              "action": "add-part",
+              "part": "decision",
+              "parent": "other"
+            },
+            {
+              "id": "delta-14",
+              "action": "add-part",
+              "part": "end",
+              "parent": "other"
+            },
+            {
+              "id": "delta-15",
+              "action": "add-part",
+              "part": "goal-extra-1",
+              "parent": "other"
+            },
+            {
+              "id": "delta-16",
+              "action": "add-part",
+              "part": "group",
+              "parent": "other"
+            },
+            {
+              "id": "delta-17",
+              "action": "add-part",
+              "part": "start",
+              "parent": "other"
+            },
+            {
+              "id": "delta-18",
+              "action": "add-part",
+              "part": "step",
+              "parent": "other"
+            }
+          ],
+          "context": {
+            "recent": []
+          },
+          "scope": null,
+          "placing": null
+        }
+      },
+      "status": 200,
+      "response": {
+        "kind": "voice-ui.judge.decision.v1",
+        "answers": {
+          "delta": {
+            "type": "choice",
+            "choice": "part:goal-extra-1",
+            "confidence": 0.98
+          }
+        }
+      },
+      "elapsedMs": 195.9953000000096
+    },
+    {
+      "id": "FE07",
+      "arm": "C",
+      "n": 3,
+      "route": "/api/judge",
+      "upstream_route": "/api/judge",
+      "request": {
+        "kind": "voice-ui.judge.goal-local-delta.v7",
+        "state": {
+          "utterance": "OCIには「稟議可否」と書く判断用の菱形を一つ新しく置いてほしいです。他の部品は動かさないでください。",
+          "graph": [
+            {
+              "id": "root",
+              "label": "fixture",
+              "parent": null
+            },
+            {
+              "id": "container",
+              "label": "OCI",
+              "parent": "root"
+            },
+            {
+              "id": "other",
+              "label": "Other",
+              "parent": "root"
+            }
+          ],
+          "edges": [],
+          "parents": [
+            {
+              "id": "container",
+              "label": "OCI",
+              "kind": "group",
+              "parent": "root"
+            },
+            {
+              "id": "other",
+              "label": "Other",
+              "kind": "group",
+              "parent": "root"
+            }
+          ],
+          "offers": {
+            "parts": [
+              {
+                "key": "step",
+                "purpose": "an ordinary step, task or box",
+                "label": "工程"
+              },
+              {
+                "key": "decision",
+                "purpose": "a decision, choice or branch",
+                "label": "判断"
+              },
+              {
+                "key": "data",
+                "purpose": "data, a document, an input or an output",
+                "label": "データ"
+              },
+              {
+                "key": "start",
+                "purpose": "a start or beginning",
+                "label": "開始"
+              },
+              {
+                "key": "end",
+                "purpose": "an end, finish or result",
+                "label": "終了"
+              },
+              {
+                "key": "api",
+                "purpose": "an application programming interface service that receives requests",
+                "label": "API"
+              },
+              {
+                "key": "db",
+                "purpose": "a database that persists application data",
+                "label": "DB"
+              },
+              {
+                "key": "group",
+                "purpose": "a group, boundary or container that holds other parts",
+                "label": "グループ"
+              },
+              {
+                "key": "goal-extra-1",
+                "purpose": "one requested part named 稟議可否, kind decision, missing instance 1",
+                "label": "稟議可否"
+              }
+            ]
+          },
+          "selected": [],
+          "candidates": [
+            {
+              "id": "delta-6",
+              "action": "add-part",
+              "part": "goal-extra-1",
+              "parent": "container"
+            },
+            {
+              "id": "delta-15",
+              "action": "add-part",
+              "part": "goal-extra-1",
+              "parent": "other"
+            }
+          ],
+          "context": {
+            "recent": []
+          },
+          "scope": null,
+          "placing": "goal-extra-1"
+        }
+      },
+      "status": 200,
+      "response": {
+        "kind": "voice-ui.judge.decision.v1",
+        "answers": {
+          "delta": {
+            "type": "choice",
+            "choice": "delta-6",
+            "confidence": 1
+          }
+        }
+      },
+      "elapsedMs": 191.78769999998622
+    },
+    {
+      "id": "FE07",
+      "arm": "C",
+      "n": 4,
+      "route": "/api/judge",
+      "upstream_route": "/api/judge",
+      "request": {
+        "kind": "voice-ui.judge.goal-local-delta.v7",
+        "state": {
+          "utterance": "OCIには「稟議可否」と書く判断用の菱形を一つ新しく置いてほしいです。他の部品は動かさないでください。",
+          "graph": [
+            {
+              "id": "root",
+              "label": "fixture",
+              "parent": null
+            },
+            {
+              "id": "container",
+              "label": "OCI",
+              "parent": "root"
+            },
+            {
+              "id": "other",
+              "label": "Other",
+              "parent": "root"
+            },
+            {
+              "id": "part-1",
+              "label": "稟議可否",
+              "parent": "container"
+            }
+          ],
+          "edges": [],
+          "parents": [
+            {
+              "id": "container",
+              "label": "OCI",
+              "kind": "group",
+              "parent": "root"
+            },
+            {
+              "id": "other",
+              "label": "Other",
+              "kind": "group",
+              "parent": "root"
+            }
+          ],
+          "offers": {
+            "parts": [
+              {
+                "key": "step",
+                "purpose": "an ordinary step, task or box",
+                "label": "工程"
+              },
+              {
+                "key": "decision",
+                "purpose": "a decision, choice or branch",
+                "label": "判断"
+              },
+              {
+                "key": "data",
+                "purpose": "data, a document, an input or an output",
+                "label": "データ"
+              },
+              {
+                "key": "start",
+                "purpose": "a start or beginning",
+                "label": "開始"
+              },
+              {
+                "key": "end",
+                "purpose": "an end, finish or result",
+                "label": "終了"
+              },
+              {
+                "key": "api",
+                "purpose": "an application programming interface service that receives requests",
+                "label": "API"
+              },
+              {
+                "key": "db",
+                "purpose": "a database that persists application data",
+                "label": "DB"
+              },
+              {
+                "key": "group",
+                "purpose": "a group, boundary or container that holds other parts",
+                "label": "グループ"
+              },
+              {
+                "key": "goal-extra-1",
+                "purpose": "one requested part named 稟議可否, kind decision, missing instance 1",
+                "label": "稟議可否"
+              }
+            ]
+          },
+          "selected": [
+            {
+              "key": "goal-extra-1",
+              "region": "part-1",
+              "parent": "container"
+            }
+          ],
+          "candidates": [
+            {
+              "id": "delta-1",
+              "action": "add-part",
+              "part": "api",
+              "parent": "container"
+            },
+            {
+              "id": "delta-2",
+              "action": "add-part",
+              "part": "data",
+              "parent": "container"
+            },
+            {
+              "id": "delta-3",
+              "action": "add-part",
+              "part": "db",
+              "parent": "container"
+            },
+            {
+              "id": "delta-4",
+              "action": "add-part",
+              "part": "decision",
+              "parent": "container"
+            },
+            {
+              "id": "delta-5",
+              "action": "add-part",
+              "part": "end",
+              "parent": "container"
+            },
+            {
+              "id": "delta-6",
+              "action": "add-part",
+              "part": "group",
+              "parent": "container"
+            },
+            {
+              "id": "delta-7",
+              "action": "add-part",
+              "part": "start",
+              "parent": "container"
+            },
+            {
+              "id": "delta-8",
+              "action": "add-part",
+              "part": "step",
+              "parent": "container"
+            },
+            {
+              "id": "delta-9",
+              "action": "add-part",
+              "part": "api",
+              "parent": "other"
+            },
+            {
+              "id": "delta-10",
+              "action": "add-part",
+              "part": "data",
+              "parent": "other"
+            },
+            {
+              "id": "delta-11",
+              "action": "add-part",
+              "part": "db",
+              "parent": "other"
+            },
+            {
+              "id": "delta-12",
+              "action": "add-part",
+              "part": "decision",
+              "parent": "other"
+            },
+            {
+              "id": "delta-13",
+              "action": "add-part",
+              "part": "end",
+              "parent": "other"
+            },
+            {
+              "id": "delta-14",
+              "action": "add-part",
+              "part": "group",
+              "parent": "other"
+            },
+            {
+              "id": "delta-15",
+              "action": "add-part",
+              "part": "start",
+              "parent": "other"
+            },
+            {
+              "id": "delta-16",
+              "action": "add-part",
+              "part": "step",
+              "parent": "other"
+            }
+          ],
+          "context": {
+            "recent": [
+              {
+                "seq": 1,
+                "source": "typed",
+                "text": "OCIには「稟議可否」と書く判断用の菱形を一つ新しく置いてほしいです。他の部品は動かさないでください。",
+                "outcome": "step",
+                "effect": {
+                  "changes": [
+                    {
+                      "change": "added",
+                      "kind": "region",
+                      "id": "part-1",
+                      "label": "稟議可否"
+                    }
+                  ]
+                }
+              }
+            ]
+          },
+          "scope": null,
+          "placing": null
+        }
+      },
+      "status": 200,
+      "response": {
+        "kind": "voice-ui.judge.decision.v1",
+        "answers": {
+          "delta": {
+            "type": "choice",
+            "choice": "part:decision",
+            "confidence": 0.52
+          }
+        }
+      },
+      "elapsedMs": 220.7274000000034
+    },
+    {
+      "id": "FE07",
+      "arm": "C",
+      "n": 5,
+      "route": "/api/judge",
+      "upstream_route": "/api/judge",
+      "request": {
+        "kind": "voice-ui.judge.goal-local-delta.v7",
+        "state": {
+          "utterance": "OCIには「稟議可否」と書く判断用の菱形を一つ新しく置いてほしいです。他の部品は動かさないでください。",
+          "graph": [
+            {
+              "id": "root",
+              "label": "fixture",
+              "parent": null
+            },
+            {
+              "id": "container",
+              "label": "OCI",
+              "parent": "root"
+            },
+            {
+              "id": "other",
+              "label": "Other",
+              "parent": "root"
+            },
+            {
+              "id": "part-1",
+              "label": "稟議可否",
+              "parent": "container"
+            }
+          ],
+          "edges": [],
+          "parents": [
+            {
+              "id": "container",
+              "label": "OCI",
+              "kind": "group",
+              "parent": "root"
+            },
+            {
+              "id": "other",
+              "label": "Other",
+              "kind": "group",
+              "parent": "root"
+            }
+          ],
+          "offers": {
+            "parts": [
+              {
+                "key": "step",
+                "purpose": "an ordinary step, task or box",
+                "label": "工程"
+              },
+              {
+                "key": "decision",
+                "purpose": "a decision, choice or branch",
+                "label": "判断"
+              },
+              {
+                "key": "data",
+                "purpose": "data, a document, an input or an output",
+                "label": "データ"
+              },
+              {
+                "key": "start",
+                "purpose": "a start or beginning",
+                "label": "開始"
+              },
+              {
+                "key": "end",
+                "purpose": "an end, finish or result",
+                "label": "終了"
+              },
+              {
+                "key": "api",
+                "purpose": "an application programming interface service that receives requests",
+                "label": "API"
+              },
+              {
+                "key": "db",
+                "purpose": "a database that persists application data",
+                "label": "DB"
+              },
+              {
+                "key": "group",
+                "purpose": "a group, boundary or container that holds other parts",
+                "label": "グループ"
+              },
+              {
+                "key": "goal-extra-1",
+                "purpose": "one requested part named 稟議可否, kind decision, missing instance 1",
+                "label": "稟議可否"
+              }
+            ]
+          },
+          "selected": [
+            {
+              "key": "goal-extra-1",
+              "region": "part-1",
+              "parent": "container"
+            }
+          ],
+          "candidates": [
+            {
+              "id": "delta-4",
+              "action": "add-part",
+              "part": "decision",
+              "parent": "container"
+            },
+            {
+              "id": "delta-12",
+              "action": "add-part",
+              "part": "decision",
+              "parent": "other"
+            }
+          ],
+          "context": {
+            "recent": [
+              {
+                "seq": 1,
+                "source": "typed",
+                "text": "OCIには「稟議可否」と書く判断用の菱形を一つ新しく置いてほしいです。他の部品は動かさないでください。",
+                "outcome": "step",
+                "effect": {
+                  "changes": [
+                    {
+                      "change": "added",
+                      "kind": "region",
+                      "id": "part-1",
+                      "label": "稟議可否"
+                    }
+                  ]
+                }
+              }
+            ]
+          },
+          "scope": null,
+          "placing": "decision"
+        }
+      },
+      "status": 200,
+      "response": {
+        "kind": "voice-ui.judge.decision.v1",
+        "answers": {
+          "delta": {
+            "type": "choice",
+            "choice": "delta-4",
+            "confidence": 0.98
+          }
+        }
+      },
+      "elapsedMs": 187.0170999999973
+    },
+    {
+      "id": "FE07",
+      "arm": "C",
+      "n": 6,
+      "route": "/api/judge",
+      "upstream_route": "/api/judge",
+      "request": {
+        "kind": "voice-ui.judge.goal-local-delta.v7",
+        "state": {
+          "utterance": "OCIには「稟議可否」と書く判断用の菱形を一つ新しく置いてほしいです。他の部品は動かさないでください。",
+          "graph": [
+            {
+              "id": "root",
+              "label": "fixture",
+              "parent": null
+            },
+            {
+              "id": "container",
+              "label": "OCI",
+              "parent": "root"
+            },
+            {
+              "id": "other",
+              "label": "Other",
+              "parent": "root"
+            },
+            {
+              "id": "part-1",
+              "label": "稟議可否",
+              "parent": "container"
+            },
+            {
+              "id": "part-2",
+              "label": "判断",
+              "parent": "container"
+            }
+          ],
+          "edges": [],
+          "parents": [
+            {
+              "id": "container",
+              "label": "OCI",
+              "kind": "group",
+              "parent": "root"
+            },
+            {
+              "id": "other",
+              "label": "Other",
+              "kind": "group",
+              "parent": "root"
+            }
+          ],
+          "offers": {
+            "parts": [
+              {
+                "key": "step",
+                "purpose": "an ordinary step, task or box",
+                "label": "工程"
+              },
+              {
+                "key": "decision",
+                "purpose": "a decision, choice or branch",
+                "label": "判断"
+              },
+              {
+                "key": "data",
+                "purpose": "data, a document, an input or an output",
+                "label": "データ"
+              },
+              {
+                "key": "start",
+                "purpose": "a start or beginning",
+                "label": "開始"
+              },
+              {
+                "key": "end",
+                "purpose": "an end, finish or result",
+                "label": "終了"
+              },
+              {
+                "key": "api",
+                "purpose": "an application programming interface service that receives requests",
+                "label": "API"
+              },
+              {
+                "key": "db",
+                "purpose": "a database that persists application data",
+                "label": "DB"
+              },
+              {
+                "key": "group",
+                "purpose": "a group, boundary or container that holds other parts",
+                "label": "グループ"
+              },
+              {
+                "key": "goal-extra-1",
+                "purpose": "one requested part named 稟議可否, kind decision, missing instance 1",
+                "label": "稟議可否"
+              }
+            ]
+          },
+          "selected": [
+            {
+              "key": "goal-extra-1",
+              "region": "part-1",
+              "parent": "container"
+            },
+            {
+              "key": "decision",
+              "region": "part-2",
+              "parent": "container"
+            }
+          ],
+          "candidates": [
+            {
+              "id": "delta-1",
+              "action": "add-part",
+              "part": "api",
+              "parent": "container"
+            },
+            {
+              "id": "delta-2",
+              "action": "add-part",
+              "part": "data",
+              "parent": "container"
+            },
+            {
+              "id": "delta-3",
+              "action": "add-part",
+              "part": "db",
+              "parent": "container"
+            },
+            {
+              "id": "delta-4",
+              "action": "add-part",
+              "part": "end",
+              "parent": "container"
+            },
+            {
+              "id": "delta-5",
+              "action": "add-part",
+              "part": "group",
+              "parent": "container"
+            },
+            {
+              "id": "delta-6",
+              "action": "add-part",
+              "part": "start",
+              "parent": "container"
+            },
+            {
+              "id": "delta-7",
+              "action": "add-part",
+              "part": "step",
+              "parent": "container"
+            },
+            {
+              "id": "delta-8",
+              "action": "add-part",
+              "part": "api",
+              "parent": "other"
+            },
+            {
+              "id": "delta-9",
+              "action": "add-part",
+              "part": "data",
+              "parent": "other"
+            },
+            {
+              "id": "delta-10",
+              "action": "add-part",
+              "part": "db",
+              "parent": "other"
+            },
+            {
+              "id": "delta-11",
+              "action": "add-part",
+              "part": "end",
+              "parent": "other"
+            },
+            {
+              "id": "delta-12",
+              "action": "add-part",
+              "part": "group",
+              "parent": "other"
+            },
+            {
+              "id": "delta-13",
+              "action": "add-part",
+              "part": "start",
+              "parent": "other"
+            },
+            {
+              "id": "delta-14",
+              "action": "add-part",
+              "part": "step",
+              "parent": "other"
+            },
+            {
+              "id": "delta-15",
+              "action": "add-edge",
+              "from": "part-1",
+              "to": "part-2"
+            },
+            {
+              "id": "delta-16",
+              "action": "add-edge",
+              "from": "part-2",
+              "to": "part-1"
+            }
+          ],
+          "context": {
+            "recent": [
+              {
+                "seq": 1,
+                "source": "typed",
+                "text": "OCIには「稟議可否」と書く判断用の菱形を一つ新しく置いてほしいです。他の部品は動かさないでください。",
+                "outcome": "step",
+                "effect": {
+                  "changes": [
+                    {
+                      "change": "added",
+                      "kind": "region",
+                      "id": "part-1",
+                      "label": "稟議可否"
+                    },
+                    {
+                      "change": "added",
+                      "kind": "region",
+                      "id": "part-2",
+                      "label": "判断"
+                    }
+                  ]
+                }
+              }
+            ]
+          },
+          "scope": null,
+          "placing": null
+        }
+      },
+      "status": 200,
+      "response": {
+        "kind": "voice-ui.judge.decision.v1",
+        "answers": {
+          "delta": {
+            "type": "choice",
+            "choice": "none",
+            "confidence": 0.97
+          }
+        }
+      },
+      "elapsedMs": 181.2271999999939
+    }
+  ],
+  "initial_head": "sha256:0b3522df5b691691d41d9b4587377781fc7048c991a4e47357e5583eb09288c6",
+  "initial_log": "{\"operations\":[{\"mapId\":\"voice-graph\",\"records\":[{\"root\":\"root\",\"schema\":\"semantic-map-state/1\",\"title\":\"independent component axes\",\"type\":\"meta\"},{\"bounds\":[0,0,900,400],\"id\":\"root\",\"kind\":\"boundary\",\"label\":\"fixture\",\"parent\":null,\"summary\":\"\",\"type\":\"region\"},{\"bounds\":[0,0,700,200],\"id\":\"container\",\"kind\":\"group\",\"label\":\"OCI\",\"parent\":\"root\",\"summary\":\"\",\"type\":\"region\"},{\"bounds\":[0,230,700,160],\"id\":\"other\",\"kind\":\"group\",\"label\":\"Other\",\"parent\":\"root\",\"summary\":\"\",\"type\":\"region\"}],\"type\":\"CreateMap\"}],\"parent\":null,\"schema\":\"semantic-map-decision/2\",\"stateHash\":\"sha256:6f6adeef1c88cee408e25aa59e1cb628415e925e955af39cf471ea19a81d31d2\"}\n{\"operations\":[{\"items\":[{\"bounds\":[0,0,2000,500],\"regionId\":\"container\"},{\"bounds\":[0,600,2000,500],\"regionId\":\"other\"}],\"type\":\"PinRegions\"}],\"parent\":\"sha256:f0e1eb311833921dc4b1cf230636b504bfb9ce8fbf0403929b19d9797038752a\",\"schema\":\"semantic-map-decision/2\",\"stateHash\":\"sha256:1d92eb09d797c79447c24a31bf49740c7924fca8d3ede29020ea6371298bda40\"}\n",
+  "initial_log_sha256": "8d1eca97d9c29efcb938bf7ba32ba18f306db8b4ce1a35570cd454d53fdee314",
+  "initial_records": [
+    {
+      "type": "meta",
+      "schema": "semantic-map-state/1",
+      "root": "root",
+      "title": "independent component axes"
+    },
+    {
+      "type": "region",
+      "id": "root",
+      "parent": null,
+      "label": "fixture",
+      "kind": "boundary",
+      "bounds": [
+        0,
+        0,
+        900,
+        400
+      ],
+      "summary": ""
+    },
+    {
+      "type": "region",
+      "id": "container",
+      "parent": "root",
+      "label": "OCI",
+      "kind": "group",
+      "bounds": [
+        0,
+        0,
+        700,
+        200
+      ],
+      "summary": ""
+    },
+    {
+      "type": "region",
+      "id": "other",
+      "parent": "root",
+      "label": "Other",
+      "kind": "group",
+      "bounds": [
+        0,
+        230,
+        700,
+        160
+      ],
+      "summary": ""
+    },
+    {
+      "type": "layout",
+      "regionId": "container",
+      "pin": "hard",
+      "bounds": [
+        0,
+        0,
+        2000,
+        500
+      ]
+    },
+    {
+      "type": "layout",
+      "regionId": "other",
+      "pin": "hard",
+      "bounds": [
+        0,
+        600,
+        2000,
+        500
+      ]
+    }
+  ],
+  "final_head": "sha256:6af9d94b74e89e78c4259b1967e09891a8102064fb3cf8e7143758a51af81368",
+  "final_log": "{\"operations\":[{\"mapId\":\"voice-graph\",\"records\":[{\"root\":\"root\",\"schema\":\"semantic-map-state/1\",\"title\":\"independent component axes\",\"type\":\"meta\"},{\"bounds\":[0,0,900,400],\"id\":\"root\",\"kind\":\"boundary\",\"label\":\"fixture\",\"parent\":null,\"summary\":\"\",\"type\":\"region\"},{\"bounds\":[0,0,700,200],\"id\":\"container\",\"kind\":\"group\",\"label\":\"OCI\",\"parent\":\"root\",\"summary\":\"\",\"type\":\"region\"},{\"bounds\":[0,230,700,160],\"id\":\"other\",\"kind\":\"group\",\"label\":\"Other\",\"parent\":\"root\",\"summary\":\"\",\"type\":\"region\"}],\"type\":\"CreateMap\"}],\"parent\":null,\"schema\":\"semantic-map-decision/2\",\"stateHash\":\"sha256:6f6adeef1c88cee408e25aa59e1cb628415e925e955af39cf471ea19a81d31d2\"}\n{\"operations\":[{\"items\":[{\"bounds\":[0,0,2000,500],\"regionId\":\"container\"},{\"bounds\":[0,600,2000,500],\"regionId\":\"other\"}],\"type\":\"PinRegions\"}],\"parent\":\"sha256:f0e1eb311833921dc4b1cf230636b504bfb9ce8fbf0403929b19d9797038752a\",\"schema\":\"semantic-map-decision/2\",\"stateHash\":\"sha256:1d92eb09d797c79447c24a31bf49740c7924fca8d3ede29020ea6371298bda40\"}\n{\"operations\":[{\"bounds\":[20,20,140,64],\"kind\":\"decision\",\"label\":\"稟議可否\",\"parentId\":\"container\",\"regionId\":\"part-1\",\"summary\":\"\",\"type\":\"AddRegion\"},{\"items\":[{\"bounds\":[12,36,180,92],\"regionId\":\"part-1\"}],\"type\":\"PinRegions\"}],\"parent\":\"sha256:0b3522df5b691691d41d9b4587377781fc7048c991a4e47357e5583eb09288c6\",\"schema\":\"semantic-map-decision/2\",\"stateHash\":\"sha256:eb8fdb91b8c07735de600dc84c34bc9e64b41c990537071c432ffb4a20deb6a5\"}\n{\"operations\":[{\"bounds\":[180,20,140,64],\"kind\":\"decision\",\"label\":\"判断\",\"parentId\":\"container\",\"regionId\":\"part-2\",\"summary\":\"\",\"type\":\"AddRegion\"},{\"items\":[{\"bounds\":[216,36,180,92],\"regionId\":\"part-2\"}],\"type\":\"PinRegions\"}],\"parent\":\"sha256:992e48cea2f5e3f6891faef27cfdc98903384a77d4f581a39f10434999c93516\",\"schema\":\"semantic-map-decision/2\",\"stateHash\":\"sha256:b1ba6120cfd0cace8b6ce73bc1466ea53f88475bf5346c102b8624dd4f0e4077\"}\n",
+  "final_records": [
+    {
+      "type": "meta",
+      "schema": "semantic-map-state/1",
+      "root": "root",
+      "title": "independent component axes"
+    },
+    {
+      "type": "region",
+      "id": "root",
+      "parent": null,
+      "label": "fixture",
+      "kind": "boundary",
+      "bounds": [
+        0,
+        0,
+        900,
+        400
+      ],
+      "summary": ""
+    },
+    {
+      "type": "region",
+      "id": "container",
+      "parent": "root",
+      "label": "OCI",
+      "kind": "group",
+      "bounds": [
+        0,
+        0,
+        700,
+        200
+      ],
+      "summary": ""
+    },
+    {
+      "type": "region",
+      "id": "other",
+      "parent": "root",
+      "label": "Other",
+      "kind": "group",
+      "bounds": [
+        0,
+        230,
+        700,
+        160
+      ],
+      "summary": ""
+    },
+    {
+      "type": "region",
+      "id": "part-1",
+      "parent": "container",
+      "label": "稟議可否",
+      "kind": "decision",
+      "bounds": [
+        20,
+        20,
+        140,
+        64
+      ],
+      "summary": ""
+    },
+    {
+      "type": "region",
+      "id": "part-2",
+      "parent": "container",
+      "label": "判断",
+      "kind": "decision",
+      "bounds": [
+        180,
+        20,
+        140,
+        64
+      ],
+      "summary": ""
+    },
+    {
+      "type": "layout",
+      "regionId": "container",
+      "pin": "hard",
+      "bounds": [
+        0,
+        0,
+        2000,
+        500
+      ]
+    },
+    {
+      "type": "layout",
+      "regionId": "other",
+      "pin": "hard",
+      "bounds": [
+        0,
+        600,
+        2000,
+        500
+      ]
+    },
+    {
+      "type": "layout",
+      "regionId": "part-1",
+      "pin": "hard",
+      "bounds": [
+        12,
+        36,
+        180,
+        92
+      ]
+    },
+    {
+      "type": "layout",
+      "regionId": "part-2",
+      "pin": "hard",
+      "bounds": [
+        216,
+        36,
+        180,
+        92
+      ]
+    }
+  ],
+  "frames": [
+    {
+      "camera": "overview",
+      "scope": "restore equality only; hidden children do not imply paint"
+    },
+    {
+      "camera": "container",
+      "observation": {
+        "association": "render-owned-semantic-id",
+        "title": {
+          "unmet": null,
+          "box": [
+            127,
+            158.5,
+            23,
+            19
+          ],
+          "clips": [
+            [
+              0,
+              0,
+              626,
+              429
+            ],
+            [
+              0,
+              0,
+              626,
+              429
+            ],
+            [
+              0,
+              0,
+              626,
+              429
+            ]
+          ],
+          "svg": [
+            0,
+            0,
+            2148,
+            1278
+          ]
+        },
+        "identity": true,
+        "viewport": [
+          0,
+          0,
+          626,
+          429
+        ],
+        "container": {
+          "id": "container",
+          "kind": "painted-group-shape",
+          "bounds": [
+            115.5,
+            151,
+            2000,
+            500
+          ]
+        },
+        "shapes": [
+          {
+            "id": "part-1",
+            "rawLabel": "稟議可否",
+            "bounds": [
+              127,
+              186.5,
+              180,
+              92
+            ],
+            "name": {
+              "unmet": null,
+              "box": [
+                191,
+                223,
+                52,
+                19
+              ],
+              "clips": [
+                [
+                  139,
+                  187,
+                  156,
+                  92
+                ],
+                [
+                  0,
+                  0,
+                  626,
+                  429
+                ],
+                [
+                  0,
+                  0,
+                  626,
+                  429
+                ],
+                [
+                  0,
+                  0,
+                  626,
+                  429
+                ]
+              ],
+              "svg": [
+                0,
+                0,
+                2148,
+                1278
+              ]
+            }
+          },
+          {
+            "id": "part-2",
+            "rawLabel": "判断",
+            "bounds": [
+              331,
+              186.5,
+              180,
+              92
+            ],
+            "name": {
+              "unmet": null,
+              "box": [
+                408,
+                223,
+                26,
+                19
+              ],
+              "clips": [
+                [
+                  343,
+                  187,
+                  156,
+                  92
+                ],
+                [
+                  0,
+                  0,
+                  626,
+                  429
+                ],
+                [
+                  0,
+                  0,
+                  626,
+                  429
+                ],
+                [
+                  0,
+                  0,
+                  626,
+                  429
+                ]
+              ],
+              "svg": [
+                0,
+                0,
+                2148,
+                1278
+              ]
+            }
+          }
+        ],
+        "edge": null,
+        "contained": true,
+        "nonoverlap": true,
+        "complete": true
+      },
+      "assessment": {
+        "status": "PASS",
+        "problems": [],
+        "unknown": []
+      }
+    },
+    {
+      "camera": "other",
+      "observation": {
+        "association": "render-owned-semantic-id",
+        "title": {
+          "unmet": null,
+          "box": [
+            296.5,
+            206.86000061035156,
+            33,
+            16
+          ],
+          "clips": [
+            [
+              4,
+              136,
+              619,
+              157
+            ],
+            [
+              0,
+              0,
+              626,
+              429
+            ],
+            [
+              0,
+              0,
+              626,
+              429
+            ],
+            [
+              0,
+              0,
+              626,
+              429
+            ]
+          ],
+          "svg": [
+            0,
+            0,
+            638,
+            429
+          ]
+        },
+        "identity": true,
+        "viewport": [
+          0,
+          0,
+          626,
+          429
+        ],
+        "container": {
+          "id": "other",
+          "kind": "painted-group-shape",
+          "bounds": [
+            5.429999828338623,
+            137.97999572753906,
+            616.1400146484375,
+            154.0399932861328
+          ]
+        },
+        "shapes": [],
+        "edge": null,
+        "contained": true,
+        "nonoverlap": true,
+        "complete": true
+      },
+      "assessment": {
+        "status": "PASS",
+        "problems": [],
+        "unknown": []
+      }
+    }
+  ],
+  "lifecycle": {
+    "target": {
+      "log": "{\"operations\":[{\"mapId\":\"voice-graph\",\"records\":[{\"root\":\"root\",\"schema\":\"semantic-map-state/1\",\"title\":\"independent component axes\",\"type\":\"meta\"},{\"bounds\":[0,0,900,400],\"id\":\"root\",\"kind\":\"boundary\",\"label\":\"fixture\",\"parent\":null,\"summary\":\"\",\"type\":\"region\"},{\"bounds\":[0,0,700,200],\"id\":\"container\",\"kind\":\"group\",\"label\":\"OCI\",\"parent\":\"root\",\"summary\":\"\",\"type\":\"region\"},{\"bounds\":[0,230,700,160],\"id\":\"other\",\"kind\":\"group\",\"label\":\"Other\",\"parent\":\"root\",\"summary\":\"\",\"type\":\"region\"}],\"type\":\"CreateMap\"}],\"parent\":null,\"schema\":\"semantic-map-decision/2\",\"stateHash\":\"sha256:6f6adeef1c88cee408e25aa59e1cb628415e925e955af39cf471ea19a81d31d2\"}\n{\"operations\":[{\"items\":[{\"bounds\":[0,0,2000,500],\"regionId\":\"container\"},{\"bounds\":[0,600,2000,500],\"regionId\":\"other\"}],\"type\":\"PinRegions\"}],\"parent\":\"sha256:f0e1eb311833921dc4b1cf230636b504bfb9ce8fbf0403929b19d9797038752a\",\"schema\":\"semantic-map-decision/2\",\"stateHash\":\"sha256:1d92eb09d797c79447c24a31bf49740c7924fca8d3ede29020ea6371298bda40\"}\n{\"operations\":[{\"bounds\":[20,20,140,64],\"kind\":\"decision\",\"label\":\"稟議可否\",\"parentId\":\"container\",\"regionId\":\"part-1\",\"summary\":\"\",\"type\":\"AddRegion\"},{\"items\":[{\"bounds\":[12,36,180,92],\"regionId\":\"part-1\"}],\"type\":\"PinRegions\"}],\"parent\":\"sha256:0b3522df5b691691d41d9b4587377781fc7048c991a4e47357e5583eb09288c6\",\"schema\":\"semantic-map-decision/2\",\"stateHash\":\"sha256:eb8fdb91b8c07735de600dc84c34bc9e64b41c990537071c432ffb4a20deb6a5\"}\n{\"operations\":[{\"bounds\":[180,20,140,64],\"kind\":\"decision\",\"label\":\"判断\",\"parentId\":\"container\",\"regionId\":\"part-2\",\"summary\":\"\",\"type\":\"AddRegion\"},{\"items\":[{\"bounds\":[216,36,180,92],\"regionId\":\"part-2\"}],\"type\":\"PinRegions\"}],\"parent\":\"sha256:992e48cea2f5e3f6891faef27cfdc98903384a77d4f581a39f10434999c93516\",\"schema\":\"semantic-map-decision/2\",\"stateHash\":\"sha256:b1ba6120cfd0cace8b6ce73bc1466ea53f88475bf5346c102b8624dd4f0e4077\"}\n",
+      "records": [
+        {
+          "type": "meta",
+          "schema": "semantic-map-state/1",
+          "root": "root",
+          "title": "independent component axes"
+        },
+        {
+          "type": "region",
+          "id": "root",
+          "parent": null,
+          "label": "fixture",
+          "kind": "boundary",
+          "bounds": [
+            0,
+            0,
+            900,
+            400
+          ],
+          "summary": ""
+        },
+        {
+          "type": "region",
+          "id": "container",
+          "parent": "root",
+          "label": "OCI",
+          "kind": "group",
+          "bounds": [
+            0,
+            0,
+            700,
+            200
+          ],
+          "summary": ""
+        },
+        {
+          "type": "region",
+          "id": "other",
+          "parent": "root",
+          "label": "Other",
+          "kind": "group",
+          "bounds": [
+            0,
+            230,
+            700,
+            160
+          ],
+          "summary": ""
+        },
+        {
+          "type": "region",
+          "id": "part-1",
+          "parent": "container",
+          "label": "稟議可否",
+          "kind": "decision",
+          "bounds": [
+            20,
+            20,
+            140,
+            64
+          ],
+          "summary": ""
+        },
+        {
+          "type": "region",
+          "id": "part-2",
+          "parent": "container",
+          "label": "判断",
+          "kind": "decision",
+          "bounds": [
+            180,
+            20,
+            140,
+            64
+          ],
+          "summary": ""
+        },
+        {
+          "type": "layout",
+          "regionId": "container",
+          "pin": "hard",
+          "bounds": [
+            0,
+            0,
+            2000,
+            500
+          ]
+        },
+        {
+          "type": "layout",
+          "regionId": "other",
+          "pin": "hard",
+          "bounds": [
+            0,
+            600,
+            2000,
+            500
+          ]
+        },
+        {
+          "type": "layout",
+          "regionId": "part-1",
+          "pin": "hard",
+          "bounds": [
+            12,
+            36,
+            180,
+            92
+          ]
+        },
+        {
+          "type": "layout",
+          "regionId": "part-2",
+          "pin": "hard",
+          "bounds": [
+            216,
+            36,
+            180,
+            92
+          ]
+        }
+      ],
+      "stored": "{\"operations\":[{\"mapId\":\"voice-graph\",\"records\":[{\"root\":\"root\",\"schema\":\"semantic-map-state/1\",\"title\":\"independent component axes\",\"type\":\"meta\"},{\"bounds\":[0,0,900,400],\"id\":\"root\",\"kind\":\"boundary\",\"label\":\"fixture\",\"parent\":null,\"summary\":\"\",\"type\":\"region\"},{\"bounds\":[0,0,700,200],\"id\":\"container\",\"kind\":\"group\",\"label\":\"OCI\",\"parent\":\"root\",\"summary\":\"\",\"type\":\"region\"},{\"bounds\":[0,230,700,160],\"id\":\"other\",\"kind\":\"group\",\"label\":\"Other\",\"parent\":\"root\",\"summary\":\"\",\"type\":\"region\"}],\"type\":\"CreateMap\"}],\"parent\":null,\"schema\":\"semantic-map-decision/2\",\"stateHash\":\"sha256:6f6adeef1c88cee408e25aa59e1cb628415e925e955af39cf471ea19a81d31d2\"}\n{\"operations\":[{\"items\":[{\"bounds\":[0,0,2000,500],\"regionId\":\"container\"},{\"bounds\":[0,600,2000,500],\"regionId\":\"other\"}],\"type\":\"PinRegions\"}],\"parent\":\"sha256:f0e1eb311833921dc4b1cf230636b504bfb9ce8fbf0403929b19d9797038752a\",\"schema\":\"semantic-map-decision/2\",\"stateHash\":\"sha256:1d92eb09d797c79447c24a31bf49740c7924fca8d3ede29020ea6371298bda40\"}\n",
+      "goal": {
+        "reason": "none",
+        "requests": 6,
+        "elapsedMs": 5800.515000015497,
+        "selected": [
+          {
+            "key": "goal-extra-1",
+            "region": "part-1",
+            "parent": "container"
+          },
+          {
+            "key": "decision",
+            "region": "part-2",
+            "parent": "container"
+          }
+        ],
+        "trace": [
+          {
+            "head": "sha256:0b3522df5b691691d41d9b4587377781fc7048c991a4e47357e5583eb09288c6",
+            "answers": {
+              "delta": {
+                "type": "choice",
+                "choice": "part:goal-extra-1",
+                "confidence": 0.98
+              }
+            },
+            "failure": null
+          },
+          {
+            "head": "sha256:0b3522df5b691691d41d9b4587377781fc7048c991a4e47357e5583eb09288c6",
+            "answers": {
+              "delta": {
+                "type": "choice",
+                "choice": "delta-6",
+                "confidence": 1
+              }
+            },
+            "failure": null
+          },
+          {
+            "head": "sha256:992e48cea2f5e3f6891faef27cfdc98903384a77d4f581a39f10434999c93516",
+            "answers": {
+              "delta": {
+                "type": "choice",
+                "choice": "part:decision",
+                "confidence": 0.52
+              }
+            },
+            "failure": null
+          },
+          {
+            "head": "sha256:992e48cea2f5e3f6891faef27cfdc98903384a77d4f581a39f10434999c93516",
+            "answers": {
+              "delta": {
+                "type": "choice",
+                "choice": "delta-4",
+                "confidence": 0.98
+              }
+            },
+            "failure": null
+          },
+          {
+            "head": "sha256:6af9d94b74e89e78c4259b1967e09891a8102064fb3cf8e7143758a51af81368",
+            "answers": {
+              "delta": {
+                "type": "choice",
+                "choice": "none",
+                "confidence": 0.97
+              }
+            },
+            "failure": null
+          }
+        ],
+        "inventory": {
+          "checks": 1,
+          "completions": 0,
+          "preparations": 1,
+          "coverage": {
+            "choice": "missing",
+            "confidence": 0.98,
+            "inspection": {
+              "schema": "voice-ui.parts.inspection/3",
+              "request_id": "5046611e-0463-40dc-abe7-7ed8ffa410f1",
+              "mode": "adaptive-v3",
+              "initial": {
+                "decision": {
+                  "choice": "unknown",
+                  "confidence": null
+                },
+                "factors": {
+                  "intent": {
+                    "choice": "change",
+                    "confidence": 0.88
+                  },
+                  "labels": {
+                    "choice": "missing",
+                    "confidence": 0.9
+                  },
+                  "capacity": {
+                    "choice": "within",
+                    "confidence": 0.9
+                  },
+                  "completeness": {
+                    "choice": "incomplete",
+                    "confidence": 0.96
+                  }
+                },
+                "literal": {
+                  "recognized": false,
+                  "required": [],
+                  "spans": []
+                },
+                "observation": {
+                  "valid": true,
+                  "status": "unsupported-syntax"
+                }
+              },
+              "proposal": {
+                "slots": {
+                  "required1": {
+                    "label": "稟議可否",
+                    "kind": "decision",
+                    "quantity": "1"
+                  },
+                  "required2": {
+                    "label": "",
+                    "kind": "none",
+                    "quantity": "0"
+                  },
+                  "required3": {
+                    "label": "",
+                    "kind": "none",
+                    "quantity": "0"
+                  }
+                },
+                "required": [
+                  {
+                    "label": "稟議可否",
+                    "kind": "decision",
+                    "quantity": 1
+                  }
+                ]
+              },
+              "verification": {
+                "intent": {
+                  "choice": "change",
+                  "confidence": 0.99
+                },
+                "labels": {
+                  "choice": "missing",
+                  "confidence": 0.96
+                },
+                "capacity": {
+                  "choice": "within",
+                  "confidence": 0.86
+                },
+                "completeness": {
+                  "choice": "complete",
+                  "confidence": 0.98
+                }
+              },
+              "required": [
+                {
+                  "label": "稟議可否",
+                  "kind": "decision",
+                  "quantity": 1
+                }
+              ],
+              "missing": [
+                {
+                  "label": "稟議可否",
+                  "kind": "decision",
+                  "occurrence": 1
+                }
+              ],
+              "proposal_policy": {
+                "id": "uncertainty-frontier-v1",
+                "eligible": true,
+                "reason": "confident-change-incomplete"
+              }
+            }
+          },
+          "missing": [
+            {
+              "label": "稟議可否",
+              "kind": "decision",
+              "occurrence": 1
+            }
+          ]
+        }
+      }
+    },
+    "applied": {
+      "log": "{\"operations\":[{\"mapId\":\"voice-graph\",\"records\":[{\"root\":\"root\",\"schema\":\"semantic-map-state/1\",\"title\":\"independent component axes\",\"type\":\"meta\"},{\"bounds\":[0,0,900,400],\"id\":\"root\",\"kind\":\"boundary\",\"label\":\"fixture\",\"parent\":null,\"summary\":\"\",\"type\":\"region\"},{\"bounds\":[0,0,700,200],\"id\":\"container\",\"kind\":\"group\",\"label\":\"OCI\",\"parent\":\"root\",\"summary\":\"\",\"type\":\"region\"},{\"bounds\":[0,230,700,160],\"id\":\"other\",\"kind\":\"group\",\"label\":\"Other\",\"parent\":\"root\",\"summary\":\"\",\"type\":\"region\"}],\"type\":\"CreateMap\"}],\"parent\":null,\"schema\":\"semantic-map-decision/2\",\"stateHash\":\"sha256:6f6adeef1c88cee408e25aa59e1cb628415e925e955af39cf471ea19a81d31d2\"}\n{\"operations\":[{\"items\":[{\"bounds\":[0,0,2000,500],\"regionId\":\"container\"},{\"bounds\":[0,600,2000,500],\"regionId\":\"other\"}],\"type\":\"PinRegions\"}],\"parent\":\"sha256:f0e1eb311833921dc4b1cf230636b504bfb9ce8fbf0403929b19d9797038752a\",\"schema\":\"semantic-map-decision/2\",\"stateHash\":\"sha256:1d92eb09d797c79447c24a31bf49740c7924fca8d3ede29020ea6371298bda40\"}\n{\"operations\":[{\"bounds\":[20,20,140,64],\"kind\":\"decision\",\"label\":\"稟議可否\",\"parentId\":\"container\",\"regionId\":\"part-1\",\"summary\":\"\",\"type\":\"AddRegion\"},{\"items\":[{\"bounds\":[12,36,180,92],\"regionId\":\"part-1\"}],\"type\":\"PinRegions\"}],\"parent\":\"sha256:0b3522df5b691691d41d9b4587377781fc7048c991a4e47357e5583eb09288c6\",\"schema\":\"semantic-map-decision/2\",\"stateHash\":\"sha256:eb8fdb91b8c07735de600dc84c34bc9e64b41c990537071c432ffb4a20deb6a5\"}\n{\"operations\":[{\"bounds\":[180,20,140,64],\"kind\":\"decision\",\"label\":\"判断\",\"parentId\":\"container\",\"regionId\":\"part-2\",\"summary\":\"\",\"type\":\"AddRegion\"},{\"items\":[{\"bounds\":[216,36,180,92],\"regionId\":\"part-2\"}],\"type\":\"PinRegions\"}],\"parent\":\"sha256:992e48cea2f5e3f6891faef27cfdc98903384a77d4f581a39f10434999c93516\",\"schema\":\"semantic-map-decision/2\",\"stateHash\":\"sha256:b1ba6120cfd0cace8b6ce73bc1466ea53f88475bf5346c102b8624dd4f0e4077\"}\n",
+      "records": [
+        {
+          "type": "meta",
+          "schema": "semantic-map-state/1",
+          "root": "root",
+          "title": "independent component axes"
+        },
+        {
+          "type": "region",
+          "id": "root",
+          "parent": null,
+          "label": "fixture",
+          "kind": "boundary",
+          "bounds": [
+            0,
+            0,
+            900,
+            400
+          ],
+          "summary": ""
+        },
+        {
+          "type": "region",
+          "id": "container",
+          "parent": "root",
+          "label": "OCI",
+          "kind": "group",
+          "bounds": [
+            0,
+            0,
+            700,
+            200
+          ],
+          "summary": ""
+        },
+        {
+          "type": "region",
+          "id": "other",
+          "parent": "root",
+          "label": "Other",
+          "kind": "group",
+          "bounds": [
+            0,
+            230,
+            700,
+            160
+          ],
+          "summary": ""
+        },
+        {
+          "type": "region",
+          "id": "part-1",
+          "parent": "container",
+          "label": "稟議可否",
+          "kind": "decision",
+          "bounds": [
+            20,
+            20,
+            140,
+            64
+          ],
+          "summary": ""
+        },
+        {
+          "type": "region",
+          "id": "part-2",
+          "parent": "container",
+          "label": "判断",
+          "kind": "decision",
+          "bounds": [
+            180,
+            20,
+            140,
+            64
+          ],
+          "summary": ""
+        },
+        {
+          "type": "layout",
+          "regionId": "container",
+          "pin": "hard",
+          "bounds": [
+            0,
+            0,
+            2000,
+            500
+          ]
+        },
+        {
+          "type": "layout",
+          "regionId": "other",
+          "pin": "hard",
+          "bounds": [
+            0,
+            600,
+            2000,
+            500
+          ]
+        },
+        {
+          "type": "layout",
+          "regionId": "part-1",
+          "pin": "hard",
+          "bounds": [
+            12,
+            36,
+            180,
+            92
+          ]
+        },
+        {
+          "type": "layout",
+          "regionId": "part-2",
+          "pin": "hard",
+          "bounds": [
+            216,
+            36,
+            180,
+            92
+          ]
+        }
+      ],
+      "stored": "{\"operations\":[{\"mapId\":\"voice-graph\",\"records\":[{\"root\":\"root\",\"schema\":\"semantic-map-state/1\",\"title\":\"independent component axes\",\"type\":\"meta\"},{\"bounds\":[0,0,900,400],\"id\":\"root\",\"kind\":\"boundary\",\"label\":\"fixture\",\"parent\":null,\"summary\":\"\",\"type\":\"region\"},{\"bounds\":[0,0,700,200],\"id\":\"container\",\"kind\":\"group\",\"label\":\"OCI\",\"parent\":\"root\",\"summary\":\"\",\"type\":\"region\"},{\"bounds\":[0,230,700,160],\"id\":\"other\",\"kind\":\"group\",\"label\":\"Other\",\"parent\":\"root\",\"summary\":\"\",\"type\":\"region\"}],\"type\":\"CreateMap\"}],\"parent\":null,\"schema\":\"semantic-map-decision/2\",\"stateHash\":\"sha256:6f6adeef1c88cee408e25aa59e1cb628415e925e955af39cf471ea19a81d31d2\"}\n{\"operations\":[{\"items\":[{\"bounds\":[0,0,2000,500],\"regionId\":\"container\"},{\"bounds\":[0,600,2000,500],\"regionId\":\"other\"}],\"type\":\"PinRegions\"}],\"parent\":\"sha256:f0e1eb311833921dc4b1cf230636b504bfb9ce8fbf0403929b19d9797038752a\",\"schema\":\"semantic-map-decision/2\",\"stateHash\":\"sha256:1d92eb09d797c79447c24a31bf49740c7924fca8d3ede29020ea6371298bda40\"}\n{\"operations\":[{\"bounds\":[20,20,140,64],\"kind\":\"decision\",\"label\":\"稟議可否\",\"parentId\":\"container\",\"regionId\":\"part-1\",\"summary\":\"\",\"type\":\"AddRegion\"},{\"items\":[{\"bounds\":[12,36,180,92],\"regionId\":\"part-1\"}],\"type\":\"PinRegions\"}],\"parent\":\"sha256:0b3522df5b691691d41d9b4587377781fc7048c991a4e47357e5583eb09288c6\",\"schema\":\"semantic-map-decision/2\",\"stateHash\":\"sha256:eb8fdb91b8c07735de600dc84c34bc9e64b41c990537071c432ffb4a20deb6a5\"}\n{\"operations\":[{\"bounds\":[180,20,140,64],\"kind\":\"decision\",\"label\":\"判断\",\"parentId\":\"container\",\"regionId\":\"part-2\",\"summary\":\"\",\"type\":\"AddRegion\"},{\"items\":[{\"bounds\":[216,36,180,92],\"regionId\":\"part-2\"}],\"type\":\"PinRegions\"}],\"parent\":\"sha256:992e48cea2f5e3f6891faef27cfdc98903384a77d4f581a39f10434999c93516\",\"schema\":\"semantic-map-decision/2\",\"stateHash\":\"sha256:b1ba6120cfd0cace8b6ce73bc1466ea53f88475bf5346c102b8624dd4f0e4077\"}\n",
+      "goal": {
+        "reason": "none",
+        "requests": 6,
+        "elapsedMs": 5800.515000015497,
+        "selected": [
+          {
+            "key": "goal-extra-1",
+            "region": "part-1",
+            "parent": "container"
+          },
+          {
+            "key": "decision",
+            "region": "part-2",
+            "parent": "container"
+          }
+        ],
+        "trace": [
+          {
+            "head": "sha256:0b3522df5b691691d41d9b4587377781fc7048c991a4e47357e5583eb09288c6",
+            "answers": {
+              "delta": {
+                "type": "choice",
+                "choice": "part:goal-extra-1",
+                "confidence": 0.98
+              }
+            },
+            "failure": null
+          },
+          {
+            "head": "sha256:0b3522df5b691691d41d9b4587377781fc7048c991a4e47357e5583eb09288c6",
+            "answers": {
+              "delta": {
+                "type": "choice",
+                "choice": "delta-6",
+                "confidence": 1
+              }
+            },
+            "failure": null
+          },
+          {
+            "head": "sha256:992e48cea2f5e3f6891faef27cfdc98903384a77d4f581a39f10434999c93516",
+            "answers": {
+              "delta": {
+                "type": "choice",
+                "choice": "part:decision",
+                "confidence": 0.52
+              }
+            },
+            "failure": null
+          },
+          {
+            "head": "sha256:992e48cea2f5e3f6891faef27cfdc98903384a77d4f581a39f10434999c93516",
+            "answers": {
+              "delta": {
+                "type": "choice",
+                "choice": "delta-4",
+                "confidence": 0.98
+              }
+            },
+            "failure": null
+          },
+          {
+            "head": "sha256:6af9d94b74e89e78c4259b1967e09891a8102064fb3cf8e7143758a51af81368",
+            "answers": {
+              "delta": {
+                "type": "choice",
+                "choice": "none",
+                "confidence": 0.97
+              }
+            },
+            "failure": null
+          }
+        ],
+        "inventory": {
+          "checks": 1,
+          "completions": 0,
+          "preparations": 1,
+          "coverage": {
+            "choice": "missing",
+            "confidence": 0.98,
+            "inspection": {
+              "schema": "voice-ui.parts.inspection/3",
+              "request_id": "5046611e-0463-40dc-abe7-7ed8ffa410f1",
+              "mode": "adaptive-v3",
+              "initial": {
+                "decision": {
+                  "choice": "unknown",
+                  "confidence": null
+                },
+                "factors": {
+                  "intent": {
+                    "choice": "change",
+                    "confidence": 0.88
+                  },
+                  "labels": {
+                    "choice": "missing",
+                    "confidence": 0.9
+                  },
+                  "capacity": {
+                    "choice": "within",
+                    "confidence": 0.9
+                  },
+                  "completeness": {
+                    "choice": "incomplete",
+                    "confidence": 0.96
+                  }
+                },
+                "literal": {
+                  "recognized": false,
+                  "required": [],
+                  "spans": []
+                },
+                "observation": {
+                  "valid": true,
+                  "status": "unsupported-syntax"
+                }
+              },
+              "proposal": {
+                "slots": {
+                  "required1": {
+                    "label": "稟議可否",
+                    "kind": "decision",
+                    "quantity": "1"
+                  },
+                  "required2": {
+                    "label": "",
+                    "kind": "none",
+                    "quantity": "0"
+                  },
+                  "required3": {
+                    "label": "",
+                    "kind": "none",
+                    "quantity": "0"
+                  }
+                },
+                "required": [
+                  {
+                    "label": "稟議可否",
+                    "kind": "decision",
+                    "quantity": 1
+                  }
+                ]
+              },
+              "verification": {
+                "intent": {
+                  "choice": "change",
+                  "confidence": 0.99
+                },
+                "labels": {
+                  "choice": "missing",
+                  "confidence": 0.96
+                },
+                "capacity": {
+                  "choice": "within",
+                  "confidence": 0.86
+                },
+                "completeness": {
+                  "choice": "complete",
+                  "confidence": 0.98
+                }
+              },
+              "required": [
+                {
+                  "label": "稟議可否",
+                  "kind": "decision",
+                  "quantity": 1
+                }
+              ],
+              "missing": [
+                {
+                  "label": "稟議可否",
+                  "kind": "decision",
+                  "occurrence": 1
+                }
+              ],
+              "proposal_policy": {
+                "id": "uncertainty-frontier-v1",
+                "eligible": true,
+                "reason": "confident-change-incomplete"
+              }
+            }
+          },
+          "missing": [
+            {
+              "label": "稟議可否",
+              "kind": "decision",
+              "occurrence": 1
+            }
+          ]
+        }
+      }
+    },
+    "reloaded": {
+      "log": "{\"operations\":[{\"mapId\":\"voice-graph\",\"records\":[{\"root\":\"root\",\"schema\":\"semantic-map-state/1\",\"title\":\"independent component axes\",\"type\":\"meta\"},{\"bounds\":[0,0,900,400],\"id\":\"root\",\"kind\":\"boundary\",\"label\":\"fixture\",\"parent\":null,\"summary\":\"\",\"type\":\"region\"},{\"bounds\":[0,0,700,200],\"id\":\"container\",\"kind\":\"group\",\"label\":\"OCI\",\"parent\":\"root\",\"summary\":\"\",\"type\":\"region\"},{\"bounds\":[0,230,700,160],\"id\":\"other\",\"kind\":\"group\",\"label\":\"Other\",\"parent\":\"root\",\"summary\":\"\",\"type\":\"region\"}],\"type\":\"CreateMap\"}],\"parent\":null,\"schema\":\"semantic-map-decision/2\",\"stateHash\":\"sha256:6f6adeef1c88cee408e25aa59e1cb628415e925e955af39cf471ea19a81d31d2\"}\n{\"operations\":[{\"items\":[{\"bounds\":[0,0,2000,500],\"regionId\":\"container\"},{\"bounds\":[0,600,2000,500],\"regionId\":\"other\"}],\"type\":\"PinRegions\"}],\"parent\":\"sha256:f0e1eb311833921dc4b1cf230636b504bfb9ce8fbf0403929b19d9797038752a\",\"schema\":\"semantic-map-decision/2\",\"stateHash\":\"sha256:1d92eb09d797c79447c24a31bf49740c7924fca8d3ede29020ea6371298bda40\"}\n{\"operations\":[{\"bounds\":[20,20,140,64],\"kind\":\"decision\",\"label\":\"稟議可否\",\"parentId\":\"container\",\"regionId\":\"part-1\",\"summary\":\"\",\"type\":\"AddRegion\"},{\"items\":[{\"bounds\":[12,36,180,92],\"regionId\":\"part-1\"}],\"type\":\"PinRegions\"}],\"parent\":\"sha256:0b3522df5b691691d41d9b4587377781fc7048c991a4e47357e5583eb09288c6\",\"schema\":\"semantic-map-decision/2\",\"stateHash\":\"sha256:eb8fdb91b8c07735de600dc84c34bc9e64b41c990537071c432ffb4a20deb6a5\"}\n{\"operations\":[{\"bounds\":[180,20,140,64],\"kind\":\"decision\",\"label\":\"判断\",\"parentId\":\"container\",\"regionId\":\"part-2\",\"summary\":\"\",\"type\":\"AddRegion\"},{\"items\":[{\"bounds\":[216,36,180,92],\"regionId\":\"part-2\"}],\"type\":\"PinRegions\"}],\"parent\":\"sha256:992e48cea2f5e3f6891faef27cfdc98903384a77d4f581a39f10434999c93516\",\"schema\":\"semantic-map-decision/2\",\"stateHash\":\"sha256:b1ba6120cfd0cace8b6ce73bc1466ea53f88475bf5346c102b8624dd4f0e4077\"}\n",
+      "records": [
+        {
+          "type": "meta",
+          "schema": "semantic-map-state/1",
+          "root": "root",
+          "title": "independent component axes"
+        },
+        {
+          "type": "region",
+          "id": "root",
+          "parent": null,
+          "label": "fixture",
+          "kind": "boundary",
+          "bounds": [
+            0,
+            0,
+            900,
+            400
+          ],
+          "summary": ""
+        },
+        {
+          "type": "region",
+          "id": "container",
+          "parent": "root",
+          "label": "OCI",
+          "kind": "group",
+          "bounds": [
+            0,
+            0,
+            700,
+            200
+          ],
+          "summary": ""
+        },
+        {
+          "type": "region",
+          "id": "other",
+          "parent": "root",
+          "label": "Other",
+          "kind": "group",
+          "bounds": [
+            0,
+            230,
+            700,
+            160
+          ],
+          "summary": ""
+        },
+        {
+          "type": "region",
+          "id": "part-1",
+          "parent": "container",
+          "label": "稟議可否",
+          "kind": "decision",
+          "bounds": [
+            20,
+            20,
+            140,
+            64
+          ],
+          "summary": ""
+        },
+        {
+          "type": "region",
+          "id": "part-2",
+          "parent": "container",
+          "label": "判断",
+          "kind": "decision",
+          "bounds": [
+            180,
+            20,
+            140,
+            64
+          ],
+          "summary": ""
+        },
+        {
+          "type": "layout",
+          "regionId": "container",
+          "pin": "hard",
+          "bounds": [
+            0,
+            0,
+            2000,
+            500
+          ]
+        },
+        {
+          "type": "layout",
+          "regionId": "other",
+          "pin": "hard",
+          "bounds": [
+            0,
+            600,
+            2000,
+            500
+          ]
+        },
+        {
+          "type": "layout",
+          "regionId": "part-1",
+          "pin": "hard",
+          "bounds": [
+            12,
+            36,
+            180,
+            92
+          ]
+        },
+        {
+          "type": "layout",
+          "regionId": "part-2",
+          "pin": "hard",
+          "bounds": [
+            216,
+            36,
+            180,
+            92
+          ]
+        }
+      ],
+      "stored": "{\"operations\":[{\"mapId\":\"voice-graph\",\"records\":[{\"root\":\"root\",\"schema\":\"semantic-map-state/1\",\"title\":\"independent component axes\",\"type\":\"meta\"},{\"bounds\":[0,0,900,400],\"id\":\"root\",\"kind\":\"boundary\",\"label\":\"fixture\",\"parent\":null,\"summary\":\"\",\"type\":\"region\"},{\"bounds\":[0,0,700,200],\"id\":\"container\",\"kind\":\"group\",\"label\":\"OCI\",\"parent\":\"root\",\"summary\":\"\",\"type\":\"region\"},{\"bounds\":[0,230,700,160],\"id\":\"other\",\"kind\":\"group\",\"label\":\"Other\",\"parent\":\"root\",\"summary\":\"\",\"type\":\"region\"}],\"type\":\"CreateMap\"}],\"parent\":null,\"schema\":\"semantic-map-decision/2\",\"stateHash\":\"sha256:6f6adeef1c88cee408e25aa59e1cb628415e925e955af39cf471ea19a81d31d2\"}\n{\"operations\":[{\"items\":[{\"bounds\":[0,0,2000,500],\"regionId\":\"container\"},{\"bounds\":[0,600,2000,500],\"regionId\":\"other\"}],\"type\":\"PinRegions\"}],\"parent\":\"sha256:f0e1eb311833921dc4b1cf230636b504bfb9ce8fbf0403929b19d9797038752a\",\"schema\":\"semantic-map-decision/2\",\"stateHash\":\"sha256:1d92eb09d797c79447c24a31bf49740c7924fca8d3ede29020ea6371298bda40\"}\n{\"operations\":[{\"bounds\":[20,20,140,64],\"kind\":\"decision\",\"label\":\"稟議可否\",\"parentId\":\"container\",\"regionId\":\"part-1\",\"summary\":\"\",\"type\":\"AddRegion\"},{\"items\":[{\"bounds\":[12,36,180,92],\"regionId\":\"part-1\"}],\"type\":\"PinRegions\"}],\"parent\":\"sha256:0b3522df5b691691d41d9b4587377781fc7048c991a4e47357e5583eb09288c6\",\"schema\":\"semantic-map-decision/2\",\"stateHash\":\"sha256:eb8fdb91b8c07735de600dc84c34bc9e64b41c990537071c432ffb4a20deb6a5\"}\n{\"operations\":[{\"bounds\":[180,20,140,64],\"kind\":\"decision\",\"label\":\"判断\",\"parentId\":\"container\",\"regionId\":\"part-2\",\"summary\":\"\",\"type\":\"AddRegion\"},{\"items\":[{\"bounds\":[216,36,180,92],\"regionId\":\"part-2\"}],\"type\":\"PinRegions\"}],\"parent\":\"sha256:992e48cea2f5e3f6891faef27cfdc98903384a77d4f581a39f10434999c93516\",\"schema\":\"semantic-map-decision/2\",\"stateHash\":\"sha256:b1ba6120cfd0cace8b6ce73bc1466ea53f88475bf5346c102b8624dd4f0e4077\"}\n",
+      "goal": null
+    },
+    "apply_enabled": true,
+    "persistence": "PASS",
+    "undo": "separate completed-artifact keyless mechanics; no second live Goal"
+  }
+}

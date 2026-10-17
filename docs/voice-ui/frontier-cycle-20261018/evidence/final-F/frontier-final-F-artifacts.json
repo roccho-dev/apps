@@ -1,0 +1,56 @@
+{
+  "schema": "voice-ui.independent-public-artifacts/1",
+  "scope": "Consumed stopped F8 evidence+oracle only, no E payload or private authoring file.",
+  "files": [
+    {
+      "name": "frontier-final-F-zero-send-audit.json",
+      "bytes": 6012,
+      "sha256": "71b318ae5ced6cc7933e7c2adf4f395527434ca32e107910e9409ee50f3cc7f9"
+    },
+    {
+      "name": "frontier-final-F-physical-stop.json",
+      "bytes": 8268,
+      "sha256": "3d4093c16abb28a57d9613571202c99b550cd26bb5cfe7d7ba80b1e1ff3c109f"
+    },
+    {
+      "name": "frontier-final-F-stop-audit.json",
+      "bytes": 8396,
+      "sha256": "33945b5fa0fee8fa22721f577c15d870c7e220365024e617872b6846a2211d2c"
+    },
+    {
+      "name": "frontier-final-F-raw-audit.json",
+      "bytes": 11441,
+      "sha256": "d5e32a8769bb4ceddb196eb4274edf0d9e2c7f1a7f7c3b351c5f230c82069837"
+    },
+    {
+      "name": "frontier-final-F-provider-audit.json",
+      "bytes": 864,
+      "sha256": "ca938a5b31eb6daafb395c3ff2a5408e93f1298cf350330e44d526b6c68a5cdf"
+    },
+    {
+      "name": "frontier-final-F-producer-audit.json",
+      "bytes": 192,
+      "sha256": "f73ea3e239b785871a6bd995e3bbc954feedb4c2a27b11c55adc1c7bf905134f"
+    },
+    {
+      "name": "frontier-final-F-process-audit.json",
+      "bytes": 949,
+      "sha256": "c77227309134268e7e2d8910b07d76e9a1fa470267721a8b63a780feaa3a7134"
+    },
+    {
+      "name": "frontier-final-F.producer.json",
+      "bytes": 6290,
+      "sha256": "1d2a0cc8ed8e132fc4da35b7b8978763afb8c5c8e870172f49d37d402b878a10"
+    },
+    {
+      "name": "frontier-final-F-summary.json",
+      "bytes": 2217,
+      "sha256": "758757da7853937bcd03b320f9e403bf78feb4ebf27241d161a094b9e6aabfbd"
+    },
+    {
+      "name": "frontier-cycle-final-F-8.oracle.json",
+      "bytes": 11820,
+      "sha256": "c36e4f748a6c82a9d3255b39f7e6bc087d1d15282bed892c9c69731e538a5caf"
+    }
+  ]
+}

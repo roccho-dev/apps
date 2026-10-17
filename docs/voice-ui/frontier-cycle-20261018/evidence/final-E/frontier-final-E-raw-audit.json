@@ -1,0 +1,1763 @@
+{
+  "schema": "voice-ui.frontier-cycle-raw-audit/1",
+  "axis": "E",
+  "status": "PASS",
+  "issues": [],
+  "complete": true,
+  "all_valid_execution": true,
+  "consumed": 20,
+  "planned": 20,
+  "rows": [
+    {
+      "id": "FE01",
+      "method": "literal-v2",
+      "arm": "B",
+      "generation_policy": null,
+      "valid_execution": true,
+      "grade": {
+        "contract_valid": true,
+        "expected_gate": "sufficient",
+        "gate_correct": true,
+        "full_required_exact": true,
+        "missing_exact_minimal": true,
+        "graph_exact": true,
+        "graph": {
+          "graph_exact": true,
+          "unique_record_keys": true,
+          "existing_semantics_preserved": true,
+          "semantic_unchanged": false,
+          "clean_new_regions": true,
+          "clean_new_edges": true,
+          "no_other_new_semantics": true,
+          "actual_added_regions": [
+            {
+              "label": "API",
+              "kind": "step",
+              "parent": "fixture:container"
+            }
+          ],
+          "actual_added_edges": []
+        },
+        "no_false_adoption": true,
+        "raw_unchanged": false,
+        "non_regression_guards": true,
+        "type_policy_guard": true,
+        "known_syntax_type_free": true,
+        "stop_authorization_guard": true,
+        "true_sufficient_zero_candidates": true,
+        "interpretation_type_calls": 0,
+        "eligible": false,
+        "old_eligible": false,
+        "frontier_eligible": false,
+        "proposal_policy": {
+          "id": "uncertainty-frontier-v1",
+          "eligible": false,
+          "reason": null
+        },
+        "proposal_policy_implemented": false,
+        "proposal_present": false,
+        "verification_accepted": false,
+        "initial_literal": {
+          "recognized": true,
+          "required": [
+            {
+              "label": "API",
+              "kind": "step",
+              "quantity": 1
+            }
+          ],
+          "spans": [
+            {
+              "start": 5,
+              "end": 8,
+              "source": "API",
+              "label": "API",
+              "kind": "step",
+              "quantity": 1
+            }
+          ]
+        },
+        "deadline": true,
+        "scope": "new /3 policy validation with unchanged graph/target/authorization/finite quality meanings; no historical receipt translation"
+      },
+      "paint_status": "PASS",
+      "persisted_raw_equal": true,
+      "cell_wall_elapsedMs": 13463.106,
+      "goal_elapsedMs": 1768.2399999797344,
+      "goal_deadline_status": "PASS"
+    },
+    {
+      "id": "FE01",
+      "method": "adaptive-v3",
+      "arm": "C",
+      "generation_policy": "dependent",
+      "valid_execution": true,
+      "grade": {
+        "contract_valid": true,
+        "expected_gate": "sufficient",
+        "gate_correct": false,
+        "full_required_exact": true,
+        "missing_exact_minimal": true,
+        "graph_exact": false,
+        "graph": {
+          "graph_exact": false,
+          "unique_record_keys": true,
+          "existing_semantics_preserved": true,
+          "semantic_unchanged": true,
+          "clean_new_regions": true,
+          "clean_new_edges": true,
+          "no_other_new_semantics": true,
+          "actual_added_regions": [],
+          "actual_added_edges": []
+        },
+        "no_false_adoption": true,
+        "raw_unchanged": true,
+        "non_regression_guards": true,
+        "type_policy_guard": true,
+        "known_syntax_type_free": true,
+        "stop_authorization_guard": true,
+        "true_sufficient_zero_candidates": true,
+        "interpretation_type_calls": 0,
+        "eligible": false,
+        "old_eligible": false,
+        "frontier_eligible": false,
+        "proposal_policy": {
+          "id": "uncertainty-frontier-v1",
+          "eligible": false,
+          "reason": null
+        },
+        "proposal_policy_implemented": true,
+        "proposal_present": false,
+        "verification_accepted": false,
+        "initial_literal": {
+          "recognized": true,
+          "required": [
+            {
+              "label": "API",
+              "kind": "step",
+              "quantity": 1
+            }
+          ],
+          "spans": [
+            {
+              "start": 5,
+              "end": 8,
+              "source": "API",
+              "label": "API",
+              "kind": "step",
+              "quantity": 1
+            }
+          ]
+        },
+        "deadline": true,
+        "scope": "new /3 policy validation with unchanged graph/target/authorization/finite quality meanings; no historical receipt translation"
+      },
+      "paint_status": "PASS",
+      "persisted_raw_equal": true,
+      "cell_wall_elapsedMs": 10919.3732,
+      "goal_elapsedMs": 270.544999986887,
+      "goal_deadline_status": "PASS"
+    },
+    {
+      "id": "FE02",
+      "method": "adaptive-v3",
+      "arm": "C",
+      "generation_policy": "dependent",
+      "valid_execution": true,
+      "grade": {
+        "contract_valid": true,
+        "expected_gate": "sufficient",
+        "gate_correct": true,
+        "full_required_exact": true,
+        "missing_exact_minimal": true,
+        "graph_exact": true,
+        "graph": {
+          "graph_exact": true,
+          "unique_record_keys": true,
+          "existing_semantics_preserved": true,
+          "semantic_unchanged": false,
+          "clean_new_regions": true,
+          "clean_new_edges": true,
+          "no_other_new_semantics": true,
+          "actual_added_regions": [
+            {
+              "label": "DB",
+              "kind": "data",
+              "parent": "fixture:other"
+            }
+          ],
+          "actual_added_edges": []
+        },
+        "no_false_adoption": true,
+        "raw_unchanged": false,
+        "non_regression_guards": true,
+        "type_policy_guard": true,
+        "known_syntax_type_free": true,
+        "stop_authorization_guard": true,
+        "true_sufficient_zero_candidates": true,
+        "interpretation_type_calls": 0,
+        "eligible": false,
+        "old_eligible": false,
+        "frontier_eligible": false,
+        "proposal_policy": {
+          "id": "uncertainty-frontier-v1",
+          "eligible": false,
+          "reason": null
+        },
+        "proposal_policy_implemented": true,
+        "proposal_present": false,
+        "verification_accepted": false,
+        "initial_literal": {
+          "recognized": true,
+          "required": [
+            {
+              "label": "DB",
+              "kind": "data",
+              "quantity": 1
+            }
+          ],
+          "spans": [
+            {
+              "start": 8,
+              "end": 10,
+              "source": "DB",
+              "label": "DB",
+              "kind": "data",
+              "quantity": 1
+            }
+          ]
+        },
+        "deadline": true,
+        "scope": "new /3 policy validation with unchanged graph/target/authorization/finite quality meanings; no historical receipt translation"
+      },
+      "paint_status": "PASS",
+      "persisted_raw_equal": true,
+      "cell_wall_elapsedMs": 12213.1976,
+      "goal_elapsedMs": 1653.6899999976158,
+      "goal_deadline_status": "PASS"
+    },
+    {
+      "id": "FE02",
+      "method": "literal-v2",
+      "arm": "B",
+      "generation_policy": null,
+      "valid_execution": true,
+      "grade": {
+        "contract_valid": true,
+        "expected_gate": "sufficient",
+        "gate_correct": true,
+        "full_required_exact": true,
+        "missing_exact_minimal": true,
+        "graph_exact": true,
+        "graph": {
+          "graph_exact": true,
+          "unique_record_keys": true,
+          "existing_semantics_preserved": true,
+          "semantic_unchanged": false,
+          "clean_new_regions": true,
+          "clean_new_edges": true,
+          "no_other_new_semantics": true,
+          "actual_added_regions": [
+            {
+              "label": "DB",
+              "kind": "data",
+              "parent": "fixture:other"
+            }
+          ],
+          "actual_added_edges": []
+        },
+        "no_false_adoption": true,
+        "raw_unchanged": false,
+        "non_regression_guards": true,
+        "type_policy_guard": true,
+        "known_syntax_type_free": true,
+        "stop_authorization_guard": true,
+        "true_sufficient_zero_candidates": true,
+        "interpretation_type_calls": 0,
+        "eligible": false,
+        "old_eligible": false,
+        "frontier_eligible": false,
+        "proposal_policy": {
+          "id": "uncertainty-frontier-v1",
+          "eligible": false,
+          "reason": null
+        },
+        "proposal_policy_implemented": false,
+        "proposal_present": false,
+        "verification_accepted": false,
+        "initial_literal": {
+          "recognized": true,
+          "required": [
+            {
+              "label": "DB",
+              "kind": "data",
+              "quantity": 1
+            }
+          ],
+          "spans": [
+            {
+              "start": 8,
+              "end": 10,
+              "source": "DB",
+              "label": "DB",
+              "kind": "data",
+              "quantity": 1
+            }
+          ]
+        },
+        "deadline": true,
+        "scope": "new /3 policy validation with unchanged graph/target/authorization/finite quality meanings; no historical receipt translation"
+      },
+      "paint_status": "PASS",
+      "persisted_raw_equal": true,
+      "cell_wall_elapsedMs": 11118.791600000004,
+      "goal_elapsedMs": 1715.655000001192,
+      "goal_deadline_status": "PASS"
+    },
+    {
+      "id": "FE03",
+      "method": "literal-v2",
+      "arm": "B",
+      "generation_policy": null,
+      "valid_execution": true,
+      "grade": {
+        "contract_valid": true,
+        "expected_gate": "sufficient",
+        "gate_correct": false,
+        "full_required_exact": false,
+        "missing_exact_minimal": true,
+        "graph_exact": false,
+        "graph": {
+          "graph_exact": false,
+          "unique_record_keys": true,
+          "existing_semantics_preserved": true,
+          "semantic_unchanged": true,
+          "clean_new_regions": true,
+          "clean_new_edges": true,
+          "no_other_new_semantics": true,
+          "actual_added_regions": [],
+          "actual_added_edges": []
+        },
+        "no_false_adoption": true,
+        "raw_unchanged": true,
+        "non_regression_guards": true,
+        "type_policy_guard": true,
+        "known_syntax_type_free": true,
+        "stop_authorization_guard": true,
+        "true_sufficient_zero_candidates": true,
+        "interpretation_type_calls": 0,
+        "eligible": true,
+        "old_eligible": true,
+        "frontier_eligible": false,
+        "proposal_policy": {
+          "id": "uncertainty-frontier-v1",
+          "eligible": true,
+          "reason": "confident-change-incomplete"
+        },
+        "proposal_policy_implemented": false,
+        "proposal_present": false,
+        "verification_accepted": false,
+        "initial_literal": {
+          "recognized": false,
+          "required": [],
+          "spans": []
+        },
+        "deadline": true,
+        "scope": "new /3 policy validation with unchanged graph/target/authorization/finite quality meanings; no historical receipt translation"
+      },
+      "paint_status": "PASS",
+      "persisted_raw_equal": true,
+      "cell_wall_elapsedMs": 9508.9991,
+      "goal_elapsedMs": 313.25,
+      "goal_deadline_status": "PASS"
+    },
+    {
+      "id": "FE03",
+      "method": "adaptive-v3",
+      "arm": "C",
+      "generation_policy": "dependent",
+      "valid_execution": true,
+      "grade": {
+        "contract_valid": true,
+        "expected_gate": "sufficient",
+        "gate_correct": false,
+        "full_required_exact": true,
+        "missing_exact_minimal": true,
+        "graph_exact": false,
+        "graph": {
+          "graph_exact": false,
+          "unique_record_keys": true,
+          "existing_semantics_preserved": true,
+          "semantic_unchanged": true,
+          "clean_new_regions": true,
+          "clean_new_edges": true,
+          "no_other_new_semantics": true,
+          "actual_added_regions": [],
+          "actual_added_edges": []
+        },
+        "no_false_adoption": true,
+        "raw_unchanged": true,
+        "non_regression_guards": true,
+        "type_policy_guard": true,
+        "known_syntax_type_free": true,
+        "stop_authorization_guard": true,
+        "true_sufficient_zero_candidates": true,
+        "interpretation_type_calls": 1,
+        "eligible": true,
+        "old_eligible": true,
+        "frontier_eligible": false,
+        "proposal_policy": {
+          "id": "uncertainty-frontier-v1",
+          "eligible": true,
+          "reason": "confident-change-incomplete"
+        },
+        "proposal_policy_implemented": true,
+        "proposal_present": true,
+        "verification_accepted": false,
+        "initial_literal": {
+          "recognized": false,
+          "required": [],
+          "spans": []
+        },
+        "deadline": true,
+        "scope": "new /3 policy validation with unchanged graph/target/authorization/finite quality meanings; no historical receipt translation"
+      },
+      "paint_status": "PASS",
+      "persisted_raw_equal": true,
+      "cell_wall_elapsedMs": 11879.468799999995,
+      "goal_elapsedMs": 2861.564999997616,
+      "goal_deadline_status": "PASS"
+    },
+    {
+      "id": "FE04",
+      "method": "adaptive-v3",
+      "arm": "C",
+      "generation_policy": "dependent",
+      "valid_execution": true,
+      "grade": {
+        "contract_valid": true,
+        "expected_gate": "sufficient",
+        "gate_correct": true,
+        "full_required_exact": true,
+        "missing_exact_minimal": true,
+        "graph_exact": true,
+        "graph": {
+          "graph_exact": true,
+          "unique_record_keys": true,
+          "existing_semantics_preserved": true,
+          "semantic_unchanged": false,
+          "clean_new_regions": true,
+          "clean_new_edges": true,
+          "no_other_new_semantics": true,
+          "actual_added_regions": [],
+          "actual_added_edges": [
+            {
+              "from": "fixture:initial-api",
+              "to": "fixture:initial-db",
+              "kind": "flow",
+              "label": ""
+            }
+          ]
+        },
+        "no_false_adoption": true,
+        "raw_unchanged": false,
+        "non_regression_guards": true,
+        "type_policy_guard": true,
+        "known_syntax_type_free": true,
+        "stop_authorization_guard": true,
+        "true_sufficient_zero_candidates": true,
+        "interpretation_type_calls": 0,
+        "eligible": false,
+        "old_eligible": false,
+        "frontier_eligible": false,
+        "proposal_policy": {
+          "id": "uncertainty-frontier-v1",
+          "eligible": false,
+          "reason": null
+        },
+        "proposal_policy_implemented": true,
+        "proposal_present": false,
+        "verification_accepted": false,
+        "initial_literal": {
+          "recognized": false,
+          "required": [],
+          "spans": []
+        },
+        "deadline": true,
+        "scope": "new /3 policy validation with unchanged graph/target/authorization/finite quality meanings; no historical receipt translation"
+      },
+      "paint_status": "PASS",
+      "persisted_raw_equal": true,
+      "cell_wall_elapsedMs": 13179.534199999995,
+      "goal_elapsedMs": 1440.1700000166893,
+      "goal_deadline_status": "PASS"
+    },
+    {
+      "id": "FE04",
+      "method": "literal-v2",
+      "arm": "B",
+      "generation_policy": null,
+      "valid_execution": true,
+      "grade": {
+        "contract_valid": true,
+        "expected_gate": "sufficient",
+        "gate_correct": true,
+        "full_required_exact": true,
+        "missing_exact_minimal": true,
+        "graph_exact": true,
+        "graph": {
+          "graph_exact": true,
+          "unique_record_keys": true,
+          "existing_semantics_preserved": true,
+          "semantic_unchanged": false,
+          "clean_new_regions": true,
+          "clean_new_edges": true,
+          "no_other_new_semantics": true,
+          "actual_added_regions": [],
+          "actual_added_edges": [
+            {
+              "from": "fixture:initial-api",
+              "to": "fixture:initial-db",
+              "kind": "flow",
+              "label": ""
+            }
+          ]
+        },
+        "no_false_adoption": true,
+        "raw_unchanged": false,
+        "non_regression_guards": true,
+        "type_policy_guard": true,
+        "known_syntax_type_free": true,
+        "stop_authorization_guard": true,
+        "true_sufficient_zero_candidates": true,
+        "interpretation_type_calls": 0,
+        "eligible": false,
+        "old_eligible": false,
+        "frontier_eligible": false,
+        "proposal_policy": {
+          "id": "uncertainty-frontier-v1",
+          "eligible": false,
+          "reason": null
+        },
+        "proposal_policy_implemented": false,
+        "proposal_present": false,
+        "verification_accepted": false,
+        "initial_literal": {
+          "recognized": false,
+          "required": [],
+          "spans": []
+        },
+        "deadline": true,
+        "scope": "new /3 policy validation with unchanged graph/target/authorization/finite quality meanings; no historical receipt translation"
+      },
+      "paint_status": "PASS",
+      "persisted_raw_equal": true,
+      "cell_wall_elapsedMs": 15335.544600000008,
+      "goal_elapsedMs": 1496.8799999952316,
+      "goal_deadline_status": "PASS"
+    },
+    {
+      "id": "FE05",
+      "method": "literal-v2",
+      "arm": "B",
+      "generation_policy": null,
+      "valid_execution": true,
+      "grade": {
+        "contract_valid": true,
+        "expected_gate": "missing",
+        "gate_correct": false,
+        "full_required_exact": false,
+        "missing_exact_minimal": false,
+        "graph_exact": false,
+        "graph": {
+          "graph_exact": false,
+          "unique_record_keys": true,
+          "existing_semantics_preserved": true,
+          "semantic_unchanged": true,
+          "clean_new_regions": true,
+          "clean_new_edges": true,
+          "no_other_new_semantics": true,
+          "actual_added_regions": [],
+          "actual_added_edges": []
+        },
+        "no_false_adoption": true,
+        "raw_unchanged": true,
+        "non_regression_guards": true,
+        "type_policy_guard": true,
+        "known_syntax_type_free": true,
+        "stop_authorization_guard": true,
+        "true_sufficient_zero_candidates": null,
+        "interpretation_type_calls": 0,
+        "eligible": true,
+        "old_eligible": false,
+        "frontier_eligible": true,
+        "proposal_policy": {
+          "id": "uncertainty-frontier-v1",
+          "eligible": true,
+          "reason": "uncertain-intent-incomplete"
+        },
+        "proposal_policy_implemented": false,
+        "proposal_present": false,
+        "verification_accepted": false,
+        "initial_literal": {
+          "recognized": false,
+          "required": [],
+          "spans": []
+        },
+        "deadline": true,
+        "scope": "new /3 policy validation with unchanged graph/target/authorization/finite quality meanings; no historical receipt translation"
+      },
+      "paint_status": "PASS",
+      "persisted_raw_equal": true,
+      "cell_wall_elapsedMs": 8044.985000000001,
+      "goal_elapsedMs": 322.28999999165535,
+      "goal_deadline_status": "PASS"
+    },
+    {
+      "id": "FE05",
+      "method": "adaptive-v3",
+      "arm": "C",
+      "generation_policy": "dependent",
+      "valid_execution": true,
+      "grade": {
+        "contract_valid": true,
+        "expected_gate": "missing",
+        "gate_correct": false,
+        "full_required_exact": true,
+        "missing_exact_minimal": true,
+        "graph_exact": false,
+        "graph": {
+          "graph_exact": false,
+          "unique_record_keys": true,
+          "existing_semantics_preserved": true,
+          "semantic_unchanged": true,
+          "clean_new_regions": true,
+          "clean_new_edges": true,
+          "no_other_new_semantics": true,
+          "actual_added_regions": [],
+          "actual_added_edges": []
+        },
+        "no_false_adoption": true,
+        "raw_unchanged": true,
+        "non_regression_guards": true,
+        "type_policy_guard": true,
+        "known_syntax_type_free": true,
+        "stop_authorization_guard": true,
+        "true_sufficient_zero_candidates": null,
+        "interpretation_type_calls": 0,
+        "eligible": true,
+        "old_eligible": false,
+        "frontier_eligible": true,
+        "proposal_policy": {
+          "id": "uncertainty-frontier-v1",
+          "eligible": true,
+          "reason": "uncertain-intent-incomplete"
+        },
+        "proposal_policy_implemented": true,
+        "proposal_present": true,
+        "verification_accepted": false,
+        "initial_literal": {
+          "recognized": false,
+          "required": [],
+          "spans": []
+        },
+        "deadline": true,
+        "scope": "new /3 policy validation with unchanged graph/target/authorization/finite quality meanings; no historical receipt translation"
+      },
+      "paint_status": "PASS",
+      "persisted_raw_equal": true,
+      "cell_wall_elapsedMs": 10710.834199999998,
+      "goal_elapsedMs": 2986.9899999797344,
+      "goal_deadline_status": "PASS"
+    },
+    {
+      "id": "FE06",
+      "method": "adaptive-v3",
+      "arm": "C",
+      "generation_policy": "dependent",
+      "valid_execution": true,
+      "grade": {
+        "contract_valid": true,
+        "expected_gate": "missing",
+        "gate_correct": true,
+        "full_required_exact": true,
+        "missing_exact_minimal": true,
+        "graph_exact": true,
+        "graph": {
+          "graph_exact": true,
+          "unique_record_keys": true,
+          "existing_semantics_preserved": true,
+          "semantic_unchanged": false,
+          "clean_new_regions": true,
+          "clean_new_edges": true,
+          "no_other_new_semantics": true,
+          "actual_added_regions": [
+            {
+              "label": "DB",
+              "kind": "data",
+              "parent": "fixture:other"
+            },
+            {
+              "label": "DB",
+              "kind": "data",
+              "parent": "fixture:other"
+            }
+          ],
+          "actual_added_edges": []
+        },
+        "no_false_adoption": true,
+        "raw_unchanged": false,
+        "non_regression_guards": true,
+        "type_policy_guard": true,
+        "known_syntax_type_free": true,
+        "stop_authorization_guard": true,
+        "true_sufficient_zero_candidates": null,
+        "interpretation_type_calls": 0,
+        "eligible": true,
+        "old_eligible": true,
+        "frontier_eligible": false,
+        "proposal_policy": {
+          "id": "uncertainty-frontier-v1",
+          "eligible": true,
+          "reason": "confident-change-incomplete"
+        },
+        "proposal_policy_implemented": true,
+        "proposal_present": true,
+        "verification_accepted": true,
+        "initial_literal": {
+          "recognized": false,
+          "required": [],
+          "spans": []
+        },
+        "deadline": true,
+        "scope": "new /3 policy validation with unchanged graph/target/authorization/finite quality meanings; no historical receipt translation"
+      },
+      "paint_status": "PASS",
+      "persisted_raw_equal": true,
+      "cell_wall_elapsedMs": 15574.882499999992,
+      "goal_elapsedMs": 5988.265000015497,
+      "goal_deadline_status": "PASS"
+    },
+    {
+      "id": "FE06",
+      "method": "literal-v2",
+      "arm": "B",
+      "generation_policy": null,
+      "valid_execution": true,
+      "grade": {
+        "contract_valid": true,
+        "expected_gate": "missing",
+        "gate_correct": false,
+        "full_required_exact": false,
+        "missing_exact_minimal": false,
+        "graph_exact": false,
+        "graph": {
+          "graph_exact": false,
+          "unique_record_keys": true,
+          "existing_semantics_preserved": true,
+          "semantic_unchanged": true,
+          "clean_new_regions": true,
+          "clean_new_edges": true,
+          "no_other_new_semantics": true,
+          "actual_added_regions": [],
+          "actual_added_edges": []
+        },
+        "no_false_adoption": true,
+        "raw_unchanged": true,
+        "non_regression_guards": true,
+        "type_policy_guard": true,
+        "known_syntax_type_free": true,
+        "stop_authorization_guard": true,
+        "true_sufficient_zero_candidates": null,
+        "interpretation_type_calls": 0,
+        "eligible": true,
+        "old_eligible": true,
+        "frontier_eligible": false,
+        "proposal_policy": {
+          "id": "uncertainty-frontier-v1",
+          "eligible": true,
+          "reason": "confident-change-incomplete"
+        },
+        "proposal_policy_implemented": false,
+        "proposal_present": false,
+        "verification_accepted": false,
+        "initial_literal": {
+          "recognized": false,
+          "required": [],
+          "spans": []
+        },
+        "deadline": true,
+        "scope": "new /3 policy validation with unchanged graph/target/authorization/finite quality meanings; no historical receipt translation"
+      },
+      "paint_status": "PASS",
+      "persisted_raw_equal": true,
+      "cell_wall_elapsedMs": 9170.472800000018,
+      "goal_elapsedMs": 274.55000001192093,
+      "goal_deadline_status": "PASS"
+    },
+    {
+      "id": "FE07",
+      "method": "literal-v2",
+      "arm": "B",
+      "generation_policy": null,
+      "valid_execution": true,
+      "grade": {
+        "contract_valid": true,
+        "expected_gate": "missing",
+        "gate_correct": false,
+        "full_required_exact": false,
+        "missing_exact_minimal": false,
+        "graph_exact": false,
+        "graph": {
+          "graph_exact": false,
+          "unique_record_keys": true,
+          "existing_semantics_preserved": true,
+          "semantic_unchanged": true,
+          "clean_new_regions": true,
+          "clean_new_edges": true,
+          "no_other_new_semantics": true,
+          "actual_added_regions": [],
+          "actual_added_edges": []
+        },
+        "no_false_adoption": true,
+        "raw_unchanged": true,
+        "non_regression_guards": true,
+        "type_policy_guard": true,
+        "known_syntax_type_free": true,
+        "stop_authorization_guard": true,
+        "true_sufficient_zero_candidates": null,
+        "interpretation_type_calls": 0,
+        "eligible": true,
+        "old_eligible": true,
+        "frontier_eligible": false,
+        "proposal_policy": {
+          "id": "uncertainty-frontier-v1",
+          "eligible": true,
+          "reason": "confident-change-incomplete"
+        },
+        "proposal_policy_implemented": false,
+        "proposal_present": false,
+        "verification_accepted": false,
+        "initial_literal": {
+          "recognized": false,
+          "required": [],
+          "spans": []
+        },
+        "deadline": true,
+        "scope": "new /3 policy validation with unchanged graph/target/authorization/finite quality meanings; no historical receipt translation"
+      },
+      "paint_status": "PASS",
+      "persisted_raw_equal": true,
+      "cell_wall_elapsedMs": 9305.686099999992,
+      "goal_elapsedMs": 267.2549999952316,
+      "goal_deadline_status": "PASS"
+    },
+    {
+      "id": "FE07",
+      "method": "adaptive-v3",
+      "arm": "C",
+      "generation_policy": "dependent",
+      "valid_execution": true,
+      "grade": {
+        "contract_valid": true,
+        "expected_gate": "missing",
+        "gate_correct": true,
+        "full_required_exact": true,
+        "missing_exact_minimal": true,
+        "graph_exact": false,
+        "graph": {
+          "graph_exact": false,
+          "unique_record_keys": true,
+          "existing_semantics_preserved": true,
+          "semantic_unchanged": false,
+          "clean_new_regions": true,
+          "clean_new_edges": true,
+          "no_other_new_semantics": true,
+          "actual_added_regions": [
+            {
+              "label": "稟議可否",
+              "kind": "decision",
+              "parent": "fixture:container"
+            },
+            {
+              "label": "判断",
+              "kind": "decision",
+              "parent": "fixture:container"
+            }
+          ],
+          "actual_added_edges": []
+        },
+        "no_false_adoption": false,
+        "raw_unchanged": false,
+        "non_regression_guards": false,
+        "type_policy_guard": true,
+        "known_syntax_type_free": true,
+        "stop_authorization_guard": true,
+        "true_sufficient_zero_candidates": null,
+        "interpretation_type_calls": 0,
+        "eligible": true,
+        "old_eligible": true,
+        "frontier_eligible": false,
+        "proposal_policy": {
+          "id": "uncertainty-frontier-v1",
+          "eligible": true,
+          "reason": "confident-change-incomplete"
+        },
+        "proposal_policy_implemented": true,
+        "proposal_present": true,
+        "verification_accepted": true,
+        "initial_literal": {
+          "recognized": false,
+          "required": [],
+          "spans": []
+        },
+        "deadline": true,
+        "scope": "new /3 policy validation with unchanged graph/target/authorization/finite quality meanings; no historical receipt translation"
+      },
+      "paint_status": "PASS",
+      "persisted_raw_equal": true,
+      "cell_wall_elapsedMs": 15411.936699999991,
+      "goal_elapsedMs": 5800.515000015497,
+      "goal_deadline_status": "PASS"
+    },
+    {
+      "id": "FE08",
+      "method": "adaptive-v3",
+      "arm": "C",
+      "generation_policy": "dependent",
+      "valid_execution": true,
+      "grade": {
+        "contract_valid": true,
+        "expected_gate": "missing",
+        "gate_correct": false,
+        "full_required_exact": false,
+        "missing_exact_minimal": false,
+        "graph_exact": false,
+        "graph": {
+          "graph_exact": false,
+          "unique_record_keys": true,
+          "existing_semantics_preserved": true,
+          "semantic_unchanged": true,
+          "clean_new_regions": true,
+          "clean_new_edges": true,
+          "no_other_new_semantics": true,
+          "actual_added_regions": [],
+          "actual_added_edges": []
+        },
+        "no_false_adoption": true,
+        "raw_unchanged": true,
+        "non_regression_guards": true,
+        "type_policy_guard": true,
+        "known_syntax_type_free": true,
+        "stop_authorization_guard": true,
+        "true_sufficient_zero_candidates": null,
+        "interpretation_type_calls": 0,
+        "eligible": false,
+        "old_eligible": false,
+        "frontier_eligible": false,
+        "proposal_policy": {
+          "id": "uncertainty-frontier-v1",
+          "eligible": false,
+          "reason": null
+        },
+        "proposal_policy_implemented": true,
+        "proposal_present": false,
+        "verification_accepted": false,
+        "initial_literal": {
+          "recognized": true,
+          "required": [
+            {
+              "label": "分類処理",
+              "kind": "step",
+              "quantity": 1
+            },
+            {
+              "label": "分類控え",
+              "kind": "data",
+              "quantity": 1
+            }
+          ],
+          "spans": [
+            {
+              "start": 35,
+              "end": 39,
+              "source": "分類処理",
+              "label": "分類処理",
+              "kind": "step",
+              "quantity": 1
+            },
+            {
+              "start": 47,
+              "end": 51,
+              "source": "分類控え",
+              "label": "分類控え",
+              "kind": "data",
+              "quantity": 1
+            }
+          ]
+        },
+        "deadline": true,
+        "scope": "new /3 policy validation with unchanged graph/target/authorization/finite quality meanings; no historical receipt translation"
+      },
+      "paint_status": "PASS",
+      "persisted_raw_equal": true,
+      "cell_wall_elapsedMs": 8245.219000000012,
+      "goal_elapsedMs": 287.93000000715256,
+      "goal_deadline_status": "PASS"
+    },
+    {
+      "id": "FE08",
+      "method": "literal-v2",
+      "arm": "B",
+      "generation_policy": null,
+      "valid_execution": true,
+      "grade": {
+        "contract_valid": true,
+        "expected_gate": "missing",
+        "gate_correct": false,
+        "full_required_exact": false,
+        "missing_exact_minimal": false,
+        "graph_exact": false,
+        "graph": {
+          "graph_exact": false,
+          "unique_record_keys": true,
+          "existing_semantics_preserved": true,
+          "semantic_unchanged": true,
+          "clean_new_regions": true,
+          "clean_new_edges": true,
+          "no_other_new_semantics": true,
+          "actual_added_regions": [],
+          "actual_added_edges": []
+        },
+        "no_false_adoption": true,
+        "raw_unchanged": true,
+        "non_regression_guards": true,
+        "type_policy_guard": true,
+        "known_syntax_type_free": true,
+        "stop_authorization_guard": true,
+        "true_sufficient_zero_candidates": null,
+        "interpretation_type_calls": 0,
+        "eligible": false,
+        "old_eligible": false,
+        "frontier_eligible": false,
+        "proposal_policy": {
+          "id": "uncertainty-frontier-v1",
+          "eligible": false,
+          "reason": null
+        },
+        "proposal_policy_implemented": false,
+        "proposal_present": false,
+        "verification_accepted": false,
+        "initial_literal": {
+          "recognized": true,
+          "required": [
+            {
+              "label": "分類処理",
+              "kind": "step",
+              "quantity": 1
+            },
+            {
+              "label": "分類控え",
+              "kind": "data",
+              "quantity": 1
+            }
+          ],
+          "spans": [
+            {
+              "start": 35,
+              "end": 39,
+              "source": "分類処理",
+              "label": "分類処理",
+              "kind": "step",
+              "quantity": 1
+            },
+            {
+              "start": 47,
+              "end": 51,
+              "source": "分類控え",
+              "label": "分類控え",
+              "kind": "data",
+              "quantity": 1
+            }
+          ]
+        },
+        "deadline": true,
+        "scope": "new /3 policy validation with unchanged graph/target/authorization/finite quality meanings; no historical receipt translation"
+      },
+      "paint_status": "PASS",
+      "persisted_raw_equal": true,
+      "cell_wall_elapsedMs": 7974.7115999999805,
+      "goal_elapsedMs": 272.8900000154972,
+      "goal_deadline_status": "PASS"
+    },
+    {
+      "id": "FE09",
+      "method": "literal-v2",
+      "arm": "B",
+      "generation_policy": null,
+      "valid_execution": true,
+      "grade": {
+        "contract_valid": true,
+        "expected_gate": "ambiguous",
+        "gate_correct": true,
+        "full_required_exact": null,
+        "missing_exact_minimal": true,
+        "graph_exact": true,
+        "graph": {
+          "graph_exact": true,
+          "unique_record_keys": true,
+          "existing_semantics_preserved": true,
+          "semantic_unchanged": true,
+          "clean_new_regions": true,
+          "clean_new_edges": true,
+          "no_other_new_semantics": true,
+          "actual_added_regions": [],
+          "actual_added_edges": []
+        },
+        "no_false_adoption": true,
+        "raw_unchanged": true,
+        "non_regression_guards": true,
+        "type_policy_guard": true,
+        "known_syntax_type_free": true,
+        "stop_authorization_guard": true,
+        "true_sufficient_zero_candidates": null,
+        "interpretation_type_calls": 0,
+        "eligible": false,
+        "old_eligible": false,
+        "frontier_eligible": false,
+        "proposal_policy": {
+          "id": "uncertainty-frontier-v1",
+          "eligible": false,
+          "reason": null
+        },
+        "proposal_policy_implemented": false,
+        "proposal_present": false,
+        "verification_accepted": false,
+        "initial_literal": {
+          "recognized": true,
+          "required": [
+            {
+              "label": "API",
+              "kind": "step",
+              "quantity": 1
+            }
+          ],
+          "spans": [
+            {
+              "start": 0,
+              "end": 3,
+              "source": "API",
+              "label": "API",
+              "kind": "step",
+              "quantity": 1
+            }
+          ]
+        },
+        "deadline": true,
+        "scope": "new /3 policy validation with unchanged graph/target/authorization/finite quality meanings; no historical receipt translation"
+      },
+      "paint_status": "PASS",
+      "persisted_raw_equal": true,
+      "cell_wall_elapsedMs": 8055.160600000003,
+      "goal_elapsedMs": 298.94999998807907,
+      "goal_deadline_status": "PASS"
+    },
+    {
+      "id": "FE09",
+      "method": "adaptive-v3",
+      "arm": "C",
+      "generation_policy": "dependent",
+      "valid_execution": true,
+      "grade": {
+        "contract_valid": true,
+        "expected_gate": "ambiguous",
+        "gate_correct": true,
+        "full_required_exact": null,
+        "missing_exact_minimal": true,
+        "graph_exact": true,
+        "graph": {
+          "graph_exact": true,
+          "unique_record_keys": true,
+          "existing_semantics_preserved": true,
+          "semantic_unchanged": true,
+          "clean_new_regions": true,
+          "clean_new_edges": true,
+          "no_other_new_semantics": true,
+          "actual_added_regions": [],
+          "actual_added_edges": []
+        },
+        "no_false_adoption": true,
+        "raw_unchanged": true,
+        "non_regression_guards": true,
+        "type_policy_guard": true,
+        "known_syntax_type_free": true,
+        "stop_authorization_guard": true,
+        "true_sufficient_zero_candidates": null,
+        "interpretation_type_calls": 0,
+        "eligible": false,
+        "old_eligible": false,
+        "frontier_eligible": false,
+        "proposal_policy": {
+          "id": "uncertainty-frontier-v1",
+          "eligible": false,
+          "reason": null
+        },
+        "proposal_policy_implemented": true,
+        "proposal_present": false,
+        "verification_accepted": false,
+        "initial_literal": {
+          "recognized": true,
+          "required": [
+            {
+              "label": "API",
+              "kind": "step",
+              "quantity": 1
+            }
+          ],
+          "spans": [
+            {
+              "start": 0,
+              "end": 3,
+              "source": "API",
+              "label": "API",
+              "kind": "step",
+              "quantity": 1
+            }
+          ]
+        },
+        "deadline": true,
+        "scope": "new /3 policy validation with unchanged graph/target/authorization/finite quality meanings; no historical receipt translation"
+      },
+      "paint_status": "PASS",
+      "persisted_raw_equal": true,
+      "cell_wall_elapsedMs": 9120.458100000018,
+      "goal_elapsedMs": 300.44500002264977,
+      "goal_deadline_status": "PASS"
+    },
+    {
+      "id": "FE10",
+      "method": "adaptive-v3",
+      "arm": "C",
+      "generation_policy": "dependent",
+      "valid_execution": true,
+      "grade": {
+        "contract_valid": true,
+        "expected_gate": "no-change",
+        "gate_correct": true,
+        "full_required_exact": null,
+        "missing_exact_minimal": true,
+        "graph_exact": true,
+        "graph": {
+          "graph_exact": true,
+          "unique_record_keys": true,
+          "existing_semantics_preserved": true,
+          "semantic_unchanged": true,
+          "clean_new_regions": true,
+          "clean_new_edges": true,
+          "no_other_new_semantics": true,
+          "actual_added_regions": [],
+          "actual_added_edges": []
+        },
+        "no_false_adoption": true,
+        "raw_unchanged": true,
+        "non_regression_guards": true,
+        "type_policy_guard": true,
+        "known_syntax_type_free": true,
+        "stop_authorization_guard": true,
+        "true_sufficient_zero_candidates": null,
+        "interpretation_type_calls": 0,
+        "eligible": false,
+        "old_eligible": false,
+        "frontier_eligible": false,
+        "proposal_policy": {
+          "id": "uncertainty-frontier-v1",
+          "eligible": false,
+          "reason": null
+        },
+        "proposal_policy_implemented": true,
+        "proposal_present": false,
+        "verification_accepted": false,
+        "initial_literal": {
+          "recognized": false,
+          "required": [],
+          "spans": []
+        },
+        "deadline": true,
+        "scope": "new /3 policy validation with unchanged graph/target/authorization/finite quality meanings; no historical receipt translation"
+      },
+      "paint_status": "PASS",
+      "persisted_raw_equal": true,
+      "cell_wall_elapsedMs": 8575.606499999994,
+      "goal_elapsedMs": 258.4350000023842,
+      "goal_deadline_status": "PASS"
+    },
+    {
+      "id": "FE10",
+      "method": "literal-v2",
+      "arm": "B",
+      "generation_policy": null,
+      "valid_execution": true,
+      "grade": {
+        "contract_valid": true,
+        "expected_gate": "no-change",
+        "gate_correct": true,
+        "full_required_exact": null,
+        "missing_exact_minimal": true,
+        "graph_exact": true,
+        "graph": {
+          "graph_exact": true,
+          "unique_record_keys": true,
+          "existing_semantics_preserved": true,
+          "semantic_unchanged": true,
+          "clean_new_regions": true,
+          "clean_new_edges": true,
+          "no_other_new_semantics": true,
+          "actual_added_regions": [],
+          "actual_added_edges": []
+        },
+        "no_false_adoption": true,
+        "raw_unchanged": true,
+        "non_regression_guards": true,
+        "type_policy_guard": true,
+        "known_syntax_type_free": true,
+        "stop_authorization_guard": true,
+        "true_sufficient_zero_candidates": null,
+        "interpretation_type_calls": 0,
+        "eligible": false,
+        "old_eligible": false,
+        "frontier_eligible": false,
+        "proposal_policy": {
+          "id": "uncertainty-frontier-v1",
+          "eligible": false,
+          "reason": null
+        },
+        "proposal_policy_implemented": false,
+        "proposal_present": false,
+        "verification_accepted": false,
+        "initial_literal": {
+          "recognized": false,
+          "required": [],
+          "spans": []
+        },
+        "deadline": true,
+        "scope": "new /3 policy validation with unchanged graph/target/authorization/finite quality meanings; no historical receipt translation"
+      },
+      "paint_status": "PASS",
+      "persisted_raw_equal": true,
+      "cell_wall_elapsedMs": 8295.3983,
+      "goal_elapsedMs": 269.43000000715256,
+      "goal_deadline_status": "PASS"
+    }
+  ],
+  "semantic": {
+    "complete": true,
+    "total": 10,
+    "total_pairs": 10,
+    "baseline": {
+      "sufficient": {
+        "correct": 3,
+        "total": 4
+      },
+      "missing": {
+        "correct": 0,
+        "total": 4
+      },
+      "ambiguous": {
+        "correct": 1,
+        "total": 1
+      },
+      "no-change": {
+        "correct": 1,
+        "total": 1
+      }
+    },
+    "enabled": {
+      "sufficient": {
+        "correct": 2,
+        "total": 4
+      },
+      "missing": {
+        "correct": 1,
+        "total": 4
+      },
+      "ambiguous": {
+        "correct": 1,
+        "total": 1
+      },
+      "no-change": {
+        "correct": 1,
+        "total": 1
+      }
+    },
+    "enabled_success": 5,
+    "baseline_success": 5,
+    "missing_gains": 1,
+    "frontier_missing_gains": 0,
+    "regressions": 1,
+    "eligible_pairs": 4,
+    "admissible_missing_pairs": 3,
+    "all_arm_guards": false,
+    "no_false_adoption": false,
+    "interpretation_type_calls": 1,
+    "pairs": [
+      {
+        "id": "FE01",
+        "eligible": false,
+        "baseline_success": true,
+        "enabled_success": false,
+        "missing_gain": false,
+        "frontier_gain": false,
+        "both_arms_frontier": false,
+        "regression": true,
+        "excluded_from_causal_only": true
+      },
+      {
+        "id": "FE02",
+        "eligible": false,
+        "baseline_success": true,
+        "enabled_success": true,
+        "missing_gain": false,
+        "frontier_gain": false,
+        "both_arms_frontier": false,
+        "regression": false,
+        "excluded_from_causal_only": true
+      },
+      {
+        "id": "FE03",
+        "eligible": true,
+        "baseline_success": false,
+        "enabled_success": false,
+        "missing_gain": false,
+        "frontier_gain": false,
+        "both_arms_frontier": false,
+        "regression": false,
+        "excluded_from_causal_only": false
+      },
+      {
+        "id": "FE04",
+        "eligible": false,
+        "baseline_success": true,
+        "enabled_success": true,
+        "missing_gain": false,
+        "frontier_gain": false,
+        "both_arms_frontier": false,
+        "regression": false,
+        "excluded_from_causal_only": true
+      },
+      {
+        "id": "FE05",
+        "eligible": true,
+        "baseline_success": false,
+        "enabled_success": false,
+        "missing_gain": false,
+        "frontier_gain": false,
+        "both_arms_frontier": true,
+        "regression": false,
+        "excluded_from_causal_only": false
+      },
+      {
+        "id": "FE06",
+        "eligible": true,
+        "baseline_success": false,
+        "enabled_success": true,
+        "missing_gain": true,
+        "frontier_gain": false,
+        "both_arms_frontier": false,
+        "regression": false,
+        "excluded_from_causal_only": false
+      },
+      {
+        "id": "FE07",
+        "eligible": true,
+        "baseline_success": false,
+        "enabled_success": false,
+        "missing_gain": false,
+        "frontier_gain": false,
+        "both_arms_frontier": false,
+        "regression": false,
+        "excluded_from_causal_only": false
+      },
+      {
+        "id": "FE08",
+        "eligible": false,
+        "baseline_success": false,
+        "enabled_success": false,
+        "missing_gain": false,
+        "frontier_gain": false,
+        "both_arms_frontier": false,
+        "regression": false,
+        "excluded_from_causal_only": true
+      },
+      {
+        "id": "FE09",
+        "eligible": false,
+        "baseline_success": true,
+        "enabled_success": true,
+        "missing_gain": false,
+        "frontier_gain": false,
+        "both_arms_frontier": false,
+        "regression": false,
+        "excluded_from_causal_only": true
+      },
+      {
+        "id": "FE10",
+        "eligible": false,
+        "baseline_success": true,
+        "enabled_success": true,
+        "missing_gain": false,
+        "frontier_gain": false,
+        "both_arms_frontier": false,
+        "regression": false,
+        "excluded_from_causal_only": true
+      }
+    ],
+    "enabled_criteria": "UNMET",
+    "effect_criteria": "UNMET",
+    "frontier_effect_criteria_pending_integrity": "UNPROVEN",
+    "no_effect_criteria_pending_integrity": "UNPROVEN",
+    "frontier_no_effect_criteria_pending_integrity": "UNPROVEN",
+    "scope": "fixed whole E denominator; generic Type-path effect and newly added frontier-specific effect are separate; integrity/paint/source admission mandatory"
+  },
+  "phase_kind": "fresh",
+  "inputs_sha256": "74d5eb6b1504ffd5ab223daa4b6682a1952f7db113f6bfb438fc2fe5d3cc67f7",
+  "parent_inputs_sha256": null,
+  "parent_oracle_sha256": null,
+  "admissible_for_semantic_claim": true,
+  "external_provider_attempts": {
+    "jev": 47,
+    "typellm": 4
+  },
+  "external_provider_attempt_bounds": {
+    "jev": {
+      "min": 47,
+      "max": 47
+    },
+    "typellm": {
+      "min": 4,
+      "max": 4
+    }
+  },
+  "stage_rows": 48,
+  "stage_alignment": "UNIQUE",
+  "proofs": [
+    {
+      "id": "FE01",
+      "method": "literal-v2",
+      "arm": "B",
+      "generation_policy": null,
+      "status": "PASS",
+      "initial_head": "sha256:0b3522df5b691691d41d9b4587377781fc7048c991a4e47357e5583eb09288c6",
+      "final_head": "sha256:1804ff10579683c309cada7596f55260ee68d5741b1d750c1f990fd282b637b0"
+    },
+    {
+      "id": "FE01",
+      "method": "adaptive-v3",
+      "arm": "C",
+      "generation_policy": "dependent",
+      "status": "PASS",
+      "initial_head": "sha256:0b3522df5b691691d41d9b4587377781fc7048c991a4e47357e5583eb09288c6",
+      "final_head": "sha256:0b3522df5b691691d41d9b4587377781fc7048c991a4e47357e5583eb09288c6"
+    },
+    {
+      "id": "FE02",
+      "method": "adaptive-v3",
+      "arm": "C",
+      "generation_policy": "dependent",
+      "status": "PASS",
+      "initial_head": "sha256:0b3522df5b691691d41d9b4587377781fc7048c991a4e47357e5583eb09288c6",
+      "final_head": "sha256:7f54dadaf31a662b7fcb0c77f97d89272f2de0629a9365e5b3a70e90c02ed7c8"
+    },
+    {
+      "id": "FE02",
+      "method": "literal-v2",
+      "arm": "B",
+      "generation_policy": null,
+      "status": "PASS",
+      "initial_head": "sha256:0b3522df5b691691d41d9b4587377781fc7048c991a4e47357e5583eb09288c6",
+      "final_head": "sha256:7f54dadaf31a662b7fcb0c77f97d89272f2de0629a9365e5b3a70e90c02ed7c8"
+    },
+    {
+      "id": "FE03",
+      "method": "literal-v2",
+      "arm": "B",
+      "generation_policy": null,
+      "status": "PASS",
+      "initial_head": "sha256:0b3522df5b691691d41d9b4587377781fc7048c991a4e47357e5583eb09288c6",
+      "final_head": "sha256:0b3522df5b691691d41d9b4587377781fc7048c991a4e47357e5583eb09288c6"
+    },
+    {
+      "id": "FE03",
+      "method": "adaptive-v3",
+      "arm": "C",
+      "generation_policy": "dependent",
+      "status": "PASS",
+      "initial_head": "sha256:0b3522df5b691691d41d9b4587377781fc7048c991a4e47357e5583eb09288c6",
+      "final_head": "sha256:0b3522df5b691691d41d9b4587377781fc7048c991a4e47357e5583eb09288c6"
+    },
+    {
+      "id": "FE04",
+      "method": "adaptive-v3",
+      "arm": "C",
+      "generation_policy": "dependent",
+      "status": "PASS",
+      "initial_head": "sha256:b4f52e5183b8e5730e59a7524a9b260f7cb7a4246695c8a69c4d320bec1312c1",
+      "final_head": "sha256:2506fce6135edd5a940ba7472ddb9d23ab7e7f04438ec04ab59537370f4f6a81"
+    },
+    {
+      "id": "FE04",
+      "method": "literal-v2",
+      "arm": "B",
+      "generation_policy": null,
+      "status": "PASS",
+      "initial_head": "sha256:b4f52e5183b8e5730e59a7524a9b260f7cb7a4246695c8a69c4d320bec1312c1",
+      "final_head": "sha256:2506fce6135edd5a940ba7472ddb9d23ab7e7f04438ec04ab59537370f4f6a81"
+    },
+    {
+      "id": "FE05",
+      "method": "literal-v2",
+      "arm": "B",
+      "generation_policy": null,
+      "status": "PASS",
+      "initial_head": "sha256:0b3522df5b691691d41d9b4587377781fc7048c991a4e47357e5583eb09288c6",
+      "final_head": "sha256:0b3522df5b691691d41d9b4587377781fc7048c991a4e47357e5583eb09288c6"
+    },
+    {
+      "id": "FE05",
+      "method": "adaptive-v3",
+      "arm": "C",
+      "generation_policy": "dependent",
+      "status": "PASS",
+      "initial_head": "sha256:0b3522df5b691691d41d9b4587377781fc7048c991a4e47357e5583eb09288c6",
+      "final_head": "sha256:0b3522df5b691691d41d9b4587377781fc7048c991a4e47357e5583eb09288c6"
+    },
+    {
+      "id": "FE06",
+      "method": "adaptive-v3",
+      "arm": "C",
+      "generation_policy": "dependent",
+      "status": "PASS",
+      "initial_head": "sha256:0b3522df5b691691d41d9b4587377781fc7048c991a4e47357e5583eb09288c6",
+      "final_head": "sha256:248ea5a61dd31fb52c0d8139faa60e22ae88b3dabfad37fe8d813b932bfec3dd"
+    },
+    {
+      "id": "FE06",
+      "method": "literal-v2",
+      "arm": "B",
+      "generation_policy": null,
+      "status": "PASS",
+      "initial_head": "sha256:0b3522df5b691691d41d9b4587377781fc7048c991a4e47357e5583eb09288c6",
+      "final_head": "sha256:0b3522df5b691691d41d9b4587377781fc7048c991a4e47357e5583eb09288c6"
+    },
+    {
+      "id": "FE07",
+      "method": "literal-v2",
+      "arm": "B",
+      "generation_policy": null,
+      "status": "PASS",
+      "initial_head": "sha256:0b3522df5b691691d41d9b4587377781fc7048c991a4e47357e5583eb09288c6",
+      "final_head": "sha256:0b3522df5b691691d41d9b4587377781fc7048c991a4e47357e5583eb09288c6"
+    },
+    {
+      "id": "FE07",
+      "method": "adaptive-v3",
+      "arm": "C",
+      "generation_policy": "dependent",
+      "status": "PASS",
+      "initial_head": "sha256:0b3522df5b691691d41d9b4587377781fc7048c991a4e47357e5583eb09288c6",
+      "final_head": "sha256:6af9d94b74e89e78c4259b1967e09891a8102064fb3cf8e7143758a51af81368"
+    },
+    {
+      "id": "FE08",
+      "method": "adaptive-v3",
+      "arm": "C",
+      "generation_policy": "dependent",
+      "status": "PASS",
+      "initial_head": "sha256:0b3522df5b691691d41d9b4587377781fc7048c991a4e47357e5583eb09288c6",
+      "final_head": "sha256:0b3522df5b691691d41d9b4587377781fc7048c991a4e47357e5583eb09288c6"
+    },
+    {
+      "id": "FE08",
+      "method": "literal-v2",
+      "arm": "B",
+      "generation_policy": null,
+      "status": "PASS",
+      "initial_head": "sha256:0b3522df5b691691d41d9b4587377781fc7048c991a4e47357e5583eb09288c6",
+      "final_head": "sha256:0b3522df5b691691d41d9b4587377781fc7048c991a4e47357e5583eb09288c6"
+    },
+    {
+      "id": "FE09",
+      "method": "literal-v2",
+      "arm": "B",
+      "generation_policy": null,
+      "status": "PASS",
+      "initial_head": "sha256:0b3522df5b691691d41d9b4587377781fc7048c991a4e47357e5583eb09288c6",
+      "final_head": "sha256:0b3522df5b691691d41d9b4587377781fc7048c991a4e47357e5583eb09288c6"
+    },
+    {
+      "id": "FE09",
+      "method": "adaptive-v3",
+      "arm": "C",
+      "generation_policy": "dependent",
+      "status": "PASS",
+      "initial_head": "sha256:0b3522df5b691691d41d9b4587377781fc7048c991a4e47357e5583eb09288c6",
+      "final_head": "sha256:0b3522df5b691691d41d9b4587377781fc7048c991a4e47357e5583eb09288c6"
+    },
+    {
+      "id": "FE10",
+      "method": "adaptive-v3",
+      "arm": "C",
+      "generation_policy": "dependent",
+      "status": "PASS",
+      "initial_head": "sha256:b4f52e5183b8e5730e59a7524a9b260f7cb7a4246695c8a69c4d320bec1312c1",
+      "final_head": "sha256:b4f52e5183b8e5730e59a7524a9b260f7cb7a4246695c8a69c4d320bec1312c1"
+    },
+    {
+      "id": "FE10",
+      "method": "literal-v2",
+      "arm": "B",
+      "generation_policy": null,
+      "status": "PASS",
+      "initial_head": "sha256:b4f52e5183b8e5730e59a7524a9b260f7cb7a4246695c8a69c4d320bec1312c1",
+      "final_head": "sha256:b4f52e5183b8e5730e59a7524a9b260f7cb7a4246695c8a69c4d320bec1312c1"
+    }
+  ],
+  "replay": {
+    "status": "PASS",
+    "issues": [],
+    "consumed": 20,
+    "frames": 62,
+    "assessed_frames": 42,
+    "recorded_paint_status": "PASS",
+    "replay_sha256": "b43fc4874bed2f5cd611de5567be92ac342de56af9335a624fdde3672f32a3a7",
+    "model_quality_scope": "NONE",
+    "CI_LIVE_EXECUTION": "UNPROVEN"
+  },
+  "raw_sha256": {
+    "events.jsonl": "a3709c7961f6f87aa1d70665cf5aab54cd3ca4dee2a4926bd42dd22adff98ded",
+    "execution.json": "8808e06bb6ab8714ddd6e529f0b01eb70281f1ed4f82584c1ce8cceb698cc06d",
+    "FE01-B.json": "996e77256a303a0811805202d2216af190cc6fe0dd143d6c6cc4fad43f0b2411",
+    "FE01-C.json": "0e2bcdd1efe0f0936c34e03738b831d444eec99cc034e0bccfd7a2a09d968bb7",
+    "FE02-B.json": "34b96e33450a6b90325bbee0677c88602e7a90e091f8c52a238c96ef4e3c92ce",
+    "FE02-C.json": "f0db6a2309f3dec27c8fed7a41bca5a77b7499bb9e82531a773de58e87e4325c",
+    "FE03-B.json": "ba1a6af53ff41641d0a79d0e970c1e817595a581ac18c0d801e6bc0e62d91314",
+    "FE03-C.json": "48d5a9f94d8fa4f8fa909c7d6976c8d16e064c2e7aa380fed92da7156991a3a1",
+    "FE04-B.json": "bf43feb49b70d5d5909352bfbfb3e8dde24d6471145d7bd1a92e861c7473f769",
+    "FE04-C.json": "926c9f573992eae28e5762a580fd816f82a06d83a54b90900ce724f1e166becc",
+    "FE05-B.json": "c0b70eb7ea785286204f8f3a8bf88316ed40e6fe9e248ed562ffb995f8bde053",
+    "FE05-C.json": "be096b09fd55ffd628fa5a76b109b3075b3ecef94f2f36a18319db318e3833c4",
+    "FE06-B.json": "16e9b549b1d02244902f925e1c5cee05a6eb717c5683fff5b1b71e957579ca0a",
+    "FE06-C.json": "1e049413f39c939b8be45e925be174ca88200dca89364d17eed88f9b6242f7a4",
+    "FE07-B.json": "22a0f221fb1f23afd56fbf3ae25237451ec1bd3d51a110a2491601a02b50ae76",
+    "FE07-C.json": "0dac884840de5b7dcfe7f8e70dd16413441fd33db7550b17480ce137b94ced87",
+    "FE08-B.json": "92bd2e845712dd2fa64d0c797395d547db7790fc19d220665bb1e28e8a0c3e03",
+    "FE08-C.json": "449091433f4b01b6b3ca68699f471dfb28c9f9b3648e04c0d426d3612713c16c",
+    "FE09-B.json": "ec28176bf17b6434c2e081c6b83efcd3c6993e74e2bc953e599f81db1c321145",
+    "FE09-C.json": "75030a42f91221249e93c64cbf4706681d3a7554e95b6c7803d0dfa9c2c9f289",
+    "FE10-B.json": "d256196883c0b2fa864240ded2860aa736f8f9b5b3f1e3f00ea6d9b6ee0367a8",
+    "FE10-C.json": "1685d648e0f8c3cb6b47c84c7fe6234619bb65e2e684b25ff4042d8721dbd5b5",
+    "identity.json": "654f83273f7566c75f4746d3a47136a672376d7cf1c0df75a0bcd23efd93a11d"
+  },
+  "scope": "raw locality only; exact producer/source/provider/physical PID and required paint admission remain separate",
+  "CI_LIVE_EXECUTION": "UNPROVEN",
+  "currency": "COST_NOT_MEASURED"
+}

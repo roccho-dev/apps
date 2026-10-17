@@ -1,0 +1,443 @@
+{
+  "schema": "voice-ui.review.frontier-ci-closure/1",
+  "status": "PASS",
+  "head": "2cc4890b765a5534e92855f83f9232ae85bb373b",
+  "checked_at": "2026-10-17T20:51:16.155Z",
+  "runs": [
+    {
+      "id": 39066961602,
+      "url": "https://github.com/roccho-dev/apps/actions/runs/39066961602",
+      "head": "2cc4890b765a5534e92855f83f9232ae85bb373b",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 39066961474,
+      "url": "https://github.com/roccho-dev/apps/actions/runs/39066961474",
+      "head": "2cc4890b765a5534e92855f83f9232ae85bb373b",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 39066961665,
+      "url": "https://github.com/roccho-dev/apps/actions/runs/39066961665",
+      "head": "2cc4890b765a5534e92855f83f9232ae85bb373b",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 39066961483,
+      "url": "https://github.com/roccho-dev/apps/actions/runs/39066961483",
+      "head": "2cc4890b765a5534e92855f83f9232ae85bb373b",
+      "status": "completed",
+      "conclusion": "success"
+    }
+  ],
+  "required_steps": [
+    {
+      "name": "Package and re-open",
+      "conclusion": "success"
+    },
+    {
+      "name": "Verify stopped live evidence with exact recorded artifacts",
+      "conclusion": "success"
+    },
+    {
+      "name": "Verify component axes with exact stopped artifacts",
+      "conclusion": "success"
+    },
+    {
+      "name": "Verify requirements cycle with exact stopped artifacts",
+      "conclusion": "success"
+    },
+    {
+      "name": "Verify dependency cycle with exact stopped artifacts",
+      "conclusion": "success"
+    },
+    {
+      "name": "Verify intent cycle with exact stopped artifacts",
+      "conclusion": "success"
+    },
+    {
+      "name": "Verify frontier cycle with exact stopped artifacts",
+      "conclusion": "success"
+    }
+  ],
+  "publish": "skipped",
+  "artifacts": [
+    {
+      "id": 12114350620,
+      "name": "voice-ui-dependency-cycle-2cc4890b765a5534e92855f83f9232ae85bb373b",
+      "bytes": 18625,
+      "digest": "sha256:ea9c58fae8353061f631a49dab270807cd7bf333baf84d6d6ff7e028172d79d6"
+    },
+    {
+      "id": 12114231882,
+      "name": "voice-ui-intent-cycle-2cc4890b765a5534e92855f83f9232ae85bb373b",
+      "bytes": 6713,
+      "digest": "sha256:9604f5fb090e913e3d9610945daaf4029539a2314cf626648f94ec956e1bbfdd"
+    },
+    {
+      "id": 12114132779,
+      "name": "voice-ui-frontier-cycle-2cc4890b765a5534e92855f83f9232ae85bb373b",
+      "bytes": 554,
+      "digest": "sha256:68be8ef9151aa2d5aaf8dcf535955b351aa8a284da340595e8207849329dae5f"
+    },
+    {
+      "id": 12114107417,
+      "name": "voice-ui-closed-evidence-2cc4890b765a5534e92855f83f9232ae85bb373b",
+      "bytes": 62037,
+      "digest": "sha256:353cf023c6a50f5c1733daef236c85710cca94af679dd57ab61145bfd5669a37"
+    },
+    {
+      "id": 12114048257,
+      "name": "voice-ui-dist-release",
+      "bytes": 446394555,
+      "digest": "sha256:f7fa9a466797c43b27b1f71b7ae7b3c6668b0b8e53f0d20ad08a7a0a2794dfdf"
+    },
+    {
+      "id": 12113684714,
+      "name": "voice-ui-component-axes-2cc4890b765a5534e92855f83f9232ae85bb373b",
+      "bytes": 55159,
+      "digest": "sha256:40c933cbc2a6c341b856c52c25b5dcd3a98476c21e97a09ef705ec922b564842"
+    },
+    {
+      "id": 12113138977,
+      "name": "voice-ui-candidate-browser-2cc4890b765a5534e92855f83f9232ae85bb373b",
+      "bytes": 3927258,
+      "digest": "sha256:f2300a6776e1996c1a2ca484e0ea12f8cf6421f421cff41636d05602a1eea6bc"
+    },
+    {
+      "id": 12113134826,
+      "name": "voice-ui-requirements-cycle-2cc4890b765a5534e92855f83f9232ae85bb373b",
+      "bytes": 16237,
+      "digest": "sha256:97450028c44d1e10b144f434f1054230ee8f37274e92b1790f26c37f2d666e5b"
+    }
+  ],
+  "required_closure_receipts": [
+    {
+      "kind": "closed-evidence",
+      "artifact": {
+        "id": 12114107417,
+        "name": "voice-ui-closed-evidence-2cc4890b765a5534e92855f83f9232ae85bb373b",
+        "sha256": "353cf023c6a50f5c1733daef236c85710cca94af679dd57ab61145bfd5669a37",
+        "bytes": 62037
+      },
+      "receipt_sha256": "88c565fa0046af2c420138a58edc7653c48745e9358b2458628bb6f0073c9de8",
+      "exact_old_audited_receipt_bytes": true,
+      "new_empty_process_independently_recomputed": false,
+      "cumulative": {
+        "jev": 564,
+        "typellm": 29
+      },
+      "reports": 5,
+      "quality": null,
+      "processGraph": null
+    },
+    {
+      "kind": "component-axes",
+      "artifact": {
+        "id": 12113684714,
+        "name": "voice-ui-component-axes-2cc4890b765a5534e92855f83f9232ae85bb373b",
+        "sha256": "40c933cbc2a6c341b856c52c25b5dcd3a98476c21e97a09ef705ec922b564842",
+        "bytes": 55159
+      },
+      "receipt_sha256": "3e0bc618c5fdda1613b6720e05178e2ee35648e20ab0237de304f9faf5b30dfc",
+      "exact_old_audited_receipt_bytes": true,
+      "new_empty_process_independently_recomputed": false,
+      "cumulative": {
+        "jev": 689,
+        "typellm": 40
+      },
+      "reports": 8,
+      "quality": [
+        {
+          "id": "public-G",
+          "axis": "G",
+          "classification": "PUBLIC_REGRESSION_ONLY"
+        },
+        {
+          "id": "public-R",
+          "axis": "R",
+          "classification": "PUBLIC_REGRESSION_ONLY"
+        },
+        {
+          "id": "public-F",
+          "axis": "F",
+          "classification": "PUBLIC_REGRESSION_ONLY"
+        },
+        {
+          "id": "public-E",
+          "axis": "E",
+          "classification": "PUBLIC_REGRESSION_ONLY"
+        },
+        {
+          "id": "final-G",
+          "axis": "G",
+          "classification": "UNMET"
+        },
+        {
+          "id": "final-R",
+          "axis": "R",
+          "classification": "FINITE_CRITERIA_PASS"
+        },
+        {
+          "id": "final-F",
+          "axis": "F",
+          "classification": "UNPROVEN"
+        },
+        {
+          "id": "final-E",
+          "axis": "E",
+          "classification": "UNMET"
+        }
+      ],
+      "processGraph": null
+    },
+    {
+      "kind": "requirements-cycle",
+      "artifact": {
+        "id": 12113134826,
+        "name": "voice-ui-requirements-cycle-2cc4890b765a5534e92855f83f9232ae85bb373b",
+        "sha256": "97450028c44d1e10b144f434f1054230ee8f37274e92b1790f26c37f2d666e5b",
+        "bytes": 16237
+      },
+      "receipt_sha256": "1f33d0e447cb8901fd943f446864fb4b920a377514151836112ba1c9a576ddbf",
+      "exact_old_audited_receipt_bytes": true,
+      "new_empty_process_independently_recomputed": false,
+      "cumulative": {
+        "jev": 701,
+        "typellm": 58
+      },
+      "reports": 5,
+      "quality": [
+        {
+          "id": "public-F",
+          "axis": "F",
+          "classification": {
+            "quality": "PUBLIC_REGRESSION_ONLY",
+            "effect": "PUBLIC_REGRESSION_ONLY"
+          }
+        },
+        {
+          "id": "correction1-F",
+          "axis": "F",
+          "classification": {
+            "quality": "PUBLIC_REGRESSION_ONLY",
+            "effect": "PUBLIC_REGRESSION_ONLY"
+          }
+        },
+        {
+          "id": "correction1-V",
+          "axis": "V",
+          "classification": {
+            "quality": "PUBLIC_REGRESSION_ONLY",
+            "effect": "PUBLIC_REGRESSION_ONLY"
+          }
+        },
+        {
+          "id": "correction2-F",
+          "axis": "F",
+          "classification": {
+            "quality": "PUBLIC_REGRESSION_ONLY",
+            "effect": "PUBLIC_REGRESSION_ONLY"
+          }
+        },
+        {
+          "id": "correction2-V",
+          "axis": "V",
+          "classification": {
+            "quality": "PUBLIC_REGRESSION_ONLY",
+            "effect": "PUBLIC_REGRESSION_ONLY"
+          }
+        }
+      ],
+      "processGraph": {
+        "schema": "voice-ui.requirements-cycle-process/1",
+        "status": "PASS",
+        "issues": [],
+        "baseline": {
+          "jev": 689,
+          "typellm": 40
+        },
+        "indexed_phases": 5,
+        "correction_batches": 2,
+        "reserved": {
+          "jev": 12,
+          "typellm": 18
+        },
+        "releases": [],
+        "scope": "same-head public admission and retained exact cycle process; no CI-origin live claim"
+      }
+    },
+    {
+      "kind": "dependency-cycle",
+      "artifact": {
+        "id": 12114350620,
+        "name": "voice-ui-dependency-cycle-2cc4890b765a5534e92855f83f9232ae85bb373b",
+        "sha256": "ea9c58fae8353061f631a49dab270807cd7bf333baf84d6d6ff7e028172d79d6",
+        "bytes": 18625
+      },
+      "receipt_sha256": "ef2f2819cea80c06a718099e2cc2bb159b0232037402f13c8897295fea1e0212",
+      "exact_old_audited_receipt_bytes": true,
+      "new_empty_process_independently_recomputed": false,
+      "cumulative": {
+        "jev": 715,
+        "typellm": 71
+      },
+      "reports": 3,
+      "quality": [
+        {
+          "id": "public-F",
+          "axis": "F",
+          "classification": {
+            "quality": "PUBLIC_REGRESSION_ONLY",
+            "effect": "PUBLIC_REGRESSION_ONLY"
+          }
+        },
+        {
+          "id": "public-V",
+          "axis": "V",
+          "classification": {
+            "quality": "PUBLIC_REGRESSION_ONLY",
+            "effect": "PUBLIC_REGRESSION_ONLY"
+          }
+        },
+        {
+          "id": "public-E",
+          "axis": "E",
+          "classification": {
+            "quality": "PUBLIC_REGRESSION_ONLY",
+            "effect": "PUBLIC_REGRESSION_ONLY"
+          }
+        }
+      ],
+      "processGraph": {
+        "schema": "voice-ui.dependency-cycle-process/1",
+        "status": "PASS",
+        "issues": [],
+        "state": "PUBLIC_REGRESSION_ONLY",
+        "baseline": {
+          "jev": 701,
+          "typellm": 58
+        },
+        "indexed_phases": 3,
+        "source_head": "ae816ec23a5e4c397c8a4893e127fb24134afda8",
+        "correction_batches": 0,
+        "reserved": {
+          "jev": 44,
+          "typellm": 14
+        },
+        "charged_at_cutoff": {
+          "jev": 715,
+          "typellm": 71
+        },
+        "releases": [],
+        "scope": "integrity/process graph only; candidate performance/CI-origin live proof remain separate"
+      }
+    },
+    {
+      "kind": "intent-cycle",
+      "artifact": {
+        "id": 12114231882,
+        "name": "voice-ui-intent-cycle-2cc4890b765a5534e92855f83f9232ae85bb373b",
+        "sha256": "9604f5fb090e913e3d9610945daaf4029539a2314cf626648f94ec956e1bbfdd",
+        "bytes": 6713
+      },
+      "receipt_sha256": "83613a8a36d748f4b37fe8a9ca1ec0661de9093fb33ecdf6c6bec804381b5ef0",
+      "exact_old_audited_receipt_bytes": true,
+      "new_empty_process_independently_recomputed": false,
+      "cumulative": {
+        "jev": 725,
+        "typellm": 71
+      },
+      "reports": 1,
+      "quality": [
+        {
+          "id": "intent-public-G0",
+          "axis": "G0",
+          "classification": {
+            "quality": "PUBLIC_REGRESSION_ONLY",
+            "effect": "NOT_EVALUATED",
+            "public_gate": "UNMET"
+          }
+        }
+      ],
+      "processGraph": {
+        "schema": "voice-ui.intent-cycle-process/1",
+        "status": "PASS",
+        "issues": [],
+        "state": "PUBLIC_REGRESSION_ONLY",
+        "baseline": {
+          "jev": 715,
+          "typellm": 71
+        },
+        "indexed_phases": 1,
+        "source_head": "81f9f4df488e7f4fd94c63dbc15fe46ab0fb3a25",
+        "correction_batches": 0,
+        "reserved": {
+          "jev": 10,
+          "typellm": 0
+        },
+        "charged_at_cutoff": {
+          "jev": 725,
+          "typellm": 71
+        },
+        "releases": [],
+        "scope": "integrity/process only; V/F/E quality axes remain separate; blind progression by complete stopped evidence, not perfect prior fresh quality"
+      }
+    },
+    {
+      "kind": "frontier-cycle",
+      "artifact": {
+        "id": 12114132779,
+        "name": "voice-ui-frontier-cycle-2cc4890b765a5534e92855f83f9232ae85bb373b",
+        "sha256": "68be8ef9151aa2d5aaf8dcf535955b351aa8a284da340595e8207849329dae5f",
+        "bytes": 554
+      },
+      "receipt_sha256": "867e0925ba69663227ab4cbd415afe697a80473d6efe97f321b2572995abf9cc",
+      "exact_old_audited_receipt_bytes": false,
+      "new_empty_process_independently_recomputed": true,
+      "cumulative": {
+        "jev": 725,
+        "typellm": 71
+      },
+      "reports": 0,
+      "quality": "UNPROVEN",
+      "processGraph": {
+        "schema": "voice-ui.frontier-cycle-process/1",
+        "status": "PASS",
+        "issues": [],
+        "state": "NOT_MEASURED",
+        "baseline": {
+          "jev": 725,
+          "typellm": 71
+        },
+        "indexed_phases": 0,
+        "source_head": null,
+        "correction_batches": 0,
+        "reserved": {
+          "jev": 0,
+          "typellm": 0
+        },
+        "charged_at_cutoff": {
+          "jev": 725,
+          "typellm": 71
+        },
+        "releases": [],
+        "scope": "integrity/process only; V/F/E quality axes remain separate; blind progression by complete stopped evidence, not perfect prior fresh quality"
+      }
+    }
+  ],
+  "actual_completed_zip_mechanics_audit_sha256": "6e76462e521ee6162a5dba4552148a192743849a1c94a3348e6057d3256bcab2",
+  "cumulative": {
+    "jev": 725,
+    "typellm": 71
+  },
+  "state": "NOT_MEASURED",
+  "quality": "UNPROVEN",
+  "effect": "UNPROVEN",
+  "frontier_effect": "UNPROVEN",
+  "scope": "EXACT_CI_INTEGRITY_AND_SYNTHETIC_MECHANICS_NEW_POOL_UNRELEASED_NO_MODEL_PERFORMANCE_OR_POST_GO",
+  "reviewer_real_provider_calls": 0
+}

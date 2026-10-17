@@ -1,0 +1,60 @@
+{
+  "schema": "voice-ui.review.frontier-prepared-G0-operator/1",
+  "status": "PASS",
+  "scope": "STATIC_PREPARATION_REVIEW_ONLY_NOT_MANAGER_LAUNCH_OR_API_GO",
+  "phase": "frontier-public-G0-20261018",
+  "head": "2cc4890b765a5534e92855f83f9232ae85bb373b",
+  "files": [
+    {
+      "name": "frontier-public-G0-20261018.config.json",
+      "sha256": "c33ef73b51faa61327a0254296f65dae59192a4b70329b2572a25e1ebbbbbe74",
+      "bytes": 646
+    },
+    {
+      "name": "frontier-public-G0-20261018.operator.mjs",
+      "sha256": "bfc6000ca07a886df4ab0cfab541dee743f248bdb72818fa0877135ed05864ec",
+      "bytes": 3809
+    },
+    {
+      "name": "frontier-public-G0-20261018.root-zero.mjs",
+      "sha256": "e47bb7d13c742fc3708268c961c193b62580dfb0c12c6ae33a255edd6247ae35",
+      "bytes": 3533
+    }
+  ],
+  "config": {
+    "phase_id": "frontier-public-G0-20261018",
+    "axis": "G0",
+    "stage": "public",
+    "input_sha256": "560b9126d385c9cfa1a48431fc6c78355b9f811e92b7a2f9736684a2c7f91c0f",
+    "case_count": 10,
+    "program": "/nix/store/bg0bygqiid25xnivxv9cdgjlx3sp939j-voice-ui-typed-dev/bin/voice-ui-typed-dev",
+    "heads": {
+      "apps": "2cc4890b765a5534e92855f83f9232ae85bb373b",
+      "envs": "063e685b8b21a97fc8658879da93fa858552bcd6",
+      "ops": "b4f611cac9e13fbef178469796cbc3b6d4a76b23",
+      "windows": "6aef693c0946903d8b87c2348039de1420acd61b",
+      "ui": "756d47e891191c3344eb2d29b000203be8331abc"
+    },
+    "allowances": {
+      "jev": 10,
+      "typellm": 0
+    }
+  },
+  "reviewed_controls": [
+    "immutable runtime/head/input/commitment binding before driver",
+    "actual startticks/PGID/nonZ and provider-send0 prechecks",
+    "actual identity PID/start binding",
+    "one frozen six-flag G0 caller invocation",
+    "exclusive output creation and fsync",
+    "finally strict manager stop regardless of driver success",
+    "immediate immutable full journal cutoff",
+    "root-zero GET-only completed index, UID1000, config/runtime/Worker/provider/protocol checks"
+  ],
+  "required_independent_later_gates": [
+    "R19 exact source/fullCI/actual artifact/frozenPR readback before manager launch",
+    "actual PID/argv/preload/caps/input/baseline and0send audit after launch",
+    "separate one-shot paid POST GO"
+  ],
+  "reviewer_executions_of_operator": 0,
+  "reviewer_real_provider_calls": 0
+}

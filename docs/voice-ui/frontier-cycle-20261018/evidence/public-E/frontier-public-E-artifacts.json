@@ -1,0 +1,56 @@
+{
+  "schema": "voice-ui.independent-public-artifacts/1",
+  "scope": "Explicit public E evidence only; no private fixture, oracle or authoring script.",
+  "files": [
+    {
+      "name": "frontier-public-E-zero-send-audit.json",
+      "bytes": 6015,
+      "sha256": "54a7cd0e1d30348765f40963a4fea464c82cb113cad039eac094fa2639654bce"
+    },
+    {
+      "name": "frontier-public-E-physical-stop.json",
+      "bytes": 7618,
+      "sha256": "60d80fe6eec33956a02a9c9f8759d03266cdb9d90c5c9fe92d0f65a6241a00f2"
+    },
+    {
+      "name": "frontier-public-E-stop-audit.json",
+      "bytes": 7746,
+      "sha256": "cc6ae0829fe9dff55b66fc4cbca69aa682302187044f6b7dc057629f3ce43c91"
+    },
+    {
+      "name": "frontier-public-E-raw-audit.json",
+      "bytes": 13573,
+      "sha256": "cdd663aa755a61bd83722f0f9c56d0cc174ea862c9e050f8d49f43c819b71acc"
+    },
+    {
+      "name": "frontier-public-E-provider-audit.json",
+      "bytes": 868,
+      "sha256": "a5a28a7ee69d961b1c65103af6af4cc1b66f1dd275fd5343a697872c872082f6"
+    },
+    {
+      "name": "frontier-public-E-producer-audit.json",
+      "bytes": 192,
+      "sha256": "f73ea3e239b785871a6bd995e3bbc954feedb4c2a27b11c55adc1c7bf905134f"
+    },
+    {
+      "name": "frontier-public-E-process-audit.json",
+      "bytes": 580,
+      "sha256": "0a68f2fd21e81f46bb120568011979f77005b67e27647b018ba77fa29a490898"
+    },
+    {
+      "name": "frontier-public-E-replay.json",
+      "bytes": 22268,
+      "sha256": "e39dc3b351f89c5769a7904143380532e61cd1c0e0122e46431274a81426f88f"
+    },
+    {
+      "name": "frontier-public-E.producer.json",
+      "bytes": 5869,
+      "sha256": "8381f8e26fd6e88051401c71c9c1c70b94be7c4072c62b241c2a4d1d1b4ec759"
+    },
+    {
+      "name": "frontier-public-E-summary.json",
+      "bytes": 5712,
+      "sha256": "535afc2bd55bc7569ccaf8088015be344a5c09244841435ebd8495274b9cd192"
+    }
+  ]
+}
