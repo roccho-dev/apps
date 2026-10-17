@@ -175,6 +175,13 @@ export function readLiteralInspection(value, utterance) {
       || !["complete", "incomplete"].includes(value.completeness.choice)
       || typeof value.completeness.confidence !== "number" || !Number.isFinite(value.completeness.confidence)
       || value.completeness.confidence < 0 || value.completeness.confidence > 1) return null;
+  const quantities = new Map();
+  for (const span of value.spans) {
+    const key = JSON.stringify([span.label, span.kind]);
+    quantities.set(key, (quantities.get(key) ?? 0) + span.quantity);
+  }
+  if (quantities.size !== value.required.length
+      || !value.required.every(row => quantities.get(JSON.stringify([row.label, row.kind])) === row.quantity)) return null;
   return structuredClone(value);
 }
 

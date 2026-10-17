@@ -239,6 +239,8 @@ test("every literal gate rejects malformed extraction before dispatch", async ()
     x => { x.spans[0].source = "invented"; }, x => { x.spans[0].extra = true; },
     x => { x.spans[0].quantity = 4; }, x => { x.recognized = false; },
     x => { x.completeness.confidence = null; },
+    x => { x.required[0].quantity = 2; }, x => { x.required[0].label = "OtherName"; },
+    x => { x.required[0].kind = "data"; },
   ];
   for (const choice of ["sufficient", "missing", "unknown", "ambiguous", "no-change", "unsupported"])
     for (const mutate of mutations) {
