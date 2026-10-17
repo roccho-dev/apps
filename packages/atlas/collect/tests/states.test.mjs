@@ -18,7 +18,7 @@ const only = events => { assert.equal(events.length, 1); return events[0]; };
 test('repo archived: true / false / fetch failed → "true" / "false" / UNKNOWN', () => {
   for (const [name, value] of [['repo-archived-true', 'true'], ['repo-archived-false', 'false'], ['repo-fetch-failed', UNKNOWN]]) {
     const event = only(observe(snapshot(name)));
-    assert.deepEqual([event.kind, event.target, event.value], ['observation', 'windows:archived', value], name);
+    assert.deepEqual([event.kind, event.target, event.value], ['observation', 'roccho-dev/windows:archived', value], name);
     assert.equal(event.observedAt, '2026-10-17T09:00:00Z');
     assert.equal(event.source.ref, 'gh api repos/roccho-dev/windows');
   }
@@ -36,7 +36,7 @@ test('repo archived: a non-boolean field is not read as a value', () => {
 test('issue state: open / closed completed / closed not_planned keep state and state_reason in one fact', () => {
   for (const [name, value] of [['issue-open', 'open'], ['issue-closed-completed', 'closed/completed'], ['issue-closed-not-planned', 'closed/not_planned']]) {
     const event = only(observe(snapshot(name)));
-    assert.deepEqual([event.target, event.value], ['ops#479:issue.state', value], name);
+    assert.deepEqual([event.target, event.value], ['roccho-dev/ops#479:issue.state', value], name);
     assert.equal(event.source.ref, 'gh api repos/roccho-dev/ops/issues/479');
   }
 });
@@ -54,7 +54,7 @@ test('issue state: no false "completed" — missing reason, missing state, faile
 
 test('issue state: a PR in the issues API is UNKNOWN with the reason, never "closed"', () => {
   const merged = only(observe(snapshot('issue-is-merged-pr')));
-  assert.deepEqual([merged.target, merged.value], ['ops#479:issue.state', UNKNOWN]);
+  assert.deepEqual([merged.target, merged.value], ['roccho-dev/ops#479:issue.state', UNKNOWN]);
   assert.match(merged.source.ref, /^gh api repos\/roccho-dev\/ops\/issues\/479 .*pull request.*pr\.state.*pr\.merged/u, 'reason kept in the source D reads');
   // Whatever the PR's state or reason fields say (open, closed, with a reason), the key alone decides.
   for (const [state, reason] of [['open', null], ['closed', 'completed']]) {
@@ -64,9 +64,25 @@ test('issue state: a PR in the issues API is UNKNOWN with the reason, never "clo
   }
 });
 
+test('owner is part of every id: same repo name and number under two owners are two targets', () => {
+  const twin = (owner, state) => {
+    const s = snapshot('issue-open');
+    s.owner = owner; s.repo = 'X'; s.number = 1; s.responses.issue.data.state = state;
+    return s;
+  };
+  const events = [twin('a', 'open'), twin('b', 'closed')].flatMap(observe);
+  assert.deepEqual(events.map(e => [e.target, e.value]), [['a/X#1:issue.state', 'open'], ['b/X#1:issue.state', 'closed']]);
+  const repo = snapshot('repo-archived-true'), fork = { ...snapshot('repo-archived-false'), owner: 'yksr-melt' };
+  assert.deepEqual([repo, fork].flatMap(observe).map(e => e.target), ['roccho-dev/windows:archived', 'yksr-melt/windows:archived']);
+  // A snapshot without an owner cannot be qualified: refused, never collapsed into a shared name.
+  const ownerless = snapshot('issue-open');
+  delete ownerless.owner;
+  assert.throws(() => normalize(ownerless), /owner/u);
+});
+
 test('facts only: no meaning target is ever emitted; time order still enforced', () => {
   const events = ['repo-archived-true', 'issue-closed-completed', 'repo-fetch-failed'].flatMap(name => observe(snapshot(name)));
-  assert.deepEqual(events.map(e => e.target), ['windows:archived', 'ops#479:issue.state', 'windows:archived']);
+  assert.deepEqual(events.map(e => e.target), ['roccho-dev/windows:archived', 'roccho-dev/ops#479:issue.state', 'roccho-dev/windows:archived']);
   assert.ok(events.every(e => !/^(input|envs):/u.test(e.target)), 'input:semcmp-adopted / envs:scope-claimed are P\'s, not G\'s');
   assert.throws(() => collect(normalize(snapshot('issue-open')), '2026-10-17T08:59:59Z'), /observedAt .* is after recordedAt/u);
 });

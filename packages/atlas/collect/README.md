@@ -53,21 +53,27 @@ stored as null, which the transform turns into `UNKNOWN`. Snapshots from before 
 
 `{kind:'observation', target, value, source:{ref, sha256}, observedAt, recordedAt}`
 
+Every GitHub id carries its owner (adrs#647 v9): targets `owner/repo#n:<fact>` and `owner/repo:archived`,
+plan ids `owner/repo#n:<slug>`, plan node ids `owner/repo#n:<node>`, plan `source.repo` and journal
+`source.ref` `owner/repo#n`. A fork and its upstream (`roccho-dev/Meltype#26`, `yksr-melt/Meltype#842`)
+never share an id. Only `adapter.mjs` qualifies; a snapshot without a plain owner and repo name is
+refused. Declarations naming the old owner-less ids no longer match (no fallback by name).
+
 | target | value |
 |---|---|
-| `<repo>#<n>:pr.state` | GraphQL `state` (`OPEN` / `CLOSED` / `MERGED`) |
-| `<repo>#<n>:pr.merged` | `"true"` / `"false"` |
-| `<repo>#<n>:pr.head` | head SHA |
-| `<repo>#<n>:ci.rollup` | GitHub's `statusCheckRollup.state` of the head commit; null or other commit → `UNKNOWN` |
+| `<owner>/<repo>#<n>:pr.state` | GraphQL `state` (`OPEN` / `CLOSED` / `MERGED`) |
+| `<owner>/<repo>#<n>:pr.merged` | `"true"` / `"false"` |
+| `<owner>/<repo>#<n>:pr.head` | head SHA |
+| `<owner>/<repo>#<n>:ci.rollup` | GitHub's `statusCheckRollup.state` of the head commit; null or other commit → `UNKNOWN` |
 | `<target>:session` | `running` / `transcript-only` / `not-found` / `UNKNOWN` |
 | `<target>:port` | `responding` / `no-response` / `UNKNOWN` |
-| `<repo>#<n>:plan.source` | only when the Issue/comments fetch failed: `UNKNOWN` (not "no plan") |
-| `<repo>:archived` | `"true"` / `"false"`; a non-boolean or missing field, or a failed call → `UNKNOWN` |
-| `<repo>#<n>:issue.state` | `state`, plus `/<state_reason>` when GitHub gives one: `open`, `closed`, `closed/completed`, `closed/not_planned`, `open/reopened`; no string `state` → `UNKNOWN`; a PR (`pull_request` key) → `UNKNOWN`, reason in `source.ref` (list PRs in `pulls`: `pr.state`, `pr.merged`) |
+| `<owner>/<repo>#<n>:plan.source` | only when the Issue/comments fetch failed: `UNKNOWN` (not "no plan") |
+| `<owner>/<repo>:archived` | `"true"` / `"false"`; a non-boolean or missing field, or a failed call → `UNKNOWN` |
+| `<owner>/<repo>#<n>:issue.state` | `state`, plus `/<state_reason>` when GitHub gives one: `open`, `closed`, `closed/completed`, `closed/not_planned`, `open/reopened`; no string `state` → `UNKNOWN`; a PR (`pull_request` key) → `UNKNOWN`, reason in `source.ref` (list PRs in `pulls`: `pr.state`, `pr.merged`) |
 
 `observedAt` is the snapshot's fetch time. `observedAt > recordedAt` is rejected (throws).
 
-G emits fact targets only (`windows:archived`, `ops#479:issue.state`). It never writes a meaning target
+G emits fact targets only (`roccho-dev/windows:archived`, `roccho-dev/apps#92:pr.merged`). It never writes a meaning target
 such as `input:semcmp-adopted`; which fact satisfies a condition is P's declared predicate. Keeping
 `state_reason` inside the `issue.state` value lets one `equals "closed/completed"` predicate exclude
 a reason-less or `not_planned` close, and keeps an open issue's null reason from becoming `UNKNOWN`.
@@ -86,14 +92,14 @@ Target names, process names and file names are never matched against the target.
 ## plan.set
 
 Only sections that start at a marker `<!-- <slug>-v<N> -->` in an Issue/PR body or comment
-are read; a section runs to the next marker or the end of that text. Per `<repo>#<n>:<slug>`
+are read; a section runs to the next marker or the end of that text. Per `<owner>/<repo>#<n>:<slug>`
 the highest `N` is current. Two different texts with the same highest `N` → nodes/edges/exits
 `UNKNOWN`, `unknown:['conflicting-version']` (no winner).
 
 ```
-{kind:'plan.set', plan:'resources#25:windows-retirement-migration-20261016', version, recordedAt,
- source:{repo:'resources#25', commentId|null, updatedAt, sha256},   // sha256 of the extracted section text
- nodes:[{id:'resources#25:E', label, shape, groups, exit, predicate, owner, requires}] | 'UNKNOWN',
+{kind:'plan.set', plan:'roccho-dev/resources#25:windows-retirement-migration-20261016', version, recordedAt,
+ source:{repo:'roccho-dev/resources#25', commentId|null, updatedAt, sha256},   // sha256 of the extracted section text
+ nodes:[{id:'roccho-dev/resources#25:E', label, shape, groups, exit, predicate, owner, requires}] | 'UNKNOWN',
  edges:[{from, to, kind, condition, style}] | 'UNKNOWN',
  exits:[{node, exit, predicate, owner, requires}] | 'UNKNOWN',
  unknown:[...reasons], unparsed?:[lines]}
@@ -121,7 +127,7 @@ sections of Issue/PR texts, and P's declaration files (`declarations: [path]` in
 `ideal.set`, `purpose.evaluated`, `purpose.ended`. The actor is the gh author of that text
 (P for a declaration file); a line naming another actor, without an author, with a
 `recordedAt` after its text, of another kind or not JSON becomes `journal.held` with the
-reason. The source is `{ref: repo#n | hq:path, commentId, sha256 of the text}`. A plan.set
+reason. The source is `{ref: owner/repo#n | hq:path, commentId, sha256 of the text}`. A plan.set
 also carries its text's author as `actor` when the snapshot has it.
 
 ## Fixtures
