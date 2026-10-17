@@ -1,0 +1,142 @@
+{
+  "schema": "voice-ui.review.intent-registration/1",
+  "status": "PASS",
+  "observed_at": "2026-10-17T18:55:43.180Z",
+  "head": "0bea78112600b876527f6df8aaeb8ba3d7224764",
+  "tree": "3d9024804d48e9ad9e5c8a99418019b779fde750",
+  "parent": "ffc2337387289be5d4987be4e2eef95e684db132",
+  "docs_only_added": 26,
+  "public_prereg_files": [
+    {
+      "name": "intent-cycle-protocol.md",
+      "git_blob": "3a8e40ce82582b4f5851612c36c734d83b24f12c",
+      "bytes": 13467,
+      "sha256": "a45ef5bc9f4e8e006787fe0934e3d25bd5ca8b0528ba5a3a9c16b8d51d18f428"
+    },
+    {
+      "name": "intent-cycle-public-G0-10.inputs.json",
+      "git_blob": "3544aa77d72cf2bf1c945ac45ef9a8a070968082",
+      "bytes": 5482,
+      "sha256": "bb2e090c218ef9be4db85416a87b60bf85a9d2d10a3156c4994bc1e6fd4bc4ba"
+    },
+    {
+      "name": "intent-cycle-public-G0-10.oracle.json",
+      "git_blob": "4baafa48414a73b15fb2324ff60cd76e83ba61ff",
+      "bytes": 12734,
+      "sha256": "a5f08d8d2ed57b802870c76f4a86b9481400325d9c6342e8a0d66f58b5fb8653"
+    },
+    {
+      "name": "intent-cycle-public-E-2.inputs.json",
+      "git_blob": "7baf943efe3e90c4aa4d4423021d22a8368d4bed",
+      "bytes": 3824,
+      "sha256": "6ed1692b94371faef36475e08a221926b96cbc783f15f5d230ebb118a28b0afa"
+    },
+    {
+      "name": "intent-cycle-public-E-2.oracle.json",
+      "git_blob": "75584afc10a3120ca962f370c6b4f91a580c0cd9",
+      "bytes": 6753,
+      "sha256": "9f5418a40cef083ff4119b0553c5f58a35451dbbec6147ea53db0e5b97d79ee5"
+    },
+    {
+      "name": "intent-cycle-public-literal-preflight.json",
+      "git_blob": "861598f9aa39aeea03bf54cb0322fef65e27330e",
+      "bytes": 4932,
+      "sha256": "15429acdb503ed9d40c444a5f434c2fc48c8d6d3fd506c78cd56f491a5a7eece"
+    },
+    {
+      "name": "intent-cycle-seal-validation.json",
+      "git_blob": "8bda4531c1579820da3ce613e2965974637bb4f7",
+      "bytes": 3986,
+      "sha256": "fd63c0b4b0ab986a56398aaf5d41aed163ffb580c538780e40d0ce490f94be33"
+    },
+    {
+      "name": "intent-cycle-commitment.json",
+      "git_blob": "79af2e258781ef21079b52e643a060276fd68274",
+      "bytes": 8469,
+      "sha256": "45ae964571c6d3632944f5ea29f5584729bfcc46565ccc100e2a899d7a2c2033"
+    },
+    {
+      "name": "intent-cycle-prelive-control-addendum.json",
+      "git_blob": "d907132c9cf901710577a8337e0557a0f406c550",
+      "bytes": 1953,
+      "sha256": "de16f0d1900da11fbb179546aff26df8b9ab6cea05ff68318d6856e7a5cbc3cb"
+    },
+    {
+      "name": "intent-cycle-seal-validation.v2.json",
+      "git_blob": "50d63728c8573d47ce9febf1f5e8b55d32dc4d23",
+      "bytes": 4675,
+      "sha256": "b975d6581ddb67825104ec9fd3af34111d98abcf42fa6033632cfbc037328629"
+    },
+    {
+      "name": "intent-cycle-commitment.v2.json",
+      "git_blob": "b5f995b3ff9396153126820534af030737b694c5",
+      "bytes": 8899,
+      "sha256": "36c9353ccd7ee78ec23a499770f20d2deb53f1cdfc2327e3de80b57fda0d7f86"
+    },
+    {
+      "name": "intent-cycle-freeze.json",
+      "git_blob": "fe2d2cfb197ff7691da8680625a4a45566b862b2",
+      "bytes": 1882,
+      "sha256": "580e73eeef695f18f7e590beb4e3f167bb2078569037e323bc29a4f7d1fcd30b"
+    },
+    {
+      "name": "intent-cycle-freeze.v2.json",
+      "git_blob": "85db4710f88d2df12d2b2aa9fba83e93b9354099",
+      "bytes": 2698,
+      "sha256": "d3fc448b71328db971ef7e2cc61a85a28717fedd73f8d600fa041da371902980"
+    },
+    {
+      "name": "intent-cycle-G0-oracle-contract.json",
+      "git_blob": "6985c24647eafc5962662e0aeb0798b3e3164330",
+      "bytes": 2025,
+      "sha256": "2c6dffe4e3ece44fabf89a5cfcc902f0d4c133482a715518aa856e7fb9e9669d"
+    },
+    {
+      "name": "intent-cycle-seal-validation.v3.json",
+      "git_blob": "a09351c7e15cf0ea9dfe750843b1e598c5390b6f",
+      "bytes": 5244,
+      "sha256": "15f416fa99577555b155773ce917aacfbeac41f89f52c5999fb087bc0defe072"
+    },
+    {
+      "name": "intent-cycle-commitment.v3.json",
+      "git_blob": "47b4d54c37a59834ed09539bee71261ed69b39b9",
+      "bytes": 9151,
+      "sha256": "aa5495197f05f82d6447218ac7c036626105b3f839c4b1c0544c67e08e9c1a2f"
+    },
+    {
+      "name": "intent-cycle-freeze.v3.json",
+      "git_blob": "f938bdbe171c22535e828c018096cc486a62c4ab",
+      "bytes": 3597,
+      "sha256": "a8e7cd00871379bdec48bf35f2a4a4cb0f9b6eef826c43d0bcabac8d3789e528"
+    }
+  ],
+  "active_commitment_sha256": "aa5495197f05f82d6447218ac7c036626105b3f839c4b1c0544c67e08e9c1a2f",
+  "freeze_sha256": "a8e7cd00871379bdec48bf35f2a4a4cb0f9b6eef826c43d0bcabac8d3789e528",
+  "empty_index": {
+    "schema": "voice-ui.intent-cycle-evidence-index/1",
+    "commitment": "../preregistered/intent-cycle-commitment.v3.json",
+    "freeze": "../preregistered/intent-cycle-freeze.v3.json",
+    "baseline_journal": "../../dependency-cycle-20261018/evidence/public-E/dependency-public-E-20261018.journal.jsonl",
+    "expected_cumulative": {
+      "jev": 715,
+      "typellm": 71
+    },
+    "phases": []
+  },
+  "lineage": "Original public bytes retained; explicit unresolved-control null correction and G0 provenance/no-adoption clarification; corrected private E referenced by hashes only",
+  "private_intent_payloads_published": false,
+  "human": {
+    "README": "# 原文の明確さと有限抽出を分ける反復\n\n実装前の別登録。前回は[全22実行をCIと独立R16で閉包](../dependency-cycle-20261018/closure.md)し、公開の依存付きFは正確5/6、Vは正解6/6、製品Eは達成1/2で停止した。前回の公開E未達・失敗・未見解放0を維持する。累計は予算計数715Jev/71TypeLLM、確認済み実送715/70。今回の追加実API送信は0。\n\n新仮説は、入口G0が「原文の依頼が明確か」と「有限の抽出器が全量を読めたか」を分ければ、明確な依頼を誤って保留する例を減らせる、というもの。変更対象は `literalQuestion` のintent追記だけとする。部品を特定しない数量だけの依頼、未指定の追加部品・親・端点、変更なし、未対応操作の保留条件を維持する。質問・文脈・依存指定を含むType生成、独立V、parser、在庫計算、.5閾値、Typeを呼ぶ条件、Goal・描画は固定する。モデルがこの指示に従うかは未実証である。\n\n小さなPOCの範囲は、最大3種類・総数3個の新規部品と既存の図操作。正しい部品が揃ってから描く性能と、説明から必要部品を揃える性能を別に測る。Typeは全NEW部品案だけを出し、在庫差分はアプリ、構造・接続・ID・操作は既存Goalが所有する。\n\n## 固定した評価と進行\n\n同じ独立Rが[protocol](preregistered/intent-cycle-protocol.md)と[canonical commitment v3](preregistered/intent-cycle-commitment.v3.json)を固定した。commitment SHA256は `aa5495197f05f82d6447218ac7c036626105b3f839c4b1c0544c67e08e9c1a2f`、[公開allowlist v3](preregistered/intent-cycle-freeze.v3.json)は `a8e7cd00871379bdec48bf35f2a4a4cb0f9b6eef826c43d0bcabac8d3789e528`。公開G0/E2の入力・正解は登録時に公開する。新しい未見V10/F8/E10はR側で封印し、各入力は予定した段階、各正解はその段階の実停止・送信照合後にだけ解放する。旧未使用poolは使わない。\n\n| 評価 | 問い | 固定基準 |\n| --- | --- | --- |\n| 公開G0 10問 | 原文の意図と実際の補完適格性を正しく分けられるか | 正5/負5の意図全10正解、confidence>=.5、保留・Type条件・正規化・在庫差分・図の不変性を検査 |\n| 公開E 2組 | 同じ説明で補完ありの実際の完成が改善するか | 両組が比較適格で改善、候補全量・図・実paint・保存・期限・guardを達成 |\n| 未見V 10問 | 部品案の正否を検証できるか | 正案5・誤案5、全件有効・正解、誤受理0 |\n| 未見F 8問 | 必要な部品全量を揃えられるか | 全件有効・過不足なし。充足2問の在庫差分0 |\n| 未見E 10組 | 製品の充足・不足・対照を満たすか | 充足4・不足4・対照2、候補側全10達成、比較適格な不足改善2件以上、退行0、全guard |\n\n公開G0と公開Eを同じheadで通過した後、未見V→F→Eを一度ずつ測る。未見V/Fの成績未達も分母に残し、証拠・source・実停止・送信会計が閉じれば次の独立した性能軸へ進む。証拠欠損・source変更・不明な送信・残予約があれば進行しない。E成功をV/F成功へ読み替えない。\n\n```mermaid\nflowchart TD\n  A[事前登録・実装・完成物CI・独立受入] --> B[公開G0 10問]\n  B -->|全問gate通過| C[公開E 2組]\n  B -->|未達| Z[原記録を保全しCIと独立Rで閉包]\n  C -->|両組gate通過| D[未見V10 → F8 → E10組を各一度]\n  C -->|未達| Z\n  D -->|成績を分離・各段の証拠と会計を検査| Z\n```\n\n表現R8/8は同一core・実rendererのbytesと有限条件が一致する範囲だけで参照する。旧公開F/Vの実測headはae816ecのままとし、完成Workerで送信内容の一致を証明しても新headの測定へ付け替えない。公開F/Vの実API再試験は割り当てず、新しい未見F/Vを一度ずつ測る。\n\n## 測定前の修正履歴\n\n公開前・製品変更前・API送信前に、未見Eの曖昧な対照1件で、未解決の必要部品欄と「図を変えない」期待値の形式が矛盾することを独立検査で発見した。[明示addendum](preregistered/intent-cycle-prelive-control-addendum.json)でその欄だけをnullへ修正し、元input/oracle・commitment・freezeはすべて保持する。入力側の差分はoracle hashだけで、依頼文・開始図・期待図・順序・数量・基準は変えていない。未見の依頼文・正解本体は公開しない。\n\n[G0契約の明確化](preregistered/intent-cycle-G0-oracle-contract.json)では、最初の2問に継承したE targetは来歴の参照だけで、G0の変更権限ではないと明記した。G0は常に全log/head/recordsを維持し、Type0とする。[検査v3](preregistered/intent-cycle-seal-validation.v3.json)は全30のV/F/E oracle admission、元の不整合を拒否する負例、G0独自の正規化・不正変更拒否を確認している。記載した8群のpure検査はその時点のcheckpointであり、最終source admissionではない。実装・独立監査器の最終22sourceと完成物は別途固定する。\n\n## 予算と閉包\n\n新上限は248Jev/20TypeLLM、setup・修正・再試行0。最悪の累計963/91で、各1000上限内に収める。公開G0 10/0、公開E 38/2、未見V 10/0、未見F 0/8、未見E 190/10を段階ごとに予約・実PID送信0確認・一度実行・finally停止・照合する。最後の旧journalは `9b5582798122208f1d36968e4646de46573f414739a239f0ea1195a692a5b6ba`。\n\n[空のCI index](evidence/index.json)はNOT_MEASUREDで、品質・効果はUNPROVEN。既存の必須閉包を残し、新しい22source・stage/policy・固定producer・全予約・実配布物・記録済みEのCI再描画を追加する。NO_EFFECTは不足4組が全て実際に比較適格で改善0の場合などの固定条件を満たす時だけ。未適格・無効・証拠不足はUNPROVEN、改善1件は部分的とする。\n\nOps#565の正式core、[envs正規経路とローカル起動](../typellm-poc-20261017/README.md#ローカル実行と-envs)を維持する。キーの再入力・コピーは不要。Appsはdraft/open/unmerged、UI#362の明示的人間merge承認条件を維持する。CI起点実API、金額費用、四方式全比較、未見一般化と製品採用は未証明である。\n",
+    "protocol": "# 合意した工程の参照\n\n規範は独立Rの[protocol](preregistered/intent-cycle-protocol.md)、[canonical commitment v3](preregistered/intent-cycle-commitment.v3.json)、[freeze v3](preregistered/intent-cycle-freeze.v3.json)、[測定前addendum](preregistered/intent-cycle-prelive-control-addendum.json)、[G0契約](preregistered/intent-cycle-G0-oracle-contract.json)である。元版と各修正版を保持し、未見payloadの複製・公開はしない。\n\n公開G0→公開Eの全gateが同一headで通過するまで未見解放0。その後はV→F→Eを各一度、sourceと全証拠・停止・会計の整合を確認して進める。V/Fの品質未達を消さず、各性能と製品Eの効果を別々に採点する。全件の固定分母、各1000の累計上限、新248/20上限、setup・修正・再試行0を維持する。\n"
+  },
+  "pr": {
+    "head": "0bea78112600b876527f6df8aaeb8ba3d7224764",
+    "state": "open",
+    "draft": true,
+    "merged": false,
+    "body_sha256": "2e80bc97de5abd4120fb61017893b358a8147bc5b4408ec67711c434d27b89f0"
+  },
+  "implementation_preparation_allowed": true,
+  "live_admission": false,
+  "reviewer_provider_calls": 0
+}

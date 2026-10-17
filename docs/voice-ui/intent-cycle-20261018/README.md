@@ -45,3 +45,9 @@ flowchart TD
 [空のCI index](evidence/index.json)はNOT_MEASUREDで、品質・効果はUNPROVEN。既存の必須閉包を残し、新しい22source・stage/policy・固定producer・全予約・実配布物・記録済みEのCI再描画を追加する。NO_EFFECTは不足4組が全て実際に比較適格で改善0の場合などの固定条件を満たす時だけ。未適格・無効・証拠不足はUNPROVEN、改善1件は部分的とする。
 
 Ops#565の正式core、[envs正規経路とローカル起動](../typellm-poc-20261017/README.md#ローカル実行と-envs)を維持する。キーの再入力・コピーは不要。Appsはdraft/open/unmerged、UI#362の明示的人間merge承認条件を維持する。CI起点実API、金額費用、四方式全比較、未見一般化と製品採用は未証明である。
+
+## 実装準備の状態
+
+登録commit `0bea78112600b876527f6df8aaeb8ba3d7224764` は、[独立読戻し](implementation/intent-cycle-registration-audit.json)で26 docsのみ・公開17ファイルの同一性・未見非公開・追加送信0を確認した。この受入後にintent追記1箇所だけを変更した。[独立module v2](implementation/intent-cycle-independent-modules.v2.json)の29群と既存literal5群、空indexのNOT_MEASURED閉包を確認済み。module元版も保持し、v2はtest末尾の改行1byteだけを除いたもので採点の意味は同じである。これらはpure/keylessの整合検査であり、モデル性能の改善を示すものではない。
+
+完成ZIPを開いた新G0 callerの正常10件・HTTP503の失敗10件保持、新E callerの疑似2組4実行の描画・Apply・再読込、および前回headの完成Workerと同じ公開F/V入力でupstream JSON原bytesが等しいことを、新しい必須CIで検査する。F/VのHTTP応答にある各呼出固有request_idは両方を記録して妥当性検査し、その欄だけを除いた応答意味も比較する。upstream送信bytesには正規化を加えない。全22source・独立受入・実PID送信0確認まで実API測定へ進まない。現在は追加実送0であり、公開G0・Eのgate、未見品質・製品効果はいずれも未証明である。

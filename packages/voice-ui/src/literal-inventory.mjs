@@ -87,7 +87,7 @@ export function literalQuestion(state, extracted) {
   } }, questions: { ...request.questions, intent: { ...request.questions.intent,
     instruction: request.questions.intent.instruction
       + " A requested new part needs an explicit displayed name or identifiable offered part and a supported kind. A count alone does not identify a part. "
-      + "The literal extraction is evidence, not a guarantee of complete understanding. If an extra requested part, parent or endpoint remains unspecified, choose ambiguous.",
+      + "Judge intent from the original utterance and existing graph, independently of literal transcription. An empty or partial state.literal is not by itself an ambiguous request; the completeness question evaluates that omission. Choose ambiguous only when the original request itself leaves an extra requested part, parent, endpoint or count impossible to uniquely understand.",
   }, completeness: {
     instruction: "Independently compare ALL requested NEW parts in the original utterance with state.literal.required and its source spans. "
       + "Check exact displayed labels, kinds and total NEW counts, including inside new groups. Existing graph references are not requests for additional instances. "

@@ -325,6 +325,9 @@
                 POC_REQUIREMENTS_FIXTURES = "${self}/docs/voice-ui/requirements-cycle-20261017/preregistered";
                 POC_DEPENDENCY_PREREG_ROOT = "${self}/docs/voice-ui/dependency-cycle-20261018/preregistered";
                 POC_DEPENDENCY_PARENT_ROOT = "${self}/docs/voice-ui/requirements-cycle-20261017/preregistered";
+                POC_INTENT_PREREG_ROOT = "${self}/docs/voice-ui/intent-cycle-20261018/preregistered";
+                POC_INTENT_PARENT_ROOT = "${self}/docs/voice-ui/dependency-cycle-20261018/preregistered";
+                POC_INTENT_OLD_JOURNAL = "${self}/docs/voice-ui/dependency-cycle-20261018/evidence/public-E/dependency-public-E-20261018.journal.jsonl";
                 VOICE_UI_HAYAMIMI = "${hayamimiWeb}";
                 VOICE_UI_SEMANTIC_MAP = "${semanticMap}";
                 VOICE_UI_ARCHITECTURE = "${architectureFor system}";
