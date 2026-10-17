@@ -1,0 +1,53 @@
+{
+  "schema": "voice-ui.requirements-cycle-independent-meaning-validation/1",
+  "status": "PASS",
+  "no_provider_calls": true,
+  "original_commitment_sha256": "f002a267be0096beb988f5cb83e175d7724ce0213a9495755301c19fb2e3eaef",
+  "fresh_payloads_unchanged": [
+    {
+      "axis": "V",
+      "cases": 10,
+      "input_sha256": "be1b471949ed9201b2278214db832068ad6d6393a739ad29494b4d302404f12e",
+      "oracle_sha256": "54749c5fd8e0c9f5fc18715b9a675b2fc7c698de349fd0f3241606539f2b8bcd",
+      "unchanged": true,
+      "target_required_multiset": true,
+      "stock_difference": true,
+      "target_references_resolve": true,
+      "positive": 5,
+      "negative": 5
+    },
+    {
+      "axis": "F",
+      "cases": 8,
+      "input_sha256": "0b58871d1d8ca77e4ab2bc56e2fb3f91d886315c172abff677a5eb3550386ce4",
+      "oracle_sha256": "bf4e8d38f758051e237c721545f545be89f716b71d963121aa8dbbc170f4fb42",
+      "unchanged": true,
+      "target_required_multiset": true,
+      "stock_difference": true,
+      "target_references_resolve": true
+    },
+    {
+      "axis": "E",
+      "cases": 10,
+      "input_sha256": "cfc492e1b37e3ee2ae8590bea8e1f82d7f0d5ea7dcf645ba09c2fa0e47cedcc5",
+      "oracle_sha256": "3cdd7c41ac61e1c646ffb4bbcf1f1e32eab306fb716710896dcec438ca9f3c67",
+      "unchanged": true,
+      "target_required_multiset": true,
+      "stock_difference": true,
+      "target_references_resolve": true
+    }
+  ],
+  "public_E_graph_correction": {
+    "input_sha256": "dddd6843284c39e7aa1862cd2b9debd0548a6b503d892c18d68863205387380c",
+    "oracle_sha256": "723bc974b22fc45da2f19b6c8580f7280e7497d474d5a9f33d35d3f1ce385dea",
+    "target_required_multiset": true
+  },
+  "semantic_truth": "R-authored prior to new source/provider outputs; no production helper derives expected meanings",
+  "checks": [
+    "newcase identity and byte commitments",
+    "clear target count/kind/label multisets",
+    "one-use stock subtraction",
+    "parent/edge reference resolution",
+    "V structurally legal positive5/negative5"
+  ]
+}

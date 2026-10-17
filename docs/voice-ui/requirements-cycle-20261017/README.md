@@ -2,6 +2,8 @@
 
 状態: 事前登録済み、実API評価前。前回の実測結果は [component axes](../component-axes-20261017/README.md) に固定している。
 
+実API実行前の独立テストで公開E2の期待追加図の記載漏れを検出し、[訂正addendum](preregistered/requirements-cycle-public-E2-correction.json)で訂正した。原commitmentと原E2の2ファイルを残し、測定は明示的にE2.v2を使う。未見6ファイルのhashと意味・在庫差分・参照の[独立再確認](preregistered/requirements-cycle-meaning-validation.json)は不変PASS。
+
 | 評価 | 与えるもの | 測るもの |
 | --- | --- | --- |
 | 表現 R | 正しい部品在庫と元の説明 | Goalが親子・接続を選び、実画面へ描き保存できるか |
