@@ -136,10 +136,10 @@ try {
     fixture = selected;
     const records = [{ type: "meta", schema: "semantic-map-state/1", root: "root", title: "candidate browser fixture" },
       { type: "region", id: "root", label: "World", parent: null, kind: "boundary", bounds: [0, 0, 1000, 700], summary: "" },
-      { type: "region", id: "container", label: "OCI", parent: "root", kind: "group", bounds: [0, 0, 900, 500], summary: "" }];
+      { type: "region", id: "container", label: "OCI", parent: "root", kind: "group", bounds: [0, 0, 2000, 500], summary: "" }];
     const initial = await protocol.createDecisionLog(records, "voice-graph");
     const pin = await protocol.createDecision(initial.head,
-      [{ type: "PinRegions", items: [{ regionId: "container", bounds: [0, 0, 900, 500] }] }], initial.records);
+      [{ type: "PinRegions", items: [{ regionId: "container", bounds: [0, 0, 2000, 500] }] }], initial.records);
     const accepted = (await protocol.appendDecision(initial.log, pin.decision)).verified;
     const context = await browser.newContext({ viewport: { width: 1280, height: 720 }, deviceScaleFactor: 1 });
     const page = await context.newPage(), errors = [];

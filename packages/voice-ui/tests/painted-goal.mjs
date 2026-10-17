@@ -320,6 +320,7 @@ export function assessPaintedGoal(observation) {
   if (!inside(observation.title?.box, observation.container?.bounds)) problems.push("parent title outside own shape box");
   for (const item of observation.shapes) {
     name(item.name, item.id);
+    if (!inside(item.bounds, observation.viewport)) problems.push(item.id + ": child shape outside viewport");
     if (!inside(item.name?.box, item.bounds)) problems.push(item.id + ": label outside own shape box");
     if (overlap(item.name?.box, observation.title?.box) || overlap(item.bounds, observation.title?.box))
       problems.push(item.id + ": parent title overlaps child");

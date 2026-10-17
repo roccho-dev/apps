@@ -17,6 +17,7 @@ test("finite painted acceptance separates unsupported association from known cli
     x => { x.shapes[0].name.box = [0, 60, 80, 16]; },
     x => { x.shapes[1].name.box = x.shapes[0].name.box; },
     x => { x.title.box = [410, 10, 60, 16]; },
+    x => { x.shapes[0].bounds = [-20, 40, 170, 70]; },
     x => { x.edge = { complete: false }; }]) {
     const x = observation(); change(x); assert.notEqual(assessPaintedGoal(x).status, "PASS");
   }

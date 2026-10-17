@@ -796,7 +796,7 @@ cameraPart.addEventListener("change", () => withSurface("camera", async () => {
       : Array.isArray(cameraTarget(session.working, camera))
         ? "選んだ矢印の両端が収まるように表示しています。表示外の部品も図には残っています。長いラベルは収まらない場合があります"
         : cameraRecord(session.working, camera)?.kind === "group"
-          ? "選んだ範囲全体を表示しています。長いラベルは収まらない場合があります"
+          ? "選んだ範囲の見出しと内容を表示しています。空白の境界や長いラベルは収まらない場合があります"
           : "選んだ部品を等倍で表示しています。表示外の部品も図には残っています。長いラベルは収まらない場合があります");
   } catch { invalidateView(); }
 }));

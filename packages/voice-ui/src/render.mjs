@@ -109,10 +109,18 @@ export function frameFor({ graph, width, height, protocol, part = null }) {
       if (!Array.isArray(selected) || selected.length !== 4 || !selected.every(Number.isFinite)
         || !(selected[2] > 0 && selected[3] > 0) || !Number.isFinite(width) || !Number.isFinite(height)) return null;
       const [x, y, w, h] = selected;
-      // A group camera includes its whole boundary, with screen space for its
-      // stroke and fixed-size title. It never enlarges small groups beyond 1:1.
-      const scale = Math.min(1, width / (w + 32), height / (h + 32));
-      const bbox = [x + w / 2 - width / (2 * scale), y + h / 2 - height / (2 * scale), width / scale, height / scale];
+      const children = graph.records.filter(record => record.type === "region" && record.parent === part)
+        .map(record => bounds[record.id]);
+      if (!children.every(box => Array.isArray(box) && box.length === 4 && box.every(Number.isFinite) && box[2] > 0 && box[3] > 0)) return null;
+      // Show the title area and EVERY direct child's actual layout. Empty
+      // space in a wide boundary must not shrink fixed-screen fonts over the
+      // children. The boundary can extend beyond this view; no layout changes.
+      // This finite title allowance is not a guarantee for arbitrary long names.
+      const left = Math.min(x, ...children.map(box => box[0])), top = Math.min(y, ...children.map(box => box[1]));
+      const right = Math.max(x + Math.min(w, 240), ...children.map(box => box[0] + box[2]));
+      const bottom = Math.max(y + Math.min(h, 60), ...children.map(box => box[1] + box[3]));
+      const scale = Math.min(1, width / (right - left + 32), height / (bottom - top + 32));
+      const bbox = [(left + right) / 2 - width / (2 * scale), (top + bottom) / 2 - height / (2 * scale), width / scale, height / scale];
       return scale > 0 && bbox.every(Number.isFinite) ? { bbox, viewport: [width, height] } : null;
     }
     // One layout unit per pixel: a readable local camera around this part,
