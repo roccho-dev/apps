@@ -338,7 +338,39 @@ test("compiled Worker binds both released provider operations, validates invento
   assert.equal(invalid.calls.length, 1);
 });
 
-test("ordinary completed Worker defaults to literal without a Type key; unknown or duplicate methods cannot dispatch", async () => {
+test("normal compiled check uses adaptive requirements and complete B works without a Type key", async () => {
+  const input = { kind: "voice-ui.goal.inventory.v1", state: { utterance: "Containerへ新しい工程を1つ、その表示名はNovel",
+    head: "fixture-head", regions: [{ id: "root", parent: null, label: "World", kind: "boundary" },
+      { id: "container", parent: "root", label: "Container", kind: "group" }], edges: [],
+    parts: [{ key: "service", label: "Service", kind: "step", purpose: "one service" }] } };
+  const invoke = (body, env) => worker.fetch(new Request("http://localhost/api/parts/check",
+    { method: "POST", body: JSON.stringify(body) }), env);
+  const { calls } = await withProvider(async (body, init) => {
+    if (body.questions.required1) {
+      assert.equal(init.headers.authorization, "Bearer typed-test-only");
+      return Response.json({ status: "completed", result: Object.fromEntries([1, 2, 3].map(n => ["required" + n,
+        n === 1 ? { label: "Novel", kind: "step", quantity: "1" } : { label: "", kind: "none", quantity: "0" }])) });
+    }
+    assert.equal(init.headers.authorization, "Bearer jev-test-only");
+    assert.deepEqual(Object.keys(body.questions), ["intent", "labels", "capacity", "completeness"]);
+    const picks = { intent: "change", labels: "missing", capacity: "within",
+      completeness: body.state.required || body.state.utterance.includes("Service") ? "complete" : "incomplete" };
+    return Response.json({ model: "synthetic-only", answers: Object.fromEntries(Object.keys(body.questions).map(name =>
+      [name, { type: "choice", choice: picks[name], confidence: .9 }])) });
+  }, async () => {
+    const response = await invoke(input, { JEV_API_KEY: "jev-test-only", TYPELLM_API_KEY: "typed-test-only" });
+    const body = await response.json(); assert.equal(response.status, 200); assert.equal(body.choice, "missing");
+    assert.equal(body.inspection.mode, "adaptive-v2"); assert.equal(body.inspection.initial.decision.choice, "unknown");
+    assert.equal(body.inspection.verification.completeness.choice, "complete");
+    const sufficient = structuredClone(input); sufficient.state.utterance = "ContainerにServiceを1個追加";
+    const complete = await invoke(sufficient, { JEV_API_KEY: "jev-test-only" });
+    const value = await complete.json(); assert.equal(complete.status, 200); assert.equal(value.choice, "sufficient");
+    assert.equal(value.inspection.proposal, null); assert.deepEqual(value.inspection.missing, []);
+  });
+  assert.equal(calls.length, 4);
+});
+
+test("legacy completed Worker completion defaults to literal without a Type key; invalid methods cannot dispatch", async () => {
   const input = { kind: "voice-ui.goal.inventory.v1", state: { utterance: "ContainerにDBを3個追加", head: "fixture-head",
     regions: [{ id: "root", label: "World", kind: "boundary", parent: null },
       { id: "container", label: "Container", kind: "group", parent: "root" }], edges: [],
