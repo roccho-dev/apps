@@ -300,20 +300,24 @@ export function requiredDifference(required, parts) {
 }
 
 export function requiredRequest(context) {
-  const ordinal = ["FIRST", "SECOND", "THIRD"];
-  return { context: JSON.stringify(context), questions: Object.fromEntries([1, 2, 3].map((n, i) => ["required" + n, {
+  const subject = n => "原文のutterance全体から、今回新しく追加する部品の（表示名,種類）の組を、最初に言及された順に重複なく列挙する。"
+    + "同じ組を複数個追加しても1組として数える。新しい囲み内の子も列挙するが、既存の親や接続先は追加に含めない。"
+    + "在庫partsや既存regionsの個数は引かない。この質問が答えるのは、その一覧の第" + n + "組だけ。"
+    + "第" + n + "組がなければ未使用とする。別の順位の組を繰り返して埋めない。";
+  return { context: JSON.stringify(context), questions: Object.fromEntries([1, 2, 3].map(n => ["required" + n, {
     type: "object",
-    instructions: "Find the " + ordinal[i] + " DISTINCT requested NEW label/kind pair in utterance order. "
-      + "Independently enumerate ALL pairs in the WHOLE utterance, including children of a new group. "
-      + "Quantity is the TOTAL NEW count requested for this pair, BEFORE any subtraction of inventory or existing graph nodes. "
-      + "Do not skip an available pair. Do not report a shortage count. Repeated identical instances belong to one pair. "
-      + "Preserve explicit display names exactly. Use the requested supported kind; existing nodes used as references are not additions. "
-      + "At most three distinct pairs and three total NEW instances. Do not generate IDs, parents, edges, operators or extra parts. "
-      + "If no pair exists at this ordinal, use kind none; prefer empty label and quantity 0 as padding.",
+    instructions: "最大3組、合計3個の新規追加要求を読み取る。ID・親・矢印・操作は答えない。" + subject(n),
     properties: {
-      label: { type: "string", instructions: "Exact requested display name, without ID or numbering suffix. Empty padding is allowed for kind none." },
-      kind: { type: "string", enum: [...PART_KINDS, "none"], instructions: "Supported kind for this requested distinct pair, or none at an unused ordinal." },
-      quantity: { type: "string", enum: ["0", "1", "2", "3"], instructions: "TOTAL requested NEW instances for this pair: 1, 2 or 3. Never subtract stock. Prefer 0 for unused kind none." },
+      label: { type: "string", instructions: subject(n) + "第" + n + "組の表示名だけを原文どおり答える。"
+        + "引用された名称や明示された表示名を優先し、通し番号や種類名を付け足さない。"
+        + "表示名の指定がない種類はpartsの対応する標準labelを使う。未使用なら空文字。" },
+      kind: { type: "string", enum: [...PART_KINDS, "none"], instructions: subject(n) + "第" + n + "組の種類だけを答える。"
+        + "Supported meanings: step=task/action/process/box; decision=branch/condition/diamond; data=stored information/document; "
+        + "start=begin; end=finish; group=container/boundary. partsのlabel/kind/purposeも参照する。"
+        + "名称の意味より原文で明示された種類を優先する。未使用ならnone。" },
+      quantity: { type: "string", enum: ["0", "1", "2", "3"], instructions: subject(n) + "第" + n + "組について、"
+        + "今回新たに追加する総個数だけを答える（1・2・3）。組の順位や全組の合計数とは異なる。"
+        + "同じ表示名と種類の反復は合算し、在庫や既存の図から差し引かない。未使用なら0。" },
     },
   }])) };
 }
