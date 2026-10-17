@@ -37,8 +37,10 @@ export const gapOf = (frame, last = null, previous = null) => {
   const parts = frame.ideal && frame.conditions.filter(open).map(value => {
     const old = before.get(value.id), revised = old && !same(ideal(old), ideal(value));
     // The ideal side (v6): at most one; 'initial' when there is no earlier frame with a gap to compare.
-    const cause = { ideal: !last ? 'initial' : !sameKey ? 'purpose-changed' : !old ? 'ideal-added' : revised ? 'ideal-revised' : null,
+    const sides = { ideal: !last ? 'initial' : !sameKey ? 'purpose-changed' : !old ? 'ideal-added' : revised ? 'ideal-revised' : null,
       current: currentCause(old && !revised && sameKey ? old.judgment : null, value.judgment) };
+    // Neither side has a reason: the same open difference continues. It is named (ui refuses a cause with no side).
+    const cause = sides.ideal || sides.current ? sides : { ideal: null, current: 'carried' };
     const observedAt = value.judgment.observation?.observedAt;
     return { condition: value.id, label: value.label, state: state(value), cause,
       // A difference declared again (same Purpose id, same condition, unrevised) continues from its opening frame.
@@ -55,9 +57,8 @@ export const gapOf = (frame, last = null, previous = null) => {
     by: frame.stage === 'ended' ? 'purpose-ended' : !frame.ideal || !sameId(previous) || purposeKey(previous.frame) !== purposeKey(frame) && !ids.has(part.condition)
       ? 'purpose-changed' : ids.has(part.condition) ? 'current-satisfied' : 'ideal-removed' }));
   const byCause = {};
-  // Both sides are counted; carried = neither side has a reason now (the same open difference continues).
-  for (const part of parts ?? []) for (const cause of [part.cause.ideal, part.cause.current].filter(Boolean)
-    .concat(part.cause.ideal || part.cause.current ? [] : ['carried'])) byCause[cause] = (byCause[cause] ?? 0) + 1;
+  // Both sides are counted (carried included).
+  for (const part of parts ?? []) for (const cause of [part.cause.ideal, part.cause.current].filter(Boolean)) byCause[cause] = (byCause[cause] ?? 0) + 1;
   return { basis: { purpose_id: frame.purpose.purpose.id, purpose_rev: frame.purpose.rev, purpose_label: frame.purpose.purpose.label,
     ideal_version: frame.ideal?.version ?? null, prev_frame: last ? frameId(last.frame) : null },
   parts, closed, summary: parts ? { open: parts.length, by_cause: byCause, conditions: frame.conditions.length, satisfied: frame.conditions.filter(value => !open(value)).length,
@@ -81,7 +82,7 @@ export const matchedUntil = (frame, phase) => phase !== 'matched' ? null
  */
 export const journalOf = (frame, after = -Infinity) => frame.journal.filter(event => Date.parse(event.recordedAt) > after).map(event => {
   if (event.kind === 'observation') return { kind: event.kind, recordedAt: event.recordedAt, observedAt: event.observedAt, actor: null,
-    source: { ref: event.source, commentId: null, sha256: null }, target: { ...event.target } };
+    source: { ref: event.source, commentId: null, sha256: null }, target: { ...event.target }, value: event.value };
   const source = { ref: event.source.ref, commentId: event.source.commentId == null ? null : number(event.source.commentId), sha256: event.source.digest };
   const detail = {
     'purpose.set': () => ({ purpose_id: event.purpose.id, purpose_label: event.purpose.label, purpose_rev: event.rev }),

@@ -19,7 +19,8 @@ test("R's false negative: an added condition with no observation shows both side
 test('carried only when neither side has a reason; a confirmed unmet is the current side', () => {
   const [, , f2, f3] = world.frames;
   assert.deepEqual(cause(f2, 'B'), { ideal: null, current: 'current-confirmed-unmet' });
-  assert.deepEqual(cause(f3, 'B'), { ideal: null, current: null });
+  // carried is named (ui refuses a cause naming no side): neither side has another reason.
+  assert.deepEqual(cause(f3, 'B'), { ideal: null, current: 'carried' });
   assert.deepEqual(f3.gap.summary.by_cause, { carried: 1 });
 });
 

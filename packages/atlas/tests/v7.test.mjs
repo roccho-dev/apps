@@ -63,3 +63,18 @@ test('the real-data shaped frame: owners by Norm id, 担当なし for the unowne
   assert.deepEqual(history, ['obligation:v1:g6i3-fork', 'obligation:v1:nixos-console', 'closed-change:nixos']);
   assert.ok(frame.relations.filter(value => !value.containment).every(value => value.from.kind !== 'closed-change' && value.to.kind !== 'closed-change'));
 });
+
+// K8b (R's readback of K7/K8): the same record twice in one frame was listed twice, and ui refuses a World
+// whose journal repeats an entry. fixtures/dup = fixtures/v6 + that input (and rows that only look alike).
+test('an exactly repeated record is one journal row; rows that differ in value or source stay; judgments unchanged', () => {
+  const dup = build('dup'), v6 = build('v6');
+  const observations = frame => frame.journal.filter(entry => entry.kind === 'observation').map(entry => [entry.target.id, entry.value, entry.source.ref]);
+  assert.deepEqual(observations(dup.frames[2]), [['svc.b', 'bad', 'synthetic:svc.b'], ['svc.b', 'bad', 'synthetic:svc.b-mirror']]);
+  assert.deepEqual(observations(dup.frames[3]), [['svc.a', 'ok', 'synthetic:svc.a'], ['svc.c', 'x', 'synthetic:svc.c'], ['svc.c', 'y', 'synthetic:svc.c']]);
+  // The ui rule: no journal entry may appear twice anywhere in the World; every cause names a side.
+  const keys = dup.frames.flatMap(frame => frame.journal.map(entry => JSON.stringify(entry)));
+  assert.equal(new Set(keys).size, keys.length);
+  assert.ok(dup.frames.every(frame => (frame.gap.parts ?? []).every(part => part.cause.ideal || part.cause.current)));
+  // Merging the repeat changes no phase, gap or judgment.
+  assert.deepEqual(dup.frames.map(frame => [frame.phase, frame.gap]), v6.frames.map(frame => [frame.phase, frame.gap]));
+});

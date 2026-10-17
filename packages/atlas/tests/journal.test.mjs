@@ -47,7 +47,7 @@ test('journal: the decisions and observations newly recorded in each frame (v6 d
   const recorded = all.map(entry => Date.parse(entry.recordedAt));
   assert.deepEqual(recorded, [...recorded].sort((a, b) => a - b));
   assert.deepEqual(observations(world.frames[3])[0], { kind: 'observation', recordedAt: '2026-10-17T03:00:00Z', observedAt: '2026-10-17T02:30:00Z',
-    actor: null, source: { ref: 'synthetic:svc.b', commentId: null, sha256: null }, target: { kind: 'state', id: 'svc.b' } });
+    actor: null, source: { ref: 'synthetic:svc.b', commentId: null, sha256: null }, target: { kind: 'state', id: 'svc.b' }, value: 'pending' });
   const last = all.filter(entry => entry.kind !== 'observation');
   assert.deepEqual(last.map(entry => [entry.kind, entry.actor]), [['purpose.set', 'P'], ['ideal.set', 'P'], ['purpose.set', 'P'], ['ideal.drafting', 'P'],
     ['ideal.set', 'P'], ['purpose.evaluated', 'User'], ['purpose.ended', 'P']]);

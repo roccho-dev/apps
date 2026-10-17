@@ -437,7 +437,8 @@ export const deriveFrames = ({ header, events: log }, norms) => {
     const used = conditions.map(value => value.judgment.observation?.observedAt).filter(Boolean).map(Date.parse);
     return { t, asOf: new Date(t).toISOString(), purpose, stage, ideal, conditions, history, plans, sessions,
       // The journal (adrs#647 contract 3): decisions and observations in time order, each fact once.
-      journal: events.filter(event => !event.projection),
+      // An exactly repeated record (the same line recorded twice) is one fact: listed once, judged the same.
+      journal: [...new Map(events.filter(event => !event.projection).map(event => [canonical(event), event])).values()],
       gapDigest: digest(gapInputs.map(canonical).join('\n')), observedAt: used.length ? new Date(Math.max(...used)).toISOString() : null };
   });
   return { header, now: new Date(times.at(-1)).toISOString(), frames };

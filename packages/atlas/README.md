@@ -408,8 +408,8 @@ frame's t), in time order and not thinned; ui accumulates the frames (contract 3
 the same book): decisions
 `{kind, recordedAt, actor, source{ref, commentId, sha256}, …ids}` (an evaluation has `frame` and
 `past`, true once the Purpose rev or the ideal version moved) and observations
-`{kind:'observation', recordedAt, observedAt, actor:null, source{ref}, target}`. Each fact appears
-once: an observation marked `projection: true` (fromG's session view of a G `<target>:session`
+`{kind:'observation', recordedAt, observedAt, actor:null, source{ref}, target, value}`. Each fact appears
+once: an exactly repeated record is one row (rows differing in value or source stay); an observation marked `projection: true` (fromG's session view of a G `<target>:session`
 fact) is not listed again.
 
 **`frames[i].gap`** = `{basis:{purpose_id, purpose_rev, purpose_label, ideal_version, prev_frame},
@@ -426,7 +426,8 @@ or null. `current`: for an unknown condition always why — `current-stale`, `cu
 (a value arrived but cannot be compared), `current-conflict`, `current-unobserved` (nothing arrived,
 or D's `null`); for an unmet one only a change against the same, unrevised condition —
 `current-regressed` (satisfied → unmet) or `current-confirmed-unmet` (unknown → unmet) — else null.
-Both null is `carried` (the same open difference continues). `summary.by_cause` counts both sides
+With no reason on either side the cause is `{ideal:null, current:'carried'}` (the same open difference
+continues; ui refuses a cause that names no side). `summary.by_cause` counts both sides
 and `carried`. `since` continues only while the difference stays open
 without a break and unrevised; under a new rev of the same Purpose, what the new ideal
 declares again continues. `closed.by`: `current-satisfied`, `ideal-removed`,
