@@ -34,3 +34,11 @@ NO_EFFECT は全ての登録済み適格機会が有効に測定され、改善�
 完全な契約・入力・正解・封印検証・ハッシュは [公開 freeze](preregistered/quota-cycle-public-freeze.json)、[protocol](preregistered/quota-cycle-protocol.md)、[commitment](preregistered/quota-cycle-commitment.json) を参照。未見 payload、私有作成器、私有検証器はこの登録へ含めない。[index](evidence/index.json) は実行前の空状態である。
 
 UI PR362 の明示的な人による merge 条件は保持し、今回のループでは merge しない。
+
+## 実行前の図ID修正（v2）
+
+独立担当の source-native 保存検証で、元登録の map_id quota-expression はアプリの正規 ID voice-graph と一致せず、正規 commitLog/restoreLog が foreign/rejected を返すことが判明した。root も公開3 fixture 全てで再現し、正規 ID では3/3の保存復元を確認した。元の protocol-only preflight は通常アプリの保存適格性を証明していなかった。
+
+元の登録12ファイルと元の封印は保持し、[明示 addendum](preregistered/quota-cycle-prelive-map-addendum.v2.json) により別名 v2 を追加した。変更は各 fixture_contract.map_id と対応 oracle hash の結合だけで、文章・部品・要求個数・親子関係・矢印・順序・採点条件・予算は同じである。root は公開 R/E の値を逆変換し、上記3箇所以外が完全一致することを確認した。未見 payload は読んでいない。製品の identity gate は変更しない。
+
+有効な登録は [freeze v2](preregistered/quota-cycle-public-freeze.v2.json) と [commitment v2](preregistered/quota-cycle-commitment.v2.json)。[独立 native 保存検証](preregistered/quota-cycle-map-identity-validation.v2.json) は実ブラウザー保存の証明を含まない。完成物の画面検証・4種類の実 CI・同一 head の独立受入は、引き続き実 API 呼出しの前に必須である。改訂時点の実 API 呼出し0、累積808J/85Tのまま。

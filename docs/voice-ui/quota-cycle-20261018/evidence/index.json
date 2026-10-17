@@ -1,7 +1,7 @@
 {
   "schema": "voice-ui.quota-cycle-evidence-index/1",
-  "commitment": "../preregistered/quota-cycle-commitment.json",
-  "freeze": "../preregistered/quota-cycle-public-freeze.json",
+  "commitment": "../preregistered/quota-cycle-commitment.v2.json",
+  "freeze": "../preregistered/quota-cycle-public-freeze.v2.json",
   "baseline_journal": "../../frontier-cycle-20261018/evidence/final-E/frontier-final-E-20261018.journal.jsonl",
   "expected_cumulative": {
     "jev": 808,

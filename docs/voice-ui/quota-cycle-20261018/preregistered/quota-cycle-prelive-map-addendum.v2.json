@@ -1,0 +1,107 @@
+{
+  "schema": "voice-ui.quota-cycle-prelive-addendum/1",
+  "created_at": "2026-10-17T22:26:27.783Z",
+  "provider_calls": 0,
+  "original_registration": {
+    "head": "0a53641bf75f28d5019785284a91b07374007614",
+    "tree": "1e22ac2bd68b76db93e24098424e3b795319a37b",
+    "commitment_sha256": "ad334bf87e80a91841fc8ae106d2eb37192f9fb7a7827ffefa59a3198f18c213",
+    "freeze_sha256": "bf584cec91f6b7e592181e3c0ddfc6ce289505c8b7819133fc254c7e356cafb9"
+  },
+  "reason": "Independent source-native durable Apply/restore testing found the original quota-expression map namespace is foreign to the ordinary app fixed voice-graph identity. Protocol validity alone was insufficient. Product identity checks stay unchanged.",
+  "allowed_json_changes": [
+    "oracle.fixture_contract.map_id: quota-expression -> voice-graph",
+    "input.fixture_contract.map_id: quota-expression -> voice-graph",
+    "input.oracle_sha256: binds corrected matching oracle"
+  ],
+  "unchanged": "All semantic cases, fixture record/pin values, stock, requirements, expected parents/edges, order, criteria, budgets, hypotheses and all earlier history remain byte-equivalent after reversing only those three identity joins.",
+  "active_panels": [
+    {
+      "axis": "R",
+      "visibility": "public",
+      "cases": 1,
+      "cells": 2,
+      "input": {
+        "path": "quota-cycle-public-R-1.v2.inputs.json",
+        "bytes": 5149,
+        "sha256": "35e6e31053ab8ea187899258e79623e74bc837ba482a73e043ef1ed99c296179"
+      },
+      "oracle": {
+        "path": "quota-cycle-public-R-1.v2.oracle.json",
+        "bytes": 7025,
+        "sha256": "5612d2c372266cbee6ee89cd6b0829c00b0568f8ca08d42627cdbb2e89506ea9"
+      },
+      "parent_inputs_sha256": null,
+      "parent_oracle_sha256": null,
+      "previous_input_sha256": "0f87064474277d14bbd8ee3906940ef2f35d07e646c048b3d4fda50fba8d417d",
+      "previous_oracle_sha256": "0a1e80a9a375df00d48e75923370f75ff7e010670ce973c33d4ffa29a882ba31"
+    },
+    {
+      "axis": "E",
+      "visibility": "public",
+      "cases": 1,
+      "cells": 2,
+      "input": {
+        "path": "quota-cycle-public-E-1.v2.inputs.json",
+        "bytes": 3613,
+        "sha256": "e3c4c653c8225dfb668c18bf022345e1e3ef7a8665d821f3da72219d6c98a1a7"
+      },
+      "oracle": {
+        "path": "quota-cycle-public-E-1.v2.oracle.json",
+        "bytes": 5761,
+        "sha256": "c67b083bb6d17096594807074f72a562efebd17b8198f8c6f8aba9b91e1155c2"
+      },
+      "parent_inputs_sha256": null,
+      "parent_oracle_sha256": null,
+      "previous_input_sha256": "ba45c323da0387a8ca2bef4633f3fbbcb621bfb1f8dd50ce92257cf5307feb1c",
+      "previous_oracle_sha256": "c9c9bd90be21ad76cafef3b897be4aee55d5873c68d4fd49e199f09c65ea62e5"
+    },
+    {
+      "axis": "R",
+      "visibility": "sealed",
+      "cases": 2,
+      "cells": 4,
+      "input": {
+        "path": "quota-cycle-sealed-R-2.v2.inputs.json",
+        "bytes": 6780,
+        "sha256": "4ab4662aa00925d7e1bf480efadbc840f4421e6e6cfd16ae53d972387ce005d7"
+      },
+      "oracle": {
+        "path": "quota-cycle-sealed-R-2.v2.oracle.json",
+        "bytes": 9160,
+        "sha256": "c3d0c9df12837d0de03c9fb7e532f955f23ed60e7e0409ac473b0da7b293a32c"
+      },
+      "parent_inputs_sha256": null,
+      "parent_oracle_sha256": null,
+      "previous_input_sha256": "65e3376df76a14f15f42ec4d249d6c5788790893c08b650c147d79bcedcc43ab",
+      "previous_oracle_sha256": "2ad0a8f32704f2810d82a70cbd6fd069fbbbe3b342287759d459c4dcb4e2cb55"
+    },
+    {
+      "axis": "E",
+      "visibility": "sealed",
+      "cases": 6,
+      "cells": 12,
+      "input": {
+        "path": "quota-cycle-sealed-E-6.v2.inputs.json",
+        "bytes": 4949,
+        "sha256": "926d7007508e0f4b67fe2fb564e1d299d82219ca9e1b95f96e3b26c3d6c9ae40"
+      },
+      "oracle": {
+        "path": "quota-cycle-sealed-E-6.v2.oracle.json",
+        "bytes": 9772,
+        "sha256": "87bc601021241e65ee78e5e8c4a30d316d0e8e9c7fcbbfe3ac2f6b4b7a2b87b3"
+      },
+      "parent_inputs_sha256": null,
+      "parent_oracle_sha256": null,
+      "previous_input_sha256": "25dcb16dc7909b3187aa24e621b04dd940a20a1ebeff1a10f17e76a06668f896",
+      "previous_oracle_sha256": "5e6923c4832bd62af55daebcc5520bd3790abedad0843084e19da123b5c46932"
+    }
+  ],
+  "validation": {
+    "path": "quota-cycle-map-identity-validation.v2.json",
+    "bytes": 6525,
+    "sha256": "57b31f20fed1f36bfc796bb2305e8fdc9bf7bac1b5ed29154605fcc7c2b60e3b"
+  },
+  "prior_validation_limit": "The original seal-validation PASS established protocol-valid fixture chains and semantic targets only; it did not establish ordinary app namespace admission. It is preserved with this explicit limitation and is not the current storage admission proof.",
+  "exposure": "Only public panels, original public lineage and hash-only private metadata may be copied. Corrected private payloads remain sealed and unlisted until stagewise release."
+}

@@ -1,0 +1,168 @@
+{
+  "schema": "voice-ui.quota-cycle-map-identity-validation/1",
+  "status": "PASS",
+  "created_at": "2026-10-17T22:26:27.783Z",
+  "provider_calls": 0,
+  "correction": "Pre-live fixture namespace only. Original public registration and all original sealed bytes remain immutable.",
+  "map_id": "voice-graph",
+  "protocol_sha256": "1689dcf63e1ed19cdea7be22e3f90a09f434841f980b9ca8b9018a987c9c38f8",
+  "log_source_sha256": "6710ff09959dafee852755dd75c512c4714c0c650e02c2c7dd0d5ba0c332e987",
+  "all_public_and_private_panels": [
+    {
+      "axis": "R",
+      "visibility": "public",
+      "cases": 1,
+      "only_changed": [
+        "fixture_contract.map_id",
+        "input.oracle_sha256"
+      ],
+      "all_case_fields_equal": true,
+      "all_stock_fields_equal": true,
+      "all_target_fields_equal": true,
+      "fixtureProof": {
+        "empty": {
+          "map_id": "voice-graph",
+          "head": "sha256:f14b93ac1b4a8ca4af467132ccd7f5d0a524fed90de6dbf3d54d77ea8f534596",
+          "log_sha256": "0bdbd15714a1cae6ae10a2a5ddd2265cb2895d57e847aa74cbfee864274c8612",
+          "commit_status": "committed",
+          "restore_status": "restored",
+          "records": 6
+        },
+        "api": {
+          "map_id": "voice-graph",
+          "head": "sha256:10bd103f2539ab014879e7e89d27d51d005602a825f67dde841aed7dbb5e3ad0",
+          "log_sha256": "f60e1bd6c7cfe3eb0fc3d74a9507175169d9be582425b98c707a4dedf41fecf4",
+          "commit_status": "committed",
+          "restore_status": "restored",
+          "records": 8
+        },
+        "pair": {
+          "map_id": "voice-graph",
+          "head": "sha256:369bf0534a4b8ee8fd18ef4c4cb054655ae099a2ba81dc7a64266f5dadce53bb",
+          "log_sha256": "a167cfcf6b38d3e183c60ee3702cba2e712efa6e56a73e4dff2b21a986b20b57",
+          "commit_status": "committed",
+          "restore_status": "restored",
+          "records": 10
+        }
+      }
+    },
+    {
+      "axis": "E",
+      "visibility": "public",
+      "cases": 1,
+      "only_changed": [
+        "fixture_contract.map_id",
+        "input.oracle_sha256"
+      ],
+      "all_case_fields_equal": true,
+      "all_stock_fields_equal": true,
+      "all_target_fields_equal": true,
+      "fixtureProof": {
+        "empty": {
+          "map_id": "voice-graph",
+          "head": "sha256:f14b93ac1b4a8ca4af467132ccd7f5d0a524fed90de6dbf3d54d77ea8f534596",
+          "log_sha256": "0bdbd15714a1cae6ae10a2a5ddd2265cb2895d57e847aa74cbfee864274c8612",
+          "commit_status": "committed",
+          "restore_status": "restored",
+          "records": 6
+        },
+        "api": {
+          "map_id": "voice-graph",
+          "head": "sha256:10bd103f2539ab014879e7e89d27d51d005602a825f67dde841aed7dbb5e3ad0",
+          "log_sha256": "f60e1bd6c7cfe3eb0fc3d74a9507175169d9be582425b98c707a4dedf41fecf4",
+          "commit_status": "committed",
+          "restore_status": "restored",
+          "records": 8
+        },
+        "pair": {
+          "map_id": "voice-graph",
+          "head": "sha256:369bf0534a4b8ee8fd18ef4c4cb054655ae099a2ba81dc7a64266f5dadce53bb",
+          "log_sha256": "a167cfcf6b38d3e183c60ee3702cba2e712efa6e56a73e4dff2b21a986b20b57",
+          "commit_status": "committed",
+          "restore_status": "restored",
+          "records": 10
+        }
+      }
+    },
+    {
+      "axis": "R",
+      "visibility": "sealed",
+      "cases": 2,
+      "only_changed": [
+        "fixture_contract.map_id",
+        "input.oracle_sha256"
+      ],
+      "all_case_fields_equal": true,
+      "all_stock_fields_equal": true,
+      "all_target_fields_equal": true,
+      "fixtureProof": {
+        "empty": {
+          "map_id": "voice-graph",
+          "head": "sha256:f14b93ac1b4a8ca4af467132ccd7f5d0a524fed90de6dbf3d54d77ea8f534596",
+          "log_sha256": "0bdbd15714a1cae6ae10a2a5ddd2265cb2895d57e847aa74cbfee864274c8612",
+          "commit_status": "committed",
+          "restore_status": "restored",
+          "records": 6
+        },
+        "api": {
+          "map_id": "voice-graph",
+          "head": "sha256:10bd103f2539ab014879e7e89d27d51d005602a825f67dde841aed7dbb5e3ad0",
+          "log_sha256": "f60e1bd6c7cfe3eb0fc3d74a9507175169d9be582425b98c707a4dedf41fecf4",
+          "commit_status": "committed",
+          "restore_status": "restored",
+          "records": 8
+        },
+        "pair": {
+          "map_id": "voice-graph",
+          "head": "sha256:369bf0534a4b8ee8fd18ef4c4cb054655ae099a2ba81dc7a64266f5dadce53bb",
+          "log_sha256": "a167cfcf6b38d3e183c60ee3702cba2e712efa6e56a73e4dff2b21a986b20b57",
+          "commit_status": "committed",
+          "restore_status": "restored",
+          "records": 10
+        }
+      }
+    },
+    {
+      "axis": "E",
+      "visibility": "sealed",
+      "cases": 6,
+      "only_changed": [
+        "fixture_contract.map_id",
+        "input.oracle_sha256"
+      ],
+      "all_case_fields_equal": true,
+      "all_stock_fields_equal": true,
+      "all_target_fields_equal": true,
+      "fixtureProof": {
+        "empty": {
+          "map_id": "voice-graph",
+          "head": "sha256:f14b93ac1b4a8ca4af467132ccd7f5d0a524fed90de6dbf3d54d77ea8f534596",
+          "log_sha256": "0bdbd15714a1cae6ae10a2a5ddd2265cb2895d57e847aa74cbfee864274c8612",
+          "commit_status": "committed",
+          "restore_status": "restored",
+          "records": 6
+        },
+        "api": {
+          "map_id": "voice-graph",
+          "head": "sha256:10bd103f2539ab014879e7e89d27d51d005602a825f67dde841aed7dbb5e3ad0",
+          "log_sha256": "f60e1bd6c7cfe3eb0fc3d74a9507175169d9be582425b98c707a4dedf41fecf4",
+          "commit_status": "committed",
+          "restore_status": "restored",
+          "records": 8
+        },
+        "pair": {
+          "map_id": "voice-graph",
+          "head": "sha256:369bf0534a4b8ee8fd18ef4c4cb054655ae099a2ba81dc7a64266f5dadce53bb",
+          "log_sha256": "a167cfcf6b38d3e183c60ee3702cba2e712efa6e56a73e4dff2b21a986b20b57",
+          "commit_status": "committed",
+          "restore_status": "restored",
+          "records": 10
+        }
+      }
+    }
+  ],
+  "old_unused_originals_unchanged": 20,
+  "original_quota_payloads_unchanged": 8,
+  "ordinary_ui_scope": "same source log identity guard and native commit/restore passed; actual completed UI browser restore/paint remains mandatory in pre-live smoke and each measurement/replay; no browser result is claimed here",
+  "semantic_scope": "No utterance, part, fullNEW requirement, target, parent, edge, arm schedule, stratum, criterion, threshold, budget or old history changes."
+}
