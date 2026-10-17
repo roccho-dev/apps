@@ -57,7 +57,8 @@ export function literalCandidates(state) {
     return row.quantity > capacity ? [{ ...row, quantity: row.quantity - capacity }] : [];
   });
   const slots = Object.fromEntries([1, 2, 3].map((n, i) => ["missing" + n,
-    missingRows[i] ?? { label: "", kind: "none", quantity: 0 }]));
+    missingRows[i] ? { ...missingRows[i], quantity: String(missingRows[i].quantity) }
+      : { label: "", kind: "none", quantity: "0" }]));
   const missing = missingRows.length <= 3 ? readTypedMissing(slots) : null;
   return { missing: missing ?? [], extraction: { status: missing === null || !spans.length ? "unsupported-syntax" : "transcribed", spans } };
 }
