@@ -375,6 +375,44 @@ held in `g-plans.jsonl` as `{reason, plan}`. G's `UNKNOWN` graph becomes D's `nu
 it as a declared plan with `nodes: null` and the reasons, never as "no plan".
 Without `--control` there is no Norm and every condition is unassigned.
 
+## Ledger (L1, apps#110): world events are appended, the World is derived
+
+World events (decisions and observations, adrs#647 v9) happen whether or not anything is drawn; their
+source of truth is an append-only ledger (`atlas.ledger/1`, one header line then rows
+`{seq, recordedAt, actor, source, sha256, event}`, `event` = the G event as collected, `actor` = its author
+or `atlas.G` for an observation). `ledger.mjs` appends one collection; it never rewrites a row:
+
+- An **observation** is appended when its value or source changed, or as a **refresh** when half of the
+  shortest `maxAge` declared on its target (any ideal state in the ledger) has passed since the last
+  recorded observation of it. With collection at least every `maxAge/2`, the latest row is never stale
+  while collection runs, and goes stale within `maxAge` once it stops. A target no condition watches is
+  appended only when it changes.
+- A **declaration** (purpose.set, ideal.drafting, ideal.set, plan.set, purpose.evaluated, purpose.ended) is
+  appended only when its content changed for the same identity (a plan body's `updatedAt` alone is no change).
+- **Held, never appended**: invalid JSON, unknown kinds, G's own held lines, an exact duplicate of a row, a
+  record dated before the ledger's last row. They go to `<ledger>.held.jsonl` with a reason. A damaged ledger
+  (seq, sha256 or time order broken) is refused as a whole and nothing is appended.
+
+`live.mjs --ledger=<ledger.jsonl>` derives the World from every row: a frame per change point in the
+ledger, so past observations stay reachable; the same ledger always gives the same World.
+
+### HQ refresh (P, `hq-refresh.ps1`): append → derive → publish
+
+The ledger lives at `/tmp/p-hq/ledger.jsonl` on g6i3-own for now (GitHub in L2). P's declaration file is
+read by G (list it under `declarations` in the collect config), so declarations enter the ledger too; do
+not pass `--purpose` any more.
+
+~~~sh
+node packages/atlas/collect/fetch.mjs <collect.json> <snapshot-dir>                      # read the world
+node packages/atlas/collect/collect.mjs <snapshot-dir> --out <g-events.jsonl>              # G events (this collection)
+node packages/atlas/ledger.mjs --ledger=/tmp/p-hq/ledger.jsonl <g-events.jsonl>           # 1. append (exit 1: stop)
+node packages/atlas/live.mjs --out-dir=<out> --ledger=/tmp/p-hq/ledger.jsonl --control=<control.jsonl>  # 2. derive
+# 3. publish: copy <out>/world.json to the HQ input (e.g. /tmp/p-hq/in/world.json) by write-then-rename
+~~~
+
+If step 1 or 2 fails, do not publish: the previous `world.json` stays. The ledger only grows; to start
+over, move it aside (never edit rows).
+
 ## World edge contracts (`contract.mjs`)
 
 The model and contracts are adrs#647 (v3 is the newest section). `contract.mjs` is the
