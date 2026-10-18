@@ -91,6 +91,15 @@ if (config.ports?.length) {
   write('ports.json', { type: 'ports', sha256: sha256(JSON.stringify(probes)), probes });
 }
 if (config.sessions) write('sessions.json', sessions(config.sessions));
+// Git Cold (C1): adr_raw_event.v1 rows of a fixed commit, read from a local clone: { repo, checkout, commit, path }.
+// The snapshot names repo/commit/path; the adapter maps rows and never learns where the clone lives.
+(config.cold ?? []).forEach(({ repo, checkout, commit, path: file }, index) => {
+  const shown = run('git', ['-C', checkout, 'show', `${commit}:${file}`]);
+  const date = run('git', ['-C', checkout, 'show', '-s', '--format=%cI', commit]);
+  write(`cold-${index}.json`, { type: 'cold', repo, commit, path: file, fetchedAt: now(),
+    committedAt: date.ok ? new Date(date.stdout.trim()).toISOString() : null,
+    sha256: shown.ok ? sha256(shown.stdout) : null, text: shown.ok ? shown.stdout : null, errors: [shown.error, date.error].filter(Boolean) });
+});
 // P's declaration files: read as bytes; the sha256 identifies exactly what was read.
 (config.declarations ?? []).forEach((file, index) => {
   let text = null;

@@ -130,6 +130,24 @@ sections of Issue/PR texts, and P's declaration files (`declarations: [path]` in
 reason. The source is `{ref: owner/repo#n | hq:path, commentId, sha256 of the text}`. A plan.set
 also carries its text's author as `actor` when the snapshot has it.
 
+## Git Cold (C1)
+
+G can read Git Cold rows (`adr_raw_event.v1`) of a **fixed** adrs commit instead of live gh responses, so
+the reducer's input no longer needs a local ledger. The edge reads the file; the adapter only maps rows:
+
+- config `cold: [{repo, checkout, commit, path}]` → `fetch.mjs` runs `git -C <checkout> show <commit>:<path>`
+  and stores `{type:'cold', repo, commit, path, committedAt, sha256, text}` (the clone's place is not passed on).
+- each valid row becomes one comment of the existing thread record (`subject_key` `owner/repo.issue.N`):
+  `commentId` ← `payload.id`, `author` ← `payload.author.login`, `text` ← `payload.body`, and the source
+  `{ref: <repo>@<commit>:<path>, sha256: observed_version.content_sha256}`. The existing journal and plan
+  extraction read the bodies unchanged.
+- `status` is kept verbatim as the document's `admission`; capture never admits a meaning (adrs#607), and
+  no event says admitted.
+- held with the reason (`journal.held`, `cold: …`): not `adr_raw_event.v1`, a payload that does not hash to
+  its `content_sha256` (compact JSON as stored, or sorted keys), or no subject, id, author or body.
+- `collect.mjs` without `--recorded-at` dates a cold collection by its commit (`committedAt`), so the same
+  commit always gives the same events; `live.mjs <g-events.jsonl>` then builds `world.json` without `--ledger`.
+
 ## Fixtures
 
 `fixtures/snapshots/issue-roccho-dev-resources-25.json` and the two `pr-*.json` are real `gh api`

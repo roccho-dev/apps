@@ -24,6 +24,8 @@ export function collect(records, recordedAt) {
       case 'ports': return portObservations(record, recordedAt);
       case 'declaration': return declarationEvents(record, recordedAt);
       case 'fact': return [observation(record.target, record.value, record.source, record.observedAt, recordedAt)];
+      // A Cold row the adapter refused: kept with its reason, never a fact or a decision.
+      case 'held': return [{ kind: 'journal.held', reason: 'cold: ' + record.reason, line: record.raw_id ?? record.line, source: record.source, recordedAt }];
       default: throw new Error(`atlas-collect: unknown record kind ${JSON.stringify(record.kind)}`);
     }
   });
@@ -40,8 +42,11 @@ if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.me
   const [dir, ...rest] = process.argv.slice(2);
   if (!dir) { console.error('usage: collect.mjs <snapshot-dir> [--recorded-at ISO] [--out events.jsonl]'); process.exit(2); }
   const flag = name => { const i = rest.indexOf(name); return i >= 0 ? rest[i + 1] : undefined; };
-  const recordedAt = flag('--recorded-at') ?? new Date().toISOString();
-  const output = toJsonl(collect(readRecords(dir), recordedAt));
+  const records = readRecords(dir);
+  // A Git Cold collection is dated by its commit (the latest committedAt), so the same commit gives the same events.
+  const committed = records.map(record => record.committedAt).filter(Boolean).sort().at(-1);
+  const recordedAt = flag('--recorded-at') ?? committed ?? new Date().toISOString();
+  const output = toJsonl(collect(records, recordedAt));
   const out = flag('--out');
   if (out) fs.writeFileSync(out, output); else process.stdout.write(output);
 }

@@ -1,4 +1,5 @@
 // G edge: snapshot files written by fetch.mjs → normalized records for collect().
+import { createHash } from 'node:crypto';
 // This is the only module that knows gh response paths, `--slurp` pages and listing lines.
 // Anything missing becomes null here; the core turns null into UNKNOWN.
 const pages = data => Array.isArray(data) && data.every(Array.isArray) ? data.flat() : data; // --paginate --slurp
@@ -70,6 +71,38 @@ function declaration({ path, fetchedAt, sha256, text }) {
   return { kind: 'declaration', path, fetchedAt, sha256: sha256 ?? null, text: typeof text === 'string' ? text : null };
 }
 
+// Git Cold rows (adr_raw_event.v1) of one fixed commit and path, as read by the edge: each valid row is one
+// comment of the existing thread record. The adapter never learns where the file lives (repo, commit and
+// path come in the snapshot). Capture is not admission (adrs#607): `status` is carried as `admission`
+// verbatim and nothing here admits a meaning. A row that is not adr_raw_event.v1, whose payload does not
+// hash to its content_sha256, or that lacks a subject, id, author or body is held with the reason.
+const COLD = 'adr_raw_event.v1';
+const SUBJECT = /^([A-Za-z0-9._-]+\/[A-Za-z0-9._-]+)\.(?:issue|pull)\.(\d+)$/u;
+const sorted = value => Array.isArray(value) ? value.map(sorted) : value && typeof value === 'object'
+  ? Object.fromEntries(Object.keys(value).sort().map(key => [key, sorted(value[key])])) : value;
+const digest = text => `sha256:${createHash('sha256').update(text).digest('hex')}`;
+function cold({ repo, commit, path, committedAt, fetchedAt, sha256, text }) {
+  const ref = `${repo}@${commit}:${path}`, threads = new Map(), held = [];
+  const hold = (reason, line, rawId = null) => held.push({ kind: 'held', reason, raw_id: rawId, line, committedAt, source: { ref, sha256: sha256 ?? null } });
+  for (const line of lines(text) ?? []) {
+    let row;
+    try { row = JSON.parse(line); } catch { hold('invalid-json', line); continue; }
+    if (row?.schema !== COLD) { hold('schema', null, row?.raw_id ?? null); continue; }
+    const payload = row.payload, content = row.observed_version?.content_sha256;
+    // The payload as stored (compact JSON) or in sorted-key form: either way a changed payload does not match.
+    if (!payload || (digest(JSON.stringify(payload)) !== content && digest(JSON.stringify(sorted(payload))) !== content)) { hold('content-sha256-mismatch', null, row.raw_id ?? null); continue; }
+    const subject = SUBJECT.exec(row.subject_key ?? '');
+    if (!subject || !Number.isSafeInteger(payload.id) || typeof payload.author?.login !== 'string' || typeof payload.body !== 'string') {
+      hold('subject-id-author-or-body-missing', null, row.raw_id ?? null); continue;
+    }
+    const key = `${subject[1]}#${subject[2]}`;
+    if (!threads.has(key)) threads.set(key, { kind: 'thread', repo: subject[1], number: Number(subject[2]), fetchedAt, committedAt, documents: [], source: { ref, sha256: sha256 ?? null } });
+    threads.get(key).documents.push({ commentId: payload.id, updatedAt: payload.updated_at ?? row.observed_version.updated_at, author: payload.author.login,
+      text: payload.body, source: { ref, sha256: content }, admission: row.status ?? null });
+  }
+  return [...threads.values(), ...held];
+}
+
 // GitHub ids carry the owner: records get `repo: 'owner/repo'`, so every target, plan id and journal
 // ref built from it is `owner/repo#n…` / `owner/repo:…` (a fork and its upstream never share a name).
 // A snapshot without a plain owner and repo name is refused rather than collapsed into a shared id.
@@ -89,6 +122,7 @@ export function normalize(snapshot) {
     case 'repo': return [repoState(qualified(snapshot))];
     case 'issue-state': return [issueState(qualified(snapshot))];
     case 'declaration': return [declaration(snapshot)];
+    case 'cold': return cold(snapshot);
     default: throw new Error(`atlas-collect: unknown snapshot type ${JSON.stringify(snapshot.type)}`);
   }
 }
