@@ -6,6 +6,7 @@ import { appendFileSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFile
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { declarationEvents, journalEvents } from '../collect/journal.mjs';
 
 // C2: current = record(agent), end to end: record → reduce → snapshot. The caller passes each current file as
 // `collect.mjs --current <author>=<path>` (one or more; the author is required, no default). Lines are
@@ -42,16 +43,16 @@ const claims = world => JSON.parse(world).frames.at(-1).journal.filter(entry => 
 
 test('P appends one line: the next snapshot shows it with work_id, state, evidence and its line', () => within(dir => {
   writeFileSync(path.join(dir, 'current.jsonl'), line({ kind: 'work.created', work_id: 'c2' }) + '\n'
-    + line({ kind: 'artifact.observed', work_id: 'c2', evidence: 'roccho-dev/apps#119' }));
+    + line({ kind: 'artifact.observed', work_id: 'c1', evidence: 'roccho-dev/apps#119' }));
   assert.deepEqual(claims(snapshot(dir, T1, 'one').world), [
     ['work:c2', 'created', 'current:P#L1', T1],
-    ['work:c2', 'progressed', 'current:P#L3', T1], ['evidence:c2', 'roccho-dev/apps#119', 'current:P#L3', T1]]);
-  appendFileSync(path.join(dir, 'current.jsonl'), line({ kind: 'work.terminal', work_id: 'c2', terminal: 'done' }));
+    ['work:c1', 'progressed', 'current:P#L3', T1], ['evidence:c1', 'roccho-dev/apps#119', 'current:P#L3', T1]]);
+  appendFileSync(path.join(dir, 'current.jsonl'), line({ kind: 'work.terminal', work_id: 'wl2', terminal: 'done' }));
   const two = snapshot(dir, T2, 'two');
-  assert.deepEqual(claims(two.world).at(-1), ['work:c2', 'reported-done', 'current:P#L4', T2]);
+  assert.deepEqual(claims(two.world).at(-1), ['work:wl2', 'reported-done', 'current:P#L4', T2]);
   // A report is a claim, never an achievement: no condition watches work:*, nothing is satisfied by it.
   const frame = JSON.parse(two.world).frames.at(-1);
-  assert.deepEqual([frame.gap.summary.satisfied, JSON.stringify(frame.gap).includes('c2')], [0, false]);
+  assert.deepEqual([frame.gap.summary.satisfied, /work:|evidence:/u.test(JSON.stringify(frame.gap))], [0, false]);
 }));
 
 test('the author is required: --current without <author>= is refused; an author outside the list is held', () => within(dir => {
@@ -84,9 +85,62 @@ test('lines against the rules are held with the reason and stay out of the snaps
 }));
 
 test('the same input gives the same snapshot', () => within(dir => {
-  writeFileSync(path.join(dir, 'current.jsonl'), line({ kind: 'work.created', work_id: 'c2' }) + line({ kind: 'artifact.observed', work_id: 'c2', evidence: SHA })
-    + line({ kind: 'work.terminal', work_id: 'c2', terminal: 'blocked' }));
+  writeFileSync(path.join(dir, 'current.jsonl'), line({ kind: 'work.created', work_id: 'a' }) + line({ kind: 'artifact.observed', work_id: 'b', evidence: SHA })
+    + line({ kind: 'work.terminal', work_id: 'c', terminal: 'blocked' }));
   const a = snapshot(dir, T1, 'a'), b = snapshot(dir, T1, 'b');
   assert.equal(a.world, b.world);
   assert.deepEqual(claims(a.world).map(claim => claim[1]), ['created', 'progressed', SHA, 'reported-blocked']);
 }));
+
+// C2e (R): no time is made up from line order. Two or more lines for one work_id in one file are all held
+// (provisional, fail closed, until an order for them is decided) instead of D seeing a same-time conflict.
+test('two or more lines for one work_id in one file are all held; other work in the file stays', () => within(dir => {
+  writeFileSync(path.join(dir, 'current.jsonl'), line({ kind: 'work.created', work_id: 'c2' }) + line({ kind: 'work.created', work_id: 'ok' })
+    + line({ kind: 'artifact.observed', work_id: 'c2', evidence: SHA }) + line({ kind: 'work.terminal', work_id: 'c2', terminal: 'done' }));
+  const { world, held } = snapshot(dir, T1, 'out');
+  assert.deepEqual(claims(world).map(claim => claim.slice(0, 3)), [['work:ok', 'created', 'current:P#L2']]);
+  assert.deepEqual(held.map(value => [value.reason, value.source.ref]), [
+    ['current: multiple-lines-for-work-id', 'current:P#L1'], ['current: multiple-lines-for-work-id', 'current:P#L3'],
+    ['current: multiple-lines-for-work-id', 'current:P#L4']]);
+  // The same work_id in another author's file is another record: not a duplicate.
+  writeFileSync(path.join(dir, 'w2.jsonl'), line({ kind: 'work.created', work_id: 'ok' }));
+  execFileSync(process.execPath, [...collectArgs(dir, T1, 'two', [`P=${path.join(dir, 'current.jsonl')}`, `W2=${path.join(dir, 'w2.jsonl')}`]), '--worklog-author', 'W2']);
+  const events = readFileSync(path.join(dir, 'two.g.jsonl'), 'utf8').trim().split('\n').map(text => JSON.parse(text));
+  assert.deepEqual(events.filter(event => event.kind === 'observation' && event.target === 'work:ok').map(event => event.source.ref), ['current:P#L2', 'current:W2#L1']);
+}));
+
+// C2e (R, NO_GO): reading current must not move the cold events' time: cold stays dated by its commit.
+test('cold with --current and no --recorded-at: the cold events are the same on every run, dated by the commit', () => within(dir => {
+  const text = readFileSync(file('../collect/fixtures/cold/decisions.jsonl'), 'utf8');
+  rmSync(path.join(dir, 'snap', 'declaration-0.json')); // only cold and current here
+  writeFileSync(path.join(dir, 'snap', 'cold-0.json'), JSON.stringify({ type: 'cold', repo: 'roccho-dev/adrs', commit: '94a51c3a', path: 'decisions/x.jsonl',
+    committedAt: '2026-10-18T06:00:00Z', fetchedAt: '2026-10-18T07:00:00Z', sha256: null, text }));
+  writeFileSync(path.join(dir, 'current.jsonl'), line({ kind: 'work.created', work_id: 'c2' }));
+  const run = name => {
+    execFileSync(process.execPath, [file('../collect/collect.mjs'), path.join(dir, 'snap'), '--current', `P=${path.join(dir, 'current.jsonl')}`,
+      '--worklog-author', 'P', '--out', path.join(dir, `${name}.jsonl`)]);
+    const events = readFileSync(path.join(dir, `${name}.jsonl`), 'utf8').trim().split('\n').map(text => JSON.parse(text));
+    return { cold: events.filter(event => !event.source?.ref?.startsWith('current:')), current: events.filter(event => event.source?.ref?.startsWith('current:')) };
+  };
+  const first = run('first'), second = run('second');
+  assert.ok(first.cold.length > 0);
+  assert.deepEqual(second.cold, first.cold);
+  assert.ok(first.cold.every(event => event.recordedAt === '2026-10-18T06:00:00Z'));
+  // current carries the time it was read (after the commit), on its own events only.
+  assert.ok(first.current.length === 1 && Date.parse(first.current[0].observedAt) > Date.parse('2026-10-18T06:00:00Z')
+    && first.current[0].recordedAt === first.current[0].observedAt);
+}));
+
+// C2e (adrs#654): a worklog value is never a condition. G holds an ideal.set whose predicate targets work:* or
+// evidence:* — from a declaration file or from a comment alike; the reducer is unchanged.
+test('an ideal.set with a work: or evidence: predicate target is held at intake', () => {
+  const ideal = target => line({ kind: 'ideal.set', recordedAt: '2026-10-19T01:00:00Z', purpose_id: 'purpose.current', purpose_rev: 'r1', version: 'v1',
+    requires: [req, { ...req, id: 'w', predicate: { target: { kind: 'state', id: target }, op: 'equals', value: 'reported-done' } }] });
+  for (const target of ['work:c2', 'evidence:c2']) {
+    const fromFile = declarationEvents({ path: 'p.jsonl', sha256: 'sha256:' + '0'.repeat(64), text: ideal(target) }, T1);
+    const fromComment = journalEvents([{ repo: 'roccho-dev/apps', number: 89, commentId: 1, updatedAt: T1, author: 'P', text: '<!-- atlas-journal-v1 -->\n```jsonl\n' + ideal(target) + '```\n' }], T1);
+    for (const events of [fromFile, fromComment]) assert.deepEqual(events.map(event => [event.kind, event.reason]), [['journal.held', 'worklog-target-in-predicate']]);
+  }
+  // Another target is unchanged: the same line with roccho-dev/apps#200:pr.merged is accepted.
+  assert.equal(declarationEvents({ path: 'p.jsonl', sha256: 'sha256:' + '0'.repeat(64), text: ideal('roccho-dev/apps#201:pr.merged') }, T1)[0].kind, 'ideal.set');
+});
