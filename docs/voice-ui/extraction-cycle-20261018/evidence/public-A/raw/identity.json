@@ -1,0 +1,85 @@
+{
+  "scope": "PUBLIC_KNOWN_TWO_CASE_CONDITION_DIAGNOSTIC_ONLY_NOT_FRESH_QUALITY_OR_END_TO_END_EFFECT",
+  "measurement": {
+    "schema": "voice-ui.candidate.runtime-build/1",
+    "apps_sha": "fe6329ea55bde8f44293be9c17c39a97a2a1dc1d",
+    "source_path": "/nix/store/yx4vmnwlm5hqdjizff30463aibz9b7p3-source",
+    "dev_program": {
+      "path": "/nix/store/g26bdlszmqaq9kwl7yra6k1vnzv7v52v-voice-ui-dev/bin/voice-ui-dev",
+      "sha256": "753d8ef766988ac8ffcddf73a5fc1c1a5b1174658db55eb0d0f178e827bc3bfd"
+    },
+    "dev_derivation": "/nix/store/j0vbqli4685s9xkix8a9rmmh88wcy3zb-voice-ui-dev.drv",
+    "artifact_root": "/nix/store/3wa9xrpc4a77g0hrnlndcbzsxwkfyn59-voice-ui-dist",
+    "manifest": {
+      "path": "/nix/store/3wa9xrpc4a77g0hrnlndcbzsxwkfyn59-voice-ui-dist/manifest.json",
+      "sha256": "21df13adc34243b9ce26ac80f2b6c109ecab512c4c2d56391722cdb9eeac52d7"
+    },
+    "manifest_sources": {
+      "apps": "fe6329ea55bde8f44293be9c17c39a97a2a1dc1d",
+      "architecture": {
+        "evidence_sha256": "8388f3b90176715daa7b96ec211043f8883c8f721369dc677995f61b60207e3e",
+        "manifest_sha256": "4a38003acfad4873e4c7f9399faafb8196457b4c91fb4cd3c03199418ab0a328",
+        "source": {
+          "commit": "fe6329ea55bde8f44293be9c17c39a97a2a1dc1d",
+          "handle": "apps-voice-ui"
+        },
+        "status": "available"
+      },
+      "hayamimi-web": {
+        "locator": "https://github.com/roccho-dev/ops/releases/download/hayamimi-web-1665d5195a0dd70c2e0253c20351e5305db35f3f/hayamimi-web.zip",
+        "proof_sha256": "a0bb1478a5ffe9440f46682ca143382cd000d0d1d6f736723baad96541be4e27",
+        "sha256": "c12b51e2ea396a64131b917439ffbda1aa1cd70a9fd7f9567ea05030897c672a"
+      },
+      "jev-provider": {
+        "contract": "named-choices-and-typed/1",
+        "entry_sha256": "3f754c8b1ee4a8b34b50d00fd17e37295d853e1b607903b6d355b5e06997669c",
+        "locator": "https://github.com/roccho-org/ops/releases/download/jev-provider-b4f611cac9e13fbef178469796cbc3b6d4a76b23/jev-provider.zip",
+        "manifest_sha256": "c8fdf65da826690b487ab093d20c73a445a11dbc736ae4f58e23af7c57330318",
+        "proof_sha256": "459b753541fdf53cf0acb9cb13167c17218e078e3782933e589afaf57a8c6846",
+        "provenance_sha256": "b602225c44cc67c4f6a96fe41914c5159140718a4c81f0826cf46d9cce9223b8",
+        "sha256": "073d9df7a2eeb479a3641c6b86768bf3af14ec1b7e976ed5672649148d5e2435"
+      },
+      "system": "x86_64-linux",
+      "ui": "756d47e891191c3344eb2d29b000203be8331abc"
+    },
+    "worker": {
+      "path": "/nix/store/3wa9xrpc4a77g0hrnlndcbzsxwkfyn59-voice-ui-dist/worker/worker.mjs",
+      "sha256": "8a1fef6c917240b951bae91132d353d334fd050f880ca7f4666b57f0178ef3fc"
+    },
+    "provider": {
+      "path": "/nix/store/7igspcyv5wrydca5qx4dpbpwg8cmrhjq-jev-provider-admitted/batch.mjs",
+      "sha256": "3f754c8b1ee4a8b34b50d00fd17e37295d853e1b607903b6d355b5e06997669c"
+    },
+    "semantic_map": {
+      "root": "/nix/store/vqjhvwxcbwv7vg09n4d3sy54lw879s9f-semantic-map",
+      "protocol": {
+        "path": "/nix/store/vqjhvwxcbwv7vg09n4d3sy54lw879s9f-semantic-map/packages/semantic-map/protocol/index.js",
+        "sha256": "1689dcf63e1ed19cdea7be22e3f90a09f434841f980b9ca8b9018a987c9c38f8"
+      }
+    },
+    "acceptance_runtime": "/nix/store/mqmmbzqpvl5j15vk0vmn9v6537lc5any-voice-ui-acceptance-node"
+  },
+  "plan_sha256": "a9cebe54502ce1bc86afb2b0cc90a2dc94d314ddab14c611c9ec24292c7f0d6c",
+  "wire_sha256": "379f50974c85fe1c23cb47810230adaefbc83e190aa51743b46e40997dd7e9e2",
+  "driver_sha256": "43416f24c0392e41c23597d4682739bf7a9cd6e9981b77ae1a576b46f8973a84",
+  "http_helper_sha256": "b3c1d052e2f7138532e0d7cac6ac7b3c7287b7af32b857990c1e6d14bb325386",
+  "ordered_ids": [
+    "QE03-DF-r1",
+    "QE03-IF-r1",
+    "QE03-DE-r1",
+    "QE03-IE-r1",
+    "QE04-IE-r1",
+    "QE04-DE-r1",
+    "QE04-IF-r1",
+    "QE04-DF-r1",
+    "QE03-IE-r2",
+    "QE03-DE-r2",
+    "QE03-IF-r2",
+    "QE03-DF-r2",
+    "QE04-DF-r2",
+    "QE04-IF-r2",
+    "QE04-DE-r2",
+    "QE04-IE-r2"
+  ],
+  "oracle_policy": "caller does not read or forward the public oracle"
+}

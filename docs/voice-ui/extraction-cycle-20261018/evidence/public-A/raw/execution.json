@@ -1,0 +1,121 @@
+{
+  "planned": 16,
+  "recorded": 16,
+  "summary": [
+    {
+      "id": "QE03-DF-r1",
+      "case": "QE03",
+      "condition": "DF",
+      "rep": 1,
+      "status": "VALID_CONTRACT"
+    },
+    {
+      "id": "QE03-IF-r1",
+      "case": "QE03",
+      "condition": "IF",
+      "rep": 1,
+      "status": "VALID_CONTRACT"
+    },
+    {
+      "id": "QE03-DE-r1",
+      "case": "QE03",
+      "condition": "DE",
+      "rep": 1,
+      "status": "VALID_CONTRACT"
+    },
+    {
+      "id": "QE03-IE-r1",
+      "case": "QE03",
+      "condition": "IE",
+      "rep": 1,
+      "status": "VALID_CONTRACT"
+    },
+    {
+      "id": "QE04-IE-r1",
+      "case": "QE04",
+      "condition": "IE",
+      "rep": 1,
+      "status": "HTTP_CONTRACT_REJECTED"
+    },
+    {
+      "id": "QE04-DE-r1",
+      "case": "QE04",
+      "condition": "DE",
+      "rep": 1,
+      "status": "VALID_CONTRACT"
+    },
+    {
+      "id": "QE04-IF-r1",
+      "case": "QE04",
+      "condition": "IF",
+      "rep": 1,
+      "status": "HTTP_CONTRACT_REJECTED"
+    },
+    {
+      "id": "QE04-DF-r1",
+      "case": "QE04",
+      "condition": "DF",
+      "rep": 1,
+      "status": "VALID_CONTRACT"
+    },
+    {
+      "id": "QE03-IE-r2",
+      "case": "QE03",
+      "condition": "IE",
+      "rep": 2,
+      "status": "VALID_CONTRACT"
+    },
+    {
+      "id": "QE03-DE-r2",
+      "case": "QE03",
+      "condition": "DE",
+      "rep": 2,
+      "status": "VALID_CONTRACT"
+    },
+    {
+      "id": "QE03-IF-r2",
+      "case": "QE03",
+      "condition": "IF",
+      "rep": 2,
+      "status": "VALID_CONTRACT"
+    },
+    {
+      "id": "QE03-DF-r2",
+      "case": "QE03",
+      "condition": "DF",
+      "rep": 2,
+      "status": "VALID_CONTRACT"
+    },
+    {
+      "id": "QE04-DF-r2",
+      "case": "QE04",
+      "condition": "DF",
+      "rep": 2,
+      "status": "VALID_CONTRACT"
+    },
+    {
+      "id": "QE04-IF-r2",
+      "case": "QE04",
+      "condition": "IF",
+      "rep": 2,
+      "status": "HTTP_CONTRACT_REJECTED"
+    },
+    {
+      "id": "QE04-DE-r2",
+      "case": "QE04",
+      "condition": "DE",
+      "rep": 2,
+      "status": "VALID_CONTRACT"
+    },
+    {
+      "id": "QE04-IE-r2",
+      "case": "QE04",
+      "condition": "IE",
+      "rep": 2,
+      "status": "HTTP_CONTRACT_REJECTED"
+    }
+  ],
+  "scope": "PUBLIC_KNOWN_TWO_CASE_CONDITION_DIAGNOSTIC_ONLY_NOT_FRESH_QUALITY_OR_END_TO_END_EFFECT",
+  "retries": 0,
+  "additional_setup_provider_sends": 0
+}

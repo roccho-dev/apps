@@ -1,0 +1,1130 @@
+{
+  "schema": "voice-ui.extraction-diagnostic-audit/1",
+  "status": "PASS",
+  "scope": "PUBLIC_KNOWN_TWO_CASE_CONDITION_DIAGNOSTIC_ONLY_NOT_FRESH_QUALITY_OR_END_TO_END_EFFECT",
+  "observed_at": "2026-10-18T01:23:39.363Z",
+  "registration_head": "a8848187af718c52acfac9e8518522191af75b55",
+  "measurement_head": "fe6329ea55bde8f44293be9c17c39a97a2a1dc1d",
+  "phase": "extraction-public-A3-20261018",
+  "plan_sha256": "a9cebe54502ce1bc86afb2b0cc90a2dc94d314ddab14c611c9ec24292c7f0d6c",
+  "oracle_sha256": "3ffab08648b9a967e3c313e25040c60889075a1bd161ae80e9522c972aee8ccc",
+  "wire_sha256": "379f50974c85fe1c23cb47810230adaefbc83e190aa51743b46e40997dd7e9e2",
+  "driver_sha256": "43416f24c0392e41c23597d4682739bf7a9cd6e9981b77ae1a576b46f8973a84",
+  "grader": {
+    "path": "/nix/store/yx4vmnwlm5hqdjizff30463aibz9b7p3-source/packages/voice-ui/tests/requirements-cycle-score.mjs",
+    "sha256": "3d779cf422e8cc0facc6f5ff566c3e77b36a61486f9586f120b0c1a722cd5a46",
+    "used_fields": [
+      "contract_valid",
+      "exact",
+      "minimal"
+    ],
+    "grading_reference_stock": "unchanged original public 8-stock solely because frozen gradeFullRequired requires validStock; actual definitions-empty HTTP requests remain empty",
+    "unused_fields": [
+      "stock_difference",
+      "true_sufficient"
+    ]
+  },
+  "raw_inventory": [
+    {
+      "name": "QE03-DF-r1.json",
+      "bytes": 7671,
+      "sha256": "c72c09874ede2f10bd2e2a24c4d58145e58c83e2b39fc2256e3502fef8d47bbb"
+    },
+    {
+      "name": "QE03-IF-r1.json",
+      "bytes": 7635,
+      "sha256": "8a19d067c759f7337f9190b1a2e0c738e21987367b3fa2fb14be0dceb43bbdc5"
+    },
+    {
+      "name": "QE03-DE-r1.json",
+      "bytes": 4032,
+      "sha256": "c76c8a3feb52ae5df3acd61d046dc1fb2a63328dbd20e67394f7e057461945fb"
+    },
+    {
+      "name": "QE03-IE-r1.json",
+      "bytes": 4035,
+      "sha256": "c6eb64dac2b7015ceb13e7dc9d83156514dfffbe4924da1fcff030221f2b4121"
+    },
+    {
+      "name": "QE04-IE-r1.json",
+      "bytes": 2916,
+      "sha256": "714a767102c76f06743247f36f652b340aa14ad2c929d49e62553e636df5c50f"
+    },
+    {
+      "name": "QE04-DE-r1.json",
+      "bytes": 4032,
+      "sha256": "6052a510e6c6434ad6ecf252a45c204d4788e8aef2e4aa5a41150cbd784ab554"
+    },
+    {
+      "name": "QE04-IF-r1.json",
+      "bytes": 6564,
+      "sha256": "b6dc722c374b74aec1d5541e887c7711c8c74a7a93bb6e4351cb1fa8de401edf"
+    },
+    {
+      "name": "QE04-DF-r1.json",
+      "bytes": 7666,
+      "sha256": "e60d1be104cc87e9790b06fee553f1ab139ffd6f6ff5dff98eb934f429488342"
+    },
+    {
+      "name": "QE03-IE-r2.json",
+      "bytes": 4023,
+      "sha256": "15edbe70188211c5494493af9f0cdde9c88167270bb49e46730d602665892d72"
+    },
+    {
+      "name": "QE03-DE-r2.json",
+      "bytes": 4033,
+      "sha256": "5a41720937d492bfc1b6a9de0693a3fae2727bcbf91978d3b3ced83888fcc3eb"
+    },
+    {
+      "name": "QE03-IF-r2.json",
+      "bytes": 7645,
+      "sha256": "cfacb568d21eaba364a2f4f4ca3bdb75608b469a6ba3603c9c64971adb16b227"
+    },
+    {
+      "name": "QE03-DF-r2.json",
+      "bytes": 7641,
+      "sha256": "0a66685188fbbc95fc35c76e8c1be705dee7a17ab4f4cec782eae0ba6990c5fb"
+    },
+    {
+      "name": "QE04-DF-r2.json",
+      "bytes": 7667,
+      "sha256": "a2025417438e88cbe96ae93554d2e25232459ae4ec49408a4f02f9175a0430c0"
+    },
+    {
+      "name": "QE04-IF-r2.json",
+      "bytes": 6565,
+      "sha256": "050b610633a69184fbe3c7b75f9e1b23fea657fd4a013f57cb768fa8bfd7c79a"
+    },
+    {
+      "name": "QE04-DE-r2.json",
+      "bytes": 4028,
+      "sha256": "f4de188d6d2218aa974f6c7d465a4e7043a494c11f280d2f3c36e38ffbbc2aa7"
+    },
+    {
+      "name": "QE04-IE-r2.json",
+      "bytes": 2925,
+      "sha256": "8873543a53d8968b833e71ba2455e97a1c07d2ccca38dbdbb16f277af735b020"
+    },
+    {
+      "name": "identity.json",
+      "bytes": 4046,
+      "sha256": "e590a99e5de7462f86aaacf1e188dc68a4138544c544d0e7066f4ac6d24c77cc"
+    },
+    {
+      "name": "execution.json",
+      "bytes": 2406,
+      "sha256": "d0aeaa0290573c78e1a3f3965830ef8ea0bb444a10955b3d2ec8d4c4e761259f"
+    },
+    {
+      "name": "events.jsonl",
+      "bytes": 24092,
+      "sha256": "d224c770a4caffda15fc1ee54cf0915e2adee21bcc2e79d1a7013a42d1dc2662"
+    }
+  ],
+  "phase_metadata": [
+    {
+      "name": "extraction-public-A3-20261018.stdout.log",
+      "bytes": 5868,
+      "sha256": "e0bd582fe2e84aea546983357d658e32eaf7a0372e0995b9a352d8c6586ea817"
+    },
+    {
+      "name": "extraction-public-A3-20261018.stderr.log",
+      "bytes": 1038,
+      "sha256": "3ca7d21f901644e9e6350ad6c841c201e5c97fcc4c155d807fe34ffbd5dc10a9"
+    },
+    {
+      "name": "extraction-public-A3-20261018.driver.stdout.log",
+      "bytes": 49,
+      "sha256": "dbdbd54b534781ab002ad0ed136c63431cfcae6035145238101726d8912d812b"
+    },
+    {
+      "name": "extraction-public-A3-20261018.driver.stderr.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "extraction-public-A3-20261018.journal.jsonl",
+      "bytes": 56140,
+      "sha256": "dc989eb807f6016dc248cd75e86f64674d12bdcb2e448277e297b806da43a1d8"
+    },
+    {
+      "name": "extraction-public-A3-20261018.orchestration.json",
+      "bytes": 629,
+      "sha256": "7919c0142d65d2e82b98c8a2dd20a3b9aca550541369fbae61883c21a7ee361b"
+    }
+  ],
+  "ordered_ids": [
+    "QE03-DF-r1",
+    "QE03-IF-r1",
+    "QE03-DE-r1",
+    "QE03-IE-r1",
+    "QE04-IE-r1",
+    "QE04-DE-r1",
+    "QE04-IF-r1",
+    "QE04-DF-r1",
+    "QE03-IE-r2",
+    "QE03-DE-r2",
+    "QE03-IF-r2",
+    "QE03-DF-r2",
+    "QE04-DF-r2",
+    "QE04-IF-r2",
+    "QE04-DE-r2",
+    "QE04-IE-r2"
+  ],
+  "raw_event_join": "PASS_32_EVENTS_ONE_START_END_PER_SLOT_SEQUENTIAL",
+  "stdout_stage_join": "PASS_16_TYPE_REQUIRED_VALID12_REJECTED4_NO_G0_VERIFY_GOAL",
+  "cells": [
+    {
+      "id": "QE03-DF-r1",
+      "case": "QE03",
+      "condition": "DF",
+      "rep": 1,
+      "status": "VALID_CONTRACT",
+      "http_status": 200,
+      "request_id": "db507e2a-da40-49ba-96b8-652ec3bb55c6",
+      "stage_response_binding": "EXACT_UUID_AND_PROPOSAL",
+      "required": [
+        {
+          "label": "出荷可否",
+          "kind": "decision",
+          "quantity": 1
+        }
+      ],
+      "contract_valid": true,
+      "exact": true,
+      "minimal": true,
+      "elapsedMs": 1660.0691000000002
+    },
+    {
+      "id": "QE03-IF-r1",
+      "case": "QE03",
+      "condition": "IF",
+      "rep": 1,
+      "status": "VALID_CONTRACT",
+      "http_status": 200,
+      "request_id": "e38925d5-bb19-4030-825d-81ecc37e4007",
+      "stage_response_binding": "EXACT_UUID_AND_PROPOSAL",
+      "required": [
+        {
+          "label": "判断",
+          "kind": "decision",
+          "quantity": 1
+        }
+      ],
+      "contract_valid": true,
+      "exact": false,
+      "minimal": false,
+      "elapsedMs": 1570.067
+    },
+    {
+      "id": "QE03-DE-r1",
+      "case": "QE03",
+      "condition": "DE",
+      "rep": 1,
+      "status": "VALID_CONTRACT",
+      "http_status": 200,
+      "request_id": "762b0875-66b1-42e1-a498-57e25d73f6f8",
+      "stage_response_binding": "EXACT_UUID_AND_PROPOSAL",
+      "required": [
+        {
+          "label": "出荷可否",
+          "kind": "decision",
+          "quantity": 1
+        }
+      ],
+      "contract_valid": true,
+      "exact": true,
+      "minimal": true,
+      "elapsedMs": 1474.1506000000004
+    },
+    {
+      "id": "QE03-IE-r1",
+      "case": "QE03",
+      "condition": "IE",
+      "rep": 1,
+      "status": "VALID_CONTRACT",
+      "http_status": 200,
+      "request_id": "1edbdcab-cc7e-49dc-8ed1-dfebdfd21abd",
+      "stage_response_binding": "EXACT_UUID_AND_PROPOSAL",
+      "required": [
+        {
+          "label": "出荷可否",
+          "kind": "decision",
+          "quantity": 1
+        }
+      ],
+      "contract_valid": true,
+      "exact": true,
+      "minimal": true,
+      "elapsedMs": 733.2757000000001
+    },
+    {
+      "id": "QE04-IE-r1",
+      "case": "QE04",
+      "condition": "IE",
+      "rep": 1,
+      "status": "HTTP_CONTRACT_REJECTED",
+      "http_status": 502,
+      "request_id": "34947dc0-017c-4c5a-8a11-0f0db690f4c4",
+      "stage_response_binding": "SOLE_SEQUENTIAL_OUTSTANDING_HTTP_AND_ORDERED_SINGLE_STAGE",
+      "required": null,
+      "contract_valid": false,
+      "exact": null,
+      "minimal": null,
+      "elapsedMs": 890.2064
+    },
+    {
+      "id": "QE04-DE-r1",
+      "case": "QE04",
+      "condition": "DE",
+      "rep": 1,
+      "status": "VALID_CONTRACT",
+      "http_status": 200,
+      "request_id": "88bf4e86-8360-44f4-803e-f4da39cb33aa",
+      "stage_response_binding": "EXACT_UUID_AND_PROPOSAL",
+      "required": [
+        {
+          "label": "工程1",
+          "kind": "step",
+          "quantity": 2
+        }
+      ],
+      "contract_valid": true,
+      "exact": false,
+      "minimal": false,
+      "elapsedMs": 1994.4478999999992
+    },
+    {
+      "id": "QE04-IF-r1",
+      "case": "QE04",
+      "condition": "IF",
+      "rep": 1,
+      "status": "HTTP_CONTRACT_REJECTED",
+      "http_status": 502,
+      "request_id": "b6f3f083-96ab-4cdd-9fbb-5ec95c1e9fd8",
+      "stage_response_binding": "SOLE_SEQUENTIAL_OUTSTANDING_HTTP_AND_ORDERED_SINGLE_STAGE",
+      "required": null,
+      "contract_valid": false,
+      "exact": null,
+      "minimal": null,
+      "elapsedMs": 866.4164999999994
+    },
+    {
+      "id": "QE04-DF-r1",
+      "case": "QE04",
+      "condition": "DF",
+      "rep": 1,
+      "status": "VALID_CONTRACT",
+      "http_status": 200,
+      "request_id": "e640150e-d894-4c20-afc3-41a4deb6ae86",
+      "stage_response_binding": "EXACT_UUID_AND_PROPOSAL",
+      "required": [
+        {
+          "label": "工程",
+          "kind": "step",
+          "quantity": 2
+        }
+      ],
+      "contract_valid": true,
+      "exact": false,
+      "minimal": false,
+      "elapsedMs": 1692.7354999999989
+    },
+    {
+      "id": "QE03-IE-r2",
+      "case": "QE03",
+      "condition": "IE",
+      "rep": 2,
+      "status": "VALID_CONTRACT",
+      "http_status": 200,
+      "request_id": "00071e2c-5ad0-445f-8a49-a44e8aefc0e4",
+      "stage_response_binding": "EXACT_UUID_AND_PROPOSAL",
+      "required": [
+        {
+          "label": "出荷可否",
+          "kind": "decision",
+          "quantity": 1
+        }
+      ],
+      "contract_valid": true,
+      "exact": true,
+      "minimal": true,
+      "elapsedMs": 782.5
+    },
+    {
+      "id": "QE03-DE-r2",
+      "case": "QE03",
+      "condition": "DE",
+      "rep": 2,
+      "status": "VALID_CONTRACT",
+      "http_status": 200,
+      "request_id": "74576453-0846-4da7-9784-b2cfac77b4a3",
+      "stage_response_binding": "EXACT_UUID_AND_PROPOSAL",
+      "required": [
+        {
+          "label": "出荷可否",
+          "kind": "decision",
+          "quantity": 1
+        }
+      ],
+      "contract_valid": true,
+      "exact": true,
+      "minimal": true,
+      "elapsedMs": 1499.6069000000007
+    },
+    {
+      "id": "QE03-IF-r2",
+      "case": "QE03",
+      "condition": "IF",
+      "rep": 2,
+      "status": "VALID_CONTRACT",
+      "http_status": 200,
+      "request_id": "6e00cd40-662f-449c-b27a-94cc62632be3",
+      "stage_response_binding": "EXACT_UUID_AND_PROPOSAL",
+      "required": [
+        {
+          "label": "判断",
+          "kind": "decision",
+          "quantity": 1
+        }
+      ],
+      "contract_valid": true,
+      "exact": false,
+      "minimal": false,
+      "elapsedMs": 952.9403999999995
+    },
+    {
+      "id": "QE03-DF-r2",
+      "case": "QE03",
+      "condition": "DF",
+      "rep": 2,
+      "status": "VALID_CONTRACT",
+      "http_status": 200,
+      "request_id": "66a01fa6-5150-46af-8a2a-d3e29dc0bb7e",
+      "stage_response_binding": "EXACT_UUID_AND_PROPOSAL",
+      "required": [
+        {
+          "label": "判断",
+          "kind": "decision",
+          "quantity": 1
+        }
+      ],
+      "contract_valid": true,
+      "exact": false,
+      "minimal": false,
+      "elapsedMs": 2349.194199999998
+    },
+    {
+      "id": "QE04-DF-r2",
+      "case": "QE04",
+      "condition": "DF",
+      "rep": 2,
+      "status": "VALID_CONTRACT",
+      "http_status": 200,
+      "request_id": "b8fff9a3-54f0-465f-9027-d7cc686891b0",
+      "stage_response_binding": "EXACT_UUID_AND_PROPOSAL",
+      "required": [
+        {
+          "label": "工程",
+          "kind": "step",
+          "quantity": 2
+        }
+      ],
+      "contract_valid": true,
+      "exact": false,
+      "minimal": false,
+      "elapsedMs": 1968.3031999999985
+    },
+    {
+      "id": "QE04-IF-r2",
+      "case": "QE04",
+      "condition": "IF",
+      "rep": 2,
+      "status": "HTTP_CONTRACT_REJECTED",
+      "http_status": 502,
+      "request_id": "ab530698-d146-4275-ad6b-9a400cd9af37",
+      "stage_response_binding": "SOLE_SEQUENTIAL_OUTSTANDING_HTTP_AND_ORDERED_SINGLE_STAGE",
+      "required": null,
+      "contract_valid": false,
+      "exact": null,
+      "minimal": null,
+      "elapsedMs": 878.7585999999974
+    },
+    {
+      "id": "QE04-DE-r2",
+      "case": "QE04",
+      "condition": "DE",
+      "rep": 2,
+      "status": "VALID_CONTRACT",
+      "http_status": 200,
+      "request_id": "e5fa65fb-7db3-42c8-ae7e-9ddc9bcf33cf",
+      "stage_response_binding": "EXACT_UUID_AND_PROPOSAL",
+      "required": [
+        {
+          "label": "工程",
+          "kind": "step",
+          "quantity": 2
+        }
+      ],
+      "contract_valid": true,
+      "exact": false,
+      "minimal": false,
+      "elapsedMs": 1383.8014000000003
+    },
+    {
+      "id": "QE04-IE-r2",
+      "case": "QE04",
+      "condition": "IE",
+      "rep": 2,
+      "status": "HTTP_CONTRACT_REJECTED",
+      "http_status": 502,
+      "request_id": "edd5c9d7-90a6-4e58-bdb3-f71197674fe4",
+      "stage_response_binding": "SOLE_SEQUENTIAL_OUTSTANDING_HTTP_AND_ORDERED_SINGLE_STAGE",
+      "required": null,
+      "contract_valid": false,
+      "exact": null,
+      "minimal": null,
+      "elapsedMs": 948.472099999999
+    }
+  ],
+  "overall": {
+    "planned": 16,
+    "valid_contract": 12,
+    "exact_all_planned_numerator": 5,
+    "semantic_wrong_valid": 7,
+    "status_counts": {
+      "VALID_CONTRACT": 12,
+      "HTTP_CONTRACT_REJECTED": 4,
+      "HTTP_ERROR": 0,
+      "TRANSPORT_UNKNOWN": 0,
+      "CONTRACT_INVALID": 0
+    }
+  },
+  "conditions": {
+    "DF": {
+      "planned": 4,
+      "valid_contract": 4,
+      "exact_all_planned_numerator": 1,
+      "semantic_wrong_valid": 3,
+      "status_counts": {
+        "VALID_CONTRACT": 4,
+        "HTTP_CONTRACT_REJECTED": 0,
+        "HTTP_ERROR": 0,
+        "TRANSPORT_UNKNOWN": 0,
+        "CONTRACT_INVALID": 0
+      }
+    },
+    "IF": {
+      "planned": 4,
+      "valid_contract": 2,
+      "exact_all_planned_numerator": 0,
+      "semantic_wrong_valid": 2,
+      "status_counts": {
+        "VALID_CONTRACT": 2,
+        "HTTP_CONTRACT_REJECTED": 2,
+        "HTTP_ERROR": 0,
+        "TRANSPORT_UNKNOWN": 0,
+        "CONTRACT_INVALID": 0
+      }
+    },
+    "DE": {
+      "planned": 4,
+      "valid_contract": 4,
+      "exact_all_planned_numerator": 2,
+      "semantic_wrong_valid": 2,
+      "status_counts": {
+        "VALID_CONTRACT": 4,
+        "HTTP_CONTRACT_REJECTED": 0,
+        "HTTP_ERROR": 0,
+        "TRANSPORT_UNKNOWN": 0,
+        "CONTRACT_INVALID": 0
+      }
+    },
+    "IE": {
+      "planned": 4,
+      "valid_contract": 2,
+      "exact_all_planned_numerator": 2,
+      "semantic_wrong_valid": 0,
+      "status_counts": {
+        "VALID_CONTRACT": 2,
+        "HTTP_CONTRACT_REJECTED": 2,
+        "HTTP_ERROR": 0,
+        "TRANSPORT_UNKNOWN": 0,
+        "CONTRACT_INVALID": 0
+      }
+    }
+  },
+  "cases": {
+    "QE03": {
+      "DF": {
+        "planned": 2,
+        "valid_contract": 2,
+        "exact_all_planned_numerator": 1,
+        "semantic_wrong_valid": 1,
+        "status_counts": {
+          "VALID_CONTRACT": 2,
+          "HTTP_CONTRACT_REJECTED": 0,
+          "HTTP_ERROR": 0,
+          "TRANSPORT_UNKNOWN": 0,
+          "CONTRACT_INVALID": 0
+        },
+        "repetitions": [
+          {
+            "id": "QE03-DF-r1",
+            "status": "VALID_CONTRACT",
+            "required": [
+              {
+                "label": "出荷可否",
+                "kind": "decision",
+                "quantity": 1
+              }
+            ],
+            "exact": true
+          },
+          {
+            "id": "QE03-DF-r2",
+            "status": "VALID_CONTRACT",
+            "required": [
+              {
+                "label": "判断",
+                "kind": "decision",
+                "quantity": 1
+              }
+            ],
+            "exact": false
+          }
+        ],
+        "same_outcome_both_repetitions": false,
+        "same_approved_tuple_both_repetitions": false
+      },
+      "IF": {
+        "planned": 2,
+        "valid_contract": 2,
+        "exact_all_planned_numerator": 0,
+        "semantic_wrong_valid": 2,
+        "status_counts": {
+          "VALID_CONTRACT": 2,
+          "HTTP_CONTRACT_REJECTED": 0,
+          "HTTP_ERROR": 0,
+          "TRANSPORT_UNKNOWN": 0,
+          "CONTRACT_INVALID": 0
+        },
+        "repetitions": [
+          {
+            "id": "QE03-IF-r1",
+            "status": "VALID_CONTRACT",
+            "required": [
+              {
+                "label": "判断",
+                "kind": "decision",
+                "quantity": 1
+              }
+            ],
+            "exact": false
+          },
+          {
+            "id": "QE03-IF-r2",
+            "status": "VALID_CONTRACT",
+            "required": [
+              {
+                "label": "判断",
+                "kind": "decision",
+                "quantity": 1
+              }
+            ],
+            "exact": false
+          }
+        ],
+        "same_outcome_both_repetitions": true,
+        "same_approved_tuple_both_repetitions": true
+      },
+      "DE": {
+        "planned": 2,
+        "valid_contract": 2,
+        "exact_all_planned_numerator": 2,
+        "semantic_wrong_valid": 0,
+        "status_counts": {
+          "VALID_CONTRACT": 2,
+          "HTTP_CONTRACT_REJECTED": 0,
+          "HTTP_ERROR": 0,
+          "TRANSPORT_UNKNOWN": 0,
+          "CONTRACT_INVALID": 0
+        },
+        "repetitions": [
+          {
+            "id": "QE03-DE-r1",
+            "status": "VALID_CONTRACT",
+            "required": [
+              {
+                "label": "出荷可否",
+                "kind": "decision",
+                "quantity": 1
+              }
+            ],
+            "exact": true
+          },
+          {
+            "id": "QE03-DE-r2",
+            "status": "VALID_CONTRACT",
+            "required": [
+              {
+                "label": "出荷可否",
+                "kind": "decision",
+                "quantity": 1
+              }
+            ],
+            "exact": true
+          }
+        ],
+        "same_outcome_both_repetitions": true,
+        "same_approved_tuple_both_repetitions": true
+      },
+      "IE": {
+        "planned": 2,
+        "valid_contract": 2,
+        "exact_all_planned_numerator": 2,
+        "semantic_wrong_valid": 0,
+        "status_counts": {
+          "VALID_CONTRACT": 2,
+          "HTTP_CONTRACT_REJECTED": 0,
+          "HTTP_ERROR": 0,
+          "TRANSPORT_UNKNOWN": 0,
+          "CONTRACT_INVALID": 0
+        },
+        "repetitions": [
+          {
+            "id": "QE03-IE-r1",
+            "status": "VALID_CONTRACT",
+            "required": [
+              {
+                "label": "出荷可否",
+                "kind": "decision",
+                "quantity": 1
+              }
+            ],
+            "exact": true
+          },
+          {
+            "id": "QE03-IE-r2",
+            "status": "VALID_CONTRACT",
+            "required": [
+              {
+                "label": "出荷可否",
+                "kind": "decision",
+                "quantity": 1
+              }
+            ],
+            "exact": true
+          }
+        ],
+        "same_outcome_both_repetitions": true,
+        "same_approved_tuple_both_repetitions": true
+      }
+    },
+    "QE04": {
+      "DF": {
+        "planned": 2,
+        "valid_contract": 2,
+        "exact_all_planned_numerator": 0,
+        "semantic_wrong_valid": 2,
+        "status_counts": {
+          "VALID_CONTRACT": 2,
+          "HTTP_CONTRACT_REJECTED": 0,
+          "HTTP_ERROR": 0,
+          "TRANSPORT_UNKNOWN": 0,
+          "CONTRACT_INVALID": 0
+        },
+        "repetitions": [
+          {
+            "id": "QE04-DF-r1",
+            "status": "VALID_CONTRACT",
+            "required": [
+              {
+                "label": "工程",
+                "kind": "step",
+                "quantity": 2
+              }
+            ],
+            "exact": false
+          },
+          {
+            "id": "QE04-DF-r2",
+            "status": "VALID_CONTRACT",
+            "required": [
+              {
+                "label": "工程",
+                "kind": "step",
+                "quantity": 2
+              }
+            ],
+            "exact": false
+          }
+        ],
+        "same_outcome_both_repetitions": true,
+        "same_approved_tuple_both_repetitions": true
+      },
+      "IF": {
+        "planned": 2,
+        "valid_contract": 0,
+        "exact_all_planned_numerator": 0,
+        "semantic_wrong_valid": 0,
+        "status_counts": {
+          "VALID_CONTRACT": 0,
+          "HTTP_CONTRACT_REJECTED": 2,
+          "HTTP_ERROR": 0,
+          "TRANSPORT_UNKNOWN": 0,
+          "CONTRACT_INVALID": 0
+        },
+        "repetitions": [
+          {
+            "id": "QE04-IF-r1",
+            "status": "HTTP_CONTRACT_REJECTED",
+            "required": null,
+            "exact": null
+          },
+          {
+            "id": "QE04-IF-r2",
+            "status": "HTTP_CONTRACT_REJECTED",
+            "required": null,
+            "exact": null
+          }
+        ],
+        "same_outcome_both_repetitions": true,
+        "same_approved_tuple_both_repetitions": null
+      },
+      "DE": {
+        "planned": 2,
+        "valid_contract": 2,
+        "exact_all_planned_numerator": 0,
+        "semantic_wrong_valid": 2,
+        "status_counts": {
+          "VALID_CONTRACT": 2,
+          "HTTP_CONTRACT_REJECTED": 0,
+          "HTTP_ERROR": 0,
+          "TRANSPORT_UNKNOWN": 0,
+          "CONTRACT_INVALID": 0
+        },
+        "repetitions": [
+          {
+            "id": "QE04-DE-r1",
+            "status": "VALID_CONTRACT",
+            "required": [
+              {
+                "label": "工程1",
+                "kind": "step",
+                "quantity": 2
+              }
+            ],
+            "exact": false
+          },
+          {
+            "id": "QE04-DE-r2",
+            "status": "VALID_CONTRACT",
+            "required": [
+              {
+                "label": "工程",
+                "kind": "step",
+                "quantity": 2
+              }
+            ],
+            "exact": false
+          }
+        ],
+        "same_outcome_both_repetitions": true,
+        "same_approved_tuple_both_repetitions": false
+      },
+      "IE": {
+        "planned": 2,
+        "valid_contract": 0,
+        "exact_all_planned_numerator": 0,
+        "semantic_wrong_valid": 0,
+        "status_counts": {
+          "VALID_CONTRACT": 0,
+          "HTTP_CONTRACT_REJECTED": 2,
+          "HTTP_ERROR": 0,
+          "TRANSPORT_UNKNOWN": 0,
+          "CONTRACT_INVALID": 0
+        },
+        "repetitions": [
+          {
+            "id": "QE04-IE-r1",
+            "status": "HTTP_CONTRACT_REJECTED",
+            "required": null,
+            "exact": null
+          },
+          {
+            "id": "QE04-IE-r2",
+            "status": "HTTP_CONTRACT_REJECTED",
+            "required": null,
+            "exact": null
+          }
+        ],
+        "same_outcome_both_repetitions": true,
+        "same_approved_tuple_both_repetitions": null
+      }
+    }
+  },
+  "controlled_comparisons": [
+    {
+      "name": "dependencies_with_full_definitions",
+      "first_condition": "IF",
+      "second_condition": "DF",
+      "pairs": [
+        {
+          "case": "QE03",
+          "rep": 1,
+          "first": "QE03-IF-r1",
+          "second": "QE03-DF-r1",
+          "first_valid": true,
+          "second_valid": true,
+          "semantic_comparable": true,
+          "first_exact": false,
+          "second_exact": true
+        },
+        {
+          "case": "QE03",
+          "rep": 2,
+          "first": "QE03-IF-r2",
+          "second": "QE03-DF-r2",
+          "first_valid": true,
+          "second_valid": true,
+          "semantic_comparable": true,
+          "first_exact": false,
+          "second_exact": false
+        },
+        {
+          "case": "QE04",
+          "rep": 1,
+          "first": "QE04-IF-r1",
+          "second": "QE04-DF-r1",
+          "first_valid": false,
+          "second_valid": true,
+          "semantic_comparable": false,
+          "first_exact": null,
+          "second_exact": false
+        },
+        {
+          "case": "QE04",
+          "rep": 2,
+          "first": "QE04-IF-r2",
+          "second": "QE04-DF-r2",
+          "first_valid": false,
+          "second_valid": true,
+          "semantic_comparable": false,
+          "first_exact": null,
+          "second_exact": false
+        }
+      ],
+      "semantic_comparable_pairs": 2,
+      "first_only_exact": 0,
+      "second_only_exact": 1,
+      "equal_exactness": 1,
+      "second_valid_first_invalid": 2,
+      "first_valid_second_invalid": 0
+    },
+    {
+      "name": "dependencies_with_empty_definitions",
+      "first_condition": "IE",
+      "second_condition": "DE",
+      "pairs": [
+        {
+          "case": "QE03",
+          "rep": 1,
+          "first": "QE03-IE-r1",
+          "second": "QE03-DE-r1",
+          "first_valid": true,
+          "second_valid": true,
+          "semantic_comparable": true,
+          "first_exact": true,
+          "second_exact": true
+        },
+        {
+          "case": "QE03",
+          "rep": 2,
+          "first": "QE03-IE-r2",
+          "second": "QE03-DE-r2",
+          "first_valid": true,
+          "second_valid": true,
+          "semantic_comparable": true,
+          "first_exact": true,
+          "second_exact": true
+        },
+        {
+          "case": "QE04",
+          "rep": 1,
+          "first": "QE04-IE-r1",
+          "second": "QE04-DE-r1",
+          "first_valid": false,
+          "second_valid": true,
+          "semantic_comparable": false,
+          "first_exact": null,
+          "second_exact": false
+        },
+        {
+          "case": "QE04",
+          "rep": 2,
+          "first": "QE04-IE-r2",
+          "second": "QE04-DE-r2",
+          "first_valid": false,
+          "second_valid": true,
+          "semantic_comparable": false,
+          "first_exact": null,
+          "second_exact": false
+        }
+      ],
+      "semantic_comparable_pairs": 2,
+      "first_only_exact": 0,
+      "second_only_exact": 0,
+      "equal_exactness": 2,
+      "second_valid_first_invalid": 2,
+      "first_valid_second_invalid": 0
+    },
+    {
+      "name": "empty_definitions_dependent",
+      "first_condition": "DF",
+      "second_condition": "DE",
+      "pairs": [
+        {
+          "case": "QE03",
+          "rep": 1,
+          "first": "QE03-DF-r1",
+          "second": "QE03-DE-r1",
+          "first_valid": true,
+          "second_valid": true,
+          "semantic_comparable": true,
+          "first_exact": true,
+          "second_exact": true
+        },
+        {
+          "case": "QE03",
+          "rep": 2,
+          "first": "QE03-DF-r2",
+          "second": "QE03-DE-r2",
+          "first_valid": true,
+          "second_valid": true,
+          "semantic_comparable": true,
+          "first_exact": false,
+          "second_exact": true
+        },
+        {
+          "case": "QE04",
+          "rep": 1,
+          "first": "QE04-DF-r1",
+          "second": "QE04-DE-r1",
+          "first_valid": true,
+          "second_valid": true,
+          "semantic_comparable": true,
+          "first_exact": false,
+          "second_exact": false
+        },
+        {
+          "case": "QE04",
+          "rep": 2,
+          "first": "QE04-DF-r2",
+          "second": "QE04-DE-r2",
+          "first_valid": true,
+          "second_valid": true,
+          "semantic_comparable": true,
+          "first_exact": false,
+          "second_exact": false
+        }
+      ],
+      "semantic_comparable_pairs": 4,
+      "first_only_exact": 0,
+      "second_only_exact": 1,
+      "equal_exactness": 3,
+      "second_valid_first_invalid": 0,
+      "first_valid_second_invalid": 0
+    },
+    {
+      "name": "empty_definitions_independent",
+      "first_condition": "IF",
+      "second_condition": "IE",
+      "pairs": [
+        {
+          "case": "QE03",
+          "rep": 1,
+          "first": "QE03-IF-r1",
+          "second": "QE03-IE-r1",
+          "first_valid": true,
+          "second_valid": true,
+          "semantic_comparable": true,
+          "first_exact": false,
+          "second_exact": true
+        },
+        {
+          "case": "QE03",
+          "rep": 2,
+          "first": "QE03-IF-r2",
+          "second": "QE03-IE-r2",
+          "first_valid": true,
+          "second_valid": true,
+          "semantic_comparable": true,
+          "first_exact": false,
+          "second_exact": true
+        },
+        {
+          "case": "QE04",
+          "rep": 1,
+          "first": "QE04-IF-r1",
+          "second": "QE04-IE-r1",
+          "first_valid": false,
+          "second_valid": false,
+          "semantic_comparable": false,
+          "first_exact": null,
+          "second_exact": null
+        },
+        {
+          "case": "QE04",
+          "rep": 2,
+          "first": "QE04-IF-r2",
+          "second": "QE04-IE-r2",
+          "first_valid": false,
+          "second_valid": false,
+          "semantic_comparable": false,
+          "first_exact": null,
+          "second_exact": null
+        }
+      ],
+      "semantic_comparable_pairs": 2,
+      "first_only_exact": 0,
+      "second_only_exact": 2,
+      "equal_exactness": 0,
+      "second_valid_first_invalid": 0,
+      "first_valid_second_invalid": 0
+    }
+  ],
+  "terminal": {
+    "charged": {
+      "jev": 847,
+      "typellm": 104
+    },
+    "outstanding": 0,
+    "owned_groups": 45,
+    "members_including_Z": [],
+    "journal_sha256": "dc989eb807f6016dc248cd75e86f64674d12bdcb2e448277e297b806da43a1d8",
+    "actual_sent": {
+      "jev": 0,
+      "typellm": 16
+    },
+    "driver_exit": 0,
+    "stop": "STOPPED_RECONCILED"
+  },
+  "interpretation": {
+    "QE03": "Definitions-empty DE and IE both exact in both repetitions. DF mixed 1/2; IF 0/2. This supports only a finite next condition hypothesis.",
+    "QE04": "No condition exact. Dependent DF/DE valid but wrong names; independent IF/IE all known parts_contract rejections with unavailable invalid tuple values.",
+    "limitations": [
+      "Public known two cases and two repetitions only; no unique mechanism or resolved backend model version identified.",
+      "Validity changes are separate from semantic wins. Invalid pairs are excluded only from semantic pair comparisons, never removed from the 16-slot denominator.",
+      "No fresh quality, ordinary UI, diagram, general Type efficacy, EFFECT or NO_EFFECT conclusion."
+    ]
+  },
+  "reviewer_provider_calls": 0,
+  "zero_audit": {
+    "name": "extraction-a3-zero-send-audit.json",
+    "sha256": "b267816e114730e0ce64d9e56986e6b02726a8a3d24631afaec0e860a6eaf3ee",
+    "bytes": 10522,
+    "prior_notified_LF_buffer_sha256": "b383186a358956e2fc634d83c5168c689d5dcf0a6fe5708d47b75dbb98d40b8f",
+    "sole_difference_from_prior_notice": "Windows text-mode LF to CRLF transformation, 325 line endings; original file retained"
+  }
+}
