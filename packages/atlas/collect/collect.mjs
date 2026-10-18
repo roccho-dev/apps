@@ -23,7 +23,11 @@ export function collect(records, recordedAt) {
       case 'sessions': return sessionObservations(record, recordedAt);
       case 'ports': return portObservations(record, recordedAt);
       case 'declaration': return declarationEvents(record, recordedAt);
-      case 'fact': return [observation(record.target, record.value, record.source, record.observedAt, recordedAt)];
+      case 'fact':
+        if (record.availableAt !== undefined && (!Number.isFinite(Date.parse(record.availableAt))
+          || !Number.isFinite(Date.parse(recordedAt)) || Date.parse(recordedAt) < Date.parse(record.availableAt)))
+          throw new Error('atlas-collect: fact recordedAt must be at or after availableAt');
+        return [observation(record.target, record.value, record.source, record.observedAt, recordedAt)];
       default: throw new Error(`atlas-collect: unknown record kind ${JSON.stringify(record.kind)}`);
     }
   });
