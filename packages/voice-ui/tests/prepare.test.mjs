@@ -65,7 +65,9 @@ test("this package prepares deterministically: every file classified, text only 
   for (const file of ["src/turn.mjs", "src/render.mjs", "src/bundle.mjs", "web/data/bundle.v1.json", "artifact.jsonl", "dev/serve.mjs", "web/app.mjs"]) {
     assert.ok(admitted.includes(file), `${file} is admitted`);
   }
-  assert.ok(admitted.every(file => /^(src|web|functions|dev)\//u.test(file) || file === "artifact.jsonl"));
+  for (const file of ["decision-references/read.mjs", "decision-references/propose.mjs", "decision-references/README.md"])
+    assert.ok(admitted.includes(file), `${file} is included with its public runtime source`);
+  assert.ok(admitted.every(file => /^(src|web|functions|dev|decision-references)\//u.test(file) || file === "artifact.jsonl"));
   assert.ok(manifest.files.filter(file => file.class === "excluded").every(file => /^(tests|acceptance|architecture)\//u.test(file.path) || file.path === "dist.py"));
   assert.ok(manifest.files.filter(file => file.class === "excluded").every(file => file.reason.length > 0));
 
