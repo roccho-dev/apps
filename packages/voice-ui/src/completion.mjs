@@ -355,6 +355,50 @@ export function requiredRequest(context, { generation = "dependent" } = {}) {
   return request;
 }
 
+// Experimental extraction contract. Explicit names and definition names have
+// separate provenance; neither branch may invent a replacement display name.
+export function displaySourceRequest(context) {
+  const request = requiredRequest(context, { generation: "dependent" });
+  for (const [index, question] of Object.values(request.questions).entries()) {
+    const n = index + 1, { kind, label, quantity } = question.properties;
+    const label_source = { type: "string", enum: ["utterance", "definition", "none"], depends_on: ["kind"],
+      instructions: "第" + n + "組の表示名の出所だけを答える。utterance=原文が表示名を明示している。"
+        + "definition=表示名の指定がなく、種類に対応するpart_definitionsの標準名を使う。none=この順位の組はない。"
+        + "種類名と表示名が両方あるときは、表示名の指定を優先してutteranceとする。" };
+    question.properties = { kind, label_source,
+      label: { ...label, depends_on: ["kind", "label_source"], instructions: "第" + n + "組の表示名だけを答える。"
+        + "label_source=utteranceなら、原文で明示された表示名をそのまま抜き出す。種類名へ言い換えない。"
+        + "label_source=definitionなら、kindが一致するpart_definitionsの標準labelをそのまま使う。"
+        + "label_source=noneなら空文字。番号・種類名・説明・引用符は付け足さない。" },
+      quantity: { ...quantity, depends_on: ["kind", "label_source", "label"] } };
+  }
+  return request;
+}
+
+export function readDisplaySourceSlots(source, context) {
+  if (!requiredExact(source, ["required1", "required2", "required3"])) return null;
+  const slots = {};
+  for (const [key, row] of Object.entries(source)) {
+    if (!requiredExact(row, ["kind", "label_source", "label", "quantity"])) return null;
+    slots[key] = { label: row.label, kind: row.kind, quantity: row.quantity };
+  }
+  const required = readRequiredSlots(slots);
+  if (required === null) return null;
+  for (const row of Object.values(source)) {
+    if (row.label_source === "none") {
+      if (row.kind !== "none" || row.label !== "" || row.quantity !== "0") return null;
+    } else {
+      if (row.kind === "none") return null;
+      if (row.label_source === "utterance") {
+        if (!context.utterance.includes(row.label)) return null;
+      } else if (row.label_source === "definition") {
+        if (!context.parts.some(p => p.label === row.label && p.kind === row.kind)) return null;
+      } else return null;
+    }
+  }
+  return { slots, required, source_slots: structuredClone(source) };
+}
+
 // This question receives no expected answer, oracle, parent or edge proposal.
 export function requiredQuestion(base, required) {
   const comparison = { utterance: base.state.utterance, proposed_new_parts: required,

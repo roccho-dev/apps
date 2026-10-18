@@ -1,0 +1,28 @@
+{
+  "schema": "voice-ui.display-source-oracle/1",
+  "scope": "PUBLIC_FOUR_CASE_EXTRACTION_ONLY_NOT_FRESH_OR_ORDINARY_UI_EFFECT",
+  "required": {
+    "QB01": [
+      {
+        "label": "出荷可否",
+        "kind": "decision",
+        "quantity": 1
+      }
+    ],
+    "QB02": [
+      {
+        "label": "API",
+        "kind": "step",
+        "quantity": 2
+      }
+    ],
+    "QB03": [
+      {
+        "label": "判断",
+        "kind": "decision",
+        "quantity": 1
+      }
+    ],
+    "QB04": []
+  }
+}

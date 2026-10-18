@@ -1,5 +1,6 @@
 import { COVERAGE, inventoryQuestion, isInventory, readLiteralInspection, readTypedMissing, typedMissingRequest,
   acceptedRequirements, readRequired, readRequiredSlots, readRequirementFactors, readRequirementInspection,
+  displaySourceRequest, readDisplaySourceSlots,
   requirementDecision, requirementProposalPolicy, requiredDifference, requiredQuestion, requiredRequest, requiresInterpretation } from "../../src/completion.mjs";
 import { LABEL_MAX, PART_KINDS } from "../../src/contract.mjs";
 import { literalInventory, literalQuestion } from "../../src/literal-inventory.mjs";
@@ -107,7 +108,7 @@ const failure = code => Object.assign(new Error("parts operation stopped"), { co
 export async function onRequirements({ request, mode, method, available, generation = "dependent" }, { judge, generate }) {
   if (!["check", "requirements", "verify"].includes(mode)
       || !["literal-v2", "adaptive-v2", "adaptive-v3"].includes(method)
-      || !["independent", "dependent"].includes(generation)
+      || !["independent", "dependent", "display-source"].includes(generation)
       || mode !== "requirements" && generation !== "dependent") return json({ error: "parts_invalid_method" }, 422);
   if (!available) return json({ error: "parts_unavailable" }, 503);
   let input;
@@ -134,14 +135,16 @@ export async function onRequirements({ request, mode, method, available, generat
     finally { signal.removeEventListener("abort", stop); }
   };
   const full = async () => {
-    const value = await send(generate, requiredRequest(inventoryQuestion(inventory.state).state, { generation }));
-    const required = readRequiredSlots(value?.result);
+    const context = inventoryQuestion(inventory.state).state, sourced = generation === "display-source";
+    const value = await send(generate, sourced ? displaySourceRequest(context) : requiredRequest(context, { generation }));
+    const decoded = sourced ? readDisplaySourceSlots(value?.result, context) : null;
+    const required = sourced ? decoded?.required ?? null : readRequiredSlots(value?.result);
     if (required === null) {
       stage("TYPE_REQUIRED", { valid: false, generation });
       throw failure("provider_contract_error");
     }
-    const proposal = { slots: structuredClone(value.result), required };
-    stage("TYPE_REQUIRED", { valid: true, generation, proposal });
+    const proposal = { slots: sourced ? decoded.slots : structuredClone(value.result), required };
+    stage("TYPE_REQUIRED", { valid: true, generation, proposal, ...(sourced ? { source_slots: decoded.source_slots } : {}) });
     return proposal;
   };
   const verify = async required => {

@@ -383,6 +383,32 @@ test("normal compiled check uses v3 and complete baseline works without a Type k
   assert.equal(calls.length, 4);
 });
 
+test("compiled extraction opt-in normalizes display provenance in one typed call and stays out of ordinary checks", async () => {
+  const input = { kind: "voice-ui.goal.inventory.v1", state: { utterance: "Containerに工程を1個、表示名は検算窓",
+    head: "fixture-head", regions: [{ id: "root", parent: null, label: "World", kind: "boundary" },
+      { id: "container", parent: "root", label: "Container", kind: "group" }], edges: [],
+    parts: [{ key: "step", label: "工程", kind: "step", purpose: "ordinary step" }] } };
+  const invoke = mode => worker.fetch(new Request("http://localhost/api/parts/" + mode + "?generation=display-source",
+    { method: "POST", body: JSON.stringify(input) }), { TYPELLM_API_KEY: "typed-test-only" });
+  const { calls } = await withProvider(async (body, init, url) => {
+    assert.equal(url, "https://api.typellm.ai/v1/generate");
+    assert.equal(init.headers.authorization, "Bearer typed-test-only");
+    assert.equal(body.model, "typellm-latest"); assert.equal(body.options.temperature, 0);
+    assert.deepEqual(body.questions.required1.properties.label_source.enum, ["utterance", "definition", "none"]);
+    return Response.json({ status: "completed", result: Object.fromEntries([1, 2, 3].map(n => ["required" + n,
+      n === 1 ? { kind: "step", label_source: "utterance", label: "検算窓", quantity: "1" }
+        : { kind: "none", label_source: "none", label: "", quantity: "0" }])) });
+  }, async () => {
+    const response = await invoke("requirements"), value = await response.json();
+    assert.equal(response.status, 200);
+    assert.deepEqual(Object.keys(value).sort(), ["request_id", "required", "schema", "slots"]);
+    assert.deepEqual(value.required, [{ label: "検算窓", kind: "step", quantity: 1 }]);
+    assert.equal(Object.hasOwn(value.slots.required1, "label_source"), false);
+    for (const mode of ["check", "verify", "complete"]) assert.equal((await invoke(mode)).status, 422);
+  });
+  assert.equal(calls.length, 1);
+});
+
 test("legacy completed Worker completion defaults to literal without a Type key; invalid methods cannot dispatch", async () => {
   const input = { kind: "voice-ui.goal.inventory.v1", state: { utterance: "ContainerにDBを3個追加", head: "fixture-head",
     regions: [{ id: "root", label: "World", kind: "boundary", parent: null },
