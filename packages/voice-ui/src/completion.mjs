@@ -400,6 +400,31 @@ export function readDisplaySourceSlots(source, context) {
 }
 
 // This question receives no expected answer, oracle, parent or edge proposal.
+// Keep the dependent extraction DAG, but ask its leaves as top-level scalars.
+export function flatRequiredRequest(context) {
+  const request = requiredRequest(context, { generation: "dependent" }), questions = {};
+  const fields = ["label", "kind", "quantity"];
+  for (const [name, parent] of Object.entries(request.questions)) {
+    const inherited = (parent.depends_on ?? []).flatMap(key => fields.map(field => key + "_" + field));
+    for (const [field, schema] of Object.entries(parent.properties)) {
+      const depends_on = [...inherited, ...(schema.depends_on ?? []).map(key => name + "_" + key)];
+      questions[name + "_" + field] = { ...schema, instructions: parent.instructions + "\n" + schema.instructions };
+      if (depends_on.length) questions[name + "_" + field].depends_on = depends_on;
+      else delete questions[name + "_" + field].depends_on;
+    }
+  }
+  return { context: request.context, questions };
+}
+
+export function readFlatRequiredSlots(source) {
+  const names = ["required1", "required2", "required3"], fields = ["label", "kind", "quantity"];
+  if (!requiredExact(source, names.flatMap(name => fields.map(field => name + "_" + field)))) return null;
+  const slots = Object.fromEntries(names.map(name => [name,
+    Object.fromEntries(fields.map(field => [field, source[name + "_" + field]]))]));
+  const required = readRequiredSlots(slots);
+  return required === null ? null : { slots, required, scalar_answers: structuredClone(source) };
+}
+
 export function requiredQuestion(base, required) {
   const comparison = { utterance: base.state.utterance, proposed_new_parts: required,
     part_definitions: base.state.parts.map(({ label, kind, purposes }) => ({ label, kind, purposes })) };

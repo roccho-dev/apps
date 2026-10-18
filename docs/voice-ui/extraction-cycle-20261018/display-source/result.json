@@ -1,0 +1,193 @@
+{
+  "scope": "PUBLIC_FOUR_CASE_EXTRACTION_ONLY_NOT_FRESH_OR_ORDINARY_UI_EFFECT",
+  "measurement_apps": "478cffec9f9dafecfa1f2d4877ae407c04ebbdff",
+  "rows": [
+    {
+      "id": "QB01-current",
+      "case": "QB01",
+      "arm": "current",
+      "role": "explicit",
+      "status": "VALID_CONTRACT",
+      "contract_valid": true,
+      "exact": false,
+      "minimal": false,
+      "required": [
+        {
+          "label": "判断",
+          "kind": "decision",
+          "quantity": 1
+        }
+      ]
+    },
+    {
+      "id": "QB01-candidate",
+      "case": "QB01",
+      "arm": "candidate",
+      "role": "explicit",
+      "status": "VALID_CONTRACT",
+      "contract_valid": true,
+      "exact": false,
+      "minimal": false,
+      "required": [
+        {
+          "label": "判断",
+          "kind": "decision",
+          "quantity": 1
+        }
+      ]
+    },
+    {
+      "id": "QB02-candidate",
+      "case": "QB02",
+      "arm": "candidate",
+      "role": "explicit",
+      "status": "VALID_CONTRACT",
+      "contract_valid": true,
+      "exact": false,
+      "minimal": false,
+      "required": [
+        {
+          "label": "工程",
+          "kind": "step",
+          "quantity": 2
+        }
+      ]
+    },
+    {
+      "id": "QB02-current",
+      "case": "QB02",
+      "arm": "current",
+      "role": "explicit",
+      "status": "VALID_CONTRACT",
+      "contract_valid": true,
+      "exact": false,
+      "minimal": false,
+      "required": [
+        {
+          "label": "工程",
+          "kind": "step",
+          "quantity": 2
+        }
+      ]
+    },
+    {
+      "id": "QB03-current",
+      "case": "QB03",
+      "arm": "current",
+      "role": "standard",
+      "status": "VALID_CONTRACT",
+      "contract_valid": true,
+      "exact": true,
+      "minimal": true,
+      "required": [
+        {
+          "label": "判断",
+          "kind": "decision",
+          "quantity": 1
+        }
+      ]
+    },
+    {
+      "id": "QB03-candidate",
+      "case": "QB03",
+      "arm": "candidate",
+      "role": "standard",
+      "status": "VALID_CONTRACT",
+      "contract_valid": true,
+      "exact": true,
+      "minimal": true,
+      "required": [
+        {
+          "label": "判断",
+          "kind": "decision",
+          "quantity": 1
+        }
+      ]
+    },
+    {
+      "id": "QB04-candidate",
+      "case": "QB04",
+      "arm": "candidate",
+      "role": "new0",
+      "status": "VALID_CONTRACT",
+      "contract_valid": true,
+      "exact": true,
+      "minimal": true,
+      "required": []
+    },
+    {
+      "id": "QB04-current",
+      "case": "QB04",
+      "arm": "current",
+      "role": "new0",
+      "status": "VALID_CONTRACT",
+      "contract_valid": true,
+      "exact": true,
+      "minimal": true,
+      "required": []
+    }
+  ],
+  "counts": {
+    "current": {
+      "planned": 4,
+      "valid": 4,
+      "exact": 2,
+      "semantic_wrong": 2,
+      "invalid_or_unknown": 0
+    },
+    "candidate": {
+      "planned": 4,
+      "valid": 4,
+      "exact": 2,
+      "semantic_wrong": 2,
+      "invalid_or_unknown": 0
+    }
+  },
+  "pairs": [
+    {
+      "case": "QB01",
+      "role": "explicit",
+      "valid_both": true,
+      "gain": false,
+      "regression": false,
+      "tie": true,
+      "excluded_contract_or_transport": false
+    },
+    {
+      "case": "QB02",
+      "role": "explicit",
+      "valid_both": true,
+      "gain": false,
+      "regression": false,
+      "tie": true,
+      "excluded_contract_or_transport": false
+    },
+    {
+      "case": "QB03",
+      "role": "standard",
+      "valid_both": true,
+      "gain": false,
+      "regression": false,
+      "tie": true,
+      "excluded_contract_or_transport": false
+    },
+    {
+      "case": "QB04",
+      "role": "new0",
+      "valid_both": true,
+      "gain": false,
+      "regression": false,
+      "tie": true,
+      "excluded_contract_or_transport": false
+    }
+  ],
+  "public_gate": false,
+  "product_effect": "UNPROVEN",
+  "fresh_quality": "UNPROVEN",
+  "registration": "478cffec9f9dafecfa1f2d4877ae407c04ebbdff",
+  "quality": "UNMET",
+  "finite_effect": "NO_EFFECT_IN_REGISTERED_PUBLIC_EXTRACTION_PAIRS",
+  "effect_scope": "valid public four-case F extraction only",
+  "heldout_opened": false,
+  "ordinary_ui_adopted": false
+}

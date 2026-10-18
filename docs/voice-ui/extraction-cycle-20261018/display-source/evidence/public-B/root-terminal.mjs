@@ -1,0 +1,13 @@
+import fs from"node:fs";import assert from"node:assert/strict";import{createHash}from"node:crypto";const b="/work/repos/voice-ui-typellm-20261016",phase="display-source-public-B-20261018",h=x=>createHash("sha256").update(x).digest("hex");
+const o=JSON.parse(fs.readFileSync(b+"/"+phase+".orchestration.json"));assert.equal(o.execution.exit,0);assert.equal(o.stop.status,"STOPPED_RECONCILED");assert.deepEqual(o.stop.result.sent,{jev:0,typellm:8});
+const bytes=fs.readFileSync(b+"/provider-events.jsonl");assert.deepEqual(bytes,fs.readFileSync(b+"/"+phase+".journal.jsonl"));
+const old=fs.readFileSync(b+"/extraction-public-A3-20261018.journal.jsonl");assert.equal(h(old),"dc989eb807f6016dc248cd75e86f64674d12bdcb2e448277e297b806da43a1d8");assert.deepEqual(bytes.subarray(0,old.length),old);
+const ev=bytes.toString().trim().split("\n").map(JSON.parse),charged={jev:0,typellm:0},reserved=new Map();
+for(const e of ev){if(e.kind==="reserve")charged[e.provider]+=e.charge;else if(e.kind==="phase-reserve"){assert.equal(reserved.has(e.id),false);reserved.set(e.id,e.allowances);}else if(e.kind==="phase-reconcile"){const a=reserved.get(e.id);assert.ok(a);for(const p of ["jev","typellm"]){assert.ok(e.sent[p]>=0&&e.sent[p]<=a[p]);charged[p]+=e.sent[p];}reserved.delete(e.id);}else assert.equal(e.kind,"outcome");}
+assert.deepEqual(charged,{jev:847,typellm:112});assert.equal(reserved.size,0);
+const pgids=[...new Set(ev.filter(e=>e.kind==="phase-reserve").map(e=>e.id))].map(id=>JSON.parse(fs.readFileSync(b+"/"+id+".process.json")).pid);assert.equal(pgids.length,46);assert.equal(new Set(pgids).size,46);
+const remaining=[];for(const n of fs.readdirSync("/proc"))if(/^[0-9]+$/.test(n)){try{const s=fs.readFileSync("/proc/"+n+"/stat","utf8"),f=s.slice(s.lastIndexOf(")")+2).trim().split(/\s+/);if(pgids.includes(+f[2]))remaining.push({pid:+n,pgid:+f[2],state:f[0]});}catch(e){if(!["ENOENT","ESRCH"].includes(e.code))throw e;}}assert.deepEqual(remaining,[]);
+const config=JSON.parse(fs.readFileSync(b+"/"+phase+".config.json")),plan=JSON.parse(fs.readFileSync(config.public_plan)),expected=[...plan.schedule.map(s=>s.id+".json"),"identity.json","events.jsonl","execution.json"].sort();assert.deepEqual(fs.readdirSync(b+"/"+phase+".raw").sort(),expected);
+const proof={status:"PASS",scope:"ROOT_STOPPED_PUBLIC_COMPARISON_TERMINAL_ONLY",at:new Date().toISOString(),phase,journal_sha256:h(bytes),charged,outstanding:0,owned_pgids:46,remaining_members:[],sent:{jev:0,typellm:8},planned:8,raw_files:expected.length};
+fs.writeFileSync(b+"/"+phase+".root-terminal.json",JSON.stringify(proof,null,2)+"\n",{flag:"wx",mode:0o600});console.log(JSON.stringify(proof));
+

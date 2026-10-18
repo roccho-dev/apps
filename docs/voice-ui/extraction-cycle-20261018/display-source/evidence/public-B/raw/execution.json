@@ -1,0 +1,64 @@
+{
+  "planned": 8,
+  "recorded": 8,
+  "summary": [
+    {
+      "id": "QB01-current",
+      "case": "QB01",
+      "arm": "current",
+      "role": "explicit",
+      "status": "VALID_CONTRACT"
+    },
+    {
+      "id": "QB01-candidate",
+      "case": "QB01",
+      "arm": "candidate",
+      "role": "explicit",
+      "status": "VALID_CONTRACT"
+    },
+    {
+      "id": "QB02-candidate",
+      "case": "QB02",
+      "arm": "candidate",
+      "role": "explicit",
+      "status": "VALID_CONTRACT"
+    },
+    {
+      "id": "QB02-current",
+      "case": "QB02",
+      "arm": "current",
+      "role": "explicit",
+      "status": "VALID_CONTRACT"
+    },
+    {
+      "id": "QB03-current",
+      "case": "QB03",
+      "arm": "current",
+      "role": "standard",
+      "status": "VALID_CONTRACT"
+    },
+    {
+      "id": "QB03-candidate",
+      "case": "QB03",
+      "arm": "candidate",
+      "role": "standard",
+      "status": "VALID_CONTRACT"
+    },
+    {
+      "id": "QB04-candidate",
+      "case": "QB04",
+      "arm": "candidate",
+      "role": "new0",
+      "status": "VALID_CONTRACT"
+    },
+    {
+      "id": "QB04-current",
+      "case": "QB04",
+      "arm": "current",
+      "role": "new0",
+      "status": "VALID_CONTRACT"
+    }
+  ],
+  "retries": 0,
+  "additional_setup_provider_sends": 0
+}

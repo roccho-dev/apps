@@ -1,0 +1,21 @@
+{
+  "phase_id": "display-source-public-B-20261018",
+  "axis": "F-COMPARISON",
+  "stage": "public",
+  "program": "/nix/store/bg0bygqiid25xnivxv9cdgjlx3sp939j-voice-ui-typed-dev/bin/voice-ui-typed-dev",
+  "heads": {
+    "apps": "478cffec9f9dafecfa1f2d4877ae407c04ebbdff",
+    "envs": "063e685b8b21a97fc8658879da93fa858552bcd6",
+    "ops": "c7ed1132ad7bec8e5f05c6da38d719a05dec4877",
+    "windows": "6aef693c0946903d8b87c2348039de1420acd61b",
+    "ui": "756d47e891191c3344eb2d29b000203be8331abc"
+  },
+  "allowances": {
+    "jev": 0,
+    "typellm": 8
+  },
+  "public_plan": "/nix/store/hbw3mlq1br5ai5swvsd4ival0nfji9i1-source/docs/voice-ui/extraction-cycle-20261018/display-source/public.input.json",
+  "runtime_file": "/work/repos/voice-ui-typellm-20261016/runtime-candidate-display-source-478cffec.json",
+  "wire_file": "/work/repos/voice-ui-typellm-20261016/display-source-478c.public.wire.json",
+  "driver": "/nix/store/hbw3mlq1br5ai5swvsd4ival0nfji9i1-source/docs/voice-ui/extraction-cycle-20261018/display-source/evaluate.mjs"
+}

@@ -18,7 +18,7 @@ export default {
         : methods.length === 1 ? methods[0] : "invalid";
       if ([...url.searchParams.keys()].some(key => key !== (mode === "requirements" ? "generation" : "method"))
           || mode === "verify" && methods.length
-          || mode === "requirements" && !["independent", "dependent", "display-source"].includes(generation))
+          || mode === "requirements" && !["independent", "dependent", "display-source", "flat-scalars"].includes(generation))
         return Response.json({ error: "parts_invalid_method" }, { status: 422 });
       const choice = bindJev({ apiKey: env?.JEV_API_KEY });
       const typed = bindTypeLLM({ apiKey: env?.TYPELLM_API_KEY });

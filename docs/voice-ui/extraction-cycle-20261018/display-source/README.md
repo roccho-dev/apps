@@ -19,3 +19,11 @@
 未見のdata-only envelope規則も公開測定前に固定する。解放されるvoice-ui.extraction-comparison-input/1の原bytes10917B・SHA dd66904853ae031c68e632c67d3bfc3a974141ce77fa4f83ecb406ad0a149874を保持する。casesのid/requestとscheduleは無変更で包み、roleは全てnullとする。公開計画と同じendpoint/2arm/capを加え、scopeはFRESH_FOUR_CASE_EXTRACTION_ONLY_NOT_ORDINARY_UI_EFFECTへ区別する。sealed_inputには同じfolder内の原入力filenameとhashを記す。callerが実bytes/hashと全request・順序の同一性を検証し、oracleや役割の正解を補わない。このdata-only包装のために候補コードやcallerを変更しない。freshの開始前にも公開登録・wire・同PID送信0の確認を別途行う。
 
 現累計charged847J/104T、各1000以内。公開phase cap0J/8T、setup実送/再試行/修正実送0、最悪847/112。未見phaseへ自動進行せず、先に停止・精算・独立評価へ戻る。通常UI効果はさらに別の比較を要する。Fの成功だけで製品EFFECTや完成へ昇格しない。Apps draftとUI#362の人間merge条件を保持する。
+
+## 停止後の公開結果
+
+登録・測定headは478cffec9f9dafecfa1f2d4877ae407c04ebbdff。[全8応答と停止・精算](evidence/public-B)、[キー不要wire](public.wire.json)、[再計算結果](result.json)を保存した。現行2/4・候補2/4、形式成立8/8、意味gain0・回帰0・INVALID0。明示名2例は両方式とも出荷可否→判断、API/step/2→工程/step/2だった。標準名とNEW0は両方式とも正答した。
+
+候補の誤った判断・工程も原文中の部分文字列なので、label_source=utteranceの構造検証を通過した。出所の形式を追加するだけでは、明示された表示名を選ぶ意味能力の不足を解消しなかった。これは今回の公開4組で改善差なし（NO_EFFECT_IN_REGISTERED_PUBLIC_EXTRACTION_PAIRS）、候補の品質はUNMETであり、TypeLLM一般の無効性を示す結果ではない。
+
+同じ独立担当の採点も一致した。公開gate未達のため未見4例は開けず、通常UIへ採用しない。製品効果と未見品質はUNPROVENを保持する。実送0J/8T、累計charged847J/112T（確認847/111、旧不確定Type1を含む）、予約0、全46所有PGIDはZを含め不在。旧診断の台帳prefix dc989eb8…を保持し、即時cutoffはae0426cf625301e1b439729f09c1fe60d6fbd394ee0686bdd1350eb7fee3460d。全8件を既存の独立採点器で再計算する2テストを通常Nix CIに含める。

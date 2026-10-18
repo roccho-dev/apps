@@ -1,0 +1,221 @@
+{
+  "schema": "voice-ui.display-source-zero-send-audit/1",
+  "status": "PASS",
+  "scope": "SAME_PROCESS_ZERO_SEND_ADMISSION_ONE_FIXED_PUBLIC_8_SLOTS_NOT_MODEL_QUALITY_OR_FINAL_CI_CLOSURE",
+  "at": "2026-10-18T01:56:46.150638+00:00",
+  "head": "478cffec9f9dafecfa1f2d4877ae407c04ebbdff",
+  "phase": "display-source-public-B-20261018",
+  "process": {
+    "pid": 390121,
+    "pgid": 390121,
+    "start_ticks": "19632564",
+    "uid": 1000,
+    "argv": [
+      "node",
+      "/nix/store/hbw3mlq1br5ai5swvsd4ival0nfji9i1-source/packages/voice-ui/dev/serve.mjs"
+    ],
+    "active_group_members": [
+      {
+        "pid": 390121,
+        "pgid": 390121,
+        "state": "S"
+      }
+    ],
+    "listeners": [
+      {
+        "port": 18845,
+        "table": "tcp",
+        "inode": "881224",
+        "owned_by_pid": 390121
+      }
+    ]
+  },
+  "metadata": [
+    {
+      "name": "display-source-public-B-20261018.config.json",
+      "sha256": "462ee294ac818da03660e72b3176bb2b1a15adda649049302245e6bfb709e8f6",
+      "bytes": 1030
+    },
+    {
+      "name": "display-source-public-B-20261018.process.json",
+      "sha256": "0794f006d0dbe99429b8d84b4e1b574ae0da7499bd2bcdae40138b103af51163",
+      "bytes": 867
+    },
+    {
+      "name": "display-source-public-B-20261018.operator.mjs",
+      "sha256": "7888f0e679d570f1298ef351b752bbe646306eadf67a5f5faa115b99b400d9a9",
+      "bytes": 2506
+    },
+    {
+      "name": "display-source-public-B-20261018.root-zero.mjs",
+      "sha256": "829c7e0e9b1ccc3a1942033b92ce6b110ba6ba08d7569ac147b3e98c98595b7a",
+      "bytes": 2596
+    },
+    {
+      "name": "runtime-candidate-display-source-478cffec.json",
+      "sha256": "c814095d4cdbbf1f069286e3c8979a016acf279af7623adb2d2de2417a299b74",
+      "bytes": 3974
+    },
+    {
+      "name": "display-source-478c.public.wire.json",
+      "sha256": "00483388b505f9e86a6e4e0eb0ef4fa3390b8158de88872bdc73f9b57986b760",
+      "bytes": 121440
+    },
+    {
+      "name": "run-manager-v3-bootstrap-ca.mjs",
+      "sha256": "7f62fd2848cfdf646e576ad40fc17db077c06e2f16548a6dd5d817c046c2ff4b",
+      "bytes": 7242
+    }
+  ],
+  "root_zero": {
+    "name": "display-source-public-B-20261018.root-zero.json",
+    "sha256": "39f0cbbaa208b4ca60debf68591778c853ad206e8d2eec73eecb0a2e9f469fe5",
+    "bytes": 875
+  },
+  "source_inputs": [
+    {
+      "path": "packages/voice-ui/src/completion.mjs",
+      "bytes": 32952,
+      "sha256": "2428a2d24b366a610b6924586d30fc4750c532160dfb3c32cdc18969887e2166",
+      "git_blob": "895df9deeceaef02faeeeefff13b54a8dd1d8e94"
+    },
+    {
+      "path": "packages/voice-ui/functions/api/parts.mjs",
+      "bytes": 14550,
+      "sha256": "2d3255945a000516c74ac478e9a86da58bc940de7ed026a0991e365e6d835761",
+      "git_blob": "d5811784e74bf843b3ada2fef8a2ba21b93e7d80"
+    },
+    {
+      "path": "packages/voice-ui/functions/pages-worker.mjs",
+      "bytes": 3092,
+      "sha256": "48ccdac8961f0f311bcad29510dbc1f74af0de6d63586bec4431c3cce935e5fc",
+      "git_blob": "7647ffeca00c7147d929c9f4e46202d55489e89d"
+    },
+    {
+      "path": "packages/voice-ui/tests/api.test.mjs",
+      "bytes": 157335,
+      "sha256": "b4b75390cc4e3ba99331794244ee63c159bf0d105300fe2721a0ce154203f8a2",
+      "git_blob": "3aa0196caf565f0bce0e305cc67a12ade065c0cf"
+    },
+    {
+      "path": "packages/voice-ui/tests/display-source.test.mjs",
+      "bytes": 4156,
+      "sha256": "a5eb0e0c317bf89a932a52856f9687ce7597ab494ec14df0418690c3dd241693",
+      "git_blob": "b7136c251dd2bf078d0e529cc1c31bb45f34bc4a"
+    },
+    {
+      "path": "docs/voice-ui/extraction-cycle-20261018/display-source/README.md",
+      "bytes": 4604,
+      "sha256": "b5b256c21fbbd8087838e54a883d3ef86fba1a71665122af24d3608aefc203fd",
+      "git_blob": "9de84a24fd18ecab1d02c3dc8c8720b760c51415"
+    },
+    {
+      "path": "docs/voice-ui/extraction-cycle-20261018/display-source/public.input.json",
+      "bytes": 13787,
+      "sha256": "8e12cf77ee2877e228de837c12479ee25047bc2c89825107616763d567a10452",
+      "git_blob": "d8be40700c88fa9140da0260fe207fac65cf90da"
+    },
+    {
+      "path": "docs/voice-ui/extraction-cycle-20261018/display-source/public.oracle.json",
+      "bytes": 507,
+      "sha256": "6cf6b80ddc6a14685ee4f8e2712f96c93ace0ffcb5146a420b5a2e9ac7324b76",
+      "git_blob": "7466dd0c3a7bf18379c0b01827de923bb538da53"
+    },
+    {
+      "path": "docs/voice-ui/extraction-cycle-20261018/display-source/heldout.commitment.json",
+      "bytes": 3339,
+      "sha256": "43dcc80c0a0986c6b635f196bf0f787a729a2423e1b4ec36f81e4bf26e6f56a5",
+      "git_blob": "f7d92f04d1b337ac0848864eae3ccd05dd399674"
+    },
+    {
+      "path": "docs/voice-ui/extraction-cycle-20261018/display-source/evaluate.mjs",
+      "bytes": 8428,
+      "sha256": "edf38611c40b035eedde9d8fa98c0fdafda56d33f50123dd3b7beebbf3e78b67",
+      "git_blob": "2bdda9eb1589544185b3a2830bc0b37ca2545a59"
+    }
+  ],
+  "objects": {
+    "worker": {
+      "path": "/nix/store/h9fj8crrbr9pki4vgylmhj021hj68pil-voice-ui-dist/worker/worker.mjs",
+      "sha256": "09a79c4e9c94bc0b4ac3f58a9e32812eb1bb31b5105437ae84a80b6cd8c1b128"
+    },
+    "provider": {
+      "path": "/nix/store/agy2jg4nxhzj28sy1qvqr4rw5c99q5yj-jev-provider-admitted/jev.mjs",
+      "sha256": "0773b5c96d0da7f05fef9f9cf95772b6722a03022648e90fc56a4fdc9ac6046e"
+    },
+    "typed_provider": {
+      "path": "/nix/store/7iq3k817qv39cxc2h8v01h7z9qh8v5v7-typellm-provider-admitted/typellm.mjs",
+      "sha256": "5b81ed270aa49e288cd57fa17f7e866fea7e3734e5c872af6f8ac6017d86ab25"
+    },
+    "dev_program": {
+      "path": "/nix/store/gc3cmlfq69c4ws09kc5ymxy11p5skid2-voice-ui-dev/bin/voice-ui-dev",
+      "sha256": "a4e140d69629f9ed1316ea7078ebbd0fc49b410bb538c02e201d7fc1123625df"
+    },
+    "manifest": {
+      "path": "/nix/store/h9fj8crrbr9pki4vgylmhj021hj68pil-voice-ui-dist/manifest.json",
+      "sha256": "443d27f9cd8eb63c1318909a6ab5321bf76f29a0421ce5d87ddc4f3137cf0642"
+    },
+    "protocol": {
+      "path": "/nix/store/vqjhvwxcbwv7vg09n4d3sy54lw879s9f-semantic-map/packages/semantic-map/protocol/index.js",
+      "sha256": "1689dcf63e1ed19cdea7be22e3f90a09f434841f980b9ca8b9018a987c9c38f8"
+    }
+  },
+  "preload": {
+    "path": "/nix/store/s9sspm66pdf3xjdsbvy0q60cr0jp7w4g-voice-ui-provider-budget.mjs",
+    "sha256": "cdb39c164e55d7f660251704b13c20c4fdd6ffb0bec1524c44e9bf355e333d24",
+    "limits": {
+      "jev": 0,
+      "typellm": 8
+    }
+  },
+  "credential_presence_only": {
+    "JEV_API_KEY": true,
+    "TYPELLM_API_KEY": true
+  },
+  "provider_sends": {
+    "jev": 0,
+    "typellm": 0
+  },
+  "GET": {
+    "status": 200,
+    "bytes": 5943,
+    "index_sha256": "8c7a6ed602ea4c149b4ab1472c26f999cbcf41e088725162c8638fc184ee43df",
+    "equals_completed_artifact": true
+  },
+  "wire": {
+    "sha256": "00483388b505f9e86a6e4e0eb0ef4fa3390b8158de88872bdc73f9b57986b760",
+    "scope": "KEYLESS_TYPE_BODIES_NOT_LIVE_UPSTREAM_CAPTURE_OR_QUALITY",
+    "captures": 8,
+    "same_worker_both_arms": true,
+    "full_definitions_both_arms": true,
+    "legacy_df_body_exact_cases": 4
+  },
+  "journal": {
+    "sha256": "1b1b9d40f2f74a8c1f727943f32f9d6611e135fa30b05b0ba14213095fd63e7d",
+    "prior_cutoff_prefix": "dc989eb807f6016dc248cd75e86f64674d12bdcb2e448277e297b806da43a1d8",
+    "charged": {
+      "jev": 847,
+      "typellm": 104
+    },
+    "outstanding": {
+      "display-source-public-B-20261018": {
+        "jev": 0,
+        "typellm": 8
+      }
+    },
+    "previous_owned_groups": 45,
+    "previous_members_including_Z": []
+  },
+  "driver_not_started": true,
+  "reviewer_provider_calls": 0,
+  "source_runtime_wire_audit": {
+    "name": "display-source-478-source-runtime-wire-audit.json",
+    "sha256": "09a8d5fb961690f125a034e011c2db9920bebc189acaa0ad50cef206a1d07bf6"
+  },
+  "execution_order_agreement": {
+    "relevant_three_checks": "exact478 Nix39087477000/artifact39087476935/auth39087476939 SUCCESS independently read back",
+    "release39087476952": "package and re-open now SUCCESS; historical stopped-evidence verification still in progress at preflight",
+    "full_CI_final_Green": "PENDING_NOT_CLAIMED",
+    "scope": "public8 only, fresh release not automatic; independent actual zero remains required; relevant new failure invalidates GO"
+  }
+}

@@ -1,0 +1,675 @@
+{
+  "schema": "voice-ui.display-source-public-independent-audit/1",
+  "status": "PASS",
+  "scope": "PUBLIC_FOUR_CASE_EXTRACTION_ONLY_NOT_FRESH_OR_ORDINARY_UI_EFFECT",
+  "authored_at": "2026-10-18T02:02:05.551269+00:00",
+  "measurement_apps": "478cffec9f9dafecfa1f2d4877ae407c04ebbdff",
+  "phase": "display-source-public-B-20261018",
+  "references": [
+    {
+      "file": "display-source-478-source-runtime-wire-audit.json",
+      "sha256": "09a8d5fb961690f125a034e011c2db9920bebc189acaa0ad50cef206a1d07bf6",
+      "bytes": 19508
+    },
+    {
+      "file": "display-source-public-B-zero-send-audit.json",
+      "sha256": "875a0dcff265c387adce4c09520d4e29c970003af5624c8b3168f7becb13b6fc",
+      "bytes": 8142
+    }
+  ],
+  "integrity": {
+    "source_runtime_wire_zero_send": "PASS; see bound independent attestations",
+    "physical_stop_and_accounting": {
+      "at": "2026-10-18T02:00:12.045956+00:00",
+      "journal_sha256": "ae0426cf625301e1b439729f09c1fe60d6fbd394ee0686bdd1350eb7fee3460d",
+      "journal_bytes": 57114,
+      "prior_exact_prefix_sha256": "dc989eb807f6016dc248cd75e86f64674d12bdcb2e448277e297b806da43a1d8",
+      "charged": {
+        "jev": 847,
+        "typellm": 112
+      },
+      "outstanding": 0,
+      "owned_pgids": 46,
+      "remaining_members": [],
+      "phase_sent": {
+        "jev": 0,
+        "typellm": 8
+      },
+      "pid": 390121,
+      "start_ticks": "19632564",
+      "provider_markers": [
+        [
+          "typellm",
+          "1"
+        ],
+        [
+          "typellm",
+          "2"
+        ],
+        [
+          "typellm",
+          "3"
+        ],
+        [
+          "typellm",
+          "4"
+        ],
+        [
+          "typellm",
+          "5"
+        ],
+        [
+          "typellm",
+          "6"
+        ],
+        [
+          "typellm",
+          "7"
+        ],
+        [
+          "typellm",
+          "8"
+        ]
+      ]
+    },
+    "final_terminal": {
+      "status": "PASS",
+      "at": "2026-10-18T02:02:04.976536+00:00",
+      "journal_sha256": "ae0426cf625301e1b439729f09c1fe60d6fbd394ee0686bdd1350eb7fee3460d",
+      "owned_pgids": 46,
+      "remaining_members": [],
+      "additional_provider_sends_observed": 0
+    },
+    "ordered_http_events": 16,
+    "response_stage_uuid_joins": 8,
+    "canonical_response_closed_contracts": 8,
+    "candidate_source_provenance_and_source_only_stripping": 4,
+    "original_filenames_retained": true,
+    "oracle_read_by_caller": false,
+    "retries": 0,
+    "additional_setup_provider_sends": 0,
+    "frozen_source_grade_sha256": "3d779cf422e8cc0facc6f5ff566c3e77b36a61486f9586f120b0c1a722cd5a46",
+    "oracle_sha256": "6cf6b80ddc6a14685ee4f8e2712f96c93ace0ffcb5146a420b5a2e9ac7324b76",
+    "identity_sha256": "ce013df19277cc525e6f943613a81751df552d9bbc0932d415bbc18eeb0dec59",
+    "events_sha256": "a0330d6a324d8b199ecde997719f153ab7bcdaabf1a7072f0326a0de09f22eea",
+    "execution_sha256": "5298fc06926fce7960ad3659f55348c858d7cacecaef42abf6bcc21ee1eecafc"
+  },
+  "semantic": {
+    "status": "PASS",
+    "scope": "PUBLIC_FOUR_CASE_EXTRACTION_ONLY_NOT_FRESH_OR_ORDINARY_UI_EFFECT",
+    "source": "478cffec9f9dafecfa1f2d4877ae407c04ebbdff",
+    "frozen_grade_sha256": "3d779cf422e8cc0facc6f5ff566c3e77b36a61486f9586f120b0c1a722cd5a46",
+    "oracle_sha256": "6cf6b80ddc6a14685ee4f8e2712f96c93ace0ffcb5146a420b5a2e9ac7324b76",
+    "identity_sha256": "ce013df19277cc525e6f943613a81751df552d9bbc0932d415bbc18eeb0dec59",
+    "events_sha256": "a0330d6a324d8b199ecde997719f153ab7bcdaabf1a7072f0326a0de09f22eea",
+    "execution_sha256": "5298fc06926fce7960ad3659f55348c858d7cacecaef42abf6bcc21ee1eecafc",
+    "summary": {
+      "planned": 8,
+      "recorded": 8,
+      "http_200": 8,
+      "valid_contract": 8,
+      "invalid": 0,
+      "current_exact": 2,
+      "candidate_exact": 2,
+      "valid_semantic_pairs": 4,
+      "semantic_gains": 0,
+      "explicit_semantic_gains": 0,
+      "regressions": 0
+    },
+    "pairs": [
+      {
+        "case": "QB01",
+        "role": "explicit",
+        "admitted_semantic_pair": true,
+        "current_exact": false,
+        "candidate_exact": false,
+        "semantic_gain": false,
+        "regression": false
+      },
+      {
+        "case": "QB02",
+        "role": "explicit",
+        "admitted_semantic_pair": true,
+        "current_exact": false,
+        "candidate_exact": false,
+        "semantic_gain": false,
+        "regression": false
+      },
+      {
+        "case": "QB03",
+        "role": "standard",
+        "admitted_semantic_pair": true,
+        "current_exact": true,
+        "candidate_exact": true,
+        "semantic_gain": false,
+        "regression": false
+      },
+      {
+        "case": "QB04",
+        "role": "new0",
+        "admitted_semantic_pair": true,
+        "current_exact": true,
+        "candidate_exact": true,
+        "semantic_gain": false,
+        "regression": false
+      }
+    ],
+    "rows": [
+      {
+        "id": "QB01-current",
+        "case": "QB01",
+        "arm": "current",
+        "role": "explicit",
+        "http_status": 200,
+        "status": "VALID_CONTRACT",
+        "request_id": "2dc24d00-39bd-499d-b11f-1b288d66cc0a",
+        "required": [
+          {
+            "label": "判断",
+            "kind": "decision",
+            "quantity": 1
+          }
+        ],
+        "expected_required": [
+          {
+            "label": "出荷可否",
+            "kind": "decision",
+            "quantity": 1
+          }
+        ],
+        "grade": {
+          "contract_valid": true,
+          "exact": false,
+          "minimal": false,
+          "expected_instances": 1,
+          "actual_instances": 1,
+          "matched_instances": 0,
+          "omitted_instances": 1,
+          "extra_instances": 1
+        },
+        "source_slots": null,
+        "elapsed_ms": 2235.4685,
+        "request_sha256": "f499a7f1e90005cc167e7d49276c63bddbed4c2f1cefa36a5f96625f5b6b29bb",
+        "raw_sha256": "a94e87a5e583df0c91648b5210c7603907b36a95746e268d94331640fce8bd55"
+      },
+      {
+        "id": "QB01-candidate",
+        "case": "QB01",
+        "arm": "candidate",
+        "role": "explicit",
+        "http_status": 200,
+        "status": "VALID_CONTRACT",
+        "request_id": "79fd1aee-d8c7-437d-88d8-5b37c288ffd5",
+        "required": [
+          {
+            "label": "判断",
+            "kind": "decision",
+            "quantity": 1
+          }
+        ],
+        "expected_required": [
+          {
+            "label": "出荷可否",
+            "kind": "decision",
+            "quantity": 1
+          }
+        ],
+        "grade": {
+          "contract_valid": true,
+          "exact": false,
+          "minimal": false,
+          "expected_instances": 1,
+          "actual_instances": 1,
+          "matched_instances": 0,
+          "omitted_instances": 1,
+          "extra_instances": 1
+        },
+        "source_slots": {
+          "required1": {
+            "kind": "decision",
+            "label_source": "utterance",
+            "label": "判断",
+            "quantity": "1"
+          },
+          "required2": {
+            "kind": "none",
+            "label_source": "none",
+            "label": "",
+            "quantity": "0"
+          },
+          "required3": {
+            "kind": "none",
+            "label_source": "none",
+            "label": "",
+            "quantity": "0"
+          }
+        },
+        "elapsed_ms": 2814.2102,
+        "request_sha256": "f499a7f1e90005cc167e7d49276c63bddbed4c2f1cefa36a5f96625f5b6b29bb",
+        "raw_sha256": "ff0060179883cd8b65e78bda8c8633da1f4a3bc77bbe491999bcc392c25a2322"
+      },
+      {
+        "id": "QB02-candidate",
+        "case": "QB02",
+        "arm": "candidate",
+        "role": "explicit",
+        "http_status": 200,
+        "status": "VALID_CONTRACT",
+        "request_id": "f0cbe223-abeb-4ab2-a9cc-10acc0616c10",
+        "required": [
+          {
+            "label": "工程",
+            "kind": "step",
+            "quantity": 2
+          }
+        ],
+        "expected_required": [
+          {
+            "label": "API",
+            "kind": "step",
+            "quantity": 2
+          }
+        ],
+        "grade": {
+          "contract_valid": true,
+          "exact": false,
+          "minimal": false,
+          "expected_instances": 2,
+          "actual_instances": 2,
+          "matched_instances": 0,
+          "omitted_instances": 2,
+          "extra_instances": 2
+        },
+        "source_slots": {
+          "required1": {
+            "kind": "step",
+            "label_source": "utterance",
+            "label": "工程",
+            "quantity": "2"
+          },
+          "required2": {
+            "kind": "none",
+            "label_source": "none",
+            "label": "",
+            "quantity": "0"
+          },
+          "required3": {
+            "kind": "none",
+            "label_source": "none",
+            "label": "",
+            "quantity": "0"
+          }
+        },
+        "elapsed_ms": 2607.4362,
+        "request_sha256": "5f66c1975c0939c62c4c3a2f1e47ed9b1e4a339cebd71f149b20417824ddce6f",
+        "raw_sha256": "2f05f2b577d0621bbd03b5ed80aa575b9db0444bfaa4d5ae3dd1e2d317fc773b"
+      },
+      {
+        "id": "QB02-current",
+        "case": "QB02",
+        "arm": "current",
+        "role": "explicit",
+        "http_status": 200,
+        "status": "VALID_CONTRACT",
+        "request_id": "d9ae5157-3f86-48b6-abfe-9ef5d04352e3",
+        "required": [
+          {
+            "label": "工程",
+            "kind": "step",
+            "quantity": 2
+          }
+        ],
+        "expected_required": [
+          {
+            "label": "API",
+            "kind": "step",
+            "quantity": 2
+          }
+        ],
+        "grade": {
+          "contract_valid": true,
+          "exact": false,
+          "minimal": false,
+          "expected_instances": 2,
+          "actual_instances": 2,
+          "matched_instances": 0,
+          "omitted_instances": 2,
+          "extra_instances": 2
+        },
+        "source_slots": null,
+        "elapsed_ms": 2681.6567999999997,
+        "request_sha256": "5f66c1975c0939c62c4c3a2f1e47ed9b1e4a339cebd71f149b20417824ddce6f",
+        "raw_sha256": "8074375dae17832c89e9117dbda7a205b2dd4634608e8e9cf415153638fd7a3b"
+      },
+      {
+        "id": "QB03-current",
+        "case": "QB03",
+        "arm": "current",
+        "role": "standard",
+        "http_status": 200,
+        "status": "VALID_CONTRACT",
+        "request_id": "1b09e363-943d-4d87-a069-b71f8301eb10",
+        "required": [
+          {
+            "label": "判断",
+            "kind": "decision",
+            "quantity": 1
+          }
+        ],
+        "expected_required": [
+          {
+            "label": "判断",
+            "kind": "decision",
+            "quantity": 1
+          }
+        ],
+        "grade": {
+          "contract_valid": true,
+          "exact": true,
+          "minimal": true,
+          "expected_instances": 1,
+          "actual_instances": 1,
+          "matched_instances": 1,
+          "omitted_instances": 0,
+          "extra_instances": 0
+        },
+        "source_slots": null,
+        "elapsed_ms": 2057.4943999999996,
+        "request_sha256": "9e45047b8b59eafa2a363ce10f6c2e370e0736abeaf2c2341b9e05643cb25826",
+        "raw_sha256": "dcb20f79bc7173000610da827300b643715ad7568f2f56836071a7d25119307a"
+      },
+      {
+        "id": "QB03-candidate",
+        "case": "QB03",
+        "arm": "candidate",
+        "role": "standard",
+        "http_status": 200,
+        "status": "VALID_CONTRACT",
+        "request_id": "25d67e76-f72c-4170-be62-cd6f6e697f78",
+        "required": [
+          {
+            "label": "判断",
+            "kind": "decision",
+            "quantity": 1
+          }
+        ],
+        "expected_required": [
+          {
+            "label": "判断",
+            "kind": "decision",
+            "quantity": 1
+          }
+        ],
+        "grade": {
+          "contract_valid": true,
+          "exact": true,
+          "minimal": true,
+          "expected_instances": 1,
+          "actual_instances": 1,
+          "matched_instances": 1,
+          "omitted_instances": 0,
+          "extra_instances": 0
+        },
+        "source_slots": {
+          "required1": {
+            "kind": "decision",
+            "label_source": "utterance",
+            "label": "判断",
+            "quantity": "1"
+          },
+          "required2": {
+            "kind": "none",
+            "label_source": "none",
+            "label": "",
+            "quantity": "0"
+          },
+          "required3": {
+            "kind": "none",
+            "label_source": "none",
+            "label": "",
+            "quantity": "0"
+          }
+        },
+        "elapsed_ms": 2677.7625000000007,
+        "request_sha256": "9e45047b8b59eafa2a363ce10f6c2e370e0736abeaf2c2341b9e05643cb25826",
+        "raw_sha256": "aa8608cda02e8acc92cf2b9f1a02ccdd8a0a3d03c1e2c7b2f67a9d2b4794b090"
+      },
+      {
+        "id": "QB04-candidate",
+        "case": "QB04",
+        "arm": "candidate",
+        "role": "new0",
+        "http_status": 200,
+        "status": "VALID_CONTRACT",
+        "request_id": "fea00092-8375-4129-887a-96c9acb24563",
+        "required": [],
+        "expected_required": [],
+        "grade": {
+          "contract_valid": true,
+          "exact": true,
+          "minimal": true,
+          "expected_instances": 0,
+          "actual_instances": 0,
+          "matched_instances": 0,
+          "omitted_instances": 0,
+          "extra_instances": 0
+        },
+        "source_slots": {
+          "required1": {
+            "kind": "none",
+            "label_source": "none",
+            "label": "",
+            "quantity": "0"
+          },
+          "required2": {
+            "kind": "none",
+            "label_source": "none",
+            "label": "",
+            "quantity": "0"
+          },
+          "required3": {
+            "kind": "none",
+            "label_source": "none",
+            "label": "",
+            "quantity": "0"
+          }
+        },
+        "elapsed_ms": 2497.4617,
+        "request_sha256": "25160862a687789e77ab59486b20fc5a1334ba100c3e87aa995fed06b0720631",
+        "raw_sha256": "54cb3736b673741ef07ea9755b90436a5e4f5cf9ba4578dbf4ee1d0909d7fc72"
+      },
+      {
+        "id": "QB04-current",
+        "case": "QB04",
+        "arm": "current",
+        "role": "new0",
+        "http_status": 200,
+        "status": "VALID_CONTRACT",
+        "request_id": "ab957676-c921-43a2-8324-dde3cd8b5072",
+        "required": [],
+        "expected_required": [],
+        "grade": {
+          "contract_valid": true,
+          "exact": true,
+          "minimal": true,
+          "expected_instances": 0,
+          "actual_instances": 0,
+          "matched_instances": 0,
+          "omitted_instances": 0,
+          "extra_instances": 0
+        },
+        "source_slots": null,
+        "elapsed_ms": 1851.5254999999997,
+        "request_sha256": "25160862a687789e77ab59486b20fc5a1334ba100c3e87aa995fed06b0720631",
+        "raw_sha256": "74452437e47d92ccca21c55d6b29f503aa4989d4acafc202c31d712b96666792"
+      }
+    ],
+    "public_gate": "UNMET",
+    "fresh_release": "NOT_RELEASED",
+    "notes": [
+      "Only contract_valid/exact/minimal/counts from frozen full-NEW scorer used; stock_difference/true_sufficient excluded.",
+      "Stage source provenance independently checked; a substring is not proof of intended display name.",
+      "No live Type upstream-body capture asserted; pre-live keyless witness and immutable runtime binding retain that boundary."
+    ]
+  },
+  "decision": {
+    "evidence_integrity": "PASS",
+    "quality_scope": "PUBLIC_REGRESSION_ONLY",
+    "public_gate": "UNMET",
+    "candidate_finite_quality": "2/4 exact/minimal; explicit display-name preservation 0/2",
+    "semantic_gain": 0,
+    "regression": 0,
+    "fresh_inputs_and_oracle": "NOT_RELEASED; new independent four remain sealed and unconsumed",
+    "next_provider_calls": "NOT_AUTHORIZED_BY_THIS_AUDIT",
+    "registered_stopping_action": "Close all eight original observations; no retry/retest/correction in this phase."
+  },
+  "limitations": [
+    "Current and candidate both used the same published completed Worker and two formal provider artifacts. Keyless pre-live request witnesses bind intended conditions; no direct live upstream Type request-body capture is asserted.",
+    "For QB01 and QB02 the wrong labels are substrings present in the utterance and passed the source provenance rule. Provenance did not establish which substring was the intended displayed name. This is an observed contract limitation, not a proven model/provider root cause.",
+    "No semantic or contract improvement was observed in these four public pairs. No held-out generalization, ordinary UI supplementation/paint effect, general TypeLLM inefficacy, product completion, resolved latest-model backend version, monetary cost, or final CI adoption is established.",
+    "Only frozen gradeFullRequired contract/exact/minimal/count fields were used; stock_difference and true_sufficient were not used.",
+    "Experiment order was explicitly agreed before the first call: relevant source/tests/official artifact/wire and three exact CI runs PASS permitted the public diagnostic while the remaining release history work continued. Final all-four CI closure remains separate."
+  ],
+  "original_files": [
+    {
+      "path": "/work/repos/voice-ui-typellm-20261016/display-source-public-B-20261018.raw/QB01-current.json",
+      "bytes": 7659,
+      "sha256": "a94e87a5e583df0c91648b5210c7603907b36a95746e268d94331640fce8bd55"
+    },
+    {
+      "path": "/work/repos/voice-ui-typellm-20261016/display-source-public-B-20261018.raw/QB01-candidate.json",
+      "bytes": 7682,
+      "sha256": "ff0060179883cd8b65e78bda8c8633da1f4a3bc77bbe491999bcc392c25a2322"
+    },
+    {
+      "path": "/work/repos/voice-ui-typellm-20261016/display-source-public-B-20261018.raw/QB02-candidate.json",
+      "bytes": 7707,
+      "sha256": "2f05f2b577d0621bbd03b5ed80aa575b9db0444bfaa4d5ae3dd1e2d317fc773b"
+    },
+    {
+      "path": "/work/repos/voice-ui-typellm-20261016/display-source-public-B-20261018.raw/QB02-current.json",
+      "bytes": 7693,
+      "sha256": "8074375dae17832c89e9117dbda7a205b2dd4634608e8e9cf415153638fd7a3b"
+    },
+    {
+      "path": "/work/repos/voice-ui-typellm-20261016/display-source-public-B-20261018.raw/QB03-current.json",
+      "bytes": 7371,
+      "sha256": "dcb20f79bc7173000610da827300b643715ad7568f2f56836071a7d25119307a"
+    },
+    {
+      "path": "/work/repos/voice-ui-typellm-20261016/display-source-public-B-20261018.raw/QB03-candidate.json",
+      "bytes": 7394,
+      "sha256": "aa8608cda02e8acc92cf2b9f1a02ccdd8a0a3d03c1e2c7b2f67a9d2b4794b090"
+    },
+    {
+      "path": "/work/repos/voice-ui-typellm-20261016/display-source-public-B-20261018.raw/QB04-candidate.json",
+      "bytes": 7355,
+      "sha256": "54cb3736b673741ef07ea9755b90436a5e4f5cf9ba4578dbf4ee1d0909d7fc72"
+    },
+    {
+      "path": "/work/repos/voice-ui-typellm-20261016/display-source-public-B-20261018.raw/QB04-current.json",
+      "bytes": 7341,
+      "sha256": "74452437e47d92ccca21c55d6b29f503aa4989d4acafc202c31d712b96666792"
+    },
+    {
+      "path": "/work/repos/voice-ui-typellm-20261016/display-source-public-B-20261018.raw/identity.json",
+      "bytes": 4919,
+      "sha256": "ce013df19277cc525e6f943613a81751df552d9bbc0932d415bbc18eeb0dec59"
+    },
+    {
+      "path": "/work/repos/voice-ui-typellm-20261016/display-source-public-B-20261018.raw/execution.json",
+      "bytes": 1287,
+      "sha256": "5298fc06926fce7960ad3659f55348c858d7cacecaef42abf6bcc21ee1eecafc"
+    },
+    {
+      "path": "/work/repos/voice-ui-typellm-20261016/display-source-public-B-20261018.raw/events.jsonl",
+      "bytes": 15476,
+      "sha256": "a0330d6a324d8b199ecde997719f153ab7bcdaabf1a7072f0326a0de09f22eea"
+    },
+    {
+      "path": "/work/repos/voice-ui-typellm-20261016/display-source-public-B-20261018.config.json",
+      "bytes": 1030,
+      "sha256": "462ee294ac818da03660e72b3176bb2b1a15adda649049302245e6bfb709e8f6"
+    },
+    {
+      "path": "/work/repos/voice-ui-typellm-20261016/display-source-public-B-20261018.process.json",
+      "bytes": 867,
+      "sha256": "0794f006d0dbe99429b8d84b4e1b574ae0da7499bd2bcdae40138b103af51163"
+    },
+    {
+      "path": "/work/repos/voice-ui-typellm-20261016/display-source-public-B-20261018.orchestration.json",
+      "bytes": 634,
+      "sha256": "fb8ee1a1d3bef946dd3ddcef3d78dda555a0cda7be79164d9e218d9c4186c2a0"
+    },
+    {
+      "path": "/work/repos/voice-ui-typellm-20261016/display-source-public-B-20261018.root-zero.json",
+      "bytes": 875,
+      "sha256": "39f0cbbaa208b4ca60debf68591778c853ad206e8d2eec73eecb0a2e9f469fe5"
+    },
+    {
+      "path": "/work/repos/voice-ui-typellm-20261016/display-source-public-B-20261018.root-terminal.json",
+      "bytes": 459,
+      "sha256": "3f99485ea4c0bbf891198c7711bbc155b15312dfc04fa2d9cbb0ab0b957c1874"
+    },
+    {
+      "path": "/work/repos/voice-ui-typellm-20261016/display-source-public-B-20261018.stdout.log",
+      "bytes": 4501,
+      "sha256": "bb21ca6f7ce427375f32160931c7dbf41be9e0aaa973aeaf41138d43eecbc6e4"
+    },
+    {
+      "path": "/work/repos/voice-ui-typellm-20261016/display-source-public-B-20261018.stderr.log",
+      "bytes": 839,
+      "sha256": "4e9ec31dac9fcf06c02c8c49fa38f0dbb1df419cc69b4c0d644599659c7dfdb8"
+    },
+    {
+      "path": "/work/repos/voice-ui-typellm-20261016/display-source-public-B-20261018.driver.stdout.log",
+      "bytes": 46,
+      "sha256": "c23e8a57525303682ad74bc1bfe30dadb68f5ed800d905f03105fd02b4ff922b"
+    },
+    {
+      "path": "/work/repos/voice-ui-typellm-20261016/display-source-public-B-20261018.driver.stderr.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/work/repos/voice-ui-typellm-20261016/display-source-public-B-20261018.journal.jsonl",
+      "bytes": 57114,
+      "sha256": "ae0426cf625301e1b439729f09c1fe60d6fbd394ee0686bdd1350eb7fee3460d"
+    },
+    {
+      "path": "/work/repos/voice-ui-typellm-20261016/display-source-public-B-20261018.operator.mjs",
+      "bytes": 2506,
+      "sha256": "7888f0e679d570f1298ef351b752bbe646306eadf67a5f5faa115b99b400d9a9"
+    },
+    {
+      "path": "/work/repos/voice-ui-typellm-20261016/display-source-public-B-20261018.root-zero.mjs",
+      "bytes": 2596,
+      "sha256": "829c7e0e9b1ccc3a1942033b92ce6b110ba6ba08d7569ac147b3e98c98595b7a"
+    },
+    {
+      "path": "/work/repos/voice-ui-typellm-20261016/runtime-candidate-display-source-478cffec.json",
+      "bytes": 3974,
+      "sha256": "c814095d4cdbbf1f069286e3c8979a016acf279af7623adb2d2de2417a299b74"
+    },
+    {
+      "path": "/work/repos/voice-ui-typellm-20261016/display-source-478c.public.wire.json",
+      "bytes": 121440,
+      "sha256": "00483388b505f9e86a6e4e0eb0ef4fa3390b8158de88872bdc73f9b57986b760"
+    },
+    {
+      "path": "/nix/store/hbw3mlq1br5ai5swvsd4ival0nfji9i1-source/docs/voice-ui/extraction-cycle-20261018/display-source/public.input.json",
+      "bytes": 13787,
+      "sha256": "8e12cf77ee2877e228de837c12479ee25047bc2c89825107616763d567a10452"
+    },
+    {
+      "path": "/nix/store/hbw3mlq1br5ai5swvsd4ival0nfji9i1-source/docs/voice-ui/extraction-cycle-20261018/display-source/public.oracle.json",
+      "bytes": 507,
+      "sha256": "6cf6b80ddc6a14685ee4f8e2712f96c93ace0ffcb5146a420b5a2e9ac7324b76"
+    },
+    {
+      "path": "/nix/store/hbw3mlq1br5ai5swvsd4ival0nfji9i1-source/docs/voice-ui/extraction-cycle-20261018/display-source/evaluate.mjs",
+      "bytes": 8428,
+      "sha256": "edf38611c40b035eedde9d8fa98c0fdafda56d33f50123dd3b7beebbf3e78b67"
+    }
+  ]
+}

@@ -1,6 +1,6 @@
 import { COVERAGE, inventoryQuestion, isInventory, readLiteralInspection, readTypedMissing, typedMissingRequest,
   acceptedRequirements, readRequired, readRequiredSlots, readRequirementFactors, readRequirementInspection,
-  displaySourceRequest, readDisplaySourceSlots,
+  displaySourceRequest, readDisplaySourceSlots, flatRequiredRequest, readFlatRequiredSlots,
   requirementDecision, requirementProposalPolicy, requiredDifference, requiredQuestion, requiredRequest, requiresInterpretation } from "../../src/completion.mjs";
 import { LABEL_MAX, PART_KINDS } from "../../src/contract.mjs";
 import { literalInventory, literalQuestion } from "../../src/literal-inventory.mjs";
@@ -108,7 +108,7 @@ const failure = code => Object.assign(new Error("parts operation stopped"), { co
 export async function onRequirements({ request, mode, method, available, generation = "dependent" }, { judge, generate }) {
   if (!["check", "requirements", "verify"].includes(mode)
       || !["literal-v2", "adaptive-v2", "adaptive-v3"].includes(method)
-      || !["independent", "dependent", "display-source"].includes(generation)
+      || !["independent", "dependent", "display-source", "flat-scalars"].includes(generation)
       || mode !== "requirements" && generation !== "dependent") return json({ error: "parts_invalid_method" }, 422);
   if (!available) return json({ error: "parts_unavailable" }, 503);
   let input;
@@ -135,16 +135,18 @@ export async function onRequirements({ request, mode, method, available, generat
     finally { signal.removeEventListener("abort", stop); }
   };
   const full = async () => {
-    const context = inventoryQuestion(inventory.state).state, sourced = generation === "display-source";
-    const value = await send(generate, sourced ? displaySourceRequest(context) : requiredRequest(context, { generation }));
-    const decoded = sourced ? readDisplaySourceSlots(value?.result, context) : null;
-    const required = sourced ? decoded?.required ?? null : readRequiredSlots(value?.result);
+    const context = inventoryQuestion(inventory.state).state, sourced = generation === "display-source", flat = generation === "flat-scalars";
+    const question = sourced ? displaySourceRequest(context) : flat ? flatRequiredRequest(context) : requiredRequest(context, { generation });
+    const value = await send(generate, question);
+    const decoded = sourced ? readDisplaySourceSlots(value?.result, context) : flat ? readFlatRequiredSlots(value?.result) : null;
+    const required = sourced || flat ? decoded?.required ?? null : readRequiredSlots(value?.result);
     if (required === null) {
       stage("TYPE_REQUIRED", { valid: false, generation });
       throw failure("provider_contract_error");
     }
-    const proposal = { slots: sourced ? decoded.slots : structuredClone(value.result), required };
-    stage("TYPE_REQUIRED", { valid: true, generation, proposal, ...(sourced ? { source_slots: decoded.source_slots } : {}) });
+    const proposal = { slots: sourced || flat ? decoded.slots : structuredClone(value.result), required };
+    stage("TYPE_REQUIRED", { valid: true, generation, proposal, ...(sourced ? { source_slots: decoded.source_slots } : {}),
+      ...(flat ? { scalar_answers: decoded.scalar_answers } : {}) });
     return proposal;
   };
   const verify = async required => {

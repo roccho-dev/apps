@@ -1,0 +1,30 @@
+{
+  "phase": "display-source-public-B-20261018",
+  "began": "2026-10-18T01:58:51.293Z",
+  "finished": "2026-10-18T01:59:11.362Z",
+  "execution": {
+    "exit": 0
+  },
+  "stop": {
+    "status": "STOPPED_RECONCILED",
+    "result": {
+      "phase": "display-source-public-B-20261018",
+      "action": "stop",
+      "current": {
+        "pid": 390121,
+        "state": "S",
+        "pgid": 390121,
+        "start_ticks": "19632564"
+      },
+      "sent": {
+        "jev": 0,
+        "typellm": 8
+      },
+      "whole_run_sent": {
+        "jev": 847,
+        "typellm": 112
+      },
+      "reserved_until_confirmed_stop": null
+    }
+  }
+}
