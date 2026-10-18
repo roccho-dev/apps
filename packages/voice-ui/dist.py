@@ -98,152 +98,224 @@ def split_model(site):
     (site / "sw.js").write_text(SERVICE_WORKER, encoding="utf-8")
 
 
-# The consumer's one narrow admission: completed bytes, never producer source
-# or a second publisher implementation. It runs before any credential injection.
-def judge_require(condition, code):
-    if not condition:
-        raise SystemExit("judge_admission:" + code)
+# Two fixed supplied contracts; admission never checks out producer source.
+PROVIDERS = {
+    "jev": {
+        "schema": "jev-provider/2",
+        "contract": "named-questions/1",
+        "entry": "jev.mjs",
+        "exports": [
+            "JevContractError",
+            "JevError",
+            "JudgeProviderError",
+            "askJevChoice",
+            "askJevNoul",
+            "askJevQuestions",
+            "askJevScore",
+            "bindJev",
+            "judgeNamedChoices"
+        ],
+        "inputs": [
+            "flake.lock",
+            "flake.nix",
+            "packages/jev/default.nix",
+            "packages/jev/src/batch.mjs",
+            "packages/jev/src/client.mjs",
+            "packages/jev/src/core.mjs",
+            "packages/jev/src/worker.mjs",
+            "tools/jev-provider-artifact.py"
+        ],
+        "provenance_schema": "jev-provider-provenance/2"
+    },
+    "typellm": {
+        "schema": "typellm-provider/1",
+        "contract": "typed-completion/1",
+        "entry": "typellm.mjs",
+        "exports": [
+            "TypedProviderError",
+            "bindTypeLLM",
+            "generateTyped"
+        ],
+        "inputs": [
+            "flake.lock",
+            "flake.nix",
+            "packages/typellm/default.nix",
+            "packages/typellm/src/typellm.mjs",
+            "tools/jev-provider-artifact.py"
+        ],
+        "provenance_schema": "typellm-provider-provenance/1"
+    }
+}
+IDENTITY_FIELDS = ("locator", "sha256", "proof_sha256", "provenance_sha256", "contract", "entry_sha256", "manifest_sha256")
 
-def judge_json(raw, code):
+
+def provider_require(condition, code):
+    if not condition:
+        raise SystemExit("provider_admission:" + code)
+
+
+def provider_json(raw, code):
     try:
         value = json.loads(raw)
     except (json.JSONDecodeError, UnicodeDecodeError):
-        raise SystemExit("judge_admission:" + code) from None
-    judge_require(isinstance(value, dict), code)
+        raise SystemExit("provider_admission:" + code) from None
+    provider_require(isinstance(value, dict), code)
     return value
 
-def admit_judge(archive, proof_path, provenance_path, expected, out):
+
+def admit_provider(kind, archive, proof_path, provenance_path, expected, out):
+    spec = PROVIDERS[kind]
     archive, proof_path, provenance_path = map(Path, (archive, proof_path, provenance_path))
-    judge_require(sha256(archive) == expected["sha256"], "digest_mismatch")
-    judge_require(sha256(proof_path) == expected["proof_sha256"], "identity_mismatch")
-    judge_require(sha256(provenance_path) == expected["provenance_sha256"], "identity_mismatch")
-    proof = judge_json(proof_path.read_bytes(), "identity_mismatch")
-    provenance = judge_json(provenance_path.read_bytes(), "identity_mismatch")
-    judge_require(all(proof.get(k) == v for k, v in expected["proof"].items())
-                  and proof.get("reviewed_tree") == proof.get("merge_tree") and proof.get("merged_at"), "identity_mismatch")
-    judge_require(all(isinstance(provenance.get(k), dict) for k in ("proof", "artifact", "inputDigests")), "identity_mismatch")
-    judge_require(provenance.get("schema") == "jev-provider-provenance/1"
-                  and provenance.get("source") == {"repository": "roccho-org/ops", "commit": proof["merge_sha"], "tree": proof["merge_tree"]}
-                  and provenance.get("mergedProof") == proof
-                  and provenance.get("proof", {}).get("sha256") == expected["proof_sha256"]
-                  and provenance.get("locator") == expected["locator"]
-                  and provenance.get("artifact", {}).get("sha256") == expected["sha256"], "identity_mismatch")
+    provider_require(sha256(archive) == expected["sha256"], "digest_mismatch")
+    provider_require(sha256(proof_path) == expected["proof_sha256"], "identity_mismatch")
+    provider_require(sha256(provenance_path) == expected["provenance_sha256"], "identity_mismatch")
+    proof = provider_json(proof_path.read_bytes(), "identity_mismatch")
+    provenance = provider_json(provenance_path.read_bytes(), "identity_mismatch")
+    provider_require(proof == expected["proof"] and proof.get("reviewed_tree") == proof.get("merge_tree")
+                     and proof.get("merged_at"), "identity_mismatch")
+    provider_require(all(isinstance(provenance.get(k), dict) for k in ("proof", "artifact", "inputDigests", "producer")), "identity_mismatch")
+    producer = provenance["producer"]
+    provider_require(provenance.get("schema") == spec["provenance_schema"]
+                     and provenance.get("repository") == "roccho-org/ops"
+                     and provenance.get("contract") == spec["contract"]
+                     and provenance.get("source") == {"repository": "roccho-org/ops", "commit": proof["merge_sha"], "tree": proof["merge_tree"]}
+                     and provenance.get("mergedProof") == proof
+                     and provenance["proof"] == {"name": "merged-pr-proof.json", "sha256": expected["proof_sha256"]}
+                     and provenance.get("locator") == expected["locator"]
+                     == f"https://github.com/roccho-org/ops/releases/download/jev-provider-{proof['merge_sha']}/{kind}-provider.zip"
+                     and provenance["artifact"] == {"name": kind + "-provider.zip", "bytes": archive.stat().st_size, "sha256": expected["sha256"]}
+                     and provenance.get("cross_host_bytes_reproducible") is False
+                     and producer.get("workflow_ref") == "roccho-org/ops/.github/workflows/jev-provider-release.yml@refs/heads/proposals"
+                     and all(re.fullmatch(r"[1-9][0-9]*", str(producer.get(k, ""))) for k in ("run_id", "run_attempt")), "identity_mismatch")
     import zipfile
     try:
         with zipfile.ZipFile(archive) as zipped:
             names = zipped.namelist()
-            judge_require("batch.mjs" in names, "module_missing")
-            judge_require(sorted(names) == ["batch.mjs", "manifest.json"], "manifest_mismatch")
-            module, manifest_bytes = zipped.read("batch.mjs"), zipped.read("manifest.json")
+            provider_require(spec["entry"] in names, "module_missing")
+            provider_require(sorted(names) == sorted([spec["entry"], "manifest.json"])
+                             and all(info.file_size < 1_048_576 and (info.external_attr >> 16) & 0o170000 != 0o120000
+                                     for info in zipped.infolist()), "manifest_mismatch")
+            module, manifest_bytes = zipped.read(spec["entry"]), zipped.read("manifest.json")
     except (zipfile.BadZipFile, UnicodeDecodeError):
-        raise SystemExit("judge_admission:manifest_mismatch") from None
-    manifest = judge_json(manifest_bytes, "manifest_mismatch")
-    judge_require(manifest.get("schema") == "jev-provider/1" and manifest.get("contract") == expected["contract"] == "named-choices-and-typed/1", "unsupported_contract")
+        raise SystemExit("provider_admission:manifest_mismatch") from None
+    manifest = provider_json(manifest_bytes, "manifest_mismatch")
+    provider_require(manifest.get("schema") == spec["schema"]
+                     and manifest.get("contract") == expected["contract"] == spec["contract"], "unsupported_contract")
     module_sha = hashlib.sha256(module).hexdigest()
-    judge_require(manifest.get("entry") == "batch.mjs" and manifest.get("exports") == ["JudgeProviderError", "TypedProviderError", "bindJev", "bindTypeLLM", "generateTyped", "judgeNamedChoices"]
-                  and manifest.get("importClosure") == []
-                  and manifest.get("files") == [{"path": "batch.mjs", "bytes": len(module), "sha256": module_sha}]
-                  and provenance.get("manifestSha256") == hashlib.sha256(manifest_bytes).hexdigest()
-                  and provenance.get("artifact", {}).get("bytes") == archive.stat().st_size
-                  and set(provenance["inputDigests"]) == {"flake.lock", "packages/jev/src/core.mjs", "packages/jev/src/batch.mjs", "packages/jev/src/typellm.mjs", "packages/jev/default.nix", "tools/jev-provider-artifact.py"}
-                  and all(isinstance(v, str) and re.fullmatch(r"[0-9a-f]{64}", v) for v in provenance["inputDigests"].values())
-                  and provenance.get("entrySha256") == module_sha
-                  and module_sha == expected["entry_sha256"]
-                  and hashlib.sha256(manifest_bytes).hexdigest() == expected["manifest_sha256"], "manifest_mismatch")
+    provider_require(manifest == {"schema": spec["schema"], "contract": spec["contract"], "entry": spec["entry"],
+                                  "exports": spec["exports"], "importClosure": [],
+                                  "files": [{"path": spec["entry"], "bytes": len(module), "sha256": module_sha}]}
+                     and provenance.get("manifestSha256") == hashlib.sha256(manifest_bytes).hexdigest()
+                     and set(provenance["inputDigests"]) == set(spec["inputs"])
+                     and all(isinstance(v, str) and re.fullmatch(r"[0-9a-f]{64}", v) for v in provenance["inputDigests"].values())
+                     and provenance.get("entrySha256") == module_sha == expected["entry_sha256"]
+                     and hashlib.sha256(manifest_bytes).hexdigest() == expected["manifest_sha256"], "manifest_mismatch")
     try:
         source = module.decode("utf-8")
     except UnicodeDecodeError:
-        raise SystemExit("judge_admission:import_failed") from None
-    judge_require(not re.search(r'\b(?:import|require)\s*(?:\(|["\'])|\bfrom\s*["\']|\b(?:process|global|Buffer)\b|node:', source), "import_closure")
+        raise SystemExit("provider_admission:import_failed") from None
+    provider_require(not re.search(r'\b(?:import|require)\s*(?:\(|["\'])|\bfrom\s*["\']|\b(?:process|global|Buffer)\b|node:', source), "import_closure")
     out = Path(out)
     out.mkdir(parents=True, exist_ok=True)
-    entry = out / "batch.mjs"
+    entry = out / spec["entry"]
     entry.write_bytes(module)
     (out / "manifest.json").write_bytes(manifest_bytes)
-    # Controlled import, not a provider invocation. No key is passed, no app
-    # state/commit exists here; fetch during module initialization is rejected.
+    # No key or application state is passed; initialization fetch is forbidden.
     probe = r'''let calls=0;globalThis.fetch=()=>{calls++;throw new Error("forbidden")};
-    try{const m=await import(process.argv[1]);if(calls!==0||["bindJev","judgeNamedChoices","JudgeProviderError","bindTypeLLM","generateTyped","TypedProviderError"].some(k=>typeof m[k]!=="function"))process.exit(1)}catch{process.exit(1)}'''
+    try{const m=await import(process.argv[1]),keys=JSON.parse(process.argv[2]);
+    if(calls!==0||JSON.stringify(Object.keys(m).sort())!==JSON.stringify(keys)||keys.some(k=>typeof m[k]!=="function"))process.exit(1)}catch{process.exit(1)}'''
     try:
-        imported = subprocess.run(["node", "--input-type=module", "-e", probe, entry.resolve().as_uri()], capture_output=True, timeout=10)
+        imported = subprocess.run(["node", "--input-type=module", "-e", probe, entry.resolve().as_uri(), json.dumps(spec["exports"])], capture_output=True, timeout=10)
     except subprocess.TimeoutExpired:
-        raise SystemExit("judge_admission:import_failed") from None
-    judge_require(imported.returncode == 0, "import_failed")
-    (out / "identity.json").write_text(json.dumps({k: expected[k] for k in ("locator", "sha256", "proof_sha256", "provenance_sha256", "contract", "entry_sha256", "manifest_sha256")}, sort_keys=True) + "\n")
+        raise SystemExit("provider_admission:import_failed") from None
+    provider_require(imported.returncode == 0, "import_failed")
+    (out / "identity.json").write_text(json.dumps({k: expected[k] for k in IDENTITY_FIELDS}, sort_keys=True) + "\n", encoding="utf-8")
     return out
 
 
-def test_judge_admission(args):
-    # Same admission and one immutable supplied base; crafted identities here
-    # isolate each guard, never acquire supplied/proof-approved status.
+def test_provider_admission(args):
+    # Mutated pins isolate individual guards; they are never approved inputs.
     import copy
     import tempfile
     import zipfile
+    spec = PROVIDERS[args.provider]
     baseline = json.loads(args.expected)
     original_proof = Path(args.proof).read_bytes()
     original_provenance = json.loads(Path(args.provenance).read_bytes())
     with zipfile.ZipFile(args.archive) as zipped:
-        original_module = zipped.read("batch.mjs")
+        original_module = zipped.read(spec["entry"])
         original_manifest = json.loads(zipped.read("manifest.json"))
-    work = Path(tempfile.mkdtemp(prefix="judge-admission-controls-"))
-    admit_judge(args.archive, args.proof, args.provenance, baseline, work / "positive")
-    cases = [
-        ("tamper", "digest_mismatch"),
-        ("wrong_identity", "identity_mismatch"),
-        ("module_missing", "module_missing"),
-        ("unsupported_contract", "unsupported_contract"),
-        ("import_failed", "import_failed"),
-        ("initialization_fetch", "import_failed"),
-        ("malformed_manifest", "manifest_mismatch"),
-        ("corrupt_zip", "manifest_mismatch"),
-    ]
-    for label, code in cases:
-        folder = work / label
-        folder.mkdir()
-        expected = copy.deepcopy(baseline)
-        provenance = copy.deepcopy(original_provenance)
-        manifest = copy.deepcopy(original_manifest)
-        module = original_module
-        if label == "unsupported_contract":
-            manifest["contract"] = "unsupported/1"
-        elif label == "import_failed":
-            module = b"export {"
-        elif label == "initialization_fetch":
-            module = b'globalThis.fetch("https://fixture.invalid");export const JudgeProviderError=Error;export const judgeNamedChoices=()=>{};'
-        module_sha = hashlib.sha256(module).hexdigest()
-        manifest["files"] = [{"path": "batch.mjs", "bytes": len(module), "sha256": module_sha}]
-        manifest_bytes = json.dumps(manifest, sort_keys=True, separators=(",", ":")).encode()
-        if label == "malformed_manifest":
-            manifest_bytes = b"{"
-        archive = folder / "provider.zip"
-        with zipfile.ZipFile(archive, "w") as zipped:
-            if label != "module_missing":
-                zipped.writestr("batch.mjs", module)
-            zipped.writestr("manifest.json", manifest_bytes)
-        if label == "corrupt_zip":
-            archive.write_bytes(b"invalid ZIP")
-        expected["sha256"] = sha256(archive)
-        expected["entry_sha256"] = module_sha
-        expected["manifest_sha256"] = hashlib.sha256(manifest_bytes).hexdigest()
-        provenance["artifact"] = {"bytes": archive.stat().st_size, "sha256": expected["sha256"]}
-        provenance["manifestSha256"] = expected["manifest_sha256"]
-        provenance["entrySha256"] = module_sha
-        proof_path = folder / "proof.json"
-        proof_path.write_bytes(original_proof)
-        provenance_path = folder / "provenance.json"
-        provenance_path.write_text(json.dumps(provenance))
-        expected["provenance_sha256"] = sha256(provenance_path)
-        if label == "tamper":
-            expected["sha256"] = "0" * 64
-        elif label == "wrong_identity":
-            expected["proof"]["merge_sha"] = "0" * 40
-        try:
-            admit_judge(archive, proof_path, provenance_path, expected, folder / "output")
-        except SystemExit as failure:
-            assert str(failure) == "judge_admission:" + code, label
-        else:
-            raise AssertionError("admission unexpectedly accepted " + label)
-    print("judge admission: actual supplied positive 1; typed refusal controls 8; credential injection/provider invocation/app commit 0")
+    with tempfile.TemporaryDirectory(prefix="provider-admission-controls-") as temporary:
+        work = Path(temporary)
+        admit_provider(args.provider, args.archive, args.proof, args.provenance, baseline, work / "positive")
+        cases = [("tamper", "digest_mismatch"), ("wrong_identity", "identity_mismatch"),
+                 ("wrong_proof", "identity_mismatch"), ("wrong_source", "identity_mismatch"),
+                 ("wrong_producer", "identity_mismatch"), ("module_missing", "module_missing"),
+                 ("unsupported_contract", "unsupported_contract"), ("wrong_exports", "manifest_mismatch"),
+                 ("import_failed", "import_failed"), ("initialization_fetch", "import_failed"),
+                 ("malformed_manifest", "manifest_mismatch"), ("corrupt_zip", "manifest_mismatch")]
+        for label, code in cases:
+            folder = work / label
+            folder.mkdir()
+            expected, provenance, manifest = map(copy.deepcopy, (baseline, original_provenance, original_manifest))
+            module = original_module
+            if label == "unsupported_contract":
+                manifest["contract"] = "unsupported/1"
+            elif label == "wrong_exports":
+                manifest["exports"] = PROVIDERS["typellm" if args.provider == "jev" else "jev"]["exports"]
+            elif label == "import_failed":
+                module = b"export {"
+            elif label == "initialization_fetch":
+                module = b'globalThis.fetch("https://fixture.invalid");\n' + original_module
+            module_sha = hashlib.sha256(module).hexdigest()
+            manifest["files"] = [{"path": spec["entry"], "bytes": len(module), "sha256": module_sha}]
+            manifest_bytes = json.dumps(manifest, sort_keys=True, separators=(",", ":")).encode()
+            if label == "malformed_manifest":
+                manifest_bytes = b"{"
+            archive = folder / "provider.zip"
+            with zipfile.ZipFile(archive, "w") as zipped:
+                if label != "module_missing":
+                    zipped.writestr(spec["entry"], module)
+                zipped.writestr("manifest.json", manifest_bytes)
+            if label == "corrupt_zip":
+                archive.write_bytes(b"invalid ZIP")
+            expected["sha256"] = sha256(archive)
+            expected["entry_sha256"] = module_sha
+            expected["manifest_sha256"] = hashlib.sha256(manifest_bytes).hexdigest()
+            provenance["artifact"] = {"name": args.provider + "-provider.zip", "bytes": archive.stat().st_size, "sha256": expected["sha256"]}
+            provenance["manifestSha256"] = expected["manifest_sha256"]
+            provenance["entrySha256"] = module_sha
+            proof_path = folder / "proof.json"
+            proof_path.write_bytes(original_proof if label != "wrong_proof" else original_proof + b"\n")
+            if label == "wrong_source":
+                provenance["source"]["commit"] = "0" * 40
+            elif label == "wrong_producer":
+                provenance["producer"]["workflow_ref"] = "unapproved/fixture"
+            provenance_path = folder / "provenance.json"
+            provenance_path.write_text(json.dumps(provenance), encoding="utf-8")
+            expected["provenance_sha256"] = sha256(provenance_path)
+            if label == "tamper":
+                expected["sha256"] = "0" * 64
+            elif label == "wrong_identity":
+                expected["proof"]["merge_sha"] = "0" * 40
+            try:
+                admit_provider(args.provider, archive, proof_path, provenance_path, expected, folder / "output")
+            except SystemExit as failure:
+                assert str(failure) == "provider_admission:" + code, label
+            else:
+                raise AssertionError("admission unexpectedly accepted " + label)
+    print(f"{args.provider} admission: actual supplied positive 1; typed refusal controls {len(cases)}; credential injection/provider invocation/app commit 0")
+
+
+def admitted_entry(root, identity, kind):
+    root = Path(root)
+    entry = root / PROVIDERS[kind]["entry"]
+    provider_require(identity["contract"] == PROVIDERS[kind]["contract"]
+                     and json.loads((root / "identity.json").read_text()) == identity
+                     and sha256(entry) == identity["entry_sha256"]
+                     and sha256(root / "manifest.json") == identity["manifest_sha256"], "manifest_mismatch")
+    return entry.resolve()
+
 
 def architecture_identity(root, app_rev):
     public = Path(root) / "site/architecture/data/source.v1.json"
@@ -302,10 +374,9 @@ def build(args):
     site = out / "site"
 
     judge_identity = json.loads(args.judge_artifact)
-    judge = Path(args.judge)
-    judge_require(json.loads((judge / "identity.json").read_text()) == judge_identity
-                  and sha256(judge / "batch.mjs") == judge_identity["entry_sha256"]
-                  and sha256(judge / "manifest.json") == judge_identity["manifest_sha256"], "manifest_mismatch")
+    typed_identity = json.loads(args.typed_artifact)
+    judge = admitted_entry(args.judge, judge_identity, "jev")
+    typed = admitted_entry(args.typed, typed_identity, "typellm")
 
     copy_tree(app / "web", site)
     copy_tree(app / "src", site / "app/src")
@@ -319,7 +390,8 @@ def build(args):
     subprocess.run([
         "esbuild", "functions/pages-worker.mjs", "--bundle", "--format=esm",
         "--platform=browser", "--target=es2022", "--log-level=warning", "--minify-whitespace",
-        f"--alias:voice-ui-judge-provider={(judge / 'batch.mjs').resolve()}",
+        f"--alias:voice-ui-judge-provider={judge}",
+        f"--alias:voice-ui-typed-provider={typed}",
         f"--outfile={worker.resolve()}",
     ], cwd=app, check=True)
 
@@ -352,6 +424,7 @@ def build(args):
             "ui": args.ui_rev,
             "hayamimi-web": json.loads(args.hayamimi_artifact),
             "jev-provider": judge_identity,
+            "typellm-provider": typed_identity,
             "system": args.system,
         },
         "auth": ".envs/artifact.jsonl",
@@ -588,12 +661,16 @@ def main():
     build_parser.add_argument("--system", required=True)
     build_parser.add_argument("--judge", required=True)
     build_parser.add_argument("--judge-artifact", required=True)
+    build_parser.add_argument("--typed", required=True)
+    build_parser.add_argument("--typed-artifact", required=True)
 
-    judge_parser = sub.add_parser("admit-judge")
+    judge_parser = sub.add_parser("admit-provider")
+    judge_parser.add_argument("--provider", choices=PROVIDERS, required=True)
     for name in ("archive", "proof", "provenance", "expected", "out"):
         judge_parser.add_argument("--" + name, required=True)
 
-    judge_test_parser = sub.add_parser("test-judge-admission")
+    judge_test_parser = sub.add_parser("test-provider-admission")
+    judge_test_parser.add_argument("--provider", choices=PROVIDERS, required=True)
     for name in ("archive", "proof", "provenance", "expected"):
         judge_test_parser.add_argument("--" + name, required=True)
 
@@ -603,10 +680,10 @@ def main():
     args = parser.parse_args()
     if args.command == "build":
         build(args)
-    elif args.command == "admit-judge":
-        admit_judge(args.archive, args.proof, args.provenance, json.loads(args.expected), args.out)
-    elif args.command == "test-judge-admission":
-        test_judge_admission(args)
+    elif args.command == "admit-provider":
+        admit_provider(args.provider, args.archive, args.proof, args.provenance, json.loads(args.expected), args.out)
+    elif args.command == "test-provider-admission":
+        test_provider_admission(args)
     else:
         verify_dist(Path(args.dist))
 

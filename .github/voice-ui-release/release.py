@@ -5,7 +5,7 @@ lint            workflow JSON on stdin (`yq -o=json`): 40-hex action pins,
                 exact proposals-only publish guard, and a contents:write job
                 limited to pinned checkout/download-artifact, the default or
                 bash shell, and run steps with no Nix
-provider-guard  fail while apps still consumes ops source: any roccho-dev/ops
+provider-guard  fail while apps still consumes ops source: any roccho-dev/ops or roccho-org/ops
                 node in flake.lock or `sources.ops` in the dist manifest
 proof           merged-PR proof from GitHub API JSON (pull and its reviews);
                 the latest non-dismissed review on the exact head must be Green
@@ -40,7 +40,7 @@ WRITE_USES = {
     'actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093',
 }
 SHELLS = {None, 'bash'}
-OPS = re.compile(r'(?:github\.com[:/]|github:)roccho-dev/ops(?:\.git)?(?![\w.-])', re.I)
+OPS = re.compile(r'(?:github\.com[:/]|github:)(?:roccho-dev|roccho-org)/ops(?:\.git)?(?![\w.-])', re.I)
 GUARD = {
     "github.event_name == 'workflow_dispatch'",
     'inputs.publish',
@@ -109,9 +109,9 @@ def provider_errors(lock, manifest):
     for name, node in (lock.get('nodes') or {}).items():
         for key in ('locked', 'original'):
             ref = node.get(key) or {}
-            github = ref.get('owner', '').lower() == 'roccho-dev' and ref.get('repo', '').lower() == 'ops'
+            github = ref.get('owner', '').lower() in ('roccho-dev', 'roccho-org') and ref.get('repo', '').lower() == 'ops'
             if github or OPS.search(str(ref.get('url') or '')):
-                errors.append(f'flake.lock node {name} ({key}) is roccho-dev/ops source')
+                errors.append(f'flake.lock node {name} ({key}) is ops provider source')
                 break
     if 'ops' in (manifest.get('sources') or {}):
         errors.append('dist manifest still records sources.ops')
@@ -312,11 +312,16 @@ def selftest(a):
         ({'nodes': {'x': {'locked': {'type': 'git', 'url': 'https://github.com/roccho-dev/ops'}}}}, clean_manifest),
         ({'nodes': {'x': {'locked': {'type': 'git', 'url': 'git+https://github.com/roccho-dev/ops.git?ref=proposals'}}}}, clean_manifest),
         ({'nodes': {'x': {'original': {'type': 'indirect', 'url': 'github:roccho-dev/ops/main'}}}}, clean_manifest),
+        ({'nodes': {'x': {'locked': {'type': 'github', 'owner': 'roccho-org', 'repo': 'ops'}}}}, clean_manifest),
+        ({'nodes': {'x': {'original': {'type': 'github', 'owner': 'Roccho-Org', 'repo': 'OPS'}}}}, clean_manifest),
+        ({'nodes': {'x': {'locked': {'url': 'git+https://github.com/roccho-org/ops.git?rev=fixture'}}}}, clean_manifest),
+        ({'nodes': {'x': {'original': {'url': 'github:roccho-org/ops/proposals'}}}}, clean_manifest),
         (clean_lock, {'sources': {'apps': 'a' * 40, 'ops': 'c' * 40}}),
     ]
     for lock, manifest in bad_providers:
         assert provider_errors(lock, manifest), f'provider guard accepted {lock} {manifest}'
     assert provider_errors({'nodes': {'x': {'locked': {'url': 'https://github.com/roccho-dev/ops-extra'}}}}, clean_manifest) == []
+    assert provider_errors({'nodes': {'x': {'locked': {'url': 'https://github.com/roccho-org/ops-extra'}}}}, clean_manifest) == []
     head = 'a' * 40
     review = lambda body, at, commit=head, state='COMMENTED': {
         'commit_id': commit, 'submitted_at': at, 'body': body, 'html_url': f'u/{at}', 'state': state}
@@ -397,7 +402,7 @@ def selftest(a):
         else:
             raise AssertionError('verify accepted a provenance source tree that differs from the merged tree')
     print(json.dumps({'lint': {'positive': 1, 'negative': len(bad_workflows)},
-                      'provider_guard': {'positive': 2, 'negative': len(bad_providers)},
+                      'provider_guard': {'positive': 3, 'negative': len(bad_providers)},
                       'verdict': {'positive': len(good_verdicts), 'negative': len(bad_verdicts)},
                       'acceptance_closure': {'positive': 1, 'negative': len(bad_closures)},
                       'release_set': {'positive': 1, 'negative': 1}}))
