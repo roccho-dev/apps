@@ -151,7 +151,9 @@ the reducer's input no longer needs a local ledger. The edge reads the file; the
 - held with the reason (`journal.held`, `cold: …`): `schema` (not `adr_raw_event.v1`), `content-sha256-missing`
   (no payload or no `content_sha256`: revision, code_context and scope rows), `content-sha256-unverifiable`
   (a float, an integer beyond 2^53 or a lone surrogate: JSON.parse has lost what Python wrote),
-  `content-sha256-mismatch`, `raw-id-mismatch`, `subject-id-author-or-body-missing`.
+  `content-sha256-mismatch`, `raw-id-mismatch`, `subject-id-author-or-body-missing`, `updated-at-missing`
+  (no `updated_at` in payload or `observed_version`, e.g. the adrs#603 review rows; never dated by
+  `created_at` or `submitted_at`). A held row stays out of the World; the rest of the collection goes on.
 - `collect.mjs` without `--recorded-at` dates a cold collection by its commit (`committedAt`), so the same
   commit always gives the same events; `live.mjs <g-events.jsonl>` then builds `world.json` without `--ledger`.
 

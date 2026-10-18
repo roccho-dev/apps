@@ -32,16 +32,18 @@ test('the fixture is what it claims: real rows, three comments with Japanese, ne
   }
 });
 
-test('every real row with a content_sha256 is reproduced by the adapter and becomes a document', () => {
+test('every real row with a content_sha256 is reproduced by the adapter; each dated one becomes a document', () => {
+  for (const row of hashed) assert.equal(coldDigest(row.payload), row.observed_version.content_sha256);
+  const dated = hashed.filter(row => typeof (row.payload.updated_at ?? row.observed_version.updated_at) === 'string');
   const docs = records.filter(record => record.kind === 'thread').flatMap(record => record.documents);
   assert.deepEqual(docs.map(doc => [doc.commentId, doc.source.sha256]),
-    hashed.map(row => [row.payload.id, `sha256:${row.observed_version.content_sha256}`]));
-  assert.deepEqual(docs.map(doc => doc.text), hashed.map(row => row.payload.body));
+    dated.map(row => [row.payload.id, `sha256:${row.observed_version.content_sha256}`]));
+  assert.deepEqual(docs.map(doc => doc.text), dated.map(row => row.payload.body));
 });
 
-test('a real row without payload or content_sha256 is held as missing, not as a mismatch', () => {
+test('real rows held with a reason: no payload or content_sha256 (missing, not a mismatch); no updated_at', () => {
   assert.deepEqual(records.filter(record => record.kind === 'held').map(record => [record.raw_id, record.reason]),
-    [[rows[2].raw_id, 'content-sha256-missing']]);
+    [[rows[2].raw_id, 'content-sha256-missing'], [rows[5].raw_id, 'updated-at-missing']]);
 });
 
 // Python json.dumps(ensure_ascii=False, sort_keys=True) against JS JSON.stringify, one difference at a time.

@@ -123,9 +123,13 @@ function cold({ repo, commit, path, committedAt, fetchedAt, sha256, text }) {
     if (!subject || !Number.isSafeInteger(payload.id) || typeof payload.author?.login !== 'string' || typeof payload.body !== 'string') {
       hold('subject-id-author-or-body-missing', null, row.raw_id ?? null); continue;
     }
+    // No time is guessed: without updated_at (payload or observed_version) the row is held, not dated by
+    // created_at or submitted_at (an adrs#603 review row has both updated_at null).
+    const updatedAt = payload.updated_at ?? row.observed_version.updated_at;
+    if (typeof updatedAt !== 'string') { hold('updated-at-missing', null, row.raw_id ?? null); continue; }
     const key = `${subject[1]}#${subject[2]}`;
     if (!threads.has(key)) threads.set(key, { kind: 'thread', repo: subject[1], number: Number(subject[2]), fetchedAt, committedAt, documents: [], source: { ref, sha256: sha256 ?? null } });
-    threads.get(key).documents.push({ commentId: payload.id, updatedAt: payload.updated_at ?? row.observed_version.updated_at, author: payload.author.login,
+    threads.get(key).documents.push({ commentId: payload.id, updatedAt, author: payload.author.login,
       // The same digest in G's `sha256:<hex>` notation (what D's source digest requires).
       text: payload.body, source: { ref, sha256: `sha256:${content}` }, admission: row.status ?? null });
   }
