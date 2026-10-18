@@ -177,6 +177,16 @@ not know where the list lives. The evidence is not written into `source.ref`; th
 for it yet (it stays in the comment, whose digest is `source.sha256`). A terminal is a report, never an achievement.
 Worklog sections are not read as plans or journal decisions. The reducer, contract and ui are unchanged.
 
+## current (C2)
+
+`current = record(agent)`: `collect.mjs <dir> --current <author>=<path> [--current …] --worklog-author <login>…`.
+Each file is atlas-worklog-v1 lines (the same check as above: kind, fields, work_id, evidence form, terminal,
+author list — fail closed). The author is the argument (required, no default; never a field of the line), the
+time is when the files were read (`--recorded-at` pins it), and the order is the line position. One line →
+`work:<id>` = `created` / `progressed` / `reported-*`; an `artifact.observed` line also gives `evidence:<id>` =
+its evidence. Source `current:<author>#L<n>` with the sha256 of the file as read. These reach the World's journal
+as ordinary observations (no new field); they are claims, and no condition may watch them (adrs#654).
+
 ## Fixtures
 
 `fixtures/snapshots/issue-roccho-dev-resources-25.json` and the two `pr-*.json` are real `gh api`
