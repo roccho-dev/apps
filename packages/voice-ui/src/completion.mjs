@@ -287,11 +287,18 @@ const choices = [["change", "ambiguous", "no-change", "unsupported"], ["availabl
 const answer = (x, options) => requiredExact(x, ["choice", "confidence"]) && options.includes(x.choice)
   && Number.isFinite(x.confidence) && x.confidence >= 0 && x.confidence <= 1;
 
-export function readRequired(rows) {
-  if (!Array.isArray(rows) || rows.length > 3 || !rows.every(r => requiredExact(r, ["label", "kind", "quantity"])
+const requiredNames = max => {
+  if (!Number.isSafeInteger(max) || max < 1 || max > 16) throw new TypeError("required capacity must be 1..16");
+  return Array.from({ length: max }, (_, i) => "required" + (i + 1));
+};
+
+// The caller fixes the finite capacity before generation and readback.
+export function readRequired(rows, { max = 3 } = {}) {
+  requiredNames(max);
+  if (!Array.isArray(rows) || rows.length > max || !rows.every(r => requiredExact(r, ["label", "kind", "quantity"])
       && typeof r.label === "string" && r.label.trim().length > 0 && r.label.length <= LABEL_MAX
-      && PART_KINDS.includes(r.kind) && Number.isSafeInteger(r.quantity) && r.quantity >= 1 && r.quantity <= 3)
-      || rows.reduce((n, r) => n + r.quantity, 0) > 3
+      && PART_KINDS.includes(r.kind) && Number.isSafeInteger(r.quantity) && r.quantity >= 1 && r.quantity <= max)
+      || rows.reduce((n, r) => n + r.quantity, 0) > max
       || new Set(rows.map(r => JSON.stringify([r.label, r.kind]))).size !== rows.length) return null;
   return structuredClone(rows);
 }
@@ -302,21 +309,22 @@ export function requiredLabelsGrounded(required, state) {
     || state.parts.some(part => part.label === row.label && part.kind === row.kind));
 }
 
-export function readRequiredSlots(slots) {
-  if (!requiredExact(slots, ["required1", "required2", "required3"])) return null;
+export function readRequiredSlots(slots, { max = 3 } = {}) {
+  const names = requiredNames(max);
+  if (!requiredExact(slots, names)) return null;
   const rows = [];
   let ended = false;
-  for (const key of ["required1", "required2", "required3"]) {
+  for (const key of names) {
     const row = slots[key];
     if (!requiredExact(row, ["label", "kind", "quantity"]) || typeof row.label !== "string" || row.label.length > LABEL_MAX
-        || !["0", "1", "2", "3"].includes(row.quantity)) return null;
+        || !Array.from({ length: max + 1 }, (_, i) => String(i)).includes(row.quantity)) return null;
     if (row.kind === "none") ended = true;
     else {
       if (ended) return null;
       rows.push({ label: row.label, kind: row.kind, quantity: Number(row.quantity) });
     }
   }
-  return readRequired(rows);
+  return readRequired(rows, { max });
 }
 
 // Existing Working nodes never increase the stock of executable new instances.
@@ -326,7 +334,8 @@ export function requiredDifference(required, parts) {
     ({ label: row.label, kind: row.kind, occurrence: i + 1 })));
 }
 
-export function requiredRequest(context, { generation = "dependent" } = {}) {
+export function requiredRequest(context, { generation = "dependent", max = 3 } = {}) {
+  const names = requiredNames(max);
   if (!["independent", "dependent"].includes(generation)) throw new Error("invalid requirements generation");
   const extraction = { utterance: context.utterance,
     existing_regions: context.regions.map(({ label, kind }) => ({ label, kind })),
@@ -336,9 +345,9 @@ export function requiredRequest(context, { generation = "dependent" } = {}) {
     + "existing_regionsは既存参照、part_definitionsは名称と種類の定義であり、追加用の個数ではない。"
     + "既存の個数を差し引かない。この質問が答えるのは、その一覧の第" + n + "組だけ。"
     + "第" + n + "組がなければ未使用とする。別の順位の組を繰り返して埋めない。";
-  const request = { context: JSON.stringify(extraction), questions: Object.fromEntries([1, 2, 3].map(n => ["required" + n, {
+  const request = { context: JSON.stringify(extraction), questions: Object.fromEntries(names.map((name, index) => { const n = index + 1; return [name, {
     type: "object",
-    instructions: "最大3組、総個数も最大3個の新規追加要求を読み取る。ID・親・矢印・操作は答えない。" + subject(n),
+    instructions: `最大${max}組、総個数も最大${max}個の新規追加要求を読み取る。ID・親・矢印・操作は答えない。` + subject(n),
     properties: {
       label: { type: "string", instructions: subject(n) + "第" + n + "組の表示名だけを原文どおり答える。"
         + "引用された名称や明示された表示名を優先し、通し番号や種類名を付け足さない。"
@@ -347,11 +356,11 @@ export function requiredRequest(context, { generation = "dependent" } = {}) {
         + "Supported meanings: step=task/action/process/box; decision=branch/condition/diamond; data=stored information/document; "
         + "start=begin; end=finish; group=container/boundary. part_definitionsのlabel/kind/purposesも参照する。"
         + "名称の意味より原文で明示された種類を優先する。未使用ならnone。" },
-      quantity: { type: "string", enum: ["0", "1", "2", "3"], instructions: subject(n) + "第" + n + "組について、"
-        + "今回新たに追加する総個数だけを答える（1・2・3）。組の順位や全組の合計数とは異なる。"
+      quantity: { type: "string", enum: Array.from({ length: max + 1 }, (_, i) => String(i)), instructions: subject(n) + "第" + n + "組について、"
+        + `今回新たに追加する総個数だけを答える（${Array.from({ length: max }, (_, i) => i + 1).join("・")}）。組の順位や全組の合計数とは異なる。`
         + "同じ表示名と種類の反復は合算し、在庫や既存の図から差し引かない。未使用なら0。" },
     },
-  }])) };
+  }]; })) };
   if (generation === "dependent") for (const [index, name] of Object.keys(request.questions).entries()) {
     const question = request.questions[name];
     question.properties.label.depends_on = ["kind"];
@@ -407,9 +416,9 @@ export function readDisplaySourceSlots(source, context) {
 
 // This question receives no expected answer, oracle, parent or edge proposal.
 // Keep the dependent extraction DAG, but ask its leaves as top-level scalars.
-export function flatRequiredRequest(context, { labelThinking = false } = {}) {
+export function flatRequiredRequest(context, { labelThinking = false, max = 3 } = {}) {
   if (typeof labelThinking !== "boolean") throw new Error("invalid label thinking profile");
-  const request = requiredRequest(context, { generation: "dependent" }), questions = {};
+  const request = requiredRequest(context, { generation: "dependent", max }), questions = {};
   const fields = ["label", "kind", "quantity"];
   for (const [name, parent] of Object.entries(request.questions)) {
     const inherited = (parent.depends_on ?? []).flatMap(key => fields.map(field => key + "_" + field));
@@ -427,12 +436,12 @@ export function flatRequiredRequest(context, { labelThinking = false } = {}) {
   return { context: request.context, questions };
 }
 
-export function readFlatRequiredSlots(source) {
-  const names = ["required1", "required2", "required3"], fields = ["label", "kind", "quantity"];
+export function readFlatRequiredSlots(source, { max = 3 } = {}) {
+  const names = requiredNames(max), fields = ["label", "kind", "quantity"];
   if (!requiredExact(source, names.flatMap(name => fields.map(field => name + "_" + field)))) return null;
   const slots = Object.fromEntries(names.map(name => [name,
     Object.fromEntries(fields.map(field => [field, source[name + "_" + field]]))]));
-  const required = readRequiredSlots(slots);
+  const required = readRequiredSlots(slots, { max });
   return required === null ? null : { slots, required, scalar_answers: structuredClone(source) };
 }
 
