@@ -3,6 +3,10 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { coldDigest, normalize, pyJsonDumps } from '../collect/adapter.mjs';
+import { collect, toJsonl } from '../collect/collect.mjs';
+import { joinLog } from '../live.mjs';
+import { deriveAtlas } from '../events.mjs';
+import { contractWorld } from '../contract.mjs';
 
 // C1b: content_sha256 is checked in the one form adrs tools/github_api.py (a6284e58) writes:
 // sha256(json.dumps(payload, ensure_ascii=False, sort_keys=True)) in plain hex, raw_id ending with its first 16.
@@ -82,4 +86,18 @@ test('a changed real row is held: body edited, raw_id tail edited, a float in th
   assert.deepEqual(held.map(record => [record.kind, record.reason]),
     [['held', 'content-sha256-mismatch'], ['held', 'raw-id-mismatch'], ['held', 'content-sha256-unverifiable']]);
   assert.equal(coldDigest(base.payload), base.observed_version.content_sha256);
+});
+
+// C1c: the real rows go all the way through collect → live → D → World. The review row (adrs#603) has no
+// updated_at anywhere (payload and observed_version are null); it must not stop the whole collection.
+test('the real fixture passes collect and builds a World; a row without updated_at is held, never dated by guess', () => {
+  const synthetic = readFileSync(fileURLToPath(new URL('../collect/fixtures/cold/decisions.jsonl', import.meta.url)), 'utf8');
+  const purpose = normalize({ type: 'cold', repo: 'roccho-dev/adrs', commit: '94a51c3a', path: 'decisions/synthetic.jsonl', committedAt: '2026-10-18T06:00:00Z', fetchedAt: '2026-10-18T07:00:00Z', sha256: null, text: synthetic });
+  const review = rows.find(row => row.raw_id.includes('.review.'));
+  assert.deepEqual([review.payload.updated_at, review.observed_version.updated_at], [null, null]);
+  const events = collect([...records, ...purpose], '2026-10-18T06:00:00Z');
+  assert.deepEqual(events.filter(event => event.kind === 'journal.held' && event.line === review.raw_id).map(event => event.reason), ['cold: updated-at-missing']);
+  const world = contractWorld(deriveAtlas(joinLog('', [toJsonl(events)]).log, '{"schema":"atlas.control-norms/1","authority":false}\n'));
+  assert.equal(world.frames.at(-1).gap.basis.purpose_id, 'purpose.cold');
+  assert.ok(!world.frames.some(frame => frame.journal.some(entry => entry.source?.commentId === String(review.payload.id))), 'the held review is not in the World');
 });
