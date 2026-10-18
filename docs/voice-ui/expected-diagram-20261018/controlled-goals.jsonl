@@ -1,0 +1,5 @@
+{"id": "add-2", "parts": 2, "connect": false, "expected": {"new_regions": 2, "new_edges": 0}}
+{"id": "add-3", "parts": 3, "connect": false, "expected": {"new_regions": 3, "new_edges": 0}}
+{"id": "add-4", "parts": 4, "connect": false, "expected": {"new_regions": 4, "new_edges": 0}}
+{"id": "add-5", "parts": 5, "connect": false, "expected": {"new_regions": 5, "new_edges": 0}}
+{"id": "add-2-connect", "parts": 2, "connect": true, "expected": {"new_regions": 2, "new_edges": 1}}
