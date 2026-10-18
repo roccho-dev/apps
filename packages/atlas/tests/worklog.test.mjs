@@ -47,8 +47,8 @@ test('one line per comment maps to work:<id>: created, progressed, reported-done
 test('R path 1: the author is checked against the list passed in; no list holds everything (fail closed)', () => {
   const line = [{ kind: 'work.created', work_id: 'wl2' }];
   assert.deepEqual(held(run([doc(line, { author: 'mallory' }), doc(line)])), ['worklog: author-not-allowed']);
-  for (const options of [undefined, {}, { worklogAuthors: [] }]) {
-    const events = run([doc(line), doc(line, { author: 'mallory' })], options);
+  for (const options of [[], [{}], [{ worklogAuthors: [] }]]) {
+    const events = collect([thread([doc(line), doc(line, { author: 'mallory' })])], RECORDED, ...options);
     assert.deepEqual([work(events).length, held(events)], [0, ['worklog: author-list-missing', 'worklog: author-list-missing']]);
   }
 });

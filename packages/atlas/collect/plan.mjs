@@ -202,7 +202,8 @@ export function planEvents(documents, recordedAt) {
   for (const doc of documents) {
     if (timestamp(doc.updatedAt, `${doc.repo}#${doc.number}${doc.commentId === null ? '' : ` comment ${doc.commentId}`} updated_at`) > recorded)
       throw new Error(`atlas-collect: ${doc.repo}#${doc.number} updated_at ${doc.updatedAt} is after recordedAt ${recordedAt}`);
-    for (const section of markerSections(doc.text)) {
+    // A worklog-v1 section is a work log (worklog.mjs), not a plan.
+    for (const section of markerSections(doc.text).filter(value => value.slug !== 'worklog')) {
       const key = `${doc.repo}#${doc.number}:${section.slug}`;
       const list = bySlug.get(key) ?? [];
       list.push({ doc, section });
