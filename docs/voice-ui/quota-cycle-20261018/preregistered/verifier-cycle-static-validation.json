@@ -1,0 +1,165 @@
+{
+  "schema": "voice-ui.compact-verifier-static-validation/1",
+  "repeat_profile": "compact-verifier-VE-20261018",
+  "status": "PASS",
+  "created_at": "2026-10-18T05:25:40.304Z",
+  "reference_source": "9c83838bcbfa5c8a6e56eed6558d4fc287a5e300",
+  "reference_source_policy": "Unchanged pure decoder/grades/protocol/storage from measured e7 and saved9c; future candidate source/runtime is separately admitted before first send.",
+  "checks": {
+    "V_existing_closed_input_schema": true,
+    "V_oracle_projection_order_hash": true,
+    "V_legal_proposals6": true,
+    "V_exact_positive_and_five_single_errors": true,
+    "V_independent_truth_full_NEW_API_step2": true,
+    "V_expected_accept_true1_false5": true,
+    "V_frozen_operational_grade_and_threshold": true,
+    "V_low_confidence_not_incomplete_verdict": true,
+    "V_no_adoption_or_graph_target_authorization": true,
+    "E_public_original_input_oracle_raw_equal": true,
+    "E_public_B_pure_literal_deficit": true,
+    "native_canonical_map_commit_restore_raw_equal": true,
+    "old_unexposed_E6_input_oracle_binary_hash_size_unchanged": true,
+    "E6_payload_parsed_for_this_authoring": false,
+    "old_unused_private_pools_read": false
+  },
+  "public_V": {
+    "cases": 6,
+    "cells": 6,
+    "schedule": [
+      {
+        "axis": "V",
+        "id": "CV01",
+        "method": "verify",
+        "arm": "V"
+      },
+      {
+        "axis": "V",
+        "id": "CV02",
+        "method": "verify",
+        "arm": "V"
+      },
+      {
+        "axis": "V",
+        "id": "CV03",
+        "method": "verify",
+        "arm": "V"
+      },
+      {
+        "axis": "V",
+        "id": "CV04",
+        "method": "verify",
+        "arm": "V"
+      },
+      {
+        "axis": "V",
+        "id": "CV05",
+        "method": "verify",
+        "arm": "V"
+      },
+      {
+        "axis": "V",
+        "id": "CV06",
+        "method": "verify",
+        "arm": "V"
+      }
+    ],
+    "relations": [
+      "exact",
+      "wrong-label",
+      "wrong-kind",
+      "wrong-total-count",
+      "extra-pair",
+      "omitted-all-new-parts"
+    ],
+    "initial_head": "sha256:997f2a85be41d6774df84a876b8bba255de5d38cf5cda626fbb1dfc268940bc8",
+    "initial_log_sha256": "98920f938c20ef190f56f31c9f21d811e1cb53ee9313ec4437a1d6a88bb4e05c",
+    "initial_records_sha256": "9d15ee40475960196a1566a4659cbc5042120abbce7867df0a9f2a876f2f6080",
+    "expected_operational_accept": [
+      true,
+      false,
+      false,
+      false,
+      false,
+      false
+    ],
+    "expected_raw_completeness": [
+      "complete",
+      "incomplete",
+      "incomplete",
+      "incomplete",
+      "incomplete",
+      "incomplete"
+    ],
+    "raw_completeness_is_report_only": true
+  },
+  "public_E": {
+    "cases": 1,
+    "cells": 2,
+    "input_sha256": "52b95efd0dc3301c746b1d947e5896400bf7f12ee0e8d2d53113ddf8c2c08283",
+    "oracle_sha256": "837d68dd6c1da85ac3ce199d27dc88ceeb3ea57eff0ec18bdf5451ff6dd7124e",
+    "literal": {
+      "valid": true,
+      "recognized": false,
+      "required": [],
+      "status": "unsupported-syntax"
+    },
+    "required": [
+      {
+        "label": "API",
+        "kind": "step",
+        "quantity": 2
+      }
+    ],
+    "expected_missing": [
+      {
+        "label": "API",
+        "kind": "step",
+        "occurrence": 1
+      }
+    ]
+  },
+  "sealed_E6": {
+    "cases": 6,
+    "cells": 12,
+    "strata": {
+      "sufficient": 2,
+      "missing": 2,
+      "controls": 2
+    },
+    "files": {
+      "input": {
+        "bytes": 4875,
+        "sha256": "f646112dbb14896a2e8f27d99f2b995e374aacf68b87058c7520e9821f420e43"
+      },
+      "oracle": {
+        "bytes": 10052,
+        "sha256": "94ba803d5633ab9ddcbeedaedda3d04387255be27cadd93351fff6f68cbb08d7"
+      }
+    },
+    "semantic_validation_reused": {
+      "path": "quota-cycle-typed-seal-validation.json",
+      "bytes": 2838,
+      "sha256": "c8f57a073bcc765f9cb6883c89a864084faf570dc88e7471bd028fe38879e014"
+    },
+    "payload_disclosed_to_root": false,
+    "executed": false,
+    "re_authored": false,
+    "selected_or_reordered": false
+  },
+  "negative_checks": 14,
+  "reference_hashes": {
+    "requirements_grade": "3d779cf422e8cc0facc6f5ff566c3e77b36a61486f9586f120b0c1a722cd5a46",
+    "bundle": "8fd1b4f37f6a113653dbaeda5e040ba5bed6d7b007ab9269d307f8642d339189",
+    "protocol": "1689dcf63e1ed19cdea7be22e3f90a09f434841f980b9ca8b9018a987c9c38f8"
+  },
+  "validation_program": {
+    "bytes": 13081,
+    "sha256": "5a4411ac31505c7051d1e8b44ba13cf84b31ac0784606922659c21980e779930"
+  },
+  "limits": [
+    "Pure public fixture and decoder/oracle validation only; no provider/G0 eligibility or actual browser paint/Apply measured here.",
+    "A negative operational nonacceptance can be low-confidence withholding; never relabel it a confident incomplete decision.",
+    "Old E6 native/parser/target validity is inherited by exact whole-file hashes, not reauthored against the new candidate."
+  ],
+  "provider_sends": 0
+}

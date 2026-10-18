@@ -65,10 +65,57 @@ export const TYPED_QUOTA_PROFILE=Object.freeze({
  },
  "extraction_profile": "thinking-labels"
 });
+// V remains the existing six-case predicate grade; E retains the quota grades.
+export const COMPACT_VERIFIER_PROFILE=Object.freeze({
+ "id": "compact-verifier-VE-20261018",
+ "charged_prior": {
+  "jev": 850,
+  "typellm": 137
+ },
+ "cycle_cap": {
+  "jev": 139,
+  "typellm": 7
+ },
+ "baseline_journal_sha256": "90525733f94f161502411d957c953e1162850e7a1740f13cdad69a455e0d1478",
+ "cutoff_phase_id": "quota-typed-public-E-20261018",
+ "commitment_sha256": "a9062129f2bda9dab84f5e311d35f7b071b1035f22a1485a38c4c8aafd6d12a2",
+ "freeze_sha256": "4e9c70316b95d938a00a48fa7693330fe51b644ac1cd9c895b431fccc3dffe2e",
+ "commitments": {
+  "public": {
+   "V": {
+    "input": "a508e239d34896726e0a21c9e7cd0eb52486879652be70e786be362d57db573d",
+    "oracle": "c2bfbe81c8d7c7c07f8e36a985b7a2c537bd3fd2ef0eb61147d0beeb8c704d2d"
+   },
+   "E": {
+    "input": "52b95efd0dc3301c746b1d947e5896400bf7f12ee0e8d2d53113ddf8c2c08283",
+    "oracle": "837d68dd6c1da85ac3ce199d27dc88ceeb3ea57eff0ec18bdf5451ff6dd7124e"
+   }
+  },
+  "fresh": {
+   "E": {
+    "input": "f646112dbb14896a2e8f27d99f2b995e374aacf68b87058c7520e9821f420e43",
+    "oracle": "94ba803d5633ab9ddcbeedaedda3d04387255be27cadd93351fff6f68cbb08d7"
+   }
+  }
+ },
+ "extraction_profile": "thinking-labels",
+ "verification_prerequisite": true,
+ "phase_ids": {
+  "V": {
+   "public": "compact-verifier-public-V-20261018"
+  },
+  "E": {
+   "public": "compact-verifier-public-E-20261018",
+   "final": "compact-verifier-final-E-20261018"
+  }
+ },
+ provider_sources:TYPED_QUOTA_PROFILE.provider_sources,
+});
 export function quotaRepeatProfile(name=null){
  if(name===null)return null;
- if(name!==TYPED_QUOTA_PROFILE.id)throw Error('unknown quota repeat profile');
- return TYPED_QUOTA_PROFILE;
+ if(name===TYPED_QUOTA_PROFILE.id)return TYPED_QUOTA_PROFILE;
+ if(name===COMPACT_VERIFIER_PROFILE.id)return COMPACT_VERIFIER_PROFILE;
+ throw Error('unknown quota repeat profile');
 }
 const hash=x=>createHash('sha256').update(typeof x==='string'?x:JSON.stringify(x)).digest('hex');
 const kinds=['step','decision','data','start','end','group'];

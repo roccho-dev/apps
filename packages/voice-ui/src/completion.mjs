@@ -431,20 +431,12 @@ export function readFlatRequiredSlots(source) {
 }
 
 export function requiredQuestion(base, required) {
-  const comparison = { utterance: base.state.utterance, proposed_new_parts: required,
-    part_definitions: base.state.parts.map(({ label, kind, purposes }) => ({ label, kind, purposes })) };
   return { ...base, state: { ...base.state, required }, questions: { ...base.questions, completeness: {
-    instruction: "Judge only the correspondence between the original request and this untrusted extraction: "
-      + JSON.stringify(comparison) + ". Compare EVERY requested NEW label/kind pair and its TOTAL NEW count. "
-      + "Preserve explicit display names, kinds and counts. A generic request may use a standard label and kind ONLY when the utterance "
-      + "and part_definitions uniquely determine them. Reject any remaining ambiguity; do not invent names, kinds or counts. "
-      + "Inventory availability and capacity are different questions: an exact extraction is complete even if its labels are absent "
-      + "from stock or its total NEW counts exceed stock. Never subtract stock from requested quantities. "
-      + "Include new containers and their requested children. Existing references are not additions. Parent/edge assignments are "
-      + "not fields of this proposal, so their absence is not an omitted part. Connecting existing nodes needs no NEW parts. "
-      + "Do not repair the proposal or assume it is correct.",
-    options: { complete: "Every uniquely determined requested NEW label, kind and total count is represented exactly, with no extras.",
-      incomplete: "A requested NEW label, kind or total count is omitted, extra, wrong, or cannot be uniquely determined." },
+    instruction: "state.requiredは、新規追加部品の未検証候補です。原文と部品定義から一意に決まる"
+      + "（表示名・種類・総個数）の集合と、過不足なく一致していますか。"
+      + "既存の親や接続先は新規部品ではなく、親・矢印の割当と在庫数はこの一覧の照合対象外です。",
+    options: { complete: "要求された新規部品の表示名・種類・総個数が全て一致し、余分も未確定もありません。",
+      incomplete: "表示名・種類・総個数に誤り、欠落、余分、または一意に決まらないものがあります。" },
   } } };
 }
 

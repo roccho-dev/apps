@@ -60,6 +60,13 @@ if (repeat) {
   assert.equal(hash(fs.readFileSync(source.typed_provider_entry.path)), source.typed_provider_entry.sha256);
   assert.equal(source.typed_provider_entry.sha256, repeat.provider_sources.typellm.entry_sha256);
   for (const [name, pin] of Object.entries(repeat.provider_sources)) assert.deepEqual(artifact.sources[name + "-provider"], pin);
+  if (repeat.verification_prerequisite) {
+    const phase = source.launcher.phase_id;
+    assert.ok([repeat.phase_ids.E.public, repeat.phase_ids.E.final].includes(phase));
+    const stamp = repeat.commitments[phase === repeat.phase_ids.E.public ? "public" : "fresh"].E;
+    assert.equal(hash(inputBytes), stamp.input); assert.equal(input.oracle_sha256, stamp.oracle);
+    assert.deepEqual(source.provider_sources, repeat.provider_sources);
+  }
 }
 const protocol = await import(pathToFileURL(path.join(settings["--semantic-map"], "packages/semantic-map/protocol/index.js")));
 const sourceNames = QUOTA_SOURCE_NAMES;

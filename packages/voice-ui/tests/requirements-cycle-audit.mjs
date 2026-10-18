@@ -5,6 +5,7 @@ import { canonical } from './semantic-score.mjs';
 import { exactKeys as exact, sameValue as same, validateRequirementInput, requirementsSchedule, validRequirements,
   validFactors, validDecision, readRequirementInspection, decodeRequiredSlots, stockDifference, verifierDecision,
   gradeFullRequired, gradeVerification, gradeRequirementGoal, summarizeRequirementAxis } from './requirements-cycle-score.mjs';
+import { quotaRepeatProfile } from './quota-cycle-score.mjs';
 export const sha256 = bytes => createHash('sha256').update(bytes).digest('hex');
 const decode = bytes => JSON.parse(Buffer.from(bytes).toString('utf8'));
 const providers = ['jev', 'typellm'], counts = () => ({ jev: 0, typellm: 0 });
@@ -171,10 +172,15 @@ export const REQUIREMENTS_SOURCE_NAMES = Object.freeze([
   'tests/requirements-cycle-eval.mjs', 'tests/requirements-cycle-score.mjs', 'tests/requirements-cycle-audit.mjs',
   'tests/semantic-score.mjs', 'tests/requirements-cycle-http.mjs', 'tests/painted-goal.mjs',
 ]);
+export const COMPACT_VERIFIER_SOURCE_NAMES = Object.freeze([...REQUIREMENTS_SOURCE_NAMES, 'tests/quota-cycle-score.mjs']);
 export async function auditRequirementRaw({ projectionBytes, oracleBytes, rawFiles, bundleBytes, protocol, stdoutBytes,
-  assessGoal, assessEdge, replayBytes = null, artifactManifestBytes = null, phaseKind = 'public', parentProjectionBytes = null }) {
+  assessGoal, assessEdge, replayBytes = null, artifactManifestBytes = null, phaseKind = 'public', parentProjectionBytes = null, repeatProfile = null }) {
   const input = decode(projectionBytes), oracle = decode(oracleBytes), bundle = decode(bundleBytes), issues = [];
   validateRequirementInput(input);
+  const repeat = quotaRepeatProfile(repeatProfile);
+  if (repeat && (!repeat.verification_prerequisite || input.axis !== 'V' || phaseKind !== 'public' || parentProjectionBytes !== null
+      || sha256(projectionBytes) !== repeat.commitments.public.V.input || sha256(oracleBytes) !== repeat.commitments.public.V.oracle))
+    throw Error('exact compact V public registration');
   if (oracle.schema !== 'voice-ui.requirements-cycle-oracle/1' || oracle.axis !== input.axis
       || input.oracle_sha256 !== sha256(oracleBytes) || !same(input.fixture_contract, oracle.fixture_contract)
       || !same(bundle.parts, oracle.stock_parts) || !Array.isArray(oracle.cases)
@@ -228,7 +234,7 @@ export async function auditRequirementRaw({ projectionBytes, oracleBytes, rawFil
       || identity.inputs_sha256 !== sha256(projectionBytes) || identity.bundle_sha256 !== sha256(bundleBytes)
       || !same(identity.case_order, input.cases.map(c => c.id))
       || identity.methods !== (input.axis === 'E' ? 'alternating literal-v2/adaptive-v2 and adaptive-v2/literal-v2' : input.axis === 'F' ? 'full-required' : 'verify')
-      || !same(Object.keys(identity.source_sha256 ?? {}).sort(), [...REQUIREMENTS_SOURCE_NAMES].sort())) issues.push('requirements execution identity');
+      || !same(Object.keys(identity.source_sha256 ?? {}).sort(), [...(repeat ? COMPACT_VERIFIER_SOURCE_NAMES : REQUIREMENTS_SOURCE_NAMES)].sort())) issues.push('requirements execution identity');
   if (execution.schema !== 'voice-ui.requirements-cycle-phase/1' || execution.axis !== input.axis
       || execution.expected_cells !== planned.length || !Array.isArray(summary) || summary.length > planned.length) throw Error('requirements terminal plan');
   if (summary.some((s, i) => !same({ axis: s.axis, id: s.id, method: s.method },
@@ -386,7 +392,7 @@ export async function auditRequirementRaw({ projectionBytes, oracleBytes, rawFil
     scope: 'raw locality only; exact producer/source/provider/physical PID and required paint admission remain separate',
     CI_LIVE_EXECUTION: 'UNPROVEN', currency: 'COST_NOT_MEASURED' };
 }
-export function auditRequirementProviderPhase(bytes, expectedSends, { axis, caseCount, phaseKind = 'public' }) {
+export function auditRequirementProviderPhase(bytes, expectedSends, { axis, caseCount, phaseKind = 'public', repeatProfile = null }) {
   if (!['V', 'F', 'E'].includes(axis) || !['public', 'correction', 'final'].includes(phaseKind)
       || !Number.isSafeInteger(caseCount) || caseCount < 1 || caseCount > 10) throw Error('requirements phase scope');
   const bounds = Object.fromEntries(providers.map(p => {
@@ -405,7 +411,11 @@ export function auditRequirementProviderPhase(bytes, expectedSends, { axis, case
   if (caseCount !== wantedCount || config.stage !== phaseKind) issues.push('registered phase/count');
   const cap = axis === 'V' ? { jev: caseCount, typellm: 0 }
     : axis === 'F' ? { jev: 0, typellm: caseCount } : { jev: 19 * caseCount, typellm: caseCount };
-  const start = { jev: 689, typellm: 40 }, limit = { jev: 300, typellm: 40 }, remaining = {};
+  const repeat = quotaRepeatProfile(repeatProfile);
+  if ((config.repeat_profile ?? null) !== repeatProfile || repeat && (!repeat.verification_prerequisite || axis !== 'V'
+      || phaseKind !== 'public' || config.phase_id !== repeat.phase_ids.V.public)) issues.push('compact V phase identity');
+  const start = repeat?.charged_prior ?? { jev: 689, typellm: 40 }, limit = repeat?.cycle_cap ?? { jev: 300, typellm: 40 }, remaining = {};
+  if (repeat && !same(report.prior_charged, start)) issues.push('V prerequisite is the first registered phase');
   for (const p of providers) {
     if (report.sent[p] < bounds[p].min || report.sent[p] > bounds[p].max) issues.push('provider outside raw bounds ' + p);
     if (config.allowances[p] > cap[p] || bounds[p].max > cap[p] || report.prior_charged?.[p] < start[p]
@@ -420,10 +430,21 @@ export function auditRequirementProviderPhase(bytes, expectedSends, { axis, case
 // then frozen. CI never manufactures them from the receipts it is checking.
 export function auditRequirementProducerBinding({ identityBytes, runtimeAuditBytes, configBytes, processBytes,
   artifactManifestBytes, workerBytes, providerBytes, protocolEntryBytes, bundleBytes, sourceFiles, auditReferences,
-  rawFiles, stdoutBytes, stderrBytes, journalBytes, replayBytes = null }, producer) {
+  rawFiles, stdoutBytes, stderrBytes, journalBytes, replayBytes = null, typedProviderBytes = null }, producer) {
   if (producer.schema !== 'voice-ui.requirements-cycle-producer/1' || !['V', 'F', 'E'].includes(producer.axis)) throw Error('requirements producer schema/axis');
   const identity = decode(identityBytes), runtime = decode(runtimeAuditBytes), config = decode(configBytes);
   const process = decode(processBytes), manifest = decode(artifactManifestBytes), source = identity.source, issues = [];
+  const repeat = quotaRepeatProfile(producer.repeat_profile ?? null);
+  if ((config.repeat_profile ?? null) !== (producer.repeat_profile ?? null) || (source?.repeat_profile ?? null) !== (producer.repeat_profile ?? null))
+    issues.push('producer/config/source repeat identity');
+  if (repeat && (!repeat.verification_prerequisite || producer.axis !== 'V' || producer.parent_inputs_sha256 !== null
+      || source.extraction_profile !== repeat.extraction_profile
+      || !same(producer.provider_sources, repeat.provider_sources) || !same(source.provider_sources, repeat.provider_sources)
+      || !same({jev:manifest.sources['jev-provider'],typellm:manifest.sources['typellm-provider']}, repeat.provider_sources)
+      || typedProviderBytes === null || source.typed_provider_entry?.scope !== undefined
+      || producer.typed_provider_sha256 !== sha256(typedProviderBytes) || runtime.typed_provider?.sha256 !== sha256(typedProviderBytes)
+      || source.typed_provider_entry?.sha256 !== sha256(typedProviderBytes) || source.typed_provider_entry?.path !== runtime.typed_provider?.path
+      || manifest.sources['typellm-provider'].entry_sha256 !== sha256(typedProviderBytes))) issues.push('compact V both formal providers and extraction binding');
   if (source?.schema !== 'voice-ui.poc.runtime/1' || source.scope !== undefined
       || source?.provider_entry?.scope !== undefined) issues.push('synthetic or unrecognized scope is not live producer evidence');
   const items = { raw_identity_sha256: identityBytes, runtime_audit_sha256: runtimeAuditBytes, config_sha256: configBytes,
@@ -453,7 +474,7 @@ export function auditRequirementProducerBinding({ identityBytes, runtimeAuditByt
       || process.program !== config.program || source.launcher.program !== process.program
       || process.config_sha256 !== sha256(configBytes)) issues.push('source/runtime/process joins');
   if (!same(identity.source_sha256, producer.source_sha256)
-      || !same(Object.keys(sourceFiles).sort(), [...REQUIREMENTS_SOURCE_NAMES].sort())
+      || !same(Object.keys(sourceFiles).sort(), [...(repeat ? COMPACT_VERIFIER_SOURCE_NAMES : REQUIREMENTS_SOURCE_NAMES)].sort())
       || !same(Object.keys(sourceFiles).sort(), Object.keys(producer.source_sha256 ?? {}).sort())) issues.push('built source inventory');
   else for (const [name, digest] of Object.entries(producer.source_sha256)) if (sha256(sourceFiles[name]) !== digest) issues.push('built source digest ' + name);
   if (!Object.keys(producer.independent_audit_sha256 ?? {}).length

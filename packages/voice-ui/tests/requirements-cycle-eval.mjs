@@ -10,6 +10,7 @@ import { createSession } from "../src/session.mjs";
 import { evaluationPost } from "./requirements-cycle-http.mjs";
 import { observePaintedGoal, assessPaintedGoal, assessPaintedEdge } from "./painted-goal.mjs";
 import { validateRequirementInput } from "./requirements-cycle-score.mjs";
+import { quotaRepeatProfile } from "./quota-cycle-score.mjs";
 
 const settings = {}, args = process.argv.slice(2);
 for (let i = 0; i < args.length; i += 2) {
@@ -37,12 +38,28 @@ for (const item of input.cases) {
 }
 const sourceBytes = fs.readFileSync(settings["--identities"]), source = JSON.parse(sourceBytes);
 assert.equal(source.schema, "voice-ui.poc.runtime/1"); assert.equal(source.origin, settings["--origin"]);
+const repeat = quotaRepeatProfile(source.repeat_profile ?? null);
+if (repeat) {
+  assert.equal(repeat.verification_prerequisite, true); assert.equal(axis, "V");
+  assert.equal(input.cases.length, 6); assert.equal(hash(inputBytes), repeat.commitments.public.V.input);
+  assert.equal(input.oracle_sha256, repeat.commitments.public.V.oracle);
+  assert.equal(source.extraction_profile, repeat.extraction_profile);
+  assert.deepEqual(source.provider_sources, repeat.provider_sources);
+  assert.equal(source.launcher.phase_id, repeat.phase_ids.V.public);
+  assert.equal(hash(fs.readFileSync(source.typed_provider_entry.path)), source.typed_provider_entry.sha256);
+  assert.equal(source.typed_provider_entry.scope, undefined);
+}
 for (const repo of ["apps", "ops", "envs", "windows", "ui"]) assert.match(source.heads[repo], /^[a-f0-9]{40}$/u);
 assert.equal(source.semantic_map.root, settings["--semantic-map"]);
 for (const name of ["worker_entry", "provider_entry"]) assert.equal(hash(fs.readFileSync(source[name].path)), source[name].sha256);
 assert.equal(hash(fs.readFileSync(path.join(settings["--semantic-map"], "packages/semantic-map/protocol/index.js"))), source.semantic_map.protocol_sha256);
 const artifact = JSON.parse(fs.readFileSync(path.join(settings["--artifact"], "manifest.json")));
 assert.equal(artifact.sources.apps, source.heads.apps);
+if (repeat) {
+  assert.deepEqual({ jev: artifact.sources["jev-provider"], typellm: artifact.sources["typellm-provider"] }, repeat.provider_sources);
+  assert.equal(source.provider_entry.sha256, repeat.provider_sources.jev.entry_sha256);
+  assert.equal(source.typed_provider_entry.sha256, repeat.provider_sources.typellm.entry_sha256);
+}
 assert.equal(hash(fs.readFileSync(path.join(settings["--artifact"], "manifest.json"))), source.artifact.manifest_sha256);
 assert.equal(hash(fs.readFileSync(path.join(settings["--artifact"], "worker/worker.mjs"))), source.worker_entry.sha256);
 const protocol = await import(pathToFileURL(path.join(settings["--semantic-map"], "packages/semantic-map/protocol/index.js")));
@@ -50,7 +67,8 @@ const sourceNames = ["src/completion.mjs", "src/literal-inventory.mjs", "src/goa
   "functions/api/parts.mjs", "functions/pages-worker.mjs", "web/app.mjs", "web/adapters/completion.mjs",
   "dev/serve.mjs",
   "tests/requirements-cycle-eval.mjs", "tests/requirements-cycle-score.mjs", "tests/requirements-cycle-audit.mjs",
-  "tests/semantic-score.mjs", "tests/requirements-cycle-http.mjs", "tests/painted-goal.mjs"];
+  "tests/semantic-score.mjs", "tests/requirements-cycle-http.mjs", "tests/painted-goal.mjs",
+  ...(repeat ? ["tests/quota-cycle-score.mjs"] : [])];
 fs.mkdirSync(settings["--out"], { mode: 0o700 });
 const write = (name, value) => { const fd = fs.openSync(path.join(settings["--out"], name), "wx", 0o600);
   try { fs.writeSync(fd, JSON.stringify(value, null, 2) + "\n"); fs.fsyncSync(fd); } finally { fs.closeSync(fd); } };

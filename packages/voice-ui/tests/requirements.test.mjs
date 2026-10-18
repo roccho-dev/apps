@@ -97,12 +97,23 @@ test("direct V shares verification without generation; malformed or extra reques
   const required = [{ label: "Novel", kind: "step", quantity: 1 }];
   const input = { schema: "voice-ui.parts.verify/2", inventory: inventory(), required };
   let j = 0;
-  const judge = async () => { j++; return { answers: factors("complete", "change", .49) }; };
+  const requests = [];
+  const judge = async request => { j++; requests.push(request); return { answers: factors("complete", "change", .49) }; };
   const response = await invoke(input, judge, async () => assert.fail("direct V Type"), "adaptive-v2", "verify");
   const body = await response.json(); assert.equal(body.accepted, false); assert.equal(body.confidence, .49); assert.equal(j, 1);
   for (const malformed of [{ ...input, expected: true }, { ...input, required: [{ ...required[0], id: "injected" }] }])
     assert.equal((await invoke(malformed, judge, null, "adaptive-v2", "verify")).status, 422);
   assert.equal(j, 1);
+  const second = { schema: input.schema, inventory: inventory("ContainerへDBを二つ追加"),
+    required: [{ label: "DB", kind: "data", quantity: 2 }] };
+  assert.equal((await invoke(second, judge, null, "adaptive-v2", "verify")).status, 200);
+  assert.equal(j, 2);
+  assert.deepEqual(requests[0].state.required, required);
+  assert.deepEqual(requests[1].state.required, second.required);
+  assert.equal(requests[0].state.utterance, input.inventory.state.utterance);
+  assert.equal(requests[1].state.utterance, second.inventory.state.utterance);
+  assert.deepEqual(requests[0].questions, requests[1].questions,
+    "variable proposals and utterances live in state; verification questions stay constant");
 });
 
 test("unapproved Type fields stay out of response and stage logs; already cancelled has zero sends", async () => {

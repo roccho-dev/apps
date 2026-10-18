@@ -7,6 +7,7 @@ import {exactKeys as exact,sameValue as same,validRequirements,
 import {validFactors,validLiteral,validDecision,readRequirementInspection,readFrontierInspection,
  proposalPolicy,oldInterpretationEligible,normalizeInitialIntent,decodeRequiredSlots,stockDifference,verifierDecision} from './frontier-cycle-score.mjs';
 import {FRONTIER_SOURCE_NAMES} from './frontier-cycle-audit.mjs';
+import {validateRequirementInput} from './requirements-cycle-score.mjs';
 export const QUOTA_SOURCE_NAMES=Object.freeze([...FRONTIER_SOURCE_NAMES,'tests/quota-cycle-eval.mjs','tests/quota-cycle-score.mjs','tests/quota-cycle-audit.mjs']);
 export const sha256 = bytes => createHash('sha256').update(bytes).digest('hex');
 const decode = bytes => JSON.parse(Buffer.from(bytes).toString('utf8'));
@@ -359,6 +360,7 @@ export function auditQuotaProviderPhase(bytes,expectedSends,{axis,caseCount,phas
  const report=genericProviderPhase(bytes,actual),config=decode(bytes.configBytes),issues=[...report.issues];
  if(config.stage!==phaseKind||config.axis!==axis||config.case_count!==caseCount||Object.hasOwn(config,'correction_batch'))issues.push('registered phase/axis/count/no correction');
  if((config.repeat_profile??null)!==repeatProfile)issues.push('registered repeat identity');
+ if(repeat?.verification_prerequisite&&config.phase_id!==repeat.phase_ids.E[phaseKind])issues.push('registered compact E phase identity');
  const cap=axis==='R'?{jev:16*caseCount,typellm:0}:{jev:19*caseCount,typellm:caseCount},
   start=repeat?.charged_prior??{jev:808,typellm:85},limit=repeat?.cycle_cap??{jev:181,typellm:7},remaining={};
  for(const p of providers){
@@ -643,7 +645,7 @@ export function auditQuotaProcess({records,journalBytes,commitmentBytes,freezeBy
  if(!same(Object.keys(publicFiles).sort(),(freeze.copy_allowlist??[]).map(r=>r.name).sort()))issues.push('exact public preregistration inventory');
  for(const row of freeze.copy_allowlist??[])if(!publicFiles[row.name]||sha256(publicFiles[row.name])!==row.sha256||Buffer.byteLength(publicFiles[row.name])!==row.bytes)issues.push('published preregistration byte '+row.name);
  if((commitment.repeat_profile??null)!==repeatProfile)issues.push('registered repeat identity');
- if(!Array.isArray(records)||records.length>(repeat?2:4))throw Error('quota process records');
+ if(!Array.isArray(records)||records.length>(repeat?.verification_prerequisite?3:repeat?2:4))throw Error('quota process records');
  const events=jsonLines(journalBytes),text=Buffer.from(journalBytes).toString('utf8'),oldEnd=events.findIndex(e=>e.kind==='phase-reconcile'&&e.id===(repeat?.cutoff_phase_id??'frontier-final-E-20261018'));
  if(oldEnd<0)throw Error('quota previous cycle cutoff absent');
  const prefix=text.split('\n').slice(0,oldEnd+1).join('\n')+'\n';
@@ -652,21 +654,26 @@ export function auditQuotaProcess({records,journalBytes,commitmentBytes,freezeBy
  if(new Set(ids).size!==ids.length||!same(reserves.map(e=>e.id),ids)||!same(reconciles.map(e=>e.id),ids)
   ||tail.some((e,i)=>e.kind!==(i%2===0?'phase-reserve':'phase-reconcile'))||tail.length!==2*ids.length)issues.push('all ordered reservations/reconciliations indexed once; no setup/correction/retry');
  if(reserves.length&&!same(reserves[0].prior_charged,baseline))issues.push('unchanged quota cumulative baseline');
- const order=repeat?['public/E','final/E']:['public/R','public/E','final/R','final/E'],reserved=counts(),charged={...baseline},seen=new Map(),releases=[];let sourceHead=null;
+ const order=repeat?.verification_prerequisite?['public/V','public/E','final/E']:repeat?['public/E','final/E']:['public/R','public/E','final/R','final/E'],reserved=counts(),charged={...baseline},seen=new Map(),releases=[];let sourceHead=null;
  const integrity=r=>r&&[r.report?.binding,r.report?.phase,r.report?.raw].every(a=>a?.status==='PASS')&&r.report.raw.complete===true&&r.report.raw.consumed===r.report.raw.planned;
- const publicPass=axis=>{const r=seen.get('public/'+axis),raw=r?.report?.raw;return integrity(r)&&raw.all_valid_execution===true&&raw.semantic?.public_gate==='PASS';};
+ const publicPass=axis=>{const r=seen.get('public/'+axis),raw=r?.report?.raw;return integrity(r)&&raw.all_valid_execution===true&&(axis==='V'
+  ?raw.axis==='V'&&raw.planned===6&&raw.admissible_for_semantic_claim===true&&raw.semantic?.verification_criteria==='PASS'
+    &&raw.semantic.total===6&&raw.semantic.correct===6&&raw.semantic.false_acceptance===0
+    &&raw.rows?.length===6&&raw.rows.every(r=>r.grade?.contract_valid===true&&r.grade?.correct===true)
+  :raw.semantic?.public_gate==='PASS');};
  for(const [i,r]of records.entries()){
   const{index,config,input,report}=r,kind=index?.phase_kind,axis=index?.axis,key=kind+'/'+axis;
   if(key!==order[i]||(config.repeat_profile??null)!==repeatProfile||config.stage!==kind||config.axis!==axis||input.axis!==axis||config.case_count!==input.cases.length
    ||Object.hasOwn(config,'correction_batch')||Object.hasOwn(index,'correction_batch')){issues.push('single fixed stage graph/no correction');continue;}
-  validateQuotaInput(input,{phaseKind:kind==='final'?'fresh':'public'});
+  if(axis==='V')validateRequirementInput(input);else validateQuotaInput(input,{phaseKind:kind==='final'?'fresh':'public'});
   if(sourceHead===null)sourceHead=index.apps_sha;
   if(!/^[a-f0-9]{40}$/u.test(sourceHead)||index.apps_sha!==sourceHead||config.heads.apps!==sourceHead)issues.push('one measured source');
   if([report.binding,report.raw,report.phase].some(a=>a?.status!=='PASS'))issues.push('phase integrity admission');
   if(i&&!integrity(records[i-1]))issues.push('next phase before complete stopped source/accounting integrity');
   const stamp=commitment.files.find(f=>f.axis===axis&&f.visibility===(kind==='public'?'public':'sealed'));
   if(!stamp||config.input_sha256!==stamp.input.sha256||report.raw.inputs_sha256!==stamp.input.sha256||input.oracle_sha256!==stamp.oracle.sha256
-   ||config.phase_id!==report.phase.phase||input.parent_inputs_sha256!==null||report.raw.parent_inputs_sha256!==null||report.raw.parent_oracle_sha256!==null)issues.push('exact registered input/oracle/phase/null parent');
+   ||config.phase_id!==report.phase.phase||(input.parent_inputs_sha256??null)!==null||report.raw.parent_inputs_sha256!==null
+   ||axis!=='V'&&report.raw.parent_oracle_sha256!==null)issues.push('exact registered input/oracle/phase/null parent');
   const stage=commitment.stages.find(s=>s.id===(kind==='public'?'public-':'final-')+axis),cap=stage&&{jev:stage.jev,typellm:stage.typellm};
   if(repeat&&stage?.phase_id!==config.phase_id)issues.push('registered repeat phase identity');
   if(!cap||!countShape(config.allowances)||!countShape(report.phase.sent)){issues.push('stage provider shape');continue;}
@@ -674,8 +681,9 @@ export function auditQuotaProcess({records,journalBytes,commitmentBytes,freezeBy
   if(!same(reserves[i]?.prior_charged,report.phase.prior_charged)||!same(report.phase.charged_at_cutoff,charged)
    ||!same(reconciles[i]?.sent,report.phase.sent)||!same(reserves[i]?.allowances,config.allowances))issues.push('cumulative phase joins');
   if(!repeat&&key==='public/E'&&!publicPass('R'))issues.push('public E before R quality/evidence gate');
+  if(repeat?.verification_prerequisite&&key==='public/E'&&!publicPass('V'))issues.push('public E before V quality/evidence gate');
   if(kind==='final'){
-   const admitted=(repeat?['E']:['R','E']).every(publicPass);if(!admitted)issues.push('fresh before required same-head public gates');
+   const admitted=(repeat?.verification_prerequisite?['V','E']:repeat?['E']:['R','E']).every(publicPass);if(!admitted)issues.push('fresh before required same-head public gates');
    releases.push({phase:config.phase_id,apps_sha:sourceHead,admitted,prior_fresh_quality_required:false});
   }
   seen.set(key,r);

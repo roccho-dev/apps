@@ -9,6 +9,8 @@ import { assertNoSecretInputs } from "../tests/runtime-acceptance.mjs";
 import { auditQuotaRaw, auditQuotaProducerBinding, auditQuotaProviderPhase, auditQuotaReplayJoin,
   auditQuotaProcess } from "../tests/quota-cycle-audit.mjs";
 import { assessPaintedGoal as assessGoal, assessPaintedEdge as assessEdge } from "../tests/painted-goal.mjs";
+import { auditRequirementRaw, auditRequirementProducerBinding, auditRequirementProviderPhase } from "../tests/requirements-cycle-audit.mjs";
+import { classifyRequirementAxis } from "../tests/requirements-cycle-classification.mjs";
 import { joinJournalSnapshots } from "../tests/candidate-closure.mjs";
 import { classifyQuotaAxis, quotaRepeatProfile } from "../tests/quota-cycle-score.mjs";
 assertNoSecretInputs();
@@ -40,7 +42,7 @@ const hash = bytes => createHash("sha256").update(bytes).digest("hex");
 const commitmentBytes = read(index.commitment), freezeBytes = read(index.freeze), freeze = decode(freezeBytes);
 const preregistered = path.dirname(within(index.commitment));
 const publicFiles = Object.fromEntries(freeze.copy_allowlist.map(row => {
-  assert.match(row.name, repeat ? /^quota-cycle-typed-(?:protocol[.]md|commitment[.]json|public-literal-preflight[.]json|seal-validation[.]json|public-E-1[.](?:inputs|oracle)[.]json)$/u
+  assert.match(row.name, repeat?.verification_prerequisite ? /^verifier-cycle-(?:protocol[.]md|commitment[.]json|static-validation[.]json|public-V-6[.](?:inputs|oracle)[.]json|public-E-1[.](?:inputs|oracle)[.]json)$/u : repeat ? /^quota-cycle-typed-(?:protocol[.]md|commitment[.]json|public-literal-preflight[.]json|seal-validation[.]json|public-E-1[.](?:inputs|oracle)[.]json)$/u
     : /^quota-cycle-(?:protocol[.]md|policy-contract[.]json|commitment(?:[.]v2)?[.]json|public-freeze[.]json|public-literal-preflight[.]json|seal-validation[.]json|public-[RE]-1(?:[.]v2)?[.](?:inputs|oracle)[.]json|prelive-map-addendum[.]v2[.]json|map-identity-validation[.]v2[.]json)$/u);
   const bytes = fs.readFileSync(path.join(preregistered, row.name));
   assert.equal(bytes.length, row.bytes); assert.equal(hash(bytes), row.sha256);
@@ -93,7 +95,7 @@ for (const sha of new Set(index.phases.map(row => row.apps_sha))) {
 const reports = [], snapshots = [], processRecords = [];
 for (const row of index.phases) {
   assert.match(row.id, /^[A-Za-z0-9][A-Za-z0-9_-]{0,63}$/u);
-  assert.ok(["R", "E"].includes(row.axis));
+  assert.ok((repeat?.verification_prerequisite ? ["V", "E"] : ["R", "E"]).includes(row.axis));
   assert.ok(["public", "final"].includes(row.phase_kind));
   const built = builds.get(row.apps_sha), directory = path.join(out, row.id); fs.mkdirSync(directory);
   const rawFiles = Object.fromEntries(fs.readdirSync(within(row.raw_dir)).map(name =>
@@ -117,7 +119,11 @@ for (const row of index.phases) {
   }));
   const auditReferences = Object.fromEntries(Object.entries(row.audits).map(([name, file]) => [name, read(file)]));
   assert.ok(journalBytes.subarray(0, baselineJournal.length).equals(baselineJournal), "exact prior ledger prefix");
-  const binding = auditQuotaProducerBinding({ identityBytes: rawFiles["identity.json"], runtimeAuditBytes, configBytes, processBytes,
+  const isVerification = row.axis === "V";
+  const bindingAudit = isVerification ? auditRequirementProducerBinding : auditQuotaProducerBinding;
+  const rawAudit = isVerification ? auditRequirementRaw : auditQuotaRaw;
+  const providerAudit = isVerification ? auditRequirementProviderPhase : auditQuotaProviderPhase;
+  const binding = bindingAudit({ identityBytes: rawFiles["identity.json"], runtimeAuditBytes, configBytes, processBytes,
     artifactManifestBytes: built.manifestBytes, workerBytes, providerBytes, protocolEntryBytes, bundleBytes, sourceFiles,
     auditReferences, rawFiles, stdoutBytes, stderrBytes, journalBytes, replayBytes, typedProviderBytes }, producer);
   const rawArguments = { projectionBytes: read(row.input), oracleBytes: read(row.oracle), rawFiles, bundleBytes,
@@ -125,10 +131,10 @@ for (const row of index.phases) {
     phaseKind: row.phase_kind === "final" ? "fresh" : row.phase_kind,
     parentProjectionBytes: row.parent_input ? read(row.parent_input) : null,
     parentOracleBytes: row.parent_oracle ? read(row.parent_oracle) : null, repeatProfile };
-  const raw = await auditQuotaRaw(rawArguments);
-  const phase = auditQuotaProviderPhase({ configBytes, processBytes, stdoutBytes, stderrBytes, journalBytes },
+  const raw = await rawAudit(rawArguments);
+  const phase = providerAudit({ configBytes, processBytes, stdoutBytes, stderrBytes, journalBytes },
     raw.external_provider_attempt_bounds, { axis: row.axis, caseCount: decode(read(row.input)).cases.length, phaseKind: row.phase_kind, repeatProfile });
-  assert.equal(producer.parent_inputs_sha256, decode(read(row.input)).parent_inputs_sha256);
+  if (!isVerification) assert.equal(producer.parent_inputs_sha256, decode(read(row.input)).parent_inputs_sha256);
   snapshots.push({ id: decode(configBytes).phase_id, bytes: journalBytes, phase });
   for (const audit of [binding, raw, phase]) assert.equal(audit.status, "PASS", JSON.stringify(audit.issues));
   assert.equal(decode(rawFiles["execution.json"]).status, row.expected_execution_status);
@@ -141,16 +147,18 @@ for (const row of index.phases) {
     assert.equal(ciReplay.status, "PASS", JSON.stringify(ciReplay.issues));
     ciRaw = await auditQuotaRaw({ ...rawArguments, replayBytes: ciReplayBytes });
   }
-  ciRaw ??= await auditQuotaRaw(rawArguments);
+  ciRaw ??= await rawAudit(rawArguments);
   assert.equal(ciRaw.status, "PASS", JSON.stringify(ciRaw.issues));
   assert.deepEqual(ciRaw.semantic, raw.semantic, "CI recomputes the same recorded outputs under the frozen independent grades");
-  const classification = classify({ phaseKind: row.phase_kind, axis: row.axis, binding, raw, phase, ciReplay, ciRaw });
+  const classification = (isVerification ? classifyRequirementAxis : classify)({ phaseKind: row.phase_kind, axis: row.axis, binding, raw, phase, ciReplay, ciRaw });
   const report = { id: row.id, phase_kind: row.phase_kind, axis: row.axis, classification, binding, raw, phase, ciReplay, ciRaw };
   write(path.join(directory, "audit.json"), report); reports.push(report);
   processRecords.push({ index: row, config: decode(configBytes), input: decode(read(row.input)), report });
 }
 const cumulative = joinJournalSnapshots(snapshots); assert.deepEqual(cumulative, index.expected_cumulative);
-assert.ok(cumulative.jev <= (repeat ? 980 : 989) && cumulative.typellm <= (repeat ? 143 : 92));
+const cumulativeLimit = repeat ? { jev: repeat.charged_prior.jev + repeat.cycle_cap.jev,
+  typellm: repeat.charged_prior.typellm + repeat.cycle_cap.typellm } : { jev: 989, typellm: 92 };
+assert.ok(cumulative.jev <= cumulativeLimit.jev && cumulative.typellm <= cumulativeLimit.typellm);
 const journalBytes = snapshots.reduce((a, b) => a.bytes.length > b.bytes.length ? a : b).bytes;
 const processGraph = processAudit(processRecords, journalBytes);
 assert.equal(processGraph.status, "PASS", JSON.stringify(processGraph.issues));

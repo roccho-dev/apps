@@ -4,7 +4,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { auditRequirementRaw, auditRequirementProviderPhase, auditRequirementProducerBinding,
-  auditRequirementReplayJoin, REQUIREMENTS_SOURCE_NAMES, sha256 } from './requirements-cycle-audit.mjs';
+  auditRequirementReplayJoin, REQUIREMENTS_SOURCE_NAMES, COMPACT_VERIFIER_SOURCE_NAMES, sha256 } from './requirements-cycle-audit.mjs';
 import { stockDifference, verifierDecision, requirementsSchedule } from './requirements-cycle-score.mjs';
 
 // Public/synthetic fixtures only. No sealed pool is opened and no fetch occurs.
@@ -39,10 +39,12 @@ function framesFor(records) {
     return { camera: group.id, observation, assessment: assessGoal(observation) };
   })];
 }
-async function synthetic(axis) {
-  const prefix = `requirements-cycle-public-${axis}${axis === 'E' ? '2.v2' : '6'}`;
-  const projectionBytes = fs.readFileSync(path.join(fixtures, prefix + '.inputs.json'));
-  const oracleBytes = fs.readFileSync(path.join(fixtures, prefix + '.oracle.json'));
+async function synthetic(axis, repeatProfile = null) {
+  const compact = repeatProfile === 'compact-verifier-VE-20261018';
+  const prefix = compact ? 'verifier-cycle-public-V-6' : `requirements-cycle-public-${axis}${axis === 'E' ? '2.v2' : '6'}`;
+  const dir = compact ? process.env.POC_QUOTA_PREREG_ROOT : fixtures;
+  const projectionBytes = fs.readFileSync(path.join(dir, prefix + '.inputs.json'));
+  const oracleBytes = fs.readFileSync(path.join(dir, prefix + '.oracle.json'));
   const input = json(projectionBytes), oracle = json(oracleBytes), rawFiles = {}, summary = [], events = [], stdout = [];
   let tick = 0, seq = 0;
   const event = x => events.push({ at: new Date(Date.UTC(2026, 9, 17) + tick++).toISOString(), ...x });
@@ -118,11 +120,11 @@ async function synthetic(axis) {
   }
   rawFiles['identity.json'] = enc({ schema: 'voice-ui.requirements-cycle-execution/1', axis,
     source: { scope: 'SYNTHETIC_KEYLESS_ONLY_NOT_ADMISSIBLE_AS_LIVE' }, inputs_sha256: sha256(projectionBytes), bundle_sha256: sha256(bundleBytes),
-    source_sha256: Object.fromEntries(REQUIREMENTS_SOURCE_NAMES.map(n => [n, '0'.repeat(64)])), case_order: input.cases.map(c => c.id),
+    source_sha256: Object.fromEntries((compact ? COMPACT_VERIFIER_SOURCE_NAMES : REQUIREMENTS_SOURCE_NAMES).map(n => [n, '0'.repeat(64)])), case_order: input.cases.map(c => c.id),
     methods: axis === 'E' ? 'alternating literal-v2/adaptive-v2 and adaptive-v2/literal-v2' : axis === 'F' ? 'full-required' : 'verify' });
   rawFiles['execution.json'] = enc({ schema: 'voice-ui.requirements-cycle-phase/1', axis, status: 'RECORDED', summary, invalid_cells: 0, expected_cells: summary.length });
   rawFiles['events.jsonl'] = lines(events);
-  return { projectionBytes, oracleBytes, rawFiles, bundleBytes, protocol, stdoutBytes: lines(stdout), assessGoal, assessEdge };
+  return { projectionBytes, oracleBytes, rawFiles, bundleBytes, protocol, stdoutBytes: lines(stdout), assessGoal, assessEdge, repeatProfile };
 }
 const edit = (a, name, fn) => { const value = json(a.rawFiles[name]); fn(value); a.rawFiles[name] = enc(value); };
 const editEvents = (a, fn) => { const values = jsonLines(a.rawFiles['events.jsonl']); fn(values); a.rawFiles['events.jsonl'] = lines(values); };
@@ -465,4 +467,29 @@ test('producer and raw input commitment must also match the actual reserved conf
   args.identityBytes = enc(id); args.rawFiles['identity.json'] = args.identityBytes;
   producer.raw_identity_sha256 = sha256(args.identityBytes); producer.raw_sha256['identity.json'] = sha256(args.identityBytes);
   assert.equal(auditRequirementProducerBinding(args, producer).status, 'FAIL');
+});
+
+test('registered compact V joins its six public proposals and eighteenth registry hash while retaining synthetic limits', async () => {
+  const name = 'compact-verifier-VE-20261018', a = await synthetic('V', name), r = await auditRequirementRaw(a);
+  assert.equal(r.status, 'PASS', JSON.stringify(r.issues));
+  assert.equal(r.semantic.verification_criteria, 'PASS');
+  assert.equal(r.semantic.correct, 6); assert.equal(r.semantic.false_acceptance, 0);
+  assert.deepEqual(r.external_provider_attempts, { jev: 6, typellm: 0 });
+  assert.equal(r.admissible_for_semantic_claim, false);
+  for (const change of [
+    a => edit(a, 'identity.json', id => { delete id.source_sha256['tests/quota-cycle-score.mjs']; }),
+    a => { a.repeatProfile = null; },
+    a => { a.phaseKind = 'fresh'; },
+    a => { a.parentProjectionBytes = a.projectionBytes; },
+    a => { a.projectionBytes = Buffer.concat([a.projectionBytes, Buffer.from(' ')]); },
+  ]) { const b = await synthetic('V', name); change(b); assert.equal(await refuse(b), true); }
+});
+test('compact source/config cannot drop its matching producer profile to bypass both formal supplies', async () => {
+  const { args, producer } = await producerFixture(), id = json(args.identityBytes), config = json(args.configBytes);
+  id.source.repeat_profile = config.repeat_profile = 'compact-verifier-VE-20261018';
+  args.identityBytes = enc(id); args.rawFiles['identity.json'] = args.identityBytes; args.configBytes = enc(config);
+  producer.raw_identity_sha256 = sha256(args.identityBytes); producer.raw_sha256['identity.json'] = sha256(args.identityBytes);
+  producer.config_sha256 = sha256(args.configBytes);
+  const r = auditRequirementProducerBinding(args, producer);
+  assert.equal(r.status, 'FAIL'); assert.ok(r.issues.includes('producer/config/source repeat identity'));
 });

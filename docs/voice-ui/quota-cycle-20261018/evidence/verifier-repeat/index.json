@@ -1,0 +1,12 @@
+{
+  "schema": "voice-ui.quota-cycle-evidence-index/1",
+  "repeat_profile": "compact-verifier-VE-20261018",
+  "commitment": "../../preregistered/verifier-cycle-commitment.json",
+  "freeze": "../../preregistered/verifier-cycle-public-freeze.json",
+  "baseline_journal": "../typed-repeat/public-E/quota-typed-public-E-20261018.journal.jsonl",
+  "expected_cumulative": {
+    "jev": 850,
+    "typellm": 137
+  },
+  "phases": []
+}
