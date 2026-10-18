@@ -139,12 +139,19 @@ the reducer's input no longer needs a local ledger. The edge reads the file; the
   and stores `{type:'cold', repo, commit, path, committedAt, sha256, text}` (the clone's place is not passed on).
 - each valid row becomes one comment of the existing thread record (`subject_key` `owner/repo.issue.N`):
   `commentId` ← `payload.id`, `author` ← `payload.author.login`, `text` ← `payload.body`, and the source
-  `{ref: <repo>@<commit>:<path>, sha256: observed_version.content_sha256}`. The existing journal and plan
-  extraction read the bodies unchanged.
+  `{ref: <repo>@<commit>:<path>, sha256: 'sha256:' + observed_version.content_sha256}`. The existing journal
+  and plan extraction read the bodies unchanged.
 - `status` is kept verbatim as the document's `admission`; capture never admits a meaning (adrs#607), and
   no event says admitted.
-- held with the reason (`journal.held`, `cold: …`): not `adr_raw_event.v1`, a payload that does not hash to
-  its `content_sha256` (compact JSON as stored, or sorted keys), or no subject, id, author or body.
+- `content_sha256` is checked in one form only, the writer's (adrs `tools/github_api.py`, a6284e58):
+  plain hex of sha256 over Python `json.dumps(payload, ensure_ascii=False, sort_keys=True)` — separators
+  `", "` / `": "`, keys sorted by code point at every level, non-ASCII raw, only `"`, `\` and C0 controls
+  escaped (`\u00xx` lowercase) — and `raw_id` must end with its first 16 characters (`pyJsonDumps`,
+  `coldDigest` in `adapter.mjs`; all 40 hashed rows of adrs 94a51c3a `hot-cold-observations-261008.jsonl` match).
+- held with the reason (`journal.held`, `cold: …`): `schema` (not `adr_raw_event.v1`), `content-sha256-missing`
+  (no payload or no `content_sha256`: revision, code_context and scope rows), `content-sha256-unverifiable`
+  (a float, an integer beyond 2^53 or a lone surrogate: JSON.parse has lost what Python wrote),
+  `content-sha256-mismatch`, `raw-id-mismatch`, `subject-id-author-or-body-missing`.
 - `collect.mjs` without `--recorded-at` dates a cold collection by its commit (`committedAt`), so the same
   commit always gives the same events; `live.mjs <g-events.jsonl>` then builds `world.json` without `--ledger`.
 

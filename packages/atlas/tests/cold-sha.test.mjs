@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
-import { normalize } from '../collect/adapter.mjs';
+import { coldDigest, normalize, pyJsonDumps } from '../collect/adapter.mjs';
 
 // C1b: content_sha256 is checked in the one form adrs tools/github_api.py (a6284e58) writes:
 // sha256(json.dumps(payload, ensure_ascii=False, sort_keys=True)) in plain hex, raw_id ending with its first 16.
@@ -31,11 +31,55 @@ test('the fixture is what it claims: real rows, three comments with Japanese, ne
 test('every real row with a content_sha256 is reproduced by the adapter and becomes a document', () => {
   const docs = records.filter(record => record.kind === 'thread').flatMap(record => record.documents);
   assert.deepEqual(docs.map(doc => [doc.commentId, doc.source.sha256]),
-    hashed.map(row => [row.payload.id, row.observed_version.content_sha256]));
+    hashed.map(row => [row.payload.id, `sha256:${row.observed_version.content_sha256}`]));
   assert.deepEqual(docs.map(doc => doc.text), hashed.map(row => row.payload.body));
 });
 
 test('a real row without payload or content_sha256 is held as missing, not as a mismatch', () => {
   assert.deepEqual(records.filter(record => record.kind === 'held').map(record => [record.raw_id, record.reason]),
     [[rows[2].raw_id, 'content-sha256-missing']]);
+});
+
+// Python json.dumps(ensure_ascii=False, sort_keys=True) against JS JSON.stringify, one difference at a time.
+// The expected strings are what Python prints; JSON.stringify is shown where it differs.
+test('separators: ", " and ": " (JSON.stringify has none); keys sorted at every level', () => {
+  const value = { b: 1, a: [1, { d: null, c: true }] };
+  assert.equal(pyJsonDumps(value), '{"a": [1, {"c": true, "d": null}], "b": 1}');
+  assert.equal(JSON.stringify(value), '{"b":1,"a":[1,{"d":null,"c":true}]}');
+  assert.equal(pyJsonDumps({ e: {}, f: [] }), '{"e": {}, "f": []}');
+});
+
+test('keys sort by code point, not by UTF-16 unit', () => {
+  // U+FF5E < U+1F600 by code point; JS's default sort puts the surrogate pair (0xD83D…) first.
+  assert.equal(pyJsonDumps({ '😀': 2, '～': 1 }), '{"～": 1, "😀": 2}');
+  assert.deepEqual(Object.keys({ '😀': 2, '～': 1 }).sort(), ['😀', '～']);
+});
+
+test('strings: non-ASCII raw, only quote, backslash and C0 controls escaped, \\u in lowercase', () => {
+  assert.equal(pyJsonDumps('日本語 "引用" \\ \n\r\t\b\f\u0001\u001f\u007f é'),
+    '"日本語 \\"引用\\" \\\\ \\n\\r\\t\\b\\f\\u0001\\u001f\u007f é"');
+  // A lone surrogate: JSON.stringify writes \ud800, Python cannot UTF-8 encode it → not reproducible.
+  assert.equal(JSON.stringify('\ud800'), '"\\ud800"');
+  assert.equal(pyJsonDumps('\ud800'), null);
+  assert.equal(pyJsonDumps({ '\udc00': 1 }), null);
+});
+
+test('numbers: safe integers only; floats and big integers cannot be reproduced after JSON.parse', () => {
+  assert.equal(pyJsonDumps([0, -0, 6056248374, -3]), '[0, 0, 6056248374, -3]');
+  // Python prints 1.0 / 1.5 / 1e+16 / 9007199254740993; JSON.parse has already lost which form was written.
+  assert.equal(JSON.parse('1.0'), 1);
+  assert.equal(JSON.stringify(JSON.parse('9007199254740993')), '9007199254740992');
+  for (const value of [1.5, 2 ** 53, 1e21, Number.NaN]) assert.equal(pyJsonDumps(value), null);
+});
+
+test('a changed real row is held: body edited, raw_id tail edited, a float in the payload', () => {
+  const base = rows[0], line = row => JSON.stringify(row);
+  const edited = { ...base, payload: { ...base.payload, body: base.payload.body + ' ' } };
+  const tail = { ...base, raw_id: base.raw_id.replace(/.$/u, char => (char === '0' ? '1' : '0')) };
+  const float = { ...base, payload: { ...base.payload, score: 0.5 } };
+  const held = normalize({ type: 'cold', repo: 'roccho-dev/adrs', commit: '94a51c3a', path: PATH, committedAt: '2026-10-08T14:00:00Z', fetchedAt: '2026-10-18T07:00:00Z', sha256: null,
+    text: [edited, tail, float].map(line).join('\n') + '\n' });
+  assert.deepEqual(held.map(record => [record.kind, record.reason]),
+    [['held', 'content-sha256-mismatch'], ['held', 'raw-id-mismatch'], ['held', 'content-sha256-unverifiable']]);
+  assert.equal(coldDigest(base.payload), base.observed_version.content_sha256);
 });
