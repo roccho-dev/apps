@@ -71,12 +71,135 @@ refused. Declarations naming the old owner-less ids no longer match (no fallback
 | `<owner>/<repo>:archived` | `"true"` / `"false"`; a non-boolean or missing field, or a failed call → `UNKNOWN` |
 | `<owner>/<repo>#<n>:issue.state` | `state`, plus `/<state_reason>` when GitHub gives one: `open`, `closed`, `closed/completed`, `closed/not_planned`, `open/reopened`; no string `state` → `UNKNOWN`; a PR (`pull_request` key) → `UNKNOWN`, reason in `source.ref` (list PRs in `pulls`: `pr.state`, `pr.merged`) |
 
-`observedAt` is the snapshot's fetch time. `observedAt > recordedAt` is rejected (throws).
+`observedAt` is normally the snapshot's fetch time. The retained Gov report edge below keeps
+the artifact's original time instead. `observedAt > recordedAt` is rejected (throws).
 
 G emits fact targets only (`roccho-dev/windows:archived`, `roccho-dev/apps#92:pr.merged`). It never writes a meaning target
 such as `input:semcmp-adopted`; which fact satisfies a condition is P's declared predicate. Keeping
 `state_reason` inside the `issue.state` value lets one `equals "closed/completed"` predicate exclude
 a reason-less or `not_planned` close, and keeps an open issue's null reason from becoming `UNKNOWN`.
+
+### Retained Governance contract reports → the same observation port
+
+`type: "governance-contract"` is a file-input edge for the existing finite Apps member/final
+report family. It uses the same `fact → observation → joinLog → deriveAtlas → contractWorld`
+path; there is no second comparator, ledger, semantic authority, acquisition service or timer.
+It does not fetch, run a build, publish a release, or admit raw ADRS. The input bytes and provider
+metadata must come from the authorized authenticated acquisition; local hashes establish
+coherence and traceability, not source authenticity by themselves.
+
+The caller supplies `owner`, `repo`, `binding`, `provider`, `fetchedAt`, and `responses`:
+
+- `binding` selects the exact target/Gov repositories and candidates, obligation, claim ceiling,
+  accepted Requirement `{repository, revision, path, digest}`, projected `requirementDigest`,
+  and canonical `meaningDigest`. It is a selection of existing accepted evidence, not a new
+  admission step. Raw source bytes, canonical meaning and the projected obligation have different digests.
+- `provider` preserves the artifact id, run/head, original `artifact.created_at` and `retrievedAt`.
+  The artifact creation time is the observation time of the retained report, not the build time
+  or proof that the live application is currently healthy. `fetchedAt` must equal `retrievedAt`.
+- Each response has `{text, sha256}` for the original UTF-8 bytes: `member` (member.v3), `package`
+  (package.v1), `gate` (gate.v8), `input` (contractDiffInput.v1), `meaning` (the single raw ADRS row),
+  and `manifest` (the existing bundle-manifest array). No values are filled from filenames or memory.
+
+The edge checks the original hashes, member digest, embedded member/final equality, existing
+manifest binding of input/meaning bytes, and their exact identity against the selected binding.
+It does **not** rerun Receipt/comparator proofs or reinterpret their pass flags. A coherently bound
+`contractDiffStatus` / exit pair stays literal: `CLOSED/0`, `OPEN/2`, `INVALID/3`, `UNKNOWN/4`.
+Missing bytes, wrong identity, incoherent hashes or unsupported shapes emit an `UNKNOWN` fact;
+a missing exact selection or original timestamp fails explicitly. These format checks do not
+make a report authoritative. The upstream 4-state checker and its admission boundary are unchanged.
+
+The fact target is
+`<owner>/<repo>@<targetCandidate>:contract:<obligation>:<raw-source-digest>:<GovCandidate>:contractDiffStatus`.
+The source reference retains the selected Requirement locator, provider run/artifact, fetch time
+and failure reason, with a digest of the binding, metadata and response hashes.
+`availableAt=fetchedAt` stays on the normalized fact only; `collect` refuses a `recordedAt` earlier
+than acquisition. Thus an old report can enter the journal today while retaining its old
+`observedAt`; acquiring it again does not renew freshness or create knowledge in a past frame.
+
+The caller separately declares the finite Purpose/Ideal/Norm using existing Atlas events. This
+edge emits no `purpose.set`, `ideal.set`, `purpose.evaluated`, `matched` or business verdict.
+`matched` means only that the caller's explicit observation conditions are satisfied within
+their declared freshness. Contract CLOSED, Ideal matched and a human `achieved` evaluation remain
+different states. Source decisions and accepted meaning are references, not invented authors of
+the caller's new declaration.
+
+#### Finite execution and failure returns
+
+```mermaid
+flowchart TD
+  A[Finite scope and exact binding<br/>caller condition, freshness, owner and acceptance evidence] --> B[Same sub reads actual immutable input<br/>identity, bytes and acquisition time]
+  B -->|input established| S[Same sub implements the minimal edge<br/>time guard, tests and reproduction]
+  B -->|input insufficient| O[P acquisition owner returns corrected input<br/>or concrete capability boundary]
+  O --> R[Same sub reads back the actual result]
+  R -->|new valid input| B
+  R -->|still unavailable| U[Finite unmet stop<br/>deficiency, owner and concrete reentry condition]
+  S --> C[Same sub runs actual input through existing consumer<br/>counterexamples, time tests and existing regressions]
+  C -->|source counterexample| S
+  C -->|input defect| O
+  C --> H[P independently reads exact diff and results<br/>checks scope, contribution, residual and test limits]
+  H -->|concrete source counterexample| S
+  H -->|binding or condition correction within scope| A
+  H -->|missing necessary execution evidence| T[P resolves the execution boundary<br/>authorized existing CI or reasoned unmet stop]
+  T -->|actual new execution result| H
+  T -->|unavailable| U
+  H -->|all finite acceptance evidence established| Z[Finite connection accepted<br/>necessary residual zero, proof range explicit]
+  U -->|new input satisfies the stated reentry condition| B
+```
+
+The sub implements and runs this slice; P owns its independent acceptance. A source defect returns
+to the same sub, an acquisition defect to P as acquisition owner, and missing meaning/admission
+to its existing meaning owner through P. UNKNOWN is an expected observable residual in negative
+tests, not acceptance of a broken positive input. A corrected input/time or a new execution result
+must be read back before reentry; rephrasing the same failure creates no loop. The Windows regression
+setup failure at `tests/closure.test.mjs` (`symlinkSync` EPERM) is an execution limitation, not a source
+fix or an all-regression PASS. Necessary execution evidence stays open until the existing authorized
+CI result or a concrete scope decision is available. Commit/push/PR requires P's separate permission
+after diff review; no such publication, merge, adoption, Factory operation or Gov/Ops modification
+is authorized by this diagram. Finite connection acceptance is not the parent Purpose verdict.
+
+#### Reproduce with the retained contract-632 input
+
+Normal CI already runs `packages/atlas/tests/*.test.mjs`, including
+`governance-contract.test.mjs`. Its synthetic shape fixtures test the format and temporal
+boundaries; they are not actual Gov negative-test evidence or human evaluations. No fixture ZIP
+is committed. An additional explicit input test reads the same retained immutable raw artifact:
+
+```powershell
+$env:ATLAS_CONTRACT_INPUT = (Resolve-Path .artifacts/contract-632-input).Path
+$env:ATLAS_CONTRACT_OUT = "$PWD/.artifacts/contract-atlas-edge-result"
+node --test packages/atlas/tests/governance-contract.test.mjs
+Remove-Item Env:ATLAS_CONTRACT_INPUT
+Remove-Item Env:ATLAS_CONTRACT_OUT
+```
+
+Input directory: `artifact.zip`, `provider-metadata.json`, and its original `body/` tree. This
+finite run selects Apps `71409fa013b6cb681c0a80b4c377e4685685b690`, Gov
+`3b9246ff1b4bb0211508213ac714ab460f3801dc`, obligation `apps.voice-ui-artifact-auth.v1`,
+ADRS `862313008ad19a743034599792d9a8b6e470e4cf`, artifact `12094315572` / run `39013346081`.
+The ZIP is 125160357 bytes, SHA-256
+`b9a0400e6fcbc6de2d47c367553e5752e7b2a82f6fa7a2f9fa1d905a955c326c`.
+Meaning acceptance is [the existing T2 readback](https://github.com/roccho-dev/adrs/issues/632#issuecomment-6192556296);
+the prior finite result is [the same-version W/R/P synthesis](https://github.com/roccho-dev/adrs/issues/632#issuecomment-6231891936).
+Neither is relabeled as the caller of this test's Purpose/Ideal.
+
+Outputs are the generated `snapshot.json`, `events.jsonl`, `before.json`, `selected.json`,
+and `current.json`. The explicit caller condition uses a two-day freshness to demonstrate the
+connection at acquisition time. The same report with a one-hour condition remains stale with
+one residual. `before_ideal=1` exposes that the report already existed before this caller's Ideal.
+The contribution is the previously missing evidence connection: with the same Ideal, absent
+observation is unknown and the acquired exact observation can satisfy it. This does not recreate
+the old build or claim that this code newly improved its runtime, achieved the parent business
+Purpose, or made the existing finite Gov/Apps proof incomplete.
+
+The selected two-day window is a caller test parameter, not a new accepted domain freshness
+policy. Purpose/Ideal suitability and human Purpose evaluation remain with their existing owners.
+For wider tracking, ref/rel existing [ADRS#632](https://github.com/roccho-dev/adrs/issues/632),
+[Atlas#647](https://github.com/roccho-dev/adrs/issues/647),
+[Apps#95](https://github.com/roccho-dev/apps/issues/95),
+[Ops#524](https://github.com/roccho-org/ops/issues/524) and
+[Gov#215](https://github.com/roccho-dev/governance/issues/215); their wider adoption/continuation
+requirements are not replaced by this observation edge.
 
 ### Session rule
 
