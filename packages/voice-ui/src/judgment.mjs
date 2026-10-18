@@ -90,6 +90,16 @@ export function questionsFor(state, slots, context) {
     const ids = new Set([...labels.keys(), ...parents.keys()]);
     const label = text => labelled(ids, text);
     const partOf = part => `${label(part.label)} (${named(part.key)}): ${part.purpose}`;
+    if (!Object.hasOwn(state, "placing")) return { delta: {
+      instruction: "Choose the next complete executable change toward the utterance's goal. Each option already binds a part and its direct parent, or a directed relation with kind and label. Preserve requested names, quantities and relations, and do not add an unrequested change. Choose none when no offered change is clearly needed or the request is ambiguous."
+        + GOAL_CONTEXT_NOTE + (state.scope === null ? "" : SCOPE_NOTE),
+      options: criteria(slots.delta, key => {
+        if (key === NONE) return "no offered executable change is clearly requested, or the requested changes are already present";
+        const candidate = state.candidates.find(item => item.id === key);
+        if (candidate.action === ACTION_ADD_EDGE) return `directed ${named(candidate.kind)} relation labelled ${label(candidate.label)} from ${label(labels.get(candidate.from))} (${named(candidate.from)}) to ${label(labels.get(candidate.to))} (${named(candidate.to)})`;
+        return `add one new ${named(offered.get(candidate.part).kind)} part ${partOf(offered.get(candidate.part))} directly inside ${label(parents.get(candidate.parent).label)} (${named(candidate.parent)})`;
+      }),
+    } };
     const placing = state.placing === null ? null : offered.get(state.placing);
     return {
       delta: {

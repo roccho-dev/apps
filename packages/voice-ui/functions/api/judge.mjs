@@ -1,4 +1,4 @@
-import { ACTION_ADD_EDGE, ARCHITECTURE_GOAL_INTENT_KIND, ARCHITECTURE_INTENT_KIND, ARCHITECTURE_LOCATE_KIND, DECISION_KIND, ERRORS, GOAL_COMPLETION_KIND, GOAL_REQUEST_KIND, REQUEST_KIND, architectureGoalSlotsFor, goalCompletionSlots, isJudgeRequest, isLocateRequest, isRequest, judgeFramesFor, judgeSlotsFor, locateSlotsFor, readAnswers, slotsFor } from "../../src/contract.mjs";
+import { ACTION_ADD_EDGE, ARCHITECTURE_GOAL_INTENT_KIND, ARCHITECTURE_INTENT_KIND, ARCHITECTURE_LOCATE_KIND, DECISION_KIND, ERRORS, GOAL_COMPLETION_KIND, DIRECT_GOAL_REQUEST_KIND, GOAL_REQUEST_KIND, REQUEST_KIND, architectureGoalSlotsFor, goalCompletionSlots, isJudgeRequest, isLocateRequest, isRequest, judgeFramesFor, judgeSlotsFor, locateSlotsFor, readAnswers, slotsFor } from "../../src/contract.mjs";
 import { questionsFor } from "../../src/judgment.mjs";
 import { definedRelation, focusedEvidence, intentSectionOf, judgeSectionOf, readManifest, regionIdOf, roleIdOf, scopeOf } from "../../src/architecture.mjs";
 
@@ -46,12 +46,12 @@ export async function onRequestPost({ request, available, architecture }, judge)
   let asked = state;
   let slots;
   let questions;
-  if (kind === REQUEST_KIND || kind === GOAL_REQUEST_KIND || kind === GOAL_COMPLETION_KIND) {
+  if (kind === REQUEST_KIND || kind === GOAL_REQUEST_KIND || kind === DIRECT_GOAL_REQUEST_KIND || kind === GOAL_COMPLETION_KIND) {
     // A Goal's scope is reopened against this exact source, and every arrow it
     // offers must touch the scope: its parts, or a role of this manifest that a
     // relation shown in the request attaches to one of them by the same rule
     // the page uses. The page's word is not enough.
-    if (kind === GOAL_REQUEST_KIND && state.scope !== null) {
+    if ([GOAL_REQUEST_KIND, DIRECT_GOAL_REQUEST_KIND].includes(kind) && state.scope !== null) {
       const bound = boundArchitecture(architecture);
       if (bound === null) return json({ error: ERRORS.architectureUnavailable }, 503);
       const { regions } = scopeOf(bound.manifest, state.scope.focus, state.edges);

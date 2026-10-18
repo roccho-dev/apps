@@ -8,6 +8,8 @@ import {
   ACTION_UNDO_REQUEST,
   DIRECTIONS,
   LABEL_MAX,
+  KEY_PATTERN,
+  OFFER_MAX,
   MIN_CONFIDENCE,
   NONE,
   PLACEMENT_SLOTS,
@@ -658,14 +660,14 @@ function additionSlot(working, parent, part, reserved, protocol, grows = false) 
 
 // A request-local catalogue, not an ID registry. Each pair owns its exact
 // AddRegion and new-child pin; the read set includes every placement input.
-const additionReadSet = (working, bundle, reserved, selected) => JSON.stringify({
-  head: working.head, records: working.records, parts: bundle.parts, reserved, selected,
+const additionReadSet = (working, bundle, reserved, selected, expressive = false) => JSON.stringify({
+  head: working.head, records: working.records, parts: bundle.parts, ...(expressive ? { relations: bundle.relations ?? null } : {}), reserved, selected,
 });
-function legalAdditions(working, { bundle, protocol, reserved = [], selected = [] }) {
+function legalAdditions(working, { bundle, protocol, reserved = [], selected = [], expressive = false }) {
   requireGraph(working);
   const candidates = [];
   const parents = working.records.filter(record => record.type === "region"
-    && record.kind === LANE_KIND && record.parent !== null).sort((a, b) => a.id.localeCompare(b.id));
+    && (record.kind === LANE_KIND && record.parent !== null || expressive && record.kind === "boundary" && record.parent === null)).sort((a, b) => a.id.localeCompare(b.id));
   // Only a group part this Goal adopted (its selected key and region) takes a
   // child by growing; its enclosing groups grow with it as needed.
   const grows = parent => selected.some(item => item.region === parent.id
@@ -673,6 +675,7 @@ function legalAdditions(working, { bundle, protocol, reserved = [], selected = [
   const parts = bundle.parts.filter(part => !selected.some(item => item.key === part.key))
     .sort((a, b) => a.key.localeCompare(b.key));
   for (const parent of parents) for (const part of parts) {
+    if (parent.parent === null && part.kind !== LANE_KIND) continue;
     const slot = additionSlot(working, parent, part, reserved, protocol, grows(parent));
     if (slot === null) continue;
     candidates.push(Object.freeze({ id: `delta-${candidates.length + 1}`, part: part.key, parent: parent.id,
@@ -680,17 +683,17 @@ function legalAdditions(working, { bundle, protocol, reserved = [], selected = [
         Object.freeze({ type: "PinRegions", items: Object.freeze([{ regionId: slot.operation.regionId, bounds: slot.bounds },
           ...slot.ancestors].map(item => Object.freeze({ regionId: item.regionId, bounds: Object.freeze([...item.bounds]) }))) })]) }));
   }
-  return Object.freeze({ readSet: additionReadSet(working, bundle, reserved, selected),
+  return Object.freeze({ readSet: additionReadSet(working, bundle, reserved, selected, expressive),
     candidates: Object.freeze(candidates) });
 }
 
-async function proveAddition({ working, held, candidateId, confidence, bundle, reserved = [], selected = [], protocol }) {
+async function proveAddition({ working, held, candidateId, confidence, bundle, reserved = [], selected = [], protocol, expressive = false }) {
   requireGraph(working);
-  if (held.readSet !== additionReadSet(working, bundle, reserved, selected)) return refused("stale-addition");
+  if (held.readSet !== additionReadSet(working, bundle, reserved, selected, expressive)) return refused("stale-addition");
   const candidate = held.candidates.find(item => item.id === candidateId);
   if (candidate === undefined) return refused("invalid-addition");
   if (!(confidence >= MIN_CONFIDENCE && confidence <= 1)) return noChange("not-confident");
-  const latest = legalAdditions(working, { bundle, protocol, reserved, selected });
+  const latest = legalAdditions(working, { bundle, protocol, reserved, selected, expressive });
   if (JSON.stringify(latest.candidates) !== JSON.stringify(held.candidates)) return refused("stale-addition");
   const operation = candidate.operations[0];
   // Adopt the original held operations, never a silently replanned replacement.
@@ -708,38 +711,55 @@ async function proveAddition({ working, held, candidateId, confidence, bundle, r
 // offered, and no addition.
 export function legalLocalDeltas(working, options) {
   requireGraph(working);
+  const expressive = options.expressive === true;
   const scope = options.scope ?? null;
   const pair = options.pair ?? null;
   const additions = pair === null ? legalAdditions(working, options) : null;
   const candidates = additions === null ? [] : [...additions.candidates];
   const ids = speakableIds(working.records).sort();
-  const existing = relationKeys(working.records);
+  const existing = new Set(working.records.filter(row => row.type === "relation")
+    .map(row => expressive ? JSON.stringify([row.from, row.to, row.kind, row.label]) : relationKey(row.from, row.to)));
+  const relations = expressive && Object.hasOwn(options.bundle, "relations")
+    ? options.bundle.relations : [{ kind: RELATION_KIND, label: "" }];
+  if (!Array.isArray(relations) || relations.length < 1 || relations.length > OFFER_MAX
+      || !relations.every(row => row !== null && typeof row === "object" && !Array.isArray(row)
+        && Object.keys(row).length === 2 && Object.hasOwn(row, "kind") && Object.hasOwn(row, "label")
+        && typeof row.kind === "string" && KEY_PATTERN.test(row.kind)
+        && typeof row.label === "string" && row.label.length <= LABEL_MAX)
+      || new Set(relations.map(row => JSON.stringify([row.kind, row.label]))).size !== relations.length)
+    throw new TypeError("invalid finite relation catalogue");
   const endOf = named => id => (named === null ? scope !== null && scope.has(id) : id === named);
   const fromIds = pair === null ? ids : pair.from === null && pair.to === null ? [] : ids.filter(endOf(pair.from));
   const toIds = pair === null ? ids : ids.filter(endOf(pair.to));
-  for (const from of fromIds) for (const to of toIds) {
-    if (from === to || existing.has(relationKey(from, to))) continue;
+  for (const from of fromIds) for (const to of toIds) for (const relation of relations) {
+    if (from === to || existing.has(expressive ? JSON.stringify([from, to, relation.kind, relation.label]) : relationKey(from, to))) continue;
     if (scope !== null && !scope.has(from) && !scope.has(to)) continue;
-    candidates.push(Object.freeze({ id: `delta-${candidates.length + 1}`, from, to,
-      operations: Object.freeze([Object.freeze({ type: "ConnectRegions", relationId: relationIdFor(from, to),
-        from, to, kind: RELATION_KIND, label: "" })]) }));
+    // Preserve the legacy ID for the first available pair; disambiguate other meanings without using display labels as IDs.
+    const baseId = relationIdFor(from, to);
+    const used = new Set([...working.records.filter(row => row.type === "relation").map(row => row.id),
+      ...candidates.filter(row => row.from !== undefined).map(row => row.operations[0].relationId)]);
+    let relationId = baseId, suffix = 1;
+    while (expressive && used.has(relationId)) relationId = `${baseId}-${suffix++}`;
+    candidates.push(Object.freeze({ id: `delta-${candidates.length + 1}`, from, to, ...(expressive ? { kind: relation.kind, label: relation.label } : {}),
+      operations: Object.freeze([Object.freeze({ type: "ConnectRegions", relationId,
+        from, to, kind: relation.kind, label: relation.label })]) }));
   }
   return Object.freeze({ readSet: additions === null
-    ? additionReadSet(working, options.bundle, options.reserved ?? [], options.selected ?? []) : additions.readSet,
+    ? additionReadSet(working, options.bundle, options.reserved ?? [], options.selected ?? [], expressive) : additions.readSet,
   candidates: Object.freeze(candidates) });
 }
 
 export async function proveLocalDelta({ working, held, candidateId, confidence, bundle, reserved = [], selected = [], scope = null,
-  pair = null, protocol }) {
+  pair = null, protocol, expressive = false }) {
   requireGraph(working);
-  if (held.readSet !== additionReadSet(working, bundle, reserved, selected)) return refused("stale-addition");
+  if (held.readSet !== additionReadSet(working, bundle, reserved, selected, expressive)) return refused("stale-addition");
   const candidate = held.candidates.find(item => item.id === candidateId);
   if (!candidate) return refused("invalid-addition");
   if (!(confidence >= MIN_CONFIDENCE && confidence <= 1)) return noChange("not-confident");
-  const latest = legalLocalDeltas(working, { bundle, protocol, reserved, selected, scope, pair });
+  const latest = legalLocalDeltas(working, { bundle, protocol, reserved, selected, scope, pair, expressive });
   if (JSON.stringify(latest.candidates) !== JSON.stringify(held.candidates)) return refused("stale-addition");
   if (candidate.part !== undefined) return proveAddition({ working, held: { ...held,
-    candidates: held.candidates.filter(item => item.part !== undefined) }, candidateId, confidence, bundle, reserved, selected, protocol });
+    candidates: held.candidates.filter(item => item.part !== undefined) }, candidateId, confidence, bundle, reserved, selected, protocol, expressive });
   return materialize(working, plan(ACTION_ADD_EDGE, confidence, candidate.operations,
     [{ change: "added", from: candidate.from, to: candidate.to }]), protocol);
 }

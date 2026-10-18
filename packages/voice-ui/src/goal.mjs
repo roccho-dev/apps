@@ -1,4 +1,4 @@
-import { ACTION_ADD_EDGE, ARCHITECTURE_GOAL_INTENT_KIND, ARCHITECTURE_INTENT_KIND, GOAL_COMPLETION_KIND, GOAL_REQUEST_KIND, GOAL_REQUEST_MAX, MIN_CONFIDENCE, NONE, isRequest,
+import { ACTION_ADD_EDGE, ARCHITECTURE_GOAL_INTENT_KIND, ARCHITECTURE_INTENT_KIND, GOAL_COMPLETION_KIND, DIRECT_GOAL_REQUEST_KIND, GOAL_REQUEST_KIND, GOAL_REQUEST_MAX, MIN_CONFIDENCE, NONE, isRequest,
   architectureGoalSlotsFor, goalCompletionSlots, partOption, readAnswers, slotsFor } from "./contract.mjs";
 import { offersOf } from "./bundle.mjs";
 import { scopeOf } from "./architecture.mjs";
@@ -37,7 +37,9 @@ const NO_ROLES = Object.freeze({ roles: Object.freeze([]) });
 // projects its whole graph, conversation and source identity into three
 // questions: action and endpoints. This resolve counts against the same bound.
 export async function runGoal({ utterance, bundle, protocol, current, ask, adopt, cancelled, resolveIntent = null, manifest = null,
-  now = () => performance.now(), deadlineAt = null }) {
+  now = () => performance.now(), deadlineAt = null, selection = bundle.goalSelection ?? "frames" }) {
+  if (!["frames", "delta"].includes(selection)) throw new TypeError("invalid Goal selection");
+  const direct = selection === "delta";
   const first = current();
   const group = first.nextSeq;
   const selected = [];
@@ -145,24 +147,25 @@ export async function runGoal({ utterance, bundle, protocol, current, ask, adopt
       // focus, and the Goal judgment below picks one offered arrow or none.
       pair = Object.freeze({ from: source.choice === NONE ? null : source.choice, to: target.choice === NONE ? null : target.choice });
     }
-    const parts = offersOf(bundle, { named: true }).parts;
-    const held = legalLocalDeltas(expected.working, { bundle, protocol, reserved: expected.issuedPartIds, selected, scope: regions, pair });
+    const parts = direct ? Object.freeze(bundle.parts.map(({ key, label, kind, purpose }) => Object.freeze({ key, label, kind, purpose })))
+      : offersOf(bundle, { named: true }).parts;
+    const held = legalLocalDeltas(expected.working, { bundle, protocol, reserved: expected.issuedPartIds, selected, scope: regions, pair, expressive: direct });
     if (held.candidates.length === 0) return finish("no-executable-delta");
     if (held.candidates.length > 254) return stop("candidate-overflow");
     const shown = pair === null ? expected.working.records : localView(expected.working.records, pair, held.candidates, scoped.attachments);
     const parents = shown.filter(record => record.type === "region"
-      && record.kind === "group" && record.parent !== null)
+      && (record.kind === "group" && record.parent !== null || direct && record.kind === "boundary" && record.parent === null))
       .map(({ id, label, kind, parent }) => ({ id, label, kind, parent }));
     const state = {
       utterance,
       graph: shown.filter(record => record.type === "region")
-        .map(({ id, label, parent }) => ({ id, label, parent })),
+        .map(({ id, label, kind, parent }) => direct ? { id, label, parent, kind } : { id, label, parent }),
       edges: shown.filter(record => record.type === "relation")
-        .map(({ id, from, to }) => ({ id, from, to })),
+        .map(({ id, from, to, kind, label }) => direct ? { id, from, to, kind, label } : { id, from, to }),
       parents, offers: { parts }, selected: [...selected],
       candidates: Object.freeze(held.candidates.map(candidate => Object.freeze(candidate.part !== undefined
         ? { id: candidate.id, action: "add-part", part: candidate.part, parent: candidate.parent }
-        : { id: candidate.id, action: "add-edge", from: candidate.from, to: candidate.to }))),
+        : { id: candidate.id, action: "add-edge", from: candidate.from, to: candidate.to, ...(direct ? { kind: candidate.kind, label: candidate.label } : {}) }))),
       context: { recent: recentConversation(expected).recent },
       scope,
     };
@@ -170,7 +173,7 @@ export async function runGoal({ utterance, bundle, protocol, current, ask, adopt
     // next over all of them, then - only for a part - where it goes, shown only
     // that part's held additions in their order; adoption proves the whole held set.
     const frame = async bound => {
-      const request = { kind: GOAL_REQUEST_KIND, state: bound === null ? { ...state, placing: null }
+      const request = direct ? { kind: DIRECT_GOAL_REQUEST_KIND, state } : { kind: GOAL_REQUEST_KIND, state: bound === null ? { ...state, placing: null }
         : { ...state, placing: bound, candidates: Object.freeze(state.candidates.filter(item => item.part === bound)) } };
       if (!isRequest(request)) return { stop: "invalid-goal-request" };
       const answer = await judged(request, slotsFor(request.state));
@@ -186,7 +189,7 @@ export async function runGoal({ utterance, bundle, protocol, current, ask, adopt
     // A part alternative names no candidate: the bound frame names the held one,
     // and the weaker of the two answers is the step's confidence.
     const placing = held.candidates.find(item => item.part !== undefined && partOption(item.part) === choice)?.part;
-    if (placing !== undefined) {
+    if (!direct && placing !== undefined) {
       const where = await frame(placing);
       if (where.stop !== undefined) return stop(where.stop);
       ({ choice } = where);
@@ -194,7 +197,7 @@ export async function runGoal({ utterance, bundle, protocol, current, ask, adopt
     }
     const candidate = held.candidates.find(item => item.id === choice);
     const planned = await proveLocalDelta({ working: expected.working, held, candidateId: choice,
-      confidence, bundle, reserved: expected.issuedPartIds, selected, scope: regions, pair, protocol });
+      confidence, bundle, reserved: expected.issuedPartIds, selected, scope: regions, pair, protocol, expressive: direct });
     if (planned.outcome !== OUTCOME_STEP) return stop(planned.reason);
     if (cancelled() || current() !== expected) return stop("stale-goal");
     if (now() >= deadline) return stop("budget-time");

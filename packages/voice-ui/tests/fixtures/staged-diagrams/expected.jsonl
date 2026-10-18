@@ -1,0 +1,7 @@
+{"id":"add-2","regions":[{"label":"node0","kind":"step","parent":"Cloud"},{"label":"node1","kind":"step","parent":"Cloud"}],"edges":[]}
+{"id":"add-3","regions":[{"label":"node0","kind":"step","parent":"Cloud"},{"label":"node1","kind":"step","parent":"Cloud"},{"label":"node2","kind":"step","parent":"Cloud"}],"edges":[]}
+{"id":"add-4","regions":[{"label":"node0","kind":"step","parent":"Cloud"},{"label":"node1","kind":"step","parent":"Cloud"},{"label":"node2","kind":"step","parent":"Cloud"},{"label":"node3","kind":"step","parent":"Cloud"}],"edges":[]}
+{"id":"add-5","regions":[{"label":"node0","kind":"step","parent":"Cloud"},{"label":"node1","kind":"step","parent":"Cloud"},{"label":"node2","kind":"step","parent":"Cloud"},{"label":"node3","kind":"step","parent":"Cloud"},{"label":"node4","kind":"step","parent":"Cloud"}],"edges":[]}
+{"id":"add-2-connect","regions":[{"label":"API","kind":"step","parent":"Cloud"},{"label":"DB","kind":"data","parent":"Cloud"}],"edges":[{"from":"API","to":"DB","kind":"flow","label":""}]}
+{"id":"labelled-connection","regions":[{"label":"API","kind":"step","parent":"Cloud"},{"label":"DB","kind":"data","parent":"Cloud"}],"edges":[{"from":"API","to":"DB","kind":"stores-in","label":"保存"}]}
+{"id":"new-map","regions":[{"label":"Cloud","kind":"group","parent":"World"},{"label":"API","kind":"step","parent":"Cloud"},{"label":"DB","kind":"data","parent":"Cloud"}],"edges":[{"from":"API","to":"DB","kind":"flow","label":""}]}

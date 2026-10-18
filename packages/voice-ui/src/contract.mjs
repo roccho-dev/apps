@@ -8,6 +8,7 @@
 export const REQUEST_KIND = "voice-ui.judge.request.v1";
 export const DECISION_KIND = "voice-ui.judge.decision.v1";
 export const GOAL_REQUEST_KIND = "voice-ui.judge.goal-local-delta.v7";
+export const DIRECT_GOAL_REQUEST_KIND = "voice-ui.judge.goal-local-delta.v8";
 export const GOAL_COMPLETION_KIND = "voice-ui.judge.goal-completion.v1";
 export const GOAL_REQUEST_MAX = 8;
 // The architecture page's requests, each its own closed kind. The intent is
@@ -72,6 +73,8 @@ export const LABEL_MAX = 120;
 export const OFFER_MAX = 8;
 // Persistent library admission stays at eight; one Goal can hold three additional instance candidates.
 export const GOAL_OFFER_MAX = OFFER_MAX + 3;
+// Explicit v8 catalogues are finite and do not change the legacy v7 bound.
+export const DIRECT_GOAL_OFFER_MAX = 32;
 export const PURPOSE_MAX = 300;
 export const KEY_PATTERN = /^[a-z][a-z0-9-]{0,63}$/u;
 
@@ -206,12 +209,12 @@ const validPending = (pending, placeable) => pending === null || (
 
 // An offer is a unique key and its purpose; a Goal's part (`named`) also has
 // its bounded displayed name, which may repeat and never identifies it.
-const validOffer = (list, { named, max = OFFER_MAX }) =>
+const validOffer = (list, { named, typed = false, max = OFFER_MAX }) =>
   Array.isArray(list)
   && list.length <= max
-  && list.every(offer => exactObject(offer, named ? ["key", "purpose", "label"] : ["key", "purpose"])
+  && list.every(offer => exactObject(offer, [...(named ? ["key", "purpose", "label"] : ["key", "purpose"]), ...(typed ? ["kind"] : [])])
     && typeof offer.key === "string" && KEY_PATTERN.test(offer.key) && offer.key !== NONE
-    && text(offer.purpose, PURPOSE_MAX) && (!named || text(offer.label, LABEL_MAX)))
+    && text(offer.purpose, PURPOSE_MAX) && (!named || text(offer.label, LABEL_MAX)) && (!typed || PART_KINDS.includes(offer.kind)))
   && unique(list.map(offer => offer.key));
 
 const COMMIT = /^[0-9a-f]{40}$/u;
@@ -223,7 +226,7 @@ const COMMIT = /^[0-9a-f]{40}$/u;
 // additions, by id. A bound request's candidates may be narrowed to that
 // part's held additions; its slot is the same either way.
 export const partOption = key => `part:${key}`;
-const goalOptions = state => (state.placing === null
+const goalOptions = state => !Object.hasOwn(state, "placing") ? state.candidates.map(candidate => candidate.id) : (state.placing === null
   ? [...new Set(state.candidates.filter(candidate => candidate.action === ACTION_ADD_PART).map(candidate => partOption(candidate.part))),
     ...state.candidates.filter(candidate => candidate.action === ACTION_ADD_EDGE).map(candidate => candidate.id)]
   : state.candidates.filter(candidate => candidate.action === ACTION_ADD_PART && candidate.part === state.placing).map(candidate => candidate.id));
@@ -231,7 +234,8 @@ const goalOptions = state => (state.placing === null
 const validGoalRequest = value => {
   if (!exactObject(value, ["kind", "state"])) return false;
   const state = value.state;
-  if (!exactObject(state, ["utterance", "graph", "edges", "parents", "offers", "selected", "candidates", "context", "scope", "placing"])) return false;
+  const direct = value.kind === DIRECT_GOAL_REQUEST_KIND;
+  if (!exactObject(state, ["utterance", "graph", "edges", "parents", "offers", "selected", "candidates", "context", "scope", ...(direct ? [] : ["placing"])])) return false;
   // The page's recent conversation, required and plain: no section reference,
   // since only the architecture path reopens one from source. An earlier
   // architecture utterance may have carried a whole snapshot's changes.
@@ -240,8 +244,8 @@ const validGoalRequest = value => {
   // reopens it against the served source and checks the arrows against it.
   if (!validReference(state.scope)) return false;
   if (!text(state.utterance, TEXT_MAX) || !Array.isArray(state.graph) || state.graph.length > GRAPH_MAX) return false;
-  if (!state.graph.every(region => exactObject(region, ["id", "label", "parent"])
-    && id(region.id) && text(region.label, LABEL_MAX) && (region.parent === null || id(region.parent)))) return false;
+  if (!state.graph.every(region => exactObject(region, ["id", "label", "parent", ...(direct ? ["kind"] : [])])
+    && id(region.id) && text(region.label, LABEL_MAX) && (!direct || KEY_PATTERN.test(region.kind ?? "")) && (region.parent === null || id(region.parent)))) return false;
   const ids = state.graph.map(region => region.id);
   if (!unique(ids) || !state.graph.every(region => region.parent === null || ids.includes(region.parent))) return false;
   if (state.graph.filter(region => region.parent === null).length !== 1) return false;
@@ -255,17 +259,18 @@ const validGoalRequest = value => {
   }
   if (!Array.isArray(state.parents) || state.parents.length > GRAPH_MAX
     || !state.parents.every(parent => exactObject(parent, ["id", "label", "kind", "parent"])
-      && ids.includes(parent.id) && text(parent.label, LABEL_MAX) && parent.kind === "group"
-      && ids.includes(parent.parent) && state.graph.some(region => region.id === parent.id
+      && ids.includes(parent.id) && text(parent.label, LABEL_MAX) && (direct && parent.parent === null ? parent.kind === "boundary" : parent.kind === "group")
+      && (direct && parent.parent === null || ids.includes(parent.parent)) && state.graph.some(region => region.id === parent.id
         && region.label === parent.label && region.parent === parent.parent))
     || !unique(state.parents.map(parent => parent.id))) return false;
-  if (!exactObject(state.offers, ["parts"]) || !validOffer(state.offers.parts, { named: true, max: GOAL_OFFER_MAX })) return false;
+  if (!exactObject(state.offers, ["parts"]) || !validOffer(state.offers.parts, { named: true, typed: direct, max: direct ? DIRECT_GOAL_OFFER_MAX : GOAL_OFFER_MAX })) return false;
   const endpoints = ids.filter(value => parentOf.get(value) !== null && !state.parents.some(parent => parent.id === value));
   // Existing relations are kept whole: distinct typed relations (an import and
   // a call) may share a directed pair. Only their IDs are unique; a candidate
   // may still never repeat an existing directed pair.
   if (!Array.isArray(state.edges) || state.edges.length > GRAPH_MAX
-    || !state.edges.every(edge => exactObject(edge, ["id", "from", "to"]) && id(edge.id)
+    || !state.edges.every(edge => exactObject(edge, ["id", "from", "to", ...(direct ? ["kind", "label"] : [])]) && id(edge.id)
+      && (!direct || KEY_PATTERN.test(edge.kind ?? "") && typeof edge.label === "string" && edge.label.length <= LABEL_MAX)
       && endpoints.includes(edge.from) && endpoints.includes(edge.to) && edge.from !== edge.to)
     || !unique(state.edges.map(edge => edge.id))) return false;
   if (!Array.isArray(state.candidates) || state.candidates.length < 1 || state.candidates.length > 254
@@ -273,18 +278,21 @@ const validGoalRequest = value => {
       && id(candidate.id) && (candidate.action === ACTION_ADD_PART
       ? exactObject(candidate, ["id", "action", "part", "parent"])
         && state.offers.parts.some(part => part.key === candidate.part)
-        && state.parents.some(parent => parent.id === candidate.parent)
-      : candidate.action === ACTION_ADD_EDGE && exactObject(candidate, ["id", "action", "from", "to"])
+        && state.parents.some(parent => parent.id === candidate.parent
+          && (!direct || parent.parent !== null || state.offers.parts.some(part => part.key === candidate.part && part.kind === "group")))
+      : candidate.action === ACTION_ADD_EDGE && exactObject(candidate, ["id", "action", "from", "to", ...(direct ? ["kind", "label"] : [])])
+        && (!direct || KEY_PATTERN.test(candidate.kind ?? "") && typeof candidate.label === "string" && candidate.label.length <= LABEL_MAX)
         && endpoints.includes(candidate.from) && endpoints.includes(candidate.to) && candidate.from !== candidate.to
-        && !state.edges.some(edge => edge.from === candidate.from && edge.to === candidate.to)))
+        && !state.edges.some(edge => edge.from === candidate.from && edge.to === candidate.to
+          && (!direct || edge.kind === candidate.kind && edge.label === candidate.label))))
     || !unique(state.candidates.map(candidate => candidate.id))
     || !unique(state.candidates.map(candidate => JSON.stringify(candidate.action === ACTION_ADD_PART
-      ? [candidate.action, candidate.part, candidate.parent] : [candidate.action, candidate.from, candidate.to])))) return false;
+      ? [candidate.action, candidate.part, candidate.parent] : [candidate.action, candidate.from, candidate.to, ...(direct ? [candidate.kind, candidate.label] : [])])))) return false;
   // A bound part is one this request holds an addition for, and a slot never
   // repeats a key: an arrow whose id is a derived part alternative is refused.
-  if (state.placing !== null && !state.candidates.some(candidate => candidate.action === ACTION_ADD_PART && candidate.part === state.placing)) return false;
+  if (!direct && state.placing !== null && !state.candidates.some(candidate => candidate.action === ACTION_ADD_PART && candidate.part === state.placing)) return false;
   if (!unique(goalOptions(state))) return false;
-  return Array.isArray(state.selected) && state.selected.length <= GOAL_OFFER_MAX
+  return Array.isArray(state.selected) && state.selected.length <= (direct ? DIRECT_GOAL_OFFER_MAX : GOAL_OFFER_MAX)
     && state.selected.every(item => exactObject(item, ["key", "region", "parent"])
       && KEY_PATTERN.test(item.key ?? "") && item.key !== NONE && ids.includes(item.region)
       && ids.includes(item.parent) && state.graph.some(region => region.id === item.region && region.parent === item.parent))
@@ -354,7 +362,7 @@ const STATE_KEYS = Object.freeze(["utterance", "graph", "draft", "focus", "pendi
 // A plain request, or an architecture intent, each held to its own bounds.
 export function isRequest(value) {
   if (value?.kind === GOAL_COMPLETION_KIND) return validGoalCompletion(value);
-  if (value?.kind === GOAL_REQUEST_KIND) return validGoalRequest(value);
+  if ([GOAL_REQUEST_KIND, DIRECT_GOAL_REQUEST_KIND].includes(value?.kind)) return validGoalRequest(value);
   if (value?.kind === ARCHITECTURE_GOAL_INTENT_KIND) {
     if (!exactObject(value, ["kind", "state"])) return false;
     const { state } = value;
