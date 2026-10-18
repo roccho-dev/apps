@@ -46,8 +46,9 @@ const slots = label => ({ required1: { label, kind: "decision", quantity: "1" },
   required2: { label: "", kind: "none", quantity: "0" }, required3: { label: "", kind: "none", quantity: "0" } });
 const typedResult = (wire, rows) => Object.hasOwn(wire.questions, "required1_label")
   ? Object.fromEntries(Object.entries(rows).flatMap(([name, row]) => Object.entries(row).map(([key, value]) => [name + "_" + key, value]))) : rows;
+const fPart = stock.find(part => part.kind === "decision"); assert.ok(fPart);
 const wantedLabel = () => mode === "R" ? inputs.R.cases[0].required[0].label
-  : mode === "E" ? "棚卸承認" : "WireFixture";
+  : mode === "E" ? "棚卸承認" : mode === "wire-F" ? fPart.label : "WireFixture";
 const namedReply = (wire, answers) => Response.json({ model: "synthetic-quota-fixture", answers: Object.fromEntries(
   Object.entries(wire.questions).map(([name, question]) => {
     const { choice, confidence } = answers[name], keys = Object.keys(question.criteria);
