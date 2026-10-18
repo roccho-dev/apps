@@ -1,6 +1,7 @@
 import { onRequestPost } from "./api/judge.mjs";
 import { onParts } from "./api/parts.mjs";
-import { bindJev, bindTypeLLM, generateTyped, judgeNamedChoices } from "voice-ui-judge-provider";
+import { bindJev, judgeNamedChoices } from "voice-ui-judge-provider";
+import { bindTypeLLM, generateTyped } from "voice-ui-typed-provider";
 
 // App-owned Pages Advanced Mode entry. It is bundled during artifact creation,
 // not by the consumer at deployment. Static bytes stay in the ASSETS binding.

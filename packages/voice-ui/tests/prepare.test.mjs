@@ -75,7 +75,7 @@ test("this package prepares deterministically: every file classified, text only 
   assert.ok(files.every(entity => entity.label === entity.path));
   assert.equal(files.find(entity => entity.path === "web/app.mjs").id, "web-app-mjs");
   assert.deepEqual(manifest.entities.filter(entity => entity.kind === "external").map(entity => [entity.id, entity.label]), [
-    ["ext-voice-ui-judge-provider", "voice-ui-judge-provider"], ["ext-jev-api-key", "JEV_API_KEY"], ["ext-localstorage", "localStorage"],
+    ["ext-voice-ui-judge-provider", "voice-ui-judge-provider"], ["ext-voice-ui-typed-provider", "voice-ui-typed-provider"], ["ext-jev-api-key", "JEV_API_KEY"], ["ext-localstorage", "localStorage"],
     ["ext-ui", "/ui/"], ["ext-hayamimi", "/hayamimi/"],
   ]);
 
@@ -97,7 +97,7 @@ test("this package prepares deterministically: every file classified, text only 
   assert.equal(importOf("web-app-mjs", "ext-ui")?.resolution, "scope-external-url");
   assert.ok(importOf("functions-api-judge-mjs", "src-architecture-mjs"));
   assert.ok(manifest.coverage.skipped.every(entry => entry.reason === "platform import"
-    || (entry.path === "functions/pages-worker.mjs" && entry.specifier === "voice-ui-judge-provider" && entry.reason === "unresolved bare import")),
+    || (entry.path === "functions/pages-worker.mjs" && ["voice-ui-judge-provider", "voice-ui-typed-provider"].includes(entry.specifier) && entry.reason === "unresolved bare import")),
   "platform imports and the non-admitted provider alias are left undrawn");
   assert.ok(manifest.coverage.unsupported.some(entry => entry.path === "web/index.html"));
 
@@ -112,6 +112,7 @@ test("this package prepares deterministically: every file classified, text only 
   assert.deepEqual(reasonsOf("web-adapters-transcription-mjs", "ext-hayamimi"), ["identifier:/hayamimi/"], "dynamic provider URLs are literal candidates, not static imports");
   assert.equal(importOf("web-adapters-transcription-mjs", "ext-hayamimi"), undefined);
   assert.deepEqual(reasonsOf("functions-pages-worker-mjs", "ext-voice-ui-judge-provider"), ["identifier:voice-ui-judge-provider"]);
+  assert.deepEqual(reasonsOf("functions-pages-worker-mjs", "ext-voice-ui-typed-provider"), ["identifier:voice-ui-typed-provider"]);
   assert.equal(reasonsOf("web-app-mjs", "functions-api-judge-mjs"), undefined, "a shared import is no candidate");
   assert.ok(manifest.candidates.every(candidate => candidate.reasons.every(reason => /^(import|identifier):./u.test(reason))));
 

@@ -313,7 +313,7 @@ test("core import reachability is closed over apps meaning, not concrete binding
   const roots = production.filter(file => file.startsWith("src/"));
   const reached = new Set(roots.flatMap(file => [...visit(file, read)]));
   assert.deepEqual([...reached].sort(), roots.sort());
-  for (const spec of ["/hayamimi/runtime/api/hayamimi.mjs", "voice-ui-judge-provider", "../web/adapters/judgment.mjs"]) {
+  for (const spec of ["/hayamimi/runtime/api/hayamimi.mjs", "voice-ui-judge-provider", "voice-ui-typed-provider", "../web/adapters/judgment.mjs"]) {
     assert.throws(() => visit("src/contract.mjs", () => "import x from " + JSON.stringify(spec) + ";"), /core dependency leaves app meaning/);
   }
 });

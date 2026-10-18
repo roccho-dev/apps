@@ -20,6 +20,7 @@
   ],
   "external": [
     { "identifier": "voice-ui-judge-provider" },
+    { "identifier": "voice-ui-typed-provider" },
     { "identifier": "JEV_API_KEY" },
     { "identifier": "localStorage" },
     { "url": "/ui/" },
