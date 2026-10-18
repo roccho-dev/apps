@@ -296,6 +296,12 @@ export function readRequired(rows) {
   return structuredClone(rows);
 }
 
+// Provenance only: Jev still decides whether these are the requested NEW parts.
+export function requiredLabelsGrounded(required, state) {
+  return required.every(row => state.utterance.includes(row.label)
+    || state.parts.some(part => part.label === row.label && part.kind === row.kind));
+}
+
 export function readRequiredSlots(slots) {
   if (!requiredExact(slots, ["required1", "required2", "required3"])) return null;
   const rows = [];
@@ -505,6 +511,7 @@ export function readRequirementInspection(value, state, literalReader) {
     if (!adaptive || !eligible
         || !requiredExact(value.proposal, ["slots", "required"]) || readRequiredSlots(value.proposal.slots) === null
         || !same(readRequiredSlots(value.proposal.slots), value.proposal.required)
+        || !requiredLabelsGrounded(value.proposal.required, state)
         || !same(value.required, value.proposal.required) || !requiredExact(value.verification, names)
         || !names.every((name, i) => answer(value.verification[name], choices[i]))) return null;
     decision = requirementDecision(value.verification, true, value.missing);

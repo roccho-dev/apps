@@ -1,7 +1,7 @@
 import { COVERAGE, inventoryQuestion, isInventory, readLiteralInspection, readTypedMissing, typedMissingRequest,
   acceptedRequirements, readRequired, readRequiredSlots, readRequirementFactors, readRequirementInspection,
   displaySourceRequest, readDisplaySourceSlots, flatRequiredRequest, readFlatRequiredSlots,
-  requirementDecision, requirementProposalPolicy, requiredDifference, requiredQuestion, requiredRequest, requiresInterpretation } from "../../src/completion.mjs";
+  requirementDecision, requirementProposalPolicy, requiredDifference, requiredLabelsGrounded, requiredQuestion, requiredRequest, requiresInterpretation } from "../../src/completion.mjs";
 import { LABEL_MAX, PART_KINDS } from "../../src/contract.mjs";
 import { literalInventory, literalQuestion } from "../../src/literal-inventory.mjs";
 const json = (body, status = 200) => Response.json(body, { status, headers: { "cache-control": "no-store" } });
@@ -145,7 +145,7 @@ export async function onRequirements({ request, mode, method, available, generat
     const required = sourced || flat ? decoded?.required ?? null : readRequiredSlots(value?.result);
     const usage = generation === "thinking-labels" ? value?.usage : null;
     const metrics = usage ? { provider_usage: { input_tokens: usage.input_tokens, thinking_tokens: usage.thinking_tokens } } : {};
-    if (required === null) {
+    if (required === null || !requiredLabelsGrounded(required, inventory.state)) {
       stage("TYPE_REQUIRED", { valid: false, generation, ...metrics });
       throw failure("provider_contract_error");
     }
