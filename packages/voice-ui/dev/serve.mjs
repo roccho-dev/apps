@@ -12,6 +12,7 @@ if (process.argv.length > 2 && !["--formal", "--fixture"].includes(mode)) throw 
 // Fixture-only never imports the Worker, reads a provider key or serves other routes.
 const fixtureOnly = mode === "--fixture";
 const formalRoot = mode === "--formal" || fixtureOnly ? packageRoot : null;
+const realReference = !formalRoot && process.env.VOICE_UI_REFERENCE_REAL === "1";
 
 const requireStore = name => {
   const value = process.env[name];
@@ -142,7 +143,7 @@ async function serveChunkManifest(response, file) {
 // closed error set are what this server exercises. The key is read from the
 // injected process env only. Static files never reach the Worker here, so its
 // asset binding fails loudly if routing ever sends one there.
-const workerEnv = fixtureOnly ? null : {
+const workerEnv = fixtureOnly || realReference ? null : {
   JEV_API_KEY: process.env.JEV_API_KEY,
   TYPELLM_API_KEY: process.env.TYPELLM_API_KEY,
   ARCHITECTURE: architecture,
@@ -308,7 +309,7 @@ const server = createServer((request, response) => {
     return;
   }
 
-  if (pathname === "/api/proposals" && proposalSettings !== null) {
+  if (pathname === "/api/proposals" && proposalSettings !== null && !proposalSettings.referenceOnly) {
     serveProposals(request, response).catch(() => proposalReply(response, 502, { error: "PROPOSAL_FAILED" }));
     return;
   }
@@ -317,6 +318,7 @@ const server = createServer((request, response) => {
     return;
   }
   if (["/api/judge", "/api/parts/check", "/api/parts/complete"].includes(pathname)) {
+    if (realReference) return proposalReply(response, 404, { error: "NOT_FOUND" });
     serveJudge(request, response).catch(() => {
       response.writeHead(500, { "content-type": "application/json; charset=utf-8" });
       response.end(JSON.stringify({ error: "dev_server_error" }));
@@ -339,7 +341,12 @@ const server = createServer((request, response) => {
 
 // A formal PRODUCT ships the server but not its dev-only acquisition CLI.
 // It therefore never configures, launches or serves this optional route.
-const proposalSettings = !formalRoot && process.env.VOICE_UI_PROPOSAL_MODULE
+const proposalSettings = realReference
+  ? (await import("./proposals.mjs")).referenceSettings(process.env, {
+    binary: requireStore("VOICE_UI_SEMCMP_BIN"),
+    proposer: requireStore("VOICE_UI_REFERENCE_PROPOSER"),
+  })
+  : !formalRoot && process.env.VOICE_UI_PROPOSAL_MODULE
   && process.env.VOICE_UI_PROPOSAL_JEV_URL && process.env.VOICE_UI_PROPOSAL_TEST_KEY
   ? (() => {
     let endpoint;
@@ -412,6 +419,12 @@ async function serveProposals(request, response, meltype = false) {
       focus: { kind: "text-reference-input" },
     } }));
   }
+  if (proposalSettings.referenceOnly) {
+    if (!meltype || !proposalSettings.reserve(wire.raw))
+      return proposalReply(response, 503, { error: "REFERENCE_SESSION_UNAVAILABLE" });
+    request.once("aborted", () => proposalSettings.stop());
+    response.once("close", () => { if (!response.writableEnded) proposalSettings.stop(); });
+  }
   const result = await new Promise(resolve => {
     let child;
     try {
@@ -443,9 +456,14 @@ async function serveProposals(request, response, meltype = false) {
   });
   let value;
   try { value = JSON.parse(result); } catch { value = null; }
+  if (proposalSettings.referenceOnly && !proposalSettings.canReturn())
+    return proposalReply(response, 503, { error: "REFERENCE_SESSION_UNAVAILABLE" });
+  if (proposalSettings.referenceOnly && value?.status !== 200) proposalSettings.stop();
   if (!value || ![200, 400, 413, 502, 503, 504].includes(value.status)
-    || !value.body || typeof value.body !== "object" || Array.isArray(value.body))
+    || !value.body || typeof value.body !== "object" || Array.isArray(value.body)) {
+    if (proposalSettings.referenceOnly) proposalSettings.stop();
     return proposalReply(response, 502, { error: "PROPOSAL_FAILED" });
+  }
   if (meltype && value.status === 200) {
     // The existing shared evaluator owns order and original Proposal contents.
     // Never project/filter an action or mixed response into an accepted subset.
@@ -453,8 +471,10 @@ async function serveProposals(request, response, meltype = false) {
     if (!Array.isArray(proposals) || proposals.some(p => p?.meaning?.kind !== "text"
       || typeof p.representation !== "string" || !p.representation
       || p.meaning.text !== p.representation
-      || /[\u0000-\u001f\u007f-\u009f]/u.test(p.representation)))
+      || /[\u0000-\u001f\u007f-\u009f]/u.test(p.representation))) {
+      if (proposalSettings.referenceOnly) proposalSettings.stop();
       return proposalReply(response, 502, { error: "PROPOSAL_FAILED" });
+    }
     return proposalReply(response, 200, { generation: wire.generation, raw: wire.raw, proposals });
   }
   return proposalReply(response, value.status, value.body);

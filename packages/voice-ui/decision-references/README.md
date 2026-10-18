@@ -37,3 +37,23 @@ entire nontext/mixed response. Default, formal PRODUCT and handwritten fixture
 routes remain separate. The existing controlled loopback evaluator gate is not
 relaxed into external-provider permission. Source/host rebinding and actual B
 target invalidation still need their own real observations for B4 acceptance.
+
+The existing target-owned `voice-ui-jev-dev` launcher also admits an explicit,
+bounded real-reference session. It takes a private owned mode0600 JSON locator
+file, one permitted query, an attempt limit and an absolute deadline. The locator
+and existing credential enter through separate pipes; neither goes into argv
+or launcher output. This does not grant provider/data-use permission.
+
+In that session the installed dev wrapper fixes both semcmp and this proposer.
+Operator-selected modules, endpoints and test keys are rejected. Only the
+existing Jev endpoint is used; the child receives no other ambient credentials.
+The generic acquisition route and the Worker's other judgment routes are closed.
+Only the declared raw query is adapted to the existing reference Qcore. Attempts
+are reserved before child launch, without refund, and any failure/unknown closes
+the session. Normal, formal and controlled modes retain their existing behavior.
+
+The attempt limit belongs to one host lifetime. An admitted multi-version trial
+must additionally retain its total limit and original deadline across r0/r1
+hosts; a restart does not renew its permission or budget. Private reference
+metadata and provider responses remain outside public CI/PR artifacts. Synthetic
+boundary checks do not establish actual data/provider/input acceptance.

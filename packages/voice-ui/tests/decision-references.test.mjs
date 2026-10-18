@@ -7,6 +7,7 @@ import os from "node:os";
 import path from "node:path";
 import test from "node:test";
 import { bindReference } from "../decision-references/read.mjs";
+import { referenceSettings } from "../dev/proposals.mjs";
 
 // All committed records in this test are synthetic. No private source binding,
 // actual decision bytes, credential or external provider is used by CI.
@@ -139,4 +140,54 @@ test("proposer module captures one locator and cannot hot-rebind a session via e
     if (before === undefined) delete process.env.VOICE_UI_PROPOSAL_B;
     else process.env.VOICE_UI_PROPOSAL_B = before;
   }
+});
+
+test("real reference admission confines the credential and cannot select another module or endpoint", () => {
+  const now = 100000;
+  const env = {
+    VOICE_UI_REFERENCE_REAL: "1", VOICE_UI_MELTYPE_PROPOSALS: "1",
+    VOICE_UI_REFERENCE_UNTIL: String(now + 1000), VOICE_UI_REFERENCE_MAX_CALLS: "2",
+    VOICE_UI_REFERENCE_QUERY: "synthetic query", VOICE_UI_PROPOSAL_B: "synthetic locator",
+    JEV_API_KEY: "synthetic-provider-key", GH_TOKEN: "must-not-reach-child",
+    NODE_OPTIONS: "must-not-reach-child", VOICE_UI_REFERENCE_GIT: "must-not-reach-child",
+  };
+  const tools = { binary: process.execPath, proposer: path.resolve(root, "installed-proposer.mjs"), now: () => now };
+  const settings = referenceSettings(env, tools);
+  assert.deepEqual(Object.keys(settings.vars).sort(), ["JEV_API_KEY", "JEV_API_URL", "JEV_TIMEOUT_MS",
+    "VOICE_UI_PROPOSAL_B", "VOICE_UI_PROPOSAL_MODULE", "VOICE_UI_PROPOSAL_TIMEOUT_MS", "VOICE_UI_SEMCMP_BIN"].sort());
+  assert.equal(settings.vars.JEV_API_URL, "https://api.typesafe.ai/v1/systemone");
+  assert.equal(settings.vars.VOICE_UI_PROPOSAL_MODULE, tools.proposer);
+  for (const name of ["VOICE_UI_PROPOSAL_MODULE", "VOICE_UI_PROPOSAL_JEV_URL", "VOICE_UI_PROPOSAL_TEST_KEY"])
+    assert.throws(() => referenceSettings({ ...env, [name]: "caller-controlled" }, tools));
+  for (const changed of [{ JEV_API_KEY: "" }, { JEV_API_KEY: "bad\nkey" },
+    { VOICE_UI_PROPOSAL_B: "" }, { VOICE_UI_REFERENCE_MAX_CALLS: "0" },
+    { VOICE_UI_REFERENCE_MAX_CALLS: "13" }, { VOICE_UI_REFERENCE_UNTIL: String(now) },
+    { VOICE_UI_REFERENCE_UNTIL: String(now + 1800001) }, { VOICE_UI_REFERENCE_QUERY: "" }])
+    assert.throws(() => referenceSettings({ ...env, ...changed }, tools));
+});
+
+test("reference attempts are reserved before effects, never refunded, and stop at query/budget/deadline/failure", () => {
+  let now = 100000;
+  const env = {
+    VOICE_UI_REFERENCE_REAL: "1", VOICE_UI_MELTYPE_PROPOSALS: "1", JEV_API_KEY: "synthetic-key",
+    VOICE_UI_PROPOSAL_B: "synthetic locator", VOICE_UI_REFERENCE_QUERY: "synthetic query",
+    VOICE_UI_REFERENCE_UNTIL: String(now + 1000), VOICE_UI_REFERENCE_MAX_CALLS: "2",
+  };
+  const make = () => referenceSettings(env, {
+    binary: process.execPath, proposer: path.resolve(root, "installed-proposer.mjs"), now: () => now,
+  });
+  const bounded = make();
+  assert.equal(bounded.reserve("another query"), false);
+  assert.equal(bounded.reserve(env.VOICE_UI_REFERENCE_QUERY), true);
+  assert.equal(bounded.reserve(env.VOICE_UI_REFERENCE_QUERY), true);
+  assert.equal(bounded.reserve(env.VOICE_UI_REFERENCE_QUERY), false);
+  const failed = make();
+  assert.equal(failed.reserve(env.VOICE_UI_REFERENCE_QUERY), true);
+  failed.stop();
+  assert.equal(failed.reserve(env.VOICE_UI_REFERENCE_QUERY), false);
+  const expired = make();
+  assert.equal(expired.reserve(env.VOICE_UI_REFERENCE_QUERY), true);
+  now += 1000;
+  assert.equal(expired.canReturn(), false, "a late successful child cannot return an expired candidate");
+  assert.equal(expired.reserve(env.VOICE_UI_REFERENCE_QUERY), false);
 });

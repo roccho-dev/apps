@@ -40,6 +40,8 @@ test("real dev host/installed CLI and shipped formal host: controlled positive a
       "VOICE_UI_PROPOSAL_MODULE", "VOICE_UI_PROPOSAL_JEV_URL",
       "VOICE_UI_PROPOSAL_TEST_KEY", "VOICE_UI_PROPOSAL_B", "VOICE_UI_PROPOSAL_TIMEOUT_MS",
       "VOICE_UI_MELTYPE_FIXTURE",
+      "VOICE_UI_REFERENCE_REAL", "VOICE_UI_REFERENCE_PROPOSER", "VOICE_UI_REFERENCE_QUERY",
+      "VOICE_UI_REFERENCE_MAX_CALLS", "VOICE_UI_REFERENCE_UNTIL", "VOICE_UI_MELTYPE_PROPOSALS",
     ]) delete env[name];
     Object.assign(env, options);
     const child = spawn(process.execPath, formal ? [file, mode] : [file], {
@@ -458,6 +460,75 @@ test("real dev host/installed CLI and shipped formal host: controlled positive a
       /host exited before listen/, "a rehashed manifest cannot validate malformed fixture input");
     await assert.rejects(startHost(true, {}, "--not-a-mode"),
       /host exited before listen/, "unexpected invocation must be closed");
+
+    // A synthetic installed-CLI substitute checks the new process/HTTP boundary
+    // without sending private metadata or making a real provider request.
+    const trialBin = path.join(root, "bounded-reference-cli");
+    const referenceArrivals = path.join(root, "bounded-reference-arrivals.jsonl");
+    const failTrial = path.join(root, "bounded-reference-failure");
+    const delayTrial = path.join(root, "bounded-reference-delay");
+    fs.writeFileSync(trialBin, `#!${process.execPath}\n` + [
+      'import fs from "node:fs";',
+      'const {query} = JSON.parse(fs.readFileSync(0,"utf8"));',
+      `fs.appendFileSync(${JSON.stringify(referenceArrivals)}, JSON.stringify({names:Object.keys(process.env).sort(),` +
+        'keyExpected:process.env.JEV_API_KEY==="synthetic-reference-key",argv:process.argv.slice(2)})+"\\n");',
+      `if(fs.existsSync(${JSON.stringify(failTrial)})) process.exit(1);`,
+      `if(fs.existsSync(${JSON.stringify(delayTrial)})) await new Promise(r=>setTimeout(r,3200));`,
+      'process.stdout.write(JSON.stringify({query,proposals:[{id:"synthetic-reference",' +
+        'meaning:{kind:"text",text:"synthetic reference"},representation:"synthetic reference",' +
+        'evidence:{theme:"intent-fit",noul:0.9}}]}));',
+    ].join("\n"));
+    fs.chmodSync(trialBin, 0o755);
+    const admitted = {
+      VOICE_UI_REFERENCE_REAL: "1", VOICE_UI_MELTYPE_PROPOSALS: "1",
+      VOICE_UI_REFERENCE_QUERY: "synthetic reference query", VOICE_UI_REFERENCE_MAX_CALLS: "2",
+      VOICE_UI_REFERENCE_UNTIL: String(Date.now() + 60000),
+      VOICE_UI_REFERENCE_PROPOSER: proposer, VOICE_UI_SEMCMP_BIN: trialBin,
+      VOICE_UI_PROPOSAL_B: "synthetic locator", JEV_API_KEY: "synthetic-reference-key",
+    };
+    const bounded = await startHost(false, admitted);
+    for (const route of ["/api/judge", "/api/parts/check", "/api/parts/complete", "/api/proposals"])
+      assert.equal((await fetch(bounded.url + route, { method: "POST",
+        headers: { "content-type": "application/json" }, body: "{}" })).status, 404);
+    const postReference = (host, raw, generation = 1) => fetch(host.url + "/api/meltype-proposals", {
+      method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ generation, raw }),
+    });
+    assert.equal((await postReference(bounded, "other query")).status, 503);
+    assert.equal(fs.existsSync(referenceArrivals), false);
+    for (const generation of [1, 2]) {
+      const response = await postReference(bounded, admitted.VOICE_UI_REFERENCE_QUERY, generation);
+      assert.equal(response.status, 200);
+      const reply = await response.json();
+      assert.equal(reply.generation, generation);
+      assert.equal(reply.raw, admitted.VOICE_UI_REFERENCE_QUERY);
+      assert.equal(reply.proposals[0].id, "synthetic-reference");
+    }
+    assert.equal((await postReference(bounded, admitted.VOICE_UI_REFERENCE_QUERY, 3)).status, 503);
+    const received = fs.readFileSync(referenceArrivals, "utf8").trim().split("\n").map(JSON.parse);
+    assert.equal(received.length, 2);
+    for (const row of received) {
+      assert.equal(row.keyExpected, true);
+      assert.deepEqual(row.argv, ["--propose", proposer]);
+      for (const name of ["GH_TOKEN", "NODE_OPTIONS", "VOICE_UI_PROPOSAL_TEST_KEY", "TYPELLM_API_KEY"])
+        assert.equal(row.names.includes(name), false);
+    }
+    const stopped = await startHost(false, { ...admitted, VOICE_UI_REFERENCE_MAX_CALLS: "3" });
+    fs.writeFileSync(failTrial, "synthetic failure");
+    assert.equal((await postReference(stopped, admitted.VOICE_UI_REFERENCE_QUERY)).status, 502);
+    fs.unlinkSync(failTrial);
+    assert.equal((await postReference(stopped, admitted.VOICE_UI_REFERENCE_QUERY)).status, 503);
+    assert.equal(fs.readFileSync(referenceArrivals, "utf8").trim().split("\n").length, 3,
+      "a failed attempt cannot be refunded or retried by the same session");
+    const late = await startHost(false, { ...admitted,
+      VOICE_UI_REFERENCE_UNTIL: String(Date.now() + 3000) });
+    fs.writeFileSync(delayTrial, "synthetic delayed completion");
+    assert.equal((await postReference(late, admitted.VOICE_UI_REFERENCE_QUERY)).status, 503);
+    assert.equal(fs.readFileSync(referenceArrivals, "utf8").trim().split("\n").length, 4,
+      "the admitted child started, but its late response must not return candidates");
+    await assert.rejects(startHost(false, { ...admitted, VOICE_UI_PROPOSAL_MODULE: proposer }),
+      /host exited before listen/, "real credential must never accompany an arbitrary proposer selection");
+    assert.equal(seen.length, beforeFixtureProviderCalls,
+      "the bounded reference boundary proof makes no external provider requests");
   } finally {
     for (const server of active.reverse()) await endHost(server);
     upstream.closeAllConnections();

@@ -276,6 +276,7 @@
               export VOICE_UI_WORKER=${self.packages.${system}.voice-ui-dist}/worker/worker.mjs
               export VOICE_UI_ARCHITECTURE=${architectureFor system}
               export VOICE_UI_SEMCMP_BIN=${semcmpPackage}/bin/semcmp
+              export VOICE_UI_REFERENCE_PROPOSER=${self.packages.${system}.voice-ui-reference-proposer}/propose.mjs
               exec node ${self}/packages/voice-ui/dev/serve.mjs "$@"
             '';
           };
