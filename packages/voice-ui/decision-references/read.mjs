@@ -2,6 +2,7 @@
 // No source snapshot, credential, network client, ranker or state writer.
 import { execFileSync } from "node:child_process";
 import { createHash } from "node:crypto";
+import { isUtf8 } from "node:buffer";
 import path from "node:path";
 import os from "node:os";
 
@@ -73,7 +74,8 @@ export function bindReference(locator, tools) {
     const bytes = git(["cat-file", "blob", object]);
     if (bytes.length === 0 || bytes.length > maxBytes || sha256(bytes) !== fixed.sha256
       || createHash("sha1").update(Buffer.from(`blob ${bytes.length}\0`)).update(bytes).digest("hex") !== fixed.blob) fail();
-    const text = new TextDecoder("utf-8", { fatal: true }).decode(bytes);
+    if (!isUtf8(bytes)) fail();
+    const text = bytes.toString("utf8");
     const rows = text.split(/\r?\n/u).map((line, index) => ({ line, index })).filter(x => x.line.trim());
     if (!rows.length || rows.length > 64) fail();
     const seen = new Set();
