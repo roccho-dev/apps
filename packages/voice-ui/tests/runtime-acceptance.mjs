@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
 import { createHash } from "node:crypto";
 import {
@@ -50,6 +51,32 @@ export function assertNoSecretInputs(env = process.env) {
   if (present.length > 0) {
     throw new Error(`runtime acceptance must not receive secret inputs: ${present.join(",")}`);
   }
+}
+
+
+// The registered intervention changes exactly three normalized V question scalars.
+// Original captures remain intact; this expectation is not a live semantic grade.
+export function assertCompactVerifierWire(previous, current) {
+  const completeness = {
+    "type": "choice",
+    "criteria": {
+      "complete": "要求された新規部品の表示名・種類・総個数が全て一致し、余分も未確定もありません。",
+      "incomplete": "表示名・種類・総個数に誤り、欠落、余分、または一意に決まらないものがあります。"
+    },
+    "instructions": "state.requiredは、新規追加部品の未検証候補です。原文と部品定義から一意に決まる（表示名・種類・総個数）の集合と、過不足なく一致していますか。既存の親や接続先は新規部品ではなく、親・矢印の割当と在庫数はこの一覧の照合対象外です。"
+  };
+  assert.equal(previous.body_utf8, JSON.stringify(previous.wire));
+  assert.equal(current.body_utf8, JSON.stringify(current.wire));
+  const expected = structuredClone(previous);
+  // Preserve type and every surrounding byte/field; replace only the declared scalars.
+  assert.deepEqual(Object.keys(previous.wire.questions.completeness).sort(), ["criteria", "instructions", "type"]);
+  assert.equal(previous.wire.questions.completeness.type, "choice");
+  assert.deepEqual(Object.keys(previous.wire.questions.completeness.criteria).sort(), ["complete", "incomplete"]);
+  expected.wire.questions.completeness.instructions = completeness.instructions;
+  expected.wire.questions.completeness.criteria.complete = completeness.criteria.complete;
+  expected.wire.questions.completeness.criteria.incomplete = completeness.criteria.incomplete;
+  expected.body_utf8 = JSON.stringify(expected.wire);
+  assert.deepEqual(current, expected, "only registered V completeness scalars may change");
 }
 
 function requiredString(value, label) {

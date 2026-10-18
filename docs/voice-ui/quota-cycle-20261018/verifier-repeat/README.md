@@ -35,6 +35,12 @@ Vが未達・無効ならEへ進みません。公開Eが未達・無効なら�
 | 4 | CI起点の実API実行を証明 | 現在のCIは停止済み実測の再検証であるため |
 | 5 | thinking増量・表現拡張 | 現時点の判定不全の解決に直接結びつく証拠がない |
 
+## 測定前の配布検査
+
+[e3a80faのrelease CI](https://github.com/roccho-dev/apps/actions/runs/39100870657)は、旧来の「V質問文まで原bytes一致」という検査で失敗しました。
+今回の登録済み変更に合わせ、Vのinstructions・criteria.complete/incompleteの3項目だけを固定した新文言への置換として検証します。
+他の質問・状態・型・モデル・送信metadataとF/G0は一致を要求し、原captureと失敗を保持します。実測・予約・app起動は0です。
+
 ## 境界
 
 開始累計はJev850 / TypeLLM137、今回の予約上限は139 / 7（V6 / 公開E19+1 / 封印E114+6）。

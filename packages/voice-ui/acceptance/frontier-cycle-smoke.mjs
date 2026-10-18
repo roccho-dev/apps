@@ -1,4 +1,4 @@
-// Completed-artifact frontier/default-path mechanics and unchanged G0/F/V wire.
+// Completed-artifact frontier mechanics, stable G0/F and the registered V question change.
 // All answers are synthetic; no external provider is contacted.
 import assert from "node:assert/strict";
 import fs from "node:fs";
@@ -7,7 +7,7 @@ import path from "node:path";
 import { spawn } from "node:child_process";
 import { createHash } from "node:crypto";
 import { fileURLToPath, pathToFileURL } from "node:url";
-import { assertNoSecretInputs, loadAcceptanceArtifact } from "../tests/runtime-acceptance.mjs";
+import { assertNoSecretInputs, loadAcceptanceArtifact, assertCompactVerifierWire } from "../tests/runtime-acceptance.mjs";
 import { gradeInitialPolicy, readFrontierInspection, validRequirements, validFactors, decodeRequiredSlots, sameRequirements, verifierDecision } from "../tests/frontier-cycle-score.mjs";
 import { FRONTIER_SOURCE_NAMES } from "../tests/frontier-cycle-audit.mjs";
 assertNoSecretInputs();
@@ -315,7 +315,8 @@ try {
           pair.push({ wire: upstream.at(-1), response: await response.json() });
         } finally { currentRequest = null; }
       }
-      assert.deepEqual(pair[1].wire, pair[0].wire, "completed G0/F/V exact upstream bytes " + axis + "/" + item.id);
+      if (axis === "V") assertCompactVerifierWire(pair[0].wire, pair[1].wire);
+      else assert.deepEqual(pair[1].wire, pair[0].wire, "completed G0/F exact upstream bytes " + axis + "/" + item.id);
       if (axis === "G0") {
         for (const { response } of pair) {
           const grade = gradeInitialPolicy(response, publicOracle.cases.find(o => o.id === item.id), stock,
@@ -347,11 +348,12 @@ try {
       assert.notEqual(pair[0].response.request_id, pair[1].response.request_id);
       assert.deepEqual(semantics[1], semantics[0], "only declared response nonce differs");
       wireEquality.push({ axis, id: item.id, inputs_sha256: hash(sourceBytes),
-        wire_sha256: hash(JSON.stringify(pair[0].wire)), request_body_sha256: hash(pair[0].wire.body_utf8),
+        wire_sha256: hash(JSON.stringify(pair[1].wire)), request_body_sha256: hash(pair[1].wire.body_utf8),
+        previous_request_body_sha256: hash(pair[0].wire.body_utf8),
         original_captures: pair.map((p, i) => ({ apps_sha: manifests[1 - i].value.sources.apps, ...p })),
         response_nonces: pair.map(p => p.response.request_id), response_semantics_sha256: hash(JSON.stringify(semantics[0])),
         response_nonce_scope: "only top-level per-call request_id omitted from response semantic comparison",
-        status: "UPSTREAM_BYTES_EQUAL" });
+        status: axis === "V" ? "REGISTERED_COMPLETENESS_QUESTION_ONLY" : "UPSTREAM_BYTES_EQUAL" });
     }
   }
   const gridStart = boundaryRows.length;
@@ -425,6 +427,6 @@ fs.writeFileSync(path.join(out, "receipt.json"), JSON.stringify({ schema: "voice
   artifact_sources: manifests[0].value.sources, artifact_manifest_sha256: hash(manifests[0].bytes),
   baseline_completed_head: manifests[1].value.sources.apps, baseline_manifest_sha256: hash(manifests[1].bytes),
   source_inventory: FRONTIER_SOURCE_NAMES.length, summaries, api, wireEquality,
-  wire_equality_scope: "completed Workers under identical public G0/F/V inputs and synthetic provider; no real model measurement",
+  wire_equality_scope: "G0/F raw equal; V exact three registered completeness scalars only; original captures retained; synthetic only",
   boundaryRows, receiptFaults, stageRows }, null, 2) + "\n");
 console.log(JSON.stringify({ status: "PASS", scope: "SYNTHETIC_MECHANICS_ONLY", summaries, wire_pairs: wireEquality.length }));

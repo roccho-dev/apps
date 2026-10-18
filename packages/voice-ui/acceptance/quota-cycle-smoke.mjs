@@ -6,7 +6,7 @@ import http from "node:http";
 import { spawn } from "node:child_process";
 import { createHash } from "node:crypto";
 import { fileURLToPath, pathToFileURL } from "node:url";
-import { assertNoSecretInputs, loadAcceptanceArtifact } from "../tests/runtime-acceptance.mjs";
+import { assertNoSecretInputs, loadAcceptanceArtifact, assertCompactVerifierWire } from "../tests/runtime-acceptance.mjs";
 import { QUOTA_SOURCE_NAMES } from "../tests/quota-cycle-audit.mjs";
 import { QUOTA_METHODS, QUOTA_GENERATIONS, QUOTA_GOAL_POLICIES } from "../tests/quota-cycle-score.mjs";
 assertNoSecretInputs();
@@ -203,8 +203,10 @@ try {
         pair.push({ capture: upstream.at(-1), response: await response.json() });
       } finally { currentRequest = null; }
     }
-    assert.deepEqual(pair[1].capture, pair[0].capture);
-    wireEquality.push({ axis, status: "UPSTREAM_BYTES_EQUAL", request_body_sha256: hash(pair[0].capture.body_utf8),
+    if (axis === "V") assertCompactVerifierWire(pair[0].capture, pair[1].capture);
+    else assert.deepEqual(pair[1].capture, pair[0].capture);
+    wireEquality.push({ axis, status: axis === "V" ? "REGISTERED_COMPLETENESS_QUESTION_ONLY" : "UPSTREAM_BYTES_EQUAL",
+      request_body_sha256: hash(pair[1].capture.body_utf8), previous_request_body_sha256: hash(pair[0].capture.body_utf8),
       original_captures: pair.map((p, i) => ({ apps_sha: manifests[1 - i].value.sources.apps, ...p })) });
   }
   mode = "E";

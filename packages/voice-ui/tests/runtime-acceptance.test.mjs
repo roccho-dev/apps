@@ -14,6 +14,7 @@ import test from "node:test";
 import {
   FORBIDDEN_RUNTIME_INPUTS,
   assertExactSha,
+  assertCompactVerifierWire,
   assertNoSecretInputs,
   assertSha256,
   loadAcceptanceArtifact,
@@ -175,4 +176,31 @@ test("application failure is RED and never promoted from an executed receipt", (
   } finally {
     fixture.cleanup();
   }
+});
+
+test("compact V wire permits only the registered question scalars and exact serialized bytes", () => {
+  const wire = { model: "fixture", state: { required: [{ label: "API", kind: "step", quantity: 2 }] },
+    questions: { intent: { type: "choice", criteria: { change: "fixed" } },
+      completeness: { type: "choice", criteria: { complete: "previous complete", incomplete: "previous incomplete" }, instructions: "previous" } } };
+  const previous = { provider: "jev", method: "POST", content_type: "application/json", wire, body_utf8: JSON.stringify(wire) };
+  const current = structuredClone(previous);
+  current.wire.questions.completeness = {"type":"choice","criteria":{"complete":"要求された新規部品の表示名・種類・総個数が全て一致し、余分も未確定もありません。","incomplete":"表示名・種類・総個数に誤り、欠落、余分、または一意に決まらないものがあります。"},"instructions":"state.requiredは、新規追加部品の未検証候補です。原文と部品定義から一意に決まる（表示名・種類・総個数）の集合と、過不足なく一致していますか。既存の親や接続先は新規部品ではなく、親・矢印の割当と在庫数はこの一覧の照合対象外です。"};
+  current.body_utf8 = JSON.stringify(current.wire);
+  assertCompactVerifierWire(previous, current);
+  for (const change of [
+    x => { x.wire.state.required[0].quantity = 1; },
+    x => { x.wire.questions.intent.criteria.change = "changed"; },
+    x => { x.wire.model = "other"; },
+    x => { x.method = "GET"; },
+    x => { x.wire.questions.completeness.type = "other"; },
+    x => { x.wire.questions.completeness.instructions = "unregistered question"; },
+    x => { x.wire.questions.completeness.criteria.extra = "extra"; },
+    x => { x.wire.questions.completeness.criteria.complete = "unregistered criterion"; },
+  ]) {
+    const bad = structuredClone(current); change(bad); bad.body_utf8 = JSON.stringify(bad.wire);
+    assert.throws(() => assertCompactVerifierWire(previous, bad));
+  }
+  const bad = structuredClone(current); bad.body_utf8 += " ";
+  assert.throws(() => assertCompactVerifierWire(previous, bad));
+  assert.equal(previous.wire.questions.completeness.instructions, "previous");
 });
