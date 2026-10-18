@@ -1,0 +1,19 @@
+{
+  "schema": "voice-ui.independent-public-copy-allowlist/1",
+  "status": "CLOSED_CORRESPONDING_ORACLE_ONLY",
+  "directory": "C:\\Users\\resta\\Codex\\repos\\apps.git\\.worktrees\\typellm-ci-review-20261017\\review-evidence\\verifier-final-E-oracle-release",
+  "members": [
+    {
+      "name": "verifier-cycle-sealed-E-6.oracle.json",
+      "bytes": 10052,
+      "sha256": "94ba803d5633ab9ddcbeedaedda3d04387255be27cadd93351fff6f68cbb08d7"
+    },
+    {
+      "name": "verifier-final-E-oracle-release.json",
+      "bytes": 1336,
+      "sha256": "5cf72a452a2deedf9c292aeb763afdfb911597a5aaefc566981bf351f7c58829"
+    }
+  ],
+  "self_is_additionally_copyable": true,
+  "other_private_paths_copyable": false
+}

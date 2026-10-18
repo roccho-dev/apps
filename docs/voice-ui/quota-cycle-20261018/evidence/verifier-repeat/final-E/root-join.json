@@ -1,0 +1,50 @@
+{
+  "status": "PASS",
+  "scope": "ROOT_FIXED_INDEPENDENT_PRODUCER_SOURCE_ACTUAL_CI_DIST_RAW_PAINT_PROVIDER_THREE_PHASE_PROCESS_JOIN_PRE_REPORT_CI",
+  "at": "2026-10-18T06:54:14.590Z",
+  "binding": {
+    "status": "PASS",
+    "issues": [],
+    "scope": "fixed exact-byte producer/source testimony joins; physical observation remains independently referenced",
+    "CI_LIVE_EXECUTION": "UNPROVEN"
+  },
+  "processGraph": {
+    "schema": "voice-ui.quota-cycle-process/1",
+    "status": "PASS",
+    "issues": [],
+    "state": "FINAL_RECORDED",
+    "baseline": {
+      "jev": 850,
+      "typellm": 137
+    },
+    "indexed_phases": 3,
+    "source_head": "180fc53e24f0fc2a5fdb098a3748afaff047bab6",
+    "correction_batches": 0,
+    "reserved": {
+      "jev": 139,
+      "typellm": 7
+    },
+    "charged_at_cutoff": {
+      "jev": 896,
+      "typellm": 140
+    },
+    "releases": [
+      {
+        "phase": "compact-verifier-final-E-20261018",
+        "apps_sha": "180fc53e24f0fc2a5fdb098a3748afaff047bab6",
+        "admitted": true,
+        "prior_fresh_quality_required": false
+      }
+    ],
+    "scope": "integrity/process only; conditional expression and ordinary supplementation are separate; retained fresh quality failures do not block complete stopped-evidence progression"
+  },
+  "classificationBeforeCI": {
+    "quality": "UNPROVEN",
+    "effect": "UNPROVEN"
+  },
+  "raw_fresh_quality_effect_gate": "PASS",
+  "formal_evidence_CI": "PENDING",
+  "heldout_E": "RAW_GATE_PASS_CI_PENDING",
+  "old_new_question_causality": "UNPROVEN",
+  "fresh_E6": "STOPPED_GRADED_ORIGINAL_INPUT_ORACLE"
+}

@@ -1,0 +1,22 @@
+{
+  "phase_id": "compact-verifier-public-V-20261018",
+  "pid": 401522,
+  "state": "R",
+  "pgid": 401522,
+  "start_ticks": "21224742",
+  "program": "/nix/store/bg0bygqiid25xnivxv9cdgjlx3sp939j-voice-ui-typed-dev/bin/voice-ui-typed-dev",
+  "heads": {
+    "apps": "180fc53e24f0fc2a5fdb098a3748afaff047bab6",
+    "envs": "063e685b8b21a97fc8658879da93fa858552bcd6",
+    "ops": "a724bdfa1864762cd9050a00e2642450af29c196",
+    "windows": "6aef693c0946903d8b87c2348039de1420acd61b",
+    "ui": "756d47e891191c3344eb2d29b000203be8331abc"
+  },
+  "allowances": {
+    "jev": 6,
+    "typellm": 0
+  },
+  "stdout": "/work/repos/voice-ui-typellm-20261016/compact-verifier-public-V-20261018.stdout.log",
+  "stderr": "/work/repos/voice-ui-typellm-20261016/compact-verifier-public-V-20261018.stderr.log",
+  "config_sha256": "5de119ed35289c96b9485aa501b9dfc4e6bd53aa7e364c52cdcacd5a8af81760"
+}

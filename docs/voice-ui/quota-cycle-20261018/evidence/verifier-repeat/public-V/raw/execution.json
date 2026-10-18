@@ -1,0 +1,51 @@
+{
+  "schema": "voice-ui.requirements-cycle-phase/1",
+  "axis": "V",
+  "status": "RECORDED",
+  "summary": [
+    {
+      "axis": "V",
+      "id": "CV01",
+      "method": "verify",
+      "valid_execution": true,
+      "calls": 1
+    },
+    {
+      "axis": "V",
+      "id": "CV02",
+      "method": "verify",
+      "valid_execution": true,
+      "calls": 1
+    },
+    {
+      "axis": "V",
+      "id": "CV03",
+      "method": "verify",
+      "valid_execution": true,
+      "calls": 1
+    },
+    {
+      "axis": "V",
+      "id": "CV04",
+      "method": "verify",
+      "valid_execution": true,
+      "calls": 1
+    },
+    {
+      "axis": "V",
+      "id": "CV05",
+      "method": "verify",
+      "valid_execution": true,
+      "calls": 1
+    },
+    {
+      "axis": "V",
+      "id": "CV06",
+      "method": "verify",
+      "valid_execution": true,
+      "calls": 1
+    }
+  ],
+  "invalid_cells": 0,
+  "expected_cells": 6
+}

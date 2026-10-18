@@ -1,0 +1,29 @@
+{
+  "schema": "voice-ui.independent-stopped-phase-audit/1",
+  "status": "PASS",
+  "scope": "PHYSICAL_STOP_AND_ACCOUNTING_BEFORE_ORACLE_RELEASE_NOT_QUALITY",
+  "at": "2026-10-18T06:49:20.900998+00:00",
+  "phase": "compact-verifier-final-E-20261018",
+  "pid": 403353,
+  "start_ticks": "21375887",
+  "owned_pgids": 53,
+  "remaining_members": [],
+  "outstanding": 0,
+  "sent": {
+    "jev": 32,
+    "typellm": 2
+  },
+  "charged": {
+    "jev": 896,
+    "typellm": 140
+  },
+  "journal_sha256": "98d12764f44e334291b1f9aa15152445e1abaef2466305a3d78405324c26b2fe",
+  "prior_journal_sha256": "43cf6cf845f35f65db07858164d5e56366a2ab024e175c13eaa11db62b48ca6c",
+  "global_equals_immediate_snapshot": true,
+  "prior_prefix_raw_exact": true,
+  "config_sha256": "81ee56b6ae7ab013c1850c3d610468197845719a51743fde153728fe60c7abe8",
+  "process_sha256": "2befed58903d4d48a75f1bf04cd494d4a0f66f4873e01f77365b2e8511867614",
+  "orchestration_exit": 0,
+  "oracle_read": false,
+  "reviewer_provider_calls": 0
+}

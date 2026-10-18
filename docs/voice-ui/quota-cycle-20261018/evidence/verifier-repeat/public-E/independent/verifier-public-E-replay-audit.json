@@ -1,0 +1,11 @@
+{
+  "status": "PASS",
+  "issues": [],
+  "consumed": 2,
+  "frames": 6,
+  "assessed_frames": 4,
+  "recorded_paint_status": "PASS",
+  "replay_sha256": "cf8f33d1789527b5e569ac8536095a1d7ce26d26d551a3751c024487fa5b7e13",
+  "model_quality_scope": "NONE",
+  "CI_LIVE_EXECUTION": "UNPROVEN"
+}

@@ -1,0 +1,49 @@
+{
+  "schema": "voice-ui.compact-verifier-prelive-harness-audit/1",
+  "status": "PASS",
+  "head": "180fc53e24f0fc2a5fdb098a3748afaff047bab6",
+  "tree": "e2fc8ad6a1ccc3e83fa0cdc91e22434c5e02887c",
+  "parent": "e3a80fa56e7d953f8490b262fd90467829eee368",
+  "observed_at": "2026-10-18T05:45:42.628657+00:00",
+  "authenticated_changed_blobs": 6,
+  "changes": [
+    "three completed-artifact smoke expectations",
+    "shared runtime-acceptance helper/test",
+    "README preserves failed e3 release"
+  ],
+  "product_callers_grades_V18_E28_raw_unchanged": true,
+  "registration8_raw_unchanged": true,
+  "old_e3_source_checks_reusable": {
+    "groups": 42,
+    "source_proof_sha256": "0347f1fd069b3db629ac8c3e18042aa31a5cc01857946d7aff4578fb394750d3"
+  },
+  "runtime_helper_tests": {
+    "pass": 7,
+    "fail": 0,
+    "forbidden_deltas": 9,
+    "stdout_sha256": "694c661cc60617fec7627858c562465d78e319751a3a3bf1201ea1ee4b13e5d6"
+  },
+  "original_capture_check": {
+    "actual_captured_V_pairs": 2,
+    "exact_helper_pass": true,
+    "original_objects_unchanged": true
+  },
+  "exact_allowed_V_pointers": [
+    "/wire/questions/completeness/instructions",
+    "/wire/questions/completeness/criteria/complete",
+    "/wire/questions/completeness/criteria/incomplete"
+  ],
+  "checks": {
+    "previous_and_current_body_UTF8_match_own_JSON_stringify": true,
+    "new_values_equal_fixed_candidate_literals": true,
+    "type_and_exact_criteria_keys_preserved": true,
+    "metadata_model_state_other_questions_unchanged": true,
+    "F_G0_raw_equal_checks_retained": true,
+    "original_old_new_captures_and_both_hashes_kept_in_smokes": true,
+    "no_grade_threshold_gate_budget_or_seal_changes": true
+  },
+  "keyless_capture_mapping": "Root witness body is the parsed wire field; run is an external run label. All remaining capture metadata and both original body_utf8 strings are preserved in the helper input. Original files are unchanged.",
+  "scope": "prelive source/harness repair only; exact new completed artifact/wire/current CI and frozen bodies still required for R27; no launch or live GO",
+  "provider_sends": 0,
+  "fresh_release": false
+}

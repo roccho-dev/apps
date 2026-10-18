@@ -1,0 +1,58 @@
+{
+  "schema": "voice-ui.independent-browser-mechanics-audit/1",
+  "status": "PASS",
+  "scope": "ACTUAL_CI_SYNTHETIC_ONLY_NO_MODEL_QUALITY_OR_LIVE_GO",
+  "artifact": {
+    "id": 12127540004,
+    "owner": 39101548811,
+    "head": "180fc53e24f0fc2a5fdb098a3748afaff047bab6",
+    "bytes": 4661721,
+    "sha256": "83e7fcae820f7fb22fe800784fa00ca2f6f33010e4ff6e8a3e4b45e9bd833bda"
+  },
+  "receipt_hashes": {
+    "intent-cycle-mechanics": {
+      "sha256": "9218a247f278d87eb3c9e486172111c33da2c20befe1735780642ac992359ee5"
+    },
+    "frontier-cycle-mechanics": {
+      "sha256": "ec257d1fdc9b248e9583912c79480378632174833a8ca67b8c75bb387636108b"
+    },
+    "quota-cycle-mechanics": {
+      "sha256": "6caed7709ebdbe240ac826c42e7674b69b2031205a9d7cc157134c77b7dd23ab"
+    }
+  },
+  "wire_pairs": {
+    "total": 37,
+    "G0": 11,
+    "F": 13,
+    "V": 13,
+    "rule": "F/G0 all capture fields and rawUTF8 equal; V only exact three declared completeness scalars; F/V response exception only top-level valid UUIDv4; G0 both independently read without equality or normalization claim"
+  },
+  "quota": {
+    "cells": 12,
+    "invalid_retained": 4,
+    "named_frames": 26,
+    "source_names": 28,
+    "all_current_source_hashes_exact": true,
+    "replay_rows": 12,
+    "replay_named_frames": 26,
+    "ordinary_type_direct_D_body_exact": true
+  },
+  "frontier": {
+    "cells": 40,
+    "invalid_retained": 14,
+    "named_frames": 40,
+    "boundary_rows": 60,
+    "persisted_rows_deep_equal": true,
+    "reader_grid": 48,
+    "provider_deadline_ms": 10002.894259000008,
+    "shared_deadline_ms": 40013.542377000005,
+    "active_Type_ms": 33008.95275900001
+  },
+  "external_provider_sends": {
+    "jev": 0,
+    "typellm": 0
+  },
+  "performance": "NOT_MEASURED",
+  "actual_zero_live_admission": "NOT_STARTED",
+  "independent_checker_note": "v1 extra G0 top-level UUID assumption rejected before proof; v2 rejected normalized wire parts as full stock; v3 uses original artifact stock with frozen /2 reader and preserves original G0 responses"
+}

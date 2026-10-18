@@ -1,0 +1,129 @@
+{
+  "schema": "voice-ui.compact-verifier-source-audit/1",
+  "status": "PASS",
+  "head": "e3a80fa56e7d953f8490b262fd90467829eee368",
+  "tree": "3b7963774cc0de07881f628c96914bced6bb8683",
+  "parent": "9c83838bcbfa5c8a6e56eed6558d4fc287a5e300",
+  "authenticated_changed_blobs": 21,
+  "registration": [
+    {
+      "path": "docs/voice-ui/quota-cycle-20261018/preregistered/verifier-cycle-protocol.md",
+      "bytes": 9794,
+      "sha256": "dfb5f36ed07223ec6dab4dad6e51687b1e0af33d387778af05849137872d0dd0",
+      "github_blob": "e60554f366089800af11e358efbf10bcbda62456"
+    },
+    {
+      "path": "docs/voice-ui/quota-cycle-20261018/preregistered/verifier-cycle-public-V-6.inputs.json",
+      "bytes": 5592,
+      "sha256": "a508e239d34896726e0a21c9e7cd0eb52486879652be70e786be362d57db573d",
+      "github_blob": "1f2e34a7793d497946cb9d25b22875b7eaf8a52e"
+    },
+    {
+      "path": "docs/voice-ui/quota-cycle-20261018/preregistered/verifier-cycle-public-V-6.oracle.json",
+      "bytes": 10517,
+      "sha256": "c2bfbe81c8d7c7c07f8e36a985b7a2c537bd3fd2ef0eb61147d0beeb8c704d2d",
+      "github_blob": "745e1beb7aa9f6b74626ffe95e0b6f8ec045f892"
+    },
+    {
+      "path": "docs/voice-ui/quota-cycle-20261018/preregistered/verifier-cycle-public-E-1.inputs.json",
+      "bytes": 3628,
+      "sha256": "52b95efd0dc3301c746b1d947e5896400bf7f12ee0e8d2d53113ddf8c2c08283",
+      "github_blob": "3a2a1cbdf5249929190b5a38db9c3da7e32e84d3"
+    },
+    {
+      "path": "docs/voice-ui/quota-cycle-20261018/preregistered/verifier-cycle-public-E-1.oracle.json",
+      "bytes": 5857,
+      "sha256": "837d68dd6c1da85ac3ce199d27dc88ceeb3ea57eff0ec18bdf5451ff6dd7124e",
+      "github_blob": "bf57d24f873eaf4463cd7445a97b823367f9f47a"
+    },
+    {
+      "path": "docs/voice-ui/quota-cycle-20261018/preregistered/verifier-cycle-static-validation.json",
+      "bytes": 4919,
+      "sha256": "4db2db780b2da894356723496c2cbbb35ef63f48b488c98e80b31b04944dcc3a",
+      "github_blob": "25fc2a69e0d6895260f3b3394b034c6b51efc49b"
+    },
+    {
+      "path": "docs/voice-ui/quota-cycle-20261018/preregistered/verifier-cycle-commitment.json",
+      "bytes": 14548,
+      "sha256": "a9062129f2bda9dab84f5e311d35f7b071b1035f22a1485a38c4c8aafd6d12a2",
+      "github_blob": "6cb01372d9cd65e86a856e33a86f9487daef9a59"
+    },
+    {
+      "path": "docs/voice-ui/quota-cycle-20261018/preregistered/verifier-cycle-public-freeze.json",
+      "bytes": 1637,
+      "sha256": "4e9c70316b95d938a00a48fa7693330fe51b644ac1cd9c895b431fccc3dffe2e",
+      "github_blob": "32da1ab76849e9d5850e68a7eb5e5cf48867cc08"
+    }
+  ],
+  "product_diff": "only requiredQuestion block; rest of completion raw-identical",
+  "core6_raw_equal": true,
+  "frozen5_grade_modules_and_literal_raw_equal": true,
+  "quota_grade_classifier_body_after_registry_raw_equal": true,
+  "formal_provider_flake_pin_unchanged": true,
+  "empty_index_expected_cumulative": {
+    "jev": 850,
+    "typellm": 137
+  },
+  "source_snapshot_files": 1773,
+  "provider_sends": 0,
+  "fresh_released": false,
+  "observed_at": "2026-10-18T05:37:44.404978+00:00",
+  "scope": "exact published source/registration and local keyless tests only; actual completed artifact/wire/relevant CI/current body and actual zero-send admission remain pending",
+  "registry": {
+    "source_inventories": {
+      "legacyV": 17,
+      "compactV": 18,
+      "E": 28
+    },
+    "profile_constants_match_public": true,
+    "unknown_profile_rejected": true
+  },
+  "local_checks": {
+    "current_source_groups": 40,
+    "new_V_profile_groups": 2,
+    "passed": 42,
+    "failed": 0,
+    "synthetic_external_provider_sends": 0,
+    "logs": {
+      "source_tests": {
+        "name": "verifier-e3a80fa-source-tests.stdout.log",
+        "bytes": 18224,
+        "sha256": "df106639bf58970ec7dc2e6a4fb21de2b1be7d19060ee5fea56236764e115515"
+      },
+      "V_profile_tests": {
+        "name": "verifier-e3a80fa-V-audit-tests.stdout.log",
+        "bytes": 355,
+        "sha256": "2cd4ea35a8415d5d04306ddde20d27eb9a591cb9e00b6edc139f3f026029bd85"
+      }
+    }
+  },
+  "process_gates": {
+    "fixed_order": [
+      "public/V",
+      "public/E",
+      "final/E"
+    ],
+    "V_gate": "6 valid and operationally correct, false acceptance0; raw factors separately retained",
+    "failed_public_V_retained_as_integrity_evidence": true,
+    "E_after_failed_V_rejected": true,
+    "sealed_after_failed_public_E_rejected": true,
+    "same_head_all_stages": true,
+    "cycle_cap": {
+      "jev": 139,
+      "typellm": 7
+    },
+    "eleven_J_not_allocated": true,
+    "legacy_default_profile_paths_preserved": true
+  },
+  "limitations": [
+    "No model performance, question-only causality or ordinary UI completion inferred.",
+    "No GET launch, new reservation, paid call or fresh payload release authorized by this source-only checkpoint.",
+    "Actual old closure invariance is still checked by required CI; pure legacy grades/core bytes were independently compared."
+  ],
+  "future_checks": [
+    "actual completed ZIP/official verifier/source and both formal provider manifest joins",
+    "completed Worker raw wire: F/G0/Goal unchanged, V completeness-only intended change",
+    "relevant CI/full closure and truthful PR/UI readback before formal R27",
+    "actual same PID/start/preload/FD route/caps/provider zero sends before separate measurement GO"
+  ]
+}

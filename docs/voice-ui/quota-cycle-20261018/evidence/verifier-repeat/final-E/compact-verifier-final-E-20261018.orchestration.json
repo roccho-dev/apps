@@ -1,0 +1,30 @@
+{
+  "phase": "compact-verifier-final-E-20261018",
+  "began": "2026-10-18T06:46:33.806Z",
+  "finished": "2026-10-18T06:48:43.497Z",
+  "execution": {
+    "exit": 0
+  },
+  "stop": {
+    "status": "STOPPED_RECONCILED",
+    "result": {
+      "phase": "compact-verifier-final-E-20261018",
+      "action": "stop",
+      "current": {
+        "pid": 403353,
+        "state": "S",
+        "pgid": 403353,
+        "start_ticks": "21375887"
+      },
+      "sent": {
+        "jev": 32,
+        "typellm": 2
+      },
+      "whole_run_sent": {
+        "jev": 896,
+        "typellm": 140
+      },
+      "reserved_until_confirmed_stop": null
+    }
+  }
+}

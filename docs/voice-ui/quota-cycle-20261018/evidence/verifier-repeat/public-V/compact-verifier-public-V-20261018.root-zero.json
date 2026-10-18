@@ -1,0 +1,22 @@
+{
+  "status": "PASS",
+  "scope": "ROOT_ZERO_SEND_PREFLIGHT_NOT_INDEPENDENT_GO",
+  "at": "2026-10-18T06:20:42.127Z",
+  "phase": "compact-verifier-public-V-20261018",
+  "pid": 401522,
+  "start_ticks": "21224742",
+  "pgid": 401522,
+  "uid": 1000,
+  "config_sha256": "5de119ed35289c96b9485aa501b9dfc4e6bd53aa7e364c52cdcacd5a8af81760",
+  "process_sha256": "d331d08a10cc3170c39fc6458eda8dfd280ef6d37ce5d714a8be369755cda264",
+  "runtime_sha256": "687ef945c74344603ff0c81ae34d404fb3fef89169baf0c53b7368dae8ad5b43",
+  "wire_sha256": "187832605680a2d25f51a5a57135b11762f2c30423dd93a0cc31c680d7b6b380",
+  "identity_sha256": "e5725165dec4ea7ed5833d0aeae312f21daa09766ff0b587d7e42fdd1aab563a",
+  "launcher_sha256": "2bda2882f0d8e489198241dc987d2cd28f989dd7fefad1a1640e152ac913a6c5",
+  "driver_sha256": "5a72932cdce232bdfd3be6d05cd77f721c25a4b492b36a8cfdf126228a31843b",
+  "provider_sends": {
+    "jev": 0,
+    "typellm": 0
+  },
+  "served_index_equals_completed_artifact": true
+}

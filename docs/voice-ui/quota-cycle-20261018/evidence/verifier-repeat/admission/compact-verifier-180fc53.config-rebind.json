@@ -1,0 +1,42 @@
+{
+  "status": "PRELIVE_CONFIG_REBIND_ONLY",
+  "source": "180fc53e24f0fc2a5fdb098a3748afaff047bab6",
+  "prior_configs_preserved": true,
+  "reservations_added": 0,
+  "provider_sends": 0,
+  "rows": [
+    {
+      "phase": "compact-verifier-public-V-20261018",
+      "path": "/work/repos/voice-ui-typellm-20261016/compact-verifier-public-V-20261018.config.json",
+      "bytes": 1271,
+      "sha256": "5de119ed35289c96b9485aa501b9dfc4e6bd53aa7e364c52cdcacd5a8af81760",
+      "prior_preserved_at": "/work/repos/voice-ui-typellm-20261016/compact-verifier-public-V-20261018.e3a80fa.config.json",
+      "allowances": {
+        "jev": 6,
+        "typellm": 0
+      }
+    },
+    {
+      "phase": "compact-verifier-public-E-20261018",
+      "path": "/work/repos/voice-ui-typellm-20261016/compact-verifier-public-E-20261018.config.json",
+      "bytes": 1265,
+      "sha256": "4fc6dd63996727dcce9bd2f04075f12e9f3e29ed40936f41b7a6a1ea5fbd4c71",
+      "prior_preserved_at": "/work/repos/voice-ui-typellm-20261016/compact-verifier-public-E-20261018.e3a80fa.config.json",
+      "allowances": {
+        "jev": 19,
+        "typellm": 1
+      }
+    },
+    {
+      "phase": "compact-verifier-final-E-20261018",
+      "path": "/work/repos/voice-ui-typellm-20261016/compact-verifier-final-E-20261018.config.json",
+      "bytes": 1202,
+      "sha256": "81ee56b6ae7ab013c1850c3d610468197845719a51743fde153728fe60c7abe8",
+      "prior_preserved_at": "/work/repos/voice-ui-typellm-20261016/compact-verifier-final-E-20261018.e3a80fa.config.json",
+      "allowances": {
+        "jev": 114,
+        "typellm": 6
+      }
+    }
+  ]
+}

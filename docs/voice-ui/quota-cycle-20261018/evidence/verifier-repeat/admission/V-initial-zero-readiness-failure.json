@@ -1,0 +1,27 @@
+{
+  "status": "PREFLIGHT_NOT_READY",
+  "scope": "GET_ONLY_SAME_PID_STARTUP_NO_MODEL_SEND",
+  "phase": "compact-verifier-public-V-20261018",
+  "pid": 401522,
+  "start_ticks": "21224742",
+  "helper_sha256": "c5aae405757c1ab3b2159c16e9c4ed805da047a789fe23eba530af2b43f9a9d9",
+  "error": {
+    "name": "TypeError",
+    "message": "fetch failed",
+    "cause": "ECONNREFUSED",
+    "address": "127.0.0.1",
+    "port": 18845
+  },
+  "identity_created": false,
+  "zero_proof_created": false,
+  "new_launch_or_reservation": false,
+  "source_or_helper_changed": false,
+  "provider_sends": 0,
+  "subsequent_readiness": {
+    "status": 200,
+    "same_pid": true,
+    "zero_identity_exists": false,
+    "zero_proof_exists": false
+  },
+  "independent_reviewer_allowed_same_helper_readiness_recheck": true
+}

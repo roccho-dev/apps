@@ -1,0 +1,137 @@
+{
+  "schema": "voice-ui.independent-actual-zero-audit/1",
+  "status": "PASS",
+  "scope": "ONE_SHOT_PUBLIC_V6_ADMISSION_AFTER_SAME_PID_GET_ONLY",
+  "at": "2026-10-18T06:23:23.062354+00:00",
+  "phase": "compact-verifier-public-V-20261018",
+  "head": "180fc53e24f0fc2a5fdb098a3748afaff047bab6",
+  "actual_pid": 401522,
+  "pgid": 401522,
+  "start_ticks": "21224742",
+  "uids": [
+    1000,
+    1000,
+    1000,
+    1000
+  ],
+  "argv": [
+    "node",
+    "/nix/store/pzfmhna5svkwsy0gpn43qdpfwxn8r287-source/packages/voice-ui/dev/serve.mjs"
+  ],
+  "config_sha256": "5de119ed35289c96b9485aa501b9dfc4e6bd53aa7e364c52cdcacd5a8af81760",
+  "process_sha256": "d331d08a10cc3170c39fc6458eda8dfd280ef6d37ce5d714a8be369755cda264",
+  "runtime_sha256": "687ef945c74344603ff0c81ae34d404fb3fef89169baf0c53b7368dae8ad5b43",
+  "wire_sha256": "187832605680a2d25f51a5a57135b11762f2c30423dd93a0cc31c680d7b6b380",
+  "identity_sha256": "e5725165dec4ea7ed5833d0aeae312f21daa09766ff0b587d7e42fdd1aab563a",
+  "root_zero_sha256": "fbbefa675045c2e5f0ad8514ec189ded0b51e92b9cdcc8d63987927453d91ec1",
+  "runtime_source_names": 18,
+  "source_sha256": {
+    "src/completion.mjs": "842f4c107d09cdf388b8d99d3e10acb027f3026b1a8216dc2ce49c657bf1a9b0",
+    "src/literal-inventory.mjs": "ecdeb980fb826f800dfeb186e042b5a4edf85b32ecc8a97516eb55e81a9c37f9",
+    "src/goal.mjs": "cd9101d6a222e31773c9523adeca3f7f9aa32990e30b39e06a7b872771422f3e",
+    "src/contract.mjs": "f2c95212493f59fd80ef17270c2b5de0d51d795b26ac8a0e6dfa0fdb9dec30fe",
+    "src/turn.mjs": "c5fc3489a5bd0861f0455bd9843f47e76030bb03a4fe55745cf00c29c79b7008",
+    "src/session.mjs": "d6fcb97e581afb789ed6ecb339c06c378ef94283084df8ad3042ebe42c48cfe8",
+    "functions/api/parts.mjs": "8dfe64a2e0d27a34cf68e44b6a903cd75ba87e860e07dc457ea22a9264186716",
+    "functions/pages-worker.mjs": "0a88ce097a490d6f6920a6d007e8bffe66f8d2f5c344f611bf366f00ca8bb524",
+    "web/app.mjs": "3a9ac4eba0770949a219b35c97cd346d4a7912026fae2b2f21710251b86bbf2a",
+    "web/adapters/completion.mjs": "537bc46e93efe58fbdf466dd2493989ad5695209def769ec9da3ba68926edb5a",
+    "dev/serve.mjs": "d044ea7f8ccbd7fd71fbe1447dcce0f30bfa831d471da3eef2e3377380532298",
+    "tests/requirements-cycle-eval.mjs": "5a72932cdce232bdfd3be6d05cd77f721c25a4b492b36a8cfdf126228a31843b",
+    "tests/requirements-cycle-score.mjs": "3d779cf422e8cc0facc6f5ff566c3e77b36a61486f9586f120b0c1a722cd5a46",
+    "tests/requirements-cycle-audit.mjs": "b93e9223c5be97d4ef1e6a65eb0db3c3e528037c605b587bb56121c1b54baaba",
+    "tests/semantic-score.mjs": "3230791bd2b06ccbb73008723ab3709981ce6e2d65fc2fdbdec8cadf9d1cfec3",
+    "tests/requirements-cycle-http.mjs": "b3c1d052e2f7138532e0d7cac6ac7b3c7287b7af32b857990c1e6d14bb325386",
+    "tests/painted-goal.mjs": "c5ba117d1dea66d20c80b7f92b8184296ff79d4231da56f5a89836af4beb018b",
+    "tests/quota-cycle-score.mjs": "cf64145f4f3703673e08d43249977550a26d43a5eff01a0a8dc74380b26552ac"
+  },
+  "strict_preload": {
+    "path": "/nix/store/s9sspm66pdf3xjdsbvy0q60cr0jp7w4g-voice-ui-provider-budget.mjs",
+    "sha256": "cdb39c164e55d7f660251704b13c20c4fdd6ffb0bec1524c44e9bf355e333d24",
+    "NODE_OPTIONS_exact": true,
+    "caps": {
+      "jev": 6,
+      "typellm": 0
+    }
+  },
+  "credential_route": {
+    "common_launcher_sha256": "2bda2882f0d8e489198241dc987d2cd28f989dd7fefad1a1640e152ac913a6c5",
+    "manager_v3_sha256": "7f62fd2848cfdf646e576ad40fc17db077c06e2f16548a6dd5d817c046c2ff4b",
+    "previously_reviewed_FD3_FD4_route_exact_bytes": true,
+    "actual_key_presence_boolean_only": {
+      "JEV_API_KEY": true,
+      "TYPELLM_API_KEY": true
+    },
+    "FD3_FD4_metadata_only": {
+      "3": "anon_inode",
+      "4": "pipe"
+    },
+    "fd_contents_read": false,
+    "secret_values_returned": false,
+    "fixture_or_endpoint_overrides_absent": true
+  },
+  "formal_providers": {
+    "jev": {
+      "contract": "named-questions/1",
+      "entry_sha256": "0773b5c96d0da7f05fef9f9cf95772b6722a03022648e90fc56a4fdc9ac6046e",
+      "locator": "https://github.com/roccho-org/ops/releases/download/jev-provider-c7ed1132ad7bec8e5f05c6da38d719a05dec4877/jev-provider.zip",
+      "manifest_sha256": "a5386f84f0606c6900b3c0e89d19f94dcf701d344d7c7e6384889d8bb6a1aab5",
+      "proof_sha256": "d756b5855a55c07e7b93687f1556ad1a2657ce0acc701c89476d87d9461a46ff",
+      "provenance_sha256": "90e295578042b89fcf4e1d6dfc2a5cdee6d76916f97a3668472883810811ea17",
+      "sha256": "0c063b050895db87029fd514c81add33e291e321109e2aa55a3befdd42593f03"
+    },
+    "typellm": {
+      "contract": "typed-completion/1",
+      "entry_sha256": "3c10462eecd7f83dd790bfe208587c99347dcbed324b32ae674afbab48bdfb22",
+      "locator": "https://github.com/roccho-org/ops/releases/download/jev-provider-a724bdfa1864762cd9050a00e2642450af29c196/typellm-provider.zip",
+      "manifest_sha256": "4addcd161cb80f8800ee8d78a4b212c3fd2b7e92900cb10c492f3cf560878b2b",
+      "proof_sha256": "8e79073aa7fb94ffa7d4c0003c592d85622099b251c0958712eb2f7ea59bfba6",
+      "provenance_sha256": "d3d3b35ce4a77077823230da4790070db5ba206d09c66111c72b4fc44f4cc9ac",
+      "sha256": "25f8bf076d24577ad512fc63c9491e13796e76007d2e52349b5a9fc223395de6"
+    }
+  },
+  "actual_entry_sha256": {
+    "jev": "0773b5c96d0da7f05fef9f9cf95772b6722a03022648e90fc56a4fdc9ac6046e",
+    "typellm": "3c10462eecd7f83dd790bfe208587c99347dcbed324b32ae674afbab48bdfb22"
+  },
+  "manifest_sha256": "38eaa1551f3c828a1c1f262cf94f388f757f27f39690bf6eedc04e839d3ad79a",
+  "socket": [
+    {
+      "inode": "906265",
+      "owned_by_actual_pid": true,
+      "local_address": "0100007F:499D"
+    }
+  ],
+  "served_index": {
+    "status": 200,
+    "bytes": 5943,
+    "sha256": "8c7a6ed602ea4c149b4ab1472c26f999cbcf41e088725162c8638fc184ee43df",
+    "exact_completed_artifact": true
+  },
+  "provider_sends": {
+    "jev": 0,
+    "typellm": 0
+  },
+  "charged_prior": {
+    "jev": 850,
+    "typellm": 137
+  },
+  "baseline_journal_sha256": "90525733f94f161502411d957c953e1162850e7a1740f13cdad69a455e0d1478",
+  "actual_ledger_sha256": "3721883991f803dd033d6939f92c3abf5b378e466ffbb51a0fc669f010d785b3",
+  "pending_only": {
+    "compact-verifier-public-V-20261018": {
+      "jev": 6,
+      "typellm": 0
+    }
+  },
+  "raw_or_driver_orchestration_absent": true,
+  "approved_operator_sha256": "99da17283eaec5892460696eb9ddb2e4255c461058d5776a4383789d162845ec",
+  "required_boundaries": {
+    "one_fixed_V6_only": true,
+    "no_retry_correction_substitution": true,
+    "finally_strict_stop_and_immediate_journal": true,
+    "E_not_admitted_before_independent_stop_producer_and_public_V_gate": true,
+    "fresh_E6_unreleased": true
+  },
+  "reviewer_provider_calls": 0
+}

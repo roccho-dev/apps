@@ -1,0 +1,386 @@
+{
+  "schema": "voice-ui.requirements-cycle-cell/1",
+  "axis": "V",
+  "id": "CV05",
+  "method": "verify",
+  "arm": "V",
+  "replay_suffix_scope": "compatibility only",
+  "fixture": "empty",
+  "utterance": "保留区へ新しい工程を二つ設け、どちらの表示もAPIにしてください。二つとも独立した部品として置き、線は付けないでください。",
+  "parts": [
+    {
+      "key": "step",
+      "purpose": "an ordinary step, task or box",
+      "label": "工程",
+      "kind": "step"
+    },
+    {
+      "key": "decision",
+      "purpose": "a decision, choice or branch",
+      "label": "判断",
+      "kind": "decision"
+    },
+    {
+      "key": "data",
+      "purpose": "data, a document, an input or an output",
+      "label": "データ",
+      "kind": "data"
+    },
+    {
+      "key": "start",
+      "purpose": "a start or beginning",
+      "label": "開始",
+      "kind": "start"
+    },
+    {
+      "key": "end",
+      "purpose": "an end, finish or result",
+      "label": "終了",
+      "kind": "end"
+    },
+    {
+      "key": "api",
+      "purpose": "an application programming interface service that receives requests",
+      "label": "API",
+      "kind": "step"
+    },
+    {
+      "key": "db",
+      "purpose": "a database that persists application data",
+      "label": "DB",
+      "kind": "data"
+    },
+    {
+      "key": "group",
+      "purpose": "a group, boundary or container that holds other parts",
+      "label": "グループ",
+      "kind": "group"
+    }
+  ],
+  "valid_execution": true,
+  "elapsedMs": 189.8207,
+  "result": {
+    "schema": "voice-ui.parts.verification/2",
+    "request_id": "9dae686b-0ac6-460d-8a52-3c621c97b3bc",
+    "required": [
+      {
+        "label": "API",
+        "kind": "step",
+        "quantity": 2
+      },
+      {
+        "label": "DB",
+        "kind": "data",
+        "quantity": 1
+      }
+    ],
+    "factors": {
+      "intent": {
+        "choice": "change",
+        "confidence": 0.79
+      },
+      "labels": {
+        "choice": "available",
+        "confidence": 0.74
+      },
+      "capacity": {
+        "choice": "exceeded",
+        "confidence": 0.88
+      },
+      "completeness": {
+        "choice": "incomplete",
+        "confidence": 0.74
+      }
+    },
+    "accepted": false,
+    "confidence": 0.74
+  },
+  "calls": [
+    {
+      "id": "CV05",
+      "arm": "V",
+      "n": 1,
+      "route": "/api/parts/verify",
+      "request": {
+        "schema": "voice-ui.parts.verify/2",
+        "inventory": {
+          "kind": "voice-ui.goal.inventory.v1",
+          "state": {
+            "utterance": "保留区へ新しい工程を二つ設け、どちらの表示もAPIにしてください。二つとも独立した部品として置き、線は付けないでください。",
+            "head": "sha256:997f2a85be41d6774df84a876b8bba255de5d38cf5cda626fbb1dfc268940bc8",
+            "regions": [
+              {
+                "id": "root",
+                "label": "fixture",
+                "kind": "boundary",
+                "parent": null
+              },
+              {
+                "id": "container",
+                "label": "作業区",
+                "kind": "group",
+                "parent": "root"
+              },
+              {
+                "id": "other",
+                "label": "保留区",
+                "kind": "group",
+                "parent": "root"
+              }
+            ],
+            "edges": [],
+            "parts": [
+              {
+                "key": "step",
+                "purpose": "an ordinary step, task or box",
+                "label": "工程",
+                "kind": "step"
+              },
+              {
+                "key": "decision",
+                "purpose": "a decision, choice or branch",
+                "label": "判断",
+                "kind": "decision"
+              },
+              {
+                "key": "data",
+                "purpose": "data, a document, an input or an output",
+                "label": "データ",
+                "kind": "data"
+              },
+              {
+                "key": "start",
+                "purpose": "a start or beginning",
+                "label": "開始",
+                "kind": "start"
+              },
+              {
+                "key": "end",
+                "purpose": "an end, finish or result",
+                "label": "終了",
+                "kind": "end"
+              },
+              {
+                "key": "api",
+                "purpose": "an application programming interface service that receives requests",
+                "label": "API",
+                "kind": "step"
+              },
+              {
+                "key": "db",
+                "purpose": "a database that persists application data",
+                "label": "DB",
+                "kind": "data"
+              },
+              {
+                "key": "group",
+                "purpose": "a group, boundary or container that holds other parts",
+                "label": "グループ",
+                "kind": "group"
+              }
+            ]
+          }
+        },
+        "required": [
+          {
+            "label": "API",
+            "kind": "step",
+            "quantity": 2
+          },
+          {
+            "label": "DB",
+            "kind": "data",
+            "quantity": 1
+          }
+        ]
+      },
+      "status": 200,
+      "response": {
+        "schema": "voice-ui.parts.verification/2",
+        "request_id": "9dae686b-0ac6-460d-8a52-3c621c97b3bc",
+        "required": [
+          {
+            "label": "API",
+            "kind": "step",
+            "quantity": 2
+          },
+          {
+            "label": "DB",
+            "kind": "data",
+            "quantity": 1
+          }
+        ],
+        "factors": {
+          "intent": {
+            "choice": "change",
+            "confidence": 0.79
+          },
+          "labels": {
+            "choice": "available",
+            "confidence": 0.74
+          },
+          "capacity": {
+            "choice": "exceeded",
+            "confidence": 0.88
+          },
+          "completeness": {
+            "choice": "incomplete",
+            "confidence": 0.74
+          }
+        },
+        "accepted": false,
+        "confidence": 0.74
+      },
+      "elapsedMs": 178.9638
+    }
+  ],
+  "initial_head": "sha256:997f2a85be41d6774df84a876b8bba255de5d38cf5cda626fbb1dfc268940bc8",
+  "initial_log": "{\"operations\":[{\"mapId\":\"voice-graph\",\"records\":[{\"root\":\"root\",\"schema\":\"semantic-map-state/1\",\"title\":\"independent typed ordinary public\",\"type\":\"meta\"},{\"bounds\":[0,0,900,400],\"id\":\"root\",\"kind\":\"boundary\",\"label\":\"fixture\",\"parent\":null,\"summary\":\"\",\"type\":\"region\"},{\"bounds\":[0,0,700,200],\"id\":\"container\",\"kind\":\"group\",\"label\":\"作業区\",\"parent\":\"root\",\"summary\":\"\",\"type\":\"region\"},{\"bounds\":[0,230,700,160],\"id\":\"other\",\"kind\":\"group\",\"label\":\"保留区\",\"parent\":\"root\",\"summary\":\"\",\"type\":\"region\"}],\"type\":\"CreateMap\"}],\"parent\":null,\"schema\":\"semantic-map-decision/2\",\"stateHash\":\"sha256:b494bf0e970f5039e2ad8d4caedfbd1002ede88d47c98b346346d5cb328c5b2c\"}\n{\"operations\":[{\"items\":[{\"bounds\":[0,0,2000,500],\"regionId\":\"container\"},{\"bounds\":[0,600,2000,500],\"regionId\":\"other\"}],\"type\":\"PinRegions\"}],\"parent\":\"sha256:559f71a255409af67cb1bfa3b3b2b39bd28fd0e6f7582ba858ac192eff3b58fd\",\"schema\":\"semantic-map-decision/2\",\"stateHash\":\"sha256:8e0a90b346cd898143c698e7d0e6aff7e737b111c24cf0f76ecf3b0b14121916\"}\n",
+  "initial_log_sha256": "98920f938c20ef190f56f31c9f21d811e1cb53ee9313ec4437a1d6a88bb4e05c",
+  "initial_records": [
+    {
+      "type": "meta",
+      "schema": "semantic-map-state/1",
+      "root": "root",
+      "title": "independent typed ordinary public"
+    },
+    {
+      "type": "region",
+      "id": "root",
+      "parent": null,
+      "label": "fixture",
+      "kind": "boundary",
+      "bounds": [
+        0,
+        0,
+        900,
+        400
+      ],
+      "summary": ""
+    },
+    {
+      "type": "region",
+      "id": "container",
+      "parent": "root",
+      "label": "作業区",
+      "kind": "group",
+      "bounds": [
+        0,
+        0,
+        700,
+        200
+      ],
+      "summary": ""
+    },
+    {
+      "type": "region",
+      "id": "other",
+      "parent": "root",
+      "label": "保留区",
+      "kind": "group",
+      "bounds": [
+        0,
+        230,
+        700,
+        160
+      ],
+      "summary": ""
+    },
+    {
+      "type": "layout",
+      "regionId": "container",
+      "pin": "hard",
+      "bounds": [
+        0,
+        0,
+        2000,
+        500
+      ]
+    },
+    {
+      "type": "layout",
+      "regionId": "other",
+      "pin": "hard",
+      "bounds": [
+        0,
+        600,
+        2000,
+        500
+      ]
+    }
+  ],
+  "final_head": "sha256:997f2a85be41d6774df84a876b8bba255de5d38cf5cda626fbb1dfc268940bc8",
+  "final_log": "{\"operations\":[{\"mapId\":\"voice-graph\",\"records\":[{\"root\":\"root\",\"schema\":\"semantic-map-state/1\",\"title\":\"independent typed ordinary public\",\"type\":\"meta\"},{\"bounds\":[0,0,900,400],\"id\":\"root\",\"kind\":\"boundary\",\"label\":\"fixture\",\"parent\":null,\"summary\":\"\",\"type\":\"region\"},{\"bounds\":[0,0,700,200],\"id\":\"container\",\"kind\":\"group\",\"label\":\"作業区\",\"parent\":\"root\",\"summary\":\"\",\"type\":\"region\"},{\"bounds\":[0,230,700,160],\"id\":\"other\",\"kind\":\"group\",\"label\":\"保留区\",\"parent\":\"root\",\"summary\":\"\",\"type\":\"region\"}],\"type\":\"CreateMap\"}],\"parent\":null,\"schema\":\"semantic-map-decision/2\",\"stateHash\":\"sha256:b494bf0e970f5039e2ad8d4caedfbd1002ede88d47c98b346346d5cb328c5b2c\"}\n{\"operations\":[{\"items\":[{\"bounds\":[0,0,2000,500],\"regionId\":\"container\"},{\"bounds\":[0,600,2000,500],\"regionId\":\"other\"}],\"type\":\"PinRegions\"}],\"parent\":\"sha256:559f71a255409af67cb1bfa3b3b2b39bd28fd0e6f7582ba858ac192eff3b58fd\",\"schema\":\"semantic-map-decision/2\",\"stateHash\":\"sha256:8e0a90b346cd898143c698e7d0e6aff7e737b111c24cf0f76ecf3b0b14121916\"}\n",
+  "final_records": [
+    {
+      "type": "meta",
+      "schema": "semantic-map-state/1",
+      "root": "root",
+      "title": "independent typed ordinary public"
+    },
+    {
+      "type": "region",
+      "id": "root",
+      "parent": null,
+      "label": "fixture",
+      "kind": "boundary",
+      "bounds": [
+        0,
+        0,
+        900,
+        400
+      ],
+      "summary": ""
+    },
+    {
+      "type": "region",
+      "id": "container",
+      "parent": "root",
+      "label": "作業区",
+      "kind": "group",
+      "bounds": [
+        0,
+        0,
+        700,
+        200
+      ],
+      "summary": ""
+    },
+    {
+      "type": "region",
+      "id": "other",
+      "parent": "root",
+      "label": "保留区",
+      "kind": "group",
+      "bounds": [
+        0,
+        230,
+        700,
+        160
+      ],
+      "summary": ""
+    },
+    {
+      "type": "layout",
+      "regionId": "container",
+      "pin": "hard",
+      "bounds": [
+        0,
+        0,
+        2000,
+        500
+      ]
+    },
+    {
+      "type": "layout",
+      "regionId": "other",
+      "pin": "hard",
+      "bounds": [
+        0,
+        600,
+        2000,
+        500
+      ]
+    }
+  ]
+}

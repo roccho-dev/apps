@@ -1,0 +1,2233 @@
+{
+  "schema": "voice-ui.quota-cycle-cell/1",
+  "axis": "E",
+  "id": "TEP01",
+  "method": "adaptive-v3",
+  "arm": "C",
+  "generation_policy": "dependent",
+  "goal_parts_policy": "quota",
+  "supplied_required": null,
+  "replay_suffix_scope": "compatibility only",
+  "fixture": "empty",
+  "utterance": "保留区へ新しい工程を二つ設け、どちらの表示もAPIにしてください。二つとも独立した部品として置き、線は付けないでください。",
+  "parts": [
+    {
+      "key": "step",
+      "purpose": "an ordinary step, task or box",
+      "label": "工程",
+      "kind": "step"
+    },
+    {
+      "key": "decision",
+      "purpose": "a decision, choice or branch",
+      "label": "判断",
+      "kind": "decision"
+    },
+    {
+      "key": "data",
+      "purpose": "data, a document, an input or an output",
+      "label": "データ",
+      "kind": "data"
+    },
+    {
+      "key": "start",
+      "purpose": "a start or beginning",
+      "label": "開始",
+      "kind": "start"
+    },
+    {
+      "key": "end",
+      "purpose": "an end, finish or result",
+      "label": "終了",
+      "kind": "end"
+    },
+    {
+      "key": "api",
+      "purpose": "an application programming interface service that receives requests",
+      "label": "API",
+      "kind": "step"
+    },
+    {
+      "key": "db",
+      "purpose": "a database that persists application data",
+      "label": "DB",
+      "kind": "data"
+    },
+    {
+      "key": "group",
+      "purpose": "a group, boundary or container that holds other parts",
+      "label": "グループ",
+      "kind": "group"
+    }
+  ],
+  "valid_execution": true,
+  "elapsedMs": 18336.3618,
+  "result": {
+    "reason": "none",
+    "requests": 6,
+    "elapsedMs": 8413.980000019073,
+    "selected": [
+      {
+        "key": "api",
+        "region": "part-1",
+        "parent": "other"
+      },
+      {
+        "key": "goal-extra-1",
+        "region": "part-2",
+        "parent": "other"
+      }
+    ],
+    "trace": [
+      {
+        "head": "sha256:997f2a85be41d6774df84a876b8bba255de5d38cf5cda626fbb1dfc268940bc8",
+        "answers": {
+          "delta": {
+            "type": "choice",
+            "choice": "part:api",
+            "confidence": 0.66
+          }
+        },
+        "failure": null
+      },
+      {
+        "head": "sha256:997f2a85be41d6774df84a876b8bba255de5d38cf5cda626fbb1dfc268940bc8",
+        "answers": {
+          "delta": {
+            "type": "choice",
+            "choice": "delta-3",
+            "confidence": 0.82
+          }
+        },
+        "failure": null
+      },
+      {
+        "head": "sha256:92d4ff762298db60703bcfceb79fd27f35eea78eec2a9bbd08644334db800c3a",
+        "answers": {
+          "delta": {
+            "type": "choice",
+            "choice": "part:goal-extra-1",
+            "confidence": 0.98
+          }
+        },
+        "failure": null
+      },
+      {
+        "head": "sha256:92d4ff762298db60703bcfceb79fd27f35eea78eec2a9bbd08644334db800c3a",
+        "answers": {
+          "delta": {
+            "type": "choice",
+            "choice": "delta-2",
+            "confidence": 0.95
+          }
+        },
+        "failure": null
+      },
+      {
+        "head": "sha256:589ae14b45e4a95ae6562953243f407e6cd4d0a5ff9c371b3f8a26137d3d59a6",
+        "answers": {
+          "delta": {
+            "type": "choice",
+            "choice": "none",
+            "confidence": 1
+          }
+        },
+        "failure": null
+      }
+    ],
+    "inventory": {
+      "checks": 1,
+      "completions": 0,
+      "preparations": 1,
+      "coverage": {
+        "choice": "missing",
+        "confidence": 0.68,
+        "inspection": {
+          "schema": "voice-ui.parts.inspection/3",
+          "request_id": "cb2d19d9-3fe4-4a9d-83a1-63bf6d82589c",
+          "mode": "adaptive-v3",
+          "initial": {
+            "decision": {
+              "choice": "unknown",
+              "confidence": null
+            },
+            "factors": {
+              "intent": {
+                "choice": "change",
+                "confidence": 0.39
+              },
+              "labels": {
+                "choice": "available",
+                "confidence": 0.88
+              },
+              "capacity": {
+                "choice": "exceeded",
+                "confidence": 0.6
+              },
+              "completeness": {
+                "choice": "incomplete",
+                "confidence": 0.98
+              }
+            },
+            "literal": {
+              "recognized": false,
+              "required": [],
+              "spans": []
+            },
+            "observation": {
+              "valid": true,
+              "status": "unsupported-syntax"
+            }
+          },
+          "proposal": {
+            "slots": {
+              "required1": {
+                "label": "API",
+                "kind": "step",
+                "quantity": "2"
+              },
+              "required2": {
+                "label": "",
+                "kind": "none",
+                "quantity": "0"
+              },
+              "required3": {
+                "label": "",
+                "kind": "none",
+                "quantity": "0"
+              }
+            },
+            "required": [
+              {
+                "label": "API",
+                "kind": "step",
+                "quantity": 2
+              }
+            ]
+          },
+          "verification": {
+            "intent": {
+              "choice": "change",
+              "confidence": 0.92
+            },
+            "labels": {
+              "choice": "available",
+              "confidence": 0.94
+            },
+            "capacity": {
+              "choice": "exceeded",
+              "confidence": 0.92
+            },
+            "completeness": {
+              "choice": "complete",
+              "confidence": 0.68
+            }
+          },
+          "required": [
+            {
+              "label": "API",
+              "kind": "step",
+              "quantity": 2
+            }
+          ],
+          "missing": [
+            {
+              "label": "API",
+              "kind": "step",
+              "occurrence": 1
+            }
+          ],
+          "proposal_policy": {
+            "id": "uncertainty-frontier-v1",
+            "eligible": true,
+            "reason": "uncertain-intent-incomplete"
+          }
+        }
+      },
+      "missing": [
+        {
+          "label": "API",
+          "kind": "step",
+          "occurrence": 1
+        }
+      ]
+    }
+  },
+  "calls": [
+    {
+      "id": "TEP01",
+      "arm": "C",
+      "n": 1,
+      "route": "/api/parts/check",
+      "upstream_route": "/api/parts/check?method=adaptive-v3",
+      "request": {
+        "kind": "voice-ui.goal.inventory.v1",
+        "state": {
+          "utterance": "保留区へ新しい工程を二つ設け、どちらの表示もAPIにしてください。二つとも独立した部品として置き、線は付けないでください。",
+          "head": "sha256:997f2a85be41d6774df84a876b8bba255de5d38cf5cda626fbb1dfc268940bc8",
+          "regions": [
+            {
+              "id": "root",
+              "label": "fixture",
+              "kind": "boundary",
+              "parent": null
+            },
+            {
+              "id": "container",
+              "label": "作業区",
+              "kind": "group",
+              "parent": "root"
+            },
+            {
+              "id": "other",
+              "label": "保留区",
+              "kind": "group",
+              "parent": "root"
+            }
+          ],
+          "edges": [],
+          "parts": [
+            {
+              "key": "step",
+              "purpose": "an ordinary step, task or box",
+              "label": "工程",
+              "kind": "step"
+            },
+            {
+              "key": "decision",
+              "purpose": "a decision, choice or branch",
+              "label": "判断",
+              "kind": "decision"
+            },
+            {
+              "key": "data",
+              "purpose": "data, a document, an input or an output",
+              "label": "データ",
+              "kind": "data"
+            },
+            {
+              "key": "start",
+              "purpose": "a start or beginning",
+              "label": "開始",
+              "kind": "start"
+            },
+            {
+              "key": "end",
+              "purpose": "an end, finish or result",
+              "label": "終了",
+              "kind": "end"
+            },
+            {
+              "key": "api",
+              "purpose": "an application programming interface service that receives requests",
+              "label": "API",
+              "kind": "step"
+            },
+            {
+              "key": "db",
+              "purpose": "a database that persists application data",
+              "label": "DB",
+              "kind": "data"
+            },
+            {
+              "key": "group",
+              "purpose": "a group, boundary or container that holds other parts",
+              "label": "グループ",
+              "kind": "group"
+            }
+          ]
+        }
+      },
+      "status": 200,
+      "response": {
+        "choice": "missing",
+        "confidence": 0.68,
+        "inspection": {
+          "schema": "voice-ui.parts.inspection/3",
+          "request_id": "cb2d19d9-3fe4-4a9d-83a1-63bf6d82589c",
+          "mode": "adaptive-v3",
+          "initial": {
+            "decision": {
+              "choice": "unknown",
+              "confidence": null
+            },
+            "factors": {
+              "intent": {
+                "choice": "change",
+                "confidence": 0.39
+              },
+              "labels": {
+                "choice": "available",
+                "confidence": 0.88
+              },
+              "capacity": {
+                "choice": "exceeded",
+                "confidence": 0.6
+              },
+              "completeness": {
+                "choice": "incomplete",
+                "confidence": 0.98
+              }
+            },
+            "literal": {
+              "recognized": false,
+              "required": [],
+              "spans": []
+            },
+            "observation": {
+              "valid": true,
+              "status": "unsupported-syntax"
+            }
+          },
+          "proposal": {
+            "slots": {
+              "required1": {
+                "label": "API",
+                "kind": "step",
+                "quantity": "2"
+              },
+              "required2": {
+                "label": "",
+                "kind": "none",
+                "quantity": "0"
+              },
+              "required3": {
+                "label": "",
+                "kind": "none",
+                "quantity": "0"
+              }
+            },
+            "required": [
+              {
+                "label": "API",
+                "kind": "step",
+                "quantity": 2
+              }
+            ]
+          },
+          "verification": {
+            "intent": {
+              "choice": "change",
+              "confidence": 0.92
+            },
+            "labels": {
+              "choice": "available",
+              "confidence": 0.94
+            },
+            "capacity": {
+              "choice": "exceeded",
+              "confidence": 0.92
+            },
+            "completeness": {
+              "choice": "complete",
+              "confidence": 0.68
+            }
+          },
+          "required": [
+            {
+              "label": "API",
+              "kind": "step",
+              "quantity": 2
+            }
+          ],
+          "missing": [
+            {
+              "label": "API",
+              "kind": "step",
+              "occurrence": 1
+            }
+          ],
+          "proposal_policy": {
+            "id": "uncertainty-frontier-v1",
+            "eligible": true,
+            "reason": "uncertain-intent-incomplete"
+          }
+        }
+      },
+      "elapsedMs": 5748.0944
+    },
+    {
+      "id": "TEP01",
+      "arm": "C",
+      "n": 2,
+      "route": "/api/judge",
+      "upstream_route": "/api/judge",
+      "request": {
+        "kind": "voice-ui.judge.goal-local-delta.v7",
+        "state": {
+          "utterance": "保留区へ新しい工程を二つ設け、どちらの表示もAPIにしてください。二つとも独立した部品として置き、線は付けないでください。",
+          "graph": [
+            {
+              "id": "root",
+              "label": "fixture",
+              "parent": null
+            },
+            {
+              "id": "container",
+              "label": "作業区",
+              "parent": "root"
+            },
+            {
+              "id": "other",
+              "label": "保留区",
+              "parent": "root"
+            }
+          ],
+          "edges": [],
+          "parents": [
+            {
+              "id": "container",
+              "label": "作業区",
+              "kind": "group",
+              "parent": "root"
+            },
+            {
+              "id": "other",
+              "label": "保留区",
+              "kind": "group",
+              "parent": "root"
+            }
+          ],
+          "offers": {
+            "parts": [
+              {
+                "key": "api",
+                "purpose": "an application programming interface service that receives requests",
+                "label": "API"
+              },
+              {
+                "key": "goal-extra-1",
+                "purpose": "one requested part named API, kind step, missing instance 1",
+                "label": "API"
+              }
+            ]
+          },
+          "selected": [],
+          "candidates": [
+            {
+              "id": "delta-1",
+              "action": "add-part",
+              "part": "api",
+              "parent": "container"
+            },
+            {
+              "id": "delta-2",
+              "action": "add-part",
+              "part": "goal-extra-1",
+              "parent": "container"
+            },
+            {
+              "id": "delta-3",
+              "action": "add-part",
+              "part": "api",
+              "parent": "other"
+            },
+            {
+              "id": "delta-4",
+              "action": "add-part",
+              "part": "goal-extra-1",
+              "parent": "other"
+            }
+          ],
+          "context": {
+            "recent": []
+          },
+          "scope": null,
+          "placing": null
+        }
+      },
+      "status": 200,
+      "response": {
+        "kind": "voice-ui.judge.decision.v1",
+        "answers": {
+          "delta": {
+            "type": "choice",
+            "choice": "part:api",
+            "confidence": 0.66
+          }
+        }
+      },
+      "elapsedMs": 234.5096999999987
+    },
+    {
+      "id": "TEP01",
+      "arm": "C",
+      "n": 3,
+      "route": "/api/judge",
+      "upstream_route": "/api/judge",
+      "request": {
+        "kind": "voice-ui.judge.goal-local-delta.v7",
+        "state": {
+          "utterance": "保留区へ新しい工程を二つ設け、どちらの表示もAPIにしてください。二つとも独立した部品として置き、線は付けないでください。",
+          "graph": [
+            {
+              "id": "root",
+              "label": "fixture",
+              "parent": null
+            },
+            {
+              "id": "container",
+              "label": "作業区",
+              "parent": "root"
+            },
+            {
+              "id": "other",
+              "label": "保留区",
+              "parent": "root"
+            }
+          ],
+          "edges": [],
+          "parents": [
+            {
+              "id": "container",
+              "label": "作業区",
+              "kind": "group",
+              "parent": "root"
+            },
+            {
+              "id": "other",
+              "label": "保留区",
+              "kind": "group",
+              "parent": "root"
+            }
+          ],
+          "offers": {
+            "parts": [
+              {
+                "key": "api",
+                "purpose": "an application programming interface service that receives requests",
+                "label": "API"
+              },
+              {
+                "key": "goal-extra-1",
+                "purpose": "one requested part named API, kind step, missing instance 1",
+                "label": "API"
+              }
+            ]
+          },
+          "selected": [],
+          "candidates": [
+            {
+              "id": "delta-1",
+              "action": "add-part",
+              "part": "api",
+              "parent": "container"
+            },
+            {
+              "id": "delta-3",
+              "action": "add-part",
+              "part": "api",
+              "parent": "other"
+            }
+          ],
+          "context": {
+            "recent": []
+          },
+          "scope": null,
+          "placing": "api"
+        }
+      },
+      "status": 200,
+      "response": {
+        "kind": "voice-ui.judge.decision.v1",
+        "answers": {
+          "delta": {
+            "type": "choice",
+            "choice": "delta-3",
+            "confidence": 0.82
+          }
+        }
+      },
+      "elapsedMs": 203.45420000000013
+    },
+    {
+      "id": "TEP01",
+      "arm": "C",
+      "n": 4,
+      "route": "/api/judge",
+      "upstream_route": "/api/judge",
+      "request": {
+        "kind": "voice-ui.judge.goal-local-delta.v7",
+        "state": {
+          "utterance": "保留区へ新しい工程を二つ設け、どちらの表示もAPIにしてください。二つとも独立した部品として置き、線は付けないでください。",
+          "graph": [
+            {
+              "id": "root",
+              "label": "fixture",
+              "parent": null
+            },
+            {
+              "id": "container",
+              "label": "作業区",
+              "parent": "root"
+            },
+            {
+              "id": "other",
+              "label": "保留区",
+              "parent": "root"
+            },
+            {
+              "id": "part-1",
+              "label": "API",
+              "parent": "other"
+            }
+          ],
+          "edges": [],
+          "parents": [
+            {
+              "id": "container",
+              "label": "作業区",
+              "kind": "group",
+              "parent": "root"
+            },
+            {
+              "id": "other",
+              "label": "保留区",
+              "kind": "group",
+              "parent": "root"
+            }
+          ],
+          "offers": {
+            "parts": [
+              {
+                "key": "api",
+                "purpose": "an application programming interface service that receives requests",
+                "label": "API"
+              },
+              {
+                "key": "goal-extra-1",
+                "purpose": "one requested part named API, kind step, missing instance 1",
+                "label": "API"
+              }
+            ]
+          },
+          "selected": [
+            {
+              "key": "api",
+              "region": "part-1",
+              "parent": "other"
+            }
+          ],
+          "candidates": [
+            {
+              "id": "delta-1",
+              "action": "add-part",
+              "part": "goal-extra-1",
+              "parent": "container"
+            },
+            {
+              "id": "delta-2",
+              "action": "add-part",
+              "part": "goal-extra-1",
+              "parent": "other"
+            }
+          ],
+          "context": {
+            "recent": [
+              {
+                "seq": 1,
+                "source": "typed",
+                "text": "保留区へ新しい工程を二つ設け、どちらの表示もAPIにしてください。二つとも独立した部品として置き、線は付けないでください。",
+                "outcome": "step",
+                "effect": {
+                  "changes": [
+                    {
+                      "change": "added",
+                      "kind": "region",
+                      "id": "part-1",
+                      "label": "API"
+                    }
+                  ]
+                }
+              }
+            ]
+          },
+          "scope": null,
+          "placing": null
+        }
+      },
+      "status": 200,
+      "response": {
+        "kind": "voice-ui.judge.decision.v1",
+        "answers": {
+          "delta": {
+            "type": "choice",
+            "choice": "part:goal-extra-1",
+            "confidence": 0.98
+          }
+        }
+      },
+      "elapsedMs": 213.37509999999747
+    },
+    {
+      "id": "TEP01",
+      "arm": "C",
+      "n": 5,
+      "route": "/api/judge",
+      "upstream_route": "/api/judge",
+      "request": {
+        "kind": "voice-ui.judge.goal-local-delta.v7",
+        "state": {
+          "utterance": "保留区へ新しい工程を二つ設け、どちらの表示もAPIにしてください。二つとも独立した部品として置き、線は付けないでください。",
+          "graph": [
+            {
+              "id": "root",
+              "label": "fixture",
+              "parent": null
+            },
+            {
+              "id": "container",
+              "label": "作業区",
+              "parent": "root"
+            },
+            {
+              "id": "other",
+              "label": "保留区",
+              "parent": "root"
+            },
+            {
+              "id": "part-1",
+              "label": "API",
+              "parent": "other"
+            }
+          ],
+          "edges": [],
+          "parents": [
+            {
+              "id": "container",
+              "label": "作業区",
+              "kind": "group",
+              "parent": "root"
+            },
+            {
+              "id": "other",
+              "label": "保留区",
+              "kind": "group",
+              "parent": "root"
+            }
+          ],
+          "offers": {
+            "parts": [
+              {
+                "key": "api",
+                "purpose": "an application programming interface service that receives requests",
+                "label": "API"
+              },
+              {
+                "key": "goal-extra-1",
+                "purpose": "one requested part named API, kind step, missing instance 1",
+                "label": "API"
+              }
+            ]
+          },
+          "selected": [
+            {
+              "key": "api",
+              "region": "part-1",
+              "parent": "other"
+            }
+          ],
+          "candidates": [
+            {
+              "id": "delta-1",
+              "action": "add-part",
+              "part": "goal-extra-1",
+              "parent": "container"
+            },
+            {
+              "id": "delta-2",
+              "action": "add-part",
+              "part": "goal-extra-1",
+              "parent": "other"
+            }
+          ],
+          "context": {
+            "recent": [
+              {
+                "seq": 1,
+                "source": "typed",
+                "text": "保留区へ新しい工程を二つ設け、どちらの表示もAPIにしてください。二つとも独立した部品として置き、線は付けないでください。",
+                "outcome": "step",
+                "effect": {
+                  "changes": [
+                    {
+                      "change": "added",
+                      "kind": "region",
+                      "id": "part-1",
+                      "label": "API"
+                    }
+                  ]
+                }
+              }
+            ]
+          },
+          "scope": null,
+          "placing": "goal-extra-1"
+        }
+      },
+      "status": 200,
+      "response": {
+        "kind": "voice-ui.judge.decision.v1",
+        "answers": {
+          "delta": {
+            "type": "choice",
+            "choice": "delta-2",
+            "confidence": 0.95
+          }
+        }
+      },
+      "elapsedMs": 201.64099999999962
+    },
+    {
+      "id": "TEP01",
+      "arm": "C",
+      "n": 6,
+      "route": "/api/judge",
+      "upstream_route": "/api/judge",
+      "request": {
+        "kind": "voice-ui.judge.goal-local-delta.v7",
+        "state": {
+          "utterance": "保留区へ新しい工程を二つ設け、どちらの表示もAPIにしてください。二つとも独立した部品として置き、線は付けないでください。",
+          "graph": [
+            {
+              "id": "root",
+              "label": "fixture",
+              "parent": null
+            },
+            {
+              "id": "container",
+              "label": "作業区",
+              "parent": "root"
+            },
+            {
+              "id": "other",
+              "label": "保留区",
+              "parent": "root"
+            },
+            {
+              "id": "part-1",
+              "label": "API",
+              "parent": "other"
+            },
+            {
+              "id": "part-2",
+              "label": "API",
+              "parent": "other"
+            }
+          ],
+          "edges": [],
+          "parents": [
+            {
+              "id": "container",
+              "label": "作業区",
+              "kind": "group",
+              "parent": "root"
+            },
+            {
+              "id": "other",
+              "label": "保留区",
+              "kind": "group",
+              "parent": "root"
+            }
+          ],
+          "offers": {
+            "parts": [
+              {
+                "key": "api",
+                "purpose": "an application programming interface service that receives requests",
+                "label": "API"
+              },
+              {
+                "key": "goal-extra-1",
+                "purpose": "one requested part named API, kind step, missing instance 1",
+                "label": "API"
+              }
+            ]
+          },
+          "selected": [
+            {
+              "key": "api",
+              "region": "part-1",
+              "parent": "other"
+            },
+            {
+              "key": "goal-extra-1",
+              "region": "part-2",
+              "parent": "other"
+            }
+          ],
+          "candidates": [
+            {
+              "id": "delta-1",
+              "action": "add-edge",
+              "from": "part-1",
+              "to": "part-2"
+            },
+            {
+              "id": "delta-2",
+              "action": "add-edge",
+              "from": "part-2",
+              "to": "part-1"
+            }
+          ],
+          "context": {
+            "recent": [
+              {
+                "seq": 1,
+                "source": "typed",
+                "text": "保留区へ新しい工程を二つ設け、どちらの表示もAPIにしてください。二つとも独立した部品として置き、線は付けないでください。",
+                "outcome": "step",
+                "effect": {
+                  "changes": [
+                    {
+                      "change": "added",
+                      "kind": "region",
+                      "id": "part-1",
+                      "label": "API"
+                    },
+                    {
+                      "change": "added",
+                      "kind": "region",
+                      "id": "part-2",
+                      "label": "API"
+                    }
+                  ]
+                }
+              }
+            ]
+          },
+          "scope": null,
+          "placing": null
+        }
+      },
+      "status": 200,
+      "response": {
+        "kind": "voice-ui.judge.decision.v1",
+        "answers": {
+          "delta": {
+            "type": "choice",
+            "choice": "none",
+            "confidence": 1
+          }
+        }
+      },
+      "elapsedMs": 188.02140000000145
+    }
+  ],
+  "initial_head": "sha256:997f2a85be41d6774df84a876b8bba255de5d38cf5cda626fbb1dfc268940bc8",
+  "initial_log": "{\"operations\":[{\"mapId\":\"voice-graph\",\"records\":[{\"root\":\"root\",\"schema\":\"semantic-map-state/1\",\"title\":\"independent typed ordinary public\",\"type\":\"meta\"},{\"bounds\":[0,0,900,400],\"id\":\"root\",\"kind\":\"boundary\",\"label\":\"fixture\",\"parent\":null,\"summary\":\"\",\"type\":\"region\"},{\"bounds\":[0,0,700,200],\"id\":\"container\",\"kind\":\"group\",\"label\":\"作業区\",\"parent\":\"root\",\"summary\":\"\",\"type\":\"region\"},{\"bounds\":[0,230,700,160],\"id\":\"other\",\"kind\":\"group\",\"label\":\"保留区\",\"parent\":\"root\",\"summary\":\"\",\"type\":\"region\"}],\"type\":\"CreateMap\"}],\"parent\":null,\"schema\":\"semantic-map-decision/2\",\"stateHash\":\"sha256:b494bf0e970f5039e2ad8d4caedfbd1002ede88d47c98b346346d5cb328c5b2c\"}\n{\"operations\":[{\"items\":[{\"bounds\":[0,0,2000,500],\"regionId\":\"container\"},{\"bounds\":[0,600,2000,500],\"regionId\":\"other\"}],\"type\":\"PinRegions\"}],\"parent\":\"sha256:559f71a255409af67cb1bfa3b3b2b39bd28fd0e6f7582ba858ac192eff3b58fd\",\"schema\":\"semantic-map-decision/2\",\"stateHash\":\"sha256:8e0a90b346cd898143c698e7d0e6aff7e737b111c24cf0f76ecf3b0b14121916\"}\n",
+  "initial_log_sha256": "98920f938c20ef190f56f31c9f21d811e1cb53ee9313ec4437a1d6a88bb4e05c",
+  "initial_records": [
+    {
+      "type": "meta",
+      "schema": "semantic-map-state/1",
+      "root": "root",
+      "title": "independent typed ordinary public"
+    },
+    {
+      "type": "region",
+      "id": "root",
+      "parent": null,
+      "label": "fixture",
+      "kind": "boundary",
+      "bounds": [
+        0,
+        0,
+        900,
+        400
+      ],
+      "summary": ""
+    },
+    {
+      "type": "region",
+      "id": "container",
+      "parent": "root",
+      "label": "作業区",
+      "kind": "group",
+      "bounds": [
+        0,
+        0,
+        700,
+        200
+      ],
+      "summary": ""
+    },
+    {
+      "type": "region",
+      "id": "other",
+      "parent": "root",
+      "label": "保留区",
+      "kind": "group",
+      "bounds": [
+        0,
+        230,
+        700,
+        160
+      ],
+      "summary": ""
+    },
+    {
+      "type": "layout",
+      "regionId": "container",
+      "pin": "hard",
+      "bounds": [
+        0,
+        0,
+        2000,
+        500
+      ]
+    },
+    {
+      "type": "layout",
+      "regionId": "other",
+      "pin": "hard",
+      "bounds": [
+        0,
+        600,
+        2000,
+        500
+      ]
+    }
+  ],
+  "final_head": "sha256:589ae14b45e4a95ae6562953243f407e6cd4d0a5ff9c371b3f8a26137d3d59a6",
+  "final_log": "{\"operations\":[{\"mapId\":\"voice-graph\",\"records\":[{\"root\":\"root\",\"schema\":\"semantic-map-state/1\",\"title\":\"independent typed ordinary public\",\"type\":\"meta\"},{\"bounds\":[0,0,900,400],\"id\":\"root\",\"kind\":\"boundary\",\"label\":\"fixture\",\"parent\":null,\"summary\":\"\",\"type\":\"region\"},{\"bounds\":[0,0,700,200],\"id\":\"container\",\"kind\":\"group\",\"label\":\"作業区\",\"parent\":\"root\",\"summary\":\"\",\"type\":\"region\"},{\"bounds\":[0,230,700,160],\"id\":\"other\",\"kind\":\"group\",\"label\":\"保留区\",\"parent\":\"root\",\"summary\":\"\",\"type\":\"region\"}],\"type\":\"CreateMap\"}],\"parent\":null,\"schema\":\"semantic-map-decision/2\",\"stateHash\":\"sha256:b494bf0e970f5039e2ad8d4caedfbd1002ede88d47c98b346346d5cb328c5b2c\"}\n{\"operations\":[{\"items\":[{\"bounds\":[0,0,2000,500],\"regionId\":\"container\"},{\"bounds\":[0,600,2000,500],\"regionId\":\"other\"}],\"type\":\"PinRegions\"}],\"parent\":\"sha256:559f71a255409af67cb1bfa3b3b2b39bd28fd0e6f7582ba858ac192eff3b58fd\",\"schema\":\"semantic-map-decision/2\",\"stateHash\":\"sha256:8e0a90b346cd898143c698e7d0e6aff7e737b111c24cf0f76ecf3b0b14121916\"}\n{\"operations\":[{\"bounds\":[20,250,140,64],\"kind\":\"step\",\"label\":\"API\",\"parentId\":\"other\",\"regionId\":\"part-1\",\"summary\":\"\",\"type\":\"AddRegion\"},{\"items\":[{\"bounds\":[12,636,180,92],\"regionId\":\"part-1\"}],\"type\":\"PinRegions\"}],\"parent\":\"sha256:997f2a85be41d6774df84a876b8bba255de5d38cf5cda626fbb1dfc268940bc8\",\"schema\":\"semantic-map-decision/2\",\"stateHash\":\"sha256:562330a396a6819b7facb965eb36e3629be71e16fadc1144c6cb030733d4e63f\"}\n{\"operations\":[{\"bounds\":[180,250,140,64],\"kind\":\"step\",\"label\":\"API\",\"parentId\":\"other\",\"regionId\":\"part-2\",\"summary\":\"\",\"type\":\"AddRegion\"},{\"items\":[{\"bounds\":[216,636,180,92],\"regionId\":\"part-2\"}],\"type\":\"PinRegions\"}],\"parent\":\"sha256:92d4ff762298db60703bcfceb79fd27f35eea78eec2a9bbd08644334db800c3a\",\"schema\":\"semantic-map-decision/2\",\"stateHash\":\"sha256:c070db6d9b8b4a984bce5f146078aacaaa40d20a8c9b59ab48eb94c938055d0c\"}\n",
+  "final_records": [
+    {
+      "type": "meta",
+      "schema": "semantic-map-state/1",
+      "root": "root",
+      "title": "independent typed ordinary public"
+    },
+    {
+      "type": "region",
+      "id": "root",
+      "parent": null,
+      "label": "fixture",
+      "kind": "boundary",
+      "bounds": [
+        0,
+        0,
+        900,
+        400
+      ],
+      "summary": ""
+    },
+    {
+      "type": "region",
+      "id": "container",
+      "parent": "root",
+      "label": "作業区",
+      "kind": "group",
+      "bounds": [
+        0,
+        0,
+        700,
+        200
+      ],
+      "summary": ""
+    },
+    {
+      "type": "region",
+      "id": "other",
+      "parent": "root",
+      "label": "保留区",
+      "kind": "group",
+      "bounds": [
+        0,
+        230,
+        700,
+        160
+      ],
+      "summary": ""
+    },
+    {
+      "type": "region",
+      "id": "part-1",
+      "parent": "other",
+      "label": "API",
+      "kind": "step",
+      "bounds": [
+        20,
+        250,
+        140,
+        64
+      ],
+      "summary": ""
+    },
+    {
+      "type": "region",
+      "id": "part-2",
+      "parent": "other",
+      "label": "API",
+      "kind": "step",
+      "bounds": [
+        180,
+        250,
+        140,
+        64
+      ],
+      "summary": ""
+    },
+    {
+      "type": "layout",
+      "regionId": "container",
+      "pin": "hard",
+      "bounds": [
+        0,
+        0,
+        2000,
+        500
+      ]
+    },
+    {
+      "type": "layout",
+      "regionId": "other",
+      "pin": "hard",
+      "bounds": [
+        0,
+        600,
+        2000,
+        500
+      ]
+    },
+    {
+      "type": "layout",
+      "regionId": "part-1",
+      "pin": "hard",
+      "bounds": [
+        12,
+        636,
+        180,
+        92
+      ]
+    },
+    {
+      "type": "layout",
+      "regionId": "part-2",
+      "pin": "hard",
+      "bounds": [
+        216,
+        636,
+        180,
+        92
+      ]
+    }
+  ],
+  "frames": [
+    {
+      "camera": "overview",
+      "scope": "restore equality only; hidden children do not imply paint"
+    },
+    {
+      "camera": "container",
+      "observation": {
+        "association": "render-owned-semantic-id",
+        "title": {
+          "unmet": null,
+          "box": [
+            296.5,
+            206.86000061035156,
+            33,
+            16
+          ],
+          "clips": [
+            [
+              4,
+              136,
+              619,
+              157
+            ],
+            [
+              0,
+              0,
+              626,
+              429
+            ],
+            [
+              0,
+              0,
+              626,
+              429
+            ],
+            [
+              0,
+              0,
+              626,
+              429
+            ]
+          ],
+          "svg": [
+            0,
+            0,
+            638,
+            485
+          ]
+        },
+        "identity": true,
+        "viewport": [
+          0,
+          0,
+          626,
+          429
+        ],
+        "container": {
+          "id": "container",
+          "kind": "painted-group-shape",
+          "bounds": [
+            5.429999828338623,
+            137.97999572753906,
+            616.1400146484375,
+            154.0399932861328
+          ]
+        },
+        "shapes": [],
+        "edge": null,
+        "contained": true,
+        "nonoverlap": true,
+        "complete": true
+      },
+      "assessment": {
+        "status": "PASS",
+        "problems": [],
+        "unknown": []
+      }
+    },
+    {
+      "camera": "other",
+      "observation": {
+        "association": "render-owned-semantic-id",
+        "title": {
+          "unmet": null,
+          "box": [
+            127,
+            158.5,
+            39,
+            19
+          ],
+          "clips": [
+            [
+              0,
+              0,
+              626,
+              429
+            ],
+            [
+              0,
+              0,
+              626,
+              429
+            ],
+            [
+              0,
+              0,
+              626,
+              429
+            ]
+          ],
+          "svg": [
+            0,
+            0,
+            2148,
+            1154
+          ]
+        },
+        "identity": true,
+        "viewport": [
+          0,
+          0,
+          626,
+          429
+        ],
+        "container": {
+          "id": "other",
+          "kind": "painted-group-shape",
+          "bounds": [
+            115.5,
+            151,
+            2000,
+            500
+          ]
+        },
+        "shapes": [
+          {
+            "id": "part-1",
+            "rawLabel": "API",
+            "bounds": [
+              127,
+              186.5,
+              180,
+              92
+            ],
+            "name": {
+              "unmet": null,
+              "box": [
+                205.5,
+                223,
+                22,
+                19
+              ],
+              "clips": [
+                [
+                  127,
+                  187,
+                  180,
+                  92
+                ],
+                [
+                  0,
+                  0,
+                  626,
+                  429
+                ],
+                [
+                  0,
+                  0,
+                  626,
+                  429
+                ],
+                [
+                  0,
+                  0,
+                  626,
+                  429
+                ]
+              ],
+              "svg": [
+                0,
+                0,
+                2148,
+                1154
+              ]
+            }
+          },
+          {
+            "id": "part-2",
+            "rawLabel": "API",
+            "bounds": [
+              331,
+              186.5,
+              180,
+              92
+            ],
+            "name": {
+              "unmet": null,
+              "box": [
+                409.5,
+                223,
+                22,
+                19
+              ],
+              "clips": [
+                [
+                  331,
+                  187,
+                  180,
+                  92
+                ],
+                [
+                  0,
+                  0,
+                  626,
+                  429
+                ],
+                [
+                  0,
+                  0,
+                  626,
+                  429
+                ],
+                [
+                  0,
+                  0,
+                  626,
+                  429
+                ]
+              ],
+              "svg": [
+                0,
+                0,
+                2148,
+                1154
+              ]
+            }
+          }
+        ],
+        "edge": null,
+        "contained": true,
+        "nonoverlap": true,
+        "complete": true
+      },
+      "assessment": {
+        "status": "PASS",
+        "problems": [],
+        "unknown": []
+      }
+    }
+  ],
+  "lifecycle": {
+    "target": {
+      "log": "{\"operations\":[{\"mapId\":\"voice-graph\",\"records\":[{\"root\":\"root\",\"schema\":\"semantic-map-state/1\",\"title\":\"independent typed ordinary public\",\"type\":\"meta\"},{\"bounds\":[0,0,900,400],\"id\":\"root\",\"kind\":\"boundary\",\"label\":\"fixture\",\"parent\":null,\"summary\":\"\",\"type\":\"region\"},{\"bounds\":[0,0,700,200],\"id\":\"container\",\"kind\":\"group\",\"label\":\"作業区\",\"parent\":\"root\",\"summary\":\"\",\"type\":\"region\"},{\"bounds\":[0,230,700,160],\"id\":\"other\",\"kind\":\"group\",\"label\":\"保留区\",\"parent\":\"root\",\"summary\":\"\",\"type\":\"region\"}],\"type\":\"CreateMap\"}],\"parent\":null,\"schema\":\"semantic-map-decision/2\",\"stateHash\":\"sha256:b494bf0e970f5039e2ad8d4caedfbd1002ede88d47c98b346346d5cb328c5b2c\"}\n{\"operations\":[{\"items\":[{\"bounds\":[0,0,2000,500],\"regionId\":\"container\"},{\"bounds\":[0,600,2000,500],\"regionId\":\"other\"}],\"type\":\"PinRegions\"}],\"parent\":\"sha256:559f71a255409af67cb1bfa3b3b2b39bd28fd0e6f7582ba858ac192eff3b58fd\",\"schema\":\"semantic-map-decision/2\",\"stateHash\":\"sha256:8e0a90b346cd898143c698e7d0e6aff7e737b111c24cf0f76ecf3b0b14121916\"}\n{\"operations\":[{\"bounds\":[20,250,140,64],\"kind\":\"step\",\"label\":\"API\",\"parentId\":\"other\",\"regionId\":\"part-1\",\"summary\":\"\",\"type\":\"AddRegion\"},{\"items\":[{\"bounds\":[12,636,180,92],\"regionId\":\"part-1\"}],\"type\":\"PinRegions\"}],\"parent\":\"sha256:997f2a85be41d6774df84a876b8bba255de5d38cf5cda626fbb1dfc268940bc8\",\"schema\":\"semantic-map-decision/2\",\"stateHash\":\"sha256:562330a396a6819b7facb965eb36e3629be71e16fadc1144c6cb030733d4e63f\"}\n{\"operations\":[{\"bounds\":[180,250,140,64],\"kind\":\"step\",\"label\":\"API\",\"parentId\":\"other\",\"regionId\":\"part-2\",\"summary\":\"\",\"type\":\"AddRegion\"},{\"items\":[{\"bounds\":[216,636,180,92],\"regionId\":\"part-2\"}],\"type\":\"PinRegions\"}],\"parent\":\"sha256:92d4ff762298db60703bcfceb79fd27f35eea78eec2a9bbd08644334db800c3a\",\"schema\":\"semantic-map-decision/2\",\"stateHash\":\"sha256:c070db6d9b8b4a984bce5f146078aacaaa40d20a8c9b59ab48eb94c938055d0c\"}\n",
+      "records": [
+        {
+          "type": "meta",
+          "schema": "semantic-map-state/1",
+          "root": "root",
+          "title": "independent typed ordinary public"
+        },
+        {
+          "type": "region",
+          "id": "root",
+          "parent": null,
+          "label": "fixture",
+          "kind": "boundary",
+          "bounds": [
+            0,
+            0,
+            900,
+            400
+          ],
+          "summary": ""
+        },
+        {
+          "type": "region",
+          "id": "container",
+          "parent": "root",
+          "label": "作業区",
+          "kind": "group",
+          "bounds": [
+            0,
+            0,
+            700,
+            200
+          ],
+          "summary": ""
+        },
+        {
+          "type": "region",
+          "id": "other",
+          "parent": "root",
+          "label": "保留区",
+          "kind": "group",
+          "bounds": [
+            0,
+            230,
+            700,
+            160
+          ],
+          "summary": ""
+        },
+        {
+          "type": "region",
+          "id": "part-1",
+          "parent": "other",
+          "label": "API",
+          "kind": "step",
+          "bounds": [
+            20,
+            250,
+            140,
+            64
+          ],
+          "summary": ""
+        },
+        {
+          "type": "region",
+          "id": "part-2",
+          "parent": "other",
+          "label": "API",
+          "kind": "step",
+          "bounds": [
+            180,
+            250,
+            140,
+            64
+          ],
+          "summary": ""
+        },
+        {
+          "type": "layout",
+          "regionId": "container",
+          "pin": "hard",
+          "bounds": [
+            0,
+            0,
+            2000,
+            500
+          ]
+        },
+        {
+          "type": "layout",
+          "regionId": "other",
+          "pin": "hard",
+          "bounds": [
+            0,
+            600,
+            2000,
+            500
+          ]
+        },
+        {
+          "type": "layout",
+          "regionId": "part-1",
+          "pin": "hard",
+          "bounds": [
+            12,
+            636,
+            180,
+            92
+          ]
+        },
+        {
+          "type": "layout",
+          "regionId": "part-2",
+          "pin": "hard",
+          "bounds": [
+            216,
+            636,
+            180,
+            92
+          ]
+        }
+      ],
+      "stored": "{\"operations\":[{\"mapId\":\"voice-graph\",\"records\":[{\"root\":\"root\",\"schema\":\"semantic-map-state/1\",\"title\":\"independent typed ordinary public\",\"type\":\"meta\"},{\"bounds\":[0,0,900,400],\"id\":\"root\",\"kind\":\"boundary\",\"label\":\"fixture\",\"parent\":null,\"summary\":\"\",\"type\":\"region\"},{\"bounds\":[0,0,700,200],\"id\":\"container\",\"kind\":\"group\",\"label\":\"作業区\",\"parent\":\"root\",\"summary\":\"\",\"type\":\"region\"},{\"bounds\":[0,230,700,160],\"id\":\"other\",\"kind\":\"group\",\"label\":\"保留区\",\"parent\":\"root\",\"summary\":\"\",\"type\":\"region\"}],\"type\":\"CreateMap\"}],\"parent\":null,\"schema\":\"semantic-map-decision/2\",\"stateHash\":\"sha256:b494bf0e970f5039e2ad8d4caedfbd1002ede88d47c98b346346d5cb328c5b2c\"}\n{\"operations\":[{\"items\":[{\"bounds\":[0,0,2000,500],\"regionId\":\"container\"},{\"bounds\":[0,600,2000,500],\"regionId\":\"other\"}],\"type\":\"PinRegions\"}],\"parent\":\"sha256:559f71a255409af67cb1bfa3b3b2b39bd28fd0e6f7582ba858ac192eff3b58fd\",\"schema\":\"semantic-map-decision/2\",\"stateHash\":\"sha256:8e0a90b346cd898143c698e7d0e6aff7e737b111c24cf0f76ecf3b0b14121916\"}\n",
+      "goal": {
+        "reason": "none",
+        "requests": 6,
+        "elapsedMs": 8413.980000019073,
+        "selected": [
+          {
+            "key": "api",
+            "region": "part-1",
+            "parent": "other"
+          },
+          {
+            "key": "goal-extra-1",
+            "region": "part-2",
+            "parent": "other"
+          }
+        ],
+        "trace": [
+          {
+            "head": "sha256:997f2a85be41d6774df84a876b8bba255de5d38cf5cda626fbb1dfc268940bc8",
+            "answers": {
+              "delta": {
+                "type": "choice",
+                "choice": "part:api",
+                "confidence": 0.66
+              }
+            },
+            "failure": null
+          },
+          {
+            "head": "sha256:997f2a85be41d6774df84a876b8bba255de5d38cf5cda626fbb1dfc268940bc8",
+            "answers": {
+              "delta": {
+                "type": "choice",
+                "choice": "delta-3",
+                "confidence": 0.82
+              }
+            },
+            "failure": null
+          },
+          {
+            "head": "sha256:92d4ff762298db60703bcfceb79fd27f35eea78eec2a9bbd08644334db800c3a",
+            "answers": {
+              "delta": {
+                "type": "choice",
+                "choice": "part:goal-extra-1",
+                "confidence": 0.98
+              }
+            },
+            "failure": null
+          },
+          {
+            "head": "sha256:92d4ff762298db60703bcfceb79fd27f35eea78eec2a9bbd08644334db800c3a",
+            "answers": {
+              "delta": {
+                "type": "choice",
+                "choice": "delta-2",
+                "confidence": 0.95
+              }
+            },
+            "failure": null
+          },
+          {
+            "head": "sha256:589ae14b45e4a95ae6562953243f407e6cd4d0a5ff9c371b3f8a26137d3d59a6",
+            "answers": {
+              "delta": {
+                "type": "choice",
+                "choice": "none",
+                "confidence": 1
+              }
+            },
+            "failure": null
+          }
+        ],
+        "inventory": {
+          "checks": 1,
+          "completions": 0,
+          "preparations": 1,
+          "coverage": {
+            "choice": "missing",
+            "confidence": 0.68,
+            "inspection": {
+              "schema": "voice-ui.parts.inspection/3",
+              "request_id": "cb2d19d9-3fe4-4a9d-83a1-63bf6d82589c",
+              "mode": "adaptive-v3",
+              "initial": {
+                "decision": {
+                  "choice": "unknown",
+                  "confidence": null
+                },
+                "factors": {
+                  "intent": {
+                    "choice": "change",
+                    "confidence": 0.39
+                  },
+                  "labels": {
+                    "choice": "available",
+                    "confidence": 0.88
+                  },
+                  "capacity": {
+                    "choice": "exceeded",
+                    "confidence": 0.6
+                  },
+                  "completeness": {
+                    "choice": "incomplete",
+                    "confidence": 0.98
+                  }
+                },
+                "literal": {
+                  "recognized": false,
+                  "required": [],
+                  "spans": []
+                },
+                "observation": {
+                  "valid": true,
+                  "status": "unsupported-syntax"
+                }
+              },
+              "proposal": {
+                "slots": {
+                  "required1": {
+                    "label": "API",
+                    "kind": "step",
+                    "quantity": "2"
+                  },
+                  "required2": {
+                    "label": "",
+                    "kind": "none",
+                    "quantity": "0"
+                  },
+                  "required3": {
+                    "label": "",
+                    "kind": "none",
+                    "quantity": "0"
+                  }
+                },
+                "required": [
+                  {
+                    "label": "API",
+                    "kind": "step",
+                    "quantity": 2
+                  }
+                ]
+              },
+              "verification": {
+                "intent": {
+                  "choice": "change",
+                  "confidence": 0.92
+                },
+                "labels": {
+                  "choice": "available",
+                  "confidence": 0.94
+                },
+                "capacity": {
+                  "choice": "exceeded",
+                  "confidence": 0.92
+                },
+                "completeness": {
+                  "choice": "complete",
+                  "confidence": 0.68
+                }
+              },
+              "required": [
+                {
+                  "label": "API",
+                  "kind": "step",
+                  "quantity": 2
+                }
+              ],
+              "missing": [
+                {
+                  "label": "API",
+                  "kind": "step",
+                  "occurrence": 1
+                }
+              ],
+              "proposal_policy": {
+                "id": "uncertainty-frontier-v1",
+                "eligible": true,
+                "reason": "uncertain-intent-incomplete"
+              }
+            }
+          },
+          "missing": [
+            {
+              "label": "API",
+              "kind": "step",
+              "occurrence": 1
+            }
+          ]
+        }
+      }
+    },
+    "applied": {
+      "log": "{\"operations\":[{\"mapId\":\"voice-graph\",\"records\":[{\"root\":\"root\",\"schema\":\"semantic-map-state/1\",\"title\":\"independent typed ordinary public\",\"type\":\"meta\"},{\"bounds\":[0,0,900,400],\"id\":\"root\",\"kind\":\"boundary\",\"label\":\"fixture\",\"parent\":null,\"summary\":\"\",\"type\":\"region\"},{\"bounds\":[0,0,700,200],\"id\":\"container\",\"kind\":\"group\",\"label\":\"作業区\",\"parent\":\"root\",\"summary\":\"\",\"type\":\"region\"},{\"bounds\":[0,230,700,160],\"id\":\"other\",\"kind\":\"group\",\"label\":\"保留区\",\"parent\":\"root\",\"summary\":\"\",\"type\":\"region\"}],\"type\":\"CreateMap\"}],\"parent\":null,\"schema\":\"semantic-map-decision/2\",\"stateHash\":\"sha256:b494bf0e970f5039e2ad8d4caedfbd1002ede88d47c98b346346d5cb328c5b2c\"}\n{\"operations\":[{\"items\":[{\"bounds\":[0,0,2000,500],\"regionId\":\"container\"},{\"bounds\":[0,600,2000,500],\"regionId\":\"other\"}],\"type\":\"PinRegions\"}],\"parent\":\"sha256:559f71a255409af67cb1bfa3b3b2b39bd28fd0e6f7582ba858ac192eff3b58fd\",\"schema\":\"semantic-map-decision/2\",\"stateHash\":\"sha256:8e0a90b346cd898143c698e7d0e6aff7e737b111c24cf0f76ecf3b0b14121916\"}\n{\"operations\":[{\"bounds\":[20,250,140,64],\"kind\":\"step\",\"label\":\"API\",\"parentId\":\"other\",\"regionId\":\"part-1\",\"summary\":\"\",\"type\":\"AddRegion\"},{\"items\":[{\"bounds\":[12,636,180,92],\"regionId\":\"part-1\"}],\"type\":\"PinRegions\"}],\"parent\":\"sha256:997f2a85be41d6774df84a876b8bba255de5d38cf5cda626fbb1dfc268940bc8\",\"schema\":\"semantic-map-decision/2\",\"stateHash\":\"sha256:562330a396a6819b7facb965eb36e3629be71e16fadc1144c6cb030733d4e63f\"}\n{\"operations\":[{\"bounds\":[180,250,140,64],\"kind\":\"step\",\"label\":\"API\",\"parentId\":\"other\",\"regionId\":\"part-2\",\"summary\":\"\",\"type\":\"AddRegion\"},{\"items\":[{\"bounds\":[216,636,180,92],\"regionId\":\"part-2\"}],\"type\":\"PinRegions\"}],\"parent\":\"sha256:92d4ff762298db60703bcfceb79fd27f35eea78eec2a9bbd08644334db800c3a\",\"schema\":\"semantic-map-decision/2\",\"stateHash\":\"sha256:c070db6d9b8b4a984bce5f146078aacaaa40d20a8c9b59ab48eb94c938055d0c\"}\n",
+      "records": [
+        {
+          "type": "meta",
+          "schema": "semantic-map-state/1",
+          "root": "root",
+          "title": "independent typed ordinary public"
+        },
+        {
+          "type": "region",
+          "id": "root",
+          "parent": null,
+          "label": "fixture",
+          "kind": "boundary",
+          "bounds": [
+            0,
+            0,
+            900,
+            400
+          ],
+          "summary": ""
+        },
+        {
+          "type": "region",
+          "id": "container",
+          "parent": "root",
+          "label": "作業区",
+          "kind": "group",
+          "bounds": [
+            0,
+            0,
+            700,
+            200
+          ],
+          "summary": ""
+        },
+        {
+          "type": "region",
+          "id": "other",
+          "parent": "root",
+          "label": "保留区",
+          "kind": "group",
+          "bounds": [
+            0,
+            230,
+            700,
+            160
+          ],
+          "summary": ""
+        },
+        {
+          "type": "region",
+          "id": "part-1",
+          "parent": "other",
+          "label": "API",
+          "kind": "step",
+          "bounds": [
+            20,
+            250,
+            140,
+            64
+          ],
+          "summary": ""
+        },
+        {
+          "type": "region",
+          "id": "part-2",
+          "parent": "other",
+          "label": "API",
+          "kind": "step",
+          "bounds": [
+            180,
+            250,
+            140,
+            64
+          ],
+          "summary": ""
+        },
+        {
+          "type": "layout",
+          "regionId": "container",
+          "pin": "hard",
+          "bounds": [
+            0,
+            0,
+            2000,
+            500
+          ]
+        },
+        {
+          "type": "layout",
+          "regionId": "other",
+          "pin": "hard",
+          "bounds": [
+            0,
+            600,
+            2000,
+            500
+          ]
+        },
+        {
+          "type": "layout",
+          "regionId": "part-1",
+          "pin": "hard",
+          "bounds": [
+            12,
+            636,
+            180,
+            92
+          ]
+        },
+        {
+          "type": "layout",
+          "regionId": "part-2",
+          "pin": "hard",
+          "bounds": [
+            216,
+            636,
+            180,
+            92
+          ]
+        }
+      ],
+      "stored": "{\"operations\":[{\"mapId\":\"voice-graph\",\"records\":[{\"root\":\"root\",\"schema\":\"semantic-map-state/1\",\"title\":\"independent typed ordinary public\",\"type\":\"meta\"},{\"bounds\":[0,0,900,400],\"id\":\"root\",\"kind\":\"boundary\",\"label\":\"fixture\",\"parent\":null,\"summary\":\"\",\"type\":\"region\"},{\"bounds\":[0,0,700,200],\"id\":\"container\",\"kind\":\"group\",\"label\":\"作業区\",\"parent\":\"root\",\"summary\":\"\",\"type\":\"region\"},{\"bounds\":[0,230,700,160],\"id\":\"other\",\"kind\":\"group\",\"label\":\"保留区\",\"parent\":\"root\",\"summary\":\"\",\"type\":\"region\"}],\"type\":\"CreateMap\"}],\"parent\":null,\"schema\":\"semantic-map-decision/2\",\"stateHash\":\"sha256:b494bf0e970f5039e2ad8d4caedfbd1002ede88d47c98b346346d5cb328c5b2c\"}\n{\"operations\":[{\"items\":[{\"bounds\":[0,0,2000,500],\"regionId\":\"container\"},{\"bounds\":[0,600,2000,500],\"regionId\":\"other\"}],\"type\":\"PinRegions\"}],\"parent\":\"sha256:559f71a255409af67cb1bfa3b3b2b39bd28fd0e6f7582ba858ac192eff3b58fd\",\"schema\":\"semantic-map-decision/2\",\"stateHash\":\"sha256:8e0a90b346cd898143c698e7d0e6aff7e737b111c24cf0f76ecf3b0b14121916\"}\n{\"operations\":[{\"bounds\":[20,250,140,64],\"kind\":\"step\",\"label\":\"API\",\"parentId\":\"other\",\"regionId\":\"part-1\",\"summary\":\"\",\"type\":\"AddRegion\"},{\"items\":[{\"bounds\":[12,636,180,92],\"regionId\":\"part-1\"}],\"type\":\"PinRegions\"}],\"parent\":\"sha256:997f2a85be41d6774df84a876b8bba255de5d38cf5cda626fbb1dfc268940bc8\",\"schema\":\"semantic-map-decision/2\",\"stateHash\":\"sha256:562330a396a6819b7facb965eb36e3629be71e16fadc1144c6cb030733d4e63f\"}\n{\"operations\":[{\"bounds\":[180,250,140,64],\"kind\":\"step\",\"label\":\"API\",\"parentId\":\"other\",\"regionId\":\"part-2\",\"summary\":\"\",\"type\":\"AddRegion\"},{\"items\":[{\"bounds\":[216,636,180,92],\"regionId\":\"part-2\"}],\"type\":\"PinRegions\"}],\"parent\":\"sha256:92d4ff762298db60703bcfceb79fd27f35eea78eec2a9bbd08644334db800c3a\",\"schema\":\"semantic-map-decision/2\",\"stateHash\":\"sha256:c070db6d9b8b4a984bce5f146078aacaaa40d20a8c9b59ab48eb94c938055d0c\"}\n",
+      "goal": {
+        "reason": "none",
+        "requests": 6,
+        "elapsedMs": 8413.980000019073,
+        "selected": [
+          {
+            "key": "api",
+            "region": "part-1",
+            "parent": "other"
+          },
+          {
+            "key": "goal-extra-1",
+            "region": "part-2",
+            "parent": "other"
+          }
+        ],
+        "trace": [
+          {
+            "head": "sha256:997f2a85be41d6774df84a876b8bba255de5d38cf5cda626fbb1dfc268940bc8",
+            "answers": {
+              "delta": {
+                "type": "choice",
+                "choice": "part:api",
+                "confidence": 0.66
+              }
+            },
+            "failure": null
+          },
+          {
+            "head": "sha256:997f2a85be41d6774df84a876b8bba255de5d38cf5cda626fbb1dfc268940bc8",
+            "answers": {
+              "delta": {
+                "type": "choice",
+                "choice": "delta-3",
+                "confidence": 0.82
+              }
+            },
+            "failure": null
+          },
+          {
+            "head": "sha256:92d4ff762298db60703bcfceb79fd27f35eea78eec2a9bbd08644334db800c3a",
+            "answers": {
+              "delta": {
+                "type": "choice",
+                "choice": "part:goal-extra-1",
+                "confidence": 0.98
+              }
+            },
+            "failure": null
+          },
+          {
+            "head": "sha256:92d4ff762298db60703bcfceb79fd27f35eea78eec2a9bbd08644334db800c3a",
+            "answers": {
+              "delta": {
+                "type": "choice",
+                "choice": "delta-2",
+                "confidence": 0.95
+              }
+            },
+            "failure": null
+          },
+          {
+            "head": "sha256:589ae14b45e4a95ae6562953243f407e6cd4d0a5ff9c371b3f8a26137d3d59a6",
+            "answers": {
+              "delta": {
+                "type": "choice",
+                "choice": "none",
+                "confidence": 1
+              }
+            },
+            "failure": null
+          }
+        ],
+        "inventory": {
+          "checks": 1,
+          "completions": 0,
+          "preparations": 1,
+          "coverage": {
+            "choice": "missing",
+            "confidence": 0.68,
+            "inspection": {
+              "schema": "voice-ui.parts.inspection/3",
+              "request_id": "cb2d19d9-3fe4-4a9d-83a1-63bf6d82589c",
+              "mode": "adaptive-v3",
+              "initial": {
+                "decision": {
+                  "choice": "unknown",
+                  "confidence": null
+                },
+                "factors": {
+                  "intent": {
+                    "choice": "change",
+                    "confidence": 0.39
+                  },
+                  "labels": {
+                    "choice": "available",
+                    "confidence": 0.88
+                  },
+                  "capacity": {
+                    "choice": "exceeded",
+                    "confidence": 0.6
+                  },
+                  "completeness": {
+                    "choice": "incomplete",
+                    "confidence": 0.98
+                  }
+                },
+                "literal": {
+                  "recognized": false,
+                  "required": [],
+                  "spans": []
+                },
+                "observation": {
+                  "valid": true,
+                  "status": "unsupported-syntax"
+                }
+              },
+              "proposal": {
+                "slots": {
+                  "required1": {
+                    "label": "API",
+                    "kind": "step",
+                    "quantity": "2"
+                  },
+                  "required2": {
+                    "label": "",
+                    "kind": "none",
+                    "quantity": "0"
+                  },
+                  "required3": {
+                    "label": "",
+                    "kind": "none",
+                    "quantity": "0"
+                  }
+                },
+                "required": [
+                  {
+                    "label": "API",
+                    "kind": "step",
+                    "quantity": 2
+                  }
+                ]
+              },
+              "verification": {
+                "intent": {
+                  "choice": "change",
+                  "confidence": 0.92
+                },
+                "labels": {
+                  "choice": "available",
+                  "confidence": 0.94
+                },
+                "capacity": {
+                  "choice": "exceeded",
+                  "confidence": 0.92
+                },
+                "completeness": {
+                  "choice": "complete",
+                  "confidence": 0.68
+                }
+              },
+              "required": [
+                {
+                  "label": "API",
+                  "kind": "step",
+                  "quantity": 2
+                }
+              ],
+              "missing": [
+                {
+                  "label": "API",
+                  "kind": "step",
+                  "occurrence": 1
+                }
+              ],
+              "proposal_policy": {
+                "id": "uncertainty-frontier-v1",
+                "eligible": true,
+                "reason": "uncertain-intent-incomplete"
+              }
+            }
+          },
+          "missing": [
+            {
+              "label": "API",
+              "kind": "step",
+              "occurrence": 1
+            }
+          ]
+        }
+      }
+    },
+    "reloaded": {
+      "log": "{\"operations\":[{\"mapId\":\"voice-graph\",\"records\":[{\"root\":\"root\",\"schema\":\"semantic-map-state/1\",\"title\":\"independent typed ordinary public\",\"type\":\"meta\"},{\"bounds\":[0,0,900,400],\"id\":\"root\",\"kind\":\"boundary\",\"label\":\"fixture\",\"parent\":null,\"summary\":\"\",\"type\":\"region\"},{\"bounds\":[0,0,700,200],\"id\":\"container\",\"kind\":\"group\",\"label\":\"作業区\",\"parent\":\"root\",\"summary\":\"\",\"type\":\"region\"},{\"bounds\":[0,230,700,160],\"id\":\"other\",\"kind\":\"group\",\"label\":\"保留区\",\"parent\":\"root\",\"summary\":\"\",\"type\":\"region\"}],\"type\":\"CreateMap\"}],\"parent\":null,\"schema\":\"semantic-map-decision/2\",\"stateHash\":\"sha256:b494bf0e970f5039e2ad8d4caedfbd1002ede88d47c98b346346d5cb328c5b2c\"}\n{\"operations\":[{\"items\":[{\"bounds\":[0,0,2000,500],\"regionId\":\"container\"},{\"bounds\":[0,600,2000,500],\"regionId\":\"other\"}],\"type\":\"PinRegions\"}],\"parent\":\"sha256:559f71a255409af67cb1bfa3b3b2b39bd28fd0e6f7582ba858ac192eff3b58fd\",\"schema\":\"semantic-map-decision/2\",\"stateHash\":\"sha256:8e0a90b346cd898143c698e7d0e6aff7e737b111c24cf0f76ecf3b0b14121916\"}\n{\"operations\":[{\"bounds\":[20,250,140,64],\"kind\":\"step\",\"label\":\"API\",\"parentId\":\"other\",\"regionId\":\"part-1\",\"summary\":\"\",\"type\":\"AddRegion\"},{\"items\":[{\"bounds\":[12,636,180,92],\"regionId\":\"part-1\"}],\"type\":\"PinRegions\"}],\"parent\":\"sha256:997f2a85be41d6774df84a876b8bba255de5d38cf5cda626fbb1dfc268940bc8\",\"schema\":\"semantic-map-decision/2\",\"stateHash\":\"sha256:562330a396a6819b7facb965eb36e3629be71e16fadc1144c6cb030733d4e63f\"}\n{\"operations\":[{\"bounds\":[180,250,140,64],\"kind\":\"step\",\"label\":\"API\",\"parentId\":\"other\",\"regionId\":\"part-2\",\"summary\":\"\",\"type\":\"AddRegion\"},{\"items\":[{\"bounds\":[216,636,180,92],\"regionId\":\"part-2\"}],\"type\":\"PinRegions\"}],\"parent\":\"sha256:92d4ff762298db60703bcfceb79fd27f35eea78eec2a9bbd08644334db800c3a\",\"schema\":\"semantic-map-decision/2\",\"stateHash\":\"sha256:c070db6d9b8b4a984bce5f146078aacaaa40d20a8c9b59ab48eb94c938055d0c\"}\n",
+      "records": [
+        {
+          "type": "meta",
+          "schema": "semantic-map-state/1",
+          "root": "root",
+          "title": "independent typed ordinary public"
+        },
+        {
+          "type": "region",
+          "id": "root",
+          "parent": null,
+          "label": "fixture",
+          "kind": "boundary",
+          "bounds": [
+            0,
+            0,
+            900,
+            400
+          ],
+          "summary": ""
+        },
+        {
+          "type": "region",
+          "id": "container",
+          "parent": "root",
+          "label": "作業区",
+          "kind": "group",
+          "bounds": [
+            0,
+            0,
+            700,
+            200
+          ],
+          "summary": ""
+        },
+        {
+          "type": "region",
+          "id": "other",
+          "parent": "root",
+          "label": "保留区",
+          "kind": "group",
+          "bounds": [
+            0,
+            230,
+            700,
+            160
+          ],
+          "summary": ""
+        },
+        {
+          "type": "region",
+          "id": "part-1",
+          "parent": "other",
+          "label": "API",
+          "kind": "step",
+          "bounds": [
+            20,
+            250,
+            140,
+            64
+          ],
+          "summary": ""
+        },
+        {
+          "type": "region",
+          "id": "part-2",
+          "parent": "other",
+          "label": "API",
+          "kind": "step",
+          "bounds": [
+            180,
+            250,
+            140,
+            64
+          ],
+          "summary": ""
+        },
+        {
+          "type": "layout",
+          "regionId": "container",
+          "pin": "hard",
+          "bounds": [
+            0,
+            0,
+            2000,
+            500
+          ]
+        },
+        {
+          "type": "layout",
+          "regionId": "other",
+          "pin": "hard",
+          "bounds": [
+            0,
+            600,
+            2000,
+            500
+          ]
+        },
+        {
+          "type": "layout",
+          "regionId": "part-1",
+          "pin": "hard",
+          "bounds": [
+            12,
+            636,
+            180,
+            92
+          ]
+        },
+        {
+          "type": "layout",
+          "regionId": "part-2",
+          "pin": "hard",
+          "bounds": [
+            216,
+            636,
+            180,
+            92
+          ]
+        }
+      ],
+      "stored": "{\"operations\":[{\"mapId\":\"voice-graph\",\"records\":[{\"root\":\"root\",\"schema\":\"semantic-map-state/1\",\"title\":\"independent typed ordinary public\",\"type\":\"meta\"},{\"bounds\":[0,0,900,400],\"id\":\"root\",\"kind\":\"boundary\",\"label\":\"fixture\",\"parent\":null,\"summary\":\"\",\"type\":\"region\"},{\"bounds\":[0,0,700,200],\"id\":\"container\",\"kind\":\"group\",\"label\":\"作業区\",\"parent\":\"root\",\"summary\":\"\",\"type\":\"region\"},{\"bounds\":[0,230,700,160],\"id\":\"other\",\"kind\":\"group\",\"label\":\"保留区\",\"parent\":\"root\",\"summary\":\"\",\"type\":\"region\"}],\"type\":\"CreateMap\"}],\"parent\":null,\"schema\":\"semantic-map-decision/2\",\"stateHash\":\"sha256:b494bf0e970f5039e2ad8d4caedfbd1002ede88d47c98b346346d5cb328c5b2c\"}\n{\"operations\":[{\"items\":[{\"bounds\":[0,0,2000,500],\"regionId\":\"container\"},{\"bounds\":[0,600,2000,500],\"regionId\":\"other\"}],\"type\":\"PinRegions\"}],\"parent\":\"sha256:559f71a255409af67cb1bfa3b3b2b39bd28fd0e6f7582ba858ac192eff3b58fd\",\"schema\":\"semantic-map-decision/2\",\"stateHash\":\"sha256:8e0a90b346cd898143c698e7d0e6aff7e737b111c24cf0f76ecf3b0b14121916\"}\n{\"operations\":[{\"bounds\":[20,250,140,64],\"kind\":\"step\",\"label\":\"API\",\"parentId\":\"other\",\"regionId\":\"part-1\",\"summary\":\"\",\"type\":\"AddRegion\"},{\"items\":[{\"bounds\":[12,636,180,92],\"regionId\":\"part-1\"}],\"type\":\"PinRegions\"}],\"parent\":\"sha256:997f2a85be41d6774df84a876b8bba255de5d38cf5cda626fbb1dfc268940bc8\",\"schema\":\"semantic-map-decision/2\",\"stateHash\":\"sha256:562330a396a6819b7facb965eb36e3629be71e16fadc1144c6cb030733d4e63f\"}\n{\"operations\":[{\"bounds\":[180,250,140,64],\"kind\":\"step\",\"label\":\"API\",\"parentId\":\"other\",\"regionId\":\"part-2\",\"summary\":\"\",\"type\":\"AddRegion\"},{\"items\":[{\"bounds\":[216,636,180,92],\"regionId\":\"part-2\"}],\"type\":\"PinRegions\"}],\"parent\":\"sha256:92d4ff762298db60703bcfceb79fd27f35eea78eec2a9bbd08644334db800c3a\",\"schema\":\"semantic-map-decision/2\",\"stateHash\":\"sha256:c070db6d9b8b4a984bce5f146078aacaaa40d20a8c9b59ab48eb94c938055d0c\"}\n",
+      "goal": null
+    },
+    "apply_enabled": true,
+    "persistence": "PASS",
+    "undo": "separate completed-artifact keyless mechanics; no second live Goal"
+  }
+}

@@ -1,0 +1,48 @@
+{
+  "schema": "voice-ui.blind-input-only-release/1",
+  "status": "RELEASED_INPUT_ONLY",
+  "at": "2026-10-18T06:40:00.545173+00:00",
+  "repeat_profile": "compact-verifier-VE-20261018",
+  "phase": "compact-verifier-final-E-20261018",
+  "head": "180fc53e24f0fc2a5fdb098a3748afaff047bab6",
+  "commitment_sha256": "a9062129f2bda9dab84f5e311d35f7b071b1035f22a1485a38c4c8aafd6d12a2",
+  "original_re_registration": "same previously unexposed typed-ordinary-E sealed E6, not newly authored, reordered, selected or reinterpreted",
+  "released_input": {
+    "name": "verifier-cycle-sealed-E-6.inputs.json",
+    "bytes": 4875,
+    "sha256": "f646112dbb14896a2e8f27d99f2b995e374aacf68b87058c7520e9821f420e43",
+    "cases": 6,
+    "cells": 12,
+    "parent_inputs_sha256": null,
+    "raw_original_bytes_unchanged": true,
+    "order_unchanged": true
+  },
+  "oracle": {
+    "sha256": "94ba803d5633ab9ddcbeedaedda3d04387255be27cadd93351fff6f68cbb08d7",
+    "bytes": 10052,
+    "released": false,
+    "body_copyable": false,
+    "release_only_after_corresponding_fresh_physical_stop": true
+  },
+  "prior_gates": {
+    "public_V_gate_report_sha256": "ea7842c5d189b3b76ea9e1556bc09690b1c49deb012469f380d703985e604af7",
+    "public_V_fixed_producer_sha256": "f6e47f13f7c49539104d6ed649cd0bb2d099ad89b6f8b202bd2525462c48a1b8",
+    "public_E_gate_report_sha256": "6f790a4ff860d7f0d89de356e98daf595a9abfb758729c9b8dff1965a9eee302",
+    "public_E_fixed_producer_sha256": "117df4e6eeb3724436a7b3fdbd67e2e62da95f4b190b237048c237aa5c8989d8",
+    "public_E_stopped_audit_sha256": "2eac3504d7f79afe4c9a508e995f36cd05f3f515f586e3e9260086ed65d37c15",
+    "same_source_and_V_E_evidence_process_PASS": true
+  },
+  "prior_charged": {
+    "jev": 864,
+    "typellm": 138
+  },
+  "prior_journal_sha256": "43cf6cf845f35f65db07858164d5e56366a2ab024e175c13eaa11db62b48ca6c",
+  "fixed_final_phase_cap": {
+    "jev": 114,
+    "typellm": 6
+  },
+  "no_setup_retry_correction_substitution_or_old_cap_transfer": true,
+  "actual_launch_and_paid_GO": "NOT_GRANTED_BY_INPUT_RELEASE_SEPARATE_STATIC_AND_SAME_PID_ZERO_AUDITS_REQUIRED",
+  "private_oracle_validation_other_seals_or_paths_copyable": false,
+  "reviewer_provider_sends": 0
+}

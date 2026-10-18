@@ -1,0 +1,17 @@
+{
+  "schema": "voice-ui.independent-terminal-audit/1",
+  "status": "PASS",
+  "scope": "PRE_R27_READ_ONLY_ALL_OWNED_GROUPS_INCLUDING_Z",
+  "at": "2026-10-18T06:14:03.669790+00:00",
+  "journal_sha256": "90525733f94f161502411d957c953e1162850e7a1740f13cdad69a455e0d1478",
+  "charged": {
+    "jev": 850,
+    "typellm": 137
+  },
+  "outstanding": 0,
+  "owned_group_count": 50,
+  "all_50_prior_owned_bindings_exact": true,
+  "remaining_members_including_Z": [],
+  "reviewer_provider_sends": 0,
+  "app_new_phase_started": false
+}

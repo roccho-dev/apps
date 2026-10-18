@@ -1,5 +1,7 @@
 # 部品が揃った描画と、不足部品の補完を分けた評価
 
+最新の有限PoCは [短い集合照合の問いによる再評価](verifier-repeat/README.md) を参照。測定180fc53の原記録・独立採点では未見B4/6・C6/6、不足改善2/2、悪化・誤採用0。保存証拠の正式CI分類は全4CIと最新独立reviewで確定する。以下は59ded27当時の報告として、失敗と有限NO_EFFECTを保持する。
+
 測定 head は `59ded276405a5dc9caa85ad570b1827ff4bd0c7a`。正しい部品と要求表を供給した未見2例は、全在庫 O・個数制約 Q ともに2/2で描けた。通常画面の補完方式 C は未見6例中4例で、不足2例は0/2だった。**部品が揃った条件の表現性能は有限範囲で確認できたが、不足すれば正しく補って描けるという製品性能は未達である。**
 
 全4段階・20 planned / consumed / valid、INVALID0を保持した。[固定 index](evidence/index.json)、[独立した記録時点の集約](evidence/quota-cycle-recorded-aggregate.md)、各 phase の原 HTTP・選択・グラフ・保存・再描画・台帳を公開する。正式な CI 閉包は、この報告 head の全4 CI、実配布 artifact の双方による再計算、[Apps#103 の最新独立 review](https://github.com/roccho-dev/apps/pull/103) が一致した時だけ成立する。記録時点の集約にある「CI未確定」は当時の snapshot である。

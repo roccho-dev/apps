@@ -1,0 +1,79 @@
+{
+  "schema": "voice-ui.independent-public-copy-allowlist/1",
+  "status": "CLOSED_FINAL_E_AND_THREE_PHASE_REPORT",
+  "directory": "C:\\Users\\resta\\Codex\\repos\\apps.git\\.worktrees\\typellm-ci-review-20261017\\review-evidence",
+  "members": [
+    {
+      "name": "verifier-final-E-prepared-audit.json",
+      "bytes": 2909,
+      "sha256": "8f13ca2dc80ee06a5a1b7ea68b8d22358104d30c2c81170e2b6c762f5bb91c9d"
+    },
+    {
+      "name": "verifier-final-E-zero-send-audit.json",
+      "bytes": 7673,
+      "sha256": "aeeefc83734092e06ab9f4657a4e5f1eb981cace2c5872c5f6f70cbbe399c974"
+    },
+    {
+      "name": "verifier-final-E-stopped-audit.json",
+      "bytes": 986,
+      "sha256": "0e60eee91af0a01ad386395ac065a64d810f81178e34a0d367e84340d010faf4"
+    },
+    {
+      "name": "verifier-final-E-source-provider-readback.json",
+      "bytes": 5020,
+      "sha256": "3f357d5bc2f928b2d20f7c68187829743cde6ce47dcad261c78fb45401709c14"
+    },
+    {
+      "name": "verifier-final-E-raw-audit.json",
+      "bytes": 37970,
+      "sha256": "77fad22506f9cd65ec652520f72549ef10c9a2df21d396ad0ca120aad6b6317a"
+    },
+    {
+      "name": "verifier-final-E-provider-audit.json",
+      "bytes": 875,
+      "sha256": "92c596f4c06e1669fe36736b9a1e3db8386ba8700215f21f693b171f44fca1bd"
+    },
+    {
+      "name": "verifier-final-E-replay-audit.json",
+      "bytes": 288,
+      "sha256": "a625fc715d1372d669ff79ae090fbaefd0b805c45933ef52f1ed692495935749"
+    },
+    {
+      "name": "verifier-final-E-fixed-producer.json",
+      "bytes": 9145,
+      "sha256": "4c4c381cfcb4f90cd251c44c2fd335f4531047bf60c607fe437e31ddcabb5ff1"
+    },
+    {
+      "name": "verifier-final-E-binding-audit.json",
+      "bytes": 192,
+      "sha256": "f73ea3e239b785871a6bd995e3bbc954feedb4c2a27b11c55adc1c7bf905134f"
+    },
+    {
+      "name": "verifier-final-E-process-audit.json",
+      "bytes": 802,
+      "sha256": "561689c8bf55bd2a497701832a61c931f587d47fc0cadd25bf9ca74a1194d62c"
+    },
+    {
+      "name": "verifier-final-E-report.json",
+      "bytes": 4280,
+      "sha256": "986b5268afc15d5cc0ff125981e3068ccb594a5111574402f5fe798a8932432d"
+    },
+    {
+      "name": "verifier-final-E-index-row.json",
+      "bytes": 1631,
+      "sha256": "59a49a280cdaafc4c1ecea987084e1fe98946f69dd365e2884daab21cca6b28e"
+    },
+    {
+      "name": "verifier-180fc53-ci-artifact-audit.json",
+      "bytes": 4535,
+      "sha256": "6b08c24ed990947a75cf810fa45ddfe600202a26abbcf16df7754a2ef84e2747"
+    },
+    {
+      "name": "verifier-three-phase-independent-report.json",
+      "bytes": 3431,
+      "sha256": "4424cc3ecbc9bc6aec490c88655d14d477a89254c7fc87904af0a623bf09f55b"
+    }
+  ],
+  "self_is_additionally_copyable": true,
+  "private_authoring_helpers_validators_other_paths_copyable": false
+}

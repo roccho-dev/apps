@@ -1,0 +1,30 @@
+{
+  "schema": "voice-ui.independent-stopped-phase-audit/1",
+  "status": "PASS",
+  "at": "2026-10-18T06:24:42.707942+00:00",
+  "phase": "compact-verifier-public-V-20261018",
+  "pid": 401522,
+  "start_ticks": "21224742",
+  "journal_sha256": "346515aab4e57a393855390e784fff4417a406c4a88f93f5ee279e344609846b",
+  "snapshot_global_exact": true,
+  "baseline_prefix_sha256": "90525733f94f161502411d957c953e1162850e7a1740f13cdad69a455e0d1478",
+  "exact_tail_kinds": [
+    "phase-reserve",
+    "phase-reconcile"
+  ],
+  "charged": {
+    "jev": 856,
+    "typellm": 137
+  },
+  "sent": {
+    "jev": 6,
+    "typellm": 0
+  },
+  "outstanding": 0,
+  "owned_groups": 51,
+  "remaining_members_including_Z": [],
+  "orchestration_exit": 0,
+  "reviewer_provider_sends": 0,
+  "next_phase": "NOT_LAUNCHED",
+  "fresh_E6": "UNRELEASED"
+}

@@ -1,0 +1,17 @@
+{
+  "status": "PASS",
+  "scope": "POST_R27_READ_ONLY_TERMINAL",
+  "at": "2026-10-18T06:18:58.422328+00:00",
+  "journal_sha256": "90525733f94f161502411d957c953e1162850e7a1740f13cdad69a455e0d1478",
+  "charged": {
+    "jev": 850,
+    "typellm": 137
+  },
+  "outstanding": 0,
+  "owned_group_count": 50,
+  "remaining_members_including_Z": [],
+  "reviewer_provider_sends": 0,
+  "review_id": 5561717657,
+  "head": "180fc53e24f0fc2a5fdb098a3748afaff047bab6",
+  "frozen_apps_and_ui_still_exact": true
+}
