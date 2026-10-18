@@ -1,36 +1,65 @@
-import { GOAL_OFFER_MAX, KEY_PATTERN, LABEL_MAX, MIN_CONFIDENCE, OFFER_MAX, PART_KINDS, PURPOSE_MAX } from "./contract.mjs";
+import { DIRECT_GOAL_OFFER_MAX, GOAL_OFFER_MAX, KEY_PATTERN, LABEL_MAX, MIN_CONFIDENCE, isPartSymbol, OFFER_MAX, PART_KINDS, PURPOSE_MAX } from "./contract.mjs";
 import { runGoal } from "./goal.mjs";
 
 const INVENTORY_KIND = "voice-ui.goal.inventory.v1";
+const EXTENDED_INVENTORY_KIND = "voice-ui.goal.inventory.v2";
+export const REQUIRED_MAX = 16;
+export const inventoryLimit = state => state.maxRequired ?? 3;
+const extendedInventory = state => Object.hasOwn(state, "maxRequired");
+const validCapacity = value => Number.isSafeInteger(value) && value >= 1 && value <= REQUIRED_MAX;
+const bundleLimit = bundle => bundle.goalSelection === "delta" ? REQUIRED_MAX : 3;
 export const COVERAGE = Object.freeze(["sufficient", "missing", "ambiguous", "no-change", "unsupported"]);
 const exact = (x, names) => x !== null && typeof x === "object" && !Array.isArray(x)
   && Object.keys(x).length === names.length && names.every(name => Object.hasOwn(x, name));
 const text = (x, max) => typeof x === "string" && x.trim().length > 0 && x.length <= max;
 const unique = xs => new Set(xs).size === xs.length;
-const part = x => exact(x, ["key", "purpose", "label", "kind"])
+const part = (x, extended = false) => exact(x, ["key", "purpose", "label", "kind", ...(extended && Object.hasOwn(x ?? {}, "symbol") ? ["symbol"] : [])])
   && KEY_PATTERN.test(x.key ?? "") && x.key !== "none"
-  && text(x.purpose, PURPOSE_MAX) && text(x.label, LABEL_MAX) && PART_KINDS.includes(x.kind);
+  && text(x.purpose, PURPOSE_MAX) && text(x.label, LABEL_MAX) && PART_KINDS.includes(x.kind)
+  && (!Object.hasOwn(x, "symbol") || extended && isPartSymbol(x.symbol));
+const descriptor = p => JSON.stringify([p.purpose, p.symbol?.href ?? null, p.symbol?.alt ?? null, p.symbol?.provenanceRef ?? null]);
 
 export function isInventory(request) {
-  if (!exact(request, ["kind", "state"]) || request.kind !== INVENTORY_KIND) return false;
-  const s = request.state;
-  if (!exact(s, ["utterance", "head", "regions", "edges", "parts"]) || !text(s.utterance, 8000) || !text(s.head, 240)
-      || !Array.isArray(s.parts) || s.parts.length > OFFER_MAX || !s.parts.every(part) || !unique(s.parts.map(p => p.key))
+  if (!exact(request, ["kind", "state"]) || ![INVENTORY_KIND, EXTENDED_INVENTORY_KIND].includes(request.kind)) return false;
+  const s = request.state, extended = request.kind === EXTENDED_INVENTORY_KIND;
+  if (!exact(s, ["utterance", "head", "regions", "edges", "parts", ...(extended ? ["maxRequired", "relations"] : [])])
+      || extended && (!validCapacity(s.maxRequired) || !Array.isArray(s.relations) || s.relations.length < 1 || s.relations.length > OFFER_MAX
+        || !s.relations.every(r => exact(r, ["kind", "label"]) && typeof r.kind === "string" && KEY_PATTERN.test(r.kind) && r.kind !== "none"
+          && typeof r.label === "string" && r.label.length <= LABEL_MAX)
+        || !unique(s.relations.map(r => JSON.stringify([r.kind, r.label]))))
+      || !text(s.utterance, 8000) || !text(s.head, 240)
+      || !Array.isArray(s.parts) || s.parts.length > (extended ? DIRECT_GOAL_OFFER_MAX : OFFER_MAX) || !s.parts.every(p => part(p, extended)) || !unique(s.parts.map(p => p.key))
       || !Array.isArray(s.regions) || !s.regions.length || s.regions.length > 64) return false;
   if (!s.regions.every(r => exact(r, ["id", "label", "kind", "parent"]) && text(r.id, 240)
       && text(r.label, LABEL_MAX) && (PART_KINDS.includes(r.kind) || r.kind === "boundary"))) return false;
   const ids = s.regions.map(r => r.id);
-  return unique(ids) && s.regions.filter(r => r.parent === null).length === 1
+  if (!(unique(ids) && s.regions.filter(r => r.parent === null).length === 1
     && s.regions.every(r => r.parent === null || ids.includes(r.parent) && r.parent !== r.id)
     && Array.isArray(s.edges) && s.edges.length <= 64
-    && s.edges.every(e => exact(e, ["id", "from", "to"]) && text(e.id, 240) && ids.includes(e.from) && ids.includes(e.to))
-    && unique(s.edges.map(e => e.id));
+    && s.edges.every(e => exact(e, extended ? ["id", "from", "to", "kind", "label"] : ["id", "from", "to"])
+      && text(e.id, 240) && ids.includes(e.from) && ids.includes(e.to)
+      && (!extended || e.from !== e.to && typeof e.kind === "string" && KEY_PATTERN.test(e.kind)
+        && typeof e.label === "string" && e.label.length <= LABEL_MAX))
+    && unique(s.edges.map(e => e.id)))) return false;
+  if (extended) {
+    const parents = new Map(s.regions.map(r => [r.id, r.parent]));
+    for (const r of s.regions) {
+      const seen = new Set();
+      for (let at = r.id; at !== null; at = parents.get(at)) {
+        if (seen.has(at)) return false;
+        seen.add(at);
+      }
+    }
+  }
+  return true;
 }
 
 function inventoryOf({ utterance, bundle, working }) {
-  const value = { kind: INVENTORY_KIND, state: { utterance, head: working?.head,
+  const extended = bundle.goalSelection === "delta";
+  const value = { kind: extended ? EXTENDED_INVENTORY_KIND : INVENTORY_KIND, state: { utterance, head: working?.head,
     regions: (working?.records ?? []).filter(r => r.type === "region").map(({ id, label, kind, parent }) => ({ id, label, kind, parent })),
-    edges: (working?.records ?? []).filter(r => r.type === "relation").map(({ id, from, to }) => ({ id, from, to })),
+    edges: (working?.records ?? []).filter(r => r.type === "relation").map(({ id, from, to, kind, label }) => extended ? { id, from, to, kind, label } : { id, from, to }),
+    ...(extended ? { maxRequired: REQUIRED_MAX, relations: structuredClone(bundle.relations ?? [{ kind: "flow", label: "" }]) } : {}),
     parts: bundle.parts === null ? null : structuredClone(bundle.parts),
   } };
   return isInventory(value) ? value : null;
@@ -48,20 +77,24 @@ function inventoryContext(state) {
     if (!item.purposes.includes(part.purpose)) item.purposes.push(part.purpose);
   }
   return { utterance: state.utterance, regions: state.regions, edges: state.edges, parts: [...parts.values()],
-    limits: { new_regions: 3, new_flow_edges: 1 } };
+    limits: { new_regions: inventoryLimit(state), new_flow_edges: 1 },
+    ...(extendedInventory(state) ? { relations: state.relations, instances: state.parts } : {}) };
 }
 
 export function inventoryQuestion(state) {
   const context = inventoryContext(state);
   const labels = JSON.stringify(context.parts.map(({ label, kind }) => ({ label, kind })));
   return { state: context, questions: { intent: {
-    instruction: "Classify whether the utterance requests a clear supported graph change, independently of library availability. "
+    instruction: extendedInventory(state)
+      ? "Classify the utterance independently of library availability. New parts may include groups created inside the root boundary or existing groups, and children inside newly requested groups. Preserve exact labels, kinds, and additional counts; existing nodes are not new inventory. Support at most " + inventoryLimit(state) + " new parts and explicitly requested relations from state.relations. The executor has a separate finite step budget; candidate sufficiency is not whole-goal completion. Unclear endpoints or unsupported operations must not be invented."
+      : "Classify whether the utterance requests a clear supported graph change, independently of library availability. "
       + "Existing regions/edges satisfy their corresponding requested facts. An explicit addition still requests a change when other parts must stay unchanged. "
       + "Adding one, two or three regions is supported, including repeated instances of the same part. At most one directed flow edge may also be added. "
       + "Additions are inside existing named groups, including a group added earlier in the same goal. "
       + "No root additions, removal, movement, new operators or unspecified endpoints. Missing library candidates do not make a clear supported request ambiguous or unsupported.",
     options: {
-      change: "A clear request adds one to three regions or one directed flow edge and at least one requested fact is not yet satisfied. New display names are allowed. Ignore whether the candidate parts are in the library.",
+      change: extendedInventory(state) ? "A clear request needs new parts within state.limits or a relation from state.relations. Names may be new. Ignore library availability; do not subtract existing graph instances from an explicit additional count."
+        : "A clear request adds one to three regions or one directed flow edge and at least one requested fact is not yet satisfied. New display names are allowed. Ignore whether the candidate parts are in the library.",
       ambiguous: "The requested change, count, group or endpoint cannot be uniquely understood. Do not invent missing instructions.",
       "no-change": "No graph change is requested, or every requested fact already exists in the current graph.",
       unsupported: "The clear request requires operations or size outside the stated small supported task.",
@@ -87,39 +120,45 @@ export function inventoryQuestion(state) {
 }
 
 export function typedMissingRequest(state) {
+  const max = inventoryLimit(state);
   const question = index => ({
     type: "object",
-    instructions: `Independently find the ${index === 1 ? "FIRST" : index === 2 ? "SECOND" : "THIRD"} DISTINCT missing label/kind pair in utterance order. `
+    instructions: `Independently find the ${index === 1 ? "FIRST" : index === 2 ? "SECOND" : index === 3 ? "THIRD" : String(index)} DISTINCT missing label/kind pair in utterance order. `
       + "Count distinct requested missing pairs in the input itself; do not depend on another slot's generated answer. "
       + "Check the WHOLE utterance, including parts inside a requested new group. Do not stop at the first named group. "
       + "For each requested NEW label/kind, missing quantity = requested new count minus its available capacity in parts, with a minimum of zero. "
       + "Skip pairs with zero missing quantity. Existing graph facts satisfy existing references, not requests for additional new instances. "
       + "A single requested unavailable part needs exactly one row with quantity 1; multiple identical missing instances use one row with their quantity. "
-      + "The sum of missing quantities must be at most three. Preserve requested display names exactly and use only supported kinds. "
+      + (max === 3 ? "The sum of missing quantities must be at most three. Preserve requested display names exactly and use only supported kinds. "
+        : `The sum of missing quantities must be at most ${max}. Preserve requested names and kinds. `)
       + "If this ordinal has no missing pair, kind none marks the slot unused. Its label and quantity are bounded padding with no candidate meaning; prefer an empty label and quantity 0. "
       + "Do not return edges, parents, operators, existing nodes or invented extras.",
     properties: {
       label: { type: "string", instructions: "Exact requested display name for an active pair, no ID or sequence suffix. Unused kind-none slots may use an empty padding string." },
       kind: { type: "string", enum: [...PART_KINDS, "none"], instructions: "The supported kind for this distinct requested pair, or none if there is no pair at this ordinal." },
-      quantity: { type: "string", enum: ["0", "1", "2", "3"], instructions: "Select the missing instance count for this active distinct pair: 1, 2 or 3. For an unused kind-none slot this field is padding; prefer 0." },
+      quantity: { type: "string", enum: Array.from({ length: max + 1 }, (_, i) => String(i)), instructions: max === 3
+        ? "Select the missing instance count for this active distinct pair: 1, 2 or 3. For an unused kind-none slot this field is padding; prefer 0."
+        : `Select the missing count 1..${max}; use 0 for unused slots.` },
     },
   });
   // Ask every bounded ordinal explicitly rather than relying on array stopping
   // to enumerate all pairs. This is one provider request, not three retries.
   return { context: JSON.stringify(inventoryContext(state)), questions: Object.fromEntries(
-    [1, 2, 3].map(index => [`missing${index}`, question(index)])) };
+    Array.from({ length: max }, (_, i) => i + 1).map(index => [`missing${index}`, question(index)])) };
 }
 
 // TypeLLM supplies quantities; the app owns occurrence ordinals and local IDs.
 // Duplicate rows or an oversized sum are refused, never silently deduplicated.
-export function readTypedMissing(value) {
-  if (!exact(value, ["missing1", "missing2", "missing3"])) return null;
+export function readTypedMissing(value, { max = 3 } = {}) {
+  if (!validCapacity(max)) return null;
+  const names = Array.from({ length: max }, (_, i) => "missing" + (i + 1));
+  if (!exact(value, names)) return null;
   const rows = [];
   let ended = false;
-  for (const key of ["missing1", "missing2", "missing3"]) {
+  for (const key of names) {
     const row = value[key];
     if (!exact(row, ["label", "kind", "quantity"]) || typeof row.label !== "string" || row.label.length > LABEL_MAX) return null;
-    if (!["0", "1", "2", "3"].includes(row.quantity)) return null;
+    if (!Array.from({ length: max + 1 }, (_, i) => String(i)).includes(row.quantity)) return null;
     if (row.kind === "none") {
       ended = true;
     } else {
@@ -127,29 +166,29 @@ export function readTypedMissing(value) {
       rows.push({ ...row, quantity: Number(row.quantity) });
     }
   }
-  return readTypedRows(rows);
+  return readTypedRows(rows, { max });
 }
 
-function readTypedRows(value) {
-  if (!Array.isArray(value) || value.length > 3) return null;
+function readTypedRows(value, { max = 3 } = {}) {
+  if (!validCapacity(max) || !Array.isArray(value) || value.length > max) return null;
   const seen = new Set(), missing = [];
   for (const x of value) {
     if (!exact(x, ["label", "kind", "quantity"]) || !text(x.label, LABEL_MAX) || !PART_KINDS.includes(x.kind)
-        || !Number.isInteger(x.quantity) || x.quantity < 1 || x.quantity > 3 || missing.length + x.quantity > 3) return null;
+        || !Number.isInteger(x.quantity) || x.quantity < 1 || x.quantity > max || missing.length + x.quantity > max) return null;
     const key = JSON.stringify([x.label, x.kind]);
     if (seen.has(key)) return null;
     seen.add(key);
     for (let occurrence = 1; occurrence <= x.quantity; occurrence++) missing.push({ label: x.label, kind: x.kind, occurrence });
   }
-  return readMissing(missing);
+  return readMissing(missing, { max });
 }
 
-function readMissing(value) {
-  if (!Array.isArray(value) || value.length > 3) return null;
+function readMissing(value, { max = 3 } = {}) {
+  if (!validCapacity(max) || !Array.isArray(value) || value.length > max) return null;
   const seen = new Map();
   for (const x of value) {
     if (!exact(x, ["label", "kind", "occurrence"]) || !text(x.label, LABEL_MAX) || !PART_KINDS.includes(x.kind)
-        || !Number.isInteger(x.occurrence) || x.occurrence < 1 || x.occurrence > 3) return null;
+        || !Number.isInteger(x.occurrence) || x.occurrence < 1 || x.occurrence > max) return null;
     const key = JSON.stringify([x.label, x.kind]);
     if (x.occurrence !== (seen.get(key) ?? 0) + 1) return null;
     seen.set(key, x.occurrence);
@@ -158,18 +197,18 @@ function readMissing(value) {
 }
 
 // Literal evidence crosses the same closed boundary for every gate outcome.
-export function readLiteralInspection(value, utterance) {
+export function readLiteralInspection(value, utterance, { max = 3 } = {}) {
   if (!exact(value, ["source", "recognized", "required", "missing", "spans", "completeness"])
       || value.source !== "literal+jev" || typeof value.recognized !== "boolean"
-      || readTypedRows(value.required) === null || readMissing(value.missing) === null
-      || !Array.isArray(value.spans) || value.spans.length > 3
+      || readTypedRows(value.required, { max }) === null || readMissing(value.missing, { max }) === null
+      || !Array.isArray(value.spans) || value.spans.length > max
       || value.recognized !== (value.spans.length > 0)
       || !value.spans.every(s => exact(s, ["start", "end", "source", "label", "kind", "quantity"])
         && Number.isSafeInteger(s.start) && Number.isSafeInteger(s.end)
         && s.start >= 0 && s.start < s.end && s.end <= utterance.length
         && s.source === utterance.slice(s.start, s.end) && s.source === s.label
-        && readTypedRows([{ label: s.label, kind: s.kind, quantity: s.quantity }]) !== null)
-      || value.spans.reduce((n, s) => n + s.quantity, 0) > 3
+        && readTypedRows([{ label: s.label, kind: s.kind, quantity: s.quantity }], { max }) !== null)
+      || value.spans.reduce((n, s) => n + s.quantity, 0) > max
       || !unique(value.spans.map(s => JSON.stringify([s.start, s.end, s.label])))
       || !exact(value.completeness, ["choice", "confidence"])
       || !["complete", "incomplete"].includes(value.completeness.choice)
@@ -185,28 +224,37 @@ export function readLiteralInspection(value, utterance) {
   return structuredClone(value);
 }
 
-function withMissing(bundle, missing) {
-  const valid = readMissing(missing);
-  if (valid === null || !Array.isArray(bundle.parts) || bundle.parts.length > OFFER_MAX || !bundle.parts.every(part)) return null;
-  const used = new Set(bundle.parts.map(p => p.key));
+function withMissing(bundle, missing, reservedKeys = []) {
+  const max = bundleLimit(bundle), extended = bundle.goalSelection === "delta";
+  const valid = readMissing(missing, { max });
+  if (valid === null || !Array.isArray(bundle.parts) || bundle.parts.length > (extended ? DIRECT_GOAL_OFFER_MAX : OFFER_MAX) || !bundle.parts.every(p => part(p, extended))) return null;
+  const used = new Set([...bundle.parts.map(p => p.key), ...reservedKeys]);
   let next = 0;
   const extra = valid.map(x => {
     let key;
     do { key = `goal-extra-${++next}`; } while (used.has(key));
     used.add(key);
-    return Object.freeze({ key, label: x.label, kind: x.kind, purpose: `one requested part named ${x.label}, kind ${x.kind}, missing instance ${x.occurrence}` });
+    const known = extended ? bundle.parts.filter(p => p.label === x.label && p.kind === x.kind) : [];
+    return Object.freeze({ key, label: x.label, kind: x.kind, ...(known.length && new Set(known.map(descriptor)).size === 1 && known[0].symbol ? { symbol: structuredClone(known[0].symbol) } : {}),
+      purpose: known.length && new Set(known.map(descriptor)).size === 1 ? known[0].purpose
+      : `one requested part named ${x.label}, kind ${x.kind}, missing instance ${x.occurrence}` });
   });
   const parts = Object.freeze([...bundle.parts, ...extra]);
-  return parts.length <= GOAL_OFFER_MAX && parts.every(part) ? Object.freeze({ ...bundle, parts }) : null;
+  return parts.length <= (extended ? DIRECT_GOAL_OFFER_MAX : GOAL_OFFER_MAX) && parts.every(p => part(p, extended)) ? Object.freeze({ ...bundle, parts }) : null;
 }
 
 // A verified full NEW requirement limits executable instances, in inventory order.
 // Short stock stays short; this filter neither invents parts nor interprets structure.
 export function quotaGoalBundle(bundle, required) {
-  const rows = readRequired(required);
+  const rows = readRequired(required, { max: bundleLimit(bundle ?? {}) });
   if (rows === null || bundle === null || typeof bundle !== "object" || Array.isArray(bundle)
-      || !Array.isArray(bundle.parts) || bundle.parts.length > GOAL_OFFER_MAX
-      || !bundle.parts.every(part) || !unique(bundle.parts.map(p => p.key))) return null;
+      || !Array.isArray(bundle.parts) || bundle.parts.length > (bundle.goalSelection === "delta" ? DIRECT_GOAL_OFFER_MAX : GOAL_OFFER_MAX)
+      || !bundle.parts.every(p => part(p, bundle.goalSelection === "delta")) || !unique(bundle.parts.map(p => p.key))) return null;
+  if (bundle.goalSelection === "delta" && rows.some(row => {
+    const stock = bundle.parts.filter(p => p.label === row.label && p.kind === row.kind);
+    // Ambiguous surplus or a missing instance must not choose a template by order.
+    return stock.length !== row.quantity && new Set(stock.map(descriptor)).size > 1;
+  })) return null;
   const remaining = new Map(rows.map(row => [JSON.stringify([row.label, row.kind]), row.quantity]));
   const parts = bundle.parts.filter(p => {
     const key = JSON.stringify([p.label, p.kind]), count = remaining.get(key) ?? 0;
@@ -228,6 +276,7 @@ export async function runInventoryGoal({ check, complete, completion = true, now
   const interrupted = () => options.cancelled() ? "cancelled" : options.current() !== first ? "stale-goal"
     : now() - started >= 180000 ? "budget-time" : null;
   if (request === null) return stop("invalid-inventory");
+  const max = inventoryLimit(request.state), extended = extendedInventory(request.state);
   let reason = interrupted();
   if (reason !== null) return stop(reason);
   let coverage;
@@ -235,8 +284,9 @@ export async function runInventoryGoal({ check, complete, completion = true, now
   try { coverage = await check(request); } catch { return stop("inventory-unknown"); }
   const receipt = exact(coverage, ["choice", "confidence", "inspection"])
     ? readRequirementInspection(coverage.inspection, request.state, readLiteralInspection) : null;
+  if (extended && receipt === null) return stop("inventory-contract");
   const inspected = exact(coverage, ["choice", "confidence", "inspection"])
-    && (receipt !== null || readLiteralInspection(coverage.inspection, options.utterance) !== null);
+    && (receipt !== null || readLiteralInspection(coverage.inspection, options.utterance, { max }) !== null);
   if (!(exact(coverage, ["choice", "confidence"]) || inspected)
       || !(COVERAGE.includes(coverage.choice) || inspected && coverage.choice === "unknown" && coverage.confidence === null)
       || coverage.choice !== "unknown" && (typeof coverage.confidence !== "number" || !Number.isFinite(coverage.confidence)
@@ -250,7 +300,9 @@ export async function runInventoryGoal({ check, complete, completion = true, now
   if (coverage.choice === "unknown") return stop("inventory-unresolved");
   if (coverage.confidence < MIN_CONFIDENCE) return stop("inventory-not-confident");
   if (!["sufficient", "missing"].includes(coverage.choice)) return stop("inventory-" + coverage.choice);
-  let bundle = options.bundle;
+  // Extended preparation prunes irrelevant stock first, without spending model calls.
+  let bundle = extended && receipt !== null ? quotaGoalBundle(options.bundle, receipt.required) : options.bundle;
+  if (bundle === null) return stop("completion-contract");
   if (coverage.choice === "missing" && completion) {
     let result;
     if (receipt !== null) result = { missing: receipt.missing };
@@ -260,11 +312,11 @@ export async function runInventoryGoal({ check, complete, completion = true, now
     }
     reason = interrupted();
     if (reason !== null) return stop(reason);
-    const missing = readMissing(result?.missing);
+    const missing = readMissing(result?.missing, { max });
     if (missing === null) return stop("completion-contract");
     inventory.missing = missing;
     if (!missing.length) return stop("completion-empty");
-    bundle = withMissing(bundle, missing);
+    bundle = withMissing(bundle, missing, extended ? options.bundle.parts.map(p => p.key) : []);
     if (bundle === null) return stop("completion-contract");
     inventory.preparations++;
   }
@@ -272,6 +324,7 @@ export async function runInventoryGoal({ check, complete, completion = true, now
     bundle = quotaGoalBundle(bundle, receipt.required);
     if (bundle === null) return stop("completion-contract");
   }
+  if (extended) inventory.prepared = Object.freeze(bundle.parts.map(p => Object.freeze({ ...p })));
   const result = await runGoal({ ...options, bundle, now, deadlineAt: started + 180000 });
   return Object.freeze({ ...result, requests: result.requests + inventory.checks,
     elapsedMs: Math.max(0, now() - started), inventory: Object.freeze({ ...inventory }) });
@@ -288,7 +341,7 @@ const answer = (x, options) => requiredExact(x, ["choice", "confidence"]) && opt
   && Number.isFinite(x.confidence) && x.confidence >= 0 && x.confidence <= 1;
 
 const requiredNames = max => {
-  if (!Number.isSafeInteger(max) || max < 1 || max > 16) throw new TypeError("required capacity must be 1..16");
+  if (!Number.isSafeInteger(max) || max < 1 || max > REQUIRED_MAX) throw new TypeError("required capacity must be 1..16");
   return Array.from({ length: max }, (_, i) => "required" + (i + 1));
 };
 
@@ -339,7 +392,8 @@ export function requiredRequest(context, { generation = "dependent", max = 3 } =
   if (!["independent", "dependent"].includes(generation)) throw new Error("invalid requirements generation");
   const extraction = { utterance: context.utterance,
     existing_regions: context.regions.map(({ label, kind }) => ({ label, kind })),
-    part_definitions: context.parts.map(({ label, kind, purposes }) => ({ label, kind, purposes })) };
+    part_definitions: context.parts.map(({ label, kind, purposes }) => ({ label, kind, purposes })),
+    ...(context.instances ? { part_instances: context.instances } : {}) };
   const subject = n => "原文のutterance全体から、今回新しく追加する部品の（表示名,種類）の組を、最初に言及された順に重複なく列挙する。"
     + "同じ組を複数個追加しても1組として数える。新しい囲み内の子も列挙するが、既存の親や接続先は追加に含めない。"
     + "existing_regionsは既存参照、part_definitionsは名称と種類の定義であり、追加用の個数ではない。"
@@ -372,8 +426,8 @@ export function requiredRequest(context, { generation = "dependent", max = 3 } =
 
 // Experimental extraction contract. Explicit names and definition names have
 // separate provenance; neither branch may invent a replacement display name.
-export function displaySourceRequest(context) {
-  const request = requiredRequest(context, { generation: "dependent" });
+export function displaySourceRequest(context, { max = 3 } = {}) {
+  const request = requiredRequest(context, { generation: "dependent", max });
   for (const [index, question] of Object.values(request.questions).entries()) {
     const n = index + 1, { kind, label, quantity } = question.properties;
     const label_source = { type: "string", enum: ["utterance", "definition", "none"], depends_on: ["kind"],
@@ -390,14 +444,14 @@ export function displaySourceRequest(context) {
   return request;
 }
 
-export function readDisplaySourceSlots(source, context) {
-  if (!requiredExact(source, ["required1", "required2", "required3"])) return null;
+export function readDisplaySourceSlots(source, context, { max = 3 } = {}) {
+  if (!requiredExact(source, requiredNames(max))) return null;
   const slots = {};
   for (const [key, row] of Object.entries(source)) {
     if (!requiredExact(row, ["kind", "label_source", "label", "quantity"])) return null;
     slots[key] = { label: row.label, kind: row.kind, quantity: row.quantity };
   }
-  const required = readRequiredSlots(slots);
+  const required = readRequiredSlots(slots, { max });
   if (required === null) return null;
   for (const row of Object.values(source)) {
     if (row.label_source === "none") {
@@ -486,12 +540,15 @@ export function requirementDecision(factors, ready, missing) {
 
 // The browser independently checks the receipt before deterministic preparation.
 export function readRequirementInspection(value, state, literalReader) {
-  const frontier = value?.schema === "voice-ui.parts.inspection/3" && value.mode === "adaptive-v3";
+  const extended = extendedInventory(state), max = inventoryLimit(state);
+  if (extended && !isInventory({ kind: EXTENDED_INVENTORY_KIND, state })) return null;
+  if (extended && (!value || value.schema !== "voice-ui.parts.inspection/4" || !same(value.input, state))) return null;
+  const frontier = (value?.schema === "voice-ui.parts.inspection/3" || extended && value?.schema === "voice-ui.parts.inspection/4") && value.mode === "adaptive-v3";
   if (!requiredExact(value, ["schema", "request_id", "mode", "initial", "proposal", "verification", "required", "missing",
-        ...(frontier ? ["proposal_policy"] : [])])
-      || !frontier && (value.schema !== "voice-ui.parts.inspection/2" || !["literal-v2", "adaptive-v2"].includes(value.mode))
+        ...(frontier ? ["proposal_policy"] : []), ...(extended ? ["input"] : [])])
+      || !frontier && (value.schema !== (extended ? "voice-ui.parts.inspection/4" : "voice-ui.parts.inspection/2") || !["literal-v2", "adaptive-v2"].includes(value.mode))
       || typeof value.request_id !== "string" || !/^[a-f0-9-]{36}$/u.test(value.request_id)
-      || readRequired(value.required) === null) return null;
+      || readRequired(value.required, { max }) === null) return null;
   if (!same(value.missing, requiredDifference(value.required, state.parts))) return null;
   const initial = value.initial;
   if (!requiredExact(initial, ["decision", "factors", "literal", "observation"])
@@ -501,9 +558,9 @@ export function readRequirementInspection(value, state, literalReader) {
       || !["transcribed", "unsupported-syntax"].includes(initial.observation.status)
       || !requiredExact(initial.literal, ["recognized", "required", "spans"])) return null;
   const literal = initial.literal;
-  const literalMissing = readRequired(literal.required) === null ? null : requiredDifference(literal.required, state.parts);
+  const literalMissing = readRequired(literal.required, { max }) === null ? null : requiredDifference(literal.required, state.parts);
   if (literalMissing === null || literalReader({ source: "literal+jev", ...literal, missing: literalMissing,
-      completeness: initial.factors.completeness }, state.utterance) === null
+      completeness: initial.factors.completeness }, state.utterance, { max }) === null
       || !initial.observation.valid && (literal.recognized || literal.required.length || literal.spans.length)) return null;
   const references = new Set(state.regions.filter(r => !["group", "boundary"].includes(r.kind)
     && state.utterance.includes(r.label)).map(r => r.label));
@@ -518,8 +575,8 @@ export function readRequirementInspection(value, state, literalReader) {
         || adaptive && eligible) return null;
   } else {
     if (!adaptive || !eligible
-        || !requiredExact(value.proposal, ["slots", "required"]) || readRequiredSlots(value.proposal.slots) === null
-        || !same(readRequiredSlots(value.proposal.slots), value.proposal.required)
+        || !requiredExact(value.proposal, ["slots", "required"]) || readRequiredSlots(value.proposal.slots, { max }) === null
+        || !same(readRequiredSlots(value.proposal.slots, { max }), value.proposal.required)
         || !requiredLabelsGrounded(value.proposal.required, state)
         || !same(value.required, value.proposal.required) || !requiredExact(value.verification, names)
         || !names.every((name, i) => answer(value.verification[name], choices[i]))) return null;
