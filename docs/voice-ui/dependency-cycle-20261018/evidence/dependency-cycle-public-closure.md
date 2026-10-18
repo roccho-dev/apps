@@ -1,0 +1,15 @@
+Independent R: this dependency registration stops after public F/V/E at exact Apps `ae816ec23a5e4c397c8a4893e127fb24134afda8`.
+
+The three stopped phases contain 22 cells, including four invalid independent-generation cells. Their source/runtime/parent/protocol/event/stage/provider/physical-stop and fixed-producer joins pass. All owned process groups, including zombies, are absent; no reservation remains. This cycle sent Jev14/Type13. Cumulative charged totals are Jev715/Type71; confirmed sends are 715/70, retaining the earlier conservative unsent Type charge.
+
+Public F: dependent generation is valid6/6 and exact/minimal5/6; independent generation is valid2/6 and exact/minimal2/6, with four contract failures preserved. There are four observed validity gains, but only two admissible semantic pairs and zero semantic gains/regressions within those pairs. PF04 remains wrong on the dependent side: the requested data label receives kind decision. The registered candidate F gate passes; this is not general extraction success.
+
+Public V: all six are valid and correct, accepting three correct proposals and rejecting three incorrect ones. This remains public regression evidence.
+
+Public E: all four ordinary browser cells, their protocol proofs, individual paint/Apply/reload checks and matching exact-artifact replay rows pass integrity. The enabled target is correct in1/2 cases. PE02 has an eligible positive contrast: literal-only does not draw the requested decision, whereas the dependent Type interpretation, independent verifier, deterministic stock preparation and existing Goal draw the exact requested decision inside the target group. This demonstrates one finite public benefit of that whole path; E does not compare dependent against independent Type.
+
+PE01 fails in both arms. Initial intent is ambiguous(.55 inB/.52 inC); literal extraction is empty, Type is not invoked, and the graph remains unchanged. Capacity exceeded(.90/.88) is correct because three requested API instances exceed one stock instance. The blocking error is the intent decision, not Type generation or the supported maximum quantity. PE01 remains in the performance denominator and is excluded only from the eligible causal comparison.
+
+The registered same-head E gate requires both public gains and enabled success. It is UNMET, so this registration has no correction/retry or fresh release. All six newly sealed input/oracle files remain private and byte-identical to their commitments. Neither full effect nor bounded NO_EFFECT is established. Historical failures and the prior conditional supplied-parts representation evidence retain their original scope.
+
+The machine aggregate `dependency-cycle-public-closure.json` records exact audit/producer references and all original scores. CI closure should verify this failed public gate and zero fresh releases, without changing measured source, grades, criteria or outcomes. Any further provider work requires a separate preregistered hypothesis; unused allocation is not automatic permission to repeat.

@@ -1,0 +1,176 @@
+{
+  "status": "PASS",
+  "phase": "quota-final-E-20261018",
+  "at": "2026-10-17T23:28:14.435Z",
+  "journal_sha256": "1fb7f24d498e214a977bc557ba4b46c0d108ec34cb4f380a2a0de368445b2a80",
+  "charged": {
+    "jev": 847,
+    "typellm": 88
+  },
+  "outstanding": 0,
+  "owned_pgids": 42,
+  "remaining_members": [],
+  "orchestration": {
+    "phase": "quota-final-E-20261018",
+    "began": "2026-10-17T23:24:56.029Z",
+    "finished": "2026-10-17T23:27:58.811Z",
+    "execution": {
+      "exit": 0,
+      "error": null
+    },
+    "stop": {
+      "status": "STOPPED_RECONCILED",
+      "result": {
+        "phase": "quota-final-E-20261018",
+        "action": "stop",
+        "current": {
+          "pid": 376131,
+          "state": "S",
+          "pgid": 376131,
+          "start_ticks": "18725492"
+        },
+        "sent": {
+          "jev": 20,
+          "typellm": 2
+        },
+        "whole_run_sent": {
+          "jev": 847,
+          "typellm": 88
+        },
+        "reserved_until_confirmed_stop": null
+      }
+    },
+    "raw": "/work/repos/voice-ui-typellm-20261016/quota-final-E-20261018.raw",
+    "driver_stdout": "/work/repos/voice-ui-typellm-20261016/quota-final-E-20261018.driver.stdout.log",
+    "driver_stderr": "/work/repos/voice-ui-typellm-20261016/quota-final-E-20261018.driver.stderr.log"
+  },
+  "execution": {
+    "schema": "voice-ui.quota-cycle-phase/1",
+    "axis": "E",
+    "status": "RECORDED",
+    "summary": [
+      {
+        "axis": "E",
+        "id": "QE01",
+        "arm": "B",
+        "method": "literal-v2",
+        "generation_policy": null,
+        "goal_parts_policy": "quota",
+        "valid_execution": true,
+        "calls": 1
+      },
+      {
+        "axis": "E",
+        "id": "QE01",
+        "arm": "C",
+        "method": "adaptive-v3",
+        "generation_policy": "dependent",
+        "goal_parts_policy": "quota",
+        "valid_execution": true,
+        "calls": 3
+      },
+      {
+        "axis": "E",
+        "id": "QE02",
+        "arm": "C",
+        "method": "adaptive-v3",
+        "generation_policy": "dependent",
+        "goal_parts_policy": "quota",
+        "valid_execution": true,
+        "calls": 3
+      },
+      {
+        "axis": "E",
+        "id": "QE02",
+        "arm": "B",
+        "method": "literal-v2",
+        "generation_policy": null,
+        "goal_parts_policy": "quota",
+        "valid_execution": true,
+        "calls": 3
+      },
+      {
+        "axis": "E",
+        "id": "QE03",
+        "arm": "B",
+        "method": "literal-v2",
+        "generation_policy": null,
+        "goal_parts_policy": "quota",
+        "valid_execution": true,
+        "calls": 1
+      },
+      {
+        "axis": "E",
+        "id": "QE03",
+        "arm": "C",
+        "method": "adaptive-v3",
+        "generation_policy": "dependent",
+        "goal_parts_policy": "quota",
+        "valid_execution": true,
+        "calls": 1
+      },
+      {
+        "axis": "E",
+        "id": "QE04",
+        "arm": "C",
+        "method": "adaptive-v3",
+        "generation_policy": "dependent",
+        "goal_parts_policy": "quota",
+        "valid_execution": true,
+        "calls": 1
+      },
+      {
+        "axis": "E",
+        "id": "QE04",
+        "arm": "B",
+        "method": "literal-v2",
+        "generation_policy": null,
+        "goal_parts_policy": "quota",
+        "valid_execution": true,
+        "calls": 1
+      },
+      {
+        "axis": "E",
+        "id": "QE05",
+        "arm": "B",
+        "method": "literal-v2",
+        "generation_policy": null,
+        "goal_parts_policy": "quota",
+        "valid_execution": true,
+        "calls": 1
+      },
+      {
+        "axis": "E",
+        "id": "QE05",
+        "arm": "C",
+        "method": "adaptive-v3",
+        "generation_policy": "dependent",
+        "goal_parts_policy": "quota",
+        "valid_execution": true,
+        "calls": 1
+      },
+      {
+        "axis": "E",
+        "id": "QE06",
+        "arm": "C",
+        "method": "adaptive-v3",
+        "generation_policy": "dependent",
+        "goal_parts_policy": "quota",
+        "valid_execution": true,
+        "calls": 1
+      },
+      {
+        "axis": "E",
+        "id": "QE06",
+        "arm": "B",
+        "method": "literal-v2",
+        "generation_policy": null,
+        "goal_parts_policy": "quota",
+        "valid_execution": true,
+        "calls": 1
+      }
+    ],
+    "invalid_cells": 0,
+    "expected_cells": 12
+  }
+}

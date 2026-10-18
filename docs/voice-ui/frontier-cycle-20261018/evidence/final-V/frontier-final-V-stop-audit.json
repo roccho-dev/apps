@@ -1,0 +1,277 @@
+{
+  "schema": "voice-ui.independent-stop-audit/1",
+  "observed_at": "2026-10-17T21:14:12.209340+00:00",
+  "status": "PASS",
+  "owned_group_count": 36,
+  "all_owned_groups": [
+    {
+      "phase": "poc-main-1",
+      "pid": 98069,
+      "start_ticks": "6787546",
+      "all_members_including_zombies": []
+    },
+    {
+      "phase": "poc-main-2",
+      "pid": 98609,
+      "start_ticks": "6833888",
+      "all_members_including_zombies": []
+    },
+    {
+      "phase": "poc-main-3",
+      "pid": 99783,
+      "start_ticks": "7149546",
+      "all_members_including_zombies": []
+    },
+    {
+      "phase": "poc-main-4",
+      "pid": 100368,
+      "start_ticks": "7245695",
+      "all_members_including_zombies": []
+    },
+    {
+      "phase": "poc-main-5",
+      "pid": 101417,
+      "start_ticks": "7530557",
+      "all_members_including_zombies": []
+    },
+    {
+      "phase": "poc-main-6",
+      "pid": 102693,
+      "start_ticks": "7751187",
+      "all_members_including_zombies": []
+    },
+    {
+      "phase": "poc-fresh-7",
+      "pid": 103224,
+      "start_ticks": "7802310",
+      "all_members_including_zombies": []
+    },
+    {
+      "phase": "poc-ready-8",
+      "pid": 103655,
+      "start_ticks": "7896006",
+      "all_members_including_zombies": []
+    },
+    {
+      "phase": "candidate-public-20261017",
+      "pid": 233467,
+      "start_ticks": "13622035",
+      "all_members_including_zombies": []
+    },
+    {
+      "phase": "candidate-type-diagnostic-1",
+      "pid": 233952,
+      "start_ticks": "13654560",
+      "all_members_including_zombies": []
+    },
+    {
+      "phase": "candidate-type-diagnostic-2",
+      "pid": 239615,
+      "start_ticks": "13708110",
+      "all_members_including_zombies": []
+    },
+    {
+      "phase": "candidate-type-diagnostic-3",
+      "pid": 242236,
+      "start_ticks": "13717798",
+      "all_members_including_zombies": []
+    },
+    {
+      "phase": "candidate-correction-1-20261017",
+      "pid": 252935,
+      "start_ticks": "13829959",
+      "all_members_including_zombies": []
+    },
+    {
+      "phase": "candidate-correction-2-20261017",
+      "pid": 259519,
+      "start_ticks": "13920555",
+      "all_members_including_zombies": []
+    },
+    {
+      "phase": "candidate-public-remainder-20261017",
+      "pid": 261711,
+      "start_ticks": "13955189",
+      "all_members_including_zombies": []
+    },
+    {
+      "phase": "candidate-fresh-20261017",
+      "pid": 270500,
+      "start_ticks": "14088123",
+      "all_members_including_zombies": []
+    },
+    {
+      "phase": "axes-public-G-20261017",
+      "pid": 308086,
+      "start_ticks": "15074155",
+      "all_members_including_zombies": []
+    },
+    {
+      "phase": "axes-public-R-20261017",
+      "pid": 308609,
+      "start_ticks": "15093863",
+      "all_members_including_zombies": []
+    },
+    {
+      "phase": "axes-public-F-20261017",
+      "pid": 309041,
+      "start_ticks": "15114628",
+      "all_members_including_zombies": []
+    },
+    {
+      "phase": "axes-public-E-20261017",
+      "pid": 309395,
+      "start_ticks": "15135567",
+      "all_members_including_zombies": []
+    },
+    {
+      "phase": "axes-final-G-20261017",
+      "pid": 311739,
+      "start_ticks": "15269329",
+      "all_members_including_zombies": []
+    },
+    {
+      "phase": "axes-final-R-20261017",
+      "pid": 312045,
+      "start_ticks": "15291612",
+      "all_members_including_zombies": []
+    },
+    {
+      "phase": "axes-final-F-20261017",
+      "pid": 312711,
+      "start_ticks": "15313164",
+      "all_members_including_zombies": []
+    },
+    {
+      "phase": "axes-final-E-20261017",
+      "pid": 313201,
+      "start_ticks": "15339382",
+      "all_members_including_zombies": []
+    },
+    {
+      "phase": "requirements-public-F-20261018",
+      "pid": 320853,
+      "start_ticks": "15873648",
+      "all_members_including_zombies": []
+    },
+    {
+      "phase": "requirements-correction1-F-20261018",
+      "pid": 322497,
+      "start_ticks": "15998732",
+      "all_members_including_zombies": []
+    },
+    {
+      "phase": "requirements-correction1-V-20261018",
+      "pid": 322721,
+      "start_ticks": "16014619",
+      "all_members_including_zombies": []
+    },
+    {
+      "phase": "requirements-correction2-F-20261018",
+      "pid": 323862,
+      "start_ticks": "16150741",
+      "all_members_including_zombies": []
+    },
+    {
+      "phase": "requirements-correction2-V-20261018",
+      "pid": 324288,
+      "start_ticks": "16176096",
+      "all_members_including_zombies": []
+    },
+    {
+      "phase": "dependency-public-F-20261018",
+      "pid": 329873,
+      "start_ticks": "16800830",
+      "all_members_including_zombies": []
+    },
+    {
+      "phase": "dependency-public-V-20261018",
+      "pid": 330205,
+      "start_ticks": "16827734",
+      "all_members_including_zombies": []
+    },
+    {
+      "phase": "dependency-public-E-20261018",
+      "pid": 330456,
+      "start_ticks": "16837431",
+      "all_members_including_zombies": []
+    },
+    {
+      "phase": "intent-public-G0-20261018",
+      "pid": 334177,
+      "start_ticks": "17270422",
+      "all_members_including_zombies": []
+    },
+    {
+      "phase": "frontier-public-G0-20261018",
+      "pid": 345186,
+      "start_ticks": "17843257",
+      "all_members_including_zombies": []
+    },
+    {
+      "phase": "frontier-public-E-20261018",
+      "pid": 345714,
+      "start_ticks": "17885135",
+      "all_members_including_zombies": []
+    },
+    {
+      "phase": "frontier-final-V-20261018",
+      "pid": 346779,
+      "start_ticks": "17941790",
+      "all_members_including_zombies": []
+    }
+  ],
+  "phase": "frontier-final-V-20261018",
+  "axis": "V",
+  "pid": 346779,
+  "start_ticks": "17941790",
+  "pid_absent": true,
+  "pgid_all_members_including_zombies": [],
+  "sent": {
+    "jev": 10,
+    "typellm": 0
+  },
+  "charged": {
+    "jev": 761,
+    "typellm": 73
+  },
+  "pending": null,
+  "reconciliation": {
+    "kind": "phase-reconcile",
+    "id": "frontier-final-V-20261018",
+    "sent": {
+      "jev": 10,
+      "typellm": 0
+    },
+    "stopped_group_empty": true,
+    "pid": 346779,
+    "start_ticks": "17941790",
+    "stderr_sha256": "4316e475b28e8e572443086c71ea7a3abe162d7ea824505916c93f7d629e6e76",
+    "stdout_sha256": "095b9a5002bfb943308033f52080248e259c43bb5a4985b05d8c1039b865d2be",
+    "at": "2026-10-17T21:13:57.579Z"
+  },
+  "config_sha256": "4833f5164372df2c532a506001f2a4275e8add3e7ec2fd57cb918e7f9daa8821",
+  "identity_sha256": "3733caafa66b313370696e47f0e5bc7548d072af8b596388fccec8c1ebde7903",
+  "process_sha256": "d6ec404e64a96a2eff52cac984a87bdf11dea62b0755bd2bf00cfbd145b51d41",
+  "runtime_sha256": "ec0e6e8f0719393496f2956f6f25c97a83c733467fc93771db51d8dce35d7d5f",
+  "journal_sha256": "a286f93692adf22279ad609ba80a1786325c3078811d0d17f25fa3502638d894",
+  "stdout_sha256": "095b9a5002bfb943308033f52080248e259c43bb5a4985b05d8c1039b865d2be",
+  "stderr_sha256": "4316e475b28e8e572443086c71ea7a3abe162d7ea824505916c93f7d629e6e76",
+  "raw_sha256": {
+    "events.jsonl": "91d67c662a9be78f4055d2452467305d0b6d8d5a0a93974d26fa747b446a5415",
+    "execution.json": "85ac1652ffaf5ce0ec2afebb84ade4fa31f6ac91a502552757013f71333829ce",
+    "FV01-V.json": "429577982e9d0039b0821bca990d5005e0b6748935c77b70882ed82c011bae10",
+    "FV02-V.json": "8748bc4b7dfeb1bb75e353174ca27187145616ddb576f80b9002006ed36599de",
+    "FV03-V.json": "5f414271684c1a2e3fe015ceddae831a75bffd2a55c27b0c2f6330ad5117775e",
+    "FV04-V.json": "4aabd69439fe4d47406b0fd0bf0a9a2b6d885347794c7a1f4241fd78a2aa5332",
+    "FV05-V.json": "12f855f6fdf8b475cf20f0adadc8aac404254a1b27a861799b555f5fb341b89f",
+    "FV06-V.json": "2d18f1788c31c4205e849d36cab14b23ed7d0f578852a73b8cd792e6917eaa08",
+    "FV07-V.json": "5dd4b88bfb9abf1c9b59941da9950855e0a689f0604af28f06f001fd1d79d7ee",
+    "FV08-V.json": "bffafd0c7d4eaac4321a2e5ba9770aeb678a59002a37502fa2c513938c879091",
+    "FV09-V.json": "2a395a204df9d2fb095f09439d3bd1787bc1e4567579e212b3b437f4af927021",
+    "FV10-V.json": "7659a6d63be6ff994d61576d6ccdc28a1d644354e0a79ec6ed2b66675151a19e",
+    "identity.json": "edca5bce26a4f63a80de26b9ade569ec7488926e42c53d2a68213d31bac0872c"
+  },
+  "scope": "Independently observed all36 empty ledger-owned PGIDs including zombies, fixed25-source/runtime and frozen original logs/raw; exact synchronous provider sends finally reconciled.",
+  "runtime_identity_sha256": "3733caafa66b313370696e47f0e5bc7548d072af8b596388fccec8c1ebde7903"
+}

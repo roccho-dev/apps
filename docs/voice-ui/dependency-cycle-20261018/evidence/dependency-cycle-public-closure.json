@@ -1,0 +1,395 @@
+{
+  "schema": "voice-ui.review.dependency-public-closure/1",
+  "status": "PASS",
+  "apps": "ae816ec23a5e4c397c8a4893e127fb24134afda8",
+  "source_review_url": "https://github.com/roccho-dev/apps/pull/103#pullrequestreview-5559238178",
+  "source_review_sha256": "c9ebc0ba78e52f2fea01d067a9aa888683ff9a97af810f4a89ae5ddfbb394491",
+  "source_readback_sha256": "1d794b37c457b167d46611cffefc24079f8c86dd0884efccf50c5bdb3570099a",
+  "baseline_charged": {
+    "jev": 701,
+    "typellm": 58
+  },
+  "cycle_actual_sends": {
+    "jev": 14,
+    "typellm": 13
+  },
+  "charged_at_cutoff": {
+    "jev": 715,
+    "typellm": 71
+  },
+  "confirmed_sends": {
+    "jev": 715,
+    "typellm": 70
+  },
+  "journal_sha256": "9b5582798122208f1d36968e4646de46573f414739a239f0ea1195a692a5b6ba",
+  "pending_reservation": null,
+  "measured_cells": 22,
+  "retained_invalid_cells": 4,
+  "phases": [
+    {
+      "axis": "F",
+      "phase": "dependency-public-F-20261018",
+      "planned": 12,
+      "consumed": 12,
+      "complete": true,
+      "all_valid_execution": false,
+      "semantic": {
+        "complete": true,
+        "total": 6,
+        "by_arm": {
+          "I": {
+            "complete": true,
+            "total": 6,
+            "exact_minimal": 2,
+            "true_sufficient": {
+              "total": 2,
+              "zero_missing": 1
+            },
+            "requirements_criteria": "UNMET",
+            "valid": 2,
+            "invalid": 4,
+            "exact_valid": 2,
+            "denominator": 6
+          },
+          "D": {
+            "complete": true,
+            "total": 6,
+            "exact_minimal": 5,
+            "true_sufficient": {
+              "total": 2,
+              "zero_missing": 1
+            },
+            "requirements_criteria": "PASS",
+            "valid": 6,
+            "invalid": 0,
+            "exact_valid": 5,
+            "denominator": 6
+          }
+        },
+        "pairs": [
+          {
+            "id": "PF01",
+            "independent_valid": false,
+            "dependent_valid": true,
+            "admissible_semantic_pair": false,
+            "validity_gain": true,
+            "semantic_gain": false,
+            "semantic_regression": false,
+            "excluded_from_semantic_only": true
+          },
+          {
+            "id": "PF02",
+            "independent_valid": true,
+            "dependent_valid": true,
+            "admissible_semantic_pair": true,
+            "validity_gain": false,
+            "semantic_gain": false,
+            "semantic_regression": false,
+            "excluded_from_semantic_only": false
+          },
+          {
+            "id": "PF03",
+            "independent_valid": true,
+            "dependent_valid": true,
+            "admissible_semantic_pair": true,
+            "validity_gain": false,
+            "semantic_gain": false,
+            "semantic_regression": false,
+            "excluded_from_semantic_only": false
+          },
+          {
+            "id": "PF04",
+            "independent_valid": false,
+            "dependent_valid": true,
+            "admissible_semantic_pair": false,
+            "validity_gain": true,
+            "semantic_gain": false,
+            "semantic_regression": false,
+            "excluded_from_semantic_only": true
+          },
+          {
+            "id": "PF05",
+            "independent_valid": false,
+            "dependent_valid": true,
+            "admissible_semantic_pair": false,
+            "validity_gain": true,
+            "semantic_gain": false,
+            "semantic_regression": false,
+            "excluded_from_semantic_only": true
+          },
+          {
+            "id": "PF06",
+            "independent_valid": false,
+            "dependent_valid": true,
+            "admissible_semantic_pair": false,
+            "validity_gain": true,
+            "semantic_gain": false,
+            "semantic_regression": false,
+            "excluded_from_semantic_only": true
+          }
+        ],
+        "candidate_requirements_criteria": "PASS",
+        "requirements_criteria": "PASS",
+        "admissible_semantic_pairs": 2,
+        "validity_gains": 4,
+        "semantic_gains": 0,
+        "semantic_regressions": 0,
+        "scope": "fixed full per-arm denominators; validity changes never promoted into admissible semantic wins"
+      },
+      "sent": {
+        "jev": 0,
+        "typellm": 12
+      },
+      "charged_at_cutoff": {
+        "jev": 701,
+        "typellm": 70
+      },
+      "raw_audit_sha256": "867af8b5ddb4d6b2dc71b7b7c03428d1d2b962b453f65c0d963e67a52468cd82",
+      "producer_sha256": "0953cab7790633e8168cf5414f2538d098da936f5cccb02d0e592720e0c55d2c",
+      "stop_audit_sha256": "be2d494233c149c321ca6ceca22ec965a7c2afde4c628dabf5770125e0f0f6a3",
+      "manifest_sha256": "6e3e9722aa19c2ebb5edfa293090a82afff726f93eca953a5b41f2a169776d83"
+    },
+    {
+      "axis": "V",
+      "phase": "dependency-public-V-20261018",
+      "planned": 6,
+      "consumed": 6,
+      "complete": true,
+      "all_valid_execution": true,
+      "semantic": {
+        "complete": true,
+        "total": 6,
+        "correct": 6,
+        "false_acceptance": 0,
+        "verification_criteria": "PASS"
+      },
+      "sent": {
+        "jev": 6,
+        "typellm": 0
+      },
+      "charged_at_cutoff": {
+        "jev": 707,
+        "typellm": 70
+      },
+      "raw_audit_sha256": "b4a2e5d0acf4c6d104b66aae90a7feaf91efa313cedcd9010c9345c755b1fa6d",
+      "producer_sha256": "923eb6c3c5a432c06bbd8d99191a2b261f920e209e408be020822aa46c59496f",
+      "stop_audit_sha256": "e08384a54fc01e5f0d31c926cc51536de150ac93cd545ca76642b14403c444d0",
+      "manifest_sha256": "668e0f0d5dcf6698739544d0cf53573d38d0498298348faa9a1454f99e4e35bc"
+    },
+    {
+      "axis": "E",
+      "phase": "dependency-public-E-20261018",
+      "planned": 4,
+      "consumed": 4,
+      "complete": true,
+      "all_valid_execution": true,
+      "semantic": {
+        "complete": true,
+        "total_pairs": 2,
+        "baseline": {
+          "sufficient": {
+            "correct": 0,
+            "total": 0
+          },
+          "missing": {
+            "correct": 0,
+            "total": 2
+          },
+          "ambiguous": {
+            "correct": 0,
+            "total": 0
+          },
+          "no-change": {
+            "correct": 0,
+            "total": 0
+          }
+        },
+        "enabled": {
+          "sufficient": {
+            "correct": 0,
+            "total": 0
+          },
+          "missing": {
+            "correct": 1,
+            "total": 2
+          },
+          "ambiguous": {
+            "correct": 0,
+            "total": 0
+          },
+          "no-change": {
+            "correct": 0,
+            "total": 0
+          }
+        },
+        "pairs": [
+          {
+            "id": "PE01",
+            "eligible": false,
+            "baseline_success": false,
+            "enabled_success": false,
+            "missing_gain": false,
+            "regression": false,
+            "excluded_from_causal_only": true
+          },
+          {
+            "id": "PE02",
+            "eligible": true,
+            "baseline_success": false,
+            "enabled_success": true,
+            "missing_gain": true,
+            "regression": false,
+            "excluded_from_causal_only": false
+          }
+        ],
+        "eligible_pairs": 1,
+        "missing_gains": 1,
+        "regressions": 0,
+        "no_false_adoption": true,
+        "all_arm_guards": true,
+        "interpretation_type_calls": 0,
+        "enabled_criteria": "UNMET",
+        "effect_criteria": "UNMET",
+        "scope": "all fixed E cases stay in each performance denominator; only measured G0 eligibility controls causal comparison",
+        "no_effect_criteria_pending_integrity": "UNPROVEN",
+        "no_effect_scope": "all four registered missing pairs actually eligible, zero gains, full evidence admission required separately"
+      },
+      "sent": {
+        "jev": 8,
+        "typellm": 1
+      },
+      "charged_at_cutoff": {
+        "jev": 715,
+        "typellm": 71
+      },
+      "raw_audit_sha256": "8906e8e56ec494138c5bbce1d4d33d1d8fe6f0fc6b734bb3d2826527a75f6c95",
+      "producer_sha256": "25e7c9465bf8c16e16486589a67902875af27767bfb9dd68f5d91b69b56c4ecd",
+      "stop_audit_sha256": "d9fa24e8d40a815233751eb77d2099f2d25cfe79e26d323cfb12b6f5fda0a504",
+      "manifest_sha256": "c884f8b2363448d91fb4b46e2ee6c7909f296a34bbec3a6b6aeddf994b4c1428"
+    }
+  ],
+  "process": {
+    "schema": "voice-ui.dependency-cycle-process/1",
+    "status": "PASS",
+    "issues": [],
+    "state": "PUBLIC_REGRESSION_ONLY",
+    "baseline": {
+      "jev": 701,
+      "typellm": 58
+    },
+    "indexed_phases": 3,
+    "source_head": "ae816ec23a5e4c397c8a4893e127fb24134afda8",
+    "correction_batches": 0,
+    "reserved": {
+      "jev": 44,
+      "typellm": 14
+    },
+    "charged_at_cutoff": {
+      "jev": 715,
+      "typellm": 71
+    },
+    "releases": [],
+    "scope": "integrity/process graph only; candidate performance/CI-origin live proof remain separate"
+  },
+  "findings": {
+    "public_F_candidate_gate": "PASS",
+    "public_V_gate": "PASS",
+    "public_E_gate": "UNMET",
+    "D_valid": 6,
+    "D_exact_minimal": 5,
+    "I_valid": 2,
+    "I_exact_minimal": 2,
+    "validity_gains": 4,
+    "admissible_F_semantic_pairs": 2,
+    "F_semantic_gains": 0,
+    "F_semantic_regressions": 0,
+    "D_remaining_failure": "PF04: data label was assigned kind decision; one expected data instance omitted and one wrong instance added. No drawing was performed by isolated F.",
+    "V_correct": 6,
+    "V_positive_accepted": 3,
+    "V_negative_rejected": 3,
+    "E_enabled_target_correct": 1,
+    "E_target_denominator": 2,
+    "E_eligible_pairs": 1,
+    "E_missing_gains": 1,
+    "E_regressions": 0,
+    "E_affected_case": [
+      {
+        "arm": "B",
+        "initial_intent": {
+          "choice": "ambiguous",
+          "confidence": 0.55
+        },
+        "initial_capacity": {
+          "choice": "exceeded",
+          "confidence": 0.9
+        },
+        "literal": {
+          "recognized": false,
+          "required": [],
+          "spans": []
+        },
+        "final_reason": "inventory-ambiguous",
+        "typellm_calls": 0,
+        "graph_unchanged": true
+      },
+      {
+        "arm": "C",
+        "initial_intent": {
+          "choice": "ambiguous",
+          "confidence": 0.52
+        },
+        "initial_capacity": {
+          "choice": "exceeded",
+          "confidence": 0.88
+        },
+        "literal": {
+          "recognized": false,
+          "required": [],
+          "spans": []
+        },
+        "final_reason": "inventory-ambiguous",
+        "typellm_calls": 0,
+        "graph_unchanged": true
+      }
+    ],
+    "E_causal_scope": "PE02 proves one public finite benefit of the dependent Type interpretation+verification path versus literal-only/no-Type interpretation. It does not isolate dependency metadata versus independent Type in E.",
+    "E_paint_and_persistence": "All four actual UI cells and four exact-artifact replay rows passed individual paint/lifecycle/protocol admission. This does not turn unchanged wrong graphs into correct target graphs.",
+    "capacity_interpretation": "PE01 exceeded is correct: the requested three new API instances exceed one stock instance. It is distinct from supported task size and from ambiguous intent.",
+    "overall_quality": "PUBLIC_REGRESSION_ONLY; registered end-to-end success criteria UNMET",
+    "overall_effect": "One eligible public partial gain; full registered effect UNMET; general effect and bounded NO_EFFECT both UNPROVEN"
+  },
+  "decision": {
+    "stop_this_registration": true,
+    "reason": "Same-head public E requires both gains and enabled success; PE01 is not eligible and fails.",
+    "source_corrections_allowed": 0,
+    "retries_allowed": 0,
+    "fresh_releases": [],
+    "new_pool": [
+      {
+        "axis": "V",
+        "cases": 10,
+        "input_sha256": "36f63ecc1b2d0b6193f9e24eb68142fefa6441c5d65e06ab3601a57fed6d3c25",
+        "oracle_sha256": "aa909885f5b8a0b578035b2b97a3549efd0b3f40acaa4c40c4863a1f364844e6",
+        "still_private_and_unused": true
+      },
+      {
+        "axis": "F",
+        "cases": 8,
+        "input_sha256": "5249b0deb5df7c4b0c7ab82f91d39cc1c174af326daef772a1ae3a444f3e0b9d",
+        "oracle_sha256": "914fda47d411cae810fa2ea872b1174c4d3479ef55615370d8ca80e41f62c731",
+        "still_private_and_unused": true
+      },
+      {
+        "axis": "E",
+        "cases": 10,
+        "input_sha256": "9e5293a52d56d3377b9c7f226fd87baeac7f86bfb5b852525b19f571151cef77",
+        "oracle_sha256": "239a82a2e740a8f5ae45b1943c728d431ab0c8fd7cf027961d74eb65eb64c62b",
+        "still_private_and_unused": true
+      }
+    ],
+    "future_work": "A separate hypothesis and preregistration are required before any new source measurement or provider send. Unspent allowance is not transferred automatically."
+  },
+  "CI_LIVE_EXECUTION": "UNPROVEN",
+  "currency": "COST_NOT_MEASURED",
+  "real_provider_calls_by_reviewer": 0
+}

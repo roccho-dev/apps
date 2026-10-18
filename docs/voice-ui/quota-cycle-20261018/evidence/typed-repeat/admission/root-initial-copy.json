@@ -1,0 +1,125 @@
+{
+  "at": "2026-10-18T04:39:30.776Z",
+  "files": [
+    {
+      "path": "admission/runtime-candidate-display-source-e7ac78dc.json",
+      "bytes": 3974,
+      "sha256": "b6eb4d23c2a94f49bf7fdfd711ad10f2ffca5deb32f495abac76fd2a254a2e67"
+    },
+    {
+      "path": "admission/quota-typed-e7ac78dc.public.wire.json",
+      "bytes": 353273,
+      "sha256": "6bc594aee2ae7952451fff598da808d894a5c80a2f236fd3f41f602b1a3e3f4a"
+    },
+    {
+      "path": "admission/quota-typed-wire-e7ac78dc.mjs",
+      "bytes": 6592,
+      "sha256": "ab18225a841a06578b1bde7a8d8a0214b268965c30690ee11990e41e9133f6e3"
+    },
+    {
+      "path": "admission/quota-typed-root-regrade.mjs",
+      "bytes": 3334,
+      "sha256": "3005125c301cb93245b2f84bcea764a36dc094cb896378b45813cd38eaaf03e4"
+    },
+    {
+      "path": "admission/run-manager-v3-bootstrap-ca.mjs",
+      "bytes": 7242,
+      "sha256": "7f62fd2848cfdf646e576ad40fc17db077c06e2f16548a6dd5d817c046c2ff4b"
+    },
+    {
+      "path": "public-E/quota-typed-public-E-20261018.config.json",
+      "bytes": 1256,
+      "sha256": "b5693ee5661855e8e636fe5ea0138610be0b1391ba07f2b316474541e61a668b"
+    },
+    {
+      "path": "public-E/quota-typed-public-E-20261018.process.json",
+      "bytes": 859,
+      "sha256": "15d59a77370574add95e4e5a6a80ee5869947770a5c71cb1dcbaf957ee05681a"
+    },
+    {
+      "path": "public-E/quota-typed-public-E-20261018.runtime.json",
+      "bytes": 3496,
+      "sha256": "6aed5fa7a97091df8cda4e1e982227990ff89739457d8de0d41cc6fee4463598"
+    },
+    {
+      "path": "public-E/quota-typed-public-E-20261018.root-zero.mjs",
+      "bytes": 4334,
+      "sha256": "52b7eb71b5514c2eaf15199e7efce8b44244b310f9d2a175c16875ae903f0689"
+    },
+    {
+      "path": "public-E/quota-typed-public-E-20261018.root-zero.json",
+      "bytes": 961,
+      "sha256": "a0052c6dd938e6545227b1c375c6f9d85762fc5706603979f6128b22b76d996b"
+    },
+    {
+      "path": "public-E/quota-typed-public-E-20261018.operator.mjs",
+      "bytes": 2937,
+      "sha256": "998badafa3a1464d46fc74b1acddce0324a32faff7b203053809c2a859e4664f"
+    },
+    {
+      "path": "public-E/quota-typed-public-E-20261018.root-terminal.mjs",
+      "bytes": 3381,
+      "sha256": "6c8a54f1002c953d32a88490b2401f5cc369f998743a3f7474c296d8a16d0f92"
+    },
+    {
+      "path": "public-E/quota-typed-public-E-20261018.root-terminal.json",
+      "bytes": 559,
+      "sha256": "7650f950839f514ce7cfb23a4b099a46876f145d455742c3c68687ef0cd75ee3"
+    },
+    {
+      "path": "public-E/quota-typed-public-E-20261018.orchestration.json",
+      "bytes": 628,
+      "sha256": "4d0c865b365d18d875bb98eedb6801280ea86ea88d3c157588ba35575d5581dd"
+    },
+    {
+      "path": "public-E/quota-typed-public-E-20261018.journal.jsonl",
+      "bytes": 60963,
+      "sha256": "90525733f94f161502411d957c953e1162850e7a1740f13cdad69a455e0d1478"
+    },
+    {
+      "path": "public-E/quota-typed-public-E-20261018.stdout.log",
+      "bytes": 2701,
+      "sha256": "0f0270234eb7130d4d9155c23f0648920a6f3e34acd4b5d4512f719cb6801415"
+    },
+    {
+      "path": "public-E/quota-typed-public-E-20261018.stderr.log",
+      "bytes": 731,
+      "sha256": "be0473ab3715e69ebcba65734ee7ebbbf5bcfaa971c5677eb9ffaf6e8e0219c1"
+    },
+    {
+      "path": "public-E/quota-typed-public-E-20261018.driver.stdout.log",
+      "bytes": 35,
+      "sha256": "ec7743453f6120bb4fa2e32c842a54f9df3e8c6c72781b75ddaea35ebd4c6de1"
+    },
+    {
+      "path": "public-E/quota-typed-public-E-20261018.driver.stderr.log",
+      "bytes": 118,
+      "sha256": "ea0146f916162bae0d0a30a859241352eae0019560e9d340e40a04fa2388c0d9"
+    },
+    {
+      "path": "public-E/raw/identity.json",
+      "bytes": 7353,
+      "sha256": "f8793faa8e1ca69d05d657a87d5cf62456d770a9c505a4175ffbabb28d836998"
+    },
+    {
+      "path": "public-E/raw/execution.json",
+      "bytes": 594,
+      "sha256": "a9015522fdde4d1089543d6b9f58859599ee8ca632ae9f7e96a93b4de74a4dc5"
+    },
+    {
+      "path": "public-E/raw/events.jsonl",
+      "bytes": 6478,
+      "sha256": "5fa991675d28c5e1ac216a45160bb90d1eb1cd94c06e1602abe59ec493ec8f6c"
+    },
+    {
+      "path": "public-E/raw/TEP01-B.json",
+      "bytes": 30491,
+      "sha256": "0fa523faa95140e47323dadb57bfd73287d197ad1a1b2699129091024feb3540"
+    },
+    {
+      "path": "public-E/raw/TEP01-C.json",
+      "bytes": 36997,
+      "sha256": "9140627155e55748d9cc0e99b000186b123ad1e81abbb5e8d0b318d979d4075e"
+    }
+  ]
+}

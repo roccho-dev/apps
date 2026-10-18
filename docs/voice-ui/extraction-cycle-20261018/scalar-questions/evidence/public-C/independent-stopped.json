@@ -1,0 +1,647 @@
+{
+  "schema": "voice-ui.scalar-layout-public-independent-audit/1",
+  "status": "PASS",
+  "scope": "PUBLIC_FOUR_CASE_SCALAR_EXTRACTION_ONLY_NOT_FRESH_OR_ORDINARY_UI_EFFECT",
+  "authored_at": "2026-10-18T02:19:09.906714+00:00",
+  "measurement_apps": "a58e522672fcddf64bf7b71d8e18073b82eae20c",
+  "phase": "scalar-public-C-20261018",
+  "references": [
+    {
+      "file": "scalar-a58-source-runtime-wire-audit.json",
+      "bytes": 15999,
+      "sha256": "a8f30a576534c0ae3f66cf6fe46829710899612b6265e0edce35f2db4cbf3725"
+    },
+    {
+      "file": "scalar-public-C-zero-send-audit.json",
+      "bytes": 8552,
+      "sha256": "9ff46ad771c56cc631f7958e8a5e248400c0da7f9cff8af5afb1e801ccf775ec"
+    }
+  ],
+  "integrity": {
+    "source_runtime_wire_zero_send": "PASS; see bound independent attestations",
+    "physical_stop_and_accounting": {
+      "at": "2026-10-18T02:17:24.095819+00:00",
+      "journal_sha256": "9adb368eb453aac1c0a45601eff223d3db64eadff210e6a292d8998e6bda6d43",
+      "journal_bytes": 58072,
+      "prior_exact_prefix_sha256": "ae0426cf625301e1b439729f09c1fe60d6fbd394ee0686bdd1350eb7fee3460d",
+      "charged": {
+        "jev": 847,
+        "typellm": 120
+      },
+      "outstanding": 0,
+      "owned_pgids": 47,
+      "remaining_members": [],
+      "phase_sent": {
+        "jev": 0,
+        "typellm": 8
+      },
+      "pid": 391415,
+      "start_ticks": "19750071",
+      "provider_markers": [
+        [
+          "typellm",
+          "1"
+        ],
+        [
+          "typellm",
+          "2"
+        ],
+        [
+          "typellm",
+          "3"
+        ],
+        [
+          "typellm",
+          "4"
+        ],
+        [
+          "typellm",
+          "5"
+        ],
+        [
+          "typellm",
+          "6"
+        ],
+        [
+          "typellm",
+          "7"
+        ],
+        [
+          "typellm",
+          "8"
+        ]
+      ]
+    },
+    "final_terminal": {
+      "status": "PASS",
+      "at": "2026-10-18T02:19:09.324297+00:00",
+      "journal_sha256": "9adb368eb453aac1c0a45601eff223d3db64eadff210e6a292d8998e6bda6d43",
+      "owned_pgids": 47,
+      "remaining_members": [],
+      "additional_provider_sends_observed": 0
+    },
+    "ordered_http_events": 16,
+    "response_stage_uuid_joins": 8,
+    "canonical_response_closed_contracts": 8,
+    "candidate_scalar_answers_exact_nine_to_slots_without_repair": 4,
+    "oracle_read_by_caller": false,
+    "retries": 0,
+    "additional_setup_provider_sends": 0,
+    "frozen_source_grade_sha256": "3d779cf422e8cc0facc6f5ff566c3e77b36a61486f9586f120b0c1a722cd5a46",
+    "oracle_sha256": "8d0777b0e0211a7021fa091fc549b336a2f57590019ea0b1e8dd25ff80fe99fc",
+    "identity_sha256": "6ee1b40b543a47d317cb83434e12fc8f0d4f36f2c4cf92912c081501f82f857c",
+    "events_sha256": "897809b3ae28907c6355cbd30afa11ccdcdbd7217f80ffe88f4bb385d29d9571",
+    "execution_sha256": "daefdf7648667bd464de516bc5dcded959b34ef8682ff1e8bbc09cb75134876a"
+  },
+  "semantic": {
+    "status": "PASS",
+    "scope": "PUBLIC_FOUR_CASE_SCALAR_EXTRACTION_ONLY_NOT_FRESH_OR_ORDINARY_UI_EFFECT",
+    "source": "a58e522672fcddf64bf7b71d8e18073b82eae20c",
+    "frozen_grade_sha256": "3d779cf422e8cc0facc6f5ff566c3e77b36a61486f9586f120b0c1a722cd5a46",
+    "oracle_sha256": "8d0777b0e0211a7021fa091fc549b336a2f57590019ea0b1e8dd25ff80fe99fc",
+    "identity_sha256": "6ee1b40b543a47d317cb83434e12fc8f0d4f36f2c4cf92912c081501f82f857c",
+    "events_sha256": "897809b3ae28907c6355cbd30afa11ccdcdbd7217f80ffe88f4bb385d29d9571",
+    "execution_sha256": "daefdf7648667bd464de516bc5dcded959b34ef8682ff1e8bbc09cb75134876a",
+    "summary": {
+      "planned": 8,
+      "recorded": 8,
+      "http_200": 8,
+      "valid_contract": 8,
+      "invalid": 0,
+      "current_exact": 3,
+      "candidate_exact": 3,
+      "valid_semantic_pairs": 4,
+      "semantic_gains": 0,
+      "explicit_semantic_gains": 0,
+      "regressions": 0
+    },
+    "pairs": [
+      {
+        "case": "QC01",
+        "role": "explicit",
+        "admitted_semantic_pair": true,
+        "current_exact": true,
+        "candidate_exact": true,
+        "semantic_gain": false,
+        "regression": false
+      },
+      {
+        "case": "QC02",
+        "role": "explicit",
+        "admitted_semantic_pair": true,
+        "current_exact": false,
+        "candidate_exact": false,
+        "semantic_gain": false,
+        "regression": false
+      },
+      {
+        "case": "QC03",
+        "role": "standard",
+        "admitted_semantic_pair": true,
+        "current_exact": true,
+        "candidate_exact": true,
+        "semantic_gain": false,
+        "regression": false
+      },
+      {
+        "case": "QC04",
+        "role": "new0",
+        "admitted_semantic_pair": true,
+        "current_exact": true,
+        "candidate_exact": true,
+        "semantic_gain": false,
+        "regression": false
+      }
+    ],
+    "rows": [
+      {
+        "id": "QC01-current",
+        "case": "QC01",
+        "arm": "current",
+        "role": "explicit",
+        "http_status": 200,
+        "status": "VALID_CONTRACT",
+        "request_id": "cd6a976b-ad7e-41b9-8ad6-12ac2dc3f884",
+        "required": [
+          {
+            "label": "出荷可否",
+            "kind": "decision",
+            "quantity": 1
+          }
+        ],
+        "expected_required": [
+          {
+            "label": "出荷可否",
+            "kind": "decision",
+            "quantity": 1
+          }
+        ],
+        "grade": {
+          "contract_valid": true,
+          "exact": true,
+          "minimal": true,
+          "expected_instances": 1,
+          "actual_instances": 1,
+          "matched_instances": 1,
+          "omitted_instances": 0,
+          "extra_instances": 0
+        },
+        "scalar_answers": null,
+        "elapsed_ms": 2273.8253,
+        "request_sha256": "f499a7f1e90005cc167e7d49276c63bddbed4c2f1cefa36a5f96625f5b6b29bb",
+        "raw_sha256": "8f160632016528b724d2e2f91fd5b6b800e3c43b5d8552432cde27c95bf04bf9"
+      },
+      {
+        "id": "QC01-candidate",
+        "case": "QC01",
+        "arm": "candidate",
+        "role": "explicit",
+        "http_status": 200,
+        "status": "VALID_CONTRACT",
+        "request_id": "40ed98a7-588a-4fd0-8c62-2fab152cb88e",
+        "required": [
+          {
+            "label": "出荷可否",
+            "kind": "decision",
+            "quantity": 1
+          }
+        ],
+        "expected_required": [
+          {
+            "label": "出荷可否",
+            "kind": "decision",
+            "quantity": 1
+          }
+        ],
+        "grade": {
+          "contract_valid": true,
+          "exact": true,
+          "minimal": true,
+          "expected_instances": 1,
+          "actual_instances": 1,
+          "matched_instances": 1,
+          "omitted_instances": 0,
+          "extra_instances": 0
+        },
+        "scalar_answers": {
+          "required1_label": "出荷可否",
+          "required1_kind": "decision",
+          "required1_quantity": "1",
+          "required2_label": "",
+          "required2_kind": "none",
+          "required2_quantity": "0",
+          "required3_label": "",
+          "required3_kind": "none",
+          "required3_quantity": "0"
+        },
+        "elapsed_ms": 2144.2320999999997,
+        "request_sha256": "f499a7f1e90005cc167e7d49276c63bddbed4c2f1cefa36a5f96625f5b6b29bb",
+        "raw_sha256": "4b8b8b07b135fb66b9f7e6f1439e86d0b4e7118d1bcd346787f98032a7688f68"
+      },
+      {
+        "id": "QC02-candidate",
+        "case": "QC02",
+        "arm": "candidate",
+        "role": "explicit",
+        "http_status": 200,
+        "status": "VALID_CONTRACT",
+        "request_id": "9f62b519-76c7-4d4d-bbd3-f7396a974ff4",
+        "required": [
+          {
+            "label": "工程",
+            "kind": "step",
+            "quantity": 2
+          }
+        ],
+        "expected_required": [
+          {
+            "label": "API",
+            "kind": "step",
+            "quantity": 2
+          }
+        ],
+        "grade": {
+          "contract_valid": true,
+          "exact": false,
+          "minimal": false,
+          "expected_instances": 2,
+          "actual_instances": 2,
+          "matched_instances": 0,
+          "omitted_instances": 2,
+          "extra_instances": 2
+        },
+        "scalar_answers": {
+          "required1_label": "工程",
+          "required1_kind": "step",
+          "required1_quantity": "2",
+          "required2_label": "",
+          "required2_kind": "none",
+          "required2_quantity": "0",
+          "required3_label": "",
+          "required3_kind": "none",
+          "required3_quantity": "0"
+        },
+        "elapsed_ms": 2067.383,
+        "request_sha256": "5f66c1975c0939c62c4c3a2f1e47ed9b1e4a339cebd71f149b20417824ddce6f",
+        "raw_sha256": "8f89dd57186dd7df61c133949e7d6b43470ae6f4e3b6b054092bacb9d3219d7f"
+      },
+      {
+        "id": "QC02-current",
+        "case": "QC02",
+        "arm": "current",
+        "role": "explicit",
+        "http_status": 200,
+        "status": "VALID_CONTRACT",
+        "request_id": "8c936787-c8d9-45c0-853e-e6bee6e9cdf7",
+        "required": [
+          {
+            "label": "工程",
+            "kind": "step",
+            "quantity": 2
+          }
+        ],
+        "expected_required": [
+          {
+            "label": "API",
+            "kind": "step",
+            "quantity": 2
+          }
+        ],
+        "grade": {
+          "contract_valid": true,
+          "exact": false,
+          "minimal": false,
+          "expected_instances": 2,
+          "actual_instances": 2,
+          "matched_instances": 0,
+          "omitted_instances": 2,
+          "extra_instances": 2
+        },
+        "scalar_answers": null,
+        "elapsed_ms": 2236.3893,
+        "request_sha256": "5f66c1975c0939c62c4c3a2f1e47ed9b1e4a339cebd71f149b20417824ddce6f",
+        "raw_sha256": "74ddfc4698ca72280df17bd88b16565da90ffeb46d586d5362e13cfde4c6e9a8"
+      },
+      {
+        "id": "QC03-current",
+        "case": "QC03",
+        "arm": "current",
+        "role": "standard",
+        "http_status": 200,
+        "status": "VALID_CONTRACT",
+        "request_id": "395db3eb-70f1-4623-b781-28cf1dd0e347",
+        "required": [
+          {
+            "label": "判断",
+            "kind": "decision",
+            "quantity": 1
+          }
+        ],
+        "expected_required": [
+          {
+            "label": "判断",
+            "kind": "decision",
+            "quantity": 1
+          }
+        ],
+        "grade": {
+          "contract_valid": true,
+          "exact": true,
+          "minimal": true,
+          "expected_instances": 1,
+          "actual_instances": 1,
+          "matched_instances": 1,
+          "omitted_instances": 0,
+          "extra_instances": 0
+        },
+        "scalar_answers": null,
+        "elapsed_ms": 2110.1438,
+        "request_sha256": "9e45047b8b59eafa2a363ce10f6c2e370e0736abeaf2c2341b9e05643cb25826",
+        "raw_sha256": "65734d3548a2df1b02fa0bcafd301aa3a8058ac09ae8c723606a92e36c25017b"
+      },
+      {
+        "id": "QC03-candidate",
+        "case": "QC03",
+        "arm": "candidate",
+        "role": "standard",
+        "http_status": 200,
+        "status": "VALID_CONTRACT",
+        "request_id": "5e068bb2-0963-47e4-9ca4-09ad0a7defab",
+        "required": [
+          {
+            "label": "判断",
+            "kind": "decision",
+            "quantity": 1
+          }
+        ],
+        "expected_required": [
+          {
+            "label": "判断",
+            "kind": "decision",
+            "quantity": 1
+          }
+        ],
+        "grade": {
+          "contract_valid": true,
+          "exact": true,
+          "minimal": true,
+          "expected_instances": 1,
+          "actual_instances": 1,
+          "matched_instances": 1,
+          "omitted_instances": 0,
+          "extra_instances": 0
+        },
+        "scalar_answers": {
+          "required1_label": "判断",
+          "required1_kind": "decision",
+          "required1_quantity": "1",
+          "required2_label": "",
+          "required2_kind": "none",
+          "required2_quantity": "0",
+          "required3_label": "",
+          "required3_kind": "none",
+          "required3_quantity": "0"
+        },
+        "elapsed_ms": 2232.4974,
+        "request_sha256": "9e45047b8b59eafa2a363ce10f6c2e370e0736abeaf2c2341b9e05643cb25826",
+        "raw_sha256": "ea53c6e9078e8e5dcc930ba6a008c56ca35a3f78a1b402ced1b55f8d79eeb26c"
+      },
+      {
+        "id": "QC04-candidate",
+        "case": "QC04",
+        "arm": "candidate",
+        "role": "new0",
+        "http_status": 200,
+        "status": "VALID_CONTRACT",
+        "request_id": "17c51512-0fc9-41a2-abcd-6fb6f0eb4d85",
+        "required": [],
+        "expected_required": [],
+        "grade": {
+          "contract_valid": true,
+          "exact": true,
+          "minimal": true,
+          "expected_instances": 0,
+          "actual_instances": 0,
+          "matched_instances": 0,
+          "omitted_instances": 0,
+          "extra_instances": 0
+        },
+        "scalar_answers": {
+          "required1_label": "",
+          "required1_kind": "none",
+          "required1_quantity": "0",
+          "required2_label": "",
+          "required2_kind": "none",
+          "required2_quantity": "0",
+          "required3_label": "",
+          "required3_kind": "none",
+          "required3_quantity": "0"
+        },
+        "elapsed_ms": 1883.770700000001,
+        "request_sha256": "25160862a687789e77ab59486b20fc5a1334ba100c3e87aa995fed06b0720631",
+        "raw_sha256": "2477c88121117552cc9957655bd7b51a58440e17ca1f1de1195382bebd6fb124"
+      },
+      {
+        "id": "QC04-current",
+        "case": "QC04",
+        "arm": "current",
+        "role": "new0",
+        "http_status": 200,
+        "status": "VALID_CONTRACT",
+        "request_id": "4451b270-57e0-4f74-a510-fd5c1e67251d",
+        "required": [],
+        "expected_required": [],
+        "grade": {
+          "contract_valid": true,
+          "exact": true,
+          "minimal": true,
+          "expected_instances": 0,
+          "actual_instances": 0,
+          "matched_instances": 0,
+          "omitted_instances": 0,
+          "extra_instances": 0
+        },
+        "scalar_answers": null,
+        "elapsed_ms": 1974.1647000000012,
+        "request_sha256": "25160862a687789e77ab59486b20fc5a1334ba100c3e87aa995fed06b0720631",
+        "raw_sha256": "ae5b554e0ddb349ac818b479efe4ace3fa4207b41067efcde46c378e29ff9118"
+      }
+    ],
+    "public_gate": "UNMET",
+    "fresh_release": "NOT_RELEASED",
+    "notes": [
+      "Only frozen full-NEW contract/exact/minimal/counts used; stock_difference and true_sufficient excluded.",
+      "Every candidate validated scalar value independently maps unchanged to its canonical slot value.",
+      "C current/candidate comparisons are within this source and phase. Difference from prior B observations is not attributed to this intervention. Latest backend version remains unobserved."
+    ]
+  },
+  "decision": {
+    "evidence_integrity": "PASS",
+    "quality_scope": "PUBLIC_REGRESSION_ONLY",
+    "public_gate": "UNMET",
+    "candidate_finite_quality": "3/4 exact/minimal; explicit display-name preservation1/2",
+    "finite_semantic_effect": "NO_GAIN_OBSERVED_IN_FOUR_VALID_PUBLIC_PAIRS",
+    "semantic_gain": 0,
+    "regression": 0,
+    "fresh_inputs_and_oracle": "NOT_RELEASED; unchanged independent four remain sealed and unconsumed",
+    "next_provider_calls": "NOT_GRANTED_BY_THIS_AUDIT",
+    "registered_stopping_action": "Close all eight original observations. No same-phase retry/retest/correction."
+  },
+  "limitations": [
+    "QC01 was correct in both arms; QC02 returned the wrong display name in both arms, with step kind and total quantity2 retained. Standard and NEW0 controls were correct in both arms.",
+    "B2/4 to C3/4 is not a candidate effect: the current baseline changed in the same way, and its four request bodies were unchanged. Resolved latest-model backend identity remains unobserved.",
+    "All nine validated scalar answer values map unchanged into the canonical three slots. Structural contract validity does not prove intended display labels.",
+    "No held-out generalization, ordinary UI supplementation/paint effect, TypeLLM general inefficacy, product completion, monetary cost, or final all-four CI adoption is established.",
+    "Keyless pre-live witnesses plus immutable runtime bind intended conditions; no directly captured live upstream Type request body is claimed.",
+    "Old nested thinking is omitted and new top-level thinking:false is explicit; API internal prompt/default equivalence or a root cause was not established.",
+    "Only frozen gradeFullRequired contract/exact/minimal/count fields were used; stock_difference/true_sufficient excluded.",
+    "Relevant source/tests/artifact/wire and three exact checks passed before fixed public8; final release CI closure is separate."
+  ],
+  "original_files": [
+    {
+      "path": "/work/repos/voice-ui-typellm-20261016/scalar-public-C-20261018.raw/QC01-current.json",
+      "bytes": 7689,
+      "sha256": "8f160632016528b724d2e2f91fd5b6b800e3c43b5d8552432cde27c95bf04bf9"
+    },
+    {
+      "path": "/work/repos/voice-ui-typellm-20261016/scalar-public-C-20261018.raw/QC01-candidate.json",
+      "bytes": 7715,
+      "sha256": "4b8b8b07b135fb66b9f7e6f1439e86d0b4e7118d1bcd346787f98032a7688f68"
+    },
+    {
+      "path": "/work/repos/voice-ui-typellm-20261016/scalar-public-C-20261018.raw/QC02-candidate.json",
+      "bytes": 7700,
+      "sha256": "8f89dd57186dd7df61c133949e7d6b43470ae6f4e3b6b054092bacb9d3219d7f"
+    },
+    {
+      "path": "/work/repos/voice-ui-typellm-20261016/scalar-public-C-20261018.raw/QC02-current.json",
+      "bytes": 7684,
+      "sha256": "74ddfc4698ca72280df17bd88b16565da90ffeb46d586d5362e13cfde4c6e9a8"
+    },
+    {
+      "path": "/work/repos/voice-ui-typellm-20261016/scalar-public-C-20261018.raw/QC03-current.json",
+      "bytes": 7362,
+      "sha256": "65734d3548a2df1b02fa0bcafd301aa3a8058ac09ae8c723606a92e36c25017b"
+    },
+    {
+      "path": "/work/repos/voice-ui-typellm-20261016/scalar-public-C-20261018.raw/QC03-candidate.json",
+      "bytes": 7379,
+      "sha256": "ea53c6e9078e8e5dcc930ba6a008c56ca35a3f78a1b402ced1b55f8d79eeb26c"
+    },
+    {
+      "path": "/work/repos/voice-ui-typellm-20261016/scalar-public-C-20261018.raw/QC04-candidate.json",
+      "bytes": 7357,
+      "sha256": "2477c88121117552cc9957655bd7b51a58440e17ca1f1de1195382bebd6fb124"
+    },
+    {
+      "path": "/work/repos/voice-ui-typellm-20261016/scalar-public-C-20261018.raw/QC04-current.json",
+      "bytes": 7341,
+      "sha256": "ae5b554e0ddb349ac818b479efe4ace3fa4207b41067efcde46c378e29ff9118"
+    },
+    {
+      "path": "/work/repos/voice-ui-typellm-20261016/scalar-public-C-20261018.raw/identity.json",
+      "bytes": 4926,
+      "sha256": "6ee1b40b543a47d317cb83434e12fc8f0d4f36f2c4cf92912c081501f82f857c"
+    },
+    {
+      "path": "/work/repos/voice-ui-typellm-20261016/scalar-public-C-20261018.raw/execution.json",
+      "bytes": 1287,
+      "sha256": "daefdf7648667bd464de516bc5dcded959b34ef8682ff1e8bbc09cb75134876a"
+    },
+    {
+      "path": "/work/repos/voice-ui-typellm-20261016/scalar-public-C-20261018.raw/events.jsonl",
+      "bytes": 15481,
+      "sha256": "897809b3ae28907c6355cbd30afa11ccdcdbd7217f80ffe88f4bb385d29d9571"
+    },
+    {
+      "path": "/work/repos/voice-ui-typellm-20261016/scalar-public-C-20261018.config.json",
+      "bytes": 1022,
+      "sha256": "07482521dcb87c48c0463635a359e2d8e276712e04117869c9fc72902417c107"
+    },
+    {
+      "path": "/work/repos/voice-ui-typellm-20261016/scalar-public-C-20261018.process.json",
+      "bytes": 843,
+      "sha256": "d8cd44b910b9f5dbf1eb2bfa113acea78f2e43c0b6f78877094855774db325c8"
+    },
+    {
+      "path": "/work/repos/voice-ui-typellm-20261016/scalar-public-C-20261018.orchestration.json",
+      "bytes": 618,
+      "sha256": "01f95131f96b1046b41eea15c210e5ae2a48d015200395870f28ec6f5ea83592"
+    },
+    {
+      "path": "/work/repos/voice-ui-typellm-20261016/scalar-public-C-20261018.root-zero.json",
+      "bytes": 867,
+      "sha256": "f1a4c58d9bf02b7730f729c39ef003159d0cdd5faaffd7d7fc77b56c438df4d4"
+    },
+    {
+      "path": "/work/repos/voice-ui-typellm-20261016/scalar-public-C-20261018.root-terminal.json",
+      "bytes": 451,
+      "sha256": "968caf8f2c7e5aacc11d30d29c48db2802625d70f7f383d1f35f4835fd445eb5"
+    },
+    {
+      "path": "/work/repos/voice-ui-typellm-20261016/scalar-public-C-20261018.stdout.log",
+      "bytes": 4444,
+      "sha256": "b3b886d506e49d42d6e15282f2d41ed07fecad271926eb2cd6920ff5e4fbd532"
+    },
+    {
+      "path": "/work/repos/voice-ui-typellm-20261016/scalar-public-C-20261018.stderr.log",
+      "bytes": 839,
+      "sha256": "4bafee837261fa31837aab6471bae5c6f5a98e9f642012ea95a038c8272d5fff"
+    },
+    {
+      "path": "/work/repos/voice-ui-typellm-20261016/scalar-public-C-20261018.driver.stdout.log",
+      "bytes": 46,
+      "sha256": "c23e8a57525303682ad74bc1bfe30dadb68f5ed800d905f03105fd02b4ff922b"
+    },
+    {
+      "path": "/work/repos/voice-ui-typellm-20261016/scalar-public-C-20261018.driver.stderr.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/work/repos/voice-ui-typellm-20261016/scalar-public-C-20261018.journal.jsonl",
+      "bytes": 58072,
+      "sha256": "9adb368eb453aac1c0a45601eff223d3db64eadff210e6a292d8998e6bda6d43"
+    },
+    {
+      "path": "/work/repos/voice-ui-typellm-20261016/scalar-public-C-20261018.operator.mjs",
+      "bytes": 2498,
+      "sha256": "baff2635875dd23cb0b5435a9c1b053c4ac81aabb7d57ceef39cc95a74077881"
+    },
+    {
+      "path": "/work/repos/voice-ui-typellm-20261016/scalar-public-C-20261018.root-zero.mjs",
+      "bytes": 2650,
+      "sha256": "00b09b88028842831421f4273e8c0834430a74690ea835ec9f7ee734c8509e21"
+    },
+    {
+      "path": "/work/repos/voice-ui-typellm-20261016/scalar-public-C-20261018.root-terminal.mjs",
+      "bytes": 2647,
+      "sha256": "b1bcfb24b92c22828ea24c7bcfd62ad363878ff3d819929a29c1c566ad81eb96"
+    },
+    {
+      "path": "/work/repos/voice-ui-typellm-20261016/runtime-candidate-display-source-a58e5226.json",
+      "bytes": 3974,
+      "sha256": "16c72a3a0262adbcb3929a5cf4934deb8252dc7db5b219df2bb115b7d9c7ecc5"
+    },
+    {
+      "path": "/work/repos/voice-ui-typellm-20261016/scalar-a58e5226.public.wire.json",
+      "bytes": 142724,
+      "sha256": "3ac051c10ead13b0d969b104aac548c7306a6e602fc0633fcfe0255c78c5ffcc"
+    },
+    {
+      "path": "/nix/store/hgk4lgiy9mv1zkzgn4plib6cwiaqak95-source/docs/voice-ui/extraction-cycle-20261018/scalar-questions/public.input.json",
+      "bytes": 13760,
+      "sha256": "675ecf30d21e4f78abc9d0701a931ac575805af6c681cb52af4c5c5b2d1ba217"
+    },
+    {
+      "path": "/nix/store/hgk4lgiy9mv1zkzgn4plib6cwiaqak95-source/docs/voice-ui/extraction-cycle-20261018/scalar-questions/public.oracle.json",
+      "bytes": 517,
+      "sha256": "8d0777b0e0211a7021fa091fc549b336a2f57590019ea0b1e8dd25ff80fe99fc"
+    },
+    {
+      "path": "/nix/store/hgk4lgiy9mv1zkzgn4plib6cwiaqak95-source/docs/voice-ui/extraction-cycle-20261018/scalar-questions/evaluate.mjs",
+      "bytes": 9120,
+      "sha256": "3350f665df5a60621853a45eba4d4748568a0c83bd57452a892c39ca30f0ebf6"
+    }
+  ]
+}

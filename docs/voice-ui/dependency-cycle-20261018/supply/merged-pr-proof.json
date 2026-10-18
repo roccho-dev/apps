@@ -1,0 +1,10 @@
+{
+  "base": "proposals",
+  "merge_sha": "b4f611cac9e13fbef178469796cbc3b6d4a76b23",
+  "merge_tree": "dcb90215ac4e2f010b1bb39da5f71462cc94bf56",
+  "merged_at": "2026-10-17T17:03:47Z",
+  "pr_number": 565,
+  "r_exact_head_verdict_ref": "https://github.com/roccho-org/ops/pull/565#pullrequestreview-5558945175",
+  "reviewed_head": "f7e80875b1331c113cb38251d85838edf0330d5b",
+  "reviewed_tree": "dcb90215ac4e2f010b1bb39da5f71462cc94bf56"
+}

@@ -1,0 +1,514 @@
+{
+  "schema": "voice-ui.poc.fresh-oracle/2",
+  "reviewer": "/root/poc_reviewer",
+  "source_baseline": "42aa9a473d287607ba58967ef2992c052edc7943",
+  "sealed_pool_sha256": "b64985019e2248c4fde62e330f319846c96ab5014db4e96a7d8f0d50d5f86076",
+  "primary_selected_method": "B",
+  "selection_scope": "comparison and recommendation only; ordinary UI remains C",
+  "fixture_contract": {
+    "map_id": "voice-graph",
+    "base_records": [
+      {
+        "type": "meta",
+        "schema": "semantic-map-state/1",
+        "root": "root",
+        "title": "sealed small PoC"
+      },
+      {
+        "type": "region",
+        "id": "root",
+        "parent": null,
+        "label": "fixture",
+        "kind": "boundary",
+        "bounds": [
+          0,
+          0,
+          900,
+          400
+        ],
+        "summary": ""
+      },
+      {
+        "type": "region",
+        "id": "container",
+        "parent": "root",
+        "label": "OCI",
+        "kind": "group",
+        "bounds": [
+          0,
+          0,
+          700,
+          200
+        ],
+        "summary": ""
+      },
+      {
+        "type": "region",
+        "id": "other",
+        "parent": "root",
+        "label": "Other",
+        "kind": "group",
+        "bounds": [
+          0,
+          230,
+          700,
+          160
+        ],
+        "summary": ""
+      }
+    ],
+    "base_pins": [
+      {
+        "regionId": "container",
+        "bounds": [
+          0,
+          0,
+          2000,
+          500
+        ]
+      },
+      {
+        "regionId": "other",
+        "bounds": [
+          0,
+          600,
+          2000,
+          500
+        ]
+      }
+    ],
+    "fixtures": {
+      "empty": {
+        "extra_records": [],
+        "extra_pins": []
+      },
+      "api": {
+        "extra_records": [
+          {
+            "type": "region",
+            "id": "initial-api",
+            "parent": "container",
+            "label": "API",
+            "kind": "step",
+            "bounds": [
+              20,
+              20,
+              140,
+              64
+            ],
+            "summary": ""
+          }
+        ],
+        "extra_pins": [
+          {
+            "regionId": "initial-api",
+            "bounds": [
+              12,
+              36,
+              140,
+              64
+            ]
+          }
+        ]
+      },
+      "pair": {
+        "extra_records": [
+          {
+            "type": "region",
+            "id": "initial-api",
+            "parent": "container",
+            "label": "API",
+            "kind": "step",
+            "bounds": [
+              20,
+              20,
+              140,
+              64
+            ],
+            "summary": ""
+          },
+          {
+            "type": "region",
+            "id": "initial-db",
+            "parent": "container",
+            "label": "DB",
+            "kind": "data",
+            "bounds": [
+              200,
+              20,
+              140,
+              64
+            ],
+            "summary": ""
+          }
+        ],
+        "extra_pins": [
+          {
+            "regionId": "initial-api",
+            "bounds": [
+              12,
+              36,
+              140,
+              64
+            ]
+          },
+          {
+            "regionId": "initial-db",
+            "bounds": [
+              200,
+              36,
+              140,
+              64
+            ]
+          }
+        ]
+      }
+    },
+    "recent_conversation": [],
+    "scope": null
+  },
+  "cases": [
+    {
+      "id": "N01",
+      "fixture": "empty",
+      "utterance": "Otherの中にAPIを1つとDBを1つ追加し、APIからDBへ矢印を1本つないでください。",
+      "expected_gate": "sufficient",
+      "expected_missing": [],
+      "expected_added_regions": [
+        {
+          "label": "API",
+          "kind": "step",
+          "parent": "fixture:other"
+        },
+        {
+          "label": "DB",
+          "kind": "data",
+          "parent": "fixture:other"
+        }
+      ],
+      "expected_added_edges": [
+        {
+          "from": "added:API",
+          "to": "added:DB",
+          "kind": "flow",
+          "label": ""
+        }
+      ]
+    },
+    {
+      "id": "N05",
+      "fixture": "empty",
+      "utterance": "OCIの中に「発送準備」という名前の工程を1個だけ追加してください。ほかは変更しないでください。",
+      "expected_gate": "missing",
+      "expected_missing": [
+        {
+          "label": "発送準備",
+          "kind": "step",
+          "occurrence": 1
+        }
+      ],
+      "expected_added_regions": [
+        {
+          "label": "発送準備",
+          "kind": "step",
+          "parent": "fixture:container"
+        }
+      ],
+      "expected_added_edges": []
+    },
+    {
+      "id": "N09",
+      "fixture": "empty",
+      "utterance": "OCIの中へ何かを一つ追加して。名前と図形の種類はまだ決めていません。",
+      "expected_gate": "ambiguous",
+      "expected_missing": [],
+      "expected_added_regions": [],
+      "expected_added_edges": []
+    },
+    {
+      "id": "N02",
+      "fixture": "empty",
+      "utterance": "OCIの中に開始と終了を一つずつ置き、開始から終了につなげてください。",
+      "expected_gate": "sufficient",
+      "expected_missing": [],
+      "expected_added_regions": [
+        {
+          "label": "開始",
+          "kind": "start",
+          "parent": "fixture:container"
+        },
+        {
+          "label": "終了",
+          "kind": "end",
+          "parent": "fixture:container"
+        }
+      ],
+      "expected_added_edges": [
+        {
+          "from": "added:開始",
+          "to": "added:終了",
+          "kind": "flow",
+          "label": ""
+        }
+      ]
+    },
+    {
+      "id": "N06",
+      "fixture": "empty",
+      "utterance": "OCIにAPIを3個追加してください。三つの表示名はすべてAPIにして、線は追加しないでください。",
+      "expected_gate": "missing",
+      "expected_missing": [
+        {
+          "label": "API",
+          "kind": "step",
+          "occurrence": 1
+        },
+        {
+          "label": "API",
+          "kind": "step",
+          "occurrence": 2
+        }
+      ],
+      "expected_added_regions": [
+        {
+          "label": "API",
+          "kind": "step",
+          "parent": "fixture:container"
+        },
+        {
+          "label": "API",
+          "kind": "step",
+          "parent": "fixture:container"
+        },
+        {
+          "label": "API",
+          "kind": "step",
+          "parent": "fixture:container"
+        }
+      ],
+      "expected_added_edges": []
+    },
+    {
+      "id": "N10",
+      "fixture": "pair",
+      "utterance": "OCIのAPIとDBを確認したいだけです。追加や接続をせず、図を現在のまま残してください。",
+      "expected_gate": "no-change",
+      "expected_missing": [],
+      "expected_added_regions": [],
+      "expected_added_edges": []
+    },
+    {
+      "id": "N03",
+      "fixture": "pair",
+      "utterance": "OCIに既にあるAPIから、既にあるDBへ矢印を1本追加してください。部品は増やさないでください。",
+      "expected_gate": "sufficient",
+      "expected_missing": [],
+      "expected_added_regions": [],
+      "expected_added_edges": [
+        {
+          "from": "fixture:initial-api",
+          "to": "fixture:initial-db",
+          "kind": "flow",
+          "label": ""
+        }
+      ]
+    },
+    {
+      "id": "N07",
+      "fixture": "empty",
+      "utterance": "OCIの中へ「受付区」「仕分区」「保管区」というグループを1つずつ、同じ階層に並べて追加してください。",
+      "expected_gate": "missing",
+      "expected_missing": [
+        {
+          "label": "受付区",
+          "kind": "group",
+          "occurrence": 1
+        },
+        {
+          "label": "仕分区",
+          "kind": "group",
+          "occurrence": 1
+        },
+        {
+          "label": "保管区",
+          "kind": "group",
+          "occurrence": 1
+        }
+      ],
+      "expected_added_regions": [
+        {
+          "label": "受付区",
+          "kind": "group",
+          "parent": "fixture:container"
+        },
+        {
+          "label": "仕分区",
+          "kind": "group",
+          "parent": "fixture:container"
+        },
+        {
+          "label": "保管区",
+          "kind": "group",
+          "parent": "fixture:container"
+        }
+      ],
+      "expected_added_edges": []
+    },
+    {
+      "id": "N04",
+      "fixture": "empty",
+      "utterance": "OCIに表示名「グループ」のグループを1つ追加し、その中へ表示名「工程」の工程を1つ追加してください。",
+      "expected_gate": "sufficient",
+      "expected_missing": [],
+      "expected_added_regions": [
+        {
+          "label": "グループ",
+          "kind": "group",
+          "parent": "fixture:container"
+        },
+        {
+          "label": "工程",
+          "kind": "step",
+          "parent": "added:グループ"
+        }
+      ],
+      "expected_added_edges": []
+    },
+    {
+      "id": "N08",
+      "fixture": "empty",
+      "utterance": "OCIの中に「照合区」というグループを1つ作り、その中に「照合」という工程と「照合票」というデータを1つずつ追加してください。照合から照合票へ矢印を1本引いてください。",
+      "expected_gate": "missing",
+      "expected_missing": [
+        {
+          "label": "照合区",
+          "kind": "group",
+          "occurrence": 1
+        },
+        {
+          "label": "照合",
+          "kind": "step",
+          "occurrence": 1
+        },
+        {
+          "label": "照合票",
+          "kind": "data",
+          "occurrence": 1
+        }
+      ],
+      "expected_added_regions": [
+        {
+          "label": "照合区",
+          "kind": "group",
+          "parent": "fixture:container"
+        },
+        {
+          "label": "照合",
+          "kind": "step",
+          "parent": "added:照合区"
+        },
+        {
+          "label": "照合票",
+          "kind": "data",
+          "parent": "added:照合区"
+        }
+      ],
+      "expected_added_edges": [
+        {
+          "from": "added:照合",
+          "to": "added:照合票",
+          "kind": "flow",
+          "label": ""
+        }
+      ]
+    }
+  ],
+  "comparison": {
+    "case_order": [
+      "N01",
+      "N05",
+      "N09",
+      "N02",
+      "N06",
+      "N10",
+      "N03",
+      "N07",
+      "N04",
+      "N08"
+    ],
+    "arm_order": [
+      [
+        "A",
+        "B",
+        "C"
+      ],
+      [
+        "B",
+        "C",
+        "A"
+      ],
+      [
+        "C",
+        "A",
+        "B"
+      ],
+      [
+        "A",
+        "B",
+        "C"
+      ],
+      [
+        "B",
+        "C",
+        "A"
+      ],
+      [
+        "C",
+        "A",
+        "B"
+      ],
+      [
+        "A",
+        "B",
+        "C"
+      ],
+      [
+        "B",
+        "C",
+        "A"
+      ],
+      [
+        "C",
+        "A",
+        "B"
+      ],
+      [
+        "A",
+        "B",
+        "C"
+      ]
+    ]
+  },
+  "criteria": {
+    "accepted_gate": 10,
+    "total": 10,
+    "sufficient_exact": 4,
+    "sufficient_total": 4,
+    "sufficient_not_below_A": true,
+    "missing_exact": 4,
+    "missing_total": 4,
+    "missing_minimal": 4,
+    "control_unchanged": 2,
+    "controls_total": 2,
+    "typellm_on_sufficient_or_control": 0,
+    "new_candidate_generation_on_sufficient_or_control": 0,
+    "C_missing_gain_over_B": 1,
+    "C_missing_gain_over_A": 2,
+    "D": "BLOCKED_COST_UNCOMPARED",
+    "CI_LIVE_EXECUTION": "UNPROVEN",
+    "currency_without_verified_usage": "COST_NOT_MEASURED",
+    "max_Goal_ms": 180000,
+    "scope": "finite provisional A/B/C mechanism only; no statistical generalization or completed four-way/CI-only claim"
+  },
+  "not_unseen_after_this_run": true
+}

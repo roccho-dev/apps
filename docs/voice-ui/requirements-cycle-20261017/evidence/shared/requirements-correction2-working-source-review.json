@@ -1,0 +1,21 @@
+{
+  "schema": "voice-ui.requirements-cycle-correction-working-source-review/1",
+  "status": "PASS",
+  "reference": "0861f5c42cbd5f5412c465fff33ff036361591e8",
+  "working_completion_sha256": "084eddf2a3a92d6f5ecc2681ed8988148278bbd54df91beaca2ce4c6ad12d190",
+  "outside_two_functions_raw_equal": true,
+  "other_sixteen_measurement_sources_raw_equal": true,
+  "full_new_payload_capacity_edges_limits_invariant": true,
+  "projection_exact_keys": [
+    "utterance",
+    "existing_regions",
+    "part_definitions"
+  ],
+  "tuple_shape_and_enums_unchanged": true,
+  "verifier_other_three_questions_and_state_unchanged": true,
+  "verifier_comparison_instruction_capacity_invariant": true,
+  "verifier_instruction_binds_actual_proposal": true,
+  "semantic_criteria_and_threshold": "UNCHANGED",
+  "actual_provider_sends": 0,
+  "admission": "PENDING_EXACT_COMMIT_FULL_CI_COMPLETED_ARTIFACT_RUNTIME"
+}

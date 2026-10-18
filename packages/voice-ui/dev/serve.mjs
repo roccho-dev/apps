@@ -159,21 +159,27 @@ async function serveJudge(request, response) {
   const headers = Object.entries(request.headers)
     .filter(([name]) => !["connection", "host", "keep-alive", "transfer-encoding", "content-length"].includes(name))
     .flatMap(([name, value]) => (Array.isArray(value) ? value : [value]).map(item => [name, item]));
-  const forwarded = new Request(new URL(request.url, "http://localhost"), {
-    method: request.method,
-    headers,
-    body: ["GET", "HEAD"].includes(request.method) ? undefined : Buffer.concat(chunks),
-  });
-
-  const result = await worker.fetch(forwarded, workerEnv);
-
-  const body = Buffer.from(await result.arrayBuffer());
-  response.writeHead(result.status, {
-    ...Object.fromEntries(result.headers),
-    "content-length": body.byteLength,
-    "cache-control": "no-store",
-  });
-  response.end(body);
+  const controller = new AbortController();
+  const disconnect = () => { if (!response.writableEnded) controller.abort(); };
+  response.once("close", disconnect);
+  if (response.destroyed) controller.abort();
+  try {
+    const forwarded = new Request(new URL(request.url, "http://localhost"), {
+      method: request.method,
+      headers,
+      body: ["GET", "HEAD"].includes(request.method) ? undefined : Buffer.concat(chunks),
+      signal: controller.signal,
+    });
+    const result = await worker.fetch(forwarded, workerEnv);
+    if (response.destroyed) return;
+    const body = Buffer.from(await result.arrayBuffer());
+    response.writeHead(result.status, {
+      ...Object.fromEntries(result.headers),
+      "content-length": body.byteLength,
+      "cache-control": "no-store",
+    });
+    response.end(body);
+  } finally { response.removeListener("close", disconnect); }
 }
 
 // Source-dev uses an operator-owned absolute file. The separately selected
@@ -312,7 +318,7 @@ const server = createServer((request, response) => {
     serveProposals(request, response).catch(() => proposalReply(response, 502, { error: "PROPOSAL_FAILED" }));
     return;
   }
-  if (["/api/judge", "/api/parts/check", "/api/parts/complete"].includes(pathname)) {
+  if (["/api/judge", "/api/parts/check", "/api/parts/complete", "/api/parts/requirements", "/api/parts/verify"].includes(pathname)) {
     serveJudge(request, response).catch(() => {
       response.writeHead(500, { "content-type": "application/json; charset=utf-8" });
       response.end(JSON.stringify({ error: "dev_server_error" }));

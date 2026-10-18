@@ -1,0 +1,58 @@
+{
+  "schema": "voice-ui.frontier-cycle-policy-contract/1",
+  "id": "uncertainty-frontier-v1",
+  "modes": {
+    "G0": "literal-v2",
+    "V": "verify",
+    "D": "full-required",
+    "B": "literal-v2",
+    "C": "adaptive-v3"
+  },
+  "inspection": {
+    "legacy": "voice-ui.parts.inspection/2",
+    "candidate": "voice-ui.parts.inspection/3"
+  },
+  "proposal_policy_keys": [
+    "id",
+    "eligible",
+    "reason"
+  ],
+  "reasons": [
+    null,
+    "confident-change-incomplete",
+    "uncertain-intent-incomplete"
+  ],
+  "threshold": 0.5,
+  "old_eligible": "intent=change confidence>=.5 AND completeness=incomplete confidence>=.5",
+  "additional_eligible": "intent IN(change,ambiguous) confidence<.5 AND completeness=incomplete confidence>=.5",
+  "hard_stops": [
+    "no-change at any confidence",
+    "unsupported at any confidence",
+    "ambiguous confidence>=.5",
+    "complete",
+    "incomplete confidence<.5",
+    "invalid factors or HTTP/contract unknown"
+  ],
+  "direct_G0_scope": "literal-v2 /2 unchanged/no adoption/Type0; new policy derived independently, not an implementation claim",
+  "C_scope": "actual adaptive-v3 /3 and stage.v3 G0 proposal_policy bound to unchanged initial factors; no /3-to-/2 translation",
+  "G0_expected_policy_true": [
+    "PG01",
+    "PG02"
+  ],
+  "G0_expected_policy_false": [
+    "PG03",
+    "PG04",
+    "PG05",
+    "PG06",
+    "PG07",
+    "PG08",
+    "PG09",
+    "PG10"
+  ],
+  "taxonomy": "reported separately and never rewritten into candidate-policy correctness",
+  "frontier_gain": "admitted gain with actual C old-ineligible/new-eligible",
+  "frontier_effect_additional_minimum": 1,
+  "G0_E_targets": "inherited provenance only; G0 final log/head/records always initial",
+  "public_gate": "all10 valid/closed/normalized/unchanged/Type0/exact old-new-reason, actual PG01/02 eligible, complete S and every negative/control ineligible",
+  "provider_calls": 0
+}

@@ -1,0 +1,2 @@
+Skipping host requirements validation logic because `PLAYWRIGHT_SKIP_VALIDATE_HOST_REQUIREMENTS` env variable is set.
+{"schema":"voice-ui.closed-live-log-browser/1","status":"PASS","rows":12,"failures":0}

@@ -1,0 +1,689 @@
+{
+  "schema": "voice-ui.component-axes-raw-audit/1",
+  "axis": "E",
+  "status": "PASS",
+  "issues": [],
+  "complete": true,
+  "all_valid_execution": true,
+  "phase_kind": "fresh",
+  "parent_inputs_sha256": null,
+  "runtime_scope": "LIVE_BINDING_REQUIRED",
+  "admissible_for_semantic_claim": true,
+  "consumed": 10,
+  "planned": 10,
+  "external_provider_attempts": {
+    "jev": 37,
+    "typellm": 0
+  },
+  "external_provider_attempt_bounds": {
+    "jev": {
+      "min": 37,
+      "max": 37
+    },
+    "typellm": {
+      "min": 0,
+      "max": 0
+    }
+  },
+  "factor_rows": 20,
+  "factor_alignment": "UNIQUE",
+  "proofs": [
+    {
+      "id": "R01",
+      "method": "literal",
+      "status": "PASS",
+      "initial_head": "sha256:3f44e0d52678bc7ddeac8b19804ffaadfe6a493ce65ba8ca98f345ddd2ff75a2",
+      "final_head": "sha256:3f44e0d52678bc7ddeac8b19804ffaadfe6a493ce65ba8ca98f345ddd2ff75a2"
+    },
+    {
+      "id": "R05",
+      "method": "literal",
+      "status": "PASS",
+      "initial_head": "sha256:3f44e0d52678bc7ddeac8b19804ffaadfe6a493ce65ba8ca98f345ddd2ff75a2",
+      "final_head": "sha256:33ba49c366f4b01d8b71a74c2752b8d52e8d037b3f398239126c5366c5e7a080"
+    },
+    {
+      "id": "R09",
+      "method": "literal",
+      "status": "PASS",
+      "initial_head": "sha256:3f44e0d52678bc7ddeac8b19804ffaadfe6a493ce65ba8ca98f345ddd2ff75a2",
+      "final_head": "sha256:3f44e0d52678bc7ddeac8b19804ffaadfe6a493ce65ba8ca98f345ddd2ff75a2"
+    },
+    {
+      "id": "R02",
+      "method": "literal",
+      "status": "PASS",
+      "initial_head": "sha256:6969f47d7531db6ae8959481e6ee24676c9b37da9a61b2cdf2c97d4a2af6684a",
+      "final_head": "sha256:94a3009268410e5b7e141798cede03d3d9e460e19cd85f3ab69f6e9d692a5af7"
+    },
+    {
+      "id": "R06",
+      "method": "literal",
+      "status": "PASS",
+      "initial_head": "sha256:3f44e0d52678bc7ddeac8b19804ffaadfe6a493ce65ba8ca98f345ddd2ff75a2",
+      "final_head": "sha256:3f44e0d52678bc7ddeac8b19804ffaadfe6a493ce65ba8ca98f345ddd2ff75a2"
+    },
+    {
+      "id": "R10",
+      "method": "literal",
+      "status": "PASS",
+      "initial_head": "sha256:6969f47d7531db6ae8959481e6ee24676c9b37da9a61b2cdf2c97d4a2af6684a",
+      "final_head": "sha256:6969f47d7531db6ae8959481e6ee24676c9b37da9a61b2cdf2c97d4a2af6684a"
+    },
+    {
+      "id": "R03",
+      "method": "literal",
+      "status": "PASS",
+      "initial_head": "sha256:3f44e0d52678bc7ddeac8b19804ffaadfe6a493ce65ba8ca98f345ddd2ff75a2",
+      "final_head": "sha256:3f44e0d52678bc7ddeac8b19804ffaadfe6a493ce65ba8ca98f345ddd2ff75a2"
+    },
+    {
+      "id": "R07",
+      "method": "literal",
+      "status": "PASS",
+      "initial_head": "sha256:3f44e0d52678bc7ddeac8b19804ffaadfe6a493ce65ba8ca98f345ddd2ff75a2",
+      "final_head": "sha256:158a57461da6e79741abd6ecb1d238c9cd4ed05f5ff01b7b44ee918081b1e2c7"
+    },
+    {
+      "id": "R04",
+      "method": "literal",
+      "status": "PASS",
+      "initial_head": "sha256:3f44e0d52678bc7ddeac8b19804ffaadfe6a493ce65ba8ca98f345ddd2ff75a2",
+      "final_head": "sha256:8aee36c702555e090ce15b707e1e0954f7d0fb545a2b2a696358e52fe0618dbd"
+    },
+    {
+      "id": "R08",
+      "method": "literal",
+      "status": "PASS",
+      "initial_head": "sha256:3f44e0d52678bc7ddeac8b19804ffaadfe6a493ce65ba8ca98f345ddd2ff75a2",
+      "final_head": "sha256:b2ed2b088bc11552e47e5556294be5fd7979e768cd57ebf8d44cd3d199dde26d"
+    }
+  ],
+  "rows": [
+    {
+      "id": "R01",
+      "method": "literal",
+      "grade": {
+        "expected_gate": "sufficient",
+        "decision_contract_valid": true,
+        "gate_correct": false,
+        "graph_exact": false,
+        "graph": {
+          "graph_exact": false,
+          "unique_record_keys": true,
+          "existing_semantics_preserved": true,
+          "semantic_unchanged": true,
+          "clean_new_regions": true,
+          "clean_new_edges": true,
+          "no_other_new_semantics": true,
+          "actual_added_regions": [],
+          "actual_added_edges": []
+        },
+        "missing_exact_minimal": true,
+        "supply": {
+          "contract_valid": true,
+          "exact": true,
+          "minimal": true,
+          "expected_instances": 0,
+          "actual_instances": 0,
+          "matched_instances": 0,
+          "omitted_instances": 0,
+          "extra_instances": 0,
+          "precision": 1,
+          "recall": 1
+        },
+        "control_correct": null,
+        "raw_unchanged": true,
+        "generation_free": true,
+        "type_free": true,
+        "no_false_adoption": true,
+        "ordinary_non_regression": true,
+        "deadline": true,
+        "scope": "ordinary literal semantic observation only; source/proof/HTTP/provider/paint/persistence binding remains mandatory"
+      },
+      "paint_status": "PASS",
+      "persisted_raw_equal": true,
+      "cell_wall_elapsedMs": 9400.7006,
+      "goal_elapsedMs": 379.5349999964237,
+      "goal_deadline_status": "PASS"
+    },
+    {
+      "id": "R05",
+      "method": "literal",
+      "grade": {
+        "expected_gate": "missing",
+        "decision_contract_valid": true,
+        "gate_correct": true,
+        "graph_exact": true,
+        "graph": {
+          "graph_exact": true,
+          "unique_record_keys": true,
+          "existing_semantics_preserved": true,
+          "semantic_unchanged": false,
+          "clean_new_regions": true,
+          "clean_new_edges": true,
+          "no_other_new_semantics": true,
+          "actual_added_regions": [
+            {
+              "label": "搬出票",
+              "kind": "data",
+              "parent": "fixture:other"
+            }
+          ],
+          "actual_added_edges": []
+        },
+        "missing_exact_minimal": true,
+        "supply": {
+          "contract_valid": true,
+          "exact": true,
+          "minimal": true,
+          "expected_instances": 1,
+          "actual_instances": 1,
+          "matched_instances": 1,
+          "omitted_instances": 0,
+          "extra_instances": 0,
+          "precision": 1,
+          "recall": 1
+        },
+        "control_correct": null,
+        "raw_unchanged": false,
+        "generation_free": false,
+        "type_free": true,
+        "no_false_adoption": true,
+        "ordinary_non_regression": true,
+        "deadline": true,
+        "scope": "ordinary literal semantic observation only; source/proof/HTTP/provider/paint/persistence binding remains mandatory"
+      },
+      "paint_status": "PASS",
+      "persisted_raw_equal": true,
+      "cell_wall_elapsedMs": 11033.979000000001,
+      "goal_elapsedMs": 1782.25,
+      "goal_deadline_status": "PASS"
+    },
+    {
+      "id": "R09",
+      "method": "literal",
+      "grade": {
+        "expected_gate": "ambiguous",
+        "decision_contract_valid": true,
+        "gate_correct": true,
+        "graph_exact": true,
+        "graph": {
+          "graph_exact": true,
+          "unique_record_keys": true,
+          "existing_semantics_preserved": true,
+          "semantic_unchanged": true,
+          "clean_new_regions": true,
+          "clean_new_edges": true,
+          "no_other_new_semantics": true,
+          "actual_added_regions": [],
+          "actual_added_edges": []
+        },
+        "missing_exact_minimal": true,
+        "supply": {
+          "contract_valid": true,
+          "exact": true,
+          "minimal": true,
+          "expected_instances": 0,
+          "actual_instances": 0,
+          "matched_instances": 0,
+          "omitted_instances": 0,
+          "extra_instances": 0,
+          "precision": 1,
+          "recall": 1
+        },
+        "control_correct": true,
+        "raw_unchanged": true,
+        "generation_free": true,
+        "type_free": true,
+        "no_false_adoption": true,
+        "ordinary_non_regression": true,
+        "deadline": true,
+        "scope": "ordinary literal semantic observation only; source/proof/HTTP/provider/paint/persistence binding remains mandatory"
+      },
+      "paint_status": "PASS",
+      "persisted_raw_equal": true,
+      "cell_wall_elapsedMs": 9024.5949,
+      "goal_elapsedMs": 332.78999999165535,
+      "goal_deadline_status": "PASS"
+    },
+    {
+      "id": "R02",
+      "method": "literal",
+      "grade": {
+        "expected_gate": "sufficient",
+        "decision_contract_valid": true,
+        "gate_correct": true,
+        "graph_exact": true,
+        "graph": {
+          "graph_exact": true,
+          "unique_record_keys": true,
+          "existing_semantics_preserved": true,
+          "semantic_unchanged": false,
+          "clean_new_regions": true,
+          "clean_new_edges": true,
+          "no_other_new_semantics": true,
+          "actual_added_regions": [],
+          "actual_added_edges": [
+            {
+              "from": "fixture:initial-db",
+              "to": "fixture:initial-api",
+              "kind": "flow",
+              "label": ""
+            }
+          ]
+        },
+        "missing_exact_minimal": true,
+        "supply": {
+          "contract_valid": true,
+          "exact": true,
+          "minimal": true,
+          "expected_instances": 0,
+          "actual_instances": 0,
+          "matched_instances": 0,
+          "omitted_instances": 0,
+          "extra_instances": 0,
+          "precision": 1,
+          "recall": 1
+        },
+        "control_correct": null,
+        "raw_unchanged": false,
+        "generation_free": true,
+        "type_free": true,
+        "no_false_adoption": true,
+        "ordinary_non_regression": true,
+        "deadline": true,
+        "scope": "ordinary literal semantic observation only; source/proof/HTTP/provider/paint/persistence binding remains mandatory"
+      },
+      "paint_status": "PASS",
+      "persisted_raw_equal": true,
+      "cell_wall_elapsedMs": 13501.4745,
+      "goal_elapsedMs": 1706.344999998808,
+      "goal_deadline_status": "PASS"
+    },
+    {
+      "id": "R06",
+      "method": "literal",
+      "grade": {
+        "expected_gate": "missing",
+        "decision_contract_valid": true,
+        "gate_correct": false,
+        "graph_exact": false,
+        "graph": {
+          "graph_exact": false,
+          "unique_record_keys": true,
+          "existing_semantics_preserved": true,
+          "semantic_unchanged": true,
+          "clean_new_regions": true,
+          "clean_new_edges": true,
+          "no_other_new_semantics": true,
+          "actual_added_regions": [],
+          "actual_added_edges": []
+        },
+        "missing_exact_minimal": false,
+        "supply": {
+          "contract_valid": true,
+          "exact": false,
+          "minimal": false,
+          "expected_instances": 1,
+          "actual_instances": 0,
+          "matched_instances": 0,
+          "omitted_instances": 1,
+          "extra_instances": 0,
+          "precision": 0,
+          "recall": 0
+        },
+        "control_correct": null,
+        "raw_unchanged": true,
+        "generation_free": true,
+        "type_free": true,
+        "no_false_adoption": true,
+        "ordinary_non_regression": true,
+        "deadline": true,
+        "scope": "ordinary literal semantic observation only; source/proof/HTTP/provider/paint/persistence binding remains mandatory"
+      },
+      "paint_status": "PASS",
+      "persisted_raw_equal": true,
+      "cell_wall_elapsedMs": 8236.9084,
+      "goal_elapsedMs": 328.2150000035763,
+      "goal_deadline_status": "PASS"
+    },
+    {
+      "id": "R10",
+      "method": "literal",
+      "grade": {
+        "expected_gate": "no-change",
+        "decision_contract_valid": true,
+        "gate_correct": true,
+        "graph_exact": true,
+        "graph": {
+          "graph_exact": true,
+          "unique_record_keys": true,
+          "existing_semantics_preserved": true,
+          "semantic_unchanged": true,
+          "clean_new_regions": true,
+          "clean_new_edges": true,
+          "no_other_new_semantics": true,
+          "actual_added_regions": [],
+          "actual_added_edges": []
+        },
+        "missing_exact_minimal": true,
+        "supply": {
+          "contract_valid": true,
+          "exact": true,
+          "minimal": true,
+          "expected_instances": 0,
+          "actual_instances": 0,
+          "matched_instances": 0,
+          "omitted_instances": 0,
+          "extra_instances": 0,
+          "precision": 1,
+          "recall": 1
+        },
+        "control_correct": true,
+        "raw_unchanged": true,
+        "generation_free": true,
+        "type_free": true,
+        "no_false_adoption": true,
+        "ordinary_non_regression": true,
+        "deadline": true,
+        "scope": "ordinary literal semantic observation only; source/proof/HTTP/provider/paint/persistence binding remains mandatory"
+      },
+      "paint_status": "PASS",
+      "persisted_raw_equal": true,
+      "cell_wall_elapsedMs": 8136.453800000003,
+      "goal_elapsedMs": 286.66499999165535,
+      "goal_deadline_status": "PASS"
+    },
+    {
+      "id": "R03",
+      "method": "literal",
+      "grade": {
+        "expected_gate": "sufficient",
+        "decision_contract_valid": true,
+        "gate_correct": false,
+        "graph_exact": false,
+        "graph": {
+          "graph_exact": false,
+          "unique_record_keys": true,
+          "existing_semantics_preserved": true,
+          "semantic_unchanged": true,
+          "clean_new_regions": true,
+          "clean_new_edges": true,
+          "no_other_new_semantics": true,
+          "actual_added_regions": [],
+          "actual_added_edges": []
+        },
+        "missing_exact_minimal": true,
+        "supply": {
+          "contract_valid": true,
+          "exact": true,
+          "minimal": true,
+          "expected_instances": 0,
+          "actual_instances": 0,
+          "matched_instances": 0,
+          "omitted_instances": 0,
+          "extra_instances": 0,
+          "precision": 1,
+          "recall": 1
+        },
+        "control_correct": null,
+        "raw_unchanged": true,
+        "generation_free": true,
+        "type_free": true,
+        "no_false_adoption": true,
+        "ordinary_non_regression": true,
+        "deadline": true,
+        "scope": "ordinary literal semantic observation only; source/proof/HTTP/provider/paint/persistence binding remains mandatory"
+      },
+      "paint_status": "PASS",
+      "persisted_raw_equal": true,
+      "cell_wall_elapsedMs": 8033.212599999992,
+      "goal_elapsedMs": 293.61500000953674,
+      "goal_deadline_status": "PASS"
+    },
+    {
+      "id": "R07",
+      "method": "literal",
+      "grade": {
+        "expected_gate": "missing",
+        "decision_contract_valid": true,
+        "gate_correct": true,
+        "graph_exact": true,
+        "graph": {
+          "graph_exact": true,
+          "unique_record_keys": true,
+          "existing_semantics_preserved": true,
+          "semantic_unchanged": false,
+          "clean_new_regions": true,
+          "clean_new_edges": true,
+          "no_other_new_semantics": true,
+          "actual_added_regions": [
+            {
+              "label": "受付",
+              "kind": "step",
+              "parent": "fixture:other"
+            },
+            {
+              "label": "審査",
+              "kind": "decision",
+              "parent": "fixture:other"
+            },
+            {
+              "label": "結果帳",
+              "kind": "data",
+              "parent": "fixture:other"
+            }
+          ],
+          "actual_added_edges": []
+        },
+        "missing_exact_minimal": true,
+        "supply": {
+          "contract_valid": true,
+          "exact": true,
+          "minimal": true,
+          "expected_instances": 3,
+          "actual_instances": 3,
+          "matched_instances": 3,
+          "omitted_instances": 0,
+          "extra_instances": 0,
+          "precision": 1,
+          "recall": 1
+        },
+        "control_correct": null,
+        "raw_unchanged": false,
+        "generation_free": false,
+        "type_free": true,
+        "no_false_adoption": true,
+        "ordinary_non_regression": true,
+        "deadline": true,
+        "scope": "ordinary literal semantic observation only; source/proof/HTTP/provider/paint/persistence binding remains mandatory"
+      },
+      "paint_status": "PASS",
+      "persisted_raw_equal": true,
+      "cell_wall_elapsedMs": 13528.50529999999,
+      "goal_elapsedMs": 4227.57000002265,
+      "goal_deadline_status": "PASS"
+    },
+    {
+      "id": "R04",
+      "method": "literal",
+      "grade": {
+        "expected_gate": "sufficient",
+        "decision_contract_valid": true,
+        "gate_correct": true,
+        "graph_exact": true,
+        "graph": {
+          "graph_exact": true,
+          "unique_record_keys": true,
+          "existing_semantics_preserved": true,
+          "semantic_unchanged": false,
+          "clean_new_regions": true,
+          "clean_new_edges": true,
+          "no_other_new_semantics": true,
+          "actual_added_regions": [
+            {
+              "label": "グループ",
+              "kind": "group",
+              "parent": "fixture:container"
+            },
+            {
+              "label": "データ",
+              "kind": "data",
+              "parent": "added:グループ"
+            },
+            {
+              "label": "終了",
+              "kind": "end",
+              "parent": "added:グループ"
+            }
+          ],
+          "actual_added_edges": []
+        },
+        "missing_exact_minimal": true,
+        "supply": {
+          "contract_valid": true,
+          "exact": true,
+          "minimal": true,
+          "expected_instances": 0,
+          "actual_instances": 0,
+          "matched_instances": 0,
+          "omitted_instances": 0,
+          "extra_instances": 0,
+          "precision": 1,
+          "recall": 1
+        },
+        "control_correct": null,
+        "raw_unchanged": false,
+        "generation_free": true,
+        "type_free": true,
+        "no_false_adoption": true,
+        "ordinary_non_regression": true,
+        "deadline": true,
+        "scope": "ordinary literal semantic observation only; source/proof/HTTP/provider/paint/persistence binding remains mandatory"
+      },
+      "paint_status": "PASS",
+      "persisted_raw_equal": true,
+      "cell_wall_elapsedMs": 15914.024399999995,
+      "goal_elapsedMs": 4022.2699999809265,
+      "goal_deadline_status": "PASS"
+    },
+    {
+      "id": "R08",
+      "method": "literal",
+      "grade": {
+        "expected_gate": "missing",
+        "decision_contract_valid": true,
+        "gate_correct": true,
+        "graph_exact": true,
+        "graph": {
+          "graph_exact": true,
+          "unique_record_keys": true,
+          "existing_semantics_preserved": true,
+          "semantic_unchanged": false,
+          "clean_new_regions": true,
+          "clean_new_edges": true,
+          "no_other_new_semantics": true,
+          "actual_added_regions": [
+            {
+              "label": "照会室",
+              "kind": "group",
+              "parent": "fixture:other"
+            },
+            {
+              "label": "依頼受理",
+              "kind": "step",
+              "parent": "added:照会室"
+            },
+            {
+              "label": "応答記録",
+              "kind": "data",
+              "parent": "fixture:other"
+            }
+          ],
+          "actual_added_edges": [
+            {
+              "from": "added:依頼受理",
+              "to": "added:応答記録",
+              "kind": "flow",
+              "label": ""
+            }
+          ]
+        },
+        "missing_exact_minimal": true,
+        "supply": {
+          "contract_valid": true,
+          "exact": true,
+          "minimal": true,
+          "expected_instances": 3,
+          "actual_instances": 3,
+          "matched_instances": 3,
+          "omitted_instances": 0,
+          "extra_instances": 0,
+          "precision": 1,
+          "recall": 1
+        },
+        "control_correct": null,
+        "raw_unchanged": false,
+        "generation_free": false,
+        "type_free": true,
+        "no_false_adoption": true,
+        "ordinary_non_regression": true,
+        "deadline": true,
+        "scope": "ordinary literal semantic observation only; source/proof/HTTP/provider/paint/persistence binding remains mandatory"
+      },
+      "paint_status": "PASS",
+      "persisted_raw_equal": true,
+      "cell_wall_elapsedMs": 19095.727199999994,
+      "goal_elapsedMs": 5460.194999992847,
+      "goal_deadline_status": "PASS"
+    }
+  ],
+  "semantic": {
+    "complete": true,
+    "gate_correct": 7,
+    "sufficient": {
+      "exact": 2,
+      "total": 4
+    },
+    "missing": {
+      "exact_minimal": 3,
+      "total": 4
+    },
+    "controls": {
+      "correct_unchanged": 2,
+      "total": 2
+    },
+    "ordinary_criteria": "UNMET",
+    "Undo_scope": "separate completed-artifact keyless mechanics, not another live Goal on these inputs"
+  },
+  "replay": {
+    "status": "PASS",
+    "issues": [],
+    "consumed": 10,
+    "frames": 34,
+    "assessed_frames": 24,
+    "recorded_paint_status": "PASS",
+    "replay_sha256": "26f58204f1fbeb7fa8c07b9c0b3dd8338830771cb998a6db64c653c62960b657",
+    "model_quality_scope": "NONE",
+    "CI_LIVE_EXECUTION": "UNPROVEN"
+  },
+  "raw_sha256": {
+    "events.jsonl": "540c8e4a6f6635435f5650b0bf9b3520256888b879e489db61231a429f8ecee1",
+    "execution.json": "ac6e4e0d636e1ca0f16016feb10c5f61794f39887088b2e1e952638fcc55de74",
+    "identity.json": "de6113913783b4727088bc4f9405e610a4ecff9d47fcfedbb7207ffad34c0b34",
+    "R01-B.json": "0cf9abf5f80c72bc0e2461d3a374b0e2e4f47d5018b33fa41066ce92c0a016e2",
+    "R02-B.json": "0e580fedb7e3fdb64ce89710b4f3b65701c4b7dc8c2a788783c9bc175fde571e",
+    "R03-B.json": "4cdea70a8327beb00a3c00925a50214d6c2bbbd30ec9db1fff2a2400e085ce1c",
+    "R04-B.json": "bab042d447752bc46e4fce268d183ef5a82d25d5f434d7e83745ee309747d4be",
+    "R05-B.json": "5966264db931837165f7d7c65fa20052a1f8aea420cefd308d9fc2604da4cb01",
+    "R06-B.json": "6ea9a1389067c687ffc279d6a1936e094e00be7b37d2cffd05492c1892330281",
+    "R07-B.json": "6473f4106a6bbbda14a43be6908d4efb191b25db62f86888230bee2644a825c0",
+    "R08-B.json": "20fb73bbf74957a450f855c5ab1b90a489a798047bbcc46484de2f7694afc709",
+    "R09-B.json": "dab52e214ecc12dae1c9ec3df5ee3db428f71ac59201cbe0d2c019b9bc75e24b",
+    "R10-B.json": "86fb9c21a905da8b3e883e21dce8ba1b4871580c73a6c9f299d37799b792a0df"
+  },
+  "scope": "raw-axis locality only; source/producer/provider/independent physical PID and any required paint gates remain separate",
+  "CI_LIVE_EXECUTION": "UNPROVEN",
+  "currency": "COST_NOT_MEASURED"
+}

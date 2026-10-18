@@ -1,0 +1,309 @@
+{
+  "status": "PASS",
+  "scope": "INDEPENDENT_PRE_R25_BASELINE_READ_ONLY_NO_LAUNCH_OR_PROVIDER",
+  "at": "2026-10-18T04:28:27.754897+00:00",
+  "journal_sha256": "2b938983023a8e2627041d52cb943a3d0f6bd530aeed637c606b816a57328d35",
+  "charged": {
+    "jev": 847,
+    "typellm": 136
+  },
+  "outstanding": 0,
+  "owned_groups": [
+    {
+      "phase": "poc-main-1",
+      "pid": 98069,
+      "pgid": 98069,
+      "start_ticks": "6787546"
+    },
+    {
+      "phase": "poc-main-2",
+      "pid": 98609,
+      "pgid": 98609,
+      "start_ticks": "6833888"
+    },
+    {
+      "phase": "poc-main-3",
+      "pid": 99783,
+      "pgid": 99783,
+      "start_ticks": "7149546"
+    },
+    {
+      "phase": "poc-main-4",
+      "pid": 100368,
+      "pgid": 100368,
+      "start_ticks": "7245695"
+    },
+    {
+      "phase": "poc-main-5",
+      "pid": 101417,
+      "pgid": 101417,
+      "start_ticks": "7530557"
+    },
+    {
+      "phase": "poc-main-6",
+      "pid": 102693,
+      "pgid": 102693,
+      "start_ticks": "7751187"
+    },
+    {
+      "phase": "poc-fresh-7",
+      "pid": 103224,
+      "pgid": 103224,
+      "start_ticks": "7802310"
+    },
+    {
+      "phase": "poc-ready-8",
+      "pid": 103655,
+      "pgid": 103655,
+      "start_ticks": "7896006"
+    },
+    {
+      "phase": "candidate-public-20261017",
+      "pid": 233467,
+      "pgid": 233467,
+      "start_ticks": "13622035"
+    },
+    {
+      "phase": "candidate-type-diagnostic-1",
+      "pid": 233952,
+      "pgid": 233952,
+      "start_ticks": "13654560"
+    },
+    {
+      "phase": "candidate-type-diagnostic-2",
+      "pid": 239615,
+      "pgid": 239615,
+      "start_ticks": "13708110"
+    },
+    {
+      "phase": "candidate-type-diagnostic-3",
+      "pid": 242236,
+      "pgid": 242236,
+      "start_ticks": "13717798"
+    },
+    {
+      "phase": "candidate-correction-1-20261017",
+      "pid": 252935,
+      "pgid": 252935,
+      "start_ticks": "13829959"
+    },
+    {
+      "phase": "candidate-correction-2-20261017",
+      "pid": 259519,
+      "pgid": 259519,
+      "start_ticks": "13920555"
+    },
+    {
+      "phase": "candidate-public-remainder-20261017",
+      "pid": 261711,
+      "pgid": 261711,
+      "start_ticks": "13955189"
+    },
+    {
+      "phase": "candidate-fresh-20261017",
+      "pid": 270500,
+      "pgid": 270500,
+      "start_ticks": "14088123"
+    },
+    {
+      "phase": "axes-public-G-20261017",
+      "pid": 308086,
+      "pgid": 308086,
+      "start_ticks": "15074155"
+    },
+    {
+      "phase": "axes-public-R-20261017",
+      "pid": 308609,
+      "pgid": 308609,
+      "start_ticks": "15093863"
+    },
+    {
+      "phase": "axes-public-F-20261017",
+      "pid": 309041,
+      "pgid": 309041,
+      "start_ticks": "15114628"
+    },
+    {
+      "phase": "axes-public-E-20261017",
+      "pid": 309395,
+      "pgid": 309395,
+      "start_ticks": "15135567"
+    },
+    {
+      "phase": "axes-final-G-20261017",
+      "pid": 311739,
+      "pgid": 311739,
+      "start_ticks": "15269329"
+    },
+    {
+      "phase": "axes-final-R-20261017",
+      "pid": 312045,
+      "pgid": 312045,
+      "start_ticks": "15291612"
+    },
+    {
+      "phase": "axes-final-F-20261017",
+      "pid": 312711,
+      "pgid": 312711,
+      "start_ticks": "15313164"
+    },
+    {
+      "phase": "axes-final-E-20261017",
+      "pid": 313201,
+      "pgid": 313201,
+      "start_ticks": "15339382"
+    },
+    {
+      "phase": "requirements-public-F-20261018",
+      "pid": 320853,
+      "pgid": 320853,
+      "start_ticks": "15873648"
+    },
+    {
+      "phase": "requirements-correction1-F-20261018",
+      "pid": 322497,
+      "pgid": 322497,
+      "start_ticks": "15998732"
+    },
+    {
+      "phase": "requirements-correction1-V-20261018",
+      "pid": 322721,
+      "pgid": 322721,
+      "start_ticks": "16014619"
+    },
+    {
+      "phase": "requirements-correction2-F-20261018",
+      "pid": 323862,
+      "pgid": 323862,
+      "start_ticks": "16150741"
+    },
+    {
+      "phase": "requirements-correction2-V-20261018",
+      "pid": 324288,
+      "pgid": 324288,
+      "start_ticks": "16176096"
+    },
+    {
+      "phase": "dependency-public-F-20261018",
+      "pid": 329873,
+      "pgid": 329873,
+      "start_ticks": "16800830"
+    },
+    {
+      "phase": "dependency-public-V-20261018",
+      "pid": 330205,
+      "pgid": 330205,
+      "start_ticks": "16827734"
+    },
+    {
+      "phase": "dependency-public-E-20261018",
+      "pid": 330456,
+      "pgid": 330456,
+      "start_ticks": "16837431"
+    },
+    {
+      "phase": "intent-public-G0-20261018",
+      "pid": 334177,
+      "pgid": 334177,
+      "start_ticks": "17270422"
+    },
+    {
+      "phase": "frontier-public-G0-20261018",
+      "pid": 345186,
+      "pgid": 345186,
+      "start_ticks": "17843257"
+    },
+    {
+      "phase": "frontier-public-E-20261018",
+      "pid": 345714,
+      "pgid": 345714,
+      "start_ticks": "17885135"
+    },
+    {
+      "phase": "frontier-final-V-20261018",
+      "pid": 346779,
+      "pgid": 346779,
+      "start_ticks": "17941790"
+    },
+    {
+      "phase": "frontier-final-F-20261018",
+      "pid": 347100,
+      "pgid": 347100,
+      "start_ticks": "17966903"
+    },
+    {
+      "phase": "frontier-final-E-20261018",
+      "pid": 347646,
+      "pgid": 347646,
+      "start_ticks": "18017291"
+    },
+    {
+      "phase": "quota-public-R-20261018",
+      "pid": 363994,
+      "pgid": 363994,
+      "start_ticks": "18611793"
+    },
+    {
+      "phase": "quota-public-E-20261018",
+      "pid": 369297,
+      "pgid": 369297,
+      "start_ticks": "18657701"
+    },
+    {
+      "phase": "quota-final-R-20261018",
+      "pid": 370666,
+      "pgid": 370666,
+      "start_ticks": "18689524"
+    },
+    {
+      "phase": "quota-final-E-20261018",
+      "pid": 376131,
+      "pgid": 376131,
+      "start_ticks": "18725492"
+    },
+    {
+      "phase": "extraction-public-A-20261018",
+      "pid": 387723,
+      "pgid": 387723,
+      "start_ticks": "19377143"
+    },
+    {
+      "phase": "extraction-public-A2-20261018",
+      "pid": 388005,
+      "pgid": 388005,
+      "start_ticks": "19385791"
+    },
+    {
+      "phase": "extraction-public-A3-20261018",
+      "pid": 388291,
+      "pgid": 388291,
+      "start_ticks": "19397886"
+    },
+    {
+      "phase": "display-source-public-B-20261018",
+      "pid": 390121,
+      "pgid": 390121,
+      "start_ticks": "19632564"
+    },
+    {
+      "phase": "scalar-public-C-20261018",
+      "pid": 391415,
+      "pgid": 391415,
+      "start_ticks": "19750071"
+    },
+    {
+      "phase": "thinking-public-D-20261018",
+      "pid": 393551,
+      "pgid": 393551,
+      "start_ticks": "20065055"
+    },
+    {
+      "phase": "thinking-fresh-D-20261018",
+      "pid": 394238,
+      "pgid": 394238,
+      "start_ticks": "20144109"
+    }
+  ],
+  "remaining_members_including_Z": [],
+  "external_provider_sends": 0
+}

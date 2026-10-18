@@ -1,0 +1,612 @@
+{
+  "schema": "voice-ui.review.quota-ci-admission/1",
+  "status": "PASS",
+  "head": "59ded276405a5dc9caa85ad570b1827ff4bd0c7a",
+  "tree": "109c01064cde33ececa497e7daa160b763298b14",
+  "checked_at": "2026-10-17T23:02:41.831Z",
+  "runs": [
+    {
+      "id": 39076041775,
+      "name": "voice-ui release",
+      "head": "59ded276405a5dc9caa85ad570b1827ff4bd0c7a",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/roccho-dev/apps/actions/runs/39076041775"
+    },
+    {
+      "id": 39076041759,
+      "name": "nix-check",
+      "head": "59ded276405a5dc9caa85ad570b1827ff4bd0c7a",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/roccho-dev/apps/actions/runs/39076041759"
+    },
+    {
+      "id": 39076041791,
+      "name": "voice-ui artifact",
+      "head": "59ded276405a5dc9caa85ad570b1827ff4bd0c7a",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/roccho-dev/apps/actions/runs/39076041791"
+    },
+    {
+      "id": 39076041753,
+      "name": "artifact-auth",
+      "head": "59ded276405a5dc9caa85ad570b1827ff4bd0c7a",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/roccho-dev/apps/actions/runs/39076041753"
+    }
+  ],
+  "required_steps": [
+    "Package and re-open",
+    "Verify stopped live evidence with exact recorded artifacts",
+    "Verify component axes with exact stopped artifacts",
+    "Verify requirements cycle with exact stopped artifacts",
+    "Verify dependency cycle with exact stopped artifacts",
+    "Verify intent cycle with exact stopped artifacts",
+    "Verify frontier cycle with exact stopped artifacts",
+    "Verify quota cycle with exact stopped artifacts"
+  ],
+  "publish": "skipped",
+  "closure_artifacts": [
+    {
+      "name": "quota-59d-ci-closed-evidence-audit.json",
+      "sha256": "ece63d8d4e8858a9562dd07531171280955e679c0c1cf21e1b4cfedba660491b",
+      "value": {
+        "schema": "voice-ui.review.quota-ci-closure/1",
+        "status": "PASS",
+        "head": "59ded276405a5dc9caa85ad570b1827ff4bd0c7a",
+        "run": 39076041775,
+        "checked_at": "2026-10-17T22:58:15.702Z",
+        "kind": "closed-evidence",
+        "artifact": {
+          "id": 12117586295,
+          "name": "voice-ui-closed-evidence-59ded276405a5dc9caa85ad570b1827ff4bd0c7a",
+          "bytes": 62035,
+          "sha256": "5f2ae48338f44cd06d9b948a39587e69d356a5275fcb304524c8a5f121246a70"
+        },
+        "receipt_sha256": "88c565fa0046af2c420138a58edc7653c48745e9358b2458628bb6f0073c9de8",
+        "cumulative": {
+          "jev": 564,
+          "typellm": 29
+        },
+        "reports": 5,
+        "baseline": {
+          "head": "0aa3c4b90519a1c18c217753698806507ccff3c0",
+          "audit_sha256": "663e4e32bff74af9d68fee60cd3491d0b5de946101c699c843ddd32e9748a92a",
+          "zip_sha256": "b8b73e27d8b3c62a918468e8db32a039127d0aaf10365ec4c336fb874e1d3d43"
+        },
+        "exact_json_files": 11,
+        "members": [
+          {
+            "name": "correction-one-f2fa/audit.json",
+            "sha256": "11b3a5e993497c176edfc92f6a9b29800027c237b6682db6411bc1fc8595ad59",
+            "match": "EXACT_RAW_BYTES"
+          },
+          {
+            "name": "correction-one-f2fa/ci-replay/receipt.json",
+            "sha256": "5ae8eaefe60c2b55c5b6617d3976048129ca2fd8006068132ef2548f4158e7f5",
+            "match": "EXACT_RAW_BYTES"
+          },
+          {
+            "name": "correction-two-2c8b/audit.json",
+            "sha256": "d00c650753744fe74f480a7497ccd9f5ffb0d54ece72ca0f306524c4fe63e01b",
+            "match": "EXACT_RAW_BYTES"
+          },
+          {
+            "name": "correction-two-2c8b/ci-replay/receipt.json",
+            "sha256": "930d29e29523a6dca92541ae1dfce4bfa5a526c7ee7776629dfef899a53d7995",
+            "match": "EXACT_RAW_BYTES"
+          },
+          {
+            "name": "fresh-primary-50b1/audit.json",
+            "sha256": "cb3c5bf6e1e5c59a5d2a002a57efc50034b53a940e8a561976147923d514be1e",
+            "match": "EXACT_RAW_BYTES"
+          },
+          {
+            "name": "fresh-primary-50b1/ci-replay/receipt.json",
+            "sha256": "0803266971bd7b20c6b68cf0e186bbfc150ba6e9241038c76789f8b32c3c4b55",
+            "match": "EXACT_RAW_BYTES"
+          },
+          {
+            "name": "public-initial-f2e9/audit.json",
+            "sha256": "c3d0c264fddb5765b6d41adb349331f5095f158991347da567cac9f0787c695a",
+            "match": "EXACT_RAW_BYTES"
+          },
+          {
+            "name": "public-initial-f2e9/ci-replay/receipt.json",
+            "sha256": "72d3140bd41483294e5596d10bb0b5d199311570095d09f31e7b192be5934e19",
+            "match": "EXACT_RAW_BYTES"
+          },
+          {
+            "name": "public-initial-f2e9/mutation-test.txt",
+            "sha256": "9bfbbdaf950ecd3ab724bfd9525b5ddf07f60bae4b439d3091af308f6b80d58e",
+            "baseline_sha256": "cacd8461d39496c1a90998381ea5eb5376f5cde10978919c011b245eddcd29e9",
+            "match": "EXACT_TEST_TEXT_EXCEPT_SIX_TEST_AND_ONE_TOTAL_ELAPSED_MS",
+            "timing_fields": 7
+          },
+          {
+            "name": "public-remainder-2c8b/audit.json",
+            "sha256": "f98fbea44ac88be5da5e66011b2a32e4ffd7628c99859e9e5035d688e89a5d6c",
+            "match": "EXACT_RAW_BYTES"
+          },
+          {
+            "name": "public-remainder-2c8b/ci-replay/receipt.json",
+            "sha256": "e64ac843db8b4d47cf9a0ff412d807dd92de46c3523d432f95133db59287b3da",
+            "match": "EXACT_RAW_BYTES"
+          },
+          {
+            "name": "receipt.json",
+            "sha256": "88c565fa0046af2c420138a58edc7653c48745e9358b2458628bb6f0073c9de8",
+            "match": "EXACT_RAW_BYTES"
+          }
+        ],
+        "receipt_reused_only_after_all_members_matched": true,
+        "scope": "ACTUAL_CI_CLOSED_EVIDENCE_OR_NOT_MEASURED_ONLY_NOT_LIVE_PERFORMANCE_OR_LAUNCH_GO",
+        "reviewer_real_provider_calls": 0
+      }
+    },
+    {
+      "name": "quota-59d-ci-component-axes-audit.json",
+      "sha256": "74bdf08bca3f4d31c29d1d3e7286caa091e49b7b58c2772d334a724346e9016e",
+      "value": {
+        "schema": "voice-ui.review.quota-ci-closure/1",
+        "status": "PASS",
+        "head": "59ded276405a5dc9caa85ad570b1827ff4bd0c7a",
+        "run": 39076041775,
+        "checked_at": "2026-10-17T22:58:17.492Z",
+        "kind": "component-axes",
+        "artifact": {
+          "id": 12117745958,
+          "name": "voice-ui-component-axes-59ded276405a5dc9caa85ad570b1827ff4bd0c7a",
+          "bytes": 55159,
+          "sha256": "5e24f896b472f116d4dce9e4e7289621c252f15b749cb2a154506f16d925807c"
+        },
+        "receipt_sha256": "3e0bc618c5fdda1613b6720e05178e2ee35648e20ab0237de304f9faf5b30dfc",
+        "cumulative": {
+          "jev": 689,
+          "typellm": 40
+        },
+        "reports": 8,
+        "baseline": {
+          "head": "0aa3c4b90519a1c18c217753698806507ccff3c0",
+          "audit_sha256": "663e4e32bff74af9d68fee60cd3491d0b5de946101c699c843ddd32e9748a92a",
+          "zip_sha256": "828288587b368dbff5caf24ec6ad638f6280184d1c42b26583a3ce095da354e1"
+        },
+        "exact_json_files": 13,
+        "members": [
+          {
+            "name": "final-E/audit.json",
+            "sha256": "9f6e615cae0c1955fc3c513a52a30b602cee7e70913eea766b3127310c4808ec",
+            "match": "EXACT_RAW_BYTES"
+          },
+          {
+            "name": "final-E/ci-replay/receipt.json",
+            "sha256": "2ba6085c0cedfd746634a14013fbb667efb52332fd49bda3bd63cc050bbb630b",
+            "match": "EXACT_RAW_BYTES"
+          },
+          {
+            "name": "final-F/audit.json",
+            "sha256": "8bdac8ac0ae916161b11368395a61f4fa4136777304b00fcaf514ce01a2452ad",
+            "match": "EXACT_RAW_BYTES"
+          },
+          {
+            "name": "final-G/audit.json",
+            "sha256": "5e6acd5f7b99796c3dbf2be4b7a40d8c624eae9ea2e148a9804067b9ef347d39",
+            "match": "EXACT_RAW_BYTES"
+          },
+          {
+            "name": "final-R/audit.json",
+            "sha256": "bfbf7d252df58bdf4d83c53bfcf7ba887fcf54a5eb104fdc39004010e6a118f0",
+            "match": "EXACT_RAW_BYTES"
+          },
+          {
+            "name": "final-R/ci-replay/receipt.json",
+            "sha256": "12269fc69638f0b3561a208d73298f700c1e696e69e8e676f5b68f3dd0679490",
+            "match": "EXACT_RAW_BYTES"
+          },
+          {
+            "name": "public-E/audit.json",
+            "sha256": "3f72fe2d84a3d323545dd78dcf928c687614049cdbe9ab3318721c6b14277899",
+            "match": "EXACT_RAW_BYTES"
+          },
+          {
+            "name": "public-E/ci-replay/receipt.json",
+            "sha256": "7e475774c86231ad83c9ee2b4146dcf901e09569113ae496f31bb8df8fab0cf3",
+            "match": "EXACT_RAW_BYTES"
+          },
+          {
+            "name": "public-F/audit.json",
+            "sha256": "994e26ebfa90d688b54c955c75ca5cf7136b660ba6a94659aa017f28c2f272de",
+            "match": "EXACT_RAW_BYTES"
+          },
+          {
+            "name": "public-G/audit.json",
+            "sha256": "e5a0fb667fc66c9fb595fb3da6bc7f4121084789ea00ed39489f89ff289a3e6d",
+            "match": "EXACT_RAW_BYTES"
+          },
+          {
+            "name": "public-R/audit.json",
+            "sha256": "e27270024d6da39c94d611c32082da2a47d45bb5950dd355c3c8792c674f3477",
+            "match": "EXACT_RAW_BYTES"
+          },
+          {
+            "name": "public-R/ci-replay/receipt.json",
+            "sha256": "57b68dd5ce5686232bc8e7b7dde307d04d7e8951a8855b05481f9b3f3676893e",
+            "match": "EXACT_RAW_BYTES"
+          },
+          {
+            "name": "receipt.json",
+            "sha256": "3e0bc618c5fdda1613b6720e05178e2ee35648e20ab0237de304f9faf5b30dfc",
+            "match": "EXACT_RAW_BYTES"
+          }
+        ],
+        "receipt_reused_only_after_all_members_matched": true,
+        "scope": "ACTUAL_CI_CLOSED_EVIDENCE_OR_NOT_MEASURED_ONLY_NOT_LIVE_PERFORMANCE_OR_LAUNCH_GO",
+        "reviewer_real_provider_calls": 0
+      }
+    },
+    {
+      "name": "quota-59d-ci-requirements-cycle-audit.json",
+      "sha256": "23ad6de2ead29b1b8ba048e892853bdca4f07b0c42f9f9ce449af3c66639db07",
+      "value": {
+        "schema": "voice-ui.review.quota-ci-closure/1",
+        "status": "PASS",
+        "head": "59ded276405a5dc9caa85ad570b1827ff4bd0c7a",
+        "run": 39076041775,
+        "checked_at": "2026-10-17T22:58:19.209Z",
+        "kind": "requirements-cycle",
+        "artifact": {
+          "id": 12117666279,
+          "name": "voice-ui-requirements-cycle-59ded276405a5dc9caa85ad570b1827ff4bd0c7a",
+          "bytes": 16237,
+          "sha256": "ba2040df0ab4d98efc702544181355b3038de3c9d2a7f2234b4083b543ed325d"
+        },
+        "receipt_sha256": "1f33d0e447cb8901fd943f446864fb4b920a377514151836112ba1c9a576ddbf",
+        "cumulative": {
+          "jev": 701,
+          "typellm": 58
+        },
+        "reports": 5,
+        "baseline": {
+          "head": "0aa3c4b90519a1c18c217753698806507ccff3c0",
+          "audit_sha256": "663e4e32bff74af9d68fee60cd3491d0b5de946101c699c843ddd32e9748a92a",
+          "zip_sha256": "e5a83bbb0b8c5bf8ea76b5526dd2a7c437398a2f8f41703be53724743c562968"
+        },
+        "exact_json_files": 6,
+        "members": [
+          {
+            "name": "correction1-F/audit.json",
+            "sha256": "717a9b75eb5ba1ff619ee8ebe821bc031f2550d226dd06461d6150410dd4b200",
+            "match": "EXACT_RAW_BYTES"
+          },
+          {
+            "name": "correction1-V/audit.json",
+            "sha256": "f19d369d3be3c35504f28e61344a777940d9d8e0a053f34362d6cde55bdf5ae4",
+            "match": "EXACT_RAW_BYTES"
+          },
+          {
+            "name": "correction2-F/audit.json",
+            "sha256": "d374957ef0a4a27f33dc015043005697b81049e7614df0857906a5b89c7dcea9",
+            "match": "EXACT_RAW_BYTES"
+          },
+          {
+            "name": "correction2-V/audit.json",
+            "sha256": "36081f38f7b0fba7ee744411613303c4eeaaeea7689c833e7fd2f2fb0e52cf57",
+            "match": "EXACT_RAW_BYTES"
+          },
+          {
+            "name": "public-F/audit.json",
+            "sha256": "0454d4eaaae3fca7fda252e3cafd4b42391614221c022395c8be2d757faa6b3d",
+            "match": "EXACT_RAW_BYTES"
+          },
+          {
+            "name": "receipt.json",
+            "sha256": "1f33d0e447cb8901fd943f446864fb4b920a377514151836112ba1c9a576ddbf",
+            "match": "EXACT_RAW_BYTES"
+          }
+        ],
+        "receipt_reused_only_after_all_members_matched": true,
+        "scope": "ACTUAL_CI_CLOSED_EVIDENCE_OR_NOT_MEASURED_ONLY_NOT_LIVE_PERFORMANCE_OR_LAUNCH_GO",
+        "reviewer_real_provider_calls": 0
+      }
+    },
+    {
+      "name": "quota-59d-ci-dependency-cycle-audit.json",
+      "sha256": "2266f8109595872116f04e05b828827f0b988c09b9c43e1f99b6307639ba100a",
+      "value": {
+        "schema": "voice-ui.review.quota-ci-closure/1",
+        "status": "PASS",
+        "head": "59ded276405a5dc9caa85ad570b1827ff4bd0c7a",
+        "run": 39076041775,
+        "checked_at": "2026-10-17T22:58:21.450Z",
+        "kind": "dependency-cycle",
+        "artifact": {
+          "id": 12117093758,
+          "name": "voice-ui-dependency-cycle-59ded276405a5dc9caa85ad570b1827ff4bd0c7a",
+          "bytes": 18625,
+          "sha256": "05a8914c91dd4ca56a807a5cec285bed5f05f32795263d6c236fbacf779a17d5"
+        },
+        "receipt_sha256": "ef2f2819cea80c06a718099e2cc2bb159b0232037402f13c8897295fea1e0212",
+        "cumulative": {
+          "jev": 715,
+          "typellm": 71
+        },
+        "reports": 3,
+        "baseline": {
+          "head": "0aa3c4b90519a1c18c217753698806507ccff3c0",
+          "audit_sha256": "663e4e32bff74af9d68fee60cd3491d0b5de946101c699c843ddd32e9748a92a",
+          "zip_sha256": "c9ea04c8dc0a383e6e8a24b8e8a42bc00dcb700506e9c8cd2ea41d8b25728b43"
+        },
+        "exact_json_files": 5,
+        "members": [
+          {
+            "name": "public-E/audit.json",
+            "sha256": "5c480778cd31450490d304e10ce95e2027d2cb823ffa729ec1a578d3f6a5db94",
+            "match": "EXACT_RAW_BYTES"
+          },
+          {
+            "name": "public-E/ci-replay/receipt.json",
+            "sha256": "567317537673e42c404c1be720eb7dd2585d8746e091ab941f0ea9d08f98fff2",
+            "match": "EXACT_RAW_BYTES"
+          },
+          {
+            "name": "public-V/audit.json",
+            "sha256": "7d82784dd485e78b143c2c179ae0c7f8d0df5791f761856cccc72779d4d028e2",
+            "match": "EXACT_RAW_BYTES"
+          },
+          {
+            "name": "public-F/audit.json",
+            "sha256": "ce2ae671ac62ccc3484563b18648bd6771581d33d89572ede015ac172d3973c3",
+            "match": "EXACT_RAW_BYTES"
+          },
+          {
+            "name": "receipt.json",
+            "sha256": "ef2f2819cea80c06a718099e2cc2bb159b0232037402f13c8897295fea1e0212",
+            "match": "EXACT_RAW_BYTES"
+          }
+        ],
+        "receipt_reused_only_after_all_members_matched": true,
+        "scope": "ACTUAL_CI_CLOSED_EVIDENCE_OR_NOT_MEASURED_ONLY_NOT_LIVE_PERFORMANCE_OR_LAUNCH_GO",
+        "reviewer_real_provider_calls": 0
+      }
+    },
+    {
+      "name": "quota-59d-ci-intent-cycle-audit.json",
+      "sha256": "9b6f51bfe708c9e98339fc2d65a80e1380f8358f81560e362f3a607a6ccac621",
+      "value": {
+        "schema": "voice-ui.review.quota-ci-closure/1",
+        "status": "PASS",
+        "head": "59ded276405a5dc9caa85ad570b1827ff4bd0c7a",
+        "run": 39076041775,
+        "checked_at": "2026-10-17T22:58:23.277Z",
+        "kind": "intent-cycle",
+        "artifact": {
+          "id": 12117083732,
+          "name": "voice-ui-intent-cycle-59ded276405a5dc9caa85ad570b1827ff4bd0c7a",
+          "bytes": 6713,
+          "sha256": "625905c910914c90734b88603a454ac06903b559de6e5dea218908e3710f3d64"
+        },
+        "receipt_sha256": "83613a8a36d748f4b37fe8a9ca1ec0661de9093fb33ecdf6c6bec804381b5ef0",
+        "cumulative": {
+          "jev": 725,
+          "typellm": 71
+        },
+        "reports": 1,
+        "baseline": {
+          "head": "0aa3c4b90519a1c18c217753698806507ccff3c0",
+          "audit_sha256": "663e4e32bff74af9d68fee60cd3491d0b5de946101c699c843ddd32e9748a92a",
+          "zip_sha256": "299df1d2bfc4db90a69eea44f79c52c7b160d1031f6840da2436a58fdef354b6"
+        },
+        "exact_json_files": 2,
+        "members": [
+          {
+            "name": "intent-public-G0/audit.json",
+            "sha256": "e0793377ee7f94a1bb0421e33436f865e301613e41e77eee10ff7f9ab42bbf89",
+            "match": "EXACT_RAW_BYTES"
+          },
+          {
+            "name": "receipt.json",
+            "sha256": "83613a8a36d748f4b37fe8a9ca1ec0661de9093fb33ecdf6c6bec804381b5ef0",
+            "match": "EXACT_RAW_BYTES"
+          }
+        ],
+        "receipt_reused_only_after_all_members_matched": true,
+        "scope": "ACTUAL_CI_CLOSED_EVIDENCE_OR_NOT_MEASURED_ONLY_NOT_LIVE_PERFORMANCE_OR_LAUNCH_GO",
+        "reviewer_real_provider_calls": 0
+      }
+    },
+    {
+      "name": "quota-59d-ci-frontier-cycle-audit.json",
+      "sha256": "8db4e34f98d51508302686a3f1e5463378b285427a9615e50421863e5658fdf1",
+      "value": {
+        "schema": "voice-ui.review.quota-ci-closure/1",
+        "status": "PASS",
+        "head": "59ded276405a5dc9caa85ad570b1827ff4bd0c7a",
+        "run": 39076041775,
+        "checked_at": "2026-10-17T23:00:20.398Z",
+        "kind": "frontier-cycle",
+        "artifact": {
+          "id": 12117701316,
+          "name": "voice-ui-frontier-cycle-59ded276405a5dc9caa85ad570b1827ff4bd0c7a",
+          "bytes": 49512,
+          "sha256": "3675e0517d240c9e5340f514e9f8b955f8e6e7fa6a4a9798301b4ad47e43ea6d"
+        },
+        "receipt_sha256": "c85240f2287ec3903c7bacf660d636790ebaa2f3e0553d93ca214562a9131e8c",
+        "cumulative": {
+          "jev": 808,
+          "typellm": 85
+        },
+        "reports": 5,
+        "baseline": {
+          "head": "0aa3c4b90519a1c18c217753698806507ccff3c0",
+          "audit_sha256": "663e4e32bff74af9d68fee60cd3491d0b5de946101c699c843ddd32e9748a92a",
+          "zip_sha256": "c990a464c31d964e2c5832515acc0d0ebbbeeb940df12fe53231b4a1adaa7e7e"
+        },
+        "exact_json_files": 8,
+        "members": [
+          {
+            "name": "frontier-final-E/ci-replay/receipt.json",
+            "sha256": "2c8e784dac3c5c667d968e685f72cb92a737d555743c1e66a014ebb1fb49c757",
+            "match": "EXACT_RAW_BYTES"
+          },
+          {
+            "name": "frontier-final-F/audit.json",
+            "sha256": "616a6e20cc299b8af3a30577826ae0b05ad27d5c0e95f489d63302b393ee8271",
+            "match": "EXACT_RAW_BYTES"
+          },
+          {
+            "name": "frontier-final-E/audit.json",
+            "sha256": "8005176ddaa8f0ad633406b35dea0dc8928fbef79c692f315f95605105c41d17",
+            "match": "EXACT_RAW_BYTES"
+          },
+          {
+            "name": "frontier-final-V/audit.json",
+            "sha256": "074ef106b4b9b69405594bc0cd8931c69bdcae435b9cefab3e3d37afe09ac442",
+            "match": "EXACT_RAW_BYTES"
+          },
+          {
+            "name": "frontier-public-E/audit.json",
+            "sha256": "01ad845f450263d9de5d518720765f7f55b64e1b071c43606dc6086a14366a26",
+            "match": "EXACT_RAW_BYTES"
+          },
+          {
+            "name": "frontier-public-E/ci-replay/receipt.json",
+            "sha256": "cc67e805c8526bcb949e3861b7193a3b7c8002670e75f29d0fcddd4f16f8612e",
+            "match": "EXACT_RAW_BYTES"
+          },
+          {
+            "name": "frontier-public-G0/audit.json",
+            "sha256": "72a127a1f5dfd2258fd56aec8a9a9f91c4ab3c9c5f9aebef99ce9d4a60291aef",
+            "match": "EXACT_RAW_BYTES"
+          },
+          {
+            "name": "receipt.json",
+            "sha256": "c85240f2287ec3903c7bacf660d636790ebaa2f3e0553d93ca214562a9131e8c",
+            "match": "EXACT_RAW_BYTES"
+          }
+        ],
+        "receipt_reused_only_after_all_members_matched": true,
+        "scope": "ACTUAL_CI_CLOSED_EVIDENCE_OR_NOT_MEASURED_ONLY_NOT_LIVE_PERFORMANCE_OR_LAUNCH_GO",
+        "reviewer_real_provider_calls": 0
+      }
+    },
+    {
+      "name": "quota-59d-ci-quota-cycle-audit.json",
+      "sha256": "400b694de60ca43efe18c93f2c516b5ac887f81b5e50eb7a35b92504f668cb6b",
+      "value": {
+        "schema": "voice-ui.review.quota-ci-closure/1",
+        "status": "PASS",
+        "head": "59ded276405a5dc9caa85ad570b1827ff4bd0c7a",
+        "run": 39076041775,
+        "checked_at": "2026-10-17T23:00:37.620Z",
+        "kind": "quota-cycle",
+        "artifact": {
+          "id": 12117910657,
+          "name": "voice-ui-quota-cycle-59ded276405a5dc9caa85ad570b1827ff4bd0c7a",
+          "bytes": 564,
+          "sha256": "d5b1f01d74526f9f6d368555fb5fe86c1dc934e6cd4ad1c17a67286e31b336cb"
+        },
+        "receipt_sha256": "5fba49e7d43c2d226a4b8a90c7f9450dcaa6ccf048f1d91556fe7c3ff14e2233",
+        "cumulative": {
+          "jev": 808,
+          "typellm": 85
+        },
+        "reports": 0,
+        "empty_process_independently_recomputed": true,
+        "index_sha256": "99532b003a82f88e1642b54fc0dbbf2e61f82a5b288ab6c0a8586245f8f16216",
+        "commitment_sha256": "b2aea0ad175e93786b5f566b020204ac7c2f3734b867cb9b53741794a2a401ec",
+        "freeze_sha256": "ba374d29ff1d4a19d36fb705058b60baa5cbf8e12af81cb2ef2a6ac3342431e0",
+        "baseline_journal_sha256": "ce6896e0b1eb7c3c749b659b36e3ed4467dc133042ace81dd990b9f2e10c28d4",
+        "public_files_verified": 17,
+        "processGraph": {
+          "schema": "voice-ui.quota-cycle-process/1",
+          "status": "PASS",
+          "issues": [],
+          "state": "NOT_MEASURED",
+          "baseline": {
+            "jev": 808,
+            "typellm": 85
+          },
+          "indexed_phases": 0,
+          "source_head": null,
+          "correction_batches": 0,
+          "reserved": {
+            "jev": 0,
+            "typellm": 0
+          },
+          "charged_at_cutoff": {
+            "jev": 808,
+            "typellm": 85
+          },
+          "releases": [],
+          "scope": "integrity/process only; conditional expression and ordinary supplementation are separate; retained fresh quality failures do not block complete stopped-evidence progression"
+        },
+        "scope": "ACTUAL_CI_CLOSED_EVIDENCE_OR_NOT_MEASURED_ONLY_NOT_LIVE_PERFORMANCE_OR_LAUNCH_GO",
+        "reviewer_real_provider_calls": 0
+      }
+    }
+  ],
+  "old_six_exact_json_members": 45,
+  "sole_historical_log_exception": "public-initial-f2e9/mutation-test.txt; exact six PASS test names and zero fail, only six per-test elapsed-ms plus total elapsed-ms differ",
+  "new_quota_state": "NOT_MEASURED",
+  "quality": "UNPROVEN",
+  "effect": "UNPROVEN",
+  "cumulative": {
+    "jev": 808,
+    "typellm": 85
+  },
+  "proofs": [
+    {
+      "name": "quota-b9c-source-audit.json",
+      "sha256": "e098a0011c9643286c3e2eea61fb3c496f955a9e4f5512e88af6670e2fff1b5b",
+      "bytes": 15598
+    },
+    {
+      "name": "quota-59d-source-audit.json",
+      "sha256": "0e3805239d8a4639e569032d08f9b099fd3d912f6f2b76af5edfd2e309ebdaf0",
+      "bytes": 8503
+    },
+    {
+      "name": "quota-59d-runtime-audit.json",
+      "sha256": "9bf20ed61361a02cb9578a88a47da49d27ab7879093516d1df15ab4320974de9",
+      "bytes": 63689
+    },
+    {
+      "name": "quota-59d-prelive-bridge.json",
+      "sha256": "920139a1a69bdcaa43e6af8501e8cf0472034bb9cc0253264ace6cc05f4dc875",
+      "bytes": 3360
+    },
+    {
+      "name": "quota-59d-prepared-operators-audit.json",
+      "sha256": "f6b0a3a5a844532552ffb5c5af80c17549da0949270aebe126a443df30455cbc",
+      "bytes": 5556
+    },
+    {
+      "name": "quota-59d-ci-mechanics-audit.json",
+      "sha256": "434ab21c9a4c43eed7d6435eea55afd037b16eb8c07546466bc3ded5be428bde",
+      "bytes": 11836
+    },
+    {
+      "name": "quota-59d-frontier-ci-mechanics-audit.json",
+      "sha256": "518019d75a322602ee04fff02f136cb56c5f03ca1985de46eeb1ccfadaf3d0e5",
+      "bytes": 47788
+    },
+    {
+      "name": "quota-59d-pr-freeze-audit.json",
+      "sha256": "451194d73035ea85dbe40a35de1a9f166ce66195c53686232a6add26b9e2673b",
+      "bytes": 1191
+    },
+    {
+      "name": "quota-59d-prelive-terminal-audit.json",
+      "sha256": "474d993600476d7fb222f65fa59cddcefd4d14eb06a625f5b39ed254fd7311a0",
+      "bytes": 10815
+    }
+  ],
+  "terminal_observed_at": "2026-10-17T23:01:25.532142+00:00",
+  "pr_body_sha256": "2642f494e4e2cd52e94c5c557b0b76b0d186f0ef611126851f46c2bf53b6636c",
+  "ui_body_sha256": "35d772a90678a85afb86c9873bd6b07280356fda37862e1627e84e766b4560cb",
+  "scope": "EXACT_SOURCE_RUNTIME_ACTUAL_CI_AND_SYNTHETIC_MECHANICS_ADMISSION_FOR_ONE_MANAGER_LAUNCH_AND_GET_PREFLIGHT_ONLY; SEPARATE_ACTUAL_PID_ZERO_SEND_GO_REQUIRED_BEFORE_PROVIDER_POST; NOT_PRODUCT_QUALITY_EFFECT_OR_UI_HUMAN_MERGE_ACCEPTANCE",
+  "reviewer_real_provider_calls": 0
+}

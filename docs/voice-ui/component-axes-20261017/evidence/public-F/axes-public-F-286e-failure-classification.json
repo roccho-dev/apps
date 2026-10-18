@@ -1,0 +1,45 @@
+{
+  "schema": "voice-ui.independent-failure-classification/1",
+  "phase": "axes-public-F-20261017",
+  "cell": "H05/typed",
+  "execution": "INVALID",
+  "closed_status": 502,
+  "closed_response": {
+    "error": "parts_contract"
+  },
+  "diagnostic": {
+    "kind": "voice-ui.parts.contract.v1",
+    "stage": "local-result",
+    "rootExact": true,
+    "slots": [
+      {
+        "exact": true,
+        "label": "empty",
+        "kind": "step",
+        "quantity": 1
+      },
+      {
+        "exact": true,
+        "label": "empty",
+        "kind": "none",
+        "quantity": 0
+      },
+      {
+        "exact": true,
+        "label": "empty",
+        "kind": "none",
+        "quantity": 0
+      }
+    ],
+    "duplicatePair": false
+  },
+  "classification": "local candidate decoder rejected an active step with empty label and quantity1; not a successful semantic supply result",
+  "provider_attempts": {
+    "jev": 0,
+    "typellm": 1
+  },
+  "missing_observations": [
+    "raw provider response and its HTTP status were not retained; not reconstructed"
+  ],
+  "action": "preserve original; no retry or added Type calls"
+}

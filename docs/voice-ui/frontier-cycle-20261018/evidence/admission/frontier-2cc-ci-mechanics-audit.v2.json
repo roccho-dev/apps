@@ -1,0 +1,2188 @@
+{
+  "schema": "voice-ui.review.frontier-ci-mechanics/1",
+  "status": "PASS",
+  "head": "2cc4890b765a5534e92855f83f9232ae85bb373b",
+  "run": 39066961602,
+  "artifact": {
+    "id": 12113138977,
+    "name": "voice-ui-candidate-browser-2cc4890b765a5534e92855f83f9232ae85bb373b",
+    "sha256": "f2300a6776e1996c1a2ca484e0ea12f8cf6421f421cff41636d05602a1eea6bc",
+    "bytes": 3927258
+  },
+  "contents_sha256": "af1ecf7912eff23441a35a39b5e61ab4f629b212928ec44ff16354d852807b96",
+  "receipt_sha256": "3bb1401536bd1f6df3fe8dd26c3ed3238bf55e4dc65d69ad8a929083c8220ec9",
+  "artifact_manifest_sha256": "b242c9889f4db71ebbaf3c0b0ebf320ef2604c108225a9cd67a96a7aff900758",
+  "source25_verified": true,
+  "independent_stage_checks": [
+    {
+      "stage": "G0",
+      "cells": 10,
+      "retained_invalid": 0,
+      "recomputed_paint_frames": 0,
+      "status": "PASS"
+    },
+    {
+      "stage": "G0-unknown",
+      "cells": 10,
+      "retained_invalid": 10,
+      "recomputed_paint_frames": 0,
+      "status": "PASS"
+    },
+    {
+      "stage": "E",
+      "cells": 4,
+      "retained_invalid": 0,
+      "recomputed_paint_frames": 8,
+      "status": "PASS"
+    },
+    {
+      "stage": "E-reject",
+      "cells": 4,
+      "retained_invalid": 0,
+      "recomputed_paint_frames": 8,
+      "status": "PASS"
+    },
+    {
+      "stage": "E-weak",
+      "cells": 4,
+      "retained_invalid": 0,
+      "recomputed_paint_frames": 8,
+      "status": "PASS"
+    },
+    {
+      "stage": "E-invalid",
+      "cells": 4,
+      "retained_invalid": 2,
+      "recomputed_paint_frames": 8,
+      "status": "PASS"
+    },
+    {
+      "stage": "E-alias",
+      "cells": 4,
+      "retained_invalid": 2,
+      "recomputed_paint_frames": 8,
+      "status": "PASS"
+    }
+  ],
+  "cells": 40,
+  "retained_invalid": 14,
+  "recomputed_paint_frames": 40,
+  "rows": [
+    {
+      "stage": "G0",
+      "id": "PG01",
+      "arm": "G0",
+      "valid_execution": true,
+      "http_calls": 1,
+      "graph_changed": false,
+      "raw_sha256": "9e9296ab7b3c58043c7c8ac9efa91eed8eb9e8f9d18fabdb7329f9da06468bc1"
+    },
+    {
+      "stage": "G0",
+      "id": "PG02",
+      "arm": "G0",
+      "valid_execution": true,
+      "http_calls": 1,
+      "graph_changed": false,
+      "raw_sha256": "3ea418a9809c9536ee6d83c43eb5c69c12a4cf8bdfbce03ec6f00433612a266c"
+    },
+    {
+      "stage": "G0",
+      "id": "PG03",
+      "arm": "G0",
+      "valid_execution": true,
+      "http_calls": 1,
+      "graph_changed": false,
+      "raw_sha256": "f4b4094f2d22475dc4e834ea5809a4277396455cce81309b2c509ecc3a29ef21"
+    },
+    {
+      "stage": "G0",
+      "id": "PG04",
+      "arm": "G0",
+      "valid_execution": true,
+      "http_calls": 1,
+      "graph_changed": false,
+      "raw_sha256": "7065f045e3083594fb65d66990f897c08702c219213ad86145a61d8e925b3d5a"
+    },
+    {
+      "stage": "G0",
+      "id": "PG05",
+      "arm": "G0",
+      "valid_execution": true,
+      "http_calls": 1,
+      "graph_changed": false,
+      "raw_sha256": "557b9e2f2a35e84af7408541a7788d70b8d8cf4e5b911b0cdb42eca2454dbf32"
+    },
+    {
+      "stage": "G0",
+      "id": "PG06",
+      "arm": "G0",
+      "valid_execution": true,
+      "http_calls": 1,
+      "graph_changed": false,
+      "raw_sha256": "a98fa12d5a320e393db4aad909993e9ea1f0959f3da39708f2f0f6a700b50361"
+    },
+    {
+      "stage": "G0",
+      "id": "PG07",
+      "arm": "G0",
+      "valid_execution": true,
+      "http_calls": 1,
+      "graph_changed": false,
+      "raw_sha256": "33b7a7b5796c206dcd2f8523842fa726413fb98694a1b29f3f9ad2ad121cd29c"
+    },
+    {
+      "stage": "G0",
+      "id": "PG08",
+      "arm": "G0",
+      "valid_execution": true,
+      "http_calls": 1,
+      "graph_changed": false,
+      "raw_sha256": "89e82d362a44d2af8b37bc98a1b7a3d27772819b58965ad035907948f9d9d8c0"
+    },
+    {
+      "stage": "G0",
+      "id": "PG09",
+      "arm": "G0",
+      "valid_execution": true,
+      "http_calls": 1,
+      "graph_changed": false,
+      "raw_sha256": "7d134806707e66f06e5695f6a0b2ab012249922e7e8d836c634e3e84881fd59c"
+    },
+    {
+      "stage": "G0",
+      "id": "PG10",
+      "arm": "G0",
+      "valid_execution": true,
+      "http_calls": 1,
+      "graph_changed": false,
+      "raw_sha256": "d3f7c2271edadd296d3e61c14b33165484daf6f03f918088ab2312fce0f4bbe8"
+    },
+    {
+      "stage": "G0-unknown",
+      "id": "PG01",
+      "arm": "G0",
+      "valid_execution": false,
+      "http_calls": 1,
+      "graph_changed": false,
+      "raw_sha256": "8a27ce070c1f2ec2f28214b96757cfa513cffb6176e34b291b15f6f2939ea9fe"
+    },
+    {
+      "stage": "G0-unknown",
+      "id": "PG02",
+      "arm": "G0",
+      "valid_execution": false,
+      "http_calls": 1,
+      "graph_changed": false,
+      "raw_sha256": "031f1e8590594ff18f23c033e113d40c46963ea6ecadc8191bbc003a08480ba9"
+    },
+    {
+      "stage": "G0-unknown",
+      "id": "PG03",
+      "arm": "G0",
+      "valid_execution": false,
+      "http_calls": 1,
+      "graph_changed": false,
+      "raw_sha256": "534e3c82748245ca9e3d4a3e07b68cce57b0f5896674e768efe7d3973aa6c875"
+    },
+    {
+      "stage": "G0-unknown",
+      "id": "PG04",
+      "arm": "G0",
+      "valid_execution": false,
+      "http_calls": 1,
+      "graph_changed": false,
+      "raw_sha256": "158b28096ca676ec06059d50eeb60ab16d8bc5566650cd7c4f306ef36ac03a22"
+    },
+    {
+      "stage": "G0-unknown",
+      "id": "PG05",
+      "arm": "G0",
+      "valid_execution": false,
+      "http_calls": 1,
+      "graph_changed": false,
+      "raw_sha256": "88829f48a676b4060c894f27a3f5ea9db39496022ad069d170271521fc42b79d"
+    },
+    {
+      "stage": "G0-unknown",
+      "id": "PG06",
+      "arm": "G0",
+      "valid_execution": false,
+      "http_calls": 1,
+      "graph_changed": false,
+      "raw_sha256": "332e0bfee82b2b83899e645348224f7256f6fd5f729c4295d348b6e8f1ff366c"
+    },
+    {
+      "stage": "G0-unknown",
+      "id": "PG07",
+      "arm": "G0",
+      "valid_execution": false,
+      "http_calls": 1,
+      "graph_changed": false,
+      "raw_sha256": "fe2308a214f6b1da30a592e29f1752423d2b084b37368f38d9dabf867762d332"
+    },
+    {
+      "stage": "G0-unknown",
+      "id": "PG08",
+      "arm": "G0",
+      "valid_execution": false,
+      "http_calls": 1,
+      "graph_changed": false,
+      "raw_sha256": "93def5b2a87bc50dd34e353096b0cf6abbaf8966ac8d5a45a54b3a287e568c05"
+    },
+    {
+      "stage": "G0-unknown",
+      "id": "PG09",
+      "arm": "G0",
+      "valid_execution": false,
+      "http_calls": 1,
+      "graph_changed": false,
+      "raw_sha256": "2c94c32faba21e47e0fe2e88c94d1c794f63ad250e413b08dbe0ac906733547f"
+    },
+    {
+      "stage": "G0-unknown",
+      "id": "PG10",
+      "arm": "G0",
+      "valid_execution": false,
+      "http_calls": 1,
+      "graph_changed": false,
+      "raw_sha256": "0e95f7c6ac34ca9bdd7357a54a5351f2825470221d392f5cc1f93c1f1d88f990"
+    },
+    {
+      "stage": "E",
+      "id": "PE01",
+      "arm": "B",
+      "valid_execution": true,
+      "http_calls": 1,
+      "graph_changed": false,
+      "raw_sha256": "93e7ff4ede221f8a9115431b1ff2c5c4d56a88c088a6a5a36a765c20959e33f4"
+    },
+    {
+      "stage": "E",
+      "id": "PE01",
+      "arm": "C",
+      "valid_execution": true,
+      "http_calls": 4,
+      "graph_changed": true,
+      "raw_sha256": "7fc89484d28bb62fac8af4d62994edbe14563706cb06741988192035e974b723"
+    },
+    {
+      "stage": "E",
+      "id": "PE02",
+      "arm": "B",
+      "valid_execution": true,
+      "http_calls": 1,
+      "graph_changed": false,
+      "raw_sha256": "bff85299c1b57b835dfb1e4da212c62485f7c37afaa7782e21fca185f43a6978"
+    },
+    {
+      "stage": "E",
+      "id": "PE02",
+      "arm": "C",
+      "valid_execution": true,
+      "http_calls": 4,
+      "graph_changed": true,
+      "raw_sha256": "cf4360e0ee8012027e4345ff1eaedaf180ab59007dc3689de59709dc5328eb41"
+    },
+    {
+      "stage": "E-reject",
+      "id": "PE01",
+      "arm": "B",
+      "valid_execution": true,
+      "http_calls": 1,
+      "graph_changed": false,
+      "raw_sha256": "c5376ef4197addf0c19da51239572fc9e554c77a9ef089b275d49dce4009e662"
+    },
+    {
+      "stage": "E-reject",
+      "id": "PE01",
+      "arm": "C",
+      "valid_execution": true,
+      "http_calls": 1,
+      "graph_changed": false,
+      "raw_sha256": "289c7e126f43e315c17a5841660f4c68b2b110635c737e6315a9b714f150af91"
+    },
+    {
+      "stage": "E-reject",
+      "id": "PE02",
+      "arm": "B",
+      "valid_execution": true,
+      "http_calls": 1,
+      "graph_changed": false,
+      "raw_sha256": "10393feb6c6fc9d04344c84983def75d8992d77d9495dcc1d527adcf783e0cd0"
+    },
+    {
+      "stage": "E-reject",
+      "id": "PE02",
+      "arm": "C",
+      "valid_execution": true,
+      "http_calls": 1,
+      "graph_changed": false,
+      "raw_sha256": "de7acfc19196b6d710a8d63ed4f8ce8b85f8f57ce9bd491b3f4e74bec8d55f53"
+    },
+    {
+      "stage": "E-weak",
+      "id": "PE01",
+      "arm": "B",
+      "valid_execution": true,
+      "http_calls": 1,
+      "graph_changed": false,
+      "raw_sha256": "2e45dcfdffec3cafcba317f3cee7f93fdb27f4d111c52f02f780dc7280ca2d76"
+    },
+    {
+      "stage": "E-weak",
+      "id": "PE01",
+      "arm": "C",
+      "valid_execution": true,
+      "http_calls": 1,
+      "graph_changed": false,
+      "raw_sha256": "0ddac72b7235df7f4dcdc249edb3d635560768dd002a7c5949aef9838afc8cb6"
+    },
+    {
+      "stage": "E-weak",
+      "id": "PE02",
+      "arm": "B",
+      "valid_execution": true,
+      "http_calls": 1,
+      "graph_changed": false,
+      "raw_sha256": "7d2ee079a9ce9e82e63e8516ccedc54a24673444445cf7e40f3987d97d0fb1ae"
+    },
+    {
+      "stage": "E-weak",
+      "id": "PE02",
+      "arm": "C",
+      "valid_execution": true,
+      "http_calls": 1,
+      "graph_changed": false,
+      "raw_sha256": "19fd86f338659ebcade3f18891559d9de2b33e20e2f7289f9260da28c78e2347"
+    },
+    {
+      "stage": "E-invalid",
+      "id": "PE01",
+      "arm": "B",
+      "valid_execution": true,
+      "http_calls": 1,
+      "graph_changed": false,
+      "raw_sha256": "a984c408b268ff51e9e96dee147d1e70453597b5307f3a67ed38d21fa790ae75"
+    },
+    {
+      "stage": "E-invalid",
+      "id": "PE01",
+      "arm": "C",
+      "valid_execution": false,
+      "http_calls": 1,
+      "graph_changed": false,
+      "raw_sha256": "01f93f9d63218b5c74c18667cc4f3f7254be0b8deb4f5f215ce2f75e3be87e99"
+    },
+    {
+      "stage": "E-invalid",
+      "id": "PE02",
+      "arm": "B",
+      "valid_execution": true,
+      "http_calls": 1,
+      "graph_changed": false,
+      "raw_sha256": "40001d5e9d7e81c4f5b392bb95b9d9868ad4fc620e290962cfbc58c51a277d1e"
+    },
+    {
+      "stage": "E-invalid",
+      "id": "PE02",
+      "arm": "C",
+      "valid_execution": false,
+      "http_calls": 1,
+      "graph_changed": false,
+      "raw_sha256": "ed7bb2b2849549af5bf0541684a97ca2c249dfcffccc316ad3fcbbb521cd3196"
+    },
+    {
+      "stage": "E-alias",
+      "id": "PE01",
+      "arm": "C",
+      "valid_execution": false,
+      "http_calls": 1,
+      "graph_changed": false,
+      "raw_sha256": "39430bd208a822597b782e69824391082b18452ad78554230016a34882837414"
+    },
+    {
+      "stage": "E-alias",
+      "id": "PE01",
+      "arm": "B",
+      "valid_execution": true,
+      "http_calls": 1,
+      "graph_changed": false,
+      "raw_sha256": "d8839d6b5860543ada36ffb0f44911b62badd46e914a9ffdfab6b27fafedfdda"
+    },
+    {
+      "stage": "E-alias",
+      "id": "PE02",
+      "arm": "C",
+      "valid_execution": false,
+      "http_calls": 1,
+      "graph_changed": false,
+      "raw_sha256": "f0a5a0de3fa80b77b61fde126853423c19d0d8524bb559933e61c2e2f2b85ed9"
+    },
+    {
+      "stage": "E-alias",
+      "id": "PE02",
+      "arm": "B",
+      "valid_execution": true,
+      "http_calls": 1,
+      "graph_changed": false,
+      "raw_sha256": "127fcd77e1da10d40af6a7e9cd327a5050eeac38da0d59ccceb7b0b2fb867476"
+    }
+  ],
+  "original_capture_pairs_independently_compared": 22,
+  "original_capture_counts": {
+    "G0": 10,
+    "F": 6,
+    "V": 6
+  },
+  "response_comparison_scope": "G0 both contracts independently graded; F/V only top-level validated UUID request_id omitted; every upstream UTF8 byte and parsed wire matched without normalization",
+  "default3_boundary_rows": [
+    {
+      "n": 1,
+      "settings": {
+        "initial": {
+          "intent": {
+            "choice": "change",
+            "confidence": 0.49
+          },
+          "labels": {
+            "choice": "missing",
+            "confidence": 0.9
+          },
+          "capacity": {
+            "choice": "within",
+            "confidence": 0.9
+          },
+          "completeness": {
+            "choice": "complete",
+            "confidence": 0.49
+          }
+        }
+      },
+      "status": 200,
+      "elapsedMs": 1.0242180000059307,
+      "providers": [
+        "jev"
+      ],
+      "stage_names": [
+        "G0",
+        "STOCK_DIFF"
+      ]
+    },
+    {
+      "n": 2,
+      "settings": {
+        "initial": {
+          "intent": {
+            "choice": "change",
+            "confidence": 0.49
+          },
+          "labels": {
+            "choice": "missing",
+            "confidence": 0.9
+          },
+          "capacity": {
+            "choice": "within",
+            "confidence": 0.9
+          },
+          "completeness": {
+            "choice": "complete",
+            "confidence": 0.5
+          }
+        }
+      },
+      "status": 200,
+      "elapsedMs": 0.7256110000016633,
+      "providers": [
+        "jev"
+      ],
+      "stage_names": [
+        "G0",
+        "STOCK_DIFF"
+      ]
+    },
+    {
+      "n": 3,
+      "settings": {
+        "initial": {
+          "intent": {
+            "choice": "change",
+            "confidence": 0.49
+          },
+          "labels": {
+            "choice": "missing",
+            "confidence": 0.9
+          },
+          "capacity": {
+            "choice": "within",
+            "confidence": 0.9
+          },
+          "completeness": {
+            "choice": "incomplete",
+            "confidence": 0.49
+          }
+        }
+      },
+      "status": 200,
+      "elapsedMs": 0.7787810000008903,
+      "providers": [
+        "jev"
+      ],
+      "stage_names": [
+        "G0",
+        "STOCK_DIFF"
+      ]
+    },
+    {
+      "n": 4,
+      "settings": {
+        "initial": {
+          "intent": {
+            "choice": "change",
+            "confidence": 0.49
+          },
+          "labels": {
+            "choice": "missing",
+            "confidence": 0.9
+          },
+          "capacity": {
+            "choice": "within",
+            "confidence": 0.9
+          },
+          "completeness": {
+            "choice": "incomplete",
+            "confidence": 0.5
+          }
+        }
+      },
+      "status": 200,
+      "elapsedMs": 1.4015400000062073,
+      "providers": [
+        "jev",
+        "typellm",
+        "jev"
+      ],
+      "stage_names": [
+        "G0",
+        "TYPE_REQUIRED",
+        "VERIFY_REQUIRED",
+        "STOCK_DIFF"
+      ]
+    },
+    {
+      "n": 5,
+      "settings": {
+        "initial": {
+          "intent": {
+            "choice": "change",
+            "confidence": 0.5
+          },
+          "labels": {
+            "choice": "missing",
+            "confidence": 0.9
+          },
+          "capacity": {
+            "choice": "within",
+            "confidence": 0.9
+          },
+          "completeness": {
+            "choice": "complete",
+            "confidence": 0.49
+          }
+        }
+      },
+      "status": 200,
+      "elapsedMs": 0.694803000005777,
+      "providers": [
+        "jev"
+      ],
+      "stage_names": [
+        "G0",
+        "STOCK_DIFF"
+      ]
+    },
+    {
+      "n": 6,
+      "settings": {
+        "initial": {
+          "intent": {
+            "choice": "change",
+            "confidence": 0.5
+          },
+          "labels": {
+            "choice": "missing",
+            "confidence": 0.9
+          },
+          "capacity": {
+            "choice": "within",
+            "confidence": 0.9
+          },
+          "completeness": {
+            "choice": "complete",
+            "confidence": 0.5
+          }
+        }
+      },
+      "status": 200,
+      "elapsedMs": 0.7551859999948647,
+      "providers": [
+        "jev"
+      ],
+      "stage_names": [
+        "G0",
+        "STOCK_DIFF"
+      ]
+    },
+    {
+      "n": 7,
+      "settings": {
+        "initial": {
+          "intent": {
+            "choice": "change",
+            "confidence": 0.5
+          },
+          "labels": {
+            "choice": "missing",
+            "confidence": 0.9
+          },
+          "capacity": {
+            "choice": "within",
+            "confidence": 0.9
+          },
+          "completeness": {
+            "choice": "incomplete",
+            "confidence": 0.49
+          }
+        }
+      },
+      "status": 200,
+      "elapsedMs": 0.8245159999933094,
+      "providers": [
+        "jev"
+      ],
+      "stage_names": [
+        "G0",
+        "STOCK_DIFF"
+      ]
+    },
+    {
+      "n": 8,
+      "settings": {
+        "initial": {
+          "intent": {
+            "choice": "change",
+            "confidence": 0.5
+          },
+          "labels": {
+            "choice": "missing",
+            "confidence": 0.9
+          },
+          "capacity": {
+            "choice": "within",
+            "confidence": 0.9
+          },
+          "completeness": {
+            "choice": "incomplete",
+            "confidence": 0.5
+          }
+        }
+      },
+      "status": 200,
+      "elapsedMs": 1.3516270000109216,
+      "providers": [
+        "jev",
+        "typellm",
+        "jev"
+      ],
+      "stage_names": [
+        "G0",
+        "TYPE_REQUIRED",
+        "VERIFY_REQUIRED",
+        "STOCK_DIFF"
+      ]
+    },
+    {
+      "n": 9,
+      "settings": {
+        "initial": {
+          "intent": {
+            "choice": "change",
+            "confidence": 0.9
+          },
+          "labels": {
+            "choice": "missing",
+            "confidence": 0.9
+          },
+          "capacity": {
+            "choice": "within",
+            "confidence": 0.9
+          },
+          "completeness": {
+            "choice": "complete",
+            "confidence": 0.49
+          }
+        }
+      },
+      "status": 200,
+      "elapsedMs": 0.8296459999983199,
+      "providers": [
+        "jev"
+      ],
+      "stage_names": [
+        "G0",
+        "STOCK_DIFF"
+      ]
+    },
+    {
+      "n": 10,
+      "settings": {
+        "initial": {
+          "intent": {
+            "choice": "change",
+            "confidence": 0.9
+          },
+          "labels": {
+            "choice": "missing",
+            "confidence": 0.9
+          },
+          "capacity": {
+            "choice": "within",
+            "confidence": 0.9
+          },
+          "completeness": {
+            "choice": "complete",
+            "confidence": 0.5
+          }
+        }
+      },
+      "status": 200,
+      "elapsedMs": 0.8960289999959059,
+      "providers": [
+        "jev"
+      ],
+      "stage_names": [
+        "G0",
+        "STOCK_DIFF"
+      ]
+    },
+    {
+      "n": 11,
+      "settings": {
+        "initial": {
+          "intent": {
+            "choice": "change",
+            "confidence": 0.9
+          },
+          "labels": {
+            "choice": "missing",
+            "confidence": 0.9
+          },
+          "capacity": {
+            "choice": "within",
+            "confidence": 0.9
+          },
+          "completeness": {
+            "choice": "incomplete",
+            "confidence": 0.49
+          }
+        }
+      },
+      "status": 200,
+      "elapsedMs": 0.811080999992555,
+      "providers": [
+        "jev"
+      ],
+      "stage_names": [
+        "G0",
+        "STOCK_DIFF"
+      ]
+    },
+    {
+      "n": 12,
+      "settings": {
+        "initial": {
+          "intent": {
+            "choice": "change",
+            "confidence": 0.9
+          },
+          "labels": {
+            "choice": "missing",
+            "confidence": 0.9
+          },
+          "capacity": {
+            "choice": "within",
+            "confidence": 0.9
+          },
+          "completeness": {
+            "choice": "incomplete",
+            "confidence": 0.5
+          }
+        }
+      },
+      "status": 200,
+      "elapsedMs": 1.9313669999974081,
+      "providers": [
+        "jev",
+        "typellm",
+        "jev"
+      ],
+      "stage_names": [
+        "G0",
+        "TYPE_REQUIRED",
+        "VERIFY_REQUIRED",
+        "STOCK_DIFF"
+      ]
+    },
+    {
+      "n": 13,
+      "settings": {
+        "initial": {
+          "intent": {
+            "choice": "ambiguous",
+            "confidence": 0.49
+          },
+          "labels": {
+            "choice": "missing",
+            "confidence": 0.9
+          },
+          "capacity": {
+            "choice": "within",
+            "confidence": 0.9
+          },
+          "completeness": {
+            "choice": "complete",
+            "confidence": 0.49
+          }
+        }
+      },
+      "status": 200,
+      "elapsedMs": 0.7250009999988833,
+      "providers": [
+        "jev"
+      ],
+      "stage_names": [
+        "G0",
+        "STOCK_DIFF"
+      ]
+    },
+    {
+      "n": 14,
+      "settings": {
+        "initial": {
+          "intent": {
+            "choice": "ambiguous",
+            "confidence": 0.49
+          },
+          "labels": {
+            "choice": "missing",
+            "confidence": 0.9
+          },
+          "capacity": {
+            "choice": "within",
+            "confidence": 0.9
+          },
+          "completeness": {
+            "choice": "complete",
+            "confidence": 0.5
+          }
+        }
+      },
+      "status": 200,
+      "elapsedMs": 0.8093470000021625,
+      "providers": [
+        "jev"
+      ],
+      "stage_names": [
+        "G0",
+        "STOCK_DIFF"
+      ]
+    },
+    {
+      "n": 15,
+      "settings": {
+        "initial": {
+          "intent": {
+            "choice": "ambiguous",
+            "confidence": 0.49
+          },
+          "labels": {
+            "choice": "missing",
+            "confidence": 0.9
+          },
+          "capacity": {
+            "choice": "within",
+            "confidence": 0.9
+          },
+          "completeness": {
+            "choice": "incomplete",
+            "confidence": 0.49
+          }
+        }
+      },
+      "status": 200,
+      "elapsedMs": 0.7112749999942025,
+      "providers": [
+        "jev"
+      ],
+      "stage_names": [
+        "G0",
+        "STOCK_DIFF"
+      ]
+    },
+    {
+      "n": 16,
+      "settings": {
+        "initial": {
+          "intent": {
+            "choice": "ambiguous",
+            "confidence": 0.49
+          },
+          "labels": {
+            "choice": "missing",
+            "confidence": 0.9
+          },
+          "capacity": {
+            "choice": "within",
+            "confidence": 0.9
+          },
+          "completeness": {
+            "choice": "incomplete",
+            "confidence": 0.5
+          }
+        }
+      },
+      "status": 200,
+      "elapsedMs": 1.3426909999980126,
+      "providers": [
+        "jev",
+        "typellm",
+        "jev"
+      ],
+      "stage_names": [
+        "G0",
+        "TYPE_REQUIRED",
+        "VERIFY_REQUIRED",
+        "STOCK_DIFF"
+      ]
+    },
+    {
+      "n": 17,
+      "settings": {
+        "initial": {
+          "intent": {
+            "choice": "ambiguous",
+            "confidence": 0.5
+          },
+          "labels": {
+            "choice": "missing",
+            "confidence": 0.9
+          },
+          "capacity": {
+            "choice": "within",
+            "confidence": 0.9
+          },
+          "completeness": {
+            "choice": "complete",
+            "confidence": 0.49
+          }
+        }
+      },
+      "status": 200,
+      "elapsedMs": 0.6857670000026701,
+      "providers": [
+        "jev"
+      ],
+      "stage_names": [
+        "G0",
+        "STOCK_DIFF"
+      ]
+    },
+    {
+      "n": 18,
+      "settings": {
+        "initial": {
+          "intent": {
+            "choice": "ambiguous",
+            "confidence": 0.5
+          },
+          "labels": {
+            "choice": "missing",
+            "confidence": 0.9
+          },
+          "capacity": {
+            "choice": "within",
+            "confidence": 0.9
+          },
+          "completeness": {
+            "choice": "complete",
+            "confidence": 0.5
+          }
+        }
+      },
+      "status": 200,
+      "elapsedMs": 0.6818199999979697,
+      "providers": [
+        "jev"
+      ],
+      "stage_names": [
+        "G0",
+        "STOCK_DIFF"
+      ]
+    },
+    {
+      "n": 19,
+      "settings": {
+        "initial": {
+          "intent": {
+            "choice": "ambiguous",
+            "confidence": 0.5
+          },
+          "labels": {
+            "choice": "missing",
+            "confidence": 0.9
+          },
+          "capacity": {
+            "choice": "within",
+            "confidence": 0.9
+          },
+          "completeness": {
+            "choice": "incomplete",
+            "confidence": 0.49
+          }
+        }
+      },
+      "status": 200,
+      "elapsedMs": 0.6644669999950565,
+      "providers": [
+        "jev"
+      ],
+      "stage_names": [
+        "G0",
+        "STOCK_DIFF"
+      ]
+    },
+    {
+      "n": 20,
+      "settings": {
+        "initial": {
+          "intent": {
+            "choice": "ambiguous",
+            "confidence": 0.5
+          },
+          "labels": {
+            "choice": "missing",
+            "confidence": 0.9
+          },
+          "capacity": {
+            "choice": "within",
+            "confidence": 0.9
+          },
+          "completeness": {
+            "choice": "incomplete",
+            "confidence": 0.5
+          }
+        }
+      },
+      "status": 200,
+      "elapsedMs": 0.6996129999897676,
+      "providers": [
+        "jev"
+      ],
+      "stage_names": [
+        "G0",
+        "STOCK_DIFF"
+      ]
+    },
+    {
+      "n": 21,
+      "settings": {
+        "initial": {
+          "intent": {
+            "choice": "ambiguous",
+            "confidence": 0.9
+          },
+          "labels": {
+            "choice": "missing",
+            "confidence": 0.9
+          },
+          "capacity": {
+            "choice": "within",
+            "confidence": 0.9
+          },
+          "completeness": {
+            "choice": "complete",
+            "confidence": 0.49
+          }
+        }
+      },
+      "status": 200,
+      "elapsedMs": 0.6731329999893205,
+      "providers": [
+        "jev"
+      ],
+      "stage_names": [
+        "G0",
+        "STOCK_DIFF"
+      ]
+    },
+    {
+      "n": 22,
+      "settings": {
+        "initial": {
+          "intent": {
+            "choice": "ambiguous",
+            "confidence": 0.9
+          },
+          "labels": {
+            "choice": "missing",
+            "confidence": 0.9
+          },
+          "capacity": {
+            "choice": "within",
+            "confidence": 0.9
+          },
+          "completeness": {
+            "choice": "complete",
+            "confidence": 0.5
+          }
+        }
+      },
+      "status": 200,
+      "elapsedMs": 0.663695999988704,
+      "providers": [
+        "jev"
+      ],
+      "stage_names": [
+        "G0",
+        "STOCK_DIFF"
+      ]
+    },
+    {
+      "n": 23,
+      "settings": {
+        "initial": {
+          "intent": {
+            "choice": "ambiguous",
+            "confidence": 0.9
+          },
+          "labels": {
+            "choice": "missing",
+            "confidence": 0.9
+          },
+          "capacity": {
+            "choice": "within",
+            "confidence": 0.9
+          },
+          "completeness": {
+            "choice": "incomplete",
+            "confidence": 0.49
+          }
+        }
+      },
+      "status": 200,
+      "elapsedMs": 0.654089000003296,
+      "providers": [
+        "jev"
+      ],
+      "stage_names": [
+        "G0",
+        "STOCK_DIFF"
+      ]
+    },
+    {
+      "n": 24,
+      "settings": {
+        "initial": {
+          "intent": {
+            "choice": "ambiguous",
+            "confidence": 0.9
+          },
+          "labels": {
+            "choice": "missing",
+            "confidence": 0.9
+          },
+          "capacity": {
+            "choice": "within",
+            "confidence": 0.9
+          },
+          "completeness": {
+            "choice": "incomplete",
+            "confidence": 0.5
+          }
+        }
+      },
+      "status": 200,
+      "elapsedMs": 0.9125389999971958,
+      "providers": [
+        "jev"
+      ],
+      "stage_names": [
+        "G0",
+        "STOCK_DIFF"
+      ]
+    },
+    {
+      "n": 25,
+      "settings": {
+        "initial": {
+          "intent": {
+            "choice": "no-change",
+            "confidence": 0.49
+          },
+          "labels": {
+            "choice": "missing",
+            "confidence": 0.9
+          },
+          "capacity": {
+            "choice": "within",
+            "confidence": 0.9
+          },
+          "completeness": {
+            "choice": "complete",
+            "confidence": 0.49
+          }
+        }
+      },
+      "status": 200,
+      "elapsedMs": 0.6964670000015758,
+      "providers": [
+        "jev"
+      ],
+      "stage_names": [
+        "G0",
+        "STOCK_DIFF"
+      ]
+    },
+    {
+      "n": 26,
+      "settings": {
+        "initial": {
+          "intent": {
+            "choice": "no-change",
+            "confidence": 0.49
+          },
+          "labels": {
+            "choice": "missing",
+            "confidence": 0.9
+          },
+          "capacity": {
+            "choice": "within",
+            "confidence": 0.9
+          },
+          "completeness": {
+            "choice": "complete",
+            "confidence": 0.5
+          }
+        }
+      },
+      "status": 200,
+      "elapsedMs": 0.6652089999988675,
+      "providers": [
+        "jev"
+      ],
+      "stage_names": [
+        "G0",
+        "STOCK_DIFF"
+      ]
+    },
+    {
+      "n": 27,
+      "settings": {
+        "initial": {
+          "intent": {
+            "choice": "no-change",
+            "confidence": 0.49
+          },
+          "labels": {
+            "choice": "missing",
+            "confidence": 0.9
+          },
+          "capacity": {
+            "choice": "within",
+            "confidence": 0.9
+          },
+          "completeness": {
+            "choice": "incomplete",
+            "confidence": 0.49
+          }
+        }
+      },
+      "status": 200,
+      "elapsedMs": 0.6582760000019334,
+      "providers": [
+        "jev"
+      ],
+      "stage_names": [
+        "G0",
+        "STOCK_DIFF"
+      ]
+    },
+    {
+      "n": 28,
+      "settings": {
+        "initial": {
+          "intent": {
+            "choice": "no-change",
+            "confidence": 0.49
+          },
+          "labels": {
+            "choice": "missing",
+            "confidence": 0.9
+          },
+          "capacity": {
+            "choice": "within",
+            "confidence": 0.9
+          },
+          "completeness": {
+            "choice": "incomplete",
+            "confidence": 0.5
+          }
+        }
+      },
+      "status": 200,
+      "elapsedMs": 0.6607010000006994,
+      "providers": [
+        "jev"
+      ],
+      "stage_names": [
+        "G0",
+        "STOCK_DIFF"
+      ]
+    },
+    {
+      "n": 29,
+      "settings": {
+        "initial": {
+          "intent": {
+            "choice": "no-change",
+            "confidence": 0.5
+          },
+          "labels": {
+            "choice": "missing",
+            "confidence": 0.9
+          },
+          "capacity": {
+            "choice": "within",
+            "confidence": 0.9
+          },
+          "completeness": {
+            "choice": "complete",
+            "confidence": 0.49
+          }
+        }
+      },
+      "status": 200,
+      "elapsedMs": 0.829874999995809,
+      "providers": [
+        "jev"
+      ],
+      "stage_names": [
+        "G0",
+        "STOCK_DIFF"
+      ]
+    },
+    {
+      "n": 30,
+      "settings": {
+        "initial": {
+          "intent": {
+            "choice": "no-change",
+            "confidence": 0.5
+          },
+          "labels": {
+            "choice": "missing",
+            "confidence": 0.9
+          },
+          "capacity": {
+            "choice": "within",
+            "confidence": 0.9
+          },
+          "completeness": {
+            "choice": "complete",
+            "confidence": 0.5
+          }
+        }
+      },
+      "status": 200,
+      "elapsedMs": 0.8317179999867221,
+      "providers": [
+        "jev"
+      ],
+      "stage_names": [
+        "G0",
+        "STOCK_DIFF"
+      ]
+    },
+    {
+      "n": 31,
+      "settings": {
+        "initial": {
+          "intent": {
+            "choice": "no-change",
+            "confidence": 0.5
+          },
+          "labels": {
+            "choice": "missing",
+            "confidence": 0.9
+          },
+          "capacity": {
+            "choice": "within",
+            "confidence": 0.9
+          },
+          "completeness": {
+            "choice": "incomplete",
+            "confidence": 0.49
+          }
+        }
+      },
+      "status": 200,
+      "elapsedMs": 0.7890299999999115,
+      "providers": [
+        "jev"
+      ],
+      "stage_names": [
+        "G0",
+        "STOCK_DIFF"
+      ]
+    },
+    {
+      "n": 32,
+      "settings": {
+        "initial": {
+          "intent": {
+            "choice": "no-change",
+            "confidence": 0.5
+          },
+          "labels": {
+            "choice": "missing",
+            "confidence": 0.9
+          },
+          "capacity": {
+            "choice": "within",
+            "confidence": 0.9
+          },
+          "completeness": {
+            "choice": "incomplete",
+            "confidence": 0.5
+          }
+        }
+      },
+      "status": 200,
+      "elapsedMs": 0.7483329999959096,
+      "providers": [
+        "jev"
+      ],
+      "stage_names": [
+        "G0",
+        "STOCK_DIFF"
+      ]
+    },
+    {
+      "n": 33,
+      "settings": {
+        "initial": {
+          "intent": {
+            "choice": "no-change",
+            "confidence": 0.9
+          },
+          "labels": {
+            "choice": "missing",
+            "confidence": 0.9
+          },
+          "capacity": {
+            "choice": "within",
+            "confidence": 0.9
+          },
+          "completeness": {
+            "choice": "complete",
+            "confidence": 0.49
+          }
+        }
+      },
+      "status": 200,
+      "elapsedMs": 0.8321500000020023,
+      "providers": [
+        "jev"
+      ],
+      "stage_names": [
+        "G0",
+        "STOCK_DIFF"
+      ]
+    },
+    {
+      "n": 34,
+      "settings": {
+        "initial": {
+          "intent": {
+            "choice": "no-change",
+            "confidence": 0.9
+          },
+          "labels": {
+            "choice": "missing",
+            "confidence": 0.9
+          },
+          "capacity": {
+            "choice": "within",
+            "confidence": 0.9
+          },
+          "completeness": {
+            "choice": "complete",
+            "confidence": 0.5
+          }
+        }
+      },
+      "status": 200,
+      "elapsedMs": 0.7706049999978859,
+      "providers": [
+        "jev"
+      ],
+      "stage_names": [
+        "G0",
+        "STOCK_DIFF"
+      ]
+    },
+    {
+      "n": 35,
+      "settings": {
+        "initial": {
+          "intent": {
+            "choice": "no-change",
+            "confidence": 0.9
+          },
+          "labels": {
+            "choice": "missing",
+            "confidence": 0.9
+          },
+          "capacity": {
+            "choice": "within",
+            "confidence": 0.9
+          },
+          "completeness": {
+            "choice": "incomplete",
+            "confidence": 0.49
+          }
+        }
+      },
+      "status": 200,
+      "elapsedMs": 0.6487679999991087,
+      "providers": [
+        "jev"
+      ],
+      "stage_names": [
+        "G0",
+        "STOCK_DIFF"
+      ]
+    },
+    {
+      "n": 36,
+      "settings": {
+        "initial": {
+          "intent": {
+            "choice": "no-change",
+            "confidence": 0.9
+          },
+          "labels": {
+            "choice": "missing",
+            "confidence": 0.9
+          },
+          "capacity": {
+            "choice": "within",
+            "confidence": 0.9
+          },
+          "completeness": {
+            "choice": "incomplete",
+            "confidence": 0.5
+          }
+        }
+      },
+      "status": 200,
+      "elapsedMs": 0.6385090000112541,
+      "providers": [
+        "jev"
+      ],
+      "stage_names": [
+        "G0",
+        "STOCK_DIFF"
+      ]
+    },
+    {
+      "n": 37,
+      "settings": {
+        "initial": {
+          "intent": {
+            "choice": "unsupported",
+            "confidence": 0.49
+          },
+          "labels": {
+            "choice": "missing",
+            "confidence": 0.9
+          },
+          "capacity": {
+            "choice": "within",
+            "confidence": 0.9
+          },
+          "completeness": {
+            "choice": "complete",
+            "confidence": 0.49
+          }
+        }
+      },
+      "status": 200,
+      "elapsedMs": 0.6830320000008214,
+      "providers": [
+        "jev"
+      ],
+      "stage_names": [
+        "G0",
+        "STOCK_DIFF"
+      ]
+    },
+    {
+      "n": 38,
+      "settings": {
+        "initial": {
+          "intent": {
+            "choice": "unsupported",
+            "confidence": 0.49
+          },
+          "labels": {
+            "choice": "missing",
+            "confidence": 0.9
+          },
+          "capacity": {
+            "choice": "within",
+            "confidence": 0.9
+          },
+          "completeness": {
+            "choice": "complete",
+            "confidence": 0.5
+          }
+        }
+      },
+      "status": 200,
+      "elapsedMs": 0.8162809999921592,
+      "providers": [
+        "jev"
+      ],
+      "stage_names": [
+        "G0",
+        "STOCK_DIFF"
+      ]
+    },
+    {
+      "n": 39,
+      "settings": {
+        "initial": {
+          "intent": {
+            "choice": "unsupported",
+            "confidence": 0.49
+          },
+          "labels": {
+            "choice": "missing",
+            "confidence": 0.9
+          },
+          "capacity": {
+            "choice": "within",
+            "confidence": 0.9
+          },
+          "completeness": {
+            "choice": "incomplete",
+            "confidence": 0.49
+          }
+        }
+      },
+      "status": 200,
+      "elapsedMs": 0.6477070000109961,
+      "providers": [
+        "jev"
+      ],
+      "stage_names": [
+        "G0",
+        "STOCK_DIFF"
+      ]
+    },
+    {
+      "n": 40,
+      "settings": {
+        "initial": {
+          "intent": {
+            "choice": "unsupported",
+            "confidence": 0.49
+          },
+          "labels": {
+            "choice": "missing",
+            "confidence": 0.9
+          },
+          "capacity": {
+            "choice": "within",
+            "confidence": 0.9
+          },
+          "completeness": {
+            "choice": "incomplete",
+            "confidence": 0.5
+          }
+        }
+      },
+      "status": 200,
+      "elapsedMs": 0.7834989999973914,
+      "providers": [
+        "jev"
+      ],
+      "stage_names": [
+        "G0",
+        "STOCK_DIFF"
+      ]
+    },
+    {
+      "n": 41,
+      "settings": {
+        "initial": {
+          "intent": {
+            "choice": "unsupported",
+            "confidence": 0.5
+          },
+          "labels": {
+            "choice": "missing",
+            "confidence": 0.9
+          },
+          "capacity": {
+            "choice": "within",
+            "confidence": 0.9
+          },
+          "completeness": {
+            "choice": "complete",
+            "confidence": 0.49
+          }
+        }
+      },
+      "status": 200,
+      "elapsedMs": 0.6451709999964805,
+      "providers": [
+        "jev"
+      ],
+      "stage_names": [
+        "G0",
+        "STOCK_DIFF"
+      ]
+    },
+    {
+      "n": 42,
+      "settings": {
+        "initial": {
+          "intent": {
+            "choice": "unsupported",
+            "confidence": 0.5
+          },
+          "labels": {
+            "choice": "missing",
+            "confidence": 0.9
+          },
+          "capacity": {
+            "choice": "within",
+            "confidence": 0.9
+          },
+          "completeness": {
+            "choice": "complete",
+            "confidence": 0.5
+          }
+        }
+      },
+      "status": 200,
+      "elapsedMs": 0.6385190000000875,
+      "providers": [
+        "jev"
+      ],
+      "stage_names": [
+        "G0",
+        "STOCK_DIFF"
+      ]
+    },
+    {
+      "n": 43,
+      "settings": {
+        "initial": {
+          "intent": {
+            "choice": "unsupported",
+            "confidence": 0.5
+          },
+          "labels": {
+            "choice": "missing",
+            "confidence": 0.9
+          },
+          "capacity": {
+            "choice": "within",
+            "confidence": 0.9
+          },
+          "completeness": {
+            "choice": "incomplete",
+            "confidence": 0.49
+          }
+        }
+      },
+      "status": 200,
+      "elapsedMs": 0.6726630000048317,
+      "providers": [
+        "jev"
+      ],
+      "stage_names": [
+        "G0",
+        "STOCK_DIFF"
+      ]
+    },
+    {
+      "n": 44,
+      "settings": {
+        "initial": {
+          "intent": {
+            "choice": "unsupported",
+            "confidence": 0.5
+          },
+          "labels": {
+            "choice": "missing",
+            "confidence": 0.9
+          },
+          "capacity": {
+            "choice": "within",
+            "confidence": 0.9
+          },
+          "completeness": {
+            "choice": "incomplete",
+            "confidence": 0.5
+          }
+        }
+      },
+      "status": 200,
+      "elapsedMs": 0.8464570000069216,
+      "providers": [
+        "jev"
+      ],
+      "stage_names": [
+        "G0",
+        "STOCK_DIFF"
+      ]
+    },
+    {
+      "n": 45,
+      "settings": {
+        "initial": {
+          "intent": {
+            "choice": "unsupported",
+            "confidence": 0.9
+          },
+          "labels": {
+            "choice": "missing",
+            "confidence": 0.9
+          },
+          "capacity": {
+            "choice": "within",
+            "confidence": 0.9
+          },
+          "completeness": {
+            "choice": "complete",
+            "confidence": 0.49
+          }
+        }
+      },
+      "status": 200,
+      "elapsedMs": 0.7457290000020294,
+      "providers": [
+        "jev"
+      ],
+      "stage_names": [
+        "G0",
+        "STOCK_DIFF"
+      ]
+    },
+    {
+      "n": 46,
+      "settings": {
+        "initial": {
+          "intent": {
+            "choice": "unsupported",
+            "confidence": 0.9
+          },
+          "labels": {
+            "choice": "missing",
+            "confidence": 0.9
+          },
+          "capacity": {
+            "choice": "within",
+            "confidence": 0.9
+          },
+          "completeness": {
+            "choice": "complete",
+            "confidence": 0.5
+          }
+        }
+      },
+      "status": 200,
+      "elapsedMs": 0.7270449999923585,
+      "providers": [
+        "jev"
+      ],
+      "stage_names": [
+        "G0",
+        "STOCK_DIFF"
+      ]
+    },
+    {
+      "n": 47,
+      "settings": {
+        "initial": {
+          "intent": {
+            "choice": "unsupported",
+            "confidence": 0.9
+          },
+          "labels": {
+            "choice": "missing",
+            "confidence": 0.9
+          },
+          "capacity": {
+            "choice": "within",
+            "confidence": 0.9
+          },
+          "completeness": {
+            "choice": "incomplete",
+            "confidence": 0.49
+          }
+        }
+      },
+      "status": 200,
+      "elapsedMs": 0.6467239999910817,
+      "providers": [
+        "jev"
+      ],
+      "stage_names": [
+        "G0",
+        "STOCK_DIFF"
+      ]
+    },
+    {
+      "n": 48,
+      "settings": {
+        "initial": {
+          "intent": {
+            "choice": "unsupported",
+            "confidence": 0.9
+          },
+          "labels": {
+            "choice": "missing",
+            "confidence": 0.9
+          },
+          "capacity": {
+            "choice": "within",
+            "confidence": 0.9
+          },
+          "completeness": {
+            "choice": "incomplete",
+            "confidence": 0.5
+          }
+        }
+      },
+      "status": 200,
+      "elapsedMs": 0.7181579999887617,
+      "providers": [
+        "jev"
+      ],
+      "stage_names": [
+        "G0",
+        "STOCK_DIFF"
+      ]
+    },
+    {
+      "n": 49,
+      "settings": {
+        "known_sufficient": true,
+        "initial": {
+          "intent": {
+            "choice": "change",
+            "confidence": 0.9
+          },
+          "labels": {
+            "choice": "missing",
+            "confidence": 0.9
+          },
+          "capacity": {
+            "choice": "within",
+            "confidence": 0.9
+          },
+          "completeness": {
+            "choice": "complete",
+            "confidence": 0.9
+          }
+        }
+      },
+      "status": 200,
+      "elapsedMs": 0.7310419999994338,
+      "providers": [
+        "jev"
+      ],
+      "stage_names": [
+        "G0",
+        "STOCK_DIFF"
+      ]
+    },
+    {
+      "n": 50,
+      "settings": {
+        "fail": "G0-http"
+      },
+      "status": 502,
+      "elapsedMs": 0.6517939999903319,
+      "providers": [
+        "jev"
+      ],
+      "stage_names": []
+    },
+    {
+      "n": 51,
+      "settings": {
+        "fail": "G0-contract"
+      },
+      "status": 502,
+      "elapsedMs": 0.5330830000020796,
+      "providers": [
+        "jev"
+      ],
+      "stage_names": []
+    },
+    {
+      "n": 52,
+      "settings": {
+        "fail": "Type-http"
+      },
+      "status": 502,
+      "elapsedMs": 1.182000999993761,
+      "providers": [
+        "jev",
+        "typellm"
+      ],
+      "stage_names": [
+        "G0"
+      ]
+    },
+    {
+      "n": 53,
+      "settings": {
+        "fail": "Type-contract"
+      },
+      "status": 502,
+      "elapsedMs": 0.9877090000081807,
+      "providers": [
+        "jev",
+        "typellm"
+      ],
+      "stage_names": [
+        "G0"
+      ]
+    },
+    {
+      "n": 54,
+      "settings": {
+        "fail": "V-http"
+      },
+      "status": 502,
+      "elapsedMs": 1.3428399999975227,
+      "providers": [
+        "jev",
+        "typellm",
+        "jev"
+      ],
+      "stage_names": [
+        "G0",
+        "TYPE_REQUIRED"
+      ]
+    },
+    {
+      "n": 55,
+      "settings": {
+        "fail": "V-contract"
+      },
+      "status": 502,
+      "elapsedMs": 2.0403599999990547,
+      "providers": [
+        "jev",
+        "typellm",
+        "jev"
+      ],
+      "stage_names": [
+        "G0",
+        "TYPE_REQUIRED"
+      ]
+    },
+    {
+      "n": 56,
+      "settings": {
+        "already_aborted": true
+      },
+      "status": 504,
+      "elapsedMs": 0.5579589999979362,
+      "providers": [],
+      "stage_names": []
+    },
+    {
+      "n": 57,
+      "settings": {
+        "abort_after": "G0"
+      },
+      "status": 504,
+      "elapsedMs": 1.0152410000009695,
+      "providers": [
+        "jev"
+      ],
+      "stage_names": []
+    },
+    {
+      "n": 58,
+      "settings": {
+        "abort_after": "Type"
+      },
+      "status": 504,
+      "elapsedMs": 1.4189530000003288,
+      "providers": [
+        "jev",
+        "typellm"
+      ],
+      "stage_names": [
+        "G0"
+      ]
+    },
+    {
+      "n": 59,
+      "settings": {
+        "deadline": "provider-G0"
+      },
+      "status": 504,
+      "elapsedMs": 10004.435666999998,
+      "providers": [
+        "jev"
+      ],
+      "stage_names": []
+    },
+    {
+      "n": 60,
+      "settings": {
+        "deadline": "shared"
+      },
+      "status": 504,
+      "elapsedMs": 40003.175548,
+      "providers": [
+        "jev",
+        "typellm"
+      ],
+      "stage_names": [
+        "G0"
+      ]
+    }
+  ],
+  "shared_deadline_excludes_own_Type_cap": true,
+  "actual_Jev_provider_deadline_ms": 10004.435666999998,
+  "actual_shared_deadline_ms": 40003.175548,
+  "scope": "ACTUAL_COMPLETED_ZIP_SYNTHETIC_MECHANICS_ONLY_NOT_MODEL_PERFORMANCE_OR_MANAGER_LAUNCH_GO",
+  "reviewer_real_provider_calls": 0,
+  "supersedes": {
+    "file": "frontier-2cc-ci-mechanics-audit.json",
+    "sha256": "1a08b4d7ed4e090e4f73874e63d163b309ff6a0fd485c5e64377a65b5a3ca8fe",
+    "reason": "Added explicit render-owned shape IDs/raw labels association against final semantic records on every named camera; no prior result or artifact changed."
+  }
+}

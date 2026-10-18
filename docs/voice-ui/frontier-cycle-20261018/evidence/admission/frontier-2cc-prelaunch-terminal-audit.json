@@ -1,0 +1,289 @@
+{
+  "schema": "voice-ui.review.frontier-prelaunch-terminal/1",
+  "status": "PASS",
+  "observed_at": "2026-10-17T20:52:22.414455+00:00",
+  "journal_sha256": "efc4a61b73333efc3058c5f6d1fc90f3eaadf929160e1ad69d781a1619b5c517",
+  "charged": {
+    "jev": 725,
+    "typellm": 71
+  },
+  "pending": null,
+  "owned_groups": [
+    {
+      "phase": "poc-main-1",
+      "pid": 98069,
+      "start_ticks": "6787546",
+      "pid_absent": true,
+      "all_pgid_members_including_zombies": []
+    },
+    {
+      "phase": "poc-main-2",
+      "pid": 98609,
+      "start_ticks": "6833888",
+      "pid_absent": true,
+      "all_pgid_members_including_zombies": []
+    },
+    {
+      "phase": "poc-main-3",
+      "pid": 99783,
+      "start_ticks": "7149546",
+      "pid_absent": true,
+      "all_pgid_members_including_zombies": []
+    },
+    {
+      "phase": "poc-main-4",
+      "pid": 100368,
+      "start_ticks": "7245695",
+      "pid_absent": true,
+      "all_pgid_members_including_zombies": []
+    },
+    {
+      "phase": "poc-main-5",
+      "pid": 101417,
+      "start_ticks": "7530557",
+      "pid_absent": true,
+      "all_pgid_members_including_zombies": []
+    },
+    {
+      "phase": "poc-main-6",
+      "pid": 102693,
+      "start_ticks": "7751187",
+      "pid_absent": true,
+      "all_pgid_members_including_zombies": []
+    },
+    {
+      "phase": "poc-fresh-7",
+      "pid": 103224,
+      "start_ticks": "7802310",
+      "pid_absent": true,
+      "all_pgid_members_including_zombies": []
+    },
+    {
+      "phase": "poc-ready-8",
+      "pid": 103655,
+      "start_ticks": "7896006",
+      "pid_absent": true,
+      "all_pgid_members_including_zombies": []
+    },
+    {
+      "phase": "candidate-public-20261017",
+      "pid": 233467,
+      "start_ticks": "13622035",
+      "pid_absent": true,
+      "all_pgid_members_including_zombies": []
+    },
+    {
+      "phase": "candidate-type-diagnostic-1",
+      "pid": 233952,
+      "start_ticks": "13654560",
+      "pid_absent": true,
+      "all_pgid_members_including_zombies": []
+    },
+    {
+      "phase": "candidate-type-diagnostic-2",
+      "pid": 239615,
+      "start_ticks": "13708110",
+      "pid_absent": true,
+      "all_pgid_members_including_zombies": []
+    },
+    {
+      "phase": "candidate-type-diagnostic-3",
+      "pid": 242236,
+      "start_ticks": "13717798",
+      "pid_absent": true,
+      "all_pgid_members_including_zombies": []
+    },
+    {
+      "phase": "candidate-correction-1-20261017",
+      "pid": 252935,
+      "start_ticks": "13829959",
+      "pid_absent": true,
+      "all_pgid_members_including_zombies": []
+    },
+    {
+      "phase": "candidate-correction-2-20261017",
+      "pid": 259519,
+      "start_ticks": "13920555",
+      "pid_absent": true,
+      "all_pgid_members_including_zombies": []
+    },
+    {
+      "phase": "candidate-public-remainder-20261017",
+      "pid": 261711,
+      "start_ticks": "13955189",
+      "pid_absent": true,
+      "all_pgid_members_including_zombies": []
+    },
+    {
+      "phase": "candidate-fresh-20261017",
+      "pid": 270500,
+      "start_ticks": "14088123",
+      "pid_absent": true,
+      "all_pgid_members_including_zombies": []
+    },
+    {
+      "phase": "axes-public-G-20261017",
+      "pid": 308086,
+      "start_ticks": "15074155",
+      "pid_absent": true,
+      "all_pgid_members_including_zombies": []
+    },
+    {
+      "phase": "axes-public-R-20261017",
+      "pid": 308609,
+      "start_ticks": "15093863",
+      "pid_absent": true,
+      "all_pgid_members_including_zombies": []
+    },
+    {
+      "phase": "axes-public-F-20261017",
+      "pid": 309041,
+      "start_ticks": "15114628",
+      "pid_absent": true,
+      "all_pgid_members_including_zombies": []
+    },
+    {
+      "phase": "axes-public-E-20261017",
+      "pid": 309395,
+      "start_ticks": "15135567",
+      "pid_absent": true,
+      "all_pgid_members_including_zombies": []
+    },
+    {
+      "phase": "axes-final-G-20261017",
+      "pid": 311739,
+      "start_ticks": "15269329",
+      "pid_absent": true,
+      "all_pgid_members_including_zombies": []
+    },
+    {
+      "phase": "axes-final-R-20261017",
+      "pid": 312045,
+      "start_ticks": "15291612",
+      "pid_absent": true,
+      "all_pgid_members_including_zombies": []
+    },
+    {
+      "phase": "axes-final-F-20261017",
+      "pid": 312711,
+      "start_ticks": "15313164",
+      "pid_absent": true,
+      "all_pgid_members_including_zombies": []
+    },
+    {
+      "phase": "axes-final-E-20261017",
+      "pid": 313201,
+      "start_ticks": "15339382",
+      "pid_absent": true,
+      "all_pgid_members_including_zombies": []
+    },
+    {
+      "phase": "requirements-public-F-20261018",
+      "pid": 320853,
+      "start_ticks": "15873648",
+      "pid_absent": true,
+      "all_pgid_members_including_zombies": []
+    },
+    {
+      "phase": "requirements-correction1-F-20261018",
+      "pid": 322497,
+      "start_ticks": "15998732",
+      "pid_absent": true,
+      "all_pgid_members_including_zombies": []
+    },
+    {
+      "phase": "requirements-correction1-V-20261018",
+      "pid": 322721,
+      "start_ticks": "16014619",
+      "pid_absent": true,
+      "all_pgid_members_including_zombies": []
+    },
+    {
+      "phase": "requirements-correction2-F-20261018",
+      "pid": 323862,
+      "start_ticks": "16150741",
+      "pid_absent": true,
+      "all_pgid_members_including_zombies": []
+    },
+    {
+      "phase": "requirements-correction2-V-20261018",
+      "pid": 324288,
+      "start_ticks": "16176096",
+      "pid_absent": true,
+      "all_pgid_members_including_zombies": []
+    },
+    {
+      "phase": "dependency-public-F-20261018",
+      "pid": 329873,
+      "start_ticks": "16800830",
+      "pid_absent": true,
+      "all_pgid_members_including_zombies": []
+    },
+    {
+      "phase": "dependency-public-V-20261018",
+      "pid": 330205,
+      "start_ticks": "16827734",
+      "pid_absent": true,
+      "all_pgid_members_including_zombies": []
+    },
+    {
+      "phase": "dependency-public-E-20261018",
+      "pid": 330456,
+      "start_ticks": "16837431",
+      "pid_absent": true,
+      "all_pgid_members_including_zombies": []
+    },
+    {
+      "phase": "intent-public-G0-20261018",
+      "pid": 334177,
+      "start_ticks": "17270422",
+      "pid_absent": true,
+      "all_pgid_members_including_zombies": []
+    }
+  ],
+  "owned_group_count": 33,
+  "raw_sha256": {
+    "PG06-G0.json": "1942003cbaae98db98d5f4d76391a28feefa6cb24328e2ee577292e9336e1a24",
+    "PG09-G0.json": "7da3f96fcaf13a4c067f8ab09fd11b447cfd3b44f93f704d5e887507687f305c",
+    "PG01-G0.json": "86abf85bbe9de9703d82882bfbb5b1c16ab8e4a42723a642d995d22db86b0923",
+    "PG02-G0.json": "a410631b0394bae1d44c6b2e030424e1e5c2f1a3c5d9a9e4200c09dfbb6c4a66",
+    "PG08-G0.json": "680148ef1ffd7ce817fa1fc21641b596542c7cad5c2984fbc23d588f16e4814e",
+    "execution.json": "f052c0bb91b60af94681e78a3f3fa28544f473e3854824099e60db27a460d595",
+    "PG04-G0.json": "d9278af99a2ea5154b1ddaddd2f4ce49a23a1da90748b7991770eec8122ca988",
+    "PG03-G0.json": "2401b25609b4764ac90f0d87e7381bfe7af3b4cf5fcd186775ad55404b9706a0",
+    "PG05-G0.json": "1e50c6940d28640db6c273f0884bc55a430303a304797a44d7856c93acab6a96",
+    "identity.json": "8d9cf16ae1ab2477c4e0e258d28f86bfee9fa387c3995c3c18d1178586e78bd4",
+    "events.jsonl": "5d01b9dd850c54ee5d7d1bf5b77e242c2fd113712318481c071b3d9dcc89b720",
+    "PG10-G0.json": "1f93c4597485115907304498bb8b61a3a7beeef41c0553da442c7369c07b7fc7",
+    "PG07-G0.json": "fa0651ecab53e05cd2d5513973b4a1832f420386615b0d80ce980342a2b4ee16"
+  },
+  "phase_sha256": {
+    "config.json": "13c6ce20290f5ec3d551c3dfb3f5af0de0cf23c5d244f9246fcd729b928ca680",
+    "process.json": "c5ea13b4f6bce2c710a3f44b73b278f75dabf7a25079cac3181edd8ca0f84384",
+    "runtime.json": "b85e2b1bfb147df7116fe88a626f7c5c188a8df1d62954be5c8d5335e4261805",
+    "stdout.log": "036cac8c691a617f038236c3668ba244089c1c2e0f0ef0b8203720516110b225",
+    "stderr.log": "25380f872359d445e97bcbc9a0cffe6e4abbe8dba33e9bcafecf33d54cfa5812",
+    "journal.jsonl": "efc4a61b73333efc3058c5f6d1fc90f3eaadf929160e1ad69d781a1619b5c517",
+    "orchestration.json": "cc839bc1bfcdce0c81355ba68d8556a995444a9b9aff1f2a07735a7c660c59a2",
+    "driver.stdout.log": "c8b654c1b6a9e771b86a8bbd6aee444dc84ca8898156cce66643f85df3a30084",
+    "driver.stderr.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "last_reconcile": {
+    "kind": "phase-reconcile",
+    "id": "intent-public-G0-20261018",
+    "sent": {
+      "jev": 10,
+      "typellm": 0
+    },
+    "stopped_group_empty": true,
+    "pid": 334177,
+    "start_ticks": "17270422",
+    "stderr_sha256": "25380f872359d445e97bcbc9a0cffe6e4abbe8dba33e9bcafecf33d54cfa5812",
+    "stdout_sha256": "036cac8c691a617f038236c3668ba244089c1c2e0f0ef0b8203720516110b225",
+    "at": "2026-10-17T19:22:34.069Z"
+  },
+  "head": "2cc4890b765a5534e92855f83f9232ae85bb373b",
+  "previous_measurement_head": "81f9f4df488e7f4fd94c63dbc15fe46ab0fb3a25",
+  "scope": "BEFORE_ANY_FRONTIER_MANAGER_START_BASELINE72571_ALL33_LEDGER_OWNED_GROUPS_ABSENT_ORIGINAL_RAW_AND_ACCOUNTING_UNCHANGED",
+  "reviewer_provider_calls": 0
+}

@@ -1,0 +1,330 @@
+{
+  "schema": "voice-ui.extraction-diagnostic-result/1",
+  "scope": "PUBLIC_KNOWN_TWO_CASE_CONDITION_DIAGNOSTIC_ONLY_NOT_FRESH_QUALITY_OR_END_TO_END_EFFECT",
+  "registration": "a8848187af718c52acfac9e8518522191af75b55",
+  "measurement_apps": "fe6329ea55bde8f44293be9c17c39a97a2a1dc1d",
+  "phase": "extraction-public-A3-20261018",
+  "counts": {
+    "DF": {
+      "planned": 4,
+      "valid": 4,
+      "exact": 1,
+      "semantic_wrong": 3,
+      "http_contract_rejected": 0,
+      "other_invalid_or_unknown": 0
+    },
+    "IF": {
+      "planned": 4,
+      "valid": 2,
+      "exact": 0,
+      "semantic_wrong": 2,
+      "http_contract_rejected": 2,
+      "other_invalid_or_unknown": 0
+    },
+    "DE": {
+      "planned": 4,
+      "valid": 4,
+      "exact": 2,
+      "semantic_wrong": 2,
+      "http_contract_rejected": 0,
+      "other_invalid_or_unknown": 0
+    },
+    "IE": {
+      "planned": 4,
+      "valid": 2,
+      "exact": 2,
+      "semantic_wrong": 0,
+      "http_contract_rejected": 2,
+      "other_invalid_or_unknown": 0
+    }
+  },
+  "pairs": [
+    {
+      "baseline": "DF",
+      "candidate": "IF",
+      "planned": 4,
+      "valid_both": 2,
+      "gains": 0,
+      "regressions": 1,
+      "ties": 1,
+      "excluded_contract_or_transport": 2
+    },
+    {
+      "baseline": "DF",
+      "candidate": "DE",
+      "planned": 4,
+      "valid_both": 4,
+      "gains": 1,
+      "regressions": 0,
+      "ties": 3,
+      "excluded_contract_or_transport": 0
+    },
+    {
+      "baseline": "DE",
+      "candidate": "IE",
+      "planned": 4,
+      "valid_both": 2,
+      "gains": 0,
+      "regressions": 0,
+      "ties": 2,
+      "excluded_contract_or_transport": 2
+    },
+    {
+      "baseline": "IF",
+      "candidate": "IE",
+      "planned": 4,
+      "valid_both": 2,
+      "gains": 2,
+      "regressions": 0,
+      "ties": 0,
+      "excluded_contract_or_transport": 2
+    }
+  ],
+  "rows": [
+    {
+      "id": "QE03-DF-r1",
+      "case": "QE03",
+      "condition": "DF",
+      "rep": 1,
+      "status": "VALID_CONTRACT",
+      "contract_valid": true,
+      "exact": true,
+      "required": [
+        {
+          "label": "出荷可否",
+          "kind": "decision",
+          "quantity": 1
+        }
+      ]
+    },
+    {
+      "id": "QE03-IF-r1",
+      "case": "QE03",
+      "condition": "IF",
+      "rep": 1,
+      "status": "VALID_CONTRACT",
+      "contract_valid": true,
+      "exact": false,
+      "required": [
+        {
+          "label": "判断",
+          "kind": "decision",
+          "quantity": 1
+        }
+      ]
+    },
+    {
+      "id": "QE03-DE-r1",
+      "case": "QE03",
+      "condition": "DE",
+      "rep": 1,
+      "status": "VALID_CONTRACT",
+      "contract_valid": true,
+      "exact": true,
+      "required": [
+        {
+          "label": "出荷可否",
+          "kind": "decision",
+          "quantity": 1
+        }
+      ]
+    },
+    {
+      "id": "QE03-IE-r1",
+      "case": "QE03",
+      "condition": "IE",
+      "rep": 1,
+      "status": "VALID_CONTRACT",
+      "contract_valid": true,
+      "exact": true,
+      "required": [
+        {
+          "label": "出荷可否",
+          "kind": "decision",
+          "quantity": 1
+        }
+      ]
+    },
+    {
+      "id": "QE04-IE-r1",
+      "case": "QE04",
+      "condition": "IE",
+      "rep": 1,
+      "status": "HTTP_CONTRACT_REJECTED",
+      "contract_valid": false,
+      "exact": false,
+      "required": null
+    },
+    {
+      "id": "QE04-DE-r1",
+      "case": "QE04",
+      "condition": "DE",
+      "rep": 1,
+      "status": "VALID_CONTRACT",
+      "contract_valid": true,
+      "exact": false,
+      "required": [
+        {
+          "label": "工程1",
+          "kind": "step",
+          "quantity": 2
+        }
+      ]
+    },
+    {
+      "id": "QE04-IF-r1",
+      "case": "QE04",
+      "condition": "IF",
+      "rep": 1,
+      "status": "HTTP_CONTRACT_REJECTED",
+      "contract_valid": false,
+      "exact": false,
+      "required": null
+    },
+    {
+      "id": "QE04-DF-r1",
+      "case": "QE04",
+      "condition": "DF",
+      "rep": 1,
+      "status": "VALID_CONTRACT",
+      "contract_valid": true,
+      "exact": false,
+      "required": [
+        {
+          "label": "工程",
+          "kind": "step",
+          "quantity": 2
+        }
+      ]
+    },
+    {
+      "id": "QE03-IE-r2",
+      "case": "QE03",
+      "condition": "IE",
+      "rep": 2,
+      "status": "VALID_CONTRACT",
+      "contract_valid": true,
+      "exact": true,
+      "required": [
+        {
+          "label": "出荷可否",
+          "kind": "decision",
+          "quantity": 1
+        }
+      ]
+    },
+    {
+      "id": "QE03-DE-r2",
+      "case": "QE03",
+      "condition": "DE",
+      "rep": 2,
+      "status": "VALID_CONTRACT",
+      "contract_valid": true,
+      "exact": true,
+      "required": [
+        {
+          "label": "出荷可否",
+          "kind": "decision",
+          "quantity": 1
+        }
+      ]
+    },
+    {
+      "id": "QE03-IF-r2",
+      "case": "QE03",
+      "condition": "IF",
+      "rep": 2,
+      "status": "VALID_CONTRACT",
+      "contract_valid": true,
+      "exact": false,
+      "required": [
+        {
+          "label": "判断",
+          "kind": "decision",
+          "quantity": 1
+        }
+      ]
+    },
+    {
+      "id": "QE03-DF-r2",
+      "case": "QE03",
+      "condition": "DF",
+      "rep": 2,
+      "status": "VALID_CONTRACT",
+      "contract_valid": true,
+      "exact": false,
+      "required": [
+        {
+          "label": "判断",
+          "kind": "decision",
+          "quantity": 1
+        }
+      ]
+    },
+    {
+      "id": "QE04-DF-r2",
+      "case": "QE04",
+      "condition": "DF",
+      "rep": 2,
+      "status": "VALID_CONTRACT",
+      "contract_valid": true,
+      "exact": false,
+      "required": [
+        {
+          "label": "工程",
+          "kind": "step",
+          "quantity": 2
+        }
+      ]
+    },
+    {
+      "id": "QE04-IF-r2",
+      "case": "QE04",
+      "condition": "IF",
+      "rep": 2,
+      "status": "HTTP_CONTRACT_REJECTED",
+      "contract_valid": false,
+      "exact": false,
+      "required": null
+    },
+    {
+      "id": "QE04-DE-r2",
+      "case": "QE04",
+      "condition": "DE",
+      "rep": 2,
+      "status": "VALID_CONTRACT",
+      "contract_valid": true,
+      "exact": false,
+      "required": [
+        {
+          "label": "工程",
+          "kind": "step",
+          "quantity": 2
+        }
+      ]
+    },
+    {
+      "id": "QE04-IE-r2",
+      "case": "QE04",
+      "condition": "IE",
+      "rep": 2,
+      "status": "HTTP_CONTRACT_REJECTED",
+      "contract_valid": false,
+      "exact": false,
+      "required": null
+    }
+  ],
+  "provider_sends": {
+    "jev": 0,
+    "typellm": 16
+  },
+  "charged": {
+    "jev": 847,
+    "typellm": 104
+  },
+  "interpretation": "CONDITION_HINT_FOR_QE03_ONLY_NOT_STABLE_BOTH_CASES",
+  "product_effect": "UNPROVEN",
+  "fresh_quality": "UNPROVEN",
+  "model_mechanism": "UNPROVEN",
+  "note": "Only full NEW contract/exact from the independent scorer is used. Its fixed-stock projection is not used to score empty definitions."
+}

@@ -1,0 +1,61 @@
+{
+  "observed_at": "2026-10-17T09:52:33.814Z",
+  "phase": "candidate-correction-1-20261017",
+  "current": null,
+  "group_members_including_z": [],
+  "sent": {
+    "jev": 7,
+    "typellm": 1
+  },
+  "charged": {
+    "jev": 316,
+    "typellm": 22
+  },
+  "pending": [],
+  "reconciliation": {
+    "kind": "phase-reconcile",
+    "id": "candidate-correction-1-20261017",
+    "sent": {
+      "jev": 7,
+      "typellm": 1
+    },
+    "stopped_group_empty": true,
+    "pid": 252935,
+    "start_ticks": "13829959",
+    "stderr_sha256": "d009b9f99b7b18dcfeb095c175ce4f065b211078dbb9d5fdab0a442518c9d43e",
+    "stdout_sha256": "bb102326b8e4948a3d70626aa1ff51cd2987cb59f6b5bbb79371765fb6d9fe39",
+    "at": "2026-10-17T09:50:41.925Z"
+  },
+  "ledger_sha256": "370fa6c4493b73822b6f52044cf1993808e8bdaea5b9b09ec0a4f6e58baaabaa",
+  "stdout_sha256": "bb102326b8e4948a3d70626aa1ff51cd2987cb59f6b5bbb79371765fb6d9fe39",
+  "stderr_sha256": "d009b9f99b7b18dcfeb095c175ce4f065b211078dbb9d5fdab0a442518c9d43e",
+  "diagnostics": [
+    {
+      "kind": "voice-ui.parts.contract.v1",
+      "stage": "local-result",
+      "rootExact": true,
+      "slots": [
+        {
+          "exact": true,
+          "label": "nonempty",
+          "kind": "step",
+          "quantity": 1
+        },
+        {
+          "exact": true,
+          "label": "nonempty",
+          "kind": "none",
+          "quantity": 1
+        },
+        {
+          "exact": true,
+          "label": "nonempty",
+          "kind": "none",
+          "quantity": 1
+        }
+      ],
+      "duplicatePair": false
+    }
+  ],
+  "matches": true
+}

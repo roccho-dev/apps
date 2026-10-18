@@ -1,0 +1,42 @@
+{
+  "schema": "voice-ui.requirements-cycle-committed-evidence-audit/1",
+  "status": "PASS",
+  "head": "31e8fabaeb679c8bb02db8029f36de410d012adb",
+  "tree": "b1ddda9e592ae4af4366fbe5f9139d4c1020f5c9",
+  "index_sha256": "aa685b19361c30a10b5e388281e945ad616fff735a8e5bcf796c1013d98a0b5f",
+  "phases": [
+    {
+      "id": "public-F",
+      "head": "3be7dba2b30b75a286c7139e2aaf5038faf695aa",
+      "phase_kind": "public",
+      "producer_sha256": "40cc4975b8738d1036ac430596f8f172ce2aa51f24d95b01ee93aea889006380",
+      "raw_files": 9,
+      "expected_execution_status": "INVALID"
+    },
+    {
+      "id": "correction1-F",
+      "head": "0861f5c42cbd5f5412c465fff33ff036361591e8",
+      "phase_kind": "correction",
+      "producer_sha256": "ed46c27907fdc9505be587e801d809cf3b45d51c3f38b337ece9f46e93adb331",
+      "raw_files": 9,
+      "expected_execution_status": "INVALID"
+    },
+    {
+      "id": "correction1-V",
+      "head": "0861f5c42cbd5f5412c465fff33ff036361591e8",
+      "phase_kind": "correction",
+      "producer_sha256": "c4429a26b90c58386cfce12f9df485ba918b6e5302aebd2980214e338712c95c",
+      "raw_files": 9,
+      "expected_execution_status": "RECORDED"
+    }
+  ],
+  "matched_exact_byte_files": 72,
+  "shared_files": 15,
+  "all_expected_original_failures_preserved": true,
+  "expected_cumulative": {
+    "jev": 695,
+    "typellm": 52
+  },
+  "source_product_delta": "only two reviewed functions",
+  "admission": "PENDING_EXACT_CI_COMPLETED_ARTIFACT_RUNTIME"
+}

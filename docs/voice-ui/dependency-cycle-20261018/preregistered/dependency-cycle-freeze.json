@@ -1,0 +1,66 @@
+{
+  "schema": "voice-ui.dependency-cycle-freeze/1",
+  "created_at": "2026-10-17T17:20:48.076Z",
+  "status": "SEALED_BEFORE_IMPLEMENTATION_NOT_LIVE_ADMISSION",
+  "provider_calls": 0,
+  "copy_allowlist": [
+    {
+      "name": "dependency-cycle-protocol.md",
+      "bytes": 13263,
+      "sha256": "3ee4073f2d58bef6181ebcc9160fd05e9f76ce5c06bf5ee412a2b2178f3f8e59"
+    },
+    {
+      "name": "dependency-cycle-commitment.json",
+      "bytes": 7356,
+      "sha256": "8d00c900e13b755a3cf467643e17e6a961581ad6e40ee105896fdce78038edff"
+    },
+    {
+      "name": "dependency-cycle-seal-validation.json",
+      "bytes": 2784,
+      "sha256": "3b5a916692c146bffb247790234ed8763f73bffdebd6ca538e91fde674ae97e3"
+    },
+    {
+      "name": "dependency-cycle-public-literal-preflight.json",
+      "bytes": 2970,
+      "sha256": "f49da56d4f3948d8258ef8f57ee9eb1696351cbcb4644d5a72989e2a916ace43"
+    },
+    {
+      "name": "dependency-cycle-public-F6.inputs.json",
+      "bytes": 4918,
+      "sha256": "e39739925e6fac55819c1d33d896d66ed3c6ffb36a82448b0036d80c4d1c06e0"
+    },
+    {
+      "name": "dependency-cycle-public-F6.oracle.json",
+      "bytes": 10154,
+      "sha256": "7d143ea45de7f112d087719ff11edec017a3e946611187efc160d2b5d45459e8"
+    },
+    {
+      "name": "dependency-cycle-public-V6.inputs.json",
+      "bytes": 5550,
+      "sha256": "4227c45e45e0bf7840a842c57617123d1adfa0f9fda1812e144915fce7f95475"
+    },
+    {
+      "name": "dependency-cycle-public-V6.oracle.json",
+      "bytes": 10732,
+      "sha256": "5aed103fced3dc74b5127deb86f347d95f87d3515f96966a658c2606db598d2a"
+    },
+    {
+      "name": "dependency-cycle-public-E2.inputs.json",
+      "bytes": 3828,
+      "sha256": "e359929b095783603949044e74a2b4720f7697aeb9466858279f69440f5b5d84"
+    },
+    {
+      "name": "dependency-cycle-public-E2.oracle.json",
+      "bytes": 6757,
+      "sha256": "b642512e31115a4e2ef7c85d316d3f095f8e12fff8b1feadfa762ce7b08b04e6"
+    }
+  ],
+  "never_copy": [
+    "dependency-cycle-sealed-*.json",
+    "dependency-cycle-seal.private.mjs",
+    "dependency-cycle-seal-validation.private.json",
+    "requirements-cycle-sealed-*.json"
+  ],
+  "source_frozen_on_first_public_send": true,
+  "corrections_max": 0
+}

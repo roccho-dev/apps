@@ -1,0 +1,48 @@
+{
+  "schema": "voice-ui.requirements-cycle-independent-module-validation/1",
+  "observed_at": "2026-10-17T15:14:18Z",
+  "reviewer": "same persistent independent R",
+  "status": "PASS",
+  "scope": "pure semantic scoring and stopped-receipt integrity using public synthetic fixtures, real immutable protocol and source Goal; no product-head admission",
+  "files": {
+    "requirements-cycle-score.mjs": "3d779cf422e8cc0facc6f5ff566c3e77b36a61486f9586f120b0c1a722cd5a46",
+    "requirements-cycle-score.test.mjs": "b4a56d5160e83e8056ed3a229126e9591581564e227bd305b6d71df3e7e93d5a",
+    "requirements-cycle-audit.mjs": "692bdbaef8dbe28fe30fcdfe178202ebbdf3a4728bf0fe1c7310f72bf789c6eb",
+    "requirements-cycle-audit.test.mjs": "e818556470dedf9fa2689290f19759ce8ad92bbffa57507d6e7507e7d56a3c8f"
+  },
+  "tests": {
+    "semantic_groups": 12,
+    "audit_groups": 20,
+    "total": 32,
+    "failed": 0,
+    "skipped": 0,
+    "runtime": "native Node v24.19.0",
+    "protocol_entry_sha256": "1689dcf63e1ed19cdea7be22e3f90a09f434841f980b9ca8b9018a987c9c38f8",
+    "new_stage_scope": "G0 / TYPE_REQUIRED / VERIFY_REQUIRED / STOCK_DIFF",
+    "fixed_built_source_files": 17
+  },
+  "negative_classes": [
+    "full NEW counts confused with shortages",
+    "invalid, duplicate, gapped or authority-bearing typed slots",
+    "simultaneous G0 normalized stdout/body/result/event forgery against unchanged factors",
+    "verification authorization or confidence different from raw factors",
+    "wrong original utterance, inventory, stock, mode or proposal",
+    "unjoined, duplicate, missing, reordered or foreign stage logs",
+    "Type on disabled baseline or without accepted eligibility",
+    "wrong materialization, selected key, offered inventory or decision prefix",
+    "missing/duplicate HTTP terminal or changed upstream route",
+    "failed HTTP laundered into a valid cell or invented response",
+    "global paint result substituted for individual cell result",
+    "wrong semantic DOM identity, raw persistence or Goal deadline",
+    "public/correction panel promoted to fresh or mutated public subset",
+    "pre-live empty E golden laundered by a new self-consistent digest",
+    "provider send gaps, duplicate reservations, false stop or changed log cutoff",
+    "changed completed artifact, source, runtime tuple or independent audit reference",
+    "raw/producer input commitment different from the reserved config input",
+    "synthetic runtime promoted to live producer evidence"
+  ],
+  "external_provider_calls": { "jev": 0, "typellm": 0 },
+  "sealed_inputs_read_by_tests": false,
+  "CI_LIVE_EXECUTION": "UNPROVEN",
+  "product_head_live_admission": "PENDING_EXACT_SOURCE_ARTIFACT_FULL_CI_RUNTIME_REVIEW"
+}

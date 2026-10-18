@@ -1,0 +1,97 @@
+{
+  "schema": "voice-ui.review.quota-report-staged/1",
+  "status": "PASS",
+  "checked_at": "2026-10-17T23:43:27.722Z",
+  "measured_head": "59ded276405a5dc9caa85ad570b1827ff4bd0c7a",
+  "git_state": "STAGED_DOCS_ONLY_NOT_YET_REPORT_HEAD",
+  "added_docs": 201,
+  "modified_docs": [
+    "docs/voice-ui/quota-cycle-20261018/README.md",
+    "docs/voice-ui/quota-cycle-20261018/evidence/index.json"
+  ],
+  "source28_exact": true,
+  "closed_public_copies": [
+    {
+      "manifest": "pr103-59d-r21-artifacts.json",
+      "members": 22,
+      "sha256": "085fc4009c284edfe8afa9a0d7e14de417686cd0f34c8738b51e36f64b81e131"
+    },
+    {
+      "manifest": "quota-cycle-recorded-aggregate-public-files.json",
+      "members": 2,
+      "sha256": "bfaf1dfa1bf2fc03e198f8b688cc60f6692d0356e8e7f33f501bf048f2d07aea"
+    },
+    {
+      "manifest": "quota-public-R-public-files.json",
+      "members": 11,
+      "sha256": "737af42688bef57f0900ce0e81a4f093de4db720e1115f68b064a64d66ee0ed7"
+    },
+    {
+      "manifest": "quota-public-E-public-files.json",
+      "members": 11,
+      "sha256": "cd69715b8c752a79a13e98f05d51d6766cfc2e92a4adc7396658982cb2359bff"
+    },
+    {
+      "manifest": "quota-final-R-public-files.json",
+      "members": 12,
+      "sha256": "72b30ebbefe67f5daff86210f0025b150dc0737ea351972982c99d9a7a1963a4"
+    },
+    {
+      "manifest": "quota-final-E-public-files.json",
+      "members": 14,
+      "sha256": "3c3969fb61b3df0e4c9982c44d1c887979f39b702a4a3dc5002cea9f689b35b0"
+    }
+  ],
+  "phases": [
+    {
+      "id": "public-R",
+      "raw_files": 5,
+      "independently_equal_metadata": 12,
+      "original_manifest_rows_hash_checked": 19,
+      "producer_sha256": "5c4cc0d562b903cec1235e5bff9e88e2c56f806902ccf9c6d72588ea3404ae19",
+      "recorded_replay_sha256": "09392c40e2d96a21507d23397deba5bf68cf1260efb46588aed378c9f3f991fd"
+    },
+    {
+      "id": "public-E",
+      "raw_files": 5,
+      "independently_equal_metadata": 12,
+      "original_manifest_rows_hash_checked": 19,
+      "producer_sha256": "c09bc00e9f6ddc3307b59b2c9fe990b33f635eb3ea3e964aaf0e4e8a670fd4d5",
+      "recorded_replay_sha256": "f6c27f688e10b28765d1efc946212129d568fbe0898dcbb3a0d5d3306de9c0e3"
+    },
+    {
+      "id": "final-R",
+      "raw_files": 7,
+      "independently_equal_metadata": 12,
+      "original_manifest_rows_hash_checked": 21,
+      "producer_sha256": "e6ff9f256fa3963e71c4d4fdd9c0c57f68332ea74ff161b8559a089f78bc6554",
+      "recorded_replay_sha256": "6ad29d39a1d9b2878287f1cfbcfaff63689bd01294898fa412ad48752274f3bc"
+    },
+    {
+      "id": "final-E",
+      "raw_files": 15,
+      "independently_equal_metadata": 12,
+      "original_manifest_rows_hash_checked": 29,
+      "producer_sha256": "0ebab43edc790eedd0672b7bf21192aec97fe3f9dca03d63f41550f69fcc3e92",
+      "recorded_replay_sha256": "518c67b49cbd82319d37ff48de30c9d56edcf9438b872fea65a6f4b81c387649"
+    }
+  ],
+  "public_doc_count": 227,
+  "public_inventory_sha256": "68acf7013ad609e77a6bd3828d84d7f07aa78a6cd9f8aab3ad8e3fd0780086b3",
+  "readme_sha256": "3872a36359cf60cd61fa729dc6d560a13de1256c448bb515e8482323c95bcd2b",
+  "index_sha256": "84f1b8d172d9750e3ce8892a67abf012e70a884dda22a31371fa65a7c72117d3",
+  "semantic_read": {
+    "separate_R_conditional_expression_and_E_completion": true,
+    "public_not_fresh": true,
+    "R_open_wrong_additions_remain_outcomes": true,
+    "E_all6_and_M2_denominators": true,
+    "wrong_label_V_refusals_before_quota_Goal_renderer": true,
+    "QE01_Type0_not_Type_gain": true,
+    "fresh_progress_integrity_not_quality": true,
+    "finite_NO_EFFECT_only_if_actual_CI_matches": true,
+    "old_map_identity_correction_and_original_bytes_preserved": true,
+    "human_UI_merge_pending": true
+  },
+  "scope": "STATIC_REPORT_COPY_AND_RECORDED_SEMANTICS_ONLY; ACTUAL_REPORT_HEAD_RUNTIME_CI_ARTIFACTS_AND_FROZEN_BODIES_PENDING",
+  "reviewer_real_provider_calls": 0
+}

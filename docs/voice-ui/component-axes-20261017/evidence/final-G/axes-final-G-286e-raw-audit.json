@@ -1,0 +1,364 @@
+{
+  "schema": "voice-ui.component-axes-raw-audit/1",
+  "axis": "G",
+  "status": "PASS",
+  "issues": [],
+  "complete": true,
+  "all_valid_execution": true,
+  "phase_kind": "fresh",
+  "parent_inputs_sha256": null,
+  "runtime_scope": "LIVE_BINDING_REQUIRED",
+  "admissible_for_semantic_claim": true,
+  "consumed": 10,
+  "planned": 10,
+  "external_provider_attempts": {
+    "jev": 10,
+    "typellm": 0
+  },
+  "external_provider_attempt_bounds": {
+    "jev": {
+      "min": 10,
+      "max": 10
+    },
+    "typellm": {
+      "min": 0,
+      "max": 0
+    }
+  },
+  "factor_rows": 20,
+  "factor_alignment": "UNIQUE",
+  "proofs": [
+    {
+      "id": "G01",
+      "method": "literal",
+      "status": "PASS",
+      "initial_head": "sha256:8b2f0a4e98841720c0df78f2dcc2c3d36d0b9af62d9cef1e81649c4b25dce492",
+      "final_head": "sha256:8b2f0a4e98841720c0df78f2dcc2c3d36d0b9af62d9cef1e81649c4b25dce492"
+    },
+    {
+      "id": "G02",
+      "method": "literal",
+      "status": "PASS",
+      "initial_head": "sha256:0b3522df5b691691d41d9b4587377781fc7048c991a4e47357e5583eb09288c6",
+      "final_head": "sha256:0b3522df5b691691d41d9b4587377781fc7048c991a4e47357e5583eb09288c6"
+    },
+    {
+      "id": "G03",
+      "method": "literal",
+      "status": "PASS",
+      "initial_head": "sha256:0b3522df5b691691d41d9b4587377781fc7048c991a4e47357e5583eb09288c6",
+      "final_head": "sha256:0b3522df5b691691d41d9b4587377781fc7048c991a4e47357e5583eb09288c6"
+    },
+    {
+      "id": "G04",
+      "method": "literal",
+      "status": "PASS",
+      "initial_head": "sha256:b4f52e5183b8e5730e59a7524a9b260f7cb7a4246695c8a69c4d320bec1312c1",
+      "final_head": "sha256:b4f52e5183b8e5730e59a7524a9b260f7cb7a4246695c8a69c4d320bec1312c1"
+    },
+    {
+      "id": "G05",
+      "method": "literal",
+      "status": "PASS",
+      "initial_head": "sha256:0b3522df5b691691d41d9b4587377781fc7048c991a4e47357e5583eb09288c6",
+      "final_head": "sha256:0b3522df5b691691d41d9b4587377781fc7048c991a4e47357e5583eb09288c6"
+    },
+    {
+      "id": "G06",
+      "method": "literal",
+      "status": "PASS",
+      "initial_head": "sha256:0b3522df5b691691d41d9b4587377781fc7048c991a4e47357e5583eb09288c6",
+      "final_head": "sha256:0b3522df5b691691d41d9b4587377781fc7048c991a4e47357e5583eb09288c6"
+    },
+    {
+      "id": "G07",
+      "method": "literal",
+      "status": "PASS",
+      "initial_head": "sha256:0b3522df5b691691d41d9b4587377781fc7048c991a4e47357e5583eb09288c6",
+      "final_head": "sha256:0b3522df5b691691d41d9b4587377781fc7048c991a4e47357e5583eb09288c6"
+    },
+    {
+      "id": "G08",
+      "method": "literal",
+      "status": "PASS",
+      "initial_head": "sha256:0b3522df5b691691d41d9b4587377781fc7048c991a4e47357e5583eb09288c6",
+      "final_head": "sha256:0b3522df5b691691d41d9b4587377781fc7048c991a4e47357e5583eb09288c6"
+    },
+    {
+      "id": "G09",
+      "method": "literal",
+      "status": "PASS",
+      "initial_head": "sha256:0b3522df5b691691d41d9b4587377781fc7048c991a4e47357e5583eb09288c6",
+      "final_head": "sha256:0b3522df5b691691d41d9b4587377781fc7048c991a4e47357e5583eb09288c6"
+    },
+    {
+      "id": "G10",
+      "method": "literal",
+      "status": "PASS",
+      "initial_head": "sha256:b4f52e5183b8e5730e59a7524a9b260f7cb7a4246695c8a69c4d320bec1312c1",
+      "final_head": "sha256:b4f52e5183b8e5730e59a7524a9b260f7cb7a4246695c8a69c4d320bec1312c1"
+    }
+  ],
+  "rows": [
+    {
+      "id": "G01",
+      "method": "literal",
+      "expected_intent": "change",
+      "expected_gate": "sufficient",
+      "grade": {
+        "scope": "semantic axes only; actual source/protocol/HTTP/journal/paint admissibility required separately",
+        "contract_valid": true,
+        "intent_raw_correct": true,
+        "intent_accepted_correct": true,
+        "extraction_exact": true,
+        "completeness_expected": "complete",
+        "completeness_raw_correct": true,
+        "completeness_accepted_correct": true,
+        "difference_mechanism_correct": true,
+        "availability_raw_correct": true,
+        "availability_accepted_correct": true,
+        "normalized_raw_correct": true,
+        "normalized_accepted_correct": true,
+        "unknown": false
+      }
+    },
+    {
+      "id": "G02",
+      "method": "literal",
+      "expected_intent": "change",
+      "expected_gate": "sufficient",
+      "grade": {
+        "scope": "semantic axes only; actual source/protocol/HTTP/journal/paint admissibility required separately",
+        "contract_valid": true,
+        "intent_raw_correct": true,
+        "intent_accepted_correct": true,
+        "extraction_exact": false,
+        "completeness_expected": "incomplete",
+        "completeness_raw_correct": true,
+        "completeness_accepted_correct": true,
+        "difference_mechanism_correct": true,
+        "availability_raw_correct": true,
+        "availability_accepted_correct": false,
+        "normalized_raw_correct": false,
+        "normalized_accepted_correct": false,
+        "unknown": true
+      }
+    },
+    {
+      "id": "G03",
+      "method": "literal",
+      "expected_intent": "change",
+      "expected_gate": "sufficient",
+      "grade": {
+        "scope": "semantic axes only; actual source/protocol/HTTP/journal/paint admissibility required separately",
+        "contract_valid": true,
+        "intent_raw_correct": true,
+        "intent_accepted_correct": false,
+        "extraction_exact": true,
+        "completeness_expected": "complete",
+        "completeness_raw_correct": true,
+        "completeness_accepted_correct": true,
+        "difference_mechanism_correct": true,
+        "availability_raw_correct": true,
+        "availability_accepted_correct": true,
+        "normalized_raw_correct": true,
+        "normalized_accepted_correct": false,
+        "unknown": false
+      }
+    },
+    {
+      "id": "G04",
+      "method": "literal",
+      "expected_intent": "change",
+      "expected_gate": "sufficient",
+      "grade": {
+        "scope": "semantic axes only; actual source/protocol/HTTP/journal/paint admissibility required separately",
+        "contract_valid": true,
+        "intent_raw_correct": true,
+        "intent_accepted_correct": true,
+        "extraction_exact": true,
+        "completeness_expected": "complete",
+        "completeness_raw_correct": true,
+        "completeness_accepted_correct": true,
+        "difference_mechanism_correct": true,
+        "availability_raw_correct": true,
+        "availability_accepted_correct": true,
+        "normalized_raw_correct": true,
+        "normalized_accepted_correct": true,
+        "unknown": false
+      }
+    },
+    {
+      "id": "G05",
+      "method": "literal",
+      "expected_intent": "change",
+      "expected_gate": "missing",
+      "grade": {
+        "scope": "semantic axes only; actual source/protocol/HTTP/journal/paint admissibility required separately",
+        "contract_valid": true,
+        "intent_raw_correct": true,
+        "intent_accepted_correct": true,
+        "extraction_exact": true,
+        "completeness_expected": "complete",
+        "completeness_raw_correct": true,
+        "completeness_accepted_correct": true,
+        "difference_mechanism_correct": true,
+        "availability_raw_correct": true,
+        "availability_accepted_correct": true,
+        "normalized_raw_correct": true,
+        "normalized_accepted_correct": true,
+        "unknown": false
+      }
+    },
+    {
+      "id": "G06",
+      "method": "literal",
+      "expected_intent": "change",
+      "expected_gate": "missing",
+      "grade": {
+        "scope": "semantic axes only; actual source/protocol/HTTP/journal/paint admissibility required separately",
+        "contract_valid": true,
+        "intent_raw_correct": true,
+        "intent_accepted_correct": true,
+        "extraction_exact": true,
+        "completeness_expected": "complete",
+        "completeness_raw_correct": true,
+        "completeness_accepted_correct": true,
+        "difference_mechanism_correct": true,
+        "availability_raw_correct": true,
+        "availability_accepted_correct": true,
+        "normalized_raw_correct": true,
+        "normalized_accepted_correct": true,
+        "unknown": false
+      }
+    },
+    {
+      "id": "G07",
+      "method": "literal",
+      "expected_intent": "change",
+      "expected_gate": "missing",
+      "grade": {
+        "scope": "semantic axes only; actual source/protocol/HTTP/journal/paint admissibility required separately",
+        "contract_valid": true,
+        "intent_raw_correct": true,
+        "intent_accepted_correct": true,
+        "extraction_exact": true,
+        "completeness_expected": "complete",
+        "completeness_raw_correct": true,
+        "completeness_accepted_correct": true,
+        "difference_mechanism_correct": true,
+        "availability_raw_correct": true,
+        "availability_accepted_correct": true,
+        "normalized_raw_correct": true,
+        "normalized_accepted_correct": true,
+        "unknown": false
+      }
+    },
+    {
+      "id": "G08",
+      "method": "literal",
+      "expected_intent": "change",
+      "expected_gate": "missing",
+      "grade": {
+        "scope": "semantic axes only; actual source/protocol/HTTP/journal/paint admissibility required separately",
+        "contract_valid": true,
+        "intent_raw_correct": true,
+        "intent_accepted_correct": true,
+        "extraction_exact": true,
+        "completeness_expected": "complete",
+        "completeness_raw_correct": true,
+        "completeness_accepted_correct": true,
+        "difference_mechanism_correct": true,
+        "availability_raw_correct": true,
+        "availability_accepted_correct": true,
+        "normalized_raw_correct": true,
+        "normalized_accepted_correct": true,
+        "unknown": false
+      }
+    },
+    {
+      "id": "G09",
+      "method": "literal",
+      "expected_intent": "ambiguous",
+      "expected_gate": "ambiguous",
+      "grade": {
+        "scope": "semantic axes only; actual source/protocol/HTTP/journal/paint admissibility required separately",
+        "contract_valid": true,
+        "intent_raw_correct": true,
+        "intent_accepted_correct": true,
+        "extraction_exact": null,
+        "completeness_expected": null,
+        "completeness_raw_correct": null,
+        "completeness_accepted_correct": null,
+        "difference_mechanism_correct": true,
+        "availability_raw_correct": null,
+        "availability_accepted_correct": null,
+        "normalized_raw_correct": true,
+        "normalized_accepted_correct": true,
+        "unknown": false
+      }
+    },
+    {
+      "id": "G10",
+      "method": "literal",
+      "expected_intent": "no-change",
+      "expected_gate": "no-change",
+      "grade": {
+        "scope": "semantic axes only; actual source/protocol/HTTP/journal/paint admissibility required separately",
+        "contract_valid": true,
+        "intent_raw_correct": true,
+        "intent_accepted_correct": true,
+        "extraction_exact": null,
+        "completeness_expected": null,
+        "completeness_raw_correct": null,
+        "completeness_accepted_correct": null,
+        "difference_mechanism_correct": true,
+        "availability_raw_correct": null,
+        "availability_accepted_correct": null,
+        "normalized_raw_correct": true,
+        "normalized_accepted_correct": true,
+        "unknown": false
+      }
+    }
+  ],
+  "semantic": {
+    "total": 10,
+    "intent": {
+      "correct": 9,
+      "total": 10
+    },
+    "availability": {
+      "correct": 7,
+      "total": 8
+    },
+    "normalized": {
+      "correct": 8,
+      "total": 10
+    },
+    "completeness": {
+      "correct": 8,
+      "total": 8
+    },
+    "unknown": 1,
+    "semantic_criteria": "UNMET"
+  },
+  "replay": null,
+  "raw_sha256": {
+    "events.jsonl": "c42715ecf9c6381c926ba1b71ae568042c94f1d3d6e4a7d9d8125eb59e1b0ee6",
+    "execution.json": "7d3e297c923a1b4de6270f56e5fb3bf1eba711dee5303c1aa0561e8e25046cd0",
+    "G01-B.json": "17a48c2a35f726e3278e633e0cacd5806c9b0dd308cff42735b1e3d87d341b3b",
+    "G02-B.json": "65423bceaf1c6f6072210aa8dd0bb054ab9f098d0bcd2d9b502a1405759f9d22",
+    "G03-B.json": "762180026c91ffe178c0af9f19e6b5cff03c806a83020018694cd1a33730e226",
+    "G04-B.json": "2483cfe96fdf145b49c23d6acbba55fd296a0d68d39cc55ed59e7df9357a8bd4",
+    "G05-B.json": "7188c41e709957ebb190167fbc11e771897ce80de7f2b23db94e8ead8e8a31c1",
+    "G06-B.json": "70a534b204a77bb7ecba96d8cb3190efc6bb1230a9d2719bdae571e987b92c9f",
+    "G07-B.json": "4837c184f6472e979caeab47060488d935ce45c3be254b5db354998098357f5e",
+    "G08-B.json": "37e4473977f2f98ff91d04e9b172cb9fd5be600b3c0ba7cb40f82a774a8db8b4",
+    "G09-B.json": "316c8fefa79d616a8a4915cf63e7d1ca44fc525e64b0162dab1a57fc391d4ca3",
+    "G10-B.json": "3e1088f70a8c3a5224854ebbee646febf3f0a49440dc28de140461bd6dfa94c6",
+    "identity.json": "4df0df57083c94392d21ff3fea90f547e7c718399bfec2cf25e11161ff6a74d8"
+  },
+  "scope": "raw-axis locality only; source/producer/provider/independent physical PID and any required paint gates remain separate",
+  "CI_LIVE_EXECUTION": "UNPROVEN",
+  "currency": "COST_NOT_MEASURED"
+}

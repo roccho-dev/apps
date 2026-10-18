@@ -1,0 +1,2150 @@
+{
+  "schema": "voice-ui.quota-cycle-cell/1",
+  "axis": "E",
+  "id": "TEF04",
+  "method": "adaptive-v3",
+  "arm": "C",
+  "generation_policy": "dependent",
+  "goal_parts_policy": "quota",
+  "supplied_required": null,
+  "replay_suffix_scope": "compatibility only",
+  "fixture": "pair",
+  "utterance": "取込域へ可否を判断するひし形を1個だけ新設し、ラベルは「夜間照会」としてください。それ以外は何も増やさないでください。",
+  "parts": [
+    {
+      "key": "step",
+      "purpose": "an ordinary step, task or box",
+      "label": "工程",
+      "kind": "step"
+    },
+    {
+      "key": "decision",
+      "purpose": "a decision, choice or branch",
+      "label": "判断",
+      "kind": "decision"
+    },
+    {
+      "key": "data",
+      "purpose": "data, a document, an input or an output",
+      "label": "データ",
+      "kind": "data"
+    },
+    {
+      "key": "start",
+      "purpose": "a start or beginning",
+      "label": "開始",
+      "kind": "start"
+    },
+    {
+      "key": "end",
+      "purpose": "an end, finish or result",
+      "label": "終了",
+      "kind": "end"
+    },
+    {
+      "key": "api",
+      "purpose": "an application programming interface service that receives requests",
+      "label": "API",
+      "kind": "step"
+    },
+    {
+      "key": "db",
+      "purpose": "a database that persists application data",
+      "label": "DB",
+      "kind": "data"
+    },
+    {
+      "key": "group",
+      "purpose": "a group, boundary or container that holds other parts",
+      "label": "グループ",
+      "kind": "group"
+    }
+  ],
+  "valid_execution": true,
+  "elapsedMs": 14557.47649999999,
+  "result": {
+    "reason": "none",
+    "requests": 4,
+    "elapsedMs": 5134.360000014305,
+    "selected": [
+      {
+        "key": "goal-extra-1",
+        "region": "part-1",
+        "parent": "container"
+      }
+    ],
+    "trace": [
+      {
+        "head": "sha256:f09c44a962cd217dad824ebf330ea9003d7a7b4d6fa24baac1de8dec4468f46c",
+        "answers": {
+          "delta": {
+            "type": "choice",
+            "choice": "part:goal-extra-1",
+            "confidence": 0.99
+          }
+        },
+        "failure": null
+      },
+      {
+        "head": "sha256:f09c44a962cd217dad824ebf330ea9003d7a7b4d6fa24baac1de8dec4468f46c",
+        "answers": {
+          "delta": {
+            "type": "choice",
+            "choice": "delta-1",
+            "confidence": 1
+          }
+        },
+        "failure": null
+      },
+      {
+        "head": "sha256:c099a2785f971da4e766621bcc94c8cefcdd163e12ae31d108d6cc9484b043c7",
+        "answers": {
+          "delta": {
+            "type": "choice",
+            "choice": "none",
+            "confidence": 0.95
+          }
+        },
+        "failure": null
+      }
+    ],
+    "inventory": {
+      "checks": 1,
+      "completions": 0,
+      "preparations": 1,
+      "coverage": {
+        "choice": "missing",
+        "confidence": 0.9,
+        "inspection": {
+          "schema": "voice-ui.parts.inspection/3",
+          "request_id": "ef413df1-4c3c-4342-954a-530cdb6290d3",
+          "mode": "adaptive-v3",
+          "initial": {
+            "decision": {
+              "choice": "unknown",
+              "confidence": null
+            },
+            "factors": {
+              "intent": {
+                "choice": "change",
+                "confidence": 0.95
+              },
+              "labels": {
+                "choice": "missing",
+                "confidence": 0.48
+              },
+              "capacity": {
+                "choice": "within",
+                "confidence": 0.88
+              },
+              "completeness": {
+                "choice": "incomplete",
+                "confidence": 0.9
+              }
+            },
+            "literal": {
+              "recognized": false,
+              "required": [],
+              "spans": []
+            },
+            "observation": {
+              "valid": true,
+              "status": "unsupported-syntax"
+            }
+          },
+          "proposal": {
+            "slots": {
+              "required1": {
+                "label": "夜間照会",
+                "kind": "decision",
+                "quantity": "1"
+              },
+              "required2": {
+                "label": "",
+                "kind": "none",
+                "quantity": "0"
+              },
+              "required3": {
+                "label": "",
+                "kind": "none",
+                "quantity": "0"
+              }
+            },
+            "required": [
+              {
+                "label": "夜間照会",
+                "kind": "decision",
+                "quantity": 1
+              }
+            ]
+          },
+          "verification": {
+            "intent": {
+              "choice": "change",
+              "confidence": 1
+            },
+            "labels": {
+              "choice": "missing",
+              "confidence": 0.88
+            },
+            "capacity": {
+              "choice": "within",
+              "confidence": 0.96
+            },
+            "completeness": {
+              "choice": "complete",
+              "confidence": 0.9
+            }
+          },
+          "required": [
+            {
+              "label": "夜間照会",
+              "kind": "decision",
+              "quantity": 1
+            }
+          ],
+          "missing": [
+            {
+              "label": "夜間照会",
+              "kind": "decision",
+              "occurrence": 1
+            }
+          ],
+          "proposal_policy": {
+            "id": "uncertainty-frontier-v1",
+            "eligible": true,
+            "reason": "confident-change-incomplete"
+          }
+        }
+      },
+      "missing": [
+        {
+          "label": "夜間照会",
+          "kind": "decision",
+          "occurrence": 1
+        }
+      ]
+    }
+  },
+  "calls": [
+    {
+      "id": "TEF04",
+      "arm": "C",
+      "n": 1,
+      "route": "/api/parts/check",
+      "upstream_route": "/api/parts/check?method=adaptive-v3",
+      "request": {
+        "kind": "voice-ui.goal.inventory.v1",
+        "state": {
+          "utterance": "取込域へ可否を判断するひし形を1個だけ新設し、ラベルは「夜間照会」としてください。それ以外は何も増やさないでください。",
+          "head": "sha256:f09c44a962cd217dad824ebf330ea9003d7a7b4d6fa24baac1de8dec4468f46c",
+          "regions": [
+            {
+              "id": "root",
+              "label": "fixture",
+              "kind": "boundary",
+              "parent": null
+            },
+            {
+              "id": "container",
+              "label": "取込域",
+              "kind": "group",
+              "parent": "root"
+            },
+            {
+              "id": "other",
+              "label": "監査域",
+              "kind": "group",
+              "parent": "root"
+            },
+            {
+              "id": "initial-api",
+              "label": "API",
+              "kind": "step",
+              "parent": "container"
+            },
+            {
+              "id": "initial-db",
+              "label": "DB",
+              "kind": "data",
+              "parent": "container"
+            }
+          ],
+          "edges": [],
+          "parts": [
+            {
+              "key": "step",
+              "purpose": "an ordinary step, task or box",
+              "label": "工程",
+              "kind": "step"
+            },
+            {
+              "key": "decision",
+              "purpose": "a decision, choice or branch",
+              "label": "判断",
+              "kind": "decision"
+            },
+            {
+              "key": "data",
+              "purpose": "data, a document, an input or an output",
+              "label": "データ",
+              "kind": "data"
+            },
+            {
+              "key": "start",
+              "purpose": "a start or beginning",
+              "label": "開始",
+              "kind": "start"
+            },
+            {
+              "key": "end",
+              "purpose": "an end, finish or result",
+              "label": "終了",
+              "kind": "end"
+            },
+            {
+              "key": "api",
+              "purpose": "an application programming interface service that receives requests",
+              "label": "API",
+              "kind": "step"
+            },
+            {
+              "key": "db",
+              "purpose": "a database that persists application data",
+              "label": "DB",
+              "kind": "data"
+            },
+            {
+              "key": "group",
+              "purpose": "a group, boundary or container that holds other parts",
+              "label": "グループ",
+              "kind": "group"
+            }
+          ]
+        }
+      },
+      "status": 200,
+      "response": {
+        "choice": "missing",
+        "confidence": 0.9,
+        "inspection": {
+          "schema": "voice-ui.parts.inspection/3",
+          "request_id": "ef413df1-4c3c-4342-954a-530cdb6290d3",
+          "mode": "adaptive-v3",
+          "initial": {
+            "decision": {
+              "choice": "unknown",
+              "confidence": null
+            },
+            "factors": {
+              "intent": {
+                "choice": "change",
+                "confidence": 0.95
+              },
+              "labels": {
+                "choice": "missing",
+                "confidence": 0.48
+              },
+              "capacity": {
+                "choice": "within",
+                "confidence": 0.88
+              },
+              "completeness": {
+                "choice": "incomplete",
+                "confidence": 0.9
+              }
+            },
+            "literal": {
+              "recognized": false,
+              "required": [],
+              "spans": []
+            },
+            "observation": {
+              "valid": true,
+              "status": "unsupported-syntax"
+            }
+          },
+          "proposal": {
+            "slots": {
+              "required1": {
+                "label": "夜間照会",
+                "kind": "decision",
+                "quantity": "1"
+              },
+              "required2": {
+                "label": "",
+                "kind": "none",
+                "quantity": "0"
+              },
+              "required3": {
+                "label": "",
+                "kind": "none",
+                "quantity": "0"
+              }
+            },
+            "required": [
+              {
+                "label": "夜間照会",
+                "kind": "decision",
+                "quantity": 1
+              }
+            ]
+          },
+          "verification": {
+            "intent": {
+              "choice": "change",
+              "confidence": 1
+            },
+            "labels": {
+              "choice": "missing",
+              "confidence": 0.88
+            },
+            "capacity": {
+              "choice": "within",
+              "confidence": 0.96
+            },
+            "completeness": {
+              "choice": "complete",
+              "confidence": 0.9
+            }
+          },
+          "required": [
+            {
+              "label": "夜間照会",
+              "kind": "decision",
+              "quantity": 1
+            }
+          ],
+          "missing": [
+            {
+              "label": "夜間照会",
+              "kind": "decision",
+              "occurrence": 1
+            }
+          ],
+          "proposal_policy": {
+            "id": "uncertainty-frontier-v1",
+            "eligible": true,
+            "reason": "confident-change-incomplete"
+          }
+        }
+      },
+      "elapsedMs": 3736.4157000000123
+    },
+    {
+      "id": "TEF04",
+      "arm": "C",
+      "n": 2,
+      "route": "/api/judge",
+      "upstream_route": "/api/judge",
+      "request": {
+        "kind": "voice-ui.judge.goal-local-delta.v7",
+        "state": {
+          "utterance": "取込域へ可否を判断するひし形を1個だけ新設し、ラベルは「夜間照会」としてください。それ以外は何も増やさないでください。",
+          "graph": [
+            {
+              "id": "root",
+              "label": "fixture",
+              "parent": null
+            },
+            {
+              "id": "container",
+              "label": "取込域",
+              "parent": "root"
+            },
+            {
+              "id": "other",
+              "label": "監査域",
+              "parent": "root"
+            },
+            {
+              "id": "initial-api",
+              "label": "API",
+              "parent": "container"
+            },
+            {
+              "id": "initial-db",
+              "label": "DB",
+              "parent": "container"
+            }
+          ],
+          "edges": [],
+          "parents": [
+            {
+              "id": "container",
+              "label": "取込域",
+              "kind": "group",
+              "parent": "root"
+            },
+            {
+              "id": "other",
+              "label": "監査域",
+              "kind": "group",
+              "parent": "root"
+            }
+          ],
+          "offers": {
+            "parts": [
+              {
+                "key": "goal-extra-1",
+                "purpose": "one requested part named 夜間照会, kind decision, missing instance 1",
+                "label": "夜間照会"
+              }
+            ]
+          },
+          "selected": [],
+          "candidates": [
+            {
+              "id": "delta-1",
+              "action": "add-part",
+              "part": "goal-extra-1",
+              "parent": "container"
+            },
+            {
+              "id": "delta-2",
+              "action": "add-part",
+              "part": "goal-extra-1",
+              "parent": "other"
+            },
+            {
+              "id": "delta-3",
+              "action": "add-edge",
+              "from": "initial-api",
+              "to": "initial-db"
+            },
+            {
+              "id": "delta-4",
+              "action": "add-edge",
+              "from": "initial-db",
+              "to": "initial-api"
+            }
+          ],
+          "context": {
+            "recent": []
+          },
+          "scope": null,
+          "placing": null
+        }
+      },
+      "status": 200,
+      "response": {
+        "kind": "voice-ui.judge.decision.v1",
+        "answers": {
+          "delta": {
+            "type": "choice",
+            "choice": "part:goal-extra-1",
+            "confidence": 0.99
+          }
+        }
+      },
+      "elapsedMs": 188.42799999999988
+    },
+    {
+      "id": "TEF04",
+      "arm": "C",
+      "n": 3,
+      "route": "/api/judge",
+      "upstream_route": "/api/judge",
+      "request": {
+        "kind": "voice-ui.judge.goal-local-delta.v7",
+        "state": {
+          "utterance": "取込域へ可否を判断するひし形を1個だけ新設し、ラベルは「夜間照会」としてください。それ以外は何も増やさないでください。",
+          "graph": [
+            {
+              "id": "root",
+              "label": "fixture",
+              "parent": null
+            },
+            {
+              "id": "container",
+              "label": "取込域",
+              "parent": "root"
+            },
+            {
+              "id": "other",
+              "label": "監査域",
+              "parent": "root"
+            },
+            {
+              "id": "initial-api",
+              "label": "API",
+              "parent": "container"
+            },
+            {
+              "id": "initial-db",
+              "label": "DB",
+              "parent": "container"
+            }
+          ],
+          "edges": [],
+          "parents": [
+            {
+              "id": "container",
+              "label": "取込域",
+              "kind": "group",
+              "parent": "root"
+            },
+            {
+              "id": "other",
+              "label": "監査域",
+              "kind": "group",
+              "parent": "root"
+            }
+          ],
+          "offers": {
+            "parts": [
+              {
+                "key": "goal-extra-1",
+                "purpose": "one requested part named 夜間照会, kind decision, missing instance 1",
+                "label": "夜間照会"
+              }
+            ]
+          },
+          "selected": [],
+          "candidates": [
+            {
+              "id": "delta-1",
+              "action": "add-part",
+              "part": "goal-extra-1",
+              "parent": "container"
+            },
+            {
+              "id": "delta-2",
+              "action": "add-part",
+              "part": "goal-extra-1",
+              "parent": "other"
+            }
+          ],
+          "context": {
+            "recent": []
+          },
+          "scope": null,
+          "placing": "goal-extra-1"
+        }
+      },
+      "status": 200,
+      "response": {
+        "kind": "voice-ui.judge.decision.v1",
+        "answers": {
+          "delta": {
+            "type": "choice",
+            "choice": "delta-1",
+            "confidence": 1
+          }
+        }
+      },
+      "elapsedMs": 217.71290000001318
+    },
+    {
+      "id": "TEF04",
+      "arm": "C",
+      "n": 4,
+      "route": "/api/judge",
+      "upstream_route": "/api/judge",
+      "request": {
+        "kind": "voice-ui.judge.goal-local-delta.v7",
+        "state": {
+          "utterance": "取込域へ可否を判断するひし形を1個だけ新設し、ラベルは「夜間照会」としてください。それ以外は何も増やさないでください。",
+          "graph": [
+            {
+              "id": "root",
+              "label": "fixture",
+              "parent": null
+            },
+            {
+              "id": "container",
+              "label": "取込域",
+              "parent": "root"
+            },
+            {
+              "id": "other",
+              "label": "監査域",
+              "parent": "root"
+            },
+            {
+              "id": "initial-api",
+              "label": "API",
+              "parent": "container"
+            },
+            {
+              "id": "initial-db",
+              "label": "DB",
+              "parent": "container"
+            },
+            {
+              "id": "part-1",
+              "label": "夜間照会",
+              "parent": "container"
+            }
+          ],
+          "edges": [],
+          "parents": [
+            {
+              "id": "container",
+              "label": "取込域",
+              "kind": "group",
+              "parent": "root"
+            },
+            {
+              "id": "other",
+              "label": "監査域",
+              "kind": "group",
+              "parent": "root"
+            }
+          ],
+          "offers": {
+            "parts": [
+              {
+                "key": "goal-extra-1",
+                "purpose": "one requested part named 夜間照会, kind decision, missing instance 1",
+                "label": "夜間照会"
+              }
+            ]
+          },
+          "selected": [
+            {
+              "key": "goal-extra-1",
+              "region": "part-1",
+              "parent": "container"
+            }
+          ],
+          "candidates": [
+            {
+              "id": "delta-1",
+              "action": "add-edge",
+              "from": "initial-api",
+              "to": "initial-db"
+            },
+            {
+              "id": "delta-2",
+              "action": "add-edge",
+              "from": "initial-api",
+              "to": "part-1"
+            },
+            {
+              "id": "delta-3",
+              "action": "add-edge",
+              "from": "initial-db",
+              "to": "initial-api"
+            },
+            {
+              "id": "delta-4",
+              "action": "add-edge",
+              "from": "initial-db",
+              "to": "part-1"
+            },
+            {
+              "id": "delta-5",
+              "action": "add-edge",
+              "from": "part-1",
+              "to": "initial-api"
+            },
+            {
+              "id": "delta-6",
+              "action": "add-edge",
+              "from": "part-1",
+              "to": "initial-db"
+            }
+          ],
+          "context": {
+            "recent": [
+              {
+                "seq": 1,
+                "source": "typed",
+                "text": "取込域へ可否を判断するひし形を1個だけ新設し、ラベルは「夜間照会」としてください。それ以外は何も増やさないでください。",
+                "outcome": "step",
+                "effect": {
+                  "changes": [
+                    {
+                      "change": "added",
+                      "kind": "region",
+                      "id": "part-1",
+                      "label": "夜間照会"
+                    }
+                  ]
+                }
+              }
+            ]
+          },
+          "scope": null,
+          "placing": null
+        }
+      },
+      "status": 200,
+      "response": {
+        "kind": "voice-ui.judge.decision.v1",
+        "answers": {
+          "delta": {
+            "type": "choice",
+            "choice": "none",
+            "confidence": 0.95
+          }
+        }
+      },
+      "elapsedMs": 232.25340000000142
+    }
+  ],
+  "initial_head": "sha256:f09c44a962cd217dad824ebf330ea9003d7a7b4d6fa24baac1de8dec4468f46c",
+  "initial_log": "{\"operations\":[{\"mapId\":\"voice-graph\",\"records\":[{\"root\":\"root\",\"schema\":\"semantic-map-state/1\",\"title\":\"independent typed ordinary fresh\",\"type\":\"meta\"},{\"bounds\":[0,0,900,400],\"id\":\"root\",\"kind\":\"boundary\",\"label\":\"fixture\",\"parent\":null,\"summary\":\"\",\"type\":\"region\"},{\"bounds\":[0,0,700,200],\"id\":\"container\",\"kind\":\"group\",\"label\":\"取込域\",\"parent\":\"root\",\"summary\":\"\",\"type\":\"region\"},{\"bounds\":[0,230,700,160],\"id\":\"other\",\"kind\":\"group\",\"label\":\"監査域\",\"parent\":\"root\",\"summary\":\"\",\"type\":\"region\"},{\"bounds\":[20,20,140,64],\"id\":\"initial-api\",\"kind\":\"step\",\"label\":\"API\",\"parent\":\"container\",\"summary\":\"\",\"type\":\"region\"},{\"bounds\":[200,20,140,64],\"id\":\"initial-db\",\"kind\":\"data\",\"label\":\"DB\",\"parent\":\"container\",\"summary\":\"\",\"type\":\"region\"}],\"type\":\"CreateMap\"}],\"parent\":null,\"schema\":\"semantic-map-decision/2\",\"stateHash\":\"sha256:d28a5cde8a307de6f98cc04207356754be5192871823e12625d3bc57db099705\"}\n{\"operations\":[{\"items\":[{\"bounds\":[0,0,2000,500],\"regionId\":\"container\"},{\"bounds\":[0,600,2000,500],\"regionId\":\"other\"},{\"bounds\":[12,36,140,64],\"regionId\":\"initial-api\"},{\"bounds\":[200,36,140,64],\"regionId\":\"initial-db\"}],\"type\":\"PinRegions\"}],\"parent\":\"sha256:76cd65e7422b881814e96e809f38b2cfcc257e1a3b802a197d60928f45b966be\",\"schema\":\"semantic-map-decision/2\",\"stateHash\":\"sha256:da016c1e521da23fbb7188f92e1f4b3dd57cbca1ef38056b63f69a916aa8b7c2\"}\n",
+  "initial_log_sha256": "677982338fa1da2ba7c76b3311a2cdf317adfaddc419999ecba2d13d16f6354d",
+  "initial_records": [
+    {
+      "type": "meta",
+      "schema": "semantic-map-state/1",
+      "root": "root",
+      "title": "independent typed ordinary fresh"
+    },
+    {
+      "type": "region",
+      "id": "root",
+      "parent": null,
+      "label": "fixture",
+      "kind": "boundary",
+      "bounds": [
+        0,
+        0,
+        900,
+        400
+      ],
+      "summary": ""
+    },
+    {
+      "type": "region",
+      "id": "container",
+      "parent": "root",
+      "label": "取込域",
+      "kind": "group",
+      "bounds": [
+        0,
+        0,
+        700,
+        200
+      ],
+      "summary": ""
+    },
+    {
+      "type": "region",
+      "id": "other",
+      "parent": "root",
+      "label": "監査域",
+      "kind": "group",
+      "bounds": [
+        0,
+        230,
+        700,
+        160
+      ],
+      "summary": ""
+    },
+    {
+      "type": "region",
+      "id": "initial-api",
+      "parent": "container",
+      "label": "API",
+      "kind": "step",
+      "bounds": [
+        20,
+        20,
+        140,
+        64
+      ],
+      "summary": ""
+    },
+    {
+      "type": "region",
+      "id": "initial-db",
+      "parent": "container",
+      "label": "DB",
+      "kind": "data",
+      "bounds": [
+        200,
+        20,
+        140,
+        64
+      ],
+      "summary": ""
+    },
+    {
+      "type": "layout",
+      "regionId": "container",
+      "pin": "hard",
+      "bounds": [
+        0,
+        0,
+        2000,
+        500
+      ]
+    },
+    {
+      "type": "layout",
+      "regionId": "initial-api",
+      "pin": "hard",
+      "bounds": [
+        12,
+        36,
+        140,
+        64
+      ]
+    },
+    {
+      "type": "layout",
+      "regionId": "initial-db",
+      "pin": "hard",
+      "bounds": [
+        200,
+        36,
+        140,
+        64
+      ]
+    },
+    {
+      "type": "layout",
+      "regionId": "other",
+      "pin": "hard",
+      "bounds": [
+        0,
+        600,
+        2000,
+        500
+      ]
+    }
+  ],
+  "final_head": "sha256:c099a2785f971da4e766621bcc94c8cefcdd163e12ae31d108d6cc9484b043c7",
+  "final_log": "{\"operations\":[{\"mapId\":\"voice-graph\",\"records\":[{\"root\":\"root\",\"schema\":\"semantic-map-state/1\",\"title\":\"independent typed ordinary fresh\",\"type\":\"meta\"},{\"bounds\":[0,0,900,400],\"id\":\"root\",\"kind\":\"boundary\",\"label\":\"fixture\",\"parent\":null,\"summary\":\"\",\"type\":\"region\"},{\"bounds\":[0,0,700,200],\"id\":\"container\",\"kind\":\"group\",\"label\":\"取込域\",\"parent\":\"root\",\"summary\":\"\",\"type\":\"region\"},{\"bounds\":[0,230,700,160],\"id\":\"other\",\"kind\":\"group\",\"label\":\"監査域\",\"parent\":\"root\",\"summary\":\"\",\"type\":\"region\"},{\"bounds\":[20,20,140,64],\"id\":\"initial-api\",\"kind\":\"step\",\"label\":\"API\",\"parent\":\"container\",\"summary\":\"\",\"type\":\"region\"},{\"bounds\":[200,20,140,64],\"id\":\"initial-db\",\"kind\":\"data\",\"label\":\"DB\",\"parent\":\"container\",\"summary\":\"\",\"type\":\"region\"}],\"type\":\"CreateMap\"}],\"parent\":null,\"schema\":\"semantic-map-decision/2\",\"stateHash\":\"sha256:d28a5cde8a307de6f98cc04207356754be5192871823e12625d3bc57db099705\"}\n{\"operations\":[{\"items\":[{\"bounds\":[0,0,2000,500],\"regionId\":\"container\"},{\"bounds\":[0,600,2000,500],\"regionId\":\"other\"},{\"bounds\":[12,36,140,64],\"regionId\":\"initial-api\"},{\"bounds\":[200,36,140,64],\"regionId\":\"initial-db\"}],\"type\":\"PinRegions\"}],\"parent\":\"sha256:76cd65e7422b881814e96e809f38b2cfcc257e1a3b802a197d60928f45b966be\",\"schema\":\"semantic-map-decision/2\",\"stateHash\":\"sha256:da016c1e521da23fbb7188f92e1f4b3dd57cbca1ef38056b63f69a916aa8b7c2\"}\n{\"operations\":[{\"bounds\":[340,20,140,64],\"kind\":\"decision\",\"label\":\"夜間照会\",\"parentId\":\"container\",\"regionId\":\"part-1\",\"summary\":\"\",\"type\":\"AddRegion\"},{\"items\":[{\"bounds\":[420,36,180,92],\"regionId\":\"part-1\"}],\"type\":\"PinRegions\"}],\"parent\":\"sha256:f09c44a962cd217dad824ebf330ea9003d7a7b4d6fa24baac1de8dec4468f46c\",\"schema\":\"semantic-map-decision/2\",\"stateHash\":\"sha256:d269315fb627a8de6963114daaa191b8cbaf9762de5cc052070860b5e1420e9b\"}\n",
+  "final_records": [
+    {
+      "type": "meta",
+      "schema": "semantic-map-state/1",
+      "root": "root",
+      "title": "independent typed ordinary fresh"
+    },
+    {
+      "type": "region",
+      "id": "root",
+      "parent": null,
+      "label": "fixture",
+      "kind": "boundary",
+      "bounds": [
+        0,
+        0,
+        900,
+        400
+      ],
+      "summary": ""
+    },
+    {
+      "type": "region",
+      "id": "container",
+      "parent": "root",
+      "label": "取込域",
+      "kind": "group",
+      "bounds": [
+        0,
+        0,
+        700,
+        200
+      ],
+      "summary": ""
+    },
+    {
+      "type": "region",
+      "id": "other",
+      "parent": "root",
+      "label": "監査域",
+      "kind": "group",
+      "bounds": [
+        0,
+        230,
+        700,
+        160
+      ],
+      "summary": ""
+    },
+    {
+      "type": "region",
+      "id": "initial-api",
+      "parent": "container",
+      "label": "API",
+      "kind": "step",
+      "bounds": [
+        20,
+        20,
+        140,
+        64
+      ],
+      "summary": ""
+    },
+    {
+      "type": "region",
+      "id": "initial-db",
+      "parent": "container",
+      "label": "DB",
+      "kind": "data",
+      "bounds": [
+        200,
+        20,
+        140,
+        64
+      ],
+      "summary": ""
+    },
+    {
+      "type": "region",
+      "id": "part-1",
+      "parent": "container",
+      "label": "夜間照会",
+      "kind": "decision",
+      "bounds": [
+        340,
+        20,
+        140,
+        64
+      ],
+      "summary": ""
+    },
+    {
+      "type": "layout",
+      "regionId": "container",
+      "pin": "hard",
+      "bounds": [
+        0,
+        0,
+        2000,
+        500
+      ]
+    },
+    {
+      "type": "layout",
+      "regionId": "initial-api",
+      "pin": "hard",
+      "bounds": [
+        12,
+        36,
+        140,
+        64
+      ]
+    },
+    {
+      "type": "layout",
+      "regionId": "initial-db",
+      "pin": "hard",
+      "bounds": [
+        200,
+        36,
+        140,
+        64
+      ]
+    },
+    {
+      "type": "layout",
+      "regionId": "other",
+      "pin": "hard",
+      "bounds": [
+        0,
+        600,
+        2000,
+        500
+      ]
+    },
+    {
+      "type": "layout",
+      "regionId": "part-1",
+      "pin": "hard",
+      "bounds": [
+        420,
+        36,
+        180,
+        92
+      ]
+    }
+  ],
+  "frames": [
+    {
+      "camera": "overview",
+      "scope": "restore equality only; hidden children do not imply paint"
+    },
+    {
+      "camera": "container",
+      "observation": {
+        "association": "render-owned-semantic-id",
+        "title": {
+          "unmet": null,
+          "box": [
+            27.729999542236328,
+            158.88999938964844,
+            38.999996185302734,
+            19
+          ],
+          "clips": [
+            [
+              0,
+              0,
+              626,
+              429
+            ],
+            [
+              0,
+              0,
+              626,
+              429
+            ],
+            [
+              0,
+              0,
+              626,
+              429
+            ]
+          ],
+          "svg": [
+            0,
+            0,
+            2046,
+            1268
+          ]
+        },
+        "identity": true,
+        "viewport": [
+          0,
+          0,
+          626,
+          429
+        ],
+        "container": {
+          "id": "container",
+          "kind": "painted-group-shape",
+          "bounds": [
+            16.350000381469727,
+            151.61000061035156,
+            1981.010009765625,
+            495.25
+          ]
+        },
+        "shapes": [
+          {
+            "id": "initial-api",
+            "rawLabel": "API",
+            "bounds": [
+              27.729999542236328,
+              186.77000427246094,
+              138.6699981689453,
+              63.38999938964844
+            ],
+            "name": {
+              "unmet": null,
+              "box": [
+                85.56999969482422,
+                208.91000366210938,
+                22,
+                19
+              ],
+              "clips": [
+                [
+                  28,
+                  187,
+                  139,
+                  63
+                ],
+                [
+                  0,
+                  0,
+                  626,
+                  429
+                ],
+                [
+                  0,
+                  0,
+                  626,
+                  429
+                ],
+                [
+                  0,
+                  0,
+                  626,
+                  429
+                ]
+              ],
+              "svg": [
+                0,
+                0,
+                2046,
+                1268
+              ]
+            }
+          },
+          {
+            "id": "initial-db",
+            "rawLabel": "DB",
+            "bounds": [
+              213.9499969482422,
+              186.77000427246094,
+              138.6699981689453,
+              63.38999938964844
+            ],
+            "name": {
+              "unmet": null,
+              "box": [
+                274.2799987792969,
+                208.91000366210938,
+                18,
+                19
+              ],
+              "clips": [
+                [
+                  226,
+                  187,
+                  115,
+                  63
+                ],
+                [
+                  0,
+                  0,
+                  626,
+                  429
+                ],
+                [
+                  0,
+                  0,
+                  626,
+                  429
+                ],
+                [
+                  0,
+                  0,
+                  626,
+                  429
+                ]
+              ],
+              "svg": [
+                0,
+                0,
+                2046,
+                1268
+              ]
+            }
+          },
+          {
+            "id": "part-1",
+            "rawLabel": "夜間照会",
+            "bounds": [
+              431.8599853515625,
+              186.77000427246094,
+              178.2900390625,
+              91.12001037597656
+            ],
+            "name": {
+              "unmet": null,
+              "box": [
+                495.010009765625,
+                222.77999877929688,
+                52,
+                19
+              ],
+              "clips": [
+                [
+                  444,
+                  187,
+                  155,
+                  91
+                ],
+                [
+                  0,
+                  0,
+                  626,
+                  429
+                ],
+                [
+                  0,
+                  0,
+                  626,
+                  429
+                ],
+                [
+                  0,
+                  0,
+                  626,
+                  429
+                ]
+              ],
+              "svg": [
+                0,
+                0,
+                2046,
+                1268
+              ]
+            }
+          }
+        ],
+        "edge": null,
+        "contained": true,
+        "nonoverlap": true,
+        "complete": true
+      },
+      "assessment": {
+        "status": "PASS",
+        "problems": [],
+        "unknown": []
+      }
+    },
+    {
+      "camera": "other",
+      "observation": {
+        "association": "render-owned-semantic-id",
+        "title": {
+          "unmet": null,
+          "box": [
+            296.5,
+            206.86000061035156,
+            34,
+            16
+          ],
+          "clips": [
+            [
+              4,
+              136,
+              619,
+              157
+            ],
+            [
+              0,
+              0,
+              626,
+              429
+            ],
+            [
+              0,
+              0,
+              626,
+              429
+            ],
+            [
+              0,
+              0,
+              626,
+              429
+            ]
+          ],
+          "svg": [
+            0,
+            0,
+            638,
+            429
+          ]
+        },
+        "identity": true,
+        "viewport": [
+          0,
+          0,
+          626,
+          429
+        ],
+        "container": {
+          "id": "other",
+          "kind": "painted-group-shape",
+          "bounds": [
+            5.429999828338623,
+            137.97999572753906,
+            616.1400146484375,
+            154.0399932861328
+          ]
+        },
+        "shapes": [],
+        "edge": null,
+        "contained": true,
+        "nonoverlap": true,
+        "complete": true
+      },
+      "assessment": {
+        "status": "PASS",
+        "problems": [],
+        "unknown": []
+      }
+    }
+  ],
+  "lifecycle": {
+    "target": {
+      "log": "{\"operations\":[{\"mapId\":\"voice-graph\",\"records\":[{\"root\":\"root\",\"schema\":\"semantic-map-state/1\",\"title\":\"independent typed ordinary fresh\",\"type\":\"meta\"},{\"bounds\":[0,0,900,400],\"id\":\"root\",\"kind\":\"boundary\",\"label\":\"fixture\",\"parent\":null,\"summary\":\"\",\"type\":\"region\"},{\"bounds\":[0,0,700,200],\"id\":\"container\",\"kind\":\"group\",\"label\":\"取込域\",\"parent\":\"root\",\"summary\":\"\",\"type\":\"region\"},{\"bounds\":[0,230,700,160],\"id\":\"other\",\"kind\":\"group\",\"label\":\"監査域\",\"parent\":\"root\",\"summary\":\"\",\"type\":\"region\"},{\"bounds\":[20,20,140,64],\"id\":\"initial-api\",\"kind\":\"step\",\"label\":\"API\",\"parent\":\"container\",\"summary\":\"\",\"type\":\"region\"},{\"bounds\":[200,20,140,64],\"id\":\"initial-db\",\"kind\":\"data\",\"label\":\"DB\",\"parent\":\"container\",\"summary\":\"\",\"type\":\"region\"}],\"type\":\"CreateMap\"}],\"parent\":null,\"schema\":\"semantic-map-decision/2\",\"stateHash\":\"sha256:d28a5cde8a307de6f98cc04207356754be5192871823e12625d3bc57db099705\"}\n{\"operations\":[{\"items\":[{\"bounds\":[0,0,2000,500],\"regionId\":\"container\"},{\"bounds\":[0,600,2000,500],\"regionId\":\"other\"},{\"bounds\":[12,36,140,64],\"regionId\":\"initial-api\"},{\"bounds\":[200,36,140,64],\"regionId\":\"initial-db\"}],\"type\":\"PinRegions\"}],\"parent\":\"sha256:76cd65e7422b881814e96e809f38b2cfcc257e1a3b802a197d60928f45b966be\",\"schema\":\"semantic-map-decision/2\",\"stateHash\":\"sha256:da016c1e521da23fbb7188f92e1f4b3dd57cbca1ef38056b63f69a916aa8b7c2\"}\n{\"operations\":[{\"bounds\":[340,20,140,64],\"kind\":\"decision\",\"label\":\"夜間照会\",\"parentId\":\"container\",\"regionId\":\"part-1\",\"summary\":\"\",\"type\":\"AddRegion\"},{\"items\":[{\"bounds\":[420,36,180,92],\"regionId\":\"part-1\"}],\"type\":\"PinRegions\"}],\"parent\":\"sha256:f09c44a962cd217dad824ebf330ea9003d7a7b4d6fa24baac1de8dec4468f46c\",\"schema\":\"semantic-map-decision/2\",\"stateHash\":\"sha256:d269315fb627a8de6963114daaa191b8cbaf9762de5cc052070860b5e1420e9b\"}\n",
+      "records": [
+        {
+          "type": "meta",
+          "schema": "semantic-map-state/1",
+          "root": "root",
+          "title": "independent typed ordinary fresh"
+        },
+        {
+          "type": "region",
+          "id": "root",
+          "parent": null,
+          "label": "fixture",
+          "kind": "boundary",
+          "bounds": [
+            0,
+            0,
+            900,
+            400
+          ],
+          "summary": ""
+        },
+        {
+          "type": "region",
+          "id": "container",
+          "parent": "root",
+          "label": "取込域",
+          "kind": "group",
+          "bounds": [
+            0,
+            0,
+            700,
+            200
+          ],
+          "summary": ""
+        },
+        {
+          "type": "region",
+          "id": "other",
+          "parent": "root",
+          "label": "監査域",
+          "kind": "group",
+          "bounds": [
+            0,
+            230,
+            700,
+            160
+          ],
+          "summary": ""
+        },
+        {
+          "type": "region",
+          "id": "initial-api",
+          "parent": "container",
+          "label": "API",
+          "kind": "step",
+          "bounds": [
+            20,
+            20,
+            140,
+            64
+          ],
+          "summary": ""
+        },
+        {
+          "type": "region",
+          "id": "initial-db",
+          "parent": "container",
+          "label": "DB",
+          "kind": "data",
+          "bounds": [
+            200,
+            20,
+            140,
+            64
+          ],
+          "summary": ""
+        },
+        {
+          "type": "region",
+          "id": "part-1",
+          "parent": "container",
+          "label": "夜間照会",
+          "kind": "decision",
+          "bounds": [
+            340,
+            20,
+            140,
+            64
+          ],
+          "summary": ""
+        },
+        {
+          "type": "layout",
+          "regionId": "container",
+          "pin": "hard",
+          "bounds": [
+            0,
+            0,
+            2000,
+            500
+          ]
+        },
+        {
+          "type": "layout",
+          "regionId": "initial-api",
+          "pin": "hard",
+          "bounds": [
+            12,
+            36,
+            140,
+            64
+          ]
+        },
+        {
+          "type": "layout",
+          "regionId": "initial-db",
+          "pin": "hard",
+          "bounds": [
+            200,
+            36,
+            140,
+            64
+          ]
+        },
+        {
+          "type": "layout",
+          "regionId": "other",
+          "pin": "hard",
+          "bounds": [
+            0,
+            600,
+            2000,
+            500
+          ]
+        },
+        {
+          "type": "layout",
+          "regionId": "part-1",
+          "pin": "hard",
+          "bounds": [
+            420,
+            36,
+            180,
+            92
+          ]
+        }
+      ],
+      "stored": "{\"operations\":[{\"mapId\":\"voice-graph\",\"records\":[{\"root\":\"root\",\"schema\":\"semantic-map-state/1\",\"title\":\"independent typed ordinary fresh\",\"type\":\"meta\"},{\"bounds\":[0,0,900,400],\"id\":\"root\",\"kind\":\"boundary\",\"label\":\"fixture\",\"parent\":null,\"summary\":\"\",\"type\":\"region\"},{\"bounds\":[0,0,700,200],\"id\":\"container\",\"kind\":\"group\",\"label\":\"取込域\",\"parent\":\"root\",\"summary\":\"\",\"type\":\"region\"},{\"bounds\":[0,230,700,160],\"id\":\"other\",\"kind\":\"group\",\"label\":\"監査域\",\"parent\":\"root\",\"summary\":\"\",\"type\":\"region\"},{\"bounds\":[20,20,140,64],\"id\":\"initial-api\",\"kind\":\"step\",\"label\":\"API\",\"parent\":\"container\",\"summary\":\"\",\"type\":\"region\"},{\"bounds\":[200,20,140,64],\"id\":\"initial-db\",\"kind\":\"data\",\"label\":\"DB\",\"parent\":\"container\",\"summary\":\"\",\"type\":\"region\"}],\"type\":\"CreateMap\"}],\"parent\":null,\"schema\":\"semantic-map-decision/2\",\"stateHash\":\"sha256:d28a5cde8a307de6f98cc04207356754be5192871823e12625d3bc57db099705\"}\n{\"operations\":[{\"items\":[{\"bounds\":[0,0,2000,500],\"regionId\":\"container\"},{\"bounds\":[0,600,2000,500],\"regionId\":\"other\"},{\"bounds\":[12,36,140,64],\"regionId\":\"initial-api\"},{\"bounds\":[200,36,140,64],\"regionId\":\"initial-db\"}],\"type\":\"PinRegions\"}],\"parent\":\"sha256:76cd65e7422b881814e96e809f38b2cfcc257e1a3b802a197d60928f45b966be\",\"schema\":\"semantic-map-decision/2\",\"stateHash\":\"sha256:da016c1e521da23fbb7188f92e1f4b3dd57cbca1ef38056b63f69a916aa8b7c2\"}\n",
+      "goal": {
+        "reason": "none",
+        "requests": 4,
+        "elapsedMs": 5134.360000014305,
+        "selected": [
+          {
+            "key": "goal-extra-1",
+            "region": "part-1",
+            "parent": "container"
+          }
+        ],
+        "trace": [
+          {
+            "head": "sha256:f09c44a962cd217dad824ebf330ea9003d7a7b4d6fa24baac1de8dec4468f46c",
+            "answers": {
+              "delta": {
+                "type": "choice",
+                "choice": "part:goal-extra-1",
+                "confidence": 0.99
+              }
+            },
+            "failure": null
+          },
+          {
+            "head": "sha256:f09c44a962cd217dad824ebf330ea9003d7a7b4d6fa24baac1de8dec4468f46c",
+            "answers": {
+              "delta": {
+                "type": "choice",
+                "choice": "delta-1",
+                "confidence": 1
+              }
+            },
+            "failure": null
+          },
+          {
+            "head": "sha256:c099a2785f971da4e766621bcc94c8cefcdd163e12ae31d108d6cc9484b043c7",
+            "answers": {
+              "delta": {
+                "type": "choice",
+                "choice": "none",
+                "confidence": 0.95
+              }
+            },
+            "failure": null
+          }
+        ],
+        "inventory": {
+          "checks": 1,
+          "completions": 0,
+          "preparations": 1,
+          "coverage": {
+            "choice": "missing",
+            "confidence": 0.9,
+            "inspection": {
+              "schema": "voice-ui.parts.inspection/3",
+              "request_id": "ef413df1-4c3c-4342-954a-530cdb6290d3",
+              "mode": "adaptive-v3",
+              "initial": {
+                "decision": {
+                  "choice": "unknown",
+                  "confidence": null
+                },
+                "factors": {
+                  "intent": {
+                    "choice": "change",
+                    "confidence": 0.95
+                  },
+                  "labels": {
+                    "choice": "missing",
+                    "confidence": 0.48
+                  },
+                  "capacity": {
+                    "choice": "within",
+                    "confidence": 0.88
+                  },
+                  "completeness": {
+                    "choice": "incomplete",
+                    "confidence": 0.9
+                  }
+                },
+                "literal": {
+                  "recognized": false,
+                  "required": [],
+                  "spans": []
+                },
+                "observation": {
+                  "valid": true,
+                  "status": "unsupported-syntax"
+                }
+              },
+              "proposal": {
+                "slots": {
+                  "required1": {
+                    "label": "夜間照会",
+                    "kind": "decision",
+                    "quantity": "1"
+                  },
+                  "required2": {
+                    "label": "",
+                    "kind": "none",
+                    "quantity": "0"
+                  },
+                  "required3": {
+                    "label": "",
+                    "kind": "none",
+                    "quantity": "0"
+                  }
+                },
+                "required": [
+                  {
+                    "label": "夜間照会",
+                    "kind": "decision",
+                    "quantity": 1
+                  }
+                ]
+              },
+              "verification": {
+                "intent": {
+                  "choice": "change",
+                  "confidence": 1
+                },
+                "labels": {
+                  "choice": "missing",
+                  "confidence": 0.88
+                },
+                "capacity": {
+                  "choice": "within",
+                  "confidence": 0.96
+                },
+                "completeness": {
+                  "choice": "complete",
+                  "confidence": 0.9
+                }
+              },
+              "required": [
+                {
+                  "label": "夜間照会",
+                  "kind": "decision",
+                  "quantity": 1
+                }
+              ],
+              "missing": [
+                {
+                  "label": "夜間照会",
+                  "kind": "decision",
+                  "occurrence": 1
+                }
+              ],
+              "proposal_policy": {
+                "id": "uncertainty-frontier-v1",
+                "eligible": true,
+                "reason": "confident-change-incomplete"
+              }
+            }
+          },
+          "missing": [
+            {
+              "label": "夜間照会",
+              "kind": "decision",
+              "occurrence": 1
+            }
+          ]
+        }
+      }
+    },
+    "applied": {
+      "log": "{\"operations\":[{\"mapId\":\"voice-graph\",\"records\":[{\"root\":\"root\",\"schema\":\"semantic-map-state/1\",\"title\":\"independent typed ordinary fresh\",\"type\":\"meta\"},{\"bounds\":[0,0,900,400],\"id\":\"root\",\"kind\":\"boundary\",\"label\":\"fixture\",\"parent\":null,\"summary\":\"\",\"type\":\"region\"},{\"bounds\":[0,0,700,200],\"id\":\"container\",\"kind\":\"group\",\"label\":\"取込域\",\"parent\":\"root\",\"summary\":\"\",\"type\":\"region\"},{\"bounds\":[0,230,700,160],\"id\":\"other\",\"kind\":\"group\",\"label\":\"監査域\",\"parent\":\"root\",\"summary\":\"\",\"type\":\"region\"},{\"bounds\":[20,20,140,64],\"id\":\"initial-api\",\"kind\":\"step\",\"label\":\"API\",\"parent\":\"container\",\"summary\":\"\",\"type\":\"region\"},{\"bounds\":[200,20,140,64],\"id\":\"initial-db\",\"kind\":\"data\",\"label\":\"DB\",\"parent\":\"container\",\"summary\":\"\",\"type\":\"region\"}],\"type\":\"CreateMap\"}],\"parent\":null,\"schema\":\"semantic-map-decision/2\",\"stateHash\":\"sha256:d28a5cde8a307de6f98cc04207356754be5192871823e12625d3bc57db099705\"}\n{\"operations\":[{\"items\":[{\"bounds\":[0,0,2000,500],\"regionId\":\"container\"},{\"bounds\":[0,600,2000,500],\"regionId\":\"other\"},{\"bounds\":[12,36,140,64],\"regionId\":\"initial-api\"},{\"bounds\":[200,36,140,64],\"regionId\":\"initial-db\"}],\"type\":\"PinRegions\"}],\"parent\":\"sha256:76cd65e7422b881814e96e809f38b2cfcc257e1a3b802a197d60928f45b966be\",\"schema\":\"semantic-map-decision/2\",\"stateHash\":\"sha256:da016c1e521da23fbb7188f92e1f4b3dd57cbca1ef38056b63f69a916aa8b7c2\"}\n{\"operations\":[{\"bounds\":[340,20,140,64],\"kind\":\"decision\",\"label\":\"夜間照会\",\"parentId\":\"container\",\"regionId\":\"part-1\",\"summary\":\"\",\"type\":\"AddRegion\"},{\"items\":[{\"bounds\":[420,36,180,92],\"regionId\":\"part-1\"}],\"type\":\"PinRegions\"}],\"parent\":\"sha256:f09c44a962cd217dad824ebf330ea9003d7a7b4d6fa24baac1de8dec4468f46c\",\"schema\":\"semantic-map-decision/2\",\"stateHash\":\"sha256:d269315fb627a8de6963114daaa191b8cbaf9762de5cc052070860b5e1420e9b\"}\n",
+      "records": [
+        {
+          "type": "meta",
+          "schema": "semantic-map-state/1",
+          "root": "root",
+          "title": "independent typed ordinary fresh"
+        },
+        {
+          "type": "region",
+          "id": "root",
+          "parent": null,
+          "label": "fixture",
+          "kind": "boundary",
+          "bounds": [
+            0,
+            0,
+            900,
+            400
+          ],
+          "summary": ""
+        },
+        {
+          "type": "region",
+          "id": "container",
+          "parent": "root",
+          "label": "取込域",
+          "kind": "group",
+          "bounds": [
+            0,
+            0,
+            700,
+            200
+          ],
+          "summary": ""
+        },
+        {
+          "type": "region",
+          "id": "other",
+          "parent": "root",
+          "label": "監査域",
+          "kind": "group",
+          "bounds": [
+            0,
+            230,
+            700,
+            160
+          ],
+          "summary": ""
+        },
+        {
+          "type": "region",
+          "id": "initial-api",
+          "parent": "container",
+          "label": "API",
+          "kind": "step",
+          "bounds": [
+            20,
+            20,
+            140,
+            64
+          ],
+          "summary": ""
+        },
+        {
+          "type": "region",
+          "id": "initial-db",
+          "parent": "container",
+          "label": "DB",
+          "kind": "data",
+          "bounds": [
+            200,
+            20,
+            140,
+            64
+          ],
+          "summary": ""
+        },
+        {
+          "type": "region",
+          "id": "part-1",
+          "parent": "container",
+          "label": "夜間照会",
+          "kind": "decision",
+          "bounds": [
+            340,
+            20,
+            140,
+            64
+          ],
+          "summary": ""
+        },
+        {
+          "type": "layout",
+          "regionId": "container",
+          "pin": "hard",
+          "bounds": [
+            0,
+            0,
+            2000,
+            500
+          ]
+        },
+        {
+          "type": "layout",
+          "regionId": "initial-api",
+          "pin": "hard",
+          "bounds": [
+            12,
+            36,
+            140,
+            64
+          ]
+        },
+        {
+          "type": "layout",
+          "regionId": "initial-db",
+          "pin": "hard",
+          "bounds": [
+            200,
+            36,
+            140,
+            64
+          ]
+        },
+        {
+          "type": "layout",
+          "regionId": "other",
+          "pin": "hard",
+          "bounds": [
+            0,
+            600,
+            2000,
+            500
+          ]
+        },
+        {
+          "type": "layout",
+          "regionId": "part-1",
+          "pin": "hard",
+          "bounds": [
+            420,
+            36,
+            180,
+            92
+          ]
+        }
+      ],
+      "stored": "{\"operations\":[{\"mapId\":\"voice-graph\",\"records\":[{\"root\":\"root\",\"schema\":\"semantic-map-state/1\",\"title\":\"independent typed ordinary fresh\",\"type\":\"meta\"},{\"bounds\":[0,0,900,400],\"id\":\"root\",\"kind\":\"boundary\",\"label\":\"fixture\",\"parent\":null,\"summary\":\"\",\"type\":\"region\"},{\"bounds\":[0,0,700,200],\"id\":\"container\",\"kind\":\"group\",\"label\":\"取込域\",\"parent\":\"root\",\"summary\":\"\",\"type\":\"region\"},{\"bounds\":[0,230,700,160],\"id\":\"other\",\"kind\":\"group\",\"label\":\"監査域\",\"parent\":\"root\",\"summary\":\"\",\"type\":\"region\"},{\"bounds\":[20,20,140,64],\"id\":\"initial-api\",\"kind\":\"step\",\"label\":\"API\",\"parent\":\"container\",\"summary\":\"\",\"type\":\"region\"},{\"bounds\":[200,20,140,64],\"id\":\"initial-db\",\"kind\":\"data\",\"label\":\"DB\",\"parent\":\"container\",\"summary\":\"\",\"type\":\"region\"}],\"type\":\"CreateMap\"}],\"parent\":null,\"schema\":\"semantic-map-decision/2\",\"stateHash\":\"sha256:d28a5cde8a307de6f98cc04207356754be5192871823e12625d3bc57db099705\"}\n{\"operations\":[{\"items\":[{\"bounds\":[0,0,2000,500],\"regionId\":\"container\"},{\"bounds\":[0,600,2000,500],\"regionId\":\"other\"},{\"bounds\":[12,36,140,64],\"regionId\":\"initial-api\"},{\"bounds\":[200,36,140,64],\"regionId\":\"initial-db\"}],\"type\":\"PinRegions\"}],\"parent\":\"sha256:76cd65e7422b881814e96e809f38b2cfcc257e1a3b802a197d60928f45b966be\",\"schema\":\"semantic-map-decision/2\",\"stateHash\":\"sha256:da016c1e521da23fbb7188f92e1f4b3dd57cbca1ef38056b63f69a916aa8b7c2\"}\n{\"operations\":[{\"bounds\":[340,20,140,64],\"kind\":\"decision\",\"label\":\"夜間照会\",\"parentId\":\"container\",\"regionId\":\"part-1\",\"summary\":\"\",\"type\":\"AddRegion\"},{\"items\":[{\"bounds\":[420,36,180,92],\"regionId\":\"part-1\"}],\"type\":\"PinRegions\"}],\"parent\":\"sha256:f09c44a962cd217dad824ebf330ea9003d7a7b4d6fa24baac1de8dec4468f46c\",\"schema\":\"semantic-map-decision/2\",\"stateHash\":\"sha256:d269315fb627a8de6963114daaa191b8cbaf9762de5cc052070860b5e1420e9b\"}\n",
+      "goal": {
+        "reason": "none",
+        "requests": 4,
+        "elapsedMs": 5134.360000014305,
+        "selected": [
+          {
+            "key": "goal-extra-1",
+            "region": "part-1",
+            "parent": "container"
+          }
+        ],
+        "trace": [
+          {
+            "head": "sha256:f09c44a962cd217dad824ebf330ea9003d7a7b4d6fa24baac1de8dec4468f46c",
+            "answers": {
+              "delta": {
+                "type": "choice",
+                "choice": "part:goal-extra-1",
+                "confidence": 0.99
+              }
+            },
+            "failure": null
+          },
+          {
+            "head": "sha256:f09c44a962cd217dad824ebf330ea9003d7a7b4d6fa24baac1de8dec4468f46c",
+            "answers": {
+              "delta": {
+                "type": "choice",
+                "choice": "delta-1",
+                "confidence": 1
+              }
+            },
+            "failure": null
+          },
+          {
+            "head": "sha256:c099a2785f971da4e766621bcc94c8cefcdd163e12ae31d108d6cc9484b043c7",
+            "answers": {
+              "delta": {
+                "type": "choice",
+                "choice": "none",
+                "confidence": 0.95
+              }
+            },
+            "failure": null
+          }
+        ],
+        "inventory": {
+          "checks": 1,
+          "completions": 0,
+          "preparations": 1,
+          "coverage": {
+            "choice": "missing",
+            "confidence": 0.9,
+            "inspection": {
+              "schema": "voice-ui.parts.inspection/3",
+              "request_id": "ef413df1-4c3c-4342-954a-530cdb6290d3",
+              "mode": "adaptive-v3",
+              "initial": {
+                "decision": {
+                  "choice": "unknown",
+                  "confidence": null
+                },
+                "factors": {
+                  "intent": {
+                    "choice": "change",
+                    "confidence": 0.95
+                  },
+                  "labels": {
+                    "choice": "missing",
+                    "confidence": 0.48
+                  },
+                  "capacity": {
+                    "choice": "within",
+                    "confidence": 0.88
+                  },
+                  "completeness": {
+                    "choice": "incomplete",
+                    "confidence": 0.9
+                  }
+                },
+                "literal": {
+                  "recognized": false,
+                  "required": [],
+                  "spans": []
+                },
+                "observation": {
+                  "valid": true,
+                  "status": "unsupported-syntax"
+                }
+              },
+              "proposal": {
+                "slots": {
+                  "required1": {
+                    "label": "夜間照会",
+                    "kind": "decision",
+                    "quantity": "1"
+                  },
+                  "required2": {
+                    "label": "",
+                    "kind": "none",
+                    "quantity": "0"
+                  },
+                  "required3": {
+                    "label": "",
+                    "kind": "none",
+                    "quantity": "0"
+                  }
+                },
+                "required": [
+                  {
+                    "label": "夜間照会",
+                    "kind": "decision",
+                    "quantity": 1
+                  }
+                ]
+              },
+              "verification": {
+                "intent": {
+                  "choice": "change",
+                  "confidence": 1
+                },
+                "labels": {
+                  "choice": "missing",
+                  "confidence": 0.88
+                },
+                "capacity": {
+                  "choice": "within",
+                  "confidence": 0.96
+                },
+                "completeness": {
+                  "choice": "complete",
+                  "confidence": 0.9
+                }
+              },
+              "required": [
+                {
+                  "label": "夜間照会",
+                  "kind": "decision",
+                  "quantity": 1
+                }
+              ],
+              "missing": [
+                {
+                  "label": "夜間照会",
+                  "kind": "decision",
+                  "occurrence": 1
+                }
+              ],
+              "proposal_policy": {
+                "id": "uncertainty-frontier-v1",
+                "eligible": true,
+                "reason": "confident-change-incomplete"
+              }
+            }
+          },
+          "missing": [
+            {
+              "label": "夜間照会",
+              "kind": "decision",
+              "occurrence": 1
+            }
+          ]
+        }
+      }
+    },
+    "reloaded": {
+      "log": "{\"operations\":[{\"mapId\":\"voice-graph\",\"records\":[{\"root\":\"root\",\"schema\":\"semantic-map-state/1\",\"title\":\"independent typed ordinary fresh\",\"type\":\"meta\"},{\"bounds\":[0,0,900,400],\"id\":\"root\",\"kind\":\"boundary\",\"label\":\"fixture\",\"parent\":null,\"summary\":\"\",\"type\":\"region\"},{\"bounds\":[0,0,700,200],\"id\":\"container\",\"kind\":\"group\",\"label\":\"取込域\",\"parent\":\"root\",\"summary\":\"\",\"type\":\"region\"},{\"bounds\":[0,230,700,160],\"id\":\"other\",\"kind\":\"group\",\"label\":\"監査域\",\"parent\":\"root\",\"summary\":\"\",\"type\":\"region\"},{\"bounds\":[20,20,140,64],\"id\":\"initial-api\",\"kind\":\"step\",\"label\":\"API\",\"parent\":\"container\",\"summary\":\"\",\"type\":\"region\"},{\"bounds\":[200,20,140,64],\"id\":\"initial-db\",\"kind\":\"data\",\"label\":\"DB\",\"parent\":\"container\",\"summary\":\"\",\"type\":\"region\"}],\"type\":\"CreateMap\"}],\"parent\":null,\"schema\":\"semantic-map-decision/2\",\"stateHash\":\"sha256:d28a5cde8a307de6f98cc04207356754be5192871823e12625d3bc57db099705\"}\n{\"operations\":[{\"items\":[{\"bounds\":[0,0,2000,500],\"regionId\":\"container\"},{\"bounds\":[0,600,2000,500],\"regionId\":\"other\"},{\"bounds\":[12,36,140,64],\"regionId\":\"initial-api\"},{\"bounds\":[200,36,140,64],\"regionId\":\"initial-db\"}],\"type\":\"PinRegions\"}],\"parent\":\"sha256:76cd65e7422b881814e96e809f38b2cfcc257e1a3b802a197d60928f45b966be\",\"schema\":\"semantic-map-decision/2\",\"stateHash\":\"sha256:da016c1e521da23fbb7188f92e1f4b3dd57cbca1ef38056b63f69a916aa8b7c2\"}\n{\"operations\":[{\"bounds\":[340,20,140,64],\"kind\":\"decision\",\"label\":\"夜間照会\",\"parentId\":\"container\",\"regionId\":\"part-1\",\"summary\":\"\",\"type\":\"AddRegion\"},{\"items\":[{\"bounds\":[420,36,180,92],\"regionId\":\"part-1\"}],\"type\":\"PinRegions\"}],\"parent\":\"sha256:f09c44a962cd217dad824ebf330ea9003d7a7b4d6fa24baac1de8dec4468f46c\",\"schema\":\"semantic-map-decision/2\",\"stateHash\":\"sha256:d269315fb627a8de6963114daaa191b8cbaf9762de5cc052070860b5e1420e9b\"}\n",
+      "records": [
+        {
+          "type": "meta",
+          "schema": "semantic-map-state/1",
+          "root": "root",
+          "title": "independent typed ordinary fresh"
+        },
+        {
+          "type": "region",
+          "id": "root",
+          "parent": null,
+          "label": "fixture",
+          "kind": "boundary",
+          "bounds": [
+            0,
+            0,
+            900,
+            400
+          ],
+          "summary": ""
+        },
+        {
+          "type": "region",
+          "id": "container",
+          "parent": "root",
+          "label": "取込域",
+          "kind": "group",
+          "bounds": [
+            0,
+            0,
+            700,
+            200
+          ],
+          "summary": ""
+        },
+        {
+          "type": "region",
+          "id": "other",
+          "parent": "root",
+          "label": "監査域",
+          "kind": "group",
+          "bounds": [
+            0,
+            230,
+            700,
+            160
+          ],
+          "summary": ""
+        },
+        {
+          "type": "region",
+          "id": "initial-api",
+          "parent": "container",
+          "label": "API",
+          "kind": "step",
+          "bounds": [
+            20,
+            20,
+            140,
+            64
+          ],
+          "summary": ""
+        },
+        {
+          "type": "region",
+          "id": "initial-db",
+          "parent": "container",
+          "label": "DB",
+          "kind": "data",
+          "bounds": [
+            200,
+            20,
+            140,
+            64
+          ],
+          "summary": ""
+        },
+        {
+          "type": "region",
+          "id": "part-1",
+          "parent": "container",
+          "label": "夜間照会",
+          "kind": "decision",
+          "bounds": [
+            340,
+            20,
+            140,
+            64
+          ],
+          "summary": ""
+        },
+        {
+          "type": "layout",
+          "regionId": "container",
+          "pin": "hard",
+          "bounds": [
+            0,
+            0,
+            2000,
+            500
+          ]
+        },
+        {
+          "type": "layout",
+          "regionId": "initial-api",
+          "pin": "hard",
+          "bounds": [
+            12,
+            36,
+            140,
+            64
+          ]
+        },
+        {
+          "type": "layout",
+          "regionId": "initial-db",
+          "pin": "hard",
+          "bounds": [
+            200,
+            36,
+            140,
+            64
+          ]
+        },
+        {
+          "type": "layout",
+          "regionId": "other",
+          "pin": "hard",
+          "bounds": [
+            0,
+            600,
+            2000,
+            500
+          ]
+        },
+        {
+          "type": "layout",
+          "regionId": "part-1",
+          "pin": "hard",
+          "bounds": [
+            420,
+            36,
+            180,
+            92
+          ]
+        }
+      ],
+      "stored": "{\"operations\":[{\"mapId\":\"voice-graph\",\"records\":[{\"root\":\"root\",\"schema\":\"semantic-map-state/1\",\"title\":\"independent typed ordinary fresh\",\"type\":\"meta\"},{\"bounds\":[0,0,900,400],\"id\":\"root\",\"kind\":\"boundary\",\"label\":\"fixture\",\"parent\":null,\"summary\":\"\",\"type\":\"region\"},{\"bounds\":[0,0,700,200],\"id\":\"container\",\"kind\":\"group\",\"label\":\"取込域\",\"parent\":\"root\",\"summary\":\"\",\"type\":\"region\"},{\"bounds\":[0,230,700,160],\"id\":\"other\",\"kind\":\"group\",\"label\":\"監査域\",\"parent\":\"root\",\"summary\":\"\",\"type\":\"region\"},{\"bounds\":[20,20,140,64],\"id\":\"initial-api\",\"kind\":\"step\",\"label\":\"API\",\"parent\":\"container\",\"summary\":\"\",\"type\":\"region\"},{\"bounds\":[200,20,140,64],\"id\":\"initial-db\",\"kind\":\"data\",\"label\":\"DB\",\"parent\":\"container\",\"summary\":\"\",\"type\":\"region\"}],\"type\":\"CreateMap\"}],\"parent\":null,\"schema\":\"semantic-map-decision/2\",\"stateHash\":\"sha256:d28a5cde8a307de6f98cc04207356754be5192871823e12625d3bc57db099705\"}\n{\"operations\":[{\"items\":[{\"bounds\":[0,0,2000,500],\"regionId\":\"container\"},{\"bounds\":[0,600,2000,500],\"regionId\":\"other\"},{\"bounds\":[12,36,140,64],\"regionId\":\"initial-api\"},{\"bounds\":[200,36,140,64],\"regionId\":\"initial-db\"}],\"type\":\"PinRegions\"}],\"parent\":\"sha256:76cd65e7422b881814e96e809f38b2cfcc257e1a3b802a197d60928f45b966be\",\"schema\":\"semantic-map-decision/2\",\"stateHash\":\"sha256:da016c1e521da23fbb7188f92e1f4b3dd57cbca1ef38056b63f69a916aa8b7c2\"}\n{\"operations\":[{\"bounds\":[340,20,140,64],\"kind\":\"decision\",\"label\":\"夜間照会\",\"parentId\":\"container\",\"regionId\":\"part-1\",\"summary\":\"\",\"type\":\"AddRegion\"},{\"items\":[{\"bounds\":[420,36,180,92],\"regionId\":\"part-1\"}],\"type\":\"PinRegions\"}],\"parent\":\"sha256:f09c44a962cd217dad824ebf330ea9003d7a7b4d6fa24baac1de8dec4468f46c\",\"schema\":\"semantic-map-decision/2\",\"stateHash\":\"sha256:d269315fb627a8de6963114daaa191b8cbaf9762de5cc052070860b5e1420e9b\"}\n",
+      "goal": null
+    },
+    "apply_enabled": true,
+    "persistence": "PASS",
+    "undo": "separate completed-artifact keyless mechanics; no second live Goal"
+  }
+}

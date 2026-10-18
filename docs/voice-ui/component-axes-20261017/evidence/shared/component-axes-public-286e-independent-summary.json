@@ -1,0 +1,278 @@
+{
+  "schema": "voice-ui.independent-public-component-axes/1",
+  "source": "286eb7d0bc0bdef160bda900547314aa5be3a752",
+  "tree": "d960243798785c323e7cd5874bbf3cac1b538508",
+  "classification": "PUBLIC_REGRESSION_ONLY",
+  "axes": {
+    "G": {
+      "integrity": "PASS",
+      "complete": true,
+      "valid_execution": true,
+      "raw_semantic_admissible": true,
+      "semantic": {
+        "total": 4,
+        "intent": {
+          "correct": 4,
+          "total": 4
+        },
+        "availability": {
+          "correct": 2,
+          "total": 2
+        },
+        "normalized": {
+          "correct": 4,
+          "total": 4
+        },
+        "completeness": {
+          "correct": 2,
+          "total": 2
+        },
+        "unknown": 0,
+        "semantic_criteria": "UNMET"
+      },
+      "rows": [
+        {
+          "id": "H01",
+          "method": "literal",
+          "contract_valid": true,
+          "graph_exact": null,
+          "missing_exact_minimal": null,
+          "paint_status": null,
+          "persisted_raw_equal": null
+        },
+        {
+          "id": "H05",
+          "method": "literal",
+          "contract_valid": true,
+          "graph_exact": null,
+          "missing_exact_minimal": null,
+          "paint_status": null,
+          "persisted_raw_equal": null
+        },
+        {
+          "id": "N09",
+          "method": "literal",
+          "contract_valid": true,
+          "graph_exact": null,
+          "missing_exact_minimal": null,
+          "paint_status": null,
+          "persisted_raw_equal": null
+        },
+        {
+          "id": "H10",
+          "method": "literal",
+          "contract_valid": true,
+          "graph_exact": null,
+          "missing_exact_minimal": null,
+          "paint_status": null,
+          "persisted_raw_equal": null
+        }
+      ],
+      "expected_final_criteria": "not attempted on public fixtures"
+    },
+    "R": {
+      "integrity": "PASS",
+      "complete": true,
+      "valid_execution": true,
+      "raw_semantic_admissible": true,
+      "semantic": {
+        "complete": true,
+        "total": 2,
+        "inventory_sufficient": 2,
+        "graph_exact": 2,
+        "paint_pass": 2,
+        "representation_criteria": "UNMET",
+        "scope": "finite representation with oracle inventory; raw paint/Goal binding is separately required"
+      },
+      "rows": [
+        {
+          "id": "H06",
+          "method": "ready",
+          "contract_valid": null,
+          "graph_exact": true,
+          "missing_exact_minimal": null,
+          "paint_status": "PASS",
+          "persisted_raw_equal": null
+        },
+        {
+          "id": "H08",
+          "method": "ready",
+          "contract_valid": null,
+          "graph_exact": true,
+          "missing_exact_minimal": null,
+          "paint_status": "PASS",
+          "persisted_raw_equal": null
+        }
+      ],
+      "expected_final_criteria": "not attempted on public fixtures"
+    },
+    "F": {
+      "integrity": "PASS",
+      "complete": true,
+      "valid_execution": false,
+      "raw_semantic_admissible": false,
+      "semantic": {
+        "complete": true,
+        "per_method": {
+          "literal": {
+            "total": 3,
+            "exact_minimal": 3,
+            "contract_valid": true,
+            "semantic_criteria": "UNMET"
+          },
+          "typed": {
+            "total": 3,
+            "exact_minimal": 1,
+            "contract_valid": false,
+            "semantic_criteria": "UNMET"
+          }
+        }
+      },
+      "rows": [
+        {
+          "id": "H05",
+          "method": "literal",
+          "contract_valid": true,
+          "graph_exact": null,
+          "missing_exact_minimal": true,
+          "paint_status": null,
+          "persisted_raw_equal": null
+        },
+        {
+          "id": "H05",
+          "method": "typed",
+          "contract_valid": false,
+          "graph_exact": null,
+          "missing_exact_minimal": false,
+          "paint_status": null,
+          "persisted_raw_equal": null
+        },
+        {
+          "id": "H07",
+          "method": "typed",
+          "contract_valid": true,
+          "graph_exact": null,
+          "missing_exact_minimal": true,
+          "paint_status": null,
+          "persisted_raw_equal": null
+        },
+        {
+          "id": "H07",
+          "method": "literal",
+          "contract_valid": true,
+          "graph_exact": null,
+          "missing_exact_minimal": true,
+          "paint_status": null,
+          "persisted_raw_equal": null
+        },
+        {
+          "id": "H08",
+          "method": "literal",
+          "contract_valid": true,
+          "graph_exact": null,
+          "missing_exact_minimal": true,
+          "paint_status": null,
+          "persisted_raw_equal": null
+        },
+        {
+          "id": "H08",
+          "method": "typed",
+          "contract_valid": true,
+          "graph_exact": null,
+          "missing_exact_minimal": false,
+          "paint_status": null,
+          "persisted_raw_equal": null
+        }
+      ],
+      "expected_final_criteria": "not attempted on public fixtures"
+    },
+    "E": {
+      "integrity": "PASS",
+      "complete": true,
+      "valid_execution": true,
+      "raw_semantic_admissible": true,
+      "semantic": {
+        "complete": true,
+        "gate_correct": 4,
+        "sufficient": {
+          "exact": 1,
+          "total": 1
+        },
+        "missing": {
+          "exact_minimal": 2,
+          "total": 2
+        },
+        "controls": {
+          "correct_unchanged": 1,
+          "total": 1
+        },
+        "ordinary_criteria": "UNMET",
+        "Undo_scope": "separate completed-artifact keyless mechanics, not another live Goal on these inputs"
+      },
+      "rows": [
+        {
+          "id": "H01",
+          "method": "literal",
+          "contract_valid": true,
+          "graph_exact": true,
+          "missing_exact_minimal": true,
+          "paint_status": "PASS",
+          "persisted_raw_equal": true
+        },
+        {
+          "id": "H05",
+          "method": "literal",
+          "contract_valid": true,
+          "graph_exact": true,
+          "missing_exact_minimal": true,
+          "paint_status": "PASS",
+          "persisted_raw_equal": true
+        },
+        {
+          "id": "H07",
+          "method": "literal",
+          "contract_valid": true,
+          "graph_exact": true,
+          "missing_exact_minimal": true,
+          "paint_status": "PASS",
+          "persisted_raw_equal": true
+        },
+        {
+          "id": "N09",
+          "method": "literal",
+          "contract_valid": true,
+          "graph_exact": true,
+          "missing_exact_minimal": true,
+          "paint_status": "PASS",
+          "persisted_raw_equal": true
+        }
+      ],
+      "expected_final_criteria": "not attempted on public fixtures"
+    }
+  },
+  "new_cycle_sent": {
+    "jev": 36,
+    "typellm": 3
+  },
+  "charged_at_public_stop": {
+    "jev": 600,
+    "typellm": 32
+  },
+  "confirmed_provider_sends": {
+    "jev": 600,
+    "typellm": 31
+  },
+  "conservative_unsent_typellm_charge": 1,
+  "new_cycle_remaining": {
+    "jev": 254,
+    "typellm": 8
+  },
+  "pending_reservation": null,
+  "failure_reference": "axes-public-F-286e-failure-classification.json",
+  "next": "closed evidence CI and final source/runtime freeze; unopened pools remain sealed until separate admission",
+  "scope": "No unseen quality, superiority or overall goal achievement claim. Type invalid cell is not excluded from comparison. R uses isolated supplied inventory; E uses default literal with stock only.",
+  "CI_LIVE_EXECUTION": "UNPROVEN",
+  "currency": "COST_NOT_MEASURED",
+  "D": "BLOCKED_COST",
+  "UI_merge": "explicit human approval pending"
+}

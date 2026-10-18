@@ -1,0 +1,102 @@
+{
+  "status": "PASS",
+  "phase": "quota-public-R-20261018",
+  "source": "STOPPED_REMOTE_ORIGINAL_BYTES",
+  "rows": [
+    {
+      "name": "quota-public-R-20261018.config.json",
+      "bytes": 639,
+      "sha256": "9d24f00aee606e74d0ec40d4baa4761baf11726e999f1c7802649665e5295fe7"
+    },
+    {
+      "name": "quota-public-R-20261018.process.json",
+      "bytes": 841,
+      "sha256": "dc43c384616f8227fd601a65690df0d6b257b66be5054cfde8c0714766727339"
+    },
+    {
+      "name": "quota-public-R-20261018.runtime.json",
+      "bytes": 1761,
+      "sha256": "48d892baa4761b0d49a788dd3c319fbe1a814cdb9e97a30320213de342ea0fb8"
+    },
+    {
+      "name": "quota-public-R-20261018.root-zero.json",
+      "bytes": 699,
+      "sha256": "c8b6b02a7b0a401b05354a152cb3a547e3f0aea3030509e76f3883cbed9ac4e6"
+    },
+    {
+      "name": "quota-public-R-20261018.root-stop.json",
+      "bytes": 1965,
+      "sha256": "c33a41685d413de727e15ec0b55d94b72a13f523d585f673799630df178f5584"
+    },
+    {
+      "name": "quota-public-R-20261018.stdout.log",
+      "bytes": 338,
+      "sha256": "7bfdf81fbe66c0834d092722902d9b90ee0009a4845d6b1341d89265890fbe30"
+    },
+    {
+      "name": "quota-public-R-20261018.stderr.log",
+      "bytes": 1249,
+      "sha256": "05ec46b0065f94562ac8c3013348aba1438264765b01d0380c4a4d18bc7e06d9"
+    },
+    {
+      "name": "quota-public-R-20261018.driver.stdout.log",
+      "bytes": 35,
+      "sha256": "3c7db48685733947302731e5033a53bf0e946bc55ce1236f443ee389be5dab49"
+    },
+    {
+      "name": "quota-public-R-20261018.driver.stderr.log",
+      "bytes": 118,
+      "sha256": "ea0146f916162bae0d0a30a859241352eae0019560e9d340e40a04fa2388c0d9"
+    },
+    {
+      "name": "quota-public-R-20261018.orchestration.json",
+      "bytes": 916,
+      "sha256": "2ebd226dd3b79d36e697d130cfef9a8655bfae0f0c9528222a81b1623c26e858"
+    },
+    {
+      "name": "quota-public-R-20261018.journal.jsonl",
+      "bytes": 50371,
+      "sha256": "6142efa4b4e9c7e6ce7febfa89d01b6b2ccb5808fa436d9c56254760f81d3e23"
+    },
+    {
+      "name": "quota-public-R-20261018.operator.mjs",
+      "bytes": 3735,
+      "sha256": "074a9cd46dff17d44d5c0d185ce0a8656299dc98f26e052a639dd78627bd9a36"
+    },
+    {
+      "name": "quota-public-R-20261018.root-zero.mjs",
+      "bytes": 3729,
+      "sha256": "6c52c67c47bcbeb1f859e220ab1050f07f7cba00d30126066ca7e2acc8ccd301"
+    },
+    {
+      "name": "quota-public-R-20261018.raw/PR01-O.json",
+      "bytes": 64572,
+      "sha256": "26b0f53ada5f4f27c437cb77050c90920b7aa050b32069e93c4222440eeb1a06"
+    },
+    {
+      "name": "quota-public-R-20261018.raw/PR01-Q.json",
+      "bytes": 52503,
+      "sha256": "1df4d82dc5d373d51a355ce2268ee37b99f0cf6b7299ff441749ab802fd653bb"
+    },
+    {
+      "name": "quota-public-R-20261018.raw/events.jsonl",
+      "bytes": 12109,
+      "sha256": "00c5e5b8afe76f7637a23cdd81b498fbaa270ca990404374a3e8aee242bd622d"
+    },
+    {
+      "name": "quota-public-R-20261018.raw/execution.json",
+      "bytes": 584,
+      "sha256": "91c87010746fea0eb140b9b42b577136ea926d30d7bc17f79f5f0dd5adfab5dd"
+    },
+    {
+      "name": "quota-public-R-20261018.raw/identity.json",
+      "bytes": 5561,
+      "sha256": "3ce7b2711a8f8b2ebe468e349176267ee9332891eeea9648f1c49dde4f4ef4c0"
+    },
+    {
+      "name": "quota-public-R-20261018.recorded-replay/receipt.json",
+      "bytes": 11756,
+      "sha256": "09392c40e2d96a21507d23397deba5bf68cf1260efb46588aed378c9f3f991fd"
+    }
+  ]
+}

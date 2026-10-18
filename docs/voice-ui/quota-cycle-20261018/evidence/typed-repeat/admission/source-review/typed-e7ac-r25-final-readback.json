@@ -1,0 +1,41 @@
+{
+  "status": "PASS",
+  "head": "e7ac78dc448ba84468db853591dace33c6de40f1",
+  "tree": "51e1fb1867c593cb78b3bc3d31e6bd29f15316e5",
+  "apps_state": "open",
+  "apps_draft": true,
+  "apps_unmerged": true,
+  "apps_body_sha256": "3dddc993931f2e5502a6308e150ef7b53fd4f7497ee91a6fde1440c709500906",
+  "ui_head": "756d47e891191c3344eb2d29b000203be8331abc",
+  "ui_state": "open",
+  "ui_draft": false,
+  "ui_unmerged": true,
+  "ui_body_sha256": "1dd6055be3cb4ca4d8f264618587e7b2ec43dc1ccceed29c8765c01fd9793f37",
+  "ci": [
+    {
+      "id": 39096337642,
+      "head": "e7ac78dc448ba84468db853591dace33c6de40f1",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 39096337639,
+      "head": "e7ac78dc448ba84468db853591dace33c6de40f1",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 39096337684,
+      "head": "e7ac78dc448ba84468db853591dace33c6de40f1",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 39096337640,
+      "head": "e7ac78dc448ba84468db853591dace33c6de40f1",
+      "status": "in_progress",
+      "conclusion": null
+    }
+  ],
+  "scope": "R25 source checkpoint; release pending, experiment NOT_MEASURED"
+}

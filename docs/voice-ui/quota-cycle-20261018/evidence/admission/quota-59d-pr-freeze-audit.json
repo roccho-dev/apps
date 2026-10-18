@@ -1,0 +1,35 @@
+{
+  "schema": "voice-ui.review.quota-pr-freeze/1",
+  "status": "PASS",
+  "authenticated": true,
+  "actor": "roccho-dev",
+  "checked_at": "2026-10-17T23:01:30.419Z",
+  "head": "59ded276405a5dc9caa85ad570b1827ff4bd0c7a",
+  "tree": "109c01064cde33ececa497e7daa160b763298b14",
+  "parent": "b9c68edb2517783e46ec9dc09bd69bcb89bfc146",
+  "base": "42aa9a473d287607ba58967ef2992c052edc7943",
+  "apps": {
+    "number": 103,
+    "state": "open",
+    "draft": true,
+    "merged": false,
+    "body_sha256": "2642f494e4e2cd52e94c5c557b0b76b0d186f0ef611126851f46c2bf53b6636c",
+    "body_file": "pr103-59d-r21-frozen-pr-body.md"
+  },
+  "ui": {
+    "number": 362,
+    "head": "756d47e891191c3344eb2d29b000203be8331abc",
+    "state": "open",
+    "draft": false,
+    "merged": false,
+    "body_sha256": "35d772a90678a85afb86c9873bd6b07280356fda37862e1627e84e766b4560cb",
+    "body_file": "pr103-59d-r21-frozen-ui-body.md",
+    "explicit_human_merge_gate_pending": true
+  },
+  "adrs": {
+    "head": "a6284e58ed99243447e135828d983fc07d2d363e",
+    "authenticated": true
+  },
+  "scope": "EXACT_FROZEN_PR_IDENTITY_AND_BODY_ONLY_PENDING_FINAL_INDEPENDENT_SOURCE_CI_ADMISSION",
+  "reviewer_real_provider_calls": 0
+}

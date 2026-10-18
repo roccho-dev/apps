@@ -296,7 +296,7 @@ test("compiled Worker binds both released provider operations, validates invento
     regions: [{ id: "root", label: "World", kind: "boundary", parent: null }, { id: "container", label: "Container", kind: "group", parent: "root" }],
     edges: [], parts: [{ key: "service", purpose: "one service", label: "Service", kind: "step" }] } };
   const invoke = (mode, body = input, env = { JEV_API_KEY: "jev-test-only", TYPELLM_API_KEY: "typed-test-only" }) => worker.fetch(
-    new Request("http://localhost/api/parts/" + mode, { method: "POST", body: JSON.stringify(body) }), env);
+    new Request("http://localhost/api/parts/" + mode + "?method=typed", { method: "POST", body: JSON.stringify(body) }), env);
   const missing = [{ label: "Named service", kind: "step", occurrence: 1 }];
   const { calls } = await withProvider(async (body, init, url) => {
     if (body.questions.labels) {
@@ -313,10 +313,17 @@ test("compiled Worker binds both released provider operations, validates invento
     assert.equal(init.redirect, "error");
     assert.equal(url, "https://api.typellm.ai/v1/generate");
     assert.equal(init.headers.authorization, "Bearer typed-test-only");
-    assert.equal(body.model, "typellm-latest"); assert.equal(Object.hasOwn(body.questions.missing, "thinking"), false);
-    assert.equal(body.questions.missing.minItems, 1);
-    assert.deepEqual(Object.keys(body.questions.missing.items.properties), ["label", "kind", "quantity"]);
-    return Response.json({ status: "completed", result: { missing: [{ label: missing[0].label, kind: missing[0].kind, quantity: 1 }] } });
+    assert.equal(body.model, "typellm-latest");
+    assert.deepEqual(Object.keys(body.questions), ["missing1", "missing2", "missing3"]);
+    for (const question of Object.values(body.questions)) {
+      assert.equal(Object.hasOwn(question, "thinking"), false);
+      assert.deepEqual(Object.keys(question.properties), ["label", "kind", "quantity"]);
+      assert.deepEqual(question.properties.quantity.enum, ["0", "1", "2", "3"]);
+    }
+    return Response.json({ status: "completed", result: {
+      missing1: { label: missing[0].label, kind: missing[0].kind, quantity: "1" },
+      missing2: { label: "", kind: "none", quantity: "0" }, missing3: { label: "", kind: "none", quantity: "0" },
+    } });
   }, async () => {
     for (const mode of ["check", "complete"]) {
       assert.equal((await invoke(mode, input, {})).status, 503);
@@ -337,6 +344,150 @@ test("compiled Worker binds both released provider operations, validates invento
     assert.deepEqual(await response.json(), { error: "parts_contract" });
   });
   assert.equal(invalid.calls.length, 1);
+});
+
+test("normal compiled check uses D extraction bytes and complete baseline works without a Type key", async () => {
+  const input = { kind: "voice-ui.goal.inventory.v1", state: { utterance: "Containerへ新しい工程を1つ、その表示名はNovel",
+    head: "fixture-head", regions: [{ id: "root", parent: null, label: "World", kind: "boundary" },
+      { id: "container", parent: "root", label: "Container", kind: "group" }], edges: [],
+    parts: [{ key: "service", label: "Service", kind: "step", purpose: "one service" }] } };
+  const invoke = (body, env) => worker.fetch(new Request("http://localhost/api/parts/check",
+    { method: "POST", body: JSON.stringify(body) }), env);
+  const { calls } = await withProvider(async (body, init) => {
+    if (body.questions.required1_label) {
+      assert.equal(init.headers.authorization, "Bearer typed-test-only");
+      assert.equal(Object.keys(body.questions).length, 9);
+      for (const [name, q] of Object.entries(body.questions)) {
+        assert.equal(q.thinking, name.endsWith("_label"));
+        assert.equal(q.thinking_budget, name.endsWith("_label") ? 512 : undefined);
+      }
+      return Response.json({ status: "completed", result: Object.fromEntries([1, 2, 3].flatMap(n =>
+        [["required" + n + "_label", n === 1 ? "Novel" : ""], ["required" + n + "_kind", n === 1 ? "step" : "none"],
+          ["required" + n + "_quantity", n === 1 ? "1" : "0"]])) });
+    }
+    assert.equal(init.headers.authorization, "Bearer jev-test-only");
+    assert.deepEqual(Object.keys(body.questions), ["intent", "labels", "capacity", "completeness"]);
+    const picks = { intent: "change", labels: "missing", capacity: "within",
+      completeness: body.state.required || body.state.utterance.includes("Service") ? "complete" : "incomplete" };
+    return Response.json({ model: "synthetic-only", answers: Object.fromEntries(Object.keys(body.questions).map(name =>
+      [name, { type: "choice", choice: picks[name], confidence: .9 }])) });
+  }, async () => {
+    const response = await invoke(input, { JEV_API_KEY: "jev-test-only", TYPELLM_API_KEY: "typed-test-only" });
+    const body = await response.json(); assert.equal(response.status, 200); assert.equal(body.choice, "missing");
+    assert.equal(body.inspection.mode, "adaptive-v3"); assert.equal(body.inspection.schema, "voice-ui.parts.inspection/3");
+    assert.deepEqual(body.inspection.proposal_policy,
+      { id: "uncertainty-frontier-v1", eligible: true, reason: "confident-change-incomplete" });
+    assert.equal(body.inspection.initial.decision.choice, "unknown");
+    assert.equal(body.inspection.verification.completeness.choice, "complete");
+    const direct = await worker.fetch(new Request("http://localhost/api/parts/requirements?generation=thinking-labels",
+      { method: "POST", body: JSON.stringify(input) }), { TYPELLM_API_KEY: "typed-test-only" });
+    assert.equal(direct.status, 200);
+    assert.deepEqual((await direct.json()).required, body.inspection.proposal.required);
+    const sufficient = structuredClone(input); sufficient.state.utterance = "ContainerにServiceを1個追加";
+    const complete = await invoke(sufficient, { JEV_API_KEY: "jev-test-only" });
+    const value = await complete.json(); assert.equal(complete.status, 200); assert.equal(value.choice, "sufficient");
+    assert.equal(value.inspection.proposal, null); assert.deepEqual(value.inspection.missing, []);
+    assert.equal(value.inspection.schema, "voice-ui.parts.inspection/3");
+    assert.deepEqual(value.inspection.proposal_policy, { id: "uncertainty-frontier-v1", eligible: false, reason: null });
+  });
+  assert.equal(calls.length, 5);
+  assert.deepEqual(calls[1], calls[3], "compiled ordinary C and direct D use exactly the same provider body");
+});
+
+test("compiled extraction opt-in normalizes display provenance in one typed call and stays out of ordinary checks", async () => {
+  const input = { kind: "voice-ui.goal.inventory.v1", state: { utterance: "Containerに工程を1個、表示名は検算窓",
+    head: "fixture-head", regions: [{ id: "root", parent: null, label: "World", kind: "boundary" },
+      { id: "container", parent: "root", label: "Container", kind: "group" }], edges: [],
+    parts: [{ key: "step", label: "工程", kind: "step", purpose: "ordinary step" }] } };
+  const invoke = mode => worker.fetch(new Request("http://localhost/api/parts/" + mode + "?generation=display-source",
+    { method: "POST", body: JSON.stringify(input) }), { TYPELLM_API_KEY: "typed-test-only" });
+  const { calls } = await withProvider(async (body, init, url) => {
+    assert.equal(url, "https://api.typellm.ai/v1/generate");
+    assert.equal(init.headers.authorization, "Bearer typed-test-only");
+    assert.equal(body.model, "typellm-latest"); assert.equal(body.options.temperature, 0);
+    assert.deepEqual(body.questions.required1.properties.label_source.enum, ["utterance", "definition", "none"]);
+    return Response.json({ status: "completed", result: Object.fromEntries([1, 2, 3].map(n => ["required" + n,
+      n === 1 ? { kind: "step", label_source: "utterance", label: "検算窓", quantity: "1" }
+        : { kind: "none", label_source: "none", label: "", quantity: "0" }])) });
+  }, async () => {
+    const response = await invoke("requirements"), value = await response.json();
+    assert.equal(response.status, 200);
+    assert.deepEqual(Object.keys(value).sort(), ["request_id", "required", "schema", "slots"]);
+    assert.deepEqual(value.required, [{ label: "検算窓", kind: "step", quantity: 1 }]);
+    assert.equal(Object.hasOwn(value.slots.required1, "label_source"), false);
+    for (const mode of ["check", "verify", "complete"]) assert.equal((await invoke(mode)).status, 422);
+  });
+  assert.equal(calls.length, 1);
+});
+
+test("compiled flat extraction sends nine scalar questions through the formal provider", async () => {
+  const input = { kind: "voice-ui.goal.inventory.v1", state: { utterance: "Containerに工程を1個、表示名は検算窓",
+    head: "fixture-head", regions: [{ id: "root", parent: null, label: "World", kind: "boundary" },
+      { id: "container", parent: "root", label: "Container", kind: "group" }], edges: [],
+    parts: [{ key: "step", label: "工程", kind: "step", purpose: "ordinary step" }] } };
+  const invoke = mode => worker.fetch(new Request("http://localhost/api/parts/" + mode + "?generation=flat-scalars",
+    { method: "POST", body: JSON.stringify(input) }), { TYPELLM_API_KEY: "typed-test-only" });
+  const { calls } = await withProvider(async (body, init, url) => {
+    assert.equal(url, "https://api.typellm.ai/v1/generate"); assert.equal(init.headers.authorization, "Bearer typed-test-only");
+    assert.equal(body.model, "typellm-latest"); assert.equal(body.options.temperature, 0);
+    assert.equal(Object.keys(body.questions).length, 9);
+    assert.ok(Object.values(body.questions).every(q => q.type === "string" && q.thinking === false));
+    return Response.json({ status: "completed", result: Object.fromEntries([1, 2, 3].flatMap(n =>
+      [["required" + n + "_label", n === 1 ? "検算窓" : ""], ["required" + n + "_kind", n === 1 ? "step" : "none"],
+        ["required" + n + "_quantity", n === 1 ? "1" : "0"]])) });
+  }, async () => {
+    const response = await invoke("requirements"), value = await response.json(); assert.equal(response.status, 200);
+    assert.deepEqual(value.required, [{ label: "検算窓", kind: "step", quantity: 1 }]);
+    assert.deepEqual(Object.keys(value).sort(), ["request_id", "required", "schema", "slots"]);
+    for (const mode of ["check", "verify", "complete"]) assert.equal((await invoke(mode)).status, 422);
+  });
+  assert.equal(calls.length, 1);
+});
+
+test("compiled thinking extraction enables only three label fields in one typed call", async () => {
+  const input = { kind: "voice-ui.goal.inventory.v1", state: { utterance: "Containerに工程を1個、表示名は検算窓",
+    head: "fixture-head", regions: [{ id: "root", parent: null, label: "World", kind: "boundary" },
+      { id: "container", parent: "root", label: "Container", kind: "group" }], edges: [],
+    parts: [{ key: "step", label: "工程", kind: "step", purpose: "ordinary step" }] } };
+  const invoke = mode => worker.fetch(new Request("http://localhost/api/parts/" + mode + "?generation=thinking-labels",
+    { method: "POST", body: JSON.stringify(input) }), { TYPELLM_API_KEY: "typed-test-only" });
+  const { calls } = await withProvider(async (body, init, url) => {
+    assert.equal(url, "https://api.typellm.ai/v1/generate"); assert.equal(init.headers.authorization, "Bearer typed-test-only");
+    assert.equal(body.model, "typellm-latest"); assert.equal(body.options.temperature, 0); assert.equal(body.timeout, 30);
+    assert.equal(Object.keys(body.questions).length, 9);
+    for (const [name, q] of Object.entries(body.questions)) {
+      assert.equal(q.type, "string"); assert.equal(q.thinking, name.endsWith("_label"));
+      assert.equal(q.thinking_budget, name.endsWith("_label") ? 512 : undefined);
+    }
+    return Response.json({ status: "completed", result: Object.fromEntries([1, 2, 3].flatMap(n =>
+      [["required" + n + "_label", n === 1 ? "検算窓" : ""], ["required" + n + "_kind", n === 1 ? "step" : "none"],
+        ["required" + n + "_quantity", n === 1 ? "1" : "0"]])), usage: { input_tokens: 10, thinking_tokens: 20 },
+      thinking: { required1_label: "private-thinking-canary" } });
+  }, async () => {
+    const response = await invoke("requirements"), value = await response.json(); assert.equal(response.status, 200);
+    assert.deepEqual(value.required, [{ label: "検算窓", kind: "step", quantity: 1 }]);
+    assert.deepEqual(Object.keys(value).sort(), ["request_id", "required", "schema", "slots"]);
+    for (const mode of ["check", "verify", "complete"]) assert.equal((await invoke(mode)).status, 422);
+  });
+  assert.equal(calls.length, 1);
+});
+
+test("legacy completed Worker completion defaults to literal without a Type key; invalid methods cannot dispatch", async () => {
+  const input = { kind: "voice-ui.goal.inventory.v1", state: { utterance: "ContainerにDBを3個追加", head: "fixture-head",
+    regions: [{ id: "root", label: "World", kind: "boundary", parent: null },
+      { id: "container", label: "Container", kind: "group", parent: "root" }], edges: [],
+    parts: [{ key: "db", purpose: "one database", label: "DB", kind: "data" }] } };
+  const invoke = suffix => worker.fetch(new Request("http://localhost/api/parts/complete" + suffix,
+    { method: "POST", body: JSON.stringify(input) }), {});
+  const { calls } = await withProvider(async () => { throw Error("literal completion must not call a provider"); }, async () => {
+    const value = await (await invoke("")).json();
+    assert.deepEqual(value.missing, [{ label: "DB", kind: "data", occurrence: 1 }, { label: "DB", kind: "data", occurrence: 2 }]);
+    assert.equal(value.extraction.source, "literal");
+    for (const suffix of ["?method=unknown", "?method=literal&method=typed", "?method="])
+      assert.equal((await invoke(suffix)).status, 422);
+    assert.equal((await invoke("?method=typed")).status, 503);
+  });
+  assert.equal(calls.length, 0);
 });
 
 test("every legacy or unknown request kind is 422 and never reaches the provider", async () => {

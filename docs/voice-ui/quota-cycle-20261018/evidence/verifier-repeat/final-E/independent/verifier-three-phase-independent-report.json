@@ -1,0 +1,114 @@
+{
+  "schema": "voice-ui.independent-three-phase-finite-report/1",
+  "status": "PASS",
+  "scope": "FIXED_REGISTERED_V6_PUBLIC_E1_AND_ORIGINAL_BLIND_E6_NOT_FINAL_CI_CLASSIFICATION",
+  "at": "2026-10-18T06:53:18.388653+00:00",
+  "repeat_profile": "compact-verifier-VE-20261018",
+  "source_head": "180fc53e24f0fc2a5fdb098a3748afaff047bab6",
+  "source_inventory_by_axis": {
+    "V": 18,
+    "E": 28
+  },
+  "phase_results": [
+    {
+      "phase": "public-V",
+      "cells": 6,
+      "valid": 6,
+      "operational_correct": 6,
+      "false_acceptance": 0,
+      "raw_gate": "PASS",
+      "positive_complete_confidence": 0.52,
+      "label_wrong_incomplete_confidence": 0.28,
+      "label_wrong_decision": "UNKNOWN_NONACCEPTANCE_NOT_CONFIDENT_INCOMPLETE",
+      "comparison_scope": "candidate only; no old versus new causal estimate"
+    },
+    {
+      "phase": "public-E",
+      "cells": 2,
+      "valid": 2,
+      "baseline_success": 0,
+      "candidate_success": 1,
+      "admitted_missing_pairs": 1,
+      "missing_gains": 1,
+      "raw_gate": "PASS",
+      "scope": "public regression only"
+    },
+    {
+      "phase": "final-E",
+      "cells": 12,
+      "valid": 12,
+      "baseline_success": 4,
+      "candidate_success": 6,
+      "sufficient": {
+        "B": 2,
+        "C": 2,
+        "total": 2
+      },
+      "missing": {
+        "B": 0,
+        "C": 2,
+        "total": 2
+      },
+      "controls": {
+        "B": 2,
+        "C": 2,
+        "total": 2
+      },
+      "admitted_matching_literal_missing_pairs": 2,
+      "missing_gains": 2,
+      "regressions": 0,
+      "false_adoption": 0,
+      "all_arm_guards": true,
+      "all_recorded_paint_persistence_deadlines": "PASS",
+      "raw_quality_criterion": "PASS",
+      "raw_effect_criterion": "PASS",
+      "scope": "finite registered ordinary supplementation pathway versus literal-only baseline, both quota"
+    }
+  ],
+  "all_twenty_original_cells_retained": true,
+  "setup_retry_correction_substitution": 0,
+  "budget": {
+    "baseline": {
+      "jev": 850,
+      "typellm": 137
+    },
+    "registered_caps": {
+      "jev": 139,
+      "typellm": 7
+    },
+    "actual_phase_sends": {
+      "jev": 46,
+      "typellm": 3
+    },
+    "charged_at_cutoff": {
+      "jev": 896,
+      "typellm": 140
+    },
+    "journal_sha256": "98d12764f44e334291b1f9aa15152445e1abaef2466305a3d78405324c26b2fe",
+    "outstanding": 0,
+    "owned_groups": 53,
+    "remaining_members": []
+  },
+  "input_oracle_re_registration": {
+    "unchanged_original_bytes_order": true,
+    "input_only_after_public_V_and_E_evidence_and_raw_gates": true,
+    "oracle_only_after_independent_corresponding_physical_stop": true,
+    "old_other_pools_reused_or_enumerated": false
+  },
+  "producer_binding_replay_and_three_phase_process": "PASS",
+  "formal_classification_before_saved_actual_evidence_CI": {
+    "quality": "UNPROVEN",
+    "effect": "UNPROVEN"
+  },
+  "remaining_required_work": "report-only head, actual required CI/evidence repaint and frozen-body independent final review",
+  "limitations": {
+    "question_only_causal_effect": "UNPROVEN",
+    "internal_thinking_mechanism_causality": "UNPROVEN",
+    "unrestricted_input_generalization": "UNPROVEN",
+    "CI_origin_real_provider_execution": "UNPROVEN",
+    "monetary_cost": "NOT_MEASURED",
+    "UI_human_merge_gate": "PENDING"
+  },
+  "historical_failures_and_finite_no_effect_results": "PRESERVED_NOT_REPLACED",
+  "reviewer_provider_calls": 0
+}

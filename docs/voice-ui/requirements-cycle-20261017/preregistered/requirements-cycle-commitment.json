@@ -1,0 +1,137 @@
+{
+  "schema": "voice-ui.requirements-cycle-commitment/1",
+  "created_at": "2026-10-17T14:37:40.505Z",
+  "previous_cycle_head": "07c534397b88538f5b1104365999108150054cb0",
+  "previous_review": "https://github.com/roccho-dev/apps/pull/103#pullrequestreview-5558234414",
+  "charged_prior": {
+    "jev": 689,
+    "typellm": 40
+  },
+  "cap": {
+    "jev": 300,
+    "typellm": 40
+  },
+  "allocated": {
+    "jev": 298,
+    "typellm": 40
+  },
+  "global_caps": {
+    "jev": 1000,
+    "typellm": 1000
+  },
+  "global_cap_worst": {
+    "jev": 989,
+    "typellm": 80
+  },
+  "plan_bytes_sha256": "a63b0ef28a286833fc0648f4264cf7c6fbc231ebd5bb2c6bcc64d4a5f037ca1c",
+  "fixture_contract_sha256": "cbd1c2e6e394dd851b427e72df2cd9adc974795a5c8e61d2bdc2347b43e01b56",
+  "canonical_stock_sha256": "5efa73db3505e1db6748b57a59deadea7da665b6888218b0c5931fee8a9d1866",
+  "files": [
+    {
+      "visibility": "public",
+      "axis": "V",
+      "cases": 6,
+      "input": "requirements-cycle-public-V6.inputs.json",
+      "input_bytes": 5236,
+      "input_sha256": "633a1b3cc8c47a6fcb4d548d127bdb05b2696bc99ffbfae0467211236e36ce97",
+      "oracle": "requirements-cycle-public-V6.oracle.json",
+      "oracle_bytes": 10418,
+      "oracle_sha256": "884dde0deb27b76d7f269eee989ffeedc1759493402b77a4cf4d9efb0d4344e5"
+    },
+    {
+      "visibility": "public",
+      "axis": "F",
+      "cases": 6,
+      "input": "requirements-cycle-public-F6.inputs.json",
+      "input_bytes": 4526,
+      "input_sha256": "fecbe1eb3945cdb9e450742e26ba5fbb56bc1f3d852b1deebf292d09d922b6ec",
+      "oracle": "requirements-cycle-public-F6.oracle.json",
+      "oracle_bytes": 9762,
+      "oracle_sha256": "d01e7cdd4ef0fabd0b0befeab1e39026a235c88f02046e8eee58d56840aaa36e"
+    },
+    {
+      "visibility": "public",
+      "axis": "E",
+      "cases": 2,
+      "input": "requirements-cycle-public-E2.inputs.json",
+      "input_bytes": 3636,
+      "input_sha256": "001d897ab4fdffacaac762ac5431dae964d9e56a37a7ce9d9d87f59514d39b81",
+      "oracle": "requirements-cycle-public-E2.oracle.json",
+      "oracle_bytes": 6088,
+      "oracle_sha256": "9ba42437f534d6fc881816c868b10aa0107c32aacdae65f864267e451c6af847"
+    },
+    {
+      "visibility": "sealed",
+      "axis": "V",
+      "cases": 10,
+      "input": "requirements-cycle-sealed-V10.inputs.json",
+      "input_bytes": 6532,
+      "input_sha256": "be1b471949ed9201b2278214db832068ad6d6393a739ad29494b4d302404f12e",
+      "oracle": "requirements-cycle-sealed-V10.oracle.json",
+      "oracle_bytes": 14382,
+      "oracle_sha256": "54749c5fd8e0c9f5fc18715b9a675b2fc7c698de349fd0f3241606539f2b8bcd"
+    },
+    {
+      "visibility": "sealed",
+      "axis": "F",
+      "cases": 8,
+      "input": "requirements-cycle-sealed-F8.inputs.json",
+      "input_bytes": 4923,
+      "input_sha256": "0b58871d1d8ca77e4ab2bc56e2fb3f91d886315c172abff677a5eb3550386ce4",
+      "oracle": "requirements-cycle-sealed-F8.oracle.json",
+      "oracle_bytes": 12650,
+      "oracle_sha256": "bf4e8d38f758051e237c721545f545be89f716b71d963121aa8dbbc170f4fb42"
+    },
+    {
+      "visibility": "sealed",
+      "axis": "E",
+      "cases": 10,
+      "input": "requirements-cycle-sealed-E10.inputs.json",
+      "input_bytes": 5386,
+      "input_sha256": "cfc492e1b37e3ee2ae8590bea8e1f82d7f0d5ea7dcf645ba09c2fa0e47cedcc5",
+      "oracle": "requirements-cycle-sealed-E10.oracle.json",
+      "oracle_bytes": 12200,
+      "oracle_sha256": "3cdd7c41ac61e1c646ffb4bbcf1f1e32eab306fb716710896dcec438ca9f3c67"
+    }
+  ],
+  "fresh_denominators": {
+    "V": {
+      "total": 10,
+      "exact_accept": 5,
+      "semantic_reject": 5
+    },
+    "F": {
+      "total": 8,
+      "true_sufficient": 2
+    },
+    "E": {
+      "total_pairs": 10,
+      "sufficient": 4,
+      "missing": 4,
+      "ambiguous": 1,
+      "no_change": 1,
+      "syntax_each_clear_stratum": {
+        "B_known": 2,
+        "natural_alternate": 2
+      }
+    }
+  },
+  "pair_schedule": "zero-based even case literal-v2 then adaptive-v2; odd case adaptive-v2 then literal-v2",
+  "public_admission": {
+    "F_exact_at_least": 4,
+    "F_denominator": 6,
+    "V_correct": 6,
+    "E_same_head_missing_gains": 2,
+    "correction_batches_max": 2,
+    "correction_each": {
+      "jev": 25,
+      "typellm": 7,
+      "full_F6": true,
+      "full_V6": true,
+      "E_pairs_max": 1
+    },
+    "failed_global_E_repair": "never promote prior-head success; if both pairs need new-head rerun, stop UNMET without fresh E or silent reallocation"
+  },
+  "exposure": "root receives public files and this metadata only; fresh inputs after source/artifact/R admission, oracles after physical stop and reconciliation",
+  "no_provider_calls": true
+}

@@ -1,0 +1,4455 @@
+{
+  "schema": "voice-ui.closed-live-log-browser/1",
+  "artifact_sources": {
+    "apps": "2cc4890b765a5534e92855f83f9232ae85bb373b",
+    "architecture": {
+      "evidence_sha256": "4487cdc7647b96722087a13d7ccd5f8dde5cef8a0a6ea7279ea3956c22e2e19e",
+      "manifest_sha256": "7051c5c31286da1e73c17d900d86b9a605d44c5646a7e4f92fae215e3d691615",
+      "source": {
+        "commit": "2cc4890b765a5534e92855f83f9232ae85bb373b",
+        "handle": "apps-voice-ui"
+      },
+      "status": "available"
+    },
+    "hayamimi-web": {
+      "locator": "https://github.com/roccho-dev/ops/releases/download/hayamimi-web-1665d5195a0dd70c2e0253c20351e5305db35f3f/hayamimi-web.zip",
+      "proof_sha256": "a0bb1478a5ffe9440f46682ca143382cd000d0d1d6f736723baad96541be4e27",
+      "sha256": "c12b51e2ea396a64131b917439ffbda1aa1cd70a9fd7f9567ea05030897c672a"
+    },
+    "jev-provider": {
+      "contract": "named-choices-and-typed/1",
+      "entry_sha256": "3f754c8b1ee4a8b34b50d00fd17e37295d853e1b607903b6d355b5e06997669c",
+      "locator": "https://github.com/roccho-org/ops/releases/download/jev-provider-b4f611cac9e13fbef178469796cbc3b6d4a76b23/jev-provider.zip",
+      "manifest_sha256": "c8fdf65da826690b487ab093d20c73a445a11dbc736ae4f58e23af7c57330318",
+      "proof_sha256": "459b753541fdf53cf0acb9cb13167c17218e078e3782933e589afaf57a8c6846",
+      "provenance_sha256": "b602225c44cc67c4f6a96fe41914c5159140718a4c81f0826cf46d9cce9223b8",
+      "sha256": "073d9df7a2eeb479a3641c6b86768bf3af14ec1b7e976ed5672649148d5e2435"
+    },
+    "system": "x86_64-linux",
+    "ui": "756d47e891191c3344eb2d29b000203be8331abc"
+  },
+  "artifact_manifest_sha256": "b242c9889f4db71ebbaf3c0b0ebf320ef2604c108225a9cd67a96a7aff900758",
+  "scope": "KEYLESS_CLOSED_LIVE_EVIDENCE_REPLAY",
+  "ci_live_execution": "UNPROVEN",
+  "viewport": [
+    1280,
+    720
+  ],
+  "deviceScaleFactor": 1,
+  "status": "PASS",
+  "failures": [],
+  "rows": [
+    {
+      "id": "FE01",
+      "arm": "B",
+      "raw_sha256": "996e77256a303a0811805202d2216af190cc6fe0dd143d6c6cc4fad43f0b2411",
+      "log_sha256": "9ab0574a17871d375b71962d831635f80b73670a6cb7296381dd39c8e6c145fb",
+      "frames": [
+        {
+          "camera": "overview",
+          "scope": "semantic equality and unchanged restore only; hidden descendants do not count as visible"
+        },
+        {
+          "camera": "container",
+          "observation": {
+            "association": "render-owned-semantic-id",
+            "title": {
+              "unmet": null,
+              "box": [
+                205,
+                158.5,
+                23,
+                19
+              ],
+              "clips": [
+                [
+                  0,
+                  0,
+                  626,
+                  429
+                ],
+                [
+                  0,
+                  0,
+                  626,
+                  429
+                ],
+                [
+                  0,
+                  0,
+                  626,
+                  429
+                ]
+              ],
+              "svg": [
+                0,
+                0,
+                2226,
+                1278
+              ]
+            },
+            "identity": true,
+            "viewport": [
+              0,
+              0,
+              626,
+              429
+            ],
+            "container": {
+              "id": "container",
+              "kind": "painted-group-shape",
+              "bounds": [
+                193.5,
+                151,
+                2000,
+                500
+              ]
+            },
+            "shapes": [
+              {
+                "id": "part-1",
+                "rawLabel": "API",
+                "bounds": [
+                  205,
+                  186.5,
+                  180,
+                  92
+                ],
+                "name": {
+                  "unmet": null,
+                  "box": [
+                    283.5,
+                    223,
+                    22,
+                    19
+                  ],
+                  "clips": [
+                    [
+                      205,
+                      187,
+                      180,
+                      92
+                    ],
+                    [
+                      0,
+                      0,
+                      626,
+                      429
+                    ],
+                    [
+                      0,
+                      0,
+                      626,
+                      429
+                    ],
+                    [
+                      0,
+                      0,
+                      626,
+                      429
+                    ]
+                  ],
+                  "svg": [
+                    0,
+                    0,
+                    2226,
+                    1278
+                  ]
+                }
+              }
+            ],
+            "edge": null,
+            "contained": true,
+            "nonoverlap": true,
+            "complete": true
+          },
+          "assessment": {
+            "status": "PASS",
+            "problems": [],
+            "unknown": []
+          }
+        },
+        {
+          "camera": "other",
+          "observation": {
+            "association": "render-owned-semantic-id",
+            "title": {
+              "unmet": null,
+              "box": [
+                296.5,
+                206.86000061035156,
+                33,
+                16
+              ],
+              "clips": [
+                [
+                  4,
+                  136,
+                  619,
+                  157
+                ],
+                [
+                  0,
+                  0,
+                  626,
+                  429
+                ],
+                [
+                  0,
+                  0,
+                  626,
+                  429
+                ],
+                [
+                  0,
+                  0,
+                  626,
+                  429
+                ]
+              ],
+              "svg": [
+                0,
+                0,
+                638,
+                429
+              ]
+            },
+            "identity": true,
+            "viewport": [
+              0,
+              0,
+              626,
+              429
+            ],
+            "container": {
+              "id": "other",
+              "kind": "painted-group-shape",
+              "bounds": [
+                5.429999828338623,
+                137.97999572753906,
+                616.1400146484375,
+                154.0399932861328
+              ]
+            },
+            "shapes": [],
+            "edge": null,
+            "contained": true,
+            "nonoverlap": true,
+            "complete": true
+          },
+          "assessment": {
+            "status": "PASS",
+            "problems": [],
+            "unknown": []
+          }
+        }
+      ]
+    },
+    {
+      "id": "FE01",
+      "arm": "C",
+      "raw_sha256": "0e2bcdd1efe0f0936c34e03738b831d444eec99cc034e0bccfd7a2a09d968bb7",
+      "log_sha256": "8d1eca97d9c29efcb938bf7ba32ba18f306db8b4ce1a35570cd454d53fdee314",
+      "frames": [
+        {
+          "camera": "overview",
+          "scope": "semantic equality and unchanged restore only; hidden descendants do not count as visible"
+        },
+        {
+          "camera": "container",
+          "observation": {
+            "association": "render-owned-semantic-id",
+            "title": {
+              "unmet": null,
+              "box": [
+                303,
+                206.86000061035156,
+                20,
+                16
+              ],
+              "clips": [
+                [
+                  4,
+                  136,
+                  619,
+                  157
+                ],
+                [
+                  0,
+                  0,
+                  626,
+                  429
+                ],
+                [
+                  0,
+                  0,
+                  626,
+                  429
+                ],
+                [
+                  0,
+                  0,
+                  626,
+                  429
+                ]
+              ],
+              "svg": [
+                0,
+                0,
+                638,
+                485
+              ]
+            },
+            "identity": true,
+            "viewport": [
+              0,
+              0,
+              626,
+              429
+            ],
+            "container": {
+              "id": "container",
+              "kind": "painted-group-shape",
+              "bounds": [
+                5.429999828338623,
+                137.97999572753906,
+                616.1400146484375,
+                154.0399932861328
+              ]
+            },
+            "shapes": [],
+            "edge": null,
+            "contained": true,
+            "nonoverlap": true,
+            "complete": true
+          },
+          "assessment": {
+            "status": "PASS",
+            "problems": [],
+            "unknown": []
+          }
+        },
+        {
+          "camera": "other",
+          "observation": {
+            "association": "render-owned-semantic-id",
+            "title": {
+              "unmet": null,
+              "box": [
+                296.5,
+                206.86000061035156,
+                33,
+                16
+              ],
+              "clips": [
+                [
+                  4,
+                  136,
+                  619,
+                  157
+                ],
+                [
+                  0,
+                  0,
+                  626,
+                  429
+                ],
+                [
+                  0,
+                  0,
+                  626,
+                  429
+                ],
+                [
+                  0,
+                  0,
+                  626,
+                  429
+                ]
+              ],
+              "svg": [
+                0,
+                0,
+                638,
+                429
+              ]
+            },
+            "identity": true,
+            "viewport": [
+              0,
+              0,
+              626,
+              429
+            ],
+            "container": {
+              "id": "other",
+              "kind": "painted-group-shape",
+              "bounds": [
+                5.429999828338623,
+                137.97999572753906,
+                616.1400146484375,
+                154.0399932861328
+              ]
+            },
+            "shapes": [],
+            "edge": null,
+            "contained": true,
+            "nonoverlap": true,
+            "complete": true
+          },
+          "assessment": {
+            "status": "PASS",
+            "problems": [],
+            "unknown": []
+          }
+        }
+      ]
+    },
+    {
+      "id": "FE02",
+      "arm": "B",
+      "raw_sha256": "34b96e33450a6b90325bbee0677c88602e7a90e091f8c52a238c96ef4e3c92ce",
+      "log_sha256": "d4f93b4839d46d6c002cc399f9e3e47a7d7579170dcdf4cf69dfbb6830be47b8",
+      "frames": [
+        {
+          "camera": "overview",
+          "scope": "semantic equality and unchanged restore only; hidden descendants do not count as visible"
+        },
+        {
+          "camera": "container",
+          "observation": {
+            "association": "render-owned-semantic-id",
+            "title": {
+              "unmet": null,
+              "box": [
+                303,
+                206.86000061035156,
+                20,
+                16
+              ],
+              "clips": [
+                [
+                  4,
+                  136,
+                  619,
+                  157
+                ],
+                [
+                  0,
+                  0,
+                  626,
+                  429
+                ],
+                [
+                  0,
+                  0,
+                  626,
+                  429
+                ],
+                [
+                  0,
+                  0,
+                  626,
+                  429
+                ]
+              ],
+              "svg": [
+                0,
+                0,
+                638,
+                485
+              ]
+            },
+            "identity": true,
+            "viewport": [
+              0,
+              0,
+              626,
+              429
+            ],
+            "container": {
+              "id": "container",
+              "kind": "painted-group-shape",
+              "bounds": [
+                5.429999828338623,
+                137.97999572753906,
+                616.1400146484375,
+                154.0399932861328
+              ]
+            },
+            "shapes": [],
+            "edge": null,
+            "contained": true,
+            "nonoverlap": true,
+            "complete": true
+          },
+          "assessment": {
+            "status": "PASS",
+            "problems": [],
+            "unknown": []
+          }
+        },
+        {
+          "camera": "other",
+          "observation": {
+            "association": "render-owned-semantic-id",
+            "title": {
+              "unmet": null,
+              "box": [
+                205,
+                158.5,
+                37,
+                19
+              ],
+              "clips": [
+                [
+                  0,
+                  0,
+                  626,
+                  429
+                ],
+                [
+                  0,
+                  0,
+                  626,
+                  429
+                ],
+                [
+                  0,
+                  0,
+                  626,
+                  429
+                ]
+              ],
+              "svg": [
+                0,
+                0,
+                2226,
+                1154
+              ]
+            },
+            "identity": true,
+            "viewport": [
+              0,
+              0,
+              626,
+              429
+            ],
+            "container": {
+              "id": "other",
+              "kind": "painted-group-shape",
+              "bounds": [
+                193.5,
+                151,
+                2000,
+                500
+              ]
+            },
+            "shapes": [
+              {
+                "id": "part-1",
+                "rawLabel": "DB",
+                "bounds": [
+                  205,
+                  186.5,
+                  180,
+                  92
+                ],
+                "name": {
+                  "unmet": null,
+                  "box": [
+                    286,
+                    223,
+                    18,
+                    19
+                  ],
+                  "clips": [
+                    [
+                      217,
+                      187,
+                      156,
+                      92
+                    ],
+                    [
+                      0,
+                      0,
+                      626,
+                      429
+                    ],
+                    [
+                      0,
+                      0,
+                      626,
+                      429
+                    ],
+                    [
+                      0,
+                      0,
+                      626,
+                      429
+                    ]
+                  ],
+                  "svg": [
+                    0,
+                    0,
+                    2226,
+                    1154
+                  ]
+                }
+              }
+            ],
+            "edge": null,
+            "contained": true,
+            "nonoverlap": true,
+            "complete": true
+          },
+          "assessment": {
+            "status": "PASS",
+            "problems": [],
+            "unknown": []
+          }
+        }
+      ]
+    },
+    {
+      "id": "FE02",
+      "arm": "C",
+      "raw_sha256": "f0db6a2309f3dec27c8fed7a41bca5a77b7499bb9e82531a773de58e87e4325c",
+      "log_sha256": "d4f93b4839d46d6c002cc399f9e3e47a7d7579170dcdf4cf69dfbb6830be47b8",
+      "frames": [
+        {
+          "camera": "overview",
+          "scope": "semantic equality and unchanged restore only; hidden descendants do not count as visible"
+        },
+        {
+          "camera": "container",
+          "observation": {
+            "association": "render-owned-semantic-id",
+            "title": {
+              "unmet": null,
+              "box": [
+                303,
+                206.86000061035156,
+                20,
+                16
+              ],
+              "clips": [
+                [
+                  4,
+                  136,
+                  619,
+                  157
+                ],
+                [
+                  0,
+                  0,
+                  626,
+                  429
+                ],
+                [
+                  0,
+                  0,
+                  626,
+                  429
+                ],
+                [
+                  0,
+                  0,
+                  626,
+                  429
+                ]
+              ],
+              "svg": [
+                0,
+                0,
+                638,
+                485
+              ]
+            },
+            "identity": true,
+            "viewport": [
+              0,
+              0,
+              626,
+              429
+            ],
+            "container": {
+              "id": "container",
+              "kind": "painted-group-shape",
+              "bounds": [
+                5.429999828338623,
+                137.97999572753906,
+                616.1400146484375,
+                154.0399932861328
+              ]
+            },
+            "shapes": [],
+            "edge": null,
+            "contained": true,
+            "nonoverlap": true,
+            "complete": true
+          },
+          "assessment": {
+            "status": "PASS",
+            "problems": [],
+            "unknown": []
+          }
+        },
+        {
+          "camera": "other",
+          "observation": {
+            "association": "render-owned-semantic-id",
+            "title": {
+              "unmet": null,
+              "box": [
+                205,
+                158.5,
+                37,
+                19
+              ],
+              "clips": [
+                [
+                  0,
+                  0,
+                  626,
+                  429
+                ],
+                [
+                  0,
+                  0,
+                  626,
+                  429
+                ],
+                [
+                  0,
+                  0,
+                  626,
+                  429
+                ]
+              ],
+              "svg": [
+                0,
+                0,
+                2226,
+                1154
+              ]
+            },
+            "identity": true,
+            "viewport": [
+              0,
+              0,
+              626,
+              429
+            ],
+            "container": {
+              "id": "other",
+              "kind": "painted-group-shape",
+              "bounds": [
+                193.5,
+                151,
+                2000,
+                500
+              ]
+            },
+            "shapes": [
+              {
+                "id": "part-1",
+                "rawLabel": "DB",
+                "bounds": [
+                  205,
+                  186.5,
+                  180,
+                  92
+                ],
+                "name": {
+                  "unmet": null,
+                  "box": [
+                    286,
+                    223,
+                    18,
+                    19
+                  ],
+                  "clips": [
+                    [
+                      217,
+                      187,
+                      156,
+                      92
+                    ],
+                    [
+                      0,
+                      0,
+                      626,
+                      429
+                    ],
+                    [
+                      0,
+                      0,
+                      626,
+                      429
+                    ],
+                    [
+                      0,
+                      0,
+                      626,
+                      429
+                    ]
+                  ],
+                  "svg": [
+                    0,
+                    0,
+                    2226,
+                    1154
+                  ]
+                }
+              }
+            ],
+            "edge": null,
+            "contained": true,
+            "nonoverlap": true,
+            "complete": true
+          },
+          "assessment": {
+            "status": "PASS",
+            "problems": [],
+            "unknown": []
+          }
+        }
+      ]
+    },
+    {
+      "id": "FE03",
+      "arm": "B",
+      "raw_sha256": "ba1a6af53ff41641d0a79d0e970c1e817595a581ac18c0d801e6bc0e62d91314",
+      "log_sha256": "8d1eca97d9c29efcb938bf7ba32ba18f306db8b4ce1a35570cd454d53fdee314",
+      "frames": [
+        {
+          "camera": "overview",
+          "scope": "semantic equality and unchanged restore only; hidden descendants do not count as visible"
+        },
+        {
+          "camera": "container",
+          "observation": {
+            "association": "render-owned-semantic-id",
+            "title": {
+              "unmet": null,
+              "box": [
+                303,
+                206.86000061035156,
+                20,
+                16
+              ],
+              "clips": [
+                [
+                  4,
+                  136,
+                  619,
+                  157
+                ],
+                [
+                  0,
+                  0,
+                  626,
+                  429
+                ],
+                [
+                  0,
+                  0,
+                  626,
+                  429
+                ],
+                [
+                  0,
+                  0,
+                  626,
+                  429
+                ]
+              ],
+              "svg": [
+                0,
+                0,
+                638,
+                485
+              ]
+            },
+            "identity": true,
+            "viewport": [
+              0,
+              0,
+              626,
+              429
+            ],
+            "container": {
+              "id": "container",
+              "kind": "painted-group-shape",
+              "bounds": [
+                5.429999828338623,
+                137.97999572753906,
+                616.1400146484375,
+                154.0399932861328
+              ]
+            },
+            "shapes": [],
+            "edge": null,
+            "contained": true,
+            "nonoverlap": true,
+            "complete": true
+          },
+          "assessment": {
+            "status": "PASS",
+            "problems": [],
+            "unknown": []
+          }
+        },
+        {
+          "camera": "other",
+          "observation": {
+            "association": "render-owned-semantic-id",
+            "title": {
+              "unmet": null,
+              "box": [
+                296.5,
+                206.86000061035156,
+                33,
+                16
+              ],
+              "clips": [
+                [
+                  4,
+                  136,
+                  619,
+                  157
+                ],
+                [
+                  0,
+                  0,
+                  626,
+                  429
+                ],
+                [
+                  0,
+                  0,
+                  626,
+                  429
+                ],
+                [
+                  0,
+                  0,
+                  626,
+                  429
+                ]
+              ],
+              "svg": [
+                0,
+                0,
+                638,
+                429
+              ]
+            },
+            "identity": true,
+            "viewport": [
+              0,
+              0,
+              626,
+              429
+            ],
+            "container": {
+              "id": "other",
+              "kind": "painted-group-shape",
+              "bounds": [
+                5.429999828338623,
+                137.97999572753906,
+                616.1400146484375,
+                154.0399932861328
+              ]
+            },
+            "shapes": [],
+            "edge": null,
+            "contained": true,
+            "nonoverlap": true,
+            "complete": true
+          },
+          "assessment": {
+            "status": "PASS",
+            "problems": [],
+            "unknown": []
+          }
+        }
+      ]
+    },
+    {
+      "id": "FE03",
+      "arm": "C",
+      "raw_sha256": "48d5a9f94d8fa4f8fa909c7d6976c8d16e064c2e7aa380fed92da7156991a3a1",
+      "log_sha256": "8d1eca97d9c29efcb938bf7ba32ba18f306db8b4ce1a35570cd454d53fdee314",
+      "frames": [
+        {
+          "camera": "overview",
+          "scope": "semantic equality and unchanged restore only; hidden descendants do not count as visible"
+        },
+        {
+          "camera": "container",
+          "observation": {
+            "association": "render-owned-semantic-id",
+            "title": {
+              "unmet": null,
+              "box": [
+                303,
+                206.86000061035156,
+                20,
+                16
+              ],
+              "clips": [
+                [
+                  4,
+                  136,
+                  619,
+                  157
+                ],
+                [
+                  0,
+                  0,
+                  626,
+                  429
+                ],
+                [
+                  0,
+                  0,
+                  626,
+                  429
+                ],
+                [
+                  0,
+                  0,
+                  626,
+                  429
+                ]
+              ],
+              "svg": [
+                0,
+                0,
+                638,
+                485
+              ]
+            },
+            "identity": true,
+            "viewport": [
+              0,
+              0,
+              626,
+              429
+            ],
+            "container": {
+              "id": "container",
+              "kind": "painted-group-shape",
+              "bounds": [
+                5.429999828338623,
+                137.97999572753906,
+                616.1400146484375,
+                154.0399932861328
+              ]
+            },
+            "shapes": [],
+            "edge": null,
+            "contained": true,
+            "nonoverlap": true,
+            "complete": true
+          },
+          "assessment": {
+            "status": "PASS",
+            "problems": [],
+            "unknown": []
+          }
+        },
+        {
+          "camera": "other",
+          "observation": {
+            "association": "render-owned-semantic-id",
+            "title": {
+              "unmet": null,
+              "box": [
+                296.5,
+                206.86000061035156,
+                33,
+                16
+              ],
+              "clips": [
+                [
+                  4,
+                  136,
+                  619,
+                  157
+                ],
+                [
+                  0,
+                  0,
+                  626,
+                  429
+                ],
+                [
+                  0,
+                  0,
+                  626,
+                  429
+                ],
+                [
+                  0,
+                  0,
+                  626,
+                  429
+                ]
+              ],
+              "svg": [
+                0,
+                0,
+                638,
+                429
+              ]
+            },
+            "identity": true,
+            "viewport": [
+              0,
+              0,
+              626,
+              429
+            ],
+            "container": {
+              "id": "other",
+              "kind": "painted-group-shape",
+              "bounds": [
+                5.429999828338623,
+                137.97999572753906,
+                616.1400146484375,
+                154.0399932861328
+              ]
+            },
+            "shapes": [],
+            "edge": null,
+            "contained": true,
+            "nonoverlap": true,
+            "complete": true
+          },
+          "assessment": {
+            "status": "PASS",
+            "problems": [],
+            "unknown": []
+          }
+        }
+      ]
+    },
+    {
+      "id": "FE04",
+      "arm": "B",
+      "raw_sha256": "bf43feb49b70d5d5909352bfbfb3e8dde24d6471145d7bd1a92e861c7473f769",
+      "log_sha256": "47bd4e0635567c42e0755270130402f7c9ab5418ff6dc143637cacb6ab98b450",
+      "frames": [
+        {
+          "camera": "overview",
+          "scope": "semantic equality and unchanged restore only; hidden descendants do not count as visible"
+        },
+        {
+          "camera": "container",
+          "observation": {
+            "association": "render-owned-semantic-id",
+            "title": {
+              "unmet": null,
+              "box": [
+                155,
+                172.5,
+                23,
+                19
+              ],
+              "clips": [
+                [
+                  0,
+                  0,
+                  626,
+                  429
+                ],
+                [
+                  0,
+                  0,
+                  626,
+                  429
+                ],
+                [
+                  0,
+                  0,
+                  626,
+                  429
+                ]
+              ],
+              "svg": [
+                0,
+                0,
+                2176,
+                1292
+              ]
+            },
+            "identity": true,
+            "viewport": [
+              0,
+              0,
+              626,
+              429
+            ],
+            "container": {
+              "id": "container",
+              "kind": "painted-group-shape",
+              "bounds": [
+                143.5,
+                165,
+                2000,
+                500
+              ]
+            },
+            "shapes": [
+              {
+                "id": "initial-api",
+                "rawLabel": "API",
+                "bounds": [
+                  155,
+                  200.5,
+                  140,
+                  64
+                ],
+                "name": {
+                  "unmet": null,
+                  "box": [
+                    213.5,
+                    223,
+                    22,
+                    19
+                  ],
+                  "clips": [
+                    [
+                      155,
+                      201,
+                      140,
+                      64
+                    ],
+                    [
+                      0,
+                      0,
+                      626,
+                      429
+                    ],
+                    [
+                      0,
+                      0,
+                      626,
+                      429
+                    ],
+                    [
+                      0,
+                      0,
+                      626,
+                      429
+                    ]
+                  ],
+                  "svg": [
+                    0,
+                    0,
+                    2176,
+                    1292
+                  ]
+                }
+              },
+              {
+                "id": "initial-db",
+                "rawLabel": "DB",
+                "bounds": [
+                  343,
+                  200.5,
+                  140,
+                  64
+                ],
+                "name": {
+                  "unmet": null,
+                  "box": [
+                    404,
+                    223,
+                    18,
+                    19
+                  ],
+                  "clips": [
+                    [
+                      355,
+                      201,
+                      116,
+                      64
+                    ],
+                    [
+                      0,
+                      0,
+                      626,
+                      429
+                    ],
+                    [
+                      0,
+                      0,
+                      626,
+                      429
+                    ],
+                    [
+                      0,
+                      0,
+                      626,
+                      429
+                    ]
+                  ],
+                  "svg": [
+                    0,
+                    0,
+                    2176,
+                    1292
+                  ]
+                }
+              }
+            ],
+            "edge": null,
+            "contained": true,
+            "nonoverlap": true,
+            "complete": true
+          },
+          "assessment": {
+            "status": "PASS",
+            "problems": [],
+            "unknown": []
+          }
+        },
+        {
+          "camera": "other",
+          "observation": {
+            "association": "render-owned-semantic-id",
+            "title": {
+              "unmet": null,
+              "box": [
+                296.5,
+                206.86000061035156,
+                33,
+                16
+              ],
+              "clips": [
+                [
+                  4,
+                  136,
+                  619,
+                  157
+                ],
+                [
+                  0,
+                  0,
+                  626,
+                  429
+                ],
+                [
+                  0,
+                  0,
+                  626,
+                  429
+                ],
+                [
+                  0,
+                  0,
+                  626,
+                  429
+                ]
+              ],
+              "svg": [
+                0,
+                0,
+                638,
+                429
+              ]
+            },
+            "identity": true,
+            "viewport": [
+              0,
+              0,
+              626,
+              429
+            ],
+            "container": {
+              "id": "other",
+              "kind": "painted-group-shape",
+              "bounds": [
+                5.429999828338623,
+                137.97999572753906,
+                616.1400146484375,
+                154.0399932861328
+              ]
+            },
+            "shapes": [],
+            "edge": null,
+            "contained": true,
+            "nonoverlap": true,
+            "complete": true
+          },
+          "assessment": {
+            "status": "PASS",
+            "problems": [],
+            "unknown": []
+          }
+        },
+        {
+          "camera": "voice-initial-api-to-initial-db",
+          "observation": {
+            "association": "render-owned-semantic-id",
+            "title": {
+              "unmet": null,
+              "box": [
+                149,
+                154.5,
+                23,
+                19
+              ],
+              "clips": [
+                [
+                  0,
+                  0,
+                  626,
+                  429
+                ],
+                [
+                  0,
+                  0,
+                  626,
+                  429
+                ],
+                [
+                  0,
+                  0,
+                  626,
+                  429
+                ]
+              ],
+              "svg": [
+                0,
+                0,
+                2170,
+                1274
+              ]
+            },
+            "identity": true,
+            "viewport": [
+              0,
+              0,
+              626,
+              429
+            ],
+            "container": {
+              "id": "container",
+              "kind": "painted-group-shape",
+              "bounds": [
+                137.5,
+                147,
+                2000,
+                500
+              ]
+            },
+            "shapes": [
+              {
+                "id": "initial-api",
+                "rawLabel": "API",
+                "bounds": [
+                  149,
+                  182.5,
+                  140,
+                  64
+                ],
+                "name": {
+                  "unmet": null,
+                  "box": [
+                    207.5,
+                    205,
+                    22,
+                    19
+                  ],
+                  "clips": [
+                    [
+                      149,
+                      183,
+                      140,
+                      64
+                    ],
+                    [
+                      0,
+                      0,
+                      626,
+                      429
+                    ],
+                    [
+                      0,
+                      0,
+                      626,
+                      429
+                    ],
+                    [
+                      0,
+                      0,
+                      626,
+                      429
+                    ]
+                  ],
+                  "svg": [
+                    0,
+                    0,
+                    2170,
+                    1274
+                  ]
+                }
+              },
+              {
+                "id": "initial-db",
+                "rawLabel": "DB",
+                "bounds": [
+                  337,
+                  182.5,
+                  140,
+                  64
+                ],
+                "name": {
+                  "unmet": null,
+                  "box": [
+                    398,
+                    205,
+                    18,
+                    19
+                  ],
+                  "clips": [
+                    [
+                      349,
+                      183,
+                      116,
+                      64
+                    ],
+                    [
+                      0,
+                      0,
+                      626,
+                      429
+                    ],
+                    [
+                      0,
+                      0,
+                      626,
+                      429
+                    ],
+                    [
+                      0,
+                      0,
+                      626,
+                      429
+                    ]
+                  ],
+                  "svg": [
+                    0,
+                    0,
+                    2170,
+                    1274
+                  ]
+                }
+              }
+            ],
+            "edge": {
+              "from": "initial-api",
+              "to": "initial-db",
+              "association": "pinned-classic-marker-tip-and-stroke-in-one-cell-group",
+              "observed": [
+                {
+                  "start": [
+                    289.5,
+                    215
+                  ],
+                  "end": [
+                    341.67999267578125,
+                    215
+                  ],
+                  "tip": [
+                    347.19000244140625,
+                    215
+                  ],
+                  "stroke": 1.35,
+                  "padding": 2.5093000000000005,
+                  "lineLength": 52.17999267578125,
+                  "markerLength": 24.668292999267578,
+                  "fromOutline": {
+                    "tag": "rect",
+                    "ctm": [
+                      1,
+                      0,
+                      0,
+                      1,
+                      0,
+                      0
+                    ],
+                    "samples": 1128,
+                    "distanceUpper": 0.5109145892836559
+                  },
+                  "toOutline": {
+                    "tag": "path",
+                    "ctm": [
+                      1,
+                      0,
+                      0,
+                      1,
+                      0,
+                      0
+                    ],
+                    "samples": 1050,
+                    "distanceUpper": 0.790929967015846
+                  },
+                  "fromConnected": true,
+                  "toConnected": true,
+                  "directed": true
+                }
+              ],
+              "matches": [
+                {
+                  "start": [
+                    289.5,
+                    215
+                  ],
+                  "end": [
+                    341.67999267578125,
+                    215
+                  ],
+                  "tip": [
+                    347.19000244140625,
+                    215
+                  ],
+                  "stroke": 1.35,
+                  "padding": 2.5093000000000005,
+                  "lineLength": 52.17999267578125,
+                  "markerLength": 24.668292999267578
+                }
+              ],
+              "unsupported": [],
+              "complete": true
+            },
+            "contained": true,
+            "nonoverlap": true,
+            "complete": true
+          },
+          "assessment": {
+            "status": "PASS",
+            "problems": [],
+            "unknown": []
+          }
+        }
+      ]
+    },
+    {
+      "id": "FE04",
+      "arm": "C",
+      "raw_sha256": "926c9f573992eae28e5762a580fd816f82a06d83a54b90900ce724f1e166becc",
+      "log_sha256": "47bd4e0635567c42e0755270130402f7c9ab5418ff6dc143637cacb6ab98b450",
+      "frames": [
+        {
+          "camera": "overview",
+          "scope": "semantic equality and unchanged restore only; hidden descendants do not count as visible"
+        },
+        {
+          "camera": "container",
+          "observation": {
+            "association": "render-owned-semantic-id",
+            "title": {
+              "unmet": null,
+              "box": [
+                155,
+                172.5,
+                23,
+                19
+              ],
+              "clips": [
+                [
+                  0,
+                  0,
+                  626,
+                  429
+                ],
+                [
+                  0,
+                  0,
+                  626,
+                  429
+                ],
+                [
+                  0,
+                  0,
+                  626,
+                  429
+                ]
+              ],
+              "svg": [
+                0,
+                0,
+                2176,
+                1292
+              ]
+            },
+            "identity": true,
+            "viewport": [
+              0,
+              0,
+              626,
+              429
+            ],
+            "container": {
+              "id": "container",
+              "kind": "painted-group-shape",
+              "bounds": [
+                143.5,
+                165,
+                2000,
+                500
+              ]
+            },
+            "shapes": [
+              {
+                "id": "initial-api",
+                "rawLabel": "API",
+                "bounds": [
+                  155,
+                  200.5,
+                  140,
+                  64
+                ],
+                "name": {
+                  "unmet": null,
+                  "box": [
+                    213.5,
+                    223,
+                    22,
+                    19
+                  ],
+                  "clips": [
+                    [
+                      155,
+                      201,
+                      140,
+                      64
+                    ],
+                    [
+                      0,
+                      0,
+                      626,
+                      429
+                    ],
+                    [
+                      0,
+                      0,
+                      626,
+                      429
+                    ],
+                    [
+                      0,
+                      0,
+                      626,
+                      429
+                    ]
+                  ],
+                  "svg": [
+                    0,
+                    0,
+                    2176,
+                    1292
+                  ]
+                }
+              },
+              {
+                "id": "initial-db",
+                "rawLabel": "DB",
+                "bounds": [
+                  343,
+                  200.5,
+                  140,
+                  64
+                ],
+                "name": {
+                  "unmet": null,
+                  "box": [
+                    404,
+                    223,
+                    18,
+                    19
+                  ],
+                  "clips": [
+                    [
+                      355,
+                      201,
+                      116,
+                      64
+                    ],
+                    [
+                      0,
+                      0,
+                      626,
+                      429
+                    ],
+                    [
+                      0,
+                      0,
+                      626,
+                      429
+                    ],
+                    [
+                      0,
+                      0,
+                      626,
+                      429
+                    ]
+                  ],
+                  "svg": [
+                    0,
+                    0,
+                    2176,
+                    1292
+                  ]
+                }
+              }
+            ],
+            "edge": null,
+            "contained": true,
+            "nonoverlap": true,
+            "complete": true
+          },
+          "assessment": {
+            "status": "PASS",
+            "problems": [],
+            "unknown": []
+          }
+        },
+        {
+          "camera": "other",
+          "observation": {
+            "association": "render-owned-semantic-id",
+            "title": {
+              "unmet": null,
+              "box": [
+                296.5,
+                206.86000061035156,
+                33,
+                16
+              ],
+              "clips": [
+                [
+                  4,
+                  136,
+                  619,
+                  157
+                ],
+                [
+                  0,
+                  0,
+                  626,
+                  429
+                ],
+                [
+                  0,
+                  0,
+                  626,
+                  429
+                ],
+                [
+                  0,
+                  0,
+                  626,
+                  429
+                ]
+              ],
+              "svg": [
+                0,
+                0,
+                638,
+                429
+              ]
+            },
+            "identity": true,
+            "viewport": [
+              0,
+              0,
+              626,
+              429
+            ],
+            "container": {
+              "id": "other",
+              "kind": "painted-group-shape",
+              "bounds": [
+                5.429999828338623,
+                137.97999572753906,
+                616.1400146484375,
+                154.0399932861328
+              ]
+            },
+            "shapes": [],
+            "edge": null,
+            "contained": true,
+            "nonoverlap": true,
+            "complete": true
+          },
+          "assessment": {
+            "status": "PASS",
+            "problems": [],
+            "unknown": []
+          }
+        },
+        {
+          "camera": "voice-initial-api-to-initial-db",
+          "observation": {
+            "association": "render-owned-semantic-id",
+            "title": {
+              "unmet": null,
+              "box": [
+                149,
+                154.5,
+                23,
+                19
+              ],
+              "clips": [
+                [
+                  0,
+                  0,
+                  626,
+                  429
+                ],
+                [
+                  0,
+                  0,
+                  626,
+                  429
+                ],
+                [
+                  0,
+                  0,
+                  626,
+                  429
+                ]
+              ],
+              "svg": [
+                0,
+                0,
+                2170,
+                1274
+              ]
+            },
+            "identity": true,
+            "viewport": [
+              0,
+              0,
+              626,
+              429
+            ],
+            "container": {
+              "id": "container",
+              "kind": "painted-group-shape",
+              "bounds": [
+                137.5,
+                147,
+                2000,
+                500
+              ]
+            },
+            "shapes": [
+              {
+                "id": "initial-api",
+                "rawLabel": "API",
+                "bounds": [
+                  149,
+                  182.5,
+                  140,
+                  64
+                ],
+                "name": {
+                  "unmet": null,
+                  "box": [
+                    207.5,
+                    205,
+                    22,
+                    19
+                  ],
+                  "clips": [
+                    [
+                      149,
+                      183,
+                      140,
+                      64
+                    ],
+                    [
+                      0,
+                      0,
+                      626,
+                      429
+                    ],
+                    [
+                      0,
+                      0,
+                      626,
+                      429
+                    ],
+                    [
+                      0,
+                      0,
+                      626,
+                      429
+                    ]
+                  ],
+                  "svg": [
+                    0,
+                    0,
+                    2170,
+                    1274
+                  ]
+                }
+              },
+              {
+                "id": "initial-db",
+                "rawLabel": "DB",
+                "bounds": [
+                  337,
+                  182.5,
+                  140,
+                  64
+                ],
+                "name": {
+                  "unmet": null,
+                  "box": [
+                    398,
+                    205,
+                    18,
+                    19
+                  ],
+                  "clips": [
+                    [
+                      349,
+                      183,
+                      116,
+                      64
+                    ],
+                    [
+                      0,
+                      0,
+                      626,
+                      429
+                    ],
+                    [
+                      0,
+                      0,
+                      626,
+                      429
+                    ],
+                    [
+                      0,
+                      0,
+                      626,
+                      429
+                    ]
+                  ],
+                  "svg": [
+                    0,
+                    0,
+                    2170,
+                    1274
+                  ]
+                }
+              }
+            ],
+            "edge": {
+              "from": "initial-api",
+              "to": "initial-db",
+              "association": "pinned-classic-marker-tip-and-stroke-in-one-cell-group",
+              "observed": [
+                {
+                  "start": [
+                    289.5,
+                    215
+                  ],
+                  "end": [
+                    341.67999267578125,
+                    215
+                  ],
+                  "tip": [
+                    347.19000244140625,
+                    215
+                  ],
+                  "stroke": 1.35,
+                  "padding": 2.5093000000000005,
+                  "lineLength": 52.17999267578125,
+                  "markerLength": 24.668292999267578,
+                  "fromOutline": {
+                    "tag": "rect",
+                    "ctm": [
+                      1,
+                      0,
+                      0,
+                      1,
+                      0,
+                      0
+                    ],
+                    "samples": 1128,
+                    "distanceUpper": 0.5109145892836559
+                  },
+                  "toOutline": {
+                    "tag": "path",
+                    "ctm": [
+                      1,
+                      0,
+                      0,
+                      1,
+                      0,
+                      0
+                    ],
+                    "samples": 1050,
+                    "distanceUpper": 0.790929967015846
+                  },
+                  "fromConnected": true,
+                  "toConnected": true,
+                  "directed": true
+                }
+              ],
+              "matches": [
+                {
+                  "start": [
+                    289.5,
+                    215
+                  ],
+                  "end": [
+                    341.67999267578125,
+                    215
+                  ],
+                  "tip": [
+                    347.19000244140625,
+                    215
+                  ],
+                  "stroke": 1.35,
+                  "padding": 2.5093000000000005,
+                  "lineLength": 52.17999267578125,
+                  "markerLength": 24.668292999267578
+                }
+              ],
+              "unsupported": [],
+              "complete": true
+            },
+            "contained": true,
+            "nonoverlap": true,
+            "complete": true
+          },
+          "assessment": {
+            "status": "PASS",
+            "problems": [],
+            "unknown": []
+          }
+        }
+      ]
+    },
+    {
+      "id": "FE05",
+      "arm": "B",
+      "raw_sha256": "c0b70eb7ea785286204f8f3a8bf88316ed40e6fe9e248ed562ffb995f8bde053",
+      "log_sha256": "8d1eca97d9c29efcb938bf7ba32ba18f306db8b4ce1a35570cd454d53fdee314",
+      "frames": [
+        {
+          "camera": "overview",
+          "scope": "semantic equality and unchanged restore only; hidden descendants do not count as visible"
+        },
+        {
+          "camera": "container",
+          "observation": {
+            "association": "render-owned-semantic-id",
+            "title": {
+              "unmet": null,
+              "box": [
+                303,
+                206.86000061035156,
+                20,
+                16
+              ],
+              "clips": [
+                [
+                  4,
+                  136,
+                  619,
+                  157
+                ],
+                [
+                  0,
+                  0,
+                  626,
+                  429
+                ],
+                [
+                  0,
+                  0,
+                  626,
+                  429
+                ],
+                [
+                  0,
+                  0,
+                  626,
+                  429
+                ]
+              ],
+              "svg": [
+                0,
+                0,
+                638,
+                485
+              ]
+            },
+            "identity": true,
+            "viewport": [
+              0,
+              0,
+              626,
+              429
+            ],
+            "container": {
+              "id": "container",
+              "kind": "painted-group-shape",
+              "bounds": [
+                5.429999828338623,
+                137.97999572753906,
+                616.1400146484375,
+                154.0399932861328
+              ]
+            },
+            "shapes": [],
+            "edge": null,
+            "contained": true,
+            "nonoverlap": true,
+            "complete": true
+          },
+          "assessment": {
+            "status": "PASS",
+            "problems": [],
+            "unknown": []
+          }
+        },
+        {
+          "camera": "other",
+          "observation": {
+            "association": "render-owned-semantic-id",
+            "title": {
+              "unmet": null,
+              "box": [
+                296.5,
+                206.86000061035156,
+                33,
+                16
+              ],
+              "clips": [
+                [
+                  4,
+                  136,
+                  619,
+                  157
+                ],
+                [
+                  0,
+                  0,
+                  626,
+                  429
+                ],
+                [
+                  0,
+                  0,
+                  626,
+                  429
+                ],
+                [
+                  0,
+                  0,
+                  626,
+                  429
+                ]
+              ],
+              "svg": [
+                0,
+                0,
+                638,
+                429
+              ]
+            },
+            "identity": true,
+            "viewport": [
+              0,
+              0,
+              626,
+              429
+            ],
+            "container": {
+              "id": "other",
+              "kind": "painted-group-shape",
+              "bounds": [
+                5.429999828338623,
+                137.97999572753906,
+                616.1400146484375,
+                154.0399932861328
+              ]
+            },
+            "shapes": [],
+            "edge": null,
+            "contained": true,
+            "nonoverlap": true,
+            "complete": true
+          },
+          "assessment": {
+            "status": "PASS",
+            "problems": [],
+            "unknown": []
+          }
+        }
+      ]
+    },
+    {
+      "id": "FE05",
+      "arm": "C",
+      "raw_sha256": "be096b09fd55ffd628fa5a76b109b3075b3ecef94f2f36a18319db318e3833c4",
+      "log_sha256": "8d1eca97d9c29efcb938bf7ba32ba18f306db8b4ce1a35570cd454d53fdee314",
+      "frames": [
+        {
+          "camera": "overview",
+          "scope": "semantic equality and unchanged restore only; hidden descendants do not count as visible"
+        },
+        {
+          "camera": "container",
+          "observation": {
+            "association": "render-owned-semantic-id",
+            "title": {
+              "unmet": null,
+              "box": [
+                303,
+                206.86000061035156,
+                20,
+                16
+              ],
+              "clips": [
+                [
+                  4,
+                  136,
+                  619,
+                  157
+                ],
+                [
+                  0,
+                  0,
+                  626,
+                  429
+                ],
+                [
+                  0,
+                  0,
+                  626,
+                  429
+                ],
+                [
+                  0,
+                  0,
+                  626,
+                  429
+                ]
+              ],
+              "svg": [
+                0,
+                0,
+                638,
+                485
+              ]
+            },
+            "identity": true,
+            "viewport": [
+              0,
+              0,
+              626,
+              429
+            ],
+            "container": {
+              "id": "container",
+              "kind": "painted-group-shape",
+              "bounds": [
+                5.429999828338623,
+                137.97999572753906,
+                616.1400146484375,
+                154.0399932861328
+              ]
+            },
+            "shapes": [],
+            "edge": null,
+            "contained": true,
+            "nonoverlap": true,
+            "complete": true
+          },
+          "assessment": {
+            "status": "PASS",
+            "problems": [],
+            "unknown": []
+          }
+        },
+        {
+          "camera": "other",
+          "observation": {
+            "association": "render-owned-semantic-id",
+            "title": {
+              "unmet": null,
+              "box": [
+                296.5,
+                206.86000061035156,
+                33,
+                16
+              ],
+              "clips": [
+                [
+                  4,
+                  136,
+                  619,
+                  157
+                ],
+                [
+                  0,
+                  0,
+                  626,
+                  429
+                ],
+                [
+                  0,
+                  0,
+                  626,
+                  429
+                ],
+                [
+                  0,
+                  0,
+                  626,
+                  429
+                ]
+              ],
+              "svg": [
+                0,
+                0,
+                638,
+                429
+              ]
+            },
+            "identity": true,
+            "viewport": [
+              0,
+              0,
+              626,
+              429
+            ],
+            "container": {
+              "id": "other",
+              "kind": "painted-group-shape",
+              "bounds": [
+                5.429999828338623,
+                137.97999572753906,
+                616.1400146484375,
+                154.0399932861328
+              ]
+            },
+            "shapes": [],
+            "edge": null,
+            "contained": true,
+            "nonoverlap": true,
+            "complete": true
+          },
+          "assessment": {
+            "status": "PASS",
+            "problems": [],
+            "unknown": []
+          }
+        }
+      ]
+    },
+    {
+      "id": "FE06",
+      "arm": "B",
+      "raw_sha256": "16e9b549b1d02244902f925e1c5cee05a6eb717c5683fff5b1b71e957579ca0a",
+      "log_sha256": "8d1eca97d9c29efcb938bf7ba32ba18f306db8b4ce1a35570cd454d53fdee314",
+      "frames": [
+        {
+          "camera": "overview",
+          "scope": "semantic equality and unchanged restore only; hidden descendants do not count as visible"
+        },
+        {
+          "camera": "container",
+          "observation": {
+            "association": "render-owned-semantic-id",
+            "title": {
+              "unmet": null,
+              "box": [
+                303,
+                206.86000061035156,
+                20,
+                16
+              ],
+              "clips": [
+                [
+                  4,
+                  136,
+                  619,
+                  157
+                ],
+                [
+                  0,
+                  0,
+                  626,
+                  429
+                ],
+                [
+                  0,
+                  0,
+                  626,
+                  429
+                ],
+                [
+                  0,
+                  0,
+                  626,
+                  429
+                ]
+              ],
+              "svg": [
+                0,
+                0,
+                638,
+                485
+              ]
+            },
+            "identity": true,
+            "viewport": [
+              0,
+              0,
+              626,
+              429
+            ],
+            "container": {
+              "id": "container",
+              "kind": "painted-group-shape",
+              "bounds": [
+                5.429999828338623,
+                137.97999572753906,
+                616.1400146484375,
+                154.0399932861328
+              ]
+            },
+            "shapes": [],
+            "edge": null,
+            "contained": true,
+            "nonoverlap": true,
+            "complete": true
+          },
+          "assessment": {
+            "status": "PASS",
+            "problems": [],
+            "unknown": []
+          }
+        },
+        {
+          "camera": "other",
+          "observation": {
+            "association": "render-owned-semantic-id",
+            "title": {
+              "unmet": null,
+              "box": [
+                296.5,
+                206.86000061035156,
+                33,
+                16
+              ],
+              "clips": [
+                [
+                  4,
+                  136,
+                  619,
+                  157
+                ],
+                [
+                  0,
+                  0,
+                  626,
+                  429
+                ],
+                [
+                  0,
+                  0,
+                  626,
+                  429
+                ],
+                [
+                  0,
+                  0,
+                  626,
+                  429
+                ]
+              ],
+              "svg": [
+                0,
+                0,
+                638,
+                429
+              ]
+            },
+            "identity": true,
+            "viewport": [
+              0,
+              0,
+              626,
+              429
+            ],
+            "container": {
+              "id": "other",
+              "kind": "painted-group-shape",
+              "bounds": [
+                5.429999828338623,
+                137.97999572753906,
+                616.1400146484375,
+                154.0399932861328
+              ]
+            },
+            "shapes": [],
+            "edge": null,
+            "contained": true,
+            "nonoverlap": true,
+            "complete": true
+          },
+          "assessment": {
+            "status": "PASS",
+            "problems": [],
+            "unknown": []
+          }
+        }
+      ]
+    },
+    {
+      "id": "FE06",
+      "arm": "C",
+      "raw_sha256": "1e049413f39c939b8be45e925be174ca88200dca89364d17eed88f9b6242f7a4",
+      "log_sha256": "a7bdcf2135de4bc54906971c8c67345174e571635166cd60b39ee04facb65fc1",
+      "frames": [
+        {
+          "camera": "overview",
+          "scope": "semantic equality and unchanged restore only; hidden descendants do not count as visible"
+        },
+        {
+          "camera": "container",
+          "observation": {
+            "association": "render-owned-semantic-id",
+            "title": {
+              "unmet": null,
+              "box": [
+                303,
+                206.86000061035156,
+                20,
+                16
+              ],
+              "clips": [
+                [
+                  4,
+                  136,
+                  619,
+                  157
+                ],
+                [
+                  0,
+                  0,
+                  626,
+                  429
+                ],
+                [
+                  0,
+                  0,
+                  626,
+                  429
+                ],
+                [
+                  0,
+                  0,
+                  626,
+                  429
+                ]
+              ],
+              "svg": [
+                0,
+                0,
+                638,
+                485
+              ]
+            },
+            "identity": true,
+            "viewport": [
+              0,
+              0,
+              626,
+              429
+            ],
+            "container": {
+              "id": "container",
+              "kind": "painted-group-shape",
+              "bounds": [
+                5.429999828338623,
+                137.97999572753906,
+                616.1400146484375,
+                154.0399932861328
+              ]
+            },
+            "shapes": [],
+            "edge": null,
+            "contained": true,
+            "nonoverlap": true,
+            "complete": true
+          },
+          "assessment": {
+            "status": "PASS",
+            "problems": [],
+            "unknown": []
+          }
+        },
+        {
+          "camera": "other",
+          "observation": {
+            "association": "render-owned-semantic-id",
+            "title": {
+              "unmet": null,
+              "box": [
+                127,
+                158.5,
+                37,
+                19
+              ],
+              "clips": [
+                [
+                  0,
+                  0,
+                  626,
+                  429
+                ],
+                [
+                  0,
+                  0,
+                  626,
+                  429
+                ],
+                [
+                  0,
+                  0,
+                  626,
+                  429
+                ]
+              ],
+              "svg": [
+                0,
+                0,
+                2148,
+                1154
+              ]
+            },
+            "identity": true,
+            "viewport": [
+              0,
+              0,
+              626,
+              429
+            ],
+            "container": {
+              "id": "other",
+              "kind": "painted-group-shape",
+              "bounds": [
+                115.5,
+                151,
+                2000,
+                500
+              ]
+            },
+            "shapes": [
+              {
+                "id": "part-1",
+                "rawLabel": "DB",
+                "bounds": [
+                  127,
+                  186.5,
+                  180,
+                  92
+                ],
+                "name": {
+                  "unmet": null,
+                  "box": [
+                    208,
+                    223,
+                    18,
+                    19
+                  ],
+                  "clips": [
+                    [
+                      139,
+                      187,
+                      156,
+                      92
+                    ],
+                    [
+                      0,
+                      0,
+                      626,
+                      429
+                    ],
+                    [
+                      0,
+                      0,
+                      626,
+                      429
+                    ],
+                    [
+                      0,
+                      0,
+                      626,
+                      429
+                    ]
+                  ],
+                  "svg": [
+                    0,
+                    0,
+                    2148,
+                    1154
+                  ]
+                }
+              },
+              {
+                "id": "part-2",
+                "rawLabel": "DB",
+                "bounds": [
+                  331,
+                  186.5,
+                  180,
+                  92
+                ],
+                "name": {
+                  "unmet": null,
+                  "box": [
+                    412,
+                    223,
+                    18,
+                    19
+                  ],
+                  "clips": [
+                    [
+                      343,
+                      187,
+                      156,
+                      92
+                    ],
+                    [
+                      0,
+                      0,
+                      626,
+                      429
+                    ],
+                    [
+                      0,
+                      0,
+                      626,
+                      429
+                    ],
+                    [
+                      0,
+                      0,
+                      626,
+                      429
+                    ]
+                  ],
+                  "svg": [
+                    0,
+                    0,
+                    2148,
+                    1154
+                  ]
+                }
+              }
+            ],
+            "edge": null,
+            "contained": true,
+            "nonoverlap": true,
+            "complete": true
+          },
+          "assessment": {
+            "status": "PASS",
+            "problems": [],
+            "unknown": []
+          }
+        }
+      ]
+    },
+    {
+      "id": "FE07",
+      "arm": "B",
+      "raw_sha256": "22a0f221fb1f23afd56fbf3ae25237451ec1bd3d51a110a2491601a02b50ae76",
+      "log_sha256": "8d1eca97d9c29efcb938bf7ba32ba18f306db8b4ce1a35570cd454d53fdee314",
+      "frames": [
+        {
+          "camera": "overview",
+          "scope": "semantic equality and unchanged restore only; hidden descendants do not count as visible"
+        },
+        {
+          "camera": "container",
+          "observation": {
+            "association": "render-owned-semantic-id",
+            "title": {
+              "unmet": null,
+              "box": [
+                303,
+                206.86000061035156,
+                20,
+                16
+              ],
+              "clips": [
+                [
+                  4,
+                  136,
+                  619,
+                  157
+                ],
+                [
+                  0,
+                  0,
+                  626,
+                  429
+                ],
+                [
+                  0,
+                  0,
+                  626,
+                  429
+                ],
+                [
+                  0,
+                  0,
+                  626,
+                  429
+                ]
+              ],
+              "svg": [
+                0,
+                0,
+                638,
+                485
+              ]
+            },
+            "identity": true,
+            "viewport": [
+              0,
+              0,
+              626,
+              429
+            ],
+            "container": {
+              "id": "container",
+              "kind": "painted-group-shape",
+              "bounds": [
+                5.429999828338623,
+                137.97999572753906,
+                616.1400146484375,
+                154.0399932861328
+              ]
+            },
+            "shapes": [],
+            "edge": null,
+            "contained": true,
+            "nonoverlap": true,
+            "complete": true
+          },
+          "assessment": {
+            "status": "PASS",
+            "problems": [],
+            "unknown": []
+          }
+        },
+        {
+          "camera": "other",
+          "observation": {
+            "association": "render-owned-semantic-id",
+            "title": {
+              "unmet": null,
+              "box": [
+                296.5,
+                206.86000061035156,
+                33,
+                16
+              ],
+              "clips": [
+                [
+                  4,
+                  136,
+                  619,
+                  157
+                ],
+                [
+                  0,
+                  0,
+                  626,
+                  429
+                ],
+                [
+                  0,
+                  0,
+                  626,
+                  429
+                ],
+                [
+                  0,
+                  0,
+                  626,
+                  429
+                ]
+              ],
+              "svg": [
+                0,
+                0,
+                638,
+                429
+              ]
+            },
+            "identity": true,
+            "viewport": [
+              0,
+              0,
+              626,
+              429
+            ],
+            "container": {
+              "id": "other",
+              "kind": "painted-group-shape",
+              "bounds": [
+                5.429999828338623,
+                137.97999572753906,
+                616.1400146484375,
+                154.0399932861328
+              ]
+            },
+            "shapes": [],
+            "edge": null,
+            "contained": true,
+            "nonoverlap": true,
+            "complete": true
+          },
+          "assessment": {
+            "status": "PASS",
+            "problems": [],
+            "unknown": []
+          }
+        }
+      ]
+    },
+    {
+      "id": "FE07",
+      "arm": "C",
+      "raw_sha256": "0dac884840de5b7dcfe7f8e70dd16413441fd33db7550b17480ce137b94ced87",
+      "log_sha256": "b6e17c634c0f002c09bcbbe1ed4526e70335b74dfa1bf2a35fdb3bbd8691291b",
+      "frames": [
+        {
+          "camera": "overview",
+          "scope": "semantic equality and unchanged restore only; hidden descendants do not count as visible"
+        },
+        {
+          "camera": "container",
+          "observation": {
+            "association": "render-owned-semantic-id",
+            "title": {
+              "unmet": null,
+              "box": [
+                127,
+                158.5,
+                23,
+                19
+              ],
+              "clips": [
+                [
+                  0,
+                  0,
+                  626,
+                  429
+                ],
+                [
+                  0,
+                  0,
+                  626,
+                  429
+                ],
+                [
+                  0,
+                  0,
+                  626,
+                  429
+                ]
+              ],
+              "svg": [
+                0,
+                0,
+                2148,
+                1278
+              ]
+            },
+            "identity": true,
+            "viewport": [
+              0,
+              0,
+              626,
+              429
+            ],
+            "container": {
+              "id": "container",
+              "kind": "painted-group-shape",
+              "bounds": [
+                115.5,
+                151,
+                2000,
+                500
+              ]
+            },
+            "shapes": [
+              {
+                "id": "part-1",
+                "rawLabel": "稟議可否",
+                "bounds": [
+                  127,
+                  186.5,
+                  180,
+                  92
+                ],
+                "name": {
+                  "unmet": null,
+                  "box": [
+                    191,
+                    223,
+                    52,
+                    19
+                  ],
+                  "clips": [
+                    [
+                      139,
+                      187,
+                      156,
+                      92
+                    ],
+                    [
+                      0,
+                      0,
+                      626,
+                      429
+                    ],
+                    [
+                      0,
+                      0,
+                      626,
+                      429
+                    ],
+                    [
+                      0,
+                      0,
+                      626,
+                      429
+                    ]
+                  ],
+                  "svg": [
+                    0,
+                    0,
+                    2148,
+                    1278
+                  ]
+                }
+              },
+              {
+                "id": "part-2",
+                "rawLabel": "判断",
+                "bounds": [
+                  331,
+                  186.5,
+                  180,
+                  92
+                ],
+                "name": {
+                  "unmet": null,
+                  "box": [
+                    408,
+                    223,
+                    26,
+                    19
+                  ],
+                  "clips": [
+                    [
+                      343,
+                      187,
+                      156,
+                      92
+                    ],
+                    [
+                      0,
+                      0,
+                      626,
+                      429
+                    ],
+                    [
+                      0,
+                      0,
+                      626,
+                      429
+                    ],
+                    [
+                      0,
+                      0,
+                      626,
+                      429
+                    ]
+                  ],
+                  "svg": [
+                    0,
+                    0,
+                    2148,
+                    1278
+                  ]
+                }
+              }
+            ],
+            "edge": null,
+            "contained": true,
+            "nonoverlap": true,
+            "complete": true
+          },
+          "assessment": {
+            "status": "PASS",
+            "problems": [],
+            "unknown": []
+          }
+        },
+        {
+          "camera": "other",
+          "observation": {
+            "association": "render-owned-semantic-id",
+            "title": {
+              "unmet": null,
+              "box": [
+                296.5,
+                206.86000061035156,
+                33,
+                16
+              ],
+              "clips": [
+                [
+                  4,
+                  136,
+                  619,
+                  157
+                ],
+                [
+                  0,
+                  0,
+                  626,
+                  429
+                ],
+                [
+                  0,
+                  0,
+                  626,
+                  429
+                ],
+                [
+                  0,
+                  0,
+                  626,
+                  429
+                ]
+              ],
+              "svg": [
+                0,
+                0,
+                638,
+                429
+              ]
+            },
+            "identity": true,
+            "viewport": [
+              0,
+              0,
+              626,
+              429
+            ],
+            "container": {
+              "id": "other",
+              "kind": "painted-group-shape",
+              "bounds": [
+                5.429999828338623,
+                137.97999572753906,
+                616.1400146484375,
+                154.0399932861328
+              ]
+            },
+            "shapes": [],
+            "edge": null,
+            "contained": true,
+            "nonoverlap": true,
+            "complete": true
+          },
+          "assessment": {
+            "status": "PASS",
+            "problems": [],
+            "unknown": []
+          }
+        }
+      ]
+    },
+    {
+      "id": "FE08",
+      "arm": "B",
+      "raw_sha256": "92bd2e845712dd2fa64d0c797395d547db7790fc19d220665bb1e28e8a0c3e03",
+      "log_sha256": "8d1eca97d9c29efcb938bf7ba32ba18f306db8b4ce1a35570cd454d53fdee314",
+      "frames": [
+        {
+          "camera": "overview",
+          "scope": "semantic equality and unchanged restore only; hidden descendants do not count as visible"
+        },
+        {
+          "camera": "container",
+          "observation": {
+            "association": "render-owned-semantic-id",
+            "title": {
+              "unmet": null,
+              "box": [
+                303,
+                206.86000061035156,
+                20,
+                16
+              ],
+              "clips": [
+                [
+                  4,
+                  136,
+                  619,
+                  157
+                ],
+                [
+                  0,
+                  0,
+                  626,
+                  429
+                ],
+                [
+                  0,
+                  0,
+                  626,
+                  429
+                ],
+                [
+                  0,
+                  0,
+                  626,
+                  429
+                ]
+              ],
+              "svg": [
+                0,
+                0,
+                638,
+                485
+              ]
+            },
+            "identity": true,
+            "viewport": [
+              0,
+              0,
+              626,
+              429
+            ],
+            "container": {
+              "id": "container",
+              "kind": "painted-group-shape",
+              "bounds": [
+                5.429999828338623,
+                137.97999572753906,
+                616.1400146484375,
+                154.0399932861328
+              ]
+            },
+            "shapes": [],
+            "edge": null,
+            "contained": true,
+            "nonoverlap": true,
+            "complete": true
+          },
+          "assessment": {
+            "status": "PASS",
+            "problems": [],
+            "unknown": []
+          }
+        },
+        {
+          "camera": "other",
+          "observation": {
+            "association": "render-owned-semantic-id",
+            "title": {
+              "unmet": null,
+              "box": [
+                296.5,
+                206.86000061035156,
+                33,
+                16
+              ],
+              "clips": [
+                [
+                  4,
+                  136,
+                  619,
+                  157
+                ],
+                [
+                  0,
+                  0,
+                  626,
+                  429
+                ],
+                [
+                  0,
+                  0,
+                  626,
+                  429
+                ],
+                [
+                  0,
+                  0,
+                  626,
+                  429
+                ]
+              ],
+              "svg": [
+                0,
+                0,
+                638,
+                429
+              ]
+            },
+            "identity": true,
+            "viewport": [
+              0,
+              0,
+              626,
+              429
+            ],
+            "container": {
+              "id": "other",
+              "kind": "painted-group-shape",
+              "bounds": [
+                5.429999828338623,
+                137.97999572753906,
+                616.1400146484375,
+                154.0399932861328
+              ]
+            },
+            "shapes": [],
+            "edge": null,
+            "contained": true,
+            "nonoverlap": true,
+            "complete": true
+          },
+          "assessment": {
+            "status": "PASS",
+            "problems": [],
+            "unknown": []
+          }
+        }
+      ]
+    },
+    {
+      "id": "FE08",
+      "arm": "C",
+      "raw_sha256": "449091433f4b01b6b3ca68699f471dfb28c9f9b3648e04c0d426d3612713c16c",
+      "log_sha256": "8d1eca97d9c29efcb938bf7ba32ba18f306db8b4ce1a35570cd454d53fdee314",
+      "frames": [
+        {
+          "camera": "overview",
+          "scope": "semantic equality and unchanged restore only; hidden descendants do not count as visible"
+        },
+        {
+          "camera": "container",
+          "observation": {
+            "association": "render-owned-semantic-id",
+            "title": {
+              "unmet": null,
+              "box": [
+                303,
+                206.86000061035156,
+                20,
+                16
+              ],
+              "clips": [
+                [
+                  4,
+                  136,
+                  619,
+                  157
+                ],
+                [
+                  0,
+                  0,
+                  626,
+                  429
+                ],
+                [
+                  0,
+                  0,
+                  626,
+                  429
+                ],
+                [
+                  0,
+                  0,
+                  626,
+                  429
+                ]
+              ],
+              "svg": [
+                0,
+                0,
+                638,
+                485
+              ]
+            },
+            "identity": true,
+            "viewport": [
+              0,
+              0,
+              626,
+              429
+            ],
+            "container": {
+              "id": "container",
+              "kind": "painted-group-shape",
+              "bounds": [
+                5.429999828338623,
+                137.97999572753906,
+                616.1400146484375,
+                154.0399932861328
+              ]
+            },
+            "shapes": [],
+            "edge": null,
+            "contained": true,
+            "nonoverlap": true,
+            "complete": true
+          },
+          "assessment": {
+            "status": "PASS",
+            "problems": [],
+            "unknown": []
+          }
+        },
+        {
+          "camera": "other",
+          "observation": {
+            "association": "render-owned-semantic-id",
+            "title": {
+              "unmet": null,
+              "box": [
+                296.5,
+                206.86000061035156,
+                33,
+                16
+              ],
+              "clips": [
+                [
+                  4,
+                  136,
+                  619,
+                  157
+                ],
+                [
+                  0,
+                  0,
+                  626,
+                  429
+                ],
+                [
+                  0,
+                  0,
+                  626,
+                  429
+                ],
+                [
+                  0,
+                  0,
+                  626,
+                  429
+                ]
+              ],
+              "svg": [
+                0,
+                0,
+                638,
+                429
+              ]
+            },
+            "identity": true,
+            "viewport": [
+              0,
+              0,
+              626,
+              429
+            ],
+            "container": {
+              "id": "other",
+              "kind": "painted-group-shape",
+              "bounds": [
+                5.429999828338623,
+                137.97999572753906,
+                616.1400146484375,
+                154.0399932861328
+              ]
+            },
+            "shapes": [],
+            "edge": null,
+            "contained": true,
+            "nonoverlap": true,
+            "complete": true
+          },
+          "assessment": {
+            "status": "PASS",
+            "problems": [],
+            "unknown": []
+          }
+        }
+      ]
+    },
+    {
+      "id": "FE09",
+      "arm": "B",
+      "raw_sha256": "ec28176bf17b6434c2e081c6b83efcd3c6993e74e2bc953e599f81db1c321145",
+      "log_sha256": "8d1eca97d9c29efcb938bf7ba32ba18f306db8b4ce1a35570cd454d53fdee314",
+      "frames": [
+        {
+          "camera": "overview",
+          "scope": "semantic equality and unchanged restore only; hidden descendants do not count as visible"
+        },
+        {
+          "camera": "container",
+          "observation": {
+            "association": "render-owned-semantic-id",
+            "title": {
+              "unmet": null,
+              "box": [
+                303,
+                206.86000061035156,
+                20,
+                16
+              ],
+              "clips": [
+                [
+                  4,
+                  136,
+                  619,
+                  157
+                ],
+                [
+                  0,
+                  0,
+                  626,
+                  429
+                ],
+                [
+                  0,
+                  0,
+                  626,
+                  429
+                ],
+                [
+                  0,
+                  0,
+                  626,
+                  429
+                ]
+              ],
+              "svg": [
+                0,
+                0,
+                638,
+                485
+              ]
+            },
+            "identity": true,
+            "viewport": [
+              0,
+              0,
+              626,
+              429
+            ],
+            "container": {
+              "id": "container",
+              "kind": "painted-group-shape",
+              "bounds": [
+                5.429999828338623,
+                137.97999572753906,
+                616.1400146484375,
+                154.0399932861328
+              ]
+            },
+            "shapes": [],
+            "edge": null,
+            "contained": true,
+            "nonoverlap": true,
+            "complete": true
+          },
+          "assessment": {
+            "status": "PASS",
+            "problems": [],
+            "unknown": []
+          }
+        },
+        {
+          "camera": "other",
+          "observation": {
+            "association": "render-owned-semantic-id",
+            "title": {
+              "unmet": null,
+              "box": [
+                296.5,
+                206.86000061035156,
+                33,
+                16
+              ],
+              "clips": [
+                [
+                  4,
+                  136,
+                  619,
+                  157
+                ],
+                [
+                  0,
+                  0,
+                  626,
+                  429
+                ],
+                [
+                  0,
+                  0,
+                  626,
+                  429
+                ],
+                [
+                  0,
+                  0,
+                  626,
+                  429
+                ]
+              ],
+              "svg": [
+                0,
+                0,
+                638,
+                429
+              ]
+            },
+            "identity": true,
+            "viewport": [
+              0,
+              0,
+              626,
+              429
+            ],
+            "container": {
+              "id": "other",
+              "kind": "painted-group-shape",
+              "bounds": [
+                5.429999828338623,
+                137.97999572753906,
+                616.1400146484375,
+                154.0399932861328
+              ]
+            },
+            "shapes": [],
+            "edge": null,
+            "contained": true,
+            "nonoverlap": true,
+            "complete": true
+          },
+          "assessment": {
+            "status": "PASS",
+            "problems": [],
+            "unknown": []
+          }
+        }
+      ]
+    },
+    {
+      "id": "FE09",
+      "arm": "C",
+      "raw_sha256": "75030a42f91221249e93c64cbf4706681d3a7554e95b6c7803d0dfa9c2c9f289",
+      "log_sha256": "8d1eca97d9c29efcb938bf7ba32ba18f306db8b4ce1a35570cd454d53fdee314",
+      "frames": [
+        {
+          "camera": "overview",
+          "scope": "semantic equality and unchanged restore only; hidden descendants do not count as visible"
+        },
+        {
+          "camera": "container",
+          "observation": {
+            "association": "render-owned-semantic-id",
+            "title": {
+              "unmet": null,
+              "box": [
+                303,
+                206.86000061035156,
+                20,
+                16
+              ],
+              "clips": [
+                [
+                  4,
+                  136,
+                  619,
+                  157
+                ],
+                [
+                  0,
+                  0,
+                  626,
+                  429
+                ],
+                [
+                  0,
+                  0,
+                  626,
+                  429
+                ],
+                [
+                  0,
+                  0,
+                  626,
+                  429
+                ]
+              ],
+              "svg": [
+                0,
+                0,
+                638,
+                485
+              ]
+            },
+            "identity": true,
+            "viewport": [
+              0,
+              0,
+              626,
+              429
+            ],
+            "container": {
+              "id": "container",
+              "kind": "painted-group-shape",
+              "bounds": [
+                5.429999828338623,
+                137.97999572753906,
+                616.1400146484375,
+                154.0399932861328
+              ]
+            },
+            "shapes": [],
+            "edge": null,
+            "contained": true,
+            "nonoverlap": true,
+            "complete": true
+          },
+          "assessment": {
+            "status": "PASS",
+            "problems": [],
+            "unknown": []
+          }
+        },
+        {
+          "camera": "other",
+          "observation": {
+            "association": "render-owned-semantic-id",
+            "title": {
+              "unmet": null,
+              "box": [
+                296.5,
+                206.86000061035156,
+                33,
+                16
+              ],
+              "clips": [
+                [
+                  4,
+                  136,
+                  619,
+                  157
+                ],
+                [
+                  0,
+                  0,
+                  626,
+                  429
+                ],
+                [
+                  0,
+                  0,
+                  626,
+                  429
+                ],
+                [
+                  0,
+                  0,
+                  626,
+                  429
+                ]
+              ],
+              "svg": [
+                0,
+                0,
+                638,
+                429
+              ]
+            },
+            "identity": true,
+            "viewport": [
+              0,
+              0,
+              626,
+              429
+            ],
+            "container": {
+              "id": "other",
+              "kind": "painted-group-shape",
+              "bounds": [
+                5.429999828338623,
+                137.97999572753906,
+                616.1400146484375,
+                154.0399932861328
+              ]
+            },
+            "shapes": [],
+            "edge": null,
+            "contained": true,
+            "nonoverlap": true,
+            "complete": true
+          },
+          "assessment": {
+            "status": "PASS",
+            "problems": [],
+            "unknown": []
+          }
+        }
+      ]
+    },
+    {
+      "id": "FE10",
+      "arm": "B",
+      "raw_sha256": "d256196883c0b2fa864240ded2860aa736f8f9b5b3f1e3f00ea6d9b6ee0367a8",
+      "log_sha256": "8acb35234593a568df45ad03fb5aaa70f2ed13d21c03513fc66c9304ec56e5f3",
+      "frames": [
+        {
+          "camera": "overview",
+          "scope": "semantic equality and unchanged restore only; hidden descendants do not count as visible"
+        },
+        {
+          "camera": "container",
+          "observation": {
+            "association": "render-owned-semantic-id",
+            "title": {
+              "unmet": null,
+              "box": [
+                155,
+                172.5,
+                23,
+                19
+              ],
+              "clips": [
+                [
+                  0,
+                  0,
+                  626,
+                  429
+                ],
+                [
+                  0,
+                  0,
+                  626,
+                  429
+                ],
+                [
+                  0,
+                  0,
+                  626,
+                  429
+                ]
+              ],
+              "svg": [
+                0,
+                0,
+                2176,
+                1292
+              ]
+            },
+            "identity": true,
+            "viewport": [
+              0,
+              0,
+              626,
+              429
+            ],
+            "container": {
+              "id": "container",
+              "kind": "painted-group-shape",
+              "bounds": [
+                143.5,
+                165,
+                2000,
+                500
+              ]
+            },
+            "shapes": [
+              {
+                "id": "initial-api",
+                "rawLabel": "API",
+                "bounds": [
+                  155,
+                  200.5,
+                  140,
+                  64
+                ],
+                "name": {
+                  "unmet": null,
+                  "box": [
+                    213.5,
+                    223,
+                    22,
+                    19
+                  ],
+                  "clips": [
+                    [
+                      155,
+                      201,
+                      140,
+                      64
+                    ],
+                    [
+                      0,
+                      0,
+                      626,
+                      429
+                    ],
+                    [
+                      0,
+                      0,
+                      626,
+                      429
+                    ],
+                    [
+                      0,
+                      0,
+                      626,
+                      429
+                    ]
+                  ],
+                  "svg": [
+                    0,
+                    0,
+                    2176,
+                    1292
+                  ]
+                }
+              },
+              {
+                "id": "initial-db",
+                "rawLabel": "DB",
+                "bounds": [
+                  343,
+                  200.5,
+                  140,
+                  64
+                ],
+                "name": {
+                  "unmet": null,
+                  "box": [
+                    404,
+                    223,
+                    18,
+                    19
+                  ],
+                  "clips": [
+                    [
+                      355,
+                      201,
+                      116,
+                      64
+                    ],
+                    [
+                      0,
+                      0,
+                      626,
+                      429
+                    ],
+                    [
+                      0,
+                      0,
+                      626,
+                      429
+                    ],
+                    [
+                      0,
+                      0,
+                      626,
+                      429
+                    ]
+                  ],
+                  "svg": [
+                    0,
+                    0,
+                    2176,
+                    1292
+                  ]
+                }
+              }
+            ],
+            "edge": null,
+            "contained": true,
+            "nonoverlap": true,
+            "complete": true
+          },
+          "assessment": {
+            "status": "PASS",
+            "problems": [],
+            "unknown": []
+          }
+        },
+        {
+          "camera": "other",
+          "observation": {
+            "association": "render-owned-semantic-id",
+            "title": {
+              "unmet": null,
+              "box": [
+                296.5,
+                206.86000061035156,
+                33,
+                16
+              ],
+              "clips": [
+                [
+                  4,
+                  136,
+                  619,
+                  157
+                ],
+                [
+                  0,
+                  0,
+                  626,
+                  429
+                ],
+                [
+                  0,
+                  0,
+                  626,
+                  429
+                ],
+                [
+                  0,
+                  0,
+                  626,
+                  429
+                ]
+              ],
+              "svg": [
+                0,
+                0,
+                638,
+                429
+              ]
+            },
+            "identity": true,
+            "viewport": [
+              0,
+              0,
+              626,
+              429
+            ],
+            "container": {
+              "id": "other",
+              "kind": "painted-group-shape",
+              "bounds": [
+                5.429999828338623,
+                137.97999572753906,
+                616.1400146484375,
+                154.0399932861328
+              ]
+            },
+            "shapes": [],
+            "edge": null,
+            "contained": true,
+            "nonoverlap": true,
+            "complete": true
+          },
+          "assessment": {
+            "status": "PASS",
+            "problems": [],
+            "unknown": []
+          }
+        }
+      ]
+    },
+    {
+      "id": "FE10",
+      "arm": "C",
+      "raw_sha256": "1685d648e0f8c3cb6b47c84c7fe6234619bb65e2e684b25ff4042d8721dbd5b5",
+      "log_sha256": "8acb35234593a568df45ad03fb5aaa70f2ed13d21c03513fc66c9304ec56e5f3",
+      "frames": [
+        {
+          "camera": "overview",
+          "scope": "semantic equality and unchanged restore only; hidden descendants do not count as visible"
+        },
+        {
+          "camera": "container",
+          "observation": {
+            "association": "render-owned-semantic-id",
+            "title": {
+              "unmet": null,
+              "box": [
+                155,
+                172.5,
+                23,
+                19
+              ],
+              "clips": [
+                [
+                  0,
+                  0,
+                  626,
+                  429
+                ],
+                [
+                  0,
+                  0,
+                  626,
+                  429
+                ],
+                [
+                  0,
+                  0,
+                  626,
+                  429
+                ]
+              ],
+              "svg": [
+                0,
+                0,
+                2176,
+                1292
+              ]
+            },
+            "identity": true,
+            "viewport": [
+              0,
+              0,
+              626,
+              429
+            ],
+            "container": {
+              "id": "container",
+              "kind": "painted-group-shape",
+              "bounds": [
+                143.5,
+                165,
+                2000,
+                500
+              ]
+            },
+            "shapes": [
+              {
+                "id": "initial-api",
+                "rawLabel": "API",
+                "bounds": [
+                  155,
+                  200.5,
+                  140,
+                  64
+                ],
+                "name": {
+                  "unmet": null,
+                  "box": [
+                    213.5,
+                    223,
+                    22,
+                    19
+                  ],
+                  "clips": [
+                    [
+                      155,
+                      201,
+                      140,
+                      64
+                    ],
+                    [
+                      0,
+                      0,
+                      626,
+                      429
+                    ],
+                    [
+                      0,
+                      0,
+                      626,
+                      429
+                    ],
+                    [
+                      0,
+                      0,
+                      626,
+                      429
+                    ]
+                  ],
+                  "svg": [
+                    0,
+                    0,
+                    2176,
+                    1292
+                  ]
+                }
+              },
+              {
+                "id": "initial-db",
+                "rawLabel": "DB",
+                "bounds": [
+                  343,
+                  200.5,
+                  140,
+                  64
+                ],
+                "name": {
+                  "unmet": null,
+                  "box": [
+                    404,
+                    223,
+                    18,
+                    19
+                  ],
+                  "clips": [
+                    [
+                      355,
+                      201,
+                      116,
+                      64
+                    ],
+                    [
+                      0,
+                      0,
+                      626,
+                      429
+                    ],
+                    [
+                      0,
+                      0,
+                      626,
+                      429
+                    ],
+                    [
+                      0,
+                      0,
+                      626,
+                      429
+                    ]
+                  ],
+                  "svg": [
+                    0,
+                    0,
+                    2176,
+                    1292
+                  ]
+                }
+              }
+            ],
+            "edge": null,
+            "contained": true,
+            "nonoverlap": true,
+            "complete": true
+          },
+          "assessment": {
+            "status": "PASS",
+            "problems": [],
+            "unknown": []
+          }
+        },
+        {
+          "camera": "other",
+          "observation": {
+            "association": "render-owned-semantic-id",
+            "title": {
+              "unmet": null,
+              "box": [
+                296.5,
+                206.86000061035156,
+                33,
+                16
+              ],
+              "clips": [
+                [
+                  4,
+                  136,
+                  619,
+                  157
+                ],
+                [
+                  0,
+                  0,
+                  626,
+                  429
+                ],
+                [
+                  0,
+                  0,
+                  626,
+                  429
+                ],
+                [
+                  0,
+                  0,
+                  626,
+                  429
+                ]
+              ],
+              "svg": [
+                0,
+                0,
+                638,
+                429
+              ]
+            },
+            "identity": true,
+            "viewport": [
+              0,
+              0,
+              626,
+              429
+            ],
+            "container": {
+              "id": "other",
+              "kind": "painted-group-shape",
+              "bounds": [
+                5.429999828338623,
+                137.97999572753906,
+                616.1400146484375,
+                154.0399932861328
+              ]
+            },
+            "shapes": [],
+            "edge": null,
+            "contained": true,
+            "nonoverlap": true,
+            "complete": true
+          },
+          "assessment": {
+            "status": "PASS",
+            "problems": [],
+            "unknown": []
+          }
+        }
+      ]
+    }
+  ]
+}

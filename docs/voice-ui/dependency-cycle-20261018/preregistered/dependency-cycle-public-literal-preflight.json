@@ -1,0 +1,109 @@
+{
+  "schema": "voice-ui.dependency-cycle-public-literal-preflight/1",
+  "status": "PASS",
+  "no_provider_calls": true,
+  "literal_source_sha256": "82a2bdb9866c1331b4c685f28862bd54e7e974c4af3652b4f72dfdbb41f7df60",
+  "parents": {
+    "V": {
+      "input_sha256": "633a1b3cc8c47a6fcb4d548d127bdb05b2696bc99ffbfae0467211236e36ce97",
+      "oracle_sha256": "884dde0deb27b76d7f269eee989ffeedc1759493402b77a4cf4d9efb0d4344e5"
+    },
+    "F": {
+      "input_sha256": "fecbe1eb3945cdb9e450742e26ba5fbb56bc1f3d852b1deebf292d09d922b6ec",
+      "oracle_sha256": "d01e7cdd4ef0fabd0b0befeab1e39026a235c88f02046e8eee58d56840aaa36e"
+    },
+    "E": {
+      "input_sha256": "dddd6843284c39e7aa1862cd2b9debd0548a6b503d892c18d68863205387380c",
+      "oracle_sha256": "723bc974b22fc45da2f19b6c8580f7280e7497d474d5a9f33d35d3f1ce385dea"
+    }
+  },
+  "actual": {
+    "F": [
+      {
+        "id": "PF01",
+        "valid": true,
+        "recognized": false,
+        "required": [],
+        "expected_required_exact": false,
+        "literal_deficit": true
+      },
+      {
+        "id": "PF02",
+        "valid": true,
+        "recognized": false,
+        "required": [],
+        "expected_required_exact": false,
+        "literal_deficit": true
+      },
+      {
+        "id": "PF03",
+        "valid": true,
+        "recognized": true,
+        "required": [
+          {
+            "label": "工程",
+            "kind": "step",
+            "quantity": 1
+          }
+        ],
+        "expected_required_exact": false,
+        "literal_deficit": true
+      },
+      {
+        "id": "PF04",
+        "valid": true,
+        "recognized": true,
+        "required": [
+          {
+            "label": "判断",
+            "kind": "decision",
+            "quantity": 1
+          }
+        ],
+        "expected_required_exact": false,
+        "literal_deficit": true
+      },
+      {
+        "id": "PF05",
+        "valid": false,
+        "recognized": true,
+        "required": [],
+        "expected_required_exact": false,
+        "literal_deficit": true
+      },
+      {
+        "id": "PF06",
+        "valid": true,
+        "recognized": true,
+        "required": [
+          {
+            "label": "格納前処理",
+            "kind": "step",
+            "quantity": 1
+          }
+        ],
+        "expected_required_exact": false,
+        "literal_deficit": true
+      }
+    ],
+    "E": [
+      {
+        "id": "PE01",
+        "valid": true,
+        "recognized": false,
+        "required": [],
+        "expected_required_exact": false,
+        "literal_deficit": true
+      },
+      {
+        "id": "PE02",
+        "valid": true,
+        "recognized": false,
+        "required": [],
+        "expected_required_exact": false,
+        "literal_deficit": true
+      }
+    ]
+  },
+  "correction": "An earlier unexecuted inference that PE01 was fully transcribed was wrong. Exact parser actual required=[] for both PE01 and PE02. Expected meanings and original parent bytes were never changed."
+}

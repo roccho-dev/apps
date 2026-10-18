@@ -1,0 +1,30 @@
+{
+  "phase": "extraction-public-A3-20261018",
+  "began": "2026-10-18T01:18:44.426Z",
+  "finished": "2026-10-18T01:19:08.172Z",
+  "execution": {
+    "exit": 0
+  },
+  "stop": {
+    "status": "STOPPED_RECONCILED",
+    "result": {
+      "phase": "extraction-public-A3-20261018",
+      "action": "stop",
+      "current": {
+        "pid": 388291,
+        "state": "S",
+        "pgid": 388291,
+        "start_ticks": "19397886"
+      },
+      "sent": {
+        "jev": 0,
+        "typellm": 16
+      },
+      "whole_run_sent": {
+        "jev": 847,
+        "typellm": 104
+      },
+      "reserved_until_confirmed_stop": null
+    }
+  }
+}

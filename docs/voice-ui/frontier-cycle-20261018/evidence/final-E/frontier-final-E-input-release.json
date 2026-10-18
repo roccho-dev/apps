@@ -1,0 +1,36 @@
+{
+  "schema": "voice-ui.independent-input-release/1",
+  "axis": "E",
+  "phase": "frontier-final-E-20261018",
+  "apps_sha": "2cc4890b765a5534e92855f83f9232ae85bb373b",
+  "status": "PASS",
+  "input": {
+    "name": "frontier-cycle-final-E-10.inputs.json",
+    "bytes": 6161,
+    "sha256": "74d5eb6b1504ffd5ab223daa4b6682a1952f7db113f6bfb438fc2fe5d3cc67f7"
+  },
+  "case_count": 10,
+  "cells": 20,
+  "parent_inputs_sha256": null,
+  "oracle_sha256": "c6ee6fca910a2fd91581886cd24aad9d0cb5e7a53b50d33dc27ebad88d45bf13",
+  "oracle_released": false,
+  "previous_evidence": {
+    "F_integrity": "PASS",
+    "F_quality": "UNPROVEN",
+    "valid_exact": 7,
+    "full_denominator": 8,
+    "invalid": 1,
+    "summary_sha256": "758757da7853937bcd03b320f9e403bf78feb4ebf27241d161a094b9e6aabfbd"
+  },
+  "prior_charged": {
+    "jev": 761,
+    "typellm": 81
+  },
+  "allowance": {
+    "jev": 190,
+    "typellm": 10
+  },
+  "previous_cutoff_sha256": "6c3f58a4f890151e85258ccebb380316b9c90a047c49f265a100eefbcf27ac4b",
+  "commitment_sha256": "e95bfeeb45edf03e6fd43c0fbc7ca839f3584878092e6e5d18cf181a25af9eae",
+  "scope": "Only current paired E10 input. Original blind seal bytes, exact alternating20-cell policy. Its oracle stays private until physical stop/accounting; no Type/Jev POST admission yet. V/F quality stays separate."
+}

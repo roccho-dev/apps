@@ -1,0 +1,6 @@
+voice-ui dev: listening on 127.0.0.1:18845
+voice-ui dev: semanticMap=/nix/store/vqjhvwxcbwv7vg09n4d3sy54lw879s9f-semantic-map
+voice-ui dev: hayamimi=/nix/store/b7l6pgxk94ipi8sxg8z72kx8f6ki36xj-hayamimi-web
+voice-ui dev: architecture=/nix/store/mpjfb6hmvdaxq0sp1bsn3ywfxcm3nljx-voice-ui-architecture-source
+voice-ui dev: JEV_API_KEY bound
+{"kind":"voice-ui.parts.contract.v1","stage":"local-result","rootExact":true,"slots":[{"exact":true,"label":"nonempty","kind":"step","quantity":0},{"exact":true,"label":"empty","kind":"none","quantity":0},{"exact":true,"label":"nonempty","kind":"step","quantity":0}],"duplicatePair":true}

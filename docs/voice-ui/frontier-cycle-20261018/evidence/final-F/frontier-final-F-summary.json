@@ -1,0 +1,75 @@
+{
+  "schema": "voice-ui.frontier-final-summary/1",
+  "axis": "F",
+  "phase": "frontier-final-F-20261018",
+  "apps_sha": "2cc4890b765a5534e92855f83f9232ae85bb373b",
+  "evidence_status": "PASS",
+  "quality": "UNPROVEN",
+  "semantic": {
+    "complete": true,
+    "total": 8,
+    "by_arm": {
+      "D": {
+        "complete": true,
+        "total": 8,
+        "exact_minimal": 7,
+        "true_sufficient": {
+          "total": 2,
+          "zero_missing": 2
+        },
+        "requirements_criteria": "UNMET",
+        "valid": 7,
+        "invalid": 1,
+        "exact_valid": 7,
+        "denominator": 8
+      }
+    },
+    "pairs": [],
+    "candidate_requirements_criteria": "UNMET",
+    "requirements_criteria": "UNMET",
+    "admissible_semantic_pairs": 0,
+    "validity_gains": 0,
+    "semantic_gains": 0,
+    "semantic_regressions": 0,
+    "scope": "fixed full per-arm denominators; validity changes never promoted into admissible semantic wins"
+  },
+  "full_denominator": 8,
+  "valid_exact_minimal": 7,
+  "invalid": 1,
+  "invalid_cell": {
+    "id": "FF05",
+    "http_status": 502,
+    "response": {
+      "error": "parts_contract"
+    },
+    "raw_result": {
+      "reason": "evaluation-operation-unknown"
+    },
+    "structural_failure_values": "NOT_RECORDED_UNKNOWN",
+    "retry": false
+  },
+  "true_sufficient_zero_missing": {
+    "correct": 2,
+    "total": 2
+  },
+  "sent": {
+    "jev": 0,
+    "typellm": 8
+  },
+  "charged": {
+    "jev": 761,
+    "typellm": 81
+  },
+  "journal_sha256": "6c3f58a4f890151e85258ccebb380316b9c90a047c49f265a100eefbcf27ac4b",
+  "all37_owned_groups_absent_including_zombies": true,
+  "reservation": null,
+  "oracle": {
+    "name": "frontier-cycle-final-F-8.oracle.json",
+    "sha256": "c36e4f748a6c82a9d3255b39f7e6bc087d1d15282bed892c9c69731e538a5caf",
+    "released_after_physical_stop": true
+  },
+  "fixed_producer_sha256": "1d2a0cc8ed8e132fc4da35b7b8978763afb8c5c8e870172f49d37d402b878a10",
+  "next_axis_admission": "Full retained evidence/source/accounting PASS admits E input projection despite F INVALID/quality UNPROVEN. Invalid row remains in denominator8; no success rate7/7 promotion.",
+  "CI_STOPPED_EVIDENCE_RECHECK": "PENDING_REPORT_CI",
+  "CI_LIVE_EXECUTION": "UNPROVEN"
+}

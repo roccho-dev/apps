@@ -1,0 +1,51 @@
+{
+  "schema": "voice-ui.review.quota-ci-closure/1",
+  "status": "PASS",
+  "head": "59ded276405a5dc9caa85ad570b1827ff4bd0c7a",
+  "run": 39076041775,
+  "checked_at": "2026-10-17T23:00:37.620Z",
+  "kind": "quota-cycle",
+  "artifact": {
+    "id": 12117910657,
+    "name": "voice-ui-quota-cycle-59ded276405a5dc9caa85ad570b1827ff4bd0c7a",
+    "bytes": 564,
+    "sha256": "d5b1f01d74526f9f6d368555fb5fe86c1dc934e6cd4ad1c17a67286e31b336cb"
+  },
+  "receipt_sha256": "5fba49e7d43c2d226a4b8a90c7f9450dcaa6ccf048f1d91556fe7c3ff14e2233",
+  "cumulative": {
+    "jev": 808,
+    "typellm": 85
+  },
+  "reports": 0,
+  "empty_process_independently_recomputed": true,
+  "index_sha256": "99532b003a82f88e1642b54fc0dbbf2e61f82a5b288ab6c0a8586245f8f16216",
+  "commitment_sha256": "b2aea0ad175e93786b5f566b020204ac7c2f3734b867cb9b53741794a2a401ec",
+  "freeze_sha256": "ba374d29ff1d4a19d36fb705058b60baa5cbf8e12af81cb2ef2a6ac3342431e0",
+  "baseline_journal_sha256": "ce6896e0b1eb7c3c749b659b36e3ed4467dc133042ace81dd990b9f2e10c28d4",
+  "public_files_verified": 17,
+  "processGraph": {
+    "schema": "voice-ui.quota-cycle-process/1",
+    "status": "PASS",
+    "issues": [],
+    "state": "NOT_MEASURED",
+    "baseline": {
+      "jev": 808,
+      "typellm": 85
+    },
+    "indexed_phases": 0,
+    "source_head": null,
+    "correction_batches": 0,
+    "reserved": {
+      "jev": 0,
+      "typellm": 0
+    },
+    "charged_at_cutoff": {
+      "jev": 808,
+      "typellm": 85
+    },
+    "releases": [],
+    "scope": "integrity/process only; conditional expression and ordinary supplementation are separate; retained fresh quality failures do not block complete stopped-evidence progression"
+  },
+  "scope": "ACTUAL_CI_CLOSED_EVIDENCE_OR_NOT_MEASURED_ONLY_NOT_LIVE_PERFORMANCE_OR_LAUNCH_GO",
+  "reviewer_real_provider_calls": 0
+}

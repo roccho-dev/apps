@@ -1,0 +1,240 @@
+{
+  "schema": "voice-ui.requirements-cycle-input/1",
+  "axis": "V",
+  "oracle_sha256": "c2bfbe81c8d7c7c07f8e36a985b7a2c537bd3fd2ef0eb61147d0beeb8c704d2d",
+  "fixture_contract": {
+    "map_id": "voice-graph",
+    "base_records": [
+      {
+        "type": "meta",
+        "schema": "semantic-map-state/1",
+        "root": "root",
+        "title": "independent typed ordinary public"
+      },
+      {
+        "type": "region",
+        "id": "root",
+        "parent": null,
+        "label": "fixture",
+        "kind": "boundary",
+        "bounds": [
+          0,
+          0,
+          900,
+          400
+        ],
+        "summary": ""
+      },
+      {
+        "type": "region",
+        "id": "container",
+        "parent": "root",
+        "label": "作業区",
+        "kind": "group",
+        "bounds": [
+          0,
+          0,
+          700,
+          200
+        ],
+        "summary": ""
+      },
+      {
+        "type": "region",
+        "id": "other",
+        "parent": "root",
+        "label": "保留区",
+        "kind": "group",
+        "bounds": [
+          0,
+          230,
+          700,
+          160
+        ],
+        "summary": ""
+      }
+    ],
+    "base_pins": [
+      {
+        "regionId": "container",
+        "bounds": [
+          0,
+          0,
+          2000,
+          500
+        ]
+      },
+      {
+        "regionId": "other",
+        "bounds": [
+          0,
+          600,
+          2000,
+          500
+        ]
+      }
+    ],
+    "fixtures": {
+      "empty": {
+        "extra_records": [],
+        "extra_pins": []
+      },
+      "api": {
+        "extra_records": [
+          {
+            "type": "region",
+            "id": "initial-api",
+            "parent": "container",
+            "label": "API",
+            "kind": "step",
+            "bounds": [
+              20,
+              20,
+              140,
+              64
+            ],
+            "summary": ""
+          }
+        ],
+        "extra_pins": [
+          {
+            "regionId": "initial-api",
+            "bounds": [
+              12,
+              36,
+              140,
+              64
+            ]
+          }
+        ]
+      },
+      "pair": {
+        "extra_records": [
+          {
+            "type": "region",
+            "id": "initial-api",
+            "parent": "container",
+            "label": "API",
+            "kind": "step",
+            "bounds": [
+              20,
+              20,
+              140,
+              64
+            ],
+            "summary": ""
+          },
+          {
+            "type": "region",
+            "id": "initial-db",
+            "parent": "container",
+            "label": "DB",
+            "kind": "data",
+            "bounds": [
+              200,
+              20,
+              140,
+              64
+            ],
+            "summary": ""
+          }
+        ],
+        "extra_pins": [
+          {
+            "regionId": "initial-api",
+            "bounds": [
+              12,
+              36,
+              140,
+              64
+            ]
+          },
+          {
+            "regionId": "initial-db",
+            "bounds": [
+              200,
+              36,
+              140,
+              64
+            ]
+          }
+        ]
+      }
+    },
+    "recent_conversation": [],
+    "scope": null
+  },
+  "cases": [
+    {
+      "id": "CV01",
+      "fixture": "empty",
+      "utterance": "保留区へ新しい工程を二つ設け、どちらの表示もAPIにしてください。二つとも独立した部品として置き、線は付けないでください。",
+      "required": [
+        {
+          "label": "API",
+          "kind": "step",
+          "quantity": 2
+        }
+      ]
+    },
+    {
+      "id": "CV02",
+      "fixture": "empty",
+      "utterance": "保留区へ新しい工程を二つ設け、どちらの表示もAPIにしてください。二つとも独立した部品として置き、線は付けないでください。",
+      "required": [
+        {
+          "label": "工程",
+          "kind": "step",
+          "quantity": 2
+        }
+      ]
+    },
+    {
+      "id": "CV03",
+      "fixture": "empty",
+      "utterance": "保留区へ新しい工程を二つ設け、どちらの表示もAPIにしてください。二つとも独立した部品として置き、線は付けないでください。",
+      "required": [
+        {
+          "label": "API",
+          "kind": "decision",
+          "quantity": 2
+        }
+      ]
+    },
+    {
+      "id": "CV04",
+      "fixture": "empty",
+      "utterance": "保留区へ新しい工程を二つ設け、どちらの表示もAPIにしてください。二つとも独立した部品として置き、線は付けないでください。",
+      "required": [
+        {
+          "label": "API",
+          "kind": "step",
+          "quantity": 1
+        }
+      ]
+    },
+    {
+      "id": "CV05",
+      "fixture": "empty",
+      "utterance": "保留区へ新しい工程を二つ設け、どちらの表示もAPIにしてください。二つとも独立した部品として置き、線は付けないでください。",
+      "required": [
+        {
+          "label": "API",
+          "kind": "step",
+          "quantity": 2
+        },
+        {
+          "label": "DB",
+          "kind": "data",
+          "quantity": 1
+        }
+      ]
+    },
+    {
+      "id": "CV06",
+      "fixture": "empty",
+      "utterance": "保留区へ新しい工程を二つ設け、どちらの表示もAPIにしてください。二つとも独立した部品として置き、線は付けないでください。",
+      "required": []
+    }
+  ]
+}

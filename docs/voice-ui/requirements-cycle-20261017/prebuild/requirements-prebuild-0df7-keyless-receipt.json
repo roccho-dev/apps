@@ -1,0 +1,247 @@
+{
+  "schema": "voice-ui.requirements-cycle-keyless/1",
+  "scope": "SYNTHETIC_MECHANICS_ONLY",
+  "external_provider_sends": {
+    "jev": 0,
+    "typellm": 0
+  },
+  "status": "PASS",
+  "artifact_sources": {
+    "apps": "0df7f9f57c81416c499efeaabba3df03404a427e",
+    "architecture": {
+      "evidence_sha256": "6bd41404f7b0822dff98f471d3d7780a15740f01b16fd1dcef04ec617b2ae636",
+      "manifest_sha256": "68cce16f75d70314a5fb90db4e7c37797d08a516a125920b829e1166480a5e2f",
+      "source": {
+        "commit": "0df7f9f57c81416c499efeaabba3df03404a427e",
+        "handle": "apps-voice-ui"
+      },
+      "status": "available"
+    },
+    "hayamimi-web": {
+      "locator": "https://github.com/roccho-dev/ops/releases/download/hayamimi-web-1665d5195a0dd70c2e0253c20351e5305db35f3f/hayamimi-web.zip",
+      "proof_sha256": "a0bb1478a5ffe9440f46682ca143382cd000d0d1d6f736723baad96541be4e27",
+      "sha256": "c12b51e2ea396a64131b917439ffbda1aa1cd70a9fd7f9567ea05030897c672a"
+    },
+    "jev-provider": {
+      "contract": "named-choices-and-typed/1",
+      "entry_sha256": "ad4ac08ae8c42f3bf0e9d0aeedb0a2e9192c776585a3251b2ff1e18358cfe2e7",
+      "locator": "https://github.com/roccho-org/ops/releases/download/jev-provider-cab432ef717cbde9ebd0197ae006c0efe75269bf/jev-provider.zip",
+      "manifest_sha256": "df95aa16e508e5c2563856fc99bd58aaf70fc120633f01c1a102f8598e48b253",
+      "proof_sha256": "41dbd597a7cd40cbb5995ed7cefdbafc047b56fa1ea9d339081aa20589b95e17",
+      "provenance_sha256": "21a44ca37e45a8678133d26532c69c02420c3b445fa6887356e188ba2a988cbf",
+      "sha256": "ea242b5ce5424ee6e367155198b059831b4494d1a0f4c8eeb404d9c12d469512"
+    },
+    "system": "x86_64-linux",
+    "ui": "756d47e891191c3344eb2d29b000203be8331abc"
+  },
+  "artifact_manifest_sha256": "c9d7cd41b552f59775cc9b98623417af77b2bf0057c2a1cf2a9bfe404b1eda52",
+  "summaries": [
+    {
+      "axis": "V",
+      "stage": "V",
+      "cells": 1,
+      "synthetic_calls": 1,
+      "execution_status": "RECORDED",
+      "status": "PASS"
+    },
+    {
+      "axis": "F",
+      "stage": "F",
+      "cells": 1,
+      "synthetic_calls": 1,
+      "execution_status": "RECORDED",
+      "status": "PASS"
+    },
+    {
+      "axis": "E",
+      "stage": "E",
+      "cells": 2,
+      "synthetic_calls": 7,
+      "execution_status": "RECORDED",
+      "status": "PASS"
+    },
+    {
+      "axis": "E",
+      "stage": "E-complete",
+      "cells": 2,
+      "synthetic_calls": 8,
+      "execution_status": "RECORDED",
+      "status": "PASS"
+    },
+    {
+      "axis": "E",
+      "stage": "E-control",
+      "cells": 2,
+      "synthetic_calls": 2,
+      "execution_status": "RECORDED",
+      "status": "PASS"
+    },
+    {
+      "axis": "E",
+      "stage": "E-reject",
+      "cells": 2,
+      "synthetic_calls": 4,
+      "execution_status": "RECORDED",
+      "status": "PASS"
+    },
+    {
+      "axis": "E",
+      "stage": "E-contract",
+      "cells": 2,
+      "synthetic_calls": 3,
+      "execution_status": "INVALID",
+      "status": "PASS"
+    },
+    {
+      "axis": "V",
+      "stage": "V-unknown",
+      "cells": 1,
+      "synthetic_calls": 0,
+      "execution_status": "INVALID",
+      "status": "PASS"
+    },
+    {
+      "axis": "F",
+      "stage": "F-unknown",
+      "cells": 1,
+      "synthetic_calls": 0,
+      "execution_status": "INVALID",
+      "status": "PASS"
+    },
+    {
+      "axis": "E",
+      "stage": "E-unknown",
+      "cells": 2,
+      "synthetic_calls": 0,
+      "execution_status": "INVALID",
+      "status": "PASS"
+    }
+  ],
+  "api": [
+    {
+      "route": "/api/parts/verify",
+      "status": 200,
+      "synthetic_failure": false
+    },
+    {
+      "route": "/api/parts/requirements",
+      "status": 200,
+      "synthetic_failure": false
+    },
+    {
+      "route": "/api/parts/check?method=literal-v2",
+      "status": 200,
+      "synthetic_failure": false
+    },
+    {
+      "route": "/api/parts/check?method=adaptive-v2",
+      "status": 200,
+      "synthetic_failure": false
+    },
+    {
+      "route": "/api/judge",
+      "status": 200,
+      "synthetic_failure": false
+    },
+    {
+      "route": "/api/judge",
+      "status": 200,
+      "synthetic_failure": false
+    },
+    {
+      "route": "/api/judge",
+      "status": 200,
+      "synthetic_failure": false
+    },
+    {
+      "route": "/api/parts/check?method=literal-v2",
+      "status": 200,
+      "synthetic_failure": false
+    },
+    {
+      "route": "/api/judge",
+      "status": 200,
+      "synthetic_failure": false
+    },
+    {
+      "route": "/api/judge",
+      "status": 200,
+      "synthetic_failure": false
+    },
+    {
+      "route": "/api/judge",
+      "status": 200,
+      "synthetic_failure": false
+    },
+    {
+      "route": "/api/parts/check?method=adaptive-v2",
+      "status": 200,
+      "synthetic_failure": false
+    },
+    {
+      "route": "/api/judge",
+      "status": 200,
+      "synthetic_failure": false
+    },
+    {
+      "route": "/api/judge",
+      "status": 200,
+      "synthetic_failure": false
+    },
+    {
+      "route": "/api/judge",
+      "status": 200,
+      "synthetic_failure": false
+    },
+    {
+      "route": "/api/parts/check?method=literal-v2",
+      "status": 200,
+      "synthetic_failure": false
+    },
+    {
+      "route": "/api/parts/check?method=adaptive-v2",
+      "status": 200,
+      "synthetic_failure": false
+    },
+    {
+      "route": "/api/parts/check?method=literal-v2",
+      "status": 200,
+      "synthetic_failure": false
+    },
+    {
+      "route": "/api/parts/check?method=adaptive-v2",
+      "status": 200,
+      "synthetic_failure": false
+    },
+    {
+      "route": "/api/parts/check?method=literal-v2",
+      "status": 200,
+      "synthetic_failure": false
+    },
+    {
+      "route": "/api/parts/check?method=adaptive-v2",
+      "status": 502,
+      "synthetic_failure": false
+    },
+    {
+      "route": "/api/parts/verify",
+      "status": 503,
+      "synthetic_failure": true
+    },
+    {
+      "route": "/api/parts/requirements",
+      "status": 503,
+      "synthetic_failure": true
+    },
+    {
+      "route": "/api/parts/check?method=literal-v2",
+      "status": 503,
+      "synthetic_failure": true
+    },
+    {
+      "route": "/api/parts/check?method=adaptive-v2",
+      "status": 503,
+      "synthetic_failure": true
+    }
+  ]
+}

@@ -1,0 +1,1380 @@
+{
+  "schema": "voice-ui.quota-cycle-cell/1",
+  "axis": "R",
+  "id": "QR01",
+  "method": "ready-quota",
+  "arm": "Q",
+  "generation_policy": null,
+  "goal_parts_policy": "quota",
+  "supplied_required": [
+    {
+      "label": "返送照会",
+      "kind": "step",
+      "quantity": 1
+    }
+  ],
+  "replay_suffix_scope": "compatibility only",
+  "fixture": "empty",
+  "utterance": "保留区に返送照会という表示の工程を一つだけ新たに配置してください。ほかの部品や線は追加しないでください。",
+  "parts": [
+    {
+      "key": "step",
+      "purpose": "an ordinary step, task or box",
+      "label": "工程",
+      "kind": "step"
+    },
+    {
+      "key": "decision",
+      "purpose": "a decision, choice or branch",
+      "label": "判断",
+      "kind": "decision"
+    },
+    {
+      "key": "data",
+      "purpose": "data, a document, an input or an output",
+      "label": "データ",
+      "kind": "data"
+    },
+    {
+      "key": "start",
+      "purpose": "a start or beginning",
+      "label": "開始",
+      "kind": "start"
+    },
+    {
+      "key": "end",
+      "purpose": "an end, finish or result",
+      "label": "終了",
+      "kind": "end"
+    },
+    {
+      "key": "api",
+      "purpose": "an application programming interface service that receives requests",
+      "label": "API",
+      "kind": "step"
+    },
+    {
+      "key": "db",
+      "purpose": "a database that persists application data",
+      "label": "DB",
+      "kind": "data"
+    },
+    {
+      "key": "ready-expression",
+      "purpose": "one separately offered step component with the exact displayed label 返送照会",
+      "label": "返送照会",
+      "kind": "step"
+    }
+  ],
+  "valid_execution": true,
+  "elapsedMs": 10512.865199999998,
+  "result": {
+    "reason": "no-executable-delta",
+    "requests": 2,
+    "elapsedMs": 526.2273000000005,
+    "selected": [
+      {
+        "key": "ready-expression",
+        "region": "part-1",
+        "parent": "other"
+      }
+    ],
+    "trace": [
+      {
+        "head": "sha256:f14b93ac1b4a8ca4af467132ccd7f5d0a524fed90de6dbf3d54d77ea8f534596",
+        "answers": {
+          "delta": {
+            "type": "choice",
+            "choice": "part:ready-expression",
+            "confidence": 0.96
+          }
+        },
+        "failure": null
+      },
+      {
+        "head": "sha256:f14b93ac1b4a8ca4af467132ccd7f5d0a524fed90de6dbf3d54d77ea8f534596",
+        "answers": {
+          "delta": {
+            "type": "choice",
+            "choice": "delta-2",
+            "confidence": 0.95
+          }
+        },
+        "failure": null
+      }
+    ]
+  },
+  "calls": [
+    {
+      "id": "QR01",
+      "arm": "Q",
+      "n": 1,
+      "route": "/api/judge",
+      "request": {
+        "kind": "voice-ui.judge.goal-local-delta.v7",
+        "state": {
+          "utterance": "保留区に返送照会という表示の工程を一つだけ新たに配置してください。ほかの部品や線は追加しないでください。",
+          "graph": [
+            {
+              "id": "root",
+              "label": "fixture",
+              "parent": null
+            },
+            {
+              "id": "container",
+              "label": "作業区",
+              "parent": "root"
+            },
+            {
+              "id": "other",
+              "label": "保留区",
+              "parent": "root"
+            }
+          ],
+          "edges": [],
+          "parents": [
+            {
+              "id": "container",
+              "label": "作業区",
+              "kind": "group",
+              "parent": "root"
+            },
+            {
+              "id": "other",
+              "label": "保留区",
+              "kind": "group",
+              "parent": "root"
+            }
+          ],
+          "offers": {
+            "parts": [
+              {
+                "key": "ready-expression",
+                "purpose": "one separately offered step component with the exact displayed label 返送照会",
+                "label": "返送照会"
+              }
+            ]
+          },
+          "selected": [],
+          "candidates": [
+            {
+              "id": "delta-1",
+              "action": "add-part",
+              "part": "ready-expression",
+              "parent": "container"
+            },
+            {
+              "id": "delta-2",
+              "action": "add-part",
+              "part": "ready-expression",
+              "parent": "other"
+            }
+          ],
+          "context": {
+            "recent": []
+          },
+          "scope": null,
+          "placing": null
+        }
+      },
+      "status": 200,
+      "response": {
+        "kind": "voice-ui.judge.decision.v1",
+        "answers": {
+          "delta": {
+            "type": "choice",
+            "choice": "part:ready-expression",
+            "confidence": 0.96
+          }
+        }
+      },
+      "elapsedMs": 273.8629999999994
+    },
+    {
+      "id": "QR01",
+      "arm": "Q",
+      "n": 2,
+      "route": "/api/judge",
+      "request": {
+        "kind": "voice-ui.judge.goal-local-delta.v7",
+        "state": {
+          "utterance": "保留区に返送照会という表示の工程を一つだけ新たに配置してください。ほかの部品や線は追加しないでください。",
+          "graph": [
+            {
+              "id": "root",
+              "label": "fixture",
+              "parent": null
+            },
+            {
+              "id": "container",
+              "label": "作業区",
+              "parent": "root"
+            },
+            {
+              "id": "other",
+              "label": "保留区",
+              "parent": "root"
+            }
+          ],
+          "edges": [],
+          "parents": [
+            {
+              "id": "container",
+              "label": "作業区",
+              "kind": "group",
+              "parent": "root"
+            },
+            {
+              "id": "other",
+              "label": "保留区",
+              "kind": "group",
+              "parent": "root"
+            }
+          ],
+          "offers": {
+            "parts": [
+              {
+                "key": "ready-expression",
+                "purpose": "one separately offered step component with the exact displayed label 返送照会",
+                "label": "返送照会"
+              }
+            ]
+          },
+          "selected": [],
+          "candidates": [
+            {
+              "id": "delta-1",
+              "action": "add-part",
+              "part": "ready-expression",
+              "parent": "container"
+            },
+            {
+              "id": "delta-2",
+              "action": "add-part",
+              "part": "ready-expression",
+              "parent": "other"
+            }
+          ],
+          "context": {
+            "recent": []
+          },
+          "scope": null,
+          "placing": "ready-expression"
+        }
+      },
+      "status": 200,
+      "response": {
+        "kind": "voice-ui.judge.decision.v1",
+        "answers": {
+          "delta": {
+            "type": "choice",
+            "choice": "delta-2",
+            "confidence": 0.95
+          }
+        }
+      },
+      "elapsedMs": 193.90340000000106
+    }
+  ],
+  "initial_head": "sha256:f14b93ac1b4a8ca4af467132ccd7f5d0a524fed90de6dbf3d54d77ea8f534596",
+  "initial_log": "{\"operations\":[{\"mapId\":\"voice-graph\",\"records\":[{\"root\":\"root\",\"schema\":\"semantic-map-state/1\",\"title\":\"independent quota expression\",\"type\":\"meta\"},{\"bounds\":[0,0,900,400],\"id\":\"root\",\"kind\":\"boundary\",\"label\":\"fixture\",\"parent\":null,\"summary\":\"\",\"type\":\"region\"},{\"bounds\":[0,0,700,200],\"id\":\"container\",\"kind\":\"group\",\"label\":\"作業区\",\"parent\":\"root\",\"summary\":\"\",\"type\":\"region\"},{\"bounds\":[0,230,700,160],\"id\":\"other\",\"kind\":\"group\",\"label\":\"保留区\",\"parent\":\"root\",\"summary\":\"\",\"type\":\"region\"}],\"type\":\"CreateMap\"}],\"parent\":null,\"schema\":\"semantic-map-decision/2\",\"stateHash\":\"sha256:96c3705673d6d8136e773cc07c7bafb7a4f01aa295b371db90b7ee17e105e394\"}\n{\"operations\":[{\"items\":[{\"bounds\":[0,0,2000,500],\"regionId\":\"container\"},{\"bounds\":[0,600,2000,500],\"regionId\":\"other\"}],\"type\":\"PinRegions\"}],\"parent\":\"sha256:3410767558526fb820a662555caea8ca38c109eeef4076e469078d42c65bc705\",\"schema\":\"semantic-map-decision/2\",\"stateHash\":\"sha256:225152e1e2ed109725fc07dde5ab76668cb90081264ed5e13fd270c251ef87f4\"}\n",
+  "initial_log_sha256": "0bdbd15714a1cae6ae10a2a5ddd2265cb2895d57e847aa74cbfee864274c8612",
+  "initial_records": [
+    {
+      "type": "meta",
+      "schema": "semantic-map-state/1",
+      "root": "root",
+      "title": "independent quota expression"
+    },
+    {
+      "type": "region",
+      "id": "root",
+      "parent": null,
+      "label": "fixture",
+      "kind": "boundary",
+      "bounds": [
+        0,
+        0,
+        900,
+        400
+      ],
+      "summary": ""
+    },
+    {
+      "type": "region",
+      "id": "container",
+      "parent": "root",
+      "label": "作業区",
+      "kind": "group",
+      "bounds": [
+        0,
+        0,
+        700,
+        200
+      ],
+      "summary": ""
+    },
+    {
+      "type": "region",
+      "id": "other",
+      "parent": "root",
+      "label": "保留区",
+      "kind": "group",
+      "bounds": [
+        0,
+        230,
+        700,
+        160
+      ],
+      "summary": ""
+    },
+    {
+      "type": "layout",
+      "regionId": "container",
+      "pin": "hard",
+      "bounds": [
+        0,
+        0,
+        2000,
+        500
+      ]
+    },
+    {
+      "type": "layout",
+      "regionId": "other",
+      "pin": "hard",
+      "bounds": [
+        0,
+        600,
+        2000,
+        500
+      ]
+    }
+  ],
+  "final_head": "sha256:6368d45d8f8807886ff9cbd5506abdfc43bb7231802db245ef00d5180d5e0dd5",
+  "final_log": "{\"operations\":[{\"mapId\":\"voice-graph\",\"records\":[{\"root\":\"root\",\"schema\":\"semantic-map-state/1\",\"title\":\"independent quota expression\",\"type\":\"meta\"},{\"bounds\":[0,0,900,400],\"id\":\"root\",\"kind\":\"boundary\",\"label\":\"fixture\",\"parent\":null,\"summary\":\"\",\"type\":\"region\"},{\"bounds\":[0,0,700,200],\"id\":\"container\",\"kind\":\"group\",\"label\":\"作業区\",\"parent\":\"root\",\"summary\":\"\",\"type\":\"region\"},{\"bounds\":[0,230,700,160],\"id\":\"other\",\"kind\":\"group\",\"label\":\"保留区\",\"parent\":\"root\",\"summary\":\"\",\"type\":\"region\"}],\"type\":\"CreateMap\"}],\"parent\":null,\"schema\":\"semantic-map-decision/2\",\"stateHash\":\"sha256:96c3705673d6d8136e773cc07c7bafb7a4f01aa295b371db90b7ee17e105e394\"}\n{\"operations\":[{\"items\":[{\"bounds\":[0,0,2000,500],\"regionId\":\"container\"},{\"bounds\":[0,600,2000,500],\"regionId\":\"other\"}],\"type\":\"PinRegions\"}],\"parent\":\"sha256:3410767558526fb820a662555caea8ca38c109eeef4076e469078d42c65bc705\",\"schema\":\"semantic-map-decision/2\",\"stateHash\":\"sha256:225152e1e2ed109725fc07dde5ab76668cb90081264ed5e13fd270c251ef87f4\"}\n{\"operations\":[{\"bounds\":[20,250,140,64],\"kind\":\"step\",\"label\":\"返送照会\",\"parentId\":\"other\",\"regionId\":\"part-1\",\"summary\":\"\",\"type\":\"AddRegion\"},{\"items\":[{\"bounds\":[12,636,180,92],\"regionId\":\"part-1\"}],\"type\":\"PinRegions\"}],\"parent\":\"sha256:f14b93ac1b4a8ca4af467132ccd7f5d0a524fed90de6dbf3d54d77ea8f534596\",\"schema\":\"semantic-map-decision/2\",\"stateHash\":\"sha256:66e86e539b47dbb91d4aff0f464cabfadb5fa403dd2b8821ffe999ca868794ee\"}\n",
+  "final_records": [
+    {
+      "type": "meta",
+      "schema": "semantic-map-state/1",
+      "root": "root",
+      "title": "independent quota expression"
+    },
+    {
+      "type": "region",
+      "id": "root",
+      "parent": null,
+      "label": "fixture",
+      "kind": "boundary",
+      "bounds": [
+        0,
+        0,
+        900,
+        400
+      ],
+      "summary": ""
+    },
+    {
+      "type": "region",
+      "id": "container",
+      "parent": "root",
+      "label": "作業区",
+      "kind": "group",
+      "bounds": [
+        0,
+        0,
+        700,
+        200
+      ],
+      "summary": ""
+    },
+    {
+      "type": "region",
+      "id": "other",
+      "parent": "root",
+      "label": "保留区",
+      "kind": "group",
+      "bounds": [
+        0,
+        230,
+        700,
+        160
+      ],
+      "summary": ""
+    },
+    {
+      "type": "region",
+      "id": "part-1",
+      "parent": "other",
+      "label": "返送照会",
+      "kind": "step",
+      "bounds": [
+        20,
+        250,
+        140,
+        64
+      ],
+      "summary": ""
+    },
+    {
+      "type": "layout",
+      "regionId": "container",
+      "pin": "hard",
+      "bounds": [
+        0,
+        0,
+        2000,
+        500
+      ]
+    },
+    {
+      "type": "layout",
+      "regionId": "other",
+      "pin": "hard",
+      "bounds": [
+        0,
+        600,
+        2000,
+        500
+      ]
+    },
+    {
+      "type": "layout",
+      "regionId": "part-1",
+      "pin": "hard",
+      "bounds": [
+        12,
+        636,
+        180,
+        92
+      ]
+    }
+  ],
+  "frames": [
+    {
+      "camera": "overview",
+      "scope": "restore equality only; hidden children do not imply paint"
+    },
+    {
+      "camera": "container",
+      "observation": {
+        "association": "render-owned-semantic-id",
+        "title": {
+          "unmet": null,
+          "box": [
+            296.5,
+            206.86000061035156,
+            33,
+            16
+          ],
+          "clips": [
+            [
+              4,
+              136,
+              619,
+              157
+            ],
+            [
+              0,
+              0,
+              626,
+              429
+            ],
+            [
+              0,
+              0,
+              626,
+              429
+            ],
+            [
+              0,
+              0,
+              626,
+              429
+            ]
+          ],
+          "svg": [
+            0,
+            0,
+            638,
+            485
+          ]
+        },
+        "identity": true,
+        "viewport": [
+          0,
+          0,
+          626,
+          429
+        ],
+        "container": {
+          "id": "container",
+          "kind": "painted-group-shape",
+          "bounds": [
+            5.429999828338623,
+            137.97999572753906,
+            616.1400146484375,
+            154.0399932861328
+          ]
+        },
+        "shapes": [],
+        "edge": null,
+        "contained": true,
+        "nonoverlap": true,
+        "complete": true
+      },
+      "assessment": {
+        "status": "PASS",
+        "problems": [],
+        "unknown": []
+      }
+    },
+    {
+      "camera": "other",
+      "observation": {
+        "association": "render-owned-semantic-id",
+        "title": {
+          "unmet": null,
+          "box": [
+            205,
+            158.5,
+            39,
+            19
+          ],
+          "clips": [
+            [
+              0,
+              0,
+              626,
+              429
+            ],
+            [
+              0,
+              0,
+              626,
+              429
+            ],
+            [
+              0,
+              0,
+              626,
+              429
+            ]
+          ],
+          "svg": [
+            0,
+            0,
+            2226,
+            1154
+          ]
+        },
+        "identity": true,
+        "viewport": [
+          0,
+          0,
+          626,
+          429
+        ],
+        "container": {
+          "id": "other",
+          "kind": "painted-group-shape",
+          "bounds": [
+            193.5,
+            151,
+            2000,
+            500
+          ]
+        },
+        "shapes": [
+          {
+            "id": "part-1",
+            "rawLabel": "返送照会",
+            "bounds": [
+              205,
+              186.5,
+              180,
+              92
+            ],
+            "name": {
+              "unmet": null,
+              "box": [
+                269,
+                223,
+                52,
+                19
+              ],
+              "clips": [
+                [
+                  205,
+                  187,
+                  180,
+                  92
+                ],
+                [
+                  0,
+                  0,
+                  626,
+                  429
+                ],
+                [
+                  0,
+                  0,
+                  626,
+                  429
+                ],
+                [
+                  0,
+                  0,
+                  626,
+                  429
+                ]
+              ],
+              "svg": [
+                0,
+                0,
+                2226,
+                1154
+              ]
+            }
+          }
+        ],
+        "edge": null,
+        "contained": true,
+        "nonoverlap": true,
+        "complete": true
+      },
+      "assessment": {
+        "status": "PASS",
+        "problems": [],
+        "unknown": []
+      }
+    }
+  ],
+  "lifecycle": {
+    "target": {
+      "log": "{\"operations\":[{\"mapId\":\"voice-graph\",\"records\":[{\"root\":\"root\",\"schema\":\"semantic-map-state/1\",\"title\":\"independent quota expression\",\"type\":\"meta\"},{\"bounds\":[0,0,900,400],\"id\":\"root\",\"kind\":\"boundary\",\"label\":\"fixture\",\"parent\":null,\"summary\":\"\",\"type\":\"region\"},{\"bounds\":[0,0,700,200],\"id\":\"container\",\"kind\":\"group\",\"label\":\"作業区\",\"parent\":\"root\",\"summary\":\"\",\"type\":\"region\"},{\"bounds\":[0,230,700,160],\"id\":\"other\",\"kind\":\"group\",\"label\":\"保留区\",\"parent\":\"root\",\"summary\":\"\",\"type\":\"region\"}],\"type\":\"CreateMap\"}],\"parent\":null,\"schema\":\"semantic-map-decision/2\",\"stateHash\":\"sha256:96c3705673d6d8136e773cc07c7bafb7a4f01aa295b371db90b7ee17e105e394\"}\n{\"operations\":[{\"items\":[{\"bounds\":[0,0,2000,500],\"regionId\":\"container\"},{\"bounds\":[0,600,2000,500],\"regionId\":\"other\"}],\"type\":\"PinRegions\"}],\"parent\":\"sha256:3410767558526fb820a662555caea8ca38c109eeef4076e469078d42c65bc705\",\"schema\":\"semantic-map-decision/2\",\"stateHash\":\"sha256:225152e1e2ed109725fc07dde5ab76668cb90081264ed5e13fd270c251ef87f4\"}\n{\"operations\":[{\"bounds\":[20,250,140,64],\"kind\":\"step\",\"label\":\"返送照会\",\"parentId\":\"other\",\"regionId\":\"part-1\",\"summary\":\"\",\"type\":\"AddRegion\"},{\"items\":[{\"bounds\":[12,636,180,92],\"regionId\":\"part-1\"}],\"type\":\"PinRegions\"}],\"parent\":\"sha256:f14b93ac1b4a8ca4af467132ccd7f5d0a524fed90de6dbf3d54d77ea8f534596\",\"schema\":\"semantic-map-decision/2\",\"stateHash\":\"sha256:66e86e539b47dbb91d4aff0f464cabfadb5fa403dd2b8821ffe999ca868794ee\"}\n",
+      "records": [
+        {
+          "type": "meta",
+          "schema": "semantic-map-state/1",
+          "root": "root",
+          "title": "independent quota expression"
+        },
+        {
+          "type": "region",
+          "id": "root",
+          "parent": null,
+          "label": "fixture",
+          "kind": "boundary",
+          "bounds": [
+            0,
+            0,
+            900,
+            400
+          ],
+          "summary": ""
+        },
+        {
+          "type": "region",
+          "id": "container",
+          "parent": "root",
+          "label": "作業区",
+          "kind": "group",
+          "bounds": [
+            0,
+            0,
+            700,
+            200
+          ],
+          "summary": ""
+        },
+        {
+          "type": "region",
+          "id": "other",
+          "parent": "root",
+          "label": "保留区",
+          "kind": "group",
+          "bounds": [
+            0,
+            230,
+            700,
+            160
+          ],
+          "summary": ""
+        },
+        {
+          "type": "region",
+          "id": "part-1",
+          "parent": "other",
+          "label": "返送照会",
+          "kind": "step",
+          "bounds": [
+            20,
+            250,
+            140,
+            64
+          ],
+          "summary": ""
+        },
+        {
+          "type": "layout",
+          "regionId": "container",
+          "pin": "hard",
+          "bounds": [
+            0,
+            0,
+            2000,
+            500
+          ]
+        },
+        {
+          "type": "layout",
+          "regionId": "other",
+          "pin": "hard",
+          "bounds": [
+            0,
+            600,
+            2000,
+            500
+          ]
+        },
+        {
+          "type": "layout",
+          "regionId": "part-1",
+          "pin": "hard",
+          "bounds": [
+            12,
+            636,
+            180,
+            92
+          ]
+        }
+      ],
+      "stored": "{\"operations\":[{\"mapId\":\"voice-graph\",\"records\":[{\"root\":\"root\",\"schema\":\"semantic-map-state/1\",\"title\":\"independent quota expression\",\"type\":\"meta\"},{\"bounds\":[0,0,900,400],\"id\":\"root\",\"kind\":\"boundary\",\"label\":\"fixture\",\"parent\":null,\"summary\":\"\",\"type\":\"region\"},{\"bounds\":[0,0,700,200],\"id\":\"container\",\"kind\":\"group\",\"label\":\"作業区\",\"parent\":\"root\",\"summary\":\"\",\"type\":\"region\"},{\"bounds\":[0,230,700,160],\"id\":\"other\",\"kind\":\"group\",\"label\":\"保留区\",\"parent\":\"root\",\"summary\":\"\",\"type\":\"region\"}],\"type\":\"CreateMap\"}],\"parent\":null,\"schema\":\"semantic-map-decision/2\",\"stateHash\":\"sha256:96c3705673d6d8136e773cc07c7bafb7a4f01aa295b371db90b7ee17e105e394\"}\n{\"operations\":[{\"items\":[{\"bounds\":[0,0,2000,500],\"regionId\":\"container\"},{\"bounds\":[0,600,2000,500],\"regionId\":\"other\"}],\"type\":\"PinRegions\"}],\"parent\":\"sha256:3410767558526fb820a662555caea8ca38c109eeef4076e469078d42c65bc705\",\"schema\":\"semantic-map-decision/2\",\"stateHash\":\"sha256:225152e1e2ed109725fc07dde5ab76668cb90081264ed5e13fd270c251ef87f4\"}\n",
+      "goal": {
+        "reason": "no-executable-delta",
+        "requests": 2,
+        "elapsedMs": 526.2273000000005,
+        "selected": [
+          {
+            "key": "ready-expression",
+            "region": "part-1",
+            "parent": "other"
+          }
+        ],
+        "trace": [
+          {
+            "head": "sha256:f14b93ac1b4a8ca4af467132ccd7f5d0a524fed90de6dbf3d54d77ea8f534596",
+            "answers": {
+              "delta": {
+                "type": "choice",
+                "choice": "part:ready-expression",
+                "confidence": 0.96
+              }
+            },
+            "failure": null
+          },
+          {
+            "head": "sha256:f14b93ac1b4a8ca4af467132ccd7f5d0a524fed90de6dbf3d54d77ea8f534596",
+            "answers": {
+              "delta": {
+                "type": "choice",
+                "choice": "delta-2",
+                "confidence": 0.95
+              }
+            },
+            "failure": null
+          }
+        ]
+      }
+    },
+    "applied": {
+      "log": "{\"operations\":[{\"mapId\":\"voice-graph\",\"records\":[{\"root\":\"root\",\"schema\":\"semantic-map-state/1\",\"title\":\"independent quota expression\",\"type\":\"meta\"},{\"bounds\":[0,0,900,400],\"id\":\"root\",\"kind\":\"boundary\",\"label\":\"fixture\",\"parent\":null,\"summary\":\"\",\"type\":\"region\"},{\"bounds\":[0,0,700,200],\"id\":\"container\",\"kind\":\"group\",\"label\":\"作業区\",\"parent\":\"root\",\"summary\":\"\",\"type\":\"region\"},{\"bounds\":[0,230,700,160],\"id\":\"other\",\"kind\":\"group\",\"label\":\"保留区\",\"parent\":\"root\",\"summary\":\"\",\"type\":\"region\"}],\"type\":\"CreateMap\"}],\"parent\":null,\"schema\":\"semantic-map-decision/2\",\"stateHash\":\"sha256:96c3705673d6d8136e773cc07c7bafb7a4f01aa295b371db90b7ee17e105e394\"}\n{\"operations\":[{\"items\":[{\"bounds\":[0,0,2000,500],\"regionId\":\"container\"},{\"bounds\":[0,600,2000,500],\"regionId\":\"other\"}],\"type\":\"PinRegions\"}],\"parent\":\"sha256:3410767558526fb820a662555caea8ca38c109eeef4076e469078d42c65bc705\",\"schema\":\"semantic-map-decision/2\",\"stateHash\":\"sha256:225152e1e2ed109725fc07dde5ab76668cb90081264ed5e13fd270c251ef87f4\"}\n{\"operations\":[{\"bounds\":[20,250,140,64],\"kind\":\"step\",\"label\":\"返送照会\",\"parentId\":\"other\",\"regionId\":\"part-1\",\"summary\":\"\",\"type\":\"AddRegion\"},{\"items\":[{\"bounds\":[12,636,180,92],\"regionId\":\"part-1\"}],\"type\":\"PinRegions\"}],\"parent\":\"sha256:f14b93ac1b4a8ca4af467132ccd7f5d0a524fed90de6dbf3d54d77ea8f534596\",\"schema\":\"semantic-map-decision/2\",\"stateHash\":\"sha256:66e86e539b47dbb91d4aff0f464cabfadb5fa403dd2b8821ffe999ca868794ee\"}\n",
+      "records": [
+        {
+          "type": "meta",
+          "schema": "semantic-map-state/1",
+          "root": "root",
+          "title": "independent quota expression"
+        },
+        {
+          "type": "region",
+          "id": "root",
+          "parent": null,
+          "label": "fixture",
+          "kind": "boundary",
+          "bounds": [
+            0,
+            0,
+            900,
+            400
+          ],
+          "summary": ""
+        },
+        {
+          "type": "region",
+          "id": "container",
+          "parent": "root",
+          "label": "作業区",
+          "kind": "group",
+          "bounds": [
+            0,
+            0,
+            700,
+            200
+          ],
+          "summary": ""
+        },
+        {
+          "type": "region",
+          "id": "other",
+          "parent": "root",
+          "label": "保留区",
+          "kind": "group",
+          "bounds": [
+            0,
+            230,
+            700,
+            160
+          ],
+          "summary": ""
+        },
+        {
+          "type": "region",
+          "id": "part-1",
+          "parent": "other",
+          "label": "返送照会",
+          "kind": "step",
+          "bounds": [
+            20,
+            250,
+            140,
+            64
+          ],
+          "summary": ""
+        },
+        {
+          "type": "layout",
+          "regionId": "container",
+          "pin": "hard",
+          "bounds": [
+            0,
+            0,
+            2000,
+            500
+          ]
+        },
+        {
+          "type": "layout",
+          "regionId": "other",
+          "pin": "hard",
+          "bounds": [
+            0,
+            600,
+            2000,
+            500
+          ]
+        },
+        {
+          "type": "layout",
+          "regionId": "part-1",
+          "pin": "hard",
+          "bounds": [
+            12,
+            636,
+            180,
+            92
+          ]
+        }
+      ],
+      "stored": "{\"operations\":[{\"mapId\":\"voice-graph\",\"records\":[{\"root\":\"root\",\"schema\":\"semantic-map-state/1\",\"title\":\"independent quota expression\",\"type\":\"meta\"},{\"bounds\":[0,0,900,400],\"id\":\"root\",\"kind\":\"boundary\",\"label\":\"fixture\",\"parent\":null,\"summary\":\"\",\"type\":\"region\"},{\"bounds\":[0,0,700,200],\"id\":\"container\",\"kind\":\"group\",\"label\":\"作業区\",\"parent\":\"root\",\"summary\":\"\",\"type\":\"region\"},{\"bounds\":[0,230,700,160],\"id\":\"other\",\"kind\":\"group\",\"label\":\"保留区\",\"parent\":\"root\",\"summary\":\"\",\"type\":\"region\"}],\"type\":\"CreateMap\"}],\"parent\":null,\"schema\":\"semantic-map-decision/2\",\"stateHash\":\"sha256:96c3705673d6d8136e773cc07c7bafb7a4f01aa295b371db90b7ee17e105e394\"}\n{\"operations\":[{\"items\":[{\"bounds\":[0,0,2000,500],\"regionId\":\"container\"},{\"bounds\":[0,600,2000,500],\"regionId\":\"other\"}],\"type\":\"PinRegions\"}],\"parent\":\"sha256:3410767558526fb820a662555caea8ca38c109eeef4076e469078d42c65bc705\",\"schema\":\"semantic-map-decision/2\",\"stateHash\":\"sha256:225152e1e2ed109725fc07dde5ab76668cb90081264ed5e13fd270c251ef87f4\"}\n{\"operations\":[{\"bounds\":[20,250,140,64],\"kind\":\"step\",\"label\":\"返送照会\",\"parentId\":\"other\",\"regionId\":\"part-1\",\"summary\":\"\",\"type\":\"AddRegion\"},{\"items\":[{\"bounds\":[12,636,180,92],\"regionId\":\"part-1\"}],\"type\":\"PinRegions\"}],\"parent\":\"sha256:f14b93ac1b4a8ca4af467132ccd7f5d0a524fed90de6dbf3d54d77ea8f534596\",\"schema\":\"semantic-map-decision/2\",\"stateHash\":\"sha256:66e86e539b47dbb91d4aff0f464cabfadb5fa403dd2b8821ffe999ca868794ee\"}\n",
+      "goal": {
+        "reason": "no-executable-delta",
+        "requests": 2,
+        "elapsedMs": 526.2273000000005,
+        "selected": [
+          {
+            "key": "ready-expression",
+            "region": "part-1",
+            "parent": "other"
+          }
+        ],
+        "trace": [
+          {
+            "head": "sha256:f14b93ac1b4a8ca4af467132ccd7f5d0a524fed90de6dbf3d54d77ea8f534596",
+            "answers": {
+              "delta": {
+                "type": "choice",
+                "choice": "part:ready-expression",
+                "confidence": 0.96
+              }
+            },
+            "failure": null
+          },
+          {
+            "head": "sha256:f14b93ac1b4a8ca4af467132ccd7f5d0a524fed90de6dbf3d54d77ea8f534596",
+            "answers": {
+              "delta": {
+                "type": "choice",
+                "choice": "delta-2",
+                "confidence": 0.95
+              }
+            },
+            "failure": null
+          }
+        ]
+      }
+    },
+    "reloaded": {
+      "log": "{\"operations\":[{\"mapId\":\"voice-graph\",\"records\":[{\"root\":\"root\",\"schema\":\"semantic-map-state/1\",\"title\":\"independent quota expression\",\"type\":\"meta\"},{\"bounds\":[0,0,900,400],\"id\":\"root\",\"kind\":\"boundary\",\"label\":\"fixture\",\"parent\":null,\"summary\":\"\",\"type\":\"region\"},{\"bounds\":[0,0,700,200],\"id\":\"container\",\"kind\":\"group\",\"label\":\"作業区\",\"parent\":\"root\",\"summary\":\"\",\"type\":\"region\"},{\"bounds\":[0,230,700,160],\"id\":\"other\",\"kind\":\"group\",\"label\":\"保留区\",\"parent\":\"root\",\"summary\":\"\",\"type\":\"region\"}],\"type\":\"CreateMap\"}],\"parent\":null,\"schema\":\"semantic-map-decision/2\",\"stateHash\":\"sha256:96c3705673d6d8136e773cc07c7bafb7a4f01aa295b371db90b7ee17e105e394\"}\n{\"operations\":[{\"items\":[{\"bounds\":[0,0,2000,500],\"regionId\":\"container\"},{\"bounds\":[0,600,2000,500],\"regionId\":\"other\"}],\"type\":\"PinRegions\"}],\"parent\":\"sha256:3410767558526fb820a662555caea8ca38c109eeef4076e469078d42c65bc705\",\"schema\":\"semantic-map-decision/2\",\"stateHash\":\"sha256:225152e1e2ed109725fc07dde5ab76668cb90081264ed5e13fd270c251ef87f4\"}\n{\"operations\":[{\"bounds\":[20,250,140,64],\"kind\":\"step\",\"label\":\"返送照会\",\"parentId\":\"other\",\"regionId\":\"part-1\",\"summary\":\"\",\"type\":\"AddRegion\"},{\"items\":[{\"bounds\":[12,636,180,92],\"regionId\":\"part-1\"}],\"type\":\"PinRegions\"}],\"parent\":\"sha256:f14b93ac1b4a8ca4af467132ccd7f5d0a524fed90de6dbf3d54d77ea8f534596\",\"schema\":\"semantic-map-decision/2\",\"stateHash\":\"sha256:66e86e539b47dbb91d4aff0f464cabfadb5fa403dd2b8821ffe999ca868794ee\"}\n",
+      "records": [
+        {
+          "type": "meta",
+          "schema": "semantic-map-state/1",
+          "root": "root",
+          "title": "independent quota expression"
+        },
+        {
+          "type": "region",
+          "id": "root",
+          "parent": null,
+          "label": "fixture",
+          "kind": "boundary",
+          "bounds": [
+            0,
+            0,
+            900,
+            400
+          ],
+          "summary": ""
+        },
+        {
+          "type": "region",
+          "id": "container",
+          "parent": "root",
+          "label": "作業区",
+          "kind": "group",
+          "bounds": [
+            0,
+            0,
+            700,
+            200
+          ],
+          "summary": ""
+        },
+        {
+          "type": "region",
+          "id": "other",
+          "parent": "root",
+          "label": "保留区",
+          "kind": "group",
+          "bounds": [
+            0,
+            230,
+            700,
+            160
+          ],
+          "summary": ""
+        },
+        {
+          "type": "region",
+          "id": "part-1",
+          "parent": "other",
+          "label": "返送照会",
+          "kind": "step",
+          "bounds": [
+            20,
+            250,
+            140,
+            64
+          ],
+          "summary": ""
+        },
+        {
+          "type": "layout",
+          "regionId": "container",
+          "pin": "hard",
+          "bounds": [
+            0,
+            0,
+            2000,
+            500
+          ]
+        },
+        {
+          "type": "layout",
+          "regionId": "other",
+          "pin": "hard",
+          "bounds": [
+            0,
+            600,
+            2000,
+            500
+          ]
+        },
+        {
+          "type": "layout",
+          "regionId": "part-1",
+          "pin": "hard",
+          "bounds": [
+            12,
+            636,
+            180,
+            92
+          ]
+        }
+      ],
+      "stored": "{\"operations\":[{\"mapId\":\"voice-graph\",\"records\":[{\"root\":\"root\",\"schema\":\"semantic-map-state/1\",\"title\":\"independent quota expression\",\"type\":\"meta\"},{\"bounds\":[0,0,900,400],\"id\":\"root\",\"kind\":\"boundary\",\"label\":\"fixture\",\"parent\":null,\"summary\":\"\",\"type\":\"region\"},{\"bounds\":[0,0,700,200],\"id\":\"container\",\"kind\":\"group\",\"label\":\"作業区\",\"parent\":\"root\",\"summary\":\"\",\"type\":\"region\"},{\"bounds\":[0,230,700,160],\"id\":\"other\",\"kind\":\"group\",\"label\":\"保留区\",\"parent\":\"root\",\"summary\":\"\",\"type\":\"region\"}],\"type\":\"CreateMap\"}],\"parent\":null,\"schema\":\"semantic-map-decision/2\",\"stateHash\":\"sha256:96c3705673d6d8136e773cc07c7bafb7a4f01aa295b371db90b7ee17e105e394\"}\n{\"operations\":[{\"items\":[{\"bounds\":[0,0,2000,500],\"regionId\":\"container\"},{\"bounds\":[0,600,2000,500],\"regionId\":\"other\"}],\"type\":\"PinRegions\"}],\"parent\":\"sha256:3410767558526fb820a662555caea8ca38c109eeef4076e469078d42c65bc705\",\"schema\":\"semantic-map-decision/2\",\"stateHash\":\"sha256:225152e1e2ed109725fc07dde5ab76668cb90081264ed5e13fd270c251ef87f4\"}\n{\"operations\":[{\"bounds\":[20,250,140,64],\"kind\":\"step\",\"label\":\"返送照会\",\"parentId\":\"other\",\"regionId\":\"part-1\",\"summary\":\"\",\"type\":\"AddRegion\"},{\"items\":[{\"bounds\":[12,636,180,92],\"regionId\":\"part-1\"}],\"type\":\"PinRegions\"}],\"parent\":\"sha256:f14b93ac1b4a8ca4af467132ccd7f5d0a524fed90de6dbf3d54d77ea8f534596\",\"schema\":\"semantic-map-decision/2\",\"stateHash\":\"sha256:66e86e539b47dbb91d4aff0f464cabfadb5fa403dd2b8821ffe999ca868794ee\"}\n",
+      "goal": {
+        "reason": "no-executable-delta",
+        "requests": 2,
+        "elapsedMs": 526.2273000000005,
+        "selected": [
+          {
+            "key": "ready-expression",
+            "region": "part-1",
+            "parent": "other"
+          }
+        ],
+        "trace": [
+          {
+            "head": "sha256:f14b93ac1b4a8ca4af467132ccd7f5d0a524fed90de6dbf3d54d77ea8f534596",
+            "answers": {
+              "delta": {
+                "type": "choice",
+                "choice": "part:ready-expression",
+                "confidence": 0.96
+              }
+            },
+            "failure": null
+          },
+          {
+            "head": "sha256:f14b93ac1b4a8ca4af467132ccd7f5d0a524fed90de6dbf3d54d77ea8f534596",
+            "answers": {
+              "delta": {
+                "type": "choice",
+                "choice": "delta-2",
+                "confidence": 0.95
+              }
+            },
+            "failure": null
+          }
+        ]
+      }
+    },
+    "apply_enabled": true,
+    "persistence": "PASS",
+    "scope": "NATIVE_SESSION_APPLY_RESTORE_NOT_BROWSER_GOAL",
+    "browser_restore": {
+      "target": {
+        "log": "{\"operations\":[{\"mapId\":\"voice-graph\",\"records\":[{\"root\":\"root\",\"schema\":\"semantic-map-state/1\",\"title\":\"independent quota expression\",\"type\":\"meta\"},{\"bounds\":[0,0,900,400],\"id\":\"root\",\"kind\":\"boundary\",\"label\":\"fixture\",\"parent\":null,\"summary\":\"\",\"type\":\"region\"},{\"bounds\":[0,0,700,200],\"id\":\"container\",\"kind\":\"group\",\"label\":\"作業区\",\"parent\":\"root\",\"summary\":\"\",\"type\":\"region\"},{\"bounds\":[0,230,700,160],\"id\":\"other\",\"kind\":\"group\",\"label\":\"保留区\",\"parent\":\"root\",\"summary\":\"\",\"type\":\"region\"}],\"type\":\"CreateMap\"}],\"parent\":null,\"schema\":\"semantic-map-decision/2\",\"stateHash\":\"sha256:96c3705673d6d8136e773cc07c7bafb7a4f01aa295b371db90b7ee17e105e394\"}\n{\"operations\":[{\"items\":[{\"bounds\":[0,0,2000,500],\"regionId\":\"container\"},{\"bounds\":[0,600,2000,500],\"regionId\":\"other\"}],\"type\":\"PinRegions\"}],\"parent\":\"sha256:3410767558526fb820a662555caea8ca38c109eeef4076e469078d42c65bc705\",\"schema\":\"semantic-map-decision/2\",\"stateHash\":\"sha256:225152e1e2ed109725fc07dde5ab76668cb90081264ed5e13fd270c251ef87f4\"}\n{\"operations\":[{\"bounds\":[20,250,140,64],\"kind\":\"step\",\"label\":\"返送照会\",\"parentId\":\"other\",\"regionId\":\"part-1\",\"summary\":\"\",\"type\":\"AddRegion\"},{\"items\":[{\"bounds\":[12,636,180,92],\"regionId\":\"part-1\"}],\"type\":\"PinRegions\"}],\"parent\":\"sha256:f14b93ac1b4a8ca4af467132ccd7f5d0a524fed90de6dbf3d54d77ea8f534596\",\"schema\":\"semantic-map-decision/2\",\"stateHash\":\"sha256:66e86e539b47dbb91d4aff0f464cabfadb5fa403dd2b8821ffe999ca868794ee\"}\n",
+        "records": [
+          {
+            "type": "meta",
+            "schema": "semantic-map-state/1",
+            "root": "root",
+            "title": "independent quota expression"
+          },
+          {
+            "type": "region",
+            "id": "root",
+            "parent": null,
+            "label": "fixture",
+            "kind": "boundary",
+            "bounds": [
+              0,
+              0,
+              900,
+              400
+            ],
+            "summary": ""
+          },
+          {
+            "type": "region",
+            "id": "container",
+            "parent": "root",
+            "label": "作業区",
+            "kind": "group",
+            "bounds": [
+              0,
+              0,
+              700,
+              200
+            ],
+            "summary": ""
+          },
+          {
+            "type": "region",
+            "id": "other",
+            "parent": "root",
+            "label": "保留区",
+            "kind": "group",
+            "bounds": [
+              0,
+              230,
+              700,
+              160
+            ],
+            "summary": ""
+          },
+          {
+            "type": "region",
+            "id": "part-1",
+            "parent": "other",
+            "label": "返送照会",
+            "kind": "step",
+            "bounds": [
+              20,
+              250,
+              140,
+              64
+            ],
+            "summary": ""
+          },
+          {
+            "type": "layout",
+            "regionId": "container",
+            "pin": "hard",
+            "bounds": [
+              0,
+              0,
+              2000,
+              500
+            ]
+          },
+          {
+            "type": "layout",
+            "regionId": "other",
+            "pin": "hard",
+            "bounds": [
+              0,
+              600,
+              2000,
+              500
+            ]
+          },
+          {
+            "type": "layout",
+            "regionId": "part-1",
+            "pin": "hard",
+            "bounds": [
+              12,
+              636,
+              180,
+              92
+            ]
+          }
+        ],
+        "stored": "{\"operations\":[{\"mapId\":\"voice-graph\",\"records\":[{\"root\":\"root\",\"schema\":\"semantic-map-state/1\",\"title\":\"independent quota expression\",\"type\":\"meta\"},{\"bounds\":[0,0,900,400],\"id\":\"root\",\"kind\":\"boundary\",\"label\":\"fixture\",\"parent\":null,\"summary\":\"\",\"type\":\"region\"},{\"bounds\":[0,0,700,200],\"id\":\"container\",\"kind\":\"group\",\"label\":\"作業区\",\"parent\":\"root\",\"summary\":\"\",\"type\":\"region\"},{\"bounds\":[0,230,700,160],\"id\":\"other\",\"kind\":\"group\",\"label\":\"保留区\",\"parent\":\"root\",\"summary\":\"\",\"type\":\"region\"}],\"type\":\"CreateMap\"}],\"parent\":null,\"schema\":\"semantic-map-decision/2\",\"stateHash\":\"sha256:96c3705673d6d8136e773cc07c7bafb7a4f01aa295b371db90b7ee17e105e394\"}\n{\"operations\":[{\"items\":[{\"bounds\":[0,0,2000,500],\"regionId\":\"container\"},{\"bounds\":[0,600,2000,500],\"regionId\":\"other\"}],\"type\":\"PinRegions\"}],\"parent\":\"sha256:3410767558526fb820a662555caea8ca38c109eeef4076e469078d42c65bc705\",\"schema\":\"semantic-map-decision/2\",\"stateHash\":\"sha256:225152e1e2ed109725fc07dde5ab76668cb90081264ed5e13fd270c251ef87f4\"}\n{\"operations\":[{\"bounds\":[20,250,140,64],\"kind\":\"step\",\"label\":\"返送照会\",\"parentId\":\"other\",\"regionId\":\"part-1\",\"summary\":\"\",\"type\":\"AddRegion\"},{\"items\":[{\"bounds\":[12,636,180,92],\"regionId\":\"part-1\"}],\"type\":\"PinRegions\"}],\"parent\":\"sha256:f14b93ac1b4a8ca4af467132ccd7f5d0a524fed90de6dbf3d54d77ea8f534596\",\"schema\":\"semantic-map-decision/2\",\"stateHash\":\"sha256:66e86e539b47dbb91d4aff0f464cabfadb5fa403dd2b8821ffe999ca868794ee\"}\n",
+        "goal": null
+      },
+      "applied": {
+        "log": "{\"operations\":[{\"mapId\":\"voice-graph\",\"records\":[{\"root\":\"root\",\"schema\":\"semantic-map-state/1\",\"title\":\"independent quota expression\",\"type\":\"meta\"},{\"bounds\":[0,0,900,400],\"id\":\"root\",\"kind\":\"boundary\",\"label\":\"fixture\",\"parent\":null,\"summary\":\"\",\"type\":\"region\"},{\"bounds\":[0,0,700,200],\"id\":\"container\",\"kind\":\"group\",\"label\":\"作業区\",\"parent\":\"root\",\"summary\":\"\",\"type\":\"region\"},{\"bounds\":[0,230,700,160],\"id\":\"other\",\"kind\":\"group\",\"label\":\"保留区\",\"parent\":\"root\",\"summary\":\"\",\"type\":\"region\"}],\"type\":\"CreateMap\"}],\"parent\":null,\"schema\":\"semantic-map-decision/2\",\"stateHash\":\"sha256:96c3705673d6d8136e773cc07c7bafb7a4f01aa295b371db90b7ee17e105e394\"}\n{\"operations\":[{\"items\":[{\"bounds\":[0,0,2000,500],\"regionId\":\"container\"},{\"bounds\":[0,600,2000,500],\"regionId\":\"other\"}],\"type\":\"PinRegions\"}],\"parent\":\"sha256:3410767558526fb820a662555caea8ca38c109eeef4076e469078d42c65bc705\",\"schema\":\"semantic-map-decision/2\",\"stateHash\":\"sha256:225152e1e2ed109725fc07dde5ab76668cb90081264ed5e13fd270c251ef87f4\"}\n{\"operations\":[{\"bounds\":[20,250,140,64],\"kind\":\"step\",\"label\":\"返送照会\",\"parentId\":\"other\",\"regionId\":\"part-1\",\"summary\":\"\",\"type\":\"AddRegion\"},{\"items\":[{\"bounds\":[12,636,180,92],\"regionId\":\"part-1\"}],\"type\":\"PinRegions\"}],\"parent\":\"sha256:f14b93ac1b4a8ca4af467132ccd7f5d0a524fed90de6dbf3d54d77ea8f534596\",\"schema\":\"semantic-map-decision/2\",\"stateHash\":\"sha256:66e86e539b47dbb91d4aff0f464cabfadb5fa403dd2b8821ffe999ca868794ee\"}\n",
+        "records": [
+          {
+            "type": "meta",
+            "schema": "semantic-map-state/1",
+            "root": "root",
+            "title": "independent quota expression"
+          },
+          {
+            "type": "region",
+            "id": "root",
+            "parent": null,
+            "label": "fixture",
+            "kind": "boundary",
+            "bounds": [
+              0,
+              0,
+              900,
+              400
+            ],
+            "summary": ""
+          },
+          {
+            "type": "region",
+            "id": "container",
+            "parent": "root",
+            "label": "作業区",
+            "kind": "group",
+            "bounds": [
+              0,
+              0,
+              700,
+              200
+            ],
+            "summary": ""
+          },
+          {
+            "type": "region",
+            "id": "other",
+            "parent": "root",
+            "label": "保留区",
+            "kind": "group",
+            "bounds": [
+              0,
+              230,
+              700,
+              160
+            ],
+            "summary": ""
+          },
+          {
+            "type": "region",
+            "id": "part-1",
+            "parent": "other",
+            "label": "返送照会",
+            "kind": "step",
+            "bounds": [
+              20,
+              250,
+              140,
+              64
+            ],
+            "summary": ""
+          },
+          {
+            "type": "layout",
+            "regionId": "container",
+            "pin": "hard",
+            "bounds": [
+              0,
+              0,
+              2000,
+              500
+            ]
+          },
+          {
+            "type": "layout",
+            "regionId": "other",
+            "pin": "hard",
+            "bounds": [
+              0,
+              600,
+              2000,
+              500
+            ]
+          },
+          {
+            "type": "layout",
+            "regionId": "part-1",
+            "pin": "hard",
+            "bounds": [
+              12,
+              636,
+              180,
+              92
+            ]
+          }
+        ],
+        "stored": "{\"operations\":[{\"mapId\":\"voice-graph\",\"records\":[{\"root\":\"root\",\"schema\":\"semantic-map-state/1\",\"title\":\"independent quota expression\",\"type\":\"meta\"},{\"bounds\":[0,0,900,400],\"id\":\"root\",\"kind\":\"boundary\",\"label\":\"fixture\",\"parent\":null,\"summary\":\"\",\"type\":\"region\"},{\"bounds\":[0,0,700,200],\"id\":\"container\",\"kind\":\"group\",\"label\":\"作業区\",\"parent\":\"root\",\"summary\":\"\",\"type\":\"region\"},{\"bounds\":[0,230,700,160],\"id\":\"other\",\"kind\":\"group\",\"label\":\"保留区\",\"parent\":\"root\",\"summary\":\"\",\"type\":\"region\"}],\"type\":\"CreateMap\"}],\"parent\":null,\"schema\":\"semantic-map-decision/2\",\"stateHash\":\"sha256:96c3705673d6d8136e773cc07c7bafb7a4f01aa295b371db90b7ee17e105e394\"}\n{\"operations\":[{\"items\":[{\"bounds\":[0,0,2000,500],\"regionId\":\"container\"},{\"bounds\":[0,600,2000,500],\"regionId\":\"other\"}],\"type\":\"PinRegions\"}],\"parent\":\"sha256:3410767558526fb820a662555caea8ca38c109eeef4076e469078d42c65bc705\",\"schema\":\"semantic-map-decision/2\",\"stateHash\":\"sha256:225152e1e2ed109725fc07dde5ab76668cb90081264ed5e13fd270c251ef87f4\"}\n{\"operations\":[{\"bounds\":[20,250,140,64],\"kind\":\"step\",\"label\":\"返送照会\",\"parentId\":\"other\",\"regionId\":\"part-1\",\"summary\":\"\",\"type\":\"AddRegion\"},{\"items\":[{\"bounds\":[12,636,180,92],\"regionId\":\"part-1\"}],\"type\":\"PinRegions\"}],\"parent\":\"sha256:f14b93ac1b4a8ca4af467132ccd7f5d0a524fed90de6dbf3d54d77ea8f534596\",\"schema\":\"semantic-map-decision/2\",\"stateHash\":\"sha256:66e86e539b47dbb91d4aff0f464cabfadb5fa403dd2b8821ffe999ca868794ee\"}\n",
+        "goal": null
+      },
+      "reloaded": {
+        "log": "{\"operations\":[{\"mapId\":\"voice-graph\",\"records\":[{\"root\":\"root\",\"schema\":\"semantic-map-state/1\",\"title\":\"independent quota expression\",\"type\":\"meta\"},{\"bounds\":[0,0,900,400],\"id\":\"root\",\"kind\":\"boundary\",\"label\":\"fixture\",\"parent\":null,\"summary\":\"\",\"type\":\"region\"},{\"bounds\":[0,0,700,200],\"id\":\"container\",\"kind\":\"group\",\"label\":\"作業区\",\"parent\":\"root\",\"summary\":\"\",\"type\":\"region\"},{\"bounds\":[0,230,700,160],\"id\":\"other\",\"kind\":\"group\",\"label\":\"保留区\",\"parent\":\"root\",\"summary\":\"\",\"type\":\"region\"}],\"type\":\"CreateMap\"}],\"parent\":null,\"schema\":\"semantic-map-decision/2\",\"stateHash\":\"sha256:96c3705673d6d8136e773cc07c7bafb7a4f01aa295b371db90b7ee17e105e394\"}\n{\"operations\":[{\"items\":[{\"bounds\":[0,0,2000,500],\"regionId\":\"container\"},{\"bounds\":[0,600,2000,500],\"regionId\":\"other\"}],\"type\":\"PinRegions\"}],\"parent\":\"sha256:3410767558526fb820a662555caea8ca38c109eeef4076e469078d42c65bc705\",\"schema\":\"semantic-map-decision/2\",\"stateHash\":\"sha256:225152e1e2ed109725fc07dde5ab76668cb90081264ed5e13fd270c251ef87f4\"}\n{\"operations\":[{\"bounds\":[20,250,140,64],\"kind\":\"step\",\"label\":\"返送照会\",\"parentId\":\"other\",\"regionId\":\"part-1\",\"summary\":\"\",\"type\":\"AddRegion\"},{\"items\":[{\"bounds\":[12,636,180,92],\"regionId\":\"part-1\"}],\"type\":\"PinRegions\"}],\"parent\":\"sha256:f14b93ac1b4a8ca4af467132ccd7f5d0a524fed90de6dbf3d54d77ea8f534596\",\"schema\":\"semantic-map-decision/2\",\"stateHash\":\"sha256:66e86e539b47dbb91d4aff0f464cabfadb5fa403dd2b8821ffe999ca868794ee\"}\n",
+        "records": [
+          {
+            "type": "meta",
+            "schema": "semantic-map-state/1",
+            "root": "root",
+            "title": "independent quota expression"
+          },
+          {
+            "type": "region",
+            "id": "root",
+            "parent": null,
+            "label": "fixture",
+            "kind": "boundary",
+            "bounds": [
+              0,
+              0,
+              900,
+              400
+            ],
+            "summary": ""
+          },
+          {
+            "type": "region",
+            "id": "container",
+            "parent": "root",
+            "label": "作業区",
+            "kind": "group",
+            "bounds": [
+              0,
+              0,
+              700,
+              200
+            ],
+            "summary": ""
+          },
+          {
+            "type": "region",
+            "id": "other",
+            "parent": "root",
+            "label": "保留区",
+            "kind": "group",
+            "bounds": [
+              0,
+              230,
+              700,
+              160
+            ],
+            "summary": ""
+          },
+          {
+            "type": "region",
+            "id": "part-1",
+            "parent": "other",
+            "label": "返送照会",
+            "kind": "step",
+            "bounds": [
+              20,
+              250,
+              140,
+              64
+            ],
+            "summary": ""
+          },
+          {
+            "type": "layout",
+            "regionId": "container",
+            "pin": "hard",
+            "bounds": [
+              0,
+              0,
+              2000,
+              500
+            ]
+          },
+          {
+            "type": "layout",
+            "regionId": "other",
+            "pin": "hard",
+            "bounds": [
+              0,
+              600,
+              2000,
+              500
+            ]
+          },
+          {
+            "type": "layout",
+            "regionId": "part-1",
+            "pin": "hard",
+            "bounds": [
+              12,
+              636,
+              180,
+              92
+            ]
+          }
+        ],
+        "stored": "{\"operations\":[{\"mapId\":\"voice-graph\",\"records\":[{\"root\":\"root\",\"schema\":\"semantic-map-state/1\",\"title\":\"independent quota expression\",\"type\":\"meta\"},{\"bounds\":[0,0,900,400],\"id\":\"root\",\"kind\":\"boundary\",\"label\":\"fixture\",\"parent\":null,\"summary\":\"\",\"type\":\"region\"},{\"bounds\":[0,0,700,200],\"id\":\"container\",\"kind\":\"group\",\"label\":\"作業区\",\"parent\":\"root\",\"summary\":\"\",\"type\":\"region\"},{\"bounds\":[0,230,700,160],\"id\":\"other\",\"kind\":\"group\",\"label\":\"保留区\",\"parent\":\"root\",\"summary\":\"\",\"type\":\"region\"}],\"type\":\"CreateMap\"}],\"parent\":null,\"schema\":\"semantic-map-decision/2\",\"stateHash\":\"sha256:96c3705673d6d8136e773cc07c7bafb7a4f01aa295b371db90b7ee17e105e394\"}\n{\"operations\":[{\"items\":[{\"bounds\":[0,0,2000,500],\"regionId\":\"container\"},{\"bounds\":[0,600,2000,500],\"regionId\":\"other\"}],\"type\":\"PinRegions\"}],\"parent\":\"sha256:3410767558526fb820a662555caea8ca38c109eeef4076e469078d42c65bc705\",\"schema\":\"semantic-map-decision/2\",\"stateHash\":\"sha256:225152e1e2ed109725fc07dde5ab76668cb90081264ed5e13fd270c251ef87f4\"}\n{\"operations\":[{\"bounds\":[20,250,140,64],\"kind\":\"step\",\"label\":\"返送照会\",\"parentId\":\"other\",\"regionId\":\"part-1\",\"summary\":\"\",\"type\":\"AddRegion\"},{\"items\":[{\"bounds\":[12,636,180,92],\"regionId\":\"part-1\"}],\"type\":\"PinRegions\"}],\"parent\":\"sha256:f14b93ac1b4a8ca4af467132ccd7f5d0a524fed90de6dbf3d54d77ea8f534596\",\"schema\":\"semantic-map-decision/2\",\"stateHash\":\"sha256:66e86e539b47dbb91d4aff0f464cabfadb5fa403dd2b8821ffe999ca868794ee\"}\n",
+        "goal": null
+      },
+      "apply_enabled": false,
+      "persistence": "PASS",
+      "scope": "KEYLESS_COMPLETED_UI_RESTORE_NOT_BROWSER_GOAL"
+    }
+  }
+}

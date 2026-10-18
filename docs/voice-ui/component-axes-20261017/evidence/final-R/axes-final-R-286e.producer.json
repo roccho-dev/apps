@@ -1,0 +1,63 @@
+{
+  "schema": "voice-ui.component-axes-producer/1",
+  "axis": "R",
+  "phase_id": "axes-final-R-20261017",
+  "heads": {
+    "apps": "286eb7d0bc0bdef160bda900547314aa5be3a752",
+    "envs": "063e685b8b21a97fc8658879da93fa858552bcd6",
+    "ops": "cab432ef717cbde9ebd0197ae006c0efe75269bf",
+    "windows": "6aef693c0946903d8b87c2348039de1420acd61b",
+    "ui": "756d47e891191c3344eb2d29b000203be8331abc"
+  },
+  "inputs_sha256": "962caad26f6a6dd59982be202c8decb5bbdbdcfb0f292dc8552bb191ba8dd3c3",
+  "parent_inputs_sha256": null,
+  "bundle_sha256": "8fd1b4f37f6a113653dbaeda5e040ba5bed6d7b007ab9269d307f8642d339189",
+  "source_sha256": {
+    "src/completion.mjs": "48380fb1504dfe97b1f8450c9b33aee7665d13d5c4ee462a991591e573385541",
+    "src/literal-inventory.mjs": "82a2bdb9866c1331b4c685f28862bd54e7e974c4af3652b4f72dfdbb41f7df60",
+    "src/goal.mjs": "cd9101d6a222e31773c9523adeca3f7f9aa32990e30b39e06a7b872771422f3e",
+    "src/contract.mjs": "f2c95212493f59fd80ef17270c2b5de0d51d795b26ac8a0e6dfa0fdb9dec30fe",
+    "src/turn.mjs": "c5fc3489a5bd0861f0455bd9843f47e76030bb03a4fe55745cf00c29c79b7008",
+    "src/session.mjs": "d6fcb97e581afb789ed6ecb339c06c378ef94283084df8ad3042ebe42c48cfe8",
+    "functions/api/parts.mjs": "13ca5322730f049eb2e77319cc0fbeb58f649d91c4bc56fe9d36214a90960669",
+    "functions/pages-worker.mjs": "8f3bc7ea572cf3e21b16728721dcb381425786180433df34892e2a42cfc94656",
+    "web/app.mjs": "3a9ac4eba0770949a219b35c97cd346d4a7912026fae2b2f21710251b86bbf2a",
+    "web/adapters/completion.mjs": "a940d92086302dd7f733aa45542c26ea0d925fed460111f4fbb15c802e601e82",
+    "tests/component-axes-eval.mjs": "3c0e70952e107c8e443497808a15a5feb85c914e80774d1294a846caa8598f14",
+    "tests/component-axis-score.mjs": "b5b6547e81f8213ba20126ab6404d4807b06d836f91507651a502bc9c6ebef6b",
+    "tests/evaluation-http.mjs": "a2b4055f9209544019f07f5bb299afac38452049c6b642a4da2cdb9534a49f47",
+    "tests/painted-goal.mjs": "c5ba117d1dea66d20c80b7f92b8184296ff79d4231da56f5a89836af4beb018b"
+  },
+  "raw_sha256": {
+    "R05-A.json": "8a8d07e2f71ea396bdef0f2753a669399014dbb2928589cb806317c920926ad9",
+    "R04-A.json": "ba78d87eea834823cc677a735ab149867c266783ffd8ffa3a97d99c4811f8a9a",
+    "R01-A.json": "c66b6fd32c05b5a73bfd3370db3a31361346fca5b79d2483627a41729eb19239",
+    "R03-A.json": "051d483a183e01245a9bcdab9caecb079278fa63609bedb91c46bbe779893030",
+    "R08-A.json": "45c4b79f0ecafa36848490789344f5f8523eac9437c110a5aaadcddc61e25e8a",
+    "execution.json": "1b6f3ae573712610b781b58e29984862d1a853ad93f6db2143ee5ee993905bcf",
+    "R02-A.json": "0c8f915e72cd360abb9ed154602da972f2d41c0c7f237ed9437acbd7cf7a39d5",
+    "identity.json": "0095b54208ae14ee1f96233cc317a484cea851a586f1d8f27eb8a4f69d60a04a",
+    "events.jsonl": "cbf72aafa06f87ba1064fd8797e785a7d7fb5378f729319004bff6d585a7bc46",
+    "R07-A.json": "92f9d5989d8a6cd8c3cde191edd49005e126c4363ddc6886bf27af2bd3139b92",
+    "R06-A.json": "84f4870b58081f176bb73e33900ab0d2a0cc0d5f0afd2df4232ce8f35384bd28"
+  },
+  "independent_audit_sha256": {
+    "pr103-efd6-r9-review.md": "e4b3b9421747d0d1ecd1d3140c3877f4507c3da253b0ee6f83818974b430e980",
+    "axes-final-R-zero-send-audit.json": "b1ca048aae955811b250f0811053c869a296dd0c327d41658f410a77a97f623a",
+    "axes-final-R-stop-audit.json": "852e96c7b225d35ca72832f7b88a18b009bb169ea6e69cd4b129c36e3858de81"
+  },
+  "raw_identity_sha256": "0095b54208ae14ee1f96233cc317a484cea851a586f1d8f27eb8a4f69d60a04a",
+  "runtime_audit_sha256": "07dc365b12981ea26071d8ecbe3ec8422883cb865aa0b314fa76f0e4b6ed8dde",
+  "config_sha256": "eca1c652ba778ffc19ba15a964930e1065750fcb0bdf376e1a47d18e30b072a8",
+  "process_sha256": "84ab76212de6bfeff96e4223cf4a5d208e1d426cc5a6774d660e51b8da26bff3",
+  "artifact_manifest_sha256": "30481d0d132f875ce35b7c48a859bfa414a9d882009c58c7d6d74a9cf6aa1b38",
+  "worker_sha256": "15b9ed190f5f9915780b28b2403e4fffc13bd5be397cfaac6f6f8f5d3efa33a2",
+  "provider_sha256": "ad4ac08ae8c42f3bf0e9d0aeedb0a2e9192c776585a3251b2ff1e18358cfe2e7",
+  "protocol_sha256": "1689dcf63e1ed19cdea7be22e3f90a09f434841f980b9ca8b9018a987c9c38f8",
+  "stdout_sha256": "8b9d1e7015d4a8e30d689c8a554a2707c1c7dc7dd96974770c305e4866f46db6",
+  "stderr_sha256": "1f74e499dd2cc553613c46a863de977cf46ed6d60d2a9e7607d87c6c2521d86b",
+  "journal_sha256": "c1309d678028e88c412bb171bdce96059eb6f7524239f9719f71e1426c5ab289",
+  "replay_sha256": "027ef0abc1ffad860f6cf28a785e9313e1dc8eb82fc00daa74b204d1be544951",
+  "source_review_url": "https://github.com/roccho-dev/apps/pull/103#pullrequestreview-5558028175",
+  "scope": "fixed independent source/physical-process/stopped-byte expectations; never generate from raw during CI"
+}

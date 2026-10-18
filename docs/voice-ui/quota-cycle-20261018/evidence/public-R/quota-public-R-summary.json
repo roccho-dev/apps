@@ -1,0 +1,175 @@
+{
+  "schema": "voice-ui.review.quota-public-phase/1",
+  "status": "PASS",
+  "phase": "quota-public-R-20261018",
+  "axis": "R",
+  "apps_sha": "59ded276405a5dc9caa85ad570b1827ff4bd0c7a",
+  "planned": 2,
+  "consumed": 2,
+  "all_valid_execution": true,
+  "admissible_for_semantic_claim": true,
+  "semantic": {
+    "complete": true,
+    "total_pairs": 1,
+    "valid_cells": 2,
+    "open_correct": 1,
+    "quota_correct": 1,
+    "assembly_gains": 0,
+    "extra_adoptions_fixed": 0,
+    "regressions": 0,
+    "admitted_pairs": 1,
+    "pairs": [
+      {
+        "id": "PR01",
+        "eligible": true,
+        "matching_complete_supply": true,
+        "open_success": true,
+        "quota_success": true,
+        "open_false_adoption": false,
+        "assembly_gain": false,
+        "extra_adoption_fixed": false,
+        "regression": false,
+        "excluded_from_causal_only": false
+      }
+    ],
+    "quality_criteria": "PASS",
+    "public_gate": "PASS",
+    "effect_criteria": "UNMET",
+    "no_effect_criteria_pending_integrity": "UNPROVEN",
+    "scope": "finite conditional expression; open wrong additions remain outcomes; no Type or ordinary interpretation inference"
+  },
+  "rows": [
+    {
+      "id": "PR01",
+      "arm": "O",
+      "grade": {
+        "contract_valid": true,
+        "graph_exact": true,
+        "graph": {
+          "graph_exact": true,
+          "unique_record_keys": true,
+          "existing_semantics_preserved": true,
+          "semantic_unchanged": false,
+          "clean_new_regions": true,
+          "clean_new_edges": true,
+          "no_other_new_semantics": true,
+          "actual_added_regions": [
+            {
+              "label": "計量合否",
+              "kind": "decision",
+              "parent": "fixture:container"
+            }
+          ],
+          "actual_added_edges": []
+        },
+        "no_false_adoption": true,
+        "existing_semantics_preserved": true,
+        "supplied_inventory_complete": true,
+        "goal_parts_policy": "open",
+        "quota_offers_exact": true,
+        "selected_one_use": true,
+        "initial_log_sha256": "0bdbd15714a1cae6ae10a2a5ddd2265cb2895d57e847aa74cbfee864274c8612",
+        "supply_sha256": "e6aecbf8987e053962d0d965b20bee9db906de59b6f7fac5caae2e2587496707",
+        "required_sha256": "794d878e76a36653a38cbadc028b34573ac9b3a526be254395082fa8d9e1bb14",
+        "deadline": true,
+        "scope": "conditional native expression only; open extra/wrong graph is an outcome, never filtered from pair admission"
+      },
+      "paint_status": "PASS",
+      "goal_elapsedMs": 1043.7889999999998,
+      "goal_deadline_status": "PASS",
+      "persisted_raw_equal": true
+    },
+    {
+      "id": "PR01",
+      "arm": "Q",
+      "grade": {
+        "contract_valid": true,
+        "graph_exact": true,
+        "graph": {
+          "graph_exact": true,
+          "unique_record_keys": true,
+          "existing_semantics_preserved": true,
+          "semantic_unchanged": false,
+          "clean_new_regions": true,
+          "clean_new_edges": true,
+          "no_other_new_semantics": true,
+          "actual_added_regions": [
+            {
+              "label": "計量合否",
+              "kind": "decision",
+              "parent": "fixture:container"
+            }
+          ],
+          "actual_added_edges": []
+        },
+        "no_false_adoption": true,
+        "existing_semantics_preserved": true,
+        "supplied_inventory_complete": true,
+        "goal_parts_policy": "quota",
+        "quota_offers_exact": true,
+        "selected_one_use": true,
+        "initial_log_sha256": "0bdbd15714a1cae6ae10a2a5ddd2265cb2895d57e847aa74cbfee864274c8612",
+        "supply_sha256": "e6aecbf8987e053962d0d965b20bee9db906de59b6f7fac5caae2e2587496707",
+        "required_sha256": "794d878e76a36653a38cbadc028b34573ac9b3a526be254395082fa8d9e1bb14",
+        "deadline": true,
+        "scope": "conditional native expression only; open extra/wrong graph is an outcome, never filtered from pair admission"
+      },
+      "paint_status": "PASS",
+      "goal_elapsedMs": 716.5226999999977,
+      "goal_deadline_status": "PASS",
+      "persisted_raw_equal": true
+    }
+  ],
+  "recorded_replay": {
+    "status": "PASS",
+    "issues": [],
+    "consumed": 2,
+    "frames": 6,
+    "assessed_frames": 4,
+    "recorded_paint_status": "PASS",
+    "replay_sha256": "09392c40e2d96a21507d23397deba5bf68cf1260efb46588aed378c9f3f991fd",
+    "model_quality_scope": "NONE",
+    "CI_LIVE_EXECUTION": "UNPROVEN"
+  },
+  "provider": {
+    "sent": {
+      "jev": 5,
+      "typellm": 0
+    },
+    "charged_at_cutoff": {
+      "jev": 813,
+      "typellm": 85
+    }
+  },
+  "process": {
+    "schema": "voice-ui.quota-cycle-process/1",
+    "status": "PASS",
+    "issues": [],
+    "state": "PUBLIC_REGRESSION_ONLY",
+    "baseline": {
+      "jev": 808,
+      "typellm": 85
+    },
+    "indexed_phases": 1,
+    "source_head": "59ded276405a5dc9caa85ad570b1827ff4bd0c7a",
+    "correction_batches": 0,
+    "reserved": {
+      "jev": 16,
+      "typellm": 0
+    },
+    "charged_at_cutoff": {
+      "jev": 813,
+      "typellm": 85
+    },
+    "releases": [],
+    "scope": "integrity/process only; conditional expression and ordinary supplementation are separate; retained fresh quality failures do not block complete stopped-evidence progression"
+  },
+  "binding": {
+    "status": "PASS",
+    "issues": [],
+    "scope": "fixed exact-byte producer/source testimony joins; physical observation remains independently referenced",
+    "CI_LIVE_EXECUTION": "UNPROVEN"
+  },
+  "scope": "PUBLIC_REGRESSION_ONLY; CONDITIONAL_EXPRESSION_NOT_TYPE_EFFECT; ACTUAL_CI_REPAINT_OF_THIS_NEW_PHASE_PENDING_REPORT_CLOSURE",
+  "reviewer_real_provider_calls": 0
+}

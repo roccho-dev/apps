@@ -1,0 +1,41 @@
+{
+  "schema": "voice-ui.independent-zero-send-audit/1",
+  "observed_at": "2026-10-17T13:16:21.103430+00:00",
+  "status": "PASS",
+  "phase": "axes-public-G-20261017",
+  "axis": "G",
+  "config_sha256": "b527320b9727efc95c6fcce0de78121ef34e2e5a5de3c3ef8a47250459c0ed08",
+  "identity_sha256": "e58646472a416cc55ad8c8f3b01eaea0ee0bc7a281155da412685754a7cc4524",
+  "process_sha256": "54844b58fa5d0035fd3090be0ba63bddba65d25048201767cf1e462ed9bf8a2a",
+  "runtime_sha256": "07dc365b12981ea26071d8ecbe3ec8422883cb865aa0b314fa76f0e4b6ed8dde",
+  "input_sha256": "36fdeb1254bd57e725f4bf695a0234c98c95c64d849132a489de657ebb714ceb",
+  "pid": 308086,
+  "pgid": 308086,
+  "start_ticks": "15074155",
+  "argv": [
+    "node",
+    "/nix/store/hnpv58akbc2ncay6rjm2wm8mj180ylxz-source/packages/voice-ui/dev/serve.mjs"
+  ],
+  "allowlisted_process_env": {
+    "NODE_OPTIONS": "--import=/nix/store/s9sspm66pdf3xjdsbvy0q60cr0jp7w4g-voice-ui-provider-budget.mjs",
+    "VOICE_UI_TYPELLM_LIMIT": "0",
+    "VOICE_UI_JEV_LIMIT": "4"
+  },
+  "key_presence_only": {
+    "JEV_API_KEY": true,
+    "TYPELLM_API_KEY": true
+  },
+  "prior_charged": {
+    "jev": 564,
+    "typellm": 29
+  },
+  "reserved": {
+    "jev": 4,
+    "typellm": 0
+  },
+  "journal_sha256": "cf3249d0b820739faf9ebb67805d99f416c7b327f71495346b6e42f9e7d6fc6a",
+  "stderr_sha256": "768e66a51e5521f802dd22c4d9835370590bb6cea84c52fb45bbad2bf9796eec",
+  "provider_send_rows": [],
+  "readiness_get": 200,
+  "scope": "physical PID/start plus exact public source/runtime/cap/preload and key-presence metadata only; no credential values retained or emitted, no private identity read, no provider request sent"
+}

@@ -1,0 +1,69 @@
+{
+  "axis": "F",
+  "phase_kind": "final",
+  "classification": "UNPROVEN",
+  "integrity": "PASS",
+  "complete": true,
+  "all_valid_execution": false,
+  "admissible_for_semantic_claim": false,
+  "semantic": {
+    "complete": true,
+    "per_method": {
+      "literal": {
+        "total": 8,
+        "exact_minimal": 3,
+        "contract_valid": true,
+        "semantic_criteria": "UNMET"
+      },
+      "typed": {
+        "total": 8,
+        "exact_minimal": 4,
+        "contract_valid": false,
+        "semantic_criteria": "UNMET"
+      }
+    }
+  },
+  "invalid": {
+    "id": "F08",
+    "method": "typed",
+    "calls": [
+      {
+        "route": "/api/parts/complete?method=typed",
+        "status": 502,
+        "response": {
+          "error": "parts_contract"
+        },
+        "error": "http_or_contract_unknown"
+      }
+    ],
+    "diagnostics": [
+      {
+        "kind": "voice-ui.parts.contract.v1",
+        "stage": "local-result",
+        "rootExact": true,
+        "slots": [
+          {
+            "exact": true,
+            "label": "nonempty",
+            "kind": "data",
+            "quantity": 1
+          },
+          {
+            "exact": true,
+            "label": "nonempty",
+            "kind": "data",
+            "quantity": 1
+          },
+          {
+            "exact": true,
+            "label": "nonempty",
+            "kind": "data",
+            "quantity": 1
+          }
+        ],
+        "duplicatePair": true
+      }
+    ]
+  },
+  "scope": "16/16 retained; one invalid typed arm prevents whole semantic comparison; valid omissions/extra candidates remain known failures"
+}

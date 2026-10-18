@@ -1,0 +1,23 @@
+{
+  "schema": "voice-ui.dependency-cycle-process/1",
+  "status": "PASS",
+  "issues": [],
+  "state": "PUBLIC_REGRESSION_ONLY",
+  "baseline": {
+    "jev": 701,
+    "typellm": 58
+  },
+  "indexed_phases": 1,
+  "source_head": "ae816ec23a5e4c397c8a4893e127fb24134afda8",
+  "correction_batches": 0,
+  "reserved": {
+    "jev": 0,
+    "typellm": 12
+  },
+  "charged_at_cutoff": {
+    "jev": 701,
+    "typellm": 70
+  },
+  "releases": [],
+  "scope": "integrity/process graph only; candidate performance/CI-origin live proof remain separate"
+}

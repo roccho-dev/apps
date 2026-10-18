@@ -1,0 +1,1177 @@
+{
+  "schema": "voice-ui.quota-cycle-raw-audit/1",
+  "axis": "E",
+  "status": "PASS",
+  "issues": [],
+  "complete": true,
+  "all_valid_execution": true,
+  "consumed": 12,
+  "planned": 12,
+  "rows": [
+    {
+      "id": "TEF01",
+      "method": "literal-v2",
+      "arm": "B",
+      "generation_policy": null,
+      "goal_parts_policy": "quota",
+      "valid_execution": true,
+      "grade": {
+        "contract_valid": true,
+        "expected_gate": "sufficient",
+        "gate_correct": true,
+        "full_required_exact": true,
+        "missing_exact_minimal": true,
+        "graph_exact": true,
+        "graph": {
+          "graph_exact": true,
+          "unique_record_keys": true,
+          "existing_semantics_preserved": true,
+          "semantic_unchanged": false,
+          "clean_new_regions": true,
+          "clean_new_edges": true,
+          "no_other_new_semantics": true,
+          "actual_added_regions": [
+            {
+              "label": "API",
+              "kind": "step",
+              "parent": "fixture:container"
+            }
+          ],
+          "actual_added_edges": []
+        },
+        "no_false_adoption": true,
+        "raw_unchanged": false,
+        "non_regression_guards": true,
+        "type_policy_guard": true,
+        "known_syntax_type_free": true,
+        "stop_authorization_guard": true,
+        "true_sufficient_zero_candidates": true,
+        "interpretation_type_calls": 0,
+        "eligible": false,
+        "old_eligible": false,
+        "frontier_eligible": false,
+        "proposal_policy": {
+          "id": "uncertainty-frontier-v1",
+          "eligible": false,
+          "reason": null
+        },
+        "proposal_policy_implemented": false,
+        "proposal_present": false,
+        "verification_accepted": false,
+        "initial_literal": {
+          "recognized": true,
+          "required": [
+            {
+              "label": "API",
+              "kind": "step",
+              "quantity": 1
+            }
+          ],
+          "spans": [
+            {
+              "start": 4,
+              "end": 7,
+              "source": "API",
+              "label": "API",
+              "kind": "step",
+              "quantity": 1
+            }
+          ]
+        },
+        "deadline": true,
+        "scope": "unchanged frozen per-cell /2 and /3 Goal meaning plus independently audited quota mechanism; new whole-six aggregation only",
+        "goal_parts_policy": "quota",
+        "quota_mechanism_valid": true
+      },
+      "paint_status": "PASS",
+      "persisted_raw_equal": true,
+      "cell_wall_elapsedMs": 12111.056900000001,
+      "goal_elapsedMs": 1945.5349999964237,
+      "goal_deadline_status": "PASS"
+    },
+    {
+      "id": "TEF01",
+      "method": "adaptive-v3",
+      "arm": "C",
+      "generation_policy": "dependent",
+      "goal_parts_policy": "quota",
+      "valid_execution": true,
+      "grade": {
+        "contract_valid": true,
+        "expected_gate": "sufficient",
+        "gate_correct": true,
+        "full_required_exact": true,
+        "missing_exact_minimal": true,
+        "graph_exact": true,
+        "graph": {
+          "graph_exact": true,
+          "unique_record_keys": true,
+          "existing_semantics_preserved": true,
+          "semantic_unchanged": false,
+          "clean_new_regions": true,
+          "clean_new_edges": true,
+          "no_other_new_semantics": true,
+          "actual_added_regions": [
+            {
+              "label": "API",
+              "kind": "step",
+              "parent": "fixture:container"
+            }
+          ],
+          "actual_added_edges": []
+        },
+        "no_false_adoption": true,
+        "raw_unchanged": false,
+        "non_regression_guards": true,
+        "type_policy_guard": true,
+        "known_syntax_type_free": true,
+        "stop_authorization_guard": true,
+        "true_sufficient_zero_candidates": true,
+        "interpretation_type_calls": 0,
+        "eligible": false,
+        "old_eligible": false,
+        "frontier_eligible": false,
+        "proposal_policy": {
+          "id": "uncertainty-frontier-v1",
+          "eligible": false,
+          "reason": null
+        },
+        "proposal_policy_implemented": true,
+        "proposal_present": false,
+        "verification_accepted": false,
+        "initial_literal": {
+          "recognized": true,
+          "required": [
+            {
+              "label": "API",
+              "kind": "step",
+              "quantity": 1
+            }
+          ],
+          "spans": [
+            {
+              "start": 4,
+              "end": 7,
+              "source": "API",
+              "label": "API",
+              "kind": "step",
+              "quantity": 1
+            }
+          ]
+        },
+        "deadline": true,
+        "scope": "unchanged frozen per-cell /2 and /3 Goal meaning plus independently audited quota mechanism; new whole-six aggregation only",
+        "goal_parts_policy": "quota",
+        "quota_mechanism_valid": true
+      },
+      "paint_status": "PASS",
+      "persisted_raw_equal": true,
+      "cell_wall_elapsedMs": 11220.152600000001,
+      "goal_elapsedMs": 1648.2300000190735,
+      "goal_deadline_status": "PASS"
+    },
+    {
+      "id": "TEF02",
+      "method": "adaptive-v3",
+      "arm": "C",
+      "generation_policy": "dependent",
+      "goal_parts_policy": "quota",
+      "valid_execution": true,
+      "grade": {
+        "contract_valid": true,
+        "expected_gate": "sufficient",
+        "gate_correct": true,
+        "full_required_exact": true,
+        "missing_exact_minimal": true,
+        "graph_exact": true,
+        "graph": {
+          "graph_exact": true,
+          "unique_record_keys": true,
+          "existing_semantics_preserved": true,
+          "semantic_unchanged": false,
+          "clean_new_regions": true,
+          "clean_new_edges": true,
+          "no_other_new_semantics": true,
+          "actual_added_regions": [
+            {
+              "label": "DB",
+              "kind": "data",
+              "parent": "fixture:other"
+            }
+          ],
+          "actual_added_edges": []
+        },
+        "no_false_adoption": true,
+        "raw_unchanged": false,
+        "non_regression_guards": true,
+        "type_policy_guard": true,
+        "known_syntax_type_free": true,
+        "stop_authorization_guard": true,
+        "true_sufficient_zero_candidates": true,
+        "interpretation_type_calls": 0,
+        "eligible": false,
+        "old_eligible": false,
+        "frontier_eligible": false,
+        "proposal_policy": {
+          "id": "uncertainty-frontier-v1",
+          "eligible": false,
+          "reason": null
+        },
+        "proposal_policy_implemented": true,
+        "proposal_present": false,
+        "verification_accepted": false,
+        "initial_literal": {
+          "recognized": true,
+          "required": [
+            {
+              "label": "DB",
+              "kind": "data",
+              "quantity": 1
+            }
+          ],
+          "spans": [
+            {
+              "start": 4,
+              "end": 6,
+              "source": "DB",
+              "label": "DB",
+              "kind": "data",
+              "quantity": 1
+            }
+          ]
+        },
+        "deadline": true,
+        "scope": "unchanged frozen per-cell /2 and /3 Goal meaning plus independently audited quota mechanism; new whole-six aggregation only",
+        "goal_parts_policy": "quota",
+        "quota_mechanism_valid": true
+      },
+      "paint_status": "PASS",
+      "persisted_raw_equal": true,
+      "cell_wall_elapsedMs": 11036.174500000001,
+      "goal_elapsedMs": 1404.9300000071526,
+      "goal_deadline_status": "PASS"
+    },
+    {
+      "id": "TEF02",
+      "method": "literal-v2",
+      "arm": "B",
+      "generation_policy": null,
+      "goal_parts_policy": "quota",
+      "valid_execution": true,
+      "grade": {
+        "contract_valid": true,
+        "expected_gate": "sufficient",
+        "gate_correct": true,
+        "full_required_exact": true,
+        "missing_exact_minimal": true,
+        "graph_exact": true,
+        "graph": {
+          "graph_exact": true,
+          "unique_record_keys": true,
+          "existing_semantics_preserved": true,
+          "semantic_unchanged": false,
+          "clean_new_regions": true,
+          "clean_new_edges": true,
+          "no_other_new_semantics": true,
+          "actual_added_regions": [
+            {
+              "label": "DB",
+              "kind": "data",
+              "parent": "fixture:other"
+            }
+          ],
+          "actual_added_edges": []
+        },
+        "no_false_adoption": true,
+        "raw_unchanged": false,
+        "non_regression_guards": true,
+        "type_policy_guard": true,
+        "known_syntax_type_free": true,
+        "stop_authorization_guard": true,
+        "true_sufficient_zero_candidates": true,
+        "interpretation_type_calls": 0,
+        "eligible": false,
+        "old_eligible": false,
+        "frontier_eligible": false,
+        "proposal_policy": {
+          "id": "uncertainty-frontier-v1",
+          "eligible": false,
+          "reason": null
+        },
+        "proposal_policy_implemented": false,
+        "proposal_present": false,
+        "verification_accepted": false,
+        "initial_literal": {
+          "recognized": true,
+          "required": [
+            {
+              "label": "DB",
+              "kind": "data",
+              "quantity": 1
+            }
+          ],
+          "spans": [
+            {
+              "start": 4,
+              "end": 6,
+              "source": "DB",
+              "label": "DB",
+              "kind": "data",
+              "quantity": 1
+            }
+          ]
+        },
+        "deadline": true,
+        "scope": "unchanged frozen per-cell /2 and /3 Goal meaning plus independently audited quota mechanism; new whole-six aggregation only",
+        "goal_parts_policy": "quota",
+        "quota_mechanism_valid": true
+      },
+      "paint_status": "PASS",
+      "persisted_raw_equal": true,
+      "cell_wall_elapsedMs": 11595.736700000001,
+      "goal_elapsedMs": 1551.905000001192,
+      "goal_deadline_status": "PASS"
+    },
+    {
+      "id": "TEF03",
+      "method": "literal-v2",
+      "arm": "B",
+      "generation_policy": null,
+      "goal_parts_policy": "quota",
+      "valid_execution": true,
+      "grade": {
+        "contract_valid": true,
+        "expected_gate": "missing",
+        "gate_correct": false,
+        "full_required_exact": false,
+        "missing_exact_minimal": false,
+        "graph_exact": false,
+        "graph": {
+          "graph_exact": false,
+          "unique_record_keys": true,
+          "existing_semantics_preserved": true,
+          "semantic_unchanged": true,
+          "clean_new_regions": true,
+          "clean_new_edges": true,
+          "no_other_new_semantics": true,
+          "actual_added_regions": [],
+          "actual_added_edges": []
+        },
+        "no_false_adoption": true,
+        "raw_unchanged": true,
+        "non_regression_guards": true,
+        "type_policy_guard": true,
+        "known_syntax_type_free": true,
+        "stop_authorization_guard": true,
+        "true_sufficient_zero_candidates": null,
+        "interpretation_type_calls": 0,
+        "eligible": true,
+        "old_eligible": false,
+        "frontier_eligible": true,
+        "proposal_policy": {
+          "id": "uncertainty-frontier-v1",
+          "eligible": true,
+          "reason": "uncertain-intent-incomplete"
+        },
+        "proposal_policy_implemented": false,
+        "proposal_present": false,
+        "verification_accepted": false,
+        "initial_literal": {
+          "recognized": false,
+          "required": [],
+          "spans": []
+        },
+        "deadline": true,
+        "scope": "unchanged frozen per-cell /2 and /3 Goal meaning plus independently audited quota mechanism; new whole-six aggregation only",
+        "goal_parts_policy": "quota",
+        "quota_mechanism_valid": true
+      },
+      "paint_status": "PASS",
+      "persisted_raw_equal": true,
+      "cell_wall_elapsedMs": 8763.972600000001,
+      "goal_elapsedMs": 311.8149999976158,
+      "goal_deadline_status": "PASS"
+    },
+    {
+      "id": "TEF03",
+      "method": "adaptive-v3",
+      "arm": "C",
+      "generation_policy": "dependent",
+      "goal_parts_policy": "quota",
+      "valid_execution": true,
+      "grade": {
+        "contract_valid": true,
+        "expected_gate": "missing",
+        "gate_correct": true,
+        "full_required_exact": true,
+        "missing_exact_minimal": true,
+        "graph_exact": true,
+        "graph": {
+          "graph_exact": true,
+          "unique_record_keys": true,
+          "existing_semantics_preserved": true,
+          "semantic_unchanged": false,
+          "clean_new_regions": true,
+          "clean_new_edges": true,
+          "no_other_new_semantics": true,
+          "actual_added_regions": [
+            {
+              "label": "経路整形",
+              "kind": "step",
+              "parent": "fixture:other"
+            },
+            {
+              "label": "経路整形",
+              "kind": "step",
+              "parent": "fixture:other"
+            }
+          ],
+          "actual_added_edges": []
+        },
+        "no_false_adoption": true,
+        "raw_unchanged": false,
+        "non_regression_guards": true,
+        "type_policy_guard": true,
+        "known_syntax_type_free": true,
+        "stop_authorization_guard": true,
+        "true_sufficient_zero_candidates": null,
+        "interpretation_type_calls": 0,
+        "eligible": true,
+        "old_eligible": false,
+        "frontier_eligible": true,
+        "proposal_policy": {
+          "id": "uncertainty-frontier-v1",
+          "eligible": true,
+          "reason": "uncertain-intent-incomplete"
+        },
+        "proposal_policy_implemented": true,
+        "proposal_present": true,
+        "verification_accepted": true,
+        "initial_literal": {
+          "recognized": false,
+          "required": [],
+          "spans": []
+        },
+        "deadline": true,
+        "scope": "unchanged frozen per-cell /2 and /3 Goal meaning plus independently audited quota mechanism; new whole-six aggregation only",
+        "goal_parts_policy": "quota",
+        "quota_mechanism_valid": true
+      },
+      "paint_status": "PASS",
+      "persisted_raw_equal": true,
+      "cell_wall_elapsedMs": 16773.1386,
+      "goal_elapsedMs": 7287.5,
+      "goal_deadline_status": "PASS"
+    },
+    {
+      "id": "TEF04",
+      "method": "adaptive-v3",
+      "arm": "C",
+      "generation_policy": "dependent",
+      "goal_parts_policy": "quota",
+      "valid_execution": true,
+      "grade": {
+        "contract_valid": true,
+        "expected_gate": "missing",
+        "gate_correct": true,
+        "full_required_exact": true,
+        "missing_exact_minimal": true,
+        "graph_exact": true,
+        "graph": {
+          "graph_exact": true,
+          "unique_record_keys": true,
+          "existing_semantics_preserved": true,
+          "semantic_unchanged": false,
+          "clean_new_regions": true,
+          "clean_new_edges": true,
+          "no_other_new_semantics": true,
+          "actual_added_regions": [
+            {
+              "label": "夜間照会",
+              "kind": "decision",
+              "parent": "fixture:container"
+            }
+          ],
+          "actual_added_edges": []
+        },
+        "no_false_adoption": true,
+        "raw_unchanged": false,
+        "non_regression_guards": true,
+        "type_policy_guard": true,
+        "known_syntax_type_free": true,
+        "stop_authorization_guard": true,
+        "true_sufficient_zero_candidates": null,
+        "interpretation_type_calls": 0,
+        "eligible": true,
+        "old_eligible": true,
+        "frontier_eligible": false,
+        "proposal_policy": {
+          "id": "uncertainty-frontier-v1",
+          "eligible": true,
+          "reason": "confident-change-incomplete"
+        },
+        "proposal_policy_implemented": true,
+        "proposal_present": true,
+        "verification_accepted": true,
+        "initial_literal": {
+          "recognized": false,
+          "required": [],
+          "spans": []
+        },
+        "deadline": true,
+        "scope": "unchanged frozen per-cell /2 and /3 Goal meaning plus independently audited quota mechanism; new whole-six aggregation only",
+        "goal_parts_policy": "quota",
+        "quota_mechanism_valid": true
+      },
+      "paint_status": "PASS",
+      "persisted_raw_equal": true,
+      "cell_wall_elapsedMs": 14557.47649999999,
+      "goal_elapsedMs": 5134.360000014305,
+      "goal_deadline_status": "PASS"
+    },
+    {
+      "id": "TEF04",
+      "method": "literal-v2",
+      "arm": "B",
+      "generation_policy": null,
+      "goal_parts_policy": "quota",
+      "valid_execution": true,
+      "grade": {
+        "contract_valid": true,
+        "expected_gate": "missing",
+        "gate_correct": false,
+        "full_required_exact": false,
+        "missing_exact_minimal": false,
+        "graph_exact": false,
+        "graph": {
+          "graph_exact": false,
+          "unique_record_keys": true,
+          "existing_semantics_preserved": true,
+          "semantic_unchanged": true,
+          "clean_new_regions": true,
+          "clean_new_edges": true,
+          "no_other_new_semantics": true,
+          "actual_added_regions": [],
+          "actual_added_edges": []
+        },
+        "no_false_adoption": true,
+        "raw_unchanged": true,
+        "non_regression_guards": true,
+        "type_policy_guard": true,
+        "known_syntax_type_free": true,
+        "stop_authorization_guard": true,
+        "true_sufficient_zero_candidates": null,
+        "interpretation_type_calls": 0,
+        "eligible": true,
+        "old_eligible": true,
+        "frontier_eligible": false,
+        "proposal_policy": {
+          "id": "uncertainty-frontier-v1",
+          "eligible": true,
+          "reason": "confident-change-incomplete"
+        },
+        "proposal_policy_implemented": false,
+        "proposal_present": false,
+        "verification_accepted": false,
+        "initial_literal": {
+          "recognized": false,
+          "required": [],
+          "spans": []
+        },
+        "deadline": true,
+        "scope": "unchanged frozen per-cell /2 and /3 Goal meaning plus independently audited quota mechanism; new whole-six aggregation only",
+        "goal_parts_policy": "quota",
+        "quota_mechanism_valid": true
+      },
+      "paint_status": "PASS",
+      "persisted_raw_equal": true,
+      "cell_wall_elapsedMs": 7988.025300000008,
+      "goal_elapsedMs": 310.47999998927116,
+      "goal_deadline_status": "PASS"
+    },
+    {
+      "id": "TEF05",
+      "method": "literal-v2",
+      "arm": "B",
+      "generation_policy": null,
+      "goal_parts_policy": "quota",
+      "valid_execution": true,
+      "grade": {
+        "contract_valid": true,
+        "expected_gate": "no-change",
+        "gate_correct": true,
+        "full_required_exact": null,
+        "missing_exact_minimal": true,
+        "graph_exact": true,
+        "graph": {
+          "graph_exact": true,
+          "unique_record_keys": true,
+          "existing_semantics_preserved": true,
+          "semantic_unchanged": true,
+          "clean_new_regions": true,
+          "clean_new_edges": true,
+          "no_other_new_semantics": true,
+          "actual_added_regions": [],
+          "actual_added_edges": []
+        },
+        "no_false_adoption": true,
+        "raw_unchanged": true,
+        "non_regression_guards": true,
+        "type_policy_guard": true,
+        "known_syntax_type_free": true,
+        "stop_authorization_guard": true,
+        "true_sufficient_zero_candidates": null,
+        "interpretation_type_calls": 0,
+        "eligible": false,
+        "old_eligible": false,
+        "frontier_eligible": false,
+        "proposal_policy": {
+          "id": "uncertainty-frontier-v1",
+          "eligible": false,
+          "reason": null
+        },
+        "proposal_policy_implemented": false,
+        "proposal_present": false,
+        "verification_accepted": false,
+        "initial_literal": {
+          "recognized": false,
+          "required": [],
+          "spans": []
+        },
+        "deadline": true,
+        "scope": "unchanged frozen per-cell /2 and /3 Goal meaning plus independently audited quota mechanism; new whole-six aggregation only",
+        "goal_parts_policy": "quota",
+        "quota_mechanism_valid": true
+      },
+      "paint_status": "PASS",
+      "persisted_raw_equal": true,
+      "cell_wall_elapsedMs": 8613.690799999997,
+      "goal_elapsedMs": 365.74000000953674,
+      "goal_deadline_status": "PASS"
+    },
+    {
+      "id": "TEF05",
+      "method": "adaptive-v3",
+      "arm": "C",
+      "generation_policy": "dependent",
+      "goal_parts_policy": "quota",
+      "valid_execution": true,
+      "grade": {
+        "contract_valid": true,
+        "expected_gate": "no-change",
+        "gate_correct": true,
+        "full_required_exact": null,
+        "missing_exact_minimal": true,
+        "graph_exact": true,
+        "graph": {
+          "graph_exact": true,
+          "unique_record_keys": true,
+          "existing_semantics_preserved": true,
+          "semantic_unchanged": true,
+          "clean_new_regions": true,
+          "clean_new_edges": true,
+          "no_other_new_semantics": true,
+          "actual_added_regions": [],
+          "actual_added_edges": []
+        },
+        "no_false_adoption": true,
+        "raw_unchanged": true,
+        "non_regression_guards": true,
+        "type_policy_guard": true,
+        "known_syntax_type_free": true,
+        "stop_authorization_guard": true,
+        "true_sufficient_zero_candidates": null,
+        "interpretation_type_calls": 0,
+        "eligible": false,
+        "old_eligible": false,
+        "frontier_eligible": false,
+        "proposal_policy": {
+          "id": "uncertainty-frontier-v1",
+          "eligible": false,
+          "reason": null
+        },
+        "proposal_policy_implemented": true,
+        "proposal_present": false,
+        "verification_accepted": false,
+        "initial_literal": {
+          "recognized": false,
+          "required": [],
+          "spans": []
+        },
+        "deadline": true,
+        "scope": "unchanged frozen per-cell /2 and /3 Goal meaning plus independently audited quota mechanism; new whole-six aggregation only",
+        "goal_parts_policy": "quota",
+        "quota_mechanism_valid": true
+      },
+      "paint_status": "PASS",
+      "persisted_raw_equal": true,
+      "cell_wall_elapsedMs": 8145.966899999999,
+      "goal_elapsedMs": 306.64500001072884,
+      "goal_deadline_status": "PASS"
+    },
+    {
+      "id": "TEF06",
+      "method": "adaptive-v3",
+      "arm": "C",
+      "generation_policy": "dependent",
+      "goal_parts_policy": "quota",
+      "valid_execution": true,
+      "grade": {
+        "contract_valid": true,
+        "expected_gate": "ambiguous",
+        "gate_correct": true,
+        "full_required_exact": null,
+        "missing_exact_minimal": true,
+        "graph_exact": true,
+        "graph": {
+          "graph_exact": true,
+          "unique_record_keys": true,
+          "existing_semantics_preserved": true,
+          "semantic_unchanged": true,
+          "clean_new_regions": true,
+          "clean_new_edges": true,
+          "no_other_new_semantics": true,
+          "actual_added_regions": [],
+          "actual_added_edges": []
+        },
+        "no_false_adoption": true,
+        "raw_unchanged": true,
+        "non_regression_guards": true,
+        "type_policy_guard": true,
+        "known_syntax_type_free": true,
+        "stop_authorization_guard": true,
+        "true_sufficient_zero_candidates": null,
+        "interpretation_type_calls": 0,
+        "eligible": false,
+        "old_eligible": false,
+        "frontier_eligible": false,
+        "proposal_policy": {
+          "id": "uncertainty-frontier-v1",
+          "eligible": false,
+          "reason": null
+        },
+        "proposal_policy_implemented": true,
+        "proposal_present": false,
+        "verification_accepted": false,
+        "initial_literal": {
+          "recognized": false,
+          "required": [],
+          "spans": []
+        },
+        "deadline": true,
+        "scope": "unchanged frozen per-cell /2 and /3 Goal meaning plus independently audited quota mechanism; new whole-six aggregation only",
+        "goal_parts_policy": "quota",
+        "quota_mechanism_valid": true
+      },
+      "paint_status": "PASS",
+      "persisted_raw_equal": true,
+      "cell_wall_elapsedMs": 8319.474199999997,
+      "goal_elapsedMs": 296.6100000143051,
+      "goal_deadline_status": "PASS"
+    },
+    {
+      "id": "TEF06",
+      "method": "literal-v2",
+      "arm": "B",
+      "generation_policy": null,
+      "goal_parts_policy": "quota",
+      "valid_execution": true,
+      "grade": {
+        "contract_valid": true,
+        "expected_gate": "ambiguous",
+        "gate_correct": true,
+        "full_required_exact": null,
+        "missing_exact_minimal": true,
+        "graph_exact": true,
+        "graph": {
+          "graph_exact": true,
+          "unique_record_keys": true,
+          "existing_semantics_preserved": true,
+          "semantic_unchanged": true,
+          "clean_new_regions": true,
+          "clean_new_edges": true,
+          "no_other_new_semantics": true,
+          "actual_added_regions": [],
+          "actual_added_edges": []
+        },
+        "no_false_adoption": true,
+        "raw_unchanged": true,
+        "non_regression_guards": true,
+        "type_policy_guard": true,
+        "known_syntax_type_free": true,
+        "stop_authorization_guard": true,
+        "true_sufficient_zero_candidates": null,
+        "interpretation_type_calls": 0,
+        "eligible": false,
+        "old_eligible": false,
+        "frontier_eligible": false,
+        "proposal_policy": {
+          "id": "uncertainty-frontier-v1",
+          "eligible": false,
+          "reason": null
+        },
+        "proposal_policy_implemented": false,
+        "proposal_present": false,
+        "verification_accepted": false,
+        "initial_literal": {
+          "recognized": false,
+          "required": [],
+          "spans": []
+        },
+        "deadline": true,
+        "scope": "unchanged frozen per-cell /2 and /3 Goal meaning plus independently audited quota mechanism; new whole-six aggregation only",
+        "goal_parts_policy": "quota",
+        "quota_mechanism_valid": true
+      },
+      "paint_status": "PASS",
+      "persisted_raw_equal": true,
+      "cell_wall_elapsedMs": 8699.99949999999,
+      "goal_elapsedMs": 316.9500000178814,
+      "goal_deadline_status": "PASS"
+    }
+  ],
+  "semantic": {
+    "complete": true,
+    "total_pairs": 6,
+    "valid_cells": 12,
+    "baseline": {
+      "sufficient": {
+        "correct": 2,
+        "total": 2
+      },
+      "missing": {
+        "correct": 0,
+        "total": 2
+      },
+      "ambiguous": {
+        "correct": 1,
+        "total": 1
+      },
+      "no-change": {
+        "correct": 1,
+        "total": 1
+      }
+    },
+    "candidate": {
+      "sufficient": {
+        "correct": 2,
+        "total": 2
+      },
+      "missing": {
+        "correct": 2,
+        "total": 2
+      },
+      "ambiguous": {
+        "correct": 1,
+        "total": 1
+      },
+      "no-change": {
+        "correct": 1,
+        "total": 1
+      }
+    },
+    "baseline_success": 4,
+    "candidate_success": 6,
+    "missing_gains": 2,
+    "regressions": 0,
+    "admissible_missing_pairs": 2,
+    "all_arm_guards": true,
+    "no_false_adoption": true,
+    "all_missing_admitted": true,
+    "pairs": [
+      {
+        "id": "TEF01",
+        "eligible": false,
+        "baseline_success": true,
+        "candidate_success": true,
+        "missing_gain": false,
+        "regression": false,
+        "excluded_from_causal_only": true
+      },
+      {
+        "id": "TEF02",
+        "eligible": false,
+        "baseline_success": true,
+        "candidate_success": true,
+        "missing_gain": false,
+        "regression": false,
+        "excluded_from_causal_only": true
+      },
+      {
+        "id": "TEF03",
+        "eligible": true,
+        "baseline_success": false,
+        "candidate_success": true,
+        "missing_gain": true,
+        "regression": false,
+        "excluded_from_causal_only": false
+      },
+      {
+        "id": "TEF04",
+        "eligible": true,
+        "baseline_success": false,
+        "candidate_success": true,
+        "missing_gain": true,
+        "regression": false,
+        "excluded_from_causal_only": false
+      },
+      {
+        "id": "TEF05",
+        "eligible": false,
+        "baseline_success": true,
+        "candidate_success": true,
+        "missing_gain": false,
+        "regression": false,
+        "excluded_from_causal_only": true
+      },
+      {
+        "id": "TEF06",
+        "eligible": false,
+        "baseline_success": true,
+        "candidate_success": true,
+        "missing_gain": false,
+        "regression": false,
+        "excluded_from_causal_only": true
+      }
+    ],
+    "quality_criteria": "PASS",
+    "public_gate": null,
+    "effect_criteria": "PASS",
+    "no_effect_criteria_pending_integrity": "UNPROVEN",
+    "scope": "all six ordinary pairs retained; both paths quota; supplementation effect separate from R assembly effect and prior frontier taxonomy"
+  },
+  "phase_kind": "fresh",
+  "inputs_sha256": "f646112dbb14896a2e8f27d99f2b995e374aacf68b87058c7520e9821f420e43",
+  "parent_inputs_sha256": null,
+  "parent_oracle_sha256": null,
+  "admissible_for_semantic_claim": true,
+  "external_provider_attempts": {
+    "jev": 32,
+    "typellm": 2
+  },
+  "external_provider_attempt_bounds": {
+    "jev": {
+      "min": 32,
+      "max": 32
+    },
+    "typellm": {
+      "min": 2,
+      "max": 2
+    }
+  },
+  "stage_rows": 28,
+  "stage_alignment": "UNIQUE",
+  "proofs": [
+    {
+      "id": "TEF01",
+      "method": "literal-v2",
+      "arm": "B",
+      "generation_policy": null,
+      "goal_parts_policy": "quota",
+      "status": "PASS",
+      "initial_head": "sha256:a9ef50bfea9ea13e4016769d106fbd1975aa3c48c67f51d3a3c07b395589d87c",
+      "final_head": "sha256:1b0dce02075afcc1891971d70980a77791b2159038a45748c5242fe0fac3917c",
+      "effective_parts": [
+        {
+          "key": "api",
+          "purpose": "an application programming interface service that receives requests",
+          "label": "API",
+          "kind": "step"
+        }
+      ]
+    },
+    {
+      "id": "TEF01",
+      "method": "adaptive-v3",
+      "arm": "C",
+      "generation_policy": "dependent",
+      "goal_parts_policy": "quota",
+      "status": "PASS",
+      "initial_head": "sha256:a9ef50bfea9ea13e4016769d106fbd1975aa3c48c67f51d3a3c07b395589d87c",
+      "final_head": "sha256:1b0dce02075afcc1891971d70980a77791b2159038a45748c5242fe0fac3917c",
+      "effective_parts": [
+        {
+          "key": "api",
+          "purpose": "an application programming interface service that receives requests",
+          "label": "API",
+          "kind": "step"
+        }
+      ]
+    },
+    {
+      "id": "TEF02",
+      "method": "adaptive-v3",
+      "arm": "C",
+      "generation_policy": "dependent",
+      "goal_parts_policy": "quota",
+      "status": "PASS",
+      "initial_head": "sha256:1ab0382ccef30e696b77ec566742e8d343da895cf221bae083e3dc8a1ad1f659",
+      "final_head": "sha256:7cd43dc7a7234670515efeff9d35c2a273475ea4b05513267da942fbf93ddab0",
+      "effective_parts": [
+        {
+          "key": "db",
+          "purpose": "a database that persists application data",
+          "label": "DB",
+          "kind": "data"
+        }
+      ]
+    },
+    {
+      "id": "TEF02",
+      "method": "literal-v2",
+      "arm": "B",
+      "generation_policy": null,
+      "goal_parts_policy": "quota",
+      "status": "PASS",
+      "initial_head": "sha256:1ab0382ccef30e696b77ec566742e8d343da895cf221bae083e3dc8a1ad1f659",
+      "final_head": "sha256:7cd43dc7a7234670515efeff9d35c2a273475ea4b05513267da942fbf93ddab0",
+      "effective_parts": [
+        {
+          "key": "db",
+          "purpose": "a database that persists application data",
+          "label": "DB",
+          "kind": "data"
+        }
+      ]
+    },
+    {
+      "id": "TEF03",
+      "method": "literal-v2",
+      "arm": "B",
+      "generation_policy": null,
+      "goal_parts_policy": "quota",
+      "status": "PASS",
+      "initial_head": "sha256:a9ef50bfea9ea13e4016769d106fbd1975aa3c48c67f51d3a3c07b395589d87c",
+      "final_head": "sha256:a9ef50bfea9ea13e4016769d106fbd1975aa3c48c67f51d3a3c07b395589d87c",
+      "effective_parts": []
+    },
+    {
+      "id": "TEF03",
+      "method": "adaptive-v3",
+      "arm": "C",
+      "generation_policy": "dependent",
+      "goal_parts_policy": "quota",
+      "status": "PASS",
+      "initial_head": "sha256:a9ef50bfea9ea13e4016769d106fbd1975aa3c48c67f51d3a3c07b395589d87c",
+      "final_head": "sha256:6037388959de91423bf6248be8ae0e97d2e6b887c678ee77277e3713592afbf8",
+      "effective_parts": [
+        {
+          "key": "goal-extra-1",
+          "label": "経路整形",
+          "kind": "step",
+          "purpose": "one requested part named 経路整形, kind step, missing instance 1"
+        },
+        {
+          "key": "goal-extra-2",
+          "label": "経路整形",
+          "kind": "step",
+          "purpose": "one requested part named 経路整形, kind step, missing instance 2"
+        }
+      ]
+    },
+    {
+      "id": "TEF04",
+      "method": "adaptive-v3",
+      "arm": "C",
+      "generation_policy": "dependent",
+      "goal_parts_policy": "quota",
+      "status": "PASS",
+      "initial_head": "sha256:f09c44a962cd217dad824ebf330ea9003d7a7b4d6fa24baac1de8dec4468f46c",
+      "final_head": "sha256:c099a2785f971da4e766621bcc94c8cefcdd163e12ae31d108d6cc9484b043c7",
+      "effective_parts": [
+        {
+          "key": "goal-extra-1",
+          "label": "夜間照会",
+          "kind": "decision",
+          "purpose": "one requested part named 夜間照会, kind decision, missing instance 1"
+        }
+      ]
+    },
+    {
+      "id": "TEF04",
+      "method": "literal-v2",
+      "arm": "B",
+      "generation_policy": null,
+      "goal_parts_policy": "quota",
+      "status": "PASS",
+      "initial_head": "sha256:f09c44a962cd217dad824ebf330ea9003d7a7b4d6fa24baac1de8dec4468f46c",
+      "final_head": "sha256:f09c44a962cd217dad824ebf330ea9003d7a7b4d6fa24baac1de8dec4468f46c",
+      "effective_parts": []
+    },
+    {
+      "id": "TEF05",
+      "method": "literal-v2",
+      "arm": "B",
+      "generation_policy": null,
+      "goal_parts_policy": "quota",
+      "status": "PASS",
+      "initial_head": "sha256:f09c44a962cd217dad824ebf330ea9003d7a7b4d6fa24baac1de8dec4468f46c",
+      "final_head": "sha256:f09c44a962cd217dad824ebf330ea9003d7a7b4d6fa24baac1de8dec4468f46c",
+      "effective_parts": []
+    },
+    {
+      "id": "TEF05",
+      "method": "adaptive-v3",
+      "arm": "C",
+      "generation_policy": "dependent",
+      "goal_parts_policy": "quota",
+      "status": "PASS",
+      "initial_head": "sha256:f09c44a962cd217dad824ebf330ea9003d7a7b4d6fa24baac1de8dec4468f46c",
+      "final_head": "sha256:f09c44a962cd217dad824ebf330ea9003d7a7b4d6fa24baac1de8dec4468f46c",
+      "effective_parts": []
+    },
+    {
+      "id": "TEF06",
+      "method": "adaptive-v3",
+      "arm": "C",
+      "generation_policy": "dependent",
+      "goal_parts_policy": "quota",
+      "status": "PASS",
+      "initial_head": "sha256:1ab0382ccef30e696b77ec566742e8d343da895cf221bae083e3dc8a1ad1f659",
+      "final_head": "sha256:1ab0382ccef30e696b77ec566742e8d343da895cf221bae083e3dc8a1ad1f659",
+      "effective_parts": []
+    },
+    {
+      "id": "TEF06",
+      "method": "literal-v2",
+      "arm": "B",
+      "generation_policy": null,
+      "goal_parts_policy": "quota",
+      "status": "PASS",
+      "initial_head": "sha256:1ab0382ccef30e696b77ec566742e8d343da895cf221bae083e3dc8a1ad1f659",
+      "final_head": "sha256:1ab0382ccef30e696b77ec566742e8d343da895cf221bae083e3dc8a1ad1f659",
+      "effective_parts": []
+    }
+  ],
+  "replay": {
+    "status": "PASS",
+    "issues": [],
+    "consumed": 12,
+    "frames": 36,
+    "assessed_frames": 24,
+    "recorded_paint_status": "PASS",
+    "replay_sha256": "4c474e1d78037bc74fb933e122426cf12a26c2d91e8a6a86d071d193ff94540e",
+    "model_quality_scope": "NONE",
+    "CI_LIVE_EXECUTION": "UNPROVEN"
+  },
+  "raw_sha256": {
+    "events.jsonl": "70d2dffc325b0f5dbd3c8045d17a0fdc588394b84dffb2760638f0e90c6ec5f2",
+    "execution.json": "799b2632a21d773f8b6998c6879fc4063e825e8de5e2c9dcb8f1122d332e07bc",
+    "identity.json": "16c0f20e14d09d7d112c6eca01e3720a67a55fe8101b3ea39661720a5baf1bae",
+    "TEF01-B.json": "b0e0e3d4a6bfb09791d4e9ba6b852ced035628cdee30ba6353a1cb7b70e583d5",
+    "TEF01-C.json": "904dff1db768a60bd0ba3a3905711c71a527b977b52d34e528604bd388d8806d",
+    "TEF02-B.json": "a95b6000dca41dd5bf4fcde87abc7d6750885dd2bac56584c35407375575fca3",
+    "TEF02-C.json": "4ae630232ca8d5f850f5fc192020ddf2323e9563eabb149e7e150bcc615634f9",
+    "TEF03-B.json": "173a5ab0e2670db8d75ae8e3f7abcbe37bced6d5cd515f24ba9dc02e90280c32",
+    "TEF03-C.json": "3217db9a4aba0fa992852e12525ff635b9132c6a2cd094a04befcf0bd77f3695",
+    "TEF04-B.json": "5e78136be6ed0d0e60a727e0df9849e56c30cdaaff6debd5147e08896e579580",
+    "TEF04-C.json": "240c129255a083e55c8368e300e8eb8c7cc1e714dffc2c2d9b22b26caa87aabb",
+    "TEF05-B.json": "ece84b1d8809123670d5a9e5c88b1b27aa357d566141d42c79dc850b75dfc7ef",
+    "TEF05-C.json": "7110c76849f041e8df41f4a43cb678bad54bbd361df13742e795707bb3f0b998",
+    "TEF06-B.json": "1e4480d64d5ff3e7d6f3941ef7d82d8d9f3f50960f01ea78652c363b18bfd7f9",
+    "TEF06-C.json": "145336dbd795376bf527b03e3d81a6ca140a6a3fcc3a7e46a89679da772a2498"
+  },
+  "scope": "independent quota offers/protocol/native-or-browser persistence/paint join; fixed producer and actual physical stop remain separately required",
+  "CI_LIVE_EXECUTION": "UNPROVEN",
+  "currency": "COST_NOT_MEASURED"
+}

@@ -1,0 +1,21 @@
+{
+  "status": "PASS",
+  "positive": "isolated synthetic producer join only, not live admission",
+  "negative_rejected": [
+    "missing typed bytes",
+    "coordinated wrong typed bytes",
+    "synthetic typed entry scope",
+    "wrong extraction profile",
+    "producer Type locator",
+    "manifest Jev proof",
+    "missing producer profile",
+    "missing config profile",
+    "typed path mismatch"
+  ],
+  "real_provider_sends": 0,
+  "apps": "e7ac78dc448ba84468db853591dace33c6de40f1",
+  "source_scope": "isolated synthetic producer metadata join; raw/live admission never asserted",
+  "initial_R_harness_failure_retained": "process local variable shadowed Node process; original output retained; separate v2 renamed local only, product/criteria unchanged",
+  "test_stdout_sha256": "f4116bf78969a0c5e5fb1501d9b8ffa72481d532fa3efcc3ae38a4a9e0393e26",
+  "test_source_sha256": "d77978c9aebbd3bbe5f2691ec2fd3d6b40d57163d10223b6a38fcf27a0228d56"
+}

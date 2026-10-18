@@ -1,0 +1,227 @@
+{
+  "schema": "voice-ui.requirements-cycle-raw-audit/1",
+  "axis": "F",
+  "status": "PASS",
+  "issues": [],
+  "complete": true,
+  "all_valid_execution": false,
+  "consumed": 6,
+  "planned": 6,
+  "rows": [
+    {
+      "id": "PF01",
+      "method": "full-required",
+      "arm": "F",
+      "valid_execution": false,
+      "grade": {
+        "contract_valid": false,
+        "exact": false,
+        "minimal": false,
+        "expected_instances": 3,
+        "actual_instances": null,
+        "matched_instances": 0,
+        "omitted_instances": 3,
+        "extra_instances": null,
+        "stock_difference": null,
+        "true_sufficient": false,
+        "scope": "full NEW requirements, never model-computed missing counts"
+      },
+      "cell_wall_elapsedMs": 1526.9062999999999
+    },
+    {
+      "id": "PF02",
+      "method": "full-required",
+      "arm": "F",
+      "valid_execution": true,
+      "grade": {
+        "contract_valid": true,
+        "exact": true,
+        "minimal": true,
+        "expected_instances": 1,
+        "actual_instances": 1,
+        "matched_instances": 1,
+        "omitted_instances": 0,
+        "extra_instances": 0,
+        "stock_difference": [
+          {
+            "label": "可否照合",
+            "kind": "decision",
+            "occurrence": 1
+          }
+        ],
+        "true_sufficient": false,
+        "scope": "full NEW requirements, never model-computed missing counts"
+      },
+      "cell_wall_elapsedMs": 694.5048999999999
+    },
+    {
+      "id": "PF03",
+      "method": "full-required",
+      "arm": "F",
+      "valid_execution": true,
+      "grade": {
+        "contract_valid": true,
+        "exact": true,
+        "minimal": true,
+        "expected_instances": 1,
+        "actual_instances": 1,
+        "matched_instances": 1,
+        "omitted_instances": 0,
+        "extra_instances": 0,
+        "stock_difference": [],
+        "true_sufficient": true,
+        "scope": "full NEW requirements, never model-computed missing counts"
+      },
+      "cell_wall_elapsedMs": 760.3444999999997
+    },
+    {
+      "id": "PF04",
+      "method": "full-required",
+      "arm": "F",
+      "valid_execution": false,
+      "grade": {
+        "contract_valid": false,
+        "exact": false,
+        "minimal": false,
+        "expected_instances": 2,
+        "actual_instances": null,
+        "matched_instances": 0,
+        "omitted_instances": 2,
+        "extra_instances": null,
+        "stock_difference": null,
+        "true_sufficient": true,
+        "scope": "full NEW requirements, never model-computed missing counts"
+      },
+      "cell_wall_elapsedMs": 689.6855999999998
+    },
+    {
+      "id": "PF05",
+      "method": "full-required",
+      "arm": "F",
+      "valid_execution": false,
+      "grade": {
+        "contract_valid": false,
+        "exact": false,
+        "minimal": false,
+        "expected_instances": 3,
+        "actual_instances": null,
+        "matched_instances": 0,
+        "omitted_instances": 3,
+        "extra_instances": null,
+        "stock_difference": null,
+        "true_sufficient": false,
+        "scope": "full NEW requirements, never model-computed missing counts"
+      },
+      "cell_wall_elapsedMs": 741.5875999999994
+    },
+    {
+      "id": "PF06",
+      "method": "full-required",
+      "arm": "F",
+      "valid_execution": false,
+      "grade": {
+        "contract_valid": false,
+        "exact": false,
+        "minimal": false,
+        "expected_instances": 3,
+        "actual_instances": null,
+        "matched_instances": 0,
+        "omitted_instances": 3,
+        "extra_instances": null,
+        "stock_difference": null,
+        "true_sufficient": false,
+        "scope": "full NEW requirements, never model-computed missing counts"
+      },
+      "cell_wall_elapsedMs": 664.1445999999996
+    }
+  ],
+  "semantic": {
+    "complete": true,
+    "total": 6,
+    "exact_minimal": 2,
+    "true_sufficient": {
+      "total": 2,
+      "zero_missing": 1
+    },
+    "requirements_criteria": "UNMET"
+  },
+  "phase_kind": "correction",
+  "inputs_sha256": "fecbe1eb3945cdb9e450742e26ba5fbb56bc1f3d852b1deebf292d09d922b6ec",
+  "parent_inputs_sha256": "fecbe1eb3945cdb9e450742e26ba5fbb56bc1f3d852b1deebf292d09d922b6ec",
+  "admissible_for_semantic_claim": false,
+  "external_provider_attempts": {
+    "jev": 0,
+    "typellm": 6
+  },
+  "external_provider_attempt_bounds": {
+    "jev": {
+      "min": 0,
+      "max": 0
+    },
+    "typellm": {
+      "min": 6,
+      "max": 6
+    }
+  },
+  "stage_rows": 6,
+  "stage_alignment": "UNIQUE",
+  "proofs": [
+    {
+      "id": "PF01",
+      "method": "full-required",
+      "status": "PASS",
+      "initial_head": "sha256:0b3522df5b691691d41d9b4587377781fc7048c991a4e47357e5583eb09288c6",
+      "final_head": "sha256:0b3522df5b691691d41d9b4587377781fc7048c991a4e47357e5583eb09288c6"
+    },
+    {
+      "id": "PF02",
+      "method": "full-required",
+      "status": "PASS",
+      "initial_head": "sha256:0b3522df5b691691d41d9b4587377781fc7048c991a4e47357e5583eb09288c6",
+      "final_head": "sha256:0b3522df5b691691d41d9b4587377781fc7048c991a4e47357e5583eb09288c6"
+    },
+    {
+      "id": "PF03",
+      "method": "full-required",
+      "status": "PASS",
+      "initial_head": "sha256:0b3522df5b691691d41d9b4587377781fc7048c991a4e47357e5583eb09288c6",
+      "final_head": "sha256:0b3522df5b691691d41d9b4587377781fc7048c991a4e47357e5583eb09288c6"
+    },
+    {
+      "id": "PF04",
+      "method": "full-required",
+      "status": "PASS",
+      "initial_head": "sha256:0b3522df5b691691d41d9b4587377781fc7048c991a4e47357e5583eb09288c6",
+      "final_head": "sha256:0b3522df5b691691d41d9b4587377781fc7048c991a4e47357e5583eb09288c6"
+    },
+    {
+      "id": "PF05",
+      "method": "full-required",
+      "status": "PASS",
+      "initial_head": "sha256:0b3522df5b691691d41d9b4587377781fc7048c991a4e47357e5583eb09288c6",
+      "final_head": "sha256:0b3522df5b691691d41d9b4587377781fc7048c991a4e47357e5583eb09288c6"
+    },
+    {
+      "id": "PF06",
+      "method": "full-required",
+      "status": "PASS",
+      "initial_head": "sha256:b4f52e5183b8e5730e59a7524a9b260f7cb7a4246695c8a69c4d320bec1312c1",
+      "final_head": "sha256:b4f52e5183b8e5730e59a7524a9b260f7cb7a4246695c8a69c4d320bec1312c1"
+    }
+  ],
+  "replay": null,
+  "raw_sha256": {
+    "events.jsonl": "08d630ea580bcfcf52b37796bb49e3a3889cb6613d647f00c4d28a21812283be",
+    "execution.json": "9671528ebaec3de701c9db5baeed58a048c39c2271abf9fee76e6b330079bf13",
+    "identity.json": "da08840ceddcfc884dc3bdac94189287006c8ea75fc162d58e4da06d3b9ae0d8",
+    "PF01-F.json": "3486a14e6e63db0efbe78fbf83de4567c75a36485591857682ec1e28d61f9fae",
+    "PF02-F.json": "db763c2addbac79efe2b06ba6032a81a4ea8c8588267873644843ce81eaaefe7",
+    "PF03-F.json": "ff33d61364e81cb91e25b9a144beefcba4ce0047e819df78f30ef8c5e7e486eb",
+    "PF04-F.json": "38afb203b458b8e29c956a6f42a9178fb0462e4d147b1981b8eedde6496223bd",
+    "PF05-F.json": "79e8d2351fa168833a69eef5f5bddfc37070b873ec9210564b6c4876cc11f4b8",
+    "PF06-F.json": "5f139ff1a97a72d130aeb7399cae3eb979a6706ee84e938d3a21053dfcad3986"
+  },
+  "scope": "raw locality only; exact producer/source/provider/physical PID and required paint admission remain separate",
+  "CI_LIVE_EXECUTION": "UNPROVEN",
+  "currency": "COST_NOT_MEASURED"
+}

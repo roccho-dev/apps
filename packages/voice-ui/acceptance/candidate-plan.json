@@ -1,0 +1,38 @@
+{
+  "schema": "voice-ui.candidate-plan/1",
+  "issue": "https://github.com/roccho-dev/apps/issues/94",
+  "amendment": "https://github.com/roccho-dev/apps/issues/94#issuecomment-6231599715",
+  "methods": ["A", "B", "C"],
+  "fresh_primary": { "method": "B", "scope": "comparison and recommendation only; ordinary product completion remains C", "fixed_before_input_release": true },
+  "uncompared": { "D": "BLOCKED_COST" },
+  "prior_charged": { "jev": 292, "typellm": 18 },
+  "whole_run_cap": { "jev": 1000, "typellm": 1000 },
+  "reservations": {
+    "public": { "cases": 8, "jev": 216, "typellm": 8 },
+    "corrections": { "batches": 2, "jev_per_batch": 60, "typellm": 32 },
+    "fresh": { "cases": 10, "jev": 270, "typellm": 10 },
+    "lifecycle": { "jev": 48, "typellm": 16 }
+  },
+  "scope": { "new_regions": 3, "new_flow_edges": 1, "goal_judgments": 8, "total_jev_per_arm": 9, "deadline_ms": 180000 },
+  "fresh_acceptance": {
+    "accepted_gate": 10,
+    "sufficient_exact": 4,
+    "missing_exact": 4,
+    "missing_minimal": 4,
+    "unchanged_controls": 2,
+    "sufficient_or_control_type_calls": 0,
+    "minimum_C_missing_gain_over_B": 1,
+    "minimum_C_missing_gain_over_A": 2
+  },
+  "browser": {
+    "viewport": [1280, 720], "device_scale_factor": 1,
+    "camera_order": ["overview", "named-group"],
+    "named_group_frame": "title area and every direct child declared box, fixed32 margin, scale at most1; empty group fits its full collapsed box; unused populated boundary may extend outside viewport",
+    "replay": "all consumed A/B/C logs through normal restore and fixed group/nested/relation frames; preserve UNMET and UNPROVEN separately",
+    "requirements": ["identity-bound-instances", "whole-label", "supported-clips", "viewport-containment", "shape-containment", "sibling-and-title-nonoverlap", "painted-directed-endpoints", "undo", "apply", "reload", "negative-controls"]
+  },
+  "report_axes": ["semantic_effect", "browser_mechanics", "closed_receipt_verification", "ci_live_execution", "four_way_comparison", "currency_cost"],
+  "labels": ["EFFECT", "UNMET", "UNPROVEN"],
+  "ci_live_execution": "UNPROVEN",
+  "currency_cost": "COST_NOT_MEASURED"
+}

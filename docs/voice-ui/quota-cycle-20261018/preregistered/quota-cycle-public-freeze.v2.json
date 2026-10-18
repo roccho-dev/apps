@@ -1,0 +1,104 @@
+{
+  "schema": "voice-ui.quota-cycle-public-freeze/1",
+  "status": "SEALED_NOT_ADMITTED",
+  "created_at": "2026-10-17T22:26:27.783Z",
+  "commitment_sha256": "b2aea0ad175e93786b5f566b020204ac7c2f3734b867cb9b53741794a2a401ec",
+  "copy_allowlist": [
+    {
+      "name": "quota-cycle-protocol.md",
+      "bytes": 12116,
+      "sha256": "b380818d1667db63f01e4d0e08eb90ff614f96ee86e634de8837d78042d9d2ae"
+    },
+    {
+      "name": "quota-cycle-policy-contract.json",
+      "bytes": 1681,
+      "sha256": "346a908d46f9c5205cb00ab9d35377a7ce674526e5a05b7adb8f0ea3d1f31d34"
+    },
+    {
+      "name": "quota-cycle-public-R-1.inputs.json",
+      "bytes": 5154,
+      "sha256": "0f87064474277d14bbd8ee3906940ef2f35d07e646c048b3d4fda50fba8d417d"
+    },
+    {
+      "name": "quota-cycle-public-R-1.oracle.json",
+      "bytes": 7030,
+      "sha256": "0a1e80a9a375df00d48e75923370f75ff7e010670ce973c33d4ffa29a882ba31"
+    },
+    {
+      "name": "quota-cycle-public-E-1.inputs.json",
+      "bytes": 3618,
+      "sha256": "ba45c323da0387a8ca2bef4633f3fbbcb621bfb1f8dd50ce92257cf5307feb1c"
+    },
+    {
+      "name": "quota-cycle-public-E-1.oracle.json",
+      "bytes": 5766,
+      "sha256": "c9c9bd90be21ad76cafef3b897be4aee55d5873c68d4fd49e199f09c65ea62e5"
+    },
+    {
+      "name": "quota-cycle-public-literal-preflight.json",
+      "bytes": 892,
+      "sha256": "481b9ce97c600be1784cc98e63acae2456263aa78c42c2b32236fc08eaf429e7"
+    },
+    {
+      "name": "quota-cycle-seal-validation.json",
+      "bytes": 5698,
+      "sha256": "c58c6b1f4034d2b8ae9e7d00bc35b7c6fc7046cb51cf61c327e5b8c7875cf2f7"
+    },
+    {
+      "name": "quota-cycle-commitment.json",
+      "bytes": 6067,
+      "sha256": "ad334bf87e80a91841fc8ae106d2eb37192f9fb7a7827ffefa59a3198f18c213"
+    },
+    {
+      "name": "quota-cycle-public-freeze.json",
+      "bytes": 2110,
+      "sha256": "bf584cec91f6b7e592181e3c0ddfc6ce289505c8b7819133fc254c7e356cafb9"
+    },
+    {
+      "name": "quota-cycle-public-R-1.v2.inputs.json",
+      "bytes": 5149,
+      "sha256": "35e6e31053ab8ea187899258e79623e74bc837ba482a73e043ef1ed99c296179"
+    },
+    {
+      "name": "quota-cycle-public-R-1.v2.oracle.json",
+      "bytes": 7025,
+      "sha256": "5612d2c372266cbee6ee89cd6b0829c00b0568f8ca08d42627cdbb2e89506ea9"
+    },
+    {
+      "name": "quota-cycle-public-E-1.v2.inputs.json",
+      "bytes": 3613,
+      "sha256": "e3c4c653c8225dfb668c18bf022345e1e3ef7a8665d821f3da72219d6c98a1a7"
+    },
+    {
+      "name": "quota-cycle-public-E-1.v2.oracle.json",
+      "bytes": 5761,
+      "sha256": "c67b083bb6d17096594807074f72a562efebd17b8198f8c6f8aba9b91e1155c2"
+    },
+    {
+      "name": "quota-cycle-prelive-map-addendum.v2.json",
+      "bytes": 4871,
+      "sha256": "00926d391643f466715c8660c20cec1344ddbd7d9cd4ee896ac5247653322b6c"
+    },
+    {
+      "name": "quota-cycle-map-identity-validation.v2.json",
+      "bytes": 6525,
+      "sha256": "57b31f20fed1f36bfc796bb2305e8fdc9bf7bac1b5ed29154605fcc7c2b60e3b"
+    },
+    {
+      "name": "quota-cycle-commitment.v2.json",
+      "bytes": 7218,
+      "sha256": "b2aea0ad175e93786b5f566b020204ac7c2f3734b867cb9b53741794a2a401ec"
+    }
+  ],
+  "never_copy": [
+    "quota-cycle-seal.private.mjs",
+    "quota-cycle-seal-validation.private.json",
+    "quota-cycle-sealed-*.inputs.json",
+    "quota-cycle-sealed-*.oracle.json",
+    "any private authoring or validator",
+    "all older unused sealed payloads"
+  ],
+  "scope": "PRELIVE_IDENTITY_CORRECTION_PUBLIC_METADATA_ONLY_NO_LIVE_ADMISSION; original published lineage is retained verbatim",
+  "previous_freeze_sha256": "bf584cec91f6b7e592181e3c0ddfc6ce289505c8b7819133fc254c7e356cafb9",
+  "active_addendum_sha256": "00926d391643f466715c8660c20cec1344ddbd7d9cd4ee896ac5247653322b6c"
+}

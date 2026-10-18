@@ -1,0 +1,10 @@
+voice-ui dev: listening on 127.0.0.1:18845
+voice-ui dev: semanticMap=/nix/store/vqjhvwxcbwv7vg09n4d3sy54lw879s9f-semantic-map
+voice-ui dev: hayamimi=/nix/store/b7l6pgxk94ipi8sxg8z72kx8f6ki36xj-hayamimi-web
+voice-ui dev: architecture=/nix/store/99pisj8hpq93pvy2arghhdcqmjvm5k5h-voice-ui-architecture-source
+voice-ui dev: JEV_API_KEY bound
+{"kind":"voice-ui.parts.factors.v1","head":"sha256:3f44e0d52678bc7ddeac8b19804ffaadfe6a493ce65ba8ca98f345ddd2ff75a2","factors":{"intent":{"choice":"change","confidence":0.57},"labels":{"choice":"available","confidence":0.8},"capacity":{"choice":"within","confidence":0.96}}}
+{"kind":"voice-ui.parts.factors.v1","head":"sha256:3f44e0d52678bc7ddeac8b19804ffaadfe6a493ce65ba8ca98f345ddd2ff75a2","factors":{"intent":{"choice":"change","confidence":0.61},"labels":{"choice":"available","confidence":0.86},"capacity":{"choice":"within","confidence":0.98}}}
+{"kind":"voice-ui.parts.factors.v1","head":"sha256:3f44e0d52678bc7ddeac8b19804ffaadfe6a493ce65ba8ca98f345ddd2ff75a2","factors":{"intent":{"choice":"change","confidence":0.67},"labels":{"choice":"available","confidence":0.88},"capacity":{"choice":"within","confidence":0.98}}}
+{"kind":"voice-ui.parts.factors.v1","head":"sha256:3f44e0d52678bc7ddeac8b19804ffaadfe6a493ce65ba8ca98f345ddd2ff75a2","factors":{"intent":{"choice":"change","confidence":1},"labels":{"choice":"missing","confidence":0.74},"capacity":{"choice":"within","confidence":0.98}}}
+{"kind":"voice-ui.parts.factors.v1","head":"sha256:3f44e0d52678bc7ddeac8b19804ffaadfe6a493ce65ba8ca98f345ddd2ff75a2","factors":{"intent":{"choice":"change","confidence":1},"labels":{"choice":"missing","confidence":0.8},"capacity":{"choice":"within","confidence":0.98}}}

@@ -1,0 +1,36 @@
+{
+  "schema": "voice-ui.stopped-oracle-only-release/1",
+  "status": "RELEASED_CORRESPONDING_ORACLE_AFTER_INDEPENDENT_PHYSICAL_STOP",
+  "at": "2026-10-18T06:49:39.800431+00:00",
+  "repeat_profile": "compact-verifier-VE-20261018",
+  "phase": "compact-verifier-final-E-20261018",
+  "head": "180fc53e24f0fc2a5fdb098a3748afaff047bab6",
+  "oracle": {
+    "name": "verifier-cycle-sealed-E-6.oracle.json",
+    "bytes": 10052,
+    "sha256": "94ba803d5633ab9ddcbeedaedda3d04387255be27cadd93351fff6f68cbb08d7",
+    "original_bytes_unchanged": true,
+    "re_authored_selected_or_reordered": false
+  },
+  "input_sha256": "f646112dbb14896a2e8f27d99f2b995e374aacf68b87058c7520e9821f420e43",
+  "independent_stop": {
+    "name": "verifier-final-E-stopped-audit.json",
+    "sha256": "0e60eee91af0a01ad386395ac065a64d810f81178e34a0d367e84340d010faf4",
+    "owned_pgids": 53,
+    "remaining_members": [],
+    "outstanding": 0,
+    "sent": {
+      "jev": 32,
+      "typellm": 2
+    },
+    "charged": {
+      "jev": 896,
+      "typellm": 140
+    },
+    "journal_sha256": "98d12764f44e334291b1f9aa15152445e1abaef2466305a3d78405324c26b2fe"
+  },
+  "purpose": "GRADE_ALL_TWELVE_FIXED_ORIGINAL_CELLS_WITH_FROZEN_CRITERIA_ONLY",
+  "additional_provider_GO": false,
+  "other_private_inputs_or_oracles_or_validation_copyable": false,
+  "reviewer_provider_calls": 0
+}

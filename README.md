@@ -52,6 +52,23 @@ Any real provider/host binding must be separately authorized at ReadyLive.
 
 ## Voice-ui: candidate sufficiency and TypeLLM PoC
 
+The current draft separates supplied-part representation from completing missing
+parts. Its [requirements cycle](docs/voice-ui/requirements-cycle-20261017/README.md)
+records the initial Jev gate, conditional TypeLLM full NEW requirements,
+independent Jev verification and deterministic one-use stock subtraction.
+The normal check uses adaptive-v2; a verified receipt prepares candidates once.
+Complete accepted B and controls use Type0. Goal retains all graph authority.
+This cycle is registered before live evaluation; prebuild mechanics are synthetic.
+Additional caps are300Jev/40TypeLLM from charged689/40, within user-authorized
+cumulative caps1000 each. The prior four-axis experiment achieved supplied-part
+representation8/8; its gate and completion/product criteria remain unmet or
+unproven as documented in the [frozen report](docs/voice-ui/component-axes-20261017/README.md).
+
+### Historical v1 trial interface
+
+The following interface and first-cycle envelope describe the retained v1
+comparison. They are not the default adaptive-v2 check.
+
 This PoC tests whether the executable parts are present, and fills missing
 candidates before asking Jev to select legal changes. The reusable provider
 transport/typed-answer core is in ops. Apps pins completed, reviewed Worker
@@ -181,8 +198,8 @@ stdio remains open. It is not added to a global profile. The fixed preload
 permits only the two provider POST endpoints, refuses redirects, and journals
 each send synchronously before fetch. It has independent process allowances.
 
-The run owner reserves allowances in the run journal before launch, keeps the
-whole-run caps at Jev300 and TypeLLM300 including failed/timed-out/uncertain sends,
+The original first-cycle run owner reserved allowances in the run journal before
+launch with then-authorized caps Jev300 and TypeLLM300, including failed/timed-out/uncertain sends,
 and reconciles unused allowances only after the process has stopped and its send
 log is checked. Restarting must not reset the whole-run counts. The first paired
 phase is capped at200 total Jev calls including all prior connectivity/diagnostic

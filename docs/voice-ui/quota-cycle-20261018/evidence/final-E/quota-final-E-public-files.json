@@ -1,0 +1,82 @@
+{
+  "schema": "voice-ui.review.quota-phase-public-copy/1",
+  "status": "PASS",
+  "phase": "quota-final-E-20261018",
+  "axis": "E",
+  "apps_sha": "59ded276405a5dc9caa85ad570b1827ff4bd0c7a",
+  "copy_allowlist": [
+    {
+      "name": "quota-final-E-zero-send-audit.json",
+      "bytes": 6689,
+      "sha256": "cc82a6213d4a5659a417ad2e8c578186a3db7f33d9d3e80e43ab623367438b7b"
+    },
+    {
+      "name": "quota-final-E-physical-stop.json",
+      "bytes": 9367,
+      "sha256": "93398952d2351560bf2827bfc4cf53f720e9cb32df6c2a9b6b704eebd2119f2e"
+    },
+    {
+      "name": "quota-final-E-stop-audit.json",
+      "bytes": 12330,
+      "sha256": "b15849db04eb87b5d9483b6450996ccd79f9bf20314adf9dfcbc63aa5d8eed46"
+    },
+    {
+      "name": "quota-final-E-raw-audit.json",
+      "bytes": 35619,
+      "sha256": "1d4d10cc2da3b4a9f73eefe5c410fed7de1c202813307a84a6ed990cc8ad9cf8"
+    },
+    {
+      "name": "quota-final-E-provider-audit.json",
+      "bytes": 862,
+      "sha256": "de31f66260d1bb6d774f93e01b62de8644e83ddf390b3bc66abb34c7876a44d2"
+    },
+    {
+      "name": "quota-final-E-replay.json",
+      "bytes": 71212,
+      "sha256": "518c67b49cbd82319d37ff48de30c9d56edcf9438b872fea65a6f4b81c387649"
+    },
+    {
+      "name": "quota-final-E-replay-audit.json",
+      "bytes": 288,
+      "sha256": "3dbdcd1ef44103f12451d4251c50b628032a07a25f7452d8b3c3afe70c8da4d8"
+    },
+    {
+      "name": "quota-final-E.producer.json",
+      "bytes": 7310,
+      "sha256": "0ebab43edc790eedd0672b7bf21192aec97fe3f9dca03d63f41550f69fcc3e92"
+    },
+    {
+      "name": "quota-final-E-producer-audit.json",
+      "bytes": 192,
+      "sha256": "f73ea3e239b785871a6bd995e3bbc954feedb4c2a27b11c55adc1c7bf905134f"
+    },
+    {
+      "name": "quota-final-E-process-audit.json",
+      "bytes": 973,
+      "sha256": "29d5d8bf7515dee4dcdb148211b39e1e0d1b275e49e4152348a32f1d7b085b15"
+    },
+    {
+      "name": "quota-final-E-summary.json",
+      "bytes": 28104,
+      "sha256": "25983f8d83f17dfb91c5ccdb138cafe48bf4175e5e3c845752a0c6fce2e2fb01"
+    },
+    {
+      "name": "quota-final-E-pre-replay-raw-audit.json",
+      "bytes": 35316,
+      "sha256": "ec6797c6c0e73bfd3d5cf37d65e3a1291ffe0be1e80330890452ce48c888155d"
+    },
+    {
+      "name": "quota-final-E-failure-classification.json",
+      "bytes": 7873,
+      "sha256": "af0fdef9cb2295877ffbb4ef6cc9976a586c5bbf3ee2e33707da03d9720430e9"
+    },
+    {
+      "name": "quota-final-E-recorded-classification.json",
+      "bytes": 776,
+      "sha256": "3ad65b450ca131ce42529bf75b9a32e8bff91931a69e2cb2e2a34d4b58001500"
+    }
+  ],
+  "scope": "ALL_SIX_ORDINARY_PAIRS_RETAINED_C4_B3; BOTH_REGISTERED_MISSING_PAIRS_ADMITTED_GAIN0; NOT_TYPE_GENERAL_INEFFECTIVENESS; ACTUAL_REPORT_CI_CLOSURE_PENDING",
+  "next_scope": "REPORT_ONLY_SOURCE_BRIDGE_ACTUAL_REQUIRED_CI_AND_INDEPENDENT_FINAL_REVIEW; NO_MORE_PROVIDER_GO",
+  "reviewer_real_provider_calls": 0
+}

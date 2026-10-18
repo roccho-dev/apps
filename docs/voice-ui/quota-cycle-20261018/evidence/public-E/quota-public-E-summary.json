@@ -1,0 +1,246 @@
+{
+  "schema": "voice-ui.review.quota-public-phase/1",
+  "status": "PASS",
+  "phase": "quota-public-E-20261018",
+  "axis": "E",
+  "apps_sha": "59ded276405a5dc9caa85ad570b1827ff4bd0c7a",
+  "planned": 2,
+  "consumed": 2,
+  "all_valid_execution": true,
+  "admissible_for_semantic_claim": true,
+  "semantic": {
+    "complete": true,
+    "total_pairs": 1,
+    "valid_cells": 2,
+    "baseline": {
+      "sufficient": {
+        "correct": 0,
+        "total": 0
+      },
+      "missing": {
+        "correct": 0,
+        "total": 1
+      },
+      "ambiguous": {
+        "correct": 0,
+        "total": 0
+      },
+      "no-change": {
+        "correct": 0,
+        "total": 0
+      }
+    },
+    "candidate": {
+      "sufficient": {
+        "correct": 0,
+        "total": 0
+      },
+      "missing": {
+        "correct": 1,
+        "total": 1
+      },
+      "ambiguous": {
+        "correct": 0,
+        "total": 0
+      },
+      "no-change": {
+        "correct": 0,
+        "total": 0
+      }
+    },
+    "baseline_success": 0,
+    "candidate_success": 1,
+    "missing_gains": 1,
+    "regressions": 0,
+    "admissible_missing_pairs": 1,
+    "all_arm_guards": true,
+    "no_false_adoption": true,
+    "all_missing_admitted": true,
+    "pairs": [
+      {
+        "id": "PE01",
+        "eligible": true,
+        "baseline_success": false,
+        "candidate_success": true,
+        "missing_gain": true,
+        "regression": false,
+        "excluded_from_causal_only": false
+      }
+    ],
+    "quality_criteria": "PASS",
+    "public_gate": "PASS",
+    "effect_criteria": "PASS",
+    "no_effect_criteria_pending_integrity": "UNPROVEN",
+    "scope": "all six ordinary pairs retained; both paths quota; supplementation effect separate from R assembly effect and prior frontier taxonomy"
+  },
+  "rows": [
+    {
+      "id": "PE01",
+      "arm": "B",
+      "grade": {
+        "contract_valid": true,
+        "expected_gate": "missing",
+        "gate_correct": false,
+        "full_required_exact": false,
+        "missing_exact_minimal": false,
+        "graph_exact": false,
+        "graph": {
+          "graph_exact": false,
+          "unique_record_keys": true,
+          "existing_semantics_preserved": true,
+          "semantic_unchanged": true,
+          "clean_new_regions": true,
+          "clean_new_edges": true,
+          "no_other_new_semantics": true,
+          "actual_added_regions": [],
+          "actual_added_edges": []
+        },
+        "no_false_adoption": true,
+        "raw_unchanged": true,
+        "non_regression_guards": true,
+        "type_policy_guard": true,
+        "known_syntax_type_free": true,
+        "stop_authorization_guard": true,
+        "true_sufficient_zero_candidates": null,
+        "interpretation_type_calls": 0,
+        "eligible": true,
+        "old_eligible": true,
+        "frontier_eligible": false,
+        "proposal_policy": {
+          "id": "uncertainty-frontier-v1",
+          "eligible": true,
+          "reason": "confident-change-incomplete"
+        },
+        "proposal_policy_implemented": false,
+        "proposal_present": false,
+        "verification_accepted": false,
+        "initial_literal": {
+          "recognized": false,
+          "required": [],
+          "spans": []
+        },
+        "deadline": true,
+        "scope": "unchanged frozen per-cell /2 and /3 Goal meaning plus independently audited quota mechanism; new whole-six aggregation only",
+        "goal_parts_policy": "quota",
+        "quota_mechanism_valid": true
+      },
+      "paint_status": "PASS",
+      "goal_elapsedMs": 360.7699999809265,
+      "goal_deadline_status": "PASS",
+      "persisted_raw_equal": true
+    },
+    {
+      "id": "PE01",
+      "arm": "C",
+      "grade": {
+        "contract_valid": true,
+        "expected_gate": "missing",
+        "gate_correct": true,
+        "full_required_exact": true,
+        "missing_exact_minimal": true,
+        "graph_exact": true,
+        "graph": {
+          "graph_exact": true,
+          "unique_record_keys": true,
+          "existing_semantics_preserved": true,
+          "semantic_unchanged": false,
+          "clean_new_regions": true,
+          "clean_new_edges": true,
+          "no_other_new_semantics": true,
+          "actual_added_regions": [
+            {
+              "label": "棚卸承認",
+              "kind": "decision",
+              "parent": "fixture:container"
+            }
+          ],
+          "actual_added_edges": []
+        },
+        "no_false_adoption": true,
+        "raw_unchanged": false,
+        "non_regression_guards": true,
+        "type_policy_guard": true,
+        "known_syntax_type_free": true,
+        "stop_authorization_guard": true,
+        "true_sufficient_zero_candidates": null,
+        "interpretation_type_calls": 0,
+        "eligible": true,
+        "old_eligible": true,
+        "frontier_eligible": false,
+        "proposal_policy": {
+          "id": "uncertainty-frontier-v1",
+          "eligible": true,
+          "reason": "confident-change-incomplete"
+        },
+        "proposal_policy_implemented": true,
+        "proposal_present": true,
+        "verification_accepted": true,
+        "initial_literal": {
+          "recognized": false,
+          "required": [],
+          "spans": []
+        },
+        "deadline": true,
+        "scope": "unchanged frozen per-cell /2 and /3 Goal meaning plus independently audited quota mechanism; new whole-six aggregation only",
+        "goal_parts_policy": "quota",
+        "quota_mechanism_valid": true
+      },
+      "paint_status": "PASS",
+      "goal_elapsedMs": 3537.360000014305,
+      "goal_deadline_status": "PASS",
+      "persisted_raw_equal": true
+    }
+  ],
+  "recorded_replay": {
+    "status": "PASS",
+    "issues": [],
+    "consumed": 2,
+    "frames": 6,
+    "assessed_frames": 4,
+    "recorded_paint_status": "PASS",
+    "replay_sha256": "f6c27f688e10b28765d1efc946212129d568fbe0898dcbb3a0d5d3306de9c0e3",
+    "model_quality_scope": "NONE",
+    "CI_LIVE_EXECUTION": "UNPROVEN"
+  },
+  "provider": {
+    "sent": {
+      "jev": 5,
+      "typellm": 1
+    },
+    "charged_at_cutoff": {
+      "jev": 818,
+      "typellm": 86
+    }
+  },
+  "process": {
+    "schema": "voice-ui.quota-cycle-process/1",
+    "status": "PASS",
+    "issues": [],
+    "state": "PUBLIC_REGRESSION_ONLY",
+    "baseline": {
+      "jev": 808,
+      "typellm": 85
+    },
+    "indexed_phases": 2,
+    "source_head": "59ded276405a5dc9caa85ad570b1827ff4bd0c7a",
+    "correction_batches": 0,
+    "reserved": {
+      "jev": 35,
+      "typellm": 1
+    },
+    "charged_at_cutoff": {
+      "jev": 818,
+      "typellm": 86
+    },
+    "releases": [],
+    "scope": "integrity/process only; conditional expression and ordinary supplementation are separate; retained fresh quality failures do not block complete stopped-evidence progression"
+  },
+  "binding": {
+    "status": "PASS",
+    "issues": [],
+    "scope": "fixed exact-byte producer/source testimony joins; physical observation remains independently referenced",
+    "CI_LIVE_EXECUTION": "UNPROVEN"
+  },
+  "scope": "PUBLIC_REGRESSION_ONLY; ORDINARY_SUPPLEMENTATION_PAIR; NOT_FRESH_EFFECT; ACTUAL_CI_REPAINT_OF_THIS_NEW_PHASE_PENDING_REPORT_CLOSURE",
+  "reviewer_real_provider_calls": 0
+}

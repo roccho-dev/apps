@@ -1,0 +1,78 @@
+{
+  "schema": "voice-ui.review.frontier-admission-public-artifacts/1",
+  "scope": "PUBLIC_R19_PRELAUNCH_ADMISSION_EVIDENCE_ALLOWLIST_ONLY_NO_PRIVATE_FILES_NO_PROVIDER_POST_GO",
+  "head": "2cc4890b765a5534e92855f83f9232ae85bb373b",
+  "review_url": "https://github.com/roccho-dev/apps/pull/103#pullrequestreview-5560045214",
+  "files": [
+    {
+      "name": "pr103-2cc-r19-review.md",
+      "bytes": 5749,
+      "sha256": "68a4e56ab68484364f3c09ec9ec40ab77d8390d9023b3dee38097be428865699"
+    },
+    {
+      "name": "pr103-2cc-r19-prepost.json",
+      "bytes": 2333,
+      "sha256": "36a1f35b67db59b10d29868263e79bcd4a45e3edc845dc101d580316652f2baa"
+    },
+    {
+      "name": "pr103-2cc-r19-readback.json",
+      "bytes": 7130,
+      "sha256": "ec1bc2b32807797d56c38315b25f71ba8ff7ca82d6b777ea04bb50851800fe40"
+    },
+    {
+      "name": "pr103-2cc-r19-frozen-pr-body.md",
+      "bytes": 9708,
+      "sha256": "1d66c128a59cfc1fe87a2ce9e5322d0c3859f158b62ddba594d83b431224fd56"
+    },
+    {
+      "name": "frontier-2cc-source-audit.json",
+      "bytes": 21993,
+      "sha256": "4a6199e922f57b3cae24e486d72f52b78c0de399fff792aa2397ab4f5cd7046e"
+    },
+    {
+      "name": "frontier-2cc-runtime-audit.json",
+      "bytes": 12677,
+      "sha256": "7051200a431a81baf35d695ff790fa4067ec205db5c39c256dde35b74100da32"
+    },
+    {
+      "name": "frontier-2cc-ci-mechanics-audit.v2.json",
+      "bytes": 48091,
+      "sha256": "6e76462e521ee6162a5dba4552148a192743849a1c94a3348e6057d3256bcab2"
+    },
+    {
+      "name": "frontier-2cc-ci-closure-audit.json",
+      "bytes": 13445,
+      "sha256": "4d27236ac86029b6e10f5b9ec02c3ff71a384e4986031f5006639fda0f91a4dd"
+    },
+    {
+      "name": "frontier-2cc-historical-artifact-audit.json",
+      "bytes": 16407,
+      "sha256": "d6677322c456af3bb51a7e3cf66947cd41390e5d612a118dcca3c87d25dc62c0"
+    },
+    {
+      "name": "frontier-2cc-prelaunch-terminal-audit.json",
+      "bytes": 9088,
+      "sha256": "bbeee417163ce645298227bf10d4fcc0e1b96a1e5bb9e8c73bee58ca09deca89"
+    },
+    {
+      "name": "frontier-prepared-G0-operator-audit.json",
+      "bytes": 2320,
+      "sha256": "df35c9789f58d3dc621bb519cce89f5fe9594061575029399fa105316fac1c5a"
+    },
+    {
+      "name": "frontier-c762-runtime-audit.json",
+      "bytes": 12604,
+      "sha256": "51a5172f43478cba12e1c3808d31e7991103057da20e671956926a876ebced26"
+    },
+    {
+      "name": "frontier-deadline-fixture-audit.v2.json",
+      "bytes": 4163,
+      "sha256": "c40c3d871b920d17db088c66d579259a342d27564d552245473c9d6e4f9995c4"
+    },
+    {
+      "name": "frontier-shared-deadline-diagnostic-audit.json",
+      "bytes": 1204,
+      "sha256": "41083992bea0a3d6098d3bb8bfafc9a3354eba967000d27ab624a5edf26a939e"
+    }
+  ]
+}

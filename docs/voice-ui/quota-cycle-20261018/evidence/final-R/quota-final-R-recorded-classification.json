@@ -1,0 +1,22 @@
+{
+  "schema": "voice-ui.review.quota-recorded-classification/1",
+  "status": "PASS",
+  "axis": "R",
+  "phase": "quota-final-R-20261018",
+  "source_head": "59ded276405a5dc9caa85ad570b1827ff4bd0c7a",
+  "recorded_criteria": {
+    "quality": "PASS",
+    "effect": "UNMET",
+    "no_effect_pending_integrity": "PASS"
+  },
+  "current_without_actual_report_ci": {
+    "quality": "UNPROVEN",
+    "effect": "UNPROVEN"
+  },
+  "expected_only_if_actual_ci_matches_all_recorded_semantics_and_paint": {
+    "quality": "FINITE_CRITERIA_PASS",
+    "effect": "NO_EFFECT_IN_REGISTERED_EXPRESSION_PAIRS"
+  },
+  "scope": "CONDITIONAL_EXPRESSION_ONLY; BOTH_TWO_PAIRS_ADMITTED_O2_Q2_CORRECT_GAIN0; NOT_TYPE_EFFECT_OR_UNCONDITIONAL_GENERALIZATION; ACTUAL_REPORT_CI_CLOSURE_PENDING",
+  "reviewer_real_provider_calls": 0
+}

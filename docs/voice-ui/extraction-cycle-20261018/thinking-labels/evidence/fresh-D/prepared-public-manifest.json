@@ -1,0 +1,17 @@
+{
+  "schema": "voice-ui.review.public-copy-manifest/1",
+  "public_directory": "C:\\Users\\resta\\Codex\\repos\\apps.git\\.worktrees\\typellm-ci-review-20261017\\review-evidence",
+  "scope": "These two metadata-only audits and this manifest; no oracle/private validation or directory enumeration",
+  "members": [
+    {
+      "name": "thinking-fresh-D-static-audit.json",
+      "bytes": 2776,
+      "sha256": "372b6f38e30c3f2224ed1e646fbde1f83801ddf25691e2172cc20fbf3a2b109b"
+    },
+    {
+      "name": "thinking-fresh-D-wire-audit.json",
+      "bytes": 1762,
+      "sha256": "ce26f06b6b185968fa2f93632ece7affb38fa2f528b3309007c23fd86bf74a3d"
+    }
+  ]
+}

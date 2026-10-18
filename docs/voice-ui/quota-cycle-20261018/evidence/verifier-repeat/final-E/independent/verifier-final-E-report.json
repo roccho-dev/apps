@@ -1,0 +1,155 @@
+{
+  "schema": "voice-ui.independent-final-E-report/1",
+  "status": "PASS",
+  "scope": "ALL_SIX_REGISTERED_ORDINARY_PAIRS_NOT_QUESTION_ONLY_CAUSALITY_OR_GENERALIZATION",
+  "phase": "compact-verifier-final-E-20261018",
+  "head": "180fc53e24f0fc2a5fdb098a3748afaff047bab6",
+  "planned": 12,
+  "consumed": 12,
+  "complete": true,
+  "all_valid_execution": true,
+  "admissible_for_semantic_claim": true,
+  "semantic": {
+    "complete": true,
+    "total_pairs": 6,
+    "valid_cells": 12,
+    "baseline": {
+      "sufficient": {
+        "correct": 2,
+        "total": 2
+      },
+      "missing": {
+        "correct": 0,
+        "total": 2
+      },
+      "ambiguous": {
+        "correct": 1,
+        "total": 1
+      },
+      "no-change": {
+        "correct": 1,
+        "total": 1
+      }
+    },
+    "candidate": {
+      "sufficient": {
+        "correct": 2,
+        "total": 2
+      },
+      "missing": {
+        "correct": 2,
+        "total": 2
+      },
+      "ambiguous": {
+        "correct": 1,
+        "total": 1
+      },
+      "no-change": {
+        "correct": 1,
+        "total": 1
+      }
+    },
+    "baseline_success": 4,
+    "candidate_success": 6,
+    "missing_gains": 2,
+    "regressions": 0,
+    "admissible_missing_pairs": 2,
+    "all_arm_guards": true,
+    "no_false_adoption": true,
+    "all_missing_admitted": true,
+    "pairs": [
+      {
+        "id": "TEF01",
+        "eligible": false,
+        "baseline_success": true,
+        "candidate_success": true,
+        "missing_gain": false,
+        "regression": false,
+        "excluded_from_causal_only": true
+      },
+      {
+        "id": "TEF02",
+        "eligible": false,
+        "baseline_success": true,
+        "candidate_success": true,
+        "missing_gain": false,
+        "regression": false,
+        "excluded_from_causal_only": true
+      },
+      {
+        "id": "TEF03",
+        "eligible": true,
+        "baseline_success": false,
+        "candidate_success": true,
+        "missing_gain": true,
+        "regression": false,
+        "excluded_from_causal_only": false
+      },
+      {
+        "id": "TEF04",
+        "eligible": true,
+        "baseline_success": false,
+        "candidate_success": true,
+        "missing_gain": true,
+        "regression": false,
+        "excluded_from_causal_only": false
+      },
+      {
+        "id": "TEF05",
+        "eligible": false,
+        "baseline_success": true,
+        "candidate_success": true,
+        "missing_gain": false,
+        "regression": false,
+        "excluded_from_causal_only": true
+      },
+      {
+        "id": "TEF06",
+        "eligible": false,
+        "baseline_success": true,
+        "candidate_success": true,
+        "missing_gain": false,
+        "regression": false,
+        "excluded_from_causal_only": true
+      }
+    ],
+    "quality_criteria": "PASS",
+    "public_gate": null,
+    "effect_criteria": "PASS",
+    "no_effect_criteria_pending_integrity": "UNPROVEN",
+    "scope": "all six ordinary pairs retained; both paths quota; supplementation effect separate from R assembly effect and prior frontier taxonomy"
+  },
+  "formal_classification_before_actual_evidence_CI": {
+    "quality": "UNPROVEN",
+    "effect": "UNPROVEN"
+  },
+  "physical_stop": "PASS",
+  "source28_both_formal_provider_binding": "PASS",
+  "producer_binding": "PASS",
+  "process_public_V_then_public_E_then_fresh_E": "PASS",
+  "recorded_replay": {
+    "status": "PASS",
+    "issues": [],
+    "consumed": 12,
+    "frames": 36,
+    "assessed_frames": 24,
+    "recorded_paint_status": "PASS",
+    "replay_sha256": "4c474e1d78037bc74fb933e122426cf12a26c2d91e8a6a86d071d193ff94540e",
+    "model_quality_scope": "NONE",
+    "CI_LIVE_EXECUTION": "UNPROVEN"
+  },
+  "original_re_registration": {
+    "input_sha256": "f646112dbb14896a2e8f27d99f2b995e374aacf68b87058c7520e9821f420e43",
+    "oracle_sha256": "94ba803d5633ab9ddcbeedaedda3d04387255be27cadd93351fff6f68cbb08d7",
+    "original_bytes_order_unchanged": true,
+    "oracle_released_after_corresponding_independent_physical_stop": true
+  },
+  "charged_at_cutoff": {
+    "jev": 896,
+    "typellm": 140
+  },
+  "journal_sha256": "98d12764f44e334291b1f9aa15152445e1abaef2466305a3d78405324c26b2fe",
+  "question_only_causal_effect": "UNPROVEN",
+  "whole_generalization": "UNPROVEN",
+  "reviewer_provider_calls": 0
+}

@@ -1,0 +1,428 @@
+{
+  "schema": "voice-ui.review.frontier-source/1",
+  "status": "PASS",
+  "head": "2cc4890b765a5534e92855f83f9232ae85bb373b",
+  "tree": "c8603cd63b91c4598ea491252d59ff7bc52a7d4b",
+  "registration_parent": "6e917b0f164056baf3e565cf424f8fcb7fef8bf4",
+  "source_count": 25,
+  "old_source_count": 22,
+  "unchanged_old_sources": 19,
+  "source_inputs": [
+    {
+      "name": "src/completion.mjs",
+      "bytes": 29191,
+      "sha256": "f2cb1b4652a248f39e5a37efa5a13e5c0aaf068544a322827dfc4e8972381562",
+      "old_source": true,
+      "byte_equal_to_old": false
+    },
+    {
+      "name": "src/literal-inventory.mjs",
+      "bytes": 8062,
+      "sha256": "ecdeb980fb826f800dfeb186e042b5a4edf85b32ecc8a97516eb55e81a9c37f9",
+      "old_source": true,
+      "byte_equal_to_old": true
+    },
+    {
+      "name": "src/goal.mjs",
+      "bytes": 12911,
+      "sha256": "cd9101d6a222e31773c9523adeca3f7f9aa32990e30b39e06a7b872771422f3e",
+      "old_source": true,
+      "byte_equal_to_old": true
+    },
+    {
+      "name": "src/contract.mjs",
+      "bytes": 30991,
+      "sha256": "f2c95212493f59fd80ef17270c2b5de0d51d795b26ac8a0e6dfa0fdb9dec30fe",
+      "old_source": true,
+      "byte_equal_to_old": true
+    },
+    {
+      "name": "src/turn.mjs",
+      "bytes": 53204,
+      "sha256": "c5fc3489a5bd0861f0455bd9843f47e76030bb03a4fe55745cf00c29c79b7008",
+      "old_source": true,
+      "byte_equal_to_old": true
+    },
+    {
+      "name": "src/session.mjs",
+      "bytes": 13314,
+      "sha256": "d6fcb97e581afb789ed6ecb339c06c378ef94283084df8ad3042ebe42c48cfe8",
+      "old_source": true,
+      "byte_equal_to_old": true
+    },
+    {
+      "name": "functions/api/parts.mjs",
+      "bytes": 14161,
+      "sha256": "ce18dbfb6ed5330c04fba1e3264a6e84cd4fb4f45b03775c06decdedb9b4521e",
+      "old_source": true,
+      "byte_equal_to_old": false
+    },
+    {
+      "name": "functions/pages-worker.mjs",
+      "bytes": 3032,
+      "sha256": "afc3b785091d992fddd47f15ec17a4b05d78d7bd7564223c35e065ee737fd690",
+      "old_source": true,
+      "byte_equal_to_old": false
+    },
+    {
+      "name": "web/app.mjs",
+      "bytes": 43782,
+      "sha256": "3a9ac4eba0770949a219b35c97cd346d4a7912026fae2b2f21710251b86bbf2a",
+      "old_source": true,
+      "byte_equal_to_old": true
+    },
+    {
+      "name": "web/adapters/completion.mjs",
+      "bytes": 970,
+      "sha256": "537bc46e93efe58fbdf466dd2493989ad5695209def769ec9da3ba68926edb5a",
+      "old_source": true,
+      "byte_equal_to_old": true
+    },
+    {
+      "name": "dev/serve.mjs",
+      "bytes": 20526,
+      "sha256": "d044ea7f8ccbd7fd71fbe1447dcce0f30bfa831d471da3eef2e3377380532298",
+      "old_source": true,
+      "byte_equal_to_old": true
+    },
+    {
+      "name": "tests/dependency-cycle-eval.mjs",
+      "bytes": 14959,
+      "sha256": "b92308340b7a54020c30ae1c1daa3b482b60263d080b3f2e2393909f6cfcd7c3",
+      "old_source": true,
+      "byte_equal_to_old": true
+    },
+    {
+      "name": "tests/requirements-cycle-score.mjs",
+      "bytes": 21347,
+      "sha256": "3d779cf422e8cc0facc6f5ff566c3e77b36a61486f9586f120b0c1a722cd5a46",
+      "old_source": true,
+      "byte_equal_to_old": true
+    },
+    {
+      "name": "tests/requirements-cycle-audit.mjs",
+      "bytes": 56082,
+      "sha256": "692bdbaef8dbe28fe30fcdfe178202ebbdf3a4728bf0fe1c7310f72bf789c6eb",
+      "old_source": true,
+      "byte_equal_to_old": true
+    },
+    {
+      "name": "tests/dependency-cycle-score.mjs",
+      "bytes": 8386,
+      "sha256": "2f7f40afec31d1f7cded08951529a30d741f6ebfb8abf446900a7f6eb567ef91",
+      "old_source": true,
+      "byte_equal_to_old": true
+    },
+    {
+      "name": "tests/dependency-cycle-audit.mjs",
+      "bytes": 64775,
+      "sha256": "47dce6207c8b48dae6447d87ee1294d8495f28a31d2b474d5dc0c9b95998d66e",
+      "old_source": true,
+      "byte_equal_to_old": true
+    },
+    {
+      "name": "tests/semantic-score.mjs",
+      "bytes": 3826,
+      "sha256": "3230791bd2b06ccbb73008723ab3709981ce6e2d65fc2fdbdec8cadf9d1cfec3",
+      "old_source": true,
+      "byte_equal_to_old": true
+    },
+    {
+      "name": "tests/requirements-cycle-http.mjs",
+      "bytes": 1163,
+      "sha256": "b3c1d052e2f7138532e0d7cac6ac7b3c7287b7af32b857990c1e6d14bb325386",
+      "old_source": true,
+      "byte_equal_to_old": true
+    },
+    {
+      "name": "tests/painted-goal.mjs",
+      "bytes": 24668,
+      "sha256": "c5ba117d1dea66d20c80b7f92b8184296ff79d4231da56f5a89836af4beb018b",
+      "old_source": true,
+      "byte_equal_to_old": true
+    },
+    {
+      "name": "tests/intent-cycle-eval.mjs",
+      "bytes": 15130,
+      "sha256": "0dd9649d87f4b2f0d0e446b44f5dcd7bb09582e75eca8ca7113b8d0d4d741357",
+      "old_source": true,
+      "byte_equal_to_old": true
+    },
+    {
+      "name": "tests/intent-cycle-score.mjs",
+      "bytes": 10328,
+      "sha256": "e6652eef8ee1b18c1b3c479b649033105c1ae27f360b0b9d4a16f898edc664cb",
+      "old_source": true,
+      "byte_equal_to_old": true
+    },
+    {
+      "name": "tests/intent-cycle-audit.mjs",
+      "bytes": 66452,
+      "sha256": "151715f5c09a64a1187ad2557e13b3172801e8e8fa8ee492b31a5a7823222617",
+      "old_source": true,
+      "byte_equal_to_old": true
+    },
+    {
+      "name": "tests/frontier-cycle-eval.mjs",
+      "bytes": 15255,
+      "sha256": "3031b7f539752badd452b868c577daa6437647547233f81f78c1b0eea5db29f9",
+      "old_source": false,
+      "byte_equal_to_old": null
+    },
+    {
+      "name": "tests/frontier-cycle-score.mjs",
+      "bytes": 22140,
+      "sha256": "64fe98b9929ca13dcf57e41857da5eed656bb2d5457eab0aa9a78aad023ecf81",
+      "old_source": false,
+      "byte_equal_to_old": null
+    },
+    {
+      "name": "tests/frontier-cycle-audit.mjs",
+      "bytes": 67476,
+      "sha256": "f903cd8813c33387ec69f2adc0d0f20e1fedfd5dd59cd07d02fa7ce84f37f89e",
+      "old_source": false,
+      "byte_equal_to_old": null
+    }
+  ],
+  "changed_files": [
+    {
+      "path": ".github/workflows/voice-ui-release.yml",
+      "status": "modified",
+      "bytes": 18810,
+      "sha256": "37e45f07ec1d055edd7d134a47c5e323b4bf22c902c7201285b35e53ebb20d58",
+      "authenticated_blob": "fdcbdf28896f2db7519b7697281263a453b74e8e"
+    },
+    {
+      "path": "docs/voice-ui/frontier-cycle-20261018/preregistered/frontier-cycle-frozen-contract-validation.json",
+      "status": "added",
+      "bytes": 2301,
+      "sha256": "9558c4b631c3ed38b56e87f064587ca2b35e3b91db7ff1fc65c54eeb94b25206",
+      "authenticated_blob": "2422f9f609517956c90baf401c590f46a8bd6199"
+    },
+    {
+      "path": "docs/voice-ui/frontier-cycle-20261018/preregistered/frontier-cycle-public-modules.json",
+      "status": "added",
+      "bytes": 2920,
+      "sha256": "e1cdaaf8cb81315a435a6ab6ecd27cfeaf817af14cc9dd6131cbf2e5949bf595",
+      "authenticated_blob": "a75957ddbda0667bcf1dedf86be2e584c1ffcb68"
+    },
+    {
+      "path": "docs/voice-ui/frontier-cycle-20261018/README.md",
+      "sha256": "f6879df58a0739ca22c9ea2bfbc09fef66b72d8262ccb482641fdf03ff2e43e8",
+      "bytes": 6398,
+      "authenticated_blob": "826c494d22b7bb803f5d66c3c9a899f738a50c37"
+    },
+    {
+      "path": "flake.nix",
+      "status": "modified",
+      "bytes": 22854,
+      "sha256": "731eb67f6049633282ffdc8a972b2d21e1ffd4d6b8b7a4a6bc0e9143b4470c87",
+      "authenticated_blob": "4e07eecc5f66ad143a9c476a5dd97eeeac2c4170"
+    },
+    {
+      "path": "packages/voice-ui/acceptance/frontier-cycle-smoke.mjs",
+      "sha256": "e3687c51b8f9100a0e541fbdf1e2e8da175fdc06411e73cb3e345c17b01284bd",
+      "bytes": 31898,
+      "authenticated_blob": "9ed6852541ce0f60ea5b84848f4f6e253a703fcf"
+    },
+    {
+      "path": "packages/voice-ui/acceptance/verify-frontier-cycle.mjs",
+      "status": "added",
+      "bytes": 12637,
+      "sha256": "24a9432088fe112b75e29984e8c1ec0d28f1454d4a51e3cf589284d464142b7b",
+      "authenticated_blob": "cc1ee16e5fb62984a7f49d70939a59d739775d52"
+    },
+    {
+      "path": "packages/voice-ui/functions/api/parts.mjs",
+      "status": "modified",
+      "bytes": 14161,
+      "sha256": "ce18dbfb6ed5330c04fba1e3264a6e84cd4fb4f45b03775c06decdedb9b4521e",
+      "authenticated_blob": "a62f4d55998b3ce0f8876e6b172a42c1bbc8b1b5"
+    },
+    {
+      "path": "packages/voice-ui/functions/pages-worker.mjs",
+      "status": "modified",
+      "bytes": 3032,
+      "sha256": "afc3b785091d992fddd47f15ec17a4b05d78d7bd7564223c35e065ee737fd690",
+      "authenticated_blob": "a78ec2cd37c04fbe1887446bf3325033d2a4d7d4"
+    },
+    {
+      "path": "packages/voice-ui/src/completion.mjs",
+      "status": "modified",
+      "bytes": 29191,
+      "sha256": "f2cb1b4652a248f39e5a37efa5a13e5c0aaf068544a322827dfc4e8972381562",
+      "authenticated_blob": "c4d50e380c258b9a009a89110557425a1efd336f"
+    },
+    {
+      "path": "packages/voice-ui/tests/api.test.mjs",
+      "bytes": 154725,
+      "sha256": "b0d1db9b1ddc16c9c95960f8ca43d9611bc56e0e36c90cf7888a62f4fc528028",
+      "authenticated_blob": "d9346e9f05c38f3c489adb448411784c2246d83d",
+      "patch": "@@ -338,7 +338,7 @@ test(\"compiled Worker binds both released provider operations, validates invento\n   assert.equal(invalid.calls.length, 1);\n });\n \n-test(\"normal compiled check uses adaptive requirements and complete B works without a Type key\", async () => {\n+test(\"normal compiled check uses v3 and complete baseline works without a Type key\", async () => {\n   const input = { kind: \"voice-ui.goal.inventory.v1\", state: { utterance: \"Containerへ新しい工程を1つ、その表示名はNovel\",\n     head: \"fixture-head\", regions: [{ id: \"root\", parent: null, label: \"World\", kind: \"boundary\" },\n       { id: \"container\", parent: \"root\", label: \"Container\", kind: \"group\" }], edges: [],\n@@ -360,12 +360,17 @@ test(\"normal compiled check uses adaptive requirements and complete B works with\n   }, async () => {\n     const response = await invoke(input, { JEV_API_KEY: \"jev-test-only\", TYPELLM_API_KEY: \"typed-test-only\" });\n     const body = await response.json(); assert.equal(response.status, 200); assert.equal(body.choice, \"missing\");\n-    assert.equal(body.inspection.mode, \"adaptive-v2\"); assert.equal(body.inspection.initial.decision.choice, \"unknown\");\n+    assert.equal(body.inspection.mode, \"adaptive-v3\"); assert.equal(body.inspection.schema, \"voice-ui.parts.inspection/3\");\n+    assert.deepEqual(body.inspection.proposal_policy,\n+      { id: \"uncertainty-frontier-v1\", eligible: true, reason: \"confident-change-incomplete\" });\n+    assert.equal(body.inspection.initial.decision.choice, \"unknown\");\n     assert.equal(body.inspection.verification.completeness.choice, \"complete\");\n     const sufficient = structuredClone(input); sufficient.state.utterance = \"ContainerにServiceを1個追加\";\n     const complete = await invoke(sufficient, { JEV_API_KEY: \"jev-test-only\" });\n     const value = await complete.json(); assert.equal(complete.status, 200); assert.equal(value.choice, \"sufficient\");\n     assert.equal(value.inspection.proposal, null); assert.deepEqual(value.inspection.missing, []);\n+    assert.equal(value.inspection.schema, \"voice-ui.parts.inspection/3\");\n+    assert.deepEqual(value.inspection.proposal_policy, { id: \"uncertainty-frontier-v1\", eligible: false, reason: null });\n   });\n   assert.equal(calls.length, 4);\n });"
+    },
+    {
+      "path": "packages/voice-ui/tests/frontier-cycle-audit.mjs",
+      "status": "added",
+      "bytes": 67476,
+      "sha256": "f903cd8813c33387ec69f2adc0d0f20e1fedfd5dd59cd07d02fa7ce84f37f89e",
+      "authenticated_blob": "1bcb9de3e8524db2e6efa04d64f1e99c4989bac2"
+    },
+    {
+      "path": "packages/voice-ui/tests/frontier-cycle-audit.test.mjs",
+      "status": "added",
+      "bytes": 48036,
+      "sha256": "096510377d659101b6dea612e2c9b3d95d07d0c8f40d508f6985f81fb5f1582a",
+      "authenticated_blob": "bfb03745e3c08a6ead16becb287afb63043a07c5"
+    },
+    {
+      "path": "packages/voice-ui/tests/frontier-cycle-eval.mjs",
+      "status": "added",
+      "bytes": 15255,
+      "sha256": "3031b7f539752badd452b868c577daa6437647547233f81f78c1b0eea5db29f9",
+      "authenticated_blob": "6e2c62a81725c7229ca620a08d14d548b8d797e8"
+    },
+    {
+      "path": "packages/voice-ui/tests/frontier-cycle-score.mjs",
+      "status": "added",
+      "bytes": 22140,
+      "sha256": "64fe98b9929ca13dcf57e41857da5eed656bb2d5457eab0aa9a78aad023ecf81",
+      "authenticated_blob": "361651436a6f8d16b3da15d02559c4beffbdc2a9"
+    },
+    {
+      "path": "packages/voice-ui/tests/frontier-cycle-score.test.mjs",
+      "status": "added",
+      "bytes": 18640,
+      "sha256": "10c32b45621f14f29707e90b11c4aeaa9a8771b6bb61f73ea4ad75dae44b1e23",
+      "authenticated_blob": "d60ced3455dc71e40499a3ad003decf5a7a1c526"
+    },
+    {
+      "path": "packages/voice-ui/tests/frontier-policy.test.mjs",
+      "status": "added",
+      "bytes": 7274,
+      "sha256": "b04c3392e9716aaaeb54f28c4a75341807ec3956a1d76c0653c4e6cd3012e768",
+      "authenticated_blob": "337704a02220d7fb284d1615c7159e09a59477cf"
+    }
+  ],
+  "independent_modules": [
+    {
+      "name": "frontier-cycle-score.mjs",
+      "bytes": 22140,
+      "sha256": "64fe98b9929ca13dcf57e41857da5eed656bb2d5457eab0aa9a78aad023ecf81"
+    },
+    {
+      "name": "frontier-cycle-score.test.mjs",
+      "bytes": 18640,
+      "sha256": "10c32b45621f14f29707e90b11c4aeaa9a8771b6bb61f73ea4ad75dae44b1e23"
+    },
+    {
+      "name": "frontier-cycle-audit.mjs",
+      "bytes": 67476,
+      "sha256": "f903cd8813c33387ec69f2adc0d0f20e1fedfd5dd59cd07d02fa7ce84f37f89e"
+    },
+    {
+      "name": "frontier-cycle-audit.test.mjs",
+      "bytes": 48036,
+      "sha256": "096510377d659101b6dea612e2c9b3d95d07d0c8f40d508f6985f81fb5f1582a"
+    }
+  ],
+  "preserved_frozen_modules": [
+    {
+      "name": "requirements-cycle-score.mjs",
+      "sha256": "3d779cf422e8cc0facc6f5ff566c3e77b36a61486f9586f120b0c1a722cd5a46"
+    },
+    {
+      "name": "requirements-cycle-audit.mjs",
+      "sha256": "692bdbaef8dbe28fe30fcdfe178202ebbdf3a4728bf0fe1c7310f72bf789c6eb"
+    },
+    {
+      "name": "dependency-cycle-score.mjs",
+      "sha256": "2f7f40afec31d1f7cded08951529a30d741f6ebfb8abf446900a7f6eb567ef91"
+    },
+    {
+      "name": "dependency-cycle-audit.mjs",
+      "sha256": "47dce6207c8b48dae6447d87ee1294d8495f28a31d2b474d5dc0c9b95998d66e"
+    },
+    {
+      "name": "intent-cycle-score.mjs",
+      "sha256": "e6652eef8ee1b18c1b3c479b649033105c1ae27f360b0b9d4a16f898edc664cb"
+    },
+    {
+      "name": "intent-cycle-audit.mjs",
+      "sha256": "151715f5c09a64a1187ad2557e13b3172801e8e8fa8ee492b31a5a7823222617"
+    }
+  ],
+  "product_scope": "three existing files only: exact factor-only frontier policy, strict inspection3/stage3 boundary and default adaptive3; questions/context/decoder/stock/Goal and legacy direct modes retained",
+  "tests": {
+    "independent_score_classification": 14,
+    "independent_audit_mutations": 23,
+    "total": 37,
+    "fail": 0,
+    "skip": 0
+  },
+  "scope": "EXACT_PRE_LIVE_CANDIDATE_SOURCE_ONLY_SOURCE25_AND_PREREG_FIXED_NEW_RUNTIME_FULL_CI_AND_ACTUAL_MECHANICS_PENDING_NO_LIVE_GO",
+  "reviewer_provider_calls": 0,
+  "preparation_parent": "c762f1630790bef6097e0c12a71493fad05c89f3",
+  "total_changed_files": 17,
+  "source_preparation_repair": {
+    "prior_audit_sha256": "8cfbc91825cf59f4edf6d4c58fed82cd7fc55cb3c39b633a23f5983a8c8d2d72",
+    "changed_files": [
+      {
+        "path": "docs/voice-ui/frontier-cycle-20261018/README.md",
+        "bytes": 5471,
+        "sha256": "b03a99a0642f55f6f1e0d3f98b0d0a415d5d0b202a440ce171c444cf4bf95ba6",
+        "authenticated_blob": "d85caebbaad1a19dc178e8dc491b4bc689cb3957",
+        "patch": "@@ -12,6 +12,8 @@\n \n 製品差分はcompletion・parts API・Pages entryの3ファイル。新driverは従来callerの固定経路を再利用し、独立score/auditを含む25sourceを記録する。新しい必須CIは未測定indexも検算し、完成ZIPで弱い入口からの実C経路・拒否/低確信/不正V・版の混在拒否・閾値grid・共有deadlineと、親WorkerとのG0/F/V原送信bytes一致を確認する。これらはkeylessな疑似試験で、実モデル性能には数えない。\n \n+実送前source0e6add5の[Nix39065864834](https://github.com/roccho-dev/apps/actions/runs/39065864834)は、既定経路のcompiled API testが旧adaptive-v2を期待して失敗した。既定v3/inspection3と導出policyを確認する期待へ更新し、充足時のType-key-free・追加候補0・総呼出4の確認を維持する。製品25source・質問・封印・採点基準は同じで、実送0のまま、新headの全CI・完成物受入を要求する。この失敗runを削除・成功へ読み替えない。\n+\n ## 合意した工程\n \n rootが製品・driver・CIと実呼出を担当し、同じ独立subagent1名が新しい未見パネル・oracle・採点・監査・固定producerを担当する。未見データは工程の解放条件までrootへ渡さない。適用ADRSはa6284e58ed99243447e135828d983fc07d2d363e。"
+      },
+      {
+        "path": "packages/voice-ui/tests/api.test.mjs",
+        "bytes": 154725,
+        "sha256": "b0d1db9b1ddc16c9c95960f8ca43d9611bc56e0e36c90cf7888a62f4fc528028",
+        "authenticated_blob": "d9346e9f05c38f3c489adb448411784c2246d83d",
+        "patch": "@@ -338,7 +338,7 @@ test(\"compiled Worker binds both released provider operations, validates invento\n   assert.equal(invalid.calls.length, 1);\n });\n \n-test(\"normal compiled check uses adaptive requirements and complete B works without a Type key\", async () => {\n+test(\"normal compiled check uses v3 and complete baseline works without a Type key\", async () => {\n   const input = { kind: \"voice-ui.goal.inventory.v1\", state: { utterance: \"Containerへ新しい工程を1つ、その表示名はNovel\",\n     head: \"fixture-head\", regions: [{ id: \"root\", parent: null, label: \"World\", kind: \"boundary\" },\n       { id: \"container\", parent: \"root\", label: \"Container\", kind: \"group\" }], edges: [],\n@@ -360,12 +360,17 @@ test(\"normal compiled check uses adaptive requirements and complete B works with\n   }, async () => {\n     const response = await invoke(input, { JEV_API_KEY: \"jev-test-only\", TYPELLM_API_KEY: \"typed-test-only\" });\n     const body = await response.json(); assert.equal(response.status, 200); assert.equal(body.choice, \"missing\");\n-    assert.equal(body.inspection.mode, \"adaptive-v2\"); assert.equal(body.inspection.initial.decision.choice, \"unknown\");\n+    assert.equal(body.inspection.mode, \"adaptive-v3\"); assert.equal(body.inspection.schema, \"voice-ui.parts.inspection/3\");\n+    assert.deepEqual(body.inspection.proposal_policy,\n+      { id: \"uncertainty-frontier-v1\", eligible: true, reason: \"confident-change-incomplete\" });\n+    assert.equal(body.inspection.initial.decision.choice, \"unknown\");\n     assert.equal(body.inspection.verification.completeness.choice, \"complete\");\n     const sufficient = structuredClone(input); sufficient.state.utterance = \"ContainerにServiceを1個追加\";\n     const complete = await invoke(sufficient, { JEV_API_KEY: \"jev-test-only\" });\n     const value = await complete.json(); assert.equal(complete.status, 200); assert.equal(value.choice, \"sufficient\");\n     assert.equal(value.inspection.proposal, null); assert.deepEqual(value.inspection.missing, []);\n+    assert.equal(value.inspection.schema, \"voice-ui.parts.inspection/3\");\n+    assert.deepEqual(value.inspection.proposal_policy, { id: \"uncertainty-frontier-v1\", eligible: false, reason: null });\n   });\n   assert.equal(calls.length, 4);\n });"
+      }
+    ],
+    "reason": "Pre-live stale compiled default expectation updated to the registered adaptive3/schema3/closed policy; complete baseline Type-key-free4calls preserved. Failed exact0e6 Nix run retained.",
+    "frozen_source25_raw_equal": true,
+    "product_and_R_modules_and_prereg_bytes_unchanged": true,
+    "paid_calls_before_repair": 0,
+    "native_policy_grid_combinations": 64,
+    "completed_grid_combinations": 48
+  },
+  "supersedes": {
+    "path": "frontier-c762-source-audit.json",
+    "sha256": "f71a733a449d7c0230c201c35e05be129b6091644a99f9919a16bfac5fae0946",
+    "reason": "Current aggregate changed-file metadata refreshed from16 historical source changes to the17 current registration-to-head paths; source validations unchanged"
+  },
+  "pre_live_smoke_repair": {
+    "prior_source_audit_sha256": "f94f1aab75fbde4b1966490a442d623564801c638d73a79046555de60e994ff6",
+    "preserved_first_repair_head": "d4d062a0f6ecaae347cc1402ed5a2e611473a61c",
+    "final_attribution_guard_head": "2cc4890b765a5534e92855f83f9232ae85bb373b",
+    "changed_files": [
+      {
+        "path": "docs/voice-ui/frontier-cycle-20261018/README.md",
+        "sha256": "f6879df58a0739ca22c9ea2bfbc09fef66b72d8262ccb482641fdf03ff2e43e8",
+        "bytes": 6398,
+        "authenticated_blob": "826c494d22b7bb803f5d66c3c9a899f738a50c37"
+      },
+      {
+        "path": "packages/voice-ui/acceptance/frontier-cycle-smoke.mjs",
+        "sha256": "e3687c51b8f9100a0e541fbdf1e2e8da175fdc06411e73cb3e345c17b01284bd",
+        "bytes": 31898,
+        "authenticated_blob": "9ed6852541ce0f60ea5b84848f4f6e253a703fcf"
+      }
+    ],
+    "source25_raw_equal": true,
+    "all14_prereg_bytes_unchanged": true,
+    "product_and_R_modules_unchanged": true,
+    "independently_reviewed_changes": [
+      "retain both baseline/candidate original synthetic upstream UTF8/wire/HTTP responses",
+      "separate first-provider10s cap from shared40s cap using validG0 delayed7s then Typehang",
+      "same39–45s shared bound with Type duration<34s to exclude its own35s cap",
+      "persist each boundary row before assertions",
+      "preserve failed0e6/c762 CI and actual diagnostic provenance"
+    ],
+    "deadline_diagnosis_audit_sha256": "c40c3d871b920d17db088c66d579259a342d27564d552245473c9d6e4f9995c4",
+    "shared_diagnostic_audit_sha256": "41083992bea0a3d6098d3bb8bfafc9a3354eba967000d27ab624a5edf26a939e",
+    "reviewer_real_provider_calls": 0
+  }
+}

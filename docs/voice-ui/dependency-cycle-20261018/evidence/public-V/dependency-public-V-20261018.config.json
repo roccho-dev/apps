@@ -1,0 +1,19 @@
+{
+  "phase_id": "dependency-public-V-20261018",
+  "axis": "V",
+  "stage": "public",
+  "input_sha256": "4227c45e45e0bf7840a842c57617123d1adfa0f9fda1812e144915fce7f95475",
+  "case_count": 6,
+  "program": "/nix/store/bg0bygqiid25xnivxv9cdgjlx3sp939j-voice-ui-typed-dev/bin/voice-ui-typed-dev",
+  "heads": {
+    "apps": "ae816ec23a5e4c397c8a4893e127fb24134afda8",
+    "envs": "063e685b8b21a97fc8658879da93fa858552bcd6",
+    "ops": "b4f611cac9e13fbef178469796cbc3b6d4a76b23",
+    "windows": "6aef693c0946903d8b87c2348039de1420acd61b",
+    "ui": "756d47e891191c3344eb2d29b000203be8331abc"
+  },
+  "allowances": {
+    "jev": 6,
+    "typellm": 0
+  }
+}

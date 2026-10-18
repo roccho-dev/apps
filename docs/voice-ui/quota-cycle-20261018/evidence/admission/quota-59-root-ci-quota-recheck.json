@@ -1,0 +1,39 @@
+{
+  "status": "PASS",
+  "scope": "ACTUAL_QUOTA_CI_EMPTY_CLOSURE_RECOMPUTED_NO_LIVE_MEASUREMENT",
+  "head": "59ded276405a5dc9caa85ad570b1827ff4bd0c7a",
+  "run": 39076041775,
+  "artifact": 12117910657,
+  "zip_sha256": "d5b1f01d74526f9f6d368555fb5fe86c1dc934e6cd4ad1c17a67286e31b336cb",
+  "receipt_sha256": "5fba49e7d43c2d226a4b8a90c7f9450dcaa6ccf048f1d91556fe7c3ff14e2233",
+  "registration_version": 2,
+  "public_files": 18,
+  "cumulative": {
+    "jev": 808,
+    "typellm": 85
+  },
+  "processGraph": {
+    "schema": "voice-ui.quota-cycle-process/1",
+    "status": "PASS",
+    "issues": [],
+    "state": "NOT_MEASURED",
+    "baseline": {
+      "jev": 808,
+      "typellm": 85
+    },
+    "indexed_phases": 0,
+    "source_head": null,
+    "correction_batches": 0,
+    "reserved": {
+      "jev": 0,
+      "typellm": 0
+    },
+    "charged_at_cutoff": {
+      "jev": 808,
+      "typellm": 85
+    },
+    "releases": [],
+    "scope": "integrity/process only; conditional expression and ordinary supplementation are separate; retained fresh quality failures do not block complete stopped-evidence progression"
+  },
+  "external_provider_sends_added": 0
+}

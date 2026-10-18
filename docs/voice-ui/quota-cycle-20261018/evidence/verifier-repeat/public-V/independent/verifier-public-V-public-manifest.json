@@ -1,0 +1,73 @@
+{
+  "schema": "voice-ui.independent-public-copy-allowlist/1",
+  "status": "CLOSED",
+  "phase": "compact-verifier-public-V-20261018",
+  "head": "180fc53e24f0fc2a5fdb098a3748afaff047bab6",
+  "directory": "C:\\Users\\resta\\Codex\\repos\\apps.git\\.worktrees\\typellm-ci-review-20261017\\review-evidence",
+  "members": [
+    {
+      "name": "verifier-public-V-zero-send-audit.json",
+      "bytes": 6568,
+      "sha256": "7673e030ea8b6a5c8ad4f96ed3cb76ad5a5357a6960dcb206460e403a79b3135"
+    },
+    {
+      "name": "verifier-public-V-stopped-audit.json",
+      "bytes": 812,
+      "sha256": "3182a972e6326e23d55b8003b5e441fb809a2252bf23b6ed2ec334339fadd12c"
+    },
+    {
+      "name": "verifier-public-V-source-provider-readback.json",
+      "bytes": 4243,
+      "sha256": "7d298727d5d02459588369c8506e82bbcdef174c93ae9cd9213d4d04303e6feb"
+    },
+    {
+      "name": "verifier-public-V-raw-audit.json",
+      "bytes": 6513,
+      "sha256": "86d85ce7384335431ca3b714b7fe4710878102006f0ea4758291aff90a6cf901"
+    },
+    {
+      "name": "verifier-public-V-provider-audit.json",
+      "bytes": 874,
+      "sha256": "44380a0a03a74078c4de3ffc2810e285484179834c558c07838b109497cd4241"
+    },
+    {
+      "name": "verifier-public-V-fixed-producer.json",
+      "bytes": 6459,
+      "sha256": "f6e47f13f7c49539104d6ed649cd0bb2d099ad89b6f8b202bd2525462c48a1b8"
+    },
+    {
+      "name": "verifier-public-V-binding-audit.json",
+      "bytes": 192,
+      "sha256": "f73ea3e239b785871a6bd995e3bbc954feedb4c2a27b11c55adc1c7bf905134f"
+    },
+    {
+      "name": "verifier-public-V-process-audit.json",
+      "bytes": 611,
+      "sha256": "ab3bb11a4d3520ed9d8feebb00d4685d31afdb422fcbeaf3e82bdacf1923002e"
+    },
+    {
+      "name": "verifier-public-V-gate-report.json",
+      "bytes": 4415,
+      "sha256": "ea7842c5d189b3b76ea9e1556bc09690b1c49deb012469f380d703985e604af7"
+    },
+    {
+      "name": "verifier-public-V-index-row.json",
+      "bytes": 1548,
+      "sha256": "d3f6cd2cb50e395d0842f5522a1658d3de7cd4581e6b8906f49bebb95e3020cb"
+    },
+    {
+      "name": "verifier-180fc53-ci-artifact-audit.json",
+      "bytes": 4535,
+      "sha256": "6b08c24ed990947a75cf810fa45ddfe600202a26abbcf16df7754a2ef84e2747"
+    }
+  ],
+  "self_is_additionally_copyable": true,
+  "private_helpers_validators_unreleased_E6_inputs_oracles_other_paths_copyable": false,
+  "scope": "stopped public candidate-only V6; finite operational public gate PASS; no old-new-question causality/ordinary E completion/Type efficacy claim",
+  "charged_at_cutoff": {
+    "jev": 856,
+    "typellm": 137
+  },
+  "journal_sha256": "346515aab4e57a393855390e784fff4417a406c4a88f93f5ee279e344609846b",
+  "reviewer_provider_calls": 0
+}

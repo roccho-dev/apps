@@ -1,5 +1,5 @@
 import { onRequestPost } from "./api/judge.mjs";
-import { onParts } from "./api/parts.mjs";
+import { onParts, onRequirements } from "./api/parts.mjs";
 import { bindJev, judgeNamedChoices } from "voice-ui-judge-provider";
 import { bindTypeLLM, generateTyped } from "voice-ui-typed-provider";
 
@@ -7,13 +7,27 @@ import { bindTypeLLM, generateTyped } from "voice-ui-typed-provider";
 // not by the consumer at deployment. Static bytes stay in the ASSETS binding.
 export default {
   async fetch(request, env) {
-    const pathname = new URL(request.url).pathname;
-    if (["/api/parts/check", "/api/parts/complete"].includes(pathname)) {
+    const url = new URL(request.url), pathname = url.pathname;
+    if (["/api/parts/check", "/api/parts/complete", "/api/parts/requirements", "/api/parts/verify"].includes(pathname)) {
       if (request.method !== "POST") return Response.json({ error: "method_not_allowed" }, { status: 405, headers: { Allow: "POST" } });
-      const mode = pathname.endsWith("/check") ? "check" : "complete";
+      const mode = pathname.split("/").at(-1);
+      const methods = url.searchParams.getAll("method");
+      const generations = url.searchParams.getAll("generation");
+      const generation = generations.length === 0 ? "dependent" : generations.length === 1 ? generations[0] : "invalid";
+      const method = methods.length === 0 ? mode === "complete" ? "literal" : "adaptive-v3"
+        : methods.length === 1 ? methods[0] : "invalid";
+      if ([...url.searchParams.keys()].some(key => key !== (mode === "requirements" ? "generation" : "method"))
+          || mode === "verify" && methods.length
+          || mode === "requirements" && !["independent", "dependent", "display-source", "flat-scalars", "thinking-labels"].includes(generation))
+        return Response.json({ error: "parts_invalid_method" }, { status: 422 });
       const choice = bindJev({ apiKey: env?.JEV_API_KEY });
       const typed = bindTypeLLM({ apiKey: env?.TYPELLM_API_KEY });
-      return onParts({ request, mode, available: mode === "check" ? choice.available : typed.available }, {
+      if (["literal-v2", "adaptive-v2", "adaptive-v3"].includes(method))
+        return onRequirements({ request, mode, method, generation, available: mode === "requirements" ? typed.available : choice.available }, {
+          judge: (request, { signal }) => judgeNamedChoices({ request, provider: choice, signal }),
+          generate: (request, { signal }) => generateTyped({ request, provider: typed, signal }),
+        });
+      return onParts({ request, mode, method, available: mode === "check" ? choice.available : method === "literal" || typed.available }, {
         judge: (request, { signal }) => judgeNamedChoices({ request, provider: choice, signal }),
         generate: (request, { signal }) => generateTyped({ request, provider: typed, signal }),
       });

@@ -1,0 +1,30 @@
+{
+  "status": "PASS",
+  "observed_at": "2026-10-18T06:16:48.828623+00:00",
+  "head": "180fc53e24f0fc2a5fdb098a3748afaff047bab6",
+  "tree": "e2fc8ad6a1ccc3e83fa0cdc91e22434c5e02887c",
+  "apps": {
+    "base": "43a61eda5a3e730ac90ae1ed4b82d4b3ddb05936",
+    "draft": true,
+    "state": "open",
+    "merged": false,
+    "body_bytes": 8298,
+    "body_sha256": "604ba69fa1ea1dd85c2159f0e209b6f35ffc96aefb09f1a53be269f70c776f1d"
+  },
+  "ui": {
+    "head": "756d47e891191c3344eb2d29b000203be8331abc",
+    "base": "dd5881fdf9f8e929ce6ae33a28dd9c97a4f06281",
+    "draft": false,
+    "state": "open",
+    "merged": false,
+    "body_bytes": 7245,
+    "body_sha256": "225a22be7d0e23a93d342e181592fc1bc324def7872c2674071a528aab933d74",
+    "human_merge": "PENDING retained"
+  },
+  "issue": {
+    "id": 6244583751,
+    "body_bytes": 6801,
+    "body_sha256": "1fa470441ae19ba127adbcca4123ddf426b95db0ec3d9f5fefa81c7a7515e800"
+  },
+  "scope": "frozen premeasurement snapshot; R27 and actual same-PID paid GO remain separate"
+}

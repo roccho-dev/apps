@@ -1,0 +1,624 @@
+{
+  "schema": "voice-ui.frontier-cycle-raw-audit/1",
+  "axis": "G0",
+  "status": "PASS",
+  "issues": [],
+  "complete": true,
+  "all_valid_execution": true,
+  "consumed": 10,
+  "planned": 10,
+  "rows": [
+    {
+      "id": "PG01",
+      "method": "literal-v2",
+      "arm": "G0",
+      "generation_policy": null,
+      "valid_execution": true,
+      "grade": {
+        "contract_valid": true,
+        "correct": true,
+        "expected_intent": "change",
+        "actual_intent": {
+          "choice": "ambiguous",
+          "confidence": 0.35
+        },
+        "intent_correct_confident": false,
+        "expected_completeness": "incomplete",
+        "actual_completeness": {
+          "choice": "incomplete",
+          "confidence": 0.96
+        },
+        "completeness_condition": true,
+        "expected_interpretation_eligible": true,
+        "interpretation_eligible": false,
+        "eligibility_condition": false,
+        "raw_unchanged": true,
+        "type_zero": true,
+        "normalized": {
+          "choice": "ambiguous",
+          "confidence": 0.35
+        },
+        "literal_required_exact": false,
+        "scope": "direct /2 G0 taxonomy retained separately; new policy is independently derived, not proof of actual C execution; inherited E targets never authorize adoption",
+        "taxonomy_correct": false,
+        "policy_correct": true,
+        "expected_proposal_eligible": true,
+        "old_interpretation_eligible": false,
+        "new_interpretation_eligible": true,
+        "frontier_eligible": true,
+        "proposal_policy": {
+          "id": "uncertainty-frontier-v1",
+          "eligible": true,
+          "reason": "uncertain-intent-incomplete"
+        }
+      },
+      "cell_wall_elapsedMs": 377.79949999999997
+    },
+    {
+      "id": "PG02",
+      "method": "literal-v2",
+      "arm": "G0",
+      "generation_policy": null,
+      "valid_execution": true,
+      "grade": {
+        "contract_valid": true,
+        "correct": true,
+        "expected_intent": "change",
+        "actual_intent": {
+          "choice": "change",
+          "confidence": 0.97
+        },
+        "intent_correct_confident": true,
+        "expected_completeness": "incomplete",
+        "actual_completeness": {
+          "choice": "incomplete",
+          "confidence": 0.9
+        },
+        "completeness_condition": true,
+        "expected_interpretation_eligible": true,
+        "interpretation_eligible": true,
+        "eligibility_condition": true,
+        "raw_unchanged": true,
+        "type_zero": true,
+        "normalized": {
+          "choice": "unknown",
+          "confidence": null
+        },
+        "literal_required_exact": false,
+        "scope": "direct /2 G0 taxonomy retained separately; new policy is independently derived, not proof of actual C execution; inherited E targets never authorize adoption",
+        "taxonomy_correct": true,
+        "policy_correct": true,
+        "expected_proposal_eligible": true,
+        "old_interpretation_eligible": true,
+        "new_interpretation_eligible": true,
+        "frontier_eligible": false,
+        "proposal_policy": {
+          "id": "uncertainty-frontier-v1",
+          "eligible": true,
+          "reason": "confident-change-incomplete"
+        }
+      },
+      "cell_wall_elapsedMs": 203.3981
+    },
+    {
+      "id": "PG03",
+      "method": "literal-v2",
+      "arm": "G0",
+      "generation_policy": null,
+      "valid_execution": true,
+      "grade": {
+        "contract_valid": true,
+        "correct": true,
+        "expected_intent": "change",
+        "actual_intent": {
+          "choice": "change",
+          "confidence": 0.65
+        },
+        "intent_correct_confident": true,
+        "expected_completeness": null,
+        "actual_completeness": {
+          "choice": "complete",
+          "confidence": 0.86
+        },
+        "completeness_condition": true,
+        "expected_interpretation_eligible": false,
+        "interpretation_eligible": false,
+        "eligibility_condition": true,
+        "raw_unchanged": true,
+        "type_zero": true,
+        "normalized": {
+          "choice": "sufficient",
+          "confidence": 0.65
+        },
+        "literal_required_exact": true,
+        "scope": "direct /2 G0 taxonomy retained separately; new policy is independently derived, not proof of actual C execution; inherited E targets never authorize adoption",
+        "taxonomy_correct": true,
+        "policy_correct": true,
+        "expected_proposal_eligible": false,
+        "old_interpretation_eligible": false,
+        "new_interpretation_eligible": false,
+        "frontier_eligible": false,
+        "proposal_policy": {
+          "id": "uncertainty-frontier-v1",
+          "eligible": false,
+          "reason": null
+        }
+      },
+      "cell_wall_elapsedMs": 177.81780000000003
+    },
+    {
+      "id": "PG04",
+      "method": "literal-v2",
+      "arm": "G0",
+      "generation_policy": null,
+      "valid_execution": true,
+      "grade": {
+        "contract_valid": true,
+        "correct": true,
+        "expected_intent": "change",
+        "actual_intent": {
+          "choice": "change",
+          "confidence": 1
+        },
+        "intent_correct_confident": true,
+        "expected_completeness": null,
+        "actual_completeness": {
+          "choice": "complete",
+          "confidence": 0.82
+        },
+        "completeness_condition": true,
+        "expected_interpretation_eligible": null,
+        "interpretation_eligible": false,
+        "eligibility_condition": true,
+        "raw_unchanged": true,
+        "type_zero": true,
+        "normalized": {
+          "choice": "missing",
+          "confidence": 0.82
+        },
+        "literal_required_exact": true,
+        "scope": "direct /2 G0 taxonomy retained separately; new policy is independently derived, not proof of actual C execution; inherited E targets never authorize adoption",
+        "taxonomy_correct": true,
+        "policy_correct": true,
+        "expected_proposal_eligible": false,
+        "old_interpretation_eligible": false,
+        "new_interpretation_eligible": false,
+        "frontier_eligible": false,
+        "proposal_policy": {
+          "id": "uncertainty-frontier-v1",
+          "eligible": false,
+          "reason": null
+        }
+      },
+      "cell_wall_elapsedMs": 213.1998000000001
+    },
+    {
+      "id": "PG05",
+      "method": "literal-v2",
+      "arm": "G0",
+      "generation_policy": null,
+      "valid_execution": true,
+      "grade": {
+        "contract_valid": true,
+        "correct": true,
+        "expected_intent": "change",
+        "actual_intent": {
+          "choice": "change",
+          "confidence": 0.99
+        },
+        "intent_correct_confident": true,
+        "expected_completeness": null,
+        "actual_completeness": {
+          "choice": "complete",
+          "confidence": 0.98
+        },
+        "completeness_condition": true,
+        "expected_interpretation_eligible": null,
+        "interpretation_eligible": false,
+        "eligibility_condition": true,
+        "raw_unchanged": true,
+        "type_zero": true,
+        "normalized": {
+          "choice": "sufficient",
+          "confidence": 0.98
+        },
+        "literal_required_exact": true,
+        "scope": "direct /2 G0 taxonomy retained separately; new policy is independently derived, not proof of actual C execution; inherited E targets never authorize adoption",
+        "taxonomy_correct": true,
+        "policy_correct": true,
+        "expected_proposal_eligible": false,
+        "old_interpretation_eligible": false,
+        "new_interpretation_eligible": false,
+        "frontier_eligible": false,
+        "proposal_policy": {
+          "id": "uncertainty-frontier-v1",
+          "eligible": false,
+          "reason": null
+        }
+      },
+      "cell_wall_elapsedMs": 340.43219999999997
+    },
+    {
+      "id": "PG06",
+      "method": "literal-v2",
+      "arm": "G0",
+      "generation_policy": null,
+      "valid_execution": true,
+      "grade": {
+        "contract_valid": true,
+        "correct": true,
+        "expected_intent": "ambiguous",
+        "actual_intent": {
+          "choice": "ambiguous",
+          "confidence": 0.85
+        },
+        "intent_correct_confident": true,
+        "expected_completeness": null,
+        "actual_completeness": {
+          "choice": "incomplete",
+          "confidence": 0.94
+        },
+        "completeness_condition": true,
+        "expected_interpretation_eligible": false,
+        "interpretation_eligible": false,
+        "eligibility_condition": true,
+        "raw_unchanged": true,
+        "type_zero": true,
+        "normalized": {
+          "choice": "ambiguous",
+          "confidence": 0.85
+        },
+        "literal_required_exact": true,
+        "scope": "direct /2 G0 taxonomy retained separately; new policy is independently derived, not proof of actual C execution; inherited E targets never authorize adoption",
+        "taxonomy_correct": true,
+        "policy_correct": true,
+        "expected_proposal_eligible": false,
+        "old_interpretation_eligible": false,
+        "new_interpretation_eligible": false,
+        "frontier_eligible": false,
+        "proposal_policy": {
+          "id": "uncertainty-frontier-v1",
+          "eligible": false,
+          "reason": null
+        }
+      },
+      "cell_wall_elapsedMs": 332.10850000000005
+    },
+    {
+      "id": "PG07",
+      "method": "literal-v2",
+      "arm": "G0",
+      "generation_policy": null,
+      "valid_execution": true,
+      "grade": {
+        "contract_valid": true,
+        "correct": true,
+        "expected_intent": "ambiguous",
+        "actual_intent": {
+          "choice": "ambiguous",
+          "confidence": 0.73
+        },
+        "intent_correct_confident": true,
+        "expected_completeness": null,
+        "actual_completeness": {
+          "choice": "incomplete",
+          "confidence": 0.9
+        },
+        "completeness_condition": true,
+        "expected_interpretation_eligible": false,
+        "interpretation_eligible": false,
+        "eligibility_condition": true,
+        "raw_unchanged": true,
+        "type_zero": true,
+        "normalized": {
+          "choice": "ambiguous",
+          "confidence": 0.73
+        },
+        "literal_required_exact": false,
+        "scope": "direct /2 G0 taxonomy retained separately; new policy is independently derived, not proof of actual C execution; inherited E targets never authorize adoption",
+        "taxonomy_correct": true,
+        "policy_correct": true,
+        "expected_proposal_eligible": false,
+        "old_interpretation_eligible": false,
+        "new_interpretation_eligible": false,
+        "frontier_eligible": false,
+        "proposal_policy": {
+          "id": "uncertainty-frontier-v1",
+          "eligible": false,
+          "reason": null
+        }
+      },
+      "cell_wall_elapsedMs": 215.9962999999998
+    },
+    {
+      "id": "PG08",
+      "method": "literal-v2",
+      "arm": "G0",
+      "generation_policy": null,
+      "valid_execution": true,
+      "grade": {
+        "contract_valid": true,
+        "correct": true,
+        "expected_intent": "ambiguous",
+        "actual_intent": {
+          "choice": "ambiguous",
+          "confidence": 0.93
+        },
+        "intent_correct_confident": true,
+        "expected_completeness": null,
+        "actual_completeness": {
+          "choice": "incomplete",
+          "confidence": 1
+        },
+        "completeness_condition": true,
+        "expected_interpretation_eligible": false,
+        "interpretation_eligible": false,
+        "eligibility_condition": true,
+        "raw_unchanged": true,
+        "type_zero": true,
+        "normalized": {
+          "choice": "ambiguous",
+          "confidence": 0.93
+        },
+        "literal_required_exact": true,
+        "scope": "direct /2 G0 taxonomy retained separately; new policy is independently derived, not proof of actual C execution; inherited E targets never authorize adoption",
+        "taxonomy_correct": true,
+        "policy_correct": true,
+        "expected_proposal_eligible": false,
+        "old_interpretation_eligible": false,
+        "new_interpretation_eligible": false,
+        "frontier_eligible": false,
+        "proposal_policy": {
+          "id": "uncertainty-frontier-v1",
+          "eligible": false,
+          "reason": null
+        }
+      },
+      "cell_wall_elapsedMs": 173.31359999999995
+    },
+    {
+      "id": "PG09",
+      "method": "literal-v2",
+      "arm": "G0",
+      "generation_policy": null,
+      "valid_execution": true,
+      "grade": {
+        "contract_valid": true,
+        "correct": true,
+        "expected_intent": "no-change",
+        "actual_intent": {
+          "choice": "no-change",
+          "confidence": 1
+        },
+        "intent_correct_confident": true,
+        "expected_completeness": null,
+        "actual_completeness": {
+          "choice": "complete",
+          "confidence": 0.98
+        },
+        "completeness_condition": true,
+        "expected_interpretation_eligible": false,
+        "interpretation_eligible": false,
+        "eligibility_condition": true,
+        "raw_unchanged": true,
+        "type_zero": true,
+        "normalized": {
+          "choice": "no-change",
+          "confidence": 1
+        },
+        "literal_required_exact": true,
+        "scope": "direct /2 G0 taxonomy retained separately; new policy is independently derived, not proof of actual C execution; inherited E targets never authorize adoption",
+        "taxonomy_correct": true,
+        "policy_correct": true,
+        "expected_proposal_eligible": false,
+        "old_interpretation_eligible": false,
+        "new_interpretation_eligible": false,
+        "frontier_eligible": false,
+        "proposal_policy": {
+          "id": "uncertainty-frontier-v1",
+          "eligible": false,
+          "reason": null
+        }
+      },
+      "cell_wall_elapsedMs": 472.6346999999996
+    },
+    {
+      "id": "PG10",
+      "method": "literal-v2",
+      "arm": "G0",
+      "generation_policy": null,
+      "valid_execution": true,
+      "grade": {
+        "contract_valid": true,
+        "correct": true,
+        "expected_intent": "unsupported",
+        "actual_intent": {
+          "choice": "no-change",
+          "confidence": 0.69
+        },
+        "intent_correct_confident": false,
+        "expected_completeness": null,
+        "actual_completeness": {
+          "choice": "complete",
+          "confidence": 1
+        },
+        "completeness_condition": true,
+        "expected_interpretation_eligible": false,
+        "interpretation_eligible": false,
+        "eligibility_condition": true,
+        "raw_unchanged": true,
+        "type_zero": true,
+        "normalized": {
+          "choice": "no-change",
+          "confidence": 0.69
+        },
+        "literal_required_exact": true,
+        "scope": "direct /2 G0 taxonomy retained separately; new policy is independently derived, not proof of actual C execution; inherited E targets never authorize adoption",
+        "taxonomy_correct": false,
+        "policy_correct": true,
+        "expected_proposal_eligible": false,
+        "old_interpretation_eligible": false,
+        "new_interpretation_eligible": false,
+        "frontier_eligible": false,
+        "proposal_policy": {
+          "id": "uncertainty-frontier-v1",
+          "eligible": false,
+          "reason": null
+        }
+      },
+      "cell_wall_elapsedMs": 177.4309000000003
+    }
+  ],
+  "semantic": {
+    "complete": true,
+    "total": 10,
+    "valid": 10,
+    "correct": 10,
+    "taxonomy_correct": 8,
+    "intent_criteria": "UNMET",
+    "policy_criteria": "PASS",
+    "actual_old_eligible": [
+      "PG02"
+    ],
+    "actual_new_eligible": [
+      "PG01",
+      "PG02"
+    ],
+    "actual_frontier_eligible": [
+      "PG01"
+    ],
+    "scope": "public candidate-policy regression gate; initial taxonomy remains a separate unchanged observation"
+  },
+  "phase_kind": "public",
+  "inputs_sha256": "560b9126d385c9cfa1a48431fc6c78355b9f811e92b7a2f9736684a2c7f91c0f",
+  "parent_inputs_sha256": "bb2e090c218ef9be4db85416a87b60bf85a9d2d10a3156c4994bc1e6fd4bc4ba",
+  "parent_oracle_sha256": "a5f08d8d2ed57b802870c76f4a86b9481400325d9c6342e8a0d66f58b5fb8653",
+  "admissible_for_semantic_claim": true,
+  "external_provider_attempts": {
+    "jev": 10,
+    "typellm": 0
+  },
+  "external_provider_attempt_bounds": {
+    "jev": {
+      "min": 10,
+      "max": 10
+    },
+    "typellm": {
+      "min": 0,
+      "max": 0
+    }
+  },
+  "stage_rows": 20,
+  "stage_alignment": "UNIQUE",
+  "proofs": [
+    {
+      "id": "PG01",
+      "method": "literal-v2",
+      "arm": "G0",
+      "generation_policy": null,
+      "status": "PASS",
+      "initial_head": "sha256:0b3522df5b691691d41d9b4587377781fc7048c991a4e47357e5583eb09288c6",
+      "final_head": "sha256:0b3522df5b691691d41d9b4587377781fc7048c991a4e47357e5583eb09288c6"
+    },
+    {
+      "id": "PG02",
+      "method": "literal-v2",
+      "arm": "G0",
+      "generation_policy": null,
+      "status": "PASS",
+      "initial_head": "sha256:0b3522df5b691691d41d9b4587377781fc7048c991a4e47357e5583eb09288c6",
+      "final_head": "sha256:0b3522df5b691691d41d9b4587377781fc7048c991a4e47357e5583eb09288c6"
+    },
+    {
+      "id": "PG03",
+      "method": "literal-v2",
+      "arm": "G0",
+      "generation_policy": null,
+      "status": "PASS",
+      "initial_head": "sha256:0b3522df5b691691d41d9b4587377781fc7048c991a4e47357e5583eb09288c6",
+      "final_head": "sha256:0b3522df5b691691d41d9b4587377781fc7048c991a4e47357e5583eb09288c6"
+    },
+    {
+      "id": "PG04",
+      "method": "literal-v2",
+      "arm": "G0",
+      "generation_policy": null,
+      "status": "PASS",
+      "initial_head": "sha256:0b3522df5b691691d41d9b4587377781fc7048c991a4e47357e5583eb09288c6",
+      "final_head": "sha256:0b3522df5b691691d41d9b4587377781fc7048c991a4e47357e5583eb09288c6"
+    },
+    {
+      "id": "PG05",
+      "method": "literal-v2",
+      "arm": "G0",
+      "generation_policy": null,
+      "status": "PASS",
+      "initial_head": "sha256:b4f52e5183b8e5730e59a7524a9b260f7cb7a4246695c8a69c4d320bec1312c1",
+      "final_head": "sha256:b4f52e5183b8e5730e59a7524a9b260f7cb7a4246695c8a69c4d320bec1312c1"
+    },
+    {
+      "id": "PG06",
+      "method": "literal-v2",
+      "arm": "G0",
+      "generation_policy": null,
+      "status": "PASS",
+      "initial_head": "sha256:0b3522df5b691691d41d9b4587377781fc7048c991a4e47357e5583eb09288c6",
+      "final_head": "sha256:0b3522df5b691691d41d9b4587377781fc7048c991a4e47357e5583eb09288c6"
+    },
+    {
+      "id": "PG07",
+      "method": "literal-v2",
+      "arm": "G0",
+      "generation_policy": null,
+      "status": "PASS",
+      "initial_head": "sha256:0b3522df5b691691d41d9b4587377781fc7048c991a4e47357e5583eb09288c6",
+      "final_head": "sha256:0b3522df5b691691d41d9b4587377781fc7048c991a4e47357e5583eb09288c6"
+    },
+    {
+      "id": "PG08",
+      "method": "literal-v2",
+      "arm": "G0",
+      "generation_policy": null,
+      "status": "PASS",
+      "initial_head": "sha256:0b3522df5b691691d41d9b4587377781fc7048c991a4e47357e5583eb09288c6",
+      "final_head": "sha256:0b3522df5b691691d41d9b4587377781fc7048c991a4e47357e5583eb09288c6"
+    },
+    {
+      "id": "PG09",
+      "method": "literal-v2",
+      "arm": "G0",
+      "generation_policy": null,
+      "status": "PASS",
+      "initial_head": "sha256:b4f52e5183b8e5730e59a7524a9b260f7cb7a4246695c8a69c4d320bec1312c1",
+      "final_head": "sha256:b4f52e5183b8e5730e59a7524a9b260f7cb7a4246695c8a69c4d320bec1312c1"
+    },
+    {
+      "id": "PG10",
+      "method": "literal-v2",
+      "arm": "G0",
+      "generation_policy": null,
+      "status": "PASS",
+      "initial_head": "sha256:0b3522df5b691691d41d9b4587377781fc7048c991a4e47357e5583eb09288c6",
+      "final_head": "sha256:0b3522df5b691691d41d9b4587377781fc7048c991a4e47357e5583eb09288c6"
+    }
+  ],
+  "replay": null,
+  "raw_sha256": {
+    "events.jsonl": "5244e393ef1fc5a02465ce0ee2606c58e30128605fad414f59c2e1685d8c9b6b",
+    "execution.json": "e541c44cd6d2ced4ca3c2fcd982beaf08e2a0e6a40c29d1aa5a61b47be9391dc",
+    "identity.json": "690ddc0cc018fa11f52671c40ec10239536aba7ec0ffd3e578ce4c50b0b8988b",
+    "PG01-G0.json": "a03e5ef3990da5291a09e5a68737e88705ae55c04ccacadf1cb32fddd3ca389d",
+    "PG02-G0.json": "d4129dd9145a7050a1f3df8a5f155d9e706a68a1798c754f7b62594aa8d6627c",
+    "PG03-G0.json": "743d4c5b5f3c53264f3099f15af1bc837d64e9454be0a4f6759fac8c8e4d3899",
+    "PG04-G0.json": "c8a4d64d20c23d6b325d68f335f75669fc33f3491e619a9e494e18eb85b0d57f",
+    "PG05-G0.json": "08d87cccb78abf894ddacb7733b313d387b384c6fb878fa43ec64494360848ab",
+    "PG06-G0.json": "7759b11c7e0bb7820f91a7da20016483e9b93d6ff457a7f4928b95b6129a14e3",
+    "PG07-G0.json": "67f5a921ef6fff39e270f9cf6b1c1b1489fb95081d5db6c2ccf105585dddb51f",
+    "PG08-G0.json": "d485de5730738c7ccecac47ed7d53deb0c03802a3b4fdd313b23f97d9c8dc90b",
+    "PG09-G0.json": "aea1154c4f73efef8b03f0964eab1e4506e2a7987bcfe27d73c47823ba679fdb",
+    "PG10-G0.json": "0f1e7a23c2f31232b5786a5ea44c0b8ec54215c4cffcb53bc039b573a86b0057"
+  },
+  "scope": "raw locality only; exact producer/source/provider/physical PID and required paint admission remain separate",
+  "CI_LIVE_EXECUTION": "UNPROVEN",
+  "currency": "COST_NOT_MEASURED"
+}

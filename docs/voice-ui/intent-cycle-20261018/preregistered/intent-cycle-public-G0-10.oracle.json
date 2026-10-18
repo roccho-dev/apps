@@ -1,0 +1,497 @@
+{
+  "reviewer": "same persistent independent R",
+  "created_at": "2026-10-17T18:43:04.829Z",
+  "fixture_contract": {
+    "map_id": "voice-graph",
+    "base_records": [
+      {
+        "type": "meta",
+        "schema": "semantic-map-state/1",
+        "root": "root",
+        "title": "independent component axes"
+      },
+      {
+        "type": "region",
+        "id": "root",
+        "parent": null,
+        "label": "fixture",
+        "kind": "boundary",
+        "bounds": [
+          0,
+          0,
+          900,
+          400
+        ],
+        "summary": ""
+      },
+      {
+        "type": "region",
+        "id": "container",
+        "parent": "root",
+        "label": "OCI",
+        "kind": "group",
+        "bounds": [
+          0,
+          0,
+          700,
+          200
+        ],
+        "summary": ""
+      },
+      {
+        "type": "region",
+        "id": "other",
+        "parent": "root",
+        "label": "Other",
+        "kind": "group",
+        "bounds": [
+          0,
+          230,
+          700,
+          160
+        ],
+        "summary": ""
+      }
+    ],
+    "base_pins": [
+      {
+        "regionId": "container",
+        "bounds": [
+          0,
+          0,
+          2000,
+          500
+        ]
+      },
+      {
+        "regionId": "other",
+        "bounds": [
+          0,
+          600,
+          2000,
+          500
+        ]
+      }
+    ],
+    "fixtures": {
+      "empty": {
+        "extra_records": [],
+        "extra_pins": []
+      },
+      "api": {
+        "extra_records": [
+          {
+            "type": "region",
+            "id": "initial-api",
+            "parent": "container",
+            "label": "API",
+            "kind": "step",
+            "bounds": [
+              20,
+              20,
+              140,
+              64
+            ],
+            "summary": ""
+          }
+        ],
+        "extra_pins": [
+          {
+            "regionId": "initial-api",
+            "bounds": [
+              12,
+              36,
+              140,
+              64
+            ]
+          }
+        ]
+      },
+      "pair": {
+        "extra_records": [
+          {
+            "type": "region",
+            "id": "initial-api",
+            "parent": "container",
+            "label": "API",
+            "kind": "step",
+            "bounds": [
+              20,
+              20,
+              140,
+              64
+            ],
+            "summary": ""
+          },
+          {
+            "type": "region",
+            "id": "initial-db",
+            "parent": "container",
+            "label": "DB",
+            "kind": "data",
+            "bounds": [
+              200,
+              20,
+              140,
+              64
+            ],
+            "summary": ""
+          }
+        ],
+        "extra_pins": [
+          {
+            "regionId": "initial-api",
+            "bounds": [
+              12,
+              36,
+              140,
+              64
+            ]
+          },
+          {
+            "regionId": "initial-db",
+            "bounds": [
+              200,
+              36,
+              140,
+              64
+            ]
+          }
+        ]
+      }
+    },
+    "recent_conversation": [],
+    "scope": null
+  },
+  "stock_parts": [
+    {
+      "key": "step",
+      "purpose": "an ordinary step, task or box",
+      "label": "工程",
+      "kind": "step"
+    },
+    {
+      "key": "decision",
+      "purpose": "a decision, choice or branch",
+      "label": "判断",
+      "kind": "decision"
+    },
+    {
+      "key": "data",
+      "purpose": "data, a document, an input or an output",
+      "label": "データ",
+      "kind": "data"
+    },
+    {
+      "key": "start",
+      "purpose": "a start or beginning",
+      "label": "開始",
+      "kind": "start"
+    },
+    {
+      "key": "end",
+      "purpose": "an end, finish or result",
+      "label": "終了",
+      "kind": "end"
+    },
+    {
+      "key": "api",
+      "purpose": "an application programming interface service that receives requests",
+      "label": "API",
+      "kind": "step"
+    },
+    {
+      "key": "db",
+      "purpose": "a database that persists application data",
+      "label": "DB",
+      "kind": "data"
+    },
+    {
+      "key": "group",
+      "purpose": "a group, boundary or container that holds other parts",
+      "label": "グループ",
+      "kind": "group"
+    }
+  ],
+  "stock_parts_sha256": "909ac366f22c33006c8b6878ab436d548811eb5d41c2bad4813f3837d540f48d",
+  "scope": "distinct intent cycle; independent meanings; no old unused pool reuse",
+  "schema": "voice-ui.intent-cycle-oracle/1",
+  "axis": "G0",
+  "visibility": "public",
+  "parent_oracle_sha256": null,
+  "cases": [
+    {
+      "id": "PG01",
+      "fixture": "empty",
+      "utterance": "OCIにAPIを3個新しく追加してください。表示名も種類も3個とも同じAPIの工程です。",
+      "expected_intent": "change",
+      "expected_gate": "missing",
+      "required": [
+        {
+          "label": "API",
+          "kind": "step",
+          "quantity": 3
+        }
+      ],
+      "expected_missing": [
+        {
+          "label": "API",
+          "kind": "step",
+          "occurrence": 1
+        },
+        {
+          "label": "API",
+          "kind": "step",
+          "occurrence": 2
+        }
+      ],
+      "expected_added_regions": [
+        {
+          "label": "API",
+          "kind": "step",
+          "parent": "fixture:container"
+        },
+        {
+          "label": "API",
+          "kind": "step",
+          "parent": "fixture:container"
+        },
+        {
+          "label": "API",
+          "kind": "step",
+          "parent": "fixture:container"
+        }
+      ],
+      "expected_added_edges": [],
+      "source_case": "F05",
+      "scope": "public regression only",
+      "arms": [
+        "G0"
+      ],
+      "minimum_intent_confidence": 0.5,
+      "expected_completeness": "incomplete",
+      "expected_interpretation_eligible": true,
+      "stratum": "clear-positive"
+    },
+    {
+      "id": "PG02",
+      "fixture": "empty",
+      "utterance": "OCIには可否照合という名前の判断用の菱形を一つ置いてほしい。",
+      "expected_intent": "change",
+      "expected_gate": "missing",
+      "required": [
+        {
+          "label": "可否照合",
+          "kind": "decision",
+          "quantity": 1
+        }
+      ],
+      "expected_missing": [
+        {
+          "label": "可否照合",
+          "kind": "decision",
+          "occurrence": 1
+        }
+      ],
+      "expected_added_regions": [
+        {
+          "label": "可否照合",
+          "kind": "decision",
+          "parent": "fixture:container"
+        }
+      ],
+      "expected_added_edges": [],
+      "source_case": "F06",
+      "scope": "public regression only",
+      "arms": [
+        "G0"
+      ],
+      "minimum_intent_confidence": 0.5,
+      "expected_completeness": "incomplete",
+      "expected_interpretation_eligible": true,
+      "stratum": "clear-positive"
+    },
+    {
+      "id": "PG03",
+      "fixture": "empty",
+      "utterance": "OCIの中にAPIを1個追加してください。",
+      "expected_intent": "change",
+      "expected_gate": "sufficient",
+      "required": [
+        {
+          "label": "API",
+          "kind": "step",
+          "quantity": 1
+        }
+      ],
+      "expected_missing": [],
+      "expected_added_regions": [],
+      "expected_added_edges": [],
+      "scope": "new independent finite case; old unused pools remain unchanged",
+      "minimum_intent_confidence": 0.5,
+      "expected_completeness": null,
+      "expected_interpretation_eligible": false,
+      "stratum": "clear-positive",
+      "arms": [
+        "G0"
+      ]
+    },
+    {
+      "id": "PG04",
+      "fixture": "empty",
+      "utterance": "Otherの中に「出庫照合」という名前の工程を1つ追加してください。",
+      "expected_intent": "change",
+      "expected_gate": "missing",
+      "required": [
+        {
+          "label": "出庫照合",
+          "kind": "step",
+          "quantity": 1
+        }
+      ],
+      "expected_missing": [
+        {
+          "label": "出庫照合",
+          "kind": "step",
+          "occurrence": 1
+        }
+      ],
+      "expected_added_regions": [],
+      "expected_added_edges": [],
+      "scope": "new independent finite case; old unused pools remain unchanged",
+      "minimum_intent_confidence": 0.5,
+      "expected_completeness": null,
+      "expected_interpretation_eligible": null,
+      "stratum": "clear-positive",
+      "arms": [
+        "G0"
+      ]
+    },
+    {
+      "id": "PG05",
+      "fixture": "pair",
+      "utterance": "OCIにあるAPIからDBへ矢印を一本つないでください。既存の二部品を使い、新しい部品は増やしません。",
+      "expected_intent": "change",
+      "expected_gate": "sufficient",
+      "required": [],
+      "expected_missing": [],
+      "expected_added_regions": [],
+      "expected_added_edges": [],
+      "scope": "new independent finite case; old unused pools remain unchanged",
+      "minimum_intent_confidence": 0.5,
+      "expected_completeness": null,
+      "expected_interpretation_eligible": null,
+      "stratum": "clear-positive",
+      "arms": [
+        "G0"
+      ]
+    },
+    {
+      "id": "PG06",
+      "fixture": "empty",
+      "utterance": "OCIに部品を二つ追加してください。",
+      "expected_intent": "ambiguous",
+      "expected_gate": "ambiguous",
+      "required": [],
+      "expected_missing": [],
+      "expected_added_regions": [],
+      "expected_added_edges": [],
+      "scope": "new independent finite case; old unused pools remain unchanged",
+      "minimum_intent_confidence": 0.5,
+      "expected_completeness": null,
+      "expected_interpretation_eligible": false,
+      "stratum": "intrinsic-negative",
+      "arms": [
+        "G0"
+      ]
+    },
+    {
+      "id": "PG07",
+      "fixture": "empty",
+      "utterance": "APIを1個、OCIかOtherのどちらかに追加してください。どちらにするかは未定です。",
+      "expected_intent": "ambiguous",
+      "expected_gate": "ambiguous",
+      "required": [
+        {
+          "label": "API",
+          "kind": "step",
+          "quantity": 1
+        }
+      ],
+      "expected_missing": [],
+      "expected_added_regions": [],
+      "expected_added_edges": [],
+      "scope": "new independent finite case; old unused pools remain unchanged",
+      "minimum_intent_confidence": 0.5,
+      "expected_completeness": null,
+      "expected_interpretation_eligible": false,
+      "stratum": "intrinsic-negative",
+      "arms": [
+        "G0"
+      ]
+    },
+    {
+      "id": "PG08",
+      "fixture": "empty",
+      "utterance": "OCIにAPIを1個追加し、それとは別に何かもう一つ足してください。別の部品の名前と種類はまだ決めていません。",
+      "expected_intent": "ambiguous",
+      "expected_gate": "ambiguous",
+      "required": [
+        {
+          "label": "API",
+          "kind": "step",
+          "quantity": 1
+        }
+      ],
+      "expected_missing": [],
+      "expected_added_regions": [],
+      "expected_added_edges": [],
+      "scope": "new independent finite case; old unused pools remain unchanged",
+      "minimum_intent_confidence": 0.5,
+      "expected_completeness": null,
+      "expected_interpretation_eligible": false,
+      "stratum": "intrinsic-negative",
+      "arms": [
+        "G0"
+      ]
+    },
+    {
+      "id": "PG09",
+      "fixture": "pair",
+      "utterance": "今の図を確認したので、このままで確定します。部品も矢印も変更しないでください。",
+      "expected_intent": "no-change",
+      "expected_gate": "no-change",
+      "required": [],
+      "expected_missing": [],
+      "expected_added_regions": [],
+      "expected_added_edges": [],
+      "scope": "new independent finite case; old unused pools remain unchanged",
+      "minimum_intent_confidence": 0.5,
+      "expected_completeness": null,
+      "expected_interpretation_eligible": false,
+      "stratum": "control",
+      "arms": [
+        "G0"
+      ]
+    },
+    {
+      "id": "PG10",
+      "fixture": "empty",
+      "utterance": "OCIの背景色を青に変更してください。部品や矢印の追加は不要です。",
+      "expected_intent": "unsupported",
+      "expected_gate": "unsupported",
+      "required": [],
+      "expected_missing": [],
+      "expected_added_regions": [],
+      "expected_added_edges": [],
+      "scope": "new independent finite case; old unused pools remain unchanged",
+      "minimum_intent_confidence": 0.5,
+      "expected_completeness": null,
+      "expected_interpretation_eligible": false,
+      "stratum": "control",
+      "arms": [
+        "G0"
+      ]
+    }
+  ]
+}

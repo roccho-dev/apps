@@ -1,0 +1,136 @@
+{
+  "schema": "voice-ui.independent-seven-closure-audit/1",
+  "status": "PASS",
+  "scope": "ACTUAL_CURRENT_SEVEN_CI_ARTIFACTS_OLD_RESULTS_PRESERVED_NEW_CYCLE_UNMEASURED",
+  "head": "180fc53e24f0fc2a5fdb098a3748afaff047bab6",
+  "owner_run": 39101548811,
+  "artifacts": [
+    {
+      "name": "closed-evidence",
+      "id": 12127345984,
+      "bytes": 62038,
+      "sha256": "375a8788565f8ca5fc67025c9c0799fc1c45328aba506ca37af887e24dd22dc7",
+      "receipt_sha256": "88c565fa0046af2c420138a58edc7653c48745e9358b2458628bb6f0073c9de8",
+      "prior_JSON_raw_exact": 11,
+      "added_paths": []
+    },
+    {
+      "name": "component-axes",
+      "id": 12127566061,
+      "bytes": 55159,
+      "sha256": "c62fc0a58e929ab9ccee9591327b806351124d77e9ba03d46cf33ad7772590c4",
+      "receipt_sha256": "3e0bc618c5fdda1613b6720e05178e2ee35648e20ab0237de304f9faf5b30dfc",
+      "prior_JSON_raw_exact": 13,
+      "added_paths": []
+    },
+    {
+      "name": "requirements-cycle",
+      "id": 12127167645,
+      "bytes": 16237,
+      "sha256": "403fc59b3481040c7600e22af342aa201465390588728e9a9ea198c6cda26568",
+      "receipt_sha256": "1f33d0e447cb8901fd943f446864fb4b920a377514151836112ba1c9a576ddbf",
+      "prior_JSON_raw_exact": 6,
+      "added_paths": []
+    },
+    {
+      "name": "dependency-cycle",
+      "id": 12127317290,
+      "bytes": 18625,
+      "sha256": "bae2b7dec76bb9cfa4db282f315a513b4399c96ba0662d24c9ee59955ed32aa5",
+      "receipt_sha256": "ef2f2819cea80c06a718099e2cc2bb159b0232037402f13c8897295fea1e0212",
+      "prior_JSON_raw_exact": 5,
+      "added_paths": []
+    },
+    {
+      "name": "intent-cycle",
+      "id": 12127481534,
+      "bytes": 6713,
+      "sha256": "91b2dd9b2fbb947f10203552aa8399a7ed882dc774c1ebae0f608a6f96edabb9",
+      "receipt_sha256": "83613a8a36d748f4b37fe8a9ca1ec0661de9093fb33ecdf6c6bec804381b5ef0",
+      "prior_JSON_raw_exact": 2,
+      "added_paths": []
+    },
+    {
+      "name": "frontier-cycle",
+      "id": 12126663377,
+      "bytes": 49512,
+      "sha256": "2414f6b3ed6937f8156981e0f5a39d7fb0eca0462b2ba642072df7fcbb722640",
+      "receipt_sha256": "c85240f2287ec3903c7bacf660d636790ebaa2f3e0553d93ca214562a9131e8c",
+      "prior_JSON_raw_exact": 8,
+      "added_paths": []
+    },
+    {
+      "name": "quota-cycle",
+      "id": 12127506995,
+      "bytes": 52535,
+      "sha256": "4f22ab74657c68a7bc58bd72cce887e4bed3c60f87d326ed6cb37ec21cca7649",
+      "receipt_sha256": "ce9f12872b22deb10ff87caacf98d88c55a3f2749a7b226db34d1e2c473c6a64",
+      "prior_JSON_raw_exact": 12,
+      "added_paths": [
+        "verifier-repeat/receipt.json"
+      ]
+    }
+  ],
+  "prior_JSON_raw_exact": {
+    "old_six_cycles_and_original_quota": 54,
+    "prior_typed_repeat": 3,
+    "total": 57
+  },
+  "timing_exceptions": [
+    {
+      "artifact": "closed-evidence",
+      "path": "public-initial-f2e9/mutation-test.txt",
+      "old_sha256": "7cc84cff9df4d77463d3a384a910ebf973635b9a86874bb53a6205551feb9db6",
+      "new_sha256": "13b51e8a9ccdabe9cb09f56db22623e9afa7caebdc3602e4a22bb5c6b6b68048",
+      "allowed": "only six per-test elapsed ms and final duration_ms; same six tests/text/PASS6/FAIL0"
+    }
+  ],
+  "new_compact_verifier": {
+    "profile": "compact-verifier-VE-20261018",
+    "receipt_sha256": "7de72a3f31af5cf32cc01d8ebbe41548b9c3f080d4ccfeee9d2b57fd1182c901",
+    "bytes": 914,
+    "exact_frozen_process_recomputation": true,
+    "commitment_sha256": "a9062129f2bda9dab84f5e311d35f7b071b1035f22a1485a38c4c8aafd6d12a2",
+    "freeze_sha256": "4e9c70316b95d938a00a48fa7693330fe51b644ac1cd9c895b431fccc3dffe2e",
+    "baseline_journal_sha256": "90525733f94f161502411d957c953e1162850e7a1740f13cdad69a455e0d1478",
+    "registered_public_files": 7,
+    "schema": "voice-ui.quota-cycle-ci/1",
+    "integrity": "PASS",
+    "state": "NOT_MEASURED",
+    "quality": "UNPROVEN",
+    "effect": "UNPROVEN",
+    "cumulative": {
+      "jev": 850,
+      "typellm": 137
+    },
+    "reports": [],
+    "processGraph": {
+      "schema": "voice-ui.quota-cycle-process/1",
+      "status": "PASS",
+      "issues": [],
+      "state": "NOT_MEASURED",
+      "baseline": {
+        "jev": 850,
+        "typellm": 137
+      },
+      "indexed_phases": 0,
+      "source_head": null,
+      "correction_batches": 0,
+      "reserved": {
+        "jev": 0,
+        "typellm": 0
+      },
+      "charged_at_cutoff": {
+        "jev": 850,
+        "typellm": 137
+      },
+      "releases": [],
+      "scope": "integrity/process only; conditional expression and ordinary supplementation are separate; retained fresh quality failures do not block complete stopped-evidence progression"
+    },
+    "CI_LIVE_EXECUTION": "UNPROVEN",
+    "currency": "COST_NOT_MEASURED"
+  },
+  "real_provider_calls": 0,
+  "fresh_release": false,
+  "formal_R27": "NOT_POSTED"
+}

@@ -1,0 +1,68 @@
+{
+  "schema": "voice-ui.review.quota-phase-public-copy/1",
+  "status": "PASS",
+  "phase": "quota-public-E-20261018",
+  "axis": "E",
+  "apps_sha": "59ded276405a5dc9caa85ad570b1827ff4bd0c7a",
+  "copy_allowlist": [
+    {
+      "name": "quota-public-E-zero-send-audit.json",
+      "bytes": 6688,
+      "sha256": "0b57c0c91555192dc29f255e7678765346740f3c6ba120541764c93570c8c166"
+    },
+    {
+      "name": "quota-public-E-physical-stop.json",
+      "bytes": 8197,
+      "sha256": "f33a1f73ec323757ed6feecec21340ae5c43a8414c7053681e47a87210f9b604"
+    },
+    {
+      "name": "quota-public-E-stop-audit.json",
+      "bytes": 11160,
+      "sha256": "7fbf31e3ad385a1c4b77cde04177aafc6465a5e3cae1d3e5f2947df80d70ced4"
+    },
+    {
+      "name": "quota-public-E-raw-audit.json",
+      "bytes": 8437,
+      "sha256": "17c081345ae4c7e5f4bcd32d9c4ef27633c425672504976365f14240c8704926"
+    },
+    {
+      "name": "quota-public-E-provider-audit.json",
+      "bytes": 860,
+      "sha256": "2946aa9d92ba74eefc95e45b1bbbefea196392fd46991b85c5aaca7fa79c59b6"
+    },
+    {
+      "name": "quota-public-E-replay.json",
+      "bytes": 10679,
+      "sha256": "f6c27f688e10b28765d1efc946212129d568fbe0898dcbb3a0d5d3306de9c0e3"
+    },
+    {
+      "name": "quota-public-E-replay-audit.json",
+      "bytes": 285,
+      "sha256": "b31cbd631642481731c8b5d5317b1724b40d4466777f410e5846cb348e16eb69"
+    },
+    {
+      "name": "quota-public-E.producer.json",
+      "bytes": 5943,
+      "sha256": "c09bc00e9f6ddc3307b59b2c9fe990b33f635eb3ea3e964aaf0e4e8a670fd4d5"
+    },
+    {
+      "name": "quota-public-E-producer-audit.json",
+      "bytes": 192,
+      "sha256": "f73ea3e239b785871a6bd995e3bbc954feedb4c2a27b11c55adc1c7bf905134f"
+    },
+    {
+      "name": "quota-public-E-process-audit.json",
+      "bytes": 610,
+      "sha256": "e2f385cd90c02843df1f1777ae51e3860fa8a97dab83882132415f9ae6d59c7e"
+    },
+    {
+      "name": "quota-public-E-summary.json",
+      "bytes": 7187,
+      "sha256": "7ae3b5a8181c072003f4dd7ce4b8c90f4762a00ef51bbf117ca97dbe49f66e3c"
+    }
+  ],
+  "public_gate": "PASS",
+  "classification_scope": "PUBLIC_REGRESSION_ONLY; ACTUAL_ELIGIBLE_MISSING_GAIN_ONE; NOT_FRESH_EFFECT",
+  "next_scope": "FRESH_R_INPUT_ONLY_RELEASE_SEPARATELY; NO_FRESH_ORACLE_OR_PROVIDER_GO",
+  "reviewer_real_provider_calls": 0
+}

@@ -1,0 +1,14 @@
+fatal: unable to access 'https://github.com/roccho-org/ops.git/': SSL certificate OpenSSL verify result: unable to get local issuer certificate (20)
+warning: could not read HEAD ref from repo at 'https://github.com/roccho-org/ops.git', using 'master'
+fatal: unable to access 'https://github.com/roccho-org/ops.git/': SSL certificate OpenSSL verify result: unable to get local issuer certificate (20)
+warning: could not read HEAD ref from repo at 'https://github.com/roccho-org/ops.git', using 'master'
+voice-ui-typed-dev: built /nix/store/yn0ywhvcl9gh5mz5h5vsk213r1lsh82i-voice-ui-dev/bin/voice-ui-dev
+voice-ui-typed-dev: decrypt envs 063e685b8b21a97fc8658879da93fa858552bcd6 ciphertext e1d7d7702d13b39b73f826f6f12e586f878cecae recipient age1uenvvwd6cc0gm5gw8wk0s9es3t7t2qkfzz97ste0se0tqgllypfqla98fu
+voice-ui-typed-dev: decrypt TypeLLM envs 063e685b8b21a97fc8658879da93fa858552bcd6 ciphertext 261fdb3ae458067d25b7d05917734f08fc104cb8 recipient age1uenvvwd6cc0gm5gw8wk0s9es3t7t2qkfzz97ste0se0tqgllypfqla98fu
+voice-ui-typed-dev: apps 0861f5c42cbd5f5412c465fff33ff036361591e8 on 127.0.0.1:18845 with PATH HOME LANG PORT HOST SSL_CERT_FILE JEV_API_KEY
+provider-send:typellm:1
+provider-send:typellm:2
+provider-send:typellm:3
+provider-send:typellm:4
+provider-send:typellm:5
+provider-send:typellm:6

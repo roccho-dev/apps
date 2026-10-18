@@ -1,0 +1,13 @@
+ROUND_25_GREEN — source checkpoint / NOT_MEASURED
+
+Exact head e7ac78dc448ba84468db853591dace33c6de40f1、tree51e1fb1867c593cb78b3bc3d31e6bd29f15316e5、parent6f08を独立に認証読戻ししました。公開7登録bytesと全20変更Git blobは一致。評価source28のうち24、既存8 semantic modules、Goal/core6とquota純粋採点本体は不変です。
+
+通常check+adaptive-v3だけを既存thinking-labels Fへ接続する製品差分を確認しました。新しい閉じたrepeat profileは旧defaultと分離され、producer/config/sourceのprofile、Jev c7ed・Type a724の個別正式locator/proof/provenance/entryと実bytesを結合します。S2のType0は既存B-known guardで強制されます。B対Cの経路全体比較であり、thinking単独の因果効果とは扱いません。
+
+Actual CI artifact12125280270（owner run39096337639、ZIP SHA256 e0e92df14b88c595ce678ead86e637d2edc57155928d11db926a695160469785）を認証metadata→実ZIP hash→公式verifyで検算し、293files/manifest_sources/Worker d425bb…と実行tupleが一致しました。同じactual CI Workerでfake-onlyの13送信bodyを再捕捉し、保存原UTF8と全一致。B/G0/V旧body、通常C＝旧directD、新default＝明示C、closed dependent stageを確認しました。実適格・品質・効果はまだ観測していません。
+
+独立35 source tests、5 compiled targeted tests、未測定index verifierがPASS。dual-provider結合はsynthetic正例と9負例を独立確認し、欠落・協調wrong Type bytes・synthetic scope・誤profile・locator/proof・脱profile・path不一致を拒否しました。R補助処理の初回失敗と訂正は保持し、測定/採点sourceを変更していません。準備4filesは固定19J/1T、oracle非読取caller、一回実行、finally strict stopと即時fsync journalを保持します。
+
+Exact Nix39096337642・artifact39096337639・auth39096337684はSUCCESS。release39096337640は進行中なので、全4CI完了・最終閉包を宣言しません。PR本文SHA3dddc993…/UI本文1dd6055b…を認証読戻しし、Apps draft/open/unmerged・UI人間merge条件を保持しています。
+
+直前独立terminalはcutoff2b938983023a8e2627041d52cb943a3d0f6bd530aeed637c606b816a57328d35、charged847J/136T、予約0、全49所有PGIDがZを含め不在。Rの実provider送信0です。許容する次工程は同じ公開1対のGET-only一回起動まで。実PID/start/FD/preload/caps/両provider/送信0の別独立確認と明示GO前にモデルPOSTを行いません。未見6入力/oracleは非解放。品質・効果・通常UI完成はUNPROVENのままです。

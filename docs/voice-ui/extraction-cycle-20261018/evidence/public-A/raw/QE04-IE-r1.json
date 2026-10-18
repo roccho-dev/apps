@@ -1,0 +1,84 @@
+{
+  "id": "QE04-IE-r1",
+  "case": "QE04",
+  "condition": "IE",
+  "rep": 1,
+  "key": "QE04-IE",
+  "request": {
+    "kind": "voice-ui.goal.inventory.v1",
+    "state": {
+      "utterance": "保留区へ新しい工程を二つ設け、どちらの表示もAPIにしてください。二つとも独立した部品として置き、線は付けないでください。",
+      "head": "sha256:f14b93ac1b4a8ca4af467132ccd7f5d0a524fed90de6dbf3d54d77ea8f534596",
+      "regions": [
+        {
+          "id": "root",
+          "label": "fixture",
+          "kind": "boundary",
+          "parent": null
+        },
+        {
+          "id": "container",
+          "label": "作業区",
+          "kind": "group",
+          "parent": "root"
+        },
+        {
+          "id": "other",
+          "label": "保留区",
+          "kind": "group",
+          "parent": "root"
+        }
+      ],
+      "edges": [],
+      "parts": []
+    }
+  },
+  "route": "/api/parts/requirements?generation=independent",
+  "request_body_utf8": "{\"kind\":\"voice-ui.goal.inventory.v1\",\"state\":{\"utterance\":\"保留区へ新しい工程を二つ設け、どちらの表示もAPIにしてください。二つとも独立した部品として置き、線は付けないでください。\",\"head\":\"sha256:f14b93ac1b4a8ca4af467132ccd7f5d0a524fed90de6dbf3d54d77ea8f534596\",\"regions\":[{\"id\":\"root\",\"label\":\"fixture\",\"kind\":\"boundary\",\"parent\":null},{\"id\":\"container\",\"label\":\"作業区\",\"kind\":\"group\",\"parent\":\"root\"},{\"id\":\"other\",\"label\":\"保留区\",\"kind\":\"group\",\"parent\":\"root\"}],\"edges\":[],\"parts\":[]}}",
+  "response": {
+    "error": "parts_contract"
+  },
+  "event": {
+    "id": "QE04-IE-r1",
+    "arm": "IE",
+    "n": 5,
+    "route": "/api/parts/requirements?generation=independent",
+    "request": {
+      "kind": "voice-ui.goal.inventory.v1",
+      "state": {
+        "utterance": "保留区へ新しい工程を二つ設け、どちらの表示もAPIにしてください。二つとも独立した部品として置き、線は付けないでください。",
+        "head": "sha256:f14b93ac1b4a8ca4af467132ccd7f5d0a524fed90de6dbf3d54d77ea8f534596",
+        "regions": [
+          {
+            "id": "root",
+            "label": "fixture",
+            "kind": "boundary",
+            "parent": null
+          },
+          {
+            "id": "container",
+            "label": "作業区",
+            "kind": "group",
+            "parent": "root"
+          },
+          {
+            "id": "other",
+            "label": "保留区",
+            "kind": "group",
+            "parent": "root"
+          }
+        ],
+        "edges": [],
+        "parts": []
+      }
+    },
+    "status": 502,
+    "response": {
+      "error": "parts_contract"
+    },
+    "error": "http_or_contract_unknown",
+    "elapsedMs": 890.2064
+  },
+  "status": "HTTP_CONTRACT_REJECTED",
+  "required": null
+}

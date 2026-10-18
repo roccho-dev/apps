@@ -1,0 +1,46 @@
+{
+  "schema": "voice-ui.closed-log-publication-scan/1",
+  "scope": "finite credential-pattern scan plus reviewed log producer contract; public age recipient retained",
+  "files": [
+    {
+      "path": "candidate-public-20261017.stdout.log",
+      "sha256": "8ff35495b9dd97696a2c7753c0173fbf90b2a84096e0a5ea792c2b37878e9ec2",
+      "credential_pattern_found": false
+    },
+    {
+      "path": "candidate-public-20261017.stderr.log",
+      "sha256": "e6ac6394a5b583710b772b502dee57fecc1bb64714fcb29d9dea555a4c6c2d06",
+      "credential_pattern_found": false
+    },
+    {
+      "path": "candidate-type-diagnostic-1.stdout.log",
+      "sha256": "417880c97b26752783c90d290697c7b8299b9e5d72d896bbcf90c0f7eb4e39f7",
+      "credential_pattern_found": false
+    },
+    {
+      "path": "candidate-type-diagnostic-1.stderr.log",
+      "sha256": "e11c4c1b84fe6c00855bca26b9fb5c2dd8e8426d0304ddf1c0bf27426d0114a0",
+      "credential_pattern_found": false
+    },
+    {
+      "path": "candidate-type-diagnostic-2.stdout.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "credential_pattern_found": false
+    },
+    {
+      "path": "candidate-type-diagnostic-2.stderr.log",
+      "sha256": "ca42eb513f6c904ca56d974622f2d1f40a3b77aad8c019821a96071583c67c6c",
+      "credential_pattern_found": false
+    },
+    {
+      "path": "candidate-type-diagnostic-3.stdout.log",
+      "sha256": "3b1ecf09292459a4e2720fb2895afda77b9a08fec1ecbfe80a9fcba93df69cf6",
+      "credential_pattern_found": false
+    },
+    {
+      "path": "candidate-type-diagnostic-3.stderr.log",
+      "sha256": "4d127bb9d89e6810c3af14e83311469e84ceb0ba0c9c4b9907dab1627d879043",
+      "credential_pattern_found": false
+    }
+  ]
+}

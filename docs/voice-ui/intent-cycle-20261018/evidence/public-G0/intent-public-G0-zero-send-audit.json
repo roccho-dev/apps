@@ -1,0 +1,43 @@
+{
+  "schema": "voice-ui.independent-zero-send-audit/1",
+  "observed_at": "2026-10-17T19:22:04.199319+00:00",
+  "status": "PASS",
+  "phase": "intent-public-G0-20261018",
+  "axis": "G0",
+  "config_sha256": "13c6ce20290f5ec3d551c3dfb3f5af0de0cf23c5d244f9246fcd729b928ca680",
+  "identity_sha256": "b85e2b1bfb147df7116fe88a626f7c5c188a8df1d62954be5c8d5335e4261805",
+  "process_sha256": "c5ea13b4f6bce2c710a3f44b73b278f75dabf7a25079cac3181edd8ca0f84384",
+  "runtime_sha256": "c8b16d6e1595d2b433c6ee343d8c42cdc86de051239c0faf19477d9de4471b07",
+  "input_sha256": "bb2e090c218ef9be4db85416a87b60bf85a9d2d10a3156c4994bc1e6fd4bc4ba",
+  "pid": 334177,
+  "pgid": 334177,
+  "start_ticks": "17270422",
+  "argv": [
+    "node",
+    "/nix/store/g7kv35xybh3iv3fpl1fhykpgssiv9n54-source/packages/voice-ui/dev/serve.mjs"
+  ],
+  "allowlisted_process_env": {
+    "NODE_OPTIONS": "--import=/nix/store/s9sspm66pdf3xjdsbvy0q60cr0jp7w4g-voice-ui-provider-budget.mjs",
+    "VOICE_UI_TYPELLM_LIMIT": "0",
+    "VOICE_UI_SEMANTIC_MAP": "/nix/store/vqjhvwxcbwv7vg09n4d3sy54lw879s9f-semantic-map",
+    "VOICE_UI_WORKER": "/nix/store/3nx2h6aqjns9vkxvksal0ybn0cq2hc4y-voice-ui-dist/worker/worker.mjs",
+    "VOICE_UI_JEV_LIMIT": "10"
+  },
+  "key_presence_only": {
+    "JEV_API_KEY": true,
+    "TYPELLM_API_KEY": true
+  },
+  "prior_charged": {
+    "jev": 715,
+    "typellm": 71
+  },
+  "reserved": {
+    "jev": 10,
+    "typellm": 0
+  },
+  "journal_sha256": "974ace0cc1f240dedb90b911ad5612e6188801c279ce1eaa38fe09a47d124a05",
+  "stderr_sha256": "598bea59d96d64b3dd7ef5ebce9ddde4506edd7f89dba2a8e043c76dae801ffd",
+  "provider_send_rows": [],
+  "readiness_get": 200,
+  "scope": "actual process/source/runtime/cap/preload/key-presence metadata only; no credential values retained or emitted, no private identity read, no provider request sent"
+}

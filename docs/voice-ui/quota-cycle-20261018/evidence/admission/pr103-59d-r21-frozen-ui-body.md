@@ -1,0 +1,27 @@
+Linked issue: [apps#94](https://github.com/roccho-dev/apps/issues/94), consumer [apps#103](https://github.com/roccho-dev/apps/pull/103).
+
+## Problem and behavior
+
+Duplicate rendered labels need a reliable association with each semantic instance. Existing maxGraph redraw paths now mark their own shape/text nodes with `data-semantic-region-id` or the complete `data-semantic-relation-ids` array and `data-semantic-role`. Consumers measure actual paint and geometry; read-only mutation refusals and graph authority are preserved.
+
+Composed Apps Chromium also exposed boundary-title glyph clipping. Only boundary titles allow text overflow; ordinary cells and seq-lanes retain theme clipping. Whole glyphs must still fit the actual shape and viewport. This PR contains no model/provider/candidate logic.
+
+Head **756d47e891191c3344eb2d29b000203be8331abc**, tree **c975af2125207e3a1e267b21e878277407529a25**. Root is the sole writer, with the same user-authorized persistent independent subagent reviewing both repositories under adrs a6284e58ed99243447e135828d983fc07d2d363e.
+
+## Validation and consumer boundary
+
+Exact-head source31/browser27, gesture/full Nix and registry/governance checks passed. [Independent R3 source/CI review](https://github.com/roccho-dev/ui/pull/362#pullrequestreview-5557099509) verifies renderer associations, duplicate instances, refresh/removal/recreation, aggregate edge IDs, read-only refusals and boundary-only clipping. Standard capability-registry digest metadata was refreshed. The pre-existing native Windows file-URL runner limitation is covered by actual Linux CI.
+
+Apps uses this provisional UI pin under the predeclared composition boundary. Historical supplied-parts R achieved graph/paint8/8 at [Apps286eb7d](https://github.com/roccho-dev/apps/blob/07c534397b88538f5b1104365999108150054cb0/docs/voice-ui/component-axes-20261017/README.md), within finite conditional scope. Exact semantic-map231/UI238 and Goal/core6 bytes remain unchanged.
+
+The latest consumer report is [Apps0aa3c4b](https://github.com/roccho-dev/apps/tree/0aa3c4b90519a1c18c217753698806507ccff3c0/docs/voice-ui/frontier-cycle-20261018), measuring Apps2cc4890b. Public G0 candidate-policy10/10 passed while the original taxonomy8/10 remains UNMET. Public E C2/2 vs B0/2 is PUBLIC_REGRESSION_ONLY. Fresh V9/10 is UNMET; F retains7 valid/exact of8 and1 INVALID, so whole quality is UNPROVEN; fresh E is C5/10 vs B5/10, quality/effect UNMET and frontier-specific effect/NO_EFFECT UNPROVEN. One exact Type proposal and accepted verification was followed by an extra unwanted part chosen by Goal; this is an assembly failure, separate from proposal correctness.
+
+Exact-report [Nix](https://github.com/roccho-dev/apps/actions/runs/39071825939), [release](https://github.com/roccho-dev/apps/actions/runs/39071826034), [artifact](https://github.com/roccho-dev/apps/actions/runs/39071825944) and [auth](https://github.com/roccho-dev/apps/actions/runs/39071826014) all passed. Actual [frontier artifact12116086215](https://github.com/roccho-dev/apps/actions/runs/39071826034/artifacts/12116086215), receipt c85240f2287ec3903c7bacf660d636790ebaa2f3e0553d93ca214562a9131e8c, reproduces all5 phases/52 planned and consumed/51 valid+1 INVALID/52 protocol proofs/24 CI repaint rows with the same unmet classifications. All20 fresh real E paint/persistence/deadline checks passed, which does not make the requested graph correct. Source25/core6/UI238/renderer231 and ordinary291 runtime bytes are unchanged in the restricted measurement-to-report bridge. Cumulative charged808Jev/85Type (confirmed808/84), all38 owned app groups absent and no reservation. No UI code change or renderer-quality claim follows from candidate-policy quality. CI-origin actual API execution remains UNPROVEN. Independent final consumer review is recorded in [Apps' reviews](https://github.com/roccho-dev/apps/pull/103).
+
+The next consumer candidate is [Apps59ded27](https://github.com/roccho-dev/apps/tree/59ded276405a5dc9caa85ad570b1827ff4bd0c7a/docs/voice-ui/quota-cycle-20261018). It bounds existing Goal parts by the accepted exact label/kind/count without changing Goal/core6, renderer or G0/F/V questions. Conditional supplied-stock expression R and ordinary supplementation E have distinct registered evaluations. All4 exact-head Apps CI passed; both reviewers rechecked the actual completed-ZIP synthetic mechanics. Root rechecked all seven closure receipts; the independent final closure admission is in progress. The new quota closure is NOT_MEASURED, quality/effect UNPROVEN, cumulative808J/85T unchanged. No new live measurement has run, and the independent exact-head admission plus each physical zero-send gate remain required. No UI code or merge-state change is implied.
+
+## Merge condition
+
+This UI PR is open, non-draft and unmerged. The repository's explicit final human-approval condition remains pending. Do not merge automatically or treat source review as human acceptance. Apps stays draft/open/unmerged.
+
+A future canonical UI consumer pin requires UI merge tree equality, raw equality of ordinary runtime/input bytes, only the exact predeclared metadata exceptions, and new composed full CI/browser verification. Measurements do not transfer unconditionally to a different composition.

@@ -1,0 +1,179 @@
+{
+  "schema": "voice-ui.independent-public-V-gate-report/1",
+  "status": "PASS",
+  "phase": "compact-verifier-public-V-20261018",
+  "head": "180fc53e24f0fc2a5fdb098a3748afaff047bab6",
+  "scope": "CANDIDATE_ONLY_FINITE_PUBLIC_V6_OPERATIONAL_QUALITY_GATE",
+  "planned": 6,
+  "valid": 6,
+  "correct": 6,
+  "false_acceptance": 0,
+  "public_V_gate": "PASS",
+  "all_graphs_unchanged": true,
+  "typellm_sends": 0,
+  "physical_stop": "PASS",
+  "source18_and_both_formal_provider_binding": "PASS",
+  "producer_binding": "PASS",
+  "process_integrity": "PASS",
+  "classification": {
+    "quality": "PUBLIC_REGRESSION_ONLY",
+    "effect": "PUBLIC_REGRESSION_ONLY"
+  },
+  "factor_diagnostics": [
+    {
+      "id": "CV01",
+      "proposed": [
+        {
+          "label": "API",
+          "kind": "step",
+          "quantity": 2
+        }
+      ],
+      "expected_accept": true,
+      "accepted": true,
+      "contract_valid": true,
+      "operational_correct": true,
+      "intent": {
+        "choice": "change",
+        "confidence": 0.89
+      },
+      "completeness": {
+        "choice": "complete",
+        "confidence": 0.52
+      },
+      "operational_nonaccept_is_not_confident_incomplete": false
+    },
+    {
+      "id": "CV02",
+      "proposed": [
+        {
+          "label": "工程",
+          "kind": "step",
+          "quantity": 2
+        }
+      ],
+      "expected_accept": false,
+      "accepted": false,
+      "contract_valid": true,
+      "operational_correct": true,
+      "intent": {
+        "choice": "change",
+        "confidence": 0.91
+      },
+      "completeness": {
+        "choice": "incomplete",
+        "confidence": 0.28
+      },
+      "operational_nonaccept_is_not_confident_incomplete": true
+    },
+    {
+      "id": "CV03",
+      "proposed": [
+        {
+          "label": "API",
+          "kind": "decision",
+          "quantity": 2
+        }
+      ],
+      "expected_accept": false,
+      "accepted": false,
+      "contract_valid": true,
+      "operational_correct": true,
+      "intent": {
+        "choice": "change",
+        "confidence": 0.53
+      },
+      "completeness": {
+        "choice": "incomplete",
+        "confidence": 0.96
+      },
+      "operational_nonaccept_is_not_confident_incomplete": false
+    },
+    {
+      "id": "CV04",
+      "proposed": [
+        {
+          "label": "API",
+          "kind": "step",
+          "quantity": 1
+        }
+      ],
+      "expected_accept": false,
+      "accepted": false,
+      "contract_valid": true,
+      "operational_correct": true,
+      "intent": {
+        "choice": "change",
+        "confidence": 0.83
+      },
+      "completeness": {
+        "choice": "incomplete",
+        "confidence": 0.88
+      },
+      "operational_nonaccept_is_not_confident_incomplete": false
+    },
+    {
+      "id": "CV05",
+      "proposed": [
+        {
+          "label": "API",
+          "kind": "step",
+          "quantity": 2
+        },
+        {
+          "label": "DB",
+          "kind": "data",
+          "quantity": 1
+        }
+      ],
+      "expected_accept": false,
+      "accepted": false,
+      "contract_valid": true,
+      "operational_correct": true,
+      "intent": {
+        "choice": "change",
+        "confidence": 0.79
+      },
+      "completeness": {
+        "choice": "incomplete",
+        "confidence": 0.74
+      },
+      "operational_nonaccept_is_not_confident_incomplete": false
+    },
+    {
+      "id": "CV06",
+      "proposed": [],
+      "expected_accept": false,
+      "accepted": false,
+      "contract_valid": true,
+      "operational_correct": true,
+      "intent": {
+        "choice": "change",
+        "confidence": 0.81
+      },
+      "completeness": {
+        "choice": "incomplete",
+        "confidence": 0.76
+      },
+      "operational_nonaccept_is_not_confident_incomplete": false
+    }
+  ],
+  "old_new_question_causal_effect": "UNPROVEN",
+  "negative_unknown_is_not_confident_incomplete": true,
+  "ordinary_completion_and_Type_effect": "NOT_MEASURED",
+  "admission": {
+    "public_E_GET_only_once": "PASS_AFTER_ROOT_RECOMPUTATION_AND_SAME_FROZEN_180_SOURCE",
+    "public_E_paid_GO": "SEPARATE_ACTUAL_SAME_PID_ZERO_REQUIRED",
+    "public_E_cap": {
+      "jev": 19,
+      "typellm": 1
+    },
+    "fresh_E6": "UNRELEASED"
+  },
+  "charged_at_cutoff": {
+    "jev": 856,
+    "typellm": 137
+  },
+  "journal_sha256": "346515aab4e57a393855390e784fff4417a406c4a88f93f5ee279e344609846b",
+  "reviewer_provider_calls": 0
+}

@@ -1,0 +1,27 @@
+{
+  "id": "final-E",
+  "axis": "E",
+  "phase_kind": "final",
+  "apps_sha": "180fc53e24f0fc2a5fdb098a3748afaff047bab6",
+  "input": "final-E/verifier-cycle-sealed-E-6.inputs.json",
+  "oracle": "final-E/verifier-cycle-sealed-E-6.oracle.json",
+  "raw_dir": "final-E/raw",
+  "producer": "final-E/independent/verifier-final-E-fixed-producer.json",
+  "runtime": "admission/runtime-candidate-compact-verifier-180fc53.json",
+  "stdout": "final-E/compact-verifier-final-E-20261018.stdout.log",
+  "stderr": "final-E/compact-verifier-final-E-20261018.stderr.log",
+  "journal": "final-E/compact-verifier-final-E-20261018.journal.jsonl",
+  "config": "final-E/compact-verifier-final-E-20261018.config.json",
+  "process": "final-E/compact-verifier-final-E-20261018.process.json",
+  "audits": {
+    "verifier-final-E-zero-send-audit.json": "final-E/independent/verifier-final-E-zero-send-audit.json",
+    "verifier-final-E-stopped-audit.json": "final-E/independent/verifier-final-E-stopped-audit.json",
+    "verifier-final-E-source-provider-readback.json": "final-E/independent/verifier-final-E-source-provider-readback.json",
+    "verifier-final-E-raw-audit.json": "final-E/independent/verifier-final-E-raw-audit.json",
+    "verifier-final-E-provider-audit.json": "final-E/independent/verifier-final-E-provider-audit.json",
+    "verifier-final-E-replay-audit.json": "final-E/independent/verifier-final-E-replay-audit.json",
+    "verifier-180fc53-ci-artifact-audit.json": "final-E/independent/verifier-180fc53-ci-artifact-audit.json"
+  },
+  "expected_execution_status": "RECORDED",
+  "recorded_replay": "final-E/root-regrade/replay/receipt.json"
+}

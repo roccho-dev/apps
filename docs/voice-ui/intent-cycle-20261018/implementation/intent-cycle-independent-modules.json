@@ -1,0 +1,38 @@
+{
+  "schema": "voice-ui.review.intent-independent-modules/1",
+  "status": "PURE_KEYLESS_TESTS_PASS_NOT_LIVE_ADMITTED",
+  "tests": {
+    "score": 9,
+    "audit": 20,
+    "total": 29,
+    "fail": 0,
+    "skip": 0
+  },
+  "files": [
+    {
+      "name": "intent-cycle-score.mjs",
+      "bytes": 10328,
+      "sha256": "e6652eef8ee1b18c1b3c479b649033105c1ae27f360b0b9d4a16f898edc664cb"
+    },
+    {
+      "name": "intent-cycle-score.test.mjs",
+      "bytes": 7931,
+      "sha256": "0f0fc8b187b01b62df753cfab8f07d359d2448eea463d0562ccb8a3c9cb12fa4"
+    },
+    {
+      "name": "intent-cycle-audit.mjs",
+      "bytes": 66452,
+      "sha256": "151715f5c09a64a1187ad2557e13b3172801e8e8fa8ee492b31a5a7823222617"
+    },
+    {
+      "name": "intent-cycle-audit.test.mjs",
+      "bytes": 45169,
+      "sha256": "e84825af18ff060e4471d2ca3584005e3bcf29ef4abf06acbdf73a79d8eb005c"
+    }
+  ],
+  "protocol_sha256": "1689dcf63e1ed19cdea7be22e3f90a09f434841f980b9ca8b9018a987c9c38f8",
+  "canonical_commitment_sha256": "aa5495197f05f82d6447218ac7c036626105b3f839c4b1c0544c67e08e9c1a2f",
+  "source_inventory": 22,
+  "private_payloads_read_by_tests": false,
+  "reviewer_real_provider_calls": 0
+}

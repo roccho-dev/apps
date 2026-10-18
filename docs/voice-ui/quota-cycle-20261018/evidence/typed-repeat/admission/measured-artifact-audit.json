@@ -1,0 +1,12 @@
+{
+  "status": "PASS",
+  "apps": "e7ac78dc448ba84468db853591dace33c6de40f1",
+  "artifact": 12125280270,
+  "outer_sha256": "e0e92df14b88c595ce678ead86e637d2edc57155928d11db926a695160469785",
+  "files": 293,
+  "worker_sha256": "d425bb038fddcd4893d4b5846d5487296078348b644c60165d830982c2ebf643",
+  "manifest_sha256": "3548ad2aa2b35183b0e93edaf35f944d00207934486596e57494e1613034453c",
+  "sources_exactly_equal_runtime": true,
+  "official_verify": "",
+  "external_provider_sends": 0
+}

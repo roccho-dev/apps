@@ -1,0 +1,59 @@
+{
+  "schema": "voice-ui.frontier-final-summary/1",
+  "axis": "V",
+  "phase": "frontier-final-V-20261018",
+  "apps_sha": "2cc4890b765a5534e92855f83f9232ae85bb373b",
+  "evidence_status": "PASS",
+  "semantic": {
+    "complete": true,
+    "total": 10,
+    "correct": 9,
+    "false_acceptance": 0,
+    "verification_criteria": "UNMET"
+  },
+  "quality": "UNMET",
+  "valid_cells": 10,
+  "positive_accepted": {
+    "correct": 4,
+    "total": 5
+  },
+  "negative_rejected": {
+    "correct": 5,
+    "total": 5
+  },
+  "false_acceptance": 0,
+  "failure": {
+    "id": "FV05",
+    "expected_accept": true,
+    "actual_accept": false,
+    "raw_intent": {
+      "choice": "change",
+      "confidence": 0.48
+    },
+    "raw_completeness": {
+      "choice": "complete",
+      "confidence": 0.98
+    },
+    "reason": "below fixed intent confidence threshold; retained as operational false rejection"
+  },
+  "sent": {
+    "jev": 10,
+    "typellm": 0
+  },
+  "charged": {
+    "jev": 761,
+    "typellm": 73
+  },
+  "journal_sha256": "a286f93692adf22279ad609ba80a1786325c3078811d0d17f25fa3502638d894",
+  "all36_owned_groups_absent_including_zombies": true,
+  "reservation": null,
+  "oracle": {
+    "name": "frontier-cycle-final-V-10.oracle.json",
+    "sha256": "61de89a893767d873af19ea26da11901acaa6b04005aef87cf7b9e83864a7a5e",
+    "released_after_physical_stop": true
+  },
+  "fixed_producer_sha256": "55c630a0e8917a6017febb125de9a35d138147ccef4532075f55b3af1bee19cc",
+  "next_axis_admission": "Complete unchanged-source stopped/accounting evidence PASS permits F input projection release despite independent V quality UNMET; no criteria/denominator change.",
+  "CI_STOPPED_EVIDENCE_RECHECK": "PENDING_REPORT_CI",
+  "CI_LIVE_EXECUTION": "UNPROVEN"
+}

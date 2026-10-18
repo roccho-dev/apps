@@ -1,0 +1,21 @@
+{
+  "phase_id": "thinking-public-D-20261018",
+  "axis": "F-COMPARISON",
+  "stage": "public",
+  "program": "/nix/store/bg0bygqiid25xnivxv9cdgjlx3sp939j-voice-ui-typed-dev/bin/voice-ui-typed-dev",
+  "heads": {
+    "apps": "b6696c1f579851429cf0cc58a49b20c9ff663475",
+    "envs": "063e685b8b21a97fc8658879da93fa858552bcd6",
+    "ops": "a724bdfa1864762cd9050a00e2642450af29c196",
+    "windows": "6aef693c0946903d8b87c2348039de1420acd61b",
+    "ui": "756d47e891191c3344eb2d29b000203be8331abc"
+  },
+  "allowances": {
+    "jev": 0,
+    "typellm": 8
+  },
+  "public_plan": "/nix/store/jw4lsrz6gm3dpanr6ckrn8s1wwlmdxm1-source/docs/voice-ui/extraction-cycle-20261018/thinking-labels/public.input.json",
+  "runtime_file": "/work/repos/voice-ui-typellm-20261016/runtime-candidate-display-source-b6696c1f.json",
+  "wire_file": "/work/repos/voice-ui-typellm-20261016/thinking-b6696c1f.public.wire.json",
+  "driver": "/nix/store/jw4lsrz6gm3dpanr6ckrn8s1wwlmdxm1-source/docs/voice-ui/extraction-cycle-20261018/thinking-labels/evaluate.mjs"
+}

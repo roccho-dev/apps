@@ -1,0 +1,220 @@
+{
+  "schema": "voice-ui.quota-cycle-commitment/1",
+  "created_at": "2026-10-17T22:09:55.949Z",
+  "previous_cycle": {
+    "report_apps": "0aa3c4b90519a1c18c217753698806507ccff3c0",
+    "measurement_apps": "2cc4890b765a5534e92855f83f9232ae85bb373b",
+    "review": "https://github.com/roccho-dev/apps/pull/103#pullrequestreview-5560292063",
+    "journal_sha256": "ce6896e0b1eb7c3c749b659b36e3ed4467dc133042ace81dd990b9f2e10c28d4",
+    "quality": "UNMET",
+    "effect": "UNMET",
+    "frontier_effect": "UNPROVEN"
+  },
+  "charged_prior": {
+    "jev": 808,
+    "typellm": 85
+  },
+  "confirmed_prior": {
+    "jev": 808,
+    "typellm": 84
+  },
+  "cycle_cap": {
+    "jev": 181,
+    "typellm": 7
+  },
+  "allocated": {
+    "jev": 181,
+    "typellm": 7
+  },
+  "global_cap": {
+    "jev": 1000,
+    "typellm": 1000
+  },
+  "worst_cap_cumulative": {
+    "jev": 989,
+    "typellm": 92
+  },
+  "unallocated_jev": 11,
+  "stages": [
+    {
+      "id": "public-R",
+      "axis": "R",
+      "cases": 1,
+      "cells": 2,
+      "jev": 16,
+      "typellm": 0
+    },
+    {
+      "id": "public-E",
+      "axis": "E",
+      "cases": 1,
+      "cells": 2,
+      "jev": 19,
+      "typellm": 1
+    },
+    {
+      "id": "final-R",
+      "axis": "R",
+      "cases": 2,
+      "cells": 4,
+      "jev": 32,
+      "typellm": 0
+    },
+    {
+      "id": "final-E",
+      "axis": "E",
+      "cases": 6,
+      "cells": 12,
+      "jev": 114,
+      "typellm": 6
+    }
+  ],
+  "corrections_max": 0,
+  "retries_max": 0,
+  "setup_sends": 0,
+  "public_gate": {
+    "R_all_quota_quality": true,
+    "R_matching_complete_supply": true,
+    "R_open_success_or_gain_not_required": true,
+    "R_open_extra_is_retained_outcome": true,
+    "E_actual_admitted_missing_gains": 1,
+    "E_all_enabled_quality": true,
+    "all_valid_protocol_deadline_paint_persistence": true,
+    "same_source": true
+  },
+  "fresh_release": "After both public same-head gates PASS, R2 then E6 once; advance by complete stopped/source/protocol/accounting integrity, not prior quality; fully retained INVALID keeps denominator and does not become NO_EFFECT",
+  "final_gate": {
+    "R_pairs": 2,
+    "R_quota_correct": 2,
+    "R_assembly_gains_minimum": 1,
+    "R_quota_regressions": 0,
+    "R_open_outcome_not_admission": true,
+    "E_pairs": 6,
+    "E_sufficient": 2,
+    "E_missing": 2,
+    "E_controls": 2,
+    "E_all_candidate_quality": true,
+    "E_missing_gains": 2,
+    "E_all_missing_eligible": true,
+    "E_matching_initial_literal": true,
+    "E_regressions": 0,
+    "E_no_false_adoption": true,
+    "E_all_guards": true
+  },
+  "no_effect_gate": {
+    "R": "both complete valid admitted pairs, quota2/2 and open2/2, zero gains; finite representation scope only",
+    "E": "both M2 actually eligible/matching literal/fully valid with zero gains; no regression/false adoption/all S-control guards, actual paint/persistence; quality separate; unknown/ineligible never NO_EFFECT"
+  },
+  "source_inventory": "frozen frontier25 plus quota-cycle eval/score/audit exactly28",
+  "files": [
+    {
+      "axis": "R",
+      "visibility": "public",
+      "cases": 1,
+      "cells": 2,
+      "input": {
+        "path": "quota-cycle-public-R-1.v2.inputs.json",
+        "bytes": 5149,
+        "sha256": "35e6e31053ab8ea187899258e79623e74bc837ba482a73e043ef1ed99c296179"
+      },
+      "oracle": {
+        "path": "quota-cycle-public-R-1.v2.oracle.json",
+        "bytes": 7025,
+        "sha256": "5612d2c372266cbee6ee89cd6b0829c00b0568f8ca08d42627cdbb2e89506ea9"
+      },
+      "parent_inputs_sha256": null,
+      "parent_oracle_sha256": null,
+      "previous_input_sha256": "0f87064474277d14bbd8ee3906940ef2f35d07e646c048b3d4fda50fba8d417d",
+      "previous_oracle_sha256": "0a1e80a9a375df00d48e75923370f75ff7e010670ce973c33d4ffa29a882ba31"
+    },
+    {
+      "axis": "E",
+      "visibility": "public",
+      "cases": 1,
+      "cells": 2,
+      "input": {
+        "path": "quota-cycle-public-E-1.v2.inputs.json",
+        "bytes": 3613,
+        "sha256": "e3c4c653c8225dfb668c18bf022345e1e3ef7a8665d821f3da72219d6c98a1a7"
+      },
+      "oracle": {
+        "path": "quota-cycle-public-E-1.v2.oracle.json",
+        "bytes": 5761,
+        "sha256": "c67b083bb6d17096594807074f72a562efebd17b8198f8c6f8aba9b91e1155c2"
+      },
+      "parent_inputs_sha256": null,
+      "parent_oracle_sha256": null,
+      "previous_input_sha256": "ba45c323da0387a8ca2bef4633f3fbbcb621bfb1f8dd50ce92257cf5307feb1c",
+      "previous_oracle_sha256": "c9c9bd90be21ad76cafef3b897be4aee55d5873c68d4fd49e199f09c65ea62e5"
+    },
+    {
+      "axis": "R",
+      "visibility": "sealed",
+      "cases": 2,
+      "cells": 4,
+      "input": {
+        "path": "quota-cycle-sealed-R-2.v2.inputs.json",
+        "bytes": 6780,
+        "sha256": "4ab4662aa00925d7e1bf480efadbc840f4421e6e6cfd16ae53d972387ce005d7"
+      },
+      "oracle": {
+        "path": "quota-cycle-sealed-R-2.v2.oracle.json",
+        "bytes": 9160,
+        "sha256": "c3d0c9df12837d0de03c9fb7e532f955f23ed60e7e0409ac473b0da7b293a32c"
+      },
+      "parent_inputs_sha256": null,
+      "parent_oracle_sha256": null,
+      "previous_input_sha256": "65e3376df76a14f15f42ec4d249d6c5788790893c08b650c147d79bcedcc43ab",
+      "previous_oracle_sha256": "2ad0a8f32704f2810d82a70cbd6fd069fbbbe3b342287759d459c4dcb4e2cb55"
+    },
+    {
+      "axis": "E",
+      "visibility": "sealed",
+      "cases": 6,
+      "cells": 12,
+      "input": {
+        "path": "quota-cycle-sealed-E-6.v2.inputs.json",
+        "bytes": 4949,
+        "sha256": "926d7007508e0f4b67fe2fb564e1d299d82219ca9e1b95f96e3b26c3d6c9ae40"
+      },
+      "oracle": {
+        "path": "quota-cycle-sealed-E-6.v2.oracle.json",
+        "bytes": 9772,
+        "sha256": "87bc601021241e65ee78e5e8c4a30d316d0e8e9c7fcbbfe3ac2f6b4b7a2b87b3"
+      },
+      "parent_inputs_sha256": null,
+      "parent_oracle_sha256": null,
+      "previous_input_sha256": "25dcb16dc7909b3187aa24e621b04dd940a20a1ebeff1a10f17e76a06668f896",
+      "previous_oracle_sha256": "5e6923c4832bd62af55daebcc5520bd3790abedad0843084e19da123b5c46932"
+    }
+  ],
+  "protocol": {
+    "path": "quota-cycle-protocol.md",
+    "bytes": 12116,
+    "sha256": "b380818d1667db63f01e4d0e08eb90ff614f96ee86e634de8837d78042d9d2ae"
+  },
+  "policy_contract": {
+    "path": "quota-cycle-policy-contract.json",
+    "bytes": 1681,
+    "sha256": "346a908d46f9c5205cb00ab9d35377a7ce674526e5a05b7adb8f0ea3d1f31d34"
+  },
+  "public_preflight": {
+    "path": "quota-cycle-public-literal-preflight.json",
+    "bytes": 892,
+    "sha256": "481b9ce97c600be1784cc98e63acae2456263aa78c42c2b32236fc08eaf429e7"
+  },
+  "validation": {
+    "path": "quota-cycle-map-identity-validation.v2.json",
+    "bytes": 6525,
+    "sha256": "57b31f20fed1f36bfc796bb2305e8fdc9bf7bac1b5ed29154605fcc7c2b60e3b"
+  },
+  "paid_calls": 0,
+  "exposure": "public closed allowlist only; fresh inputs stagewise, corresponding oracle only after own stop; all older unused originals remain sealed",
+  "prelive_addendum": {
+    "path": "quota-cycle-prelive-map-addendum.v2.json",
+    "bytes": 4871,
+    "sha256": "00926d391643f466715c8660c20cec1344ddbd7d9cd4ee896ac5247653322b6c"
+  },
+  "previous_commitment_sha256": "ad334bf87e80a91841fc8ae106d2eb37192f9fb7a7827ffefa59a3198f18c213",
+  "fixture_map_id": "voice-graph"
+}

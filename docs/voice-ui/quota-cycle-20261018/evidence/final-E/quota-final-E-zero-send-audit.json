@@ -1,0 +1,192 @@
+{
+  "previous_owned_group_count": 41,
+  "previous_owned_groups_all_absent_including_zombies": true,
+  "source28": [
+    {
+      "name": "src/completion.mjs",
+      "sha256": "a096d2a93d5547857ad8e04fa66fcc3176c7db41393e84fbb727c68d4c08e1e9",
+      "bytes": 30289
+    },
+    {
+      "name": "src/literal-inventory.mjs",
+      "sha256": "ecdeb980fb826f800dfeb186e042b5a4edf85b32ecc8a97516eb55e81a9c37f9",
+      "bytes": 8062
+    },
+    {
+      "name": "src/goal.mjs",
+      "sha256": "cd9101d6a222e31773c9523adeca3f7f9aa32990e30b39e06a7b872771422f3e",
+      "bytes": 12911
+    },
+    {
+      "name": "src/contract.mjs",
+      "sha256": "f2c95212493f59fd80ef17270c2b5de0d51d795b26ac8a0e6dfa0fdb9dec30fe",
+      "bytes": 30991
+    },
+    {
+      "name": "src/turn.mjs",
+      "sha256": "c5fc3489a5bd0861f0455bd9843f47e76030bb03a4fe55745cf00c29c79b7008",
+      "bytes": 53204
+    },
+    {
+      "name": "src/session.mjs",
+      "sha256": "d6fcb97e581afb789ed6ecb339c06c378ef94283084df8ad3042ebe42c48cfe8",
+      "bytes": 13314
+    },
+    {
+      "name": "functions/api/parts.mjs",
+      "sha256": "ce18dbfb6ed5330c04fba1e3264a6e84cd4fb4f45b03775c06decdedb9b4521e",
+      "bytes": 14161
+    },
+    {
+      "name": "functions/pages-worker.mjs",
+      "sha256": "afc3b785091d992fddd47f15ec17a4b05d78d7bd7564223c35e065ee737fd690",
+      "bytes": 3032
+    },
+    {
+      "name": "web/app.mjs",
+      "sha256": "3a9ac4eba0770949a219b35c97cd346d4a7912026fae2b2f21710251b86bbf2a",
+      "bytes": 43782
+    },
+    {
+      "name": "web/adapters/completion.mjs",
+      "sha256": "537bc46e93efe58fbdf466dd2493989ad5695209def769ec9da3ba68926edb5a",
+      "bytes": 970
+    },
+    {
+      "name": "dev/serve.mjs",
+      "sha256": "d044ea7f8ccbd7fd71fbe1447dcce0f30bfa831d471da3eef2e3377380532298",
+      "bytes": 20526
+    },
+    {
+      "name": "tests/dependency-cycle-eval.mjs",
+      "sha256": "b92308340b7a54020c30ae1c1daa3b482b60263d080b3f2e2393909f6cfcd7c3",
+      "bytes": 14959
+    },
+    {
+      "name": "tests/requirements-cycle-score.mjs",
+      "sha256": "3d779cf422e8cc0facc6f5ff566c3e77b36a61486f9586f120b0c1a722cd5a46",
+      "bytes": 21347
+    },
+    {
+      "name": "tests/requirements-cycle-audit.mjs",
+      "sha256": "692bdbaef8dbe28fe30fcdfe178202ebbdf3a4728bf0fe1c7310f72bf789c6eb",
+      "bytes": 56082
+    },
+    {
+      "name": "tests/dependency-cycle-score.mjs",
+      "sha256": "2f7f40afec31d1f7cded08951529a30d741f6ebfb8abf446900a7f6eb567ef91",
+      "bytes": 8386
+    },
+    {
+      "name": "tests/dependency-cycle-audit.mjs",
+      "sha256": "47dce6207c8b48dae6447d87ee1294d8495f28a31d2b474d5dc0c9b95998d66e",
+      "bytes": 64775
+    },
+    {
+      "name": "tests/semantic-score.mjs",
+      "sha256": "3230791bd2b06ccbb73008723ab3709981ce6e2d65fc2fdbdec8cadf9d1cfec3",
+      "bytes": 3826
+    },
+    {
+      "name": "tests/requirements-cycle-http.mjs",
+      "sha256": "b3c1d052e2f7138532e0d7cac6ac7b3c7287b7af32b857990c1e6d14bb325386",
+      "bytes": 1163
+    },
+    {
+      "name": "tests/painted-goal.mjs",
+      "sha256": "c5ba117d1dea66d20c80b7f92b8184296ff79d4231da56f5a89836af4beb018b",
+      "bytes": 24668
+    },
+    {
+      "name": "tests/intent-cycle-eval.mjs",
+      "sha256": "0dd9649d87f4b2f0d0e446b44f5dcd7bb09582e75eca8ca7113b8d0d4d741357",
+      "bytes": 15130
+    },
+    {
+      "name": "tests/intent-cycle-score.mjs",
+      "sha256": "e6652eef8ee1b18c1b3c479b649033105c1ae27f360b0b9d4a16f898edc664cb",
+      "bytes": 10328
+    },
+    {
+      "name": "tests/intent-cycle-audit.mjs",
+      "sha256": "151715f5c09a64a1187ad2557e13b3172801e8e8fa8ee492b31a5a7823222617",
+      "bytes": 66452
+    },
+    {
+      "name": "tests/frontier-cycle-eval.mjs",
+      "sha256": "3031b7f539752badd452b868c577daa6437647547233f81f78c1b0eea5db29f9",
+      "bytes": 15255
+    },
+    {
+      "name": "tests/frontier-cycle-score.mjs",
+      "sha256": "64fe98b9929ca13dcf57e41857da5eed656bb2d5457eab0aa9a78aad023ecf81",
+      "bytes": 22140
+    },
+    {
+      "name": "tests/frontier-cycle-audit.mjs",
+      "sha256": "f903cd8813c33387ec69f2adc0d0f20e1fedfd5dd59cd07d02fa7ce84f37f89e",
+      "bytes": 67476
+    },
+    {
+      "name": "tests/quota-cycle-eval.mjs",
+      "sha256": "c71d6aedd4eb7d3b314cacfffd94aaed30c8f8b70e37a3126fe9ebc15cb92aea",
+      "bytes": 16947
+    },
+    {
+      "name": "tests/quota-cycle-score.mjs",
+      "sha256": "4abf6593fc8ab870319611ded3d9e50e2cebe37ff25edef72329cffabede5881",
+      "bytes": 16745
+    },
+    {
+      "name": "tests/quota-cycle-audit.mjs",
+      "sha256": "32d7620e2087fd45dcdb3bf68589fe4478199774150602e07af5c7b92ca6596f",
+      "bytes": 59893
+    }
+  ],
+  "root_zero_sha256": "44968c87ccea8d29fc671c17aba380c3716ac22a3531b18834ab77c27b54e6c1",
+  "prepared_operator_sha256": "feafa286a8f71da9ff060fedb9759c02539f7ef64695888208308b783ba3f22f",
+  "schema": "voice-ui.independent-zero-send-audit/1",
+  "observed_at": "2026-10-17T23:24:40.365789+00:00",
+  "status": "PASS",
+  "phase": "quota-final-E-20261018",
+  "axis": "E",
+  "config_sha256": "5d7de9c614a6d3f0defcfc010970f98c50d1b5830c2c406e4f3490c6580e65ee",
+  "identity_sha256": "ddcaa570948fb867bd8b81479ded70d2cd096c3aeff568ce2d27332329ded082",
+  "process_sha256": "92e62dada9e1c7e43fce71c1c14eb2e3f92e44af0e8f9f8061bb391ffcafe864",
+  "uid": 1000,
+  "listening_port_bound_to_pid": true,
+  "served_index_raw_equal": true,
+  "runtime_sha256": "aea2d4a780256fca602e07546d37e3e74844a5e1a1e885d5d02092eae9ae2fb6",
+  "input_sha256": "926d7007508e0f4b67fe2fb564e1d299d82219ca9e1b95f96e3b26c3d6c9ae40",
+  "pid": 376131,
+  "pgid": 376131,
+  "start_ticks": "18725492",
+  "argv": [
+    "node",
+    "/nix/store/xa00hp6m6jxr8kmfn8xqp7a0nrlvljn4-source/packages/voice-ui/dev/serve.mjs"
+  ],
+  "allowlisted_process_env": {
+    "NODE_OPTIONS": "--import=/nix/store/s9sspm66pdf3xjdsbvy0q60cr0jp7w4g-voice-ui-provider-budget.mjs",
+    "VOICE_UI_TYPELLM_LIMIT": "6",
+    "VOICE_UI_SEMANTIC_MAP": "/nix/store/vqjhvwxcbwv7vg09n4d3sy54lw879s9f-semantic-map",
+    "VOICE_UI_WORKER": "/nix/store/a4kzf7yr1dzaf6fl25cxiif062l18j22-voice-ui-dist/worker/worker.mjs",
+    "VOICE_UI_JEV_LIMIT": "114"
+  },
+  "key_presence_only": {
+    "JEV_API_KEY": true,
+    "TYPELLM_API_KEY": true
+  },
+  "prior_charged": {
+    "jev": 827,
+    "typellm": 86
+  },
+  "reserved": {
+    "jev": 114,
+    "typellm": 6
+  },
+  "journal_sha256": "df1cc01843c75e03a311b05c5197f93ebdf81e7a311a5ee0d079e9cc73c5a6d9",
+  "stderr_sha256": "76862cab97159dd5b3417d71cd790a1a95babae32cb0e2381409dee37e1b8c67",
+  "provider_send_rows": [],
+  "readiness_get": 200,
+  "scope": "actual process/source/runtime/cap/preload/key-presence metadata only; no credential values retained or emitted, no private identity read, no provider request sent"
+}

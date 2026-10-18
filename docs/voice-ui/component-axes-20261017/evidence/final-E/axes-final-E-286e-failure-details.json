@@ -1,0 +1,144 @@
+{
+  "status": "VALID_SEMANTIC_FAILURES",
+  "rows": [
+    {
+      "axis": "E",
+      "id": "R01",
+      "utterance": "Otherへデータと判断を一つずつ追加してください。接続はいりません。",
+      "factors": {
+        "kind": "voice-ui.parts.literal.v1",
+        "head": "sha256:3f44e0d52678bc7ddeac8b19804ffaadfe6a493ce65ba8ca98f345ddd2ff75a2",
+        "recognized": true,
+        "required_count": 1,
+        "completeness": {
+          "choice": "incomplete",
+          "confidence": 0.94
+        },
+        "choice": "unknown",
+        "confidence": null
+      },
+      "reason": "inventory-unresolved",
+      "coverage": {
+        "choice": "unknown",
+        "confidence": null,
+        "inspection": {
+          "source": "literal+jev",
+          "recognized": true,
+          "required": [
+            {
+              "label": "判断",
+              "kind": "decision",
+              "quantity": 1
+            }
+          ],
+          "missing": [],
+          "spans": [
+            {
+              "start": 10,
+              "end": 12,
+              "source": "判断",
+              "label": "判断",
+              "kind": "decision",
+              "quantity": 1
+            }
+          ],
+          "completeness": {
+            "choice": "incomplete",
+            "confidence": 0.94
+          }
+        }
+      },
+      "graph_unchanged": true,
+      "provider_calls": 1,
+      "goal_elapsedMs": 379.5349999964237
+    },
+    {
+      "axis": "E",
+      "id": "R03",
+      "utterance": "Otherの中に「API」という表示名の工程を1つだけ追加してください。",
+      "factors": {
+        "kind": "voice-ui.parts.literal.v1",
+        "head": "sha256:3f44e0d52678bc7ddeac8b19804ffaadfe6a493ce65ba8ca98f345ddd2ff75a2",
+        "recognized": true,
+        "required_count": 1,
+        "completeness": {
+          "choice": "incomplete",
+          "confidence": 0.54
+        },
+        "choice": "unknown",
+        "confidence": null
+      },
+      "reason": "inventory-unresolved",
+      "coverage": {
+        "choice": "unknown",
+        "confidence": null,
+        "inspection": {
+          "source": "literal+jev",
+          "recognized": true,
+          "required": [
+            {
+              "label": "工程",
+              "kind": "step",
+              "quantity": 1
+            }
+          ],
+          "missing": [],
+          "spans": [
+            {
+              "start": 20,
+              "end": 22,
+              "source": "工程",
+              "label": "工程",
+              "kind": "step",
+              "quantity": 1
+            }
+          ],
+          "completeness": {
+            "choice": "incomplete",
+            "confidence": 0.54
+          }
+        }
+      },
+      "graph_unchanged": true,
+      "provider_calls": 1,
+      "goal_elapsedMs": 293.61500000953674
+    },
+    {
+      "axis": "E",
+      "id": "R06",
+      "utterance": "OCIに判断ノードを2つ追加してください。両方とも表示名は判断です。",
+      "factors": {
+        "kind": "voice-ui.parts.literal.v1",
+        "head": "sha256:3f44e0d52678bc7ddeac8b19804ffaadfe6a493ce65ba8ca98f345ddd2ff75a2",
+        "recognized": false,
+        "required_count": 0,
+        "completeness": {
+          "choice": "incomplete",
+          "confidence": 0.96
+        },
+        "choice": "unknown",
+        "confidence": null
+      },
+      "reason": "inventory-unresolved",
+      "coverage": {
+        "choice": "unknown",
+        "confidence": null,
+        "inspection": {
+          "source": "literal+jev",
+          "recognized": false,
+          "required": [],
+          "missing": [],
+          "spans": [],
+          "completeness": {
+            "choice": "incomplete",
+            "confidence": 0.96
+          }
+        }
+      },
+      "graph_unchanged": true,
+      "provider_calls": 1,
+      "goal_elapsedMs": 328.2150000035763
+    }
+  ],
+  "scope": "all stopped before adoption; no source/criteria change or retry"
+}

@@ -1,0 +1,71 @@
+{
+  "schema": "voice-ui.extraction-heldout-commitment/1",
+  "created_at": "2026-10-18T01:31:31.982586+00:00",
+  "status": "SEALED_NOT_RELEASED",
+  "scope": "NEW_HELD_OUT_FULL_NEW_REQUIREMENTS_ONLY_NOT_ORDINARY_UI_OR_GENERAL_MODEL_EFFICACY",
+  "author_role": "same independent reviewer R",
+  "inputs": {
+    "sha256": "dd66904853ae031c68e632c67d3bfc3a974141ce77fa4f83ecb406ad0a149874",
+    "bytes": 10917
+  },
+  "oracle": {
+    "sha256": "a5cf1a90b928922d11fc1d1c8c69c6e54c98adbc194f71d011550040200db556",
+    "bytes": 920
+  },
+  "semantic_validation": {
+    "status": "PASS",
+    "sha256": "286c4649aeac827697ccb6aeaa4d224e773dbfc7140d9771144ac6523bc6ee69"
+  },
+  "cases": 4,
+  "strata_counts": {
+    "explicit-name": 2,
+    "standard-name_without_explicit_display_name": 1,
+    "NEW0": 1
+  },
+  "planned_cells": 8,
+  "pair_order": "odd cases current,candidate; even cases candidate,current; each exactly once",
+  "arm_interpretation": {
+    "current": "current dependent generation with full part_definitions in the same admitted Worker/provider as candidate",
+    "candidate": "one preregistered display-source output-contract candidate; canonical conversion fixed before first public measurement"
+  },
+  "evaluation": {
+    "quality": "candidate 4/4 valid closed contracts and exact/minimal complete NEW label/kind/quantity tuples; NEW0 must remain empty",
+    "paired_gain": "both responses valid; current semantic error to candidate exact; require at least one gain among the two explicit-name cases",
+    "regression_and_controls": "zero observed semantic regressions across all four; standard-name and NEW0 candidate exact; all invalid/HTTP failures retained in the eight-cell denominator",
+    "validity_not_semantic_gain": "contract-rate changes reported separately, never counted as semantic paired wins",
+    "invalid_not_negative_proof": "invalid or ineligible pairs never become gain, semantic tie, or NO_EFFECT evidence",
+    "scope_limit": "finite held-out extraction observations only; no ordinary UI, V/Goal, general Type efficacy or unique internal-cause claim"
+  },
+  "release_conditions": [
+    "Public candidate 4/4 exact with zero contract rejection, at least one valid paired improvement on the known explicit-name cases, and zero control regression.",
+    "Public and fresh use the same admitted frozen candidate/conversion, provider/model request settings/full definitions; packaging changes are not precision gains.",
+    "No measurement-source, normalization, oracle or criteria changes after first public slot; no fresh payload release before the public gate.",
+    "Inputs-only release first; oracle only after strict physical stop and accounting of that fresh phase."
+  ],
+  "budget": {
+    "baseline_charged": {
+      "jev": 847,
+      "typellm": 104
+    },
+    "public_phase_cap_separately_authorized": {
+      "jev": 0,
+      "typellm": 8
+    },
+    "fresh_phase_cap_requires_later_GO": {
+      "jev": 0,
+      "typellm": 8
+    },
+    "maximum_after_both": {
+      "jev": 847,
+      "typellm": 120
+    },
+    "setup": 0,
+    "retry": 0,
+    "correction": 0
+  },
+  "private_handling": "inputs, oracle, private validation and authoring remain undisclosed; no old unused seal enumeration or reuse",
+  "public_copy_allowlist": [
+    "extraction-b-heldout.commitment.json"
+  ],
+  "reviewer_provider_calls": 0
+}

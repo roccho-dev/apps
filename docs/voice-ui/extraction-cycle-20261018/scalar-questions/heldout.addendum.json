@@ -1,0 +1,27 @@
+{
+  "schema": "voice-ui.heldout-reregistration/1",
+  "status": "SEALED_NOT_RELEASED",
+  "candidate": "C top-level scalar extraction; same dependent leaf DAG",
+  "source_commitment": "../display-source/heldout.commitment.json",
+  "source_commitment_sha256": "43dcc80c0a0986c6b635f196bf0f787a729a2423e1b4ec36f81e4bf26e6f56a5",
+  "reason": "B public gate failed; B fresh consumed0, inputs/oracle remain unread by root and unexecuted. Same independent reviewer agreed to preregister unchanged seals for C before any C send.",
+  "input": {
+    "sha256": "dd66904853ae031c68e632c67d3bfc3a974141ce77fa4f83ecb406ad0a149874",
+    "bytes": 10917
+  },
+  "oracle": {
+    "sha256": "a5cf1a90b928922d11fc1d1c8c69c6e54c98adbc194f71d011550040200db556",
+    "bytes": 920
+  },
+  "cases": 4,
+  "roles": {
+    "explicit": 2,
+    "standard": 1,
+    "new0": 1
+  },
+  "sequence": "original byte-preserved schedule; one current/candidate per case; no change or selection",
+  "release": "only after C public gate: inputs only; same frozen C and caller; separately registered0J8T; oracle only after physical stop/reconcile",
+  "quality": "candidate4/4 full NEW exact/minimal; explicit valid paired gains>=1; all4 regression0; INVALID never gain/tie/NO_EFFECT",
+  "adoption": "F success alone is not ordinary UI effect or adoption",
+  "fresh_envelope": "same previously frozen data-only rule: original file bytes/hash/order; role:null for all; no oracle or correct-role metadata to caller; exact fixed input hash/size validated"
+}

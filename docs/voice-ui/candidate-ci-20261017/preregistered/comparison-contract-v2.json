@@ -1,0 +1,144 @@
+{
+  "schema": "voice-ui.poc.comparison-contract/2",
+  "reviewer": "/root/poc_reviewer",
+  "agreed_source_baseline": "42aa9a473d287607ba58967ef2992c052edc7943",
+  "policy_commit": "a6284e58ed99243447e135828d983fc07d2d363e",
+  "scope": {
+    "starting_surface": "an existing named non-root group with room",
+    "max_added_regions": 3,
+    "max_added_directed_edges": 1,
+    "labels": "exact displayed part.label; app IDs remain distinct",
+    "kinds": [
+      "step",
+      "decision",
+      "data",
+      "start",
+      "end",
+      "group"
+    ],
+    "goal_questions_max": 8,
+    "sufficiency_questions_max": 1,
+    "typellm_requests_max_per_goal": 1,
+    "missing_candidates_only": true,
+    "model_may_set_parents_or_edges": false,
+    "model_may_set_instance_ids_or_operators": false,
+    "not_claimed": [
+      "root or empty-map additions",
+      "arbitrary graph scale",
+      "general source ingestion",
+      "voice microphone performance"
+    ]
+  },
+  "criteria": {
+    "accepted_gate": 10,
+    "total": 10,
+    "sufficient_exact": 4,
+    "sufficient_total": 4,
+    "sufficient_not_below_A": true,
+    "missing_exact": 4,
+    "missing_total": 4,
+    "missing_minimal": 4,
+    "control_unchanged": 2,
+    "controls_total": 2,
+    "typellm_on_sufficient_or_control": 0,
+    "new_candidate_generation_on_sufficient_or_control": 0,
+    "C_missing_gain_over_B": 1,
+    "C_missing_gain_over_A": 2,
+    "D": "BLOCKED_COST_UNCOMPARED",
+    "CI_LIVE_EXECUTION": "UNPROVEN",
+    "currency_without_verified_usage": "COST_NOT_MEASURED",
+    "max_Goal_ms": 180000,
+    "scope": "finite provisional A/B/C mechanism only; no statistical generalization or completed four-way/CI-only claim"
+  },
+  "phases": {
+    "prior_charged": {
+      "jev": 292,
+      "typellm": 18
+    },
+    "public_screen": {
+      "cases": 8,
+      "arms": [
+        "A",
+        "B",
+        "C"
+      ],
+      "jev_max": 216,
+      "typellm_max": 8
+    },
+    "public_corrections": {
+      "max_batches": 2,
+      "jev_max_each": 60,
+      "jev_max": 120,
+      "typellm_max": 32
+    },
+    "fresh_primary": {
+      "cases": 10,
+      "arms": [
+        "A",
+        "B",
+        "C"
+      ],
+      "jev_reserved": 270,
+      "typellm_max": 10
+    },
+    "setup_lifecycle_diagnostics": {
+      "jev_max": 48,
+      "typellm_max": 16
+    },
+    "total_charged_worst": {
+      "jev": 946,
+      "typellm": 84
+    },
+    "unallocated_from_user_1000": {
+      "jev": 54,
+      "typellm": 916
+    }
+  },
+  "browser": {
+    "artifact": "completed ZIP; exact manifest/Worker/protocol/runtime; actual Chromium",
+    "viewport": {
+      "width": 1280,
+      "height": 720,
+      "deviceScaleFactor": 1
+    },
+    "frames": [
+      "deterministic overview",
+      "named-group camera; nested group frame when required by case"
+    ],
+    "font": "pinned and recorded runtime fonts; no post-result changes",
+    "semantic": "exact all records except permitted layout fields; duplicates as multiset; old fields preserved",
+    "svg": "actual identity-bound shapes/labels; whole glyph boxes within supported clips+viewport; no sibling/title overlap/overflow; directed endpoint geometry and reverse/disconnected negatives",
+    "unsupported": "UNPROVEN",
+    "controls": "wrong/hidden/duplicate/clipped label, overlap, endpoint/reverse, Undo/reload failures must be RED"
+  },
+  "execution": {
+    "CI_keyless": "completed artifact browser mechanics",
+    "own_live": "existing envs/launcher only; root sole provider caller; same single journal",
+    "CI_receipts": "verify closed real-provider evidence; do not label this CI-origin live execution",
+    "CI_live": "UNPROVEN without approved proved route"
+  },
+  "role": {
+    "root": "product/driver/budget and sole provider calls",
+    "R": "oracle/scorer/evidence and independent source/artifact/runtime/budget review"
+  },
+  "pool_commitment": {
+    "name": "fresh-pool-v2.sealed.json",
+    "bytes": 23561,
+    "sha256": "b64985019e2248c4fde62e330f319846c96ab5014db4e96a7d8f0d50d5f86076"
+  },
+  "public_input": {
+    "name": "public-eight.inputs.json",
+    "bytes": 5234,
+    "sha256": "7f32e930d869dfb2261176afe89e542cb87ea8fb8ef40d66c0f55c86a7ed03f7"
+  },
+  "public_oracle": {
+    "name": "public-eight.oracle.json",
+    "bytes": 9015,
+    "sha256": "6b0026f4c57411eb36783da197be3b7c815c7cf726f58a78dcfe64019e9c32e6"
+  },
+  "preflight_supersedes": {
+    "file": "comparison-contract.json",
+    "sha256": "5e19dabb88505a38bd231f028e20985e9b79c781afeb63ce586a0a1e096f613f",
+    "reason": "Before input release or new provider calls, remove inherited historical two-arm scoring labels/thresholds that conflict with the new ABC criteria. Case inputs and graph oracles are byte-equivalent as JSON data."
+  }
+}

@@ -1,0 +1,83 @@
+{
+  "schema": "voice-ui.independent-prepared-phase-audit/1",
+  "status": "PASS",
+  "scope": "FINAL_E_STATIC_AND_INPUTS_ONLY_GET_LAUNCH_ADMISSION_NOT_PAID_GO",
+  "at": "2026-10-18T06:44:23.122151+00:00",
+  "head": "180fc53e24f0fc2a5fdb098a3748afaff047bab6",
+  "phase": "compact-verifier-final-E-20261018",
+  "repeat_profile": "compact-verifier-VE-20261018",
+  "config": {
+    "bytes": 1202,
+    "sha256": "81ee56b6ae7ab013c1850c3d610468197845719a51743fde153728fe60c7abe8"
+  },
+  "helper_manifest": {
+    "bytes": 826,
+    "sha256": "a935ff65564002a29de99659008d25f402d23aa79eb975be885cfd5b89f6d4a6"
+  },
+  "helpers": [
+    {
+      "name": "final-E-zero-prepared.mjs",
+      "bytes": 4691,
+      "sha256": "d9f1555cc6bd3bb4e41d8bbccf9f8f319331452112fff3f94e69986eb80ac483",
+      "node_syntax": "PASS",
+      "helper_executed": false
+    },
+    {
+      "name": "final-E-operator-prepared.mjs",
+      "bytes": 2945,
+      "sha256": "b39656d98af19244b61103e55aea29c6699b616fe8c1756575e59df82e0c41a1",
+      "node_syntax": "PASS",
+      "helper_executed": false
+    },
+    {
+      "name": "final-E-stop-prepared.mjs",
+      "bytes": 3749,
+      "sha256": "d9bb0365fa799dad5b46b94148e9529450672a509ac41923b6929e5fe0af5cd8",
+      "node_syntax": "PASS",
+      "helper_executed": false
+    },
+    {
+      "name": "final-E-raw-regrade-prepared.mjs",
+      "bytes": 3415,
+      "sha256": "816a8a3f89ec37b3e4cabbba7b8e297064d863ee269d048fa9f1459b20dd5ca2",
+      "node_syntax": "PASS",
+      "helper_executed": false
+    }
+  ],
+  "registered_input": {
+    "bytes": 4875,
+    "sha256": "f646112dbb14896a2e8f27d99f2b995e374aacf68b87058c7520e9821f420e43",
+    "cases": 6,
+    "cells": 12,
+    "order": "BC/CB alternating unchanged",
+    "parent_inputs_sha256": null
+  },
+  "input_release_manifest": {
+    "bytes": 699,
+    "sha256": "ffbbbf6be7f4c1547349d8324e8ee79d7e0dc1ba6d63788da16ba5b733340954"
+  },
+  "static_review": {
+    "same_180_source_runtime_wire_and_immutable_six_flag_caller": true,
+    "runtime_sha256": "687ef945c74344603ff0c81ae34d404fb3fef89169baf0c53b7368dae8ad5b43",
+    "wire_sha256": "187832605680a2d25f51a5a57135b11762f2c30423dd93a0cc31c680d7b6b380",
+    "prior_journal_sha256": "43cf6cf845f35f65db07858164d5e56366a2ab024e175c13eaa11db62b48ca6c",
+    "prior_charged": {
+      "jev": 864,
+      "typellm": 138
+    },
+    "caps": {
+      "jev": 114,
+      "typellm": 6
+    },
+    "expected_owned_groups_after_launch": 53,
+    "operator_one_driver_finally_strict_stop_and_fsynced_immediate_journal": true,
+    "raw_regrade_oracle_read_only_after_terminal_PASS": true,
+    "stop_caption_is_final_not_public": true,
+    "source_escape_bytes_checked_no_double_escape": true,
+    "no_criteria_threshold_or_deadline_changes": true
+  },
+  "admission": "ONE_GET_ONLY_MANAGER_LAUNCH_THEN_INDEPENDENT_ACTUAL_SAME_PID_ZERO_AUDIT",
+  "paid_GO": false,
+  "oracle_released": false,
+  "reviewer_provider_sends": 0
+}

@@ -1,0 +1,30 @@
+{
+  "phase": "scalar-public-C-20261018",
+  "began": "2026-10-18T02:16:16.250Z",
+  "finished": "2026-10-18T02:16:33.597Z",
+  "execution": {
+    "exit": 0
+  },
+  "stop": {
+    "status": "STOPPED_RECONCILED",
+    "result": {
+      "phase": "scalar-public-C-20261018",
+      "action": "stop",
+      "current": {
+        "pid": 391415,
+        "state": "S",
+        "pgid": 391415,
+        "start_ticks": "19750071"
+      },
+      "sent": {
+        "jev": 0,
+        "typellm": 8
+      },
+      "whole_run_sent": {
+        "jev": 847,
+        "typellm": 120
+      },
+      "reserved_until_confirmed_stop": null
+    }
+  }
+}

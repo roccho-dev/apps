@@ -1,0 +1,185 @@
+{
+  "schema": "voice-ui.quota-cycle-execution/1",
+  "axis": "E",
+  "source": {
+    "schema": "voice-ui.poc.runtime/1",
+    "repeat_profile": "compact-verifier-VE-20261018",
+    "extraction_profile": "thinking-labels",
+    "origin": "http://127.0.0.1:18845",
+    "heads": {
+      "apps": "180fc53e24f0fc2a5fdb098a3748afaff047bab6",
+      "envs": "063e685b8b21a97fc8658879da93fa858552bcd6",
+      "ops": "a724bdfa1864762cd9050a00e2642450af29c196",
+      "windows": "6aef693c0946903d8b87c2348039de1420acd61b",
+      "ui": "756d47e891191c3344eb2d29b000203be8331abc"
+    },
+    "sealed_inputs_sha256": "a9062129f2bda9dab84f5e311d35f7b071b1035f22a1485a38c4c8aafd6d12a2",
+    "worker_entry": {
+      "path": "/nix/store/7nrgv35mmvz27gwqrgh2rg6s05wd8c83-voice-ui-dist/worker/worker.mjs",
+      "sha256": "339e1d841039df6492f5635a74695c7099c6a21348c1cb545503499552057aa8"
+    },
+    "provider_entry": {
+      "path": "/nix/store/s11687zgbq01vj779qn6v2a90x7h653f-jev-provider-admitted/jev.mjs",
+      "sha256": "0773b5c96d0da7f05fef9f9cf95772b6722a03022648e90fc56a4fdc9ac6046e"
+    },
+    "typed_provider_entry": {
+      "path": "/nix/store/d8yhghajx6na9044fq4d9k3db2d3rphk-typellm-provider-admitted/typellm.mjs",
+      "sha256": "3c10462eecd7f83dd790bfe208587c99347dcbed324b32ae674afbab48bdfb22"
+    },
+    "provider_sources": {
+      "jev": {
+        "contract": "named-questions/1",
+        "entry_sha256": "0773b5c96d0da7f05fef9f9cf95772b6722a03022648e90fc56a4fdc9ac6046e",
+        "locator": "https://github.com/roccho-org/ops/releases/download/jev-provider-c7ed1132ad7bec8e5f05c6da38d719a05dec4877/jev-provider.zip",
+        "manifest_sha256": "a5386f84f0606c6900b3c0e89d19f94dcf701d344d7c7e6384889d8bb6a1aab5",
+        "proof_sha256": "d756b5855a55c07e7b93687f1556ad1a2657ce0acc701c89476d87d9461a46ff",
+        "provenance_sha256": "90e295578042b89fcf4e1d6dfc2a5cdee6d76916f97a3668472883810811ea17",
+        "sha256": "0c063b050895db87029fd514c81add33e291e321109e2aa55a3befdd42593f03"
+      },
+      "typellm": {
+        "contract": "typed-completion/1",
+        "entry_sha256": "3c10462eecd7f83dd790bfe208587c99347dcbed324b32ae674afbab48bdfb22",
+        "locator": "https://github.com/roccho-org/ops/releases/download/jev-provider-a724bdfa1864762cd9050a00e2642450af29c196/typellm-provider.zip",
+        "manifest_sha256": "4addcd161cb80f8800ee8d78a4b212c3fd2b7e92900cb10c492f3cf560878b2b",
+        "proof_sha256": "8e79073aa7fb94ffa7d4c0003c592d85622099b251c0958712eb2f7ea59bfba6",
+        "provenance_sha256": "d3d3b35ce4a77077823230da4790070db5ba206d09c66111c72b4fc44f4cc9ac",
+        "sha256": "25f8bf076d24577ad512fc63c9491e13796e76007d2e52349b5a9fc223395de6"
+      }
+    },
+    "semantic_map": {
+      "root": "/nix/store/vqjhvwxcbwv7vg09n4d3sy54lw879s9f-semantic-map",
+      "protocol_sha256": "1689dcf63e1ed19cdea7be22e3f90a09f434841f980b9ca8b9018a987c9c38f8"
+    },
+    "launcher": {
+      "program": "/nix/store/bg0bygqiid25xnivxv9cdgjlx3sp939j-voice-ui-typed-dev/bin/voice-ui-typed-dev",
+      "dev_program": "/nix/store/41c8a73fmkrvq9pxzb8pi5grvvfdx6zl-voice-ui-dev/bin/voice-ui-dev",
+      "pid": 403353,
+      "start_ticks": "21375887",
+      "phase_id": "compact-verifier-final-E-20261018",
+      "allowances": {
+        "jev": 114,
+        "typellm": 6
+      }
+    },
+    "artifact": {
+      "root": "/nix/store/7nrgv35mmvz27gwqrgh2rg6s05wd8c83-voice-ui-dist",
+      "manifest_sha256": "38eaa1551f3c828a1c1f262cf94f388f757f27f39690bf6eedc04e839d3ad79a"
+    },
+    "audit_sha256": "687ef945c74344603ff0c81ae34d404fb3fef89169baf0c53b7368dae8ad5b43",
+    "wire_sha256": "187832605680a2d25f51a5a57135b11762f2c30423dd93a0cc31c680d7b6b380",
+    "preflight_counters": {
+      "jev": 0,
+      "typellm": 0
+    }
+  },
+  "inputs_sha256": "f646112dbb14896a2e8f27d99f2b995e374aacf68b87058c7520e9821f420e43",
+  "bundle_sha256": "8fd1b4f37f6a113653dbaeda5e040ba5bed6d7b007ab9269d307f8642d339189",
+  "source_sha256": {
+    "src/completion.mjs": "842f4c107d09cdf388b8d99d3e10acb027f3026b1a8216dc2ce49c657bf1a9b0",
+    "src/literal-inventory.mjs": "ecdeb980fb826f800dfeb186e042b5a4edf85b32ecc8a97516eb55e81a9c37f9",
+    "src/goal.mjs": "cd9101d6a222e31773c9523adeca3f7f9aa32990e30b39e06a7b872771422f3e",
+    "src/contract.mjs": "f2c95212493f59fd80ef17270c2b5de0d51d795b26ac8a0e6dfa0fdb9dec30fe",
+    "src/turn.mjs": "c5fc3489a5bd0861f0455bd9843f47e76030bb03a4fe55745cf00c29c79b7008",
+    "src/session.mjs": "d6fcb97e581afb789ed6ecb339c06c378ef94283084df8ad3042ebe42c48cfe8",
+    "functions/api/parts.mjs": "8dfe64a2e0d27a34cf68e44b6a903cd75ba87e860e07dc457ea22a9264186716",
+    "functions/pages-worker.mjs": "0a88ce097a490d6f6920a6d007e8bffe66f8d2f5c344f611bf366f00ca8bb524",
+    "web/app.mjs": "3a9ac4eba0770949a219b35c97cd346d4a7912026fae2b2f21710251b86bbf2a",
+    "web/adapters/completion.mjs": "537bc46e93efe58fbdf466dd2493989ad5695209def769ec9da3ba68926edb5a",
+    "dev/serve.mjs": "d044ea7f8ccbd7fd71fbe1447dcce0f30bfa831d471da3eef2e3377380532298",
+    "tests/dependency-cycle-eval.mjs": "b92308340b7a54020c30ae1c1daa3b482b60263d080b3f2e2393909f6cfcd7c3",
+    "tests/requirements-cycle-score.mjs": "3d779cf422e8cc0facc6f5ff566c3e77b36a61486f9586f120b0c1a722cd5a46",
+    "tests/requirements-cycle-audit.mjs": "b93e9223c5be97d4ef1e6a65eb0db3c3e528037c605b587bb56121c1b54baaba",
+    "tests/dependency-cycle-score.mjs": "2f7f40afec31d1f7cded08951529a30d741f6ebfb8abf446900a7f6eb567ef91",
+    "tests/dependency-cycle-audit.mjs": "47dce6207c8b48dae6447d87ee1294d8495f28a31d2b474d5dc0c9b95998d66e",
+    "tests/semantic-score.mjs": "3230791bd2b06ccbb73008723ab3709981ce6e2d65fc2fdbdec8cadf9d1cfec3",
+    "tests/requirements-cycle-http.mjs": "b3c1d052e2f7138532e0d7cac6ac7b3c7287b7af32b857990c1e6d14bb325386",
+    "tests/painted-goal.mjs": "c5ba117d1dea66d20c80b7f92b8184296ff79d4231da56f5a89836af4beb018b",
+    "tests/intent-cycle-eval.mjs": "0dd9649d87f4b2f0d0e446b44f5dcd7bb09582e75eca8ca7113b8d0d4d741357",
+    "tests/intent-cycle-score.mjs": "e6652eef8ee1b18c1b3c479b649033105c1ae27f360b0b9d4a16f898edc664cb",
+    "tests/intent-cycle-audit.mjs": "151715f5c09a64a1187ad2557e13b3172801e8e8fa8ee492b31a5a7823222617",
+    "tests/frontier-cycle-eval.mjs": "3031b7f539752badd452b868c577daa6437647547233f81f78c1b0eea5db29f9",
+    "tests/frontier-cycle-score.mjs": "64fe98b9929ca13dcf57e41857da5eed656bb2d5457eab0aa9a78aad023ecf81",
+    "tests/frontier-cycle-audit.mjs": "f903cd8813c33387ec69f2adc0d0f20e1fedfd5dd59cd07d02fa7ce84f37f89e",
+    "tests/quota-cycle-eval.mjs": "66e753912f79dfadf1b1ddb0c81f731d3007db29f8f3f1f2e7e76633241f3159",
+    "tests/quota-cycle-score.mjs": "cf64145f4f3703673e08d43249977550a26d43a5eff01a0a8dc74380b26552ac",
+    "tests/quota-cycle-audit.mjs": "ea9d1107439f9b6da753b04cf0f32f58625703f346fa6cb8541de2c1d783c729"
+  },
+  "case_order": [
+    "TEF01",
+    "TEF02",
+    "TEF03",
+    "TEF04",
+    "TEF05",
+    "TEF06"
+  ],
+  "arm_order": [
+    {
+      "id": "TEF01",
+      "arm": "B"
+    },
+    {
+      "id": "TEF01",
+      "arm": "C"
+    },
+    {
+      "id": "TEF02",
+      "arm": "C"
+    },
+    {
+      "id": "TEF02",
+      "arm": "B"
+    },
+    {
+      "id": "TEF03",
+      "arm": "B"
+    },
+    {
+      "id": "TEF03",
+      "arm": "C"
+    },
+    {
+      "id": "TEF04",
+      "arm": "C"
+    },
+    {
+      "id": "TEF04",
+      "arm": "B"
+    },
+    {
+      "id": "TEF05",
+      "arm": "B"
+    },
+    {
+      "id": "TEF05",
+      "arm": "C"
+    },
+    {
+      "id": "TEF06",
+      "arm": "C"
+    },
+    {
+      "id": "TEF06",
+      "arm": "B"
+    }
+  ],
+  "methods": {
+    "O": "ready-open",
+    "Q": "ready-quota",
+    "B": "literal-v2",
+    "C": "adaptive-v3"
+  },
+  "generation_policies": {
+    "O": null,
+    "Q": null,
+    "B": null,
+    "C": "dependent"
+  },
+  "goal_parts_policies": {
+    "O": "open",
+    "Q": "quota",
+    "B": "quota",
+    "C": "quota"
+  },
+  "oracle_policy": "hash for commitment only; no oracle is read or forwarded",
+  "replay_suffix": "compatibility only; scoring dispatches by axis"
+}

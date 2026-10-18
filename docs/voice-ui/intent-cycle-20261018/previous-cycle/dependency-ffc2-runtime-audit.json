@@ -1,0 +1,139 @@
+{
+  "schema": "voice-ui.dependency-cycle-independent-runtime-audit/1",
+  "status": "PASS",
+  "apps": "ffc2337387289be5d4987be4e2eef95e684db132",
+  "runtime_sha256": "758a595b220634f99164d77518fe3cb47b649d0471681695c996eefaa6deedbf",
+  "source": "/nix/store/55v4xafhhhd8lrm84yjrqvk80z2v17ia-source",
+  "source19": [
+    {
+      "path": "src/completion.mjs",
+      "sha256": "11d6c098c703f257f96395a4a1c15ce4d39ed95fbd3aa0b103e23cbea94d5c5a",
+      "actual_raw_equal": true
+    },
+    {
+      "path": "src/literal-inventory.mjs",
+      "sha256": "82a2bdb9866c1331b4c685f28862bd54e7e974c4af3652b4f72dfdbb41f7df60",
+      "actual_raw_equal": true
+    },
+    {
+      "path": "src/goal.mjs",
+      "sha256": "cd9101d6a222e31773c9523adeca3f7f9aa32990e30b39e06a7b872771422f3e",
+      "actual_raw_equal": true
+    },
+    {
+      "path": "src/contract.mjs",
+      "sha256": "f2c95212493f59fd80ef17270c2b5de0d51d795b26ac8a0e6dfa0fdb9dec30fe",
+      "actual_raw_equal": true
+    },
+    {
+      "path": "src/turn.mjs",
+      "sha256": "c5fc3489a5bd0861f0455bd9843f47e76030bb03a4fe55745cf00c29c79b7008",
+      "actual_raw_equal": true
+    },
+    {
+      "path": "src/session.mjs",
+      "sha256": "d6fcb97e581afb789ed6ecb339c06c378ef94283084df8ad3042ebe42c48cfe8",
+      "actual_raw_equal": true
+    },
+    {
+      "path": "functions/api/parts.mjs",
+      "sha256": "cdc97390f69e7a7883f158710b346b8487486988f5882f77660c14ce761e3635",
+      "actual_raw_equal": true
+    },
+    {
+      "path": "functions/pages-worker.mjs",
+      "sha256": "9aa2afda61f0fffdab87a15ececb59b35307f07cfd9f59099501c29aac1486c9",
+      "actual_raw_equal": true
+    },
+    {
+      "path": "web/app.mjs",
+      "sha256": "3a9ac4eba0770949a219b35c97cd346d4a7912026fae2b2f21710251b86bbf2a",
+      "actual_raw_equal": true
+    },
+    {
+      "path": "web/adapters/completion.mjs",
+      "sha256": "537bc46e93efe58fbdf466dd2493989ad5695209def769ec9da3ba68926edb5a",
+      "actual_raw_equal": true
+    },
+    {
+      "path": "dev/serve.mjs",
+      "sha256": "d044ea7f8ccbd7fd71fbe1447dcce0f30bfa831d471da3eef2e3377380532298",
+      "actual_raw_equal": true
+    },
+    {
+      "path": "tests/dependency-cycle-eval.mjs",
+      "sha256": "b92308340b7a54020c30ae1c1daa3b482b60263d080b3f2e2393909f6cfcd7c3",
+      "actual_raw_equal": true
+    },
+    {
+      "path": "tests/requirements-cycle-score.mjs",
+      "sha256": "3d779cf422e8cc0facc6f5ff566c3e77b36a61486f9586f120b0c1a722cd5a46",
+      "actual_raw_equal": true
+    },
+    {
+      "path": "tests/requirements-cycle-audit.mjs",
+      "sha256": "692bdbaef8dbe28fe30fcdfe178202ebbdf3a4728bf0fe1c7310f72bf789c6eb",
+      "actual_raw_equal": true
+    },
+    {
+      "path": "tests/dependency-cycle-score.mjs",
+      "sha256": "2f7f40afec31d1f7cded08951529a30d741f6ebfb8abf446900a7f6eb567ef91",
+      "actual_raw_equal": true
+    },
+    {
+      "path": "tests/dependency-cycle-audit.mjs",
+      "sha256": "47dce6207c8b48dae6447d87ee1294d8495f28a31d2b474d5dc0c9b95998d66e",
+      "actual_raw_equal": true
+    },
+    {
+      "path": "tests/semantic-score.mjs",
+      "sha256": "3230791bd2b06ccbb73008723ab3709981ce6e2d65fc2fdbdec8cadf9d1cfec3",
+      "actual_raw_equal": true
+    },
+    {
+      "path": "tests/requirements-cycle-http.mjs",
+      "sha256": "b3c1d052e2f7138532e0d7cac6ac7b3c7287b7af32b857990c1e6d14bb325386",
+      "actual_raw_equal": true
+    },
+    {
+      "path": "tests/painted-goal.mjs",
+      "sha256": "c5ba117d1dea66d20c80b7f92b8184296ff79d4231da56f5a89836af4beb018b",
+      "actual_raw_equal": true
+    }
+  ],
+  "artifact_root": "/nix/store/gx5a5k8njf50sgqnvfs5vvhhcc104d06-voice-ui-dist",
+  "manifest_sha256": "359c758e5e53285d0f63bcabbd7a230153530f4484981b8e4b66e7136f9f73af",
+  "actual_all_manifest_members_verified": 293,
+  "ordinary_artifact_members_raw_equal": 291,
+  "only_changed_metadata": [
+    "architecture/evidence.json",
+    "site/architecture/data/source.v1.json"
+  ],
+  "actual_R_reference_core_files_raw_equal": 6,
+  "actual_all_ui_files_raw_equal_R_reference": 238,
+  "worker_sha256": "f54e9a95562ca33332b2ad67903907d16c6a6d1f6764d2b135cf22e9ba669c66",
+  "provider_sha256": "3f754c8b1ee4a8b34b50d00fd17e37295d853e1b607903b6d355b5e06997669c",
+  "protocol_sha256": "1689dcf63e1ed19cdea7be22e3f90a09f434841f980b9ca8b9018a987c9c38f8",
+  "launcher_only_reference_changes": [
+    {
+      "role": "source",
+      "from": "/nix/store/6cxi0a65czr2klzdy8zvb7zgf4b14lh9-source",
+      "to": "/nix/store/55v4xafhhhd8lrm84yjrqvk80z2v17ia-source"
+    },
+    {
+      "role": "worker_dist",
+      "from": "/nix/store/mg75nqbr9ad0m347gxfhbym386bqjnxy-voice-ui-dist",
+      "to": "/nix/store/gx5a5k8njf50sgqnvfs5vvhhcc104d06-voice-ui-dist"
+    },
+    {
+      "role": "architecture",
+      "from": "/nix/store/rl6l3wpdjrqs8jbimmwivcq5yv90hn9b-voice-ui-architecture-source",
+      "to": "/nix/store/lm3ijx0fpadhmqai8768j7y3dbnhx9jd-voice-ui-architecture-source"
+    }
+  ],
+  "scope": "report-only final runtime bridge to the exact measured ae81 closure; no new live execution or quality promotion",
+  "real_provider_calls": {
+    "jev": 0,
+    "typellm": 0
+  }
+}

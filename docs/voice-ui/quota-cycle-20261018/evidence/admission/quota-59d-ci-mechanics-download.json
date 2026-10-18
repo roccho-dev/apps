@@ -1,0 +1,17 @@
+{
+  "schema": "voice-ui.review.ci-artifact-download/1",
+  "status": "PASS",
+  "checked_at": "2026-10-17T22:51:25.557Z",
+  "actor": "roccho-dev",
+  "authenticated": true,
+  "head": "59ded276405a5dc9caa85ad570b1827ff4bd0c7a",
+  "run_id": 39076041775,
+  "artifact_id": 12117775032,
+  "artifact_name": "voice-ui-candidate-browser-59ded276405a5dc9caa85ad570b1827ff4bd0c7a",
+  "zip_sha256": "601d439ce493fa0e32faeab92f281f76b35a2518e7c1a96369cde6d145916937",
+  "zip_bytes": 4623132,
+  "workflow_status_at_download": "in_progress",
+  "workflow_conclusion_at_download": null,
+  "directory": "C:\\Users\\resta\\Codex\\repos\\apps.git\\.worktrees\\typellm-ci-review-20261017\\review-evidence\\ci-quota-59d-mechanics",
+  "scope": "ACTUAL_CI_ARTIFACT_BYTES_ONLY; INDEPENDENT_CONTENT_REGRADING_PENDING"
+}

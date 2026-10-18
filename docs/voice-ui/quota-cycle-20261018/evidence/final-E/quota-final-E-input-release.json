@@ -1,0 +1,101 @@
+{
+  "schema": "voice-ui.quota-cycle-input-release/1",
+  "status": "PASS",
+  "released_at": "2026-10-17T23:22:43.891Z",
+  "phase": "quota-final-E-20261018",
+  "axis": "E",
+  "phase_kind": "final",
+  "apps_sha": "59ded276405a5dc9caa85ad570b1827ff4bd0c7a",
+  "source_review": "https://github.com/roccho-dev/apps/pull/103#pullrequestreview-5560532224",
+  "commitment_sha256": "b2aea0ad175e93786b5f566b020204ac7c2f3734b867cb9b53741794a2a401ec",
+  "freeze_sha256": "ba374d29ff1d4a19d36fb705058b60baa5cbf8e12af81cb2ef2a6ac3342431e0",
+  "copy_allowlist": [
+    {
+      "name": "quota-cycle-sealed-E-6.v2.inputs.json",
+      "bytes": 4949,
+      "sha256": "926d7007508e0f4b67fe2fb564e1d299d82219ca9e1b95f96e3b26c3d6c9ae40"
+    }
+  ],
+  "input_case_count": 6,
+  "planned_cells": 12,
+  "arm_order": [
+    {
+      "id": "QE01",
+      "arm": "B"
+    },
+    {
+      "id": "QE01",
+      "arm": "C"
+    },
+    {
+      "id": "QE02",
+      "arm": "C"
+    },
+    {
+      "id": "QE02",
+      "arm": "B"
+    },
+    {
+      "id": "QE03",
+      "arm": "B"
+    },
+    {
+      "id": "QE03",
+      "arm": "C"
+    },
+    {
+      "id": "QE04",
+      "arm": "C"
+    },
+    {
+      "id": "QE04",
+      "arm": "B"
+    },
+    {
+      "id": "QE05",
+      "arm": "B"
+    },
+    {
+      "id": "QE05",
+      "arm": "C"
+    },
+    {
+      "id": "QE06",
+      "arm": "C"
+    },
+    {
+      "id": "QE06",
+      "arm": "B"
+    }
+  ],
+  "parent_inputs_sha256": null,
+  "oracle_sha256": "87bc601021241e65ee78e5e8c4a30d316d0e8e9c7fcbbfe3ac2f6b4b7a2b87b3",
+  "oracle_released": false,
+  "charged_at_release": {
+    "jev": 827,
+    "typellm": 86
+  },
+  "ledger_cutoff_sha256": "b36eea50e92ce2a75d87f04beb2cd7850aa9bee64f29a5f4c4f2dd798a2763be",
+  "allowances": {
+    "jev": 114,
+    "typellm": 6
+  },
+  "evidence_bindings": {
+    "pr103-59d-r21-readback.json": "9d076710e5b4ea82718e297acf16c933cbc1dfc74a0225874d905f21a682acfb",
+    "quota-public-R.producer.json": "5c4cc0d562b903cec1235e5bff9e88e2c56f806902ccf9c6d72588ea3404ae19",
+    "quota-public-R-raw-audit.json": "ee1f5ae6092042db74ca29dc5fb432e415605d4c2f983ebccc37fd3486e93b64",
+    "quota-public-E.producer.json": "c09bc00e9f6ddc3307b59b2c9fe990b33f635eb3ea3e964aaf0e4e8a670fd4d5",
+    "quota-public-E-raw-audit.json": "17c081345ae4c7e5f4bcd32d9c4ef27633c425672504976365f14240c8704926",
+    "quota-final-R.producer.json": "e6ff9f256fa3963e71c4d4fdd9c0c57f68332ea74ff161b8559a089f78bc6554",
+    "quota-final-R-raw-audit.json": "2132ad30bbc1305a7a3a77aa1ebc1dd10e1860f6e1022b5911fb56e22d25fe7d",
+    "quota-final-R-stop-audit.json": "e20c57d0bc1d0eef189f788afeabb0e0f17fd49f5cdfdd75e6af0884a375ddfb",
+    "quota-final-R-process-audit.json": "3e6800b728959c6c2429b8fb8a425b284c0f9cf0bf3fcfe90d37d9b4250a91ea"
+  },
+  "public_gates": {
+    "R": "PASS",
+    "E": "PASS"
+  },
+  "preceding_fresh_quality_is_not_an_interlock": true,
+  "scope": "INPUTS_ONLY; IMMUTABLE_E_ORACLE_REMAINS_PRIVATE_UNTIL_STOP; PREPARE_FIXED_ONE_LAUNCH_GET_ONLY_THEN_SEPARATE_ACTUAL_ZERO_SEND_GO; NO_PROVIDER_REQUEST_BY_REVIEWER",
+  "reviewer_real_provider_calls": 0
+}

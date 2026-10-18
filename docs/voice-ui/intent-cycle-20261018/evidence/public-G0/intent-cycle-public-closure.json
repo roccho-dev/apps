@@ -1,0 +1,142 @@
+{
+  "schema": "voice-ui.review.intent-public-closure/1",
+  "integrity": "PASS",
+  "phase_kind": "public",
+  "scope": "PUBLIC_REGRESSION_ONLY",
+  "measurement_head": "81f9f4df488e7f4fd94c63dbc15fe46ab0fb3a25",
+  "admission_review": "https://github.com/roccho-dev/apps/pull/103#pullrequestreview-5559628912",
+  "public_gate": "UNMET",
+  "valid": 10,
+  "total": 10,
+  "correct": 8,
+  "positive_correct": 4,
+  "positive_total": 5,
+  "negative_control_correct": 4,
+  "negative_control_total": 5,
+  "failures": [
+    {
+      "id": "PG01",
+      "expected_intent": "change",
+      "actual_intent": {
+        "choice": "ambiguous",
+        "confidence": 0.39
+      },
+      "actual_completeness": {
+        "choice": "incomplete",
+        "confidence": 0.96
+      },
+      "expected_interpretation_eligible": true,
+      "interpretation_eligible": false
+    },
+    {
+      "id": "PG10",
+      "expected_intent": "unsupported",
+      "actual_intent": {
+        "choice": "no-change",
+        "confidence": 0.75
+      },
+      "actual_completeness": {
+        "choice": "complete",
+        "confidence": 1
+      },
+      "expected_interpretation_eligible": false,
+      "interpretation_eligible": false
+    }
+  ],
+  "actual_type_eligible": [
+    "PG02"
+  ],
+  "unchanged_all_graphs": true,
+  "actual_type_sends": 0,
+  "phase_sent": {
+    "jev": 10,
+    "typellm": 0
+  },
+  "charged": {
+    "jev": 725,
+    "typellm": 71
+  },
+  "confirmed": {
+    "jev": 725,
+    "typellm": 70
+  },
+  "pending": null,
+  "physical": {
+    "pid": 334177,
+    "start_ticks": "17270422",
+    "pid_absent": true,
+    "pgid_all_members_including_zombies": []
+  },
+  "journal_sha256": "efc4a61b73333efc3058c5f6d1fc90f3eaadf929160e1ad69d781a1619b5c517",
+  "raw_files": 13,
+  "source_inputs": 22,
+  "producer_sha256": "e38fb71d3f900864d8ea8d05108dce04c7adafd6e42ffbd85a2e532a4bc88717",
+  "process_state": "PUBLIC_REGRESSION_ONLY",
+  "fresh_releases": [],
+  "public_E_measured": false,
+  "new_sealed_originals": [
+    {
+      "axis": "V",
+      "kind": "input",
+      "path": "intent-cycle-sealed-V-10.inputs.json",
+      "bytes": 7351,
+      "sha256": "81600ac51565a65379a8708165b3d2e4a4165d6b3ebd2787b2203bc784f5c23a",
+      "released": false
+    },
+    {
+      "axis": "V",
+      "kind": "oracle",
+      "path": "intent-cycle-sealed-V-10.oracle.json",
+      "bytes": 14026,
+      "sha256": "6e7ab3601840f3635741da0db14b5c21f2e192f97df0e05db7a64e12b3608859",
+      "released": false
+    },
+    {
+      "axis": "F",
+      "kind": "input",
+      "path": "intent-cycle-sealed-F-8.inputs.json",
+      "bytes": 5408,
+      "sha256": "26a757ce49cc857c4efcd035611e62796bc6d7e271c2addf93f2a24247353dd4",
+      "released": false
+    },
+    {
+      "axis": "F",
+      "kind": "oracle",
+      "path": "intent-cycle-sealed-F-8.oracle.json",
+      "bytes": 11533,
+      "sha256": "ac5e00eccf914c8c9f4fa699526f039786b0f7a6756c3150248399340b4cafb8",
+      "released": false
+    },
+    {
+      "axis": "E",
+      "kind": "input",
+      "path": "intent-cycle-sealed-E-10.v2.inputs.json",
+      "bytes": 6039,
+      "sha256": "128aabf814162b512fd205d65c0069fe8b5e4b441bce24704fea269b0b4e3c4b",
+      "released": false
+    },
+    {
+      "axis": "E",
+      "kind": "oracle",
+      "path": "intent-cycle-sealed-E-10.v2.oracle.json",
+      "bytes": 14481,
+      "sha256": "2fc19095df7c84fda0bf32630bd236ae0fa03fb2b6fbf25d85eef1d709c488a9",
+      "released": false
+    }
+  ],
+  "corrections": 0,
+  "retries": 0,
+  "setup": 0,
+  "quality": "PUBLIC_REGRESSION_ONLY_UNMET",
+  "effect": "UNPROVEN",
+  "NO_EFFECT": "UNPROVEN",
+  "CI_LIVE_EXECUTION": "UNPROVEN",
+  "currency": "COST_NOT_MEASURED",
+  "provider_calls_by_reviewer": 0,
+  "notes": [
+    "Current source, oracle, denominator and gate are unchanged after measurement.",
+    "No Type effect can be inferred from a failed G0 gate with no E measurement.",
+    "The unused allocation is not an implicit extension or correction budget.",
+    "Follow with report-only required CI closure and actual artifact readback; no source changes in this registration."
+  ]
+}

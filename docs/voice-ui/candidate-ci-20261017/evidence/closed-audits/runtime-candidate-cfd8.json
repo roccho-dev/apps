@@ -1,0 +1,58 @@
+{
+  "schema": "voice-ui.candidate.runtime-build/1",
+  "apps_sha": "cfd86a2776f5493867eca0629bae532c9a30480c",
+  "source_path": "/nix/store/416mgdl7mrb4az3rch4wf7lf4zcx53kd-source",
+  "dev_program": {
+    "path": "/nix/store/wf71yzqsyzflvkxycmlnhh603vzbjhqw-voice-ui-dev/bin/voice-ui-dev",
+    "sha256": "2b72a9b0f54f054923fd9a035f71391cfe518a302e573a0f0c647ce7f8f54887"
+  },
+  "artifact_root": "/nix/store/qw731bhnp0nsszjyzg4wk4497d7z4ic9-voice-ui-dist",
+  "manifest": {
+    "path": "/nix/store/qw731bhnp0nsszjyzg4wk4497d7z4ic9-voice-ui-dist/manifest.json",
+    "sha256": "8721a20705e7bacdfe73730e3b01751abf675e73be91bfa67afb9a5696afec70"
+  },
+  "manifest_sources": {
+    "apps": "cfd86a2776f5493867eca0629bae532c9a30480c",
+    "architecture": {
+      "evidence_sha256": "4216d3a8180a71f9102289c789aaebf804f061bdb8b69b34f91a2f1f1d8b1d25",
+      "manifest_sha256": "e7bb32ec7bb33450ed52e619d70b8d7510918797e491d04cff74bc53dae7b50d",
+      "source": {
+        "commit": "cfd86a2776f5493867eca0629bae532c9a30480c",
+        "handle": "apps-voice-ui"
+      },
+      "status": "available"
+    },
+    "hayamimi-web": {
+      "locator": "https://github.com/roccho-dev/ops/releases/download/hayamimi-web-1665d5195a0dd70c2e0253c20351e5305db35f3f/hayamimi-web.zip",
+      "proof_sha256": "a0bb1478a5ffe9440f46682ca143382cd000d0d1d6f736723baad96541be4e27",
+      "sha256": "c12b51e2ea396a64131b917439ffbda1aa1cd70a9fd7f9567ea05030897c672a"
+    },
+    "jev-provider": {
+      "contract": "named-choices-and-typed/1",
+      "entry_sha256": "ad4ac08ae8c42f3bf0e9d0aeedb0a2e9192c776585a3251b2ff1e18358cfe2e7",
+      "locator": "https://github.com/roccho-org/ops/releases/download/jev-provider-cab432ef717cbde9ebd0197ae006c0efe75269bf/jev-provider.zip",
+      "manifest_sha256": "df95aa16e508e5c2563856fc99bd58aaf70fc120633f01c1a102f8598e48b253",
+      "proof_sha256": "41dbd597a7cd40cbb5995ed7cefdbafc047b56fa1ea9d339081aa20589b95e17",
+      "provenance_sha256": "21a44ca37e45a8678133d26532c69c02420c3b445fa6887356e188ba2a988cbf",
+      "sha256": "ea242b5ce5424ee6e367155198b059831b4494d1a0f4c8eeb404d9c12d469512"
+    },
+    "system": "x86_64-linux",
+    "ui": "756d47e891191c3344eb2d29b000203be8331abc"
+  },
+  "worker": {
+    "path": "/nix/store/qw731bhnp0nsszjyzg4wk4497d7z4ic9-voice-ui-dist/worker/worker.mjs",
+    "sha256": "2f23a04fc8a15beaef2702ffb5f6692017c6bc0d4ead8a4a8a8b2625e4d7124f"
+  },
+  "provider": {
+    "path": "/nix/store/js4b23pkhv5pz5sy1gdbb3mjs8xa9zg4-jev-provider-admitted/batch.mjs",
+    "sha256": "ad4ac08ae8c42f3bf0e9d0aeedb0a2e9192c776585a3251b2ff1e18358cfe2e7"
+  },
+  "semantic_map": {
+    "root": "/nix/store/vqjhvwxcbwv7vg09n4d3sy54lw879s9f-semantic-map",
+    "protocol": {
+      "path": "/nix/store/vqjhvwxcbwv7vg09n4d3sy54lw879s9f-semantic-map/packages/semantic-map/protocol/index.js",
+      "sha256": "1689dcf63e1ed19cdea7be22e3f90a09f434841f980b9ca8b9018a987c9c38f8"
+    }
+  },
+  "acceptance_runtime": "/nix/store/mqmmbzqpvl5j15vk0vmn9v6537lc5any-voice-ui-acceptance-node"
+}

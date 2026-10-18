@@ -1,0 +1,329 @@
+{
+  "schema": "voice-ui.frontier-cycle-input/1",
+  "axis": "V",
+  "oracle_sha256": "61de89a893767d873af19ea26da11901acaa6b04005aef87cf7b9e83864a7a5e",
+  "parent_inputs_sha256": null,
+  "fixture_contract": {
+    "map_id": "voice-graph",
+    "base_records": [
+      {
+        "type": "meta",
+        "schema": "semantic-map-state/1",
+        "root": "root",
+        "title": "independent component axes"
+      },
+      {
+        "type": "region",
+        "id": "root",
+        "parent": null,
+        "label": "fixture",
+        "kind": "boundary",
+        "bounds": [
+          0,
+          0,
+          900,
+          400
+        ],
+        "summary": ""
+      },
+      {
+        "type": "region",
+        "id": "container",
+        "parent": "root",
+        "label": "OCI",
+        "kind": "group",
+        "bounds": [
+          0,
+          0,
+          700,
+          200
+        ],
+        "summary": ""
+      },
+      {
+        "type": "region",
+        "id": "other",
+        "parent": "root",
+        "label": "Other",
+        "kind": "group",
+        "bounds": [
+          0,
+          230,
+          700,
+          160
+        ],
+        "summary": ""
+      }
+    ],
+    "base_pins": [
+      {
+        "regionId": "container",
+        "bounds": [
+          0,
+          0,
+          2000,
+          500
+        ]
+      },
+      {
+        "regionId": "other",
+        "bounds": [
+          0,
+          600,
+          2000,
+          500
+        ]
+      }
+    ],
+    "fixtures": {
+      "empty": {
+        "extra_records": [],
+        "extra_pins": []
+      },
+      "api": {
+        "extra_records": [
+          {
+            "type": "region",
+            "id": "initial-api",
+            "parent": "container",
+            "label": "API",
+            "kind": "step",
+            "bounds": [
+              20,
+              20,
+              140,
+              64
+            ],
+            "summary": ""
+          }
+        ],
+        "extra_pins": [
+          {
+            "regionId": "initial-api",
+            "bounds": [
+              12,
+              36,
+              140,
+              64
+            ]
+          }
+        ]
+      },
+      "pair": {
+        "extra_records": [
+          {
+            "type": "region",
+            "id": "initial-api",
+            "parent": "container",
+            "label": "API",
+            "kind": "step",
+            "bounds": [
+              20,
+              20,
+              140,
+              64
+            ],
+            "summary": ""
+          },
+          {
+            "type": "region",
+            "id": "initial-db",
+            "parent": "container",
+            "label": "DB",
+            "kind": "data",
+            "bounds": [
+              200,
+              20,
+              140,
+              64
+            ],
+            "summary": ""
+          }
+        ],
+        "extra_pins": [
+          {
+            "regionId": "initial-api",
+            "bounds": [
+              12,
+              36,
+              140,
+              64
+            ]
+          },
+          {
+            "regionId": "initial-db",
+            "bounds": [
+              200,
+              36,
+              140,
+              64
+            ]
+          }
+        ]
+      }
+    },
+    "recent_conversation": [],
+    "scope": null
+  },
+  "cases": [
+    {
+      "id": "FV01",
+      "fixture": "empty",
+      "utterance": "OCIに二つの工程を新規配置し、両方ともAPIという表示にしてください。同じ部品を二回作る依頼です。",
+      "required": [
+        {
+          "label": "API",
+          "kind": "step",
+          "quantity": 2
+        }
+      ],
+      "arms": [
+        "V"
+      ]
+    },
+    {
+      "id": "FV02",
+      "fixture": "empty",
+      "utterance": "OCIに二つの工程を新規配置し、両方ともAPIという表示にしてください。同じ部品を二回作る依頼です。",
+      "required": [
+        {
+          "label": "API",
+          "kind": "step",
+          "quantity": 1
+        }
+      ],
+      "arms": [
+        "V"
+      ]
+    },
+    {
+      "id": "FV03",
+      "fixture": "empty",
+      "utterance": "Otherへ新設する菱形の判断部品を通過可否という表示名にしてください。一個だけ必要です。",
+      "required": [
+        {
+          "label": "通過可否",
+          "kind": "decision",
+          "quantity": 1
+        }
+      ],
+      "arms": [
+        "V"
+      ]
+    },
+    {
+      "id": "FV04",
+      "fixture": "empty",
+      "utterance": "Otherへ新設する菱形の判断部品を通過可否という表示名にしてください。一個だけ必要です。",
+      "required": [
+        {
+          "label": "通過可否",
+          "kind": "data",
+          "quantity": 1
+        }
+      ],
+      "arms": [
+        "V"
+      ]
+    },
+    {
+      "id": "FV05",
+      "fixture": "empty",
+      "utterance": "OCIに新しくデータと開始を一つずつ置きます。表示名はそれぞれデータと開始のままにしてください。",
+      "required": [
+        {
+          "label": "データ",
+          "kind": "data",
+          "quantity": 1
+        },
+        {
+          "label": "開始",
+          "kind": "start",
+          "quantity": 1
+        }
+      ],
+      "arms": [
+        "V"
+      ]
+    },
+    {
+      "id": "FV06",
+      "fixture": "empty",
+      "utterance": "OCIに新しくデータと開始を一つずつ置きます。表示名はそれぞれデータと開始のままにしてください。",
+      "required": [
+        {
+          "label": "データ",
+          "kind": "data",
+          "quantity": 1
+        }
+      ],
+      "arms": [
+        "V"
+      ]
+    },
+    {
+      "id": "FV07",
+      "fixture": "empty",
+      "utterance": "Otherに一つの保存管理区というグループを作り、その中へ保存一覧というデータを一つ新設します。新しい部品はこの二つです。",
+      "required": [
+        {
+          "label": "保存管理区",
+          "kind": "group",
+          "quantity": 1
+        },
+        {
+          "label": "保存一覧",
+          "kind": "data",
+          "quantity": 1
+        }
+      ],
+      "arms": [
+        "V"
+      ]
+    },
+    {
+      "id": "FV08",
+      "fixture": "empty",
+      "utterance": "Otherに一つの保存管理区というグループを作り、その中へ保存一覧というデータを一つ新設します。新しい部品はこの二つです。",
+      "required": [
+        {
+          "label": "保存管理区",
+          "kind": "group",
+          "quantity": 1
+        },
+        {
+          "label": "保存明細",
+          "kind": "data",
+          "quantity": 1
+        }
+      ],
+      "arms": [
+        "V"
+      ]
+    },
+    {
+      "id": "FV09",
+      "fixture": "pair",
+      "utterance": "OCIの今あるAPIから今あるDBへ向かう接続を一本追加してください。既存の二部品だけを結び、新たな部品は作りません。",
+      "required": [],
+      "arms": [
+        "V"
+      ]
+    },
+    {
+      "id": "FV10",
+      "fixture": "pair",
+      "utterance": "OCIの今あるAPIから今あるDBへ向かう接続を一本追加してください。既存の二部品だけを結び、新たな部品は作りません。",
+      "required": [
+        {
+          "label": "DB",
+          "kind": "data",
+          "quantity": 1
+        }
+      ],
+      "arms": [
+        "V"
+      ]
+    }
+  ]
+}

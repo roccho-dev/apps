@@ -1,0 +1,3546 @@
+{
+  "schema": "voice-ui.component-axes-cell/1",
+  "axis": "E",
+  "id": "R07",
+  "method": "literal",
+  "arm": "B",
+  "replay_suffix_scope": "compatibility only",
+  "fixture": "empty",
+  "utterance": "Otherへ「受付」という工程、「審査」という判断、「結果帳」というデータを1つずつ追加してください。",
+  "parts": [
+    {
+      "key": "step",
+      "purpose": "an ordinary step, task or box",
+      "label": "工程",
+      "kind": "step"
+    },
+    {
+      "key": "decision",
+      "purpose": "a decision, choice or branch",
+      "label": "判断",
+      "kind": "decision"
+    },
+    {
+      "key": "data",
+      "purpose": "data, a document, an input or an output",
+      "label": "データ",
+      "kind": "data"
+    },
+    {
+      "key": "start",
+      "purpose": "a start or beginning",
+      "label": "開始",
+      "kind": "start"
+    },
+    {
+      "key": "end",
+      "purpose": "an end, finish or result",
+      "label": "終了",
+      "kind": "end"
+    },
+    {
+      "key": "api",
+      "purpose": "an application programming interface service that receives requests",
+      "label": "API",
+      "kind": "step"
+    },
+    {
+      "key": "db",
+      "purpose": "a database that persists application data",
+      "label": "DB",
+      "kind": "data"
+    },
+    {
+      "key": "group",
+      "purpose": "a group, boundary or container that holds other parts",
+      "label": "グループ",
+      "kind": "group"
+    }
+  ],
+  "valid_execution": true,
+  "elapsedMs": 13528.50529999999,
+  "result": {
+    "reason": "none",
+    "requests": 8,
+    "elapsedMs": 4227.57000002265,
+    "selected": [
+      {
+        "key": "goal-extra-1",
+        "region": "part-1",
+        "parent": "other"
+      },
+      {
+        "key": "goal-extra-2",
+        "region": "part-2",
+        "parent": "other"
+      },
+      {
+        "key": "goal-extra-3",
+        "region": "part-3",
+        "parent": "other"
+      }
+    ],
+    "trace": [
+      {
+        "head": "sha256:3f44e0d52678bc7ddeac8b19804ffaadfe6a493ce65ba8ca98f345ddd2ff75a2",
+        "answers": {
+          "delta": {
+            "type": "choice",
+            "choice": "part:goal-extra-1",
+            "confidence": 0.95
+          }
+        },
+        "failure": null
+      },
+      {
+        "head": "sha256:3f44e0d52678bc7ddeac8b19804ffaadfe6a493ce65ba8ca98f345ddd2ff75a2",
+        "answers": {
+          "delta": {
+            "type": "choice",
+            "choice": "delta-17",
+            "confidence": 1
+          }
+        },
+        "failure": null
+      },
+      {
+        "head": "sha256:901b24fbe60c2fa7e840ad2f0d9626771db3f760945c7389043768bc78800c6f",
+        "answers": {
+          "delta": {
+            "type": "choice",
+            "choice": "part:goal-extra-2",
+            "confidence": 0.97
+          }
+        },
+        "failure": null
+      },
+      {
+        "head": "sha256:901b24fbe60c2fa7e840ad2f0d9626771db3f760945c7389043768bc78800c6f",
+        "answers": {
+          "delta": {
+            "type": "choice",
+            "choice": "delta-16",
+            "confidence": 1
+          }
+        },
+        "failure": null
+      },
+      {
+        "head": "sha256:f34082820a096813e7cafb51560a98bdbf2ba049cd5c4d73d05006426990b663",
+        "answers": {
+          "delta": {
+            "type": "choice",
+            "choice": "part:goal-extra-3",
+            "confidence": 0.99
+          }
+        },
+        "failure": null
+      },
+      {
+        "head": "sha256:f34082820a096813e7cafb51560a98bdbf2ba049cd5c4d73d05006426990b663",
+        "answers": {
+          "delta": {
+            "type": "choice",
+            "choice": "delta-15",
+            "confidence": 1
+          }
+        },
+        "failure": null
+      },
+      {
+        "head": "sha256:158a57461da6e79741abd6ecb1d238c9cd4ed05f5ff01b7b44ee918081b1e2c7",
+        "answers": {
+          "delta": {
+            "type": "choice",
+            "choice": "none",
+            "confidence": 0.98
+          }
+        },
+        "failure": null
+      }
+    ],
+    "inventory": {
+      "checks": 1,
+      "completions": 1,
+      "coverage": {
+        "choice": "missing",
+        "confidence": 0.94,
+        "inspection": {
+          "source": "literal+jev",
+          "recognized": true,
+          "required": [
+            {
+              "label": "受付",
+              "kind": "step",
+              "quantity": 1
+            },
+            {
+              "label": "審査",
+              "kind": "decision",
+              "quantity": 1
+            },
+            {
+              "label": "結果帳",
+              "kind": "data",
+              "quantity": 1
+            }
+          ],
+          "missing": [
+            {
+              "label": "受付",
+              "kind": "step",
+              "occurrence": 1
+            },
+            {
+              "label": "審査",
+              "kind": "decision",
+              "occurrence": 1
+            },
+            {
+              "label": "結果帳",
+              "kind": "data",
+              "occurrence": 1
+            }
+          ],
+          "spans": [
+            {
+              "start": 7,
+              "end": 9,
+              "source": "受付",
+              "label": "受付",
+              "kind": "step",
+              "quantity": 1
+            },
+            {
+              "start": 17,
+              "end": 19,
+              "source": "審査",
+              "label": "審査",
+              "kind": "decision",
+              "quantity": 1
+            },
+            {
+              "start": 27,
+              "end": 30,
+              "source": "結果帳",
+              "label": "結果帳",
+              "kind": "data",
+              "quantity": 1
+            }
+          ],
+          "completeness": {
+            "choice": "complete",
+            "confidence": 0.94
+          }
+        }
+      },
+      "missing": [
+        {
+          "label": "受付",
+          "kind": "step",
+          "occurrence": 1
+        },
+        {
+          "label": "審査",
+          "kind": "decision",
+          "occurrence": 1
+        },
+        {
+          "label": "結果帳",
+          "kind": "data",
+          "occurrence": 1
+        }
+      ]
+    }
+  },
+  "calls": [
+    {
+      "id": "R07",
+      "arm": "B",
+      "n": 1,
+      "route": "/api/parts/check",
+      "request": {
+        "kind": "voice-ui.goal.inventory.v1",
+        "state": {
+          "utterance": "Otherへ「受付」という工程、「審査」という判断、「結果帳」というデータを1つずつ追加してください。",
+          "head": "sha256:3f44e0d52678bc7ddeac8b19804ffaadfe6a493ce65ba8ca98f345ddd2ff75a2",
+          "regions": [
+            {
+              "id": "root",
+              "label": "fixture",
+              "kind": "boundary",
+              "parent": null
+            },
+            {
+              "id": "container",
+              "label": "OCI",
+              "kind": "group",
+              "parent": "root"
+            },
+            {
+              "id": "other",
+              "label": "Other",
+              "kind": "group",
+              "parent": "root"
+            }
+          ],
+          "edges": [],
+          "parts": [
+            {
+              "key": "step",
+              "purpose": "an ordinary step, task or box",
+              "label": "工程",
+              "kind": "step"
+            },
+            {
+              "key": "decision",
+              "purpose": "a decision, choice or branch",
+              "label": "判断",
+              "kind": "decision"
+            },
+            {
+              "key": "data",
+              "purpose": "data, a document, an input or an output",
+              "label": "データ",
+              "kind": "data"
+            },
+            {
+              "key": "start",
+              "purpose": "a start or beginning",
+              "label": "開始",
+              "kind": "start"
+            },
+            {
+              "key": "end",
+              "purpose": "an end, finish or result",
+              "label": "終了",
+              "kind": "end"
+            },
+            {
+              "key": "api",
+              "purpose": "an application programming interface service that receives requests",
+              "label": "API",
+              "kind": "step"
+            },
+            {
+              "key": "db",
+              "purpose": "a database that persists application data",
+              "label": "DB",
+              "kind": "data"
+            },
+            {
+              "key": "group",
+              "purpose": "a group, boundary or container that holds other parts",
+              "label": "グループ",
+              "kind": "group"
+            }
+          ]
+        }
+      },
+      "status": 200,
+      "response": {
+        "choice": "missing",
+        "confidence": 0.94,
+        "inspection": {
+          "source": "literal+jev",
+          "recognized": true,
+          "required": [
+            {
+              "label": "受付",
+              "kind": "step",
+              "quantity": 1
+            },
+            {
+              "label": "審査",
+              "kind": "decision",
+              "quantity": 1
+            },
+            {
+              "label": "結果帳",
+              "kind": "data",
+              "quantity": 1
+            }
+          ],
+          "missing": [
+            {
+              "label": "受付",
+              "kind": "step",
+              "occurrence": 1
+            },
+            {
+              "label": "審査",
+              "kind": "decision",
+              "occurrence": 1
+            },
+            {
+              "label": "結果帳",
+              "kind": "data",
+              "occurrence": 1
+            }
+          ],
+          "spans": [
+            {
+              "start": 7,
+              "end": 9,
+              "source": "受付",
+              "label": "受付",
+              "kind": "step",
+              "quantity": 1
+            },
+            {
+              "start": 17,
+              "end": 19,
+              "source": "審査",
+              "label": "審査",
+              "kind": "decision",
+              "quantity": 1
+            },
+            {
+              "start": 27,
+              "end": 30,
+              "source": "結果帳",
+              "label": "結果帳",
+              "kind": "data",
+              "quantity": 1
+            }
+          ],
+          "completeness": {
+            "choice": "complete",
+            "confidence": 0.94
+          }
+        }
+      },
+      "elapsedMs": 347.6171999999933
+    },
+    {
+      "id": "R07",
+      "arm": "B",
+      "n": 2,
+      "route": "/api/parts/complete",
+      "request": {
+        "kind": "voice-ui.goal.inventory.v1",
+        "state": {
+          "utterance": "Otherへ「受付」という工程、「審査」という判断、「結果帳」というデータを1つずつ追加してください。",
+          "head": "sha256:3f44e0d52678bc7ddeac8b19804ffaadfe6a493ce65ba8ca98f345ddd2ff75a2",
+          "regions": [
+            {
+              "id": "root",
+              "label": "fixture",
+              "kind": "boundary",
+              "parent": null
+            },
+            {
+              "id": "container",
+              "label": "OCI",
+              "kind": "group",
+              "parent": "root"
+            },
+            {
+              "id": "other",
+              "label": "Other",
+              "kind": "group",
+              "parent": "root"
+            }
+          ],
+          "edges": [],
+          "parts": [
+            {
+              "key": "step",
+              "purpose": "an ordinary step, task or box",
+              "label": "工程",
+              "kind": "step"
+            },
+            {
+              "key": "decision",
+              "purpose": "a decision, choice or branch",
+              "label": "判断",
+              "kind": "decision"
+            },
+            {
+              "key": "data",
+              "purpose": "data, a document, an input or an output",
+              "label": "データ",
+              "kind": "data"
+            },
+            {
+              "key": "start",
+              "purpose": "a start or beginning",
+              "label": "開始",
+              "kind": "start"
+            },
+            {
+              "key": "end",
+              "purpose": "an end, finish or result",
+              "label": "終了",
+              "kind": "end"
+            },
+            {
+              "key": "api",
+              "purpose": "an application programming interface service that receives requests",
+              "label": "API",
+              "kind": "step"
+            },
+            {
+              "key": "db",
+              "purpose": "a database that persists application data",
+              "label": "DB",
+              "kind": "data"
+            },
+            {
+              "key": "group",
+              "purpose": "a group, boundary or container that holds other parts",
+              "label": "グループ",
+              "kind": "group"
+            }
+          ]
+        }
+      },
+      "status": 200,
+      "response": {
+        "missing": [
+          {
+            "label": "受付",
+            "kind": "step",
+            "occurrence": 1
+          },
+          {
+            "label": "審査",
+            "kind": "decision",
+            "occurrence": 1
+          },
+          {
+            "label": "結果帳",
+            "kind": "data",
+            "occurrence": 1
+          }
+        ],
+        "extraction": {
+          "source": "literal",
+          "recognized": true,
+          "required": [
+            {
+              "label": "受付",
+              "kind": "step",
+              "quantity": 1
+            },
+            {
+              "label": "審査",
+              "kind": "decision",
+              "quantity": 1
+            },
+            {
+              "label": "結果帳",
+              "kind": "data",
+              "quantity": 1
+            }
+          ],
+          "spans": [
+            {
+              "start": 7,
+              "end": 9,
+              "source": "受付",
+              "label": "受付",
+              "kind": "step",
+              "quantity": 1
+            },
+            {
+              "start": 17,
+              "end": 19,
+              "source": "審査",
+              "label": "審査",
+              "kind": "decision",
+              "quantity": 1
+            },
+            {
+              "start": 27,
+              "end": 30,
+              "source": "結果帳",
+              "label": "結果帳",
+              "kind": "data",
+              "quantity": 1
+            }
+          ]
+        }
+      },
+      "elapsedMs": 11.218599999992875
+    },
+    {
+      "id": "R07",
+      "arm": "B",
+      "n": 3,
+      "route": "/api/judge",
+      "request": {
+        "kind": "voice-ui.judge.goal-local-delta.v7",
+        "state": {
+          "utterance": "Otherへ「受付」という工程、「審査」という判断、「結果帳」というデータを1つずつ追加してください。",
+          "graph": [
+            {
+              "id": "root",
+              "label": "fixture",
+              "parent": null
+            },
+            {
+              "id": "container",
+              "label": "OCI",
+              "parent": "root"
+            },
+            {
+              "id": "other",
+              "label": "Other",
+              "parent": "root"
+            }
+          ],
+          "edges": [],
+          "parents": [
+            {
+              "id": "container",
+              "label": "OCI",
+              "kind": "group",
+              "parent": "root"
+            },
+            {
+              "id": "other",
+              "label": "Other",
+              "kind": "group",
+              "parent": "root"
+            }
+          ],
+          "offers": {
+            "parts": [
+              {
+                "key": "step",
+                "purpose": "an ordinary step, task or box",
+                "label": "工程"
+              },
+              {
+                "key": "decision",
+                "purpose": "a decision, choice or branch",
+                "label": "判断"
+              },
+              {
+                "key": "data",
+                "purpose": "data, a document, an input or an output",
+                "label": "データ"
+              },
+              {
+                "key": "start",
+                "purpose": "a start or beginning",
+                "label": "開始"
+              },
+              {
+                "key": "end",
+                "purpose": "an end, finish or result",
+                "label": "終了"
+              },
+              {
+                "key": "api",
+                "purpose": "an application programming interface service that receives requests",
+                "label": "API"
+              },
+              {
+                "key": "db",
+                "purpose": "a database that persists application data",
+                "label": "DB"
+              },
+              {
+                "key": "group",
+                "purpose": "a group, boundary or container that holds other parts",
+                "label": "グループ"
+              },
+              {
+                "key": "goal-extra-1",
+                "purpose": "one requested part named 受付, kind step, missing instance 1",
+                "label": "受付"
+              },
+              {
+                "key": "goal-extra-2",
+                "purpose": "one requested part named 審査, kind decision, missing instance 1",
+                "label": "審査"
+              },
+              {
+                "key": "goal-extra-3",
+                "purpose": "one requested part named 結果帳, kind data, missing instance 1",
+                "label": "結果帳"
+              }
+            ]
+          },
+          "selected": [],
+          "candidates": [
+            {
+              "id": "delta-1",
+              "action": "add-part",
+              "part": "api",
+              "parent": "container"
+            },
+            {
+              "id": "delta-2",
+              "action": "add-part",
+              "part": "data",
+              "parent": "container"
+            },
+            {
+              "id": "delta-3",
+              "action": "add-part",
+              "part": "db",
+              "parent": "container"
+            },
+            {
+              "id": "delta-4",
+              "action": "add-part",
+              "part": "decision",
+              "parent": "container"
+            },
+            {
+              "id": "delta-5",
+              "action": "add-part",
+              "part": "end",
+              "parent": "container"
+            },
+            {
+              "id": "delta-6",
+              "action": "add-part",
+              "part": "goal-extra-1",
+              "parent": "container"
+            },
+            {
+              "id": "delta-7",
+              "action": "add-part",
+              "part": "goal-extra-2",
+              "parent": "container"
+            },
+            {
+              "id": "delta-8",
+              "action": "add-part",
+              "part": "goal-extra-3",
+              "parent": "container"
+            },
+            {
+              "id": "delta-9",
+              "action": "add-part",
+              "part": "group",
+              "parent": "container"
+            },
+            {
+              "id": "delta-10",
+              "action": "add-part",
+              "part": "start",
+              "parent": "container"
+            },
+            {
+              "id": "delta-11",
+              "action": "add-part",
+              "part": "step",
+              "parent": "container"
+            },
+            {
+              "id": "delta-12",
+              "action": "add-part",
+              "part": "api",
+              "parent": "other"
+            },
+            {
+              "id": "delta-13",
+              "action": "add-part",
+              "part": "data",
+              "parent": "other"
+            },
+            {
+              "id": "delta-14",
+              "action": "add-part",
+              "part": "db",
+              "parent": "other"
+            },
+            {
+              "id": "delta-15",
+              "action": "add-part",
+              "part": "decision",
+              "parent": "other"
+            },
+            {
+              "id": "delta-16",
+              "action": "add-part",
+              "part": "end",
+              "parent": "other"
+            },
+            {
+              "id": "delta-17",
+              "action": "add-part",
+              "part": "goal-extra-1",
+              "parent": "other"
+            },
+            {
+              "id": "delta-18",
+              "action": "add-part",
+              "part": "goal-extra-2",
+              "parent": "other"
+            },
+            {
+              "id": "delta-19",
+              "action": "add-part",
+              "part": "goal-extra-3",
+              "parent": "other"
+            },
+            {
+              "id": "delta-20",
+              "action": "add-part",
+              "part": "group",
+              "parent": "other"
+            },
+            {
+              "id": "delta-21",
+              "action": "add-part",
+              "part": "start",
+              "parent": "other"
+            },
+            {
+              "id": "delta-22",
+              "action": "add-part",
+              "part": "step",
+              "parent": "other"
+            }
+          ],
+          "context": {
+            "recent": []
+          },
+          "scope": null,
+          "placing": null
+        }
+      },
+      "status": 200,
+      "response": {
+        "kind": "voice-ui.judge.decision.v1",
+        "answers": {
+          "delta": {
+            "type": "choice",
+            "choice": "part:goal-extra-1",
+            "confidence": 0.95
+          }
+        }
+      },
+      "elapsedMs": 212.8451999999961
+    },
+    {
+      "id": "R07",
+      "arm": "B",
+      "n": 4,
+      "route": "/api/judge",
+      "request": {
+        "kind": "voice-ui.judge.goal-local-delta.v7",
+        "state": {
+          "utterance": "Otherへ「受付」という工程、「審査」という判断、「結果帳」というデータを1つずつ追加してください。",
+          "graph": [
+            {
+              "id": "root",
+              "label": "fixture",
+              "parent": null
+            },
+            {
+              "id": "container",
+              "label": "OCI",
+              "parent": "root"
+            },
+            {
+              "id": "other",
+              "label": "Other",
+              "parent": "root"
+            }
+          ],
+          "edges": [],
+          "parents": [
+            {
+              "id": "container",
+              "label": "OCI",
+              "kind": "group",
+              "parent": "root"
+            },
+            {
+              "id": "other",
+              "label": "Other",
+              "kind": "group",
+              "parent": "root"
+            }
+          ],
+          "offers": {
+            "parts": [
+              {
+                "key": "step",
+                "purpose": "an ordinary step, task or box",
+                "label": "工程"
+              },
+              {
+                "key": "decision",
+                "purpose": "a decision, choice or branch",
+                "label": "判断"
+              },
+              {
+                "key": "data",
+                "purpose": "data, a document, an input or an output",
+                "label": "データ"
+              },
+              {
+                "key": "start",
+                "purpose": "a start or beginning",
+                "label": "開始"
+              },
+              {
+                "key": "end",
+                "purpose": "an end, finish or result",
+                "label": "終了"
+              },
+              {
+                "key": "api",
+                "purpose": "an application programming interface service that receives requests",
+                "label": "API"
+              },
+              {
+                "key": "db",
+                "purpose": "a database that persists application data",
+                "label": "DB"
+              },
+              {
+                "key": "group",
+                "purpose": "a group, boundary or container that holds other parts",
+                "label": "グループ"
+              },
+              {
+                "key": "goal-extra-1",
+                "purpose": "one requested part named 受付, kind step, missing instance 1",
+                "label": "受付"
+              },
+              {
+                "key": "goal-extra-2",
+                "purpose": "one requested part named 審査, kind decision, missing instance 1",
+                "label": "審査"
+              },
+              {
+                "key": "goal-extra-3",
+                "purpose": "one requested part named 結果帳, kind data, missing instance 1",
+                "label": "結果帳"
+              }
+            ]
+          },
+          "selected": [],
+          "candidates": [
+            {
+              "id": "delta-6",
+              "action": "add-part",
+              "part": "goal-extra-1",
+              "parent": "container"
+            },
+            {
+              "id": "delta-17",
+              "action": "add-part",
+              "part": "goal-extra-1",
+              "parent": "other"
+            }
+          ],
+          "context": {
+            "recent": []
+          },
+          "scope": null,
+          "placing": "goal-extra-1"
+        }
+      },
+      "status": 200,
+      "response": {
+        "kind": "voice-ui.judge.decision.v1",
+        "answers": {
+          "delta": {
+            "type": "choice",
+            "choice": "delta-17",
+            "confidence": 1
+          }
+        }
+      },
+      "elapsedMs": 188.9308000000019
+    },
+    {
+      "id": "R07",
+      "arm": "B",
+      "n": 5,
+      "route": "/api/judge",
+      "request": {
+        "kind": "voice-ui.judge.goal-local-delta.v7",
+        "state": {
+          "utterance": "Otherへ「受付」という工程、「審査」という判断、「結果帳」というデータを1つずつ追加してください。",
+          "graph": [
+            {
+              "id": "root",
+              "label": "fixture",
+              "parent": null
+            },
+            {
+              "id": "container",
+              "label": "OCI",
+              "parent": "root"
+            },
+            {
+              "id": "other",
+              "label": "Other",
+              "parent": "root"
+            },
+            {
+              "id": "part-1",
+              "label": "受付",
+              "parent": "other"
+            }
+          ],
+          "edges": [],
+          "parents": [
+            {
+              "id": "container",
+              "label": "OCI",
+              "kind": "group",
+              "parent": "root"
+            },
+            {
+              "id": "other",
+              "label": "Other",
+              "kind": "group",
+              "parent": "root"
+            }
+          ],
+          "offers": {
+            "parts": [
+              {
+                "key": "step",
+                "purpose": "an ordinary step, task or box",
+                "label": "工程"
+              },
+              {
+                "key": "decision",
+                "purpose": "a decision, choice or branch",
+                "label": "判断"
+              },
+              {
+                "key": "data",
+                "purpose": "data, a document, an input or an output",
+                "label": "データ"
+              },
+              {
+                "key": "start",
+                "purpose": "a start or beginning",
+                "label": "開始"
+              },
+              {
+                "key": "end",
+                "purpose": "an end, finish or result",
+                "label": "終了"
+              },
+              {
+                "key": "api",
+                "purpose": "an application programming interface service that receives requests",
+                "label": "API"
+              },
+              {
+                "key": "db",
+                "purpose": "a database that persists application data",
+                "label": "DB"
+              },
+              {
+                "key": "group",
+                "purpose": "a group, boundary or container that holds other parts",
+                "label": "グループ"
+              },
+              {
+                "key": "goal-extra-1",
+                "purpose": "one requested part named 受付, kind step, missing instance 1",
+                "label": "受付"
+              },
+              {
+                "key": "goal-extra-2",
+                "purpose": "one requested part named 審査, kind decision, missing instance 1",
+                "label": "審査"
+              },
+              {
+                "key": "goal-extra-3",
+                "purpose": "one requested part named 結果帳, kind data, missing instance 1",
+                "label": "結果帳"
+              }
+            ]
+          },
+          "selected": [
+            {
+              "key": "goal-extra-1",
+              "region": "part-1",
+              "parent": "other"
+            }
+          ],
+          "candidates": [
+            {
+              "id": "delta-1",
+              "action": "add-part",
+              "part": "api",
+              "parent": "container"
+            },
+            {
+              "id": "delta-2",
+              "action": "add-part",
+              "part": "data",
+              "parent": "container"
+            },
+            {
+              "id": "delta-3",
+              "action": "add-part",
+              "part": "db",
+              "parent": "container"
+            },
+            {
+              "id": "delta-4",
+              "action": "add-part",
+              "part": "decision",
+              "parent": "container"
+            },
+            {
+              "id": "delta-5",
+              "action": "add-part",
+              "part": "end",
+              "parent": "container"
+            },
+            {
+              "id": "delta-6",
+              "action": "add-part",
+              "part": "goal-extra-2",
+              "parent": "container"
+            },
+            {
+              "id": "delta-7",
+              "action": "add-part",
+              "part": "goal-extra-3",
+              "parent": "container"
+            },
+            {
+              "id": "delta-8",
+              "action": "add-part",
+              "part": "group",
+              "parent": "container"
+            },
+            {
+              "id": "delta-9",
+              "action": "add-part",
+              "part": "start",
+              "parent": "container"
+            },
+            {
+              "id": "delta-10",
+              "action": "add-part",
+              "part": "step",
+              "parent": "container"
+            },
+            {
+              "id": "delta-11",
+              "action": "add-part",
+              "part": "api",
+              "parent": "other"
+            },
+            {
+              "id": "delta-12",
+              "action": "add-part",
+              "part": "data",
+              "parent": "other"
+            },
+            {
+              "id": "delta-13",
+              "action": "add-part",
+              "part": "db",
+              "parent": "other"
+            },
+            {
+              "id": "delta-14",
+              "action": "add-part",
+              "part": "decision",
+              "parent": "other"
+            },
+            {
+              "id": "delta-15",
+              "action": "add-part",
+              "part": "end",
+              "parent": "other"
+            },
+            {
+              "id": "delta-16",
+              "action": "add-part",
+              "part": "goal-extra-2",
+              "parent": "other"
+            },
+            {
+              "id": "delta-17",
+              "action": "add-part",
+              "part": "goal-extra-3",
+              "parent": "other"
+            },
+            {
+              "id": "delta-18",
+              "action": "add-part",
+              "part": "group",
+              "parent": "other"
+            },
+            {
+              "id": "delta-19",
+              "action": "add-part",
+              "part": "start",
+              "parent": "other"
+            },
+            {
+              "id": "delta-20",
+              "action": "add-part",
+              "part": "step",
+              "parent": "other"
+            }
+          ],
+          "context": {
+            "recent": [
+              {
+                "seq": 1,
+                "source": "typed",
+                "text": "Otherへ「受付」という工程、「審査」という判断、「結果帳」というデータを1つずつ追加してください。",
+                "outcome": "step",
+                "effect": {
+                  "changes": [
+                    {
+                      "change": "added",
+                      "kind": "region",
+                      "id": "part-1",
+                      "label": "受付"
+                    }
+                  ]
+                }
+              }
+            ]
+          },
+          "scope": null,
+          "placing": null
+        }
+      },
+      "status": 200,
+      "response": {
+        "kind": "voice-ui.judge.decision.v1",
+        "answers": {
+          "delta": {
+            "type": "choice",
+            "choice": "part:goal-extra-2",
+            "confidence": 0.97
+          }
+        }
+      },
+      "elapsedMs": 196.71240000000398
+    },
+    {
+      "id": "R07",
+      "arm": "B",
+      "n": 6,
+      "route": "/api/judge",
+      "request": {
+        "kind": "voice-ui.judge.goal-local-delta.v7",
+        "state": {
+          "utterance": "Otherへ「受付」という工程、「審査」という判断、「結果帳」というデータを1つずつ追加してください。",
+          "graph": [
+            {
+              "id": "root",
+              "label": "fixture",
+              "parent": null
+            },
+            {
+              "id": "container",
+              "label": "OCI",
+              "parent": "root"
+            },
+            {
+              "id": "other",
+              "label": "Other",
+              "parent": "root"
+            },
+            {
+              "id": "part-1",
+              "label": "受付",
+              "parent": "other"
+            }
+          ],
+          "edges": [],
+          "parents": [
+            {
+              "id": "container",
+              "label": "OCI",
+              "kind": "group",
+              "parent": "root"
+            },
+            {
+              "id": "other",
+              "label": "Other",
+              "kind": "group",
+              "parent": "root"
+            }
+          ],
+          "offers": {
+            "parts": [
+              {
+                "key": "step",
+                "purpose": "an ordinary step, task or box",
+                "label": "工程"
+              },
+              {
+                "key": "decision",
+                "purpose": "a decision, choice or branch",
+                "label": "判断"
+              },
+              {
+                "key": "data",
+                "purpose": "data, a document, an input or an output",
+                "label": "データ"
+              },
+              {
+                "key": "start",
+                "purpose": "a start or beginning",
+                "label": "開始"
+              },
+              {
+                "key": "end",
+                "purpose": "an end, finish or result",
+                "label": "終了"
+              },
+              {
+                "key": "api",
+                "purpose": "an application programming interface service that receives requests",
+                "label": "API"
+              },
+              {
+                "key": "db",
+                "purpose": "a database that persists application data",
+                "label": "DB"
+              },
+              {
+                "key": "group",
+                "purpose": "a group, boundary or container that holds other parts",
+                "label": "グループ"
+              },
+              {
+                "key": "goal-extra-1",
+                "purpose": "one requested part named 受付, kind step, missing instance 1",
+                "label": "受付"
+              },
+              {
+                "key": "goal-extra-2",
+                "purpose": "one requested part named 審査, kind decision, missing instance 1",
+                "label": "審査"
+              },
+              {
+                "key": "goal-extra-3",
+                "purpose": "one requested part named 結果帳, kind data, missing instance 1",
+                "label": "結果帳"
+              }
+            ]
+          },
+          "selected": [
+            {
+              "key": "goal-extra-1",
+              "region": "part-1",
+              "parent": "other"
+            }
+          ],
+          "candidates": [
+            {
+              "id": "delta-6",
+              "action": "add-part",
+              "part": "goal-extra-2",
+              "parent": "container"
+            },
+            {
+              "id": "delta-16",
+              "action": "add-part",
+              "part": "goal-extra-2",
+              "parent": "other"
+            }
+          ],
+          "context": {
+            "recent": [
+              {
+                "seq": 1,
+                "source": "typed",
+                "text": "Otherへ「受付」という工程、「審査」という判断、「結果帳」というデータを1つずつ追加してください。",
+                "outcome": "step",
+                "effect": {
+                  "changes": [
+                    {
+                      "change": "added",
+                      "kind": "region",
+                      "id": "part-1",
+                      "label": "受付"
+                    }
+                  ]
+                }
+              }
+            ]
+          },
+          "scope": null,
+          "placing": "goal-extra-2"
+        }
+      },
+      "status": 200,
+      "response": {
+        "kind": "voice-ui.judge.decision.v1",
+        "answers": {
+          "delta": {
+            "type": "choice",
+            "choice": "delta-16",
+            "confidence": 1
+          }
+        }
+      },
+      "elapsedMs": 200.1999999999971
+    },
+    {
+      "id": "R07",
+      "arm": "B",
+      "n": 7,
+      "route": "/api/judge",
+      "request": {
+        "kind": "voice-ui.judge.goal-local-delta.v7",
+        "state": {
+          "utterance": "Otherへ「受付」という工程、「審査」という判断、「結果帳」というデータを1つずつ追加してください。",
+          "graph": [
+            {
+              "id": "root",
+              "label": "fixture",
+              "parent": null
+            },
+            {
+              "id": "container",
+              "label": "OCI",
+              "parent": "root"
+            },
+            {
+              "id": "other",
+              "label": "Other",
+              "parent": "root"
+            },
+            {
+              "id": "part-1",
+              "label": "受付",
+              "parent": "other"
+            },
+            {
+              "id": "part-2",
+              "label": "審査",
+              "parent": "other"
+            }
+          ],
+          "edges": [],
+          "parents": [
+            {
+              "id": "container",
+              "label": "OCI",
+              "kind": "group",
+              "parent": "root"
+            },
+            {
+              "id": "other",
+              "label": "Other",
+              "kind": "group",
+              "parent": "root"
+            }
+          ],
+          "offers": {
+            "parts": [
+              {
+                "key": "step",
+                "purpose": "an ordinary step, task or box",
+                "label": "工程"
+              },
+              {
+                "key": "decision",
+                "purpose": "a decision, choice or branch",
+                "label": "判断"
+              },
+              {
+                "key": "data",
+                "purpose": "data, a document, an input or an output",
+                "label": "データ"
+              },
+              {
+                "key": "start",
+                "purpose": "a start or beginning",
+                "label": "開始"
+              },
+              {
+                "key": "end",
+                "purpose": "an end, finish or result",
+                "label": "終了"
+              },
+              {
+                "key": "api",
+                "purpose": "an application programming interface service that receives requests",
+                "label": "API"
+              },
+              {
+                "key": "db",
+                "purpose": "a database that persists application data",
+                "label": "DB"
+              },
+              {
+                "key": "group",
+                "purpose": "a group, boundary or container that holds other parts",
+                "label": "グループ"
+              },
+              {
+                "key": "goal-extra-1",
+                "purpose": "one requested part named 受付, kind step, missing instance 1",
+                "label": "受付"
+              },
+              {
+                "key": "goal-extra-2",
+                "purpose": "one requested part named 審査, kind decision, missing instance 1",
+                "label": "審査"
+              },
+              {
+                "key": "goal-extra-3",
+                "purpose": "one requested part named 結果帳, kind data, missing instance 1",
+                "label": "結果帳"
+              }
+            ]
+          },
+          "selected": [
+            {
+              "key": "goal-extra-1",
+              "region": "part-1",
+              "parent": "other"
+            },
+            {
+              "key": "goal-extra-2",
+              "region": "part-2",
+              "parent": "other"
+            }
+          ],
+          "candidates": [
+            {
+              "id": "delta-1",
+              "action": "add-part",
+              "part": "api",
+              "parent": "container"
+            },
+            {
+              "id": "delta-2",
+              "action": "add-part",
+              "part": "data",
+              "parent": "container"
+            },
+            {
+              "id": "delta-3",
+              "action": "add-part",
+              "part": "db",
+              "parent": "container"
+            },
+            {
+              "id": "delta-4",
+              "action": "add-part",
+              "part": "decision",
+              "parent": "container"
+            },
+            {
+              "id": "delta-5",
+              "action": "add-part",
+              "part": "end",
+              "parent": "container"
+            },
+            {
+              "id": "delta-6",
+              "action": "add-part",
+              "part": "goal-extra-3",
+              "parent": "container"
+            },
+            {
+              "id": "delta-7",
+              "action": "add-part",
+              "part": "group",
+              "parent": "container"
+            },
+            {
+              "id": "delta-8",
+              "action": "add-part",
+              "part": "start",
+              "parent": "container"
+            },
+            {
+              "id": "delta-9",
+              "action": "add-part",
+              "part": "step",
+              "parent": "container"
+            },
+            {
+              "id": "delta-10",
+              "action": "add-part",
+              "part": "api",
+              "parent": "other"
+            },
+            {
+              "id": "delta-11",
+              "action": "add-part",
+              "part": "data",
+              "parent": "other"
+            },
+            {
+              "id": "delta-12",
+              "action": "add-part",
+              "part": "db",
+              "parent": "other"
+            },
+            {
+              "id": "delta-13",
+              "action": "add-part",
+              "part": "decision",
+              "parent": "other"
+            },
+            {
+              "id": "delta-14",
+              "action": "add-part",
+              "part": "end",
+              "parent": "other"
+            },
+            {
+              "id": "delta-15",
+              "action": "add-part",
+              "part": "goal-extra-3",
+              "parent": "other"
+            },
+            {
+              "id": "delta-16",
+              "action": "add-part",
+              "part": "group",
+              "parent": "other"
+            },
+            {
+              "id": "delta-17",
+              "action": "add-part",
+              "part": "start",
+              "parent": "other"
+            },
+            {
+              "id": "delta-18",
+              "action": "add-part",
+              "part": "step",
+              "parent": "other"
+            },
+            {
+              "id": "delta-19",
+              "action": "add-edge",
+              "from": "part-1",
+              "to": "part-2"
+            },
+            {
+              "id": "delta-20",
+              "action": "add-edge",
+              "from": "part-2",
+              "to": "part-1"
+            }
+          ],
+          "context": {
+            "recent": [
+              {
+                "seq": 1,
+                "source": "typed",
+                "text": "Otherへ「受付」という工程、「審査」という判断、「結果帳」というデータを1つずつ追加してください。",
+                "outcome": "step",
+                "effect": {
+                  "changes": [
+                    {
+                      "change": "added",
+                      "kind": "region",
+                      "id": "part-1",
+                      "label": "受付"
+                    },
+                    {
+                      "change": "added",
+                      "kind": "region",
+                      "id": "part-2",
+                      "label": "審査"
+                    }
+                  ]
+                }
+              }
+            ]
+          },
+          "scope": null,
+          "placing": null
+        }
+      },
+      "status": 200,
+      "response": {
+        "kind": "voice-ui.judge.decision.v1",
+        "answers": {
+          "delta": {
+            "type": "choice",
+            "choice": "part:goal-extra-3",
+            "confidence": 0.99
+          }
+        }
+      },
+      "elapsedMs": 203.61909999999625
+    },
+    {
+      "id": "R07",
+      "arm": "B",
+      "n": 8,
+      "route": "/api/judge",
+      "request": {
+        "kind": "voice-ui.judge.goal-local-delta.v7",
+        "state": {
+          "utterance": "Otherへ「受付」という工程、「審査」という判断、「結果帳」というデータを1つずつ追加してください。",
+          "graph": [
+            {
+              "id": "root",
+              "label": "fixture",
+              "parent": null
+            },
+            {
+              "id": "container",
+              "label": "OCI",
+              "parent": "root"
+            },
+            {
+              "id": "other",
+              "label": "Other",
+              "parent": "root"
+            },
+            {
+              "id": "part-1",
+              "label": "受付",
+              "parent": "other"
+            },
+            {
+              "id": "part-2",
+              "label": "審査",
+              "parent": "other"
+            }
+          ],
+          "edges": [],
+          "parents": [
+            {
+              "id": "container",
+              "label": "OCI",
+              "kind": "group",
+              "parent": "root"
+            },
+            {
+              "id": "other",
+              "label": "Other",
+              "kind": "group",
+              "parent": "root"
+            }
+          ],
+          "offers": {
+            "parts": [
+              {
+                "key": "step",
+                "purpose": "an ordinary step, task or box",
+                "label": "工程"
+              },
+              {
+                "key": "decision",
+                "purpose": "a decision, choice or branch",
+                "label": "判断"
+              },
+              {
+                "key": "data",
+                "purpose": "data, a document, an input or an output",
+                "label": "データ"
+              },
+              {
+                "key": "start",
+                "purpose": "a start or beginning",
+                "label": "開始"
+              },
+              {
+                "key": "end",
+                "purpose": "an end, finish or result",
+                "label": "終了"
+              },
+              {
+                "key": "api",
+                "purpose": "an application programming interface service that receives requests",
+                "label": "API"
+              },
+              {
+                "key": "db",
+                "purpose": "a database that persists application data",
+                "label": "DB"
+              },
+              {
+                "key": "group",
+                "purpose": "a group, boundary or container that holds other parts",
+                "label": "グループ"
+              },
+              {
+                "key": "goal-extra-1",
+                "purpose": "one requested part named 受付, kind step, missing instance 1",
+                "label": "受付"
+              },
+              {
+                "key": "goal-extra-2",
+                "purpose": "one requested part named 審査, kind decision, missing instance 1",
+                "label": "審査"
+              },
+              {
+                "key": "goal-extra-3",
+                "purpose": "one requested part named 結果帳, kind data, missing instance 1",
+                "label": "結果帳"
+              }
+            ]
+          },
+          "selected": [
+            {
+              "key": "goal-extra-1",
+              "region": "part-1",
+              "parent": "other"
+            },
+            {
+              "key": "goal-extra-2",
+              "region": "part-2",
+              "parent": "other"
+            }
+          ],
+          "candidates": [
+            {
+              "id": "delta-6",
+              "action": "add-part",
+              "part": "goal-extra-3",
+              "parent": "container"
+            },
+            {
+              "id": "delta-15",
+              "action": "add-part",
+              "part": "goal-extra-3",
+              "parent": "other"
+            }
+          ],
+          "context": {
+            "recent": [
+              {
+                "seq": 1,
+                "source": "typed",
+                "text": "Otherへ「受付」という工程、「審査」という判断、「結果帳」というデータを1つずつ追加してください。",
+                "outcome": "step",
+                "effect": {
+                  "changes": [
+                    {
+                      "change": "added",
+                      "kind": "region",
+                      "id": "part-1",
+                      "label": "受付"
+                    },
+                    {
+                      "change": "added",
+                      "kind": "region",
+                      "id": "part-2",
+                      "label": "審査"
+                    }
+                  ]
+                }
+              }
+            ]
+          },
+          "scope": null,
+          "placing": "goal-extra-3"
+        }
+      },
+      "status": 200,
+      "response": {
+        "kind": "voice-ui.judge.decision.v1",
+        "answers": {
+          "delta": {
+            "type": "choice",
+            "choice": "delta-15",
+            "confidence": 1
+          }
+        }
+      },
+      "elapsedMs": 236.13489999999
+    },
+    {
+      "id": "R07",
+      "arm": "B",
+      "n": 9,
+      "route": "/api/judge",
+      "request": {
+        "kind": "voice-ui.judge.goal-local-delta.v7",
+        "state": {
+          "utterance": "Otherへ「受付」という工程、「審査」という判断、「結果帳」というデータを1つずつ追加してください。",
+          "graph": [
+            {
+              "id": "root",
+              "label": "fixture",
+              "parent": null
+            },
+            {
+              "id": "container",
+              "label": "OCI",
+              "parent": "root"
+            },
+            {
+              "id": "other",
+              "label": "Other",
+              "parent": "root"
+            },
+            {
+              "id": "part-1",
+              "label": "受付",
+              "parent": "other"
+            },
+            {
+              "id": "part-2",
+              "label": "審査",
+              "parent": "other"
+            },
+            {
+              "id": "part-3",
+              "label": "結果帳",
+              "parent": "other"
+            }
+          ],
+          "edges": [],
+          "parents": [
+            {
+              "id": "container",
+              "label": "OCI",
+              "kind": "group",
+              "parent": "root"
+            },
+            {
+              "id": "other",
+              "label": "Other",
+              "kind": "group",
+              "parent": "root"
+            }
+          ],
+          "offers": {
+            "parts": [
+              {
+                "key": "step",
+                "purpose": "an ordinary step, task or box",
+                "label": "工程"
+              },
+              {
+                "key": "decision",
+                "purpose": "a decision, choice or branch",
+                "label": "判断"
+              },
+              {
+                "key": "data",
+                "purpose": "data, a document, an input or an output",
+                "label": "データ"
+              },
+              {
+                "key": "start",
+                "purpose": "a start or beginning",
+                "label": "開始"
+              },
+              {
+                "key": "end",
+                "purpose": "an end, finish or result",
+                "label": "終了"
+              },
+              {
+                "key": "api",
+                "purpose": "an application programming interface service that receives requests",
+                "label": "API"
+              },
+              {
+                "key": "db",
+                "purpose": "a database that persists application data",
+                "label": "DB"
+              },
+              {
+                "key": "group",
+                "purpose": "a group, boundary or container that holds other parts",
+                "label": "グループ"
+              },
+              {
+                "key": "goal-extra-1",
+                "purpose": "one requested part named 受付, kind step, missing instance 1",
+                "label": "受付"
+              },
+              {
+                "key": "goal-extra-2",
+                "purpose": "one requested part named 審査, kind decision, missing instance 1",
+                "label": "審査"
+              },
+              {
+                "key": "goal-extra-3",
+                "purpose": "one requested part named 結果帳, kind data, missing instance 1",
+                "label": "結果帳"
+              }
+            ]
+          },
+          "selected": [
+            {
+              "key": "goal-extra-1",
+              "region": "part-1",
+              "parent": "other"
+            },
+            {
+              "key": "goal-extra-2",
+              "region": "part-2",
+              "parent": "other"
+            },
+            {
+              "key": "goal-extra-3",
+              "region": "part-3",
+              "parent": "other"
+            }
+          ],
+          "candidates": [
+            {
+              "id": "delta-1",
+              "action": "add-part",
+              "part": "api",
+              "parent": "container"
+            },
+            {
+              "id": "delta-2",
+              "action": "add-part",
+              "part": "data",
+              "parent": "container"
+            },
+            {
+              "id": "delta-3",
+              "action": "add-part",
+              "part": "db",
+              "parent": "container"
+            },
+            {
+              "id": "delta-4",
+              "action": "add-part",
+              "part": "decision",
+              "parent": "container"
+            },
+            {
+              "id": "delta-5",
+              "action": "add-part",
+              "part": "end",
+              "parent": "container"
+            },
+            {
+              "id": "delta-6",
+              "action": "add-part",
+              "part": "group",
+              "parent": "container"
+            },
+            {
+              "id": "delta-7",
+              "action": "add-part",
+              "part": "start",
+              "parent": "container"
+            },
+            {
+              "id": "delta-8",
+              "action": "add-part",
+              "part": "step",
+              "parent": "container"
+            },
+            {
+              "id": "delta-9",
+              "action": "add-part",
+              "part": "api",
+              "parent": "other"
+            },
+            {
+              "id": "delta-10",
+              "action": "add-part",
+              "part": "data",
+              "parent": "other"
+            },
+            {
+              "id": "delta-11",
+              "action": "add-part",
+              "part": "db",
+              "parent": "other"
+            },
+            {
+              "id": "delta-12",
+              "action": "add-part",
+              "part": "decision",
+              "parent": "other"
+            },
+            {
+              "id": "delta-13",
+              "action": "add-part",
+              "part": "end",
+              "parent": "other"
+            },
+            {
+              "id": "delta-14",
+              "action": "add-part",
+              "part": "group",
+              "parent": "other"
+            },
+            {
+              "id": "delta-15",
+              "action": "add-part",
+              "part": "start",
+              "parent": "other"
+            },
+            {
+              "id": "delta-16",
+              "action": "add-part",
+              "part": "step",
+              "parent": "other"
+            },
+            {
+              "id": "delta-17",
+              "action": "add-edge",
+              "from": "part-1",
+              "to": "part-2"
+            },
+            {
+              "id": "delta-18",
+              "action": "add-edge",
+              "from": "part-1",
+              "to": "part-3"
+            },
+            {
+              "id": "delta-19",
+              "action": "add-edge",
+              "from": "part-2",
+              "to": "part-1"
+            },
+            {
+              "id": "delta-20",
+              "action": "add-edge",
+              "from": "part-2",
+              "to": "part-3"
+            },
+            {
+              "id": "delta-21",
+              "action": "add-edge",
+              "from": "part-3",
+              "to": "part-1"
+            },
+            {
+              "id": "delta-22",
+              "action": "add-edge",
+              "from": "part-3",
+              "to": "part-2"
+            }
+          ],
+          "context": {
+            "recent": [
+              {
+                "seq": 1,
+                "source": "typed",
+                "text": "Otherへ「受付」という工程、「審査」という判断、「結果帳」というデータを1つずつ追加してください。",
+                "outcome": "step",
+                "effect": {
+                  "changes": [
+                    {
+                      "change": "added",
+                      "kind": "region",
+                      "id": "part-1",
+                      "label": "受付"
+                    },
+                    {
+                      "change": "added",
+                      "kind": "region",
+                      "id": "part-2",
+                      "label": "審査"
+                    },
+                    {
+                      "change": "added",
+                      "kind": "region",
+                      "id": "part-3",
+                      "label": "結果帳"
+                    }
+                  ]
+                }
+              }
+            ]
+          },
+          "scope": null,
+          "placing": null
+        }
+      },
+      "status": 200,
+      "response": {
+        "kind": "voice-ui.judge.decision.v1",
+        "answers": {
+          "delta": {
+            "type": "choice",
+            "choice": "none",
+            "confidence": 0.98
+          }
+        }
+      },
+      "elapsedMs": 258.280700000003
+    }
+  ],
+  "initial_head": "sha256:3f44e0d52678bc7ddeac8b19804ffaadfe6a493ce65ba8ca98f345ddd2ff75a2",
+  "initial_log": "{\"operations\":[{\"mapId\":\"voice-graph\",\"records\":[{\"root\":\"root\",\"schema\":\"semantic-map-state/1\",\"title\":\"sealed small PoC\",\"type\":\"meta\"},{\"bounds\":[0,0,900,400],\"id\":\"root\",\"kind\":\"boundary\",\"label\":\"fixture\",\"parent\":null,\"summary\":\"\",\"type\":\"region\"},{\"bounds\":[0,0,700,200],\"id\":\"container\",\"kind\":\"group\",\"label\":\"OCI\",\"parent\":\"root\",\"summary\":\"\",\"type\":\"region\"},{\"bounds\":[0,230,700,160],\"id\":\"other\",\"kind\":\"group\",\"label\":\"Other\",\"parent\":\"root\",\"summary\":\"\",\"type\":\"region\"}],\"type\":\"CreateMap\"}],\"parent\":null,\"schema\":\"semantic-map-decision/2\",\"stateHash\":\"sha256:721939a9428f00adec7d4771ae910ab118bb80cd0bb2f36e7790f7e761599204\"}\n{\"operations\":[{\"items\":[{\"bounds\":[0,0,2000,500],\"regionId\":\"container\"},{\"bounds\":[0,600,2000,500],\"regionId\":\"other\"}],\"type\":\"PinRegions\"}],\"parent\":\"sha256:e411c26b1ae696e494de68f591334b0ebbd9928edb8da647d681d5278575d42b\",\"schema\":\"semantic-map-decision/2\",\"stateHash\":\"sha256:08e53be00691c0b7ba556e34955fe1695e1b0a7d1a15eb82c05b0d87e7b385ed\"}\n",
+  "initial_log_sha256": "32f7c43ed78ccead4936c39d30e00fd36340a388192bb9e0c9b0265801848079",
+  "initial_records": [
+    {
+      "type": "meta",
+      "schema": "semantic-map-state/1",
+      "root": "root",
+      "title": "sealed small PoC"
+    },
+    {
+      "type": "region",
+      "id": "root",
+      "parent": null,
+      "label": "fixture",
+      "kind": "boundary",
+      "bounds": [
+        0,
+        0,
+        900,
+        400
+      ],
+      "summary": ""
+    },
+    {
+      "type": "region",
+      "id": "container",
+      "parent": "root",
+      "label": "OCI",
+      "kind": "group",
+      "bounds": [
+        0,
+        0,
+        700,
+        200
+      ],
+      "summary": ""
+    },
+    {
+      "type": "region",
+      "id": "other",
+      "parent": "root",
+      "label": "Other",
+      "kind": "group",
+      "bounds": [
+        0,
+        230,
+        700,
+        160
+      ],
+      "summary": ""
+    },
+    {
+      "type": "layout",
+      "regionId": "container",
+      "pin": "hard",
+      "bounds": [
+        0,
+        0,
+        2000,
+        500
+      ]
+    },
+    {
+      "type": "layout",
+      "regionId": "other",
+      "pin": "hard",
+      "bounds": [
+        0,
+        600,
+        2000,
+        500
+      ]
+    }
+  ],
+  "final_head": "sha256:158a57461da6e79741abd6ecb1d238c9cd4ed05f5ff01b7b44ee918081b1e2c7",
+  "final_log": "{\"operations\":[{\"mapId\":\"voice-graph\",\"records\":[{\"root\":\"root\",\"schema\":\"semantic-map-state/1\",\"title\":\"sealed small PoC\",\"type\":\"meta\"},{\"bounds\":[0,0,900,400],\"id\":\"root\",\"kind\":\"boundary\",\"label\":\"fixture\",\"parent\":null,\"summary\":\"\",\"type\":\"region\"},{\"bounds\":[0,0,700,200],\"id\":\"container\",\"kind\":\"group\",\"label\":\"OCI\",\"parent\":\"root\",\"summary\":\"\",\"type\":\"region\"},{\"bounds\":[0,230,700,160],\"id\":\"other\",\"kind\":\"group\",\"label\":\"Other\",\"parent\":\"root\",\"summary\":\"\",\"type\":\"region\"}],\"type\":\"CreateMap\"}],\"parent\":null,\"schema\":\"semantic-map-decision/2\",\"stateHash\":\"sha256:721939a9428f00adec7d4771ae910ab118bb80cd0bb2f36e7790f7e761599204\"}\n{\"operations\":[{\"items\":[{\"bounds\":[0,0,2000,500],\"regionId\":\"container\"},{\"bounds\":[0,600,2000,500],\"regionId\":\"other\"}],\"type\":\"PinRegions\"}],\"parent\":\"sha256:e411c26b1ae696e494de68f591334b0ebbd9928edb8da647d681d5278575d42b\",\"schema\":\"semantic-map-decision/2\",\"stateHash\":\"sha256:08e53be00691c0b7ba556e34955fe1695e1b0a7d1a15eb82c05b0d87e7b385ed\"}\n{\"operations\":[{\"bounds\":[20,250,140,64],\"kind\":\"step\",\"label\":\"受付\",\"parentId\":\"other\",\"regionId\":\"part-1\",\"summary\":\"\",\"type\":\"AddRegion\"},{\"items\":[{\"bounds\":[12,636,180,92],\"regionId\":\"part-1\"}],\"type\":\"PinRegions\"}],\"parent\":\"sha256:3f44e0d52678bc7ddeac8b19804ffaadfe6a493ce65ba8ca98f345ddd2ff75a2\",\"schema\":\"semantic-map-decision/2\",\"stateHash\":\"sha256:70469dc4343d476bb275fd452ac2e34130f08a3c097a153c965915f6e2c42fb9\"}\n{\"operations\":[{\"bounds\":[180,250,140,64],\"kind\":\"decision\",\"label\":\"審査\",\"parentId\":\"other\",\"regionId\":\"part-2\",\"summary\":\"\",\"type\":\"AddRegion\"},{\"items\":[{\"bounds\":[216,636,180,92],\"regionId\":\"part-2\"}],\"type\":\"PinRegions\"}],\"parent\":\"sha256:901b24fbe60c2fa7e840ad2f0d9626771db3f760945c7389043768bc78800c6f\",\"schema\":\"semantic-map-decision/2\",\"stateHash\":\"sha256:06182355e4cdbabf2f327f4df1115f27273a4316e46fd7a033a803baf124ac07\"}\n{\"operations\":[{\"bounds\":[340,250,140,64],\"kind\":\"data\",\"label\":\"結果帳\",\"parentId\":\"other\",\"regionId\":\"part-3\",\"summary\":\"\",\"type\":\"AddRegion\"},{\"items\":[{\"bounds\":[420,636,180,92],\"regionId\":\"part-3\"}],\"type\":\"PinRegions\"}],\"parent\":\"sha256:f34082820a096813e7cafb51560a98bdbf2ba049cd5c4d73d05006426990b663\",\"schema\":\"semantic-map-decision/2\",\"stateHash\":\"sha256:f8eeb2bb61dc0696ab6ce443fad4f8d1bd72c060dd1ed81fdeb5039745807435\"}\n",
+  "final_records": [
+    {
+      "type": "meta",
+      "schema": "semantic-map-state/1",
+      "root": "root",
+      "title": "sealed small PoC"
+    },
+    {
+      "type": "region",
+      "id": "root",
+      "parent": null,
+      "label": "fixture",
+      "kind": "boundary",
+      "bounds": [
+        0,
+        0,
+        900,
+        400
+      ],
+      "summary": ""
+    },
+    {
+      "type": "region",
+      "id": "container",
+      "parent": "root",
+      "label": "OCI",
+      "kind": "group",
+      "bounds": [
+        0,
+        0,
+        700,
+        200
+      ],
+      "summary": ""
+    },
+    {
+      "type": "region",
+      "id": "other",
+      "parent": "root",
+      "label": "Other",
+      "kind": "group",
+      "bounds": [
+        0,
+        230,
+        700,
+        160
+      ],
+      "summary": ""
+    },
+    {
+      "type": "region",
+      "id": "part-1",
+      "parent": "other",
+      "label": "受付",
+      "kind": "step",
+      "bounds": [
+        20,
+        250,
+        140,
+        64
+      ],
+      "summary": ""
+    },
+    {
+      "type": "region",
+      "id": "part-2",
+      "parent": "other",
+      "label": "審査",
+      "kind": "decision",
+      "bounds": [
+        180,
+        250,
+        140,
+        64
+      ],
+      "summary": ""
+    },
+    {
+      "type": "region",
+      "id": "part-3",
+      "parent": "other",
+      "label": "結果帳",
+      "kind": "data",
+      "bounds": [
+        340,
+        250,
+        140,
+        64
+      ],
+      "summary": ""
+    },
+    {
+      "type": "layout",
+      "regionId": "container",
+      "pin": "hard",
+      "bounds": [
+        0,
+        0,
+        2000,
+        500
+      ]
+    },
+    {
+      "type": "layout",
+      "regionId": "other",
+      "pin": "hard",
+      "bounds": [
+        0,
+        600,
+        2000,
+        500
+      ]
+    },
+    {
+      "type": "layout",
+      "regionId": "part-1",
+      "pin": "hard",
+      "bounds": [
+        12,
+        636,
+        180,
+        92
+      ]
+    },
+    {
+      "type": "layout",
+      "regionId": "part-2",
+      "pin": "hard",
+      "bounds": [
+        216,
+        636,
+        180,
+        92
+      ]
+    },
+    {
+      "type": "layout",
+      "regionId": "part-3",
+      "pin": "hard",
+      "bounds": [
+        420,
+        636,
+        180,
+        92
+      ]
+    }
+  ],
+  "frames": [
+    {
+      "camera": "overview",
+      "scope": "restore equality only; hidden children do not imply paint"
+    },
+    {
+      "camera": "container",
+      "observation": {
+        "association": "render-owned-semantic-id",
+        "title": {
+          "unmet": null,
+          "box": [
+            303,
+            206.86000061035156,
+            20,
+            16
+          ],
+          "clips": [
+            [
+              4,
+              136,
+              619,
+              157
+            ],
+            [
+              0,
+              0,
+              626,
+              429
+            ],
+            [
+              0,
+              0,
+              626,
+              429
+            ],
+            [
+              0,
+              0,
+              626,
+              429
+            ]
+          ],
+          "svg": [
+            0,
+            0,
+            638,
+            485
+          ]
+        },
+        "identity": true,
+        "viewport": [
+          0,
+          0,
+          626,
+          429
+        ],
+        "container": {
+          "id": "container",
+          "kind": "painted-group-shape",
+          "bounds": [
+            5.429999828338623,
+            137.97999572753906,
+            616.1400146484375,
+            154.0399932861328
+          ]
+        },
+        "shapes": [],
+        "edge": null,
+        "contained": true,
+        "nonoverlap": true,
+        "complete": true
+      },
+      "assessment": {
+        "status": "PASS",
+        "problems": [],
+        "unknown": []
+      }
+    },
+    {
+      "camera": "other",
+      "observation": {
+        "association": "render-owned-semantic-id",
+        "title": {
+          "unmet": null,
+          "box": [
+            27.729999542236328,
+            158.88999938964844,
+            36,
+            19
+          ],
+          "clips": [
+            [
+              0,
+              0,
+              626,
+              429
+            ],
+            [
+              0,
+              0,
+              626,
+              429
+            ],
+            [
+              0,
+              0,
+              626,
+              429
+            ]
+          ],
+          "svg": [
+            0,
+            0,
+            2046,
+            1143
+          ]
+        },
+        "identity": true,
+        "viewport": [
+          0,
+          0,
+          626,
+          429
+        ],
+        "container": {
+          "id": "other",
+          "kind": "painted-group-shape",
+          "bounds": [
+            16.350000381469727,
+            151.61000061035156,
+            1981.010009765625,
+            495.25
+          ]
+        },
+        "shapes": [
+          {
+            "id": "part-1",
+            "rawLabel": "受付",
+            "bounds": [
+              27.729999542236328,
+              186.77000427246094,
+              178.2899932861328,
+              91.12998962402344
+            ],
+            "name": {
+              "unmet": null,
+              "box": [
+                103.87998962402344,
+                222.77999877929688,
+                26,
+                19
+              ],
+              "clips": [
+                [
+                  28,
+                  187,
+                  178,
+                  91
+                ],
+                [
+                  0,
+                  0,
+                  626,
+                  429
+                ],
+                [
+                  0,
+                  0,
+                  626,
+                  429
+                ],
+                [
+                  0,
+                  0,
+                  626,
+                  429
+                ]
+              ],
+              "svg": [
+                0,
+                0,
+                2046,
+                1143
+              ]
+            }
+          },
+          {
+            "id": "part-2",
+            "rawLabel": "審査",
+            "bounds": [
+              229.8000030517578,
+              186.77000427246094,
+              178.2899932861328,
+              91.12001037597656
+            ],
+            "name": {
+              "unmet": null,
+              "box": [
+                305.94000244140625,
+                222.77999877929688,
+                26,
+                19
+              ],
+              "clips": [
+                [
+                  242,
+                  187,
+                  155,
+                  91
+                ],
+                [
+                  0,
+                  0,
+                  626,
+                  429
+                ],
+                [
+                  0,
+                  0,
+                  626,
+                  429
+                ],
+                [
+                  0,
+                  0,
+                  626,
+                  429
+                ]
+              ],
+              "svg": [
+                0,
+                0,
+                2046,
+                1143
+              ]
+            }
+          },
+          {
+            "id": "part-3",
+            "rawLabel": "結果帳",
+            "bounds": [
+              431.8599853515625,
+              186.77000427246094,
+              178.2900390625,
+              91.12001037597656
+            ],
+            "name": {
+              "unmet": null,
+              "box": [
+                501.510009765625,
+                222.77999877929688,
+                39,
+                19
+              ],
+              "clips": [
+                [
+                  444,
+                  187,
+                  155,
+                  91
+                ],
+                [
+                  0,
+                  0,
+                  626,
+                  429
+                ],
+                [
+                  0,
+                  0,
+                  626,
+                  429
+                ],
+                [
+                  0,
+                  0,
+                  626,
+                  429
+                ]
+              ],
+              "svg": [
+                0,
+                0,
+                2046,
+                1143
+              ]
+            }
+          }
+        ],
+        "edge": null,
+        "contained": true,
+        "nonoverlap": true,
+        "complete": true
+      },
+      "assessment": {
+        "status": "PASS",
+        "problems": [],
+        "unknown": []
+      }
+    }
+  ],
+  "lifecycle": {
+    "target": {
+      "log": "{\"operations\":[{\"mapId\":\"voice-graph\",\"records\":[{\"root\":\"root\",\"schema\":\"semantic-map-state/1\",\"title\":\"sealed small PoC\",\"type\":\"meta\"},{\"bounds\":[0,0,900,400],\"id\":\"root\",\"kind\":\"boundary\",\"label\":\"fixture\",\"parent\":null,\"summary\":\"\",\"type\":\"region\"},{\"bounds\":[0,0,700,200],\"id\":\"container\",\"kind\":\"group\",\"label\":\"OCI\",\"parent\":\"root\",\"summary\":\"\",\"type\":\"region\"},{\"bounds\":[0,230,700,160],\"id\":\"other\",\"kind\":\"group\",\"label\":\"Other\",\"parent\":\"root\",\"summary\":\"\",\"type\":\"region\"}],\"type\":\"CreateMap\"}],\"parent\":null,\"schema\":\"semantic-map-decision/2\",\"stateHash\":\"sha256:721939a9428f00adec7d4771ae910ab118bb80cd0bb2f36e7790f7e761599204\"}\n{\"operations\":[{\"items\":[{\"bounds\":[0,0,2000,500],\"regionId\":\"container\"},{\"bounds\":[0,600,2000,500],\"regionId\":\"other\"}],\"type\":\"PinRegions\"}],\"parent\":\"sha256:e411c26b1ae696e494de68f591334b0ebbd9928edb8da647d681d5278575d42b\",\"schema\":\"semantic-map-decision/2\",\"stateHash\":\"sha256:08e53be00691c0b7ba556e34955fe1695e1b0a7d1a15eb82c05b0d87e7b385ed\"}\n{\"operations\":[{\"bounds\":[20,250,140,64],\"kind\":\"step\",\"label\":\"受付\",\"parentId\":\"other\",\"regionId\":\"part-1\",\"summary\":\"\",\"type\":\"AddRegion\"},{\"items\":[{\"bounds\":[12,636,180,92],\"regionId\":\"part-1\"}],\"type\":\"PinRegions\"}],\"parent\":\"sha256:3f44e0d52678bc7ddeac8b19804ffaadfe6a493ce65ba8ca98f345ddd2ff75a2\",\"schema\":\"semantic-map-decision/2\",\"stateHash\":\"sha256:70469dc4343d476bb275fd452ac2e34130f08a3c097a153c965915f6e2c42fb9\"}\n{\"operations\":[{\"bounds\":[180,250,140,64],\"kind\":\"decision\",\"label\":\"審査\",\"parentId\":\"other\",\"regionId\":\"part-2\",\"summary\":\"\",\"type\":\"AddRegion\"},{\"items\":[{\"bounds\":[216,636,180,92],\"regionId\":\"part-2\"}],\"type\":\"PinRegions\"}],\"parent\":\"sha256:901b24fbe60c2fa7e840ad2f0d9626771db3f760945c7389043768bc78800c6f\",\"schema\":\"semantic-map-decision/2\",\"stateHash\":\"sha256:06182355e4cdbabf2f327f4df1115f27273a4316e46fd7a033a803baf124ac07\"}\n{\"operations\":[{\"bounds\":[340,250,140,64],\"kind\":\"data\",\"label\":\"結果帳\",\"parentId\":\"other\",\"regionId\":\"part-3\",\"summary\":\"\",\"type\":\"AddRegion\"},{\"items\":[{\"bounds\":[420,636,180,92],\"regionId\":\"part-3\"}],\"type\":\"PinRegions\"}],\"parent\":\"sha256:f34082820a096813e7cafb51560a98bdbf2ba049cd5c4d73d05006426990b663\",\"schema\":\"semantic-map-decision/2\",\"stateHash\":\"sha256:f8eeb2bb61dc0696ab6ce443fad4f8d1bd72c060dd1ed81fdeb5039745807435\"}\n",
+      "records": [
+        {
+          "type": "meta",
+          "schema": "semantic-map-state/1",
+          "root": "root",
+          "title": "sealed small PoC"
+        },
+        {
+          "type": "region",
+          "id": "root",
+          "parent": null,
+          "label": "fixture",
+          "kind": "boundary",
+          "bounds": [
+            0,
+            0,
+            900,
+            400
+          ],
+          "summary": ""
+        },
+        {
+          "type": "region",
+          "id": "container",
+          "parent": "root",
+          "label": "OCI",
+          "kind": "group",
+          "bounds": [
+            0,
+            0,
+            700,
+            200
+          ],
+          "summary": ""
+        },
+        {
+          "type": "region",
+          "id": "other",
+          "parent": "root",
+          "label": "Other",
+          "kind": "group",
+          "bounds": [
+            0,
+            230,
+            700,
+            160
+          ],
+          "summary": ""
+        },
+        {
+          "type": "region",
+          "id": "part-1",
+          "parent": "other",
+          "label": "受付",
+          "kind": "step",
+          "bounds": [
+            20,
+            250,
+            140,
+            64
+          ],
+          "summary": ""
+        },
+        {
+          "type": "region",
+          "id": "part-2",
+          "parent": "other",
+          "label": "審査",
+          "kind": "decision",
+          "bounds": [
+            180,
+            250,
+            140,
+            64
+          ],
+          "summary": ""
+        },
+        {
+          "type": "region",
+          "id": "part-3",
+          "parent": "other",
+          "label": "結果帳",
+          "kind": "data",
+          "bounds": [
+            340,
+            250,
+            140,
+            64
+          ],
+          "summary": ""
+        },
+        {
+          "type": "layout",
+          "regionId": "container",
+          "pin": "hard",
+          "bounds": [
+            0,
+            0,
+            2000,
+            500
+          ]
+        },
+        {
+          "type": "layout",
+          "regionId": "other",
+          "pin": "hard",
+          "bounds": [
+            0,
+            600,
+            2000,
+            500
+          ]
+        },
+        {
+          "type": "layout",
+          "regionId": "part-1",
+          "pin": "hard",
+          "bounds": [
+            12,
+            636,
+            180,
+            92
+          ]
+        },
+        {
+          "type": "layout",
+          "regionId": "part-2",
+          "pin": "hard",
+          "bounds": [
+            216,
+            636,
+            180,
+            92
+          ]
+        },
+        {
+          "type": "layout",
+          "regionId": "part-3",
+          "pin": "hard",
+          "bounds": [
+            420,
+            636,
+            180,
+            92
+          ]
+        }
+      ],
+      "stored": "{\"operations\":[{\"mapId\":\"voice-graph\",\"records\":[{\"root\":\"root\",\"schema\":\"semantic-map-state/1\",\"title\":\"sealed small PoC\",\"type\":\"meta\"},{\"bounds\":[0,0,900,400],\"id\":\"root\",\"kind\":\"boundary\",\"label\":\"fixture\",\"parent\":null,\"summary\":\"\",\"type\":\"region\"},{\"bounds\":[0,0,700,200],\"id\":\"container\",\"kind\":\"group\",\"label\":\"OCI\",\"parent\":\"root\",\"summary\":\"\",\"type\":\"region\"},{\"bounds\":[0,230,700,160],\"id\":\"other\",\"kind\":\"group\",\"label\":\"Other\",\"parent\":\"root\",\"summary\":\"\",\"type\":\"region\"}],\"type\":\"CreateMap\"}],\"parent\":null,\"schema\":\"semantic-map-decision/2\",\"stateHash\":\"sha256:721939a9428f00adec7d4771ae910ab118bb80cd0bb2f36e7790f7e761599204\"}\n{\"operations\":[{\"items\":[{\"bounds\":[0,0,2000,500],\"regionId\":\"container\"},{\"bounds\":[0,600,2000,500],\"regionId\":\"other\"}],\"type\":\"PinRegions\"}],\"parent\":\"sha256:e411c26b1ae696e494de68f591334b0ebbd9928edb8da647d681d5278575d42b\",\"schema\":\"semantic-map-decision/2\",\"stateHash\":\"sha256:08e53be00691c0b7ba556e34955fe1695e1b0a7d1a15eb82c05b0d87e7b385ed\"}\n",
+      "goal": {
+        "reason": "none",
+        "requests": 8,
+        "elapsedMs": 4227.57000002265,
+        "selected": [
+          {
+            "key": "goal-extra-1",
+            "region": "part-1",
+            "parent": "other"
+          },
+          {
+            "key": "goal-extra-2",
+            "region": "part-2",
+            "parent": "other"
+          },
+          {
+            "key": "goal-extra-3",
+            "region": "part-3",
+            "parent": "other"
+          }
+        ],
+        "trace": [
+          {
+            "head": "sha256:3f44e0d52678bc7ddeac8b19804ffaadfe6a493ce65ba8ca98f345ddd2ff75a2",
+            "answers": {
+              "delta": {
+                "type": "choice",
+                "choice": "part:goal-extra-1",
+                "confidence": 0.95
+              }
+            },
+            "failure": null
+          },
+          {
+            "head": "sha256:3f44e0d52678bc7ddeac8b19804ffaadfe6a493ce65ba8ca98f345ddd2ff75a2",
+            "answers": {
+              "delta": {
+                "type": "choice",
+                "choice": "delta-17",
+                "confidence": 1
+              }
+            },
+            "failure": null
+          },
+          {
+            "head": "sha256:901b24fbe60c2fa7e840ad2f0d9626771db3f760945c7389043768bc78800c6f",
+            "answers": {
+              "delta": {
+                "type": "choice",
+                "choice": "part:goal-extra-2",
+                "confidence": 0.97
+              }
+            },
+            "failure": null
+          },
+          {
+            "head": "sha256:901b24fbe60c2fa7e840ad2f0d9626771db3f760945c7389043768bc78800c6f",
+            "answers": {
+              "delta": {
+                "type": "choice",
+                "choice": "delta-16",
+                "confidence": 1
+              }
+            },
+            "failure": null
+          },
+          {
+            "head": "sha256:f34082820a096813e7cafb51560a98bdbf2ba049cd5c4d73d05006426990b663",
+            "answers": {
+              "delta": {
+                "type": "choice",
+                "choice": "part:goal-extra-3",
+                "confidence": 0.99
+              }
+            },
+            "failure": null
+          },
+          {
+            "head": "sha256:f34082820a096813e7cafb51560a98bdbf2ba049cd5c4d73d05006426990b663",
+            "answers": {
+              "delta": {
+                "type": "choice",
+                "choice": "delta-15",
+                "confidence": 1
+              }
+            },
+            "failure": null
+          },
+          {
+            "head": "sha256:158a57461da6e79741abd6ecb1d238c9cd4ed05f5ff01b7b44ee918081b1e2c7",
+            "answers": {
+              "delta": {
+                "type": "choice",
+                "choice": "none",
+                "confidence": 0.98
+              }
+            },
+            "failure": null
+          }
+        ],
+        "inventory": {
+          "checks": 1,
+          "completions": 1,
+          "coverage": {
+            "choice": "missing",
+            "confidence": 0.94,
+            "inspection": {
+              "source": "literal+jev",
+              "recognized": true,
+              "required": [
+                {
+                  "label": "受付",
+                  "kind": "step",
+                  "quantity": 1
+                },
+                {
+                  "label": "審査",
+                  "kind": "decision",
+                  "quantity": 1
+                },
+                {
+                  "label": "結果帳",
+                  "kind": "data",
+                  "quantity": 1
+                }
+              ],
+              "missing": [
+                {
+                  "label": "受付",
+                  "kind": "step",
+                  "occurrence": 1
+                },
+                {
+                  "label": "審査",
+                  "kind": "decision",
+                  "occurrence": 1
+                },
+                {
+                  "label": "結果帳",
+                  "kind": "data",
+                  "occurrence": 1
+                }
+              ],
+              "spans": [
+                {
+                  "start": 7,
+                  "end": 9,
+                  "source": "受付",
+                  "label": "受付",
+                  "kind": "step",
+                  "quantity": 1
+                },
+                {
+                  "start": 17,
+                  "end": 19,
+                  "source": "審査",
+                  "label": "審査",
+                  "kind": "decision",
+                  "quantity": 1
+                },
+                {
+                  "start": 27,
+                  "end": 30,
+                  "source": "結果帳",
+                  "label": "結果帳",
+                  "kind": "data",
+                  "quantity": 1
+                }
+              ],
+              "completeness": {
+                "choice": "complete",
+                "confidence": 0.94
+              }
+            }
+          },
+          "missing": [
+            {
+              "label": "受付",
+              "kind": "step",
+              "occurrence": 1
+            },
+            {
+              "label": "審査",
+              "kind": "decision",
+              "occurrence": 1
+            },
+            {
+              "label": "結果帳",
+              "kind": "data",
+              "occurrence": 1
+            }
+          ]
+        }
+      }
+    },
+    "applied": {
+      "log": "{\"operations\":[{\"mapId\":\"voice-graph\",\"records\":[{\"root\":\"root\",\"schema\":\"semantic-map-state/1\",\"title\":\"sealed small PoC\",\"type\":\"meta\"},{\"bounds\":[0,0,900,400],\"id\":\"root\",\"kind\":\"boundary\",\"label\":\"fixture\",\"parent\":null,\"summary\":\"\",\"type\":\"region\"},{\"bounds\":[0,0,700,200],\"id\":\"container\",\"kind\":\"group\",\"label\":\"OCI\",\"parent\":\"root\",\"summary\":\"\",\"type\":\"region\"},{\"bounds\":[0,230,700,160],\"id\":\"other\",\"kind\":\"group\",\"label\":\"Other\",\"parent\":\"root\",\"summary\":\"\",\"type\":\"region\"}],\"type\":\"CreateMap\"}],\"parent\":null,\"schema\":\"semantic-map-decision/2\",\"stateHash\":\"sha256:721939a9428f00adec7d4771ae910ab118bb80cd0bb2f36e7790f7e761599204\"}\n{\"operations\":[{\"items\":[{\"bounds\":[0,0,2000,500],\"regionId\":\"container\"},{\"bounds\":[0,600,2000,500],\"regionId\":\"other\"}],\"type\":\"PinRegions\"}],\"parent\":\"sha256:e411c26b1ae696e494de68f591334b0ebbd9928edb8da647d681d5278575d42b\",\"schema\":\"semantic-map-decision/2\",\"stateHash\":\"sha256:08e53be00691c0b7ba556e34955fe1695e1b0a7d1a15eb82c05b0d87e7b385ed\"}\n{\"operations\":[{\"bounds\":[20,250,140,64],\"kind\":\"step\",\"label\":\"受付\",\"parentId\":\"other\",\"regionId\":\"part-1\",\"summary\":\"\",\"type\":\"AddRegion\"},{\"items\":[{\"bounds\":[12,636,180,92],\"regionId\":\"part-1\"}],\"type\":\"PinRegions\"}],\"parent\":\"sha256:3f44e0d52678bc7ddeac8b19804ffaadfe6a493ce65ba8ca98f345ddd2ff75a2\",\"schema\":\"semantic-map-decision/2\",\"stateHash\":\"sha256:70469dc4343d476bb275fd452ac2e34130f08a3c097a153c965915f6e2c42fb9\"}\n{\"operations\":[{\"bounds\":[180,250,140,64],\"kind\":\"decision\",\"label\":\"審査\",\"parentId\":\"other\",\"regionId\":\"part-2\",\"summary\":\"\",\"type\":\"AddRegion\"},{\"items\":[{\"bounds\":[216,636,180,92],\"regionId\":\"part-2\"}],\"type\":\"PinRegions\"}],\"parent\":\"sha256:901b24fbe60c2fa7e840ad2f0d9626771db3f760945c7389043768bc78800c6f\",\"schema\":\"semantic-map-decision/2\",\"stateHash\":\"sha256:06182355e4cdbabf2f327f4df1115f27273a4316e46fd7a033a803baf124ac07\"}\n{\"operations\":[{\"bounds\":[340,250,140,64],\"kind\":\"data\",\"label\":\"結果帳\",\"parentId\":\"other\",\"regionId\":\"part-3\",\"summary\":\"\",\"type\":\"AddRegion\"},{\"items\":[{\"bounds\":[420,636,180,92],\"regionId\":\"part-3\"}],\"type\":\"PinRegions\"}],\"parent\":\"sha256:f34082820a096813e7cafb51560a98bdbf2ba049cd5c4d73d05006426990b663\",\"schema\":\"semantic-map-decision/2\",\"stateHash\":\"sha256:f8eeb2bb61dc0696ab6ce443fad4f8d1bd72c060dd1ed81fdeb5039745807435\"}\n",
+      "records": [
+        {
+          "type": "meta",
+          "schema": "semantic-map-state/1",
+          "root": "root",
+          "title": "sealed small PoC"
+        },
+        {
+          "type": "region",
+          "id": "root",
+          "parent": null,
+          "label": "fixture",
+          "kind": "boundary",
+          "bounds": [
+            0,
+            0,
+            900,
+            400
+          ],
+          "summary": ""
+        },
+        {
+          "type": "region",
+          "id": "container",
+          "parent": "root",
+          "label": "OCI",
+          "kind": "group",
+          "bounds": [
+            0,
+            0,
+            700,
+            200
+          ],
+          "summary": ""
+        },
+        {
+          "type": "region",
+          "id": "other",
+          "parent": "root",
+          "label": "Other",
+          "kind": "group",
+          "bounds": [
+            0,
+            230,
+            700,
+            160
+          ],
+          "summary": ""
+        },
+        {
+          "type": "region",
+          "id": "part-1",
+          "parent": "other",
+          "label": "受付",
+          "kind": "step",
+          "bounds": [
+            20,
+            250,
+            140,
+            64
+          ],
+          "summary": ""
+        },
+        {
+          "type": "region",
+          "id": "part-2",
+          "parent": "other",
+          "label": "審査",
+          "kind": "decision",
+          "bounds": [
+            180,
+            250,
+            140,
+            64
+          ],
+          "summary": ""
+        },
+        {
+          "type": "region",
+          "id": "part-3",
+          "parent": "other",
+          "label": "結果帳",
+          "kind": "data",
+          "bounds": [
+            340,
+            250,
+            140,
+            64
+          ],
+          "summary": ""
+        },
+        {
+          "type": "layout",
+          "regionId": "container",
+          "pin": "hard",
+          "bounds": [
+            0,
+            0,
+            2000,
+            500
+          ]
+        },
+        {
+          "type": "layout",
+          "regionId": "other",
+          "pin": "hard",
+          "bounds": [
+            0,
+            600,
+            2000,
+            500
+          ]
+        },
+        {
+          "type": "layout",
+          "regionId": "part-1",
+          "pin": "hard",
+          "bounds": [
+            12,
+            636,
+            180,
+            92
+          ]
+        },
+        {
+          "type": "layout",
+          "regionId": "part-2",
+          "pin": "hard",
+          "bounds": [
+            216,
+            636,
+            180,
+            92
+          ]
+        },
+        {
+          "type": "layout",
+          "regionId": "part-3",
+          "pin": "hard",
+          "bounds": [
+            420,
+            636,
+            180,
+            92
+          ]
+        }
+      ],
+      "stored": "{\"operations\":[{\"mapId\":\"voice-graph\",\"records\":[{\"root\":\"root\",\"schema\":\"semantic-map-state/1\",\"title\":\"sealed small PoC\",\"type\":\"meta\"},{\"bounds\":[0,0,900,400],\"id\":\"root\",\"kind\":\"boundary\",\"label\":\"fixture\",\"parent\":null,\"summary\":\"\",\"type\":\"region\"},{\"bounds\":[0,0,700,200],\"id\":\"container\",\"kind\":\"group\",\"label\":\"OCI\",\"parent\":\"root\",\"summary\":\"\",\"type\":\"region\"},{\"bounds\":[0,230,700,160],\"id\":\"other\",\"kind\":\"group\",\"label\":\"Other\",\"parent\":\"root\",\"summary\":\"\",\"type\":\"region\"}],\"type\":\"CreateMap\"}],\"parent\":null,\"schema\":\"semantic-map-decision/2\",\"stateHash\":\"sha256:721939a9428f00adec7d4771ae910ab118bb80cd0bb2f36e7790f7e761599204\"}\n{\"operations\":[{\"items\":[{\"bounds\":[0,0,2000,500],\"regionId\":\"container\"},{\"bounds\":[0,600,2000,500],\"regionId\":\"other\"}],\"type\":\"PinRegions\"}],\"parent\":\"sha256:e411c26b1ae696e494de68f591334b0ebbd9928edb8da647d681d5278575d42b\",\"schema\":\"semantic-map-decision/2\",\"stateHash\":\"sha256:08e53be00691c0b7ba556e34955fe1695e1b0a7d1a15eb82c05b0d87e7b385ed\"}\n{\"operations\":[{\"bounds\":[20,250,140,64],\"kind\":\"step\",\"label\":\"受付\",\"parentId\":\"other\",\"regionId\":\"part-1\",\"summary\":\"\",\"type\":\"AddRegion\"},{\"items\":[{\"bounds\":[12,636,180,92],\"regionId\":\"part-1\"}],\"type\":\"PinRegions\"}],\"parent\":\"sha256:3f44e0d52678bc7ddeac8b19804ffaadfe6a493ce65ba8ca98f345ddd2ff75a2\",\"schema\":\"semantic-map-decision/2\",\"stateHash\":\"sha256:70469dc4343d476bb275fd452ac2e34130f08a3c097a153c965915f6e2c42fb9\"}\n{\"operations\":[{\"bounds\":[180,250,140,64],\"kind\":\"decision\",\"label\":\"審査\",\"parentId\":\"other\",\"regionId\":\"part-2\",\"summary\":\"\",\"type\":\"AddRegion\"},{\"items\":[{\"bounds\":[216,636,180,92],\"regionId\":\"part-2\"}],\"type\":\"PinRegions\"}],\"parent\":\"sha256:901b24fbe60c2fa7e840ad2f0d9626771db3f760945c7389043768bc78800c6f\",\"schema\":\"semantic-map-decision/2\",\"stateHash\":\"sha256:06182355e4cdbabf2f327f4df1115f27273a4316e46fd7a033a803baf124ac07\"}\n{\"operations\":[{\"bounds\":[340,250,140,64],\"kind\":\"data\",\"label\":\"結果帳\",\"parentId\":\"other\",\"regionId\":\"part-3\",\"summary\":\"\",\"type\":\"AddRegion\"},{\"items\":[{\"bounds\":[420,636,180,92],\"regionId\":\"part-3\"}],\"type\":\"PinRegions\"}],\"parent\":\"sha256:f34082820a096813e7cafb51560a98bdbf2ba049cd5c4d73d05006426990b663\",\"schema\":\"semantic-map-decision/2\",\"stateHash\":\"sha256:f8eeb2bb61dc0696ab6ce443fad4f8d1bd72c060dd1ed81fdeb5039745807435\"}\n",
+      "goal": {
+        "reason": "none",
+        "requests": 8,
+        "elapsedMs": 4227.57000002265,
+        "selected": [
+          {
+            "key": "goal-extra-1",
+            "region": "part-1",
+            "parent": "other"
+          },
+          {
+            "key": "goal-extra-2",
+            "region": "part-2",
+            "parent": "other"
+          },
+          {
+            "key": "goal-extra-3",
+            "region": "part-3",
+            "parent": "other"
+          }
+        ],
+        "trace": [
+          {
+            "head": "sha256:3f44e0d52678bc7ddeac8b19804ffaadfe6a493ce65ba8ca98f345ddd2ff75a2",
+            "answers": {
+              "delta": {
+                "type": "choice",
+                "choice": "part:goal-extra-1",
+                "confidence": 0.95
+              }
+            },
+            "failure": null
+          },
+          {
+            "head": "sha256:3f44e0d52678bc7ddeac8b19804ffaadfe6a493ce65ba8ca98f345ddd2ff75a2",
+            "answers": {
+              "delta": {
+                "type": "choice",
+                "choice": "delta-17",
+                "confidence": 1
+              }
+            },
+            "failure": null
+          },
+          {
+            "head": "sha256:901b24fbe60c2fa7e840ad2f0d9626771db3f760945c7389043768bc78800c6f",
+            "answers": {
+              "delta": {
+                "type": "choice",
+                "choice": "part:goal-extra-2",
+                "confidence": 0.97
+              }
+            },
+            "failure": null
+          },
+          {
+            "head": "sha256:901b24fbe60c2fa7e840ad2f0d9626771db3f760945c7389043768bc78800c6f",
+            "answers": {
+              "delta": {
+                "type": "choice",
+                "choice": "delta-16",
+                "confidence": 1
+              }
+            },
+            "failure": null
+          },
+          {
+            "head": "sha256:f34082820a096813e7cafb51560a98bdbf2ba049cd5c4d73d05006426990b663",
+            "answers": {
+              "delta": {
+                "type": "choice",
+                "choice": "part:goal-extra-3",
+                "confidence": 0.99
+              }
+            },
+            "failure": null
+          },
+          {
+            "head": "sha256:f34082820a096813e7cafb51560a98bdbf2ba049cd5c4d73d05006426990b663",
+            "answers": {
+              "delta": {
+                "type": "choice",
+                "choice": "delta-15",
+                "confidence": 1
+              }
+            },
+            "failure": null
+          },
+          {
+            "head": "sha256:158a57461da6e79741abd6ecb1d238c9cd4ed05f5ff01b7b44ee918081b1e2c7",
+            "answers": {
+              "delta": {
+                "type": "choice",
+                "choice": "none",
+                "confidence": 0.98
+              }
+            },
+            "failure": null
+          }
+        ],
+        "inventory": {
+          "checks": 1,
+          "completions": 1,
+          "coverage": {
+            "choice": "missing",
+            "confidence": 0.94,
+            "inspection": {
+              "source": "literal+jev",
+              "recognized": true,
+              "required": [
+                {
+                  "label": "受付",
+                  "kind": "step",
+                  "quantity": 1
+                },
+                {
+                  "label": "審査",
+                  "kind": "decision",
+                  "quantity": 1
+                },
+                {
+                  "label": "結果帳",
+                  "kind": "data",
+                  "quantity": 1
+                }
+              ],
+              "missing": [
+                {
+                  "label": "受付",
+                  "kind": "step",
+                  "occurrence": 1
+                },
+                {
+                  "label": "審査",
+                  "kind": "decision",
+                  "occurrence": 1
+                },
+                {
+                  "label": "結果帳",
+                  "kind": "data",
+                  "occurrence": 1
+                }
+              ],
+              "spans": [
+                {
+                  "start": 7,
+                  "end": 9,
+                  "source": "受付",
+                  "label": "受付",
+                  "kind": "step",
+                  "quantity": 1
+                },
+                {
+                  "start": 17,
+                  "end": 19,
+                  "source": "審査",
+                  "label": "審査",
+                  "kind": "decision",
+                  "quantity": 1
+                },
+                {
+                  "start": 27,
+                  "end": 30,
+                  "source": "結果帳",
+                  "label": "結果帳",
+                  "kind": "data",
+                  "quantity": 1
+                }
+              ],
+              "completeness": {
+                "choice": "complete",
+                "confidence": 0.94
+              }
+            }
+          },
+          "missing": [
+            {
+              "label": "受付",
+              "kind": "step",
+              "occurrence": 1
+            },
+            {
+              "label": "審査",
+              "kind": "decision",
+              "occurrence": 1
+            },
+            {
+              "label": "結果帳",
+              "kind": "data",
+              "occurrence": 1
+            }
+          ]
+        }
+      }
+    },
+    "reloaded": {
+      "log": "{\"operations\":[{\"mapId\":\"voice-graph\",\"records\":[{\"root\":\"root\",\"schema\":\"semantic-map-state/1\",\"title\":\"sealed small PoC\",\"type\":\"meta\"},{\"bounds\":[0,0,900,400],\"id\":\"root\",\"kind\":\"boundary\",\"label\":\"fixture\",\"parent\":null,\"summary\":\"\",\"type\":\"region\"},{\"bounds\":[0,0,700,200],\"id\":\"container\",\"kind\":\"group\",\"label\":\"OCI\",\"parent\":\"root\",\"summary\":\"\",\"type\":\"region\"},{\"bounds\":[0,230,700,160],\"id\":\"other\",\"kind\":\"group\",\"label\":\"Other\",\"parent\":\"root\",\"summary\":\"\",\"type\":\"region\"}],\"type\":\"CreateMap\"}],\"parent\":null,\"schema\":\"semantic-map-decision/2\",\"stateHash\":\"sha256:721939a9428f00adec7d4771ae910ab118bb80cd0bb2f36e7790f7e761599204\"}\n{\"operations\":[{\"items\":[{\"bounds\":[0,0,2000,500],\"regionId\":\"container\"},{\"bounds\":[0,600,2000,500],\"regionId\":\"other\"}],\"type\":\"PinRegions\"}],\"parent\":\"sha256:e411c26b1ae696e494de68f591334b0ebbd9928edb8da647d681d5278575d42b\",\"schema\":\"semantic-map-decision/2\",\"stateHash\":\"sha256:08e53be00691c0b7ba556e34955fe1695e1b0a7d1a15eb82c05b0d87e7b385ed\"}\n{\"operations\":[{\"bounds\":[20,250,140,64],\"kind\":\"step\",\"label\":\"受付\",\"parentId\":\"other\",\"regionId\":\"part-1\",\"summary\":\"\",\"type\":\"AddRegion\"},{\"items\":[{\"bounds\":[12,636,180,92],\"regionId\":\"part-1\"}],\"type\":\"PinRegions\"}],\"parent\":\"sha256:3f44e0d52678bc7ddeac8b19804ffaadfe6a493ce65ba8ca98f345ddd2ff75a2\",\"schema\":\"semantic-map-decision/2\",\"stateHash\":\"sha256:70469dc4343d476bb275fd452ac2e34130f08a3c097a153c965915f6e2c42fb9\"}\n{\"operations\":[{\"bounds\":[180,250,140,64],\"kind\":\"decision\",\"label\":\"審査\",\"parentId\":\"other\",\"regionId\":\"part-2\",\"summary\":\"\",\"type\":\"AddRegion\"},{\"items\":[{\"bounds\":[216,636,180,92],\"regionId\":\"part-2\"}],\"type\":\"PinRegions\"}],\"parent\":\"sha256:901b24fbe60c2fa7e840ad2f0d9626771db3f760945c7389043768bc78800c6f\",\"schema\":\"semantic-map-decision/2\",\"stateHash\":\"sha256:06182355e4cdbabf2f327f4df1115f27273a4316e46fd7a033a803baf124ac07\"}\n{\"operations\":[{\"bounds\":[340,250,140,64],\"kind\":\"data\",\"label\":\"結果帳\",\"parentId\":\"other\",\"regionId\":\"part-3\",\"summary\":\"\",\"type\":\"AddRegion\"},{\"items\":[{\"bounds\":[420,636,180,92],\"regionId\":\"part-3\"}],\"type\":\"PinRegions\"}],\"parent\":\"sha256:f34082820a096813e7cafb51560a98bdbf2ba049cd5c4d73d05006426990b663\",\"schema\":\"semantic-map-decision/2\",\"stateHash\":\"sha256:f8eeb2bb61dc0696ab6ce443fad4f8d1bd72c060dd1ed81fdeb5039745807435\"}\n",
+      "records": [
+        {
+          "type": "meta",
+          "schema": "semantic-map-state/1",
+          "root": "root",
+          "title": "sealed small PoC"
+        },
+        {
+          "type": "region",
+          "id": "root",
+          "parent": null,
+          "label": "fixture",
+          "kind": "boundary",
+          "bounds": [
+            0,
+            0,
+            900,
+            400
+          ],
+          "summary": ""
+        },
+        {
+          "type": "region",
+          "id": "container",
+          "parent": "root",
+          "label": "OCI",
+          "kind": "group",
+          "bounds": [
+            0,
+            0,
+            700,
+            200
+          ],
+          "summary": ""
+        },
+        {
+          "type": "region",
+          "id": "other",
+          "parent": "root",
+          "label": "Other",
+          "kind": "group",
+          "bounds": [
+            0,
+            230,
+            700,
+            160
+          ],
+          "summary": ""
+        },
+        {
+          "type": "region",
+          "id": "part-1",
+          "parent": "other",
+          "label": "受付",
+          "kind": "step",
+          "bounds": [
+            20,
+            250,
+            140,
+            64
+          ],
+          "summary": ""
+        },
+        {
+          "type": "region",
+          "id": "part-2",
+          "parent": "other",
+          "label": "審査",
+          "kind": "decision",
+          "bounds": [
+            180,
+            250,
+            140,
+            64
+          ],
+          "summary": ""
+        },
+        {
+          "type": "region",
+          "id": "part-3",
+          "parent": "other",
+          "label": "結果帳",
+          "kind": "data",
+          "bounds": [
+            340,
+            250,
+            140,
+            64
+          ],
+          "summary": ""
+        },
+        {
+          "type": "layout",
+          "regionId": "container",
+          "pin": "hard",
+          "bounds": [
+            0,
+            0,
+            2000,
+            500
+          ]
+        },
+        {
+          "type": "layout",
+          "regionId": "other",
+          "pin": "hard",
+          "bounds": [
+            0,
+            600,
+            2000,
+            500
+          ]
+        },
+        {
+          "type": "layout",
+          "regionId": "part-1",
+          "pin": "hard",
+          "bounds": [
+            12,
+            636,
+            180,
+            92
+          ]
+        },
+        {
+          "type": "layout",
+          "regionId": "part-2",
+          "pin": "hard",
+          "bounds": [
+            216,
+            636,
+            180,
+            92
+          ]
+        },
+        {
+          "type": "layout",
+          "regionId": "part-3",
+          "pin": "hard",
+          "bounds": [
+            420,
+            636,
+            180,
+            92
+          ]
+        }
+      ],
+      "stored": "{\"operations\":[{\"mapId\":\"voice-graph\",\"records\":[{\"root\":\"root\",\"schema\":\"semantic-map-state/1\",\"title\":\"sealed small PoC\",\"type\":\"meta\"},{\"bounds\":[0,0,900,400],\"id\":\"root\",\"kind\":\"boundary\",\"label\":\"fixture\",\"parent\":null,\"summary\":\"\",\"type\":\"region\"},{\"bounds\":[0,0,700,200],\"id\":\"container\",\"kind\":\"group\",\"label\":\"OCI\",\"parent\":\"root\",\"summary\":\"\",\"type\":\"region\"},{\"bounds\":[0,230,700,160],\"id\":\"other\",\"kind\":\"group\",\"label\":\"Other\",\"parent\":\"root\",\"summary\":\"\",\"type\":\"region\"}],\"type\":\"CreateMap\"}],\"parent\":null,\"schema\":\"semantic-map-decision/2\",\"stateHash\":\"sha256:721939a9428f00adec7d4771ae910ab118bb80cd0bb2f36e7790f7e761599204\"}\n{\"operations\":[{\"items\":[{\"bounds\":[0,0,2000,500],\"regionId\":\"container\"},{\"bounds\":[0,600,2000,500],\"regionId\":\"other\"}],\"type\":\"PinRegions\"}],\"parent\":\"sha256:e411c26b1ae696e494de68f591334b0ebbd9928edb8da647d681d5278575d42b\",\"schema\":\"semantic-map-decision/2\",\"stateHash\":\"sha256:08e53be00691c0b7ba556e34955fe1695e1b0a7d1a15eb82c05b0d87e7b385ed\"}\n{\"operations\":[{\"bounds\":[20,250,140,64],\"kind\":\"step\",\"label\":\"受付\",\"parentId\":\"other\",\"regionId\":\"part-1\",\"summary\":\"\",\"type\":\"AddRegion\"},{\"items\":[{\"bounds\":[12,636,180,92],\"regionId\":\"part-1\"}],\"type\":\"PinRegions\"}],\"parent\":\"sha256:3f44e0d52678bc7ddeac8b19804ffaadfe6a493ce65ba8ca98f345ddd2ff75a2\",\"schema\":\"semantic-map-decision/2\",\"stateHash\":\"sha256:70469dc4343d476bb275fd452ac2e34130f08a3c097a153c965915f6e2c42fb9\"}\n{\"operations\":[{\"bounds\":[180,250,140,64],\"kind\":\"decision\",\"label\":\"審査\",\"parentId\":\"other\",\"regionId\":\"part-2\",\"summary\":\"\",\"type\":\"AddRegion\"},{\"items\":[{\"bounds\":[216,636,180,92],\"regionId\":\"part-2\"}],\"type\":\"PinRegions\"}],\"parent\":\"sha256:901b24fbe60c2fa7e840ad2f0d9626771db3f760945c7389043768bc78800c6f\",\"schema\":\"semantic-map-decision/2\",\"stateHash\":\"sha256:06182355e4cdbabf2f327f4df1115f27273a4316e46fd7a033a803baf124ac07\"}\n{\"operations\":[{\"bounds\":[340,250,140,64],\"kind\":\"data\",\"label\":\"結果帳\",\"parentId\":\"other\",\"regionId\":\"part-3\",\"summary\":\"\",\"type\":\"AddRegion\"},{\"items\":[{\"bounds\":[420,636,180,92],\"regionId\":\"part-3\"}],\"type\":\"PinRegions\"}],\"parent\":\"sha256:f34082820a096813e7cafb51560a98bdbf2ba049cd5c4d73d05006426990b663\",\"schema\":\"semantic-map-decision/2\",\"stateHash\":\"sha256:f8eeb2bb61dc0696ab6ce443fad4f8d1bd72c060dd1ed81fdeb5039745807435\"}\n",
+      "goal": null
+    },
+    "apply_enabled": true,
+    "persistence": "PASS",
+    "undo": "separate completed-artifact keyless mechanics; no second live Goal"
+  }
+}

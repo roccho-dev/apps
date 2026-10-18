@@ -1,0 +1,27 @@
+{
+  "schema": "voice-ui.review.frontier-shared-deadline-diagnostic/1",
+  "status": "PASS",
+  "head": "c762f1630790bef6097e0c12a71493fad05c89f3",
+  "worker_sha256": "8a1fef6c917240b951bae91132d353d334fd050f880ca7f4666b57f0178ef3fc",
+  "root_observation_file": "frontier-c762-shared-deadline-diagnostic.root.json",
+  "root_observation_sha256": "b03f541c5d7fb1262fb537b785417a3aa4d0cd7201d5df80c17cb49530362e07",
+  "observed": 40041.081699999995,
+  "type_start_ms": 7047.0432,
+  "type_abort_ms": 40038.8079,
+  "type_duration_ms": 32991.7647,
+  "margin_before_own_Type_35s_ms": 2008.2353000000003,
+  "prior_provider_cap_audit_sha256": "c40c3d871b920d17db088c66d579259a342d27564d552245473c9d6e4f9995c4",
+  "retained_stage_names": [
+    "G0"
+  ],
+  "proposal_policy_independently_recomputed": true,
+  "required_corrected_test_assertions": [
+    "same39–45s operation bound",
+    "Type ordered after validG0 delayed7s",
+    "Type abort duration under34s, excluding its own35s timeout",
+    "onlyG0 stage; noV/materialization",
+    "all real provider sends0"
+  ],
+  "scope": "R_READ_AND_BIND_ROOT_KEYLESS_COMPLETED_WORKER_OBSERVATION_NO_NEW_MODEL_CALL_OR_LIVE_ADMISSION",
+  "reviewer_real_provider_calls": 0
+}

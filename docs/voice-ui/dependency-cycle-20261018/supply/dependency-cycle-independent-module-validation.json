@@ -1,0 +1,47 @@
+{
+  "schema": "voice-ui.dependency-cycle-independent-module-validation/1",
+  "status": "PASS",
+  "observed_at": "2026-10-17T17:34:28.853Z",
+  "files": [
+    {
+      "name": "dependency-cycle-score.mjs",
+      "bytes": 8386,
+      "sha256": "2f7f40afec31d1f7cded08951529a30d741f6ebfb8abf446900a7f6eb567ef91"
+    },
+    {
+      "name": "dependency-cycle-score.test.mjs",
+      "bytes": 6652,
+      "sha256": "48512fcb47cd8935b2fb5b9116e61fb46f729f24b57e316badab70f855a5c41b"
+    },
+    {
+      "name": "dependency-cycle-audit.mjs",
+      "bytes": 64775,
+      "sha256": "47dce6207c8b48dae6447d87ee1294d8495f28a31d2b474d5dc0c9b95998d66e"
+    },
+    {
+      "name": "dependency-cycle-audit.test.mjs",
+      "bytes": 46140,
+      "sha256": "b6480b031a7ae3715f297be7170f3c865c2b8cd3adfaf5570588ef8ff6a75095"
+    }
+  ],
+  "tests": {
+    "score_groups": 7,
+    "raw_provider_process_groups": 25,
+    "total": 32,
+    "failures": 0,
+    "real_provider_calls": 0
+  },
+  "preserved_frozen_modules": [
+    {
+      "name": "requirements-cycle-score.mjs",
+      "sha256": "3d779cf422e8cc0facc6f5ff566c3e77b36a61486f9586f120b0c1a722cd5a46",
+      "raw_equal_to_previous_report_head": true
+    },
+    {
+      "name": "requirements-cycle-audit.mjs",
+      "sha256": "692bdbaef8dbe28fe30fcdfe178202ebbdf3a4728bf0fe1c7310f72bf789c6eb",
+      "raw_equal_to_previous_report_head": true
+    }
+  ],
+  "scope": "independent pre-live module tests using public/synthetic inputs only; full compiled current-head CI/runtime/source admission still required"
+}

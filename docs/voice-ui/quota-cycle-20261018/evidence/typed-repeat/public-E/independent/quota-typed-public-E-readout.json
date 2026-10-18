@@ -1,0 +1,77 @@
+{
+  "status": "OBSERVED_PUBLIC_UNMET",
+  "apps": "e7ac78dc448ba84468db853591dace33c6de40f1",
+  "phase": "quota-typed-public-E-20261018",
+  "planned_and_valid": 2,
+  "pairs": 1,
+  "baseline_complete": 0,
+  "candidate_complete": 0,
+  "valid_paired_gain": 0,
+  "regressions": 0,
+  "both_actual_eligible_same_literal": true,
+  "candidate_required": [
+    {
+      "label": "API",
+      "kind": "step",
+      "quantity": 2
+    }
+  ],
+  "candidate_minimal_missing": [
+    {
+      "label": "API",
+      "kind": "step",
+      "occurrence": 1
+    }
+  ],
+  "required_and_difference_exact": true,
+  "candidate_verification": {
+    "intent": {
+      "choice": "change",
+      "confidence": 0.91
+    },
+    "labels": {
+      "choice": "available",
+      "confidence": 0.96
+    },
+    "capacity": {
+      "choice": "exceeded",
+      "confidence": 0.92
+    },
+    "completeness": {
+      "choice": "complete",
+      "confidence": 0.46
+    }
+  },
+  "decision": "unknown",
+  "decision_confidence": null,
+  "threshold_unchanged": 0.5,
+  "observed_boundary": "correct full NEW and minimal stock difference did not obtain confident V authorization; complete at .46 normalized to unknown, not an incomplete verdict",
+  "goal_HTTP_calls": 0,
+  "materialization_or_adoption": false,
+  "both_graphs_unchanged": true,
+  "actual_paint_and_reload_join": "PASS",
+  "public_gate": "UNMET",
+  "fresh_inputs_released": false,
+  "fresh_measured": false,
+  "root_cause": "UNPROVEN",
+  "general_Type_efficacy": "UNPROVEN",
+  "finite_fresh_NO_EFFECT": "UNPROVEN",
+  "post_measurement_CI": "PENDING_REPORT_ONLY_CLOSURE",
+  "accounting": {
+    "sent": {
+      "jev": 3,
+      "typellm": 1
+    },
+    "charged": {
+      "jev": 850,
+      "typellm": 137
+    },
+    "confirmed": {
+      "jev": 850,
+      "typellm": 136
+    },
+    "outstanding": 0,
+    "journal_sha256": "90525733f94f161502411d957c953e1162850e7a1740f13cdad69a455e0d1478"
+  },
+  "scope": "public regression only; no protected unseen payload/oracle disclosure and no product-quality success claim"
+}

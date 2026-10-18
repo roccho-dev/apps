@@ -1,0 +1,93 @@
+{
+  "schema": "voice-ui.independent-failure-classification/1",
+  "axis": "E",
+  "apps_sha": "2cc4890b765a5534e92855f83f9232ae85bb373b",
+  "facts": [
+    {
+      "id": "FE01",
+      "classification": "paired regression at unchanged G0, not executed frontier mechanism",
+      "B": {
+        "intent": "change",
+        "confidence": 0.53,
+        "completeness": "complete",
+        "complete_confidence": 0.76
+      },
+      "C": {
+        "intent": "no-change",
+        "confidence": 0.31,
+        "completeness": "complete",
+        "complete_confidence": 0.86
+      },
+      "Type_sends_both": 0,
+      "waived": false
+    },
+    {
+      "id": "FE03",
+      "classification": "correct full Type proposal rejected by V; true-S interpretation cost retained",
+      "V": {
+        "intent": "no-change",
+        "intent_confidence": 0.48,
+        "completeness": "complete",
+        "complete_confidence": 0.92
+      },
+      "materializations": 0
+    },
+    {
+      "id": "FE05",
+      "classification": "actual frontier proposal opportunity; correct full proposal stopped at weak V completeness",
+      "Type_required": [
+        {
+          "label": "API",
+          "kind": "step",
+          "quantity": 3
+        }
+      ],
+      "V": {
+        "intent": "change",
+        "intent_confidence": 0.72,
+        "completeness": "complete",
+        "complete_confidence": 0.14
+      },
+      "materializations": 0,
+      "frontier_gain": false
+    },
+    {
+      "id": "FE07",
+      "classification": "assembly/stop failure after correct Type, correct V and exact stock difference",
+      "required": [
+        {
+          "label": "稟議可否",
+          "kind": "decision",
+          "quantity": 1
+        }
+      ],
+      "V": {
+        "intent": "change",
+        "intent_confidence": 0.99,
+        "completeness": "complete",
+        "complete_confidence": 0.98
+      },
+      "Goal_parts": [
+        "part:goal-extra-1",
+        "part:decision"
+      ],
+      "second_part_confidence": 0.52,
+      "unwanted_added": {
+        "label": "判断",
+        "kind": "decision",
+        "parent": "fixture:container"
+      },
+      "no_false_adoption": false
+    },
+    {
+      "id": "FE08",
+      "classification": "G0 completeness below threshold; no proposal and not an admitted missing causal opportunity",
+      "both_G0_completeness": {
+        "choice": "incomplete",
+        "confidence": 0.32
+      },
+      "Type_sends_both": 0
+    }
+  ],
+  "scope": "Source causes are classified only to the observed stage. No threshold/source/oracle changes, no rerun and no claim that all failures share one cause."
+}

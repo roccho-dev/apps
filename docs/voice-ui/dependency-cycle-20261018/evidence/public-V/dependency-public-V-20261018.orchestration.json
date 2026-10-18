@@ -1,0 +1,16 @@
+{
+  "phase": "dependency-public-V-20261018",
+  "driver": {
+    "status": 0,
+    "signal": null,
+    "error": null,
+    "stdout_sha256": "d8d6a276eb1dea3dfc0a77a3dfb37f1b2ae62aa9669c99c40ac3a2ee442604c8",
+    "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "stop": {
+    "status": 0,
+    "stdout": "{\"phase\":\"dependency-public-V-20261018\",\"action\":\"stop\",\"current\":{\"pid\":330205,\"state\":\"S\",\"pgid\":330205,\"start_ticks\":\"16827734\"},\"sent\":{\"jev\":6,\"typellm\":0},\"whole_run_sent\":{\"jev\":707,\"typellm\":70},\"reserved_until_confirmed_stop\":null}\n",
+    "stderr": ""
+  },
+  "journal_sha256": "79c8faa2a4e8c9bb3bdd57e01e168e88169cd1f32cc1320b9d94fda2fc4457f1"
+}

@@ -1,0 +1,12 @@
+{
+  "phase_id": "candidate-correction-2-20261017",
+  "program": "/nix/store/bg0bygqiid25xnivxv9cdgjlx3sp939j-voice-ui-typed-dev/bin/voice-ui-typed-dev",
+  "heads": {
+    "apps": "2c8b25ed30c33580a5902a07907e3aeaed430c25",
+    "envs": "063e685b8b21a97fc8658879da93fa858552bcd6"
+  },
+  "allowances": {
+    "jev": 36,
+    "typellm": 4
+  }
+}

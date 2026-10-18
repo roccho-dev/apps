@@ -1,0 +1,104 @@
+{
+  "schema": "voice-ui.quota-cycle-evidence-index/1",
+  "commitment": "../preregistered/quota-cycle-commitment.v2.json",
+  "freeze": "../preregistered/quota-cycle-public-freeze.v2.json",
+  "baseline_journal": "../../frontier-cycle-20261018/evidence/final-E/frontier-final-E-20261018.journal.jsonl",
+  "expected_cumulative": {
+    "jev": 847,
+    "typellm": 88
+  },
+  "phases": [
+    {
+      "id": "public-R",
+      "axis": "R",
+      "phase_kind": "public",
+      "apps_sha": "59ded276405a5dc9caa85ad570b1827ff4bd0c7a",
+      "input": "../preregistered/quota-cycle-public-R-1.v2.inputs.json",
+      "oracle": "../preregistered/quota-cycle-public-R-1.v2.oracle.json",
+      "raw_dir": "public-R/raw",
+      "producer": "public-R/quota-public-R.producer.json",
+      "runtime": "admission/runtime-build.json",
+      "stdout": "public-R/quota-public-R-20261018.stdout.log",
+      "stderr": "public-R/quota-public-R-20261018.stderr.log",
+      "journal": "public-R/quota-public-R-20261018.journal.jsonl",
+      "config": "public-R/quota-public-R-20261018.config.json",
+      "process": "public-R/quota-public-R-20261018.process.json",
+      "audits": {
+        "pr103-59d-r21-review.md": "admission/pr103-59d-r21-review.md",
+        "quota-public-R-zero-send-audit.json": "public-R/quota-public-R-zero-send-audit.json",
+        "quota-public-R-stop-audit.json": "public-R/quota-public-R-stop-audit.json"
+      },
+      "expected_execution_status": "RECORDED",
+      "recorded_replay": "public-R/recorded-replay/receipt.json"
+    },
+    {
+      "id": "public-E",
+      "axis": "E",
+      "phase_kind": "public",
+      "apps_sha": "59ded276405a5dc9caa85ad570b1827ff4bd0c7a",
+      "input": "../preregistered/quota-cycle-public-E-1.v2.inputs.json",
+      "oracle": "../preregistered/quota-cycle-public-E-1.v2.oracle.json",
+      "raw_dir": "public-E/raw",
+      "producer": "public-E/quota-public-E.producer.json",
+      "runtime": "admission/runtime-build.json",
+      "stdout": "public-E/quota-public-E-20261018.stdout.log",
+      "stderr": "public-E/quota-public-E-20261018.stderr.log",
+      "journal": "public-E/quota-public-E-20261018.journal.jsonl",
+      "config": "public-E/quota-public-E-20261018.config.json",
+      "process": "public-E/quota-public-E-20261018.process.json",
+      "audits": {
+        "pr103-59d-r21-review.md": "admission/pr103-59d-r21-review.md",
+        "quota-public-E-zero-send-audit.json": "public-E/quota-public-E-zero-send-audit.json",
+        "quota-public-E-stop-audit.json": "public-E/quota-public-E-stop-audit.json"
+      },
+      "expected_execution_status": "RECORDED",
+      "recorded_replay": "public-E/recorded-replay/receipt.json"
+    },
+    {
+      "id": "final-R",
+      "axis": "R",
+      "phase_kind": "final",
+      "apps_sha": "59ded276405a5dc9caa85ad570b1827ff4bd0c7a",
+      "input": "final-R/quota-cycle-sealed-R-2.v2.inputs.json",
+      "oracle": "final-R/quota-cycle-sealed-R-2.v2.oracle.json",
+      "raw_dir": "final-R/raw",
+      "producer": "final-R/quota-final-R.producer.json",
+      "runtime": "admission/runtime-build.json",
+      "stdout": "final-R/quota-final-R-20261018.stdout.log",
+      "stderr": "final-R/quota-final-R-20261018.stderr.log",
+      "journal": "final-R/quota-final-R-20261018.journal.jsonl",
+      "config": "final-R/quota-final-R-20261018.config.json",
+      "process": "final-R/quota-final-R-20261018.process.json",
+      "audits": {
+        "pr103-59d-r21-review.md": "admission/pr103-59d-r21-review.md",
+        "quota-final-R-zero-send-audit.json": "final-R/quota-final-R-zero-send-audit.json",
+        "quota-final-R-stop-audit.json": "final-R/quota-final-R-stop-audit.json"
+      },
+      "expected_execution_status": "RECORDED",
+      "recorded_replay": "final-R/recorded-replay/receipt.json"
+    },
+    {
+      "id": "final-E",
+      "axis": "E",
+      "phase_kind": "final",
+      "apps_sha": "59ded276405a5dc9caa85ad570b1827ff4bd0c7a",
+      "input": "final-E/quota-cycle-sealed-E-6.v2.inputs.json",
+      "oracle": "final-E/quota-cycle-sealed-E-6.v2.oracle.json",
+      "raw_dir": "final-E/raw",
+      "producer": "final-E/quota-final-E.producer.json",
+      "runtime": "admission/runtime-build.json",
+      "stdout": "final-E/quota-final-E-20261018.stdout.log",
+      "stderr": "final-E/quota-final-E-20261018.stderr.log",
+      "journal": "final-E/quota-final-E-20261018.journal.jsonl",
+      "config": "final-E/quota-final-E-20261018.config.json",
+      "process": "final-E/quota-final-E-20261018.process.json",
+      "audits": {
+        "pr103-59d-r21-review.md": "admission/pr103-59d-r21-review.md",
+        "quota-final-E-zero-send-audit.json": "final-E/quota-final-E-zero-send-audit.json",
+        "quota-final-E-stop-audit.json": "final-E/quota-final-E-stop-audit.json"
+      },
+      "expected_execution_status": "RECORDED",
+      "recorded_replay": "final-E/recorded-replay/receipt.json"
+    }
+  ]
+}

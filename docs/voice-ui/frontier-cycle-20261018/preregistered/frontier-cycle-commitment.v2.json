@@ -1,0 +1,246 @@
+{
+  "schema": "voice-ui.frontier-cycle-commitment/1",
+  "created_at": "2026-10-17T19:56:43.117Z",
+  "previous_cycle": {
+    "measurement_apps": "81f9f4df488e7f4fd94c63dbc15fe46ab0fb3a25",
+    "report_apps": "664c8a8d4598471327a8b330afd416b3f9eb86e0",
+    "review": "https://github.com/roccho-dev/apps/pull/103#pullrequestreview-5559763705",
+    "journal_sha256": "efc4a61b73333efc3058c5f6d1fc90f3eaadf929160e1ad69d781a1619b5c517",
+    "commitment_sha256": "aa5495197f05f82d6447218ac7c036626105b3f839c4b1c0544c67e08e9c1a2f"
+  },
+  "charged_prior": {
+    "jev": 725,
+    "typellm": 71
+  },
+  "confirmed_prior": {
+    "jev": 725,
+    "typellm": 70
+  },
+  "cycle_cap": {
+    "jev": 248,
+    "typellm": 20
+  },
+  "allocated": {
+    "jev": 248,
+    "typellm": 20
+  },
+  "global_cap": {
+    "jev": 1000,
+    "typellm": 1000
+  },
+  "worst_cap_cumulative": {
+    "jev": 973,
+    "typellm": 91
+  },
+  "stages": [
+    {
+      "id": "public-G0",
+      "axis": "G0",
+      "cases": 10,
+      "cells": 10,
+      "jev": 10,
+      "typellm": 0
+    },
+    {
+      "id": "public-E",
+      "axis": "E",
+      "cases": 2,
+      "cells": 4,
+      "jev": 38,
+      "typellm": 2
+    },
+    {
+      "id": "final-V",
+      "axis": "V",
+      "cases": 10,
+      "cells": 10,
+      "jev": 10,
+      "typellm": 0
+    },
+    {
+      "id": "final-F",
+      "axis": "F",
+      "cases": 8,
+      "cells": 8,
+      "jev": 0,
+      "typellm": 8
+    },
+    {
+      "id": "final-E",
+      "axis": "E",
+      "cases": 10,
+      "cells": 20,
+      "jev": 190,
+      "typellm": 10
+    }
+  ],
+  "corrections_max": 0,
+  "retries_max": 0,
+  "setup_sends": 0,
+  "public_gate": {
+    "G0_all_valid_policy": 10,
+    "taxonomy_separate": true,
+    "G0_unchanged_type0": true,
+    "PG01_PG02_actual_new_eligible": true,
+    "complete_S_negative_control_new_eligible": false,
+    "E_actual_eligible_missing_gains": 2,
+    "E_all_enabled_quality": true,
+    "all_same_source": true
+  },
+  "fresh_release": "After both public gates PASS, V10/F8/E10 once by complete retained proof, source/physical stop/accounting integrity; V/F quality UNMET or fully retained INVALID is not a next-axis interlock. Preserve denominators and no edits/retries.",
+  "final_gate": {
+    "V_all_valid_correct": 10,
+    "V_false_accept": 0,
+    "F_all_valid_exact_minimal": 8,
+    "F_true_sufficient": 2,
+    "E_pairs": 10,
+    "E_sufficient": 4,
+    "E_missing": 4,
+    "E_controls": 2,
+    "E_all_candidate_quality": true,
+    "E_missing_gains_minimum": 2,
+    "E_regressions": 0,
+    "E_all_guards": true,
+    "frontier_policy_effect_additional_actual_gain": 1
+  },
+  "no_effect_gate": "Complete admitted E/all4 M valid actually new-eligible both arms/matching literal/all guards+paint/zero gains; otherwise UNPROVEN. Frontier-specific no-effect additionally needs all4 C old-ineligible/new-eligible.",
+  "source_delta": "versioned adaptive-v3 policy +closed /3 receipt/stage only; all questions/context/upstream G0/F/V/parser/capacity/threshold/Goal/UI unchanged",
+  "parents": {
+    "G0": {
+      "input": "intent-cycle-public-G0-10.inputs.json",
+      "oracle": "intent-cycle-public-G0-10.oracle.json",
+      "input_sha256": "bb2e090c218ef9be4db85416a87b60bf85a9d2d10a3156c4994bc1e6fd4bc4ba",
+      "oracle_sha256": "a5f08d8d2ed57b802870c76f4a86b9481400325d9c6342e8a0d66f58b5fb8653"
+    },
+    "E": {
+      "input": "intent-cycle-public-E-2.inputs.json",
+      "oracle": "intent-cycle-public-E-2.oracle.json",
+      "input_sha256": "6ed1692b94371faef36475e08a221926b96cbc783f15f5d230ebb118a28b0afa",
+      "oracle_sha256": "9f5418a40cef083ff4119b0553c5f58a35451dbbec6147ea53db0e5b97d79ee5"
+    }
+  },
+  "files": [
+    {
+      "axis": "G0",
+      "visibility": "public",
+      "cases": 10,
+      "cells": 10,
+      "input": {
+        "path": "frontier-cycle-public-G0-10.inputs.json",
+        "bytes": 5546,
+        "sha256": "560b9126d385c9cfa1a48431fc6c78355b9f811e92b7a2f9736684a2c7f91c0f"
+      },
+      "oracle": {
+        "path": "frontier-cycle-public-G0-10.oracle.json",
+        "bytes": 13254,
+        "sha256": "1ecb1b93dd057aa2d30c026e59625504fd545422e7929627a7e7f9fed2165007"
+      },
+      "parent_inputs_sha256": "bb2e090c218ef9be4db85416a87b60bf85a9d2d10a3156c4994bc1e6fd4bc4ba",
+      "parent_oracle_sha256": "a5f08d8d2ed57b802870c76f4a86b9481400325d9c6342e8a0d66f58b5fb8653"
+    },
+    {
+      "axis": "E",
+      "visibility": "public",
+      "cases": 2,
+      "cells": 4,
+      "input": {
+        "path": "frontier-cycle-public-E-2.inputs.json",
+        "bytes": 3826,
+        "sha256": "27f0f8cc6f8a2f0bcd8bf7b92a75b93706c979f4fcb3ad002674ba8317a9db1a"
+      },
+      "oracle": {
+        "path": "frontier-cycle-public-E-2.oracle.json",
+        "bytes": 6740,
+        "sha256": "017eb6365b04a62e83d5747b91c604d41d639495c9541635331d2f334bc70a28"
+      },
+      "parent_inputs_sha256": "6ed1692b94371faef36475e08a221926b96cbc783f15f5d230ebb118a28b0afa",
+      "parent_oracle_sha256": "9f5418a40cef083ff4119b0553c5f58a35451dbbec6147ea53db0e5b97d79ee5"
+    },
+    {
+      "axis": "V",
+      "visibility": "sealed",
+      "cases": 10,
+      "cells": 10,
+      "input": {
+        "path": "frontier-cycle-sealed-V-10.inputs.json",
+        "bytes": 7472,
+        "sha256": "61afe307f57600439d0b70a63a4efcf5a36d3166dd74dfca4655cf466a2f8dd8"
+      },
+      "oracle": {
+        "path": "frontier-cycle-sealed-V-10.oracle.json",
+        "bytes": 14395,
+        "sha256": "61de89a893767d873af19ea26da11901acaa6b04005aef87cf7b9e83864a7a5e"
+      },
+      "parent_inputs_sha256": null,
+      "parent_oracle_sha256": null
+    },
+    {
+      "axis": "F",
+      "visibility": "sealed",
+      "cases": 8,
+      "cells": 8,
+      "input": {
+        "path": "frontier-cycle-sealed-F-8.inputs.json",
+        "bytes": 5481,
+        "sha256": "78159163bebb25c87c6dd17ceff7c4eb746d34bf4bdd3c9d387bc5cb206c824a"
+      },
+      "oracle": {
+        "path": "frontier-cycle-sealed-F-8.oracle.json",
+        "bytes": 11820,
+        "sha256": "c36e4f748a6c82a9d3255b39f7e6bc087d1d15282bed892c9c69731e538a5caf"
+      },
+      "parent_inputs_sha256": null,
+      "parent_oracle_sha256": null
+    },
+    {
+      "axis": "E",
+      "visibility": "sealed",
+      "cases": 10,
+      "cells": 20,
+      "input": {
+        "path": "frontier-cycle-sealed-E-10.inputs.json",
+        "bytes": 6161,
+        "sha256": "74d5eb6b1504ffd5ab223daa4b6682a1952f7db113f6bfb438fc2fe5d3cc67f7"
+      },
+      "oracle": {
+        "path": "frontier-cycle-sealed-E-10.oracle.json",
+        "bytes": 15063,
+        "sha256": "c6ee6fca910a2fd91581886cd24aad9d0cb5e7a53b50d33dc27ebad88d45bf13"
+      },
+      "parent_inputs_sha256": null,
+      "parent_oracle_sha256": null
+    }
+  ],
+  "protocol": {
+    "path": "frontier-cycle-protocol.v2.md",
+    "bytes": 15248,
+    "sha256": "ef6123e0c9bb49fbd42a9d849fe22cc0b6f459bacf58319461c3f1e2e0efbce8"
+  },
+  "policy_contract": {
+    "path": "frontier-cycle-policy-contract.json",
+    "bytes": 1898,
+    "sha256": "6bab60894486521a0aeda5000dbecacbcae3f2b86efb1e12c5dc85dba4666f88"
+  },
+  "public_preflight": {
+    "path": "frontier-cycle-public-literal-preflight.json",
+    "bytes": 4648,
+    "sha256": "50b730839d71dada800861f617f1ffa9afce07db1eba8ac18691701f8c230f2e"
+  },
+  "validation": {
+    "path": "frontier-cycle-seal-validation.json",
+    "bytes": 6966,
+    "sha256": "cfec96c52a74b88d729dbb1644213a051e829e57bc72044363a51f779a217986"
+  },
+  "no_provider_calls": true,
+  "exposure": "only explicit public allowlist now; new blind inputs at stage gate and own oracle only after stopped accounting; every older unused pool remains sealed",
+  "prepublication_addendum": {
+    "path": "frontier-cycle-parser-observation-addendum.json",
+    "bytes": 1104,
+    "sha256": "f23fbf76324b0157661d5bc17c38e7d2b22efebaef9a99683063833de195e4b0"
+  },
+  "supersedes": {
+    "path": "frontier-cycle-commitment.json",
+    "sha256": "7a79dc144c801c97d284e604437e938b8fd8ae672b358fae0ab5d179bcb410ae",
+    "reason": "Explicit parser-observation versus provider/factor failure distinction before publication; all public/sealed payloads and budget unchanged"
+  }
+}

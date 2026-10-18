@@ -1,0 +1,64 @@
+{
+  "observed_at": "2026-10-17T10:03:43.719Z",
+  "phase": "candidate-correction-2-20261017",
+  "hashes": {
+    "config": "8f4c5dc6e8ed43f521e4f6274e4505c3650c269a1dea97ca0f37b028dfbd4bfb",
+    "identity": "9998c2082e7f1c95891b71e91118851343dfd1ba6713ec5024e2571709bb8e2f",
+    "runtime": "825b6c352684047fe807a267c48294ae9e7be9fae8af57b3b6c90a84addb843c",
+    "input": "bcb83b856d2fd4da78a20e9dea5a152aea2c97324cf1a2963366380e22f67306"
+  },
+  "current": {
+    "pid": 259519,
+    "state": "S",
+    "pgid": 259519,
+    "start_ticks": "13920555"
+  },
+  "argv": [
+    "node",
+    "/nix/store/ck5nvk2ywaa74wirfrm9rk73424ggrqx-source/packages/voice-ui/dev/serve.mjs"
+  ],
+  "preload_exact": true,
+  "actual_hashes": {
+    "dev": "0a56ba4bb0b71698a7b47322b59f892ed69ae9f774516a2871ba818447248535",
+    "worker": "fe10fd17d049f7cd87a892dc3d6d7cd2bc0faa0b3811379ac53c4bf6328c4b90",
+    "provider": "ad4ac08ae8c42f3bf0e9d0aeedb0a2e9192c776585a3251b2ff1e18358cfe2e7",
+    "protocol": "1689dcf63e1ed19cdea7be22e3f90a09f434841f980b9ca8b9018a987c9c38f8",
+    "manifest": "7b05ca9282211c6e21c071e3d30d599c1146f1a2c66aa3eae9a492349a8809f0",
+    "launcher": "2bda2882f0d8e489198241dc987d2cd28f989dd7fefad1a1640e152ac913a6c5",
+    "preload": "cdb39c164e55d7f660251704b13c20c4fdd6ffb0bec1524c44e9bf355e333d24",
+    "manager": "92167c85c8e0861402f9ef57c30cb8a457d4f21a83c857fa23bd0080096942a1"
+  },
+  "selected_plan": {
+    "schema": "voice-ui.poc.selected-cells/1",
+    "phase_kind": "correction",
+    "parent_inputs_sha256": "7f32e930d869dfb2261176afe89e542cb87ea8fb8ef40d66c0f55c86a7ed03f7",
+    "case_order": [
+      "H01",
+      "H09",
+      "H10",
+      "H05"
+    ],
+    "arm_order": [
+      "C"
+    ]
+  },
+  "sent": {
+    "jev": 0,
+    "typellm": 0
+  },
+  "charged": {
+    "jev": 316,
+    "typellm": 22
+  },
+  "pending": [
+    [
+      "candidate-correction-2-20261017",
+      {
+        "jev": 36,
+        "typellm": 4
+      }
+    ]
+  ],
+  "ledger_sha256": "9941fe988043fb26a56be25c70824688b57944db94ecbd2b93140910c1503c85",
+  "matches": true
+}

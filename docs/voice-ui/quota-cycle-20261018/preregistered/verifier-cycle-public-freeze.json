@@ -1,0 +1,47 @@
+{
+  "schema": "voice-ui.quota-cycle-public-freeze/1",
+  "repeat_profile": "compact-verifier-VE-20261018",
+  "status": "SEALED_NOT_ADMITTED",
+  "created_at": "2026-10-18T05:28:47.356185+00:00",
+  "commitment_sha256": "a9062129f2bda9dab84f5e311d35f7b071b1035f22a1485a38c4c8aafd6d12a2",
+  "copy_allowlist": [
+    {
+      "name": "verifier-cycle-protocol.md",
+      "bytes": 9794,
+      "sha256": "dfb5f36ed07223ec6dab4dad6e51687b1e0af33d387778af05849137872d0dd0"
+    },
+    {
+      "name": "verifier-cycle-public-V-6.inputs.json",
+      "bytes": 5592,
+      "sha256": "a508e239d34896726e0a21c9e7cd0eb52486879652be70e786be362d57db573d"
+    },
+    {
+      "name": "verifier-cycle-public-V-6.oracle.json",
+      "bytes": 10517,
+      "sha256": "c2bfbe81c8d7c7c07f8e36a985b7a2c537bd3fd2ef0eb61147d0beeb8c704d2d"
+    },
+    {
+      "name": "verifier-cycle-public-E-1.inputs.json",
+      "bytes": 3628,
+      "sha256": "52b95efd0dc3301c746b1d947e5896400bf7f12ee0e8d2d53113ddf8c2c08283"
+    },
+    {
+      "name": "verifier-cycle-public-E-1.oracle.json",
+      "bytes": 5857,
+      "sha256": "837d68dd6c1da85ac3ce199d27dc88ceeb3ea57eff0ec18bdf5451ff6dd7124e"
+    },
+    {
+      "name": "verifier-cycle-static-validation.json",
+      "bytes": 4919,
+      "sha256": "4db2db780b2da894356723496c2cbbb35ef63f48b488c98e80b31b04944dcc3a"
+    },
+    {
+      "name": "verifier-cycle-commitment.json",
+      "bytes": 14548,
+      "sha256": "a9062129f2bda9dab84f5e311d35f7b071b1035f22a1485a38c4c8aafd6d12a2"
+    }
+  ],
+  "self_is_additionally_copyable": true,
+  "private_payloads_validators_authoring_or_other_paths_copyable": false,
+  "provider_sends": 0
+}

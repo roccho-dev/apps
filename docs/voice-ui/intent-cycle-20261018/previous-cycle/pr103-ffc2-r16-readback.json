@@ -1,0 +1,64 @@
+{
+  "schema": "voice-ui.review.r16-readback/1",
+  "status": "PASS",
+  "observed_at": "2026-10-17T18:37:37.397Z",
+  "review": {
+    "id": 5559399188,
+    "node_id": "PRR_kwDOUfm6488AAAABS12zFA",
+    "user": {
+      "login": "roccho-dev",
+      "id": 40359643,
+      "node_id": "MDQ6VXNlcjQwMzU5NjQz",
+      "avatar_url": "https://avatars.githubusercontent.com/u/40359643?u=566fc2ae17c06f1b9fa98c1c87dfe6a970be6304&v=4",
+      "gravatar_id": "",
+      "url": "https://api.github.com/users/roccho-dev",
+      "html_url": "https://github.com/roccho-dev",
+      "followers_url": "https://api.github.com/users/roccho-dev/followers",
+      "following_url": "https://api.github.com/users/roccho-dev/following{/other_user}",
+      "gists_url": "https://api.github.com/users/roccho-dev/gists{/gist_id}",
+      "starred_url": "https://api.github.com/users/roccho-dev/starred{/owner}{/repo}",
+      "subscriptions_url": "https://api.github.com/users/roccho-dev/subscriptions",
+      "organizations_url": "https://api.github.com/users/roccho-dev/orgs",
+      "repos_url": "https://api.github.com/users/roccho-dev/repos",
+      "events_url": "https://api.github.com/users/roccho-dev/events{/privacy}",
+      "received_events_url": "https://api.github.com/users/roccho-dev/received_events",
+      "type": "User",
+      "user_view_type": "public",
+      "site_admin": false
+    },
+    "body": "ROUND_16_GREEN\n\n独立Rによる最終source・完成物・実CI・停止済み証拠・工程の閉包確認です。対象head `ffc2337387289be5d4987be4e2eef95e684db132` / tree `1ac2b49d52783c3375e3ab700ef85cbd5433b461`。公開Eの品質基準は未達、一般的効果とNO_EFFECTは未証明です。Appsはdraft/open/unmerged、UI#362の明示的人間merge承認条件を維持します。\n\n- 測定head `ae816ec23a5e4c397c8a4893e127fb24134afda8` からは97のdocs/evidenceファイルだけの差分です。測定19source、意味採点、監査器、workflow、Nixと原22件・4無効件・3固定producer・元公開parent・全会計cutoffを独立に照合しました。未見V10/F8/E10と旧未使用poolは解放されていません。\n- 実Nix完成物の293 manifest memberを検算し、291 ordinary memberは測定完成物とraw bytes一致。変更は事前宣言した `architecture/evidence.json` と `site/architecture/data/source.v1.json`、manifest/provenance、およびlauncherのsource/Worker/architectureの3参照です。Worker `f54e9a95562ca33332b2ad67903907d16c6a6d1f6764d2b135cf22e9ba669c66`、正式Ops provider `3f754c8b1ee4a8b34b50d00fd17e37295d853e1b607903b6d355b5e06997669c`、Goal等6sourceと実UI bytesも一致。既往R8/8の適用は同一bytes・有限表示条件に限定します。\n- exact-head [Nix](https://github.com/roccho-dev/apps/actions/runs/39057417636)、[完成ZIP/必須閉包](https://github.com/roccho-dev/apps/actions/runs/39057417726)、[artifact](https://github.com/roccho-dev/apps/actions/runs/39057417737)、[auth](https://github.com/roccho-dev/apps/actions/runs/39057417634)の全成功を認証readbackしました。実browser artifact `12109803791` / ZIP SHA256 `96067db1f1ee930ad2f771fb6deebdbef0b0b76c0f28cc397215ece0cfa23573` の60疑似cell、無効24件保持、48 paint assessment、全19source identity、6組の依存除去wire一致、7不正query送信0/default dependentを再計算しました。証明範囲はSYNTHETIC_MECHANICS_ONLYです。\n- 実3phase CI artifact `12110655885` / ZIP SHA256 `10749b0e92c50f38786f78a22ac89c88758ecb0589573a6dc544f4563598b280` / receipt SHA256 `ef2f2819cea80c06a718099e2cc2bb159b0232037402f13c8897295fea1e0212` を独立取得しました。各raw・protocol proof・stage/policy・provider精算・producer・processを固定監査器で再計算し全reportが一致。実CIのE再描画は4件/12frame/8assessment PASS、意味採点も原記録と一致します。過去の必須3系列も元の品質分類を保持しています。\n- 公開Fはdependent有効6/6・正確最小5/6、independent有効/正確2/6。形式改善4件を意味上の因果改善へ算入せず、双方有効な2組は意味改善0/退行0です。PF04のkind誤りも保存。Vは公開6/6、正案受理3/3・誤案拒否3/3です。Eはenabled達成1/2、eligibleな1組で局所gain1、もう1組は両armともG0 intent=ambiguousでType未実行。実paint/保存復元4/4とタスク達成率を分離し、public E両問gate未達により修正/再試行/未見解放0を確認しました。全3phaseの分類はPUBLIC_REGRESSION_ONLYです。\n- 最終再観測でも全3所有PID/PGIDはzombieを含め消滅、原raw/log/configは不変、予約0。今回実送14Jev/13TypeLLM、累計charged715/71・confirmed715/70、最終journal SHA256 `9b5582798122208f1d36968e4646de46573f414739a239f0ea1195a692a5b6ba` です。CI起点実API、金額費用、四方式全比較、未見一般化、製品採用は未証明のままです。\n\n独立監査SHA256: source/archive `d34685067a1cf75cb8190c308ac4c9cfb6be60833800d50fec26d44bb127d4cc`、runtime bridge `8bd0cb339ad0e8c6d0e398a31982b614d18689a48376daf4702b12032fb9cc29`、actual CI closure `8fd4d56369a53d9b713dd8cd5e15da775822ad75fadec78d7bfc2c32bd871565`、terminal `4a2a6e1ac3f1aed0c5e5abb717f79247e0cc0add62ad14811edb98e9bfd99b3d`。PR本文の固定SHA256 `82b89f9fe681f5563efbd36d4021287c8485c2a63414ba6bde87fc66c5d0af60` も認証readback一致。R自身の実provider送信0です。次仮説は別登録を必要とし、この閉包から新しい実行許可を自動継承しません。",
+    "state": "COMMENTED",
+    "html_url": "https://github.com/roccho-dev/apps/pull/103#pullrequestreview-5559399188",
+    "pull_request_url": "https://api.github.com/repos/roccho-dev/apps/pulls/103",
+    "author_association": "OWNER",
+    "_links": {
+      "html": {
+        "href": "https://github.com/roccho-dev/apps/pull/103#pullrequestreview-5559399188"
+      },
+      "pull_request": {
+        "href": "https://api.github.com/repos/roccho-dev/apps/pulls/103"
+      }
+    },
+    "submitted_at": "2026-10-17T18:37:15Z",
+    "commit_id": "ffc2337387289be5d4987be4e2eef95e684db132"
+  },
+  "head": "ffc2337387289be5d4987be4e2eef95e684db132",
+  "tree": "1ac2b49d52783c3375e3ab700ef85cbd5433b461",
+  "latest_exact_head_non_dismissed_review": 5559399188,
+  "body_sha256": "f7ad88b7013d6bd8787b54a5c102dad860cdc54f34f4364c715322cec3ad0186",
+  "markdown_file_sha256": "43abf67f90d51a597138dd7a0f0c49354df6d555a4b6e7d86f251b13cb331976",
+  "pr_body_sha256": "82b89f9fe681f5563efbd36d4021287c8485c2a63414ba6bde87fc66c5d0af60",
+  "pr": {
+    "state": "open",
+    "draft": true,
+    "merged": false
+  },
+  "ui": {
+    "head": "756d47e891191c3344eb2d29b000203be8331abc",
+    "state": "open",
+    "draft": false,
+    "merged": false,
+    "human_merge_approval": "UNGRANTED"
+  },
+  "scope": "Technical source/evidence/CI/process closure; public E quality remains UNMET; fresh and next-cycle execution not authorized by this review."
+}

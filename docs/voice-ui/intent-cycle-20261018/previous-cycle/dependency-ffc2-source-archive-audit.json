@@ -1,0 +1,244 @@
+{
+  "schema": "voice-ui.review.dependency-final-source-archive/1",
+  "status": "PASS",
+  "apps": "ffc2337387289be5d4987be4e2eef95e684db132",
+  "tree": "1ac2b49d52783c3375e3ab700ef85cbd5433b461",
+  "measured_apps": "ae816ec23a5e4c397c8a4893e127fb24134afda8",
+  "changed_files": [
+    "docs/voice-ui/dependency-cycle-20261018/README.md",
+    "docs/voice-ui/dependency-cycle-20261018/closure.md",
+    "docs/voice-ui/dependency-cycle-20261018/evidence/dependency-cycle-public-closure.json",
+    "docs/voice-ui/dependency-cycle-20261018/evidence/dependency-cycle-public-closure.md",
+    "docs/voice-ui/dependency-cycle-20261018/evidence/index.json",
+    "docs/voice-ui/dependency-cycle-20261018/evidence/public-E/dependency-public-E-20261018.config.json",
+    "docs/voice-ui/dependency-cycle-20261018/evidence/public-E/dependency-public-E-20261018.driver.stderr.log",
+    "docs/voice-ui/dependency-cycle-20261018/evidence/public-E/dependency-public-E-20261018.driver.stdout.log",
+    "docs/voice-ui/dependency-cycle-20261018/evidence/public-E/dependency-public-E-20261018.journal.jsonl",
+    "docs/voice-ui/dependency-cycle-20261018/evidence/public-E/dependency-public-E-20261018.orchestration.json",
+    "docs/voice-ui/dependency-cycle-20261018/evidence/public-E/dependency-public-E-20261018.process.json",
+    "docs/voice-ui/dependency-cycle-20261018/evidence/public-E/dependency-public-E-20261018.runtime.json",
+    "docs/voice-ui/dependency-cycle-20261018/evidence/public-E/dependency-public-E-20261018.stderr.log",
+    "docs/voice-ui/dependency-cycle-20261018/evidence/public-E/dependency-public-E-20261018.stdout.log",
+    "docs/voice-ui/dependency-cycle-20261018/evidence/public-E/dependency-public-E-audit-manifest.json",
+    "docs/voice-ui/dependency-cycle-20261018/evidence/public-E/dependency-public-E-physical-stop.json",
+    "docs/voice-ui/dependency-cycle-20261018/evidence/public-E/dependency-public-E-process-audit.json",
+    "docs/voice-ui/dependency-cycle-20261018/evidence/public-E/dependency-public-E-producer-audit.json",
+    "docs/voice-ui/dependency-cycle-20261018/evidence/public-E/dependency-public-E-provider-audit.json",
+    "docs/voice-ui/dependency-cycle-20261018/evidence/public-E/dependency-public-E-raw-audit.json",
+    "docs/voice-ui/dependency-cycle-20261018/evidence/public-E/dependency-public-E-replay.json",
+    "docs/voice-ui/dependency-cycle-20261018/evidence/public-E/dependency-public-E-stop-audit.json",
+    "docs/voice-ui/dependency-cycle-20261018/evidence/public-E/dependency-public-E-zero-send-audit.json",
+    "docs/voice-ui/dependency-cycle-20261018/evidence/public-E/dependency-public-E.producer.json",
+    "docs/voice-ui/dependency-cycle-20261018/evidence/public-E/pr103-ae81-r15-review.md",
+    "docs/voice-ui/dependency-cycle-20261018/evidence/public-E/raw/PE01-B.json",
+    "docs/voice-ui/dependency-cycle-20261018/evidence/public-E/raw/PE01-C.json",
+    "docs/voice-ui/dependency-cycle-20261018/evidence/public-E/raw/PE02-B.json",
+    "docs/voice-ui/dependency-cycle-20261018/evidence/public-E/raw/PE02-C.json",
+    "docs/voice-ui/dependency-cycle-20261018/evidence/public-E/raw/events.jsonl",
+    "docs/voice-ui/dependency-cycle-20261018/evidence/public-E/raw/execution.json",
+    "docs/voice-ui/dependency-cycle-20261018/evidence/public-E/raw/identity.json",
+    "docs/voice-ui/dependency-cycle-20261018/evidence/public-E/runtime-build.json",
+    "docs/voice-ui/dependency-cycle-20261018/evidence/public-F/dependency-public-F-20261018.config.json",
+    "docs/voice-ui/dependency-cycle-20261018/evidence/public-F/dependency-public-F-20261018.driver.stderr.log",
+    "docs/voice-ui/dependency-cycle-20261018/evidence/public-F/dependency-public-F-20261018.driver.stdout.log",
+    "docs/voice-ui/dependency-cycle-20261018/evidence/public-F/dependency-public-F-20261018.journal.jsonl",
+    "docs/voice-ui/dependency-cycle-20261018/evidence/public-F/dependency-public-F-20261018.orchestration.json",
+    "docs/voice-ui/dependency-cycle-20261018/evidence/public-F/dependency-public-F-20261018.process.json",
+    "docs/voice-ui/dependency-cycle-20261018/evidence/public-F/dependency-public-F-20261018.runtime.json",
+    "docs/voice-ui/dependency-cycle-20261018/evidence/public-F/dependency-public-F-20261018.stderr.log",
+    "docs/voice-ui/dependency-cycle-20261018/evidence/public-F/dependency-public-F-20261018.stdout.log",
+    "docs/voice-ui/dependency-cycle-20261018/evidence/public-F/dependency-public-F-audit-manifest.json",
+    "docs/voice-ui/dependency-cycle-20261018/evidence/public-F/dependency-public-F-physical-stop.json",
+    "docs/voice-ui/dependency-cycle-20261018/evidence/public-F/dependency-public-F-process-audit.json",
+    "docs/voice-ui/dependency-cycle-20261018/evidence/public-F/dependency-public-F-producer-audit.json",
+    "docs/voice-ui/dependency-cycle-20261018/evidence/public-F/dependency-public-F-provider-audit.json",
+    "docs/voice-ui/dependency-cycle-20261018/evidence/public-F/dependency-public-F-raw-audit.json",
+    "docs/voice-ui/dependency-cycle-20261018/evidence/public-F/dependency-public-F-stop-audit.json",
+    "docs/voice-ui/dependency-cycle-20261018/evidence/public-F/dependency-public-F-zero-send-audit.json",
+    "docs/voice-ui/dependency-cycle-20261018/evidence/public-F/dependency-public-F.producer.json",
+    "docs/voice-ui/dependency-cycle-20261018/evidence/public-F/pr103-ae81-r15-review.md",
+    "docs/voice-ui/dependency-cycle-20261018/evidence/public-F/raw/PF01-D.json",
+    "docs/voice-ui/dependency-cycle-20261018/evidence/public-F/raw/PF01-I.json",
+    "docs/voice-ui/dependency-cycle-20261018/evidence/public-F/raw/PF02-D.json",
+    "docs/voice-ui/dependency-cycle-20261018/evidence/public-F/raw/PF02-I.json",
+    "docs/voice-ui/dependency-cycle-20261018/evidence/public-F/raw/PF03-D.json",
+    "docs/voice-ui/dependency-cycle-20261018/evidence/public-F/raw/PF03-I.json",
+    "docs/voice-ui/dependency-cycle-20261018/evidence/public-F/raw/PF04-D.json",
+    "docs/voice-ui/dependency-cycle-20261018/evidence/public-F/raw/PF04-I.json",
+    "docs/voice-ui/dependency-cycle-20261018/evidence/public-F/raw/PF05-D.json",
+    "docs/voice-ui/dependency-cycle-20261018/evidence/public-F/raw/PF05-I.json",
+    "docs/voice-ui/dependency-cycle-20261018/evidence/public-F/raw/PF06-D.json",
+    "docs/voice-ui/dependency-cycle-20261018/evidence/public-F/raw/PF06-I.json",
+    "docs/voice-ui/dependency-cycle-20261018/evidence/public-F/raw/events.jsonl",
+    "docs/voice-ui/dependency-cycle-20261018/evidence/public-F/raw/execution.json",
+    "docs/voice-ui/dependency-cycle-20261018/evidence/public-F/raw/identity.json",
+    "docs/voice-ui/dependency-cycle-20261018/evidence/public-F/runtime-build.json",
+    "docs/voice-ui/dependency-cycle-20261018/evidence/public-V/dependency-public-V-20261018.config.json",
+    "docs/voice-ui/dependency-cycle-20261018/evidence/public-V/dependency-public-V-20261018.driver.stderr.log",
+    "docs/voice-ui/dependency-cycle-20261018/evidence/public-V/dependency-public-V-20261018.driver.stdout.log",
+    "docs/voice-ui/dependency-cycle-20261018/evidence/public-V/dependency-public-V-20261018.journal.jsonl",
+    "docs/voice-ui/dependency-cycle-20261018/evidence/public-V/dependency-public-V-20261018.orchestration.json",
+    "docs/voice-ui/dependency-cycle-20261018/evidence/public-V/dependency-public-V-20261018.process.json",
+    "docs/voice-ui/dependency-cycle-20261018/evidence/public-V/dependency-public-V-20261018.runtime.json",
+    "docs/voice-ui/dependency-cycle-20261018/evidence/public-V/dependency-public-V-20261018.stderr.log",
+    "docs/voice-ui/dependency-cycle-20261018/evidence/public-V/dependency-public-V-20261018.stdout.log",
+    "docs/voice-ui/dependency-cycle-20261018/evidence/public-V/dependency-public-V-audit-manifest.json",
+    "docs/voice-ui/dependency-cycle-20261018/evidence/public-V/dependency-public-V-physical-stop.json",
+    "docs/voice-ui/dependency-cycle-20261018/evidence/public-V/dependency-public-V-process-audit.json",
+    "docs/voice-ui/dependency-cycle-20261018/evidence/public-V/dependency-public-V-producer-audit.json",
+    "docs/voice-ui/dependency-cycle-20261018/evidence/public-V/dependency-public-V-provider-audit.json",
+    "docs/voice-ui/dependency-cycle-20261018/evidence/public-V/dependency-public-V-raw-audit.json",
+    "docs/voice-ui/dependency-cycle-20261018/evidence/public-V/dependency-public-V-stop-audit.json",
+    "docs/voice-ui/dependency-cycle-20261018/evidence/public-V/dependency-public-V-zero-send-audit.json",
+    "docs/voice-ui/dependency-cycle-20261018/evidence/public-V/dependency-public-V.producer.json",
+    "docs/voice-ui/dependency-cycle-20261018/evidence/public-V/pr103-ae81-r15-review.md",
+    "docs/voice-ui/dependency-cycle-20261018/evidence/public-V/raw/PV01-V.json",
+    "docs/voice-ui/dependency-cycle-20261018/evidence/public-V/raw/PV02-V.json",
+    "docs/voice-ui/dependency-cycle-20261018/evidence/public-V/raw/PV03-V.json",
+    "docs/voice-ui/dependency-cycle-20261018/evidence/public-V/raw/PV04-V.json",
+    "docs/voice-ui/dependency-cycle-20261018/evidence/public-V/raw/PV05-V.json",
+    "docs/voice-ui/dependency-cycle-20261018/evidence/public-V/raw/PV06-V.json",
+    "docs/voice-ui/dependency-cycle-20261018/evidence/public-V/raw/events.jsonl",
+    "docs/voice-ui/dependency-cycle-20261018/evidence/public-V/raw/execution.json",
+    "docs/voice-ui/dependency-cycle-20261018/evidence/public-V/raw/identity.json",
+    "docs/voice-ui/dependency-cycle-20261018/evidence/public-V/runtime-build.json"
+  ],
+  "only97_dependency_docs_changed": true,
+  "source19": [
+    {
+      "path": "src/completion.mjs",
+      "sha256": "11d6c098c703f257f96395a4a1c15ce4d39ed95fbd3aa0b103e23cbea94d5c5a",
+      "raw_equal_measured_head": true
+    },
+    {
+      "path": "src/literal-inventory.mjs",
+      "sha256": "82a2bdb9866c1331b4c685f28862bd54e7e974c4af3652b4f72dfdbb41f7df60",
+      "raw_equal_measured_head": true
+    },
+    {
+      "path": "src/goal.mjs",
+      "sha256": "cd9101d6a222e31773c9523adeca3f7f9aa32990e30b39e06a7b872771422f3e",
+      "raw_equal_measured_head": true
+    },
+    {
+      "path": "src/contract.mjs",
+      "sha256": "f2c95212493f59fd80ef17270c2b5de0d51d795b26ac8a0e6dfa0fdb9dec30fe",
+      "raw_equal_measured_head": true
+    },
+    {
+      "path": "src/turn.mjs",
+      "sha256": "c5fc3489a5bd0861f0455bd9843f47e76030bb03a4fe55745cf00c29c79b7008",
+      "raw_equal_measured_head": true
+    },
+    {
+      "path": "src/session.mjs",
+      "sha256": "d6fcb97e581afb789ed6ecb339c06c378ef94283084df8ad3042ebe42c48cfe8",
+      "raw_equal_measured_head": true
+    },
+    {
+      "path": "functions/api/parts.mjs",
+      "sha256": "cdc97390f69e7a7883f158710b346b8487486988f5882f77660c14ce761e3635",
+      "raw_equal_measured_head": true
+    },
+    {
+      "path": "functions/pages-worker.mjs",
+      "sha256": "9aa2afda61f0fffdab87a15ececb59b35307f07cfd9f59099501c29aac1486c9",
+      "raw_equal_measured_head": true
+    },
+    {
+      "path": "web/app.mjs",
+      "sha256": "3a9ac4eba0770949a219b35c97cd346d4a7912026fae2b2f21710251b86bbf2a",
+      "raw_equal_measured_head": true
+    },
+    {
+      "path": "web/adapters/completion.mjs",
+      "sha256": "537bc46e93efe58fbdf466dd2493989ad5695209def769ec9da3ba68926edb5a",
+      "raw_equal_measured_head": true
+    },
+    {
+      "path": "dev/serve.mjs",
+      "sha256": "d044ea7f8ccbd7fd71fbe1447dcce0f30bfa831d471da3eef2e3377380532298",
+      "raw_equal_measured_head": true
+    },
+    {
+      "path": "tests/dependency-cycle-eval.mjs",
+      "sha256": "b92308340b7a54020c30ae1c1daa3b482b60263d080b3f2e2393909f6cfcd7c3",
+      "raw_equal_measured_head": true
+    },
+    {
+      "path": "tests/requirements-cycle-score.mjs",
+      "sha256": "3d779cf422e8cc0facc6f5ff566c3e77b36a61486f9586f120b0c1a722cd5a46",
+      "raw_equal_measured_head": true
+    },
+    {
+      "path": "tests/requirements-cycle-audit.mjs",
+      "sha256": "692bdbaef8dbe28fe30fcdfe178202ebbdf3a4728bf0fe1c7310f72bf789c6eb",
+      "raw_equal_measured_head": true
+    },
+    {
+      "path": "tests/dependency-cycle-score.mjs",
+      "sha256": "2f7f40afec31d1f7cded08951529a30d741f6ebfb8abf446900a7f6eb567ef91",
+      "raw_equal_measured_head": true
+    },
+    {
+      "path": "tests/dependency-cycle-audit.mjs",
+      "sha256": "47dce6207c8b48dae6447d87ee1294d8495f28a31d2b474d5dc0c9b95998d66e",
+      "raw_equal_measured_head": true
+    },
+    {
+      "path": "tests/semantic-score.mjs",
+      "sha256": "3230791bd2b06ccbb73008723ab3709981ce6e2d65fc2fdbdec8cadf9d1cfec3",
+      "raw_equal_measured_head": true
+    },
+    {
+      "path": "tests/requirements-cycle-http.mjs",
+      "sha256": "b3c1d052e2f7138532e0d7cac6ac7b3c7287b7af32b857990c1e6d14bb325386",
+      "raw_equal_measured_head": true
+    },
+    {
+      "path": "tests/painted-goal.mjs",
+      "sha256": "c5ba117d1dea66d20c80b7f92b8184296ff79d4231da56f5a89836af4beb018b",
+      "raw_equal_measured_head": true
+    }
+  ],
+  "flake_CI_and_closure_wrapper_raw_unchanged": true,
+  "phases": [
+    {
+      "id": "public-F",
+      "axis": "F",
+      "measured_apps": "ae816ec23a5e4c397c8a4893e127fb24134afda8",
+      "raw_files": 15,
+      "source_runtime_logs_input_and_parent_bytes_equal_independent_originals": true,
+      "producer_sha256": "0953cab7790633e8168cf5414f2538d098da936f5cccb02d0e592720e0c55d2c",
+      "expected_execution_status": "INVALID"
+    },
+    {
+      "id": "public-V",
+      "axis": "V",
+      "measured_apps": "ae816ec23a5e4c397c8a4893e127fb24134afda8",
+      "raw_files": 9,
+      "source_runtime_logs_input_and_parent_bytes_equal_independent_originals": true,
+      "producer_sha256": "923eb6c3c5a432c06bbd8d99191a2b261f920e209e408be020822aa46c59496f",
+      "expected_execution_status": "RECORDED"
+    },
+    {
+      "id": "public-E",
+      "axis": "E",
+      "measured_apps": "ae816ec23a5e4c397c8a4893e127fb24134afda8",
+      "raw_files": 7,
+      "source_runtime_logs_input_and_parent_bytes_equal_independent_originals": true,
+      "producer_sha256": "25e7c9465bf8c16e16486589a67902875af27767bfb9dd68f5d91b69b56c4ecd",
+      "expected_execution_status": "RECORDED"
+    }
+  ],
+  "all22_original_rows_and4_invalid_retained": true,
+  "registered_public_and_old_parent_bytes_unchanged": true,
+  "independent_aggregate_raw_equal": true,
+  "new_and_old_unconsumed_private_pool_not_published": true,
+  "new_fresh_releases": 0,
+  "CI_LIVE_EXECUTION": "UNPROVEN",
+  "quality": "PUBLIC_REGRESSION_ONLY; E criteria UNMET",
+  "effect": "one public partial gain; full effect and bounded NO_EFFECT UNPROVEN",
+  "remaining": "Exact final immutable runtime ordinary-byte bridge, full current CI/actual completed mechanics and closed receipt, final frozen PR body/readback before R16.",
+  "real_provider_calls_by_reviewer": 0
+}

@@ -1,0 +1,11 @@
+voice-ui dev: listening on 127.0.0.1:18845
+voice-ui dev: semanticMap=/nix/store/vqjhvwxcbwv7vg09n4d3sy54lw879s9f-semantic-map
+voice-ui dev: hayamimi=/nix/store/b7l6pgxk94ipi8sxg8z72kx8f6ki36xj-hayamimi-web
+voice-ui dev: architecture=/nix/store/1lvndf9px180a6jmdl8ry5cwsx1mqcfw-voice-ui-architecture-source
+voice-ui dev: JEV_API_KEY bound
+{"kind":"voice-ui.parts.stage.v2","request_id":"891b0af3-613e-4b1a-9704-4e805ec609c0","stage":"TYPE_REQUIRED","valid":false}
+{"kind":"voice-ui.parts.stage.v2","request_id":"06a85414-44db-4c89-847d-5a7a8d660f09","stage":"TYPE_REQUIRED","valid":true,"proposal":{"slots":{"required1":{"label":"可否照合","kind":"decision","quantity":"1"},"required2":{"label":"","kind":"none","quantity":"0"},"required3":{"label":"","kind":"none","quantity":"0"}},"required":[{"label":"可否照合","kind":"decision","quantity":1}]}}
+{"kind":"voice-ui.parts.stage.v2","request_id":"5cc5682d-08ac-4cba-abdf-54b6a991fdaf","stage":"TYPE_REQUIRED","valid":true,"proposal":{"slots":{"required1":{"label":"API","kind":"step","quantity":"1"},"required2":{"label":"","kind":"none","quantity":"0"},"required3":{"label":"","kind":"none","quantity":"0"}},"required":[{"label":"API","kind":"step","quantity":1}]}}
+{"kind":"voice-ui.parts.stage.v2","request_id":"1d977654-d402-4f8f-bfff-374546673636","stage":"TYPE_REQUIRED","valid":true,"proposal":{"slots":{"required1":{"label":"データ","kind":"data","quantity":"1"},"required2":{"label":"判断","kind":"data","quantity":"1"},"required3":{"label":"","kind":"none","quantity":"0"}},"required":[{"label":"データ","kind":"data","quantity":1},{"label":"判断","kind":"data","quantity":1}]}}
+{"kind":"voice-ui.parts.stage.v2","request_id":"661633ad-eea6-4ceb-8164-d8b16f4ba3b7","stage":"TYPE_REQUIRED","valid":false}
+{"kind":"voice-ui.parts.stage.v2","request_id":"a7f1a214-e9e8-411f-bb63-f38eb60cab76","stage":"TYPE_REQUIRED","valid":false}

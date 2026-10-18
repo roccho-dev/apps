@@ -1,0 +1,398 @@
+{
+  "status": "PASS",
+  "scope": "ROOT_ORIGINAL_STOPPED_V_REGRADING_ONLY_INDEPENDENT_PRODUCER_PENDING",
+  "phase": "compact-verifier-public-V-20261018",
+  "apps": "180fc53e24f0fc2a5fdb098a3748afaff047bab6",
+  "raw": {
+    "schema": "voice-ui.requirements-cycle-raw-audit/1",
+    "axis": "V",
+    "status": "PASS",
+    "issues": [],
+    "complete": true,
+    "all_valid_execution": true,
+    "consumed": 6,
+    "planned": 6,
+    "rows": [
+      {
+        "id": "CV01",
+        "method": "verify",
+        "arm": "V",
+        "valid_execution": true,
+        "grade": {
+          "contract_valid": true,
+          "correct": true,
+          "expected_accept": true,
+          "actual_accept": true,
+          "false_acceptance": false,
+          "intent_raw_correct": true,
+          "proposal_exact": true,
+          "scope": "operational accept/reject quality; raw factor correctness is separately visible"
+        },
+        "cell_wall_elapsedMs": 425.15610000000004
+      },
+      {
+        "id": "CV02",
+        "method": "verify",
+        "arm": "V",
+        "valid_execution": true,
+        "grade": {
+          "contract_valid": true,
+          "correct": true,
+          "expected_accept": false,
+          "actual_accept": false,
+          "false_acceptance": false,
+          "intent_raw_correct": true,
+          "proposal_exact": false,
+          "scope": "operational accept/reject quality; raw factor correctness is separately visible"
+        },
+        "cell_wall_elapsedMs": 181.5494
+      },
+      {
+        "id": "CV03",
+        "method": "verify",
+        "arm": "V",
+        "valid_execution": true,
+        "grade": {
+          "contract_valid": true,
+          "correct": true,
+          "expected_accept": false,
+          "actual_accept": false,
+          "false_acceptance": false,
+          "intent_raw_correct": true,
+          "proposal_exact": false,
+          "scope": "operational accept/reject quality; raw factor correctness is separately visible"
+        },
+        "cell_wall_elapsedMs": 186.66100000000006
+      },
+      {
+        "id": "CV04",
+        "method": "verify",
+        "arm": "V",
+        "valid_execution": true,
+        "grade": {
+          "contract_valid": true,
+          "correct": true,
+          "expected_accept": false,
+          "actual_accept": false,
+          "false_acceptance": false,
+          "intent_raw_correct": true,
+          "proposal_exact": false,
+          "scope": "operational accept/reject quality; raw factor correctness is separately visible"
+        },
+        "cell_wall_elapsedMs": 191.15149999999994
+      },
+      {
+        "id": "CV05",
+        "method": "verify",
+        "arm": "V",
+        "valid_execution": true,
+        "grade": {
+          "contract_valid": true,
+          "correct": true,
+          "expected_accept": false,
+          "actual_accept": false,
+          "false_acceptance": false,
+          "intent_raw_correct": true,
+          "proposal_exact": false,
+          "scope": "operational accept/reject quality; raw factor correctness is separately visible"
+        },
+        "cell_wall_elapsedMs": 189.8207
+      },
+      {
+        "id": "CV06",
+        "method": "verify",
+        "arm": "V",
+        "valid_execution": true,
+        "grade": {
+          "contract_valid": true,
+          "correct": true,
+          "expected_accept": false,
+          "actual_accept": false,
+          "false_acceptance": false,
+          "intent_raw_correct": true,
+          "proposal_exact": false,
+          "scope": "operational accept/reject quality; raw factor correctness is separately visible"
+        },
+        "cell_wall_elapsedMs": 218.84739999999988
+      }
+    ],
+    "semantic": {
+      "complete": true,
+      "total": 6,
+      "correct": 6,
+      "false_acceptance": 0,
+      "verification_criteria": "PASS"
+    },
+    "phase_kind": "public",
+    "inputs_sha256": "a508e239d34896726e0a21c9e7cd0eb52486879652be70e786be362d57db573d",
+    "parent_inputs_sha256": null,
+    "admissible_for_semantic_claim": true,
+    "external_provider_attempts": {
+      "jev": 6,
+      "typellm": 0
+    },
+    "external_provider_attempt_bounds": {
+      "jev": {
+        "min": 6,
+        "max": 6
+      },
+      "typellm": {
+        "min": 0,
+        "max": 0
+      }
+    },
+    "stage_rows": 6,
+    "stage_alignment": "UNIQUE",
+    "proofs": [
+      {
+        "id": "CV01",
+        "method": "verify",
+        "status": "PASS",
+        "initial_head": "sha256:997f2a85be41d6774df84a876b8bba255de5d38cf5cda626fbb1dfc268940bc8",
+        "final_head": "sha256:997f2a85be41d6774df84a876b8bba255de5d38cf5cda626fbb1dfc268940bc8"
+      },
+      {
+        "id": "CV02",
+        "method": "verify",
+        "status": "PASS",
+        "initial_head": "sha256:997f2a85be41d6774df84a876b8bba255de5d38cf5cda626fbb1dfc268940bc8",
+        "final_head": "sha256:997f2a85be41d6774df84a876b8bba255de5d38cf5cda626fbb1dfc268940bc8"
+      },
+      {
+        "id": "CV03",
+        "method": "verify",
+        "status": "PASS",
+        "initial_head": "sha256:997f2a85be41d6774df84a876b8bba255de5d38cf5cda626fbb1dfc268940bc8",
+        "final_head": "sha256:997f2a85be41d6774df84a876b8bba255de5d38cf5cda626fbb1dfc268940bc8"
+      },
+      {
+        "id": "CV04",
+        "method": "verify",
+        "status": "PASS",
+        "initial_head": "sha256:997f2a85be41d6774df84a876b8bba255de5d38cf5cda626fbb1dfc268940bc8",
+        "final_head": "sha256:997f2a85be41d6774df84a876b8bba255de5d38cf5cda626fbb1dfc268940bc8"
+      },
+      {
+        "id": "CV05",
+        "method": "verify",
+        "status": "PASS",
+        "initial_head": "sha256:997f2a85be41d6774df84a876b8bba255de5d38cf5cda626fbb1dfc268940bc8",
+        "final_head": "sha256:997f2a85be41d6774df84a876b8bba255de5d38cf5cda626fbb1dfc268940bc8"
+      },
+      {
+        "id": "CV06",
+        "method": "verify",
+        "status": "PASS",
+        "initial_head": "sha256:997f2a85be41d6774df84a876b8bba255de5d38cf5cda626fbb1dfc268940bc8",
+        "final_head": "sha256:997f2a85be41d6774df84a876b8bba255de5d38cf5cda626fbb1dfc268940bc8"
+      }
+    ],
+    "replay": null,
+    "raw_sha256": {
+      "CV01-V.json": "a31e57ed819ae235b0eb464deca22dcd593c1ff2c08fe0087ad10935e164d2e8",
+      "CV02-V.json": "fca4b43bf64ece24ac07fec71b92bca84d7dd33160fe053bd22ec1413b48b6be",
+      "CV03-V.json": "ff2a9ebfe9376370b5580a2389ceac4d88a1587e69563b72ce4bf636548e9404",
+      "CV04-V.json": "b1f7a5baec372fdc6221725ebb4bc40f5fadc5d56f06c383ebabc0d1c7bfa825",
+      "CV05-V.json": "d5cf749ac019bc4a829ee72d6ea15a6df7bec2870a8331fb923db1c48861bca4",
+      "CV06-V.json": "fe079f507bc4be296d0864b9ba7ba6758ec7066c8f61d8fdc9c15dd0d07adafa",
+      "events.jsonl": "823829d1b02db022bf46255f4e5c3154bb8d06129f702c4df95a6ee2d088d932",
+      "execution.json": "6d2ad81a4b167885cddcdc70ac135cda64aad523610f9279e448ebb94e29c587",
+      "identity.json": "451be79683c8433c3be3025ee29e20612b18f1b4172683183020fd7a35f64eed"
+    },
+    "scope": "raw locality only; exact producer/source/provider/physical PID and required paint admission remain separate",
+    "CI_LIVE_EXECUTION": "UNPROVEN",
+    "currency": "COST_NOT_MEASURED"
+  },
+  "phaseAudit": {
+    "status": "PASS",
+    "issues": [],
+    "phase": "compact-verifier-public-V-20261018",
+    "sent": {
+      "jev": 6,
+      "typellm": 0
+    },
+    "prior_charged": {
+      "jev": 850,
+      "typellm": 137
+    },
+    "charged_at_cutoff": {
+      "jev": 856,
+      "typellm": 137
+    },
+    "journal_sha256": "346515aab4e57a393855390e784fff4417a406c4a88f93f5ee279e344609846b",
+    "config_sha256": "5de119ed35289c96b9485aa501b9dfc4e6bd53aa7e364c52cdcacd5a8af81760",
+    "stop_scope": "recorded reconciliation only; independent live PID observation remains an explicit audit reference",
+    "expected_external_bounds": {
+      "jev": {
+        "min": 6,
+        "max": 6
+      },
+      "typellm": {
+        "min": 0,
+        "max": 0
+      }
+    },
+    "cycle_start": {
+      "jev": 850,
+      "typellm": 137
+    },
+    "cycle_limit": {
+      "jev": 139,
+      "typellm": 7
+    },
+    "cycle_remaining": {
+      "jev": 133,
+      "typellm": 7
+    }
+  },
+  "factor_diagnostics": [
+    {
+      "id": "CV01",
+      "required": [
+        {
+          "label": "API",
+          "kind": "step",
+          "quantity": 2
+        }
+      ],
+      "accepted": true,
+      "contract_valid": true,
+      "operational_correct": true,
+      "intent_raw_correct": true,
+      "intent": {
+        "choice": "change",
+        "confidence": 0.89
+      },
+      "completeness": {
+        "choice": "complete",
+        "confidence": 0.52
+      },
+      "intent_verdict": "change",
+      "completeness_verdict": "complete"
+    },
+    {
+      "id": "CV02",
+      "required": [
+        {
+          "label": "工程",
+          "kind": "step",
+          "quantity": 2
+        }
+      ],
+      "accepted": false,
+      "contract_valid": true,
+      "operational_correct": true,
+      "intent_raw_correct": true,
+      "intent": {
+        "choice": "change",
+        "confidence": 0.91
+      },
+      "completeness": {
+        "choice": "incomplete",
+        "confidence": 0.28
+      },
+      "intent_verdict": "change",
+      "completeness_verdict": "unknown"
+    },
+    {
+      "id": "CV03",
+      "required": [
+        {
+          "label": "API",
+          "kind": "decision",
+          "quantity": 2
+        }
+      ],
+      "accepted": false,
+      "contract_valid": true,
+      "operational_correct": true,
+      "intent_raw_correct": true,
+      "intent": {
+        "choice": "change",
+        "confidence": 0.53
+      },
+      "completeness": {
+        "choice": "incomplete",
+        "confidence": 0.96
+      },
+      "intent_verdict": "change",
+      "completeness_verdict": "incomplete"
+    },
+    {
+      "id": "CV04",
+      "required": [
+        {
+          "label": "API",
+          "kind": "step",
+          "quantity": 1
+        }
+      ],
+      "accepted": false,
+      "contract_valid": true,
+      "operational_correct": true,
+      "intent_raw_correct": true,
+      "intent": {
+        "choice": "change",
+        "confidence": 0.83
+      },
+      "completeness": {
+        "choice": "incomplete",
+        "confidence": 0.88
+      },
+      "intent_verdict": "change",
+      "completeness_verdict": "incomplete"
+    },
+    {
+      "id": "CV05",
+      "required": [
+        {
+          "label": "API",
+          "kind": "step",
+          "quantity": 2
+        },
+        {
+          "label": "DB",
+          "kind": "data",
+          "quantity": 1
+        }
+      ],
+      "accepted": false,
+      "contract_valid": true,
+      "operational_correct": true,
+      "intent_raw_correct": true,
+      "intent": {
+        "choice": "change",
+        "confidence": 0.79
+      },
+      "completeness": {
+        "choice": "incomplete",
+        "confidence": 0.74
+      },
+      "intent_verdict": "change",
+      "completeness_verdict": "incomplete"
+    },
+    {
+      "id": "CV06",
+      "required": [],
+      "accepted": false,
+      "contract_valid": true,
+      "operational_correct": true,
+      "intent_raw_correct": true,
+      "intent": {
+        "choice": "change",
+        "confidence": 0.81
+      },
+      "completeness": {
+        "choice": "incomplete",
+        "confidence": 0.76
+      },
+      "intent_verdict": "change",
+      "completeness_verdict": "incomplete"
+    }
+  ],
+  "raw_completeness_is_report_only": true,
+  "expected_positive": 1,
+  "expected_negative": 5,
+  "old_new_question_causality": "UNPROVEN",
+  "next_phase_admission": "PENDING_INDEPENDENT_PRODUCER_AND_PHYSICAL_STOP"
+}

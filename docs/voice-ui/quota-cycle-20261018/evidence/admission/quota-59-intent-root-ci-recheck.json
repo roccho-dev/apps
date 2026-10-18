@@ -1,0 +1,27 @@
+{
+  "status": "PASS",
+  "scope": "ACTUAL_QUOTA_CI_HISTORICAL_CLOSURE_EQUALS_CLOSED_0aa",
+  "report_head": "59ded276405a5dc9caa85ad570b1827ff4bd0c7a",
+  "release_run": 39076041775,
+  "kind": "intent",
+  "files": 2,
+  "receipt_sha256": "83613a8a36d748f4b37fe8a9ca1ec0661de9093fb33ecdf6c6bec804381b5ef0",
+  "all_json_bytes_exact": true,
+  "log_duration_exceptions": [],
+  "cumulative": {
+    "jev": 725,
+    "typellm": 71
+  },
+  "quality": [
+    {
+      "id": "intent-public-G0",
+      "axis": "G0",
+      "classification": {
+        "quality": "PUBLIC_REGRESSION_ONLY",
+        "effect": "NOT_EVALUATED",
+        "public_gate": "UNMET"
+      }
+    }
+  ],
+  "external_provider_sends_added": 0
+}

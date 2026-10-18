@@ -1,0 +1,129 @@
+{
+  "schema": "voice-ui.quota-cycle-phase/1",
+  "axis": "E",
+  "status": "RECORDED",
+  "summary": [
+    {
+      "axis": "E",
+      "id": "QE01",
+      "arm": "B",
+      "method": "literal-v2",
+      "generation_policy": null,
+      "goal_parts_policy": "quota",
+      "valid_execution": true,
+      "calls": 1
+    },
+    {
+      "axis": "E",
+      "id": "QE01",
+      "arm": "C",
+      "method": "adaptive-v3",
+      "generation_policy": "dependent",
+      "goal_parts_policy": "quota",
+      "valid_execution": true,
+      "calls": 3
+    },
+    {
+      "axis": "E",
+      "id": "QE02",
+      "arm": "C",
+      "method": "adaptive-v3",
+      "generation_policy": "dependent",
+      "goal_parts_policy": "quota",
+      "valid_execution": true,
+      "calls": 3
+    },
+    {
+      "axis": "E",
+      "id": "QE02",
+      "arm": "B",
+      "method": "literal-v2",
+      "generation_policy": null,
+      "goal_parts_policy": "quota",
+      "valid_execution": true,
+      "calls": 3
+    },
+    {
+      "axis": "E",
+      "id": "QE03",
+      "arm": "B",
+      "method": "literal-v2",
+      "generation_policy": null,
+      "goal_parts_policy": "quota",
+      "valid_execution": true,
+      "calls": 1
+    },
+    {
+      "axis": "E",
+      "id": "QE03",
+      "arm": "C",
+      "method": "adaptive-v3",
+      "generation_policy": "dependent",
+      "goal_parts_policy": "quota",
+      "valid_execution": true,
+      "calls": 1
+    },
+    {
+      "axis": "E",
+      "id": "QE04",
+      "arm": "C",
+      "method": "adaptive-v3",
+      "generation_policy": "dependent",
+      "goal_parts_policy": "quota",
+      "valid_execution": true,
+      "calls": 1
+    },
+    {
+      "axis": "E",
+      "id": "QE04",
+      "arm": "B",
+      "method": "literal-v2",
+      "generation_policy": null,
+      "goal_parts_policy": "quota",
+      "valid_execution": true,
+      "calls": 1
+    },
+    {
+      "axis": "E",
+      "id": "QE05",
+      "arm": "B",
+      "method": "literal-v2",
+      "generation_policy": null,
+      "goal_parts_policy": "quota",
+      "valid_execution": true,
+      "calls": 1
+    },
+    {
+      "axis": "E",
+      "id": "QE05",
+      "arm": "C",
+      "method": "adaptive-v3",
+      "generation_policy": "dependent",
+      "goal_parts_policy": "quota",
+      "valid_execution": true,
+      "calls": 1
+    },
+    {
+      "axis": "E",
+      "id": "QE06",
+      "arm": "C",
+      "method": "adaptive-v3",
+      "generation_policy": "dependent",
+      "goal_parts_policy": "quota",
+      "valid_execution": true,
+      "calls": 1
+    },
+    {
+      "axis": "E",
+      "id": "QE06",
+      "arm": "B",
+      "method": "literal-v2",
+      "generation_policy": null,
+      "goal_parts_policy": "quota",
+      "valid_execution": true,
+      "calls": 1
+    }
+  ],
+  "invalid_cells": 0,
+  "expected_cells": 12
+}

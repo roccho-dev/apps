@@ -1,0 +1,327 @@
+{
+  "schema": "voice-ui.review.frontier-runtime/1",
+  "status": "PASS",
+  "head": "2cc4890b765a5534e92855f83f9232ae85bb373b",
+  "preparation_parent": "c762f1630790bef6097e0c12a71493fad05c89f3",
+  "source_audit_sha256": "4a6199e922f57b3cae24e486d72f52b78c0de399fff792aa2397ab4f5cd7046e",
+  "runtime_sha256": "ec0e6e8f0719393496f2956f6f25c97a83c733467fc93771db51d8dce35d7d5f",
+  "prior_runtime_sha256": "8dd6e92e36683fa12b3e9eefd86288cc7cb8131dac9ef8a3b8f09603cb8145e8",
+  "runtime": {
+    "schema": "voice-ui.candidate.runtime-build/1",
+    "apps_sha": "2cc4890b765a5534e92855f83f9232ae85bb373b",
+    "source_path": "/nix/store/hdl7f0wfba1yxkq2gyvwpaxkwpd3sahb-source",
+    "dev_program": {
+      "path": "/nix/store/mjcmqzb1lp6mds2908pi24c91wj9h0xa-voice-ui-dev/bin/voice-ui-dev",
+      "sha256": "dad9167ad572c467209a946472883969c15169dd8c184443486dba63725bf382"
+    },
+    "dev_derivation": "/nix/store/955ij3c8m1fli4mrkll7jzfkphmizz7z-voice-ui-dev.drv",
+    "artifact_root": "/nix/store/ib0jjyaii52s3nkwki2rijfkpm29zc87-voice-ui-dist",
+    "manifest": {
+      "path": "/nix/store/ib0jjyaii52s3nkwki2rijfkpm29zc87-voice-ui-dist/manifest.json",
+      "sha256": "b242c9889f4db71ebbaf3c0b0ebf320ef2604c108225a9cd67a96a7aff900758"
+    },
+    "manifest_sources": {
+      "apps": "2cc4890b765a5534e92855f83f9232ae85bb373b",
+      "architecture": {
+        "evidence_sha256": "4487cdc7647b96722087a13d7ccd5f8dde5cef8a0a6ea7279ea3956c22e2e19e",
+        "manifest_sha256": "7051c5c31286da1e73c17d900d86b9a605d44c5646a7e4f92fae215e3d691615",
+        "source": {
+          "commit": "2cc4890b765a5534e92855f83f9232ae85bb373b",
+          "handle": "apps-voice-ui"
+        },
+        "status": "available"
+      },
+      "hayamimi-web": {
+        "locator": "https://github.com/roccho-dev/ops/releases/download/hayamimi-web-1665d5195a0dd70c2e0253c20351e5305db35f3f/hayamimi-web.zip",
+        "proof_sha256": "a0bb1478a5ffe9440f46682ca143382cd000d0d1d6f736723baad96541be4e27",
+        "sha256": "c12b51e2ea396a64131b917439ffbda1aa1cd70a9fd7f9567ea05030897c672a"
+      },
+      "jev-provider": {
+        "contract": "named-choices-and-typed/1",
+        "entry_sha256": "3f754c8b1ee4a8b34b50d00fd17e37295d853e1b607903b6d355b5e06997669c",
+        "locator": "https://github.com/roccho-org/ops/releases/download/jev-provider-b4f611cac9e13fbef178469796cbc3b6d4a76b23/jev-provider.zip",
+        "manifest_sha256": "c8fdf65da826690b487ab093d20c73a445a11dbc736ae4f58e23af7c57330318",
+        "proof_sha256": "459b753541fdf53cf0acb9cb13167c17218e078e3782933e589afaf57a8c6846",
+        "provenance_sha256": "b602225c44cc67c4f6a96fe41914c5159140718a4c81f0826cf46d9cce9223b8",
+        "sha256": "073d9df7a2eeb479a3641c6b86768bf3af14ec1b7e976ed5672649148d5e2435"
+      },
+      "system": "x86_64-linux",
+      "ui": "756d47e891191c3344eb2d29b000203be8331abc"
+    },
+    "worker": {
+      "path": "/nix/store/ib0jjyaii52s3nkwki2rijfkpm29zc87-voice-ui-dist/worker/worker.mjs",
+      "sha256": "8a1fef6c917240b951bae91132d353d334fd050f880ca7f4666b57f0178ef3fc"
+    },
+    "provider": {
+      "path": "/nix/store/zcsl12ylgxkl4bi97847p50y6jsdfmd3-jev-provider-admitted/batch.mjs",
+      "sha256": "3f754c8b1ee4a8b34b50d00fd17e37295d853e1b607903b6d355b5e06997669c"
+    },
+    "semantic_map": {
+      "root": "/nix/store/vqjhvwxcbwv7vg09n4d3sy54lw879s9f-semantic-map",
+      "protocol": {
+        "path": "/nix/store/vqjhvwxcbwv7vg09n4d3sy54lw879s9f-semantic-map/packages/semantic-map/protocol/index.js",
+        "sha256": "1689dcf63e1ed19cdea7be22e3f90a09f434841f980b9ca8b9018a987c9c38f8"
+      }
+    },
+    "acceptance_runtime": "/nix/store/mqmmbzqpvl5j15vk0vmn9v6537lc5any-voice-ui-acceptance-node"
+  },
+  "source25": [
+    {
+      "name": "src/completion.mjs",
+      "sha256": "f2cb1b4652a248f39e5a37efa5a13e5c0aaf068544a322827dfc4e8972381562",
+      "bytes": 29191,
+      "actual_raw_equal": true
+    },
+    {
+      "name": "src/literal-inventory.mjs",
+      "sha256": "ecdeb980fb826f800dfeb186e042b5a4edf85b32ecc8a97516eb55e81a9c37f9",
+      "bytes": 8062,
+      "actual_raw_equal": true
+    },
+    {
+      "name": "src/goal.mjs",
+      "sha256": "cd9101d6a222e31773c9523adeca3f7f9aa32990e30b39e06a7b872771422f3e",
+      "bytes": 12911,
+      "actual_raw_equal": true
+    },
+    {
+      "name": "src/contract.mjs",
+      "sha256": "f2c95212493f59fd80ef17270c2b5de0d51d795b26ac8a0e6dfa0fdb9dec30fe",
+      "bytes": 30991,
+      "actual_raw_equal": true
+    },
+    {
+      "name": "src/turn.mjs",
+      "sha256": "c5fc3489a5bd0861f0455bd9843f47e76030bb03a4fe55745cf00c29c79b7008",
+      "bytes": 53204,
+      "actual_raw_equal": true
+    },
+    {
+      "name": "src/session.mjs",
+      "sha256": "d6fcb97e581afb789ed6ecb339c06c378ef94283084df8ad3042ebe42c48cfe8",
+      "bytes": 13314,
+      "actual_raw_equal": true
+    },
+    {
+      "name": "functions/api/parts.mjs",
+      "sha256": "ce18dbfb6ed5330c04fba1e3264a6e84cd4fb4f45b03775c06decdedb9b4521e",
+      "bytes": 14161,
+      "actual_raw_equal": true
+    },
+    {
+      "name": "functions/pages-worker.mjs",
+      "sha256": "afc3b785091d992fddd47f15ec17a4b05d78d7bd7564223c35e065ee737fd690",
+      "bytes": 3032,
+      "actual_raw_equal": true
+    },
+    {
+      "name": "web/app.mjs",
+      "sha256": "3a9ac4eba0770949a219b35c97cd346d4a7912026fae2b2f21710251b86bbf2a",
+      "bytes": 43782,
+      "actual_raw_equal": true
+    },
+    {
+      "name": "web/adapters/completion.mjs",
+      "sha256": "537bc46e93efe58fbdf466dd2493989ad5695209def769ec9da3ba68926edb5a",
+      "bytes": 970,
+      "actual_raw_equal": true
+    },
+    {
+      "name": "dev/serve.mjs",
+      "sha256": "d044ea7f8ccbd7fd71fbe1447dcce0f30bfa831d471da3eef2e3377380532298",
+      "bytes": 20526,
+      "actual_raw_equal": true
+    },
+    {
+      "name": "tests/dependency-cycle-eval.mjs",
+      "sha256": "b92308340b7a54020c30ae1c1daa3b482b60263d080b3f2e2393909f6cfcd7c3",
+      "bytes": 14959,
+      "actual_raw_equal": true
+    },
+    {
+      "name": "tests/requirements-cycle-score.mjs",
+      "sha256": "3d779cf422e8cc0facc6f5ff566c3e77b36a61486f9586f120b0c1a722cd5a46",
+      "bytes": 21347,
+      "actual_raw_equal": true
+    },
+    {
+      "name": "tests/requirements-cycle-audit.mjs",
+      "sha256": "692bdbaef8dbe28fe30fcdfe178202ebbdf3a4728bf0fe1c7310f72bf789c6eb",
+      "bytes": 56082,
+      "actual_raw_equal": true
+    },
+    {
+      "name": "tests/dependency-cycle-score.mjs",
+      "sha256": "2f7f40afec31d1f7cded08951529a30d741f6ebfb8abf446900a7f6eb567ef91",
+      "bytes": 8386,
+      "actual_raw_equal": true
+    },
+    {
+      "name": "tests/dependency-cycle-audit.mjs",
+      "sha256": "47dce6207c8b48dae6447d87ee1294d8495f28a31d2b474d5dc0c9b95998d66e",
+      "bytes": 64775,
+      "actual_raw_equal": true
+    },
+    {
+      "name": "tests/semantic-score.mjs",
+      "sha256": "3230791bd2b06ccbb73008723ab3709981ce6e2d65fc2fdbdec8cadf9d1cfec3",
+      "bytes": 3826,
+      "actual_raw_equal": true
+    },
+    {
+      "name": "tests/requirements-cycle-http.mjs",
+      "sha256": "b3c1d052e2f7138532e0d7cac6ac7b3c7287b7af32b857990c1e6d14bb325386",
+      "bytes": 1163,
+      "actual_raw_equal": true
+    },
+    {
+      "name": "tests/painted-goal.mjs",
+      "sha256": "c5ba117d1dea66d20c80b7f92b8184296ff79d4231da56f5a89836af4beb018b",
+      "bytes": 24668,
+      "actual_raw_equal": true
+    },
+    {
+      "name": "tests/intent-cycle-eval.mjs",
+      "sha256": "0dd9649d87f4b2f0d0e446b44f5dcd7bb09582e75eca8ca7113b8d0d4d741357",
+      "bytes": 15130,
+      "actual_raw_equal": true
+    },
+    {
+      "name": "tests/intent-cycle-score.mjs",
+      "sha256": "e6652eef8ee1b18c1b3c479b649033105c1ae27f360b0b9d4a16f898edc664cb",
+      "bytes": 10328,
+      "actual_raw_equal": true
+    },
+    {
+      "name": "tests/intent-cycle-audit.mjs",
+      "sha256": "151715f5c09a64a1187ad2557e13b3172801e8e8fa8ee492b31a5a7823222617",
+      "bytes": 66452,
+      "actual_raw_equal": true
+    },
+    {
+      "name": "tests/frontier-cycle-eval.mjs",
+      "sha256": "3031b7f539752badd452b868c577daa6437647547233f81f78c1b0eea5db29f9",
+      "bytes": 15255,
+      "actual_raw_equal": true
+    },
+    {
+      "name": "tests/frontier-cycle-score.mjs",
+      "sha256": "64fe98b9929ca13dcf57e41857da5eed656bb2d5457eab0aa9a78aad023ecf81",
+      "bytes": 22140,
+      "actual_raw_equal": true
+    },
+    {
+      "name": "tests/frontier-cycle-audit.mjs",
+      "sha256": "f903cd8813c33387ec69f2adc0d0f20e1fedfd5dd59cd07d02fa7ce84f37f89e",
+      "bytes": 67476,
+      "actual_raw_equal": true
+    }
+  ],
+  "all_manifest_members_verified_each": 293,
+  "ordinary_members_raw_equal": 291,
+  "changed_metadata": [
+    {
+      "path": "architecture/evidence.json",
+      "changed_json_fields": [
+        "/source/commit"
+      ],
+      "from_sha256": "9c5a484f66e2bb2668bd212444623ed9883a5f57fdf2c46f802e648298a05f37",
+      "to_sha256": "4487cdc7647b96722087a13d7ccd5f8dde5cef8a0a6ea7279ea3956c22e2e19e"
+    },
+    {
+      "path": "site/architecture/data/source.v1.json",
+      "changed_json_fields": [
+        "/files/7/blob",
+        "/source/commit"
+      ],
+      "from_sha256": "9c86c8d0d0fd9f8a45d970bbc7cd72024a3a5aca5db9b6beae0d8d08fc1e80e0",
+      "to_sha256": "7051c5c31286da1e73c17d900d86b9a605d44c5646a7e4f92fae215e3d691615"
+    }
+  ],
+  "catalog_test_blob_metadata_exception": [
+    {
+      "commit": "c762f1630790bef6097e0c12a71493fad05c89f3",
+      "row_index": 7,
+      "row": {
+        "path": "acceptance/frontier-cycle-smoke.mjs",
+        "blob": "61e5e31e659c76c52382d0ae5c5d7ba4525938b5",
+        "class": "excluded",
+        "reason": "the acceptance harness"
+      },
+      "source_test_sha256": "d473ca030dc2284e0de89f363913cf3cb7832636e758410628b508e2c2d9f4ca",
+      "authenticated_git_binding": {
+        "commit": "c762f1630790bef6097e0c12a71493fad05c89f3",
+        "path": "packages/voice-ui/acceptance/frontier-cycle-smoke.mjs",
+        "blob": "61e5e31e659c76c52382d0ae5c5d7ba4525938b5",
+        "sha256": "d473ca030dc2284e0de89f363913cf3cb7832636e758410628b508e2c2d9f4ca",
+        "bytes": 29732,
+        "authenticated_contents_match_native_and_recomputed_git_object": true
+      }
+    },
+    {
+      "commit": "2cc4890b765a5534e92855f83f9232ae85bb373b",
+      "row_index": 7,
+      "row": {
+        "path": "acceptance/frontier-cycle-smoke.mjs",
+        "blob": "9ed6852541ce0f60ea5b84848f4f6e253a703fcf",
+        "class": "excluded",
+        "reason": "the acceptance harness"
+      },
+      "source_test_sha256": "e3687c51b8f9100a0e541fbdf1e2e8da175fdc06411e73cb3e345c17b01284bd",
+      "authenticated_git_binding": {
+        "commit": "2cc4890b765a5534e92855f83f9232ae85bb373b",
+        "path": "packages/voice-ui/acceptance/frontier-cycle-smoke.mjs",
+        "blob": "9ed6852541ce0f60ea5b84848f4f6e253a703fcf",
+        "sha256": "e3687c51b8f9100a0e541fbdf1e2e8da175fdc06411e73cb3e345c17b01284bd",
+        "bytes": 31898,
+        "authenticated_contents_match_native_and_recomputed_git_object": true
+      }
+    }
+  ],
+  "manifest_changed_json_fields": [
+    "/files/1/sha256",
+    "/files/31/sha256",
+    "/sources/apps",
+    "/sources/architecture/evidence_sha256",
+    "/sources/architecture/manifest_sha256",
+    "/sources/architecture/source/commit"
+  ],
+  "actual_R_reference_core_equal": 6,
+  "actual_ui_files_equal_reference": 238,
+  "semantic_map_renderer_protocol_files_equal_reference": 231,
+  "provider_all_files_raw_equal": 3,
+  "worker_sha256": "8a1fef6c917240b951bae91132d353d334fd050f880ca7f4666b57f0178ef3fc",
+  "provider_sha256": "3f754c8b1ee4a8b34b50d00fd17e37295d853e1b607903b6d355b5e06997669c",
+  "protocol_sha256": "1689dcf63e1ed19cdea7be22e3f90a09f434841f980b9ca8b9018a987c9c38f8",
+  "launcher_only_reference_changes": [
+    {
+      "role": "source",
+      "from": "/nix/store/1ndgjfjqv5jw7aa676i47ap629p5721j-source",
+      "to": "/nix/store/hdl7f0wfba1yxkq2gyvwpaxkwpd3sahb-source"
+    },
+    {
+      "role": "worker_dist",
+      "from": "/nix/store/2kzxx17n0cfh978nmb312lzgjwcdcfzm-voice-ui-dist",
+      "to": "/nix/store/ib0jjyaii52s3nkwki2rijfkpm29zc87-voice-ui-dist"
+    },
+    {
+      "role": "architecture",
+      "from": "/nix/store/aqv6cgrwns20zv01v8dkv1c995bpi11f-voice-ui-architecture-source",
+      "to": "/nix/store/189j6lalrfn81dpcnprkx01vr4alkzpc-voice-ui-architecture-source"
+    }
+  ],
+  "official_verifiers": [
+    {
+      "head": "c762f1630790bef6097e0c12a71493fad05c89f3",
+      "exit": 0,
+      "stdout": ""
+    },
+    {
+      "head": "2cc4890b765a5534e92855f83f9232ae85bb373b",
+      "exit": 0,
+      "stdout": ""
+    }
+  ],
+  "scope": "PRE_LIVE_SMOKE_FIXTURE_METADATA_BRIDGE_ONLY_EXACT_CATALOG_ROW_7_EXCLUDED_ACCEPTANCE_HARNESS_BLOB_NO_LIVE_OR_SOURCE_ADMISSION",
+  "reviewer_real_provider_calls": 0
+}

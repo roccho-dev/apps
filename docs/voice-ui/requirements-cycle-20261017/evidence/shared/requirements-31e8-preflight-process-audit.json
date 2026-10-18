@@ -1,0 +1,82 @@
+{
+  "schema": "voice-ui.requirements-cycle-independent-process-join/1",
+  "status": "PASS",
+  "head": "31e8fabaeb679c8bb02db8029f36de410d012adb",
+  "scope": "independent original raw/provider/classification/process and own keyless wrapper receipt agreement; CI origin not claimed",
+  "root_preflight_receipt_sha256": "d0482a2dcfaad567608cc7696a7d0b1d4d64bf1192bec921d38991486ed65846",
+  "processGraph": {
+    "schema": "voice-ui.requirements-cycle-process/1",
+    "status": "PASS",
+    "issues": [],
+    "baseline": {
+      "jev": 689,
+      "typellm": 40
+    },
+    "indexed_phases": 3,
+    "correction_batches": 1,
+    "reserved": {
+      "jev": 6,
+      "typellm": 12
+    },
+    "releases": [],
+    "scope": "same-head public admission and retained exact cycle process; no CI-origin live claim"
+  },
+  "phase_semantics": [
+    {
+      "id": "public-F",
+      "semantic": {
+        "complete": true,
+        "total": 6,
+        "exact_minimal": 2,
+        "true_sufficient": {
+          "total": 2,
+          "zero_missing": 1
+        },
+        "requirements_criteria": "UNMET"
+      },
+      "all_valid_execution": false,
+      "classification": {
+        "quality": "PUBLIC_REGRESSION_ONLY",
+        "effect": "PUBLIC_REGRESSION_ONLY"
+      }
+    },
+    {
+      "id": "correction1-F",
+      "semantic": {
+        "complete": true,
+        "total": 6,
+        "exact_minimal": 2,
+        "true_sufficient": {
+          "total": 2,
+          "zero_missing": 1
+        },
+        "requirements_criteria": "UNMET"
+      },
+      "all_valid_execution": false,
+      "classification": {
+        "quality": "PUBLIC_REGRESSION_ONLY",
+        "effect": "PUBLIC_REGRESSION_ONLY"
+      }
+    },
+    {
+      "id": "correction1-V",
+      "semantic": {
+        "complete": true,
+        "total": 6,
+        "correct": 3,
+        "false_acceptance": 0,
+        "verification_criteria": "UNMET"
+      },
+      "all_valid_execution": true,
+      "classification": {
+        "quality": "PUBLIC_REGRESSION_ONLY",
+        "effect": "PUBLIC_REGRESSION_ONLY"
+      }
+    }
+  ],
+  "charged": {
+    "jev": 695,
+    "typellm": 52
+  },
+  "CI_LIVE_EXECUTION": "UNPROVEN"
+}

@@ -1,0 +1,50 @@
+{
+  "schema": "voice-ui.extraction-input-release/1",
+  "status": "INPUTS_ONLY_RELEASED",
+  "released_at": "2026-10-18T03:15:59.884784+00:00",
+  "candidate": "D thinking labels only",
+  "measurement_apps": "b6696c1f579851429cf0cc58a49b20c9ff663475",
+  "public_gate_evidence": {
+    "name": "thinking-public-D-stopped-comparison-audit.json",
+    "sha256": "0a541977550b07df7045fa65123e1d5aa7062c8802ef4c7144536fcb9d51fad5",
+    "valid": 8,
+    "candidate_exact": "4/4",
+    "explicit_valid_paired_gains": 1,
+    "regressions": 0
+  },
+  "public_stop_cutoff": "3eead593ac154f199a00006aeaacc6928fc12e49f423f7ea8c5d8faf916358cd",
+  "commitment_sha256": "43dcc80c0a0986c6b635f196bf0f787a729a2423e1b4ec36f81e4bf26e6f56a5",
+  "input": {
+    "name": "thinking-D-fresh.inputs.json",
+    "sha256": "dd66904853ae031c68e632c67d3bfc3a974141ce77fa4f83ecb406ad0a149874",
+    "bytes": 10917
+  },
+  "cases": 4,
+  "cells": 8,
+  "data_only_envelope": "Preserve exact original sealed file/hash and cases/requests/schedule including serialized bytes; retain original scope in sealed file and add only the preregistered fresh scope/cap/endpoint/current flat-scalars versus candidate thinking-labels envelope; all role metadata null. No source/caller/criteria changes.",
+  "baseline_charged": {
+    "jev": 847,
+    "typellm": 128
+  },
+  "fresh_phase_cap": {
+    "jev": 0,
+    "typellm": 8
+  },
+  "maximum_after_fresh": {
+    "jev": 847,
+    "typellm": 136
+  },
+  "setup": 0,
+  "retry": 0,
+  "correction": 0,
+  "source_driver_sha256": "4796df723e9017430708cdd9f1f2327b3ee97ec9f8898b0074ba891ce2e4b5b4",
+  "oracle": {
+    "status": "NOT_RELEASED",
+    "sha256": "a5cf1a90b928922d11fc1d1c8c69c6e54c98adbc194f71d011550040200db556",
+    "bytes": 920,
+    "release": "Only after fresh physical stop/reconcile and independent evidence audit"
+  },
+  "private_validation": "NOT_RELEASED",
+  "real_send_GO": false,
+  "scope": "Input disclosure only; actual fresh launch/zero-send/one-shot GO separate; no ordinary UI or internal mechanism claim"
+}

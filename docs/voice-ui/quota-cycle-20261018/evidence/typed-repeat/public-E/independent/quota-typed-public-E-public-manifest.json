@@ -1,0 +1,79 @@
+{
+  "schema": "voice-ui.independent-public-copy-allowlist/1",
+  "status": "CLOSED",
+  "directory": "C:\\Users\\resta\\Codex\\repos\\apps.git\\.worktrees\\typellm-ci-review-20261017\\review-evidence",
+  "apps": "e7ac78dc448ba84468db853591dace33c6de40f1",
+  "repeat_profile": "typed-ordinary-E-20261018",
+  "phase": "quota-typed-public-E-20261018",
+  "members": [
+    {
+      "name": "quota-typed-public-E-zero-send-audit.json",
+      "bytes": 9085,
+      "sha256": "a38ab2dd36238a002f2cd50b3496e7efea81b3d7aa2c9285af1ea8fb53418869"
+    },
+    {
+      "name": "quota-typed-public-E-physical-stop.json",
+      "bytes": 10308,
+      "sha256": "34919bf130b6047cfc68e13788e6cf3bb1ce394aaf77d00fc858800c6aa6cb4a"
+    },
+    {
+      "name": "quota-typed-public-E-stop-audit.json",
+      "bytes": 13353,
+      "sha256": "5dd277024d0977c79e0c2768f26c4a21a9cddc39a160eb3e8e26b92f59884e90"
+    },
+    {
+      "name": "quota-typed-public-E-raw-audit.json",
+      "bytes": 8057,
+      "sha256": "80d6c70ff459f44db50bd9fd1a12066fa248e000d066dbe44c1f9870f113584d"
+    },
+    {
+      "name": "quota-typed-public-E-provider-audit.json",
+      "bytes": 869,
+      "sha256": "ac5d46c69e65b370f43e46e35881daac57e210f566c60f9acc42dfe2de37ffe6"
+    },
+    {
+      "name": "quota-typed-public-E-producer-audit.json",
+      "bytes": 192,
+      "sha256": "f73ea3e239b785871a6bd995e3bbc954feedb4c2a27b11c55adc1c7bf905134f"
+    },
+    {
+      "name": "quota-typed-public-E.producer.json",
+      "bytes": 7448,
+      "sha256": "880ee1819b12463a3036b902805eed42ae96c3cdf4f3a551d477fc3762cf4a70"
+    },
+    {
+      "name": "quota-typed-public-E-replay.json",
+      "bytes": 10267,
+      "sha256": "76714341413169afd52b2a2b2de4c0ee09f5e9edc828f1b11d85fd5d2510bf47"
+    },
+    {
+      "name": "quota-typed-public-E-replay-audit.json",
+      "bytes": 285,
+      "sha256": "32ee0bc0b309fbc75dfa11c4a6f0a49bd6fe2798261746487205faf513ed7d2c"
+    },
+    {
+      "name": "quota-typed-public-E-process-audit.json",
+      "bytes": 612,
+      "sha256": "01927c814c220000dc4560832b9706362a8817cb56215266944ed4fd93b8a6ca"
+    },
+    {
+      "name": "quota-typed-public-E-summary.json",
+      "bytes": 7286,
+      "sha256": "16182f5baa8f027ea1e582d91417ab6a52664e63d8be7298b62401b953f226f7"
+    },
+    {
+      "name": "quota-typed-public-E-readout.json",
+      "bytes": 2024,
+      "sha256": "99456cc1bda285cbbd11ee284c008615da47491e64215cfd4d06e9c210eaaae5"
+    },
+    {
+      "name": "apps-e7ac-r25-review-body.md",
+      "bytes": 2665,
+      "sha256": "95d98ac2f558ffe814d77a37aeef06e3f44a627b351e6de4b53291e7a727a3ba"
+    }
+  ],
+  "self_is_additionally_copyable": true,
+  "other_paths_private_helpers_validators_unreleased_inputs_oracles_copyable": false,
+  "fresh_release": "WITHHELD_PUBLIC_GATE_UNMET",
+  "scope": "physical stop/fixed producer/raw/provider/recorded replay/process and finite public evidence only; actual CI repaint/final source review follow report-only closure; no fresh or general efficacy claim"
+}

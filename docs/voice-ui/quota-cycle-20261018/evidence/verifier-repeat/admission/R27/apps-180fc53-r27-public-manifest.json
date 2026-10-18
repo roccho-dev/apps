@@ -1,0 +1,99 @@
+{
+  "schema": "voice-ui.independent-public-copy-allowlist/1",
+  "status": "CLOSED",
+  "head": "180fc53e24f0fc2a5fdb098a3748afaff047bab6",
+  "tree": "e2fc8ad6a1ccc3e83fa0cdc91e22434c5e02887c",
+  "review": "https://github.com/roccho-dev/apps/pull/103#pullrequestreview-5561717657",
+  "directory": "C:\\Users\\resta\\Codex\\repos\\apps.git\\.worktrees\\typellm-ci-review-20261017\\review-evidence",
+  "members": [
+    {
+      "name": "verifier-e3a80fa-source-audit.json",
+      "bytes": 5322,
+      "sha256": "0347f1fd069b3db629ac8c3e18042aa31a5cc01857946d7aff4578fb394750d3"
+    },
+    {
+      "name": "verifier-e3a80fa-wire-audit.json",
+      "bytes": 2187,
+      "sha256": "160dd38309bb660d3343a07fed32725b33614de054d414dce682e53d7fd26ae6"
+    },
+    {
+      "name": "verifier-180fc53-harness-audit.json",
+      "bytes": 2132,
+      "sha256": "d19e943695ae66f785a0aae95a9fc1d3fbcec5f2a6cb53a5a250252f85fa16ff"
+    },
+    {
+      "name": "verifier-180fc53-runtime-wire-audit.json",
+      "bytes": 8185,
+      "sha256": "9ea1ece6bd81ff3cf01d21c11c0a43f31343062513c25e3fbcc60cb305ebad77"
+    },
+    {
+      "name": "verifier-180fc53-ci-artifact-audit.json",
+      "bytes": 4535,
+      "sha256": "6b08c24ed990947a75cf810fa45ddfe600202a26abbcf16df7754a2ef84e2747"
+    },
+    {
+      "name": "verifier-180fc53-browser-audit.json",
+      "bytes": 2026,
+      "sha256": "94275e43962ef4dbd963840063745476cd6dc844ff1e6f52f4cb7a602aba0054"
+    },
+    {
+      "name": "verifier-180fc53-seven-closures-audit.json",
+      "bytes": 4751,
+      "sha256": "c56f63994b018023fc30076d601ec457e05cdebe7cf4e4533ad00921327d6cf0"
+    },
+    {
+      "name": "verifier-180fc53-prepared-V-audit.json",
+      "bytes": 2150,
+      "sha256": "30173d16969f68621031fa160a52803ab318583af6f8be37b3dbccfef73ae7be"
+    },
+    {
+      "name": "verifier-180fc53-final-ci-proof.json",
+      "bytes": 1941,
+      "sha256": "cbf3c943b76f7e4903024fa376dfb1e6daae6995dc0894c0b1e7a804d639d24c"
+    },
+    {
+      "name": "verifier-180fc53-final-bodies-readback.json",
+      "bytes": 1010,
+      "sha256": "4a211b2ac3fe19bc9aa2876dc5787b6a2deeea0e8a1b66f75fe9a31da3a673fe"
+    },
+    {
+      "name": "verifier-180fc53-final-apps-body.md",
+      "bytes": 8298,
+      "sha256": "604ba69fa1ea1dd85c2159f0e209b6f35ffc96aefb09f1a53be269f70c776f1d"
+    },
+    {
+      "name": "verifier-180fc53-final-ui-body.md",
+      "bytes": 7245,
+      "sha256": "225a22be7d0e23a93d342e181592fc1bc324def7872c2674071a528aab933d74"
+    },
+    {
+      "name": "verifier-180fc53-final-issue-body.md",
+      "bytes": 6801,
+      "sha256": "1fa470441ae19ba127adbcca4123ddf426b95db0ec3d9f5fefa81c7a7515e800"
+    },
+    {
+      "name": "verifier-180fc53-pre-r27-terminal.json",
+      "bytes": 521,
+      "sha256": "6c4f73a6b80d888c569532565f45ea5fc8a7eade6de7c3e5f3c8a79705f7966e"
+    },
+    {
+      "name": "verifier-180fc53-post-r27-terminal.json",
+      "bytes": 493,
+      "sha256": "71272282f7266d8dfc4b900d1e22f4d8e9c6dfd55b063c7d85479baadf0e37a3"
+    },
+    {
+      "name": "apps-180fc53-r27-review-body.md",
+      "bytes": 3774,
+      "sha256": "702ab0946b05254c03bb63bc368b5468f00e1b09caeb97c3bb912a00c050714b"
+    },
+    {
+      "name": "apps-180fc53-r27-published-readback.json",
+      "bytes": 850,
+      "sha256": "9c64c11f1ca16eb63a1d4315f667b953580bd5a01b8204794eb4ed24ba427c1e"
+    }
+  ],
+  "self_is_additionally_copyable": true,
+  "private_helpers_validators_unreleased_inputs_oracles_other_paths_copyable": false,
+  "scope": "R27 source/actual-CI/completed-artifact/wire premeasurement GET-only admission. Separate same-PID zero audit and paid GO required. V/E quality-effect NOT_MEASURED/UNPROVEN; sealed E6 withheld.",
+  "reviewer_provider_calls": 0
+}

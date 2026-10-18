@@ -1,0 +1,25 @@
+{
+  "phase_id": "compact-verifier-public-E-20261018",
+  "axis": "E",
+  "stage": "public",
+  "repeat_profile": "compact-verifier-VE-20261018",
+  "input_sha256": "52b95efd0dc3301c746b1d947e5896400bf7f12ee0e8d2d53113ddf8c2c08283",
+  "case_count": 1,
+  "program": "/nix/store/bg0bygqiid25xnivxv9cdgjlx3sp939j-voice-ui-typed-dev/bin/voice-ui-typed-dev",
+  "heads": {
+    "apps": "180fc53e24f0fc2a5fdb098a3748afaff047bab6",
+    "envs": "063e685b8b21a97fc8658879da93fa858552bcd6",
+    "ops": "a724bdfa1864762cd9050a00e2642450af29c196",
+    "windows": "6aef693c0946903d8b87c2348039de1420acd61b",
+    "ui": "756d47e891191c3344eb2d29b000203be8331abc"
+  },
+  "allowances": {
+    "jev": 19,
+    "typellm": 1
+  },
+  "input_file": "/nix/store/pzfmhna5svkwsy0gpn43qdpfwxn8r287-source/docs/voice-ui/quota-cycle-20261018/preregistered/verifier-cycle-public-E-1.inputs.json",
+  "runtime_file": "/work/repos/voice-ui-typellm-20261016/runtime-candidate-compact-verifier-180fc53.json",
+  "wire_file": "/work/repos/voice-ui-typellm-20261016/compact-verifier-180fc53.wire-proof.json",
+  "driver": "/nix/store/pzfmhna5svkwsy0gpn43qdpfwxn8r287-source/packages/voice-ui/tests/quota-cycle-eval.mjs",
+  "commitment_sha256": "a9062129f2bda9dab84f5e311d35f7b071b1035f22a1485a38c4c8aafd6d12a2"
+}

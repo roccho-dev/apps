@@ -1,0 +1,46 @@
+{
+  "status": "PASS",
+  "scope": "ACTUAL_QUOTA_CI_HISTORICAL_CLOSURE_EQUALS_CLOSED_0aa",
+  "report_head": "59ded276405a5dc9caa85ad570b1827ff4bd0c7a",
+  "release_run": 39076041775,
+  "kind": "closed",
+  "files": 12,
+  "receipt_sha256": "88c565fa0046af2c420138a58edc7653c48745e9358b2458628bb6f0073c9de8",
+  "all_json_bytes_exact": true,
+  "log_duration_exceptions": [
+    {
+      "path": "public-initial-f2e9\\mutation-test.txt",
+      "scope": "ONLY_SIX_PER_TEST_AND_ONE_FINAL_NODE_TEST_DURATION_FIELDS",
+      "tests": 6,
+      "pass": 6,
+      "fail": 0
+    }
+  ],
+  "cumulative": {
+    "jev": 564,
+    "typellm": 29
+  },
+  "quality": [
+    {
+      "id": "public-initial-f2e9",
+      "classification": "UNPROVEN"
+    },
+    {
+      "id": "correction-one-f2fa",
+      "classification": "UNPROVEN"
+    },
+    {
+      "id": "correction-two-2c8b",
+      "classification": "UNPROVEN"
+    },
+    {
+      "id": "public-remainder-2c8b",
+      "classification": "UNPROVEN"
+    },
+    {
+      "id": "fresh-primary-50b1",
+      "classification": "UNMET"
+    }
+  ],
+  "external_provider_sends_added": 0
+}

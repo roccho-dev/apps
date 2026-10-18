@@ -1,0 +1,65 @@
+{
+  "schema": "voice-ui.exact-head-review-readback/1",
+  "status": "PASS",
+  "observed_at": "2026-10-17T16:14:06.800Z",
+  "review": {
+    "id": 5558699194,
+    "url": "https://github.com/roccho-dev/apps/pull/103#pullrequestreview-5558699194",
+    "commit_id": "31e8fabaeb679c8bb02db8029f36de410d012adb",
+    "state": "COMMENTED",
+    "author": "roccho-dev",
+    "body": "ROUND_13_GREEN\n\nIndependent R13 source/artifact/CI admission for the last registered correction candidate: exact head `31e8fabaeb679c8bb02db8029f36de410d012adb`, tree `b1ddda9e592ae4af4366fbe5f9139d4c1020f5c9`. This is not product-quality or effect approval.\n\nOnly two product functions change from 0861. Full-NEW Type extraction now receives utterance, existing label/kind references and part definitions without stock capacities; its payload is independently invariant to capacity/edge/limit changes. V compares the actual proposal with the utterance/definitions, permits a uniquely determined generic standard label, rejects unresolved ambiguity, and separates NEW-list completeness from stock and parent/edge assignments. The nine scalars/three slots, G0, other three V factors, decoder, .5 acceptance floor, routes/deadlines, stock difference, Goal and independent criteria are unchanged. These are two source-based hypotheses; the unavailable rejected scalar values do not establish either cause.\n\nI matched all 17 measured sources to Git and the immutable source, checked all 293 artifact members and the official dist verifier, and bound the actual dev program to its source and Worker. The six representation core files and 231 semantic-map files (238 site/ui files) remain byte-identical to 286e. Provider `ad4ac08ae8c42f3bf0e9d0aeedb0a2e9192c776585a3251b2ff1e18358cfe2e7` and protocol `1689dcf63e1ed19cdea7be22e3f90a09f434841f980b9ca8b9018a987c9c38f8` remain fixed. This supports the existing conditional supplied-inventory R evidence; it does not substitute for new E paint/performance.\n\nAll four exact-head workflows succeeded: [Nix](https://github.com/roccho-dev/apps/actions/runs/39047386580), [completed ZIP and mandatory closed-evidence verification](https://github.com/roccho-dev/apps/actions/runs/39047386588), [artifact](https://github.com/roccho-dev/apps/actions/runs/39047386590), [authentication](https://github.com/roccho-dev/apps/actions/runs/39047386629). Actual completed-ZIP browser artifact `12106298090` matches its GitHub digest and the own manifest/Worker/source identities. I independently recomputed protocol/HTTP terminals and 24 DOM paint frames/Apply/reload across 10 stages/16 synthetic cells; all five synthetic invalids remain invalid. Synthetic mechanics do not prove live quality or CI-origin live execution.\n\nThe new required CI step has no optional existence skip and preserves its receipt on failure. I matched 72 committed evidence files, including all three raw/config/process/runtime/log/journal/fixed-producer groups and 15 shared files, to the independently held original bytes. I downloaded actual CI requirements artifact `12106508478` (SHA256 `a856edac9b4131764d2b43d0a1ef45a085b73c8370d0055761ec1b6a04a32886`) and compared every raw, provider, producer, classification and process result with independent recomputation. All three phases remain PUBLIC_REGRESSION_ONLY: initial F2/6 with INVALID3, correction1 F2/6 with INVALID3, and valid V3/6 with positive acceptance0/3, negative rejection3/3 and false acceptance0. The ordered process has no fresh release. CI integrity PASS preserves these failures.\n\nIndependent evidence SHA256: source `1d0201839812fe3d4a89cf04a1b2c1892f1bede954d741c92147c463129d2db6`; committed evidence `e1282b1c467f6eafe89d483b23d2c1143f2e32011daccead1ba6cb9e5b40b8a3`; runtime/artifact `994345d599a16d895e6315e05fb4d10c48134bb207b7f9b6c79dd5c47ce33650`; completed-ZIP mechanics `382578f739e601eb488c80280f782d32e635ab2d226497c684cd7cd6848d7570`; actual CI closure `012c4cafafc4c11db08efa9714b885c9e76c7acfce1677e44f2cfd763687adda`. Manifest `a741f55b6bf5f3037603f6b8e9f2a9934b4305e254f43185ee2e98a5be6cf19c`; Worker `93e0aebfa6d56d7a1303f1d6d4f2c2961370a40f23c14c93af3172bc62de4b25`.\n\nCharged totals are 695 Jev/52 TypeLLM, confirmed695/51, with no active process or reservation. No correction2 call has run. Admission permits the registered final public correction F6/V6 only after separate actual PID/start/preload/cap/zero-send binding, on one source within batch2's25J/7T cap. No response retries, third cause batch, source mixing, threshold change or leftover-budget reallocation. Public F requires at least4/6 exact with all valid, V6 all correct; initial public E2 must then demonstrate both gains/enabled success on this same source before any sealed V/F/E input is released. Failed gates keep E/fresh unused and the bounded result UNMET/effect UNPROVEN.\n\nHuman acceptance, merge, publication, general diagram quality, currency and four-way superiority are not approved. Apps remains draft/open/unmerged; UI756d is open/unmerged with explicit human merge approval pending. CI_LIVE_EXECUTION=UNPROVEN; currency=COST_NOT_MEASURED.",
+    "body_matches_saved": true
+  },
+  "pr": {
+    "head": "31e8fabaeb679c8bb02db8029f36de410d012adb",
+    "tree": "b1ddda9e592ae4af4366fbe5f9139d4c1020f5c9",
+    "state": "open",
+    "draft": true,
+    "body": "Linked issue: [Refs #94](https://github.com/roccho-dev/apps/issues/94).\n\nSeparate rendering with the required parts supplied from obtaining those parts when stock is insufficient. Adaptive-v2 preserves the actual initial Jev G0 decision, conditionally asks TypeLLM for all NEW label/kind/total requirements, independently verifies that proposal with Jev, then deterministically subtracts one-use stock. The existing Goal owns parents, edges and legal proof. Complete accepted B and controls use Type0; an approved receipt prepares candidates once without a second provider call.\n\nThe V/F/E comparison was [registered and independently sealed before implementation](https://github.com/roccho-dev/apps/tree/dea5482/docs/voice-ui/requirements-cycle-20261017). A retained pre-live addendum corrects public E target fields; fresh seals are unchanged. The same persistent independent reviewer controls release and fixed stopped-evidence producers. Additional caps300J/40T start at charged689/40; cumulative caps remain1000 each.\n\nAll three public-only phases are stopped and retained in the [ordered evidence index](https://github.com/roccho-dev/apps/blob/31e8fabaeb679c8bb02db8029f36de410d012adb/docs/voice-ui/requirements-cycle-20261017/evidence/index.json):\n\n| Measured source / axis | Result | Quality interpretation |\n| --- | --- | --- |\n| 3be7 initial F6 | exact/minimal2/6; valid3/6; INVALID3 | public F gate UNMET; invalids prevent a full quality claim |\n| 0861 correction1 F6 | exact/minimal2/6; valid3/6; INVALID3 | no demonstrated improvement |\n| 0861 correction1 V6 | correct3/6; accepted correct0/3; rejected incorrect3/3; false acceptance0 | valid UNMET |\n\nNo E or fresh input has been consumed. Independent raw/provider/producer and physical-stop audits pass integrity for all18 executions, including failures; integrity is separate from quality/effect. New-cycle sends6Jev/12Type; cumulative charged695/52, confirmed695/51 (one older conservative unsent Type charge retained), no reservation.\n\nCurrent last correction2 candidate31e8fabaeb679c8bb02db8029f36de410d012adb projects Type's full-NEW extraction context without inventory capacity, and clarifies V's acceptance of uniquely determined canonical generic names and separation from stock/parent/edge sufficiency. [Source hypotheses and fixed scope](https://github.com/roccho-dev/apps/blob/31e8fabaeb679c8bb02db8029f36de410d012adb/docs/voice-ui/requirements-cycle-20261017/correction-2.md) distinguish these changes from an established cause of unrecorded invalid values. The actual G0, four factors, closed9-scalar/3-slot contract, .5 floor, subtraction, routes, deadlines and criteria remain fixed. Independent working-source review and40 local product/legacy/static groups pass. All four exact31e8 checks passed: [full Nix39047386580](https://github.com/roccho-dev/apps/actions/runs/39047386580), [completed-ZIP and required three-phase closure39047386588](https://github.com/roccho-dev/apps/actions/runs/39047386588), artifact39047386590 and auth39047386629. Independent actual-source/runtime/completed-ZIP mechanics checks pass. The new actual CI requirements receipt artifact12106508478 awaits independent readback and final R13 admission after this green freeze; no correction2 call has run.\n\nThe release CI now requires verify-requirements-cycle to rebuild/reopen each recorded artifact, verify fixed producers and all raw/provider/process joins, independently regrade/repaint E when present, and check the complete ordered process. The first three-phase index closes the observed failures without calling them successes. The two measured source admissions, [R11 at3be7](https://github.com/roccho-dev/apps/pull/103#pullrequestreview-5558481797) and [R12 at0861](https://github.com/roccho-dev/apps/pull/103#pullrequestreview-5558581475), each followed all four exact-head green checks and independent actual completed-ZIP mechanics. These admit those sources only and establish no live effect.\n\nAfter this last candidate's independent admission, all F6/V6 run once on the same head within batch2's25J/7T cap. Full same-head public F/V/E2 gates must pass before any fresh input is released. If they fail, E/fresh stay unused and the bounded result is UNMET/effect UNPROVEN; leftover budget is not automatically reallocated.\n\nHistorical [four-axis evidence07c5343](https://github.com/roccho-dev/apps/tree/07c534397b88538f5b1104365999108150054cb0/docs/voice-ui/component-axes-20261017) and [R10](https://github.com/roccho-dev/apps/pull/103#pullrequestreview-5558234414) are frozen: at measurement286e, supplied-inventory R8 has inventory/graph/paint8/8 conditional PASS; G8/10 and E7/10 gates are UNMET; F B3/8 versus C4/8 includes an invalid Type cell, so whole-comparison superiority is UNPROVEN. C-only two local cases support a hypothesis, not general superiority. Consumed cases are regression-only. Representation evidence is reusable only with actual Goal/legal/renderer/protocol bytes unchanged.\n\nOps completed corecab432ef717cbde9ebd0197ae006c0efe75269bf remains consumed as an artifact. [UI#362](https://github.com/roccho-dev/ui/pull/362) stays at756d47e891191c3344eb2d29b000203be8331abc with explicit human merge approval pending. Apps remains draft/open/unmerged. CI_LIVE_EXECUTION=UNPROVEN; currency=COST_NOT_MEASURED; product adoption and four-way superiority are not claimed. The earlier source-architecture prebuild paint failure and its exact wire-preserving consolidation remain in the evidence.\n",
+    "body_sha256": "88258dfb8bd8a0cce9f14e88d3550112035ab240037447271f0989b5c5a1d2af"
+  },
+  "workflows": [
+    {
+      "id": 39047386580,
+      "name": "nix-check",
+      "head": "31e8fabaeb679c8bb02db8029f36de410d012adb",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/roccho-dev/apps/actions/runs/39047386580"
+    },
+    {
+      "id": 39047386629,
+      "name": "artifact-auth",
+      "head": "31e8fabaeb679c8bb02db8029f36de410d012adb",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/roccho-dev/apps/actions/runs/39047386629"
+    },
+    {
+      "id": 39047386590,
+      "name": "voice-ui artifact",
+      "head": "31e8fabaeb679c8bb02db8029f36de410d012adb",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/roccho-dev/apps/actions/runs/39047386590"
+    },
+    {
+      "id": 39047386588,
+      "name": "voice-ui release",
+      "head": "31e8fabaeb679c8bb02db8029f36de410d012adb",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/roccho-dev/apps/actions/runs/39047386588"
+    }
+  ],
+  "ui": {
+    "head": "756d47e891191c3344eb2d29b000203be8331abc",
+    "state": "open",
+    "draft": false,
+    "merged": false
+  },
+  "review_file_sha256": "08423a8cb737ba4d75bf659ab8beb6462b1024b9055e209185501570a9a4ef8b",
+  "quality_admission": "NOT_GRANTED",
+  "provider_phase_admission": "REQUIRES_ACTUAL_ZERO_SEND_BINDING"
+}

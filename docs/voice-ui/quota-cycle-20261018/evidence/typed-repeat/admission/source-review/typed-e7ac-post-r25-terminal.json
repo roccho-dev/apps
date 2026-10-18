@@ -1,0 +1,13 @@
+{
+  "status": "PASS",
+  "at": "2026-10-18T04:31:04.725022+00:00",
+  "journal_sha256": "2b938983023a8e2627041d52cb943a3d0f6bd530aeed637c606b816a57328d35",
+  "owned_pgids": 49,
+  "remaining_members_including_Z": [],
+  "charged": {
+    "jev": 847,
+    "typellm": 136
+  },
+  "outstanding": 0,
+  "scope": "independent post R25 terminal; no launch or model sends"
+}

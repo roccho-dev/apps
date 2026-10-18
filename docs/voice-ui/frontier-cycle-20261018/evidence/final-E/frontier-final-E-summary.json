@@ -1,0 +1,210 @@
+{
+  "schema": "voice-ui.frontier-final-summary/1",
+  "axis": "E",
+  "phase": "frontier-final-E-20261018",
+  "apps_sha": "2cc4890b765a5534e92855f83f9232ae85bb373b",
+  "evidence_status": "PASS",
+  "semantic": {
+    "complete": true,
+    "total": 10,
+    "total_pairs": 10,
+    "baseline": {
+      "sufficient": {
+        "correct": 3,
+        "total": 4
+      },
+      "missing": {
+        "correct": 0,
+        "total": 4
+      },
+      "ambiguous": {
+        "correct": 1,
+        "total": 1
+      },
+      "no-change": {
+        "correct": 1,
+        "total": 1
+      }
+    },
+    "enabled": {
+      "sufficient": {
+        "correct": 2,
+        "total": 4
+      },
+      "missing": {
+        "correct": 1,
+        "total": 4
+      },
+      "ambiguous": {
+        "correct": 1,
+        "total": 1
+      },
+      "no-change": {
+        "correct": 1,
+        "total": 1
+      }
+    },
+    "enabled_success": 5,
+    "baseline_success": 5,
+    "missing_gains": 1,
+    "frontier_missing_gains": 0,
+    "regressions": 1,
+    "eligible_pairs": 4,
+    "admissible_missing_pairs": 3,
+    "all_arm_guards": false,
+    "no_false_adoption": false,
+    "interpretation_type_calls": 1,
+    "pairs": [
+      {
+        "id": "FE01",
+        "eligible": false,
+        "baseline_success": true,
+        "enabled_success": false,
+        "missing_gain": false,
+        "frontier_gain": false,
+        "both_arms_frontier": false,
+        "regression": true,
+        "excluded_from_causal_only": true
+      },
+      {
+        "id": "FE02",
+        "eligible": false,
+        "baseline_success": true,
+        "enabled_success": true,
+        "missing_gain": false,
+        "frontier_gain": false,
+        "both_arms_frontier": false,
+        "regression": false,
+        "excluded_from_causal_only": true
+      },
+      {
+        "id": "FE03",
+        "eligible": true,
+        "baseline_success": false,
+        "enabled_success": false,
+        "missing_gain": false,
+        "frontier_gain": false,
+        "both_arms_frontier": false,
+        "regression": false,
+        "excluded_from_causal_only": false
+      },
+      {
+        "id": "FE04",
+        "eligible": false,
+        "baseline_success": true,
+        "enabled_success": true,
+        "missing_gain": false,
+        "frontier_gain": false,
+        "both_arms_frontier": false,
+        "regression": false,
+        "excluded_from_causal_only": true
+      },
+      {
+        "id": "FE05",
+        "eligible": true,
+        "baseline_success": false,
+        "enabled_success": false,
+        "missing_gain": false,
+        "frontier_gain": false,
+        "both_arms_frontier": true,
+        "regression": false,
+        "excluded_from_causal_only": false
+      },
+      {
+        "id": "FE06",
+        "eligible": true,
+        "baseline_success": false,
+        "enabled_success": true,
+        "missing_gain": true,
+        "frontier_gain": false,
+        "both_arms_frontier": false,
+        "regression": false,
+        "excluded_from_causal_only": false
+      },
+      {
+        "id": "FE07",
+        "eligible": true,
+        "baseline_success": false,
+        "enabled_success": false,
+        "missing_gain": false,
+        "frontier_gain": false,
+        "both_arms_frontier": false,
+        "regression": false,
+        "excluded_from_causal_only": false
+      },
+      {
+        "id": "FE08",
+        "eligible": false,
+        "baseline_success": false,
+        "enabled_success": false,
+        "missing_gain": false,
+        "frontier_gain": false,
+        "both_arms_frontier": false,
+        "regression": false,
+        "excluded_from_causal_only": true
+      },
+      {
+        "id": "FE09",
+        "eligible": false,
+        "baseline_success": true,
+        "enabled_success": true,
+        "missing_gain": false,
+        "frontier_gain": false,
+        "both_arms_frontier": false,
+        "regression": false,
+        "excluded_from_causal_only": true
+      },
+      {
+        "id": "FE10",
+        "eligible": false,
+        "baseline_success": true,
+        "enabled_success": true,
+        "missing_gain": false,
+        "frontier_gain": false,
+        "both_arms_frontier": false,
+        "regression": false,
+        "excluded_from_causal_only": true
+      }
+    ],
+    "enabled_criteria": "UNMET",
+    "effect_criteria": "UNMET",
+    "frontier_effect_criteria_pending_integrity": "UNPROVEN",
+    "no_effect_criteria_pending_integrity": "UNPROVEN",
+    "frontier_no_effect_criteria_pending_integrity": "UNPROVEN",
+    "scope": "fixed whole E denominator; generic Type-path effect and newly added frontier-specific effect are separate; integrity/paint/source admission mandatory"
+  },
+  "quality": "UNMET",
+  "effect": "UNMET",
+  "frontier_effect": "UNPROVEN",
+  "no_effect": "UNPROVEN",
+  "all20_valid": true,
+  "actual_and_recorded_paint": "PASS",
+  "all20_persisted_raw_equal": true,
+  "all20_goal_deadlines": "PASS",
+  "sent": {
+    "jev": 47,
+    "typellm": 4
+  },
+  "charged": {
+    "jev": 808,
+    "typellm": 85
+  },
+  "confirmed_from_frozen_baseline_plus_sends": {
+    "jev": 808,
+    "typellm": 84
+  },
+  "historic_unsent_Type_charge_preserved": 1,
+  "journal_sha256": "ce6896e0b1eb7c3c749b659b36e3ed4467dc133042ace81dd990b9f2e10c28d4",
+  "all38_owned_groups_absent_including_zombies": true,
+  "reservation": null,
+  "oracle": {
+    "name": "frontier-cycle-final-E-10.oracle.json",
+    "sha256": "c6ee6fca910a2fd91581886cd24aad9d0cb5e7a53b50d33dc27ebad88d45bf13",
+    "released_after_physical_stop": true
+  },
+  "recorded_replay_sha256": "b43fc4874bed2f5cd611de5567be92ac342de56af9335a624fdde3672f32a3a7",
+  "fixed_producer_sha256": "315e8a6ad4f29479081f9faae56628b25253873958afebc0222215de90d04513",
+  "CI_STOPPED_EVIDENCE_RECHECK": "PENDING_REPORT_CI",
+  "CI_LIVE_EXECUTION": "UNPROVEN",
+  "scope": "Complete new blind whole denominator retained. One old-eligible Type-path gain falls below registered >=2 and is accompanied by one G0 paired regression and one assembly false adoption. No frontier-specific efficacy or global ineffectiveness claim."
+}

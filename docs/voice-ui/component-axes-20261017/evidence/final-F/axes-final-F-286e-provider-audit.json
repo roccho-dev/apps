@@ -1,0 +1,42 @@
+{
+  "status": "PASS",
+  "issues": [],
+  "phase": "axes-final-F-20261017",
+  "sent": {
+    "jev": 0,
+    "typellm": 8
+  },
+  "prior_charged": {
+    "jev": 652,
+    "typellm": 32
+  },
+  "charged_at_cutoff": {
+    "jev": 652,
+    "typellm": 40
+  },
+  "journal_sha256": "510c99b4c81d71f8bd00a5889c3391f6b3cefb95ed4385587f12ba7dd8ec3bf2",
+  "config_sha256": "49055d9c30e0fbfb211c99ef663ab72b905e32fde48763ce2e9d791a1f88d8a1",
+  "stop_scope": "recorded reconciliation only; independent live PID observation remains an explicit audit reference",
+  "expected_external_bounds": {
+    "jev": {
+      "min": 0,
+      "max": 0
+    },
+    "typellm": {
+      "min": 7,
+      "max": 8
+    }
+  },
+  "cycle_start": {
+    "jev": 564,
+    "typellm": 29
+  },
+  "cycle_limit": {
+    "jev": 290,
+    "typellm": 11
+  },
+  "cycle_remaining": {
+    "jev": 202,
+    "typellm": 0
+  }
+}

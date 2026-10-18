@@ -1,0 +1,31 @@
+{
+  "schema": "voice-ui.quota-cycle-oracle-release/1",
+  "status": "PASS",
+  "released_at": "2026-10-17T23:28:52.041Z",
+  "phase": "quota-final-E-20261018",
+  "axis": "E",
+  "apps_sha": "59ded276405a5dc9caa85ad570b1827ff4bd0c7a",
+  "input_sha256": "926d7007508e0f4b67fe2fb564e1d299d82219ca9e1b95f96e3b26c3d6c9ae40",
+  "copy_allowlist": [
+    {
+      "name": "quota-cycle-sealed-E-6.v2.oracle.json",
+      "bytes": 9772,
+      "sha256": "87bc601021241e65ee78e5e8c4a30d316d0e8e9c7fcbbfe3ac2f6b4b7a2b87b3"
+    }
+  ],
+  "consumed_cases": 6,
+  "planned_cells": 12,
+  "retained_cells": 12,
+  "execution_status": "RECORDED",
+  "physical_stop_sha256": "93398952d2351560bf2827bfc4cf53f720e9cb32df6c2a9b6b704eebd2119f2e",
+  "ledger_cutoff_sha256": "1fb7f24d498e214a977bc557ba4b46c0d108ec34cb4f380a2a0de368445b2a80",
+  "charged": {
+    "jev": 847,
+    "typellm": 88
+  },
+  "source_review": "https://github.com/roccho-dev/apps/pull/103#pullrequestreview-5560532224",
+  "all42_owned_groups_absent_including_zombies": true,
+  "no_outstanding_reservation": true,
+  "scope": "CONSUMED_E_ORACLE_ONLY_AFTER_PHYSICAL_STOP_AND_ACCOUNTING; ALL_OTHER_OLD_UNUSED_SEALED_POOLS_UNCHANGED; NOT_A_PERFORMANCE_OR_NEXT_PROVIDER_GO",
+  "reviewer_real_provider_calls": 0
+}

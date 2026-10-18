@@ -1,0 +1,128 @@
+{
+  "schema": "voice-ui.frontier-cycle-evidence-index/1",
+  "commitment": "../preregistered/frontier-cycle-commitment.v2.json",
+  "freeze": "../preregistered/frontier-cycle-public-freeze.v2.json",
+  "baseline_journal": "../../intent-cycle-20261018/evidence/public-G0/intent-public-G0-20261018.journal.jsonl",
+  "expected_cumulative": {
+    "jev": 808,
+    "typellm": 85
+  },
+  "phases": [
+    {
+      "id": "frontier-public-G0",
+      "axis": "G0",
+      "phase_kind": "public",
+      "apps_sha": "2cc4890b765a5534e92855f83f9232ae85bb373b",
+      "input": "../preregistered/frontier-cycle-public-G0-10.inputs.json",
+      "oracle": "../preregistered/frontier-cycle-public-G0-10.oracle.json",
+      "raw_dir": "public-G0/raw",
+      "producer": "public-G0/frontier-public-G0.producer.json",
+      "runtime": "admission/runtime-build.json",
+      "stdout": "public-G0/frontier-public-G0-20261018.stdout.log",
+      "stderr": "public-G0/frontier-public-G0-20261018.stderr.log",
+      "journal": "public-G0/frontier-public-G0-20261018.journal.jsonl",
+      "config": "public-G0/frontier-public-G0-20261018.config.json",
+      "process": "public-G0/frontier-public-G0-20261018.process.json",
+      "audits": {
+        "pr103-2cc-r19-review.md": "admission/pr103-2cc-r19-review.md",
+        "frontier-public-G0-zero-send-audit.json": "public-G0/frontier-public-G0-zero-send-audit.json",
+        "frontier-public-G0-stop-audit.json": "public-G0/frontier-public-G0-stop-audit.json"
+      },
+      "expected_execution_status": "RECORDED",
+      "parent_input": "../../intent-cycle-20261018/preregistered/intent-cycle-public-G0-10.inputs.json",
+      "parent_oracle": "../../intent-cycle-20261018/preregistered/intent-cycle-public-G0-10.oracle.json"
+    },
+    {
+      "id": "frontier-public-E",
+      "axis": "E",
+      "phase_kind": "public",
+      "apps_sha": "2cc4890b765a5534e92855f83f9232ae85bb373b",
+      "input": "../preregistered/frontier-cycle-public-E-2.inputs.json",
+      "oracle": "../preregistered/frontier-cycle-public-E-2.oracle.json",
+      "raw_dir": "public-E/raw",
+      "producer": "public-E/frontier-public-E.producer.json",
+      "runtime": "admission/runtime-build.json",
+      "stdout": "public-E/frontier-public-E-20261018.stdout.log",
+      "stderr": "public-E/frontier-public-E-20261018.stderr.log",
+      "journal": "public-E/frontier-public-E-20261018.journal.jsonl",
+      "config": "public-E/frontier-public-E-20261018.config.json",
+      "process": "public-E/frontier-public-E-20261018.process.json",
+      "audits": {
+        "pr103-2cc-r19-review.md": "admission/pr103-2cc-r19-review.md",
+        "frontier-public-E-zero-send-audit.json": "public-E/frontier-public-E-zero-send-audit.json",
+        "frontier-public-E-stop-audit.json": "public-E/frontier-public-E-stop-audit.json"
+      },
+      "expected_execution_status": "RECORDED",
+      "parent_input": "../../intent-cycle-20261018/preregistered/intent-cycle-public-E-2.inputs.json",
+      "parent_oracle": "../../intent-cycle-20261018/preregistered/intent-cycle-public-E-2.oracle.json",
+      "recorded_replay": "public-E/recorded-replay/receipt.json"
+    },
+    {
+      "id": "frontier-final-V",
+      "axis": "V",
+      "phase_kind": "final",
+      "apps_sha": "2cc4890b765a5534e92855f83f9232ae85bb373b",
+      "input": "final-V/frontier-cycle-final-V-10.inputs.json",
+      "oracle": "final-V/frontier-cycle-final-V-10.oracle.json",
+      "raw_dir": "final-V/raw",
+      "producer": "final-V/frontier-final-V.producer.json",
+      "runtime": "admission/runtime-build.json",
+      "stdout": "final-V/frontier-final-V-20261018.stdout.log",
+      "stderr": "final-V/frontier-final-V-20261018.stderr.log",
+      "journal": "final-V/frontier-final-V-20261018.journal.jsonl",
+      "config": "final-V/frontier-final-V-20261018.config.json",
+      "process": "final-V/frontier-final-V-20261018.process.json",
+      "audits": {
+        "pr103-2cc-r19-review.md": "admission/pr103-2cc-r19-review.md",
+        "frontier-final-V-zero-send-audit.json": "final-V/frontier-final-V-zero-send-audit.json",
+        "frontier-final-V-stop-audit.json": "final-V/frontier-final-V-stop-audit.json"
+      },
+      "expected_execution_status": "RECORDED"
+    },
+    {
+      "id": "frontier-final-F",
+      "axis": "F",
+      "phase_kind": "final",
+      "apps_sha": "2cc4890b765a5534e92855f83f9232ae85bb373b",
+      "input": "final-F/frontier-cycle-final-F-8.inputs.json",
+      "oracle": "final-F/frontier-cycle-final-F-8.oracle.json",
+      "raw_dir": "final-F/raw",
+      "producer": "final-F/frontier-final-F.producer.json",
+      "runtime": "admission/runtime-build.json",
+      "stdout": "final-F/frontier-final-F-20261018.stdout.log",
+      "stderr": "final-F/frontier-final-F-20261018.stderr.log",
+      "journal": "final-F/frontier-final-F-20261018.journal.jsonl",
+      "config": "final-F/frontier-final-F-20261018.config.json",
+      "process": "final-F/frontier-final-F-20261018.process.json",
+      "audits": {
+        "pr103-2cc-r19-review.md": "admission/pr103-2cc-r19-review.md",
+        "frontier-final-F-zero-send-audit.json": "final-F/frontier-final-F-zero-send-audit.json",
+        "frontier-final-F-stop-audit.json": "final-F/frontier-final-F-stop-audit.json"
+      },
+      "expected_execution_status": "INVALID"
+    },
+    {
+      "id": "frontier-final-E",
+      "axis": "E",
+      "phase_kind": "final",
+      "apps_sha": "2cc4890b765a5534e92855f83f9232ae85bb373b",
+      "input": "final-E/frontier-cycle-final-E-10.inputs.json",
+      "oracle": "final-E/frontier-cycle-final-E-10.oracle.json",
+      "raw_dir": "final-E/raw",
+      "producer": "final-E/frontier-final-E.producer.json",
+      "runtime": "admission/runtime-build.json",
+      "stdout": "final-E/frontier-final-E-20261018.stdout.log",
+      "stderr": "final-E/frontier-final-E-20261018.stderr.log",
+      "journal": "final-E/frontier-final-E-20261018.journal.jsonl",
+      "config": "final-E/frontier-final-E-20261018.config.json",
+      "process": "final-E/frontier-final-E-20261018.process.json",
+      "audits": {
+        "pr103-2cc-r19-review.md": "admission/pr103-2cc-r19-review.md",
+        "frontier-final-E-zero-send-audit.json": "final-E/frontier-final-E-zero-send-audit.json",
+        "frontier-final-E-stop-audit.json": "final-E/frontier-final-E-stop-audit.json"
+      },
+      "expected_execution_status": "RECORDED",
+      "recorded_replay": "final-E/recorded-replay/receipt.json"
+    }
+  ]
+}

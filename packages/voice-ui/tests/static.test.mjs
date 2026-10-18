@@ -294,6 +294,35 @@ const resolve = (file, spec) => {
   return null;
 };
 
+// The registered native comparison calls the actual product filter. This one
+// evidence entrypoint cannot exempt any other export or the whole module.
+const QUOTA_EVIDENCE_CALLER = "tests/quota-cycle-eval.mjs";
+const quotaEvidenceEntrypoint = (file, source) => {
+  assert.equal(file, QUOTA_EVIDENCE_CALLER);
+  const bindings = [...source.matchAll(IMPORT)].filter(match => resolve(file, match[4]) === "src/completion.mjs");
+  assert.equal(bindings.length, 1);
+  assert.deepEqual([bindings[0][1], bindings[0][2].trim(), bindings[0][3]], [undefined, "quotaGoalBundle", undefined]);
+  const start = source.indexOf('if (axis === "R") {'), end = source.indexOf('        {\n          const context =', start);
+  assert.ok(start >= 0 && end > start);
+  const native = source.slice(start, end);
+  assert.ok(native.includes('const goalBundle = arm === "O" ? supplied : quotaGoalBundle(supplied, item.required);'));
+  assert.ok(native.includes('result = await runGoal({ utterance: item.utterance, bundle: goalBundle, protocol,'));
+  return ["src/completion.mjs", "quotaGoalBundle"];
+};
+
+test("the one quota evidence entrypoint requires its exact import and actual native Goal use", () => {
+  const source = read(QUOTA_EVIDENCE_CALLER);
+  assert.deepEqual(quotaEvidenceEntrypoint(QUOTA_EVIDENCE_CALLER, source), ["src/completion.mjs", "quotaGoalBundle"]);
+  assert.throws(() => quotaEvidenceEntrypoint("tests/other.mjs", source));
+  for (const mutated of [
+    source.replace('"../src/completion.mjs"', '"../src/other.mjs"'),
+    source.replace('import { quotaGoalBundle }', 'import { otherHelper }'),
+    source.replace('import { quotaGoalBundle } from "../src/completion.mjs";', ""),
+    source.replace('quotaGoalBundle(supplied, item.required)', "supplied"),
+    source.replace('bundle: goalBundle, protocol,', 'bundle: supplied, protocol,'),
+  ]) assert.throws(() => quotaEvidenceEntrypoint(QUOTA_EVIDENCE_CALLER, mutated));
+});
+
 test("core import reachability is closed over apps meaning, not concrete bindings", () => {
   const visit = (file, sourceFor, seen = new Set()) => {
     if (seen.has(file)) return seen;
@@ -338,6 +367,8 @@ test("every production export has a production importer or is a named entrypoint
     const names = [...read(file).matchAll(EXPORT)].map(match => match[1]);
     return /^export\s+default\b/mu.test(read(file)) ? [...names, "default"] : names;
   };
+  const [evidenceModule, evidenceExport] = quotaEvidenceEntrypoint(QUOTA_EVIDENCE_CALLER, read(QUOTA_EVIDENCE_CALLER));
+  used.get(evidenceModule).add(evidenceExport);
   const missing = [...used].flatMap(([file, names]) => [...names].filter(name => !exportsOf(file).includes(name))
     .map(name => `${file}#${name}`));
   assert.deepEqual(missing, [], "an import of a name its module does not export");

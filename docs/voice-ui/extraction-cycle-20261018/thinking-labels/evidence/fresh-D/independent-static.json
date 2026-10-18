@@ -1,0 +1,72 @@
+{
+  "schema": "voice-ui.review.thinking-fresh-prepared/1",
+  "status": "PASS",
+  "at": "2026-10-18T03:18:47.744362+00:00",
+  "head": "b6696c1f579851429cf0cc58a49b20c9ff663475",
+  "phase": "thinking-fresh-D-20261018",
+  "metadata": [
+    {
+      "path": "/work/repos/voice-ui-typellm-20261016/thinking-fresh-D-20261018.config.json",
+      "name": "thinking-fresh-D-20261018.config.json",
+      "bytes": 984,
+      "sha256": "e6aeb5091f2cb2ef9bea33114e39bc0cf6962889646944a5c3e766b1ef7cb7fe"
+    },
+    {
+      "path": "/work/repos/voice-ui-typellm-20261016/thinking-fresh-D-20261018.operator.mjs",
+      "name": "thinking-fresh-D-20261018.operator.mjs",
+      "bytes": 2499,
+      "sha256": "eeb3e864290b70904fed4e25687d0e13b444c16bbb517ca994b6b17f9db1a099"
+    },
+    {
+      "path": "/work/repos/voice-ui-typellm-20261016/thinking-fresh-D-20261018.root-zero.mjs",
+      "name": "thinking-fresh-D-20261018.root-zero.mjs",
+      "bytes": 2656,
+      "sha256": "5a5f5c51098a08aef670b709399d016d906af57fc1adef35c2f2cb942d3a00ce"
+    },
+    {
+      "path": "/work/repos/voice-ui-typellm-20261016/thinking-fresh-D-20261018.root-terminal.mjs",
+      "name": "thinking-fresh-D-20261018.root-terminal.mjs",
+      "bytes": 2643,
+      "sha256": "63bfae4b9f23b7a50599a46c1eaa60632df71e10e5c5d595c71de62a5cd01bac"
+    },
+    {
+      "path": "/work/repos/voice-ui-typellm-20261016/thinking-fresh-D-20261018.inputs/fresh.input.json",
+      "name": "fresh.input.json",
+      "bytes": 14676,
+      "sha256": "5143754f716f2828efb7aa135828c3a3a04c5e3b8be79a82c37011a12f574f29"
+    },
+    {
+      "path": "/work/repos/voice-ui-typellm-20261016/thinking-fresh-D-20261018.inputs/heldout.inputs.json",
+      "name": "heldout.inputs.json",
+      "bytes": 10917,
+      "sha256": "dd66904853ae031c68e632c67d3bfc3a974141ce77fa4f83ecb406ad0a149874"
+    },
+    {
+      "path": "/work/repos/voice-ui-typellm-20261016/thinking-b6696c1f.fresh.wire.json",
+      "name": "thinking-b6696c1f.fresh.wire.json",
+      "bytes": 164581,
+      "sha256": "f6d483acb83abb5b8a1ba303e42b05bb6559af3a41e3f1312971ea53bcfbbb4e"
+    }
+  ],
+  "original_released_input_exact": true,
+  "cases_requests_schedule_preserved": true,
+  "all_roles_null": true,
+  "frozen_measurement_arms_normalization_gate_preserved": true,
+  "public_to_fresh_helper_changes": "phase names and only terminal prior snapshot/cumulative136/group49; config stage and input/wire paths; no driver change",
+  "prior_charged": {
+    "jev": 847,
+    "typellm": 128
+  },
+  "cap": {
+    "jev": 0,
+    "typellm": 8
+  },
+  "maximum_after_fresh": {
+    "jev": 847,
+    "typellm": 136
+  },
+  "oracle_read": false,
+  "private_validation_read": false,
+  "reviewer_real_provider_calls": 0,
+  "scope": "STATIC_FRESH_INPUT_AND_METADATA_ONLY_NOT_ACTUAL_ZERO_SEND_GO"
+}

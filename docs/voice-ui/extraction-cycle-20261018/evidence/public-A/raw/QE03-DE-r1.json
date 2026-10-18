@@ -1,0 +1,139 @@
+{
+  "id": "QE03-DE-r1",
+  "case": "QE03",
+  "condition": "DE",
+  "rep": 1,
+  "key": "QE03-DE",
+  "request": {
+    "kind": "voice-ui.goal.inventory.v1",
+    "state": {
+      "utterance": "作業区に新しく一つの判断ノードを置いて、その表示を出荷可否にしてください。ほかには何も追加しないでください。",
+      "head": "sha256:f14b93ac1b4a8ca4af467132ccd7f5d0a524fed90de6dbf3d54d77ea8f534596",
+      "regions": [
+        {
+          "id": "root",
+          "label": "fixture",
+          "kind": "boundary",
+          "parent": null
+        },
+        {
+          "id": "container",
+          "label": "作業区",
+          "kind": "group",
+          "parent": "root"
+        },
+        {
+          "id": "other",
+          "label": "保留区",
+          "kind": "group",
+          "parent": "root"
+        }
+      ],
+      "edges": [],
+      "parts": []
+    }
+  },
+  "route": "/api/parts/requirements?generation=dependent",
+  "request_body_utf8": "{\"kind\":\"voice-ui.goal.inventory.v1\",\"state\":{\"utterance\":\"作業区に新しく一つの判断ノードを置いて、その表示を出荷可否にしてください。ほかには何も追加しないでください。\",\"head\":\"sha256:f14b93ac1b4a8ca4af467132ccd7f5d0a524fed90de6dbf3d54d77ea8f534596\",\"regions\":[{\"id\":\"root\",\"label\":\"fixture\",\"kind\":\"boundary\",\"parent\":null},{\"id\":\"container\",\"label\":\"作業区\",\"kind\":\"group\",\"parent\":\"root\"},{\"id\":\"other\",\"label\":\"保留区\",\"kind\":\"group\",\"parent\":\"root\"}],\"edges\":[],\"parts\":[]}}",
+  "response": {
+    "schema": "voice-ui.parts.requirements/2",
+    "request_id": "762b0875-66b1-42e1-a498-57e25d73f6f8",
+    "slots": {
+      "required1": {
+        "label": "出荷可否",
+        "kind": "decision",
+        "quantity": "1"
+      },
+      "required2": {
+        "label": "",
+        "kind": "none",
+        "quantity": "0"
+      },
+      "required3": {
+        "label": "",
+        "kind": "none",
+        "quantity": "0"
+      }
+    },
+    "required": [
+      {
+        "label": "出荷可否",
+        "kind": "decision",
+        "quantity": 1
+      }
+    ]
+  },
+  "event": {
+    "id": "QE03-DE-r1",
+    "arm": "DE",
+    "n": 3,
+    "route": "/api/parts/requirements?generation=dependent",
+    "request": {
+      "kind": "voice-ui.goal.inventory.v1",
+      "state": {
+        "utterance": "作業区に新しく一つの判断ノードを置いて、その表示を出荷可否にしてください。ほかには何も追加しないでください。",
+        "head": "sha256:f14b93ac1b4a8ca4af467132ccd7f5d0a524fed90de6dbf3d54d77ea8f534596",
+        "regions": [
+          {
+            "id": "root",
+            "label": "fixture",
+            "kind": "boundary",
+            "parent": null
+          },
+          {
+            "id": "container",
+            "label": "作業区",
+            "kind": "group",
+            "parent": "root"
+          },
+          {
+            "id": "other",
+            "label": "保留区",
+            "kind": "group",
+            "parent": "root"
+          }
+        ],
+        "edges": [],
+        "parts": []
+      }
+    },
+    "status": 200,
+    "response": {
+      "schema": "voice-ui.parts.requirements/2",
+      "request_id": "762b0875-66b1-42e1-a498-57e25d73f6f8",
+      "slots": {
+        "required1": {
+          "label": "出荷可否",
+          "kind": "decision",
+          "quantity": "1"
+        },
+        "required2": {
+          "label": "",
+          "kind": "none",
+          "quantity": "0"
+        },
+        "required3": {
+          "label": "",
+          "kind": "none",
+          "quantity": "0"
+        }
+      },
+      "required": [
+        {
+          "label": "出荷可否",
+          "kind": "decision",
+          "quantity": 1
+        }
+      ]
+    },
+    "elapsedMs": 1474.1506000000004
+  },
+  "status": "VALID_CONTRACT",
+  "required": [
+    {
+      "label": "出荷可否",
+      "kind": "decision",
+      "quantity": 1
+    }
+  ]
+}

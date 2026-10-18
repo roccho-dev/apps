@@ -1,0 +1,42 @@
+{
+  "status": "PASS",
+  "issues": [],
+  "phase": "frontier-public-G0-20261018",
+  "sent": {
+    "jev": 10,
+    "typellm": 0
+  },
+  "prior_charged": {
+    "jev": 725,
+    "typellm": 71
+  },
+  "charged_at_cutoff": {
+    "jev": 735,
+    "typellm": 71
+  },
+  "journal_sha256": "563395241f142785515edd7be38c0bc79f8ecb175a2caf8668824384190d3ee1",
+  "config_sha256": "c33ef73b51faa61327a0254296f65dae59192a4b70329b2572a25e1ebbbbbe74",
+  "stop_scope": "recorded reconciliation only; independent live PID observation remains an explicit audit reference",
+  "expected_external_bounds": {
+    "jev": {
+      "min": 10,
+      "max": 10
+    },
+    "typellm": {
+      "min": 0,
+      "max": 0
+    }
+  },
+  "cycle_start": {
+    "jev": 725,
+    "typellm": 71
+  },
+  "cycle_limit": {
+    "jev": 248,
+    "typellm": 20
+  },
+  "cycle_remaining": {
+    "jev": 238,
+    "typellm": 20
+  }
+}

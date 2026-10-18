@@ -1,0 +1,8 @@
+fatal: unable to access 'https://github.com/roccho-dev/apps/': SSL certificate OpenSSL verify result: unable to get local issuer certificate (20)
+error: Failed to fetch git repository 'https://github.com/roccho-dev/apps'
+warning: could not update local clone of Git repository 'https://github.com/roccho-dev/apps'; continuing with the most recent version
+error:
+       … while fetching the input 'git+https://github.com/roccho-dev/apps?rev=cfd86a2776f5493867eca0629bae532c9a30480c'
+
+       error: Cannot find Git revision 'cfd86a2776f5493867eca0629bae532c9a30480c' in ref 'refs/heads/proposals' of repository 'https://github.com/roccho-dev/apps'! Please make sure that the rev exists on the ref you've specified or add allRefs = true; to fetchGit.
+voice-ui-typed-dev: RED: cannot evaluate the apps dev program

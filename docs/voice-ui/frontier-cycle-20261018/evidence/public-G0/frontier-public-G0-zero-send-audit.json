@@ -1,0 +1,174 @@
+{
+  "source25": [
+    {
+      "name": "src/completion.mjs",
+      "sha256": "f2cb1b4652a248f39e5a37efa5a13e5c0aaf068544a322827dfc4e8972381562",
+      "bytes": 29191
+    },
+    {
+      "name": "src/literal-inventory.mjs",
+      "sha256": "ecdeb980fb826f800dfeb186e042b5a4edf85b32ecc8a97516eb55e81a9c37f9",
+      "bytes": 8062
+    },
+    {
+      "name": "src/goal.mjs",
+      "sha256": "cd9101d6a222e31773c9523adeca3f7f9aa32990e30b39e06a7b872771422f3e",
+      "bytes": 12911
+    },
+    {
+      "name": "src/contract.mjs",
+      "sha256": "f2c95212493f59fd80ef17270c2b5de0d51d795b26ac8a0e6dfa0fdb9dec30fe",
+      "bytes": 30991
+    },
+    {
+      "name": "src/turn.mjs",
+      "sha256": "c5fc3489a5bd0861f0455bd9843f47e76030bb03a4fe55745cf00c29c79b7008",
+      "bytes": 53204
+    },
+    {
+      "name": "src/session.mjs",
+      "sha256": "d6fcb97e581afb789ed6ecb339c06c378ef94283084df8ad3042ebe42c48cfe8",
+      "bytes": 13314
+    },
+    {
+      "name": "functions/api/parts.mjs",
+      "sha256": "ce18dbfb6ed5330c04fba1e3264a6e84cd4fb4f45b03775c06decdedb9b4521e",
+      "bytes": 14161
+    },
+    {
+      "name": "functions/pages-worker.mjs",
+      "sha256": "afc3b785091d992fddd47f15ec17a4b05d78d7bd7564223c35e065ee737fd690",
+      "bytes": 3032
+    },
+    {
+      "name": "web/app.mjs",
+      "sha256": "3a9ac4eba0770949a219b35c97cd346d4a7912026fae2b2f21710251b86bbf2a",
+      "bytes": 43782
+    },
+    {
+      "name": "web/adapters/completion.mjs",
+      "sha256": "537bc46e93efe58fbdf466dd2493989ad5695209def769ec9da3ba68926edb5a",
+      "bytes": 970
+    },
+    {
+      "name": "dev/serve.mjs",
+      "sha256": "d044ea7f8ccbd7fd71fbe1447dcce0f30bfa831d471da3eef2e3377380532298",
+      "bytes": 20526
+    },
+    {
+      "name": "tests/dependency-cycle-eval.mjs",
+      "sha256": "b92308340b7a54020c30ae1c1daa3b482b60263d080b3f2e2393909f6cfcd7c3",
+      "bytes": 14959
+    },
+    {
+      "name": "tests/requirements-cycle-score.mjs",
+      "sha256": "3d779cf422e8cc0facc6f5ff566c3e77b36a61486f9586f120b0c1a722cd5a46",
+      "bytes": 21347
+    },
+    {
+      "name": "tests/requirements-cycle-audit.mjs",
+      "sha256": "692bdbaef8dbe28fe30fcdfe178202ebbdf3a4728bf0fe1c7310f72bf789c6eb",
+      "bytes": 56082
+    },
+    {
+      "name": "tests/dependency-cycle-score.mjs",
+      "sha256": "2f7f40afec31d1f7cded08951529a30d741f6ebfb8abf446900a7f6eb567ef91",
+      "bytes": 8386
+    },
+    {
+      "name": "tests/dependency-cycle-audit.mjs",
+      "sha256": "47dce6207c8b48dae6447d87ee1294d8495f28a31d2b474d5dc0c9b95998d66e",
+      "bytes": 64775
+    },
+    {
+      "name": "tests/semantic-score.mjs",
+      "sha256": "3230791bd2b06ccbb73008723ab3709981ce6e2d65fc2fdbdec8cadf9d1cfec3",
+      "bytes": 3826
+    },
+    {
+      "name": "tests/requirements-cycle-http.mjs",
+      "sha256": "b3c1d052e2f7138532e0d7cac6ac7b3c7287b7af32b857990c1e6d14bb325386",
+      "bytes": 1163
+    },
+    {
+      "name": "tests/painted-goal.mjs",
+      "sha256": "c5ba117d1dea66d20c80b7f92b8184296ff79d4231da56f5a89836af4beb018b",
+      "bytes": 24668
+    },
+    {
+      "name": "tests/intent-cycle-eval.mjs",
+      "sha256": "0dd9649d87f4b2f0d0e446b44f5dcd7bb09582e75eca8ca7113b8d0d4d741357",
+      "bytes": 15130
+    },
+    {
+      "name": "tests/intent-cycle-score.mjs",
+      "sha256": "e6652eef8ee1b18c1b3c479b649033105c1ae27f360b0b9d4a16f898edc664cb",
+      "bytes": 10328
+    },
+    {
+      "name": "tests/intent-cycle-audit.mjs",
+      "sha256": "151715f5c09a64a1187ad2557e13b3172801e8e8fa8ee492b31a5a7823222617",
+      "bytes": 66452
+    },
+    {
+      "name": "tests/frontier-cycle-eval.mjs",
+      "sha256": "3031b7f539752badd452b868c577daa6437647547233f81f78c1b0eea5db29f9",
+      "bytes": 15255
+    },
+    {
+      "name": "tests/frontier-cycle-score.mjs",
+      "sha256": "64fe98b9929ca13dcf57e41857da5eed656bb2d5457eab0aa9a78aad023ecf81",
+      "bytes": 22140
+    },
+    {
+      "name": "tests/frontier-cycle-audit.mjs",
+      "sha256": "f903cd8813c33387ec69f2adc0d0f20e1fedfd5dd59cd07d02fa7ce84f37f89e",
+      "bytes": 67476
+    }
+  ],
+  "prepared_operator_sha256": "bfc6000ca07a886df4ab0cfab541dee743f248bdb72818fa0877135ed05864ec",
+  "schema": "voice-ui.independent-zero-send-audit/1",
+  "observed_at": "2026-10-17T20:57:38.718906+00:00",
+  "status": "PASS",
+  "phase": "frontier-public-G0-20261018",
+  "axis": "G0",
+  "config_sha256": "c33ef73b51faa61327a0254296f65dae59192a4b70329b2572a25e1ebbbbbe74",
+  "identity_sha256": "cc0dc54b3f74b0b7502a2257aa3456d0cdea0da0fbba6dfdae91c475e8a30d58",
+  "process_sha256": "8e737b81bd12d507cf5ad8fdf63008a2fafb0bf993b8dc28c233face49497626",
+  "uid": 1000,
+  "listening_port_bound_to_pid": true,
+  "served_index_raw_equal": true,
+  "runtime_sha256": "ec0e6e8f0719393496f2956f6f25c97a83c733467fc93771db51d8dce35d7d5f",
+  "input_sha256": "560b9126d385c9cfa1a48431fc6c78355b9f811e92b7a2f9736684a2c7f91c0f",
+  "pid": 345186,
+  "pgid": 345186,
+  "start_ticks": "17843257",
+  "argv": [
+    "node",
+    "/nix/store/hdl7f0wfba1yxkq2gyvwpaxkwpd3sahb-source/packages/voice-ui/dev/serve.mjs"
+  ],
+  "allowlisted_process_env": {
+    "NODE_OPTIONS": "--import=/nix/store/s9sspm66pdf3xjdsbvy0q60cr0jp7w4g-voice-ui-provider-budget.mjs",
+    "VOICE_UI_TYPELLM_LIMIT": "0",
+    "VOICE_UI_SEMANTIC_MAP": "/nix/store/vqjhvwxcbwv7vg09n4d3sy54lw879s9f-semantic-map",
+    "VOICE_UI_WORKER": "/nix/store/ib0jjyaii52s3nkwki2rijfkpm29zc87-voice-ui-dist/worker/worker.mjs",
+    "VOICE_UI_JEV_LIMIT": "10"
+  },
+  "key_presence_only": {
+    "JEV_API_KEY": true,
+    "TYPELLM_API_KEY": true
+  },
+  "prior_charged": {
+    "jev": 725,
+    "typellm": 71
+  },
+  "reserved": {
+    "jev": 10,
+    "typellm": 0
+  },
+  "journal_sha256": "978bb3e89c14d148ed753baa2c504be74c0b30d7d2182d7715aa7bf92c1b6b8e",
+  "stderr_sha256": "7f81739a6b7990cf807f565f4a148eeda559f940936ea1b161b131529366490e",
+  "provider_send_rows": [],
+  "readiness_get": 200,
+  "scope": "actual process/source/runtime/cap/preload/key-presence metadata only; no credential values retained or emitted, no private identity read, no provider request sent"
+}

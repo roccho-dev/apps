@@ -1,0 +1,129 @@
+{
+  "schema": "voice-ui.quota-cycle-phase/1",
+  "axis": "E",
+  "status": "RECORDED",
+  "summary": [
+    {
+      "axis": "E",
+      "id": "TEF01",
+      "arm": "B",
+      "method": "literal-v2",
+      "generation_policy": null,
+      "goal_parts_policy": "quota",
+      "valid_execution": true,
+      "calls": 4
+    },
+    {
+      "axis": "E",
+      "id": "TEF01",
+      "arm": "C",
+      "method": "adaptive-v3",
+      "generation_policy": "dependent",
+      "goal_parts_policy": "quota",
+      "valid_execution": true,
+      "calls": 4
+    },
+    {
+      "axis": "E",
+      "id": "TEF02",
+      "arm": "C",
+      "method": "adaptive-v3",
+      "generation_policy": "dependent",
+      "goal_parts_policy": "quota",
+      "valid_execution": true,
+      "calls": 3
+    },
+    {
+      "axis": "E",
+      "id": "TEF02",
+      "arm": "B",
+      "method": "literal-v2",
+      "generation_policy": null,
+      "goal_parts_policy": "quota",
+      "valid_execution": true,
+      "calls": 3
+    },
+    {
+      "axis": "E",
+      "id": "TEF03",
+      "arm": "B",
+      "method": "literal-v2",
+      "generation_policy": null,
+      "goal_parts_policy": "quota",
+      "valid_execution": true,
+      "calls": 1
+    },
+    {
+      "axis": "E",
+      "id": "TEF03",
+      "arm": "C",
+      "method": "adaptive-v3",
+      "generation_policy": "dependent",
+      "goal_parts_policy": "quota",
+      "valid_execution": true,
+      "calls": 6
+    },
+    {
+      "axis": "E",
+      "id": "TEF04",
+      "arm": "C",
+      "method": "adaptive-v3",
+      "generation_policy": "dependent",
+      "goal_parts_policy": "quota",
+      "valid_execution": true,
+      "calls": 4
+    },
+    {
+      "axis": "E",
+      "id": "TEF04",
+      "arm": "B",
+      "method": "literal-v2",
+      "generation_policy": null,
+      "goal_parts_policy": "quota",
+      "valid_execution": true,
+      "calls": 1
+    },
+    {
+      "axis": "E",
+      "id": "TEF05",
+      "arm": "B",
+      "method": "literal-v2",
+      "generation_policy": null,
+      "goal_parts_policy": "quota",
+      "valid_execution": true,
+      "calls": 1
+    },
+    {
+      "axis": "E",
+      "id": "TEF05",
+      "arm": "C",
+      "method": "adaptive-v3",
+      "generation_policy": "dependent",
+      "goal_parts_policy": "quota",
+      "valid_execution": true,
+      "calls": 1
+    },
+    {
+      "axis": "E",
+      "id": "TEF06",
+      "arm": "C",
+      "method": "adaptive-v3",
+      "generation_policy": "dependent",
+      "goal_parts_policy": "quota",
+      "valid_execution": true,
+      "calls": 1
+    },
+    {
+      "axis": "E",
+      "id": "TEF06",
+      "arm": "B",
+      "method": "literal-v2",
+      "generation_policy": null,
+      "goal_parts_policy": "quota",
+      "valid_execution": true,
+      "calls": 1
+    }
+  ],
+  "invalid_cells": 0,
+  "expected_cells": 12
+}

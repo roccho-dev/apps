@@ -1,0 +1,61 @@
+{
+  "schema": "voice-ui.component-axes-producer/1",
+  "axis": "F",
+  "phase_id": "axes-public-F-20261017",
+  "heads": {
+    "apps": "286eb7d0bc0bdef160bda900547314aa5be3a752",
+    "envs": "063e685b8b21a97fc8658879da93fa858552bcd6",
+    "ops": "cab432ef717cbde9ebd0197ae006c0efe75269bf",
+    "windows": "6aef693c0946903d8b87c2348039de1420acd61b",
+    "ui": "756d47e891191c3344eb2d29b000203be8331abc"
+  },
+  "inputs_sha256": "1dd6895cff2951cf29d638bdaf382eb6633d3ade99b13c722b6cc0d46f3bf85f",
+  "parent_inputs_sha256": null,
+  "bundle_sha256": "8fd1b4f37f6a113653dbaeda5e040ba5bed6d7b007ab9269d307f8642d339189",
+  "source_sha256": {
+    "src/completion.mjs": "48380fb1504dfe97b1f8450c9b33aee7665d13d5c4ee462a991591e573385541",
+    "src/literal-inventory.mjs": "82a2bdb9866c1331b4c685f28862bd54e7e974c4af3652b4f72dfdbb41f7df60",
+    "src/goal.mjs": "cd9101d6a222e31773c9523adeca3f7f9aa32990e30b39e06a7b872771422f3e",
+    "src/contract.mjs": "f2c95212493f59fd80ef17270c2b5de0d51d795b26ac8a0e6dfa0fdb9dec30fe",
+    "src/turn.mjs": "c5fc3489a5bd0861f0455bd9843f47e76030bb03a4fe55745cf00c29c79b7008",
+    "src/session.mjs": "d6fcb97e581afb789ed6ecb339c06c378ef94283084df8ad3042ebe42c48cfe8",
+    "functions/api/parts.mjs": "13ca5322730f049eb2e77319cc0fbeb58f649d91c4bc56fe9d36214a90960669",
+    "functions/pages-worker.mjs": "8f3bc7ea572cf3e21b16728721dcb381425786180433df34892e2a42cfc94656",
+    "web/app.mjs": "3a9ac4eba0770949a219b35c97cd346d4a7912026fae2b2f21710251b86bbf2a",
+    "web/adapters/completion.mjs": "a940d92086302dd7f733aa45542c26ea0d925fed460111f4fbb15c802e601e82",
+    "tests/component-axes-eval.mjs": "3c0e70952e107c8e443497808a15a5feb85c914e80774d1294a846caa8598f14",
+    "tests/component-axis-score.mjs": "b5b6547e81f8213ba20126ab6404d4807b06d836f91507651a502bc9c6ebef6b",
+    "tests/evaluation-http.mjs": "a2b4055f9209544019f07f5bb299afac38452049c6b642a4da2cdb9534a49f47",
+    "tests/painted-goal.mjs": "c5ba117d1dea66d20c80b7f92b8184296ff79d4231da56f5a89836af4beb018b"
+  },
+  "raw_sha256": {
+    "H05-C.json": "a52cad1774f40447cb712258be3726e5a93438e30df2747ecdca37ea6dd5f972",
+    "H05-B.json": "7d40d98772d8d055f5d041f515d76ca209af60a3e33f1a6c240ddad1d7594451",
+    "H07-B.json": "3c1147d8f7b959aa76378e62c5ae8f582b13b6d945946e461cd9a5034669d864",
+    "execution.json": "10b345c8827f14e99f7e59051d58eb3d052c1484d6f24c6b2190b00305647b6b",
+    "H08-C.json": "04be926d6f476f8fbd4b85e2a25944c0b5ce18d506a724a43445f18b2ecb53b1",
+    "identity.json": "a0f06e7628153cc98419cc9f79fbc1e8c727a851ecf7911a65bfdd2ba56e9105",
+    "events.jsonl": "624da78651ab949f3750d6a9c2d35cc016f9323833fddceca19dfe7e61df7939",
+    "H08-B.json": "2dc11212e817e2467c060a6046e35582462acb07b508d788090c7a399257ebaa",
+    "H07-C.json": "7fbb3b10c1348bf9efe0729d1a4225c61794e99096b0acf903472ccc99f286c3"
+  },
+  "independent_audit_sha256": {
+    "pr103-286e-r8-review.md": "3b6a44d57593d14883960fea0722233b9b60a8e00e52569a2efe1d0adf420ac4",
+    "axes-public-F-zero-send-audit.json": "579b46d924a8b7a68063f4895444e1ba2d60a1b5e423a077e79390207016e22f",
+    "axes-public-F-stop-audit.json": "489d9816a8887aeafede3a56c63b52c16d0f24e3f560e2e5cb68e0f6a4ce8d49"
+  },
+  "raw_identity_sha256": "a0f06e7628153cc98419cc9f79fbc1e8c727a851ecf7911a65bfdd2ba56e9105",
+  "runtime_audit_sha256": "07dc365b12981ea26071d8ecbe3ec8422883cb865aa0b314fa76f0e4b6ed8dde",
+  "config_sha256": "a1c4a2ccc5953c132b77af0e90da9a2ad35af369ed56bfd655a8ffee05f0951d",
+  "process_sha256": "e4f848c2664eb14b2b5cfcbd4b08b8348ca159452105a2488b6eab976294797b",
+  "artifact_manifest_sha256": "30481d0d132f875ce35b7c48a859bfa414a9d882009c58c7d6d74a9cf6aa1b38",
+  "worker_sha256": "15b9ed190f5f9915780b28b2403e4fffc13bd5be397cfaac6f6f8f5d3efa33a2",
+  "provider_sha256": "ad4ac08ae8c42f3bf0e9d0aeedb0a2e9192c776585a3251b2ff1e18358cfe2e7",
+  "protocol_sha256": "1689dcf63e1ed19cdea7be22e3f90a09f434841f980b9ca8b9018a987c9c38f8",
+  "stdout_sha256": "5cebbc9ad3af26e066f0cb3e82387451f7104ebce34ca6414c700ef81f576ebd",
+  "stderr_sha256": "68c9def447d78fae4517eb9e1e8a58e603f4dbaba02bf7d315ab8b94f6823243",
+  "journal_sha256": "f05be9ce92d676ca16b75b84f1201a8f04eb36dc518bda4821c9192cef3e13ad",
+  "replay_sha256": null,
+  "source_review_url": "https://github.com/roccho-dev/apps/pull/103#pullrequestreview-5557904969",
+  "scope": "fixed independent source/physical-process/stopped-byte expectations; never generate from raw during CI"
+}

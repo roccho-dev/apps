@@ -1,0 +1,16 @@
+import fs from'node:fs';import path from'node:path';import assert from'node:assert/strict';import{execFileSync}from'node:child_process';import{pathToFileURL}from'node:url';import{createHash}from'node:crypto';
+const [configFile,oracleFile]=process.argv.slice(2);assert.ok(configFile&&oracleFile&&process.argv.length===4);
+const b='/work/repos/voice-ui-typellm-20261016',node='/nix/store/785jidgnryzj566s25s3rb262d4g5znb-nodejs-24.14.1/bin/node',read=f=>fs.readFileSync(f),decode=f=>JSON.parse(read(f)),hash=x=>createHash('sha256').update(x).digest('hex');
+const c=decode(configFile),phase=c.phase_id,rt=decode(c.runtime_file),terminal=decode(b+'/'+phase+'.root-terminal.json');assert.equal(terminal.status,'PASS');assert.equal(terminal.phase,phase);assert.equal(terminal.outstanding,0);assert.deepEqual(terminal.remaining_members,[]);
+const out=b+'/'+phase+'.root-regrade';fs.mkdirSync(out);
+const source=rt.source_path+'/packages/voice-ui',replayDir=out+'/replay',log=fs.openSync(out+'/replay.log','wx',0o600);
+try{execFileSync(rt.acceptance_runtime+'/bin/voice-ui-acceptance-node',[source+'/acceptance/replay-candidates.mjs',rt.artifact_root,b+'/'+phase+'.raw',replayDir],{env:{PATH:path.dirname(node)},stdio:['ignore',log,log],timeout:600000});}finally{fs.fsyncSync(log);fs.closeSync(log);}
+const{auditQuotaRaw,auditQuotaProviderPhase,auditQuotaReplayJoin}=await import(pathToFileURL(source+'/tests/quota-cycle-audit.mjs'));
+const{assessPaintedGoal:assessGoal,assessPaintedEdge:assessEdge}=await import(pathToFileURL(source+'/tests/painted-goal.mjs'));
+const protocol=await import(pathToFileURL(rt.semantic_map.protocol.path)),rawFiles=Object.fromEntries(fs.readdirSync(b+'/'+phase+'.raw').map(n=>[n,read(b+'/'+phase+'.raw/'+n)])),replayBytes=read(replayDir+'/receipt.json'),artifactManifestBytes=read(rt.manifest.path),stdoutBytes=read(b+'/'+phase+'.stdout.log'),stderrBytes=read(b+'/'+phase+'.stderr.log'),journalBytes=read(b+'/'+phase+'.journal.jsonl'),projectionBytes=read(c.input_file),oracleBytes=read(oracleFile);
+assert.equal(hash(projectionBytes),c.input_sha256);
+const raw=await auditQuotaRaw({projectionBytes,oracleBytes,rawFiles,bundleBytes:read(rt.artifact_root+'/site/data/bundle.v1.json'),protocol,stdoutBytes,assessGoal,assessEdge,replayBytes,artifactManifestBytes,phaseKind:c.stage==='public'?'public':'fresh',repeatProfile:c.repeat_profile});
+const provider=auditQuotaProviderPhase({configBytes:read(configFile),processBytes:read(b+'/'+phase+'.process.json'),stdoutBytes,stderrBytes,journalBytes},raw.external_provider_attempt_bounds,{axis:'E',caseCount:JSON.parse(projectionBytes).cases.length,phaseKind:c.stage==='public'?'public':'final',repeatProfile:c.repeat_profile});
+const replay=auditQuotaReplayJoin({replayBytes,rawFiles,artifactManifestBytes,assessGoal,assessEdge});
+const report={status:[raw,provider,replay].every(x=>x.status==='PASS')?'PASS':'FAIL',scope:'ROOT_FROZEN_QUOTA_RAW_PROVIDER_PAINT_RECHECK_BINDING_AND_CI_SEPARATE',at:new Date().toISOString(),phase,repeat_profile:c.repeat_profile,raw,provider,replay};
+fs.writeFileSync(out+'/audit.json',JSON.stringify(report,null,2)+'\n',{flag:'wx',mode:0o600});console.log(JSON.stringify({status:report.status,phase,raw:raw.status,provider:provider.status,replay:replay.status,issues:[raw.issues,provider.issues,replay.issues],semantic:raw.semantic}));

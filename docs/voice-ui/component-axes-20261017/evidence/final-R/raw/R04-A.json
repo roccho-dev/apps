@@ -1,0 +1,1871 @@
+{
+  "schema": "voice-ui.component-axes-cell/1",
+  "axis": "R",
+  "id": "R04",
+  "method": "ready",
+  "arm": "A",
+  "replay_suffix_scope": "compatibility only",
+  "fixture": "empty",
+  "utterance": "OCIの中へ「展開室」「集約室」「保全室」という3つのグループを1つずつ、同じ階層に追加してください。",
+  "parts": [
+    {
+      "key": "ready-1-1",
+      "purpose": "one group part named 展開室",
+      "label": "展開室",
+      "kind": "group"
+    },
+    {
+      "key": "ready-2-1",
+      "purpose": "one group part named 集約室",
+      "label": "集約室",
+      "kind": "group"
+    },
+    {
+      "key": "ready-3-1",
+      "purpose": "one group part named 保全室",
+      "label": "保全室",
+      "kind": "group"
+    },
+    {
+      "key": "step",
+      "purpose": "an ordinary step, task or box",
+      "label": "工程",
+      "kind": "step"
+    },
+    {
+      "key": "decision",
+      "purpose": "a decision, choice or branch",
+      "label": "判断",
+      "kind": "decision"
+    },
+    {
+      "key": "data",
+      "purpose": "data, a document, an input or an output",
+      "label": "データ",
+      "kind": "data"
+    },
+    {
+      "key": "start",
+      "purpose": "a start or beginning",
+      "label": "開始",
+      "kind": "start"
+    },
+    {
+      "key": "end",
+      "purpose": "an end, finish or result",
+      "label": "終了",
+      "kind": "end"
+    }
+  ],
+  "valid_execution": true,
+  "elapsedMs": 1697.7438000000002,
+  "result": {
+    "reason": "none",
+    "requests": 7,
+    "elapsedMs": 1694.1902,
+    "selected": [
+      {
+        "key": "ready-1-1",
+        "region": "part-1",
+        "parent": "container"
+      },
+      {
+        "key": "ready-2-1",
+        "region": "part-2",
+        "parent": "container"
+      },
+      {
+        "key": "ready-3-1",
+        "region": "part-3",
+        "parent": "container"
+      }
+    ],
+    "trace": [
+      {
+        "head": "sha256:0b3522df5b691691d41d9b4587377781fc7048c991a4e47357e5583eb09288c6",
+        "answers": {
+          "delta": {
+            "type": "choice",
+            "choice": "part:ready-1-1",
+            "confidence": 0.99
+          }
+        },
+        "failure": null
+      },
+      {
+        "head": "sha256:0b3522df5b691691d41d9b4587377781fc7048c991a4e47357e5583eb09288c6",
+        "answers": {
+          "delta": {
+            "type": "choice",
+            "choice": "delta-4",
+            "confidence": 0.98
+          }
+        },
+        "failure": null
+      },
+      {
+        "head": "sha256:739f12f26e0152e91f7c1182b1abd46ed5e19cb9391787b59dc7f373d2c92d88",
+        "answers": {
+          "delta": {
+            "type": "choice",
+            "choice": "part:ready-2-1",
+            "confidence": 1
+          }
+        },
+        "failure": null
+      },
+      {
+        "head": "sha256:739f12f26e0152e91f7c1182b1abd46ed5e19cb9391787b59dc7f373d2c92d88",
+        "answers": {
+          "delta": {
+            "type": "choice",
+            "choice": "delta-4",
+            "confidence": 0.99
+          }
+        },
+        "failure": null
+      },
+      {
+        "head": "sha256:fa31f5bed8dcaa540bc11a97fcc1f6c9b805bd540cd34a858575b5642c7d38d1",
+        "answers": {
+          "delta": {
+            "type": "choice",
+            "choice": "part:ready-3-1",
+            "confidence": 1
+          }
+        },
+        "failure": null
+      },
+      {
+        "head": "sha256:fa31f5bed8dcaa540bc11a97fcc1f6c9b805bd540cd34a858575b5642c7d38d1",
+        "answers": {
+          "delta": {
+            "type": "choice",
+            "choice": "delta-4",
+            "confidence": 0.99
+          }
+        },
+        "failure": null
+      },
+      {
+        "head": "sha256:339123ecd919922cba6dadf3547d071c5e3468059e4c9c6cbb12b3fc329dff76",
+        "answers": {
+          "delta": {
+            "type": "choice",
+            "choice": "none",
+            "confidence": 1
+          }
+        },
+        "failure": null
+      }
+    ]
+  },
+  "calls": [
+    {
+      "id": "R04",
+      "arm": "A",
+      "n": 1,
+      "route": "/api/judge",
+      "request": {
+        "kind": "voice-ui.judge.goal-local-delta.v7",
+        "state": {
+          "utterance": "OCIの中へ「展開室」「集約室」「保全室」という3つのグループを1つずつ、同じ階層に追加してください。",
+          "graph": [
+            {
+              "id": "root",
+              "label": "fixture",
+              "parent": null
+            },
+            {
+              "id": "container",
+              "label": "OCI",
+              "parent": "root"
+            },
+            {
+              "id": "other",
+              "label": "Other",
+              "parent": "root"
+            }
+          ],
+          "edges": [],
+          "parents": [
+            {
+              "id": "container",
+              "label": "OCI",
+              "kind": "group",
+              "parent": "root"
+            },
+            {
+              "id": "other",
+              "label": "Other",
+              "kind": "group",
+              "parent": "root"
+            }
+          ],
+          "offers": {
+            "parts": [
+              {
+                "key": "ready-1-1",
+                "purpose": "one group part named 展開室",
+                "label": "展開室"
+              },
+              {
+                "key": "ready-2-1",
+                "purpose": "one group part named 集約室",
+                "label": "集約室"
+              },
+              {
+                "key": "ready-3-1",
+                "purpose": "one group part named 保全室",
+                "label": "保全室"
+              },
+              {
+                "key": "step",
+                "purpose": "an ordinary step, task or box",
+                "label": "工程"
+              },
+              {
+                "key": "decision",
+                "purpose": "a decision, choice or branch",
+                "label": "判断"
+              },
+              {
+                "key": "data",
+                "purpose": "data, a document, an input or an output",
+                "label": "データ"
+              },
+              {
+                "key": "start",
+                "purpose": "a start or beginning",
+                "label": "開始"
+              },
+              {
+                "key": "end",
+                "purpose": "an end, finish or result",
+                "label": "終了"
+              }
+            ]
+          },
+          "selected": [],
+          "candidates": [
+            {
+              "id": "delta-1",
+              "action": "add-part",
+              "part": "data",
+              "parent": "container"
+            },
+            {
+              "id": "delta-2",
+              "action": "add-part",
+              "part": "decision",
+              "parent": "container"
+            },
+            {
+              "id": "delta-3",
+              "action": "add-part",
+              "part": "end",
+              "parent": "container"
+            },
+            {
+              "id": "delta-4",
+              "action": "add-part",
+              "part": "ready-1-1",
+              "parent": "container"
+            },
+            {
+              "id": "delta-5",
+              "action": "add-part",
+              "part": "ready-2-1",
+              "parent": "container"
+            },
+            {
+              "id": "delta-6",
+              "action": "add-part",
+              "part": "ready-3-1",
+              "parent": "container"
+            },
+            {
+              "id": "delta-7",
+              "action": "add-part",
+              "part": "start",
+              "parent": "container"
+            },
+            {
+              "id": "delta-8",
+              "action": "add-part",
+              "part": "step",
+              "parent": "container"
+            },
+            {
+              "id": "delta-9",
+              "action": "add-part",
+              "part": "data",
+              "parent": "other"
+            },
+            {
+              "id": "delta-10",
+              "action": "add-part",
+              "part": "decision",
+              "parent": "other"
+            },
+            {
+              "id": "delta-11",
+              "action": "add-part",
+              "part": "end",
+              "parent": "other"
+            },
+            {
+              "id": "delta-12",
+              "action": "add-part",
+              "part": "ready-1-1",
+              "parent": "other"
+            },
+            {
+              "id": "delta-13",
+              "action": "add-part",
+              "part": "ready-2-1",
+              "parent": "other"
+            },
+            {
+              "id": "delta-14",
+              "action": "add-part",
+              "part": "ready-3-1",
+              "parent": "other"
+            },
+            {
+              "id": "delta-15",
+              "action": "add-part",
+              "part": "start",
+              "parent": "other"
+            },
+            {
+              "id": "delta-16",
+              "action": "add-part",
+              "part": "step",
+              "parent": "other"
+            }
+          ],
+          "context": {
+            "recent": []
+          },
+          "scope": null,
+          "placing": null
+        }
+      },
+      "status": 200,
+      "response": {
+        "kind": "voice-ui.judge.decision.v1",
+        "answers": {
+          "delta": {
+            "type": "choice",
+            "choice": "part:ready-1-1",
+            "confidence": 0.99
+          }
+        }
+      },
+      "elapsedMs": 184.5565000000006
+    },
+    {
+      "id": "R04",
+      "arm": "A",
+      "n": 2,
+      "route": "/api/judge",
+      "request": {
+        "kind": "voice-ui.judge.goal-local-delta.v7",
+        "state": {
+          "utterance": "OCIの中へ「展開室」「集約室」「保全室」という3つのグループを1つずつ、同じ階層に追加してください。",
+          "graph": [
+            {
+              "id": "root",
+              "label": "fixture",
+              "parent": null
+            },
+            {
+              "id": "container",
+              "label": "OCI",
+              "parent": "root"
+            },
+            {
+              "id": "other",
+              "label": "Other",
+              "parent": "root"
+            }
+          ],
+          "edges": [],
+          "parents": [
+            {
+              "id": "container",
+              "label": "OCI",
+              "kind": "group",
+              "parent": "root"
+            },
+            {
+              "id": "other",
+              "label": "Other",
+              "kind": "group",
+              "parent": "root"
+            }
+          ],
+          "offers": {
+            "parts": [
+              {
+                "key": "ready-1-1",
+                "purpose": "one group part named 展開室",
+                "label": "展開室"
+              },
+              {
+                "key": "ready-2-1",
+                "purpose": "one group part named 集約室",
+                "label": "集約室"
+              },
+              {
+                "key": "ready-3-1",
+                "purpose": "one group part named 保全室",
+                "label": "保全室"
+              },
+              {
+                "key": "step",
+                "purpose": "an ordinary step, task or box",
+                "label": "工程"
+              },
+              {
+                "key": "decision",
+                "purpose": "a decision, choice or branch",
+                "label": "判断"
+              },
+              {
+                "key": "data",
+                "purpose": "data, a document, an input or an output",
+                "label": "データ"
+              },
+              {
+                "key": "start",
+                "purpose": "a start or beginning",
+                "label": "開始"
+              },
+              {
+                "key": "end",
+                "purpose": "an end, finish or result",
+                "label": "終了"
+              }
+            ]
+          },
+          "selected": [],
+          "candidates": [
+            {
+              "id": "delta-4",
+              "action": "add-part",
+              "part": "ready-1-1",
+              "parent": "container"
+            },
+            {
+              "id": "delta-12",
+              "action": "add-part",
+              "part": "ready-1-1",
+              "parent": "other"
+            }
+          ],
+          "context": {
+            "recent": []
+          },
+          "scope": null,
+          "placing": "ready-1-1"
+        }
+      },
+      "status": 200,
+      "response": {
+        "kind": "voice-ui.judge.decision.v1",
+        "answers": {
+          "delta": {
+            "type": "choice",
+            "choice": "delta-4",
+            "confidence": 0.98
+          }
+        }
+      },
+      "elapsedMs": 191.00820000000022
+    },
+    {
+      "id": "R04",
+      "arm": "A",
+      "n": 3,
+      "route": "/api/judge",
+      "request": {
+        "kind": "voice-ui.judge.goal-local-delta.v7",
+        "state": {
+          "utterance": "OCIの中へ「展開室」「集約室」「保全室」という3つのグループを1つずつ、同じ階層に追加してください。",
+          "graph": [
+            {
+              "id": "root",
+              "label": "fixture",
+              "parent": null
+            },
+            {
+              "id": "container",
+              "label": "OCI",
+              "parent": "root"
+            },
+            {
+              "id": "other",
+              "label": "Other",
+              "parent": "root"
+            },
+            {
+              "id": "part-1",
+              "label": "展開室",
+              "parent": "container"
+            }
+          ],
+          "edges": [],
+          "parents": [
+            {
+              "id": "container",
+              "label": "OCI",
+              "kind": "group",
+              "parent": "root"
+            },
+            {
+              "id": "other",
+              "label": "Other",
+              "kind": "group",
+              "parent": "root"
+            },
+            {
+              "id": "part-1",
+              "label": "展開室",
+              "kind": "group",
+              "parent": "container"
+            }
+          ],
+          "offers": {
+            "parts": [
+              {
+                "key": "ready-1-1",
+                "purpose": "one group part named 展開室",
+                "label": "展開室"
+              },
+              {
+                "key": "ready-2-1",
+                "purpose": "one group part named 集約室",
+                "label": "集約室"
+              },
+              {
+                "key": "ready-3-1",
+                "purpose": "one group part named 保全室",
+                "label": "保全室"
+              },
+              {
+                "key": "step",
+                "purpose": "an ordinary step, task or box",
+                "label": "工程"
+              },
+              {
+                "key": "decision",
+                "purpose": "a decision, choice or branch",
+                "label": "判断"
+              },
+              {
+                "key": "data",
+                "purpose": "data, a document, an input or an output",
+                "label": "データ"
+              },
+              {
+                "key": "start",
+                "purpose": "a start or beginning",
+                "label": "開始"
+              },
+              {
+                "key": "end",
+                "purpose": "an end, finish or result",
+                "label": "終了"
+              }
+            ]
+          },
+          "selected": [
+            {
+              "key": "ready-1-1",
+              "region": "part-1",
+              "parent": "container"
+            }
+          ],
+          "candidates": [
+            {
+              "id": "delta-1",
+              "action": "add-part",
+              "part": "data",
+              "parent": "container"
+            },
+            {
+              "id": "delta-2",
+              "action": "add-part",
+              "part": "decision",
+              "parent": "container"
+            },
+            {
+              "id": "delta-3",
+              "action": "add-part",
+              "part": "end",
+              "parent": "container"
+            },
+            {
+              "id": "delta-4",
+              "action": "add-part",
+              "part": "ready-2-1",
+              "parent": "container"
+            },
+            {
+              "id": "delta-5",
+              "action": "add-part",
+              "part": "ready-3-1",
+              "parent": "container"
+            },
+            {
+              "id": "delta-6",
+              "action": "add-part",
+              "part": "start",
+              "parent": "container"
+            },
+            {
+              "id": "delta-7",
+              "action": "add-part",
+              "part": "step",
+              "parent": "container"
+            },
+            {
+              "id": "delta-8",
+              "action": "add-part",
+              "part": "data",
+              "parent": "other"
+            },
+            {
+              "id": "delta-9",
+              "action": "add-part",
+              "part": "decision",
+              "parent": "other"
+            },
+            {
+              "id": "delta-10",
+              "action": "add-part",
+              "part": "end",
+              "parent": "other"
+            },
+            {
+              "id": "delta-11",
+              "action": "add-part",
+              "part": "ready-2-1",
+              "parent": "other"
+            },
+            {
+              "id": "delta-12",
+              "action": "add-part",
+              "part": "ready-3-1",
+              "parent": "other"
+            },
+            {
+              "id": "delta-13",
+              "action": "add-part",
+              "part": "start",
+              "parent": "other"
+            },
+            {
+              "id": "delta-14",
+              "action": "add-part",
+              "part": "step",
+              "parent": "other"
+            },
+            {
+              "id": "delta-15",
+              "action": "add-part",
+              "part": "data",
+              "parent": "part-1"
+            },
+            {
+              "id": "delta-16",
+              "action": "add-part",
+              "part": "decision",
+              "parent": "part-1"
+            },
+            {
+              "id": "delta-17",
+              "action": "add-part",
+              "part": "end",
+              "parent": "part-1"
+            },
+            {
+              "id": "delta-18",
+              "action": "add-part",
+              "part": "ready-2-1",
+              "parent": "part-1"
+            },
+            {
+              "id": "delta-19",
+              "action": "add-part",
+              "part": "ready-3-1",
+              "parent": "part-1"
+            },
+            {
+              "id": "delta-20",
+              "action": "add-part",
+              "part": "start",
+              "parent": "part-1"
+            },
+            {
+              "id": "delta-21",
+              "action": "add-part",
+              "part": "step",
+              "parent": "part-1"
+            }
+          ],
+          "context": {
+            "recent": [
+              {
+                "seq": 1,
+                "source": "typed",
+                "text": "OCIの中へ「展開室」「集約室」「保全室」という3つのグループを1つずつ、同じ階層に追加してください。",
+                "outcome": "step",
+                "effect": {
+                  "changes": [
+                    {
+                      "change": "added",
+                      "kind": "region",
+                      "id": "part-1",
+                      "label": "展開室"
+                    }
+                  ]
+                }
+              }
+            ]
+          },
+          "scope": null,
+          "placing": null
+        }
+      },
+      "status": 200,
+      "response": {
+        "kind": "voice-ui.judge.decision.v1",
+        "answers": {
+          "delta": {
+            "type": "choice",
+            "choice": "part:ready-2-1",
+            "confidence": 1
+          }
+        }
+      },
+      "elapsedMs": 173.76180000000022
+    },
+    {
+      "id": "R04",
+      "arm": "A",
+      "n": 4,
+      "route": "/api/judge",
+      "request": {
+        "kind": "voice-ui.judge.goal-local-delta.v7",
+        "state": {
+          "utterance": "OCIの中へ「展開室」「集約室」「保全室」という3つのグループを1つずつ、同じ階層に追加してください。",
+          "graph": [
+            {
+              "id": "root",
+              "label": "fixture",
+              "parent": null
+            },
+            {
+              "id": "container",
+              "label": "OCI",
+              "parent": "root"
+            },
+            {
+              "id": "other",
+              "label": "Other",
+              "parent": "root"
+            },
+            {
+              "id": "part-1",
+              "label": "展開室",
+              "parent": "container"
+            }
+          ],
+          "edges": [],
+          "parents": [
+            {
+              "id": "container",
+              "label": "OCI",
+              "kind": "group",
+              "parent": "root"
+            },
+            {
+              "id": "other",
+              "label": "Other",
+              "kind": "group",
+              "parent": "root"
+            },
+            {
+              "id": "part-1",
+              "label": "展開室",
+              "kind": "group",
+              "parent": "container"
+            }
+          ],
+          "offers": {
+            "parts": [
+              {
+                "key": "ready-1-1",
+                "purpose": "one group part named 展開室",
+                "label": "展開室"
+              },
+              {
+                "key": "ready-2-1",
+                "purpose": "one group part named 集約室",
+                "label": "集約室"
+              },
+              {
+                "key": "ready-3-1",
+                "purpose": "one group part named 保全室",
+                "label": "保全室"
+              },
+              {
+                "key": "step",
+                "purpose": "an ordinary step, task or box",
+                "label": "工程"
+              },
+              {
+                "key": "decision",
+                "purpose": "a decision, choice or branch",
+                "label": "判断"
+              },
+              {
+                "key": "data",
+                "purpose": "data, a document, an input or an output",
+                "label": "データ"
+              },
+              {
+                "key": "start",
+                "purpose": "a start or beginning",
+                "label": "開始"
+              },
+              {
+                "key": "end",
+                "purpose": "an end, finish or result",
+                "label": "終了"
+              }
+            ]
+          },
+          "selected": [
+            {
+              "key": "ready-1-1",
+              "region": "part-1",
+              "parent": "container"
+            }
+          ],
+          "candidates": [
+            {
+              "id": "delta-4",
+              "action": "add-part",
+              "part": "ready-2-1",
+              "parent": "container"
+            },
+            {
+              "id": "delta-11",
+              "action": "add-part",
+              "part": "ready-2-1",
+              "parent": "other"
+            },
+            {
+              "id": "delta-18",
+              "action": "add-part",
+              "part": "ready-2-1",
+              "parent": "part-1"
+            }
+          ],
+          "context": {
+            "recent": [
+              {
+                "seq": 1,
+                "source": "typed",
+                "text": "OCIの中へ「展開室」「集約室」「保全室」という3つのグループを1つずつ、同じ階層に追加してください。",
+                "outcome": "step",
+                "effect": {
+                  "changes": [
+                    {
+                      "change": "added",
+                      "kind": "region",
+                      "id": "part-1",
+                      "label": "展開室"
+                    }
+                  ]
+                }
+              }
+            ]
+          },
+          "scope": null,
+          "placing": "ready-2-1"
+        }
+      },
+      "status": 200,
+      "response": {
+        "kind": "voice-ui.judge.decision.v1",
+        "answers": {
+          "delta": {
+            "type": "choice",
+            "choice": "delta-4",
+            "confidence": 0.99
+          }
+        }
+      },
+      "elapsedMs": 201.5592000000006
+    },
+    {
+      "id": "R04",
+      "arm": "A",
+      "n": 5,
+      "route": "/api/judge",
+      "request": {
+        "kind": "voice-ui.judge.goal-local-delta.v7",
+        "state": {
+          "utterance": "OCIの中へ「展開室」「集約室」「保全室」という3つのグループを1つずつ、同じ階層に追加してください。",
+          "graph": [
+            {
+              "id": "root",
+              "label": "fixture",
+              "parent": null
+            },
+            {
+              "id": "container",
+              "label": "OCI",
+              "parent": "root"
+            },
+            {
+              "id": "other",
+              "label": "Other",
+              "parent": "root"
+            },
+            {
+              "id": "part-1",
+              "label": "展開室",
+              "parent": "container"
+            },
+            {
+              "id": "part-2",
+              "label": "集約室",
+              "parent": "container"
+            }
+          ],
+          "edges": [],
+          "parents": [
+            {
+              "id": "container",
+              "label": "OCI",
+              "kind": "group",
+              "parent": "root"
+            },
+            {
+              "id": "other",
+              "label": "Other",
+              "kind": "group",
+              "parent": "root"
+            },
+            {
+              "id": "part-1",
+              "label": "展開室",
+              "kind": "group",
+              "parent": "container"
+            },
+            {
+              "id": "part-2",
+              "label": "集約室",
+              "kind": "group",
+              "parent": "container"
+            }
+          ],
+          "offers": {
+            "parts": [
+              {
+                "key": "ready-1-1",
+                "purpose": "one group part named 展開室",
+                "label": "展開室"
+              },
+              {
+                "key": "ready-2-1",
+                "purpose": "one group part named 集約室",
+                "label": "集約室"
+              },
+              {
+                "key": "ready-3-1",
+                "purpose": "one group part named 保全室",
+                "label": "保全室"
+              },
+              {
+                "key": "step",
+                "purpose": "an ordinary step, task or box",
+                "label": "工程"
+              },
+              {
+                "key": "decision",
+                "purpose": "a decision, choice or branch",
+                "label": "判断"
+              },
+              {
+                "key": "data",
+                "purpose": "data, a document, an input or an output",
+                "label": "データ"
+              },
+              {
+                "key": "start",
+                "purpose": "a start or beginning",
+                "label": "開始"
+              },
+              {
+                "key": "end",
+                "purpose": "an end, finish or result",
+                "label": "終了"
+              }
+            ]
+          },
+          "selected": [
+            {
+              "key": "ready-1-1",
+              "region": "part-1",
+              "parent": "container"
+            },
+            {
+              "key": "ready-2-1",
+              "region": "part-2",
+              "parent": "container"
+            }
+          ],
+          "candidates": [
+            {
+              "id": "delta-1",
+              "action": "add-part",
+              "part": "data",
+              "parent": "container"
+            },
+            {
+              "id": "delta-2",
+              "action": "add-part",
+              "part": "decision",
+              "parent": "container"
+            },
+            {
+              "id": "delta-3",
+              "action": "add-part",
+              "part": "end",
+              "parent": "container"
+            },
+            {
+              "id": "delta-4",
+              "action": "add-part",
+              "part": "ready-3-1",
+              "parent": "container"
+            },
+            {
+              "id": "delta-5",
+              "action": "add-part",
+              "part": "start",
+              "parent": "container"
+            },
+            {
+              "id": "delta-6",
+              "action": "add-part",
+              "part": "step",
+              "parent": "container"
+            },
+            {
+              "id": "delta-7",
+              "action": "add-part",
+              "part": "data",
+              "parent": "other"
+            },
+            {
+              "id": "delta-8",
+              "action": "add-part",
+              "part": "decision",
+              "parent": "other"
+            },
+            {
+              "id": "delta-9",
+              "action": "add-part",
+              "part": "end",
+              "parent": "other"
+            },
+            {
+              "id": "delta-10",
+              "action": "add-part",
+              "part": "ready-3-1",
+              "parent": "other"
+            },
+            {
+              "id": "delta-11",
+              "action": "add-part",
+              "part": "start",
+              "parent": "other"
+            },
+            {
+              "id": "delta-12",
+              "action": "add-part",
+              "part": "step",
+              "parent": "other"
+            },
+            {
+              "id": "delta-13",
+              "action": "add-part",
+              "part": "data",
+              "parent": "part-2"
+            },
+            {
+              "id": "delta-14",
+              "action": "add-part",
+              "part": "decision",
+              "parent": "part-2"
+            },
+            {
+              "id": "delta-15",
+              "action": "add-part",
+              "part": "end",
+              "parent": "part-2"
+            },
+            {
+              "id": "delta-16",
+              "action": "add-part",
+              "part": "ready-3-1",
+              "parent": "part-2"
+            },
+            {
+              "id": "delta-17",
+              "action": "add-part",
+              "part": "start",
+              "parent": "part-2"
+            },
+            {
+              "id": "delta-18",
+              "action": "add-part",
+              "part": "step",
+              "parent": "part-2"
+            }
+          ],
+          "context": {
+            "recent": [
+              {
+                "seq": 1,
+                "source": "typed",
+                "text": "OCIの中へ「展開室」「集約室」「保全室」という3つのグループを1つずつ、同じ階層に追加してください。",
+                "outcome": "step",
+                "effect": {
+                  "changes": [
+                    {
+                      "change": "added",
+                      "kind": "region",
+                      "id": "part-1",
+                      "label": "展開室"
+                    },
+                    {
+                      "change": "added",
+                      "kind": "region",
+                      "id": "part-2",
+                      "label": "集約室"
+                    }
+                  ]
+                }
+              }
+            ]
+          },
+          "scope": null,
+          "placing": null
+        }
+      },
+      "status": 200,
+      "response": {
+        "kind": "voice-ui.judge.decision.v1",
+        "answers": {
+          "delta": {
+            "type": "choice",
+            "choice": "part:ready-3-1",
+            "confidence": 1
+          }
+        }
+      },
+      "elapsedMs": 224.10229999999956
+    },
+    {
+      "id": "R04",
+      "arm": "A",
+      "n": 6,
+      "route": "/api/judge",
+      "request": {
+        "kind": "voice-ui.judge.goal-local-delta.v7",
+        "state": {
+          "utterance": "OCIの中へ「展開室」「集約室」「保全室」という3つのグループを1つずつ、同じ階層に追加してください。",
+          "graph": [
+            {
+              "id": "root",
+              "label": "fixture",
+              "parent": null
+            },
+            {
+              "id": "container",
+              "label": "OCI",
+              "parent": "root"
+            },
+            {
+              "id": "other",
+              "label": "Other",
+              "parent": "root"
+            },
+            {
+              "id": "part-1",
+              "label": "展開室",
+              "parent": "container"
+            },
+            {
+              "id": "part-2",
+              "label": "集約室",
+              "parent": "container"
+            }
+          ],
+          "edges": [],
+          "parents": [
+            {
+              "id": "container",
+              "label": "OCI",
+              "kind": "group",
+              "parent": "root"
+            },
+            {
+              "id": "other",
+              "label": "Other",
+              "kind": "group",
+              "parent": "root"
+            },
+            {
+              "id": "part-1",
+              "label": "展開室",
+              "kind": "group",
+              "parent": "container"
+            },
+            {
+              "id": "part-2",
+              "label": "集約室",
+              "kind": "group",
+              "parent": "container"
+            }
+          ],
+          "offers": {
+            "parts": [
+              {
+                "key": "ready-1-1",
+                "purpose": "one group part named 展開室",
+                "label": "展開室"
+              },
+              {
+                "key": "ready-2-1",
+                "purpose": "one group part named 集約室",
+                "label": "集約室"
+              },
+              {
+                "key": "ready-3-1",
+                "purpose": "one group part named 保全室",
+                "label": "保全室"
+              },
+              {
+                "key": "step",
+                "purpose": "an ordinary step, task or box",
+                "label": "工程"
+              },
+              {
+                "key": "decision",
+                "purpose": "a decision, choice or branch",
+                "label": "判断"
+              },
+              {
+                "key": "data",
+                "purpose": "data, a document, an input or an output",
+                "label": "データ"
+              },
+              {
+                "key": "start",
+                "purpose": "a start or beginning",
+                "label": "開始"
+              },
+              {
+                "key": "end",
+                "purpose": "an end, finish or result",
+                "label": "終了"
+              }
+            ]
+          },
+          "selected": [
+            {
+              "key": "ready-1-1",
+              "region": "part-1",
+              "parent": "container"
+            },
+            {
+              "key": "ready-2-1",
+              "region": "part-2",
+              "parent": "container"
+            }
+          ],
+          "candidates": [
+            {
+              "id": "delta-4",
+              "action": "add-part",
+              "part": "ready-3-1",
+              "parent": "container"
+            },
+            {
+              "id": "delta-10",
+              "action": "add-part",
+              "part": "ready-3-1",
+              "parent": "other"
+            },
+            {
+              "id": "delta-16",
+              "action": "add-part",
+              "part": "ready-3-1",
+              "parent": "part-2"
+            }
+          ],
+          "context": {
+            "recent": [
+              {
+                "seq": 1,
+                "source": "typed",
+                "text": "OCIの中へ「展開室」「集約室」「保全室」という3つのグループを1つずつ、同じ階層に追加してください。",
+                "outcome": "step",
+                "effect": {
+                  "changes": [
+                    {
+                      "change": "added",
+                      "kind": "region",
+                      "id": "part-1",
+                      "label": "展開室"
+                    },
+                    {
+                      "change": "added",
+                      "kind": "region",
+                      "id": "part-2",
+                      "label": "集約室"
+                    }
+                  ]
+                }
+              }
+            ]
+          },
+          "scope": null,
+          "placing": "ready-3-1"
+        }
+      },
+      "status": 200,
+      "response": {
+        "kind": "voice-ui.judge.decision.v1",
+        "answers": {
+          "delta": {
+            "type": "choice",
+            "choice": "delta-4",
+            "confidence": 0.99
+          }
+        }
+      },
+      "elapsedMs": 221.2408000000005
+    },
+    {
+      "id": "R04",
+      "arm": "A",
+      "n": 7,
+      "route": "/api/judge",
+      "request": {
+        "kind": "voice-ui.judge.goal-local-delta.v7",
+        "state": {
+          "utterance": "OCIの中へ「展開室」「集約室」「保全室」という3つのグループを1つずつ、同じ階層に追加してください。",
+          "graph": [
+            {
+              "id": "root",
+              "label": "fixture",
+              "parent": null
+            },
+            {
+              "id": "container",
+              "label": "OCI",
+              "parent": "root"
+            },
+            {
+              "id": "other",
+              "label": "Other",
+              "parent": "root"
+            },
+            {
+              "id": "part-1",
+              "label": "展開室",
+              "parent": "container"
+            },
+            {
+              "id": "part-2",
+              "label": "集約室",
+              "parent": "container"
+            },
+            {
+              "id": "part-3",
+              "label": "保全室",
+              "parent": "container"
+            }
+          ],
+          "edges": [],
+          "parents": [
+            {
+              "id": "container",
+              "label": "OCI",
+              "kind": "group",
+              "parent": "root"
+            },
+            {
+              "id": "other",
+              "label": "Other",
+              "kind": "group",
+              "parent": "root"
+            },
+            {
+              "id": "part-1",
+              "label": "展開室",
+              "kind": "group",
+              "parent": "container"
+            },
+            {
+              "id": "part-2",
+              "label": "集約室",
+              "kind": "group",
+              "parent": "container"
+            },
+            {
+              "id": "part-3",
+              "label": "保全室",
+              "kind": "group",
+              "parent": "container"
+            }
+          ],
+          "offers": {
+            "parts": [
+              {
+                "key": "ready-1-1",
+                "purpose": "one group part named 展開室",
+                "label": "展開室"
+              },
+              {
+                "key": "ready-2-1",
+                "purpose": "one group part named 集約室",
+                "label": "集約室"
+              },
+              {
+                "key": "ready-3-1",
+                "purpose": "one group part named 保全室",
+                "label": "保全室"
+              },
+              {
+                "key": "step",
+                "purpose": "an ordinary step, task or box",
+                "label": "工程"
+              },
+              {
+                "key": "decision",
+                "purpose": "a decision, choice or branch",
+                "label": "判断"
+              },
+              {
+                "key": "data",
+                "purpose": "data, a document, an input or an output",
+                "label": "データ"
+              },
+              {
+                "key": "start",
+                "purpose": "a start or beginning",
+                "label": "開始"
+              },
+              {
+                "key": "end",
+                "purpose": "an end, finish or result",
+                "label": "終了"
+              }
+            ]
+          },
+          "selected": [
+            {
+              "key": "ready-1-1",
+              "region": "part-1",
+              "parent": "container"
+            },
+            {
+              "key": "ready-2-1",
+              "region": "part-2",
+              "parent": "container"
+            },
+            {
+              "key": "ready-3-1",
+              "region": "part-3",
+              "parent": "container"
+            }
+          ],
+          "candidates": [
+            {
+              "id": "delta-1",
+              "action": "add-part",
+              "part": "data",
+              "parent": "container"
+            },
+            {
+              "id": "delta-2",
+              "action": "add-part",
+              "part": "decision",
+              "parent": "container"
+            },
+            {
+              "id": "delta-3",
+              "action": "add-part",
+              "part": "end",
+              "parent": "container"
+            },
+            {
+              "id": "delta-4",
+              "action": "add-part",
+              "part": "start",
+              "parent": "container"
+            },
+            {
+              "id": "delta-5",
+              "action": "add-part",
+              "part": "step",
+              "parent": "container"
+            },
+            {
+              "id": "delta-6",
+              "action": "add-part",
+              "part": "data",
+              "parent": "other"
+            },
+            {
+              "id": "delta-7",
+              "action": "add-part",
+              "part": "decision",
+              "parent": "other"
+            },
+            {
+              "id": "delta-8",
+              "action": "add-part",
+              "part": "end",
+              "parent": "other"
+            },
+            {
+              "id": "delta-9",
+              "action": "add-part",
+              "part": "start",
+              "parent": "other"
+            },
+            {
+              "id": "delta-10",
+              "action": "add-part",
+              "part": "step",
+              "parent": "other"
+            },
+            {
+              "id": "delta-11",
+              "action": "add-part",
+              "part": "data",
+              "parent": "part-3"
+            },
+            {
+              "id": "delta-12",
+              "action": "add-part",
+              "part": "decision",
+              "parent": "part-3"
+            },
+            {
+              "id": "delta-13",
+              "action": "add-part",
+              "part": "end",
+              "parent": "part-3"
+            },
+            {
+              "id": "delta-14",
+              "action": "add-part",
+              "part": "start",
+              "parent": "part-3"
+            },
+            {
+              "id": "delta-15",
+              "action": "add-part",
+              "part": "step",
+              "parent": "part-3"
+            }
+          ],
+          "context": {
+            "recent": [
+              {
+                "seq": 1,
+                "source": "typed",
+                "text": "OCIの中へ「展開室」「集約室」「保全室」という3つのグループを1つずつ、同じ階層に追加してください。",
+                "outcome": "step",
+                "effect": {
+                  "changes": [
+                    {
+                      "change": "added",
+                      "kind": "region",
+                      "id": "part-1",
+                      "label": "展開室"
+                    },
+                    {
+                      "change": "added",
+                      "kind": "region",
+                      "id": "part-2",
+                      "label": "集約室"
+                    },
+                    {
+                      "change": "added",
+                      "kind": "region",
+                      "id": "part-3",
+                      "label": "保全室"
+                    }
+                  ]
+                }
+              }
+            ]
+          },
+          "scope": null,
+          "placing": null
+        }
+      },
+      "status": 200,
+      "response": {
+        "kind": "voice-ui.judge.decision.v1",
+        "answers": {
+          "delta": {
+            "type": "choice",
+            "choice": "none",
+            "confidence": 1
+          }
+        }
+      },
+      "elapsedMs": 241.03269999999975
+    }
+  ],
+  "initial_head": "sha256:0b3522df5b691691d41d9b4587377781fc7048c991a4e47357e5583eb09288c6",
+  "initial_log": "{\"operations\":[{\"mapId\":\"voice-graph\",\"records\":[{\"root\":\"root\",\"schema\":\"semantic-map-state/1\",\"title\":\"independent component axes\",\"type\":\"meta\"},{\"bounds\":[0,0,900,400],\"id\":\"root\",\"kind\":\"boundary\",\"label\":\"fixture\",\"parent\":null,\"summary\":\"\",\"type\":\"region\"},{\"bounds\":[0,0,700,200],\"id\":\"container\",\"kind\":\"group\",\"label\":\"OCI\",\"parent\":\"root\",\"summary\":\"\",\"type\":\"region\"},{\"bounds\":[0,230,700,160],\"id\":\"other\",\"kind\":\"group\",\"label\":\"Other\",\"parent\":\"root\",\"summary\":\"\",\"type\":\"region\"}],\"type\":\"CreateMap\"}],\"parent\":null,\"schema\":\"semantic-map-decision/2\",\"stateHash\":\"sha256:6f6adeef1c88cee408e25aa59e1cb628415e925e955af39cf471ea19a81d31d2\"}\n{\"operations\":[{\"items\":[{\"bounds\":[0,0,2000,500],\"regionId\":\"container\"},{\"bounds\":[0,600,2000,500],\"regionId\":\"other\"}],\"type\":\"PinRegions\"}],\"parent\":\"sha256:f0e1eb311833921dc4b1cf230636b504bfb9ce8fbf0403929b19d9797038752a\",\"schema\":\"semantic-map-decision/2\",\"stateHash\":\"sha256:1d92eb09d797c79447c24a31bf49740c7924fca8d3ede29020ea6371298bda40\"}\n",
+  "initial_log_sha256": "8d1eca97d9c29efcb938bf7ba32ba18f306db8b4ce1a35570cd454d53fdee314",
+  "initial_records": [
+    {
+      "type": "meta",
+      "schema": "semantic-map-state/1",
+      "root": "root",
+      "title": "independent component axes"
+    },
+    {
+      "type": "region",
+      "id": "root",
+      "parent": null,
+      "label": "fixture",
+      "kind": "boundary",
+      "bounds": [
+        0,
+        0,
+        900,
+        400
+      ],
+      "summary": ""
+    },
+    {
+      "type": "region",
+      "id": "container",
+      "parent": "root",
+      "label": "OCI",
+      "kind": "group",
+      "bounds": [
+        0,
+        0,
+        700,
+        200
+      ],
+      "summary": ""
+    },
+    {
+      "type": "region",
+      "id": "other",
+      "parent": "root",
+      "label": "Other",
+      "kind": "group",
+      "bounds": [
+        0,
+        230,
+        700,
+        160
+      ],
+      "summary": ""
+    },
+    {
+      "type": "layout",
+      "regionId": "container",
+      "pin": "hard",
+      "bounds": [
+        0,
+        0,
+        2000,
+        500
+      ]
+    },
+    {
+      "type": "layout",
+      "regionId": "other",
+      "pin": "hard",
+      "bounds": [
+        0,
+        600,
+        2000,
+        500
+      ]
+    }
+  ],
+  "final_head": "sha256:339123ecd919922cba6dadf3547d071c5e3468059e4c9c6cbb12b3fc329dff76",
+  "final_log": "{\"operations\":[{\"mapId\":\"voice-graph\",\"records\":[{\"root\":\"root\",\"schema\":\"semantic-map-state/1\",\"title\":\"independent component axes\",\"type\":\"meta\"},{\"bounds\":[0,0,900,400],\"id\":\"root\",\"kind\":\"boundary\",\"label\":\"fixture\",\"parent\":null,\"summary\":\"\",\"type\":\"region\"},{\"bounds\":[0,0,700,200],\"id\":\"container\",\"kind\":\"group\",\"label\":\"OCI\",\"parent\":\"root\",\"summary\":\"\",\"type\":\"region\"},{\"bounds\":[0,230,700,160],\"id\":\"other\",\"kind\":\"group\",\"label\":\"Other\",\"parent\":\"root\",\"summary\":\"\",\"type\":\"region\"}],\"type\":\"CreateMap\"}],\"parent\":null,\"schema\":\"semantic-map-decision/2\",\"stateHash\":\"sha256:6f6adeef1c88cee408e25aa59e1cb628415e925e955af39cf471ea19a81d31d2\"}\n{\"operations\":[{\"items\":[{\"bounds\":[0,0,2000,500],\"regionId\":\"container\"},{\"bounds\":[0,600,2000,500],\"regionId\":\"other\"}],\"type\":\"PinRegions\"}],\"parent\":\"sha256:f0e1eb311833921dc4b1cf230636b504bfb9ce8fbf0403929b19d9797038752a\",\"schema\":\"semantic-map-decision/2\",\"stateHash\":\"sha256:1d92eb09d797c79447c24a31bf49740c7924fca8d3ede29020ea6371298bda40\"}\n{\"operations\":[{\"bounds\":[20,20,140,64],\"kind\":\"group\",\"label\":\"展開室\",\"parentId\":\"container\",\"regionId\":\"part-1\",\"summary\":\"\",\"type\":\"AddRegion\"},{\"items\":[{\"bounds\":[12,36,180,92],\"regionId\":\"part-1\"}],\"type\":\"PinRegions\"}],\"parent\":\"sha256:0b3522df5b691691d41d9b4587377781fc7048c991a4e47357e5583eb09288c6\",\"schema\":\"semantic-map-decision/2\",\"stateHash\":\"sha256:63ad1d31cd3dee99acc0b99d62ecbcc0153a6329a0974440149be0e1f6373310\"}\n{\"operations\":[{\"bounds\":[180,20,140,64],\"kind\":\"group\",\"label\":\"集約室\",\"parentId\":\"container\",\"regionId\":\"part-2\",\"summary\":\"\",\"type\":\"AddRegion\"},{\"items\":[{\"bounds\":[216,36,180,92],\"regionId\":\"part-2\"}],\"type\":\"PinRegions\"}],\"parent\":\"sha256:739f12f26e0152e91f7c1182b1abd46ed5e19cb9391787b59dc7f373d2c92d88\",\"schema\":\"semantic-map-decision/2\",\"stateHash\":\"sha256:7b045acf64ebfb4e7579d743b69008b430d177e3f2d33f4583da20da12e3fd60\"}\n{\"operations\":[{\"bounds\":[340,20,140,64],\"kind\":\"group\",\"label\":\"保全室\",\"parentId\":\"container\",\"regionId\":\"part-3\",\"summary\":\"\",\"type\":\"AddRegion\"},{\"items\":[{\"bounds\":[420,36,180,92],\"regionId\":\"part-3\"}],\"type\":\"PinRegions\"}],\"parent\":\"sha256:fa31f5bed8dcaa540bc11a97fcc1f6c9b805bd540cd34a858575b5642c7d38d1\",\"schema\":\"semantic-map-decision/2\",\"stateHash\":\"sha256:5f89f3bdb763878b0db154cb9007778b181224a66cbe589f915dbdc1bd59cde0\"}\n",
+  "final_records": [
+    {
+      "type": "meta",
+      "schema": "semantic-map-state/1",
+      "root": "root",
+      "title": "independent component axes"
+    },
+    {
+      "type": "region",
+      "id": "root",
+      "parent": null,
+      "label": "fixture",
+      "kind": "boundary",
+      "bounds": [
+        0,
+        0,
+        900,
+        400
+      ],
+      "summary": ""
+    },
+    {
+      "type": "region",
+      "id": "container",
+      "parent": "root",
+      "label": "OCI",
+      "kind": "group",
+      "bounds": [
+        0,
+        0,
+        700,
+        200
+      ],
+      "summary": ""
+    },
+    {
+      "type": "region",
+      "id": "other",
+      "parent": "root",
+      "label": "Other",
+      "kind": "group",
+      "bounds": [
+        0,
+        230,
+        700,
+        160
+      ],
+      "summary": ""
+    },
+    {
+      "type": "region",
+      "id": "part-1",
+      "parent": "container",
+      "label": "展開室",
+      "kind": "group",
+      "bounds": [
+        20,
+        20,
+        140,
+        64
+      ],
+      "summary": ""
+    },
+    {
+      "type": "region",
+      "id": "part-2",
+      "parent": "container",
+      "label": "集約室",
+      "kind": "group",
+      "bounds": [
+        180,
+        20,
+        140,
+        64
+      ],
+      "summary": ""
+    },
+    {
+      "type": "region",
+      "id": "part-3",
+      "parent": "container",
+      "label": "保全室",
+      "kind": "group",
+      "bounds": [
+        340,
+        20,
+        140,
+        64
+      ],
+      "summary": ""
+    },
+    {
+      "type": "layout",
+      "regionId": "container",
+      "pin": "hard",
+      "bounds": [
+        0,
+        0,
+        2000,
+        500
+      ]
+    },
+    {
+      "type": "layout",
+      "regionId": "other",
+      "pin": "hard",
+      "bounds": [
+        0,
+        600,
+        2000,
+        500
+      ]
+    },
+    {
+      "type": "layout",
+      "regionId": "part-1",
+      "pin": "hard",
+      "bounds": [
+        12,
+        36,
+        180,
+        92
+      ]
+    },
+    {
+      "type": "layout",
+      "regionId": "part-2",
+      "pin": "hard",
+      "bounds": [
+        216,
+        36,
+        180,
+        92
+      ]
+    },
+    {
+      "type": "layout",
+      "regionId": "part-3",
+      "pin": "hard",
+      "bounds": [
+        420,
+        36,
+        180,
+        92
+      ]
+    }
+  ]
+}

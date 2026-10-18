@@ -1,0 +1,76 @@
+{
+  "status": "PASS",
+  "phase": "quota-public-E-20261018",
+  "at": "2026-10-17T23:14:28.118Z",
+  "journal_sha256": "a95c9664ee8cb230e3da6ebcb82ac7395c29d97d5b261af977a1265c9a5dbf62",
+  "charged": {
+    "jev": 818,
+    "typellm": 86
+  },
+  "outstanding": 0,
+  "owned_pgids": 40,
+  "remaining_members": [],
+  "orchestration": {
+    "phase": "quota-public-E-20261018",
+    "began": "2026-10-17T23:13:41.380Z",
+    "finished": "2026-10-17T23:14:08.855Z",
+    "execution": {
+      "exit": 0,
+      "error": null
+    },
+    "stop": {
+      "status": "STOPPED_RECONCILED",
+      "result": {
+        "phase": "quota-public-E-20261018",
+        "action": "stop",
+        "current": {
+          "pid": 369297,
+          "state": "S",
+          "pgid": 369297,
+          "start_ticks": "18657701"
+        },
+        "sent": {
+          "jev": 5,
+          "typellm": 1
+        },
+        "whole_run_sent": {
+          "jev": 818,
+          "typellm": 86
+        },
+        "reserved_until_confirmed_stop": null
+      }
+    },
+    "raw": "/work/repos/voice-ui-typellm-20261016/quota-public-E-20261018.raw",
+    "driver_stdout": "/work/repos/voice-ui-typellm-20261016/quota-public-E-20261018.driver.stdout.log",
+    "driver_stderr": "/work/repos/voice-ui-typellm-20261016/quota-public-E-20261018.driver.stderr.log"
+  },
+  "execution": {
+    "schema": "voice-ui.quota-cycle-phase/1",
+    "axis": "E",
+    "status": "RECORDED",
+    "summary": [
+      {
+        "axis": "E",
+        "id": "PE01",
+        "arm": "B",
+        "method": "literal-v2",
+        "generation_policy": null,
+        "goal_parts_policy": "quota",
+        "valid_execution": true,
+        "calls": 1
+      },
+      {
+        "axis": "E",
+        "id": "PE01",
+        "arm": "C",
+        "method": "adaptive-v3",
+        "generation_policy": "dependent",
+        "goal_parts_policy": "quota",
+        "valid_execution": true,
+        "calls": 3
+      }
+    ],
+    "invalid_cells": 0,
+    "expected_cells": 2
+  }
+}

@@ -1,0 +1,321 @@
+{
+  "schema": "voice-ui.review.frontier-historical-artifact-members/1",
+  "status": "PASS",
+  "head": "2cc4890b765a5534e92855f83f9232ae85bb373b",
+  "actual_closure_audit_sha256": "4d27236ac86029b6e10f5b9ec02c3ff71a384e4986031f5006639fda0f91a4dd",
+  "archives": [
+    {
+      "kind": "closed-evidence",
+      "baseline_archive": "dependency-ffc2-ci-closed-evidence.zip",
+      "baseline_archive_sha256": "91b9d98f00ba5bf56208e0aa083b9ed5a1cec4746ede55009c16b48ca69a72bb",
+      "actual_archive_sha256": "353cf023c6a50f5c1733daef236c85710cca94af679dd57ab61145bfd5669a37",
+      "members": [
+        {
+          "name": "correction-one-f2fa/audit.json",
+          "bytes_equal": true,
+          "baseline_sha256": "11b3a5e993497c176edfc92f6a9b29800027c237b6682db6411bc1fc8595ad59",
+          "actual_sha256": "11b3a5e993497c176edfc92f6a9b29800027c237b6682db6411bc1fc8595ad59"
+        },
+        {
+          "name": "correction-one-f2fa/ci-replay/receipt.json",
+          "bytes_equal": true,
+          "baseline_sha256": "5ae8eaefe60c2b55c5b6617d3976048129ca2fd8006068132ef2548f4158e7f5",
+          "actual_sha256": "5ae8eaefe60c2b55c5b6617d3976048129ca2fd8006068132ef2548f4158e7f5"
+        },
+        {
+          "name": "correction-two-2c8b/audit.json",
+          "bytes_equal": true,
+          "baseline_sha256": "d00c650753744fe74f480a7497ccd9f5ffb0d54ece72ca0f306524c4fe63e01b",
+          "actual_sha256": "d00c650753744fe74f480a7497ccd9f5ffb0d54ece72ca0f306524c4fe63e01b"
+        },
+        {
+          "name": "correction-two-2c8b/ci-replay/receipt.json",
+          "bytes_equal": true,
+          "baseline_sha256": "930d29e29523a6dca92541ae1dfce4bfa5a526c7ee7776629dfef899a53d7995",
+          "actual_sha256": "930d29e29523a6dca92541ae1dfce4bfa5a526c7ee7776629dfef899a53d7995"
+        },
+        {
+          "name": "fresh-primary-50b1/audit.json",
+          "bytes_equal": true,
+          "baseline_sha256": "cb3c5bf6e1e5c59a5d2a002a57efc50034b53a940e8a561976147923d514be1e",
+          "actual_sha256": "cb3c5bf6e1e5c59a5d2a002a57efc50034b53a940e8a561976147923d514be1e"
+        },
+        {
+          "name": "fresh-primary-50b1/ci-replay/receipt.json",
+          "bytes_equal": true,
+          "baseline_sha256": "0803266971bd7b20c6b68cf0e186bbfc150ba6e9241038c76789f8b32c3c4b55",
+          "actual_sha256": "0803266971bd7b20c6b68cf0e186bbfc150ba6e9241038c76789f8b32c3c4b55"
+        },
+        {
+          "name": "public-initial-f2e9/audit.json",
+          "bytes_equal": true,
+          "baseline_sha256": "c3d0c264fddb5765b6d41adb349331f5095f158991347da567cac9f0787c695a",
+          "actual_sha256": "c3d0c264fddb5765b6d41adb349331f5095f158991347da567cac9f0787c695a"
+        },
+        {
+          "name": "public-initial-f2e9/ci-replay/receipt.json",
+          "bytes_equal": true,
+          "baseline_sha256": "72d3140bd41483294e5596d10bb0b5d199311570095d09f31e7b192be5934e19",
+          "actual_sha256": "72d3140bd41483294e5596d10bb0b5d199311570095d09f31e7b192be5934e19"
+        },
+        {
+          "name": "public-initial-f2e9/mutation-test.txt",
+          "bytes_equal": false,
+          "baseline_sha256": "b2833b35e5bda33fd12f4366359dc653486792baecb72bc727f314b3da1bc00f",
+          "actual_sha256": "4a3405256f75eb31d29baf58c02d94593a87dd5fb3491195d2861195a882b2b8",
+          "baseline_text": "✔ all actual INVALID raw files join, but five of24 arms cannot become an admissible panel (72.836257ms)\n✔ protocol/records, event/response, factors, order, inputs and file omissions are independently refused (245.628677ms)\n✔ actual journal cutoff joins reserve/log sequence/reconcile, and missing or altered charges do not (3.796301ms)\n✔ all five actual raw outputs, including failed H05-C, join every exact artifact replay frame (15.010647ms)\n✔ fixed producer expectations bind actual bytes plus explicit independent audit references (9.173198ms)\n✔ selected receipt is explicitly partial, and flat/nested/keyed ignored arms are refused (15.770167ms)\nℹ tests 6\nℹ suites 0\nℹ pass 6\nℹ fail 0\nℹ cancelled 0\nℹ skipped 0\nℹ todo 0\nℹ duration_ms 468.294383\n",
+          "actual_text": "✔ all actual INVALID raw files join, but five of24 arms cannot become an admissible panel (72.628988ms)\n✔ protocol/records, event/response, factors, order, inputs and file omissions are independently refused (255.573593ms)\n✔ actual journal cutoff joins reserve/log sequence/reconcile, and missing or altered charges do not (4.650261ms)\n✔ all five actual raw outputs, including failed H05-C, join every exact artifact replay frame (15.648194ms)\n✔ fixed producer expectations bind actual bytes plus explicit independent audit references (8.052207ms)\n✔ selected receipt is explicitly partial, and flat/nested/keyed ignored arms are refused (16.587563ms)\nℹ tests 6\nℹ suites 0\nℹ pass 6\nℹ fail 0\nℹ cancelled 0\nℹ skipped 0\nℹ todo 0\nℹ duration_ms 480.26028\n"
+        },
+        {
+          "name": "public-remainder-2c8b/audit.json",
+          "bytes_equal": true,
+          "baseline_sha256": "f98fbea44ac88be5da5e66011b2a32e4ffd7628c99859e9e5035d688e89a5d6c",
+          "actual_sha256": "f98fbea44ac88be5da5e66011b2a32e4ffd7628c99859e9e5035d688e89a5d6c"
+        },
+        {
+          "name": "public-remainder-2c8b/ci-replay/receipt.json",
+          "bytes_equal": true,
+          "baseline_sha256": "e64ac843db8b4d47cf9a0ff412d807dd92de46c3523d432f95133db59287b3da",
+          "actual_sha256": "e64ac843db8b4d47cf9a0ff412d807dd92de46c3523d432f95133db59287b3da"
+        },
+        {
+          "name": "receipt.json",
+          "bytes_equal": true,
+          "baseline_sha256": "88c565fa0046af2c420138a58edc7653c48745e9358b2458628bb6f0073c9de8",
+          "actual_sha256": "88c565fa0046af2c420138a58edc7653c48745e9358b2458628bb6f0073c9de8"
+        }
+      ]
+    },
+    {
+      "kind": "component-axes",
+      "baseline_archive": "dependency-ffc2-ci-component-axes.zip",
+      "baseline_archive_sha256": "8c9b162878fbbded077c68e99d7127f661d6329f2e4a58c3409c357397697701",
+      "actual_archive_sha256": "40c933cbc2a6c341b856c52c25b5dcd3a98476c21e97a09ef705ec922b564842",
+      "members": [
+        {
+          "name": "final-E/audit.json",
+          "bytes_equal": true,
+          "baseline_sha256": "9f6e615cae0c1955fc3c513a52a30b602cee7e70913eea766b3127310c4808ec",
+          "actual_sha256": "9f6e615cae0c1955fc3c513a52a30b602cee7e70913eea766b3127310c4808ec"
+        },
+        {
+          "name": "final-E/ci-replay/receipt.json",
+          "bytes_equal": true,
+          "baseline_sha256": "2ba6085c0cedfd746634a14013fbb667efb52332fd49bda3bd63cc050bbb630b",
+          "actual_sha256": "2ba6085c0cedfd746634a14013fbb667efb52332fd49bda3bd63cc050bbb630b"
+        },
+        {
+          "name": "final-F/audit.json",
+          "bytes_equal": true,
+          "baseline_sha256": "8bdac8ac0ae916161b11368395a61f4fa4136777304b00fcaf514ce01a2452ad",
+          "actual_sha256": "8bdac8ac0ae916161b11368395a61f4fa4136777304b00fcaf514ce01a2452ad"
+        },
+        {
+          "name": "final-G/audit.json",
+          "bytes_equal": true,
+          "baseline_sha256": "5e6acd5f7b99796c3dbf2be4b7a40d8c624eae9ea2e148a9804067b9ef347d39",
+          "actual_sha256": "5e6acd5f7b99796c3dbf2be4b7a40d8c624eae9ea2e148a9804067b9ef347d39"
+        },
+        {
+          "name": "final-R/audit.json",
+          "bytes_equal": true,
+          "baseline_sha256": "bfbf7d252df58bdf4d83c53bfcf7ba887fcf54a5eb104fdc39004010e6a118f0",
+          "actual_sha256": "bfbf7d252df58bdf4d83c53bfcf7ba887fcf54a5eb104fdc39004010e6a118f0"
+        },
+        {
+          "name": "final-R/ci-replay/receipt.json",
+          "bytes_equal": true,
+          "baseline_sha256": "12269fc69638f0b3561a208d73298f700c1e696e69e8e676f5b68f3dd0679490",
+          "actual_sha256": "12269fc69638f0b3561a208d73298f700c1e696e69e8e676f5b68f3dd0679490"
+        },
+        {
+          "name": "public-E/audit.json",
+          "bytes_equal": true,
+          "baseline_sha256": "3f72fe2d84a3d323545dd78dcf928c687614049cdbe9ab3318721c6b14277899",
+          "actual_sha256": "3f72fe2d84a3d323545dd78dcf928c687614049cdbe9ab3318721c6b14277899"
+        },
+        {
+          "name": "public-E/ci-replay/receipt.json",
+          "bytes_equal": true,
+          "baseline_sha256": "7e475774c86231ad83c9ee2b4146dcf901e09569113ae496f31bb8df8fab0cf3",
+          "actual_sha256": "7e475774c86231ad83c9ee2b4146dcf901e09569113ae496f31bb8df8fab0cf3"
+        },
+        {
+          "name": "public-F/audit.json",
+          "bytes_equal": true,
+          "baseline_sha256": "994e26ebfa90d688b54c955c75ca5cf7136b660ba6a94659aa017f28c2f272de",
+          "actual_sha256": "994e26ebfa90d688b54c955c75ca5cf7136b660ba6a94659aa017f28c2f272de"
+        },
+        {
+          "name": "public-G/audit.json",
+          "bytes_equal": true,
+          "baseline_sha256": "e5a0fb667fc66c9fb595fb3da6bc7f4121084789ea00ed39489f89ff289a3e6d",
+          "actual_sha256": "e5a0fb667fc66c9fb595fb3da6bc7f4121084789ea00ed39489f89ff289a3e6d"
+        },
+        {
+          "name": "public-R/audit.json",
+          "bytes_equal": true,
+          "baseline_sha256": "e27270024d6da39c94d611c32082da2a47d45bb5950dd355c3c8792c674f3477",
+          "actual_sha256": "e27270024d6da39c94d611c32082da2a47d45bb5950dd355c3c8792c674f3477"
+        },
+        {
+          "name": "public-R/ci-replay/receipt.json",
+          "bytes_equal": true,
+          "baseline_sha256": "57b68dd5ce5686232bc8e7b7dde307d04d7e8951a8855b05481f9b3f3676893e",
+          "actual_sha256": "57b68dd5ce5686232bc8e7b7dde307d04d7e8951a8855b05481f9b3f3676893e"
+        },
+        {
+          "name": "receipt.json",
+          "bytes_equal": true,
+          "baseline_sha256": "3e0bc618c5fdda1613b6720e05178e2ee35648e20ab0237de304f9faf5b30dfc",
+          "actual_sha256": "3e0bc618c5fdda1613b6720e05178e2ee35648e20ab0237de304f9faf5b30dfc"
+        }
+      ]
+    },
+    {
+      "kind": "requirements-cycle",
+      "baseline_archive": "dependency-ffc2-ci-requirements-cycle.zip",
+      "baseline_archive_sha256": "215ecf2725d748b07c282a66fa7043aad5db8db26f5ccc87c67b22d01763f3b2",
+      "actual_archive_sha256": "97450028c44d1e10b144f434f1054230ee8f37274e92b1790f26c37f2d666e5b",
+      "members": [
+        {
+          "name": "correction1-F/audit.json",
+          "bytes_equal": true,
+          "baseline_sha256": "717a9b75eb5ba1ff619ee8ebe821bc031f2550d226dd06461d6150410dd4b200",
+          "actual_sha256": "717a9b75eb5ba1ff619ee8ebe821bc031f2550d226dd06461d6150410dd4b200"
+        },
+        {
+          "name": "correction1-V/audit.json",
+          "bytes_equal": true,
+          "baseline_sha256": "f19d369d3be3c35504f28e61344a777940d9d8e0a053f34362d6cde55bdf5ae4",
+          "actual_sha256": "f19d369d3be3c35504f28e61344a777940d9d8e0a053f34362d6cde55bdf5ae4"
+        },
+        {
+          "name": "correction2-F/audit.json",
+          "bytes_equal": true,
+          "baseline_sha256": "d374957ef0a4a27f33dc015043005697b81049e7614df0857906a5b89c7dcea9",
+          "actual_sha256": "d374957ef0a4a27f33dc015043005697b81049e7614df0857906a5b89c7dcea9"
+        },
+        {
+          "name": "correction2-V/audit.json",
+          "bytes_equal": true,
+          "baseline_sha256": "36081f38f7b0fba7ee744411613303c4eeaaeea7689c833e7fd2f2fb0e52cf57",
+          "actual_sha256": "36081f38f7b0fba7ee744411613303c4eeaaeea7689c833e7fd2f2fb0e52cf57"
+        },
+        {
+          "name": "public-F/audit.json",
+          "bytes_equal": true,
+          "baseline_sha256": "0454d4eaaae3fca7fda252e3cafd4b42391614221c022395c8be2d757faa6b3d",
+          "actual_sha256": "0454d4eaaae3fca7fda252e3cafd4b42391614221c022395c8be2d757faa6b3d"
+        },
+        {
+          "name": "receipt.json",
+          "bytes_equal": true,
+          "baseline_sha256": "1f33d0e447cb8901fd943f446864fb4b920a377514151836112ba1c9a576ddbf",
+          "actual_sha256": "1f33d0e447cb8901fd943f446864fb4b920a377514151836112ba1c9a576ddbf"
+        }
+      ]
+    },
+    {
+      "kind": "dependency-cycle",
+      "baseline_archive": "dependency-ffc2-ci-dependency-cycle.zip",
+      "baseline_archive_sha256": "10749b0e92c50f38786f78a22ac89c88758ecb0589573a6dc544f4563598b280",
+      "actual_archive_sha256": "ea9c58fae8353061f631a49dab270807cd7bf333baf84d6d6ff7e028172d79d6",
+      "members": [
+        {
+          "name": "public-E/audit.json",
+          "bytes_equal": true,
+          "baseline_sha256": "5c480778cd31450490d304e10ce95e2027d2cb823ffa729ec1a578d3f6a5db94",
+          "actual_sha256": "5c480778cd31450490d304e10ce95e2027d2cb823ffa729ec1a578d3f6a5db94"
+        },
+        {
+          "name": "public-E/ci-replay/receipt.json",
+          "bytes_equal": true,
+          "baseline_sha256": "567317537673e42c404c1be720eb7dd2585d8746e091ab941f0ea9d08f98fff2",
+          "actual_sha256": "567317537673e42c404c1be720eb7dd2585d8746e091ab941f0ea9d08f98fff2"
+        },
+        {
+          "name": "public-F/audit.json",
+          "bytes_equal": true,
+          "baseline_sha256": "ce2ae671ac62ccc3484563b18648bd6771581d33d89572ede015ac172d3973c3",
+          "actual_sha256": "ce2ae671ac62ccc3484563b18648bd6771581d33d89572ede015ac172d3973c3"
+        },
+        {
+          "name": "public-V/audit.json",
+          "bytes_equal": true,
+          "baseline_sha256": "7d82784dd485e78b143c2c179ae0c7f8d0df5791f761856cccc72779d4d028e2",
+          "actual_sha256": "7d82784dd485e78b143c2c179ae0c7f8d0df5791f761856cccc72779d4d028e2"
+        },
+        {
+          "name": "receipt.json",
+          "bytes_equal": true,
+          "baseline_sha256": "ef2f2819cea80c06a718099e2cc2bb159b0232037402f13c8897295fea1e0212",
+          "actual_sha256": "ef2f2819cea80c06a718099e2cc2bb159b0232037402f13c8897295fea1e0212"
+        }
+      ]
+    },
+    {
+      "kind": "intent-cycle",
+      "baseline_archive": "intent-664c-ci-closure.zip",
+      "baseline_archive_sha256": "6020b8a42e305d3fa658f9e4d519bd4bdd973786e4fb8579966b21c7ec438548",
+      "actual_archive_sha256": "9604f5fb090e913e3d9610945daaf4029539a2314cf626648f94ec956e1bbfdd",
+      "members": [
+        {
+          "name": "intent-public-G0/audit.json",
+          "bytes_equal": true,
+          "baseline_sha256": "e0793377ee7f94a1bb0421e33436f865e301613e41e77eee10ff7f9ab42bbf89",
+          "actual_sha256": "e0793377ee7f94a1bb0421e33436f865e301613e41e77eee10ff7f9ab42bbf89"
+        },
+        {
+          "name": "receipt.json",
+          "bytes_equal": true,
+          "baseline_sha256": "83613a8a36d748f4b37fe8a9ca1ec0661de9093fb33ecdf6c6bec804381b5ef0",
+          "actual_sha256": "83613a8a36d748f4b37fe8a9ca1ec0661de9093fb33ecdf6c6bec804381b5ef0"
+        }
+      ]
+    }
+  ],
+  "members": 38,
+  "all37_JSON_members_byte_identical": true,
+  "only_non_JSON_difference": {
+    "kind": "closed-evidence",
+    "path": "public-initial-f2e9/mutation-test.txt",
+    "permitted_fields": "Six Node test (Nms) timings and final duration_ms only; all six test titles and exact counts/PASS/fail0/cancelled0/skipped0/todo0 unchanged",
+    "timings": [
+      {
+        "test": "✔ all actual INVALID raw files join, but five of24 arms cannot become an admissible panel",
+        "baseline_ms": 72.836257,
+        "actual_ms": 72.628988
+      },
+      {
+        "test": "✔ protocol/records, event/response, factors, order, inputs and file omissions are independently refused",
+        "baseline_ms": 245.628677,
+        "actual_ms": 255.573593
+      },
+      {
+        "test": "✔ actual journal cutoff joins reserve/log sequence/reconcile, and missing or altered charges do not",
+        "baseline_ms": 3.796301,
+        "actual_ms": 4.650261
+      },
+      {
+        "test": "✔ all five actual raw outputs, including failed H05-C, join every exact artifact replay frame",
+        "baseline_ms": 15.010647,
+        "actual_ms": 15.648194
+      },
+      {
+        "test": "✔ fixed producer expectations bind actual bytes plus explicit independent audit references",
+        "baseline_ms": 9.173198,
+        "actual_ms": 8.052207
+      },
+      {
+        "test": "✔ selected receipt is explicitly partial, and flat/nested/keyed ignored arms are refused",
+        "baseline_ms": 15.770167,
+        "actual_ms": 16.587563
+      }
+    ],
+    "baseline_total_ms": 468.294383,
+    "actual_total_ms": 480.26028
+  },
+  "scope": "EXACT_PRIOR_ACTUAL_CI_ARCHIVE_MEMBER_COMPARISON_NO_JSON_NORMALIZATION_NO_MODEL_QUALITY_PROMOTION",
+  "reviewer_real_provider_calls": 0
+}

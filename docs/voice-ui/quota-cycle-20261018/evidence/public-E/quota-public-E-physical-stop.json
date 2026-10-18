@@ -1,0 +1,292 @@
+{
+  "schema": "voice-ui.independent-stop-audit/1",
+  "observed_at": "2026-10-17T23:14:55.561596+00:00",
+  "status": "PASS",
+  "owned_group_count": 40,
+  "all_owned_groups": [
+    {
+      "phase": "poc-main-1",
+      "pid": 98069,
+      "start_ticks": "6787546",
+      "all_members_including_zombies": []
+    },
+    {
+      "phase": "poc-main-2",
+      "pid": 98609,
+      "start_ticks": "6833888",
+      "all_members_including_zombies": []
+    },
+    {
+      "phase": "poc-main-3",
+      "pid": 99783,
+      "start_ticks": "7149546",
+      "all_members_including_zombies": []
+    },
+    {
+      "phase": "poc-main-4",
+      "pid": 100368,
+      "start_ticks": "7245695",
+      "all_members_including_zombies": []
+    },
+    {
+      "phase": "poc-main-5",
+      "pid": 101417,
+      "start_ticks": "7530557",
+      "all_members_including_zombies": []
+    },
+    {
+      "phase": "poc-main-6",
+      "pid": 102693,
+      "start_ticks": "7751187",
+      "all_members_including_zombies": []
+    },
+    {
+      "phase": "poc-fresh-7",
+      "pid": 103224,
+      "start_ticks": "7802310",
+      "all_members_including_zombies": []
+    },
+    {
+      "phase": "poc-ready-8",
+      "pid": 103655,
+      "start_ticks": "7896006",
+      "all_members_including_zombies": []
+    },
+    {
+      "phase": "candidate-public-20261017",
+      "pid": 233467,
+      "start_ticks": "13622035",
+      "all_members_including_zombies": []
+    },
+    {
+      "phase": "candidate-type-diagnostic-1",
+      "pid": 233952,
+      "start_ticks": "13654560",
+      "all_members_including_zombies": []
+    },
+    {
+      "phase": "candidate-type-diagnostic-2",
+      "pid": 239615,
+      "start_ticks": "13708110",
+      "all_members_including_zombies": []
+    },
+    {
+      "phase": "candidate-type-diagnostic-3",
+      "pid": 242236,
+      "start_ticks": "13717798",
+      "all_members_including_zombies": []
+    },
+    {
+      "phase": "candidate-correction-1-20261017",
+      "pid": 252935,
+      "start_ticks": "13829959",
+      "all_members_including_zombies": []
+    },
+    {
+      "phase": "candidate-correction-2-20261017",
+      "pid": 259519,
+      "start_ticks": "13920555",
+      "all_members_including_zombies": []
+    },
+    {
+      "phase": "candidate-public-remainder-20261017",
+      "pid": 261711,
+      "start_ticks": "13955189",
+      "all_members_including_zombies": []
+    },
+    {
+      "phase": "candidate-fresh-20261017",
+      "pid": 270500,
+      "start_ticks": "14088123",
+      "all_members_including_zombies": []
+    },
+    {
+      "phase": "axes-public-G-20261017",
+      "pid": 308086,
+      "start_ticks": "15074155",
+      "all_members_including_zombies": []
+    },
+    {
+      "phase": "axes-public-R-20261017",
+      "pid": 308609,
+      "start_ticks": "15093863",
+      "all_members_including_zombies": []
+    },
+    {
+      "phase": "axes-public-F-20261017",
+      "pid": 309041,
+      "start_ticks": "15114628",
+      "all_members_including_zombies": []
+    },
+    {
+      "phase": "axes-public-E-20261017",
+      "pid": 309395,
+      "start_ticks": "15135567",
+      "all_members_including_zombies": []
+    },
+    {
+      "phase": "axes-final-G-20261017",
+      "pid": 311739,
+      "start_ticks": "15269329",
+      "all_members_including_zombies": []
+    },
+    {
+      "phase": "axes-final-R-20261017",
+      "pid": 312045,
+      "start_ticks": "15291612",
+      "all_members_including_zombies": []
+    },
+    {
+      "phase": "axes-final-F-20261017",
+      "pid": 312711,
+      "start_ticks": "15313164",
+      "all_members_including_zombies": []
+    },
+    {
+      "phase": "axes-final-E-20261017",
+      "pid": 313201,
+      "start_ticks": "15339382",
+      "all_members_including_zombies": []
+    },
+    {
+      "phase": "requirements-public-F-20261018",
+      "pid": 320853,
+      "start_ticks": "15873648",
+      "all_members_including_zombies": []
+    },
+    {
+      "phase": "requirements-correction1-F-20261018",
+      "pid": 322497,
+      "start_ticks": "15998732",
+      "all_members_including_zombies": []
+    },
+    {
+      "phase": "requirements-correction1-V-20261018",
+      "pid": 322721,
+      "start_ticks": "16014619",
+      "all_members_including_zombies": []
+    },
+    {
+      "phase": "requirements-correction2-F-20261018",
+      "pid": 323862,
+      "start_ticks": "16150741",
+      "all_members_including_zombies": []
+    },
+    {
+      "phase": "requirements-correction2-V-20261018",
+      "pid": 324288,
+      "start_ticks": "16176096",
+      "all_members_including_zombies": []
+    },
+    {
+      "phase": "dependency-public-F-20261018",
+      "pid": 329873,
+      "start_ticks": "16800830",
+      "all_members_including_zombies": []
+    },
+    {
+      "phase": "dependency-public-V-20261018",
+      "pid": 330205,
+      "start_ticks": "16827734",
+      "all_members_including_zombies": []
+    },
+    {
+      "phase": "dependency-public-E-20261018",
+      "pid": 330456,
+      "start_ticks": "16837431",
+      "all_members_including_zombies": []
+    },
+    {
+      "phase": "intent-public-G0-20261018",
+      "pid": 334177,
+      "start_ticks": "17270422",
+      "all_members_including_zombies": []
+    },
+    {
+      "phase": "frontier-public-G0-20261018",
+      "pid": 345186,
+      "start_ticks": "17843257",
+      "all_members_including_zombies": []
+    },
+    {
+      "phase": "frontier-public-E-20261018",
+      "pid": 345714,
+      "start_ticks": "17885135",
+      "all_members_including_zombies": []
+    },
+    {
+      "phase": "frontier-final-V-20261018",
+      "pid": 346779,
+      "start_ticks": "17941790",
+      "all_members_including_zombies": []
+    },
+    {
+      "phase": "frontier-final-F-20261018",
+      "pid": 347100,
+      "start_ticks": "17966903",
+      "all_members_including_zombies": []
+    },
+    {
+      "phase": "frontier-final-E-20261018",
+      "pid": 347646,
+      "start_ticks": "18017291",
+      "all_members_including_zombies": []
+    },
+    {
+      "phase": "quota-public-R-20261018",
+      "pid": 363994,
+      "start_ticks": "18611793",
+      "all_members_including_zombies": []
+    },
+    {
+      "phase": "quota-public-E-20261018",
+      "pid": 369297,
+      "start_ticks": "18657701",
+      "all_members_including_zombies": []
+    }
+  ],
+  "phase": "quota-public-E-20261018",
+  "axis": "E",
+  "pid": 369297,
+  "start_ticks": "18657701",
+  "pid_absent": true,
+  "pgid_all_members_including_zombies": [],
+  "sent": {
+    "jev": 5,
+    "typellm": 1
+  },
+  "charged": {
+    "jev": 818,
+    "typellm": 86
+  },
+  "pending": null,
+  "reconciliation": {
+    "kind": "phase-reconcile",
+    "id": "quota-public-E-20261018",
+    "sent": {
+      "jev": 5,
+      "typellm": 1
+    },
+    "stopped_group_empty": true,
+    "pid": 369297,
+    "start_ticks": "18657701",
+    "stderr_sha256": "f9081a5b265ddb5db8b2552cea1c2293ac37aa0b9c671e1f023ff94786ab510c",
+    "stdout_sha256": "fdfb9bed62b253b9ce11747c21d580ce30eae51a3616805077502bfb6e97797d",
+    "at": "2026-10-17T23:14:08.828Z"
+  },
+  "config_sha256": "6413ffe89252375b8ffe9f2e52217a2b5990fbcec70d5063d7be94160cfc6771",
+  "identity_sha256": "0ee0bc212feac950ebb319885149907d8d6d7d7c5c903630ebc3f922983087ac",
+  "process_sha256": "5f4bb635ac47b7fd3caa84a44588add811b19835397cd598abca631b5fc28260",
+  "runtime_sha256": "aea2d4a780256fca602e07546d37e3e74844a5e1a1e885d5d02092eae9ae2fb6",
+  "journal_sha256": "a95c9664ee8cb230e3da6ebcb82ac7395c29d97d5b261af977a1265c9a5dbf62",
+  "stdout_sha256": "fdfb9bed62b253b9ce11747c21d580ce30eae51a3616805077502bfb6e97797d",
+  "stderr_sha256": "f9081a5b265ddb5db8b2552cea1c2293ac37aa0b9c671e1f023ff94786ab510c",
+  "raw_sha256": {
+    "PE01-C.json": "ec7c0cce5dd097a7b0486aaab86822b0bb0404adc4d5dbafbc8640e0ddfcbe1b",
+    "PE01-B.json": "1be01d2b0df3e034bfc3d3eb185d011a956dab71e3bb8e45671817bae9769c2d",
+    "execution.json": "c33ea50f59b3f601021b5e4448146c45c6229e73db9a38fff96374e0888dff9a",
+    "identity.json": "085401524a1a42f2630d56a33ba5c5f228e7b6289167e0ae1f6756f30d9562fc",
+    "events.jsonl": "f31bba3e44001355772ca20571b26e8706e30f0ae0c18e2660fc791a2877eca8"
+  },
+  "scope": "Actual stopped group including zombies, original synchronous send logs, immutable files and reconciliation cutoff; no provider request by reviewer."
+}

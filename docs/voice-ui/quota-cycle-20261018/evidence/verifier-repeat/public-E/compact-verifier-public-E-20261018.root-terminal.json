@@ -1,0 +1,24 @@
+{
+  "status": "PASS",
+  "scope": "ROOT_STOPPED_PUBLIC_E_TERMINAL_ONLY_NOT_QUALITY",
+  "at": "2026-10-18T06:33:17.657Z",
+  "phase": "compact-verifier-public-E-20261018",
+  "stage": "public",
+  "execution_exit": 0,
+  "raw_execution_status": "RECORDED",
+  "planned": 2,
+  "recorded": 2,
+  "raw_files": 5,
+  "journal_sha256": "43cf6cf845f35f65db07858164d5e56366a2ab024e175c13eaa11db62b48ca6c",
+  "charged": {
+    "jev": 864,
+    "typellm": 138
+  },
+  "outstanding": 0,
+  "sent": {
+    "jev": 8,
+    "typellm": 1
+  },
+  "owned_pgids": 52,
+  "remaining_members": []
+}

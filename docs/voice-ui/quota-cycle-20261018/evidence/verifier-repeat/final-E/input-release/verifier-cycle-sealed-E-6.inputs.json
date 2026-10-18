@@ -1,0 +1,224 @@
+{
+  "schema": "voice-ui.quota-cycle-input/1",
+  "axis": "E",
+  "oracle_sha256": "94ba803d5633ab9ddcbeedaedda3d04387255be27cadd93351fff6f68cbb08d7",
+  "parent_inputs_sha256": null,
+  "fixture_contract": {
+    "map_id": "voice-graph",
+    "base_records": [
+      {
+        "type": "meta",
+        "schema": "semantic-map-state/1",
+        "root": "root",
+        "title": "independent typed ordinary fresh"
+      },
+      {
+        "type": "region",
+        "id": "root",
+        "parent": null,
+        "label": "fixture",
+        "kind": "boundary",
+        "bounds": [
+          0,
+          0,
+          900,
+          400
+        ],
+        "summary": ""
+      },
+      {
+        "type": "region",
+        "id": "container",
+        "parent": "root",
+        "label": "取込域",
+        "kind": "group",
+        "bounds": [
+          0,
+          0,
+          700,
+          200
+        ],
+        "summary": ""
+      },
+      {
+        "type": "region",
+        "id": "other",
+        "parent": "root",
+        "label": "監査域",
+        "kind": "group",
+        "bounds": [
+          0,
+          230,
+          700,
+          160
+        ],
+        "summary": ""
+      }
+    ],
+    "base_pins": [
+      {
+        "regionId": "container",
+        "bounds": [
+          0,
+          0,
+          2000,
+          500
+        ]
+      },
+      {
+        "regionId": "other",
+        "bounds": [
+          0,
+          600,
+          2000,
+          500
+        ]
+      }
+    ],
+    "fixtures": {
+      "empty": {
+        "extra_records": [],
+        "extra_pins": []
+      },
+      "api": {
+        "extra_records": [
+          {
+            "type": "region",
+            "id": "initial-api",
+            "parent": "container",
+            "label": "API",
+            "kind": "step",
+            "bounds": [
+              20,
+              20,
+              140,
+              64
+            ],
+            "summary": ""
+          }
+        ],
+        "extra_pins": [
+          {
+            "regionId": "initial-api",
+            "bounds": [
+              12,
+              36,
+              140,
+              64
+            ]
+          }
+        ]
+      },
+      "pair": {
+        "extra_records": [
+          {
+            "type": "region",
+            "id": "initial-api",
+            "parent": "container",
+            "label": "API",
+            "kind": "step",
+            "bounds": [
+              20,
+              20,
+              140,
+              64
+            ],
+            "summary": ""
+          },
+          {
+            "type": "region",
+            "id": "initial-db",
+            "parent": "container",
+            "label": "DB",
+            "kind": "data",
+            "bounds": [
+              200,
+              20,
+              140,
+              64
+            ],
+            "summary": ""
+          }
+        ],
+        "extra_pins": [
+          {
+            "regionId": "initial-api",
+            "bounds": [
+              12,
+              36,
+              140,
+              64
+            ]
+          },
+          {
+            "regionId": "initial-db",
+            "bounds": [
+              200,
+              36,
+              140,
+              64
+            ]
+          }
+        ]
+      }
+    },
+    "recent_conversation": [],
+    "scope": null
+  },
+  "cases": [
+    {
+      "id": "TEF01",
+      "fixture": "api",
+      "utterance": "取込域にAPIを1つ追加してください。すでにある部品や線は変えないでください。",
+      "arms": [
+        "B",
+        "C"
+      ]
+    },
+    {
+      "id": "TEF02",
+      "fixture": "empty",
+      "utterance": "監査域にDBを1個追加してください。接続は増やさず、元の図は残してください。",
+      "arms": [
+        "C",
+        "B"
+      ]
+    },
+    {
+      "id": "TEF03",
+      "fixture": "api",
+      "utterance": "監査域に新しい手順を2個作り、どちらにも「経路整形」と表示してください。既存のものは残し、矢印は付けないでください。",
+      "arms": [
+        "B",
+        "C"
+      ]
+    },
+    {
+      "id": "TEF04",
+      "fixture": "pair",
+      "utterance": "取込域へ可否を判断するひし形を1個だけ新設し、ラベルは「夜間照会」としてください。それ以外は何も増やさないでください。",
+      "arms": [
+        "C",
+        "B"
+      ]
+    },
+    {
+      "id": "TEF05",
+      "fixture": "pair",
+      "utterance": "図はこの状態のままにしてください。部品も接続も追加しないでください。",
+      "arms": [
+        "B",
+        "C"
+      ]
+    },
+    {
+      "id": "TEF06",
+      "fixture": "empty",
+      "utterance": "取込域に何かを追加してください。部品名と種類、数はまだ決めていません。",
+      "arms": [
+        "C",
+        "B"
+      ]
+    }
+  ]
+}

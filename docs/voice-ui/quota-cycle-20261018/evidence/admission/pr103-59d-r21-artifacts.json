@@ -1,0 +1,122 @@
+{
+  "schema": "voice-ui.review.quota-r21-public-copy/1",
+  "status": "PASS",
+  "head": "59ded276405a5dc9caa85ad570b1827ff4bd0c7a",
+  "tree": "109c01064cde33ececa497e7daa160b763298b14",
+  "review": "https://github.com/roccho-dev/apps/pull/103#pullrequestreview-5560532224",
+  "review_body_sha256": "fba61d645dd712913ba86842a0cf6f029e040062291f6732265837603898c2fa",
+  "copy_allowlist": [
+    {
+      "name": "quota-b9c-source-audit.json",
+      "bytes": 15598,
+      "sha256": "e098a0011c9643286c3e2eea61fb3c496f955a9e4f5512e88af6670e2fff1b5b"
+    },
+    {
+      "name": "quota-59d-source-audit.json",
+      "bytes": 8503,
+      "sha256": "0e3805239d8a4639e569032d08f9b099fd3d912f6f2b76af5edfd2e309ebdaf0"
+    },
+    {
+      "name": "quota-59d-runtime-audit.json",
+      "bytes": 63689,
+      "sha256": "9bf20ed61361a02cb9578a88a47da49d27ab7879093516d1df15ab4320974de9"
+    },
+    {
+      "name": "quota-59d-prelive-bridge.json",
+      "bytes": 3360,
+      "sha256": "920139a1a69bdcaa43e6af8501e8cf0472034bb9cc0253264ace6cc05f4dc875"
+    },
+    {
+      "name": "quota-59d-prepared-operators-audit.json",
+      "bytes": 5556,
+      "sha256": "f6b0a3a5a844532552ffb5c5af80c17549da0949270aebe126a443df30455cbc"
+    },
+    {
+      "name": "quota-59d-ci-mechanics-download.json",
+      "bytes": 792,
+      "sha256": "3b3a025ea4bb450e7ae2e6e15c840d3d348730f4f71929c09c5d00d0f92976d6"
+    },
+    {
+      "name": "quota-59d-ci-mechanics-audit.json",
+      "bytes": 11836,
+      "sha256": "434ab21c9a4c43eed7d6435eea55afd037b16eb8c07546466bc3ded5be428bde"
+    },
+    {
+      "name": "quota-59d-frontier-ci-mechanics-audit.json",
+      "bytes": 47788,
+      "sha256": "518019d75a322602ee04fff02f136cb56c5f03ca1985de46eeb1ccfadaf3d0e5"
+    },
+    {
+      "name": "quota-59d-ci-closed-evidence-audit.json",
+      "bytes": 3440,
+      "sha256": "ece63d8d4e8858a9562dd07531171280955e679c0c1cf21e1b4cfedba660491b"
+    },
+    {
+      "name": "quota-59d-ci-component-axes-audit.json",
+      "bytes": 3297,
+      "sha256": "74bdf08bca3f4d31c29d1d3e7286caa091e49b7b58c2772d334a724346e9016e"
+    },
+    {
+      "name": "quota-59d-ci-requirements-cycle-audit.json",
+      "bytes": 2113,
+      "sha256": "23ad6de2ead29b1b8ba048e892853bdca4f07b0c42f9f9ce449af3c66639db07"
+    },
+    {
+      "name": "quota-59d-ci-dependency-cycle-audit.json",
+      "bytes": 1934,
+      "sha256": "2266f8109595872116f04e05b828827f0b988c09b9c43e1f99b6307639ba100a"
+    },
+    {
+      "name": "quota-59d-ci-intent-cycle-audit.json",
+      "bytes": 1420,
+      "sha256": "9b6f51bfe708c9e98339fc2d65a80e1380f8358f81560e362f3a607a6ccac621"
+    },
+    {
+      "name": "quota-59d-ci-frontier-cycle-audit.json",
+      "bytes": 2503,
+      "sha256": "8db4e34f98d51508302686a3f1e5463378b285427a9615e50421863e5658fdf1"
+    },
+    {
+      "name": "quota-59d-ci-quota-cycle-audit.json",
+      "bytes": 1797,
+      "sha256": "400b694de60ca43efe18c93f2c516b5ac887f81b5e50eb7a35b92504f668cb6b"
+    },
+    {
+      "name": "quota-59d-ci-closure-audit.json",
+      "bytes": 24675,
+      "sha256": "89fd2dcb36dd3acc24657e9d8bcb7a3f0c2dd9e29cdd68284534fd1b9516a05e"
+    },
+    {
+      "name": "quota-59d-prelive-terminal-audit.json",
+      "bytes": 10815,
+      "sha256": "474d993600476d7fb222f65fa59cddcefd4d14eb06a625f5b39ed254fd7311a0"
+    },
+    {
+      "name": "quota-59d-pr-freeze-audit.json",
+      "bytes": 1191,
+      "sha256": "451194d73035ea85dbe40a35de1a9f166ce66195c53686232a6add26b9e2673b"
+    },
+    {
+      "name": "pr103-59d-r21-frozen-pr-body.md",
+      "bytes": 7156,
+      "sha256": "2642f494e4e2cd52e94c5c557b0b76b0d186f0ef611126851f46c2bf53b6636c"
+    },
+    {
+      "name": "pr103-59d-r21-frozen-ui-body.md",
+      "bytes": 5283,
+      "sha256": "35d772a90678a85afb86c9873bd6b07280356fda37862e1627e84e766b4560cb"
+    },
+    {
+      "name": "pr103-59d-r21-review.md",
+      "bytes": 4909,
+      "sha256": "263b729a268881bf0ee8373accb1d5ffe18de0ffcc626203fb072a82c1bb18c8"
+    },
+    {
+      "name": "pr103-59d-r21-readback.json",
+      "bytes": 6655,
+      "sha256": "9d076710e5b4ea82718e297acf16c933cbc1dfc74a0225874d905f21a682acfb"
+    }
+  ],
+  "scope": "ONLY_THESE_CLOSED_PUBLIC_REVIEW_AND_MECHANICS_PROOFS; NO_PRIVATE_AUTHORING_SCRIPTS_VALIDATORS_OR_UNRELEASED_INPUTS_OR_ORACLES",
+  "reviewer_real_provider_calls": 0
+}

@@ -1,0 +1,19 @@
+{
+  "schema": "voice-ui.independent-public-copy-allowlist/1",
+  "status": "CLOSED_INPUTS_ONLY",
+  "directory": "C:\\Users\\resta\\Codex\\repos\\apps.git\\.worktrees\\typellm-ci-review-20261017\\review-evidence\\verifier-final-E-input-release",
+  "members": [
+    {
+      "name": "verifier-cycle-sealed-E-6.inputs.json",
+      "bytes": 4875,
+      "sha256": "f646112dbb14896a2e8f27d99f2b995e374aacf68b87058c7520e9821f420e43"
+    },
+    {
+      "name": "verifier-final-E-input-release.json",
+      "bytes": 2183,
+      "sha256": "61a684391bd55c6d845fda71b96456530f99b8d919bcd2ac2cfac70b1e3d3d36"
+    }
+  ],
+  "self_is_additionally_copyable": true,
+  "oracle_and_other_private_paths_copyable": false
+}

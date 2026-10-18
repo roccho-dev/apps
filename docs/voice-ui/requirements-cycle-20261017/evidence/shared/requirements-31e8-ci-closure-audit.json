@@ -1,0 +1,110 @@
+{
+  "schema": "voice-ui.requirements-cycle-ci-artifact-audit/1",
+  "status": "PASS",
+  "apps_sha": "31e8fabaeb679c8bb02db8029f36de410d012adb",
+  "workflow_run": 39047386588,
+  "artifact_id": 12106508478,
+  "artifact_zip_sha256": "a856edac9b4131764d2b43d0a1ef45a085b73c8370d0055761ec1b6a04a32886",
+  "receipt_sha256": "d0482a2dcfaad567608cc7696a7d0b1d4d64bf1192bec921d38991486ed65846",
+  "independently_recomputed_phase_reports_identical": true,
+  "process_graph": {
+    "schema": "voice-ui.requirements-cycle-process/1",
+    "status": "PASS",
+    "issues": [],
+    "baseline": {
+      "jev": 689,
+      "typellm": 40
+    },
+    "indexed_phases": 3,
+    "correction_batches": 1,
+    "reserved": {
+      "jev": 6,
+      "typellm": 12
+    },
+    "releases": [],
+    "scope": "same-head public admission and retained exact cycle process; no CI-origin live claim"
+  },
+  "rows": [
+    {
+      "id": "public-F",
+      "phase_kind": "public",
+      "all_valid": false,
+      "complete": true,
+      "semantic": {
+        "complete": true,
+        "total": 6,
+        "exact_minimal": 2,
+        "true_sufficient": {
+          "total": 2,
+          "zero_missing": 1
+        },
+        "requirements_criteria": "UNMET"
+      },
+      "classification": {
+        "quality": "PUBLIC_REGRESSION_ONLY",
+        "effect": "PUBLIC_REGRESSION_ONLY"
+      }
+    },
+    {
+      "id": "correction1-F",
+      "phase_kind": "correction",
+      "all_valid": false,
+      "complete": true,
+      "semantic": {
+        "complete": true,
+        "total": 6,
+        "exact_minimal": 2,
+        "true_sufficient": {
+          "total": 2,
+          "zero_missing": 1
+        },
+        "requirements_criteria": "UNMET"
+      },
+      "classification": {
+        "quality": "PUBLIC_REGRESSION_ONLY",
+        "effect": "PUBLIC_REGRESSION_ONLY"
+      }
+    },
+    {
+      "id": "correction1-V",
+      "phase_kind": "correction",
+      "all_valid": true,
+      "complete": true,
+      "semantic": {
+        "complete": true,
+        "total": 6,
+        "correct": 3,
+        "false_acceptance": 0,
+        "verification_criteria": "UNMET"
+      },
+      "classification": {
+        "quality": "PUBLIC_REGRESSION_ONLY",
+        "effect": "PUBLIC_REGRESSION_ONLY"
+      }
+    }
+  ],
+  "representation": [
+    {
+      "apps_sha": "3be7dba2b30b75a286c7139e2aaf5038faf695aa",
+      "reference": "286eb7d0bc0bdef160bda900547314aa5be3a752",
+      "core_files": 6,
+      "renderer_files": 231,
+      "status": "SAME_REPRESENTATION_BYTES_ONLY",
+      "scope": "conditional prior R8 evidence; current ordinary Goal paint is independently required"
+    },
+    {
+      "apps_sha": "0861f5c42cbd5f5412c465fff33ff036361591e8",
+      "reference": "286eb7d0bc0bdef160bda900547314aa5be3a752",
+      "core_files": 6,
+      "renderer_files": 231,
+      "status": "SAME_REPRESENTATION_BYTES_ONLY",
+      "scope": "conditional prior R8 evidence; current ordinary Goal paint is independently required"
+    }
+  ],
+  "charged": {
+    "jev": 695,
+    "typellm": 52
+  },
+  "quality_scope": "all three public/correction results remain regression-only; F invalids and V false negatives preserved",
+  "CI_LIVE_EXECUTION": "UNPROVEN"
+}

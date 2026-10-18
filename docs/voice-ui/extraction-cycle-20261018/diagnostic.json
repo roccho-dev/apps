@@ -1,0 +1,318 @@
+{
+  "schema": "voice-ui.extraction-diagnostic/1",
+  "question": "Which declared conditions preserve the explicitly requested label, kind and total NEW count?",
+  "measurement": {
+    "apps": "fe6329ea55bde8f44293be9c17c39a97a2a1dc1d",
+    "reference_review": "https://github.com/roccho-dev/apps/pull/103#pullrequestreview-5560754656",
+    "endpoint": "/api/parts/requirements"
+  },
+  "scope": "PUBLIC_KNOWN_TWO_CASE_CONDITION_DIAGNOSTIC_ONLY_NOT_FRESH_QUALITY_OR_END_TO_END_EFFECT",
+  "authority": {
+    "instruction": "User: loop; adrs#449",
+    "cumulative_limit": {
+      "jev": 1000,
+      "typellm": 1000
+    },
+    "prior_charged": {
+      "jev": 847,
+      "typellm": 88
+    },
+    "phase_cap": {
+      "jev": 0,
+      "typellm": 16
+    },
+    "retries": 0,
+    "corrections": 0
+  },
+  "factors": {
+    "dependencies": "all depends_on declarations retained versus removed; not just kind-to-label",
+    "definitions": "entire part_definitions label/kind/purposes context retained versus empty; not just standard labels"
+  },
+  "conditions": [
+    {
+      "id": "DF",
+      "generation": "dependent",
+      "definitions": "full"
+    },
+    {
+      "id": "IF",
+      "generation": "independent",
+      "definitions": "full"
+    },
+    {
+      "id": "DE",
+      "generation": "dependent",
+      "definitions": "empty"
+    },
+    {
+      "id": "IE",
+      "generation": "independent",
+      "definitions": "empty"
+    }
+  ],
+  "cases": [
+    {
+      "id": "QE03",
+      "request": {
+        "kind": "voice-ui.goal.inventory.v1",
+        "state": {
+          "utterance": "作業区に新しく一つの判断ノードを置いて、その表示を出荷可否にしてください。ほかには何も追加しないでください。",
+          "head": "sha256:f14b93ac1b4a8ca4af467132ccd7f5d0a524fed90de6dbf3d54d77ea8f534596",
+          "regions": [
+            {
+              "id": "root",
+              "label": "fixture",
+              "kind": "boundary",
+              "parent": null
+            },
+            {
+              "id": "container",
+              "label": "作業区",
+              "kind": "group",
+              "parent": "root"
+            },
+            {
+              "id": "other",
+              "label": "保留区",
+              "kind": "group",
+              "parent": "root"
+            }
+          ],
+          "edges": [],
+          "parts": [
+            {
+              "key": "step",
+              "purpose": "an ordinary step, task or box",
+              "label": "工程",
+              "kind": "step"
+            },
+            {
+              "key": "decision",
+              "purpose": "a decision, choice or branch",
+              "label": "判断",
+              "kind": "decision"
+            },
+            {
+              "key": "data",
+              "purpose": "data, a document, an input or an output",
+              "label": "データ",
+              "kind": "data"
+            },
+            {
+              "key": "start",
+              "purpose": "a start or beginning",
+              "label": "開始",
+              "kind": "start"
+            },
+            {
+              "key": "end",
+              "purpose": "an end, finish or result",
+              "label": "終了",
+              "kind": "end"
+            },
+            {
+              "key": "api",
+              "purpose": "an application programming interface service that receives requests",
+              "label": "API",
+              "kind": "step"
+            },
+            {
+              "key": "db",
+              "purpose": "a database that persists application data",
+              "label": "DB",
+              "kind": "data"
+            },
+            {
+              "key": "group",
+              "purpose": "a group, boundary or container that holds other parts",
+              "label": "グループ",
+              "kind": "group"
+            }
+          ]
+        }
+      },
+      "source": "docs/voice-ui/quota-cycle-20261018/evidence/final-E/raw/QE03-C.json#/calls/0/request"
+    },
+    {
+      "id": "QE04",
+      "request": {
+        "kind": "voice-ui.goal.inventory.v1",
+        "state": {
+          "utterance": "保留区へ新しい工程を二つ設け、どちらの表示もAPIにしてください。二つとも独立した部品として置き、線は付けないでください。",
+          "head": "sha256:f14b93ac1b4a8ca4af467132ccd7f5d0a524fed90de6dbf3d54d77ea8f534596",
+          "regions": [
+            {
+              "id": "root",
+              "label": "fixture",
+              "kind": "boundary",
+              "parent": null
+            },
+            {
+              "id": "container",
+              "label": "作業区",
+              "kind": "group",
+              "parent": "root"
+            },
+            {
+              "id": "other",
+              "label": "保留区",
+              "kind": "group",
+              "parent": "root"
+            }
+          ],
+          "edges": [],
+          "parts": [
+            {
+              "key": "step",
+              "purpose": "an ordinary step, task or box",
+              "label": "工程",
+              "kind": "step"
+            },
+            {
+              "key": "decision",
+              "purpose": "a decision, choice or branch",
+              "label": "判断",
+              "kind": "decision"
+            },
+            {
+              "key": "data",
+              "purpose": "data, a document, an input or an output",
+              "label": "データ",
+              "kind": "data"
+            },
+            {
+              "key": "start",
+              "purpose": "a start or beginning",
+              "label": "開始",
+              "kind": "start"
+            },
+            {
+              "key": "end",
+              "purpose": "an end, finish or result",
+              "label": "終了",
+              "kind": "end"
+            },
+            {
+              "key": "api",
+              "purpose": "an application programming interface service that receives requests",
+              "label": "API",
+              "kind": "step"
+            },
+            {
+              "key": "db",
+              "purpose": "a database that persists application data",
+              "label": "DB",
+              "kind": "data"
+            },
+            {
+              "key": "group",
+              "purpose": "a group, boundary or container that holds other parts",
+              "label": "グループ",
+              "kind": "group"
+            }
+          ]
+        }
+      },
+      "source": "docs/voice-ui/quota-cycle-20261018/evidence/final-E/raw/QE04-C.json#/calls/0/request"
+    }
+  ],
+  "schedule": [
+    {
+      "id": "QE03-DF-r1",
+      "case": "QE03",
+      "condition": "DF",
+      "rep": 1
+    },
+    {
+      "id": "QE03-IF-r1",
+      "case": "QE03",
+      "condition": "IF",
+      "rep": 1
+    },
+    {
+      "id": "QE03-DE-r1",
+      "case": "QE03",
+      "condition": "DE",
+      "rep": 1
+    },
+    {
+      "id": "QE03-IE-r1",
+      "case": "QE03",
+      "condition": "IE",
+      "rep": 1
+    },
+    {
+      "id": "QE04-IE-r1",
+      "case": "QE04",
+      "condition": "IE",
+      "rep": 1
+    },
+    {
+      "id": "QE04-DE-r1",
+      "case": "QE04",
+      "condition": "DE",
+      "rep": 1
+    },
+    {
+      "id": "QE04-IF-r1",
+      "case": "QE04",
+      "condition": "IF",
+      "rep": 1
+    },
+    {
+      "id": "QE04-DF-r1",
+      "case": "QE04",
+      "condition": "DF",
+      "rep": 1
+    },
+    {
+      "id": "QE03-IE-r2",
+      "case": "QE03",
+      "condition": "IE",
+      "rep": 2
+    },
+    {
+      "id": "QE03-DE-r2",
+      "case": "QE03",
+      "condition": "DE",
+      "rep": 2
+    },
+    {
+      "id": "QE03-IF-r2",
+      "case": "QE03",
+      "condition": "IF",
+      "rep": 2
+    },
+    {
+      "id": "QE03-DF-r2",
+      "case": "QE03",
+      "condition": "DF",
+      "rep": 2
+    },
+    {
+      "id": "QE04-DF-r2",
+      "case": "QE04",
+      "condition": "DF",
+      "rep": 2
+    },
+    {
+      "id": "QE04-IF-r2",
+      "case": "QE04",
+      "condition": "IF",
+      "rep": 2
+    },
+    {
+      "id": "QE04-DE-r2",
+      "case": "QE04",
+      "condition": "DE",
+      "rep": 2
+    },
+    {
+      "id": "QE04-IE-r2",
+      "case": "QE04",
+      "condition": "IE",
+      "rep": 2
+    }
+  ],
+  "stop": "Stop and reconcile after the fixed 16 slots. Do not relaunch, replace failed cells, open old unused seals, or proceed to fresh/product evaluation under this phase."
+}

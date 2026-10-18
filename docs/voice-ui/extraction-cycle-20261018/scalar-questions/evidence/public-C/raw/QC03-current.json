@@ -1,0 +1,237 @@
+{
+  "id": "QC03-current",
+  "case": "QC03",
+  "arm": "current",
+  "role": "standard",
+  "request": {
+    "kind": "voice-ui.goal.inventory.v1",
+    "state": {
+      "utterance": "作業区に判断ノードを一つ追加してください。",
+      "head": "sha256:f14b93ac1b4a8ca4af467132ccd7f5d0a524fed90de6dbf3d54d77ea8f534596",
+      "regions": [
+        {
+          "id": "root",
+          "label": "fixture",
+          "kind": "boundary",
+          "parent": null
+        },
+        {
+          "id": "container",
+          "label": "作業区",
+          "kind": "group",
+          "parent": "root"
+        },
+        {
+          "id": "other",
+          "label": "保留区",
+          "kind": "group",
+          "parent": "root"
+        }
+      ],
+      "edges": [],
+      "parts": [
+        {
+          "key": "step",
+          "purpose": "an ordinary step, task or box",
+          "label": "工程",
+          "kind": "step"
+        },
+        {
+          "key": "decision",
+          "purpose": "a decision, choice or branch",
+          "label": "判断",
+          "kind": "decision"
+        },
+        {
+          "key": "data",
+          "purpose": "data, a document, an input or an output",
+          "label": "データ",
+          "kind": "data"
+        },
+        {
+          "key": "start",
+          "purpose": "a start or beginning",
+          "label": "開始",
+          "kind": "start"
+        },
+        {
+          "key": "end",
+          "purpose": "an end, finish or result",
+          "label": "終了",
+          "kind": "end"
+        },
+        {
+          "key": "api",
+          "purpose": "an application programming interface service that receives requests",
+          "label": "API",
+          "kind": "step"
+        },
+        {
+          "key": "db",
+          "purpose": "a database that persists application data",
+          "label": "DB",
+          "kind": "data"
+        },
+        {
+          "key": "group",
+          "purpose": "a group, boundary or container that holds other parts",
+          "label": "グループ",
+          "kind": "group"
+        }
+      ]
+    }
+  },
+  "generation": "dependent",
+  "route": "/api/parts/requirements?generation=dependent",
+  "request_body_utf8": "{\"kind\":\"voice-ui.goal.inventory.v1\",\"state\":{\"utterance\":\"作業区に判断ノードを一つ追加してください。\",\"head\":\"sha256:f14b93ac1b4a8ca4af467132ccd7f5d0a524fed90de6dbf3d54d77ea8f534596\",\"regions\":[{\"id\":\"root\",\"label\":\"fixture\",\"kind\":\"boundary\",\"parent\":null},{\"id\":\"container\",\"label\":\"作業区\",\"kind\":\"group\",\"parent\":\"root\"},{\"id\":\"other\",\"label\":\"保留区\",\"kind\":\"group\",\"parent\":\"root\"}],\"edges\":[],\"parts\":[{\"key\":\"step\",\"purpose\":\"an ordinary step, task or box\",\"label\":\"工程\",\"kind\":\"step\"},{\"key\":\"decision\",\"purpose\":\"a decision, choice or branch\",\"label\":\"判断\",\"kind\":\"decision\"},{\"key\":\"data\",\"purpose\":\"data, a document, an input or an output\",\"label\":\"データ\",\"kind\":\"data\"},{\"key\":\"start\",\"purpose\":\"a start or beginning\",\"label\":\"開始\",\"kind\":\"start\"},{\"key\":\"end\",\"purpose\":\"an end, finish or result\",\"label\":\"終了\",\"kind\":\"end\"},{\"key\":\"api\",\"purpose\":\"an application programming interface service that receives requests\",\"label\":\"API\",\"kind\":\"step\"},{\"key\":\"db\",\"purpose\":\"a database that persists application data\",\"label\":\"DB\",\"kind\":\"data\"},{\"key\":\"group\",\"purpose\":\"a group, boundary or container that holds other parts\",\"label\":\"グループ\",\"kind\":\"group\"}]}}",
+  "response": {
+    "schema": "voice-ui.parts.requirements/2",
+    "request_id": "395db3eb-70f1-4623-b781-28cf1dd0e347",
+    "slots": {
+      "required1": {
+        "label": "判断",
+        "kind": "decision",
+        "quantity": "1"
+      },
+      "required2": {
+        "label": "",
+        "kind": "none",
+        "quantity": "0"
+      },
+      "required3": {
+        "label": "",
+        "kind": "none",
+        "quantity": "0"
+      }
+    },
+    "required": [
+      {
+        "label": "判断",
+        "kind": "decision",
+        "quantity": 1
+      }
+    ]
+  },
+  "event": {
+    "id": "QC03-current",
+    "arm": "current",
+    "n": 5,
+    "route": "/api/parts/requirements?generation=dependent",
+    "request": {
+      "kind": "voice-ui.goal.inventory.v1",
+      "state": {
+        "utterance": "作業区に判断ノードを一つ追加してください。",
+        "head": "sha256:f14b93ac1b4a8ca4af467132ccd7f5d0a524fed90de6dbf3d54d77ea8f534596",
+        "regions": [
+          {
+            "id": "root",
+            "label": "fixture",
+            "kind": "boundary",
+            "parent": null
+          },
+          {
+            "id": "container",
+            "label": "作業区",
+            "kind": "group",
+            "parent": "root"
+          },
+          {
+            "id": "other",
+            "label": "保留区",
+            "kind": "group",
+            "parent": "root"
+          }
+        ],
+        "edges": [],
+        "parts": [
+          {
+            "key": "step",
+            "purpose": "an ordinary step, task or box",
+            "label": "工程",
+            "kind": "step"
+          },
+          {
+            "key": "decision",
+            "purpose": "a decision, choice or branch",
+            "label": "判断",
+            "kind": "decision"
+          },
+          {
+            "key": "data",
+            "purpose": "data, a document, an input or an output",
+            "label": "データ",
+            "kind": "data"
+          },
+          {
+            "key": "start",
+            "purpose": "a start or beginning",
+            "label": "開始",
+            "kind": "start"
+          },
+          {
+            "key": "end",
+            "purpose": "an end, finish or result",
+            "label": "終了",
+            "kind": "end"
+          },
+          {
+            "key": "api",
+            "purpose": "an application programming interface service that receives requests",
+            "label": "API",
+            "kind": "step"
+          },
+          {
+            "key": "db",
+            "purpose": "a database that persists application data",
+            "label": "DB",
+            "kind": "data"
+          },
+          {
+            "key": "group",
+            "purpose": "a group, boundary or container that holds other parts",
+            "label": "グループ",
+            "kind": "group"
+          }
+        ]
+      }
+    },
+    "status": 200,
+    "response": {
+      "schema": "voice-ui.parts.requirements/2",
+      "request_id": "395db3eb-70f1-4623-b781-28cf1dd0e347",
+      "slots": {
+        "required1": {
+          "label": "判断",
+          "kind": "decision",
+          "quantity": "1"
+        },
+        "required2": {
+          "label": "",
+          "kind": "none",
+          "quantity": "0"
+        },
+        "required3": {
+          "label": "",
+          "kind": "none",
+          "quantity": "0"
+        }
+      },
+      "required": [
+        {
+          "label": "判断",
+          "kind": "decision",
+          "quantity": 1
+        }
+      ]
+    },
+    "elapsedMs": 2110.1438
+  },
+  "status": "VALID_CONTRACT",
+  "required": [
+    {
+      "label": "判断",
+      "kind": "decision",
+      "quantity": 1
+    }
+  ]
+}

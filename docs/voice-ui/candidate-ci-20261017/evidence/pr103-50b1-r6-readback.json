@@ -1,0 +1,15 @@
+{
+  "observed_at": "2026-10-17T10:28:56.142Z",
+  "review_id": 5557391686,
+  "url": "https://github.com/roccho-dev/apps/pull/103#pullrequestreview-5557391686",
+  "principal": "roccho-dev",
+  "state": "COMMENTED",
+  "commit": "50b17036d1c73d18fd92db95d6ff84350e1566d5",
+  "tree": "ce4e272ff8fa614d78624f48c32637819ed777ca",
+  "body_matches": true,
+  "body_sha256": "f371dc2065bf27458efe7522fecd8c166f9bfeda2b30a87db8ec4a9ead46c023",
+  "file_sha256": "739feac9c406c7b97765389d9698d6c82ab431332e29be6b93229c22f6eac24c",
+  "current_pr_head": "50b17036d1c73d18fd92db95d6ff84350e1566d5",
+  "current_pr_body_sha256": "144568307b2ef52c08d633b403e793ee7ef71773caa9d50acb84db0227af6f06",
+  "scope": "same persistent R on shared account, source/completed mechanics/evidence admission; no quality or human acceptance claim"
+}

@@ -1,0 +1,45 @@
+{
+  "schema": "voice-ui.frontier-cycle-phase/1",
+  "axis": "E",
+  "status": "RECORDED",
+  "summary": [
+    {
+      "axis": "E",
+      "id": "PE01",
+      "arm": "B",
+      "method": "literal-v2",
+      "generation_policy": null,
+      "valid_execution": true,
+      "calls": 1
+    },
+    {
+      "axis": "E",
+      "id": "PE01",
+      "arm": "C",
+      "method": "adaptive-v3",
+      "generation_policy": "dependent",
+      "valid_execution": true,
+      "calls": 8
+    },
+    {
+      "axis": "E",
+      "id": "PE02",
+      "arm": "C",
+      "method": "adaptive-v3",
+      "generation_policy": "dependent",
+      "valid_execution": true,
+      "calls": 4
+    },
+    {
+      "axis": "E",
+      "id": "PE02",
+      "arm": "B",
+      "method": "literal-v2",
+      "generation_policy": null,
+      "valid_execution": true,
+      "calls": 1
+    }
+  ],
+  "invalid_cells": 0,
+  "expected_cells": 4
+}

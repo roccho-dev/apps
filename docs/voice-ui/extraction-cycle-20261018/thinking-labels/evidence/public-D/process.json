@@ -1,0 +1,22 @@
+{
+  "phase_id": "thinking-public-D-20261018",
+  "pid": 393551,
+  "state": "R",
+  "pgid": 393551,
+  "start_ticks": "20065055",
+  "program": "/nix/store/bg0bygqiid25xnivxv9cdgjlx3sp939j-voice-ui-typed-dev/bin/voice-ui-typed-dev",
+  "heads": {
+    "apps": "b6696c1f579851429cf0cc58a49b20c9ff663475",
+    "envs": "063e685b8b21a97fc8658879da93fa858552bcd6",
+    "ops": "a724bdfa1864762cd9050a00e2642450af29c196",
+    "windows": "6aef693c0946903d8b87c2348039de1420acd61b",
+    "ui": "756d47e891191c3344eb2d29b000203be8331abc"
+  },
+  "allowances": {
+    "jev": 0,
+    "typellm": 8
+  },
+  "stdout": "/work/repos/voice-ui-typellm-20261016/thinking-public-D-20261018.stdout.log",
+  "stderr": "/work/repos/voice-ui-typellm-20261016/thinking-public-D-20261018.stderr.log",
+  "config_sha256": "208ca83344fb241df5a257dab005cc3ca6e0f645d6b46dbab4d5ccb12f424ebe"
+}

@@ -1,0 +1,43 @@
+{
+  "status": "PASS",
+  "scope": "MEASURED_CANDIDATE_FOUR_CI_ONLY_NOT_API_QUALITY",
+  "at": "2026-10-18T04:36:27.255Z",
+  "runs": [
+    {
+      "id": 39096337642,
+      "name": "nix-check",
+      "head_sha": "e7ac78dc448ba84468db853591dace33c6de40f1",
+      "status": "completed",
+      "conclusion": "success",
+      "html_url": "https://github.com/roccho-dev/apps/actions/runs/39096337642",
+      "updated_at": "2026-10-18T04:19:04Z"
+    },
+    {
+      "id": 39096337639,
+      "name": "voice-ui artifact",
+      "head_sha": "e7ac78dc448ba84468db853591dace33c6de40f1",
+      "status": "completed",
+      "conclusion": "success",
+      "html_url": "https://github.com/roccho-dev/apps/actions/runs/39096337639",
+      "updated_at": "2026-10-18T04:14:15Z"
+    },
+    {
+      "id": 39096337684,
+      "name": "artifact-auth",
+      "head_sha": "e7ac78dc448ba84468db853591dace33c6de40f1",
+      "status": "completed",
+      "conclusion": "success",
+      "html_url": "https://github.com/roccho-dev/apps/actions/runs/39096337684",
+      "updated_at": "2026-10-18T04:13:44Z"
+    },
+    {
+      "id": 39096337640,
+      "name": "voice-ui release",
+      "head_sha": "e7ac78dc448ba84468db853591dace33c6de40f1",
+      "status": "completed",
+      "conclusion": "success",
+      "html_url": "https://github.com/roccho-dev/apps/actions/runs/39096337640",
+      "updated_at": "2026-10-18T04:34:30Z"
+    }
+  ]
+}

@@ -1,0 +1,66 @@
+{
+  "schema": "voice-ui.independent-public-artifacts/1",
+  "scope": "Explicit stopped consumed E10 evidence/oracle only; private authoring/validation scripts and older unused pools remain excluded.",
+  "files": [
+    {
+      "name": "frontier-final-E-zero-send-audit.json",
+      "bytes": 6018,
+      "sha256": "45cdc64034f32b56e09887ffea1c4b4e6fb63d49e2cda0985f155ae48f5c6950"
+    },
+    {
+      "name": "frontier-final-E-physical-stop.json",
+      "bytes": 9467,
+      "sha256": "595a3b827ded866cb9df0ba01b5b037142ec4679bdcb25a4c792acb2afce5397"
+    },
+    {
+      "name": "frontier-final-E-stop-audit.json",
+      "bytes": 9595,
+      "sha256": "80f632a2b4b91d8c18cd24671ca17a16b43c275293584f5e159e99b091641ce5"
+    },
+    {
+      "name": "frontier-final-E-raw-audit.json",
+      "bytes": 57280,
+      "sha256": "2404c2dd78f765e92375567b6ff29caf556b63b4f996e83e4ce78bf8163e235a"
+    },
+    {
+      "name": "frontier-final-E-provider-audit.json",
+      "bytes": 866,
+      "sha256": "df067b1cc18f3283abb33a061d2010b19536ad95760672d46fd949338f1656f5"
+    },
+    {
+      "name": "frontier-final-E-producer-audit.json",
+      "bytes": 192,
+      "sha256": "f73ea3e239b785871a6bd995e3bbc954feedb4c2a27b11c55adc1c7bf905134f"
+    },
+    {
+      "name": "frontier-final-E-process-audit.json",
+      "bytes": 1137,
+      "sha256": "75029580478eafa3cfe13437d050d19dd19753e86f0233204e5a6694d7bf7992"
+    },
+    {
+      "name": "frontier-final-E-replay.json",
+      "bytes": 108754,
+      "sha256": "b43fc4874bed2f5cd611de5567be92ac342de56af9335a624fdde3672f32a3a7"
+    },
+    {
+      "name": "frontier-final-E.producer.json",
+      "bytes": 7996,
+      "sha256": "315e8a6ad4f29479081f9faae56628b25253873958afebc0222215de90d04513"
+    },
+    {
+      "name": "frontier-final-E-summary.json",
+      "bytes": 6037,
+      "sha256": "bea40151db79ec2bc9c560f689df984e13661a2d970e854d2468a3b22cd02b2b"
+    },
+    {
+      "name": "frontier-final-E-failure-classification.json",
+      "bytes": 2616,
+      "sha256": "4b9c7ea5780ccac38c74054f872ac6f7c5f7f4175c65474827ae9cb5da8d7717"
+    },
+    {
+      "name": "frontier-cycle-final-E-10.oracle.json",
+      "bytes": 15063,
+      "sha256": "c6ee6fca910a2fd91581886cd24aad9d0cb5e7a53b50d33dc27ebad88d45bf13"
+    }
+  ]
+}

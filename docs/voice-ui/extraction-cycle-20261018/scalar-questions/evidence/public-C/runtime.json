@@ -1,0 +1,73 @@
+{
+  "schema": "voice-ui.candidate.runtime-build/1",
+  "apps_sha": "a58e522672fcddf64bf7b71d8e18073b82eae20c",
+  "source_path": "/nix/store/hgk4lgiy9mv1zkzgn4plib6cwiaqak95-source",
+  "dev_program": {
+    "path": "/nix/store/6xhp8fiw8hv6gckrk03vlbi5m7fjfcbk-voice-ui-dev/bin/voice-ui-dev",
+    "sha256": "94b8c415029e50c0a8e9b2028c0a0db4f24f5645cbaceb0ccf8eb72cabf57388"
+  },
+  "dev_derivation": "/nix/store/srfwd1gh70yqqmxrzgnvr71p3q0wgddq-voice-ui-dev.drv",
+  "artifact_root": "/nix/store/a902mk7y21w1icz2wbav8s8jdw7za58s-voice-ui-dist",
+  "manifest": {
+    "path": "/nix/store/a902mk7y21w1icz2wbav8s8jdw7za58s-voice-ui-dist/manifest.json",
+    "sha256": "19bda9ff25d3629ec11c72eb996e70b1e14ad7ac5f92a7bf4a24460dbf4254a9"
+  },
+  "manifest_sources": {
+    "apps": "a58e522672fcddf64bf7b71d8e18073b82eae20c",
+    "architecture": {
+      "evidence_sha256": "5a1b88f2be3211a060768f1e9133a82f593fe32e3ca76ca0364e6552589acf9c",
+      "manifest_sha256": "7c5dbce6ad670eee5f5473712d06f0e3705be635ee68e5a1acc24f3b25ac4b70",
+      "source": {
+        "commit": "a58e522672fcddf64bf7b71d8e18073b82eae20c",
+        "handle": "apps-voice-ui"
+      },
+      "status": "available"
+    },
+    "hayamimi-web": {
+      "locator": "https://github.com/roccho-dev/ops/releases/download/hayamimi-web-1665d5195a0dd70c2e0253c20351e5305db35f3f/hayamimi-web.zip",
+      "proof_sha256": "a0bb1478a5ffe9440f46682ca143382cd000d0d1d6f736723baad96541be4e27",
+      "sha256": "c12b51e2ea396a64131b917439ffbda1aa1cd70a9fd7f9567ea05030897c672a"
+    },
+    "jev-provider": {
+      "contract": "named-questions/1",
+      "entry_sha256": "0773b5c96d0da7f05fef9f9cf95772b6722a03022648e90fc56a4fdc9ac6046e",
+      "locator": "https://github.com/roccho-org/ops/releases/download/jev-provider-c7ed1132ad7bec8e5f05c6da38d719a05dec4877/jev-provider.zip",
+      "manifest_sha256": "a5386f84f0606c6900b3c0e89d19f94dcf701d344d7c7e6384889d8bb6a1aab5",
+      "proof_sha256": "d756b5855a55c07e7b93687f1556ad1a2657ce0acc701c89476d87d9461a46ff",
+      "provenance_sha256": "90e295578042b89fcf4e1d6dfc2a5cdee6d76916f97a3668472883810811ea17",
+      "sha256": "0c063b050895db87029fd514c81add33e291e321109e2aa55a3befdd42593f03"
+    },
+    "system": "x86_64-linux",
+    "typellm-provider": {
+      "contract": "typed-completion/1",
+      "entry_sha256": "5b81ed270aa49e288cd57fa17f7e866fea7e3734e5c872af6f8ac6017d86ab25",
+      "locator": "https://github.com/roccho-org/ops/releases/download/jev-provider-c7ed1132ad7bec8e5f05c6da38d719a05dec4877/typellm-provider.zip",
+      "manifest_sha256": "da1d0c448b1c1cb14c697f7d3661503539e32d10303e774e0cbdf3d0f52dd196",
+      "proof_sha256": "d756b5855a55c07e7b93687f1556ad1a2657ce0acc701c89476d87d9461a46ff",
+      "provenance_sha256": "a352e4f31ac82a8972d0a4f021014ff3a31a1ffba6a71ca566a44d0d2412c16f",
+      "sha256": "762fb1570ef9e22ad468b2d02843b579a35af1fa5ae7849a0d9988484b88dd0c"
+    },
+    "ui": "756d47e891191c3344eb2d29b000203be8331abc"
+  },
+  "worker": {
+    "path": "/nix/store/a902mk7y21w1icz2wbav8s8jdw7za58s-voice-ui-dist/worker/worker.mjs",
+    "sha256": "d482422c7dc4f2c935cc83efbc3c342e6b49144b767ec72828b4094025bf85df"
+  },
+  "provider": {
+    "path": "/nix/store/apfn169j82dy4wdspjpmm0syidhxq2v2-jev-provider-admitted/jev.mjs",
+    "sha256": "0773b5c96d0da7f05fef9f9cf95772b6722a03022648e90fc56a4fdc9ac6046e"
+  },
+  "typed_provider": {
+    "path": "/nix/store/c2kh48cxaaphlik92pzxaishzk3prpyr-typellm-provider-admitted/typellm.mjs",
+    "sha256": "5b81ed270aa49e288cd57fa17f7e866fea7e3734e5c872af6f8ac6017d86ab25"
+  },
+  "semantic_map": {
+    "root": "/nix/store/vqjhvwxcbwv7vg09n4d3sy54lw879s9f-semantic-map",
+    "protocol": {
+      "path": "/nix/store/vqjhvwxcbwv7vg09n4d3sy54lw879s9f-semantic-map/packages/semantic-map/protocol/index.js",
+      "sha256": "1689dcf63e1ed19cdea7be22e3f90a09f434841f980b9ca8b9018a987c9c38f8"
+    }
+  },
+  "acceptance_runtime": "/nix/store/mqmmbzqpvl5j15vk0vmn9v6537lc5any-voice-ui-acceptance-node",
+  "external_provider_sends": 0
+}

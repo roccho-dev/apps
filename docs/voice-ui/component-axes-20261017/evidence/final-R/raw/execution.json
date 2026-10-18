@@ -1,0 +1,65 @@
+{
+  "schema": "voice-ui.component-axes-phase/1",
+  "axis": "R",
+  "status": "RECORDED",
+  "summary": [
+    {
+      "axis": "R",
+      "id": "R01",
+      "method": "ready",
+      "valid_execution": true,
+      "calls": 3
+    },
+    {
+      "axis": "R",
+      "id": "R02",
+      "method": "ready",
+      "valid_execution": true,
+      "calls": 3
+    },
+    {
+      "axis": "R",
+      "id": "R03",
+      "method": "ready",
+      "valid_execution": true,
+      "calls": 7
+    },
+    {
+      "axis": "R",
+      "id": "R04",
+      "method": "ready",
+      "valid_execution": true,
+      "calls": 7
+    },
+    {
+      "axis": "R",
+      "id": "R05",
+      "method": "ready",
+      "valid_execution": true,
+      "calls": 8
+    },
+    {
+      "axis": "R",
+      "id": "R06",
+      "method": "ready",
+      "valid_execution": true,
+      "calls": 6
+    },
+    {
+      "axis": "R",
+      "id": "R07",
+      "method": "ready",
+      "valid_execution": true,
+      "calls": 2
+    },
+    {
+      "axis": "R",
+      "id": "R08",
+      "method": "ready",
+      "valid_execution": true,
+      "calls": 6
+    }
+  ],
+  "invalid_cells": 0,
+  "expected_cells": 8
+}

@@ -1,0 +1,210 @@
+{
+  "schema": "voice-ui.review.intent-runtime-observation/1",
+  "status": "PASS",
+  "runtime_sha256": "c8b16d6e1595d2b433c6ee343d8c42cdc86de051239c0faf19477d9de4471b07",
+  "runtime": {
+    "schema": "voice-ui.candidate.runtime-build/1",
+    "apps_sha": "81f9f4df488e7f4fd94c63dbc15fe46ab0fb3a25",
+    "source_path": "/nix/store/g7kv35xybh3iv3fpl1fhykpgssiv9n54-source",
+    "dev_program": {
+      "path": "/nix/store/80y2mxqmiiklaa7i95szl46msrnz1pv9-voice-ui-dev/bin/voice-ui-dev",
+      "sha256": "014d218e49785b3523045ea7bcc03829f261c6a0357f83fafa9ccd1b99130274"
+    },
+    "dev_derivation": "/nix/store/54gl6250yx0jgw3k4b55f0srcmh25fxr-voice-ui-dev.drv",
+    "artifact_root": "/nix/store/3nx2h6aqjns9vkxvksal0ybn0cq2hc4y-voice-ui-dist",
+    "manifest": {
+      "path": "/nix/store/3nx2h6aqjns9vkxvksal0ybn0cq2hc4y-voice-ui-dist/manifest.json",
+      "sha256": "4bb6fe23b4b1cb07af3711ed2987f0a11c0ae6bd8b401cde7bc1a371f9f1ea29"
+    },
+    "manifest_sources": {
+      "apps": "81f9f4df488e7f4fd94c63dbc15fe46ab0fb3a25",
+      "architecture": {
+        "evidence_sha256": "7643aabdc3907c9cb61b740fe9eb45094cc2def66d43454166d2940c8e231e72",
+        "manifest_sha256": "564391cfc207c4b8adb1431668b820661709c7a7fc56e05c9b7cfb897956c6d8",
+        "source": {
+          "commit": "81f9f4df488e7f4fd94c63dbc15fe46ab0fb3a25",
+          "handle": "apps-voice-ui"
+        },
+        "status": "available"
+      },
+      "hayamimi-web": {
+        "locator": "https://github.com/roccho-dev/ops/releases/download/hayamimi-web-1665d5195a0dd70c2e0253c20351e5305db35f3f/hayamimi-web.zip",
+        "proof_sha256": "a0bb1478a5ffe9440f46682ca143382cd000d0d1d6f736723baad96541be4e27",
+        "sha256": "c12b51e2ea396a64131b917439ffbda1aa1cd70a9fd7f9567ea05030897c672a"
+      },
+      "jev-provider": {
+        "contract": "named-choices-and-typed/1",
+        "entry_sha256": "3f754c8b1ee4a8b34b50d00fd17e37295d853e1b607903b6d355b5e06997669c",
+        "locator": "https://github.com/roccho-org/ops/releases/download/jev-provider-b4f611cac9e13fbef178469796cbc3b6d4a76b23/jev-provider.zip",
+        "manifest_sha256": "c8fdf65da826690b487ab093d20c73a445a11dbc736ae4f58e23af7c57330318",
+        "proof_sha256": "459b753541fdf53cf0acb9cb13167c17218e078e3782933e589afaf57a8c6846",
+        "provenance_sha256": "b602225c44cc67c4f6a96fe41914c5159140718a4c81f0826cf46d9cce9223b8",
+        "sha256": "073d9df7a2eeb479a3641c6b86768bf3af14ec1b7e976ed5672649148d5e2435"
+      },
+      "system": "x86_64-linux",
+      "ui": "756d47e891191c3344eb2d29b000203be8331abc"
+    },
+    "worker": {
+      "path": "/nix/store/3nx2h6aqjns9vkxvksal0ybn0cq2hc4y-voice-ui-dist/worker/worker.mjs",
+      "sha256": "224ef5aae5c8a885fedd532a06e13785aa9d47b7d73b98b22bf85d94e08e99e9"
+    },
+    "provider": {
+      "path": "/nix/store/6w136z2zl586ln9w24p4dk471rwmlb7k-jev-provider-admitted/batch.mjs",
+      "sha256": "3f754c8b1ee4a8b34b50d00fd17e37295d853e1b607903b6d355b5e06997669c"
+    },
+    "semantic_map": {
+      "root": "/nix/store/vqjhvwxcbwv7vg09n4d3sy54lw879s9f-semantic-map",
+      "protocol": {
+        "path": "/nix/store/vqjhvwxcbwv7vg09n4d3sy54lw879s9f-semantic-map/packages/semantic-map/protocol/index.js",
+        "sha256": "1689dcf63e1ed19cdea7be22e3f90a09f434841f980b9ca8b9018a987c9c38f8"
+      }
+    },
+    "acceptance_runtime": "/nix/store/mqmmbzqpvl5j15vk0vmn9v6537lc5any-voice-ui-acceptance-node"
+  },
+  "source_files": [
+    {
+      "name": "src/completion.mjs",
+      "bytes": 28328,
+      "sha256": "11d6c098c703f257f96395a4a1c15ce4d39ed95fbd3aa0b103e23cbea94d5c5a"
+    },
+    {
+      "name": "src/literal-inventory.mjs",
+      "bytes": 8062,
+      "sha256": "ecdeb980fb826f800dfeb186e042b5a4edf85b32ecc8a97516eb55e81a9c37f9"
+    },
+    {
+      "name": "src/goal.mjs",
+      "bytes": 12911,
+      "sha256": "cd9101d6a222e31773c9523adeca3f7f9aa32990e30b39e06a7b872771422f3e"
+    },
+    {
+      "name": "src/contract.mjs",
+      "bytes": 30991,
+      "sha256": "f2c95212493f59fd80ef17270c2b5de0d51d795b26ac8a0e6dfa0fdb9dec30fe"
+    },
+    {
+      "name": "src/turn.mjs",
+      "bytes": 53204,
+      "sha256": "c5fc3489a5bd0861f0455bd9843f47e76030bb03a4fe55745cf00c29c79b7008"
+    },
+    {
+      "name": "src/session.mjs",
+      "bytes": 13314,
+      "sha256": "d6fcb97e581afb789ed6ecb339c06c378ef94283084df8ad3042ebe42c48cfe8"
+    },
+    {
+      "name": "functions/api/parts.mjs",
+      "bytes": 13727,
+      "sha256": "cdc97390f69e7a7883f158710b346b8487486988f5882f77660c14ce761e3635"
+    },
+    {
+      "name": "functions/pages-worker.mjs",
+      "bytes": 3017,
+      "sha256": "9aa2afda61f0fffdab87a15ececb59b35307f07cfd9f59099501c29aac1486c9"
+    },
+    {
+      "name": "web/app.mjs",
+      "bytes": 43782,
+      "sha256": "3a9ac4eba0770949a219b35c97cd346d4a7912026fae2b2f21710251b86bbf2a"
+    },
+    {
+      "name": "web/adapters/completion.mjs",
+      "bytes": 970,
+      "sha256": "537bc46e93efe58fbdf466dd2493989ad5695209def769ec9da3ba68926edb5a"
+    },
+    {
+      "name": "dev/serve.mjs",
+      "bytes": 20526,
+      "sha256": "d044ea7f8ccbd7fd71fbe1447dcce0f30bfa831d471da3eef2e3377380532298"
+    },
+    {
+      "name": "tests/dependency-cycle-eval.mjs",
+      "bytes": 14959,
+      "sha256": "b92308340b7a54020c30ae1c1daa3b482b60263d080b3f2e2393909f6cfcd7c3"
+    },
+    {
+      "name": "tests/requirements-cycle-score.mjs",
+      "bytes": 21347,
+      "sha256": "3d779cf422e8cc0facc6f5ff566c3e77b36a61486f9586f120b0c1a722cd5a46"
+    },
+    {
+      "name": "tests/requirements-cycle-audit.mjs",
+      "bytes": 56082,
+      "sha256": "692bdbaef8dbe28fe30fcdfe178202ebbdf3a4728bf0fe1c7310f72bf789c6eb"
+    },
+    {
+      "name": "tests/dependency-cycle-score.mjs",
+      "bytes": 8386,
+      "sha256": "2f7f40afec31d1f7cded08951529a30d741f6ebfb8abf446900a7f6eb567ef91"
+    },
+    {
+      "name": "tests/dependency-cycle-audit.mjs",
+      "bytes": 64775,
+      "sha256": "47dce6207c8b48dae6447d87ee1294d8495f28a31d2b474d5dc0c9b95998d66e"
+    },
+    {
+      "name": "tests/semantic-score.mjs",
+      "bytes": 3826,
+      "sha256": "3230791bd2b06ccbb73008723ab3709981ce6e2d65fc2fdbdec8cadf9d1cfec3"
+    },
+    {
+      "name": "tests/requirements-cycle-http.mjs",
+      "bytes": 1163,
+      "sha256": "b3c1d052e2f7138532e0d7cac6ac7b3c7287b7af32b857990c1e6d14bb325386"
+    },
+    {
+      "name": "tests/painted-goal.mjs",
+      "bytes": 24668,
+      "sha256": "c5ba117d1dea66d20c80b7f92b8184296ff79d4231da56f5a89836af4beb018b"
+    },
+    {
+      "name": "tests/intent-cycle-eval.mjs",
+      "bytes": 15130,
+      "sha256": "0dd9649d87f4b2f0d0e446b44f5dcd7bb09582e75eca8ca7113b8d0d4d741357"
+    },
+    {
+      "name": "tests/intent-cycle-score.mjs",
+      "bytes": 10328,
+      "sha256": "e6652eef8ee1b18c1b3c479b649033105c1ae27f360b0b9d4a16f898edc664cb"
+    },
+    {
+      "name": "tests/intent-cycle-audit.mjs",
+      "bytes": 66452,
+      "sha256": "151715f5c09a64a1187ad2557e13b3172801e8e8fa8ee492b31a5a7823222617"
+    }
+  ],
+  "official_verifier": {
+    "exit_code": 0,
+    "stdout": ""
+  },
+  "manifest_rows": 293,
+  "core_equal_reference": {
+    "apps": "286eb7d0bc0bdef160bda900547314aa5be3a752",
+    "files": [
+      "src/goal.mjs",
+      "src/turn.mjs",
+      "src/contract.mjs",
+      "src/session.mjs",
+      "src/log.mjs",
+      "web/app.mjs"
+    ]
+  },
+  "actual_ui_equal_reference": 238,
+  "semantic_map_renderer_protocol_equal_reference": 231,
+  "bundle_sha256": "8fd1b4f37f6a113653dbaeda5e040ba5bed6d7b007ab9269d307f8642d339189",
+  "dev_store_references": [
+    "/nix/store/3nx2h6aqjns9vkxvksal0ybn0cq2hc4y-voice-ui-dist/worker/worker.mjs",
+    "/nix/store/b7l6pgxk94ipi8sxg8z72kx8f6ki36xj-hayamimi-web",
+    "/nix/store/g7kv35xybh3iv3fpl1fhykpgssiv9n54-source/packages/voice-ui/dev/serve.mjs",
+    "/nix/store/lnfxdsvvm1srsa9kk94s7jqw06yq1h2d-nodejs-24.18.0/bin:/nix/store/w42i0254qqsjm987mgaki45syfb3p94p-semcmp-0.1.0/bin:$PATH",
+    "/nix/store/nv94gid8wb2p0m1hlqlbh6bsqhqn2kv8-voice-ui-architecture-source",
+    "/nix/store/v8llyqw71lygr2llhmcc8ya5bdlzq45v-bash-5.3p9/bin/bash",
+    "/nix/store/vqjhvwxcbwv7vg09n4d3sy54lw879s9f-semantic-map",
+    "/nix/store/w42i0254qqsjm987mgaki45syfb3p94p-semcmp-0.1.0/bin/semcmp"
+  ],
+  "provider_program_started": false,
+  "reviewer_real_provider_calls": 0,
+  "source_audit_sha256": "e09275a3ff92aa502740fd34f9878f02ae490348228984e6ddeac6a9a2502f75",
+  "scope": "IMMUTABLE_SOURCE_AND_COMPLETED_RUNTIME_ONLY_NO_PROCESS_OR_LIVE_GO",
+  "review_setup_note": "The initial official verifier invocation could not resolve node in the SSH default PATH. No model process or send occurred. The same verifier and immutable artifact passed after giving the subprocess an explicit pinned-node PATH; no source or artifact bytes changed."
+}

@@ -1,0 +1,26 @@
+{
+  "schema": "voice-ui.review.thinking-fresh-stop/1",
+  "status": "PASS",
+  "at": "2026-10-18T03:23:53.099971+00:00",
+  "phase": "thinking-fresh-D-20261018",
+  "pid": 394238,
+  "start_ticks": "20144109",
+  "charged": {
+    "jev": 847,
+    "typellm": 136
+  },
+  "sent": {
+    "jev": 0,
+    "typellm": 8
+  },
+  "outstanding": 0,
+  "owned_pgids": 49,
+  "remaining_members": [],
+  "journal_sha256": "2b938983023a8e2627041d52cb943a3d0f6bd530aeed637c606b816a57328d35",
+  "prior_cutoff_prefix": "3eead593ac154f199a00006aeaacc6928fc12e49f423f7ea8c5d8faf916358cd",
+  "provider_send_sequence_exact": true,
+  "actual_raw_scope": "FRESH_FOUR_CASE_EXTRACTION_ONLY_NOT_ORDINARY_UI_EFFECT",
+  "root_terminal_scope_observed": "ROOT_STOPPED_PUBLIC_COMPARISON_TERMINAL_ONLY",
+  "scope_label_note": "Frozen root-terminal helper retained PUBLIC in its label. Raw FRESH scope, exact fresh plan/wire, actual phase, counts and physical stop independently verified. Original helper/proof bytes preserved; no relabeling or public/fresh grade substitution.",
+  "reviewer_real_provider_calls": 0
+}

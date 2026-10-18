@@ -1,0 +1,11 @@
+voice-ui dev: listening on 127.0.0.1:18845
+voice-ui dev: semanticMap=/nix/store/vqjhvwxcbwv7vg09n4d3sy54lw879s9f-semantic-map
+voice-ui dev: hayamimi=/nix/store/b7l6pgxk94ipi8sxg8z72kx8f6ki36xj-hayamimi-web
+voice-ui dev: architecture=/nix/store/ivmdvnf8yvb8zrr65ndpj4q1q06yls2j-voice-ui-architecture-source
+voice-ui dev: JEV_API_KEY bound
+{"kind":"voice-ui.parts.stage.v2","request_id":"1a9fd00a-9574-4327-8e1c-bbb009ec89ac","stage":"TYPE_REQUIRED","valid":false}
+{"kind":"voice-ui.parts.stage.v2","request_id":"74196088-b001-4c0a-8ab9-14a774382a88","stage":"TYPE_REQUIRED","valid":true,"proposal":{"slots":{"required1":{"label":"可否照合","kind":"decision","quantity":"1"},"required2":{"label":"","kind":"none","quantity":"0"},"required3":{"label":"","kind":"none","quantity":"0"}},"required":[{"label":"可否照合","kind":"decision","quantity":1}]}}
+{"kind":"voice-ui.parts.stage.v2","request_id":"8b650819-8a29-46ca-a124-5fe1f68c311d","stage":"TYPE_REQUIRED","valid":true,"proposal":{"slots":{"required1":{"label":"API","kind":"step","quantity":"1"},"required2":{"label":"","kind":"none","quantity":"0"},"required3":{"label":"","kind":"none","quantity":"0"}},"required":[{"label":"API","kind":"step","quantity":1}]}}
+{"kind":"voice-ui.parts.stage.v2","request_id":"65217b62-7758-4c80-aebe-da31d8bb56d4","stage":"TYPE_REQUIRED","valid":false}
+{"kind":"voice-ui.parts.stage.v2","request_id":"3388d3b8-063a-4dd3-ab2d-9fa867cb393c","stage":"TYPE_REQUIRED","valid":false}
+{"kind":"voice-ui.parts.stage.v2","request_id":"f887e7ab-7646-4a23-a2c5-40cd2df42e26","stage":"TYPE_REQUIRED","valid":false}

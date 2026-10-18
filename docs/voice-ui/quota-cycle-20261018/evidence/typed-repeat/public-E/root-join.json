@@ -1,0 +1,40 @@
+{
+  "status": "PASS",
+  "scope": "ROOT_INDEPENDENT_FIXED_PRODUCER_RAW_PROVIDER_PROCESS_JOIN_ACTUAL_CI_FOLLOWS",
+  "at": "2026-10-18T04:44:23.850Z",
+  "binding": {
+    "status": "PASS",
+    "issues": [],
+    "scope": "fixed exact-byte producer/source testimony joins; physical observation remains independently referenced",
+    "CI_LIVE_EXECUTION": "UNPROVEN"
+  },
+  "processGraph": {
+    "schema": "voice-ui.quota-cycle-process/1",
+    "status": "PASS",
+    "issues": [],
+    "state": "PUBLIC_REGRESSION_ONLY",
+    "baseline": {
+      "jev": 847,
+      "typellm": 136
+    },
+    "indexed_phases": 1,
+    "source_head": "e7ac78dc448ba84468db853591dace33c6de40f1",
+    "correction_batches": 0,
+    "reserved": {
+      "jev": 19,
+      "typellm": 1
+    },
+    "charged_at_cutoff": {
+      "jev": 850,
+      "typellm": 137
+    },
+    "releases": [],
+    "scope": "integrity/process only; conditional expression and ordinary supplementation are separate; retained fresh quality failures do not block complete stopped-evidence progression"
+  },
+  "classificationBeforeCI": {
+    "quality": "UNPROVEN",
+    "effect": "UNPROVEN",
+    "public_gate": "UNPROVEN"
+  },
+  "fresh_release": "WITHHELD_PUBLIC_GATE_UNMET"
+}

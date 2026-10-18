@@ -1,0 +1,61 @@
+{
+  "schema": "voice-ui.review.quota-ci-closure/1",
+  "status": "PASS",
+  "head": "59ded276405a5dc9caa85ad570b1827ff4bd0c7a",
+  "run": 39076041775,
+  "checked_at": "2026-10-17T22:58:19.209Z",
+  "kind": "requirements-cycle",
+  "artifact": {
+    "id": 12117666279,
+    "name": "voice-ui-requirements-cycle-59ded276405a5dc9caa85ad570b1827ff4bd0c7a",
+    "bytes": 16237,
+    "sha256": "ba2040df0ab4d98efc702544181355b3038de3c9d2a7f2234b4083b543ed325d"
+  },
+  "receipt_sha256": "1f33d0e447cb8901fd943f446864fb4b920a377514151836112ba1c9a576ddbf",
+  "cumulative": {
+    "jev": 701,
+    "typellm": 58
+  },
+  "reports": 5,
+  "baseline": {
+    "head": "0aa3c4b90519a1c18c217753698806507ccff3c0",
+    "audit_sha256": "663e4e32bff74af9d68fee60cd3491d0b5de946101c699c843ddd32e9748a92a",
+    "zip_sha256": "e5a83bbb0b8c5bf8ea76b5526dd2a7c437398a2f8f41703be53724743c562968"
+  },
+  "exact_json_files": 6,
+  "members": [
+    {
+      "name": "correction1-F/audit.json",
+      "sha256": "717a9b75eb5ba1ff619ee8ebe821bc031f2550d226dd06461d6150410dd4b200",
+      "match": "EXACT_RAW_BYTES"
+    },
+    {
+      "name": "correction1-V/audit.json",
+      "sha256": "f19d369d3be3c35504f28e61344a777940d9d8e0a053f34362d6cde55bdf5ae4",
+      "match": "EXACT_RAW_BYTES"
+    },
+    {
+      "name": "correction2-F/audit.json",
+      "sha256": "d374957ef0a4a27f33dc015043005697b81049e7614df0857906a5b89c7dcea9",
+      "match": "EXACT_RAW_BYTES"
+    },
+    {
+      "name": "correction2-V/audit.json",
+      "sha256": "36081f38f7b0fba7ee744411613303c4eeaaeea7689c833e7fd2f2fb0e52cf57",
+      "match": "EXACT_RAW_BYTES"
+    },
+    {
+      "name": "public-F/audit.json",
+      "sha256": "0454d4eaaae3fca7fda252e3cafd4b42391614221c022395c8be2d757faa6b3d",
+      "match": "EXACT_RAW_BYTES"
+    },
+    {
+      "name": "receipt.json",
+      "sha256": "1f33d0e447cb8901fd943f446864fb4b920a377514151836112ba1c9a576ddbf",
+      "match": "EXACT_RAW_BYTES"
+    }
+  ],
+  "receipt_reused_only_after_all_members_matched": true,
+  "scope": "ACTUAL_CI_CLOSED_EVIDENCE_OR_NOT_MEASURED_ONLY_NOT_LIVE_PERFORMANCE_OR_LAUNCH_GO",
+  "reviewer_real_provider_calls": 0
+}

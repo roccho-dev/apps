@@ -1,0 +1,237 @@
+{
+  "id": "QD02-current",
+  "case": "QD02",
+  "arm": "current",
+  "role": "explicit",
+  "request": {
+    "kind": "voice-ui.goal.inventory.v1",
+    "state": {
+      "utterance": "保留区へ新しい工程を二つ設け、どちらの表示もAPIにしてください。二つとも独立した部品として置き、線は付けないでください。",
+      "head": "sha256:f14b93ac1b4a8ca4af467132ccd7f5d0a524fed90de6dbf3d54d77ea8f534596",
+      "regions": [
+        {
+          "id": "root",
+          "label": "fixture",
+          "kind": "boundary",
+          "parent": null
+        },
+        {
+          "id": "container",
+          "label": "作業区",
+          "kind": "group",
+          "parent": "root"
+        },
+        {
+          "id": "other",
+          "label": "保留区",
+          "kind": "group",
+          "parent": "root"
+        }
+      ],
+      "edges": [],
+      "parts": [
+        {
+          "key": "step",
+          "purpose": "an ordinary step, task or box",
+          "label": "工程",
+          "kind": "step"
+        },
+        {
+          "key": "decision",
+          "purpose": "a decision, choice or branch",
+          "label": "判断",
+          "kind": "decision"
+        },
+        {
+          "key": "data",
+          "purpose": "data, a document, an input or an output",
+          "label": "データ",
+          "kind": "data"
+        },
+        {
+          "key": "start",
+          "purpose": "a start or beginning",
+          "label": "開始",
+          "kind": "start"
+        },
+        {
+          "key": "end",
+          "purpose": "an end, finish or result",
+          "label": "終了",
+          "kind": "end"
+        },
+        {
+          "key": "api",
+          "purpose": "an application programming interface service that receives requests",
+          "label": "API",
+          "kind": "step"
+        },
+        {
+          "key": "db",
+          "purpose": "a database that persists application data",
+          "label": "DB",
+          "kind": "data"
+        },
+        {
+          "key": "group",
+          "purpose": "a group, boundary or container that holds other parts",
+          "label": "グループ",
+          "kind": "group"
+        }
+      ]
+    }
+  },
+  "generation": "flat-scalars",
+  "route": "/api/parts/requirements?generation=flat-scalars",
+  "request_body_utf8": "{\"kind\":\"voice-ui.goal.inventory.v1\",\"state\":{\"utterance\":\"保留区へ新しい工程を二つ設け、どちらの表示もAPIにしてください。二つとも独立した部品として置き、線は付けないでください。\",\"head\":\"sha256:f14b93ac1b4a8ca4af467132ccd7f5d0a524fed90de6dbf3d54d77ea8f534596\",\"regions\":[{\"id\":\"root\",\"label\":\"fixture\",\"kind\":\"boundary\",\"parent\":null},{\"id\":\"container\",\"label\":\"作業区\",\"kind\":\"group\",\"parent\":\"root\"},{\"id\":\"other\",\"label\":\"保留区\",\"kind\":\"group\",\"parent\":\"root\"}],\"edges\":[],\"parts\":[{\"key\":\"step\",\"purpose\":\"an ordinary step, task or box\",\"label\":\"工程\",\"kind\":\"step\"},{\"key\":\"decision\",\"purpose\":\"a decision, choice or branch\",\"label\":\"判断\",\"kind\":\"decision\"},{\"key\":\"data\",\"purpose\":\"data, a document, an input or an output\",\"label\":\"データ\",\"kind\":\"data\"},{\"key\":\"start\",\"purpose\":\"a start or beginning\",\"label\":\"開始\",\"kind\":\"start\"},{\"key\":\"end\",\"purpose\":\"an end, finish or result\",\"label\":\"終了\",\"kind\":\"end\"},{\"key\":\"api\",\"purpose\":\"an application programming interface service that receives requests\",\"label\":\"API\",\"kind\":\"step\"},{\"key\":\"db\",\"purpose\":\"a database that persists application data\",\"label\":\"DB\",\"kind\":\"data\"},{\"key\":\"group\",\"purpose\":\"a group, boundary or container that holds other parts\",\"label\":\"グループ\",\"kind\":\"group\"}]}}",
+  "response": {
+    "schema": "voice-ui.parts.requirements/2",
+    "request_id": "62571d1a-c0d3-4080-9fe3-84402cadbcda",
+    "slots": {
+      "required1": {
+        "label": "工程",
+        "kind": "step",
+        "quantity": "2"
+      },
+      "required2": {
+        "label": "",
+        "kind": "none",
+        "quantity": "0"
+      },
+      "required3": {
+        "label": "",
+        "kind": "none",
+        "quantity": "0"
+      }
+    },
+    "required": [
+      {
+        "label": "工程",
+        "kind": "step",
+        "quantity": 2
+      }
+    ]
+  },
+  "event": {
+    "id": "QD02-current",
+    "arm": "current",
+    "n": 4,
+    "route": "/api/parts/requirements?generation=flat-scalars",
+    "request": {
+      "kind": "voice-ui.goal.inventory.v1",
+      "state": {
+        "utterance": "保留区へ新しい工程を二つ設け、どちらの表示もAPIにしてください。二つとも独立した部品として置き、線は付けないでください。",
+        "head": "sha256:f14b93ac1b4a8ca4af467132ccd7f5d0a524fed90de6dbf3d54d77ea8f534596",
+        "regions": [
+          {
+            "id": "root",
+            "label": "fixture",
+            "kind": "boundary",
+            "parent": null
+          },
+          {
+            "id": "container",
+            "label": "作業区",
+            "kind": "group",
+            "parent": "root"
+          },
+          {
+            "id": "other",
+            "label": "保留区",
+            "kind": "group",
+            "parent": "root"
+          }
+        ],
+        "edges": [],
+        "parts": [
+          {
+            "key": "step",
+            "purpose": "an ordinary step, task or box",
+            "label": "工程",
+            "kind": "step"
+          },
+          {
+            "key": "decision",
+            "purpose": "a decision, choice or branch",
+            "label": "判断",
+            "kind": "decision"
+          },
+          {
+            "key": "data",
+            "purpose": "data, a document, an input or an output",
+            "label": "データ",
+            "kind": "data"
+          },
+          {
+            "key": "start",
+            "purpose": "a start or beginning",
+            "label": "開始",
+            "kind": "start"
+          },
+          {
+            "key": "end",
+            "purpose": "an end, finish or result",
+            "label": "終了",
+            "kind": "end"
+          },
+          {
+            "key": "api",
+            "purpose": "an application programming interface service that receives requests",
+            "label": "API",
+            "kind": "step"
+          },
+          {
+            "key": "db",
+            "purpose": "a database that persists application data",
+            "label": "DB",
+            "kind": "data"
+          },
+          {
+            "key": "group",
+            "purpose": "a group, boundary or container that holds other parts",
+            "label": "グループ",
+            "kind": "group"
+          }
+        ]
+      }
+    },
+    "status": 200,
+    "response": {
+      "schema": "voice-ui.parts.requirements/2",
+      "request_id": "62571d1a-c0d3-4080-9fe3-84402cadbcda",
+      "slots": {
+        "required1": {
+          "label": "工程",
+          "kind": "step",
+          "quantity": "2"
+        },
+        "required2": {
+          "label": "",
+          "kind": "none",
+          "quantity": "0"
+        },
+        "required3": {
+          "label": "",
+          "kind": "none",
+          "quantity": "0"
+        }
+      },
+      "required": [
+        {
+          "label": "工程",
+          "kind": "step",
+          "quantity": 2
+        }
+      ]
+    },
+    "elapsedMs": 2215.4089999999997
+  },
+  "status": "VALID_CONTRACT",
+  "required": [
+    {
+      "label": "工程",
+      "kind": "step",
+      "quantity": 2
+    }
+  ]
+}

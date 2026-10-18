@@ -1,0 +1,70 @@
+{
+  "schema": "voice-ui.independent-public-E-gate-report/1",
+  "status": "PASS",
+  "phase": "compact-verifier-public-E-20261018",
+  "head": "180fc53e24f0fc2a5fdb098a3748afaff047bab6",
+  "scope": "FINITE_PUBLIC_REGRESSION_ONLY_NOT_HELDOUT_OR_QUESTION_CAUSALITY",
+  "planned": 2,
+  "valid": 2,
+  "baseline_success": 0,
+  "candidate_success": 1,
+  "admissible_missing_pairs": 1,
+  "missing_gains": 1,
+  "regressions": 0,
+  "no_false_adoption": true,
+  "all_arm_guards": true,
+  "all_missing_admitted": true,
+  "raw_quality_criterion": "PASS",
+  "raw_effect_criterion": "PASS",
+  "public_E_raw_admission_gate": "PASS",
+  "formal_classification_before_actual_evidence_CI": {
+    "quality": "UNPROVEN",
+    "effect": "UNPROVEN",
+    "public_gate": "UNPROVEN"
+  },
+  "physical_stop": "PASS",
+  "source28_both_formal_provider_binding": "PASS",
+  "producer_binding": "PASS",
+  "process_V_then_E": "PASS",
+  "paint_persistence_deadline_all_arms": "PASS",
+  "recorded_replay": {
+    "status": "PASS",
+    "issues": [],
+    "consumed": 2,
+    "frames": 6,
+    "assessed_frames": 4,
+    "recorded_paint_status": "PASS",
+    "replay_sha256": "cf8f33d1789527b5e569ac8536095a1d7ce26d26d551a3751c024487fa5b7e13",
+    "model_quality_scope": "NONE",
+    "CI_LIVE_EXECUTION": "UNPROVEN"
+  },
+  "pairs": [
+    {
+      "id": "TEP01",
+      "eligible": true,
+      "baseline_success": false,
+      "candidate_success": true,
+      "missing_gain": true,
+      "regression": false,
+      "excluded_from_causal_only": false
+    }
+  ],
+  "prior_V_gate": "PASS",
+  "fresh_input_only_release_eligible": true,
+  "fresh_original_hashes_order_oracle_unchanged": true,
+  "fresh_oracle": "WITHHELD_UNTIL_CORRESPONDING_FRESH_PHYSICAL_STOP",
+  "fresh_candidate": "SAME_180_FIXED_CALLER_CRITERIA",
+  "fresh_cap": {
+    "jev": 114,
+    "typellm": 6
+  },
+  "heldout_quality_effect": "NOT_MEASURED_UNPROVEN",
+  "question_only_causal_effect": "UNPROVEN",
+  "whole_generalization": "UNPROVEN",
+  "charged_at_cutoff": {
+    "jev": 864,
+    "typellm": 138
+  },
+  "journal_sha256": "43cf6cf845f35f65db07858164d5e56366a2ab024e175c13eaa11db62b48ca6c",
+  "reviewer_provider_calls": 0
+}

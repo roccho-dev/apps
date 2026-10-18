@@ -1,0 +1,50 @@
+{
+  "observed_at": "2026-10-17T10:31:40.424355+00:00",
+  "phase": "candidate-fresh-20261017",
+  "hashes": {
+    "config": "968a8566ae88afbf694287ab235caffbfeb55ee21f22e6e637f65ff8a53d1ce5",
+    "identity": "08a058f3a7818362dcfcd6b6560a2ef9866b400d3f0486c667359e62e0db736d",
+    "runtime": "57ac708a6317a4edde7da8864459adec93b61eb5b9b4bab1da4e52e7b7ca747a",
+    "input": "6dbd7ce5ededd2c9a3e7bc4aeb9c1a43087f14286133fed279283e4422054a1a"
+  },
+  "current": {
+    "pid": 270500,
+    "state": "S",
+    "pgid": 270500,
+    "start_ticks": "14088123"
+  },
+  "argv": [
+    "node",
+    "/nix/store/d73cnc0zzkihnw4zz896gnv1m30c8spf-source/packages/voice-ui/dev/serve.mjs"
+  ],
+  "preload_exact": true,
+  "actual_hashes": {
+    "dev": "a56b671df524284b08101accdc8ee0bb5aecc8ed4d4c50bfd5a3ffdc7b6b7e77",
+    "worker": "fe10fd17d049f7cd87a892dc3d6d7cd2bc0faa0b3811379ac53c4bf6328c4b90",
+    "provider": "ad4ac08ae8c42f3bf0e9d0aeedb0a2e9192c776585a3251b2ff1e18358cfe2e7",
+    "protocol": "1689dcf63e1ed19cdea7be22e3f90a09f434841f980b9ca8b9018a987c9c38f8",
+    "manifest": "39c0f1d572f67a28efe1f1be0eb0b7a74ef0c819334fa83012477b67c60c6408",
+    "launcher": "2bda2882f0d8e489198241dc987d2cd28f989dd7fefad1a1640e152ac913a6c5",
+    "preload": "cdb39c164e55d7f660251704b13c20c4fdd6ffb0bec1524c44e9bf355e333d24",
+    "manager": "92167c85c8e0861402f9ef57c30cb8a457d4f21a83c857fa23bd0080096942a1"
+  },
+  "sent": {
+    "jev": 0,
+    "typellm": 0
+  },
+  "charged": {
+    "jev": 413,
+    "typellm": 26
+  },
+  "pending": [
+    [
+      "candidate-fresh-20261017",
+      {
+        "jev": 270,
+        "typellm": 10
+      }
+    ]
+  ],
+  "ledger_sha256": "16de9fe449ca8ecd2b491f509f405286a843a4a01ba0874d17ddfde749c0c0c6",
+  "matches": true
+}

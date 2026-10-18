@@ -1,0 +1,42 @@
+{
+  "schema": "voice-ui.frontier-cycle-process/1",
+  "status": "PASS",
+  "issues": [],
+  "state": "FINAL_RECORDED",
+  "baseline": {
+    "jev": 725,
+    "typellm": 71
+  },
+  "indexed_phases": 5,
+  "source_head": "2cc4890b765a5534e92855f83f9232ae85bb373b",
+  "correction_batches": 0,
+  "reserved": {
+    "jev": 248,
+    "typellm": 20
+  },
+  "charged_at_cutoff": {
+    "jev": 808,
+    "typellm": 85
+  },
+  "releases": [
+    {
+      "phase": "frontier-final-V-20261018",
+      "apps_sha": "2cc4890b765a5534e92855f83f9232ae85bb373b",
+      "admitted": true,
+      "prior_fresh_quality_required": false
+    },
+    {
+      "phase": "frontier-final-F-20261018",
+      "apps_sha": "2cc4890b765a5534e92855f83f9232ae85bb373b",
+      "admitted": true,
+      "prior_fresh_quality_required": false
+    },
+    {
+      "phase": "frontier-final-E-20261018",
+      "apps_sha": "2cc4890b765a5534e92855f83f9232ae85bb373b",
+      "admitted": true,
+      "prior_fresh_quality_required": false
+    }
+  ],
+  "scope": "integrity/process only; V/F/E quality axes remain separate; blind progression by complete stopped evidence, not perfect prior fresh quality"
+}

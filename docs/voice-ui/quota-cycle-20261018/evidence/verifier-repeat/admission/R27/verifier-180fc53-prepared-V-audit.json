@@ -1,0 +1,59 @@
+{
+  "schema": "voice-ui.independent-prepared-phase-audit/1",
+  "status": "PASS",
+  "scope": "STATIC_ONLY_UNEXECUTED_GET_ONLY_ADMISSION_AFTER_R27_PAID_GO_SEPARATE",
+  "head": "180fc53e24f0fc2a5fdb098a3748afaff047bab6",
+  "manifest": {
+    "bytes": 746,
+    "sha256": "b8d0564c87766f3b9c1480e7f8a37c7a345a8e803b342cdb32aee39a56608bb5"
+  },
+  "members": [
+    {
+      "name": "V-zero-prepared.mjs",
+      "bytes": 4692,
+      "sha256": "c5aae405757c1ab3b2159c16e9c4ed805da047a789fe23eba530af2b43f9a9d9"
+    },
+    {
+      "name": "V-operator-prepared.mjs",
+      "bytes": 2944,
+      "sha256": "99da17283eaec5892460696eb9ddb2e4255c461058d5776a4383789d162845ec"
+    },
+    {
+      "name": "V-stop-prepared.mjs",
+      "bytes": 3707,
+      "sha256": "d47c4eb305999186385a8ca2748c50f82c5e38a825bff6657001e2be3c451909"
+    },
+    {
+      "name": "V-raw-regrade-prepared.mjs",
+      "bytes": 2954,
+      "sha256": "b326406a7f9aaa01d14e969a916fd481018f93bfd56883315cd2f76807778912"
+    }
+  ],
+  "config": {
+    "phase": "compact-verifier-public-V-20261018",
+    "bytes": 1271,
+    "sha256": "5de119ed35289c96b9485aa501b9dfc4e6bd53aa7e364c52cdcacd5a8af81760",
+    "allowances": {
+      "jev": 6,
+      "typellm": 0
+    },
+    "input_sha256": "a508e239d34896726e0a21c9e7cd0eb52486879652be70e786be362d57db573d",
+    "immutable_candidate_input_and_caller": true
+  },
+  "checks": {
+    "all_four_syntax_only_pass": true,
+    "actual_split_source_backslash_count_one": true,
+    "root_zero_GET_only": true,
+    "same_PID_start_PGID_UID_and_zero_send_checks": true,
+    "both_formal_provider_manifest_sources_bound": true,
+    "fixed_runtime_and_wire_hashes_bound": true,
+    "existing_six_flag_V_caller_oracle_free": true,
+    "operator_one_invocation_and_finally_manager_stop_immediate_fsynced_journal": true,
+    "stop_evidence_separate_from_quality": true,
+    "stopped_regrade_existing_raw_and_provider_functions": true,
+    "raw_completeness_confidence_report_only": true,
+    "no_new_live_execution": true
+  },
+  "remaining_gate": "actual same-PID FD-route/preload/source/counters zero audit, then separate one-shot paid GO",
+  "reviewer_provider_sends": 0
+}

@@ -1,0 +1,68 @@
+{
+  "schema": "voice-ui.review.quota-phase-public-copy/1",
+  "status": "PASS",
+  "phase": "quota-public-R-20261018",
+  "axis": "R",
+  "apps_sha": "59ded276405a5dc9caa85ad570b1827ff4bd0c7a",
+  "copy_allowlist": [
+    {
+      "name": "quota-public-R-zero-send-audit.json",
+      "bytes": 6590,
+      "sha256": "55b9465d10738c8cd9ffa53f72828efa1079a63d383a08b564df8fb0d2fe74e2"
+    },
+    {
+      "name": "quota-public-R-physical-stop.json",
+      "bytes": 8046,
+      "sha256": "5681646107ab3f1718c3ba228b40b8a371775a6e793c41d9d65b8beb3fa0b637"
+    },
+    {
+      "name": "quota-public-R-stop-audit.json",
+      "bytes": 11009,
+      "sha256": "217de5753592e7e2a2c8142fbdb8d04ca9c47215d8129b730ff02fe554783252"
+    },
+    {
+      "name": "quota-public-R-raw-audit.json",
+      "bytes": 8302,
+      "sha256": "ee1f5ae6092042db74ca29dc5fb432e415605d4c2f983ebccc37fd3486e93b64"
+    },
+    {
+      "name": "quota-public-R-provider-audit.json",
+      "bytes": 860,
+      "sha256": "ff34e14a92b8b5b6163dd10f9e08808380ac86c6cd82d195de197931acd66067"
+    },
+    {
+      "name": "quota-public-R-replay.json",
+      "bytes": 11756,
+      "sha256": "09392c40e2d96a21507d23397deba5bf68cf1260efb46588aed378c9f3f991fd"
+    },
+    {
+      "name": "quota-public-R-replay-audit.json",
+      "bytes": 285,
+      "sha256": "c494aa50bd92efc34f84433f684344a89a5dd7368cf5bdc891f5594184fc0533"
+    },
+    {
+      "name": "quota-public-R.producer.json",
+      "bytes": 5943,
+      "sha256": "5c4cc0d562b903cec1235e5bff9e88e2c56f806902ccf9c6d72588ea3404ae19"
+    },
+    {
+      "name": "quota-public-R-producer-audit.json",
+      "bytes": 192,
+      "sha256": "f73ea3e239b785871a6bd995e3bbc954feedb4c2a27b11c55adc1c7bf905134f"
+    },
+    {
+      "name": "quota-public-R-process-audit.json",
+      "bytes": 610,
+      "sha256": "cf544adcc8bb57bcb31de1eaf124a081a59f7aeda4992614e18eb5f5b793e1cd"
+    },
+    {
+      "name": "quota-public-R-summary.json",
+      "bytes": 5696,
+      "sha256": "e85f32d646b1d91bb86fb10df87f6dbf46a1bc37e170f78581d6561c6bb70111"
+    }
+  ],
+  "public_gate": "PASS",
+  "classification_scope": "PUBLIC_REGRESSION_ONLY; O_AND_Q_CORRECT_GAIN_ZERO; NOT_TYPE_EFFECT_OR_FRESH_NO_EFFECT",
+  "next_scope": "PUBLIC_E_ONE_MANAGER_LAUNCH_AND_GET_PREFLIGHT_AFTER_ROOT_INDEPENDENT_READBACK; SEPARATE_ACTUAL_ZERO_SEND_GO_REQUIRED_BEFORE_ANY_PROVIDER_POST",
+  "reviewer_real_provider_calls": 0
+}

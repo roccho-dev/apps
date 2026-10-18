@@ -1,0 +1,12 @@
+{
+  "schema": "voice-ui.review.public-copy-manifest/1",
+  "public_directory": "C:\\Users\\resta\\Codex\\repos\\apps.git\\.worktrees\\typellm-ci-review-20261017\\review-evidence",
+  "scope": "This one closed fresh audit and this manifest only; no private validation/authoring directory access",
+  "members": [
+    {
+      "name": "thinking-fresh-D-stopped-comparison-audit.json",
+      "bytes": 19505,
+      "sha256": "6f39ad2fbdb536abde5bfffc439d890d618f6e5807688c67e3f4976f4f1715be"
+    }
+  ]
+}

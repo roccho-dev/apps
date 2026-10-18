@@ -1,0 +1,15 @@
+{
+  "status": "PASS",
+  "reason": "Correct premature independent last-two closure-completion wording before final review; no source/runtime/API changes.",
+  "head": "59ded276405a5dc9caa85ad570b1827ff4bd0c7a",
+  "pr103_body_sha256": "2642f494e4e2cd52e94c5c557b0b76b0d186f0ef611126851f46c2bf53b6636c",
+  "ui362_body_sha256": "35d772a90678a85afb86c9873bd6b07280356fda37862e1627e84e766b4560cb",
+  "all4_ci": "SUCCESS",
+  "seven_closures": "ROOT_RECOMPUTED_PASS_R_LAST2_PENDING",
+  "new_live_measurement": "NOT_MEASURED",
+  "charged": {
+    "jev": 808,
+    "typellm": 85
+  },
+  "live_admission": false
+}

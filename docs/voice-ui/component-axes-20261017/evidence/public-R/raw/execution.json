@@ -1,0 +1,23 @@
+{
+  "schema": "voice-ui.component-axes-phase/1",
+  "axis": "R",
+  "status": "RECORDED",
+  "summary": [
+    {
+      "axis": "R",
+      "id": "H06",
+      "method": "ready",
+      "valid_execution": true,
+      "calls": 7
+    },
+    {
+      "axis": "R",
+      "id": "H08",
+      "method": "ready",
+      "valid_execution": true,
+      "calls": 8
+    }
+  ],
+  "invalid_cells": 0,
+  "expected_cells": 2
+}

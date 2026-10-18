@@ -1,0 +1,52 @@
+{
+  "schema": "voice-ui.frontier-public-G0-artifacts/1",
+  "scope": "PUBLIC_G0_ONLY_SAFE_AUDITS_AND_FIXED_PRODUCER_NO_PRIVATE_FILES",
+  "head": "2cc4890b765a5534e92855f83f9232ae85bb373b",
+  "files": [
+    {
+      "name": "frontier-public-G0-zero-send-audit.json",
+      "bytes": 6017,
+      "sha256": "6c9c13a4e55e049b9406b4133c74174ad96f91a51043a2fb1267de56fbd036ae"
+    },
+    {
+      "name": "frontier-public-G0-physical-stop.json",
+      "bytes": 7999,
+      "sha256": "2e7d006be8415cb9f04d765fd498401ec5e47eee59c27faf6c02d49d1ef40e19"
+    },
+    {
+      "name": "frontier-public-G0-stop-audit.json",
+      "bytes": 8127,
+      "sha256": "e8a2450350eacf3d0470687d1b09e8998a1749ab89f317943d984dec554b7d5c"
+    },
+    {
+      "name": "frontier-public-G0-raw-audit.json",
+      "bytes": 21230,
+      "sha256": "296c0a06563dfb6245a5097b0d0a80148ad0283912aba734554139976dbe9d5f"
+    },
+    {
+      "name": "frontier-public-G0-provider-audit.json",
+      "bytes": 869,
+      "sha256": "f2016f28e55c6e7a6f2dd99635669254637710c03202049df09b2955e80e3d57"
+    },
+    {
+      "name": "frontier-public-G0-producer-audit.json",
+      "bytes": 192,
+      "sha256": "f73ea3e239b785871a6bd995e3bbc954feedb4c2a27b11c55adc1c7bf905134f"
+    },
+    {
+      "name": "frontier-public-G0-process-audit.json",
+      "bytes": 580,
+      "sha256": "e48e34b25dc8c757841464ae146349d604728e727279fc31a14a0e63e5f950ea"
+    },
+    {
+      "name": "frontier-public-G0.producer.json",
+      "bytes": 6653,
+      "sha256": "e36688d7ac8153c8c009f52902a5ead111e6510d76c0d608e2edc03c0ad1b1b1"
+    },
+    {
+      "name": "frontier-public-G0-summary.json",
+      "bytes": 3705,
+      "sha256": "ed8c7a63b0ece08350158082b1f24276bb999c7d49a8a3132c0e60d0564da228"
+    }
+  ]
+}

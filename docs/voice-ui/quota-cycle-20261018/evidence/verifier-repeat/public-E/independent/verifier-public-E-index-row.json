@@ -1,0 +1,27 @@
+{
+  "id": "public-E",
+  "axis": "E",
+  "phase_kind": "public",
+  "apps_sha": "180fc53e24f0fc2a5fdb098a3748afaff047bab6",
+  "input": "../../preregistered/verifier-cycle-public-E-1.inputs.json",
+  "oracle": "../../preregistered/verifier-cycle-public-E-1.oracle.json",
+  "raw_dir": "public-E/raw",
+  "producer": "public-E/independent/verifier-public-E-fixed-producer.json",
+  "runtime": "admission/runtime-candidate-compact-verifier-180fc53.json",
+  "stdout": "public-E/compact-verifier-public-E-20261018.stdout.log",
+  "stderr": "public-E/compact-verifier-public-E-20261018.stderr.log",
+  "journal": "public-E/compact-verifier-public-E-20261018.journal.jsonl",
+  "config": "public-E/compact-verifier-public-E-20261018.config.json",
+  "process": "public-E/compact-verifier-public-E-20261018.process.json",
+  "audits": {
+    "verifier-public-E-zero-send-audit.json": "public-E/independent/verifier-public-E-zero-send-audit.json",
+    "verifier-public-E-stopped-audit.json": "public-E/independent/verifier-public-E-stopped-audit.json",
+    "verifier-public-E-source-provider-readback.json": "public-E/independent/verifier-public-E-source-provider-readback.json",
+    "verifier-public-E-raw-audit.json": "public-E/independent/verifier-public-E-raw-audit.json",
+    "verifier-public-E-provider-audit.json": "public-E/independent/verifier-public-E-provider-audit.json",
+    "verifier-public-E-replay-audit.json": "public-E/independent/verifier-public-E-replay-audit.json",
+    "verifier-180fc53-ci-artifact-audit.json": "public-E/independent/verifier-180fc53-ci-artifact-audit.json"
+  },
+  "expected_execution_status": "RECORDED",
+  "recorded_replay": "public-E/root-regrade/replay/receipt.json"
+}

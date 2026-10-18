@@ -1,0 +1,30 @@
+{
+  "phase": "quota-typed-public-E-20261018",
+  "began": "2026-10-18T04:38:06.575Z",
+  "finished": "2026-10-18T04:38:33.111Z",
+  "execution": {
+    "exit": 0
+  },
+  "stop": {
+    "status": "STOPPED_RECONCILED",
+    "result": {
+      "phase": "quota-typed-public-E-20261018",
+      "action": "stop",
+      "current": {
+        "pid": 396885,
+        "state": "S",
+        "pgid": 396885,
+        "start_ticks": "20580362"
+      },
+      "sent": {
+        "jev": 3,
+        "typellm": 1
+      },
+      "whole_run_sent": {
+        "jev": 850,
+        "typellm": 137
+      },
+      "reserved_until_confirmed_stop": null
+    }
+  }
+}

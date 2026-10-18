@@ -1,0 +1,250 @@
+{
+  "schema": "voice-ui.intent-cycle-input/1",
+  "axis": "G0",
+  "oracle_sha256": "a5f08d8d2ed57b802870c76f4a86b9481400325d9c6342e8a0d66f58b5fb8653",
+  "parent_inputs_sha256": null,
+  "fixture_contract": {
+    "map_id": "voice-graph",
+    "base_records": [
+      {
+        "type": "meta",
+        "schema": "semantic-map-state/1",
+        "root": "root",
+        "title": "independent component axes"
+      },
+      {
+        "type": "region",
+        "id": "root",
+        "parent": null,
+        "label": "fixture",
+        "kind": "boundary",
+        "bounds": [
+          0,
+          0,
+          900,
+          400
+        ],
+        "summary": ""
+      },
+      {
+        "type": "region",
+        "id": "container",
+        "parent": "root",
+        "label": "OCI",
+        "kind": "group",
+        "bounds": [
+          0,
+          0,
+          700,
+          200
+        ],
+        "summary": ""
+      },
+      {
+        "type": "region",
+        "id": "other",
+        "parent": "root",
+        "label": "Other",
+        "kind": "group",
+        "bounds": [
+          0,
+          230,
+          700,
+          160
+        ],
+        "summary": ""
+      }
+    ],
+    "base_pins": [
+      {
+        "regionId": "container",
+        "bounds": [
+          0,
+          0,
+          2000,
+          500
+        ]
+      },
+      {
+        "regionId": "other",
+        "bounds": [
+          0,
+          600,
+          2000,
+          500
+        ]
+      }
+    ],
+    "fixtures": {
+      "empty": {
+        "extra_records": [],
+        "extra_pins": []
+      },
+      "api": {
+        "extra_records": [
+          {
+            "type": "region",
+            "id": "initial-api",
+            "parent": "container",
+            "label": "API",
+            "kind": "step",
+            "bounds": [
+              20,
+              20,
+              140,
+              64
+            ],
+            "summary": ""
+          }
+        ],
+        "extra_pins": [
+          {
+            "regionId": "initial-api",
+            "bounds": [
+              12,
+              36,
+              140,
+              64
+            ]
+          }
+        ]
+      },
+      "pair": {
+        "extra_records": [
+          {
+            "type": "region",
+            "id": "initial-api",
+            "parent": "container",
+            "label": "API",
+            "kind": "step",
+            "bounds": [
+              20,
+              20,
+              140,
+              64
+            ],
+            "summary": ""
+          },
+          {
+            "type": "region",
+            "id": "initial-db",
+            "parent": "container",
+            "label": "DB",
+            "kind": "data",
+            "bounds": [
+              200,
+              20,
+              140,
+              64
+            ],
+            "summary": ""
+          }
+        ],
+        "extra_pins": [
+          {
+            "regionId": "initial-api",
+            "bounds": [
+              12,
+              36,
+              140,
+              64
+            ]
+          },
+          {
+            "regionId": "initial-db",
+            "bounds": [
+              200,
+              36,
+              140,
+              64
+            ]
+          }
+        ]
+      }
+    },
+    "recent_conversation": [],
+    "scope": null
+  },
+  "cases": [
+    {
+      "id": "PG01",
+      "fixture": "empty",
+      "utterance": "OCIにAPIを3個新しく追加してください。表示名も種類も3個とも同じAPIの工程です。",
+      "arms": [
+        "G0"
+      ]
+    },
+    {
+      "id": "PG02",
+      "fixture": "empty",
+      "utterance": "OCIには可否照合という名前の判断用の菱形を一つ置いてほしい。",
+      "arms": [
+        "G0"
+      ]
+    },
+    {
+      "id": "PG03",
+      "fixture": "empty",
+      "utterance": "OCIの中にAPIを1個追加してください。",
+      "arms": [
+        "G0"
+      ]
+    },
+    {
+      "id": "PG04",
+      "fixture": "empty",
+      "utterance": "Otherの中に「出庫照合」という名前の工程を1つ追加してください。",
+      "arms": [
+        "G0"
+      ]
+    },
+    {
+      "id": "PG05",
+      "fixture": "pair",
+      "utterance": "OCIにあるAPIからDBへ矢印を一本つないでください。既存の二部品を使い、新しい部品は増やしません。",
+      "arms": [
+        "G0"
+      ]
+    },
+    {
+      "id": "PG06",
+      "fixture": "empty",
+      "utterance": "OCIに部品を二つ追加してください。",
+      "arms": [
+        "G0"
+      ]
+    },
+    {
+      "id": "PG07",
+      "fixture": "empty",
+      "utterance": "APIを1個、OCIかOtherのどちらかに追加してください。どちらにするかは未定です。",
+      "arms": [
+        "G0"
+      ]
+    },
+    {
+      "id": "PG08",
+      "fixture": "empty",
+      "utterance": "OCIにAPIを1個追加し、それとは別に何かもう一つ足してください。別の部品の名前と種類はまだ決めていません。",
+      "arms": [
+        "G0"
+      ]
+    },
+    {
+      "id": "PG09",
+      "fixture": "pair",
+      "utterance": "今の図を確認したので、このままで確定します。部品も矢印も変更しないでください。",
+      "arms": [
+        "G0"
+      ]
+    },
+    {
+      "id": "PG10",
+      "fixture": "empty",
+      "utterance": "OCIの背景色を青に変更してください。部品や矢印の追加は不要です。",
+      "arms": [
+        "G0"
+      ]
+    }
+  ]
+}

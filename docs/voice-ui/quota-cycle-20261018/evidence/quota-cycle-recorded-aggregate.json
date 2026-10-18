@@ -1,0 +1,486 @@
+{
+  "schema": "voice-ui.review.quota-recorded-cycle/1",
+  "status": "PASS",
+  "apps_sha": "59ded276405a5dc9caa85ad570b1827ff4bd0c7a",
+  "parent_report": "0aa3c4b90519a1c18c217753698806507ccff3c0",
+  "source_review": "https://github.com/roccho-dev/apps/pull/103#pullrequestreview-5560532224",
+  "active_commitment_sha256": "b2aea0ad175e93786b5f566b020204ac7c2f3734b867cb9b53741794a2a401ec",
+  "active_freeze_sha256": "ba374d29ff1d4a19d36fb705058b60baa5cbf8e12af81cb2ef2a6ac3342431e0",
+  "phases": [
+    {
+      "phase": "quota-public-R-20261018",
+      "axis": "R",
+      "phase_kind": "public",
+      "planned": 2,
+      "consumed": 2,
+      "valid": 2,
+      "semantic": {
+        "complete": true,
+        "total_pairs": 1,
+        "valid_cells": 2,
+        "open_correct": 1,
+        "quota_correct": 1,
+        "assembly_gains": 0,
+        "extra_adoptions_fixed": 0,
+        "regressions": 0,
+        "admitted_pairs": 1,
+        "pairs": [
+          {
+            "id": "PR01",
+            "eligible": true,
+            "matching_complete_supply": true,
+            "open_success": true,
+            "quota_success": true,
+            "open_false_adoption": false,
+            "assembly_gain": false,
+            "extra_adoption_fixed": false,
+            "regression": false,
+            "excluded_from_causal_only": false
+          }
+        ],
+        "quality_criteria": "PASS",
+        "public_gate": "PASS",
+        "effect_criteria": "UNMET",
+        "no_effect_criteria_pending_integrity": "UNPROVEN",
+        "scope": "finite conditional expression; open wrong additions remain outcomes; no Type or ordinary interpretation inference"
+      },
+      "sent": {
+        "jev": 5,
+        "typellm": 0
+      },
+      "charged_at_cutoff": {
+        "jev": 813,
+        "typellm": 85
+      },
+      "producer_sha256": "5c4cc0d562b903cec1235e5bff9e88e2c56f806902ccf9c6d72588ea3404ae19",
+      "raw_audit_sha256": "ee1f5ae6092042db74ca29dc5fb432e415605d4c2f983ebccc37fd3486e93b64",
+      "provider_audit_sha256": "ff34e14a92b8b5b6163dd10f9e08808380ac86c6cd82d195de197931acd66067",
+      "binding_audit_sha256": "f73ea3e239b785871a6bd995e3bbc954feedb4c2a27b11c55adc1c7bf905134f",
+      "physical_stop_sha256": "5681646107ab3f1718c3ba228b40b8a371775a6e793c41d9d65b8beb3fa0b637",
+      "recorded_replay_sha256": "09392c40e2d96a21507d23397deba5bf68cf1260efb46588aed378c9f3f991fd",
+      "recorded_replay": {
+        "status": "PASS",
+        "issues": [],
+        "consumed": 2,
+        "frames": 6,
+        "assessed_frames": 4,
+        "recorded_paint_status": "PASS",
+        "replay_sha256": "09392c40e2d96a21507d23397deba5bf68cf1260efb46588aed378c9f3f991fd",
+        "model_quality_scope": "NONE",
+        "CI_LIVE_EXECUTION": "UNPROVEN"
+      },
+      "expected_only_if_actual_ci_matches_all_semantics_and_paint": {
+        "quality": "PUBLIC_REGRESSION_ONLY",
+        "effect": "PUBLIC_REGRESSION_ONLY",
+        "public_gate": "PASS"
+      }
+    },
+    {
+      "phase": "quota-public-E-20261018",
+      "axis": "E",
+      "phase_kind": "public",
+      "planned": 2,
+      "consumed": 2,
+      "valid": 2,
+      "semantic": {
+        "complete": true,
+        "total_pairs": 1,
+        "valid_cells": 2,
+        "baseline": {
+          "sufficient": {
+            "correct": 0,
+            "total": 0
+          },
+          "missing": {
+            "correct": 0,
+            "total": 1
+          },
+          "ambiguous": {
+            "correct": 0,
+            "total": 0
+          },
+          "no-change": {
+            "correct": 0,
+            "total": 0
+          }
+        },
+        "candidate": {
+          "sufficient": {
+            "correct": 0,
+            "total": 0
+          },
+          "missing": {
+            "correct": 1,
+            "total": 1
+          },
+          "ambiguous": {
+            "correct": 0,
+            "total": 0
+          },
+          "no-change": {
+            "correct": 0,
+            "total": 0
+          }
+        },
+        "baseline_success": 0,
+        "candidate_success": 1,
+        "missing_gains": 1,
+        "regressions": 0,
+        "admissible_missing_pairs": 1,
+        "all_arm_guards": true,
+        "no_false_adoption": true,
+        "all_missing_admitted": true,
+        "pairs": [
+          {
+            "id": "PE01",
+            "eligible": true,
+            "baseline_success": false,
+            "candidate_success": true,
+            "missing_gain": true,
+            "regression": false,
+            "excluded_from_causal_only": false
+          }
+        ],
+        "quality_criteria": "PASS",
+        "public_gate": "PASS",
+        "effect_criteria": "PASS",
+        "no_effect_criteria_pending_integrity": "UNPROVEN",
+        "scope": "all six ordinary pairs retained; both paths quota; supplementation effect separate from R assembly effect and prior frontier taxonomy"
+      },
+      "sent": {
+        "jev": 5,
+        "typellm": 1
+      },
+      "charged_at_cutoff": {
+        "jev": 818,
+        "typellm": 86
+      },
+      "producer_sha256": "c09bc00e9f6ddc3307b59b2c9fe990b33f635eb3ea3e964aaf0e4e8a670fd4d5",
+      "raw_audit_sha256": "17c081345ae4c7e5f4bcd32d9c4ef27633c425672504976365f14240c8704926",
+      "provider_audit_sha256": "2946aa9d92ba74eefc95e45b1bbbefea196392fd46991b85c5aaca7fa79c59b6",
+      "binding_audit_sha256": "f73ea3e239b785871a6bd995e3bbc954feedb4c2a27b11c55adc1c7bf905134f",
+      "physical_stop_sha256": "f33a1f73ec323757ed6feecec21340ae5c43a8414c7053681e47a87210f9b604",
+      "recorded_replay_sha256": "f6c27f688e10b28765d1efc946212129d568fbe0898dcbb3a0d5d3306de9c0e3",
+      "recorded_replay": {
+        "status": "PASS",
+        "issues": [],
+        "consumed": 2,
+        "frames": 6,
+        "assessed_frames": 4,
+        "recorded_paint_status": "PASS",
+        "replay_sha256": "f6c27f688e10b28765d1efc946212129d568fbe0898dcbb3a0d5d3306de9c0e3",
+        "model_quality_scope": "NONE",
+        "CI_LIVE_EXECUTION": "UNPROVEN"
+      },
+      "expected_only_if_actual_ci_matches_all_semantics_and_paint": {
+        "quality": "PUBLIC_REGRESSION_ONLY",
+        "effect": "PUBLIC_REGRESSION_ONLY",
+        "public_gate": "PASS"
+      }
+    },
+    {
+      "phase": "quota-final-R-20261018",
+      "axis": "R",
+      "phase_kind": "final",
+      "planned": 4,
+      "consumed": 4,
+      "valid": 4,
+      "semantic": {
+        "complete": true,
+        "total_pairs": 2,
+        "valid_cells": 4,
+        "open_correct": 2,
+        "quota_correct": 2,
+        "assembly_gains": 0,
+        "extra_adoptions_fixed": 0,
+        "regressions": 0,
+        "admitted_pairs": 2,
+        "pairs": [
+          {
+            "id": "QR01",
+            "eligible": true,
+            "matching_complete_supply": true,
+            "open_success": true,
+            "quota_success": true,
+            "open_false_adoption": false,
+            "assembly_gain": false,
+            "extra_adoption_fixed": false,
+            "regression": false,
+            "excluded_from_causal_only": false
+          },
+          {
+            "id": "QR02",
+            "eligible": true,
+            "matching_complete_supply": true,
+            "open_success": true,
+            "quota_success": true,
+            "open_false_adoption": false,
+            "assembly_gain": false,
+            "extra_adoption_fixed": false,
+            "regression": false,
+            "excluded_from_causal_only": false
+          }
+        ],
+        "quality_criteria": "PASS",
+        "public_gate": null,
+        "effect_criteria": "UNMET",
+        "no_effect_criteria_pending_integrity": "PASS",
+        "scope": "finite conditional expression; open wrong additions remain outcomes; no Type or ordinary interpretation inference"
+      },
+      "sent": {
+        "jev": 9,
+        "typellm": 0
+      },
+      "charged_at_cutoff": {
+        "jev": 827,
+        "typellm": 86
+      },
+      "producer_sha256": "e6ff9f256fa3963e71c4d4fdd9c0c57f68332ea74ff161b8559a089f78bc6554",
+      "raw_audit_sha256": "2132ad30bbc1305a7a3a77aa1ebc1dd10e1860f6e1022b5911fb56e22d25fe7d",
+      "provider_audit_sha256": "c3776f0df003b89721b5c2272ad4cd2b583a58e8ff0e554005d6fa53f79e5ac8",
+      "binding_audit_sha256": "f73ea3e239b785871a6bd995e3bbc954feedb4c2a27b11c55adc1c7bf905134f",
+      "physical_stop_sha256": "2db72b9db15b0a55b8527df25123d0ab193071d1a98a3ba8d325f45a1abc8975",
+      "recorded_replay_sha256": "6ad29d39a1d9b2878287f1cfbcfaff63689bd01294898fa412ad48752274f3bc",
+      "recorded_replay": {
+        "status": "PASS",
+        "issues": [],
+        "consumed": 4,
+        "frames": 14,
+        "assessed_frames": 10,
+        "recorded_paint_status": "PASS",
+        "replay_sha256": "6ad29d39a1d9b2878287f1cfbcfaff63689bd01294898fa412ad48752274f3bc",
+        "model_quality_scope": "NONE",
+        "CI_LIVE_EXECUTION": "UNPROVEN"
+      },
+      "expected_only_if_actual_ci_matches_all_semantics_and_paint": {
+        "quality": "FINITE_CRITERIA_PASS",
+        "effect": "NO_EFFECT_IN_REGISTERED_EXPRESSION_PAIRS"
+      }
+    },
+    {
+      "phase": "quota-final-E-20261018",
+      "axis": "E",
+      "phase_kind": "final",
+      "planned": 12,
+      "consumed": 12,
+      "valid": 12,
+      "semantic": {
+        "complete": true,
+        "total_pairs": 6,
+        "valid_cells": 12,
+        "baseline": {
+          "sufficient": {
+            "correct": 1,
+            "total": 2
+          },
+          "missing": {
+            "correct": 0,
+            "total": 2
+          },
+          "ambiguous": {
+            "correct": 1,
+            "total": 1
+          },
+          "no-change": {
+            "correct": 1,
+            "total": 1
+          }
+        },
+        "candidate": {
+          "sufficient": {
+            "correct": 2,
+            "total": 2
+          },
+          "missing": {
+            "correct": 0,
+            "total": 2
+          },
+          "ambiguous": {
+            "correct": 1,
+            "total": 1
+          },
+          "no-change": {
+            "correct": 1,
+            "total": 1
+          }
+        },
+        "baseline_success": 3,
+        "candidate_success": 4,
+        "missing_gains": 0,
+        "regressions": 0,
+        "admissible_missing_pairs": 2,
+        "all_arm_guards": true,
+        "no_false_adoption": true,
+        "all_missing_admitted": true,
+        "pairs": [
+          {
+            "id": "QE01",
+            "eligible": false,
+            "baseline_success": false,
+            "candidate_success": true,
+            "missing_gain": false,
+            "regression": false,
+            "excluded_from_causal_only": true
+          },
+          {
+            "id": "QE02",
+            "eligible": false,
+            "baseline_success": true,
+            "candidate_success": true,
+            "missing_gain": false,
+            "regression": false,
+            "excluded_from_causal_only": true
+          },
+          {
+            "id": "QE03",
+            "eligible": true,
+            "baseline_success": false,
+            "candidate_success": false,
+            "missing_gain": false,
+            "regression": false,
+            "excluded_from_causal_only": false
+          },
+          {
+            "id": "QE04",
+            "eligible": true,
+            "baseline_success": false,
+            "candidate_success": false,
+            "missing_gain": false,
+            "regression": false,
+            "excluded_from_causal_only": false
+          },
+          {
+            "id": "QE05",
+            "eligible": false,
+            "baseline_success": true,
+            "candidate_success": true,
+            "missing_gain": false,
+            "regression": false,
+            "excluded_from_causal_only": true
+          },
+          {
+            "id": "QE06",
+            "eligible": false,
+            "baseline_success": true,
+            "candidate_success": true,
+            "missing_gain": false,
+            "regression": false,
+            "excluded_from_causal_only": true
+          }
+        ],
+        "quality_criteria": "UNMET",
+        "public_gate": null,
+        "effect_criteria": "UNMET",
+        "no_effect_criteria_pending_integrity": "PASS",
+        "scope": "all six ordinary pairs retained; both paths quota; supplementation effect separate from R assembly effect and prior frontier taxonomy"
+      },
+      "sent": {
+        "jev": 20,
+        "typellm": 2
+      },
+      "charged_at_cutoff": {
+        "jev": 847,
+        "typellm": 88
+      },
+      "producer_sha256": "0ebab43edc790eedd0672b7bf21192aec97fe3f9dca03d63f41550f69fcc3e92",
+      "raw_audit_sha256": "1d4d10cc2da3b4a9f73eefe5c410fed7de1c202813307a84a6ed990cc8ad9cf8",
+      "provider_audit_sha256": "de31f66260d1bb6d774f93e01b62de8644e83ddf390b3bc66abb34c7876a44d2",
+      "binding_audit_sha256": "f73ea3e239b785871a6bd995e3bbc954feedb4c2a27b11c55adc1c7bf905134f",
+      "physical_stop_sha256": "93398952d2351560bf2827bfc4cf53f720e9cb32df6c2a9b6b704eebd2119f2e",
+      "recorded_replay_sha256": "518c67b49cbd82319d37ff48de30c9d56edcf9438b872fea65a6f4b81c387649",
+      "recorded_replay": {
+        "status": "PASS",
+        "issues": [],
+        "consumed": 12,
+        "frames": 38,
+        "assessed_frames": 26,
+        "recorded_paint_status": "PASS",
+        "replay_sha256": "518c67b49cbd82319d37ff48de30c9d56edcf9438b872fea65a6f4b81c387649",
+        "model_quality_scope": "NONE",
+        "CI_LIVE_EXECUTION": "UNPROVEN"
+      },
+      "expected_only_if_actual_ci_matches_all_semantics_and_paint": {
+        "quality": "UNMET",
+        "effect": "NO_EFFECT_IN_REGISTERED_MISSING_PAIRS"
+      }
+    }
+  ],
+  "planned": 20,
+  "consumed": 20,
+  "valid": 20,
+  "invalid": 0,
+  "cell_protocol_proofs": 20,
+  "recorded_replay_rows": 20,
+  "recorded_replay_frames": 64,
+  "independently_reassessed_named_replay_frames": 44,
+  "baseline_charged": {
+    "jev": 808,
+    "typellm": 85
+  },
+  "cycle_sends": {
+    "jev": 39,
+    "typellm": 3
+  },
+  "cumulative_charged": {
+    "jev": 847,
+    "typellm": 88
+  },
+  "cumulative_confirmed_sends": {
+    "jev": 847,
+    "typellm": 87
+  },
+  "historical_uncertain_charged_Type": 1,
+  "allocated_caps": {
+    "jev": 181,
+    "typellm": 7
+  },
+  "unallocated_Jev_not_used": 11,
+  "setup_calls": 0,
+  "retries": 0,
+  "correction_batches": 0,
+  "process": {
+    "schema": "voice-ui.quota-cycle-process/1",
+    "status": "PASS",
+    "issues": [],
+    "state": "FINAL_RECORDED",
+    "baseline": {
+      "jev": 808,
+      "typellm": 85
+    },
+    "indexed_phases": 4,
+    "source_head": "59ded276405a5dc9caa85ad570b1827ff4bd0c7a",
+    "correction_batches": 0,
+    "reserved": {
+      "jev": 181,
+      "typellm": 7
+    },
+    "charged_at_cutoff": {
+      "jev": 847,
+      "typellm": 88
+    },
+    "releases": [
+      {
+        "phase": "quota-final-R-20261018",
+        "apps_sha": "59ded276405a5dc9caa85ad570b1827ff4bd0c7a",
+        "admitted": true,
+        "prior_fresh_quality_required": false
+      },
+      {
+        "phase": "quota-final-E-20261018",
+        "apps_sha": "59ded276405a5dc9caa85ad570b1827ff4bd0c7a",
+        "admitted": true,
+        "prior_fresh_quality_required": false
+      }
+    ],
+    "scope": "integrity/process only; conditional expression and ordinary supplementation are separate; retained fresh quality failures do not block complete stopped-evidence progression"
+  },
+  "final_journal_sha256": "1fb7f24d498e214a977bc557ba4b46c0d108ec34cb4f380a2a0de368445b2a80",
+  "all42_owned_groups_absent_including_zombies": true,
+  "no_outstanding_reservation": true,
+  "source28_unchanged_after_first_public_call": true,
+  "whole_quality_or_effect_final_classification": "PENDING_EXACT_REPORT_ACTUAL_CI_AND_INDEPENDENT_ARTIFACT_REGRADING",
+  "CI_LIVE_EXECUTION": "UNPROVEN",
+  "currency": "COST_NOT_MEASURED",
+  "scope": "Recorded integrity and frozen finite criteria only. Conditional native expression R and ordinary supplementation E stay separate. No Type-wide ineffectiveness, arbitrary-language success, renderer quality defect, human acceptance or product merge is inferred.",
+  "reviewer_real_provider_calls": 0
+}

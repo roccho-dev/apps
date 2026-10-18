@@ -1,0 +1,191 @@
+{
+  "schema": "voice-ui.frontier-public-summary/1",
+  "axis": "E",
+  "phase": "frontier-public-E-20261018",
+  "apps_sha": "2cc4890b765a5534e92855f83f9232ae85bb373b",
+  "status": "PASS",
+  "public_gate": "PASS",
+  "quality_scope": "PUBLIC_REGRESSION_ONLY",
+  "semantic": {
+    "complete": true,
+    "total": 2,
+    "total_pairs": 2,
+    "baseline": {
+      "sufficient": {
+        "correct": 0,
+        "total": 0
+      },
+      "missing": {
+        "correct": 0,
+        "total": 2
+      },
+      "ambiguous": {
+        "correct": 0,
+        "total": 0
+      },
+      "no-change": {
+        "correct": 0,
+        "total": 0
+      }
+    },
+    "enabled": {
+      "sufficient": {
+        "correct": 0,
+        "total": 0
+      },
+      "missing": {
+        "correct": 2,
+        "total": 2
+      },
+      "ambiguous": {
+        "correct": 0,
+        "total": 0
+      },
+      "no-change": {
+        "correct": 0,
+        "total": 0
+      }
+    },
+    "enabled_success": 2,
+    "baseline_success": 0,
+    "missing_gains": 2,
+    "frontier_missing_gains": 1,
+    "regressions": 0,
+    "eligible_pairs": 2,
+    "admissible_missing_pairs": 2,
+    "all_arm_guards": true,
+    "no_false_adoption": true,
+    "interpretation_type_calls": 0,
+    "pairs": [
+      {
+        "id": "PE01",
+        "eligible": true,
+        "baseline_success": false,
+        "enabled_success": true,
+        "missing_gain": true,
+        "frontier_gain": true,
+        "both_arms_frontier": true,
+        "regression": false,
+        "excluded_from_causal_only": false
+      },
+      {
+        "id": "PE02",
+        "eligible": true,
+        "baseline_success": false,
+        "enabled_success": true,
+        "missing_gain": true,
+        "frontier_gain": false,
+        "both_arms_frontier": false,
+        "regression": false,
+        "excluded_from_causal_only": false
+      }
+    ],
+    "enabled_criteria": "PASS",
+    "effect_criteria": "PASS",
+    "frontier_effect_criteria_pending_integrity": "PASS",
+    "no_effect_criteria_pending_integrity": "UNPROVEN",
+    "frontier_no_effect_criteria_pending_integrity": "UNPROVEN",
+    "scope": "fixed whole E denominator; generic Type-path effect and newly added frontier-specific effect are separate; integrity/paint/source admission mandatory"
+  },
+  "rows": [
+    {
+      "id": "PE01",
+      "arm": "B",
+      "valid_execution": true,
+      "gate_correct": false,
+      "full_required_exact": false,
+      "missing_exact_minimal": false,
+      "graph_exact": false,
+      "non_regression_guards": true,
+      "eligible": true,
+      "old_eligible": false,
+      "frontier_eligible": true,
+      "actual_policy_implemented": false,
+      "proposal_present": false,
+      "verification_accepted": false,
+      "paint_status": "PASS",
+      "persisted_raw_equal": true,
+      "goal_elapsedMs": 408.7800000011921,
+      "goal_deadline_status": "PASS"
+    },
+    {
+      "id": "PE01",
+      "arm": "C",
+      "valid_execution": true,
+      "gate_correct": true,
+      "full_required_exact": true,
+      "missing_exact_minimal": true,
+      "graph_exact": true,
+      "non_regression_guards": true,
+      "eligible": true,
+      "old_eligible": false,
+      "frontier_eligible": true,
+      "actual_policy_implemented": true,
+      "proposal_present": true,
+      "verification_accepted": true,
+      "paint_status": "PASS",
+      "persisted_raw_equal": true,
+      "goal_elapsedMs": 6789.640000015497,
+      "goal_deadline_status": "PASS"
+    },
+    {
+      "id": "PE02",
+      "arm": "C",
+      "valid_execution": true,
+      "gate_correct": true,
+      "full_required_exact": true,
+      "missing_exact_minimal": true,
+      "graph_exact": true,
+      "non_regression_guards": true,
+      "eligible": true,
+      "old_eligible": true,
+      "frontier_eligible": false,
+      "actual_policy_implemented": true,
+      "proposal_present": true,
+      "verification_accepted": true,
+      "paint_status": "PASS",
+      "persisted_raw_equal": true,
+      "goal_elapsedMs": 4142.569999992847,
+      "goal_deadline_status": "PASS"
+    },
+    {
+      "id": "PE02",
+      "arm": "B",
+      "valid_execution": true,
+      "gate_correct": false,
+      "full_required_exact": false,
+      "missing_exact_minimal": false,
+      "graph_exact": false,
+      "non_regression_guards": true,
+      "eligible": true,
+      "old_eligible": true,
+      "frontier_eligible": false,
+      "actual_policy_implemented": false,
+      "proposal_present": false,
+      "verification_accepted": false,
+      "paint_status": "PASS",
+      "persisted_raw_equal": true,
+      "goal_elapsedMs": 283.5100000202656,
+      "goal_deadline_status": "PASS"
+    }
+  ],
+  "sent": {
+    "jev": 16,
+    "typellm": 2
+  },
+  "charged": {
+    "jev": 751,
+    "typellm": 73
+  },
+  "journal_sha256": "3ffa1097ae71026c3a51536c4b657d7aad615650bb46c8f2bd83c0785ccf44fd",
+  "all35_owned_groups_absent_including_zombies": true,
+  "reservation": null,
+  "replay_sha256": "e39dc3b351f89c5769a7904143380532e61cd1c0e0122e46431274a81426f88f",
+  "fixed_producer_sha256": "8381f8e26fd6e88051401c71c9c1c70b94be7c4072c62b241c2a4d1d1b4ec759",
+  "source_review": "https://github.com/roccho-dev/apps/pull/103#pullrequestreview-5560045214",
+  "process_indexed_phases": 2,
+  "fresh_release_boundary": "Both public gates now passed; only the next V10 input projection may be disclosed. V oracle and all future F/E payloads remain sealed until their stage.",
+  "CI_STOPPED_EVIDENCE_RECHECK": "PENDING_REPORT_CI",
+  "CI_LIVE_EXECUTION": "UNPROVEN",
+  "scope": "Actual same-head public regressions only. Two admitted Type-path gains, including one old-ineligible/new-eligible frontier gain; this is not a blind-panel result or a general product-quality claim."
+}

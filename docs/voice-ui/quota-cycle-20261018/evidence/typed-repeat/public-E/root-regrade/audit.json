@@ -1,0 +1,323 @@
+{
+  "status": "PASS",
+  "scope": "ROOT_FROZEN_QUOTA_RAW_PROVIDER_PAINT_RECHECK_BINDING_AND_CI_SEPARATE",
+  "at": "2026-10-18T04:39:20.000Z",
+  "phase": "quota-typed-public-E-20261018",
+  "repeat_profile": "typed-ordinary-E-20261018",
+  "raw": {
+    "schema": "voice-ui.quota-cycle-raw-audit/1",
+    "axis": "E",
+    "status": "PASS",
+    "issues": [],
+    "complete": true,
+    "all_valid_execution": true,
+    "consumed": 2,
+    "planned": 2,
+    "rows": [
+      {
+        "id": "TEP01",
+        "method": "literal-v2",
+        "arm": "B",
+        "generation_policy": null,
+        "goal_parts_policy": "quota",
+        "valid_execution": true,
+        "grade": {
+          "contract_valid": true,
+          "expected_gate": "missing",
+          "gate_correct": false,
+          "full_required_exact": false,
+          "missing_exact_minimal": false,
+          "graph_exact": false,
+          "graph": {
+            "graph_exact": false,
+            "unique_record_keys": true,
+            "existing_semantics_preserved": true,
+            "semantic_unchanged": true,
+            "clean_new_regions": true,
+            "clean_new_edges": true,
+            "no_other_new_semantics": true,
+            "actual_added_regions": [],
+            "actual_added_edges": []
+          },
+          "no_false_adoption": true,
+          "raw_unchanged": true,
+          "non_regression_guards": true,
+          "type_policy_guard": true,
+          "known_syntax_type_free": true,
+          "stop_authorization_guard": true,
+          "true_sufficient_zero_candidates": null,
+          "interpretation_type_calls": 0,
+          "eligible": true,
+          "old_eligible": false,
+          "frontier_eligible": true,
+          "proposal_policy": {
+            "id": "uncertainty-frontier-v1",
+            "eligible": true,
+            "reason": "uncertain-intent-incomplete"
+          },
+          "proposal_policy_implemented": false,
+          "proposal_present": false,
+          "verification_accepted": false,
+          "initial_literal": {
+            "recognized": false,
+            "required": [],
+            "spans": []
+          },
+          "deadline": true,
+          "scope": "unchanged frozen per-cell /2 and /3 Goal meaning plus independently audited quota mechanism; new whole-six aggregation only",
+          "goal_parts_policy": "quota",
+          "quota_mechanism_valid": true
+        },
+        "paint_status": "PASS",
+        "persisted_raw_equal": true,
+        "cell_wall_elapsedMs": 9577.2258,
+        "goal_elapsedMs": 424.3799999952316,
+        "goal_deadline_status": "PASS"
+      },
+      {
+        "id": "TEP01",
+        "method": "adaptive-v3",
+        "arm": "C",
+        "generation_policy": "dependent",
+        "goal_parts_policy": "quota",
+        "valid_execution": true,
+        "grade": {
+          "contract_valid": true,
+          "expected_gate": "missing",
+          "gate_correct": false,
+          "full_required_exact": true,
+          "missing_exact_minimal": true,
+          "graph_exact": false,
+          "graph": {
+            "graph_exact": false,
+            "unique_record_keys": true,
+            "existing_semantics_preserved": true,
+            "semantic_unchanged": true,
+            "clean_new_regions": true,
+            "clean_new_edges": true,
+            "no_other_new_semantics": true,
+            "actual_added_regions": [],
+            "actual_added_edges": []
+          },
+          "no_false_adoption": true,
+          "raw_unchanged": true,
+          "non_regression_guards": true,
+          "type_policy_guard": true,
+          "known_syntax_type_free": true,
+          "stop_authorization_guard": true,
+          "true_sufficient_zero_candidates": null,
+          "interpretation_type_calls": 0,
+          "eligible": true,
+          "old_eligible": false,
+          "frontier_eligible": true,
+          "proposal_policy": {
+            "id": "uncertainty-frontier-v1",
+            "eligible": true,
+            "reason": "uncertain-intent-incomplete"
+          },
+          "proposal_policy_implemented": true,
+          "proposal_present": true,
+          "verification_accepted": false,
+          "initial_literal": {
+            "recognized": false,
+            "required": [],
+            "spans": []
+          },
+          "deadline": true,
+          "scope": "unchanged frozen per-cell /2 and /3 Goal meaning plus independently audited quota mechanism; new whole-six aggregation only",
+          "goal_parts_policy": "quota",
+          "quota_mechanism_valid": true
+        },
+        "paint_status": "PASS",
+        "persisted_raw_equal": true,
+        "cell_wall_elapsedMs": 14141.9082,
+        "goal_elapsedMs": 5469.359999984503,
+        "goal_deadline_status": "PASS"
+      }
+    ],
+    "semantic": {
+      "complete": true,
+      "total_pairs": 1,
+      "valid_cells": 2,
+      "baseline": {
+        "sufficient": {
+          "correct": 0,
+          "total": 0
+        },
+        "missing": {
+          "correct": 0,
+          "total": 1
+        },
+        "ambiguous": {
+          "correct": 0,
+          "total": 0
+        },
+        "no-change": {
+          "correct": 0,
+          "total": 0
+        }
+      },
+      "candidate": {
+        "sufficient": {
+          "correct": 0,
+          "total": 0
+        },
+        "missing": {
+          "correct": 0,
+          "total": 1
+        },
+        "ambiguous": {
+          "correct": 0,
+          "total": 0
+        },
+        "no-change": {
+          "correct": 0,
+          "total": 0
+        }
+      },
+      "baseline_success": 0,
+      "candidate_success": 0,
+      "missing_gains": 0,
+      "regressions": 0,
+      "admissible_missing_pairs": 1,
+      "all_arm_guards": true,
+      "no_false_adoption": true,
+      "all_missing_admitted": true,
+      "pairs": [
+        {
+          "id": "TEP01",
+          "eligible": true,
+          "baseline_success": false,
+          "candidate_success": false,
+          "missing_gain": false,
+          "regression": false,
+          "excluded_from_causal_only": false
+        }
+      ],
+      "quality_criteria": "UNMET",
+      "public_gate": "UNMET",
+      "effect_criteria": "UNMET",
+      "no_effect_criteria_pending_integrity": "UNPROVEN",
+      "scope": "all six ordinary pairs retained; both paths quota; supplementation effect separate from R assembly effect and prior frontier taxonomy"
+    },
+    "phase_kind": "public",
+    "inputs_sha256": "52b95efd0dc3301c746b1d947e5896400bf7f12ee0e8d2d53113ddf8c2c08283",
+    "parent_inputs_sha256": null,
+    "parent_oracle_sha256": null,
+    "admissible_for_semantic_claim": true,
+    "external_provider_attempts": {
+      "jev": 3,
+      "typellm": 1
+    },
+    "external_provider_attempt_bounds": {
+      "jev": {
+        "min": 3,
+        "max": 3
+      },
+      "typellm": {
+        "min": 1,
+        "max": 1
+      }
+    },
+    "stage_rows": 6,
+    "stage_alignment": "UNIQUE",
+    "proofs": [
+      {
+        "id": "TEP01",
+        "method": "literal-v2",
+        "arm": "B",
+        "generation_policy": null,
+        "goal_parts_policy": "quota",
+        "status": "PASS",
+        "initial_head": "sha256:997f2a85be41d6774df84a876b8bba255de5d38cf5cda626fbb1dfc268940bc8",
+        "final_head": "sha256:997f2a85be41d6774df84a876b8bba255de5d38cf5cda626fbb1dfc268940bc8",
+        "effective_parts": []
+      },
+      {
+        "id": "TEP01",
+        "method": "adaptive-v3",
+        "arm": "C",
+        "generation_policy": "dependent",
+        "goal_parts_policy": "quota",
+        "status": "PASS",
+        "initial_head": "sha256:997f2a85be41d6774df84a876b8bba255de5d38cf5cda626fbb1dfc268940bc8",
+        "final_head": "sha256:997f2a85be41d6774df84a876b8bba255de5d38cf5cda626fbb1dfc268940bc8",
+        "effective_parts": []
+      }
+    ],
+    "replay": {
+      "status": "PASS",
+      "issues": [],
+      "consumed": 2,
+      "frames": 6,
+      "assessed_frames": 4,
+      "recorded_paint_status": "PASS",
+      "replay_sha256": "76714341413169afd52b2a2b2de4c0ee09f5e9edc828f1b11d85fd5d2510bf47",
+      "model_quality_scope": "NONE",
+      "CI_LIVE_EXECUTION": "UNPROVEN"
+    },
+    "raw_sha256": {
+      "TEP01-B.json": "0fa523faa95140e47323dadb57bfd73287d197ad1a1b2699129091024feb3540",
+      "TEP01-C.json": "9140627155e55748d9cc0e99b000186b123ad1e81abbb5e8d0b318d979d4075e",
+      "events.jsonl": "5fa991675d28c5e1ac216a45160bb90d1eb1cd94c06e1602abe59ec493ec8f6c",
+      "execution.json": "a9015522fdde4d1089543d6b9f58859599ee8ca632ae9f7e96a93b4de74a4dc5",
+      "identity.json": "f8793faa8e1ca69d05d657a87d5cf62456d770a9c505a4175ffbabb28d836998"
+    },
+    "scope": "independent quota offers/protocol/native-or-browser persistence/paint join; fixed producer and actual physical stop remain separately required",
+    "CI_LIVE_EXECUTION": "UNPROVEN",
+    "currency": "COST_NOT_MEASURED"
+  },
+  "provider": {
+    "status": "PASS",
+    "issues": [],
+    "phase": "quota-typed-public-E-20261018",
+    "sent": {
+      "jev": 3,
+      "typellm": 1
+    },
+    "prior_charged": {
+      "jev": 847,
+      "typellm": 136
+    },
+    "charged_at_cutoff": {
+      "jev": 850,
+      "typellm": 137
+    },
+    "journal_sha256": "90525733f94f161502411d957c953e1162850e7a1740f13cdad69a455e0d1478",
+    "config_sha256": "b5693ee5661855e8e636fe5ea0138610be0b1391ba07f2b316474541e61a668b",
+    "stop_scope": "recorded reconciliation only; independent live PID observation remains an explicit audit reference",
+    "expected_external_bounds": {
+      "jev": {
+        "min": 3,
+        "max": 3
+      },
+      "typellm": {
+        "min": 1,
+        "max": 1
+      }
+    },
+    "cycle_start": {
+      "jev": 847,
+      "typellm": 136
+    },
+    "cycle_limit": {
+      "jev": 133,
+      "typellm": 7
+    },
+    "cycle_remaining": {
+      "jev": 130,
+      "typellm": 6
+    }
+  },
+  "replay": {
+    "status": "PASS",
+    "issues": [],
+    "consumed": 2,
+    "frames": 6,
+    "assessed_frames": 4,
+    "recorded_paint_status": "PASS",
+    "replay_sha256": "76714341413169afd52b2a2b2de4c0ee09f5e9edc828f1b11d85fd5d2510bf47",
+    "model_quality_scope": "NONE",
+    "CI_LIVE_EXECUTION": "UNPROVEN"
+  }
+}

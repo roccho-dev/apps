@@ -1,0 +1,113 @@
+{
+  "schema": "voice-ui.quota-cycle-execution/1",
+  "axis": "E",
+  "source": {
+    "schema": "voice-ui.poc.runtime/1",
+    "origin": "http://127.0.0.1:18845",
+    "heads": {
+      "apps": "59ded276405a5dc9caa85ad570b1827ff4bd0c7a",
+      "envs": "063e685b8b21a97fc8658879da93fa858552bcd6",
+      "ops": "b4f611cac9e13fbef178469796cbc3b6d4a76b23",
+      "windows": "6aef693c0946903d8b87c2348039de1420acd61b",
+      "ui": "756d47e891191c3344eb2d29b000203be8331abc"
+    },
+    "sealed_inputs_sha256": "b2aea0ad175e93786b5f566b020204ac7c2f3734b867cb9b53741794a2a401ec",
+    "worker_entry": {
+      "path": "/nix/store/a4kzf7yr1dzaf6fl25cxiif062l18j22-voice-ui-dist/worker/worker.mjs",
+      "sha256": "8a1fef6c917240b951bae91132d353d334fd050f880ca7f4666b57f0178ef3fc"
+    },
+    "provider_entry": {
+      "path": "/nix/store/3xx7pasrmgb3b20jrjjq1q793vqljb9f-jev-provider-admitted/batch.mjs",
+      "sha256": "3f754c8b1ee4a8b34b50d00fd17e37295d853e1b607903b6d355b5e06997669c"
+    },
+    "semantic_map": {
+      "root": "/nix/store/vqjhvwxcbwv7vg09n4d3sy54lw879s9f-semantic-map",
+      "protocol_sha256": "1689dcf63e1ed19cdea7be22e3f90a09f434841f980b9ca8b9018a987c9c38f8"
+    },
+    "launcher": {
+      "program": "/nix/store/bg0bygqiid25xnivxv9cdgjlx3sp939j-voice-ui-typed-dev/bin/voice-ui-typed-dev",
+      "dev_program": "/nix/store/nxqyf21vfkf833p8cyq84w9mmw9lryyf-voice-ui-dev/bin/voice-ui-dev",
+      "pid": 369297,
+      "start_ticks": "18657701",
+      "phase_id": "quota-public-E-20261018",
+      "allowances": {
+        "jev": 19,
+        "typellm": 1
+      }
+    },
+    "artifact": {
+      "root": "/nix/store/a4kzf7yr1dzaf6fl25cxiif062l18j22-voice-ui-dist",
+      "manifest_sha256": "76efba68bb3935bbe28185c3f79f2521709698456156967fa7cbb3c544bbe311"
+    },
+    "audit_sha256": "aea2d4a780256fca602e07546d37e3e74844a5e1a1e885d5d02092eae9ae2fb6",
+    "preflight_counters": {
+      "jev": 0,
+      "typellm": 0
+    }
+  },
+  "inputs_sha256": "e3c4c653c8225dfb668c18bf022345e1e3ef7a8665d821f3da72219d6c98a1a7",
+  "bundle_sha256": "8fd1b4f37f6a113653dbaeda5e040ba5bed6d7b007ab9269d307f8642d339189",
+  "source_sha256": {
+    "src/completion.mjs": "a096d2a93d5547857ad8e04fa66fcc3176c7db41393e84fbb727c68d4c08e1e9",
+    "src/literal-inventory.mjs": "ecdeb980fb826f800dfeb186e042b5a4edf85b32ecc8a97516eb55e81a9c37f9",
+    "src/goal.mjs": "cd9101d6a222e31773c9523adeca3f7f9aa32990e30b39e06a7b872771422f3e",
+    "src/contract.mjs": "f2c95212493f59fd80ef17270c2b5de0d51d795b26ac8a0e6dfa0fdb9dec30fe",
+    "src/turn.mjs": "c5fc3489a5bd0861f0455bd9843f47e76030bb03a4fe55745cf00c29c79b7008",
+    "src/session.mjs": "d6fcb97e581afb789ed6ecb339c06c378ef94283084df8ad3042ebe42c48cfe8",
+    "functions/api/parts.mjs": "ce18dbfb6ed5330c04fba1e3264a6e84cd4fb4f45b03775c06decdedb9b4521e",
+    "functions/pages-worker.mjs": "afc3b785091d992fddd47f15ec17a4b05d78d7bd7564223c35e065ee737fd690",
+    "web/app.mjs": "3a9ac4eba0770949a219b35c97cd346d4a7912026fae2b2f21710251b86bbf2a",
+    "web/adapters/completion.mjs": "537bc46e93efe58fbdf466dd2493989ad5695209def769ec9da3ba68926edb5a",
+    "dev/serve.mjs": "d044ea7f8ccbd7fd71fbe1447dcce0f30bfa831d471da3eef2e3377380532298",
+    "tests/dependency-cycle-eval.mjs": "b92308340b7a54020c30ae1c1daa3b482b60263d080b3f2e2393909f6cfcd7c3",
+    "tests/requirements-cycle-score.mjs": "3d779cf422e8cc0facc6f5ff566c3e77b36a61486f9586f120b0c1a722cd5a46",
+    "tests/requirements-cycle-audit.mjs": "692bdbaef8dbe28fe30fcdfe178202ebbdf3a4728bf0fe1c7310f72bf789c6eb",
+    "tests/dependency-cycle-score.mjs": "2f7f40afec31d1f7cded08951529a30d741f6ebfb8abf446900a7f6eb567ef91",
+    "tests/dependency-cycle-audit.mjs": "47dce6207c8b48dae6447d87ee1294d8495f28a31d2b474d5dc0c9b95998d66e",
+    "tests/semantic-score.mjs": "3230791bd2b06ccbb73008723ab3709981ce6e2d65fc2fdbdec8cadf9d1cfec3",
+    "tests/requirements-cycle-http.mjs": "b3c1d052e2f7138532e0d7cac6ac7b3c7287b7af32b857990c1e6d14bb325386",
+    "tests/painted-goal.mjs": "c5ba117d1dea66d20c80b7f92b8184296ff79d4231da56f5a89836af4beb018b",
+    "tests/intent-cycle-eval.mjs": "0dd9649d87f4b2f0d0e446b44f5dcd7bb09582e75eca8ca7113b8d0d4d741357",
+    "tests/intent-cycle-score.mjs": "e6652eef8ee1b18c1b3c479b649033105c1ae27f360b0b9d4a16f898edc664cb",
+    "tests/intent-cycle-audit.mjs": "151715f5c09a64a1187ad2557e13b3172801e8e8fa8ee492b31a5a7823222617",
+    "tests/frontier-cycle-eval.mjs": "3031b7f539752badd452b868c577daa6437647547233f81f78c1b0eea5db29f9",
+    "tests/frontier-cycle-score.mjs": "64fe98b9929ca13dcf57e41857da5eed656bb2d5457eab0aa9a78aad023ecf81",
+    "tests/frontier-cycle-audit.mjs": "f903cd8813c33387ec69f2adc0d0f20e1fedfd5dd59cd07d02fa7ce84f37f89e",
+    "tests/quota-cycle-eval.mjs": "c71d6aedd4eb7d3b314cacfffd94aaed30c8f8b70e37a3126fe9ebc15cb92aea",
+    "tests/quota-cycle-score.mjs": "4abf6593fc8ab870319611ded3d9e50e2cebe37ff25edef72329cffabede5881",
+    "tests/quota-cycle-audit.mjs": "32d7620e2087fd45dcdb3bf68589fe4478199774150602e07af5c7b92ca6596f"
+  },
+  "case_order": [
+    "PE01"
+  ],
+  "arm_order": [
+    {
+      "id": "PE01",
+      "arm": "B"
+    },
+    {
+      "id": "PE01",
+      "arm": "C"
+    }
+  ],
+  "methods": {
+    "O": "ready-open",
+    "Q": "ready-quota",
+    "B": "literal-v2",
+    "C": "adaptive-v3"
+  },
+  "generation_policies": {
+    "O": null,
+    "Q": null,
+    "B": null,
+    "C": "dependent"
+  },
+  "goal_parts_policies": {
+    "O": "open",
+    "Q": "quota",
+    "B": "quota",
+    "C": "quota"
+  },
+  "oracle_policy": "hash for commitment only; no oracle is read or forwarded",
+  "replay_suffix": "compatibility only; scoring dispatches by axis"
+}

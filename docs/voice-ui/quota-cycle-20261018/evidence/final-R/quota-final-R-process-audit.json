@@ -1,0 +1,30 @@
+{
+  "schema": "voice-ui.quota-cycle-process/1",
+  "status": "PASS",
+  "issues": [],
+  "state": "FINAL_RECORDED",
+  "baseline": {
+    "jev": 808,
+    "typellm": 85
+  },
+  "indexed_phases": 3,
+  "source_head": "59ded276405a5dc9caa85ad570b1827ff4bd0c7a",
+  "correction_batches": 0,
+  "reserved": {
+    "jev": 67,
+    "typellm": 1
+  },
+  "charged_at_cutoff": {
+    "jev": 827,
+    "typellm": 86
+  },
+  "releases": [
+    {
+      "phase": "quota-final-R-20261018",
+      "apps_sha": "59ded276405a5dc9caa85ad570b1827ff4bd0c7a",
+      "admitted": true,
+      "prior_fresh_quality_required": false
+    }
+  ],
+  "scope": "integrity/process only; conditional expression and ordinary supplementation are separate; retained fresh quality failures do not block complete stopped-evidence progression"
+}

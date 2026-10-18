@@ -1,0 +1,51 @@
+{
+  "schema": "voice-ui.review.intent-prelaunch-terminal/1",
+  "head": "81f9f4df488e7f4fd94c63dbc15fe46ab0fb3a25",
+  "status": "PASS",
+  "observed_at": "2026-10-17T19:15:48.037549+00:00",
+  "journal_sha256": "9b5582798122208f1d36968e4646de46573f414739a239f0ea1195a692a5b6ba",
+  "charged": {
+    "jev": 715,
+    "typellm": 71
+  },
+  "pending": null,
+  "last_reconcile": {
+    "kind": "phase-reconcile",
+    "id": "dependency-public-E-20261018",
+    "sent": {
+      "jev": 8,
+      "typellm": 1
+    },
+    "stopped_group_empty": true,
+    "pid": 330456,
+    "start_ticks": "16837431",
+    "stderr_sha256": "4a170a0f9875737d490f59435c97294377bc2220f12f4cb948f9cf08752c42dd",
+    "stdout_sha256": "ee4d38cb5767a7b2969fddacb82ee93dc8ed97d158b3dfa10ae01ff5ff42c0c6",
+    "at": "2026-10-17T18:10:05.547Z"
+  },
+  "prior_phases": [
+    {
+      "axis": "F",
+      "pid": 329873,
+      "start_ticks": "16800830",
+      "pid_absent": true,
+      "all_pgid_members_including_zombies": []
+    },
+    {
+      "axis": "V",
+      "pid": 330205,
+      "start_ticks": "16827734",
+      "pid_absent": true,
+      "all_pgid_members_including_zombies": []
+    },
+    {
+      "axis": "E",
+      "pid": 330456,
+      "start_ticks": "16837431",
+      "pid_absent": true,
+      "all_pgid_members_including_zombies": []
+    }
+  ],
+  "scope": "BEFORE_SOURCE_ADMISSION_NO_NEW_PROCESS_OR_PROVIDER_CALLS",
+  "reviewer_real_provider_calls": 0
+}

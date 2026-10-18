@@ -1,0 +1,89 @@
+{
+  "schema": "voice-ui.frontier-cycle-public-freeze/1",
+  "status": "SEALED_NOT_ADMITTED",
+  "created_at": "2026-10-17T19:57:25.081Z",
+  "commitment_sha256": "e95bfeeb45edf03e6fd43c0fbc7ca839f3584878092e6e5d18cf181a25af9eae",
+  "copy_allowlist": [
+    {
+      "name": "frontier-cycle-protocol.md",
+      "bytes": 14498,
+      "sha256": "6d5b805eed22ba808bb6bda39cf02423af2963a10aadc79917c0e9eddc2cec37"
+    },
+    {
+      "name": "frontier-cycle-policy-contract.json",
+      "bytes": 1898,
+      "sha256": "6bab60894486521a0aeda5000dbecacbcae3f2b86efb1e12c5dc85dba4666f88"
+    },
+    {
+      "name": "frontier-cycle-public-G0-10.inputs.json",
+      "bytes": 5546,
+      "sha256": "560b9126d385c9cfa1a48431fc6c78355b9f811e92b7a2f9736684a2c7f91c0f"
+    },
+    {
+      "name": "frontier-cycle-public-G0-10.oracle.json",
+      "bytes": 13254,
+      "sha256": "1ecb1b93dd057aa2d30c026e59625504fd545422e7929627a7e7f9fed2165007"
+    },
+    {
+      "name": "frontier-cycle-public-E-2.inputs.json",
+      "bytes": 3826,
+      "sha256": "27f0f8cc6f8a2f0bcd8bf7b92a75b93706c979f4fcb3ad002674ba8317a9db1a"
+    },
+    {
+      "name": "frontier-cycle-public-E-2.oracle.json",
+      "bytes": 6740,
+      "sha256": "017eb6365b04a62e83d5747b91c604d41d639495c9541635331d2f334bc70a28"
+    },
+    {
+      "name": "frontier-cycle-public-literal-preflight.json",
+      "bytes": 4648,
+      "sha256": "50b730839d71dada800861f617f1ffa9afce07db1eba8ac18691701f8c230f2e"
+    },
+    {
+      "name": "frontier-cycle-seal-validation.json",
+      "bytes": 6966,
+      "sha256": "cfec96c52a74b88d729dbb1644213a051e829e57bc72044363a51f779a217986"
+    },
+    {
+      "name": "frontier-cycle-commitment.json",
+      "bytes": 7584,
+      "sha256": "7a79dc144c801c97d284e604437e938b8fd8ae672b358fae0ab5d179bcb410ae"
+    },
+    {
+      "name": "frontier-cycle-public-freeze.json",
+      "bytes": 2155,
+      "sha256": "85c6e7dd1a6f14d3e37c64b386e84f0b0c8473e79f3debd6ef4c43cabd9fbff4"
+    },
+    {
+      "name": "frontier-cycle-parser-observation-addendum.json",
+      "bytes": 1104,
+      "sha256": "f23fbf76324b0157661d5bc17c38e7d2b22efebaef9a99683063833de195e4b0"
+    },
+    {
+      "name": "frontier-cycle-protocol.v2.md",
+      "bytes": 15248,
+      "sha256": "ef6123e0c9bb49fbd42a9d849fe22cc0b6f459bacf58319461c3f1e2e0efbce8"
+    },
+    {
+      "name": "frontier-cycle-commitment.v2.json",
+      "bytes": 8092,
+      "sha256": "e95bfeeb45edf03e6fd43c0fbc7ca839f3584878092e6e5d18cf181a25af9eae"
+    }
+  ],
+  "never_copy": [
+    "frontier-cycle-seal.private.mjs",
+    "frontier-cycle-seal-validation.private.json",
+    "frontier-cycle-sealed-*.inputs.json",
+    "frontier-cycle-sealed-*.oracle.json",
+    "any private validator/authoring script",
+    "every older unused sealed payload"
+  ],
+  "scope": "PUBLIC_METADATA_ONLY_NO_PROVIDER_EXECUTION_OR_SOURCE_ADMISSION",
+  "supersedes": {
+    "path": "frontier-cycle-public-freeze.json",
+    "sha256": "85c6e7dd1a6f14d3e37c64b386e84f0b0c8473e79f3debd6ef4c43cabd9fbff4"
+  },
+  "active_protocol": "frontier-cycle-protocol.v2.md",
+  "active_commitment": "frontier-cycle-commitment.v2.json",
+  "prepublication_addendum": "frontier-cycle-parser-observation-addendum.json"
+}

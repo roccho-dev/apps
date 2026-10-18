@@ -1,0 +1,189 @@
+{
+  "schema": "voice-ui.compact-verifier-runtime-wire-bridge/1",
+  "status": "PASS",
+  "head": "180fc53e24f0fc2a5fdb098a3748afaff047bab6",
+  "tree": "e2fc8ad6a1ccc3e83fa0cdc91e22434c5e02887c",
+  "previous_candidate": "e3a80fa56e7d953f8490b262fd90467829eee368",
+  "observed_at": "2026-10-18T05:50:24.356010+00:00",
+  "runtime_sha256": "687ef945c74344603ff0c81ae34d404fb3fef89169baf0c53b7368dae8ad5b43",
+  "manifest_sha256": "38eaa1551f3c828a1c1f262cf94f388f757f27f39690bf6eedc04e839d3ad79a",
+  "official_dist_verify": {
+    "exit": 0,
+    "rows": 293
+  },
+  "payload": {
+    "total": 293,
+    "raw_identical": 290,
+    "changed": [
+      "architecture/evidence.json",
+      "e2e/runtime-acceptance.mjs",
+      "site/architecture/data/source.v1.json"
+    ],
+    "Worker_unchanged": "339e1d841039df6492f5635a74695c7099c6a21348c1cb545503499552057aa8",
+    "declared_harness_payload": {
+      "previous_sha256": "19ec23a51899bba6dc40d18b33f661dea9de09f4b27c90e19906184495749cb4",
+      "current_sha256": "948cab6ed80a02462943eac13aa9f670d60d4f1f3c34cec287f3ec11c6381097",
+      "previous_bytes": 9312,
+      "current_bytes": 11280,
+      "previous_source_raw_equal": true,
+      "current_source_raw_equal": true
+    },
+    "scope": "all application/Worker/provider/UI payload bytes unchanged; one explicitly changed packaged acceptance helper and two exact architecture metadata files"
+  },
+  "architecture_metadata": {
+    "evidence": [
+      {
+        "pointer": "/source/commit",
+        "previous": "e3a80fa56e7d953f8490b262fd90467829eee368",
+        "current": "180fc53e24f0fc2a5fdb098a3748afaff047bab6"
+      }
+    ],
+    "catalog_source_commit": {
+      "pointer": "/source/commit",
+      "previous": "e3a80fa56e7d953f8490b262fd90467829eee368",
+      "current": "180fc53e24f0fc2a5fdb098a3748afaff047bab6"
+    },
+    "catalog_exact_five_excluded_blob_pointers": [
+      {
+        "pointer": "/files/7/blob",
+        "path": "acceptance/frontier-cycle-smoke.mjs",
+        "class": "excluded",
+        "reason": "the acceptance harness",
+        "previous": "052fd6dd75434dde6c1ed3caead4765ad937369f",
+        "current": "efd6cbf1a9df50a4a8e656dc0fb259ef5dd8c172"
+      },
+      {
+        "pointer": "/files/8/blob",
+        "path": "acceptance/intent-cycle-smoke.mjs",
+        "class": "excluded",
+        "reason": "the acceptance harness",
+        "previous": "30449ededd0b4fc5ffdd02ea45f4ba5b7ee0cfb4",
+        "current": "5134b04ae7b58f877f9eb6c19f7c5dd000aaee4b"
+      },
+      {
+        "pointer": "/files/9/blob",
+        "path": "acceptance/quota-cycle-smoke.mjs",
+        "class": "excluded",
+        "reason": "the acceptance harness",
+        "previous": "46a97a602cd04d3e94bda8ca7de964aed86fce08",
+        "current": "216e1715be43df823d47c53c6f37b10aefe16040"
+      },
+      {
+        "pointer": "/files/129/blob",
+        "path": "tests/runtime-acceptance.mjs",
+        "class": "excluded",
+        "reason": "tests and their fixtures",
+        "previous": "645efc2e495d3110734b97e4bd65ce5599cac9ab",
+        "current": "54f48347f47be6919b22dc1ba0db449b54abfdbb"
+      },
+      {
+        "pointer": "/files/130/blob",
+        "path": "tests/runtime-acceptance.test.mjs",
+        "class": "excluded",
+        "reason": "tests and their fixtures",
+        "previous": "1af373764d44bf0e3330daa2a1e21c0102d68d71",
+        "current": "6a98af900aeb0f456fa3171211852e8c12a1538f"
+      }
+    ]
+  },
+  "manifest_exact_eight_pointers": [
+    {
+      "pointer": "/files/1/sha256",
+      "previous": "e9d48dc1785a3a1bab09956fa7a79be13e60e5a99e68bca796f73123fce291a4",
+      "current": "62fb0be57acd7f495fa942c052878eb8ade54bbe639ae4ee44b7db76d297069b"
+    },
+    {
+      "pointer": "/files/11/bytes",
+      "previous": 9312,
+      "current": 11280
+    },
+    {
+      "pointer": "/files/11/sha256",
+      "previous": "19ec23a51899bba6dc40d18b33f661dea9de09f4b27c90e19906184495749cb4",
+      "current": "948cab6ed80a02462943eac13aa9f670d60d4f1f3c34cec287f3ec11c6381097"
+    },
+    {
+      "pointer": "/files/31/sha256",
+      "previous": "ee25f832eccaae0b9a85a1f3fcf89de8c577bfedb852974983ef7a0927ef0c38",
+      "current": "cb6d20aff804c723c721db2cab5d106252a0aaab112414ba96fb4d53fa2580bc"
+    },
+    {
+      "pointer": "/sources/apps",
+      "previous": "e3a80fa56e7d953f8490b262fd90467829eee368",
+      "current": "180fc53e24f0fc2a5fdb098a3748afaff047bab6"
+    },
+    {
+      "pointer": "/sources/architecture/evidence_sha256",
+      "previous": "e9d48dc1785a3a1bab09956fa7a79be13e60e5a99e68bca796f73123fce291a4",
+      "current": "62fb0be57acd7f495fa942c052878eb8ade54bbe639ae4ee44b7db76d297069b"
+    },
+    {
+      "pointer": "/sources/architecture/manifest_sha256",
+      "previous": "ee25f832eccaae0b9a85a1f3fcf89de8c577bfedb852974983ef7a0927ef0c38",
+      "current": "cb6d20aff804c723c721db2cab5d106252a0aaab112414ba96fb4d53fa2580bc"
+    },
+    {
+      "pointer": "/sources/architecture/source/commit",
+      "previous": "e3a80fa56e7d953f8490b262fd90467829eee368",
+      "current": "180fc53e24f0fc2a5fdb098a3748afaff047bab6"
+    }
+  ],
+  "dev_program_exact_three_public_references": [
+    {
+      "previous": "/nix/store/7gx744y7ksiaj90hmlgx5c77q1abm7n3-voice-ui-dist/worker/worker.mjs",
+      "current": "/nix/store/7nrgv35mmvz27gwqrgh2rg6s05wd8c83-voice-ui-dist/worker/worker.mjs"
+    },
+    {
+      "previous": "/nix/store/63mkg1mi943g0k1p71lbvfhhnv181vii-source",
+      "current": "/nix/store/pzfmhna5svkwsy0gpn43qdpfwxn8r287-source"
+    },
+    {
+      "previous": "/nix/store/0nqymh7hix1ifmvgl6icj1aang4nv7kl-voice-ui-architecture-source",
+      "current": "/nix/store/hcz4c3b95mxgfqdg3xfixzv1v75if5rx-voice-ui-architecture-source"
+    }
+  ],
+  "actual_source_matches_exact_Git_files": 31,
+  "V18_E28_registry_and_callers_unchanged": true,
+  "both_formal_providers_bound": {
+    "jev": {
+      "contract": "named-questions/1",
+      "entry_sha256": "0773b5c96d0da7f05fef9f9cf95772b6722a03022648e90fc56a4fdc9ac6046e",
+      "locator": "https://github.com/roccho-org/ops/releases/download/jev-provider-c7ed1132ad7bec8e5f05c6da38d719a05dec4877/jev-provider.zip",
+      "manifest_sha256": "a5386f84f0606c6900b3c0e89d19f94dcf701d344d7c7e6384889d8bb6a1aab5",
+      "proof_sha256": "d756b5855a55c07e7b93687f1556ad1a2657ce0acc701c89476d87d9461a46ff",
+      "provenance_sha256": "90e295578042b89fcf4e1d6dfc2a5cdee6d76916f97a3668472883810811ea17",
+      "sha256": "0c063b050895db87029fd514c81add33e291e321109e2aa55a3befdd42593f03"
+    },
+    "typellm": {
+      "contract": "typed-completion/1",
+      "entry_sha256": "3c10462eecd7f83dd790bfe208587c99347dcbed324b32ae674afbab48bdfb22",
+      "locator": "https://github.com/roccho-org/ops/releases/download/jev-provider-a724bdfa1864762cd9050a00e2642450af29c196/typellm-provider.zip",
+      "manifest_sha256": "4addcd161cb80f8800ee8d78a4b212c3fd2b7e92900cb10c492f3cf560878b2b",
+      "proof_sha256": "8e79073aa7fb94ffa7d4c0003c592d85622099b251c0958712eb2f7ea59bfba6",
+      "provenance_sha256": "d3d3b35ce4a77077823230da4790070db5ba206d09c66111c72b4fc44f4cc9ac",
+      "sha256": "25f8bf076d24577ad512fc63c9491e13796e76007d2e52349b5a9fc223395de6"
+    }
+  },
+  "wire": {
+    "sha256": "187832605680a2d25f51a5a57135b11762f2c30423dd93a0cc31c680d7b6b380",
+    "raw13requests_identical_e3": true,
+    "semantic_response_and_stage_values_identical_except26_UUID_nonces": true,
+    "exact_metadata_paths": [
+      "/apps_sha",
+      "/worker/path"
+    ],
+    "nonce_pointer_count": 26,
+    "same_compiled_Worker_reuses_independent_six_V_mock_check": true,
+    "source_wire_audit_sha256": "160dd38309bb660d3343a07fed32725b33614de054d414dce682e53d7fd26ae6"
+  },
+  "R_first_extra_bridge_assertion_failure": {
+    "preserved": true,
+    "reason": "Expected metadata-only2, observed also the declared packaged e2e helper; no false bridge proof emitted. Explicit source-bound payload1 added, no general exception."
+  },
+  "limits": [
+    "Immutable Nix runtime proof; authenticated actual CI ZIP verification is still pending.",
+    "No app launch or real provider call, no source/grade/budget change or private E6 release.",
+    "No model/V quality or diagram effect inferred from synthetic wire or CI success."
+  ],
+  "external_provider_sends": 0
+}

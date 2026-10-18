@@ -1,0 +1,1293 @@
+{
+  "schema": "voice-ui.quota-cycle-cell/1",
+  "axis": "E",
+  "id": "TEF05",
+  "method": "adaptive-v3",
+  "arm": "C",
+  "generation_policy": "dependent",
+  "goal_parts_policy": "quota",
+  "supplied_required": null,
+  "replay_suffix_scope": "compatibility only",
+  "fixture": "pair",
+  "utterance": "図はこの状態のままにしてください。部品も接続も追加しないでください。",
+  "parts": [
+    {
+      "key": "step",
+      "purpose": "an ordinary step, task or box",
+      "label": "工程",
+      "kind": "step"
+    },
+    {
+      "key": "decision",
+      "purpose": "a decision, choice or branch",
+      "label": "判断",
+      "kind": "decision"
+    },
+    {
+      "key": "data",
+      "purpose": "data, a document, an input or an output",
+      "label": "データ",
+      "kind": "data"
+    },
+    {
+      "key": "start",
+      "purpose": "a start or beginning",
+      "label": "開始",
+      "kind": "start"
+    },
+    {
+      "key": "end",
+      "purpose": "an end, finish or result",
+      "label": "終了",
+      "kind": "end"
+    },
+    {
+      "key": "api",
+      "purpose": "an application programming interface service that receives requests",
+      "label": "API",
+      "kind": "step"
+    },
+    {
+      "key": "db",
+      "purpose": "a database that persists application data",
+      "label": "DB",
+      "kind": "data"
+    },
+    {
+      "key": "group",
+      "purpose": "a group, boundary or container that holds other parts",
+      "label": "グループ",
+      "kind": "group"
+    }
+  ],
+  "valid_execution": true,
+  "elapsedMs": 8145.966899999999,
+  "result": {
+    "reason": "inventory-no-change",
+    "requests": 1,
+    "elapsedMs": 306.64500001072884,
+    "selected": [],
+    "trace": [],
+    "inventory": {
+      "checks": 1,
+      "completions": 0,
+      "preparations": 0,
+      "coverage": {
+        "choice": "no-change",
+        "confidence": 0.99,
+        "inspection": {
+          "schema": "voice-ui.parts.inspection/3",
+          "request_id": "f36158e0-8025-42c9-9b81-04bb0b819d61",
+          "mode": "adaptive-v3",
+          "initial": {
+            "decision": {
+              "choice": "no-change",
+              "confidence": 0.99
+            },
+            "factors": {
+              "intent": {
+                "choice": "no-change",
+                "confidence": 0.99
+              },
+              "labels": {
+                "choice": "available",
+                "confidence": 0.98
+              },
+              "capacity": {
+                "choice": "within",
+                "confidence": 1
+              },
+              "completeness": {
+                "choice": "complete",
+                "confidence": 1
+              }
+            },
+            "literal": {
+              "recognized": false,
+              "required": [],
+              "spans": []
+            },
+            "observation": {
+              "valid": true,
+              "status": "unsupported-syntax"
+            }
+          },
+          "proposal": null,
+          "verification": null,
+          "required": [],
+          "missing": [],
+          "proposal_policy": {
+            "id": "uncertainty-frontier-v1",
+            "eligible": false,
+            "reason": null
+          }
+        }
+      },
+      "missing": []
+    }
+  },
+  "calls": [
+    {
+      "id": "TEF05",
+      "arm": "C",
+      "n": 1,
+      "route": "/api/parts/check",
+      "upstream_route": "/api/parts/check?method=adaptive-v3",
+      "request": {
+        "kind": "voice-ui.goal.inventory.v1",
+        "state": {
+          "utterance": "図はこの状態のままにしてください。部品も接続も追加しないでください。",
+          "head": "sha256:f09c44a962cd217dad824ebf330ea9003d7a7b4d6fa24baac1de8dec4468f46c",
+          "regions": [
+            {
+              "id": "root",
+              "label": "fixture",
+              "kind": "boundary",
+              "parent": null
+            },
+            {
+              "id": "container",
+              "label": "取込域",
+              "kind": "group",
+              "parent": "root"
+            },
+            {
+              "id": "other",
+              "label": "監査域",
+              "kind": "group",
+              "parent": "root"
+            },
+            {
+              "id": "initial-api",
+              "label": "API",
+              "kind": "step",
+              "parent": "container"
+            },
+            {
+              "id": "initial-db",
+              "label": "DB",
+              "kind": "data",
+              "parent": "container"
+            }
+          ],
+          "edges": [],
+          "parts": [
+            {
+              "key": "step",
+              "purpose": "an ordinary step, task or box",
+              "label": "工程",
+              "kind": "step"
+            },
+            {
+              "key": "decision",
+              "purpose": "a decision, choice or branch",
+              "label": "判断",
+              "kind": "decision"
+            },
+            {
+              "key": "data",
+              "purpose": "data, a document, an input or an output",
+              "label": "データ",
+              "kind": "data"
+            },
+            {
+              "key": "start",
+              "purpose": "a start or beginning",
+              "label": "開始",
+              "kind": "start"
+            },
+            {
+              "key": "end",
+              "purpose": "an end, finish or result",
+              "label": "終了",
+              "kind": "end"
+            },
+            {
+              "key": "api",
+              "purpose": "an application programming interface service that receives requests",
+              "label": "API",
+              "kind": "step"
+            },
+            {
+              "key": "db",
+              "purpose": "a database that persists application data",
+              "label": "DB",
+              "kind": "data"
+            },
+            {
+              "key": "group",
+              "purpose": "a group, boundary or container that holds other parts",
+              "label": "グループ",
+              "kind": "group"
+            }
+          ]
+        }
+      },
+      "status": 200,
+      "response": {
+        "choice": "no-change",
+        "confidence": 0.99,
+        "inspection": {
+          "schema": "voice-ui.parts.inspection/3",
+          "request_id": "f36158e0-8025-42c9-9b81-04bb0b819d61",
+          "mode": "adaptive-v3",
+          "initial": {
+            "decision": {
+              "choice": "no-change",
+              "confidence": 0.99
+            },
+            "factors": {
+              "intent": {
+                "choice": "no-change",
+                "confidence": 0.99
+              },
+              "labels": {
+                "choice": "available",
+                "confidence": 0.98
+              },
+              "capacity": {
+                "choice": "within",
+                "confidence": 1
+              },
+              "completeness": {
+                "choice": "complete",
+                "confidence": 1
+              }
+            },
+            "literal": {
+              "recognized": false,
+              "required": [],
+              "spans": []
+            },
+            "observation": {
+              "valid": true,
+              "status": "unsupported-syntax"
+            }
+          },
+          "proposal": null,
+          "verification": null,
+          "required": [],
+          "missing": [],
+          "proposal_policy": {
+            "id": "uncertainty-frontier-v1",
+            "eligible": false,
+            "reason": null
+          }
+        }
+      },
+      "elapsedMs": 290.32790000000386
+    }
+  ],
+  "initial_head": "sha256:f09c44a962cd217dad824ebf330ea9003d7a7b4d6fa24baac1de8dec4468f46c",
+  "initial_log": "{\"operations\":[{\"mapId\":\"voice-graph\",\"records\":[{\"root\":\"root\",\"schema\":\"semantic-map-state/1\",\"title\":\"independent typed ordinary fresh\",\"type\":\"meta\"},{\"bounds\":[0,0,900,400],\"id\":\"root\",\"kind\":\"boundary\",\"label\":\"fixture\",\"parent\":null,\"summary\":\"\",\"type\":\"region\"},{\"bounds\":[0,0,700,200],\"id\":\"container\",\"kind\":\"group\",\"label\":\"取込域\",\"parent\":\"root\",\"summary\":\"\",\"type\":\"region\"},{\"bounds\":[0,230,700,160],\"id\":\"other\",\"kind\":\"group\",\"label\":\"監査域\",\"parent\":\"root\",\"summary\":\"\",\"type\":\"region\"},{\"bounds\":[20,20,140,64],\"id\":\"initial-api\",\"kind\":\"step\",\"label\":\"API\",\"parent\":\"container\",\"summary\":\"\",\"type\":\"region\"},{\"bounds\":[200,20,140,64],\"id\":\"initial-db\",\"kind\":\"data\",\"label\":\"DB\",\"parent\":\"container\",\"summary\":\"\",\"type\":\"region\"}],\"type\":\"CreateMap\"}],\"parent\":null,\"schema\":\"semantic-map-decision/2\",\"stateHash\":\"sha256:d28a5cde8a307de6f98cc04207356754be5192871823e12625d3bc57db099705\"}\n{\"operations\":[{\"items\":[{\"bounds\":[0,0,2000,500],\"regionId\":\"container\"},{\"bounds\":[0,600,2000,500],\"regionId\":\"other\"},{\"bounds\":[12,36,140,64],\"regionId\":\"initial-api\"},{\"bounds\":[200,36,140,64],\"regionId\":\"initial-db\"}],\"type\":\"PinRegions\"}],\"parent\":\"sha256:76cd65e7422b881814e96e809f38b2cfcc257e1a3b802a197d60928f45b966be\",\"schema\":\"semantic-map-decision/2\",\"stateHash\":\"sha256:da016c1e521da23fbb7188f92e1f4b3dd57cbca1ef38056b63f69a916aa8b7c2\"}\n",
+  "initial_log_sha256": "677982338fa1da2ba7c76b3311a2cdf317adfaddc419999ecba2d13d16f6354d",
+  "initial_records": [
+    {
+      "type": "meta",
+      "schema": "semantic-map-state/1",
+      "root": "root",
+      "title": "independent typed ordinary fresh"
+    },
+    {
+      "type": "region",
+      "id": "root",
+      "parent": null,
+      "label": "fixture",
+      "kind": "boundary",
+      "bounds": [
+        0,
+        0,
+        900,
+        400
+      ],
+      "summary": ""
+    },
+    {
+      "type": "region",
+      "id": "container",
+      "parent": "root",
+      "label": "取込域",
+      "kind": "group",
+      "bounds": [
+        0,
+        0,
+        700,
+        200
+      ],
+      "summary": ""
+    },
+    {
+      "type": "region",
+      "id": "other",
+      "parent": "root",
+      "label": "監査域",
+      "kind": "group",
+      "bounds": [
+        0,
+        230,
+        700,
+        160
+      ],
+      "summary": ""
+    },
+    {
+      "type": "region",
+      "id": "initial-api",
+      "parent": "container",
+      "label": "API",
+      "kind": "step",
+      "bounds": [
+        20,
+        20,
+        140,
+        64
+      ],
+      "summary": ""
+    },
+    {
+      "type": "region",
+      "id": "initial-db",
+      "parent": "container",
+      "label": "DB",
+      "kind": "data",
+      "bounds": [
+        200,
+        20,
+        140,
+        64
+      ],
+      "summary": ""
+    },
+    {
+      "type": "layout",
+      "regionId": "container",
+      "pin": "hard",
+      "bounds": [
+        0,
+        0,
+        2000,
+        500
+      ]
+    },
+    {
+      "type": "layout",
+      "regionId": "initial-api",
+      "pin": "hard",
+      "bounds": [
+        12,
+        36,
+        140,
+        64
+      ]
+    },
+    {
+      "type": "layout",
+      "regionId": "initial-db",
+      "pin": "hard",
+      "bounds": [
+        200,
+        36,
+        140,
+        64
+      ]
+    },
+    {
+      "type": "layout",
+      "regionId": "other",
+      "pin": "hard",
+      "bounds": [
+        0,
+        600,
+        2000,
+        500
+      ]
+    }
+  ],
+  "final_head": "sha256:f09c44a962cd217dad824ebf330ea9003d7a7b4d6fa24baac1de8dec4468f46c",
+  "final_log": "{\"operations\":[{\"mapId\":\"voice-graph\",\"records\":[{\"root\":\"root\",\"schema\":\"semantic-map-state/1\",\"title\":\"independent typed ordinary fresh\",\"type\":\"meta\"},{\"bounds\":[0,0,900,400],\"id\":\"root\",\"kind\":\"boundary\",\"label\":\"fixture\",\"parent\":null,\"summary\":\"\",\"type\":\"region\"},{\"bounds\":[0,0,700,200],\"id\":\"container\",\"kind\":\"group\",\"label\":\"取込域\",\"parent\":\"root\",\"summary\":\"\",\"type\":\"region\"},{\"bounds\":[0,230,700,160],\"id\":\"other\",\"kind\":\"group\",\"label\":\"監査域\",\"parent\":\"root\",\"summary\":\"\",\"type\":\"region\"},{\"bounds\":[20,20,140,64],\"id\":\"initial-api\",\"kind\":\"step\",\"label\":\"API\",\"parent\":\"container\",\"summary\":\"\",\"type\":\"region\"},{\"bounds\":[200,20,140,64],\"id\":\"initial-db\",\"kind\":\"data\",\"label\":\"DB\",\"parent\":\"container\",\"summary\":\"\",\"type\":\"region\"}],\"type\":\"CreateMap\"}],\"parent\":null,\"schema\":\"semantic-map-decision/2\",\"stateHash\":\"sha256:d28a5cde8a307de6f98cc04207356754be5192871823e12625d3bc57db099705\"}\n{\"operations\":[{\"items\":[{\"bounds\":[0,0,2000,500],\"regionId\":\"container\"},{\"bounds\":[0,600,2000,500],\"regionId\":\"other\"},{\"bounds\":[12,36,140,64],\"regionId\":\"initial-api\"},{\"bounds\":[200,36,140,64],\"regionId\":\"initial-db\"}],\"type\":\"PinRegions\"}],\"parent\":\"sha256:76cd65e7422b881814e96e809f38b2cfcc257e1a3b802a197d60928f45b966be\",\"schema\":\"semantic-map-decision/2\",\"stateHash\":\"sha256:da016c1e521da23fbb7188f92e1f4b3dd57cbca1ef38056b63f69a916aa8b7c2\"}\n",
+  "final_records": [
+    {
+      "type": "meta",
+      "schema": "semantic-map-state/1",
+      "root": "root",
+      "title": "independent typed ordinary fresh"
+    },
+    {
+      "type": "region",
+      "id": "root",
+      "parent": null,
+      "label": "fixture",
+      "kind": "boundary",
+      "bounds": [
+        0,
+        0,
+        900,
+        400
+      ],
+      "summary": ""
+    },
+    {
+      "type": "region",
+      "id": "container",
+      "parent": "root",
+      "label": "取込域",
+      "kind": "group",
+      "bounds": [
+        0,
+        0,
+        700,
+        200
+      ],
+      "summary": ""
+    },
+    {
+      "type": "region",
+      "id": "other",
+      "parent": "root",
+      "label": "監査域",
+      "kind": "group",
+      "bounds": [
+        0,
+        230,
+        700,
+        160
+      ],
+      "summary": ""
+    },
+    {
+      "type": "region",
+      "id": "initial-api",
+      "parent": "container",
+      "label": "API",
+      "kind": "step",
+      "bounds": [
+        20,
+        20,
+        140,
+        64
+      ],
+      "summary": ""
+    },
+    {
+      "type": "region",
+      "id": "initial-db",
+      "parent": "container",
+      "label": "DB",
+      "kind": "data",
+      "bounds": [
+        200,
+        20,
+        140,
+        64
+      ],
+      "summary": ""
+    },
+    {
+      "type": "layout",
+      "regionId": "container",
+      "pin": "hard",
+      "bounds": [
+        0,
+        0,
+        2000,
+        500
+      ]
+    },
+    {
+      "type": "layout",
+      "regionId": "initial-api",
+      "pin": "hard",
+      "bounds": [
+        12,
+        36,
+        140,
+        64
+      ]
+    },
+    {
+      "type": "layout",
+      "regionId": "initial-db",
+      "pin": "hard",
+      "bounds": [
+        200,
+        36,
+        140,
+        64
+      ]
+    },
+    {
+      "type": "layout",
+      "regionId": "other",
+      "pin": "hard",
+      "bounds": [
+        0,
+        600,
+        2000,
+        500
+      ]
+    }
+  ],
+  "frames": [
+    {
+      "camera": "overview",
+      "scope": "restore equality only; hidden children do not imply paint"
+    },
+    {
+      "camera": "container",
+      "observation": {
+        "association": "render-owned-semantic-id",
+        "title": {
+          "unmet": null,
+          "box": [
+            155,
+            172.5,
+            39,
+            19
+          ],
+          "clips": [
+            [
+              0,
+              0,
+              626,
+              429
+            ],
+            [
+              0,
+              0,
+              626,
+              429
+            ],
+            [
+              0,
+              0,
+              626,
+              429
+            ]
+          ],
+          "svg": [
+            0,
+            0,
+            2176,
+            1292
+          ]
+        },
+        "identity": true,
+        "viewport": [
+          0,
+          0,
+          626,
+          429
+        ],
+        "container": {
+          "id": "container",
+          "kind": "painted-group-shape",
+          "bounds": [
+            143.5,
+            165,
+            2000,
+            500
+          ]
+        },
+        "shapes": [
+          {
+            "id": "initial-api",
+            "rawLabel": "API",
+            "bounds": [
+              155,
+              200.5,
+              140,
+              64
+            ],
+            "name": {
+              "unmet": null,
+              "box": [
+                213.5,
+                223,
+                22,
+                19
+              ],
+              "clips": [
+                [
+                  155,
+                  201,
+                  140,
+                  64
+                ],
+                [
+                  0,
+                  0,
+                  626,
+                  429
+                ],
+                [
+                  0,
+                  0,
+                  626,
+                  429
+                ],
+                [
+                  0,
+                  0,
+                  626,
+                  429
+                ]
+              ],
+              "svg": [
+                0,
+                0,
+                2176,
+                1292
+              ]
+            }
+          },
+          {
+            "id": "initial-db",
+            "rawLabel": "DB",
+            "bounds": [
+              343,
+              200.5,
+              140,
+              64
+            ],
+            "name": {
+              "unmet": null,
+              "box": [
+                404,
+                223,
+                18,
+                19
+              ],
+              "clips": [
+                [
+                  355,
+                  201,
+                  116,
+                  64
+                ],
+                [
+                  0,
+                  0,
+                  626,
+                  429
+                ],
+                [
+                  0,
+                  0,
+                  626,
+                  429
+                ],
+                [
+                  0,
+                  0,
+                  626,
+                  429
+                ]
+              ],
+              "svg": [
+                0,
+                0,
+                2176,
+                1292
+              ]
+            }
+          }
+        ],
+        "edge": null,
+        "contained": true,
+        "nonoverlap": true,
+        "complete": true
+      },
+      "assessment": {
+        "status": "PASS",
+        "problems": [],
+        "unknown": []
+      }
+    },
+    {
+      "camera": "other",
+      "observation": {
+        "association": "render-owned-semantic-id",
+        "title": {
+          "unmet": null,
+          "box": [
+            296.5,
+            206.86000061035156,
+            34,
+            16
+          ],
+          "clips": [
+            [
+              4,
+              136,
+              619,
+              157
+            ],
+            [
+              0,
+              0,
+              626,
+              429
+            ],
+            [
+              0,
+              0,
+              626,
+              429
+            ],
+            [
+              0,
+              0,
+              626,
+              429
+            ]
+          ],
+          "svg": [
+            0,
+            0,
+            638,
+            429
+          ]
+        },
+        "identity": true,
+        "viewport": [
+          0,
+          0,
+          626,
+          429
+        ],
+        "container": {
+          "id": "other",
+          "kind": "painted-group-shape",
+          "bounds": [
+            5.429999828338623,
+            137.97999572753906,
+            616.1400146484375,
+            154.0399932861328
+          ]
+        },
+        "shapes": [],
+        "edge": null,
+        "contained": true,
+        "nonoverlap": true,
+        "complete": true
+      },
+      "assessment": {
+        "status": "PASS",
+        "problems": [],
+        "unknown": []
+      }
+    }
+  ],
+  "lifecycle": {
+    "target": {
+      "log": "{\"operations\":[{\"mapId\":\"voice-graph\",\"records\":[{\"root\":\"root\",\"schema\":\"semantic-map-state/1\",\"title\":\"independent typed ordinary fresh\",\"type\":\"meta\"},{\"bounds\":[0,0,900,400],\"id\":\"root\",\"kind\":\"boundary\",\"label\":\"fixture\",\"parent\":null,\"summary\":\"\",\"type\":\"region\"},{\"bounds\":[0,0,700,200],\"id\":\"container\",\"kind\":\"group\",\"label\":\"取込域\",\"parent\":\"root\",\"summary\":\"\",\"type\":\"region\"},{\"bounds\":[0,230,700,160],\"id\":\"other\",\"kind\":\"group\",\"label\":\"監査域\",\"parent\":\"root\",\"summary\":\"\",\"type\":\"region\"},{\"bounds\":[20,20,140,64],\"id\":\"initial-api\",\"kind\":\"step\",\"label\":\"API\",\"parent\":\"container\",\"summary\":\"\",\"type\":\"region\"},{\"bounds\":[200,20,140,64],\"id\":\"initial-db\",\"kind\":\"data\",\"label\":\"DB\",\"parent\":\"container\",\"summary\":\"\",\"type\":\"region\"}],\"type\":\"CreateMap\"}],\"parent\":null,\"schema\":\"semantic-map-decision/2\",\"stateHash\":\"sha256:d28a5cde8a307de6f98cc04207356754be5192871823e12625d3bc57db099705\"}\n{\"operations\":[{\"items\":[{\"bounds\":[0,0,2000,500],\"regionId\":\"container\"},{\"bounds\":[0,600,2000,500],\"regionId\":\"other\"},{\"bounds\":[12,36,140,64],\"regionId\":\"initial-api\"},{\"bounds\":[200,36,140,64],\"regionId\":\"initial-db\"}],\"type\":\"PinRegions\"}],\"parent\":\"sha256:76cd65e7422b881814e96e809f38b2cfcc257e1a3b802a197d60928f45b966be\",\"schema\":\"semantic-map-decision/2\",\"stateHash\":\"sha256:da016c1e521da23fbb7188f92e1f4b3dd57cbca1ef38056b63f69a916aa8b7c2\"}\n",
+      "records": [
+        {
+          "type": "meta",
+          "schema": "semantic-map-state/1",
+          "root": "root",
+          "title": "independent typed ordinary fresh"
+        },
+        {
+          "type": "region",
+          "id": "root",
+          "parent": null,
+          "label": "fixture",
+          "kind": "boundary",
+          "bounds": [
+            0,
+            0,
+            900,
+            400
+          ],
+          "summary": ""
+        },
+        {
+          "type": "region",
+          "id": "container",
+          "parent": "root",
+          "label": "取込域",
+          "kind": "group",
+          "bounds": [
+            0,
+            0,
+            700,
+            200
+          ],
+          "summary": ""
+        },
+        {
+          "type": "region",
+          "id": "other",
+          "parent": "root",
+          "label": "監査域",
+          "kind": "group",
+          "bounds": [
+            0,
+            230,
+            700,
+            160
+          ],
+          "summary": ""
+        },
+        {
+          "type": "region",
+          "id": "initial-api",
+          "parent": "container",
+          "label": "API",
+          "kind": "step",
+          "bounds": [
+            20,
+            20,
+            140,
+            64
+          ],
+          "summary": ""
+        },
+        {
+          "type": "region",
+          "id": "initial-db",
+          "parent": "container",
+          "label": "DB",
+          "kind": "data",
+          "bounds": [
+            200,
+            20,
+            140,
+            64
+          ],
+          "summary": ""
+        },
+        {
+          "type": "layout",
+          "regionId": "container",
+          "pin": "hard",
+          "bounds": [
+            0,
+            0,
+            2000,
+            500
+          ]
+        },
+        {
+          "type": "layout",
+          "regionId": "initial-api",
+          "pin": "hard",
+          "bounds": [
+            12,
+            36,
+            140,
+            64
+          ]
+        },
+        {
+          "type": "layout",
+          "regionId": "initial-db",
+          "pin": "hard",
+          "bounds": [
+            200,
+            36,
+            140,
+            64
+          ]
+        },
+        {
+          "type": "layout",
+          "regionId": "other",
+          "pin": "hard",
+          "bounds": [
+            0,
+            600,
+            2000,
+            500
+          ]
+        }
+      ],
+      "stored": "{\"operations\":[{\"mapId\":\"voice-graph\",\"records\":[{\"root\":\"root\",\"schema\":\"semantic-map-state/1\",\"title\":\"independent typed ordinary fresh\",\"type\":\"meta\"},{\"bounds\":[0,0,900,400],\"id\":\"root\",\"kind\":\"boundary\",\"label\":\"fixture\",\"parent\":null,\"summary\":\"\",\"type\":\"region\"},{\"bounds\":[0,0,700,200],\"id\":\"container\",\"kind\":\"group\",\"label\":\"取込域\",\"parent\":\"root\",\"summary\":\"\",\"type\":\"region\"},{\"bounds\":[0,230,700,160],\"id\":\"other\",\"kind\":\"group\",\"label\":\"監査域\",\"parent\":\"root\",\"summary\":\"\",\"type\":\"region\"},{\"bounds\":[20,20,140,64],\"id\":\"initial-api\",\"kind\":\"step\",\"label\":\"API\",\"parent\":\"container\",\"summary\":\"\",\"type\":\"region\"},{\"bounds\":[200,20,140,64],\"id\":\"initial-db\",\"kind\":\"data\",\"label\":\"DB\",\"parent\":\"container\",\"summary\":\"\",\"type\":\"region\"}],\"type\":\"CreateMap\"}],\"parent\":null,\"schema\":\"semantic-map-decision/2\",\"stateHash\":\"sha256:d28a5cde8a307de6f98cc04207356754be5192871823e12625d3bc57db099705\"}\n{\"operations\":[{\"items\":[{\"bounds\":[0,0,2000,500],\"regionId\":\"container\"},{\"bounds\":[0,600,2000,500],\"regionId\":\"other\"},{\"bounds\":[12,36,140,64],\"regionId\":\"initial-api\"},{\"bounds\":[200,36,140,64],\"regionId\":\"initial-db\"}],\"type\":\"PinRegions\"}],\"parent\":\"sha256:76cd65e7422b881814e96e809f38b2cfcc257e1a3b802a197d60928f45b966be\",\"schema\":\"semantic-map-decision/2\",\"stateHash\":\"sha256:da016c1e521da23fbb7188f92e1f4b3dd57cbca1ef38056b63f69a916aa8b7c2\"}\n",
+      "goal": {
+        "reason": "inventory-no-change",
+        "requests": 1,
+        "elapsedMs": 306.64500001072884,
+        "selected": [],
+        "trace": [],
+        "inventory": {
+          "checks": 1,
+          "completions": 0,
+          "preparations": 0,
+          "coverage": {
+            "choice": "no-change",
+            "confidence": 0.99,
+            "inspection": {
+              "schema": "voice-ui.parts.inspection/3",
+              "request_id": "f36158e0-8025-42c9-9b81-04bb0b819d61",
+              "mode": "adaptive-v3",
+              "initial": {
+                "decision": {
+                  "choice": "no-change",
+                  "confidence": 0.99
+                },
+                "factors": {
+                  "intent": {
+                    "choice": "no-change",
+                    "confidence": 0.99
+                  },
+                  "labels": {
+                    "choice": "available",
+                    "confidence": 0.98
+                  },
+                  "capacity": {
+                    "choice": "within",
+                    "confidence": 1
+                  },
+                  "completeness": {
+                    "choice": "complete",
+                    "confidence": 1
+                  }
+                },
+                "literal": {
+                  "recognized": false,
+                  "required": [],
+                  "spans": []
+                },
+                "observation": {
+                  "valid": true,
+                  "status": "unsupported-syntax"
+                }
+              },
+              "proposal": null,
+              "verification": null,
+              "required": [],
+              "missing": [],
+              "proposal_policy": {
+                "id": "uncertainty-frontier-v1",
+                "eligible": false,
+                "reason": null
+              }
+            }
+          },
+          "missing": []
+        }
+      }
+    },
+    "applied": {
+      "log": "{\"operations\":[{\"mapId\":\"voice-graph\",\"records\":[{\"root\":\"root\",\"schema\":\"semantic-map-state/1\",\"title\":\"independent typed ordinary fresh\",\"type\":\"meta\"},{\"bounds\":[0,0,900,400],\"id\":\"root\",\"kind\":\"boundary\",\"label\":\"fixture\",\"parent\":null,\"summary\":\"\",\"type\":\"region\"},{\"bounds\":[0,0,700,200],\"id\":\"container\",\"kind\":\"group\",\"label\":\"取込域\",\"parent\":\"root\",\"summary\":\"\",\"type\":\"region\"},{\"bounds\":[0,230,700,160],\"id\":\"other\",\"kind\":\"group\",\"label\":\"監査域\",\"parent\":\"root\",\"summary\":\"\",\"type\":\"region\"},{\"bounds\":[20,20,140,64],\"id\":\"initial-api\",\"kind\":\"step\",\"label\":\"API\",\"parent\":\"container\",\"summary\":\"\",\"type\":\"region\"},{\"bounds\":[200,20,140,64],\"id\":\"initial-db\",\"kind\":\"data\",\"label\":\"DB\",\"parent\":\"container\",\"summary\":\"\",\"type\":\"region\"}],\"type\":\"CreateMap\"}],\"parent\":null,\"schema\":\"semantic-map-decision/2\",\"stateHash\":\"sha256:d28a5cde8a307de6f98cc04207356754be5192871823e12625d3bc57db099705\"}\n{\"operations\":[{\"items\":[{\"bounds\":[0,0,2000,500],\"regionId\":\"container\"},{\"bounds\":[0,600,2000,500],\"regionId\":\"other\"},{\"bounds\":[12,36,140,64],\"regionId\":\"initial-api\"},{\"bounds\":[200,36,140,64],\"regionId\":\"initial-db\"}],\"type\":\"PinRegions\"}],\"parent\":\"sha256:76cd65e7422b881814e96e809f38b2cfcc257e1a3b802a197d60928f45b966be\",\"schema\":\"semantic-map-decision/2\",\"stateHash\":\"sha256:da016c1e521da23fbb7188f92e1f4b3dd57cbca1ef38056b63f69a916aa8b7c2\"}\n",
+      "records": [
+        {
+          "type": "meta",
+          "schema": "semantic-map-state/1",
+          "root": "root",
+          "title": "independent typed ordinary fresh"
+        },
+        {
+          "type": "region",
+          "id": "root",
+          "parent": null,
+          "label": "fixture",
+          "kind": "boundary",
+          "bounds": [
+            0,
+            0,
+            900,
+            400
+          ],
+          "summary": ""
+        },
+        {
+          "type": "region",
+          "id": "container",
+          "parent": "root",
+          "label": "取込域",
+          "kind": "group",
+          "bounds": [
+            0,
+            0,
+            700,
+            200
+          ],
+          "summary": ""
+        },
+        {
+          "type": "region",
+          "id": "other",
+          "parent": "root",
+          "label": "監査域",
+          "kind": "group",
+          "bounds": [
+            0,
+            230,
+            700,
+            160
+          ],
+          "summary": ""
+        },
+        {
+          "type": "region",
+          "id": "initial-api",
+          "parent": "container",
+          "label": "API",
+          "kind": "step",
+          "bounds": [
+            20,
+            20,
+            140,
+            64
+          ],
+          "summary": ""
+        },
+        {
+          "type": "region",
+          "id": "initial-db",
+          "parent": "container",
+          "label": "DB",
+          "kind": "data",
+          "bounds": [
+            200,
+            20,
+            140,
+            64
+          ],
+          "summary": ""
+        },
+        {
+          "type": "layout",
+          "regionId": "container",
+          "pin": "hard",
+          "bounds": [
+            0,
+            0,
+            2000,
+            500
+          ]
+        },
+        {
+          "type": "layout",
+          "regionId": "initial-api",
+          "pin": "hard",
+          "bounds": [
+            12,
+            36,
+            140,
+            64
+          ]
+        },
+        {
+          "type": "layout",
+          "regionId": "initial-db",
+          "pin": "hard",
+          "bounds": [
+            200,
+            36,
+            140,
+            64
+          ]
+        },
+        {
+          "type": "layout",
+          "regionId": "other",
+          "pin": "hard",
+          "bounds": [
+            0,
+            600,
+            2000,
+            500
+          ]
+        }
+      ],
+      "stored": "{\"operations\":[{\"mapId\":\"voice-graph\",\"records\":[{\"root\":\"root\",\"schema\":\"semantic-map-state/1\",\"title\":\"independent typed ordinary fresh\",\"type\":\"meta\"},{\"bounds\":[0,0,900,400],\"id\":\"root\",\"kind\":\"boundary\",\"label\":\"fixture\",\"parent\":null,\"summary\":\"\",\"type\":\"region\"},{\"bounds\":[0,0,700,200],\"id\":\"container\",\"kind\":\"group\",\"label\":\"取込域\",\"parent\":\"root\",\"summary\":\"\",\"type\":\"region\"},{\"bounds\":[0,230,700,160],\"id\":\"other\",\"kind\":\"group\",\"label\":\"監査域\",\"parent\":\"root\",\"summary\":\"\",\"type\":\"region\"},{\"bounds\":[20,20,140,64],\"id\":\"initial-api\",\"kind\":\"step\",\"label\":\"API\",\"parent\":\"container\",\"summary\":\"\",\"type\":\"region\"},{\"bounds\":[200,20,140,64],\"id\":\"initial-db\",\"kind\":\"data\",\"label\":\"DB\",\"parent\":\"container\",\"summary\":\"\",\"type\":\"region\"}],\"type\":\"CreateMap\"}],\"parent\":null,\"schema\":\"semantic-map-decision/2\",\"stateHash\":\"sha256:d28a5cde8a307de6f98cc04207356754be5192871823e12625d3bc57db099705\"}\n{\"operations\":[{\"items\":[{\"bounds\":[0,0,2000,500],\"regionId\":\"container\"},{\"bounds\":[0,600,2000,500],\"regionId\":\"other\"},{\"bounds\":[12,36,140,64],\"regionId\":\"initial-api\"},{\"bounds\":[200,36,140,64],\"regionId\":\"initial-db\"}],\"type\":\"PinRegions\"}],\"parent\":\"sha256:76cd65e7422b881814e96e809f38b2cfcc257e1a3b802a197d60928f45b966be\",\"schema\":\"semantic-map-decision/2\",\"stateHash\":\"sha256:da016c1e521da23fbb7188f92e1f4b3dd57cbca1ef38056b63f69a916aa8b7c2\"}\n",
+      "goal": {
+        "reason": "inventory-no-change",
+        "requests": 1,
+        "elapsedMs": 306.64500001072884,
+        "selected": [],
+        "trace": [],
+        "inventory": {
+          "checks": 1,
+          "completions": 0,
+          "preparations": 0,
+          "coverage": {
+            "choice": "no-change",
+            "confidence": 0.99,
+            "inspection": {
+              "schema": "voice-ui.parts.inspection/3",
+              "request_id": "f36158e0-8025-42c9-9b81-04bb0b819d61",
+              "mode": "adaptive-v3",
+              "initial": {
+                "decision": {
+                  "choice": "no-change",
+                  "confidence": 0.99
+                },
+                "factors": {
+                  "intent": {
+                    "choice": "no-change",
+                    "confidence": 0.99
+                  },
+                  "labels": {
+                    "choice": "available",
+                    "confidence": 0.98
+                  },
+                  "capacity": {
+                    "choice": "within",
+                    "confidence": 1
+                  },
+                  "completeness": {
+                    "choice": "complete",
+                    "confidence": 1
+                  }
+                },
+                "literal": {
+                  "recognized": false,
+                  "required": [],
+                  "spans": []
+                },
+                "observation": {
+                  "valid": true,
+                  "status": "unsupported-syntax"
+                }
+              },
+              "proposal": null,
+              "verification": null,
+              "required": [],
+              "missing": [],
+              "proposal_policy": {
+                "id": "uncertainty-frontier-v1",
+                "eligible": false,
+                "reason": null
+              }
+            }
+          },
+          "missing": []
+        }
+      }
+    },
+    "reloaded": {
+      "log": "{\"operations\":[{\"mapId\":\"voice-graph\",\"records\":[{\"root\":\"root\",\"schema\":\"semantic-map-state/1\",\"title\":\"independent typed ordinary fresh\",\"type\":\"meta\"},{\"bounds\":[0,0,900,400],\"id\":\"root\",\"kind\":\"boundary\",\"label\":\"fixture\",\"parent\":null,\"summary\":\"\",\"type\":\"region\"},{\"bounds\":[0,0,700,200],\"id\":\"container\",\"kind\":\"group\",\"label\":\"取込域\",\"parent\":\"root\",\"summary\":\"\",\"type\":\"region\"},{\"bounds\":[0,230,700,160],\"id\":\"other\",\"kind\":\"group\",\"label\":\"監査域\",\"parent\":\"root\",\"summary\":\"\",\"type\":\"region\"},{\"bounds\":[20,20,140,64],\"id\":\"initial-api\",\"kind\":\"step\",\"label\":\"API\",\"parent\":\"container\",\"summary\":\"\",\"type\":\"region\"},{\"bounds\":[200,20,140,64],\"id\":\"initial-db\",\"kind\":\"data\",\"label\":\"DB\",\"parent\":\"container\",\"summary\":\"\",\"type\":\"region\"}],\"type\":\"CreateMap\"}],\"parent\":null,\"schema\":\"semantic-map-decision/2\",\"stateHash\":\"sha256:d28a5cde8a307de6f98cc04207356754be5192871823e12625d3bc57db099705\"}\n{\"operations\":[{\"items\":[{\"bounds\":[0,0,2000,500],\"regionId\":\"container\"},{\"bounds\":[0,600,2000,500],\"regionId\":\"other\"},{\"bounds\":[12,36,140,64],\"regionId\":\"initial-api\"},{\"bounds\":[200,36,140,64],\"regionId\":\"initial-db\"}],\"type\":\"PinRegions\"}],\"parent\":\"sha256:76cd65e7422b881814e96e809f38b2cfcc257e1a3b802a197d60928f45b966be\",\"schema\":\"semantic-map-decision/2\",\"stateHash\":\"sha256:da016c1e521da23fbb7188f92e1f4b3dd57cbca1ef38056b63f69a916aa8b7c2\"}\n",
+      "records": [
+        {
+          "type": "meta",
+          "schema": "semantic-map-state/1",
+          "root": "root",
+          "title": "independent typed ordinary fresh"
+        },
+        {
+          "type": "region",
+          "id": "root",
+          "parent": null,
+          "label": "fixture",
+          "kind": "boundary",
+          "bounds": [
+            0,
+            0,
+            900,
+            400
+          ],
+          "summary": ""
+        },
+        {
+          "type": "region",
+          "id": "container",
+          "parent": "root",
+          "label": "取込域",
+          "kind": "group",
+          "bounds": [
+            0,
+            0,
+            700,
+            200
+          ],
+          "summary": ""
+        },
+        {
+          "type": "region",
+          "id": "other",
+          "parent": "root",
+          "label": "監査域",
+          "kind": "group",
+          "bounds": [
+            0,
+            230,
+            700,
+            160
+          ],
+          "summary": ""
+        },
+        {
+          "type": "region",
+          "id": "initial-api",
+          "parent": "container",
+          "label": "API",
+          "kind": "step",
+          "bounds": [
+            20,
+            20,
+            140,
+            64
+          ],
+          "summary": ""
+        },
+        {
+          "type": "region",
+          "id": "initial-db",
+          "parent": "container",
+          "label": "DB",
+          "kind": "data",
+          "bounds": [
+            200,
+            20,
+            140,
+            64
+          ],
+          "summary": ""
+        },
+        {
+          "type": "layout",
+          "regionId": "container",
+          "pin": "hard",
+          "bounds": [
+            0,
+            0,
+            2000,
+            500
+          ]
+        },
+        {
+          "type": "layout",
+          "regionId": "initial-api",
+          "pin": "hard",
+          "bounds": [
+            12,
+            36,
+            140,
+            64
+          ]
+        },
+        {
+          "type": "layout",
+          "regionId": "initial-db",
+          "pin": "hard",
+          "bounds": [
+            200,
+            36,
+            140,
+            64
+          ]
+        },
+        {
+          "type": "layout",
+          "regionId": "other",
+          "pin": "hard",
+          "bounds": [
+            0,
+            600,
+            2000,
+            500
+          ]
+        }
+      ],
+      "stored": "{\"operations\":[{\"mapId\":\"voice-graph\",\"records\":[{\"root\":\"root\",\"schema\":\"semantic-map-state/1\",\"title\":\"independent typed ordinary fresh\",\"type\":\"meta\"},{\"bounds\":[0,0,900,400],\"id\":\"root\",\"kind\":\"boundary\",\"label\":\"fixture\",\"parent\":null,\"summary\":\"\",\"type\":\"region\"},{\"bounds\":[0,0,700,200],\"id\":\"container\",\"kind\":\"group\",\"label\":\"取込域\",\"parent\":\"root\",\"summary\":\"\",\"type\":\"region\"},{\"bounds\":[0,230,700,160],\"id\":\"other\",\"kind\":\"group\",\"label\":\"監査域\",\"parent\":\"root\",\"summary\":\"\",\"type\":\"region\"},{\"bounds\":[20,20,140,64],\"id\":\"initial-api\",\"kind\":\"step\",\"label\":\"API\",\"parent\":\"container\",\"summary\":\"\",\"type\":\"region\"},{\"bounds\":[200,20,140,64],\"id\":\"initial-db\",\"kind\":\"data\",\"label\":\"DB\",\"parent\":\"container\",\"summary\":\"\",\"type\":\"region\"}],\"type\":\"CreateMap\"}],\"parent\":null,\"schema\":\"semantic-map-decision/2\",\"stateHash\":\"sha256:d28a5cde8a307de6f98cc04207356754be5192871823e12625d3bc57db099705\"}\n{\"operations\":[{\"items\":[{\"bounds\":[0,0,2000,500],\"regionId\":\"container\"},{\"bounds\":[0,600,2000,500],\"regionId\":\"other\"},{\"bounds\":[12,36,140,64],\"regionId\":\"initial-api\"},{\"bounds\":[200,36,140,64],\"regionId\":\"initial-db\"}],\"type\":\"PinRegions\"}],\"parent\":\"sha256:76cd65e7422b881814e96e809f38b2cfcc257e1a3b802a197d60928f45b966be\",\"schema\":\"semantic-map-decision/2\",\"stateHash\":\"sha256:da016c1e521da23fbb7188f92e1f4b3dd57cbca1ef38056b63f69a916aa8b7c2\"}\n",
+      "goal": null
+    },
+    "apply_enabled": false,
+    "persistence": "PASS",
+    "undo": "separate completed-artifact keyless mechanics; no second live Goal"
+  }
+}

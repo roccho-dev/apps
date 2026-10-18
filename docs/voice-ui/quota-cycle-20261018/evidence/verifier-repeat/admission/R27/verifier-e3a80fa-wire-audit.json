@@ -1,0 +1,50 @@
+{
+  "schema": "voice-ui.compact-verifier-wire-audit/1",
+  "status": "PASS",
+  "apps_sha": "e3a80fa56e7d953f8490b262fd90467829eee368",
+  "runtime_sha256": "12914caef45861294d8662b7ab6113ad2026eb73226de9b52383a337d154f703",
+  "worker_sha256": "339e1d841039df6492f5635a74695c7099c6a21348c1cb545503499552057aa8",
+  "root_witness_sha256": "f19f33ccf39bc231e01ec99b47b0bc2269088d95b36c3e23bf5db9d31c1cc81a",
+  "root_capture_count": 13,
+  "root_capture_inputs": "public only",
+  "checks": {
+    "B_raw_equal": true,
+    "G0_raw_equal": true,
+    "ordinary_F_raw_equal": true,
+    "direct_F_raw_equal": true,
+    "ordinary_direct_F_raw_equal": true,
+    "V_exact_three_completeness_scalar_changes_only": true,
+    "V_expected_literal_from_exact_source": true,
+    "V_changed_body_utf8_exact_reserialization": true,
+    "V_ordinary_direct_raw_equal": true,
+    "V_variable_utterance_and_proposal_only_in_state": true,
+    "thinking_labels512_nine_scalar_profile_unchanged": true,
+    "closed_ordinary_stage_keys_and_generation_unchanged": true
+  },
+  "changed_paths": [
+    "/questions/completeness/criteria/complete",
+    "/questions/completeness/criteria/incomplete",
+    "/questions/completeness/instructions"
+  ],
+  "independent_completed_worker_mock": {
+    "posts": 6,
+    "valid_closed_responses": 6,
+    "public_proposals": 6,
+    "constant_questions": true,
+    "first_raw_body_equal_root_capture": true,
+    "all_provider_attempts_intercepted": true,
+    "Type_posts": 0,
+    "stages": 6,
+    "scope": "synthetic contract/wire only; oracle-driven fixture answers are never model performance"
+  },
+  "formal_providers": {
+    "jev": "0773b5c96d0da7f05fef9f9cf95772b6722a03022648e90fc56a4fdc9ac6046e",
+    "typellm": "3c10462eecd7f83dd790bfe208587c99347dcbed324b32ae674afbab48bdfb22"
+  },
+  "external_provider_sends": 0,
+  "limitations": [
+    "The failed e3 release still prevents final candidate admission; future repaired exact head/artifact/CI must be checked.",
+    "This is keyless captured request shape, not live secret upstream capture or provider latest-model identity.",
+    "No real G0 eligibility, V quality, diagram completion or question-only causal gain is proved."
+  ]
+}

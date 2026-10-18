@@ -1,0 +1,56 @@
+{
+  "schema": "voice-ui.independent-public-artifacts/1",
+  "scope": "Explicit stopped consumed V10 evidence and its oracle only. No F/E payload or private authoring file.",
+  "files": [
+    {
+      "name": "frontier-final-V-zero-send-audit.json",
+      "bytes": 6014,
+      "sha256": "d381015734dea56b77cc8fb81724b8098a8a1a4639a29e8aa8702fd12677c21c"
+    },
+    {
+      "name": "frontier-final-V-physical-stop.json",
+      "bytes": 8291,
+      "sha256": "51bd8fa6f6980b3d4dc340337c6801e38d4f8a464680a73eabb83eaa8af914c3"
+    },
+    {
+      "name": "frontier-final-V-stop-audit.json",
+      "bytes": 8419,
+      "sha256": "950b33ecd4b47377a317f19bd04adcf8cbcfae0263c9bd3b33d812f626735f12"
+    },
+    {
+      "name": "frontier-final-V-raw-audit.json",
+      "bytes": 10864,
+      "sha256": "35f6d6b33623fc67fe3280cdcf6d3ea75fc259a37103657b18ea499702c89ced"
+    },
+    {
+      "name": "frontier-final-V-provider-audit.json",
+      "bytes": 867,
+      "sha256": "61ebc61d67b6a8819bd31abb18179a1fdb9e80512f7becb60dbe745bbe5f37c7"
+    },
+    {
+      "name": "frontier-final-V-producer-audit.json",
+      "bytes": 192,
+      "sha256": "f73ea3e239b785871a6bd995e3bbc954feedb4c2a27b11c55adc1c7bf905134f"
+    },
+    {
+      "name": "frontier-final-V-process-audit.json",
+      "bytes": 761,
+      "sha256": "e76c6b3c617718dcdf86fcb495915f9ee1dd817af505dcf06d165ed61f53f292"
+    },
+    {
+      "name": "frontier-final-V.producer.json",
+      "bytes": 6564,
+      "sha256": "55c630a0e8917a6017febb125de9a35d138147ccef4532075f55b3af1bee19cc"
+    },
+    {
+      "name": "frontier-final-V-summary.json",
+      "bytes": 1725,
+      "sha256": "79baeee8dc45c6040ad0e1269d022856de8db35a8f2a87d14566d8fbeb1d55e2"
+    },
+    {
+      "name": "frontier-cycle-final-V-10.oracle.json",
+      "bytes": 14395,
+      "sha256": "61de89a893767d873af19ea26da11901acaa6b04005aef87cf7b9e83864a7a5e"
+    }
+  ]
+}

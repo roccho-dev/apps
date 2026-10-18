@@ -1,0 +1,21 @@
+{
+  "schema": "voice-ui.dependency-compiled-equivalence/1",
+  "status": "PASS",
+  "scope": "SYNTHETIC_MECHANICS_ONLY",
+  "apps_sha": "824976585e7a01c41f327e6842f4691aeee3a8f3",
+  "artifact_manifest_sha256": "bdcd4f7ab5604a38a3588941aa816ae0f1c8778ec2771d8c7c2e21cfe82b58e1",
+  "worker_sha256": "f54e9a95562ca33332b2ad67903907d16c6a6d1f6764d2b135cf22e9ba669c66",
+  "provider_sha256": "3f754c8b1ee4a8b34b50d00fd17e37295d853e1b607903b6d355b5e06997669c",
+  "previous_apps": "1f51623a1c3cc64614b5940eaff60fa4b6837cea",
+  "old_independent_wire_sha256": "9e8360f9970841e25590a86ae7eb27bb6cf76cba9e2e7a06743ac63f49eefb1d",
+  "independent_unchanged": true,
+  "stripped_dependent_equal": true,
+  "default_equal_dependent": true,
+  "declared_dependency_refs": 12,
+  "invalid_queries_before_send": 7,
+  "synthetic_sends": 4,
+  "real_provider_sends": {
+    "jev": 0,
+    "typellm": 0
+  }
+}

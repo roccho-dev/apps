@@ -406,6 +406,7 @@ def build(args):
     copy_file(app / "tests/local-voice-graph-e2e.mjs", out / "e2e/local-voice-graph-e2e.mjs")
     copy_file(app / "tests/public-e2e.mjs", out / "e2e/public-e2e.mjs")
     copy_file(app / "tests/architecture-e2e.mjs", out / "e2e/architecture-e2e.mjs")
+    copy_file(app / "tests/painted-goal.mjs", out / "e2e/painted-goal.mjs")
     copy_file(app / "tests/runtime-acceptance.mjs", out / "e2e/runtime-acceptance.mjs")
     copy_file(app / "dev/serve.mjs", out / "e2e/serve.mjs")
     copy_file(app / "tests/fixtures/proposals.json", out / "e2e/fixtures/proposals.json")
@@ -538,6 +539,7 @@ def verify_dist(root):
         "e2e/local-voice-graph-e2e.mjs",
         "e2e/public-e2e.mjs",
         "e2e/architecture-e2e.mjs",
+        "e2e/painted-goal.mjs",
         "e2e/runtime-acceptance.mjs",
         "e2e/serve.mjs",
         "e2e/fixtures/proposals.json",

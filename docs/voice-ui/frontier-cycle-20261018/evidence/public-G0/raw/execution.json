@@ -1,0 +1,99 @@
+{
+  "schema": "voice-ui.frontier-cycle-phase/1",
+  "axis": "G0",
+  "status": "RECORDED",
+  "summary": [
+    {
+      "axis": "G0",
+      "id": "PG01",
+      "arm": "G0",
+      "method": "literal-v2",
+      "generation_policy": null,
+      "valid_execution": true,
+      "calls": 1
+    },
+    {
+      "axis": "G0",
+      "id": "PG02",
+      "arm": "G0",
+      "method": "literal-v2",
+      "generation_policy": null,
+      "valid_execution": true,
+      "calls": 1
+    },
+    {
+      "axis": "G0",
+      "id": "PG03",
+      "arm": "G0",
+      "method": "literal-v2",
+      "generation_policy": null,
+      "valid_execution": true,
+      "calls": 1
+    },
+    {
+      "axis": "G0",
+      "id": "PG04",
+      "arm": "G0",
+      "method": "literal-v2",
+      "generation_policy": null,
+      "valid_execution": true,
+      "calls": 1
+    },
+    {
+      "axis": "G0",
+      "id": "PG05",
+      "arm": "G0",
+      "method": "literal-v2",
+      "generation_policy": null,
+      "valid_execution": true,
+      "calls": 1
+    },
+    {
+      "axis": "G0",
+      "id": "PG06",
+      "arm": "G0",
+      "method": "literal-v2",
+      "generation_policy": null,
+      "valid_execution": true,
+      "calls": 1
+    },
+    {
+      "axis": "G0",
+      "id": "PG07",
+      "arm": "G0",
+      "method": "literal-v2",
+      "generation_policy": null,
+      "valid_execution": true,
+      "calls": 1
+    },
+    {
+      "axis": "G0",
+      "id": "PG08",
+      "arm": "G0",
+      "method": "literal-v2",
+      "generation_policy": null,
+      "valid_execution": true,
+      "calls": 1
+    },
+    {
+      "axis": "G0",
+      "id": "PG09",
+      "arm": "G0",
+      "method": "literal-v2",
+      "generation_policy": null,
+      "valid_execution": true,
+      "calls": 1
+    },
+    {
+      "axis": "G0",
+      "id": "PG10",
+      "arm": "G0",
+      "method": "literal-v2",
+      "generation_policy": null,
+      "valid_execution": true,
+      "calls": 1
+    }
+  ],
+  "invalid_cells": 0,
+  "expected_cells": 10
+}

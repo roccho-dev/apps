@@ -1,0 +1,91 @@
+{
+  "schema": "voice-ui.frontier-cycle-public-modules/1",
+  "status": "INDEPENDENT_KEYLESS_TESTS_PASS_NOT_LIVE_ADMISSION",
+  "created_at": "2026-10-17T20:06:17.477Z",
+  "registration": {
+    "head": "6e917b0f164056baf3e565cf424f8fcb7fef8bf4",
+    "audit_sha256": "da9fd2cee0b8d8b6a72f44bcc6396774a37cc4753ba904a9eee6fb134597fb6a"
+  },
+  "files": [
+    {
+      "name": "frontier-cycle-score.mjs",
+      "bytes": 22140,
+      "sha256": "64fe98b9929ca13dcf57e41857da5eed656bb2d5457eab0aa9a78aad023ecf81"
+    },
+    {
+      "name": "frontier-cycle-score.test.mjs",
+      "bytes": 18640,
+      "sha256": "10c32b45621f14f29707e90b11c4aeaa9a8771b6bb61f73ea4ad75dae44b1e23"
+    },
+    {
+      "name": "frontier-cycle-audit.mjs",
+      "bytes": 67476,
+      "sha256": "f903cd8813c33387ec69f2adc0d0f20e1fedfd5dd59cd07d02fa7ce84f37f89e"
+    },
+    {
+      "name": "frontier-cycle-audit.test.mjs",
+      "bytes": 48036,
+      "sha256": "096510377d659101b6dea612e2c9b3d95d07d0c8f40d508f6985f81fb5f1582a"
+    }
+  ],
+  "preserved_frozen_modules": [
+    {
+      "name": "requirements-cycle-score.mjs",
+      "sha256": "3d779cf422e8cc0facc6f5ff566c3e77b36a61486f9586f120b0c1a722cd5a46"
+    },
+    {
+      "name": "requirements-cycle-audit.mjs",
+      "sha256": "692bdbaef8dbe28fe30fcdfe178202ebbdf3a4728bf0fe1c7310f72bf789c6eb"
+    },
+    {
+      "name": "dependency-cycle-score.mjs",
+      "sha256": "2f7f40afec31d1f7cded08951529a30d741f6ebfb8abf446900a7f6eb567ef91"
+    },
+    {
+      "name": "dependency-cycle-audit.mjs",
+      "sha256": "47dce6207c8b48dae6447d87ee1294d8495f28a31d2b474d5dc0c9b95998d66e"
+    },
+    {
+      "name": "intent-cycle-score.mjs",
+      "sha256": "e6652eef8ee1b18c1b3c479b649033105c1ae27f360b0b9d4a16f898edc664cb"
+    },
+    {
+      "name": "intent-cycle-audit.mjs",
+      "sha256": "151715f5c09a64a1187ad2557e13b3172801e8e8fa8ee492b31a5a7823222617"
+    }
+  ],
+  "validation": {
+    "tests": 37,
+    "passed": 37,
+    "failed": 0,
+    "skipped": 0,
+    "score_classification_groups": 14,
+    "audit_mutation_groups": 23,
+    "syntax": "PASS",
+    "whitespace": "PASS",
+    "test_data": "public regressions and explicit synthetic fixtures only; no sealed payload opened by published tests",
+    "provider_calls": 0
+  },
+  "exports": {
+    "score": [
+      "validateFrontierInput",
+      "frontierSchedule",
+      "proposalPolicy",
+      "oldInterpretationEligible",
+      "readFrontierInspection",
+      "gradeInitialPolicy",
+      "gradeFrontierGoal",
+      "summarizeFrontierAxis",
+      "classifyFrontierAxis"
+    ],
+    "audit": [
+      "auditFrontierRaw",
+      "auditFrontierProviderPhase",
+      "auditFrontierProducerBinding",
+      "auditFrontierReplayJoin",
+      "auditFrontierProcess",
+      "FRONTIER_SOURCE_NAMES"
+    ]
+  },
+  "scope": "COPY_EXACTLY_FOUR_MODULE_MEMBERS_PLUS_THIS_MANIFEST_ONLY; NO_PRIVATE_SCRIPTS_VALIDATORS_OR_PAYLOADS; FINAL_COMPOSED_SOURCE_ARTIFACT_CI_ADMISSION_REQUIRED"
+}

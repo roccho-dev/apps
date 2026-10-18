@@ -1,0 +1,37 @@
+{
+  "schema": "voice-ui.component-axes-phase/1",
+  "axis": "G",
+  "status": "RECORDED",
+  "summary": [
+    {
+      "axis": "G",
+      "id": "H01",
+      "method": "literal",
+      "valid_execution": true,
+      "calls": 1
+    },
+    {
+      "axis": "G",
+      "id": "H05",
+      "method": "literal",
+      "valid_execution": true,
+      "calls": 1
+    },
+    {
+      "axis": "G",
+      "id": "N09",
+      "method": "literal",
+      "valid_execution": true,
+      "calls": 1
+    },
+    {
+      "axis": "G",
+      "id": "H10",
+      "method": "literal",
+      "valid_execution": true,
+      "calls": 1
+    }
+  ],
+  "invalid_cells": 0,
+  "expected_cells": 4
+}
