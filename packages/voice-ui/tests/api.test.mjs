@@ -277,7 +277,7 @@ const withProvider = async (respond, run) => {
   const calls = [];
   globalThis.fetch = async (url, init) => {
     calls.push(JSON.parse(init.body));
-    return respond(calls.at(-1), init);
+    return respond(calls.at(-1), init, url);
   };
   try {
     return { result: await run(), calls };
@@ -298,8 +298,9 @@ test("compiled Worker binds both released provider operations, validates invento
   const invoke = (mode, body = input, env = { JEV_API_KEY: "jev-test-only", TYPELLM_API_KEY: "typed-test-only" }) => worker.fetch(
     new Request("http://localhost/api/parts/" + mode + "?method=typed", { method: "POST", body: JSON.stringify(body) }), env);
   const missing = [{ label: "Named service", kind: "step", occurrence: 1 }];
-  const { calls } = await withProvider(async (body, init) => {
+  const { calls } = await withProvider(async (body, init, url) => {
     if (body.questions.labels) {
+      assert.equal(url, "https://api.typesafe.ai/v1/systemone");
       assert.equal(init.headers.authorization, "Bearer jev-test-only");
       assert.deepEqual(Object.keys(body.questions), ["intent", "labels", "capacity"]);
       return Response.json({ model: "jev-test", answers: Object.fromEntries(Object.entries(body.questions).map(([name, question]) => {
@@ -310,6 +311,7 @@ test("compiled Worker binds both released provider operations, validates invento
       })) });
     }
     assert.equal(init.redirect, "error");
+    assert.equal(url, "https://api.typellm.ai/v1/generate");
     assert.equal(init.headers.authorization, "Bearer typed-test-only");
     assert.equal(body.model, "typellm-latest");
     assert.deepEqual(Object.keys(body.questions), ["missing1", "missing2", "missing3"]);
@@ -329,8 +331,14 @@ test("compiled Worker binds both released provider operations, validates invento
     }
     assert.deepEqual(await (await invoke("check")).json(), { choice: "missing", confidence: 0.9 });
     assert.deepEqual(await (await invoke("complete")).json(), { missing });
+    const jevOnly = { JEV_API_KEY: "jev-test-only" };
+    const typedOnly = { TYPELLM_API_KEY: "typed-test-only" };
+    assert.equal((await invoke("complete", input, jevOnly)).status, 503);
+    assert.equal((await invoke("check", input, typedOnly)).status, 503);
+    assert.deepEqual(await (await invoke("check", input, jevOnly)).json(), { choice: "missing", confidence: 0.9 });
+    assert.deepEqual(await (await invoke("complete", input, typedOnly)).json(), { missing });
   });
-  assert.equal(calls.length, 2);
+  assert.equal(calls.length, 4);
   const invalid = await withProvider(async () => Response.json({ result: { missing: [{ ...missing[0], parent: "container" }] } }), async () => {
     const response = await invoke("complete"); assert.equal(response.status, 502);
     assert.deepEqual(await response.json(), { error: "parts_contract" });

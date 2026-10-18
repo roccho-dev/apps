@@ -56,7 +56,9 @@ test('exactly three areas Purpose / Scopes / Agents; no delta, second Current or
     assert.ok(frame.entities.every(value => ['purpose', 'scopes', 'agents'].includes(value.area)));
     for (const kind of ['semantic-delta', 'purpose-state-observed']) assert.equal(ofKind(frame, kind).length, 0, kind);
     assert.equal(frame.entities.filter(value => value.ref.space === 'atlas.purpose-closure/1').length, 0);
-    assert.ok(frame.relations.every(value => value.containment === null), 'no containment is invented');
+    // v7: the only containment is a declared frame (scope-group) holding a Scopes unit; nothing else is nested.
+    assert.ok(frame.relations.every(value => value.containment === null || (value.containment === 'from-contains-to'
+      && value.from.kind === 'scope-group' && ['semantic-scope', 'unassigned-change', 'unresolved-change', 'obligation', 'closed-change'].includes(value.to.kind))), 'no containment is invented');
   }
 });
 
@@ -95,7 +97,7 @@ test('overview captions are two full lines, never shortened; every supplied labe
     const ordered = area => frame.entities.filter(value => value.area === area).sort((a, b) => a.order - b.order).map(value => value.ref.kind + ':' + value.ref.id);
     assert.deepEqual(ordered('purpose'), ['purpose:purpose.operations', 'purpose-state-target:purpose.operations:target', 'purpose-state-current:purpose.operations:current']);
     assert.deepEqual(ordered('scopes'), ['obligation:old-source-duty', 'semantic-scope:scope.delivery',
-      ...(index === 1 ? ['unassigned-change:criterion.recovery'] : [])]);
+      ...(index === 1 ? ['unassigned-change:criterion.recovery', 'scope-group:owner:none'] : ['scope-group:owner:fixture-W']), 'scope-group:history']);
     assert.deepEqual(ordered('agents'), ['agent:fixture-W', 'agent:fixture-independent-R']);
     assert.ok(ofKind(frame, 'purpose')[0].summary.startsWith(supplied.purpose_label));
     assert.ok(ofKind(frame, 'purpose-state-target')[0].summary.startsWith(supplied.target_label));
@@ -310,7 +312,7 @@ test('Agents are only declared ids with declared roles, synthetic and activity-u
     assert.deepEqual(notDrawn, [...changes, 'observation-writer:fixture-W', 'observation-evaluator:fixture-independent-R']);
     const gap = relation(frame, 'gap:current-target');
     assert.deepEqual([gap.from, gap.to, gap.label, gap.path, gap.context.change_relations], [current(frame).ref,
-      ofKind(frame, 'purpose-state-target')[0].ref, '変化 1 件', false, changes]);
+      ofKind(frame, 'purpose-state-target')[0].ref, '差 1 件', false, changes]);
     for (const id of changes) assert.equal(relation(frame, id).path, true, 'Direction keeps the omitted relation');
     // visible:false is the only representation change: each declared context is exactly the role declaration.
     const observation = fixture.frames.find(value => value.id === frame.id).semantic.observation;

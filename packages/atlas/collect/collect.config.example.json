@@ -1,6 +1,8 @@
 {
   "issues": ["roccho-dev/resources#25"],
   "pulls": ["roccho-dev/adrs#628", "roccho-dev/apps#92"],
+  "repos": ["roccho-dev/windows"],
+  "issueStates": [],
   "ports": [
     { "target": "dev.ui", "host": "127.0.0.1", "port": 5173 }
   ],

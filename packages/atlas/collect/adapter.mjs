@@ -4,12 +4,12 @@
 const pages = data => Array.isArray(data) && data.every(Array.isArray) ? data.flat() : data; // --paginate --slurp
 const lines = text => typeof text === 'string' ? text.split(/\r?\n/u).map(line => line.trim()).filter(Boolean) : null;
 
-// Thread (Issue or PR): REST issue + issue comments → [{commentId, updatedAt, text}], body first.
+// Thread (Issue or PR): REST issue + issue comments → [{commentId, updatedAt, author, text}], body first.
 function thread({ repo, number, fetchedAt, responses }) {
   const issue = responses?.issue?.data, comments = pages(responses?.comments?.data);
   const documents = issue && Array.isArray(comments) ? [
-    { commentId: null, updatedAt: issue.updated_at, text: issue.body ?? '' },
-    ...comments.map(comment => ({ commentId: comment.id, updatedAt: comment.updated_at, text: comment.body ?? '' })),
+    { commentId: null, updatedAt: issue.updated_at, author: issue.user?.login ?? null, text: issue.body ?? '' },
+    ...comments.map(comment => ({ commentId: comment.id, updatedAt: comment.updated_at, author: comment.user?.login ?? null, text: comment.body ?? '' })),
   ] : null;
   return { kind: 'thread', repo, number, fetchedAt, documents,
     source: { ref: `gh api issues ${repo}#${number}`, sha256: responses?.issue?.sha256 ?? null } };
@@ -37,12 +37,58 @@ function ports({ sha256, probes }) {
     ({ target, observedAt, responded, source: { ref: `tcp ${host}:${port}`, sha256 } })) };
 }
 
+// Repo / Issue state → one fact each. Only a boolean `archived` and a string `state` are values.
+// Issue state keeps GitHub's state_reason in the same value ("closed/completed"), so a reason-less
+// close never reads as completed and an open issue's null reason never becomes UNKNOWN.
+const fact = (target, value, { fetchedAt, responses }, response) =>
+  ({ kind: 'fact', target, value, observedAt: fetchedAt, source: { ref: responses?.[response]?.command ?? null, sha256: responses?.[response]?.sha256 ?? null } });
+
+function repoState(snapshot) {
+  const archived = snapshot.responses?.repo?.data?.archived;
+  return fact(`${snapshot.repo}:archived`, typeof archived === 'boolean' ? String(archived) : null, snapshot, 'repo');
+}
+
+// The issues API also answers for PRs (a `pull_request` key). Its state there drops merged and
+// "is a PR", so a merged PR would read as a reason-less "closed": UNKNOWN, with the reason in the
+// source (the only free text D keeps). PRs are read through `pulls` (pr.state / pr.merged).
+const PR_REASON = 'UNKNOWN: pull request; read pr.state / pr.merged via pulls';
+
+function issueState(snapshot) {
+  const data = snapshot.responses?.issue?.data ?? {};
+  const target = `${snapshot.repo}#${snapshot.number}:issue.state`;
+  if (Object.hasOwn(data, 'pull_request')) {
+    const record = fact(target, null, snapshot, 'issue');
+    return { ...record, source: { ...record.source, ref: `${record.source.ref} — ${PR_REASON}` } };
+  }
+  const { state, state_reason: reason } = data;
+  const value = typeof state !== 'string' ? null : typeof reason === 'string' ? `${state}/${reason}` : state;
+  return fact(target, value, snapshot, 'issue');
+}
+
+// P's declaration file: its text as read (null when unreadable) and the sha256 of those bytes.
+function declaration({ path, fetchedAt, sha256, text }) {
+  return { kind: 'declaration', path, fetchedAt, sha256: sha256 ?? null, text: typeof text === 'string' ? text : null };
+}
+
+// GitHub ids carry the owner: records get `repo: 'owner/repo'`, so every target, plan id and journal
+// ref built from it is `owner/repo#n…` / `owner/repo:…` (a fork and its upstream never share a name).
+// A snapshot without a plain owner and repo name is refused rather than collapsed into a shared id.
+function qualified(snapshot) {
+  const plain = value => typeof value === 'string' && /^[A-Za-z0-9._-]+$/u.test(value);
+  if (!plain(snapshot.owner) || !plain(snapshot.repo))
+    throw new Error(`atlas-collect: ${snapshot.type} snapshot needs a plain owner and repo, got ${JSON.stringify([snapshot.owner, snapshot.repo])}`);
+  return { ...snapshot, repo: `${snapshot.owner}/${snapshot.repo}` };
+}
+
 export function normalize(snapshot) {
   switch (snapshot.type) {
-    case 'issue': return [thread(snapshot)];
-    case 'pr': return [pullRequest(snapshot), thread(snapshot)];
+    case 'issue': return [thread(qualified(snapshot))];
+    case 'pr': return [pullRequest(qualified(snapshot)), thread(qualified(snapshot))];
     case 'sessions': return [sessions(snapshot)];
     case 'ports': return [ports(snapshot)];
+    case 'repo': return [repoState(qualified(snapshot))];
+    case 'issue-state': return [issueState(qualified(snapshot))];
+    case 'declaration': return [declaration(snapshot)];
     default: throw new Error(`atlas-collect: unknown snapshot type ${JSON.stringify(snapshot.type)}`);
   }
 }

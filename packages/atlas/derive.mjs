@@ -4,6 +4,7 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 import { parseArgs } from 'node:util';
 import { deriveAtlas } from './events.mjs';
+import { contractWorld } from './contract.mjs';
 
 const digest = bytes => `sha256:${createHash('sha256').update(bytes).digest('hex')}`;
 const temporaries = [];
@@ -16,7 +17,7 @@ try {
   const result = deriveAtlas(events, control);
   const json = value => JSON.stringify(value, null, 2) + '\n';
   const outputs = [['closure.jsonl', result.closure], ['semantic-scope-world.json', json(result.input)],
-    ['plan-projection.json', json(result.plans)], ['world.json', json(result.world)]].map(([name, text]) => [name, Buffer.from(text)]);
+    ['plan-projection.json', json(result.plans)], ['world.json', json(contractWorld(result))]].map(([name, text]) => [name, Buffer.from(text)]);
   await fs.mkdir(values['out-dir'], { recursive: true });
   const directory = await fs.realpath(values['out-dir']);
   // Every output is validated before any file is replaced; each replacement is atomic.

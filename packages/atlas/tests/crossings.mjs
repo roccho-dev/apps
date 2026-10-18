@@ -1,6 +1,7 @@
 // Overview crossing count used by the apps tests. Geometry is the generic
 // three-column overview: one column per area (presentation order), entities
-// stacked by `order` within their area, drawn relations (visible !== false)
+// stacked by `order` within their area, drawn relations (visible !== false; containment is drawn as
+// nesting, not as a line)
 // as straight segments between columns and as arcs inside one column.
 // Pairs sharing an endpoint never count. This mirrors ui tests/fixtures/
 // atlas-crossings.mjs by construction, not by import (no ui dependency here).
@@ -13,7 +14,7 @@ export const frameCrossings = (world, frame) => {
   for (const area of world.presentation.areas)
     frame.entities.filter(value => value.area === area.id && value.visible !== false).sort((a, b) => a.order - b.order)
       .forEach((value, rank) => point.set(key(value.ref), [column.get(area.id), rank]));
-  const lines = frame.relations.filter(value => value.visible !== false && point.has(key(value.from)) && point.has(key(value.to)))
+  const lines = frame.relations.filter(value => value.visible !== false && !value.containment && point.has(key(value.from)) && point.has(key(value.to)))
     .map(value => ({ id: value.ref.id, ends: [key(value.from), key(value.to)], a: point.get(key(value.from)), b: point.get(key(value.to)) }));
   const crossings = [];
   for (let i = 0; i < lines.length; i += 1) for (let j = i + 1; j < lines.length; j += 1) {

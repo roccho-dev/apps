@@ -214,7 +214,10 @@ and no containment is drawn unless the input supplies it.
   `whole-purpose-conflict` (未割当・矛盾), not plain unmet. An unknown/undecomposed
   comparison or binding, a conflicting whole-Purpose evaluation, or an unmet
   Purpose with no unit is an explicit unresolved unit: the current Gap is never
-  empty while the Purpose is not declared satisfied. Each frame's
+  empty while the Purpose is not declared satisfied. A whole evaluation that is
+  *declared* unknown while uncertain units already exist gets no unit of its own:
+  those units are the same open difference (D-derived frames always hit this).
+  D marks a satisfied condition `equivalent`, so it is no Scope. Each frame's
   `coverage.unknown` counts only unassigned units, unresolved/unknown/conflict
   units and Scopes whose own status is unknown or conflict or whose standing is
   unresolved. A known, owned, unmet Scope is in the current Gap but is a known
@@ -239,7 +242,7 @@ families carry `visible:false` with unchanged declared contexts: the observation
 `writer`/`evaluator` role relations (they always cross the Scopes pane) and the
 Current -> unit `change:*` relations (every unit would otherwise fan to both
 Current and Target in the Purpose column). The latter keep `path` for Direction;
-one drawn `gap:current-target` relation (変化 N 件) lists them in
+one drawn `gap:current-target` relation (差 N 件: one per open unit) lists them in
 `context.change_relations`. The UI reports all of them as omitted relations;
 their records stay in the World, catalog, search and detail. Owner (担当),
 Current -> Target, Scope/unit -> Target -> Purpose and history relations stay drawn.
@@ -327,6 +330,9 @@ cycles and references outside the named Purpose version fail closed.
   condition ids, so an unowned residual is one unassigned unit per condition.
 - History: a superseded version's obligations are frozen with the values derived
   at its archive instant. Plans never enter the Gap, Current or coverage.
+- Purpose: a log may change its Purpose (a purpose.set with another `purpose.id`);
+  one id keeps one label. Ideal versions stay unique across the log.
+  `fixtures/gap/` (6 frames) exercises every gap cause.
 - Plans (`atlas.plan-projection/1`): the latest plan per `repo#n` at t;
   `premise-version-mismatch` when it names an older Purpose version. Node state
   comes from `predicateRefs` (condition ids) only, else `unknown`; `blockedBy`
@@ -353,21 +359,163 @@ plans). Its World hash is fixed in `tests/events.test.mjs`.
 `live.mjs` only joins. `fromG` is the one place that knows G's event shape:
 a G observation target stays an opaque D state id (`apps#92:pr.state`), its
 `{ref, sha256}` source becomes D's source text, and G's literal `UNKNOWN` becomes a
-non-scalar value that D judges `unknown`. G's documented `<target>:session` is
+`null` (D's own marker: no value obtained), which D judges `unknown`. G's documented `<target>:session` is
 also passed as D's `session` observation of `<target>`, which the World shows as
-that Agent's observed activity value only when a Norm W id is exactly `<target>`.
+that Agent's observed session value only when a Norm W id is exactly `<target>`. Declared
+owners of conditions that are no Scope now (satisfied) stay in the Agents area as `responsible`,
+so the heading (未観測 / 一部観測 / 観測あり) follows their session observations too.
 The value is shown as observed: `transcript-only` is a past transcript, not activity.
 
 A G `plan.set` enters D only when the Purpose author declares it: a condition's
-`requires[].plans` lists the G plan ids that serve it (the latest purpose.set at
-or before the plan names its `purposeRef`). G cells are copied, never parsed, and
+`requires[].plans` lists the G plan ids that serve it (the latest ideal state at
+or before the plan names its `purposeRef`). Journal decisions from G are accepted one
+by one with D's parser; one D rejects is held in `g-journal-held.jsonl`, not fatal. G cells are copied, never parsed, and
 D's own parser checks the converted plan; a plan D rejects or nobody declares is
 held in `g-plans.jsonl` as `{reason, plan}`. G's `UNKNOWN` graph becomes D's `null` marker in `fromG` only: D keeps
 it as a declared plan with `nodes: null` and the reasons, never as "no plan".
 Without `--control` there is no Norm and every condition is unassigned.
 
-`withPlans` is the one place that knows the ui plan contract (shared with ui):
-`frames[i].plans` is absent when no purpose.set at that frame declares a plan
+## Ledger (L1, apps#110): world events are appended, the World is derived
+
+World events (decisions and observations, adrs#647 v9/v10) happen whether or not anything is drawn; their
+source of truth is an append-only ledger (`atlas.ledger/1`, one header line then rows
+`{seq, ledgerAt, recordedAt, actor, source, sha256, event}`, `event` = the G event as collected, `actor` =
+its author or `atlas.G` for an observation). Each row has two times, like a book's entry date and event
+date (v10): `ledgerAt`, when the row entered the ledger (`--ledger-at`, default now; monotonic, the only
+time order checked), and the event's own time (`recordedAt` of a declaration, `observedAt` of an
+observation), which may be in the past and is kept as is. `ledger.mjs` appends one collection; it never
+rewrites a row:
+
+- An **observation** is appended when its value or source changed, or as a **refresh** when half of the
+  shortest `maxAge` declared on its target (any ideal state in the ledger) has passed since the last
+  recorded observation of it. With collection at least every `maxAge/2`, the latest row is never stale
+  while collection runs, and goes stale within `maxAge` once it stops. A target no condition watches is
+  appended only when it changes. A refresh is no change of value.
+- A **declaration** (purpose.set, ideal.drafting, ideal.set, plan.set, purpose.evaluated, purpose.ended) is
+  appended only when its content changed for the same identity (a plan body's `updatedAt` alone is no
+  change), whatever its own date: one dated before the ledger's last row is appended, not held.
+- **Held, never appended** (to `<ledger>.held.jsonl` with a reason): damaged lines (invalid JSON, unknown
+  kinds, G's own held lines, an event dated after its `ledgerAt`), exact duplicates of a row, and a
+  collection whose `ledgerAt` goes back before the ledger's last row. A damaged ledger (seq, sha256 or
+  `ledgerAt` order broken) is refused as a whole and nothing is appended.
+
+`live.mjs --ledger=<ledger.jsonl>` derives the World from every row. Frames are cut by `ledgerAt` (what
+was known then): a late, past-dated event shows from the frame where it entered and never rewrites an
+earlier frame; a declaration's own time stays readable as `declaredAt` in the journal, an observation's
+as `observedAt`. The same ledger always gives the same World.
+
+### HQ refresh (P, `hq-refresh.ps1`): append → derive → publish
+
+The ledger lives at `/tmp/p-hq/ledger.jsonl` on g6i3-own for now (GitHub in L2). P's declaration file is
+read by G (list it under `declarations` in the collect config), so declarations enter the ledger too; do
+not pass `--purpose` any more.
+
+~~~sh
+node packages/atlas/collect/fetch.mjs <collect.json> <snapshot-dir>                      # read the world
+node packages/atlas/collect/collect.mjs <snapshot-dir> --out <g-events.jsonl>              # G events (this collection)
+node packages/atlas/ledger.mjs --ledger=/tmp/p-hq/ledger.jsonl <g-events.jsonl>           # 1. append (exit 1: stop)
+node packages/atlas/live.mjs --out-dir=<out> --ledger=/tmp/p-hq/ledger.jsonl --control=<control.jsonl>  # 2. derive
+# 3. publish: copy <out>/world.json to the HQ input (e.g. /tmp/p-hq/in/world.json) by write-then-rename
+~~~
+
+If step 1 or 2 fails, do not publish: the previous `world.json` stays. The ledger only grows; to start
+over, move it aside (never edit rows).
+
+### A last line cut short (manual repair, never automatic)
+
+An append that is interrupted (power, kill, full disk) can leave the ledger's last line incomplete. Then
+`ledger.mjs` refuses the ledger: it stops with exit 1 and appends nothing more, and `live.mjs --ledger`
+fails, so nothing is published and the previous `world.json` stays. Nothing repairs it automatically.
+To repair by hand:
+
+1. Stop the HQ refresh loop.
+2. Confirm the damage: `node packages/atlas/ledger.mjs --ledger=/tmp/p-hq/ledger.jsonl --check` (exit 1 and
+   the reason; `--check` only reads).
+3. Keep the damaged file: `cp /tmp/p-hq/ledger.jsonl /tmp/p-hq/ledger.broken-<UTC time>.jsonl`.
+4. Look at the end: `tail -c 400 /tmp/p-hq/ledger.jsonl`. Remove only an incomplete **last** line (no
+   trailing newline, not valid JSON): `head -n -1 /tmp/p-hq/ledger.jsonl > /tmp/p-hq/ledger.fixed.jsonl`
+   when the file ends without a newline, or truncate to the last `\n` otherwise. Never edit any other row.
+5. Check the result: `node packages/atlas/ledger.mjs --ledger=/tmp/p-hq/ledger.fixed.jsonl --check` must
+   print `PASS`; if the damage is not the last line only, stop and report it (do not rewrite rows).
+6. Move it into place (`mv /tmp/p-hq/ledger.fixed.jsonl /tmp/p-hq/ledger.jsonl`) and restart the refresh:
+   the next collection appends again what the lost row said (observations are re-observed, declarations
+   re-read), dated by that collection's `ledgerAt`.
+
+## World edge contracts (`contract.mjs`)
+
+The model and contracts are adrs#647 (v3 is the newest section). `contract.mjs` is the
+only module that knows the ui contracts; `derive.mjs` writes `contractWorld(result)`, so
+`live.mjs` and the fixture CLI emit the same shape. Without `plans`/`gap`/`phase`/
+`journal`/`matched_until` each frame is exactly D's World.
+
+**Words.** The 理想状態 (ideal state) is the declared, versioned, freshness-bound,
+observable approximation of the Purpose achieved; the Purpose itself is judged by
+people (`purpose.evaluated`), never by observation. The 現在状態 is the observation at t.
+A **Scope** is one open (unmet or unknown) condition and its owner; a satisfied
+condition is no Scope (`equivalent` part) and appears only as gap history.
+
+**Journal (D input).** Decisions, each with `recordedAt`, optional `actor` and
+`source{ref, digest, commentId?}`: `purpose.set{purpose{id,label}, rev}`,
+`ideal.drafting{purpose_id, version}`, `ideal.set{purpose_id, purpose_rev, version, label?,
+requires[≥1]}`, `plan.set`, `purpose.evaluated{purpose_id, purpose_rev, ideal_version,
+verdict: achieved|not-yet|ideal-insufficient, note?}`, `purpose.ended{purpose_id}`, plus
+`observation`. Each decision must name the active Purpose (id and rev); ideal versions
+are unique; the same id with a new label is a new rev, the same rev with another label
+fails. A legacy `purpose.set` with `requires` is normalized to purpose.set (only when the
+Purpose or its label changes; rev = the version that first declared that label) + ideal.set.
+
+**`frames[i].phase`**: `purpose-changed` (no drafting or ideal.set since the active
+purpose.set), `defining` (drafting only), `approximating` (ideal.set and ≥1 open part),
+`matched` (ideal.set and no open part: every condition satisfied within its window), and
+`ended` once `purpose.ended` is recorded (not in the v3 list: proposed). **`matched_until`**:
+when matched, the earliest `observedAt + maxAge` (fresh while `t − observedAt ≦ maxAge`);
+else null. **`frames[i].journal`** (v6): only what was newly recorded in that frame (after the previous
+frame's t), in time order and not thinned; ui accumulates the frames (contract 3 puts observations in
+the same book): decisions
+`{kind, recordedAt, actor, source{ref, commentId, sha256}, …ids}` (an evaluation has `frame` and
+`past`, true once the Purpose rev or the ideal version moved) and observations
+`{kind:'observation', recordedAt, observedAt, actor:null, source{ref}, target, value}`. Each fact appears
+once: an exactly repeated record is one row (rows differing in value or source stay); an observation marked `projection: true` (fromG's session view of a G `<target>:session`
+fact) is not listed again.
+
+**`frames[i].gap`** = `{basis:{purpose_id, purpose_rev, purpose_label, ideal_version, prev_frame},
+parts:[{condition, label, state, cause{ideal, current}, since, scope|null, refs[], observed_before_ideal?}] | null,
+closed:[{condition, at, by}], summary:{open, by_cause, conditions, satisfied, before_ideal}}`.
+`before_ideal` (v5) counts satisfied conditions whose observation is older than the ideal.set (event times:
+`observedAt` against the ideal state's own time, `declaredAt` when it entered the ledger later, else its
+`recordedAt`; never its `ledgerAt`, which only cuts frames):
+a match right after a Purpose change made only of earlier observations is shown, not hidden. With no ideal
+state to compare (purpose-changed, defining, ended) `parts` and the counts are null
+(UNKNOWN, never []), while `closed` still lists what closes. The cause (v6) compares with the
+latest frame that has a gap (`prev_frame`), by id only, and has two sides, at most one each, so one
+never hides the other. `ideal`: `initial` (no earlier frame with a gap), `purpose-changed` ((id, rev)
+pair differs), `ideal-added`, `ideal-revised` (predicate or maxAge; labels/norms are not revisions),
+or null. `current`: for an unknown condition always why — `current-stale`, `current-unmatchable`
+(a value arrived but cannot be compared), `current-conflict`, `current-unobserved` (nothing arrived,
+or D's `null`); for an unmet one only a change against the same, unrevised condition —
+`current-regressed` (satisfied → unmet) or `current-confirmed-unmet` (unknown → unmet) — else null.
+With no reason on either side the cause is `{ideal:null, current:'carried'}` (the same open difference
+continues; ui refuses a cause that names no side). `summary.by_cause` counts both sides
+and `carried`. `since` continues only while the difference stays open
+without a break and unrevised; under a new rev of the same Purpose, what the new ideal
+declares again continues. `closed.by`: `current-satisfied`, `ideal-removed`,
+`purpose-changed`, `purpose-ended` (proposed with `ended`). `observed_before_ideal` marks a
+judgment on an observation older than the ideal.set, by the same event-time rule (display only). `refs` are the
+`repo#n` of recorded plans the condition declares; plans never enter the gap otherwise.
+Each frame uses only itself and earlier frames; its Closure context holds only its own rows, so the
+World grows linearly with frames and observations. `fixtures/journal/` (9 frames) runs one
+cycle with an evaluation and an end.
+
+**Scopes nesting (v7).** The Scopes area is nested with the existing containment shape
+(`containment: 'from-contains-to'` from a `scope-group` entity to each member), decided only by
+declarations: one frame per declared owner (`owner:<Norm W id>`, caption 担当 / id) holding that
+owner's Scopes; `owner:none` (担当なし) holding unassigned and unresolved units; and `history`
+(閉じた差（履歴）) holding the frozen old obligations, completed-history Scopes and the conditions the
+current state meets now (`closed-change`, supplied by D as `frame.closed`, drawn without lines).
+Each unit is in exactly one frame and empty frames are not emitted; every other entity and relation
+is unchanged (crossings count drawn lines only, not containment).
+
+`plansOf`: `frames[i].plans` is absent when the frame's ideal state declares no plan
 (計画未宣言), `[]` when declared but none is recorded by then, else
 `[{ref, plan, version, label, serves, nodes:[{id,label}]|null, edges:[{from,to,kind}]|null,
 unknown, source:{repo, commentId, updatedAt, sha256}}]`. `nodes:null` means content

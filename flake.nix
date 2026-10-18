@@ -94,60 +94,86 @@
       };
       # Completed reviewed provider bytes; no ops source checkout/build input.
       jevRelease = {
-        base = "https://github.com/roccho-org/ops/releases/download/jev-provider-b4f611cac9e13fbef178469796cbc3b6d4a76b23";
-        locator = "https://github.com/roccho-org/ops/releases/download/jev-provider-b4f611cac9e13fbef178469796cbc3b6d4a76b23/jev-provider.zip";
-        sha256 = "073d9df7a2eeb479a3641c6b86768bf3af14ec1b7e976ed5672649148d5e2435";
-        proof_sha256 = "459b753541fdf53cf0acb9cb13167c17218e078e3782933e589afaf57a8c6846";
-        provenance_sha256 = "b602225c44cc67c4f6a96fe41914c5159140718a4c81f0826cf46d9cce9223b8";
-        entry_sha256 = "3f754c8b1ee4a8b34b50d00fd17e37295d853e1b607903b6d355b5e06997669c";
-        manifest_sha256 = "c8fdf65da826690b487ab093d20c73a445a11dbc736ae4f58e23af7c57330318";
-        contract = "named-choices-and-typed/1";
+        base = "https://github.com/roccho-org/ops/releases/download/jev-provider-c7ed1132ad7bec8e5f05c6da38d719a05dec4877";
+        locator = "https://github.com/roccho-org/ops/releases/download/jev-provider-c7ed1132ad7bec8e5f05c6da38d719a05dec4877/jev-provider.zip";
+        sha256 = "0c063b050895db87029fd514c81add33e291e321109e2aa55a3befdd42593f03";
+        proof_sha256 = "d756b5855a55c07e7b93687f1556ad1a2657ce0acc701c89476d87d9461a46ff";
+        provenance_sha256 = "90e295578042b89fcf4e1d6dfc2a5cdee6d76916f97a3668472883810811ea17";
+        entry_sha256 = "0773b5c96d0da7f05fef9f9cf95772b6722a03022648e90fc56a4fdc9ac6046e";
+        manifest_sha256 = "a5386f84f0606c6900b3c0e89d19f94dcf701d344d7c7e6384889d8bb6a1aab5";
+        contract = "named-questions/1";
         proof = {
-          pr_number = 565;
           base = "proposals";
-          reviewed_head = "f7e80875b1331c113cb38251d85838edf0330d5b";
-          r_exact_head_verdict_ref = "https://github.com/roccho-org/ops/pull/565#pullrequestreview-5558945175";
-          merge_sha = "b4f611cac9e13fbef178469796cbc3b6d4a76b23";
-          reviewed_tree = "dcb90215ac4e2f010b1bb39da5f71462cc94bf56";
-          merge_tree = "dcb90215ac4e2f010b1bb39da5f71462cc94bf56";
+          merge_sha = "c7ed1132ad7bec8e5f05c6da38d719a05dec4877";
+          merge_tree = "38b0194ed0cb4bff2bab61785f81f8c22a433755";
+          merged_at = "2026-10-18T00:08:23Z";
+          pr_number = 567;
+          r_exact_head_verdict_ref = "https://github.com/roccho-org/ops/pull/567#pullrequestreview-5560736694";
+          reviewed_head = "2de8899eb36300118bc27d7128c51a7730213017";
+          reviewed_tree = "38b0194ed0cb4bff2bab61785f81f8c22a433755";
         };
       };
-      jevArtifact = builtins.toJSON (
-        builtins.removeAttrs jevRelease [
-          "base"
-          "proof"
-        ]
-      );
-      jevFor =
-        system:
+      typellmRelease = {
+        base = "https://github.com/roccho-org/ops/releases/download/jev-provider-c7ed1132ad7bec8e5f05c6da38d719a05dec4877";
+        locator = "https://github.com/roccho-org/ops/releases/download/jev-provider-c7ed1132ad7bec8e5f05c6da38d719a05dec4877/typellm-provider.zip";
+        sha256 = "762fb1570ef9e22ad468b2d02843b579a35af1fa5ae7849a0d9988484b88dd0c";
+        proof_sha256 = "d756b5855a55c07e7b93687f1556ad1a2657ce0acc701c89476d87d9461a46ff";
+        provenance_sha256 = "a352e4f31ac82a8972d0a4f021014ff3a31a1ffba6a71ca566a44d0d2412c16f";
+        entry_sha256 = "5b81ed270aa49e288cd57fa17f7e866fea7e3734e5c872af6f8ac6017d86ab25";
+        manifest_sha256 = "da1d0c448b1c1cb14c697f7d3661503539e32d10303e774e0cbdf3d0f52dd196";
+        contract = "typed-completion/1";
+        proof = {
+          base = "proposals";
+          merge_sha = "c7ed1132ad7bec8e5f05c6da38d719a05dec4877";
+          merge_tree = "38b0194ed0cb4bff2bab61785f81f8c22a433755";
+          merged_at = "2026-10-18T00:08:23Z";
+          pr_number = 567;
+          r_exact_head_verdict_ref = "https://github.com/roccho-org/ops/pull/567#pullrequestreview-5560736694";
+          reviewed_head = "2de8899eb36300118bc27d7128c51a7730213017";
+          reviewed_tree = "38b0194ed0cb4bff2bab61785f81f8c22a433755";
+        };
+      };
+      providerArtifact =
+        release:
+        builtins.toJSON (
+          builtins.removeAttrs release [
+            "base"
+            "proof"
+          ]
+        );
+      jevArtifact = providerArtifact jevRelease;
+      typellmArtifact = providerArtifact typellmRelease;
+      # Exactly two supplied contracts use the same existing admission machinery.
+      providerFor =
+        system: kind: release:
         let
           pkgs = import nixpkgs { inherit system; };
           fetch =
             name: sha256:
             pkgs.fetchurl {
-              url = "${jevRelease.base}/${name}";
+              url = "${release.base}/${name}";
               inherit sha256;
             };
         in
-        pkgs.runCommand "jev-provider-admitted"
+        pkgs.runCommand "${kind}-provider-admitted"
           {
             nativeBuildInputs = [
               pkgs.python3
               pkgs.nodejs
             ];
-            zip = fetch "jev-provider.zip" jevRelease.sha256;
-            proof = fetch "merged-pr-proof.json" jevRelease.proof_sha256;
-            provenance = fetch "provenance.json" jevRelease.provenance_sha256;
-            expected = builtins.toJSON (builtins.removeAttrs jevRelease [ "base" ]);
+            zip = fetch "${kind}-provider.zip" release.sha256;
+            proof = fetch "merged-pr-proof.json" release.proof_sha256;
+            provenance = fetch "${kind}-provenance.json" release.provenance_sha256;
+            expected = builtins.toJSON (builtins.removeAttrs release [ "base" ]);
           }
           ''
-            python3 ${self}/packages/voice-ui/dist.py test-judge-admission \
-              --archive "$zip" --proof "$proof" --provenance "$provenance" \
-              --expected "$expected"
-            python3 ${self}/packages/voice-ui/dist.py admit-judge \
-              --archive "$zip" --proof "$proof" --provenance "$provenance" \
-              --expected "$expected" --out "$out"
+            python3 ${self}/packages/voice-ui/dist.py test-provider-admission --provider ${kind} \
+              --archive "$zip" --proof "$proof" --provenance "$provenance" --expected "$expected"
+            python3 ${self}/packages/voice-ui/dist.py admit-provider --provider ${kind} \
+              --archive "$zip" --proof "$proof" --provenance "$provenance" --expected "$expected" --out "$out"
           '';
+      jevFor = system: providerFor system "jev" jevRelease;
+      typellmFor = system: providerFor system "typellm" typellmRelease;
       hayamimiFor =
         system:
         let
@@ -191,6 +217,7 @@
           semanticMap = ui.packages.${system}.semantic-map;
           hayamimiWeb = hayamimiFor system;
           jevProvider = jevFor system;
+          typedProvider = typellmFor system;
 
           mkVoiceUiDist =
             name:
@@ -210,6 +237,8 @@
                   --architecture ${architectureFor system} \
                   --judge ${jevProvider} \
                   --judge-artifact '${jevArtifact}' \
+                  --typed ${typedProvider} \
+                  --typed-artifact '${typellmArtifact}' \
                   --out "$out" \
                   --app-rev ${appRevision} \
                   --ui-rev ${uiRevision} \
@@ -221,6 +250,7 @@
           semantic-map = semanticMap;
           hayamimi-web = hayamimiWeb;
           jev-provider = jevProvider;
+          typellm-provider = typedProvider;
 
           voice-ui-auth = pkgs.runCommand "voice-ui-auth" { } ''
             mkdir -p "$out/.envs"
@@ -266,12 +296,16 @@
           semanticMap = ui.packages.${system}.semantic-map;
           hayamimiWeb = hayamimiFor system;
           jevProvider = jevFor system;
+          typedProvider = typellmFor system;
           voiceUiAuth = self.packages.${system}.voice-ui-auth;
           voiceUiDist = self.packages.${system}.voice-ui-dist;
           # Local supplied-byte location changes only: no formal URL/proof
           # identity change or general future supplier guarantee is claimed.
           jevRelocated = pkgs.runCommand "jev-provider-relocated" { } ''
             cp -R ${jevProvider} "$out"
+          '';
+          typedRelocated = pkgs.runCommand "typellm-provider-relocated" { } ''
+            cp -R ${typedProvider} "$out"
           '';
           mkRepro =
             name:
@@ -291,6 +325,8 @@
                   --architecture ${architectureFor system} \
                   --judge ${if name == "voice-ui-dist-relocated" then jevRelocated else jevProvider} \
                   --judge-artifact '${jevArtifact}' \
+                  --typed ${if name == "voice-ui-dist-relocated" then typedRelocated else typedProvider} \
+                  --typed-artifact '${typellmArtifact}' \
                   --out "$out" \
                   --app-rev ${appRevision} \
                   --ui-rev ${uiRevision} \
@@ -322,7 +358,7 @@
               {
                 nativeBuildInputs = [ pkgs.nodejs ];
                 SEMANTIC_MAP = semanticMap;
-                JUDGE_PROVIDER_ENTRY = "${jevProvider}/batch.mjs";
+                JUDGE_PROVIDER_ENTRY = "${jevProvider}/jev.mjs";
                 VOICE_UI_WORKER = "${voiceUiDist}/worker/worker.mjs";
                 VOICE_UI_SEMCMP_BIN = "${semcmpFor system}/bin/semcmp";
                 VOICE_UI_DIST = "${voiceUiDist}";
@@ -368,7 +404,7 @@
           provider-artifacts = pkgs.runCommand "provider-artifacts-check" { } ''
             set -euo pipefail
 
-            for artifact in ${semanticMap} ${jevProvider}; do
+            for artifact in ${semanticMap} ${jevProvider} ${typedProvider}; do
               test -d "$artifact"
               test -n "$(ls -A "$artifact")"
             done
@@ -484,7 +520,7 @@
                 diff -qr ${reproA}/site ${relocated}/site
                 diff -qr ${reproA}/e2e ${relocated}/e2e
                 cmp ${reproA}/worker/worker.mjs ${relocated}/worker/worker.mjs
-                export JUDGE_PROVIDER_ENTRY=${jevRelocated}/batch.mjs
+                export JUDGE_PROVIDER_ENTRY=${jevRelocated}/jev.mjs
                 export VOICE_UI_WORKER=${relocated}/worker/worker.mjs
                 node --test ${self}/packages/voice-ui/tests/api.test.mjs
                 touch "$out"

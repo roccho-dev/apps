@@ -6,6 +6,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { normalize } from './adapter.mjs';
 import { planEvents } from './plan.mjs';
+import { journalEvents, declarationEvents } from './journal.mjs';
 import { observation, prObservations, sessionObservations, portObservations } from './observe.mjs';
 
 const compare = (a, b) => a < b ? -1 : a > b ? 1 : 0;
@@ -14,12 +15,15 @@ export function collect(records, recordedAt) {
   return records.flatMap(record => {
     switch (record.kind) {
       case 'thread': return record.documents
-        ? planEvents(record.documents.map(doc => ({ repo: record.repo, number: record.number, ...doc })), recordedAt)
+        ? [...planEvents(record.documents.map(doc => ({ repo: record.repo, number: record.number, ...doc })), recordedAt),
+          ...journalEvents(record.documents.map(doc => ({ repo: record.repo, number: record.number, ...doc })), recordedAt)]
         // The thread could not be read: UNKNOWN, not "no plan".
         : [observation(`${record.repo}#${record.number}:plan.source`, null, record.source, record.fetchedAt, recordedAt)];
       case 'pr': return prObservations(record, recordedAt);
       case 'sessions': return sessionObservations(record, recordedAt);
       case 'ports': return portObservations(record, recordedAt);
+      case 'declaration': return declarationEvents(record, recordedAt);
+      case 'fact': return [observation(record.target, record.value, record.source, record.observedAt, recordedAt)];
       default: throw new Error(`atlas-collect: unknown record kind ${JSON.stringify(record.kind)}`);
     }
   });
