@@ -43,6 +43,7 @@ const fixtures = [
 let fixture = null, input = null;
 const api = [], upstream = [], frames = [], controls = [], lifecycle = [];
 const syntheticAnswer = wire => {
+  if (wire.questions.completion) return { completion: "unknown" };
   if (wire.questions.intent) return { intent: "change", labels: fixture.id === "equal-label-quantity" || fixture.existing ? "available" : "missing",
     capacity: fixture.id === "equal-label-quantity" ? "exceeded" : "within", completeness: "complete" };
   const state = input.state;

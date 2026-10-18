@@ -1,6 +1,7 @@
 // Independent frontier-cycle stopped-receipt audit. Pure V/F/E meanings stay frozen.
 // No provider calls, environment reads, private identity reads or product imports.
 import { createHash } from 'node:crypto';
+import { auditGoalCompletionReceipt, auditGoalCompletionTrace, isGoalCompletionCall, readGoalCompletionAnswers } from './goal-completion-audit.mjs';
 import { canonical } from './semantic-score.mjs';
 import { exactKeys as exact, sameValue as same, validateFrontierInput as validateRequirementInput, frontierSchedule as requirementsSchedule, validRequirements, sameRequirements,
   validFactors, validLiteral, validDecision, readRequirementInspection, readFrontierInspection, proposalPolicy, oldInterpretationEligible, normalizeInitialIntent, decodeRequiredSlots, stockDifference, verifierDecision,
@@ -366,11 +367,13 @@ export async function auditFrontierRaw({ projectionBytes, oracleBytes, rawFiles,
         for (let n = initial.decisions.length; n <= lines.length; n++) {
           const v = await protocol.verifyDecisionLog(lines.slice(0, n).join('\n') + '\n'); prefixes.set(v.head, { n, verified: v });
         }
+        auditGoalCompletionReceipt(row, judges);
         if (!Array.isArray(row.result?.trace) || judges.length !== row.result.trace.length) throw Error('trace count');
         let previous = initial.decisions.length;
         for (const [n, trace] of row.result.trace.entries()) {
           const prefix = prefixes.get(trace.head), call = judges[n], state = call?.request?.state;
-          if (!prefix || prefix.n < previous || !traceMatches(trace, call, 'E') || state?.utterance !== item.utterance
+          if (auditGoalCompletionTrace({ row, initial, prefix, judges, n, previous })) { previous = prefix.n; continue; }
+          if (call?.request?.kind !== 'voice-ui.judge.goal-local-delta.v7' || !prefix || prefix.n < previous || !traceMatches(trace, call, 'E') || state?.utterance !== item.utterance
               || !same(state.graph, prefix.verified.records.filter(r => r.type === 'region').map(({ id, label, parent }) => ({ id, label, parent })))
               || !same(state.edges, prefix.verified.records.filter(r => r.type === 'relation').map(({ id, from, to }) => ({ id, from, to })))
               || !same(state.offers, { parts: offersOf(effectiveParts) })) throw Error('trace state/answers/offers');
@@ -576,6 +579,7 @@ function suppliedParts(parts, missing) {
 }
 
 function readGoalAnswers(call) {
+  if (isGoalCompletionCall(call)) return readGoalCompletionAnswers(call);
   const state = call?.request?.state, response = call?.response;
   if (response?.kind !== 'voice-ui.judge.decision.v1' || !response.answers || Array.isArray(response.answers)
       || Object.keys(response.answers).join() !== 'delta') return null;

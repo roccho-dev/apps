@@ -63,6 +63,12 @@ globalThis.fetch = async (url, init) => {
       required3: { label: "", kind: "none", quantity: "0" },
     } });
   }
+  if (wire.questions.completion) {
+    const keys = Object.keys(wire.questions.completion.criteria);
+    assert.deepEqual(keys, ["complete", "incomplete", "unknown"]);
+    return Response.json({ model: "synthetic-intent-fixture", answers: { completion: { type: "choice", choice: "unknown", confidence: .9,
+      probabilities: Object.fromEntries(keys.map(k => [k, k === "unknown" ? .9 : .05])) } } });
+  }
   if (!wire.questions.intent) {
     assert.equal(mode, "E");
     const state = currentRequest.state, added = state.graph.some(r => r.label === "FixtureNode");

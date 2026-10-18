@@ -49,6 +49,8 @@ async function synthetic(axis,{openExtra=false}={}){
    event({kind:'http-end',id:p.id,arm:p.arm,n:call.n,status:200,response,elapsedMs:1});return response;
   };
   const ask=async request=>{
+   if(request.kind==='voice-ui.judge.goal-completion.v1')return{kind:'answered',decision:post('/api/judge',request,
+    {kind:'voice-ui.judge.decision.v1',answers:{completion:{type:'choice',choice:'unknown',confidence:.9}}})};
    const state=request.state,oldIds=new Set(graph.records.map(r=>r.id)),added=session.working.records.filter(r=>r.type==='region'&&!oldIds.has(r.id));
    const next=o.required.find(r=>added.filter(a=>a.label===r.label&&a.kind===r.kind).length<r.quantity);
    const label=next?.label??(openExtra&&p.arm==='O'&&!added.some(r=>r.label==='判断')?'判断':null);
@@ -122,6 +124,32 @@ test('public native R and ordinary E use actual source Goal, independently grade
 });
 test('legal open extra stock adoption is retained as an outcome rather than filtered out of R admission',async()=>{
  const r=await auditQuotaRaw(addReplay(await synthetic('R',{openExtra:true})));assert.equal(r.status,'PASS',JSON.stringify(r.issues));assert.equal(r.semantic.open_correct,0);assert.equal(r.semantic.quota_correct,1);assert.equal(r.semantic.admitted_pairs,1);assert.equal(r.semantic.extra_adoptions_fixed,1);assert.equal(r.semantic.public_gate,'PASS');assert.equal(r.rows.find(x=>x.arm==='O').grade.contract_valid,true);assert.equal(r.rows.find(x=>x.arm==='O').grade.no_false_adoption,false);
+});
+test('terminal calls are audited without changing old delta grades or terminal-free receipt accounting',async()=>{
+ const current=await synthetic('R'),now=await auditQuotaRaw(current);
+ assert.equal(now.status,'PASS',JSON.stringify(now.issues));
+ const legacy={...current,rawFiles:{...current.rawFiles}};
+ for(const name of['PR01-O.json','PR01-Q.json']){
+  const row=json(legacy.rawFiles[name]);assert.equal(row.calls.at(-1).request.kind,'voice-ui.judge.goal-completion.v1');
+  row.calls.pop();row.result.trace.pop();row.result.requests--;delete row.result.completion;
+  row.lifecycle.target.goal=row.result;synchronize(legacy,row);
+ }
+ const old=await auditQuotaRaw(legacy);assert.equal(old.status,'PASS',JSON.stringify(old.issues));
+ assert.deepEqual(old.rows.map(r=>r.grade),now.rows.map(r=>r.grade));assert.deepEqual(old.semantic,now.semantic);
+ assert.equal(old.consumed,now.consumed);assert.equal(old.planned,now.planned);assert.equal(old.all_valid_execution,now.all_valid_execution);
+ assert.equal(old.external_provider_attempts.jev,now.external_provider_attempts.jev-2);
+ for(const change of[
+  r=>{r.calls.at(-1).request.kind='voice-ui.judge.unrecognized';},
+  r=>{r.calls.at(-1).request.state.graph.regions[0].label='forged';},
+  r=>{r.result.completion.head=r.initial_head;},
+  r=>{r.result.requests=9;},
+  r=>{r.calls.at(-1).response.answers.completion.choice='complete';},
+ ]){const a=await synthetic('R'),r=json(a.rawFiles['PR01-Q.json']);change(r);r.lifecycle.target.goal=r.result;synchronize(a,r);assert.equal(await refuse(a),true);}
+ const extra=await synthetic('R',{openExtra:true}),row=json(extra.rawFiles['PR01-O.json']),last=row.calls.at(-1);
+ last.response.answers.completion.choice='complete';row.result.trace.at(-1).answers.completion.choice='complete';row.result.completion.status='complete';
+ row.lifecycle.target.goal=row.result;synchronize(extra,row);
+ const scored=await auditQuotaRaw(extra);assert.equal(scored.status,'PASS',JSON.stringify(scored.issues));
+ assert.equal(scored.rows.find(r=>r.arm==='O').grade.no_false_adoption,false,'a model complete never replaces the graph oracle');
 });
 test('exact source28, O/Q schedule, full supplied requirements, stock and null parents reject coordinated substitutes',async()=>{
  for(const change of[a=>edit(a,'identity.json',r=>{delete r.source_sha256['tests/quota-cycle-audit.mjs'];}),a=>edit(a,'identity.json',r=>{r.goal_parts_policies.Q='open';}),a=>edit(a,'execution.json',r=>{r.summary.reverse();}),a=>edit(a,'PR01-Q.json',r=>{r.supplied_required=[];}),a=>edit(a,'PR01-Q.json',r=>{r.parts.reverse();}),a=>{a.rawFiles['PR01-B.json']=a.rawFiles['PR01-Q.json'];delete a.rawFiles['PR01-Q.json'];},a=>{a.parentProjectionBytes=a.projectionBytes;},a=>{a.phaseKind='fresh';}]){const a=await synthetic('R');change(a);assert.equal(await refuse(a),true);}

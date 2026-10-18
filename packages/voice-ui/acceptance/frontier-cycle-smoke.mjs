@@ -96,6 +96,7 @@ globalThis.fetch = async (url, init) => {
       required3: { label: "", kind: "none", quantity: "0" },
     }) });
   }
+  if (wire.questions.completion) return namedReply(wire, { completion: { choice: "unknown", confidence: .9 } });
   if (!wire.questions.intent) {
     assert.ok(mode.startsWith("E"));
     const state = currentRequest.state, added = state.graph.some(r => r.label === "FixtureNode");

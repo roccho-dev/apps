@@ -295,13 +295,14 @@ try {
     assert.equal(proof.noSave, true); assert.equal(summary.actions.apply, 0); assert.equal(summary.actions.reload, 0);
     assert.equal(proof.exchanges.every(exchange => exchange.status === 200 && exchange.answers !== null), true);
     if (entry.data.order === "reverse") {
-      assert.equal(proof.evaluation.orderInterventions.length, proof.requests);
+      assert.equal(proof.evaluation.orderInterventions.length,
+        proof.exchanges.filter(exchange => exchange.kind === "voice-ui.judge.goal-local-delta.v7").length);
       for (const order of proof.evaluation.orderInterventions) {
         assert.deepEqual(order.after, [...order.before].reverse()); assert.equal(order.sameEntriesAndOtherState, true);
       }
     }
     if (entry.mode === "fixture-none") {
-      assert.equal(proof.evaluation.firstNone, true); assert.equal(proof.requests, 1);
+      assert.equal(proof.evaluation.firstNone, true); assert.equal(proof.requests, 2);
       assert.deepEqual(proof.rawAdded, []); assert.deepEqual(proof.newEdges, []); assert.deepEqual(proof.newPins, []);
       assert.equal(proof.graphBefore, proof.graphAfter); assert.equal(summary.actions.undo, 0);
       assert.deepEqual(summary.notRun, []); assert.equal(output.code, 0, output.stderr);
@@ -470,8 +471,8 @@ try {
       assert.deepEqual(summary.reached, ["open", "prepare", "goal", "goal-undo"]);
       assert.deepEqual(summary.notRun, []);
       // Two additions of two frames (what, where) each, the arrow and the stop.
-      assert.equal(summary.actions.undo, 1); assert.equal(summary.requests, flow ? 7 : 6);
-      assert.equal(proof.requests, flow ? 6 : 5); assert.deepEqual(proof.questionCounts, Array(flow ? 6 : 5).fill(1)); assert.equal(proof.reason, "none");
+      assert.equal(summary.actions.undo, 1); assert.equal(summary.requests, flow ? 8 : 7);
+      assert.equal(proof.requests, flow ? 7 : 6); assert.deepEqual(proof.questionCounts, Array(flow ? 7 : 6).fill(1)); assert.equal(proof.reason, "none");
       assert.equal(proof.goalMet, true); assert.equal(proof.undoRestored, true);
       assert.deepEqual(proof.labelsVisible, [true, true]); assert.equal(proof.timeBudgetMet, true);
       assert.equal(proof.painted.complete, true); assert.equal(proof.painted.contained, true);
@@ -487,8 +488,8 @@ try {
       assert.equal(proof.baselineMet, !flow); assert.equal(proof.addedValue, "NOT_PROVEN");
       assert.deepEqual(proof.selected.map(item => item.key), ["api", "db"]);
       // Each addition is asked twice from the same history, what then where.
-      assert.deepEqual(proof.requestHistories.map(history => history.map(item => item.key)), flow
-        ? [[], [], ["api"], ["api"], ["api", "db"], ["api", "db"]] : [[], [], ["api"], ["api"], ["api", "db"]]);
+      assert.deepEqual(proof.requestHistories.map(history => history?.map(item => item.key) ?? null), flow
+        ? [[], [], ["api"], ["api"], ["api", "db"], ["api", "db"], null] : [[], [], ["api"], ["api"], ["api", "db"], null]);
       assert.equal(proof.newEdges.length, flow ? 1 : 0);
       if (flow) {
         assert.equal(proof.painted.edge.complete, true);

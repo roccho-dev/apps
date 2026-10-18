@@ -40,6 +40,7 @@ globalThis.fetch = async (url, init) => {
   const wire = JSON.parse(init.body);
   let picks;
   if (wire.questions.intent) picks = { intent: "change", labels: "missing", capacity: "within", completeness: "complete" };
+  else if (wire.questions.completion) picks = { completion: "unknown" };
   else {
     const state = input.state, added = state.graph.some(r => r.label === name);
     const offered = state.offers.parts.find(p => p.label === name);
