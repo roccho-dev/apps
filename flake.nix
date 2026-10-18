@@ -250,6 +250,13 @@
           '';
 
           voice-ui-dist = mkVoiceUiDist "voice-ui-dist";
+          voice-ui-reference-proposer = pkgs.runCommand "voice-ui-reference-proposer" { } ''
+            mkdir -p "$out"
+            cp ${self}/packages/voice-ui/decision-references/{read,propose}.mjs "$out/"
+            cp ${self}/packages/voice-ui/decision-references/README.md "$out/"
+            substituteInPlace "$out/propose.mjs" \
+              --replace-fail 'process.env.VOICE_UI_REFERENCE_GIT' '"${pkgs.git}/bin/git"'
+          '';
           voice-ui-acceptance-runtime = (acceptanceFor system).runtime;
           voice-ui-architecture-source = architectureFor system;
         }
@@ -340,7 +347,9 @@
           voice-ui =
             pkgs.runCommand "voice-ui-check"
               {
-                nativeBuildInputs = [ pkgs.nodejs ];
+                nativeBuildInputs = [ pkgs.nodejs pkgs.git ];
+                VOICE_UI_REFERENCE_GIT = "${pkgs.git}/bin/git";
+                VOICE_UI_REFERENCE_PROPOSER = "${self.packages.${system}.voice-ui-reference-proposer}/propose.mjs";
                 SEMANTIC_MAP = semanticMap;
                 JUDGE_PROVIDER_ENTRY = "${jevProvider}/jev.mjs";
                 VOICE_UI_WORKER = "${voiceUiDist}/worker/worker.mjs";
