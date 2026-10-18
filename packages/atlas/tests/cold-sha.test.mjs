@@ -101,5 +101,9 @@ test('the real fixture passes collect and builds a World; a row without updated_
   assert.deepEqual(events.filter(event => event.kind === 'journal.held' && event.line === review.raw_id).map(event => event.reason), ['cold: updated-at-missing']);
   const world = contractWorld(deriveAtlas(joinLog('', [toJsonl(events)]).log, '{"schema":"atlas.control-norms/1","authority":false}\n'));
   assert.equal(world.frames.at(-1).gap.basis.purpose_id, 'purpose.cold');
-  assert.ok(!world.frames.some(frame => frame.journal.some(entry => entry.source?.commentId === String(review.payload.id))), 'the held review is not in the World');
+  // The World's journal keeps commentId as a number: compare numbers, and show the comparison can match.
+  const commentIds = world.frames.flatMap(frame => frame.journal.map(entry => entry.source?.commentId));
+  assert.ok(commentIds.includes(6249754001), 'a document that reached the World is found by its numeric id');
+  assert.equal(typeof review.payload.id, 'number');
+  assert.ok(!commentIds.includes(review.payload.id), 'the held review is not in the World');
 });
