@@ -130,6 +130,33 @@ sections of Issue/PR texts, and P's declaration files (`declarations: [path]` in
 reason. The source is `{ref: owner/repo#n | hq:path, commentId, sha256 of the text}`. A plan.set
 also carries its text's author as `actor` when the snapshot has it.
 
+## Git Cold (C1)
+
+G can read Git Cold rows (`adr_raw_event.v1`) of a **fixed** adrs commit instead of live gh responses, so
+the reducer's input no longer needs a local ledger. The edge reads the file; the adapter only maps rows:
+
+- config `cold: [{repo, checkout, commit, path}]` → `fetch.mjs` runs `git -C <checkout> show <commit>:<path>`
+  and stores `{type:'cold', repo, commit, path, committedAt, sha256, text}` (the clone's place is not passed on).
+- each valid row becomes one comment of the existing thread record (`subject_key` `owner/repo.issue.N`):
+  `commentId` ← `payload.id`, `author` ← `payload.author.login`, `text` ← `payload.body`, and the source
+  `{ref: <repo>@<commit>:<path>, sha256: 'sha256:' + observed_version.content_sha256}`. The existing journal
+  and plan extraction read the bodies unchanged.
+- `status` is kept verbatim as the document's `admission`; capture never admits a meaning (adrs#607), and
+  no event says admitted.
+- `content_sha256` is checked in one form only, the writer's (adrs `tools/github_api.py`, a6284e58):
+  plain hex of sha256 over Python `json.dumps(payload, ensure_ascii=False, sort_keys=True)` — separators
+  `", "` / `": "`, keys sorted by code point at every level, non-ASCII raw, only `"`, `\` and C0 controls
+  escaped (`\u00xx` lowercase) — and `raw_id` must end with its first 16 characters (`pyJsonDumps`,
+  `coldDigest` in `adapter.mjs`; all 40 hashed rows of adrs 94a51c3a `hot-cold-observations-261008.jsonl` match).
+- held with the reason (`journal.held`, `cold: …`): `schema` (not `adr_raw_event.v1`), `content-sha256-missing`
+  (no payload or no `content_sha256`: revision, code_context and scope rows), `content-sha256-unverifiable`
+  (a float, an integer beyond 2^53 or a lone surrogate: JSON.parse has lost what Python wrote),
+  `content-sha256-mismatch`, `raw-id-mismatch`, `subject-id-author-or-body-missing`, `updated-at-missing`
+  (no `updated_at` in payload or `observed_version`, e.g. the adrs#603 review rows; never dated by
+  `created_at` or `submitted_at`). A held row stays out of the World; the rest of the collection goes on.
+- `collect.mjs` without `--recorded-at` dates a cold collection by its commit (`committedAt`), so the same
+  commit always gives the same events; `live.mjs <g-events.jsonl>` then builds `world.json` without `--ledger`.
+
 ## Fixtures
 
 `fixtures/snapshots/issue-roccho-dev-resources-25.json` and the two `pr-*.json` are real `gh api`

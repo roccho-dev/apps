@@ -31,7 +31,8 @@ export function journalEvents(documents, recordedAt) {
     .flatMap(block => block[1].split(/\r?\n/u).map(line => line.trim()).filter(Boolean)
       .map(line => entry(line, { author: doc.author, at: `${doc.repo}#${doc.number}`,
         notAfter: new Date(Math.min(timestamp(doc.updatedAt, 'updated_at'), recorded)).toISOString(),
-        source: { ref: `${doc.repo}#${doc.number}`, commentId: doc.commentId, sha256: sha256(doc.text) } }))))));
+        // A document read from Git Cold names its own source (<repo>@<commit>:<path>, content_sha256).
+        source: doc.source ? { ...doc.source, commentId: doc.commentId } : { ref: `${doc.repo}#${doc.number}`, commentId: doc.commentId, sha256: sha256(doc.text) } }))))));
 }
 
 /** P's declaration file {path, sha256, text} → journal events with actor P (lines are whole entries). */
