@@ -1,0 +1,22 @@
+{
+  "phase_id": "scalar-public-C-20261018",
+  "pid": 391415,
+  "state": "R",
+  "pgid": 391415,
+  "start_ticks": "19750071",
+  "program": "/nix/store/bg0bygqiid25xnivxv9cdgjlx3sp939j-voice-ui-typed-dev/bin/voice-ui-typed-dev",
+  "heads": {
+    "apps": "a58e522672fcddf64bf7b71d8e18073b82eae20c",
+    "envs": "063e685b8b21a97fc8658879da93fa858552bcd6",
+    "ops": "c7ed1132ad7bec8e5f05c6da38d719a05dec4877",
+    "windows": "6aef693c0946903d8b87c2348039de1420acd61b",
+    "ui": "756d47e891191c3344eb2d29b000203be8331abc"
+  },
+  "allowances": {
+    "jev": 0,
+    "typellm": 8
+  },
+  "stdout": "/work/repos/voice-ui-typellm-20261016/scalar-public-C-20261018.stdout.log",
+  "stderr": "/work/repos/voice-ui-typellm-20261016/scalar-public-C-20261018.stderr.log",
+  "config_sha256": "07482521dcb87c48c0463635a359e2d8e276712e04117869c9fc72902417c107"
+}

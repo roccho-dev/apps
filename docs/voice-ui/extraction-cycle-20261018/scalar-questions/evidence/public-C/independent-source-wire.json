@@ -1,0 +1,353 @@
+{
+  "schema": "voice-ui.scalar-layout-candidate-independent-audit/1",
+  "status": "PASS",
+  "scope": "PUBLISHED_SOURCE_OFFICIAL_RUNTIME_KEYLESS_WIRE_AND_PREPARED_METADATA_ONLY_NOT_LIVE_GO_OR_QUALITY",
+  "observed_at": "2026-10-18T02:10:40.400400+00:00",
+  "head": "a58e522672fcddf64bf7b71d8e18073b82eae20c",
+  "tree": "984e62c478171c3b3f4dd2b9298ba2e16d607c20",
+  "parent": "478cffec9f9dafecfa1f2d4877ae407c04ebbdff",
+  "authenticated_github_ten_blob_and_native_readback": "PASS; ten decoded REST content blobs equal published native Git bytes and working files; production changes only three named files.",
+  "source_inputs": [
+    {
+      "path": "packages/voice-ui/src/completion.mjs",
+      "git_blob": "7941b66e052fed68f848cfeb3c5130adb3b60cac",
+      "bytes": 34425,
+      "sha256": "9f2cbadef67fec4eda733db2d42d7b4d4ba6e088dfe64d1f384db62b4738aa53"
+    },
+    {
+      "path": "packages/voice-ui/functions/api/parts.mjs",
+      "git_blob": "014353e849185fb1d3e15b669d87982b5710bb5f",
+      "bytes": 14846,
+      "sha256": "b412dc7f53182cb7e8ab35d2ca937db3eafb0e88c8a45fb08acb6ba78453f2a3"
+    },
+    {
+      "path": "packages/voice-ui/functions/pages-worker.mjs",
+      "git_blob": "8ed68fbbfb07a295f36d56839b849c60fe705620",
+      "bytes": 3108,
+      "sha256": "7ace9bffd8cf4b997ed7326721e9e77cacb91965936a67be7615d74f8d3e6432"
+    },
+    {
+      "path": "packages/voice-ui/tests/flat-required.test.mjs",
+      "git_blob": "3fb8f6747b229d75999dc4490a0f8cec63f54ade",
+      "bytes": 3412,
+      "sha256": "6e59525221ad68c71bd166153f6ddbf3f5391704a0c6ffa72d11f2bed7d206b5"
+    },
+    {
+      "path": "packages/voice-ui/tests/api.test.mjs",
+      "git_blob": "ade872bf40674cd3d6623b9669a69997a20b7e5d",
+      "bytes": 159261,
+      "sha256": "12642442e38759598381f8afc38cf17d9849f1ca7a8e1b609da7e5f6fcc56440"
+    },
+    {
+      "path": "docs/voice-ui/extraction-cycle-20261018/scalar-questions/README.md",
+      "git_blob": "8e1f244cb3529d589adec865771d4fc6e38a5b7c",
+      "bytes": 3077,
+      "sha256": "712ad3891c976ebb23fd91a2ff8e63b64f8b23586b63d7115a11defd77be9c68"
+    },
+    {
+      "path": "docs/voice-ui/extraction-cycle-20261018/scalar-questions/public.input.json",
+      "git_blob": "b204518c1cc59a30ac419949d34330141fbfa24c",
+      "bytes": 13760,
+      "sha256": "675ecf30d21e4f78abc9d0701a931ac575805af6c681cb52af4c5c5b2d1ba217"
+    },
+    {
+      "path": "docs/voice-ui/extraction-cycle-20261018/scalar-questions/public.oracle.json",
+      "git_blob": "3de3744cfd8c15e3a794f49a77076d225cb451ec",
+      "bytes": 517,
+      "sha256": "8d0777b0e0211a7021fa091fc549b336a2f57590019ea0b1e8dd25ff80fe99fc"
+    },
+    {
+      "path": "docs/voice-ui/extraction-cycle-20261018/scalar-questions/evaluate.mjs",
+      "git_blob": "af861845ba8e0550374838af50334735a2da1bb9",
+      "bytes": 9120,
+      "sha256": "3350f665df5a60621853a45eba4d4748568a0c83bd57452a892c39ca30f0ebf6"
+    },
+    {
+      "path": "docs/voice-ui/extraction-cycle-20261018/scalar-questions/heldout.addendum.json",
+      "git_blob": "09ecba95915c57421285b5395ae7be6dc4e79c75",
+      "bytes": 1504,
+      "sha256": "5eeb2b2f625ae11f84cf443817d30d1ac12e49cc209852311b11bb06c532c529"
+    }
+  ],
+  "reviewed_properties": {
+    "f_only_opt_in": "flat-scalars",
+    "default_g0_v_goal_b_candidate_unchanged": true,
+    "questions": 9,
+    "expanded_dependency_edges": 36,
+    "sequential_dependency_layers": 9,
+    "native_tests_passed": 4,
+    "normalization": "Exact nine named scalar fields mapped to original three slots without label/kind/count repair; existing readRequiredSlots; validated scalar_answers only.",
+    "public_parent_request_and_oracle_semantics": "B four inputs and answers identical; only QB to QC identities change. Alternating fixed schedule unchanged.",
+    "heldout": "C public addendum binds unchanged B unused commitment43dcc/inputdd669/oraclea5cf and original order; private payloads not read/released; B fresh consumed0."
+  },
+  "official_runtime": {
+    "status": "PASS",
+    "runtime_sha256": "16c72a3a0262adbcb3929a5cf4934deb8252dc7db5b219df2bb115b7d9c7ecc5",
+    "objects": [
+      {
+        "name": "worker",
+        "path": "/nix/store/a902mk7y21w1icz2wbav8s8jdw7za58s-voice-ui-dist/worker/worker.mjs",
+        "bytes": 118961,
+        "sha256": "d482422c7dc4f2c935cc83efbc3c342e6b49144b767ec72828b4094025bf85df"
+      },
+      {
+        "name": "jev",
+        "path": "/nix/store/apfn169j82dy4wdspjpmm0syidhxq2v2-jev-provider-admitted/jev.mjs",
+        "bytes": 22542,
+        "sha256": "0773b5c96d0da7f05fef9f9cf95772b6722a03022648e90fc56a4fdc9ac6046e"
+      },
+      {
+        "name": "type",
+        "path": "/nix/store/c2kh48cxaaphlik92pzxaishzk3prpyr-typellm-provider-admitted/typellm.mjs",
+        "bytes": 10572,
+        "sha256": "5b81ed270aa49e288cd57fa17f7e866fea7e3734e5c872af6f8ac6017d86ab25"
+      },
+      {
+        "name": "dev",
+        "path": "/nix/store/6xhp8fiw8hv6gckrk03vlbi5m7fjfcbk-voice-ui-dev/bin/voice-ui-dev",
+        "bytes": 821,
+        "sha256": "94b8c415029e50c0a8e9b2028c0a0db4f24f5645cbaceb0ccf8eb72cabf57388"
+      },
+      {
+        "name": "manifest",
+        "path": "/nix/store/a902mk7y21w1icz2wbav8s8jdw7za58s-voice-ui-dist/manifest.json",
+        "bytes": 47323,
+        "sha256": "19bda9ff25d3629ec11c72eb996e70b1e14ad7ac5f92a7bf4a24460dbf4254a9"
+      },
+      {
+        "name": "protocol",
+        "path": "/nix/store/vqjhvwxcbwv7vg09n4d3sy54lw879s9f-semantic-map/packages/semantic-map/protocol/index.js",
+        "bytes": 1256,
+        "sha256": "1689dcf63e1ed19cdea7be22e3f90a09f434841f980b9ca8b9018a987c9c38f8"
+      }
+    ],
+    "manifest_files": 293,
+    "manifest_sources": {
+      "apps": "a58e522672fcddf64bf7b71d8e18073b82eae20c",
+      "architecture": {
+        "evidence_sha256": "5a1b88f2be3211a060768f1e9133a82f593fe32e3ca76ca0364e6552589acf9c",
+        "manifest_sha256": "7c5dbce6ad670eee5f5473712d06f0e3705be635ee68e5a1acc24f3b25ac4b70",
+        "source": {
+          "commit": "a58e522672fcddf64bf7b71d8e18073b82eae20c",
+          "handle": "apps-voice-ui"
+        },
+        "status": "available"
+      },
+      "hayamimi-web": {
+        "locator": "https://github.com/roccho-dev/ops/releases/download/hayamimi-web-1665d5195a0dd70c2e0253c20351e5305db35f3f/hayamimi-web.zip",
+        "proof_sha256": "a0bb1478a5ffe9440f46682ca143382cd000d0d1d6f736723baad96541be4e27",
+        "sha256": "c12b51e2ea396a64131b917439ffbda1aa1cd70a9fd7f9567ea05030897c672a"
+      },
+      "jev-provider": {
+        "contract": "named-questions/1",
+        "entry_sha256": "0773b5c96d0da7f05fef9f9cf95772b6722a03022648e90fc56a4fdc9ac6046e",
+        "locator": "https://github.com/roccho-org/ops/releases/download/jev-provider-c7ed1132ad7bec8e5f05c6da38d719a05dec4877/jev-provider.zip",
+        "manifest_sha256": "a5386f84f0606c6900b3c0e89d19f94dcf701d344d7c7e6384889d8bb6a1aab5",
+        "proof_sha256": "d756b5855a55c07e7b93687f1556ad1a2657ce0acc701c89476d87d9461a46ff",
+        "provenance_sha256": "90e295578042b89fcf4e1d6dfc2a5cdee6d76916f97a3668472883810811ea17",
+        "sha256": "0c063b050895db87029fd514c81add33e291e321109e2aa55a3befdd42593f03"
+      },
+      "system": "x86_64-linux",
+      "typellm-provider": {
+        "contract": "typed-completion/1",
+        "entry_sha256": "5b81ed270aa49e288cd57fa17f7e866fea7e3734e5c872af6f8ac6017d86ab25",
+        "locator": "https://github.com/roccho-org/ops/releases/download/jev-provider-c7ed1132ad7bec8e5f05c6da38d719a05dec4877/typellm-provider.zip",
+        "manifest_sha256": "da1d0c448b1c1cb14c697f7d3661503539e32d10303e774e0cbdf3d0f52dd196",
+        "proof_sha256": "d756b5855a55c07e7b93687f1556ad1a2657ce0acc701c89476d87d9461a46ff",
+        "provenance_sha256": "a352e4f31ac82a8972d0a4f021014ff3a31a1ffba6a71ca566a44d0d2412c16f",
+        "sha256": "762fb1570ef9e22ad468b2d02843b579a35af1fa5ae7849a0d9988484b88dd0c"
+      },
+      "ui": "756d47e891191c3344eb2d29b000203be8331abc"
+    },
+    "official_verifier": {
+      "argv": [
+        "/nix/store/60m4rxhg2fldqaak400c0lry96ijrzqn-python3-3.13.13/bin/python3",
+        "/nix/store/hgk4lgiy9mv1zkzgn4plib6cwiaqak95-source/packages/voice-ui/dist.py",
+        "verify",
+        "--dist",
+        "/nix/store/a902mk7y21w1icz2wbav8s8jdw7za58s-voice-ui-dist"
+      ],
+      "exit": 0,
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "verified_store_paths": [
+      "/nix/store/6xhp8fiw8hv6gckrk03vlbi5m7fjfcbk-voice-ui-dev",
+      "/nix/store/a902mk7y21w1icz2wbav8s8jdw7za58s-voice-ui-dist",
+      "/nix/store/apfn169j82dy4wdspjpmm0syidhxq2v2-jev-provider-admitted",
+      "/nix/store/c2kh48cxaaphlik92pzxaishzk3prpyr-typellm-provider-admitted",
+      "/nix/store/hgk4lgiy9mv1zkzgn4plib6cwiaqak95-source",
+      "/nix/store/mqmmbzqpvl5j15vk0vmn9v6537lc5any-voice-ui-acceptance-node",
+      "/nix/store/vqjhvwxcbwv7vg09n4d3sy54lw879s9f-semantic-map"
+    ],
+    "verifier_bootstrap_note": "Initial supplementary store verification used a nonexistent conventional profile path. Real /bin/nix-store resolved and all seven paths verified; no candidate or provider changes."
+  },
+  "keyless_wire": {
+    "status": "PASS",
+    "scope": "KEYLESS_RECAPTURE_ONLY_NOT_LIVE_UPSTREAM_CAPTURE_OR_QUALITY",
+    "wire_sha256": "3ac051c10ead13b0d969b104aac548c7306a6e602fc0633fcfe0255c78c5ffcc",
+    "wire_bytes": 142724,
+    "measurement_apps": "a58e522672fcddf64bf7b71d8e18073b82eae20c",
+    "worker_sha256": "d482422c7dc4f2c935cc83efbc3c342e6b49144b767ec72828b4094025bf85df",
+    "typed_provider_sha256": "5b81ed270aa49e288cd57fa17f7e866fea7e3734e5c872af6f8ac6017d86ab25",
+    "plan_sha256": "675ecf30d21e4f78abc9d0701a931ac575805af6c681cb52af4c5c5b2d1ba217",
+    "keyless_intercepted_fetches": 12,
+    "external_provider_sends": 0,
+    "captures": [
+      {
+        "id": "QC01-current",
+        "type_body_sha256": "77dd25ad8c3ec087417113f99a59696db42ccf2a49b250721129e3cafbb6512a",
+        "type_body_bytes": 13008,
+        "request_sha256": "f499a7f1e90005cc167e7d49276c63bddbed4c2f1cefa36a5f96625f5b6b29bb"
+      },
+      {
+        "id": "QC01-candidate",
+        "type_body_sha256": "5c74468a11174882d16319557f0dbdda49ac310b81392a38a78774b23ee299d7",
+        "type_body_bytes": 18162,
+        "request_sha256": "f499a7f1e90005cc167e7d49276c63bddbed4c2f1cefa36a5f96625f5b6b29bb"
+      },
+      {
+        "id": "QC02-candidate",
+        "type_body_sha256": "4e7b8deb8123b5df2adda6b1a6cb93c0b29eee4d157961bf30fd391286547d92",
+        "type_body_bytes": 18177,
+        "request_sha256": "5f66c1975c0939c62c4c3a2f1e47ed9b1e4a339cebd71f149b20417824ddce6f"
+      },
+      {
+        "id": "QC02-current",
+        "type_body_sha256": "f43bf21ad862d1e1e1100b380a800a2cd4ba6be6640978e24ee97aeb24e643e1",
+        "type_body_bytes": 13023,
+        "request_sha256": "5f66c1975c0939c62c4c3a2f1e47ed9b1e4a339cebd71f149b20417824ddce6f"
+      },
+      {
+        "id": "QC03-current",
+        "type_body_sha256": "f84b9d475e3c9037a3a72bfec267ae571e3f87df788a76ff50718ca35ff298f5",
+        "type_body_bytes": 12909,
+        "request_sha256": "9e45047b8b59eafa2a363ce10f6c2e370e0736abeaf2c2341b9e05643cb25826"
+      },
+      {
+        "id": "QC03-candidate",
+        "type_body_sha256": "bfd021eb38666c4db7803562e329d0a7d693d91ce5e4452a78cb9be9505ebe13",
+        "type_body_bytes": 18063,
+        "request_sha256": "9e45047b8b59eafa2a363ce10f6c2e370e0736abeaf2c2341b9e05643cb25826"
+      },
+      {
+        "id": "QC04-candidate",
+        "type_body_sha256": "7c8f8dec7d95d250e4cd66072acbab0e9029d0f34c00cb60e4e7fcd84cd09a1e",
+        "type_body_bytes": 18159,
+        "request_sha256": "25160862a687789e77ab59486b20fc5a1334ba100c3e87aa995fed06b0720631"
+      },
+      {
+        "id": "QC04-current",
+        "type_body_sha256": "1e939103c6489b9d56ceacf7f94ec1ea3ba5cbd77406f8daef7ce3122efb1ec6",
+        "type_body_bytes": 13005,
+        "request_sha256": "25160862a687789e77ab59486b20fc5a1334ba100c3e87aa995fed06b0720631"
+      }
+    ],
+    "cases": [
+      {
+        "id": "QC01",
+        "legacy_df_utf8_exact": true,
+        "nonquestion_body_fields_same": true,
+        "leaf_instruction_and_enum_exact": true,
+        "expanded_edges": 36,
+        "sequential_layers": 9
+      },
+      {
+        "id": "QC02",
+        "legacy_df_utf8_exact": true,
+        "nonquestion_body_fields_same": true,
+        "leaf_instruction_and_enum_exact": true,
+        "expanded_edges": 36,
+        "sequential_layers": 9
+      },
+      {
+        "id": "QC03",
+        "legacy_df_utf8_exact": true,
+        "nonquestion_body_fields_same": true,
+        "leaf_instruction_and_enum_exact": true,
+        "expanded_edges": 36,
+        "sequential_layers": 9
+      },
+      {
+        "id": "QC04",
+        "legacy_df_utf8_exact": true,
+        "nonquestion_body_fields_same": true,
+        "leaf_instruction_and_enum_exact": true,
+        "expanded_edges": 36,
+        "sequential_layers": 9
+      }
+    ],
+    "thinking_boundary": "Old nested leaf thinking omitted; top-level explicitly false. No thinking-on experiment or proof of service-internal prompt/default identity."
+  },
+  "prepared_metadata": {
+    "phase": "scalar-public-C-20261018",
+    "allowances": {
+      "jev": 0,
+      "typellm": 8
+    },
+    "prior_charged": {
+      "jev": 847,
+      "typellm": 112
+    },
+    "files": [
+      {
+        "basename": "scalar-public-C-20261018.config.json",
+        "sha256": "07482521dcb87c48c0463635a359e2d8e276712e04117869c9fc72902417c107"
+      },
+      {
+        "basename": "scalar-public-C-20261018.operator.mjs",
+        "sha256": "baff2635875dd23cb0b5435a9c1b053c4ac81aabb7d57ceef39cc95a74077881"
+      },
+      {
+        "basename": "scalar-public-C-20261018.root-zero.mjs",
+        "sha256": "00b09b88028842831421f4273e8c0834430a74690ea835ec9f7ee734c8509e21"
+      },
+      {
+        "basename": "scalar-public-C-20261018.root-terminal.mjs",
+        "sha256": "b1bcfb24b92c22828ea24c7bcfd62ad363878ff3d819929a29c1c566ad81eb96"
+      }
+    ],
+    "review": "Static PASS; same immutable C plan/runtime/wire and one driver; strict finally stop+immediate journal; no oracle. Actual PID/preload/caps/index/provider0 admission remains separate."
+  },
+  "CI_snapshot": [
+    {
+      "id": 39088907927,
+      "name": "nix-check",
+      "head_sha": "a58e522672fcddf64bf7b71d8e18073b82eae20c",
+      "status": "in_progress",
+      "conclusion": null,
+      "url": "https://github.com/roccho-dev/apps/actions/runs/39088907927"
+    },
+    {
+      "id": 39088907957,
+      "name": "voice-ui artifact",
+      "head_sha": "a58e522672fcddf64bf7b71d8e18073b82eae20c",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/roccho-dev/apps/actions/runs/39088907957"
+    },
+    {
+      "id": 39088907949,
+      "name": "artifact-auth",
+      "head_sha": "a58e522672fcddf64bf7b71d8e18073b82eae20c",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/roccho-dev/apps/actions/runs/39088907949"
+    },
+    {
+      "id": 39088907952,
+      "name": "voice-ui release",
+      "head_sha": "a58e522672fcddf64bf7b71d8e18073b82eae20c",
+      "status": "in_progress",
+      "conclusion": null,
+      "url": "https://github.com/roccho-dev/apps/actions/runs/39088907952"
+    }
+  ],
+  "reviewer_real_provider_calls": 0,
+  "limits": [
+    "A structural flattening candidate comparison does not prove service-internal prompt/default equivalence or root cause. Nested thinking is omitted while top-level thinking:false is explicit; thinking-on is not being tested.",
+    "Keyless request bodies were independently recaptured from completed Worker, not directly captured from live Type upstream.",
+    "Only public8 cap is defined; no runtime launch, real API send, private inputs/oracle disclosure, ordinary UI adoption, or final four-CI Green is granted by this audit.",
+    "Any new relevant source/API/artifact failure before execution must be resolved before measurement."
+  ]
+}

@@ -1,0 +1,237 @@
+{
+  "schema": "voice-ui.scalar-layout-zero-send-audit/1",
+  "status": "PASS",
+  "at": "2026-10-18T02:16:07.877144+00:00",
+  "phase": "scalar-public-C-20261018",
+  "head": "a58e522672fcddf64bf7b71d8e18073b82eae20c",
+  "process": {
+    "pid": 391415,
+    "pgid": 391415,
+    "start_ticks": "19750071",
+    "uid": 1000,
+    "argv": [
+      "node",
+      "/nix/store/hgk4lgiy9mv1zkzgn4plib6cwiaqak95-source/packages/voice-ui/dev/serve.mjs"
+    ],
+    "active_group_members": [
+      {
+        "pid": 391415,
+        "pgid": 391415,
+        "state": "S"
+      }
+    ],
+    "listeners": [
+      {
+        "port": 18845,
+        "table": "tcp",
+        "inode": "885821",
+        "owned_by_pid": 391415
+      }
+    ]
+  },
+  "metadata": [
+    {
+      "name": "scalar-public-C-20261018.config.json",
+      "bytes": 1022,
+      "sha256": "07482521dcb87c48c0463635a359e2d8e276712e04117869c9fc72902417c107"
+    },
+    {
+      "name": "scalar-public-C-20261018.operator.mjs",
+      "bytes": 2498,
+      "sha256": "baff2635875dd23cb0b5435a9c1b053c4ac81aabb7d57ceef39cc95a74077881"
+    },
+    {
+      "name": "scalar-public-C-20261018.root-zero.mjs",
+      "bytes": 2650,
+      "sha256": "00b09b88028842831421f4273e8c0834430a74690ea835ec9f7ee734c8509e21"
+    },
+    {
+      "name": "scalar-public-C-20261018.root-terminal.mjs",
+      "bytes": 2647,
+      "sha256": "b1bcfb24b92c22828ea24c7bcfd62ad363878ff3d819929a29c1c566ad81eb96"
+    },
+    {
+      "name": "scalar-public-C-20261018.process.json",
+      "bytes": 843,
+      "sha256": "d8cd44b910b9f5dbf1eb2bfa113acea78f2e43c0b6f78877094855774db325c8"
+    }
+  ],
+  "runtime_sha256": "16c72a3a0262adbcb3929a5cf4934deb8252dc7db5b219df2bb115b7d9c7ecc5",
+  "wire_sha256": "3ac051c10ead13b0d969b104aac548c7306a6e602fc0633fcfe0255c78c5ffcc",
+  "root_zero": {
+    "name": "scalar-public-C-20261018.root-zero.json",
+    "sha256": "f1a4c58d9bf02b7730f729c39ef003159d0cdd5faaffd7d7fc77b56c438df4d4",
+    "bytes": 867
+  },
+  "objects": {
+    "worker": {
+      "path": "/nix/store/a902mk7y21w1icz2wbav8s8jdw7za58s-voice-ui-dist/worker/worker.mjs",
+      "sha256": "d482422c7dc4f2c935cc83efbc3c342e6b49144b767ec72828b4094025bf85df"
+    },
+    "provider": {
+      "path": "/nix/store/apfn169j82dy4wdspjpmm0syidhxq2v2-jev-provider-admitted/jev.mjs",
+      "sha256": "0773b5c96d0da7f05fef9f9cf95772b6722a03022648e90fc56a4fdc9ac6046e"
+    },
+    "typed_provider": {
+      "path": "/nix/store/c2kh48cxaaphlik92pzxaishzk3prpyr-typellm-provider-admitted/typellm.mjs",
+      "sha256": "5b81ed270aa49e288cd57fa17f7e866fea7e3734e5c872af6f8ac6017d86ab25"
+    },
+    "dev_program": {
+      "path": "/nix/store/6xhp8fiw8hv6gckrk03vlbi5m7fjfcbk-voice-ui-dev/bin/voice-ui-dev",
+      "sha256": "94b8c415029e50c0a8e9b2028c0a0db4f24f5645cbaceb0ccf8eb72cabf57388"
+    },
+    "manifest": {
+      "path": "/nix/store/a902mk7y21w1icz2wbav8s8jdw7za58s-voice-ui-dist/manifest.json",
+      "sha256": "19bda9ff25d3629ec11c72eb996e70b1e14ad7ac5f92a7bf4a24460dbf4254a9"
+    },
+    "protocol": {
+      "path": "/nix/store/vqjhvwxcbwv7vg09n4d3sy54lw879s9f-semantic-map/packages/semantic-map/protocol/index.js",
+      "sha256": "1689dcf63e1ed19cdea7be22e3f90a09f434841f980b9ca8b9018a987c9c38f8"
+    }
+  },
+  "preload": {
+    "path": "/nix/store/s9sspm66pdf3xjdsbvy0q60cr0jp7w4g-voice-ui-provider-budget.mjs",
+    "sha256": "cdb39c164e55d7f660251704b13c20c4fdd6ffb0bec1524c44e9bf355e333d24",
+    "limits": {
+      "jev": 0,
+      "typellm": 8
+    }
+  },
+  "credential_presence_only": {
+    "JEV_API_KEY": true,
+    "TYPELLM_API_KEY": true
+  },
+  "provider_sends": {
+    "jev": 0,
+    "typellm": 0
+  },
+  "GET": {
+    "status": 200,
+    "bytes": 5943,
+    "index_sha256": "8c7a6ed602ea4c149b4ab1472c26f999cbcf41e088725162c8638fc184ee43df",
+    "equals_completed_artifact": true
+  },
+  "journal": {
+    "sha256": "ff230936a01cf92679abdf150674b9d1a574f3d6fb848812802711ca84080413",
+    "prior_cutoff_prefix": "ae0426cf625301e1b439729f09c1fe60d6fbd394ee0686bdd1350eb7fee3460d",
+    "charged": {
+      "jev": 847,
+      "typellm": 112
+    },
+    "outstanding": {
+      "scalar-public-C-20261018": {
+        "jev": 0,
+        "typellm": 8
+      }
+    },
+    "previous_owned_groups": 46,
+    "previous_members_including_Z": []
+  },
+  "driver_not_started": true,
+  "reviewer_provider_calls": 0,
+  "scope": "SAME_PROCESS_ZERO_SEND_ADMISSION_ONE_FIXED_PUBLIC_8_SLOTS_NOT_MODEL_QUALITY_OR_FINAL_CI_CLOSURE",
+  "source_runtime_wire_audit": {
+    "name": "scalar-a58-source-runtime-wire-audit.json",
+    "sha256": "a8f30a576534c0ae3f66cf6fe46829710899612b6265e0edce35f2db4cbf3725"
+  },
+  "source_inputs": [
+    {
+      "path": "packages/voice-ui/src/completion.mjs",
+      "git_blob": "7941b66e052fed68f848cfeb3c5130adb3b60cac",
+      "bytes": 34425,
+      "sha256": "9f2cbadef67fec4eda733db2d42d7b4d4ba6e088dfe64d1f384db62b4738aa53"
+    },
+    {
+      "path": "packages/voice-ui/functions/api/parts.mjs",
+      "git_blob": "014353e849185fb1d3e15b669d87982b5710bb5f",
+      "bytes": 14846,
+      "sha256": "b412dc7f53182cb7e8ab35d2ca937db3eafb0e88c8a45fb08acb6ba78453f2a3"
+    },
+    {
+      "path": "packages/voice-ui/functions/pages-worker.mjs",
+      "git_blob": "8ed68fbbfb07a295f36d56839b849c60fe705620",
+      "bytes": 3108,
+      "sha256": "7ace9bffd8cf4b997ed7326721e9e77cacb91965936a67be7615d74f8d3e6432"
+    },
+    {
+      "path": "packages/voice-ui/tests/flat-required.test.mjs",
+      "git_blob": "3fb8f6747b229d75999dc4490a0f8cec63f54ade",
+      "bytes": 3412,
+      "sha256": "6e59525221ad68c71bd166153f6ddbf3f5391704a0c6ffa72d11f2bed7d206b5"
+    },
+    {
+      "path": "packages/voice-ui/tests/api.test.mjs",
+      "git_blob": "ade872bf40674cd3d6623b9669a69997a20b7e5d",
+      "bytes": 159261,
+      "sha256": "12642442e38759598381f8afc38cf17d9849f1ca7a8e1b609da7e5f6fcc56440"
+    },
+    {
+      "path": "docs/voice-ui/extraction-cycle-20261018/scalar-questions/README.md",
+      "git_blob": "8e1f244cb3529d589adec865771d4fc6e38a5b7c",
+      "bytes": 3077,
+      "sha256": "712ad3891c976ebb23fd91a2ff8e63b64f8b23586b63d7115a11defd77be9c68"
+    },
+    {
+      "path": "docs/voice-ui/extraction-cycle-20261018/scalar-questions/public.input.json",
+      "git_blob": "b204518c1cc59a30ac419949d34330141fbfa24c",
+      "bytes": 13760,
+      "sha256": "675ecf30d21e4f78abc9d0701a931ac575805af6c681cb52af4c5c5b2d1ba217"
+    },
+    {
+      "path": "docs/voice-ui/extraction-cycle-20261018/scalar-questions/public.oracle.json",
+      "git_blob": "3de3744cfd8c15e3a794f49a77076d225cb451ec",
+      "bytes": 517,
+      "sha256": "8d0777b0e0211a7021fa091fc549b336a2f57590019ea0b1e8dd25ff80fe99fc"
+    },
+    {
+      "path": "docs/voice-ui/extraction-cycle-20261018/scalar-questions/evaluate.mjs",
+      "git_blob": "af861845ba8e0550374838af50334735a2da1bb9",
+      "bytes": 9120,
+      "sha256": "3350f665df5a60621853a45eba4d4748568a0c83bd57452a892c39ca30f0ebf6"
+    },
+    {
+      "path": "docs/voice-ui/extraction-cycle-20261018/scalar-questions/heldout.addendum.json",
+      "git_blob": "09ecba95915c57421285b5395ae7be6dc4e79c75",
+      "bytes": 1504,
+      "sha256": "5eeb2b2f625ae11f84cf443817d30d1ac12e49cc209852311b11bb06c532c529"
+    }
+  ],
+  "execution_order_agreement": {
+    "relevant_checks": [
+      {
+        "id": 39088907927,
+        "head_sha": "a58e522672fcddf64bf7b71d8e18073b82eae20c",
+        "name": "nix-check",
+        "status": "completed",
+        "conclusion": "success",
+        "url": "https://github.com/roccho-dev/apps/actions/runs/39088907927"
+      },
+      {
+        "id": 39088907957,
+        "head_sha": "a58e522672fcddf64bf7b71d8e18073b82eae20c",
+        "name": "voice-ui artifact",
+        "status": "completed",
+        "conclusion": "success",
+        "url": "https://github.com/roccho-dev/apps/actions/runs/39088907957"
+      },
+      {
+        "id": 39088907949,
+        "head_sha": "a58e522672fcddf64bf7b71d8e18073b82eae20c",
+        "name": "artifact-auth",
+        "status": "completed",
+        "conclusion": "success",
+        "url": "https://github.com/roccho-dev/apps/actions/runs/39088907949"
+      }
+    ],
+    "release": {
+      "id": 39088907952,
+      "head_sha": "a58e522672fcddf64bf7b71d8e18073b82eae20c",
+      "name": "voice-ui release",
+      "status": "in_progress",
+      "conclusion": null,
+      "url": "https://github.com/roccho-dev/apps/actions/runs/39088907952"
+    },
+    "new_failed_release_steps": [],
+    "scope": "Current same-head source/artifact/wire and three checks permit public8 experiment. Final all-four CI closure separate; fresh not released. Relevant new failure invalidates entry."
+  }
+}
