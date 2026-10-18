@@ -57,8 +57,9 @@ if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.me
   const records = readRecords(dir);
   // A Git Cold collection is dated by its commit (the latest committedAt), so the same commit gives the same events.
   const committed = records.map(record => record.committedAt).filter(Boolean).sort().at(-1);
-  const recordedAt = flag('--recorded-at') ?? (files.length ? readAt : committed) ?? new Date().toISOString();
-  const output = toJsonl([...collect(records, recordedAt, { worklogAuthors }), ...currentEvents(files, readAt, recordedAt, worklogAuthors)]);
+  const recordedAt = flag('--recorded-at') ?? committed ?? new Date().toISOString();
+  // The read time goes to the current events only; the rest keeps its own time (cold: its commit).
+  const output = toJsonl([...collect(records, recordedAt, { worklogAuthors }), ...currentEvents(files, readAt, readAt, worklogAuthors)]);
   const out = flag('--out');
   if (out) fs.writeFileSync(out, output); else process.stdout.write(output);
 }

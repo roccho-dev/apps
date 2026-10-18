@@ -67,11 +67,18 @@ export function currentEvents(files, readAt, recordedAt, authors) {
   const allowed = Array.isArray(authors) && authors.length ? new Set(authors) : null;
   return files.flatMap(({ author, text }) => {
     const digest = sha256(text);
-    return text.split(/\r?\n/u).flatMap((raw, index) => {
-      const line = raw.trim(), source = { ref: `current:${author}#L${index + 1}`, sha256: digest };
-      if (!line) return [];
-      const checked = check(line, author, allowed);
-      if (checked.reason) return [{ kind: 'journal.held', reason: 'current: ' + checked.reason, line, source, recordedAt }];
+    const lines = text.split(/\r?\n/u).map((raw, index) => {
+      const line = raw.trim();
+      return { line, source: { ref: `current:${author}#L${index + 1}`, sha256: digest }, checked: line ? check(line, author, allowed) : null };
+    }).filter(value => value.line);
+    // Provisional, fail closed: the lines of one file share one read time, so two or more lines for one work_id
+    // have no order D could tell; all of them are held rather than a time made up from their position.
+    const count = new Map();
+    for (const { checked } of lines) if (checked.entry) count.set(checked.entry.work_id, (count.get(checked.entry.work_id) ?? 0) + 1);
+    return lines.flatMap(({ line, source, checked }) => {
+      const held = reason => [{ kind: 'journal.held', reason: 'current: ' + reason, line, source, recordedAt }];
+      if (checked.reason) return held(checked.reason);
+      if (count.get(checked.entry.work_id) > 1) return held('multiple-lines-for-work-id');
       const observed = (target, value) => ({ kind: 'observation', target, value, source, observedAt: readAt, recordedAt });
       return [observed(`work:${checked.entry.work_id}`, checked.value),
         ...(checked.entry.kind === 'artifact.observed' ? [observed(`evidence:${checked.entry.work_id}`, checked.entry.evidence)] : [])];

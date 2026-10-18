@@ -182,7 +182,10 @@ Worklog sections are not read as plans or journal decisions. The reducer, contra
 `current = record(agent)`: `collect.mjs <dir> --current <author>=<path> [--current …] --worklog-author <login>…`.
 Each file is atlas-worklog-v1 lines (the same check as above: kind, fields, work_id, evidence form, terminal,
 author list — fail closed). The author is the argument (required, no default; never a field of the line), the
-time is when the files were read (`--recorded-at` pins it), and the order is the line position. One line →
+time is when the files were read (`--recorded-at` pins it; only current events get it, cold stays dated by its
+commit), and the order is the line position. Provisional (fail closed): two or more lines for one work_id in one
+file are all held (`multiple-lines-for-work-id`) until a way to order them is decided. An `ideal.set` whose
+predicate targets `work:*` or `evidence:*` is held at intake (`worklog-target-in-predicate`, adrs#654). One line →
 `work:<id>` = `created` / `progressed` / `reported-*`; an `artifact.observed` line also gives `evidence:<id>` =
 its evidence. Source `current:<author>#L<n>` with the sha256 of the file as read. These reach the World's journal
 as ordinary observations (no new field); they are claims, and no condition may watch them (adrs#654).

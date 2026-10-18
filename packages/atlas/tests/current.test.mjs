@@ -125,7 +125,9 @@ test('cold with --current and no --recorded-at: the cold events are the same on 
   const first = run('first'), second = run('second');
   assert.ok(first.cold.length > 0);
   assert.deepEqual(second.cold, first.cold);
-  assert.ok(first.cold.every(event => event.recordedAt === '2026-10-18T06:00:00Z'));
+  // Every cold event is dated by the commit; journal decisions keep the recordedAt their own line declares.
+  const dated = first.cold.filter(event => !['purpose.set', 'ideal.set'].includes(event.kind));
+  assert.ok(dated.length > 0 && dated.every(event => event.recordedAt === '2026-10-18T06:00:00Z'));
   // current carries the time it was read (after the commit), on its own events only.
   assert.ok(first.current.length === 1 && Date.parse(first.current[0].observedAt) > Date.parse('2026-10-18T06:00:00Z')
     && first.current[0].recordedAt === first.current[0].observedAt);
