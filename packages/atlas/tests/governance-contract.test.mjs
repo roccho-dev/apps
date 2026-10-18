@@ -182,6 +182,19 @@ test('retained contract-632 Apps artifact reaches the existing Atlas consumer', 
   const raw = { member: 'package-contract-member-apps.json', package: 'package-final-report-apps.json',
     gate: 'final-check-report-apps.json', input: 'apps-bundle/contract-diff-input.json', meaning: 'apps-bundle/sources/adrs/apps-requirement-decision.jsonl',
     manifest: 'apps-bundle/bundle-manifest.json' };
+  // Independent readback from this fixed artifact, not hashes derived from the supplied body/ tree.
+  // The production edge trusts authenticated acquisition; this retained-input proof additionally
+  // pins each extracted body so a different, self-consistent re-signed bundle cannot impersonate it.
+  const bodyDigests = {
+    member: 'sha256:7145867dc757345e427d9186664cae7b5c5471de21e534ae288eedca25e5d19b',
+    package: 'sha256:d672dbb42cc3f63cd723b8917726b8e1134245a8f1635f45b42649b2dbb9a380',
+    gate: 'sha256:231bf6ef12672d9e8afea28a1374d5c08c73277eba57770dcea9ebacfd4cd009',
+    input: 'sha256:9dabfb4f9c98184e997b963b35a39f4327c3c00274168634af337912f649b293',
+    meaning: 'sha256:ed25a4f30f18d842596c7c13f91c208a559cd2e5131294d399a56440af54d14d',
+    manifest: 'sha256:bfd54f3385d19d64bf6037096367d53ba77bde197df9b962b0cdc184773a76fa',
+  };
+  for (const [key, file] of Object.entries(raw))
+    assert.equal(sha(readFileSync(path.join(root, 'body', file))), bodyDigests[key], `fixed artifact body ${key}`);
   const s = { type: 'governance-contract', owner: 'roccho-dev', repo: 'apps', provider, fetchedAt: provider.retrievedAt,
     binding: { targetCandidate: '71409fa013b6cb681c0a80b4c377e4685685b690', governanceCandidate: '3b9246ff1b4bb0211508213ac714ab460f3801dc', governanceRepository: 'roccho-dev/governance',
       obligationId: 'apps.voice-ui-artifact-auth.v1', claimCeiling: 'APPS_ARTIFACT_DECLARATION_AND_EXACT_BUILD_PROJECTION_ONLY',
