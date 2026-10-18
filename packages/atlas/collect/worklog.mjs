@@ -1,0 +1,51 @@
+// G worklog mapping (atlas-worklog-v1, R's minimal form as decided by P). One ```jsonl line per comment in a
+// `<!-- worklog-v1 -->` section becomes an observation on `work:<work_id>`. Pure, no I/O, no verdicts:
+//   {"kind":"work.created","work_id":…}                          → created
+//   {"kind":"artifact.observed","work_id":…,"evidence":…}        → progressed (evidence: owner/repo#n or a 40-hex sha)
+//   {"kind":"work.terminal","work_id":…,"terminal":done|blocked|stopped} → reported-done / -blocked / -stopped
+// Time and author are the captured document's; the writer types neither. Any other field, two or more lines in
+// one comment, an author outside the allowed list (or no list at all) → journal.held with the reason.
+// A terminal is a report, never an achievement: only declared conditions judge.
+import { markerSections, sha256 } from './plan.mjs';
+
+export const WORKLOG_SLUG = 'worklog';
+const BLOCK = /```jsonl[^\S\n]*\n([\s\S]*?)```/gu;
+const FIELDS = { 'work.created': ['kind', 'work_id'], 'artifact.observed': ['kind', 'work_id', 'evidence'], 'work.terminal': ['kind', 'work_id', 'terminal'] };
+const TERMINAL = { done: 'reported-done', blocked: 'reported-blocked', stopped: 'reported-stopped' };
+const WORK_ID = /^[A-Za-z0-9._:/-]+$/u;
+const EVIDENCE = /^(?:[A-Za-z0-9._-]+\/[A-Za-z0-9._-]+#[1-9][0-9]*|[0-9a-f]{40})$/u;
+
+function value(entry) {
+  if (!entry || typeof entry !== 'object' || Array.isArray(entry) || !Object.hasOwn(FIELDS, entry.kind)) return { reason: 'kind' };
+  const keys = Object.keys(entry);
+  if (keys.length !== FIELDS[entry.kind].length || !FIELDS[entry.kind].every(key => keys.includes(key))) return { reason: 'fields' };
+  if (typeof entry.work_id !== 'string' || !WORK_ID.test(entry.work_id)) return { reason: 'work-id' };
+  if (entry.kind === 'work.created') return { value: 'created' };
+  if (entry.kind === 'artifact.observed') return typeof entry.evidence === 'string' && EVIDENCE.test(entry.evidence) ? { value: 'progressed' } : { reason: 'evidence-form' };
+  return Object.hasOwn(TERMINAL, entry.terminal) ? { value: TERMINAL[entry.terminal] } : { reason: 'terminal' };
+}
+
+/**
+ * Thread documents [{repo, number, commentId, updatedAt, author, text, source?}] → observations or held lines.
+ * `authors`: the logins allowed to write a worklog, from the declaration side; absent or empty holds every line.
+ */
+export function worklogEvents(documents, recordedAt, authors) {
+  const allowed = Array.isArray(authors) && authors.length ? new Set(authors) : null;
+  return documents.flatMap(doc => {
+    const lines = markerSections(doc.text).filter(section => section.slug === WORKLOG_SLUG && section.version === 1)
+      .flatMap(section => [...section.text.matchAll(BLOCK)]).flatMap(block => block[1].split(/\r?\n/u).map(line => line.trim()).filter(Boolean));
+    const base = doc.source ? { ref: doc.source.ref, sha256: doc.source.sha256 } : { ref: `${doc.repo}#${doc.number}`, sha256: sha256(doc.text) };
+    const held = (reason, line) => ({ kind: 'journal.held', reason: 'worklog: ' + reason, line, source: { ...base, commentId: doc.commentId }, recordedAt });
+    if (lines.length > 1) return lines.map(line => held('multiple-lines', line));
+    return lines.map(line => {
+      if (!allowed) return held('author-list-missing', line);
+      if (!allowed.has(doc.author)) return held('author-not-allowed', line);
+      let entry;
+      try { entry = JSON.parse(line); } catch { return held('invalid-json', line); }
+      const mapped = value(entry);
+      if (mapped.reason) return held(mapped.reason, line);
+      // The evidence stays in the comment (its digest is source.sha256); it is not written into source.ref.
+      return { kind: 'observation', target: `work:${entry.work_id}`, value: mapped.value, source: base, observedAt: doc.updatedAt, recordedAt };
+    });
+  });
+}

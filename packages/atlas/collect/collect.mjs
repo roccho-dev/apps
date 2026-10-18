@@ -7,16 +7,19 @@ import { fileURLToPath } from 'node:url';
 import { normalize } from './adapter.mjs';
 import { planEvents } from './plan.mjs';
 import { journalEvents, declarationEvents } from './journal.mjs';
+import { worklogEvents } from './worklog.mjs';
 import { observation, prObservations, sessionObservations, portObservations } from './observe.mjs';
 
 const compare = (a, b) => a < b ? -1 : a > b ? 1 : 0;
 
-export function collect(records, recordedAt) {
+// `worklogAuthors`: logins allowed to write worklog-v1 lines (declared by P, passed in; absent → all held).
+export function collect(records, recordedAt, { worklogAuthors } = {}) {
   return records.flatMap(record => {
     switch (record.kind) {
       case 'thread': return record.documents
         ? [...planEvents(record.documents.map(doc => ({ repo: record.repo, number: record.number, ...doc })), recordedAt),
-          ...journalEvents(record.documents.map(doc => ({ repo: record.repo, number: record.number, ...doc })), recordedAt)]
+          ...journalEvents(record.documents.map(doc => ({ repo: record.repo, number: record.number, ...doc })), recordedAt),
+          ...worklogEvents(record.documents.map(doc => ({ repo: record.repo, number: record.number, ...doc })), recordedAt, worklogAuthors)]
         // The thread could not be read: UNKNOWN, not "no plan".
         : [observation(`${record.repo}#${record.number}:plan.source`, null, record.source, record.fetchedAt, recordedAt)];
       case 'pr': return prObservations(record, recordedAt);
@@ -40,13 +43,14 @@ export function readRecords(dir) {
 
 if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
   const [dir, ...rest] = process.argv.slice(2);
-  if (!dir) { console.error('usage: collect.mjs <snapshot-dir> [--recorded-at ISO] [--out events.jsonl]'); process.exit(2); }
+  if (!dir) { console.error('usage: collect.mjs <snapshot-dir> [--recorded-at ISO] [--out events.jsonl] [--worklog-author login]...'); process.exit(2); }
   const flag = name => { const i = rest.indexOf(name); return i >= 0 ? rest[i + 1] : undefined; };
+  const worklogAuthors = rest.flatMap((value, i) => value === '--worklog-author' && rest[i + 1] ? [rest[i + 1]] : []);
   const records = readRecords(dir);
   // A Git Cold collection is dated by its commit (the latest committedAt), so the same commit gives the same events.
   const committed = records.map(record => record.committedAt).filter(Boolean).sort().at(-1);
   const recordedAt = flag('--recorded-at') ?? committed ?? new Date().toISOString();
-  const output = toJsonl(collect(records, recordedAt));
+  const output = toJsonl(collect(records, recordedAt, { worklogAuthors }));
   const out = flag('--out');
   if (out) fs.writeFileSync(out, output); else process.stdout.write(output);
 }

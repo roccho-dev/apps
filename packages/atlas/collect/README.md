@@ -157,6 +157,26 @@ the reducer's input no longer needs a local ledger. The edge reads the file; the
 - `collect.mjs` without `--recorded-at` dates a cold collection by its commit (`committedAt`), so the same
   commit always gives the same events; `live.mjs <g-events.jsonl>` then builds `world.json` without `--ledger`.
 
+## worklog (atlas-worklog-v1, minimal form)
+
+`worklog.mjs` reads **one** ````jsonl` line per comment in a `<!-- worklog-v1 -->` section and maps it to an
+observation on `work:<work_id>`, dated and authored by the captured document (the writer types neither):
+
+| line | value |
+|---|---|
+| `{"kind":"work.created","work_id":…}` | `created` |
+| `{"kind":"artifact.observed","work_id":…,"evidence":"owner/repo#n" or a 40-hex commit sha}` | `progressed` |
+| `{"kind":"work.terminal","work_id":…,"terminal":"done"\|"blocked"\|"stopped"}` | `reported-done` / `reported-blocked` / `reported-stopped` |
+
+Held (`journal.held`, `worklog: …`): `multiple-lines` (two or more lines in one comment: all of them),
+`author-list-missing` (no `worklogAuthors` passed: fail closed), `author-not-allowed`, `invalid-json`, `kind`,
+`fields` (any other field, e.g. `note`, `at`, `work_generation`), `work-id`, `evidence-form` (only `owner/repo#n`
+or 40 lowercase hex), `terminal`. The allowed authors come from the declaration side:
+`collect(records, recordedAt, { worklogAuthors })`, CLI `--worklog-author <login>` (repeatable); the adapter does
+not know where the list lives. The evidence is not written into `source.ref`; the observation event has no field
+for it yet (it stays in the comment, whose digest is `source.sha256`). A terminal is a report, never an achievement.
+Worklog sections are not read as plans or journal decisions. The reducer, contract and ui are unchanged.
+
 ## Fixtures
 
 `fixtures/snapshots/issue-roccho-dev-resources-25.json` and the two `pr-*.json` are real `gh api`

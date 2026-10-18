@@ -27,7 +27,7 @@ const unique = events => [...new Map(events.map(event => [JSON.stringify(event.k
 /** Thread documents [{repo, number, commentId, updatedAt, author, text}] → journal events (sections of any version). */
 export function journalEvents(documents, recordedAt) {
   const recorded = timestamp(recordedAt, 'recordedAt');
-  return unique(documents.flatMap(doc => markerSections(doc.text).flatMap(section => [...section.text.matchAll(BLOCK)]
+  return unique(documents.flatMap(doc => markerSections(doc.text).filter(section => section.slug !== 'worklog').flatMap(section => [...section.text.matchAll(BLOCK)]
     .flatMap(block => block[1].split(/\r?\n/u).map(line => line.trim()).filter(Boolean)
       .map(line => entry(line, { author: doc.author, at: `${doc.repo}#${doc.number}`,
         notAfter: new Date(Math.min(timestamp(doc.updatedAt, 'updated_at'), recorded)).toISOString(),
