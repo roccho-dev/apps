@@ -285,6 +285,12 @@ test("no product word from the DataBundle is written into executable code", () =
 // Imports as the browser and node resolve them. `/app/src/` is the one
 // browser mapping into this package; everything else absolute is a provider.
 const IMPORT = /\bimport\s+(?:([A-Za-z_$][\w$]*)\s*,?\s*)?(?:\{([^}]*)\}|\*\s+as\s+([A-Za-z_$][\w$]*))?\s*from\s*["']([^"']+)["']/gu;
+// A literal, conditional import may name one export without making a dev-only
+// dependency mandatory in the shipped server. Count that exact name, never the
+// module namespace or a computed property.
+const DYNAMIC_NAMED_IMPORT = /\(\s*await\s+import\s*\(\s*["']([^"']+)["']\s*\)\s*\)\s*\.\s*([A-Za-z_$][\w$]*)/gu;
+const dynamicNamedImports = source => [...source.matchAll(DYNAMIC_NAMED_IMPORT)]
+  .map(([, spec, name]) => ({ spec, name }));
 const EXPORT = /^export\s+(?:async\s+)?(?:function\s*\*?\s*|const\s+|let\s+)([A-Za-z_$][\w$]*)/gmu;
 const resolve = (file, spec) => {
   if (spec.startsWith(".")) return path.posix.normalize(path.posix.join(path.posix.dirname(file), spec));
@@ -333,6 +339,12 @@ test("every production export has a production importer or is a named entrypoint
         used.get(target).add(name);
       }
     }
+    for (const { spec, name } of dynamicNamedImports(source)) {
+      const target = resolve(file, spec);
+      if (target === null) continue;
+      assert.ok(production.includes(target), `${file} imports ${spec}, which is not a production module`);
+      used.get(target).add(name);
+    }
   }
   const exportsOf = file => {
     const names = [...read(file).matchAll(EXPORT)].map(match => match[1]);
@@ -351,4 +363,15 @@ test("every production export has a production importer or is a named entrypoint
     for (const name of exported) if (!used.get(file).has(name)) dead.push(`${file}#${name}`);
   }
   assert.deepEqual(dead, []);
+});
+
+test("conditional literal imports keep exact export names visible to the production guard", () => {
+  assert.deepEqual(dynamicNamedImports('(await import("./dependency.mjs")).wanted()'),
+    [{ spec: "./dependency.mjs", name: "wanted" }]);
+  assert.deepEqual(dynamicNamedImports('(await import("./dependency.mjs")).missing()'),
+    [{ spec: "./dependency.mjs", name: "missing" }]);
+  for (const source of ['(await import(spec)).wanted()', '(await import("./dependency.mjs"))[name]()',
+    'const namespace = await import("./dependency.mjs"); namespace.wanted()']) {
+    assert.deepEqual(dynamicNamedImports(source), []);
+  }
 });

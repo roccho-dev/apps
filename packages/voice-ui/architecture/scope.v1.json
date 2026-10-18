@@ -12,6 +12,7 @@
     { "match": "web/", "class": "admitted" },
     { "match": "functions/", "class": "admitted" },
     { "match": "dev/", "class": "admitted" },
+    { "match": "decision-references/", "class": "admitted" },
     { "match": "artifact.jsonl", "class": "admitted" },
     { "match": "architecture/", "class": "excluded", "reason": "the preparation of this view, not part of the running app" },
     { "match": "tests/", "class": "excluded", "reason": "tests and their fixtures" },

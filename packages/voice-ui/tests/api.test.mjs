@@ -1410,7 +1410,8 @@ test("an architecture section that is not exactly this server's snapshot is refu
   // Two body files with no pair between them: a frame of this shape that the
   // section's own plan does not hold.
   const credential = judgeRequest("ext-jev-api-key");
-  assert.deepEqual([...credential.state.architecture.bodies].sort(), ["dev-serve-mjs", "functions-pages-worker-mjs"]);
+  assert.deepEqual([...credential.state.architecture.bodies].sort(),
+    ["dev-proposals-mjs", "dev-serve-mjs", "functions-pages-worker-mjs"]);
   const unplannedSection = judgeSectionOf(MANIFEST, ["dev-architecture-config-v1-json", "web-data-config-v1-json"]);
   const unplanned = { ...credential, state: { ...credential.state, architecture: unplannedSection, frame: [...unplannedSection.bodies].sort() } };
   assert.ok(isJudgeRequest(unplanned));
@@ -1623,7 +1624,9 @@ test("a judge frame is asked from exactly its own text: its body files whole, ot
   const bodies = judgeRequests("ext-jev-api-key");
   const section = judgeSectionOf(MANIFEST, ["ext-jev-api-key"]);
   const plan = judgeFramesFor(section);
-  assert.deepEqual(bodies.map(body => body.state.frame), [["dev-serve-mjs"], ["functions-pages-worker-mjs"], ["dev-serve-mjs", "functions-pages-worker-mjs"]], "each credential body and the actual shared-route pair has its frame");
+  assert.deepEqual(bodies.map(body => body.state.frame), [["dev-proposals-mjs"], ["dev-serve-mjs"],
+    ["functions-pages-worker-mjs"], ["dev-serve-mjs", "functions-pages-worker-mjs"]],
+  "each credential body and the actual shared-route pair has its frame");
   const asked = [];
   for (const [index, body] of bodies.entries()) {
     assert.ok(isJudgeRequest(body));
@@ -1818,10 +1821,19 @@ test("a locate or judge the page shapes otherwise, or the provider answers incom
   // Nor is a judge frame's answer missing one of that frame's questions, or
   // carrying a question of another frame.
   const [first, second] = judgeRequests("ext-jev-api-key");
-  assert.deepEqual([first.state.frame, second.state.frame], [["dev-serve-mjs"], ["functions-pages-worker-mjs"]]);
-  const dropRole = body => { const answers = noneTo(body); delete answers[roleSlot("dev-serve-mjs", "auth")]; return answers; };
-  const addOther = body => ({ ...noneTo(body), [roleSlot("functions-api-judge-mjs", "auth")]: { type: "choice", choice: NONE, confidence: 0.9 } });
-  for (const answersFor of [dropRole, addOther]) {
+  assert.deepEqual([first.state.frame, second.state.frame], [["dev-proposals-mjs"], ["dev-serve-mjs"]]);
+  const dropRole = body => {
+    const answers = noneTo(body), slot = roleSlot(first.state.frame[0], "auth");
+    assert.ok(Object.hasOwn(answers, slot), "the missing answer must belong to the actual selected frame");
+    delete answers[slot];
+    return answers;
+  };
+  const addRole = subject => body => {
+    const answers = noneTo(body), slot = roleSlot(subject, "auth");
+    assert.equal(Object.hasOwn(answers, slot), false, "the injected question must be outside this frame");
+    return { ...answers, [slot]: { type: "choice", choice: NONE, confidence: 0.9 } };
+  };
+  for (const answersFor of [dropRole, addRole(second.state.frame[0]), addRole("functions-api-judge-mjs")]) {
     const { result: partial } = await withProvider(answering(answersFor), () => post(first, ARCHITECTURE_ENV));
     assert.equal(partial.status, 502);
     assert.deepEqual(await partial.json(), { error: ERRORS.providerContract });

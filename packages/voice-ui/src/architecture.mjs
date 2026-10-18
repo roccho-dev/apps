@@ -663,13 +663,47 @@ export async function planArchitecture({ working, turn, answers, judged = null, 
       },
       claims: chunk.map(item => item.claim),
     });
-    if (!last) {
+    if (!last || others.length > 0) {
       try {
         graph = (await protocol.appendDecision(graph.log, built.decision)).verified;
       } catch (error) {
         return refused("provider-rejected", String(error?.message ?? error));
       }
     }
+  }
+  if (others.length > 0) {
+    // AddRegion's semantic bounds are not the renderer's layout. Consume its
+    // real dimensions, then pin only these new parts below the complete view.
+    // Existing layout records (including user pins) are never overwritten.
+    const view = { pattern: protocol.GRAPH_PATTERN };
+    const previous = protocol.layoutBoundsFor(working.records, view);
+    const actual = protocol.layoutBoundsFor(graph.records, view);
+    const boxes = others.map(({ record }) => actual.bounds[record.id]);
+    if (!boxes.every(box => Array.isArray(box) && box.length === 4 && box.every(Number.isFinite)
+      && box[2] > 0 && box[3] > 0)) return refused("provider-rejected", "new source part has no layout");
+    const width = Math.max(...boxes.map(box => box[2]));
+    const height = Math.max(...boxes.map(box => box[3]));
+    const columns = Math.min(COLUMNS, Math.max(1, Math.round(previous.rootBounds[2] / (width + PART_GAP))));
+    const [left, top, , wholeHeight] = actual.rootBounds;
+    const pins = others.map(({ record }, index) => ({ regionId: record.id, bounds: [
+      left + PART_GAP + (index % columns) * (width + PART_GAP),
+      top + wholeHeight + PART_GAP + Math.floor(index / columns) * (height + PART_GAP),
+      width, height,
+    ] }));
+    let built;
+    try {
+      built = await protocol.createDecision(graph.head, [{ type: "PinRegions", items: pins }], graph.records);
+    } catch (error) {
+      return refused("provider-rejected", String(error?.message ?? error));
+    }
+    steps.push({ step: { revision: graph.head, action: ACTION_ARCHITECTURE, confidence,
+      // Creation's layout adds no further source entity/relation to the
+      // conversational summary. The DecisionLog and provenance retain every pin.
+      changes: [],
+      decision: built.decision },
+      // Positions are this local drawing's choices, never source-code facts.
+      claims: pins.map(({ regionId }) => ({ record: { type: "layout", id: regionId }, origin: ORIGIN_USER, basis: [] })),
+    });
   }
   return Object.freeze({ outcome: OUTCOME_STEP, steps: deepFreeze(steps) });
 }

@@ -149,12 +149,24 @@ test("one architecture utterance is one entry of the draft: counted, sent and un
     working: started.working, turn, answers: answering(turn.slots, { action: ACTION_ARCHITECTURE, focus: WHOLE }), judged: null,
     manifest: MANIFEST, protocol, operationsMax: 3,
   });
-  assert.equal(planned.steps.length, 3);
+  assert.deepEqual(planned.steps.map(item => item.step.changes.length), [3, 3, 1, 0],
+    "the three creation chunks are followed by their layout, without extra source claims");
+  assert.deepEqual(planned.steps.at(-1).claims.map(claim => claim.record.type), Array(5).fill("layout"));
   const { session: viewed } = await proposeArchitecture(started, { planned, input: { source: "typed", text: "show the code" }, protocol });
-  assert.equal(viewed.draft.length, 1 + 3, "every Decision is its own step");
+  assert.equal(viewed.draft.length, 1 + 4, "every creation and layout Decision is its own step");
   assert.equal(draftUsed(viewed), 2, "but the utterance counts once");
   assert.deepEqual(draftForJudgment(viewed).at(-1).changes, planned.steps.flatMap(item => item.step.changes), "and is sent as one");
-  assert.deepEqual(viewed.draft.slice(1).map(item => item.input === null), [false, true, true], "only its first step carries it");
+  assert.deepEqual(viewed.draft.slice(1).map(item => item.input === null), [false, true, true, true], "only its first step carries it");
+
+  const origin = storage();
+  const committed = await commitWith(origin, viewed.working, viewed.draft, null, null);
+  assert.equal(committed.status, COMMIT_COMMITTED, committed.reason);
+  const restored = await restoreDocument({ key: KEY, read: origin.read, verifyDecisionLog, manifest: MANIFEST });
+  assert.equal(restored.status, "restored", restored.reason);
+  assert.deepEqual(restored.graph.records, viewed.working.records, "the layout is saved with the same utterance");
+  assert.deepEqual(currentClaims(restored.provenance, restored.graph.records).filter(item => item.record.type === "layout")
+    .map(item => item.claims.map(claim => claim.origin)), Array.from({ length: 5 }, () => ["user-asserted"]),
+  "saved positions remain local drawing choices, not source claims");
 
   const back = await undo(viewed, { verifyDecisionLog });
   assert.equal(back.draft.length, 1, "Undo takes every Decision of the utterance back");

@@ -455,7 +455,8 @@ test("a view larger than the provider takes in one Decision is split at the limi
   const working = await mapGraph();
   const planned = await plan(working, manifest);
   assert.equal(planned.outcome, "step", planned.detail);
-  assert.deepEqual(planned.steps.map(item => item.step.changes.length), [32, 32, 15]);
+  assert.deepEqual(planned.steps.map(item => item.step.changes.length), [32, 32, 15, 0]);
+  assert.equal(planned.steps.at(-1).claims.length, 40, "creation's layout retains each fresh pin in provenance, not extra source facts");
   assert.equal(MAX_DECISION_OPERATIONS, 32, "the split above is the provider's own limit");
   const next = await appendAll(working, planned);
   assert.equal(next.records.filter(record => record.type === "region").length, 1 + 40);
@@ -464,6 +465,36 @@ test("a view larger than the provider takes in one Decision is split at the limi
     working, turn, judged: null, manifest, protocol, operationsMax: undefined,
     answers: answerFor(turn.slots, { action: ACTION_ARCHITECTURE }),
   }), /operation limit/u, "no limit of its own");
+});
+
+test("fresh source parts use actual provider-sized pins while an existing user's placement stays byte-equal", async () => {
+  let working = await mapGraph();
+  const keep = [90, 80, 230, 120];
+  const user = await protocol.createDecision(working.head, [
+    { type: "AddRegion", regionId: "keep-user", parentId: "root", label: "User owned", kind: "node", summary: "", bounds: keep },
+    { type: "PinRegions", items: [{ regionId: "keep-user", bounds: keep }] },
+  ], working.records);
+  working = (await protocol.appendDecision(working.log, user.decision)).verified;
+  const before = structuredClone(working.records);
+  const planned = await plan(working, readManifest(structuredClone(MANIFEST)));
+  assert.equal(planned.outcome, "step");
+  const next = await appendAll(working, planned);
+  for (const record of before) {
+    const retained = next.records.find(value => value.type === record.type
+      && (record.type === "layout" ? value.regionId === record.regionId : value.id === record.id));
+    assert.deepEqual(retained, record, "no existing semantic or layout record is rewritten");
+  }
+  const added = new Set(next.records.filter(record => record.type === "region" && !before.some(old => old.id === record.id)).map(record => record.id));
+  const pins = next.records.filter(record => record.type === "layout" && record.regionId !== "keep-user");
+  assert.equal(pins.length, added.size);
+  assert.ok(pins.every(pin => added.has(pin.regionId)), "only newly-created source parts are pinned");
+  const actual = protocol.layoutBoundsFor(next.records, { pattern: protocol.GRAPH_PATTERN });
+  for (const pin of pins) assert.deepEqual(actual.bounds[pin.regionId], pin.bounds, "the real renderer layout consumes the pin");
+  assert.deepEqual(actual.bounds["keep-user"], keep);
+  for (let i = 0; i < pins.length; i++) for (let j = i + 1; j < pins.length; j++) {
+    const [x, y, w, h] = pins[i].bounds, [u, v, a, b] = pins[j].bounds;
+    assert.ok(x + w <= u || u + a <= x || y + h <= v || v + b <= y, "new source parts do not overlap");
+  }
 });
 
 test("an unsure action, a stale head or an answer off the questions changes nothing", async () => {
