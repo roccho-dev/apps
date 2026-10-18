@@ -135,10 +135,11 @@ export async function onRequirements({ request, mode, method, available, generat
     finally { signal.removeEventListener("abort", stop); }
   };
   const full = async () => {
-    const context = inventoryQuestion(inventory.state).state, sourced = generation === "display-source",
-      flat = generation === "flat-scalars" || generation === "thinking-labels";
+    const context = inventoryQuestion(inventory.state).state,
+      profile = mode === "check" && method === "adaptive-v3" ? "thinking-labels" : generation,
+      sourced = profile === "display-source", flat = profile === "flat-scalars" || profile === "thinking-labels";
     const question = sourced ? displaySourceRequest(context) : flat
-      ? flatRequiredRequest(context, { labelThinking: generation === "thinking-labels" }) : requiredRequest(context, { generation });
+      ? flatRequiredRequest(context, { labelThinking: profile === "thinking-labels" }) : requiredRequest(context, { generation: profile });
     const value = await send(generate, question);
     const decoded = sourced ? readDisplaySourceSlots(value?.result, context) : flat ? readFlatRequiredSlots(value?.result) : null;
     const required = sourced || flat ? decoded?.required ?? null : readRequiredSlots(value?.result);
@@ -150,7 +151,7 @@ export async function onRequirements({ request, mode, method, available, generat
     }
     const proposal = { slots: sourced || flat ? decoded.slots : structuredClone(value.result), required };
     stage("TYPE_REQUIRED", { valid: true, generation, proposal, ...(sourced ? { source_slots: decoded.source_slots } : {}),
-      ...(flat ? { scalar_answers: decoded.scalar_answers } : {}), ...metrics });
+      ...(flat && mode === "requirements" ? { scalar_answers: decoded.scalar_answers } : {}), ...metrics });
     return proposal;
   };
   const verify = async required => {

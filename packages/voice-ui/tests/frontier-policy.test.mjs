@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import fs from "node:fs";
 import { onRequirements } from "../functions/api/parts.mjs";
-import { readRequirementInspection, readLiteralInspection, runInventoryGoal } from "../src/completion.mjs";
+import { readRequirementInspection, readLiteralInspection, runInventoryGoal, flatRequiredRequest, inventoryQuestion } from "../src/completion.mjs";
 import { readBundle } from "../src/bundle.mjs";
 import { createSession } from "../src/session.mjs";
 
@@ -32,7 +32,10 @@ async function invoke({ first = factors(), verified = factors("change", .9, "com
       },
       generate: async request => { sends.typellm++; requests.push(structuredClone(request));
         if (fail === "Type-http") throw Error("unknown transport");
-        return { result: fail === "Type-contract" ? {} : slots() };
+        const rows = slots(), answers = Object.hasOwn(request.questions, "required1_label")
+          ? Object.fromEntries(Object.entries(rows).flatMap(([name, row]) => Object.entries(row).map(([key, value]) => [name + "_" + key, value])))
+          : rows;
+        return { result: fail === "Type-contract" ? {} : answers };
       },
     });
     return { status: response.status, body: await response.json(), stages, requests, sends, input };
@@ -68,6 +71,17 @@ test("v3 one-shot proposal follows the exact confidence frontier; hard stops and
     assert.ok(!Object.hasOwn(result.body.inspection, "proposal_policy"));
     assert.ok(result.stages.every(row => row.kind === "voice-ui.parts.stage.v2"));
   }
+});
+
+test("ordinary C uses the bounded D extraction body while retaining its closed dependent stage", async () => {
+  const result = await invoke();
+  assert.equal(result.status, 200);
+  assert.deepEqual(result.requests[1], flatRequiredRequest(inventoryQuestion(result.input.state).state, { labelThinking: true }));
+  const typed = result.stages.find(row => row.stage === "TYPE_REQUIRED");
+  assert.deepEqual(Object.keys(typed), ["kind", "request_id", "stage", "valid", "generation", "proposal"]);
+  assert.equal(typed.generation, "dependent");
+  assert.deepEqual(typed.proposal.slots, slots());
+  assert.deepEqual(result.sends, { jev: 2, typellm: 1 });
 });
 
 test("failed or invalid G0 cannot trigger Type; failed Type cannot trigger V or retry", async () => {

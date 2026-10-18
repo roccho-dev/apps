@@ -13,7 +13,7 @@ import { quotaGoalBundle } from "../src/completion.mjs";
 import { DECISION_KIND } from "../src/contract.mjs";
 import { evaluationPost } from "./requirements-cycle-http.mjs";
 import { observePaintedGoal, assessPaintedGoal, assessPaintedEdge } from "./painted-goal.mjs";
-import { validateQuotaInput, quotaSchedule, QUOTA_METHODS, QUOTA_GENERATIONS, QUOTA_GOAL_POLICIES } from "./quota-cycle-score.mjs";
+import { validateQuotaInput, quotaSchedule, QUOTA_METHODS, QUOTA_GENERATIONS, QUOTA_GOAL_POLICIES, quotaRepeatProfile } from "./quota-cycle-score.mjs";
 import { QUOTA_SOURCE_NAMES } from "./quota-cycle-audit.mjs";
 
 const settings = {}, args = process.argv.slice(2);
@@ -54,6 +54,13 @@ const artifact = JSON.parse(fs.readFileSync(path.join(settings["--artifact"], "m
 assert.equal(artifact.sources.apps, source.heads.apps);
 assert.equal(hash(fs.readFileSync(path.join(settings["--artifact"], "manifest.json"))), source.artifact.manifest_sha256);
 assert.equal(hash(fs.readFileSync(path.join(settings["--artifact"], "worker/worker.mjs"))), source.worker_entry.sha256);
+const repeat = quotaRepeatProfile(source.repeat_profile ?? null);
+if (repeat) {
+  assert.equal(axis, "E"); assert.equal(source.extraction_profile, repeat.extraction_profile);
+  assert.equal(hash(fs.readFileSync(source.typed_provider_entry.path)), source.typed_provider_entry.sha256);
+  assert.equal(source.typed_provider_entry.sha256, repeat.provider_sources.typellm.entry_sha256);
+  for (const [name, pin] of Object.entries(repeat.provider_sources)) assert.deepEqual(artifact.sources[name + "-provider"], pin);
+}
 const protocol = await import(pathToFileURL(path.join(settings["--semantic-map"], "packages/semantic-map/protocol/index.js")));
 const sourceNames = QUOTA_SOURCE_NAMES;
 fs.mkdirSync(settings["--out"], { mode: 0o700 });

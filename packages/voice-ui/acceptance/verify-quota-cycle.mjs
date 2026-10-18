@@ -10,7 +10,7 @@ import { auditQuotaRaw, auditQuotaProducerBinding, auditQuotaProviderPhase, audi
   auditQuotaProcess } from "../tests/quota-cycle-audit.mjs";
 import { assessPaintedGoal as assessGoal, assessPaintedEdge as assessEdge } from "../tests/painted-goal.mjs";
 import { joinJournalSnapshots } from "../tests/candidate-closure.mjs";
-import { classifyQuotaAxis } from "../tests/quota-cycle-score.mjs";
+import { classifyQuotaAxis, quotaRepeatProfile } from "../tests/quota-cycle-score.mjs";
 assertNoSecretInputs();
 async function main() {
 const [indexFile, outputDirectory] = process.argv.slice(2);
@@ -26,6 +26,7 @@ const read = relative => fs.readFileSync(within(relative)), decode = bytes => JS
 const write = (file, value) => fs.writeFileSync(file, JSON.stringify(value, null, 2) + "\n", { flag: "wx" });
 const index = decode(fs.readFileSync(indexFile));
 assert.equal(index.schema, "voice-ui.quota-cycle-evidence-index/1");
+const repeatProfile = index.repeat_profile ?? null, repeat = quotaRepeatProfile(repeatProfile);
 assert.ok(Array.isArray(index.phases));
 assert.equal(new Set(index.phases.map(row => row.id)).size, index.phases.length);
 const out = path.resolve(outputDirectory); fs.mkdirSync(out);
@@ -39,19 +40,20 @@ const hash = bytes => createHash("sha256").update(bytes).digest("hex");
 const commitmentBytes = read(index.commitment), freezeBytes = read(index.freeze), freeze = decode(freezeBytes);
 const preregistered = path.dirname(within(index.commitment));
 const publicFiles = Object.fromEntries(freeze.copy_allowlist.map(row => {
-  assert.match(row.name, /^quota-cycle-(?:protocol[.]md|policy-contract[.]json|commitment(?:[.]v2)?[.]json|public-freeze[.]json|public-literal-preflight[.]json|seal-validation[.]json|public-[RE]-1(?:[.]v2)?[.](?:inputs|oracle)[.]json|prelive-map-addendum[.]v2[.]json|map-identity-validation[.]v2[.]json)$/u);
+  assert.match(row.name, repeat ? /^quota-cycle-typed-(?:protocol[.]md|commitment[.]json|public-literal-preflight[.]json|seal-validation[.]json|public-E-1[.](?:inputs|oracle)[.]json)$/u
+    : /^quota-cycle-(?:protocol[.]md|policy-contract[.]json|commitment(?:[.]v2)?[.]json|public-freeze[.]json|public-literal-preflight[.]json|seal-validation[.]json|public-[RE]-1(?:[.]v2)?[.](?:inputs|oracle)[.]json|prelive-map-addendum[.]v2[.]json|map-identity-validation[.]v2[.]json)$/u);
   const bytes = fs.readFileSync(path.join(preregistered, row.name));
   assert.equal(bytes.length, row.bytes); assert.equal(hash(bytes), row.sha256);
   return [row.name, bytes];
 }));
 const baselineJournal = read(index.baseline_journal);
-assert.equal(hash(baselineJournal), "ce6896e0b1eb7c3c749b659b36e3ed4467dc133042ace81dd990b9f2e10c28d4");
-const processAudit = (records, journalBytes) => auditQuotaProcess({ records, journalBytes, commitmentBytes, freezeBytes, publicFiles });
+assert.equal(hash(baselineJournal), repeat?.baseline_journal_sha256 ?? "ce6896e0b1eb7c3c749b659b36e3ed4467dc133042ace81dd990b9f2e10c28d4");
+const processAudit = (records, journalBytes) => auditQuotaProcess({ records, journalBytes, commitmentBytes, freezeBytes, publicFiles, repeatProfile });
 if (index.phases.length === 0) {
   const processGraph = processAudit([], baselineJournal);
   assert.equal(processGraph.status, "PASS", JSON.stringify(processGraph.issues));
   assert.equal(processGraph.state, "NOT_MEASURED");
-  assert.deepEqual(index.expected_cumulative, { jev: 808, typellm: 85 });
+  assert.deepEqual(index.expected_cumulative, repeat?.charged_prior ?? { jev: 808, typellm: 85 });
   write(path.join(out, "receipt.json"), { schema: "voice-ui.quota-cycle-ci/1", integrity: "PASS", state: "NOT_MEASURED",
     quality: "UNPROVEN", effect: "UNPROVEN", cumulative: index.expected_cumulative, reports: [], processGraph,
     CI_LIVE_EXECUTION: "UNPROVEN", currency: "COST_NOT_MEASURED" });
@@ -98,7 +100,11 @@ for (const row of index.phases) {
     [name, fs.readFileSync(path.join(within(row.raw_dir), name))]));
   const producer = decode(read(row.producer)), runtimeAuditBytes = read(row.runtime), runtime = decode(runtimeAuditBytes);
   assert.equal(producer.axis, row.axis); assert.equal(producer.heads.apps, row.apps_sha);
-  assert.match(runtime.provider.path, /^\/nix\/store\/[a-z0-9]{32}-jev-provider-admitted\/batch[.]mjs$/u);
+  assert.equal(producer.repeat_profile ?? null, repeatProfile);
+  assert.match(runtime.provider.path, repeat ? /^\/nix\/store\/[a-z0-9]{32}-jev-provider-admitted\/jev[.]mjs$/u
+    : /^\/nix\/store\/[a-z0-9]{32}-jev-provider-admitted\/batch[.]mjs$/u);
+  if (repeat) assert.match(runtime.typed_provider.path, /^\/nix\/store\/[a-z0-9]{32}-typellm-provider-admitted\/typellm[.]mjs$/u);
+  const typedProviderBytes = repeat ? fs.readFileSync(runtime.typed_provider.path) : null;
   const providerBytes = fs.readFileSync(runtime.provider.path), workerBytes = fs.readFileSync(path.join(built.artifact, "worker/worker.mjs"));
   const protocolEntry = path.join(built.artifact, "site/ui/semantic-map/protocol/index.js");
   const protocolEntryBytes = fs.readFileSync(protocolEntry), protocol = await import(pathToFileURL(protocolEntry));
@@ -113,15 +119,15 @@ for (const row of index.phases) {
   assert.ok(journalBytes.subarray(0, baselineJournal.length).equals(baselineJournal), "exact prior ledger prefix");
   const binding = auditQuotaProducerBinding({ identityBytes: rawFiles["identity.json"], runtimeAuditBytes, configBytes, processBytes,
     artifactManifestBytes: built.manifestBytes, workerBytes, providerBytes, protocolEntryBytes, bundleBytes, sourceFiles,
-    auditReferences, rawFiles, stdoutBytes, stderrBytes, journalBytes, replayBytes }, producer);
+    auditReferences, rawFiles, stdoutBytes, stderrBytes, journalBytes, replayBytes, typedProviderBytes }, producer);
   const rawArguments = { projectionBytes: read(row.input), oracleBytes: read(row.oracle), rawFiles, bundleBytes,
     protocol, stdoutBytes, assessGoal, assessEdge, replayBytes, artifactManifestBytes: built.manifestBytes,
     phaseKind: row.phase_kind === "final" ? "fresh" : row.phase_kind,
     parentProjectionBytes: row.parent_input ? read(row.parent_input) : null,
-    parentOracleBytes: row.parent_oracle ? read(row.parent_oracle) : null };
+    parentOracleBytes: row.parent_oracle ? read(row.parent_oracle) : null, repeatProfile };
   const raw = await auditQuotaRaw(rawArguments);
   const phase = auditQuotaProviderPhase({ configBytes, processBytes, stdoutBytes, stderrBytes, journalBytes },
-    raw.external_provider_attempt_bounds, { axis: row.axis, caseCount: decode(read(row.input)).cases.length, phaseKind: row.phase_kind });
+    raw.external_provider_attempt_bounds, { axis: row.axis, caseCount: decode(read(row.input)).cases.length, phaseKind: row.phase_kind, repeatProfile });
   assert.equal(producer.parent_inputs_sha256, decode(read(row.input)).parent_inputs_sha256);
   snapshots.push({ id: decode(configBytes).phase_id, bytes: journalBytes, phase });
   for (const audit of [binding, raw, phase]) assert.equal(audit.status, "PASS", JSON.stringify(audit.issues));
@@ -144,7 +150,7 @@ for (const row of index.phases) {
   processRecords.push({ index: row, config: decode(configBytes), input: decode(read(row.input)), report });
 }
 const cumulative = joinJournalSnapshots(snapshots); assert.deepEqual(cumulative, index.expected_cumulative);
-assert.ok(cumulative.jev <= 989 && cumulative.typellm <= 92);
+assert.ok(cumulative.jev <= (repeat ? 980 : 989) && cumulative.typellm <= (repeat ? 143 : 92));
 const journalBytes = snapshots.reduce((a, b) => a.bytes.length > b.bytes.length ? a : b).bytes;
 const processGraph = processAudit(processRecords, journalBytes);
 assert.equal(processGraph.status, "PASS", JSON.stringify(processGraph.issues));

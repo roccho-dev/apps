@@ -38,12 +38,14 @@ const inputs = Object.fromEntries(["R", "E"].map(axis => [axis, read(path.join(p
 const env = { JEV_API_KEY: "fixture-jev-only", TYPELLM_API_KEY: "fixture-type-only", ASSETS: { fetch: () => assert.fail("unexpected asset") } };
 const upstream = [], stages = [], errors = [], api = [], summaries = [], wireEquality = [];
 const savedFetch = globalThis.fetch, savedInfo = console.info;
-let currentRequest = null, mode = "R", failure = false;
+let currentRequest = null, mode = "R", failure = false, ordinaryExtractionBridge = null;
 console.info = line => stages.push(JSON.parse(line));
 const factors = confidence => ({ intent: { choice: "change", confidence }, labels: { choice: "missing", confidence: .9 },
   capacity: { choice: "within", confidence: .9 }, completeness: { choice: confidence < .5 ? "incomplete" : "complete", confidence: .9 } });
 const slots = label => ({ required1: { label, kind: "decision", quantity: "1" },
   required2: { label: "", kind: "none", quantity: "0" }, required3: { label: "", kind: "none", quantity: "0" } });
+const typedResult = (wire, rows) => Object.hasOwn(wire.questions, "required1_label")
+  ? Object.fromEntries(Object.entries(rows).flatMap(([name, row]) => Object.entries(row).map(([key, value]) => [name + "_" + key, value]))) : rows;
 const wantedLabel = () => mode === "R" ? inputs.R.cases[0].required[0].label
   : mode === "E" ? "棚卸承認" : "WireFixture";
 const namedReply = (wire, answers) => Response.json({ model: "synthetic-quota-fixture", answers: Object.fromEntries(
@@ -61,7 +63,7 @@ globalThis.fetch = async (url, init) => {
   assert.equal(String(url), provider === "jev" ? "https://api.typesafe.ai/v1/systemone" : "https://api.typellm.ai/v1/generate");
   const wire = JSON.parse(init.body);
   upstream.push({ mode, provider, route: String(url), method: init.method, content_type: init.headers["content-type"], body_utf8: init.body, wire });
-  if (provider === "typellm") return Response.json({ status: "completed", result: slots(wantedLabel()) });
+  if (provider === "typellm") return Response.json({ status: "completed", result: typedResult(wire, slots(wantedLabel())) });
   if (wire.questions.intent) return namedReply(wire, factors(mode === "E" && !wire.state.required ? .49 : .9));
   const state = currentRequest.state;
   let choice = "none";
@@ -205,10 +207,33 @@ try {
     wireEquality.push({ axis, status: "UPSTREAM_BYTES_EQUAL", request_body_sha256: hash(pair[0].capture.body_utf8),
       original_captures: pair.map((p, i) => ({ apps_sha: manifests[1 - i].value.sources.apps, ...p })) });
   }
+  mode = "E";
+  const bridge = [];
+  for (const route of ["/api/parts/check?method=adaptive-v3", "/api/parts/requirements?generation=thinking-labels"]) {
+    currentRequest = inventory;
+    try {
+      const before = upstream.length, response = await worker.fetch(new Request("http://localhost" + route,
+        { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(inventory) }), env);
+      assert.equal(response.status, 200);
+      const captures = upstream.slice(before), typed = captures.filter(row => row.provider === "typellm");
+      assert.equal(typed.length, 1);
+      assert.equal(captures.length, bridge.length === 0 ? 3 : 1);
+      for (const [name, question] of Object.entries(typed[0].wire.questions)) {
+        assert.equal(question.thinking, name.endsWith("_label"));
+        assert.equal(question.thinking_budget, name.endsWith("_label") ? 512 : undefined);
+      }
+      assert.equal(Object.keys(typed[0].wire.questions).length, 9);
+      bridge.push({ route, capture: typed[0], response: await response.json() });
+    } finally { currentRequest = null; }
+  }
+  assert.deepEqual(bridge[0].capture, bridge[1].capture, "compiled ordinary C and direct D upstream bytes");
+  assert.deepEqual(bridge[0].response.inspection.proposal.required, bridge[1].response.required);
+  ordinaryExtractionBridge = { status: "EXACT_DIRECT_D_BODY", request_body_sha256: hash(bridge[0].capture.body_utf8),
+    generation_policy: "dependent", extraction_profile: "thinking-labels", original_captures: bridge };
   assert.deepEqual(errors, []);
 } finally { globalThis.fetch = savedFetch; console.info = savedInfo; await new Promise(resolve => server.close(resolve)); }
 fs.writeFileSync(path.join(out, "receipt.json"), enc({ schema: "voice-ui.quota-cycle-keyless/1", status: "PASS",
-  scope: "SYNTHETIC_MECHANICS_ONLY", external_provider_sends: { jev: 0, typellm: 0 },
+  scope: "SYNTHETIC_MECHANICS_ONLY", external_provider_sends: { jev: 0, typellm: 0 }, ordinary_extraction_bridge: ordinaryExtractionBridge,
   artifact_sources: manifests[0].value.sources, artifact_manifest_sha256: hash(manifests[0].bytes),
   previous_sources: manifests[1].value.sources, source_inventory: QUOTA_SOURCE_NAMES.length, summaries, wireEquality, upstream, api, stages }));
 console.log(JSON.stringify({ status: "PASS", scope: "SYNTHETIC_MECHANICS_ONLY", cells: summaries.reduce((n, s) => n + s.cells, 0), wire_pairs: wireEquality.length }));

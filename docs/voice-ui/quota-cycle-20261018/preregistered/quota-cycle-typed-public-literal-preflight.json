@@ -1,0 +1,51 @@
+{
+  "schema": "voice-ui.quota-cycle-typed-public-literal-preflight/1",
+  "repeat_profile": "typed-ordinary-E-20261018",
+  "status": "PASS",
+  "source": "6f08f952249b64101ce350a16672dd05607f6f9e",
+  "protocol_sha256": "1689dcf63e1ed19cdea7be22e3f90a09f434841f980b9ca8b9018a987c9c38f8",
+  "rows": [
+    {
+      "visibility": "public",
+      "id": "TEP01",
+      "fixture": "empty",
+      "head": "sha256:997f2a85be41d6774df84a876b8bba255de5d38cf5cda626fbb1dfc268940bc8",
+      "initial_log_sha256": "98920f938c20ef190f56f31c9f21d811e1cb53ee9313ec4437a1d6a88bb4e05c",
+      "valid": true,
+      "map_id": "voice-graph",
+      "source_storage_commit": "committed",
+      "source_storage_restore": "restored",
+      "storage_log_raw_equal": true,
+      "source_literal": {
+        "valid": true,
+        "recognized": false,
+        "required": [],
+        "missing": [],
+        "spans": [],
+        "status": "unsupported-syntax"
+      },
+      "literal_required_exact": false,
+      "literal_deficit": true,
+      "oracle_full_required": [
+        {
+          "label": "API",
+          "kind": "step",
+          "quantity": 2
+        }
+      ],
+      "oracle_missing": [
+        {
+          "label": "API",
+          "kind": "step",
+          "occurrence": 1
+        }
+      ],
+      "oracle_target_legal": true,
+      "oracle_target_graph_exact": true,
+      "actual_model_eligibility": "NOT_MEASURED",
+      "actual_browser_paint": "NOT_MEASURED"
+    }
+  ],
+  "provider_sends": 0,
+  "scope": "pure parser/protocol/source storage only; actual G0 eligibility, ordinary Goal/paint/persistence and effect remain unmeasured"
+}

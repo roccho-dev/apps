@@ -56,6 +56,8 @@ const factors = (intent = "change", confidence = .9, completeness = "complete", 
   intent: { choice: intent, confidence }, labels: { choice: "missing", confidence: .9 },
   capacity: { choice: "within", confidence: .9 }, completeness: { choice: completeness, confidence: certainty },
 });
+const typedResult = (wire, rows) => Object.hasOwn(wire.questions, "required1_label")
+  ? Object.fromEntries(Object.entries(rows).flatMap(([name, row]) => Object.entries(row).map(([key, value]) => [name + "_" + key, value]))) : rows;
 globalThis.fetch = async (url, init) => {
   assert.ok(currentRequest);
   const provider = init.headers.authorization === "Bearer fixture-type-only" ? "typellm"
@@ -79,20 +81,20 @@ globalThis.fetch = async (url, init) => {
     const point = provider === "typellm" ? "Type" : verifying ? "V" : "G0";
     if (boundary.fail === point + "-http") return Response.json({}, { status: 503 });
     if (boundary.abort_after === point) activeAbort.abort();
-    if (provider === "typellm") return Response.json({ status: "completed", result: boundary.fail === "Type-contract" ? {} : {
+    if (provider === "typellm") return Response.json({ status: "completed", result: boundary.fail === "Type-contract" ? {} : typedResult(wire, {
       required1: { label: "FixtureNode", kind: "step", quantity: "1" },
       required2: { label: "", kind: "none", quantity: "0" }, required3: { label: "", kind: "none", quantity: "0" },
-    } });
+    }) });
     if (boundary.fail === point + "-contract") return Response.json({ model: "synthetic-frontier-fixture", answers: {} });
     return namedReply(wire, verifying ? boundary.verified ?? factors() : boundary.initial);
   }
   if (provider === "typellm") {
     assert.ok(mode === "F" || mode.startsWith("E"));
-    return Response.json({ status: "completed", result: {
+    return Response.json({ status: "completed", result: typedResult(wire, {
       required1: { label: "FixtureNode", kind: "step", quantity: "1" },
       required2: { label: "", kind: "none", quantity: "0" },
       required3: { label: "", kind: "none", quantity: "0" },
-    } });
+    }) });
   }
   if (!wire.questions.intent) {
     assert.ok(mode.startsWith("E"));

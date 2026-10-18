@@ -1,0 +1,9 @@
+{
+  "schema": "voice-ui.quota-cycle-evidence-index/1",
+  "repeat_profile": "typed-ordinary-E-20261018",
+  "commitment": "../../preregistered/quota-cycle-typed-commitment.json",
+  "freeze": "../../preregistered/quota-cycle-typed-public-freeze.json",
+  "baseline_journal": "../../../extraction-cycle-20261018/thinking-labels/evidence/fresh-D/journal.jsonl",
+  "expected_cumulative": {"jev": 847, "typellm": 136},
+  "phases": []
+}

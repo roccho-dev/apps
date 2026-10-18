@@ -13,6 +13,63 @@ export const QUOTA_COMMITMENTS=Object.freeze({
  public:Object.freeze({R:{input:'35e6e31053ab8ea187899258e79623e74bc837ba482a73e043ef1ed99c296179',oracle:'5612d2c372266cbee6ee89cd6b0829c00b0568f8ca08d42627cdbb2e89506ea9'},E:{input:'e3c4c653c8225dfb668c18bf022345e1e3ef7a8665d821f3da72219d6c98a1a7',oracle:'c67b083bb6d17096594807074f72a562efebd17b8198f8c6f8aba9b91e1155c2'}}),
  fresh:Object.freeze({R:{input:'4ab4662aa00925d7e1bf480efadbc840f4421e6e6cfd16ae53d972387ce005d7',oracle:'c3d0c9df12837d0de03c9fb7e532f955f23ed60e7e0409ac473b0da7b293a32c'},E:{input:'926d7007508e0f4b67fe2fb564e1d299d82219ca9e1b95f96e3b26c3d6c9ae40',oracle:'87bc601021241e65ee78e5e8c4a30d316d0e8e9c7fcbbfe3ac2f6b4b7a2b87b3'}}),
 });
+// This registered repeat shares the original quota grades, caller and closed stages.
+// The ordinary generation name remains the dependency policy; extraction is recorded separately.
+export const TYPED_QUOTA_PROFILE=Object.freeze({
+ "id": "typed-ordinary-E-20261018",
+ "charged_prior": {
+  "jev": 847,
+  "typellm": 136
+ },
+ "cycle_cap": {
+  "jev": 133,
+  "typellm": 7
+ },
+ "baseline_journal_sha256": "2b938983023a8e2627041d52cb943a3d0f6bd530aeed637c606b816a57328d35",
+ "cutoff_phase_id": "thinking-fresh-D-20261018",
+ "commitment_sha256": "8543f8c0f8b1c572a4b0fe41d94720522bc7b58fa1cb3dea27d2ad5f30118225",
+ "freeze_sha256": "8a5c84c4f3546a82fcc49ca4e7734a3f2ba58aafd8c322fc23c8b06d7889fd29",
+ "commitments": {
+  "public": {
+   "E": {
+    "input": "52b95efd0dc3301c746b1d947e5896400bf7f12ee0e8d2d53113ddf8c2c08283",
+    "oracle": "837d68dd6c1da85ac3ce199d27dc88ceeb3ea57eff0ec18bdf5451ff6dd7124e"
+   }
+  },
+  "fresh": {
+   "E": {
+    "input": "f646112dbb14896a2e8f27d99f2b995e374aacf68b87058c7520e9821f420e43",
+    "oracle": "94ba803d5633ab9ddcbeedaedda3d04387255be27cadd93351fff6f68cbb08d7"
+   }
+  }
+ },
+ "provider_sources": {
+  "jev": {
+   "contract": "named-questions/1",
+   "entry_sha256": "0773b5c96d0da7f05fef9f9cf95772b6722a03022648e90fc56a4fdc9ac6046e",
+   "locator": "https://github.com/roccho-org/ops/releases/download/jev-provider-c7ed1132ad7bec8e5f05c6da38d719a05dec4877/jev-provider.zip",
+   "manifest_sha256": "a5386f84f0606c6900b3c0e89d19f94dcf701d344d7c7e6384889d8bb6a1aab5",
+   "proof_sha256": "d756b5855a55c07e7b93687f1556ad1a2657ce0acc701c89476d87d9461a46ff",
+   "provenance_sha256": "90e295578042b89fcf4e1d6dfc2a5cdee6d76916f97a3668472883810811ea17",
+   "sha256": "0c063b050895db87029fd514c81add33e291e321109e2aa55a3befdd42593f03"
+  },
+  "typellm": {
+   "contract": "typed-completion/1",
+   "entry_sha256": "3c10462eecd7f83dd790bfe208587c99347dcbed324b32ae674afbab48bdfb22",
+   "locator": "https://github.com/roccho-org/ops/releases/download/jev-provider-a724bdfa1864762cd9050a00e2642450af29c196/typellm-provider.zip",
+   "manifest_sha256": "4addcd161cb80f8800ee8d78a4b212c3fd2b7e92900cb10c492f3cf560878b2b",
+   "proof_sha256": "8e79073aa7fb94ffa7d4c0003c592d85622099b251c0958712eb2f7ea59bfba6",
+   "provenance_sha256": "d3d3b35ce4a77077823230da4790070db5ba206d09c66111c72b4fc44f4cc9ac",
+   "sha256": "25f8bf076d24577ad512fc63c9491e13796e76007d2e52349b5a9fc223395de6"
+  }
+ },
+ "extraction_profile": "thinking-labels"
+});
+export function quotaRepeatProfile(name=null){
+ if(name===null)return null;
+ if(name!==TYPED_QUOTA_PROFILE.id)throw Error('unknown quota repeat profile');
+ return TYPED_QUOTA_PROFILE;
+}
 const hash=x=>createHash('sha256').update(typeof x==='string'?x:JSON.stringify(x)).digest('hex');
 const kinds=['step','decision','data','start','end','group'];
 const text=(s,max)=>typeof s==='string'&&s.trim().length>0&&s.length<=max;

@@ -4,7 +4,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import {fileURLToPath,pathToFileURL} from 'node:url';
 import {auditQuotaRaw,auditQuotaProviderPhase,auditQuotaProducerBinding,auditQuotaReplayJoin,auditQuotaProcess,QUOTA_SOURCE_NAMES,sha256} from './quota-cycle-audit.mjs';
-import {quotaSchedule,QUOTA_METHODS,QUOTA_GENERATIONS,QUOTA_GOAL_POLICIES} from './quota-cycle-score.mjs';
+import {quotaSchedule,QUOTA_METHODS,QUOTA_GENERATIONS,QUOTA_GOAL_POLICIES,quotaRepeatProfile} from './quota-cycle-score.mjs';
 import {stockDifference,proposalPolicy,normalizeInitialIntent} from './frontier-cycle-score.mjs';
 // Only new public cases and marked synthetic receipts; no sealed oracle, fetch or credential read.
 const here=path.dirname(fileURLToPath(import.meta.url)),fixtures=process.env.POC_QUOTA_PREREG_ROOT??here;
@@ -198,20 +198,24 @@ test('coordinated synthetic marker, launch identity, policy and input changes ca
  for(const change of[i=>{i.source.scope='SYNTHETIC_KEYLESS_ONLY_NOT_ADMISSIBLE_AS_LIVE';},i=>{i.source.provider_entry.scope='bundled provider with synthetic fetch only';},i=>{i.source.launcher.start_ticks++;},i=>{i.goal_parts_policies.Q='open';},i=>{i.inputs_sha256='8'.repeat(64);}]){const{args,producer}=await producerFixture(),id=json(args.identityBytes);change(id);args.identityBytes=enc(id);args.rawFiles['identity.json']=args.identityBytes;producer.raw_identity_sha256=sha256(args.identityBytes);producer.raw_sha256['identity.json']=sha256(args.identityBytes);assert.equal(auditQuotaProducerBinding(args,producer).status,'FAIL');}
 });
 const baselinePath=process.env.POC_QUOTA_OLD_JOURNAL??path.resolve(source,'../../docs/voice-ui/frontier-cycle-20261018/evidence/final-E/frontier-final-E-20261018.journal.jsonl');
-function processFixture(count=0){
- const commitmentBytes=fs.readFileSync(path.join(fixtures,'quota-cycle-commitment.v2.json')),freezeBytes=fs.readFileSync(path.join(fixtures,'quota-cycle-public-freeze.v2.json')),commitment=json(commitmentBytes),freeze=json(freezeBytes);
- const publicFiles=Object.fromEntries(freeze.copy_allowlist.map(r=>[r.name,fs.readFileSync(path.join(fixtures,r.name))])),base=fs.readFileSync(baselinePath);assert.equal(sha256(base),'ce6896e0b1eb7c3c749b659b36e3ed4467dc133042ace81dd990b9f2e10c28d4');
- const records=[],tail=[],charged={jev:808,typellm:85},head='a'.repeat(40),pubR=json(fs.readFileSync(path.join(fixtures,'quota-cycle-public-R-1.v2.inputs.json'))),pubE=json(fs.readFileSync(path.join(fixtures,'quota-cycle-public-E-1.v2.inputs.json')));
+function processFixture(count=0,repeatProfile=null){
+ const repeat=quotaRepeatProfile(repeatProfile),commitmentBytes=fs.readFileSync(path.join(fixtures,repeat?'quota-cycle-typed-commitment.json':'quota-cycle-commitment.v2.json')),
+  freezeBytes=fs.readFileSync(path.join(fixtures,repeat?'quota-cycle-typed-public-freeze.json':'quota-cycle-public-freeze.v2.json')),commitment=json(commitmentBytes),freeze=json(freezeBytes);
+ const publicFiles=Object.fromEntries(freeze.copy_allowlist.map(r=>[r.name,fs.readFileSync(path.join(fixtures,r.name))])),
+  base=fs.readFileSync(repeat?path.resolve(source,'../../docs/voice-ui/extraction-cycle-20261018/thinking-labels/evidence/fresh-D/journal.jsonl'):baselinePath);
+ assert.equal(sha256(base),repeat?.baseline_journal_sha256??'ce6896e0b1eb7c3c749b659b36e3ed4467dc133042ace81dd990b9f2e10c28d4');
+ const records=[],tail=[],charged={...commitment.charged_prior},head='a'.repeat(40),pubR=repeat?null:json(fs.readFileSync(path.join(fixtures,'quota-cycle-public-R-1.v2.inputs.json'))),
+  pubE=json(fs.readFileSync(path.join(fixtures,repeat?'quota-cycle-typed-public-E-1.inputs.json':'quota-cycle-public-E-1.v2.inputs.json')));
  for(const st of commitment.stages.slice(0,count)){
   const kind=st.id.startsWith('public')?'public':'final',stamp=commitment.files.find(r=>r.axis===st.axis&&r.visibility===(kind==='public'?'public':'sealed'));
   // Public geometry plus synthetic stage identifiers; hidden case payloads are never read.
   const input=structuredClone(st.axis==='R'?pubR:pubE);input.oracle_sha256=stamp.oracle.sha256;
   if(kind==='final')input.cases=Array.from({length:st.cases},(_,i)=>({...structuredClone(input.cases[0]),id:'SYN'+i,utterance:'synthetic graph-only case '+i,arms:st.axis==='R'?(i%2===0?['O','Q']:['Q','O']):(i%2===0?['B','C']:['C','B'])}));
-  const config={phase_id:'synthetic-'+st.id,stage:kind,axis:st.axis,case_count:st.cases,heads:{apps:head},input_sha256:stamp.input.sha256,allowances:{jev:st.jev,typellm:st.typellm}},prior={...charged};charged.jev+=st.jev;charged.typellm+=st.typellm;
+  const config={...(repeat?{repeat_profile:repeat.id}:{}),phase_id:repeat?st.phase_id:'synthetic-'+st.id,stage:kind,axis:st.axis,case_count:st.cases,heads:{apps:head},input_sha256:stamp.input.sha256,allowances:{jev:st.jev,typellm:st.typellm}},prior={...charged};charged.jev+=st.jev;charged.typellm+=st.typellm;
   const report={binding:{status:'PASS'},phase:{status:'PASS',phase:config.phase_id,prior_charged:prior,charged_at_cutoff:{...charged},sent:{jev:st.jev,typellm:st.typellm}},raw:{status:'PASS',complete:true,planned:st.cells,consumed:st.cells,all_valid_execution:kind==='public',inputs_sha256:stamp.input.sha256,parent_inputs_sha256:null,parent_oracle_sha256:null,semantic:{public_gate:kind==='public'?'PASS':null,quality_criteria:'UNMET',effect_criteria:'UNMET'}}};
   records.push({index:{id:st.id,axis:st.axis,phase_kind:kind,apps_sha:head},config,input,report});tail.push({kind:'phase-reserve',id:config.phase_id,prior_charged:prior,allowances:config.allowances},{kind:'phase-reconcile',id:config.phase_id,sent:report.phase.sent});
  }
- return{records,journalBytes:Buffer.concat([base,lines(tail)]),commitmentBytes,freezeBytes,publicFiles};
+ return{records,journalBytes:Buffer.concat([base,lines(tail)]),commitmentBytes,freezeBytes,publicFiles,repeatProfile};
 }
 test('versioned public lineage and exact baseline admit only four bounded stages; complete fresh failures do not become quality interlocks',()=>{
  const empty=auditQuotaProcess(processFixture());assert.equal(empty.status,'PASS',JSON.stringify(empty.issues));assert.equal(empty.state,'NOT_MEASURED');assert.deepEqual(empty.charged_at_cutoff,{jev:808,typellm:85});
@@ -220,4 +224,23 @@ test('versioned public lineage and exact baseline admit only four bounded stages
 test('failed same-head public gates, changed source, missing raw, unindexed retries and silent eleven-Jev transfer reject release',()=>{
  const reject=a=>{try{return auditQuotaProcess(a).status!=='PASS';}catch{return true;}};
  for(const change of[a=>{a.records[0].report.raw.semantic.public_gate='UNMET';},a=>{a.records[1].report.raw.semantic.public_gate='UNMET';},a=>{a.records[2].report.raw.complete=false;},a=>{a.records[2].report.binding.status='FAIL';},a=>{a.records[3].index.apps_sha='b'.repeat(40);},a=>{a.records[0].config.correction_batch=1;},a=>{a.records[0].config.allowances.jev=17;},a=>{a.journalBytes=Buffer.concat([a.journalBytes,lines([{kind:'phase-reserve',id:'unindexed',allowances:{jev:1,typellm:0}}])]);},a=>{a.publicFiles['quota-cycle-prelive-map-addendum.v2.json']=enc({erased:true});},a=>{a.records[2].report.raw.parent_inputs_sha256='0'.repeat(64);}]){const a=processFixture(4);change(a);assert.equal(reject(a),true);}
+});
+test('the new registered E-only repeat keeps its own two stages, unopened payloads and 133J/7T boundary',()=>{
+ const name='typed-ordinary-E-20261018',empty=auditQuotaProcess(processFixture(0,name));
+ assert.equal(empty.status,'PASS',JSON.stringify(empty.issues));assert.equal(empty.state,'NOT_MEASURED');assert.deepEqual(empty.charged_at_cutoff,{jev:847,typellm:136});
+ const full=auditQuotaProcess(processFixture(2,name));assert.equal(full.status,'PASS',JSON.stringify(full.issues));
+ assert.equal(full.releases.length,1);assert.deepEqual(full.reserved,{jev:133,typellm:7});assert.deepEqual(full.charged_at_cutoff,{jev:980,typellm:143});
+ assert.throws(()=>quotaRepeatProfile('invented-repeat'));
+ const reject=a=>{try{return auditQuotaProcess(a).status!=='PASS';}catch{return true;}};
+ for(const change of[a=>{a.records[0].report.raw.semantic.public_gate='UNMET';},a=>{delete a.records[0].config.repeat_profile;},
+  a=>{a.records[1].config.phase_id='unregistered-retry';},a=>{a.records[0].config.allowances.jev=20;},
+  a=>{a.repeatProfile=null;},a=>{a.journalBytes=Buffer.concat([a.journalBytes,lines([{kind:'phase-reserve',id:'extra',allowances:{jev:1,typellm:0}}])]);}]){
+  const a=processFixture(2,name);change(a);assert.equal(reject(a),true);
+ }
+});
+test('a new-profile source/config cannot drop the matching producer profile to bypass Type supply binding',async()=>{
+ const{args,producer}=await producerFixture(),id=json(args.identityBytes),config=json(args.configBytes);
+ id.source.repeat_profile=config.repeat_profile='typed-ordinary-E-20261018';args.identityBytes=enc(id);args.rawFiles['identity.json']=args.identityBytes;args.configBytes=enc(config);
+ producer.raw_identity_sha256=sha256(args.identityBytes);producer.config_sha256=sha256(args.configBytes);producer.raw_sha256['identity.json']=sha256(args.identityBytes);
+ const result=auditQuotaProducerBinding(args,producer);assert.equal(result.status,'FAIL');assert.ok(result.issues.includes('producer/config/source repeat identity'));
 });

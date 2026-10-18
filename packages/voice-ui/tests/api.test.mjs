@@ -346,7 +346,7 @@ test("compiled Worker binds both released provider operations, validates invento
   assert.equal(invalid.calls.length, 1);
 });
 
-test("normal compiled check uses v3 and complete baseline works without a Type key", async () => {
+test("normal compiled check uses D extraction bytes and complete baseline works without a Type key", async () => {
   const input = { kind: "voice-ui.goal.inventory.v1", state: { utterance: "Containerへ新しい工程を1つ、その表示名はNovel",
     head: "fixture-head", regions: [{ id: "root", parent: null, label: "World", kind: "boundary" },
       { id: "container", parent: "root", label: "Container", kind: "group" }], edges: [],
@@ -354,10 +354,16 @@ test("normal compiled check uses v3 and complete baseline works without a Type k
   const invoke = (body, env) => worker.fetch(new Request("http://localhost/api/parts/check",
     { method: "POST", body: JSON.stringify(body) }), env);
   const { calls } = await withProvider(async (body, init) => {
-    if (body.questions.required1) {
+    if (body.questions.required1_label) {
       assert.equal(init.headers.authorization, "Bearer typed-test-only");
-      return Response.json({ status: "completed", result: Object.fromEntries([1, 2, 3].map(n => ["required" + n,
-        n === 1 ? { label: "Novel", kind: "step", quantity: "1" } : { label: "", kind: "none", quantity: "0" }])) });
+      assert.equal(Object.keys(body.questions).length, 9);
+      for (const [name, q] of Object.entries(body.questions)) {
+        assert.equal(q.thinking, name.endsWith("_label"));
+        assert.equal(q.thinking_budget, name.endsWith("_label") ? 512 : undefined);
+      }
+      return Response.json({ status: "completed", result: Object.fromEntries([1, 2, 3].flatMap(n =>
+        [["required" + n + "_label", n === 1 ? "Novel" : ""], ["required" + n + "_kind", n === 1 ? "step" : "none"],
+          ["required" + n + "_quantity", n === 1 ? "1" : "0"]])) });
     }
     assert.equal(init.headers.authorization, "Bearer jev-test-only");
     assert.deepEqual(Object.keys(body.questions), ["intent", "labels", "capacity", "completeness"]);
@@ -373,6 +379,10 @@ test("normal compiled check uses v3 and complete baseline works without a Type k
       { id: "uncertainty-frontier-v1", eligible: true, reason: "confident-change-incomplete" });
     assert.equal(body.inspection.initial.decision.choice, "unknown");
     assert.equal(body.inspection.verification.completeness.choice, "complete");
+    const direct = await worker.fetch(new Request("http://localhost/api/parts/requirements?generation=thinking-labels",
+      { method: "POST", body: JSON.stringify(input) }), { TYPELLM_API_KEY: "typed-test-only" });
+    assert.equal(direct.status, 200);
+    assert.deepEqual((await direct.json()).required, body.inspection.proposal.required);
     const sufficient = structuredClone(input); sufficient.state.utterance = "ContainerにServiceを1個追加";
     const complete = await invoke(sufficient, { JEV_API_KEY: "jev-test-only" });
     const value = await complete.json(); assert.equal(complete.status, 200); assert.equal(value.choice, "sufficient");
@@ -380,7 +390,8 @@ test("normal compiled check uses v3 and complete baseline works without a Type k
     assert.equal(value.inspection.schema, "voice-ui.parts.inspection/3");
     assert.deepEqual(value.inspection.proposal_policy, { id: "uncertainty-frontier-v1", eligible: false, reason: null });
   });
-  assert.equal(calls.length, 4);
+  assert.equal(calls.length, 5);
+  assert.deepEqual(calls[1], calls[3], "compiled ordinary C and direct D use exactly the same provider body");
 });
 
 test("compiled extraction opt-in normalizes display provenance in one typed call and stays out of ordinary checks", async () => {

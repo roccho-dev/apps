@@ -1,0 +1,83 @@
+{
+  "schema": "voice-ui.quota-cycle-typed-seal-validation/1",
+  "repeat_profile": "typed-ordinary-E-20261018",
+  "status": "PASS",
+  "created_at": "2026-10-18T04:05:57.039Z",
+  "source": "6f08f952249b64101ce350a16672dd05607f6f9e",
+  "protocol_sha256": "1689dcf63e1ed19cdea7be22e3f90a09f434841f980b9ca8b9018a987c9c38f8",
+  "source_inventory": [
+    "src/completion.mjs",
+    "src/literal-inventory.mjs",
+    "src/goal.mjs",
+    "src/contract.mjs",
+    "src/turn.mjs",
+    "src/session.mjs",
+    "functions/api/parts.mjs",
+    "functions/pages-worker.mjs",
+    "web/app.mjs",
+    "web/adapters/completion.mjs",
+    "dev/serve.mjs",
+    "tests/dependency-cycle-eval.mjs",
+    "tests/requirements-cycle-score.mjs",
+    "tests/requirements-cycle-audit.mjs",
+    "tests/dependency-cycle-score.mjs",
+    "tests/dependency-cycle-audit.mjs",
+    "tests/semantic-score.mjs",
+    "tests/requirements-cycle-http.mjs",
+    "tests/painted-goal.mjs",
+    "tests/intent-cycle-eval.mjs",
+    "tests/intent-cycle-score.mjs",
+    "tests/intent-cycle-audit.mjs",
+    "tests/frontier-cycle-eval.mjs",
+    "tests/frontier-cycle-score.mjs",
+    "tests/frontier-cycle-audit.mjs",
+    "tests/quota-cycle-eval.mjs",
+    "tests/quota-cycle-score.mjs",
+    "tests/quota-cycle-audit.mjs"
+  ],
+  "public_cases": 1,
+  "public_cells": 2,
+  "fresh_cases": 6,
+  "fresh_cells": 12,
+  "fresh_strata": {
+    "sufficient": 2,
+    "missing": 2,
+    "controls": 2
+  },
+  "checks": {
+    "closed_quota_input_oracle_all7": true,
+    "canonical_app_map_all7": true,
+    "protocol_and_target_graph_all7": true,
+    "source_commit_restore_raw_equal_all7": true,
+    "public_parser_deficit": true,
+    "fresh_S_literal_exact2": true,
+    "fresh_M_literal_deficit2": true,
+    "fresh_controls_zero_NEW2": true,
+    "fixed_pair_orders_each_stratum_BC_CB": true,
+    "full_NEW_total_at_most3_all7": true,
+    "expected_stock_diff_and_graph_targets_all7": true,
+    "exact_new_utterances_not_in_previously_published_docs6": true,
+    "older_private_unused_pools_read": false
+  },
+  "native_storage_limit": "Source commitLog/restoreLog with memory storage; actual completed browser Apply/restore and paint are not yet measured",
+  "actual_model_eligibility": "NOT_MEASURED",
+  "actual_performance": "NOT_MEASURED",
+  "negative_checks": 7,
+  "private_validation": {
+    "bytes": 12579,
+    "sha256": "837ad97f25834668dcc514e712e765f5413a3589deae078b029e74d570d184b4"
+  },
+  "sealed_files": {
+    "input": {
+      "path": "quota-cycle-typed-sealed-E-6.inputs.json",
+      "bytes": 4875,
+      "sha256": "f646112dbb14896a2e8f27d99f2b995e374aacf68b87058c7520e9821f420e43"
+    },
+    "oracle": {
+      "path": "quota-cycle-typed-sealed-E-6.oracle.json",
+      "bytes": 10052,
+      "sha256": "94ba803d5633ab9ddcbeedaedda3d04387255be27cadd93351fff6f68cbb08d7"
+    }
+  },
+  "provider_sends": 0
+}

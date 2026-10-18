@@ -3,7 +3,7 @@
 import {createHash} from 'node:crypto';
 import {exactKeys as exact,sameValue as same,validRequirements,
  validateQuotaInput,validateQuotaOracle,quotaSchedule,referenceQuota,
- gradeQuotaReady,gradeQuotaOrdinary,summarizeQuotaAxis,QUOTA_METHODS,QUOTA_GENERATIONS,QUOTA_GOAL_POLICIES,QUOTA_COMMITMENTS} from './quota-cycle-score.mjs';
+ gradeQuotaReady,gradeQuotaOrdinary,summarizeQuotaAxis,QUOTA_METHODS,QUOTA_GENERATIONS,QUOTA_GOAL_POLICIES,QUOTA_COMMITMENTS,quotaRepeatProfile} from './quota-cycle-score.mjs';
 import {validFactors,validLiteral,validDecision,readRequirementInspection,readFrontierInspection,
  proposalPolicy,oldInterpretationEligible,normalizeInitialIntent,decodeRequiredSlots,stockDifference,verifierDecision} from './frontier-cycle-score.mjs';
 import {FRONTIER_SOURCE_NAMES} from './frontier-cycle-audit.mjs';
@@ -176,10 +176,11 @@ function partitionStages(groups, calls) {
   return visit(0, 0);
 }
 export async function auditQuotaRaw({projectionBytes,oracleBytes,rawFiles,bundleBytes,protocol,stdoutBytes,
- assessGoal,assessEdge,replayBytes=null,artifactManifestBytes=null,phaseKind='public',parentProjectionBytes=null,parentOracleBytes=null}){
+ assessGoal,assessEdge,replayBytes=null,artifactManifestBytes=null,phaseKind='public',parentProjectionBytes=null,parentOracleBytes=null,repeatProfile=null}){
  const input=decode(projectionBytes),oracle=decode(oracleBytes),bundle=decode(bundleBytes),issues=[];
  validateQuotaInput(input,{phaseKind});validateQuotaOracle(oracle,input);
- const stamp=QUOTA_COMMITMENTS[phaseKind]?.[input.axis];
+ const repeat=quotaRepeatProfile(repeatProfile),stamp=(repeat?.commitments??QUOTA_COMMITMENTS)[phaseKind]?.[input.axis];
+ if(repeat&&input.axis!=='E')throw Error('repeat is ordinary E only');
  if(!stamp||sha256(projectionBytes)!==stamp.input||sha256(oracleBytes)!==stamp.oracle||input.oracle_sha256!==sha256(oracleBytes)
   ||parentProjectionBytes!==null||parentOracleBytes!==null||!same(bundle.parts,oracle.stock_parts))throw Error('exact quota input/oracle/stock/null-parent binding');
  if(phaseKind==='fresh'&&input.axis==='E'&&(oracle.cases.filter(o=>o.expected_gate==='sufficient').length!==2
@@ -348,14 +349,18 @@ function judgeRequest(call,prefix,selected,parts){
    &&!state.edges.some(e=>e.from===c.from&&e.to===c.to)))
   &&(state.placing===null||state.candidates.every(c=>c.action==='add-part'&&c.part===state.placing));
 }
-export function auditQuotaProviderPhase(bytes,expectedSends,{axis,caseCount,phaseKind='public'}){
+export function auditQuotaProviderPhase(bytes,expectedSends,{axis,caseCount,phaseKind='public',repeatProfile=null}){
+ const repeat=quotaRepeatProfile(repeatProfile);
+ if(repeat&&axis!=='E')throw Error('repeat is ordinary E only');
  if(!['R','E'].includes(axis)||!['public','final'].includes(phaseKind)||caseCount!==(phaseKind==='public'?1:axis==='R'?2:6))throw Error('quota phase scope/count');
  const bounds=Object.fromEntries(providers.map(p=>{const v=expectedSends[p],b=typeof v==='number'?{min:v,max:v}:v;
   if(!exact(b,['min','max'])||!Number.isSafeInteger(b.min)||!Number.isSafeInteger(b.max)||b.min<0||b.max<b.min||b.max>181)throw Error('provider bounds');return[p,b];}));
  const actual=counts();for(const line of Buffer.from(bytes.stderrBytes).toString('utf8').split('\n')){const m=/^provider-send:(jev|typellm):([1-9][0-9]*)$/u.exec(line);if(m)actual[m[1]]++;}
  const report=genericProviderPhase(bytes,actual),config=decode(bytes.configBytes),issues=[...report.issues];
  if(config.stage!==phaseKind||config.axis!==axis||config.case_count!==caseCount||Object.hasOwn(config,'correction_batch'))issues.push('registered phase/axis/count/no correction');
- const cap=axis==='R'?{jev:16*caseCount,typellm:0}:{jev:19*caseCount,typellm:caseCount},start={jev:808,typellm:85},limit={jev:181,typellm:7},remaining={};
+ if((config.repeat_profile??null)!==repeatProfile)issues.push('registered repeat identity');
+ const cap=axis==='R'?{jev:16*caseCount,typellm:0}:{jev:19*caseCount,typellm:caseCount},
+  start=repeat?.charged_prior??{jev:808,typellm:85},limit=repeat?.cycle_cap??{jev:181,typellm:7},remaining={};
  for(const p of providers){
   if(report.sent[p]<bounds[p].min||report.sent[p]>bounds[p].max)issues.push('provider outside raw bounds '+p);
   if(config.allowances[p]>cap[p]||bounds[p].max>cap[p]||report.prior_charged?.[p]<start[p]
@@ -366,11 +371,23 @@ export function auditQuotaProviderPhase(bytes,expectedSends,{axis,caseCount,phas
 }
 export function auditQuotaProducerBinding({ identityBytes, runtimeAuditBytes, configBytes, processBytes,
   artifactManifestBytes, workerBytes, providerBytes, protocolEntryBytes, bundleBytes, sourceFiles, auditReferences,
-  rawFiles, stdoutBytes, stderrBytes, journalBytes, replayBytes = null }, producer) {
+  rawFiles, stdoutBytes, stderrBytes, journalBytes, replayBytes = null, typedProviderBytes = null }, producer) {
   if (producer.schema !== 'voice-ui.quota-cycle-producer/1' || !['R', 'E'].includes(producer.axis)) throw Error('requirements producer schema/axis');
   const identity = decode(identityBytes), runtime = decode(runtimeAuditBytes), config = decode(configBytes);
   const process = decode(processBytes), manifest = decode(artifactManifestBytes), source = identity.source, issues = [];
-  const parent = null;
+  const parent = null, repeat = quotaRepeatProfile(producer.repeat_profile ?? null);
+  if ((config.repeat_profile ?? null) !== (producer.repeat_profile ?? null)
+      || (source?.repeat_profile ?? null) !== (producer.repeat_profile ?? null)) issues.push('producer/config/source repeat identity');
+  if (repeat && (producer.axis !== 'E' || config.repeat_profile !== repeat.id || source.repeat_profile !== repeat.id
+      || source.extraction_profile !== repeat.extraction_profile || source.typed_provider_entry?.scope !== undefined || typedProviderBytes === null
+      || !same(producer.provider_sources, repeat.provider_sources)
+      || !same({jev:manifest.sources['jev-provider'],typellm:manifest.sources['typellm-provider']}, repeat.provider_sources)
+      || producer.typed_provider_sha256 !== sha256(typedProviderBytes)
+      || runtime.typed_provider?.sha256 !== sha256(typedProviderBytes)
+      || source.typed_provider_entry?.sha256 !== sha256(typedProviderBytes)
+      || source.typed_provider_entry?.path !== runtime.typed_provider?.path
+      || manifest.sources['typellm-provider'].entry_sha256 !== sha256(typedProviderBytes)))
+    issues.push('repeat formal Jev/Type supply and extraction profile binding');
   if (producer.parent_inputs_sha256 !== parent) issues.push('fixed producer public/fresh parent');
   if (source?.schema !== 'voice-ui.poc.runtime/1' || source.scope !== undefined
       || source?.provider_entry?.scope !== undefined) issues.push('synthetic or unrecognized scope is not live producer evidence');
@@ -616,29 +633,31 @@ export function auditQuotaReplayJoin({ replayBytes, rawFiles, artifactManifestBy
 }
 
 // Whole-cycle process graph; never a substitute for an independent actual PID observation.
-export function auditQuotaProcess({records,journalBytes,commitmentBytes,freezeBytes,publicFiles}){
- const issues=[],commitment=decode(commitmentBytes),freeze=decode(freezeBytes),baseline={jev:808,typellm:85},limit={jev:181,typellm:7};
- if(sha256(commitmentBytes)!=='b2aea0ad175e93786b5f566b020204ac7c2f3734b867cb9b53741794a2a401ec'
-  ||sha256(freezeBytes)!=='ba374d29ff1d4a19d36fb705058b60baa5cbf8e12af81cb2ef2a6ac3342431e0'
+export function auditQuotaProcess({records,journalBytes,commitmentBytes,freezeBytes,publicFiles,repeatProfile=null}){
+ const repeat=quotaRepeatProfile(repeatProfile),issues=[],commitment=decode(commitmentBytes),freeze=decode(freezeBytes),
+  baseline=repeat?.charged_prior??{jev:808,typellm:85},limit=repeat?.cycle_cap??{jev:181,typellm:7};
+ if(sha256(commitmentBytes)!==(repeat?.commitment_sha256??'b2aea0ad175e93786b5f566b020204ac7c2f3734b867cb9b53741794a2a401ec')
+  ||sha256(freezeBytes)!==(repeat?.freeze_sha256??'ba374d29ff1d4a19d36fb705058b60baa5cbf8e12af81cb2ef2a6ac3342431e0')
   ||!same(commitment.charged_prior,baseline)||!same(commitment.cycle_cap,limit)||!same(commitment.allocated,limit)
   ||commitment.setup_sends!==0||commitment.corrections_max!==0||commitment.retries_max!==0)issues.push('fixed quota preregistration');
  if(!same(Object.keys(publicFiles).sort(),(freeze.copy_allowlist??[]).map(r=>r.name).sort()))issues.push('exact public preregistration inventory');
  for(const row of freeze.copy_allowlist??[])if(!publicFiles[row.name]||sha256(publicFiles[row.name])!==row.sha256||Buffer.byteLength(publicFiles[row.name])!==row.bytes)issues.push('published preregistration byte '+row.name);
- if(!Array.isArray(records)||records.length>4)throw Error('quota process records');
- const events=jsonLines(journalBytes),text=Buffer.from(journalBytes).toString('utf8'),oldEnd=events.findIndex(e=>e.kind==='phase-reconcile'&&e.id==='frontier-final-E-20261018');
+ if((commitment.repeat_profile??null)!==repeatProfile)issues.push('registered repeat identity');
+ if(!Array.isArray(records)||records.length>(repeat?2:4))throw Error('quota process records');
+ const events=jsonLines(journalBytes),text=Buffer.from(journalBytes).toString('utf8'),oldEnd=events.findIndex(e=>e.kind==='phase-reconcile'&&e.id===(repeat?.cutoff_phase_id??'frontier-final-E-20261018'));
  if(oldEnd<0)throw Error('quota previous cycle cutoff absent');
  const prefix=text.split('\n').slice(0,oldEnd+1).join('\n')+'\n';
- if(sha256(prefix)!=='ce6896e0b1eb7c3c749b659b36e3ed4467dc133042ace81dd990b9f2e10c28d4')issues.push('frozen previous cycle cutoff bytes');
+ if(sha256(prefix)!==(repeat?.baseline_journal_sha256??'ce6896e0b1eb7c3c749b659b36e3ed4467dc133042ace81dd990b9f2e10c28d4'))issues.push('frozen previous cycle cutoff bytes');
  const tail=events.slice(oldEnd+1),reserves=tail.filter(e=>e.kind==='phase-reserve'),reconciles=tail.filter(e=>e.kind==='phase-reconcile'),ids=records.map(r=>r.config?.phase_id);
  if(new Set(ids).size!==ids.length||!same(reserves.map(e=>e.id),ids)||!same(reconciles.map(e=>e.id),ids)
   ||tail.some((e,i)=>e.kind!==(i%2===0?'phase-reserve':'phase-reconcile'))||tail.length!==2*ids.length)issues.push('all ordered reservations/reconciliations indexed once; no setup/correction/retry');
  if(reserves.length&&!same(reserves[0].prior_charged,baseline))issues.push('unchanged quota cumulative baseline');
- const order=['public/R','public/E','final/R','final/E'],reserved=counts(),charged={...baseline},seen=new Map(),releases=[];let sourceHead=null;
+ const order=repeat?['public/E','final/E']:['public/R','public/E','final/R','final/E'],reserved=counts(),charged={...baseline},seen=new Map(),releases=[];let sourceHead=null;
  const integrity=r=>r&&[r.report?.binding,r.report?.phase,r.report?.raw].every(a=>a?.status==='PASS')&&r.report.raw.complete===true&&r.report.raw.consumed===r.report.raw.planned;
  const publicPass=axis=>{const r=seen.get('public/'+axis),raw=r?.report?.raw;return integrity(r)&&raw.all_valid_execution===true&&raw.semantic?.public_gate==='PASS';};
  for(const [i,r]of records.entries()){
   const{index,config,input,report}=r,kind=index?.phase_kind,axis=index?.axis,key=kind+'/'+axis;
-  if(key!==order[i]||config.stage!==kind||config.axis!==axis||input.axis!==axis||config.case_count!==input.cases.length
+  if(key!==order[i]||(config.repeat_profile??null)!==repeatProfile||config.stage!==kind||config.axis!==axis||input.axis!==axis||config.case_count!==input.cases.length
    ||Object.hasOwn(config,'correction_batch')||Object.hasOwn(index,'correction_batch')){issues.push('single fixed stage graph/no correction');continue;}
   validateQuotaInput(input,{phaseKind:kind==='final'?'fresh':'public'});
   if(sourceHead===null)sourceHead=index.apps_sha;
@@ -649,13 +668,14 @@ export function auditQuotaProcess({records,journalBytes,commitmentBytes,freezeBy
   if(!stamp||config.input_sha256!==stamp.input.sha256||report.raw.inputs_sha256!==stamp.input.sha256||input.oracle_sha256!==stamp.oracle.sha256
    ||config.phase_id!==report.phase.phase||input.parent_inputs_sha256!==null||report.raw.parent_inputs_sha256!==null||report.raw.parent_oracle_sha256!==null)issues.push('exact registered input/oracle/phase/null parent');
   const stage=commitment.stages.find(s=>s.id===(kind==='public'?'public-':'final-')+axis),cap=stage&&{jev:stage.jev,typellm:stage.typellm};
+  if(repeat&&stage?.phase_id!==config.phase_id)issues.push('registered repeat phase identity');
   if(!cap||!countShape(config.allowances)||!countShape(report.phase.sent)){issues.push('stage provider shape');continue;}
   for(const p of providers){reserved[p]+=config.allowances[p];charged[p]+=report.phase.sent[p];if(config.allowances[p]>cap[p]||report.phase.sent[p]>config.allowances[p])issues.push('fixed stage allowance '+p);}
   if(!same(reserves[i]?.prior_charged,report.phase.prior_charged)||!same(report.phase.charged_at_cutoff,charged)
    ||!same(reconciles[i]?.sent,report.phase.sent)||!same(reserves[i]?.allowances,config.allowances))issues.push('cumulative phase joins');
-  if(key==='public/E'&&!publicPass('R'))issues.push('public E before R quality/evidence gate');
+  if(!repeat&&key==='public/E'&&!publicPass('R'))issues.push('public E before R quality/evidence gate');
   if(kind==='final'){
-   const admitted=['R','E'].every(publicPass);if(!admitted)issues.push('fresh before both same-head public gates');
+   const admitted=(repeat?['E']:['R','E']).every(publicPass);if(!admitted)issues.push('fresh before required same-head public gates');
    releases.push({phase:config.phase_id,apps_sha:sourceHead,admitted,prior_fresh_quality_required:false});
   }
   seen.set(key,r);

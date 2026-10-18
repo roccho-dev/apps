@@ -1,0 +1,42 @@
+{
+  "schema": "voice-ui.quota-cycle-public-freeze/1",
+  "repeat_profile": "typed-ordinary-E-20261018",
+  "status": "SEALED_NOT_ADMITTED",
+  "created_at": "2026-10-18T04:08:11.798376+00:00",
+  "commitment_sha256": "8543f8c0f8b1c572a4b0fe41d94720522bc7b58fa1cb3dea27d2ad5f30118225",
+  "copy_allowlist": [
+    {
+      "name": "quota-cycle-typed-protocol.md",
+      "bytes": 9352,
+      "sha256": "0f2ccbea6fed5f1ea94acce885b5495da0f0ce9746d8bc1b3e31bff2c73c8618"
+    },
+    {
+      "name": "quota-cycle-typed-public-E-1.inputs.json",
+      "bytes": 3628,
+      "sha256": "52b95efd0dc3301c746b1d947e5896400bf7f12ee0e8d2d53113ddf8c2c08283"
+    },
+    {
+      "name": "quota-cycle-typed-public-E-1.oracle.json",
+      "bytes": 5857,
+      "sha256": "837d68dd6c1da85ac3ce199d27dc88ceeb3ea57eff0ec18bdf5451ff6dd7124e"
+    },
+    {
+      "name": "quota-cycle-typed-public-literal-preflight.json",
+      "bytes": 1622,
+      "sha256": "5d76188a4f382dc01f857d3838ffb9cf2011a7da6d4bd44d316a30c849a858e1"
+    },
+    {
+      "name": "quota-cycle-typed-seal-validation.json",
+      "bytes": 2838,
+      "sha256": "c8f57a073bcc765f9cb6883c89a864084faf570dc88e7471bd028fe38879e014"
+    },
+    {
+      "name": "quota-cycle-typed-commitment.json",
+      "bytes": 8275,
+      "sha256": "8543f8c0f8b1c572a4b0fe41d94720522bc7b58fa1cb3dea27d2ad5f30118225"
+    }
+  ],
+  "self_is_additionally_copyable": true,
+  "private_payloads_validators_authoring_or_other_paths_copyable": false,
+  "provider_sends": 0
+}

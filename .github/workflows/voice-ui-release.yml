@@ -226,6 +226,8 @@ jobs:
           runtime="$(nix build --no-link --print-out-paths .#voice-ui-acceptance-runtime)"
           "$runtime/bin/voice-ui-acceptance-node" packages/voice-ui/acceptance/verify-quota-cycle.mjs \
             "$PWD/docs/voice-ui/quota-cycle-20261018/evidence/index.json" "$PWD/dist/quota-cycle-closed-evidence"
+          "$runtime/bin/voice-ui-acceptance-node" packages/voice-ui/acceptance/verify-quota-cycle.mjs \
+            "$PWD/docs/voice-ui/quota-cycle-20261018/evidence/typed-repeat/index.json" "$PWD/dist/quota-cycle-closed-evidence/typed-repeat"
       - name: Preserve quota cycle verification
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
@@ -235,6 +237,9 @@ jobs:
             dist/quota-cycle-closed-evidence/receipt.json
             dist/quota-cycle-closed-evidence/*/audit.json
             dist/quota-cycle-closed-evidence/*/ci-replay/receipt.json
+            dist/quota-cycle-closed-evidence/typed-repeat/receipt.json
+            dist/quota-cycle-closed-evidence/typed-repeat/*/audit.json
+            dist/quota-cycle-closed-evidence/typed-repeat/*/ci-replay/receipt.json
           if-no-files-found: error
       - name: Export the acceptance runtime closure
         run: |
