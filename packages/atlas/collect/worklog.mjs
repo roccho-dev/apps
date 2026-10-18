@@ -38,14 +38,50 @@ export function worklogEvents(documents, recordedAt, authors) {
     const held = (reason, line) => ({ kind: 'journal.held', reason: 'worklog: ' + reason, line, source: { ...base, commentId: doc.commentId }, recordedAt });
     if (lines.length > 1) return lines.map(line => held('multiple-lines', line));
     return lines.map(line => {
-      if (!allowed) return held('author-list-missing', line);
-      if (!allowed.has(doc.author)) return held('author-not-allowed', line);
-      let entry;
-      try { entry = JSON.parse(line); } catch { return held('invalid-json', line); }
-      const mapped = value(entry);
-      if (mapped.reason) return held(mapped.reason, line);
+      const checked = check(line, doc.author, allowed);
+      if (checked.reason) return held(checked.reason, line);
       // The evidence stays in the comment (its digest is source.sha256); it is not written into source.ref.
-      return { kind: 'observation', target: `work:${entry.work_id}`, value: mapped.value, source: base, observedAt: doc.updatedAt, recordedAt };
+      return { kind: 'observation', target: `work:${checked.entry.work_id}`, value: checked.value, source: base, observedAt: doc.updatedAt, recordedAt };
+    });
+  });
+}
+
+// The one check for a worklog line, wherever it was written: author in the allowed list, then the line form.
+function check(line, author, allowed) {
+  if (!allowed) return { reason: 'author-list-missing' };
+  if (!allowed.has(author)) return { reason: 'author-not-allowed' };
+  let entry;
+  try { entry = JSON.parse(line); } catch { return { reason: 'invalid-json' }; }
+  const mapped = value(entry);
+  return mapped.reason ? mapped : { entry, value: mapped.value };
+}
+
+/**
+ * current = record(agent): files [{author, text}] as passed by the caller (the author is the argument, never a
+ * field of the line), read at `readAt`; every non-empty line is one claim, ordered by its line number.
+ * State → observation on `work:<id>`; the evidence of artifact.observed → observation on `evidence:<id>`, so it
+ * is readable in the snapshot without a new field and never mixed into a source. Source: `current:<author>#L<n>`
+ * and the sha256 of the file as read. A claim is not an achievement; no condition may watch these (adrs#654).
+ */
+export function currentEvents(files, readAt, recordedAt, authors) {
+  const allowed = Array.isArray(authors) && authors.length ? new Set(authors) : null;
+  return files.flatMap(({ author, text }) => {
+    const digest = sha256(text);
+    const lines = text.split(/\r?\n/u).map((raw, index) => {
+      const line = raw.trim();
+      return { line, source: { ref: `current:${author}#L${index + 1}`, sha256: digest }, checked: line ? check(line, author, allowed) : null };
+    }).filter(value => value.line);
+    // Provisional, fail closed: the lines of one file share one read time, so two or more lines for one work_id
+    // have no order D could tell; all of them are held rather than a time made up from their position.
+    const count = new Map();
+    for (const { checked } of lines) if (checked.entry) count.set(checked.entry.work_id, (count.get(checked.entry.work_id) ?? 0) + 1);
+    return lines.flatMap(({ line, source, checked }) => {
+      const held = reason => [{ kind: 'journal.held', reason: 'current: ' + reason, line, source, recordedAt }];
+      if (checked.reason) return held(checked.reason);
+      if (count.get(checked.entry.work_id) > 1) return held('multiple-lines-for-work-id');
+      const observed = (target, value) => ({ kind: 'observation', target, value, source, observedAt: readAt, recordedAt });
+      return [observed(`work:${checked.entry.work_id}`, checked.value),
+        ...(checked.entry.kind === 'artifact.observed' ? [observed(`evidence:${checked.entry.work_id}`, checked.entry.evidence)] : [])];
     });
   });
 }

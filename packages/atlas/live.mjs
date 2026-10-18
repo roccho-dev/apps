@@ -71,6 +71,11 @@ export const joinLog = (purposeText, gTexts, sourceMode = 'supplied') => {
   const candidates = byTime([...rows(purposeText ?? ''),
     ...gEvents.filter(event => JOURNAL.includes(event.kind)).flatMap(event => fromG(event).events)]);
   for (const decision of candidates) {
+    // adrs#654, the one check: a worklog value (work:* / evidence:*) is a claim, never a condition. Every decision
+    // that carries requires (ideal.set, the legacy purpose.set, …), from G or --purpose alike, passes here.
+    if (Array.isArray(decision?.requires) && decision.requires.some(condition => /^(?:work|evidence):/u.test(String(condition?.predicate?.target?.id ?? '')))) {
+      held.push({ reason: 'worklog-target-in-predicate', journal: decision }); continue;
+    }
     try { parseEvents(jsonl([header(sourceMode), ...accepted, decision])); accepted.push(decision); }
     catch (error) { held.push({ reason: error.message, journal: decision }); }
   }
