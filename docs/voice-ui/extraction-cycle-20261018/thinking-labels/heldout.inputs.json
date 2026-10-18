@@ -1,0 +1,372 @@
+{
+  "schema": "voice-ui.extraction-comparison-input/1",
+  "scope": "NEW_HELD_OUT_FULL_NEW_REQUIREMENTS_ONLY_NOT_ORDINARY_UI_OR_GENERAL_MODEL_EFFICACY",
+  "cases": [
+    {
+      "id": "XB01",
+      "request": {
+        "kind": "voice-ui.goal.inventory.v1",
+        "state": {
+          "utterance": "作業区に新しい判断ノードを一つだけ追加してください。表示名は「霧窓」です。他の部品や線は追加しないでください。",
+          "head": "sha256:f14b93ac1b4a8ca4af467132ccd7f5d0a524fed90de6dbf3d54d77ea8f534596",
+          "regions": [
+            {
+              "id": "root",
+              "label": "fixture",
+              "kind": "boundary",
+              "parent": null
+            },
+            {
+              "id": "container",
+              "label": "作業区",
+              "kind": "group",
+              "parent": "root"
+            },
+            {
+              "id": "other",
+              "label": "保留区",
+              "kind": "group",
+              "parent": "root"
+            }
+          ],
+          "edges": [],
+          "parts": [
+            {
+              "key": "step",
+              "purpose": "an ordinary step, task or box",
+              "label": "工程",
+              "kind": "step"
+            },
+            {
+              "key": "decision",
+              "purpose": "a decision, choice or branch",
+              "label": "判断",
+              "kind": "decision"
+            },
+            {
+              "key": "data",
+              "purpose": "data, a document, an input or an output",
+              "label": "データ",
+              "kind": "data"
+            },
+            {
+              "key": "start",
+              "purpose": "a start or beginning",
+              "label": "開始",
+              "kind": "start"
+            },
+            {
+              "key": "end",
+              "purpose": "an end, finish or result",
+              "label": "終了",
+              "kind": "end"
+            },
+            {
+              "key": "api",
+              "purpose": "an application programming interface service that receives requests",
+              "label": "API",
+              "kind": "step"
+            },
+            {
+              "key": "db",
+              "purpose": "a database that persists application data",
+              "label": "DB",
+              "kind": "data"
+            },
+            {
+              "key": "group",
+              "purpose": "a group, boundary or container that holds other parts",
+              "label": "グループ",
+              "kind": "group"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "XB02",
+      "request": {
+        "kind": "voice-ui.goal.inventory.v1",
+        "state": {
+          "utterance": "保留区に新しい工程を二つ、別々の部品として追加してください。どちらの表示名も「DB」とし、種類は二つとも工程にしてください。線は追加しないでください。",
+          "head": "sha256:f14b93ac1b4a8ca4af467132ccd7f5d0a524fed90de6dbf3d54d77ea8f534596",
+          "regions": [
+            {
+              "id": "root",
+              "label": "fixture",
+              "kind": "boundary",
+              "parent": null
+            },
+            {
+              "id": "container",
+              "label": "作業区",
+              "kind": "group",
+              "parent": "root"
+            },
+            {
+              "id": "other",
+              "label": "保留区",
+              "kind": "group",
+              "parent": "root"
+            }
+          ],
+          "edges": [],
+          "parts": [
+            {
+              "key": "step",
+              "purpose": "an ordinary step, task or box",
+              "label": "工程",
+              "kind": "step"
+            },
+            {
+              "key": "decision",
+              "purpose": "a decision, choice or branch",
+              "label": "判断",
+              "kind": "decision"
+            },
+            {
+              "key": "data",
+              "purpose": "data, a document, an input or an output",
+              "label": "データ",
+              "kind": "data"
+            },
+            {
+              "key": "start",
+              "purpose": "a start or beginning",
+              "label": "開始",
+              "kind": "start"
+            },
+            {
+              "key": "end",
+              "purpose": "an end, finish or result",
+              "label": "終了",
+              "kind": "end"
+            },
+            {
+              "key": "api",
+              "purpose": "an application programming interface service that receives requests",
+              "label": "API",
+              "kind": "step"
+            },
+            {
+              "key": "db",
+              "purpose": "a database that persists application data",
+              "label": "DB",
+              "kind": "data"
+            },
+            {
+              "key": "group",
+              "purpose": "a group, boundary or container that holds other parts",
+              "label": "グループ",
+              "kind": "group"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "XB03",
+      "request": {
+        "kind": "voice-ui.goal.inventory.v1",
+        "state": {
+          "utterance": "保留区に開始ノードを一つだけ新しく追加してください。表示名は指定しません。部品定義にある開始ノードの標準表示を使い、他の部品や線は追加しないでください。",
+          "head": "sha256:f14b93ac1b4a8ca4af467132ccd7f5d0a524fed90de6dbf3d54d77ea8f534596",
+          "regions": [
+            {
+              "id": "root",
+              "label": "fixture",
+              "kind": "boundary",
+              "parent": null
+            },
+            {
+              "id": "container",
+              "label": "作業区",
+              "kind": "group",
+              "parent": "root"
+            },
+            {
+              "id": "other",
+              "label": "保留区",
+              "kind": "group",
+              "parent": "root"
+            }
+          ],
+          "edges": [],
+          "parts": [
+            {
+              "key": "step",
+              "purpose": "an ordinary step, task or box",
+              "label": "工程",
+              "kind": "step"
+            },
+            {
+              "key": "decision",
+              "purpose": "a decision, choice or branch",
+              "label": "判断",
+              "kind": "decision"
+            },
+            {
+              "key": "data",
+              "purpose": "data, a document, an input or an output",
+              "label": "データ",
+              "kind": "data"
+            },
+            {
+              "key": "start",
+              "purpose": "a start or beginning",
+              "label": "開始",
+              "kind": "start"
+            },
+            {
+              "key": "end",
+              "purpose": "an end, finish or result",
+              "label": "終了",
+              "kind": "end"
+            },
+            {
+              "key": "api",
+              "purpose": "an application programming interface service that receives requests",
+              "label": "API",
+              "kind": "step"
+            },
+            {
+              "key": "db",
+              "purpose": "a database that persists application data",
+              "label": "DB",
+              "kind": "data"
+            },
+            {
+              "key": "group",
+              "purpose": "a group, boundary or container that holds other parts",
+              "label": "グループ",
+              "kind": "group"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "XB04",
+      "request": {
+        "kind": "voice-ui.goal.inventory.v1",
+        "state": {
+          "utterance": "作業区と保留区の名前も含め、いまの図をそのままにしてください。部品も線も増やさないでください。",
+          "head": "sha256:f14b93ac1b4a8ca4af467132ccd7f5d0a524fed90de6dbf3d54d77ea8f534596",
+          "regions": [
+            {
+              "id": "root",
+              "label": "fixture",
+              "kind": "boundary",
+              "parent": null
+            },
+            {
+              "id": "container",
+              "label": "作業区",
+              "kind": "group",
+              "parent": "root"
+            },
+            {
+              "id": "other",
+              "label": "保留区",
+              "kind": "group",
+              "parent": "root"
+            }
+          ],
+          "edges": [],
+          "parts": [
+            {
+              "key": "step",
+              "purpose": "an ordinary step, task or box",
+              "label": "工程",
+              "kind": "step"
+            },
+            {
+              "key": "decision",
+              "purpose": "a decision, choice or branch",
+              "label": "判断",
+              "kind": "decision"
+            },
+            {
+              "key": "data",
+              "purpose": "data, a document, an input or an output",
+              "label": "データ",
+              "kind": "data"
+            },
+            {
+              "key": "start",
+              "purpose": "a start or beginning",
+              "label": "開始",
+              "kind": "start"
+            },
+            {
+              "key": "end",
+              "purpose": "an end, finish or result",
+              "label": "終了",
+              "kind": "end"
+            },
+            {
+              "key": "api",
+              "purpose": "an application programming interface service that receives requests",
+              "label": "API",
+              "kind": "step"
+            },
+            {
+              "key": "db",
+              "purpose": "a database that persists application data",
+              "label": "DB",
+              "kind": "data"
+            },
+            {
+              "key": "group",
+              "purpose": "a group, boundary or container that holds other parts",
+              "label": "グループ",
+              "kind": "group"
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "schedule": [
+    {
+      "id": "XB01-current",
+      "case": "XB01",
+      "arm": "current"
+    },
+    {
+      "id": "XB01-candidate",
+      "case": "XB01",
+      "arm": "candidate"
+    },
+    {
+      "id": "XB02-candidate",
+      "case": "XB02",
+      "arm": "candidate"
+    },
+    {
+      "id": "XB02-current",
+      "case": "XB02",
+      "arm": "current"
+    },
+    {
+      "id": "XB03-current",
+      "case": "XB03",
+      "arm": "current"
+    },
+    {
+      "id": "XB03-candidate",
+      "case": "XB03",
+      "arm": "candidate"
+    },
+    {
+      "id": "XB04-candidate",
+      "case": "XB04",
+      "arm": "candidate"
+    },
+    {
+      "id": "XB04-current",
+      "case": "XB04",
+      "arm": "current"
+    }
+  ]
+}

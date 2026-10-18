@@ -19,3 +19,22 @@ B/Cで未開封・未実行の[同じ4例をDへ公開前に再登録](heldout.a
 登録前累計charged847J/120T（旧不確定Type1を含む）、各1000以内。今回公開の最悪847/128、freshへ自動進行しない。thinkingによる精度向上、いわゆるsys2相当性、根本原因は事前に主張しない。F成功だけで通常UI効果や製品完成に昇格せず、Apps draftとUI#362の人間merge条件を保つ。
 
 供給は[正式公開run](https://github.com/roccho-org/ops/actions/runs/39091437239)のSUCCESS後、[root](supply/root-provider-done.json)と[同じ独立担当](supply/ops569-a724-provider-done.json)が7資産・proof・ソース入力・実entryを別々に検証し、ProviderDoneとなった。Type entryはテスト済みCI完成物3c10462e…と一致し、Jevのentryと採用pinは不変である。この供給成功を精度向上やConsumerDoneと数えない。
+
+## 停止後の結果
+
+同じ測定head `b6696c1f579851429cf0cc58a49b20c9ff663475` とcallerで、公開gate通過後に原入力だけを解放し、未見を一度実行した。oracleは全49所有groupの物理停止・精算を双方で確認してから解放した。
+
+| 評価 | 現行 | 候補 | 有効な対の改善 / 回帰 | 判定 |
+| --- | --- | --- | --- | --- |
+| [公開4例](result.json) | 3/4 | 4/4 | 1 / 0 | 候補品質・公開gate PASS。API/step/2の誤名が改善 |
+| [未見4例](fresh.result.json) | 4/4 | 4/4 | 0 / 0 | 候補品質PASS、事前の改善gateはUNMET。登録した未見4組でNO_EFFECT |
+
+全16応答は形式有効で、除外・再試行・追加疎通・修正は0。未見の霧窓/decision/1、DB/step/2、標準名、NEW0は両方式とも正答した。公開の改善1組を未見の改善へ代入しない。TypeLLM一般の有効・無効、内部機構、通常UIでの補完・描画効果と正式採用はUNPROVENで、通常UIへは採用していない。
+
+候補のHTTP所要時間は全8回で約6.5〜11.6秒、現行は約1.9〜2.8秒だった。候補だけの正規化済みusage2値は原stageと結果に保存し、思考本文は保存していない。待ち時間の増加を、未見での追加効果なしと併記する。通貨建て費用は未測定である。
+
+追加16T/0J、累計charged847J/136T（確認847/135、旧不確定Type1を保持）。予約0、全49所有PGIDはZを含め不在、即時cutoffは `2b938983023a8e2627041d52cb943a3d0f6bd530aeed637c606b816a57328d35`。[公開原記録](evidence/public-D)と[未見原記録・入力/正解解放](evidence/fresh-D)を保存する。
+
+起動直後はGETの待受待ちがあったが、各phaseとも同じPIDでGET200・実完成index一致・送信0を双方が確認してからGOした。freshのroot-terminalだけ、継承したscope定型文字列にPUBLICという表記が残った。原helper/証明bytesを変更せず保存し、正しいfresh phase・FRESH identity・原入力/wire・独立停止/解放証拠で識別する。公開評価へ再分類していない。
+
+[測定headの全4CI](measured-head-ci.json)はSUCCESS。完成artifact12122164790の実Workerもruntimeと一致した。既存の `display-source-cycle.test.mjs` を一般化した8テストで、B/Cの失敗とD公開/未見の全32応答、各原file hash、oracle解放順、正答・対比較、停止台帳を再計算する。保存版の最終CIとexact-head独立判定は[Apps#103](https://github.com/roccho-dev/apps/pull/103)へ束縛する。

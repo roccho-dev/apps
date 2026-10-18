@@ -1,0 +1,45 @@
+{
+  "schema": "voice-ui.extraction-comparison-oracle/1",
+  "inputs_sha256": "dd66904853ae031c68e632c67d3bfc3a974141ce77fa4f83ecb406ad0a149874",
+  "scope": "NEW_HELD_OUT_FULL_NEW_REQUIREMENTS_ONLY_NOT_ORDINARY_UI_OR_GENERAL_MODEL_EFFICACY",
+  "cases": [
+    {
+      "id": "XB01",
+      "stratum": "explicit-name",
+      "required": [
+        {
+          "label": "霧窓",
+          "kind": "decision",
+          "quantity": 1
+        }
+      ]
+    },
+    {
+      "id": "XB02",
+      "stratum": "explicit-name",
+      "required": [
+        {
+          "label": "DB",
+          "kind": "step",
+          "quantity": 2
+        }
+      ]
+    },
+    {
+      "id": "XB03",
+      "stratum": "standard-name",
+      "required": [
+        {
+          "label": "開始",
+          "kind": "start",
+          "quantity": 1
+        }
+      ]
+    },
+    {
+      "id": "XB04",
+      "stratum": "NEW0",
+      "required": []
+    }
+  ]
+}

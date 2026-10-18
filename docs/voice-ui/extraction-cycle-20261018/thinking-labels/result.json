@@ -1,0 +1,258 @@
+{
+  "scope": "PUBLIC_FOUR_CASE_LABEL_THINKING_EXTRACTION_ONLY_NOT_FRESH_OR_ORDINARY_UI_EFFECT",
+  "measurement_apps": "b6696c1f579851429cf0cc58a49b20c9ff663475",
+  "rows": [
+    {
+      "id": "QD01-current",
+      "case": "QD01",
+      "arm": "current",
+      "role": "explicit",
+      "status": "VALID_CONTRACT",
+      "contract_valid": true,
+      "exact": true,
+      "minimal": true,
+      "required": [
+        {
+          "label": "出荷可否",
+          "kind": "decision",
+          "quantity": 1
+        }
+      ]
+    },
+    {
+      "id": "QD01-candidate",
+      "case": "QD01",
+      "arm": "candidate",
+      "role": "explicit",
+      "status": "VALID_CONTRACT",
+      "contract_valid": true,
+      "exact": true,
+      "minimal": true,
+      "required": [
+        {
+          "label": "出荷可否",
+          "kind": "decision",
+          "quantity": 1
+        }
+      ]
+    },
+    {
+      "id": "QD02-candidate",
+      "case": "QD02",
+      "arm": "candidate",
+      "role": "explicit",
+      "status": "VALID_CONTRACT",
+      "contract_valid": true,
+      "exact": true,
+      "minimal": true,
+      "required": [
+        {
+          "label": "API",
+          "kind": "step",
+          "quantity": 2
+        }
+      ]
+    },
+    {
+      "id": "QD02-current",
+      "case": "QD02",
+      "arm": "current",
+      "role": "explicit",
+      "status": "VALID_CONTRACT",
+      "contract_valid": true,
+      "exact": false,
+      "minimal": false,
+      "required": [
+        {
+          "label": "工程",
+          "kind": "step",
+          "quantity": 2
+        }
+      ]
+    },
+    {
+      "id": "QD03-current",
+      "case": "QD03",
+      "arm": "current",
+      "role": "standard",
+      "status": "VALID_CONTRACT",
+      "contract_valid": true,
+      "exact": true,
+      "minimal": true,
+      "required": [
+        {
+          "label": "判断",
+          "kind": "decision",
+          "quantity": 1
+        }
+      ]
+    },
+    {
+      "id": "QD03-candidate",
+      "case": "QD03",
+      "arm": "candidate",
+      "role": "standard",
+      "status": "VALID_CONTRACT",
+      "contract_valid": true,
+      "exact": true,
+      "minimal": true,
+      "required": [
+        {
+          "label": "判断",
+          "kind": "decision",
+          "quantity": 1
+        }
+      ]
+    },
+    {
+      "id": "QD04-candidate",
+      "case": "QD04",
+      "arm": "candidate",
+      "role": "new0",
+      "status": "VALID_CONTRACT",
+      "contract_valid": true,
+      "exact": true,
+      "minimal": true,
+      "required": []
+    },
+    {
+      "id": "QD04-current",
+      "case": "QD04",
+      "arm": "current",
+      "role": "new0",
+      "status": "VALID_CONTRACT",
+      "contract_valid": true,
+      "exact": true,
+      "minimal": true,
+      "required": []
+    }
+  ],
+  "counts": {
+    "current": {
+      "planned": 4,
+      "valid": 4,
+      "exact": 3,
+      "semantic_wrong": 1,
+      "invalid_or_unknown": 0
+    },
+    "candidate": {
+      "planned": 4,
+      "valid": 4,
+      "exact": 4,
+      "semantic_wrong": 0,
+      "invalid_or_unknown": 0
+    }
+  },
+  "pairs": [
+    {
+      "case": "QD01",
+      "role": "explicit",
+      "valid_both": true,
+      "gain": false,
+      "regression": false,
+      "tie": true,
+      "excluded_contract_or_transport": false
+    },
+    {
+      "case": "QD02",
+      "role": "explicit",
+      "valid_both": true,
+      "gain": true,
+      "regression": false,
+      "tie": false,
+      "excluded_contract_or_transport": false
+    },
+    {
+      "case": "QD03",
+      "role": "standard",
+      "valid_both": true,
+      "gain": false,
+      "regression": false,
+      "tie": true,
+      "excluded_contract_or_transport": false
+    },
+    {
+      "case": "QD04",
+      "role": "new0",
+      "valid_both": true,
+      "gain": false,
+      "regression": false,
+      "tie": true,
+      "excluded_contract_or_transport": false
+    }
+  ],
+  "public_gate": true,
+  "product_effect": "UNPROVEN",
+  "fresh_quality": "UNPROVEN",
+  "quality": "FINITE_CRITERIA_PASS",
+  "finite_effect": "EFFECT_OBSERVED_IN_REGISTERED_PUBLIC_EXTRACTION_PAIRS",
+  "heldout_opened_at_public_terminal": false,
+  "ordinary_ui_adopted": false,
+  "charged": {
+    "jev": 847,
+    "typellm": 128
+  },
+  "cutoff": "3eead593ac154f199a00006aeaacc6928fc12e49f423f7ea8c5d8faf916358cd",
+  "observed_usage_and_latency": [
+    {
+      "id": "QD01-current",
+      "arm": "current",
+      "elapsed_ms": 2176.2582,
+      "usage": null
+    },
+    {
+      "id": "QD01-candidate",
+      "arm": "candidate",
+      "elapsed_ms": 6860.461800000001,
+      "usage": {
+        "input_tokens": 4046,
+        "thinking_tokens": 285
+      }
+    },
+    {
+      "id": "QD02-candidate",
+      "arm": "candidate",
+      "elapsed_ms": 10304.3126,
+      "usage": {
+        "input_tokens": 4055,
+        "thinking_tokens": 562
+      }
+    },
+    {
+      "id": "QD02-current",
+      "arm": "current",
+      "elapsed_ms": 2215.4089999999997,
+      "usage": null
+    },
+    {
+      "id": "QD03-current",
+      "arm": "current",
+      "elapsed_ms": 2786.583599999998,
+      "usage": null
+    },
+    {
+      "id": "QD03-candidate",
+      "arm": "candidate",
+      "elapsed_ms": 8929.923899999998,
+      "usage": {
+        "input_tokens": 4031,
+        "thinking_tokens": 461
+      }
+    },
+    {
+      "id": "QD04-candidate",
+      "arm": "candidate",
+      "elapsed_ms": 7669.748099999997,
+      "usage": {
+        "input_tokens": 4051,
+        "thinking_tokens": 340
+      }
+    },
+    {
+      "id": "QD04-current",
+      "arm": "current",
+      "elapsed_ms": 1859.1428000000014,
+      "usage": null
+    }
+  ]
+}

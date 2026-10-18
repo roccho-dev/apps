@@ -1,0 +1,20 @@
+{
+  "status": "PASS",
+  "scope": "ROOT_STOPPED_PUBLIC_COMPARISON_TERMINAL_ONLY",
+  "at": "2026-10-18T03:11:59.426Z",
+  "phase": "thinking-public-D-20261018",
+  "journal_sha256": "3eead593ac154f199a00006aeaacc6928fc12e49f423f7ea8c5d8faf916358cd",
+  "charged": {
+    "jev": 847,
+    "typellm": 128
+  },
+  "outstanding": 0,
+  "owned_pgids": 48,
+  "remaining_members": [],
+  "sent": {
+    "jev": 0,
+    "typellm": 8
+  },
+  "planned": 8,
+  "raw_files": 11
+}

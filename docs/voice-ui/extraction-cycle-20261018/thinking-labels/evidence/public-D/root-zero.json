@@ -1,0 +1,21 @@
+{
+  "status": "PASS",
+  "scope": "ROOT_ZERO_SEND_PREFLIGHT_NOT_INDEPENDENT_GO",
+  "at": "2026-10-18T03:07:14.044Z",
+  "phase": "thinking-public-D-20261018",
+  "pid": 393551,
+  "start_ticks": "20065055",
+  "pgid": 393551,
+  "uid": 1000,
+  "config_sha256": "208ca83344fb241df5a257dab005cc3ca6e0f645d6b46dbab4d5ccb12f424ebe",
+  "process_sha256": "a42d37e3560dca542b3e75cd750859e1e470314876d2a81f659bb23dc925754b",
+  "runtime_sha256": "0746141020bee503a37266cf5910a73362bf7fcc10d35298243653d148b615d2",
+  "wire_sha256": "d19f1bef03a6b43e892050df34d9bde823e53211c76b788c459861a5f5821e22",
+  "launcher_sha256": "2bda2882f0d8e489198241dc987d2cd28f989dd7fefad1a1640e152ac913a6c5",
+  "driver_sha256": "4796df723e9017430708cdd9f1f2327b3ee97ec9f8898b0074ba891ce2e4b5b4",
+  "provider_sends": {
+    "jev": 0,
+    "typellm": 0
+  },
+  "served_index_equals_completed_artifact": true
+}

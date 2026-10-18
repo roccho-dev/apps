@@ -1,0 +1,544 @@
+{
+  "schema": "voice-ui.thinking-label-fresh-independent-audit/1",
+  "status": "PASS",
+  "scope": "FOUR_INDEPENDENT_HELD_OUT_FULL_NEW_EXTRACTION_PAIRS_ONLY_NOT_ORDINARY_UI_OR_GENERAL_EFFICACY",
+  "authored_at": "2026-10-18T03:27:13.453353+00:00",
+  "measurement_apps": "b6696c1f579851429cf0cc58a49b20c9ff663475",
+  "phase": "thinking-fresh-D-20261018",
+  "references": {
+    "source_runtime_wire": {
+      "name": "thinking-b669-source-runtime-wire-audit.json",
+      "bytes": 11298,
+      "sha256": "97c308c945278c0726f7dbf9bcfc6a7f1a1739525f91b67c4164a1848d77296f"
+    },
+    "prepared_static": {
+      "name": "thinking-fresh-D-static-audit.json",
+      "bytes": 2776,
+      "sha256": "372b6f38e30c3f2224ed1e646fbde1f83801ddf25691e2172cc20fbf3a2b109b"
+    },
+    "prepared_wire": {
+      "name": "thinking-fresh-D-wire-audit.json",
+      "bytes": 1762,
+      "sha256": "ce26f06b6b185968fa2f93632ece7affb38fa2f528b3309007c23fd86bf74a3d"
+    },
+    "independent_zero": {
+      "name": "thinking-fresh-D-zero-send-audit.json",
+      "bytes": 5524,
+      "sha256": "0e5deaffb9d661d4f1aa196c5edca1053a033dd2b925cb4b436bb828cdd51634"
+    },
+    "input_release": {
+      "name": "thinking-D-fresh-input-release.json",
+      "bytes": 2013,
+      "sha256": "11d7dd2103e2a9035e71c89fb46e603603fb33f225e82b56e038e5524b95a763"
+    },
+    "oracle_release": {
+      "name": "thinking-D-fresh-oracle-release.json",
+      "bytes": 1072,
+      "sha256": "2d1dc0f6f1d88a3e1711e86476dbdfe889d766065bd6e78376f518ba1584c5cd"
+    },
+    "oracle": {
+      "name": "thinking-D-fresh.oracle.json",
+      "bytes": 920,
+      "sha256": "a5cf1a90b928922d11fc1d1c8c69c6e54c98adbc194f71d011550040200db556"
+    }
+  },
+  "integrity": {
+    "source_normalization_provider_candidate_unchanged_after_public": true,
+    "all_8_original_raw_retained": true,
+    "sealed_input_sha256": "dd66904853ae031c68e632c67d3bfc3a974141ce77fa4f83ecb406ad0a149874",
+    "sealed_input_bytes": 10917,
+    "fresh_wrapper_sha256": "5143754f716f2828efb7aa135828c3a3a04c5e3b8be79a82c37011a12f574f29",
+    "wire_sha256": "f6d483acb83abb5b8a1ba303e42b05bb6559af3a41e3f1312971ea53bcfbbb4e",
+    "driver_sha256": "4796df723e9017430708cdd9f1f2327b3ee97ec9f8898b0074ba891ce2e4b5b4",
+    "caller_roles_all_null": true,
+    "grade_strata_from_corresponding_sealed_oracle_after_stop_only": true,
+    "request_order_event_response_stage_joins": "PASS",
+    "unmodified_9_values_to_slots": "PASS",
+    "numeric_usage_observed_separately": true,
+    "raw_thinking_not_logged": true,
+    "physical_stop_accounting": {
+      "schema": "voice-ui.review.thinking-fresh-stop/1",
+      "status": "PASS",
+      "at": "2026-10-18T03:23:53.099971+00:00",
+      "phase": "thinking-fresh-D-20261018",
+      "pid": 394238,
+      "start_ticks": "20144109",
+      "charged": {
+        "jev": 847,
+        "typellm": 136
+      },
+      "sent": {
+        "jev": 0,
+        "typellm": 8
+      },
+      "outstanding": 0,
+      "owned_pgids": 49,
+      "remaining_members": [],
+      "journal_sha256": "2b938983023a8e2627041d52cb943a3d0f6bd530aeed637c606b816a57328d35",
+      "prior_cutoff_prefix": "3eead593ac154f199a00006aeaacc6928fc12e49f423f7ea8c5d8faf916358cd",
+      "provider_send_sequence_exact": true,
+      "actual_raw_scope": "FRESH_FOUR_CASE_EXTRACTION_ONLY_NOT_ORDINARY_UI_EFFECT",
+      "root_terminal_scope_observed": "ROOT_STOPPED_PUBLIC_COMPARISON_TERMINAL_ONLY",
+      "scope_label_note": "Frozen root-terminal helper retained PUBLIC in its label. Raw FRESH scope, exact fresh plan/wire, actual phase, counts and physical stop independently verified. Original helper/proof bytes preserved; no relabeling or public/fresh grade substitution.",
+      "reviewer_real_provider_calls": 0
+    }
+  },
+  "semantic": {
+    "schema": "voice-ui.review.thinking-fresh-grade/1",
+    "status": "PASS",
+    "head": "b6696c1f579851429cf0cc58a49b20c9ff663475",
+    "phase": "thinking-fresh-D-20261018",
+    "oracle_sha256": "a5cf1a90b928922d11fc1d1c8c69c6e54c98adbc194f71d011550040200db556",
+    "rows": [
+      {
+        "id": "XB01-current",
+        "case": "XB01",
+        "caller_role": null,
+        "stratum": "explicit-name",
+        "stratum_source": "sealed oracle after stop only",
+        "arm": "current",
+        "status": "VALID_CONTRACT",
+        "contract_valid": true,
+        "exact": true,
+        "minimal": true,
+        "required": [
+          {
+            "label": "霧窓",
+            "kind": "decision",
+            "quantity": 1
+          }
+        ],
+        "expected_required": [
+          {
+            "label": "霧窓",
+            "kind": "decision",
+            "quantity": 1
+          }
+        ],
+        "provider_usage": null,
+        "raw_sha256": "5abfd9baf596353c6764a70507537523e9dff4e279948bf95ff6098d58cf08d7"
+      },
+      {
+        "id": "XB01-candidate",
+        "case": "XB01",
+        "caller_role": null,
+        "stratum": "explicit-name",
+        "stratum_source": "sealed oracle after stop only",
+        "arm": "candidate",
+        "status": "VALID_CONTRACT",
+        "contract_valid": true,
+        "exact": true,
+        "minimal": true,
+        "required": [
+          {
+            "label": "霧窓",
+            "kind": "decision",
+            "quantity": 1
+          }
+        ],
+        "expected_required": [
+          {
+            "label": "霧窓",
+            "kind": "decision",
+            "quantity": 1
+          }
+        ],
+        "provider_usage": {
+          "input_tokens": 4051,
+          "thinking_tokens": 221
+        },
+        "raw_sha256": "6a41af1116e005cc2f057dc63186ef5a99c2bd000073fd5983b954dea6b634c9"
+      },
+      {
+        "id": "XB02-candidate",
+        "case": "XB02",
+        "caller_role": null,
+        "stratum": "explicit-name",
+        "stratum_source": "sealed oracle after stop only",
+        "arm": "candidate",
+        "status": "VALID_CONTRACT",
+        "contract_valid": true,
+        "exact": true,
+        "minimal": true,
+        "required": [
+          {
+            "label": "DB",
+            "kind": "step",
+            "quantity": 2
+          }
+        ],
+        "expected_required": [
+          {
+            "label": "DB",
+            "kind": "step",
+            "quantity": 2
+          }
+        ],
+        "provider_usage": {
+          "input_tokens": 4061,
+          "thinking_tokens": 580
+        },
+        "raw_sha256": "db35741486191cbf0bb7857cb230cdf80f971e35e2b66629c7a4679a4ef4b5e8"
+      },
+      {
+        "id": "XB02-current",
+        "case": "XB02",
+        "caller_role": null,
+        "stratum": "explicit-name",
+        "stratum_source": "sealed oracle after stop only",
+        "arm": "current",
+        "status": "VALID_CONTRACT",
+        "contract_valid": true,
+        "exact": true,
+        "minimal": true,
+        "required": [
+          {
+            "label": "DB",
+            "kind": "step",
+            "quantity": 2
+          }
+        ],
+        "expected_required": [
+          {
+            "label": "DB",
+            "kind": "step",
+            "quantity": 2
+          }
+        ],
+        "provider_usage": null,
+        "raw_sha256": "67cc2db7ae44d4a7a3a6df110e747cf8afec9f51bf023957edabb43d1883bff5"
+      },
+      {
+        "id": "XB03-current",
+        "case": "XB03",
+        "caller_role": null,
+        "stratum": "standard-name",
+        "stratum_source": "sealed oracle after stop only",
+        "arm": "current",
+        "status": "VALID_CONTRACT",
+        "contract_valid": true,
+        "exact": true,
+        "minimal": true,
+        "required": [
+          {
+            "label": "開始",
+            "kind": "start",
+            "quantity": 1
+          }
+        ],
+        "expected_required": [
+          {
+            "label": "開始",
+            "kind": "start",
+            "quantity": 1
+          }
+        ],
+        "provider_usage": null,
+        "raw_sha256": "46b15b9229716404b2f3f3df16bd83720935b8724b792951016c815c5bf85c54"
+      },
+      {
+        "id": "XB03-candidate",
+        "case": "XB03",
+        "caller_role": null,
+        "stratum": "standard-name",
+        "stratum_source": "sealed oracle after stop only",
+        "arm": "candidate",
+        "status": "VALID_CONTRACT",
+        "contract_valid": true,
+        "exact": true,
+        "minimal": true,
+        "required": [
+          {
+            "label": "開始",
+            "kind": "start",
+            "quantity": 1
+          }
+        ],
+        "expected_required": [
+          {
+            "label": "開始",
+            "kind": "start",
+            "quantity": 1
+          }
+        ],
+        "provider_usage": {
+          "input_tokens": 4059,
+          "thinking_tokens": 393
+        },
+        "raw_sha256": "541ab0b217de955e4e07076333f95c5ac3352db02611ee8265c6e846197378b3"
+      },
+      {
+        "id": "XB04-candidate",
+        "case": "XB04",
+        "caller_role": null,
+        "stratum": "NEW0",
+        "stratum_source": "sealed oracle after stop only",
+        "arm": "candidate",
+        "status": "VALID_CONTRACT",
+        "contract_valid": true,
+        "exact": true,
+        "minimal": true,
+        "required": [],
+        "expected_required": [],
+        "provider_usage": {
+          "input_tokens": 4048,
+          "thinking_tokens": 360
+        },
+        "raw_sha256": "47f396fb85ebb7d1c54e2458bd9cd33f7641fcfafec012cff2a814fe55b22b43"
+      },
+      {
+        "id": "XB04-current",
+        "case": "XB04",
+        "caller_role": null,
+        "stratum": "NEW0",
+        "stratum_source": "sealed oracle after stop only",
+        "arm": "current",
+        "status": "VALID_CONTRACT",
+        "contract_valid": true,
+        "exact": true,
+        "minimal": true,
+        "required": [],
+        "expected_required": [],
+        "provider_usage": null,
+        "raw_sha256": "05c960b1b91e10a43fb0290ec23ea17f6574723a010a04681d370983fb4b1e97"
+      }
+    ],
+    "counts": {
+      "current": {
+        "planned": 4,
+        "valid": 4,
+        "exact": 4,
+        "semantic_wrong": 0,
+        "invalid_or_unknown": 0
+      },
+      "candidate": {
+        "planned": 4,
+        "valid": 4,
+        "exact": 4,
+        "semantic_wrong": 0,
+        "invalid_or_unknown": 0
+      }
+    },
+    "pairs": [
+      {
+        "case": "XB01",
+        "stratum": "explicit-name",
+        "valid_both": true,
+        "gain": false,
+        "regression": false,
+        "tie": true,
+        "excluded_contract_or_transport": false
+      },
+      {
+        "case": "XB02",
+        "stratum": "explicit-name",
+        "valid_both": true,
+        "gain": false,
+        "regression": false,
+        "tie": true,
+        "excluded_contract_or_transport": false
+      },
+      {
+        "case": "XB03",
+        "stratum": "standard-name",
+        "valid_both": true,
+        "gain": false,
+        "regression": false,
+        "tie": true,
+        "excluded_contract_or_transport": false
+      },
+      {
+        "case": "XB04",
+        "stratum": "NEW0",
+        "valid_both": true,
+        "gain": false,
+        "regression": false,
+        "tie": true,
+        "excluded_contract_or_transport": false
+      }
+    ],
+    "candidate_quality": "FINITE_CRITERIA_PASS",
+    "registered_full_fresh_gate": "UNMET",
+    "explicit_valid_paired_gains": 0,
+    "regressions": 0,
+    "finite_effect": "NO_EFFECT_IN_REGISTERED_HELD_OUT_EXTRACTION_PAIRS",
+    "final_report_ci_closure": "PENDING",
+    "scope": "FOUR_INDEPENDENT_HELD_OUT_EXTRACTION_PAIRS_ONLY_NOT_ORDINARY_UI_EFFECT_OR_GENERAL_EFFICACY",
+    "public_gain_not_substituted": true,
+    "product_effect": "UNPROVEN",
+    "internal_thinking_mechanism": "UNPROVEN",
+    "resolved_model_version": "UNOBSERVED",
+    "caller_roles_all_null": true,
+    "oracle_opened_after_independent_stop": true,
+    "reviewer_real_provider_calls": 0
+  },
+  "decision": {
+    "candidate_quality": "FINITE_CRITERIA_PASS",
+    "registered_full_fresh_effect_gate": "UNMET",
+    "admissible_pairs": 4,
+    "gains": 0,
+    "regressions": 0,
+    "ties": 4,
+    "finite_no_effect": "NO_EFFECT_IN_REGISTERED_HELD_OUT_EXTRACTION_PAIRS",
+    "final_report_ci_closure": "PENDING",
+    "public_gain_not_substituted": true,
+    "ordinary_ui_effect": "UNPROVEN",
+    "general_type_efficacy": "UNPROVEN",
+    "internal_sys2_equivalence": "UNPROVEN",
+    "new_real_send_GO": false
+  },
+  "limitations": [
+    "Both frozen flat and label-thinking conditions faithfully extracted the full NEW table on these four held-out cases. This is finite quality evidence; no additional thinking gain was observed in their four valid comparisons.",
+    "No equivalence margin, population-wide ineffectiveness, internal reasoning mechanism, ordinary UI/V/Goal efficacy or completed product is established.",
+    "The one public QD02 gain remains public-only and is not substituted for held-out gain.",
+    "Backend latest resolution is unobserved. Numeric usage is vendor-reported normalized metadata, not a positivity gate, mechanism proof or money-cost estimate.",
+    "Frozen root-terminal scope string retained PUBLIC. Original helper/proof bytes are preserved; actual fresh phase/input/wire/raw FRESH scope and physical stop were independently verified and grades were not aliased."
+  ],
+  "original_files": [
+    {
+      "path": "/work/repos/voice-ui-typellm-20261016/thinking-fresh-D-20261018.raw/XB01-current.json",
+      "bytes": 7680,
+      "sha256": "5abfd9baf596353c6764a70507537523e9dff4e279948bf95ff6098d58cf08d7"
+    },
+    {
+      "path": "/work/repos/voice-ui-typellm-20261016/thinking-fresh-D-20261018.raw/XB01-candidate.json",
+      "bytes": 7696,
+      "sha256": "6a41af1116e005cc2f057dc63186ef5a99c2bd000073fd5983b954dea6b634c9"
+    },
+    {
+      "path": "/work/repos/voice-ui-typellm-20261016/thinking-fresh-D-20261018.raw/XB02-candidate.json",
+      "bytes": 7825,
+      "sha256": "db35741486191cbf0bb7857cb230cdf80f971e35e2b66629c7a4679a4ef4b5e8"
+    },
+    {
+      "path": "/work/repos/voice-ui-typellm-20261016/thinking-fresh-D-20261018.raw/XB02-current.json",
+      "bytes": 7808,
+      "sha256": "67cc2db7ae44d4a7a3a6df110e747cf8afec9f51bf023957edabb43d1883bff5"
+    },
+    {
+      "path": "/work/repos/voice-ui-typellm-20261016/thinking-fresh-D-20261018.raw/XB03-current.json",
+      "bytes": 7854,
+      "sha256": "46b15b9229716404b2f3f3df16bd83720935b8724b792951016c815c5bf85c54"
+    },
+    {
+      "path": "/work/repos/voice-ui-typellm-20261016/thinking-fresh-D-20261018.raw/XB03-candidate.json",
+      "bytes": 7870,
+      "sha256": "541ab0b217de955e4e07076333f95c5ac3352db02611ee8265c6e846197378b3"
+    },
+    {
+      "path": "/work/repos/voice-ui-typellm-20261016/thinking-fresh-D-20261018.raw/XB04-candidate.json",
+      "bytes": 7310,
+      "sha256": "47f396fb85ebb7d1c54e2458bd9cd33f7641fcfafec012cff2a814fe55b22b43"
+    },
+    {
+      "path": "/work/repos/voice-ui-typellm-20261016/thinking-fresh-D-20261018.raw/XB04-current.json",
+      "bytes": 7293,
+      "sha256": "05c960b1b91e10a43fb0290ec23ea17f6574723a010a04681d370983fb4b1e97"
+    },
+    {
+      "path": "/work/repos/voice-ui-typellm-20261016/thinking-fresh-D-20261018.raw/identity.json",
+      "bytes": 5026,
+      "sha256": "c844bef24b62c62ed13eb401bf4feb1159f3e9b53a3d025a71a5f519c8b9ba7a"
+    },
+    {
+      "path": "/work/repos/voice-ui-typellm-20261016/thinking-fresh-D-20261018.raw/execution.json",
+      "bytes": 1247,
+      "sha256": "0ea6702db2fd66bb3fb7c34df5021a68d5ce174962117a63896d9b2509e7cf6e"
+    },
+    {
+      "path": "/work/repos/voice-ui-typellm-20261016/thinking-fresh-D-20261018.raw/events.jsonl",
+      "bytes": 15884,
+      "sha256": "ceb52935f388da6f915ba296ab9852947dbb1730c61c363af1d22c7231c4e7cd"
+    },
+    {
+      "path": "/work/repos/voice-ui-typellm-20261016/thinking-fresh-D-20261018.config.json",
+      "bytes": 984,
+      "sha256": "e6aeb5091f2cb2ef9bea33114e39bc0cf6962889646944a5c3e766b1ef7cb7fe"
+    },
+    {
+      "path": "/work/repos/voice-ui-typellm-20261016/thinking-fresh-D-20261018.process.json",
+      "bytes": 846,
+      "sha256": "d2a7ec8f7ec106b55ce65198e6ed0f286d52dafa763d2e7a35b603ccea90b4a1"
+    },
+    {
+      "path": "/work/repos/voice-ui-typellm-20261016/thinking-fresh-D-20261018.orchestration.json",
+      "bytes": 620,
+      "sha256": "26b51d8ee5ceaced236b35c6dd4d76fa67d41af59e0f660c359c110f471405a9"
+    },
+    {
+      "path": "/work/repos/voice-ui-typellm-20261016/thinking-fresh-D-20261018.root-zero.json",
+      "bytes": 868,
+      "sha256": "d90803467f1344f01f1dae3c8f32ae3fe2785b17553bf0929c4c73b6b59cad3c"
+    },
+    {
+      "path": "/work/repos/voice-ui-typellm-20261016/thinking-fresh-D-20261018.root-terminal.json",
+      "bytes": 452,
+      "sha256": "68cd2bf16291d36b570b52a9f101c3ec38f1d2af2ec6e7b069da96e9d9d3a186"
+    },
+    {
+      "path": "/work/repos/voice-ui-typellm-20261016/thinking-fresh-D-20261018.stdout.log",
+      "bytes": 5582,
+      "sha256": "2bca4dcf4b1bbab6a790249b7559ce03f9af8e8ece49b8de16f28a145043b574"
+    },
+    {
+      "path": "/work/repos/voice-ui-typellm-20261016/thinking-fresh-D-20261018.stderr.log",
+      "bytes": 839,
+      "sha256": "8d70c09248e6e847fe36378309221ca8c4459f3191e8f8ce8fe99452b45e7e28"
+    },
+    {
+      "path": "/work/repos/voice-ui-typellm-20261016/thinking-fresh-D-20261018.driver.stdout.log",
+      "bytes": 46,
+      "sha256": "c23e8a57525303682ad74bc1bfe30dadb68f5ed800d905f03105fd02b4ff922b"
+    },
+    {
+      "path": "/work/repos/voice-ui-typellm-20261016/thinking-fresh-D-20261018.driver.stderr.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/work/repos/voice-ui-typellm-20261016/thinking-fresh-D-20261018.journal.jsonl",
+      "bytes": 59994,
+      "sha256": "2b938983023a8e2627041d52cb943a3d0f6bd530aeed637c606b816a57328d35"
+    },
+    {
+      "path": "/work/repos/voice-ui-typellm-20261016/thinking-fresh-D-20261018.operator.mjs",
+      "bytes": 2499,
+      "sha256": "eeb3e864290b70904fed4e25687d0e13b444c16bbb517ca994b6b17f9db1a099"
+    },
+    {
+      "path": "/work/repos/voice-ui-typellm-20261016/thinking-fresh-D-20261018.root-zero.mjs",
+      "bytes": 2656,
+      "sha256": "5a5f5c51098a08aef670b709399d016d906af57fc1adef35c2f2cb942d3a00ce"
+    },
+    {
+      "path": "/work/repos/voice-ui-typellm-20261016/thinking-fresh-D-20261018.root-terminal.mjs",
+      "bytes": 2643,
+      "sha256": "63bfae4b9f23b7a50599a46c1eaa60632df71e10e5c5d595c71de62a5cd01bac"
+    },
+    {
+      "path": "/work/repos/voice-ui-typellm-20261016/runtime-candidate-display-source-b6696c1f.json",
+      "bytes": 3974,
+      "sha256": "0746141020bee503a37266cf5910a73362bf7fcc10d35298243653d148b615d2"
+    },
+    {
+      "path": "/work/repos/voice-ui-typellm-20261016/thinking-b6696c1f.fresh.wire.json",
+      "bytes": 164581,
+      "sha256": "f6d483acb83abb5b8a1ba303e42b05bb6559af3a41e3f1312971ea53bcfbbb4e"
+    },
+    {
+      "path": "/work/repos/voice-ui-typellm-20261016/thinking-fresh-D-20261018.inputs/fresh.input.json",
+      "bytes": 14676,
+      "sha256": "5143754f716f2828efb7aa135828c3a3a04c5e3b8be79a82c37011a12f574f29"
+    },
+    {
+      "path": "/work/repos/voice-ui-typellm-20261016/thinking-fresh-D-20261018.inputs/heldout.inputs.json",
+      "bytes": 10917,
+      "sha256": "dd66904853ae031c68e632c67d3bfc3a974141ce77fa4f83ecb406ad0a149874"
+    },
+    {
+      "path": "/nix/store/jw4lsrz6gm3dpanr6ckrn8s1wwlmdxm1-source/docs/voice-ui/extraction-cycle-20261018/thinking-labels/evaluate.mjs",
+      "bytes": 8676,
+      "sha256": "4796df723e9017430708cdd9f1f2327b3ee97ec9f8898b0074ba891ce2e4b5b4"
+    }
+  ]
+}

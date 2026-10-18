@@ -1,0 +1,170 @@
+{
+  "schema": "voice-ui.thinking-fresh-zero-send-audit/1",
+  "status": "PASS",
+  "at": "2026-10-18T03:21:32.014141+00:00",
+  "phase": "thinking-fresh-D-20261018",
+  "head": "b6696c1f579851429cf0cc58a49b20c9ff663475",
+  "process": {
+    "pid": 394238,
+    "pgid": 394238,
+    "start_ticks": "20144109",
+    "uid": 1000,
+    "argv": [
+      "node",
+      "/nix/store/jw4lsrz6gm3dpanr6ckrn8s1wwlmdxm1-source/packages/voice-ui/dev/serve.mjs"
+    ],
+    "active_group_members": [
+      {
+        "pid": 394238,
+        "pgid": 394238,
+        "state": "S"
+      }
+    ],
+    "listeners": [
+      {
+        "port": 18845,
+        "table": "tcp",
+        "inode": "888657",
+        "owned_by_pid": 394238
+      }
+    ]
+  },
+  "metadata": [
+    {
+      "name": "thinking-fresh-D-20261018.config.json",
+      "bytes": 984,
+      "sha256": "e6aeb5091f2cb2ef9bea33114e39bc0cf6962889646944a5c3e766b1ef7cb7fe"
+    },
+    {
+      "name": "thinking-fresh-D-20261018.operator.mjs",
+      "bytes": 2499,
+      "sha256": "eeb3e864290b70904fed4e25687d0e13b444c16bbb517ca994b6b17f9db1a099"
+    },
+    {
+      "name": "thinking-fresh-D-20261018.root-zero.mjs",
+      "bytes": 2656,
+      "sha256": "5a5f5c51098a08aef670b709399d016d906af57fc1adef35c2f2cb942d3a00ce"
+    },
+    {
+      "name": "thinking-fresh-D-20261018.root-terminal.mjs",
+      "bytes": 2643,
+      "sha256": "63bfae4b9f23b7a50599a46c1eaa60632df71e10e5c5d595c71de62a5cd01bac"
+    },
+    {
+      "name": "thinking-fresh-D-20261018.process.json",
+      "bytes": 846,
+      "sha256": "d2a7ec8f7ec106b55ce65198e6ed0f286d52dafa763d2e7a35b603ccea90b4a1"
+    }
+  ],
+  "runtime_sha256": "0746141020bee503a37266cf5910a73362bf7fcc10d35298243653d148b615d2",
+  "wire_sha256": "f6d483acb83abb5b8a1ba303e42b05bb6559af3a41e3f1312971ea53bcfbbb4e",
+  "fresh_wrapper_sha256": "5143754f716f2828efb7aa135828c3a3a04c5e3b8be79a82c37011a12f574f29",
+  "sealed_input": {
+    "bytes": 10917,
+    "sha256": "dd66904853ae031c68e632c67d3bfc3a974141ce77fa4f83ecb406ad0a149874",
+    "original_inputs_preserved": true,
+    "roles_all_null": true
+  },
+  "root_zero": {
+    "name": "thinking-fresh-D-20261018.root-zero.json",
+    "bytes": 868,
+    "sha256": "d90803467f1344f01f1dae3c8f32ae3fe2785b17553bf0929c4c73b6b59cad3c"
+  },
+  "objects": {
+    "worker": {
+      "path": "/nix/store/fz0bzzfd99ph2ma8kd500nbixdr1bb7y-voice-ui-dist/worker/worker.mjs",
+      "sha256": "36613cba39aefa51c1d9b12a8fffca0c4a1e35f0416cdcc7d45d959fd196b5ae"
+    },
+    "provider": {
+      "path": "/nix/store/wmhw0jn7a7zfvrlndb2wisz4dkdxzn9j-jev-provider-admitted/jev.mjs",
+      "sha256": "0773b5c96d0da7f05fef9f9cf95772b6722a03022648e90fc56a4fdc9ac6046e"
+    },
+    "typed_provider": {
+      "path": "/nix/store/b2c9iha8k61p3jl4xh848kqkwxwy7bwl-typellm-provider-admitted/typellm.mjs",
+      "sha256": "3c10462eecd7f83dd790bfe208587c99347dcbed324b32ae674afbab48bdfb22"
+    },
+    "dev_program": {
+      "path": "/nix/store/b6ksavrpciv59ni1cd09y0m8l6vglfig-voice-ui-dev/bin/voice-ui-dev",
+      "sha256": "4e210e7c17b25386b48b17c6627094380b9e792e477c93bb603e79f472378ea0"
+    },
+    "manifest": {
+      "path": "/nix/store/fz0bzzfd99ph2ma8kd500nbixdr1bb7y-voice-ui-dist/manifest.json",
+      "sha256": "9e016e123bf4930caca4f9da542be1c4040fba5bd80be78908b99a8ce1a0e2dc"
+    }
+  },
+  "preload": {
+    "path": "/nix/store/s9sspm66pdf3xjdsbvy0q60cr0jp7w4g-voice-ui-provider-budget.mjs",
+    "sha256": "cdb39c164e55d7f660251704b13c20c4fdd6ffb0bec1524c44e9bf355e333d24",
+    "limits": {
+      "jev": 0,
+      "typellm": 8
+    }
+  },
+  "credential_presence_only": {
+    "JEV_API_KEY": true,
+    "TYPELLM_API_KEY": true
+  },
+  "credential_route": "Unchanged admitted FD launcher; only key presence observed, never credential bytes",
+  "provider_sends": {
+    "jev": 0,
+    "typellm": 0
+  },
+  "GET": {
+    "status": 200,
+    "bytes": 5943,
+    "index_sha256": "8c7a6ed602ea4c149b4ab1472c26f999cbcf41e088725162c8638fc184ee43df",
+    "equals_completed_artifact": true
+  },
+  "journal": {
+    "sha256": "c7bdca7d361a2c0db12207d688035e06f531fcd4902c697623696196c88fe143",
+    "prior_cutoff_prefix": "3eead593ac154f199a00006aeaacc6928fc12e49f423f7ea8c5d8faf916358cd",
+    "charged": {
+      "jev": 847,
+      "typellm": 128
+    },
+    "outstanding": {
+      "thinking-fresh-D-20261018": {
+        "jev": 0,
+        "typellm": 8
+      }
+    },
+    "previous_owned_groups": 48,
+    "previous_members_including_Z": []
+  },
+  "driver_not_started": true,
+  "oracle_read": false,
+  "reviewer_provider_calls": 0,
+  "scope": "SAME_PROCESS_ZERO_SEND_ADMISSION_ONE_FIXED_FRESH_8_SLOTS_NOT_MODEL_QUALITY_OR_FINAL_CI_CLOSURE",
+  "execution_order_agreement": {
+    "relevant_checks": [
+      {
+        "id": 39091993953,
+        "status": "completed",
+        "conclusion": "success",
+        "head_sha": "b6696c1f579851429cf0cc58a49b20c9ff663475"
+      },
+      {
+        "id": 39091993948,
+        "status": "completed",
+        "conclusion": "success",
+        "head_sha": "b6696c1f579851429cf0cc58a49b20c9ff663475"
+      },
+      {
+        "id": 39091994016,
+        "status": "completed",
+        "conclusion": "success",
+        "head_sha": "b6696c1f579851429cf0cc58a49b20c9ff663475"
+      }
+    ],
+    "release": {
+      "id": 39091993975,
+      "status": "in_progress",
+      "conclusion": null
+    },
+    "scope": "Same agreed candidate/source CI; full release closure separate"
+  },
+  "prepared_static_audit": {
+    "name": "thinking-fresh-D-static-audit.json",
+    "sha256": "372b6f38e30c3f2224ed1e646fbde1f83801ddf25691e2172cc20fbf3a2b109b"
+  }
+}

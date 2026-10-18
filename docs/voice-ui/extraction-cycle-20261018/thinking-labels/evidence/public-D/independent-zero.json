@@ -1,0 +1,165 @@
+{
+  "schema": "voice-ui.thinking-label-zero-send-audit/1",
+  "status": "PASS",
+  "at": "2026-10-18T03:10:06.919426+00:00",
+  "phase": "thinking-public-D-20261018",
+  "head": "b6696c1f579851429cf0cc58a49b20c9ff663475",
+  "process": {
+    "pid": 393551,
+    "pgid": 393551,
+    "start_ticks": "20065055",
+    "uid": 1000,
+    "argv": [
+      "node",
+      "/nix/store/jw4lsrz6gm3dpanr6ckrn8s1wwlmdxm1-source/packages/voice-ui/dev/serve.mjs"
+    ],
+    "active_group_members": [
+      {
+        "pid": 393551,
+        "pgid": 393551,
+        "state": "S"
+      }
+    ],
+    "listeners": [
+      {
+        "port": 18845,
+        "table": "tcp",
+        "inode": "890955",
+        "owned_by_pid": 393551
+      }
+    ]
+  },
+  "metadata": [
+    {
+      "name": "thinking-public-D-20261018.config.json",
+      "bytes": 1024,
+      "sha256": "208ca83344fb241df5a257dab005cc3ca6e0f645d6b46dbab4d5ccb12f424ebe"
+    },
+    {
+      "name": "thinking-public-D-20261018.operator.mjs",
+      "bytes": 2500,
+      "sha256": "3f27223f6d8a83db022165dadd102e7861c36dcdf619090073f12debec59e56b"
+    },
+    {
+      "name": "thinking-public-D-20261018.root-zero.mjs",
+      "bytes": 2657,
+      "sha256": "d6dabf7db452060de1f32e16c449ee1e6ac9d9ec5a788cec0c04b7bd465b8808"
+    },
+    {
+      "name": "thinking-public-D-20261018.root-terminal.mjs",
+      "bytes": 2642,
+      "sha256": "7cdb9cced92d781a4f3274020c0169562619299abe5bcdd96073c31e35c55a22"
+    },
+    {
+      "name": "thinking-public-D-20261018.process.json",
+      "bytes": 849,
+      "sha256": "a42d37e3560dca542b3e75cd750859e1e470314876d2a81f659bb23dc925754b"
+    }
+  ],
+  "runtime_sha256": "0746141020bee503a37266cf5910a73362bf7fcc10d35298243653d148b615d2",
+  "wire_sha256": "d19f1bef03a6b43e892050df34d9bde823e53211c76b788c459861a5f5821e22",
+  "root_zero": {
+    "name": "thinking-public-D-20261018.root-zero.json",
+    "bytes": 869,
+    "sha256": "c1ea34299b6a7029800eafad9b49244d3e05cd0e62eab719189845f83c87bf93"
+  },
+  "objects": {
+    "worker": {
+      "path": "/nix/store/fz0bzzfd99ph2ma8kd500nbixdr1bb7y-voice-ui-dist/worker/worker.mjs",
+      "sha256": "36613cba39aefa51c1d9b12a8fffca0c4a1e35f0416cdcc7d45d959fd196b5ae"
+    },
+    "provider": {
+      "path": "/nix/store/wmhw0jn7a7zfvrlndb2wisz4dkdxzn9j-jev-provider-admitted/jev.mjs",
+      "sha256": "0773b5c96d0da7f05fef9f9cf95772b6722a03022648e90fc56a4fdc9ac6046e"
+    },
+    "typed_provider": {
+      "path": "/nix/store/b2c9iha8k61p3jl4xh848kqkwxwy7bwl-typellm-provider-admitted/typellm.mjs",
+      "sha256": "3c10462eecd7f83dd790bfe208587c99347dcbed324b32ae674afbab48bdfb22"
+    },
+    "dev_program": {
+      "path": "/nix/store/b6ksavrpciv59ni1cd09y0m8l6vglfig-voice-ui-dev/bin/voice-ui-dev",
+      "sha256": "4e210e7c17b25386b48b17c6627094380b9e792e477c93bb603e79f472378ea0"
+    },
+    "manifest": {
+      "path": "/nix/store/fz0bzzfd99ph2ma8kd500nbixdr1bb7y-voice-ui-dist/manifest.json",
+      "sha256": "9e016e123bf4930caca4f9da542be1c4040fba5bd80be78908b99a8ce1a0e2dc"
+    }
+  },
+  "preload": {
+    "path": "/nix/store/s9sspm66pdf3xjdsbvy0q60cr0jp7w4g-voice-ui-provider-budget.mjs",
+    "sha256": "cdb39c164e55d7f660251704b13c20c4fdd6ffb0bec1524c44e9bf355e333d24",
+    "limits": {
+      "jev": 0,
+      "typellm": 8
+    }
+  },
+  "credential_presence_only": {
+    "JEV_API_KEY": true,
+    "TYPELLM_API_KEY": true
+  },
+  "credential_route": "Unchanged admitted FD launcher; only key presence observed, never credential bytes",
+  "provider_sends": {
+    "jev": 0,
+    "typellm": 0
+  },
+  "GET": {
+    "status": 200,
+    "bytes": 5943,
+    "index_sha256": "8c7a6ed602ea4c149b4ab1472c26f999cbcf41e088725162c8638fc184ee43df",
+    "equals_completed_artifact": true
+  },
+  "journal": {
+    "sha256": "cc3601e496a29b96d62dc349aef5f5983287ea3c56e02ef19e4e261a286cf4f0",
+    "prior_cutoff_prefix": "9adb368eb453aac1c0a45601eff223d3db64eadff210e6a292d8998e6bda6d43",
+    "charged": {
+      "jev": 847,
+      "typellm": 120
+    },
+    "outstanding": {
+      "thinking-public-D-20261018": {
+        "jev": 0,
+        "typellm": 8
+      }
+    },
+    "previous_owned_groups": 47,
+    "previous_members_including_Z": []
+  },
+  "driver_not_started": true,
+  "reviewer_provider_calls": 0,
+  "scope": "SAME_PROCESS_ZERO_SEND_ADMISSION_ONE_FIXED_PUBLIC_8_SLOTS_NOT_MODEL_QUALITY_OR_FINAL_CI_CLOSURE",
+  "execution_order_agreement": {
+    "relevant_checks": [
+      {
+        "id": 39091993953,
+        "head_sha": "b6696c1f579851429cf0cc58a49b20c9ff663475",
+        "status": "completed",
+        "conclusion": "success",
+        "url": "https://github.com/roccho-dev/apps/actions/runs/39091993953"
+      },
+      {
+        "id": 39091993948,
+        "head_sha": "b6696c1f579851429cf0cc58a49b20c9ff663475",
+        "status": "completed",
+        "conclusion": "success",
+        "url": "https://github.com/roccho-dev/apps/actions/runs/39091993948"
+      },
+      {
+        "id": 39091994016,
+        "head_sha": "b6696c1f579851429cf0cc58a49b20c9ff663475",
+        "status": "completed",
+        "conclusion": "success",
+        "url": "https://github.com/roccho-dev/apps/actions/runs/39091994016"
+      }
+    ],
+    "release": {
+      "id": 39091993975,
+      "status": "in_progress",
+      "conclusion": null
+    },
+    "scope": "Previously agreed three exact-head checks plus source/runtime/wire and actual zero-send admit this one fixed public8 diagnostic; final all-four closure separate; no fresh release"
+  },
+  "source_runtime_wire_audit": {
+    "name": "thinking-b669-source-runtime-wire-audit.json",
+    "sha256": "97c308c945278c0726f7dbf9bcfc6a7f1a1739525f91b67c4164a1848d77296f"
+  }
+}

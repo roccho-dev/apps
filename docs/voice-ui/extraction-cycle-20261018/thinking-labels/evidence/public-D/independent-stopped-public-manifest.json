@@ -1,0 +1,12 @@
+{
+  "schema": "voice-ui.review.public-copy-manifest/1",
+  "public_directory": "C:\\Users\\resta\\Codex\\repos\\apps.git\\.worktrees\\typellm-ci-review-20261017\\review-evidence",
+  "scope": "This one closed audit member and this manifest only",
+  "members": [
+    {
+      "name": "thinking-public-D-stopped-comparison-audit.json",
+      "bytes": 16144,
+      "sha256": "0a541977550b07df7045fa65123e1d5aa7062c8802ef4c7144536fcb9d51fad5"
+    }
+  ]
+}

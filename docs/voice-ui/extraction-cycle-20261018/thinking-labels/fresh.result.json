@@ -1,0 +1,260 @@
+{
+  "scope": "FRESH_FOUR_CASE_EXTRACTION_ONLY_NOT_ORDINARY_UI_EFFECT",
+  "measurement_apps": "b6696c1f579851429cf0cc58a49b20c9ff663475",
+  "rows": [
+    {
+      "id": "XB01-current",
+      "case": "XB01",
+      "arm": "current",
+      "role": "explicit",
+      "status": "VALID_CONTRACT",
+      "contract_valid": true,
+      "exact": true,
+      "minimal": true,
+      "required": [
+        {
+          "label": "霧窓",
+          "kind": "decision",
+          "quantity": 1
+        }
+      ]
+    },
+    {
+      "id": "XB01-candidate",
+      "case": "XB01",
+      "arm": "candidate",
+      "role": "explicit",
+      "status": "VALID_CONTRACT",
+      "contract_valid": true,
+      "exact": true,
+      "minimal": true,
+      "required": [
+        {
+          "label": "霧窓",
+          "kind": "decision",
+          "quantity": 1
+        }
+      ]
+    },
+    {
+      "id": "XB02-candidate",
+      "case": "XB02",
+      "arm": "candidate",
+      "role": "explicit",
+      "status": "VALID_CONTRACT",
+      "contract_valid": true,
+      "exact": true,
+      "minimal": true,
+      "required": [
+        {
+          "label": "DB",
+          "kind": "step",
+          "quantity": 2
+        }
+      ]
+    },
+    {
+      "id": "XB02-current",
+      "case": "XB02",
+      "arm": "current",
+      "role": "explicit",
+      "status": "VALID_CONTRACT",
+      "contract_valid": true,
+      "exact": true,
+      "minimal": true,
+      "required": [
+        {
+          "label": "DB",
+          "kind": "step",
+          "quantity": 2
+        }
+      ]
+    },
+    {
+      "id": "XB03-current",
+      "case": "XB03",
+      "arm": "current",
+      "role": "standard",
+      "status": "VALID_CONTRACT",
+      "contract_valid": true,
+      "exact": true,
+      "minimal": true,
+      "required": [
+        {
+          "label": "開始",
+          "kind": "start",
+          "quantity": 1
+        }
+      ]
+    },
+    {
+      "id": "XB03-candidate",
+      "case": "XB03",
+      "arm": "candidate",
+      "role": "standard",
+      "status": "VALID_CONTRACT",
+      "contract_valid": true,
+      "exact": true,
+      "minimal": true,
+      "required": [
+        {
+          "label": "開始",
+          "kind": "start",
+          "quantity": 1
+        }
+      ]
+    },
+    {
+      "id": "XB04-candidate",
+      "case": "XB04",
+      "arm": "candidate",
+      "role": "new0",
+      "status": "VALID_CONTRACT",
+      "contract_valid": true,
+      "exact": true,
+      "minimal": true,
+      "required": []
+    },
+    {
+      "id": "XB04-current",
+      "case": "XB04",
+      "arm": "current",
+      "role": "new0",
+      "status": "VALID_CONTRACT",
+      "contract_valid": true,
+      "exact": true,
+      "minimal": true,
+      "required": []
+    }
+  ],
+  "counts": {
+    "current": {
+      "planned": 4,
+      "valid": 4,
+      "exact": 4,
+      "semantic_wrong": 0,
+      "invalid_or_unknown": 0
+    },
+    "candidate": {
+      "planned": 4,
+      "valid": 4,
+      "exact": 4,
+      "semantic_wrong": 0,
+      "invalid_or_unknown": 0
+    }
+  },
+  "pairs": [
+    {
+      "case": "XB01",
+      "role": "explicit",
+      "valid_both": true,
+      "gain": false,
+      "regression": false,
+      "tie": true,
+      "excluded_contract_or_transport": false
+    },
+    {
+      "case": "XB02",
+      "role": "explicit",
+      "valid_both": true,
+      "gain": false,
+      "regression": false,
+      "tie": true,
+      "excluded_contract_or_transport": false
+    },
+    {
+      "case": "XB03",
+      "role": "standard",
+      "valid_both": true,
+      "gain": false,
+      "regression": false,
+      "tie": true,
+      "excluded_contract_or_transport": false
+    },
+    {
+      "case": "XB04",
+      "role": "new0",
+      "valid_both": true,
+      "gain": false,
+      "regression": false,
+      "tie": true,
+      "excluded_contract_or_transport": false
+    }
+  ],
+  "fresh_gate": false,
+  "product_effect": "UNPROVEN",
+  "fresh_quality": "FINITE_CRITERIA_PASS",
+  "quality": "FINITE_CRITERIA_PASS",
+  "improvement_gate": "UNMET",
+  "finite_effect": "NO_EFFECT_IN_REGISTERED_FRESH_EXTRACTION_PAIRS",
+  "ordinary_ui_adopted": false,
+  "oracle_released_after_physical_stop": true,
+  "charged": {
+    "jev": 847,
+    "typellm": 136
+  },
+  "cutoff": "2b938983023a8e2627041d52cb943a3d0f6bd530aeed637c606b816a57328d35",
+  "root_terminal_scope_note": "Original helper/receipt retain the inherited PUBLIC scope literal. The actual phase, FRESH identity, original input/wrapper/wire, stop and oracle release prove this fresh run; original bytes remain unchanged.",
+  "observed_usage_and_latency": [
+    {
+      "id": "XB01-current",
+      "arm": "current",
+      "elapsed_ms": 2660.5649000000003,
+      "usage": null
+    },
+    {
+      "id": "XB01-candidate",
+      "arm": "candidate",
+      "elapsed_ms": 6868.337599999999,
+      "usage": {
+        "input_tokens": 4051,
+        "thinking_tokens": 221
+      }
+    },
+    {
+      "id": "XB02-candidate",
+      "arm": "candidate",
+      "elapsed_ms": 11596.428600000001,
+      "usage": {
+        "input_tokens": 4061,
+        "thinking_tokens": 580
+      }
+    },
+    {
+      "id": "XB02-current",
+      "arm": "current",
+      "elapsed_ms": 2095.3143999999993,
+      "usage": null
+    },
+    {
+      "id": "XB03-current",
+      "arm": "current",
+      "elapsed_ms": 2008.7266999999993,
+      "usage": null
+    },
+    {
+      "id": "XB03-candidate",
+      "arm": "candidate",
+      "elapsed_ms": 7040.329800000003,
+      "usage": {
+        "input_tokens": 4059,
+        "thinking_tokens": 393
+      }
+    },
+    {
+      "id": "XB04-candidate",
+      "arm": "candidate",
+      "elapsed_ms": 6511.016299999999,
+      "usage": {
+        "input_tokens": 4048,
+        "thinking_tokens": 360
+      }
+    },
+    {
+      "id": "XB04-current",
+      "arm": "current",
+      "elapsed_ms": 2193.306700000001,
+      "usage": null
+    }
+  ]
+}

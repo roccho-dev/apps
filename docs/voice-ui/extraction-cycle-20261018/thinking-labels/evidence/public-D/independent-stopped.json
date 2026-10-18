@@ -1,0 +1,483 @@
+{
+  "schema": "voice-ui.thinking-label-public-independent-audit/1",
+  "status": "PASS",
+  "scope": "PUBLIC_FOUR_CASE_LABEL_THINKING_EXTRACTION_ONLY_NOT_FRESH_OR_ORDINARY_UI_EFFECT",
+  "authored_at": "2026-10-18T03:15:28.134210+00:00",
+  "measurement_apps": "b6696c1f579851429cf0cc58a49b20c9ff663475",
+  "phase": "thinking-public-D-20261018",
+  "references": {
+    "source_runtime_wire": {
+      "name": "thinking-b669-source-runtime-wire-audit.json",
+      "sha256": "97c308c945278c0726f7dbf9bcfc6a7f1a1739525f91b67c4164a1848d77296f"
+    },
+    "independent_zero": {
+      "name": "thinking-public-D-zero-send-audit.json",
+      "sha256": "53140e20651a55b65e1b404f003443d8e89031ad1e8f869add288ff7c756aff2"
+    },
+    "public_plan_sha256": "b967459983b3e2ed94e0705d531b03fade70b5bbcb3ff03a90db6daeb93cb5aa",
+    "driver_sha256": "4796df723e9017430708cdd9f1f2327b3ee97ec9f8898b0074ba891ce2e4b5b4"
+  },
+  "integrity": {
+    "same_frozen_runtime_and_wire": true,
+    "all_8_raw_retained": true,
+    "fixed_order_event_response_stage_joins": "PASS",
+    "unmodified_9_values_to_slots": "PASS",
+    "closed_D_optional_numeric_usage_only": "PASS",
+    "raw_thinking_not_logged": true,
+    "physical_stop_accounting": {
+      "schema": "voice-ui.review.thinking-stop/1",
+      "status": "PASS",
+      "at": "2026-10-18T03:12:44.479971+00:00",
+      "phase": "thinking-public-D-20261018",
+      "pid": 393551,
+      "start_ticks": "20065055",
+      "charged": {
+        "jev": 847,
+        "typellm": 128
+      },
+      "sent": {
+        "jev": 0,
+        "typellm": 8
+      },
+      "outstanding": 0,
+      "owned_pgids": 48,
+      "remaining_members": [],
+      "journal_sha256": "3eead593ac154f199a00006aeaacc6928fc12e49f423f7ea8c5d8faf916358cd",
+      "prior_cutoff_prefix": "9adb368eb453aac1c0a45601eff223d3db64eadff210e6a292d8998e6bda6d43",
+      "provider_send_sequence_exact": true,
+      "reviewer_real_provider_calls": 0
+    }
+  },
+  "semantic": {
+    "schema": "voice-ui.review.thinking-public-grade/1",
+    "status": "PASS",
+    "head": "b6696c1f579851429cf0cc58a49b20c9ff663475",
+    "phase": "thinking-public-D-20261018",
+    "rows": [
+      {
+        "id": "QD01-current",
+        "case": "QD01",
+        "role": "explicit",
+        "arm": "current",
+        "status": "VALID_CONTRACT",
+        "contract_valid": true,
+        "exact": true,
+        "minimal": true,
+        "required": [
+          {
+            "label": "出荷可否",
+            "kind": "decision",
+            "quantity": 1
+          }
+        ],
+        "expected_required": [
+          {
+            "label": "出荷可否",
+            "kind": "decision",
+            "quantity": 1
+          }
+        ],
+        "provider_usage": null,
+        "raw_sha256": "9d52e2487382a8f8432681d5eb6826f117d438025f94c3b0ee0be85d6413a7ed"
+      },
+      {
+        "id": "QD01-candidate",
+        "case": "QD01",
+        "role": "explicit",
+        "arm": "candidate",
+        "status": "VALID_CONTRACT",
+        "contract_valid": true,
+        "exact": true,
+        "minimal": true,
+        "required": [
+          {
+            "label": "出荷可否",
+            "kind": "decision",
+            "quantity": 1
+          }
+        ],
+        "expected_required": [
+          {
+            "label": "出荷可否",
+            "kind": "decision",
+            "quantity": 1
+          }
+        ],
+        "provider_usage": {
+          "input_tokens": 4046,
+          "thinking_tokens": 285
+        },
+        "raw_sha256": "c5497aa422ecce5aefde5976bad7dd1c13f2394f3206835ed376ef72183f1543"
+      },
+      {
+        "id": "QD02-candidate",
+        "case": "QD02",
+        "role": "explicit",
+        "arm": "candidate",
+        "status": "VALID_CONTRACT",
+        "contract_valid": true,
+        "exact": true,
+        "minimal": true,
+        "required": [
+          {
+            "label": "API",
+            "kind": "step",
+            "quantity": 2
+          }
+        ],
+        "expected_required": [
+          {
+            "label": "API",
+            "kind": "step",
+            "quantity": 2
+          }
+        ],
+        "provider_usage": {
+          "input_tokens": 4055,
+          "thinking_tokens": 562
+        },
+        "raw_sha256": "4ea94280285330f9f1d5f7f0459c15f64cca357ba076e615ea02bcac3cd68cc1"
+      },
+      {
+        "id": "QD02-current",
+        "case": "QD02",
+        "role": "explicit",
+        "arm": "current",
+        "status": "VALID_CONTRACT",
+        "contract_valid": true,
+        "exact": false,
+        "minimal": false,
+        "required": [
+          {
+            "label": "工程",
+            "kind": "step",
+            "quantity": 2
+          }
+        ],
+        "expected_required": [
+          {
+            "label": "API",
+            "kind": "step",
+            "quantity": 2
+          }
+        ],
+        "provider_usage": null,
+        "raw_sha256": "272a251973aa9088980874ccf517b4649c42a16e86fcd6dd05481db087636090"
+      },
+      {
+        "id": "QD03-current",
+        "case": "QD03",
+        "role": "standard",
+        "arm": "current",
+        "status": "VALID_CONTRACT",
+        "contract_valid": true,
+        "exact": true,
+        "minimal": true,
+        "required": [
+          {
+            "label": "判断",
+            "kind": "decision",
+            "quantity": 1
+          }
+        ],
+        "expected_required": [
+          {
+            "label": "判断",
+            "kind": "decision",
+            "quantity": 1
+          }
+        ],
+        "provider_usage": null,
+        "raw_sha256": "5a82a63c1c47b903ad17ee09e727b0f3725ebc0bdbecdf6e614cc30fffac7209"
+      },
+      {
+        "id": "QD03-candidate",
+        "case": "QD03",
+        "role": "standard",
+        "arm": "candidate",
+        "status": "VALID_CONTRACT",
+        "contract_valid": true,
+        "exact": true,
+        "minimal": true,
+        "required": [
+          {
+            "label": "判断",
+            "kind": "decision",
+            "quantity": 1
+          }
+        ],
+        "expected_required": [
+          {
+            "label": "判断",
+            "kind": "decision",
+            "quantity": 1
+          }
+        ],
+        "provider_usage": {
+          "input_tokens": 4031,
+          "thinking_tokens": 461
+        },
+        "raw_sha256": "80aa22058f644ebbe2814dc32ab3ab30681362df1c1ec57a72d8426ec63fdf06"
+      },
+      {
+        "id": "QD04-candidate",
+        "case": "QD04",
+        "role": "new0",
+        "arm": "candidate",
+        "status": "VALID_CONTRACT",
+        "contract_valid": true,
+        "exact": true,
+        "minimal": true,
+        "required": [],
+        "expected_required": [],
+        "provider_usage": {
+          "input_tokens": 4051,
+          "thinking_tokens": 340
+        },
+        "raw_sha256": "f8c39cc583f1b0907bc558377adc0d6b00385a46e120351976d0d54d5593ef6a"
+      },
+      {
+        "id": "QD04-current",
+        "case": "QD04",
+        "role": "new0",
+        "arm": "current",
+        "status": "VALID_CONTRACT",
+        "contract_valid": true,
+        "exact": true,
+        "minimal": true,
+        "required": [],
+        "expected_required": [],
+        "provider_usage": null,
+        "raw_sha256": "1f5d7e2c347aef64961f1114f52adb28c1be706fb4c006495e9f6a9b768af9c5"
+      }
+    ],
+    "counts": {
+      "current": {
+        "planned": 4,
+        "valid": 4,
+        "exact": 3,
+        "semantic_wrong": 1,
+        "invalid_or_unknown": 0
+      },
+      "candidate": {
+        "planned": 4,
+        "valid": 4,
+        "exact": 4,
+        "semantic_wrong": 0,
+        "invalid_or_unknown": 0
+      }
+    },
+    "pairs": [
+      {
+        "case": "QD01",
+        "role": "explicit",
+        "valid_both": true,
+        "gain": false,
+        "regression": false,
+        "tie": true,
+        "excluded_contract_or_transport": false
+      },
+      {
+        "case": "QD02",
+        "role": "explicit",
+        "valid_both": true,
+        "gain": true,
+        "regression": false,
+        "tie": false,
+        "excluded_contract_or_transport": false
+      },
+      {
+        "case": "QD03",
+        "role": "standard",
+        "valid_both": true,
+        "gain": false,
+        "regression": false,
+        "tie": true,
+        "excluded_contract_or_transport": false
+      },
+      {
+        "case": "QD04",
+        "role": "new0",
+        "valid_both": true,
+        "gain": false,
+        "regression": false,
+        "tie": true,
+        "excluded_contract_or_transport": false
+      }
+    ],
+    "public_gate": "PASS",
+    "semantic_gains": 1,
+    "regressions": 0,
+    "scope": "FOUR_KNOWN_PUBLIC_EXTRACTION_PAIRS_ONLY_NOT_FRESH_OR_ORDINARY_UI_EFFECT",
+    "fresh_quality": "UNPROVEN",
+    "product_effect": "UNPROVEN",
+    "internal_thinking_mechanism": "UNPROVEN",
+    "resolved_model_version": "UNOBSERVED",
+    "heldout_opened": false,
+    "reviewer_real_provider_calls": 0
+  },
+  "decision": {
+    "public_gate": "PASS",
+    "candidate_quality": "FINITE_PUBLIC_CRITERIA_PASS",
+    "explicit_valid_paired_gains": 1,
+    "regressions": 0,
+    "fresh_inputs_only_release_allowed": true,
+    "fresh_real_send_GO": false,
+    "ordinary_ui_adoption": false,
+    "general_efficacy": "UNPROVEN",
+    "internal_sys2_equivalence": "UNPROVEN"
+  },
+  "limitations": [
+    "Four known public comparisons; one finite extraction gain does not establish unseen quality, ordinary UI benefit, internal mechanism or general model efficacy.",
+    "Backend typellm-latest resolved revision remains unobserved.",
+    "Numeric usage is optional vendor-reported metadata, not a positivity gate, cost claim or mechanism proof.",
+    "Fresh oracle and private validation remain sealed until that fresh phase is physically stopped and reconciled."
+  ],
+  "original_files": [
+    {
+      "path": "/work/repos/voice-ui-typellm-20261016/thinking-public-D-20261018.raw/QD01-current.json",
+      "bytes": 7698,
+      "sha256": "9d52e2487382a8f8432681d5eb6826f117d438025f94c3b0ee0be85d6413a7ed"
+    },
+    {
+      "path": "/work/repos/voice-ui-typellm-20261016/thinking-public-D-20261018.raw/QD01-candidate.json",
+      "bytes": 7723,
+      "sha256": "c5497aa422ecce5aefde5976bad7dd1c13f2394f3206835ed376ef72183f1543"
+    },
+    {
+      "path": "/work/repos/voice-ui-typellm-20261016/thinking-public-D-20261018.raw/QD02-candidate.json",
+      "bytes": 7696,
+      "sha256": "4ea94280285330f9f1d5f7f0459c15f64cca357ba076e615ea02bcac3cd68cc1"
+    },
+    {
+      "path": "/work/repos/voice-ui-typellm-20261016/thinking-public-D-20261018.raw/QD02-current.json",
+      "bytes": 7702,
+      "sha256": "272a251973aa9088980874ccf517b4649c42a16e86fcd6dd05481db087636090"
+    },
+    {
+      "path": "/work/repos/voice-ui-typellm-20261016/thinking-public-D-20261018.raw/QD03-current.json",
+      "bytes": 7379,
+      "sha256": "5a82a63c1c47b903ad17ee09e727b0f3725ebc0bdbecdf6e614cc30fffac7209"
+    },
+    {
+      "path": "/work/repos/voice-ui-typellm-20261016/thinking-public-D-20261018.raw/QD03-candidate.json",
+      "bytes": 7396,
+      "sha256": "80aa22058f644ebbe2814dc32ab3ab30681362df1c1ec57a72d8426ec63fdf06"
+    },
+    {
+      "path": "/work/repos/voice-ui-typellm-20261016/thinking-public-D-20261018.raw/QD04-candidate.json",
+      "bytes": 7366,
+      "sha256": "f8c39cc583f1b0907bc558377adc0d6b00385a46e120351976d0d54d5593ef6a"
+    },
+    {
+      "path": "/work/repos/voice-ui-typellm-20261016/thinking-public-D-20261018.raw/QD04-current.json",
+      "bytes": 7350,
+      "sha256": "1f5d7e2c347aef64961f1114f52adb28c1be706fb4c006495e9f6a9b768af9c5"
+    },
+    {
+      "path": "/work/repos/voice-ui-typellm-20261016/thinking-public-D-20261018.raw/identity.json",
+      "bytes": 4934,
+      "sha256": "d64202ab7645fe59b6c9067876dfd0255743a9ee078d25eaa8b0b96d6d591134"
+    },
+    {
+      "path": "/work/repos/voice-ui-typellm-20261016/thinking-public-D-20261018.raw/execution.json",
+      "bytes": 1287,
+      "sha256": "947c76f2faee567aed6db26680e44cc4d62eb85c6653edb9df658a51b3d25a0b"
+    },
+    {
+      "path": "/work/repos/voice-ui-typellm-20261016/thinking-public-D-20261018.raw/events.jsonl",
+      "bytes": 15525,
+      "sha256": "75d7f8c0ea1322b01751eb12d52609d2a70c7cd344cbf5fffe206e5ee4e492f4"
+    },
+    {
+      "path": "/work/repos/voice-ui-typellm-20261016/thinking-public-D-20261018.config.json",
+      "bytes": 1024,
+      "sha256": "208ca83344fb241df5a257dab005cc3ca6e0f645d6b46dbab4d5ccb12f424ebe"
+    },
+    {
+      "path": "/work/repos/voice-ui-typellm-20261016/thinking-public-D-20261018.process.json",
+      "bytes": 849,
+      "sha256": "a42d37e3560dca542b3e75cd750859e1e470314876d2a81f659bb23dc925754b"
+    },
+    {
+      "path": "/work/repos/voice-ui-typellm-20261016/thinking-public-D-20261018.orchestration.json",
+      "bytes": 622,
+      "sha256": "bf3e34280d0c7070f6e761637f8d53e86d0f189c3d34aefed18d69b12fb6be41"
+    },
+    {
+      "path": "/work/repos/voice-ui-typellm-20261016/thinking-public-D-20261018.root-zero.json",
+      "bytes": 869,
+      "sha256": "c1ea34299b6a7029800eafad9b49244d3e05cd0e62eab719189845f83c87bf93"
+    },
+    {
+      "path": "/work/repos/voice-ui-typellm-20261016/thinking-public-D-20261018.root-terminal.json",
+      "bytes": 453,
+      "sha256": "b79f676f5ac28f76a4b08a6be70875f801ab16cc59c2d8a547af91cd8c508b1a"
+    },
+    {
+      "path": "/work/repos/voice-ui-typellm-20261016/thinking-public-D-20261018.stdout.log",
+      "bytes": 5651,
+      "sha256": "deb7a3a18700c0164bbd2d151783da1517ac8c399b0f86f17ebb0900e4febc08"
+    },
+    {
+      "path": "/work/repos/voice-ui-typellm-20261016/thinking-public-D-20261018.stderr.log",
+      "bytes": 839,
+      "sha256": "8d70c09248e6e847fe36378309221ca8c4459f3191e8f8ce8fe99452b45e7e28"
+    },
+    {
+      "path": "/work/repos/voice-ui-typellm-20261016/thinking-public-D-20261018.driver.stdout.log",
+      "bytes": 46,
+      "sha256": "c23e8a57525303682ad74bc1bfe30dadb68f5ed800d905f03105fd02b4ff922b"
+    },
+    {
+      "path": "/work/repos/voice-ui-typellm-20261016/thinking-public-D-20261018.driver.stderr.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/work/repos/voice-ui-typellm-20261016/thinking-public-D-20261018.journal.jsonl",
+      "bytes": 59034,
+      "sha256": "3eead593ac154f199a00006aeaacc6928fc12e49f423f7ea8c5d8faf916358cd"
+    },
+    {
+      "path": "/work/repos/voice-ui-typellm-20261016/thinking-public-D-20261018.operator.mjs",
+      "bytes": 2500,
+      "sha256": "3f27223f6d8a83db022165dadd102e7861c36dcdf619090073f12debec59e56b"
+    },
+    {
+      "path": "/work/repos/voice-ui-typellm-20261016/thinking-public-D-20261018.root-zero.mjs",
+      "bytes": 2657,
+      "sha256": "d6dabf7db452060de1f32e16c449ee1e6ac9d9ec5a788cec0c04b7bd465b8808"
+    },
+    {
+      "path": "/work/repos/voice-ui-typellm-20261016/thinking-public-D-20261018.root-terminal.mjs",
+      "bytes": 2642,
+      "sha256": "7cdb9cced92d781a4f3274020c0169562619299abe5bcdd96073c31e35c55a22"
+    },
+    {
+      "path": "/work/repos/voice-ui-typellm-20261016/runtime-candidate-display-source-b6696c1f.json",
+      "bytes": 3974,
+      "sha256": "0746141020bee503a37266cf5910a73362bf7fcc10d35298243653d148b615d2"
+    },
+    {
+      "path": "/work/repos/voice-ui-typellm-20261016/thinking-b6696c1f.public.wire.json",
+      "bytes": 163805,
+      "sha256": "d19f1bef03a6b43e892050df34d9bde823e53211c76b788c459861a5f5821e22"
+    },
+    {
+      "path": "/nix/store/jw4lsrz6gm3dpanr6ckrn8s1wwlmdxm1-source/docs/voice-ui/extraction-cycle-20261018/thinking-labels/public.input.json",
+      "bytes": 14522,
+      "sha256": "b967459983b3e2ed94e0705d531b03fade70b5bbcb3ff03a90db6daeb93cb5aa"
+    },
+    {
+      "path": "/nix/store/jw4lsrz6gm3dpanr6ckrn8s1wwlmdxm1-source/docs/voice-ui/extraction-cycle-20261018/thinking-labels/public.oracle.json",
+      "bytes": 522,
+      "sha256": "412dce92ad21de5c598c373fd0f5fbb53c574cc07b00703f0d38e0087b4ff106"
+    },
+    {
+      "path": "/nix/store/jw4lsrz6gm3dpanr6ckrn8s1wwlmdxm1-source/docs/voice-ui/extraction-cycle-20261018/thinking-labels/evaluate.mjs",
+      "bytes": 8676,
+      "sha256": "4796df723e9017430708cdd9f1f2327b3ee97ec9f8898b0074ba891ce2e4b5b4"
+    }
+  ]
+}

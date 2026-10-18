@@ -1,0 +1,26 @@
+{
+  "schema": "voice-ui.extraction-oracle-release/1",
+  "status": "CORRESPONDING_ORACLE_ONLY_RELEASED_AFTER_STOP",
+  "released_at": "2026-10-18T03:23:53.694795+00:00",
+  "phase": "thinking-fresh-D-20261018",
+  "measurement_apps": "b6696c1f579851429cf0cc58a49b20c9ff663475",
+  "input_sha256": "dd66904853ae031c68e632c67d3bfc3a974141ce77fa4f83ecb406ad0a149874",
+  "oracle": {
+    "name": "thinking-D-fresh.oracle.json",
+    "bytes": 920,
+    "sha256": "a5cf1a90b928922d11fc1d1c8c69c6e54c98adbc194f71d011550040200db556"
+  },
+  "stop": {
+    "name": "thinking-fresh-D-independent-stop.json",
+    "sha256": "d95b4213d8ba73feefbe8c240144ec5431fb7e9d290877ecfdb74bfa98597ed9",
+    "journal_sha256": "2b938983023a8e2627041d52cb943a3d0f6bd530aeed637c606b816a57328d35",
+    "charged": {
+      "jev": 847,
+      "typellm": 136
+    },
+    "outstanding": 0,
+    "all_owned_pgids_absent_including_Z": 49
+  },
+  "private_validation": "NOT_RELEASED",
+  "scope": "Corresponding fixed four-case extraction oracle only; no validation, authoring or other sealed pools; no new real-call GO"
+}
