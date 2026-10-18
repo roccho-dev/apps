@@ -1,4 +1,4 @@
-import { ACTION_ADD_EDGE, ACTION_ADD_PART, ACTION_ARCHITECTURE, ACTION_COMPOSE, ACTION_PLACE_PART, ACTION_REMOVE_EDGE, ACTION_REVERSE_EDGE, ACTION_UNDO_REQUEST, ARCHITECTURE_GOAL_INTENT_KIND, ARCHITECTURE_INTENT_KIND, ARCHITECTURE_JUDGE_KIND, ARCHITECTURE_LOCATE_KIND, NONE, WHOLE, YES, partOption, relationSlot, relevantSlot, roleSlot } from "./contract.mjs";
+import { ACTION_ADD_EDGE, ACTION_ADD_PART, ACTION_ARCHITECTURE, ACTION_COMPOSE, ACTION_PLACE_PART, ACTION_REMOVE_EDGE, ACTION_REVERSE_EDGE, ACTION_UNDO_REQUEST, ARCHITECTURE_GOAL_INTENT_KIND, ARCHITECTURE_INTENT_KIND, ARCHITECTURE_JUDGE_KIND, ARCHITECTURE_LOCATE_KIND, GOAL_COMPLETION_KIND, NONE, WHOLE, YES, partOption, relationSlot, relevantSlot, roleSlot } from "./contract.mjs";
 
 // A choice question offers its alternatives as a criteria map keyed by the
 // value to be returned.
@@ -70,6 +70,17 @@ const labelled = (ids, label) => MISREADABLE.test(label) || ids.has(label) ? quo
 // edge as, or null: an architecture intent passes it, and a plain request,
 // which has no snapshot, describes every edge by its two ends only.
 export function questionsFor(state, slots, context) {
+  if (context.kind === GOAL_COMPLETION_KIND) return {
+    completion: {
+      instruction: "Does the current Working graph satisfy the whole utterance? Compare state.initial, the graph before this request, with state.graph, the whole current graph. Check every requested display name, kind, total or additional count, direct parent and directed connection, and reject unrequested additions or changes. An explicitly requested new or additional part must be added beyond the initial instances; an initial matching part is not a new addition. Existing content need not be removed unless the utterance asks. A missing executable option, selected history or a stopped loop does not prove completion. Choose incomplete when a requested condition is contradicted or missing, and unknown when any condition or reference cannot be decided. These are Working proposals, not proof of source relationships."
+        + GOAL_CONTEXT_NOTE,
+      options: criteria(slots.completion, key => ({
+        complete: "every requested condition is satisfied and there are no unrequested changes",
+        incomplete: "at least one requested condition is missing or contradicted, or an unrequested change is present",
+        unknown: "the whole request cannot be decided from the two graphs and utterance",
+      })[key]),
+    },
+  };
   if (state.candidates !== undefined) {
     // An offered part is named by its displayed name and its key; the name is
     // display data and may repeat, the key and the candidate id decide.

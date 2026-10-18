@@ -8,6 +8,7 @@
 export const REQUEST_KIND = "voice-ui.judge.request.v1";
 export const DECISION_KIND = "voice-ui.judge.decision.v1";
 export const GOAL_REQUEST_KIND = "voice-ui.judge.goal-local-delta.v7";
+export const GOAL_COMPLETION_KIND = "voice-ui.judge.goal-completion.v1";
 export const GOAL_REQUEST_MAX = 8;
 // The architecture page's requests, each its own closed kind. The intent is
 // the plain request with the prepared snapshot's parts beside it, by path or
@@ -293,6 +294,43 @@ const validGoalRequest = value => {
     && state.candidates.every(candidate => !state.selected.some(item => item.key === candidate.part));
 };
 
+// A terminal question reads both complete semantic graphs, never an offered
+// move or selected history. The initial graph distinguishes earlier content
+// from additions made for this utterance. Neither graph may be cropped.
+const validCompletionGraph = graph => {
+  if (!exactObject(graph, ["regions", "edges"])) return false;
+  const { regions, edges } = graph;
+  if (!Array.isArray(regions) || regions.length < 1 || regions.length > GRAPH_MAX
+    || !regions.every(region => exactObject(region, ["id", "label", "kind", "parent"])
+      && id(region.id) && text(region.label, LABEL_MAX) && KEY_PATTERN.test(region.kind ?? "")
+      && (region.parent === null || id(region.parent)))) return false;
+  const ids = regions.map(region => region.id);
+  if (!unique(ids) || regions.filter(region => region.parent === null).length !== 1
+    || !regions.every(region => region.parent === null || ids.includes(region.parent))) return false;
+  const parents = new Map(regions.map(region => [region.id, region.parent]));
+  for (const region of regions) {
+    const seen = new Set();
+    for (let at = region.id; at !== null; at = parents.get(at)) {
+      if (seen.has(at)) return false;
+      seen.add(at);
+    }
+  }
+  return Array.isArray(edges) && edges.length <= GRAPH_MAX
+    && edges.every(edge => exactObject(edge, ["id", "from", "to", "kind", "label"])
+      && id(edge.id) && ids.includes(edge.from) && ids.includes(edge.to) && edge.from !== edge.to
+      && KEY_PATTERN.test(edge.kind ?? "") && typeof edge.label === "string" && edge.label.length <= LABEL_MAX)
+    && unique(edges.map(edge => edge.id));
+};
+const validGoalCompletion = value => exactObject(value, ["kind", "state"])
+  && exactObject(value.state, ["utterance", "initial", "graph", "context"])
+  && text(value.state.utterance, TEXT_MAX)
+  && validCompletionGraph(value.state.initial) && validCompletionGraph(value.state.graph)
+  && validContext(value.state.context, ARCHITECTURE_CHANGES_MAX);
+
+export const goalCompletionSlots = () => Object.freeze({
+  completion: Object.freeze(["complete", "incomplete", "unknown"]),
+});
+
 // The prepared snapshot's identity.
 const validSource = source =>
   exactObject(source, ["handle", "commit"]) && KEY_PATTERN.test(source.handle ?? "") && COMMIT.test(source.commit ?? "");
@@ -315,6 +353,7 @@ const STATE_KEYS = Object.freeze(["utterance", "graph", "draft", "focus", "pendi
 
 // A plain request, or an architecture intent, each held to its own bounds.
 export function isRequest(value) {
+  if (value?.kind === GOAL_COMPLETION_KIND) return validGoalCompletion(value);
   if (value?.kind === GOAL_REQUEST_KIND) return validGoalRequest(value);
   if (value?.kind === ARCHITECTURE_GOAL_INTENT_KIND) {
     if (!exactObject(value, ["kind", "state"])) return false;

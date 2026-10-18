@@ -728,7 +728,10 @@ goalButton.addEventListener("click", () => withSurface("goal", async () => {
     });
     document.body.dataset.goal = JSON.stringify(result);
     if (result.reason === "adoption-unknown") invalidateView();
-    else setState("goal-stopped", `goal: stopped - ${result.reason} (unconfirmed)`);
+    else setState("goal-stopped", result.completion?.status === "complete"
+      ? "goal: Jev judged the whole request satisfied (unconfirmed)"
+      : result.completion?.status === "incomplete" ? "goal: Jev judged requirements still missing (unconfirmed)"
+        : `goal: stopped - ${result.reason} (unconfirmed)`);
   } finally {
     goalActive = false;
     sync();
