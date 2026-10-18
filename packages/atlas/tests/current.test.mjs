@@ -7,6 +7,11 @@ import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { declarationEvents, journalEvents } from '../collect/journal.mjs';
+import { currentEvents } from '../collect/worklog.mjs';
+import { toJsonl } from '../collect/collect.mjs';
+import { joinLog } from '../live.mjs';
+import { deriveAtlas } from '../events.mjs';
+import { contractWorld } from '../contract.mjs';
 
 // C2: current = record(agent), end to end: record → reduce → snapshot. The caller passes each current file as
 // `collect.mjs --current <author>=<path>` (one or more; the author is required, no default). Lines are
@@ -133,16 +138,42 @@ test('cold with --current and no --recorded-at: the cold events are the same on 
     && first.current[0].recordedAt === first.current[0].observedAt);
 }));
 
-// C2e (adrs#654): a worklog value is never a condition. G holds an ideal.set whose predicate targets work:* or
-// evidence:* — from a declaration file or from a comment alike; the reducer is unchanged.
-test('an ideal.set with a work: or evidence: predicate target is held at intake', () => {
+// C2e/C2f (adrs#654): a worklog value is never a condition. A declaration whose condition targets work:* or
+// evidence:* is held before D — from a declaration file, a comment or `live.mjs --purpose` alike, whatever its
+// kind (ideal.set, or the legacy purpose.set that carries requires). The reducer is unchanged.
+const ZERO = 'sha256:' + '0'.repeat(64), CONTROL = '{"schema":"atlas.control-norms/1","authority":false}\n';
+const workCondition = target => ({ ...req, id: 'w', predicate: { target: { kind: 'state', id: target }, op: 'equals', value: 'reported-done' } });
+const fromFile = text => declarationEvents({ path: 'p.jsonl', sha256: ZERO, text }, T1);
+const fromComment = text => journalEvents([{ repo: 'roccho-dev/apps', number: 89, commentId: 1, updatedAt: T1, author: 'P', text: '<!-- atlas-journal-v1 -->\n```jsonl\n' + text + '```\n' }], T1);
+// P reports work a as done: a claim at T1.
+const done = () => currentEvents([{ author: 'P', text: line({ kind: 'work.terminal', work_id: 'a', terminal: 'done' }) }], T1, T1, ['P']);
+const reduce = (purposeText, gEvents) => {
+  const { log, held } = joinLog(purposeText, [toJsonl(gEvents)]);
+  return { log, held: held.map(value => value.reason), frame: contractWorld(deriveAtlas(log, CONTROL)).frames.at(-1) };
+};
+
+test('an ideal.set with a work: or evidence: predicate target is held before D', () => {
   const ideal = target => line({ kind: 'ideal.set', recordedAt: '2026-10-19T01:00:00Z', purpose_id: 'purpose.current', purpose_rev: 'r1', version: 'v1',
-    requires: [req, { ...req, id: 'w', predicate: { target: { kind: 'state', id: target }, op: 'equals', value: 'reported-done' } }] });
-  for (const target of ['work:c2', 'evidence:c2']) {
-    const fromFile = declarationEvents({ path: 'p.jsonl', sha256: 'sha256:' + '0'.repeat(64), text: ideal(target) }, T1);
-    const fromComment = journalEvents([{ repo: 'roccho-dev/apps', number: 89, commentId: 1, updatedAt: T1, author: 'P', text: '<!-- atlas-journal-v1 -->\n```jsonl\n' + ideal(target) + '```\n' }], T1);
-    for (const events of [fromFile, fromComment]) assert.deepEqual(events.map(event => [event.kind, event.reason]), [['journal.held', 'worklog-target-in-predicate']]);
+    requires: [req, workCondition(target)] });
+  for (const target of ['work:c2', 'evidence:c2']) for (const intake of [fromFile, fromComment]) {
+    const { log, held } = joinLog('', [toJsonl([...fromFile(declaration.split('\n')[0]), ...intake(ideal(target))])]);
+    assert.ok(held.some(value => value.reason === 'worklog-target-in-predicate'), target);
+    assert.ok(!log.includes('"kind":"ideal.set"'), target);
   }
-  // Another target is unchanged: the same line with roccho-dev/apps#200:pr.merged is accepted.
-  assert.equal(declarationEvents({ path: 'p.jsonl', sha256: 'sha256:' + '0'.repeat(64), text: ideal('roccho-dev/apps#201:pr.merged') }, T1)[0].kind, 'ideal.set');
+  // Another target is unchanged: the same line with roccho-dev/apps#201:pr.merged is accepted.
+  assert.ok(joinLog('', [toJsonl([...fromFile(declaration.split('\n')[0]), ...fromFile(ideal('roccho-dev/apps#201:pr.merged'))])]).log.includes('"kind":"ideal.set"'));
+});
+
+test('R: a legacy purpose.set with requires on work:a is held via G and via --purpose; a claim never satisfies it', () => {
+  const legacy = { kind: 'purpose.set', recordedAt: '2026-10-19T01:30:00Z', purpose: { id: 'purpose.work', label: '作業で満たす' }, version: 'v2', label: '作業が終わる',
+    requires: [workCondition('work:a')] };
+  // G: P's declaration (purpose.current) plus a comment carrying the legacy purpose.set.
+  const g = reduce('', [...fromFile(declaration), ...fromComment(line(legacy)), ...done()]);
+  // --purpose: the same as D-form lines given straight to live.mjs, not through G.
+  const dForm = text => text.trim().split('\n').map(value => line({ ...JSON.parse(value), actor: 'P', source: { ref: 'hq:p.jsonl', digest: ZERO } })).join('');
+  const direct = reduce(dForm(declaration + line(legacy)), done());
+  for (const { held, frame } of [g, direct]) {
+    assert.ok(held.includes('worklog-target-in-predicate'));
+    assert.deepEqual([frame.gap.basis.purpose_id, frame.gap.summary.satisfied], ['purpose.current', 0]);
+  }
 });
