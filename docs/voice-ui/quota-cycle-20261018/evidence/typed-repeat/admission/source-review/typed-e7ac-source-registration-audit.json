@@ -1,0 +1,202 @@
+{
+  "status": "PASS",
+  "scope": "R25 source/registration checkpoint, NOT_MEASURED; no live execution authorization",
+  "apps": "e7ac78dc448ba84468db853591dace33c6de40f1",
+  "tree": "51e1fb1867c593cb78b3bc3d31e6bd29f15316e5",
+  "parent": "6f08f952249b64101ce350a16672dd05607f6f9e",
+  "changed_files": 20,
+  "authenticated_changed_Git_blobs_exact": true,
+  "public_seal_files_exact": 7,
+  "public_freeze_sha256": "8a5c84c4f3546a82fcc49ca4e7734a3f2ba58aafd8c322fc23c8b06d7889fd29",
+  "source_inventory": [
+    {
+      "path": "src/completion.mjs",
+      "sha256": "9b1ed7dac0f377f32c79254c457345276a653d2cb805e1657d7610c2d708183e",
+      "parent_sha256": "9b1ed7dac0f377f32c79254c457345276a653d2cb805e1657d7610c2d708183e",
+      "unchanged": true
+    },
+    {
+      "path": "src/literal-inventory.mjs",
+      "sha256": "ecdeb980fb826f800dfeb186e042b5a4edf85b32ecc8a97516eb55e81a9c37f9",
+      "parent_sha256": "ecdeb980fb826f800dfeb186e042b5a4edf85b32ecc8a97516eb55e81a9c37f9",
+      "unchanged": true
+    },
+    {
+      "path": "src/goal.mjs",
+      "sha256": "cd9101d6a222e31773c9523adeca3f7f9aa32990e30b39e06a7b872771422f3e",
+      "parent_sha256": "cd9101d6a222e31773c9523adeca3f7f9aa32990e30b39e06a7b872771422f3e",
+      "unchanged": true
+    },
+    {
+      "path": "src/contract.mjs",
+      "sha256": "f2c95212493f59fd80ef17270c2b5de0d51d795b26ac8a0e6dfa0fdb9dec30fe",
+      "parent_sha256": "f2c95212493f59fd80ef17270c2b5de0d51d795b26ac8a0e6dfa0fdb9dec30fe",
+      "unchanged": true
+    },
+    {
+      "path": "src/turn.mjs",
+      "sha256": "c5fc3489a5bd0861f0455bd9843f47e76030bb03a4fe55745cf00c29c79b7008",
+      "parent_sha256": "c5fc3489a5bd0861f0455bd9843f47e76030bb03a4fe55745cf00c29c79b7008",
+      "unchanged": true
+    },
+    {
+      "path": "src/session.mjs",
+      "sha256": "d6fcb97e581afb789ed6ecb339c06c378ef94283084df8ad3042ebe42c48cfe8",
+      "parent_sha256": "d6fcb97e581afb789ed6ecb339c06c378ef94283084df8ad3042ebe42c48cfe8",
+      "unchanged": true
+    },
+    {
+      "path": "functions/api/parts.mjs",
+      "sha256": "8dfe64a2e0d27a34cf68e44b6a903cd75ba87e860e07dc457ea22a9264186716",
+      "parent_sha256": "7a3ccc73d1a3bc2e1bdcc824879c4eadf6c0023c14c23555cd5f75ac4e8908f6",
+      "unchanged": false
+    },
+    {
+      "path": "functions/pages-worker.mjs",
+      "sha256": "0a88ce097a490d6f6920a6d007e8bffe66f8d2f5c344f611bf366f00ca8bb524",
+      "parent_sha256": "0a88ce097a490d6f6920a6d007e8bffe66f8d2f5c344f611bf366f00ca8bb524",
+      "unchanged": true
+    },
+    {
+      "path": "web/app.mjs",
+      "sha256": "3a9ac4eba0770949a219b35c97cd346d4a7912026fae2b2f21710251b86bbf2a",
+      "parent_sha256": "3a9ac4eba0770949a219b35c97cd346d4a7912026fae2b2f21710251b86bbf2a",
+      "unchanged": true
+    },
+    {
+      "path": "web/adapters/completion.mjs",
+      "sha256": "537bc46e93efe58fbdf466dd2493989ad5695209def769ec9da3ba68926edb5a",
+      "parent_sha256": "537bc46e93efe58fbdf466dd2493989ad5695209def769ec9da3ba68926edb5a",
+      "unchanged": true
+    },
+    {
+      "path": "dev/serve.mjs",
+      "sha256": "d044ea7f8ccbd7fd71fbe1447dcce0f30bfa831d471da3eef2e3377380532298",
+      "parent_sha256": "d044ea7f8ccbd7fd71fbe1447dcce0f30bfa831d471da3eef2e3377380532298",
+      "unchanged": true
+    },
+    {
+      "path": "tests/dependency-cycle-eval.mjs",
+      "sha256": "b92308340b7a54020c30ae1c1daa3b482b60263d080b3f2e2393909f6cfcd7c3",
+      "parent_sha256": "b92308340b7a54020c30ae1c1daa3b482b60263d080b3f2e2393909f6cfcd7c3",
+      "unchanged": true
+    },
+    {
+      "path": "tests/requirements-cycle-score.mjs",
+      "sha256": "3d779cf422e8cc0facc6f5ff566c3e77b36a61486f9586f120b0c1a722cd5a46",
+      "parent_sha256": "3d779cf422e8cc0facc6f5ff566c3e77b36a61486f9586f120b0c1a722cd5a46",
+      "unchanged": true
+    },
+    {
+      "path": "tests/requirements-cycle-audit.mjs",
+      "sha256": "692bdbaef8dbe28fe30fcdfe178202ebbdf3a4728bf0fe1c7310f72bf789c6eb",
+      "parent_sha256": "692bdbaef8dbe28fe30fcdfe178202ebbdf3a4728bf0fe1c7310f72bf789c6eb",
+      "unchanged": true
+    },
+    {
+      "path": "tests/dependency-cycle-score.mjs",
+      "sha256": "2f7f40afec31d1f7cded08951529a30d741f6ebfb8abf446900a7f6eb567ef91",
+      "parent_sha256": "2f7f40afec31d1f7cded08951529a30d741f6ebfb8abf446900a7f6eb567ef91",
+      "unchanged": true
+    },
+    {
+      "path": "tests/dependency-cycle-audit.mjs",
+      "sha256": "47dce6207c8b48dae6447d87ee1294d8495f28a31d2b474d5dc0c9b95998d66e",
+      "parent_sha256": "47dce6207c8b48dae6447d87ee1294d8495f28a31d2b474d5dc0c9b95998d66e",
+      "unchanged": true
+    },
+    {
+      "path": "tests/semantic-score.mjs",
+      "sha256": "3230791bd2b06ccbb73008723ab3709981ce6e2d65fc2fdbdec8cadf9d1cfec3",
+      "parent_sha256": "3230791bd2b06ccbb73008723ab3709981ce6e2d65fc2fdbdec8cadf9d1cfec3",
+      "unchanged": true
+    },
+    {
+      "path": "tests/requirements-cycle-http.mjs",
+      "sha256": "b3c1d052e2f7138532e0d7cac6ac7b3c7287b7af32b857990c1e6d14bb325386",
+      "parent_sha256": "b3c1d052e2f7138532e0d7cac6ac7b3c7287b7af32b857990c1e6d14bb325386",
+      "unchanged": true
+    },
+    {
+      "path": "tests/painted-goal.mjs",
+      "sha256": "c5ba117d1dea66d20c80b7f92b8184296ff79d4231da56f5a89836af4beb018b",
+      "parent_sha256": "c5ba117d1dea66d20c80b7f92b8184296ff79d4231da56f5a89836af4beb018b",
+      "unchanged": true
+    },
+    {
+      "path": "tests/intent-cycle-eval.mjs",
+      "sha256": "0dd9649d87f4b2f0d0e446b44f5dcd7bb09582e75eca8ca7113b8d0d4d741357",
+      "parent_sha256": "0dd9649d87f4b2f0d0e446b44f5dcd7bb09582e75eca8ca7113b8d0d4d741357",
+      "unchanged": true
+    },
+    {
+      "path": "tests/intent-cycle-score.mjs",
+      "sha256": "e6652eef8ee1b18c1b3c479b649033105c1ae27f360b0b9d4a16f898edc664cb",
+      "parent_sha256": "e6652eef8ee1b18c1b3c479b649033105c1ae27f360b0b9d4a16f898edc664cb",
+      "unchanged": true
+    },
+    {
+      "path": "tests/intent-cycle-audit.mjs",
+      "sha256": "151715f5c09a64a1187ad2557e13b3172801e8e8fa8ee492b31a5a7823222617",
+      "parent_sha256": "151715f5c09a64a1187ad2557e13b3172801e8e8fa8ee492b31a5a7823222617",
+      "unchanged": true
+    },
+    {
+      "path": "tests/frontier-cycle-eval.mjs",
+      "sha256": "3031b7f539752badd452b868c577daa6437647547233f81f78c1b0eea5db29f9",
+      "parent_sha256": "3031b7f539752badd452b868c577daa6437647547233f81f78c1b0eea5db29f9",
+      "unchanged": true
+    },
+    {
+      "path": "tests/frontier-cycle-score.mjs",
+      "sha256": "64fe98b9929ca13dcf57e41857da5eed656bb2d5457eab0aa9a78aad023ecf81",
+      "parent_sha256": "64fe98b9929ca13dcf57e41857da5eed656bb2d5457eab0aa9a78aad023ecf81",
+      "unchanged": true
+    },
+    {
+      "path": "tests/frontier-cycle-audit.mjs",
+      "sha256": "f903cd8813c33387ec69f2adc0d0f20e1fedfd5dd59cd07d02fa7ce84f37f89e",
+      "parent_sha256": "f903cd8813c33387ec69f2adc0d0f20e1fedfd5dd59cd07d02fa7ce84f37f89e",
+      "unchanged": true
+    },
+    {
+      "path": "tests/quota-cycle-eval.mjs",
+      "sha256": "959cfbc2207e8913dfaeca32713f00953d1cde82eac6b597b5f5ae33029491ff",
+      "parent_sha256": "c71d6aedd4eb7d3b314cacfffd94aaed30c8f8b70e37a3126fe9ebc15cb92aea",
+      "unchanged": false
+    },
+    {
+      "path": "tests/quota-cycle-score.mjs",
+      "sha256": "b2b7da61189a61b628181a00a1cb044f3e1d302c8a2c054a697e2379589dccfd",
+      "parent_sha256": "4abf6593fc8ab870319611ded3d9e50e2cebe37ff25edef72329cffabede5881",
+      "unchanged": false
+    },
+    {
+      "path": "tests/quota-cycle-audit.mjs",
+      "sha256": "f19c335d54d10a02cf13ffc79d755c1fc7b440ed3b06f1953300fb969a39359c",
+      "parent_sha256": "32d7620e2087fd45dcdb3bf68589fe4478199774150602e07af5c7b92ca6596f",
+      "unchanged": false
+    }
+  ],
+  "old_8_semantic_modules_unchanged": true,
+  "core_6_unchanged": true,
+  "quota_pure_grading_tail_unchanged": true,
+  "repeat_profile": "typed-ordinary-E-20261018",
+  "new_profile_schema": "existing seven quota /1 schemas, explicit closed repeat selector; old default retained",
+  "ordinary_comparison": "literal-v2 B vs adaptive-v3 C with D extraction; both quota; complete path effect, not thinking-only effect",
+  "product_change": "functions/api/parts.mjs only: ordinary check+adaptive-v3 uses existing thinking-labels; closed dependent stage and legacy/direct behavior retained",
+  "provider_binding": "independent Jev c7ed and Type a724 full formal descriptors/actual bytes; source extraction_profile thinking-labels; producer/config/source explicit matching repeat id",
+  "process": "public-E then final-E; fresh only after public actual gain; input only release then oracle only after stopped; baseline847/136; cap133/7; zero retries/corrections/setup",
+  "S_Type0_guard": "S2 sealed as B-known; frozen grade enforces typellm_sends===0, materialized/preparations zero; no payload disclosed",
+  "old_results_and_unconsumed_seals_preserved": true,
+  "source_native_tests": 35,
+  "compiled_targeted_tests": 5,
+  "empty_index": "PASS/NOT_MEASURED/quality-effect UNPROVEN",
+  "additional_dual_provider_binding_mutations": 9,
+  "external_provider_sends": 0,
+  "limitations": [
+    "live eligibility/quality/effect unmeasured",
+    "release39096337640 still in progress at source checkpoint",
+    "actual same-PID zero-send gate remains separate"
+  ]
+}

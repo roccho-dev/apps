@@ -1,0 +1,16 @@
+{
+  "status": "PASS",
+  "id": 5561432517,
+  "url": "https://github.com/roccho-dev/apps/pull/103#pullrequestreview-5561432517",
+  "commit": "e7ac78dc448ba84468db853591dace33c6de40f1",
+  "state": "COMMENTED",
+  "author": "roccho-dev",
+  "marker_count": 1,
+  "latest_non_dismissed": true,
+  "body_bytes": 2665,
+  "body_sha256": "95d98ac2f558ffe814d77a37aeef06e3f44a627b351e6de4b53291e7a727a3ba",
+  "apps_body_sha256": "3dddc993931f2e5502a6308e150ef7b53fd4f7497ee91a6fde1440c709500906",
+  "ui_body_sha256": "1dd6055be3cb4ca4d8f264618587e7b2ec43dc1ccceed29c8765c01fd9793f37",
+  "scope": "source checkpoint only, NOT_MEASURED, GET-only preparation admission; separate actual-zero live GO required",
+  "at": "2026-10-18T04:30:28.242529+00:00"
+}

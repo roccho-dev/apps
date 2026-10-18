@@ -1,0 +1,67 @@
+{
+  "schema": "voice-ui.independent-public-copy-allowlist/1",
+  "status": "CLOSED",
+  "apps": "e7ac78dc448ba84468db853591dace33c6de40f1",
+  "directory": "C:\\Users\\resta\\Codex\\repos\\apps.git\\.worktrees\\typellm-ci-review-20261017\\review-evidence",
+  "review": "https://github.com/roccho-dev/apps/pull/103#pullrequestreview-5561432517",
+  "scope": "R25 public source/runtime/wire/prepared/CI checkpoint only; no private inputs/oracles/validators/helpers or other paths copyable",
+  "members": [
+    {
+      "name": "typed-e7ac-source-registration-audit.json",
+      "bytes": 9199,
+      "sha256": "579073549065fb8ffcc1254d080cc475b547b0e8935b1a469dbc8668338b8866"
+    },
+    {
+      "name": "typed-e7ac-source-tests.json",
+      "bytes": 1459,
+      "sha256": "be89979ae2de7865785db58f81afbfc8c2f15b3058b3d32cb2a7318f5c6a15bc"
+    },
+    {
+      "name": "typed-e7ac-ci-artifact-audit.json",
+      "bytes": 677,
+      "sha256": "7b2ed04252e818aaf080152914fed5260714462d1aa9ed7d939eb457619e9376"
+    },
+    {
+      "name": "typed-e7ac-wire-audit.json",
+      "bytes": 3536,
+      "sha256": "a5d09f403349dcc1e29244acb81aa2663983add6a28e676715d030fc7f6ce7c1"
+    },
+    {
+      "name": "typed-e7ac-binding-audit.json",
+      "bytes": 940,
+      "sha256": "1a9a17ee08caa949e401df7bb4855e4a03a3f259c347371386db0f46f8d41a21"
+    },
+    {
+      "name": "typed-e7ac-prepared-audit.json",
+      "bytes": 1790,
+      "sha256": "6b14f83e7de89c2e4dea2bba1a9791cebb7f0b89b9618159089e072214d4a975"
+    },
+    {
+      "name": "typed-e7ac-pre-r25-terminal.json",
+      "bytes": 6800,
+      "sha256": "f1ff5ddf942507d7ccb1fe9468f77fe726e4d909e8e5eee34b75a8098a1429af"
+    },
+    {
+      "name": "typed-e7ac-post-r25-terminal.json",
+      "bytes": 360,
+      "sha256": "e4e3b21e3f5e7c75b15a80fb92a6dd5f50e6f402cb9c6bc1ab20078fa6e9e609"
+    },
+    {
+      "name": "typed-e7ac-r25-final-readback.json",
+      "bytes": 1212,
+      "sha256": "98f16e65cc44320caabd9f04bf20bf2990af63fe9645bb0e0cd24a34ab6bdabb"
+    },
+    {
+      "name": "apps-e7ac-r25-review-body.md",
+      "bytes": 2665,
+      "sha256": "95d98ac2f558ffe814d77a37aeef06e3f44a627b351e6de4b53291e7a727a3ba"
+    },
+    {
+      "name": "apps-e7ac-r25-published-readback.json",
+      "bytes": 738,
+      "sha256": "e41dcba9b53d0ce18b2a07df6e8af14050d417e967bf49688fb56761330ba0b8"
+    }
+  ],
+  "self_is_additionally_copyable": true,
+  "private_pool_remains_unreleased": true
+}

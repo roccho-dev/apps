@@ -1,0 +1,41 @@
+{
+  "status": "PASS",
+  "source": "e7ac78dc448ba84468db853591dace33c6de40f1",
+  "source_snapshot": "Exact raw Git blobs via cat-file,171 files; no checkout normalization",
+  "results": [
+    {
+      "name": "pure-source",
+      "exit_code": 0,
+      "stats": {
+        "tests": 35,
+        "pass": 35,
+        "fail": 0,
+        "skipped": 0
+      },
+      "stdout_sha256": "a6c119460c2f403a38777d4fadeab5016e27031be665e15c0f02aab3bfeb7905",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "compiled-targeted",
+      "exit_code": 0,
+      "stats": {
+        "tests": 5,
+        "pass": 5,
+        "fail": 0,
+        "skipped": 0
+      },
+      "stdout_sha256": "05fc18cb578441adc2e55ad7ee724001a2c3e7ab24cedbaa3e3aeb68a820e6b9",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "empty-closure",
+      "exit_code": 0,
+      "stats": {},
+      "stdout_sha256": "0a0db6cee5e91b38c98afd789ac7ec7100193fde7b73bd244628171b49fb31c3",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ],
+  "empty_receipt_sha256": "46da19613b8f937437c12a938b80dc3aecb123cdf1308de06ec48a657d656515",
+  "initial_attempt_retained": "Git archive Windows CRLF conversion caused correct fixed-hash refusal; old snapshot/logs retained, source and criteria unchanged",
+  "reviewer_real_provider_calls": 0
+}

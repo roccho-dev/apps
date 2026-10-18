@@ -45,6 +45,30 @@ Jevは正式c7ed、TypeLLMは正式a724の別々のlocator・ZIP・manifest・pr
 
 各1000以内。追加疎通・retry・correction0。20Jevは未配賦で、未使用phase枠も自動転用しない。予約と実送は、完成物・基準・入力hash・callerと独立事前確認を固定した後だけ行う。
 
-現在NOT_MEASURED。候補と[公開登録](../preregistered/quota-cycle-typed-commitment.json)・[工程](../preregistered/quota-cycle-typed-protocol.md)を固定し、API予約・送信0のまま完成物CIと独立入場確認へ進む。未見本文・oracleは未解放。前回Dは[exact-6f08のR24](https://github.com/roccho-dev/apps/pull/103#pullrequestreview-5561339329)まで閉包し、公開gain1・未見gain0、未見品質PASS/改善gate UNMETを保持する。
+公開1対を一度実行し、**公開gateはUNMET**。B/Cの2セルは有効で実適格・初期literalも一致したが、両方とも期待図は未完成、gain0・回帰0・誤採用0だった。未見6例の入力・oracleは解放せず、実行していない。
+
+| 段階 | 公開TEP01の事実 | 判定の限界 |
+| --- | --- | --- |
+| 完全NEWの候補生成 | CがAPI / step / 2を原文どおり返した | この公開1例の抽出成功。一般化・thinking単独効果ではない |
+| 在庫との差分 | APIは在庫1個なので不足は1個。独立式と一致 | Working既存ノードは在庫へ数えない |
+| Jevによる候補の検証 | completeを選んだがconfidence 0.46で既存0.5基準に届かずunknown | 閾値・採点・受理式は変更していない。confidence低下の原因は未証明 |
+| 採用・期待図の完成 | materializeもGoalも実行されず、両armで元図不変 | 通常画面での補完完成は未達。描画機構の限界という結果ではない |
+| 未見評価 | 非解放・未実行 | 品質・補完効果ともUNPROVEN。NO_EFFECTへ読み替えない |
+
+実送はJev3 / TypeLLM1、累計850 / 137。予約0、旧cutoffの原bytesを保持し、50個のledger所有プロセス群はZを含め全て不在。追加疎通・retry・correctionは0。未使用phase枠は転用しない。
+
+測定head e7ac78dc448ba84468db853591dace33c6de40f1の4CIは成功。送信前の[独立R25](https://github.com/roccho-dev/apps/pull/103#pullrequestreview-5561432517)と、同PIDの送信ゼロ確認、停止後の固定raw / provider / replay検算を保存する。結果保存headのCI閉包と独立最終確認は別途記録する。
+
+## 打開策と優先順位
+
+順位は現時点の主観評価で、実証済みの改善率ではない。[adrs#449](https://github.com/roccho-dev/adrs/issues/449)に従い、達成状態・境界・必要証拠を問い、特定のpromptや実装を採用条件にしない。
+
+| 主観順位 | 小さく問うこと | 背景・必要な証拠 |
+| ---: | --- | --- |
+| 1 | 正しい新規部品集合を受理し、誤った集合を拒否できるか | 今回の候補は正解でもVで停止。表示名・種類・総数・過不足の正負両方を、既存基準のまま確かめる |
+| 2 | 上記を通った補完で、通常画面の期待図まで完成するか | 候補生成の成功から製品効果へ飛躍しない。同じ入力・順序・予算で供給済み／不足／対照を残す |
+| 3 | 有限Bが扱える範囲と、不足・未認識の境界を説明できるか | 最小構成の採用判断に必要。未認識を不足確定にせず、名称・個数・対照の退行を数える |
+| 4 | CIから実API実行を開始して閉じられるか | 現在のCIは停止済み証拠を再検算する。CI起点の実送は未証明で、品質とは別に問う |
+| 5 | より広い図・表現やthinking量の追加が必要か | 今回は描画前の検証で停止。現在の失敗だけを根拠に拡大しない |
 
 通常UIの有限品質/補完効果、CI起点の実API実行、4方式比較完了、通貨費用、任意文一般化、TypeLLM一般の有効/無効、sys2相当性と正式採用は別々に扱う。Appsはdraft/open/unmerged、UI#362の明示的人間merge条件を保持する。

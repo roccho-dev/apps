@@ -1,0 +1,47 @@
+{
+  "status": "PASS",
+  "scope": "static prepared files only; no launch and no provider authorization",
+  "apps": "e7ac78dc448ba84468db853591dace33c6de40f1",
+  "files": [
+    {
+      "name": "quota-typed-public-E-20261018.config.json",
+      "bytes": 1256,
+      "sha256": "b5693ee5661855e8e636fe5ea0138610be0b1391ba07f2b316474541e61a668b"
+    },
+    {
+      "name": "quota-typed-public-E-20261018.operator.mjs",
+      "bytes": 2937,
+      "sha256": "998badafa3a1464d46fc74b1acddce0324a32faff7b203053809c2a859e4664f"
+    },
+    {
+      "name": "quota-typed-public-E-20261018.root-zero.mjs",
+      "bytes": 4334,
+      "sha256": "52b7eb71b5514c2eaf15199e7efce8b44244b310f9d2a175c16875ae903f0689"
+    },
+    {
+      "name": "quota-typed-public-E-20261018.root-terminal.mjs",
+      "bytes": 3381,
+      "sha256": "6c8a54f1002c953d32a88490b2401f5cc369f998743a3f7474c296d8a16d0f92"
+    }
+  ],
+  "six_unchanged_driver_flags": true,
+  "same_immutable_input_source_driver_artifact": true,
+  "PATH_only_driver_environment": true,
+  "one_operator_no_retry": true,
+  "finally_strict_manager_stop_and_fsynced_immediate_journal": true,
+  "per_check_40s_HTTP45s_Goal180s_unchanged": true,
+  "outer_timeout_is_orchestration_only": 2500000,
+  "public_case_pairs": 1,
+  "allowances": {
+    "jev": 19,
+    "typellm": 1
+  },
+  "root_terminal_separates_execution_and_quality": true,
+  "terminal_expected_owned_groups": 50,
+  "prior_charged": {
+    "jev": 847,
+    "typellm": 136
+  },
+  "preliminary_escape_objection": "WITHDRAWN: reviewer misread JSON presentation; exact original bytes contain one slash for regex/escape, no change needed; original hashes retained",
+  "next_gate": "one GET-only launch then independent actual PID/start/FD/preload/caps/providers/wire/zero-send check before any model POST"
+}

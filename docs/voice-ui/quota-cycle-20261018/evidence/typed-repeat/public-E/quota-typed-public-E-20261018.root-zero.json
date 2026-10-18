@@ -1,0 +1,22 @@
+{
+  "status": "PASS",
+  "scope": "ROOT_ZERO_SEND_PREFLIGHT_NOT_INDEPENDENT_GO",
+  "at": "2026-10-18T04:35:24.423Z",
+  "phase": "quota-typed-public-E-20261018",
+  "pid": 396885,
+  "start_ticks": "20580362",
+  "pgid": 396885,
+  "uid": 1000,
+  "config_sha256": "b5693ee5661855e8e636fe5ea0138610be0b1391ba07f2b316474541e61a668b",
+  "process_sha256": "15d59a77370574add95e4e5a6a80ee5869947770a5c71cb1dcbaf957ee05681a",
+  "runtime_sha256": "b6eb4d23c2a94f49bf7fdfd711ad10f2ffca5deb32f495abac76fd2a254a2e67",
+  "wire_sha256": "6bc594aee2ae7952451fff598da808d894a5c80a2f236fd3f41f602b1a3e3f4a",
+  "identity_sha256": "6aed5fa7a97091df8cda4e1e982227990ff89739457d8de0d41cc6fee4463598",
+  "launcher_sha256": "2bda2882f0d8e489198241dc987d2cd28f989dd7fefad1a1640e152ac913a6c5",
+  "driver_sha256": "959cfbc2207e8913dfaeca32713f00953d1cde82eac6b597b5f5ae33029491ff",
+  "provider_sends": {
+    "jev": 0,
+    "typellm": 0
+  },
+  "served_index_equals_completed_artifact": true
+}

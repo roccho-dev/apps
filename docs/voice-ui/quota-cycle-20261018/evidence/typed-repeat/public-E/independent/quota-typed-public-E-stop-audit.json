@@ -1,0 +1,425 @@
+{
+  "schema": "voice-ui.independent-stopped-physical/1",
+  "status": "PASS",
+  "observed_at": "2026-10-18T04:39:44.397962+00:00",
+  "phase": "quota-typed-public-E-20261018",
+  "axis": "E",
+  "repeat_profile": "typed-ordinary-E-20261018",
+  "pid": 396885,
+  "start_ticks": "20580362",
+  "pid_absent": true,
+  "pgid_all_members_including_zombies": [],
+  "owned_group_count": 50,
+  "all_owned_groups": [
+    {
+      "phase": "poc-main-1",
+      "pid": 98069,
+      "pgid": 98069,
+      "start_ticks": "6787546",
+      "all_members_including_zombies": []
+    },
+    {
+      "phase": "poc-main-2",
+      "pid": 98609,
+      "pgid": 98609,
+      "start_ticks": "6833888",
+      "all_members_including_zombies": []
+    },
+    {
+      "phase": "poc-main-3",
+      "pid": 99783,
+      "pgid": 99783,
+      "start_ticks": "7149546",
+      "all_members_including_zombies": []
+    },
+    {
+      "phase": "poc-main-4",
+      "pid": 100368,
+      "pgid": 100368,
+      "start_ticks": "7245695",
+      "all_members_including_zombies": []
+    },
+    {
+      "phase": "poc-main-5",
+      "pid": 101417,
+      "pgid": 101417,
+      "start_ticks": "7530557",
+      "all_members_including_zombies": []
+    },
+    {
+      "phase": "poc-main-6",
+      "pid": 102693,
+      "pgid": 102693,
+      "start_ticks": "7751187",
+      "all_members_including_zombies": []
+    },
+    {
+      "phase": "poc-fresh-7",
+      "pid": 103224,
+      "pgid": 103224,
+      "start_ticks": "7802310",
+      "all_members_including_zombies": []
+    },
+    {
+      "phase": "poc-ready-8",
+      "pid": 103655,
+      "pgid": 103655,
+      "start_ticks": "7896006",
+      "all_members_including_zombies": []
+    },
+    {
+      "phase": "candidate-public-20261017",
+      "pid": 233467,
+      "pgid": 233467,
+      "start_ticks": "13622035",
+      "all_members_including_zombies": []
+    },
+    {
+      "phase": "candidate-type-diagnostic-1",
+      "pid": 233952,
+      "pgid": 233952,
+      "start_ticks": "13654560",
+      "all_members_including_zombies": []
+    },
+    {
+      "phase": "candidate-type-diagnostic-2",
+      "pid": 239615,
+      "pgid": 239615,
+      "start_ticks": "13708110",
+      "all_members_including_zombies": []
+    },
+    {
+      "phase": "candidate-type-diagnostic-3",
+      "pid": 242236,
+      "pgid": 242236,
+      "start_ticks": "13717798",
+      "all_members_including_zombies": []
+    },
+    {
+      "phase": "candidate-correction-1-20261017",
+      "pid": 252935,
+      "pgid": 252935,
+      "start_ticks": "13829959",
+      "all_members_including_zombies": []
+    },
+    {
+      "phase": "candidate-correction-2-20261017",
+      "pid": 259519,
+      "pgid": 259519,
+      "start_ticks": "13920555",
+      "all_members_including_zombies": []
+    },
+    {
+      "phase": "candidate-public-remainder-20261017",
+      "pid": 261711,
+      "pgid": 261711,
+      "start_ticks": "13955189",
+      "all_members_including_zombies": []
+    },
+    {
+      "phase": "candidate-fresh-20261017",
+      "pid": 270500,
+      "pgid": 270500,
+      "start_ticks": "14088123",
+      "all_members_including_zombies": []
+    },
+    {
+      "phase": "axes-public-G-20261017",
+      "pid": 308086,
+      "pgid": 308086,
+      "start_ticks": "15074155",
+      "all_members_including_zombies": []
+    },
+    {
+      "phase": "axes-public-R-20261017",
+      "pid": 308609,
+      "pgid": 308609,
+      "start_ticks": "15093863",
+      "all_members_including_zombies": []
+    },
+    {
+      "phase": "axes-public-F-20261017",
+      "pid": 309041,
+      "pgid": 309041,
+      "start_ticks": "15114628",
+      "all_members_including_zombies": []
+    },
+    {
+      "phase": "axes-public-E-20261017",
+      "pid": 309395,
+      "pgid": 309395,
+      "start_ticks": "15135567",
+      "all_members_including_zombies": []
+    },
+    {
+      "phase": "axes-final-G-20261017",
+      "pid": 311739,
+      "pgid": 311739,
+      "start_ticks": "15269329",
+      "all_members_including_zombies": []
+    },
+    {
+      "phase": "axes-final-R-20261017",
+      "pid": 312045,
+      "pgid": 312045,
+      "start_ticks": "15291612",
+      "all_members_including_zombies": []
+    },
+    {
+      "phase": "axes-final-F-20261017",
+      "pid": 312711,
+      "pgid": 312711,
+      "start_ticks": "15313164",
+      "all_members_including_zombies": []
+    },
+    {
+      "phase": "axes-final-E-20261017",
+      "pid": 313201,
+      "pgid": 313201,
+      "start_ticks": "15339382",
+      "all_members_including_zombies": []
+    },
+    {
+      "phase": "requirements-public-F-20261018",
+      "pid": 320853,
+      "pgid": 320853,
+      "start_ticks": "15873648",
+      "all_members_including_zombies": []
+    },
+    {
+      "phase": "requirements-correction1-F-20261018",
+      "pid": 322497,
+      "pgid": 322497,
+      "start_ticks": "15998732",
+      "all_members_including_zombies": []
+    },
+    {
+      "phase": "requirements-correction1-V-20261018",
+      "pid": 322721,
+      "pgid": 322721,
+      "start_ticks": "16014619",
+      "all_members_including_zombies": []
+    },
+    {
+      "phase": "requirements-correction2-F-20261018",
+      "pid": 323862,
+      "pgid": 323862,
+      "start_ticks": "16150741",
+      "all_members_including_zombies": []
+    },
+    {
+      "phase": "requirements-correction2-V-20261018",
+      "pid": 324288,
+      "pgid": 324288,
+      "start_ticks": "16176096",
+      "all_members_including_zombies": []
+    },
+    {
+      "phase": "dependency-public-F-20261018",
+      "pid": 329873,
+      "pgid": 329873,
+      "start_ticks": "16800830",
+      "all_members_including_zombies": []
+    },
+    {
+      "phase": "dependency-public-V-20261018",
+      "pid": 330205,
+      "pgid": 330205,
+      "start_ticks": "16827734",
+      "all_members_including_zombies": []
+    },
+    {
+      "phase": "dependency-public-E-20261018",
+      "pid": 330456,
+      "pgid": 330456,
+      "start_ticks": "16837431",
+      "all_members_including_zombies": []
+    },
+    {
+      "phase": "intent-public-G0-20261018",
+      "pid": 334177,
+      "pgid": 334177,
+      "start_ticks": "17270422",
+      "all_members_including_zombies": []
+    },
+    {
+      "phase": "frontier-public-G0-20261018",
+      "pid": 345186,
+      "pgid": 345186,
+      "start_ticks": "17843257",
+      "all_members_including_zombies": []
+    },
+    {
+      "phase": "frontier-public-E-20261018",
+      "pid": 345714,
+      "pgid": 345714,
+      "start_ticks": "17885135",
+      "all_members_including_zombies": []
+    },
+    {
+      "phase": "frontier-final-V-20261018",
+      "pid": 346779,
+      "pgid": 346779,
+      "start_ticks": "17941790",
+      "all_members_including_zombies": []
+    },
+    {
+      "phase": "frontier-final-F-20261018",
+      "pid": 347100,
+      "pgid": 347100,
+      "start_ticks": "17966903",
+      "all_members_including_zombies": []
+    },
+    {
+      "phase": "frontier-final-E-20261018",
+      "pid": 347646,
+      "pgid": 347646,
+      "start_ticks": "18017291",
+      "all_members_including_zombies": []
+    },
+    {
+      "phase": "quota-public-R-20261018",
+      "pid": 363994,
+      "pgid": 363994,
+      "start_ticks": "18611793",
+      "all_members_including_zombies": []
+    },
+    {
+      "phase": "quota-public-E-20261018",
+      "pid": 369297,
+      "pgid": 369297,
+      "start_ticks": "18657701",
+      "all_members_including_zombies": []
+    },
+    {
+      "phase": "quota-final-R-20261018",
+      "pid": 370666,
+      "pgid": 370666,
+      "start_ticks": "18689524",
+      "all_members_including_zombies": []
+    },
+    {
+      "phase": "quota-final-E-20261018",
+      "pid": 376131,
+      "pgid": 376131,
+      "start_ticks": "18725492",
+      "all_members_including_zombies": []
+    },
+    {
+      "phase": "extraction-public-A-20261018",
+      "pid": 387723,
+      "pgid": 387723,
+      "start_ticks": "19377143",
+      "all_members_including_zombies": []
+    },
+    {
+      "phase": "extraction-public-A2-20261018",
+      "pid": 388005,
+      "pgid": 388005,
+      "start_ticks": "19385791",
+      "all_members_including_zombies": []
+    },
+    {
+      "phase": "extraction-public-A3-20261018",
+      "pid": 388291,
+      "pgid": 388291,
+      "start_ticks": "19397886",
+      "all_members_including_zombies": []
+    },
+    {
+      "phase": "display-source-public-B-20261018",
+      "pid": 390121,
+      "pgid": 390121,
+      "start_ticks": "19632564",
+      "all_members_including_zombies": []
+    },
+    {
+      "phase": "scalar-public-C-20261018",
+      "pid": 391415,
+      "pgid": 391415,
+      "start_ticks": "19750071",
+      "all_members_including_zombies": []
+    },
+    {
+      "phase": "thinking-public-D-20261018",
+      "pid": 393551,
+      "pgid": 393551,
+      "start_ticks": "20065055",
+      "all_members_including_zombies": []
+    },
+    {
+      "phase": "thinking-fresh-D-20261018",
+      "pid": 394238,
+      "pgid": 394238,
+      "start_ticks": "20144109",
+      "all_members_including_zombies": []
+    },
+    {
+      "phase": "quota-typed-public-E-20261018",
+      "pid": 396885,
+      "pgid": 396885,
+      "start_ticks": "20580362",
+      "all_members_including_zombies": []
+    }
+  ],
+  "pending": null,
+  "sent": {
+    "jev": 3,
+    "typellm": 1
+  },
+  "charged": {
+    "jev": 850,
+    "typellm": 137
+  },
+  "prior_charged": {
+    "jev": 847,
+    "typellm": 136
+  },
+  "journal_sha256": "90525733f94f161502411d957c953e1162850e7a1740f13cdad69a455e0d1478",
+  "baseline_prefix_sha256": "2b938983023a8e2627041d52cb943a3d0f6bd530aeed637c606b816a57328d35",
+  "prefix_raw_unchanged": true,
+  "stdout_sha256": "0f0270234eb7130d4d9155c23f0648920a6f3e34acd4b5d4512f719cb6801415",
+  "stderr_sha256": "be0473ab3715e69ebcba65734ee7ebbbf5bcfaa971c5677eb9ffaf6e8e0219c1",
+  "raw_sha256": {
+    "TEP01-B.json": "0fa523faa95140e47323dadb57bfd73287d197ad1a1b2699129091024feb3540",
+    "TEP01-C.json": "9140627155e55748d9cc0e99b000186b123ad1e81abbb5e8d0b318d979d4075e",
+    "identity.json": "f8793faa8e1ca69d05d657a87d5cf62456d770a9c505a4175ffbabb28d836998",
+    "events.jsonl": "5fa991675d28c5e1ac216a45160bb90d1eb1cd94c06e1602abe59ec493ec8f6c",
+    "execution.json": "a9015522fdde4d1089543d6b9f58859599ee8ca632ae9f7e96a93b4de74a4dc5"
+  },
+  "raw_files": 5,
+  "execution_exit": 0,
+  "scope": "Independently observed all50 ledger-owned PGIDs empty including zombies; exact source28/runtime/raw/strict counters and immediate cutoff joined. No quality conclusion inferred from stop.",
+  "reviewer_real_provider_sends": 0,
+  "runtime_identity_sha256": "6aed5fa7a97091df8cda4e1e982227990ff89739457d8de0d41cc6fee4463598",
+  "source28_sha256": {
+    "src/completion.mjs": "9b1ed7dac0f377f32c79254c457345276a653d2cb805e1657d7610c2d708183e",
+    "src/literal-inventory.mjs": "ecdeb980fb826f800dfeb186e042b5a4edf85b32ecc8a97516eb55e81a9c37f9",
+    "src/goal.mjs": "cd9101d6a222e31773c9523adeca3f7f9aa32990e30b39e06a7b872771422f3e",
+    "src/contract.mjs": "f2c95212493f59fd80ef17270c2b5de0d51d795b26ac8a0e6dfa0fdb9dec30fe",
+    "src/turn.mjs": "c5fc3489a5bd0861f0455bd9843f47e76030bb03a4fe55745cf00c29c79b7008",
+    "src/session.mjs": "d6fcb97e581afb789ed6ecb339c06c378ef94283084df8ad3042ebe42c48cfe8",
+    "functions/api/parts.mjs": "8dfe64a2e0d27a34cf68e44b6a903cd75ba87e860e07dc457ea22a9264186716",
+    "functions/pages-worker.mjs": "0a88ce097a490d6f6920a6d007e8bffe66f8d2f5c344f611bf366f00ca8bb524",
+    "web/app.mjs": "3a9ac4eba0770949a219b35c97cd346d4a7912026fae2b2f21710251b86bbf2a",
+    "web/adapters/completion.mjs": "537bc46e93efe58fbdf466dd2493989ad5695209def769ec9da3ba68926edb5a",
+    "dev/serve.mjs": "d044ea7f8ccbd7fd71fbe1447dcce0f30bfa831d471da3eef2e3377380532298",
+    "tests/dependency-cycle-eval.mjs": "b92308340b7a54020c30ae1c1daa3b482b60263d080b3f2e2393909f6cfcd7c3",
+    "tests/requirements-cycle-score.mjs": "3d779cf422e8cc0facc6f5ff566c3e77b36a61486f9586f120b0c1a722cd5a46",
+    "tests/requirements-cycle-audit.mjs": "692bdbaef8dbe28fe30fcdfe178202ebbdf3a4728bf0fe1c7310f72bf789c6eb",
+    "tests/dependency-cycle-score.mjs": "2f7f40afec31d1f7cded08951529a30d741f6ebfb8abf446900a7f6eb567ef91",
+    "tests/dependency-cycle-audit.mjs": "47dce6207c8b48dae6447d87ee1294d8495f28a31d2b474d5dc0c9b95998d66e",
+    "tests/semantic-score.mjs": "3230791bd2b06ccbb73008723ab3709981ce6e2d65fc2fdbdec8cadf9d1cfec3",
+    "tests/requirements-cycle-http.mjs": "b3c1d052e2f7138532e0d7cac6ac7b3c7287b7af32b857990c1e6d14bb325386",
+    "tests/painted-goal.mjs": "c5ba117d1dea66d20c80b7f92b8184296ff79d4231da56f5a89836af4beb018b",
+    "tests/intent-cycle-eval.mjs": "0dd9649d87f4b2f0d0e446b44f5dcd7bb09582e75eca8ca7113b8d0d4d741357",
+    "tests/intent-cycle-score.mjs": "e6652eef8ee1b18c1b3c479b649033105c1ae27f360b0b9d4a16f898edc664cb",
+    "tests/intent-cycle-audit.mjs": "151715f5c09a64a1187ad2557e13b3172801e8e8fa8ee492b31a5a7823222617",
+    "tests/frontier-cycle-eval.mjs": "3031b7f539752badd452b868c577daa6437647547233f81f78c1b0eea5db29f9",
+    "tests/frontier-cycle-score.mjs": "64fe98b9929ca13dcf57e41857da5eed656bb2d5457eab0aa9a78aad023ecf81",
+    "tests/frontier-cycle-audit.mjs": "f903cd8813c33387ec69f2adc0d0f20e1fedfd5dd59cd07d02fa7ce84f37f89e",
+    "tests/quota-cycle-eval.mjs": "959cfbc2207e8913dfaeca32713f00953d1cde82eac6b597b5f5ae33029491ff",
+    "tests/quota-cycle-score.mjs": "b2b7da61189a61b628181a00a1cb044f3e1d302c8a2c054a697e2379589dccfd",
+    "tests/quota-cycle-audit.mjs": "f19c335d54d10a02cf13ffc79d755c1fc7b440ed3b06f1953300fb969a39359c"
+  }
+}
