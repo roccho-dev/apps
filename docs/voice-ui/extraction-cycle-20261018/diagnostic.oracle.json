@@ -1,0 +1,32 @@
+{
+  "schema": "voice-ui.extraction-diagnostic-oracle/1",
+  "scope": "PUBLIC_KNOWN_TWO_CASE_CONDITION_DIAGNOSTIC_ONLY_NOT_FRESH_QUALITY_OR_END_TO_END_EFFECT",
+  "required": {
+    "QE03": [
+      {
+        "label": "出荷可否",
+        "kind": "decision",
+        "quantity": 1
+      }
+    ],
+    "QE04": [
+      {
+        "label": "API",
+        "kind": "step",
+        "quantity": 2
+      }
+    ]
+  },
+  "criteria": {
+    "exact": "all requested NEW label/kind/quantity pairs exactly once, no extras",
+    "structural_invalid": "HTTP success with invalid response/closed slots is INVALID, never semantic failure or success",
+    "transport_unknown": "all HTTP failures or missing responses stay separately UNKNOWN/INVALID",
+    "comparison": "per case and repeat, compare semantic correctness only when both cells have valid transport and contract; contract-rate differences separate",
+    "interpretation": [
+      "Repeat-consistent condition differences support a next finite hypothesis, not a unique internal mechanism.",
+      "Mixed changes or mixed repetitions mean no stable distinction.",
+      "All equal means this diagnostic did not distinguish conditions.",
+      "No fresh-quality, ordinary-UI, renderer, full-Type or general efficacy claim."
+    ]
+  }
+}
