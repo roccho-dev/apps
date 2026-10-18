@@ -401,7 +401,8 @@ export function readDisplaySourceSlots(source, context) {
 
 // This question receives no expected answer, oracle, parent or edge proposal.
 // Keep the dependent extraction DAG, but ask its leaves as top-level scalars.
-export function flatRequiredRequest(context) {
+export function flatRequiredRequest(context, { labelThinking = false } = {}) {
+  if (typeof labelThinking !== "boolean") throw new Error("invalid label thinking profile");
   const request = requiredRequest(context, { generation: "dependent" }), questions = {};
   const fields = ["label", "kind", "quantity"];
   for (const [name, parent] of Object.entries(request.questions)) {
@@ -409,6 +410,10 @@ export function flatRequiredRequest(context) {
     for (const [field, schema] of Object.entries(parent.properties)) {
       const depends_on = [...inherited, ...(schema.depends_on ?? []).map(key => name + "_" + key)];
       questions[name + "_" + field] = { ...schema, instructions: parent.instructions + "\n" + schema.instructions };
+      if (labelThinking && field === "label") {
+        questions[name + "_" + field].thinking = true;
+        questions[name + "_" + field].thinking_budget = 512;
+      }
       if (depends_on.length) questions[name + "_" + field].depends_on = depends_on;
       else delete questions[name + "_" + field].depends_on;
     }

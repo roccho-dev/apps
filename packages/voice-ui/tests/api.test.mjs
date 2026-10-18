@@ -433,6 +433,34 @@ test("compiled flat extraction sends nine scalar questions through the formal pr
   assert.equal(calls.length, 1);
 });
 
+test("compiled thinking extraction enables only three label fields in one typed call", async () => {
+  const input = { kind: "voice-ui.goal.inventory.v1", state: { utterance: "Containerに工程を1個、表示名は検算窓",
+    head: "fixture-head", regions: [{ id: "root", parent: null, label: "World", kind: "boundary" },
+      { id: "container", parent: "root", label: "Container", kind: "group" }], edges: [],
+    parts: [{ key: "step", label: "工程", kind: "step", purpose: "ordinary step" }] } };
+  const invoke = mode => worker.fetch(new Request("http://localhost/api/parts/" + mode + "?generation=thinking-labels",
+    { method: "POST", body: JSON.stringify(input) }), { TYPELLM_API_KEY: "typed-test-only" });
+  const { calls } = await withProvider(async (body, init, url) => {
+    assert.equal(url, "https://api.typellm.ai/v1/generate"); assert.equal(init.headers.authorization, "Bearer typed-test-only");
+    assert.equal(body.model, "typellm-latest"); assert.equal(body.options.temperature, 0); assert.equal(body.timeout, 30);
+    assert.equal(Object.keys(body.questions).length, 9);
+    for (const [name, q] of Object.entries(body.questions)) {
+      assert.equal(q.type, "string"); assert.equal(q.thinking, name.endsWith("_label"));
+      assert.equal(q.thinking_budget, name.endsWith("_label") ? 512 : undefined);
+    }
+    return Response.json({ status: "completed", result: Object.fromEntries([1, 2, 3].flatMap(n =>
+      [["required" + n + "_label", n === 1 ? "検算窓" : ""], ["required" + n + "_kind", n === 1 ? "step" : "none"],
+        ["required" + n + "_quantity", n === 1 ? "1" : "0"]])), usage: { input_tokens: 10, thinking_tokens: 20 },
+      thinking: { required1_label: "private-thinking-canary" } });
+  }, async () => {
+    const response = await invoke("requirements"), value = await response.json(); assert.equal(response.status, 200);
+    assert.deepEqual(value.required, [{ label: "検算窓", kind: "step", quantity: 1 }]);
+    assert.deepEqual(Object.keys(value).sort(), ["request_id", "required", "schema", "slots"]);
+    for (const mode of ["check", "verify", "complete"]) assert.equal((await invoke(mode)).status, 422);
+  });
+  assert.equal(calls.length, 1);
+});
+
 test("legacy completed Worker completion defaults to literal without a Type key; invalid methods cannot dispatch", async () => {
   const input = { kind: "voice-ui.goal.inventory.v1", state: { utterance: "ContainerにDBを3個追加", head: "fixture-head",
     regions: [{ id: "root", label: "World", kind: "boundary", parent: null },

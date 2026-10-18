@@ -35,3 +35,22 @@ test("flat F makes one Type call and maps all nine validated values without name
     assert.equal((await invoke("check",raw())).status,422);assert.equal(calls,3);
   }finally{console.info=before;}
 });
+
+test("label thinking changes only the three declared bounded questions",()=>{
+  const context=inventoryQuestion(state).state,off=flatRequiredRequest(context),on=flatRequiredRequest(context,{labelThinking:true}),expected=structuredClone(off);
+  for(const n of[1,2,3])Object.assign(expected.questions["required"+n+"_label"],{thinking:true,thinking_budget:512});
+  assert.deepEqual(on,expected);
+  assert.throws(()=>flatRequiredRequest(context,{labelThinking:"auto"}));
+});
+test("thinking-only numeric metadata never changes default stage keys or exposes reasoning",async()=>{
+  const log=[],before=console.info;console.info=s=>log.push(JSON.parse(s));let calls=0;
+  const invoke=generation=>onRequirements({request:new Request("http://fixture.invalid",{method:"POST",body:JSON.stringify({kind:"voice-ui.goal.inventory.v1",state})}),mode:"requirements",method:"adaptive-v3",available:true,generation},
+    {judge:()=>assert.fail("no Jev in F"),generate:async()=>{calls++;return{result:raw(),usage:{input_tokens:10,thinking_tokens:20},thinking:{label:"private-thinking-canary"}};}});
+  try{
+    const response=await invoke("thinking-labels"),body=await response.json();assert.equal(response.status,200);
+    assert.deepEqual(Object.keys(body).sort(),["request_id","required","schema","slots"]);assert.deepEqual(body.required,[{label:"検算窓",kind:"step",quantity:2}]);
+    assert.deepEqual(log[0].provider_usage,{input_tokens:10,thinking_tokens:20});assert.deepEqual(log[0].scalar_answers,raw());
+    await invoke("flat-scalars");assert.equal(Object.hasOwn(log[1],"provider_usage"),false);
+    assert.equal(JSON.stringify(log).includes("private-thinking-canary"),false);assert.equal(calls,2);
+  }finally{console.info=before;}
+});

@@ -1,0 +1,470 @@
+{
+  "schema": "voice-ui.label-thinking-comparison/1",
+  "scope": "PUBLIC_FOUR_CASE_LABEL_THINKING_EXTRACTION_ONLY_NOT_FRESH_OR_ORDINARY_UI_EFFECT",
+  "question": "Does enabling bounded thinking only on the three display-name questions improve full NEW extraction?",
+  "stage_metadata": {
+    "generation": "thinking-labels only; existing flat/default stage keys unchanged",
+    "optional_field": "provider_usage",
+    "fields": ["input_tokens", "thinking_tokens"],
+    "values": "normalized nonnegative safe integers supplied by the formal core; absent means unobserved",
+    "limit": "never raw thinking, never an extra positivity gate or mechanism proof"
+  },
+  "source_parent": "14e1f1cae94777173d05866ac84b97075afd9da1",
+  "measurement": {
+    "endpoint": "/api/parts/requirements",
+    "same_completed_worker_for_both_arms": true,
+    "current": "flat-scalars",
+    "candidate": "thinking-labels",
+    "part_definitions": "full in both arms",
+    "provider_model_options": "same in both arms; typellm-latest / temperature0 / timeout30; resolved version unobserved",
+    "frozen_scalar_body_bridge": "a58e522672fcddf64bf7b71d8e18073b82eae20c"
+  },
+  "authority": {
+    "instruction": "User loop; adrs#449; single persistent independent reviewer",
+    "cumulative_limit": {
+      "jev": 1000,
+      "typellm": 1000
+    },
+    "prior_charged": {
+      "jev": 847,
+      "typellm": 120
+    },
+    "phase_cap": {
+      "jev": 0,
+      "typellm": 8
+    },
+    "retries": 0,
+    "corrections": 0,
+    "setup_provider_sends": 0
+  },
+  "normalization": {
+    "fields": [
+      "label",
+      "kind",
+      "quantity"
+    ],
+    "operation": "require exactly nine named scalar answers; map each unchanged to required1..3 fields; existing readRequiredSlots; invalid stops; validated scalar_answers in stage log",
+    "semantic_limit": "closed scalar answers do not prove intended labels/kinds/counts; full NEW oracle and later independent V remain necessary"
+  },
+  "arms": {
+    "current": {
+      "generation": "flat-scalars"
+    },
+    "candidate": {
+      "generation": "thinking-labels"
+    }
+  },
+  "cases": [
+    {
+      "id": "QD01",
+      "role": "explicit",
+      "provenance": "public QE03",
+      "request": {
+        "kind": "voice-ui.goal.inventory.v1",
+        "state": {
+          "utterance": "作業区に新しく一つの判断ノードを置いて、その表示を出荷可否にしてください。ほかには何も追加しないでください。",
+          "head": "sha256:f14b93ac1b4a8ca4af467132ccd7f5d0a524fed90de6dbf3d54d77ea8f534596",
+          "regions": [
+            {
+              "id": "root",
+              "label": "fixture",
+              "kind": "boundary",
+              "parent": null
+            },
+            {
+              "id": "container",
+              "label": "作業区",
+              "kind": "group",
+              "parent": "root"
+            },
+            {
+              "id": "other",
+              "label": "保留区",
+              "kind": "group",
+              "parent": "root"
+            }
+          ],
+          "edges": [],
+          "parts": [
+            {
+              "key": "step",
+              "purpose": "an ordinary step, task or box",
+              "label": "工程",
+              "kind": "step"
+            },
+            {
+              "key": "decision",
+              "purpose": "a decision, choice or branch",
+              "label": "判断",
+              "kind": "decision"
+            },
+            {
+              "key": "data",
+              "purpose": "data, a document, an input or an output",
+              "label": "データ",
+              "kind": "data"
+            },
+            {
+              "key": "start",
+              "purpose": "a start or beginning",
+              "label": "開始",
+              "kind": "start"
+            },
+            {
+              "key": "end",
+              "purpose": "an end, finish or result",
+              "label": "終了",
+              "kind": "end"
+            },
+            {
+              "key": "api",
+              "purpose": "an application programming interface service that receives requests",
+              "label": "API",
+              "kind": "step"
+            },
+            {
+              "key": "db",
+              "purpose": "a database that persists application data",
+              "label": "DB",
+              "kind": "data"
+            },
+            {
+              "key": "group",
+              "purpose": "a group, boundary or container that holds other parts",
+              "label": "グループ",
+              "kind": "group"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "QD02",
+      "role": "explicit",
+      "provenance": "public QE04",
+      "request": {
+        "kind": "voice-ui.goal.inventory.v1",
+        "state": {
+          "utterance": "保留区へ新しい工程を二つ設け、どちらの表示もAPIにしてください。二つとも独立した部品として置き、線は付けないでください。",
+          "head": "sha256:f14b93ac1b4a8ca4af467132ccd7f5d0a524fed90de6dbf3d54d77ea8f534596",
+          "regions": [
+            {
+              "id": "root",
+              "label": "fixture",
+              "kind": "boundary",
+              "parent": null
+            },
+            {
+              "id": "container",
+              "label": "作業区",
+              "kind": "group",
+              "parent": "root"
+            },
+            {
+              "id": "other",
+              "label": "保留区",
+              "kind": "group",
+              "parent": "root"
+            }
+          ],
+          "edges": [],
+          "parts": [
+            {
+              "key": "step",
+              "purpose": "an ordinary step, task or box",
+              "label": "工程",
+              "kind": "step"
+            },
+            {
+              "key": "decision",
+              "purpose": "a decision, choice or branch",
+              "label": "判断",
+              "kind": "decision"
+            },
+            {
+              "key": "data",
+              "purpose": "data, a document, an input or an output",
+              "label": "データ",
+              "kind": "data"
+            },
+            {
+              "key": "start",
+              "purpose": "a start or beginning",
+              "label": "開始",
+              "kind": "start"
+            },
+            {
+              "key": "end",
+              "purpose": "an end, finish or result",
+              "label": "終了",
+              "kind": "end"
+            },
+            {
+              "key": "api",
+              "purpose": "an application programming interface service that receives requests",
+              "label": "API",
+              "kind": "step"
+            },
+            {
+              "key": "db",
+              "purpose": "a database that persists application data",
+              "label": "DB",
+              "kind": "data"
+            },
+            {
+              "key": "group",
+              "purpose": "a group, boundary or container that holds other parts",
+              "label": "グループ",
+              "kind": "group"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "QD03",
+      "role": "standard",
+      "provenance": "new public control",
+      "request": {
+        "kind": "voice-ui.goal.inventory.v1",
+        "state": {
+          "utterance": "作業区に判断ノードを一つ追加してください。",
+          "head": "sha256:f14b93ac1b4a8ca4af467132ccd7f5d0a524fed90de6dbf3d54d77ea8f534596",
+          "regions": [
+            {
+              "id": "root",
+              "label": "fixture",
+              "kind": "boundary",
+              "parent": null
+            },
+            {
+              "id": "container",
+              "label": "作業区",
+              "kind": "group",
+              "parent": "root"
+            },
+            {
+              "id": "other",
+              "label": "保留区",
+              "kind": "group",
+              "parent": "root"
+            }
+          ],
+          "edges": [],
+          "parts": [
+            {
+              "key": "step",
+              "purpose": "an ordinary step, task or box",
+              "label": "工程",
+              "kind": "step"
+            },
+            {
+              "key": "decision",
+              "purpose": "a decision, choice or branch",
+              "label": "判断",
+              "kind": "decision"
+            },
+            {
+              "key": "data",
+              "purpose": "data, a document, an input or an output",
+              "label": "データ",
+              "kind": "data"
+            },
+            {
+              "key": "start",
+              "purpose": "a start or beginning",
+              "label": "開始",
+              "kind": "start"
+            },
+            {
+              "key": "end",
+              "purpose": "an end, finish or result",
+              "label": "終了",
+              "kind": "end"
+            },
+            {
+              "key": "api",
+              "purpose": "an application programming interface service that receives requests",
+              "label": "API",
+              "kind": "step"
+            },
+            {
+              "key": "db",
+              "purpose": "a database that persists application data",
+              "label": "DB",
+              "kind": "data"
+            },
+            {
+              "key": "group",
+              "purpose": "a group, boundary or container that holds other parts",
+              "label": "グループ",
+              "kind": "group"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "QD04",
+      "role": "new0",
+      "provenance": "new public control",
+      "request": {
+        "kind": "voice-ui.goal.inventory.v1",
+        "state": {
+          "utterance": "作業区と保留区は既存です。作業区から保留区へ矢印を一本つないでください。新しい部品は追加しないでください。",
+          "head": "sha256:f14b93ac1b4a8ca4af467132ccd7f5d0a524fed90de6dbf3d54d77ea8f534596",
+          "regions": [
+            {
+              "id": "root",
+              "label": "fixture",
+              "kind": "boundary",
+              "parent": null
+            },
+            {
+              "id": "container",
+              "label": "作業区",
+              "kind": "group",
+              "parent": "root"
+            },
+            {
+              "id": "other",
+              "label": "保留区",
+              "kind": "group",
+              "parent": "root"
+            }
+          ],
+          "edges": [],
+          "parts": [
+            {
+              "key": "step",
+              "purpose": "an ordinary step, task or box",
+              "label": "工程",
+              "kind": "step"
+            },
+            {
+              "key": "decision",
+              "purpose": "a decision, choice or branch",
+              "label": "判断",
+              "kind": "decision"
+            },
+            {
+              "key": "data",
+              "purpose": "data, a document, an input or an output",
+              "label": "データ",
+              "kind": "data"
+            },
+            {
+              "key": "start",
+              "purpose": "a start or beginning",
+              "label": "開始",
+              "kind": "start"
+            },
+            {
+              "key": "end",
+              "purpose": "an end, finish or result",
+              "label": "終了",
+              "kind": "end"
+            },
+            {
+              "key": "api",
+              "purpose": "an application programming interface service that receives requests",
+              "label": "API",
+              "kind": "step"
+            },
+            {
+              "key": "db",
+              "purpose": "a database that persists application data",
+              "label": "DB",
+              "kind": "data"
+            },
+            {
+              "key": "group",
+              "purpose": "a group, boundary or container that holds other parts",
+              "label": "グループ",
+              "kind": "group"
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "schedule": [
+    {
+      "id": "QD01-current",
+      "case": "QD01",
+      "arm": "current"
+    },
+    {
+      "id": "QD01-candidate",
+      "case": "QD01",
+      "arm": "candidate"
+    },
+    {
+      "id": "QD02-candidate",
+      "case": "QD02",
+      "arm": "candidate"
+    },
+    {
+      "id": "QD02-current",
+      "case": "QD02",
+      "arm": "current"
+    },
+    {
+      "id": "QD03-current",
+      "case": "QD03",
+      "arm": "current"
+    },
+    {
+      "id": "QD03-candidate",
+      "case": "QD03",
+      "arm": "candidate"
+    },
+    {
+      "id": "QD04-candidate",
+      "case": "QD04",
+      "arm": "candidate"
+    },
+    {
+      "id": "QD04-current",
+      "case": "QD04",
+      "arm": "current"
+    }
+  ],
+  "public_gate": {
+    "candidate_exact": "4/4 closed transport+contract+full NEW exact/minimal, including standard and NEW0",
+    "explicit_valid_paired_gains_at_least": 1,
+    "regressions": 0,
+    "invalid": "retained; not gain/tie/NO_EFFECT",
+    "both_correct": "candidate quality can pass while improvement remains unobserved",
+    "contract_rate": "report separately from semantic gains"
+  },
+  "heldout": {
+    "commitment_sha256": "43dcc80c0a0986c6b635f196bf0f787a729a2423e1b4ec36f81e4bf26e6f56a5",
+    "new_cases": 4,
+    "roles": {
+      "explicit": 2,
+      "standard": 1,
+      "new0": 1
+    },
+    "phase_cap": {
+      "jev": 0,
+      "typellm": 8
+    },
+    "release": "inputs only after public gate; same frozen candidate; oracle only after fresh physical stop/reconcile",
+    "quality": "candidate4/4, explicit valid paired gains>=1, all4 regression0; INVALID is not NO_EFFECT",
+    "addendum": "heldout.addendum.json",
+    "reuse": "B and C public gates failed; same still-unread and unexecuted four sealed cases, immutable inputs/oracle/order; explicitly preregistered for D"
+  },
+  "stop": "After the fixed 8 public cells stop and reconcile. No retry, fresh, ordinary UI, adoption or model changes under this phase.",
+  "treatment": {
+    "fields": [
+      "required1_label",
+      "required2_label",
+      "required3_label"
+    ],
+    "thinking": true,
+    "thinking_budget": 512,
+    "all_other_fields": "unchanged; default off",
+    "mechanism": "internal reasoning and model mechanism remain unproven; record only optional normalized numeric usage, never reasoning text"
+  }
+}

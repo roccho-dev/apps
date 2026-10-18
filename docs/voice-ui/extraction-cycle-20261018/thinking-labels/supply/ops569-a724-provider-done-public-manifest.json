@@ -1,0 +1,12 @@
+{
+  "schema": "voice-ui.review.public-copy-manifest/1",
+  "public_directory": "C:\\Users\\resta\\Codex\\repos\\apps.git\\.worktrees\\typellm-ci-review-20261017\\review-evidence",
+  "scope": "This one member and this manifest only",
+  "members": [
+    {
+      "name": "ops569-a724-provider-done.json",
+      "sha256": "e635e71811d5ca8d155cd83e83e8e5772aecec804eaca5d6ff2e7933a269d1d3",
+      "bytes": 7674
+    }
+  ]
+}

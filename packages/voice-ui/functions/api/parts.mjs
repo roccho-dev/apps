@@ -108,7 +108,7 @@ const failure = code => Object.assign(new Error("parts operation stopped"), { co
 export async function onRequirements({ request, mode, method, available, generation = "dependent" }, { judge, generate }) {
   if (!["check", "requirements", "verify"].includes(mode)
       || !["literal-v2", "adaptive-v2", "adaptive-v3"].includes(method)
-      || !["independent", "dependent", "display-source", "flat-scalars"].includes(generation)
+      || !["independent", "dependent", "display-source", "flat-scalars", "thinking-labels"].includes(generation)
       || mode !== "requirements" && generation !== "dependent") return json({ error: "parts_invalid_method" }, 422);
   if (!available) return json({ error: "parts_unavailable" }, 503);
   let input;
@@ -135,18 +135,22 @@ export async function onRequirements({ request, mode, method, available, generat
     finally { signal.removeEventListener("abort", stop); }
   };
   const full = async () => {
-    const context = inventoryQuestion(inventory.state).state, sourced = generation === "display-source", flat = generation === "flat-scalars";
-    const question = sourced ? displaySourceRequest(context) : flat ? flatRequiredRequest(context) : requiredRequest(context, { generation });
+    const context = inventoryQuestion(inventory.state).state, sourced = generation === "display-source",
+      flat = generation === "flat-scalars" || generation === "thinking-labels";
+    const question = sourced ? displaySourceRequest(context) : flat
+      ? flatRequiredRequest(context, { labelThinking: generation === "thinking-labels" }) : requiredRequest(context, { generation });
     const value = await send(generate, question);
     const decoded = sourced ? readDisplaySourceSlots(value?.result, context) : flat ? readFlatRequiredSlots(value?.result) : null;
     const required = sourced || flat ? decoded?.required ?? null : readRequiredSlots(value?.result);
+    const usage = generation === "thinking-labels" ? value?.usage : null;
+    const metrics = usage ? { provider_usage: { input_tokens: usage.input_tokens, thinking_tokens: usage.thinking_tokens } } : {};
     if (required === null) {
-      stage("TYPE_REQUIRED", { valid: false, generation });
+      stage("TYPE_REQUIRED", { valid: false, generation, ...metrics });
       throw failure("provider_contract_error");
     }
     const proposal = { slots: sourced || flat ? decoded.slots : structuredClone(value.result), required };
     stage("TYPE_REQUIRED", { valid: true, generation, proposal, ...(sourced ? { source_slots: decoded.source_slots } : {}),
-      ...(flat ? { scalar_answers: decoded.scalar_answers } : {}) });
+      ...(flat ? { scalar_answers: decoded.scalar_answers } : {}), ...metrics });
     return proposal;
   };
   const verify = async required => {

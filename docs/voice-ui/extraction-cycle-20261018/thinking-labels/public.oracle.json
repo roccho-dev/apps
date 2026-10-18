@@ -1,0 +1,28 @@
+{
+  "schema": "voice-ui.label-thinking-oracle/1",
+  "scope": "PUBLIC_FOUR_CASE_LABEL_THINKING_EXTRACTION_ONLY_NOT_FRESH_OR_ORDINARY_UI_EFFECT",
+  "required": {
+    "QD01": [
+      {
+        "label": "出荷可否",
+        "kind": "decision",
+        "quantity": 1
+      }
+    ],
+    "QD02": [
+      {
+        "label": "API",
+        "kind": "step",
+        "quantity": 2
+      }
+    ],
+    "QD03": [
+      {
+        "label": "判断",
+        "kind": "decision",
+        "quantity": 1
+      }
+    ],
+    "QD04": []
+  }
+}

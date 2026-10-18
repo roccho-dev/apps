@@ -1,0 +1,193 @@
+{
+  "schema": "voice-ui.review.ops-provider-done/1",
+  "status": "PASS",
+  "checkpoint": "ProviderDone",
+  "checked_at": "2026-10-18T02:57:48.163851+00:00",
+  "repository": "roccho-org/ops",
+  "merge_sha": "a724bdfa1864762cd9050a00e2642450af29c196",
+  "reviewed_head": "234251fd9198551532c5a3a48e83f9bd6c7dba30",
+  "tree": "debe3d5242be35a15d1cf46e4d398b5a91fa3d77",
+  "proof": {
+    "base": "proposals",
+    "merge_sha": "a724bdfa1864762cd9050a00e2642450af29c196",
+    "merge_tree": "debe3d5242be35a15d1cf46e4d398b5a91fa3d77",
+    "merged_at": "2026-10-18T02:39:00Z",
+    "pr_number": 569,
+    "r_exact_head_verdict_ref": "https://github.com/roccho-org/ops/pull/569#pullrequestreview-5561136914",
+    "reviewed_head": "234251fd9198551532c5a3a48e83f9bd6c7dba30",
+    "reviewed_tree": "debe3d5242be35a15d1cf46e4d398b5a91fa3d77"
+  },
+  "public_release": {
+    "metadata": {
+      "id": 416197900,
+      "tag_name": "jev-provider-a724bdfa1864762cd9050a00e2642450af29c196",
+      "target_commitish": "a724bdfa1864762cd9050a00e2642450af29c196",
+      "draft": false,
+      "prerelease": false,
+      "html_url": "https://github.com/roccho-org/ops/releases/tag/jev-provider-a724bdfa1864762cd9050a00e2642450af29c196",
+      "published_at": "2026-10-18T02:50:08Z"
+    },
+    "assets": [
+      {
+        "name": "jev-provenance.json",
+        "bytes": 2147,
+        "sha256": "93b526fde3d0d71288de188d66faf0da9c40dd9f85dc17148d3b301ed4910b67",
+        "anonymous_http": true
+      },
+      {
+        "name": "jev-provider.zip",
+        "bytes": 23124,
+        "sha256": "0c063b050895db87029fd514c81add33e291e321109e2aa55a3befdd42593f03",
+        "anonymous_http": true
+      },
+      {
+        "name": "jev-provider.zip.sha256",
+        "bytes": 83,
+        "sha256": "73da6737dd31833e650cbce4164908209c9d896cbc8b5626e9c8e483387fabd9",
+        "anonymous_http": true
+      },
+      {
+        "name": "merged-pr-proof.json",
+        "bytes": 435,
+        "sha256": "8e79073aa7fb94ffa7d4c0003c592d85622099b251c0958712eb2f7ea59bfba6",
+        "anonymous_http": true
+      },
+      {
+        "name": "typellm-provenance.json",
+        "bytes": 1881,
+        "sha256": "d3d3b35ce4a77077823230da4790070db5ba206d09c66111c72b4fc44f4cc9ac",
+        "anonymous_http": true
+      },
+      {
+        "name": "typellm-provider.zip",
+        "bytes": 11497,
+        "sha256": "25f8bf076d24577ad512fc63c9491e13796e76007d2e52349b5a9fc223395de6",
+        "anonymous_http": true
+      },
+      {
+        "name": "typellm-provider.zip.sha256",
+        "bytes": 87,
+        "sha256": "e8b8c9619f6d09a0190cf51828cfb375b64a79e3f3a78371891123c949a08506",
+        "anonymous_http": true
+      }
+    ],
+    "verifier_git_blob": "1da9fc28e80ec86d7e63ac71d1728683d70a2156",
+    "verifier_sha256": "e971986087ab6bd26f363a0fe3c41a2a2ac634902d5da93fa8af9622c3be43a2"
+  },
+  "canonical_and_publish_runs": [
+    {
+      "id": 39090844020,
+      "head_sha": "a724bdfa1864762cd9050a00e2642450af29c196",
+      "status": "completed",
+      "conclusion": "success",
+      "event": "push",
+      "url": "https://github.com/roccho-org/ops/actions/runs/39090844020"
+    },
+    {
+      "id": 39090844065,
+      "head_sha": "a724bdfa1864762cd9050a00e2642450af29c196",
+      "status": "completed",
+      "conclusion": "success",
+      "event": "push",
+      "url": "https://github.com/roccho-org/ops/actions/runs/39090844065"
+    },
+    {
+      "id": 39090844033,
+      "head_sha": "a724bdfa1864762cd9050a00e2642450af29c196",
+      "status": "completed",
+      "conclusion": "success",
+      "event": "push",
+      "url": "https://github.com/roccho-org/ops/actions/runs/39090844033"
+    },
+    {
+      "id": 39091437239,
+      "head_sha": "a724bdfa1864762cd9050a00e2642450af29c196",
+      "status": "completed",
+      "conclusion": "success",
+      "event": "workflow_dispatch",
+      "url": "https://github.com/roccho-org/ops/actions/runs/39091437239"
+    }
+  ],
+  "providers": [
+    {
+      "provider": "jev",
+      "official_paired_verify_release": "PASS",
+      "official_stdout": "{\"status\": \"PASS\"}\r\n",
+      "zip_sha256": "0c063b050895db87029fd514c81add33e291e321109e2aa55a3befdd42593f03",
+      "entry_sha256": "0773b5c96d0da7f05fef9f9cf95772b6722a03022648e90fc56a4fdc9ac6046e",
+      "entry_bytes": 22542,
+      "manifest_sha256": "a5386f84f0606c6900b3c0e89d19f94dcf701d344d7c7e6384889d8bb6a1aab5",
+      "reviewed_ci_or_previous_formal_entry_exact": true
+    },
+    {
+      "provider": "typellm",
+      "official_paired_verify_release": "PASS",
+      "official_stdout": "{\"status\": \"PASS\"}\r\n",
+      "zip_sha256": "25f8bf076d24577ad512fc63c9491e13796e76007d2e52349b5a9fc223395de6",
+      "entry_sha256": "3c10462eecd7f83dd790bfe208587c99347dcbed324b32ae674afbab48bdfb22",
+      "entry_bytes": 10984,
+      "manifest_sha256": "4addcd161cb80f8800ee8d78a4b212c3fd2b7e92900cb10c492f3cf560878b2b",
+      "reviewed_ci_or_previous_formal_entry_exact": true
+    }
+  ],
+  "reviewed_source_bindings": [
+    {
+      "path": "flake.lock",
+      "sha256": "47ff102f54f37f196a85da01f42d628bffb776dbe5404144e1270a650dac8d07",
+      "reviewed_blob": "e9a83509c0fa975f73f7b228422e91a1f69058fe"
+    },
+    {
+      "path": "flake.nix",
+      "sha256": "8cf62ad10926fb24e6a3eaf74ab9d9bd223b00f293ea412693f283ebe84b00e1",
+      "reviewed_blob": "843067a8aa4fbc32892f4626f6eae975c1824cd4"
+    },
+    {
+      "path": "packages/jev/default.nix",
+      "sha256": "f1ed8fbc940f774a7c0b39f9e47690e6ac652f619c2d4ebcd86e0bb9aa4dc5bf",
+      "reviewed_blob": "f057253138f039ca22f65b949c13abcaac2a6c23"
+    },
+    {
+      "path": "packages/jev/src/batch.mjs",
+      "sha256": "3ee464e5b49291d9842c23759fb8169ad0d9ec3909532091b13990c35c6ebdf7",
+      "reviewed_blob": "31a15d633d453ca9cd6f63a15c6d8ee39a68131e"
+    },
+    {
+      "path": "packages/jev/src/client.mjs",
+      "sha256": "ff4acf77a5485d7288012a3dcf16bc705bebb7ff69d7ab28d5966d10df5d51b3",
+      "reviewed_blob": "2070f4dd70b709e1d9f7c285fed7a05ab8763e5e"
+    },
+    {
+      "path": "packages/jev/src/core.mjs",
+      "sha256": "1969caf080a71ce4d62786c25f5cef848897a0aaf66ff1cf89ab33025d1dbd4c",
+      "reviewed_blob": "eb46d0f50b57a96f7a580e3b91decd3f08b9289a"
+    },
+    {
+      "path": "packages/jev/src/worker.mjs",
+      "sha256": "81ce3561e0c6383c9284e8773bf6e90b39f927b3a4b320f0b7990873e5536beb",
+      "reviewed_blob": "1764dfc0fd3dc22ce84afdc7e2f78569880c813a"
+    },
+    {
+      "path": "tools/jev-provider-artifact.py",
+      "sha256": "e971986087ab6bd26f363a0fe3c41a2a2ac634902d5da93fa8af9622c3be43a2",
+      "reviewed_blob": "1da9fc28e80ec86d7e63ac71d1728683d70a2156"
+    },
+    {
+      "path": "packages/typellm/default.nix",
+      "sha256": "4f8a05900c3a622e7be7c72c0dea3023f9bfd3fa0ff9de8b62f6d6ace86d1698",
+      "reviewed_blob": "d18d61df9474beccc020c081d7a70cf9b86ce922"
+    },
+    {
+      "path": "packages/typellm/src/typellm.mjs",
+      "sha256": "cdcc5e1f0fc3160f50b41c0e11b5beadbdc3ee1bea24f880e85a2b416f475731",
+      "reviewed_blob": "65781ba8fa2fe59ac6f50cc9c7d604a4b5d545d0"
+    }
+  ],
+  "local_verifier_setup_correction": {
+    "first_result": "release_set_invalid",
+    "reason": "Reviewer metadata and tool files were initially colocated with assets; official closed-set verifier correctly refused",
+    "correction": "Unchanged seven anonymous asset bytes copied into a new exact seven-file directory; both official paired checks then PASS",
+    "prior_stdout_sha256": "90d8d319ceb07d1684829b13761606e4cde5b3d94de958b06b5ad9aa2ee0365a"
+  },
+  "scope": "Published paired capability supply and compiled identity only; no real model performance, thinking-mechanism proof, Apps adoption, or D measurement",
+  "reviewer_real_provider_calls": 0
+}
