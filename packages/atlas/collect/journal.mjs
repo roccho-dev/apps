@@ -13,9 +13,6 @@ function entry(line, { author, source, notAfter, at }) {
   try { value = JSON.parse(line); } catch { return { kind: 'journal.held', reason: 'invalid-json', line, source, recordedAt: notAfter }; }
   const held = reason => ({ kind: 'journal.held', reason, line, source, recordedAt: notAfter });
   if (!object(value) || !JOURNAL_KINDS.includes(value.kind)) return held('unknown-kind');
-  // adrs#654: a worklog value (work:* / evidence:*) is a claim and never a condition.
-  if (value.kind === 'ideal.set' && Array.isArray(value.requires)
-    && value.requires.some(condition => /^(?:work|evidence):/u.test(String(condition?.predicate?.target?.id ?? '')))) return held('worklog-target-in-predicate');
   if (typeof author !== 'string' || !author) return held('author-unknown');
   if ('actor' in value && value.actor !== author) return held('actor-mismatch');
   let recorded;
