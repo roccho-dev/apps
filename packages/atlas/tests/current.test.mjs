@@ -97,21 +97,34 @@ test('the same input gives the same snapshot', () => within(dir => {
   assert.deepEqual(claims(a.world).map(claim => claim[1]), ['created', 'progressed', SHA, 'reported-blocked']);
 }));
 
-// C2e (R): no time is made up from line order. Two or more lines for one work_id in one file are all held
-// (provisional, fail closed, until an order for them is decided) instead of D seeing a same-time conflict.
-test('two or more lines for one work_id in one file are all held; other work in the file stays', () => within(dir => {
+// C4 (apps#89 comment 6257137004): one work_id in one author's file is last-write-wins by line position (no time is
+// made up). Only the last state line and the last evidence of a work_id are observations; D never sees two
+// same-time observations of one target. Earlier lines are kept as overwritten (held, not in the World).
+test('LWW: created → progressed (evidence) → reported-done gives reported-done and the last evidence; the rest is overwritten', () => within(dir => {
   writeFileSync(path.join(dir, 'current.jsonl'), line({ kind: 'work.created', work_id: 'c2' }) + line({ kind: 'work.created', work_id: 'ok' })
     + line({ kind: 'artifact.observed', work_id: 'c2', evidence: SHA }) + line({ kind: 'work.terminal', work_id: 'c2', terminal: 'done' }));
+  const a = snapshot(dir, T1, 'a'), b = snapshot(dir, T1, 'b');
+  assert.deepEqual(claims(a.world).map(claim => claim.slice(0, 3)), [
+    ['work:ok', 'created', 'current:P#L2'], ['evidence:c2', SHA, 'current:P#L3'], ['work:c2', 'reported-done', 'current:P#L4']]);
+  assert.deepEqual(a.held.map(value => [value.reason, value.source.ref]), [['current: overwritten', 'current:P#L1'], ['current: overwritten', 'current:P#L3']]);
+  // The World has one observation per target at that time: no same-time conflict for D.
+  const frame = JSON.parse(a.world).frames.at(-1);
+  const targets = frame.journal.filter(entry => entry.kind === 'observation').map(entry => entry.target.id);
+  assert.equal(new Set(targets).size, targets.length);
+  assert.equal(a.world, b.world);
+}));
+
+test('LWW for evidence: of two artifact.observed lines, the later evidence is the one in the World', () => within(dir => {
+  writeFileSync(path.join(dir, 'current.jsonl'), line({ kind: 'artifact.observed', work_id: 'c2', evidence: 'roccho-dev/apps#119' })
+    + line({ kind: 'artifact.observed', work_id: 'c2', evidence: SHA }));
   const { world, held } = snapshot(dir, T1, 'out');
-  assert.deepEqual(claims(world).map(claim => claim.slice(0, 3)), [['work:ok', 'created', 'current:P#L2']]);
-  assert.deepEqual(held.map(value => [value.reason, value.source.ref]), [
-    ['current: multiple-lines-for-work-id', 'current:P#L1'], ['current: multiple-lines-for-work-id', 'current:P#L3'],
-    ['current: multiple-lines-for-work-id', 'current:P#L4']]);
-  // The same work_id in another author's file is another record: not a duplicate.
-  writeFileSync(path.join(dir, 'w2.jsonl'), line({ kind: 'work.created', work_id: 'ok' }));
+  assert.deepEqual(claims(world).map(claim => claim.slice(0, 3)), [['work:c2', 'progressed', 'current:P#L2'], ['evidence:c2', SHA, 'current:P#L2']]);
+  assert.deepEqual(held.map(value => [value.reason, value.source.ref]), [['current: overwritten', 'current:P#L1']]);
+  // LWW is per author's file: the same work_id in another author's file is another record, not overwritten here.
+  writeFileSync(path.join(dir, 'w2.jsonl'), line({ kind: 'work.created', work_id: 'c2' }));
   execFileSync(process.execPath, [...collectArgs(dir, T1, 'two', [`P=${path.join(dir, 'current.jsonl')}`, `W2=${path.join(dir, 'w2.jsonl')}`]), '--worklog-author', 'W2']);
   const events = readFileSync(path.join(dir, 'two.g.jsonl'), 'utf8').trim().split('\n').map(text => JSON.parse(text));
-  assert.deepEqual(events.filter(event => event.kind === 'observation' && event.target === 'work:ok').map(event => event.source.ref), ['current:P#L2', 'current:W2#L1']);
+  assert.deepEqual(events.filter(event => event.kind === 'observation' && event.target === 'work:c2').map(event => event.source.ref), ['current:P#L2', 'current:W2#L1']);
 }));
 
 // C2e (R, NO_GO): reading current must not move the cold events' time: cold stays dated by its commit.
