@@ -29,6 +29,10 @@ const { default: worker } = await import(pathToFileURL(path.join(root, "worker/w
 const protocol = await import(pathToFileURL(path.join(root, "site/ui/semantic-map/protocol/index.js")));
 const { chromium } = createRequire(import.meta.url)("playwright-core");
 const site = path.join(root, "site"), key = "voice-ui.decision-log.v1";
+const normalBytes = fs.readFileSync(new URL("../tests/fixtures/normal-composition/browser.jsonl", import.meta.url));
+const normalFixtures = normalBytes.toString("utf8").trim().split("\n").map(JSON.parse);
+assert.ok(normalFixtures.length > 0 && normalFixtures.length <= 16);
+assert.ok(normalFixtures.every(item => /^[a-z][a-z0-9-]+$/.test(item.id) && item.bundle?.schema === "voice-ui.bundle/2"));
 const fixtures = [
   { id: "equal-label-quantity", text: "OCIにDBを3個追加",
     nodes: [{ label: "DB", kind: "data", quantity: 3, parent: "OCI" }], flow: null },
@@ -39,9 +43,11 @@ const fixtures = [
     flow: ["構築", "配布記録"] },
   { id: "existing-directed-connection", text: "OCIのSourceからTargetへ矢印を追加。Unrelatedは変更しない",
     nodes: [], flow: ["Source", "Target"], existing: true },
+  ...normalFixtures,
 ];
+assert.equal(new Set(fixtures.map(item => item.id)).size, fixtures.length);
 let fixture = null, input = null;
-const api = [], upstream = [], frames = [], controls = [], lifecycle = [];
+const api = [], upstream = [], frames = [], controls = [], lifecycle = [], supply = [];
 const syntheticAnswer = wire => {
   if (wire.questions.completion) return { completion: "unknown" };
   if (wire.questions.intent) return { intent: "change", labels: fixture.id === "equal-label-quantity" || fixture.existing ? "available" : "missing",
@@ -54,6 +60,7 @@ const syntheticAnswer = wire => {
   let choice = "none";
   if (next) {
     const offered = state.offers.parts.find(part => part.label === next.label
+      && (!fixture.bundle || part.kind === next.kind)
       && !state.selected.some(item => item.key === part.key));
     assert.ok(offered, "the app really offered the required instance");
     if (state.placing === null) choice = "part:" + offered.key;
@@ -121,6 +128,12 @@ const server = http.createServer(async (req, res) => {
       } finally { input = null; }
       return;
     }
+    // Explicit fixture data at the ordinary bundle URL. No app, Worker, UI,
+    // protocol, storage or drawing implementation is replaced.
+    if (pathname === "/data/bundle.v1.json" && fixture.bundle) {
+      res.writeHead(200, { "content-type": "application/json", ...isolation });
+      res.end(JSON.stringify(fixture.bundle)); return;
+    }
     if (pathname === "/hayamimi/sherpa/data.parts.json") { res.writeHead(204, isolation); res.end(); return; }
     const file = path.resolve(site, pathname === "/" ? "index.html" : decodeURIComponent(pathname.slice(1)));
     assert.ok(file.startsWith(site + path.sep));
@@ -134,6 +147,7 @@ const server = http.createServer(async (req, res) => {
 await new Promise(resolve => server.listen(0, "127.0.0.1", resolve));
 const origin = "http://127.0.0.1:" + server.address().port;
 const browser = await chromium.launch({ headless: true, channel: "chromium" });
+fs.mkdirSync(output, { recursive: true });
 const failures = [];
 try {
   for (const selected of fixtures) {
@@ -192,7 +206,21 @@ try {
     };
     const draw = async () => { await page.locator("#text").fill(fixture.text); await page.locator("#goal").click(); await settle(); return snapshot(); };
     const after = await draw();
-    assert.equal(after.goal.reason, "none", JSON.stringify(after.goal));
+    assert.equal(after.goal.reason, fixture.stop ?? "none", JSON.stringify(after.goal));
+    if (fixture.bundle) {
+      const prepared = after.goal.inventory.prepared;
+      const multiset = rows => rows.map(row => JSON.stringify([row.label, row.kind])).sort();
+      assert.deepEqual(multiset(prepared), multiset(fixture.nodes.flatMap(node => Array.from({ length: node.quantity }, () => node))));
+      assert.equal(new Set(prepared.map(part => part.key)).size, prepared.length);
+      assert.equal(after.goal.inventory.preparations, fixture.preparations);
+      assert.equal(after.goal.inventory.completions, 0);
+      for (const part of fixture.bundle.parts.filter(part => prepared.some(item => item.key === part.key))) {
+        assert.deepEqual(prepared.find(item => item.key === part.key), part, "retained stock keeps its full identity");
+      }
+      supply.push({ fixture: fixture.id, status: "PASS", scope: "LITERAL_AND_SYNTHETIC_VERIFIER_ONLY",
+        bundle_sha256: hash(JSON.stringify(fixture.bundle)), prepared, preparations: after.goal.inventory.preparations,
+        literal_inspection: after.goal.inventory.coverage.inspection });
+    }
     assert.equal(gradeGraph(before.records, after.records, oracle).graph_exact, true);
     const regions = after.records.filter(record => record.type === "region"), added = regions.filter(record => !records.some(old => old.id === record.id));
     for (const expected of fixture.nodes) {
@@ -218,6 +246,7 @@ try {
       frames.push({ fixture: fixture.id, camera: camera.name, observation, assessment });
       if (assessment.status !== "PASS") failures.push({ fixture: fixture.id, camera: camera.name, assessment });
       assert.deepEqual((await snapshot()).records, after.records, "camera preserves records");
+      if (fixture.bundle) await page.screenshot({ path: path.join(output, fixture.id + "-" + camera.name + ".png") });
       if (fixture.id === "equal-label-quantity") controlArgs = args;
     }
     if (controlArgs) {
@@ -332,7 +361,7 @@ try {
     await page.locator("#undo").click(); await settle();
     const undone = await snapshot(); assert.equal(undone.log, before.log); assert.equal(undone.stored, before.stored);
     assert.deepEqual(undone.records, before.records); await paintRestored("undo", undone);
-    const redone = await draw(); assert.equal(redone.goal.reason, "none");
+    const redone = await draw(); assert.equal(redone.goal.reason, fixture.stop ?? "none");
     assert.equal(gradeGraph(before.records, redone.records, oracle).graph_exact, true, "second Goal must succeed exactly");
     await paintRestored("redo", redone);
     await page.locator("#apply").click(); await settle();
@@ -340,6 +369,7 @@ try {
     await page.reload(); await settle(); const reloaded = await snapshot();
     assert.equal(reloaded.log, applied.stored);
     assert.deepEqual(reloaded.records, redone.records); await paintRestored("reload", reloaded);
+    if (fixture.bundle) await page.screenshot({ path: path.join(output, fixture.id + "-reload.png") });
     const sameLog = (a, b) => typeof a === "string" && a === b;
     assert.equal(sameLog(after.log, before.log), false, "failed Undo cannot pass");
     assert.equal(sameLog(before.log, applied.stored), false, "stale reload cannot pass");
@@ -350,13 +380,12 @@ try {
 } finally {
   await browser.close(); await new Promise(resolve => server.close(resolve)); globalThis.fetch = originalFetch;
 }
-fs.mkdirSync(output, { recursive: true });
 assert.ok(upstream.every(call => call.provider === "jev"), "ordinary literal UI requires no TypeLLM key or POST");
 const receipt = { schema: "voice-ui.candidate-browser/1", sources: manifest.sources, manifest_sha256: hash(manifestBytes),
   scope: "KEYLESS_FIXTURE_MECHANICS", live_provider: "NOT_RUN", live_microphone: "NOT_RUN",
-  viewport: [1280, 720], deviceScaleFactor: 1, api, synthetic_upstream: upstream, frames, controls, lifecycle,
+  normal_fixture_sha256: hash(normalBytes), normal_fixture_scope: "explicit bundle data; same completed app/Worker/UI; not live semantic accuracy",
+  viewport: [1280, 720], deviceScaleFactor: 1, api, synthetic_upstream: upstream, frames, controls, lifecycle, supply,
   status: failures.length ? "RED" : "PASS", failures };
 fs.writeFileSync(path.join(output, "receipt.json"), JSON.stringify(receipt, null, 2) + "\n");
 assert.deepEqual(failures, [], "painted frame requirements");
 process.stdout.write(JSON.stringify({ kind: receipt.schema, status: receipt.status, frames: frames.length, controls: controls.length, live_provider: receipt.live_provider }) + "\n");
-
