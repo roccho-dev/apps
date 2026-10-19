@@ -26,7 +26,8 @@ test('cold rows map to the existing thread record; invalid rows are held with a 
   const thread = records.find(record => record.kind === 'thread');
   assert.deepEqual([thread.repo, thread.number, thread.source.ref], ['roccho-dev/adrs', 647, REF]);
   assert.deepEqual(thread.documents.map(doc => [doc.commentId, doc.author, doc.updatedAt, doc.source, doc.admission]),
-    [[6249754001, 'roccho', '2026-10-18T01:00:00Z', { ref: REF, sha256: CONTENT }, 'observed_not_admitted']]);
+    // A1: the document is owner/repo#n + commentId, as in hot; `capture` names the fixed commit and path.
+    [[6249754001, 'roccho', '2026-10-18T01:00:00Z', { ref: 'roccho-dev/adrs#647', sha256: CONTENT, capture: REF }, 'observed_not_admitted']]);
   assert.equal(thread.documents[0].text, rows[0].payload.body);
   assert.deepEqual(records.filter(record => record.kind === 'held').map(record => [record.raw_id, record.reason]),
     [[rows[1].raw_id, 'schema'], [rows[2].raw_id, 'content-sha256-mismatch']]);
@@ -36,8 +37,8 @@ test('existing journal/plan extraction reads the cold bodies; provenance is the 
   const events = collect(normalize(snapshot), '2026-10-18T06:00:00Z');
   const decisions = events.filter(event => ['purpose.set', 'ideal.set'].includes(event.kind));
   assert.deepEqual(decisions.map(event => [event.kind, event.actor, event.source]), [
-    ['purpose.set', 'roccho', { ref: REF, sha256: CONTENT, commentId: 6249754001 }],
-    ['ideal.set', 'roccho', { ref: REF, sha256: CONTENT, commentId: 6249754001 }]]);
+    ['purpose.set', 'roccho', { ref: 'roccho-dev/adrs#647', sha256: CONTENT, capture: REF, commentId: 6249754001 }],
+    ['ideal.set', 'roccho', { ref: 'roccho-dev/adrs#647', sha256: CONTENT, capture: REF, commentId: 6249754001 }]]);
   assert.deepEqual(events.filter(event => event.kind === 'journal.held').map(event => event.reason), ['cold: schema', 'cold: content-sha256-mismatch']);
   // Capture carries no admission: no event says admitted (the record keeps observed_not_admitted verbatim).
   assert.ok(events.every(event => !('admission' in event) && !('status' in event)));
@@ -62,5 +63,6 @@ test('live.mjs builds world.json from cold G events alone (no ledger); the same 
   assert.ok(first.receipt.inputs.every(input => !input.path.includes('ledger')), 'no ledger is read');
   const world = JSON.parse(first.world);
   assert.deepEqual([world.frames.length, world.frames[0].phase, world.frames[0].gap.basis.purpose_id], [1, 'approximating', 'purpose.cold']);
-  assert.ok(world.frames[0].journal.every(entry => entry.kind === 'observation' || entry.source.ref === REF));
+  // The World names the document (owner/repo#n, comment) and the cold row's content digest.
+  assert.ok(world.frames[0].journal.every(entry => entry.kind === 'observation' || (entry.source.ref === 'roccho-dev/adrs#647' && entry.source.sha256 === CONTENT)));
 });

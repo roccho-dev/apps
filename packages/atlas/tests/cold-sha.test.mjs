@@ -37,7 +37,8 @@ test('every real row with a content_sha256 is reproduced by the adapter; each da
   const dated = hashed.filter(row => typeof (row.payload.updated_at ?? row.observed_version.updated_at) === 'string');
   const docs = records.filter(record => record.kind === 'thread').flatMap(record => record.documents);
   assert.deepEqual(docs.map(doc => [doc.commentId, doc.source.sha256]),
-    dated.map(row => [row.payload.id, `sha256:${row.observed_version.content_sha256}`]));
+    // A1: a body row (URL without a fragment, e.g. the adrs#603 PR) is commentId null, as in hot.
+    dated.map(row => [row.payload.html_url.includes('#') ? row.payload.id : null, `sha256:${row.observed_version.content_sha256}`]));
   assert.deepEqual(docs.map(doc => doc.text), dated.map(row => row.payload.body));
 });
 

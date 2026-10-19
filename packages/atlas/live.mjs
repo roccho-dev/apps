@@ -66,8 +66,30 @@ export const fromG = (event, decisions = []) => {
  * D log text: header, accepted decisions, plans and observations in recordedAt order (stable).
  * Decisions are accepted one by one in time order with D's parser; one D rejects is held, not fatal.
  */
+// hot ∖ cold (A1): a document is `owner/repo#n` + commentId (null for the body). When cold (a `source.capture`)
+// has it, cold is the confirmed value: the hot copy is dropped, or held as superseded-by-cold when it says
+// something else. Both orders (one collection, or hot in the ledger before cold) meet here; in the ledger the
+// cold copy of what hot already said stands where that declaration was first read (later hot rows rely on it).
+const DOCUMENT = [...JOURNAL, 'plan.set'];
+const documentOf = event => `${event.kind === 'plan.set' ? event.source?.repo : event.source?.ref} ${event.source?.commentId ?? null}`;
+const said = event => `${documentOf(event)} ${JSON.stringify(Object.entries({ ...event, source: null, recordedAt: null, declaredAt: null }).sort(([a], [b]) => (a < b ? -1 : 1)))}`;
+const hotMinusCold = (events, held) => {
+  const isCold = event => DOCUMENT.includes(event.kind) && Boolean(event.source?.capture);
+  const confirmed = new Set(events.filter(isCold).map(documentOf)), coldSaid = new Set(events.filter(isCold).map(said));
+  // What hot read first and cold confirms: the cold copy takes that place (time and order); otherwise its own.
+  const firstRead = new Map(), coldOf = new Map(events.filter(isCold).map(event => [said(event), event]));
+  for (const event of events) if (!isCold(event) && coldSaid.has(said(event)) && !firstRead.has(said(event))) firstRead.set(said(event), event);
+  return events.flatMap(event => {
+    if (isCold(event)) return firstRead.has(said(event)) && Date.parse(firstRead.get(said(event)).recordedAt) < Date.parse(event.recordedAt) ? [] : [event];
+    if (!DOCUMENT.includes(event.kind) || !confirmed.has(documentOf(event))) return [event];
+    if (!coldSaid.has(said(event))) { held.push({ reason: 'superseded-by-cold', [event.kind === 'plan.set' ? 'plan' : 'journal']: event }); return []; }
+    const copy = coldOf.get(said(event));
+    return firstRead.get(said(event)) === event && Date.parse(event.recordedAt) < Date.parse(copy.recordedAt) ? [{ ...copy, recordedAt: event.recordedAt }] : [];
+  });
+};
+
 export const joinLog = (purposeText, gTexts, sourceMode = 'supplied') => {
-  const gEvents = gTexts.flatMap(rows), held = [], accepted = [];
+  const held = [], accepted = [], gEvents = hotMinusCold(gTexts.flatMap(rows), held);
   const candidates = byTime([...rows(purposeText ?? ''),
     ...gEvents.filter(event => JOURNAL.includes(event.kind)).flatMap(event => fromG(event).events)]);
   for (const decision of candidates) {
