@@ -342,7 +342,10 @@ cycles and references outside the named Purpose version fail closed.
   Optional: `plan.set.plan` is the plan identity (default `source.ref`, so one
   Issue may carry several plans); `nodes`/`edges` may both be `null` (content unknown) with
   `unknown[]` reasons; `requires[].plans` declares the plans serving a condition,
-  shown as the plan's `serves`.
+  shown as the plan's `serves`. The same plan version recorded again with other content
+  (a body edited in place) does not stop the World: from then on that version is held as
+  content unknown (`unknown: ['conflicting-redefinition: …']`, neither definition used); the
+  same content again is accepted.
 - Agents: the World heading and flags come from the declared `source_mode`
   (`synthetic`/`supplied`) and `session` observations, not a fixed caption.
 
@@ -353,6 +356,8 @@ node packages/atlas/derive.mjs --out-dir=/tmp/atlas-d \
 
 `fixtures/events/` is synthetic (P's HQ mock events in this contract plus two
 plans). Its World hash is fixed in `tests/events.test.mjs`.
+Do not use `derive.mjs` with hand-written D events as an entry for declarations: it skips `live.mjs`
+`joinLog`, where declarations are checked (e.g. no `work:*` / `evidence:*` condition, adrs#654).
 
 ## Live join (K): G → D → World
 
