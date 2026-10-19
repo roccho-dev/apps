@@ -47,6 +47,7 @@ const REASONS = Object.freeze({
   "revert-moved": "a later change already moved this part; nothing was reverted",
   "revert-unsupported": "only an added part can be reverted",
   "revert-removed": "a later change already removed this part; nothing was reverted",
+  "revert-part-altered": "この部品は後から変更されています。取り消さず現在の状態を保持しました",
   "revert-holds-parts": "this part now holds other parts; nothing was reverted",
   "revert-has-edge": "this part now has an edge; nothing was reverted",
   "revert-nothing": "that entry changed no edge",

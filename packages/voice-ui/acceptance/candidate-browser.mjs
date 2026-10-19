@@ -9,6 +9,7 @@ import { assertNoSecretInputs, loadAcceptanceArtifact } from "../tests/runtime-a
 import { observePaintedGoal, assessPaintedGoal, assessPaintedEdge } from "../tests/painted-goal.mjs";
 import { gradeGraph, canonical } from "../tests/semantic-score.mjs";
 import { auditReducedView } from "../tests/reduced-view-audit.mjs";
+import { checkStoredEdgeEdits, checkStoredHistoryInverse } from "../tests/edit-browser-check.mjs";
 import { symbolFixtureSvg, checkPaintedSymbols } from "../tests/part-symbol-browser.mjs";
 
 // Keyless completed-artifact mechanics only. Every upstream response below is
@@ -52,9 +53,11 @@ const fixtures = [
   ...normalFixtures, ...editingFixtures,
 ];
 assert.equal(new Set(fixtures.map(item => item.id)).size, fixtures.length);
-let fixture = null, input = null, catalogueHidden = false;
+let fixture = null, input = null, catalogueHidden = false, editing = null;
 const api = [], upstream = [], frames = [], controls = [], lifecycle = [], supply = [], images = [], fixtureResults = [], reductions = [];
 const syntheticAnswer = wire => {
+  if (editing !== null && wire.questions.action) return Object.fromEntries(Object.keys(wire.questions)
+    .map(name => [name, editing[name] ?? "none"]));
   if (fixture.edit) return Object.fromEntries(Object.keys(wire.questions)
     .map(name => [name, fixture.edit.response[name] ?? "none"]));
   if (wire.questions.completion) return { completion: "unknown" };
@@ -205,7 +208,7 @@ try {
     const reduceReadback = async (stage, state, expected = oracle) => {
       // Editing has an explicit whole-record expectation, including layout,
       // rather than treating every operation as append-only new semantics.
-      const exact = fixture.edit ? (["before", "undo"].includes(stage) ? accepted.records : fixture.edit.expectedRecords) : null;
+      const exact = fixture.edit ? (["before", "undo", "focused-retry"].includes(stage) ? accepted.records : fixture.edit.expectedRecords) : null;
       const result = await auditReducedView({ log: state.log, ui: state, initialRecords: exact ?? accepted.records,
         oracle: exact ? { expected_added_regions: [], expected_added_edges: [] } : expected, protocol });
       if (exact) {
@@ -268,7 +271,11 @@ try {
       }
       assert.deepEqual((await snapshot()).records, state.records, "restored camera preserves exact records");
     };
-    const draw = async () => { await page.locator("#text").fill(fixture.text); await page.locator(fixture.edit ? "#send" : "#goal").click(); await settle(); return snapshot(); };
+    const draw = async () => {
+      if (fixture.edit) { await page.locator("#camera-part").selectOption(""); await settle(); }
+      await page.locator("#text").fill(fixture.text);
+      await page.locator(fixture.edit ? "#send" : "#goal").click(); await settle(); return snapshot();
+    };
     const after = await draw();
     await reduceReadback("after", after);
     if (fixture.edit) assert.equal(after.state, "drafted", JSON.stringify(after));
@@ -431,6 +438,21 @@ try {
     await page.locator("#undo").click(); await settle();
     const undone = await snapshot(); assert.equal(undone.log, before.log); assert.equal(undone.stored, before.stored);
     assert.deepEqual(undone.records, before.records); await reduceReadback("undo", undone, unchangedOracle); await paintRestored("undo", undone);
+    if (fixture.edit?.response.action === "place-part") {
+      // The observer's focused camera is not the original request frame.
+      // Keep the off-pane safety control, then retry in the original overview.
+      const focused = await snapshot();
+      await page.locator("#text").fill(fixture.text); await page.locator("#send").click(); await settle();
+      const rejected = await snapshot();
+      assert.equal(rejected.state, "no-change");
+      assert.equal(rejected.log, focused.log); assert.equal(rejected.stored, focused.stored);
+      assert.deepEqual(rejected.records, focused.records);
+      const statusText = await page.locator("#status").textContent();
+      assert.ok(statusText.includes("その場所は今の表示の外になります"));
+      await reduceReadback("focused-retry", rejected, unchangedOracle);
+      controls.push({ fixture: fixture.id, mutation: "focused-view-excludes-destination", detected: true,
+        status: "PASS", frame: rejected.view.frame, statusText });
+    }
     const redone = await draw();
     if (fixture.edit) assert.equal(redone.state, "drafted");
     else assert.equal(redone.goal.reason, fixture.stop ?? "none");
@@ -447,10 +469,24 @@ try {
     assert.equal(sameLog(after.log, before.log), false, "failed Undo cannot pass");
     assert.equal(sameLog(before.log, applied.stored), false, "stale reload cannot pass");
     lifecycle.push({ fixture: fixture.id, undo: "PASS", apply: "PASS", reload: "PASS", failedUndoControl: "RED", staleReloadControl: "RED" });
+    const saveEditAudit = async record => {
+      const name = fixture.id + "-" + record.stage + "-reduced.json";
+      fs.writeFileSync(path.join(output, name), JSON.stringify({ source: manifest.sources.apps, ...record }, null, 2) + "\n");
+      reductions.push({ fixture: fixture.id, stage: record.stage, file: name, ...record.audit });
+    };
+    if (fixture.id === "existing-directed-connection") await checkStoredEdgeEdits({
+      page, snapshot, settle, protocol, initialRecords: accepted.records,
+      setEdit: value => { editing = value; }, save: saveEditAudit, paint: paintRestored,
+    });
+    if (fixture.edit) await checkStoredHistoryInverse({
+      page, snapshot, settle, protocol, beforeRecords: accepted.records, save: saveEditAudit,
+      paint: (stage, state) => paintRestored(stage.endsWith("-undo") ? "after" : "undo", state),
+    });
     assert.deepEqual(errors, []);
     } catch (error) {
       failures.push({ fixture: selected.id, error: String(error), stack: error.stack });
     } finally {
+      editing = null;
       if (context) try { await context.close(); }
       catch (error) { failures.push({ fixture: selected.id, cleanup: String(error) }); }
       // A later failed dependency must not erase earlier results or prevent

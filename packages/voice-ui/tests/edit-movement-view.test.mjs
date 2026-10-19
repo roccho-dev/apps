@@ -1,0 +1,35 @@
+import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import path from 'node:path';
+import test from 'node:test';
+import {pathToFileURL} from 'node:url';
+import {requestFor,planStep} from '../src/turn.mjs';
+import {createSession,propose,undo} from '../src/session.mjs';
+const protocol=await import(pathToFileURL(process.env.VOICE_UI_TEST_PROTOCOL??path.join(process.env.SEMANTIC_MAP,'packages/semantic-map/protocol/index.js')));
+const cases=fs.readFileSync(new URL('./fixtures/edit-readback/movement-views.jsonl',import.meta.url),'utf8').trim().split('\n').map(JSON.parse);
+const bag=rows=>rows.map(r=>JSON.stringify(Object.fromEntries(Object.entries(r).sort(([a],[b])=>a.localeCompare(b))))).sort();
+for(const c of cases)test('same grouped move after Undo requires the same visible frame / '+c.id,async()=>{
+ const seed=await protocol.createDecisionLog(c.initial.filter(r=>r.type!=='layout'),'voice-graph');
+ const ops=[{type:'PinRegions',items:c.initial.filter(r=>r.type==='layout').map(r=>({regionId:r.regionId,bounds:r.bounds}))}];
+ const decision=await protocol.createDecision(seed.head,ops,seed.records);
+ const initial=(await protocol.appendDecision(seed.log,decision.decision)).verified;
+ assert.deepEqual(bag(initial.records),bag(c.initial));
+ const bundle={version:'fixed-edit',parts:[],diagrams:[]};
+ const prepare=(working,frame)=>{
+  const layout=protocol.layoutBoundsFor(working.records,{pattern:protocol.GRAPH_PATTERN});
+  const {turn}=requestFor({working,utterance:'APIをDBの右へ。他は変更しない。',bundle,layout,offeredFrame:frame,draft:[],focus:null,pending:null,recent:[]});
+  const picks={action:'place-part',move:'api',anchor:'db',direction:'right'};
+  const answers=Object.fromEntries(Object.keys(turn.slots).map(k=>[k,{type:'choice',choice:picks[k]??'none',confidence:.9}]));
+  return {working,turn,answers,protocol,bundle,layout,visibleFrame:{head:working.head,frame},input:{source:'typed',text:'APIをDBの右へ。他は変更しない。'},repair:null};
+ };
+ const first=await propose(createSession({accepted:initial,stored:initial.log}),prepare(initial,c.overview));
+ assert.equal(first.result.outcome,'step');assert.deepEqual(bag(first.session.working.records),bag(c.expected));
+ const undone=await undo(first.session,{verifyDecisionLog:protocol.verifyDecisionLog});
+ assert.equal(undone.working.log,initial.log);
+ const focused=await planStep(prepare(undone.working,c.focused));
+ assert.equal(focused.outcome,'no-change');assert.equal(focused.reason,'spot-off-pane');
+ assert.equal(undone.working.log,initial.log);
+ const redone=await propose(undone,prepare(undone.working,c.overview));
+ assert.equal(redone.result.outcome,'step');assert.deepEqual(bag(redone.session.working.records),bag(c.expected));
+ assert.equal(redone.session.stored,initial.log);
+});

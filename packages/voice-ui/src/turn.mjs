@@ -957,7 +957,11 @@ const layoutPins = records => records
   .map(record => [record.regionId, [...record.bounds]]);
 const relationsById = records => new Map(records.filter(record => record?.type === "relation").map(record => [record.id, record]));
 const regionIds = records => records.filter(record => record?.type === "region").map(record => record.id).sort();
-const sameEdge = (left, right) => left?.from === right?.from && left?.to === right?.to;
+const sameEdge = (left, right) => left?.from === right?.from && left?.to === right?.to
+  && left?.kind === right?.kind && left?.label === right?.label;
+const sameRegion = (left, right) => left !== undefined && right !== undefined
+  && Object.keys(left).length === Object.keys(right).length
+  && Object.keys(right).every(key => JSON.stringify(left[key]) === JSON.stringify(right[key]));
 
 // Whether an applied entry can be taken back as one safe change: edges only,
 // placements only, or parts that still stand alone in the saved graph.
@@ -1012,6 +1016,11 @@ export async function revertStep({ before, after, working, protocol }) {
     const present = new Set(regionIds(working.records));
     for (const regionId of addedRegions) {
       if (!present.has(regionId)) return refused("revert-removed");
+      // Removing an added leaf must not discard a later name, kind, parent,
+      // description, or other stored value. Compare only the target's state;
+      // unrelated later work does not block its unchanged inverse.
+      if (!sameRegion(working.records.find(record => record.type === "region" && record.id === regionId),
+        after.find(record => record.type === "region" && record.id === regionId))) return refused("revert-part-altered");
       if (working.records.some(record => record?.type === "region" && record.parent === regionId)) return refused("revert-holds-parts");
       if (working.records.some(record => record?.type === "relation" && (record.from === regionId || record.to === regionId))) {
         return refused("revert-has-edge");
@@ -1031,7 +1040,9 @@ export async function revertStep({ before, after, working, protocol }) {
   if (added.length + removed.length === 0) return refused("revert-nothing");
   const current = relationsById(working.records);
   if (!added.every(relation => sameEdge(current.get(relation.id), relation))) return refused("revert-altered");
-  if (!removed.every(relation => !current.has(relation.id))) return refused("revert-reused");
+  // A same-ID edit removes the verified current version before restoring the
+  // earlier one. An ID reused outside this entry is still a conflict.
+  if (!removed.every(relation => !current.has(relation.id) || added.some(item => item.id === relation.id))) return refused("revert-reused");
   return build([
     ...(added.length > 0 ? [{ type: "RemoveSelection", regionIds: [], relationIds: added.map(relation => relation.id) }] : []),
     ...removed.map(relation => ({
