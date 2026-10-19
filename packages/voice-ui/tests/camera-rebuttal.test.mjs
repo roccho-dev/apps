@@ -52,7 +52,9 @@ if(!process.env.CAMERA_REBUTTAL_BASELINE_ONLY){
   const source=fs.readFileSync(path.join(root,'web/app.mjs'),'utf8');
   const start=source.indexOf('const showLists = () => {'),end=source.indexOf('// The architecture page',start);assert.ok(start>=0&&end>start);
   const records=[...taskCollision,...crossCollision.slice(1),r('overview-name','全体の概要')];
-  const menu={items:[],replaceChildren(){this.items=[];},append(item){this.items.push(item);}};
+  const menu={items:[]};
+  menu.replaceChildren=()=>{menu.items=[];};
+  menu.append=item=>{menu.items.push(item);};
   const context={session:{working:{records},draft:[]},camera:null,bundle:{},cameraPart:menu,draftList:{},draftCount:{},contextList:{},contextSkipped:{},
    renderDraft(){},renderContext(){},draftUsed:()=>0,recentConversation:()=>[],architectureReady:()=>false,cameraLabels,
    workingLayout:()=>({bounds:Object.fromEntries(records.filter(x=>x.type==='region').map(x=>[x.id,[0,0,100,100]]))}),document:{createElement:()=>({})}};
