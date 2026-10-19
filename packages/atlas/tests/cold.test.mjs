@@ -27,7 +27,7 @@ test('cold rows map to the existing thread record; invalid rows are held with a 
   assert.deepEqual([thread.repo, thread.number, thread.source.ref], ['roccho-dev/adrs', 647, REF]);
   assert.deepEqual(thread.documents.map(doc => [doc.commentId, doc.author, doc.updatedAt, doc.source, doc.admission]),
     // A1: the document is owner/repo#n + commentId, as in hot; `capture` names the fixed commit and path.
-    [[6249754001, 'roccho', '2026-10-18T01:00:00Z', { ref: 'roccho-dev/adrs#647', sha256: CONTENT, capture: REF }, 'observed_not_admitted']]);
+    [[6249754001, 'roccho', '2026-10-18T01:00:00Z', { ref: 'roccho-dev/adrs#647', sha256: CONTENT, capture: REF, admission: 'observed_not_admitted' }, 'observed_not_admitted']]);
   assert.equal(thread.documents[0].text, rows[0].payload.body);
   assert.deepEqual(records.filter(record => record.kind === 'held').map(record => [record.raw_id, record.reason]),
     [[rows[1].raw_id, 'schema'], [rows[2].raw_id, 'content-sha256-mismatch']]);
@@ -37,8 +37,8 @@ test('existing journal/plan extraction reads the cold bodies; provenance is the 
   const events = collect(normalize(snapshot), '2026-10-18T06:00:00Z');
   const decisions = events.filter(event => ['purpose.set', 'ideal.set'].includes(event.kind));
   assert.deepEqual(decisions.map(event => [event.kind, event.actor, event.source]), [
-    ['purpose.set', 'roccho', { ref: 'roccho-dev/adrs#647', sha256: CONTENT, capture: REF, commentId: 6249754001 }],
-    ['ideal.set', 'roccho', { ref: 'roccho-dev/adrs#647', sha256: CONTENT, capture: REF, commentId: 6249754001 }]]);
+    ['purpose.set', 'roccho', { ref: 'roccho-dev/adrs#647', sha256: CONTENT, capture: REF, admission: 'observed_not_admitted', commentId: 6249754001 }],
+    ['ideal.set', 'roccho', { ref: 'roccho-dev/adrs#647', sha256: CONTENT, capture: REF, admission: 'observed_not_admitted', commentId: 6249754001 }]]);
   assert.deepEqual(events.filter(event => event.kind === 'journal.held').map(event => event.reason), ['cold: schema', 'cold: content-sha256-mismatch']);
   // Capture carries no admission: no event says admitted (the record keeps observed_not_admitted verbatim).
   assert.ok(events.every(event => !('admission' in event) && !('status' in event)));
