@@ -8,6 +8,7 @@ import { pathToFileURL } from "node:url";
 import { assertNoSecretInputs, loadAcceptanceArtifact } from "../tests/runtime-acceptance.mjs";
 import { observePaintedGoal, assessPaintedGoal, assessPaintedEdge } from "../tests/painted-goal.mjs";
 import { gradeGraph } from "../tests/semantic-score.mjs";
+import { auditReducedView } from "../tests/reduced-view-audit.mjs";
 import { symbolFixtureSvg, checkPaintedSymbols } from "../tests/part-symbol-browser.mjs";
 
 // Keyless completed-artifact mechanics only. Every upstream response below is
@@ -48,7 +49,7 @@ const fixtures = [
 ];
 assert.equal(new Set(fixtures.map(item => item.id)).size, fixtures.length);
 let fixture = null, input = null, catalogueHidden = false;
-const api = [], upstream = [], frames = [], controls = [], lifecycle = [], supply = [], images = [], fixtureResults = [];
+const api = [], upstream = [], frames = [], controls = [], lifecycle = [], supply = [], images = [], fixtureResults = [], reductions = [];
 const syntheticAnswer = wire => {
   if (wire.questions.completion) return { completion: "unknown" };
   if (wire.questions.intent) return { intent: "change", labels: fixture.id === "equal-label-quantity" || fixture.existing ? "available" : "missing",
@@ -180,6 +181,7 @@ try {
     const snapshot = () => page.evaluate(storageKey => {
       const view = document.querySelector("#working-surface iframe[data-package=semantic-map]")?.contentWindow?.semanticMapRuntime;
       return { state: document.body.dataset.state, log: view?.log ?? null, records: view?.records ?? null,
+        head: view?.head ?? null, view: view?.view ?? null,
         stored: localStorage.getItem(storageKey), goal: document.body.dataset.goal ? JSON.parse(document.body.dataset.goal) : null };
     }, key);
     await page.goto(origin); await settle();
@@ -194,6 +196,30 @@ try {
       expected_added_edges: fixture.flow ? [{ from: fixture.existing ? "fixture:source" : "added:" + fixture.flow[0],
         to: fixture.existing ? "fixture:target" : "added:" + fixture.flow[1], kind: "flow", label: "" }] : [],
     };
+    const reduceReadback = async (stage, state, expected = oracle) => {
+      const result = await auditReducedView({ log: state.log, ui: state, initialRecords: accepted.records,
+        oracle: expected, protocol });
+      // The actual JSONL and reported UI state/view stay re-readable after CI,
+      // including RED observations. No expected value is passed to the model.
+      const name = fixture.id + "-" + stage + "-reduced.json";
+      fs.writeFileSync(path.join(output, name), JSON.stringify({ source: manifest.sources.apps,
+        initialRecords: accepted.records, expected, actual: state, audit: result }, null, 2) + "\n");
+      reductions.push({ fixture: fixture.id, stage, file: name, ...result });
+      assert.equal(result.status, "PASS", "JSONL reduce and UI readback: " + JSON.stringify(result));
+    };
+    const checkSymbols = async (stage, state, expected) => {
+      try {
+        images.push({ fixture: fixture.id, ...await checkPaintedSymbols({ page, records: state.records,
+          expected, origin, stage }) });
+      } catch (error) {
+        // Record the unmet pixel gate and continue this fixture's independent
+        // Undo/save/readback observations. The overall result remains RED.
+        const failure = { fixture: fixture.id, stage, axis: "painted-symbol", status: "RED", error: String(error) };
+        images.push(failure); failures.push(failure);
+      }
+    };
+    const unchangedOracle = { expected_added_regions: [], expected_added_edges: [] };
+    await reduceReadback("before", before, unchangedOracle);
     const paintRestored = async (stage, state) => {
       const regions = state.records.filter(record => record.type === "region");
       const groups = regions.filter(record => record.kind === "group");
@@ -213,12 +239,12 @@ try {
         frames.push({ fixture: fixture.id, stage, camera: "relation", observation, assessment });
         if (assessment.status !== "PASS") failures.push({ fixture: fixture.id, stage, camera: "relation", assessment });
       }
-      if (fixture.symbols) images.push({ fixture: fixture.id, ...await checkPaintedSymbols({ page, records: state.records,
-        expected: stage === "undo" ? [] : fixture.symbols, origin, stage }) });
+      if (fixture.symbols) await checkSymbols(stage, state, stage === "undo" ? [] : fixture.symbols);
       assert.deepEqual((await snapshot()).records, state.records, "restored camera preserves exact records");
     };
     const draw = async () => { await page.locator("#text").fill(fixture.text); await page.locator("#goal").click(); await settle(); return snapshot(); };
     const after = await draw();
+    await reduceReadback("after", after);
     assert.equal(after.goal.reason, fixture.stop ?? "none", JSON.stringify(after.goal));
     if (fixture.bundle) {
       const prepared = after.goal.inventory.prepared;
@@ -260,8 +286,7 @@ try {
       frames.push({ fixture: fixture.id, camera: camera.name, observation, assessment });
       if (assessment.status !== "PASS") failures.push({ fixture: fixture.id, camera: camera.name, assessment });
       assert.deepEqual((await snapshot()).records, after.records, "camera preserves records");
-      if (fixture.symbols) images.push({ fixture: fixture.id, ...await checkPaintedSymbols({ page, records: after.records,
-        expected: fixture.symbols, origin, stage: "after" }) });
+      if (fixture.symbols) await checkSymbols("after", after, fixture.symbols);
       if (fixture.bundle) await page.screenshot({ path: path.join(output, fixture.id + "-" + camera.name + ".png") });
       if (fixture.id === "equal-label-quantity") controlArgs = args;
     }
@@ -376,16 +401,16 @@ try {
     }
     await page.locator("#undo").click(); await settle();
     const undone = await snapshot(); assert.equal(undone.log, before.log); assert.equal(undone.stored, before.stored);
-    assert.deepEqual(undone.records, before.records); await paintRestored("undo", undone);
+    assert.deepEqual(undone.records, before.records); await reduceReadback("undo", undone, unchangedOracle); await paintRestored("undo", undone);
     const redone = await draw(); assert.equal(redone.goal.reason, fixture.stop ?? "none");
     assert.equal(gradeGraph(before.records, redone.records, oracle).graph_exact, true, "second Goal must succeed exactly");
-    await paintRestored("redo", redone);
+    await reduceReadback("redo", redone); await paintRestored("redo", redone);
     await page.locator("#apply").click(); await settle();
-    const applied = await snapshot(); assert.equal(applied.stored, redone.log);
+    const applied = await snapshot(); assert.equal(applied.stored, redone.log); await reduceReadback("apply", applied);
     catalogueHidden = !!fixture.symbols;
     await page.reload(); await settle(); const reloaded = await snapshot();
     assert.equal(reloaded.log, applied.stored);
-    assert.deepEqual(reloaded.records, redone.records); await paintRestored("reload", reloaded);
+    assert.deepEqual(reloaded.records, redone.records); await reduceReadback("reload", reloaded); await paintRestored("reload", reloaded);
     if (fixture.bundle) await page.screenshot({ path: path.join(output, fixture.id + "-reload.png") });
     const sameLog = (a, b) => typeof a === "string" && a === b;
     assert.equal(sameLog(after.log, before.log), false, "failed Undo cannot pass");
@@ -413,7 +438,7 @@ const receipt = { schema: "voice-ui.candidate-browser/1", sources: manifest.sour
   scope: "KEYLESS_FIXTURE_MECHANICS", live_provider: "NOT_RUN", live_microphone: "NOT_RUN",
   normal_fixture_sha256: hash(normalBytes), normal_fixture_scope: "explicit bundle data; same completed app/Worker/UI; not live semantic accuracy",
   symbol_fixture_sha256: hash(symbolFixtureSvg),
-  viewport: [1280, 720], deviceScaleFactor: 1, api, synthetic_upstream: upstream, frames, controls, lifecycle, supply, images, fixtureResults,
+  viewport: [1280, 720], deviceScaleFactor: 1, api, synthetic_upstream: upstream, frames, controls, lifecycle, supply, images, fixtureResults, reductions,
   status: failures.length ? "RED" : "PASS", failures };
 fs.writeFileSync(path.join(output, "receipt.json"), JSON.stringify(receipt, null, 2) + "\n");
 assert.deepEqual(failures, [], "painted frame requirements");
