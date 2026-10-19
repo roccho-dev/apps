@@ -568,12 +568,12 @@ async function materialize(working, planned, protocol) {
 // A child placed into a group the current Goal added goes below its siblings;
 // that group and each enclosing group under the root grow just enough, origin
 // kept. Growing into an existing sibling refuses.
-function grownSlot(records, current, parent, regionId, size) {
+function grownSlot(records, current, parent, regionId, size, labelRoom) {
   const parentOf = new Map(records.filter(record => record.type === "region").map(record => [record.id, record.parent]));
   const childrenOf = id => records.filter(record => record.type === "region" && record.parent === id && record.id !== regionId);
   const frame = current.bounds[parent.id];
   const siblings = childrenOf(parent.id).map(record => current.bounds[record.id]);
-  const top = siblings.length === 0 ? frame[1] + BAND_LABEL_ROOM : Math.max(...siblings.map(box => box[1] + box[3])) + STEP_GAP;
+  const top = siblings.length === 0 ? frame[1] + labelRoom : Math.max(...siblings.map(box => box[1] + box[3])) + STEP_GAP;
   const bounds = [frame[0] + BAND_PADDING, top, size[2], size[3]];
   const ancestors = [];
   for (let node = parent.id, inner = bounds; parentOf.get(node) !== null; node = parentOf.get(node)) {
@@ -595,7 +595,7 @@ const crowding = (box, other) => overlapping(box, [other[0] - BAND_PADDING, othe
 
 // Keep raw kernel legality and painted placement separate. Preview is pure:
 // the provider owns candidate dimensions; only our existing spacing is used.
-function additionSlot(working, parent, part, reserved, protocol, grows = false) {
+function additionSlot(working, parent, part, reserved, protocol, grows = false, expressive = false) {
   // The raw bounds are only the AddRegion placeholder: when the raw grid is
   // full, the parent box stands in, and the painted search below with the
   // provider layout still decides whether a part fits.
@@ -617,8 +617,20 @@ function additionSlot(working, parent, part, reserved, protocol, grows = false) 
     if (!validBox(frame) || !validBox(size)) return null;
     const siblings = working.records.filter(record => record.type === "region" && record.parent === parent.id);
     if (siblings.some(record => !validBox(current.bounds[record.id]))) return null;
+    // v8 uses the provider's own unpinned child/title inset. A compact v7
+    // band header is not enough once five parts share a fitted screen frame.
+    // No existing position or camera is changed to make a candidate fit.
+    let labelRoom = BAND_LABEL_ROOM;
+    if (expressive) {
+      const natural = protocol.layoutBoundsFor(records.filter(record => record.type !== "layout"), view);
+      const children = records.filter(record => record.type === "region" && record.parent === parent.id);
+      const top = Math.min(...children.map(record => natural.bounds[record.id][1]));
+      const inset = top - natural.bounds[parent.id][1];
+      if (!(Number.isFinite(inset) && inset > 0)) return null;
+      labelRoom = Math.max(labelRoom, inset);
+    }
     if (grows) {
-      const grown = grownSlot(records, current, parent, regionId, size);
+      const grown = grownSlot(records, current, parent, regionId, size, labelRoom);
       if (grown === null) return null;
       const moved = new Set([regionId, ...grown.ancestors.map(item => item.regionId)]);
       const pins = [{ regionId, bounds: grown.bounds }, ...grown.ancestors];
@@ -639,7 +651,7 @@ function additionSlot(working, parent, part, reserved, protocol, grows = false) 
       return [...grid, ...new Set(off)];
     };
     const boxes = siblings.map(record => current.bounds[record.id]);
-    const ys = axis(frame[1] + BAND_LABEL_ROOM, frame[1] + frame[3] - BAND_PADDING - size[3], size[3] + STEP_GAP,
+    const ys = axis(frame[1] + labelRoom, frame[1] + frame[3] - BAND_PADDING - size[3], size[3] + STEP_GAP,
       boxes.map(box => box[1] + box[3] + BAND_PADDING));
     const xs = axis(frame[0] + BAND_PADDING, frame[0] + frame[2] - BAND_PADDING - size[2], size[2] + STEP_GAP,
       boxes.map(box => box[0] + box[2] + BAND_PADDING));
@@ -676,7 +688,7 @@ function legalAdditions(working, { bundle, protocol, reserved = [], selected = [
     .sort((a, b) => a.key.localeCompare(b.key));
   for (const parent of parents) for (const part of parts) {
     if (parent.parent === null && part.kind !== LANE_KIND) continue;
-    const slot = additionSlot(working, parent, part, reserved, protocol, grows(parent));
+    const slot = additionSlot(working, parent, part, reserved, protocol, grows(parent), expressive);
     if (slot === null) continue;
     candidates.push(Object.freeze({ id: `delta-${candidates.length + 1}`, part: part.key, parent: parent.id,
       operations: Object.freeze([Object.freeze({ ...slot.operation, bounds: Object.freeze([...slot.operation.bounds]) }),
