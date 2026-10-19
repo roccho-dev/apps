@@ -67,7 +67,37 @@ export async function checkPaintedSymbols({ page, records, expected, origin, sta
       assert.deepEqual(row.decoded, { width: 64, height: 64, corner: [36, 80, 160, 255], center: [255, 255, 255, 255] });
     }
   };
-  const observed = await observe(); verify(observed);
+  const observed = await observe();
+  try { verify(observed); } catch (failure) {
+    // Preserve the exact failing pipeline, without repairing or replacing the UI.
+    // Only this bounded synthetic fixture is observed; the original failure stays RED.
+    let pipeline;
+    try {
+      pipeline = await page.evaluate(ids => {
+        const frame = document.querySelector('#working-surface iframe');
+        const runtime = frame.contentWindow.semanticMapRuntime;
+        const editor = frame.contentWindow.semanticMapSite?.editor;
+        const adapter = editor?.adapter, graph = adapter?.graph;
+        const cells = ids.map(id => {
+          const cell = adapter?.cellsByRegionId?.get(id);
+          const state = cell ? graph.getView().getState(cell) : null;
+          return { id, requestedShape: state?.style?.shape ?? null,
+            actualShape: state?.shape?.constructor?.name ?? null,
+            requestedImage: state?.style?.image ?? null, actualImageSource: state?.shape?.imageSrc ?? null };
+        });
+        return { head: runtime?.head ?? null,
+          composition: runtime?.view?.resourceComposition ?? null,
+          registeredImageShape: graph?.getCellRenderer().getShape('image')?.name ?? null,
+          sceneImages: (editor?.currentScene()?.representations ?? []).filter(row => ids.includes(row.regionId))
+            .map(row => ({ id: row.regionId, resource: row.resource })),
+          svgImages: frame.contentDocument.querySelectorAll('image').length,
+          htmlImages: frame.contentDocument.querySelectorAll('img').length, cells };
+      }, nodes.map(node => node.id));
+    } catch (error) { pipeline = { diagnostic_error: String(error) }; }
+    console.info(JSON.stringify({ kind: 'voice-ui.symbol-pipeline-failure/1', stage,
+      expected_images: nodes.length, observed, pipeline }));
+    throw failure;
+  }
   let hiddenImageDetected = null;
   if (stage === 'after' && nodes.length) {
     const saved = await page.evaluate(id => {
