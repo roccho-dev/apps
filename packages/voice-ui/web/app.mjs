@@ -435,6 +435,7 @@ const intentFor = (latest, utterance, { layout, offeredFrame, pending, lastAppli
     working: latest.working,
     utterance,
     bundle,
+    typedEdges: !architecture && bundle.goalSelection === "delta",
     layout,
     offeredFrame,
     draft: steps,

@@ -15,6 +15,7 @@ import {
   NONE,
   PLACEMENT_SLOTS,
   REQUEST_KIND,
+  TYPED_REQUEST_KIND,
   readAnswers,
   slotsFor,
 } from "./contract.mjs";
@@ -57,7 +58,7 @@ const PART_GAP = 20;
 // view; only this spacing is ours.
 const NEIGHBOUR_GAP = 24;
 // How a composed diagram is drawn: lanes as bands one above the other, each
-// step inside its lane's band, steps in flow order from left to right.
+// step inside its lane, each link from one step to the next.
 const LANE_HEADER = 120;
 const BAND_LABEL_ROOM = 36;
 const BAND_PADDING = 12;
@@ -81,6 +82,17 @@ const requireGraph = graph => {
 
 const relationIdFor = (source, target) => `voice-${source}-to-${target}`;
 const relationKey = (from, to) => JSON.stringify([from, to]);
+// The fixed reducer keys a relation by direction and kind, not its label.
+const sameMeaningAt = (record, from, to, kind) => record.type === "relation"
+  && record.from === from && record.to === to && record.kind === kind;
+// Existing IDs are not derived from endpoint text alone once meanings can coexist.
+const freeRelationId = (records, from, to, reserved = []) => {
+  const used = new Set([...records.map(record => record.id), ...reserved]);
+  const base = relationIdFor(from, to);
+  let id = base, index = 1;
+  while (used.has(id)) id = `${base}-${index++}`;
+  return id;
+};
 const relationKeys = records => new Set(records
   .filter(record => record?.type === "relation")
   .map(record => relationKey(record.from, record.to)));
@@ -91,10 +103,11 @@ const rootOf = records => records.find(record => record?.type === "region" && re
 const selectableRegionIds = records =>
   records.filter(record => record?.type === "region" && record.parent !== null).map(record => record.id);
 
-function edgesOf(records) {
+function edgesOf(records, typed = false) {
   return Object.freeze(records
     .filter(record => record?.type === "relation")
-    .map(record => Object.freeze({ id: record.id, from: record.from, to: record.to })));
+    .map(record => Object.freeze({ id: record.id, from: record.from, to: record.to,
+      ...(typed ? { kind: record.kind, label: record.label } : {}) })));
 }
 
 // The parts the judgment binding may name: every region under the boundary except a lane. A
@@ -112,9 +125,9 @@ function speakableRegions(records) {
 const speakableIds = records => speakableRegions(records).map(region => region.id);
 
 // The edges the judgment binding may name: those between two parts it may name.
-function speakableEdges(records) {
+function speakableEdges(records, typed = false) {
   const ids = speakableIds(records);
-  return Object.freeze(edgesOf(records).filter(edge => ids.includes(edge.from) && ids.includes(edge.to)));
+  return Object.freeze(edgesOf(records, typed).filter(edge => ids.includes(edge.from) && ids.includes(edge.to)));
 }
 
 const overlapping = (left, right) =>
@@ -258,13 +271,14 @@ export function pendingHolds(pending, { head, frame, offered }) {
 // only the sections this turn offers (or none), the frame the placeable parts
 // were read from, and the offered question slots. The request is exactly the
 // declared read set: no log, head, hash, bounds or template ever leaves.
-export function requestFor({ working, utterance, bundle, layout, offeredFrame, draft, focus, pending, recent }) {
+export function requestFor({ working, utterance, bundle, layout, offeredFrame, draft, focus, pending, recent, typedEdges = false }) {
   requireGraph(working);
+  demand(typeof typedEdges === "boolean", "typedEdges must be explicit boolean");
   const placeable = layout === null ? [] : [...placeableIds(layout, working.records, offeredFrame)];
   const offers = offersOf(bundle, { named: false });
   const state = Object.freeze({
     utterance,
-    graph: Object.freeze({ regions: speakableRegions(working.records), edges: speakableEdges(working.records), placeable }),
+    graph: Object.freeze({ regions: speakableRegions(working.records), edges: speakableEdges(working.records, typedEdges), placeable }),
     draft: Object.freeze(draft.map(step => Object.freeze({ changes: changesForJudgment(step.changes) }))),
     focus,
     pending,
@@ -278,7 +292,7 @@ export function requestFor({ working, utterance, bundle, layout, offeredFrame, d
     frame: offeredFrame,
     slots: slotsFor(state),
   });
-  return Object.freeze({ turn, request: Object.freeze({ kind: REQUEST_KIND, state }) });
+  return Object.freeze({ turn, request: Object.freeze({ kind: typedEdges ? TYPED_REQUEST_KIND : REQUEST_KIND, state }) });
 }
 
 // The one slot that fell short, or null when the shortfall is not exactly one
@@ -509,15 +523,17 @@ function operationsFor(read, context) {
   }
 
   const existing = relationKeys(records);
+  const typed = bundle.goalSelection === "delta";
   if (action === ACTION_ADD_EDGE) {
     if (read.source.choice === NONE || read.target.choice === NONE) return noChange("no-two-nodes");
     const confidence = Math.min(read.action.confidence, read.source.confidence, read.target.confidence);
     if (confidence < MIN_CONFIDENCE) return noChange("not-confident");
     if (read.source.choice === read.target.choice) return refused("same-region");
-    if (existing.has(relationKey(read.source.choice, read.target.choice))) return refused("edge-exists");
+    if (typed ? records.some(record => sameMeaningAt(record, read.source.choice, read.target.choice, RELATION_KIND))
+      : existing.has(relationKey(read.source.choice, read.target.choice))) return refused("edge-exists");
     return plan(ACTION_ADD_EDGE, confidence, [{
       type: "ConnectRegions",
-      relationId: relationIdFor(read.source.choice, read.target.choice),
+      relationId: typed ? freeRelationId(records, read.source.choice, read.target.choice) : relationIdFor(read.source.choice, read.target.choice),
       from: read.source.choice,
       to: read.target.choice,
       kind: RELATION_KIND,
@@ -538,10 +554,11 @@ function operationsFor(read, context) {
   // Reverse is one Decision holding a removal and an addition, so it applies
   // whole or not at all. ReconnectRelation would keep the old id, which encodes
   // the old direction, and a later add of that direction would then collide.
-  if (existing.has(relationKey(relation.to, relation.from))) return refused("reversed-exists");
+  if (typed ? records.some(record => sameMeaningAt(record, relation.to, relation.from, relation.kind))
+    : existing.has(relationKey(relation.to, relation.from))) return refused("reversed-exists");
   return plan(ACTION_REVERSE_EDGE, confidence, [remove, {
     type: "ConnectRegions",
-    relationId: relationIdFor(relation.to, relation.from),
+    relationId: typed ? freeRelationId(records, relation.to, relation.from) : relationIdFor(relation.to, relation.from),
     from: relation.to,
     to: relation.from,
     kind: relation.kind,
@@ -750,7 +767,7 @@ export function legalLocalDeltas(working, options) {
   const candidates = additions === null ? [] : [...additions.candidates];
   const ids = speakableIds(working.records).sort();
   const existing = new Set(working.records.filter(row => row.type === "relation")
-    .map(row => expressive ? JSON.stringify([row.from, row.to, row.kind, row.label]) : relationKey(row.from, row.to)));
+    .map(row => expressive ? JSON.stringify([row.from, row.to, row.kind]) : relationKey(row.from, row.to)));
   const relations = expressive && Object.hasOwn(options.bundle, "relations")
     ? options.bundle.relations : [{ kind: RELATION_KIND, label: "" }];
   if (!Array.isArray(relations) || relations.length < 1 || relations.length > OFFER_MAX
@@ -764,14 +781,11 @@ export function legalLocalDeltas(working, options) {
   const fromIds = pair === null ? ids : pair.from === null && pair.to === null ? [] : ids.filter(endOf(pair.from));
   const toIds = pair === null ? ids : ids.filter(endOf(pair.to));
   for (const from of fromIds) for (const to of toIds) for (const relation of relations) {
-    if (from === to || existing.has(expressive ? JSON.stringify([from, to, relation.kind, relation.label]) : relationKey(from, to))) continue;
+    if (from === to || existing.has(expressive ? JSON.stringify([from, to, relation.kind]) : relationKey(from, to))) continue;
     if (scope !== null && !scope.has(from) && !scope.has(to)) continue;
     // Preserve the legacy ID for the first available pair; disambiguate other meanings without using display labels as IDs.
-    const baseId = relationIdFor(from, to);
-    const used = new Set([...working.records.filter(row => row.type === "relation").map(row => row.id),
-      ...candidates.filter(row => row.from !== undefined).map(row => row.operations[0].relationId)]);
-    let relationId = baseId, suffix = 1;
-    while (expressive && used.has(relationId)) relationId = `${baseId}-${suffix++}`;
+    const relationId = expressive ? freeRelationId(working.records, from, to,
+      candidates.filter(row => row.from !== undefined).map(row => row.operations[0].relationId)) : relationIdFor(from, to);
     candidates.push(Object.freeze({ id: `delta-${candidates.length + 1}`, from, to, ...(expressive ? { kind: relation.kind, label: relation.label } : {}),
       operations: Object.freeze([Object.freeze({ type: "ConnectRegions", relationId,
         from, to, kind: relation.kind, label: relation.label })]) }));
@@ -975,9 +989,8 @@ export function revertable(entry, projection) {
 
 // Undo a saved entry by adding its opposite to the working graph. `before` and
 // `after` are the provider's states around that entry; the opposite is read
-// off their difference and checked against the working graph as it is now. A
-// later change that already altered what the entry did makes it a conflict,
-// refused rather than guessed at. The saved graph is never touched.
+// off their difference and checked against the working graph as it is now,
+// and added there as one more step. The saved graph is never touched.
 export async function revertStep({ before, after, working, protocol }) {
   requireGraph(working);
   const build = async (operations, changes) => {

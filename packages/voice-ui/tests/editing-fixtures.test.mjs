@@ -4,6 +4,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { pathToFileURL } from "node:url";
 import { requestFor, appendStep, planStep } from "../src/turn.mjs";
+import { readBundle } from "../src/bundle.mjs";
 import { canonical } from "./semantic-score.mjs";
 import { auditReducedView } from "./reduced-view-audit.mjs";
 import { partResourceView } from "../src/part-description.mjs";
@@ -17,8 +18,8 @@ for(const fixture of fixtures)test("fixed editing expectation / "+fixture.id,asy
  const pin=await protocol.createDecision(start.head,[{type:"PinRegions",items:edit.pins}],start.records);
  const working=(await protocol.appendDecision(start.log,pin.decision)).verified;
  const layout=protocol.layoutBoundsFor(working.records,{pattern:protocol.GRAPH_PATTERN});
- const frame=[0,0,3000,1800],bundle={version:"fixture",parts:[],diagrams:[]};
- const {turn}=requestFor({working,utterance:fixture.text,bundle,layout,offeredFrame:frame,draft:[],focus:null,pending:null,recent:[]});
+ const frame=[0,0,3000,1800],bundle=readBundle(fixture.bundle);
+ const {turn}=requestFor({working,utterance:fixture.text,bundle,typedEdges:bundle.goalSelection==="delta",layout,offeredFrame:frame,draft:[],focus:null,pending:null,recent:[]});
  const answers=Object.fromEntries(Object.keys(turn.slots).map(key=>[key,{type:"choice",choice:edit.response[key]??"none",confidence:1}]));
  const planned=await planStep({working,turn,answers,bundle,protocol,layout,visibleFrame:{head:working.head,frame}});
  assert.equal(planned.outcome,"step",JSON.stringify(planned));
@@ -31,7 +32,7 @@ for(const fixture of fixtures)test("fixed editing expectation / "+fixture.id,asy
  const result=await auditReducedView({log:after.log,ui,initialRecords:edit.expectedRecords,oracle,protocol});
  assert.equal(result.status,"PASS");
  const wrong=structuredClone(edit.expectedRecords);
- wrong.find(r=>r.type==="region"&&r.id==="db").label="Wrong identity";
+ wrong.find(r=>r.type==="region"&&r.parent!==null&&r.kind!=="group").label="Wrong identity";
  const invalid=await auditReducedView({log:after.log,ui,initialRecords:wrong,oracle,protocol});
  assert.equal(invalid.status,"RED");
  if(edit.response.action==="place-part") {

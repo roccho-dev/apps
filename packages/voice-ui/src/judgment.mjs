@@ -1,4 +1,4 @@
-import { ACTION_ADD_EDGE, ACTION_ADD_PART, ACTION_ARCHITECTURE, ACTION_COMPOSE, ACTION_PLACE_PART, ACTION_REMOVE_EDGE, ACTION_REVERSE_EDGE, ACTION_UNDO_REQUEST, ARCHITECTURE_GOAL_INTENT_KIND, ARCHITECTURE_INTENT_KIND, ARCHITECTURE_JUDGE_KIND, ARCHITECTURE_LOCATE_KIND, GOAL_COMPLETION_KIND, NONE, WHOLE, YES, partOption, relationSlot, relevantSlot, roleSlot } from "./contract.mjs";
+import { ACTION_ADD_EDGE, ACTION_ADD_PART, ACTION_ARCHITECTURE, ACTION_COMPOSE, ACTION_PLACE_PART, ACTION_REMOVE_EDGE, ACTION_REVERSE_EDGE, ACTION_UNDO_REQUEST, ARCHITECTURE_GOAL_INTENT_KIND, ARCHITECTURE_INTENT_KIND, ARCHITECTURE_JUDGE_KIND, ARCHITECTURE_LOCATE_KIND, GOAL_COMPLETION_KIND, TYPED_REQUEST_KIND, NONE, WHOLE, YES, partOption, relationSlot, relevantSlot, roleSlot } from "./contract.mjs";
 
 // A choice question offers its alternatives as a criteria map keyed by the
 // value to be returned.
@@ -165,6 +165,9 @@ export function questionsFor(state, slots, context) {
   const labelOf = new Map(state.graph.regions.map(region => [region.id, region.label]));
   const node = key => shownAs(labelOf, key);
   const definedAs = edge => {
+    // A stored Working description helps distinguish parallel relations; it
+    // is not a claim that the relationship was verified in external source.
+    if (context.kind === TYPED_REQUEST_KIND) return `, stored in Working with kind ${quoted(edge.kind)} and label ${quoted(edge.label)}`;
     const relation = defined(edge);
     return relation === null ? "" : `, which this snapshot defines as ${relation.kind}${relation.purpose === null ? "" : `: ${relation.purpose}`}`;
   };
@@ -278,6 +281,8 @@ export function questionsFor(state, slots, context) {
   for (const question of Object.values(questions)) question.instruction += CONTEXT_NOTE
     + (context.kind === ARCHITECTURE_INTENT_KIND ? REFERENCE_NOTE : "");
   if (context.kind === ARCHITECTURE_INTENT_KIND && questions.edge) questions.edge.instruction += EDGE_REFERENCE_NOTE;
+  if (context.kind === TYPED_REQUEST_KIND && questions.edge) questions.edge.instruction +=
+    " Working kinds and labels are stored descriptions, not verified source evidence. Match their meaning and annotation with the explicit request; a shared pair of endpoints alone cannot distinguish parallel meanings.";
   return questions;
 }
 
@@ -316,7 +321,7 @@ function judgeQuestions(section, slots) {
 
 // A locate frame's one question, judged from its part's own text - the files
 // it opens whole, and single lines of other files that name it - which the
-// question names by path, since the provider never sees the question's name.
+// question names by its file path, since the provider never sees the question's name.
 // One positive condition: whether the current utterance asks to see this part,
 // directly or by what it refers to; the other option is any other case.
 function locateQuestion(entity, evidence, slots) {
