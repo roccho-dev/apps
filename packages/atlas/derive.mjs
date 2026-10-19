@@ -4,20 +4,22 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 import { parseArgs } from 'node:util';
 import { deriveAtlas } from './events.mjs';
-import { contractWorld } from './contract.mjs';
+import { contractWorld, unboundPlans } from './contract.mjs';
 
 const digest = bytes => `sha256:${createHash('sha256').update(bytes).digest('hex')}`;
 const temporaries = [];
 try {
-  const { values, positionals } = parseArgs({ options: { 'out-dir': { type: 'string' } }, allowPositionals: true });
-  if (!values['out-dir'] || positionals.length !== 2) throw new Error('usage: node derive.mjs --out-dir=<dir> <events.jsonl> <control.jsonl>');
+  const { values, positionals } = parseArgs({ options: { 'out-dir': { type: 'string' }, 'unbound-plans': { type: 'string' } }, allowPositionals: true });
+  if (!values['out-dir'] || positionals.length !== 2) throw new Error('usage: node derive.mjs --out-dir=<dir> [--unbound-plans=<g-unbound-plans.jsonl>] <events.jsonl> <control.jsonl>');
+  // L3: G plan.set events no ideal state declares (written by live.mjs); shown in the journal only, never in D.
+  const unbound = values['unbound-plans'] ? (await fs.readFile(values['unbound-plans'], 'utf8')).split('\n').filter(line => line.trim()).map(line => JSON.parse(line)) : [];
   const inputPaths = await Promise.all(positionals.map(file => fs.realpath(file)));
   const bytes = await Promise.all(inputPaths.map(file => fs.readFile(file)));
   const [events, control] = bytes.map(value => new TextDecoder('utf-8', { fatal: true }).decode(value));
   const result = deriveAtlas(events, control);
   const json = value => JSON.stringify(value, null, 2) + '\n';
   const outputs = [['closure.jsonl', result.closure], ['semantic-scope-world.json', json(result.input)],
-    ['plan-projection.json', json(result.plans)], ['world.json', json(contractWorld(result))]].map(([name, text]) => [name, Buffer.from(text)]);
+    ['plan-projection.json', json(result.plans)], ['world.json', json(contractWorld(result, { unbound }))]].map(([name, text]) => [name, Buffer.from(text)]);
   await fs.mkdir(values['out-dir'], { recursive: true });
   const directory = await fs.realpath(values['out-dir']);
   // Every output is validated before any file is replaced; each replacement is atomic.
@@ -36,6 +38,8 @@ try {
   }
   console.log(JSON.stringify({
     schema: 'atlas.events-derive-build/1', status: 'PASS', authority: false, now: result.derived.now, frames: result.world.frames.length,
+    // unplaced: unbound plans recorded after the last frame (not shown; 0 when current is read after the ledger).
+    ...(values['unbound-plans'] ? { unbound: { count: unbound.length, unplaced: unboundPlans(result.world.frames, unbound).unplaced } } : {}),
     inputs: inputPaths.map((file, index) => ({ path: file, sha256: digest(bytes[index]) })),
     outputs: outputs.map(([name, output]) => ({ path: path.join(directory, name), bytes: output.length, sha256: digest(output) })),
   }));
