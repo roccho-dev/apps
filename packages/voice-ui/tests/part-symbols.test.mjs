@@ -7,6 +7,7 @@ import { runGoal } from '../src/goal.mjs';
 import { createSession, undo, apply } from '../src/session.mjs';
 import { MAP_ID, STATE_SCHEMA, commitLog, restoreLog } from '../src/log.mjs';
 import { drawGraph } from '../src/render.mjs';
+import { partSummary } from '../src/part-description.mjs';
 import { legalLocalDeltas, proveLocalDelta } from '../src/turn.mjs';
 
 const protocol = await import(pathToFileURL(path.join(process.env.SEMANTIC_MAP,
@@ -117,11 +118,12 @@ test('a changed symbol cannot reuse an earlier held candidate', async () => {
   assert.equal(result.reason, 'stale-addition');
 });
 
-test('ordinary parts keep the old empty summary and no resource composition', async () => {
+test('explicit v8 identity-only parts retain key/purpose without manufacturing image resources', async () => {
   const { symbol: unused, ...ordinary } = sourcePart;
   const { session } = await execute([ordinary]);
   const region = session.working.records.find(row => row.type === 'region' && row.label === 'SQL');
-  assert.equal(region.summary, '');
+  assert.equal(region.summary, JSON.stringify({ schema: 'voice-ui.part-description/2', key: ordinary.key, purpose: ordinary.purpose }));
+  assert.equal(partSummary(ordinary), '', 'the legacy summary contract stays empty');
   assert.equal(Object.hasOwn(await projected(session.working), 'resourceComposition'), false);
 });
 
