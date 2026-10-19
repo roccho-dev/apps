@@ -185,7 +185,8 @@ author list — fail closed). The author is the argument (required, no default; 
 time is when the files were read (`--recorded-at` pins it; only current events get it, cold stays dated by its
 commit), and the order is the line position. Last write wins (apps#89 comment 6257137004): for one work_id
 in one author's file, the last line in the file is its state and the last `artifact.observed` its evidence (one
-observation each, no time made up from the position); earlier lines are held as `overwritten`. Any declaration
+observation each, no time made up from the position); earlier lines are held as `overwritten`. When the last line naming a work_id is invalid, that work has no
+state or evidence (earlier lines held as `latest-line-invalid`; an earlier valid line never stands in). Any declaration
 with `requires` (`ideal.set`, the legacy `purpose.set`, …) whose predicate targets `work:*` or `evidence:*` is held
 before D in `live.mjs` `joinLog`, the one entry G and `--purpose` share (`worklog-target-in-predicate`, adrs#654). One line →
 `work:<id>` = `created` / `progressed` / `reported-*`; an `artifact.observed` line also gives `evidence:<id>` =

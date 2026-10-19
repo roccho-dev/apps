@@ -74,8 +74,12 @@ export function currentEvents(files, readAt, recordedAt, authors) {
     // Last write wins (apps#89 comment 6257137004): the lines of one file share one read time, so for one work_id
     // only the last line in the file is its state and only the last artifact.observed its evidence; no time is
     // made up from the position. An earlier line is kept as overwritten (held), never a second observation.
-    const lastState = new Map(), lastEvidence = new Map();
-    lines.forEach(({ checked }, index) => {
+    // The last line naming a work_id, valid or not, is the author's latest intent: when it is invalid, that work
+    // has no state or evidence at all (an earlier valid line never stands in for it).
+    const named = line => { try { const value = JSON.parse(line); return typeof value?.work_id === 'string' ? value.work_id : null; } catch { return null; } };
+    const lastLine = new Map(), lastState = new Map(), lastEvidence = new Map();
+    lines.forEach(({ line, checked }, index) => {
+      if (named(line) !== null) lastLine.set(named(line), index);
       if (!checked.entry) return;
       lastState.set(checked.entry.work_id, index);
       if (checked.entry.kind === 'artifact.observed') lastEvidence.set(checked.entry.work_id, index);
@@ -85,6 +89,7 @@ export function currentEvents(files, readAt, recordedAt, authors) {
       if (checked.reason) return held(checked.reason);
       const observed = (target, value) => ({ kind: 'observation', target, value, source, observedAt: readAt, recordedAt });
       const id = checked.entry.work_id;
+      if (lastLine.get(id) !== lastState.get(id)) return held('latest-line-invalid');
       const evidence = lastEvidence.get(id) === index ? [observed(`evidence:${id}`, checked.entry.evidence)] : [];
       return lastState.get(id) === index ? [observed(`work:${id}`, checked.value), ...evidence] : [...evidence, ...held('overwritten')];
     });
