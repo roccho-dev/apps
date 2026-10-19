@@ -66,10 +66,41 @@ test('① ③ ④ hot and cold in one collection: one row per document, from col
   check(joinLog('', [toJsonl(collect([...hot, ...cold], '2026-10-18T09:00:00Z'))]));
 });
 
-test('② through the ledger, hot first and cold later: still one row per document, from cold', () => {
-  const first = appendEvents([], toJsonl(collect(hot, '2026-10-18T09:00:00Z')), '2026-10-18T09:00:00Z');
-  const second = appendEvents(first.rows, toJsonl(collect(cold, '2026-10-08T14:00:00Z')), '2026-10-19T09:00:00Z');
-  check(joinLog('', [ledgerEvents(ledgerText(second.rows))]));
+// A1b (R, v10: a past frame is never rewritten): through the ledger, hot read on 10-18 and cold on 10-19. The
+// 10-18 frame keeps the hot source after cold is read; on 10-19 only the fact that the same document is now
+// confirmed by cold is added (an observation confirmed:<owner/repo#n>:<commentId|body>), the decision is not added
+// again. Later hot rows that rely on the hot decision are still accepted by D.
+const T1 = '2026-10-18T09:00:00.000Z', T2 = '2026-10-19T09:00:00.000Z';
+const first = appendEvents([], toJsonl(collect(hot, T1)), T1);
+const second = appendEvents(first.rows, toJsonl(collect(cold, '2026-10-08T14:00:00Z')), T2);
+const fromLedger = rows => joinLog('', [ledgerEvents(ledgerText(rows))]);
+const worldOf = rows => contractWorld(deriveAtlas(fromLedger(rows).log, CONTROL));
+const purposeShaAt = (world, asOf) => world.frames.find(frame => frame.asOf === asOf).journal.filter(entry => entry.kind === 'purpose.set').map(entry => entry.source.sha256);
+
+test('② ledger, hot first and cold later: the earlier frame keeps the hot source; cold only adds a confirmation', () => {
+  const hotDigest = first.rows.find(row => row.event.kind === 'purpose.set').event.source.sha256;
+  assert.deepEqual(purposeShaAt(worldOf(first.rows), T1), [hotDigest]);
+  const world = worldOf(second.rows);
+  assert.deepEqual(purposeShaAt(world, T1), [hotDigest]); // not rewritten to the cold digest
+  // The decision is not added again on 10-19; the confirmation is, per document cold has and hot read the same.
+  const later = world.frames.find(frame => frame.asOf === T2).journal;
+  assert.deepEqual(later.filter(entry => entry.kind !== 'observation').map(entry => [entry.kind, entry.source.commentId, entry.note ?? null]),
+    [['purpose.evaluated', EDITED, 'as captured']]);
+  assert.deepEqual(later.filter(entry => entry.kind === 'observation').map(entry => [entry.target.id, entry.value]), [
+    [`confirmed:${REPO}#${NUMBER}:body`, `${REPO}@94a51c3a:decisions/hot-cold.jsonl`],
+    [`confirmed:${REPO}#${NUMBER}:${SAME}`, `${REPO}@94a51c3a:decisions/hot-cold.jsonl`]]);
+  // Later hot rows that rely on the hot decision (an evaluation of that Purpose) are not refused by D.
+  const { log, held } = fromLedger(second.rows);
+  assert.deepEqual(decisions(log).filter(event => event.kind === 'purpose.evaluated').map(event => event.note), ['in both', 'edited after the capture', 'hot only', 'as captured']);
+  assert.deepEqual(held.filter(value => /superseded|not declared/u.test(value.reason)), []);
+});
+
+test('② a hot row read after cold confirmed the document: dropped when the same, superseded-by-cold when not', () => {
+  const T3 = '2026-10-20T09:00:00.000Z';
+  const third = appendEvents(second.rows, toJsonl(collect(hot, T3)), T3);
+  const { log, held } = fromLedger(third.rows);
+  assert.deepEqual(held.filter(value => value.reason === 'superseded-by-cold').map(value => [value.journal.source.commentId, value.journal.note]), [[EDITED, 'edited after the capture']]);
+  assert.deepEqual(decisions(log).filter(event => event.recordedAt === T3).map(event => event.source.commentId), []);
 });
 
 test('the issue body is one document in hot and cold: commentId null in both', () => {
