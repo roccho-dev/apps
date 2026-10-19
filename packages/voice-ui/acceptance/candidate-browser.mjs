@@ -9,6 +9,7 @@ import { assertNoSecretInputs, loadAcceptanceArtifact } from "../tests/runtime-a
 import { observePaintedGoal, assessPaintedGoal, assessPaintedEdge } from "../tests/painted-goal.mjs";
 import { gradeGraph, canonical } from "../tests/semantic-score.mjs";
 import { auditReducedView } from "../tests/reduced-view-audit.mjs";
+import { auditReferenceDiagram, referenceChoice } from "../tests/reference-diagram-audit.mjs";
 import { checkStoredEdgeEdits, checkStoredHistoryInverse } from "../tests/edit-browser-check.mjs";
 import { symbolFixtureSvg, checkPaintedSymbols } from "../tests/part-symbol-browser.mjs";
 
@@ -37,6 +38,14 @@ const normalFixtures = normalBytes.toString("utf8").trim().split("\n").map(JSON.
 const editingBytes = fs.readFileSync(new URL("../tests/fixtures/normal-composition/editing.jsonl", import.meta.url));
 const editingFixtures = editingBytes.toString("utf8").trim().split("\n").map(JSON.parse);
 assert.ok(editingFixtures.length > 0 && editingFixtures.length <= 8);
+const referenceBytes = fs.readFileSync(new URL("../tests/fixtures/reference-fidelity/inputs.jsonl", import.meta.url));
+const referenceExpectedBytes = fs.readFileSync(new URL("../tests/fixtures/reference-fidelity/expected.jsonl", import.meta.url));
+const referenceExpected = referenceExpectedBytes.toString("utf8").trim().split("\n").map(JSON.parse);
+const referenceFixtures = referenceBytes.toString("utf8").trim().split("\n").map(JSON.parse).map(item => {
+  const expected = referenceExpected.filter(value => value.id === item.id);
+  assert.equal(expected.length, 1);
+  return { ...item, reference: expected[0] };
+});
 const recordBag = records => records.map(row => JSON.stringify(canonical(row))).sort();
 assert.ok(normalFixtures.length > 0 && normalFixtures.length <= 16);
 assert.ok(normalFixtures.every(item => /^[a-z][a-z0-9-]+$/.test(item.id) && item.bundle?.schema === "voice-ui.bundle/2"));
@@ -50,7 +59,7 @@ const fixtures = [
     flow: ["構築", "配布記録"] },
   { id: "existing-directed-connection", text: "OCIのSourceからTargetへ矢印を追加。Unrelatedは変更しない",
     nodes: [], flow: ["Source", "Target"], existing: true },
-  ...normalFixtures, ...editingFixtures,
+  ...normalFixtures, ...editingFixtures, ...referenceFixtures,
 ];
 assert.equal(new Set(fixtures.map(item => item.id)).size, fixtures.length);
 let fixture = null, input = null, catalogueHidden = false, editing = null;
@@ -64,6 +73,7 @@ const syntheticAnswer = wire => {
   if (wire.questions.intent) return { intent: "change", labels: fixture.id === "equal-label-quantity" || fixture.existing ? "available" : "missing",
     capacity: fixture.id === "equal-label-quantity" ? "exceeded" : "within", completeness: "complete" };
   const state = input.state;
+  if (fixture.reference) return { delta: referenceChoice(state, fixture.syntheticChanges) };
   const next = fixture.nodes.find(node => {
     const parent = state.graph.find(region => region.label === node.parent);
     return state.graph.filter(region => region.label === node.label && region.parent === parent?.id).length < node.quantity;
@@ -169,14 +179,14 @@ try {
     let context = null;
     try {
     fixture = selected; catalogueHidden = false;
-    const records = fixture.edit?.initialRecords ?? [{ type: "meta", schema: "semantic-map-state/1", root: "root", title: "candidate browser fixture" },
+    const records = fixture.edit?.initialRecords ?? fixture.initialRecords ?? [{ type: "meta", schema: "semantic-map-state/1", root: "root", title: "candidate browser fixture" },
       { type: "region", id: "root", label: "World", parent: null, kind: "boundary", bounds: [0, 0, 1000, 700], summary: "" },
       { type: "region", id: "container", label: "OCI", parent: "root", kind: "group", bounds: [0, 0, 2000, 500], summary: "" },
       ...(fixture.existing ? ["Source", "Target", "Unrelated"].map((label, index) => ({ type: "region", id: label.toLowerCase(),
         label, kind: index === 1 ? "data" : "step", parent: "container", summary: "", bounds: [[12, 72, 180, 92], [420, 72, 180, 92], [216, 230, 180, 92]][index] })) : [])];
     const initial = await protocol.createDecisionLog(records, "voice-graph");
     const pin = await protocol.createDecision(initial.head,
-      [{ type: "PinRegions", items: fixture.edit?.pins ?? [{ regionId: "container", bounds: [0, 0, 2000, 500] },
+      [{ type: "PinRegions", items: fixture.edit?.pins ?? fixture.pins ?? [{ regionId: "container", bounds: [0, 0, 2000, 500] },
         ...records.filter(record => record.parent === "container").map(record => ({ regionId: record.id, bounds: record.bounds }))] }], initial.records);
     const accepted = (await protocol.appendDecision(initial.log, pin.decision)).verified;
     context = await browser.newContext({ viewport: { width: 1280, height: 720 }, deviceScaleFactor: 1 });
@@ -209,8 +219,11 @@ try {
       // Editing has an explicit whole-record expectation, including layout,
       // rather than treating every operation as append-only new semantics.
       const exact = fixture.edit ? (["before", "undo", "focused-retry"].includes(stage) ? accepted.records : fixture.edit.expectedRecords) : null;
-      const result = await auditReducedView({ log: state.log, ui: state, initialRecords: exact ?? accepted.records,
-        oracle: exact ? { expected_added_regions: [], expected_added_edges: [] } : expected, protocol });
+      const result = fixture.reference
+        ? await auditReferenceDiagram({ log: state.log, ui: state, expected: fixture.reference, initialRecords: accepted.records, protocol, stage })
+        : await auditReducedView({ log: state.log, ui: state, initialRecords: exact ?? accepted.records,
+          oracle: exact ? { expected_added_regions: [], expected_added_edges: [] } : expected, protocol });
+      if (fixture.reference) expected = fixture.reference;
       if (exact) {
         result.exact_expected_records = JSON.stringify(recordBag(state.records)) === JSON.stringify(recordBag(exact));
         if (!result.exact_expected_records) result.status = "RED";
@@ -283,9 +296,10 @@ try {
     if (fixture.bundle && !fixture.edit) {
       const prepared = after.goal.inventory.prepared;
       const multiset = rows => rows.map(row => JSON.stringify([row.label, row.kind])).sort();
-      assert.deepEqual(multiset(prepared), multiset(fixture.nodes.flatMap(node => Array.from({ length: node.quantity }, () => node))));
+      assert.deepEqual(multiset(prepared), multiset(fixture.reference?.addedNodes ?? fixture.nodes.flatMap(node => Array.from({ length: node.quantity }, () => node))));
       assert.equal(new Set(prepared.map(part => part.key)).size, prepared.length);
       assert.equal(after.goal.inventory.preparations, fixture.preparations);
+      if (fixture.reference) assert.deepEqual(prepared, fixture.bundle.parts, "reference candidate keys and purposes are retained exactly");
       assert.equal(after.goal.inventory.completions, 0);
       if (fixture.expectedMissing) assert.deepEqual(after.goal.inventory.missing, fixture.expectedMissing);
       for (const part of fixture.bundle.parts.filter(part => prepared.some(item => item.key === part.key))) {
@@ -295,18 +309,18 @@ try {
         bundle_sha256: hash(JSON.stringify(fixture.bundle)), prepared, preparations: after.goal.inventory.preparations,
         literal_inspection: after.goal.inventory.coverage.inspection, missing: after.goal.inventory.missing });
     }
-    if (!fixture.edit) assert.equal(gradeGraph(before.records, after.records, oracle).graph_exact, true);
+    if (!fixture.edit && !fixture.reference) assert.equal(gradeGraph(before.records, after.records, oracle).graph_exact, true);
     const regions = after.records.filter(record => record.type === "region"), added = regions.filter(record => !records.some(old => old.id === record.id));
     for (const expected of fixture.nodes) {
       const parent = regions.find(record => record.label === expected.parent);
       assert.equal(added.filter(record => record.label === expected.label && record.kind === expected.kind && record.parent === parent?.id).length, expected.quantity);
     }
-    assert.equal(added.length, fixture.nodes.reduce((n, node) => n + node.quantity, 0));
+    assert.equal(added.length, fixture.reference?.addedNodes.length ?? fixture.nodes.reduce((n, node) => n + node.quantity, 0));
     const edges = after.records.filter(record => record.type === "relation");
-    if (!fixture.edit) assert.equal(edges.length, fixture.flow ? 1 : 0);
+    if (!fixture.edit) assert.equal(edges.length, fixture.reference?.addedEdges.length ?? (fixture.flow ? 1 : 0));
     if (fixture.flow) assert.deepEqual(edges.map(edge => [regions.find(r => r.id === edge.from)?.label, regions.find(r => r.id === edge.to)?.label]), [fixture.flow]);
     const cameraFrames = [{ name: "overview", id: "" }, { name: "named-group", id: "container" },
-      ...(fixture.edit ? regions.filter(r => r.kind === "group" && r.id !== "container") : added.filter(r => r.kind === "group"))
+      ...((fixture.edit || fixture.reference) ? regions.filter(r => r.kind === "group" && r.id !== "container") : added.filter(r => r.kind === "group"))
         .map(r => ({ name: "nested-group", id: r.id }))];
     let controlArgs = null;
     for (const camera of cameraFrames) {
@@ -325,7 +339,7 @@ try {
       if (fixture.bundle) await page.screenshot({ path: path.join(output, fixture.id + "-" + camera.name + ".png") });
       if (fixture.id === "equal-label-quantity") controlArgs = args;
     }
-    if (fixture.edit) await paintRestored("after", after);
+    if (fixture.edit || fixture.reference) await paintRestored("after", after);
     if (controlArgs) {
       // Actual painted-DOM mutations, each restored before the next observation.
       const mutations = ["wrong-label", "hidden-label", "transparent-label", "transparent-boundary", "child-shape-outside", "clipped-shape", "duplicate-label", "clipped-label", "title-overlap", "title-outside", "sibling-overlap"];
@@ -456,7 +470,7 @@ try {
     const redone = await draw();
     if (fixture.edit) assert.equal(redone.state, "drafted");
     else assert.equal(redone.goal.reason, fixture.stop ?? "none");
-    if (!fixture.edit) assert.equal(gradeGraph(before.records, redone.records, oracle).graph_exact, true, "second Goal must succeed exactly");
+    if (!fixture.edit && !fixture.reference) assert.equal(gradeGraph(before.records, redone.records, oracle).graph_exact, true, "second Goal must succeed exactly");
     await reduceReadback("redo", redone); await paintRestored("redo", redone);
     await page.locator("#apply").click(); await settle();
     const applied = await snapshot(); assert.equal(applied.stored, redone.log); await reduceReadback("apply", applied);
@@ -504,6 +518,8 @@ assert.ok(upstream.every(call => call.provider === "jev"), "ordinary literal UI 
 const receipt = { schema: "voice-ui.candidate-browser/1", sources: manifest.sources, manifest_sha256: hash(manifestBytes),
   scope: "KEYLESS_FIXTURE_MECHANICS", live_provider: "NOT_RUN", live_microphone: "NOT_RUN",
   editing_fixture_sha256: hash(editingBytes), editing_scope: "ordinary Send; fixed whole records and actual painted directions; mocked judgments",
+  reference_inputs_sha256: hash(referenceBytes), reference_expected_sha256: hash(referenceExpectedBytes),
+  reference_scope: "two equal task names in distinct subnet parents and branched traffic; not full sample/Atlas or live model accuracy",
   normal_fixture_sha256: hash(normalBytes), normal_fixture_scope: "explicit bundle data; same completed app/Worker/UI; not live semantic accuracy",
   symbol_fixture_sha256: hash(symbolFixtureSvg),
   viewport: [1280, 720], deviceScaleFactor: 1, api, synthetic_upstream: upstream, frames, controls, lifecycle, supply, images, fixtureResults, reductions,

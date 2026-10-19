@@ -627,7 +627,7 @@ function additionSlot(working, parent, part, reserved, protocol, grows = false, 
   if (raw === null) return null;
   const regionId = nextPartId(working, reserved);
   const operation = { type: "AddRegion", regionId, parentId: parent.id,
-    label: part.label, kind: part.kind, summary: partSummary(part), bounds: [...raw] };
+    label: part.label, kind: part.kind, summary: partSummary(part, { preserveIdentity: expressive }), bounds: [...raw] };
   const region = { type: "region", id: regionId, parent: parent.id, label: operation.label,
     kind: part.kind, summary: operation.summary, bounds: [...raw] };
   const records = [...working.records.filter(record => record.type !== "layout" && record.type !== "relation"), region,
