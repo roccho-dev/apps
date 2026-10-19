@@ -9,6 +9,7 @@ import { assertNoSecretInputs, loadAcceptanceArtifact } from "../tests/runtime-a
 import { observePaintedGoal, assessPaintedGoal, assessPaintedEdge } from "../tests/painted-goal.mjs";
 import { gradeGraph, canonical } from "../tests/semantic-score.mjs";
 import { auditReducedView } from "../tests/reduced-view-audit.mjs";
+import { createCameraEvidence, overviewLabels } from "../tests/camera-evidence.mjs";
 import { auditReferenceDiagram, referenceChoice } from "../tests/reference-diagram-audit.mjs";
 import { checkStoredEdgeEdits, checkStoredHistoryInverse } from "../tests/edit-browser-check.mjs";
 import { symbolFixtureSvg, checkPaintedSymbols } from "../tests/part-symbol-browser.mjs";
@@ -173,6 +174,8 @@ const origin = "http://127.0.0.1:" + server.address().port;
 const browser = await chromium.launch({ headless: true, channel: "chromium" });
 fs.mkdirSync(output, { recursive: true });
 const failures = [];
+const cameraEvidence = createCameraEvidence({ output, source: manifest.sources.apps });
+const overviewReadability = [];
 try {
   for (const selected of fixtures) {
     const failureStart = failures.length;
@@ -201,6 +204,8 @@ try {
       const view = document.querySelector("#working-surface iframe[data-package=semantic-map]")?.contentWindow?.semanticMapRuntime;
       return { state: document.body.dataset.state, log: view?.log ?? null, records: view?.records ?? null,
         head: view?.head ?? null, view: view?.view ?? null,
+        camera: document.querySelector("#camera-part").value,
+        outsideIds: document.querySelector("#out-of-view").dataset.parts,
         stored: localStorage.getItem(storageKey), goal: document.body.dataset.goal ? JSON.parse(document.body.dataset.goal) : null };
     }, key);
     await page.goto(origin); await settle();
@@ -250,7 +255,16 @@ try {
     };
     const unchangedOracle = { expected_added_regions: [], expected_added_edges: [] };
     await reduceReadback("before", before, unchangedOracle);
+    const saveCamera = (stage, observation = null) => cameraEvidence.capture({ page, fixture: fixture.id, stage, snapshot, observation });
     const paintRestored = async (stage, state) => {
+      const previousCamera = await page.locator("#camera-part").inputValue();
+      if (fixture.reference) {
+        await page.locator("#camera-part").selectOption(""); await settle();
+        const expected = state.records.filter(record => record.type === "region" && record.parent !== null);
+        const observed = await page.evaluate(observePaintedGoal, { container: state.records.find(record => record.id === "aws"), records: expected, identity: true });
+        overviewReadability.push({ fixture: fixture.id, stage, ...overviewLabels(observed, expected.map(record => record.id)) });
+        await saveCamera(stage + "-overview", observed);
+      }
       const regions = state.records.filter(record => record.type === "region");
       const groups = regions.filter(record => record.kind === "group");
       for (const parent of groups) {
@@ -258,14 +272,16 @@ try {
         const observation = await page.evaluate(observePaintedGoal,
           { container: parent, records: regions.filter(record => record.parent === parent.id), identity: true });
         const assessment = assessPaintedGoal(observation);
+        await saveCamera(stage, observation);
         frames.push({ fixture: fixture.id, stage, camera: parent.id === "container" ? "named-group" : "nested-group", observation, assessment });
         if (assessment.status !== "PASS") failures.push({ fixture: fixture.id, stage, parent: parent.id, assessment });
       }
       for (const edge of state.records.filter(record => record.type === "relation")) {
         await page.locator("#camera-part").selectOption(edge.id); await settle();
         const observation = await page.evaluate(observePaintedGoal, { container: regions.find(record => record.id === "container"),
-          records: [edge.from, edge.to].map(id => regions.find(record => record.id === id)), edge, identity: true });
+          records: [edge.from, edge.to].map(id => regions.find(r => r.id === id)), edge, identity: true });
         const assessment = assessPaintedEdge(observation);
+        await saveCamera(stage, observation);
         frames.push({ fixture: fixture.id, stage, camera: "relation", observation, assessment });
         if (assessment.status !== "PASS") failures.push({ fixture: fixture.id, stage, camera: "relation", assessment });
       }
@@ -282,8 +298,19 @@ try {
         frames.push(result);
         if (result.status !== "PASS") failures.push(result);
       }
+      if (fixture.reference) {
+        await page.locator("#camera-part").selectOption(previousCamera); await settle();
+        const restored = await snapshot();
+        assert.equal(restored.log, state.log); assert.equal(restored.stored, state.stored);
+        assert.equal(restored.camera, previousCamera);
+        // Returning to overview must remove only a now-inapplicable outside warning.
+        // It does NOT prove that all labels are simultaneously readable.
+        if (previousCamera === "") assert.equal(restored.outsideIds, "");
+        await saveCamera(stage + "-returned");
+      }
       assert.deepEqual((await snapshot()).records, state.records, "restored camera preserves exact records");
     };
+    if (fixture.reference) await paintRestored("before", before);
     const draw = async () => {
       if (fixture.edit) { await page.locator("#camera-part").selectOption(""); await settle(); }
       await page.locator("#text").fill(fixture.text);
@@ -326,6 +353,7 @@ try {
     for (const camera of cameraFrames) {
       await page.locator("#camera-part").selectOption(camera.id); await settle();
       if (camera.id === "") {
+        await saveCamera("after-navigation");
         frames.push({ fixture: fixture.id, camera: camera.name, role: "predeclared overview; no automatic pass from hidden descendants",
           recordsUnchanged: JSON.stringify((await snapshot()).records) === JSON.stringify(after.records) }); continue;
       }
@@ -336,10 +364,22 @@ try {
       if (assessment.status !== "PASS") failures.push({ fixture: fixture.id, camera: camera.name, assessment });
       assert.deepEqual((await snapshot()).records, after.records, "camera preserves records");
       if (fixture.symbols) await checkSymbols("after", after, fixture.symbols);
-      if (fixture.bundle) await page.screenshot({ path: path.join(output, fixture.id + "-" + camera.name + ".png") });
+      await saveCamera("after-navigation", observation);
       if (fixture.id === "equal-label-quantity") controlArgs = args;
     }
+    if (fixture.reference) { await page.locator("#camera-part").selectOption(""); await settle(); }
     if (fixture.edit || fixture.reference) await paintRestored("after", after);
+    if (fixture.reference) {
+      const names = await page.locator("#camera-part option").evaluateAll(options => options.map(o => [o.value, o.textContent]));
+      const byId = new Map(names);
+      for (const added of fixture.reference.addedNodes) {
+        const record = after.records.find(row => row.type === "region" && row.parent === added.parent && row.label === added.label);
+        const parent = fixture.reference.initialNodes.find(row => row.id === added.parent);
+        assert.equal(byId.get(record.id), parent.label + " / " + added.label, "same-name camera includes the expected parent");
+      }
+      const arrows = after.records.filter(row => row.type === "relation");
+      assert.equal(new Set(arrows.map(row => byId.get(row.id))).size, arrows.length, "branch labels identify distinct destinations");
+    }
     if (controlArgs) {
       // Actual painted-DOM mutations, each restored before the next observation.
       const mutations = ["wrong-label", "hidden-label", "transparent-label", "transparent-boundary", "child-shape-outside", "clipped-shape", "duplicate-label", "clipped-label", "title-overlap", "title-outside", "sibling-overlap"];
@@ -474,11 +514,12 @@ try {
     await reduceReadback("redo", redone); await paintRestored("redo", redone);
     await page.locator("#apply").click(); await settle();
     const applied = await snapshot(); assert.equal(applied.stored, redone.log); await reduceReadback("apply", applied);
+    if (fixture.reference) await paintRestored("apply", applied);
     catalogueHidden = !!fixture.symbols;
     await page.reload(); await settle(); const reloaded = await snapshot();
     assert.equal(reloaded.log, applied.stored);
     assert.deepEqual(reloaded.records, redone.records); await reduceReadback("reload", reloaded); await paintRestored("reload", reloaded);
-    if (fixture.bundle) await page.screenshot({ path: path.join(output, fixture.id + "-reload.png") });
+    await saveCamera("reload-final");
     const sameLog = (a, b) => typeof a === "string" && a === b;
     assert.equal(sameLog(after.log, before.log), false, "failed Undo cannot pass");
     assert.equal(sameLog(before.log, applied.stored), false, "stale reload cannot pass");
@@ -522,6 +563,7 @@ const receipt = { schema: "voice-ui.candidate-browser/1", sources: manifest.sour
   reference_scope: "two equal task names in distinct subnet parents and branched traffic; not full sample/Atlas or live model accuracy",
   normal_fixture_sha256: hash(normalBytes), normal_fixture_scope: "explicit bundle data; same completed app/Worker/UI; not live semantic accuracy",
   symbol_fixture_sha256: hash(symbolFixtureSvg),
+  cameraShots: cameraEvidence.items, overviewReadability,
   viewport: [1280, 720], deviceScaleFactor: 1, api, synthetic_upstream: upstream, frames, controls, lifecycle, supply, images, fixtureResults, reductions,
   status: failures.length ? "RED" : "PASS", failures };
 fs.writeFileSync(path.join(output, "receipt.json"), JSON.stringify(receipt, null, 2) + "\n");
