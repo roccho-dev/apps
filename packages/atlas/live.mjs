@@ -50,7 +50,8 @@ export const fromG = (event, decisions = []) => {
   if (event?.kind === 'plan.set') {
     const declaring = decisions.filter(value => Date.parse(value.recordedAt) <= Date.parse(event.recordedAt)
       && value.requires?.some(condition => condition.plans?.includes(event.plan))).at(-1);
-    if (!declaring) return { held: { reason: 'no ideal state declares this plan in requires[].plans', plan: event } };
+    // Held as before; also returned as unbound so the World's journal can show it (L3, display only).
+    if (!declaring) return { held: { reason: 'no ideal state declares this plan in requires[].plans', plan: event }, unbound: event };
     const plan = toPlan(event, declaring);
     try { parseEvents(jsonl([header('supplied'), ...decisions.slice(0, decisions.indexOf(declaring) + 1), plan])); }
     catch (error) { return { held: { reason: error.message, plan: event } }; }
@@ -116,7 +117,9 @@ export const joinLog = (purposeText, gTexts, sourceMode = 'supplied') => {
   }
   const rest = gEvents.filter(event => !JOURNAL.includes(event.kind)).map(event => fromG(event, accepted));
   held.push(...rest.filter(value => value.held).map(value => value.held));
-  return { log: jsonl([header(sourceMode), ...byTime([...accepted, ...rest.flatMap(value => value.events ?? [])])]), held };
+  // unbound: G plan.set events no ideal state declares (also held); the World's journal shows them (L3).
+  return { log: jsonl([header(sourceMode), ...byTime([...accepted, ...rest.flatMap(value => value.events ?? [])])]), held,
+    unbound: rest.filter(value => value.unbound).map(value => value.unbound) };
 };
 
 if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
@@ -128,11 +131,12 @@ if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.me
     const read = file => fs.readFileSync(file, 'utf8');
     // L1: with --ledger the World is derived from every ledger row (the same ledger, the same World).
     const gTexts = [...(values.ledger ? [ledgerEvents(read(values.ledger))] : []), ...positionals.map(read)];
-    const { log, held } = joinLog(values.purpose ? read(values.purpose) : '', gTexts);
+    const { log, held, unbound } = joinLog(values.purpose ? read(values.purpose) : '', gTexts);
     fs.mkdirSync(values['out-dir'], { recursive: true });
     const out = name => path.join(fs.realpathSync(values['out-dir']), name);
     const inputs = [values.purpose, values.control, values.ledger, ...positionals].filter(Boolean).map(file => fs.realpathSync(file));
-    if (['events.jsonl', 'control.jsonl', 'g-plans.jsonl', 'g-journal-held.jsonl'].some(name => inputs.includes(out(name)))) fail('output must not replace an input');
+    if (['events.jsonl', 'control.jsonl', 'g-plans.jsonl', 'g-journal-held.jsonl', 'g-unbound-plans.jsonl'].some(name => inputs.includes(out(name)))) fail('output must not replace an input');
+    fs.writeFileSync(out('g-unbound-plans.jsonl'), unbound.length ? jsonl(unbound) : '');
     fs.writeFileSync(out('events.jsonl'), log);
     // No control given: no Norm, so every condition is derived unassigned (never guessed).
     if (!values.control) fs.writeFileSync(out('control.jsonl'), jsonl([{ schema: 'atlas.control-norms/1', authority: false }]));
@@ -140,8 +144,8 @@ if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.me
     fs.writeFileSync(out('g-plans.jsonl'), plans.length ? jsonl(plans) : '');
     fs.writeFileSync(out('g-journal-held.jsonl'), journal.length ? jsonl(journal) : '');
     const derive = fileURLToPath(new URL('./derive.mjs', import.meta.url));
-    const receipt = JSON.parse(execFileSync(process.execPath, [derive, '--out-dir=' + out('.'), out('events.jsonl'),
-      values.control ? fs.realpathSync(values.control) : out('control.jsonl')], { encoding: 'utf8' }));
+    const receipt = JSON.parse(execFileSync(process.execPath, [derive, '--out-dir=' + out('.'), '--unbound-plans=' + out('g-unbound-plans.jsonl'),
+      out('events.jsonl'), values.control ? fs.realpathSync(values.control) : out('control.jsonl')], { encoding: 'utf8' }));
     console.log(JSON.stringify({ ...receipt, schema: 'atlas.live-build/1', held_plans: { path: out('g-plans.jsonl'), count: plans.length },
       held_journal: { path: out('g-journal-held.jsonl'), count: journal.length } }));
   } catch (error) {

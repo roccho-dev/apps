@@ -378,7 +378,11 @@ A G `plan.set` enters D only when the Purpose author declares it: a condition's
 or before the plan names its `purposeRef`). Journal decisions from G are accepted one
 by one with D's parser; one D rejects is held in `g-journal-held.jsonl`, not fatal. G cells are copied, never parsed, and
 D's own parser checks the converted plan; a plan D rejects or nobody declares is
-held in `g-plans.jsonl` as `{reason, plan}`. G's `UNKNOWN` graph becomes D's `null` marker in `fromG` only: D keeps
+held in `g-plans.jsonl` as `{reason, plan}`. L3 (adrs#647, display only): a plan nobody declares is also written to
+`g-unbound-plans.jsonl` and passed as `derive.mjs --unbound-plans=`, and the World's journal shows it as
+`{kind:'plan.set', recordedAt, actor, source:{ref, commentId, sha256}, plan, version, unbound:true}` (deduplicated by
+plan, version and sha256; in the first frame at or after its time). It never enters D, the plans, the gap or any count;
+one recorded after the last frame is not shown and is counted in the receipt as `unbound.unplaced`. G's `UNKNOWN` graph becomes D's `null` marker in `fromG` only: D keeps
 it as a declared plan with `nodes: null` and the reasons, never as "no plan".
 Without `--control` there is no Norm and every condition is unassigned.
 
