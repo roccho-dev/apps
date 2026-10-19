@@ -6,6 +6,7 @@ import { collect, toJsonl } from '../collect/collect.mjs';
 import { joinLog } from '../live.mjs';
 import { deriveAtlas } from '../events.mjs';
 import { contractWorld } from '../contract.mjs';
+import { appendEvents } from '../ledger.mjs';
 
 // A3 (apps#120, adrs#647 comment 6265881722): a journal entry shows its source's admission (observed_not_admitted)
 // for display only. Capture is not admission (adrs#607); the judgment never reads it.
@@ -25,6 +26,16 @@ test('a source without an admission (hot, a declaration file) has no admission f
   const hot = events.map(event => event.source?.admission ? { ...event, source: { ...event.source, admission: undefined, capture: undefined } } : event)
     .map(event => JSON.parse(JSON.stringify(event)));
   assert.ok(journal(worldOf(hot)).every(entry => !('admission' in entry.source)));
+});
+
+// A3b (R): admission is for journal display only. Cold rows already in the ledger before A3 (without admission),
+// read again after A3, are no change: nothing is appended (no plan update at a time when nothing happened).
+test('cold rows in the ledger from before A3, read again, append nothing', () => {
+  const before = events.map(event => JSON.parse(JSON.stringify({ ...event, source: Array.isArray(event.source) ? event.source : { ...event.source, admission: undefined } })));
+  assert.ok(before.some(event => event.kind === 'plan.set') && !JSON.stringify(before).includes('"admission"'));
+  const first = appendEvents([], toJsonl(before), '2026-10-18T07:00:00Z');
+  const again = appendEvents(first.rows, toJsonl(events), '2026-10-19T07:00:00Z');
+  assert.deepEqual(again.appended.map(row => row.event.kind), []);
 });
 
 test('the judgment does not change: the same input with or without admission gives the same gap and conditions', () => {
