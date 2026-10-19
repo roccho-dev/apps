@@ -12,6 +12,7 @@ import { toJsonl } from '../collect/collect.mjs';
 import { joinLog } from '../live.mjs';
 import { deriveAtlas } from '../events.mjs';
 import { contractWorld } from '../contract.mjs';
+import { appendEvents, ledgerEvents, ledgerText } from '../ledger.mjs';
 
 // C2: current = record(agent), end to end: record → reduce → snapshot. The caller passes each current file as
 // `collect.mjs --current <author>=<path>` (one or more; the author is required, no default). Lines are
@@ -80,13 +81,13 @@ test('lines against the rules are held with the reason and stay out of the snaps
     line({ kind: 'work.created', work_id: 'c2', at: '2026-10-19T01:00:00Z' }),
     line({ kind: 'work.created', work_id: 'c2', author: 'W2' }),
     line({ kind: 'artifact.observed', work_id: 'c2', evidence: '試験が通った' }),
-    line({ kind: 'work.terminal', work_id: 'c2', terminal: 'finished' }),
-    '{"kind":"work.created",\n'].join(''));
+    line({ kind: 'work.terminal', work_id: 'c2', terminal: 'finished' })].join(''));
   const { world, held } = snapshot(dir, T1, 'out');
-  assert.deepEqual(claims(world).map(claim => claim.slice(0, 3)), [['work:ok', 'created', 'current:P#L1']]);
+  // c2's last line is invalid: c2 is observed with no value (C4c); an unreadable line is tested below.
+  assert.deepEqual(claims(world).map(claim => claim.slice(0, 3)), [['work:ok', 'created', 'current:P#L1'], ['work:c2', null, 'current:P#L6'], ['evidence:c2', null, 'current:P#L6']]);
   assert.deepEqual(held.map(value => [value.reason, value.source.ref]), [
     ['current: fields', 'current:P#L2'], ['current: fields', 'current:P#L3'], ['current: fields', 'current:P#L4'],
-    ['current: evidence-form', 'current:P#L5'], ['current: terminal', 'current:P#L6'], ['current: invalid-json', 'current:P#L7']]);
+    ['current: evidence-form', 'current:P#L5'], ['current: terminal', 'current:P#L6']]);
 }));
 
 test('the same input gives the same snapshot', () => within(dir => {
@@ -97,21 +98,75 @@ test('the same input gives the same snapshot', () => within(dir => {
   assert.deepEqual(claims(a.world).map(claim => claim[1]), ['created', 'progressed', SHA, 'reported-blocked']);
 }));
 
-// C2e (R): no time is made up from line order. Two or more lines for one work_id in one file are all held
-// (provisional, fail closed, until an order for them is decided) instead of D seeing a same-time conflict.
-test('two or more lines for one work_id in one file are all held; other work in the file stays', () => within(dir => {
+// C4 (apps#89 comment 6257137004): one work_id in one author's file is last-write-wins by line position (no time is
+// made up). Only the last state line and the last evidence of a work_id are observations; D never sees two
+// same-time observations of one target. Earlier lines are kept as overwritten (held, not in the World).
+test('LWW: created → progressed (evidence) → reported-done gives reported-done and the last evidence; the rest is overwritten', () => within(dir => {
   writeFileSync(path.join(dir, 'current.jsonl'), line({ kind: 'work.created', work_id: 'c2' }) + line({ kind: 'work.created', work_id: 'ok' })
     + line({ kind: 'artifact.observed', work_id: 'c2', evidence: SHA }) + line({ kind: 'work.terminal', work_id: 'c2', terminal: 'done' }));
+  const a = snapshot(dir, T1, 'a'), b = snapshot(dir, T1, 'b');
+  assert.deepEqual(claims(a.world).map(claim => claim.slice(0, 3)), [
+    ['work:ok', 'created', 'current:P#L2'], ['evidence:c2', SHA, 'current:P#L3'], ['work:c2', 'reported-done', 'current:P#L4']]);
+  assert.deepEqual(a.held.map(value => [value.reason, value.source.ref]), [['current: overwritten', 'current:P#L1'], ['current: overwritten', 'current:P#L3']]);
+  // The World has one observation per target at that time: no same-time conflict for D.
+  const frame = JSON.parse(a.world).frames.at(-1);
+  const targets = frame.journal.filter(entry => entry.kind === 'observation').map(entry => entry.target.id);
+  assert.equal(new Set(targets).size, targets.length);
+  assert.equal(a.world, b.world);
+}));
+
+// C4b/C4c (R): the latest line is the author's latest intent. When it is invalid, the work's state and evidence are
+// observed with no value (null: D's no-value unknown), never an earlier valid line in its place; as a newer
+// observation it also supersedes an older state in the ledger. The earlier lines are held as latest-line-invalid.
+test('LWW: when the last line of a work_id is invalid, its state and evidence are observed with no value', () => within(dir => {
+  writeFileSync(path.join(dir, 'current.jsonl'), line({ kind: 'work.created', work_id: 'a' }) + line({ kind: 'artifact.observed', work_id: 'a', evidence: SHA })
+    + line({ kind: 'work.created', work_id: 'ok' }) + line({ kind: 'work.terminal', work_id: 'a', terminal: 'finished' }));
   const { world, held } = snapshot(dir, T1, 'out');
-  assert.deepEqual(claims(world).map(claim => claim.slice(0, 3)), [['work:ok', 'created', 'current:P#L2']]);
+  assert.deepEqual(claims(world).map(claim => claim.slice(0, 3)), [
+    ['work:ok', 'created', 'current:P#L3'], ['work:a', null, 'current:P#L4'], ['evidence:a', null, 'current:P#L4']]);
   assert.deepEqual(held.map(value => [value.reason, value.source.ref]), [
-    ['current: multiple-lines-for-work-id', 'current:P#L1'], ['current: multiple-lines-for-work-id', 'current:P#L3'],
-    ['current: multiple-lines-for-work-id', 'current:P#L4']]);
-  // The same work_id in another author's file is another record: not a duplicate.
-  writeFileSync(path.join(dir, 'w2.jsonl'), line({ kind: 'work.created', work_id: 'ok' }));
+    ['current: latest-line-invalid', 'current:P#L1'], ['current: latest-line-invalid', 'current:P#L2'], ['current: terminal', 'current:P#L4']]);
+}));
+
+// C4c ①: a line that is not JSON names no work_id, so no work_id can be trusted in that file (fail closed): every
+// work_id the file names is observed with no value, at the unreadable line.
+test('an unreadable line makes every work_id of the file observed with no value', () => within(dir => {
+  writeFileSync(path.join(dir, 'current.jsonl'), line({ kind: 'work.created', work_id: 'a' }) + line({ kind: 'work.created', work_id: 'ok' })
+    + '{"kind":"work.terminal","work_id":"a",\n');
+  const { world, held } = snapshot(dir, T1, 'out');
+  assert.deepEqual(claims(world).map(claim => claim.slice(0, 3)), [
+    ['work:a', null, 'current:P#L3'], ['evidence:a', null, 'current:P#L3'], ['work:ok', null, 'current:P#L3'], ['evidence:ok', null, 'current:P#L3']]);
+  assert.deepEqual(held.map(value => [value.reason, value.source.ref]), [
+    ['current: unreadable-line-in-file', 'current:P#L1'], ['current: unreadable-line-in-file', 'current:P#L2'], ['current: invalid-json', 'current:P#L3']]);
+}));
+
+// C4c ② (HQ path): through the ledger, a later read whose last line for a is invalid must end a's earlier state.
+test('ledger: created on the first read, an invalid last line on the second — the World ends with a unknown', () => within(dir => {
+  const read = (at, name) => {
+    execFileSync(process.execPath, collectArgs(dir, at, name, [`P=${path.join(dir, 'current.jsonl')}`]));
+    return readFileSync(path.join(dir, `${name}.g.jsonl`), 'utf8');
+  };
+  writeFileSync(path.join(dir, 'current.jsonl'), line({ kind: 'work.created', work_id: 'a' }));
+  const first = appendEvents([], read(T1, 'one'), T1);
+  appendFileSync(path.join(dir, 'current.jsonl'), line({ kind: 'work.terminal', work_id: 'a', terminal: 'finished' }));
+  const second = appendEvents(first.rows, read(T2, 'two'), T2);
+  assert.ok(second.appended.some(row => row.event.target === 'work:a' && row.event.value === 'UNKNOWN'));
+  const world = contractWorld(deriveAtlas(joinLog('', [ledgerEvents(ledgerText(second.rows))]).log, CONTROL));
+  const seen = world.frames.flatMap(frame => frame.journal).filter(entry => entry.kind === 'observation' && entry.target.id === 'work:a');
+  assert.deepEqual(seen.map(entry => entry.value), ['created', null]);
+}));
+
+test('LWW for evidence: of two artifact.observed lines, the later evidence is the one in the World', () => within(dir => {
+  writeFileSync(path.join(dir, 'current.jsonl'), line({ kind: 'artifact.observed', work_id: 'c2', evidence: 'roccho-dev/apps#119' })
+    + line({ kind: 'artifact.observed', work_id: 'c2', evidence: SHA }));
+  const { world, held } = snapshot(dir, T1, 'out');
+  assert.deepEqual(claims(world).map(claim => claim.slice(0, 3)), [['work:c2', 'progressed', 'current:P#L2'], ['evidence:c2', SHA, 'current:P#L2']]);
+  assert.deepEqual(held.map(value => [value.reason, value.source.ref]), [['current: overwritten', 'current:P#L1']]);
+  // LWW is per author's file: the same work_id in another author's file is another record, not overwritten here.
+  writeFileSync(path.join(dir, 'w2.jsonl'), line({ kind: 'work.created', work_id: 'c2' }));
   execFileSync(process.execPath, [...collectArgs(dir, T1, 'two', [`P=${path.join(dir, 'current.jsonl')}`, `W2=${path.join(dir, 'w2.jsonl')}`]), '--worklog-author', 'W2']);
   const events = readFileSync(path.join(dir, 'two.g.jsonl'), 'utf8').trim().split('\n').map(text => JSON.parse(text));
-  assert.deepEqual(events.filter(event => event.kind === 'observation' && event.target === 'work:ok').map(event => event.source.ref), ['current:P#L2', 'current:W2#L1']);
+  assert.deepEqual(events.filter(event => event.kind === 'observation' && event.target === 'work:c2').map(event => event.source.ref), ['current:P#L2', 'current:W2#L1']);
 }));
 
 // C2e (R, NO_GO): reading current must not move the cold events' time: cold stays dated by its commit.

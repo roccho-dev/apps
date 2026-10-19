@@ -71,17 +71,38 @@ export function currentEvents(files, readAt, recordedAt, authors) {
       const line = raw.trim();
       return { line, source: { ref: `current:${author}#L${index + 1}`, sha256: digest }, checked: line ? check(line, author, allowed) : null };
     }).filter(value => value.line);
-    // Provisional, fail closed: the lines of one file share one read time, so two or more lines for one work_id
-    // have no order D could tell; all of them are held rather than a time made up from their position.
-    const count = new Map();
-    for (const { checked } of lines) if (checked.entry) count.set(checked.entry.work_id, (count.get(checked.entry.work_id) ?? 0) + 1);
-    return lines.flatMap(({ line, source, checked }) => {
+    // Last write wins (apps#89 comment 6257137004): the lines of one file share one read time, so for one work_id
+    // only the last line in the file is its state and only the last artifact.observed its evidence; no time is
+    // made up from the position. An earlier line is kept as overwritten (held), never a second observation.
+    // The last line naming a work_id, valid or not, is the author's latest intent: when it is invalid, that work's
+    // state and evidence are observed with no value (G's UNKNOWN, D's no-value unknown), never an earlier valid
+    // line in its place; being newer, it also ends an older state in the ledger. A line that is not JSON names no
+    // work_id, so then every work_id the file names gets the same (fail closed). Not for an author outside the list.
+    const parsed = line => { try { return { value: JSON.parse(line) }; } catch { return null; } };
+    const named = line => typeof parsed(line)?.value?.work_id === 'string' ? parsed(line).value.work_id : null;
+    const lastLine = new Map(), lastState = new Map(), lastEvidence = new Map();
+    lines.forEach(({ line, checked }, index) => {
+      if (named(line) !== null) lastLine.set(named(line), index);
+      if (!checked.entry) return;
+      lastState.set(checked.entry.work_id, index);
+      if (checked.entry.kind === 'artifact.observed') lastEvidence.set(checked.entry.work_id, index);
+    });
+    const trusted = allowed?.has(author) ?? false;
+    const unreadable = trusted ? lines.findIndex(({ line }) => !parsed(line)) : -1;
+    const noValueAt = new Map(); // work_id → the line where its no-value observations go
+    if (trusted) for (const id of lastLine.keys()) {
+      if (unreadable >= 0) noValueAt.set(id, unreadable);
+      else if (lastLine.get(id) !== lastState.get(id)) noValueAt.set(id, lastLine.get(id));
+    }
+    return lines.flatMap(({ line, source, checked }, index) => {
       const held = reason => [{ kind: 'journal.held', reason: 'current: ' + reason, line, source, recordedAt }];
-      if (checked.reason) return held(checked.reason);
-      if (count.get(checked.entry.work_id) > 1) return held('multiple-lines-for-work-id');
       const observed = (target, value) => ({ kind: 'observation', target, value, source, observedAt: readAt, recordedAt });
-      return [observed(`work:${checked.entry.work_id}`, checked.value),
-        ...(checked.entry.kind === 'artifact.observed' ? [observed(`evidence:${checked.entry.work_id}`, checked.entry.evidence)] : [])];
+      const none = [...noValueAt].filter(([, at]) => at === index).flatMap(([id]) => [observed(`work:${id}`, 'UNKNOWN'), observed(`evidence:${id}`, 'UNKNOWN')]);
+      if (checked.reason) return [...none, ...held(checked.reason)];
+      const id = checked.entry.work_id;
+      if (noValueAt.has(id)) return held(unreadable >= 0 ? 'unreadable-line-in-file' : 'latest-line-invalid');
+      const evidence = lastEvidence.get(id) === index ? [observed(`evidence:${id}`, checked.entry.evidence)] : [];
+      return lastState.get(id) === index ? [observed(`work:${id}`, checked.value), ...evidence] : [...evidence, ...held('overwritten')];
     });
   });
 }
