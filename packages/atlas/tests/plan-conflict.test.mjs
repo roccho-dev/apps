@@ -3,6 +3,8 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { deriveAtlas } from '../events.mjs';
 import { contractWorld } from '../contract.mjs';
+import { ledgerEvents } from '../ledger.mjs';
+import { joinLog } from '../live.mjs';
 
 // C3: a plan body edited in place (the same version, other content; resources#25 v3 on the HQ) must not stop the
 // whole World. That plan is held as a conflict from then on (neither definition is used as its content);
@@ -39,6 +41,33 @@ test('the same content again (idempotent) is accepted as before', () => {
   const result = derive([again(T6)]);
   assert.equal(byRef(plansAt(result, T6), 'apps#95').nodes.length, 4);
   assert.deepEqual(byRef(plansAt(result, T6), 'apps#95').unknown ?? [], []);
+});
+
+// C3b: the HQ ledger (rows verbatim, seq renumbered) has resources#25 plan v3 twice from comment 6208252115 with
+// the same updatedAt and the same parsed plan, but two section digests: GitHub returned the body with "#28"
+// rewritten to "roccho-dev/windows#28" without moving updated_at. One source, one plan: not a conflict.
+const LEDGER = readFileSync(new URL('../fixtures/ledger/resources-25-same-time.jsonl', import.meta.url), 'utf8');
+const PLAN = 'roccho-dev/resources#25:windows-retirement-migration-20261016';
+
+test('HQ form: the same comment and time, the same plan, another digest — the World is built with the plan', () => {
+  const rowsOf = ledgerEvents(LEDGER).trim().split('\n').map(line => JSON.parse(line)).filter(event => event.kind === 'plan.set');
+  assert.deepEqual(rowsOf.map(event => [event.source.commentId, event.source.updatedAt, event.version]), [[6208252115, '2026-10-16T04:43:00Z', 3], [6208252115, '2026-10-16T04:43:00Z', 3]]);
+  assert.notEqual(rowsOf[0].source.sha256, rowsOf[1].source.sha256);
+  const result = deriveAtlas(joinLog('', [ledgerEvents(LEDGER)]).log, '{"schema":"atlas.control-norms/1","authority":false}\n');
+  assert.ok(contractWorld(result).frames.length > 0);
+  const plan = result.plans.frames.at(-1).plans.find(value => value.plan === PLAN);
+  assert.equal(plan.nodes.length, rowsOf[1].nodes.length);
+  assert.deepEqual(plan.unknown ?? [], []);
+  // The provenance is the latest read: its digest.
+  assert.equal(plan.source.digest, rowsOf[1].source.sha256);
+});
+
+test('the same body time with other plan content is held as a conflict, not thrown', () => {
+  const sameTime = plan => edited({ ...plan, recordedAt: T6 });
+  const result = derive([sameTime(original())]);
+  const plan = byRef(plansAt(result, T6), 'apps#95');
+  assert.deepEqual([plan.nodes, plan.edges], [null, null]);
+  assert.ok(plan.unknown[0].startsWith('conflicting-redefinition'));
 });
 
 test('other plans, declarations and conditions are not affected by the conflict', () => {
