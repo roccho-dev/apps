@@ -11,7 +11,17 @@ const countOf = value => ({ ひと: 1, ふた: 2, みっ: 3, 一: 1, 二: 2, 三
 export function literalInventory(state) {
   const max = inventoryLimit(state);
   const kinds = new Map(PART_KINDS.map(kind => [kind, kind]));
-  for (const part of state.parts) kinds.set(part.label, part.kind);
+  const stockKinds = new Map();
+  for (const part of state.parts) {
+    if (!stockKinds.has(part.label)) stockKinds.set(part.label, new Set());
+    stockKinds.get(part.label).add(part.kind);
+  }
+  // A label may name several kinds. Only an unambiguous alias can transcribe
+  // a kind; catalogue names never redefine the primitive kind vocabulary.
+  const stockKind = label => [...stockKinds.get(label)][0];
+  for (const [label, values] of stockKinds) {
+    if (values.size === 1 && !kinds.has(label)) kinds.set(label, stockKind(label));
+  }
   const prefix = [...kinds.keys()].sort((a, b) => b.length - a.length).map(escaped).join("|");
   const quote = '(?:「[^「」\\r\\n]+」|"[^"\\r\\n]+")';
   const pattern = new RegExp(`(?<![A-Za-z0-9_])(${prefix})\\s*(?:「([^「」\\r\\n]+)」|"([^"\\r\\n]+)")\\s*(?:(?:[×x]\\s*|を\\s*)(${countPattern})(?:個|つ)?)?`, "gu");
@@ -58,13 +68,13 @@ export function literalInventory(state) {
         start, start + label.length, count !== null || following !== null);
     }
   }
-  const stock = [...new Set(state.parts.map(p => p.label))].sort((a, b) => b.length - a.length).map(escaped).join("|");
+  const stock = [...stockKinds.keys()].filter(label => stockKinds.get(label).size === 1).sort((a, b) => b.length - a.length).map(escaped).join("|");
   if (stock) for (const match of state.utterance.matchAll(new RegExp(`(?<![A-Za-z0-9_])(${stock})\\s*を\\s*(${countPattern})(?:個|つ)(?:だけ|ずつ)?\\s*(?:追加|作|置)`, "gu")))
     if (!claimed.some(([start, end]) => start <= match.index && match.index < end))
-      add(match[1], kinds.get(match[1]), countOf(match[2]), match.index, match.index + match[1].length, true);
+      add(match[1], stockKind(match[1]), countOf(match[2]), match.index, match.index + match[1].length, true);
   if (stock) for (const match of state.utterance.matchAll(new RegExp(`(?<![A-Za-z0-9_])(${stock})\\s*(?:を\\s*)?(?:追加|作成|配置)`, "gu")))
     if (!claimed.some(([start, end]) => start <= match.index && match.index < end))
-      add(match[1], kinds.get(match[1]), 1, match.index, match.index + match[1].length, true);
+      add(match[1], stockKind(match[1]), 1, match.index, match.index + match[1].length, true);
   if (invalid) return { valid: false, recognized: spans.length > 0, required: [], missing: [], spans, status: "unsupported-syntax" };
   const missingRows = [...rows.values()].flatMap(row => {
     const capacity = state.parts.filter(p => p.label === row.label && p.kind === row.kind).length;
