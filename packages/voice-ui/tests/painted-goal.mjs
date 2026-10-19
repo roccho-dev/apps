@@ -25,11 +25,18 @@ export function observePaintedGoal({ container, records, edge = null, identity =
       node.getAttribute("data-semantic-region-id") === record.id && node.getAttribute("data-semantic-role") === role);
     return nodes.length === 1 ? nodes[0] : null;
   };
-  const labelNode = record => {
-    const group = identity ? owned(record, "text") : doc;
+  const labelWithin = (group, label) => {
     const labels = [...(group?.querySelectorAll("svg text, svg foreignObject, text, foreignObject") ?? [])]
-      .filter(node => node.textContent.trim() === record.label);
+      .filter(node => node.textContent.trim() === label);
     return labels.length === 1 ? labels[0] : null;
+  };
+  const labelNode = record => labelWithin(identity ? owned(record, "text") : doc, record.label);
+  const edgeLabelNode = relation => {
+    const groups = [...doc.querySelectorAll('[data-semantic-role="text"][data-semantic-relation-ids]')].filter(node => {
+      try { const ids = JSON.parse(node.getAttribute("data-semantic-relation-ids"));
+        return Array.isArray(ids) && ids.length === 1 && ids[0] === relation.id; } catch { return false; }
+    });
+    return labelWithin(groups.length === 1 ? groups[0] : null, relation.label);
   };
   // The full name an end shows, from that same label node: one plain, visible,
   // filled SVG text holding the whole name; its glyph-cell box (getBBox) mapped
@@ -290,19 +297,25 @@ export function observePaintedGoal({ container, records, edge = null, identity =
     const padding = Number.isFinite(stroke) && stroke > 0 ? 1.118 * stroke + 1 : NaN;
     const directed = end !== null && tip !== null && beforeEnd !== null
       && (end[0] - beforeEnd[0]) * (tip[0] - end[0]) + (end[1] - beforeEnd[1]) * (tip[1] - end[1]) > 0;
-    observedEdges.push({ start, end, tip, stroke, padding, lineLength: length, markerLength,
+    // These samples are measurements of the render-owned path, not requested
+    // model geometry. The same screen coordinate system makes coincident routes
+    // comparable even when their SVG transforms or path strings differ.
+    const route = { d: line.getAttribute("d"),
+      samples: Array.from({ length: 33 }, (_, index) => point(line, length * index / 32)) };
+    observedEdges.push({ start, end, tip, stroke, padding, lineLength: length, markerLength, route,
       fromOutline: from, toOutline: to,
       fromConnected: from !== null && from.distanceUpper <= padding,
       toConnected: to !== null && to.distanceUpper <= padding, directed });
     if (from !== null && to !== null && from.distanceUpper <= padding && to.distanceUpper <= padding && directed)
-      arrows.push({ start, end, tip, stroke, padding, lineLength: length, markerLength });
+      arrows.push({ start, end, tip, stroke, padding, lineLength: length, markerLength, route });
   }
   return { association: identity ? "render-owned-semantic-id" : "pinned-maxgraph-shape-before-unique-raw-label",
     title: nameOf(labelNode(container)),
     identity,
     viewport: [0, 0, iframe.clientWidth, iframe.clientHeight],
     container: { id: container.id, kind: identity ? "painted-group-shape" : "painted-dashed-group-boundary", bounds: frame }, shapes,
-    edge: edge === null ? null : { from: edge.from, to: edge.to,
+    edge: edge === null ? null : { id: edge.id, from: edge.from, to: edge.to, kind: edge.kind, label: edge.label,
+      name: edge.label ? nameOf(edgeLabelNode(edge)) : null,
       association: "pinned-classic-marker-tip-and-stroke-in-one-cell-group", observed: observedEdges, matches: arrows,
       unsupported: [...new Set(unsupportedEdgePaint)],
       complete: arrows.length === 1 },
@@ -367,4 +380,3 @@ export function assessPaintedEdge(observation) {
   if (!match || !pointInView(match.start) || !pointInView(match.tip)) problems.push("arrow terminals outside frame");
   return { status: unknown.length ? "UNPROVEN" : problems.length ? "UNMET" : "PASS", problems, unknown };
 }
-
