@@ -40,8 +40,12 @@ const seed = async empty => {
  return createSession({accepted:prepared,stored:prepared.log});
 };
 // This is a projection-port double, NOT a browser, SVG paint or Atlas review.
-const documentDouble = () => ({defaultView:{getComputedStyle:()=>({position:'relative'})},createElement(){return {style:{},remove(){this.parent.children=this.parent.children.filter(x=>x!==this);}};}});
-const mountDouble = () => ({style:{},children:[],append(child){child.parent=this;this.children.push(child);},replaceChildren(){this.children=[];}});
+const documentDouble = () => ({defaultView:{getComputedStyle:()=>({position:'relative'})},createElement:()=>{
+ const element={style:{}};element.remove=()=>{element.parent.children=element.parent.children.filter(x=>x!==element);};return element;
+}});
+const mountDouble = () => {
+ const mount={style:{},children:[]};mount.append=child=>{child.parent=mount;mount.children.push(child);};mount.replaceChildren=()=>{mount.children=[];};return mount;
+};
 
 async function exercise(input, mutation=null) {
  const before = await seed(input.initial==='empty');let session=before,adoptions=0;
