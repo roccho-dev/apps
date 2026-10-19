@@ -296,6 +296,9 @@ export const parseControl = input => {
   demand(first.value.schema === CONTROL_SCHEMA && first.value.authority === false, 'unsupported control schema/authority');
   const norms = new Map();
   for (const { value, at } of rest) {
+    // Physical Scope declarations share the control input but are not Norms:
+    // parsePhysicalScopes validates them; the Norm/owner derivation ignores them.
+    if (value?.kind === 'physical-scope') continue;
     keys(value, ['kind', 'id', 'R', 'W', 'binding'], [], at);
     demand(value.kind === 'norm' && token(value.id) && !norms.has(value.id), `${at}: unique norm id required`);
     ids(value.R, `${at}.R`, true); ids(value.W, `${at}.W`, true);
@@ -305,6 +308,41 @@ export const parseControl = input => {
     norms.set(value.id, value);
   }
   return norms;
+};
+
+export const PHYSICAL_GAPS = Object.freeze(['purpose-ideal', 'ideal-current']);
+const REPO_PATH = /^[A-Za-z0-9][A-Za-z0-9_.-]*\/[A-Za-z0-9][A-Za-z0-9_.-]*$/u;
+const packagePath = value => text(value) && !value.includes('\\') && !value.startsWith('/') && !value.endsWith('/')
+  && value.split('/').every(part => part !== '.' && part !== '..' && /^[A-Za-z0-9_.@+-]+$/u.test(part));
+/**
+ * Explicit physical Scope declarations: the changed repo/package, which gap it
+ * addresses (Purpose-Ideal and/or Ideal-Current), and the parts it addresses for
+ * the Ideal-Current gap. A package with no declaration stays unbound: no name,
+ * owner or URL is inferred.
+ */
+export const parsePhysicalScopes = input => {
+  const [first, ...rest] = lines(input, 'control');
+  keys(first.value, ['schema', 'authority'], [], `${first.at} header`);
+  demand(first.value.schema === CONTROL_SCHEMA && first.value.authority === false, 'unsupported control schema/authority');
+  const scopes = new Map();
+  for (const { value, at } of rest) {
+    if (value?.kind !== 'physical-scope') continue;
+    keys(value, ['kind', 'id', 'purposeId', 'gaps', 'conditions', 'repo', 'package'], ['label'], at);
+    demand(token(value.id) && !scopes.has(value.id), `${at}: unique physical-scope id required`);
+    demand(token(value.purposeId), `${at}: physical-scope purposeId required`);
+    ids(value.gaps, `${at}.gaps`);
+    demand(value.gaps.every(gap => PHYSICAL_GAPS.includes(gap)), `${at}.gaps must be ${PHYSICAL_GAPS.join('|')}`);
+    ids(value.conditions, `${at}.conditions`, true);
+    demand(!value.gaps.includes('ideal-current') || value.conditions.length > 0,
+      `${at}.conditions must name the parts the ideal-current gap addresses`);
+    demand(REPO_PATH.test(value.repo), `${at}.repo must be owner/name`);
+    demand(packagePath(value.package), `${at}.package must be a repo-relative package path`);
+    if (value.label !== undefined) text(value.label, `${at}.label`);
+    scopes.set(value.id, Object.freeze({ kind: 'physical-scope', id: value.id, purposeId: value.purposeId,
+      gaps: Object.freeze([...value.gaps]), conditions: Object.freeze([...value.conditions]),
+      repo: value.repo, package: value.package, ...(value.label ? { label: value.label } : {}) }));
+  }
+  return scopes;
 };
 
 // ---- Derivation at a time t: only events with recordedAt <= t are visible. ----
@@ -533,9 +571,20 @@ const semanticFrame = (derived, frame, index) => {
     purpose: bound(find(purposeRow(frame)), { domain_id: pid }), current: bound(find(`current@${frame.asOf}`), { state_ref: currentRef }),
     target: [bound(find(`ideal.${p.version}`), { state_ref: targetRef })], observed: bound(find(`current@${frame.asOf}`), { state_ref: currentRef }) };
   const known = frame.conditions.filter(value => value.judgment.observation).length;
+  // GapA explicitly, from the real human purpose.evaluated entry (never CI or a
+  // match). A current, admitted ideal-insufficient is insufficient; absent,
+  // past, version-mismatched or explicitly unadmitted is unassessed.
+  const journal = derived.frames.slice(0, index + 1).flatMap(item => item.journal ?? []);
+  const evaluation = journal.filter(event => event.kind === 'purpose.evaluated' && event.purpose_id === pid).at(-1) ?? null;
+  const evaluationCurrent = !!evaluation && evaluation.purpose_rev === frame.purpose.rev && evaluation.ideal_version === p.version;
+  const adequacy = evaluation && evaluationCurrent && evaluation.verdict === 'ideal-insufficient' && !evaluation.source?.admission
+    ? 'insufficient' : 'unassessed';
   return { id: `t@${frame.asOf}`, rev: index + 1, asOf: frame.asOf, source_ref: `atlas-events:frame@${frame.asOf}`,
     purpose_label: frame.purpose.purpose.label, current_label: `観測照合 ${known}/${p.requires.length} 件 @${frame.asOf}`,
     target_label: `理想状態 ${p.version}：${p.label ?? '条件'}（条件 ${p.requires.length} 件）`, post_label: `導出 ${frame.asOf}`, semantic,
+    purpose_evaluation: { state: adequacy, verdict: evaluation?.verdict ?? null, current: evaluationCurrent,
+      purpose_rev: evaluation?.purpose_rev ?? null, ideal_version: evaluation?.ideal_version ?? null,
+      admission: evaluation?.source?.admission ?? null, recordedAt: evaluation?.recordedAt ?? null },
     responsibility: Object.fromEntries(frame.conditions.map(value => [value.id, value.responsibility])),
     // Closed differences (v7 history frame): conditions of this ideal state the current state meets now.
     closed: frame.conditions.filter(value => value.judgment.state === 'satisfied').map(value => ({ id: value.id, label: value.label,
@@ -548,16 +597,22 @@ const undefinedIdeal = (frame, index, pid, ref) => {
   const currentRef = ref(`obs@${frame.asOf}`), targetRef = ref(`ideal@${frame.stage}`);
   return { id: `t@${frame.asOf}`, rev: index + 1, asOf: frame.asOf, source_ref: `atlas-events:frame@${frame.asOf}`,
     purpose_label: frame.purpose.purpose.label, current_label: `観測 @${frame.asOf}`, target_label: `理想状態：未確定（${STAGE[frame.stage]}）`,
-    post_label: `導出 ${frame.asOf}`, responsibility: {}, agent_activity: frame.sessions,
+    post_label: `導出 ${frame.asOf}`,
+    purpose_evaluation: { state: 'unassessed', verdict: null, current: false, purpose_rev: null, ideal_version: null, admission: null, recordedAt: null },
+    responsibility: {}, agent_activity: frame.sessions,
     semantic: { schema: 'atlas.semantic-scopes/1', authority: false,
       comparison: { purpose_id: pid, current_ref: currentRef, target_ref: targetRef, direction: 'current-to-target', availability: 'unknown',
         basis: { current_ref: currentRef, target_ref: targetRef, evidence: [`atlas-events:stage@${frame.stage}`] } },
       partition: null, observation: null, bindings: null,
       history: frame.history.map(value => ({ ...value, target_ref: ref(`target@${value.purpose_version}`, value.purpose_id) })) } };
 };
-export const semanticInput = derived => ({ schema: 'atlas.semantic-scope-world/1', authority: false, source_mode: derived.header.source_mode,
-  note: 'Derived from atlas.events/1 (purpose.set, plan.set, observation) and control Norms only; no hand-written Gap/Scope/owner.',
-  frames: derived.frames.map((frame, index) => semanticFrame(derived, frame, index)) });
+export const semanticInput = (derived, physicalScopes = []) => {
+  const physical = physicalScopes instanceof Map ? [...physicalScopes.values()] : [...(physicalScopes ?? [])];
+  return { schema: 'atlas.semantic-scope-world/1', authority: false, source_mode: derived.header.source_mode,
+    note: 'Derived from atlas.events/1 (purpose.set, plan.set, observation) and control Norms only; no hand-written Gap/Scope/owner. physical_scopes are explicit repo/package declarations from the control input.',
+    physical_scopes: physical,
+    frames: derived.frames.map((frame, index) => semanticFrame(derived, frame, index)) };
+};
 
 export const planProjection = derived => ({ schema: PLAN_PROJECTION_SCHEMA, authority: false, purpose_id: derived.frames.at(-1).purpose.purpose.id, now: derived.now,
   note: 'Plans are future intentions observed in Issue/PR bodies. They never enter the Gap, Current or coverage.',
@@ -570,8 +625,9 @@ export const planProjection = derived => ({ schema: PLAN_PROJECTION_SCHEMA, auth
  * Closure reduced from events at or before that frame only (no future rows).
  */
 export const deriveAtlas = (eventsText, controlText) => {
+  const physical = parsePhysicalScopes(controlText);
   const derived = deriveFrames(parseEvents(eventsText), parseControl(controlText));
-  const input = semanticInput(derived);
+  const input = semanticInput(derived, physical);
   const built = input.frames.map((frame, index) => semanticScopeWorld({ ...input, frames: [frame] }, reduceClosure(closureDocument(derived, index, index))));
   const world = { ...built.at(-1), frames: built.map(value => value.frames[0]) };
   return { derived, closure: closureDocument(derived), input, world, plans: planProjection(derived) };
