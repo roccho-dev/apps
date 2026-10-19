@@ -39,24 +39,41 @@ export async function checkCollisionCameras({page,snapshot,settle,saveCamera,sta
     // SVG viewport while leaving the glyph and the application state intact.
     const target=targets.find(x=>x.type==='region'&&x.label==='Task');
     assert.ok(target);await menu.selectOption(target.id);await settle();
+    const args={container:entry.records.find(x=>x.id==='container'),records:[target],identity:true};
+    const unclipped=await page.evaluate(observePaintedGoal,args);
+    assert.equal(overviewLabels(unclipped,[target.id]).status,'PASS','negative starts with the actual readable target');
     const style=await page.evaluate(id=>{
       const doc=document.querySelector('#working-surface iframe').contentDocument;
       const text=[...doc.querySelectorAll('[data-semantic-role="text"]')].find(x=>x.dataset.semanticRegionId===id);
       const svg=text.closest('svg'),saved=svg.getAttribute('style');
-      svg.style.width='1px';svg.style.height='1px';svg.style.overflow='hidden';return saved;
+      // The fixed renderer sets min-width/min-height to the whole scene.
+      // A width alone does not clip it; keep the glyph fixed and bound the SVG.
+      for(const [name,value] of [['min-width','0px'],['min-height','0px'],['max-width','1px'],['max-height','1px'],
+        ['width','1px'],['height','1px'],['overflow','hidden']]) svg.style.setProperty(name,value,'important');
+      return saved;
     },target.id);
     try {
-      const observation=await page.evaluate(observePaintedGoal,{container:entry.records.find(x=>x.id==='container'),records:[target],identity:true});
+      const observation=await page.evaluate(observePaintedGoal,args);
       const assessment=overviewLabels(observation,[target.id]);
       await saveCamera(stage+'-negative-svg-clipped',observation);
+      const beforeName=unclipped.shapes[0].name,afterName=observation.shapes[0].name;
+      assert.equal(afterName.unmet,null,'control must not merely hide or invalidate the text');
+      assert.deepEqual(afterName.box,beforeName.box,'control keeps the real glyph position and size');
+      assert.deepEqual(afterName.clips,beforeName.clips,'control changes no outer clip');
+      assert.deepEqual(observation.viewport,unclipped.viewport);
+      assert.ok(afterName.svg[2]>0&&afterName.svg[2]<=1&&afterName.svg[3]>0&&afterName.svg[3]<=1,
+        'the actual own-SVG viewport, not just requested CSS, must shrink');
       assert.equal(assessment.status,'UNMET','SVG-clipped glyph must never pass');
-      results.push({id:target.id,control:'svg-clipped',status:'DETECTED'});
+      results.push({id:target.id,control:'svg-clipped',status:'DETECTED',beforeSvg:beforeName.svg,afterSvg:afterName.svg});
     } finally {
       await page.evaluate(({id,style})=>{
         const doc=document.querySelector('#working-surface iframe').contentDocument;
         const text=[...doc.querySelectorAll('[data-semantic-role="text"]')].find(x=>x.dataset.semanticRegionId===id);
         const svg=text.closest('svg');if(style===null)svg.removeAttribute('style');else svg.setAttribute('style',style);
       },{id:target.id,style});
+      const returned=await page.evaluate(observePaintedGoal,args);
+      assert.deepEqual(returned.shapes[0].name,unclipped.shapes[0].name,'restore the original SVG and glyph after the control');
+      assert.equal(overviewLabels(returned,[target.id]).status,'PASS');
     }
   } finally {
     await menu.selectOption(selected);await settle();
