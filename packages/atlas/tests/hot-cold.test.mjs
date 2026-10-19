@@ -39,11 +39,12 @@ const contentOf = (doc, body = false) => 'sha256:' + coldRow(doc, body).observed
 
 // hot: the live gh responses for the same thread; one comment edited after the capture, one never captured.
 const comment = ({ id, at, text }) => ({ id, updated_at: at, user: { login: 'roccho-dev' }, body: text });
-const hot = normalize({ type: 'issue', owner: 'roccho-dev', repo: 'adrs', number: NUMBER, fetchedAt: '2026-10-18T08:00:00Z', responses: {
+const hotWith = (edit, fetchedAt = '2026-10-18T08:00:00Z') => normalize({ type: 'issue', owner: 'roccho-dev', repo: 'adrs', number: NUMBER, fetchedAt, responses: {
   issue: { sha256: 'sha256:' + '1'.repeat(64), data: { id: ISSUE_ID, updated_at: docs.body.at, user: { login: 'roccho-dev' }, body: BODY } },
   comments: { sha256: 'sha256:' + '2'.repeat(64), data: [[comment(docs.same),
-    comment({ id: EDITED, at: '2026-10-10T00:00:00Z', text: evaluated('2026-10-08T08:00:00Z', 'edited after the capture') }),
+    comment({ id: EDITED, at: '2026-10-10T00:00:00Z', text: evaluated('2026-10-08T08:00:00Z', edit) }),
     comment({ id: HOT_ONLY, at: '2026-10-11T00:00:00Z', text: evaluated('2026-10-11T00:00:00Z', 'hot only') })]] } } });
+const hot = hotWith('edited after the capture');
 
 const decisions = log => log.trim().split('\n').slice(1).map(text => JSON.parse(text)).filter(event => event.kind !== 'observation');
 const check = ({ log, held }) => {
@@ -95,11 +96,13 @@ test('② ledger, hot first and cold later: the earlier frame keeps the hot sour
   assert.deepEqual(held.filter(value => /superseded|not declared/u.test(value.reason)), []);
 });
 
-test('② a hot row read after cold confirmed the document: dropped when the same, superseded-by-cold when not', () => {
+test('② a hot row read after cold confirmed the document is held as superseded-by-cold; an unchanged re-read adds nothing', () => {
   const T3 = '2026-10-20T09:00:00.000Z';
-  const third = appendEvents(second.rows, toJsonl(collect(hot, T3)), T3);
+  // An unchanged hot re-read is no change for the ledger.
+  assert.deepEqual(appendEvents(second.rows, toJsonl(collect(hot, T3)), T3).appended.filter(row => row.event.kind !== 'plan.set').length, 0);
+  const third = appendEvents(second.rows, toJsonl(collect(hotWith('edited again', '2026-10-20T08:00:00Z'), T3)), T3);
   const { log, held } = fromLedger(third.rows);
-  assert.deepEqual(held.filter(value => value.reason === 'superseded-by-cold').map(value => [value.journal.source.commentId, value.journal.note]), [[EDITED, 'edited after the capture']]);
+  assert.deepEqual(held.filter(value => value.reason === 'superseded-by-cold').map(value => [value.journal.source.commentId, value.journal.note]), [[EDITED, 'edited again']]);
   assert.deepEqual(decisions(log).filter(event => event.recordedAt === T3).map(event => event.source.commentId), []);
 });
 
