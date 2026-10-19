@@ -149,13 +149,36 @@ function neighbourBounds(layout, targetId, anchorId, direction) {
   return Object.freeze([ax, ay + ah + NEIGHBOUR_GAP, tw, th]);
 }
 
-// A spot is usable only if nothing else the view placed sits there - a lane
-// included, and a part off screen too. The part being moved does not block
-// its own move.
-const spotIsFree = (layout, records, targetId, box) =>
-  placedIds(layout, selectableRegionIds(records), null)
-    .filter(regionId => regionId !== targetId)
-    .every(regionId => !overlapping(box, layout.bounds[regionId]));
+// Read the provider's child/title inset without changing the actual layout.
+const childLabelRoom = (records, parentId, protocol) => {
+  const natural = protocol.layoutBoundsFor(records.filter(record => record.type !== "layout"),
+    { pattern: protocol.GRAPH_PATTERN });
+  const children = records.filter(record => record.type === "region" && record.parent === parentId);
+  const top = Math.min(...children.map(record => natural.bounds[record.id]?.[1]));
+  const inset = top - natural.bounds[parentId]?.[1];
+  return Number.isFinite(inset) && inset > 0 ? Math.max(BAND_LABEL_ROOM, inset) : null;
+};
+
+// A containing boundary is not an obstacle to its own child. The child must
+// stay in every existing ancestor's content area; no implicit reparenting,
+// resizing, covering a heading, or overlap with an unrelated region is allowed.
+function spotIsFree(layout, records, targetId, box, protocol) {
+  const parents = new Map(records.filter(record => record.type === "region")
+    .map(record => [record.id, record.parent]));
+  const ancestors = new Set();
+  try {
+    for (let at = parents.get(targetId); parents.get(at) !== null; at = parents.get(at)) {
+      if (at === undefined || ancestors.has(at)) return false;
+      ancestors.add(at);
+      const frame = layout.bounds[at], inset = childLabelRoom(records, at, protocol);
+      if (!frame || inset === null || !inside([frame[0] + BAND_PADDING, frame[1] + inset,
+        frame[2] - 2 * BAND_PADDING, frame[3] - inset - BAND_PADDING], box)) return false;
+    }
+    return placedIds(layout, selectableRegionIds(records), null)
+      .filter(regionId => regionId !== targetId && !ancestors.has(regionId))
+      .every(regionId => !overlapping(box, layout.bounds[regionId]));
+  } catch { return false; }
+}
 
 // The first free place on the grid inside the enclosing boundary, in reading
 // order. A full boundary is an honest "no room", not a part dropped on top.
@@ -455,7 +478,7 @@ function operationsFor(read, context) {
     if (!inside(visibleFrame.frame, box)) return noChange("spot-off-pane");
     if (!inside(visibleFrame.frame, layout.bounds[read.anchor.choice])) return noChange("anchor-off-pane");
     if (!inside(visibleFrame.frame, layout.bounds[read.move.choice])) return noChange("mover-off-pane");
-    if (!spotIsFree(layout, records, read.move.choice, box)) return noChange("spot-taken");
+    if (!spotIsFree(layout, records, read.move.choice, box, context.protocol)) return noChange("spot-taken");
     const previous = layout.pinned.includes(read.move.choice) ? layout.bounds[read.move.choice] : null;
     if (previous !== null && previous.every((value, index) => value === box[index])) return noChange("already-there");
     return plan(ACTION_PLACE_PART, confidence,
@@ -623,12 +646,8 @@ function additionSlot(working, parent, part, reserved, protocol, grows = false, 
     // No existing position or camera is changed to make a candidate fit.
     let labelRoom = BAND_LABEL_ROOM;
     if (expressive) {
-      const natural = protocol.layoutBoundsFor(records.filter(record => record.type !== "layout"), view);
-      const children = records.filter(record => record.type === "region" && record.parent === parent.id);
-      const top = Math.min(...children.map(record => natural.bounds[record.id][1]));
-      const inset = top - natural.bounds[parent.id][1];
-      if (!(Number.isFinite(inset) && inset > 0)) return null;
-      labelRoom = Math.max(labelRoom, inset);
+      labelRoom = childLabelRoom(records, parent.id, protocol);
+      if (labelRoom === null) return null;
     }
     if (grows) {
       const grown = grownSlot(records, current, parent, regionId, size, labelRoom);

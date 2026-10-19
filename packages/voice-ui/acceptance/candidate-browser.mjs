@@ -7,7 +7,7 @@ import path from "node:path";
 import { pathToFileURL } from "node:url";
 import { assertNoSecretInputs, loadAcceptanceArtifact } from "../tests/runtime-acceptance.mjs";
 import { observePaintedGoal, assessPaintedGoal, assessPaintedEdge } from "../tests/painted-goal.mjs";
-import { gradeGraph } from "../tests/semantic-score.mjs";
+import { gradeGraph, canonical } from "../tests/semantic-score.mjs";
 import { auditReducedView } from "../tests/reduced-view-audit.mjs";
 import { symbolFixtureSvg, checkPaintedSymbols } from "../tests/part-symbol-browser.mjs";
 
@@ -33,6 +33,10 @@ const { chromium } = createRequire(import.meta.url)("playwright-core");
 const site = path.join(root, "site"), key = "voice-ui.decision-log.v1";
 const normalBytes = fs.readFileSync(new URL("../tests/fixtures/normal-composition/browser.jsonl", import.meta.url));
 const normalFixtures = normalBytes.toString("utf8").trim().split("\n").map(JSON.parse);
+const editingBytes = fs.readFileSync(new URL("../tests/fixtures/normal-composition/editing.jsonl", import.meta.url));
+const editingFixtures = editingBytes.toString("utf8").trim().split("\n").map(JSON.parse);
+assert.ok(editingFixtures.length > 0 && editingFixtures.length <= 8);
+const recordBag = records => records.map(row => JSON.stringify(canonical(row))).sort();
 assert.ok(normalFixtures.length > 0 && normalFixtures.length <= 16);
 assert.ok(normalFixtures.every(item => /^[a-z][a-z0-9-]+$/.test(item.id) && item.bundle?.schema === "voice-ui.bundle/2"));
 const fixtures = [
@@ -45,12 +49,14 @@ const fixtures = [
     flow: ["構築", "配布記録"] },
   { id: "existing-directed-connection", text: "OCIのSourceからTargetへ矢印を追加。Unrelatedは変更しない",
     nodes: [], flow: ["Source", "Target"], existing: true },
-  ...normalFixtures,
+  ...normalFixtures, ...editingFixtures,
 ];
 assert.equal(new Set(fixtures.map(item => item.id)).size, fixtures.length);
 let fixture = null, input = null, catalogueHidden = false;
 const api = [], upstream = [], frames = [], controls = [], lifecycle = [], supply = [], images = [], fixtureResults = [], reductions = [];
 const syntheticAnswer = wire => {
+  if (fixture.edit) return Object.fromEntries(Object.keys(wire.questions)
+    .map(name => [name, fixture.edit.response[name] ?? "none"]));
   if (wire.questions.completion) return { completion: "unknown" };
   if (wire.questions.intent) return { intent: "change", labels: fixture.id === "equal-label-quantity" || fixture.existing ? "available" : "missing",
     capacity: fixture.id === "equal-label-quantity" ? "exceeded" : "within", completeness: "complete" };
@@ -160,14 +166,14 @@ try {
     let context = null;
     try {
     fixture = selected; catalogueHidden = false;
-    const records = [{ type: "meta", schema: "semantic-map-state/1", root: "root", title: "candidate browser fixture" },
+    const records = fixture.edit?.initialRecords ?? [{ type: "meta", schema: "semantic-map-state/1", root: "root", title: "candidate browser fixture" },
       { type: "region", id: "root", label: "World", parent: null, kind: "boundary", bounds: [0, 0, 1000, 700], summary: "" },
       { type: "region", id: "container", label: "OCI", parent: "root", kind: "group", bounds: [0, 0, 2000, 500], summary: "" },
       ...(fixture.existing ? ["Source", "Target", "Unrelated"].map((label, index) => ({ type: "region", id: label.toLowerCase(),
         label, kind: index === 1 ? "data" : "step", parent: "container", summary: "", bounds: [[12, 72, 180, 92], [420, 72, 180, 92], [216, 230, 180, 92]][index] })) : [])];
     const initial = await protocol.createDecisionLog(records, "voice-graph");
     const pin = await protocol.createDecision(initial.head,
-      [{ type: "PinRegions", items: [{ regionId: "container", bounds: [0, 0, 2000, 500] },
+      [{ type: "PinRegions", items: fixture.edit?.pins ?? [{ regionId: "container", bounds: [0, 0, 2000, 500] },
         ...records.filter(record => record.parent === "container").map(record => ({ regionId: record.id, bounds: record.bounds }))] }], initial.records);
     const accepted = (await protocol.appendDecision(initial.log, pin.decision)).verified;
     context = await browser.newContext({ viewport: { width: 1280, height: 720 }, deviceScaleFactor: 1 });
@@ -197,8 +203,16 @@ try {
         to: fixture.existing ? "fixture:target" : "added:" + fixture.flow[1], kind: "flow", label: "" }] : [],
     };
     const reduceReadback = async (stage, state, expected = oracle) => {
-      const result = await auditReducedView({ log: state.log, ui: state, initialRecords: accepted.records,
-        oracle: expected, protocol });
+      // Editing has an explicit whole-record expectation, including layout,
+      // rather than treating every operation as append-only new semantics.
+      const exact = fixture.edit ? (["before", "undo"].includes(stage) ? accepted.records : fixture.edit.expectedRecords) : null;
+      const result = await auditReducedView({ log: state.log, ui: state, initialRecords: exact ?? accepted.records,
+        oracle: exact ? { expected_added_regions: [], expected_added_edges: [] } : expected, protocol });
+      if (exact) {
+        result.exact_expected_records = JSON.stringify(recordBag(state.records)) === JSON.stringify(recordBag(exact));
+        if (!result.exact_expected_records) result.status = "RED";
+        expected = { records: exact };
+      }
       // The actual JSONL and reported UI state/view stay re-readable after CI,
       // including RED observations. No expected value is passed to the model.
       const name = fixture.id + "-" + stage + "-reduced.json";
@@ -239,14 +253,27 @@ try {
         frames.push({ fixture: fixture.id, stage, camera: "relation", observation, assessment });
         if (assessment.status !== "PASS") failures.push({ fixture: fixture.id, stage, camera: "relation", assessment });
       }
-      if (fixture.symbols) await checkSymbols(stage, state, stage === "undo" ? [] : fixture.symbols);
+      if (fixture.symbols) await checkSymbols(stage, state, stage === "undo" ? fixture.initialSymbols ?? [] : fixture.symbols);
+      if (fixture.edit?.response.action === "place-part") {
+        await page.locator("#camera-part").selectOption(fixture.edit.parent); await settle();
+        const observation = await page.evaluate(observePaintedGoal, { container: regions.find(r => r.id === fixture.edit.parent),
+          records: ["api", "db"].map(id => regions.find(r => r.id === id)), identity: true });
+        const [mover, anchor] = observation.shapes.map(shape => shape.bounds);
+        const right = mover !== null && anchor !== null && mover[0] >= anchor[0] + anchor[2];
+        const shouldBeRight = !["before", "undo"].includes(stage);
+        const result = { fixture: fixture.id, stage, axis: "painted-relative-placement", right, expected: shouldBeRight,
+          status: right === shouldBeRight ? "PASS" : "RED" };
+        frames.push(result);
+        if (result.status !== "PASS") failures.push(result);
+      }
       assert.deepEqual((await snapshot()).records, state.records, "restored camera preserves exact records");
     };
-    const draw = async () => { await page.locator("#text").fill(fixture.text); await page.locator("#goal").click(); await settle(); return snapshot(); };
+    const draw = async () => { await page.locator("#text").fill(fixture.text); await page.locator(fixture.edit ? "#send" : "#goal").click(); await settle(); return snapshot(); };
     const after = await draw();
     await reduceReadback("after", after);
-    assert.equal(after.goal.reason, fixture.stop ?? "none", JSON.stringify(after.goal));
-    if (fixture.bundle) {
+    if (fixture.edit) assert.equal(after.state, "drafted", JSON.stringify(after));
+    else assert.equal(after.goal.reason, fixture.stop ?? "none", JSON.stringify(after.goal));
+    if (fixture.bundle && !fixture.edit) {
       const prepared = after.goal.inventory.prepared;
       const multiset = rows => rows.map(row => JSON.stringify([row.label, row.kind])).sort();
       assert.deepEqual(multiset(prepared), multiset(fixture.nodes.flatMap(node => Array.from({ length: node.quantity }, () => node))));
@@ -261,7 +288,7 @@ try {
         bundle_sha256: hash(JSON.stringify(fixture.bundle)), prepared, preparations: after.goal.inventory.preparations,
         literal_inspection: after.goal.inventory.coverage.inspection, missing: after.goal.inventory.missing });
     }
-    assert.equal(gradeGraph(before.records, after.records, oracle).graph_exact, true);
+    if (!fixture.edit) assert.equal(gradeGraph(before.records, after.records, oracle).graph_exact, true);
     const regions = after.records.filter(record => record.type === "region"), added = regions.filter(record => !records.some(old => old.id === record.id));
     for (const expected of fixture.nodes) {
       const parent = regions.find(record => record.label === expected.parent);
@@ -269,10 +296,11 @@ try {
     }
     assert.equal(added.length, fixture.nodes.reduce((n, node) => n + node.quantity, 0));
     const edges = after.records.filter(record => record.type === "relation");
-    assert.equal(edges.length, fixture.flow ? 1 : 0);
+    if (!fixture.edit) assert.equal(edges.length, fixture.flow ? 1 : 0);
     if (fixture.flow) assert.deepEqual(edges.map(edge => [regions.find(r => r.id === edge.from)?.label, regions.find(r => r.id === edge.to)?.label]), [fixture.flow]);
     const cameraFrames = [{ name: "overview", id: "" }, { name: "named-group", id: "container" },
-      ...added.filter(r => r.kind === "group").map(r => ({ name: "nested-group", id: r.id }))];
+      ...(fixture.edit ? regions.filter(r => r.kind === "group" && r.id !== "container") : added.filter(r => r.kind === "group"))
+        .map(r => ({ name: "nested-group", id: r.id }))];
     let controlArgs = null;
     for (const camera of cameraFrames) {
       await page.locator("#camera-part").selectOption(camera.id); await settle();
@@ -290,6 +318,7 @@ try {
       if (fixture.bundle) await page.screenshot({ path: path.join(output, fixture.id + "-" + camera.name + ".png") });
       if (fixture.id === "equal-label-quantity") controlArgs = args;
     }
+    if (fixture.edit) await paintRestored("after", after);
     if (controlArgs) {
       // Actual painted-DOM mutations, each restored before the next observation.
       const mutations = ["wrong-label", "hidden-label", "transparent-label", "transparent-boundary", "child-shape-outside", "clipped-shape", "duplicate-label", "clipped-label", "title-overlap", "title-outside", "sibling-overlap"];
@@ -402,8 +431,10 @@ try {
     await page.locator("#undo").click(); await settle();
     const undone = await snapshot(); assert.equal(undone.log, before.log); assert.equal(undone.stored, before.stored);
     assert.deepEqual(undone.records, before.records); await reduceReadback("undo", undone, unchangedOracle); await paintRestored("undo", undone);
-    const redone = await draw(); assert.equal(redone.goal.reason, fixture.stop ?? "none");
-    assert.equal(gradeGraph(before.records, redone.records, oracle).graph_exact, true, "second Goal must succeed exactly");
+    const redone = await draw();
+    if (fixture.edit) assert.equal(redone.state, "drafted");
+    else assert.equal(redone.goal.reason, fixture.stop ?? "none");
+    if (!fixture.edit) assert.equal(gradeGraph(before.records, redone.records, oracle).graph_exact, true, "second Goal must succeed exactly");
     await reduceReadback("redo", redone); await paintRestored("redo", redone);
     await page.locator("#apply").click(); await settle();
     const applied = await snapshot(); assert.equal(applied.stored, redone.log); await reduceReadback("apply", applied);
@@ -436,6 +467,7 @@ try {
 assert.ok(upstream.every(call => call.provider === "jev"), "ordinary literal UI requires no TypeLLM key or POST");
 const receipt = { schema: "voice-ui.candidate-browser/1", sources: manifest.sources, manifest_sha256: hash(manifestBytes),
   scope: "KEYLESS_FIXTURE_MECHANICS", live_provider: "NOT_RUN", live_microphone: "NOT_RUN",
+  editing_fixture_sha256: hash(editingBytes), editing_scope: "ordinary Send; fixed whole records and actual painted directions; mocked judgments",
   normal_fixture_sha256: hash(normalBytes), normal_fixture_scope: "explicit bundle data; same completed app/Worker/UI; not live semantic accuracy",
   symbol_fixture_sha256: hash(symbolFixtureSvg),
   viewport: [1280, 720], deviceScaleFactor: 1, api, synthetic_upstream: upstream, frames, controls, lifecycle, supply, images, fixtureResults, reductions,
