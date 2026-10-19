@@ -66,8 +66,39 @@ export const fromG = (event, decisions = []) => {
  * D log text: header, accepted decisions, plans and observations in recordedAt order (stable).
  * Decisions are accepted one by one in time order with D's parser; one D rejects is held, not fatal.
  */
+// hot ∖ cold (A1): a document is `owner/repo#n` + commentId (null for the body). From the time cold (a
+// `source.capture`) has it, cold is the confirmed value: a hot copy read then or later is dropped, or held as
+// superseded-by-cold when it says something else. What hot read earlier stays as read (a past frame is never
+// rewritten); when cold says the same, only `confirmed:<owner/repo#n>:<commentId|body>` = the capture is added
+// at cold's time, not the decision again.
+const DOCUMENT = [...JOURNAL, 'plan.set'];
+const threadOf = event => event.kind === 'plan.set' ? event.source?.repo : event.source?.ref;
+const documentOf = event => `${threadOf(event)} ${event.source?.commentId ?? null}`;
+const said = event => `${documentOf(event)} ${JSON.stringify(Object.entries({ ...event, source: null, recordedAt: null, declaredAt: null }).sort(([a], [b]) => (a < b ? -1 : 1)))}`;
+const hotMinusCold = (events, held) => {
+  const isCold = event => DOCUMENT.includes(event.kind) && Boolean(event.source?.capture);
+  const isHot = event => DOCUMENT.includes(event.kind) && !event.source?.capture;
+  const arrived = new Map(); // document → when cold first has it
+  for (const event of events.filter(isCold)) if (!arrived.has(documentOf(event)) || Date.parse(event.recordedAt) < Date.parse(arrived.get(documentOf(event)))) arrived.set(documentOf(event), event.recordedAt);
+  const before = event => Date.parse(event.recordedAt) < Date.parse(arrived.get(documentOf(event)));
+  const readEarlier = new Set(events.filter(event => isHot(event) && arrived.has(documentOf(event)) && before(event)).map(said));
+  const coldSaid = new Set(events.filter(isCold).map(said)), confirmedOnce = new Set();
+  return events.flatMap(event => {
+    if (isCold(event)) {
+      if (!readEarlier.has(said(event))) return [event];
+      if (confirmedOnce.has(documentOf(event))) return [];
+      confirmedOnce.add(documentOf(event));
+      return [{ kind: 'observation', target: `confirmed:${threadOf(event)}:${event.source.commentId ?? 'body'}`, value: event.source.capture,
+        source: { ref: event.source.capture, sha256: event.source.sha256 }, observedAt: event.recordedAt, recordedAt: event.recordedAt }];
+    }
+    if (!isHot(event) || !arrived.has(documentOf(event)) || before(event)) return [event];
+    if (!coldSaid.has(said(event))) held.push({ reason: 'superseded-by-cold', [event.kind === 'plan.set' ? 'plan' : 'journal']: event });
+    return [];
+  });
+};
+
 export const joinLog = (purposeText, gTexts, sourceMode = 'supplied') => {
-  const gEvents = gTexts.flatMap(rows), held = [], accepted = [];
+  const held = [], accepted = [], gEvents = hotMinusCold(gTexts.flatMap(rows), held);
   const candidates = byTime([...rows(purposeText ?? ''),
     ...gEvents.filter(event => JOURNAL.includes(event.kind)).flatMap(event => fromG(event).events)]);
   for (const decision of candidates) {

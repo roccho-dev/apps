@@ -43,7 +43,8 @@ export const readLedger = text => {
 const identity = event => JSON.stringify([event.kind, event.purpose?.id ?? event.purpose_id ?? null, event.rev ?? event.purpose_rev ?? null,
   event.version ?? event.ideal_version ?? null, event.plan ?? null, ['purpose.evaluated', 'purpose.ended'].includes(event.kind) ? event.recordedAt : null]);
 // What a declaration says, without when it was read (a plan body's updatedAt also moves with new comments).
-const content = event => canonical({ ...event, recordedAt: null, source: event.kind === 'plan.set' ? { ...event.source, updatedAt: null } : null });
+// A confirmed (cold) copy of a hot declaration is a change: it is what joinLog keeps (hot ∖ cold).
+const content = event => canonical({ ...event, recordedAt: null, source: event.kind === 'plan.set' ? { ...event.source, updatedAt: null } : event.source?.capture ?? null });
 // The shortest freshness window any declared condition puts on a target (null when none does).
 const windowOf = (rows, target) => {
   const windows = rows.flatMap(row => row.event.requires ?? []).filter(value => value.predicate?.target?.id === target).map(value => ms(value.maxAge)).filter(Number.isFinite);
