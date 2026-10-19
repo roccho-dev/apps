@@ -218,8 +218,7 @@ export function planEvents(documents, recordedAt) {
     const { doc, section } = current[0];
     const qualify = id => `${doc.repo}#${doc.number}:${id}`;
     const source = { repo: `${doc.repo}#${doc.number}`, commentId: doc.commentId, updatedAt: doc.updatedAt, sha256: sha256(section.text),
-      ...(doc.source?.capture ? { capture: doc.source.capture } : {}), // read from cold: where it was confirmed
-      ...(doc.source?.admission ? { admission: doc.source.admission } : {}) }; // display only (A3)
+      ...(doc.source?.capture ? { capture: doc.source.capture } : {}) }; // read from cold: where it was confirmed
     // The author of the text that carries the section (gh comment author), only when the snapshot has it.
     const base = { kind: 'plan.set', plan: key, version, source, recordedAt, ...(doc.author ? { actor: doc.author } : {}) };
     if (digests.size > 1) {

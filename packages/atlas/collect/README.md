@@ -147,8 +147,8 @@ the reducer's input no longer needs a local ledger. The edge reads the file; the
   observation `confirmed:<owner/repo#n>:<commentId|body>` = `<repo>@<commit>:<path>` is added at cold's time.
 - `status` is kept verbatim as the document's `admission`; capture never admits a meaning (adrs#607), and
   no event says admitted. A3 (adrs#647 comment 6265881722): the source also carries it (`source.admission`) through
-  live and D to the World's journal entries (`frames[i].journal[].source.admission`), for display only; no judgment
-  reads it, and a source without one has no such field.
+  live and D to the World's journal entries (`frames[i].journal[].source.admission`) of journal decisions, for display
+  only; no judgment reads it, a source without one has no such field, and plans do not carry it.
 - `content_sha256` is checked in one form only, the writer's (adrs `tools/github_api.py`, a6284e58):
   plain hex of sha256 over Python `json.dumps(payload, ensure_ascii=False, sort_keys=True)` — separators
   `", "` / `": "`, keys sorted by code point at every level, non-ASCII raw, only `"`, `\` and C0 controls

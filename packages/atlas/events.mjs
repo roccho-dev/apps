@@ -175,8 +175,7 @@ const planSet = (event, at) => {
   if ('unknown' in event) demand(Array.isArray(event.unknown) && event.unknown.every(text), `${at}: unknown must list reasons`);
   keys(event.purposeRef, ['purposeId', 'version'], [], `${at}.purposeRef`);
   demand(token(event.purposeRef.purposeId) && token(event.purposeRef.version) && token(event.version), `${at}: purposeRef/version required`);
-  keys(event.source, ['ref', 'commentId', 'updatedAt', 'digest'], ['admission'], `${at}.source`); // admission: display only (A3)
-  if ('admission' in event.source) demand(text(event.source.admission), `${at}.source: admission must be text`);
+  keys(event.source, ['ref', 'commentId', 'updatedAt', 'digest'], [], `${at}.source`);
   demand(PLAN_REF.test(event.source.ref) && (event.source.commentId === null || token(event.source.commentId)) && sha(event.source.digest),
     `${at}: source repo#number, commentId|null and sha256 digest required`);
   demand(time(event.source.updatedAt, `${at}.source.updatedAt`) <= Date.parse(event.recordedAt), `${at}: source updatedAt is after recordedAt (future fact)`);

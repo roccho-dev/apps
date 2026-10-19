@@ -18,15 +18,15 @@ const JOURNAL = ['purpose.set', 'ideal.drafting', 'ideal.set', 'purpose.evaluate
 const byTime = list => list.map((event, index) => ({ event, index }))
   .sort((a, b) => Date.parse(a.event.recordedAt) - Date.parse(b.event.recordedAt) || a.index - b.index).map(value => value.event);
 
-// A3: the source's admission (e.g. observed_not_admitted of a Git Cold row) rides along for display only.
+// A3: the source's admission (e.g. observed_not_admitted of a Git Cold row) rides along on journal decisions,
+// for display only (adrs#647 records the journal; plans do not carry it).
 const admission = source => typeof source?.admission === 'string' ? { admission: source.admission } : {};
 
 // G plan.set → D plan.set under the ideal state that declares it in requires[].plans. Cells are
 // copied, never parsed: D rejects anything that is not already a declared id, and then it is held.
 const toPlan = (g, purpose) => ({ kind: 'plan.set', recordedAt: g.recordedAt, plan: g.plan, ...(g.actor ? { actor: g.actor } : {}),
   purposeRef: { purposeId: purpose.purpose?.id ?? purpose.purpose_id, version: purpose.version },
-  source: { ref: g.source.repo, commentId: g.source.commentId === null ? null : String(g.source.commentId), updatedAt: g.source.updatedAt, digest: g.source.sha256,
-    ...admission(g.source) },
+  source: { ref: g.source.repo, commentId: g.source.commentId === null ? null : String(g.source.commentId), updatedAt: g.source.updatedAt, digest: g.source.sha256 },
   version: String(g.version),
   ...(g.nodes === 'UNKNOWN' || g.edges === 'UNKNOWN' ? { nodes: null, edges: null, unknown: g.unknown ?? [] } : {
     nodes: g.nodes.map(node => ({ id: node.id, label: node.label, norm: node.owner, exit: node.exit, contributesTo: [node.requires],
