@@ -37,7 +37,7 @@ export function literalInventory(state) {
   }
   const prefix = [...kinds.keys()].sort((a, b) => b.length - a.length).map(escaped).join("|");
   const quote = '(?:「[^「」\\r\\n]+」|"[^"\\r\\n]+")';
-  const pattern = new RegExp(`(?<![A-Za-z0-9_])(${prefix})\\s*(?:「([^「」\\r\\n]+)」|"([^"\\r\\n]+)")\\s*(?:(?:[×x]\\s*|を\\s*)(${countPattern})(?:個|つ)?)?`, "gu");
+  const pattern = new RegExp(`(?<![A-Za-z0-9_])(${prefix})\\s*(?:「([^「」\\r\\n]+)」|"([^"\\r\\n]+)")\\s*(?:(?:[×x]\\s*|を\\s*)(${countPattern})(?:個|つ)?)?`, "dgu");
   const rows = new Map(), spans = [], seen = new Set(), claimed = [];
   let invalid = false;
   const add = (label, kind, quantity, start, end, counted) => {
@@ -56,7 +56,8 @@ export function literalInventory(state) {
   };
   for (const match of state.utterance.matchAll(pattern)) {
     claimed.push([match.index, match.index + match[0].length]);
-    const label = match[2] ?? match[3], start = match.index + match[0].indexOf(label);
+    // Capture offsets identify the quoted name even when it repeats its kind or alias.
+    const label = match[2] ?? match[3], start = (match.indices[2] ?? match.indices[3])[0];
     const rest = state.utterance.slice(match.index + match[0].length);
     const tail = rest.trimStart();
     if (match[4] === undefined ? /^[×x]/u.test(tail)
