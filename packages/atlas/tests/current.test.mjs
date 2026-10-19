@@ -12,6 +12,7 @@ import { toJsonl } from '../collect/collect.mjs';
 import { joinLog } from '../live.mjs';
 import { deriveAtlas } from '../events.mjs';
 import { contractWorld } from '../contract.mjs';
+import { appendEvents, ledgerEvents, ledgerText } from '../ledger.mjs';
 
 // C2: current = record(agent), end to end: record → reduce → snapshot. The caller passes each current file as
 // `collect.mjs --current <author>=<path>` (one or more; the author is required, no default). Lines are
@@ -80,13 +81,13 @@ test('lines against the rules are held with the reason and stay out of the snaps
     line({ kind: 'work.created', work_id: 'c2', at: '2026-10-19T01:00:00Z' }),
     line({ kind: 'work.created', work_id: 'c2', author: 'W2' }),
     line({ kind: 'artifact.observed', work_id: 'c2', evidence: '試験が通った' }),
-    line({ kind: 'work.terminal', work_id: 'c2', terminal: 'finished' }),
-    '{"kind":"work.created",\n'].join(''));
+    line({ kind: 'work.terminal', work_id: 'c2', terminal: 'finished' })].join(''));
   const { world, held } = snapshot(dir, T1, 'out');
-  assert.deepEqual(claims(world).map(claim => claim.slice(0, 3)), [['work:ok', 'created', 'current:P#L1']]);
+  // c2's last line is invalid: c2 is observed with no value (C4c); an unreadable line is tested below.
+  assert.deepEqual(claims(world).map(claim => claim.slice(0, 3)), [['work:ok', 'created', 'current:P#L1'], ['work:c2', null, 'current:P#L6'], ['evidence:c2', null, 'current:P#L6']]);
   assert.deepEqual(held.map(value => [value.reason, value.source.ref]), [
     ['current: fields', 'current:P#L2'], ['current: fields', 'current:P#L3'], ['current: fields', 'current:P#L4'],
-    ['current: evidence-form', 'current:P#L5'], ['current: terminal', 'current:P#L6'], ['current: invalid-json', 'current:P#L7']]);
+    ['current: evidence-form', 'current:P#L5'], ['current: terminal', 'current:P#L6']]);
 }));
 
 test('the same input gives the same snapshot', () => within(dir => {
@@ -114,15 +115,45 @@ test('LWW: created → progressed (evidence) → reported-done gives reported-do
   assert.equal(a.world, b.world);
 }));
 
-// C4b (R): the latest line is the author's latest intent. When it is invalid, the work has no state or evidence
-// (not an earlier valid line in its place); the earlier lines are held as latest-line-invalid.
-test('LWW: when the last line of a work_id is invalid, neither its state nor its evidence is shown', () => within(dir => {
+// C4b/C4c (R): the latest line is the author's latest intent. When it is invalid, the work's state and evidence are
+// observed with no value (null: D's no-value unknown), never an earlier valid line in its place; as a newer
+// observation it also supersedes an older state in the ledger. The earlier lines are held as latest-line-invalid.
+test('LWW: when the last line of a work_id is invalid, its state and evidence are observed with no value', () => within(dir => {
   writeFileSync(path.join(dir, 'current.jsonl'), line({ kind: 'work.created', work_id: 'a' }) + line({ kind: 'artifact.observed', work_id: 'a', evidence: SHA })
     + line({ kind: 'work.created', work_id: 'ok' }) + line({ kind: 'work.terminal', work_id: 'a', terminal: 'finished' }));
   const { world, held } = snapshot(dir, T1, 'out');
-  assert.deepEqual(claims(world).map(claim => claim.slice(0, 3)), [['work:ok', 'created', 'current:P#L3']]);
+  assert.deepEqual(claims(world).map(claim => claim.slice(0, 3)), [
+    ['work:ok', 'created', 'current:P#L3'], ['work:a', null, 'current:P#L4'], ['evidence:a', null, 'current:P#L4']]);
   assert.deepEqual(held.map(value => [value.reason, value.source.ref]), [
     ['current: latest-line-invalid', 'current:P#L1'], ['current: latest-line-invalid', 'current:P#L2'], ['current: terminal', 'current:P#L4']]);
+}));
+
+// C4c ①: a line that is not JSON names no work_id, so no work_id can be trusted in that file (fail closed): every
+// work_id the file names is observed with no value, at the unreadable line.
+test('an unreadable line makes every work_id of the file observed with no value', () => within(dir => {
+  writeFileSync(path.join(dir, 'current.jsonl'), line({ kind: 'work.created', work_id: 'a' }) + line({ kind: 'work.created', work_id: 'ok' })
+    + '{"kind":"work.terminal","work_id":"a",\n');
+  const { world, held } = snapshot(dir, T1, 'out');
+  assert.deepEqual(claims(world).map(claim => claim.slice(0, 3)), [
+    ['work:a', null, 'current:P#L3'], ['evidence:a', null, 'current:P#L3'], ['work:ok', null, 'current:P#L3'], ['evidence:ok', null, 'current:P#L3']]);
+  assert.deepEqual(held.map(value => [value.reason, value.source.ref]), [
+    ['current: unreadable-line-in-file', 'current:P#L1'], ['current: unreadable-line-in-file', 'current:P#L2'], ['current: invalid-json', 'current:P#L3']]);
+}));
+
+// C4c ② (HQ path): through the ledger, a later read whose last line for a is invalid must end a's earlier state.
+test('ledger: created on the first read, an invalid last line on the second — the World ends with a unknown', () => within(dir => {
+  const read = (at, name) => {
+    execFileSync(process.execPath, collectArgs(dir, at, name, [`P=${path.join(dir, 'current.jsonl')}`]));
+    return readFileSync(path.join(dir, `${name}.g.jsonl`), 'utf8');
+  };
+  writeFileSync(path.join(dir, 'current.jsonl'), line({ kind: 'work.created', work_id: 'a' }));
+  const first = appendEvents([], read(T1, 'one'), T1);
+  appendFileSync(path.join(dir, 'current.jsonl'), line({ kind: 'work.terminal', work_id: 'a', terminal: 'finished' }));
+  const second = appendEvents(first.rows, read(T2, 'two'), T2);
+  assert.ok(second.appended.some(row => row.event.target === 'work:a' && row.event.value === 'UNKNOWN'));
+  const world = contractWorld(deriveAtlas(joinLog('', [ledgerEvents(ledgerText(second.rows))]).log, CONTROL));
+  const seen = world.frames.flatMap(frame => frame.journal).filter(entry => entry.kind === 'observation' && entry.target.id === 'work:a');
+  assert.deepEqual(seen.map(entry => entry.value), ['created', null]);
 }));
 
 test('LWW for evidence: of two artifact.observed lines, the later evidence is the one in the World', () => within(dir => {
