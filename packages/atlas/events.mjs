@@ -216,6 +216,7 @@ export const parseEvents = input => {
     'unsupported events schema/authority/source_mode');
   let last = -Infinity, active = null, ended = false;
   const versions = new Map(), plans = new Map(), revs = new Map(); // revs: purpose id → Map(rev → label)
+  const conflicts = new Map(); // `<plan>@<version>` → reason, once that version was redefined with other content
   const label = (id, rev) => revs.get(id)?.get(rev);
   const setPurpose = (event, at) => {
     const known = revs.get(event.purpose.id) ?? new Map();
@@ -248,7 +249,7 @@ export const parseEvents = input => {
         return [event];
       case 'purpose.ended': current(event.purpose_id, at); ended = true; return [event];
       case 'observation': observation(event, at); return [event];
-      default: plan(event, at); return [event];
+      default: return [plan(event, at)];
     }
   });
   function ideal(event, at) {
@@ -268,13 +269,19 @@ export const parseEvents = input => {
     const previous = plans.get(planId(event)) ?? [];
     const prior = previous.at(-1);
     demand(!prior || Date.parse(event.source.updatedAt) >= Date.parse(prior.source.updatedAt), `${at}: plan body updatedAt goes backwards`);
-    // A body's updatedAt also moves with new comments; the same version must keep the same content.
-    const content = value => canonical({ ...value, recordedAt: null, source: { ...value.source, updatedAt: null } });
-    demand(previous.every(value => value.version !== event.version || content(value) === content(event)),
-      `${at}: plan version ${event.version} redefined`);
-    demand(!prior || prior.source.updatedAt !== event.source.updatedAt || prior.source.digest === event.source.digest,
-      `${at}: same plan body time with another digest`);
+    // The plan as D uses it, without when it was read or the digest of the text it was read from: a body's
+    // updatedAt moves with new comments, and GitHub can rewrite a body (a moved issue's "#28" becomes
+    // "owner/repo#28") without moving updated_at, so one source and one plan can carry two digests.
+    const content = value => canonical({ ...value, recordedAt: null, source: { ...value.source, updatedAt: null, digest: null } });
     plans.set(planId(event), [...previous, event]);
+    // The same version, or the same body time, with other content: not fatal for the whole World. From here on
+    // that plan version is held as a conflict: content UNKNOWN, neither definition used, even if one comes back.
+    const key = `${planId(event)}@${event.version}`;
+    const rivals = previous.filter(value => value.version === event.version || value.source.updatedAt === event.source.updatedAt);
+    if (!conflicts.has(key) && rivals.every(value => content(value) === content(event))) return event;
+    if (!conflicts.has(key)) conflicts.set(key, `conflicting-redefinition: plan version ${event.version} redefined (${
+      [...new Set([...rivals, event].map(value => value.source.digest))].join(' / ')})`);
+    return { ...event, nodes: null, edges: null, unknown: [conflicts.get(key)] };
   }
   demand(events.some(event => event.kind === 'purpose.set'), 'no purpose.set event');
   return { header: first.value, events };
