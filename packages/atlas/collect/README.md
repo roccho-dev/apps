@@ -183,8 +183,9 @@ Worklog sections are not read as plans or journal decisions. The reducer, contra
 Each file is atlas-worklog-v1 lines (the same check as above: kind, fields, work_id, evidence form, terminal,
 author list — fail closed). The author is the argument (required, no default; never a field of the line), the
 time is when the files were read (`--recorded-at` pins it; only current events get it, cold stays dated by its
-commit), and the order is the line position. Provisional (fail closed): two or more lines for one work_id in one
-file are all held (`multiple-lines-for-work-id`) until a way to order them is decided. Any declaration
+commit), and the order is the line position. Last write wins (apps#89 comment 6257137004): for one work_id
+in one author's file, the last line in the file is its state and the last `artifact.observed` its evidence (one
+observation each, no time made up from the position); earlier lines are held as `overwritten`. Any declaration
 with `requires` (`ideal.set`, the legacy `purpose.set`, …) whose predicate targets `work:*` or `evidence:*` is held
 before D in `live.mjs` `joinLog`, the one entry G and `--purpose` share (`worklog-target-in-predicate`, adrs#654). One line →
 `work:<id>` = `created` / `progressed` / `reported-*`; an `artifact.observed` line also gives `evidence:<id>` =
