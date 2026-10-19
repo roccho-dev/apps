@@ -6,8 +6,21 @@ import { PART_KINDS, LABEL_MAX } from "./contract.mjs";
 import { inventoryLimit, inventoryQuestion, readTypedMissing } from "./completion.mjs";
 
 const escaped = value => value.replace(/[.*+?^${}()|[\]\\]/gu, "\\$&");
-const countPattern = "[0-9]+|ひと|ふた|みっ|一|二|三";
-const countOf = value => ({ ひと: 1, ふた: 2, みっ: 3, 一: 1, 二: 2, 三: 3 })[value] ?? Number(value);
+// Read only the quantity token. Names/source spans never pass through this
+// normalization. Consume unsupported numeric words whole, rather than reading
+// a valid prefix (e.g. one out of one hundred) or silently assuming one.
+const countPattern = "[0-9０-９〇零一二三四五六七八九十百千万億兆]+|ひと|ふた|みっ";
+const digits = "一二三四五六七八九";
+const countOf = value => {
+  const number = value.replace(/[０-９]/gu, digit => String.fromCharCode(digit.charCodeAt(0) - 0xfee0));
+  if (/^[0-9]+$/u.test(number)) return Number(number);
+  const counted = ["ひと", "ふた", "みっ"].indexOf(number);
+  if (counted !== -1) return counted + 1;
+  if (number.length === 1 && digits.includes(number)) return digits.indexOf(number) + 1;
+  const tens = /^([一二三四五六七八九])?十([一二三四五六七八九])?$/u.exec(number);
+  return tens ? (tens[1] ? digits.indexOf(tens[1]) + 1 : 1) * 10 + (tens[2] ? digits.indexOf(tens[2]) + 1 : 0) : NaN;
+};
+const numericTail = /^(?:[0-9０-９A-Za-z_+＋\-－/／〇零一二三四五六七八九十百千万億兆]|[.．][0-9０-９一二三四五六七八九])/u;
 export function literalInventory(state) {
   const max = inventoryLimit(state);
   const kinds = new Map(PART_KINDS.map(kind => [kind, kind]));
@@ -48,7 +61,7 @@ export function literalInventory(state) {
     const tail = rest.trimStart();
     if (match[4] === undefined ? /^[×x]/u.test(tail)
       || tail.startsWith("を") && !/^(?:追加|作|置)/u.test(tail.slice(1).trimStart())
-      : /^(?:[0-9A-Za-z_+\-]|\.[0-9])/u.test(rest)) { invalid = true; continue; }
+      : numericTail.test(rest)) { invalid = true; continue; }
     add(label, kinds.get(match[1]), match[4] === undefined ? 1 : countOf(match[4]), start, start + label.length, match[4] !== undefined);
   }
   const after = new RegExp(`((?:${quote}\\s*(?:[、,と]\\s*)?)+)という(?:名前の|(${countPattern})(?:つ|個)の)?(${prefix})(?![A-Za-z0-9_])`, "gu");
@@ -56,7 +69,10 @@ export function literalInventory(state) {
     claimed.push([match.index, match.index + match[0].length]);
     const names = [...match[1].matchAll(/「([^「」\r\n]+)」|"([^"\r\n]+)"/gu)];
     const count = match[2] === undefined ? null : countOf(match[2]);
-    const suffix = new RegExp(`^\\s*を\\s*(${countPattern})(?:個|つ)(だけ|ずつ)?`, "u").exec(state.utterance.slice(match.index + match[0].length));
+    const rest = state.utterance.slice(match.index + match[0].length);
+    const suffix = new RegExp(`^\\s*を\\s*(${countPattern})(?:個|つ)(だけ|ずつ)?`, "u").exec(rest);
+    if (suffix === null ? /^\s*を/u.test(rest) && !/^\s*を\s*(?:追加|作|置)/u.test(rest)
+      : numericTail.test(rest.slice(suffix[0].length))) { invalid = true; continue; }
     const following = suffix === null ? null : countOf(suffix[1]);
     if (names.length > 1 && count !== null && count !== names.length) { invalid = true; continue; }
     if (names.length > 1 && following !== null && suffix[2] !== "ずつ" && following !== names.length

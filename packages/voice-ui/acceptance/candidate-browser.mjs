@@ -48,7 +48,7 @@ const fixtures = [
 ];
 assert.equal(new Set(fixtures.map(item => item.id)).size, fixtures.length);
 let fixture = null, input = null, catalogueHidden = false;
-const api = [], upstream = [], frames = [], controls = [], lifecycle = [], supply = [], images = [];
+const api = [], upstream = [], frames = [], controls = [], lifecycle = [], supply = [], images = [], fixtureResults = [];
 const syntheticAnswer = wire => {
   if (wire.questions.completion) return { completion: "unknown" };
   if (wire.questions.intent) return { intent: "change", labels: fixture.id === "equal-label-quantity" || fixture.existing ? "available" : "missing",
@@ -155,6 +155,9 @@ fs.mkdirSync(output, { recursive: true });
 const failures = [];
 try {
   for (const selected of fixtures) {
+    const failureStart = failures.length;
+    let context = null;
+    try {
     fixture = selected; catalogueHidden = false;
     const records = [{ type: "meta", schema: "semantic-map-state/1", root: "root", title: "candidate browser fixture" },
       { type: "region", id: "root", label: "World", parent: null, kind: "boundary", bounds: [0, 0, 1000, 700], summary: "" },
@@ -166,7 +169,7 @@ try {
       [{ type: "PinRegions", items: [{ regionId: "container", bounds: [0, 0, 2000, 500] },
         ...records.filter(record => record.parent === "container").map(record => ({ regionId: record.id, bounds: record.bounds }))] }], initial.records);
     const accepted = (await protocol.appendDecision(initial.log, pin.decision)).verified;
-    const context = await browser.newContext({ viewport: { width: 1280, height: 720 }, deviceScaleFactor: 1 });
+    context = await browser.newContext({ viewport: { width: 1280, height: 720 }, deviceScaleFactor: 1 });
     const page = await context.newPage(), errors = [];
     page.on("pageerror", error => errors.push(String(error)));
     // No request may leave the completed site, even if the page changes.
@@ -224,12 +227,13 @@ try {
       assert.equal(new Set(prepared.map(part => part.key)).size, prepared.length);
       assert.equal(after.goal.inventory.preparations, fixture.preparations);
       assert.equal(after.goal.inventory.completions, 0);
+      if (fixture.expectedMissing) assert.deepEqual(after.goal.inventory.missing, fixture.expectedMissing);
       for (const part of fixture.bundle.parts.filter(part => prepared.some(item => item.key === part.key))) {
         assert.deepEqual(prepared.find(item => item.key === part.key), part, "retained stock keeps its full identity");
       }
       supply.push({ fixture: fixture.id, status: "PASS", scope: "LITERAL_AND_SYNTHETIC_VERIFIER_ONLY",
         bundle_sha256: hash(JSON.stringify(fixture.bundle)), prepared, preparations: after.goal.inventory.preparations,
-        literal_inspection: after.goal.inventory.coverage.inspection });
+        literal_inspection: after.goal.inventory.coverage.inspection, missing: after.goal.inventory.missing });
     }
     assert.equal(gradeGraph(before.records, after.records, oracle).graph_exact, true);
     const regions = after.records.filter(record => record.type === "region"), added = regions.filter(record => !records.some(old => old.id === record.id));
@@ -387,7 +391,18 @@ try {
     assert.equal(sameLog(after.log, before.log), false, "failed Undo cannot pass");
     assert.equal(sameLog(before.log, applied.stored), false, "stale reload cannot pass");
     lifecycle.push({ fixture: fixture.id, undo: "PASS", apply: "PASS", reload: "PASS", failedUndoControl: "RED", staleReloadControl: "RED" });
-    assert.deepEqual(errors, []); await context.close();
+    assert.deepEqual(errors, []);
+    } catch (error) {
+      failures.push({ fixture: selected.id, error: String(error), stack: error.stack });
+    } finally {
+      if (context) try { await context.close(); }
+      catch (error) { failures.push({ fixture: selected.id, cleanup: String(error) }); }
+      // A later failed dependency must not erase earlier results or prevent
+      // unrelated cases. The whole suite still fails when any case fails.
+      const result = { fixture: selected.id, status: failures.length === failureStart ? "PASS" : "RED" };
+      fixtureResults.push(result);
+      console.log(JSON.stringify({ kind: "voice-ui.candidate-browser.case/1", ...result }));
+    }
   }
   assert.deepEqual(serverErrors, []);
 } finally {
@@ -398,7 +413,7 @@ const receipt = { schema: "voice-ui.candidate-browser/1", sources: manifest.sour
   scope: "KEYLESS_FIXTURE_MECHANICS", live_provider: "NOT_RUN", live_microphone: "NOT_RUN",
   normal_fixture_sha256: hash(normalBytes), normal_fixture_scope: "explicit bundle data; same completed app/Worker/UI; not live semantic accuracy",
   symbol_fixture_sha256: hash(symbolFixtureSvg),
-  viewport: [1280, 720], deviceScaleFactor: 1, api, synthetic_upstream: upstream, frames, controls, lifecycle, supply, images,
+  viewport: [1280, 720], deviceScaleFactor: 1, api, synthetic_upstream: upstream, frames, controls, lifecycle, supply, images, fixtureResults,
   status: failures.length ? "RED" : "PASS", failures };
 fs.writeFileSync(path.join(output, "receipt.json"), JSON.stringify(receipt, null, 2) + "\n");
 assert.deepEqual(failures, [], "painted frame requirements");
