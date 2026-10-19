@@ -8,6 +8,7 @@ import { pathToFileURL } from "node:url";
 import { assertNoSecretInputs, loadAcceptanceArtifact } from "../tests/runtime-acceptance.mjs";
 import { observePaintedGoal, assessPaintedGoal, assessPaintedEdge } from "../tests/painted-goal.mjs";
 import { gradeGraph } from "../tests/semantic-score.mjs";
+import { symbolFixtureSvg, checkPaintedSymbols } from "../tests/part-symbol-browser.mjs";
 
 // Keyless completed-artifact mechanics only. Every upstream response below is
 // synthetic, including the TypeLLM result; no model quality is asserted here.
@@ -46,8 +47,8 @@ const fixtures = [
   ...normalFixtures,
 ];
 assert.equal(new Set(fixtures.map(item => item.id)).size, fixtures.length);
-let fixture = null, input = null;
-const api = [], upstream = [], frames = [], controls = [], lifecycle = [], supply = [];
+let fixture = null, input = null, catalogueHidden = false;
+const api = [], upstream = [], frames = [], controls = [], lifecycle = [], supply = [], images = [];
 const syntheticAnswer = wire => {
   if (wire.questions.completion) return { completion: "unknown" };
   if (wire.questions.intent) return { intent: "change", labels: fixture.id === "equal-label-quantity" || fixture.existing ? "available" : "missing",
@@ -132,7 +133,10 @@ const server = http.createServer(async (req, res) => {
     // protocol, storage or drawing implementation is replaced.
     if (pathname === "/data/bundle.v1.json" && fixture.bundle) {
       res.writeHead(200, { "content-type": "application/json", ...isolation });
-      res.end(JSON.stringify(fixture.bundle)); return;
+      res.end(JSON.stringify(catalogueHidden ? { ...fixture.bundle, parts: [] } : fixture.bundle)); return;
+    }
+    if (pathname === "/assets/symbol-fixture.svg" && fixture.symbols) {
+      res.writeHead(200, { "content-type": "image/svg+xml", ...isolation }); res.end(symbolFixtureSvg); return;
     }
     if (pathname === "/hayamimi/sherpa/data.parts.json") { res.writeHead(204, isolation); res.end(); return; }
     const file = path.resolve(site, pathname === "/" ? "index.html" : decodeURIComponent(pathname.slice(1)));
@@ -151,7 +155,7 @@ fs.mkdirSync(output, { recursive: true });
 const failures = [];
 try {
   for (const selected of fixtures) {
-    fixture = selected;
+    fixture = selected; catalogueHidden = false;
     const records = [{ type: "meta", schema: "semantic-map-state/1", root: "root", title: "candidate browser fixture" },
       { type: "region", id: "root", label: "World", parent: null, kind: "boundary", bounds: [0, 0, 1000, 700], summary: "" },
       { type: "region", id: "container", label: "OCI", parent: "root", kind: "group", bounds: [0, 0, 2000, 500], summary: "" },
@@ -202,6 +206,8 @@ try {
         frames.push({ fixture: fixture.id, stage, camera: "relation", observation, assessment });
         if (assessment.status !== "PASS") failures.push({ fixture: fixture.id, stage, camera: "relation", assessment });
       }
+      if (fixture.symbols) images.push({ fixture: fixture.id, ...await checkPaintedSymbols({ page, records: state.records,
+        expected: stage === "undo" ? [] : fixture.symbols, origin, stage }) });
       assert.deepEqual((await snapshot()).records, state.records, "restored camera preserves exact records");
     };
     const draw = async () => { await page.locator("#text").fill(fixture.text); await page.locator("#goal").click(); await settle(); return snapshot(); };
@@ -246,6 +252,8 @@ try {
       frames.push({ fixture: fixture.id, camera: camera.name, observation, assessment });
       if (assessment.status !== "PASS") failures.push({ fixture: fixture.id, camera: camera.name, assessment });
       assert.deepEqual((await snapshot()).records, after.records, "camera preserves records");
+      if (fixture.symbols) images.push({ fixture: fixture.id, ...await checkPaintedSymbols({ page, records: after.records,
+        expected: fixture.symbols, origin, stage: "after" }) });
       if (fixture.bundle) await page.screenshot({ path: path.join(output, fixture.id + "-" + camera.name + ".png") });
       if (fixture.id === "equal-label-quantity") controlArgs = args;
     }
@@ -366,6 +374,7 @@ try {
     await paintRestored("redo", redone);
     await page.locator("#apply").click(); await settle();
     const applied = await snapshot(); assert.equal(applied.stored, redone.log);
+    catalogueHidden = !!fixture.symbols;
     await page.reload(); await settle(); const reloaded = await snapshot();
     assert.equal(reloaded.log, applied.stored);
     assert.deepEqual(reloaded.records, redone.records); await paintRestored("reload", reloaded);
@@ -384,7 +393,8 @@ assert.ok(upstream.every(call => call.provider === "jev"), "ordinary literal UI 
 const receipt = { schema: "voice-ui.candidate-browser/1", sources: manifest.sources, manifest_sha256: hash(manifestBytes),
   scope: "KEYLESS_FIXTURE_MECHANICS", live_provider: "NOT_RUN", live_microphone: "NOT_RUN",
   normal_fixture_sha256: hash(normalBytes), normal_fixture_scope: "explicit bundle data; same completed app/Worker/UI; not live semantic accuracy",
-  viewport: [1280, 720], deviceScaleFactor: 1, api, synthetic_upstream: upstream, frames, controls, lifecycle, supply,
+  symbol_fixture_sha256: hash(symbolFixtureSvg),
+  viewport: [1280, 720], deviceScaleFactor: 1, api, synthetic_upstream: upstream, frames, controls, lifecycle, supply, images,
   status: failures.length ? "RED" : "PASS", failures };
 fs.writeFileSync(path.join(output, "receipt.json"), JSON.stringify(receipt, null, 2) + "\n");
 assert.deepEqual(failures, [], "painted frame requirements");

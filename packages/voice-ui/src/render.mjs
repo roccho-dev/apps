@@ -1,3 +1,4 @@
+import { partResourceView } from "./part-description.mjs";
 import { ACTION_COMPOSE, DRAFT_MAX } from "./contract.mjs";
 import { ACTION_NEW } from "./turn.mjs";
 
@@ -161,6 +162,7 @@ export async function drawGraph({ graph, frame, mount, protocol, renderProjectio
   }
   const envelope = await protocol.createEnvelope(graph.log, null, {
     pattern: protocol.GRAPH_PATTERN,
+    ...partResourceView(graph.records),
     ...(frame === null ? {} : { frame }),
   });
   if (document.defaultView.getComputedStyle(mount).position === "static") mount.style.position = "relative";

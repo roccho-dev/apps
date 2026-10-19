@@ -1,3 +1,4 @@
+import { partSummary } from "./part-description.mjs";
 import {
   ACTION_ADD_EDGE,
   ACTION_ADD_PART,
@@ -479,7 +480,7 @@ function operationsFor(read, context) {
       parentId: rootOf(records).id,
       label,
       kind: part.kind,
-      summary: "",
+      summary: partSummary(part),
       bounds: [...bounds],
     }], [{ change: "added", kind: "region", id: regionId, label }]);
   }
@@ -603,9 +604,9 @@ function additionSlot(working, parent, part, reserved, protocol, grows = false, 
   if (raw === null) return null;
   const regionId = nextPartId(working, reserved);
   const operation = { type: "AddRegion", regionId, parentId: parent.id,
-    label: part.label, kind: part.kind, summary: "", bounds: [...raw] };
+    label: part.label, kind: part.kind, summary: partSummary(part), bounds: [...raw] };
   const region = { type: "region", id: regionId, parent: parent.id, label: operation.label,
-    kind: part.kind, summary: "", bounds: [...raw] };
+    kind: part.kind, summary: operation.summary, bounds: [...raw] };
   const records = [...working.records.filter(record => record.type !== "layout" && record.type !== "relation"), region,
     ...working.records.filter(record => record.type === "relation" || record.type === "layout")];
   const view = { pattern: protocol.GRAPH_PATTERN };
