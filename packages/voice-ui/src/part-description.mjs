@@ -21,7 +21,7 @@ export function partSummary(part) {
   return result;
 }
 
-export function partResourceView(records) {
+export function partResourceView(records = []) {
   const resources = [], placements = [], bySource = new Map();
   for (const region of records.filter(record => record.type === 'region')) {
     let value;

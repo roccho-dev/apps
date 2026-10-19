@@ -76,7 +76,7 @@ test('supplied symbol and instance identity survive the actual decision log and 
     schema: 'typed-resource-composition/1',
     resources: [{ id: 'part-image-1', contract: 'image/1', source: { type: 'url', href: symbol.href }, provenanceRef: symbol.provenanceRef }],
     placements: [{ id: 'part-placement-1', resourceRef: 'part-image-1', targetRef: 'node:' + region.id,
-      slot: 'content', view: { alt: symbol.alt, fit: 'contain' } }],
+      slot: 'content', view: { alt: symbol.alt, fit: 'contain', opacity: 1 } }],
   });
   assert.equal(result.completion.status, 'unknown', 'projection facts do not require a model complete answer');
 });

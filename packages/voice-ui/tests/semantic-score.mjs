@@ -33,15 +33,21 @@ export function gradeGraph(initialRecords, finalRecords, oracle) {
     return row && regions.filter(r => r.label === row.label).length === 1
       ? 'added:' + row.label : 'UNRESOLVED:' + id;
   };
-  const actualRegions = regions.map(r => ({ label: r.label, kind: r.kind, parent: ref(r.parent) }));
+  // Only explicitly declared descriptions enter this comparison. The legacy
+  // oracle still requires empty summaries and keeps its original output shape.
+  const described = oracle.expected_added_regions.some(r => Object.hasOwn(r, 'summary'));
+  const expectedRegions = described ? oracle.expected_added_regions.map(r =>
+    Object.hasOwn(r, 'summary') ? r : { ...r, summary: '' }) : oracle.expected_added_regions;
+  const actualRegions = regions.map(r => ({ label: r.label, kind: r.kind, parent: ref(r.parent),
+    ...(described ? { summary: r.summary } : {}) }));
   const actualEdges = edges.map(r => ({ from: ref(r.from), to: ref(r.to), kind: r.kind, label: r.label }));
-  const cleanRegions = regions.every(r => r.summary === ''
+  const cleanRegions = regions.every(r => (described ? typeof r.summary === 'string' : r.summary === '')
     && exactKeys(r, ['type', 'id', 'parent', 'label', 'kind', 'summary']));
   const cleanEdges = edges.every(r => exactKeys(r, ['type', 'id', 'from', 'to', 'kind', 'label']));
   const noOtherNewSemantics = added.length === regions.length + edges.length;
   return {
     graph_exact: preserved && noOtherNewSemantics && cleanRegions && cleanEdges
-      && equalBag(actualRegions, oracle.expected_added_regions) && equalBag(actualEdges, oracle.expected_added_edges),
+      && equalBag(actualRegions, expectedRegions) && equalBag(actualEdges, oracle.expected_added_edges),
     unique_record_keys: uniqueRecordKeys,
     existing_semantics_preserved: preserved,
     semantic_unchanged: uniqueRecordKeys && equalBag(initial, final),

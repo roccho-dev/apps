@@ -181,9 +181,13 @@ try {
     }, key);
     await page.goto(origin); await settle();
     const before = await snapshot(); assert.equal(before.log, accepted.log);
+    for (const node of fixture.nodes) if (node.descriptions) {
+      assert.equal(node.descriptions.length, node.quantity, "one fixed description per expected instance");
+    }
     const oracle = {
-      expected_added_regions: fixture.nodes.flatMap(node => Array.from({ length: node.quantity }, () => ({
-        label: node.label, kind: node.kind, parent: node.parent === "OCI" ? "fixture:container" : "added:" + node.parent }))),
+      expected_added_regions: fixture.nodes.flatMap(node => Array.from({ length: node.quantity }, (_, index) => ({
+        label: node.label, kind: node.kind, parent: node.parent === "OCI" ? "fixture:container" : "added:" + node.parent,
+        ...(node.descriptions ? { summary: JSON.stringify(node.descriptions[index]) } : {}) }))),
       expected_added_edges: fixture.flow ? [{ from: fixture.existing ? "fixture:source" : "added:" + fixture.flow[0],
         to: fixture.existing ? "fixture:target" : "added:" + fixture.flow[1], kind: "flow", label: "" }] : [],
     };
