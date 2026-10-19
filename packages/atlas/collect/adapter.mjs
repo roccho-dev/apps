@@ -134,7 +134,8 @@ function cold({ repo, commit, path, committedAt, fetchedAt, sha256, text }) {
     const body = typeof payload.html_url === 'string' && !payload.html_url.includes('#');
     threads.get(key).documents.push({ commentId: body ? null : payload.id, updatedAt, author: payload.author.login,
       // The same digest in G's `sha256:<hex>` notation (what D's source digest requires).
-      text: payload.body, source: { ref: key, sha256: `sha256:${content}`, capture: ref }, admission: row.status ?? null });
+      text: payload.body, source: { ref: key, sha256: `sha256:${content}`, capture: ref, ...(typeof row.status === 'string' ? { admission: row.status } : {}) },
+      admission: row.status ?? null });
   }
   return [...threads.values(), ...held];
 }

@@ -85,7 +85,9 @@ export const matchedUntil = (frame, phase) => phase !== 'matched' ? null
 export const journalOf = (frame, after = -Infinity) => frame.journal.filter(event => Date.parse(event.recordedAt) > after).map(event => {
   if (event.kind === 'observation') return { kind: event.kind, recordedAt: event.recordedAt, observedAt: event.observedAt, actor: null,
     source: { ref: event.source, commentId: null, sha256: null }, target: { ...event.target }, value: event.value };
-  const source = { ref: event.source.ref, commentId: event.source.commentId == null ? null : number(event.source.commentId), sha256: event.source.digest };
+  // admission (adrs#647 comment 6265881722): shown only when the source has one; never part of a judgment.
+  const source = { ref: event.source.ref, commentId: event.source.commentId == null ? null : number(event.source.commentId), sha256: event.source.digest,
+    ...(event.source.admission ? { admission: event.source.admission } : {}) };
   const detail = {
     'purpose.set': () => ({ purpose_id: event.purpose.id, purpose_label: event.purpose.label, purpose_rev: event.rev }),
     'ideal.drafting': () => ({ purpose_id: event.purpose_id, ideal_version: event.version }),

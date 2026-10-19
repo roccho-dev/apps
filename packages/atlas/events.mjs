@@ -87,7 +87,9 @@ const decision = (event, required, optional, at) => {
   keys(event, ['kind', 'recordedAt', 'source', ...required], ['actor', 'declaredAt', ...optional], at);
   // declaredAt (v10): the decision's own time when it entered the ledger later (recordedAt is then the ledgerAt).
   if ('declaredAt' in event) demand(time(event.declaredAt, `${at}.declaredAt`) <= Date.parse(event.recordedAt), `${at}: declaredAt is after recordedAt`);
-  keys(event.source, ['ref', 'digest'], ['commentId'], `${at}.source`);
+  // admission (adrs#647, A3): the source's admission, carried for display only; no judgment reads it.
+  keys(event.source, ['ref', 'digest'], ['commentId', 'admission'], `${at}.source`);
+  if ('admission' in event.source) demand(text(event.source.admission), `${at}.source: admission must be text`);
   demand(token(event.source.ref) && sha(event.source.digest) && ((event.source.commentId ?? null) === null || token(event.source.commentId)),
     `${at}: source ref, sha256 digest (and commentId) required`);
   if ('actor' in event) demand(text(event.actor), `${at}: actor must be text`);
