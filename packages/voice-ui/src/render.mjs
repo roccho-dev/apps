@@ -338,6 +338,9 @@ export function renderContext(list, skippedLine, { recent, skipped }) {
 // their ancestry; same-parent names keep their exact ID. This is view-only:
 // choices, storage and judgment still use the original record IDs.
 export function cameraLabels(records) {
+  const targets = records.filter(record => ["region", "relation"].includes(record.type));
+  if (targets.some(record => typeof record.id !== "string" || !record.id.length)
+    || new Set(targets.map(record => record.id)).size !== targets.length) throw new TypeError("camera IDs must be distinct");
   const regions = records.filter(record => record.type === "region");
   const byId = new Map(regions.map(record => [record.id, record]));
   const paths = new Map(regions.map(record => {
@@ -360,17 +363,26 @@ export function cameraLabels(records) {
   const unique = entries => {
     const counts = new Map();
     for (const [, text] of entries) counts.set(text, (counts.get(text) ?? 0) + 1);
-    for (const [id, text] of entries) if (counts.get(text) > 1) labels.set(id, `${text} [${id}]`);
+    // Reserve real captions before generating any suffix. A real name may
+    // look exactly like a generated caption, including its fallback suffix.
+    const used = new Set(["全体の概要", ...entries.map(([, text]) => text)]);
+    for (const [id, text] of [...entries].sort(([a], [b]) => a < b ? -1 : a > b ? 1 : 0)) {
+      if (counts.get(text) < 2 && text !== "全体の概要") continue;
+      const stem = `${text} [${id}]`;
+      let candidate = stem, suffix = 1;
+      while (used.has(candidate)) candidate = `${stem} (${suffix++})`;
+      labels.set(id, candidate); used.add(candidate);
+    }
   };
   unique([...labels]);
-  const arrows = [];
   for (const edge of records.filter(record => record.type === "relation")) {
     if (!labels.has(edge.from) || !labels.has(edge.to)) continue;
     const meaning = edge.kind !== "flow" || edge.label !== "" ? ` (${edge.kind}${edge.label ? ": " + edge.label : ""})` : "";
     const name = `矢印: ${labels.get(edge.from)} → ${labels.get(edge.to)}${meaning}`;
-    labels.set(edge.id, name); arrows.push([edge.id, name]);
+    labels.set(edge.id, name);
   }
-  unique(arrows);
+  // Parts and arrows share one actual menu, not separate naming domains.
+  unique([...labels]);
   return labels;
 }
 

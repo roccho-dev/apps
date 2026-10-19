@@ -43,7 +43,7 @@ for(const field of ['head','log','stored','records','view'])test('capture refuse
   await assert.rejects(()=>capture.capture({page:s.page,snapshot:s.snapshot,fixture:'fixed',stage:'after'}));assert.equal(capture.items.length,0);
  } finally {fs.rmSync(s.output,{recursive:true,force:true});}
 });
-const observed = () => ({viewport:[0,0,100,100],shapes:[{id:'a',name:{unmet:null,box:[10,10,40,20],clips:[[0,0,100,100]]}}]});
+const observed = () => ({viewport:[0,0,100,100],shapes:[{id:'a',name:{unmet:null,box:[10,10,40,20],svg:[0,0,100,100],clips:[[0,0,100,100]]}}]});
 test('one-screen label check requires actual visible boxes, not just records',()=>assert.equal(overviewLabels(observed(),['a']).status,'PASS'));
 for(const [name,mutate] of [
  ['missing',x=>x.shapes=[]],['hidden',x=>x.shapes[0].name.unmet='hidden'],['offscreen',x=>x.shapes[0].name.box=[200,10,40,20]],

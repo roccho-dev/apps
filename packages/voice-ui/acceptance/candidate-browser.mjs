@@ -10,6 +10,7 @@ import { observePaintedGoal, assessPaintedGoal, assessPaintedEdge } from "../tes
 import { gradeGraph, canonical } from "../tests/semantic-score.mjs";
 import { auditReducedView } from "../tests/reduced-view-audit.mjs";
 import { createCameraEvidence, overviewLabels } from "../tests/camera-evidence.mjs";
+import { checkCollisionCameras } from "../tests/camera-collision-browser.mjs";
 import { auditReferenceDiagram, referenceChoice } from "../tests/reference-diagram-audit.mjs";
 import { checkStoredEdgeEdits, checkStoredHistoryInverse } from "../tests/edit-browser-check.mjs";
 import { symbolFixtureSvg, checkPaintedSymbols } from "../tests/part-symbol-browser.mjs";
@@ -175,7 +176,7 @@ const browser = await chromium.launch({ headless: true, channel: "chromium" });
 fs.mkdirSync(output, { recursive: true });
 const failures = [];
 const cameraEvidence = createCameraEvidence({ output, source: manifest.sources.apps });
-const overviewReadability = [];
+const overviewReadability = [], cameraSubjectChecks = [];
 try {
   for (const selected of fixtures) {
     const failureStart = failures.length;
@@ -261,7 +262,7 @@ try {
       if (fixture.reference) {
         await page.locator("#camera-part").selectOption(""); await settle();
         const expected = state.records.filter(record => record.type === "region" && record.parent !== null);
-        const observed = await page.evaluate(observePaintedGoal, { container: state.records.find(record => record.id === "aws"), records: expected, identity: true });
+        const observed = await page.evaluate(observePaintedGoal, { container: state.records.find(record => record.id === "aws") ?? state.records.find(record => record.id === "container"), records: expected, identity: true });
         overviewReadability.push({ fixture: fixture.id, stage, ...overviewLabels(observed, expected.map(record => record.id)) });
         await saveCamera(stage + "-overview", observed);
       }
@@ -369,7 +370,8 @@ try {
     }
     if (fixture.reference) { await page.locator("#camera-part").selectOption(""); await settle(); }
     if (fixture.edit || fixture.reference) await paintRestored("after", after);
-    if (fixture.reference) {
+    if (fixture.cameraDistinct) cameraSubjectChecks.push({fixture:fixture.id,...await checkCollisionCameras({page,snapshot,settle,saveCamera,stage:"after"})});
+    if (fixture.reference && !fixture.cameraDistinct) {
       const names = await page.locator("#camera-part option").evaluateAll(options => options.map(o => [o.value, o.textContent]));
       const byId = new Map(names);
       for (const added of fixture.reference.addedNodes) {
@@ -519,6 +521,7 @@ try {
     await page.reload(); await settle(); const reloaded = await snapshot();
     assert.equal(reloaded.log, applied.stored);
     assert.deepEqual(reloaded.records, redone.records); await reduceReadback("reload", reloaded); await paintRestored("reload", reloaded);
+    if (fixture.cameraDistinct) cameraSubjectChecks.push({fixture:fixture.id,...await checkCollisionCameras({page,snapshot,settle,saveCamera,stage:"reload"})});
     await saveCamera("reload-final");
     const sameLog = (a, b) => typeof a === "string" && a === b;
     assert.equal(sameLog(after.log, before.log), false, "failed Undo cannot pass");
@@ -563,7 +566,7 @@ const receipt = { schema: "voice-ui.candidate-browser/1", sources: manifest.sour
   reference_scope: "two equal task names in distinct subnet parents and branched traffic; not full sample/Atlas or live model accuracy",
   normal_fixture_sha256: hash(normalBytes), normal_fixture_scope: "explicit bundle data; same completed app/Worker/UI; not live semantic accuracy",
   symbol_fixture_sha256: hash(symbolFixtureSvg),
-  cameraShots: cameraEvidence.items, overviewReadability,
+  cameraShots: cameraEvidence.items, overviewReadability, cameraSubjectChecks,
   viewport: [1280, 720], deviceScaleFactor: 1, api, synthetic_upstream: upstream, frames, controls, lifecycle, supply, images, fixtureResults, reductions,
   status: failures.length ? "RED" : "PASS", failures };
 fs.writeFileSync(path.join(output, "receipt.json"), JSON.stringify(receipt, null, 2) + "\n");

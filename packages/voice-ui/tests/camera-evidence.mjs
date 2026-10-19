@@ -51,7 +51,7 @@ export function overviewLabels(observation, expectedIds) {
   for(const id of expectedIds) {
     const matches=(observation.shapes??[]).filter(shape=>shape.id===id);
     const name=matches.length===1?matches[0].name:null;
-    (name?.unmet===null && inside(name.box,observation.viewport)
+    (name?.unmet===null && inside(name.box,name.svg) && inside(name.box,observation.viewport)
       && Array.isArray(name.clips) && name.clips.every(clip=>inside(name.box,clip))?readable:unreadable).push(id);
   }
   return {status:unreadable.length?'UNMET':'PASS',scope:'DECLARED_LABELS_IN_ONE_OVERVIEW_ONLY',expected:expectedIds.length,readable,unreadable};
