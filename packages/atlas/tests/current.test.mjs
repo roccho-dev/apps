@@ -114,6 +114,17 @@ test('LWW: created → progressed (evidence) → reported-done gives reported-do
   assert.equal(a.world, b.world);
 }));
 
+// C4b (R): the latest line is the author's latest intent. When it is invalid, the work has no state or evidence
+// (not an earlier valid line in its place); the earlier lines are held as latest-line-invalid.
+test('LWW: when the last line of a work_id is invalid, neither its state nor its evidence is shown', () => within(dir => {
+  writeFileSync(path.join(dir, 'current.jsonl'), line({ kind: 'work.created', work_id: 'a' }) + line({ kind: 'artifact.observed', work_id: 'a', evidence: SHA })
+    + line({ kind: 'work.created', work_id: 'ok' }) + line({ kind: 'work.terminal', work_id: 'a', terminal: 'finished' }));
+  const { world, held } = snapshot(dir, T1, 'out');
+  assert.deepEqual(claims(world).map(claim => claim.slice(0, 3)), [['work:ok', 'created', 'current:P#L3']]);
+  assert.deepEqual(held.map(value => [value.reason, value.source.ref]), [
+    ['current: latest-line-invalid', 'current:P#L1'], ['current: latest-line-invalid', 'current:P#L2'], ['current: terminal', 'current:P#L4']]);
+}));
+
 test('LWW for evidence: of two artifact.observed lines, the later evidence is the one in the World', () => within(dir => {
   writeFileSync(path.join(dir, 'current.jsonl'), line({ kind: 'artifact.observed', work_id: 'c2', evidence: 'roccho-dev/apps#119' })
     + line({ kind: 'artifact.observed', work_id: 'c2', evidence: SHA }));
