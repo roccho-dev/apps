@@ -3,7 +3,7 @@ import { runGoal } from "./goal.mjs";
 
 const INVENTORY_KIND = "voice-ui.goal.inventory.v1";
 const EXTENDED_INVENTORY_KIND = "voice-ui.goal.inventory.v2";
-export const REQUIRED_MAX = 16;
+const REQUIRED_MAX = 16;
 export const inventoryLimit = state => state.maxRequired ?? 3;
 const extendedInventory = state => Object.hasOwn(state, "maxRequired");
 const validCapacity = value => Number.isSafeInteger(value) && value >= 1 && value <= REQUIRED_MAX;
