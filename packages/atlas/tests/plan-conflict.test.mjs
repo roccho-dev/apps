@@ -56,8 +56,10 @@ test('HQ form: the same comment and time, the same plan, another digest — the 
   const result = deriveAtlas(joinLog('', [ledgerEvents(LEDGER)]).log, '{"schema":"atlas.control-norms/1","authority":false}\n');
   assert.ok(contractWorld(result).frames.length > 0);
   const plan = result.plans.frames.at(-1).plans.find(value => value.plan === PLAN);
-  assert.equal(plan.nodes.length, rowsOf[1].nodes.length);
-  assert.deepEqual(plan.unknown ?? [], []);
+  // v3 carries no graph G could read (G gives UNKNOWN): the plan keeps G's own reasons, not a conflict.
+  assert.deepEqual([rowsOf[1].nodes, plan.nodes], ['UNKNOWN', null]);
+  assert.deepEqual(plan.unknown, rowsOf[1].unknown);
+  assert.ok(!plan.unknown.some(reason => reason.startsWith('conflicting-redefinition')));
   // The provenance is the latest read: its digest.
   assert.equal(plan.source.digest, rowsOf[1].source.sha256);
 });
