@@ -3,12 +3,13 @@
 // stock label, are transcribed. Unsupported paraphrases remain unsupported.
 // No fixture names, oracle, model, inferred parent/edge or persistent dictionary.
 import { PART_KINDS, LABEL_MAX } from "./contract.mjs";
-import { inventoryQuestion, readTypedMissing } from "./completion.mjs";
+import { inventoryLimit, inventoryQuestion, readTypedMissing } from "./completion.mjs";
 
 const escaped = value => value.replace(/[.*+?^${}()|[\]\\]/gu, "\\$&");
 const countPattern = "[0-9]+|ひと|ふた|みっ|一|二|三";
 const countOf = value => ({ ひと: 1, ふた: 2, みっ: 3, 一: 1, 二: 2, 三: 3 })[value] ?? Number(value);
 export function literalInventory(state) {
+  const max = inventoryLimit(state);
   const kinds = new Map(PART_KINDS.map(kind => [kind, kind]));
   for (const part of state.parts) kinds.set(part.label, part.kind);
   const prefix = [...kinds.keys()].sort((a, b) => b.length - a.length).map(escaped).join("|");
@@ -17,7 +18,7 @@ export function literalInventory(state) {
   const rows = new Map(), spans = [], seen = new Set(), claimed = [];
   let invalid = false;
   const add = (label, kind, quantity, start, end, counted) => {
-    if (!label.trim() || label.length > LABEL_MAX || !Number.isSafeInteger(quantity) || quantity < 1 || quantity > 3)
+    if (!label.trim() || label.length > LABEL_MAX || !Number.isSafeInteger(quantity) || quantity < 1 || quantity > max)
       { invalid = true; return; }
     const id = JSON.stringify([start, end, label]);
     if (seen.has(id)) return;
@@ -69,11 +70,11 @@ export function literalInventory(state) {
     const capacity = state.parts.filter(p => p.label === row.label && p.kind === row.kind).length;
     return row.quantity > capacity ? [{ ...row, quantity: row.quantity - capacity }] : [];
   });
-  const slots = Object.fromEntries([1, 2, 3].map((n, i) => ["missing" + n,
+  const slots = Object.fromEntries(Array.from({ length: max }, (_, i) => i + 1).map((n, i) => ["missing" + n,
     missingRows[i] ? { ...missingRows[i], quantity: String(missingRows[i].quantity) }
       : { label: "", kind: "none", quantity: "0" }]));
-  const missing = missingRows.length <= 3 ? readTypedMissing(slots) : null;
-  return { valid: missing !== null && [...rows.values()].reduce((n, row) => n + row.quantity, 0) <= 3,
+  const missing = missingRows.length <= max ? readTypedMissing(slots, { max }) : null;
+  return { valid: missing !== null && [...rows.values()].reduce((n, row) => n + row.quantity, 0) <= max,
     recognized: spans.length > 0, required: [...rows.values()], missing: missing ?? [], spans,
     status: missing === null || !spans.length ? "unsupported-syntax" : "transcribed" };
 }
@@ -98,4 +99,3 @@ export function literalQuestion(state, extracted) {
       incomplete: "At least one requested new part is unspecified, omitted, extra, mismatched or not fully represented in the literal required multiset." },
   } } };
 }
-

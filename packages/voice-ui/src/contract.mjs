@@ -78,6 +78,17 @@ export const DIRECT_GOAL_OFFER_MAX = 32;
 export const PURPOSE_MAX = 300;
 export const KEY_PATTERN = /^[a-z][a-z0-9-]{0,63}$/u;
 
+// Supplied display data, never a generated URL or a semantic identity verdict.
+// Keep it local to the app's explicit asset namespace; the UI validates image/1 again.
+export const isPartSymbol = value => value !== null && typeof value === "object" && !Array.isArray(value)
+  && Object.keys(value).length === 3 && ["href", "alt", "provenanceRef"].every(k => Object.hasOwn(value, k))
+  && typeof value.href === "string" && value.href.length <= 512
+  && /^\/assets\/[A-Za-z0-9_./-]+\.(svg|png|jpg|jpeg|webp)$/u.test(value.href) && !value.href.includes("..")
+  && typeof value.alt === "string" && value.alt.trim().length > 0 && value.alt.length <= LABEL_MAX && !/[\u0000-\u001f\u007f]/u.test(value.alt)
+  && typeof value.provenanceRef === "string" && value.provenanceRef.length <= 160
+  && /^[A-Za-z0-9][A-Za-z0-9._:@/-]*$/u.test(value.provenanceRef);
+
+
 const TEXT_MAX = 8000;
 const GRAPH_MAX = 64;
 const ID_MAX = 240;

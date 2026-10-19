@@ -1,4 +1,4 @@
-import { DIRECT_GOAL_OFFER_MAX, KEY_PATTERN, LABEL_MAX, NONE, OFFER_MAX, PART_KINDS, PURPOSE_MAX } from "./contract.mjs";
+import { DIRECT_GOAL_OFFER_MAX, isPartSymbol, KEY_PATTERN, LABEL_MAX, NONE, OFFER_MAX, PART_KINDS, PURPOSE_MAX } from "./contract.mjs";
 
 // The DataBundle is the read-only authority for product words: which parts a
 // person may ask for, which whole diagrams, what each is for and what it is
@@ -20,12 +20,13 @@ const text = (value, max) => typeof value === "string" && value.trim().length > 
 const key = value => typeof value === "string" && KEY_PATTERN.test(value) && value !== NONE;
 const unique = values => new Set(values).size === values.length;
 
-const validPart = part =>
-  exactObject(part, ["key", "purpose", "label", "kind"])
+const validPart = (part, extended = false) =>
+  exactObject(part, ["key", "purpose", "label", "kind", ...(extended && Object.hasOwn(part ?? {}, "symbol") ? ["symbol"] : [])])
   && key(part.key)
   && text(part.purpose, PURPOSE_MAX)
   && text(part.label, LABEL_MAX)
-  && PART_KINDS.includes(part.kind);
+  && PART_KINDS.includes(part.kind)
+  && (!Object.hasOwn(part, "symbol") || extended && isPartSymbol(part.symbol));
 
 const validDiagram = diagram => {
   if (!exactObject(diagram, ["key", "purpose", "label", "lanes", "steps", "links"])) return false;
@@ -53,8 +54,8 @@ const deepFreeze = value => {
   return value;
 };
 
-const section = (value, valid, max = OFFER_MAX) =>
-  Array.isArray(value) && value.length >= 1 && value.length <= max && value.every(valid)
+const section = (value, valid, max = OFFER_MAX, min = 1) =>
+  Array.isArray(value) && value.length >= min && value.length <= max && value.every(valid)
   && unique(value.map(entry => entry.key))
     ? deepFreeze(structuredClone(value))
     : null;
@@ -69,7 +70,8 @@ export function readBundle(value) {
   return Object.freeze({
     version: value.version,
     ...(value.schema === "voice-ui.bundle/2" ? { goalSelection: "delta" } : {}),
-    parts: section(value.parts, validPart, value.schema === "voice-ui.bundle/2" ? DIRECT_GOAL_OFFER_MAX : OFFER_MAX),
+    parts: section(value.parts, part => validPart(part, value.schema === "voice-ui.bundle/2"),
+      value.schema === "voice-ui.bundle/2" ? DIRECT_GOAL_OFFER_MAX : OFFER_MAX, value.schema === "voice-ui.bundle/2" ? 0 : 1),
     diagrams: section(value.diagrams, validDiagram),
     ...(Object.hasOwn(value, "relations") ? { relations: Array.isArray(value.relations)
       && value.relations.length >= 1 && value.relations.length <= OFFER_MAX
