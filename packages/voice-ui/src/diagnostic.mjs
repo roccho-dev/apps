@@ -1,11 +1,11 @@
 export const VOICE_UI_FAILURE_CODE = "voice-ui.operation-failed";
 export const EXPECTED_PROVIDER = Object.freeze({
   repository: "roccho-org/ops",
-  revision: "32cd4c641fdbc33bfe4dd088c853037f557f8fac",
-  tree: "32b2952c04bbdb523361d66e03baf83909d09197",
+  revision: "ccefaf70f327f1b0c7d998cb67acca6cc915e622",
+  tree: "48b3d4d38b8e8acae52df59f74b0777813a1f00f",
   contractBlob: "8df122c2e3205328a0f922c3397e7246ae1e0e16",
   coreBlob: "c4c9c1f2c301418ac4d5953ac35001a4e51032f2",
-  browserAdapterBlob: "bc938f32d5334536fcf1ac5df6fd3918ec4bde53",
+  browserAdapterBlob: "f55fac8be29a93f3b19f29d56472654dc945c06a",
 });
 
 const ACTIONS = Object.freeze({
@@ -21,7 +21,7 @@ const boundedToken = (value, fallback) => {
   return /^[a-z][a-z0-9_-]{0,63}$/u.test(token) ? token : fallback;
 };
 
-export function diagnosticForVoiceUiFailure({ phase = "operation", reason = "failed" } = {}) {
+function diagnosticForVoiceUiFailure({ phase = "operation", reason = "failed" } = {}) {
   return {
     schema: "diagnostic/1",
     code: VOICE_UI_FAILURE_CODE,
@@ -34,7 +34,7 @@ export function diagnosticForVoiceUiFailure({ phase = "operation", reason = "fai
   };
 }
 
-export function sameProviderIdentity(actual, expected = EXPECTED_PROVIDER) {
+function sameProviderIdentity(actual, expected = EXPECTED_PROVIDER) {
   return actual !== null
     && typeof actual === "object"
     && Object.entries(expected).every(([key, value]) => actual[key] === value);
