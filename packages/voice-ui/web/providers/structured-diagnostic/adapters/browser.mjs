@@ -1,4 +1,5 @@
 import {
+  DiagnosticContractError,
   canonicalizeDiagnosticJsonl,
   encodeDiagnostic,
   parseDiagnosticLine,
@@ -6,10 +7,7 @@ import {
 } from "../lib/diagnostic.mjs";
 
 function failPort(code, path, message) {
-  const error = new TypeError(message);
-  error.code = code;
-  error.path = path;
-  throw error;
+  throw DiagnosticContractError(code, path, message);
 }
 
 export function createBrowserDiagnosticPort({ contract, write }) {
