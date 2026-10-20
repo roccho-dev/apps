@@ -58,16 +58,16 @@ async function created(input, expected) {
 function domPort() {
   const document = { createElement: tag => element(tag), createTextNode: text => ({ textContent: text }) };
   function element(tag) {
-    return { tag, ownerDocument: document, dataset: {}, style: {}, children: [], disabled: false, textContent: '',
-      append(...items) { this.children.push(...items); },
-      replaceChildren(...items) { this.children = items; },
-      get childElementCount() { return this.children.length; },
+    const node = { tag, ownerDocument: document, dataset: {}, style: {}, children: [], disabled: false, textContent: '',
+      append(...items) { node.children.push(...items); },
+      replaceChildren(...items) { node.children = items; },
+      get childElementCount() { return node.children.length; },
       querySelectorAll(selector) {
         assert.equal(selector, 'button[data-revert]');
         const all = node => [node, ...(node.children ?? []).flatMap(all)];
-        return all(this).filter(node => node.tag === 'button' && node.dataset.revert !== undefined);
+        return all(node).filter(item => item.tag === 'button' && item.dataset.revert !== undefined);
       },
-    };
+    }; return node;
   }
   return document.createElement('section');
 }
@@ -80,7 +80,7 @@ function controls(panel, session) {
 }
 async function view(graph) {
   let envelope = null;
-  const mount = { style: {}, children: [], append(node) { this.children.push(node); }, replaceChildren() { this.children = []; } };
+  const mount = { style: {}, children: [], append(node) { mount.children.push(node); }, replaceChildren() { mount.children = []; } };
   const document = { defaultView: { getComputedStyle: () => ({ position: 'relative' }) }, createElement: () => {
     const node = { style: {}, remove() { mount.children = mount.children.filter(child => child !== node); } }; return node;
   } };
