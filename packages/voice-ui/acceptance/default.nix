@@ -37,9 +37,12 @@ let
 in {
   inherit runtime;
   check = pkgs.runCommand "voice-ui-acceptance-boundary-check" {
-    nativeBuildInputs = [ pkgs.nodejs ];
+    nativeBuildInputs = [ pkgs.nodejs pkgs.coreutils ];
   } ''
-    node ${./smoke.mjs} ${runtime}/bin/voice-ui-acceptance-node ${artifact}
+    if ! node ${./smoke.mjs} ${runtime}/bin/voice-ui-acceptance-node ${artifact} > smoke.log 2>&1; then
+      printf 'VOICE_UI_SMOKE_LOG_BASE64=%s\n' "$(tail -c 12000 smoke.log | base64 -w 0)" >&2
+      exit 1
+    fi
     ${runtime}/bin/voice-ui-acceptance-node ${./diagnostic-browser.mjs} ${artifact}
     touch "$out"
   '';
