@@ -218,6 +218,8 @@ const ROOT_KEY = "voice-ui.decision-log.v1";
 const served = await fetch(new URL("/app/src/contract.mjs", url));
 assert.equal(served.status, 200, "the target serves its contract module");
 const contract = await import(`data:text/javascript;base64,${Buffer.from(await served.text()).toString("base64")}`);
+// Plain finite Goals use the served direct kind; source-scoped Goals keep their scoped kind.
+const goalDeltaKind = SOURCE ? contract.GOAL_REQUEST_KIND : contract.DIRECT_GOAL_REQUEST_KIND;
 const config = await (await fetch(new URL("/architecture/data/config.v1.json", url))).json();
 const KEY = config.persistence.key;
 // The snapshot's public manifest as the target serves it: its parts, which a
@@ -287,7 +289,7 @@ if (GOAL) {
 }
 const orderInterventions = [];
 const presentation = sent => {
-  if (evaluation?.order !== "reverse" || sent.kind !== contract.GOAL_REQUEST_KIND) return sent;
+  if (evaluation?.order !== "reverse" || sent.kind !== goalDeltaKind) return sent;
   const next = { ...sent, state: { ...sent.state, candidates: [...sent.state.candidates].reverse() } };
   assert.deepEqual({ ...next, state: { ...next.state, candidates: sent.state.candidates } }, sent);
   assert.deepEqual([...next.state.candidates].sort((a, b) => a.id.localeCompare(b.id)),
@@ -867,7 +869,7 @@ const goalScenario = async () => {
   const signature = rows => JSON.stringify(rows.map(({ label, kind, parent }) => JSON.stringify([label, kind, parent])).sort());
   const edgeSignature = edges => JSON.stringify(edges.map(({ from, to, kind, label }) => JSON.stringify([from, to, kind, label])).sort());
   const firstNone = (sent.length === 1 || sent.length === 2 && sent[1].sent.kind === contract.GOAL_COMPLETION_KIND)
-    && sent[0].sent.kind === contract.GOAL_REQUEST_KIND && sent[0].sent.state.candidates.length > 0
+    && sent[0].sent.kind === goalDeltaKind && sent[0].sent.state.candidates.length > 0
     && contract.readAnswers(sent[0].body?.answers, slotsOf(sent[0].sent))?.delta?.choice === contract.NONE;
   const { added, newPins, expected, actual, newEdges, expectedEdges, afterRegion, grown, baselinePreserved, semanticMet, pinsExact }
     = grade(after.graph.records, pins => firstNone && pins.length === 0 && sameNoneBaseline(before, after));
@@ -1026,10 +1028,10 @@ const goalScenario = async () => {
     addedValue: "NOT_PROVEN", graphBefore: digest(before.graph.records), graphAfter: digest(after.graph.records),
     undoRestored: false, noSave: after.stored === before.stored && after.root === before.root,
     exchanges: sent.map(sanitized), setupExchanges: exchanges.slice(0, prepared).map(sanitized),
-    requestHistories: sent.map(entry => entry.sent.kind === contract.GOAL_REQUEST_KIND ? entry.sent.state.selected : null),
+    requestHistories: sent.map(entry => entry.sent.kind === goalDeltaKind ? entry.sent.state.selected : null),
     questionCounts: sent.map(entry => Object.keys(slotsOf(entry.sent)).length),
     providerIdentity: "UNKNOWN", acceptedIntegration: "NOT_PROVEN" };
-  need(sent.length >= 1 && sent.length <= 8 && sent.every(entry => [contract.GOAL_REQUEST_KIND, contract.GOAL_COMPLETION_KIND].includes(entry.sent.kind)
+  need(sent.length >= 1 && sent.length <= 8 && sent.every(entry => [goalDeltaKind, contract.GOAL_COMPLETION_KIND].includes(entry.sent.kind)
     && entry.sent.state.utterance === goalText && contract.isRequest(entry.sent)), "bounded requests carry the one Goal and closed public state");
   const terminals = sent.filter(entry => entry.sent.kind === contract.GOAL_COMPLETION_KIND);
   if (terminals.length) {
@@ -1260,7 +1262,7 @@ const sourceScenario = async () => {
   const sent = exchanges.slice(prior);
   for (const entry of sent) entry.reported = true;
   // The Goal request by its kind: a scoped Goal first asks its resolve intent.
-  const request = sent.find(entry => entry.sent.kind === contract.GOAL_REQUEST_KIND)?.sent.state ?? null;
+  const request = sent.find(entry => entry.sent.kind === goalDeltaKind)?.sent.state ?? null;
   // The expected arrow: the controlled choice, or the evaluator data resolved
   // against the served manifest and the actual pre-Goal Working.
   const target = FIXTURE ? (chosen === null ? null : { from: chosen.from, to: chosen.to })
@@ -1311,7 +1313,7 @@ const sourceScenario = async () => {
   need(offered, "the Goal request offers the expected arrow; a different resolved pair is NOT_MET");
   need((FIXTURE ? attempt.reason === "no-executable-delta" && attempt.requests === 3
       && JSON.stringify(sent.map(entry => entry.sent.kind))
-        === JSON.stringify([contract.ARCHITECTURE_GOAL_INTENT_KIND, contract.GOAL_REQUEST_KIND, contract.ARCHITECTURE_GOAL_INTENT_KIND])
+        === JSON.stringify([contract.ARCHITECTURE_GOAL_INTENT_KIND, goalDeltaKind, contract.ARCHITECTURE_GOAL_INTENT_KIND])
     : ["none", "no-executable-delta", "budget-requests", "budget-time"].includes(attempt.reason)) && sourceEvidence.newEdgeDrawn,
   "the Goal draws exactly the one new expected arrow, keeps every old record, and stops mechanically");
   // The actual painted arrow at its named ends, by the existing observer, with
