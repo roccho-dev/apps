@@ -43,7 +43,7 @@ function isPlainObject(value) {
     return false;
   }
   const prototype = Object.getPrototypeOf(value);
-  return prototype === Object.prototype || prototype === null;
+  return prototype === Object.getPrototypeOf({}) || prototype === null;
 }
 
 function ownDataKeys(value, path) {
