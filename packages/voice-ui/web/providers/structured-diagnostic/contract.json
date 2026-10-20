@@ -1,6 +1,7 @@
 {
   "schema": "diagnostic-contract/1",
   "diagnosticSchema": "diagnostic/1",
+  "messageBlankRule": "ecmascript-trim",
   "allowedTopLevel": [
     "schema",
     "code",
