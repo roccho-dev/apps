@@ -278,6 +278,25 @@ export const semanticScopeWorld = (input, reducedClosure) => {
       unresolvedUnit('purpose-evaluation-unmet', '全体評価', '未達', '全体評価は未達ですが責任単位へ対応付いていません · 完了には昇格しません。',
         'unexplained', evaluationContext);
 
+    // GapA (目的↔理想の差) is a difference of its own, supplied whether or not
+    // any physical Scope is declared: the ui reads it only from here.
+    const evaluation = object(observed.purpose_evaluation) ? observed.purpose_evaluation : null;
+    let adequacyRef = null;
+    if (evaluation && meaning.observation) {
+      const state = ['insufficient', 'unassessed'].includes(evaluation.state) ? evaluation.state : 'unassessed';
+      const stateLabel = { insufficient: '不十分（評価）', unassessed: '未評価（十分性は未判定）' }[state];
+      adequacyRef = entity(ref(space, 'purpose-adequacy', meaning.pair.purpose_id), caption('目的↔理想の差', stateLabel), 'purpose',
+        'GapA · 目的に対する理想状態の十分性。現在の版に一致する人評価 purpose.evaluated が ideal-insufficient '
+          + 'のときだけ「不十分」。評価なし・過去・版不一致・理想なしは「未評価」'
+          + '（十分でも 0 でもない）。CI や matched からは判定しません。'
+          + ' · verdict=' + (evaluation.verdict ?? 'なし') + ' · current=' + String(evaluation.current)
+          + ' · admission=' + (evaluation.admission ?? 'なし') + ' · recordedAt=' + (evaluation.recordedAt ?? 'なし'),
+        ['purpose_adequacy=' + state, 'role=whole-purpose-evaluation']);
+      edge('adequacy-purpose', adequacyRef, purposeRef, '十分性', { evaluation,
+        ...(meaning.observation?.observed_ref ? { observed_ref: meaning.observation.observed_ref } : {}) });
+      edge('target-adequacy', targetRef, adequacyRef, '照らす', { evaluation });
+    }
+
     // Physical Scope declarations: one repository entity per repo and one
     // package entity per repo/package, deduped across declarations and gaps.
     // The package links to GapA (the whole-Purpose evaluation) and/or to the
@@ -285,23 +304,6 @@ export const semanticScopeWorld = (input, reducedClosure) => {
     // declaration with no open gap at this frame creates no inventory item.
     const declarations = physicalScopes.filter(item => item.purposeId === meaning.pair.purpose_id);
     if (declarations.length) {
-      const gapADeclared = declarations.some(item => item.gaps.includes('purpose-ideal'));
-      const evaluation = object(observed.purpose_evaluation) ? observed.purpose_evaluation : null;
-      let adequacyRef = null;
-      if (gapADeclared && evaluation && meaning.observation) {
-        const state = ['insufficient', 'unassessed'].includes(evaluation.state) ? evaluation.state : 'unassessed';
-        const stateLabel = { insufficient: '不十分（評価）', unassessed: '未評価（十分性は未判定）' }[state];
-        adequacyRef = entity(ref(space, 'purpose-adequacy', meaning.pair.purpose_id), caption('目的↔理想の差', stateLabel), 'purpose',
-          'GapA · 目的に対する理想状態の十分性。現在の版に一致する人評価 purpose.evaluated が ideal-insufficient で、'
-            + 'のときだけ「不十分」。評価なし・過去・版不一致・理想なしは「未評価」'
-            + '（十分でも 0 でもない）。CI や matched からは判定しません。'
-            + ' · verdict=' + (evaluation.verdict ?? 'なし') + ' · current=' + String(evaluation.current)
-            + ' · admission=' + (evaluation.admission ?? 'なし') + ' · recordedAt=' + (evaluation.recordedAt ?? 'なし'),
-          ['purpose_adequacy=' + state, 'role=whole-purpose-evaluation']);
-        edge('adequacy-purpose', adequacyRef, purposeRef, '十分性', { evaluation,
-          ...(meaning.observation?.observed_ref ? { observed_ref: meaning.observation.observed_ref } : {}) });
-        edge('target-adequacy', targetRef, adequacyRef, '照らす', { evaluation });
-      }
       const targets = new Map();
       for (const item of declarations) {
         const targetKey = item.repo + '\u0000' + item.package;
