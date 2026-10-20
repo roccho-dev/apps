@@ -18,6 +18,10 @@ const JOURNAL = ['purpose.set', 'ideal.drafting', 'ideal.set', 'purpose.evaluate
 const byTime = list => list.map((event, index) => ({ event, index }))
   .sort((a, b) => Date.parse(a.event.recordedAt) - Date.parse(b.event.recordedAt) || a.index - b.index).map(value => value.event);
 
+// A3: the source's admission (e.g. observed_not_admitted of a Git Cold row) rides along on journal decisions,
+// for display only (adrs#647 records the journal; plans do not carry it).
+const admission = source => typeof source?.admission === 'string' ? { admission: source.admission } : {};
+
 // G plan.set → D plan.set under the ideal state that declares it in requires[].plans. Cells are
 // copied, never parsed: D rejects anything that is not already a declared id, and then it is held.
 const toPlan = (g, purpose) => ({ kind: 'plan.set', recordedAt: g.recordedAt, plan: g.plan, ...(g.actor ? { actor: g.actor } : {}),
@@ -42,11 +46,12 @@ export const fromG = (event, decisions = []) => {
   if (JOURNAL.includes(event?.kind) && (typeof event.source?.ref !== 'string' || typeof event.source?.sha256 !== 'string'))
     fail('unsupported G event ' + JSON.stringify(event).slice(0, 120));
   if (JOURNAL.includes(event?.kind)) return { events: [{ ...event, source: { ref: event.source.ref, digest: event.source.sha256,
-    ...(event.source.commentId == null ? {} : { commentId: String(event.source.commentId) }) } }] };
+    ...(event.source.commentId == null ? {} : { commentId: String(event.source.commentId) }), ...admission(event.source) } }] };
   if (event?.kind === 'plan.set') {
     const declaring = decisions.filter(value => Date.parse(value.recordedAt) <= Date.parse(event.recordedAt)
       && value.requires?.some(condition => condition.plans?.includes(event.plan))).at(-1);
-    if (!declaring) return { held: { reason: 'no ideal state declares this plan in requires[].plans', plan: event } };
+    // Held as before; also returned as unbound so the World's journal can show it (L3, display only).
+    if (!declaring) return { held: { reason: 'no ideal state declares this plan in requires[].plans', plan: event }, unbound: event };
     const plan = toPlan(event, declaring);
     try { parseEvents(jsonl([header('supplied'), ...decisions.slice(0, decisions.indexOf(declaring) + 1), plan])); }
     catch (error) { return { held: { reason: error.message, plan: event } }; }
@@ -66,8 +71,39 @@ export const fromG = (event, decisions = []) => {
  * D log text: header, accepted decisions, plans and observations in recordedAt order (stable).
  * Decisions are accepted one by one in time order with D's parser; one D rejects is held, not fatal.
  */
+// hot ∖ cold (A1): a document is `owner/repo#n` + commentId (null for the body). From the time cold (a
+// `source.capture`) has it, cold is the confirmed value: a hot copy read then or later is dropped, or held as
+// superseded-by-cold when it says something else. What hot read earlier stays as read (a past frame is never
+// rewritten); when cold says the same, only `confirmed:<owner/repo#n>:<commentId|body>` = the capture is added
+// at cold's time, not the decision again.
+const DOCUMENT = [...JOURNAL, 'plan.set'];
+const threadOf = event => event.kind === 'plan.set' ? event.source?.repo : event.source?.ref;
+const documentOf = event => `${threadOf(event)} ${event.source?.commentId ?? null}`;
+const said = event => `${documentOf(event)} ${JSON.stringify(Object.entries({ ...event, source: null, recordedAt: null, declaredAt: null }).sort(([a], [b]) => (a < b ? -1 : 1)))}`;
+const hotMinusCold = (events, held) => {
+  const isCold = event => DOCUMENT.includes(event.kind) && Boolean(event.source?.capture);
+  const isHot = event => DOCUMENT.includes(event.kind) && !event.source?.capture;
+  const arrived = new Map(); // document → when cold first has it
+  for (const event of events.filter(isCold)) if (!arrived.has(documentOf(event)) || Date.parse(event.recordedAt) < Date.parse(arrived.get(documentOf(event)))) arrived.set(documentOf(event), event.recordedAt);
+  const before = event => Date.parse(event.recordedAt) < Date.parse(arrived.get(documentOf(event)));
+  const readEarlier = new Set(events.filter(event => isHot(event) && arrived.has(documentOf(event)) && before(event)).map(said));
+  const coldSaid = new Set(events.filter(isCold).map(said)), confirmedOnce = new Set();
+  return events.flatMap(event => {
+    if (isCold(event)) {
+      if (!readEarlier.has(said(event))) return [event];
+      if (confirmedOnce.has(documentOf(event))) return [];
+      confirmedOnce.add(documentOf(event));
+      return [{ kind: 'observation', target: `confirmed:${threadOf(event)}:${event.source.commentId ?? 'body'}`, value: event.source.capture,
+        source: { ref: event.source.capture, sha256: event.source.sha256 }, observedAt: event.recordedAt, recordedAt: event.recordedAt }];
+    }
+    if (!isHot(event) || !arrived.has(documentOf(event)) || before(event)) return [event];
+    if (!coldSaid.has(said(event))) held.push({ reason: 'superseded-by-cold', [event.kind === 'plan.set' ? 'plan' : 'journal']: event });
+    return [];
+  });
+};
+
 export const joinLog = (purposeText, gTexts, sourceMode = 'supplied') => {
-  const gEvents = gTexts.flatMap(rows), held = [], accepted = [];
+  const held = [], accepted = [], gEvents = hotMinusCold(gTexts.flatMap(rows), held);
   const candidates = byTime([...rows(purposeText ?? ''),
     ...gEvents.filter(event => JOURNAL.includes(event.kind)).flatMap(event => fromG(event).events)]);
   for (const decision of candidates) {
@@ -81,7 +117,9 @@ export const joinLog = (purposeText, gTexts, sourceMode = 'supplied') => {
   }
   const rest = gEvents.filter(event => !JOURNAL.includes(event.kind)).map(event => fromG(event, accepted));
   held.push(...rest.filter(value => value.held).map(value => value.held));
-  return { log: jsonl([header(sourceMode), ...byTime([...accepted, ...rest.flatMap(value => value.events ?? [])])]), held };
+  // unbound: G plan.set events no ideal state declares (also held); the World's journal shows them (L3).
+  return { log: jsonl([header(sourceMode), ...byTime([...accepted, ...rest.flatMap(value => value.events ?? [])])]), held,
+    unbound: rest.filter(value => value.unbound).map(value => value.unbound) };
 };
 
 if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
@@ -93,11 +131,12 @@ if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.me
     const read = file => fs.readFileSync(file, 'utf8');
     // L1: with --ledger the World is derived from every ledger row (the same ledger, the same World).
     const gTexts = [...(values.ledger ? [ledgerEvents(read(values.ledger))] : []), ...positionals.map(read)];
-    const { log, held } = joinLog(values.purpose ? read(values.purpose) : '', gTexts);
+    const { log, held, unbound } = joinLog(values.purpose ? read(values.purpose) : '', gTexts);
     fs.mkdirSync(values['out-dir'], { recursive: true });
     const out = name => path.join(fs.realpathSync(values['out-dir']), name);
     const inputs = [values.purpose, values.control, values.ledger, ...positionals].filter(Boolean).map(file => fs.realpathSync(file));
-    if (['events.jsonl', 'control.jsonl', 'g-plans.jsonl', 'g-journal-held.jsonl'].some(name => inputs.includes(out(name)))) fail('output must not replace an input');
+    if (['events.jsonl', 'control.jsonl', 'g-plans.jsonl', 'g-journal-held.jsonl', 'g-unbound-plans.jsonl'].some(name => inputs.includes(out(name)))) fail('output must not replace an input');
+    fs.writeFileSync(out('g-unbound-plans.jsonl'), unbound.length ? jsonl(unbound) : '');
     fs.writeFileSync(out('events.jsonl'), log);
     // No control given: no Norm, so every condition is derived unassigned (never guessed).
     if (!values.control) fs.writeFileSync(out('control.jsonl'), jsonl([{ schema: 'atlas.control-norms/1', authority: false }]));
@@ -105,8 +144,8 @@ if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.me
     fs.writeFileSync(out('g-plans.jsonl'), plans.length ? jsonl(plans) : '');
     fs.writeFileSync(out('g-journal-held.jsonl'), journal.length ? jsonl(journal) : '');
     const derive = fileURLToPath(new URL('./derive.mjs', import.meta.url));
-    const receipt = JSON.parse(execFileSync(process.execPath, [derive, '--out-dir=' + out('.'), out('events.jsonl'),
-      values.control ? fs.realpathSync(values.control) : out('control.jsonl')], { encoding: 'utf8' }));
+    const receipt = JSON.parse(execFileSync(process.execPath, [derive, '--out-dir=' + out('.'), '--unbound-plans=' + out('g-unbound-plans.jsonl'),
+      out('events.jsonl'), values.control ? fs.realpathSync(values.control) : out('control.jsonl')], { encoding: 'utf8' }));
     console.log(JSON.stringify({ ...receipt, schema: 'atlas.live-build/1', held_plans: { path: out('g-plans.jsonl'), count: plans.length },
       held_journal: { path: out('g-journal-held.jsonl'), count: journal.length } }));
   } catch (error) {

@@ -85,7 +85,9 @@ export const matchedUntil = (frame, phase) => phase !== 'matched' ? null
 export const journalOf = (frame, after = -Infinity) => frame.journal.filter(event => Date.parse(event.recordedAt) > after).map(event => {
   if (event.kind === 'observation') return { kind: event.kind, recordedAt: event.recordedAt, observedAt: event.observedAt, actor: null,
     source: { ref: event.source, commentId: null, sha256: null }, target: { ...event.target }, value: event.value };
-  const source = { ref: event.source.ref, commentId: event.source.commentId == null ? null : number(event.source.commentId), sha256: event.source.digest };
+  // admission (adrs#647 comment 6265881722): shown only when the source has one; never part of a judgment.
+  const source = { ref: event.source.ref, commentId: event.source.commentId == null ? null : number(event.source.commentId), sha256: event.source.digest,
+    ...(event.source.admission ? { admission: event.source.admission } : {}) };
   const detail = {
     'purpose.set': () => ({ purpose_id: event.purpose.id, purpose_label: event.purpose.label, purpose_rev: event.rev }),
     'ideal.drafting': () => ({ purpose_id: event.purpose_id, ideal_version: event.version }),
@@ -116,12 +118,36 @@ export const plansOf = (frame, projection) => {
       source: { repo: plan.source.ref, commentId: plan.source.commentId && number(plan.source.commentId), updatedAt: plan.source.updatedAt, sha256: plan.source.digest } }));
 };
 
+/**
+ * L3 (adrs#647): G plan.set events no ideal state declares, as journal rows marked `unbound: true`, display only
+ * (never in D, the plans, the gap or any count). Deduplicated by (plan, version, source sha256), the earliest kept;
+ * each goes to the first frame with prev.asOf < recordedAt <= asOf. Those after the last frame are only counted.
+ */
+export const unboundPlans = (frames, unbound = []) => {
+  const seen = new Set(), placed = frames.map(() => []);
+  let unplaced = 0;
+  for (const g of [...unbound].sort((a, b) => Date.parse(a.recordedAt) - Date.parse(b.recordedAt))) {
+    const key = JSON.stringify([g.plan, g.version, g.source?.sha256]);
+    if (seen.has(key)) continue;
+    seen.add(key);
+    const index = frames.findIndex(frame => Date.parse(g.recordedAt) <= Date.parse(frame.asOf));
+    if (index < 0) { unplaced += 1; continue; }
+    placed[index].push({ kind: 'plan.set', recordedAt: g.recordedAt, actor: g.actor ?? null,
+      source: { ref: g.source.repo, commentId: g.source.commentId ?? null, sha256: g.source.sha256 }, plan: g.plan, version: g.version, unbound: true });
+  }
+  return { placed, unplaced };
+};
+
 /** The World as ui reads it: D's World plus the edge contracts. Each frame uses only itself and earlier frames. */
-export const contractWorld = result => {
+export const contractWorld = (result, { unbound = [] } = {}) => {
   let last = null, previous = null;
+  const { placed } = unboundPlans(result.world.frames, unbound);
+  const byTime = list => list.map((entry, index) => ({ entry, index }))
+    .sort((a, b) => Date.parse(a.entry.recordedAt) - Date.parse(b.entry.recordedAt) || a.index - b.index).map(value => value.entry);
   return { ...result.world, frames: result.world.frames.map((frame, index) => {
     const derived = result.derived.frames[index], gap = gapOf(derived, last, previous), phase = phaseOf(derived, gap);
-    const journal = journalOf(derived, previous ? previous.frame.t : -Infinity);
+    const own = journalOf(derived, previous ? previous.frame.t : -Infinity);
+    const journal = placed[index].length ? byTime([...own, ...placed[index]]) : own;
     previous = { frame: derived, gap };
     if (gap.parts) last = previous;
     const plans = plansOf(derived, result.plans);

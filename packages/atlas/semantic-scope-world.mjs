@@ -12,6 +12,32 @@ const key = value => JSON.stringify([value.space, value.kind, value.id]);
 const source = (sourceRef, kind = 'synthetic') => ({ sourceRef, sourceDigest: null, kind });
 const legacySpace = 'atlas.purpose-closure/1';
 
+// Physical Scope declarations are explicit input: repo/package, the gap(s) they
+// address, and (for the Ideal-Current gap) the parts they address. Nothing is
+// inferred from a label, owner, URL or field equality; an undeclared part stays
+// unbound.
+const PHYSICAL_GAPS = Object.freeze(['purpose-ideal', 'ideal-current']);
+const physicalText = value => typeof value === 'string' && value.trim().length > 0;
+const physicalRepo = value => physicalText(value) && /^[A-Za-z0-9][A-Za-z0-9_.-]*\/[A-Za-z0-9][A-Za-z0-9_.-]*$/u.test(value);
+const physicalPackage = value => physicalText(value) && !value.includes('\\') && !value.startsWith('/') && !value.endsWith('/')
+  && value.split('/').every(part => part !== '.' && part !== '..' && /^[A-Za-z0-9_.@+-]+$/u.test(part));
+const declaredPhysicalScopes = input => {
+  if (input.physical_scopes === undefined) return [];
+  if (!Array.isArray(input.physical_scopes)) throw new Error('scope-world: physical_scopes must be an array');
+  const seen = new Set();
+  return input.physical_scopes.map((item, index) => {
+    const at = 'physical_scopes[' + index + ']';
+    if (!object(item) || !physicalText(item.id) || seen.has(item.id) || !physicalText(item.purposeId)
+      || !physicalRepo(item.repo) || !physicalPackage(item.package)
+      || !Array.isArray(item.gaps) || item.gaps.length === 0 || item.gaps.some(gap => !PHYSICAL_GAPS.includes(gap))
+      || !Array.isArray(item.conditions) || item.conditions.some(condition => !physicalText(condition))
+      || (item.gaps.includes('ideal-current') && item.conditions.length === 0))
+      throw new Error('scope-world: ' + at + ' must be an explicit repo/package gap mapping');
+    seen.add(item.id);
+    return { ...item, gaps: [...item.gaps], conditions: [...item.conditions] };
+  });
+};
+
 const readReduced = text => {
   const [header, ...rows] = text.split(/\r?\n/u).filter(line => line.trim()).map(line => JSON.parse(line));
   if (header?.schema !== legacySpace || header.authority !== false) throw new Error('scope-world: validated Closure output required');
@@ -92,6 +118,7 @@ export const semanticScopeWorld = (input, reducedClosure) => {
   const historicalIds = new Map();
   // Agent provenance comes from the declared input mode and explicit session observations only.
   const synthetic = input.source_mode === 'synthetic';
+  const physicalScopes = declaredPhysicalScopes(input);
   let agentsSeen = { declared: 0, observed: 0 };
   const frames = input.frames.map(observed => {
     if (typeof observed.id !== 'string' || !Number.isSafeInteger(observed.rev) || observed.rev < 0
@@ -250,6 +277,90 @@ export const semanticScopeWorld = (input, reducedClosure) => {
     else if (closure.purpose_status === 'unmet' && currentGap === 0)
       unresolvedUnit('purpose-evaluation-unmet', '全体評価', '未達', '全体評価は未達ですが責任単位へ対応付いていません · 完了には昇格しません。',
         'unexplained', evaluationContext);
+
+    // GapA (目的↔理想の差) is a difference of its own, supplied whether or not
+    // any physical Scope is declared: the ui reads it only from here.
+    const evaluation = object(observed.purpose_evaluation) ? observed.purpose_evaluation : null;
+    let adequacyRef = null;
+    if (evaluation && meaning.observation) {
+      const state = ['insufficient', 'unassessed'].includes(evaluation.state) ? evaluation.state : 'unassessed';
+      const stateLabel = { insufficient: '不十分（評価）', unassessed: '未評価（十分性は未判定）' }[state];
+      adequacyRef = entity(ref(space, 'purpose-adequacy', meaning.pair.purpose_id), caption('目的↔理想の差', stateLabel), 'purpose',
+        'GapA · 目的に対する理想状態の十分性。現在の版に一致する人評価 purpose.evaluated が ideal-insufficient '
+          + 'のときだけ「不十分」。評価なし・過去・版不一致・理想なしは「未評価」'
+          + '（十分でも 0 でもない）。CI や matched からは判定しません。'
+          + ' · verdict=' + (evaluation.verdict ?? 'なし') + ' · current=' + String(evaluation.current)
+          + ' · admission=' + (evaluation.admission ?? 'なし') + ' · recordedAt=' + (evaluation.recordedAt ?? 'なし'),
+        ['purpose_adequacy=' + state, 'role=whole-purpose-evaluation']);
+      edge('adequacy-purpose', adequacyRef, purposeRef, '十分性', { evaluation,
+        ...(meaning.observation?.observed_ref ? { observed_ref: meaning.observation.observed_ref } : {}) });
+      edge('target-adequacy', targetRef, adequacyRef, '照らす', { evaluation });
+    }
+
+    // Physical Scope declarations: one repository entity per repo and one
+    // package entity per repo/package, deduped across declarations and gaps.
+    // The package links to GapA (the whole-Purpose evaluation) and/or to the
+    // GapB units named by its conditions. An undeclared part stays unbound; a
+    // declaration with no open gap at this frame creates no inventory item.
+    const declarations = physicalScopes.filter(item => item.purposeId === meaning.pair.purpose_id);
+    if (declarations.length) {
+      const targets = new Map();
+      for (const item of declarations) {
+        const targetKey = item.repo + '\u0000' + item.package;
+        const target = targets.get(targetKey) ?? { repo: item.repo, package: item.package, gaps: new Set(), conditions: new Set(), ids: [] };
+        item.gaps.forEach(gap => target.gaps.add(gap));
+        item.conditions.forEach(condition => target.conditions.add(condition));
+        target.ids.push(item.id);
+        targets.set(targetKey, target);
+      }
+      const unitFor = condition => {
+        const scope = (meaning.scopes ?? []).find(value => value.parts.includes(condition));
+        if (scope) return ref(space, 'semantic-scope', scope.id);
+        const residual = [...(closure.residual ?? []), ...(closure.unknown ?? []), ...(closure.conflicts ?? [])];
+        return residual.includes(condition) ? ref(space, 'unassigned-change', condition) : null;
+      };
+      const physicalEdge = (id, from, to, label, context, ownSource, ownTime) => {
+        relations.push({ ref: ref(space, 'declared-relation', id), from, to, kind: 'declared-relation', label, context,
+          source: ownSource, time: { ...ownTime }, flags: ['authority=false'], containment: null, path: false });
+      };
+      const linked = [...targets.values()].map(target => {
+        const links = [];
+        if (target.gaps.has('purpose-ideal') && adequacyRef) links.push({ gap: 'purpose-ideal', to: adequacyRef, condition: null });
+        if (target.gaps.has('ideal-current')) for (const condition of [...target.conditions].sort()) {
+          const to = unitFor(condition);
+          if (to) links.push({ gap: 'ideal-current', to, condition });
+        }
+        return { target, links };
+      }).filter(value => value.links.length);
+      // A repository's provenance is every declaration of its linked packages, not the first one.
+      const repoIds = new Map();
+      for (const { target } of linked) repoIds.set(target.repo, [...(repoIds.get(target.repo) ?? []), ...target.ids]);
+      const repositories = new Map();
+      for (const { target, links } of linked) {
+        const declarationIds = [...target.ids].sort();
+        const ownSource = source('atlas.control-norms/1#' + declarationIds.join('+'), 'declared');
+        const ownTime = { ...time };
+        let repoRef = repositories.get(target.repo);
+        if (!repoRef) {
+          repoRef = entity(ref(space, 'repository', target.repo), caption(target.repo, 'repo'), 'scopes',
+            '物理Scopeのrepo（control の physical-scope 宣言）· 変更対象。すべてのrepoの一覧ではありません。',
+            ['physical-scope', 'repo=' + target.repo], source('atlas.control-norms/1#' + repoIds.get(target.repo).sort().join('+'), 'declared'), ownTime);
+          repositories.set(target.repo, repoRef);
+        }
+        const packageId = target.repo + ':' + target.package;
+        const pkgRef = entity(ref(space, 'package', packageId), caption(target.package, target.repo), 'scopes',
+          '物理Scope（変更対象のrepo/package）· ' + target.repo + ' › ' + target.package + ' · 宣言 ' + declarationIds.join(', ')
+            + ' · gaps=' + [...target.gaps].sort().join(',') + ' · conditions=' + ([...target.conditions].sort().join(',') || 'なし')
+            + ' · 同じ物理対象を複数parts/両方の差に重複させない。',
+          ['physical-scope', 'repo=' + target.repo, 'package=' + target.package, ...[...target.gaps].sort().map(gap => 'gap=' + gap)], ownSource, ownTime);
+        relations.push({ ref: ref(space, 'declared-relation', 'contains:' + target.repo + ':' + target.package), from: repoRef, to: pkgRef,
+          kind: 'declared-relation', label: '含む', context: { group: 'repo:' + target.repo, declared_by: 'physical-scope', declaration_ids: declarationIds },
+          source: ownSource, time: { ...ownTime }, flags: ['authority=false'], containment: 'from-contains-to', path: false });
+        for (const link of links) physicalEdge('physical:' + packageId + ':' + link.gap + (link.condition ? ':' + link.condition : ''), pkgRef, link.to,
+          'この差を埋める対象', { gap: link.gap, ...(link.condition ? { condition: link.condition } : {}),
+            repo: target.repo, package: target.package, declaration_ids: declarationIds }, ownSource, ownTime);
+      }
+    }
     // The frames themselves: owners in Scope order, then 担当なし, then the history frame. Containment is
     // a relation from the frame to each member (ui's existing containment shape); nothing else is moved.
     const order = key => key === 'history' ? 2 : key === 'owner:none' ? 1 : 0;

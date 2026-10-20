@@ -129,9 +129,13 @@ function cold({ repo, commit, path, committedAt, fetchedAt, sha256, text }) {
     if (typeof updatedAt !== 'string') { hold('updated-at-missing', null, row.raw_id ?? null); continue; }
     const key = `${subject[1]}#${subject[2]}`;
     if (!threads.has(key)) threads.set(key, { kind: 'thread', repo: subject[1], number: Number(subject[2]), fetchedAt, committedAt, documents: [], source: { ref, sha256: sha256 ?? null } });
-    threads.get(key).documents.push({ commentId: payload.id, updatedAt, author: payload.author.login,
+    // One document is `owner/repo#n` + commentId in hot and cold alike: the issue/PR body (a URL without a fragment)
+    // is commentId null, as the live thread gives it. `capture` names where it was confirmed (cold ⊆ hot).
+    const body = typeof payload.html_url === 'string' && !payload.html_url.includes('#');
+    threads.get(key).documents.push({ commentId: body ? null : payload.id, updatedAt, author: payload.author.login,
       // The same digest in G's `sha256:<hex>` notation (what D's source digest requires).
-      text: payload.body, source: { ref, sha256: `sha256:${content}` }, admission: row.status ?? null });
+      text: payload.body, source: { ref: key, sha256: `sha256:${content}`, capture: ref, ...(typeof row.status === 'string' ? { admission: row.status } : {}) },
+      admission: row.status ?? null });
   }
   return [...threads.values(), ...held];
 }

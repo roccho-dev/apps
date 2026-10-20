@@ -138,11 +138,17 @@ the reducer's input no longer needs a local ledger. The edge reads the file; the
 - config `cold: [{repo, checkout, commit, path}]` → `fetch.mjs` runs `git -C <checkout> show <commit>:<path>`
   and stores `{type:'cold', repo, commit, path, committedAt, sha256, text}` (the clone's place is not passed on).
 - each valid row becomes one comment of the existing thread record (`subject_key` `owner/repo.issue.N`):
-  `commentId` ← `payload.id`, `author` ← `payload.author.login`, `text` ← `payload.body`, and the source
-  `{ref: <repo>@<commit>:<path>, sha256: 'sha256:' + observed_version.content_sha256}`. The existing journal
-  and plan extraction read the bodies unchanged.
+  `commentId` ← `payload.id` (null for the issue/PR body: a `html_url` without a fragment, as hot gives it),
+  `author` ← `payload.author.login`, `text` ← `payload.body`, and the source `{ref: owner/repo#n, sha256: 'sha256:' +
+  observed_version.content_sha256, capture: <repo>@<commit>:<path>}`. The existing journal and plan extraction read
+  the bodies unchanged. `live.mjs` `joinLog` keeps hot ∖ cold: from the time cold has a document (`owner/repo#n` +
+  commentId), a hot copy read then or later is dropped, or held as `superseded-by-cold` when it says something
+  else. What hot read earlier stays as read (a past frame is never rewritten); when cold says the same, only an
+  observation `confirmed:<owner/repo#n>:<commentId|body>` = `<repo>@<commit>:<path>` is added at cold's time.
 - `status` is kept verbatim as the document's `admission`; capture never admits a meaning (adrs#607), and
-  no event says admitted.
+  no event says admitted. A3 (adrs#647 comment 6265881722): the source also carries it (`source.admission`) through
+  live and D to the World's journal entries (`frames[i].journal[].source.admission`) of journal decisions, for display
+  only; no judgment reads it, a source without one has no such field, and plans do not carry it.
 - `content_sha256` is checked in one form only, the writer's (adrs `tools/github_api.py`, a6284e58):
   plain hex of sha256 over Python `json.dumps(payload, ensure_ascii=False, sort_keys=True)` — separators
   `", "` / `": "`, keys sorted by code point at every level, non-ASCII raw, only `"`, `\` and C0 controls
