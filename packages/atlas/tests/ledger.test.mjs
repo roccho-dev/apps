@@ -3,7 +3,6 @@ import assert from 'node:assert/strict';
 import { execFileSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
 import { cpSync, mkdirSync, mkdtempSync, readFileSync, writeFileSync } from 'node:fs';
-import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { appendEvents, readLedger, ledgerText, ledgerEvents } from '../ledger.mjs';
@@ -41,7 +40,7 @@ const refresh = (dir, ledger, at, state) => {
 const derive = (ledger, out) => run('../live.mjs', ['--out-dir=' + out, '--ledger=' + ledger, '--control=' + file('../fixtures/live/control.jsonl')]);
 
 test('refreshes (same, change, same) pile up frames in the ledger; the past observation stays reachable', () => {
-  const dir = mkdtempSync(path.join(tmpdir(), 'atlas-ledger-')), ledger = path.join(dir, 'ledger.jsonl');
+  const dir = mkdtempSync(fileURLToPath(new URL('./ledger-out-', import.meta.url))), ledger = path.join(dir, 'ledger.jsonl');
   const runs = [['2026-10-16T20:30:00Z', null], ['2026-10-16T20:40:00Z', 'OPEN'], ['2026-10-16T20:50:00Z', 'OPEN'],
     ['2026-10-16T21:00:00Z', 'MERGED'], ['2026-10-16T21:10:00Z', 'MERGED']];
   const appended = [];
@@ -140,7 +139,7 @@ test('before-ideal marks compare observedAt with the declaration time, not with 
 
 // README "A last line cut short": the CLI stops and appends nothing; removing only that line repairs it.
 test('a ledger whose last line was cut short is refused (nothing appended) until the line is removed by hand', () => {
-  const dir = mkdtempSync(path.join(tmpdir(), 'atlas-ledger-cut-')), ledger = path.join(dir, 'ledger.jsonl'), events = path.join(dir, 'g.jsonl');
+  const dir = mkdtempSync(fileURLToPath(new URL('./ledger-cut-out-', import.meta.url))), ledger = path.join(dir, 'ledger.jsonl'), events = path.join(dir, 'g.jsonl');
   const whole = ledgerText(appendEvents([], jsonl([ideal('PT1H'), obs('2026-10-18T00:00:00Z', 'ok')]), '2026-10-18T00:00:00Z').rows);
   const cut = whole.slice(0, whole.length - 20);
   writeFileSync(ledger, cut);

@@ -2,7 +2,6 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { execFileSync } from 'node:child_process';
 import { mkdtempSync, readFileSync } from 'node:fs';
-import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { createHash } from 'node:crypto';
@@ -31,7 +30,7 @@ test('World plans: absent without a declaration, never a plan recorded after the
 });
 
 test('end to end: G fixture snapshots → G events → live.mjs → D → World', () => {
-  const dir = mkdtempSync(path.join(tmpdir(), 'atlas-live-'));
+  const dir = mkdtempSync(fileURLToPath(new URL('./live-out-', import.meta.url)));
   const gEvents = path.join(dir, 'g-events.jsonl');
   run('../collect/collect.mjs', [file('../collect/fixtures/snapshots'), '--recorded-at', '2026-10-16T20:40:00Z', '--out', gEvents]);
   const receipt = JSON.parse(run('../live.mjs', ['--out-dir=' + dir, '--purpose=' + file('../fixtures/live/purpose.jsonl'),

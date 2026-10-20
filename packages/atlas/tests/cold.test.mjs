@@ -3,7 +3,6 @@ import assert from 'node:assert/strict';
 import { execFileSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
 import { mkdtempSync, readFileSync, writeFileSync, mkdirSync, rmSync } from 'node:fs';
-import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { normalize } from '../collect/adapter.mjs';
@@ -46,7 +45,7 @@ test('existing journal/plan extraction reads the cold bodies; provenance is the 
 
 test('live.mjs builds world.json from cold G events alone (no ledger); the same commit gives the same events and World', () => {
   const build = () => {
-    const dir = mkdtempSync(path.join(tmpdir(), 'atlas-cold-'));
+    const dir = mkdtempSync(fileURLToPath(new URL('./cold-out-', import.meta.url)));
     mkdirSync(path.join(dir, 'snap'));
     writeFileSync(path.join(dir, 'snap', 'cold-0.json'), JSON.stringify(snapshot));
     // No --recorded-at: a cold collection is dated by its commit, so rebuilding it is reproducible.

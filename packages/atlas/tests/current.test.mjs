@@ -3,7 +3,6 @@ import assert from 'node:assert/strict';
 import { execFileSync, spawnSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
 import { appendFileSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
-import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { declarationEvents, journalEvents } from '../collect/journal.mjs';
@@ -28,7 +27,7 @@ const SHA = '0123456789abcdef0123456789abcdef01234567';
 const T1 = '2026-10-19T02:00:00.000Z', T2 = '2026-10-19T03:00:00.000Z';
 
 const workspace = () => {
-  const dir = mkdtempSync(path.join(tmpdir(), 'atlas-current-'));
+  const dir = mkdtempSync(fileURLToPath(new URL('./current-out-', import.meta.url)));
   mkdirSync(path.join(dir, 'snap'));
   writeFileSync(path.join(dir, 'snap', 'declaration-0.json'), JSON.stringify({ type: 'declaration', path: 'purpose.jsonl', fetchedAt: '2026-10-19T01:00:00Z',
     sha256: 'sha256:' + createHash('sha256').update(declaration).digest('hex'), text: declaration }));

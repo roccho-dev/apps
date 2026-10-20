@@ -3,7 +3,6 @@ import assert from 'node:assert/strict';
 import { execFileSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
 import { mkdtempSync, readFileSync, rmSync } from 'node:fs';
-import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { ledgerEvents } from '../ledger.mjs';
@@ -59,7 +58,7 @@ test('nothing else changes: D log, held, gap, phase, matched_until, plans and th
 });
 
 test('live.mjs writes g-unbound-plans.jsonl, derive.mjs places them, the receipt counts unplaced', () => {
-  const dir = mkdtempSync(path.join(tmpdir(), 'atlas-unbound-'));
+  const dir = mkdtempSync(fileURLToPath(new URL('./unbound-out-', import.meta.url)));
   try {
     const current = path.join(dir, 'g-current.jsonl');
     execFileSync('cp', [file('../fixtures/unbound/g-current.jsonl'), current]);
