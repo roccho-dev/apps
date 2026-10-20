@@ -1,4 +1,5 @@
 import {
+  canonicalizeDiagnosticJsonl,
   encodeDiagnostic,
   parseDiagnosticLine,
   validateDiagnostic,
@@ -36,6 +37,9 @@ export function createBrowserDiagnosticPort({ contract, write }) {
     },
     parse(line) {
       return parseDiagnosticLine(line, contract);
+    },
+    canonicalize(text) {
+      return canonicalizeDiagnosticJsonl(text, contract);
     },
     emit(value) {
       const line = encodeDiagnostic(value, contract);
