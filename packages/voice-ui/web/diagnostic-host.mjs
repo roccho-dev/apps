@@ -17,7 +17,7 @@ async function loadJson(url) {
   return response.json();
 }
 
-export async function createBrowserBridge({ onFinding = () => {}, write } = {}) {
+async function createBrowserBridge({ onFinding = () => {}, write } = {}) {
   const [contract, providerIdentity] = await Promise.all([
     loadJson(CONTRACT_URL),
     loadJson(IDENTITY_URL),
@@ -48,6 +48,9 @@ export async function runBrowserDiagnosticProof() {
   }
   if (runtime.lines.length !== 1 || !runtime.lines[0].includes(`\"code\":\"${VOICE_UI_FAILURE_CODE}\"`)) {
     throw new Error("browser callback did not receive exactly one canonical diagnostic row");
+  }
+  if (runtime.port.canonicalize(result.line) !== result.line) {
+    throw new Error("browser provider did not preserve canonical JSONL bytes");
   }
   const wrongSource = consumeVoiceUiDiagnostic({
     line: result.line,
