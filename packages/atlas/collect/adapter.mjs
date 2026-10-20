@@ -136,6 +136,92 @@ function cold({ repo, commit, path, committedAt, fetchedAt, sha256, text }) {
   return [...threads.values(), ...held];
 }
 
+const canonical = value => Array.isArray(value) ? `[${value.map(canonical).join(',')}]`
+  : value && typeof value === 'object' ? `{${Object.keys(value).sort().map(key => `${JSON.stringify(key)}:${canonical(value[key])}`).join(',')}}`
+    : JSON.stringify(value);
+const digest = text => 'sha256:' + createHash('sha256').update(text).digest('hex');
+const same = (a, b) => canonical(a) === canonical(b);
+
+// Existing Gov member/final reports are observations of a finite contract, not purpose verdicts.
+// The caller selects an exact admitted binding. Acquisition authenticates the source; this edge
+// checks byte/identity coherence only, without reimplementing Gov's comparator or admitting raw ADRS.
+function governanceContract(snapshot) {
+  const { binding: b, provider: p, responses = {}, fetchedAt } = snapshot;
+  const sha = value => typeof value === 'string' && /^sha256:[a-f0-9]{64}$/u.test(value);
+  const revision = value => typeof value === 'string' && /^[a-f0-9]{40}$/u.test(value);
+  const token = value => typeof value === 'string' && value.length > 0 && !/[\s\u0000-\u001f\u007f]/u.test(value);
+  if (!b || !revision(b.targetCandidate) || !revision(b.governanceCandidate) || !token(b.obligationId)
+    || !token(b.governanceRepository) || !token(b.claimCeiling) || !sha(b.requirementDigest) || !sha(b.meaningDigest)
+    || !revision(b.requirement?.revision) || !token(b.requirement?.repository)
+    || !token(b.requirement?.path) || !sha(b.requirement?.digest))
+    throw new Error('atlas-collect: governance-contract needs an explicit exact binding');
+  const observedAt = p?.artifact?.created_at;
+  if (![observedAt, fetchedAt].every(value => typeof value === 'string' && Number.isFinite(Date.parse(value)))
+    || Date.parse(observedAt) > Date.parse(fetchedAt))
+    throw new Error('atlas-collect: governance-contract needs original artifact time <= fetch time');
+  const target = `${snapshot.repo}@${b.targetCandidate}:contract:${b.obligationId}:${b.requirement.digest}:${b.governanceCandidate}:contractDiffStatus`;
+  const hashes = {};
+  const read = name => {
+    const response = responses[name];
+    hashes[name] = { declared: response?.sha256 ?? null, actual: typeof response?.text === 'string' ? digest(response.text) : null };
+    if (typeof response?.text !== 'string' || digest(response.text) !== response.sha256) throw new Error(`unreadable ${name}`);
+    return JSON.parse(response.text);
+  };
+  let value = null, reason = null;
+  try {
+    const member = read('member'), pkg = read('package'), gate = read('gate'), input = read('input'), meaning = read('meaning'), manifest = read('manifest');
+    const { memberDigest, ...unsigned } = member;
+    const required = input.required?.rows, provided = input.provided?.source;
+    const source = input.required?.source;
+    const subject = meaning.meaning_identity?.subject;
+    const entry = name => manifest.filter(row => row.path === name);
+    const sourcePaths = { input: 'contract-diff-input.json', meaning: 'sources/adrs/apps-requirement-decision.jsonl' };
+    const exits = { CLOSED: 0, OPEN: 2, INVALID: 3, UNKNOWN: 4 };
+    const checks = [
+      member.kind === 'governance.packageContractClosureMember.v3',
+      member.authority === false, member.adoption === false, member.releasePublished === false,
+      member.memberDigest === digest(canonical(unsigned)),
+      member.bundleManifestDigest === responses.manifest.sha256,
+      ...Object.entries(sourcePaths).map(([key, path]) => entry(path).length === 1 && entry(path)[0].sha256 === responses[key].sha256),
+      member.logicalRepository === snapshot.repo, member.providerRepository === snapshot.repo,
+      member.targetCandidate === b.targetCandidate, member.governanceCandidate === b.governanceCandidate,
+      member.obligationId === b.obligationId, member.claimCeiling === b.claimCeiling,
+      member.acceptedRequirementRevision === b.requirement.revision, member.acceptedRequirementDigest === b.requirementDigest,
+      pkg.kind === 'governance.finalScopePurposeJoin.package.v1',
+      pkg.authority === false, pkg.adoption === false, pkg.releasePublished === false,
+      gate.kind === 'governance.finalScopePurposeJoin.gate.v8',
+      gate.authority === false, gate.meaningAuthority === false, gate.effectAuthority === false,
+      gate.companyAdoptionEffect === false, gate.operationalAdoptionEffect === false, gate.releasePublished === false,
+      ...[pkg, gate].flatMap(report => [report.candidateSha === b.governanceCandidate,
+        report.packageContractClosureDigest === member.memberDigest, same(report.packageContractClosure, member)]),
+      input.kind === 'contractDiffInput.v1', same(source, b.requirement),
+      Array.isArray(required) && required.length === 1 && required[0].id === b.obligationId
+        && required[0].contract?.obligation_digest === b.requirementDigest,
+      provided?.repository === snapshot.repo, provided?.revision === b.targetCandidate,
+      input.observations?.source?.repository === b.governanceRepository,
+      input.observations?.source?.revision === b.governanceCandidate,
+      digest(responses.meaning.text) === b.requirement.digest,
+      subject?.repository === snapshot.repo, subject?.obligation_id === b.obligationId,
+      meaning.apps_source_binding?.revision === b.targetCandidate,
+      meaning.meaning_identity?.claim_ceiling === b.claimCeiling,
+      meaning.meaning_identity_contract?.meaning_digest === b.meaningDigest,
+      digest(canonical(meaning.meaning_identity)) === b.meaningDigest,
+      p.run?.head_sha === b.governanceCandidate, p.artifact?.workflow_run?.head_sha === b.governanceCandidate,
+      p.run?.id === p.artifact?.workflow_run?.id, p.run?.status === 'completed',
+      Number.isSafeInteger(p.artifact?.id) && p.artifact.id > 0,
+      Number.isSafeInteger(p.run?.id) && p.run.id > 0, p.repository === b.governanceRepository, p.retrievedAt === fetchedAt,
+      Object.hasOwn(exits, member.contractDiffStatus), exits[member.contractDiffStatus] === member.contractDiffExit,
+    ];
+    if (checks.some(check => !check)) throw new Error('incoherent contract evidence');
+    value = member.contractDiffStatus; // Literal report field, never matched / achieved.
+  } catch (error) { reason = error.message; }
+  const ref = `${p?.repository ?? 'UNKNOWN'}/actions/runs/${p?.run?.id ?? 'UNKNOWN'}#artifact=${p?.artifact?.id ?? 'UNKNOWN'}`
+    + `; requirement=${b.requirement.repository}@${b.requirement.revision}:${b.requirement.path}`
+    + `; fetchedAt=${fetchedAt}${reason ? `; UNKNOWN: ${reason}` : ''}`;
+  return { kind: 'fact', target, value, observedAt, availableAt: fetchedAt,
+    source: { ref, sha256: digest(canonical({ binding: b, provider: p, hashes })) } };
+}
+
 // GitHub ids carry the owner: records get `repo: 'owner/repo'`, so every target, plan id and journal
 // ref built from it is `owner/repo#n…` / `owner/repo:…` (a fork and its upstream never share a name).
 // A snapshot without a plain owner and repo name is refused rather than collapsed into a shared id.
@@ -156,6 +242,7 @@ export function normalize(snapshot) {
     case 'issue-state': return [issueState(qualified(snapshot))];
     case 'declaration': return [declaration(snapshot)];
     case 'cold': return cold(snapshot);
+    case 'governance-contract': return [governanceContract(qualified(snapshot))];
     default: throw new Error(`atlas-collect: unknown snapshot type ${JSON.stringify(snapshot.type)}`);
   }
 }
