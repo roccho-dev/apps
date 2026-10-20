@@ -1,0 +1,8 @@
+{"schema":"atlas.control-norms/1","authority":false}
+{"kind":"norm","id":"norm.nixos","R":[],"W":["nixos.W"],"binding":{"purposeId":"purpose.hq","conditions":["g6i3-fork","nixos-console","nixos"]}}
+{"kind":"norm","id":"norm.refactor","R":[],"W":["refactor.W"],"binding":{"purposeId":"purpose.hq","conditions":["refactor"]}}
+{"kind":"norm","id":"norm.atlas","R":["atlas.R"],"W":["atlas.W"],"binding":{"purposeId":"purpose.hq","conditions":["atlas","input"]}}
+{"kind":"norm","id":"norm.envs","R":[],"W":["envs.W"],"binding":{"purposeId":"purpose.hq","conditions":["envs"]}}
+{"kind":"physical-scope","id":"phys.hq.apps","purposeId":"purpose.hq","gaps":["purpose-ideal","ideal-current"],"conditions":["atlas","input"],"repo":"roccho-dev/apps","package":"packages/atlas"}
+{"kind":"physical-scope","id":"phys.hq.ui","purposeId":"purpose.hq","gaps":["purpose-ideal","ideal-current"],"conditions":["atlas"],"repo":"roccho-dev/ui","package":"packages/control"}
+{"kind":"physical-scope","id":"phys.hq.apps.input","purposeId":"purpose.hq","gaps":["ideal-current"],"conditions":["input"],"repo":"roccho-dev/apps","package":"packages/atlas"}
