@@ -13,7 +13,7 @@ assert.ok(path.isAbsolute(root), "artifact root must be absolute");
 const site = path.join(root, "site");
 const manifestBytes = readFileSync(path.join(root, "manifest.json"));
 const manifestSha256 = createHash("sha256").update(manifestBytes).digest("hex");
-const expectedRevision = "ccefaf70f327f1b0c7d998cb67acca6cc915e622";
+const expectedRevision = "fe968fc6b8919fed48151a57f421667bce0aac87";
 
 const TYPES = new Map([
   [".html", "text/html; charset=utf-8"],
