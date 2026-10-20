@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { createHash } from "node:crypto";
 import fs from "node:fs";
 import path from "node:path";
 import test from "node:test";
@@ -14,11 +15,40 @@ import {
 } from "../src/diagnostic.mjs";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
-const contract = JSON.parse(fs.readFileSync(path.join(root, "web/providers/structured-diagnostic/contract.json"), "utf8"));
-const identity = JSON.parse(fs.readFileSync(path.join(root, "web/providers/structured-diagnostic/identity.json"), "utf8"));
+const providerRoot = path.join(root, "web/providers/structured-diagnostic");
+const contractPath = path.join(providerRoot, "contract.json");
+const corePath = path.join(providerRoot, "lib/diagnostic.mjs");
+const browserAdapterPath = path.join(providerRoot, "adapters/browser.mjs");
+const identityPath = path.join(providerRoot, "identity.json");
+const contract = JSON.parse(fs.readFileSync(contractPath, "utf8"));
+const identity = JSON.parse(fs.readFileSync(identityPath, "utf8"));
+
+function gitBlobSha(file) {
+  const bytes = fs.readFileSync(file);
+  return createHash("sha1")
+    .update(Buffer.from(`blob ${bytes.length}\0`, "utf8"))
+    .update(bytes)
+    .digest("hex");
+}
+
+test("provider identity binds the exact carried Ops bytes", () => {
+  assert.deepEqual(identity, {
+    schema: "structured-diagnostic-provider-identity/1",
+    ...EXPECTED_PROVIDER,
+    sourcePaths: [
+      "packages/structured-diagnostic/contract.json",
+      "packages/structured-diagnostic/lib/diagnostic.mjs",
+      "packages/structured-diagnostic/adapters/browser.mjs",
+    ],
+  });
+  assert.equal(gitBlobSha(contractPath), identity.contractBlob);
+  assert.equal(gitBlobSha(corePath), identity.coreBlob);
+  assert.equal(gitBlobSha(browserAdapterPath), identity.browserAdapterBlob);
+  assert.equal(contract.schema, "diagnostic-contract/1");
+  assert.equal(contract.messageBlankRule, "ecmascript-trim");
+});
 
 test("exact Ops provider bytes drive feature and data consumption", () => {
-  assert.deepEqual(identity, { schema: "structured-diagnostic-provider-identity/1", ...EXPECTED_PROVIDER, sourcePaths: identity.sourcePaths });
   const rows = [];
   const findings = [];
   const port = createBrowserDiagnosticPort({ contract, write: (line) => rows.push(line) });
@@ -61,6 +91,10 @@ test("wrong source, wrong code and invalid input never become findings", () => {
   assert.equal(
     consumeVoiceUiDiagnostic({ line: "{bad}", parse: port.parse, providerIdentity: identity }).reason,
     "invalid-diagnostic",
+  );
+  assert.equal(
+    consumeVoiceUiDiagnostic({ line, parse: null, providerIdentity: identity }).reason,
+    "invalid-provider-port",
   );
 });
 
