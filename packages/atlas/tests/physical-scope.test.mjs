@@ -91,7 +91,7 @@ test('actual derive emits one deduped physical package linking GapA and GapB, wi
   assert.deepEqual(links(result.world, '2026-10-17T01:00:00.000Z', 'ideal-current').map(value => value.context.condition), ['B', 'C']);
 });
 
-test('GapA distinguishes a current ideal-insufficient from achieved, past, mismatched and unadmitted', () => {
+test('GapA distinguishes a current ideal-insufficient from achieved, past and mismatched', () => {
   const physical = [record({ gaps: ['purpose-ideal'], conditions: [] })];
   const state = evaluation => ofKind(derive(physical, evaluation).world, T2, 'purpose-adequacy')[0]?.flags ?? [];
   assert.ok(state(evaluated()).includes('purpose_adequacy=insufficient'));
@@ -126,11 +126,20 @@ test('undeclared parts stay unbound and old control input emits no physical Scop
   assert.ok(t4.entities.some(value => value.ref.kind === 'unassigned-change' && value.ref.id === 'E'));
   assert.ok(!t4.entities.some(value => value.ref.kind === 'package' && value.ref.id.includes('E')));
   assert.ok(!t4.relations.some(value => value.ref.id.startsWith('physical:') && value.context?.condition === 'E'));
-  // The old control input (no physical-scope records) is unchanged: no physical entities.
+  // The old control input (no physical-scope records) has no physical entities.
   const old = deriveAtlas(EVENTS, CONTROL).world;
   for (const asOf of old.frames.map(value => value.asOf)) {
     assert.deepEqual(ofKind(old, asOf, 'package'), []);
     assert.deepEqual(ofKind(old, asOf, 'repository'), []);
-    assert.deepEqual(ofKind(old, asOf, 'purpose-adequacy'), []);
   }
+});
+
+// GapA is a difference of its own, not a physical Scope: the ui reads it only from the producer.
+test('GapA is supplied without any physical declaration or with GapB declarations only', () => {
+  const states = world => ofKind(world, T2, 'purpose-adequacy').map(value => value.flags.find(flag => flag.startsWith('purpose_adequacy=')));
+  assert.deepEqual(states(deriveAtlas(EVENTS, CONTROL).world), ['purpose_adequacy=unassessed']);
+  assert.deepEqual(states(derive([], evaluated()).world), ['purpose_adequacy=insufficient']);
+  const gapBOnly = derive([record({})], null).world;
+  assert.deepEqual(states(gapBOnly), ['purpose_adequacy=unassessed']);
+  assert.deepEqual(links(gapBOnly, T2, 'purpose-ideal'), [], 'no package is linked to GapA without a purpose-ideal declaration');
 });
