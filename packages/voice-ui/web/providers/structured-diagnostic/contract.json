@@ -1,0 +1,53 @@
+{
+  "schema": "diagnostic-contract/1",
+  "diagnosticSchema": "diagnostic/1",
+  "allowedTopLevel": [
+    "schema",
+    "code",
+    "level",
+    "message",
+    "fields"
+  ],
+  "requiredTopLevel": [
+    "schema",
+    "code",
+    "level",
+    "message"
+  ],
+  "hostOwnedTopLevel": [
+    "event_id",
+    "run_id",
+    "instruction_id",
+    "seq",
+    "recorded_at",
+    "timestamp",
+    "status",
+    "target",
+    "final"
+  ],
+  "levels": [
+    "debug",
+    "info",
+    "warn",
+    "error"
+  ],
+  "patterns": {
+    "code": "^[a-z][a-z0-9]*(?:[._-][a-z0-9]+)*$",
+    "field": "^[a-z][a-z0-9_]*(?:[.-][a-z0-9_]+)*$"
+  },
+  "limits": {
+    "encodedBytes": 65536,
+    "codeBytes": 128,
+    "messageBytes": 8192,
+    "fields": 32,
+    "fieldNameBytes": 128,
+    "fieldStringBytes": 8192
+  },
+  "fieldValueTypes": [
+    "null",
+    "string",
+    "boolean",
+    "number"
+  ],
+  "nestedFieldsAllowed": false
+}
