@@ -47,7 +47,7 @@ export async function runBrowserDiagnosticProof() {
     throw new Error("valid diagnostic was not classified from stable machine fields");
   }
   if (runtime.lines.length !== 1 || !runtime.lines[0].includes(`\"code\":\"${VOICE_UI_FAILURE_CODE}\"`)) {
-    throw new Error("browser callback did not receive exactly one canonical diagnostic row");
+    throw new Error("browser callback did not contain exactly one canonical diagnostic row");
   }
   if (runtime.port.canonicalize(result.line) !== result.line) {
     throw new Error("browser provider did not preserve canonical JSONL bytes");
