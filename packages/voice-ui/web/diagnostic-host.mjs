@@ -38,106 +38,161 @@ async function createBrowserBridge({ onFinding = () => {}, write } = {}) {
   });
 }
 
+async function installDiagnosticHost(target, { onFinding = () => {}, write } = {}) {
+  if (target === null || typeof target !== "object") {
+    throw new TypeError("diagnostic host target must be an object");
+  }
+  if (target.dataset.diagnosticHostInstalled === "true") {
+    return null;
+  }
+
+  target.dataset.diagnosticHostInstalled = "pending";
+  try {
+    const runtime = await createBrowserBridge({
+      write,
+      onFinding(finding) {
+        target.dataset.diagnosticCode = finding.code;
+        target.dataset.diagnosticAction = finding.action;
+        target.dataset.diagnosticPhase = finding.phase;
+        onFinding(finding);
+      },
+    });
+    let lastFailure = "";
+    const observe = () => {
+      if (target.dataset.state !== "failed") return;
+      const phase = target.dataset.failurePhase || "operation";
+      const reason = target.dataset.failureReason || "failed";
+      const key = `${phase}:${reason}`;
+      if (key === lastFailure) return;
+      lastFailure = key;
+      try {
+        runtime.bridge.reportFailure({ phase, reason });
+        target.dataset.diagnosticTransport = "accepted";
+      } catch {
+        target.dataset.diagnosticTransport = "rejected";
+      }
+    };
+    const observer = new MutationObserver(observe);
+    observer.observe(target, {
+      attributes: true,
+      attributeFilter: ["data-state", "data-failure-phase", "data-failure-reason"],
+    });
+    target.dataset.diagnosticProviderRevision = EXPECTED_PROVIDER.revision;
+    target.dataset.diagnosticHostInstalled = "true";
+    observe();
+    return Object.freeze({ observer, runtime });
+  } catch (error) {
+    target.dataset.diagnosticHostInstalled = "failed";
+    throw error;
+  }
+}
+
+async function settleMutations() {
+  await new Promise((resolve) => setTimeout(resolve, 0));
+}
+
 export async function runBrowserDiagnosticProof() {
+  const body = globalThis.document?.body;
+  if (!body) {
+    throw new Error("browser proof requires a document body");
+  }
+
+  const rows = [];
   const findings = [];
-  const runtime = await createBrowserBridge({ onFinding: (finding) => findings.push(finding) });
-  const result = runtime.bridge.reportFailure({ phase: "judge", reason: "provider_rejected" });
-  if (result.finding.status !== "classified" || result.finding.action !== "inspect-judgment-provider") {
-    throw new Error("valid diagnostic was not classified from stable machine fields");
+  body.dataset.primaryResult = "failed";
+  body.dataset.failurePhase = "judge";
+  body.dataset.failureReason = "provider_rejected";
+  const installed = await installDiagnosticHost(body, {
+    write: (line) => rows.push(line),
+    onFinding: (finding) => findings.push(finding),
+  });
+  if (installed === null) {
+    throw new Error("browser proof target was already installed");
   }
-  if (runtime.lines.length !== 1 || !runtime.lines[0].includes(`\"code\":\"${VOICE_UI_FAILURE_CODE}\"`)) {
-    throw new Error("browser callback did not contain exactly one canonical diagnostic row");
+  body.dataset.state = "failed";
+  await settleMutations();
+
+  if (rows.length !== 1 || findings.length !== 1) {
+    throw new Error("actual failure state did not produce exactly one diagnostic and finding");
   }
-  if (runtime.port.canonicalize(result.line) !== result.line) {
-    throw new Error("browser provider did not preserve canonical JSONL bytes");
+  if (body.dataset.diagnosticTransport !== "accepted"
+      || body.dataset.diagnosticAction !== "inspect-judgment-provider"
+      || body.dataset.primaryResult !== "failed"
+      || body.dataset.state !== "failed") {
+    throw new Error("actual failure state was not preserved and classified");
   }
+
+  const line = rows[0];
+  const finding = findings[0];
+  if (!line.includes(`\"code\":\"${VOICE_UI_FAILURE_CODE}\"`)
+      || installed.runtime.port.canonicalize(line) !== line) {
+    throw new Error("browser callback did not contain one canonical diagnostic row");
+  }
+
   const wrongSource = consumeVoiceUiDiagnostic({
-    line: result.line,
-    parse: runtime.port.parse,
-    providerIdentity: { ...runtime.providerIdentity, revision: "0".repeat(40) },
+    line,
+    parse: installed.runtime.port.parse,
+    providerIdentity: { ...installed.runtime.providerIdentity, revision: "0".repeat(40) },
   });
   if (wrongSource.reason !== "wrong-source") {
     throw new Error("wrong provider source was accepted");
   }
   const wrongCode = consumeVoiceUiDiagnostic({
-    line: runtime.port.encode({ schema: "diagnostic/1", code: "voice-ui.other", level: "error", message: "x" }),
-    parse: runtime.port.parse,
-    providerIdentity: runtime.providerIdentity,
+    line: installed.runtime.port.encode({
+      schema: "diagnostic/1",
+      code: "voice-ui.other",
+      level: "error",
+      message: "x",
+    }),
+    parse: installed.runtime.port.parse,
+    providerIdentity: installed.runtime.providerIdentity,
   });
   if (wrongCode.reason !== "wrong-code") {
     throw new Error("wrong diagnostic code was accepted");
   }
   const invalid = consumeVoiceUiDiagnostic({
     line: "{not-json}",
-    parse: runtime.port.parse,
-    providerIdentity: runtime.providerIdentity,
+    parse: installed.runtime.port.parse,
+    providerIdentity: installed.runtime.providerIdentity,
   });
   if (invalid.reason !== "invalid-diagnostic") {
     throw new Error("invalid diagnostic was accepted");
   }
 
-  const primary = Object.freeze({ ok: false, status: "failed" });
-  const transportFailure = new Error("bounded browser transport rejected");
-  const rejecting = await createBrowserBridge({ write: () => { throw transportFailure; } });
-  let observed = null;
-  try {
-    rejecting.bridge.reportFailure({ phase: "render", reason: "transport_rejected" });
-  } catch (error) {
-    observed = error;
-  }
-  if (observed !== transportFailure || primary.status !== "failed") {
-    throw new Error("transport failure changed the primary result");
+  const rejectedTarget = document.createElement("section");
+  rejectedTarget.dataset.primaryResult = "failed";
+  rejectedTarget.dataset.failurePhase = "render";
+  rejectedTarget.dataset.failureReason = "transport_rejected";
+  body.append(rejectedTarget);
+  let rejectedWrites = 0;
+  await installDiagnosticHost(rejectedTarget, {
+    write() {
+      rejectedWrites += 1;
+      throw new Error("bounded browser transport rejected");
+    },
+  });
+  rejectedTarget.dataset.state = "failed";
+  await settleMutations();
+  if (rejectedWrites !== 1
+      || rejectedTarget.dataset.diagnosticTransport !== "rejected"
+      || rejectedTarget.dataset.primaryResult !== "failed"
+      || rejectedTarget.dataset.state !== "failed") {
+    throw new Error("transport rejection changed the caller-owned primary failure");
   }
 
   return Object.freeze({
     status: "PASS",
-    providerIdentity: runtime.providerIdentity,
-    finding: findings[0],
+    providerIdentity: installed.runtime.providerIdentity,
+    finding,
+    actualFailureState: Object.freeze({
+      state: body.dataset.state,
+      primaryResult: body.dataset.primaryResult,
+      transport: body.dataset.diagnosticTransport,
+    }),
     controls: [wrongSource.reason, wrongCode.reason, invalid.reason, "transport-preserved-primary"],
   });
 }
 
-async function installOnVoiceUiPage() {
-  if (!globalThis.document?.body || globalThis.document.body.dataset.diagnosticHostInstalled === "true") {
-    return;
-  }
-  const body = globalThis.document.body;
-  body.dataset.diagnosticHostInstalled = "pending";
-  try {
-    const runtime = await createBrowserBridge({
-      onFinding(finding) {
-        body.dataset.diagnosticCode = finding.code;
-        body.dataset.diagnosticAction = finding.action;
-        body.dataset.diagnosticPhase = finding.phase;
-      },
-    });
-    let lastFailure = "";
-    const observe = () => {
-      if (body.dataset.state !== "failed") return;
-      const phase = body.dataset.failurePhase || "operation";
-      const reason = body.dataset.failureReason || "failed";
-      const key = `${phase}:${reason}`;
-      if (key === lastFailure) return;
-      lastFailure = key;
-      try {
-        runtime.bridge.reportFailure({ phase, reason });
-        body.dataset.diagnosticTransport = "accepted";
-      } catch {
-        body.dataset.diagnosticTransport = "rejected";
-      }
-    };
-    new MutationObserver(observe).observe(body, {
-      attributes: true,
-      attributeFilter: ["data-state", "data-failure-phase", "data-failure-reason"],
-    });
-    body.dataset.diagnosticProviderRevision = EXPECTED_PROVIDER.revision;
-    body.dataset.diagnosticHostInstalled = "true";
-    observe();
-  } catch {
-    body.dataset.diagnosticHostInstalled = "failed";
-  }
-}
-
 if (globalThis.document?.body?.dataset.diagnosticProof !== "standalone") {
-  void installOnVoiceUiPage();
+  void installDiagnosticHost(globalThis.document.body).catch(() => {});
 }
