@@ -1,20 +1,26 @@
 import {
-  DiagnosticContractError,
   encodeDiagnostic,
   parseDiagnosticLine,
   validateDiagnostic,
 } from "../lib/diagnostic.mjs";
 
+function failPort(code, path, message) {
+  const error = new TypeError(message);
+  error.code = code;
+  error.path = path;
+  throw error;
+}
+
 export function createBrowserDiagnosticPort({ contract, write }) {
   if (contract === null || typeof contract !== "object" || Array.isArray(contract)) {
-    throw new DiagnosticContractError(
+    failPort(
       "DIAGNOSTIC_CONTRACT_INVALID",
       "contract",
       "contract must be an object",
     );
   }
   if (typeof write !== "function") {
-    throw new DiagnosticContractError(
+    failPort(
       "DIAGNOSTIC_PORT_INVALID",
       "write",
       "browser diagnostic port must expose write(line)",
