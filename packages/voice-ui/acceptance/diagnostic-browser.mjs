@@ -13,7 +13,7 @@ assert.ok(path.isAbsolute(root), "artifact root must be absolute");
 const site = path.join(root, "site");
 const manifestBytes = readFileSync(path.join(root, "manifest.json"));
 const manifestSha256 = createHash("sha256").update(manifestBytes).digest("hex");
-const expectedRevision = "32cd4c641fdbc33bfe4dd088c853037f557f8fac";
+const expectedRevision = "ccefaf70f327f1b0c7d998cb67acca6cc915e622";
 
 const TYPES = new Map([
   [".html", "text/html; charset=utf-8"],
@@ -88,6 +88,7 @@ try {
   assert.equal(observed.report.providerIdentity.revision, expectedRevision);
   for (const required of [
     "/diagnostic-proof.html",
+    "/diagnostic-proof.mjs",
     "/diagnostic-host.mjs",
     "/providers/structured-diagnostic/contract.json",
     "/providers/structured-diagnostic/identity.json",
