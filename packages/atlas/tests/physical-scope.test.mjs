@@ -97,9 +97,23 @@ test('GapA distinguishes a current ideal-insufficient from achieved, past, misma
   assert.ok(state(evaluated()).includes('purpose_adequacy=insufficient'));
   assert.ok(state(evaluated({ verdict: 'achieved' })).includes('purpose_adequacy=unassessed'), 'achieved purpose does not prove ideal adequacy');
   assert.ok(state(evaluated({ ideal_version: 'v1' })).includes('purpose_adequacy=unassessed'), 'version mismatch is unassessed');
-  assert.ok(state(evaluated({ source: { ref: 'synthetic:gap-evaluation', digest: 'sha256:' + 'e'.repeat(64), admission: 'observed_not_admitted' } }))
-    .includes('purpose_adequacy=unassessed'), 'capture is not admission');
   assert.ok(state(null).includes('purpose_adequacy=unassessed'), 'no evaluation is unassessed, not absent and not satisfied');
+});
+
+// adrs#647 comment 6265881722: admission is shown only, never part of a judgment.
+test('GapA admission is display only: the same evaluation with or without admission gives the same state', () => {
+  const physical = [record({ gaps: ['purpose-ideal'], conditions: [] })];
+  const adequacy = evaluation => ofKind(derive(physical, evaluation).world, T2, 'purpose-adequacy')[0];
+  const unadmitted = adequacy(evaluated({ source: { ref: 'synthetic:gap-evaluation', digest: 'sha256:' + 'e'.repeat(64), admission: 'observed_not_admitted' } }));
+  assert.deepEqual(unadmitted.flags, adequacy(evaluated()).flags);
+  assert.match(unadmitted.summary, /admission=observed_not_admitted/u);
+});
+
+test('a repository with several declared packages carries every declaration as its provenance', () => {
+  const physical = [record({ id: 'd.one', package: 'packages/one' }), record({ id: 'd.two', package: 'packages/two', conditions: ['B'] }),
+    record({ id: 'd.parts', conditions: ['A', 'B'] })];
+  const [repo] = ofKind(derive(physical, null).world, T2, 'repository');
+  assert.equal(repo.source.sourceRef, 'atlas.control-norms/1#d.one+d.parts+d.two');
 });
 
 test('undeclared parts stay unbound and old control input emits no physical Scope', () => {
