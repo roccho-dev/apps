@@ -27,7 +27,6 @@ async function createBrowserBridge({ onFinding = () => {}, write } = {}) {
     contract,
     write: write ?? ((line) => {
       lines.push(line);
-      globalThis.dispatchEvent?.(new CustomEvent("voice-ui-diagnostic", { detail: { line } }));
     }),
   });
   return Object.freeze({
