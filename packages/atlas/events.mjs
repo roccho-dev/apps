@@ -572,13 +572,12 @@ const semanticFrame = (derived, frame, index) => {
     target: [bound(find(`ideal.${p.version}`), { state_ref: targetRef })], observed: bound(find(`current@${frame.asOf}`), { state_ref: currentRef }) };
   const known = frame.conditions.filter(value => value.judgment.observation).length;
   // GapA explicitly, from the real human purpose.evaluated entry (never CI or a
-  // match). A current, admitted ideal-insufficient is insufficient; absent,
-  // past, version-mismatched or explicitly unadmitted is unassessed.
+  // match). A current ideal-insufficient is insufficient; absent, past or
+  // version-mismatched is unassessed. admission is carried for display only.
   const journal = derived.frames.slice(0, index + 1).flatMap(item => item.journal ?? []);
   const evaluation = journal.filter(event => event.kind === 'purpose.evaluated' && event.purpose_id === pid).at(-1) ?? null;
   const evaluationCurrent = !!evaluation && evaluation.purpose_rev === frame.purpose.rev && evaluation.ideal_version === p.version;
-  const adequacy = evaluation && evaluationCurrent && evaluation.verdict === 'ideal-insufficient' && !evaluation.source?.admission
-    ? 'insufficient' : 'unassessed';
+  const adequacy = evaluationCurrent && evaluation.verdict === 'ideal-insufficient' ? 'insufficient' : 'unassessed';
   return { id: `t@${frame.asOf}`, rev: index + 1, asOf: frame.asOf, source_ref: `atlas-events:frame@${frame.asOf}`,
     purpose_label: frame.purpose.purpose.label, current_label: `観測照合 ${known}/${p.requires.length} 件 @${frame.asOf}`,
     target_label: `理想状態 ${p.version}：${p.label ?? '条件'}（条件 ${p.requires.length} 件）`, post_label: `導出 ${frame.asOf}`, semantic,

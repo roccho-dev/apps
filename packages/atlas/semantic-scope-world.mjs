@@ -293,7 +293,7 @@ export const semanticScopeWorld = (input, reducedClosure) => {
         const stateLabel = { insufficient: '不十分（評価）', unassessed: '未評価（十分性は未判定）' }[state];
         adequacyRef = entity(ref(space, 'purpose-adequacy', meaning.pair.purpose_id), caption('目的↔理想の差', stateLabel), 'purpose',
           'GapA · 目的に対する理想状態の十分性。現在の版に一致する人評価 purpose.evaluated が ideal-insufficient で、'
-            + '明示的な未採択（admission）が無いときだけ「不十分」。評価なし・過去・版不一致・理想なし・未採択は「未評価」'
+            + 'のときだけ「不十分」。評価なし・過去・版不一致・理想なしは「未評価」'
             + '（十分でも 0 でもない）。CI や matched からは判定しません。'
             + ' · verdict=' + (evaluation.verdict ?? 'なし') + ' · current=' + String(evaluation.current)
             + ' · admission=' + (evaluation.admission ?? 'なし') + ' · recordedAt=' + (evaluation.recordedAt ?? 'なし'),
@@ -321,15 +321,20 @@ export const semanticScopeWorld = (input, reducedClosure) => {
         relations.push({ ref: ref(space, 'declared-relation', id), from, to, kind: 'declared-relation', label, context,
           source: ownSource, time: { ...ownTime }, flags: ['authority=false'], containment: null, path: false });
       };
-      const repositories = new Map();
-      for (const target of targets.values()) {
+      const linked = [...targets.values()].map(target => {
         const links = [];
         if (target.gaps.has('purpose-ideal') && adequacyRef) links.push({ gap: 'purpose-ideal', to: adequacyRef, condition: null });
         if (target.gaps.has('ideal-current')) for (const condition of [...target.conditions].sort()) {
           const to = unitFor(condition);
           if (to) links.push({ gap: 'ideal-current', to, condition });
         }
-        if (!links.length) continue;
+        return { target, links };
+      }).filter(value => value.links.length);
+      // A repository's provenance is every declaration of its linked packages, not the first one.
+      const repoIds = new Map();
+      for (const { target } of linked) repoIds.set(target.repo, [...(repoIds.get(target.repo) ?? []), ...target.ids]);
+      const repositories = new Map();
+      for (const { target, links } of linked) {
         const declarationIds = [...target.ids].sort();
         const ownSource = source('atlas.control-norms/1#' + declarationIds.join('+'), 'declared');
         const ownTime = { ...time };
@@ -337,7 +342,7 @@ export const semanticScopeWorld = (input, reducedClosure) => {
         if (!repoRef) {
           repoRef = entity(ref(space, 'repository', target.repo), caption(target.repo, 'repo'), 'scopes',
             '物理Scopeのrepo（control の physical-scope 宣言）· 変更対象。すべてのrepoの一覧ではありません。',
-            ['physical-scope', 'repo=' + target.repo], ownSource, ownTime);
+            ['physical-scope', 'repo=' + target.repo], source('atlas.control-norms/1#' + repoIds.get(target.repo).sort().join('+'), 'declared'), ownTime);
           repositories.set(target.repo, repoRef);
         }
         const packageId = target.repo + ':' + target.package;
