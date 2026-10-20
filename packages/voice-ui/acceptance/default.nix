@@ -20,6 +20,7 @@ in {
     nativeBuildInputs = [ pkgs.nodejs ];
   } ''
     node ${./smoke.mjs} ${runtime}/bin/voice-ui-acceptance-node ${artifact}
+    ${runtime}/bin/voice-ui-acceptance-node ${./diagnostic-browser.mjs} ${artifact}
     touch "$out"
   '';
 }
