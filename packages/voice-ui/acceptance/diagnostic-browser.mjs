@@ -10,9 +10,6 @@ const { chromium } = require("playwright-core");
 
 const [root] = process.argv.slice(2);
 assert.ok(path.isAbsolute(root), "artifact root must be absolute");
-const executablePath = process.env.VOICE_UI_CHROMIUM_EXECUTABLE;
-assert.ok(executablePath && path.isAbsolute(executablePath), "Nix Chromium executable must be provided");
-assert.ok(statSync(executablePath).isFile(), "Nix Chromium executable must exist");
 const site = path.join(root, "site");
 const manifestBytes = readFileSync(path.join(root, "manifest.json"));
 const manifestSha256 = createHash("sha256").update(manifestBytes).digest("hex");
@@ -66,7 +63,7 @@ let browser;
 try {
   await new Promise((resolve) => server.listen(0, "127.0.0.1", resolve));
   const origin = `http://127.0.0.1:${server.address().port}`;
-  browser = await chromium.launch({ executablePath, headless: true, args: ["--no-sandbox"] });
+  browser = await chromium.launch({ headless: true, channel: "chromium", args: ["--no-sandbox"] });
   const page = await browser.newPage();
   await page.goto(`${origin}/diagnostic-proof.html`, { waitUntil: "networkidle" });
   await page.waitForFunction(() => document.body.dataset.result !== "PENDING");
