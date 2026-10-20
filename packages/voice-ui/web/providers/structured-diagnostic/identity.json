@@ -1,0 +1,14 @@
+{
+  "schema": "structured-diagnostic-provider-identity/1",
+  "repository": "roccho-org/ops",
+  "revision": "fe968fc6b8919fed48151a57f421667bce0aac87",
+  "tree": "b306bf999aba32a678ac48b5a56e4b4a0a3c0cf8",
+  "contractBlob": "8df122c2e3205328a0f922c3397e7246ae1e0e16",
+  "coreBlob": "135ec3331f82af2ab310518cc8b4a356ccefcf3f",
+  "browserAdapterBlob": "f9dfe0616a3abf64fe4af06b949d377ea5de96b2",
+  "sourcePaths": [
+    "packages/structured-diagnostic/contract.json",
+    "packages/structured-diagnostic/lib/diagnostic.mjs",
+    "packages/structured-diagnostic/adapters/browser.mjs"
+  ]
+}
