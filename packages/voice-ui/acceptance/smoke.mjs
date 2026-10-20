@@ -5,6 +5,7 @@ import { mkdirSync, mkdtempSync, readFileSync, statSync } from "node:fs";
 import http from "node:http";
 import { tmpdir } from "node:os";
 import path from "node:path";
+import { pathToFileURL } from "node:url";
 
 // The packaged runtime and public E2E entrypoints, real Chromium, and the
 // artifact's exact site bytes served unmodified with the isolation headers the
@@ -20,6 +21,8 @@ const bytes = readFileSync(path.join(root, "manifest.json"));
 const manifest = JSON.parse(bytes);
 const digest = createHash("sha256").update(bytes).digest("hex");
 const site = path.join(root, "site");
+const { DIRECT_GOAL_REQUEST_KIND: directGoalKind } = await import(pathToFileURL(path.join(site, "app/src/contract.mjs")));
+assert.equal(directGoalKind, "voice-ui.judge.goal-local-delta.v8");
 
 const TYPES = new Map(Object.entries({
   ".html": "text/html; charset=utf-8",
@@ -296,7 +299,7 @@ try {
     assert.equal(proof.exchanges.every(exchange => exchange.status === 200 && exchange.answers !== null), true);
     if (entry.data.order === "reverse") {
       assert.equal(proof.evaluation.orderInterventions.length,
-        proof.exchanges.filter(exchange => exchange.kind === "voice-ui.judge.goal-local-delta.v7").length);
+        proof.exchanges.filter(exchange => exchange.kind === directGoalKind).length);
       for (const order of proof.evaluation.orderInterventions) {
         assert.deepEqual(order.after, [...order.before].reverse()); assert.equal(order.sameEntriesAndOtherState, true);
       }
