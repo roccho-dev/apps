@@ -363,6 +363,7 @@
                 VOICE_UI_SEMCMP_BIN = "${semcmpFor system}/bin/semcmp";
                 VOICE_UI_DIST = "${voiceUiDist}";
                 POC_PROTOCOL_ENTRY = "${voiceUiDist}/site/ui/semantic-map/protocol/index.js";
+                VOICE_UI_TEST_PROTOCOL = "${voiceUiDist}/site/ui/semantic-map/protocol/index.js";
                 POC_SOURCE_ROOT = "${self}/packages/voice-ui";
                 POC_AXIS_FIXTURES = "${self}/docs/voice-ui/component-axes-20261017/preregistered";
                 POC_RESERVE_FIXTURES = "${self}/docs/voice-ui/component-axes-20261017/evidence/final-E";

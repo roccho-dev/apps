@@ -9,7 +9,7 @@ import {pathToFileURL} from 'node:url';
 const root=process.env.VOICE_RELATION_SOURCE??new URL('..',import.meta.url).pathname;
 const load=relative=>import(pathToFileURL(path.join(root,relative)));
 const {requestFor,planStep,appendStep,legalLocalDeltas,proveLocalDelta,revertStep}=await load('src/turn.mjs');
-const {isRequest,slotsFor,REQUEST_KIND,ARCHITECTURE_INTENT_KIND}=await load('src/contract.mjs');
+const {isRequest,slotsFor,REQUEST_KIND,ANNOTATION_REQUEST_KIND,ARCHITECTURE_INTENT_KIND}=await load('src/contract.mjs');
 const {questionsFor}=await load('src/judgment.mjs');
 const {readBundle}=await load('src/bundle.mjs');
 const {createSession,propose,undo,apply}=await load('src/session.mjs');
@@ -37,7 +37,8 @@ const plainEdge=({id,from,to,kind,label})=>({id,from,to,kind,label});
 for(const fixture of fixtures){
  test('B meaningful relation input is closed and complete / '+fixture.id,async()=>{
   const prepared=prepare(await initial(fixture),fixture);
-  assert.equal(prepared.request.kind,'voice-ui.judge.request.v2');assert.equal(isRequest(prepared.request),true);
+  assert.equal(ANNOTATION_REQUEST_KIND,'voice-ui.judge.request.v3');
+  assert.equal(prepared.request.kind,ANNOTATION_REQUEST_KIND);assert.equal(isRequest(prepared.request),true);
   assert.deepEqual(prepared.request.state.graph.edges,fixture.typedRelation.expectedInputEdges.map(plainEdge));
  });
  test('B performs only the requested typed edit and preserves every other record / '+fixture.id,async()=>{

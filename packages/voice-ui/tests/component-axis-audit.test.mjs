@@ -21,7 +21,9 @@ const { DECISION_KIND } = await import(pathToFileURL(path.join(source, 'src/cont
 const { assessPaintedGoal: assessGoal, assessPaintedEdge: assessEdge } = await import(pathToFileURL(path.join(source, 'tests/painted-goal.mjs')));
 const enc = x => Buffer.from(JSON.stringify(x, null, 2) + '\n');
 const lines = x => Buffer.from(x.map(r => JSON.stringify(r)).join('\n') + '\n');
-const bundleBytes = fs.readFileSync(path.join(source, 'web/data/bundle.v1.json'));
+// The synthetic legacy phase uses the original sealed v1 stock, while the
+// producer modules above remain the explicitly supplied current source.
+const bundleBytes = fs.readFileSync(new URL('./fixtures/legacy-bundle.v1.json', import.meta.url));
 const bundleValue = JSON.parse(bundleBytes), bundle = readBundle(bundleValue);
 const names = ['src/completion.mjs', 'src/literal-inventory.mjs', 'src/goal.mjs', 'src/contract.mjs', 'src/turn.mjs', 'src/session.mjs',
   'functions/api/parts.mjs', 'functions/pages-worker.mjs', 'web/app.mjs', 'web/adapters/completion.mjs',

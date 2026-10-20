@@ -953,7 +953,7 @@ test("this package's whole snapshot, drawn, still fits the intent's bounds", asy
 // stops before asking. Neither the bound nor gold narrows it.
 test("a Goal on this package's drawn snapshot without a focus is offered every pair and stops before asking", async t => {
   const manifest = ownManifest();
-  const bundle = readBundle(JSON.parse(fs.readFileSync(new URL("../web/data/bundle.v1.json", import.meta.url), "utf8")));
+  const bundle = readBundle(JSON.parse(fs.readFileSync(new URL("./fixtures/legacy-bundle.v1.json", import.meta.url), "utf8")));
   let working = await mapGraph();
   working = await appendAll(working, await plan(working, manifest));
   working = await appendAll(working, await plan(working, manifest, { focus: "web-app-mjs",
@@ -985,7 +985,7 @@ test("a Goal on this package's drawn snapshot without a focus is offered every p
 // saved as the person's, not the source's.
 test("a Goal after a source focus in the same session resolves its one arrow, asks it, and saves it as the person's", async t => {
   const manifest = ownManifest();
-  const bundle = readBundle(JSON.parse(fs.readFileSync(new URL("../web/data/bundle.v1.json", import.meta.url), "utf8")));
+  const bundle = readBundle(JSON.parse(fs.readFileSync(new URL("./fixtures/legacy-bundle.v1.json", import.meta.url), "utf8")));
   let session = (await startNew(createSession({ accepted: null, stored: null }), { title: "map", protocol })).session;
   const say = async (focus, judge, text) => {
     const planned = await plan(session.working, manifest, { focus, judge });

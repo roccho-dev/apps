@@ -151,7 +151,7 @@ test("cancellation between stages prevents any next provider send", async () => 
 test("v2 preparation uses its verified receipt exactly once with zero HTTP complete callbacks", async () => {
   const protocol = await import(pathToFileURL(process.env.POC_PROTOCOL_ENTRY ?? path.resolve(
     path.dirname(fileURLToPath(import.meta.url)), "../../../../../../ui.git/.worktrees/voice-ui-render-identity-20261017/packages/semantic-map/protocol/index.js")));
-  const bundle = readBundle(JSON.parse(fs.readFileSync(new URL("../web/data/bundle.v1.json", import.meta.url))));
+  const bundle = readBundle(JSON.parse(fs.readFileSync(new URL("./fixtures/legacy-bundle.v1.json", import.meta.url))));
   const input = inventory(); input.state.parts = bundle.parts;
   const response = await invoke(input, async request => ({ answers: factors(request.state.required ? "complete" : "incomplete") }),
     async () => ({ result: slots() }));

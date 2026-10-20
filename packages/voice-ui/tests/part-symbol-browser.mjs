@@ -129,7 +129,8 @@ export async function checkPaintedSymbols({ page, records, expected, origin, sta
         const doc = document.querySelector('#working-surface iframe').contentDocument;
         const group = [...doc.querySelectorAll('[data-semantic-region-id][data-semantic-role="shape"]')]
           .find(node => node.dataset.semanticRegionId === id);
-        const rects = [...group.children].filter(node => node.localName === 'rect');
+        const rects = [...group.children].filter(node => node.localName === 'rect'
+          && doc.defaultView.getComputedStyle(node).visibility === 'visible');
         if (rects.length !== 2) throw Error('expected exact image compound frame');
         if (mutation === 'duplicate-frame') {
           const clone = rects[0].cloneNode(true); clone.dataset.testCompoundFrame = 'duplicate'; group.appendChild(clone); return null;
@@ -147,7 +148,8 @@ export async function checkPaintedSymbols({ page, records, expected, origin, sta
             .find(node => node.dataset.semanticRegionId === id);
           if (mutation === 'duplicate-frame') group.querySelector('[data-test-compound-frame="duplicate"]').remove();
           else {
-            const rect = [...group.children].filter(node => node.localName === 'rect')[1];
+            const rect = [...group.children].filter(node => node.localName === 'rect'
+              && doc.defaultView.getComputedStyle(node).visibility === 'visible')[1];
             if (saved === null) rect.removeAttribute('x'); else rect.setAttribute('x', saved);
           }
         }, { id: nodes[0].id, mutation, saved });

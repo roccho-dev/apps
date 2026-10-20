@@ -25,11 +25,16 @@ export function observePaintedGoal({ container, records, edge = null, identity =
   // unavailable; resource identity/decode is checked separately by symbols.
   const compoundImageFrame = (geometry, group) => {
     if (!identity || geometry.length !== 2 || !geometry.every(node => node.localName === "rect")) return null;
-    const images = [...group.children].filter(node => node.localName === "image" && node.namespaceURI === "http://www.w3.org/2000/svg");
-    if (images.length !== 1 || group.children.length !== 3 || !images[0].getAttributeNS("http://www.w3.org/1999/xlink", "href")
+    const children = [...group.children].filter(visible);
+    const images = children.filter(node => node.localName === "image" && node.namespaceURI === "http://www.w3.org/2000/svg");
+    if (images.length !== 1 || children.length !== 3 || !images[0].getAttributeNS("http://www.w3.org/1999/xlink", "href")
       && !images[0].getAttribute("href")) return null;
-    const bounds = [geometry[0], geometry[1], images[0]].map(box);
-    return bounds.every(value => value !== null && JSON.stringify(value) === JSON.stringify(bounds[0])) ? geometry[0] : null;
+    const nodes = [geometry[0], geometry[1], images[0]], bounds = nodes.map(box);
+    if (!bounds.every(value => value !== null && JSON.stringify(value) === JSON.stringify(bounds[0]))) return null;
+    const matrices = nodes.map(node => axis(node.getScreenCTM()));
+    if (matrices.some(matrix => matrix === null) || !matrices.every(matrix => ["a", "b", "c", "d", "e", "f"]
+      .every(key => matrix[key] === matrices[0][key]))) return null;
+    return geometry[0];
   };
   // The one rendered node whose whole text is the label, or null.
   const owned = (record, role) => {
@@ -171,6 +176,9 @@ export function observePaintedGoal({ container, records, edge = null, identity =
         && previous.querySelector("rect, path, ellipse, polygon")) {
         const geometry = [...previous.children].filter(node => {
           if (!["rect", "path", "ellipse", "polygon"].includes(node.localName)) return false;
+          // Interactive image borders also have a hidden white hit outline.
+          // It does not paint and cannot establish or duplicate a visible shape.
+          if (!visible(node)) return false;
           for (let at = node; at !== null; at = at.parentElement)
             if (iframe.contentWindow.getComputedStyle(at).clipPath !== "none") return false;
           const style = iframe.contentWindow.getComputedStyle(node);

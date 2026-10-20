@@ -218,8 +218,10 @@ const ROOT_KEY = "voice-ui.decision-log.v1";
 const served = await fetch(new URL("/app/src/contract.mjs", url));
 assert.equal(served.status, 200, "the target serves its contract module");
 const contract = await import(`data:text/javascript;base64,${Buffer.from(await served.text()).toString("base64")}`);
-// Plain finite Goals use the served direct kind; source-scoped Goals keep their scoped kind.
-const goalDeltaKind = SOURCE ? contract.GOAL_REQUEST_KIND : contract.DIRECT_GOAL_REQUEST_KIND;
+// The current bundle selects direct deltas for ordinary and source-scoped Goals.
+// Source scope remains in the request; it does not select the legacy frame kind.
+assert.equal(contract.DIRECT_GOAL_REQUEST_KIND, "voice-ui.judge.goal-local-delta.v8");
+const goalDeltaKind = contract.DIRECT_GOAL_REQUEST_KIND;
 const config = await (await fetch(new URL("/architecture/data/config.v1.json", url))).json();
 const KEY = config.persistence.key;
 // The snapshot's public manifest as the target serves it: its parts, which a

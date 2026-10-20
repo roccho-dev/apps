@@ -5,7 +5,7 @@ import { isInventory, inventoryQuestion, readTypedMissing, runInventoryGoal, typ
 import { readBundle } from "../src/bundle.mjs";
 import { LABEL_MAX } from "../src/contract.mjs";
 import { onParts } from "../functions/api/parts.mjs";
-const bundle = readBundle(JSON.parse(fs.readFileSync(new URL("../web/data/bundle.v1.json", import.meta.url))));
+const bundle = readBundle(JSON.parse(fs.readFileSync(new URL("./fixtures/legacy-bundle.v1.json", import.meta.url))));
 const initial = { working: { head: "fixture-head", records: [
   { type: "region", id: "root", parent: null, label: "fixture", kind: "boundary" },
   { type: "region", id: "parent", parent: "root", label: "Container", kind: "group" },

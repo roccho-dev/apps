@@ -10,7 +10,7 @@ import { createSession, undo, apply } from "../src/session.mjs";
 import { MAP_ID, STATE_SCHEMA, COMMIT_COMMITTED, RESTORE_RESTORED, commitLog, restoreLog } from "../src/log.mjs";
 if (!process.env.SEMANTIC_MAP) throw new Error("SEMANTIC_MAP is required");
 const protocol = await import(pathToFileURL(path.join(process.env.SEMANTIC_MAP, "packages/semantic-map/protocol/index.js")));
-const bundle = readBundle(JSON.parse(fs.readFileSync(new URL("../web/data/bundle.v1.json", import.meta.url))));
+const bundle = readBundle(JSON.parse(fs.readFileSync(new URL("./fixtures/legacy-bundle.v1.json", import.meta.url))));
 const opened = async () => {
   const made = await protocol.createDecisionLog([
     { type: "meta", schema: STATE_SCHEMA, root: "root", title: "completion fixture" },

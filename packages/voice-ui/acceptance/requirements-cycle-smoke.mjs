@@ -36,8 +36,10 @@ globalThis.fetch = async (url, init) => {
   assert.equal(init.method, "POST");
   upstream.push({ provider, route: String(url) });
   if (provider === "typellm") {
+    const wire = JSON.parse(init.body), capacity = currentStage.startsWith("E") ? 16 : 3;
+    assert.deepEqual(Object.keys(wire.questions), Array.from({ length: capacity }, (_, i) => "required" + (i + 1)));
     if (currentStage === "E-contract") return Response.json({ status: "completed", result: { required1: { label: name, kind: "step", quantity: "1", parent: "container" } } });
-    return Response.json({ status: "completed", result: Object.fromEntries([1, 2, 3].map(n =>
+    return Response.json({ status: "completed", result: Object.fromEntries(Array.from({ length: capacity }, (_, i) => i + 1).map(n =>
       ["required" + n, n === 1 ? { label: name, kind: "step", quantity: "1" } : { label: "", kind: "none", quantity: "0" }])) });
   }
   const wire = JSON.parse(init.body);

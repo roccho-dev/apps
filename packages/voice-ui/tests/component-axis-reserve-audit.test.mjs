@@ -7,7 +7,7 @@ import { fileURLToPath } from 'node:url';
 import { auditReserveProjection, RESERVE_POOL_SHA256 } from './component-axis-reserve-audit.mjs';
 
 const fixtureRoot = process.env.POC_RESERVE_FIXTURES ?? path.dirname(fileURLToPath(import.meta.url));
-const bundleFile = process.env.POC_RESERVE_BUNDLE ?? path.join(process.env.POC_SOURCE_ROOT ?? '', 'web/data/bundle.v1.json');
+const bundleFile = process.env.POC_RESERVE_BUNDLE ?? fileURLToPath(new URL('./fixtures/legacy-bundle.v1.json', import.meta.url));
 const baseline = {
   poolBytes: fs.readFileSync(path.join(fixtureRoot, 'component-axes-E10-source-pool.public.json')),
   projectionBytes: fs.readFileSync(path.join(fixtureRoot, 'component-axes-E10.inputs.public.json')),

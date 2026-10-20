@@ -16,6 +16,7 @@ import { checkCollisionCameras } from "../tests/camera-collision-browser.mjs";
 import { auditReferenceDiagram, referenceChoice } from "../tests/reference-diagram-audit.mjs";
 import { checkStoredEdgeEdits, checkStoredHistoryInverse } from "../tests/edit-browser-check.mjs";
 import { symbolFixtureSvg, checkPaintedSymbols } from "../tests/part-symbol-browser.mjs";
+import { auditCurrentBundleConsumer } from "./current-bundle-consumer.mjs";
 
 // Keyless completed-artifact mechanics only. Every upstream response below is
 // synthetic, including the TypeLLM result; no model quality is asserted here.
@@ -79,7 +80,11 @@ const fixtures = [
   ...normalFixtures, ...editingFixtures, ...referenceFixtures, ...annotationFixtures,
 ];
 assert.equal(new Set(fixtures.map(item => item.id)).size, fixtures.length);
-let fixture = null, input = null, catalogueHidden = false, editing = null;
+let fixture = null, input = null, catalogueHidden = false, editing = null, consumerPhase = "ordinary";
+const currentBundleBytes = fs.readFileSync(path.join(site, "data/bundle.v1.json"));
+const currentBundle = JSON.parse(currentBundleBytes);
+assert.equal(currentBundle.schema, "voice-ui.bundle/2");
+const bundleReads = [], bundleConsumerControls = [];
 const api = [], upstream = [], frames = [], controls = [], lifecycle = [], supply = [], images = [], fixtureResults = [], reductions = [];
 const syntheticAnswer = wire => {
   if (editing !== null && wire.questions.action) return Object.fromEntries(Object.keys(wire.questions)
@@ -126,7 +131,7 @@ globalThis.fetch = async (url, init) => {
   // The released Jev transport omits redirect (Fetch default); TypeLLM
   // explicitly refuses redirects. Bind the actual two contracts separately.
   assert.equal(init.redirect, provider === "typellm" ? "error" : undefined);
-  upstream.push({ fixture: fixture.id, provider, route: new URL(url).origin, questions: Object.keys(wire.questions) });
+  upstream.push({ fixture: fixture.id, consumerPhase, provider, route: new URL(url).origin, questions: Object.keys(wire.questions) });
   if (provider === "typellm") {
     const missing = fixture.id === "equal-label-quantity" ? [{ label: "DB", kind: "data", quantity: 2 }]
       : fixture.nodes.map(({ label, kind, quantity }) => ({ label, kind, quantity }));
@@ -161,16 +166,24 @@ const server = http.createServer(async (req, res) => {
           { JEV_API_KEY: "fixture-jev-only",
             ASSETS: { fetch: () => { throw new Error("unexpected Worker asset"); } } });
         const body = await response.text();
-        api.push({ fixture: fixture.id, route: pathname, status: response.status, body: JSON.parse(body) });
+        api.push({ fixture: fixture.id, consumerPhase, route: pathname, status: response.status, body: JSON.parse(body) });
         res.writeHead(response.status, { "content-type": "application/json", ...isolation }); res.end(body);
       } finally { input = null; }
       return;
     }
     // Explicit fixture data at the ordinary bundle URL. No app, Worker, UI,
     // protocol, storage or drawing implementation is replaced.
-    if (pathname === "/data/bundle.v1.json" && fixture.bundle) {
+    if (pathname === "/data/bundle.v1.json") {
+      const supplied = fixture.bundle ? Buffer.from(JSON.stringify(catalogueHidden ? { ...fixture.bundle, parts: [] } : fixture.bundle))
+        : consumerPhase === "unknown-schema" ? Buffer.from(JSON.stringify({ ...currentBundle, schema: "voice-ui.bundle/unsupported" }))
+          : consumerPhase === "duplicate-part-key" ? Buffer.from(JSON.stringify({ ...currentBundle, parts: [...currentBundle.parts, currentBundle.parts[0]] }))
+            : currentBundleBytes;
+      const file = `bundle-read-${bundleReads.length}.json`;
+      fs.writeFileSync(path.join(output, file), supplied);
+      bundleReads.push({ fixture: fixture.id, consumerPhase, pathname, file, bytes: supplied.length, sha256: hash(supplied),
+        source: fixture.bundle ? "explicit-fixture" : "current-distribution" });
       res.writeHead(200, { "content-type": "application/json", ...isolation });
-      res.end(JSON.stringify(catalogueHidden ? { ...fixture.bundle, parts: [] } : fixture.bundle)); return;
+      res.end(supplied); return;
     }
     if (pathname === "/assets/symbol-fixture.svg" && fixture.symbols) {
       res.writeHead(200, { "content-type": "image/svg+xml", ...isolation }); res.end(symbolFixtureSvg); return;
@@ -199,7 +212,7 @@ try {
     const failureStart = failures.length;
     let context = null;
     try {
-    fixture = selected; catalogueHidden = false;
+    fixture = selected; catalogueHidden = false; consumerPhase = "ordinary";
     const records = fixture.edit?.initialRecords ?? fixture.initialRecords ?? [{ type: "meta", schema: "semantic-map-state/1", root: "root", title: "candidate browser fixture" },
       { type: "region", id: "root", label: "World", parent: null, kind: "boundary", bounds: [0, 0, 1000, 700], summary: "" },
       { type: "region", id: "container", label: "OCI", parent: "root", kind: "group", bounds: [0, 0, 2000, 500], summary: "" },
@@ -564,6 +577,31 @@ try {
     if (fixture.cameraDistinct) cameraSubjectChecks.push({fixture:fixture.id,...await checkCollisionCameras({page,snapshot,settle,saveCamera,stage:"reload"})});
     await inspectSpatial("reload");
     await saveCamera("reload-final");
+    if (fixture.id === "equal-label-quantity") {
+      // Exercise the real configured URL and boot consumer after the valid Goal,
+      // Apply and reload. Invalid sections disable their own capabilities while
+      // the same confirmed JSONL must still restore and draw. No judge is needed.
+      for (const phase of ["unknown-schema", "duplicate-part-key", "restored-current"]) {
+        consumerPhase = phase;
+        const apiBefore = api.length, upstreamBefore = upstream.length;
+        await page.reload(); await settle();
+        const actual = await snapshot();
+        const notice = await page.locator("#bundle-notice").evaluate(node => ({ text: node.textContent, affected: node.dataset.affected }));
+        const record = { phase, fixture: fixture.id, actual, notice, apiBefore, apiAfter: api.length,
+          upstreamBefore, upstreamAfter: upstream.length };
+        const file = `current-bundle-${phase}.json`;
+        fs.writeFileSync(path.join(output, file), JSON.stringify(record, null, 2) + "\n");
+        const png = `current-bundle-${phase}.png`;
+        await page.screenshot({ path: path.join(output, png) });
+        bundleConsumerControls.push({ phase, file, png });
+        assert.equal(actual.log, applied.stored); assert.equal(actual.stored, applied.stored);
+        assert.deepEqual(actual.records, reloaded.records);
+        assert.equal(api.length, apiBefore); assert.equal(upstream.length, upstreamBefore);
+        assert.equal(notice.affected, phase === "unknown-schema" ? "部品の追加 図の作成" : phase === "duplicate-part-key" ? "部品の追加" : "");
+        await paintRestored("current-bundle-" + phase, actual);
+      }
+      consumerPhase = "ordinary";
+    }
     const sameLog = (a, b) => typeof a === "string" && a === b;
     assert.equal(sameLog(after.log, before.log), false, "failed Undo cannot pass");
     assert.equal(sameLog(before.log, applied.stored), false, "stale reload cannot pass");
@@ -610,7 +648,9 @@ const receipt = { schema: "voice-ui.candidate-browser/1", sources: manifest.sour
   cameraShots: cameraEvidence.items, overviewReadability, cameraSubjectChecks, spatialReadability, annotationViews,
   annotation_fixture_sha256: hash(annotationBytes),
   viewport: [1280, 720], deviceScaleFactor: 1, api, synthetic_upstream: upstream, frames, controls, lifecycle, supply, images, fixtureResults, reductions,
+  bundleReads, bundleConsumerControls,
   status: failures.length ? "RED" : "PASS", failures };
 fs.writeFileSync(path.join(output, "receipt.json"), JSON.stringify(receipt, null, 2) + "\n");
+await auditCurrentBundleConsumer(root, output);
 assert.deepEqual(failures, [], "painted frame requirements");
 process.stdout.write(JSON.stringify({ kind: receipt.schema, status: receipt.status, frames: frames.length, controls: controls.length, live_provider: receipt.live_provider }) + "\n");

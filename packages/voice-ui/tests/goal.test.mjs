@@ -16,7 +16,7 @@ import { legalLocalDeltas as legalAdditions, proveLocalDelta as proveAddition, l
 
 if (!process.env.SEMANTIC_MAP) throw new Error("SEMANTIC_MAP is required");
 const protocol = await import(pathToFileURL(path.join(process.env.SEMANTIC_MAP, "packages/semantic-map/protocol/index.js")).href);
-const bundle = readBundle(JSON.parse(fs.readFileSync(new URL("../web/data/bundle.v1.json", import.meta.url), "utf8")));
+const bundle = readBundle(JSON.parse(fs.readFileSync(new URL("./fixtures/legacy-bundle.v1.json", import.meta.url), "utf8")));
 const utterance = "OCIの中にAPIとDBを追加して";
 // Test fixture convenience delegates to the production catalogue/prove path.
 const planAddition = async ({ working, head, partKey, parentId, confidence, bundle, reserved = [], protocol }) => {

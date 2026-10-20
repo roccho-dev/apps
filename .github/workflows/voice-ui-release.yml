@@ -86,6 +86,10 @@ jobs:
           runtime="$(nix build --no-link --print-out-paths .#voice-ui-acceptance-runtime)"
           "$runtime/bin/voice-ui-acceptance-node" packages/voice-ui/acceptance/candidate-browser.mjs \
             "$reopened/voice-ui-dist" "$PWD/dist/candidate-browser-evidence"
+          # Current bundle acceptance consumes the reopened ZIP, actual HTTP bodies
+          # and ordinary UI lifecycle. The v1 reserve test below has a fixed pool.
+          "$runtime/bin/voice-ui-acceptance-node" packages/voice-ui/acceptance/current-bundle-consumer.mjs \
+            "$reopened/voice-ui-dist" "$PWD/dist/candidate-browser-evidence"
           "$runtime/bin/voice-ui-acceptance-node" packages/voice-ui/acceptance/component-axes-smoke.mjs \
             "$reopened/voice-ui-dist" "$PWD/dist/component-axes-mechanics"
           "$runtime/bin/voice-ui-acceptance-node" packages/voice-ui/acceptance/requirements-cycle-smoke.mjs \
@@ -101,11 +105,13 @@ jobs:
           quota_baseline="$(nix build --no-link --print-out-paths github:roccho-dev/apps/0aa3c4b90519a1c18c217753698806507ccff3c0#voice-ui-dist)"
           "$runtime/bin/voice-ui-acceptance-node" packages/voice-ui/acceptance/quota-cycle-smoke.mjs \
             "$reopened/voice-ui-dist" "$PWD/dist/quota-cycle-mechanics" "$quota_baseline"
+          # Historical reserve: exact 2cc4890 bundle bytes required by the sealed
+          # canonical_bundle_sha256. This PASS cannot establish current bundle acceptance.
           POC_PROTOCOL_ENTRY="$reopened/voice-ui-dist/site/ui/semantic-map/protocol/index.js" \
           POC_SOURCE_ROOT="$PWD/packages/voice-ui" \
           POC_AXIS_FIXTURES="$PWD/docs/voice-ui/component-axes-20261017/preregistered" \
           POC_RESERVE_FIXTURES="$PWD/docs/voice-ui/component-axes-20261017/evidence/final-E" \
-          POC_RESERVE_BUNDLE="$reopened/voice-ui-dist/site/data/bundle.v1.json" \
+          POC_RESERVE_BUNDLE="$PWD/packages/voice-ui/tests/fixtures/legacy-bundle.v1.json" \
             "$runtime/bin/voice-ui-acceptance-node" --test packages/voice-ui/tests/component-axis-audit.test.mjs \
               packages/voice-ui/tests/component-axis-reserve-audit.test.mjs \
             | tee "$PWD/dist/component-axes-mechanics/audit-tests.log"

@@ -42,8 +42,10 @@ globalThis.fetch = async (url, init) => {
   upstream.push({ provider, route: String(url), generation_policy: provider === "typellm" ? currentPolicy : null });
   if (provider === "typellm") {
     const wire = JSON.parse(init.body);
+    const capacity = currentStage.startsWith("E") ? 16 : 3;
+    assert.deepEqual(Object.keys(wire.questions), Array.from({ length: capacity }, (_, i) => "required" + (i + 1)));
     assert.ok(["independent", "dependent"].includes(currentPolicy));
-    assert.equal(refCount(wire), currentPolicy === "dependent" ? 12 : 0);
+    assert.equal(refCount(wire), currentPolicy === "dependent" ? capacity === 16 ? 168 : 12 : 0);
     assert.equal(wire.model, "typellm-latest"); assert.deepEqual(wire.options, { temperature: 0 });
     assert.equal(wire.timeout, 30);
     if (currentStage === "F") {
@@ -54,7 +56,7 @@ globalThis.fetch = async (url, init) => {
       required1: { label: name, kind: "step", quantity: "1" }, required2: { label: name, kind: "step", quantity: "1" },
       required3: { label: "", kind: "none", quantity: "0" },
     } });
-    return Response.json({ status: "completed", result: Object.fromEntries([1, 2, 3].map(n =>
+    return Response.json({ status: "completed", result: Object.fromEntries(Array.from({ length: capacity }, (_, i) => i + 1).map(n =>
       ["required" + n, n === 1 ? { label: name, kind: "step", quantity: "1" } : { label: "", kind: "none", quantity: "0" }])) });
   }
   const wire = JSON.parse(init.body);

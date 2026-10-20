@@ -17,7 +17,8 @@ const {createSession,apply}=await import(pathToFileURL(path.join(source,'src/ses
 const {commitLog,restoreLog}=await import(pathToFileURL(path.join(source,'src/log.mjs')));
 const {readBundle}=await import(pathToFileURL(path.join(source,'src/bundle.mjs')));
 const {assessPaintedGoal:assessGoal,assessPaintedEdge:assessEdge}=await import(pathToFileURL(path.join(source,'tests/painted-goal.mjs')));
-const bundleBytes=fs.readFileSync(path.join(source,'web/data/bundle.v1.json')),bundleValue=JSON.parse(bundleBytes),bundle=readBundle(bundleValue);
+// Fixed legacy phase input; the producer modules still bind to source above.
+const bundleBytes=fs.readFileSync(new URL('./fixtures/legacy-bundle.v1.json',import.meta.url)),bundleValue=JSON.parse(bundleBytes),bundle=readBundle(bundleValue);
 const enc=x=>Buffer.from(JSON.stringify(x,null,2)+'\n'),json=b=>JSON.parse(Buffer.from(b).toString('utf8'));
 const lines=rs=>rs.length?Buffer.from(rs.map(r=>JSON.stringify(r)).join('\n')+'\n'):Buffer.alloc(0);
 const jsonLines=b=>Buffer.from(b).toString('utf8').trim().split('\n').filter(Boolean).map(JSON.parse);
