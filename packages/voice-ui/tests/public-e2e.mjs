@@ -15,7 +15,7 @@ if (!url) throw new Error("public URL is required");
 const served = await fetch(new URL("/app/src/contract.mjs", url));
 assert.equal(served.status, 200, "the target serves its contract module");
 const contract = await import(`data:text/javascript;base64,${Buffer.from(await served.text()).toString("base64")}`);
-const { REQUEST_KIND, DECISION_KIND } = contract;
+const { TYPED_REQUEST_KIND: REQUEST_KIND, DECISION_KIND } = contract;
 
 if (process.argv[3] === "--binding-contract") {
   // Controlled composition proof only: the actual app imports three independent
