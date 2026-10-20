@@ -1,5 +1,5 @@
 {
-  "schema": "voice-ui.bundle/1",
+  "schema": "voice-ui.bundle/2",
   "version": "1",
   "parts": [
     { "key": "step", "purpose": "an ordinary step, task or box", "label": "工程", "kind": "step" },

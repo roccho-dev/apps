@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { assessParallelRelations, assessWholeOverview } from './spatial-readability.mjs';
+import { assessParallelRelations, assessWholeOverview, nearLengthFraction } from './spatial-readability.mjs';
 import { assessPaintedEdge } from './painted-goal.mjs';
 
 const expected = [
@@ -15,7 +15,7 @@ const observation = (edge, offset = 0) => ({
     { id:'target', bounds:[300,0,50,50], name:name([305,5,20,12]) },
   ],
   edge: { ...edge, complete:true, unsupported:[], name:name([90,60+offset,40,12]),
-    matches:[{ start:[50,25], tip:[300,25], route:{ d:'fixed-test-path',
+    matches:[{ start:[50,25], tip:[300,25], stroke:1.14, route:{ d:'fixed-test-path',
       samples:Array.from({length:33},(_,i)=>[50+250*i/32,25+offset*Math.sin(Math.PI*i/32)]) } }],
   },
 });
@@ -25,6 +25,13 @@ const grade = rows => assessParallelRelations(expected,rows);
 test('two separately traceable routes with separate complete annotations pass this finite audit',()=>{
   const rows=observations(); assert.ok(rows.every(row=>assessPaintedEdge(row).status==='PASS'));
   assert.equal(grade(rows).status,'PASS');
+});
+
+test('a present annotation hidden by an endpoint is not readable',()=>{
+  const row=observation(expected[0]);row.edge.name=name([20,20,40,12]);
+  const result=assessPaintedEdge(row);
+  assert.equal(result.status,'UNMET');
+  assert.ok(result.problems.includes('annotation overlaps a painted endpoint'));
 });
 test('old individual-edge pass does not authorize coincident parallel routes',()=>{
   const rows=expected.map(edge=>observation(edge));
@@ -42,6 +49,67 @@ test('different command strings alone do not prove distinct rendered geometry',(
 });
 test('subpixel sampling variation cannot turn coincident paths into a pass',()=>{
   const rows=expected.map(edge=>observation(edge));rows[1].edge.matches[0].route.samples.forEach(p=>{p[1]+=.1;});
+  assert.equal(grade(rows).status,'UNMET');
+});
+
+test('0.3px separation below the stroke width is not independently traceable',()=>{
+  const rows=[observation(expected[0]),observation(expected[1],.3)];
+  rows[1].edge.name=name([90,120,40,12]);
+  assert.equal(grade(rows).status,'UNMET');
+});
+
+test('one 4px excursion cannot disguise 32 of 33 coincident samples',()=>{
+  const rows=expected.map(edge=>observation(edge));
+  rows[1].edge.name=name([90,120,40,12]);
+  rows[1].edge.matches[0].route.samples[16][1]+=4;
+  assert.equal(grade(rows).status,'UNMET');
+});
+
+test('R1-S1 alternating 1.5px offsets count partial near-segment lengths',()=>{
+  const rows=expected.map(edge=>observation(edge));rows[1].edge.name=name([90,120,40,12]);
+  rows[1].edge.matches[0].route.samples.forEach((p,i)=>{p[1]+=(i%2)*1.5;});
+  assert.ok(rows.every(row=>assessPaintedEdge(row).status==='PASS'));
+  const result=grade(rows);assert.equal(result.status,'UNMET');
+  assert.equal(result.comparisons[0].tolerance,1.39);
+  assert.ok(result.comparisons[0].nearLengthFractions[0]>.94);
+  assert.ok(Math.abs(result.comparisons[0].nearLengthFractions[1]-1.39/1.5)<1e-12);
+});
+
+const line=(a,b,power=1)=>Array.from({length:33},(_,i)=>a.map((v,k)=>v+(b[k]-v)*(i/32)**power));
+test('a short interior crossing counts even when neither endpoint is near',()=>{
+  // One long horizontal segment crosses a vertical polyline. Near length is
+  // exactly 2r/length; repeated query vertices must not affect that measure.
+  const route=[[0,0],...Array.from({length:32},()=>[10,0])],other=line([5,-10],[5,10]);
+  assert.ok(Math.abs(nearLengthFraction(route,other,1)-.2)<1e-12);
+});
+
+test('endpoint circles count the curved capsule caps without double counting',()=>{
+  const route=line([-2,.5],[2,.5]),other=Array.from({length:33},()=>[0,0]);
+  assert.ok(Math.abs(nearLengthFraction(route,other,1)-Math.sqrt(.75)/2)<1e-12);
+});
+
+test('collinear subdivision, reversed ordering and zero-length segments preserve exact near length',()=>{
+  const route=line([-5,0],[15,0]),other=line([0,0],[10,0]);
+  for(const first of [route,[...route].reverse(),line([-5,0],[15,0],3)])
+    for(const second of [other,[...other].reverse(),line([0,0],[10,0],2)])
+      assert.ok(Math.abs(nearLengthFraction(first,second,1)-.6)<1e-12);
+});
+
+test('separated routes keep their positive result after partial-length integration',()=>{
+  const rows=observations(),result=grade(rows);
+  assert.equal(result.status,'PASS');assert.ok(result.comparisons[0].nearLengthFractions.every(v=>v<.5));
+});
+
+test('unknown stroke width does not authorize a readability pass',()=>{
+  const rows=observations();delete rows[0].edge.matches[0].stroke;
+  assert.equal(grade(rows).status,'UNPROVEN');
+});
+
+test('reversed and differently sampled polylines retain the near-overlap rejection',()=>{
+  const rows=expected.map(edge=>observation(edge));
+  rows[1].edge.name=name([90,120,40,12]);
+  rows[1].edge.matches[0].route.samples.forEach((point,i)=>{point[0]+=(i>0&&i<32)?.1:0;point[1]+=.3;});
+  rows[1].edge.matches[0].route.samples.reverse();
   assert.equal(grade(rows).status,'UNMET');
 });
 test('separate paths with colliding annotations still fail',()=>{

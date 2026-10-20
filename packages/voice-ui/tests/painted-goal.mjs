@@ -378,5 +378,15 @@ export function assessPaintedEdge(observation) {
     && p[0] >= observation.viewport[0] && p[1] >= observation.viewport[1]
     && p[0] <= observation.viewport[0] + observation.viewport[2] && p[1] <= observation.viewport[1] + observation.viewport[3];
   if (!match || !pointInView(match.start) || !pointInView(match.tip)) problems.push("arrow terminals outside frame");
+  if (observation.edge?.label) {
+    const name = observation.edge.name;
+    if (name?.unmet || !Array.isArray(name?.clips)) unknown.push("whole annotation unavailable");
+    else if (![observation.viewport, name.svg, ...name.clips].every(outer => inside(name.box, outer)))
+      problems.push("whole annotation clipped");
+    if (valid(name?.box) && observation.shapes.some(shape => valid(shape.bounds)
+      && name.box[0] < shape.bounds[0] + shape.bounds[2] && shape.bounds[0] < name.box[0] + name.box[2]
+      && name.box[1] < shape.bounds[1] + shape.bounds[3] && shape.bounds[1] < name.box[1] + name.box[3]))
+      problems.push("annotation overlaps a painted endpoint");
+  }
   return { status: unknown.length ? "UNPROVEN" : problems.length ? "UNMET" : "PASS", problems, unknown };
 }

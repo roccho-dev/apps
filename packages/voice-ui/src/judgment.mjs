@@ -1,4 +1,4 @@
-import { ACTION_ADD_EDGE, ACTION_ADD_PART, ACTION_ARCHITECTURE, ACTION_COMPOSE, ACTION_PLACE_PART, ACTION_REMOVE_EDGE, ACTION_REVERSE_EDGE, ACTION_UNDO_REQUEST, ARCHITECTURE_GOAL_INTENT_KIND, ARCHITECTURE_INTENT_KIND, ARCHITECTURE_JUDGE_KIND, ARCHITECTURE_LOCATE_KIND, GOAL_COMPLETION_KIND, TYPED_REQUEST_KIND, NONE, WHOLE, YES, partOption, relationSlot, relevantSlot, roleSlot } from "./contract.mjs";
+import { ACTION_LABEL_EDGE, ANNOTATION_REQUEST_KIND, ACTION_ADD_EDGE, ACTION_ADD_PART, ACTION_ARCHITECTURE, ACTION_COMPOSE, ACTION_PLACE_PART, ACTION_REMOVE_EDGE, ACTION_REVERSE_EDGE, ACTION_UNDO_REQUEST, ARCHITECTURE_GOAL_INTENT_KIND, ARCHITECTURE_INTENT_KIND, ARCHITECTURE_JUDGE_KIND, ARCHITECTURE_LOCATE_KIND, GOAL_COMPLETION_KIND, TYPED_REQUEST_KIND, NONE, WHOLE, YES, partOption, relationSlot, relevantSlot, roleSlot } from "./contract.mjs";
 
 // A choice question offers its alternatives as a criteria map keyed by the
 // value to be returned.
@@ -9,6 +9,7 @@ const ACTION_WORDS = {
   [ACTION_ADD_PART]: "the utterance asks to add one new part, node, box or step to the graph itself",
   [ACTION_PLACE_PART]: "the utterance asks to move one part next to another one - beside, above or below it",
   [ACTION_REMOVE_EDGE]: "the utterance asks to remove one edge of the working graph",
+  [ACTION_LABEL_EDGE]: "the utterance asks to replace only the displayed annotation of one existing edge with an explicitly quoted value, without changing its endpoints, direction or kind",
   [ACTION_REVERSE_EDGE]: "the utterance asks to reverse the direction of one edge of the working graph",
   [ACTION_UNDO_REQUEST]: "the utterance asks to undo, take back or go back on an earlier change",
   [ACTION_COMPOSE]: "the utterance asks for one of the prepared diagrams in state.offers.diagrams, as a whole, by what it is for, rather than one edit",
@@ -163,11 +164,22 @@ export function questionsFor(state, slots, context) {
   }
   const defined = context.kind === ARCHITECTURE_INTENT_KIND ? context.relationOf : () => null;
   const labelOf = new Map(state.graph.regions.map(region => [region.id, region.label]));
-  const node = key => shownAs(labelOf, key);
+  const parents = context.kind === ANNOTATION_REQUEST_KIND
+    ? new Map(state.graph.regions.map(region => [region.id, region.parent])) : null;
+  const node = key => {
+    const caption = shownAs(labelOf, key);
+    if (parents === null) return caption;
+    const chain = [], seen = new Set([key]);
+    for (let at = parents.get(key); at !== null; at = parents.get(at)) {
+      if (!parents.has(at) || seen.has(at)) throw new TypeError("invalid annotation ancestry");
+      seen.add(at); chain.push(shownAs(labelOf, at));
+    }
+    return chain.length ? `${caption}, directly inside ${chain.join(", inside ")}` : caption;
+  };
   const definedAs = edge => {
     // A stored Working description helps distinguish parallel relations; it
     // is not a claim that the relationship was verified in external source.
-    if (context.kind === TYPED_REQUEST_KIND) return `, stored in Working with kind ${quoted(edge.kind)} and label ${quoted(edge.label)}`;
+    if ([TYPED_REQUEST_KIND, ANNOTATION_REQUEST_KIND].includes(context.kind)) return `, stored in Working with kind ${quoted(edge.kind)} and label ${quoted(edge.label)}`;
     const relation = defined(edge);
     return relation === null ? "" : `, which this snapshot defines as ${relation.kind}${relation.purpose === null ? "" : `: ${relation.purpose}`}`;
   };
@@ -176,7 +188,9 @@ export function questionsFor(state, slots, context) {
       instruction: "Which change to the working graph does the utterance ask for? "
         + "A reference qualified by endpoints or semantic description refers to matching current graph candidates, not the focus. "
         + "Only a bare, unqualified reference such as \"that edge\" may use the focus. "
-        + "A clear remove or reverse request still names that action when its edge is unresolved; answer none for the edge.",
+        + (context.kind === ANNOTATION_REQUEST_KIND
+          ? "A clear remove, reverse or annotation-change request still names that action when its edge is unresolved; answer none for the edge."
+          : "A clear remove or reverse request still names that action when its edge is unresolved; answer none for the edge."),
       options: criteria(slots.action, action => ACTION_WORDS[action]),
     },
   };
@@ -234,7 +248,9 @@ export function questionsFor(state, slots, context) {
     // Existing candidate descriptions resolve qualified references first.
     // Edit focus is evidence only for a bare, unqualified reference.
     questions.edge = {
-      instruction: "If the utterance asks to remove or reverse an edge, which edge of the working graph does it mean? "
+      instruction: (context.kind === ANNOTATION_REQUEST_KIND
+        ? "If the utterance asks to remove, reverse or change the annotation of an edge, which edge of the working graph does it mean? "
+        : "If the utterance asks to remove or reverse an edge, which edge of the working graph does it mean? ")
         + "If it identifies an edge by its endpoints or its semantic description, match that qualification against the offered edges, "
         + "using their current node labels and any snapshot-defined kind or purpose. Choose the matching edge only if it is unique; "
         + "For a description of what a relationship does, compare the relationship itself, not merely a related endpoint label: "
@@ -246,6 +262,14 @@ export function questionsFor(state, slots, context) {
       options: criteria(slots.edge, key => key === NONE
         ? "no unique edge matches the qualified reference, or no unqualified reference identifies a current edge"
         : `the edge from ${node(byId.get(key).from)} to ${node(byId.get(key).to)}${definedAs(byId.get(key))}`),
+    };
+  }
+  if (slots.edgeLabel) {
+    const labels = new Map(state.offers.edgeLabels.map(item => [item.key, item.label]));
+    questions.edgeLabel = {
+      instruction: "Only when the current utterance explicitly asks to change an existing edge annotation, choose its requested NEW value from these exact quoted text alternatives. A quoted old label or endpoint name is not the new label. Choose none when the value is missing or ambiguous. An explicitly requested empty quoted value clears the annotation; do not infer clearing otherwise.",
+      options: criteria(slots.edgeLabel, key => key === NONE ? "no unique explicitly requested new annotation"
+        : `replace the annotation with exactly ${quoted(labels.get(key))}; preserve endpoints, kind and every other record`),
     };
   }
   if (slots.diagram) {
@@ -281,7 +305,7 @@ export function questionsFor(state, slots, context) {
   for (const question of Object.values(questions)) question.instruction += CONTEXT_NOTE
     + (context.kind === ARCHITECTURE_INTENT_KIND ? REFERENCE_NOTE : "");
   if (context.kind === ARCHITECTURE_INTENT_KIND && questions.edge) questions.edge.instruction += EDGE_REFERENCE_NOTE;
-  if (context.kind === TYPED_REQUEST_KIND && questions.edge) questions.edge.instruction +=
+  if ([TYPED_REQUEST_KIND, ANNOTATION_REQUEST_KIND].includes(context.kind) && questions.edge) questions.edge.instruction +=
     " Working kinds and labels are stored descriptions, not verified source evidence. Match their meaning and annotation with the explicit request; a shared pair of endpoints alone cannot distinguish parallel meanings.";
   return questions;
 }

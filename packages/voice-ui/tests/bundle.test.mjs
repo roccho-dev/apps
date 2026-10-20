@@ -2,24 +2,55 @@ import assert from "node:assert/strict";
 import fs from "node:fs";
 import path from "node:path";
 import test from "node:test";
-import { fileURLToPath } from "node:url";
+import { fileURLToPath, pathToFileURL } from "node:url";
 
 import { offersOf, readBundle } from "../src/bundle.mjs";
 import { PART_KINDS } from "../src/contract.mjs";
+import { requestFor, planStep, appendStep, legalLocalDeltas } from "../src/turn.mjs";
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const shipped = () => JSON.parse(fs.readFileSync(path.join(here, "../web/data/bundle.v1.json"), "utf8"));
 
+test("the shipped diagram accepts a typed Goal addition without changing its existing records", async () => {
+  const protocol = await import(pathToFileURL(process.env.VOICE_UI_TEST_PROTOCOL
+    ?? path.join(process.env.SEMANTIC_MAP, "packages/semantic-map/protocol/index.js")));
+  const bundle = readBundle(shipped());
+  const working = await protocol.createDecisionLog([
+    { type: "meta", schema: "semantic-map-state/1", root: "root", title: "World" },
+    { type: "region", id: "root", parent: null, label: "World", kind: "boundary", bounds: [0, 0, 720, 260], summary: "" },
+  ], "voice-graph");
+  const { turn } = requestFor({ working, utterance: "Container preparationを表示", bundle,
+    layout: null, offeredFrame: null, draft: [], focus: null, pending: null, recent: [], typedEdges: true });
+  const answers = Object.fromEntries(Object.keys(turn.slots).map(name => [name,
+    { type: "choice", choice: ({ action: "compose-diagram", diagram: "container-example" })[name] ?? "none", confidence: 1 }]));
+  const result = await planStep({ working, turn, answers, protocol, bundle, reserved: [], layout: null, visibleFrame: null });
+  assert.equal(result.outcome, "step");
+  const composed = (await appendStep({ working, step: result.step, protocol })).graph;
+  const boxes = protocol.layoutBoundsFor(composed.records, { pattern: protocol.GRAPH_PATTERN }).bounds;
+  const left = composed.records.find(row => row.label === "Helper left");
+  const right = composed.records.find(row => row.label === "Helper right");
+  assert.ok(boxes[right.id][0] - boxes[left.id][0] - boxes[left.id][2] >= boxes[left.id][3],
+    "new prepared columns reserve an annotation gutter; actual glyph visibility is a browser check");
+  const parent = composed.records.find(row => row.label === "OCI");
+  const held = legalLocalDeltas(composed, { bundle: { ...bundle, parts: bundle.parts.filter(part => part.key === "db") }, protocol, expressive: true });
+  const addition = held.candidates.find(candidate => candidate.part === "db" && candidate.parent === parent.id);
+  assert.ok(addition, "the normal prepared OCI group has a title-safe executable DB slot");
+  const next = await protocol.appendDecision(composed.log,
+    (await protocol.createDecision(composed.head, addition.operations, composed.records)).decision);
+  assert.ok(composed.records.every(row => next.verified.records.some(actual => JSON.stringify(actual) === JSON.stringify(row))));
+});
+
 test("the shipped bundle is valid in every section, and frozen once read", () => {
   const bundle = readBundle(shipped());
   assert.equal(bundle.version, "1");
+  assert.equal(bundle.goalSelection, "delta", "the shipped catalogue enables typed edge and annotation editing");
   assert.ok(bundle.parts.length > 0 && bundle.diagrams.length > 0);
   assert.ok(bundle.parts.every(part => PART_KINDS.includes(part.kind)));
   assert.ok(Object.isFrozen(bundle.parts[0]) && Object.isFrozen(bundle.diagrams[0].lanes[0]));
 });
 
-test("one generic group part is offered within the eight-offer cap", () => {
-  const value = shipped();
+test("the legacy schema keeps its eight-offer cap and generic group", () => {
+  const value = { ...shipped(), schema: "voice-ui.bundle/1" };
   const bundle = readBundle(value);
   assert.deepEqual(bundle.parts.filter(part => part.kind === "group").map(part => part.key), ["group"]);
   assert.equal(bundle.parts.length, 8);

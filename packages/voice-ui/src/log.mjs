@@ -67,9 +67,11 @@ const keyed = records => new Map([
     `layout ${entry.id} ${entry.bounds.join(",")}`,
     Object.freeze({ kind: "layout", id: entry.id, bounds: entry.bounds }),
   ]),
-  ...relationsOf(records).map(relation => [
-    `relation ${relation.id} ${relation.from} ${relation.to}`,
-    Object.freeze({ kind: "relation", ...relation }),
+  // Meaning changes under the same ID are reversible history too. Keep the
+  // public fact shape; only its comparison key includes the stored meaning.
+  ...records.filter(record => record.type === "relation").map(relation => [
+    `relation ${JSON.stringify([relation.id, relation.from, relation.to, relation.kind, relation.label])}`,
+    Object.freeze({ kind: "relation", id: relation.id, from: relation.from, to: relation.to }),
   ]),
 ]);
 

@@ -8,6 +8,8 @@
 export const REQUEST_KIND = "voice-ui.judge.request.v1";
 // Explicit plain-page edit contract; v1/architecture keep their old read sets.
 export const TYPED_REQUEST_KIND = "voice-ui.judge.request.v2";
+// Optional quoted annotation choices have their own closed version.
+export const ANNOTATION_REQUEST_KIND = "voice-ui.judge.request.v3";
 export const DECISION_KIND = "voice-ui.judge.decision.v1";
 export const GOAL_REQUEST_KIND = "voice-ui.judge.goal-local-delta.v7";
 export const DIRECT_GOAL_REQUEST_KIND = "voice-ui.judge.goal-local-delta.v8";
@@ -45,6 +47,7 @@ export const ACTION_ADD_PART = "add-part";
 export const ACTION_PLACE_PART = "place-part";
 export const ACTION_REMOVE_EDGE = "remove-edge";
 export const ACTION_REVERSE_EDGE = "reverse-edge";
+export const ACTION_LABEL_EDGE = "label-edge";
 export const ACTION_COMPOSE = "compose-diagram";
 export const ACTION_UNDO_REQUEST = "undo-request";
 // Offered only in an architecture intent.
@@ -90,6 +93,27 @@ export const isPartSymbol = value => value !== null && typeof value === "object"
   && typeof value.provenanceRef === "string" && value.provenanceRef.length <= 160
   && /^[A-Za-z0-9][A-Za-z0-9._:@/-]*$/u.test(value.provenanceRef);
 
+
+// Literal transcription only. These alternatives are not a verdict that a
+// label change was requested: Jev must choose the action, edge and one value.
+// Unbalanced/nested quotes, escaping and overflow offer nothing, not a prefix.
+export function annotationChoices(utterance) {
+  if (typeof utterance !== "string") return Object.freeze([]);
+  const labels = [];
+  let closing = null, value = "";
+  for (const char of utterance) {
+    if (closing !== null) {
+      if (char === closing) { labels.push(value); closing = null; value = ""; }
+      else if ('「」"\\'.includes(char) || /[\p{Cc}\p{Zl}\p{Zp}]/u.test(char)) return Object.freeze([]);
+      else value += char;
+      if (value.length > LABEL_MAX) return Object.freeze([]);
+    } else if (char === "「" || char === '"') closing = char === "「" ? "」" : '"';
+    else if (char === "」") return Object.freeze([]);
+    if (labels.length > OFFER_MAX) return Object.freeze([]);
+  }
+  if (closing !== null) return Object.freeze([]);
+  return Object.freeze([...new Set(labels)].map((label, i) => Object.freeze({ key: "label-" + (i + 1), label })));
+}
 
 const TEXT_MAX = 8000;
 const GRAPH_MAX = 64;
@@ -160,6 +184,7 @@ const validChange = change => {
 const LIMITS = new Map([
   [REQUEST_KIND, Object.freeze({ graph: GRAPH_MAX, changes: CHANGES_MAX, architecture: false })],
   [TYPED_REQUEST_KIND, Object.freeze({ graph: GRAPH_MAX, changes: CHANGES_MAX, architecture: false, typedEdges: true })],
+  [ANNOTATION_REQUEST_KIND, Object.freeze({ graph: GRAPH_MAX, changes: CHANGES_MAX, architecture: false, typedEdges: true, annotations: true })],
   [ARCHITECTURE_INTENT_KIND, Object.freeze({ graph: ARCHITECTURE_GRAPH_MAX, changes: ARCHITECTURE_CHANGES_MAX, architecture: true })],
 ]);
 
@@ -181,6 +206,12 @@ const validGraph = (graph, max, typedEdges = false) => {
   if (!unique(edges.map(edge => edge.id))) return false;
   return Array.isArray(placeable) && placeable.every(value => ids.includes(value)) && unique(placeable);
 };
+
+// Context may include ancestors without offering them as editable endpoints.
+const annotationNodes = regions => regions.filter(region => region.parent !== null && region.kind !== "group");
+const validAnnotationGraph = (graph, max) => exactObject(graph, ["regions", "edges", "placeable"])
+  && validCompletionGraph({ regions: graph.regions, edges: graph.edges })
+  && validGraph({ ...graph, regions: annotationNodes(graph.regions).map(({ id, label }) => ({ id, label })) }, max, true);
 
 const validFocus = (focus, max) => focus === null
   || (exactObject(focus, ["kind", "changes"]) && FOCUS_KINDS.includes(focus.kind) && validChanges(focus.changes, max));
@@ -396,19 +427,21 @@ export function isRequest(value) {
       && validIntent(state.architecture);
   }
   if (!exactObject(value, ["kind", "state"]) || !LIMITS.has(value.kind)) return false;
-  const { graph, changes, architecture, typedEdges = false } = LIMITS.get(value.kind);
+  const { graph, changes, architecture, typedEdges = false, annotations = false } = LIMITS.get(value.kind);
   const { state } = value;
   return exactObject(state, architecture ? [...STATE_KEYS, "architecture"] : STATE_KEYS)
     && (!architecture || validIntent(state.architecture))
     && text(state.utterance, TEXT_MAX)
-    && validGraph(state.graph, graph, typedEdges)
+    && (annotations ? validAnnotationGraph(state.graph, graph) : validGraph(state.graph, graph, typedEdges))
     && Array.isArray(state.draft)
     && state.draft.length <= DRAFT_MAX
     && state.draft.every(step => exactObject(step, ["changes"]) && validChanges(step.changes, changes))
     && validFocus(state.focus, changes)
     && validPending(state.pending, state.graph.placeable)
     && validContext(state.context, changes, architecture)
-    && exactObject(state.offers, ["parts", "diagrams"])
+    && exactObject(state.offers, ["parts", "diagrams", ...(annotations ? ["edgeLabels"] : [])])
+    && (!annotations || state.graph.edges.length > 0 && annotationChoices(state.utterance).length > 0
+      && JSON.stringify(state.offers.edgeLabels) === JSON.stringify(annotationChoices(state.utterance)))
     && validOffer(state.offers.parts, { named: false })
     && validOffer(state.offers.diagrams, { named: false });
 }
@@ -521,7 +554,8 @@ export function judgeFramesFor(section) {
 // out, and a slot exists only when an action that needs it is offered.
 export function slotsFor(state) {
   if (state.candidates !== undefined) return Object.freeze({ delta: Object.freeze([...goalOptions(state), NONE]) });
-  const nodes = state.graph.regions.map(region => region.id);
+  const nodes = (Object.hasOwn(state.offers, "edgeLabels") ? annotationNodes(state.graph.regions)
+    : state.graph.regions).map(region => region.id);
   const canEdge = nodes.length >= 2;
   const canPart = state.offers.parts.length > 0;
   const canPlace = state.graph.placeable.length >= 2;
@@ -533,6 +567,7 @@ export function slotsFor(state) {
       ...(canPart ? [ACTION_ADD_PART] : []),
       ...(canPlace ? [ACTION_PLACE_PART] : []),
       ...(hasEdges ? [ACTION_REMOVE_EDGE, ACTION_REVERSE_EDGE] : []),
+      ...(hasEdges && state.offers.edgeLabels?.length ? [ACTION_LABEL_EDGE] : []),
       ...(canCompose ? [ACTION_COMPOSE] : []),
       ...(state.architecture ? [ACTION_ARCHITECTURE] : []),
       ACTION_UNDO_REQUEST,
@@ -551,6 +586,7 @@ export function slotsFor(state) {
     slots.direction = [...DIRECTIONS, NONE];
   }
   if (hasEdges) slots.edge = [...state.graph.edges.map(edge => edge.id), NONE];
+  if (hasEdges && state.offers.edgeLabels?.length) slots.edgeLabel = [...state.offers.edgeLabels.map(offer => offer.key), NONE];
   if (canCompose) slots.diagram = [...state.offers.diagrams.map(offer => offer.key), NONE];
   return Object.freeze(Object.fromEntries(Object.entries(slots).map(([name, keys]) => [name, Object.freeze(keys)])));
 }

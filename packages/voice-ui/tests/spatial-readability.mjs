@@ -14,6 +14,56 @@ const overlaps = (left, right) => box(left) && box(right) && left[0] < right[0] 
 const points = values => Array.isArray(values) && values.length === 33 && values.every(point =>
   Array.isArray(point) && point.length === 2 && point.every(Number.isFinite));
 
+const intersection = (left, right) => {
+  if (!left || !right) return null;
+  const low = Math.max(left[0], right[0]), high = Math.min(left[1], right[1]);
+  return low <= high ? [low, high] : null;
+};
+const linearInterval = (origin, slope, low, high) => slope === 0
+  ? (origin >= low && origin <= high ? [0, 1] : null)
+  : intersection([0, 1], [Math.min((low - origin) / slope, (high - origin) / slope),
+    Math.max((low - origin) / slope, (high - origin) / slope)]);
+const circleInterval = (a, dx, dy, square, center, radius) => {
+  const x = a[0] - center[0], y = a[1] - center[1];
+  const cross = x * dy - y * dx, remaining = radius * radius - cross * cross / square;
+  if (remaining < 0) return null;
+  const middle = -(x * dx + y * dy) / square, half = Math.sqrt(remaining / square);
+  return intersection([0, 1], [middle - half, middle + half]);
+};
+
+// Integrate the exact near length of these finite sampled polylines. Each
+// other segment's radius capsule is a projected strip plus its endpoint
+// circles. Union their intervals on each query segment before summing length:
+// partial segments count, and overlapping capsules never count twice.
+// This does not infer unobserved SVG curves or general human readability.
+export function nearLengthFraction(route, other, tolerance) {
+  assert.ok(points(route) && points(other) && Number.isFinite(tolerance) && tolerance >= 0);
+  let total = 0, shared = 0;
+  for (let i = 1; i < route.length; i++) {
+    const a = route[i - 1], dx = route[i][0] - a[0], dy = route[i][1] - a[1];
+    const square = dx * dx + dy * dy, length = Math.sqrt(square), intervals = [];
+    total += length;
+    if (length === 0) continue;
+    for (let j = 1; j < other.length; j++) {
+      const c = other[j - 1], d = other[j], vx = d[0] - c[0], vy = d[1] - c[1];
+      const segmentSquare = vx * vx + vy * vy, x = a[0] - c[0], y = a[1] - c[1];
+      const radiusCross = tolerance * Math.sqrt(segmentSquare);
+      const strip = segmentSquare === 0 ? null : intersection(
+        linearInterval(x * vx + y * vy, dx * vx + dy * vy, 0, segmentSquare),
+        linearInterval(x * vy - y * vx, dx * vy - dy * vx, -radiusCross, radiusCross));
+      for (const interval of [strip, circleInterval(a, dx, dy, square, c, tolerance),
+        circleInterval(a, dx, dy, square, d, tolerance)]) if (interval) intervals.push(interval);
+    }
+    intervals.sort((left, right) => left[0] - right[0]);
+    let end = 0, covered = 0;
+    for (const [low, high] of intervals) if (high > end) {
+      covered += high - Math.max(low, end); end = high;
+    }
+    shared += covered * length;
+  }
+  return total > 0 ? Math.max(0, Math.min(1, shared / total)) : 1;
+}
+
 // Require independently traceable paths and readable annotations, not just
 // one existing shape per semantic ID. This finite sampled-route test does not
 // prove arbitrary edge routing, glyph ink, occlusion or all graph sizes.
@@ -21,7 +71,7 @@ export function assessParallelRelations(expected, observations) {
   assert.ok(Array.isArray(expected) && expected.length >= 2, 'at least two expected relations');
   assert.equal(new Set(expected.map(edge => edge.id)).size, expected.length);
   assert.ok(expected.every(edge => edge.from === expected[0].from && edge.to === expected[0].to));
-  const problems = [], unknown = [], routes = [], names = [];
+  const problems = [], unknown = [], routes = [], names = [], comparisons = [];
   for (const edge of expected) {
     const found = observations.filter(item => item.edge?.id === edge.id);
     if (found.length !== 1) { unknown.push(edge.id + ': missing or duplicate observation'); continue; }
@@ -32,7 +82,11 @@ export function assessParallelRelations(expected, observations) {
     if (complete.status !== 'PASS') unknown.push(edge.id + ': single-edge visibility not established');
     const route = actual.matches?.length === 1 ? actual.matches[0].route : null;
     if (!points(route?.samples)) unknown.push(edge.id + ': route unavailable');
-    else routes.push({ id: edge.id, points: route.samples });
+    else {
+      const stroke = actual.matches[0].stroke;
+      if (!(Number.isFinite(stroke) && stroke > 0)) unknown.push(edge.id + ': stroke width unavailable');
+      routes.push({ id: edge.id, points: route.samples, stroke: Number.isFinite(stroke) && stroke > 0 ? stroke : 0 });
+    }
     if (edge.label) {
       const name = actual.name;
       if (!name || name.unmet !== null || !Array.isArray(name.clips)) unknown.push(edge.id + ': annotation unavailable');
@@ -43,18 +97,21 @@ export function assessParallelRelations(expected, observations) {
   }
   for (let i = 0; i < routes.length; i++) for (let j = i + 1; j < routes.length; j++) {
     const left = routes[i], right = routes[j];
-    // Equal paths may have different transforms or reversed serialization.
-    const distance = reverse => Math.max(...left.points.map((point, k) => {
-      const target = right.points[reverse ? 32 - k : k];
-      return Math.hypot(point[0] - target[0], point[1] - target[1]);
-    }));
-    if (Math.min(distance(false), distance(true)) <= 0.25)
-      problems.push(left.id + ' / ' + right.id + ': coincident painted routes');
+    // A single far sample cannot prove two otherwise shared strokes readable.
+    // Compare sampled polylines in either direction and account for stroke
+    // width. Shared endpoints alone are allowed. This is a finite sampled
+    // rejection rule, not a claim about arbitrary curves or human perception.
+    const tolerance = Math.max(0.5, (left.stroke + right.stroke) / 2 + 0.25);
+    const fractions = [nearLengthFraction(left.points, right.points, tolerance),
+      nearLengthFraction(right.points, left.points, tolerance)];
+    comparisons.push({ ids: [left.id, right.id], tolerance, nearLengthFractions: fractions });
+    if (Math.max(...fractions) >= 0.5)
+      problems.push(left.id + ' / ' + right.id + ': coincident or near-coincident painted routes over at least half the sampled length');
   }
   for (let i = 0; i < names.length; i++) for (let j = i + 1; j < names.length; j++)
     if (overlaps(names[i].box, names[j].box)) problems.push(names[i].id + ' / ' + names[j].id + ': overlapping annotations');
   return { status: problems.length ? 'UNMET' : unknown.length ? 'UNPROVEN' : 'PASS',
-    scope: 'FIXED_PARALLEL_PATHS_AND_ANNOTATIONS', expected: expected.map(edge => ({ ...edge })), problems, unknown };
+    scope: 'FIXED_PARALLEL_PATHS_AND_ANNOTATIONS', expected: expected.map(edge => ({ ...edge })), problems, unknown, comparisons };
 }
 
 export function assessWholeOverview(observation, expectedIds) {

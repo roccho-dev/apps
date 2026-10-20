@@ -863,7 +863,7 @@ test("reverts add the opposite of an entry, and a later change makes them a refu
 
   assert.deepEqual(await revertStep({ before: states[0], after: states[1], working: removed, protocol }), { outcome: OUTCOME_REFUSED, reason: "revert-altered" });
   assert.deepEqual(await revertStep({ before: graph.records, after: graph.records.filter(record => record.id !== "node-a"), working: graph, protocol }),
-    { outcome: OUTCOME_REFUSED, reason: "revert-unsupported" });
+    { outcome: OUTCOME_REFUSED, reason: "revert-reused" });
   assert.deepEqual(await revertStep({ before: graph.records, after: graph.records, working: graph, protocol }), { outcome: OUTCOME_REFUSED, reason: "revert-nothing" });
 });
 

@@ -1,7 +1,7 @@
 {
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/f9948418dc8628ac02b6d6337e191ade9429d59d";
-    ui.url = "github:roccho-dev/ui/756d47e891191c3344eb2d29b000203be8331abc";
+    ui.url = "github:roccho-dev/ui/a3d0ddaeed495cb961dcadcf0a9ad9e9aa58e608";
   };
 
   outputs =

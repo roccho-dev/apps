@@ -11,6 +11,7 @@ import { gradeGraph, canonical } from "../tests/semantic-score.mjs";
 import { auditReducedView } from "../tests/reduced-view-audit.mjs";
 import { createCameraEvidence, overviewLabels } from "../tests/camera-evidence.mjs";
 import { checkOverviewArea, checkParallelViews } from "../tests/spatial-readability.mjs";
+import { checkAnnotationView } from "../tests/annotation-browser.mjs";
 import { checkCollisionCameras } from "../tests/camera-collision-browser.mjs";
 import { auditReferenceDiagram, referenceChoice } from "../tests/reference-diagram-audit.mjs";
 import { checkStoredEdgeEdits, checkStoredHistoryInverse } from "../tests/edit-browser-check.mjs";
@@ -49,6 +50,9 @@ const referenceFixtures = referenceBytes.toString("utf8").trim().split("\n").map
   assert.equal(expected.length, 1);
   return { ...item, reference: expected[0] };
 });
+const annotationBytes = fs.readFileSync(new URL("../tests/fixtures/normal-composition/annotation.jsonl", import.meta.url));
+const annotationFixtures = annotationBytes.toString("utf8").trim().split("\n").map(JSON.parse);
+assert.ok(annotationFixtures.length > 0 && annotationFixtures.length <= 8);
 const recordBag = records => records.map(row => JSON.stringify(canonical(row))).sort();
 assert.ok(normalFixtures.length > 0 && normalFixtures.length <= 16);
 assert.ok(normalFixtures.every(item => /^[a-z][a-z0-9-]+$/.test(item.id) && item.bundle?.schema === "voice-ui.bundle/2"));
@@ -62,7 +66,7 @@ const fixtures = [
     flow: ["構築", "配布記録"] },
   { id: "existing-directed-connection", text: "OCIのSourceからTargetへ矢印を追加。Unrelatedは変更しない",
     nodes: [], flow: ["Source", "Target"], existing: true },
-  ...normalFixtures, ...editingFixtures, ...referenceFixtures,
+  ...normalFixtures, ...editingFixtures, ...referenceFixtures, ...annotationFixtures,
 ];
 assert.equal(new Set(fixtures.map(item => item.id)).size, fixtures.length);
 let fixture = null, input = null, catalogueHidden = false, editing = null;
@@ -177,6 +181,7 @@ const browser = await chromium.launch({ headless: true, channel: "chromium" });
 fs.mkdirSync(output, { recursive: true });
 const failures = [];
 const spatialReadability = [];
+const annotationViews = [];
 const cameraEvidence = createCameraEvidence({ output, source: manifest.sources.apps });
 const overviewReadability = [], cameraSubjectChecks = [];
 try {
@@ -311,6 +316,11 @@ try {
         if (previousCamera === "") assert.equal(restored.outsideIds, "");
         await saveCamera(stage + "-returned");
       }
+      if (fixture.annotation) {
+        const expectedRecords = ["before", "undo"].includes(stage) ? accepted.records : fixture.edit.expectedRecords;
+        const expected = expectedRecords.find(row => row.type === "relation" && row.id === fixture.annotation.edge);
+        annotationViews.push({ fixture: fixture.id, ...await checkAnnotationView({ page, snapshot, settle, saveCamera, expected, stage }) });
+      }
       assert.deepEqual((await snapshot()).records, state.records, "restored camera preserves exact records");
     };
     const inspectSpatial = async stage => {
@@ -330,7 +340,7 @@ try {
           failures.push({ fixture: fixture.id, stage, axis: "parallel-relations", ...group });
       }
     };
-    if (fixture.reference) await paintRestored("before", before);
+    if (fixture.reference || fixture.annotation) await paintRestored("before", before);
     const draw = async () => {
       if (fixture.edit) { await page.locator("#camera-part").selectOption(""); await settle(); }
       await page.locator("#text").fill(fixture.text);
@@ -587,7 +597,8 @@ const receipt = { schema: "voice-ui.candidate-browser/1", sources: manifest.sour
   reference_scope: "two equal task names in distinct subnet parents and branched traffic; not full sample/Atlas or live model accuracy",
   normal_fixture_sha256: hash(normalBytes), normal_fixture_scope: "explicit bundle data; same completed app/Worker/UI; not live semantic accuracy",
   symbol_fixture_sha256: hash(symbolFixtureSvg),
-  cameraShots: cameraEvidence.items, overviewReadability, cameraSubjectChecks, spatialReadability,
+  cameraShots: cameraEvidence.items, overviewReadability, cameraSubjectChecks, spatialReadability, annotationViews,
+  annotation_fixture_sha256: hash(annotationBytes),
   viewport: [1280, 720], deviceScaleFactor: 1, api, synthetic_upstream: upstream, frames, controls, lifecycle, supply, images, fixtureResults, reductions,
   status: failures.length ? "RED" : "PASS", failures };
 fs.writeFileSync(path.join(output, "receipt.json"), JSON.stringify(receipt, null, 2) + "\n");

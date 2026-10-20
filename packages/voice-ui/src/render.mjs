@@ -1,5 +1,5 @@
 import { partResourceView } from "./part-description.mjs";
-import { ACTION_COMPOSE, DRAFT_MAX } from "./contract.mjs";
+import { ACTION_COMPOSE, ACTION_LABEL_EDGE, DRAFT_MAX } from "./contract.mjs";
 import { ACTION_NEW } from "./turn.mjs";
 
 // Everything the page shows, derived from state it is handed. Nothing here
@@ -29,6 +29,9 @@ const REASONS = Object.freeze({
   "no-room-for-part": "図に部品を置く場所がありません",
   "no-two-nodes": "the request did not name two existing nodes",
   "no-edge-named": "the request did not name an existing edge",
+  "annotation-restate": "新しい注釈を引用符で囲んで、対象の矢印とともに指定してください",
+  "annotation-invalid": "指定された注釈は今回の入力候補にありません",
+  "annotation-unchanged": "その矢印の注釈はすでに同じ内容です",
   "repair-failed": "足りなかった部分が聞き取れませんでした。指示全体をもう一度言ってください",
   "repair-context-changed": "図が変わったので補えませんでした。指示全体をもう一度言ってください",
   "repair-self": "同じ部品の隣には置けません。指示全体をもう一度言ってください",
@@ -52,7 +55,9 @@ const REASONS = Object.freeze({
   "revert-has-edge": "this part now has an edge; nothing was reverted",
   "revert-nothing": "that entry changed no edge",
   "revert-altered": "a later change already altered this edge; nothing was reverted",
-  "revert-reused": "a later change already reused this edge; nothing was reverted",
+  "revert-reused": "このIDは後から別の部品・関係に使われています。現在の状態を保持しました",
+  "revert-restore-context": "復元先や接続先が後から変わっています。現在の状態を保持しました",
+  "revert-restore-no-room": "元の配置へ安全に復元できません。現在の部品や配置は変更していません",
   conflict: "別のタブが先に確定図を変更しました。作業図はそのまま残しています",
   rejected: "decision log was rejected",
   "not-persisted": "decision log was not persisted",
@@ -236,6 +241,7 @@ const DIRECTION_WORDS = Object.freeze({ left: "左", right: "右", above: "上",
 // diagram names the bundle diagram its step says it came from.
 const effectOf = (changes, { action = null, template = null, bundle = null } = {}) => {
   const [first, second] = changes;
+  if (action === ACTION_LABEL_EDGE) return `注釈変更 ${first.from}->${first.to}`;
   if (action === ACTION_NEW) return `新しい図「${first.label}」`;
   if (action === ACTION_COMPOSE) {
     const diagram = bundle?.diagrams?.find(entry => entry.key === template);

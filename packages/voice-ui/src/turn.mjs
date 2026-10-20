@@ -5,6 +5,9 @@ import {
   ACTION_COMPOSE,
   ACTION_PLACE_PART,
   ACTION_REMOVE_EDGE,
+  ACTION_LABEL_EDGE,
+  ANNOTATION_REQUEST_KIND,
+  annotationChoices,
   ACTION_REVERSE_EDGE,
   ACTION_UNDO_REQUEST,
   DIRECTIONS,
@@ -275,10 +278,16 @@ export function requestFor({ working, utterance, bundle, layout, offeredFrame, d
   requireGraph(working);
   demand(typeof typedEdges === "boolean", "typedEdges must be explicit boolean");
   const placeable = layout === null ? [] : [...placeableIds(layout, working.records, offeredFrame)];
-  const offers = offersOf(bundle, { named: false });
+  const quoted = typedEdges && speakableEdges(working.records, true).length > 0 ? annotationChoices(utterance) : [];
+  const offers = Object.freeze({ ...offersOf(bundle, { named: false }), ...(quoted.length ? { edgeLabels: quoted } : {}) });
   const state = Object.freeze({
     utterance,
-    graph: Object.freeze({ regions: speakableRegions(working.records), edges: speakableEdges(working.records, typedEdges), placeable }),
+    // Quoted annotation edits need ownership to distinguish equal node names.
+    // Reuse the bounded semantic tree shape; positions/storage never leave here.
+    graph: Object.freeze({ regions: quoted.length ? Object.freeze(working.records
+      .filter(record => record.type === "region")
+      .map(({ id, label, kind, parent }) => Object.freeze({ id, label, kind, parent })))
+      : speakableRegions(working.records), edges: speakableEdges(working.records, typedEdges), placeable }),
     draft: Object.freeze(draft.map(step => Object.freeze({ changes: changesForJudgment(step.changes) }))),
     focus,
     pending,
@@ -291,8 +300,9 @@ export function requestFor({ working, utterance, bundle, layout, offeredFrame, d
     bundle: sections.length === 0 ? null : Object.freeze({ version: bundle.version, sections: Object.freeze(sections) }),
     frame: offeredFrame,
     slots: slotsFor(state),
+    ...(quoted.length ? { edgeLabels: quoted } : {}),
   });
-  return Object.freeze({ turn, request: Object.freeze({ kind: typedEdges ? TYPED_REQUEST_KIND : REQUEST_KIND, state }) });
+  return Object.freeze({ turn, request: Object.freeze({ kind: quoted.length ? ANNOTATION_REQUEST_KIND : typedEdges ? TYPED_REQUEST_KIND : REQUEST_KIND, state }) });
 }
 
 // The one slot that fell short, or null when the shortfall is not exactly one
@@ -410,16 +420,23 @@ function composeDiagram(diagram, confidence, { working, reserved, protocol }) {
   if (![...laneIds, ...stepIds].every(regionId => auto.bounds[regionId] !== undefined)) return refused("diagram-unplaceable");
   const stepWidth = Math.max(...stepIds.map(regionId => auto.bounds[regionId][2]));
   const stepHeight = Math.max(...stepIds.map(regionId => auto.bounds[regionId][3]));
+  const bandLabelRoom = Math.max(BAND_LABEL_ROOM, ...laneIds
+    .map(regionId => childLabelRoom(stateWith(added), regionId, protocol))
+    .filter(inset => inset !== null));
   const [x0, y0] = auto.bounds[laneIds[0]];
-  const bandWidth = 2 * BAND_PADDING + stepIds.length * stepWidth + (stepIds.length - 1) * STEP_GAP;
-  const bandHeight = BAND_LABEL_ROOM + stepHeight + BAND_PADDING;
+  // A compact gutter can put an edge's fixed-screen annotation beneath its
+  // endpoint boxes. Reserve room when composing; never move an existing pin
+  // as a side effect of editing an annotation.
+  const columnGap = Math.max(STEP_GAP, stepHeight);
+  const bandWidth = 2 * BAND_PADDING + stepIds.length * stepWidth + (stepIds.length - 1) * columnGap;
+  const bandHeight = bandLabelRoom + stepHeight + BAND_PADDING;
   const bandY = index => y0 + index * (bandHeight + BAND_GAP);
   const pins = new Map(laneIds.map((regionId, index) => [regionId, [x0, bandY(index), bandWidth, bandHeight]]));
   diagram.steps.forEach((step, column) => {
     const laneIndex = diagram.lanes.findIndex(lane => lane.ref === step.lane);
     pins.set(idOf.get(step.ref), [
-      x0 + BAND_PADDING + column * (stepWidth + STEP_GAP),
-      bandY(laneIndex) + BAND_LABEL_ROOM,
+      x0 + BAND_PADDING + column * (stepWidth + columnGap),
+      bandY(laneIndex) + bandLabelRoom,
       stepWidth,
       stepHeight,
     ]);
@@ -541,13 +558,27 @@ function operationsFor(read, context) {
     }], [{ change: "added", from: read.source.choice, to: read.target.choice }]);
   }
 
-  // Remove or reverse one edge.
+  // Remove, annotate or reverse one edge.
   if (read.edge.choice === NONE) return noChange("no-edge-named");
   const confidence = Math.min(read.action.confidence, read.edge.confidence);
   if (confidence < MIN_CONFIDENCE) return noChange("not-confident");
   const relation = records.find(record => record?.type === "relation" && record.id === read.edge.choice);
   if (relation === undefined) return refused("edge-gone");
   const remove = { type: "RemoveSelection", regionIds: [], relationIds: [relation.id] };
+  if (action === ACTION_LABEL_EDGE) {
+    // Only a quoted alternative held with this turn can become a new label.
+    if (!typed || read.edgeLabel?.choice === NONE) return noChange("annotation-restate");
+    const value = context.turn.edgeLabels?.find(item => item.key === read.edgeLabel?.choice);
+    if (value === undefined) return refused("annotation-invalid");
+    const certain = Math.min(confidence, read.edgeLabel.confidence);
+    if (certain < MIN_CONFIDENCE) return noChange("not-confident");
+    if (value.label === relation.label) return noChange("annotation-unchanged");
+    return plan(ACTION_LABEL_EDGE, certain, [remove, {
+      type: "ConnectRegions", relationId: relation.id, from: relation.from,
+      to: relation.to, kind: relation.kind, label: value.label,
+    }], [{ change: "removed", from: relation.from, to: relation.to },
+      { change: "added", from: relation.from, to: relation.to }]);
+  }
   if (action === ACTION_REMOVE_EDGE) {
     return plan(ACTION_REMOVE_EDGE, confidence, [remove], [{ change: "removed", from: relation.from, to: relation.to }]);
   }
@@ -982,9 +1013,22 @@ const sameRegion = (left, right) => left !== undefined && right !== undefined
 export function revertable(entry, projection) {
   if (entry.facts.every(fact => fact.kind === "relation")) return true;
   if (entry.facts.every(fact => fact.kind === "layout")) return true;
-  return entry.facts.every(fact => fact.kind === "region" && fact.change === "added")
-    && entry.facts.every(fact => projection.regions.includes(fact.id)
-      && !projection.relations.some(relation => relation.from === fact.id || relation.to === fact.id));
+  const removed = entry.facts.filter(fact => fact.kind === "region" && fact.change === "removed").map(fact => fact.id);
+  // A saved pure removal can be restored, subject to exact snapshot, identity,
+  // dependency and layout checks when the button is used. Never infer content
+  // from the current catalogue or treat an already reused ID as the old part.
+  if (removed.length > 0 && entry.facts.every(fact => fact.change === "removed"
+      && (fact.kind === "region" || fact.kind === "relation"
+        || fact.kind === "layout" && removed.includes(fact.id))))
+    return removed.every(id => !projection.regions.includes(id)
+      && !projection.relations.some(relation => relation.id === id));
+  const added = entry.facts.filter(fact => fact.kind === "region" && fact.change === "added").map(fact => fact.id);
+  // A normal Goal creates the part and its initial placement together. Only
+  // those new parts' own added pins belong to this simple inverse.
+  return added.length > 0 && entry.facts.every(fact => fact.change === "added"
+      && (fact.kind === "region" || fact.kind === "layout" && added.includes(fact.id)))
+    && added.every(id => projection.regions.includes(id)
+      && !projection.relations.some(relation => relation.from === id || relation.to === id));
 }
 
 // Undo a saved entry by adding its opposite to the working graph. `before` and
@@ -993,9 +1037,11 @@ export function revertable(entry, projection) {
 // and added there as one more step. The saved graph is never touched.
 export async function revertStep({ before, after, working, protocol }) {
   requireGraph(working);
-  const build = async (operations, changes) => {
+  const build = async (operations, changes, validate = null) => {
     try {
-      const { decision } = await protocol.createDecision(working.head, operations, working.records);
+      const { decision, records } = await protocol.createDecision(working.head, operations, working.records);
+      const reason = validate === null ? null : validate(records);
+      if (reason !== null) return refused(reason);
       return Object.freeze({ outcome: OUTCOME_STEP, step: step(working.head, ACTION_REVERT, changes, decision) });
     } catch (error) {
       return refused("provider-rejected", message(error));
@@ -1024,11 +1070,91 @@ export async function revertStep({ before, after, working, protocol }) {
   // edge: RemoveSelection would take more than that entry did.
   const addedRegions = regionIds(after).filter(regionId => !regionIds(before).includes(regionId));
   const removedRegions = regionIds(before).filter(regionId => !regionIds(after).includes(regionId));
-  if (addedRegions.length > 0 || removedRegions.length > 0) {
-    if (removedRegions.length > 0) return refused("revert-unsupported");
+  if (removedRegions.length > 0) {
+    if (addedRegions.length > 0) return refused("revert-unsupported");
+    const key = record => record.type === "layout" ? `layout ${record.regionId}` : `${record.type} ${record.id ?? ""}`;
+    const earlier = new Map(before.map(record => [key(record), record]));
+    const later = new Map(after.map(record => [key(record), record]));
+    // Restore only a pure removal. Do not call a partial inverse successful
+    // when that same saved entry also changed a surviving record or parent pin.
+    if (!after.every(record => sameRegion(record, earlier.get(key(record))))) return refused("revert-unsupported");
+    const missing = before.filter(record => !later.has(key(record)));
+    if (!missing.every(record => record.type === "region" && record.parent !== null
+        || record.type === "relation" || record.type === "layout" && removedRegions.includes(record.regionId)))
+      return refused("revert-unsupported");
+    const current = new Map(working.records.map(record => [key(record), record]));
+    const used = new Set(working.records.map(record => record.id));
+    if (missing.some(record => record.id !== undefined && used.has(record.id))) return refused("revert-reused");
+    const regions = missing.filter(record => record.type === "region");
+    const edges = missing.filter(record => record.type === "relation");
+    const pins = missing.filter(record => record.type === "layout");
+    // Parent/endpoint meaning and placement are read dependencies. A changed
+    // dependency is a conflict, while unrelated later work may stay untouched.
+    const currentPins = new Map(layoutPins(working.records));
+    const dependencies = new Set([...regions.flatMap(record => [record.parent, record.temporal?.actor]),
+      ...edges.flatMap(record => [record.from, record.to])].filter(id => id != null && !removedRegions.includes(id)));
+    for (const id of dependencies) {
+      const record = later.get(`region ${id}`);
+      if (!record || !sameRegion(record, current.get(`region ${id}`))
+        || JSON.stringify(layoutAfter.get(id)) !== JSON.stringify(currentPins.get(id)))
+        return refused("revert-restore-context");
+      if (record.parent !== null) dependencies.add(record.parent);
+    }
+    const operations = [], present = new Set(after.filter(record => record.type === "region").map(record => record.id));
+    let pending = [...regions];
+    while (pending.length) {
+      const ready = pending.filter(record => present.has(record.parent));
+      if (!ready.length) return refused("revert-unsupported");
+      for (const { type: _, id, parent, ...fields } of ready) {
+        // Unsupported fields are rejected by the provider, never dropped.
+        operations.push({ type: "AddRegion", regionId: id, parentId: parent, ...fields });
+        present.add(id);
+      }
+      pending = pending.filter(record => !present.has(record.id));
+    }
+    for (const { type: _, id, ...fields } of edges) operations.push({ type: "ConnectRegions", relationId: id, ...fields });
+    if (pins.length) operations.push({ type: "PinRegions", items: pins.map(record => ({ regionId: record.regionId, bounds: record.bounds })) });
+    return build(operations, [
+      ...regions.map(record => ({ change: "added", kind: "region", id: record.id, label: record.label })),
+      ...edges.map(record => ({ change: "added", from: record.from, to: record.to })),
+    ], restored => {
+      const result = new Map(restored.map(record => [key(record), record]));
+      if (result.size !== current.size + missing.length
+        || ![...working.records, ...missing].every(record => sameRegion(record, result.get(key(record)))))
+        return "revert-unsupported";
+      const expected = protocol.layoutBoundsFor(before, { pattern: protocol.GRAPH_PATTERN });
+      const actual = protocol.layoutBoundsFor(restored, { pattern: protocol.GRAPH_PATTERN });
+      const parents = new Map(restored.filter(record => record.type === "region").map(record => [record.id, record.parent]));
+      const ancestor = (parent, child) => {
+        for (let id = parents.get(child); id != null; id = parents.get(id)) if (id === parent) return true;
+        return false;
+      };
+      for (const record of regions) {
+        const own = actual.bounds[record.id];
+        if (!own || JSON.stringify(own) !== JSON.stringify(expected.bounds[record.id])) return "revert-restore-no-room";
+        for (const other of working.records.filter(item => item.type === "region" && item.parent !== null)) {
+          if (ancestor(other.id, record.id) || ancestor(record.id, other.id)) continue;
+          const placed = actual.bounds[other.id], old = expected.bounds[other.id];
+          if (!placed || overlapping(own, placed) && !(old && overlapping(expected.bounds[record.id], old)))
+            return "revert-restore-no-room";
+        }
+      }
+      return null;
+    });
+  }
+  if (addedRegions.length > 0) {
+    // Do not call a partial inverse complete: this entry may only add these
+    // leaf regions and their own pins, not also resize a parent or edit a peer.
+    const remaining = after.filter(record => !(record.type === "region" && addedRegions.includes(record.id)
+      || record.type === "layout" && addedRegions.includes(record.regionId)));
+    if (remaining.length !== before.length || !remaining.every((record, index) => sameRegion(record, before[index])))
+      return refused("revert-unsupported");
+    const currentPins = new Map(layoutPins(working.records));
     const present = new Set(regionIds(working.records));
     for (const regionId of addedRegions) {
       if (!present.has(regionId)) return refused("revert-removed");
+      if (JSON.stringify(currentPins.get(regionId)) !== JSON.stringify(layoutAfter.get(regionId)))
+        return refused("revert-moved");
       // Removing an added leaf must not discard a later name, kind, parent,
       // description, or other stored value. Compare only the target's state;
       // unrelated later work does not block its unchanged inverse.
@@ -1040,8 +1166,11 @@ export async function revertStep({ before, after, working, protocol }) {
       }
     }
     const labelOf = regionId => after.find(record => record?.type === "region" && record.id === regionId).label;
-    return build([{ type: "RemoveSelection", regionIds: [...addedRegions], relationIds: [] }],
-      addedRegions.map(regionId => ({ change: "removed", kind: "region", id: regionId, label: labelOf(regionId) })));
+    const pinned = addedRegions.filter(regionId => layoutAfter.has(regionId));
+    return build([
+      ...(pinned.length ? [{ type: "UnpinRegions", regionIds: pinned }] : []),
+      { type: "RemoveSelection", regionIds: [...addedRegions], relationIds: [] },
+    ], addedRegions.map(regionId => ({ change: "removed", kind: "region", id: regionId, label: labelOf(regionId) })));
   }
 
   // Edges it added are removed; edges it removed come back with their id,
