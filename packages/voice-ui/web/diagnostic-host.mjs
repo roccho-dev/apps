@@ -4,7 +4,7 @@ import {
   VOICE_UI_FAILURE_CODE,
   consumeVoiceUiDiagnostic,
   createVoiceUiDiagnosticBridge,
-} from "../src/diagnostic.mjs";
+} from "/app/src/diagnostic.mjs";
 
 const CONTRACT_URL = new URL("./providers/structured-diagnostic/contract.json", import.meta.url);
 const IDENTITY_URL = new URL("./providers/structured-diagnostic/identity.json", import.meta.url);
