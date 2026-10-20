@@ -5,8 +5,6 @@ import {
   validateDiagnostic,
 } from "../lib/diagnostic.mjs";
 
-export { DiagnosticContractError };
-
 export function createBrowserDiagnosticPort({ contract, write }) {
   if (contract === null || typeof contract !== "object" || Array.isArray(contract)) {
     throw new DiagnosticContractError(
