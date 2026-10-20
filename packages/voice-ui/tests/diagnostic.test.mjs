@@ -11,7 +11,6 @@ import {
   VOICE_UI_FAILURE_CODE,
   consumeVoiceUiDiagnostic,
   createVoiceUiDiagnosticBridge,
-  diagnosticForVoiceUiFailure,
 } from "../src/diagnostic.mjs";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
@@ -60,6 +59,7 @@ test("exact Ops provider bytes drive feature and data consumption", () => {
   assert.equal(result.finding.action, "inspect-judgment-provider");
   assert.deepEqual(findings, [result.finding]);
   assert.equal(port.parse(rows[0]).fields.reason, "provider_rejected");
+  assert.equal(port.canonicalize(rows[0]), rows[0]);
 });
 
 test("code-only diagnostic remains valid and is not misclassified", () => {
@@ -75,7 +75,13 @@ test("code-only diagnostic remains valid and is not misclassified", () => {
 
 test("wrong source, wrong code and invalid input never become findings", () => {
   const port = createBrowserDiagnosticPort({ contract, write() {} });
-  const line = port.encode(diagnosticForVoiceUiFailure({ phase: "render" }));
+  const line = port.encode({
+    schema: "diagnostic/1",
+    code: VOICE_UI_FAILURE_CODE,
+    level: "error",
+    message: "Voice UI operation failed",
+    fields: { phase: "render", reason: "failed" },
+  });
   assert.equal(
     consumeVoiceUiDiagnostic({ line, parse: port.parse, providerIdentity: { ...identity, revision: "0".repeat(40) } }).reason,
     "wrong-source",
