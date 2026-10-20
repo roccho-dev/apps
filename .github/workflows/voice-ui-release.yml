@@ -98,13 +98,16 @@ jobs:
             "$reopened/voice-ui-dist" "$PWD/dist/dependency-cycle-mechanics"
           baseline="$(nix build --no-link --print-out-paths github:roccho-dev/apps/ae816ec23a5e4c397c8a4893e127fb24134afda8#voice-ui-dist)"
           "$runtime/bin/voice-ui-acceptance-node" packages/voice-ui/acceptance/intent-cycle-smoke.mjs \
-            "$reopened/voice-ui-dist" "$PWD/dist/intent-cycle-mechanics" "$baseline"
+            "$reopened/voice-ui-dist" "$PWD/dist/intent-cycle-mechanics" "$baseline" \
+            --historical-bundle "$PWD/packages/voice-ui/tests/fixtures/legacy-bundle.v1.json"
           frontier_baseline="$(nix build --no-link --print-out-paths github:roccho-dev/apps/664c8a8d4598471327a8b330afd416b3f9eb86e0#voice-ui-dist)"
           "$runtime/bin/voice-ui-acceptance-node" packages/voice-ui/acceptance/frontier-cycle-smoke.mjs \
-            "$reopened/voice-ui-dist" "$PWD/dist/frontier-cycle-mechanics" "$frontier_baseline"
+            "$reopened/voice-ui-dist" "$PWD/dist/frontier-cycle-mechanics" "$frontier_baseline" \
+            --historical-bundle "$PWD/packages/voice-ui/tests/fixtures/legacy-bundle.v1.json"
           quota_baseline="$(nix build --no-link --print-out-paths github:roccho-dev/apps/0aa3c4b90519a1c18c217753698806507ccff3c0#voice-ui-dist)"
           "$runtime/bin/voice-ui-acceptance-node" packages/voice-ui/acceptance/quota-cycle-smoke.mjs \
-            "$reopened/voice-ui-dist" "$PWD/dist/quota-cycle-mechanics" "$quota_baseline"
+            "$reopened/voice-ui-dist" "$PWD/dist/quota-cycle-mechanics" "$quota_baseline" \
+            --historical-bundle "$PWD/packages/voice-ui/tests/fixtures/legacy-bundle.v1.json"
           # Historical reserve: exact 2cc4890 bundle bytes required by the sealed
           # canonical_bundle_sha256. This PASS cannot establish current bundle acceptance.
           POC_PROTOCOL_ENTRY="$reopened/voice-ui-dist/site/ui/semantic-map/protocol/index.js" \

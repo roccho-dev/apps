@@ -23,3 +23,12 @@ schema and duplicate part key, followed by restoration of the current bundle.
 manifest, those bodies and saved DecisionLogs using the packaged parser and
 protocol. The release workflow requires that current-consumer audit separately
 from the historical reserve test. Neither result substitutes for the other.
+
+The intent, frontier and quota paired comparisons also keep their original
+schema-1 inventory through the explicit `--historical-bundle` option. Without
+that option their original current-versus-baseline byte equality is retained.
+Historical mode requires the exact original hash, the exact pinned baseline
+bytes, and equality of every current catalogue value apart from the declared
+schema-2 migration. It changes the served comparison data at the ordinary URL;
+it never overwrites the physical distribution. Receipts record both hashes and
+the historical scope. The separate current-consumer gate remains required.

@@ -10,9 +10,10 @@ import { fileURLToPath, pathToFileURL } from "node:url";
 import { assertNoSecretInputs, loadAcceptanceArtifact, assertCompactVerifierWire } from "../tests/runtime-acceptance.mjs";
 import { gradeInitialIntent, validRequirements, validFactors, decodeRequiredSlots, sameRequirements, verifierDecision } from "../tests/intent-cycle-score.mjs";
 import { INTENT_SOURCE_NAMES } from "../tests/intent-cycle-audit.mjs";
+import { historicalBundleControl } from "./historical-bundle-control.mjs";
 assertNoSecretInputs();
-const [artifact, out, baselineArtifact] = process.argv.slice(2);
-assert.equal(process.argv.length, 5);
+const [artifact, out, baselineArtifact, ...comparisonArguments] = process.argv.slice(2);
+assert.ok(process.argv.length === 5 || process.argv.length === 7);
 for (const dir of [artifact, out, baselineArtifact]) assert.ok(path.isAbsolute(dir));
 fs.mkdirSync(out);
 const base = fileURLToPath(new URL("../../../", import.meta.url));
@@ -24,8 +25,7 @@ const manifests = [artifact, baselineArtifact].map(dir => {
   return { bytes, value };
 });
 assert.equal(manifests[1].value.sources.apps, "ae816ec23a5e4c397c8a4893e127fb24134afda8");
-assert.equal(hash(fs.readFileSync(path.join(artifact, "site/data/bundle.v1.json"))),
-  hash(fs.readFileSync(path.join(baselineArtifact, "site/data/bundle.v1.json"))));
+const comparisonBundle = historicalBundleControl(artifact, baselineArtifact, comparisonArguments);
 const workerPath = path.join(artifact, "worker/worker.mjs");
 const { default: worker } = await import(pathToFileURL(workerPath));
 const { default: baselineWorker } = await import(pathToFileURL(path.join(baselineArtifact, "worker/worker.mjs")));
@@ -38,7 +38,7 @@ fs.symlinkSync(path.join(artifact, "site/ui/semantic-map"), path.join(semanticRo
 const prereg = path.join(base, "docs/voice-ui/intent-cycle-20261018/preregistered");
 const publicInput = read(path.join(prereg, "intent-cycle-public-G0-10.inputs.json"));
 const publicOracle = read(path.join(prereg, "intent-cycle-public-G0-10.oracle.json"));
-const stock = read(path.join(artifact, "site/data/bundle.v1.json")).parts;
+const stock = JSON.parse(comparisonBundle.bytes).parts;
 const fPart = stock.find(part => part.kind === "step"); assert.ok(fPart);
 const env = { JEV_API_KEY: "fixture-jev-only", TYPELLM_API_KEY: "fixture-type-only",
   ASSETS: { fetch: () => assert.fail("unexpected asset") } };
@@ -101,6 +101,9 @@ const server = http.createServer(async (req, res) => {
   try {
     const parsed = new URL(req.url, "http://127.0.0.1");
     if (!parsed.pathname.startsWith("/api/")) {
+      if (parsed.pathname === "/data/bundle.v1.json") {
+        res.writeHead(200, { ...headers, "content-type": "application/json" }); res.end(comparisonBundle.bytes); return;
+      }
       if (parsed.pathname === "/hayamimi/sherpa/data.parts.json") { res.writeHead(204, headers); res.end(); return; }
       const file = path.resolve(site, parsed.pathname === "/" ? "index.html" : decodeURIComponent(parsed.pathname.slice(1)));
       assert.ok(file.startsWith(site + path.sep));
@@ -256,6 +259,7 @@ try {
 }
 fs.writeFileSync(path.join(out, "receipt.json"), JSON.stringify({ schema: "voice-ui.intent-cycle-keyless/1",
   status: "PASS", scope: "SYNTHETIC_MECHANICS_ONLY", external_provider_sends: { jev: 0, typellm: 0 },
+  comparison_bundle: comparisonBundle.proof,
   artifact_sources: manifests[0].value.sources, artifact_manifest_sha256: hash(manifests[0].bytes),
   carried_observation_head: manifests[1].value.sources.apps, baseline_manifest_sha256: hash(manifests[1].bytes),
   source_inventory: INTENT_SOURCE_NAMES.length, summaries, api, wireEquality,

@@ -52,10 +52,13 @@ globalThis.fetch = async (url, init) => {
       const key = hash(wire.context), pair = pairs.get(key) ?? {};
       pair[currentPolicy] = wire; pairs.set(key, pair);
     }
-    if (currentStage === "E-contract") return Response.json({ status: "completed", result: {
-      required1: { label: name, kind: "step", quantity: "1" }, required2: { label: name, kind: "step", quantity: "1" },
-      required3: { label: "", kind: "none", quantity: "0" },
-    } });
+    // Preserve the original semantic duplicate negative inside a complete
+    // response shape. A truncated3-slot response to16 questions is rejected
+    // by the transport before the TYPE_REQUIRED semantic audit can run.
+    if (currentStage === "E-contract") return Response.json({ status: "completed", result:
+      Object.fromEntries(Array.from({ length: capacity }, (_, i) => i + 1).map(n =>
+        ["required" + n, n <= 2 ? { label: name, kind: "step", quantity: "1" }
+          : { label: "", kind: "none", quantity: "0" }])) });
     return Response.json({ status: "completed", result: Object.fromEntries(Array.from({ length: capacity }, (_, i) => i + 1).map(n =>
       ["required" + n, n === 1 ? { label: name, kind: "step", quantity: "1" } : { label: "", kind: "none", quantity: "0" }])) });
   }

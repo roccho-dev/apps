@@ -9,9 +9,10 @@ import { fileURLToPath, pathToFileURL } from "node:url";
 import { assertNoSecretInputs, loadAcceptanceArtifact, assertCompactVerifierWire } from "../tests/runtime-acceptance.mjs";
 import { QUOTA_SOURCE_NAMES } from "../tests/quota-cycle-audit.mjs";
 import { QUOTA_METHODS, QUOTA_GENERATIONS, QUOTA_GOAL_POLICIES } from "../tests/quota-cycle-score.mjs";
+import { historicalBundleControl } from "./historical-bundle-control.mjs";
 assertNoSecretInputs();
-const [artifact, out, previousArtifact] = process.argv.slice(2);
-assert.equal(process.argv.length, 5);
+const [artifact, out, previousArtifact, ...comparisonArguments] = process.argv.slice(2);
+assert.ok(process.argv.length === 5 || process.argv.length === 7);
 assert.ok([artifact, out, previousArtifact].every(path.isAbsolute));
 fs.mkdirSync(out);
 const root = fileURLToPath(new URL("../../../", import.meta.url)), hash = b => createHash("sha256").update(b).digest("hex");
@@ -28,8 +29,8 @@ const { default: previousWorker } = await import(pathToFileURL(path.join(previou
 const protocolPath = path.join(artifact, "site/ui/semantic-map/protocol/index.js");
 const protocol = await import(pathToFileURL(protocolPath));
 assert.equal(hash(fs.readFileSync(protocolPath)), hash(fs.readFileSync(path.join(previousArtifact, "site/ui/semantic-map/protocol/index.js"))));
-const bundleBytes = fs.readFileSync(path.join(artifact, "site/data/bundle.v1.json")), stock = JSON.parse(bundleBytes).parts;
-assert.equal(hash(bundleBytes), hash(fs.readFileSync(path.join(previousArtifact, "site/data/bundle.v1.json"))));
+const comparisonBundle = historicalBundleControl(artifact, previousArtifact, comparisonArguments);
+const bundleBytes = comparisonBundle.bytes, stock = JSON.parse(bundleBytes).parts;
 const semanticRoot = path.join(out, "semantic-map-root");
 fs.mkdirSync(path.join(semanticRoot, "packages"), { recursive: true });
 fs.symlinkSync(path.join(artifact, "site/ui/semantic-map"), path.join(semanticRoot, "packages/semantic-map"), "dir");
@@ -89,6 +90,9 @@ const server = http.createServer(async (req, res) => {
   try {
     const parsed = new URL(req.url, "http://127.0.0.1");
     if (!parsed.pathname.startsWith("/api/")) {
+      if (parsed.pathname === "/data/bundle.v1.json") {
+        res.writeHead(200, { ...headers, "content-type": "application/json" }); res.end(comparisonBundle.bytes); return;
+      }
       if (parsed.pathname === "/hayamimi/sherpa/data.parts.json") { res.writeHead(204, headers); res.end(); return; }
       const file = path.resolve(site, parsed.pathname === "/" ? "index.html" : decodeURIComponent(parsed.pathname.slice(1)));
       assert.ok(file.startsWith(site + path.sep));
@@ -243,6 +247,7 @@ try {
 } finally { globalThis.fetch = savedFetch; console.info = savedInfo; await new Promise(resolve => server.close(resolve)); }
 fs.writeFileSync(path.join(out, "receipt.json"), enc({ schema: "voice-ui.quota-cycle-keyless/1", status: "PASS",
   scope: "SYNTHETIC_MECHANICS_ONLY", external_provider_sends: { jev: 0, typellm: 0 }, ordinary_extraction_bridge: ordinaryExtractionBridge,
+  comparison_bundle: comparisonBundle.proof,
   artifact_sources: manifests[0].value.sources, artifact_manifest_sha256: hash(manifests[0].bytes),
   previous_sources: manifests[1].value.sources, source_inventory: QUOTA_SOURCE_NAMES.length, summaries, wireEquality, upstream, api, stages }));
 console.log(JSON.stringify({ status: "PASS", scope: "SYNTHETIC_MECHANICS_ONLY", cells: summaries.reduce((n, s) => n + s.cells, 0), wire_pairs: wireEquality.length }));
