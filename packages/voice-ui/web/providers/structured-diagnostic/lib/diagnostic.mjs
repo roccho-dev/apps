@@ -1,23 +1,41 @@
-const textEncoder = new TextEncoder();
+const ERROR_MARKER = Symbol.for("roccho.structured-diagnostic.error");
 
-export class DiagnosticContractError extends Error {
-  constructor(code, path, message, options = {}) {
-    super(message, options);
-    this.name = "DiagnosticContractError";
-    this.code = code;
-    this.path = path;
-    if (options.line !== undefined) {
-      this.line = options.line;
-    }
+export function DiagnosticContractError(code, path, message, options = {}) {
+  const error = new Error(message, options);
+  error.name = "DiagnosticContractError";
+  error.code = code;
+  error.path = path;
+  if (options.line !== undefined) {
+    error.line = options.line;
   }
+  Object.defineProperty(error, ERROR_MARKER, { value: true });
+  return error;
+}
+
+Object.defineProperty(DiagnosticContractError, Symbol.hasInstance, {
+  value(value) {
+    return value !== null && typeof value === "object" && value[ERROR_MARKER] === true;
+  },
+});
+
+function isDiagnosticContractError(value) {
+  return value !== null && typeof value === "object" && value[ERROR_MARKER] === true;
 }
 
 function fail(code, path, message, options) {
-  throw new DiagnosticContractError(code, path, message, options);
+  throw DiagnosticContractError(code, path, message, options);
 }
 
 function utf8Bytes(value) {
-  return textEncoder.encode(value).byteLength;
+  let bytes = 0;
+  for (const character of value) {
+    const codePoint = character.codePointAt(0);
+    if (codePoint <= 0x7f) bytes += 1;
+    else if (codePoint <= 0x7ff) bytes += 2;
+    else if (codePoint <= 0xffff) bytes += 3;
+    else bytes += 4;
+  }
+  return bytes;
 }
 
 function isPlainObject(value) {
@@ -474,8 +492,8 @@ export function canonicalizeDiagnosticJsonl(text, contract) {
     try {
       values.push(parseDiagnosticLine(lines[index], contract));
     } catch (error) {
-      if (error instanceof DiagnosticContractError) {
-        throw new DiagnosticContractError(error.code, error.path, error.message, {
+      if (isDiagnosticContractError(error)) {
+        throw DiagnosticContractError(error.code, error.path, error.message, {
           cause: error,
           line: lineNumber,
         });
