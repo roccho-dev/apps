@@ -28,7 +28,6 @@ let
       unset NODE_OPTIONS NODE_EXTRA_CA_CERTS
       export NODE_PATH=${modules}
       export PLAYWRIGHT_BROWSERS_PATH=${browsers}
-      export VOICE_UI_CHROMIUM_EXECUTABLE=${browsers}/chromium-1228/chrome-linux64/chrome
       export PLAYWRIGHT_SKIP_VALIDATE_HOST_REQUIREMENTS=true
       export PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1
       exec ${pkgs.tini}/bin/tini -s -- ${pkgs.nodejs}/bin/node "$@"
@@ -43,7 +42,9 @@ in {
       printf 'VOICE_UI_SMOKE_LOG_BASE64=%s\n' "$(tail -c 12000 smoke.log | base64 -w 0)" >&2
       exit 1
     fi
-    ${runtime}/bin/voice-ui-acceptance-node ${./diagnostic-browser.mjs} ${artifact}
+    mkdir diagnostic-home
+    HOME="$PWD/diagnostic-home" TMPDIR="$PWD/diagnostic-home" \
+      ${runtime}/bin/voice-ui-acceptance-node ${./diagnostic-browser.mjs} ${artifact}
     touch "$out"
   '';
 }
