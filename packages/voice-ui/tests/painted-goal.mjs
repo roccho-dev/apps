@@ -19,6 +19,18 @@ export function observePaintedGoal({ container, records, edge = null, identity =
       ? [r.left, r.top, r.width, r.height] : null;
   };
   const uniquePrimitive = geometry => geometry.length === 1 ? geometry[0] : null;
+  // ImageShape paints one fill rectangle, one image and a coincident border
+  // rectangle. This finite compound frame has one physical extent. A random
+  // pair of primitives, extra image, hidden image or displaced border is still
+  // unavailable; resource identity/decode is checked separately by symbols.
+  const compoundImageFrame = (geometry, group) => {
+    if (!identity || geometry.length !== 2 || !geometry.every(node => node.localName === "rect")) return null;
+    const images = [...group.children].filter(node => node.localName === "image" && node.namespaceURI === "http://www.w3.org/2000/svg");
+    if (images.length !== 1 || group.children.length !== 3 || !images[0].getAttributeNS("http://www.w3.org/1999/xlink", "href")
+      && !images[0].getAttribute("href")) return null;
+    const bounds = [geometry[0], geometry[1], images[0]].map(box);
+    return bounds.every(value => value !== null && JSON.stringify(value) === JSON.stringify(bounds[0])) ? geometry[0] : null;
+  };
   // The one rendered node whose whole text is the label, or null.
   const owned = (record, role) => {
     const nodes = [...doc.querySelectorAll("[data-semantic-region-id]")].filter(node =>
@@ -168,7 +180,7 @@ export function observePaintedGoal({ container, records, edge = null, identity =
           return Number(style.opacity) > 0 && ((paintedColor(style.fill) && Number(style.fillOpacity) > 0)
             || (paintedColor(style.stroke) && Number(style.strokeOpacity) > 0));
         });
-        const primitive = uniquePrimitive(geometry);
+        const primitive = uniquePrimitive(geometry) ?? compoundImageFrame(geometry, previous);
         return primitive !== null && primitive.namespaceURI === "http://www.w3.org/2000/svg"
           && typeof primitive.getScreenCTM === "function" && typeof primitive.getTotalLength === "function"
           && typeof primitive.getPointAtLength === "function"

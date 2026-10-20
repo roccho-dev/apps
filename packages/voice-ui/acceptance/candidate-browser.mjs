@@ -58,11 +58,21 @@ assert.ok(normalFixtures.length > 0 && normalFixtures.length <= 16);
 assert.ok(normalFixtures.every(item => /^[a-z][a-z0-9-]+$/.test(item.id) && item.bundle?.schema === "voice-ui.bundle/2"));
 const fixtures = [
   { id: "equal-label-quantity", text: "OCIにDBを3個追加",
-    nodes: [{ label: "DB", kind: "data", quantity: 3, parent: "OCI" }], flow: null },
+    nodes: [{ label: "DB", kind: "data", quantity: 3, parent: "OCI", descriptions: [
+      { schema: "voice-ui.part-description/2", key: "db", purpose: "a database that persists application data" },
+      { schema: "voice-ui.part-description/2", key: "goal-extra-1", purpose: "a database that persists application data" },
+      { schema: "voice-ui.part-description/2", key: "goal-extra-2", purpose: "a database that persists application data" },
+    ] }], flow: null },
   { id: "nested-new-names", text: "OCIに「配布領域」というグループ、その中に「配布記録」というデータ、OCIに「構築」という工程を追加して、構築から配布記録へ矢印",
-    nodes: [{ label: "配布領域", kind: "group", quantity: 1, parent: "OCI" },
-      { label: "配布記録", kind: "data", quantity: 1, parent: "配布領域" },
-      { label: "構築", kind: "step", quantity: 1, parent: "OCI" }],
+    nodes: [{ label: "配布領域", kind: "group", quantity: 1, parent: "OCI", descriptions: [
+      { schema: "voice-ui.part-description/2", key: "goal-extra-1", purpose: "one requested part named 配布領域, kind group, missing instance 1" },
+    ] },
+      { label: "配布記録", kind: "data", quantity: 1, parent: "配布領域", descriptions: [
+        { schema: "voice-ui.part-description/2", key: "goal-extra-2", purpose: "one requested part named 配布記録, kind data, missing instance 1" },
+      ] },
+      { label: "構築", kind: "step", quantity: 1, parent: "OCI", descriptions: [
+        { schema: "voice-ui.part-description/2", key: "goal-extra-3", purpose: "one requested part named 構築, kind step, missing instance 1" },
+      ] }],
     flow: ["構築", "配布記録"] },
   { id: "existing-directed-connection", text: "OCIのSourceからTargetへ矢印を追加。Unrelatedは変更しない",
     nodes: [], flow: ["Source", "Target"], existing: true },

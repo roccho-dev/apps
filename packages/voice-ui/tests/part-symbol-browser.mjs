@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import { observePaintedGoal } from './painted-goal.mjs';
 
 // Deliberately synthetic test data. This is not an AWS, Azure or SQL vendor asset.
 export const symbolFixtureSvg = '<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64"><rect width="64" height="64" fill="rgb(36,80,160)"/><circle cx="32" cy="32" r="16" fill="white"/></svg>';
@@ -118,5 +119,42 @@ export async function checkPaintedSymbols({ page, records, expected, origin, sta
     }
     verify(await observe());
   }
-  return { status: 'PASS', stage, scope: 'SYNTHETIC_ASSET_ACTUAL_SVG_AND_DECODE', nodes, observed, hiddenImageDetected };
+  const compoundFrameControls = [];
+  if (stage === 'after' && nodes.length) {
+    const imageRecords = records.filter(record => nodes.some(node => node.id === record.id));
+    const args = { container: records.find(record => record.id === imageRecords[0].parent), records: imageRecords, identity: true };
+    assert.equal((await page.evaluate(observePaintedGoal, args)).complete, true, 'decoded image frames retain unique painted geometry');
+    for (const mutation of ['duplicate-frame', 'displaced-border']) {
+      const saved = await page.evaluate(({ id, mutation }) => {
+        const doc = document.querySelector('#working-surface iframe').contentDocument;
+        const group = [...doc.querySelectorAll('[data-semantic-region-id][data-semantic-role="shape"]')]
+          .find(node => node.dataset.semanticRegionId === id);
+        const rects = [...group.children].filter(node => node.localName === 'rect');
+        if (rects.length !== 2) throw Error('expected exact image compound frame');
+        if (mutation === 'duplicate-frame') {
+          const clone = rects[0].cloneNode(true); clone.dataset.testCompoundFrame = 'duplicate'; group.appendChild(clone); return null;
+        }
+        const x = rects[1].getAttribute('x'); rects[1].setAttribute('x', String(Number(x) + 2)); return x;
+      }, { id: nodes[0].id, mutation });
+      try {
+        const rejected = await page.evaluate(observePaintedGoal, args);
+        assert.equal(rejected.shapes.find(shape => shape.id === nodes[0].id).bounds, null, mutation + ' cannot establish a unique physical frame');
+        compoundFrameControls.push({ mutation, detected: true });
+      } finally {
+        await page.evaluate(({ id, mutation, saved }) => {
+          const doc = document.querySelector('#working-surface iframe').contentDocument;
+          const group = [...doc.querySelectorAll('[data-semantic-region-id][data-semantic-role="shape"]')]
+            .find(node => node.dataset.semanticRegionId === id);
+          if (mutation === 'duplicate-frame') group.querySelector('[data-test-compound-frame="duplicate"]').remove();
+          else {
+            const rect = [...group.children].filter(node => node.localName === 'rect')[1];
+            if (saved === null) rect.removeAttribute('x'); else rect.setAttribute('x', saved);
+          }
+        }, { id: nodes[0].id, mutation, saved });
+      }
+    }
+    assert.equal((await page.evaluate(observePaintedGoal, args)).complete, true, 'restoring the same nodes restores the positive geometry');
+    verify(await observe());
+  }
+  return { status: 'PASS', stage, scope: 'SYNTHETIC_ASSET_ACTUAL_SVG_AND_DECODE', nodes, observed, hiddenImageDetected, compoundFrameControls };
 }

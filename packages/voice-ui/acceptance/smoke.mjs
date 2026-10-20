@@ -473,9 +473,10 @@ try {
     if (mode === "fixture") {
       assert.deepEqual(summary.reached, ["open", "prepare", "goal", "goal-undo"]);
       assert.deepEqual(summary.notRun, []);
-      // Two additions of two frames (what, where) each, the arrow and the stop.
-      assert.equal(summary.actions.undo, 1); assert.equal(summary.requests, flow ? 8 : 7);
-      assert.equal(proof.requests, flow ? 7 : 6); assert.deepEqual(proof.questionCounts, Array(flow ? 7 : 6).fill(1)); assert.equal(proof.reason, "none");
+      // Direct v8 chooses one complete placement per addition, then the optional
+      // arrow, none and completion. Setup is one separate architecture request.
+      assert.equal(summary.actions.undo, 1); assert.equal(summary.requests, flow ? 6 : 5);
+      assert.equal(proof.requests, flow ? 5 : 4); assert.deepEqual(proof.questionCounts, Array(flow ? 5 : 4).fill(1)); assert.equal(proof.reason, "none");
       assert.equal(proof.goalMet, true); assert.equal(proof.undoRestored, true);
       assert.deepEqual(proof.labelsVisible, [true, true]); assert.equal(proof.timeBudgetMet, true);
       assert.equal(proof.painted.complete, true); assert.equal(proof.painted.contained, true);
@@ -490,9 +491,9 @@ try {
       assert.equal(proof.internalModelExecutions, "UNKNOWN"); assert.equal(proof.providerCost, "UNKNOWN");
       assert.equal(proof.baselineMet, !flow); assert.equal(proof.addedValue, "NOT_PROVEN");
       assert.deepEqual(proof.selected.map(item => item.key), ["api", "db"]);
-      // Each addition is asked twice from the same history, what then where.
+      // Each complete placement advances history once, in the fixed order.
       assert.deepEqual(proof.requestHistories.map(history => history?.map(item => item.key) ?? null), flow
-        ? [[], [], ["api"], ["api"], ["api", "db"], ["api", "db"], null] : [[], [], ["api"], ["api"], ["api", "db"], null]);
+        ? [[], ["api"], ["api", "db"], ["api", "db"], null] : [[], ["api"], ["api", "db"], null]);
       assert.equal(proof.newEdges.length, flow ? 1 : 0);
       if (flow) {
         assert.equal(proof.painted.edge.complete, true);
