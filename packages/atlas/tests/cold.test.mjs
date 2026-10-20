@@ -3,7 +3,6 @@ import assert from 'node:assert/strict';
 import { execFileSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
 import { mkdtempSync, readFileSync, writeFileSync, mkdirSync, rmSync } from 'node:fs';
-import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { normalize } from '../collect/adapter.mjs';
@@ -44,17 +43,16 @@ test('existing journal/plan extraction reads the cold bodies; provenance is the 
   assert.ok(events.every(event => !('admission' in event) && !('status' in event)));
 });
 
-test('live.mjs builds world.json from cold G events alone (no ledger); the same commit gives the same events and World', () => {
+test('live.mjs builds world.json from cold G events alone (no ledger); the same commit gives the same events and World', t => {
   const build = () => {
-    const dir = mkdtempSync(path.join(tmpdir(), 'atlas-cold-'));
+    const dir = mkdtempSync(fileURLToPath(new URL('./cold-out-', import.meta.url)));
+    t.after(() => rmSync(dir, { recursive: true, force: true }));
     mkdirSync(path.join(dir, 'snap'));
     writeFileSync(path.join(dir, 'snap', 'cold-0.json'), JSON.stringify(snapshot));
     // No --recorded-at: a cold collection is dated by its commit, so rebuilding it is reproducible.
     execFileSync(process.execPath, [file('../collect/collect.mjs'), path.join(dir, 'snap'), '--out', path.join(dir, 'g.jsonl')]);
     const receipt = JSON.parse(execFileSync(process.execPath, [file('../live.mjs'), '--out-dir=' + path.join(dir, 'out'), path.join(dir, 'g.jsonl')], { encoding: 'utf8' }));
-    const built = { receipt, events: readFileSync(path.join(dir, 'g.jsonl'), 'utf8'), world: readFileSync(path.join(dir, 'out', 'world.json'), 'utf8') };
-    rmSync(dir, { recursive: true });
-    return built;
+    return { receipt, events: readFileSync(path.join(dir, 'g.jsonl'), 'utf8'), world: readFileSync(path.join(dir, 'out', 'world.json'), 'utf8') };
   };
   const first = build(), second = build();
   assert.equal(first.receipt.status, 'PASS');

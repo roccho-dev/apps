@@ -2,8 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { execFileSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
-import { mkdtempSync, readFileSync } from 'node:fs';
-import { tmpdir } from 'node:os';
+import { existsSync, mkdtempSync, readFileSync, rmSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { deriveAtlas, closureDocument } from '../events.mjs';
@@ -277,10 +276,13 @@ test('overview crossings: 0 in every frame; the omitted Current -> unit relation
   for (const frame of result.world.frames) assert.ok(frame.entities.every(value => !value.label.includes('…')), frame.id);
 });
 
-test('committed synthetic fixture World hash is fixed; CLI writes the same bytes', () => {
+// The CLI writes beside this test, never in the OS temp directory.
+let cliOut = null;
+test('committed synthetic fixture World hash is fixed; CLI writes the same bytes', t => {
   const world = JSON.stringify(contractWorld(derive()), null, 2) + '\n';
   assert.equal('sha256:' + createHash('sha256').update(world).digest('hex'), WORLD_SHA256);
-  const out = mkdtempSync(path.join(tmpdir(), 'atlas-derive-'));
+  const out = cliOut = mkdtempSync(fileURLToPath(new URL('./derive-out-', import.meta.url)));
+  t.after(() => rmSync(out, { recursive: true, force: true }));
   const cli = fileURLToPath(new URL('../derive.mjs', import.meta.url));
   const receipt = JSON.parse(execFileSync(process.execPath, [cli, '--out-dir=' + out,
     fileURLToPath(new URL('../fixtures/events/events.jsonl', import.meta.url)), fileURLToPath(new URL('../fixtures/events/control.jsonl', import.meta.url))], { encoding: 'utf8' }));
@@ -290,4 +292,8 @@ test('committed synthetic fixture World hash is fixed; CLI writes the same bytes
   assert.equal(JSON.parse(readFileSync(path.join(out, 'plan-projection.json'), 'utf8')).schema, 'atlas.plan-projection/1');
   assert.throws(() => execFileSync(process.execPath, [cli, '--out-dir=' + out, cli, cli], { stdio: 'pipe' }));
   assert.equal(readFileSync(path.join(out, 'world.json'), 'utf8'), world, 'invalid input never replaces output');
+});
+
+test('the CLI test leaves no output directory behind', () => {
+  assert.ok(cliOut !== null && !existsSync(cliOut), cliOut + ' remains');
 });

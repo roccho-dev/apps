@@ -1,7 +1,6 @@
 import assert from 'node:assert/strict';
 import { createHash } from 'node:crypto';
 import fs from 'node:fs';
-import os from 'node:os';
 import path from 'node:path';
 import { spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
@@ -221,7 +220,7 @@ test('large upstream hierarchy is validated without recursive call-stack growth'
 });
 
 function temporary(t) {
-  const directory = fs.mkdtempSync(path.join(os.tmpdir(), 'atlas-closure-'));
+  const directory = fs.mkdtempSync(fileURLToPath(new URL('./closure-out-', import.meta.url)));
   t.after(() => fs.rmSync(directory, { recursive: true, force: true }));
   return directory;
 }
