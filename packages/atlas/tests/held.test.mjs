@@ -1,6 +1,9 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { readFileSync } from 'node:fs';
+import { execFileSync } from 'node:child_process';
+import { mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { deriveAtlas } from '../events.mjs';
 import { HELD_REASONS, contractWorld, heldEntries } from '../contract.mjs';
 import { joinLog } from '../live.mjs';
@@ -32,6 +35,31 @@ test('held reasons are stable words without line numbers, and work claims are no
   assert.deepEqual(reasons, ['ideal-version-already-set', 'ideal-version-already-set']);
   assert.ok(reasons.every(reason => HELD_REASONS.includes(reason)), 'every reason is a contract value');
   assert.deepEqual({ count: heldEntries(world.frames, held).count, unplaced: heldEntries(world.frames, held).unplaced }, { count: 2, unplaced: 0 });
+});
+
+// R's readback (apps#132 e8dc9e9): the derive receipt counted the work claims the World leaves out.
+test('the derive receipt counts the held declarations the World shows, not the work claims', t => {
+  const joined = joinLog('', [G]);
+  const dir = mkdtempSync(fileURLToPath(new URL('./held-out-', import.meta.url)));
+  t.after(() => rmSync(dir, { recursive: true, force: true }));
+  const file = name => path.join(dir, name);
+  writeFileSync(file('events.jsonl'), joined.log);
+  writeFileSync(file('control.jsonl'), CONTROL);
+  writeFileSync(file('held.jsonl'), joined.held.filter(value => value.journal).map(value => JSON.stringify(value)).join('\n') + '\n');
+  assert.equal(joined.held.filter(value => value.journal).length, 4, 'the held file has 2 declarations and 2 work claims');
+  const receipt = JSON.parse(execFileSync(process.execPath, [fileURLToPath(new URL('../derive.mjs', import.meta.url)), '--out-dir=' + file('out'),
+    '--held=' + file('held.jsonl'), file('events.jsonl'), file('control.jsonl')], { encoding: 'utf8' }));
+  const world = JSON.parse(readFileSync(file('out/world.json'), 'utf8'));
+  assert.deepEqual(receipt.held, { count: 2, unplaced: 0 });
+  assert.equal(world.frames.flatMap(frame => frame.held).length, receipt.held.count);
+});
+
+// P: at run time, nothing outside the closed words is shown. An unknown reason is invalid-declaration.
+test('a held reason outside HELD_REASONS is shown as invalid-declaration', () => {
+  const frames = [{ asOf: '2026-10-21T03:00:00.000Z' }];
+  const entry = { kind: 'ideal.set', recordedAt: T(2), source: { ref: 's3:decl', digest: zero } };
+  const { placed } = heldEntries(frames, [{ reason: 'atlas-events: events:3: something new', journal: entry }, { reason: 'proposal', journal: entry }]);
+  assert.deepEqual(placed[0].map(item => item.reason), ['invalid-declaration', 'proposal']);
 });
 
 test('the contract lists every held reason the producer can give', () => {
