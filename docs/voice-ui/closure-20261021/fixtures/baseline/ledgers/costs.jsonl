@@ -1,0 +1,1 @@
+{"schema":"voice-ui.closure.cost/2","kind":"cost","cycle":"c1","round":1,"provider":"jev","calls":26,"ledger":{"file":"receipts/ledger/budget-ledger.line126.jsonl","line":1,"line_sha256":"32c5533f079861ecbe674eb0853fa08e1078a8001ad5686d410addc978046e3e"},"phase_id":"r12-correction-v2-live-20261021","at":"2026-10-21T03:30:00Z"}
