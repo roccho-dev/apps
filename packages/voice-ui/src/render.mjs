@@ -276,11 +276,18 @@ const saidBy = source => (source === "voice" ? "認識文: " : "入力文: ");
 export function renderDraft(list, count, { draft, used, bundle }) {
   const document = list.ownerDocument;
   list.replaceChildren();
-  for (const { step, input } of draft) {
+  const inputsByGroup = new Map();
+  for (const { step, input, group } of draft) {
+    if (input !== null && group !== undefined) inputsByGroup.set(group, input);
+    const actionSource = step.action === "revert" ? "revert" : step.action === ACTION_NEW ? "new-map" : null;
+    const continuation = input === null && actionSource === null && group !== undefined
+      ? inputsByGroup.get(group) : undefined;
     const item = document.createElement("li");
     item.dataset.step = step.action;
     item.dataset.changes = step.changes.map(describe).join(" ");
-    item.dataset.source = input?.source ?? "revert";
+    item.dataset.source = actionSource ?? input?.source ?? continuation?.source ?? "unattributed";
+    if (group !== undefined) item.dataset.group = String(group);
+    if (continuation !== undefined) item.dataset.continuation = "true";
     // A step completed by a second utterance shows the first one too.
     if (input?.origin !== undefined) {
       item.dataset.originSource = input.origin.source;
@@ -294,12 +301,21 @@ export function renderDraft(list, count, { draft, used, bundle }) {
       item.append(originLabel, originSaid, joined);
     }
     const label = document.createElement("span");
-    label.textContent = input === null ? "取り消し" : saidBy(input.source);
+    label.textContent = actionSource === "revert" ? "取り消し"
+      : actionSource === "new-map" ? "新規作成"
+      : input !== null ? saidBy(input.source)
+      : continuation !== undefined ? "同じ入力の続き: " : "入力情報なし";
     item.append(label);
     if (input !== null) {
       const said = document.createElement("q");
       said.dataset.input = "";
       said.textContent = input.text;
+      item.append(said);
+    } else if (continuation !== undefined) {
+      // Reference the group's real utterance without creating another input.
+      const said = document.createElement("q");
+      said.dataset.inputRef = String(group);
+      said.textContent = continuation.text;
       item.append(said);
     }
     const effect = document.createElement("span");
