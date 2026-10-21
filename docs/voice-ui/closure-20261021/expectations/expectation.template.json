@@ -1,0 +1,11 @@
+{
+  "schema": "voice-ui.closure.expectation/1",
+  "id": "template",
+  "version": 1,
+  "status": "template",
+  "source": { "text": "", "ref": "" },
+  "required": [],
+  "forbidden": [],
+  "allowed": [],
+  "unknown": []
+}

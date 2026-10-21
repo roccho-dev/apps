@@ -1,0 +1,9 @@
+{
+  "schema": "voice-ui.closure.gold-sets/1",
+  "note": "Places only. Gold content is added by R, sealed before any candidate output is seen, and recorded in ledgers/seals.jsonl.",
+  "sets": [
+    { "id": "presented-1", "step": ["4", "9"], "path": "gold/presented-1/", "status": "unfilled", "seal_sha256": null },
+    { "id": "presented-2", "step": ["4", "9"], "path": "gold/presented-2/", "status": "unfilled", "seal_sha256": null },
+    { "id": "atlas", "step": ["4", "9"], "path": "gold/atlas/", "status": "unfilled", "seal_sha256": null }
+  ]
+}
