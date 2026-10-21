@@ -102,11 +102,15 @@ async function synthetic(axis, { adoptOne = false } = {}) {
         current: () => session, cancelled: () => false, adopt: async next => { session = next; }, check,
         complete: async r => post('/api/parts/complete', r, { missing: o.expected_missing }),
         ask: async request => ({ kind: 'answered', decision: post('/api/judge', request,
-          { kind: DECISION_KIND, answers: { delta: { type: 'choice', choice: 'none', confidence: 0.9 } } }) }) });
+          { kind: DECISION_KIND, answers: request.kind === 'voice-ui.judge.goal-completion.v1'
+            ? { completion: { type: 'choice', choice: 'unknown', confidence: 0.9 } }
+            : { delta: { type: 'choice', choice: 'none', confidence: 0.9 } } }) }) });
       else if (axis === 'F') result = post('/api/parts/complete' + (method === 'typed' ? '?method=typed' : ''), inventory, { missing: o.expected_missing });
       else result = await runGoal({ utterance: item.utterance, bundle: readBundle({ ...bundleValue, parts: item.parts }), protocol,
         current: () => session, cancelled: () => false, adopt: async next => { session = next; },
         ask: async request => {
+          if (request.kind === 'voice-ui.judge.goal-completion.v1') return { kind: 'answered', decision: post('/api/judge', request,
+            { kind: DECISION_KIND, answers: { completion: { type: 'choice', choice: 'unknown', confidence: 0.9 } } }) };
           const c = request.state.candidates.find(c => c.action === 'add-part');
           const choice = adoptOne && index === 0 && calls.length < 2 ? request.state.placing === null ? 'part:' + c.part : c.id : 'none';
           return { kind: 'answered', decision: post('/api/judge', request,
@@ -203,13 +207,18 @@ test('closed failed Goal calls remain integrity-auditable INVALID without a qual
   const a = await synthetic('R'), row = JSON.parse(a.rawFiles['H06-A.json']), call = row.calls[0];
   call.status = 503; call.response = { error: 'judge_unavailable' }; call.error = 'http_or_contract_unknown';
   row.valid_execution = false; row.result.reason = 'judge-unknown'; row.result.trace[0].answers = null; row.result.trace[0].failure = 'judge-unknown';
+  row.calls = [call]; row.result.trace = [row.result.trace[0]]; row.result.requests = 1;
+  row.result.completion = { status: 'unknown', head: row.final_head, confidence: null, basis: 'not-judged' };
   a.rawFiles['H06-A.json'] = enc(row);
-  edit(a, 'execution.json', r => { r.summary[0].valid_execution = false; r.status = 'INVALID'; r.invalid_cells = 1; });
-  editEvents(a, events => { const e = events.find(e => e.kind === 'http-end' && e.id === 'H06'); Object.assign(e, {
-    status: call.status, response: call.response, error: call.error }); events.find(e => e.kind === 'cell-end' && e.id === 'H06').valid_execution = false; });
+  edit(a, 'execution.json', r => { r.summary[0].valid_execution = false; r.summary[0].calls = 1; r.status = 'INVALID'; r.invalid_cells = 1; });
+  editEvents(a, events => {
+    for (let i = events.length - 1; i >= 0; i--) if (events[i].id === 'H06' && ['http-start', 'http-end'].includes(events[i].kind) && events[i].n > 1) events.splice(i, 1);
+    const e = events.find(e => e.kind === 'http-end' && e.id === 'H06'); Object.assign(e, {
+      status: call.status, response: call.response, error: call.error });
+    Object.assign(events.find(e => e.kind === 'cell-end' && e.id === 'H06'), { valid_execution: false, calls: 1 }); });
   const report = await auditAxisRaw(a); assert.equal(report.status, 'PASS', JSON.stringify(report.issues));
   assert.equal(report.all_valid_execution, false); assert.equal(report.admissible_for_semantic_claim, false);
-  assert.deepEqual(report.external_provider_attempt_bounds, { jev: { min: 1, max: 2 }, typellm: { min: 0, max: 0 } });
+  assert.deepEqual(report.external_provider_attempt_bounds, { jev: { min: 2, max: 3 }, typellm: { min: 0, max: 0 } });
   assert.equal(report.external_provider_attempts.jev, null);
   edit(a, 'H06-A.json', r => { r.result.trace[0].failure = 'judge-contract'; }); assert.equal(await refuse(a), true);
 });
@@ -265,7 +274,7 @@ test('F literal local HTTP does not count as Type; methods have fixed equal-stat
 
 test('R uses real production Goal with supplied inventory; a valid wrong graph remains semantic UNMET', async () => {
   const a = await synthetic('R'), report = await auditAxisRaw(a);
-  assert.equal(report.status, 'PASS', JSON.stringify(report.issues)); assert.deepEqual(report.external_provider_attempts, { jev: 2, typellm: 0 });
+  assert.equal(report.status, 'PASS', JSON.stringify(report.issues)); assert.deepEqual(report.external_provider_attempts, { jev: 4, typellm: 0 });
   assert.equal(report.semantic.representation_criteria, 'UNMET');
   for (const mutate of [
     x => edit(x, 'H06-A.json', r => { r.parts[0].label = 'wrong'; }),

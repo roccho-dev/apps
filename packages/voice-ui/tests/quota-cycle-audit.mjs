@@ -1,6 +1,7 @@
 // Independent quota-cycle evidence joins. No product imports or provider calls.
 // R expression and E interpretation retain different admissions and denominators.
 import {createHash} from 'node:crypto';
+import {auditGoalCompletionReceipt,auditGoalCompletionTrace,isGoalCompletionCall,readGoalCompletionAnswers} from './goal-completion-audit.mjs';
 import {exactKeys as exact,sameValue as same,validRequirements,
  validateQuotaInput,validateQuotaOracle,quotaSchedule,referenceQuota,
  gradeQuotaReady,gradeQuotaOrdinary,summarizeQuotaAxis,QUOTA_METHODS,QUOTA_GENERATIONS,QUOTA_GOAL_POLICIES,QUOTA_COMMITMENTS,quotaRepeatProfile} from './quota-cycle-score.mjs';
@@ -280,10 +281,12 @@ export async function auditQuotaRaw({projectionBytes,oracleBytes,rawFiles,bundle
    for(let n=initial.decisions.length;n<=lines.length;n++){
     const v=await protocol.verifyDecisionLog(lines.slice(0,n).join('\n')+'\n');prefixes.set(v.head,{n,verified:v});
    }
+   auditGoalCompletionReceipt(row,judges);
    if(!Array.isArray(row.result?.trace)||judges.length!==row.result.trace.length)throw Error('trace count');
    let previous=initial.decisions.length;
    for(const [n,trace]of row.result.trace.entries()){
     const prefix=prefixes.get(trace.head),call=judges[n],state=call?.request?.state;
+    if(auditGoalCompletionTrace({row,initial,prefix,judges,n,previous})){previous=prefix.n;continue;}
     if(!prefix||prefix.n<previous||!traceMatches(trace,call,input.axis)||state?.utterance!==item.utterance
      ||!same(state.graph,prefix.verified.records.filter(r=>r.type==='region').map(({id,label,parent})=>({id,label,parent})))
      ||!same(state.edges,prefix.verified.records.filter(r=>r.type==='relation').map(({id,from,to})=>({id,from,to})))
@@ -310,7 +313,7 @@ export async function auditQuotaRaw({projectionBytes,oracleBytes,rawFiles,bundle
   const common={initial_records:row.initial_records,final_records:row.final_records,initial_log:row.initial_log,final_log:row.final_log,
    initial_head:row.initial_head,final_head:row.final_head,goal_parts_policy:row.goal_parts_policy,quota_proof_valid:mechanism&&!proofIssue,elapsedMs:row.result?.elapsedMs};
   const grade=input.axis==='R'?gradeQuotaReady({...common,parts:row.parts,supplied_required:row.supplied_required,
-   goal_offers:judges.map(c=>c.request.state.offers.parts),selected:row.result?.selected},o)
+   goal_offers:judges.filter(c=>!isGoalCompletionCall(c)).map(c=>c.request?.state?.offers?.parts),selected:row.result?.selected},o)
    :gradeQuotaOrdinary({...common,inspection:coverage?.inspection,decision:coverage&&{choice:coverage.choice,confidence:coverage.confidence},
     preparations,materialized_missing:actualMissing,typellm_sends:typeCount},o,parts);
   graded.push({id:row.id,method:row.method,arm:row.arm,generation_policy:row.generation_policy,goal_parts_policy:row.goal_parts_policy,
@@ -490,6 +493,7 @@ function suppliedParts(parts, missing) {
 }
 
 function readGoalAnswers(call) {
+  if (isGoalCompletionCall(call)) return readGoalCompletionAnswers(call);
   const state = call?.request?.state, response = call?.response;
   if (response?.kind !== 'voice-ui.judge.decision.v1' || !response.answers || Array.isArray(response.answers)
       || Object.keys(response.answers).join() !== 'delta') return null;

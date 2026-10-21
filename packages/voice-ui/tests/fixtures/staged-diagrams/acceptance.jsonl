@@ -1,0 +1,5 @@
+{"id": "aws-structure", "expectation": "入れ子のクラウド/VPC/サブネット、並列領域、複数領域にまたがる所属", "features": ["nested-boundaries", "parallel-regions", "cross-region-membership"], "status": "NOT_TESTED", "source": "user expected-diagram.v2"}
+{"id": "aws-visual", "expectation": "識別できるサービス記号、向き/注釈/線種、読める文字", "features": ["service-symbols", "labelled-directed-edges", "line-styles", "readable-labels"], "status": "NOT_TESTED", "source": "user expected-diagram.v2"}
+{"id": "azure-structure", "expectation": "複数の囲み、サービス記号、分岐/領域間の関係。小さい文字は未確定", "features": ["nested-boundaries", "service-symbols", "branching-edges"], "status": "NOT_TESTED", "source": "user expected-diagram.v2"}
+{"id": "atlas-parity", "expectation": "固定したAtlas比較画面と同じデータ/表示条件で比較", "features": ["actual-atlas-reference", "overview-detail", "state-update-paint"], "status": "NOT_TESTED", "source": "user expected-diagram.v2"}
+{"id": "voice-edit", "expectation": "実音声で作成/変更/訂正/取消し、有用な描画と完了までを測る", "features": ["actual-microphone", "speech-to-paint", "corrections", "p50-p95", "failed-attempts-retained"], "status": "NOT_TESTED", "source": "user expected-diagram.v2"}

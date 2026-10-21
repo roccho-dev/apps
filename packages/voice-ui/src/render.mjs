@@ -1,3 +1,4 @@
+import { partResourceView } from "./part-description.mjs";
 import { ACTION_COMPOSE, DRAFT_MAX } from "./contract.mjs";
 import { ACTION_NEW } from "./turn.mjs";
 
@@ -46,6 +47,7 @@ const REASONS = Object.freeze({
   "revert-moved": "a later change already moved this part; nothing was reverted",
   "revert-unsupported": "only an added part can be reverted",
   "revert-removed": "a later change already removed this part; nothing was reverted",
+  "revert-part-altered": "この部品は後から変更されています。取り消さず現在の状態を保持しました",
   "revert-holds-parts": "this part now holds other parts; nothing was reverted",
   "revert-has-edge": "this part now has an edge; nothing was reverted",
   "revert-nothing": "that entry changed no edge",
@@ -161,6 +163,7 @@ export async function drawGraph({ graph, frame, mount, protocol, renderProjectio
   }
   const envelope = await protocol.createEnvelope(graph.log, null, {
     pattern: protocol.GRAPH_PATTERN,
+    ...partResourceView(graph.records),
     ...(frame === null ? {} : { frame }),
   });
   if (document.defaultView.getComputedStyle(mount).position === "static") mount.style.position = "relative";
@@ -331,9 +334,61 @@ export function renderContext(list, skippedLine, { recent, skipped }) {
   skippedLine.textContent = skipped > 0 ? `長すぎるため参照しない発話 ${skipped}件` : "";
 }
 
+// Display names are never record identities. Equal names are qualified by
+// their ancestry; same-parent names keep their exact ID. This is view-only:
+// choices, storage and judgment still use the original record IDs.
+export function cameraLabels(records) {
+  const targets = records.filter(record => ["region", "relation"].includes(record.type));
+  if (targets.some(record => typeof record.id !== "string" || !record.id.length)
+    || new Set(targets.map(record => record.id)).size !== targets.length) throw new TypeError("camera IDs must be distinct");
+  const regions = records.filter(record => record.type === "region");
+  const byId = new Map(regions.map(record => [record.id, record]));
+  const paths = new Map(regions.map(record => {
+    const names = [record.label], seen = new Set([record.id]);
+    for (let at = byId.get(record.parent); at; at = byId.get(at.parent)) {
+      if (seen.has(at.id)) throw new TypeError("cyclic camera ancestry");
+      seen.add(at.id);
+      if (at.parent !== null) names.unshift(at.label);
+    }
+    return [record.id, names];
+  }));
+  const labels = new Map(regions.map(record => {
+    const peers = regions.filter(other => other.label === record.label);
+    const own = paths.get(record.id);
+    let count = 1;
+    while (count < own.length && peers.some(other => other.id !== record.id
+      && paths.get(other.id).slice(-count).join(" / ") === own.slice(-count).join(" / "))) count++;
+    return [record.id, own.slice(-count).join(" / ")];
+  }));
+  const unique = entries => {
+    const counts = new Map();
+    for (const [, text] of entries) counts.set(text, (counts.get(text) ?? 0) + 1);
+    // Reserve real captions before generating any suffix. A real name may
+    // look exactly like a generated caption, including its fallback suffix.
+    const used = new Set(["全体の概要", ...entries.map(([, text]) => text)]);
+    for (const [id, text] of [...entries].sort(([a], [b]) => a < b ? -1 : a > b ? 1 : 0)) {
+      if (counts.get(text) < 2 && text !== "全体の概要") continue;
+      const stem = `${text} [${id}]`;
+      let candidate = stem, suffix = 1;
+      while (used.has(candidate)) candidate = `${stem} (${suffix++})`;
+      labels.set(id, candidate); used.add(candidate);
+    }
+  };
+  unique([...labels]);
+  for (const edge of records.filter(record => record.type === "relation")) {
+    if (!labels.has(edge.from) || !labels.has(edge.to)) continue;
+    const meaning = edge.kind !== "flow" || edge.label !== "" ? ` (${edge.kind}${edge.label ? ": " + edge.label : ""})` : "";
+    const name = `矢印: ${labels.get(edge.from)} → ${labels.get(edge.to)}${meaning}`;
+    labels.set(edge.id, name);
+  }
+  // Parts and arrows share one actual menu, not separate naming domains.
+  unique([...labels]);
+  return labels;
+}
+
 // Parts still in 作業図 that the pane does not show whole - or, when the frame
 // cannot be read, that this cannot be checked. Never "all visible" by default.
-export function renderOutOfView(notice, { outside }) {
+export function renderOutOfView(notice, { outside, labels = null }) {
   if (outside === null) {
     notice.dataset.parts = "";
     notice.textContent = "表示範囲を読み取れないため、表示に収まっていない部品があるか確かめられません";
@@ -341,7 +396,7 @@ export function renderOutOfView(notice, { outside }) {
   }
   notice.dataset.parts = outside.join(" ");
   notice.textContent = outside.length > 0
-    ? `表示に収まっていない部品: ${outside.join(", ")}（作業図には残っています。表示の外か、一部しか見えていません）`
+    ? `表示に収まっていない部品: ${outside.map(id => labels?.has(id) ? `${id}「${labels.get(id)}」` : id).join(", ")}（作業図には残っています。表示の外か、一部しか見えていません）`
     : "";
 }
 

@@ -62,6 +62,7 @@ globalThis.fetch = async (url, init) => {
   if (wire.questions.intent) picks = { intent: currentStage === "E-control" ? "ambiguous" : "change", labels: "missing", capacity: "within",
     completeness: wire.state.required ? currentStage === "E-reject" ? "incomplete" : "complete"
       : currentStage === "E-complete" ? "complete" : "incomplete" };
+  else if (wire.questions.completion) picks = { completion: "unknown" };
   else {
     const state = input.state, added = state.graph.some(r => r.label === name);
     const offered = state.offers.parts.find(p => p.label === name);

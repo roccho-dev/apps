@@ -46,8 +46,9 @@ const slots = label => ({ required1: { label, kind: "decision", quantity: "1" },
   required2: { label: "", kind: "none", quantity: "0" }, required3: { label: "", kind: "none", quantity: "0" } });
 const typedResult = (wire, rows) => Object.hasOwn(wire.questions, "required1_label")
   ? Object.fromEntries(Object.entries(rows).flatMap(([name, row]) => Object.entries(row).map(([key, value]) => [name + "_" + key, value]))) : rows;
+const fPart = stock.find(part => part.kind === "decision"); assert.ok(fPart);
 const wantedLabel = () => mode === "R" ? inputs.R.cases[0].required[0].label
-  : mode === "E" ? "棚卸承認" : "WireFixture";
+  : mode === "E" ? "棚卸承認" : mode === "wire-F" ? fPart.label : "WireFixture";
 const namedReply = (wire, answers) => Response.json({ model: "synthetic-quota-fixture", answers: Object.fromEntries(
   Object.entries(wire.questions).map(([name, question]) => {
     const { choice, confidence } = answers[name], keys = Object.keys(question.criteria);
@@ -65,6 +66,7 @@ globalThis.fetch = async (url, init) => {
   upstream.push({ mode, provider, route: String(url), method: init.method, content_type: init.headers["content-type"], body_utf8: init.body, wire });
   if (provider === "typellm") return Response.json({ status: "completed", result: typedResult(wire, slots(wantedLabel())) });
   if (wire.questions.intent) return namedReply(wire, factors(mode === "E" && !wire.state.required ? .49 : .9));
+  if (wire.questions.completion) return namedReply(wire, { completion: { choice: "unknown", confidence: .9 } });
   const state = currentRequest.state;
   let choice = "none";
   if (mode === "R-edge") {
@@ -156,7 +158,8 @@ try {
         assert.equal(added.length, arm === "O" ? 2 : 1);
         assert.ok(added.some(r => r.label === wantedLabel() && r.kind === "decision" && r.parent === "container"));
         const expected = arm === "O" ? input.cases[0].parts : input.cases[0].parts.filter(p => p.label === wantedLabel() && p.kind === "decision");
-        assert.ok(raw.calls.every(c => JSON.stringify(c.request.state.offers.parts) === JSON.stringify(expected.map(({ key, purpose, label }) => ({ key, purpose, label })))));
+        assert.ok(raw.calls.filter(c => c.request.kind === "voice-ui.judge.goal-local-delta.v7")
+          .every(c => JSON.stringify(c.request.state.offers.parts) === JSON.stringify(expected.map(({ key, purpose, label }) => ({ key, purpose, label })))));
         assert.equal(raw.lifecycle.scope, "NATIVE_SESSION_APPLY_RESTORE_NOT_BROWSER_GOAL");
         assert.equal(raw.lifecycle.browser_restore.scope, "KEYLESS_COMPLETED_UI_RESTORE_NOT_BROWSER_GOAL");
         assert.equal(raw.lifecycle.browser_restore.persistence, "PASS");
@@ -164,13 +167,17 @@ try {
       } else if (stage === "E") {
         assert.equal(added.length, arm === "C" ? 1 : 0);
         if (arm === "C") { assert.equal(added[0].label, wantedLabel()); assert.equal(added[0].kind, "decision"); }
-        assert.ok(raw.calls.filter(c => c.route === "/api/judge").every(c => c.request.state.offers.parts.length === 1));
+        assert.ok(raw.calls.filter(c => c.request.kind === "voice-ui.judge.goal-local-delta.v7").every(c => c.request.state.offers.parts.length === 1));
       } else if (stage === "R-edge") {
         assert.equal(added.length, 0); assert.ok(raw.final_records.some(r => r.type === "relation" && r.from === "initial-api" && r.to === "initial-db"));
-        if (arm === "Q") assert.ok(raw.calls.every(c => c.request.state.offers.parts.length === 0));
+        if (arm === "Q") assert.ok(raw.calls.filter(c => c.request.kind === "voice-ui.judge.goal-local-delta.v7")
+          .every(c => c.request.state.offers.parts.length === 0));
       } else if (stage === "R-empty") {
         assert.equal(raw.final_log, raw.initial_log);
-        if (arm === "Q") { assert.equal(raw.calls.length, 0); assert.equal(raw.result.reason, "no-executable-delta"); }
+        if (arm === "Q") {
+          assert.equal(raw.calls.length, 1); assert.equal(raw.calls[0].request.kind, "voice-ui.judge.goal-completion.v1");
+          assert.equal(raw.result.completion.status, "unknown"); assert.equal(raw.result.reason, "no-executable-delta");
+        }
       }
     }
     const actual = upstream.slice(before);

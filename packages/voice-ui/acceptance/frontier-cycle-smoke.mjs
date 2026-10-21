@@ -39,6 +39,7 @@ const prereg = path.join(base, "docs/voice-ui/frontier-cycle-20261018/preregiste
 const publicInput = read(path.join(prereg, "frontier-cycle-public-G0-10.inputs.json"));
 const publicOracle = read(path.join(prereg, "frontier-cycle-public-G0-10.oracle.json"));
 const stock = read(path.join(artifact, "site/data/bundle.v1.json")).parts;
+const fPart = stock.find(part => part.kind === "step"); assert.ok(fPart);
 const env = { JEV_API_KEY: "fixture-jev-only", TYPELLM_API_KEY: "fixture-type-only",
   ASSETS: { fetch: () => assert.fail("unexpected asset") } };
 const savedFetch = globalThis.fetch, savedInfo = console.info;
@@ -91,11 +92,12 @@ globalThis.fetch = async (url, init) => {
   if (provider === "typellm") {
     assert.ok(mode === "F" || mode.startsWith("E"));
     return Response.json({ status: "completed", result: typedResult(wire, {
-      required1: { label: "FixtureNode", kind: "step", quantity: "1" },
+      required1: { label: mode === "F" ? fPart.label : "FixtureNode", kind: "step", quantity: "1" },
       required2: { label: "", kind: "none", quantity: "0" },
       required3: { label: "", kind: "none", quantity: "0" },
     }) });
   }
+  if (wire.questions.completion) return namedReply(wire, { completion: { choice: "unknown", confidence: .9 } });
   if (!wire.questions.intent) {
     assert.ok(mode.startsWith("E"));
     const state = currentRequest.state, added = state.graph.some(r => r.label === "FixtureNode");

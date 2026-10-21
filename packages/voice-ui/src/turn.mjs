@@ -1,3 +1,4 @@
+import { partSummary } from "./part-description.mjs";
 import {
   ACTION_ADD_EDGE,
   ACTION_ADD_PART,
@@ -8,10 +9,13 @@ import {
   ACTION_UNDO_REQUEST,
   DIRECTIONS,
   LABEL_MAX,
+  KEY_PATTERN,
+  OFFER_MAX,
   MIN_CONFIDENCE,
   NONE,
   PLACEMENT_SLOTS,
   REQUEST_KIND,
+  TYPED_REQUEST_KIND,
   readAnswers,
   slotsFor,
 } from "./contract.mjs";
@@ -54,7 +58,7 @@ const PART_GAP = 20;
 // view; only this spacing is ours.
 const NEIGHBOUR_GAP = 24;
 // How a composed diagram is drawn: lanes as bands one above the other, each
-// step inside its lane's band, steps in flow order from left to right.
+// step inside its lane, each link from one step to the next.
 const LANE_HEADER = 120;
 const BAND_LABEL_ROOM = 36;
 const BAND_PADDING = 12;
@@ -78,6 +82,17 @@ const requireGraph = graph => {
 
 const relationIdFor = (source, target) => `voice-${source}-to-${target}`;
 const relationKey = (from, to) => JSON.stringify([from, to]);
+// The fixed reducer keys a relation by direction and kind, not its label.
+const sameMeaningAt = (record, from, to, kind) => record.type === "relation"
+  && record.from === from && record.to === to && record.kind === kind;
+// Existing IDs are not derived from endpoint text alone once meanings can coexist.
+const freeRelationId = (records, from, to, reserved = []) => {
+  const used = new Set([...records.map(record => record.id), ...reserved]);
+  const base = relationIdFor(from, to);
+  let id = base, index = 1;
+  while (used.has(id)) id = `${base}-${index++}`;
+  return id;
+};
 const relationKeys = records => new Set(records
   .filter(record => record?.type === "relation")
   .map(record => relationKey(record.from, record.to)));
@@ -88,10 +103,11 @@ const rootOf = records => records.find(record => record?.type === "region" && re
 const selectableRegionIds = records =>
   records.filter(record => record?.type === "region" && record.parent !== null).map(record => record.id);
 
-function edgesOf(records) {
+function edgesOf(records, typed = false) {
   return Object.freeze(records
     .filter(record => record?.type === "relation")
-    .map(record => Object.freeze({ id: record.id, from: record.from, to: record.to })));
+    .map(record => Object.freeze({ id: record.id, from: record.from, to: record.to,
+      ...(typed ? { kind: record.kind, label: record.label } : {}) })));
 }
 
 // The parts the judgment binding may name: every region under the boundary except a lane. A
@@ -109,9 +125,9 @@ function speakableRegions(records) {
 const speakableIds = records => speakableRegions(records).map(region => region.id);
 
 // The edges the judgment binding may name: those between two parts it may name.
-function speakableEdges(records) {
+function speakableEdges(records, typed = false) {
   const ids = speakableIds(records);
-  return Object.freeze(edgesOf(records).filter(edge => ids.includes(edge.from) && ids.includes(edge.to)));
+  return Object.freeze(edgesOf(records, typed).filter(edge => ids.includes(edge.from) && ids.includes(edge.to)));
 }
 
 const overlapping = (left, right) =>
@@ -146,13 +162,36 @@ function neighbourBounds(layout, targetId, anchorId, direction) {
   return Object.freeze([ax, ay + ah + NEIGHBOUR_GAP, tw, th]);
 }
 
-// A spot is usable only if nothing else the view placed sits there - a lane
-// included, and a part off screen too. The part being moved does not block
-// its own move.
-const spotIsFree = (layout, records, targetId, box) =>
-  placedIds(layout, selectableRegionIds(records), null)
-    .filter(regionId => regionId !== targetId)
-    .every(regionId => !overlapping(box, layout.bounds[regionId]));
+// Read the provider's child/title inset without changing the actual layout.
+const childLabelRoom = (records, parentId, protocol) => {
+  const natural = protocol.layoutBoundsFor(records.filter(record => record.type !== "layout"),
+    { pattern: protocol.GRAPH_PATTERN });
+  const children = records.filter(record => record.type === "region" && record.parent === parentId);
+  const top = Math.min(...children.map(record => natural.bounds[record.id]?.[1]));
+  const inset = top - natural.bounds[parentId]?.[1];
+  return Number.isFinite(inset) && inset > 0 ? Math.max(BAND_LABEL_ROOM, inset) : null;
+};
+
+// A containing boundary is not an obstacle to its own child. The child must
+// stay in every existing ancestor's content area; no implicit reparenting,
+// resizing, covering a heading, or overlap with an unrelated region is allowed.
+function spotIsFree(layout, records, targetId, box, protocol) {
+  const parents = new Map(records.filter(record => record.type === "region")
+    .map(record => [record.id, record.parent]));
+  const ancestors = new Set();
+  try {
+    for (let at = parents.get(targetId); parents.get(at) !== null; at = parents.get(at)) {
+      if (at === undefined || ancestors.has(at)) return false;
+      ancestors.add(at);
+      const frame = layout.bounds[at], inset = childLabelRoom(records, at, protocol);
+      if (!frame || inset === null || !inside([frame[0] + BAND_PADDING, frame[1] + inset,
+        frame[2] - 2 * BAND_PADDING, frame[3] - inset - BAND_PADDING], box)) return false;
+    }
+    return placedIds(layout, selectableRegionIds(records), null)
+      .filter(regionId => regionId !== targetId && !ancestors.has(regionId))
+      .every(regionId => !overlapping(box, layout.bounds[regionId]));
+  } catch { return false; }
+}
 
 // The first free place on the grid inside the enclosing boundary, in reading
 // order. A full boundary is an honest "no room", not a part dropped on top.
@@ -232,13 +271,14 @@ export function pendingHolds(pending, { head, frame, offered }) {
 // only the sections this turn offers (or none), the frame the placeable parts
 // were read from, and the offered question slots. The request is exactly the
 // declared read set: no log, head, hash, bounds or template ever leaves.
-export function requestFor({ working, utterance, bundle, layout, offeredFrame, draft, focus, pending, recent }) {
+export function requestFor({ working, utterance, bundle, layout, offeredFrame, draft, focus, pending, recent, typedEdges = false }) {
   requireGraph(working);
+  demand(typeof typedEdges === "boolean", "typedEdges must be explicit boolean");
   const placeable = layout === null ? [] : [...placeableIds(layout, working.records, offeredFrame)];
   const offers = offersOf(bundle, { named: false });
   const state = Object.freeze({
     utterance,
-    graph: Object.freeze({ regions: speakableRegions(working.records), edges: speakableEdges(working.records), placeable }),
+    graph: Object.freeze({ regions: speakableRegions(working.records), edges: speakableEdges(working.records, typedEdges), placeable }),
     draft: Object.freeze(draft.map(step => Object.freeze({ changes: changesForJudgment(step.changes) }))),
     focus,
     pending,
@@ -252,7 +292,7 @@ export function requestFor({ working, utterance, bundle, layout, offeredFrame, d
     frame: offeredFrame,
     slots: slotsFor(state),
   });
-  return Object.freeze({ turn, request: Object.freeze({ kind: REQUEST_KIND, state }) });
+  return Object.freeze({ turn, request: Object.freeze({ kind: typedEdges ? TYPED_REQUEST_KIND : REQUEST_KIND, state }) });
 }
 
 // The one slot that fell short, or null when the shortfall is not exactly one
@@ -452,7 +492,7 @@ function operationsFor(read, context) {
     if (!inside(visibleFrame.frame, box)) return noChange("spot-off-pane");
     if (!inside(visibleFrame.frame, layout.bounds[read.anchor.choice])) return noChange("anchor-off-pane");
     if (!inside(visibleFrame.frame, layout.bounds[read.move.choice])) return noChange("mover-off-pane");
-    if (!spotIsFree(layout, records, read.move.choice, box)) return noChange("spot-taken");
+    if (!spotIsFree(layout, records, read.move.choice, box, context.protocol)) return noChange("spot-taken");
     const previous = layout.pinned.includes(read.move.choice) ? layout.bounds[read.move.choice] : null;
     if (previous !== null && previous.every((value, index) => value === box[index])) return noChange("already-there");
     return plan(ACTION_PLACE_PART, confidence,
@@ -477,21 +517,23 @@ function operationsFor(read, context) {
       parentId: rootOf(records).id,
       label,
       kind: part.kind,
-      summary: "",
+      summary: partSummary(part),
       bounds: [...bounds],
     }], [{ change: "added", kind: "region", id: regionId, label }]);
   }
 
   const existing = relationKeys(records);
+  const typed = bundle.goalSelection === "delta";
   if (action === ACTION_ADD_EDGE) {
     if (read.source.choice === NONE || read.target.choice === NONE) return noChange("no-two-nodes");
     const confidence = Math.min(read.action.confidence, read.source.confidence, read.target.confidence);
     if (confidence < MIN_CONFIDENCE) return noChange("not-confident");
     if (read.source.choice === read.target.choice) return refused("same-region");
-    if (existing.has(relationKey(read.source.choice, read.target.choice))) return refused("edge-exists");
+    if (typed ? records.some(record => sameMeaningAt(record, read.source.choice, read.target.choice, RELATION_KIND))
+      : existing.has(relationKey(read.source.choice, read.target.choice))) return refused("edge-exists");
     return plan(ACTION_ADD_EDGE, confidence, [{
       type: "ConnectRegions",
-      relationId: relationIdFor(read.source.choice, read.target.choice),
+      relationId: typed ? freeRelationId(records, read.source.choice, read.target.choice) : relationIdFor(read.source.choice, read.target.choice),
       from: read.source.choice,
       to: read.target.choice,
       kind: RELATION_KIND,
@@ -512,10 +554,11 @@ function operationsFor(read, context) {
   // Reverse is one Decision holding a removal and an addition, so it applies
   // whole or not at all. ReconnectRelation would keep the old id, which encodes
   // the old direction, and a later add of that direction would then collide.
-  if (existing.has(relationKey(relation.to, relation.from))) return refused("reversed-exists");
+  if (typed ? records.some(record => sameMeaningAt(record, relation.to, relation.from, relation.kind))
+    : existing.has(relationKey(relation.to, relation.from))) return refused("reversed-exists");
   return plan(ACTION_REVERSE_EDGE, confidence, [remove, {
     type: "ConnectRegions",
-    relationId: relationIdFor(relation.to, relation.from),
+    relationId: typed ? freeRelationId(records, relation.to, relation.from) : relationIdFor(relation.to, relation.from),
     from: relation.to,
     to: relation.from,
     kind: relation.kind,
@@ -566,12 +609,12 @@ async function materialize(working, planned, protocol) {
 // A child placed into a group the current Goal added goes below its siblings;
 // that group and each enclosing group under the root grow just enough, origin
 // kept. Growing into an existing sibling refuses.
-function grownSlot(records, current, parent, regionId, size) {
+function grownSlot(records, current, parent, regionId, size, labelRoom) {
   const parentOf = new Map(records.filter(record => record.type === "region").map(record => [record.id, record.parent]));
   const childrenOf = id => records.filter(record => record.type === "region" && record.parent === id && record.id !== regionId);
   const frame = current.bounds[parent.id];
   const siblings = childrenOf(parent.id).map(record => current.bounds[record.id]);
-  const top = siblings.length === 0 ? frame[1] + BAND_LABEL_ROOM : Math.max(...siblings.map(box => box[1] + box[3])) + STEP_GAP;
+  const top = siblings.length === 0 ? frame[1] + labelRoom : Math.max(...siblings.map(box => box[1] + box[3])) + STEP_GAP;
   const bounds = [frame[0] + BAND_PADDING, top, size[2], size[3]];
   const ancestors = [];
   for (let node = parent.id, inner = bounds; parentOf.get(node) !== null; node = parentOf.get(node)) {
@@ -593,7 +636,7 @@ const crowding = (box, other) => overlapping(box, [other[0] - BAND_PADDING, othe
 
 // Keep raw kernel legality and painted placement separate. Preview is pure:
 // the provider owns candidate dimensions; only our existing spacing is used.
-function additionSlot(working, parent, part, reserved, protocol, grows = false) {
+function additionSlot(working, parent, part, reserved, protocol, grows = false, expressive = false) {
   // The raw bounds are only the AddRegion placeholder: when the raw grid is
   // full, the parent box stands in, and the painted search below with the
   // provider layout still decides whether a part fits.
@@ -601,9 +644,9 @@ function additionSlot(working, parent, part, reserved, protocol, grows = false) 
   if (raw === null) return null;
   const regionId = nextPartId(working, reserved);
   const operation = { type: "AddRegion", regionId, parentId: parent.id,
-    label: part.label, kind: part.kind, summary: "", bounds: [...raw] };
+    label: part.label, kind: part.kind, summary: partSummary(part, { preserveIdentity: expressive }), bounds: [...raw] };
   const region = { type: "region", id: regionId, parent: parent.id, label: operation.label,
-    kind: part.kind, summary: "", bounds: [...raw] };
+    kind: part.kind, summary: operation.summary, bounds: [...raw] };
   const records = [...working.records.filter(record => record.type !== "layout" && record.type !== "relation"), region,
     ...working.records.filter(record => record.type === "relation" || record.type === "layout")];
   const view = { pattern: protocol.GRAPH_PATTERN };
@@ -615,8 +658,16 @@ function additionSlot(working, parent, part, reserved, protocol, grows = false) 
     if (!validBox(frame) || !validBox(size)) return null;
     const siblings = working.records.filter(record => record.type === "region" && record.parent === parent.id);
     if (siblings.some(record => !validBox(current.bounds[record.id]))) return null;
+    // v8 uses the provider's own unpinned child/title inset. A compact v7
+    // band header is not enough once five parts share a fitted screen frame.
+    // No existing position or camera is changed to make a candidate fit.
+    let labelRoom = BAND_LABEL_ROOM;
+    if (expressive) {
+      labelRoom = childLabelRoom(records, parent.id, protocol);
+      if (labelRoom === null) return null;
+    }
     if (grows) {
-      const grown = grownSlot(records, current, parent, regionId, size);
+      const grown = grownSlot(records, current, parent, regionId, size, labelRoom);
       if (grown === null) return null;
       const moved = new Set([regionId, ...grown.ancestors.map(item => item.regionId)]);
       const pins = [{ regionId, bounds: grown.bounds }, ...grown.ancestors];
@@ -637,7 +688,7 @@ function additionSlot(working, parent, part, reserved, protocol, grows = false) 
       return [...grid, ...new Set(off)];
     };
     const boxes = siblings.map(record => current.bounds[record.id]);
-    const ys = axis(frame[1] + BAND_LABEL_ROOM, frame[1] + frame[3] - BAND_PADDING - size[3], size[3] + STEP_GAP,
+    const ys = axis(frame[1] + labelRoom, frame[1] + frame[3] - BAND_PADDING - size[3], size[3] + STEP_GAP,
       boxes.map(box => box[1] + box[3] + BAND_PADDING));
     const xs = axis(frame[0] + BAND_PADDING, frame[0] + frame[2] - BAND_PADDING - size[2], size[2] + STEP_GAP,
       boxes.map(box => box[0] + box[2] + BAND_PADDING));
@@ -658,14 +709,14 @@ function additionSlot(working, parent, part, reserved, protocol, grows = false) 
 
 // A request-local catalogue, not an ID registry. Each pair owns its exact
 // AddRegion and new-child pin; the read set includes every placement input.
-const additionReadSet = (working, bundle, reserved, selected) => JSON.stringify({
-  head: working.head, records: working.records, parts: bundle.parts, reserved, selected,
+const additionReadSet = (working, bundle, reserved, selected, expressive = false) => JSON.stringify({
+  head: working.head, records: working.records, parts: bundle.parts, ...(expressive ? { relations: bundle.relations ?? null } : {}), reserved, selected,
 });
-function legalAdditions(working, { bundle, protocol, reserved = [], selected = [] }) {
+function legalAdditions(working, { bundle, protocol, reserved = [], selected = [], expressive = false }) {
   requireGraph(working);
   const candidates = [];
   const parents = working.records.filter(record => record.type === "region"
-    && record.kind === LANE_KIND && record.parent !== null).sort((a, b) => a.id.localeCompare(b.id));
+    && (record.kind === LANE_KIND && record.parent !== null || expressive && record.kind === "boundary" && record.parent === null)).sort((a, b) => a.id.localeCompare(b.id));
   // Only a group part this Goal adopted (its selected key and region) takes a
   // child by growing; its enclosing groups grow with it as needed.
   const grows = parent => selected.some(item => item.region === parent.id
@@ -673,24 +724,25 @@ function legalAdditions(working, { bundle, protocol, reserved = [], selected = [
   const parts = bundle.parts.filter(part => !selected.some(item => item.key === part.key))
     .sort((a, b) => a.key.localeCompare(b.key));
   for (const parent of parents) for (const part of parts) {
-    const slot = additionSlot(working, parent, part, reserved, protocol, grows(parent));
+    if (parent.parent === null && part.kind !== LANE_KIND) continue;
+    const slot = additionSlot(working, parent, part, reserved, protocol, grows(parent), expressive);
     if (slot === null) continue;
     candidates.push(Object.freeze({ id: `delta-${candidates.length + 1}`, part: part.key, parent: parent.id,
       operations: Object.freeze([Object.freeze({ ...slot.operation, bounds: Object.freeze([...slot.operation.bounds]) }),
         Object.freeze({ type: "PinRegions", items: Object.freeze([{ regionId: slot.operation.regionId, bounds: slot.bounds },
           ...slot.ancestors].map(item => Object.freeze({ regionId: item.regionId, bounds: Object.freeze([...item.bounds]) }))) })]) }));
   }
-  return Object.freeze({ readSet: additionReadSet(working, bundle, reserved, selected),
+  return Object.freeze({ readSet: additionReadSet(working, bundle, reserved, selected, expressive),
     candidates: Object.freeze(candidates) });
 }
 
-async function proveAddition({ working, held, candidateId, confidence, bundle, reserved = [], selected = [], protocol }) {
+async function proveAddition({ working, held, candidateId, confidence, bundle, reserved = [], selected = [], protocol, expressive = false }) {
   requireGraph(working);
-  if (held.readSet !== additionReadSet(working, bundle, reserved, selected)) return refused("stale-addition");
+  if (held.readSet !== additionReadSet(working, bundle, reserved, selected, expressive)) return refused("stale-addition");
   const candidate = held.candidates.find(item => item.id === candidateId);
   if (candidate === undefined) return refused("invalid-addition");
   if (!(confidence >= MIN_CONFIDENCE && confidence <= 1)) return noChange("not-confident");
-  const latest = legalAdditions(working, { bundle, protocol, reserved, selected });
+  const latest = legalAdditions(working, { bundle, protocol, reserved, selected, expressive });
   if (JSON.stringify(latest.candidates) !== JSON.stringify(held.candidates)) return refused("stale-addition");
   const operation = candidate.operations[0];
   // Adopt the original held operations, never a silently replanned replacement.
@@ -708,38 +760,52 @@ async function proveAddition({ working, held, candidateId, confidence, bundle, r
 // offered, and no addition.
 export function legalLocalDeltas(working, options) {
   requireGraph(working);
+  const expressive = options.expressive === true;
   const scope = options.scope ?? null;
   const pair = options.pair ?? null;
   const additions = pair === null ? legalAdditions(working, options) : null;
   const candidates = additions === null ? [] : [...additions.candidates];
   const ids = speakableIds(working.records).sort();
-  const existing = relationKeys(working.records);
+  const existing = new Set(working.records.filter(row => row.type === "relation")
+    .map(row => expressive ? JSON.stringify([row.from, row.to, row.kind]) : relationKey(row.from, row.to)));
+  const relations = expressive && Object.hasOwn(options.bundle, "relations")
+    ? options.bundle.relations : [{ kind: RELATION_KIND, label: "" }];
+  if (!Array.isArray(relations) || relations.length < 1 || relations.length > OFFER_MAX
+      || !relations.every(row => row !== null && typeof row === "object" && !Array.isArray(row)
+        && Object.keys(row).length === 2 && Object.hasOwn(row, "kind") && Object.hasOwn(row, "label")
+        && typeof row.kind === "string" && KEY_PATTERN.test(row.kind)
+        && typeof row.label === "string" && row.label.length <= LABEL_MAX)
+      || new Set(relations.map(row => JSON.stringify([row.kind, row.label]))).size !== relations.length)
+    throw new TypeError("invalid finite relation catalogue");
   const endOf = named => id => (named === null ? scope !== null && scope.has(id) : id === named);
   const fromIds = pair === null ? ids : pair.from === null && pair.to === null ? [] : ids.filter(endOf(pair.from));
   const toIds = pair === null ? ids : ids.filter(endOf(pair.to));
-  for (const from of fromIds) for (const to of toIds) {
-    if (from === to || existing.has(relationKey(from, to))) continue;
+  for (const from of fromIds) for (const to of toIds) for (const relation of relations) {
+    if (from === to || existing.has(expressive ? JSON.stringify([from, to, relation.kind]) : relationKey(from, to))) continue;
     if (scope !== null && !scope.has(from) && !scope.has(to)) continue;
-    candidates.push(Object.freeze({ id: `delta-${candidates.length + 1}`, from, to,
-      operations: Object.freeze([Object.freeze({ type: "ConnectRegions", relationId: relationIdFor(from, to),
-        from, to, kind: RELATION_KIND, label: "" })]) }));
+    // Preserve the legacy ID for the first available pair; disambiguate other meanings without using display labels as IDs.
+    const relationId = expressive ? freeRelationId(working.records, from, to,
+      candidates.filter(row => row.from !== undefined).map(row => row.operations[0].relationId)) : relationIdFor(from, to);
+    candidates.push(Object.freeze({ id: `delta-${candidates.length + 1}`, from, to, ...(expressive ? { kind: relation.kind, label: relation.label } : {}),
+      operations: Object.freeze([Object.freeze({ type: "ConnectRegions", relationId,
+        from, to, kind: relation.kind, label: relation.label })]) }));
   }
   return Object.freeze({ readSet: additions === null
-    ? additionReadSet(working, options.bundle, options.reserved ?? [], options.selected ?? []) : additions.readSet,
+    ? additionReadSet(working, options.bundle, options.reserved ?? [], options.selected ?? [], expressive) : additions.readSet,
   candidates: Object.freeze(candidates) });
 }
 
 export async function proveLocalDelta({ working, held, candidateId, confidence, bundle, reserved = [], selected = [], scope = null,
-  pair = null, protocol }) {
+  pair = null, protocol, expressive = false }) {
   requireGraph(working);
-  if (held.readSet !== additionReadSet(working, bundle, reserved, selected)) return refused("stale-addition");
+  if (held.readSet !== additionReadSet(working, bundle, reserved, selected, expressive)) return refused("stale-addition");
   const candidate = held.candidates.find(item => item.id === candidateId);
   if (!candidate) return refused("invalid-addition");
   if (!(confidence >= MIN_CONFIDENCE && confidence <= 1)) return noChange("not-confident");
-  const latest = legalLocalDeltas(working, { bundle, protocol, reserved, selected, scope, pair });
+  const latest = legalLocalDeltas(working, { bundle, protocol, reserved, selected, scope, pair, expressive });
   if (JSON.stringify(latest.candidates) !== JSON.stringify(held.candidates)) return refused("stale-addition");
   if (candidate.part !== undefined) return proveAddition({ working, held: { ...held,
-    candidates: held.candidates.filter(item => item.part !== undefined) }, candidateId, confidence, bundle, reserved, selected, protocol });
+    candidates: held.candidates.filter(item => item.part !== undefined) }, candidateId, confidence, bundle, reserved, selected, protocol, expressive });
   return materialize(working, plan(ACTION_ADD_EDGE, confidence, candidate.operations,
     [{ change: "added", from: candidate.from, to: candidate.to }]), protocol);
 }
@@ -905,7 +971,11 @@ const layoutPins = records => records
   .map(record => [record.regionId, [...record.bounds]]);
 const relationsById = records => new Map(records.filter(record => record?.type === "relation").map(record => [record.id, record]));
 const regionIds = records => records.filter(record => record?.type === "region").map(record => record.id).sort();
-const sameEdge = (left, right) => left?.from === right?.from && left?.to === right?.to;
+const sameEdge = (left, right) => left?.from === right?.from && left?.to === right?.to
+  && left?.kind === right?.kind && left?.label === right?.label;
+const sameRegion = (left, right) => left !== undefined && right !== undefined
+  && Object.keys(left).length === Object.keys(right).length
+  && Object.keys(right).every(key => JSON.stringify(left[key]) === JSON.stringify(right[key]));
 
 // Whether an applied entry can be taken back as one safe change: edges only,
 // placements only, or parts that still stand alone in the saved graph.
@@ -919,9 +989,8 @@ export function revertable(entry, projection) {
 
 // Undo a saved entry by adding its opposite to the working graph. `before` and
 // `after` are the provider's states around that entry; the opposite is read
-// off their difference and checked against the working graph as it is now. A
-// later change that already altered what the entry did makes it a conflict,
-// refused rather than guessed at. The saved graph is never touched.
+// off their difference and checked against the working graph as it is now,
+// and added there as one more step. The saved graph is never touched.
 export async function revertStep({ before, after, working, protocol }) {
   requireGraph(working);
   const build = async (operations, changes) => {
@@ -960,6 +1029,11 @@ export async function revertStep({ before, after, working, protocol }) {
     const present = new Set(regionIds(working.records));
     for (const regionId of addedRegions) {
       if (!present.has(regionId)) return refused("revert-removed");
+      // Removing an added leaf must not discard a later name, kind, parent,
+      // description, or other stored value. Compare only the target's state;
+      // unrelated later work does not block its unchanged inverse.
+      if (!sameRegion(working.records.find(record => record.type === "region" && record.id === regionId),
+        after.find(record => record.type === "region" && record.id === regionId))) return refused("revert-part-altered");
       if (working.records.some(record => record?.type === "region" && record.parent === regionId)) return refused("revert-holds-parts");
       if (working.records.some(record => record?.type === "relation" && (record.from === regionId || record.to === regionId))) {
         return refused("revert-has-edge");
@@ -979,7 +1053,9 @@ export async function revertStep({ before, after, working, protocol }) {
   if (added.length + removed.length === 0) return refused("revert-nothing");
   const current = relationsById(working.records);
   if (!added.every(relation => sameEdge(current.get(relation.id), relation))) return refused("revert-altered");
-  if (!removed.every(relation => !current.has(relation.id))) return refused("revert-reused");
+  // A same-ID edit removes the verified current version before restoring the
+  // earlier one. An ID reused outside this entry is still a conflict.
+  if (!removed.every(relation => !current.has(relation.id) || added.some(item => item.id === relation.id))) return refused("revert-reused");
   return build([
     ...(added.length > 0 ? [{ type: "RemoveSelection", regionIds: [], relationIds: added.map(relation => relation.id) }] : []),
     ...removed.map(relation => ({

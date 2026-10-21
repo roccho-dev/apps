@@ -381,6 +381,7 @@ const report = value => process.stdout.write(`${JSON.stringify(value)}\n`);
 // section's plan holds no such frame.
 const framesOf = section => contract.judgeFramesFor(section) ?? [];
 const slotsOf = sent => {
+  if (sent.kind === contract.GOAL_COMPLETION_KIND) return contract.goalCompletionSlots();
   if (sent.kind === contract.ARCHITECTURE_GOAL_INTENT_KIND) return contract.architectureGoalSlotsFor(sent.state);
   if (sent.kind === contract.ARCHITECTURE_LOCATE_KIND) return contract.locateSlotsFor(sent.state.architecture.focus);
   if (sent.kind !== contract.ARCHITECTURE_JUDGE_KIND) return contract.slotsFor(sent.state);
@@ -405,7 +406,7 @@ const craft = (picks, fault = () => null) => {
       return;
     }
     const answers = Object.fromEntries(Object.entries(slots).map(([name, options]) => {
-      const picked = picks(name, sent);
+      const picked = sent.kind === contract.GOAL_COMPLETION_KIND ? "unknown" : picks(name, sent);
       const structured = picked !== null && typeof picked === "object";
       const value = structured ? picked : { choice: picked, confidence: 0.9 };
       if (structured) assert.ok(options.includes(value.choice), name + ": the controlled uncertain choice is actually offered");
@@ -865,7 +866,8 @@ const goalScenario = async () => {
   };
   const signature = rows => JSON.stringify(rows.map(({ label, kind, parent }) => JSON.stringify([label, kind, parent])).sort());
   const edgeSignature = edges => JSON.stringify(edges.map(({ from, to, kind, label }) => JSON.stringify([from, to, kind, label])).sort());
-  const firstNone = sent.length === 1 && sent[0].sent.state.candidates.length > 0
+  const firstNone = (sent.length === 1 || sent.length === 2 && sent[1].sent.kind === contract.GOAL_COMPLETION_KIND)
+    && sent[0].sent.kind === contract.GOAL_REQUEST_KIND && sent[0].sent.state.candidates.length > 0
     && contract.readAnswers(sent[0].body?.answers, slotsOf(sent[0].sent))?.delta?.choice === contract.NONE;
   const { added, newPins, expected, actual, newEdges, expectedEdges, afterRegion, grown, baselinePreserved, semanticMet, pinsExact }
     = grade(after.graph.records, pins => firstNone && pins.length === 0 && sameNoneBaseline(before, after));
@@ -1024,11 +1026,23 @@ const goalScenario = async () => {
     addedValue: "NOT_PROVEN", graphBefore: digest(before.graph.records), graphAfter: digest(after.graph.records),
     undoRestored: false, noSave: after.stored === before.stored && after.root === before.root,
     exchanges: sent.map(sanitized), setupExchanges: exchanges.slice(0, prepared).map(sanitized),
-    requestHistories: sent.map(entry => entry.sent.state.selected),
+    requestHistories: sent.map(entry => entry.sent.kind === contract.GOAL_REQUEST_KIND ? entry.sent.state.selected : null),
     questionCounts: sent.map(entry => Object.keys(slotsOf(entry.sent)).length),
     providerIdentity: "UNKNOWN", acceptedIntegration: "NOT_PROVEN" };
-  need(sent.length >= 1 && sent.length <= 8 && sent.every(entry => entry.sent.kind === contract.GOAL_REQUEST_KIND
+  need(sent.length >= 1 && sent.length <= 8 && sent.every(entry => [contract.GOAL_REQUEST_KIND, contract.GOAL_COMPLETION_KIND].includes(entry.sent.kind)
     && entry.sent.state.utterance === goalText && contract.isRequest(entry.sent)), "bounded requests carry the one Goal and closed public state");
+  const terminals = sent.filter(entry => entry.sent.kind === contract.GOAL_COMPLETION_KIND);
+  if (terminals.length) {
+    const terminal = terminals[0], projection = records => ({
+      regions: records.filter(r => r.type === "region").map(({ id, label, kind, parent }) => ({ id, label, kind, parent })),
+      edges: records.filter(r => r.type === "relation").map(({ id, from, to, kind, label }) => ({ id, from, to, kind, label })),
+    });
+    need(terminals.length === 1 && sent.at(-1) === terminal && attempt.trace.at(-1).head === after.graph.head
+      && attempt.completion?.head === after.graph.head
+      && JSON.stringify(terminal.sent.state.initial) === JSON.stringify(projection(before.graph.records))
+      && JSON.stringify(terminal.sent.state.graph) === JSON.stringify(projection(after.graph.records)),
+    "the terminal question is last, reads the whole initial/final graph and changes no records");
+  }
   need(attempt.requests === sent.length + (attempt.inventory?.checks ?? 0), "logical Jev accounting includes the actual inventory check and finite-loop requests");
   need(inventorySent.length === 0 && attempt.inventory === undefined,
     "the architecture page retains its existing Goal path without ordinary-graph inventory or completion calls");
@@ -1081,6 +1095,9 @@ const goalScenario = async () => {
     const choices = [];
     const result = await runGoal({ utterance, bundle, protocol, current: () => session, cancelled: () => false,
       ask: async request => {
+        if (request.kind === "voice-ui.judge.goal-completion.v1") return { kind: "answered", decision: { answers: {
+          completion: { type: "choice", choice: "unknown", confidence: 1 },
+        } } };
         first ??= JSON.parse(JSON.stringify(request));
         choices.push(select(request.state));
         return { kind: "answered", decision: { answers: { delta: { type: "choice", choice: choices.at(-1), confidence: 1 } } } };

@@ -1,4 +1,4 @@
-import { KEY_PATTERN, LABEL_MAX, NONE, OFFER_MAX, PART_KINDS, PURPOSE_MAX } from "./contract.mjs";
+import { DIRECT_GOAL_OFFER_MAX, isPartSymbol, KEY_PATTERN, LABEL_MAX, NONE, OFFER_MAX, PART_KINDS, PURPOSE_MAX } from "./contract.mjs";
 
 // The DataBundle is the read-only authority for product words: which parts a
 // person may ask for, which whole diagrams, what each is for and what it is
@@ -20,12 +20,13 @@ const text = (value, max) => typeof value === "string" && value.trim().length > 
 const key = value => typeof value === "string" && KEY_PATTERN.test(value) && value !== NONE;
 const unique = values => new Set(values).size === values.length;
 
-const validPart = part =>
-  exactObject(part, ["key", "purpose", "label", "kind"])
+const validPart = (part, extended = false) =>
+  exactObject(part, ["key", "purpose", "label", "kind", ...(extended && Object.hasOwn(part ?? {}, "symbol") ? ["symbol"] : [])])
   && key(part.key)
   && text(part.purpose, PURPOSE_MAX)
   && text(part.label, LABEL_MAX)
-  && PART_KINDS.includes(part.kind);
+  && PART_KINDS.includes(part.kind)
+  && (!Object.hasOwn(part, "symbol") || extended && isPartSymbol(part.symbol));
 
 const validDiagram = diagram => {
   if (!exactObject(diagram, ["key", "purpose", "label", "lanes", "steps", "links"])) return false;
@@ -53,8 +54,8 @@ const deepFreeze = value => {
   return value;
 };
 
-const section = (value, valid) =>
-  Array.isArray(value) && value.length >= 1 && value.length <= OFFER_MAX && value.every(valid)
+const section = (value, valid, max = OFFER_MAX, min = 1) =>
+  Array.isArray(value) && value.length >= min && value.length <= max && value.every(valid)
   && unique(value.map(entry => entry.key))
     ? deepFreeze(structuredClone(value))
     : null;
@@ -63,13 +64,21 @@ const section = (value, valid) =>
 // not be fetched or parsed at all. A section is either wholly valid or null.
 export function readBundle(value) {
   if (value === null || typeof value !== "object" || Array.isArray(value)
-    || value.schema !== SCHEMA || !text(value.version, LABEL_MAX)) {
+    || ![SCHEMA, "voice-ui.bundle/2"].includes(value.schema) || !text(value.version, LABEL_MAX)) {
     return Object.freeze({ version: null, parts: null, diagrams: null });
   }
   return Object.freeze({
     version: value.version,
-    parts: section(value.parts, validPart),
+    ...(value.schema === "voice-ui.bundle/2" ? { goalSelection: "delta" } : {}),
+    parts: section(value.parts, part => validPart(part, value.schema === "voice-ui.bundle/2"),
+      value.schema === "voice-ui.bundle/2" ? DIRECT_GOAL_OFFER_MAX : OFFER_MAX, value.schema === "voice-ui.bundle/2" ? 0 : 1),
     diagrams: section(value.diagrams, validDiagram),
+    ...(Object.hasOwn(value, "relations") ? { relations: Array.isArray(value.relations)
+      && value.relations.length >= 1 && value.relations.length <= OFFER_MAX
+      && value.relations.every(row => exactObject(row, ["kind", "label"])
+        && key(row.kind) && typeof row.label === "string" && row.label.length <= LABEL_MAX)
+      && unique(value.relations.map(row => JSON.stringify([row.kind, row.label])))
+        ? deepFreeze(structuredClone(value.relations)) : null } : {}),
   });
 }
 

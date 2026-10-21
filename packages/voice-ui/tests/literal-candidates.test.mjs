@@ -18,7 +18,7 @@ test("literal preparation preserves original spans, kinds and finite missing qua
 test("literal baseline has no semantic fallback, never truncates oversized quantities or creates four rows", () => {
   for (const input of ['build a clever name for me', 'step「A」×10', 'step「A」×0',
     'step「A」×-1', 'step「A」×2.5', 'step「A」×two', 'step「A」を-1個',
-    'step「A」×2e2', 'step「Example」を２個追加', 'misDBを3つ追加',
+    'step「A」×2e2', 'misDBを3つ追加',
     'weekend「A」', '「A」というendless',
     'step「A」 step「B」 data「C」 group「D」', 'step「A」×3 data「B」']) {
     const result = literalCandidates(state(input));
@@ -36,4 +36,19 @@ test("the same generic grammar handles suffix kinds, lists and explicit stock co
   assert.equal(literalCandidates(state('DBを3つ追加して')).missing.length, 2);
   assert.deepEqual(literalCandidates(state('「甲」「乙」という3つのgroup')).missing, []);
   assert.equal(literalCandidates(state('misstep「A」')).extraction.status, "unsupported-syntax");
+});
+
+
+test("full-width quantity retains the original formerly unsupported request and exact bounded result", () => {
+  const input = state('step「Example」を２個追加');
+  const result = literalCandidates(input);
+  assert.deepEqual(result.missing, [
+    { label: "Example", kind: "step", occurrence: 1 },
+    { label: "Example", kind: "step", occurrence: 2 },
+  ]);
+  assert.equal(result.extraction.status, "transcribed");
+  assert.equal(result.extraction.spans.length, 1);
+  const span = result.extraction.spans[0];
+  assert.equal(input.utterance.slice(span.start, span.end), "Example");
+  assert.equal(literalCandidates(state('step「Example」を４個追加')).extraction.status, "unsupported-syntax");
 });

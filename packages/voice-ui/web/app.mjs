@@ -66,6 +66,7 @@ import {
 } from "/app/src/turn.mjs";
 import {
   drawGraph,
+  cameraLabels,
   frameFor,
   reasonText,
   renderContext,
@@ -253,9 +254,10 @@ const showLists = () => {
   whole.value = ""; whole.textContent = "全体の概要";
   cameraPart.append(whole);
   const layout = workingLayout();
+  const labels = cameraLabels(session.working?.records ?? []);
   for (const part of parts.filter(part => layout?.bounds[part.id] !== undefined)) {
     const option = document.createElement("option");
-    option.value = part.id; option.textContent = part.label;
+    option.value = part.id; option.textContent = labels.get(part.id);
     cameraPart.append(option);
   }
   // Saved arrows remain camera targets after Apply/reload, using the same
@@ -264,7 +266,7 @@ const showLists = () => {
     const ends = [arrow.from, arrow.to].map(id => parts.find(part => part.id === id));
     if (!ends.every(end => end !== undefined && layout?.bounds[end.id] !== undefined)) continue;
     const option = document.createElement("option");
-    option.value = arrow.id; option.textContent = `矢印: ${ends[0].label} → ${ends[1].label}`;
+    option.value = arrow.id; option.textContent = labels.get(arrow.id);
     cameraPart.append(option);
   }
   cameraPart.value = camera ?? "";
@@ -347,7 +349,8 @@ const showOutOfView = () => {
     return;
   }
   const whole = placeableIds(layout, session.working.records, shown.frame);
-  renderOutOfView(outOfView, { outside: placeableIds(layout, session.working.records).filter(id => !whole.includes(id)) });
+  renderOutOfView(outOfView, { outside: placeableIds(layout, session.working.records).filter(id => !whole.includes(id)),
+    labels: cameraLabels(session.working.records) });
 };
 
 const failure = (reason, detail = null) => Object.freeze({ kind: "failed", reason, detail });
@@ -432,6 +435,7 @@ const intentFor = (latest, utterance, { layout, offeredFrame, pending, lastAppli
     working: latest.working,
     utterance,
     bundle,
+    typedEdges: !architecture && bundle.goalSelection === "delta",
     layout,
     offeredFrame,
     draft: steps,
@@ -728,7 +732,10 @@ goalButton.addEventListener("click", () => withSurface("goal", async () => {
     });
     document.body.dataset.goal = JSON.stringify(result);
     if (result.reason === "adoption-unknown") invalidateView();
-    else setState("goal-stopped", `goal: stopped - ${result.reason} (unconfirmed)`);
+    else setState("goal-stopped", result.completion?.status === "complete"
+      ? "goal: Jev judged the whole request satisfied (unconfirmed)"
+      : result.completion?.status === "incomplete" ? "goal: Jev judged requirements still missing (unconfirmed)"
+        : `goal: stopped - ${result.reason} (unconfirmed)`);
   } finally {
     goalActive = false;
     sync();

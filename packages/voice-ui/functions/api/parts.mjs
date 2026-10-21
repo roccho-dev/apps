@@ -1,7 +1,7 @@
-import { COVERAGE, inventoryQuestion, isInventory, readLiteralInspection, readTypedMissing, typedMissingRequest,
+import { COVERAGE, inventoryLimit, inventoryQuestion, isInventory, readLiteralInspection, readTypedMissing, typedMissingRequest,
   acceptedRequirements, readRequired, readRequiredSlots, readRequirementFactors, readRequirementInspection,
   displaySourceRequest, readDisplaySourceSlots, flatRequiredRequest, readFlatRequiredSlots,
-  requirementDecision, requirementProposalPolicy, requiredDifference, requiredQuestion, requiredRequest, requiresInterpretation } from "../../src/completion.mjs";
+  requirementDecision, requirementProposalPolicy, requiredDifference, requiredLabelsGrounded, requiredQuestion, requiredRequest, requiresInterpretation } from "../../src/completion.mjs";
 import { LABEL_MAX, PART_KINDS } from "../../src/contract.mjs";
 import { literalInventory, literalQuestion } from "../../src/literal-inventory.mjs";
 const json = (body, status = 200) => Response.json(body, { status, headers: { "cache-control": "no-store" } });
@@ -48,7 +48,7 @@ export async function onParts({ request, mode, available, method = "typed" }, { 
           || literal.required.length === 0 && new Set(referenced.map(region => region.label)).size >= 2);
         const inspection = { source: "literal+jev", recognized: literal.recognized, required: literal.required,
           missing: literal.missing, spans: literal.spans, completeness: { choice: completeness.choice, confidence: completeness.confidence } };
-        if (readLiteralInspection(inspection, input.state.utterance) === null) return json({ error: "parts_contract" }, 502);
+        if (readLiteralInspection(inspection, input.state.utterance, { max: inventoryLimit(input.state) }) === null) return json({ error: "parts_contract" }, 502);
         const choice = intent.choice !== "change" ? intent.choice
           : ready && completeness.choice === "complete" && completeness.confidence >= 0.5
             ? literal.missing.length ? "missing" : "sufficient" : "unknown";
@@ -71,7 +71,7 @@ export async function onParts({ request, mode, available, method = "typed" }, { 
         : { choice: intent.choice, confidence: intent.confidence });
     }
     const value = await generate(typedMissingRequest(input.state), { signal: request.signal });
-    const missing = readTypedMissing(value?.result);
+    const missing = readTypedMissing(value?.result, { max: inventoryLimit(input.state) });
     if (missing === null) {
       const result = value?.result, object = x => x !== null && typeof x === "object" && !Array.isArray(x);
       // Fixed structural facts only. Never log names, context or arbitrary provider output.
@@ -115,8 +115,9 @@ export async function onRequirements({ request, mode, method, available, generat
   try { input = await request.json(); } catch { return json({ error: "parts_invalid_json" }, 400); }
   const inventory = mode === "verify" ? input?.inventory : input;
   if (!isInventory(inventory) || mode === "verify" && (!exact(input, ["schema", "inventory", "required"])
-      || input.schema !== "voice-ui.parts.verify/2" || readRequired(input.required) === null))
+      || input.schema !== "voice-ui.parts.verify/2" || readRequired(input.required, { max: inventoryLimit(inventory.state) }) === null))
     return json({ error: "parts_invalid_request" }, 422);
+  const max = inventoryLimit(inventory.state), extended = Object.hasOwn(inventory.state, "maxRequired");
   const request_id = crypto.randomUUID(), controller = new AbortController();
   const cancel = () => controller.abort();
   request.signal.addEventListener("abort", cancel, { once: true });
@@ -138,14 +139,14 @@ export async function onRequirements({ request, mode, method, available, generat
     const context = inventoryQuestion(inventory.state).state,
       profile = mode === "check" && method === "adaptive-v3" ? "thinking-labels" : generation,
       sourced = profile === "display-source", flat = profile === "flat-scalars" || profile === "thinking-labels";
-    const question = sourced ? displaySourceRequest(context) : flat
-      ? flatRequiredRequest(context, { labelThinking: profile === "thinking-labels" }) : requiredRequest(context, { generation: profile });
+    const question = sourced ? displaySourceRequest(context, { max }) : flat
+      ? flatRequiredRequest(context, { labelThinking: profile === "thinking-labels", max }) : requiredRequest(context, { generation: profile, max });
     const value = await send(generate, question);
-    const decoded = sourced ? readDisplaySourceSlots(value?.result, context) : flat ? readFlatRequiredSlots(value?.result) : null;
-    const required = sourced || flat ? decoded?.required ?? null : readRequiredSlots(value?.result);
+    const decoded = sourced ? readDisplaySourceSlots(value?.result, context, { max }) : flat ? readFlatRequiredSlots(value?.result, { max }) : null;
+    const required = sourced || flat ? decoded?.required ?? null : readRequiredSlots(value?.result, { max });
     const usage = generation === "thinking-labels" ? value?.usage : null;
     const metrics = usage ? { provider_usage: { input_tokens: usage.input_tokens, thinking_tokens: usage.thinking_tokens } } : {};
-    if (required === null) {
+    if (required === null || !requiredLabelsGrounded(required, inventory.state)) {
       stage("TYPE_REQUIRED", { valid: false, generation, ...metrics });
       throw failure("provider_contract_error");
     }
@@ -185,7 +186,8 @@ export async function onRequirements({ request, mode, method, available, generat
     const proposal = eligible ? await full() : null;
     const verification = proposal === null ? null : await verify(proposal.required);
     const required = proposal?.required ?? literal.required, missing = requiredDifference(required, inventory.state.parts);
-    const inspection = { schema: frontier ? "voice-ui.parts.inspection/3" : "voice-ui.parts.inspection/2", request_id,
+    const inspection = { schema: extended ? "voice-ui.parts.inspection/4" : frontier ? "voice-ui.parts.inspection/3" : "voice-ui.parts.inspection/2", request_id,
+      ...(extended ? { input: structuredClone(inventory.state) } : {}),
       mode: method, initial, proposal, verification, required, missing, ...(frontier ? { proposal_policy } : {}) };
     const checked = readRequirementInspection(inspection, inventory.state, readLiteralInspection);
     if (checked === null) throw failure("provider_contract_error");

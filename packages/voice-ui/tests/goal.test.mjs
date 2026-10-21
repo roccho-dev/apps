@@ -4,7 +4,7 @@ import path from "node:path";
 import { pathToFileURL } from "node:url";
 import test from "node:test";
 import { readBundle } from "../src/bundle.mjs";
-import { ACTION_ADD_EDGE, ACTION_REMOVE_EDGE, ARCHITECTURE_GOAL_INTENT_KIND, ARCHITECTURE_INTENT_KIND, GOAL_REQUEST_KIND, NONE, REQUEST_KIND, isRequest,
+import { ACTION_ADD_EDGE, ACTION_REMOVE_EDGE, ARCHITECTURE_GOAL_INTENT_KIND, ARCHITECTURE_INTENT_KIND, GOAL_COMPLETION_KIND, GOAL_REQUEST_KIND, NONE, REQUEST_KIND, isRequest,
   architectureGoalSlotsFor, slotsFor } from "../src/contract.mjs";
 import { regionIdOf, withArchitecture } from "../src/architecture.mjs";
 import { runGoal } from "../src/goal.mjs";
@@ -132,12 +132,16 @@ const same = (left, right) => JSON.stringify(left) === JSON.stringify(right);
 const openAnswer = (request, picks) => ({ kind: "answered", decision: { answers: Object.fromEntries(Object.keys(request.kind === ARCHITECTURE_GOAL_INTENT_KIND ? architectureGoalSlotsFor(request.state) : slotsFor(request.state))
   .map(name => { const [choice, confidence] = picks[name] ?? [NONE, 1]; return [name, { type: "choice", choice, confidence }]; })) } });
 const deltaAnswer = (choice, confidence = 1) => ({ kind: "answered", decision: { answers: { delta: { type: "choice", choice, confidence } } } });
+const terminalUnknown = () => ({ kind: "answered", decision: { answers: {
+  completion: { type: "choice", choice: "unknown", confidence: 1 },
+} } });
 // A Goal asks what comes next and, for a part, where it goes. A test that picks
 // one held change per step answers both frames through this: the first with the
 // change's part alternative, the bound second with that same change.
 const framed = pick => {
   let held = null;
   return async request => {
+    if (request.kind === GOAL_COMPLETION_KIND) return terminalUnknown();
     if (request.kind === GOAL_REQUEST_KIND && request.state.placing !== null) {
       const { choice, confidence } = held ?? { choice: "no-first-frame", confidence: 1 };
       held = null;
@@ -221,7 +225,7 @@ test("mixed Goal uses one held ADD/Connect alphabet and strictly restores the wh
       return { kind: "answered", decision: { answers: { delta: { type: "choice", choice: calls === 3 ? candidate.id : NONE, confidence: 1 } } } };
     }), adopt: async next => { session = next; } });
   // Each addition is asked as what, then where; the arrow and the stop once each.
-  assert.equal(result.reason, "none"); assert.equal(result.requests, 6);
+  assert.equal(result.reason, "none"); assert.equal(result.requests, 7);
   const [from, to] = result.selected.map(item => item.region);
   assert.deepEqual(session.working.records.filter(item => item.type === "relation").map(({ from, to, kind, label }) => ({ from, to, kind, label })),
     [{ from, to, kind: "flow", label: "" }]);
@@ -249,7 +253,7 @@ test("one Goal adopts two real AddRegions and whole-group Undo without claiming 
     adopt: async next => { session = next; },
   });
   assert.equal(result.reason, "none");
-  assert.equal(result.requests, 5);
+  assert.equal(result.requests, 6);
   assert.equal(Number.isFinite(result.elapsedMs) && result.elapsedMs >= 0, true);
   assert.equal(requests.every(request => request.kind === GOAL_REQUEST_KIND && isRequest(request)), true);
   assert.equal(requests.every(request => request.state.utterance === utterance && request.state.offers.parts.length === 8), true);
@@ -281,12 +285,13 @@ test("a part is asked what, then where, and the held candidate is adopted at the
     const result = await runGoal({ utterance: "OCIにAPIを置いて", bundle, protocol, current: () => session, cancelled: () => false,
       adopt: async next => { session = next; },
       ask: async request => {
+        if (request.kind === GOAL_COMPLETION_KIND) return terminalUnknown();
         asked.push(request);
         if (asked.length === 1) return deltaAnswer("part:api", what);
         if (asked.length === 2) return deltaAnswer(request.state.candidates.find(item => item.part === "api" && item.parent === "container").id, where);
         return deltaAnswer(NONE);
       } });
-    assert.equal(result.reason, "none"); assert.equal(result.requests, 3);
+    assert.equal(result.reason, "none"); assert.equal(result.requests, 4);
     assert.equal(asked.every(request => request.kind === GOAL_REQUEST_KIND && isRequest(request)), true);
     const [first, second] = asked;
     assert.equal(first.state.placing, null); assert.equal(second.state.placing, "api");
@@ -298,7 +303,7 @@ test("a part is asked what, then where, and the held candidate is adopted at the
     assert.deepEqual(slotsFor(second.state).delta, [...first.state.candidates.filter(item => item.part === "api").map(item => item.id), NONE]);
     assert.deepEqual(result.selected.map(item => [item.key, item.parent]), [["api", "container"]]);
     assert.equal(session.draft.at(-1).step.confidence, Math.min(what, where), "the step keeps the weaker evidence");
-    assert.equal(result.trace.length, 3);
+    assert.equal(result.trace.length, 4);
   }
 });
 
@@ -350,7 +355,8 @@ test("paired histories with the same Working, utterance and catalogue differ onl
     const session = Object.freeze({ ...base, conversation: Object.freeze([said(text)]), nextSeq: 2 });
     const result = await runGoal({ utterance: "さっき話題にした部品から Existing helper へ矢印をつないで。他は変えない", bundle, protocol,
       current: () => session, cancelled: () => false, adopt: async () => { throw new Error("NONE adopts nothing"); },
-      ask: async request => { requests.push(request); return answer(request, NONE); } });
+      ask: async request => { if (request.kind === GOAL_COMPLETION_KIND) return terminalUnknown();
+        requests.push(request); return answer(request, NONE); } });
     assert.equal(result.reason, "none");
   }
   const [left, right] = requests;
@@ -889,7 +895,8 @@ test("legal wrong parent is retained; independent expected graph rejects it rath
 test("closed Goal validation rejects cycles, unknown history and repeated choices before another effect", async () => {
   const before = await opened(); let request;
   await runGoal({ utterance, bundle, protocol, current: () => before, cancelled: () => false,
-    ask: async value => { request = value; return answer(value, NONE); }, adopt: async () => { throw new Error("unexpected"); },
+    ask: async value => { if (value.kind === GOAL_COMPLETION_KIND) return terminalUnknown();
+      request = value; return answer(value, NONE); }, adopt: async () => { throw new Error("unexpected"); },
   });
   for (const mutate of [
     state => { state.graph[0].parent = "container"; },
@@ -982,9 +989,10 @@ test("early NONE, no room and elapsed budget stop at their actual request count"
       adopt: async () => { throw new Error("unexpected adoption"); },
     });
     assert.equal(result.reason, reason);
-    assert.equal(result.requests, reason === "no-executable-delta" ? 0 : 1);
+    assert.equal(result.requests, reason === "none" ? 2 : 1);
     assert.equal(result.elapsedMs, reason === "budget-time" ? 180000 : 0);
-    assert.equal(calls, result.requests); assert.deepEqual(result.selected, []);
+    assert.equal(calls, result.requests - (reason === "budget-time" ? 0 : 1));
+    assert.equal(result.completion.status, "unknown"); assert.deepEqual(result.selected, []);
   }
   // A Goal over records edited apart from their log asks, but the provider
   // refuses the append: nothing is adopted and the session stays as it was.
@@ -1126,7 +1134,7 @@ test("a smaller-only fit is an executable single choice without claiming model q
   const result = await runGoal({ utterance: "OCIにAPIをひとつ追加して。他は変えない", bundle: offered, protocol, current: () => session,
     cancelled: () => false, ask: framed(async request => { calls += 1; assert.equal(Object.keys(slotsFor(request.state)).length, 1);
       return answer(request, "api"); }), adopt: async next => { session = next; } });
-  assert.equal(result.reason, "no-executable-delta"); assert.equal(result.requests, 2); assert.equal(calls, 1);
+  assert.equal(result.reason, "no-executable-delta"); assert.equal(result.requests, 3); assert.equal(calls, 1);
   assert.deepEqual(result.selected.map(item => [item.key, item.parent]), [["api", "container"]]);
   const added = session.working.records.filter(record => record.type === "region" && !graph.records.some(old => old.id === record.id));
   assert.deepEqual(added.map(record => [record.kind, record.parent, record.label.replace(/ [1-9]\d*$/u, "")]), [["step", "container", "API"]]);

@@ -1,0 +1,14 @@
+{"id":1,"counterexample":"必要部品が1個でも候補にない","must_not":"選択器の性能不足だけに分類する"}
+{"id":2,"counterexample":"既存1個を新規追加分として誤算","must_not":"個数が同じだけで合格"}
+{"id":3,"counterexample":"親が1か所違う","must_not":"ノード集合の一致だけで合格"}
+{"id":4,"counterexample":"矢印1本の向き・意味・注釈が違う","must_not":"エッジ件数だけで合格"}
+{"id":5,"counterexample":"複数領域にまたがる所属を単一親へ押し込む","must_not":"原図の関係を消す"}
+{"id":6,"counterexample":"必要な記号・名前が1個欠ける","must_not":"全て同じ箱で十分とする"}
+{"id":7,"counterexample":"意味は正しくてもラベルと線が重なり読めない","must_not":"データの成功を描画成功にする"}
+{"id":8,"counterexample":"状態が1回変わった後に古い操作を適用","must_not":"過去の判定を現在の許可にする"}
+{"id":9,"counterexample":"音声の訂正・取消後に旧要求を適用","must_not":"安全停止だけで音声UX完成"}
+{"id":10,"counterexample":"8回上限で4/5部品なのに完成","must_not":"停止を完成に数える"}
+{"id":11,"counterexample":"独立期待をモデルの入力へ渡す","must_not":"制御試験を実モデル精度にする"}
+{"id":12,"counterexample":"ASR・再試行・失敗を時間の分母から外す","must_not":"速さの偽陽性"}
+{"id":13,"counterexample":"Noul/Scoreを使った又は使わなかった事実だけで設計を正当化","must_not":"同条件の性能比較を省く"}
+{"id":14,"counterexample":"局所テストの成功から利益・法人価値を断定","must_not":"間接寄与を実績にする"}

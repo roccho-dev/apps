@@ -1,4 +1,4 @@
-import { ACTION_ADD_EDGE, ACTION_ADD_PART, ACTION_ARCHITECTURE, ACTION_COMPOSE, ACTION_PLACE_PART, ACTION_REMOVE_EDGE, ACTION_REVERSE_EDGE, ACTION_UNDO_REQUEST, ARCHITECTURE_GOAL_INTENT_KIND, ARCHITECTURE_INTENT_KIND, ARCHITECTURE_JUDGE_KIND, ARCHITECTURE_LOCATE_KIND, NONE, WHOLE, YES, partOption, relationSlot, relevantSlot, roleSlot } from "./contract.mjs";
+import { ACTION_ADD_EDGE, ACTION_ADD_PART, ACTION_ARCHITECTURE, ACTION_COMPOSE, ACTION_PLACE_PART, ACTION_REMOVE_EDGE, ACTION_REVERSE_EDGE, ACTION_UNDO_REQUEST, ARCHITECTURE_GOAL_INTENT_KIND, ARCHITECTURE_INTENT_KIND, ARCHITECTURE_JUDGE_KIND, ARCHITECTURE_LOCATE_KIND, GOAL_COMPLETION_KIND, TYPED_REQUEST_KIND, NONE, WHOLE, YES, partOption, relationSlot, relevantSlot, roleSlot } from "./contract.mjs";
 
 // A choice question offers its alternatives as a criteria map keyed by the
 // value to be returned.
@@ -70,6 +70,17 @@ const labelled = (ids, label) => MISREADABLE.test(label) || ids.has(label) ? quo
 // edge as, or null: an architecture intent passes it, and a plain request,
 // which has no snapshot, describes every edge by its two ends only.
 export function questionsFor(state, slots, context) {
+  if (context.kind === GOAL_COMPLETION_KIND) return {
+    completion: {
+      instruction: "Does the current Working graph satisfy the whole utterance? Compare state.initial, the graph before this request, with state.graph, the whole current graph. Check every requested display name, kind, total or additional count, direct parent and directed connection, and reject unrequested additions or changes. An explicitly requested new or additional part must be added beyond the initial instances; an initial matching part is not a new addition. Existing content need not be removed unless the utterance asks. A missing executable option, selected history or a stopped loop does not prove completion. Choose incomplete when a requested condition is contradicted or missing, and unknown when any condition or reference cannot be decided. These are Working proposals, not proof of source relationships."
+        + GOAL_CONTEXT_NOTE,
+      options: criteria(slots.completion, key => ({
+        complete: "every requested condition is satisfied and there are no unrequested changes",
+        incomplete: "at least one requested condition is missing or contradicted, or an unrequested change is present",
+        unknown: "the whole request cannot be decided from the two graphs and utterance",
+      })[key]),
+    },
+  };
   if (state.candidates !== undefined) {
     // An offered part is named by its displayed name and its key; the name is
     // display data and may repeat, the key and the candidate id decide.
@@ -79,6 +90,16 @@ export function questionsFor(state, slots, context) {
     const ids = new Set([...labels.keys(), ...parents.keys()]);
     const label = text => labelled(ids, text);
     const partOf = part => `${label(part.label)} (${named(part.key)}): ${part.purpose}`;
+    if (!Object.hasOwn(state, "placing")) return { delta: {
+      instruction: "Choose the next complete executable change toward the utterance's goal. Each option already binds a part and its direct parent, or a directed relation with kind and label. Preserve requested names, quantities and relations, and do not add an unrequested change. Choose none when no offered change is clearly needed or the request is ambiguous."
+        + GOAL_CONTEXT_NOTE + (state.scope === null ? "" : SCOPE_NOTE),
+      options: criteria(slots.delta, key => {
+        if (key === NONE) return "no offered executable change is clearly requested, or the requested changes are already present";
+        const candidate = state.candidates.find(item => item.id === key);
+        if (candidate.action === ACTION_ADD_EDGE) return `directed ${named(candidate.kind)} relation labelled ${label(candidate.label)} from ${label(labels.get(candidate.from))} (${named(candidate.from)}) to ${label(labels.get(candidate.to))} (${named(candidate.to)})`;
+        return `add one new ${named(offered.get(candidate.part).kind)} part ${partOf(offered.get(candidate.part))} directly inside ${label(parents.get(candidate.parent).label)} (${named(candidate.parent)})`;
+      }),
+    } };
     const placing = state.placing === null ? null : offered.get(state.placing);
     return {
       delta: {
@@ -144,6 +165,9 @@ export function questionsFor(state, slots, context) {
   const labelOf = new Map(state.graph.regions.map(region => [region.id, region.label]));
   const node = key => shownAs(labelOf, key);
   const definedAs = edge => {
+    // A stored Working description helps distinguish parallel relations; it
+    // is not a claim that the relationship was verified in external source.
+    if (context.kind === TYPED_REQUEST_KIND) return `, stored in Working with kind ${quoted(edge.kind)} and label ${quoted(edge.label)}`;
     const relation = defined(edge);
     return relation === null ? "" : `, which this snapshot defines as ${relation.kind}${relation.purpose === null ? "" : `: ${relation.purpose}`}`;
   };
@@ -257,6 +281,8 @@ export function questionsFor(state, slots, context) {
   for (const question of Object.values(questions)) question.instruction += CONTEXT_NOTE
     + (context.kind === ARCHITECTURE_INTENT_KIND ? REFERENCE_NOTE : "");
   if (context.kind === ARCHITECTURE_INTENT_KIND && questions.edge) questions.edge.instruction += EDGE_REFERENCE_NOTE;
+  if (context.kind === TYPED_REQUEST_KIND && questions.edge) questions.edge.instruction +=
+    " Working kinds and labels are stored descriptions, not verified source evidence. Match their meaning and annotation with the explicit request; a shared pair of endpoints alone cannot distinguish parallel meanings.";
   return questions;
 }
 
@@ -295,7 +321,7 @@ function judgeQuestions(section, slots) {
 
 // A locate frame's one question, judged from its part's own text - the files
 // it opens whole, and single lines of other files that name it - which the
-// question names by path, since the provider never sees the question's name.
+// question names by its file path, since the provider never sees the question's name.
 // One positive condition: whether the current utterance asks to see this part,
 // directly or by what it refers to; the other option is any other case.
 function locateQuestion(entity, evidence, slots) {

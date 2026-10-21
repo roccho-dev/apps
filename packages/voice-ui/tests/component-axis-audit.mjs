@@ -1,6 +1,7 @@
 // Independent stopped-receipt integrity. This never sends a provider request,
 // observes credentials, or promotes recorded testimony to CI-origin execution.
 import { canonical } from './semantic-score.mjs';
+import { auditGoalCompletionReceipt, auditGoalCompletionTrace, isGoalCompletionCall, readGoalCompletionAnswers } from './goal-completion-audit.mjs';
 import { validateAxisInput, axisSchedule, gradeGateAxes, gradeSupply, gradeReady, gradeOrdinary,
   summarizeGate, summarizeSupply, summarizeReady, summarizeOrdinary } from './component-axis-score.mjs';
 import { sha256, jsonLines, combineFactors, auditProviderPhase, auditReplayJoin } from './receipt-admissibility.mjs';
@@ -62,6 +63,7 @@ function suppliedParts(parts, missing) {
 }
 
 function readGoalAnswers(call) {
+  if (isGoalCompletionCall(call)) return readGoalCompletionAnswers(call);
   const state = call?.request?.state, response = call?.response;
   if (response?.kind !== 'voice-ui.judge.decision.v1' || !response.answers || Array.isArray(response.answers)
       || Object.keys(response.answers).join() !== 'delta') return null;
@@ -339,6 +341,7 @@ export async function auditAxisRaw({ projectionBytes, oracleBytes, rawFiles, bun
           || final.head !== row.final_head || !same(final.records, row.final_records)) throw Error('log projection');
       if (['G', 'F'].includes(input.axis) && (row.final_log !== initial.log || row.final_head !== initial.head || !same(row.final_records, initial.records))) throw Error('isolated axis adopted graph');
       const judges = row.calls.filter(c => parseRoute(c.route).path === '/api/judge');
+      auditGoalCompletionReceipt(row, judges);
       if (['R', 'E'].includes(input.axis)) {
         const completed = row.calls.find(c => parseRoute(c.route).path === '/api/parts/complete' && c.status === 200);
         const effectiveParts = input.axis === 'R' ? item.parts : completed ? suppliedParts(bundle.parts, completed.response?.missing) : bundle.parts;
@@ -350,7 +353,8 @@ export async function auditAxisRaw({ projectionBytes, oracleBytes, rawFiles, bun
         let previous = initial.decisions.length;
         for (const [n, trace] of (row.result?.trace ?? []).entries()) {
           const prefix = prefixes.get(trace.head), call = judges[n], state = call?.request?.state;
-          if (!prefix || prefix.n < previous || !traceMatches(trace, call, input.axis) || state?.utterance !== item.utterance
+          if (auditGoalCompletionTrace({ row, initial, prefix, judges, n, previous })) { previous = prefix.n; continue; }
+          if (call?.request?.kind !== 'voice-ui.judge.goal-local-delta.v7' || !prefix || prefix.n < previous || !traceMatches(trace, call, input.axis) || state?.utterance !== item.utterance
               || !same(state.graph, prefix.verified.records.filter(r => r.type === 'region').map(({ id, label, parent }) => ({ id, label, parent })))
               || !same(state.edges, prefix.verified.records.filter(r => r.type === 'relation').map(({ id, from, to }) => ({ id, from, to })))
               || !same(state.offers, { parts: offersOf(effectiveParts) })) throw Error('trace snapshot/offered inventory');
