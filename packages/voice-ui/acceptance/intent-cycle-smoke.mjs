@@ -39,6 +39,7 @@ const prereg = path.join(base, "docs/voice-ui/intent-cycle-20261018/preregistere
 const publicInput = read(path.join(prereg, "intent-cycle-public-G0-10.inputs.json"));
 const publicOracle = read(path.join(prereg, "intent-cycle-public-G0-10.oracle.json"));
 const stock = read(path.join(artifact, "site/data/bundle.v1.json")).parts;
+const fPart = stock.find(part => part.kind === "step"); assert.ok(fPart);
 const env = { JEV_API_KEY: "fixture-jev-only", TYPELLM_API_KEY: "fixture-type-only",
   ASSETS: { fetch: () => assert.fail("unexpected asset") } };
 const savedFetch = globalThis.fetch, savedInfo = console.info;
@@ -58,7 +59,7 @@ globalThis.fetch = async (url, init) => {
   if (provider === "typellm") {
     assert.ok(["F", "E"].includes(mode));
     return Response.json({ status: "completed", result: {
-      required1: { label: "FixtureNode", kind: "step", quantity: "1" },
+      required1: { label: mode === "F" ? fPart.label : "FixtureNode", kind: "step", quantity: "1" },
       required2: { label: "", kind: "none", quantity: "0" },
       required3: { label: "", kind: "none", quantity: "0" },
     } });

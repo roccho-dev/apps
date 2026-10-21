@@ -56,6 +56,7 @@ const factors = (intent = "change", confidence = .9, completeness = "complete", 
   intent: { choice: intent, confidence }, labels: { choice: "missing", confidence: .9 },
   capacity: { choice: "within", confidence: .9 }, completeness: { choice: completeness, confidence: certainty },
 });
+const fPart = stock.find(part => part.kind === "step"); assert.ok(fPart);
 const typedResult = (wire, rows) => Object.hasOwn(wire.questions, "required1_label")
   ? Object.fromEntries(Object.entries(rows).flatMap(([name, row]) => Object.entries(row).map(([key, value]) => [name + "_" + key, value]))) : rows;
 globalThis.fetch = async (url, init) => {
@@ -91,7 +92,7 @@ globalThis.fetch = async (url, init) => {
   if (provider === "typellm") {
     assert.ok(mode === "F" || mode.startsWith("E"));
     return Response.json({ status: "completed", result: typedResult(wire, {
-      required1: { label: "FixtureNode", kind: "step", quantity: "1" },
+      required1: { label: mode === "F" ? fPart.label : "FixtureNode", kind: "step", quantity: "1" },
       required2: { label: "", kind: "none", quantity: "0" },
       required3: { label: "", kind: "none", quantity: "0" },
     }) });

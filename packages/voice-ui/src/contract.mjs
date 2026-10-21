@@ -71,8 +71,21 @@ export const LABEL_MAX = 120;
 export const OFFER_MAX = 8;
 // Persistent library admission stays at eight; one Goal can hold three additional instance candidates.
 export const GOAL_OFFER_MAX = OFFER_MAX + 3;
+// Explicit extended catalogue; legacy requests keep their original bounds.
+export const DIRECT_GOAL_OFFER_MAX = 32;
 export const PURPOSE_MAX = 300;
 export const KEY_PATTERN = /^[a-z][a-z0-9-]{0,63}$/u;
+
+// Supplied display data, never a generated URL or a semantic identity verdict.
+// Keep it local to the app's explicit asset namespace; the UI validates image/1 again.
+export const isPartSymbol = value => value !== null && typeof value === "object" && !Array.isArray(value)
+  && Object.keys(value).length === 3 && ["href", "alt", "provenanceRef"].every(k => Object.hasOwn(value, k))
+  && typeof value.href === "string" && value.href.length <= 512
+  && /^\/assets\/[A-Za-z0-9_./-]+\.(svg|png|jpg|jpeg|webp)$/u.test(value.href) && !value.href.includes("..")
+  && typeof value.alt === "string" && value.alt.trim().length > 0 && value.alt.length <= LABEL_MAX && !/[\u0000-\u001f\u007f]/u.test(value.alt)
+  && typeof value.provenanceRef === "string" && value.provenanceRef.length <= 160
+  && /^[A-Za-z0-9][A-Za-z0-9._:@/-]*$/u.test(value.provenanceRef);
+
 
 const TEXT_MAX = 8000;
 const GRAPH_MAX = 64;
@@ -417,15 +430,14 @@ export function judgeSlotsFor(section) {
 
 // The frames a judge of a section is asked in, decided by the section alone.
 // Every question rests on whole body files: a role on its own file, a pair on
-// whichever of its two ends are body files. A frame is one such set of one or
-// two files, sorted, with every question that rests on exactly that set - so
-// a pair of two body files shares its frame with the pair the other way - and
-// each question of the section is in exactly one frame. Frames come in the
-// order their first question has among the section's. Each is given as the
-// part of the section it asks, in the section's own shape and order: the
-// frame's files as its bodies, its own pairs, only the parts those name, and
-// the roles for one file but none for two, whose roles their own frames ask.
-// Null when a pair rests on no body file: then nothing is asked.
+// whichever of its two ends are body files - so a pair of two body files shares
+// its frame with the pair the other way - and each question of the section is
+// in exactly one frame. Frames come in the order their first question has among
+// the section's. Each is given as the part of the section it asks, in the
+// section's own shape and order: the frame's files as its bodies, its own pairs,
+// only the parts those name, and the roles for one file but none for two, whose
+// roles their own frames ask. Null when a pair rests on no body file: then
+// nothing is asked.
 export function judgeFramesFor(section) {
   const groups = new Map(section.bodies.map(body => [body, { frame: [body], candidates: [] }]));
   for (const candidate of section.candidates) {
