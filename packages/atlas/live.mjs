@@ -104,10 +104,16 @@ const hotMinusCold = (events, held) => {
 
 // v12 (S4): who decided. Only a Purpose with an authority declaration is checked; a proposer's decision is a
 // proposal (held, never in the log), an author who is neither is not authorized. Others are accepted as before.
+// C5: a declared Purpose is evaluated by its evaluators alone, never by a decider; with none declared, by no one
+// (fail closed: it stays unevaluated). An evaluator decides nothing else.
 const purposeOf = decision => decision.kind === 'purpose.set' ? decision.purpose?.id : decision.purpose_id;
 const unauthorized = (decision, authority) => {
   const declared = authority.get(purposeOf(decision));
-  if (!declared || declared.deciders.includes(decision.actor)) return null;
+  if (!declared) return null;
+  if (decision.kind === 'purpose.evaluated') {
+    return declared.evaluators.includes(decision.actor) ? null : declared.evaluators.length ? 'evaluator-only' : 'evaluator-not-declared';
+  }
+  if (declared.deciders.includes(decision.actor)) return null;
   return declared.proposers.includes(decision.actor) ? 'proposal' : 'actor-not-authorized';
 };
 

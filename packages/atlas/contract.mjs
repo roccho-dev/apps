@@ -183,7 +183,7 @@ export const adequacyOf = (frame, gap, phase) => {
 export const HELD_REASONS = Object.freeze([
   'ideal-version-already-set', 'ideal-purpose-rev-mismatch', 'purpose-not-active', 'purpose-rev-redefined', 'purpose-rev-already-active',
   'evaluation-not-declared', 'recorded-at-backwards', 'invalid-declaration',
-  'proposal', 'actor-not-authorized', 'superseded-by-cold', 'worklog-target-in-predicate',
+  'proposal', 'actor-not-authorized', 'evaluator-only', 'evaluator-not-declared', 'superseded-by-cold', 'worklog-target-in-predicate', 'eval-form',
   'invalid-json', 'unknown-kind', 'author-unknown', 'actor-mismatch', 'recordedAt-invalid', 'recordedAt-after-source', 'declaration-unreadable',
   'cold: invalid-json', 'cold: schema', 'cold: content-sha256-missing', 'cold: content-sha256-unverifiable', 'cold: content-sha256-mismatch',
   'cold: raw-id-mismatch', 'cold: subject-id-author-or-body-missing', 'cold: updated-at-missing']);
