@@ -50,10 +50,11 @@ export const gapOf = (frame, last = null, previous = null) => {
       since: old && !revised && since.has(value.id) ? since.get(value.id) : frameId(frame),
       scope: value.responsibility.state === 'assigned' ? `scope.${value.id}` : null, refs: refs(value),
       ...(observedAt && Date.parse(observedAt) < idealAt(frame.ideal) ? { observed_before_ideal: true } : {}),
-      // S5: the last observation the judge saw for this condition (its source's ref: G writes "<ref> <sha256>"), or null.
+      // S5: the last observation the judge saw for this condition, or null. Its ref is the source without the trailing
+      // " sha256:<hex>" G appends (the ref itself may have spaces: "gh api graphql owner/repo#n pullRequest").
       // D's observations carry no actor.
       last_observed: value.judgment.observation
-        ? { observedAt: value.judgment.observation.observedAt, source: { ref: String(value.judgment.observation.source).split(' ')[0] }, actor: null } : null };
+        ? { observedAt: value.judgment.observation.observedAt, source: { ref: String(value.judgment.observation.source).replace(/ sha256:[0-9a-f]{64}$/u, '') }, actor: null } : null };
   });
   // Close what the previous frame had open and this frame no longer has open.
   // Under a new Purpose rev only what the new ideal declares again continues; the rest closes.
