@@ -20,8 +20,9 @@ const currentCause = (before, now) => {
   if (now.state === 'unmet') return !before ? null : before.state === 'satisfied' ? 'current-regressed'
     : before.state === 'unmet' ? null : 'current-confirmed-unmet';
   if (now.state === 'conflict') return 'current-conflict';
-  // Arrived but not comparable with the predicate (unmatchable) is not the same as nothing arrived.
-  return now.reason === 'stale' ? 'current-stale' : now.reason === 'unmatchable' ? 'current-unmatchable' : 'current-unobserved';
+  // Arrived but not comparable with the predicate (unmatchable, or arrived with no value: v12) is not the
+  // same as nothing arrived.
+  return now.reason === 'stale' ? 'current-stale' : ['unmatchable', 'no-value'].includes(now.reason) ? 'current-unmatchable' : 'current-unobserved';
 };
 
 /**
@@ -138,10 +139,55 @@ export const unboundPlans = (frames, unbound = []) => {
   return { placed, unplaced };
 };
 
+/**
+ * GapA (contract v12): frames[i].adequacy {basis, state, reason, evidence}. Only a human evaluation of the
+ * same Purpose rev and ideal version (compared as written) that says ideal-insufficient is unmet; every
+ * other reason is unknown and nothing here is counted. The first reason that applies, in this order.
+ */
+export const adequacyOf = (frame, gap, phase) => {
+  const pid = frame.purpose.purpose.id;
+  const latest = frame.journal.filter(event => event.kind === 'purpose.evaluated' && event.purpose_id === pid).at(-1) ?? null;
+  const reason = frame.stage === 'ended' ? 'purpose-ended' : !frame.ideal ? 'no-ideal' : !latest ? 'no-evaluation'
+    : latest.purpose_rev !== frame.purpose.rev || latest.ideal_version !== frame.ideal.version ? 'past'
+      : latest.verdict === 'ideal-insufficient' ? 'evaluated'
+        : latest.verdict === 'not-yet' && phase === 'matched' ? 'not-yet-while-matched'
+          : latest.verdict === 'achieved' && gap.parts.length > 0 ? 'achieved-while-open' : 'no-adequacy-verdict';
+  const { purpose_id, purpose_rev, ideal_version } = gap.basis;
+  return { basis: { purpose_id, purpose_rev, ideal_version }, state: reason === 'evaluated' ? 'unmet' : 'unknown', reason,
+    evidence: latest && { recordedAt: latest.recordedAt, ...(latest.declaredAt ? { declaredAt: latest.declaredAt } : {}), actor: latest.actor ?? null,
+      source: { ref: latest.source.ref, commentId: latest.source.commentId == null ? null : number(latest.source.commentId), sha256: latest.source.digest,
+        ...(latest.source.admission ? { admission: latest.source.admission } : {}) },
+      purpose_id: latest.purpose_id, purpose_rev: latest.purpose_rev, ideal_version: latest.ideal_version, verdict: latest.verdict,
+      ...(latest.note ? { note: latest.note } : {}) } };
+};
+
+/**
+ * frames[i].held (contract v12): the declarations held back before D (live.mjs g-journal-held.jsonl; held
+ * plans are not declarations, and unbound plans are shown by the journal), each in the first frame with
+ * prev.asOf < recordedAt <= asOf. Those after the last frame are only counted (unplaced). Display only.
+ */
+const heldKind = entry => {
+  if (entry.kind !== 'journal.held') return entry.kind ?? null;
+  try { const kind = JSON.parse(entry.line)?.kind; return typeof kind === 'string' ? kind : null; } catch { return null; }
+};
+export const heldEntries = (frames, held = []) => {
+  const placed = frames.map(() => []);
+  let unplaced = 0;
+  for (const { reason, journal: entry } of [...held].sort((a, b) => Date.parse(a.journal.recordedAt) - Date.parse(b.journal.recordedAt))) {
+    const index = frames.findIndex(frame => Date.parse(entry.recordedAt) <= Date.parse(frame.asOf));
+    if (index < 0) { unplaced += 1; continue; }
+    const source = entry.source ?? {};
+    placed[index].push({ reason, kind: heldKind(entry), recordedAt: entry.recordedAt,
+      source: { ref: source.ref ?? source.repo, commentId: source.commentId == null ? null : number(String(source.commentId)), sha256: source.sha256 ?? source.digest ?? null } });
+  }
+  return { placed, unplaced, count: held.length };
+};
+
 /** The World as ui reads it: D's World plus the edge contracts. Each frame uses only itself and earlier frames. */
-export const contractWorld = (result, { unbound = [] } = {}) => {
+export const contractWorld = (result, { unbound = [], held = [] } = {}) => {
   let last = null, previous = null;
   const { placed } = unboundPlans(result.world.frames, unbound);
+  const { placed: heldAt } = heldEntries(result.world.frames, held);
   const byTime = list => list.map((entry, index) => ({ entry, index }))
     .sort((a, b) => Date.parse(a.entry.recordedAt) - Date.parse(b.entry.recordedAt) || a.index - b.index).map(value => value.entry);
   return { ...result.world, frames: result.world.frames.map((frame, index) => {
@@ -151,6 +197,7 @@ export const contractWorld = (result, { unbound = [] } = {}) => {
     previous = { frame: derived, gap };
     if (gap.parts) last = previous;
     const plans = plansOf(derived, result.plans);
-    return { ...frame, ...(plans ? { plans } : {}), gap, phase, journal, matched_until: matchedUntil(derived, phase) };
+    return { ...frame, ...(plans ? { plans } : {}), gap, phase, journal, matched_until: matchedUntil(derived, phase),
+      adequacy: adequacyOf(derived, gap, phase), held: heldAt[index] };
   }) };
 };
