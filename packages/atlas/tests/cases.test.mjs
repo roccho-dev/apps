@@ -99,6 +99,25 @@ test('upkeep, matched_until and last_observed in the contract shape on every fra
   }
 });
 
+// R's HQ readback (apps#133 6ccc62d): G writes an observation source as "<ref> sha256:<hex>" and the ref itself has
+// spaces ("gh api graphql roccho-dev/Meltype#38 pullRequest"); the first word alone ("gh") loses what was observed.
+test('last_observed.source.ref is the observation source without its trailing sha256', () => {
+  const hex = 'a'.repeat(64), digest = 'sha256:' + '0'.repeat(64);
+  const condition = (id, target, value) => ({ id, label: id, predicate: { target: { kind: 'state', id: target }, op: 'equals', value }, maxAge: 'PT24H', norm: 'n.' + id });
+  const observed = (target, value, source) => ({ kind: 'observation', recordedAt: '2026-10-21T01:00:00Z', target: { kind: 'state', id: target }, value, source,
+    observedAt: '2026-10-21T01:00:00Z' });
+  const events = [{ schema: 'atlas.events/1', authority: false, source_mode: 'supplied' },
+    { kind: 'purpose.set', recordedAt: '2026-10-21T01:00:00Z', purpose: { id: 'p', label: 'P' }, rev: 'r1', source: { ref: 'hq:decl', digest } },
+    { kind: 'ideal.set', recordedAt: '2026-10-21T01:00:00Z', purpose_id: 'p', purpose_rev: 'r1', version: 'v1', source: { ref: 'hq:decl', digest },
+      requires: [condition('A', 'roccho-dev/Meltype#38:pr.merged', 'true'), condition('B', 'dev.atlas.hq:port', 'responding'), condition('C', 's.c', 'ok')] },
+    observed('roccho-dev/Meltype#38:pr.merged', 'false', `gh api graphql roccho-dev/Meltype#38 pullRequest sha256:${hex}`),
+    observed('dev.atlas.hq:port', 'down', `tcp 127.0.0.1:52162 sha256:${hex}`),
+    observed('s.c', 'ng', 's3:obs')].map(value => JSON.stringify(value)).join('\n') + '\n';
+  const world = contractWorld(deriveAtlas(events, '{"schema":"atlas.control-norms/1","authority":false}\n'));
+  assert.deepEqual(world.frames.at(-1).gap.parts.map(part => [part.condition, part.last_observed.source.ref]),
+    [['A', 'gh api graphql roccho-dev/Meltype#38 pullRequest'], ['B', 'tcp 127.0.0.1:52162'], ['C', 's3:obs']]);
+});
+
 test('GapA reasons: all eight are reached by the cases', () => {
   const reasons = new Set(cases.flatMap(n => build(n).world.frames.map(frame => frame.adequacy.reason)));
   assert.deepEqual([...reasons].sort(), ['achieved-while-open', 'evaluated', 'no-adequacy-verdict', 'no-evaluation', 'no-ideal',
