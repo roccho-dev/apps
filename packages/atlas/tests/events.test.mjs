@@ -53,7 +53,7 @@ const gapView = frame => ({ coverage: frame.coverage, entities: frame.entities,
 // declared Scopes frames (owner / 担当なし / 閉じた差（履歴）) with containment, and the conditions met now as
 // closed-change units in the history frame (no lines); then from 4f1d171d… for K8b: observation journal rows
 // carry their value, an exactly repeated record is one row, and carried is named on the current side.
-const WORLD_SHA256 = 'sha256:5137c53bffab9592e0c09b9c2170e37d5592c925995615d2c10682063197aa14';
+const WORLD_SHA256 = 'sha256:e99c84d4f8713a2caddad97e8d57f8e3aaa8cee16888a9762f4dd092f236f4e6';
 
 test('parser fails closed on schema, shape, duplicate keys, order and graph errors', () => {
   const list = base();

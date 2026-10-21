@@ -75,6 +75,9 @@ test('an exactly repeated record is one journal row; rows that differ in value o
   const keys = dup.frames.flatMap(frame => frame.journal.map(entry => JSON.stringify(entry)));
   assert.equal(new Set(keys).size, keys.length);
   assert.ok(dup.frames.every(frame => (frame.gap.parts ?? []).every(part => part.cause.ideal || part.cause.current)));
-  // Merging the repeat changes no phase, gap or judgment.
-  assert.deepEqual(dup.frames.map(frame => [frame.phase, frame.gap]), v6.frames.map(frame => [frame.phase, frame.gap]));
+  // Merging the repeat changes no phase, gap or judgment. last_observed (S5) is provenance, not a judgment: the
+  // mirror row (same value, same observedAt) is the one the judge chose, so only that source's ref differs.
+  const judged = frames => frames.map(frame => [frame.phase, { ...frame.gap, parts: frame.gap.parts && frame.gap.parts.map(({ last_observed, ...part }) => part) }]);
+  assert.deepEqual(judged(dup.frames), judged(v6.frames));
+  assert.deepEqual(dup.frames[2].gap.parts.filter(part => part.last_observed?.source.ref === 'synthetic:svc.b-mirror').map(part => part.condition), ['B']);
 });

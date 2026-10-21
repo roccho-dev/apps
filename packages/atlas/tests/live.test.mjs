@@ -89,9 +89,9 @@ test('end to end: G fixture snapshots → G events → live.mjs → D → World'
     label: 'roccho-dev/resources#25:windows-retirement-migration-20261016 v3 · roccho-dev/resources#25 comment 6208252115', serves: ['merged'], nodes: null, edges: null,
     unknown: ['flowchart-absent', 'exit-table-absent'],
     source: { repo: 'roccho-dev/resources#25', commentId: 6208252115, updatedAt: gPlans(gEvents)[1].source.updatedAt, sha256: gPlans(gEvents)[1].source.sha256 } }]);
-  // Plans, gap, phase, journal, matched_until, adequacy and held (v12) are edge contracts: without them the World is exactly D's.
+  // Plans, gap, phase, journal, matched_until, adequacy, held (v12) and upkeep (S5) are edge contracts: without them the World is exactly D's.
   const bare = deriveAtlas(readFileSync(path.join(dir, 'events.jsonl'), 'utf8'), readFileSync(file('../fixtures/live/control.jsonl'), 'utf8')).world;
-  assert.deepEqual({ ...world, frames: world.frames.map(({ plans, gap, phase, journal, matched_until, adequacy, held, ...frame }) => frame) }, bare);
+  assert.deepEqual({ ...world, frames: world.frames.map(({ plans, gap, phase, journal, matched_until, adequacy, held, upkeep, ...frame }) => frame) }, bare);
   assert.deepEqual(receipt.held, { count: 0, unplaced: 0 });
   const sha = 'sha256:' + createHash('sha256').update(readFileSync(path.join(dir, 'world.json'))).digest('hex');
   assert.equal(receipt.outputs.find(value => path.basename(value.path) === 'world.json').sha256, sha);

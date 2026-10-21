@@ -49,7 +49,11 @@ export const gapOf = (frame, last = null, previous = null) => {
       // A difference declared again (same Purpose id, same condition, unrevised) continues from its opening frame.
       since: old && !revised && since.has(value.id) ? since.get(value.id) : frameId(frame),
       scope: value.responsibility.state === 'assigned' ? `scope.${value.id}` : null, refs: refs(value),
-      ...(observedAt && Date.parse(observedAt) < idealAt(frame.ideal) ? { observed_before_ideal: true } : {}) };
+      ...(observedAt && Date.parse(observedAt) < idealAt(frame.ideal) ? { observed_before_ideal: true } : {}),
+      // S5: the last observation the judge saw for this condition (its source's ref: G writes "<ref> <sha256>"), or null.
+      // D's observations carry no actor.
+      last_observed: value.judgment.observation
+        ? { observedAt: value.judgment.observation.observedAt, source: { ref: String(value.judgment.observation.source).split(' ')[0] }, actor: null } : null };
   });
   // Close what the previous frame had open and this frame no longer has open.
   // Under a new Purpose rev only what the new ideal declares again continues; the rest closes.
@@ -73,9 +77,16 @@ export const gapOf = (frame, last = null, previous = null) => {
 /** phase: purpose-changed / defining / approximating / matched (and ended once purpose.ended is recorded). */
 export const phaseOf = (frame, gap) => frame.stage === 'ideal' ? (gap.parts.length ? 'approximating' : 'matched') : frame.stage;
 
-/** matched: the earliest observedAt + maxAge, after which the match is no longer known to hold. */
-export const matchedUntil = (frame, phase) => phase !== 'matched' ? null
-  : iso(Math.min(...frame.conditions.map(value => Date.parse(value.judgment.observation.observedAt) + ms(value.maxAge))));
+/**
+ * upkeep (S5, contract 3 revised): on a matched frame, each condition met, with the observation the judge chose
+ * and stale_at = observedAt + maxAge (still fresh at that instant: the judge's <=). Other frames: [].
+ */
+export const upkeepOf = (frame, phase) => phase !== 'matched' ? []
+  : frame.conditions.map(value => ({ condition: value.id, observedAt: value.judgment.observation.observedAt,
+    stale_at: iso(Date.parse(value.judgment.observation.observedAt) + ms(value.maxAge)) }));
+
+/** matched: the earliest stale_at of the upkeep, after which the match is no longer known to hold. */
+export const matchedUntil = upkeep => upkeep.length ? upkeep.map(item => item.stale_at).sort()[0] : null;
 
 /**
  * journal (v6): what was newly recorded in this frame, i.e. after the previous frame's t and up to this one,
@@ -209,7 +220,8 @@ export const contractWorld = (result, { unbound = [], held = [] } = {}) => {
     previous = { frame: derived, gap };
     if (gap.parts) last = previous;
     const plans = plansOf(derived, result.plans);
-    return { ...frame, ...(plans ? { plans } : {}), gap, phase, journal, matched_until: matchedUntil(derived, phase),
+    const upkeep = upkeepOf(derived, phase);
+    return { ...frame, ...(plans ? { plans } : {}), gap, phase, journal, matched_until: matchedUntil(upkeep), upkeep,
       adequacy: adequacyOf(derived, gap, phase), held: heldAt[index] };
   }) };
 };
