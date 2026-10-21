@@ -188,7 +188,8 @@ export const heldEntries = (frames, all = []) => {
     const index = frames.findIndex(frame => Date.parse(entry.recordedAt) <= Date.parse(frame.asOf));
     if (index < 0) { unplaced += 1; continue; }
     const source = entry.source ?? {};
-    placed[index].push({ reason, kind: heldKind(entry), recordedAt: entry.recordedAt,
+    // Only the closed words are shown: anything else (a new or raw reason) is invalid-declaration.
+    placed[index].push({ reason: HELD_REASONS.includes(reason) ? reason : 'invalid-declaration', kind: heldKind(entry), recordedAt: entry.recordedAt,
       source: { ref: source.ref ?? source.repo, commentId: source.commentId == null ? null : number(String(source.commentId)), sha256: source.sha256 ?? source.digest ?? null } });
   }
   return { placed, unplaced, count: held.length };

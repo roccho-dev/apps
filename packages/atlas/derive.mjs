@@ -43,8 +43,8 @@ try {
     schema: 'atlas.events-derive-build/1', status: 'PASS', authority: false, now: result.derived.now, frames: result.world.frames.length,
     // unplaced: unbound plans recorded after the last frame (not shown; 0 when current is read after the ledger).
     ...(values['unbound-plans'] ? { unbound: { count: unbound.length, unplaced: unboundPlans(result.world.frames, unbound).unplaced } } : {}),
-    // unplaced: held declarations recorded after the last frame (counted, never put in a frame).
-    ...(values.held ? { held: { count: held.length, unplaced: heldEntries(result.world.frames, held).unplaced } } : {}),
+    // count: the held declarations (work claims left out, as in the World); unplaced: those after the last frame.
+    ...(values.held ? { held: (({ count, unplaced }) => ({ count, unplaced }))(heldEntries(result.world.frames, held)) } : {}),
     inputs: inputPaths.map((file, index) => ({ path: file, sha256: digest(bytes[index]) })),
     outputs: outputs.map(([name, output]) => ({ path: path.join(directory, name), bytes: output.length, sha256: digest(output) })),
   }));
