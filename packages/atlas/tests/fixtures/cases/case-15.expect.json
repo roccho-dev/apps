@@ -1,0 +1,30 @@
+{
+  "via": "joinLog",
+  "frames": [
+    {
+      "asOf": "2026-10-21T01:00:00.000Z",
+      "phase": "matched",
+      "parts": [],
+      "held": []
+    },
+    {
+      "asOf": "2026-10-21T03:00:00.000Z",
+      "phase": "matched",
+      "parts": [],
+      "held": [
+        {
+          "reason": "ideal-version-already-set"
+        },
+        {
+          "reason": "actor-mismatch"
+        }
+      ]
+    }
+  ],
+  "receipt": {
+    "held": {
+      "count": 3,
+      "unplaced": 1
+    }
+  }
+}

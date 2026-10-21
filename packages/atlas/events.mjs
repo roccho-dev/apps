@@ -8,8 +8,9 @@ import { semanticScopeWorld } from './semantic-scope-world.mjs';
 export const EVENTS_SCHEMA = 'atlas.events/1';
 export const CONTROL_SCHEMA = 'atlas.control-norms/1';
 export const PLAN_PROJECTION_SCHEMA = 'atlas.plan-projection/1';
-const fail = message => { throw new Error('atlas-events: ' + message); };
-const demand = (condition, message) => { if (!condition) fail(message); };
+// code: a stable word for a refusal a well-formed declaration can meet in sequence (contract v12 held reason).
+const fail = (message, code) => { throw Object.assign(new Error('atlas-events: ' + message), code ? { code } : {}); };
+const demand = (condition, message, code) => { if (!condition) fail(message, code); };
 const object = value => value !== null && typeof value === 'object' && !Array.isArray(value);
 const text = value => typeof value === 'string' && value.trim().length > 0;
 const token = value => text(value) && !/[\s\u0000-\u001f\u007f]/u.test(value);
@@ -222,17 +223,19 @@ export const parseEvents = input => {
   const label = (id, rev) => revs.get(id)?.get(rev);
   const setPurpose = (event, at) => {
     const known = revs.get(event.purpose.id) ?? new Map();
-    demand(!known.has(event.rev) || known.get(event.rev) === event.purpose.label, `${at}: Purpose ${event.purpose.id} rev ${event.rev} redefined`);
-    demand(ended || !active || active.purpose.id !== event.purpose.id || active.rev !== event.rev, `${at}: Purpose ${event.purpose.id} rev ${event.rev} is already active`);
+    demand(!known.has(event.rev) || known.get(event.rev) === event.purpose.label, `${at}: Purpose ${event.purpose.id} rev ${event.rev} redefined`,
+      'purpose-rev-redefined');
+    demand(ended || !active || active.purpose.id !== event.purpose.id || active.rev !== event.rev, `${at}: Purpose ${event.purpose.id} rev ${event.rev} is already active`,
+      'purpose-rev-already-active');
     known.set(event.rev, event.purpose.label); revs.set(event.purpose.id, known);
     active = event; ended = false;
     return event;
   };
-  const current = (id, at) => demand(active && !ended && active.purpose.id === id, `${at}: ${id} is not the active Purpose`);
+  const current = (id, at) => demand(active && !ended && active.purpose.id === id, `${at}: ${id} is not the active Purpose`, 'purpose-not-active');
   const events = rest.flatMap(({ value: event, at }) => {
     demand(object(event) && (event.kind in DECISIONS || ['plan.set', 'observation'].includes(event.kind)), `${at}: unknown event kind`);
     const recorded = time(event.recordedAt, `${at}.recordedAt`);
-    demand(recorded >= last, `${at}: recordedAt goes backwards (log must be append-ordered)`);
+    demand(recorded >= last, `${at}: recordedAt goes backwards (log must be append-ordered)`, 'recorded-at-backwards');
     last = recorded;
     if (event.kind in DECISIONS) DECISIONS[event.kind](event, at);
     switch (event.kind) {
@@ -247,7 +250,7 @@ export const parseEvents = input => {
       case 'ideal.set': return [ideal(event, at)];
       case 'purpose.evaluated':
         demand(label(event.purpose_id, event.purpose_rev) !== undefined && versions.get(event.ideal_version)?.purpose_id === event.purpose_id,
-          `${at}: evaluated Purpose rev or ideal version not declared before`);
+          `${at}: evaluated Purpose rev or ideal version not declared before`, 'evaluation-not-declared');
         return [event];
       case 'purpose.ended': current(event.purpose_id, at); ended = true; return [event];
       case 'observation': observation(event, at); return [event];
@@ -256,8 +259,8 @@ export const parseEvents = input => {
   });
   function ideal(event, at) {
     current(event.purpose_id, at);
-    demand(active.rev === event.purpose_rev, `${at}: ideal.set names purpose_rev ${event.purpose_rev}, active is ${active.rev}`);
-    demand(!versions.has(event.version), `${at}: ideal version ${event.version} already set`);
+    demand(active.rev === event.purpose_rev, `${at}: ideal.set names purpose_rev ${event.purpose_rev}, active is ${active.rev}`, 'ideal-purpose-rev-mismatch');
+    demand(!versions.has(event.version), `${at}: ideal version ${event.version} already set`, 'ideal-version-already-set');
     versions.set(event.version, event);
     return event;
   }
@@ -296,9 +299,9 @@ export const parseControl = input => {
   demand(first.value.schema === CONTROL_SCHEMA && first.value.authority === false, 'unsupported control schema/authority');
   const norms = new Map();
   for (const { value, at } of rest) {
-    // Physical Scope declarations share the control input but are not Norms:
-    // parsePhysicalScopes validates them; the Norm/owner derivation ignores them.
-    if (value?.kind === 'physical-scope') continue;
+    // Physical Scope and authority declarations share the control input but are not Norms:
+    // parsePhysicalScopes / parseAuthority validate them; the Norm/owner derivation ignores them.
+    if (value?.kind === 'physical-scope' || value?.kind === 'authority') continue;
     keys(value, ['kind', 'id', 'R', 'W', 'binding'], [], at);
     demand(value.kind === 'norm' && token(value.id) && !norms.has(value.id), `${at}: unique norm id required`);
     ids(value.R, `${at}.R`, true); ids(value.W, `${at}.W`, true);
@@ -310,39 +313,64 @@ export const parseControl = input => {
   return norms;
 };
 
-export const PHYSICAL_GAPS = Object.freeze(['purpose-ideal', 'ideal-current']);
-const REPO_PATH = /^[A-Za-z0-9][A-Za-z0-9_.-]*\/[A-Za-z0-9][A-Za-z0-9_.-]*$/u;
-const packagePath = value => text(value) && !value.includes('\\') && !value.startsWith('/') && !value.endsWith('/')
-  && value.split('/').every(part => part !== '.' && part !== '..' && /^[A-Za-z0-9_.@+-]+$/u.test(part));
-/**
- * Explicit physical Scope declarations: the changed repo/package, which gap it
- * addresses (Purpose-Ideal and/or Ideal-Current), and the parts it addresses for
- * the Ideal-Current gap. A package with no declaration stays unbound: no name,
- * owner or URL is inferred.
- */
-export const parsePhysicalScopes = input => {
+const controlRows = (input, kind) => {
   const [first, ...rest] = lines(input, 'control');
   keys(first.value, ['schema', 'authority'], [], `${first.at} header`);
   demand(first.value.schema === CONTROL_SCHEMA && first.value.authority === false, 'unsupported control schema/authority');
-  const scopes = new Map();
-  for (const { value, at } of rest) {
-    if (value?.kind !== 'physical-scope') continue;
-    keys(value, ['kind', 'id', 'purposeId', 'gaps', 'conditions', 'repo', 'package'], ['label'], at);
-    demand(token(value.id) && !scopes.has(value.id), `${at}: unique physical-scope id required`);
-    demand(token(value.purposeId), `${at}: physical-scope purposeId required`);
-    ids(value.gaps, `${at}.gaps`);
-    demand(value.gaps.every(gap => PHYSICAL_GAPS.includes(gap)), `${at}.gaps must be ${PHYSICAL_GAPS.join('|')}`);
-    ids(value.conditions, `${at}.conditions`, true);
-    demand(!value.gaps.includes('ideal-current') || value.conditions.length > 0,
-      `${at}.conditions must name the parts the ideal-current gap addresses`);
+  return rest.filter(({ value }) => value?.kind === kind);
+};
+
+export const PHYSICAL_LIFETIMES = Object.freeze(['development', 'operation']);
+const REPO_PATH = /^[A-Za-z0-9][A-Za-z0-9_.-]*\/[A-Za-z0-9][A-Za-z0-9_.-]*$/u;
+const packagePath = value => text(value) && !value.includes('\\') && !value.startsWith('/') && !value.endsWith('/')
+  && value.split('/').every(part => part !== '.' && part !== '..' && /^[A-Za-z0-9_.@+-]+$/u.test(part));
+const physicalRef = (value, at) => {
+  demand(object(value) && ['package', 'service'].includes(value.kind), `${at} must be a package or service ref`);
+  if (value.kind === 'package') {
+    keys(value, ['kind', 'repo', 'package'], [], at);
     demand(REPO_PATH.test(value.repo), `${at}.repo must be owner/name`);
     demand(packagePath(value.package), `${at}.package must be a repo-relative package path`);
+  } else {
+    keys(value, ['kind', 'host', 'name'], [], at);
+    demand(token(value.host) && token(value.name), `${at}: service host and name required`);
+  }
+  return Object.freeze({ ...value });
+};
+/**
+ * Explicit physical Scope declarations (contract v12, S4): one physical thing (a package or a
+ * service) and the condition ids it is for. lifetime is declared, never derived from the kind (a
+ * package is also operated): development changes it to close the difference, operation keeps the
+ * condition. Nothing is inferred from a name, owner or URL; an undeclared condition stays unbound.
+ */
+export const parsePhysicalScopes = input => {
+  const scopes = new Map();
+  for (const { value, at } of controlRows(input, 'physical-scope')) {
+    keys(value, ['kind', 'id', 'purposeId', 'lifetime', 'ref', 'conditions'], ['label'], at);
+    demand(token(value.id) && !scopes.has(value.id), `${at}: unique physical-scope id required`);
+    demand(token(value.purposeId), `${at}: physical-scope purposeId required`);
+    demand(PHYSICAL_LIFETIMES.includes(value.lifetime), `${at}.lifetime must be ${PHYSICAL_LIFETIMES.join('|')}`);
+    ids(value.conditions, `${at}.conditions`);
     if (value.label !== undefined) text(value.label, `${at}.label`);
-    scopes.set(value.id, Object.freeze({ kind: 'physical-scope', id: value.id, purposeId: value.purposeId,
-      gaps: Object.freeze([...value.gaps]), conditions: Object.freeze([...value.conditions]),
-      repo: value.repo, package: value.package, ...(value.label ? { label: value.label } : {}) }));
+    scopes.set(value.id, Object.freeze({ kind: 'physical-scope', id: value.id, purposeId: value.purposeId, lifetime: value.lifetime,
+      ref: physicalRef(value.ref, `${at}.ref`), conditions: Object.freeze([...value.conditions]), ...(value.label ? { label: value.label } : {}) }));
   }
   return scopes;
+};
+
+/**
+ * Who may decide and who may only propose, per Purpose (contract v12, S4; the v11 actor-not-authorized).
+ * Enforced only for a Purpose with a declaration; a Purpose without one is accepted as before.
+ */
+export const parseAuthority = input => {
+  const authority = new Map();
+  for (const { value, at } of controlRows(input, 'authority')) {
+    keys(value, ['kind', 'purposeId', 'deciders', 'proposers'], [], at);
+    demand(token(value.purposeId) && !authority.has(value.purposeId), `${at}: one authority per purposeId`);
+    ids(value.deciders, `${at}.deciders`); ids(value.proposers, `${at}.proposers`, true);
+    demand(!value.proposers.some(login => value.deciders.includes(login)), `${at}: a login is a decider or a proposer, not both`);
+    authority.set(value.purposeId, Object.freeze({ deciders: Object.freeze([...value.deciders]), proposers: Object.freeze([...value.proposers]) }));
+  }
+  return authority;
 };
 
 // ---- Derivation at a time t: only events with recordedAt <= t are visible. ----
@@ -571,19 +599,10 @@ const semanticFrame = (derived, frame, index) => {
     purpose: bound(find(purposeRow(frame)), { domain_id: pid }), current: bound(find(`current@${frame.asOf}`), { state_ref: currentRef }),
     target: [bound(find(`ideal.${p.version}`), { state_ref: targetRef })], observed: bound(find(`current@${frame.asOf}`), { state_ref: currentRef }) };
   const known = frame.conditions.filter(value => value.judgment.observation).length;
-  // GapA explicitly, from the real human purpose.evaluated entry (never CI or a
-  // match). A current ideal-insufficient is insufficient; absent, past or
-  // version-mismatched is unassessed. admission is carried for display only.
-  const journal = derived.frames.slice(0, index + 1).flatMap(item => item.journal ?? []);
-  const evaluation = journal.filter(event => event.kind === 'purpose.evaluated' && event.purpose_id === pid).at(-1) ?? null;
-  const evaluationCurrent = !!evaluation && evaluation.purpose_rev === frame.purpose.rev && evaluation.ideal_version === p.version;
-  const adequacy = evaluationCurrent && evaluation.verdict === 'ideal-insufficient' ? 'insufficient' : 'unassessed';
+  // GapA is the contract's frames[i].adequacy (contract.mjs adequacyOf), not part of this input.
   return { id: `t@${frame.asOf}`, rev: index + 1, asOf: frame.asOf, source_ref: `atlas-events:frame@${frame.asOf}`,
     purpose_label: frame.purpose.purpose.label, current_label: `観測照合 ${known}/${p.requires.length} 件 @${frame.asOf}`,
     target_label: `理想状態 ${p.version}：${p.label ?? '条件'}（条件 ${p.requires.length} 件）`, post_label: `導出 ${frame.asOf}`, semantic,
-    purpose_evaluation: { state: adequacy, verdict: evaluation?.verdict ?? null, current: evaluationCurrent,
-      purpose_rev: evaluation?.purpose_rev ?? null, ideal_version: evaluation?.ideal_version ?? null,
-      admission: evaluation?.source?.admission ?? null, recordedAt: evaluation?.recordedAt ?? null },
     responsibility: Object.fromEntries(frame.conditions.map(value => [value.id, value.responsibility])),
     // Closed differences (v7 history frame): conditions of this ideal state the current state meets now.
     closed: frame.conditions.filter(value => value.judgment.state === 'satisfied').map(value => ({ id: value.id, label: value.label,
@@ -596,9 +615,7 @@ const undefinedIdeal = (frame, index, pid, ref) => {
   const currentRef = ref(`obs@${frame.asOf}`), targetRef = ref(`ideal@${frame.stage}`);
   return { id: `t@${frame.asOf}`, rev: index + 1, asOf: frame.asOf, source_ref: `atlas-events:frame@${frame.asOf}`,
     purpose_label: frame.purpose.purpose.label, current_label: `観測 @${frame.asOf}`, target_label: `理想状態：未確定（${STAGE[frame.stage]}）`,
-    post_label: `導出 ${frame.asOf}`,
-    purpose_evaluation: { state: 'unassessed', verdict: null, current: false, purpose_rev: null, ideal_version: null, admission: null, recordedAt: null },
-    responsibility: {}, agent_activity: frame.sessions,
+    post_label: `導出 ${frame.asOf}`, responsibility: {}, agent_activity: frame.sessions,
     semantic: { schema: 'atlas.semantic-scopes/1', authority: false,
       comparison: { purpose_id: pid, current_ref: currentRef, target_ref: targetRef, direction: 'current-to-target', availability: 'unknown',
         basis: { current_ref: currentRef, target_ref: targetRef, evidence: [`atlas-events:stage@${frame.stage}`] } },
@@ -608,7 +625,7 @@ const undefinedIdeal = (frame, index, pid, ref) => {
 export const semanticInput = (derived, physicalScopes = []) => {
   const physical = physicalScopes instanceof Map ? [...physicalScopes.values()] : [...(physicalScopes ?? [])];
   return { schema: 'atlas.semantic-scope-world/1', authority: false, source_mode: derived.header.source_mode,
-    note: 'Derived from atlas.events/1 (purpose.set, plan.set, observation) and control Norms only; no hand-written Gap/Scope/owner. physical_scopes are explicit repo/package declarations from the control input.',
+    note: 'Derived from atlas.events/1 (purpose.set, plan.set, observation) and control Norms only; no hand-written Gap/Scope/owner. physical_scopes are explicit package/service declarations from the control input.',
     physical_scopes: physical,
     frames: derived.frames.map((frame, index) => semanticFrame(derived, frame, index)) };
 };

@@ -1,0 +1,40 @@
+{
+  "via": "joinLog",
+  "frames": [
+    {
+      "asOf": "2026-10-21T01:00:00.000Z",
+      "iv": "v1",
+      "phase": "matched",
+      "held": []
+    },
+    {
+      "asOf": "2026-10-21T03:00:00.000Z",
+      "iv": "v2",
+      "parts": [
+        {
+          "c": "B",
+          "s": "unknown",
+          "ci": "ideal-added",
+          "cc": "current-unobserved",
+          "since": "t@2026-10-21T03:00:00.000Z"
+        }
+      ],
+      "held": [
+        {
+          "reason": "proposal",
+          "kind": "ideal.set",
+          "recordedAt": "2026-10-21T02:00:00Z",
+          "source": {
+            "ref": "s3:ops#552",
+            "commentId": null,
+            "sha256": "sha256:0000000000000000000000000000000000000000000000000000000000000000"
+          }
+        }
+      ]
+    }
+  ],
+  "times": [
+    "2026-10-21T01:00:00.000Z",
+    "2026-10-21T03:00:00.000Z"
+  ]
+}

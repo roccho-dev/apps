@@ -1,0 +1,7 @@
+{"schema":"atlas.control-norms/1","authority":false}
+{"kind":"norm","id":"n.a","R":[],"W":["w"],"binding":{"purposeId":"p","conditions":["A"]}}
+{"kind":"norm","id":"n.b","R":[],"W":["w"],"binding":{"purposeId":"p","conditions":["B"]}}
+{"kind":"norm","id":"n.c","R":[],"W":["w"],"binding":{"purposeId":"p","conditions":["C"]}}
+{"kind":"norm","id":"n.d","R":[],"W":["w"],"binding":{"purposeId":"p","conditions":["D"]}}
+{"kind":"norm","id":"n.e","R":[],"W":["w"],"binding":{"purposeId":"p","conditions":["E"]}}
+{"kind":"physical-scope","id":"phys.hq-serve","purposeId":"p","lifetime":"operation","ref":{"kind":"service","host":"native","name":"serve-static"},"conditions":["A"]}

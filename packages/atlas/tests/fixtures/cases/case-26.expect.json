@@ -1,0 +1,18 @@
+{
+  "via": "derive",
+  "frames": [
+    {
+      "asOf": "2026-10-21T03:00:00.000Z",
+      "phase": "approximating",
+      "parts": [
+        {
+          "c": "A",
+          "s": "unknown",
+          "ci": null,
+          "cc": "current-stale",
+          "since": "t@2026-10-21T03:00:00.000Z"
+        }
+      ]
+    }
+  ]
+}

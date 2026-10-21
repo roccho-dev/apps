@@ -34,15 +34,16 @@ test('gap by cause, frame by frame, against the previous frame by id only', () =
   // t2: C observed → closed; A regresses; B continues.
   assert.deepEqual(open(frames[2]), { A: ['unmet', 'current-regressed', t(2), 'scope.A'], B: ['unmet', 'carried', t(1), 'scope.B'] });
   assert.deepEqual(closed(frames[2]), [['C', 'current-satisfied', t(2)]]);
-  // t3: A obtained no value (G UNKNOWN, D null); B's observation is outside its PT2H window. Both stay open since earlier.
-  assert.deepEqual(open(frames[3]), { A: ['unknown', 'current-unobserved', t(2), 'scope.A'], B: ['unknown', 'current-stale', t(1), 'scope.B'] });
+  // t3: A arrived with no value (G UNKNOWN, D null: current-unmatchable, contract v12); B's observation is outside
+  // its PT2H window. Both stay open since earlier.
+  assert.deepEqual(open(frames[3]), { A: ['unknown', 'current-unmatchable', t(2), 'scope.A'], B: ['unknown', 'current-stale', t(1), 'scope.B'] });
   // t4: the Purpose changes: everything open closes by purpose-changed; E opens without an owner.
   assert.deepEqual(open(frames[4]), { E: ['unknown', 'purpose-changed+current-unobserved', t(4), null] });
   assert.deepEqual(closed(frames[4]), [['A', 'purpose-changed', t(4)], ['B', 'purpose-changed', t(4)]]);
   // t5: still no observation of E: current-unobserved applies, so it is not carried (carried only when nothing else applies).
   assert.deepEqual(open(frames[5]), { E: ['unknown', 'current-unobserved', t(4), null] });
   assert.deepEqual(frames.map(frame => frame.gap.summary.open), [0, 2, 2, 2, 1, 1]);
-  assert.deepEqual(frames[3].gap.summary, { open: 2, by_cause: { 'current-unobserved': 1, 'current-stale': 1 }, conditions: 3, satisfied: 1, before_ideal: 0 });
+  assert.deepEqual(frames[3].gap.summary, { open: 2, by_cause: { 'current-unmatchable': 1, 'current-stale': 1 }, conditions: 3, satisfied: 1, before_ideal: 0 });
   assert.deepEqual(frames.map(frame => frame.phase), ['matched', 'approximating', 'approximating', 'approximating', 'approximating', 'approximating']);
 });
 

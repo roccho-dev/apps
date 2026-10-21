@@ -1,0 +1,48 @@
+{
+  "via": "derive",
+  "frames": [
+    {
+      "asOf": "2026-10-21T01:00:00.000Z",
+      "phase": "matched",
+      "parts": []
+    },
+    {
+      "asOf": "2026-10-21T02:00:00.000Z",
+      "phase": "approximating",
+      "parts": [
+        {
+          "c": "A",
+          "s": "unmet",
+          "ci": null,
+          "cc": "current-regressed",
+          "since": "t@2026-10-21T02:00:00.000Z"
+        }
+      ]
+    },
+    {
+      "asOf": "2026-10-21T03:00:00.000Z",
+      "phase": "matched",
+      "parts": [],
+      "closed": [
+        "A:current-satisfied"
+      ]
+    },
+    {
+      "asOf": "2026-10-21T04:00:00.000Z",
+      "phase": "approximating",
+      "parts": [
+        {
+          "c": "A",
+          "s": "unmet",
+          "ci": null,
+          "cc": "current-regressed",
+          "since": "t@2026-10-21T04:00:00.000Z"
+        }
+      ],
+      "adequacy": {
+        "state": "unknown",
+        "reason": "no-evaluation"
+      }
+    }
+  ]
+}

@@ -1,0 +1,29 @@
+{
+  "via": "derive",
+  "frames": [
+    {
+      "asOf": "2026-10-21T01:00:00.000Z",
+      "parts": [
+        {
+          "c": "A",
+          "s": "unmet",
+          "ci": "initial",
+          "cc": null
+        }
+      ]
+    },
+    {
+      "asOf": "2026-10-21T02:00:00.000Z",
+      "stage": "purpose-changed",
+      "parts": null,
+      "closed": [
+        "A:purpose-changed"
+      ],
+      "purpose": "q",
+      "adequacy": {
+        "state": "unknown",
+        "reason": "no-ideal"
+      }
+    }
+  ]
+}

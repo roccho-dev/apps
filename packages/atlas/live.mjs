@@ -5,7 +5,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { parseArgs } from 'node:util';
-import { parseEvents } from './events.mjs';
+import { parseAuthority, parseEvents } from './events.mjs';
 import { ledgerEvents } from './ledger.mjs';
 
 const fail = message => { throw new Error('atlas-live: ' + message); };
@@ -102,18 +102,31 @@ const hotMinusCold = (events, held) => {
   });
 };
 
-export const joinLog = (purposeText, gTexts, sourceMode = 'supplied') => {
+// v12 (S4): who decided. Only a Purpose with an authority declaration is checked; a proposer's decision is a
+// proposal (held, never in the log), an author who is neither is not authorized. Others are accepted as before.
+const purposeOf = decision => decision.kind === 'purpose.set' ? decision.purpose?.id : decision.purpose_id;
+const unauthorized = (decision, authority) => {
+  const declared = authority.get(purposeOf(decision));
+  if (!declared || declared.deciders.includes(decision.actor)) return null;
+  return declared.proposers.includes(decision.actor) ? 'proposal' : 'actor-not-authorized';
+};
+
+export const joinLog = (purposeText, gTexts, sourceMode = 'supplied', { authority = new Map() } = {}) => {
   const held = [], accepted = [], gEvents = hotMinusCold(gTexts.flatMap(rows), held);
   const candidates = byTime([...rows(purposeText ?? ''),
     ...gEvents.filter(event => JOURNAL.includes(event.kind)).flatMap(event => fromG(event).events)]);
   for (const decision of candidates) {
-    // adrs#654, the one check: a worklog value (work:* / evidence:*) is a claim, never a condition. Every decision
-    // that carries requires (ideal.set, the legacy purpose.set, …), from G or --purpose alike, passes here.
-    if (Array.isArray(decision?.requires) && decision.requires.some(condition => /^(?:work|evidence):/u.test(String(condition?.predicate?.target?.id ?? '')))) {
+    // adrs#654, the one check: a worklog value (work:* / evidence:*) or an evaluator's answer (evaluation:*, v12)
+    // is a claim, never a condition. Every decision that carries requires (ideal.set, the legacy purpose.set, …),
+    // from G or --purpose alike, passes here.
+    if (Array.isArray(decision?.requires) && decision.requires.some(condition => /^(?:work|evidence|evaluation):/u.test(String(condition?.predicate?.target?.id ?? '')))) {
       held.push({ reason: 'worklog-target-in-predicate', journal: decision }); continue;
     }
+    const refused = unauthorized(decision, authority);
+    if (refused) { held.push({ reason: refused, journal: decision }); continue; }
     try { parseEvents(jsonl([header(sourceMode), ...accepted, decision])); accepted.push(decision); }
-    catch (error) { held.push({ reason: error.message, journal: decision }); }
+    // The held reason is D's stable code (contract v12), never its message with a line number.
+    catch (error) { held.push({ reason: error.code ?? 'invalid-declaration', journal: decision }); }
   }
   const rest = gEvents.filter(event => !JOURNAL.includes(event.kind)).map(event => fromG(event, accepted));
   held.push(...rest.filter(value => value.held).map(value => value.held));
@@ -131,7 +144,8 @@ if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.me
     const read = file => fs.readFileSync(file, 'utf8');
     // L1: with --ledger the World is derived from every ledger row (the same ledger, the same World).
     const gTexts = [...(values.ledger ? [ledgerEvents(read(values.ledger))] : []), ...positionals.map(read)];
-    const { log, held, unbound } = joinLog(values.purpose ? read(values.purpose) : '', gTexts);
+    const authority = values.control ? parseAuthority(read(values.control)) : new Map();
+    const { log, held, unbound } = joinLog(values.purpose ? read(values.purpose) : '', gTexts, 'supplied', { authority });
     fs.mkdirSync(values['out-dir'], { recursive: true });
     const out = name => path.join(fs.realpathSync(values['out-dir']), name);
     const inputs = [values.purpose, values.control, values.ledger, ...positionals].filter(Boolean).map(file => fs.realpathSync(file));
@@ -145,7 +159,7 @@ if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.me
     fs.writeFileSync(out('g-journal-held.jsonl'), journal.length ? jsonl(journal) : '');
     const derive = fileURLToPath(new URL('./derive.mjs', import.meta.url));
     const receipt = JSON.parse(execFileSync(process.execPath, [derive, '--out-dir=' + out('.'), '--unbound-plans=' + out('g-unbound-plans.jsonl'),
-      out('events.jsonl'), values.control ? fs.realpathSync(values.control) : out('control.jsonl')], { encoding: 'utf8' }));
+      '--held=' + out('g-journal-held.jsonl'), out('events.jsonl'), values.control ? fs.realpathSync(values.control) : out('control.jsonl')], { encoding: 'utf8' }));
     console.log(JSON.stringify({ ...receipt, schema: 'atlas.live-build/1', held_plans: { path: out('g-plans.jsonl'), count: plans.length },
       held_journal: { path: out('g-journal-held.jsonl'), count: journal.length } }));
   } catch (error) {

@@ -1,0 +1,3 @@
+{"schema":"atlas.control-norms/1","authority":false}
+{"kind":"norm","id":"n.a","R":[],"W":[],"binding":{"purposeId":"p","conditions":["A"]}}
+{"kind":"norm","id":"n.b","R":[],"W":["x","y"],"binding":{"purposeId":"p","conditions":["B"]}}

@@ -1,0 +1,5 @@
+{"schema":"atlas.events/1","authority":false,"source_mode":"synthetic"}
+{"kind":"purpose.set","recordedAt":"2026-10-21T01:00:00Z","purpose":{"id":"p","label":"P"},"rev":"r1","source":{"ref":"s3:decl","digest":"sha256:0000000000000000000000000000000000000000000000000000000000000000"}}
+{"kind":"ideal.set","recordedAt":"2026-10-21T01:00:00Z","purpose_id":"p","purpose_rev":"r1","version":"v1","requires":[{"id":"A","label":"A","predicate":{"target":{"kind":"state","id":"s.a"},"op":"equals","value":"ok"},"maxAge":"PT24H","norm":"n.a"}],"source":{"ref":"s3:decl","digest":"sha256:0000000000000000000000000000000000000000000000000000000000000000"}}
+{"kind":"observation","recordedAt":"2026-10-21T01:00:00Z","target":{"kind":"state","id":"s.a"},"value":"ng","source":"s3:obs","observedAt":"2026-10-21T01:00:00Z"}
+{"kind":"purpose.evaluated","recordedAt":"2026-10-21T02:00:00Z","purpose_id":"p","purpose_rev":"r1","ideal_version":"v1","verdict":"not-yet","source":{"ref":"s3:decl","digest":"sha256:0000000000000000000000000000000000000000000000000000000000000000"}}
