@@ -64,7 +64,7 @@ const inside = value => {
 };
 
 export const validateExpectation = value => {
-  const errors = exactKeys(value, ["schema", "id", "version", "status", "source", "required", "forbidden", "allowed", "unknown"], "expectation");
+  const errors = exactKeys(value, ["schema", "id", "version", "status", "source", "gold_set", "required", "forbidden", "allowed", "unknown"], "expectation");
   if (errors.length) return errors;
   if (value.schema !== SCHEMAS.expectation) errors.push("expectation: schema");
   if (!ID.test(value.id ?? "")) errors.push("expectation: id");
@@ -91,7 +91,9 @@ export const validateExpectation = value => {
   if (value.status === "candidate") {
     if (!text(value.source?.text) || !text(value.source?.ref)) errors.push("expectation: a candidate needs its source text and ref");
     if (!Array.isArray(value.required) || value.required.length === 0) errors.push("expectation: a candidate needs a Required");
-  }
+    // The one gold set this expectation is judged against; a PASS cannot borrow another set's gold.
+    if (!GOLD_SETS.includes(value.gold_set)) errors.push(`expectation: a candidate names its gold_set ${GOLD_SETS.join("|")}`);
+  } else if (value.gold_set !== null) errors.push("expectation: a template has gold_set null");
   return errors;
 };
 // The judged items of a sealed expectation: every Required and Forbidden claim.
@@ -311,7 +313,11 @@ export const verifyDirectory = dir => {
   for (const { record, where } of ledger.judgments) {
     inCycle(record, where);
     const expectation = sealOf(record.expectation_sha256, "expectation", where, "E_EXPECTATION_TARGET", record.at);
-    if (record.gold_seal_sha256 !== null) sealOf(record.gold_seal_sha256, "gold", where, "E_GOLD_TARGET", record.at);
+    if (record.gold_seal_sha256 !== null) {
+      const gold = sealOf(record.gold_seal_sha256, "gold", where, "E_GOLD_TARGET", record.at);
+      const named = expectation ? readJson(expectation.path)?.gold_set : null;
+      if (gold && expectation && gold.set !== named) fail("E_GOLD_SET", where, `cites gold set ${gold.set}, the expectation names ${named}`);
+    }
     if (record.counts_toward_end1) {
       // Only a readback recorded in the vessel for exactly this SHA lets a judgment count.
       const read = record.product.receipts.map(readJson).filter(receipt => receipt?.schema === SCHEMAS.readback);

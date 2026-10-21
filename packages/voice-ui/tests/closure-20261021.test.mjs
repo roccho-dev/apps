@@ -116,6 +116,19 @@ test("8: the denominator is the sealed expectation's Required and Forbidden, in 
   refuses("E_SINGLE_CELL", judgments(list => list.filter(record => !isNew(record))));
 });
 
+test("13: a judgment's gold is the gold set its sealed expectation names", () => {
+  const atlas = '{"items":{"r1":"present","r2":"present","f1":"absent"}}\n';
+  const sha = sha256Hex(canonicalJson(JSON.parse(atlas)));
+  const sealAtlas = dir => {
+    mkdirSync(join(dir, "gold/atlas"), { recursive: true });
+    writeFileSync(join(dir, "gold/atlas/gold.json"), atlas);
+    edit("ledgers/seals.jsonl", list => [...list, { ...list.find(seal => seal.target === "gold"),
+      set: "atlas", path: "gold/atlas/gold.json", bytes: Buffer.byteLength(atlas), sha256: sha }])(dir);
+  };
+  accepts(sealAtlas);
+  refuses("E_GOLD_SET", sealAtlas, judgments(where(record => record.verdict === "PASS", record => ({ ...record, gold_seal_sha256: sha }))));
+});
+
 test("record shapes still refuse what they exist to refuse", () => {
   refuses("E_SHAPE", judgments(list => list.map(record => ({ ...record, judge: "W" }))));
   refuses("E_SHAPE", judgments(list => list.map(record => ({ ...record, round: 5 }))));

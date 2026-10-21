@@ -4,6 +4,7 @@
   "version": 1,
   "status": "template",
   "source": { "text": "", "ref": "" },
+  "gold_set": null,
   "required": [],
   "forbidden": [],
   "allowed": [],

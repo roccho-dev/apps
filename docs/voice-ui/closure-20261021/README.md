@@ -24,7 +24,7 @@
 1. R が期待@e または Gold を置く。どの候補の出力も見る前に行う。
 2. JSON は鍵を全階層で辞書順・空白なしにした UTF-8 の sha256（`canonical-json-sha256`）、それ以外は原 bytes の sha256（`raw-sha256`）。`bytes` は file の実の長さ。
 3. `ledgers/seals.jsonl` に `target`（expectation・gold・holdout）、`set`、`path`、`digest`、`bytes`、`sha256`、`sealed_by: "R"`、`sealed_at`、`before_exposure: true` を足す。
-4. verify は封印を **file の実 bytes から計算し直す**（`E_SEAL_MISSING`・`E_SEAL_BYTES`・`E_SEAL_DIGEST`）。封印した期待は有効な candidate でなければならない。
+4. verify は封印を **file の実 bytes から計算し直す**（`E_SEAL_MISSING`・`E_SEAL_BYTES`・`E_SEAL_DIGEST`）。封印した期待は有効な candidate で、判定に使う Gold の set を `gold_set` で 1 つ名指しする。判定票が引く Gold の封印はその set のものでなければならない（`E_GOLD_SET`）。
 5. 判定票が引く封印は、target が合っていて（`E_GOLD_TARGET`・`E_EXPECTATION_TARGET`）、その判定の `at` より **前** に封印されていなければならない（`E_SEAL_LATE`）。`before_exposure` の自己申告だけでは足りない。
 
 ## 記録
@@ -32,6 +32,7 @@
 - **周回** `voice-ui.closure.cycle/1`：`cycle-open {cycle, seq, previous, at}` と `cycle-end {cycle, end: END1|END2, at}`。seq は 1 から連番で、前の周回が終端してからでないと次を開けない（`E_CYCLE_SEQ`・`E_CYCLE_OPEN_BEFORE_END`）。判定票と費用は開いた周回の中でだけ記録できる（`E_CYCLE_UNOPENED`・`E_CYCLE_TIME`）。round は周回ごとに 1 から欠けなく数え、上限は 4（`E_ROUND_GAP`）。cycle の名前を変えても回数は数え直せない。
 - **判定票** `voice-ui.closure.judgment/2`：`cycle`、`round`、`lane`（A・B・E2E）、`item`、`step`（§7、14 は 14a・14b）、`product {arm, apps, ui, receipts}`、`evaluator {arm, id, sha256}`、`expectation_sha256`、`gold_seal_sha256`、`verdict`、`judge: "R"`、`counts_toward_end1`、`source`、`at`。
   - `counts_toward_end1: true` は、`receipts` に apps（と ui があれば ui）の **その SHA の読み戻しの記録** があるときだけ（`E_END1_RECEIPT`）。記録が無ければ UNKNOWN で、参考にとどまる。
+  - **R の義務（器では防げない）**：Nix の sandbox は GitHub に届かないので、verify は receipt の形と SHA の一致しか確かめられず、手で書いた偽の receipt を見抜けない。END1 に数える判定票を書くたびに、R がその場で `gh api repos/<repo>/commits/<sha>` を実行し、その応答から receipt を作る。他者が書いた receipt をそのまま使わない。
 - **費用** `voice-ui.closure.cost/2`：`calls` が数（0 を含む）なら `ledger {file, line, line_sha256}` が器の中の実在の行を bytes どおり引き、jev・typellm はその行の `phase-reconcile` の `sent` と数が一致する（`E_COST_LEDGER`・`E_COST_MISMATCH`）。引けないものは `"UNKNOWN"` で、0 として扱わない（§8-13）。
 
 ## 同じ分母と 4 セル（組＝cycle・round・lane・封印した期待）
