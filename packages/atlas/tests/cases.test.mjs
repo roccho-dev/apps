@@ -78,18 +78,21 @@ test('every frame carries adequacy and held in the contract v12 shape', () => {
   }
 });
 
-// S5 (adrs#647 6305441262): upkeep lists, on a matched frame, each met condition with the observation the
-// judge chose and when it goes stale (observedAt + maxAge, still fresh at that instant); matched_until is its
-// minimum. Every part names the last observation the judge saw, or null.
+// S5 (adrs#647 6305441262), widened by S7 (6308860425): upkeep lists, on every frame with an ideal, each met
+// condition with the observation the judge chose and when it goes stale (observedAt + maxAge, still fresh at
+// that instant). matched_until stays the minimum on a matched frame only. Every part names the last observation
+// the judge saw, or null.
 test('upkeep, matched_until and last_observed in the contract shape on every frame', () => {
   for (const n of cases) {
     const { world, result } = build(n);
     world.frames.forEach((frame, i) => {
       const derived = result.derived.frames[i];
-      if (frame.phase !== 'matched') assert.deepEqual([frame.upkeep, frame.matched_until], [[], null], `case ${n} ${frame.asOf}`);
+      const met = derived.conditions.filter(c => c.judgment.state === 'satisfied').map(c => c.id);
+      assert.deepEqual(frame.upkeep.map(item => item.condition), met, `case ${n} ${frame.asOf}: every met condition, in requires order`);
+      assert.ok(frame.upkeep.every(item => JSON.stringify(Object.keys(item)) === '["condition","observedAt","stale_at"]'));
+      if (frame.phase !== 'matched') assert.equal(frame.matched_until, null, `case ${n} ${frame.asOf}`);
       else {
-        assert.deepEqual(frame.upkeep.map(item => item.condition), derived.conditions.map(c => c.id), `case ${n}: every condition of a matched frame`);
-        assert.ok(frame.upkeep.every(item => JSON.stringify(Object.keys(item)) === '["condition","observedAt","stale_at"]'));
+        assert.deepEqual(met, derived.conditions.map(c => c.id), `case ${n}: a matched frame meets every condition`);
         assert.equal(frame.matched_until, frame.upkeep.map(item => item.stale_at).sort()[0], `case ${n}: matched_until is the minimum stale_at`);
       }
       for (const part of frame.gap.parts ?? []) assert.ok(part.last_observed === null
