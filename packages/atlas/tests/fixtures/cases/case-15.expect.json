@@ -13,7 +13,7 @@
       "parts": [],
       "held": [
         {
-          "reason": "ideal version v1 already set"
+          "reason": "ideal-version-already-set"
         },
         {
           "reason": "actor-mismatch"

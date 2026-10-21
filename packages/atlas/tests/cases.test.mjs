@@ -42,9 +42,8 @@ const check = (actual, expected, at) => {
       value.forEach((part, i) => Object.entries(part).forEach(([k, v]) => assert.deepEqual(actual.parts[i][k], v, `${at} part ${part.c}.${k}`)));
     } else if (key === 'held') {
       assert.equal(actual.held.length, value.length, `${at} held ${JSON.stringify(actual.held)}`);
-      value.forEach((item, i) => Object.entries(item).forEach(([k, v]) => k === 'reason'
-        ? assert.ok(actual.held[i].reason.includes(v), `${at} held[${i}].reason ${actual.held[i].reason}`)
-        : assert.deepEqual(actual.held[i][k], v, `${at} held[${i}].${k}`)));
+      // A held reason is a stable word, compared exactly (no line number, no parser message).
+      value.forEach((item, i) => Object.entries(item).forEach(([k, v]) => assert.deepEqual(actual.held[i][k], v, `${at} held[${i}].${k}`)));
     } else assert.deepEqual(actual[key], value, `${at} ${key}`);
   }
 };
