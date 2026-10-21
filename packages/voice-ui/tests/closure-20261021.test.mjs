@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
-import { cpSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { mkdirSync, mkdtempSync, readdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -20,10 +20,18 @@ const records = (dir, file) => parseJsonl(readFileSync(join(dir, file), "utf8"))
 const writeRecords = (dir, file, list) => writeFileSync(join(dir, file), list.map(record => JSON.stringify(record)).join("\n") + "\n");
 const edit = (file, change) => dir => writeRecords(dir, file, change(records(dir, file)));
 const judgments = change => edit("ledgers/judgments.jsonl", change);
+// Copy bytes only: under Nix the source is a read-only store path, and a mode-preserving copy stays read-only.
+const copyTree = (from, to) => {
+  mkdirSync(to, { recursive: true });
+  for (const entry of readdirSync(from, { withFileTypes: true })) {
+    if (entry.isDirectory()) copyTree(join(from, entry.name), join(to, entry.name));
+    else writeFileSync(join(to, entry.name), readFileSync(join(from, entry.name)));
+  }
+};
 const run = (...mutations) => {
   const dir = mkdtempSync(join(tmpdir(), "closure-20261021-"));
   try {
-    cpSync(baseline, dir, { recursive: true });
+    copyTree(baseline, dir);
     for (const mutate of mutations) mutate(dir);
     return verifyDirectory(dir);
   } finally {
