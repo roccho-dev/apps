@@ -85,6 +85,30 @@ export function literalInventory(state) {
         start, start + label.length, count !== null || following !== null);
     }
   }
+  // A shared count applies to each explicitly coordinated catalogue name only
+  // with `ずつ`. Quoted names have already claimed their text. Names containing
+  // list separators, or two possible catalogue readings, need interpretation.
+  const listNames = [...stockKinds.keys()].filter(label => !/[、,と「」"]/u.test(label))
+    .sort((a, b) => b.length - a.length).map(escaped).join("|");
+  if (listNames) {
+    const list = new RegExp(`(?<![A-Za-z0-9_])((?:${listNames})\\s*(?:[、,と]\\s*(?:${listNames})\\s*)+)を\\s*(${countPattern})(?:個|つ)ずつ\\s*(?:追加|作|置)`, "dgu");
+    for (const match of state.utterance.matchAll(list)) {
+      const end = match.index + match[0].length;
+      if (claimed.some(([start, stop]) => start < end && match.index < stop)) continue;
+      claimed.push([match.index, end]);
+      const names = [...match[1].matchAll(new RegExp(listNames, "dgu"))];
+      // Do not choose between a coordinated list and a single catalogue name,
+      // including a composite name covering only part of a longer list.
+      const ambiguous = names.some(name => stockKinds.get(name[0]).size !== 1)
+        || names.some((name, i) => names.slice(i + 1).some(last =>
+          stockKinds.has(match[1].slice(name.index, last.index + last[0].length))));
+      if (ambiguous) { invalid = true; continue; }
+      for (const name of names) {
+        const start = match.indices[1][0] + name.index;
+        add(name[0], stockKind(name[0]), countOf(match[2]), start, start + name[0].length, true);
+      }
+    }
+  }
   const stock = [...stockKinds.keys()].filter(label => stockKinds.get(label).size === 1).sort((a, b) => b.length - a.length).map(escaped).join("|");
   if (stock) for (const match of state.utterance.matchAll(new RegExp(`(?<![A-Za-z0-9_])(${stock})\\s*を\\s*(${countPattern})(?:個|つ)(?:だけ|ずつ)?\\s*(?:追加|作|置)`, "gu")))
     if (!claimed.some(([start, end]) => start <= match.index && match.index < end))
