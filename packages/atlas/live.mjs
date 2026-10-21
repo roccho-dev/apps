@@ -125,7 +125,8 @@ export const joinLog = (purposeText, gTexts, sourceMode = 'supplied', { authorit
     const refused = unauthorized(decision, authority);
     if (refused) { held.push({ reason: refused, journal: decision }); continue; }
     try { parseEvents(jsonl([header(sourceMode), ...accepted, decision])); accepted.push(decision); }
-    catch (error) { held.push({ reason: error.message, journal: decision }); }
+    // The held reason is D's stable code (contract v12), never its message with a line number.
+    catch (error) { held.push({ reason: error.code ?? 'invalid-declaration', journal: decision }); }
   }
   const rest = gEvents.filter(event => !JOURNAL.includes(event.kind)).map(event => fromG(event, accepted));
   held.push(...rest.filter(value => value.held).map(value => value.held));

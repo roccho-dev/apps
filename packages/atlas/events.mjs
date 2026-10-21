@@ -8,8 +8,9 @@ import { semanticScopeWorld } from './semantic-scope-world.mjs';
 export const EVENTS_SCHEMA = 'atlas.events/1';
 export const CONTROL_SCHEMA = 'atlas.control-norms/1';
 export const PLAN_PROJECTION_SCHEMA = 'atlas.plan-projection/1';
-const fail = message => { throw new Error('atlas-events: ' + message); };
-const demand = (condition, message) => { if (!condition) fail(message); };
+// code: a stable word for a refusal a well-formed declaration can meet in sequence (contract v12 held reason).
+const fail = (message, code) => { throw Object.assign(new Error('atlas-events: ' + message), code ? { code } : {}); };
+const demand = (condition, message, code) => { if (!condition) fail(message, code); };
 const object = value => value !== null && typeof value === 'object' && !Array.isArray(value);
 const text = value => typeof value === 'string' && value.trim().length > 0;
 const token = value => text(value) && !/[\s\u0000-\u001f\u007f]/u.test(value);
@@ -222,17 +223,19 @@ export const parseEvents = input => {
   const label = (id, rev) => revs.get(id)?.get(rev);
   const setPurpose = (event, at) => {
     const known = revs.get(event.purpose.id) ?? new Map();
-    demand(!known.has(event.rev) || known.get(event.rev) === event.purpose.label, `${at}: Purpose ${event.purpose.id} rev ${event.rev} redefined`);
-    demand(ended || !active || active.purpose.id !== event.purpose.id || active.rev !== event.rev, `${at}: Purpose ${event.purpose.id} rev ${event.rev} is already active`);
+    demand(!known.has(event.rev) || known.get(event.rev) === event.purpose.label, `${at}: Purpose ${event.purpose.id} rev ${event.rev} redefined`,
+      'purpose-rev-redefined');
+    demand(ended || !active || active.purpose.id !== event.purpose.id || active.rev !== event.rev, `${at}: Purpose ${event.purpose.id} rev ${event.rev} is already active`,
+      'purpose-rev-already-active');
     known.set(event.rev, event.purpose.label); revs.set(event.purpose.id, known);
     active = event; ended = false;
     return event;
   };
-  const current = (id, at) => demand(active && !ended && active.purpose.id === id, `${at}: ${id} is not the active Purpose`);
+  const current = (id, at) => demand(active && !ended && active.purpose.id === id, `${at}: ${id} is not the active Purpose`, 'purpose-not-active');
   const events = rest.flatMap(({ value: event, at }) => {
     demand(object(event) && (event.kind in DECISIONS || ['plan.set', 'observation'].includes(event.kind)), `${at}: unknown event kind`);
     const recorded = time(event.recordedAt, `${at}.recordedAt`);
-    demand(recorded >= last, `${at}: recordedAt goes backwards (log must be append-ordered)`);
+    demand(recorded >= last, `${at}: recordedAt goes backwards (log must be append-ordered)`, 'recorded-at-backwards');
     last = recorded;
     if (event.kind in DECISIONS) DECISIONS[event.kind](event, at);
     switch (event.kind) {
@@ -247,7 +250,7 @@ export const parseEvents = input => {
       case 'ideal.set': return [ideal(event, at)];
       case 'purpose.evaluated':
         demand(label(event.purpose_id, event.purpose_rev) !== undefined && versions.get(event.ideal_version)?.purpose_id === event.purpose_id,
-          `${at}: evaluated Purpose rev or ideal version not declared before`);
+          `${at}: evaluated Purpose rev or ideal version not declared before`, 'evaluation-not-declared');
         return [event];
       case 'purpose.ended': current(event.purpose_id, at); ended = true; return [event];
       case 'observation': observation(event, at); return [event];
@@ -256,8 +259,8 @@ export const parseEvents = input => {
   });
   function ideal(event, at) {
     current(event.purpose_id, at);
-    demand(active.rev === event.purpose_rev, `${at}: ideal.set names purpose_rev ${event.purpose_rev}, active is ${active.rev}`);
-    demand(!versions.has(event.version), `${at}: ideal version ${event.version} already set`);
+    demand(active.rev === event.purpose_rev, `${at}: ideal.set names purpose_rev ${event.purpose_rev}, active is ${active.rev}`, 'ideal-purpose-rev-mismatch');
+    demand(!versions.has(event.version), `${at}: ideal version ${event.version} already set`, 'ideal-version-already-set');
     versions.set(event.version, event);
     return event;
   }

@@ -166,12 +166,23 @@ export const adequacyOf = (frame, gap, phase) => {
  * plans are not declarations, and unbound plans are shown by the journal), each in the first frame with
  * prev.asOf < recordedAt <= asOf. Those after the last frame are only counted (unplaced). Display only.
  */
+// The held reasons (contract v12 values): D's codes for a declaration refused in sequence (else
+// invalid-declaration), the join's own, and the collector's. Stable words, never a message with a line number.
+export const HELD_REASONS = Object.freeze([
+  'ideal-version-already-set', 'ideal-purpose-rev-mismatch', 'purpose-not-active', 'purpose-rev-redefined', 'purpose-rev-already-active',
+  'evaluation-not-declared', 'recorded-at-backwards', 'invalid-declaration',
+  'proposal', 'actor-not-authorized', 'superseded-by-cold', 'worklog-target-in-predicate',
+  'invalid-json', 'unknown-kind', 'author-unknown', 'actor-mismatch', 'recordedAt-invalid', 'recordedAt-after-source', 'declaration-unreadable',
+  'cold: invalid-json', 'cold: schema', 'cold: content-sha256-missing', 'cold: content-sha256-unverifiable', 'cold: content-sha256-mismatch',
+  'cold: raw-id-mismatch', 'cold: subject-id-author-or-body-missing', 'cold: updated-at-missing']);
+// A work claim the collector held (current: / worklog:, e.g. overwritten) is an L2 observation, not a declaration.
+const claim = reason => /^(?:current|worklog): /u.test(reason);
 const heldKind = entry => {
   if (entry.kind !== 'journal.held') return entry.kind ?? null;
   try { const kind = JSON.parse(entry.line)?.kind; return typeof kind === 'string' ? kind : null; } catch { return null; }
 };
-export const heldEntries = (frames, held = []) => {
-  const placed = frames.map(() => []);
+export const heldEntries = (frames, all = []) => {
+  const placed = frames.map(() => []), held = all.filter(value => !claim(value.reason));
   let unplaced = 0;
   for (const { reason, journal: entry } of [...held].sort((a, b) => Date.parse(a.journal.recordedAt) - Date.parse(b.journal.recordedAt))) {
     const index = frames.findIndex(frame => Date.parse(entry.recordedAt) <= Date.parse(frame.asOf));

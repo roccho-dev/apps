@@ -393,7 +393,9 @@ Contract v12 (adrs#647 comments 6303801344, 6304588582), display only, never a j
   `achieved-while-open`, `no-adequacy-verdict`. state is `unmet` only for `evaluated`, else `unknown`.
 - `frames[i].held` lists the declarations held back that entered at the frame (`derive.mjs --held=g-journal-held.jsonl`;
   held plans and unbound plans are not in it), `{reason, kind, recordedAt, source:{ref, commentId, sha256}}`. One
-  recorded after the last frame is counted in the receipt as `held.unplaced`.
+  recorded after the last frame is counted in the receipt as `held.unplaced`. `reason` is one of the stable words in
+  `contract.mjs` `HELD_REASONS` (D's refusal codes, never its message with a line number); a work claim the collector
+  held (`current:` / `worklog:`, e.g. overwritten) is an L2 observation, not a held declaration, and is left out.
 - A judge `no-value` (arrived with no value) is `current-unmatchable`, not `current-unobserved`.
 - control `{kind:'authority', purposeId, deciders:[login], proposers:[login]}`: for that Purpose only, a proposer's
   decision is held as `proposal` and anyone else's as `actor-not-authorized` (live.mjs `--control`). A Purpose without
