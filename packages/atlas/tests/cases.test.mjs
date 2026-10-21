@@ -26,13 +26,13 @@ const build = n => {
 const project = (frame, derived) => ({
   stage: derived.stage, phase: frame.phase, iv: frame.gap.basis.ideal_version, before_ideal: frame.gap.summary.before_ideal,
   parts: frame.gap.parts && frame.gap.parts.map(p => ({ c: p.condition, s: p.state, ci: p.cause.ideal, cc: p.cause.current, since: p.since, scope: p.scope,
-    obi: p.observed_before_ideal ?? false })),
+    obi: p.observed_before_ideal ?? false, lo: p.last_observed })),
   closed: frame.gap.closed.map(c => c.condition + ':' + c.by), journal: frame.journal.map(entry => entry.kind + (entry.unbound ? ':unbound' : '')),
   owners: derived.conditions.map(c => c.id + ':' + c.responsibility.state), purpose: frame.gap.basis.purpose_id,
   pkgs: frame.entities.filter(e => e.ref.kind === 'package').map(e => e.ref.id),
   relations: frame.relations.filter(r => r.ref.id.startsWith('physical:')).map(r => `${r.to.kind}:${r.context.condition}:${r.context.lifetime}`).sort(),
   adequacy: { state: frame.adequacy.state, reason: frame.adequacy.reason }, held: frame.held, matched_until: frame.matched_until,
-  plans: 'plans' in frame,
+  plans: 'plans' in frame, upkeep: frame.upkeep,
 });
 const check = (actual, expected, at) => {
   for (const [key, value] of Object.entries(expected)) {
@@ -75,6 +75,27 @@ test('every frame carries adequacy and held in the contract v12 shape', () => {
     }
     assert.ok(Array.isArray(held) && held.every(item => JSON.stringify(Object.keys(item)) === '["reason","kind","recordedAt","source"]'
       && JSON.stringify(Object.keys(item.source)) === '["ref","commentId","sha256"]'), `case ${n}: held shape`);
+  }
+});
+
+// S5 (adrs#647 6305441262): upkeep lists, on a matched frame, each met condition with the observation the
+// judge chose and when it goes stale (observedAt + maxAge, still fresh at that instant); matched_until is its
+// minimum. Every part names the last observation the judge saw, or null.
+test('upkeep, matched_until and last_observed in the contract shape on every frame', () => {
+  for (const n of cases) {
+    const { world, result } = build(n);
+    world.frames.forEach((frame, i) => {
+      const derived = result.derived.frames[i];
+      if (frame.phase !== 'matched') assert.deepEqual([frame.upkeep, frame.matched_until], [[], null], `case ${n} ${frame.asOf}`);
+      else {
+        assert.deepEqual(frame.upkeep.map(item => item.condition), derived.conditions.map(c => c.id), `case ${n}: every condition of a matched frame`);
+        assert.ok(frame.upkeep.every(item => JSON.stringify(Object.keys(item)) === '["condition","observedAt","stale_at"]'));
+        assert.equal(frame.matched_until, frame.upkeep.map(item => item.stale_at).sort()[0], `case ${n}: matched_until is the minimum stale_at`);
+      }
+      for (const part of frame.gap.parts ?? []) assert.ok(part.last_observed === null
+        || JSON.stringify(Object.keys(part.last_observed)) === '["observedAt","source","actor"]' && JSON.stringify(Object.keys(part.last_observed.source)) === '["ref"]',
+      `case ${n}: last_observed shape`);
+    });
   }
 });
 
