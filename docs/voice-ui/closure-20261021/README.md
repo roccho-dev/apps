@@ -2,41 +2,45 @@
 
 合意：[apps#94 comment 6313847759](https://github.com/roccho-dev/apps/issues/94#issuecomment-6313847759)（W の CLAIM v2＋R の修正 5 点）。完成条件の正本は [#118 c6310563121](https://github.com/roccho-dev/apps/pull/118#issuecomment-6310563121) §7・§8・§9（提案、未採用）。R が書き、W は触らない。
 
-> **この器の CI green が示すのは、器（schema・記録の形・同じ分母の検査）の整合だけ。製品の判定の合格ではない（§8-12）。** 判定は R が `ledgers/` に記録した判定票だけで、その版が GitHub 上で読み戻せる SHA のときだけ END1 に数える。
+> **この器の CI green が示すのは、器（記録の形と、記録が引く封印・receipt・台帳行との結び付き）の整合だけ。製品の判定の合格ではない（§8-12）。** 判定は R が `ledgers/judgments.jsonl` に記録した判定票だけ。
 
 ## 置き場
 
 | path | 中身 | 今の状態 |
 |---|---|---|
 | `expectations/*.json` | 期待@e（Required・Forbidden・Allowed・UNKNOWN と原文） | 形（`expectation.template.json`）だけ |
-| `gold/sets.json` | 独立 Gold の置き場：提示図 2 枚（`presented-1`・`presented-2`）と **Atlas 全体**（`atlas`） | 置き場だけ。中身・封印なし |
-| `gold/<set>/` | Gold の中身 | 未作成 |
-| `ledgers/seals.jsonl` | 封印 | 空 |
-| `ledgers/judgments.jsonl` | 判定票 | 空 |
-| `ledgers/costs.jsonl` | 費用 | 空 |
-| `examples/records.jsonl` | 形の例（SHA は仮の値。判定ではない） | 検査の対象外 |
+| `gold/sets.json`・`gold/<set>/` | 独立 Gold：提示図 2 枚（`presented-1`・`presented-2`）と **Atlas 全体**（`atlas`） | 置き場だけ。中身・封印なし |
+| `ledgers/cycles.jsonl` | 周回の開始・終端 | 空 |
+| `ledgers/seals.jsonl`・`judgments.jsonl`・`costs.jsonl` | 封印・判定票・費用 | 空 |
+| `receipts/github/<sha>.json` | GitHub の読み戻しの記録（`GET /repos/<repo>/commits/<sha>` の応答） | 無し |
+| `receipts/ledger/*.jsonl` | 予算台帳の該当行の写し（bytes そのまま） | 無し |
+| `fixtures/baseline/` | 試験用の完全な小さな器（中身は fixture で判定ではない。receipt は 2026-10-21 に実際に読み戻した 928bcc1・8890af76、台帳行は予算台帳の行 126 の写し） | 試験専用 |
 | `verify.mjs` | 検査 script | — |
 
-検査：`node docs/voice-ui/closure-20261021/verify.mjs`（Nix では `packages/voice-ui/tests/closure-20261021.test.mjs` が呼ぶ）。
+検査：`node docs/voice-ui/closure-20261021/verify.mjs [dir]`（Nix では `packages/voice-ui/tests/closure-20261021.test.mjs` が呼ぶ）。error はどれも規則の code で始まる。
 
-## 封印の手順（中身はまだ入れない）
+## 封印
 
-1. R が期待@e または Gold を `expectations/` か `gold/<set>/` に置く。どの候補の出力も見る前に行う。
-2. JSON は鍵を全階層で辞書順にし、空白なしで直列化した UTF-8 bytes の sha256（`canonical-json-sha256`）。画像などは原 bytes の sha256（`raw-sha256`）。
-3. `ledgers/seals.jsonl` に 1 行足す：`target`（expectation・gold・holdout）、`set`、`path`、`digest`、`bytes`、`sha256`、`sealed_by: "R"`、`sealed_at`、`before_exposure: true`。
-4. 封印した後に中身を変えるなら、新しい版の封印を足す。古い行は消さない。出力を見た後の封印は封印として認めない。
+1. R が期待@e または Gold を置く。どの候補の出力も見る前に行う。
+2. JSON は鍵を全階層で辞書順・空白なしにした UTF-8 の sha256（`canonical-json-sha256`）、それ以外は原 bytes の sha256（`raw-sha256`）。`bytes` は file の実の長さ。
+3. `ledgers/seals.jsonl` に `target`（expectation・gold・holdout）、`set`、`path`、`digest`、`bytes`、`sha256`、`sealed_by: "R"`、`sealed_at`、`before_exposure: true` を足す。
+4. verify は封印を **file の実 bytes から計算し直す**（`E_SEAL_MISSING`・`E_SEAL_BYTES`・`E_SEAL_DIGEST`）。封印した期待は有効な candidate でなければならない。
+5. 判定票が引く封印は、target が合っていて（`E_GOLD_TARGET`・`E_EXPECTATION_TARGET`）、その判定の `at` より **前** に封印されていなければならない（`E_SEAL_LATE`）。`before_exposure` の自己申告だけでは足りない。
 
-## 記録の schema（JSONL、1 行 1 記録、余分な鍵は拒否）
+## 記録
 
-- **判定票** `voice-ui.closure.judgment/1`：`cycle`（周回）、`round`（EV の回 n、1〜4）、`lane`（A・B・E2E）、`item`、`step`（§7 の 1〜15、14 は 14a・14b）、`product {arm old|new, apps 40 桁, ui 40 桁|null, github_readable}`、`evaluator {arm old|new, id, sha256}`、`expectation_sha256`、`gold_seal_sha256`、`verdict`（PASS・FAIL・UNKNOWN）、`judge: "R"`、`counts_toward_end1`、`source`、`at`。
-  - PASS は封印した Gold を引く。`counts_toward_end1: true` は `github_readable: true` のときだけ（C のローカルの写しの判定は参考）。
-- **封印** `voice-ui.closure.seal/1`：上の手順 3。
-- **費用** `voice-ui.closure.cost/1`：`cycle`、`round`、`provider`（jev・typellm・ci・browser）、`calls`（数、または `"UNKNOWN"`）、`ledger {file, line}`、`phase_id`、`at`。
-  - 数（0 を含む）は台帳の行を引く。引けないものは UNKNOWN で、0 として扱わない（§8-13）。
+- **周回** `voice-ui.closure.cycle/1`：`cycle-open {cycle, seq, previous, at}` と `cycle-end {cycle, end: END1|END2, at}`。seq は 1 から連番で、前の周回が終端してからでないと次を開けない（`E_CYCLE_SEQ`・`E_CYCLE_OPEN_BEFORE_END`）。判定票と費用は開いた周回の中でだけ記録できる（`E_CYCLE_UNOPENED`・`E_CYCLE_TIME`）。round は周回ごとに 1 から欠けなく数え、上限は 4（`E_ROUND_GAP`）。cycle の名前を変えても回数は数え直せない。
+- **判定票** `voice-ui.closure.judgment/2`：`cycle`、`round`、`lane`（A・B・E2E）、`item`、`step`（§7、14 は 14a・14b）、`product {arm, apps, ui, receipts}`、`evaluator {arm, id, sha256}`、`expectation_sha256`、`gold_seal_sha256`、`verdict`、`judge: "R"`、`counts_toward_end1`、`source`、`at`。
+  - `counts_toward_end1: true` は、`receipts` に apps（と ui があれば ui）の **その SHA の読み戻しの記録** があるときだけ（`E_END1_RECEIPT`）。記録が無ければ UNKNOWN で、参考にとどまる。
+- **費用** `voice-ui.closure.cost/2`：`calls` が数（0 を含む）なら `ledger {file, line, line_sha256}` が器の中の実在の行を bytes どおり引き、jev・typellm はその行の `phase-reconcile` の `sent` と数が一致する（`E_COST_LEDGER`・`E_COST_MISMATCH`）。引けないものは `"UNKNOWN"` で、0 として扱わない（§8-13）。
 
-## 同じ分母と 4 セル
+## 同じ分母と 4 セル（組＝cycle・round・lane・封印した期待）
 
-- 同じ `cycle`・`round`・`lane` の中では、どの組（product の old/new × evaluator の old/new）も同じ item の集合を 1 回ずつ判定する。UNKNOWN も分母に残す（§8-8）。
-- A だけ・B だけ・E2E は lane で分け、別の分母として並べる（§5、§9 の 2 項目め）。
-- evaluator の new を含む組があれば、old/old・old/new・new/old・new/new の 4 セルが全部そろわないと拒否する（評価器の変更による点数の上昇を製品の改善とみなさない、§8-10）。
-- k≤2（PR ごと、周回全体）と n≤4（1 周回の EV の回）は、合意 6313847759 の閉包の規則による。この器が機械で確かめるのは n だけ。
+- 分母は封印した期待の Required と Forbidden の id。どのセルもそれをちょうど 1 回ずつ判定する。UNKNOWN も分母に残る（`E_DENOMINATOR`、§8-8）。
+- product の old と new の両方を判定する（`E_SINGLE_CELL`）。各 arm は 1 つの SHA の組で、old と new は違う（`E_PRODUCT_ARM`）。
+- 評価器は arm の名前ではなく `id`・`sha256` で見分ける。arm ごとに 1 つの評価器で、old と new は違う（`E_EVALUATOR_ARM`）。new の評価器があれば 4 セルがそろう（`E_FOUR_CELL`、§8-10）。
+- k≤2（PR ごと、周回全体）は合意の規則で、この器は数えない。
+
+## 試験の意味
+
+`closure-20261021.test.mjs` は fixture の器が通ることと、W の相互確認で見つかったすり抜け 10 件それぞれを改変として与え、その規則の code で拒否されることを確かめる。規則を 1 つ外すと、その試験が落ちる。
