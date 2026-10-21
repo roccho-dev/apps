@@ -41,7 +41,7 @@ test('an existing small saved container still refuses instead of silently growin
   const held=legalLocalDeltas(small,{bundle:{parts:stock},protocol,expressive:true,selected:[]});
   assert.equal(held.candidates.some(c=>c.parent===id),false);
 });
-test('a new container reserves free area without crossing a saved sibling',async()=>{
+test('a new root container preserves a saved sibling and its entire subtree positions',async()=>{
   const initial=await protocol.createDecisionLog([
     {type:'meta',schema:'semantic-map-state/1',root:'root',title:'siblings'},
     {type:'region',id:'root',kind:'boundary',label:'World',summary:'',parent:null,bounds:[0,0,1000,700]},
@@ -53,4 +53,13 @@ test('a new container reserves free area without crossing a saved sibling',async
   const layout=protocol.layoutBoundsFor(after.records,{pattern:protocol.GRAPH_PATTERN});
   const id=after.records.find(r=>r.type==='region'&&r.label==='Area').id,a=layout.bounds[id],b=layout.bounds.keeper;
   assert.ok(a[0]+a[2]+12<=b[0]||b[0]+b[2]+12<=a[0]||a[1]+a[3]+12<=b[1]||b[1]+b[3]+12<=a[1]);
+});
+test('a second root container remains available after saving a content canvas',async()=>{
+  let working=(await newMap({title:'World',protocol})).graph;
+  working=await add(working,group,'root',[group]);
+  const before=await protocol.verifyDecisionLog(working.log),other={...group,key:'other',label:'Other'};
+  const after=await add(before,other,'root',[other]);
+  const layout=protocol.layoutBoundsFor(after.records,{pattern:protocol.GRAPH_PATTERN}),previous=protocol.layoutBoundsFor(before.records,{pattern:protocol.GRAPH_PATTERN});
+  for(const record of before.records){assert.ok(after.records.some(r=>JSON.stringify(r)===JSON.stringify(record)));if(record.type==='region'&&record.parent!==null)assert.deepEqual(layout.bounds[record.id],previous.bounds[record.id]);}
+  assert.equal(after.records.filter(r=>r.type==='region'&&r.parent==='root').length,2);
 });

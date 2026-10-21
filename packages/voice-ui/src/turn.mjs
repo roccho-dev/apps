@@ -665,22 +665,6 @@ function grownSlot(records, current, parent, regionId, size, labelRoom) {
 const crowding = (box, other) => overlapping(box, [other[0] - BAND_PADDING, other[1] - BAND_PADDING,
   other[2] + 2 * BAND_PADDING, other[3] + 2 * BAND_PADDING]);
 
-// An empty new container needs a content area after it is saved. Reserve the
-// largest free rectangle at its legal origin, bounded by this parent's current
-// frame and siblings. This only sizes the new group; an existing group still
-// takes later children fit-or-none, without moving or resizing saved records.
-function emptyContainerBounds(bounds, frame, siblings) {
-  const [x, y, width, height] = bounds;
-  const rights = [frame[0] + frame[2] - BAND_PADDING,
-    ...siblings.map(box => box[0] - BAND_PADDING)].filter(right => right >= x + width);
-  const bottoms = [frame[1] + frame[3] - BAND_PADDING,
-    ...siblings.map(box => box[1] - BAND_PADDING)].filter(bottom => bottom >= y + height);
-  const choices = rights.flatMap(right => bottoms.map(bottom => [x, y, right - x, bottom - y]))
-    .filter(box => inside(frame, box) && siblings.every(other => !crowding(box, other)))
-    .sort((a, b) => b[2] * b[3] - a[2] * a[3] || b[2] - a[2]);
-  return choices[0] ?? bounds;
-}
-
 // Keep raw kernel legality and painted placement separate. Preview is pure:
 // the provider owns candidate dimensions; only our existing spacing is used.
 function additionSlot(working, parent, part, reserved, protocol, grows = false, expressive = false) {
@@ -713,6 +697,30 @@ function additionSlot(working, parent, part, reserved, protocol, grows = false, 
       labelRoom = childLabelRoom(records, parent.id, protocol);
       if (labelRoom === null) return null;
     }
+    // Root groups are independent content canvases. Size a new one from the
+    // provider's empty-map frame, and stack it below existing root children.
+    // The root has no hard pin: the provider encloses the new band. Saved
+    // containers keep their exact pins and positions, and later children in
+    // them still use the fit-or-none search below. A second root group must
+    // not depend on unused space inside the first group's reserved canvas.
+    if (expressive && parent.parent === null && part.kind === LANE_KIND) {
+      const single = records.filter(record => record.type === "meta"
+        || record.type === "region" && (record.id === parent.id || record.id === regionId));
+      const natural = protocol.layoutBoundsFor(single, view);
+      const canvas = natural.bounds[parent.id], inset = childLabelRoom(single, parent.id, protocol);
+      if (!validBox(canvas) || inset === null) return null;
+      const bounds = [canvas[0] + BAND_PADDING,
+        Math.max(canvas[1] + inset, ...siblings.map(record => current.bounds[record.id][1] + current.bounds[record.id][3] + STEP_GAP)),
+        Math.max(size[2], canvas[2] - 2 * BAND_PADDING),
+        Math.max(size[3], canvas[3] - inset - BAND_PADDING)];
+      const pinned = protocol.layoutBoundsFor([...records, { type: "layout", regionId, pin: "hard", bounds }], view);
+      const oldIds = working.records.filter(record => record.type === "region" && record.id !== parent.id).map(record => record.id);
+      if (JSON.stringify(pinned.bounds[regionId]) !== JSON.stringify(bounds)
+        || !validBox(pinned.bounds[parent.id]) || !inside(pinned.bounds[parent.id], bounds)
+        || !oldIds.every(id => JSON.stringify(pinned.bounds[id]) === JSON.stringify(current.bounds[id]))
+        || siblings.some(record => crowding(bounds, pinned.bounds[record.id]))) return null;
+      return { operation, bounds, ancestors: [] };
+    }
     if (grows) {
       const grown = grownSlot(records, current, parent, regionId, size, labelRoom);
       if (grown === null) return null;
@@ -741,9 +749,8 @@ function additionSlot(working, parent, part, reserved, protocol, grows = false, 
       boxes.map(box => box[0] + box[2] + BAND_PADDING));
     for (const y of ys) {
       for (const x of xs) {
-        let bounds = [x, y, size[2], size[3]];
+        const bounds = [x, y, size[2], size[3]];
         if (boxes.some(box => crowding(bounds, box))) continue;
-        if (expressive && part.kind === LANE_KIND) bounds = emptyContainerBounds(bounds, frame, boxes);
         const pinned = protocol.layoutBoundsFor([...records, { type: "layout", regionId, pin: "hard", bounds }], view);
         if (![parent.id, regionId, ...siblings.map(record => record.id)].every(id => validBox(pinned.bounds[id]))
           || !inside(pinned.bounds[parent.id], pinned.bounds[regionId])
