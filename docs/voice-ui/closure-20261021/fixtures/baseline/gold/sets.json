@@ -1,0 +1,9 @@
+{
+  "schema": "voice-ui.closure.gold-sets/1",
+  "note": "Fixture copy of the gold places; only presented-1 holds fixture content.",
+  "sets": [
+    { "id": "presented-1", "step": ["4", "9"], "path": "gold/presented-1/", "status": "fixture", "seal_sha256": null },
+    { "id": "presented-2", "step": ["4", "9"], "path": "gold/presented-2/", "status": "unfilled", "seal_sha256": null },
+    { "id": "atlas", "step": ["4", "9"], "path": "gold/atlas/", "status": "unfilled", "seal_sha256": null }
+  ]
+}
