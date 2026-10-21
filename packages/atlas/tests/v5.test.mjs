@@ -25,9 +25,10 @@ test('right after a Purpose change, a match made only of older observations is c
 test('an observation that arrived but cannot be compared is current-unmatchable, not current-unobserved', () => {
   const [, , f2, f3] = world.frames;
   assert.deepEqual(causes(f2), { X: 'current-unmatchable', Y: 'ideal-added+current-unobserved' });
-  // f3: X obtained no value (null) and Y has never been observed: both are current-unobserved.
-  assert.deepEqual(causes(f3), { X: 'current-unobserved', Y: 'current-unobserved' });
-  assert.deepEqual(f3.gap.summary.by_cause, { 'current-unobserved': 2 });
+  // f3: X arrived with no value (null): it arrived, so it is current-unmatchable (contract v12), not
+  // current-unobserved; Y has never been observed: current-unobserved.
+  assert.deepEqual(causes(f3), { X: 'current-unmatchable', Y: 'current-unobserved' });
+  assert.deepEqual(f3.gap.summary.by_cause, { 'current-unmatchable': 1, 'current-unobserved': 1 });
 });
 
 test('the Agent heading follows session observations of declared owners, even when their condition is no Scope', () => {

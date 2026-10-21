@@ -1,0 +1,21 @@
+{
+  "via": "derive",
+  "frames": [
+    {
+      "asOf": "2026-10-21T01:00:00.000Z",
+      "phase": "approximating",
+      "parts": [
+        {
+          "c": "A",
+          "s": "unknown",
+          "ci": "initial",
+          "cc": "current-conflict"
+        }
+      ],
+      "adequacy": {
+        "state": "unknown",
+        "reason": "no-evaluation"
+      }
+    }
+  ]
+}

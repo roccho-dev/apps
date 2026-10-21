@@ -1,0 +1,26 @@
+{
+  "via": "joinLog",
+  "frames": [
+    {
+      "asOf": "2026-10-21T01:00:00.000Z",
+      "iv": "v1",
+      "held": []
+    },
+    {
+      "asOf": "2026-10-21T03:00:00.000Z",
+      "iv": "v1",
+      "phase": "matched",
+      "held": [
+        {
+          "reason": "worklog-target-in-predicate",
+          "kind": "ideal.set",
+          "recordedAt": "2026-10-21T02:00:00Z"
+        }
+      ],
+      "adequacy": {
+        "state": "unknown",
+        "reason": "no-evaluation"
+      }
+    }
+  ]
+}

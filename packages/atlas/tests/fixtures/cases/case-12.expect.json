@@ -1,0 +1,26 @@
+{
+  "via": "derive",
+  "frames": [
+    {
+      "asOf": "2026-10-21T01:00:00.000Z",
+      "parts": [
+        {
+          "c": "A",
+          "scope": null
+        },
+        {
+          "c": "B",
+          "scope": null
+        }
+      ],
+      "owners": [
+        "A:unassigned",
+        "B:conflict"
+      ],
+      "adequacy": {
+        "state": "unknown",
+        "reason": "no-evaluation"
+      }
+    }
+  ]
+}

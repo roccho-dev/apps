@@ -1,0 +1,14 @@
+{
+  "via": "derive",
+  "frames": [
+    {
+      "asOf": "2026-10-21T05:00:00.000Z",
+      "phase": "matched",
+      "parts": [],
+      "adequacy": {
+        "state": "unknown",
+        "reason": "no-evaluation"
+      }
+    }
+  ]
+}
