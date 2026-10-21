@@ -358,17 +358,21 @@ export const parsePhysicalScopes = input => {
 };
 
 /**
- * Who may decide and who may only propose, per Purpose (contract v12, S4; the v11 actor-not-authorized).
- * Enforced only for a Purpose with a declaration; a Purpose without one is accepted as before.
+ * Who may decide and who may only propose, per Purpose (contract v12, S4; the v11 actor-not-authorized),
+ * and who alone may evaluate it (C5, adrs#647 c6315696164: `evaluators`, optional, none = no one). Enforced
+ * only for a Purpose with a declaration; a Purpose without one is accepted as before.
  */
 export const parseAuthority = input => {
   const authority = new Map();
   for (const { value, at } of controlRows(input, 'authority')) {
-    keys(value, ['kind', 'purposeId', 'deciders', 'proposers'], [], at);
+    keys(value, ['kind', 'purposeId', 'deciders', 'proposers'], ['evaluators'], at);
     demand(token(value.purposeId) && !authority.has(value.purposeId), `${at}: one authority per purposeId`);
     ids(value.deciders, `${at}.deciders`); ids(value.proposers, `${at}.proposers`, true);
     demand(!value.proposers.some(login => value.deciders.includes(login)), `${at}: a login is a decider or a proposer, not both`);
-    authority.set(value.purposeId, Object.freeze({ deciders: Object.freeze([...value.deciders]), proposers: Object.freeze([...value.proposers]) }));
+    const evaluators = ids(value.evaluators ?? [], `${at}.evaluators`, true);
+    demand(!evaluators.some(login => value.deciders.includes(login) || value.proposers.includes(login)), `${at}: an evaluator is neither a decider nor a proposer`);
+    authority.set(value.purposeId, Object.freeze({ deciders: Object.freeze([...value.deciders]), proposers: Object.freeze([...value.proposers]),
+      evaluators: Object.freeze([...evaluators]) }));
   }
   return authority;
 };
