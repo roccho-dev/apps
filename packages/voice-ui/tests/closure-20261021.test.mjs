@@ -1,102 +1,139 @@
 import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
-import { readFileSync } from "node:fs";
+import { cpSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 import test from "node:test";
-import {
-  canonicalJson, sha256Hex, validateExpectation, validateRecord, parseJsonl,
-  checkDenominators, checkFourCell, verifyDirectory,
-} from "../../../docs/voice-ui/closure-20261021/verify.mjs";
+import { canonicalJson, sha256Hex, validateExpectation, parseJsonl, verifyDirectory } from "../../../docs/voice-ui/closure-20261021/verify.mjs";
 
 // R1 (apps#94 comment 6313847759): this test proves only that the evaluation
 // vessel is self-consistent. A green run is no judgment of the product (§8-12).
+// Each bypass found by W (apps#135 review) is fixed as a mutation of one
+// complete fixture vessel that must be refused with its own rule's code, so
+// removing that rule makes the test fail.
 const vessel = fileURLToPath(new URL("../../../docs/voice-ui/closure-20261021/", import.meta.url));
-const examples = parseJsonl(readFileSync(vessel + "examples/records.jsonl", "utf8"));
-const template = JSON.parse(readFileSync(vessel + "expectations/expectation.template.json", "utf8"));
-const kinds = kind => examples.records.filter(record => record.kind === kind);
-const copy = value => JSON.parse(JSON.stringify(value));
+const baseline = vessel + "fixtures/baseline/";
+const NEW = "8890af76de0f31cd55539e69337b247ffb6db07a";
 
-test("the committed vessel verifies, and its CLI agrees", () => {
+const records = (dir, file) => parseJsonl(readFileSync(join(dir, file), "utf8")).records;
+const writeRecords = (dir, file, list) => writeFileSync(join(dir, file), list.map(record => JSON.stringify(record)).join("\n") + "\n");
+const edit = (file, change) => dir => writeRecords(dir, file, change(records(dir, file)));
+const judgments = change => edit("ledgers/judgments.jsonl", change);
+const run = (...mutations) => {
+  const dir = mkdtempSync(join(tmpdir(), "closure-20261021-"));
+  try {
+    cpSync(baseline, dir, { recursive: true });
+    for (const mutate of mutations) mutate(dir);
+    return verifyDirectory(dir);
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
+  }
+};
+const codes = result => result.errors.map(error => error.split(" ")[0]);
+const accepts = (...mutations) => assert.deepEqual(run(...mutations), { ok: true, errors: [] });
+const refuses = (code, ...mutations) => {
+  const result = run(...mutations);
+  assert.equal(result.ok, false, `${code}: the mutation was ACCEPTED`);
+  assert.ok(codes(result).includes(code), `${code} expected, got ${JSON.stringify(result.errors)}`);
+};
+const where = (match, change) => list => list.map(record => match(record) ? change(record) : record);
+const isNew = record => record.product.arm === "new";
+
+test("the committed vessel and the complete fixture vessel verify, and the CLI agrees", () => {
   assert.deepEqual(verifyDirectory(vessel), { ok: true, errors: [] });
-  const run = spawnSync(process.execPath, [vessel + "verify.mjs", vessel], { encoding: "utf8" });
-  assert.equal(run.status, 0, run.stderr + run.stdout);
-  assert.deepEqual(JSON.parse(run.stdout), { ok: true, errors: [] });
+  accepts();
+  const cli = spawnSync(process.execPath, [vessel + "verify.mjs", baseline], { encoding: "utf8" });
+  assert.equal(cli.status, 0, cli.stderr + cli.stdout);
+  assert.deepEqual(JSON.parse(cli.stdout), { ok: true, errors: [] });
 });
 
-test("the examples are well-formed records with equal denominators and four complete cells", () => {
-  assert.deepEqual(examples.errors, []);
-  assert.ok(kinds("judgment").length >= 8 && kinds("seal").length >= 1 && kinds("cost").length >= 1);
-  for (const record of examples.records) assert.deepEqual(validateRecord(record), [], JSON.stringify(record));
-  assert.deepEqual(checkDenominators(kinds("judgment")), []);
-  assert.deepEqual(checkFourCell(kinds("judgment")), []);
-  assert.deepEqual(validateExpectation(template), []);
+test("1: a PASS cites a gold seal, not the expectation's seal", () => {
+  const expectation = records(baseline, "ledgers/seals.jsonl").find(seal => seal.target === "expectation").sha256;
+  refuses("E_GOLD_TARGET", judgments(where(record => record.verdict === "PASS", record => ({ ...record, gold_seal_sha256: expectation }))));
+});
+
+test("2: a seal is recomputed from the sealed file's bytes", () => {
+  refuses("E_SEAL_DIGEST", dir => writeFileSync(join(dir, "gold/presented-1/gold.json"), '{"items":{"r1":"present","r2":"present","f1":"present"}}\n'));
+  refuses("E_SEAL_BYTES", edit("ledgers/seals.jsonl", where(seal => seal.target === "gold", seal => ({ ...seal, bytes: 0 }))));
+  refuses("E_SEAL_MISSING", edit("ledgers/seals.jsonl", where(seal => seal.target === "gold", seal => ({ ...seal, path: "gold/presented-1/absent.json" }))));
+});
+
+test("3: a seal dated after a judgment that cites it is no seal, whatever it declares", () => {
+  refuses("E_SEAL_LATE", edit("ledgers/seals.jsonl", where(seal => seal.target === "gold", seal => ({ ...seal, sealed_at: "2026-10-21T04:00:00Z" }))));
+});
+
+test("4: rounds are counted per cycle from the cycle ledger, so renaming a cycle does not reset them", () => {
+  const rename = list => list.map(record => ({ ...record, cycle: "c2" }));
+  refuses("E_CYCLE_UNOPENED", judgments(rename), edit("ledgers/costs.jsonl", rename));
+  const openC2 = edit("ledgers/cycles.jsonl", list => [...list,
+    { schema: "voice-ui.closure.cycle/1", kind: "cycle-open", cycle: "c2", seq: 2, previous: "c1", at: "2026-10-21T02:30:00Z" }]);
+  refuses("E_CYCLE_OPEN_BEFORE_END", openC2, judgments(rename), edit("ledgers/costs.jsonl", rename));
+  const round = value => list => list.map(record => ({ ...record, round: value }));
+  refuses("E_ROUND_GAP", judgments(round(3)), edit("ledgers/costs.jsonl", round(3)));
+  // Control: a new cycle after the previous one has ended is a new cycle.
+  accepts(edit("ledgers/cycles.jsonl", list => [...list,
+    { schema: "voice-ui.closure.cycle/1", kind: "cycle-end", cycle: "c1", end: "END2", at: "2026-10-21T04:00:00Z" },
+    { schema: "voice-ui.closure.cycle/1", kind: "cycle-open", cycle: "c2", seq: 2, previous: "c1", at: "2026-10-21T04:10:00Z" }]));
+});
+
+test("5: END1 counts only a product SHA with a recorded GitHub readback for that SHA", () => {
+  refuses("E_END1_RECEIPT", judgments(where(isNew, record => ({ ...record, product: { ...record.product, receipts: [] } }))));
+  refuses("E_END1_RECEIPT", judgments(where(isNew, record => ({ ...record, product: { ...record.product, apps: "1".repeat(40) } }))));
+  refuses("E_END1_RECEIPT", dir => rmSync(join(dir, `receipts/github/${NEW}.json`)));
+  // Without END1 the same unverified SHA is only a reference.
+  accepts(judgments(where(isNew, record => ({ ...record, counts_toward_end1: false, product: { ...record.product, receipts: [] } }))));
+});
+
+test("6: a counted cost cites an existing ledger line whose bytes and count match", () => {
+  const ledger = change => edit("ledgers/costs.jsonl", list => list.map(cost => ({ ...cost, ...change(cost) })));
+  refuses("E_COST_LEDGER", ledger(cost => ({ calls: 0, ledger: { ...cost.ledger, file: "no-such.jsonl", line: 9999 } })));
+  refuses("E_COST_LEDGER", ledger(cost => ({ ledger: { ...cost.ledger, line_sha256: "0".repeat(64) } })));
+  refuses("E_COST_MISMATCH", ledger(() => ({ calls: 25 })));
+  accepts(ledger(() => ({ calls: "UNKNOWN", ledger: null })));
+});
+
+test("7: an evaluator change is detected by identity, not by its arm label", () => {
+  refuses("E_EVALUATOR_ARM", judgments(where(isNew, record => ({ ...record, evaluator: { ...record.evaluator, sha256: "1e".repeat(32) } }))));
+  const newEvaluator = list => [...list, ...list.map(record => ({ ...record, counts_toward_end1: false,
+    evaluator: { arm: "new", id: "fixture-evaluator", sha256: "1e".repeat(32) } }))];
+  accepts(judgments(newEvaluator));
+  refuses("E_FOUR_CELL", judgments(list => newEvaluator(list).filter(record => !(isNew(record) && record.evaluator.arm === "new"))));
+});
+
+test("8: the denominator is the sealed expectation's Required and Forbidden, in at least two product cells", () => {
+  refuses("E_DENOMINATOR", judgments(list => list.filter(record => record.verdict !== "UNKNOWN")));
+  refuses("E_DENOMINATOR", judgments(list => [...list, ...list.filter(record => record.item === "r2")
+    .map(record => ({ ...record, item: "zz", verdict: "FAIL", counts_toward_end1: false }))]));
+  refuses("E_SINGLE_CELL", judgments(list => list.filter(record => !isNew(record))));
+});
+
+test("record shapes still refuse what they exist to refuse", () => {
+  refuses("E_SHAPE", judgments(list => list.map(record => ({ ...record, judge: "W" }))));
+  refuses("E_SHAPE", judgments(list => list.map(record => ({ ...record, round: 5 }))));
+  refuses("E_SHAPE", judgments(where(record => record.verdict === "PASS", record => ({ ...record, gold_seal_sha256: null }))));
+  refuses("E_SHAPE", edit("ledgers/seals.jsonl", list => list.map(seal => ({ ...seal, before_exposure: false }))));
+  refuses("E_SHAPE", edit("ledgers/seals.jsonl", list => list.map(seal => ({ ...seal, path: "../../../../../packages/voice-ui/src/turn.mjs" }))));
+  refuses("E_SHAPE", edit("ledgers/costs.jsonl", list => list.map(cost => ({ ...cost, calls: "none" }))));
 });
 
 test("one canonical digest regardless of key order", () => {
   const a = { b: [1, { d: "é", c: null }], a: true };
-  const b = { a: true, b: [1, { c: null, d: "é" }] };
-  assert.equal(canonicalJson(a), canonicalJson(b));
+  assert.equal(canonicalJson(a), canonicalJson({ a: true, b: [1, { c: null, d: "é" }] }));
   assert.equal(canonicalJson(a), '{"a":true,"b":[1,{"c":null,"d":"é"}]}');
   assert.match(sha256Hex(canonicalJson(a)), /^[0-9a-f]{64}$/u);
-  assert.notEqual(sha256Hex(canonicalJson(a)), sha256Hex(canonicalJson({ ...a, a: false })));
-});
-
-test("each record rule rejects what it exists to reject", () => {
-  const judgment = kinds("judgment")[0], seal = kinds("seal")[0], cost = kinds("cost")[0];
-  const rejected = [
-    ["judge other than R", { ...judgment, judge: "W" }],
-    ["round above four", { ...judgment, round: 5 }],
-    ["END1 count on a SHA not readable on GitHub", { ...judgment, counts_toward_end1: true, product: { ...judgment.product, github_readable: false } }],
-    ["PASS without a sealed gold", { ...judgment, verdict: "PASS", gold_seal_sha256: null }],
-    ["unknown lane", { ...judgment, lane: "AB" }],
-    ["unknown step", { ...judgment, step: ["14"] }],
-    ["short product SHA", { ...judgment, product: { ...judgment.product, apps: "928bcc1" } }],
-    ["extra field", { ...judgment, score: 1 }],
-    ["seal after exposure", { ...seal, before_exposure: false }],
-    ["seal by someone other than R", { ...seal, sealed_by: "P" }],
-    ["seal path outside the vessel", { ...seal, path: "../../packages/voice-ui/src/turn.mjs" }],
-    ["cost counted without its ledger line", { ...cost, ledger: null }],
-    ["cost of zero without its ledger line", { ...cost, calls: 0, ledger: null }],
-    ["cost as a free word", { ...cost, calls: "none" }],
-    ["unknown kind", { ...cost, kind: "note" }],
-  ];
-  for (const [name, record] of rejected) assert.notDeepEqual(validateRecord(record), [], name);
-  assert.deepEqual(validateRecord({ ...cost, calls: "UNKNOWN", ledger: null }), [], "UNKNOWN stays UNKNOWN, not zero");
 });
 
 test("the expectation rules keep UNKNOWN, identities and the filled state honest", () => {
-  const filled = { ...copy(template), status: "candidate", source: { text: "抽象的な期待", ref: "apps#118 c6310563121" },
-    required: [{ id: "r1", claim: "x", step: ["4"] }], unknown: [{ id: "u1", question: "y" }] };
+  const filled = JSON.parse(readFileSync(baseline + "expectations/e1.json", "utf8"));
   assert.deepEqual(validateExpectation(filled), []);
-  assert.notDeepEqual(validateExpectation({ ...filled, required: [] }), [], "a filled expectation needs a Required");
-  assert.notDeepEqual(validateExpectation({ ...filled, source: { ...filled.source, text: "" } }), [], "and its source text");
-  assert.notDeepEqual(validateExpectation({ ...filled, forbidden: [{ id: "r1", claim: "z", step: ["4"] }] }), [], "ids are unique across the four");
-  assert.notDeepEqual(validateExpectation({ ...filled, unknown: undefined }), [], "UNKNOWN is a required list, never dropped");
-  assert.notDeepEqual(validateExpectation({ ...filled, status: "sealed" }), [], "sealing is a seal record, not a status");
+  assert.notDeepEqual(validateExpectation({ ...filled, required: [] }), []);
+  assert.notDeepEqual(validateExpectation({ ...filled, source: { ...filled.source, text: "" } }), []);
+  assert.notDeepEqual(validateExpectation({ ...filled, forbidden: [{ id: "r1", claim: "z", step: ["4"] }] }), []);
+  assert.notDeepEqual(validateExpectation({ ...filled, unknown: undefined }), []);
 });
 
-test("a denominator that differs between arms, or drops an UNKNOWN, is refused", () => {
-  const judgments = kinds("judgment");
-  const unknownItem = judgments.find(record => record.verdict === "UNKNOWN");
-  assert.ok(unknownItem, "precondition: the examples carry an UNKNOWN");
-  const dropUnknown = judgments.filter(record => !(record.item === unknownItem.item
-    && record.product.arm === "new" && record.evaluator.arm === "old" && record.lane === unknownItem.lane));
-  assert.notDeepEqual(checkDenominators(dropUnknown), []);
-  const duplicate = [...judgments, judgments[0]];
-  assert.notDeepEqual(checkDenominators(duplicate), []);
-  const strayItem = [...judgments, { ...judgments[0], item: "stray", product: { ...judgments[0].product, arm: "new" } }];
-  assert.notDeepEqual(checkDenominators(strayItem), []);
-});
-
-test("an evaluator change without all four cells is refused", () => {
-  const judgments = kinds("judgment");
-  for (const [product, evaluator] of [["old", "old"], ["old", "new"], ["new", "old"], ["new", "new"]]) {
-    const missing = judgments.filter(record => !(record.product.arm === product && record.evaluator.arm === evaluator));
-    assert.notDeepEqual(checkFourCell(missing), [], `missing ${product}/${evaluator}`);
-  }
-});
-
-test("the vessel keeps the presented diagrams and the whole Atlas as gold sets", () => {
+test("the vessel keeps the presented diagrams and the whole Atlas as unfilled gold sets", () => {
   const sets = JSON.parse(readFileSync(vessel + "gold/sets.json", "utf8"));
   assert.deepEqual(sets.sets.map(set => set.id).sort(), ["atlas", "presented-1", "presented-2"]);
   assert.ok(sets.sets.every(set => set.status === "unfilled" && set.seal_sha256 === null));

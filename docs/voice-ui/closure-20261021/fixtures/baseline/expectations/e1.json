@@ -1,0 +1,18 @@
+{
+  "schema": "voice-ui.closure.expectation/1",
+  "id": "fixture-e1",
+  "version": 1,
+  "status": "candidate",
+  "source": { "text": "fixture: 期待図に要る候補が揃い、既存の部品を新規として二重に数えない", "ref": "fixture (not a real expectation)" },
+  "required": [
+    { "id": "r1", "claim": "fixture: 必要な候補 1 が揃う", "step": ["5"] },
+    { "id": "r2", "claim": "fixture: 必要な候補 2 が揃う", "step": ["5"] }
+  ],
+  "forbidden": [
+    { "id": "f1", "claim": "fixture: 既存の部品を新規として二重に数える", "step": ["5"] }
+  ],
+  "allowed": [],
+  "unknown": [
+    { "id": "u1", "question": "fixture: 別名を同じ部品とみなすか" }
+  ]
+}
