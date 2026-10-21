@@ -79,15 +79,15 @@ export const gapOf = (frame, last = null, previous = null) => {
 export const phaseOf = (frame, gap) => frame.stage === 'ideal' ? (gap.parts.length ? 'approximating' : 'matched') : frame.stage;
 
 /**
- * upkeep (S5, contract 3 revised): on a matched frame, each condition met, with the observation the judge chose
- * and stale_at = observedAt + maxAge (still fresh at that instant: the judge's <=). Other frames: [].
+ * upkeep (S5, widened by S7): on every frame with an ideal, each condition met, with the observation the judge
+ * chose and stale_at = observedAt + maxAge (still fresh at that instant: the judge's <=). No ideal: [].
  */
-export const upkeepOf = (frame, phase) => phase !== 'matched' ? []
-  : frame.conditions.map(value => ({ condition: value.id, observedAt: value.judgment.observation.observedAt,
+export const upkeepOf = frame => frame.conditions.filter(value => value.judgment.state === 'satisfied')
+  .map(value => ({ condition: value.id, observedAt: value.judgment.observation.observedAt,
     stale_at: iso(Date.parse(value.judgment.observation.observedAt) + ms(value.maxAge)) }));
 
-/** matched: the earliest stale_at of the upkeep, after which the match is no longer known to hold. */
-export const matchedUntil = upkeep => upkeep.length ? upkeep.map(item => item.stale_at).sort()[0] : null;
+/** matched only: the earliest stale_at of the upkeep, after which the match is no longer known to hold. */
+export const matchedUntil = (upkeep, phase) => phase === 'matched' ? upkeep.map(item => item.stale_at).sort()[0] : null;
 
 /**
  * journal (v6): what was newly recorded in this frame, i.e. after the previous frame's t and up to this one,
@@ -221,8 +221,8 @@ export const contractWorld = (result, { unbound = [], held = [] } = {}) => {
     previous = { frame: derived, gap };
     if (gap.parts) last = previous;
     const plans = plansOf(derived, result.plans);
-    const upkeep = upkeepOf(derived, phase);
-    return { ...frame, ...(plans ? { plans } : {}), gap, phase, journal, matched_until: matchedUntil(upkeep), upkeep,
+    const upkeep = upkeepOf(derived);
+    return { ...frame, ...(plans ? { plans } : {}), gap, phase, journal, matched_until: matchedUntil(upkeep, phase), upkeep,
       adequacy: adequacyOf(derived, gap, phase), held: heldAt[index] };
   }) };
 };
