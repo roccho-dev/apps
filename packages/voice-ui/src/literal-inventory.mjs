@@ -114,8 +114,14 @@ export function literalQuestion(state, extracted) {
     recognized: extracted.recognized, required: extracted.required, spans: extracted.spans,
   } }, questions: { ...request.questions, intent: { ...request.questions.intent,
     instruction: request.questions.intent.instruction
-      + " A requested new part needs an explicit displayed name or identifiable offered part and a supported kind. A count alone does not identify a part. "
+      + " Judge the requested operation, not whether a label already appears in the picture. An explicit addition requests NEW instances; the existing group named as destination is only a parent reference. "
+      + "『AにBをN個追加』は既存のAの中へ新しいBをN個増やす要求です。AやBが既に存在しても、その追加要求は満たされていません。在庫不足と配置可否はこの意図判定とは別です。 "
+      + "A requested new part needs an explicit displayed name or identifiable offered part and a supported kind. A count alone does not identify a part. "
       + "Judge intent from the original utterance and existing graph, independently of literal transcription. An empty or partial state.literal is not by itself an ambiguous request; the completeness question evaluates that omission. Choose ambiguous only when the original request itself leaves an extra requested part, parent, endpoint or count impossible to uniquely understand.",
+    options: { ...request.questions.intent.options,
+      change: request.questions.intent.options.change + " 明確な追加または接続の要求。既存ノードと同じ名前の新規追加も含む。",
+      "no-change": "No change is requested, or a requested existing-state fact is already satisfied. An explicit request to ADD more instances is never satisfied merely by an existing matching label. 追加の指示がなく、変更不要な場合。",
+    },
   }, completeness: {
     instruction: "Independently compare ALL requested NEW parts in the original utterance with state.literal.required and its source spans. "
       + "Check exact displayed labels, kinds and total NEW counts, including inside new groups. Existing graph references are not requests for additional instances. "

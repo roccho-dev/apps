@@ -665,6 +665,22 @@ function grownSlot(records, current, parent, regionId, size, labelRoom) {
 const crowding = (box, other) => overlapping(box, [other[0] - BAND_PADDING, other[1] - BAND_PADDING,
   other[2] + 2 * BAND_PADDING, other[3] + 2 * BAND_PADDING]);
 
+// An empty new container needs a content area after it is saved. Reserve the
+// largest free rectangle at its legal origin, bounded by this parent's current
+// frame and siblings. This only sizes the new group; an existing group still
+// takes later children fit-or-none, without moving or resizing saved records.
+function emptyContainerBounds(bounds, frame, siblings) {
+  const [x, y, width, height] = bounds;
+  const rights = [frame[0] + frame[2] - BAND_PADDING,
+    ...siblings.map(box => box[0] - BAND_PADDING)].filter(right => right >= x + width);
+  const bottoms = [frame[1] + frame[3] - BAND_PADDING,
+    ...siblings.map(box => box[1] - BAND_PADDING)].filter(bottom => bottom >= y + height);
+  const choices = rights.flatMap(right => bottoms.map(bottom => [x, y, right - x, bottom - y]))
+    .filter(box => inside(frame, box) && siblings.every(other => !crowding(box, other)))
+    .sort((a, b) => b[2] * b[3] - a[2] * a[3] || b[2] - a[2]);
+  return choices[0] ?? bounds;
+}
+
 // Keep raw kernel legality and painted placement separate. Preview is pure:
 // the provider owns candidate dimensions; only our existing spacing is used.
 function additionSlot(working, parent, part, reserved, protocol, grows = false, expressive = false) {
@@ -725,8 +741,9 @@ function additionSlot(working, parent, part, reserved, protocol, grows = false, 
       boxes.map(box => box[0] + box[2] + BAND_PADDING));
     for (const y of ys) {
       for (const x of xs) {
-        const bounds = [x, y, size[2], size[3]];
+        let bounds = [x, y, size[2], size[3]];
         if (boxes.some(box => crowding(bounds, box))) continue;
+        if (expressive && part.kind === LANE_KIND) bounds = emptyContainerBounds(bounds, frame, boxes);
         const pinned = protocol.layoutBoundsFor([...records, { type: "layout", regionId, pin: "hard", bounds }], view);
         if (![parent.id, regionId, ...siblings.map(record => record.id)].every(id => validBox(pinned.bounds[id]))
           || !inside(pinned.bounds[parent.id], pinned.bounds[regionId])
