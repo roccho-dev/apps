@@ -10,6 +10,7 @@ import { assertNoSecretInputs, loadAcceptanceArtifact, assertCompactVerifierWire
 import { QUOTA_SOURCE_NAMES } from "../tests/quota-cycle-audit.mjs";
 import { QUOTA_METHODS, QUOTA_GENERATIONS, QUOTA_GOAL_POLICIES } from "../tests/quota-cycle-score.mjs";
 import { historicalBundleControl } from "./historical-bundle-control.mjs";
+import { amendBaselineG0Wire, G0_WIRE_AMENDMENT_SHA256 } from "./frontier-g0-wire-amendment.mjs";
 assertNoSecretInputs();
 const [artifact, out, previousArtifact, ...comparisonArguments] = process.argv.slice(2);
 assert.ok(process.argv.length === 5 || process.argv.length === 7);
@@ -215,8 +216,11 @@ try {
       } finally { currentRequest = null; }
     }
     if (axis === "V") assertCompactVerifierWire(pair[0].capture, pair[1].capture);
+    else if (axis === "G0") assert.deepEqual(pair[1].capture, amendBaselineG0Wire(pair[0].capture), "G0 upstream bytes after the registered r12 amendment");
     else assert.deepEqual(pair[1].capture, pair[0].capture);
-    wireEquality.push({ axis, status: axis === "V" ? "REGISTERED_COMPLETENESS_QUESTION_ONLY" : "UPSTREAM_BYTES_EQUAL",
+    wireEquality.push({ axis, status: axis === "V" ? "REGISTERED_COMPLETENESS_QUESTION_ONLY"
+      : axis === "G0" ? "UPSTREAM_BYTES_EQUAL_AFTER_REGISTERED_AMENDMENT" : "UPSTREAM_BYTES_EQUAL",
+      ...(axis === "G0" ? { amendment_sha256: G0_WIRE_AMENDMENT_SHA256 } : {}),
       request_body_sha256: hash(pair[1].capture.body_utf8), previous_request_body_sha256: hash(pair[0].capture.body_utf8),
       original_captures: pair.map((p, i) => ({ apps_sha: manifests[1 - i].value.sources.apps, ...p })) });
   }

@@ -1,8 +1,8 @@
 import assert from "node:assert/strict";
 import { createHash } from "node:crypto";
 
-// The frontier cycle compares the current G0 upstream bytes with the frozen
-// 664c8a8 baseline. r12 (9646eb9/b95e121) changed exactly three intent texts in
+// The frontier and quota cycles compare the current G0 (literal-v2) upstream
+// bytes with frozen baselines (664c8a8, 0aa3c4b). r12 (9646eb9/b95e121) changed exactly three intent texts in
 // literalQuestion (src/literal-inventory.mjs:141-147). This registered
 // amendment is the only admitted difference (apps#94, R 3/12): each original
 // text must occur exactly once in the baseline body, and after the three edits
