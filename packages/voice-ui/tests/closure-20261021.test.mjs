@@ -129,6 +129,13 @@ test("13: a judgment's gold is the gold set its sealed expectation names", () =>
   refuses("E_GOLD_SET", sealAtlas, judgments(where(record => record.verdict === "PASS", record => ({ ...record, gold_seal_sha256: sha }))));
 });
 
+test("5c: the JUDGE lane records evaluator-eligibility judgments as its own denominator", () => {
+  const judge = list => [...list, ...list.map(record => ({ ...record, lane: "JUDGE", step: ["8", "13"], counts_toward_end1: false }))];
+  accepts(judgments(judge));
+  refuses("E_DENOMINATOR", judgments(list => judge(list).filter(record => !(record.lane === "JUDGE" && record.item === "f1"))));
+  refuses("E_SHAPE", judgments(list => list.map(record => ({ ...record, lane: "SCORE" }))));
+});
+
 test("record shapes still refuse what they exist to refuse", () => {
   refuses("E_SHAPE", judgments(list => list.map(record => ({ ...record, judge: "W" }))));
   refuses("E_SHAPE", judgments(list => list.map(record => ({ ...record, round: 5 }))));

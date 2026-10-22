@@ -30,7 +30,7 @@
 ## 記録
 
 - **周回** `voice-ui.closure.cycle/1`：`cycle-open {cycle, seq, previous, at}` と `cycle-end {cycle, end: END1|END2, at}`。seq は 1 から連番で、前の周回が終端してからでないと次を開けない（`E_CYCLE_SEQ`・`E_CYCLE_OPEN_BEFORE_END`）。判定票と費用は開いた周回の中でだけ記録できる（`E_CYCLE_UNOPENED`・`E_CYCLE_TIME`）。round は周回ごとに 1 から欠けなく数え、上限は 4（`E_ROUND_GAP`）。cycle の名前を変えても回数は数え直せない。
-- **判定票** `voice-ui.closure.judgment/2`：`cycle`、`round`、`lane`（A・B・E2E）、`item`、`step`（§7、14 は 14a・14b）、`product {arm, apps, ui, receipts}`、`evaluator {arm, id, sha256}`、`expectation_sha256`、`gold_seal_sha256`、`verdict`、`judge: "R"`、`counts_toward_end1`、`source`、`at`。
+- **判定票** `voice-ui.closure.judgment/2`：`cycle`、`round`、`lane`（A・B・E2E・JUDGE。JUDGE は §9 の 4 項目め＝Jev 評価器の適格性を独立 Gold で測る別の分母）、`item`、`step`（§7、14 は 14a・14b）、`product {arm, apps, ui, receipts}`、`evaluator {arm, id, sha256}`、`expectation_sha256`、`gold_seal_sha256`、`verdict`、`judge: "R"`、`counts_toward_end1`、`source`、`at`。
   - `counts_toward_end1: true` は、`receipts` に apps（と ui があれば ui）の **その SHA の読み戻しの記録** があるときだけ（`E_END1_RECEIPT`）。記録が無ければ UNKNOWN で、参考にとどまる。
   - **R の義務（器では防げない）**：Nix の sandbox は GitHub に届かないので、verify は receipt の形と SHA の一致しか確かめられず、手で書いた偽の receipt を見抜けない。END1 に数える判定票を書くたびに、R がその場で `gh api repos/<repo>/commits/<sha>` を実行し、その応答から receipt を作る。他者が書いた receipt をそのまま使わない。
 - **費用** `voice-ui.closure.cost/2`：`calls` が数（0 を含む）なら `ledger {file, line, line_sha256}` が器の中の実在の行を bytes どおり引き、jev・typellm はその行の `phase-reconcile` の `sent` と数が一致する（`E_COST_LEDGER`・`E_COST_MISMATCH`）。引けないものは `"UNKNOWN"` で、0 として扱わない（§8-13）。
