@@ -282,6 +282,10 @@ export const verifyDirectory = dir => {
       return null;
     }
     if (!(time(match.sealed_at) < time(at))) fail("E_SEAL_LATE", where, `${target} sealed at ${match.sealed_at}, judged at ${at}`);
+    // A newer seal of the same target and set made before this judgment replaces the cited one.
+    const newer = ledger.seals.map(entry => entry.record).find(seal => seal.target === target && seal.set === match.set
+      && time(seal.sealed_at) > time(match.sealed_at) && time(seal.sealed_at) < time(at));
+    if (newer) fail("E_SEAL_SUPERSEDED", where, `${target} ${match.set} ${match.sha256} was replaced by ${newer.sha256} at ${newer.sealed_at}`);
     return match.ok ? match : null;
   };
 
