@@ -1,0 +1,64 @@
+{
+  "schema": "voice-ui.closure.gold/1",
+  "set": "atlas",
+  "authored_by": "R",
+  "source": {
+    "title": "Atlas World as drawn by the Atlas UI (last frame after-work-reobserved)",
+    "commit": "roccho-dev/apps 2c13d9196047bd420358ae0cebdd7eb2fc0d99cd",
+    "computation": "semanticScopeWorld(packages/atlas/fixtures/semantic-scopes.json, reduceClosure(packages/atlas/fixtures/purpose.jsonl, packages/atlas/fixtures/current.jsonl)); frames 2; this gold is frames[1] (10 entities, 12 relations: 6 drawn, 3 containment, 3 visible:false)",
+    "expectation_ref": "docs/voice-ui/expected-diagram-20261018/raws.jsonl:5 (atlas-reference) and :1 ('apps/Atlas相当の描画')",
+    "agreement": "apps#94 comment 6352666533 (W) and voice.R.jsonl R 7/200",
+    "read": "R ran the computation at the commit above on 2026-10-23"
+  },
+  "label_rule": "World labels have two lines (caption); a product label matches when it equals the first line exactly. First lines are unique in this frame. Area names match by the text before '：' (Purpose / Scope / Agent), singular or plural.",
+  "regions": [
+    { "id": "area-purpose", "label": "Purpose：現状と理想状態", "kind": "group", "parent": null },
+    { "id": "area-scopes", "label": "Scope：必要な意味差の責任単位", "kind": "group", "parent": null },
+    { "id": "area-agents", "label": "Agent：宣言された担当（合成・未観測）", "kind": "group", "parent": null },
+    { "id": "purpose", "label": "目的", "label_second": "例：証拠から引き継げる運用", "kind": "step", "parent": "area-purpose" },
+    { "id": "target", "label": "理想状態", "label_second": "t1：共有UI利用と独立証拠の両条件を満たす", "kind": "step", "parent": "area-purpose" },
+    { "id": "current", "label": "現状", "label_second": "post-observation@2", "kind": "step", "parent": "area-purpose" },
+    { "id": "group-none", "label": "担当なし", "label_second": "未割当・未確定", "kind": "group", "parent": "area-scopes" },
+    { "id": "group-history", "label": "閉じた差", "label_second": "履歴", "kind": "group", "parent": "area-scopes" },
+    { "id": "unassigned", "label": "未割当", "label_second": "criterion.recovery", "kind": "step", "parent": "group-none" },
+    { "id": "old-duty", "label": "旧義務：入力接続を実証する", "label_second": "旧義務・履歴", "kind": "step", "parent": "group-history" },
+    { "id": "delivery", "label": "共有UIの利用を閉じる責任", "label_second": "完了・履歴", "kind": "step", "parent": "group-history" },
+    { "id": "agent-w", "label": "fixture-W", "label_second": "担当・作業", "kind": "step", "parent": "area-agents" },
+    { "id": "agent-r", "label": "fixture-independent-R", "label_second": "評価", "kind": "step", "parent": "area-agents" }
+  ],
+  "relations": [
+    { "from": "target", "to": "purpose", "label": "理想状態", "drawn": true },
+    { "from": "old-duty", "to": "purpose", "label": "旧義務", "drawn": true },
+    { "from": "delivery", "to": "target", "label": "引受", "drawn": true },
+    { "from": "unassigned", "to": "target", "label": "未達", "drawn": true },
+    { "from": "current", "to": "target", "label": "差 1 件", "drawn": true },
+    { "from": "agent-w", "to": "delivery", "label": "担当", "drawn": true },
+    { "from": "current", "to": "unassigned", "label": "変化", "drawn": false },
+    { "from": "agent-w", "to": "current", "label": "作業", "drawn": false },
+    { "from": "agent-r", "to": "current", "label": "評価", "drawn": false }
+  ],
+  "containment_as_parent": [
+    "group-none contains unassigned",
+    "group-history contains old-duty",
+    "group-history contains delivery"
+  ],
+  "items": {
+    "r-areas": "present",
+    "r-purpose-column": "present",
+    "r-scope-groups": "present",
+    "r-agents": "present",
+    "r-target-purpose": "present",
+    "r-old-duty": "present",
+    "r-accept": "present",
+    "r-unmet": "present",
+    "r-gap": "present",
+    "r-owner": "present",
+    "f-reversed": "absent",
+    "f-misplaced-member": "absent",
+    "f-closure-internals": "absent",
+    "a-hidden-relations": "allowed"
+  },
+  "unknown": {
+    "u-first-frame": "The first frame (before-work, 9 entities, 10 relations) is the time history; the expectation does not ask for time evolution."
+  }
+}

@@ -1,0 +1,20 @@
+{
+  "schema": "voice-ui.ev-run.stock/1",
+  "set": "atlas",
+  "source": "R, from the sealed gold gold/atlas/gold.json: first-line labels and product kinds only (no parent, nesting or relation); area groups use the names W's T1 script uses (Purpose, Scopes, Agents). Oracle-A condition B only.",
+  "parts": [
+    { "label": "Purpose", "kind": "group" },
+    { "label": "Scopes", "kind": "group" },
+    { "label": "Agents", "kind": "group" },
+    { "label": "目的", "kind": "step" },
+    { "label": "理想状態", "kind": "step" },
+    { "label": "現状", "kind": "step" },
+    { "label": "担当なし", "kind": "group" },
+    { "label": "閉じた差", "kind": "group" },
+    { "label": "未割当", "kind": "step" },
+    { "label": "旧義務：入力接続を実証する", "kind": "step" },
+    { "label": "共有UIの利用を閉じる責任", "kind": "step" },
+    { "label": "fixture-W", "kind": "step" },
+    { "label": "fixture-independent-R", "kind": "step" }
+  ]
+}

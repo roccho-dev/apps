@@ -1,0 +1,34 @@
+{
+  "schema": "voice-ui.closure.expectation/1",
+  "id": "atlas-world-final-frame",
+  "version": 1,
+  "status": "candidate",
+  "source": {
+    "text": "期待図を描く。そのために必要な部品を選定し状態更新できること。提示2図相当の表現力、apps/Atlas相当の描画、それを音声で素早く操作できること。Atlas：apps 2c13d919 の Atlas UI が描く World（最後の frame）。",
+    "ref": "docs/voice-ui/expected-diagram-20261018/raws.jsonl:1 and :5; scope agreed in apps#94 comment 6352666533 and voice.R.jsonl R 7/200"
+  },
+  "gold_set": "atlas",
+  "required": [
+    { "id": "r-areas", "claim": "Purpose・Scope・Agent の 3 つの領域（group）がある", "step": ["4", "9"] },
+    { "id": "r-purpose-column", "claim": "Purpose の領域に 目的・理想状態・現状 がある", "step": ["4", "9"] },
+    { "id": "r-scope-groups", "claim": "Scope の領域に 担当なし（中に 未割当）と 閉じた差（中に 旧義務：入力接続を実証する・共有UIの利用を閉じる責任）の 2 つの group がある", "step": ["4", "9"] },
+    { "id": "r-agents", "claim": "Agent の領域に fixture-W と fixture-independent-R がある", "step": ["4", "9"] },
+    { "id": "r-target-purpose", "claim": "理想状態→目的「理想状態」の有向の関係", "step": ["4", "9"] },
+    { "id": "r-old-duty", "claim": "旧義務：入力接続を実証する→目的「旧義務」の有向の関係", "step": ["4", "9"] },
+    { "id": "r-accept", "claim": "共有UIの利用を閉じる責任→理想状態「引受」の有向の関係", "step": ["4", "9"] },
+    { "id": "r-unmet", "claim": "未割当→理想状態「未達」の有向の関係", "step": ["4", "9"] },
+    { "id": "r-gap", "claim": "現状→理想状態「差 1 件」の有向の関係", "step": ["4", "9"] },
+    { "id": "r-owner", "claim": "fixture-W→共有UIの利用を閉じる責任「担当」の有向の関係", "step": ["4", "9"] }
+  ],
+  "forbidden": [
+    { "id": "f-reversed", "claim": "どれかの関係の向きを逆にする", "step": ["4", "9"] },
+    { "id": "f-misplaced-member", "claim": "group の中身を別の group や領域に置く", "step": ["4", "9"] },
+    { "id": "f-closure-internals", "claim": "Atlas の page が描かない閉包の内部（receipt・residual など）を部品として足す", "step": ["4", "9"] }
+  ],
+  "allowed": [
+    { "id": "a-hidden-relations", "claim": "page が描かない 3 本（現状→未割当「変化」、fixture-W→現状「作業」、fixture-independent-R→現状「評価」）は、描いても描かなくてもよい", "step": ["4", "9"] }
+  ],
+  "unknown": [
+    { "id": "u-first-frame", "question": "最初の frame（before-work）の時間の推移を図に求めるか" }
+  ]
+}
