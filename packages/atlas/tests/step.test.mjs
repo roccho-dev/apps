@@ -204,6 +204,31 @@ test('C5 stage 1: an owner evaluation the ledger holds counts only when this rea
   }
 });
 
+// R's dry-run on the HQ data (adrs#647 c6339405812): a real reading stamps each fact with the time it was read, so a
+// run without --at must take its time after reading, or every fact is "observed after it was recorded".
+test('run.mjs without at takes the time after reading: facts stamped at their read time pass', async () => {
+  need(run);
+  const now = async () => { await new Promise(resolve => setTimeout(resolve, 5)); return new Date().toISOString(); };
+  const live = Object.freeze({
+    snapshots: async () => {
+      const read = snapshots.map(value => structuredClone(value));
+      const ports = read.find(value => value.name === 'ports.json').snapshot;
+      const at = await now();
+      ports.probes = ports.probes.map(probe => ({ ...probe, observedAt: at }));
+      return read;
+    },
+    owner: async () => { const at = await now(); return ownerComments.map(comment => ({ ...comment })).concat([{ ...ownerComments[0], id: 7100, created_at: at, updated_at: at }]); },
+  });
+  await within(async dir => {
+    const at = name => path.join(dir, name);
+    const receipt = await run.run({ sources, ledger: at('ledger.jsonl'), world: at('world.json'), held: at('held.jsonl'), control: fixture('control.jsonl') }, live);
+    assert.equal(receipt.status, 'PASS');
+    const stamped = readFileSync(at('ledger.jsonl'), 'utf8').trim().split('\n').slice(1).map(line => JSON.parse(line))
+      .filter(row => row.event.kind === 'observation' && row.event.target.endsWith(':port'));
+    assert.ok(stamped.length > 0 && stamped.every(row => Date.parse(row.event.observedAt) <= Date.parse(receipt.at)), 'every port fact is at or before the run\'s time');
+  });
+});
+
 test('v4: run.mjs has no --current option', () => {
   assert.throws(() => execFileSync(process.execPath, [file('../run.mjs'), '--current=P=x.jsonl'], { encoding: 'utf8', stdio: 'pipe' }),
     error => /Unknown option '--current'/u.test(String(error.stderr)));
