@@ -43,15 +43,23 @@ test('existing journal/plan extraction reads the cold bodies; provenance is the 
   assert.ok(events.every(event => !('admission' in event) && !('status' in event)));
 });
 
-test('live.mjs builds world.json from cold G events alone (no ledger); the same commit gives the same events and World', t => {
+// v4 (adrs#647 c6335921034, #6・#9; c6338759407): a decision comes only from P's declaration, so the Purpose is
+// given as P's D-form declaration (the same purpose.set / ideal.set) and the cold rows' decisions are held as
+// decision-from-comment, still named by the document and the cold row's content digest.
+const DECLARED = collect(normalize(snapshot), '2026-10-18T06:00:00Z').filter(event => ['purpose.set', 'ideal.set'].includes(event.kind))
+  .map(({ source, ...event }) => JSON.stringify({ ...event, source: { ref: 'hq:decl/purpose.jsonl', digest: source.sha256 } })).join('\n') + '\n';
+
+test('live.mjs builds world.json from cold G events (no ledger) and P\'s declaration; the same commit gives the same events and World', t => {
   const build = () => {
     const dir = mkdtempSync(fileURLToPath(new URL('./cold-out-', import.meta.url)));
     t.after(() => rmSync(dir, { recursive: true, force: true }));
     mkdirSync(path.join(dir, 'snap'));
     writeFileSync(path.join(dir, 'snap', 'cold-0.json'), JSON.stringify(snapshot));
+    writeFileSync(path.join(dir, 'purpose.jsonl'), DECLARED);
     // No --recorded-at: a cold collection is dated by its commit, so rebuilding it is reproducible.
     execFileSync(process.execPath, [file('../collect/collect.mjs'), path.join(dir, 'snap'), '--out', path.join(dir, 'g.jsonl')]);
-    const receipt = JSON.parse(execFileSync(process.execPath, [file('../live.mjs'), '--out-dir=' + path.join(dir, 'out'), path.join(dir, 'g.jsonl')], { encoding: 'utf8' }));
+    const receipt = JSON.parse(execFileSync(process.execPath, [file('../live.mjs'), '--out-dir=' + path.join(dir, 'out'), '--purpose=' + path.join(dir, 'purpose.jsonl'),
+      path.join(dir, 'g.jsonl')], { encoding: 'utf8' }));
     return { receipt, events: readFileSync(path.join(dir, 'g.jsonl'), 'utf8'), world: readFileSync(path.join(dir, 'out', 'world.json'), 'utf8') };
   };
   const first = build(), second = build();
@@ -61,6 +69,8 @@ test('live.mjs builds world.json from cold G events alone (no ledger); the same 
   assert.ok(first.receipt.inputs.every(input => !input.path.includes('ledger')), 'no ledger is read');
   const world = JSON.parse(first.world);
   assert.deepEqual([world.frames.length, world.frames[0].phase, world.frames[0].gap.basis.purpose_id], [1, 'approximating', 'purpose.cold']);
-  // The World names the document (owner/repo#n, comment) and the cold row's content digest.
-  assert.ok(world.frames[0].journal.every(entry => entry.kind === 'observation' || (entry.source.ref === 'roccho-dev/adrs#647' && entry.source.sha256 === CONTENT)));
+  assert.ok(world.frames[0].journal.every(entry => entry.kind === 'observation' || entry.source.ref === 'hq:decl/purpose.jsonl'), 'the decisions are P\'s');
+  // The cold rows' decisions are held, named by the document (owner/repo#n, comment) and the cold row's content digest.
+  assert.deepEqual(world.frames[0].held.map(entry => [entry.reason, entry.kind, entry.source.ref, entry.source.sha256]),
+    [['decision-from-comment', 'purpose.set', 'roccho-dev/adrs#647', CONTENT], ['decision-from-comment', 'ideal.set', 'roccho-dev/adrs#647', CONTENT]]);
 });

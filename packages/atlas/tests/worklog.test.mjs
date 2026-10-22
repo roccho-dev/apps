@@ -91,7 +91,10 @@ test('through the unchanged reducer: reports are facts in the journal, never an 
   const text = readFileSync(fileURLToPath(new URL('../collect/fixtures/cold/decisions.jsonl', import.meta.url)), 'utf8');
   const purpose = normalize({ type: 'cold', repo: 'roccho-dev/adrs', commit: '94a51c3a', path: 'decisions/synthetic.jsonl', committedAt: RECORDED, fetchedAt: RECORDED, sha256: null, text });
   const events = collect([...purpose, thread([doc([{ kind: 'work.created', work_id: 'wl2' }]), doc([{ kind: 'work.terminal', work_id: 'wl2', terminal: 'done' }], { at: '2026-10-18T03:00:00Z' })])], RECORDED, ALLOWED);
-  const world = contractWorld(deriveAtlas(joinLog('', [toJsonl(events)]).log, '{"schema":"atlas.control-norms/1","authority":false}\n'));
+  // v4 (adrs#647 c6335921034): the Purpose is P's declaration (the same purpose.set / ideal.set as the cold rows).
+  const declared = events.filter(event => ['purpose.set', 'ideal.set'].includes(event.kind))
+    .map(({ source, ...event }) => JSON.stringify({ ...event, source: { ref: 'hq:decl/purpose.jsonl', digest: source.sha256 } })).join('\n') + '\n';
+  const world = contractWorld(deriveAtlas(joinLog(declared, [toJsonl(events)]).log, '{"schema":"atlas.control-norms/1","authority":false}\n'));
   const frame = world.frames.at(-1);
   assert.deepEqual(frame.journal.filter(entry => entry.kind === 'observation' && entry.target.id === 'work:wl2').map(entry => entry.value), ['created', 'reported-done']);
   // No declared condition watches work:wl2, so nothing is satisfied or closed because the work "is done".
