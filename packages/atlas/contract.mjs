@@ -221,13 +221,23 @@ export const heldEntries = (frames, all = []) => {
  * fields, authority false (P's claim) and its source. One that entered after the last frame waits for the next
  * frame (only counted until then), as an unbound plan or a held row does; none is put into an earlier frame.
  */
+// A record P replaced (adrs#647 W c6350841730, R c6350853997): known from every p.supersede the ledger holds, placed
+// or not yet, so its text leaves the World's data at the run the replacement enters the ledger, not at the next frame.
+// It goes out in one closed form — the common fields, its source and superseded_by — in every frame it is placed in.
+// A replacement that is itself replaced keeps its effect: a text once taken out never comes back (condition 2).
+// The ledger keeps every row as written; only the World is drawn again from it.
+const REDACTED = ['schema', 'id', 'kind', 'at', 'series', 'ref'];
 export const pRecordsAt = (frames, events = []) => {
+  const supersededBy = new Map(events.filter(event => event.record?.kind === 'p.supersede').map(event => [event.record.replaces, event.record.by]));
   const placed = frames.map(() => []);
   let unplaced = 0;
   for (const event of [...events].sort((a, b) => Date.parse(a.recordedAt) - Date.parse(b.recordedAt))) {
     const index = frames.findIndex(frame => Date.parse(event.recordedAt) <= Date.parse(frame.asOf));
     if (index < 0) { unplaced += 1; continue; }
-    placed[index].push({ ...event.record, authority: false, source: { ref: event.source.ref, sha256: event.source.sha256, line: event.source.line } });
+    const source = { ref: event.source.ref, sha256: event.source.sha256, line: event.source.line };
+    placed[index].push(supersededBy.has(event.record.id)
+      ? { ...Object.fromEntries(REDACTED.map(key => [key, event.record[key]])), authority: false, source, superseded_by: supersededBy.get(event.record.id) }
+      : { ...event.record, authority: false, source });
   }
   return { placed, unplaced };
 };
