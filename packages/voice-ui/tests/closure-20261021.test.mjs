@@ -165,10 +165,16 @@ test("the expectation rules keep UNKNOWN, identities and the filled state honest
   assert.notDeepEqual(validateExpectation({ ...filled, unknown: undefined }), []);
 });
 
-test("the vessel keeps the presented diagrams and the whole Atlas as unfilled gold sets", () => {
+test("the vessel keeps both presented diagrams and the whole Atlas; each sealed set matches its gold seal", () => {
   const sets = JSON.parse(readFileSync(vessel + "gold/sets.json", "utf8"));
   assert.deepEqual(sets.sets.map(set => set.id).sort(), ["atlas", "presented-1", "presented-2"]);
-  assert.ok(sets.sets.every(set => set.status === "unfilled" && set.seal_sha256 === null));
+  const seals = records(vessel, "ledgers/seals.jsonl").filter(seal => seal.target === "gold");
+  for (const set of sets.sets) {
+    if (set.status === "unfilled") { assert.equal(set.seal_sha256, null, set.id); continue; }
+    assert.equal(set.status, "sealed", set.id);
+    assert.ok(seals.some(seal => seal.set === set.id && seal.sha256 === set.seal_sha256), `${set.id} names a recorded gold seal`);
+  }
+  assert.equal(sets.sets.find(set => set.id === "atlas").status, "unfilled", "Atlas is not sealed yet");
 });
 
 test("malformed JSONL lines are reported with their line numbers", () => {
