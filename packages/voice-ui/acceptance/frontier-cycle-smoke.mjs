@@ -11,7 +11,7 @@ import { assertNoSecretInputs, loadAcceptanceArtifact, assertCompactVerifierWire
 import { gradeInitialPolicy, readFrontierInspection, validRequirements, validFactors, decodeRequiredSlots, sameRequirements, verifierDecision } from "../tests/frontier-cycle-score.mjs";
 import { FRONTIER_SOURCE_NAMES } from "../tests/frontier-cycle-audit.mjs";
 import { historicalBundleControl } from "./historical-bundle-control.mjs";
-import { amendBaselineG0Body, G0_WIRE_AMENDMENT_SHA256 } from "./frontier-g0-wire-amendment.mjs";
+import { amendBaselineG0Wire, G0_WIRE_AMENDMENT_SHA256 } from "./frontier-g0-wire-amendment.mjs";
 assertNoSecretInputs();
 const [artifact, out, baselineArtifact, ...comparisonArguments] = process.argv.slice(2);
 assert.ok(process.argv.length === 5 || process.argv.length === 7);
@@ -322,7 +322,7 @@ try {
         } finally { currentRequest = null; }
       }
       if (axis === "V") assertCompactVerifierWire(pair[0].wire, pair[1].wire);
-      else if (axis === "G0") assert.deepEqual(pair[1].wire, { ...pair[0].wire, body_utf8: amendBaselineG0Body(pair[0].wire.body_utf8) },
+      else if (axis === "G0") assert.deepEqual(pair[1].wire, amendBaselineG0Wire(pair[0].wire),
         "completed G0 exact upstream bytes after the registered r12 amendment " + axis + "/" + item.id);
       else assert.deepEqual(pair[1].wire, pair[0].wire, "completed G0/F exact upstream bytes " + axis + "/" + item.id);
       if (axis === "G0") {

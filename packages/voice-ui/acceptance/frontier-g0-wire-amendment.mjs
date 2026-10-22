@@ -39,4 +39,12 @@ export function amendBaselineG0Body(body) {
   return amended;
 }
 
+// A captured upstream request: the raw body and, beside it, the same body parsed.
+// Both views carry the amendment; every other field stays the baseline's.
+export function amendBaselineG0Wire(wire) {
+  const body_utf8 = amendBaselineG0Body(wire.body_utf8);
+  assert.deepEqual(wire.wire, JSON.parse(wire.body_utf8), "the parsed view is the baseline body");
+  return { ...wire, body_utf8, wire: JSON.parse(body_utf8) };
+}
+
 export const G0_WIRE_AMENDMENT = AMENDMENT;
