@@ -13,16 +13,28 @@ import { assertNoSecretInputs } from "../tests/runtime-acceptance.mjs";
 // screenshots at the normal and wide viewports, every upstream request and the
 // stop reason. It grades nothing; R judges from these files (§8-12).
 //
-// node ev-run.mjs --dist <dir> --script <json> --out <dir> --mode offline
-//   [--stock <json>] [--max-steps N] [--max-jev N] [--max-typellm N] [--minutes N]
+// node ev-run.mjs --dist <dir> --script <json> --out <dir> --mode offline|live
+//   [--target http://127.0.0.1:<port>] [--stock <json>] [--max-steps N] [--max-jev N] [--max-typellm N] [--minutes N]
 //
-// Only --mode offline exists here: every upstream answer is synthetic and no
-// credential is read. A live mode is added only after the User's permission.
+// offline: this runner serves the dist and answers every upstream request synthetically.
+// live (User, apps#94 comment 6337736268): the runner never holds a credential. It drives
+// the page an already running credential holder serves at a loopback --target (the
+// existing envs route, `voice-ui-typed-dev`, which decrypts in its own child and
+// enforces its own Jev/TypeLLM allowances and journal). --dist is the same SHA's dist,
+// used only for the protocol module, the bundle and the manifest identity.
 
 const args = Object.fromEntries(process.argv.slice(2).reduce((pairs, value, index, all) =>
   index % 2 === 0 ? [...pairs, [value.replace(/^--/u, ""), all[index + 1]]] : pairs, []));
 for (const name of ["dist", "script", "out", "mode"]) assert.ok(typeof args[name] === "string", `--${name} is required`);
-assert.equal(args.mode, "offline", "only the offline mode exists before the User's permission for live calls");
+assert.ok(["offline", "live"].includes(args.mode), "mode is offline|live");
+const live = args.mode === "live";
+assert.equal(live, typeof args.target === "string", "--target is given exactly in live mode");
+if (live) {
+  const target = new URL(args.target);
+  assert.ok(target.protocol === "http:" && target.hostname === "127.0.0.1" && target.pathname === "/" && target.origin + "/" === args.target.replace(/\/?$/u, "/"),
+    "--target is a loopback origin");
+}
+// Neither mode receives a provider credential in this process.
 assertNoSecretInputs();
 for (const name of ["dist", "script", "out", ...(args.stock ? ["stock"] : [])]) assert.ok(path.isAbsolute(args[name]), `--${name} is absolute`);
 const limit = (name, fallback) => {
@@ -77,7 +89,7 @@ const syntheticChoice = (name, criteria) => {
   return options.includes("unknown") ? "unknown" : options[0];
 };
 const originalFetch = globalThis.fetch;
-globalThis.fetch = async (url, init) => {
+if (!live) globalThis.fetch = async (url, init) => {
   assert.ok(input !== null, "no unbound upstream request");
   const wire = JSON.parse(init.body), auth = init.headers.authorization;
   const provider = auth === "Bearer fixture-type-only" ? "typellm" : auth === "Bearer fixture-jev-only" ? "jev" : null;
@@ -130,8 +142,35 @@ const server = http.createServer(async (req, res) => {
 fs.mkdirSync(out, { recursive: true });
 const files = [];
 const write = (name, bytes) => { fs.writeFileSync(path.join(out, name), bytes); files.push({ path: name, bytes: Buffer.byteLength(bytes), sha256: hash(bytes) }); };
-await new Promise(resolve => server.listen(0, "127.0.0.1", resolve));
-const origin = "http://127.0.0.1:" + server.address().port;
+if (!live) await new Promise(resolve => server.listen(0, "127.0.0.1", resolve));
+const origin = live ? new URL(args.target).origin : "http://127.0.0.1:" + server.address().port;
+// The served page must be the --dist SHA's site (R 2/200, apps#157): every byte the page loads is compared with
+// the dist manifest row of the same site path, and in live mode a preflight first fetches the core files
+// from the target. A difference refuses the run, so no result is bound to a different arm.
+const manifestRows = new Map(manifest.files.map(row => [row.path, row]));
+const siteRow = pathname => manifestRows.get("site/" + (pathname === "/" ? "index.html" : decodeURIComponent(pathname.slice(1))));
+const served = [], servedMismatch = [];
+const checkServed = (phase, pathname, status, body) => {
+  const row = siteRow(pathname), sha256 = hash(body);
+  const entry = { phase, pathname, status, sha256, manifest_sha256: row?.sha256 ?? null, equal: row?.sha256 === sha256 };
+  served.push(entry);
+  if (status === 200 && !entry.equal) servedMismatch.push(entry);
+};
+if (live) {
+  const core = manifest.files.map(row => row.path).filter(file => ["site/index.html", "site/app.mjs", "site/ui/semantic-map/protocol/index.js"].includes(file)
+    || ["site/data/", "site/app/src/", "site/adapters/"].some(prefix => file.startsWith(prefix)));
+  assert.ok(core.includes("site/index.html") && core.includes("site/app.mjs") && core.some(file => file.startsWith("site/app/src/")), "the dist lists its core site files");
+  for (const file of core) {
+    const pathname = file === "site/index.html" ? "/" : "/" + file.slice("site/".length);
+    const response = await originalFetch(origin + pathname, { cache: "no-store" });
+    checkServed("preflight", pathname, response.status, Buffer.from(await response.arrayBuffer()));
+    if (response.status !== 200) servedMismatch.push({ phase: "preflight", pathname, status: response.status, equal: false });
+  }
+  if (servedMismatch.length) {
+    fs.writeFileSync(path.join(out, "served-identity.json"), JSON.stringify({ target: origin, sources: manifest.sources, served, servedMismatch }, null, 2) + "\n");
+    assert.fail(`the target does not serve the --dist SHA ${manifest.sources.apps}: ${servedMismatch.length} differing file(s), see served-identity.json`);
+  }
+}
 const browser = await chromium.launch({ headless: true, channel: "chromium" });
 const started = Date.now(), lines = [];
 let stop = { reason: "script-complete" }, final = null, reloaded = null, applyState = null;
@@ -143,7 +182,38 @@ try {
   const context = await browser.newContext({ viewport: { width: 1280, height: 720 }, deviceScaleFactor: 1 });
   const page = await context.newPage(), errors = [];
   page.on("pageerror", error => errors.push(String(error)));
-  await page.route("**/*", route => new URL(route.request().url()).origin === origin ? route.continue() : route.abort());
+  await page.route("**/*", route => {
+    const url = new URL(route.request().url());
+    if (url.origin !== origin) return route.abort();
+    // B in live mode: the same fixed stock is served at the ordinary bundle URL.
+    if (live && url.pathname === "/data/bundle.v1.json" && stock)
+      return route.fulfill({ status: 200, headers: { "content-type": "application/json", "cache-control": "no-store" }, body: servedBundle });
+    return route.continue();
+  });
+  // Every site file the page loads is checked against the dist; in live mode every product API call
+  // and its response body are kept, as the page saw them.
+  page.on("response", async response => {
+    const url = new URL(response.url());
+    if (url.origin !== origin) return;
+    if (!url.pathname.startsWith("/api/")) {
+      // The fixed B stock is this runner's own route, not the target's bytes.
+      if (stock && url.pathname === "/data/bundle.v1.json") return;
+      // Some bodies (an iframe document, a stylesheet) are not readable from the page's response;
+      // those are fetched again from the same origin and path, and the phase says so.
+      const read = await response.body().then(body => ({ body, phase: "page" }), () => null);
+      const again = read ?? await originalFetch(origin + url.pathname, { cache: "no-store" })
+        .then(async fetched => ({ body: Buffer.from(await fetched.arrayBuffer()), phase: "page-refetched" }));
+      checkServed(again.phase, url.pathname, response.status(), again.body);
+      return;
+    }
+    if (!live) return;
+    // The script line is taken when the response arrives, before its body is read.
+    const entry = { line, route: url.pathname + url.search, status: response.status(), file: `api-${String(api.length).padStart(4, "0")}.json` };
+    api.push(entry);
+    const body = await response.body().catch(() => Buffer.alloc(0));
+    entry.body_sha256 = hash(body);
+    write(entry.file, body);
+  });
   await page.addInitScript(([storageKey, log]) => { if (!localStorage.getItem(storageKey)) localStorage.setItem(storageKey, log); }, [key, initial.log]);
   const settle = () => page.waitForFunction(() => document.body.dataset.state && document.body.dataset.state !== "pending"
     && document.querySelector("#goal-cancel").hidden, null, { timeout: caps.minutes * 60000 });
@@ -197,17 +267,21 @@ try {
   assert.deepEqual(errors, []);
   await context.close();
 } finally {
-  await browser.close(); await new Promise(resolve => server.close(resolve)); globalThis.fetch = originalFetch;
+  await browser.close(); if (!live) await new Promise(resolve => server.close(resolve)); globalThis.fetch = originalFetch;
 }
 assert.deepEqual(serverErrors, []);
-const receipt = { schema: "voice-ui.ev-run/1", mode: args.mode, live_provider: "NOT_RUN", scope: "SYNTHETIC_MECHANICS_ONLY",
+const receipt = { schema: "voice-ui.ev-run/1", mode: args.mode, target: live ? origin : null,
+  live_provider: live ? "VIA_TARGET (provider sends are the credential holder's journal, not counted here)" : "NOT_RUN",
+  scope: live ? "LIVE_PRODUCT_RUN_UNGRADED" : "SYNTHETIC_MECHANICS_ONLY",
   sources: manifest.sources, manifest_sha256: hash(manifestBytes), apply: applyState,
   script: { set: script.set, condition: script.condition, lines: script.utterances.length, sha256: hash(scriptBytes) },
   stock_sha256: stockBytes ? hash(stockBytes) : null, served_bundle_sha256: hash(servedBundle), caps, stop,
   // Caps are checked between script lines only; one line's Goal may run up to its own request limit past a cap (R 2/12).
   cap_check: "between-lines; a single Goal may overshoot a cap by up to its own per-Goal request limit",
   elapsed_ms: Date.now() - started, lines, calls: { jev: upstream.filter(c => c.provider === "jev").length,
-    typellm: upstream.filter(c => c.provider === "typellm").length }, api, upstream, files };
+    typellm: upstream.filter(c => c.provider === "typellm").length }, api, upstream, files,
+  served_identity: { apps: manifest.sources.apps, checked: served.length, mismatches: servedMismatch, served } };
 fs.writeFileSync(path.join(out, "receipt.json"), JSON.stringify(receipt, null, 2) + "\n");
+assert.deepEqual(servedMismatch, [], "every site byte the page loaded is the --dist SHA's");
 console.log(JSON.stringify({ status: "DONE", mode: args.mode, set: script.set, condition: script.condition, stop, lines: lines.length,
   calls: receipt.calls, files: files.length }));
