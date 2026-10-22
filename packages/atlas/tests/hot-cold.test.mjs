@@ -17,12 +17,14 @@ const req = { id: 'merged', label: 'PR が入る', predicate: { target: { kind: 
 const BODY = 'synthetic minimal input\n' + block([
   { kind: 'purpose.set', recordedAt: '2026-10-08T07:00:00Z', purpose: { id: 'purpose.602', label: 'hot と cold を合わせる' }, rev: 'r1' },
   { kind: 'ideal.set', recordedAt: '2026-10-08T07:00:00Z', purpose_id: 'purpose.602', purpose_rev: 'r1', version: 'v1', requires: [req] }]);
-const evaluated = (at, note) => block([{ kind: 'purpose.evaluated', recordedAt: at, purpose_id: 'purpose.602', purpose_rev: 'r1', ideal_version: 'v1', verdict: 'not-yet', note }]);
+// The sample decision in a comment is an ideal.drafting (an evaluation in a comment is held since C5 stage 1, adrs#647
+// v4); its version names the copy.
+const drafting = (at, version) => block([{ kind: 'ideal.drafting', recordedAt: at, purpose_id: 'purpose.602', version }]);
 const SAME = 6055158360, EDITED = 6055246129, HOT_ONLY = 6055329139;
 const docs = {
   body: { id: ISSUE_ID, at: '2026-10-08T07:00:00Z', text: BODY },
-  same: { id: SAME, at: '2026-10-08T07:42:28Z', text: evaluated('2026-10-08T07:42:00Z', 'in both') },
-  edited: { id: EDITED, at: '2026-10-08T08:00:00Z', text: evaluated('2026-10-08T08:00:00Z', 'as captured') },
+  same: { id: SAME, at: '2026-10-08T07:42:28Z', text: drafting('2026-10-08T07:42:00Z', 'in-both') },
+  edited: { id: EDITED, at: '2026-10-08T08:00:00Z', text: drafting('2026-10-08T08:00:00Z', 'as-captured') },
 };
 
 // cold: adr_raw_event.v1 rows in the github_api.py form (content_sha256 = coldDigest of the payload).
@@ -42,9 +44,9 @@ const comment = ({ id, at, text }) => ({ id, updated_at: at, user: { login: 'roc
 const hotWith = (edit, fetchedAt = '2026-10-18T08:00:00Z') => normalize({ type: 'issue', owner: 'roccho-dev', repo: 'adrs', number: NUMBER, fetchedAt, responses: {
   issue: { sha256: 'sha256:' + '1'.repeat(64), data: { id: ISSUE_ID, updated_at: docs.body.at, user: { login: 'roccho-dev' }, body: BODY } },
   comments: { sha256: 'sha256:' + '2'.repeat(64), data: [[comment(docs.same),
-    comment({ id: EDITED, at: '2026-10-10T00:00:00Z', text: evaluated('2026-10-08T08:00:00Z', edit) }),
-    comment({ id: HOT_ONLY, at: '2026-10-11T00:00:00Z', text: evaluated('2026-10-11T00:00:00Z', 'hot only') })]] } } });
-const hot = hotWith('edited after the capture');
+    comment({ id: EDITED, at: '2026-10-10T00:00:00Z', text: drafting('2026-10-08T08:00:00Z', edit) }),
+    comment({ id: HOT_ONLY, at: '2026-10-11T00:00:00Z', text: drafting('2026-10-11T00:00:00Z', 'hot-only') })]] } } });
+const hot = hotWith('edited-after-capture');
 
 const decisions = log => log.trim().split('\n').slice(1).map(text => JSON.parse(text)).filter(event => event.kind !== 'observation');
 const check = ({ log, held }) => {
@@ -52,13 +54,13 @@ const check = ({ log, held }) => {
   // ① one row per document, from cold: the body's purpose.set / ideal.set and the comment in both.
   assert.deepEqual(list.filter(event => event.kind === 'purpose.set').map(event => event.source.digest), [contentOf(docs.body, true)]);
   assert.deepEqual(list.filter(event => event.kind === 'ideal.set').map(event => event.source.digest), [contentOf(docs.body, true)]);
-  assert.deepEqual(of(SAME).map(event => [event.note, event.source.digest]), [['in both', contentOf(docs.same)]]);
+  assert.deepEqual(of(SAME).map(event => [event.version, event.source.digest]), [['in-both', contentOf(docs.same)]]);
   // ③ a hot document whose content differs from cold is held as superseded-by-cold; cold stays.
-  assert.deepEqual(of(EDITED).map(event => [event.note, event.source.digest]), [['as captured', contentOf(docs.edited)]]);
-  assert.deepEqual(held.filter(value => value.reason === 'superseded-by-cold').map(value => [value.journal.source.commentId, value.journal.note]),
-    [[EDITED, 'edited after the capture']]);
+  assert.deepEqual(of(EDITED).map(event => [event.version, event.source.digest]), [['as-captured', contentOf(docs.edited)]]);
+  assert.deepEqual(held.filter(value => value.reason === 'superseded-by-cold').map(value => [value.journal.source.commentId, value.journal.version]),
+    [[EDITED, 'edited-after-capture']]);
   // ④ a document only hot has stays.
-  assert.deepEqual(of(HOT_ONLY).map(event => event.note), ['hot only']);
+  assert.deepEqual(of(HOT_ONLY).map(event => event.version), ['hot-only']);
   // reduce still builds a World.
   assert.ok(contractWorld(deriveAtlas(log, CONTROL)).frames.length > 0);
 };
@@ -85,14 +87,14 @@ test('② ledger, hot first and cold later: the earlier frame keeps the hot sour
   assert.deepEqual(purposeShaAt(world, T1), [hotDigest]); // not rewritten to the cold digest
   // The decision is not added again on 10-19; the confirmation is, per document cold has and hot read the same.
   const later = world.frames.find(frame => frame.asOf === T2).journal;
-  assert.deepEqual(later.filter(entry => entry.kind !== 'observation').map(entry => [entry.kind, entry.source.commentId, entry.note ?? null]),
-    [['purpose.evaluated', EDITED, 'as captured']]);
+  assert.deepEqual(later.filter(entry => entry.kind !== 'observation').map(entry => [entry.kind, entry.source.commentId, entry.ideal_version ?? null]),
+    [['ideal.drafting', EDITED, 'as-captured']]);
   assert.deepEqual(later.filter(entry => entry.kind === 'observation').map(entry => [entry.target.id, entry.value]), [
     [`confirmed:${REPO}#${NUMBER}:body`, `${REPO}@94a51c3a:decisions/hot-cold.jsonl`],
     [`confirmed:${REPO}#${NUMBER}:${SAME}`, `${REPO}@94a51c3a:decisions/hot-cold.jsonl`]]);
-  // Later hot rows that rely on the hot decision (an evaluation of that Purpose) are not refused by D.
+  // Later hot rows that rely on the hot decision (a drafting of that Purpose) are not refused by D.
   const { log, held } = fromLedger(second.rows);
-  assert.deepEqual(decisions(log).filter(event => event.kind === 'purpose.evaluated').map(event => event.note), ['in both', 'edited after the capture', 'hot only', 'as captured']);
+  assert.deepEqual(decisions(log).filter(event => event.kind === 'ideal.drafting').map(event => event.version), ['in-both', 'edited-after-capture', 'hot-only', 'as-captured']);
   assert.deepEqual(held.filter(value => /superseded|not declared/u.test(value.reason)), []);
 });
 
@@ -100,9 +102,9 @@ test('② a hot row read after cold confirmed the document is held as superseded
   const T3 = '2026-10-20T09:00:00.000Z';
   // An unchanged hot re-read is no change for the ledger.
   assert.deepEqual(appendEvents(second.rows, toJsonl(collect(hot, T3)), T3).appended.filter(row => row.event.kind !== 'plan.set').length, 0);
-  const third = appendEvents(second.rows, toJsonl(collect(hotWith('edited again', '2026-10-20T08:00:00Z'), T3)), T3);
+  const third = appendEvents(second.rows, toJsonl(collect(hotWith('edited-again', '2026-10-20T08:00:00Z'), T3)), T3);
   const { log, held } = fromLedger(third.rows);
-  assert.deepEqual(held.filter(value => value.reason === 'superseded-by-cold').map(value => [value.journal.source.commentId, value.journal.note]), [[EDITED, 'edited again']]);
+  assert.deepEqual(held.filter(value => value.reason === 'superseded-by-cold').map(value => [value.journal.source.commentId, value.journal.version]), [[EDITED, 'edited-again']]);
   assert.deepEqual(decisions(log).filter(event => event.recordedAt === T3).map(event => event.source.commentId), []);
 });
 

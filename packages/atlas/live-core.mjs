@@ -1,6 +1,7 @@
 // K core (adrs#647 v3 c6329883005): G events (+ a D-form declaration) → the D log. Joins only; no I/O. live.mjs is its CLI.
 // fromG is the one place that knows G's event shape; D's parser checks every journal entry and plan.
 import { parseEvents } from './events.mjs';
+import { ownerContent } from './collect/owner.mjs';
 
 const fail = message => { throw new Error('atlas-live: ' + message); };
 const exact = (event, keys) => Object.keys(event).length === keys.length && keys.every(key => key in event);
@@ -98,32 +99,50 @@ const hotMinusCold = (events, held) => {
 
 // v12 (S4): who decided. Only a Purpose with an authority declaration is checked; a proposer's decision is a
 // proposal (held, never in the log), an author who is neither is not authorized. Others are accepted as before.
-// C5: a declared Purpose is evaluated by its evaluators alone, never by a decider; with none declared, by no one
-// (fail closed: it stays unevaluated). An evaluator decides nothing else.
 const purposeOf = decision => decision.kind === 'purpose.set' ? decision.purpose?.id : decision.purpose_id;
 const unauthorized = (decision, authority) => {
   const declared = authority.get(purposeOf(decision));
-  if (!declared) return null;
-  if (decision.kind === 'purpose.evaluated') {
-    return declared.evaluators.includes(decision.actor) ? null : declared.evaluators.length ? 'evaluator-only' : 'evaluator-not-declared';
-  }
-  if (declared.deciders.includes(decision.actor)) return null;
+  if (!declared || declared.deciders.includes(decision.actor)) return null;
   return declared.proposers.includes(decision.actor) ? 'proposal' : 'actor-not-authorized';
 };
+// C5 stage 1 (adrs#647 v4 c6335921034, the User c6335830037): an evaluation counts only from the owner input
+// source the Purpose's authority names, whoever wrote it elsewhere (a login does not tell the User from an
+// agent), and only when this step's read of that source accepts the same whole content (`present`, R
+// c6338530569): a ledger row that is now gone, unreadable, no longer after a readback, or whose verdict or
+// version differs from the comment is held as owner-not-read (never the last `achieved`, never an edited row:
+// the ledger is not where an evaluation comes from). With no owner declared, no one evaluates (fail closed).
+const repoOf = ref => String(ref).replace(/#\d+$/u, '');
+const refused = ({ decision, origin }, authority) => {
+  if (decision.kind !== 'purpose.evaluated') return unauthorized(decision, authority);
+  if (origin === 'owner-not-read') return 'owner-not-read';
+  if (origin !== 'owner') return 'evaluation-not-from-owner';
+  const owner = authority.get(purposeOf(decision))?.owner;
+  if (!owner) return 'evaluator-not-declared';
+  return repoOf(decision.source.ref) === owner.repo && decision.actor === owner.login ? null : 'owner-mismatch';
+};
 
-export const joinLog = (purposeText, gTexts, sourceMode = 'supplied', { authority = new Map() } = {}) => {
+/**
+ * `owner`: { repos, present } of this step's read of the owner sources (collect/owner.mjs): the owner repos the
+ * authority names, and the whole content (collect/owner.mjs ownerContent) of each evaluation that read accepts.
+ */
+export const joinLog = (purposeText, gTexts, sourceMode = 'supplied', { authority = new Map(), owner = { repos: [], present: [] } } = {}) => {
   const held = [], accepted = [], gEvents = hotMinusCold(gTexts.flatMap(rows), held);
-  const candidates = byTime([...rows(purposeText ?? ''),
-    ...gEvents.filter(event => JOURNAL.includes(event.kind)).flatMap(event => fromG(event).events)]);
-  for (const decision of candidates) {
+  const repos = new Set(owner.repos), present = new Set(owner.present);
+  const originOf = decision => decision.kind !== 'purpose.evaluated' || !repos.has(repoOf(decision.source.ref)) ? 'g'
+    : present.has(ownerContent(decision)) ? 'owner' : 'owner-not-read';
+  const tagged = [...rows(purposeText ?? '').map(decision => ({ decision, origin: 'declaration' })),
+    ...gEvents.filter(event => JOURNAL.includes(event.kind)).flatMap(event => fromG(event).events.map(decision => ({ decision, origin: originOf(decision) })))];
+  const order = new Map(byTime(tagged.map(value => value.decision)).map((decision, index) => [decision, index]));
+  for (const candidate of tagged.sort((a, b) => order.get(a.decision) - order.get(b.decision))) {
+    const { decision } = candidate;
     // adrs#654, the one check: a worklog value (work:* / evidence:*) or an evaluator's answer (evaluation:*, v12)
     // is a claim, never a condition. Every decision that carries requires (ideal.set, the legacy purpose.set, …),
     // from G or --purpose alike, passes here.
     if (Array.isArray(decision?.requires) && decision.requires.some(condition => /^(?:work|evidence|evaluation):/u.test(String(condition?.predicate?.target?.id ?? '')))) {
       held.push({ reason: 'worklog-target-in-predicate', journal: decision }); continue;
     }
-    const refused = unauthorized(decision, authority);
-    if (refused) { held.push({ reason: refused, journal: decision }); continue; }
+    const reason = refused(candidate, authority);
+    if (reason) { held.push({ reason, journal: decision }); continue; }
     try { parseEvents(jsonl([header(sourceMode), ...accepted, decision])); accepted.push(decision); }
     // The held reason is D's stable code (contract v12), never its message with a line number.
     catch (error) { held.push({ reason: error.code ?? 'invalid-declaration', journal: decision }); }

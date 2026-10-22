@@ -109,6 +109,19 @@ export async function fetchSnapshots(config) {
   return out;
 }
 
+/**
+ * C5 stage 1 (adrs#647 v4): the owner input source's Issue comments (`owner/repo`), read with the read-only token
+ * the runtime is given for it alone (`token`; the secret comes from envs, adrs#443), never with the host's own gh
+ * login. No token, or any error: null (unreadable; collect/owner.mjs then counts no evaluation).
+ */
+export function fetchOwnerComments(repo, token) {
+  if (!/^[A-Za-z0-9-]+\/[A-Za-z0-9._-]+$/u.test(String(repo)) || typeof token !== 'string' || !token) return null;
+  const result = spawnSync('gh', ['api', '--paginate', '--slurp', `repos/${repo}/issues/comments?per_page=100`],
+    { encoding: 'utf8', maxBuffer: 64 * 1024 * 1024, shell: false, env: { ...process.env, GH_TOKEN: token, GITHUB_TOKEN: token } });
+  if (result.error || result.status !== 0) return null;
+  try { return JSON.parse(result.stdout).flat(); } catch { return null; }
+}
+
 if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
   const [configPath, outDir] = process.argv.slice(2);
   if (!configPath || !outDir) { console.error('usage: fetch.mjs <config.json> <snapshot-dir>'); process.exit(2); }
