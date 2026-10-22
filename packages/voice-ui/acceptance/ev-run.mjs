@@ -134,7 +134,7 @@ await new Promise(resolve => server.listen(0, "127.0.0.1", resolve));
 const origin = "http://127.0.0.1:" + server.address().port;
 const browser = await chromium.launch({ headless: true, channel: "chromium" });
 const started = Date.now(), lines = [];
-let stop = { reason: "script-complete" }, final = null, reloaded = null;
+let stop = { reason: "script-complete" }, final = null, reloaded = null, applyState = null;
 try {
   // One canvas group under the root: the product adds parts only inside existing named groups.
   const initial = await protocol.createDecisionLog([{ type: "meta", schema: "semantic-map-state/1", root: "root", title: `EV ${script.set} ${script.condition}` },
@@ -184,7 +184,9 @@ try {
   line = null;
   final = await snapshot();
   await shoot("final");
-  await page.locator("#apply").click(); await settle();
+  // Apply exists only when something was drafted; an empty run records that it had nothing to apply.
+  applyState = await page.locator("#apply").isEnabled() ? "applied" : "nothing-drafted";
+  if (applyState === "applied") { await page.locator("#apply").click(); await settle(); }
   const applied = await snapshot();
   await page.reload(); await settle();
   reloaded = await snapshot();
@@ -199,7 +201,7 @@ try {
 }
 assert.deepEqual(serverErrors, []);
 const receipt = { schema: "voice-ui.ev-run/1", mode: args.mode, live_provider: "NOT_RUN", scope: "SYNTHETIC_MECHANICS_ONLY",
-  sources: manifest.sources, manifest_sha256: hash(manifestBytes),
+  sources: manifest.sources, manifest_sha256: hash(manifestBytes), apply: applyState,
   script: { set: script.set, condition: script.condition, lines: script.utterances.length, sha256: hash(scriptBytes) },
   stock_sha256: stockBytes ? hash(stockBytes) : null, served_bundle_sha256: hash(servedBundle), caps, stop,
   elapsed_ms: Date.now() - started, lines, calls: { jev: upstream.filter(c => c.provider === "jev").length,
