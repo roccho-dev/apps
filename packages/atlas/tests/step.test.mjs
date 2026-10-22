@@ -7,6 +7,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 // 🔁 step (adrs#647 v3 c6329883005; PR 1 c6329938666; R's conditions c6329948739, made required by P c6329960185).
+// v4 (c6335921034): no G/current; the work log is read only in the adrs#654 form (worklog-v1 sections of comments).
 const file = relative => fileURLToPath(new URL(relative, import.meta.url));
 const fixture = relative => file('./fixtures/step/' + relative);
 const AT = '2026-10-21T03:00:00Z';
@@ -16,8 +17,8 @@ const need = module => assert.ok(!module.error, String(module.error?.message ?? 
 
 // The step's reading, from the fixture alone (no gh, no network).
 const snapshots = readdirSync(fixture('snapshots')).map(name => ({ name, snapshot: JSON.parse(readFileSync(fixture('snapshots/' + name), 'utf8')) }));
-const fakeRead = Object.freeze({ snapshots: async () => snapshots.map(value => structuredClone(value)), current: async sources => sources.current.map(({ author, path: p }) => ({ author, text: readFileSync(p, 'utf8') })) });
-const sources = { current: [{ author: 'P', path: fixture('current.P.jsonl') }], worklogAuthors: ['P'] };
+const fakeRead = Object.freeze({ snapshots: async () => snapshots.map(value => structuredClone(value)) });
+const sources = { worklogAuthors: ['P'] };
 const controlText = readFileSync(fixture('control.jsonl'), 'utf8');
 const input = (extra = {}) => ({ sources, at: AT, ledgerText: '', controlText, ...extra });
 
@@ -25,7 +26,7 @@ const input = (extra = {}) => ({ sources, at: AT, ledgerText: '', controlText, .
 const workspace = () => mkdtempSync(file('./step-out-'));
 const node = (script, args) => execFileSync(process.execPath, [file(script), ...args], { encoding: 'utf8' });
 const chain = (dir, at, ledger = path.join(dir, 'ledger.jsonl')) => {
-  node('../collect/collect.mjs', [fixture('snapshots'), '--recorded-at', at, '--current', `P=${fixture('current.P.jsonl')}`, '--worklog-author', 'P', '--out', path.join(dir, 'g.jsonl')]);
+  node('../collect/collect.mjs', [fixture('snapshots'), '--recorded-at', at, '--worklog-author', 'P', '--out', path.join(dir, 'g.jsonl')]);
   node('../ledger.mjs', ['--ledger=' + ledger, '--ledger-at=' + at, '--held=' + path.join(dir, 'held.jsonl'), path.join(dir, 'g.jsonl')]);
   node('../live.mjs', ['--out-dir=' + path.join(dir, 'live'), '--ledger=' + ledger, '--control=' + fixture('control.jsonl')]);
   return { ledgerText: readFileSync(ledger, 'utf8'), world: JSON.parse(readFileSync(path.join(dir, 'live/world.json'), 'utf8')) };
@@ -103,7 +104,7 @@ test('equal to the current chain: the same ledger rows and the same world.json (
   });
 });
 
-test('the fixture holds what the condition asks: atlas-eval accepted and held, current, cold, an unread thread, an unbound plan', async () => {
+test('the fixture holds what the condition asks: atlas-eval accepted and held, cold, an unread thread, an unbound plan', async () => {
   need(loaded);
   const { ledgerText, world, held } = await loaded.step(input(), fakeRead);
   assert.ok(held.some(value => /^held-by-G: cold: /u.test(value.reason)), 'cold: a refused row is held with its reason');
@@ -111,7 +112,6 @@ test('the fixture holds what the condition asks: atlas-eval accepted and held, c
   const journal = world.frames.flatMap(frame => frame.journal ?? []);
   assert.deepEqual(journal.filter(entry => entry.kind === 'purpose.evaluated').map(entry => [entry.actor, entry.verdict]), [['eval-test', 'achieved']], 'only the evaluator\'s');
   assert.ok(world.frames.flatMap(frame => frame.held ?? []).some(entry => entry.reason === 'evaluator-only'), 'the decider\'s evaluation is held');
-  assert.ok(events.some(event => event.source?.ref?.startsWith('current:P#')), 'current');
   assert.ok(events.some(event => event.source?.capture), 'cold: a decision confirmed by a Git Cold row carries its capture');
   assert.ok(events.some(event => event.kind === 'observation' && event.target === 'roccho-dev/adrs#999:plan.source' && event.value === 'UNKNOWN'), 'an unread thread is UNKNOWN as G writes it (D reads it as no value)');
   assert.ok(journal.some(entry => entry.kind === 'plan.set' && entry.unbound === true), 'a plan no ideal state declares');
@@ -138,11 +138,13 @@ test('(a) continuity: on the ledger the current chain made, step with the same i
 test('the ledger only grows: the returned text starts with the given one', async () => {
   need(loaded);
   const first = await loaded.step(input(), fakeRead);
-  // A new claim (work.terminal) is a change: it is appended after the rows already there.
-  const claim = readFileSync(fixture('current.P.jsonl'), 'utf8') + JSON.stringify({ kind: 'work.terminal', work_id: 'atlas.step', terminal: 'done' }) + '\n';
-  const next = await loaded.step(input({ ledgerText: first.ledgerText, at: '2026-10-21T03:05:00Z' }), { ...fakeRead, current: async () => [{ author: 'P', text: claim }] });
+  // A port that stopped responding is a change: it is appended after the rows already there.
+  const changed = snapshots.map(value => structuredClone(value));
+  const ports = changed.find(value => value.name === 'ports.json').snapshot;
+  ports.probes[0] = { ...ports.probes[0], observedAt: '2026-10-21T03:04:00Z', responded: false };
+  const next = await loaded.step(input({ ledgerText: first.ledgerText, at: '2026-10-21T03:05:00Z' }), { snapshots: async () => changed });
   assert.ok(next.ledgerText.startsWith(first.ledgerText), 'the old rows stay as they were');
-  assert.ok(next.appended.some(row => row.event.target === 'work:atlas.step' && row.event.value === 'reported-done'), JSON.stringify(next.appended.map(row => row.event.target)));
+  assert.deepEqual(next.appended.map(row => row.event.target), [`${ports.probes[0].target}:port`]);
 });
 
 test('run.mjs writes the ledger (append only), the held rows and world.json under the given paths, and nothing else', async () => {
@@ -159,4 +161,18 @@ test('run.mjs writes the ledger (append only), the held rows and world.json unde
     assert.equal(readFileSync(at('ledger.jsonl'), 'utf8'), first);
     assert.deepEqual(JSON.parse(readFileSync(at('world.json'), 'utf8')), (await loaded.step(input({ ledgerText: first, at: '2026-10-21T03:01:00Z' }), fakeRead)).world);
   });
+});
+
+test('v4: step reads no current files (G/current removed, #13); a reading that offers them is never asked', async () => {
+  need(loaded);
+  let asked = 0;
+  const offering = { ...fakeRead, current: async () => { asked += 1; return [{ author: 'P', text: '{"kind":"work.created","work_id":"x"}\n' }]; } };
+  const result = await loaded.step(input({ sources: { ...sources, current: [{ author: 'P', path: 'unused' }] } }), offering);
+  assert.equal(asked, 0);
+  assert.ok(!result.ledgerText.includes('current:'), 'no current: source in the ledger');
+});
+
+test('v4: run.mjs has no --current option', () => {
+  assert.throws(() => execFileSync(process.execPath, [file('../run.mjs'), '--current=P=x.jsonl'], { encoding: 'utf8', stdio: 'pipe' }),
+    error => /Unknown option '--current'/u.test(String(error.stderr)));
 });
