@@ -187,7 +187,13 @@ Worklog sections are not read as plans or journal decisions. The reducer, contra
 
 `precord.mjs` reads P's file `hq:p-records.jsonl` (adrs#647 W c6346498633, R GO c6346515735): one JSON line per record,
 written by P only, shipped whole to `<Hq>/decl/` by hq-refresh v3. `pRecords(text, recordedAt)` → `{records, held}`;
-pure, not yet wired into run.mjs (no World change).
+pure. `run.mjs --p-records=<path>` reads the file whole each run (no option: not read; a missing file: empty).
+The step records each kept line once in the ledger as `p.record` (identity: its `id`; content: the record alone, so
+the file's sha256 and line never make a change; P's `at` kept as declaredAt, the ledger's time cuts the frame); the
+same id with other content later is held as `p-record-rewritten`. `p.record` rows pass by D (`joinLog`), and
+`contract.mjs` puts each into the first frame at or after its ledgerAt as `frames[i].p_records` (only on frames that
+have some, so a World without them is unchanged); one that enters when no frame does waits for the next frame.
+The ui must read `p_records` (ui#387) before an apps version that writes it reaches the HQ (adrs#647 c6346827237).
 
 - Common fields, all required: `schema` (`p-record-v1`), `id` (unique in the file), `kind`, `at` (ISO UTC), `series`
   (or null), `ref` (or null). Each kind adds its own closed set: `user.decision.requested`, `user.decision.recorded`,

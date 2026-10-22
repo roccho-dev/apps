@@ -189,7 +189,10 @@ export const HELD_REASONS = Object.freeze([
   'cold: raw-id-mismatch', 'cold: subject-id-author-or-body-missing', 'cold: updated-at-missing',
   // C5 stage 1 (adrs#647 v4 c6335921034): evaluations only from the owner input source (collect/owner.mjs).
   'evaluation-not-from-owner', 'owner-mismatch', 'owner-not-read', 'decision-from-comment', 'owner-unreadable', 'owner-readback-missing',
-  'owner-credentials-changed', 'owner-before-readback', 'owner-other-author', 'owner-via-app']);
+  'owner-credentials-changed', 'owner-before-readback', 'owner-other-author', 'owner-via-app',
+  // P's records (collect/precord.mjs, apps#158; the ledger's p-record-rewritten): adrs#647 c6346827237.
+  'p-record: invalid-json', 'p-record: schema', 'p-record: kind', 'p-record: fields', 'p-record: id', 'p-record: at', 'p-record: value',
+  'p-record: duplicate-id', 'p-record: p-record-in-comment', 'p-record-rewritten']);
 // A work claim the collector held (current: / worklog:, e.g. overwritten) is an L2 observation, not a declaration.
 const claim = reason => /^(?:current|worklog): /u.test(reason);
 const heldKind = entry => {
@@ -210,11 +213,29 @@ export const heldEntries = (frames, all = []) => {
   return { placed, unplaced, count: held.length };
 };
 
+/**
+ * frames[i].p_records (adrs#647 c6346827237, ui#387): P's records from the ledger (p.record rows, dated by their
+ * ledgerAt), each in the first frame with prev.asOf < recordedAt <= asOf, as the ui reads them: the record's own
+ * fields, authority false (P's claim) and its source. One that entered after the last frame waits for the next
+ * frame (only counted until then), as an unbound plan or a held row does; none is put into an earlier frame.
+ */
+export const pRecordsAt = (frames, events = []) => {
+  const placed = frames.map(() => []);
+  let unplaced = 0;
+  for (const event of [...events].sort((a, b) => Date.parse(a.recordedAt) - Date.parse(b.recordedAt))) {
+    const index = frames.findIndex(frame => Date.parse(event.recordedAt) <= Date.parse(frame.asOf));
+    if (index < 0) { unplaced += 1; continue; }
+    placed[index].push({ ...event.record, authority: false, source: { ref: event.source.ref, sha256: event.source.sha256, line: event.source.line } });
+  }
+  return { placed, unplaced };
+};
+
 /** The World as ui reads it: D's World plus the edge contracts. Each frame uses only itself and earlier frames. */
-export const contractWorld = (result, { unbound = [], held = [] } = {}) => {
+export const contractWorld = (result, { unbound = [], held = [], pRecords = [] } = {}) => {
   let last = null, previous = null;
   const { placed } = unboundPlans(result.world.frames, unbound);
   const { placed: heldAt } = heldEntries(result.world.frames, held);
+  const { placed: recordsAt } = pRecordsAt(result.world.frames, pRecords);
   const byTime = list => list.map((entry, index) => ({ entry, index }))
     .sort((a, b) => Date.parse(a.entry.recordedAt) - Date.parse(b.entry.recordedAt) || a.index - b.index).map(value => value.entry);
   return { ...result.world, frames: result.world.frames.map((frame, index) => {
@@ -226,6 +247,8 @@ export const contractWorld = (result, { unbound = [], held = [] } = {}) => {
     const plans = plansOf(derived, result.plans);
     const upkeep = upkeepOf(derived);
     return { ...frame, ...(plans ? { plans } : {}), gap, phase, journal, matched_until: matchedUntil(upkeep, phase), upkeep,
-      adequacy: adequacyOf(derived, gap, phase), held: heldAt[index] };
+      adequacy: adequacyOf(derived, gap, phase), held: heldAt[index],
+      // Only on a frame that has some, so a World without P's records is the same as before (an older ui reads it).
+      ...(recordsAt[index].length ? { p_records: recordsAt[index] } : {}) };
   }) };
 };
