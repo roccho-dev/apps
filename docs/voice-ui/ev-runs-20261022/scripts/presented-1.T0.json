@@ -1,0 +1,11 @@
+{
+  "schema": "voice-ui.ev-run.script/1",
+  "set": "presented-1",
+  "condition": "T0",
+  "source": "The abstract name only (apps#94 comment 6337228153; R kept it as T0, R 9/12).",
+  "canvas": "図",
+  "limits": { "steps": 52, "jev": 208, "typellm": 10 },
+  "utterances": [
+    "Azure Architecture Center の『Baseline highly available zone-redundant web app』の構成図を描いてください。"
+  ]
+}
