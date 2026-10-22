@@ -100,10 +100,15 @@ test('the real fixture passes collect and builds a World; a row without updated_
   assert.deepEqual([review.payload.updated_at, review.observed_version.updated_at], [null, null]);
   const events = collect([...records, ...purpose], '2026-10-18T06:00:00Z');
   assert.deepEqual(events.filter(event => event.kind === 'journal.held' && event.line === review.raw_id).map(event => event.reason), ['cold: updated-at-missing']);
-  const world = contractWorld(deriveAtlas(joinLog('', [toJsonl(events)]).log, '{"schema":"atlas.control-norms/1","authority":false}\n'));
+  // v4 (adrs#647 c6335921034, #6・#9; c6338759407): the Purpose is P's declaration (the same purpose.set / ideal.set);
+  // the cold rows' decisions are held as decision-from-comment and shown as held rows.
+  const declared = events.filter(event => ['purpose.set', 'ideal.set'].includes(event.kind))
+    .map(({ source, ...event }) => JSON.stringify({ ...event, source: { ref: 'hq:decl/purpose.jsonl', digest: source.sha256 } })).join('\n') + '\n';
+  const { log, held } = joinLog(declared, [toJsonl(events)]);
+  const world = contractWorld(deriveAtlas(log, '{"schema":"atlas.control-norms/1","authority":false}\n'), { held: held.filter(value => value.journal) });
   assert.equal(world.frames.at(-1).gap.basis.purpose_id, 'purpose.cold');
-  // The World's journal keeps commentId as a number: compare numbers, and show the comparison can match.
-  const commentIds = world.frames.flatMap(frame => frame.journal.map(entry => entry.source?.commentId));
+  // The World keeps commentId as a number: compare numbers, and show the comparison can match.
+  const commentIds = world.frames.flatMap(frame => [...frame.journal, ...frame.held].map(entry => entry.source?.commentId));
   assert.ok(commentIds.includes(6249754001), 'a document that reached the World is found by its numeric id');
   assert.equal(typeof review.payload.id, 'number');
   assert.ok(!commentIds.includes(review.payload.id), 'the held review is not in the World');

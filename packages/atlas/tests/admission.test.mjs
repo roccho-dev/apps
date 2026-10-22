@@ -8,24 +8,34 @@ import { deriveAtlas } from '../events.mjs';
 import { contractWorld } from '../contract.mjs';
 import { appendEvents } from '../ledger.mjs';
 
-// A3 (apps#120, adrs#647 comment 6265881722): a journal entry shows its source's admission (observed_not_admitted)
-// for display only. Capture is not admission (adrs#607); the judgment never reads it.
+// A3 (apps#120, adrs#647 comment 6265881722): a journal entry shows its source's admission for display only;
+// Capture is not admission (adrs#607) and the judgment never reads it. Since v4 (c6335921034, #6・#9;
+// the consequence for A1・A3 in c6338759407) a decision comes only from P's declaration (`hq:`), so a Git Cold
+// row — a captured comment — is never a decision: it is held as decision-from-comment, admission or not. The
+// admission a journal entry still shows is the owner source's `owner-unverified` (C5 stage 1, step.test.mjs).
 const CONTROL = '{"schema":"atlas.control-norms/1","authority":false}\n';
 const text = readFileSync(new URL('../collect/fixtures/cold/decisions.jsonl', import.meta.url), 'utf8');
 const cold = normalize({ type: 'cold', repo: 'roccho-dev/adrs', commit: '94a51c3a', path: 'decisions/x.jsonl', committedAt: '2026-10-18T06:00:00Z', fetchedAt: '2026-10-18T07:00:00Z', sha256: null, text });
 const events = collect(cold, '2026-10-18T06:00:00Z');
+const DECISION = ['purpose.set', 'ideal.drafting', 'ideal.set', 'purpose.ended'];
+// The same decisions as P's declaration file would give them (no capture, no admission).
+const declared = list => list.map(event => DECISION.includes(event.kind)
+  ? JSON.parse(JSON.stringify({ ...event, source: { ref: 'hq:decl/purpose.jsonl', sha256: event.source.sha256 } })) : event);
 const worldOf = list => contractWorld(deriveAtlas(joinLog('', [toJsonl(list)]).log, CONTROL));
 const journal = world => world.frames.flatMap(frame => frame.journal).filter(entry => entry.kind !== 'observation');
+const heldOf = list => joinLog('', [toJsonl(list)]).held.filter(value => value.journal && DECISION.includes(value.journal.kind)).map(value => [value.journal.kind, value.reason]);
 
-test('a journal entry from a cold row carries its admission: observed_not_admitted', () => {
-  const entries = journal(worldOf(events));
-  assert.deepEqual(entries.map(entry => [entry.kind, entry.source.admission]), [['purpose.set', 'observed_not_admitted'], ['ideal.set', 'observed_not_admitted']]);
+test('a decision in a cold row is held as decision-from-comment, with or without its admission: Capture is not a decision', () => {
+  assert.ok(events.some(event => event.source?.admission === 'observed_not_admitted'), 'the cold rows carry their admission');
+  assert.deepEqual(heldOf(events), [['purpose.set', 'decision-from-comment'], ['ideal.set', 'decision-from-comment']]);
+  const stripped = events.map(event => JSON.parse(JSON.stringify(event.source?.admission ? { ...event, source: { ...event.source, admission: undefined } } : event)));
+  assert.deepEqual(heldOf(stripped), heldOf(events), 'the admission changes nothing');
 });
 
-test('a source without an admission (hot, a declaration file) has no admission field', () => {
-  const hot = events.map(event => event.source?.admission ? { ...event, source: { ...event.source, admission: undefined, capture: undefined } } : event)
-    .map(event => JSON.parse(JSON.stringify(event)));
-  assert.ok(journal(worldOf(hot)).every(entry => !('admission' in entry.source)));
+test('the same decisions from P\'s declaration are accepted and carry no admission field', () => {
+  const entries = journal(worldOf(declared(events)));
+  assert.deepEqual(entries.filter(entry => DECISION.includes(entry.kind)).map(entry => entry.kind), ['purpose.set', 'ideal.set']);
+  assert.ok(entries.every(entry => !('admission' in entry.source)));
 });
 
 // A3b (R): admission is for journal display only. Cold rows already in the ledger before A3 (without admission),
@@ -38,11 +48,12 @@ test('cold rows in the ledger from before A3, read again, append nothing', () =>
   assert.deepEqual(again.appended.map(row => row.event.kind), []);
 });
 
-test('the judgment does not change: the same input with or without admission gives the same gap and conditions', () => {
-  const stripped = events.map(event => event.source?.admission ? JSON.parse(JSON.stringify({ ...event, source: { ...event.source, admission: undefined } })) : event);
-  assert.ok(events.some(event => event.source?.admission), 'the input carries admission');
-  const a = worldOf(events), b = worldOf(stripped);
+test('the judgment does not change: the cold plans with or without admission give the same gap and conditions', () => {
+  // The decisions from P's declaration; the plans and observations as cold gave them, with and without admission.
+  const withAdmission = declared(events);
+  const stripped = withAdmission.map(event => event.source?.admission ? JSON.parse(JSON.stringify({ ...event, source: { ...event.source, admission: undefined } })) : event);
+  const a = worldOf(withAdmission), b = worldOf(stripped);
   assert.deepEqual(a.frames.map(frame => [frame.gap, frame.phase, frame.matched_until]), b.frames.map(frame => [frame.gap, frame.phase, frame.matched_until]));
   const derive = list => deriveAtlas(joinLog('', [toJsonl(list)]).log, CONTROL).derived.frames.map(frame => frame.conditions.map(value => value.judgment.state));
-  assert.deepEqual(derive(events), derive(stripped));
+  assert.deepEqual(derive(withAdmission), derive(stripped));
 });

@@ -12,7 +12,8 @@ import { joinLog } from '../live.mjs';
 // A raw parser message carries its line number ("events:3: ideal version v1 already set"), so the same reason
 // was counted apart; a work claim the collector held as overwritten (current: / worklog:) is an L2 observation,
 // not a declaration, and is not held here.
-const zero = 'sha256:' + '0'.repeat(64), src = { ref: 's3:decl', sha256: zero };
+// P's declaration file as G reads it (`hq:`): since v4 a decision comes only from there (adrs#647 c6335921034).
+const zero = 'sha256:' + '0'.repeat(64), src = { ref: 'hq:decl', sha256: zero };
 const req = value => ({ id: 'A', label: 'A', predicate: { target: { kind: 'state', id: 's.a' }, op: 'equals', value }, maxAge: 'PT24H', norm: 'n.a' });
 const T = h => `2026-10-21T0${h}:00:00Z`;
 const ideal = (h, version, value) => ({ kind: 'ideal.set', recordedAt: T(h), purpose_id: 'p', purpose_rev: 'r1', version, requires: [req(value)], source: src });
@@ -66,7 +67,7 @@ test('the contract lists every held reason the producer can give', () => {
   for (const reason of ['ideal-version-already-set', 'ideal-purpose-rev-mismatch', 'purpose-not-active', 'purpose-rev-redefined',
     'purpose-rev-already-active', 'evaluation-not-declared', 'recorded-at-backwards', 'invalid-declaration', 'proposal', 'actor-not-authorized',
     'superseded-by-cold', 'worklog-target-in-predicate', 'actor-mismatch', 'author-unknown', 'invalid-json', 'unknown-kind',
-    'recordedAt-invalid', 'recordedAt-after-source', 'declaration-unreadable', 'cold: schema'])
+    'recordedAt-invalid', 'recordedAt-after-source', 'declaration-unreadable', 'cold: schema', 'decision-from-comment'])
     assert.ok(HELD_REASONS.includes(reason), reason);
   assert.ok(HELD_REASONS.every(reason => !/:\d|atlas-events|events:/u.test(reason)), 'no line number or parser prefix');
 });
