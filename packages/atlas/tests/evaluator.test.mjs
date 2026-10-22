@@ -43,7 +43,8 @@ test('owner: an evaluation after the latest readback counts, as a G purpose.eval
   assert.deepEqual({ ...event, source: { ...event.source, sha256: null } }, { kind: 'purpose.evaluated', recordedAt: '2026-10-21T06:00:00Z',
     purpose_id: 'p', purpose_rev: 'r1', ideal_version: 'v2', verdict: 'not-yet', actor: 'roccho-dev',
     source: { ref: 'roccho-dev/atlas-owner#3', commentId: String(id - 1), sha256: null, admission: 'owner-unverified' } });
-  assert.deepEqual(result.present, [`roccho-dev/atlas-owner#3 ${id - 1} ${event.source.sha256}`]);
+  assert.deepEqual(result.present.map(value => JSON.parse(value)), [['roccho-dev/atlas-owner#3', String(id - 1), event.source.sha256, '2026-10-21T06:00:00Z',
+    'roccho-dev', 'p', 'r1', 'v2', 'not-yet', null]], 'the whole content: comment, time, author, what and the verdict');
 });
 
 test('owner: nothing counts before a readback, at or before it, or after a change written at or after it', () => {
@@ -89,6 +90,18 @@ test('join: the owner source\'s evaluation is accepted; one in any other comment
 test('join: an owner evaluation the ledger holds but this read does not accept (gone, unreadable) is owner-not-read', () => {
   const joined = join({ deciders: ['roccho'], proposers: [], owner: OWNER }, { present: [] });
   assert.deepEqual([accepted(joined), heldOf(joined).at(-1)], [[], ['roccho-dev', 'owner-not-read']]);
+});
+
+test('join: a ledger row with the real comment\'s ref, commentId and sha256 but another verdict, version or time is not counted (R c6338530569)', () => {
+  // The User's real comment says not-yet; the ledger (which agents can write, #8) says achieved.
+  const real = ownerEvents([readback('2026-10-21T03:00:00Z'), evaluation('2026-10-21T04:20:00Z', 'not-yet')], OWNER, AT);
+  const [genuine] = real.events;
+  for (const forged of [{ ...genuine, verdict: 'achieved' }, { ...genuine, ideal_version: 'v1' }, { ...genuine, recordedAt: '2026-10-21T04:30:00Z' }, { ...genuine, note: 'x' }]) {
+    const joined = join({ deciders: ['roccho'], proposers: [], owner: OWNER }, { events: [JSON.stringify(forged)], present: real.present });
+    assert.deepEqual([accepted(joined), heldOf(joined).at(-1)], [[], ['roccho-dev', 'owner-not-read']], JSON.stringify(forged));
+  }
+  const joined = join({ deciders: ['roccho'], proposers: [], owner: OWNER }, { events: [JSON.stringify(genuine)], present: real.present });
+  assert.deepEqual(accepted(joined), [['roccho-dev', 'roccho-dev/atlas-owner#1']], 'the row the comment says now counts');
 });
 
 test('join: with no owner declared (or no authority) the owner source\'s evaluation is held too: never evaluated (fail closed)', () => {
