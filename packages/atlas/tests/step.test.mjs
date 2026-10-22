@@ -17,7 +17,12 @@ const need = module => assert.ok(!module.error, String(module.error?.message ?? 
 
 // The step's reading, from the fixture alone (no gh, no network).
 const snapshots = readdirSync(fixture('snapshots')).map(name => ({ name, snapshot: JSON.parse(readFileSync(fixture('snapshots/' + name), 'utf8')) }));
-const fakeRead = Object.freeze({ snapshots: async () => snapshots.map(value => structuredClone(value)) });
+// The owner input source (C5 stage 1, v4): the comments of the repo the control's authority names.
+const ownerComments = JSON.parse(readFileSync(fixture('owner.comments.json'), 'utf8'));
+const fakeRead = Object.freeze({ snapshots: async () => snapshots.map(value => structuredClone(value)),
+  owner: async repo => (repo === 'roccho-dev/atlas-owner' ? structuredClone(ownerComments) : null) });
+// The CLI chain reads no owner source; compared with it, the step reads an empty one.
+const noOwner = Object.freeze({ ...fakeRead, owner: async () => [] });
 const sources = { worklogAuthors: ['P'] };
 const controlText = readFileSync(fixture('control.jsonl'), 'utf8');
 const input = (extra = {}) => ({ sources, at: AT, ledgerText: '', controlText, ...extra });
@@ -96,7 +101,7 @@ test('step runs on a fake reading and the same input gives the same ledger and W
 
 test('equal to the current chain: the same ledger rows and the same world.json (both times at `at`)', async () => {
   need(loaded);
-  const result = await loaded.step(input(), fakeRead);
+  const result = await loaded.step(input(), noOwner);
   await within(dir => {
     const old = chain(dir, AT);
     assert.equal(result.ledgerText, old.ledgerText);
@@ -110,8 +115,11 @@ test('the fixture holds what the condition asks: atlas-eval accepted and held, c
   assert.ok(held.some(value => /^held-by-G: cold: /u.test(value.reason)), 'cold: a refused row is held with its reason');
   const events = ledgerText.trim().split('\n').slice(1).map(line => JSON.parse(line).event);
   const journal = world.frames.flatMap(frame => frame.journal ?? []);
-  assert.deepEqual(journal.filter(entry => entry.kind === 'purpose.evaluated').map(entry => [entry.actor, entry.verdict]), [['eval-test', 'achieved']], 'only the evaluator\'s');
-  assert.ok(world.frames.flatMap(frame => frame.held ?? []).some(entry => entry.reason === 'evaluator-only'), 'the decider\'s evaluation is held');
+  assert.deepEqual(journal.filter(entry => entry.kind === 'purpose.evaluated').map(entry => [entry.actor, entry.verdict, entry.source.ref, entry.source.admission]),
+    [['roccho-dev', 'achieved', 'roccho-dev/atlas-owner#1', 'owner-unverified']], 'only the owner source\'s, shown as unverified');
+  const heldReasons = world.frames.flatMap(frame => frame.held ?? []).map(entry => entry.reason);
+  assert.deepEqual(heldReasons.filter(reason => reason === 'evaluation-not-from-owner').length, 2, 'both #647 evaluations are held, whoever wrote them');
+  assert.ok(heldReasons.includes('owner-via-app'), 'an App\'s comment in the owner source is held');
   assert.ok(events.some(event => event.source?.capture), 'cold: a decision confirmed by a Git Cold row carries its capture');
   assert.ok(events.some(event => event.kind === 'observation' && event.target === 'roccho-dev/adrs#999:plan.source' && event.value === 'UNKNOWN'), 'an unread thread is UNKNOWN as G writes it (D reads it as no value)');
   assert.ok(journal.some(entry => entry.kind === 'plan.set' && entry.unbound === true), 'a plan no ideal state declares');
@@ -170,6 +178,19 @@ test('v4: step reads no current files (G/current removed, #13); a reading that o
   const result = await loaded.step(input({ sources: { ...sources, current: [{ author: 'P', path: 'unused' }] } }), offering);
   assert.equal(asked, 0);
   assert.ok(!result.ledgerText.includes('current:'), 'no current: source in the ledger');
+});
+
+test('C5 stage 1: the owner source\'s evaluation is read again at every step, never put in the ledger; unreadable = none (never the last achieved)', async () => {
+  need(loaded);
+  const evaluated = world => world.frames.flatMap(frame => frame.journal ?? []).filter(entry => entry.kind === 'purpose.evaluated');
+  const first = await loaded.step(input(), fakeRead);
+  assert.equal(evaluated(first.world).length, 1);
+  assert.ok(!first.ledgerText.includes('roccho-dev/atlas-owner'), 'the owner source is not in the ledger');
+  const later = await loaded.step(input({ ledgerText: first.ledgerText, at: '2026-10-21T03:01:00Z' }), { ...fakeRead, owner: async () => null });
+  assert.deepEqual([evaluated(later.world).length, later.appended.length], [0, 0]);
+  assert.ok(later.world.frames.every(frame => frame.adequacy?.evidence == null), 'no frame keeps the earlier achieved as evidence');
+  const without = await loaded.step(input(), { snapshots: fakeRead.snapshots });
+  assert.equal(evaluated(without.world).length, 0, 'a runtime with no owner reading counts no evaluation');
 });
 
 test('v4: run.mjs has no --current option', () => {
