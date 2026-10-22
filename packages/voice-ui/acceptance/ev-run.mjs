@@ -13,16 +13,28 @@ import { assertNoSecretInputs } from "../tests/runtime-acceptance.mjs";
 // screenshots at the normal and wide viewports, every upstream request and the
 // stop reason. It grades nothing; R judges from these files (§8-12).
 //
-// node ev-run.mjs --dist <dir> --script <json> --out <dir> --mode offline
-//   [--stock <json>] [--max-steps N] [--max-jev N] [--max-typellm N] [--minutes N]
+// node ev-run.mjs --dist <dir> --script <json> --out <dir> --mode offline|live
+//   [--target http://127.0.0.1:<port>] [--stock <json>] [--max-steps N] [--max-jev N] [--max-typellm N] [--minutes N]
 //
-// Only --mode offline exists here: every upstream answer is synthetic and no
-// credential is read. A live mode is added only after the User's permission.
+// offline: this runner serves the dist and answers every upstream request synthetically.
+// live (User, apps#94 comment 6337736268): the runner never holds a credential. It drives
+// the page an already running credential holder serves at a loopback --target (the
+// existing envs route, `voice-ui-typed-dev`, which decrypts in its own child and
+// enforces its own Jev/TypeLLM allowances and journal). --dist is the same SHA's dist,
+// used only for the protocol module, the bundle and the manifest identity.
 
 const args = Object.fromEntries(process.argv.slice(2).reduce((pairs, value, index, all) =>
   index % 2 === 0 ? [...pairs, [value.replace(/^--/u, ""), all[index + 1]]] : pairs, []));
 for (const name of ["dist", "script", "out", "mode"]) assert.ok(typeof args[name] === "string", `--${name} is required`);
-assert.equal(args.mode, "offline", "only the offline mode exists before the User's permission for live calls");
+assert.ok(["offline", "live"].includes(args.mode), "mode is offline|live");
+const live = args.mode === "live";
+assert.equal(live, typeof args.target === "string", "--target is given exactly in live mode");
+if (live) {
+  const target = new URL(args.target);
+  assert.ok(target.protocol === "http:" && target.hostname === "127.0.0.1" && target.pathname === "/" && target.origin + "/" === args.target.replace(/\/?$/u, "/"),
+    "--target is a loopback origin");
+}
+// Neither mode receives a provider credential in this process.
 assertNoSecretInputs();
 for (const name of ["dist", "script", "out", ...(args.stock ? ["stock"] : [])]) assert.ok(path.isAbsolute(args[name]), `--${name} is absolute`);
 const limit = (name, fallback) => {
@@ -77,7 +89,7 @@ const syntheticChoice = (name, criteria) => {
   return options.includes("unknown") ? "unknown" : options[0];
 };
 const originalFetch = globalThis.fetch;
-globalThis.fetch = async (url, init) => {
+if (!live) globalThis.fetch = async (url, init) => {
   assert.ok(input !== null, "no unbound upstream request");
   const wire = JSON.parse(init.body), auth = init.headers.authorization;
   const provider = auth === "Bearer fixture-type-only" ? "typellm" : auth === "Bearer fixture-jev-only" ? "jev" : null;
@@ -130,8 +142,8 @@ const server = http.createServer(async (req, res) => {
 fs.mkdirSync(out, { recursive: true });
 const files = [];
 const write = (name, bytes) => { fs.writeFileSync(path.join(out, name), bytes); files.push({ path: name, bytes: Buffer.byteLength(bytes), sha256: hash(bytes) }); };
-await new Promise(resolve => server.listen(0, "127.0.0.1", resolve));
-const origin = "http://127.0.0.1:" + server.address().port;
+if (!live) await new Promise(resolve => server.listen(0, "127.0.0.1", resolve));
+const origin = live ? new URL(args.target).origin : "http://127.0.0.1:" + server.address().port;
 const browser = await chromium.launch({ headless: true, channel: "chromium" });
 const started = Date.now(), lines = [];
 let stop = { reason: "script-complete" }, final = null, reloaded = null, applyState = null;
@@ -143,7 +155,23 @@ try {
   const context = await browser.newContext({ viewport: { width: 1280, height: 720 }, deviceScaleFactor: 1 });
   const page = await context.newPage(), errors = [];
   page.on("pageerror", error => errors.push(String(error)));
-  await page.route("**/*", route => new URL(route.request().url()).origin === origin ? route.continue() : route.abort());
+  await page.route("**/*", route => {
+    const url = new URL(route.request().url());
+    if (url.origin !== origin) return route.abort();
+    // B in live mode: the same fixed stock is served at the ordinary bundle URL.
+    if (live && url.pathname === "/data/bundle.v1.json" && stock)
+      return route.fulfill({ status: 200, headers: { "content-type": "application/json", "cache-control": "no-store" }, body: servedBundle });
+    return route.continue();
+  });
+  // Live: every product API call and its response body, as the page saw them.
+  if (live) page.on("response", async response => {
+    const url = new URL(response.url());
+    if (url.origin !== origin || !url.pathname.startsWith("/api/")) return;
+    const body = await response.body().catch(() => Buffer.alloc(0));
+    const name = `api-${String(api.length).padStart(4, "0")}.json`;
+    api.push({ line, route: url.pathname + url.search, status: response.status(), body_sha256: hash(body), file: name });
+    write(name, body);
+  });
   await page.addInitScript(([storageKey, log]) => { if (!localStorage.getItem(storageKey)) localStorage.setItem(storageKey, log); }, [key, initial.log]);
   const settle = () => page.waitForFunction(() => document.body.dataset.state && document.body.dataset.state !== "pending"
     && document.querySelector("#goal-cancel").hidden, null, { timeout: caps.minutes * 60000 });
@@ -197,10 +225,12 @@ try {
   assert.deepEqual(errors, []);
   await context.close();
 } finally {
-  await browser.close(); await new Promise(resolve => server.close(resolve)); globalThis.fetch = originalFetch;
+  await browser.close(); if (!live) await new Promise(resolve => server.close(resolve)); globalThis.fetch = originalFetch;
 }
 assert.deepEqual(serverErrors, []);
-const receipt = { schema: "voice-ui.ev-run/1", mode: args.mode, live_provider: "NOT_RUN", scope: "SYNTHETIC_MECHANICS_ONLY",
+const receipt = { schema: "voice-ui.ev-run/1", mode: args.mode, target: live ? origin : null,
+  live_provider: live ? "VIA_TARGET (provider sends are the credential holder's journal, not counted here)" : "NOT_RUN",
+  scope: live ? "LIVE_PRODUCT_RUN_UNGRADED" : "SYNTHETIC_MECHANICS_ONLY",
   sources: manifest.sources, manifest_sha256: hash(manifestBytes), apply: applyState,
   script: { set: script.set, condition: script.condition, lines: script.utterances.length, sha256: hash(scriptBytes) },
   stock_sha256: stockBytes ? hash(stockBytes) : null, served_bundle_sha256: hash(servedBundle), caps, stop,
