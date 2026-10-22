@@ -1,0 +1,40 @@
+{
+  "schema": "voice-ui.ev-run.script/1",
+  "set": "presented-2",
+  "condition": "B",
+  "source": "The presented-2.T1.json lines unchanged, run with R's fixed stock (labels and kinds only, docs/voice-ui/closure-20261021/inventories/presented-2.stock.json, apps#152); plan v2.1 apps#94 comment 6337290845. B results do not count toward E2E.",
+  "canvas": "図",
+  "limits": {
+    "steps": 44,
+    "jev": 176,
+    "typellm": 10
+  },
+  "utterances": [
+    "図の中に上段のグループを作り、Keystone と Ceilometer を置いてください。",
+    "上段に Horizon も置いてください。",
+    "図の中の上段の下に、点線で区切られた下の領域のグループを作ってください。",
+    "下の領域に Glance、Nova、Swift を置いてください。",
+    "下の領域に VMs をひし形で置き、Neutron と Cinder も置いてください。",
+    "下の領域に Ironic、Trove、Heat を置いてください。",
+    "Keystone から下の領域へ『Provides auth』の矢印をつないでください。",
+    "Ceilometer から下の領域へ『Monitor』の矢印をつないでください。",
+    "Horizon から下の領域へ『Provides UI』の矢印をつないでください。",
+    "Nova から VMs へ『Provision』の矢印。",
+    "Glance から Swift へ『Stores images in』の矢印。",
+    "Glance から VMs へ『Provides images』の矢印。",
+    "Ironic から Glance へ『Fetchs images via』の矢印。",
+    "Ironic から VMs へ『Provision』の矢印。",
+    "Trove から Glance へ『Registers guest images in』の矢印。",
+    "Trove から Nova へ『Boots database instances via』の矢印。",
+    "Trove から VMs へ『Provision, operation and management』の矢印。",
+    "Trove から Swift へ『Backups databases in』の矢印。",
+    "Neutron から VMs へ『Provides network connection for』の矢印。",
+    "Neutron から Ironic へ『Provides PXE network for』の矢印。",
+    "Cinder から VMs へ『Provides volumes to』の矢印。",
+    "Cinder から Swift へ『Backups volumes in』の矢印。",
+    "Heat から Glance へ『Orchestration』の矢印。",
+    "Heat から Nova へ『Orchestration』の矢印。",
+    "Heat から Neutron へ『Orchestration』の矢印。",
+    "Heat から Cinder へ『Orchestration』の矢印。"
+  ]
+}
