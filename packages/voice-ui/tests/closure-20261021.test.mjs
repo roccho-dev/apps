@@ -188,7 +188,7 @@ test("the vessel keeps both presented diagrams and the whole Atlas; each sealed 
     assert.equal(set.status, "sealed", set.id);
     assert.ok(seals.some(seal => seal.set === set.id && seal.sha256 === set.seal_sha256), `${set.id} names a recorded gold seal`);
   }
-  assert.equal(sets.sets.find(set => set.id === "atlas").status, "unfilled", "Atlas is not sealed yet");
+  assert.ok(sets.sets.every(set => set.status === "sealed"), "both presented diagrams and the Atlas World are sealed");
 });
 
 test("malformed JSONL lines are reported with their line numbers", () => {
