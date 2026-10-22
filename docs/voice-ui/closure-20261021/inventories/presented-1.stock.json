@@ -1,0 +1,131 @@
+{
+  "schema": "voice-ui.ev-run.stock/1",
+  "set": "presented-1",
+  "source": "R, from the sealed gold gold/presented-1/gold.v2.json: labels and product kinds only (no parent, nesting or relation); upper/lower groups of presented-2 use the T1 names. Oracle-A condition B only (apps#94 c6337290845).",
+  "parts": [
+    {
+      "label": "User",
+      "kind": "step"
+    },
+    {
+      "label": "Private DNS zones",
+      "kind": "step"
+    },
+    {
+      "label": "DDoS Protection",
+      "kind": "step"
+    },
+    {
+      "label": "Virtual network",
+      "kind": "group"
+    },
+    {
+      "label": "Application Gateway subnet",
+      "kind": "group"
+    },
+    {
+      "label": "App Service integration subnet",
+      "kind": "group"
+    },
+    {
+      "label": "Private endpoint subnet",
+      "kind": "group"
+    },
+    {
+      "label": "Application Gateway with Azure Web Application Firewall",
+      "kind": "step"
+    },
+    {
+      "label": "Virtual interface",
+      "kind": "step"
+    },
+    {
+      "label": "App Service private endpoint",
+      "kind": "step"
+    },
+    {
+      "label": "Database private endpoint",
+      "kind": "step"
+    },
+    {
+      "label": "Configuration private endpoint",
+      "kind": "step"
+    },
+    {
+      "label": "Storage private endpoint",
+      "kind": "step"
+    },
+    {
+      "label": "Region",
+      "kind": "group"
+    },
+    {
+      "label": "App Service",
+      "kind": "step"
+    },
+    {
+      "label": "Managed identity",
+      "kind": "step"
+    },
+    {
+      "label": "App Service instance",
+      "kind": "step"
+    },
+    {
+      "label": "App Service instance",
+      "kind": "step"
+    },
+    {
+      "label": "App Service instance",
+      "kind": "step"
+    },
+    {
+      "label": "Identity",
+      "kind": "group"
+    },
+    {
+      "label": "Microsoft Entra ID",
+      "kind": "step"
+    },
+    {
+      "label": "Monitoring",
+      "kind": "group"
+    },
+    {
+      "label": "Application Insights",
+      "kind": "step"
+    },
+    {
+      "label": "Azure Monitor",
+      "kind": "step"
+    },
+    {
+      "label": "Health Model",
+      "kind": "step"
+    },
+    {
+      "label": "Data",
+      "kind": "group"
+    },
+    {
+      "label": "Azure SQL Database",
+      "kind": "data"
+    },
+    {
+      "label": "Certificates",
+      "kind": "group"
+    },
+    {
+      "label": "Azure Key Vault",
+      "kind": "data"
+    },
+    {
+      "label": "Storage for deployment",
+      "kind": "group"
+    },
+    {
+      "label": "Azure Storage",
+      "kind": "data"
+    }
+  ]
+}

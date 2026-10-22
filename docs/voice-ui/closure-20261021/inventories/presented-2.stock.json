@@ -1,0 +1,63 @@
+{
+  "schema": "voice-ui.ev-run.stock/1",
+  "set": "presented-2",
+  "source": "R, from the sealed gold gold/presented-2/gold.json: labels and product kinds only (no parent, nesting or relation); upper/lower groups of presented-2 use the T1 names. Oracle-A condition B only (apps#94 c6337290845).",
+  "parts": [
+    {
+      "label": "上段",
+      "kind": "group"
+    },
+    {
+      "label": "下の領域",
+      "kind": "group"
+    },
+    {
+      "label": "Keystone",
+      "kind": "step"
+    },
+    {
+      "label": "Ceilometer",
+      "kind": "step"
+    },
+    {
+      "label": "Horizon",
+      "kind": "step"
+    },
+    {
+      "label": "Glance",
+      "kind": "step"
+    },
+    {
+      "label": "Nova",
+      "kind": "step"
+    },
+    {
+      "label": "Swift",
+      "kind": "step"
+    },
+    {
+      "label": "VMs",
+      "kind": "decision"
+    },
+    {
+      "label": "Neutron",
+      "kind": "step"
+    },
+    {
+      "label": "Cinder",
+      "kind": "step"
+    },
+    {
+      "label": "Ironic",
+      "kind": "step"
+    },
+    {
+      "label": "Trove",
+      "kind": "step"
+    },
+    {
+      "label": "Heat",
+      "kind": "step"
+    }
+  ]
+}
