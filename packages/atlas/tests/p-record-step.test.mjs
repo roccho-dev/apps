@@ -64,9 +64,12 @@ test('read again (P added a line, the file\'s sha256 moved): only the new record
   const first = await loaded.step(input({ pRecordsText: ASKED + '\n' }), reading());
   const again = await loaded.step(input({ ledgerText: first.ledgerText, at: LATER, pRecordsText: ASKED + '\n' + RECEIPT + '\n' }), reading());
   assert.deepEqual(again.appended.filter(row => row.event.kind === 'p.record').map(row => row.event.record.id), ['p-2']);
-  // Frames are cut by what D reads (events.mjs): a record that enters when no frame does waits for the next frame,
-  // as an unbound plan or a held row does (contract.mjs). It is never put into an earlier frame.
-  assert.deepEqual(again.world, first.world);
+  // The step's own reading of P's file (its digest moved) is a fact D reads, so this run makes one frame and p-2 is
+  // placed there (adrs#647 W c6352434256, R c6352457408: reversed from "waits for the next frame"); earlier frames
+  // are as they were.
+  assert.equal(again.world.frames.length, first.world.frames.length + 1);
+  assert.deepEqual(again.world.frames.at(-1).p_records.map(item => item.id), ['p-2']);
+  assert.deepEqual(again.world.frames.slice(0, first.world.frames.length), first.world.frames);
   const same = await loaded.step(input({ ledgerText: again.ledgerText, at: '2026-10-21T03:20:00Z', pRecordsText: ASKED + '\n' + RECEIPT + '\n' }), reading());
   assert.equal(same.appended.length, 0, 'the same file again adds nothing');
 });
@@ -90,7 +93,8 @@ test('the same id with other content later is held as p-record-rewritten; the le
   const first = await loaded.step(input({ pRecordsText: ASKED + '\n' }), reading());
   const rewritten = ASKED.replace('試験の値', '別の問い');
   const again = await loaded.step(input({ ledgerText: first.ledgerText, at: LATER, pRecordsText: rewritten + '\n' }), reading());
-  assert.equal(again.appended.length, 0);
+  // No p.record row (the file's digest moved, so the step's reading of it is a row: c6352457408).
+  assert.deepEqual(again.appended.filter(row => row.event.kind === 'p.record'), []);
   // (the fixture's cold rows are held by G at every step; only P's records are looked at here)
   assert.deepEqual(again.held.filter(item => item.event?.kind === 'p.record').map(item => item.reason), ['p-record-rewritten']);
   assert.deepEqual(records(again.world).map(item => item.question), ['試験の値']);

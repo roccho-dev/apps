@@ -44,20 +44,35 @@ const threadDocuments = records => records.filter(record => record.kind === 'thr
  * Returns the ledger after the append (it starts with `ledgerText`), the rows appended, the rows the ledger
  * held, and the World. Nothing else (no closure, semantic-scope or plan-projection files).
  */
-export const step = async ({ sources, at, ledgerText: before = '', controlText = NO_CONTROL, purposeText = '', pRecordsText = null, pSeriesText = null }, read) => {
+// The step's own reading of P's files (adrs#647 W c6352434256, R c6352457408): that the HQ read P's file with this
+// digest, at this step — the value and the source's sha256 are the digest, nothing of the text. It changes only when
+// P's file does, so a run where only P wrote makes one frame, where P's records are then placed (as route:current
+// retired, above, is the step's own fact). No file, no observation. No condition reads these targets.
+export const P_FILE_TARGETS = Object.freeze({ records: 'hq:p-records.jsonl', series: 'hq:p-series.json' });
+const fileRead = (target, text, at) => text === null || text === '' ? []
+  : [{ kind: 'observation', target, value: sha256(text), source: { ref: target, sha256: sha256(text) }, observedAt: at, recordedAt: at }];
+
+/**
+ * `readSources` false (run.mjs --records-only) reads no outside source (no snapshots): only P's files, the step's own
+ * facts and the owner source (C5: an owner evaluation counts only when this step reads it, so it is read as always and
+ * the judgment does not change with the kind of run). Facts already in the ledger stay as they were read.
+ */
+export const step = async ({ sources, at, ledgerText: before = '', controlText = NO_CONTROL, purposeText = '', pRecordsText = null, pSeriesText = null,
+  readSources = true }, read) => {
   const authors = sources.worklogAuthors ?? [];
   const authority = parseAuthority(controlText);
   const owners = [...new Map([...authority.values()].filter(value => value.owner).map(value => [`${value.owner.repo} ${value.owner.login}`, value.owner])).values()];
   const owned = [];
   for (const owner of owners) owned.push(ownerEvents(read.owner ? await read.owner(owner.repo) : null, owner, at));
   // The snapshots in the order the CLI reads a snapshot directory (by name), so the same snapshots give the same events.
-  const records = [...await read.snapshots(sources)].sort(compare).flatMap(({ snapshot }) => normalize(snapshot));
+  const records = readSources ? [...await read.snapshots(sources)].sort(compare).flatMap(({ snapshot }) => normalize(snapshot)) : [];
   const rows = readLedger(before);
   const mine = pRecordsText === null ? { records: [], held: [] } : pRecords(pRecordsText, at);
   // P's series list (p-series-v1) is one more P record (`p.series`, id p-series@<at>): a new declaration is a new row.
   const list = pSeriesText === null || pSeriesText === '' ? { record: null, held: [] } : pSeries(pSeriesText, at);
   const events = [...collect(records, at, { worklogAuthors: authors }), ...owned.flatMap(value => value.events), ...currentRetired(rows, at),
-    ...mine.records.map(recordEvent), ...(list.record ? [recordEvent(list.record)] : [])];
+    ...mine.records.map(recordEvent), ...(list.record ? [recordEvent(list.record)] : []),
+    ...fileRead(P_FILE_TARGETS.records, pRecordsText, at), ...fileRead(P_FILE_TARGETS.series, pSeriesText, at)];
   const appended = appendEvents(rows, toJsonl(events), at);
   const after = before ? before + appended.appended.map(row => JSON.stringify(row) + '\n').join('') : ledgerText(appended.rows);
   const { log, held, unbound, pRecords: recorded } = joinLog(purposeText, [ledgerEvents(after)], 'supplied',
