@@ -1,0 +1,407 @@
+{
+  "schema": "voice-ui.asr-timing/1",
+  "scope": "14a recorded file -> local recognizer -> transcript; no provider, no real microphone, no human speech",
+  "sources": {
+    "apps": "8dddcd64be1b2bace23f253f173d45d283dc997b",
+    "architecture": {
+      "evidence_sha256": "f03cdbe76b7facb4a6ab2a61070c0df2c33fedb35f15224db2b864cd215dc51f",
+      "manifest_sha256": "864f2b8a84dae81986f8eb29a2b3e4d3866f2350fd383bd73aaeecc0cc13be8b",
+      "source": {
+        "commit": "8dddcd64be1b2bace23f253f173d45d283dc997b",
+        "handle": "apps-voice-ui"
+      },
+      "status": "available"
+    },
+    "hayamimi-web": {
+      "locator": "https://github.com/roccho-dev/ops/releases/download/hayamimi-web-1665d5195a0dd70c2e0253c20351e5305db35f3f/hayamimi-web.zip",
+      "proof_sha256": "a0bb1478a5ffe9440f46682ca143382cd000d0d1d6f736723baad96541be4e27",
+      "sha256": "c12b51e2ea396a64131b917439ffbda1aa1cd70a9fd7f9567ea05030897c672a"
+    },
+    "jev-provider": {
+      "contract": "named-questions/1",
+      "entry_sha256": "0773b5c96d0da7f05fef9f9cf95772b6722a03022648e90fc56a4fdc9ac6046e",
+      "locator": "https://github.com/roccho-org/ops/releases/download/jev-provider-c7ed1132ad7bec8e5f05c6da38d719a05dec4877/jev-provider.zip",
+      "manifest_sha256": "a5386f84f0606c6900b3c0e89d19f94dcf701d344d7c7e6384889d8bb6a1aab5",
+      "proof_sha256": "d756b5855a55c07e7b93687f1556ad1a2657ce0acc701c89476d87d9461a46ff",
+      "provenance_sha256": "90e295578042b89fcf4e1d6dfc2a5cdee6d76916f97a3668472883810811ea17",
+      "sha256": "0c063b050895db87029fd514c81add33e291e321109e2aa55a3befdd42593f03"
+    },
+    "system": "x86_64-linux",
+    "typellm-provider": {
+      "contract": "typed-completion/1",
+      "entry_sha256": "3c10462eecd7f83dd790bfe208587c99347dcbed324b32ae674afbab48bdfb22",
+      "locator": "https://github.com/roccho-org/ops/releases/download/jev-provider-a724bdfa1864762cd9050a00e2642450af29c196/typellm-provider.zip",
+      "manifest_sha256": "4addcd161cb80f8800ee8d78a4b212c3fd2b7e92900cb10c492f3cf560878b2b",
+      "proof_sha256": "8e79073aa7fb94ffa7d4c0003c592d85622099b251c0958712eb2f7ea59bfba6",
+      "provenance_sha256": "d3d3b35ce4a77077823230da4790070db5ba206d09c66111c72b4fc44f4cc9ac",
+      "sha256": "25f8bf076d24577ad512fc63c9491e13796e76007d2e52349b5a9fc223395de6"
+    },
+    "ui": "893ebce63856d378e0d314ede504cf0899406ab6"
+  },
+  "manifest_sha256": "582474bc7405b975e5e0a1779429fcda3fe9dfc678c449480bbc00ea960bb22c",
+  "runs_per_clip": 5,
+  "speech_end_assumption": "listening + golden _audio.pad[0] + _audio.raw.duration_s (Chromium starts the file at capture start)",
+  "speech_end_to_transcript_ms": {
+    "all": {
+      "n": 10,
+      "p50": 901.5155000452996,
+      "p95": 1051.5970000095367,
+      "min": 879.1280000572206,
+      "max": 1059.427000052452
+    },
+    "byWav": {
+      "voice-add-edge-en.wav": {
+        "n": 5,
+        "p50": 897.3629999523164,
+        "p95": 903.6110000495912,
+        "min": 879.1280000572206,
+        "max": 905.0080000524522
+      },
+      "voice-reverse-edge-en.wav": {
+        "n": 5,
+        "p50": 1012.982,
+        "p95": 1055.9470000333786,
+        "min": 893.6670000619888,
+        "max": 1059.427000052452
+      }
+    }
+  },
+  "press_to_transcript_ms": {
+    "n": 10,
+    "p50": 7235.912500023842,
+    "p95": 7739.529499983787,
+    "min": 6748.275000095367,
+    "max": 8003.990000009537
+  },
+  "transcripts_exact": 9,
+  "samples_total": 10,
+  "missing_transcript": 0,
+  "provider_after_transcript": "UNKNOWN (API answered 503 here)",
+  "api_calls_answered_503": 10,
+  "samples": [
+    {
+      "wav": "voice-add-edge-en.wav",
+      "run": 1,
+      "click_ms": 2007.1499999761581,
+      "listening_ms": 5536.625,
+      "deciding_ms": 9221.924999952316,
+      "press_to_listening_ms": 3529.475000023842,
+      "speech_end_to_transcript_ms": 897.3629999523164,
+      "press_to_transcript_ms": 7214.774999976158,
+      "transcript": "ADD AN EDGE FROM C TO A",
+      "cer": 0,
+      "phases": [
+        {
+          "phase": "preparing",
+          "at": 2011.344999909401,
+          "text": ""
+        },
+        {
+          "phase": "listening",
+          "at": 5536.625,
+          "text": ""
+        },
+        {
+          "phase": "deciding",
+          "at": 9221.924999952316,
+          "text": "ADD AN EDGE FROM C TO A"
+        },
+        {
+          "phase": null,
+          "at": 9256.929999947548,
+          "text": "ADD AN EDGE FROM C TO A"
+        }
+      ],
+      "errors": []
+    },
+    {
+      "wav": "voice-add-edge-en.wav",
+      "run": 2,
+      "click_ms": 1946.9499999284744,
+      "listening_ms": 5536.9349999427795,
+      "deciding_ms": 9204,
+      "press_to_listening_ms": 3589.985000014305,
+      "speech_end_to_transcript_ms": 879.1280000572206,
+      "press_to_transcript_ms": 7257.050000071526,
+      "transcript": "ADD AN EDGE FROM C TO A",
+      "cer": 0,
+      "phases": [
+        {
+          "phase": "preparing",
+          "at": 1950.0649999380112,
+          "text": ""
+        },
+        {
+          "phase": "listening",
+          "at": 5536.9349999427795,
+          "text": ""
+        },
+        {
+          "phase": "deciding",
+          "at": 9204,
+          "text": "ADD AN EDGE FROM C TO A"
+        },
+        {
+          "phase": null,
+          "at": 9216.495000004768,
+          "text": "ADD AN EDGE FROM C TO A"
+        }
+      ],
+      "errors": []
+    },
+    {
+      "wav": "voice-add-edge-en.wav",
+      "run": 3,
+      "click_ms": 1894.6850000619888,
+      "listening_ms": 5528.409999966621,
+      "deciding_ms": 9214.370000004768,
+      "press_to_listening_ms": 3633.7249999046326,
+      "speech_end_to_transcript_ms": 898.0230000381471,
+      "press_to_transcript_ms": 7319.6849999427795,
+      "transcript": "ADD AN EDGE FROM C TO A",
+      "cer": 0,
+      "phases": [
+        {
+          "phase": "preparing",
+          "at": 1900.1399999856949,
+          "text": ""
+        },
+        {
+          "phase": "listening",
+          "at": 5528.409999966621,
+          "text": ""
+        },
+        {
+          "phase": "deciding",
+          "at": 9214.370000004768,
+          "text": "ADD AN EDGE FROM C TO A"
+        }
+      ],
+      "errors": []
+    },
+    {
+      "wav": "voice-add-edge-en.wav",
+      "run": 4,
+      "click_ms": 1862.8050000667572,
+      "listening_ms": 5596.335000038147,
+      "deciding_ms": 9279.105000019073,
+      "press_to_listening_ms": 3733.5299999713898,
+      "speech_end_to_transcript_ms": 894.8329999809266,
+      "press_to_transcript_ms": 7416.299999952316,
+      "transcript": "ADD AN EDGE FROM C TO A",
+      "cer": 0,
+      "phases": [
+        {
+          "phase": "preparing",
+          "at": 1867.8650000095367,
+          "text": ""
+        },
+        {
+          "phase": "listening",
+          "at": 5596.335000038147,
+          "text": ""
+        },
+        {
+          "phase": "deciding",
+          "at": 9279.105000019073,
+          "text": "ADD AN EDGE FROM C TO A"
+        }
+      ],
+      "errors": []
+    },
+    {
+      "wav": "voice-add-edge-en.wav",
+      "run": 5,
+      "click_ms": 1918.6349999904633,
+      "listening_ms": 5603.75,
+      "deciding_ms": 9296.695000052452,
+      "press_to_listening_ms": 3685.1150000095367,
+      "speech_end_to_transcript_ms": 905.0080000524522,
+      "press_to_transcript_ms": 7378.060000061989,
+      "transcript": "ADD AN EDGE FROM C TO A",
+      "cer": 0,
+      "phases": [
+        {
+          "phase": "preparing",
+          "at": 1923.170000076294,
+          "text": ""
+        },
+        {
+          "phase": "listening",
+          "at": 5603.75,
+          "text": ""
+        },
+        {
+          "phase": "deciding",
+          "at": 9296.695000052452,
+          "text": "ADD AN EDGE FROM C TO A"
+        }
+      ],
+      "errors": []
+    },
+    {
+      "wav": "voice-reverse-edge-en.wav",
+      "run": 1,
+      "click_ms": 1873.804999947548,
+      "listening_ms": 6593.5,
+      "deciding_ms": 9877.794999957085,
+      "press_to_listening_ms": 4719.695000052452,
+      "speech_end_to_transcript_ms": 1042.0269999570846,
+      "press_to_transcript_ms": 8003.990000009537,
+      "transcript": "REVERSED THAT EDGE",
+      "cer": 0.06666666666666667,
+      "phases": [
+        {
+          "phase": "preparing",
+          "at": 1876.9950000047684,
+          "text": ""
+        },
+        {
+          "phase": "listening",
+          "at": 6593.5,
+          "text": ""
+        },
+        {
+          "phase": "deciding",
+          "at": 9877.794999957085,
+          "text": "REVERSED THAT EDGE"
+        },
+        {
+          "phase": null,
+          "at": 9905.40499997139,
+          "text": "REVERSED THAT EDGE"
+        }
+      ],
+      "errors": []
+    },
+    {
+      "wav": "voice-reverse-edge-en.wav",
+      "run": 2,
+      "click_ms": 2643.664999961853,
+      "listening_ms": 6404.284999966621,
+      "deciding_ms": 9705.980000019073,
+      "press_to_listening_ms": 3760.6200000047684,
+      "speech_end_to_transcript_ms": 1059.427000052452,
+      "press_to_transcript_ms": 7062.3150000572205,
+      "transcript": "REVERSE THAT EDGE",
+      "cer": 0,
+      "phases": [
+        {
+          "phase": "preparing",
+          "at": 2647.2150000333786,
+          "text": ""
+        },
+        {
+          "phase": "listening",
+          "at": 6404.284999966621,
+          "text": ""
+        },
+        {
+          "phase": "deciding",
+          "at": 9705.980000019073,
+          "text": "REVERSE THAT EDGE"
+        }
+      ],
+      "errors": []
+    },
+    {
+      "wav": "voice-reverse-edge-en.wav",
+      "run": 3,
+      "click_ms": 1903.6999999284744,
+      "listening_ms": 5516.039999961853,
+      "deciding_ms": 8651.975000023842,
+      "press_to_listening_ms": 3612.3400000333786,
+      "speech_end_to_transcript_ms": 893.6670000619888,
+      "press_to_transcript_ms": 6748.275000095367,
+      "transcript": "REVERSE THAT EDGE",
+      "cer": 0,
+      "phases": [
+        {
+          "phase": "preparing",
+          "at": 1906.960000038147,
+          "text": ""
+        },
+        {
+          "phase": "listening",
+          "at": 5516.039999961853,
+          "text": ""
+        },
+        {
+          "phase": "deciding",
+          "at": 8651.975000023842,
+          "text": "REVERSE THAT EDGE"
+        }
+      ],
+      "errors": []
+    },
+    {
+      "wav": "voice-reverse-edge-en.wav",
+      "run": 4,
+      "click_ms": 1879.6450001001358,
+      "listening_ms": 5517.5,
+      "deciding_ms": 8772.75,
+      "press_to_listening_ms": 3637.854999899864,
+      "speech_end_to_transcript_ms": 1012.982,
+      "press_to_transcript_ms": 6893.104999899864,
+      "transcript": "REVERSE THAT EDGE",
+      "cer": 0,
+      "phases": [
+        {
+          "phase": "preparing",
+          "at": 1883.0200001001358,
+          "text": ""
+        },
+        {
+          "phase": "listening",
+          "at": 5517.5,
+          "text": ""
+        },
+        {
+          "phase": "deciding",
+          "at": 8772.75,
+          "text": "REVERSE THAT EDGE"
+        },
+        {
+          "phase": null,
+          "at": 8790.97000002861,
+          "text": "REVERSE THAT EDGE"
+        }
+      ],
+      "errors": []
+    },
+    {
+      "wav": "voice-reverse-edge-en.wav",
+      "run": 5,
+      "click_ms": 1868.4800000190735,
+      "listening_ms": 5538.774999976158,
+      "deciding_ms": 8742.889999985695,
+      "press_to_listening_ms": 3670.2949999570847,
+      "speech_end_to_transcript_ms": 961.8470000095367,
+      "press_to_transcript_ms": 6874.409999966621,
+      "transcript": "REVERSE THAT EDGE",
+      "cer": 0,
+      "phases": [
+        {
+          "phase": "preparing",
+          "at": 1872.1699999570847,
+          "text": ""
+        },
+        {
+          "phase": "listening",
+          "at": 5538.774999976158,
+          "text": ""
+        },
+        {
+          "phase": "deciding",
+          "at": 8742.889999985695,
+          "text": "REVERSE THAT EDGE"
+        }
+      ],
+      "errors": []
+    }
+  ],
+  "runner": {
+    "path": "packages/voice-ui/acceptance/asr-timing.mjs",
+    "commit": "8b9e7a14c9729a8e474d6aa08f96f2626839090e"
+  }
+}
