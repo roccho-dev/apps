@@ -463,6 +463,14 @@ rows the ledger held and the World, and nothing else. Nothing it loads reads fil
 (`tests/step.test.mjs` follows every import, require and dynamic import): its parts are the `*-core.mjs`
 files, which the CLIs above re-export, so their paths and options are unchanged.
 
+**Where a decision comes from (adrs#647 v4 c6335921034, #6・#9).** Purposes and ideals (purpose.set,
+ideal.drafting, ideal.set, purpose.ended) come only from P's declaration: the D-form `--purpose` text, or the
+declaration file G reads as `hq:<path>`. The same decision in a comment — or in a Git Cold row, which is a
+captured comment — is held as `decision-from-comment`, whoever wrote it (a login does not tell the User or P
+from an agent). The authority check comes first, so a proposer's comment is still `proposal`. A comment cannot
+claim `hq:`: G replaces the source a line names with where it read it. Plans (plan.set) still come from
+comments, and hot ∖ cold (A1) still applies to them.
+
 **The owner input source (C5 stage 1, adrs#647 v4 c6335921034).** The User's evaluation counts only from
 the private repo a Purpose's authority names in the control — `{"kind":"authority", …, "owner":{"repo":
 "<owner>/<repo>","login":"<login>"}}` — a repo no agent, App or connector can write to. `read.owner(repo)`

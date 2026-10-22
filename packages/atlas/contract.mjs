@@ -188,7 +188,7 @@ export const HELD_REASONS = Object.freeze([
   'cold: invalid-json', 'cold: schema', 'cold: content-sha256-missing', 'cold: content-sha256-unverifiable', 'cold: content-sha256-mismatch',
   'cold: raw-id-mismatch', 'cold: subject-id-author-or-body-missing', 'cold: updated-at-missing',
   // C5 stage 1 (adrs#647 v4 c6335921034): evaluations only from the owner input source (collect/owner.mjs).
-  'evaluation-not-from-owner', 'owner-mismatch', 'owner-not-read', 'owner-unreadable', 'owner-readback-missing',
+  'evaluation-not-from-owner', 'owner-mismatch', 'owner-not-read', 'decision-from-comment', 'owner-unreadable', 'owner-readback-missing',
   'owner-credentials-changed', 'owner-before-readback', 'owner-other-author', 'owner-via-app']);
 // A work claim the collector held (current: / worklog:, e.g. overwritten) is an L2 observation, not a declaration.
 const claim = reason => /^(?:current|worklog): /u.test(reason);

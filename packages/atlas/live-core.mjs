@@ -112,8 +112,14 @@ const unauthorized = (decision, authority) => {
 // version differs from the comment is held as owner-not-read (never the last `achieved`, never an edited row:
 // the ledger is not where an evaluation comes from). With no owner declared, no one evaluates (fail closed).
 const repoOf = ref => String(ref).replace(/#\d+$/u, '');
+// v4 (adrs#647 c6335921034, #6・#9): purposes and ideals come only from P's declaration — the D-form --purpose
+// text, or the declaration file G reads as `hq:<path>`. The same decision in a comment is held as
+// decision-from-comment, whoever wrote it: a login does not tell the User or P from an agent (control.jsonl's
+// shared deciders), and a Purpose with no authority row is no longer open to anyone who writes a comment.
+const DECLARATION = 'hq:';
 const refused = ({ decision, origin }, authority) => {
-  if (decision.kind !== 'purpose.evaluated') return unauthorized(decision, authority);
+  // A proposer's comment stays a proposal (S4); a comment that would otherwise pass is decision-from-comment.
+  if (decision.kind !== 'purpose.evaluated') return unauthorized(decision, authority) ?? (origin === 'comment' ? 'decision-from-comment' : null);
   if (origin === 'owner-not-read') return 'owner-not-read';
   if (origin !== 'owner') return 'evaluation-not-from-owner';
   const owner = authority.get(purposeOf(decision))?.owner;
@@ -128,7 +134,8 @@ const refused = ({ decision, origin }, authority) => {
 export const joinLog = (purposeText, gTexts, sourceMode = 'supplied', { authority = new Map(), owner = { repos: [], present: [] } } = {}) => {
   const held = [], accepted = [], gEvents = hotMinusCold(gTexts.flatMap(rows), held);
   const repos = new Set(owner.repos), present = new Set(owner.present);
-  const originOf = decision => decision.kind !== 'purpose.evaluated' || !repos.has(repoOf(decision.source.ref)) ? 'g'
+  const originOf = decision => decision.kind !== 'purpose.evaluated' ? (decision.source.ref.startsWith(DECLARATION) ? 'declaration' : 'comment')
+    : !repos.has(repoOf(decision.source.ref)) ? 'g'
     : present.has(ownerContent(decision)) ? 'owner' : 'owner-not-read';
   const tagged = [...rows(purposeText ?? '').map(decision => ({ decision, origin: 'declaration' })),
     ...gEvents.filter(event => JOURNAL.includes(event.kind)).flatMap(event => fromG(event).events.map(decision => ({ decision, origin: originOf(decision) })))];
