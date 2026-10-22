@@ -1,0 +1,72 @@
+{
+  "schema": "voice-ui.closure.gold/1",
+  "set": "presented-2",
+  "authored_by": "R",
+  "source": {
+    "title": "OpenStack conceptual architecture (Install Guide)",
+    "page": "https://docs.openstack.org/install-guide/get-started-conceptual-architecture.html",
+    "image": "https://raw.githubusercontent.com/openstack/openstack-manuals/master/doc/install-guide/source/figures/openstack_kilo_conceptual_arch.png",
+    "git_blob_sha": "6c29d4ff68f018956cf4bec67fe1c6b56e03adaf",
+    "bytes": 106082,
+    "sha256": "UNKNOWN (R's sandbox blocked hashing the downloaded file; identity is the GitHub blob above)",
+    "license": "Page: CC BY 3.0. The source SVG metadata (same figures directory, blob a717c35dde33541f99b88ecba6d2653d9bafce49) declares CC BY-SA 3.0; the User accepted the discrepancy (apps#94 comment 6335079009). This gold copies no image, only R's description.",
+    "variant": "The published PNG has 12 services; the SVG in the same directory also has Sahara and its five relations. This gold follows the published PNG.",
+    "decision": "User, apps#94 comment 6335028517 and 6335079009",
+    "read": "R viewed the PNG on 2026-10-22"
+  },
+  "regions": [
+    { "id": "shared", "label": "", "kind": "group", "parent": null, "note": "upper tier above the dashed separator" },
+    { "id": "platform", "label": "", "kind": "group", "parent": null, "note": "lower area below the dashed separator" },
+    { "id": "keystone", "label": "Keystone", "kind": "service", "parent": "shared" },
+    { "id": "ceilometer", "label": "Ceilometer", "kind": "service", "parent": "shared" },
+    { "id": "horizon", "label": "Horizon", "kind": "service", "parent": "shared" },
+    { "id": "glance", "label": "Glance", "kind": "service", "parent": "platform" },
+    { "id": "nova", "label": "Nova", "kind": "service", "parent": "platform" },
+    { "id": "swift", "label": "Swift", "kind": "service", "parent": "platform" },
+    { "id": "vms", "label": "VMs", "kind": "decision-shape", "parent": "platform" },
+    { "id": "neutron", "label": "Neutron", "kind": "service", "parent": "platform" },
+    { "id": "cinder", "label": "Cinder", "kind": "service", "parent": "platform" },
+    { "id": "ironic", "label": "Ironic", "kind": "service", "parent": "platform" },
+    { "id": "trove", "label": "Trove", "kind": "service", "parent": "platform" },
+    { "id": "heat", "label": "Heat", "kind": "service", "parent": "platform" }
+  ],
+  "relations": [
+    { "from": "keystone", "to": "platform", "label": "Provides auth" },
+    { "from": "ceilometer", "to": "platform", "label": "Monitor" },
+    { "from": "horizon", "to": "platform", "label": "Provides UI" },
+    { "from": "nova", "to": "vms", "label": "Provision" },
+    { "from": "glance", "to": "swift", "label": "Stores images in" },
+    { "from": "glance", "to": "vms", "label": "Provides images" },
+    { "from": "ironic", "to": "glance", "label": "Fetchs images via" },
+    { "from": "ironic", "to": "vms", "label": "Provision" },
+    { "from": "trove", "to": "glance", "label": "Registers guest images in" },
+    { "from": "trove", "to": "nova", "label": "Boots database instances via" },
+    { "from": "trove", "to": "vms", "label": "Provision, operation and management" },
+    { "from": "trove", "to": "swift", "label": "Backups databases in" },
+    { "from": "neutron", "to": "vms", "label": "Provides network connection for" },
+    { "from": "neutron", "to": "ironic", "label": "Provides PXE network for" },
+    { "from": "cinder", "to": "vms", "label": "Provides volumes to" },
+    { "from": "cinder", "to": "swift", "label": "Backups volumes in" },
+    { "from": "heat", "to": "glance", "label": "Orchestration" },
+    { "from": "heat", "to": "nova", "label": "Orchestration" },
+    { "from": "heat", "to": "neutron", "label": "Orchestration" },
+    { "from": "heat", "to": "cinder", "label": "Orchestration" }
+  ],
+  "items": {
+    "r-services": "present",
+    "r-tiers": "present",
+    "r-shared-services": "present",
+    "r-glance": "present",
+    "r-ironic": "present",
+    "r-trove": "present",
+    "r-neutron": "present",
+    "r-cinder-nova": "present",
+    "r-heat": "present",
+    "f-sahara": "absent",
+    "f-reversed": "absent",
+    "f-label-swap": "absent"
+  },
+  "unknown": {
+    "u-orchestration-label": "One 'Orchestration' caption serves Heat's four branches; whether a product must repeat it on each relation is not determinable from the image."
+  }
+}
