@@ -229,6 +229,35 @@ test('run.mjs without at takes the time after reading: facts stamped at their re
   });
 });
 
+// R (adrs#647 c6339644103): the claims a ledger holds from current files can no longer change after v4; the step
+// records once that the route is retired, so the frames from then on can tell them apart. Past frames are as before.
+test('v4: over a ledger with current claims, the step records route:current = retired once; past frames do not change', async () => {
+  need(loaded);
+  const { appendEvents, ledgerText: textOf, readLedger } = await import('../ledger-core.mjs');
+  // A ledger the old chain made: the facts at 02:50, then a claim from a current file at 02:52.
+  const first = await loaded.step(input({ at: '2026-10-21T02:50:00Z' }), noOwner);
+  const claim = { kind: 'observation', target: 'work:atlas.step', value: 'created', source: { ref: 'current:P#L1', sha256: 'sha256:' + 'c'.repeat(64) },
+    observedAt: '2026-10-21T02:52:00Z', recordedAt: '2026-10-21T02:52:00Z' };
+  const old = appendEvents(readLedger(first.ledgerText), JSON.stringify(claim) + '\n', '2026-10-21T02:52:00Z');
+  const before = await loaded.step(input({ ledgerText: textOf(old.rows), at: '2026-10-21T02:55:00Z' }), noOwner);
+  const retired = before.appended.filter(row => row.event.target === 'route:current');
+  assert.deepEqual(retired.map(row => [row.event.value, row.event.source.ref, row.event.observedAt]), [['retired', 'step:route', '2026-10-21T02:55:00Z']]);
+  const again = await loaded.step(input({ ledgerText: before.ledgerText, at: '2026-10-21T03:05:00Z' }), noOwner);
+  assert.deepEqual(again.appended.filter(row => row.event.target === 'route:current'), [], 'recorded once');
+  // It is a fact of its own frame: no earlier frame sees it, and it is listed once, where it was recorded.
+  const time = Date.parse(retired[0].event.observedAt);
+  const listing = again.world.frames.map(frame => [Date.parse(frame.asOf), (frame.journal ?? []).filter(entry => entry.target?.id === 'route:current').length]);
+  assert.ok(listing.some(([asOf]) => asOf < time), 'there are frames before it');
+  assert.ok(listing.filter(([asOf]) => asOf < time).every(([, count]) => count === 0));
+  assert.equal(listing.reduce((sum, [, count]) => sum + count, 0), 1);
+});
+
+test('v4: a ledger with no current claims gets no route:current row', async () => {
+  need(loaded);
+  const result = await loaded.step(input(), noOwner);
+  assert.ok(!result.ledgerText.includes('route:current'));
+});
+
 test('v4: run.mjs has no --current option', () => {
   assert.throws(() => execFileSync(process.execPath, [file('../run.mjs'), '--current=P=x.jsonl'], { encoding: 'utf8', stdio: 'pipe' }),
     error => /Unknown option '--current'/u.test(String(error.stderr)));

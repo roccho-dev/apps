@@ -463,6 +463,13 @@ rows the ledger held and the World, and nothing else. Nothing it loads reads fil
 (`tests/step.test.mjs` follows every import, require and dynamic import): its parts are the `*-core.mjs`
 files, which the CLIs above re-export, so their paths and options are unchanged.
 
+**The current route is retired (adrs#647 v4, R c6339644103).** Claims a ledger already holds from current files
+(`current:<author>#L<n>`) can no longer change. Over such a ledger the step records once that the route is
+retired: an observation `route:current` = `retired` (source `step:route`, the sha256 of its statement), at the
+first step that sees those rows. No condition watches it, so it is never refreshed. The rows themselves stay as
+read, and frames before it are unchanged; a reader can tell from that frame on that the claims are the last of a
+stopped route.
+
 **Where a decision comes from (adrs#647 v4 c6335921034, #6・#9).** Purposes and ideals (purpose.set,
 ideal.drafting, ideal.set, purpose.ended) come only from P's declaration: the D-form `--purpose` text, or the
 declaration file G reads as `hq:<path>`. The same decision in a comment — or in a Git Cold row, which is a
