@@ -28,6 +28,8 @@ const KINDS = Object.freeze({
   'loop.stopped': { role: text, round: orNull(count), next: text, reason: text, needed: orNull(v => typeof v === 'boolean'), action: orNull(text) },
   'p.receipt': { action: text, target: text, sha256: orNull(v => typeof v === 'string' && /^[0-9a-f]{64}$/u.test(v)), result: oneOf('PASS', 'FAIL'), reverted: v => typeof v === 'boolean' },
   heartbeat: { run: LIFE, tunnel: LIFE, hq_loop: LIFE, reaped: count, rebuilt: count },
+  // P's explicit replacement of a record (adrs#647 W c6349826755, R c6349841686): never guessed from text.
+  'p.supersede': { replaces: text, by: orNull(text) },
 });
 export const P_RECORD_KINDS = Object.freeze(Object.keys(KINDS));
 
@@ -68,6 +70,38 @@ export function pRecords(fileText, recordedAt, ref = P_RECORD_REF) {
     else records.push(Object.freeze({ ...row.entry, authority: false, source: Object.freeze(source(row.item.number)) }));
   }
   return { records, held: heldLines };
+}
+
+// P's series list (p-series-v1, `hq:p-series.json`, P c6349797904): one declaration, read whole, becomes one P record of
+// kind `p.series` (id `p-series@<at>`, its series in `entries`), so it takes the same road as P's records (ledger once,
+// frames[i].p_records, ui#389). R and W (session ids or a tool name) are kept as declared; the ui never draws them.
+export const P_SERIES_SCHEMA = 'p-series-v1';
+export const P_SERIES_REF = 'hq:p-series.json';
+const SERIES_KEYS = ['id', 'canon', 'goal', 'R', 'W', 'host', 'state'];
+const CANON = /^[A-Za-z0-9._-]+\/[A-Za-z0-9._-]+#[1-9]\d*$/u;
+const GOAL = /^[A-Za-z0-9._-]+\/[A-Za-z0-9._-]+#[1-9]\d*#c\d+$/u;
+const seriesEntry = v => v !== null && typeof v === 'object' && !Array.isArray(v) && Object.keys(v).length === SERIES_KEYS.length
+  && SERIES_KEYS.every(key => Object.hasOwn(v, key)) && text(v.id) && typeof v.canon === 'string' && CANON.test(v.canon)
+  && (v.goal === null || (typeof v.goal === 'string' && GOAL.test(v.goal))) && orNull(text)(v.R) && orNull(text)(v.W) && text(v.host)
+  && ['open', 'closed', 'waiting'].includes(v.state);
+
+/**
+ * The text of P's series file → { record (or null), held }. `recordedAt`: this run's time, which the declaration may
+ * not follow. Held (`p-series: <why>`): invalid-json, schema, fields (exactly schema, at, series), at, value.
+ */
+export function pSeries(fileText, recordedAt, ref = P_SERIES_REF) {
+  if (!iso(recordedAt)) throw new Error('p-series: recordedAt must be an ISO UTC time');
+  const digest = sha256(fileText);
+  const held = reason => ({ record: null, held: [{ kind: 'journal.held', reason: 'p-series: ' + reason, line: fileText.trim().slice(0, 200), source: { ref, sha256: digest, line: 1 }, recordedAt }] });
+  let value;
+  try { value = JSON.parse(fileText); } catch { return held('invalid-json'); }
+  if (!value || typeof value !== 'object' || Array.isArray(value) || value.schema !== P_SERIES_SCHEMA) return held('schema');
+  const keys = Object.keys(value);
+  if (keys.length !== 3 || !['schema', 'at', 'series'].every(key => keys.includes(key))) return held('fields');
+  if (!iso(value.at) || Date.parse(value.at) > Date.parse(recordedAt)) return held('at');
+  if (!Array.isArray(value.series) || !value.series.every(seriesEntry) || new Set(value.series.map(item => item.id)).size !== value.series.length) return held('value');
+  return { record: Object.freeze({ schema: P_RECORD_SCHEMA, id: 'p-series@' + value.at, kind: 'p.series', at: value.at, series: null, ref: null,
+    entries: value.series.map(item => ({ ...item })), authority: false, source: Object.freeze({ ref, sha256: digest, line: 1 }) }), held: [] };
 }
 
 /** Thread documents [{repo, number, commentId, text, source?}] → the p-record-v1 lines they carry, each held. */
