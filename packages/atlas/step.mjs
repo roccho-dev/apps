@@ -6,6 +6,7 @@
 import { normalize } from './collect/adapter.mjs';
 import { collect, toJsonl } from './collect/collect-core.mjs';
 import { ownerEvents } from './collect/owner.mjs';
+import { pRecords, pRecordsInComments } from './collect/precord.mjs';
 import { sha256 } from './collect/plan.mjs';
 import { appendEvents, ledgerEvents, ledgerText, readLedger } from './ledger-core.mjs';
 import { joinLog } from './live-core.mjs';
@@ -25,6 +26,12 @@ const currentRetired = (rows, at) => rows.some(({ event }) => String(event.sourc
   ? [{ kind: 'observation', target: ROUTE_RETIRED.target, value: ROUTE_RETIRED.value, source: { ref: ROUTE_RETIRED.ref, sha256: ROUTE_RETIRED.sha256 }, observedAt: at, recordedAt: at }]
   : [];
 const compare = (a, b) => a.name < b.name ? -1 : a.name > b.name ? 1 : 0;
+// P's records (p-record-v1; adrs#647 c6346827237, R c6346841107): each kept line of P's file is a `p.record` event,
+// dated by P's `at` (the fact's time; the ledger's time cuts the frame, as for a declaration). Held lines, and the
+// same form found in a comment, go to the World's held at this step's time.
+const recordEvent = ({ authority, source, ...record }) => ({ kind: 'p.record', record, source, recordedAt: record.at });
+const threadDocuments = records => records.filter(record => record.kind === 'thread')
+  .flatMap(record => (record.documents ?? []).map(doc => ({ ...doc, repo: record.repo, number: record.number, source: record.source ? { ...record.source, ...(doc.source ?? {}) } : doc.source })));
 
 /**
  * `input`: { sources, at, ledgerText, controlText, purposeText }. `sources` is what to collect (the fetch
@@ -37,7 +44,7 @@ const compare = (a, b) => a.name < b.name ? -1 : a.name > b.name ? 1 : 0;
  * Returns the ledger after the append (it starts with `ledgerText`), the rows appended, the rows the ledger
  * held, and the World. Nothing else (no closure, semantic-scope or plan-projection files).
  */
-export const step = async ({ sources, at, ledgerText: before = '', controlText = NO_CONTROL, purposeText = '' }, read) => {
+export const step = async ({ sources, at, ledgerText: before = '', controlText = NO_CONTROL, purposeText = '', pRecordsText = null }, read) => {
   const authors = sources.worklogAuthors ?? [];
   const authority = parseAuthority(controlText);
   const owners = [...new Map([...authority.values()].filter(value => value.owner).map(value => [`${value.owner.repo} ${value.owner.login}`, value.owner])).values()];
@@ -46,11 +53,17 @@ export const step = async ({ sources, at, ledgerText: before = '', controlText =
   // The snapshots in the order the CLI reads a snapshot directory (by name), so the same snapshots give the same events.
   const records = [...await read.snapshots(sources)].sort(compare).flatMap(({ snapshot }) => normalize(snapshot));
   const rows = readLedger(before);
-  const events = [...collect(records, at, { worklogAuthors: authors }), ...owned.flatMap(value => value.events), ...currentRetired(rows, at)];
+  const mine = pRecordsText === null ? { records: [], held: [] } : pRecords(pRecordsText, at);
+  const events = [...collect(records, at, { worklogAuthors: authors }), ...owned.flatMap(value => value.events), ...currentRetired(rows, at),
+    ...mine.records.map(recordEvent)];
   const appended = appendEvents(rows, toJsonl(events), at);
   const after = before ? before + appended.appended.map(row => JSON.stringify(row) + '\n').join('') : ledgerText(appended.rows);
-  const { log, held, unbound } = joinLog(purposeText, [ledgerEvents(after)], 'supplied',
+  const { log, held, unbound, pRecords: recorded } = joinLog(purposeText, [ledgerEvents(after)], 'supplied',
     { authority, owner: { repos: owners.map(owner => owner.repo), present: owned.flatMap(value => value.present) } });
-  const world = contractWorld(deriveAtlas(log, controlText), { unbound, held: [...held, ...owned.flatMap(value => value.held)].filter(value => value.journal) });
+  const pHeld = [...mine.held, ...pRecordsInComments(threadDocuments(records), at)].map(value => ({ reason: value.reason, journal: value }))
+    .concat(appended.held.filter(value => value.reason === 'p-record-rewritten')
+      .map(value => ({ reason: value.reason, journal: { kind: 'p.record', recordedAt: at, source: value.event.source } })));
+  const world = contractWorld(deriveAtlas(log, controlText), { unbound, held: [...held, ...owned.flatMap(value => value.held), ...pHeld].filter(value => value.journal),
+    pRecords: recorded });
   return { ledgerText: after, appended: appended.appended, held: appended.held, world };
 };

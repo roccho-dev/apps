@@ -31,12 +31,15 @@ export const readLedger = text => {
   });
 };
 
+// P's records (p-record-v1, collect/precord.mjs; adrs#647 c6346827237): a row per record id, once. Its content is
+// the record alone: the file's sha256 and the line move whenever P adds a line, so they never make a change.
+const P_RECORD = 'p.record';
 // The identity of a declaration: a later row with the same identity and the same content is no change.
-const identity = event => JSON.stringify([event.kind, event.purpose?.id ?? event.purpose_id ?? null, event.rev ?? event.purpose_rev ?? null,
+const identity = event => event.kind === P_RECORD ? JSON.stringify([P_RECORD, event.record?.id ?? null]) : JSON.stringify([event.kind, event.purpose?.id ?? event.purpose_id ?? null, event.rev ?? event.purpose_rev ?? null,
   event.version ?? event.ideal_version ?? null, event.plan ?? null, ['purpose.evaluated', 'purpose.ended'].includes(event.kind) ? event.recordedAt : null]);
 // What a declaration says, without when it was read (a plan body's updatedAt also moves with new comments).
 // A confirmed (cold) copy of a hot declaration is a change: it is what joinLog keeps (hot ∖ cold).
-const content = event => canonical({ ...event, recordedAt: null, source: event.kind === 'plan.set' ? { ...event.source, updatedAt: null } : event.source?.capture ?? null });
+const content = event => event.kind === P_RECORD ? canonical(event.record ?? null) : canonical({ ...event, recordedAt: null, source: event.kind === 'plan.set' ? { ...event.source, updatedAt: null } : event.source?.capture ?? null });
 // The shortest freshness window any declared condition puts on a target (null when none does).
 const windowOf = (rows, target) => {
   const windows = rows.flatMap(row => row.event.requires ?? []).filter(value => value.predicate?.target?.id === target).map(value => ms(value.maxAge)).filter(Number.isFinite);
@@ -63,7 +66,7 @@ export const appendEvents = (rows, eventsText, ledgerAt) => {
     const hold = reason => held.push({ reason, event });
     if (!object(event)) { hold('not-an-object'); continue; }
     if (event.kind === 'journal.held') { hold('held-by-G: ' + event.reason); continue; }
-    if (event.kind !== 'observation' && !DECISIONS.includes(event.kind)) { hold('unknown-kind'); continue; }
+    if (event.kind !== 'observation' && !DECISIONS.includes(event.kind) && event.kind !== P_RECORD) { hold('unknown-kind'); continue; }
     if (!Number.isFinite(time(event.recordedAt)) || !object(event.source)) { hold('recordedAt-or-source-invalid'); continue; }
     if (backwards) { hold('ledgerAt-backwards'); continue; }
     // An event dated after the time it entered the ledger is a broken row (a future fact), not a late one.
@@ -73,6 +76,8 @@ export const appendEvents = (rows, eventsText, ledgerAt) => {
     if (event.kind !== 'observation') {
       const before = accepted.filter(row => identity(row.event) === identity(event)).at(-1)?.event;
       if (before && content(before) === content(event)) { skipped.push({ reason: 'unchanged', event }); continue; }
+      // A record P wrote again under the same id says something else: the first stays (a rewrite is a new id's correction).
+      if (before && event.kind === P_RECORD) { hold('p-record-rewritten'); continue; }
     }
     if (accepted.some(row => row.sha256 === digest)) { hold('duplicate'); continue; }
     if (event.kind === 'observation') {

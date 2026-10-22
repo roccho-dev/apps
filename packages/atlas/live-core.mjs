@@ -154,10 +154,11 @@ export const joinLog = (purposeText, gTexts, sourceMode = 'supplied', { authorit
     // The held reason is D's stable code (contract v12), never its message with a line number.
     catch (error) { held.push({ reason: error.code ?? 'invalid-declaration', journal: decision }); }
   }
-  const rest = gEvents.filter(event => !JOURNAL.includes(event.kind)).map(event => fromG(event, accepted));
+  // P's records (p.record, adrs#647 c6346827237) are P's claims, never D's input: they pass by D to the World's edge.
+  const rest = gEvents.filter(event => !JOURNAL.includes(event.kind) && event.kind !== 'p.record').map(event => fromG(event, accepted));
   held.push(...rest.filter(value => value.held).map(value => value.held));
   // unbound: G plan.set events no ideal state declares (also held); the World's journal shows them (L3).
   return { log: jsonl([header(sourceMode), ...byTime([...accepted, ...rest.flatMap(value => value.events ?? [])])]), held,
-    unbound: rest.filter(value => value.unbound).map(value => value.unbound) };
+    unbound: rest.filter(value => value.unbound).map(value => value.unbound), pRecords: gEvents.filter(event => event.kind === 'p.record') };
 };
 

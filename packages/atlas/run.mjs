@@ -5,7 +5,9 @@
 // replace. When to run and where the files live are the caller's. No current files (v4 c6335921034).
 //   node packages/atlas/run.mjs --sources=<collect.json> --ledger=<ledger.jsonl> --world=<world.json>
 //     [--held=<held.jsonl>] [--control=<control.jsonl>] [--purpose=<D-form purpose.jsonl>] [--at=<ISO>]
-//     [--worklog-author=<login>]...
+//     [--worklog-author=<login>]... [--p-records=<P's p-records.jsonl>]
+// --p-records (adrs#647 c6346827237): P's records file, read whole each run; absent option = not read (no change to
+// the World); a named file that does not exist is read as empty (nothing P wrote yet).
 import { randomUUID } from 'node:crypto';
 import fs from 'node:fs';
 import path from 'node:path';
@@ -33,9 +35,10 @@ export const nodeRead = Object.freeze({
  * later than the time it is recorded at (R's dry-run on the HQ data, adrs#647 c6339405812). step stays pure: it is
  * given what was read.
  */
-export const run = async ({ sources, ledger, world, held = null, control = null, purpose = null, at = null }, reading = nodeRead) => {
+export const run = async ({ sources, ledger, world, held = null, control = null, purpose = null, at = null, pRecords = null }, reading = nodeRead) => {
   const before = fs.existsSync(ledger) ? read(ledger) : '';
   const controlText = control ? read(control) : undefined;
+  const pRecordsText = pRecords === null ? null : fs.existsSync(pRecords) ? read(pRecords) : '';
   const snapshots = await reading.snapshots(sources);
   const owners = new Map();
   for (const value of controlText ? parseAuthority(controlText).values() : []) {
@@ -43,7 +46,7 @@ export const run = async ({ sources, ledger, world, held = null, control = null,
   }
   at ??= new Date().toISOString();
   const given = { snapshots: async () => snapshots, owner: async repo => owners.get(repo) ?? null };
-  const result = await step({ sources, at, ledgerText: before, ...(controlText ? { controlText } : {}), ...(purpose ? { purposeText: read(purpose) } : {}) }, given);
+  const result = await step({ sources, at, ledgerText: before, ...(controlText ? { controlText } : {}), ...(purpose ? { purposeText: read(purpose) } : {}), pRecordsText }, given);
   // Append only: the new ledger starts with the old bytes (step checks it; a fresh ledger gets its header).
   if (!result.ledgerText.startsWith(before)) fail('the ledger would be rewritten');
   const addition = result.ledgerText.slice(before.length);
@@ -63,11 +66,11 @@ if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.me
   try {
     const { values } = parseArgs({ options: { sources: { type: 'string' }, ledger: { type: 'string' }, world: { type: 'string' }, held: { type: 'string' },
       control: { type: 'string' }, purpose: { type: 'string' }, at: { type: 'string' },
-      'worklog-author': { type: 'string', multiple: true } } });
+      'worklog-author': { type: 'string', multiple: true }, 'p-records': { type: 'string' } } });
     if (!values.sources || !values.ledger || !values.world) fail('usage: node run.mjs --sources=<collect.json> --ledger=<ledger.jsonl> --world=<world.json> [--held=…] [--control=…] [--purpose=…] [--at=ISO] [--worklog-author=<login>]...');
     const sources = { ...JSON.parse(read(values.sources)), worklogAuthors: (values['worklog-author'] ?? []).filter(Boolean) };
     console.log(JSON.stringify(await run({ sources, ledger: values.ledger, world: values.world, held: values.held ?? null, control: values.control ?? null,
-      purpose: values.purpose ?? null, ...(values.at ? { at: values.at } : {}) })));
+      purpose: values.purpose ?? null, pRecords: values['p-records'] ?? null, ...(values.at ? { at: values.at } : {}) })));
   } catch (error) {
     console.error(error.message.startsWith('atlas-') ? error.message : 'atlas-run: ' + error.message);
     process.exitCode = 1;
