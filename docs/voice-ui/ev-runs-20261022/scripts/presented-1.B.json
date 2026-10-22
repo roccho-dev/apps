@@ -1,0 +1,40 @@
+{
+  "schema": "voice-ui.ev-run.script/1",
+  "set": "presented-1",
+  "condition": "B",
+  "source": "The presented-1.T1.json lines unchanged, run with R's fixed stock (labels and kinds only, docs/voice-ui/closure-20261021/inventories/presented-1.stock.json, apps#152); plan v2.1 apps#94 comment 6337290845. B results do not count toward E2E.",
+  "canvas": "図",
+  "limits": {
+    "steps": 52,
+    "jev": 208,
+    "typellm": 10
+  },
+  "utterances": [
+    "図の中に Virtual network というグループを作り、その中に Application Gateway subnet と App Service integration subnet の 2 つのグループを入れてください。",
+    "Virtual network の中に Private endpoint subnet のグループも入れてください。",
+    "Application Gateway subnet の中に Application Gateway with Azure Web Application Firewall を置いてください。",
+    "App Service integration subnet の中に Virtual interface を置いてください。",
+    "Private endpoint subnet の中に App Service private endpoint、Database private endpoint、Configuration private endpoint を置いてください。",
+    "Private endpoint subnet に Storage private endpoint も置いてください。",
+    "図の中の Virtual network の外側に User を置き、User から Application Gateway with Azure Web Application Firewall へ矢印をつないでください。",
+    "Application Gateway with Azure Web Application Firewall から App Service private endpoint へ矢印をつないでください。",
+    "図の中に Region というグループを作り、その中に App Service と Managed identity を置いてください。",
+    "Region の中に App Service instance を 3 つ、それぞれ Zone 1、Zone 2、Zone 3 として置いてください。",
+    "App Service private endpoint から App Service へ矢印をつないでください。",
+    "App Service から Virtual interface へ矢印をつないでください。",
+    "Virtual interface から Database private endpoint へ矢印をつないでください。",
+    "Virtual interface から Configuration private endpoint へ矢印をつないでください。",
+    "Virtual interface から Storage private endpoint へ矢印をつないでください。",
+    "図の中に Data というグループを作って Azure SQL Database を入れてください。",
+    "図の中に Certificates というグループを作って Azure Key Vault を入れてください。",
+    "図の中に Storage for deployment というグループを作って Azure Storage を入れてください。",
+    "Database private endpoint から Azure SQL Database へ矢印をつないでください。",
+    "Configuration private endpoint から Azure Key Vault へ矢印をつないでください。",
+    "Storage private endpoint から Azure Storage へ矢印をつないでください。",
+    "図の中に Private DNS zones を置き、そこから Virtual network へ『Linked』という点線の関係をつないでください。",
+    "図の中に DDoS Protection を Virtual network に付けて置いてください。",
+    "図の中に Identity というグループを作って Microsoft Entra ID を入れてください。",
+    "図の中に Monitoring というグループを作り、Application Insights と Azure Monitor を入れてください。",
+    "Monitoring に Health Model も入れてください。"
+  ]
+}
