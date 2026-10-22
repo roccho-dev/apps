@@ -183,6 +183,23 @@ not know where the list lives. The evidence is not written into `source.ref`; th
 for it yet (it stays in the comment, whose digest is `source.sha256`). A terminal is a report, never an achievement.
 Worklog sections are not read as plans or journal decisions. The reducer, contract and ui are unchanged.
 
+## P's records (p-record-v1)
+
+`precord.mjs` reads P's file `hq:p-records.jsonl` (adrs#647 W c6346498633, R GO c6346515735): one JSON line per record,
+written by P only, shipped whole to `<Hq>/decl/` by hq-refresh v3. `pRecords(text, recordedAt)` → `{records, held}`;
+pure, not yet wired into run.mjs (no World change).
+
+- Common fields, all required: `schema` (`p-record-v1`), `id` (unique in the file), `kind`, `at` (ISO UTC), `series`
+  (or null), `ref` (or null). Each kind adds its own closed set: `user.decision.requested`, `user.decision.recorded`,
+  `p.position`, `review.pasted`, `user.criterion`, `loop.stopped`, `p.receipt`, `heartbeat`.
+- Held (`journal.held`, `p-record: …`): `invalid-json`, `schema`, `kind`, `fields` (a missing or an extra field), `id`,
+  `at` (not ISO UTC, or after this run's `recordedAt`: the copy's mtime is the copy's, so the run's time is the bound,
+  as in the ledger), `value` (a field of the wrong type or value), `duplicate-id` (both lines; a rewrite is a new id's
+  `p.position` correction).
+- Every record is P's claim (`authority: false`): never an evaluation, a purpose or an ideal decision (C5, apps#151).
+- `pRecordsInComments(documents, recordedAt)` holds the same form in a comment (`p-record-in-comment`): a comment's
+  author cannot tell P from another agent.
+
 ## current (C2, removed)
 
 The current files (`collect.mjs --current <author>=<path>`) are removed (adrs#647 v4 c6335921034, #13): the work log
