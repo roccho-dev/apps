@@ -1,0 +1,7 @@
+{
+  "type": "declaration",
+  "path": "decl/purpose.jsonl",
+  "fetchedAt": "2026-10-21T02:30:00Z",
+  "sha256": "sha256:74548f4247b6da3d542c40aa39f3f5f08beb0576e2390355e89ea7565a9a7469",
+  "text": "{\"kind\":\"purpose.set\",\"recordedAt\":\"2026-10-21T01:00:00Z\",\"purpose\":{\"id\":\"purpose.step\",\"label\":\"step fixture\"},\"rev\":\"r1\"}\n{\"kind\":\"ideal.set\",\"recordedAt\":\"2026-10-21T01:00:00Z\",\"purpose_id\":\"purpose.step\",\"purpose_rev\":\"r1\",\"version\":\"v9\",\"requires\":[{\"id\":\"merged\",\"label\":\"apps#92 が merge 済み\",\"predicate\":{\"target\":{\"kind\":\"state\",\"id\":\"roccho-dev/apps#92:pr.state\"},\"op\":\"equals\",\"value\":\"MERGED\"},\"maxAge\":\"PT24H\",\"norm\":\"n.merge\"}]}\n"
+}

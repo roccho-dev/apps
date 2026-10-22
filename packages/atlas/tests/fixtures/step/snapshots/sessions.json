@@ -1,0 +1,15 @@
+{
+  "type": "sessions",
+  "host": "g6i3-own",
+  "observedAt": "2026-10-16T03:00:20Z",
+  "fixture": "synthetic session listing",
+  "sha256": "sha256:7777777777777777777777777777777777777777777777777777777777777777",
+  "declared": [
+    { "target": "atlas.R", "sessionId": "aaaaaaaa-0000-4000-8000-000000000001" },
+    { "target": "atlas.W", "sessionId": "aaaaaaaa-0000-4000-8000-000000000002" },
+    { "target": "atlas.W2", "sessionId": "aaaaaaaa-0000-4000-8000-000000000003" }
+  ],
+  "processes": "101 claude --resume aaaaaaaa-0000-4000-8000-000000000001 -p\n102 node atlas.W2-dev-server.js\n",
+  "sessionFiles": "/home/dev/.claude/projects/-work-repos-apps-git/aaaaaaaa-0000-4000-8000-000000000001.jsonl\n/home/dev/.claude/projects/-work-repos-apps-git/aaaaaaaa-0000-4000-8000-000000000002.jsonl\n",
+  "errors": []
+}

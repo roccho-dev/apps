@@ -1,0 +1,21 @@
+{
+  "type": "issue",
+  "owner": "roccho-dev",
+  "repo": "adrs",
+  "number": 999,
+  "fetchedAt": "2026-10-21T02:30:00Z",
+  "responses": {
+    "issue": {
+      "command": "gh api repos/roccho-dev/adrs/issues/999",
+      "sha256": null,
+      "data": null,
+      "error": "HTTP 404"
+    },
+    "comments": {
+      "command": "gh api --paginate --slurp repos/roccho-dev/adrs/issues/999/comments?per_page=100",
+      "sha256": null,
+      "data": null,
+      "error": "HTTP 404"
+    }
+  }
+}

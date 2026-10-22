@@ -7,6 +7,7 @@ import { spawnSync } from 'node:child_process';
 import fs from 'node:fs';
 import net from 'node:net';
 import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 
 const sha256 = text => `sha256:${createHash('sha256').update(text, 'utf8').digest('hex')}`;
 const now = () => new Date().toISOString();
@@ -73,37 +74,48 @@ function sessions({ ssh, declared, processCommand = 'ps -eo pid=,args=', filesCo
     declared, processes: ps.ok ? ps.stdout : null, sessionFiles: files.ok ? files.stdout : null, errors: [ps.error, files.error].filter(Boolean) };
 }
 
-const [configPath, outDir] = process.argv.slice(2);
-if (!configPath || !outDir) { console.error('usage: fetch.mjs <config.json> <snapshot-dir>'); process.exit(2); }
-const config = JSON.parse(fs.readFileSync(configPath, 'utf8'));
-const placeholder = (config.sessions?.declared ?? []).filter(d => typeof d.sessionId !== 'string' || /^<.*>$/u.test(d.sessionId));
-if (placeholder.length) { console.error(`fetch: fill or remove sessionId for ${placeholder.map(d => d.target).join(', ')}`); process.exit(2); }
-fs.mkdirSync(outDir, { recursive: true });
-const write = (name, value) => fs.writeFileSync(path.join(outDir, name), JSON.stringify(value, null, 2) + '\n');
 const slug = snapshot => `${snapshot.type}-${snapshot.owner}-${snapshot.repo}-${snapshot.number}.json`;
 
-for (const ref of config.issues ?? []) { const s = fetchThread(ref, 'issue'); write(slug(s), s); }
-for (const ref of config.pulls ?? []) { const s = fetchThread(ref, 'pr'); write(slug(s), s); }
-for (const ref of config.repos ?? []) { const s = fetchRepo(ref); write(`repo-${s.owner}-${s.repo}.json`, s); }
-for (const ref of config.issueStates ?? []) { const s = fetchIssueState(ref); write(slug(s), s); }
-if (config.ports?.length) {
-  const probes = await Promise.all(config.ports.map(probe));
-  write('ports.json', { type: 'ports', sha256: sha256(JSON.stringify(probes)), probes });
+/** The snapshots of one collection, as the CLI writes them (name and content), in the order it writes them. */
+export async function fetchSnapshots(config) {
+  const placeholder = (config.sessions?.declared ?? []).filter(d => typeof d.sessionId !== 'string' || /^<.*>$/u.test(d.sessionId));
+  if (placeholder.length) throw new Error(`fetch: fill or remove sessionId for ${placeholder.map(d => d.target).join(', ')}`);
+  const out = [];
+  const write = (name, snapshot) => out.push({ name, snapshot });
+  for (const ref of config.issues ?? []) { const s = fetchThread(ref, 'issue'); write(slug(s), s); }
+  for (const ref of config.pulls ?? []) { const s = fetchThread(ref, 'pr'); write(slug(s), s); }
+  for (const ref of config.repos ?? []) { const s = fetchRepo(ref); write(`repo-${s.owner}-${s.repo}.json`, s); }
+  for (const ref of config.issueStates ?? []) { const s = fetchIssueState(ref); write(slug(s), s); }
+  if (config.ports?.length) {
+    const probes = await Promise.all(config.ports.map(probe));
+    write('ports.json', { type: 'ports', sha256: sha256(JSON.stringify(probes)), probes });
+  }
+  if (config.sessions) write('sessions.json', sessions(config.sessions));
+  // Git Cold (C1): adr_raw_event.v1 rows of a fixed commit, read from a local clone: { repo, checkout, commit, path }.
+  // The snapshot names repo/commit/path; the adapter maps rows and never learns where the clone lives.
+  (config.cold ?? []).forEach(({ repo, checkout, commit, path: file }, index) => {
+    const shown = run('git', ['-C', checkout, 'show', `${commit}:${file}`]);
+    const date = run('git', ['-C', checkout, 'show', '-s', '--format=%cI', commit]);
+    write(`cold-${index}.json`, { type: 'cold', repo, commit, path: file, fetchedAt: now(),
+      committedAt: date.ok ? new Date(date.stdout.trim()).toISOString() : null,
+      sha256: shown.ok ? sha256(shown.stdout) : null, text: shown.ok ? shown.stdout : null, errors: [shown.error, date.error].filter(Boolean) });
+  });
+  // P's declaration files: read as bytes; the sha256 identifies exactly what was read.
+  (config.declarations ?? []).forEach((file, index) => {
+    let text = null;
+    try { text = fs.readFileSync(file, 'utf8'); } catch {}
+    write(`declaration-${index}.json`, { type: 'declaration', path: file, fetchedAt: now(), sha256: text === null ? null : sha256(text), text });
+  });
+  return out;
 }
-if (config.sessions) write('sessions.json', sessions(config.sessions));
-// Git Cold (C1): adr_raw_event.v1 rows of a fixed commit, read from a local clone: { repo, checkout, commit, path }.
-// The snapshot names repo/commit/path; the adapter maps rows and never learns where the clone lives.
-(config.cold ?? []).forEach(({ repo, checkout, commit, path: file }, index) => {
-  const shown = run('git', ['-C', checkout, 'show', `${commit}:${file}`]);
-  const date = run('git', ['-C', checkout, 'show', '-s', '--format=%cI', commit]);
-  write(`cold-${index}.json`, { type: 'cold', repo, commit, path: file, fetchedAt: now(),
-    committedAt: date.ok ? new Date(date.stdout.trim()).toISOString() : null,
-    sha256: shown.ok ? sha256(shown.stdout) : null, text: shown.ok ? shown.stdout : null, errors: [shown.error, date.error].filter(Boolean) });
-});
-// P's declaration files: read as bytes; the sha256 identifies exactly what was read.
-(config.declarations ?? []).forEach((file, index) => {
-  let text = null;
-  try { text = fs.readFileSync(file, 'utf8'); } catch {}
-  write(`declaration-${index}.json`, { type: 'declaration', path: file, fetchedAt: now(), sha256: text === null ? null : sha256(text), text });
-});
-console.error(`fetch: snapshots written to ${outDir}`);
+
+if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
+  const [configPath, outDir] = process.argv.slice(2);
+  if (!configPath || !outDir) { console.error('usage: fetch.mjs <config.json> <snapshot-dir>'); process.exit(2); }
+  let snapshots;
+  try { snapshots = await fetchSnapshots(JSON.parse(fs.readFileSync(configPath, 'utf8'))); }
+  catch (error) { console.error(error.message); process.exit(2); }
+  fs.mkdirSync(outDir, { recursive: true });
+  for (const { name, snapshot } of snapshots) fs.writeFileSync(path.join(outDir, name), JSON.stringify(snapshot, null, 2) + '\n');
+  console.error(`fetch: snapshots written to ${outDir}`);
+}

@@ -1,0 +1,3 @@
+{"schema":"atlas.control-norms/1","authority":false}
+{"kind":"norm","id":"n.merge","R":[],"W":["atlas.W"],"binding":{"purposeId":"purpose.step","conditions":["merged"]}}
+{"kind":"authority","purposeId":"purpose.step","deciders":["P"],"proposers":[],"evaluators":["eval-test"]}
