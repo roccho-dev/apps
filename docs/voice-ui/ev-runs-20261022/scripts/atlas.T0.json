@@ -1,0 +1,11 @@
+{
+  "schema": "voice-ui.ev-run.script/1",
+  "set": "atlas",
+  "condition": "T0",
+  "source": "The abstract name only, as for presented-1/2 T0 (apps#94 comment 6337228153; R kept T0, R 9/12). Scope agreed on apps#94 (W c6352666533, R 7/200).",
+  "canvas": "図",
+  "limits": { "steps": 26, "jev": 104, "typellm": 10 },
+  "utterances": [
+    "apps の Atlas（目的・理想状態・現状と、その差を引き受ける担当の閉包）の図を描いてください。"
+  ]
+}

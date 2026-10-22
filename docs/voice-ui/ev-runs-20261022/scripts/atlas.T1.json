@@ -1,0 +1,22 @@
+{
+  "schema": "voice-ui.ev-run.script/1",
+  "set": "atlas",
+  "condition": "T1",
+  "source": "W wrote these lines from the drawn Atlas World only (apps 2c13d9196047bd420358ae0cebdd7eb2fc0d99cd: semantic-scope-world.mjs fixtures/semantic-scopes.json fixtures/purpose.jsonl fixtures/current.jsonl, last frame after-work-reobserved; README.md:268-281), not from R's gold. Scope agreed on apps#94 (W c6352666533, R 7/200). Areas Purpose/Scopes/Agents are the World's entity areas; the two scope groups and their members follow the World's containment relations (含む); the 6 drawn non-containment relations are lines 7-12; the 3 visible:false relations are not asked. Each part is named by the first line of its World label; the second line (e.g. 例：証拠から引き継げる運用) is not spoken. Lines adding at the outermost level name the canvas 「図」.",
+  "canvas": "図",
+  "limits": { "steps": 26, "jev": 104, "typellm": 10 },
+  "utterances": [
+    "図の中に Purpose、Scopes、Agents の 3 つのグループを作ってください。",
+    "Purpose に 目的、理想状態、現状 を置いてください。",
+    "Scopes の中に 担当なし と 閉じた差 の 2 つのグループを作ってください。",
+    "担当なし の中に 未割当 を置いてください。",
+    "閉じた差 の中に 旧義務：入力接続を実証する と 共有UIの利用を閉じる責任 を置いてください。",
+    "Agents に fixture-W と fixture-independent-R を置いてください。",
+    "理想状態 から 目的 へ『理想状態』の矢印をつないでください。",
+    "旧義務：入力接続を実証する から 目的 へ『旧義務』の矢印をつないでください。",
+    "共有UIの利用を閉じる責任 から 理想状態 へ『引受』の矢印をつないでください。",
+    "未割当 から 理想状態 へ『未達』の矢印をつないでください。",
+    "現状 から 理想状態 へ『差 1 件』の矢印をつないでください。",
+    "fixture-W から 共有UIの利用を閉じる責任 へ『担当』の矢印をつないでください。"
+  ]
+}

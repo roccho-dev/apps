@@ -1,0 +1,22 @@
+{
+  "schema": "voice-ui.ev-run.script/1",
+  "set": "atlas",
+  "condition": "B",
+  "source": "The atlas.T1.json lines unchanged, run with R's fixed stock (labels and kinds only, docs/voice-ui/closure-20261021/inventories/atlas.stock.json, written by R from the sealed Atlas gold); plan v2.1 apps#94 comment 6337290845. B results do not count toward E2E.",
+  "canvas": "図",
+  "limits": { "steps": 26, "jev": 104, "typellm": 10 },
+  "utterances": [
+    "図の中に Purpose、Scopes、Agents の 3 つのグループを作ってください。",
+    "Purpose に 目的、理想状態、現状 を置いてください。",
+    "Scopes の中に 担当なし と 閉じた差 の 2 つのグループを作ってください。",
+    "担当なし の中に 未割当 を置いてください。",
+    "閉じた差 の中に 旧義務：入力接続を実証する と 共有UIの利用を閉じる責任 を置いてください。",
+    "Agents に fixture-W と fixture-independent-R を置いてください。",
+    "理想状態 から 目的 へ『理想状態』の矢印をつないでください。",
+    "旧義務：入力接続を実証する から 目的 へ『旧義務』の矢印をつないでください。",
+    "共有UIの利用を閉じる責任 から 理想状態 へ『引受』の矢印をつないでください。",
+    "未割当 から 理想状態 へ『未達』の矢印をつないでください。",
+    "現状 から 理想状態 へ『差 1 件』の矢印をつないでください。",
+    "fixture-W から 共有UIの利用を閉じる責任 へ『担当』の矢印をつないでください。"
+  ]
+}
