@@ -198,8 +198,12 @@ try {
     if (!url.pathname.startsWith("/api/")) {
       // The fixed B stock is this runner's own route, not the target's bytes.
       if (stock && url.pathname === "/data/bundle.v1.json") return;
-      const body = await response.body().catch(() => Buffer.alloc(0));
-      checkServed("page", url.pathname, response.status(), body);
+      // Some bodies (an iframe document, a stylesheet) are not readable from the page's response;
+      // those are fetched again from the same origin and path, and the phase says so.
+      const read = await response.body().then(body => ({ body, phase: "page" }), () => null);
+      const again = read ?? await originalFetch(origin + url.pathname, { cache: "no-store" })
+        .then(async fetched => ({ body: Buffer.from(await fetched.arrayBuffer()), phase: "page-refetched" }));
+      checkServed(again.phase, url.pathname, response.status(), again.body);
       return;
     }
     if (!live) return;
