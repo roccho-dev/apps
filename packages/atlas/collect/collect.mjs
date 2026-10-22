@@ -5,7 +5,6 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { normalize } from './adapter.mjs';
-import { currentEvents } from './worklog.mjs';
 import { collect, toJsonl } from './collect-core.mjs';
 export { collect, toJsonl } from './collect-core.mjs';
 
@@ -18,23 +17,18 @@ export function readRecords(dir) {
 
 if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
   const [dir, ...rest] = process.argv.slice(2);
-  const usage = 'usage: collect.mjs <snapshot-dir> [--recorded-at ISO] [--out events.jsonl] [--worklog-author login]... [--current <author>=<path>]...';
+  const usage = 'usage: collect.mjs <snapshot-dir> [--recorded-at ISO] [--out events.jsonl] [--worklog-author login]...';
   if (!dir) { console.error(usage); process.exit(2); }
+  // v4 (adrs#647 c6335921034, #13): no current files; the work log is read only as worklog-v1 sections (adrs#654).
+  if (rest.includes('--current')) { console.error(`collect: --current is removed (adrs#647 v4: the work log is read only as worklog-v1 sections of comments)\n${usage}`); process.exit(2); }
   const flag = name => { const i = rest.indexOf(name); return i >= 0 ? rest[i + 1] : undefined; };
   const all = name => rest.flatMap((value, i) => value === name ? [rest[i + 1] ?? ''] : []);
   const worklogAuthors = all('--worklog-author').filter(Boolean);
-  // current: each file comes with the author who records it; no default author.
-  const current = all('--current').map(pair => /^([^=]+)=(.+)$/u.exec(pair));
-  if (current.some(match => !match)) { console.error(`collect: --current <author>=<path> needs both an author and a path\n${usage}`); process.exit(2); }
-  // Read time is the claims' time; --recorded-at pins it, so the same files give the same events.
-  const readAt = flag('--recorded-at') ?? new Date().toISOString();
-  const files = current.map(([, author, file]) => ({ author, text: fs.readFileSync(file, 'utf8') }));
   const records = readRecords(dir);
   // A Git Cold collection is dated by its commit (the latest committedAt), so the same commit gives the same events.
   const committed = records.map(record => record.committedAt).filter(Boolean).sort().at(-1);
   const recordedAt = flag('--recorded-at') ?? committed ?? new Date().toISOString();
-  // The read time goes to the current events only; the rest keeps its own time (cold: its commit).
-  const output = toJsonl([...collect(records, recordedAt, { worklogAuthors }), ...currentEvents(files, readAt, readAt, worklogAuthors)]);
+  const output = toJsonl(collect(records, recordedAt, { worklogAuthors }));
   const out = flag('--out');
   if (out) fs.writeFileSync(out, output); else process.stdout.write(output);
 }

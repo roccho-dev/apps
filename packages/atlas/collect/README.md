@@ -183,23 +183,13 @@ not know where the list lives. The evidence is not written into `source.ref`; th
 for it yet (it stays in the comment, whose digest is `source.sha256`). A terminal is a report, never an achievement.
 Worklog sections are not read as plans or journal decisions. The reducer, contract and ui are unchanged.
 
-## current (C2)
+## current (C2, removed)
 
-`current = record(agent)`: `collect.mjs <dir> --current <author>=<path> [--current …] --worklog-author <login>…`.
-Each file is atlas-worklog-v1 lines (the same check as above: kind, fields, work_id, evidence form, terminal,
-author list — fail closed). The author is the argument (required, no default; never a field of the line), the
-time is when the files were read (`--recorded-at` pins it; only current events get it, cold stays dated by its
-commit), and the order is the line position. Last write wins (apps#89 comment 6257137004): for one work_id
-in one author's file, the last line in the file is its state and the last `artifact.observed` its evidence (one
-observation each, no time made up from the position); earlier lines are held as `overwritten`. When the last line naming a work_id is invalid, that work's
-`work:<id>` and `evidence:<id>` are observed with no value (`UNKNOWN` → D's no-value unknown), which also ends an
-older state in the ledger; earlier lines are held as `latest-line-invalid`, and an earlier valid line never stands
-in. A line that is not JSON makes every work_id the file names no-value the same way (`unreadable-line-in-file`). Any declaration
-with `requires` (`ideal.set`, the legacy `purpose.set`, …) whose predicate targets `work:*` or `evidence:*` is held
-before D in `live.mjs` `joinLog`, the one entry G and `--purpose` share (`worklog-target-in-predicate`, adrs#654). One line →
-`work:<id>` = `created` / `progressed` / `reported-*`; an `artifact.observed` line also gives `evidence:<id>` =
-its evidence. Source `current:<author>#L<n>` with the sha256 of the file as read. These reach the World's journal
-as ordinary observations (no new field); they are claims, and no condition may watch them (adrs#654).
+The current files (`collect.mjs --current <author>=<path>`) are removed (adrs#647 v4 c6335921034, #13): the work log
+is read only in the adrs#654 form, the worklog-v1 sections above. `collect.mjs --current` exits 2. Rows the ledger
+already holds from current files (`current:<author>#L<n>`) stay as they were read; nothing new is added. Any
+declaration with `requires` whose predicate targets `work:*` or `evidence:*` is still held before D in `live.mjs`
+`joinLog` (`worklog-target-in-predicate`, adrs#654).
 
 ## Fixtures
 
