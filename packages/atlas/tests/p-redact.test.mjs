@@ -53,8 +53,9 @@ test('step: the World of the run that ledgers the replacement has no text; the l
   assert.ok(JSON.stringify(first.world).includes(SECRET), 'before the replacement the record is whole');
   const second = await loaded.step(input({ ledgerText: first.ledgerText, at: '2026-10-22T20:35:00Z',
     pRecordsText: JSON.stringify(ASKED) + '\n' + JSON.stringify(REPLACE) + '\n' }), reading);
-  assert.deepEqual(second.appended.map(row => row.event.record?.id), ['p-23']);
-  assert.equal(second.world.frames.length, first.world.frames.length, 'no new frame: the replacement is not placed yet');
+  assert.deepEqual(second.appended.filter(row => row.event.kind === 'p.record').map(row => row.event.record.id), ['p-23']);
+  // The step's reading of P's file makes a frame at this run (c6352457408), where the replacement is placed.
+  assert.equal(second.world.frames.length, first.world.frames.length + 1);
   assert.ok(!JSON.stringify(second.world).includes(SECRET), 'the text left the World at this run');
   assert.ok(second.ledgerText.includes(SECRET), 'the ledger keeps every row as written');
 });
