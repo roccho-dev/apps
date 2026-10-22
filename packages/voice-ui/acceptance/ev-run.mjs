@@ -167,10 +167,12 @@ try {
   if (live) page.on("response", async response => {
     const url = new URL(response.url());
     if (url.origin !== origin || !url.pathname.startsWith("/api/")) return;
+    // The script line is taken when the response arrives, before its body is read.
+    const entry = { line, route: url.pathname + url.search, status: response.status(), file: `api-${String(api.length).padStart(4, "0")}.json` };
+    api.push(entry);
     const body = await response.body().catch(() => Buffer.alloc(0));
-    const name = `api-${String(api.length).padStart(4, "0")}.json`;
-    api.push({ line, route: url.pathname + url.search, status: response.status(), body_sha256: hash(body), file: name });
-    write(name, body);
+    entry.body_sha256 = hash(body);
+    write(entry.file, body);
   });
   await page.addInitScript(([storageKey, log]) => { if (!localStorage.getItem(storageKey)) localStorage.setItem(storageKey, log); }, [key, initial.log]);
   const settle = () => page.waitForFunction(() => document.body.dataset.state && document.body.dataset.state !== "pending"
