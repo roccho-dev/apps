@@ -36,12 +36,14 @@ test('authority takes an optional owner {repo, login}; evaluators is refused, no
     assert.throws(() => parseAuthority(control({ deciders: ['roccho'], proposers: [], owner })), /owner/u, JSON.stringify(owner));
 });
 
-test('owner: an evaluation after the latest readback counts, as purpose.evaluated by the owner login, read at `at` and declared at its updated_at', () => {
+test('owner: an evaluation after the latest readback counts, as a G purpose.evaluated by the owner login at its updated_at, named in present', () => {
   const result = ownerEvents([readback('2026-10-21T05:00:00Z'), evaluation('2026-10-21T06:00:00Z', 'not-yet', { issue: 3 })], OWNER, AT);
   assert.deepEqual(result.held, []);
-  assert.deepEqual(result.events.map(event => ({ ...event, source: { ...event.source, digest: null } })), [{ kind: 'purpose.evaluated', recordedAt: AT, declaredAt: '2026-10-21T06:00:00Z',
+  const [event] = result.events;
+  assert.deepEqual({ ...event, source: { ...event.source, sha256: null } }, { kind: 'purpose.evaluated', recordedAt: '2026-10-21T06:00:00Z',
     purpose_id: 'p', purpose_rev: 'r1', ideal_version: 'v2', verdict: 'not-yet', actor: 'roccho-dev',
-    source: { ref: 'roccho-dev/atlas-owner#3', digest: null, commentId: String(id - 1), admission: 'owner-unverified' } }]);
+    source: { ref: 'roccho-dev/atlas-owner#3', commentId: String(id - 1), sha256: null, admission: 'owner-unverified' } });
+  assert.deepEqual(result.present, [`roccho-dev/atlas-owner#3 ${id - 1} ${event.source.sha256}`]);
 });
 
 test('owner: nothing counts before a readback, at or before it, or after a change written at or after it', () => {
@@ -62,16 +64,19 @@ test('owner: another login, an App (performed_via_github_app), a future time and
   assert.deepEqual([result.events.length, reasons(result)], [0, ['owner-other-author', 'owner-via-app', 'recordedAt-after-source', 'owner-via-app', 'eval-form']]);
 });
 
-test('owner: unreadable comments (null) give no evaluation and one held owner-unreadable (never the last achieved)', () => {
-  assert.deepEqual([ownerEvents(null, OWNER, AT).events, reasons(ownerEvents(null, OWNER, AT))], [[], ['owner-unreadable']]);
+test('owner: unreadable comments (null) give no evaluation, nothing present and one held owner-unreadable', () => {
+  const result = ownerEvents(null, OWNER, AT);
+  assert.deepEqual([result.events, result.present, reasons(result)], [[], [], ['owner-unreadable']]);
 });
 
-// The join: only the owner source's evaluations count; any other evaluation is held, whoever wrote it.
+// The join: only the owner source's evaluations this read accepts count; any other evaluation is held, whoever wrote it.
 const fromComment = (actor, at, verdict = 'achieved') => JSON.stringify({ kind: 'purpose.evaluated', recordedAt: at, actor, purpose_id: 'p', purpose_rev: 'r1', ideal_version: 'v2',
   verdict, source: { ref: 'roccho-dev/adrs#647', commentId: 1, sha256: SHA } });
 const comments = [fromComment('roccho-dev', '2026-10-21T04:00:00Z'), fromComment('eval-test', '2026-10-21T04:10:00Z', 'not-yet')];
-const owned = ownerEvents([readback('2026-10-21T03:00:00Z'), evaluation('2026-10-21T04:20:00Z')], OWNER, AT).events;
-const join = (authority, owner = owned) => joinLog('', [log + comments.join('\n') + '\n'], 'supplied', { authority: parseAuthority(control(authority)), owner });
+const read = ownerEvents([readback('2026-10-21T03:00:00Z'), evaluation('2026-10-21T04:20:00Z')], OWNER, AT);
+const owned = read.events.map(event => JSON.stringify(event));
+const join = (authority, { events = owned, present = read.present, repos = [OWNER.repo] } = {}) =>
+  joinLog('', [log + [...comments, ...events].join('\n') + '\n'], 'supplied', { authority: parseAuthority(control(authority)), owner: { repos, present } });
 const accepted = joined => joined.log.split('\n').filter(Boolean).map(line => JSON.parse(line)).filter(event => event.kind === 'purpose.evaluated').map(event => [event.actor, event.source.ref]);
 const heldOf = joined => joined.held.filter(value => value.journal?.kind === 'purpose.evaluated').map(value => [value.journal.actor, value.reason]);
 
@@ -81,16 +86,22 @@ test('join: the owner source\'s evaluation is accepted; one in any other comment
   assert.deepEqual(heldOf(joined), [['roccho-dev', 'evaluation-not-from-owner'], ['eval-test', 'evaluation-not-from-owner']]);
 });
 
+test('join: an owner evaluation the ledger holds but this read does not accept (gone, unreadable) is owner-not-read', () => {
+  const joined = join({ deciders: ['roccho'], proposers: [], owner: OWNER }, { present: [] });
+  assert.deepEqual([accepted(joined), heldOf(joined).at(-1)], [[], ['roccho-dev', 'owner-not-read']]);
+});
+
 test('join: with no owner declared (or no authority) the owner source\'s evaluation is held too: never evaluated (fail closed)', () => {
   assert.deepEqual([accepted(join({ deciders: ['roccho'], proposers: [] })), heldOf(join({ deciders: ['roccho'], proposers: [] })).at(-1)],
     [[], ['roccho-dev', 'evaluator-not-declared']]);
-  const none = joinLog('', [log], 'supplied', { owner: owned });
+  const none = joinLog('', [log + owned.join('\n') + '\n'], 'supplied', { owner: { repos: [OWNER.repo], present: read.present } });
   assert.deepEqual([accepted(none), heldOf(none)], [[], [['roccho-dev', 'evaluator-not-declared']]]);
 });
 
 test('join: an owner source other than the declared one, or another login, is owner-mismatch', () => {
-  const other = ownerEvents([readback('2026-10-21T03:00:00Z'), evaluation('2026-10-21T04:20:00Z')], { repo: 'roccho-dev/elsewhere', login: 'roccho-dev' }, AT).events;
-  assert.deepEqual(heldOf(join({ deciders: ['roccho'], proposers: [], owner: OWNER }, other)).at(-1), ['roccho-dev', 'owner-mismatch']);
+  const other = ownerEvents([readback('2026-10-21T03:00:00Z'), evaluation('2026-10-21T04:20:00Z')], { repo: 'roccho-dev/elsewhere', login: 'roccho-dev' }, AT);
+  assert.deepEqual(heldOf(join({ deciders: ['roccho'], proposers: [], owner: OWNER },
+    { events: other.events.map(event => JSON.stringify(event)), present: other.present, repos: ['roccho-dev/elsewhere'] })).at(-1), ['roccho-dev', 'owner-mismatch']);
   assert.deepEqual(heldOf(join({ deciders: ['roccho'], proposers: [], owner: { ...OWNER, login: 'someone' } })).at(-1), ['roccho-dev', 'owner-mismatch']);
 });
 
@@ -114,6 +125,6 @@ test('`atlas-eval` on any other line is ignored; a first line that starts with i
 });
 
 test('the held reasons reach the World as they are (contract v12 HELD_REASONS), not as invalid-declaration', () => {
-  for (const reason of ['evaluation-not-from-owner', 'evaluator-not-declared', 'owner-mismatch', 'owner-unreadable', 'owner-readback-missing',
+  for (const reason of ['evaluation-not-from-owner', 'evaluator-not-declared', 'owner-mismatch', 'owner-not-read', 'owner-unreadable', 'owner-readback-missing',
     'owner-credentials-changed', 'owner-before-readback', 'owner-other-author', 'owner-via-app', 'eval-form']) assert.ok(HELD_REASONS.includes(reason), reason);
 });

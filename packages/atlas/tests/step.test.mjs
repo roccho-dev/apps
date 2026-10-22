@@ -137,7 +137,7 @@ test('(a) continuity: on the ledger the current chain made, step with the same i
   need(loaded);
   await within(async dir => {
     const old = chain(dir, AT);
-    const later = await loaded.step(input({ ledgerText: old.ledgerText, at: '2026-10-21T03:01:00Z' }), fakeRead);
+    const later = await loaded.step(input({ ledgerText: old.ledgerText, at: '2026-10-21T03:01:00Z' }), noOwner);
     assert.deepEqual(later.appended, [], 'no row from reading the same facts again');
     assert.equal(later.ledgerText, old.ledgerText);
   });
@@ -180,17 +180,28 @@ test('v4: step reads no current files (G/current removed, #13); a reading that o
   assert.ok(!result.ledgerText.includes('current:'), 'no current: source in the ledger');
 });
 
-test('C5 stage 1: the owner source\'s evaluation is read again at every step, never put in the ledger; unreadable = none (never the last achieved)', async () => {
+test('C5 stage 1: the owner evaluation is recorded in the ledger once; the same read again adds no row, no frame and no change', async () => {
   need(loaded);
   const evaluated = world => world.frames.flatMap(frame => frame.journal ?? []).filter(entry => entry.kind === 'purpose.evaluated');
   const first = await loaded.step(input(), fakeRead);
   assert.equal(evaluated(first.world).length, 1);
-  assert.ok(!first.ledgerText.includes('roccho-dev/atlas-owner'), 'the owner source is not in the ledger');
-  const later = await loaded.step(input({ ledgerText: first.ledgerText, at: '2026-10-21T03:01:00Z' }), { ...fakeRead, owner: async () => null });
-  assert.deepEqual([evaluated(later.world).length, later.appended.length], [0, 0]);
-  assert.ok(later.world.frames.every(frame => frame.adequacy?.evidence == null), 'no frame keeps the earlier achieved as evidence');
-  const without = await loaded.step(input(), { snapshots: fakeRead.snapshots });
-  assert.equal(evaluated(without.world).length, 0, 'a runtime with no owner reading counts no evaluation');
+  assert.equal(first.ledgerText.split('\n').filter(line => line.includes('roccho-dev/atlas-owner')).length, 1, 'one ledger row');
+  const again = await loaded.step(input({ ledgerText: first.ledgerText, at: '2026-10-21T03:01:00Z' }), fakeRead);
+  assert.deepEqual([again.appended.length, again.world.frames.length, evaluated(again.world).length], [0, first.world.frames.length, 1]);
+  assert.deepEqual(again.world, first.world, 'the same World: no new frame, the evaluation not listed again as a change');
+});
+
+test('C5 stage 1: an owner evaluation the ledger holds counts only when this read accepts it (gone, unreadable, no reader = none)', async () => {
+  need(loaded);
+  const evaluated = world => world.frames.flatMap(frame => frame.journal ?? []).filter(entry => entry.kind === 'purpose.evaluated');
+  const first = await loaded.step(input(), fakeRead);
+  const later = '2026-10-21T03:01:00Z';
+  for (const owner of [async () => [], async () => null, undefined]) {
+    const next = await loaded.step(input({ ledgerText: first.ledgerText, at: later }), { snapshots: fakeRead.snapshots, ...(owner ? { owner } : {}) });
+    assert.deepEqual([evaluated(next.world).length, next.appended.length], [0, 0]);
+    assert.ok(next.world.frames.every(frame => frame.adequacy?.evidence == null), 'no frame keeps the earlier achieved as evidence');
+    assert.ok(next.world.frames.flatMap(frame => frame.held ?? []).some(entry => entry.reason === 'owner-not-read'), 'the ledger row is shown as not read');
+  }
 });
 
 test('v4: run.mjs has no --current option', () => {
