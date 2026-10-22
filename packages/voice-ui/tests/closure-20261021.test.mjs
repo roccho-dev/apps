@@ -134,6 +134,10 @@ test("5c: the JUDGE lane records evaluator-eligibility judgments as its own deno
   accepts(judgments(judge));
   refuses("E_DENOMINATOR", judgments(list => judge(list).filter(record => !(record.lane === "JUDGE" && record.item === "f1"))));
   refuses("E_SHAPE", judgments(list => list.map(record => ({ ...record, lane: "SCORE" }))));
+  // W's review of apps#142: an evaluator-eligibility judgment never counts toward the product's END1,
+  // and it records only the evaluator steps (§7 8 and 13), not product steps.
+  refuses("E_SHAPE", judgments(list => judge(list).map(record => record.lane === "JUDGE" ? { ...record, counts_toward_end1: true } : record)));
+  refuses("E_SHAPE", judgments(list => judge(list).map(record => record.lane === "JUDGE" ? { ...record, step: ["5"] } : record)));
 });
 
 test("record shapes still refuse what they exist to refuse", () => {

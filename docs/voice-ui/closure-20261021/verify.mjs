@@ -26,6 +26,7 @@ export const SCHEMAS = Object.freeze({
 export const STEPS = Object.freeze(["1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14a", "14b", "15"]);
 // JUDGE: the Jev evaluator's eligibility against an independent gold (§9 item 4), its own denominator.
 export const LANES = Object.freeze(["A", "B", "E2E", "JUDGE"]);
+export const JUDGE_STEPS = Object.freeze(["8", "13"]);
 export const ARMS = Object.freeze(["old", "new"]);
 export const VERDICTS = Object.freeze(["PASS", "FAIL", "UNKNOWN"]);
 export const GOLD_SETS = Object.freeze(["presented-1", "presented-2", "atlas"]);
@@ -132,6 +133,12 @@ const validateJudgment = value => {
   // Independent R judges; the writer of the candidate never does.
   if (value.judge !== "R") errors.push("judgment: judge is R");
   if (typeof value.counts_toward_end1 !== "boolean") errors.push("judgment: counts_toward_end1");
+  // An evaluator-eligibility judgment is about Jev, not the product: it never counts toward END1,
+  // and it records only the evaluator steps of §7 (8 real Noul/Choice/Score, 13 unseen accuracy).
+  if (value.lane === "JUDGE") {
+    if (value.counts_toward_end1 !== false) errors.push("judgment: a JUDGE judgment never counts toward END1");
+    if (!Array.isArray(value.step) || !value.step.every(step => JUDGE_STEPS.includes(step))) errors.push(`judgment: a JUDGE step is ${JUDGE_STEPS.join("|")}`);
+  }
   if (!text(value.source)) errors.push("judgment: source");
   if (!ISO.test(value.at ?? "")) errors.push("judgment: at");
   return errors;
