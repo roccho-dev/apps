@@ -144,6 +144,33 @@ const files = [];
 const write = (name, bytes) => { fs.writeFileSync(path.join(out, name), bytes); files.push({ path: name, bytes: Buffer.byteLength(bytes), sha256: hash(bytes) }); };
 if (!live) await new Promise(resolve => server.listen(0, "127.0.0.1", resolve));
 const origin = live ? new URL(args.target).origin : "http://127.0.0.1:" + server.address().port;
+// The served page must be the --dist SHA's site (R 2/200, apps#157): every byte the page loads is compared with
+// the dist manifest row of the same site path, and in live mode a preflight first fetches the core files
+// from the target. A difference refuses the run, so no result is bound to a different arm.
+const manifestRows = new Map(manifest.files.map(row => [row.path, row]));
+const siteRow = pathname => manifestRows.get("site/" + (pathname === "/" ? "index.html" : decodeURIComponent(pathname.slice(1))));
+const served = [], servedMismatch = [];
+const checkServed = (phase, pathname, status, body) => {
+  const row = siteRow(pathname), sha256 = hash(body);
+  const entry = { phase, pathname, status, sha256, manifest_sha256: row?.sha256 ?? null, equal: row?.sha256 === sha256 };
+  served.push(entry);
+  if (status === 200 && !entry.equal) servedMismatch.push(entry);
+};
+if (live) {
+  const core = manifest.files.map(row => row.path).filter(file => ["site/index.html", "site/app.mjs", "site/ui/semantic-map/protocol/index.js"].includes(file)
+    || ["site/data/", "site/app/src/", "site/adapters/"].some(prefix => file.startsWith(prefix)));
+  assert.ok(core.includes("site/index.html") && core.includes("site/app.mjs") && core.some(file => file.startsWith("site/app/src/")), "the dist lists its core site files");
+  for (const file of core) {
+    const pathname = file === "site/index.html" ? "/" : "/" + file.slice("site/".length);
+    const response = await originalFetch(origin + pathname, { cache: "no-store" });
+    checkServed("preflight", pathname, response.status, Buffer.from(await response.arrayBuffer()));
+    if (response.status !== 200) servedMismatch.push({ phase: "preflight", pathname, status: response.status, equal: false });
+  }
+  if (servedMismatch.length) {
+    fs.writeFileSync(path.join(out, "served-identity.json"), JSON.stringify({ target: origin, sources: manifest.sources, served, servedMismatch }, null, 2) + "\n");
+    assert.fail(`the target does not serve the --dist SHA ${manifest.sources.apps}: ${servedMismatch.length} differing file(s), see served-identity.json`);
+  }
+}
 const browser = await chromium.launch({ headless: true, channel: "chromium" });
 const started = Date.now(), lines = [];
 let stop = { reason: "script-complete" }, final = null, reloaded = null, applyState = null;
@@ -163,10 +190,19 @@ try {
       return route.fulfill({ status: 200, headers: { "content-type": "application/json", "cache-control": "no-store" }, body: servedBundle });
     return route.continue();
   });
-  // Live: every product API call and its response body, as the page saw them.
-  if (live) page.on("response", async response => {
+  // Every site file the page loads is checked against the dist; in live mode every product API call
+  // and its response body are kept, as the page saw them.
+  page.on("response", async response => {
     const url = new URL(response.url());
-    if (url.origin !== origin || !url.pathname.startsWith("/api/")) return;
+    if (url.origin !== origin) return;
+    if (!url.pathname.startsWith("/api/")) {
+      // The fixed B stock is this runner's own route, not the target's bytes.
+      if (stock && url.pathname === "/data/bundle.v1.json") return;
+      const body = await response.body().catch(() => Buffer.alloc(0));
+      checkServed("page", url.pathname, response.status(), body);
+      return;
+    }
+    if (!live) return;
     // The script line is taken when the response arrives, before its body is read.
     const entry = { line, route: url.pathname + url.search, status: response.status(), file: `api-${String(api.length).padStart(4, "0")}.json` };
     api.push(entry);
@@ -239,7 +275,9 @@ const receipt = { schema: "voice-ui.ev-run/1", mode: args.mode, target: live ? o
   // Caps are checked between script lines only; one line's Goal may run up to its own request limit past a cap (R 2/12).
   cap_check: "between-lines; a single Goal may overshoot a cap by up to its own per-Goal request limit",
   elapsed_ms: Date.now() - started, lines, calls: { jev: upstream.filter(c => c.provider === "jev").length,
-    typellm: upstream.filter(c => c.provider === "typellm").length }, api, upstream, files };
+    typellm: upstream.filter(c => c.provider === "typellm").length }, api, upstream, files,
+  served_identity: { apps: manifest.sources.apps, checked: served.length, mismatches: servedMismatch, served } };
 fs.writeFileSync(path.join(out, "receipt.json"), JSON.stringify(receipt, null, 2) + "\n");
+assert.deepEqual(servedMismatch, [], "every site byte the page loaded is the --dist SHA's");
 console.log(JSON.stringify({ status: "DONE", mode: args.mode, set: script.set, condition: script.condition, stop, lines: lines.length,
   calls: receipt.calls, files: files.length }));
