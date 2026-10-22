@@ -1,0 +1,45 @@
+{
+  "type": "issue",
+  "owner": "roccho-dev",
+  "repo": "adrs",
+  "number": 647,
+  "fetchedAt": "2026-10-21T02:30:00Z",
+  "responses": {
+    "issue": {
+      "command": "gh api repos/roccho-dev/adrs/issues/647",
+      "sha256": "sha256:e8734a9238ab1307ee0426c3762b54cedab72fcf6f5857a4ebc1d685f09946f5",
+      "data": {
+        "number": 647,
+        "updated_at": "2026-10-21T00:00:00Z",
+        "user": {
+          "login": "roccho-dev"
+        },
+        "body": "atlas"
+      }
+    },
+    "comments": {
+      "command": "gh api --paginate --slurp repos/roccho-dev/adrs/issues/647/comments?per_page=100",
+      "sha256": "sha256:de82507b86afc47432f51372ffe78e3ec936cdc3b1e7ef2ab1ff06a4826712fc",
+      "data": [
+        [
+          {
+            "id": 9001,
+            "updated_at": "2026-10-21T02:00:00Z",
+            "user": {
+              "login": "eval-test"
+            },
+            "body": "atlas-eval achieved purpose.step r1 v9"
+          },
+          {
+            "id": 9002,
+            "updated_at": "2026-10-21T02:10:00Z",
+            "user": {
+              "login": "P"
+            },
+            "body": "atlas-eval not-yet purpose.step r1 v9 自分で評価"
+          }
+        ]
+      ]
+    }
+  }
+}
