@@ -11,6 +11,7 @@ import { assertNoSecretInputs, loadAcceptanceArtifact, assertCompactVerifierWire
 import { gradeInitialPolicy, readFrontierInspection, validRequirements, validFactors, decodeRequiredSlots, sameRequirements, verifierDecision } from "../tests/frontier-cycle-score.mjs";
 import { FRONTIER_SOURCE_NAMES } from "../tests/frontier-cycle-audit.mjs";
 import { historicalBundleControl } from "./historical-bundle-control.mjs";
+import { amendBaselineG0Body, G0_WIRE_AMENDMENT_SHA256 } from "./frontier-g0-wire-amendment.mjs";
 assertNoSecretInputs();
 const [artifact, out, baselineArtifact, ...comparisonArguments] = process.argv.slice(2);
 assert.ok(process.argv.length === 5 || process.argv.length === 7);
@@ -321,6 +322,8 @@ try {
         } finally { currentRequest = null; }
       }
       if (axis === "V") assertCompactVerifierWire(pair[0].wire, pair[1].wire);
+      else if (axis === "G0") assert.deepEqual(pair[1].wire, { ...pair[0].wire, body_utf8: amendBaselineG0Body(pair[0].wire.body_utf8) },
+        "completed G0 exact upstream bytes after the registered r12 amendment " + axis + "/" + item.id);
       else assert.deepEqual(pair[1].wire, pair[0].wire, "completed G0/F exact upstream bytes " + axis + "/" + item.id);
       if (axis === "G0") {
         for (const { response } of pair) {
@@ -332,10 +335,11 @@ try {
         }
         assert.notEqual(pair[0].response.inspection.request_id, pair[1].response.inspection.request_id);
         wireEquality.push({ axis, id: item.id, inputs_sha256: hash(sourceBytes), wire_sha256: hash(JSON.stringify(pair[0].wire)),
-          request_body_sha256: hash(pair[0].wire.body_utf8), response_nonces: pair.map(p => p.response.inspection.request_id),
+          request_body_sha256: hash(pair[0].wire.body_utf8), current_request_body_sha256: hash(pair[1].wire.body_utf8),
+          amendment_sha256: G0_WIRE_AMENDMENT_SHA256, response_nonces: pair.map(p => p.response.inspection.request_id),
           original_captures: pair.map((p, i) => ({ apps_sha: manifests[1 - i].value.sources.apps, ...p })),
           response_comparison: "both original G0 HTTP contracts independently graded; no response equality or normalization claim",
-          status: "UPSTREAM_BYTES_EQUAL" });
+          status: "UPSTREAM_BYTES_EQUAL_AFTER_REGISTERED_AMENDMENT" });
         continue;
       }
       const semantics = pair.map(({ response }) => {
