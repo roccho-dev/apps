@@ -24,7 +24,8 @@ export const SCHEMAS = Object.freeze({
 });
 // §7 of apps#118 comment 6310563121, with step 14 split into 14a/14b (apps#94 6313847759).
 export const STEPS = Object.freeze(["1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14a", "14b", "15"]);
-export const LANES = Object.freeze(["A", "B", "E2E"]);
+// JUDGE: the Jev evaluator's eligibility against an independent gold (§9 item 4), its own denominator.
+export const LANES = Object.freeze(["A", "B", "E2E", "JUDGE"]);
 export const ARMS = Object.freeze(["old", "new"]);
 export const VERDICTS = Object.freeze(["PASS", "FAIL", "UNKNOWN"]);
 export const GOLD_SETS = Object.freeze(["presented-1", "presented-2", "atlas"]);
