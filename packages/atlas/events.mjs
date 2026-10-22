@@ -3,7 +3,7 @@
 // network, name/prefix inference or decision authority is introduced here.
 import { createHash } from 'node:crypto';
 import { reduceClosure } from './closure.mjs';
-import { semanticScopeWorld } from './semantic-scope-world.mjs';
+import { semanticScopeWorld } from './semantic-scope-world-core.mjs';
 
 export const EVENTS_SCHEMA = 'atlas.events/1';
 export const CONTROL_SCHEMA = 'atlas.control-norms/1';

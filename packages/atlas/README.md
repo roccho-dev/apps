@@ -452,6 +452,28 @@ node packages/atlas/live.mjs --out-dir=<out> --ledger=/tmp/p-hq/ledger.jsonl --c
 If step 1 or 2 fails, do not publish: the previous `world.json` stays. The ledger only grows; to start
 over, move it aside (never edit rows).
 
+### 🔁 One step (`step.mjs`, `run.mjs`; adrs#647 v3 c6329883005)
+
+The same collection as one call, independent of where it runs. `step(input, read)` takes the sources, the
+ledger so far, the control and the time `at` (G's recordedAt, current's read time and the ledgerAt alike),
+and a `read` given by the runtime: `snapshots(sources)` (the snapshots `fetch.mjs` writes, by name) and
+`current(sources)` (`[{ author, text }]`). It returns the ledger after the append, the rows appended, the
+rows the ledger held and the World, and nothing else. Nothing it loads reads files, processes or the network
+(`tests/step.test.mjs` follows every import, require and dynamic import): its parts are the `*-core.mjs`
+files, which the CLIs above re-export, so their paths and options are unchanged.
+
+`run.mjs` is the node runtime: it reads through `fetch.mjs`'s readers and the current files, and writes the
+ledger by appending only, the held rows, and `world.json` by write-then-rename.
+
+~~~sh
+node packages/atlas/run.mjs --sources=<collect.json> --ledger=<ledger.jsonl> --held=<held.jsonl> \
+  --control=<control.jsonl> --world=<world.json> --current=P=<P.jsonl> --worklog-author=P
+~~~
+
+Its derivation is the same as the CLI chain's: on the same snapshots with both of the chain's times at
+`at`, the same ledger rows and the same World. Run on a ledger the chain made, it appends nothing.
+The closure, semantic-scope and plan-projection files `derive.mjs` also writes are not produced.
+
 ### A last line cut short (manual repair, never automatic)
 
 An append that is interrupted (power, kill, full disk) can leave the ledger's last line incomplete. Then
