@@ -195,6 +195,13 @@ same id with other content later is held as `p-record-rewritten`. `p.record` row
 have some, so a World without them is unchanged); one that enters when no frame does waits for the next frame.
 The ui must read `p_records` (ui#387) before an apps version that writes it reaches the HQ (adrs#647 c6346827237).
 
+`p.supersede {replaces, by}` is P's explicit replacement of a record (adrs#647 W c6349826755, R c6349841686); the ui
+draws a replaced record's text in no frame (ui#389). P's series list `hq:p-series.json` (p-series-v1: `schema`, `at`,
+`series[{id, canon, goal, R, W, host, state}]`) is read whole by `pSeries(text, recordedAt)` (`run.mjs --p-series`) into one
+P record `p.series` (id `p-series@<at>`, the series in `entries`), so a new declaration is a new ledger row and the same
+one read again is none. Anything else holds the whole declaration (`p-series: invalid-json|schema|fields|at|value`).
+The HQ's ui must read both kinds (ui#389) before this reaches the HQ with `--p-series` or before P writes `p.supersede`.
+
 - Common fields, all required: `schema` (`p-record-v1`), `id` (unique in the file), `kind`, `at` (ISO UTC), `series`
   (or null), `ref` (or null). Each kind adds its own closed set: `user.decision.requested`, `user.decision.recorded`,
   `p.position`, `review.pasted`, `user.criterion`, `loop.stopped`, `p.receipt`, `heartbeat`.

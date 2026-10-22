@@ -6,7 +6,7 @@
 import { normalize } from './collect/adapter.mjs';
 import { collect, toJsonl } from './collect/collect-core.mjs';
 import { ownerEvents } from './collect/owner.mjs';
-import { pRecords, pRecordsInComments } from './collect/precord.mjs';
+import { pRecords, pRecordsInComments, pSeries } from './collect/precord.mjs';
 import { sha256 } from './collect/plan.mjs';
 import { appendEvents, ledgerEvents, ledgerText, readLedger } from './ledger-core.mjs';
 import { joinLog } from './live-core.mjs';
@@ -44,7 +44,7 @@ const threadDocuments = records => records.filter(record => record.kind === 'thr
  * Returns the ledger after the append (it starts with `ledgerText`), the rows appended, the rows the ledger
  * held, and the World. Nothing else (no closure, semantic-scope or plan-projection files).
  */
-export const step = async ({ sources, at, ledgerText: before = '', controlText = NO_CONTROL, purposeText = '', pRecordsText = null }, read) => {
+export const step = async ({ sources, at, ledgerText: before = '', controlText = NO_CONTROL, purposeText = '', pRecordsText = null, pSeriesText = null }, read) => {
   const authors = sources.worklogAuthors ?? [];
   const authority = parseAuthority(controlText);
   const owners = [...new Map([...authority.values()].filter(value => value.owner).map(value => [`${value.owner.repo} ${value.owner.login}`, value.owner])).values()];
@@ -54,13 +54,15 @@ export const step = async ({ sources, at, ledgerText: before = '', controlText =
   const records = [...await read.snapshots(sources)].sort(compare).flatMap(({ snapshot }) => normalize(snapshot));
   const rows = readLedger(before);
   const mine = pRecordsText === null ? { records: [], held: [] } : pRecords(pRecordsText, at);
+  // P's series list (p-series-v1) is one more P record (`p.series`, id p-series@<at>): a new declaration is a new row.
+  const list = pSeriesText === null || pSeriesText === '' ? { record: null, held: [] } : pSeries(pSeriesText, at);
   const events = [...collect(records, at, { worklogAuthors: authors }), ...owned.flatMap(value => value.events), ...currentRetired(rows, at),
-    ...mine.records.map(recordEvent)];
+    ...mine.records.map(recordEvent), ...(list.record ? [recordEvent(list.record)] : [])];
   const appended = appendEvents(rows, toJsonl(events), at);
   const after = before ? before + appended.appended.map(row => JSON.stringify(row) + '\n').join('') : ledgerText(appended.rows);
   const { log, held, unbound, pRecords: recorded } = joinLog(purposeText, [ledgerEvents(after)], 'supplied',
     { authority, owner: { repos: owners.map(owner => owner.repo), present: owned.flatMap(value => value.present) } });
-  const pHeld = [...mine.held, ...pRecordsInComments(threadDocuments(records), at)].map(value => ({ reason: value.reason, journal: value }))
+  const pHeld = [...mine.held, ...list.held, ...pRecordsInComments(threadDocuments(records), at)].map(value => ({ reason: value.reason, journal: value }))
     .concat(appended.held.filter(value => value.reason === 'p-record-rewritten')
       .map(value => ({ reason: value.reason, journal: { kind: 'p.record', recordedAt: at, source: value.event.source } })));
   const world = contractWorld(deriveAtlas(log, controlText), { unbound, held: [...held, ...owned.flatMap(value => value.held), ...pHeld].filter(value => value.journal),
