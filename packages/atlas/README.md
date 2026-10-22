@@ -499,8 +499,8 @@ node packages/atlas/run.mjs --sources=<collect.json> --ledger=<ledger.jsonl> --h
   --control=<control.jsonl> --world=<world.json> --worklog-author=P
 ~~~
 
-Its derivation is the same as the CLI chain's run without `--current`: on the same snapshots with both of
-the chain's times at `at`, the same ledger rows and the same World. Run on a ledger the chain made, it appends nothing.
+Its derivation is the same as the CLI chain's: on the same snapshots with both of the chain's times at `at`,
+the same ledger rows and the same World. (Neither reads current files: `collect.mjs --current` is removed too.) Run on a ledger the chain made, it appends nothing.
 The closure, semantic-scope and plan-projection files `derive.mjs` also writes are not produced.
 
 ### A last line cut short (manual repair, never automatic)
