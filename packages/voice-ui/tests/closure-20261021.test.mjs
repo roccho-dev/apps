@@ -129,6 +129,20 @@ test("13: a judgment's gold is the gold set its sealed expectation names", () =>
   refuses("E_GOLD_SET", sealAtlas, judgments(where(record => record.verdict === "PASS", record => ({ ...record, gold_seal_sha256: sha }))));
 });
 
+test("14: a judgment cites the newest seal of its target and set that existed when it was judged (W, apps#145)", () => {
+  const v2 = '{"items":{"r1":"present","r2":"present","f1":"absent"},"version":2}\n';
+  const sha = sha256Hex(canonicalJson(JSON.parse(v2)));
+  const sealV2 = at => dir => {
+    writeFileSync(join(dir, "gold/presented-1/gold.v2.json"), v2);
+    edit("ledgers/seals.jsonl", list => [...list, { ...list.find(seal => seal.target === "gold"),
+      path: "gold/presented-1/gold.v2.json", bytes: Buffer.byteLength(v2), sha256: sha, sealed_at: at }])(dir);
+  };
+  refuses("E_SEAL_SUPERSEDED", sealV2("2026-10-21T02:30:00Z"));
+  accepts(sealV2("2026-10-21T02:30:00Z"), judgments(list => list.map(record => ({ ...record, gold_seal_sha256: sha }))));
+  // A newer seal made after the judgment does not rewrite that judgment's history.
+  accepts(sealV2("2026-10-21T04:00:00Z"));
+});
+
 test("5c: the JUDGE lane records evaluator-eligibility judgments as its own denominator", () => {
   const judge = list => [...list, ...list.map(record => ({ ...record, lane: "JUDGE", step: ["8", "13"], counts_toward_end1: false }))];
   accepts(judgments(judge));

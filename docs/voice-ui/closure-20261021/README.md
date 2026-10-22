@@ -26,6 +26,7 @@
 3. `ledgers/seals.jsonl` に `target`（expectation・gold・holdout）、`set`、`path`、`digest`、`bytes`、`sha256`、`sealed_by: "R"`、`sealed_at`、`before_exposure: true` を足す。
 4. verify は封印を **file の実 bytes から計算し直す**（`E_SEAL_MISSING`・`E_SEAL_BYTES`・`E_SEAL_DIGEST`）。封印した期待は有効な candidate で、判定に使う Gold の set を `gold_set` で 1 つ名指しする。判定票が引く Gold の封印はその set のものでなければならない（`E_GOLD_SET`）。
 5. 判定票が引く封印は、target が合っていて（`E_GOLD_TARGET`・`E_EXPECTATION_TARGET`）、その判定の `at` より **前** に封印されていなければならない（`E_SEAL_LATE`）。`before_exposure` の自己申告だけでは足りない。
+6. 封印を作り直すときは古い行を消さずに新しい行を足す。判定票は、その判定の時点で同じ target・set の最新の封印を引く。それより古い封印を引けば拒否する（`E_SEAL_SUPERSEDED`）。判定の後にできた新しい封印は、過去の判定を無効にしない。
 
 ## 記録
 
