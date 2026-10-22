@@ -204,6 +204,8 @@ const receipt = { schema: "voice-ui.ev-run/1", mode: args.mode, live_provider: "
   sources: manifest.sources, manifest_sha256: hash(manifestBytes), apply: applyState,
   script: { set: script.set, condition: script.condition, lines: script.utterances.length, sha256: hash(scriptBytes) },
   stock_sha256: stockBytes ? hash(stockBytes) : null, served_bundle_sha256: hash(servedBundle), caps, stop,
+  // Caps are checked between script lines only; one line's Goal may run up to its own request limit past a cap (R 2/12).
+  cap_check: "between-lines; a single Goal may overshoot a cap by up to its own per-Goal request limit",
   elapsed_ms: Date.now() - started, lines, calls: { jev: upstream.filter(c => c.provider === "jev").length,
     typellm: upstream.filter(c => c.provider === "typellm").length }, api, upstream, files };
 fs.writeFileSync(path.join(out, "receipt.json"), JSON.stringify(receipt, null, 2) + "\n");
