@@ -12,6 +12,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { parseArgs } from 'node:util';
 import { fetchOwnerComments, fetchSnapshots } from './collect/fetch.mjs';
+import { parseAuthority } from './events.mjs';
 import { step } from './step.mjs';
 
 const fail = message => { throw new Error('atlas-run: ' + message); };
@@ -26,10 +27,23 @@ export const nodeRead = Object.freeze({
   owner: repo => fetchOwnerComments(repo, process.env.ATLAS_OWNER_TOKEN),
 });
 
-/** One run on the node runtime: read, step, write. Returns the receipt. */
-export const run = async ({ sources, ledger, world, held = null, control = null, purpose = null, at = new Date().toISOString() }, reading = nodeRead) => {
+/**
+ * One run on the node runtime: read, step, write. Returns the receipt. Without `at`, everything is read first and
+ * the time is taken after the reading: a real reading stamps each fact with when it was read, and a fact may not be
+ * later than the time it is recorded at (R's dry-run on the HQ data, adrs#647 c6339405812). step stays pure: it is
+ * given what was read.
+ */
+export const run = async ({ sources, ledger, world, held = null, control = null, purpose = null, at = null }, reading = nodeRead) => {
   const before = fs.existsSync(ledger) ? read(ledger) : '';
-  const result = await step({ sources, at, ledgerText: before, ...(control ? { controlText: read(control) } : {}), ...(purpose ? { purposeText: read(purpose) } : {}) }, reading);
+  const controlText = control ? read(control) : undefined;
+  const snapshots = await reading.snapshots(sources);
+  const owners = new Map();
+  for (const value of controlText ? parseAuthority(controlText).values() : []) {
+    if (value.owner && !owners.has(value.owner.repo)) owners.set(value.owner.repo, reading.owner ? await reading.owner(value.owner.repo) : null);
+  }
+  at ??= new Date().toISOString();
+  const given = { snapshots: async () => snapshots, owner: async repo => owners.get(repo) ?? null };
+  const result = await step({ sources, at, ledgerText: before, ...(controlText ? { controlText } : {}), ...(purpose ? { purposeText: read(purpose) } : {}) }, given);
   // Append only: the new ledger starts with the old bytes (step checks it; a fresh ledger gets its header).
   if (!result.ledgerText.startsWith(before)) fail('the ledger would be rewritten');
   const addition = result.ledgerText.slice(before.length);
