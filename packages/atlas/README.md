@@ -5,6 +5,105 @@ projection restores **Purpose / Ideal / Current / Gap / Fill / Receipt / Residua
 and the relations that lead back to the highest purposes. It does not restore a
 renderer or claim that the actual company has reached those purposes.
 
+## HQ UI: requirement decisions and visual data flow (2026-10-22 snapshot)
+
+**Purpose:** From a distant view, tell where the agent organization is moving, which work and references are active, what stopped, and what is unknown **without reading every node**. Open the underlying source only after selecting/focusing a node or relation. This is an **Atlas application** requirement, not a new rendering engine or a second meaning authority. See [ui#320](https://github.com/roccho-dev/ui/issues/320), [apps#73](https://github.com/roccho-dev/apps/issues/73), and [ui#321](https://github.com/roccho-dev/ui/issues/321).
+
+**Status and evidence boundary:** This section is a reviewable **index of decisions and outstanding UX tests**, not an accepted semantic contract or a claim that the deployed HQ has passed them. Baselines inspected on 2026-10-22: apps `proposals@a447a46844e4a22d785698a9c099a122ca280a28`; ui `proposals@893ebce63856d378e0d314ede504cf0899406ab6`. The exact source revision deployed at a particular `/hq/` URL requires a separate readback. "Implemented" below means the linked PR was merged, **not** that live-Agent end-to-end use is complete.
+
+### Architecture: one application, reusable UI
+
+```mermaid
+flowchart LR
+  subgraph ADRS["ADRS｜目的・判断の正本"]
+    M["目的・採否"]
+  end
+  subgraph APPS["apps｜Atlas application"]
+    A["観測・宣言"]
+    W["導出されたWorld"]
+    A --> W
+  end
+  subgraph UI["ui｜再利用可能な表示"]
+    P["投影・表示優先順位"]
+    R["Node・Edge・時間操作"]
+    P --> R
+  end
+  M --> W
+  W --> P
+```
+
+Ownership: **ADRS** owns adopted meaning and the human judgment; **apps** joins declared/observed facts and produces a versioned World; **ui** draws the supplied facts and handles view-local interactions. Neither World nor pixels authenticate their own claims. See [ADRS #647](https://github.com/roccho-dev/adrs/issues/647), [ui#321](https://github.com/roccho-dev/ui/issues/321).
+
+### Data flow: the intended one-glance activity view
+
+```mermaid
+flowchart LR
+  subgraph IN["入力"]
+    O["Agent活動の観測"]
+    H["目的・仕事・履歴"]
+  end
+  subgraph DATA["apps"]
+    J["ID・出所・関係を結合"]
+    W["時点付きWorld"]
+    J --> W
+  end
+  subgraph VIEW["ui"]
+    F["今見る対象を選ぶ"]
+    G["関連Node・Edgeを強調"]
+    F --> G
+  end
+  O --> J
+  H --> J
+  W --> F
+```
+
+**Target flow, not a completed production proof.** The current generic World UI accepts entity activity (`now / recent / unknown / none`) and flags, but at least one apps producer (`semantic-scope-world.mjs`) emits entities with `activity: none`. Consequently, a visible status glyph alone does not prove the agent is doing the highlighted work. Activity → agent identity → work → purpose relation, source/time, coverage, and the actual on-screen highlight must be checked together. An `exec` start does not prove continuing execution. See [apps#73](https://github.com/roccho-dev/apps/issues/73), [ui#320](https://github.com/roccho-dev/ui/issues/320).
+
+### Current decision index
+
+| Requirement / user-visible behavior | Latest decision | Evidence / remaining limit |
+| --- | --- | --- |
+| Purpose / Scope / Agent in one nested World, with explicit links | **Keep; implemented** | [ui#353](https://github.com/roccho-dev/ui/pull/353), [ui#363](https://github.com/roccho-dev/ui/pull/363); no membership inferred from labels |
+| Purpose–ideal adequacy and ideal–current difference are distinct | **Keep; implemented** | [ui#372](https://github.com/roccho-dev/ui/pull/372); an observation does not decide Purpose achievement |
+| Physical Scope, unassigned work and old obligations retain identity | **Keep; implemented** | [ui#372](https://github.com/roccho-dev/ui/pull/372), [ui#363](https://github.com/roccho-dev/ui/pull/363) |
+| Distinguish current vs closed/history **at a glance** | **Required; UX acceptance outstanding** | Old/closed nodes are intentionally retained in history; they must not appear to be active just because they are drawn. [apps semantic-scope-world](https://github.com/roccho-dev/apps/blob/proposals/packages/atlas/semantic-scope-world.mjs) |
+| Show the agent's **current action, target work and relevant path** by node/edge emphasis | **Required; production proof outstanding** | [ui#320](https://github.com/roccho-dev/ui/issues/320), [apps#73](https://github.com/roccho-dev/apps/issues/73); producer data and far-view projection both need proof |
+| Show parallel agents/work and what they are referencing | **Required; broad E2E outstanding** | [ui#320](https://github.com/roccho-dev/ui/issues/320), [apps#73](https://github.com/roccho-dev/apps/issues/73) |
+| State conveyed by **color and symbol**, not color alone | **Keep; implemented** | [ui#355](https://github.com/roccho-dev/ui/pull/355); not equivalent to proof of active work |
+| One time axis, previous / next / present; future freshness steps are not facts | **Keep; implemented** | [ui#379](https://github.com/roccho-dev/ui/pull/379) |
+| Fixed-height change panel under time controls (six lines, inner scroll) | **Keep; implemented** | [ui#379](https://github.com/roccho-dev/ui/pull/379), [ui#380](https://github.com/roccho-dev/ui/pull/380) |
+| SSE disconnected or stale must not say confidently "live" | **Keep; implemented** | [ui#360](https://github.com/roccho-dev/ui/pull/360); SSE connectivity alone does not freshen observations |
+| Search can reach omitted records and focus a visible context | **Keep; implemented** | [ui#375](https://github.com/roccho-dev/ui/pull/375) |
+| Permanent HUD, second chrome, detailed record/Direction panel on the **World screen** | **Removed from this screen** | [ui#376](https://github.com/roccho-dev/ui/pull/376); do not infer that all Inspector capabilities in other views are retired |
+| Text labels on every relation | **Removed from the World scene** | Lines remain; record labels remain searchable. [ui#377](https://github.com/roccho-dev/ui/pull/377) |
+| Legacy slide-style **slider** as the active World time control | **Superseded** | Old [42-item SDUI ledger](https://github.com/roccho-dev/ui/blob/proposals/proposals/20260628-purpose-atlas-sdui-expectation-ledger.md) versus [ui#379](https://github.com/roccho-dev/ui/pull/379) |
+| Goal-at-top-left Voronoi/territory layout | **Deferred**, not an immediate acceptance gate | The old ledger prefers it, but [ui#356](https://github.com/roccho-dev/ui/issues/356) explicitly puts its recovery outside the present closure |
+| Cross-view semantic navigation with return to prior camera/selection | **Proposal, not adopted/implemented** | [ui#345](https://github.com/roccho-dev/ui/issues/345) |
+| Proposal Inspector, semcmp ranking, Meltype/hayamimi client integration | **Outside the current Atlas completion scope** | User chose v1-A': [ADRS #647 decision](https://github.com/roccho-dev/adrs/issues/647#issuecomment-6333159316); semcmp is a separate consumer: [follow-up](https://github.com/roccho-dev/adrs/issues/647#issuecomment-6333176546) |
+| Atlas/UI creates or verifies adopted meaning and human `achieved` | **Rejected as UI authority** | [ui#321](https://github.com/roccho-dev/ui/issues/321), [ADRS #647 C5 discussion](https://github.com/roccho-dev/adrs/issues/647#issuecomment-6335481832) |
+| New UI renderer, broker, DB, or agent self-report requirement | **Not required / outside scope** | [ui#320](https://github.com/roccho-dev/ui/issues/320), [apps#73](https://github.com/roccho-dev/apps/issues/73) |
+
+**Source lineage (not duplicate authorities):** the early [42-item UI expectation ledger](https://github.com/roccho-dev/ui/blob/proposals/proposals/20260628-purpose-atlas-sdui-expectation-ledger.md), [ui#320 (25 far-view requirements)](https://github.com/roccho-dev/ui/issues/320), [ui#342 (prepared-input UI acceptance)](https://github.com/roccho-dev/ui/issues/342), and [apps#73 (real activity acceptance)](https://github.com/roccho-dev/apps/issues/73) preserve earlier intent. Current screen-element inclusion/removal is tracked by [ui's SCREEN_LINES / SCREEN_CONTROLS table](https://github.com/roccho-dev/ui/blob/proposals/packages/control/src/atlas-screen-table.mjs). Later decisions in [ADRS #647](https://github.com/roccho-dev/adrs/issues/647) supersede older plans, including its still-old v1 issue-body graph. This crosswalk groups related requirements; it is **not** a claim that every old row has been independently reverified. A changed decision should be recorded at its owning source first, then reflected here.
+
+### False-positive gates still to verify in the actual HQ
+
+A merged implementation or synthetic passing fixture does **not** close these tests:
+
+1. A closed/historical Scope is not visually mistaken for current work.
+2. An agent with no recent independent observation is not marked actively running.
+3. An observed start (`exec`) is not promoted to proof of ongoing execution.
+4. An activity pulse or highlight has an exact agent/work/relation identity, version and source.
+5. Parallel work by two agents is visible without copying a Work node or inventing ownership.
+6. An unknown/unassigned source or responsibility stays UNKNOWN; no inferred edge completes a path.
+7. A disconnected SSE feed, stale observation and unobserved target stay distinct.
+8. A future plan/stale deadline is not displayed as completed work or current fact.
+9. An omitted node/edge due to render limits is counted/recoverable, not silently absent (current UI limits include 40 entities per area and 64 relation groups).
+10. Selecting an item or holding an old frame is not silently reset by a newer snapshot.
+11. Work/Receipt completion or CI success is not shown as Purpose achieved.
+12. A human `achieved` decision is not authenticated by an agent-created World or by the page's own label.
+
+**Next proof:** pin exact apps/ui/HQ source revisions, use one actual observer input with an identifiable agent→work→purpose relation and one closed-history counterexample, and check the painted node/edge state at distant zoom (including stale, held frame, and omitted records). Link the readback to the owning issue; don't declare any of the above PASS from this README.
+
 ## One contract, several sources
 
 `purpose.jsonl + current.jsonl → reduceClosure → atlas.reduced.jsonl`
@@ -532,7 +631,8 @@ To repair by hand:
 
 ## World edge contracts (`contract.mjs`)
 
-The model and contracts are adrs#647 (v3 is the newest section). `contract.mjs` is the
+The meaning authority is adrs#647; the details below also preserve historical v3-v7 contract
+shapes, not a claim that v3 is current. `contract.mjs` is the
 only module that knows the ui contracts; `derive.mjs` writes `contractWorld(result)`, so
 `live.mjs` and the fixture CLI emit the same shape. Without `plans`/`gap`/`phase`/
 `journal`/`matched_until` each frame is exactly D's World.
