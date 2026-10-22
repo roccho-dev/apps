@@ -15,15 +15,17 @@ const ONE_OF_EACH = [
   base('loop.stopped', 'p-6', { role: 'sys1.W', round: 3, next: 'USER', reason: '確認のため', needed: false, action: 'P が再開' }),
   base('p.receipt', 'p-7', { action: 'hq-refresh', target: 'v3', sha256: '1e6dec799ea5dffaa182744e9909e36ce0b06f0b3e375bca2215b941df2a703c', result: 'PASS', reverted: false }),
   base('heartbeat', 'p-8', { run: 'alive', tunnel: 'alive', hq_loop: 'unknown', reaped: 0, rebuilt: 1 }),
+  // adrs#647 W c6349826755, R c6349841686: P's explicit replacement of a record.
+  base('p.supersede', 'p-9', { replaces: 'p-1', by: null }),
 ];
 const file = lines => lines.map(line => typeof line === 'string' ? line : JSON.stringify(line)).join('\n') + '\n';
 const reasons = result => result.held.map(item => item.reason);
 
-test('the eight kinds are kept as P\'s claims, with the file\'s digest and the line', () => {
+test('the nine kinds are kept as P\'s claims, with the file\'s digest and the line', () => {
   assert.deepEqual(P_RECORD_KINDS, ONE_OF_EACH.map(line => line.kind));
   const result = pRecords(file(ONE_OF_EACH), RUN);
   assert.deepEqual(result.held, []);
-  assert.deepEqual(result.records.map(record => record.id), ['p-1', 'p-2', 'p-3', 'p-4', 'p-5', 'p-6', 'p-7', 'p-8']);
+  assert.deepEqual(result.records.map(record => record.id), ['p-1', 'p-2', 'p-3', 'p-4', 'p-5', 'p-6', 'p-7', 'p-8', 'p-9']);
   assert.ok(result.records.every((record, index) => record.authority === false && record.source.ref === 'hq:p-records.jsonl'
     && /^sha256:[0-9a-f]{64}$/u.test(record.source.sha256) && record.source.line === index + 1));
   assert.ok(Object.isFrozen(result.records[0]));
