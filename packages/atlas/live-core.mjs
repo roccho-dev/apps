@@ -98,32 +98,44 @@ const hotMinusCold = (events, held) => {
 
 // v12 (S4): who decided. Only a Purpose with an authority declaration is checked; a proposer's decision is a
 // proposal (held, never in the log), an author who is neither is not authorized. Others are accepted as before.
-// C5: a declared Purpose is evaluated by its evaluators alone, never by a decider; with none declared, by no one
-// (fail closed: it stays unevaluated). An evaluator decides nothing else.
 const purposeOf = decision => decision.kind === 'purpose.set' ? decision.purpose?.id : decision.purpose_id;
 const unauthorized = (decision, authority) => {
   const declared = authority.get(purposeOf(decision));
-  if (!declared) return null;
-  if (decision.kind === 'purpose.evaluated') {
-    return declared.evaluators.includes(decision.actor) ? null : declared.evaluators.length ? 'evaluator-only' : 'evaluator-not-declared';
-  }
-  if (declared.deciders.includes(decision.actor)) return null;
+  if (!declared || declared.deciders.includes(decision.actor)) return null;
   return declared.proposers.includes(decision.actor) ? 'proposal' : 'actor-not-authorized';
 };
+// C5 stage 1 (adrs#647 v4 c6335921034, the User c6335830037): an evaluation counts only from the owner input
+// source the Purpose's authority names, whoever wrote it elsewhere (a login does not tell the User from an
+// agent); with no owner declared, no one evaluates (fail closed: it stays unevaluated).
+const repoOf = ref => String(ref).replace(/#\d+$/u, '');
+const refused = ({ decision, origin }, authority) => {
+  if (decision.kind !== 'purpose.evaluated') return unauthorized(decision, authority);
+  if (origin !== 'owner') return 'evaluation-not-from-owner';
+  const owner = authority.get(purposeOf(decision))?.owner;
+  if (!owner) return 'evaluator-not-declared';
+  return repoOf(decision.source.ref) === owner.repo && decision.actor === owner.login ? null : 'owner-mismatch';
+};
 
-export const joinLog = (purposeText, gTexts, sourceMode = 'supplied', { authority = new Map() } = {}) => {
+/**
+ * `owner`: the owner source's D-form evaluations for this step (collect/owner.mjs), read again every step and
+ * never taken from the ledger, so an evaluation that is gone or unreadable is gone.
+ */
+export const joinLog = (purposeText, gTexts, sourceMode = 'supplied', { authority = new Map(), owner = [] } = {}) => {
   const held = [], accepted = [], gEvents = hotMinusCold(gTexts.flatMap(rows), held);
-  const candidates = byTime([...rows(purposeText ?? ''),
-    ...gEvents.filter(event => JOURNAL.includes(event.kind)).flatMap(event => fromG(event).events)]);
-  for (const decision of candidates) {
+  const tagged = [...rows(purposeText ?? '').map(decision => ({ decision, origin: 'declaration' })),
+    ...gEvents.filter(event => JOURNAL.includes(event.kind)).flatMap(event => fromG(event).events.map(decision => ({ decision, origin: 'g' }))),
+    ...owner.map(decision => ({ decision, origin: 'owner' }))];
+  const order = new Map(byTime(tagged.map(value => value.decision)).map((decision, index) => [decision, index]));
+  for (const candidate of tagged.sort((a, b) => order.get(a.decision) - order.get(b.decision))) {
+    const { decision } = candidate;
     // adrs#654, the one check: a worklog value (work:* / evidence:*) or an evaluator's answer (evaluation:*, v12)
     // is a claim, never a condition. Every decision that carries requires (ideal.set, the legacy purpose.set, …),
     // from G or --purpose alike, passes here.
     if (Array.isArray(decision?.requires) && decision.requires.some(condition => /^(?:work|evidence|evaluation):/u.test(String(condition?.predicate?.target?.id ?? '')))) {
       held.push({ reason: 'worklog-target-in-predicate', journal: decision }); continue;
     }
-    const refused = unauthorized(decision, authority);
-    if (refused) { held.push({ reason: refused, journal: decision }); continue; }
+    const reason = refused(candidate, authority);
+    if (reason) { held.push({ reason, journal: decision }); continue; }
     try { parseEvents(jsonl([header(sourceMode), ...accepted, decision])); accepted.push(decision); }
     // The held reason is D's stable code (contract v12), never its message with a line number.
     catch (error) { held.push({ reason: error.code ?? 'invalid-declaration', journal: decision }); }

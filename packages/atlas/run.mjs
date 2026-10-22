@@ -11,14 +11,20 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { parseArgs } from 'node:util';
-import { fetchSnapshots } from './collect/fetch.mjs';
+import { fetchOwnerComments, fetchSnapshots } from './collect/fetch.mjs';
 import { step } from './step.mjs';
 
 const fail = message => { throw new Error('atlas-run: ' + message); };
 const read = file => fs.readFileSync(file, 'utf8');
 
-/** The node reading: snapshots through fetch.mjs. */
-export const nodeRead = Object.freeze({ snapshots: sources => fetchSnapshots(sources) });
+/**
+ * The node reading: snapshots through fetch.mjs, and the owner input source (C5 stage 1) with the read-only token
+ * in ATLAS_OWNER_TOKEN alone (the runtime's environment, from envs; absent = unreadable, no evaluation counts).
+ */
+export const nodeRead = Object.freeze({
+  snapshots: sources => fetchSnapshots(sources),
+  owner: repo => fetchOwnerComments(repo, process.env.ATLAS_OWNER_TOKEN),
+});
 
 /** One run on the node runtime: read, step, write. Returns the receipt. */
 export const run = async ({ sources, ledger, world, held = null, control = null, purpose = null, at = new Date().toISOString() }, reading = nodeRead) => {

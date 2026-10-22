@@ -359,20 +359,26 @@ export const parsePhysicalScopes = input => {
 
 /**
  * Who may decide and who may only propose, per Purpose (contract v12, S4; the v11 actor-not-authorized),
- * and who alone may evaluate it (C5, adrs#647 c6315696164: `evaluators`, optional, none = no one). Enforced
- * only for a Purpose with a declaration; a Purpose without one is accepted as before.
+ * and where alone it is evaluated (C5 stage 1, adrs#647 v4 c6335921034: `owner` {repo, login}, the owner input
+ * source no agent can write to; optional, none = no one evaluates). The login lists are enforced only for a
+ * Purpose with a declaration. `evaluators` (a login list, apps#136) is retired: the login alone does not tell
+ * the User from an agent, so a control that still names it is refused rather than read two ways.
  */
+const OWNER_REPO = /^[A-Za-z0-9-]+\/[A-Za-z0-9._-]+$/u;
 export const parseAuthority = input => {
   const authority = new Map();
   for (const { value, at } of controlRows(input, 'authority')) {
-    keys(value, ['kind', 'purposeId', 'deciders', 'proposers'], ['evaluators'], at);
+    demand(!('evaluators' in value), `${at}: evaluators is retired; declare owner {repo, login} (adrs#647 v4)`);
+    keys(value, ['kind', 'purposeId', 'deciders', 'proposers'], ['owner'], at);
     demand(token(value.purposeId) && !authority.has(value.purposeId), `${at}: one authority per purposeId`);
     ids(value.deciders, `${at}.deciders`); ids(value.proposers, `${at}.proposers`, true);
     demand(!value.proposers.some(login => value.deciders.includes(login)), `${at}: a login is a decider or a proposer, not both`);
-    const evaluators = ids(value.evaluators ?? [], `${at}.evaluators`, true);
-    demand(!evaluators.some(login => value.deciders.includes(login) || value.proposers.includes(login)), `${at}: an evaluator is neither a decider nor a proposer`);
+    if ('owner' in value) {
+      keys(value.owner, ['repo', 'login'], [], `${at}.owner`);
+      demand(OWNER_REPO.test(String(value.owner.repo)) && token(value.owner.login), `${at}.owner: repo owner/name and login required`);
+    }
     authority.set(value.purposeId, Object.freeze({ deciders: Object.freeze([...value.deciders]), proposers: Object.freeze([...value.proposers]),
-      evaluators: Object.freeze([...evaluators]) }));
+      owner: value.owner ? Object.freeze({ repo: value.owner.repo, login: value.owner.login }) : null }));
   }
   return authority;
 };

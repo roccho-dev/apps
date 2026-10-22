@@ -26,7 +26,7 @@ function entry(line, { author, source, notAfter, at }) {
 // `atlas-eval <verdict> <purpose_id> <purpose_rev> <ideal_version>[ <reason>]`, matched whole; a first line that
 // starts with it but does not match is held. Its time is the comment's (updated_at), its actor the comment's
 // login; who may evaluate is the authority's rule (live.mjs), not the collector's. Other lines are not read.
-const EVAL = /^atlas-eval (achieved|not-yet|ideal-insufficient) (\S+) (\S+) (\S+)(?: (\S.*))?$/u;
+export const EVAL = /^atlas-eval (achieved|not-yet|ideal-insufficient) (\S+) (\S+) (\S+)(?: (\S.*))?$/u;
 function evaluation(doc, { source, notAfter }) {
   const first = String(doc.text ?? '').split(/\r?\n/u)[0].trimEnd();
   if (!first.startsWith('atlas-eval ')) return [];

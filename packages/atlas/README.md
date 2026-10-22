@@ -463,7 +463,26 @@ rows the ledger held and the World, and nothing else. Nothing it loads reads fil
 (`tests/step.test.mjs` follows every import, require and dynamic import): its parts are the `*-core.mjs`
 files, which the CLIs above re-export, so their paths and options are unchanged.
 
-`run.mjs` is the node runtime: it reads through `fetch.mjs`'s readers, and writes the
+**The owner input source (C5 stage 1, adrs#647 v4 c6335921034).** The User's evaluation counts only from
+the private repo a Purpose's authority names in the control — `{"kind":"authority", …, "owner":{"repo":
+"<owner>/<repo>","login":"<login>"}}` — a repo no agent, App or connector can write to. `read.owner(repo)`
+returns its Issue comments (or null when unreadable); `collect/owner.mjs` takes a comment only when its author
+is the owner login, no App wrote it (`performed_via_github_app` empty) and its first line is one of:
+
+- `atlas-readback[ <note>]`: the User read back every credential that could write to the repo;
+- `atlas-credentials-changed[ <note>]`: a credential changed; nothing counts until the next readback;
+- `atlas-eval <verdict> <purpose_id> <purpose_rev> <ideal_version>[ <reason>]`: counted only when written
+  after the latest readback and with no change at or after it.
+
+These evaluations are read again at every step and never appended to the ledger: one that is gone or
+unreadable is gone (no fallback to an earlier `achieved`). Each is recorded at the step's `at` with its
+comment's time as `declaredAt`, and shown with `source.admission: owner-unverified` (Atlas does not verify it;
+the original is the comment). An evaluation anywhere else is held as `evaluation-not-from-owner`, whoever wrote
+it; with no owner declared, none counts (`evaluator-not-declared`). The login list `evaluators` is retired: a
+control that still names it is refused.
+
+`run.mjs` is the node runtime: it reads through `fetch.mjs`'s readers (the owner source with the read-only token
+in `ATLAS_OWNER_TOKEN` alone; none = unreadable), and writes the
 ledger by appending only, the held rows, and `world.json` by write-then-rename.
 
 ~~~sh
