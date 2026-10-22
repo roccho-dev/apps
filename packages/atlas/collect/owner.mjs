@@ -8,9 +8,11 @@
 //   atlas-eval <verdict> <purpose_id> <purpose_rev> <ideal_version>[ <reason>]
 // An evaluation counts only after the latest readback (its updated_at later than the readback's created_at)
 // and when no change was written at or after that readback. Accepted evaluations are G events like a thread's
-// `atlas-eval` (time = the comment's updated_at), so the ledger records each once (R, c6338324978); `present`
-// names the ones this read accepts, and only those count (live-core.mjs): one that is gone, unreadable or
-// no longer after a readback is not counted, whatever the ledger holds (never the last `achieved`).
+// `atlas-eval` (time = the comment's updated_at), so the ledger records each once (R, c6338324978). `present`
+// is the whole content of each evaluation this read accepts, and the ledger's row counts only when its content
+// is the same (live-core.mjs; R c6338530569): one that is gone, unreadable, no longer after a readback, or a row
+// whose verdict or version differs from what the comment says now is not counted (never the last `achieved`,
+// never an edited row: the ledger is not where an evaluation comes from).
 import { EVAL } from './journal.mjs';
 import { sha256 } from './plan.mjs';
 
@@ -18,13 +20,18 @@ export const READBACK = 'atlas-readback';
 export const CHANGED = 'atlas-credentials-changed';
 // Atlas shows these evaluations but does not verify them: the original is the comment in the owner repo.
 export const OWNER_ADMISSION = 'owner-unverified';
-/** The key of one owner document as D sees it (ref, commentId, digest). */
-export const ownerKey = source => `${source.ref} ${source.commentId} ${source.digest ?? source.sha256}`;
+/**
+ * The whole content of one owner evaluation, from G's form (source.sha256, time = recordedAt) or D's form as the
+ * ledger gives it back (source.digest, time = declaredAt when the ledger recorded it later): every field that
+ * says what was evaluated, by whom, from which comment and when.
+ */
+export const ownerContent = event => JSON.stringify([event.source?.ref, String(event.source?.commentId), event.source?.digest ?? event.source?.sha256,
+  event.declaredAt ?? event.recordedAt, event.actor, event.purpose_id, event.purpose_rev, event.ideal_version, event.verdict, event.note ?? null]);
 
 const is = (line, word) => line === word || line.startsWith(word + ' ');
 const issueOf = comment => /\/issues\/(\d+)$/u.exec(String(comment.issue_url ?? ''))?.[1] ?? null;
 
-/** Owner repo comments (or null) → { events: G purpose.evaluated, present: [ownerKey], held: [{ reason, journal }] }. */
+/** Owner repo comments (or null) → { events: G purpose.evaluated, present: [ownerContent], held: [{ reason, journal }] }. */
 export function ownerEvents(comments, { repo, login }, at) {
   const t = Date.parse(at);
   const heldEntry = (reason, line, source, recordedAt = at) => ({ reason, journal: { kind: 'journal.held', reason, line, source, recordedAt } });
@@ -52,5 +59,5 @@ export function ownerEvents(comments, { repo, login }, at) {
     events.push({ kind: 'purpose.evaluated', recordedAt: comment.updated_at, purpose_id: purposeId, purpose_rev: purposeRev,
       ideal_version: idealVersion, verdict, ...(note ? { note } : {}), actor: login, source: { ...source, admission: OWNER_ADMISSION } });
   }
-  return { events, present: events.map(event => ownerKey(event.source)), held };
+  return { events, present: events.map(ownerContent), held };
 }

@@ -1,6 +1,7 @@
 // K core (adrs#647 v3 c6329883005): G events (+ a D-form declaration) → the D log. Joins only; no I/O. live.mjs is its CLI.
 // fromG is the one place that knows G's event shape; D's parser checks every journal entry and plan.
 import { parseEvents } from './events.mjs';
+import { ownerContent } from './collect/owner.mjs';
 
 const fail = message => { throw new Error('atlas-live: ' + message); };
 const exact = (event, keys) => Object.keys(event).length === keys.length && keys.every(key => key in event);
@@ -106,9 +107,10 @@ const unauthorized = (decision, authority) => {
 };
 // C5 stage 1 (adrs#647 v4 c6335921034, the User c6335830037): an evaluation counts only from the owner input
 // source the Purpose's authority names, whoever wrote it elsewhere (a login does not tell the User from an
-// agent), and only when this step's read of that source accepts it (`present`): one the ledger recorded earlier
-// that is now gone, unreadable or no longer after a readback is held as owner-not-read (never the last
-// `achieved`). With no owner declared, no one evaluates (fail closed: it stays unevaluated).
+// agent), and only when this step's read of that source accepts the same whole content (`present`, R
+// c6338530569): a ledger row that is now gone, unreadable, no longer after a readback, or whose verdict or
+// version differs from the comment is held as owner-not-read (never the last `achieved`, never an edited row:
+// the ledger is not where an evaluation comes from). With no owner declared, no one evaluates (fail closed).
 const repoOf = ref => String(ref).replace(/#\d+$/u, '');
 const refused = ({ decision, origin }, authority) => {
   if (decision.kind !== 'purpose.evaluated') return unauthorized(decision, authority);
@@ -121,13 +123,13 @@ const refused = ({ decision, origin }, authority) => {
 
 /**
  * `owner`: { repos, present } of this step's read of the owner sources (collect/owner.mjs): the owner repos the
- * authority names, and the keys (ref, commentId, digest) of the evaluations that read accepts.
+ * authority names, and the whole content (collect/owner.mjs ownerContent) of each evaluation that read accepts.
  */
 export const joinLog = (purposeText, gTexts, sourceMode = 'supplied', { authority = new Map(), owner = { repos: [], present: [] } } = {}) => {
   const held = [], accepted = [], gEvents = hotMinusCold(gTexts.flatMap(rows), held);
   const repos = new Set(owner.repos), present = new Set(owner.present);
   const originOf = decision => decision.kind !== 'purpose.evaluated' || !repos.has(repoOf(decision.source.ref)) ? 'g'
-    : present.has(`${decision.source.ref} ${decision.source.commentId} ${decision.source.digest}`) ? 'owner' : 'owner-not-read';
+    : present.has(ownerContent(decision)) ? 'owner' : 'owner-not-read';
   const tagged = [...rows(purposeText ?? '').map(decision => ({ decision, origin: 'declaration' })),
     ...gEvents.filter(event => JOURNAL.includes(event.kind)).flatMap(event => fromG(event).events.map(decision => ({ decision, origin: originOf(decision) })))];
   const order = new Map(byTime(tagged.map(value => value.decision)).map((decision, index) => [decision, index]));
