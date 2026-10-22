@@ -106,10 +106,13 @@ const unauthorized = (decision, authority) => {
 };
 // C5 stage 1 (adrs#647 v4 c6335921034, the User c6335830037): an evaluation counts only from the owner input
 // source the Purpose's authority names, whoever wrote it elsewhere (a login does not tell the User from an
-// agent); with no owner declared, no one evaluates (fail closed: it stays unevaluated).
+// agent), and only when this step's read of that source accepts it (`present`): one the ledger recorded earlier
+// that is now gone, unreadable or no longer after a readback is held as owner-not-read (never the last
+// `achieved`). With no owner declared, no one evaluates (fail closed: it stays unevaluated).
 const repoOf = ref => String(ref).replace(/#\d+$/u, '');
 const refused = ({ decision, origin }, authority) => {
   if (decision.kind !== 'purpose.evaluated') return unauthorized(decision, authority);
+  if (origin === 'owner-not-read') return 'owner-not-read';
   if (origin !== 'owner') return 'evaluation-not-from-owner';
   const owner = authority.get(purposeOf(decision))?.owner;
   if (!owner) return 'evaluator-not-declared';
@@ -117,14 +120,16 @@ const refused = ({ decision, origin }, authority) => {
 };
 
 /**
- * `owner`: the owner source's D-form evaluations for this step (collect/owner.mjs), read again every step and
- * never taken from the ledger, so an evaluation that is gone or unreadable is gone.
+ * `owner`: { repos, present } of this step's read of the owner sources (collect/owner.mjs): the owner repos the
+ * authority names, and the keys (ref, commentId, digest) of the evaluations that read accepts.
  */
-export const joinLog = (purposeText, gTexts, sourceMode = 'supplied', { authority = new Map(), owner = [] } = {}) => {
+export const joinLog = (purposeText, gTexts, sourceMode = 'supplied', { authority = new Map(), owner = { repos: [], present: [] } } = {}) => {
   const held = [], accepted = [], gEvents = hotMinusCold(gTexts.flatMap(rows), held);
+  const repos = new Set(owner.repos), present = new Set(owner.present);
+  const originOf = decision => decision.kind !== 'purpose.evaluated' || !repos.has(repoOf(decision.source.ref)) ? 'g'
+    : present.has(`${decision.source.ref} ${decision.source.commentId} ${decision.source.digest}`) ? 'owner' : 'owner-not-read';
   const tagged = [...rows(purposeText ?? '').map(decision => ({ decision, origin: 'declaration' })),
-    ...gEvents.filter(event => JOURNAL.includes(event.kind)).flatMap(event => fromG(event).events.map(decision => ({ decision, origin: 'g' }))),
-    ...owner.map(decision => ({ decision, origin: 'owner' }))];
+    ...gEvents.filter(event => JOURNAL.includes(event.kind)).flatMap(event => fromG(event).events.map(decision => ({ decision, origin: originOf(decision) })))];
   const order = new Map(byTime(tagged.map(value => value.decision)).map((decision, index) => [decision, index]));
   for (const candidate of tagged.sort((a, b) => order.get(a.decision) - order.get(b.decision))) {
     const { decision } = candidate;

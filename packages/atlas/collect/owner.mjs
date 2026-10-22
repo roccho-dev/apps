@@ -7,9 +7,10 @@
 //   atlas-credentials-changed[ <note>]   a credential changed: nothing counts until the next readback
 //   atlas-eval <verdict> <purpose_id> <purpose_rev> <ideal_version>[ <reason>]
 // An evaluation counts only after the latest readback (its updated_at later than the readback's created_at)
-// and when no change was written at or after that readback. These evaluations are never put in the ledger:
-// they are read again at every step, so one that is gone or unreadable is gone (never the last `achieved`).
-// Each is recorded at the step's time `at`, its comment's updated_at kept as declaredAt.
+// and when no change was written at or after that readback. Accepted evaluations are G events like a thread's
+// `atlas-eval` (time = the comment's updated_at), so the ledger records each once (R, c6338324978); `present`
+// names the ones this read accepts, and only those count (live-core.mjs): one that is gone, unreadable or
+// no longer after a readback is not counted, whatever the ledger holds (never the last `achieved`).
 import { EVAL } from './journal.mjs';
 import { sha256 } from './plan.mjs';
 
@@ -17,15 +18,17 @@ export const READBACK = 'atlas-readback';
 export const CHANGED = 'atlas-credentials-changed';
 // Atlas shows these evaluations but does not verify them: the original is the comment in the owner repo.
 export const OWNER_ADMISSION = 'owner-unverified';
+/** The key of one owner document as D sees it (ref, commentId, digest). */
+export const ownerKey = source => `${source.ref} ${source.commentId} ${source.digest ?? source.sha256}`;
 
 const is = (line, word) => line === word || line.startsWith(word + ' ');
 const issueOf = comment => /\/issues\/(\d+)$/u.exec(String(comment.issue_url ?? ''))?.[1] ?? null;
 
-/** Owner repo comments (or null) → { events: D-form purpose.evaluated, held: [{ reason, journal }] }. */
+/** Owner repo comments (or null) → { events: G purpose.evaluated, present: [ownerKey], held: [{ reason, journal }] }. */
 export function ownerEvents(comments, { repo, login }, at) {
   const t = Date.parse(at);
   const heldEntry = (reason, line, source, recordedAt = at) => ({ reason, journal: { kind: 'journal.held', reason, line, source, recordedAt } });
-  if (!Array.isArray(comments)) return { events: [], held: [heldEntry('owner-unreadable', null, { ref: repo, commentId: null, sha256: null })] };
+  if (!Array.isArray(comments)) return { events: [], present: [], held: [heldEntry('owner-unreadable', null, { ref: repo, commentId: null, sha256: null })] };
   const held = [], mine = [];
   for (const comment of comments) {
     const line = String(comment.body ?? '').split(/\r?\n/u)[0].trimEnd();
@@ -46,11 +49,8 @@ export function ownerEvents(comments, { repo, login }, at) {
     if (changed >= readback) { hold('owner-credentials-changed'); continue; }
     if (!(Date.parse(comment.updated_at) > readback)) { hold('owner-before-readback'); continue; }
     const [, verdict, purposeId, purposeRev, idealVersion, note] = match;
-    // Read now, at `at` (as a ledger row's recordedAt); the comment's own time is declaredAt (v10).
-    const declared = Date.parse(comment.updated_at) < t ? { declaredAt: comment.updated_at } : {};
-    events.push({ kind: 'purpose.evaluated', recordedAt: at, ...declared, purpose_id: purposeId, purpose_rev: purposeRev,
-      ideal_version: idealVersion, verdict, ...(note ? { note } : {}), actor: login,
-      source: { ref: source.ref, digest: source.sha256, commentId: source.commentId, admission: OWNER_ADMISSION } });
+    events.push({ kind: 'purpose.evaluated', recordedAt: comment.updated_at, purpose_id: purposeId, purpose_rev: purposeRev,
+      ideal_version: idealVersion, verdict, ...(note ? { note } : {}), actor: login, source: { ...source, admission: OWNER_ADMISSION } });
   }
-  return { events, held };
+  return { events, present: events.map(event => ownerKey(event.source)), held };
 }

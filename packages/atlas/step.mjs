@@ -19,24 +19,26 @@ const compare = (a, b) => a.name < b.name ? -1 : a.name > b.name ? 1 : 0;
  * config, plus `worklogAuthors`); `ledgerText` the ledger so far ('' for none).
  * `read`: { snapshots(sources) → [{ name, snapshot }] (as fetch.mjs writes them), owner(repo) → the owner
  * repo's Issue comments as the REST API returns them, or null when unreadable }. The owner source (C5 stage 1,
- * v4) is each `owner.repo` the control's authority names; its evaluations are read again at every step and
- * never appended to the ledger, so one that is gone or unreadable is gone.
+ * v4) is each `owner.repo` the control's authority names. Its accepted evaluations are recorded in the ledger
+ * once (an unchanged one adds no row), but count only when this step's read accepts them again: one that is
+ * gone or unreadable is not counted, whatever the ledger holds.
  * Returns the ledger after the append (it starts with `ledgerText`), the rows appended, the rows the ledger
  * held, and the World. Nothing else (no closure, semantic-scope or plan-projection files).
  */
 export const step = async ({ sources, at, ledgerText: before = '', controlText = NO_CONTROL, purposeText = '' }, read) => {
   const authors = sources.worklogAuthors ?? [];
-  // The snapshots in the order the CLI reads a snapshot directory (by name), so the same snapshots give the same events.
-  const records = [...await read.snapshots(sources)].sort(compare).flatMap(({ snapshot }) => normalize(snapshot));
-  const events = collect(records, at, { worklogAuthors: authors });
-  const rows = readLedger(before);
-  const appended = appendEvents(rows, toJsonl(events), at);
-  const after = before ? before + appended.appended.map(row => JSON.stringify(row) + '\n').join('') : ledgerText(appended.rows);
   const authority = parseAuthority(controlText);
   const owners = [...new Map([...authority.values()].filter(value => value.owner).map(value => [`${value.owner.repo} ${value.owner.login}`, value.owner])).values()];
   const owned = [];
   for (const owner of owners) owned.push(ownerEvents(read.owner ? await read.owner(owner.repo) : null, owner, at));
-  const { log, held, unbound } = joinLog(purposeText, [ledgerEvents(after)], 'supplied', { authority, owner: owned.flatMap(value => value.events) });
+  // The snapshots in the order the CLI reads a snapshot directory (by name), so the same snapshots give the same events.
+  const records = [...await read.snapshots(sources)].sort(compare).flatMap(({ snapshot }) => normalize(snapshot));
+  const events = [...collect(records, at, { worklogAuthors: authors }), ...owned.flatMap(value => value.events)];
+  const rows = readLedger(before);
+  const appended = appendEvents(rows, toJsonl(events), at);
+  const after = before ? before + appended.appended.map(row => JSON.stringify(row) + '\n').join('') : ledgerText(appended.rows);
+  const { log, held, unbound } = joinLog(purposeText, [ledgerEvents(after)], 'supplied',
+    { authority, owner: { repos: owners.map(owner => owner.repo), present: owned.flatMap(value => value.present) } });
   const world = contractWorld(deriveAtlas(log, controlText), { unbound, held: [...held, ...owned.flatMap(value => value.held)].filter(value => value.journal) });
   return { ledgerText: after, appended: appended.appended, held: appended.held, world };
 };

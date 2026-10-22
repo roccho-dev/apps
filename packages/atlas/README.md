@@ -474,10 +474,11 @@ is the owner login, no App wrote it (`performed_via_github_app` empty) and its f
 - `atlas-eval <verdict> <purpose_id> <purpose_rev> <ideal_version>[ <reason>]`: counted only when written
   after the latest readback and with no change at or after it.
 
-These evaluations are read again at every step and never appended to the ledger: one that is gone or
-unreadable is gone (no fallback to an earlier `achieved`). Each is recorded at the step's `at` with its
-comment's time as `declaredAt`, and shown with `source.admission: owner-unverified` (Atlas does not verify it;
-the original is the comment). An evaluation anywhere else is held as `evaluation-not-from-owner`, whoever wrote
+An accepted evaluation is recorded in the ledger once, like a thread's `atlas-eval` (an unchanged one adds no
+row, so no frame and no change), but it counts only when this step's read of the owner source accepts it
+again: one that is gone, unreadable or no longer after a readback is held as `owner-not-read` (no fallback to
+an earlier `achieved`). It is shown with `source.admission: owner-unverified` (Atlas does not verify it; the
+original is the comment). An evaluation anywhere else is held as `evaluation-not-from-owner`, whoever wrote
 it; with no owner declared, none counts (`evaluator-not-declared`). The login list `evaluators` is retired: a
 control that still names it is refused.
 
