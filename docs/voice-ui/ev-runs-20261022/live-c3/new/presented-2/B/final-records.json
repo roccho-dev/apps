@@ -1,0 +1,544 @@
+{
+  "final": [
+    {
+      "type": "meta",
+      "schema": "semantic-map-state/1",
+      "root": "root",
+      "title": "EV presented-2 B"
+    },
+    {
+      "type": "region",
+      "id": "root",
+      "parent": null,
+      "label": "World",
+      "kind": "boundary",
+      "bounds": [
+        0,
+        0,
+        2400,
+        1600
+      ],
+      "summary": ""
+    },
+    {
+      "type": "region",
+      "id": "canvas",
+      "parent": "root",
+      "label": "図",
+      "kind": "group",
+      "bounds": [
+        0,
+        0,
+        2400,
+        1600
+      ],
+      "summary": ""
+    },
+    {
+      "type": "region",
+      "id": "part-1",
+      "parent": "canvas",
+      "label": "Horizon",
+      "kind": "step",
+      "bounds": [
+        20,
+        20,
+        140,
+        64
+      ],
+      "summary": "{\"schema\":\"voice-ui.part-description/2\",\"key\":\"ev-5\",\"purpose\":\"the OpenStack web dashboard\"}"
+    },
+    {
+      "type": "region",
+      "id": "part-2",
+      "parent": "canvas",
+      "label": "Glance",
+      "kind": "step",
+      "bounds": [
+        180,
+        20,
+        140,
+        64
+      ],
+      "summary": "{\"schema\":\"voice-ui.part-description/2\",\"key\":\"ev-6\",\"purpose\":\"the OpenStack image service for virtual machine images\"}"
+    },
+    {
+      "type": "region",
+      "id": "part-3",
+      "parent": "canvas",
+      "label": "Nova",
+      "kind": "step",
+      "bounds": [
+        340,
+        20,
+        140,
+        64
+      ],
+      "summary": "{\"schema\":\"voice-ui.part-description/2\",\"key\":\"ev-7\",\"purpose\":\"the OpenStack compute service that runs virtual machines\"}"
+    },
+    {
+      "type": "region",
+      "id": "part-4",
+      "parent": "canvas",
+      "label": "Swift",
+      "kind": "step",
+      "bounds": [
+        500,
+        20,
+        140,
+        64
+      ],
+      "summary": "{\"schema\":\"voice-ui.part-description/2\",\"key\":\"ev-8\",\"purpose\":\"the OpenStack object storage service\"}"
+    },
+    {
+      "type": "region",
+      "id": "part-5",
+      "parent": "canvas",
+      "label": "Ironic",
+      "kind": "step",
+      "bounds": [
+        660,
+        20,
+        140,
+        64
+      ],
+      "summary": "{\"schema\":\"voice-ui.part-description/2\",\"key\":\"ev-12\",\"purpose\":\"the OpenStack bare-metal provisioning service\"}"
+    },
+    {
+      "type": "region",
+      "id": "part-6",
+      "parent": "canvas",
+      "label": "Trove",
+      "kind": "step",
+      "bounds": [
+        820,
+        20,
+        140,
+        64
+      ],
+      "summary": "{\"schema\":\"voice-ui.part-description/2\",\"key\":\"ev-13\",\"purpose\":\"the OpenStack database-as-a-service\"}"
+    },
+    {
+      "type": "region",
+      "id": "part-7",
+      "parent": "canvas",
+      "label": "Heat",
+      "kind": "step",
+      "bounds": [
+        980,
+        20,
+        140,
+        64
+      ],
+      "summary": "{\"schema\":\"voice-ui.part-description/2\",\"key\":\"ev-14\",\"purpose\":\"the OpenStack orchestration service for templates\"}"
+    },
+    {
+      "type": "relation",
+      "id": "voice-part-2-to-part-4-1",
+      "from": "part-2",
+      "to": "part-4",
+      "kind": "flow",
+      "label": "Stores images in"
+    },
+    {
+      "type": "relation",
+      "id": "voice-part-5-to-part-2-1",
+      "from": "part-5",
+      "to": "part-2",
+      "kind": "flow",
+      "label": "Fetchs images via"
+    },
+    {
+      "type": "relation",
+      "id": "voice-part-6-to-part-2-1",
+      "from": "part-6",
+      "to": "part-2",
+      "kind": "flow",
+      "label": "Registers guest images in"
+    },
+    {
+      "type": "relation",
+      "id": "voice-part-6-to-part-3-1",
+      "from": "part-6",
+      "to": "part-3",
+      "kind": "flow",
+      "label": "Boots database instances via"
+    },
+    {
+      "type": "relation",
+      "id": "voice-part-6-to-part-4-1",
+      "from": "part-6",
+      "to": "part-4",
+      "kind": "flow",
+      "label": "Backups databases in"
+    },
+    {
+      "type": "relation",
+      "id": "voice-part-7-to-part-2-1",
+      "from": "part-7",
+      "to": "part-2",
+      "kind": "flow",
+      "label": "Orchestration"
+    },
+    {
+      "type": "layout",
+      "regionId": "canvas",
+      "pin": "hard",
+      "bounds": [
+        0,
+        0,
+        2400,
+        1600
+      ]
+    },
+    {
+      "type": "layout",
+      "regionId": "part-1",
+      "pin": "hard",
+      "bounds": [
+        12,
+        72,
+        180,
+        92
+      ]
+    },
+    {
+      "type": "layout",
+      "regionId": "part-2",
+      "pin": "hard",
+      "bounds": [
+        216,
+        72,
+        180,
+        92
+      ]
+    },
+    {
+      "type": "layout",
+      "regionId": "part-3",
+      "pin": "hard",
+      "bounds": [
+        420,
+        72,
+        180,
+        92
+      ]
+    },
+    {
+      "type": "layout",
+      "regionId": "part-4",
+      "pin": "hard",
+      "bounds": [
+        624,
+        72,
+        180,
+        92
+      ]
+    },
+    {
+      "type": "layout",
+      "regionId": "part-5",
+      "pin": "hard",
+      "bounds": [
+        828,
+        72,
+        180,
+        92
+      ]
+    },
+    {
+      "type": "layout",
+      "regionId": "part-6",
+      "pin": "hard",
+      "bounds": [
+        1032,
+        72,
+        180,
+        92
+      ]
+    },
+    {
+      "type": "layout",
+      "regionId": "part-7",
+      "pin": "hard",
+      "bounds": [
+        1236,
+        72,
+        180,
+        92
+      ]
+    }
+  ],
+  "applied_stored_equals_final_log": true,
+  "reload_log_equals_applied": true,
+  "reload_records": [
+    {
+      "type": "meta",
+      "schema": "semantic-map-state/1",
+      "root": "root",
+      "title": "EV presented-2 B"
+    },
+    {
+      "type": "region",
+      "id": "root",
+      "parent": null,
+      "label": "World",
+      "kind": "boundary",
+      "bounds": [
+        0,
+        0,
+        2400,
+        1600
+      ],
+      "summary": ""
+    },
+    {
+      "type": "region",
+      "id": "canvas",
+      "parent": "root",
+      "label": "図",
+      "kind": "group",
+      "bounds": [
+        0,
+        0,
+        2400,
+        1600
+      ],
+      "summary": ""
+    },
+    {
+      "type": "region",
+      "id": "part-1",
+      "parent": "canvas",
+      "label": "Horizon",
+      "kind": "step",
+      "bounds": [
+        20,
+        20,
+        140,
+        64
+      ],
+      "summary": "{\"schema\":\"voice-ui.part-description/2\",\"key\":\"ev-5\",\"purpose\":\"the OpenStack web dashboard\"}"
+    },
+    {
+      "type": "region",
+      "id": "part-2",
+      "parent": "canvas",
+      "label": "Glance",
+      "kind": "step",
+      "bounds": [
+        180,
+        20,
+        140,
+        64
+      ],
+      "summary": "{\"schema\":\"voice-ui.part-description/2\",\"key\":\"ev-6\",\"purpose\":\"the OpenStack image service for virtual machine images\"}"
+    },
+    {
+      "type": "region",
+      "id": "part-3",
+      "parent": "canvas",
+      "label": "Nova",
+      "kind": "step",
+      "bounds": [
+        340,
+        20,
+        140,
+        64
+      ],
+      "summary": "{\"schema\":\"voice-ui.part-description/2\",\"key\":\"ev-7\",\"purpose\":\"the OpenStack compute service that runs virtual machines\"}"
+    },
+    {
+      "type": "region",
+      "id": "part-4",
+      "parent": "canvas",
+      "label": "Swift",
+      "kind": "step",
+      "bounds": [
+        500,
+        20,
+        140,
+        64
+      ],
+      "summary": "{\"schema\":\"voice-ui.part-description/2\",\"key\":\"ev-8\",\"purpose\":\"the OpenStack object storage service\"}"
+    },
+    {
+      "type": "region",
+      "id": "part-5",
+      "parent": "canvas",
+      "label": "Ironic",
+      "kind": "step",
+      "bounds": [
+        660,
+        20,
+        140,
+        64
+      ],
+      "summary": "{\"schema\":\"voice-ui.part-description/2\",\"key\":\"ev-12\",\"purpose\":\"the OpenStack bare-metal provisioning service\"}"
+    },
+    {
+      "type": "region",
+      "id": "part-6",
+      "parent": "canvas",
+      "label": "Trove",
+      "kind": "step",
+      "bounds": [
+        820,
+        20,
+        140,
+        64
+      ],
+      "summary": "{\"schema\":\"voice-ui.part-description/2\",\"key\":\"ev-13\",\"purpose\":\"the OpenStack database-as-a-service\"}"
+    },
+    {
+      "type": "region",
+      "id": "part-7",
+      "parent": "canvas",
+      "label": "Heat",
+      "kind": "step",
+      "bounds": [
+        980,
+        20,
+        140,
+        64
+      ],
+      "summary": "{\"schema\":\"voice-ui.part-description/2\",\"key\":\"ev-14\",\"purpose\":\"the OpenStack orchestration service for templates\"}"
+    },
+    {
+      "type": "relation",
+      "id": "voice-part-2-to-part-4-1",
+      "from": "part-2",
+      "to": "part-4",
+      "kind": "flow",
+      "label": "Stores images in"
+    },
+    {
+      "type": "relation",
+      "id": "voice-part-5-to-part-2-1",
+      "from": "part-5",
+      "to": "part-2",
+      "kind": "flow",
+      "label": "Fetchs images via"
+    },
+    {
+      "type": "relation",
+      "id": "voice-part-6-to-part-2-1",
+      "from": "part-6",
+      "to": "part-2",
+      "kind": "flow",
+      "label": "Registers guest images in"
+    },
+    {
+      "type": "relation",
+      "id": "voice-part-6-to-part-3-1",
+      "from": "part-6",
+      "to": "part-3",
+      "kind": "flow",
+      "label": "Boots database instances via"
+    },
+    {
+      "type": "relation",
+      "id": "voice-part-6-to-part-4-1",
+      "from": "part-6",
+      "to": "part-4",
+      "kind": "flow",
+      "label": "Backups databases in"
+    },
+    {
+      "type": "relation",
+      "id": "voice-part-7-to-part-2-1",
+      "from": "part-7",
+      "to": "part-2",
+      "kind": "flow",
+      "label": "Orchestration"
+    },
+    {
+      "type": "layout",
+      "regionId": "canvas",
+      "pin": "hard",
+      "bounds": [
+        0,
+        0,
+        2400,
+        1600
+      ]
+    },
+    {
+      "type": "layout",
+      "regionId": "part-1",
+      "pin": "hard",
+      "bounds": [
+        12,
+        72,
+        180,
+        92
+      ]
+    },
+    {
+      "type": "layout",
+      "regionId": "part-2",
+      "pin": "hard",
+      "bounds": [
+        216,
+        72,
+        180,
+        92
+      ]
+    },
+    {
+      "type": "layout",
+      "regionId": "part-3",
+      "pin": "hard",
+      "bounds": [
+        420,
+        72,
+        180,
+        92
+      ]
+    },
+    {
+      "type": "layout",
+      "regionId": "part-4",
+      "pin": "hard",
+      "bounds": [
+        624,
+        72,
+        180,
+        92
+      ]
+    },
+    {
+      "type": "layout",
+      "regionId": "part-5",
+      "pin": "hard",
+      "bounds": [
+        828,
+        72,
+        180,
+        92
+      ]
+    },
+    {
+      "type": "layout",
+      "regionId": "part-6",
+      "pin": "hard",
+      "bounds": [
+        1032,
+        72,
+        180,
+        92
+      ]
+    },
+    {
+      "type": "layout",
+      "regionId": "part-7",
+      "pin": "hard",
+      "bounds": [
+        1236,
+        72,
+        180,
+        92
+      ]
+    }
+  ]
+}

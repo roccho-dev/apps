@@ -1,0 +1,1308 @@
+{
+  "final": [
+    {
+      "type": "meta",
+      "schema": "semantic-map-state/1",
+      "root": "root",
+      "title": "EV presented-1 B"
+    },
+    {
+      "type": "region",
+      "id": "root",
+      "parent": null,
+      "label": "World",
+      "kind": "boundary",
+      "bounds": [
+        0,
+        0,
+        2400,
+        1600
+      ],
+      "summary": ""
+    },
+    {
+      "type": "region",
+      "id": "canvas",
+      "parent": "root",
+      "label": "図",
+      "kind": "group",
+      "bounds": [
+        0,
+        0,
+        2400,
+        1600
+      ],
+      "summary": ""
+    },
+    {
+      "type": "region",
+      "id": "part-1",
+      "parent": "canvas",
+      "label": "Application Gateway with Azure Web Application Firewall",
+      "kind": "step",
+      "bounds": [
+        20,
+        20,
+        140,
+        64
+      ],
+      "summary": "{\"schema\":\"voice-ui.part-description/2\",\"key\":\"ev-8\",\"purpose\":\"a layer-7 load balancer that filters malicious web requests\"}"
+    },
+    {
+      "type": "region",
+      "id": "part-2",
+      "parent": "canvas",
+      "label": "Virtual interface",
+      "kind": "step",
+      "bounds": [
+        180,
+        20,
+        140,
+        64
+      ],
+      "summary": "{\"schema\":\"voice-ui.part-description/2\",\"key\":\"ev-9\",\"purpose\":\"the network interface the web app uses for outbound private traffic\"}"
+    },
+    {
+      "type": "region",
+      "id": "part-3",
+      "parent": "canvas",
+      "label": "App Service private endpoint",
+      "kind": "step",
+      "bounds": [
+        340,
+        20,
+        140,
+        64
+      ],
+      "summary": "{\"schema\":\"voice-ui.part-description/2\",\"key\":\"ev-10\",\"purpose\":\"a private address for reaching the web app\"}"
+    },
+    {
+      "type": "region",
+      "id": "part-4",
+      "parent": "canvas",
+      "label": "Database private endpoint",
+      "kind": "step",
+      "bounds": [
+        500,
+        20,
+        140,
+        64
+      ],
+      "summary": "{\"schema\":\"voice-ui.part-description/2\",\"key\":\"ev-11\",\"purpose\":\"a private address for reaching the database\"}"
+    },
+    {
+      "type": "region",
+      "id": "part-5",
+      "parent": "canvas",
+      "label": "Configuration private endpoint",
+      "kind": "step",
+      "bounds": [
+        660,
+        20,
+        140,
+        64
+      ],
+      "summary": "{\"schema\":\"voice-ui.part-description/2\",\"key\":\"ev-12\",\"purpose\":\"a private address for reaching the secrets and certificates store\"}"
+    },
+    {
+      "type": "region",
+      "id": "part-6",
+      "parent": "canvas",
+      "label": "Storage private endpoint",
+      "kind": "step",
+      "bounds": [
+        820,
+        20,
+        140,
+        64
+      ],
+      "summary": "{\"schema\":\"voice-ui.part-description/2\",\"key\":\"ev-13\",\"purpose\":\"a private address for reaching the deployment storage\"}"
+    },
+    {
+      "type": "region",
+      "id": "part-7",
+      "parent": "canvas",
+      "label": "User",
+      "kind": "step",
+      "bounds": [
+        980,
+        20,
+        140,
+        64
+      ],
+      "summary": "{\"schema\":\"voice-ui.part-description/2\",\"key\":\"ev-1\",\"purpose\":\"a person who uses the web application from the internet\"}"
+    },
+    {
+      "type": "region",
+      "id": "part-8",
+      "parent": "canvas",
+      "label": "Region",
+      "kind": "group",
+      "bounds": [
+        1140,
+        20,
+        140,
+        64
+      ],
+      "summary": "{\"schema\":\"voice-ui.part-description/2\",\"key\":\"ev-14\",\"purpose\":\"a geographic hosting region\"}"
+    },
+    {
+      "type": "region",
+      "id": "part-9",
+      "parent": "part-8",
+      "label": "App Service",
+      "kind": "step",
+      "bounds": [
+        1140,
+        20,
+        140,
+        64
+      ],
+      "summary": "{\"schema\":\"voice-ui.part-description/2\",\"key\":\"ev-15\",\"purpose\":\"the managed platform that runs the web application\"}"
+    },
+    {
+      "type": "region",
+      "id": "part-10",
+      "parent": "part-8",
+      "label": "Managed identity",
+      "kind": "step",
+      "bounds": [
+        1140,
+        20,
+        140,
+        64
+      ],
+      "summary": "{\"schema\":\"voice-ui.part-description/2\",\"key\":\"ev-16\",\"purpose\":\"an identity the web app uses to access other services without stored credentials\"}"
+    },
+    {
+      "type": "region",
+      "id": "part-11",
+      "parent": "canvas",
+      "label": "Data",
+      "kind": "group",
+      "bounds": [
+        1300,
+        20,
+        140,
+        64
+      ],
+      "summary": "{\"schema\":\"voice-ui.part-description/2\",\"key\":\"ev-26\",\"purpose\":\"data services\"}"
+    },
+    {
+      "type": "region",
+      "id": "part-12",
+      "parent": "part-11",
+      "label": "Azure SQL Database",
+      "kind": "data",
+      "bounds": [
+        1300,
+        20,
+        140,
+        64
+      ],
+      "summary": "{\"schema\":\"voice-ui.part-description/2\",\"key\":\"ev-27\",\"purpose\":\"the managed relational database for application data\"}"
+    },
+    {
+      "type": "region",
+      "id": "part-13",
+      "parent": "canvas",
+      "label": "Certificates",
+      "kind": "group",
+      "bounds": [
+        1460,
+        20,
+        140,
+        64
+      ],
+      "summary": "{\"schema\":\"voice-ui.part-description/2\",\"key\":\"ev-28\",\"purpose\":\"secret and certificate management\"}"
+    },
+    {
+      "type": "region",
+      "id": "part-14",
+      "parent": "part-13",
+      "label": "Azure Key Vault",
+      "kind": "data",
+      "bounds": [
+        1460,
+        20,
+        140,
+        64
+      ],
+      "summary": "{\"schema\":\"voice-ui.part-description/2\",\"key\":\"ev-29\",\"purpose\":\"a store for secrets, keys and certificates\"}"
+    },
+    {
+      "type": "region",
+      "id": "part-15",
+      "parent": "canvas",
+      "label": "Storage for deployment",
+      "kind": "group",
+      "bounds": [
+        1620,
+        20,
+        140,
+        64
+      ],
+      "summary": "{\"schema\":\"voice-ui.part-description/2\",\"key\":\"ev-30\",\"purpose\":\"storage used for deployment artifacts\"}"
+    },
+    {
+      "type": "region",
+      "id": "part-16",
+      "parent": "part-15",
+      "label": "Azure Storage",
+      "kind": "data",
+      "bounds": [
+        1620,
+        20,
+        140,
+        64
+      ],
+      "summary": "{\"schema\":\"voice-ui.part-description/2\",\"key\":\"ev-31\",\"purpose\":\"object storage for deployment packages\"}"
+    },
+    {
+      "type": "region",
+      "id": "part-17",
+      "parent": "canvas",
+      "label": "Identity",
+      "kind": "group",
+      "bounds": [
+        1780,
+        20,
+        140,
+        64
+      ],
+      "summary": "{\"schema\":\"voice-ui.part-description/2\",\"key\":\"ev-20\",\"purpose\":\"identity and access services\"}"
+    },
+    {
+      "type": "region",
+      "id": "part-18",
+      "parent": "part-17",
+      "label": "Microsoft Entra ID",
+      "kind": "step",
+      "bounds": [
+        1780,
+        20,
+        140,
+        64
+      ],
+      "summary": "{\"schema\":\"voice-ui.part-description/2\",\"key\":\"ev-21\",\"purpose\":\"the directory that authenticates users and applications\"}"
+    },
+    {
+      "type": "region",
+      "id": "part-19",
+      "parent": "canvas",
+      "label": "Monitoring",
+      "kind": "group",
+      "bounds": [
+        1940,
+        20,
+        140,
+        64
+      ],
+      "summary": "{\"schema\":\"voice-ui.part-description/2\",\"key\":\"ev-22\",\"purpose\":\"observability services\"}"
+    },
+    {
+      "type": "region",
+      "id": "part-20",
+      "parent": "part-19",
+      "label": "Application Insights",
+      "kind": "step",
+      "bounds": [
+        1940,
+        20,
+        140,
+        64
+      ],
+      "summary": "{\"schema\":\"voice-ui.part-description/2\",\"key\":\"ev-23\",\"purpose\":\"application performance monitoring and telemetry\"}"
+    },
+    {
+      "type": "region",
+      "id": "part-21",
+      "parent": "part-19",
+      "label": "Azure Monitor",
+      "kind": "step",
+      "bounds": [
+        1940,
+        20,
+        140,
+        64
+      ],
+      "summary": "{\"schema\":\"voice-ui.part-description/2\",\"key\":\"ev-24\",\"purpose\":\"collection and analysis of metrics and logs\"}"
+    },
+    {
+      "type": "relation",
+      "id": "voice-part-7-to-part-1",
+      "from": "part-7",
+      "to": "part-1",
+      "kind": "flow",
+      "label": ""
+    },
+    {
+      "type": "relation",
+      "id": "voice-part-1-to-part-3",
+      "from": "part-1",
+      "to": "part-3",
+      "kind": "flow",
+      "label": ""
+    },
+    {
+      "type": "relation",
+      "id": "voice-part-3-to-part-9",
+      "from": "part-3",
+      "to": "part-9",
+      "kind": "flow",
+      "label": ""
+    },
+    {
+      "type": "relation",
+      "id": "voice-part-9-to-part-2",
+      "from": "part-9",
+      "to": "part-2",
+      "kind": "flow",
+      "label": ""
+    },
+    {
+      "type": "relation",
+      "id": "voice-part-2-to-part-4",
+      "from": "part-2",
+      "to": "part-4",
+      "kind": "flow",
+      "label": ""
+    },
+    {
+      "type": "relation",
+      "id": "voice-part-2-to-part-5",
+      "from": "part-2",
+      "to": "part-5",
+      "kind": "flow",
+      "label": ""
+    },
+    {
+      "type": "relation",
+      "id": "voice-part-2-to-part-6",
+      "from": "part-2",
+      "to": "part-6",
+      "kind": "flow",
+      "label": ""
+    },
+    {
+      "type": "relation",
+      "id": "voice-part-4-to-part-12",
+      "from": "part-4",
+      "to": "part-12",
+      "kind": "flow",
+      "label": ""
+    },
+    {
+      "type": "relation",
+      "id": "voice-part-5-to-part-14",
+      "from": "part-5",
+      "to": "part-14",
+      "kind": "flow",
+      "label": ""
+    },
+    {
+      "type": "relation",
+      "id": "voice-part-6-to-part-16",
+      "from": "part-6",
+      "to": "part-16",
+      "kind": "flow",
+      "label": ""
+    },
+    {
+      "type": "layout",
+      "regionId": "canvas",
+      "pin": "hard",
+      "bounds": [
+        0,
+        0,
+        2400,
+        1600
+      ]
+    },
+    {
+      "type": "layout",
+      "regionId": "part-1",
+      "pin": "hard",
+      "bounds": [
+        12,
+        72,
+        320,
+        110
+      ]
+    },
+    {
+      "type": "layout",
+      "regionId": "part-10",
+      "pin": "hard",
+      "bounds": [
+        432,
+        376,
+        180,
+        92
+      ]
+    },
+    {
+      "type": "layout",
+      "regionId": "part-11",
+      "pin": "hard",
+      "bounds": [
+        2064,
+        188,
+        204,
+        176
+      ]
+    },
+    {
+      "type": "layout",
+      "regionId": "part-12",
+      "pin": "hard",
+      "bounds": [
+        2076,
+        260,
+        180,
+        92
+      ]
+    },
+    {
+      "type": "layout",
+      "regionId": "part-13",
+      "pin": "hard",
+      "bounds": [
+        12,
+        304,
+        204,
+        176
+      ]
+    },
+    {
+      "type": "layout",
+      "regionId": "part-14",
+      "pin": "hard",
+      "bounds": [
+        24,
+        376,
+        180,
+        92
+      ]
+    },
+    {
+      "type": "layout",
+      "regionId": "part-15",
+      "pin": "hard",
+      "bounds": [
+        828,
+        304,
+        204,
+        176
+      ]
+    },
+    {
+      "type": "layout",
+      "regionId": "part-16",
+      "pin": "hard",
+      "bounds": [
+        840,
+        376,
+        180,
+        92
+      ]
+    },
+    {
+      "type": "layout",
+      "regionId": "part-17",
+      "pin": "hard",
+      "bounds": [
+        1236,
+        304,
+        204,
+        176
+      ]
+    },
+    {
+      "type": "layout",
+      "regionId": "part-18",
+      "pin": "hard",
+      "bounds": [
+        1248,
+        376,
+        180,
+        92
+      ]
+    },
+    {
+      "type": "layout",
+      "regionId": "part-19",
+      "pin": "hard",
+      "bounds": [
+        1644,
+        304,
+        204,
+        292
+      ]
+    },
+    {
+      "type": "layout",
+      "regionId": "part-2",
+      "pin": "hard",
+      "bounds": [
+        420,
+        72,
+        180,
+        92
+      ]
+    },
+    {
+      "type": "layout",
+      "regionId": "part-20",
+      "pin": "hard",
+      "bounds": [
+        1656,
+        376,
+        180,
+        92
+      ]
+    },
+    {
+      "type": "layout",
+      "regionId": "part-21",
+      "pin": "hard",
+      "bounds": [
+        1656,
+        492,
+        180,
+        92
+      ]
+    },
+    {
+      "type": "layout",
+      "regionId": "part-3",
+      "pin": "hard",
+      "bounds": [
+        700,
+        72,
+        320,
+        110
+      ]
+    },
+    {
+      "type": "layout",
+      "regionId": "part-4",
+      "pin": "hard",
+      "bounds": [
+        1044,
+        72,
+        320,
+        110
+      ]
+    },
+    {
+      "type": "layout",
+      "regionId": "part-5",
+      "pin": "hard",
+      "bounds": [
+        1388,
+        72,
+        320,
+        110
+      ]
+    },
+    {
+      "type": "layout",
+      "regionId": "part-6",
+      "pin": "hard",
+      "bounds": [
+        1732,
+        72,
+        320,
+        110
+      ]
+    },
+    {
+      "type": "layout",
+      "regionId": "part-7",
+      "pin": "hard",
+      "bounds": [
+        2064,
+        72,
+        180,
+        92
+      ]
+    },
+    {
+      "type": "layout",
+      "regionId": "part-8",
+      "pin": "hard",
+      "bounds": [
+        420,
+        188,
+        204,
+        292
+      ]
+    },
+    {
+      "type": "layout",
+      "regionId": "part-9",
+      "pin": "hard",
+      "bounds": [
+        432,
+        260,
+        180,
+        92
+      ]
+    }
+  ],
+  "applied_stored_equals_final_log": true,
+  "reload_log_equals_applied": true,
+  "reload_records": [
+    {
+      "type": "meta",
+      "schema": "semantic-map-state/1",
+      "root": "root",
+      "title": "EV presented-1 B"
+    },
+    {
+      "type": "region",
+      "id": "root",
+      "parent": null,
+      "label": "World",
+      "kind": "boundary",
+      "bounds": [
+        0,
+        0,
+        2400,
+        1600
+      ],
+      "summary": ""
+    },
+    {
+      "type": "region",
+      "id": "canvas",
+      "parent": "root",
+      "label": "図",
+      "kind": "group",
+      "bounds": [
+        0,
+        0,
+        2400,
+        1600
+      ],
+      "summary": ""
+    },
+    {
+      "type": "region",
+      "id": "part-1",
+      "parent": "canvas",
+      "label": "Application Gateway with Azure Web Application Firewall",
+      "kind": "step",
+      "bounds": [
+        20,
+        20,
+        140,
+        64
+      ],
+      "summary": "{\"schema\":\"voice-ui.part-description/2\",\"key\":\"ev-8\",\"purpose\":\"a layer-7 load balancer that filters malicious web requests\"}"
+    },
+    {
+      "type": "region",
+      "id": "part-2",
+      "parent": "canvas",
+      "label": "Virtual interface",
+      "kind": "step",
+      "bounds": [
+        180,
+        20,
+        140,
+        64
+      ],
+      "summary": "{\"schema\":\"voice-ui.part-description/2\",\"key\":\"ev-9\",\"purpose\":\"the network interface the web app uses for outbound private traffic\"}"
+    },
+    {
+      "type": "region",
+      "id": "part-3",
+      "parent": "canvas",
+      "label": "App Service private endpoint",
+      "kind": "step",
+      "bounds": [
+        340,
+        20,
+        140,
+        64
+      ],
+      "summary": "{\"schema\":\"voice-ui.part-description/2\",\"key\":\"ev-10\",\"purpose\":\"a private address for reaching the web app\"}"
+    },
+    {
+      "type": "region",
+      "id": "part-4",
+      "parent": "canvas",
+      "label": "Database private endpoint",
+      "kind": "step",
+      "bounds": [
+        500,
+        20,
+        140,
+        64
+      ],
+      "summary": "{\"schema\":\"voice-ui.part-description/2\",\"key\":\"ev-11\",\"purpose\":\"a private address for reaching the database\"}"
+    },
+    {
+      "type": "region",
+      "id": "part-5",
+      "parent": "canvas",
+      "label": "Configuration private endpoint",
+      "kind": "step",
+      "bounds": [
+        660,
+        20,
+        140,
+        64
+      ],
+      "summary": "{\"schema\":\"voice-ui.part-description/2\",\"key\":\"ev-12\",\"purpose\":\"a private address for reaching the secrets and certificates store\"}"
+    },
+    {
+      "type": "region",
+      "id": "part-6",
+      "parent": "canvas",
+      "label": "Storage private endpoint",
+      "kind": "step",
+      "bounds": [
+        820,
+        20,
+        140,
+        64
+      ],
+      "summary": "{\"schema\":\"voice-ui.part-description/2\",\"key\":\"ev-13\",\"purpose\":\"a private address for reaching the deployment storage\"}"
+    },
+    {
+      "type": "region",
+      "id": "part-7",
+      "parent": "canvas",
+      "label": "User",
+      "kind": "step",
+      "bounds": [
+        980,
+        20,
+        140,
+        64
+      ],
+      "summary": "{\"schema\":\"voice-ui.part-description/2\",\"key\":\"ev-1\",\"purpose\":\"a person who uses the web application from the internet\"}"
+    },
+    {
+      "type": "region",
+      "id": "part-8",
+      "parent": "canvas",
+      "label": "Region",
+      "kind": "group",
+      "bounds": [
+        1140,
+        20,
+        140,
+        64
+      ],
+      "summary": "{\"schema\":\"voice-ui.part-description/2\",\"key\":\"ev-14\",\"purpose\":\"a geographic hosting region\"}"
+    },
+    {
+      "type": "region",
+      "id": "part-9",
+      "parent": "part-8",
+      "label": "App Service",
+      "kind": "step",
+      "bounds": [
+        1140,
+        20,
+        140,
+        64
+      ],
+      "summary": "{\"schema\":\"voice-ui.part-description/2\",\"key\":\"ev-15\",\"purpose\":\"the managed platform that runs the web application\"}"
+    },
+    {
+      "type": "region",
+      "id": "part-10",
+      "parent": "part-8",
+      "label": "Managed identity",
+      "kind": "step",
+      "bounds": [
+        1140,
+        20,
+        140,
+        64
+      ],
+      "summary": "{\"schema\":\"voice-ui.part-description/2\",\"key\":\"ev-16\",\"purpose\":\"an identity the web app uses to access other services without stored credentials\"}"
+    },
+    {
+      "type": "region",
+      "id": "part-11",
+      "parent": "canvas",
+      "label": "Data",
+      "kind": "group",
+      "bounds": [
+        1300,
+        20,
+        140,
+        64
+      ],
+      "summary": "{\"schema\":\"voice-ui.part-description/2\",\"key\":\"ev-26\",\"purpose\":\"data services\"}"
+    },
+    {
+      "type": "region",
+      "id": "part-12",
+      "parent": "part-11",
+      "label": "Azure SQL Database",
+      "kind": "data",
+      "bounds": [
+        1300,
+        20,
+        140,
+        64
+      ],
+      "summary": "{\"schema\":\"voice-ui.part-description/2\",\"key\":\"ev-27\",\"purpose\":\"the managed relational database for application data\"}"
+    },
+    {
+      "type": "region",
+      "id": "part-13",
+      "parent": "canvas",
+      "label": "Certificates",
+      "kind": "group",
+      "bounds": [
+        1460,
+        20,
+        140,
+        64
+      ],
+      "summary": "{\"schema\":\"voice-ui.part-description/2\",\"key\":\"ev-28\",\"purpose\":\"secret and certificate management\"}"
+    },
+    {
+      "type": "region",
+      "id": "part-14",
+      "parent": "part-13",
+      "label": "Azure Key Vault",
+      "kind": "data",
+      "bounds": [
+        1460,
+        20,
+        140,
+        64
+      ],
+      "summary": "{\"schema\":\"voice-ui.part-description/2\",\"key\":\"ev-29\",\"purpose\":\"a store for secrets, keys and certificates\"}"
+    },
+    {
+      "type": "region",
+      "id": "part-15",
+      "parent": "canvas",
+      "label": "Storage for deployment",
+      "kind": "group",
+      "bounds": [
+        1620,
+        20,
+        140,
+        64
+      ],
+      "summary": "{\"schema\":\"voice-ui.part-description/2\",\"key\":\"ev-30\",\"purpose\":\"storage used for deployment artifacts\"}"
+    },
+    {
+      "type": "region",
+      "id": "part-16",
+      "parent": "part-15",
+      "label": "Azure Storage",
+      "kind": "data",
+      "bounds": [
+        1620,
+        20,
+        140,
+        64
+      ],
+      "summary": "{\"schema\":\"voice-ui.part-description/2\",\"key\":\"ev-31\",\"purpose\":\"object storage for deployment packages\"}"
+    },
+    {
+      "type": "region",
+      "id": "part-17",
+      "parent": "canvas",
+      "label": "Identity",
+      "kind": "group",
+      "bounds": [
+        1780,
+        20,
+        140,
+        64
+      ],
+      "summary": "{\"schema\":\"voice-ui.part-description/2\",\"key\":\"ev-20\",\"purpose\":\"identity and access services\"}"
+    },
+    {
+      "type": "region",
+      "id": "part-18",
+      "parent": "part-17",
+      "label": "Microsoft Entra ID",
+      "kind": "step",
+      "bounds": [
+        1780,
+        20,
+        140,
+        64
+      ],
+      "summary": "{\"schema\":\"voice-ui.part-description/2\",\"key\":\"ev-21\",\"purpose\":\"the directory that authenticates users and applications\"}"
+    },
+    {
+      "type": "region",
+      "id": "part-19",
+      "parent": "canvas",
+      "label": "Monitoring",
+      "kind": "group",
+      "bounds": [
+        1940,
+        20,
+        140,
+        64
+      ],
+      "summary": "{\"schema\":\"voice-ui.part-description/2\",\"key\":\"ev-22\",\"purpose\":\"observability services\"}"
+    },
+    {
+      "type": "region",
+      "id": "part-20",
+      "parent": "part-19",
+      "label": "Application Insights",
+      "kind": "step",
+      "bounds": [
+        1940,
+        20,
+        140,
+        64
+      ],
+      "summary": "{\"schema\":\"voice-ui.part-description/2\",\"key\":\"ev-23\",\"purpose\":\"application performance monitoring and telemetry\"}"
+    },
+    {
+      "type": "region",
+      "id": "part-21",
+      "parent": "part-19",
+      "label": "Azure Monitor",
+      "kind": "step",
+      "bounds": [
+        1940,
+        20,
+        140,
+        64
+      ],
+      "summary": "{\"schema\":\"voice-ui.part-description/2\",\"key\":\"ev-24\",\"purpose\":\"collection and analysis of metrics and logs\"}"
+    },
+    {
+      "type": "relation",
+      "id": "voice-part-7-to-part-1",
+      "from": "part-7",
+      "to": "part-1",
+      "kind": "flow",
+      "label": ""
+    },
+    {
+      "type": "relation",
+      "id": "voice-part-1-to-part-3",
+      "from": "part-1",
+      "to": "part-3",
+      "kind": "flow",
+      "label": ""
+    },
+    {
+      "type": "relation",
+      "id": "voice-part-3-to-part-9",
+      "from": "part-3",
+      "to": "part-9",
+      "kind": "flow",
+      "label": ""
+    },
+    {
+      "type": "relation",
+      "id": "voice-part-9-to-part-2",
+      "from": "part-9",
+      "to": "part-2",
+      "kind": "flow",
+      "label": ""
+    },
+    {
+      "type": "relation",
+      "id": "voice-part-2-to-part-4",
+      "from": "part-2",
+      "to": "part-4",
+      "kind": "flow",
+      "label": ""
+    },
+    {
+      "type": "relation",
+      "id": "voice-part-2-to-part-5",
+      "from": "part-2",
+      "to": "part-5",
+      "kind": "flow",
+      "label": ""
+    },
+    {
+      "type": "relation",
+      "id": "voice-part-2-to-part-6",
+      "from": "part-2",
+      "to": "part-6",
+      "kind": "flow",
+      "label": ""
+    },
+    {
+      "type": "relation",
+      "id": "voice-part-4-to-part-12",
+      "from": "part-4",
+      "to": "part-12",
+      "kind": "flow",
+      "label": ""
+    },
+    {
+      "type": "relation",
+      "id": "voice-part-5-to-part-14",
+      "from": "part-5",
+      "to": "part-14",
+      "kind": "flow",
+      "label": ""
+    },
+    {
+      "type": "relation",
+      "id": "voice-part-6-to-part-16",
+      "from": "part-6",
+      "to": "part-16",
+      "kind": "flow",
+      "label": ""
+    },
+    {
+      "type": "layout",
+      "regionId": "canvas",
+      "pin": "hard",
+      "bounds": [
+        0,
+        0,
+        2400,
+        1600
+      ]
+    },
+    {
+      "type": "layout",
+      "regionId": "part-1",
+      "pin": "hard",
+      "bounds": [
+        12,
+        72,
+        320,
+        110
+      ]
+    },
+    {
+      "type": "layout",
+      "regionId": "part-10",
+      "pin": "hard",
+      "bounds": [
+        432,
+        376,
+        180,
+        92
+      ]
+    },
+    {
+      "type": "layout",
+      "regionId": "part-11",
+      "pin": "hard",
+      "bounds": [
+        2064,
+        188,
+        204,
+        176
+      ]
+    },
+    {
+      "type": "layout",
+      "regionId": "part-12",
+      "pin": "hard",
+      "bounds": [
+        2076,
+        260,
+        180,
+        92
+      ]
+    },
+    {
+      "type": "layout",
+      "regionId": "part-13",
+      "pin": "hard",
+      "bounds": [
+        12,
+        304,
+        204,
+        176
+      ]
+    },
+    {
+      "type": "layout",
+      "regionId": "part-14",
+      "pin": "hard",
+      "bounds": [
+        24,
+        376,
+        180,
+        92
+      ]
+    },
+    {
+      "type": "layout",
+      "regionId": "part-15",
+      "pin": "hard",
+      "bounds": [
+        828,
+        304,
+        204,
+        176
+      ]
+    },
+    {
+      "type": "layout",
+      "regionId": "part-16",
+      "pin": "hard",
+      "bounds": [
+        840,
+        376,
+        180,
+        92
+      ]
+    },
+    {
+      "type": "layout",
+      "regionId": "part-17",
+      "pin": "hard",
+      "bounds": [
+        1236,
+        304,
+        204,
+        176
+      ]
+    },
+    {
+      "type": "layout",
+      "regionId": "part-18",
+      "pin": "hard",
+      "bounds": [
+        1248,
+        376,
+        180,
+        92
+      ]
+    },
+    {
+      "type": "layout",
+      "regionId": "part-19",
+      "pin": "hard",
+      "bounds": [
+        1644,
+        304,
+        204,
+        292
+      ]
+    },
+    {
+      "type": "layout",
+      "regionId": "part-2",
+      "pin": "hard",
+      "bounds": [
+        420,
+        72,
+        180,
+        92
+      ]
+    },
+    {
+      "type": "layout",
+      "regionId": "part-20",
+      "pin": "hard",
+      "bounds": [
+        1656,
+        376,
+        180,
+        92
+      ]
+    },
+    {
+      "type": "layout",
+      "regionId": "part-21",
+      "pin": "hard",
+      "bounds": [
+        1656,
+        492,
+        180,
+        92
+      ]
+    },
+    {
+      "type": "layout",
+      "regionId": "part-3",
+      "pin": "hard",
+      "bounds": [
+        700,
+        72,
+        320,
+        110
+      ]
+    },
+    {
+      "type": "layout",
+      "regionId": "part-4",
+      "pin": "hard",
+      "bounds": [
+        1044,
+        72,
+        320,
+        110
+      ]
+    },
+    {
+      "type": "layout",
+      "regionId": "part-5",
+      "pin": "hard",
+      "bounds": [
+        1388,
+        72,
+        320,
+        110
+      ]
+    },
+    {
+      "type": "layout",
+      "regionId": "part-6",
+      "pin": "hard",
+      "bounds": [
+        1732,
+        72,
+        320,
+        110
+      ]
+    },
+    {
+      "type": "layout",
+      "regionId": "part-7",
+      "pin": "hard",
+      "bounds": [
+        2064,
+        72,
+        180,
+        92
+      ]
+    },
+    {
+      "type": "layout",
+      "regionId": "part-8",
+      "pin": "hard",
+      "bounds": [
+        420,
+        188,
+        204,
+        292
+      ]
+    },
+    {
+      "type": "layout",
+      "regionId": "part-9",
+      "pin": "hard",
+      "bounds": [
+        432,
+        260,
+        180,
+        92
+      ]
+    }
+  ]
+}

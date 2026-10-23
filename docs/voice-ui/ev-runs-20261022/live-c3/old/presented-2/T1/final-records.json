@@ -1,0 +1,248 @@
+{
+  "final": [
+    {
+      "type": "meta",
+      "schema": "semantic-map-state/1",
+      "root": "root",
+      "title": "EV presented-2 T1"
+    },
+    {
+      "type": "region",
+      "id": "root",
+      "parent": null,
+      "label": "World",
+      "kind": "boundary",
+      "bounds": [
+        0,
+        0,
+        2400,
+        1600
+      ],
+      "summary": ""
+    },
+    {
+      "type": "region",
+      "id": "canvas",
+      "parent": "root",
+      "label": "図",
+      "kind": "group",
+      "bounds": [
+        0,
+        0,
+        2400,
+        1600
+      ],
+      "summary": ""
+    },
+    {
+      "type": "region",
+      "id": "part-1",
+      "parent": "canvas",
+      "label": "上段",
+      "kind": "group",
+      "bounds": [
+        20,
+        20,
+        140,
+        64
+      ],
+      "summary": ""
+    },
+    {
+      "type": "region",
+      "id": "part-2",
+      "parent": "part-1",
+      "label": "Keystone",
+      "kind": "step",
+      "bounds": [
+        20,
+        20,
+        140,
+        64
+      ],
+      "summary": ""
+    },
+    {
+      "type": "region",
+      "id": "part-3",
+      "parent": "part-1",
+      "label": "Ceilometer",
+      "kind": "step",
+      "bounds": [
+        20,
+        20,
+        140,
+        64
+      ],
+      "summary": ""
+    },
+    {
+      "type": "layout",
+      "regionId": "canvas",
+      "pin": "hard",
+      "bounds": [
+        0,
+        0,
+        2400,
+        1600
+      ]
+    },
+    {
+      "type": "layout",
+      "regionId": "part-1",
+      "pin": "hard",
+      "bounds": [
+        12,
+        36,
+        204,
+        256
+      ]
+    },
+    {
+      "type": "layout",
+      "regionId": "part-2",
+      "pin": "hard",
+      "bounds": [
+        24,
+        72,
+        180,
+        92
+      ]
+    },
+    {
+      "type": "layout",
+      "regionId": "part-3",
+      "pin": "hard",
+      "bounds": [
+        24,
+        188,
+        180,
+        92
+      ]
+    }
+  ],
+  "applied_stored_equals_final_log": true,
+  "reload_log_equals_applied": true,
+  "reload_records": [
+    {
+      "type": "meta",
+      "schema": "semantic-map-state/1",
+      "root": "root",
+      "title": "EV presented-2 T1"
+    },
+    {
+      "type": "region",
+      "id": "root",
+      "parent": null,
+      "label": "World",
+      "kind": "boundary",
+      "bounds": [
+        0,
+        0,
+        2400,
+        1600
+      ],
+      "summary": ""
+    },
+    {
+      "type": "region",
+      "id": "canvas",
+      "parent": "root",
+      "label": "図",
+      "kind": "group",
+      "bounds": [
+        0,
+        0,
+        2400,
+        1600
+      ],
+      "summary": ""
+    },
+    {
+      "type": "region",
+      "id": "part-1",
+      "parent": "canvas",
+      "label": "上段",
+      "kind": "group",
+      "bounds": [
+        20,
+        20,
+        140,
+        64
+      ],
+      "summary": ""
+    },
+    {
+      "type": "region",
+      "id": "part-2",
+      "parent": "part-1",
+      "label": "Keystone",
+      "kind": "step",
+      "bounds": [
+        20,
+        20,
+        140,
+        64
+      ],
+      "summary": ""
+    },
+    {
+      "type": "region",
+      "id": "part-3",
+      "parent": "part-1",
+      "label": "Ceilometer",
+      "kind": "step",
+      "bounds": [
+        20,
+        20,
+        140,
+        64
+      ],
+      "summary": ""
+    },
+    {
+      "type": "layout",
+      "regionId": "canvas",
+      "pin": "hard",
+      "bounds": [
+        0,
+        0,
+        2400,
+        1600
+      ]
+    },
+    {
+      "type": "layout",
+      "regionId": "part-1",
+      "pin": "hard",
+      "bounds": [
+        12,
+        36,
+        204,
+        256
+      ]
+    },
+    {
+      "type": "layout",
+      "regionId": "part-2",
+      "pin": "hard",
+      "bounds": [
+        24,
+        72,
+        180,
+        92
+      ]
+    },
+    {
+      "type": "layout",
+      "regionId": "part-3",
+      "pin": "hard",
+      "bounds": [
+        24,
+        188,
+        180,
+        92
+      ]
+    }
+  ]
+}
