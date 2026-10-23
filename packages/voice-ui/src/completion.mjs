@@ -268,7 +268,7 @@ export function quotaGoalBundle(bundle, required) {
 // A relation label the utterance quotes next to a relation word (「…」の矢印, 『…』という関係, 「…」の線) becomes one
 // request-local flow offer, as a transcribed part name becomes a request-local part. It only offers: the Goal
 // judgment still chooses an arrow or none. The bundle catalogue stays first, and the finite OFFER_MAX bound holds.
-// Without this, an extended bundle without relations offered only the unlabelled flow (round 2, apps#94 c6368311726).
+// Before the offer, an extended bundle without relations offered only the unlabelled flow (round 2, apps#94 c6368311726).
 const RELATION_WORDS = "矢印|関係|線|エッジ|接続";
 const requestedRelations = (bundle, utterance) => {
   if (bundle?.goalSelection !== "delta" || typeof utterance !== "string") return bundle;
