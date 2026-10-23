@@ -20,6 +20,14 @@ const PLACEMENT_VERB = "(?:追加|作成|配置)(?:して|する)?|置いて|置
 const NOT_REQUESTED = "\\s*(?:[はで]\\s*(?:いけ|だめ|ダメ|なら|よくな)|ちゃ|じゃ|な(?!さい)|ず|おか(?:な|ず)|おくな"
   + "|ほしくな|欲しくな|し(?:て(?:は|ちゃ)|な|ちゃ)|せず|するな|[らか](?:な|ず))";
 const placement = `(?:${PLACEMENT_VERB})(?!${NOT_REQUESTED})`;
+// Round 3 (R 13/200): a sentence may go on after the verb in its continuative form (「…を作り、その中に…」). Only
+// before a comma, so 作りません or 置きっぱなし never match.
+const placementOrContinued = `(?:${placement}|(?:作り|置き|入れ|加え)(?=\\s*[、,，]))`;
+// A catalogue name may be followed by という and one short word saying what it is (「Xという…を作る」). The catalogue
+// decides the kind; the word is not a vocabulary in code. When the word is itself a catalogue alias (the default
+// bundle names a part for each kind), the two kinds must agree. The の form is not read: without a vocabulary it
+// cannot tell 「XとYの…を置く」 from 「Xの説明を追加」.
+const kindPhrase = "(?:\\s*という\\s*(?:名前の\\s*)?([^\\s、。,，をのにはがと「」『』]{1,12}))?";
 // The original short verb stems (追加・作・置) used by the counted and quoted forms take the same guard.
 // The guard also looks past the affirmative ending a stem takes (置いて, 作る, 追加して), so 置いてはいけない is refused.
 const counted = `(?:追加|作|置)(?!(?:して|する|いて|く|って|る)?${NOT_REQUESTED})`;
@@ -126,7 +134,7 @@ export function literalInventory(state) {
     }
     // An uncounted coordination of catalogue names followed by an ordinary placement verb asks for one new
     // instance of each (「AとBを加えて」「A、Bを置く」). The same ambiguity refusals as the counted form apply.
-    const plain = new RegExp(`(?<![A-Za-z0-9_])((?:${listNames})(?:\\s*(?:[、,と]|および|及び)\\s*(?:${listNames}))+)\\s*[をも]\\s*${placement}`, "dgu");
+    const plain = new RegExp(`(?<![A-Za-z0-9_])((?:${listNames})(?:\\s*(?:[、,と]|および|及び)\\s*(?:${listNames}))+)${kindPhrase}\\s*[をも]\\s*${placementOrContinued}`, "dgu");
     for (const match of state.utterance.matchAll(plain)) {
       const end = match.index + match[0].length;
       if (claimed.some(([start, stop]) => start < end && match.index < stop)) continue;
@@ -134,7 +142,8 @@ export function literalInventory(state) {
       const names = [...match[1].matchAll(new RegExp(listNames, "dgu"))];
       const ambiguous = names.some(name => stockKinds.get(name[0]).size !== 1)
         || names.some((name, i) => names.slice(i + 1).some(last =>
-          stockKinds.has(match[1].slice(name.index, last.index + last[0].length))));
+          stockKinds.has(match[1].slice(name.index, last.index + last[0].length))))
+        || match[2] !== undefined && kinds.has(match[2]) && names.some(name => stockKind(name[0]) !== kinds.get(match[2]));
       if (ambiguous) { invalid = true; continue; }
       for (const name of names) {
         const start = match.indices[1][0] + name.index;
@@ -146,9 +155,14 @@ export function literalInventory(state) {
   if (stock) for (const match of state.utterance.matchAll(new RegExp(`(?<![A-Za-z0-9_])(${stock})\\s*を\\s*(${countPattern})(?:個|つ)(?:だけ|ずつ)?\\s*${counted}`, "gu")))
     if (!claimed.some(([start, end]) => start <= match.index && match.index < end))
       add(match[1], stockKind(match[1]), countOf(match[2]), match.index, match.index + match[1].length, true);
-  if (stock) for (const match of state.utterance.matchAll(new RegExp(`(?<![A-Za-z0-9_])(${stock})\\s*(?:[をも]\\s*)?${placement}`, "gu")))
-    if (!claimed.some(([start, end]) => start <= match.index && match.index < end))
-      add(match[1], stockKind(match[1]), 1, match.index, match.index + match[1].length, true);
+  if (stock) for (const match of state.utterance.matchAll(new RegExp(`(?<![A-Za-z0-9_])(${stock})${kindPhrase}\\s*(?:[をも]\\s*)?${placementOrContinued}`, "gu"))) {
+    if (claimed.some(([start, end]) => start <= match.index && match.index < end)) continue;
+    // The word right after という says what the name before it is, even when the same word is a catalogue label
+    // (the default bundle has a part named for each kind); it is never a second part.
+    if (/という\s*(?:名前の\s*)?$/u.test(state.utterance.slice(0, match.index))) continue;
+    if (match[2] !== undefined && kinds.has(match[2]) && stockKind(match[1]) !== kinds.get(match[2])) { invalid = true; continue; }
+    add(match[1], stockKind(match[1]), 1, match.index, match.index + match[1].length, true);
+  }
   if (invalid) return { valid: false, recognized: spans.length > 0, required: [], missing: [], spans, status: "unsupported-syntax" };
   const missingRows = [...rows.values()].flatMap(row => {
     const capacity = state.parts.filter(p => p.label === row.label && p.kind === row.kind).length;
