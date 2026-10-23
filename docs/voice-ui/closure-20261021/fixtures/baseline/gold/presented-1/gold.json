@@ -1,0 +1,5 @@
+{
+  "fixture": true,
+  "note": "Fixture gold for the vessel's own tests. Not a gold of any presented diagram.",
+  "items": { "r1": "present", "r2": "present", "f1": "absent" }
+}

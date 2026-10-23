@@ -1,0 +1,9 @@
+{
+  "schema": "voice-ui.closure.gold-sets/1",
+  "note": "Gold content is added by R, sealed before any candidate output is seen, and recorded in ledgers/seals.jsonl.",
+  "sets": [
+    { "id": "presented-1", "step": ["4", "9"], "path": "gold/presented-1/", "status": "sealed", "seal_sha256": "815b1e9c724fe12e92a1883a3652eb8deb92daf50d0bfbbc45e5f04bf9113249", "superseded": ["89be40fe5253dcc16988b7a7e7df2907dd0d6181b10eecbd717fd3a83f491a6d"] },
+    { "id": "presented-2", "step": ["4", "9"], "path": "gold/presented-2/", "status": "sealed", "seal_sha256": "54167ebe6551284fd4efda3b3a3d0f443374f6fea1800853b0812c1dad4aa33d" },
+    { "id": "atlas", "step": ["4", "9"], "path": "gold/atlas/", "status": "sealed", "seal_sha256": "faea96a6305cb30ec3323e85ee21ff5c5f0305119d7191660524454dc9f6981c" }
+  ]
+}

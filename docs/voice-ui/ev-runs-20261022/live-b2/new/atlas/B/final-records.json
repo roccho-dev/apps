@@ -1,0 +1,98 @@
+{
+  "final": [
+    {
+      "type": "meta",
+      "schema": "semantic-map-state/1",
+      "root": "root",
+      "title": "EV atlas B"
+    },
+    {
+      "type": "region",
+      "id": "root",
+      "parent": null,
+      "label": "World",
+      "kind": "boundary",
+      "bounds": [
+        0,
+        0,
+        2400,
+        1600
+      ],
+      "summary": ""
+    },
+    {
+      "type": "region",
+      "id": "canvas",
+      "parent": "root",
+      "label": "図",
+      "kind": "group",
+      "bounds": [
+        0,
+        0,
+        2400,
+        1600
+      ],
+      "summary": ""
+    },
+    {
+      "type": "layout",
+      "regionId": "canvas",
+      "pin": "hard",
+      "bounds": [
+        0,
+        0,
+        2400,
+        1600
+      ]
+    }
+  ],
+  "applied_stored_equals_final_log": true,
+  "reload_log_equals_applied": true,
+  "reload_records": [
+    {
+      "type": "meta",
+      "schema": "semantic-map-state/1",
+      "root": "root",
+      "title": "EV atlas B"
+    },
+    {
+      "type": "region",
+      "id": "root",
+      "parent": null,
+      "label": "World",
+      "kind": "boundary",
+      "bounds": [
+        0,
+        0,
+        2400,
+        1600
+      ],
+      "summary": ""
+    },
+    {
+      "type": "region",
+      "id": "canvas",
+      "parent": "root",
+      "label": "図",
+      "kind": "group",
+      "bounds": [
+        0,
+        0,
+        2400,
+        1600
+      ],
+      "summary": ""
+    },
+    {
+      "type": "layout",
+      "regionId": "canvas",
+      "pin": "hard",
+      "bounds": [
+        0,
+        0,
+        2400,
+        1600
+      ]
+    }
+  ]
+}

@@ -1,0 +1,36 @@
+{
+  "schema": "voice-ui.closure.expectation/1",
+  "id": "presented-1-azure-baseline",
+  "version": 2,
+  "status": "candidate",
+  "source": {
+    "text": "期待図を描く。そのために必要な部品を選定し状態更新できること。提示2図相当の表現力、apps/Atlas相当の描画、それを音声で素早く操作できること。提示図 1：Azure Architecture Center「Baseline highly available zone-redundant web app」の構成図。",
+    "ref": "docs/voice-ui/expected-diagram-20261018/raws.jsonl:1 (expected-diagram.v2); User choice apps#94 comment 6335028517; v2 adds the allowed attachment from W's apps#144 review (v1 sealed 1185bed7… stays in the ledger)"
+  },
+  "gold_set": "presented-1",
+  "required": [
+    { "id": "r-nesting", "claim": "Virtual network が Application Gateway subnet・App Service integration subnet・Private endpoint subnet の 3 つを入れ子で含む", "step": ["4", "9"] },
+    { "id": "r-appgw", "claim": "Application Gateway with Azure Web Application Firewall が Application Gateway subnet の中にある", "step": ["4", "9"] },
+    { "id": "r-private-endpoints", "claim": "Private endpoint subnet の中に、名前の異なる 4 つの private endpoint（App Service・Database・Configuration・Storage）がある", "step": ["4", "5", "9"] },
+    { "id": "r-virtual-interface", "claim": "Virtual interface が App Service integration subnet の中にある", "step": ["4", "9"] },
+    { "id": "r-zone-instances", "claim": "App Service の group に App Service・Managed identity と、Zone 1・2・3 の App Service instance が 3 つ別々にある", "step": ["4", "5", "9"] },
+    { "id": "r-inbound-flow", "claim": "User→Application Gateway→App Service private endpoint→App Service の有向の流れ", "step": ["4", "9", "11"] },
+    { "id": "r-outbound-flow", "claim": "App Service→Virtual interface→各 private endpoint→対応する Azure SQL Database・Azure Key Vault・Azure Storage の有向の流れ（組み合わせが正しい）", "step": ["4", "9", "11"] },
+    { "id": "r-dns-linked", "claim": "Private DNS zones から Virtual network への注釈「Linked」つきの関係", "step": ["4", "9"] },
+    { "id": "r-monitoring", "claim": "Monitoring の group に Application Insights・Azure Monitor・Health Model がある", "step": ["4", "9"] },
+    { "id": "r-identity", "claim": "Identity の group に Microsoft Entra ID がある", "step": ["4", "9"] },
+    { "id": "r-ddos", "claim": "DDoS Protection が Virtual network に結び付いて示される", "step": ["4", "9"] }
+  ],
+  "forbidden": [
+    { "id": "f-endpoint-swap", "claim": "private endpoint を別の backend（例：Database private endpoint→Azure Key Vault）に結ぶ", "step": ["4", "9"] },
+    { "id": "f-flattened", "claim": "3 つの subnet、または 3 つの zone の instance を 1 つの node にまとめる", "step": ["4", "9"] },
+    { "id": "f-extra-instances", "claim": "App Service instance を 3 つより多く作る", "step": ["4", "5"] }
+  ],
+  "allowed": [
+    { "id": "a-app-service-attachment", "claim": "App Service private endpoint→App Service と App Service→Virtual interface の 2 本は、画像では App Service の group（Region の枠）の縁につながる。製品がこの 2 本を App Service の node と group のどちらにつないでも、r-inbound-flow・r-outbound-flow を満たすとみなす", "step": ["4", "9"] }
+  ],
+  "unknown": [
+    { "id": "u-region-extent", "question": "「Region」の caption は App Service の group だけを指すか、配置全体を指すか" },
+    { "id": "u-subnet-shields", "question": "subnet の角の盾の icon（ラベル無し）を部品として求めるか" }
+  ]
+}

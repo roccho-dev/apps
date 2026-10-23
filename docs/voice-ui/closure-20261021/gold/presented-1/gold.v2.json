@@ -1,0 +1,301 @@
+{
+  "schema": "voice-ui.closure.gold/1",
+  "set": "presented-1",
+  "authored_by": "R",
+  "source": {
+    "title": "Baseline highly available zone-redundant web app (Azure Architecture Center)",
+    "page": "https://learn.microsoft.com/en-us/azure/architecture/web-apps/app-service/architectures/baseline-zone-redundant",
+    "image": "https://raw.githubusercontent.com/MicrosoftDocs/architecture-center/main/docs/web-apps/app-service/_images/baseline-app-service-architecture.svg",
+    "git_blob_sha": "cca52be5422374e1b6e25df8d00841cb37e23704",
+    "bytes": 215778,
+    "sha256": "UNKNOWN to R (sandbox blocks hashing). W measured fbbf741305ade8577a235d886ea1b5a1b0155d7d9b29d16443532de7304fd4e0 from gh api git/blobs/cca52be5… (apps#144 review); not recomputed by R",
+    "license": "CC BY 4.0 (MicrosoftDocs/architecture-center README). Microsoft names, logos and trademarks are not licensed; this gold copies no image, only R's description.",
+    "decision": "User, apps#94 comment 6335028517 and 6335079009",
+    "read": "R viewed the SVG rendered with rsvg-convert on 2026-10-22"
+  },
+  "regions": [
+    {
+      "id": "user",
+      "label": "User",
+      "kind": "actor",
+      "parent": null
+    },
+    {
+      "id": "dns",
+      "label": "Private DNS zones",
+      "kind": "service",
+      "parent": null
+    },
+    {
+      "id": "ddos",
+      "label": "DDoS Protection",
+      "kind": "service",
+      "parent": null,
+      "attached_to": "vnet"
+    },
+    {
+      "id": "vnet",
+      "label": "Virtual network",
+      "kind": "group",
+      "parent": null
+    },
+    {
+      "id": "appgw-subnet",
+      "label": "Application Gateway subnet",
+      "kind": "group",
+      "parent": "vnet"
+    },
+    {
+      "id": "integration-subnet",
+      "label": "App Service integration subnet",
+      "kind": "group",
+      "parent": "vnet"
+    },
+    {
+      "id": "pe-subnet",
+      "label": "Private endpoint subnet",
+      "kind": "group",
+      "parent": "vnet"
+    },
+    {
+      "id": "appgw",
+      "label": "Application Gateway with Azure Web Application Firewall",
+      "kind": "service",
+      "parent": "appgw-subnet"
+    },
+    {
+      "id": "vif",
+      "label": "Virtual interface",
+      "kind": "service",
+      "parent": "integration-subnet"
+    },
+    {
+      "id": "pe-app",
+      "label": "App Service private endpoint",
+      "kind": "endpoint",
+      "parent": "pe-subnet"
+    },
+    {
+      "id": "pe-db",
+      "label": "Database private endpoint",
+      "kind": "endpoint",
+      "parent": "pe-subnet"
+    },
+    {
+      "id": "pe-config",
+      "label": "Configuration private endpoint",
+      "kind": "endpoint",
+      "parent": "pe-subnet"
+    },
+    {
+      "id": "pe-storage",
+      "label": "Storage private endpoint",
+      "kind": "endpoint",
+      "parent": "pe-subnet"
+    },
+    {
+      "id": "app-group",
+      "label": "Region",
+      "kind": "group",
+      "parent": null
+    },
+    {
+      "id": "app-service",
+      "label": "App Service",
+      "kind": "service",
+      "parent": "app-group"
+    },
+    {
+      "id": "managed-identity",
+      "label": "Managed identity",
+      "kind": "service",
+      "parent": "app-group"
+    },
+    {
+      "id": "instance-1",
+      "label": "App Service instance",
+      "kind": "service",
+      "parent": "app-group",
+      "zone": "Zone 1"
+    },
+    {
+      "id": "instance-2",
+      "label": "App Service instance",
+      "kind": "service",
+      "parent": "app-group",
+      "zone": "Zone 2"
+    },
+    {
+      "id": "instance-3",
+      "label": "App Service instance",
+      "kind": "service",
+      "parent": "app-group",
+      "zone": "Zone 3"
+    },
+    {
+      "id": "identity-group",
+      "label": "Identity",
+      "kind": "group",
+      "parent": null
+    },
+    {
+      "id": "entra",
+      "label": "Microsoft Entra ID",
+      "kind": "service",
+      "parent": "identity-group"
+    },
+    {
+      "id": "monitoring-group",
+      "label": "Monitoring",
+      "kind": "group",
+      "parent": null
+    },
+    {
+      "id": "app-insights",
+      "label": "Application Insights",
+      "kind": "service",
+      "parent": "monitoring-group"
+    },
+    {
+      "id": "monitor",
+      "label": "Azure Monitor",
+      "kind": "service",
+      "parent": "monitoring-group"
+    },
+    {
+      "id": "health-model",
+      "label": "Health Model",
+      "kind": "service",
+      "parent": "monitoring-group"
+    },
+    {
+      "id": "data-group",
+      "label": "Data",
+      "kind": "group",
+      "parent": null
+    },
+    {
+      "id": "sql",
+      "label": "Azure SQL Database",
+      "kind": "data",
+      "parent": "data-group"
+    },
+    {
+      "id": "cert-group",
+      "label": "Certificates",
+      "kind": "group",
+      "parent": null
+    },
+    {
+      "id": "keyvault",
+      "label": "Azure Key Vault",
+      "kind": "data",
+      "parent": "cert-group"
+    },
+    {
+      "id": "storage-group",
+      "label": "Storage for deployment",
+      "kind": "group",
+      "parent": null
+    },
+    {
+      "id": "storage",
+      "label": "Azure Storage",
+      "kind": "data",
+      "parent": "storage-group"
+    }
+  ],
+  "relations": [
+    {
+      "from": "user",
+      "to": "appgw",
+      "label": "",
+      "style": "solid"
+    },
+    {
+      "from": "dns",
+      "to": "vnet",
+      "label": "Linked",
+      "style": "dotted"
+    },
+    {
+      "from": "appgw",
+      "to": "pe-app",
+      "label": "",
+      "style": "solid"
+    },
+    {
+      "from": "pe-app",
+      "to": "app-service",
+      "label": "",
+      "style": "solid",
+      "attachment": "drawn on the App Service group (Region box) edge; node or group is allowed (expectation v2 a-app-service-attachment)"
+    },
+    {
+      "from": "app-service",
+      "to": "vif",
+      "label": "",
+      "style": "solid",
+      "attachment": "drawn on the App Service group (Region box) edge; node or group is allowed (expectation v2 a-app-service-attachment)"
+    },
+    {
+      "from": "vif",
+      "to": "pe-db",
+      "label": "",
+      "style": "solid"
+    },
+    {
+      "from": "vif",
+      "to": "pe-config",
+      "label": "",
+      "style": "solid"
+    },
+    {
+      "from": "vif",
+      "to": "pe-storage",
+      "label": "",
+      "style": "solid"
+    },
+    {
+      "from": "pe-db",
+      "to": "sql",
+      "label": "",
+      "style": "solid"
+    },
+    {
+      "from": "pe-config",
+      "to": "keyvault",
+      "label": "",
+      "style": "solid"
+    },
+    {
+      "from": "pe-storage",
+      "to": "storage",
+      "label": "",
+      "style": "solid"
+    }
+  ],
+  "items": {
+    "r-nesting": "present",
+    "r-appgw": "present",
+    "r-private-endpoints": "present",
+    "r-virtual-interface": "present",
+    "r-zone-instances": "present",
+    "r-inbound-flow": "present",
+    "r-outbound-flow": "present",
+    "r-dns-linked": "present",
+    "r-monitoring": "present",
+    "r-identity": "present",
+    "r-ddos": "present",
+    "f-endpoint-swap": "absent",
+    "f-flattened": "absent",
+    "f-extra-instances": "absent",
+    "a-app-service-attachment": "allowed"
+  },
+  "unknown": {
+    "u-region-extent": "The caption 'Region' sits under the App Service group; whether it names only that group or the whole deployment is not determinable from the image.",
+    "u-subnet-shields": "Unlabelled shield icons on the subnet corners carry no stated meaning."
+  },
+  "version": 2,
+  "supersedes": "gold.json (sealed 89be40fe…, kept in the ledger)"
+}

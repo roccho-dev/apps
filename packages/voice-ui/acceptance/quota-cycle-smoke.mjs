@@ -10,6 +10,7 @@ import { assertNoSecretInputs, loadAcceptanceArtifact, assertCompactVerifierWire
 import { QUOTA_SOURCE_NAMES } from "../tests/quota-cycle-audit.mjs";
 import { QUOTA_METHODS, QUOTA_GENERATIONS, QUOTA_GOAL_POLICIES } from "../tests/quota-cycle-score.mjs";
 import { historicalBundleControl } from "./historical-bundle-control.mjs";
+import { amendBaselineG0Wire, G0_WIRE_AMENDMENT_SHA256 } from "./frontier-g0-wire-amendment.mjs";
 assertNoSecretInputs();
 const [artifact, out, previousArtifact, ...comparisonArguments] = process.argv.slice(2);
 assert.ok(process.argv.length === 5 || process.argv.length === 7);
@@ -215,8 +216,11 @@ try {
       } finally { currentRequest = null; }
     }
     if (axis === "V") assertCompactVerifierWire(pair[0].capture, pair[1].capture);
+    else if (axis === "G0") assert.deepEqual(pair[1].capture, amendBaselineG0Wire(pair[0].capture), "G0 upstream bytes after the registered r12 amendment");
     else assert.deepEqual(pair[1].capture, pair[0].capture);
-    wireEquality.push({ axis, status: axis === "V" ? "REGISTERED_COMPLETENESS_QUESTION_ONLY" : "UPSTREAM_BYTES_EQUAL",
+    wireEquality.push({ axis, status: axis === "V" ? "REGISTERED_COMPLETENESS_QUESTION_ONLY"
+      : axis === "G0" ? "UPSTREAM_BYTES_EQUAL_AFTER_REGISTERED_AMENDMENT" : "UPSTREAM_BYTES_EQUAL",
+      ...(axis === "G0" ? { amendment_sha256: G0_WIRE_AMENDMENT_SHA256 } : {}),
       request_body_sha256: hash(pair[1].capture.body_utf8), previous_request_body_sha256: hash(pair[0].capture.body_utf8),
       original_captures: pair.map((p, i) => ({ apps_sha: manifests[1 - i].value.sources.apps, ...p })) });
   }
@@ -231,18 +235,30 @@ try {
       const captures = upstream.slice(before), typed = captures.filter(row => row.provider === "typellm");
       assert.equal(typed.length, 1);
       assert.equal(captures.length, bridge.length === 0 ? 3 : 1);
+      // The check's frontier proposal sends label thinking off on every field (16 thinking labels made TypeLLM
+      // answer 504, apps#94 c6358191815); the explicit requirements?generation=thinking-labels route keeps 512.
+      const thinking = route.includes("generation=thinking-labels");
       for (const [name, question] of Object.entries(typed[0].wire.questions)) {
-        assert.equal(question.thinking, name.endsWith("_label"));
-        assert.equal(question.thinking_budget, name.endsWith("_label") ? 512 : undefined);
+        assert.equal(question.thinking, thinking && name.endsWith("_label"));
+        assert.equal(question.thinking_budget, thinking && name.endsWith("_label") ? 512 : undefined);
       }
       assert.equal(Object.keys(typed[0].wire.questions).length, 9);
       bridge.push({ route, capture: typed[0], response: await response.json() });
     } finally { currentRequest = null; }
   }
-  assert.deepEqual(bridge[0].capture, bridge[1].capture, "compiled ordinary C and direct D upstream bytes");
+  // Compiled ordinary C is exactly direct D's upstream request with label thinking turned off: the same capture
+  // fields, the same wire after stripping, and a body that is that wire; not the raw D bytes.
+  const unthought = structuredClone(bridge[1].capture.wire);
+  for (const question of Object.values(unthought.questions)) { question.thinking = false; delete question.thinking_budget; }
+  const rest = capture => Object.fromEntries(Object.entries(capture).filter(([key]) => !["wire", "body_utf8"].includes(key)));
+  assert.deepEqual(rest(bridge[0].capture), rest(bridge[1].capture), "compiled ordinary C and direct D capture fields");
+  assert.deepEqual(bridge[0].capture.wire, unthought, "compiled ordinary C is direct D's wire without label thinking");
+  assert.deepEqual(JSON.parse(bridge[0].capture.body_utf8), bridge[0].capture.wire);
+  assert.notEqual(bridge[0].capture.body_utf8, bridge[1].capture.body_utf8);
   assert.deepEqual(bridge[0].response.inspection.proposal.required, bridge[1].response.required);
-  ordinaryExtractionBridge = { status: "EXACT_DIRECT_D_BODY", request_body_sha256: hash(bridge[0].capture.body_utf8),
-    generation_policy: "dependent", extraction_profile: "thinking-labels", original_captures: bridge };
+  ordinaryExtractionBridge = { status: "DIRECT_D_BODY_WITHOUT_LABEL_THINKING", request_body_sha256: hash(bridge[0].capture.body_utf8),
+    direct_d_request_body_sha256: hash(bridge[1].capture.body_utf8),
+    generation_policy: "dependent", extraction_profile: "flat-scalars", original_captures: bridge };
   assert.deepEqual(errors, []);
 } finally { globalThis.fetch = savedFetch; console.info = savedInfo; await new Promise(resolve => server.close(resolve)); }
 fs.writeFileSync(path.join(out, "receipt.json"), enc({ schema: "voice-ui.quota-cycle-keyless/1", status: "PASS",

@@ -1,0 +1,31 @@
+{
+  "schema": "voice-ui.closure.expectation/1",
+  "id": "presented-2-openstack-conceptual",
+  "version": 1,
+  "status": "candidate",
+  "source": {
+    "text": "期待図を描く。そのために必要な部品を選定し状態更新できること。提示2図相当の表現力、apps/Atlas相当の描画、それを音声で素早く操作できること。提示図 2：OpenStack Install Guide の conceptual architecture 図（公開 PNG の版）。",
+    "ref": "docs/voice-ui/expected-diagram-20261018/raws.jsonl:1 (expected-diagram.v2); User choice apps#94 comment 6335028517"
+  },
+  "gold_set": "presented-2",
+  "required": [
+    { "id": "r-services", "claim": "Keystone・Ceilometer・Horizon・Glance・Nova・Swift・VMs・Neutron・Cinder・Ironic・Trove・Heat の 12 の部品が名前どおりにある（VMs は他と異なる形）", "step": ["4", "5", "9"] },
+    { "id": "r-tiers", "claim": "Keystone・Ceilometer・Horizon の上段が、点線の区切りで下の領域と分かれている", "step": ["4", "9"] },
+    { "id": "r-shared-services", "claim": "上段の 3 つから下の領域へ、注釈「Provides auth」「Monitor」「Provides UI」つきの有向の関係", "step": ["4", "9"] },
+    { "id": "r-glance", "claim": "Glance→Swift「Stores images in」と Glance→VMs「Provides images」", "step": ["4", "9"] },
+    { "id": "r-ironic", "claim": "Ironic→Glance「Fetchs images via」と Ironic→VMs「Provision」", "step": ["4", "9"] },
+    { "id": "r-trove", "claim": "Trove→Glance「Registers guest images in」、Trove→Nova「Boots database instances via」、Trove→VMs「Provision, operation and management」、Trove→Swift「Backups databases in」", "step": ["4", "9"] },
+    { "id": "r-neutron", "claim": "Neutron→VMs「Provides network connection for」と Neutron→Ironic「Provides PXE network for」", "step": ["4", "9"] },
+    { "id": "r-cinder-nova", "claim": "Cinder→VMs「Provides volumes to」、Cinder→Swift「Backups volumes in」、Nova→VMs「Provision」", "step": ["4", "9"] },
+    { "id": "r-heat", "claim": "Heat から Glance・Nova・Neutron・Cinder への「Orchestration」の有向の関係", "step": ["4", "9"] }
+  ],
+  "forbidden": [
+    { "id": "f-sahara", "claim": "公開 PNG に無い Sahara とその関係を加える", "step": ["4", "5"] },
+    { "id": "f-reversed", "claim": "どれかの関係の向きを逆にする", "step": ["4", "9"] },
+    { "id": "f-label-swap", "claim": "注釈を別の関係に付ける", "step": ["4", "9"] }
+  ],
+  "allowed": [],
+  "unknown": [
+    { "id": "u-orchestration-label", "question": "Heat の 4 本の関係に「Orchestration」を 1 つだけ示すか、各関係に付けるか" }
+  ]
+}

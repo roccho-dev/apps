@@ -1,0 +1,20 @@
+{
+  "schema": "voice-ui.ev-run.stock/2",
+  "set": "atlas",
+  "source": "R, from the sealed gold gold/atlas/gold.json. Labels and kinds as in atlas.stock.json (v1); v2 adds one R-written purpose per part saying only what the part is or does: no parent, nesting, position, count or relation. v1 served the stub 'a part named <label>', which lowered the product's G0 confidence (apps#94 c6361400842). Oracle-A condition B only.",
+  "parts": [
+    { "label": "Purpose", "kind": "group", "purpose": "an area about purpose" },
+    { "label": "Scopes", "kind": "group", "purpose": "an area about units of responsibility" },
+    { "label": "Agents", "kind": "group", "purpose": "an area about actors" },
+    { "label": "目的", "kind": "step", "purpose": "the goal being pursued" },
+    { "label": "理想状態", "kind": "step", "purpose": "the target state that satisfies the goal's conditions" },
+    { "label": "現状", "kind": "step", "purpose": "the latest observed state" },
+    { "label": "担当なし", "kind": "group", "purpose": "a collection of items with no owner yet" },
+    { "label": "閉じた差", "kind": "group", "purpose": "a collection of differences already closed" },
+    { "label": "未割当", "kind": "step", "purpose": "an unmet criterion without an owner" },
+    { "label": "旧義務：入力接続を実証する", "kind": "step", "purpose": "a former obligation kept as history" },
+    { "label": "共有UIの利用を閉じる責任", "kind": "step", "purpose": "a completed responsibility kept as history" },
+    { "label": "fixture-W", "kind": "step", "purpose": "the actor that does the work" },
+    { "label": "fixture-independent-R", "kind": "step", "purpose": "the actor that evaluates independently" }
+  ]
+}

@@ -1,0 +1,6 @@
+{"arm":"new","set":"presented-2","condition":"B","stop":"script-complete","lines":26,"jev":26,"typellm":0,"e502":0,"receipt_sha256":"2cd2ebf3543e8eb3538cf470714eec444a651f077347c5f13ab5bf965da655ae"}
+{"arm":"old","set":"presented-2","condition":"B","stop":"script-complete","lines":26,"jev":0,"typellm":0,"e502":0,"receipt_sha256":"deca648e7d35584c55f88da1a82b179f63964ffbd8147ec23152a3bb21eb62c1"}
+{"arm":"new","set":"presented-1","condition":"B","stop":"script-complete","lines":26,"jev":27,"typellm":1,"e502":0,"receipt_sha256":"c30afcf443f97faf52ab8854ecce95f9d82cfdb140b76650f8b825a55c751206"}
+{"arm":"old","set":"presented-1","condition":"B","stop":"script-complete","lines":26,"jev":0,"typellm":0,"e502":0,"receipt_sha256":"ec7fa1ab2ae3b0489611b4ad6df2cf222093bdd32dc63ff65430cf73c59c42aa"}
+{"arm":"new","set":"atlas","condition":"B","stop":"script-complete","lines":12,"jev":12,"typellm":1,"e502":1,"receipt_sha256":"2d711d67c875a558d80e0cd4443d63d8e1e2d9f5c02707d98333d300fdad9983"}
+{"arm":"old","set":"atlas","condition":"B","stop":"script-complete","lines":12,"jev":0,"typellm":0,"e502":0,"receipt_sha256":"1787832233691b2da9159a8395feabec66fef0c5de92157ea9a2af049ef93dfd"}
