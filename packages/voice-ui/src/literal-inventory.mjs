@@ -14,6 +14,18 @@ const countPattern = "[0-9０-９〇零一二三四五六七八九十百千万�
 // する form) plus the plain affirmative forms of 置く・作る・加える・入れる. Each form is spelled out, so negative
 // or other inflections (置かない, 置きません, 加えず, 入れない) never match a prefix.
 const PLACEMENT_VERB = "(?:追加|作成|配置)(?:して|する)?|置いて|置く|作って|作る|加えて|加える|入れて|入れる";
+// A verb followed by a prohibition or negation is not a request (R 7/200, apps#177 c6365486846): ては/では/ちゃ +
+// いけ/だめ/ならない, a sentence-final or attached な (作るな), ない/ず, ておかない/ておくな, ほしくない, and the
+// し/せ/ら/か negative stems a shorter verb alternative could leave behind (追加しないで, 作らない, 置かない).
+const NOT_REQUESTED = "\\s*(?:[はで]\\s*(?:いけ|だめ|ダメ|なら|よくな)|ちゃ|じゃ|な(?!さい)|ず|おか(?:な|ず)|おくな"
+  + "|ほしくな|欲しくな|し(?:て(?:は|ちゃ)|な|ちゃ)|せず|するな|[らか](?:な|ず))";
+const placement = `(?:${PLACEMENT_VERB})(?!${NOT_REQUESTED})`;
+// The original short verb stems (追加・作・置) used by the counted and quoted forms take the same guard.
+// The guard also looks past the affirmative ending a stem takes (置いて, 作る, 追加して), so 置いてはいけない is refused.
+const counted = `(?:追加|作|置)(?!(?:して|する|いて|く|って|る)?${NOT_REQUESTED})`;
+const countedAfter = new RegExp(`^${counted}`, "u"), countedObject = new RegExp(`^\\s*を\\s*${counted}`, "u");
+// After an explicit count the verb was never read; a negated or prohibited verb there now refuses the mention.
+const negatedVerb = new RegExp(`^\\s*(?:だけ|ずつ)?\\s*(?:${PLACEMENT_VERB}|追加|作|置)${NOT_REQUESTED}`, "u");
 const digits = "一二三四五六七八九";
 const countOf = value => {
   const number = value.replace(/[０-９]/gu, digit => String.fromCharCode(digit.charCodeAt(0) - 0xfee0));
@@ -65,8 +77,8 @@ export function literalInventory(state) {
     const rest = state.utterance.slice(match.index + match[0].length);
     const tail = rest.trimStart();
     if (match[4] === undefined ? /^[×x]/u.test(tail)
-      || tail.startsWith("を") && !/^(?:追加|作|置)/u.test(tail.slice(1).trimStart())
-      : numericTail.test(rest)) { invalid = true; continue; }
+      || tail.startsWith("を") && !countedAfter.test(tail.slice(1).trimStart())
+      : numericTail.test(rest) || negatedVerb.test(rest)) { invalid = true; continue; }
     add(label, kinds.get(match[1]), match[4] === undefined ? 1 : countOf(match[4]), start, start + label.length, match[4] !== undefined);
   }
   const after = new RegExp(`((?:${quote}\\s*(?:[、,と]\\s*)?)+)という(?:名前の|(${countPattern})(?:つ|個)の)?(${prefix})(?![A-Za-z0-9_])`, "gu");
@@ -76,8 +88,8 @@ export function literalInventory(state) {
     const count = match[2] === undefined ? null : countOf(match[2]);
     const rest = state.utterance.slice(match.index + match[0].length);
     const suffix = new RegExp(`^\\s*を\\s*(${countPattern})(?:個|つ)(だけ|ずつ)?`, "u").exec(rest);
-    if (suffix === null ? /^\s*を/u.test(rest) && !/^\s*を\s*(?:追加|作|置)/u.test(rest)
-      : numericTail.test(rest.slice(suffix[0].length))) { invalid = true; continue; }
+    if (suffix === null ? /^\s*を/u.test(rest) && !countedObject.test(rest)
+      : numericTail.test(rest.slice(suffix[0].length)) || negatedVerb.test(rest.slice(suffix[0].length))) { invalid = true; continue; }
     const following = suffix === null ? null : countOf(suffix[1]);
     if (names.length > 1 && count !== null && count !== names.length) { invalid = true; continue; }
     if (names.length > 1 && following !== null && suffix[2] !== "ずつ" && following !== names.length
@@ -95,7 +107,7 @@ export function literalInventory(state) {
   const listNames = [...stockKinds.keys()].filter(label => !/[、,と「」"]/u.test(label))
     .sort((a, b) => b.length - a.length).map(escaped).join("|");
   if (listNames) {
-    const list = new RegExp(`(?<![A-Za-z0-9_])((?:${listNames})\\s*(?:[、,と]\\s*(?:${listNames})\\s*)+)を\\s*(${countPattern})(?:個|つ)ずつ\\s*(?:追加|作|置)`, "dgu");
+    const list = new RegExp(`(?<![A-Za-z0-9_])((?:${listNames})\\s*(?:[、,と]\\s*(?:${listNames})\\s*)+)を\\s*(${countPattern})(?:個|つ)ずつ\\s*${counted}`, "dgu");
     for (const match of state.utterance.matchAll(list)) {
       const end = match.index + match[0].length;
       if (claimed.some(([start, stop]) => start < end && match.index < stop)) continue;
@@ -114,7 +126,7 @@ export function literalInventory(state) {
     }
     // An uncounted coordination of catalogue names followed by an ordinary placement verb asks for one new
     // instance of each (「AとBを加えて」「A、Bを置く」). The same ambiguity refusals as the counted form apply.
-    const plain = new RegExp(`(?<![A-Za-z0-9_])((?:${listNames})(?:\\s*(?:[、,と]|および|及び)\\s*(?:${listNames}))+)\\s*[をも]\\s*(?:${PLACEMENT_VERB})`, "dgu");
+    const plain = new RegExp(`(?<![A-Za-z0-9_])((?:${listNames})(?:\\s*(?:[、,と]|および|及び)\\s*(?:${listNames}))+)\\s*[をも]\\s*${placement}`, "dgu");
     for (const match of state.utterance.matchAll(plain)) {
       const end = match.index + match[0].length;
       if (claimed.some(([start, stop]) => start < end && match.index < stop)) continue;
@@ -131,10 +143,10 @@ export function literalInventory(state) {
     }
   }
   const stock = [...stockKinds.keys()].filter(label => stockKinds.get(label).size === 1).sort((a, b) => b.length - a.length).map(escaped).join("|");
-  if (stock) for (const match of state.utterance.matchAll(new RegExp(`(?<![A-Za-z0-9_])(${stock})\\s*を\\s*(${countPattern})(?:個|つ)(?:だけ|ずつ)?\\s*(?:追加|作|置)`, "gu")))
+  if (stock) for (const match of state.utterance.matchAll(new RegExp(`(?<![A-Za-z0-9_])(${stock})\\s*を\\s*(${countPattern})(?:個|つ)(?:だけ|ずつ)?\\s*${counted}`, "gu")))
     if (!claimed.some(([start, end]) => start <= match.index && match.index < end))
       add(match[1], stockKind(match[1]), countOf(match[2]), match.index, match.index + match[1].length, true);
-  if (stock) for (const match of state.utterance.matchAll(new RegExp(`(?<![A-Za-z0-9_])(${stock})\\s*(?:[をも]\\s*)?(?:${PLACEMENT_VERB})`, "gu")))
+  if (stock) for (const match of state.utterance.matchAll(new RegExp(`(?<![A-Za-z0-9_])(${stock})\\s*(?:[をも]\\s*)?${placement}`, "gu")))
     if (!claimed.some(([start, end]) => start <= match.index && match.index < end))
       add(match[1], stockKind(match[1]), 1, match.index, match.index + match[1].length, true);
   if (invalid) return { valid: false, recognized: spans.length > 0, required: [], missing: [], spans, status: "unsupported-syntax" };

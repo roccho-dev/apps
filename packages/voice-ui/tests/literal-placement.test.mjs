@@ -48,6 +48,32 @@ test('negative, other or absent verbs transcribe nothing', () => {
     assert.deepEqual(read(utterance).result.required, [], utterance);
 });
 
+// Prohibitions after an affirmative verb form (R 7/200, c6365486846): the verb prefix must not count as a request.
+const prohibited = ['OCIにCacheを置いてはいけない', 'DBを入れてはだめ', 'APIを作るな', 'Cacheを加えるな。',
+  'OCIにDBを置いておかないで', 'APIとDBを入れてはならない', 'Cache、DB を作ってはダメです', 'DBを加えちゃだめ',
+  'APIを追加してはいけません', 'DBを追加しないでください', 'Cacheを配置するな', 'APIも入れてほしくない',
+  'OCIにAPIを2個追加しないで', 'OCIにAPIとDBを1個ずつ置いてはいけない', 'OCIにCacheを3個作らないで'];
+test('prohibited or negated placement transcribes nothing, for every form', () => {
+  for (const utterance of prohibited) assert.deepEqual(read(utterance).result.required, [], utterance);
+});
+test('quoted kind names followed by a prohibited verb are refused, not transcribed', () => {
+  for (const utterance of ['OCIにstep「Queue」を追加しないで', 'OCIにstep「Queue」を1個置いてはいけない',
+    'OCIに「Queue」というstepを2個作るな', 'OCIに「Queue」というstepを追加してはだめ']) {
+    const result = read(utterance).result;
+    assert.deepEqual(result.required, [], utterance);
+    assert.equal(result.valid, false, utterance);
+  }
+});
+test('affirmative forms that merely continue the verb still transcribe', () => {
+  for (const [utterance, labels] of [['OCIにDBを置いておいて', ['DB']], ['APIを作ってね', ['API']],
+    ['OCIにAPIを2個追加してください', null], ['OCIにstep「Queue」を1個置いてください', null]]) {
+    const result = read(utterance).result;
+    assert.equal(result.valid, true, utterance);
+    if (labels) assert.deepEqual(result.required, one(...labels), utterance);
+    else assert.equal(result.required.length, 1, utterance);
+  }
+});
+
 test('a count between the names and the verb keeps the counted reading, never each-count', () => {
   // As literal-stock-list: a shared total is not an each-count; the uncounted list form does not apply.
   assert.notDeepEqual(read('OCIにAPIとDBを2個追加').result.required,
