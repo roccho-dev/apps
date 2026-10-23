@@ -267,7 +267,12 @@ try {
   final = await snapshot();
   await shoot("final");
   // Apply exists only when something was drafted; an empty run records that it had nothing to apply.
-  applyState = await page.locator("#apply").isEnabled() ? "applied" : "nothing-drafted";
+  // A draft is the Working log differing from the stored one. The screenshots above resize the page, and the
+  // product re-renders on resize with every control disabled meanwhile (web/app.mjs:194-211,810-813 at 8dddcd64),
+  // so a drafted run waits for Apply rather than reading it once mid-render (R 2/200 B control: a draft was lost).
+  const drafted = final.log !== final.stored;
+  applyState = !drafted ? "nothing-drafted" : await page.waitForFunction(() => !document.querySelector("#apply").disabled,
+    null, { timeout: 60000 }).then(() => "applied", () => "apply-unavailable");
   if (applyState === "applied") { await page.locator("#apply").click(); await settle(); }
   const applied = await snapshot();
   await page.reload(); await settle();
