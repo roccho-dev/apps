@@ -73,10 +73,12 @@ test("v3 one-shot proposal follows the exact confidence frontier; hard stops and
   }
 });
 
-test("ordinary C uses the bounded D extraction body while retaining its closed dependent stage", async () => {
+// The frontier proposal sends the flat body without label thinking: 16 thinking labels made TypeLLM answer 504
+// (apps#94 c6358191815), the same question without thinking returned the same parts (W round 2 direct calls).
+test("ordinary C uses the bounded flat extraction body without label thinking, retaining its closed dependent stage", async () => {
   const result = await invoke();
   assert.equal(result.status, 200);
-  assert.deepEqual(result.requests[1], flatRequiredRequest(inventoryQuestion(result.input.state).state, { labelThinking: true }));
+  assert.deepEqual(result.requests[1], flatRequiredRequest(inventoryQuestion(result.input.state).state, { labelThinking: false }));
   const typed = result.stages.find(row => row.stage === "TYPE_REQUIRED");
   assert.deepEqual(Object.keys(typed), ["kind", "request_id", "stage", "valid", "generation", "proposal"]);
   assert.equal(typed.generation, "dependent");

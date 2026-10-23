@@ -137,7 +137,10 @@ export async function onRequirements({ request, mode, method, available, generat
   };
   const full = async () => {
     const context = inventoryQuestion(inventory.state).state,
-      profile = mode === "check" && method === "adaptive-v3" ? "thinking-labels" : generation,
+      // The frontier proposal uses the flat profile without label thinking: 16 slots with a 512-token thinking
+      // label each made TypeLLM answer HTTP 504 (apps#94 c6358191815); the same question without thinking
+      // returned in about 14 s with the same required parts (W round 2 direct calls).
+      profile = mode === "check" && method === "adaptive-v3" ? "flat-scalars" : generation,
       sourced = profile === "display-source", flat = profile === "flat-scalars" || profile === "thinking-labels";
     const question = sourced ? displaySourceRequest(context, { max }) : flat
       ? flatRequiredRequest(context, { labelThinking: profile === "thinking-labels", max }) : requiredRequest(context, { generation: profile, max });
