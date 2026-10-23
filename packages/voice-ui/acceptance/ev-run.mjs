@@ -81,7 +81,7 @@ const { chromium } = createRequire(import.meta.url)("playwright-core");
 // Offline answers: every delta question answers "none" and every other choice
 // takes "unknown" when offered, else its first option. This exercises the
 // mechanics (lines, stops, saving, budget) and nothing about model quality.
-const upstream = [], api = [];
+const upstream = [], api = [], bodies = new Map();
 let line = null, input = null;
 const syntheticChoice = (name, criteria) => {
   const options = Object.keys(criteria);
@@ -188,6 +188,13 @@ try {
     // B in live mode: the same fixed stock is served at the ordinary bundle URL.
     if (live && url.pathname === "/data/bundle.v1.json" && stock)
       return route.fulfill({ status: 200, headers: { "content-type": "application/json", "cache-control": "no-store" }, body: servedBundle });
+    // Live product API calls are fetched here and handed to the page unchanged, so their exact bytes are kept
+    // even when the page's own response body cannot be read afterwards (an error body came back empty, R 8).
+    if (live && url.pathname.startsWith("/api/")) return route.fetch({ timeout: 0 }).then(async response => {
+      const body = await response.body();
+      bodies.set(route.request(), body);
+      return route.fulfill({ response, body });
+    });
     return route.continue();
   });
   // Every site file the page loads is checked against the dist; in live mode every product API call
@@ -210,7 +217,7 @@ try {
     // The script line is taken when the response arrives, before its body is read.
     const entry = { line, route: url.pathname + url.search, status: response.status(), file: `api-${String(api.length).padStart(4, "0")}.json` };
     api.push(entry);
-    const body = await response.body().catch(() => Buffer.alloc(0));
+    const body = bodies.get(response.request()) ?? await response.body().catch(() => Buffer.alloc(0));
     entry.body_sha256 = hash(body);
     write(entry.file, body);
   });
