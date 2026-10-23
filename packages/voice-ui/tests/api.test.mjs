@@ -358,9 +358,10 @@ test("normal compiled check uses flat extraction bytes without label thinking an
       assert.equal(init.headers.authorization, "Bearer typed-test-only");
       assert.equal(Object.keys(body.questions).length, 9);
       // The frontier proposal sends no thinking keys: 16 thinking labels made TypeLLM answer 504 (apps#94 c6358191815).
+      // The provider wire states thinking explicitly; every field is now off, with no budget.
       for (const q of Object.values(body.questions)) {
-        assert.equal(Object.hasOwn(q, "thinking"), false);
-        assert.equal(Object.hasOwn(q, "thinking_budget"), false);
+        assert.equal(q.thinking, false);
+        assert.equal(q.thinking_budget, undefined);
       }
       return Response.json({ status: "completed", result: Object.fromEntries([1, 2, 3].flatMap(n =>
         [["required" + n + "_label", n === 1 ? "Novel" : ""], ["required" + n + "_kind", n === 1 ? "step" : "none"],
