@@ -353,15 +353,18 @@ test("normal compiled check uses flat extraction bytes without label thinking an
     parts: [{ key: "service", label: "Service", kind: "step", purpose: "one service" }] } };
   const invoke = (body, env) => worker.fetch(new Request("http://localhost/api/parts/check",
     { method: "POST", body: JSON.stringify(body) }), env);
+  let typedSends = 0;
   const { calls } = await withProvider(async (body, init) => {
     if (body.questions.required1_label) {
       assert.equal(init.headers.authorization, "Bearer typed-test-only");
       assert.equal(Object.keys(body.questions).length, 9);
-      // The frontier proposal sends no thinking keys: 16 thinking labels made TypeLLM answer 504 (apps#94 c6358191815).
-      // The provider wire states thinking explicitly; every field is now off, with no budget.
-      for (const q of Object.values(body.questions)) {
-        assert.equal(q.thinking, false);
-        assert.equal(q.thinking_budget, undefined);
+      // The first typed send is the check's frontier proposal: label thinking off on every field, because 16
+      // thinking labels made TypeLLM answer 504 (apps#94 c6358191815). The second is the explicit
+      // requirements?generation=thinking-labels route below, which keeps its 512-token label thinking.
+      const thinking = ++typedSends === 2;
+      for (const [name, q] of Object.entries(body.questions)) {
+        assert.equal(q.thinking, thinking && name.endsWith("_label"));
+        assert.equal(q.thinking_budget, thinking && name.endsWith("_label") ? 512 : undefined);
       }
       return Response.json({ status: "completed", result: Object.fromEntries([1, 2, 3].flatMap(n =>
         [["required" + n + "_label", n === 1 ? "Novel" : ""], ["required" + n + "_kind", n === 1 ? "step" : "none"],
@@ -393,7 +396,11 @@ test("normal compiled check uses flat extraction bytes without label thinking an
     assert.deepEqual(value.inspection.proposal_policy, { id: "uncertainty-frontier-v1", eligible: false, reason: null });
   });
   assert.equal(calls.length, 5);
-  assert.deepEqual(calls[1], calls[3], "compiled ordinary C and direct D use exactly the same provider body");
+  // Compiled ordinary C is exactly direct D's provider body with label thinking turned off.
+  const unthought = structuredClone(calls[3]);
+  for (const q of Object.values(unthought.questions)) { q.thinking = false; delete q.thinking_budget; }
+  assert.notDeepEqual(calls[1], calls[3]);
+  assert.deepEqual(calls[1], unthought, "compiled ordinary C is direct D's body without label thinking");
 });
 
 test("compiled extraction opt-in normalizes display provenance in one typed call and stays out of ordinary checks", async () => {
