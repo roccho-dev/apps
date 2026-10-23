@@ -1,6 +1,6 @@
 // Comparison B: an intentionally finite syntax, not a natural-language parser.
-// Only explicit quoted names with a neighbouring finite kind, or a counted
-// stock label, are transcribed. Unsupported paraphrases remain unsupported.
+// Only explicit quoted names with a neighbouring finite kind, a counted stock label, or stock labels (alone or
+// coordinated) before a finite placement verb are transcribed. Unsupported paraphrases remain unsupported.
 // No fixture names, oracle, model, inferred parent/edge or persistent dictionary.
 import { PART_KINDS, LABEL_MAX } from "./contract.mjs";
 import { inventoryLimit, inventoryQuestion, readTypedMissing } from "./completion.mjs";
@@ -10,6 +10,10 @@ const escaped = value => value.replace(/[.*+?^${}()|[\]\\]/gu, "\\$&");
 // normalization. Consume unsupported numeric words whole, rather than reading
 // a valid prefix (e.g. one out of one hundred) or silently assuming one.
 const countPattern = "[0-9０-９〇零一二三四五六七八九十百千万億兆]+|ひと|ふた|みっ";
+// The finite set of ordinary placement verbs after a catalogue name: the original 追加/作成/配置 (with an optional
+// する form) plus the plain affirmative forms of 置く・作る・加える・入れる. Each form is spelled out, so negative
+// or other inflections (置かない, 置きません, 加えず, 入れない) never match a prefix.
+const PLACEMENT_VERB = "(?:追加|作成|配置)(?:して|する)?|置いて|置く|作って|作る|加えて|加える|入れて|入れる";
 const digits = "一二三四五六七八九";
 const countOf = value => {
   const number = value.replace(/[０-９]/gu, digit => String.fromCharCode(digit.charCodeAt(0) - 0xfee0));
@@ -108,12 +112,29 @@ export function literalInventory(state) {
         add(name[0], stockKind(name[0]), countOf(match[2]), start, start + name[0].length, true);
       }
     }
+    // An uncounted coordination of catalogue names followed by an ordinary placement verb asks for one new
+    // instance of each (「AとBを加えて」「A、Bを置く」). The same ambiguity refusals as the counted form apply.
+    const plain = new RegExp(`(?<![A-Za-z0-9_])((?:${listNames})(?:\\s*(?:[、,と]|および|及び)\\s*(?:${listNames}))+)\\s*[をも]\\s*(?:${PLACEMENT_VERB})`, "dgu");
+    for (const match of state.utterance.matchAll(plain)) {
+      const end = match.index + match[0].length;
+      if (claimed.some(([start, stop]) => start < end && match.index < stop)) continue;
+      claimed.push([match.index, end]);
+      const names = [...match[1].matchAll(new RegExp(listNames, "dgu"))];
+      const ambiguous = names.some(name => stockKinds.get(name[0]).size !== 1)
+        || names.some((name, i) => names.slice(i + 1).some(last =>
+          stockKinds.has(match[1].slice(name.index, last.index + last[0].length))));
+      if (ambiguous) { invalid = true; continue; }
+      for (const name of names) {
+        const start = match.indices[1][0] + name.index;
+        add(name[0], stockKind(name[0]), 1, start, start + name[0].length, true);
+      }
+    }
   }
   const stock = [...stockKinds.keys()].filter(label => stockKinds.get(label).size === 1).sort((a, b) => b.length - a.length).map(escaped).join("|");
   if (stock) for (const match of state.utterance.matchAll(new RegExp(`(?<![A-Za-z0-9_])(${stock})\\s*を\\s*(${countPattern})(?:個|つ)(?:だけ|ずつ)?\\s*(?:追加|作|置)`, "gu")))
     if (!claimed.some(([start, end]) => start <= match.index && match.index < end))
       add(match[1], stockKind(match[1]), countOf(match[2]), match.index, match.index + match[1].length, true);
-  if (stock) for (const match of state.utterance.matchAll(new RegExp(`(?<![A-Za-z0-9_])(${stock})\\s*(?:を\\s*)?(?:追加|作成|配置)`, "gu")))
+  if (stock) for (const match of state.utterance.matchAll(new RegExp(`(?<![A-Za-z0-9_])(${stock})\\s*(?:[をも]\\s*)?(?:${PLACEMENT_VERB})`, "gu")))
     if (!claimed.some(([start, end]) => start <= match.index && match.index < end))
       add(match[1], stockKind(match[1]), 1, match.index, match.index + match[1].length, true);
   if (invalid) return { valid: false, recognized: spans.length > 0, required: [], missing: [], spans, status: "unsupported-syntax" };
