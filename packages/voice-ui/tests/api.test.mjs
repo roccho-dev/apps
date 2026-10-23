@@ -346,7 +346,7 @@ test("compiled Worker binds both released provider operations, validates invento
   assert.equal(invalid.calls.length, 1);
 });
 
-test("normal compiled check uses D extraction bytes and complete baseline works without a Type key", async () => {
+test("normal compiled check uses flat extraction bytes without label thinking and complete baseline works without a Type key", async () => {
   const input = { kind: "voice-ui.goal.inventory.v1", state: { utterance: "Containerへ新しい工程を1つ、その表示名はNovel",
     head: "fixture-head", regions: [{ id: "root", parent: null, label: "World", kind: "boundary" },
       { id: "container", parent: "root", label: "Container", kind: "group" }], edges: [],
@@ -357,9 +357,10 @@ test("normal compiled check uses D extraction bytes and complete baseline works 
     if (body.questions.required1_label) {
       assert.equal(init.headers.authorization, "Bearer typed-test-only");
       assert.equal(Object.keys(body.questions).length, 9);
-      for (const [name, q] of Object.entries(body.questions)) {
-        assert.equal(q.thinking, name.endsWith("_label"));
-        assert.equal(q.thinking_budget, name.endsWith("_label") ? 512 : undefined);
+      // The frontier proposal sends no thinking keys: 16 thinking labels made TypeLLM answer 504 (apps#94 c6358191815).
+      for (const q of Object.values(body.questions)) {
+        assert.equal(Object.hasOwn(q, "thinking"), false);
+        assert.equal(Object.hasOwn(q, "thinking_budget"), false);
       }
       return Response.json({ status: "completed", result: Object.fromEntries([1, 2, 3].flatMap(n =>
         [["required" + n + "_label", n === 1 ? "Novel" : ""], ["required" + n + "_kind", n === 1 ? "step" : "none"],

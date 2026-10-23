@@ -1,7 +1,7 @@
 import { COVERAGE, inventoryLimit, inventoryQuestion, isInventory, readLiteralInspection, readTypedMissing, typedMissingRequest,
   acceptedRequirements, readRequired, readRequiredSlots, readRequirementFactors, readRequirementInspection,
   displaySourceRequest, readDisplaySourceSlots, flatRequiredRequest, readFlatRequiredSlots,
-  requirementDecision, requirementProposalPolicy, PROPOSAL_POLICY_V2, requiredDifference, requiredLabelsGrounded, requiredQuestion, requiredRequest, requiresInterpretation } from "../../src/completion.mjs";
+  requirementDecision, requirementProposalPolicy, requiredDifference, requiredLabelsGrounded, requiredQuestion, requiredRequest, requiresInterpretation } from "../../src/completion.mjs";
 import { LABEL_MAX, PART_KINDS } from "../../src/contract.mjs";
 import { literalInventory, literalQuestion } from "../../src/literal-inventory.mjs";
 const json = (body, status = 200) => Response.json(body, { status, headers: { "cache-control": "no-store" } });
@@ -183,8 +183,7 @@ export async function onRequirements({ request, mode, method, available, generat
     const initial = { decision: requirementDecision(factors, ready, literal.missing), factors,
       literal: { recognized: literal.recognized, required: literal.required, spans: literal.spans },
       observation: { valid: observed.valid, status: observed.status } };
-    const proposal_policy = frontier ? requirementProposalPolicy(factors,
-      { id: PROPOSAL_POLICY_V2, literalRequired: literal.required, references: references.size }) : null;
+    const proposal_policy = frontier ? requirementProposalPolicy(factors) : null;
     stage("G0", { valid: true, initial, ...(frontier ? { proposal_policy } : {}) });
     const eligible = frontier ? proposal_policy.eligible : method === "adaptive-v2" && requiresInterpretation(factors);
     const proposal = eligible ? await full() : null;
