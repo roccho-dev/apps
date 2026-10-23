@@ -235,18 +235,30 @@ try {
       const captures = upstream.slice(before), typed = captures.filter(row => row.provider === "typellm");
       assert.equal(typed.length, 1);
       assert.equal(captures.length, bridge.length === 0 ? 3 : 1);
+      // The check's frontier proposal sends label thinking off on every field (16 thinking labels made TypeLLM
+      // answer 504, apps#94 c6358191815); the explicit requirements?generation=thinking-labels route keeps 512.
+      const thinking = route.includes("generation=thinking-labels");
       for (const [name, question] of Object.entries(typed[0].wire.questions)) {
-        assert.equal(question.thinking, name.endsWith("_label"));
-        assert.equal(question.thinking_budget, name.endsWith("_label") ? 512 : undefined);
+        assert.equal(question.thinking, thinking && name.endsWith("_label"));
+        assert.equal(question.thinking_budget, thinking && name.endsWith("_label") ? 512 : undefined);
       }
       assert.equal(Object.keys(typed[0].wire.questions).length, 9);
       bridge.push({ route, capture: typed[0], response: await response.json() });
     } finally { currentRequest = null; }
   }
-  assert.deepEqual(bridge[0].capture, bridge[1].capture, "compiled ordinary C and direct D upstream bytes");
+  // Compiled ordinary C is exactly direct D's upstream request with label thinking turned off: the same capture
+  // fields, the same wire after stripping, and a body that is that wire; not the raw D bytes.
+  const unthought = structuredClone(bridge[1].capture.wire);
+  for (const question of Object.values(unthought.questions)) { question.thinking = false; delete question.thinking_budget; }
+  const rest = capture => Object.fromEntries(Object.entries(capture).filter(([key]) => !["wire", "body_utf8"].includes(key)));
+  assert.deepEqual(rest(bridge[0].capture), rest(bridge[1].capture), "compiled ordinary C and direct D capture fields");
+  assert.deepEqual(bridge[0].capture.wire, unthought, "compiled ordinary C is direct D's wire without label thinking");
+  assert.deepEqual(JSON.parse(bridge[0].capture.body_utf8), bridge[0].capture.wire);
+  assert.notEqual(bridge[0].capture.body_utf8, bridge[1].capture.body_utf8);
   assert.deepEqual(bridge[0].response.inspection.proposal.required, bridge[1].response.required);
-  ordinaryExtractionBridge = { status: "EXACT_DIRECT_D_BODY", request_body_sha256: hash(bridge[0].capture.body_utf8),
-    generation_policy: "dependent", extraction_profile: "thinking-labels", original_captures: bridge };
+  ordinaryExtractionBridge = { status: "DIRECT_D_BODY_WITHOUT_LABEL_THINKING", request_body_sha256: hash(bridge[0].capture.body_utf8),
+    direct_d_request_body_sha256: hash(bridge[1].capture.body_utf8),
+    generation_policy: "dependent", extraction_profile: "flat-scalars", original_captures: bridge };
   assert.deepEqual(errors, []);
 } finally { globalThis.fetch = savedFetch; console.info = savedInfo; await new Promise(resolve => server.close(resolve)); }
 fs.writeFileSync(path.join(out, "receipt.json"), enc({ schema: "voice-ui.quota-cycle-keyless/1", status: "PASS",
