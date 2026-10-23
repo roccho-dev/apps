@@ -17,15 +17,18 @@ const ONE_OF_EACH = [
   base('heartbeat', 'p-8', { run: 'alive', tunnel: 'alive', hq_loop: 'unknown', reaped: 0, rebuilt: 1 }),
   // adrs#647 W c6349826755, R c6349841686: P's explicit replacement of a record.
   base('p.supersede', 'p-9', { replaces: 'p-1', by: null }),
+  // adrs#647 R c6353944717 (Q14, Q13): a node as P read it, and a capability with its evidence.
+  base('p.node', 'p-10', { node: 'D7', plan: 'roccho-dev/adrs#647', seen: 'roccho-dev/adrs#647#c6353944717' }),
+  base('p.capability', 'p-11', { capability: 'exec', state: 'verified', evidence: 'run:39864108348' }),
 ];
 const file = lines => lines.map(line => typeof line === 'string' ? line : JSON.stringify(line)).join('\n') + '\n';
 const reasons = result => result.held.map(item => item.reason);
 
-test('the nine kinds are kept as P\'s claims, with the file\'s digest and the line', () => {
+test('the eleven kinds are kept as P\'s claims, with the file\'s digest and the line', () => {
   assert.deepEqual(P_RECORD_KINDS, ONE_OF_EACH.map(line => line.kind));
   const result = pRecords(file(ONE_OF_EACH), RUN);
   assert.deepEqual(result.held, []);
-  assert.deepEqual(result.records.map(record => record.id), ['p-1', 'p-2', 'p-3', 'p-4', 'p-5', 'p-6', 'p-7', 'p-8', 'p-9']);
+  assert.deepEqual(result.records.map(record => record.id), ['p-1', 'p-2', 'p-3', 'p-4', 'p-5', 'p-6', 'p-7', 'p-8', 'p-9', 'p-10', 'p-11']);
   assert.ok(result.records.every((record, index) => record.authority === false && record.source.ref === 'hq:p-records.jsonl'
     && /^sha256:[0-9a-f]{64}$/u.test(record.source.sha256) && record.source.line === index + 1));
   assert.ok(Object.isFrozen(result.records[0]));
@@ -57,6 +60,21 @@ test('fields are closed: a missing or an extra field, a wrong schema or kind, a 
   assert.deepEqual(reasons(result), ['fields', 'fields', 'schema', 'kind', 'id', 'value', 'value', 'value', 'value', 'invalid-json'].map(reason => 'p-record: ' + reason));
   assert.deepEqual(result.records, []);
   assert.ok(result.held.every(item => item.kind === 'journal.held' && item.recordedAt === RUN && item.source.ref === 'hq:p-records.jsonl'));
+});
+
+test('a node needs where P read it; a capability\'s state is closed; verified without evidence is held (R c6353944717)', () => {
+  const node = ONE_OF_EACH.find(line => line.kind === 'p.node'), capability = ONE_OF_EACH.find(line => line.kind === 'p.capability');
+  const result = pRecords(file([
+    { ...node, id: 'n1', seen: 'yesterday' },
+    { ...node, id: 'n2', seen: 'round:atlas.R#7' },
+    { ...capability, id: 'c1', evidence: null },
+    { ...capability, id: 'c2', state: 'done' },
+    { ...capability, id: 'c3', state: 'untested', evidence: null },
+    { ...capability, id: 'c4', evidence: 'see the log' },
+  ]), RUN);
+  assert.deepEqual(reasons(result), ['p-record: value', 'p-record: evidence', 'p-record: value', 'p-record: value']);
+  assert.deepEqual(result.records.map(record => record.id), ['n2', 'c3']);
+  assert.ok(result.records.every(record => record.authority === false));
 });
 
 test('an id written twice holds both lines; a rewrite is a new id\'s correction', () => {
