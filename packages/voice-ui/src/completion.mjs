@@ -265,9 +265,26 @@ export function quotaGoalBundle(bundle, required) {
   return Object.freeze({ ...bundle, parts: Object.freeze(parts) });
 }
 
+// A relation label the utterance quotes next to a relation word (「…」の矢印, 『…』という関係, 「…」の線) becomes one
+// request-local flow offer, as a transcribed part name becomes a request-local part. It only offers: the Goal
+// judgment still chooses an arrow or none. The bundle catalogue stays first, and the finite OFFER_MAX bound holds.
+// Without this, an extended bundle without relations offered only the unlabelled flow (round 2, apps#94 c6368311726).
+const RELATION_WORDS = "矢印|関係|線|エッジ|接続";
+const requestedRelations = (bundle, utterance) => {
+  if (bundle?.goalSelection !== "delta" || typeof utterance !== "string") return bundle;
+  const base = bundle.relations ?? [{ kind: "flow", label: "" }], labels = [];
+  for (const match of utterance.matchAll(new RegExp(`[「『]([^「」『』\\r\\n]+)[」』]\\s*(?:の|という|と)?\\s*(?:${RELATION_WORDS})`, "gu"))) {
+    const label = match[1].trim();
+    if (label && label.length <= LABEL_MAX && !labels.includes(label) && !base.some(r => r.kind === "flow" && r.label === label)) labels.push(label);
+  }
+  if (labels.length === 0) return bundle;
+  return Object.freeze({ ...bundle, relations: Object.freeze([...base, ...labels.map(label => Object.freeze({ kind: "flow", label }))].slice(0, OFFER_MAX)) });
+};
+
 // The optional completion contributes candidates only. The existing Goal owns every legal change and its proof.
 // Baseline still executes the unaugmented Goal after a missing verdict: the comparison cannot force its failure.
-export async function runInventoryGoal({ check, complete, completion = true, now = () => performance.now(), ...options }) {
+export async function runInventoryGoal({ check, complete, completion = true, now = () => performance.now(), ...given }) {
+  const options = { ...given, bundle: requestedRelations(given.bundle, given.utterance) };
   const first = options.current(), started = now();
   const request = inventoryOf({ utterance: options.utterance, bundle: options.bundle, working: first.working });
   const inventory = { checks: 0, completions: 0, preparations: 0, coverage: null, missing: [] };
