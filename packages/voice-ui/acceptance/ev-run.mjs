@@ -115,6 +115,8 @@ const server = http.createServer(async (req, res) => {
     if (pathname.startsWith("/api/")) {
       const chunks = []; for await (const chunk of req) chunks.push(chunk);
       const bytes = Buffer.concat(chunks);
+      // The page's own request bytes are kept, so a provider question can be rebuilt from them later (R 10).
+      write(`api-request-${String(api.length).padStart(4, "0")}.json`, bytes);
       input = JSON.parse(bytes);
       try {
         const response = await worker.fetch(new Request("http://localhost" + pathname + new URL(req.url, "http://127.0.0.1").search,
@@ -210,9 +212,13 @@ try {
     // The script line is taken when the response arrives, before its body is read.
     const entry = { line, route: url.pathname + url.search, status: response.status(), file: `api-${String(api.length).padStart(4, "0")}.json` };
     api.push(entry);
-    const body = await response.body().catch(() => Buffer.alloc(0));
-    entry.body_sha256 = hash(body);
-    write(entry.file, body);
+    // The page's own request bytes are kept beside the answer, so a provider question can be rebuilt from them
+    // without touching the page's request (R 10). An unreadable answer body is said so, not saved as empty.
+    write(entry.file.replace("api-", "api-request-"), response.request().postDataBuffer() ?? Buffer.alloc(0));
+    const body = await response.body().catch(() => null);
+    entry.body_readable = body !== null;
+    entry.body_sha256 = body === null ? null : hash(body);
+    if (body !== null) write(entry.file, body);
   });
   await page.addInitScript(([storageKey, log]) => { if (!localStorage.getItem(storageKey)) localStorage.setItem(storageKey, log); }, [key, initial.log]);
   const settle = () => page.waitForFunction(() => document.body.dataset.state && document.body.dataset.state !== "pending"
