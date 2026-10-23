@@ -178,9 +178,15 @@ const started = Date.now(), lines = [];
 let stop = { reason: "script-complete" }, final = null, reloaded = null, applyState = null;
 try {
   // One canvas group under the root: the product adds parts only inside existing named groups.
-  const initial = await protocol.createDecisionLog([{ type: "meta", schema: "semantic-map-state/1", root: "root", title: `EV ${script.set} ${script.condition}` },
+  const created = await protocol.createDecisionLog([{ type: "meta", schema: "semantic-map-state/1", root: "root", title: `EV ${script.set} ${script.condition}` },
     { type: "region", id: "root", label: "World", parent: null, kind: "boundary", bounds: [0, 0, 2400, 1600], summary: "" },
     { type: "region", id: "canvas", label: script.canvas, parent: "root", kind: "group", bounds: [0, 0, 2400, 1600], summary: "" }], "voice-graph");
+  // The canvas is pinned, as the product's own candidate-browser acceptance pins its container
+  // (candidate-browser.mjs:222-225). Unpinned, an empty group has no slot and every Goal stops with
+  // no-executable-delta before its first step on both arms (turn.mjs legalAdditions, R 16 positive control).
+  const pin = await protocol.createDecision(created.head,
+    [{ type: "PinRegions", items: [{ regionId: "canvas", bounds: [0, 0, 2400, 1600] }] }], created.records);
+  const initial = (await protocol.appendDecision(created.log, pin.decision)).verified;
   const context = await browser.newContext({ viewport: { width: 1280, height: 720 }, deviceScaleFactor: 1 });
   const page = await context.newPage(), errors = [];
   page.on("pageerror", error => errors.push(String(error)));
