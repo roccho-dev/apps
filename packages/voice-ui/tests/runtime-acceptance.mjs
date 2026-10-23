@@ -63,7 +63,9 @@ export function assertCompactVerifierWire(previous, current) {
       "complete": "要求された新規部品の表示名・種類・総個数が全て一致し、余分も未確定もありません。",
       "incomplete": "表示名・種類・総個数に誤り、欠落、余分、または一意に決まらないものがあります。"
     },
-    "instructions": "state.requiredは、新規追加部品の未検証候補です。原文と部品定義から一意に決まる（表示名・種類・総個数）の集合と、過不足なく一致していますか。既存の親や接続先は新規部品ではなく、親・矢印の割当と在庫数はこの一覧の照合対象外です。"
+    // EV c1 round 4 (W14, apps#94): one sentence appended, as in src/completion.mjs requiredQuestion. The other
+    // registered scalars and every surrounding byte are unchanged.
+    "instructions": "state.requiredは、新規追加部品の未検証候補です。原文と部品定義から一意に決まる（表示名・種類・総個数）の集合と、過不足なく一致していますか。既存の親や接続先は新規部品ではなく、親・矢印の割当と在庫数はこの一覧の照合対象外です。要求どおりの表示名が部品定義に無い新しい名前であることは、それだけでは不一致の理由になりません。"
   };
   assert.equal(previous.body_utf8, JSON.stringify(previous.wire));
   assert.equal(current.body_utf8, JSON.stringify(current.wire));
