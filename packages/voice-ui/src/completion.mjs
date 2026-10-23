@@ -522,12 +522,21 @@ export const acceptedRequirements = factors => factors.intent.choice === "change
 export const requiresInterpretation = factors => factors.intent.choice === "change" && factors.intent.confidence >= MIN_CONFIDENCE
   && factors.completeness.choice === "incomplete" && factors.completeness.confidence >= MIN_CONFIDENCE;
 
-export function requirementProposalPolicy(factors) {
+// v1 asks for a typed proposal only when Jev calls the literal transcription incomplete. v2 also asks when a
+// confident change has no literal transcription at all and is not a connection between two named existing parts:
+// an empty multiset cannot cover a requested addition, yet Jev called it complete on most such lines in the EV1
+// c1 live runs (apps#94, W round 2), which left the Goal unknown with nothing proposed. Evidence keeps its id.
+export const PROPOSAL_POLICY_V1 = "uncertainty-frontier-v1", PROPOSAL_POLICY_V2 = "uncertainty-frontier-v2";
+export function requirementProposalPolicy(factors, { id = PROPOSAL_POLICY_V1, literalRequired = null, references = 0 } = {}) {
+  if (![PROPOSAL_POLICY_V1, PROPOSAL_POLICY_V2].includes(id)) throw new TypeError("unknown proposal policy");
   const confident = requiresInterpretation(factors);
   const uncertain = ["change", "ambiguous"].includes(factors.intent.choice) && factors.intent.confidence < MIN_CONFIDENCE
     && factors.completeness.choice === "incomplete" && factors.completeness.confidence >= MIN_CONFIDENCE;
-  return { id: "uncertainty-frontier-v1", eligible: confident || uncertain,
-    reason: confident ? "confident-change-incomplete" : uncertain ? "uncertain-intent-incomplete" : null };
+  const unread = id === PROPOSAL_POLICY_V2 && !confident && !uncertain
+    && factors.intent.choice === "change" && factors.intent.confidence >= MIN_CONFIDENCE
+    && Array.isArray(literalRequired) && literalRequired.length === 0 && references < 2;
+  return { id, eligible: confident || uncertain || unread,
+    reason: confident ? "confident-change-incomplete" : uncertain ? "uncertain-intent-incomplete" : unread ? "confident-change-unread" : null };
 }
 
 export function requirementDecision(factors, ready, missing) {
@@ -566,7 +575,9 @@ export function readRequirementInspection(value, state, literalReader) {
     && state.utterance.includes(r.label)).map(r => r.label));
   const ready = initial.observation.valid && (initial.observation.status === "transcribed" || literal.required.length === 0 && references.size >= 2);
   if (!same(initial.decision, requirementDecision(initial.factors, ready, literalMissing))) return null;
-  const policy = requirementProposalPolicy(initial.factors);
+  // The receipt names its policy; each id is re-derived by its own rule, so v1 evidence keeps verifying.
+  const policyId = frontier && value.proposal_policy?.id === PROPOSAL_POLICY_V2 ? PROPOSAL_POLICY_V2 : PROPOSAL_POLICY_V1;
+  const policy = requirementProposalPolicy(initial.factors, { id: policyId, literalRequired: literal.required, references: references.size });
   if (frontier && !same(value.proposal_policy, policy)) return null;
   const adaptive = frontier || value.mode === "adaptive-v2", eligible = frontier ? policy.eligible : requiresInterpretation(initial.factors);
   let decision = initial.decision;

@@ -1,7 +1,7 @@
 import { COVERAGE, inventoryLimit, inventoryQuestion, isInventory, readLiteralInspection, readTypedMissing, typedMissingRequest,
   acceptedRequirements, readRequired, readRequiredSlots, readRequirementFactors, readRequirementInspection,
   displaySourceRequest, readDisplaySourceSlots, flatRequiredRequest, readFlatRequiredSlots,
-  requirementDecision, requirementProposalPolicy, requiredDifference, requiredLabelsGrounded, requiredQuestion, requiredRequest, requiresInterpretation } from "../../src/completion.mjs";
+  requirementDecision, requirementProposalPolicy, PROPOSAL_POLICY_V2, requiredDifference, requiredLabelsGrounded, requiredQuestion, requiredRequest, requiresInterpretation } from "../../src/completion.mjs";
 import { LABEL_MAX, PART_KINDS } from "../../src/contract.mjs";
 import { literalInventory, literalQuestion } from "../../src/literal-inventory.mjs";
 const json = (body, status = 200) => Response.json(body, { status, headers: { "cache-control": "no-store" } });
@@ -137,7 +137,10 @@ export async function onRequirements({ request, mode, method, available, generat
   };
   const full = async () => {
     const context = inventoryQuestion(inventory.state).state,
-      profile = mode === "check" && method === "adaptive-v3" ? "thinking-labels" : generation,
+      // The frontier proposal uses the flat profile without label thinking: 16 slots with a 512-token thinking
+      // label each made TypeLLM answer HTTP 504 (apps#94 c6358191815); the same question without thinking
+      // returned in about 14 s with the same required parts (W round 2 direct calls).
+      profile = mode === "check" && method === "adaptive-v3" ? "flat-scalars" : generation,
       sourced = profile === "display-source", flat = profile === "flat-scalars" || profile === "thinking-labels";
     const question = sourced ? displaySourceRequest(context, { max }) : flat
       ? flatRequiredRequest(context, { labelThinking: profile === "thinking-labels", max }) : requiredRequest(context, { generation: profile, max });
@@ -180,7 +183,8 @@ export async function onRequirements({ request, mode, method, available, generat
     const initial = { decision: requirementDecision(factors, ready, literal.missing), factors,
       literal: { recognized: literal.recognized, required: literal.required, spans: literal.spans },
       observation: { valid: observed.valid, status: observed.status } };
-    const proposal_policy = frontier ? requirementProposalPolicy(factors) : null;
+    const proposal_policy = frontier ? requirementProposalPolicy(factors,
+      { id: PROPOSAL_POLICY_V2, literalRequired: literal.required, references: references.size }) : null;
     stage("G0", { valid: true, initial, ...(frontier ? { proposal_policy } : {}) });
     const eligible = frontier ? proposal_policy.eligible : method === "adaptive-v2" && requiresInterpretation(factors);
     const proposal = eligible ? await full() : null;
