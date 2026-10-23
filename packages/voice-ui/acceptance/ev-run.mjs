@@ -81,7 +81,7 @@ const { chromium } = createRequire(import.meta.url)("playwright-core");
 // Offline answers: every delta question answers "none" and every other choice
 // takes "unknown" when offered, else its first option. This exercises the
 // mechanics (lines, stops, saving, budget) and nothing about model quality.
-const upstream = [], api = [], bodies = new Map();
+const upstream = [], api = [];
 let line = null, input = null;
 const syntheticChoice = (name, criteria) => {
   const options = Object.keys(criteria);
@@ -115,6 +115,8 @@ const server = http.createServer(async (req, res) => {
     if (pathname.startsWith("/api/")) {
       const chunks = []; for await (const chunk of req) chunks.push(chunk);
       const bytes = Buffer.concat(chunks);
+      // The page's own request bytes are kept, so a provider question can be rebuilt from them later (R 10).
+      write(`api-request-${String(api.length).padStart(4, "0")}.json`, bytes);
       input = JSON.parse(bytes);
       try {
         const response = await worker.fetch(new Request("http://localhost" + pathname + new URL(req.url, "http://127.0.0.1").search,
@@ -188,13 +190,6 @@ try {
     // B in live mode: the same fixed stock is served at the ordinary bundle URL.
     if (live && url.pathname === "/data/bundle.v1.json" && stock)
       return route.fulfill({ status: 200, headers: { "content-type": "application/json", "cache-control": "no-store" }, body: servedBundle });
-    // Live product API calls are fetched here and handed to the page unchanged, so their exact bytes are kept
-    // even when the page's own response body cannot be read afterwards (an error body came back empty, R 8).
-    if (live && url.pathname.startsWith("/api/")) return route.fetch({ timeout: 0 }).then(async response => {
-      const body = await response.body();
-      bodies.set(route.request(), body);
-      return route.fulfill({ response, body });
-    });
     return route.continue();
   });
   // Every site file the page loads is checked against the dist; in live mode every product API call
@@ -217,9 +212,13 @@ try {
     // The script line is taken when the response arrives, before its body is read.
     const entry = { line, route: url.pathname + url.search, status: response.status(), file: `api-${String(api.length).padStart(4, "0")}.json` };
     api.push(entry);
-    const body = bodies.get(response.request()) ?? await response.body().catch(() => Buffer.alloc(0));
-    entry.body_sha256 = hash(body);
-    write(entry.file, body);
+    // The page's own request bytes are kept beside the answer, so a provider question can be rebuilt from them
+    // without touching the page's request (R 10). An unreadable answer body is said so, not saved as empty.
+    write(entry.file.replace("api-", "api-request-"), response.request().postDataBuffer() ?? Buffer.alloc(0));
+    const body = await response.body().catch(() => null);
+    entry.body_readable = body !== null;
+    entry.body_sha256 = body === null ? null : hash(body);
+    if (body !== null) write(entry.file, body);
   });
   await page.addInitScript(([storageKey, log]) => { if (!localStorage.getItem(storageKey)) localStorage.setItem(storageKey, log); }, [key, initial.log]);
   const settle = () => page.waitForFunction(() => document.body.dataset.state && document.body.dataset.state !== "pending"
