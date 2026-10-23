@@ -716,3 +716,29 @@ node packages/atlas/collect/collect.mjs <snapshots> --out /tmp/g-events.jsonl
 node packages/atlas/live.mjs --out-dir=/tmp/atlas-k --purpose=<purpose.set.jsonl> \
   [--control=<control.jsonl>] /tmp/g-events.jsonl   # → events.jsonl, world.json, plan-projection.json, g-plans.jsonl
 ~~~
+
+<!-- apps-89-contract-current-sse-expectation-v1 -->
+## Contract and Current → Atlas World (integration expectation)
+
+The [apps #89 accepted expectation diagram](https://github.com/roccho-dev/apps/issues/89#issuecomment-6261159292)
+is the single diagram source. This section fixes the **application boundary**, not a new
+schema, implementation admission, or evidence of production SSE.
+
+- **Meaning**: GitHub Hot proposals are captured to versioned ADRS Git Cold; only
+  *independently accepted* meaning supplies Purpose and applicable Contract / Required.
+  Cold capture by itself does not admit a decision.
+- **Reality**: owned Source / Build / Work supplies Provided / Observation / Receipt
+  and Current; existing Ops comparator and Governance final supply a bound Finding.
+- **Projection**: Atlas joins only source-bound Purpose + Current + Finding and derives
+  the existing reduced World. The Host delivers that already-reduced World as
+  Full Snapshot SSE to the UI; neither UI nor Host determines contract conformance.
+- **Overlay**: pending Hot and ongoing Current may be shown with provenance and
+  freshness but do not overwrite confirmed Cold or turn a Work receipt, contract
+  CLOSED, or UI match into Purpose achievement or operational adoption.
+
+This must reuse the existing reducer and source adapters. Add projection fields
+only upon an observed consumer schema gap; no second authority, comparator,
+ledger, HTTP server, SSE broker or renderer. [Apps PR #115](https://github.com/roccho-dev/apps/pull/115)
+is a **Draft** finite Finding-to-observation edge, not proof of this full route.
+Completion still requires exact Cold/source/readback, missing/stale/conflict
+counterexamples, and the actual Snapshot SSE → UI consumer readback.
