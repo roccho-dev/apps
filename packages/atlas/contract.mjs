@@ -192,7 +192,7 @@ export const HELD_REASONS = Object.freeze([
   'owner-credentials-changed', 'owner-before-readback', 'owner-other-author', 'owner-via-app',
   // P's records (collect/precord.mjs, apps#158; the ledger's p-record-rewritten): adrs#647 c6346827237.
   'p-record: invalid-json', 'p-record: schema', 'p-record: kind', 'p-record: fields', 'p-record: id', 'p-record: at', 'p-record: value',
-  'p-record: duplicate-id', 'p-record: p-record-in-comment', 'p-record-rewritten',
+  'p-record: duplicate-id', 'p-record: p-record-in-comment', 'p-record-rewritten', 'p-record: evidence',
   // P's series list (collect/precord.mjs pSeries; adrs#647 W c6349826755).
   'p-series: invalid-json', 'p-series: schema', 'p-series: fields', 'p-series: at', 'p-series: value']);
 // A work claim the collector held (current: / worklog:, e.g. overwritten) is an L2 observation, not a declaration.
