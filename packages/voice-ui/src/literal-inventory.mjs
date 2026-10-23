@@ -23,10 +23,11 @@ const placement = `(?:${PLACEMENT_VERB})(?!${NOT_REQUESTED})`;
 // Round 3 (R 13/200): a sentence may go on after the verb in its continuative form (「…を作り、その中に…」). Only
 // before a comma, so 作りません or 置きっぱなし never match.
 const placementOrContinued = `(?:${placement}|(?:作り|置き|入れ|加え)(?=\\s*[、,，]))`;
-// A catalogue name may name its kind with という/の and a finite Japanese kind word (「Xというグループ」「XとYのグループ」).
-// The word must agree with the catalogue kind; it never re-types a name.
-const KIND_WORDS = Object.freeze({ グループ: "group", 工程: "step", データ: "data", 判断: "decision", 開始: "start", 終了: "end" });
-const kindPhrase = `(?:\\s*(?:という|の)\\s*(${Object.keys(KIND_WORDS).join("|")}))?`;
+// A catalogue name may be followed by という and one short word saying what it is (「Xという…を作る」). The catalogue
+// decides the kind; the word is not a vocabulary in code. When the word is itself a catalogue alias (the default
+// bundle names a part for each kind), the two kinds must agree. The の form is not read: without a vocabulary it
+// cannot tell 「XとYの…を置く」 from 「Xの説明を追加」.
+const kindPhrase = "(?:\\s*という\\s*(?:名前の\\s*)?([^\\s、。,，をのにはがと「」『』]{1,12}))?";
 // The original short verb stems (追加・作・置) used by the counted and quoted forms take the same guard.
 // The guard also looks past the affirmative ending a stem takes (置いて, 作る, 追加して), so 置いてはいけない is refused.
 const counted = `(?:追加|作|置)(?!(?:して|する|いて|く|って|る)?${NOT_REQUESTED})`;
@@ -142,7 +143,7 @@ export function literalInventory(state) {
       const ambiguous = names.some(name => stockKinds.get(name[0]).size !== 1)
         || names.some((name, i) => names.slice(i + 1).some(last =>
           stockKinds.has(match[1].slice(name.index, last.index + last[0].length))))
-        || match[2] !== undefined && names.some(name => stockKind(name[0]) !== KIND_WORDS[match[2]]);
+        || match[2] !== undefined && kinds.has(match[2]) && names.some(name => stockKind(name[0]) !== kinds.get(match[2]));
       if (ambiguous) { invalid = true; continue; }
       for (const name of names) {
         const start = match.indices[1][0] + name.index;
@@ -156,10 +157,10 @@ export function literalInventory(state) {
       add(match[1], stockKind(match[1]), countOf(match[2]), match.index, match.index + match[1].length, true);
   if (stock) for (const match of state.utterance.matchAll(new RegExp(`(?<![A-Za-z0-9_])(${stock})${kindPhrase}\\s*(?:[をも]\\s*)?${placementOrContinued}`, "gu"))) {
     if (claimed.some(([start, end]) => start <= match.index && match.index < end)) continue;
-    // A kind word right after という/の names the kind of the name before it, even when the same word is a catalogue
-    // label (the default bundle has a part named グループ); it is never a second part.
-    if (Object.hasOwn(KIND_WORDS, match[1]) && /(?:という|の)\s*$/u.test(state.utterance.slice(0, match.index))) continue;
-    if (match[2] !== undefined && stockKind(match[1]) !== KIND_WORDS[match[2]]) { invalid = true; continue; }
+    // The word right after という says what the name before it is, even when the same word is a catalogue label
+    // (the default bundle has a part named for each kind); it is never a second part.
+    if (/という\s*(?:名前の\s*)?$/u.test(state.utterance.slice(0, match.index))) continue;
+    if (match[2] !== undefined && kinds.has(match[2]) && stockKind(match[1]) !== kinds.get(match[2])) { invalid = true; continue; }
     add(match[1], stockKind(match[1]), 1, match.index, match.index + match[1].length, true);
   }
   if (invalid) return { valid: false, recognized: spans.length > 0, required: [], missing: [], spans, status: "unsupported-syntax" };

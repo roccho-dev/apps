@@ -3,8 +3,10 @@ import test from 'node:test';
 import { literalInventory } from '../src/literal-inventory.mjs';
 import { readLiteralInspection } from '../src/completion.mjs';
 
-// Round 3 (R 13/200 (2)): a catalogue name may name its kind with という/の + a finite kind word, and a sentence may go
-// on after a continuative verb before a comma. Phrasings are written for this test; none is an EV script line.
+// Round 3 (R 13/200 (2)): a catalogue name may be followed by という and a short word saying what it is, and a sentence
+// may go on after a continuative verb before a comma. The catalogue decides the kind; a word that is itself a
+// catalogue alias (here グループ, as in the default bundle) must agree. Phrasings are written for this test; none
+// is an EV script line.
 const parts = [
   { key: 'frontend', label: 'Frontend', kind: 'group', purpose: 'a grouping of user-facing services' },
   { key: 'backend', label: 'Backend', kind: 'group', purpose: 'a grouping of server-side services' },
@@ -25,9 +27,9 @@ const read = utterance => {
 
 for (const [utterance, labels] of [
   ['OCIの中にFrontendというグループを作って', ['Frontend']],
-  ['FrontendとBackendのグループを置く', ['Frontend', 'Backend']],
+  ['FrontendとBackendというグループを置く', ['Frontend', 'Backend']],
   ['Backendというグループを作り、その中にCacheを入れて', ['Backend', 'Cache']],
-  ['Frontendのグループを置き、APIも加えてください', ['Frontend', 'API']],
+  ['Frontendという名前のグループを置き、APIも加えてください', ['Frontend', 'API']],
   ['Cacheというデータを追加して', ['Cache']],
   ['APIという工程を入れる', ['API']],
 ]) test(`kind phrase / continued sentence: ${utterance}`, () => {
@@ -45,12 +47,17 @@ test('a kind word after という/の is never read as a second part, even when 
   assert.deepEqual(read('Frontendというグループを作って').result.required, [row('Frontend')]);
 });
 
-test('a kind word that disagrees with the catalogue kind refuses the mention', () => {
-  for (const utterance of ['Cacheというグループを作って', 'FrontendとCacheのグループを置く', 'APIというデータを追加して']) {
+test('a word that is a catalogue alias of another kind refuses the mention', () => {
+  for (const utterance of ['Cacheというグループを作って', 'FrontendとCacheというグループを置く', 'APIというグループを入れる']) {
     const result = read(utterance).result;
     assert.equal(result.valid, false, utterance);
     assert.deepEqual(result.required, [], utterance);
   }
+});
+
+test('the の form is not read as naming a kind, so a possessive never adds the name before it', () => {
+  assert.deepEqual(read('Cacheの説明を追加して').result.required, []);
+  assert.deepEqual(read('FrontendとBackendの説明を置いて').result.required, []);
 });
 
 test('prohibitions and other continuations still transcribe nothing', () => {
