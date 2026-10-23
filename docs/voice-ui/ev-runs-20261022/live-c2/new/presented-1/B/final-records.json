@@ -1,0 +1,512 @@
+{
+  "final": [
+    {
+      "type": "meta",
+      "schema": "semantic-map-state/1",
+      "root": "root",
+      "title": "EV presented-1 B"
+    },
+    {
+      "type": "region",
+      "id": "root",
+      "parent": null,
+      "label": "World",
+      "kind": "boundary",
+      "bounds": [
+        0,
+        0,
+        2400,
+        1600
+      ],
+      "summary": ""
+    },
+    {
+      "type": "region",
+      "id": "canvas",
+      "parent": "root",
+      "label": "図",
+      "kind": "group",
+      "bounds": [
+        0,
+        0,
+        2400,
+        1600
+      ],
+      "summary": ""
+    },
+    {
+      "type": "region",
+      "id": "part-1",
+      "parent": "canvas",
+      "label": "Application Gateway with Azure Web Application Firewall",
+      "kind": "step",
+      "bounds": [
+        20,
+        20,
+        140,
+        64
+      ],
+      "summary": "{\"schema\":\"voice-ui.part-description/2\",\"key\":\"ev-8\",\"purpose\":\"a layer-7 load balancer that filters malicious web requests\"}"
+    },
+    {
+      "type": "region",
+      "id": "part-2",
+      "parent": "canvas",
+      "label": "Virtual interface",
+      "kind": "step",
+      "bounds": [
+        180,
+        20,
+        140,
+        64
+      ],
+      "summary": "{\"schema\":\"voice-ui.part-description/2\",\"key\":\"ev-9\",\"purpose\":\"the network interface the web app uses for outbound private traffic\"}"
+    },
+    {
+      "type": "region",
+      "id": "part-3",
+      "parent": "canvas",
+      "label": "App Service private endpoint",
+      "kind": "step",
+      "bounds": [
+        340,
+        20,
+        140,
+        64
+      ],
+      "summary": "{\"schema\":\"voice-ui.part-description/2\",\"key\":\"ev-10\",\"purpose\":\"a private address for reaching the web app\"}"
+    },
+    {
+      "type": "region",
+      "id": "part-4",
+      "parent": "canvas",
+      "label": "Database private endpoint",
+      "kind": "step",
+      "bounds": [
+        500,
+        20,
+        140,
+        64
+      ],
+      "summary": "{\"schema\":\"voice-ui.part-description/2\",\"key\":\"ev-11\",\"purpose\":\"a private address for reaching the database\"}"
+    },
+    {
+      "type": "region",
+      "id": "part-5",
+      "parent": "canvas",
+      "label": "Configuration private endpoint",
+      "kind": "step",
+      "bounds": [
+        660,
+        20,
+        140,
+        64
+      ],
+      "summary": "{\"schema\":\"voice-ui.part-description/2\",\"key\":\"ev-12\",\"purpose\":\"a private address for reaching the secrets and certificates store\"}"
+    },
+    {
+      "type": "region",
+      "id": "part-6",
+      "parent": "canvas",
+      "label": "Storage private endpoint",
+      "kind": "step",
+      "bounds": [
+        820,
+        20,
+        140,
+        64
+      ],
+      "summary": "{\"schema\":\"voice-ui.part-description/2\",\"key\":\"ev-13\",\"purpose\":\"a private address for reaching the deployment storage\"}"
+    },
+    {
+      "type": "region",
+      "id": "part-7",
+      "parent": "canvas",
+      "label": "Health Model",
+      "kind": "step",
+      "bounds": [
+        980,
+        20,
+        140,
+        64
+      ],
+      "summary": "{\"schema\":\"voice-ui.part-description/2\",\"key\":\"ev-25\",\"purpose\":\"a model that summarizes the workload's health\"}"
+    },
+    {
+      "type": "relation",
+      "id": "voice-part-1-to-part-3",
+      "from": "part-1",
+      "to": "part-3",
+      "kind": "flow",
+      "label": ""
+    },
+    {
+      "type": "relation",
+      "id": "voice-part-2-to-part-4",
+      "from": "part-2",
+      "to": "part-4",
+      "kind": "flow",
+      "label": ""
+    },
+    {
+      "type": "relation",
+      "id": "voice-part-2-to-part-5",
+      "from": "part-2",
+      "to": "part-5",
+      "kind": "flow",
+      "label": ""
+    },
+    {
+      "type": "relation",
+      "id": "voice-part-2-to-part-6",
+      "from": "part-2",
+      "to": "part-6",
+      "kind": "flow",
+      "label": ""
+    },
+    {
+      "type": "layout",
+      "regionId": "canvas",
+      "pin": "hard",
+      "bounds": [
+        0,
+        0,
+        2400,
+        1600
+      ]
+    },
+    {
+      "type": "layout",
+      "regionId": "part-1",
+      "pin": "hard",
+      "bounds": [
+        12,
+        72,
+        320,
+        110
+      ]
+    },
+    {
+      "type": "layout",
+      "regionId": "part-2",
+      "pin": "hard",
+      "bounds": [
+        420,
+        72,
+        180,
+        92
+      ]
+    },
+    {
+      "type": "layout",
+      "regionId": "part-3",
+      "pin": "hard",
+      "bounds": [
+        700,
+        72,
+        320,
+        110
+      ]
+    },
+    {
+      "type": "layout",
+      "regionId": "part-4",
+      "pin": "hard",
+      "bounds": [
+        1044,
+        72,
+        320,
+        110
+      ]
+    },
+    {
+      "type": "layout",
+      "regionId": "part-5",
+      "pin": "hard",
+      "bounds": [
+        1388,
+        72,
+        320,
+        110
+      ]
+    },
+    {
+      "type": "layout",
+      "regionId": "part-6",
+      "pin": "hard",
+      "bounds": [
+        1732,
+        72,
+        320,
+        110
+      ]
+    },
+    {
+      "type": "layout",
+      "regionId": "part-7",
+      "pin": "hard",
+      "bounds": [
+        2064,
+        72,
+        180,
+        92
+      ]
+    }
+  ],
+  "applied_stored_equals_final_log": true,
+  "reload_log_equals_applied": true,
+  "reload_records": [
+    {
+      "type": "meta",
+      "schema": "semantic-map-state/1",
+      "root": "root",
+      "title": "EV presented-1 B"
+    },
+    {
+      "type": "region",
+      "id": "root",
+      "parent": null,
+      "label": "World",
+      "kind": "boundary",
+      "bounds": [
+        0,
+        0,
+        2400,
+        1600
+      ],
+      "summary": ""
+    },
+    {
+      "type": "region",
+      "id": "canvas",
+      "parent": "root",
+      "label": "図",
+      "kind": "group",
+      "bounds": [
+        0,
+        0,
+        2400,
+        1600
+      ],
+      "summary": ""
+    },
+    {
+      "type": "region",
+      "id": "part-1",
+      "parent": "canvas",
+      "label": "Application Gateway with Azure Web Application Firewall",
+      "kind": "step",
+      "bounds": [
+        20,
+        20,
+        140,
+        64
+      ],
+      "summary": "{\"schema\":\"voice-ui.part-description/2\",\"key\":\"ev-8\",\"purpose\":\"a layer-7 load balancer that filters malicious web requests\"}"
+    },
+    {
+      "type": "region",
+      "id": "part-2",
+      "parent": "canvas",
+      "label": "Virtual interface",
+      "kind": "step",
+      "bounds": [
+        180,
+        20,
+        140,
+        64
+      ],
+      "summary": "{\"schema\":\"voice-ui.part-description/2\",\"key\":\"ev-9\",\"purpose\":\"the network interface the web app uses for outbound private traffic\"}"
+    },
+    {
+      "type": "region",
+      "id": "part-3",
+      "parent": "canvas",
+      "label": "App Service private endpoint",
+      "kind": "step",
+      "bounds": [
+        340,
+        20,
+        140,
+        64
+      ],
+      "summary": "{\"schema\":\"voice-ui.part-description/2\",\"key\":\"ev-10\",\"purpose\":\"a private address for reaching the web app\"}"
+    },
+    {
+      "type": "region",
+      "id": "part-4",
+      "parent": "canvas",
+      "label": "Database private endpoint",
+      "kind": "step",
+      "bounds": [
+        500,
+        20,
+        140,
+        64
+      ],
+      "summary": "{\"schema\":\"voice-ui.part-description/2\",\"key\":\"ev-11\",\"purpose\":\"a private address for reaching the database\"}"
+    },
+    {
+      "type": "region",
+      "id": "part-5",
+      "parent": "canvas",
+      "label": "Configuration private endpoint",
+      "kind": "step",
+      "bounds": [
+        660,
+        20,
+        140,
+        64
+      ],
+      "summary": "{\"schema\":\"voice-ui.part-description/2\",\"key\":\"ev-12\",\"purpose\":\"a private address for reaching the secrets and certificates store\"}"
+    },
+    {
+      "type": "region",
+      "id": "part-6",
+      "parent": "canvas",
+      "label": "Storage private endpoint",
+      "kind": "step",
+      "bounds": [
+        820,
+        20,
+        140,
+        64
+      ],
+      "summary": "{\"schema\":\"voice-ui.part-description/2\",\"key\":\"ev-13\",\"purpose\":\"a private address for reaching the deployment storage\"}"
+    },
+    {
+      "type": "region",
+      "id": "part-7",
+      "parent": "canvas",
+      "label": "Health Model",
+      "kind": "step",
+      "bounds": [
+        980,
+        20,
+        140,
+        64
+      ],
+      "summary": "{\"schema\":\"voice-ui.part-description/2\",\"key\":\"ev-25\",\"purpose\":\"a model that summarizes the workload's health\"}"
+    },
+    {
+      "type": "relation",
+      "id": "voice-part-1-to-part-3",
+      "from": "part-1",
+      "to": "part-3",
+      "kind": "flow",
+      "label": ""
+    },
+    {
+      "type": "relation",
+      "id": "voice-part-2-to-part-4",
+      "from": "part-2",
+      "to": "part-4",
+      "kind": "flow",
+      "label": ""
+    },
+    {
+      "type": "relation",
+      "id": "voice-part-2-to-part-5",
+      "from": "part-2",
+      "to": "part-5",
+      "kind": "flow",
+      "label": ""
+    },
+    {
+      "type": "relation",
+      "id": "voice-part-2-to-part-6",
+      "from": "part-2",
+      "to": "part-6",
+      "kind": "flow",
+      "label": ""
+    },
+    {
+      "type": "layout",
+      "regionId": "canvas",
+      "pin": "hard",
+      "bounds": [
+        0,
+        0,
+        2400,
+        1600
+      ]
+    },
+    {
+      "type": "layout",
+      "regionId": "part-1",
+      "pin": "hard",
+      "bounds": [
+        12,
+        72,
+        320,
+        110
+      ]
+    },
+    {
+      "type": "layout",
+      "regionId": "part-2",
+      "pin": "hard",
+      "bounds": [
+        420,
+        72,
+        180,
+        92
+      ]
+    },
+    {
+      "type": "layout",
+      "regionId": "part-3",
+      "pin": "hard",
+      "bounds": [
+        700,
+        72,
+        320,
+        110
+      ]
+    },
+    {
+      "type": "layout",
+      "regionId": "part-4",
+      "pin": "hard",
+      "bounds": [
+        1044,
+        72,
+        320,
+        110
+      ]
+    },
+    {
+      "type": "layout",
+      "regionId": "part-5",
+      "pin": "hard",
+      "bounds": [
+        1388,
+        72,
+        320,
+        110
+      ]
+    },
+    {
+      "type": "layout",
+      "regionId": "part-6",
+      "pin": "hard",
+      "bounds": [
+        1732,
+        72,
+        320,
+        110
+      ]
+    },
+    {
+      "type": "layout",
+      "regionId": "part-7",
+      "pin": "hard",
+      "bounds": [
+        2064,
+        72,
+        180,
+        92
+      ]
+    }
+  ]
+}
