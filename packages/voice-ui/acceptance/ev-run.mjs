@@ -64,15 +64,23 @@ for (const row of manifest.files) {
 }
 const site = path.join(root, "site"), key = "voice-ui.decision-log.v1";
 const bundleBytes = fs.readFileSync(path.join(site, "data/bundle.v1.json")), bundle = JSON.parse(bundleBytes);
-// B: the same names and kinds for both arms, nothing about parents or relations.
+// B: the same stock for both arms, nothing about parents or relations. stock/1 rows are {label, kind}; the runner
+// then supplies a placeholder purpose. stock/2 rows are {label, kind, purpose}, and that sealed purpose reaches the
+// product unchanged: the product's own G0 question carries each part's purpose, and the placeholder measurably
+// lowered its judgment (R 4/200, apps#94 c6361400842). 300 is the product's PURPOSE_MAX (src/contract.mjs:80).
 const stockBytes = args.stock ? fs.readFileSync(args.stock) : null;
 const stock = stockBytes ? JSON.parse(stockBytes) : null;
+const stockV2 = stock?.schema === "voice-ui.ev-run.stock/2";
 if (stock) {
-  assert.equal(stock.schema, "voice-ui.ev-run.stock/1");
-  assert.ok(Array.isArray(stock.parts) && stock.parts.every(part => Object.keys(part).sort().join() === "kind,label"), "stock rows are {label, kind} only");
+  assert.ok(["voice-ui.ev-run.stock/1", "voice-ui.ev-run.stock/2"].includes(stock.schema), "stock schema is stock/1 or stock/2");
+  assert.ok(Array.isArray(stock.parts) && stock.parts.length > 0 && stock.parts.every(part =>
+    Object.keys(part).sort().join() === (stockV2 ? "kind,label,purpose" : "kind,label")
+    && typeof part.label === "string" && part.label.length > 0 && typeof part.kind === "string"
+    && (!stockV2 || typeof part.purpose === "string" && part.purpose.trim().length > 0 && part.purpose.length <= 300)),
+  stockV2 ? "stock/2 rows are {label, kind, purpose} only, purpose 1-300 characters" : "stock rows are {label, kind} only");
 }
 const servedBundle = stock ? Buffer.from(JSON.stringify({ ...bundle, parts: stock.parts.map((part, index) =>
-  ({ key: `ev-${index + 1}`, purpose: `a part named ${part.label}`, label: part.label, kind: part.kind })) })) : bundleBytes;
+  ({ key: `ev-${index + 1}`, purpose: stockV2 ? part.purpose : `a part named ${part.label}`, label: part.label, kind: part.kind })) })) : bundleBytes;
 
 const { default: worker } = await import(pathToFileURL(path.join(root, "worker/worker.mjs")));
 const protocol = await import(pathToFileURL(path.join(site, "ui/semantic-map/protocol/index.js")));
@@ -292,7 +300,7 @@ const receipt = { schema: "voice-ui.ev-run/1", mode: args.mode, target: live ? o
   scope: live ? "LIVE_PRODUCT_RUN_UNGRADED" : "SYNTHETIC_MECHANICS_ONLY",
   sources: manifest.sources, manifest_sha256: hash(manifestBytes), apply: applyState,
   script: { set: script.set, condition: script.condition, lines: script.utterances.length, sha256: hash(scriptBytes) },
-  stock_sha256: stockBytes ? hash(stockBytes) : null, served_bundle_sha256: hash(servedBundle), caps, stop,
+  stock_sha256: stockBytes ? hash(stockBytes) : null, stock_schema: stock?.schema ?? null, served_bundle_sha256: hash(servedBundle), caps, stop,
   // Caps are checked between script lines only; one line's Goal may run up to its own request limit past a cap (R 2/12).
   cap_check: "between-lines; a single Goal may overshoot a cap by up to its own per-Goal request limit",
   elapsed_ms: Date.now() - started, lines, calls: { jev: upstream.filter(c => c.provider === "jev").length,
