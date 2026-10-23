@@ -182,7 +182,7 @@ if (live) {
   }
 }
 const browser = await chromium.launch({ headless: true, channel: "chromium" });
-const started = Date.now(), lines = [];
+const started = Date.now(), lines = [], draftApplies = [];
 let stop = { reason: "script-complete" }, final = null, reloaded = null, applyState = null;
 try {
   // One canvas group under the root: the product adds parts only inside existing named groups.
@@ -261,6 +261,21 @@ try {
     if (counts("typellm") >= caps.typellm) { stop = { reason: "limit-typellm", line: index }; break; }
     if (Date.now() - started > caps.minutes * 60000) { stop = { reason: "limit-time", line: index }; break; }
     line = index;
+    // The product holds at most DRAFT_MAX unapplied decisions and then disables Goal until the user chooses
+    // 確定図に反映 (src/session.mjs draftFull, src/render.mjs #draft-count "未反映: N / N"). A user would apply and
+    // go on, so the runner applies a full draft before the next line, the same for both arms, and records it.
+    const draft = await page.evaluate(() => /未反映: (\d+) \/ (\d+)/u.exec(document.querySelector("#draft-count")?.textContent ?? "")
+      ?.slice(1).map(Number) ?? null);
+    if (draft !== null && draft[0] >= draft[1]) {
+      try {
+        await page.waitForFunction(() => !document.querySelector("#apply").disabled, null, { timeout: 60000 });
+        await page.locator("#apply").click(); await settle();
+        draftApplies.push({ before_line: index, drafted: draft[0], stored_equals_working: await page.evaluate(storageKey => {
+          const view = document.querySelector("#working-surface iframe[data-package=semantic-map]")?.contentWindow?.semanticMapRuntime;
+          return localStorage.getItem(storageKey) === (view?.log ?? null);
+        }, key) });
+      } catch (error) { stop = { reason: "UNKNOWN", line: index, error: "draft-full apply: " + String(error) }; break; }
+    }
     const before = await snapshot();
     await page.locator("#text").fill(utterance);
     try { await page.locator("#goal").click(); await settle(); }
@@ -303,7 +318,7 @@ const receipt = { schema: "voice-ui.ev-run/1", mode: args.mode, target: live ? o
   stock_sha256: stockBytes ? hash(stockBytes) : null, stock_schema: stock?.schema ?? null, served_bundle_sha256: hash(servedBundle), caps, stop,
   // Caps are checked between script lines only; one line's Goal may run up to its own request limit past a cap (R 2/12).
   cap_check: "between-lines; a single Goal may overshoot a cap by up to its own per-Goal request limit",
-  elapsed_ms: Date.now() - started, lines, calls: { jev: upstream.filter(c => c.provider === "jev").length,
+  elapsed_ms: Date.now() - started, lines, draft_applies: draftApplies, calls: { jev: upstream.filter(c => c.provider === "jev").length,
     typellm: upstream.filter(c => c.provider === "typellm").length }, api, upstream, files,
   served_identity: { apps: manifest.sources.apps, checked: served.length, mismatches: servedMismatch, served } };
 fs.writeFileSync(path.join(out, "receipt.json"), JSON.stringify(receipt, null, 2) + "\n");
