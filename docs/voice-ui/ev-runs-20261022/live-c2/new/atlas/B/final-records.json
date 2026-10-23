@@ -1,0 +1,594 @@
+{
+  "final": [
+    {
+      "type": "meta",
+      "schema": "semantic-map-state/1",
+      "root": "root",
+      "title": "EV atlas B"
+    },
+    {
+      "type": "region",
+      "id": "root",
+      "parent": null,
+      "label": "World",
+      "kind": "boundary",
+      "bounds": [
+        0,
+        0,
+        2400,
+        1600
+      ],
+      "summary": ""
+    },
+    {
+      "type": "region",
+      "id": "canvas",
+      "parent": "root",
+      "label": "図",
+      "kind": "group",
+      "bounds": [
+        0,
+        0,
+        2400,
+        1600
+      ],
+      "summary": ""
+    },
+    {
+      "type": "region",
+      "id": "part-1",
+      "parent": "canvas",
+      "label": "目的",
+      "kind": "step",
+      "bounds": [
+        20,
+        20,
+        140,
+        64
+      ],
+      "summary": "{\"schema\":\"voice-ui.part-description/2\",\"key\":\"ev-4\",\"purpose\":\"the goal being pursued\"}"
+    },
+    {
+      "type": "region",
+      "id": "part-2",
+      "parent": "canvas",
+      "label": "理想状態",
+      "kind": "step",
+      "bounds": [
+        180,
+        20,
+        140,
+        64
+      ],
+      "summary": "{\"schema\":\"voice-ui.part-description/2\",\"key\":\"ev-5\",\"purpose\":\"the target state that satisfies the goal's conditions\"}"
+    },
+    {
+      "type": "region",
+      "id": "part-3",
+      "parent": "canvas",
+      "label": "現状",
+      "kind": "step",
+      "bounds": [
+        340,
+        20,
+        140,
+        64
+      ],
+      "summary": "{\"schema\":\"voice-ui.part-description/2\",\"key\":\"ev-6\",\"purpose\":\"the latest observed state\"}"
+    },
+    {
+      "type": "region",
+      "id": "part-4",
+      "parent": "canvas",
+      "label": "未割当",
+      "kind": "step",
+      "bounds": [
+        500,
+        20,
+        140,
+        64
+      ],
+      "summary": "{\"schema\":\"voice-ui.part-description/2\",\"key\":\"ev-9\",\"purpose\":\"an unmet criterion without an owner\"}"
+    },
+    {
+      "type": "region",
+      "id": "part-5",
+      "parent": "canvas",
+      "label": "旧義務：入力接続を実証する",
+      "kind": "step",
+      "bounds": [
+        660,
+        20,
+        140,
+        64
+      ],
+      "summary": "{\"schema\":\"voice-ui.part-description/2\",\"key\":\"ev-10\",\"purpose\":\"a former obligation kept as history\"}"
+    },
+    {
+      "type": "region",
+      "id": "part-6",
+      "parent": "canvas",
+      "label": "共有UIの利用を閉じる責任",
+      "kind": "step",
+      "bounds": [
+        820,
+        20,
+        140,
+        64
+      ],
+      "summary": "{\"schema\":\"voice-ui.part-description/2\",\"key\":\"ev-11\",\"purpose\":\"a completed responsibility kept as history\"}"
+    },
+    {
+      "type": "region",
+      "id": "part-7",
+      "parent": "canvas",
+      "label": "fixture-W",
+      "kind": "step",
+      "bounds": [
+        980,
+        20,
+        140,
+        64
+      ],
+      "summary": "{\"schema\":\"voice-ui.part-description/2\",\"key\":\"ev-12\",\"purpose\":\"the actor that does the work\"}"
+    },
+    {
+      "type": "region",
+      "id": "part-8",
+      "parent": "canvas",
+      "label": "fixture-independent-R",
+      "kind": "step",
+      "bounds": [
+        1140,
+        20,
+        140,
+        64
+      ],
+      "summary": "{\"schema\":\"voice-ui.part-description/2\",\"key\":\"ev-13\",\"purpose\":\"the actor that evaluates independently\"}"
+    },
+    {
+      "type": "relation",
+      "id": "voice-part-2-to-part-1",
+      "from": "part-2",
+      "to": "part-1",
+      "kind": "flow",
+      "label": ""
+    },
+    {
+      "type": "relation",
+      "id": "voice-part-5-to-part-1",
+      "from": "part-5",
+      "to": "part-1",
+      "kind": "flow",
+      "label": ""
+    },
+    {
+      "type": "relation",
+      "id": "voice-part-6-to-part-2",
+      "from": "part-6",
+      "to": "part-2",
+      "kind": "flow",
+      "label": ""
+    },
+    {
+      "type": "relation",
+      "id": "voice-part-4-to-part-2",
+      "from": "part-4",
+      "to": "part-2",
+      "kind": "flow",
+      "label": ""
+    },
+    {
+      "type": "relation",
+      "id": "voice-part-3-to-part-2",
+      "from": "part-3",
+      "to": "part-2",
+      "kind": "flow",
+      "label": ""
+    },
+    {
+      "type": "relation",
+      "id": "voice-part-7-to-part-6",
+      "from": "part-7",
+      "to": "part-6",
+      "kind": "flow",
+      "label": ""
+    },
+    {
+      "type": "layout",
+      "regionId": "canvas",
+      "pin": "hard",
+      "bounds": [
+        0,
+        0,
+        2400,
+        1600
+      ]
+    },
+    {
+      "type": "layout",
+      "regionId": "part-1",
+      "pin": "hard",
+      "bounds": [
+        12,
+        72,
+        180,
+        92
+      ]
+    },
+    {
+      "type": "layout",
+      "regionId": "part-2",
+      "pin": "hard",
+      "bounds": [
+        216,
+        72,
+        180,
+        92
+      ]
+    },
+    {
+      "type": "layout",
+      "regionId": "part-3",
+      "pin": "hard",
+      "bounds": [
+        420,
+        72,
+        180,
+        92
+      ]
+    },
+    {
+      "type": "layout",
+      "regionId": "part-4",
+      "pin": "hard",
+      "bounds": [
+        624,
+        72,
+        180,
+        92
+      ]
+    },
+    {
+      "type": "layout",
+      "regionId": "part-5",
+      "pin": "hard",
+      "bounds": [
+        828,
+        72,
+        180,
+        92
+      ]
+    },
+    {
+      "type": "layout",
+      "regionId": "part-6",
+      "pin": "hard",
+      "bounds": [
+        1032,
+        72,
+        180,
+        92
+      ]
+    },
+    {
+      "type": "layout",
+      "regionId": "part-7",
+      "pin": "hard",
+      "bounds": [
+        1236,
+        72,
+        180,
+        92
+      ]
+    },
+    {
+      "type": "layout",
+      "regionId": "part-8",
+      "pin": "hard",
+      "bounds": [
+        1440,
+        72,
+        180,
+        92
+      ]
+    }
+  ],
+  "applied_stored_equals_final_log": true,
+  "reload_log_equals_applied": true,
+  "reload_records": [
+    {
+      "type": "meta",
+      "schema": "semantic-map-state/1",
+      "root": "root",
+      "title": "EV atlas B"
+    },
+    {
+      "type": "region",
+      "id": "root",
+      "parent": null,
+      "label": "World",
+      "kind": "boundary",
+      "bounds": [
+        0,
+        0,
+        2400,
+        1600
+      ],
+      "summary": ""
+    },
+    {
+      "type": "region",
+      "id": "canvas",
+      "parent": "root",
+      "label": "図",
+      "kind": "group",
+      "bounds": [
+        0,
+        0,
+        2400,
+        1600
+      ],
+      "summary": ""
+    },
+    {
+      "type": "region",
+      "id": "part-1",
+      "parent": "canvas",
+      "label": "目的",
+      "kind": "step",
+      "bounds": [
+        20,
+        20,
+        140,
+        64
+      ],
+      "summary": "{\"schema\":\"voice-ui.part-description/2\",\"key\":\"ev-4\",\"purpose\":\"the goal being pursued\"}"
+    },
+    {
+      "type": "region",
+      "id": "part-2",
+      "parent": "canvas",
+      "label": "理想状態",
+      "kind": "step",
+      "bounds": [
+        180,
+        20,
+        140,
+        64
+      ],
+      "summary": "{\"schema\":\"voice-ui.part-description/2\",\"key\":\"ev-5\",\"purpose\":\"the target state that satisfies the goal's conditions\"}"
+    },
+    {
+      "type": "region",
+      "id": "part-3",
+      "parent": "canvas",
+      "label": "現状",
+      "kind": "step",
+      "bounds": [
+        340,
+        20,
+        140,
+        64
+      ],
+      "summary": "{\"schema\":\"voice-ui.part-description/2\",\"key\":\"ev-6\",\"purpose\":\"the latest observed state\"}"
+    },
+    {
+      "type": "region",
+      "id": "part-4",
+      "parent": "canvas",
+      "label": "未割当",
+      "kind": "step",
+      "bounds": [
+        500,
+        20,
+        140,
+        64
+      ],
+      "summary": "{\"schema\":\"voice-ui.part-description/2\",\"key\":\"ev-9\",\"purpose\":\"an unmet criterion without an owner\"}"
+    },
+    {
+      "type": "region",
+      "id": "part-5",
+      "parent": "canvas",
+      "label": "旧義務：入力接続を実証する",
+      "kind": "step",
+      "bounds": [
+        660,
+        20,
+        140,
+        64
+      ],
+      "summary": "{\"schema\":\"voice-ui.part-description/2\",\"key\":\"ev-10\",\"purpose\":\"a former obligation kept as history\"}"
+    },
+    {
+      "type": "region",
+      "id": "part-6",
+      "parent": "canvas",
+      "label": "共有UIの利用を閉じる責任",
+      "kind": "step",
+      "bounds": [
+        820,
+        20,
+        140,
+        64
+      ],
+      "summary": "{\"schema\":\"voice-ui.part-description/2\",\"key\":\"ev-11\",\"purpose\":\"a completed responsibility kept as history\"}"
+    },
+    {
+      "type": "region",
+      "id": "part-7",
+      "parent": "canvas",
+      "label": "fixture-W",
+      "kind": "step",
+      "bounds": [
+        980,
+        20,
+        140,
+        64
+      ],
+      "summary": "{\"schema\":\"voice-ui.part-description/2\",\"key\":\"ev-12\",\"purpose\":\"the actor that does the work\"}"
+    },
+    {
+      "type": "region",
+      "id": "part-8",
+      "parent": "canvas",
+      "label": "fixture-independent-R",
+      "kind": "step",
+      "bounds": [
+        1140,
+        20,
+        140,
+        64
+      ],
+      "summary": "{\"schema\":\"voice-ui.part-description/2\",\"key\":\"ev-13\",\"purpose\":\"the actor that evaluates independently\"}"
+    },
+    {
+      "type": "relation",
+      "id": "voice-part-2-to-part-1",
+      "from": "part-2",
+      "to": "part-1",
+      "kind": "flow",
+      "label": ""
+    },
+    {
+      "type": "relation",
+      "id": "voice-part-5-to-part-1",
+      "from": "part-5",
+      "to": "part-1",
+      "kind": "flow",
+      "label": ""
+    },
+    {
+      "type": "relation",
+      "id": "voice-part-6-to-part-2",
+      "from": "part-6",
+      "to": "part-2",
+      "kind": "flow",
+      "label": ""
+    },
+    {
+      "type": "relation",
+      "id": "voice-part-4-to-part-2",
+      "from": "part-4",
+      "to": "part-2",
+      "kind": "flow",
+      "label": ""
+    },
+    {
+      "type": "relation",
+      "id": "voice-part-3-to-part-2",
+      "from": "part-3",
+      "to": "part-2",
+      "kind": "flow",
+      "label": ""
+    },
+    {
+      "type": "relation",
+      "id": "voice-part-7-to-part-6",
+      "from": "part-7",
+      "to": "part-6",
+      "kind": "flow",
+      "label": ""
+    },
+    {
+      "type": "layout",
+      "regionId": "canvas",
+      "pin": "hard",
+      "bounds": [
+        0,
+        0,
+        2400,
+        1600
+      ]
+    },
+    {
+      "type": "layout",
+      "regionId": "part-1",
+      "pin": "hard",
+      "bounds": [
+        12,
+        72,
+        180,
+        92
+      ]
+    },
+    {
+      "type": "layout",
+      "regionId": "part-2",
+      "pin": "hard",
+      "bounds": [
+        216,
+        72,
+        180,
+        92
+      ]
+    },
+    {
+      "type": "layout",
+      "regionId": "part-3",
+      "pin": "hard",
+      "bounds": [
+        420,
+        72,
+        180,
+        92
+      ]
+    },
+    {
+      "type": "layout",
+      "regionId": "part-4",
+      "pin": "hard",
+      "bounds": [
+        624,
+        72,
+        180,
+        92
+      ]
+    },
+    {
+      "type": "layout",
+      "regionId": "part-5",
+      "pin": "hard",
+      "bounds": [
+        828,
+        72,
+        180,
+        92
+      ]
+    },
+    {
+      "type": "layout",
+      "regionId": "part-6",
+      "pin": "hard",
+      "bounds": [
+        1032,
+        72,
+        180,
+        92
+      ]
+    },
+    {
+      "type": "layout",
+      "regionId": "part-7",
+      "pin": "hard",
+      "bounds": [
+        1236,
+        72,
+        180,
+        92
+      ]
+    },
+    {
+      "type": "layout",
+      "regionId": "part-8",
+      "pin": "hard",
+      "bounds": [
+        1440,
+        72,
+        180,
+        92
+      ]
+    }
+  ]
+}
