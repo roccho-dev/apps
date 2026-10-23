@@ -30,6 +30,12 @@ const KINDS = Object.freeze({
   heartbeat: { run: LIFE, tunnel: LIFE, hq_loop: LIFE, reaped: count, rebuilt: count },
   // P's explicit replacement of a record (adrs#647 W c6349826755, R c6349841686): never guessed from text.
   'p.supersede': { replaces: text, by: orNull(text) },
+  // adrs#647 W c6353935020, R c6353944717 (Q14, Q13): a series' current MMD node as P read it — where P read it is
+  // required (a comment or a loop round) — and one capability of a series, its state closed; verified needs evidence.
+  'p.node': { node: text, plan: orNull(v => typeof v === 'string' && /^[A-Za-z0-9._-]+\/[A-Za-z0-9._-]+#[1-9]\d*$/u.test(v)),
+    seen: v => typeof v === 'string' && (/^[A-Za-z0-9._-]+\/[A-Za-z0-9._-]+#[1-9]\d*#c\d+$/u.test(v) || /^round:\S+$/u.test(v)) },
+  'p.capability': { capability: text, state: oneOf('verified', 'tool-only', 'untested', 'failed', 'unknown'),
+    evidence: orNull(v => typeof v === 'string' && (/^[A-Za-z0-9._-]+\/[A-Za-z0-9._-]+#[1-9]\d*(#c\d+)?$/u.test(v) || /^run:\d+$/u.test(v) || /^[0-9a-f]{40}$/u.test(v))) },
 });
 export const P_RECORD_KINDS = Object.freeze(Object.keys(KINDS));
 
@@ -41,7 +47,9 @@ function check(entry, recordedAt) {
   if (typeof entry.id !== 'string' || !ID.test(entry.id)) return 'id';
   if (!iso(entry.at) || Date.parse(entry.at) > Date.parse(recordedAt)) return 'at';
   if (!orNull(text)(entry.series) || !orNull(text)(entry.ref)) return 'value';
-  return Object.entries(own).every(([key, ok]) => ok(entry[key])) ? null : 'value';
+  if (!Object.entries(own).every(([key, ok]) => ok(entry[key]))) return 'value';
+  // No "verified" without its evidence reaches the World (R c6353944717 condition 2).
+  return entry.kind === 'p.capability' && entry.state === 'verified' && entry.evidence === null ? 'evidence' : null;
 }
 
 /**
