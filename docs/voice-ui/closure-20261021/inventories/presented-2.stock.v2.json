@@ -1,0 +1,21 @@
+{
+  "schema": "voice-ui.ev-run.stock/2",
+  "set": "presented-2",
+  "source": "R, from the sealed gold gold/presented-2/gold.json. Labels and kinds as in presented-2.stock.json (v1); v2 adds one R-written purpose per part saying only what the part is or does: no parent, nesting, position, count or relation. v1 served the stub 'a part named <label>', which lowered the product's G0 confidence (apps#94 c6361400842). Oracle-A condition B only (apps#94 c6337290845).",
+  "parts": [
+    { "label": "上段", "kind": "group", "purpose": "a grouping band of services" },
+    { "label": "下の領域", "kind": "group", "purpose": "a grouping area of services" },
+    { "label": "Keystone", "kind": "step", "purpose": "the OpenStack identity service for authentication and service catalog" },
+    { "label": "Ceilometer", "kind": "step", "purpose": "the OpenStack telemetry service that collects usage data" },
+    { "label": "Horizon", "kind": "step", "purpose": "the OpenStack web dashboard" },
+    { "label": "Glance", "kind": "step", "purpose": "the OpenStack image service for virtual machine images" },
+    { "label": "Nova", "kind": "step", "purpose": "the OpenStack compute service that runs virtual machines" },
+    { "label": "Swift", "kind": "step", "purpose": "the OpenStack object storage service" },
+    { "label": "VMs", "kind": "decision", "purpose": "the virtual machines that run workloads" },
+    { "label": "Neutron", "kind": "step", "purpose": "the OpenStack networking service" },
+    { "label": "Cinder", "kind": "step", "purpose": "the OpenStack block storage service" },
+    { "label": "Ironic", "kind": "step", "purpose": "the OpenStack bare-metal provisioning service" },
+    { "label": "Trove", "kind": "step", "purpose": "the OpenStack database-as-a-service" },
+    { "label": "Heat", "kind": "step", "purpose": "the OpenStack orchestration service for templates" }
+  ]
+}
